@@ -13,15 +13,15 @@ propose repo-wide reorganization now.
 3. Source files (*.py and any code): modify ONLY on explicit user request.
    logistello-papers/ is read-only reference material.
 4. Notes and comments in this workspace: English. Replies to the user: Italian.
-5. Every source file brought in gets a note notes/<file>.md: architecture,
-   verified invariants, issues, conventions.
+5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule,
+   D-007): architecture, verified invariants, issues, conventions.
 6. Every decision (including "leave as-is for now") goes to notes/decisions.md
    with date and rationale. Session summary goes to notes/log.md.
 
 ## Layout
 - AGENTS.md — this file; standing instructions only, keep it small
 - NOTES.md — entry point: state, next steps, index (read first)
-- notes/ — board.md · decisions.md · ideas.md · log.md
 - src/ — all Python sources (D-006); src/board.py under development
-  (see notes/board.md)
+- docs/ — code documentation, mirrors src/ (D-007); docs/src/board.md
+- notes/ — collaboration only: decisions.md · ideas.md · log.md
 - logistello-papers/ — user's reference papers (read-only)

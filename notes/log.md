@@ -8,4 +8,6 @@
   (D-001..D-005). `git init` + first commit.
 - Restructured: sources moved to `src/` (D-006); local git identity set to
   `rcrr <rob_corradini@yahoo.it>` per user preference (root commit re-authored).
+- Code docs moved to `docs/` mirroring `src/` (D-007): board.py analysis now
+  at docs/src/board.md; notes/ holds collaboration content only.
 - Next: copy test_board.py; run it; decide fixes for R1–R5.

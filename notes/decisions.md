@@ -37,3 +37,12 @@ D-006 | 2026-08-25 | All Python sources live under `src/` (src layout);
        still open — to be decided when test_board.py arrives (candidates:
        top-level `tests/` or `src/tests/`). All notes must stay consistent
        with this tree.
+
+D-007 | 2026-08-25 | Code documentation lives under `docs/` and mirrors the
+       source tree: `src/X.py` → `docs/src/X.md`. `notes/` keeps only
+       collaboration content (decisions, ideas, log).
+       | docs/ is the universal convention for code documentation, is assumed
+       by doc tooling, and migrates as-is into the restructured repo
+       (I-001). Mirroring keeps the lookup rule trivial as the file count
+       grows. Code knowledge and process journal are different natures and
+       get different homes.
