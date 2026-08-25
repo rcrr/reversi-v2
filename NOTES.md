@@ -24,6 +24,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 
 ## Environment
 - Venv: `.venv/` (gitignored, D-010), Python 3.12.3, created 2026-08-25.
+- Packaging: `pyproject.toml` (setuptools, src layout) with twolm installed
+  editable in .venv (`pip install -e .`, D-011) — `import twolm` works
+  without PYTHONPATH, resolving to src/.
 - Dependencies — minimal set, derived from the actual imports of
   src/twolm/board.py and src/twolm/test/test_board.py (no other
   third-party imports):
@@ -33,21 +36,22 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   - numba 0.67.0 — njit / prange / overload on the hot path (pulls
     llvmlite 0.49.0 as a transitive dependency)
 - Test command (NOT yet run — with Roberto):
-  `PYTHONPATH=./src .venv/bin/python -m unittest twolm.test.test_board`
+  `.venv/bin/python -m unittest twolm.test.test_board`
+  (the old `PYTHONPATH=./src` prefix still works as a fallback)
 
 ## Where we are
 - board.py fully analyzed; 5 real issues + minor ones catalogued
   (docs/src/twolm/board.md). Nothing changed in board.py yet.
 - Sources now live in the `twolm` package under src/ (D-008); board unit
   tests copied into src/twolm/test/ by the user.
-- Environment ready: .venv with the minimal deps (D-010). Tests NOT run
-  yet.
+- Environment ready: .venv with the minimal deps (D-010), twolm installed
+  editable in it (D-011). Tests NOT run yet.
 - Collaboration memory set up: AGENTS.md (auto-injected) + this file + notes/.
   Git repo initialized (D-003).
 
 ## Next steps
-1. Run the test suite (`PYTHONPATH=./src python3 -m unittest
-   twolm.test.test_board`); analyze test_board.py and extend coverage of the
+1. Run the test suite (`.venv/bin/python -m unittest twolm.test.test_board`);
+   analyze test_board.py and extend coverage of the
    fragile points in docs/src/twolm/board.md (esp. R1–R5 and the numba
    overloads).
 2. Decide, issue by issue, what to fix in board.py (start with R1:

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twolm"
+version = "0.1.0"
+description = "Reversi engine (twolm) — modernized from rcrr/reversi"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.0",
+    "pydantic>=2",
+    "numba>=0.60",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

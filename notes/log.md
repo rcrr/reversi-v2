@@ -20,3 +20,6 @@
   .gitignore extended with __pycache__/ and .venv/.
 - Created .venv (Python 3.12.3) + minimal deps: numpy 2.5.2, pydantic
   2.13.4, numba 0.67.0 (D-010). Tests NOT run yet — with Roberto, next.
+- Added pyproject.toml (setuptools, src layout) and installed twolm
+  editable into .venv (D-011): `import twolm` now works without
+  PYTHONPATH (verified from outside the workspace). Tests still NOT run.

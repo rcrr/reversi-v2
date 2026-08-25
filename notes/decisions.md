@@ -74,3 +74,13 @@ D-010 | 2026-08-25 | Virtualenv `.venv/` at the workspace root
        Installed 2026-08-25: numpy 2.5.2, pydantic 2.13.4, numba 0.67.0
        (llvmlite 0.49.0 transitive). Tests are NOT run yet — execution
        happens together with the user.
+
+D-011 | 2026-08-25 | Project packaging: minimal `pyproject.toml` (setuptools,
+       src layout) with twolm installed editable into .venv.
+       | User request ("installa il python .venv"): make the project
+       importable from the venv without PYTHONPATH. Editable install
+       (PEP 660) keeps a single source of truth in src/ — no copies, no
+       reinstall after edits. `dependencies` (numpy>=2.0, pydantic>=2,
+       numba>=0.60) reproduces the D-010 set in a fresh venv. Test command
+       becomes `.venv/bin/python -m unittest twolm.test.test_board` (the
+       old PYTHONPATH=./src invocation still works as a fallback).
