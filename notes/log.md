@@ -14,3 +14,5 @@
   minimal `__init__.py` for twolm and twolm.test; test_board.py copied by the
   user into src/twolm/test/ and committed.
 - Next: run the test suite; analyze test_board.py; decide fixes for R1–R5.
+- Added .gitignore (first entry `.obsidian/`), untracked
+  logistello-papers/.obsidian/ (D-009); working tree clean again.

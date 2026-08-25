@@ -55,3 +55,12 @@ D-008 | 2026-08-25 | Sources live in the `twolm` package under src/
        `python3 -m unittest twolm.test.test_board` (old repo: PYTHONPATH=./py).
        In staging the same invocation uses PYTHONPATH=./src. Both packages
        (twolm, twolm.test) got minimal `__init__.py` scaffolding.
+
+D-009 | 2026-08-25 | Obsidian local vault state (`.obsidian/`) is gitignored
+       at the workspace root; `logistello-papers/.obsidian/` was untracked
+       (files kept on disk).
+       | Obsidian rewrites workspace.json on every open, dirtying the working
+       tree constantly. .gitignore only affects untracked files, so the
+       already-tracked copy had to be untracked (git rm --cached).
+       .gitignore is deliberately minimal for now ("per cominciare"); more
+       entries (e.g. __pycache__/, .venv/) when needed.
