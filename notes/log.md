@@ -16,3 +16,7 @@
 - Next: run the test suite; analyze test_board.py; decide fixes for R1–R5.
 - Added .gitignore (first entry `.obsidian/`), untracked
   logistello-papers/.obsidian/ (D-009); working tree clean again.
+- Removed logistello-papers/.obsidian/ entirely (no longer needed);
+  .gitignore extended with __pycache__/ and .venv/.
+- Created .venv (Python 3.12.3) + minimal deps: numpy 2.5.2, pydantic
+  2.13.4, numba 0.67.0 (D-010). Tests NOT run yet — with Roberto, next.

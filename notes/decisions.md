@@ -64,3 +64,13 @@ D-009 | 2026-08-25 | Obsidian local vault state (`.obsidian/`) is gitignored
        already-tracked copy had to be untracked (git rm --cached).
        .gitignore is deliberately minimal for now ("per cominciare"); more
        entries (e.g. __pycache__/, .venv/) when needed.
+
+D-010 | 2026-08-25 | Virtualenv `.venv/` at the workspace root
+       (gitignored) with the minimal dependency set for the board module:
+       numpy, pydantic, numba.
+       | User choice: only what is necessary, nothing else. The set is
+       derived from the actual third-party imports of src/twolm/board.py
+       and src/twolm/test/test_board.py (none beyond these three).
+       Installed 2026-08-25: numpy 2.5.2, pydantic 2.13.4, numba 0.67.0
+       (llvmlite 0.49.0 transitive). Tests are NOT run yet — execution
+       happens together with the user.

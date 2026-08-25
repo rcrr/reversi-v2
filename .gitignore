@@ -1,2 +1,6 @@
 # Obsidian: local vault/UI state, not project content
 .obsidian/
+
+# Python
+__pycache__/
+.venv/
