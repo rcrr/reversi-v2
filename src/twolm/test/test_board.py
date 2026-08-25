@@ -29,19 +29,15 @@
 #
 # How to use the unit tests board module.
 #
-# Change directory into $(REVERSI_HOME)/c
+# Change directory into $(REVERSI_HOME)
 #
 # -0- Activate the environmeant.
 #
-# $ source py/.reversi_venv/bin/activate
+# $ source .venv/bin/activate
 #
 # -1- Run the tests.
 #
-# time PERF=0 PYTHONPATH="./py" python3 -m unittest twolm.test.test_board
-#
-# -2- In order to execute tests again the REGAB database run:
-#
-# ssh -N -f -L 5432:localhost:5432 username@database.server.local
+# time PERF=0 python3 -m unittest twolm.test.test_board
 #
 
 import unittest
