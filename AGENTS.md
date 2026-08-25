@@ -22,5 +22,6 @@ propose repo-wide reorganization now.
 - AGENTS.md — this file; standing instructions only, keep it small
 - NOTES.md — entry point: state, next steps, index (read first)
 - notes/ — board.md · decisions.md · ideas.md · log.md
-- board.py — source under development (see notes/board.md)
+- src/ — all Python sources (D-006); src/board.py under development
+  (see notes/board.md)
 - logistello-papers/ — user's reference papers (read-only)

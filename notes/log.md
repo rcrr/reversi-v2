@@ -6,4 +6,6 @@
   computation. Catalogued 5 real issues (R1–R5) + minor ones → notes/board.md.
 - Designed and set up the collaboration memory: AGENTS.md + NOTES.md + notes/
   (D-001..D-005). `git init` + first commit.
+- Restructured: sources moved to `src/` (D-006); local git identity set to
+  `rcrr <rob_corradini@yahoo.it>` per user preference (root commit re-authored).
 - Next: copy test_board.py; run it; decide fixes for R1–R5.

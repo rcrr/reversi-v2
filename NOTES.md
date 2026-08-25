@@ -8,7 +8,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Inventory
 | Item | Status | Note |
 |---|---|---|
-| board.py | analyzed 2026-08-25, untouched | notes/board.md |
+| src/board.py | analyzed 2026-08-25, untouched | notes/board.md |
 | test_board.py | NOT YET COPIED (user has tests in the original repo) | pending |
 | logistello-papers/ | reference material, read-only | user's papers |
 

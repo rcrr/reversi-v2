@@ -29,3 +29,11 @@ D-005 | 2026-08-25 | Three-layer memory: AGENTS.md (standing instructions,
        | Makes "read the state first" structural instead of relying on either
        party remembering. AGENTS.md stays small (prompt byte budget applies);
        content lives in NOTES.md/notes/.
+
+D-006 | 2026-08-25 | All Python sources live under `src/` (src layout);
+       never in the project root.
+       | Python best practice: no accidental in-tree imports during tests,
+       clean path to packaging at the later full restructure. Test location
+       still open — to be decided when test_board.py arrives (candidates:
+       top-level `tests/` or `src/tests/`). All notes must stay consistent
+       with this tree.
