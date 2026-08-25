@@ -9,7 +9,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | Item | Status | Note |
 |---|---|---|
 | src/twolm/board.py | analyzed 2026-08-25, untouched | docs/src/twolm/board.md |
-| src/twolm/test/test_board.py | copied 2026-08-25 (user), not yet analyzed | — |
+| src/twolm/test/test_board.py | copied 2026-08-25 (user); suite GREEN 2026-08-25; not yet analyzed | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -35,9 +35,11 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   - pydantic 2.13.4 — @validate_call validation layer
   - numba 0.67.0 — njit / prange / overload on the hot path (pulls
     llvmlite 0.49.0 as a transitive dependency)
-- Test command (NOT yet run — with Roberto):
-  `.venv/bin/python -m unittest twolm.test.test_board`
+- Test command: `.venv/bin/python -m unittest twolm.test.test_board`
   (the old `PYTHONPATH=./src` prefix still works as a fallback)
+- Suite status (2026-08-25): GREEN — 157 tests, 0 failures, 12 skipped
+  (all 12 are PERF=1 performance gates). Warm run ≈ 1.2 s wall
+  (numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
 - board.py fully analyzed; 5 real issues + minor ones catalogued
@@ -45,15 +47,14 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - Sources now live in the `twolm` package under src/ (D-008); board unit
   tests copied into src/twolm/test/ by the user.
 - Environment ready: .venv with the minimal deps (D-010), twolm installed
-  editable in it (D-011). Tests NOT run yet.
+  editable in it (D-011). Suite GREEN (157 tests, 12 PERF skips).
 - Collaboration memory set up: AGENTS.md (auto-injected) + this file + notes/.
   Git repo initialized (D-003).
 
 ## Next steps
-1. Run the test suite (`.venv/bin/python -m unittest twolm.test.test_board`);
-   analyze test_board.py and extend coverage of the
-   fragile points in docs/src/twolm/board.md (esp. R1–R5 and the numba
-   overloads).
+1. Analyze test_board.py (2087 lines) and map its coverage to the fragile
+   points in docs/src/twolm/board.md (esp. R1–R5 and the numba overloads on
+   the pydantic wrappers).
 2. Decide, issue by issue, what to fix in board.py (start with R1:
    `position_make_move` returns `None` on illegal move vs docstring).
 3. Feed notes/ideas.md with Roberto's future-evolution ideas.

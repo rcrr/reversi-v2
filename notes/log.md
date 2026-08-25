@@ -22,4 +22,9 @@
   2.13.4, numba 0.67.0 (D-010). Tests NOT run yet — with Roberto, next.
 - Added pyproject.toml (setuptools, src layout) and installed twolm
   editable into .venv (D-011): `import twolm` now works without
-  PYTHONPATH (verified from outside the workspace). Tests still NOT run.
+  PYTHONPATH (verified from outside the workspace).
+- Ran the test suite (with Roberto): 157 tests OK in ~0.5 s, 0 failures,
+  12 skipped — all 12 are PERF=1 performance gates (8× inherited
+  test_performance_1m from the 8 D8 transformation subclasses + 4
+  standalone perf methods). Numba cache now warm in
+  src/twolm/__pycache__/; warm run ≈ 1.2 s wall.
