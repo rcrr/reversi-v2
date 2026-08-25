@@ -1,7 +1,9 @@
-# notes/board.md — board.py analysis
+# board.py analysis
 
-_Analyzed: 2026-08-25 (session 1). Source: `board.py`, 1380 lines, GPL-3.
-Status: analyzed in depth, untouched. No test suite copied yet._
+_Analyzed: 2026-08-25 (session 1). Source: `src/twolm/board.py` (package
+`twolm`), 1380 lines, GPL-3. Status: analyzed in depth, untouched.
+Test suite: `src/twolm/test/test_board.py` (copied 2026-08-25, not yet
+analyzed or run)._
 
 ## What it is
 The board domain model of the Reversi/Othello engine: squares, bitboards,

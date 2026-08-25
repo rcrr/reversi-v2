@@ -46,3 +46,12 @@ D-007 | 2026-08-25 | Code documentation lives under `docs/` and mirrors the
        (I-001). Mirroring keeps the lookup rule trivial as the file count
        grows. Code knowledge and process journal are different natures and
        get different homes.
+
+D-008 | 2026-08-25 | Sources live in the `twolm` package under src/
+       (src/twolm/); unit tests inside the package at src/twolm/test/
+       (resolves the open test-location item in D-006).
+       | Prescribed by the code itself: test_board.py does
+       `from twolm.board import *` and its header documents
+       `python3 -m unittest twolm.test.test_board` (old repo: PYTHONPATH=./py).
+       In staging the same invocation uses PYTHONPATH=./src. Both packages
+       (twolm, twolm.test) got minimal `__init__.py` scaffolding.

@@ -9,5 +9,8 @@
 - Restructured: sources moved to `src/` (D-006); local git identity set to
   `rcrr <rob_corradini@yahoo.it>` per user preference (root commit re-authored).
 - Code docs moved to `docs/` mirroring `src/` (D-007): board.py analysis now
-  at docs/src/board.md; notes/ holds collaboration content only.
-- Next: copy test_board.py; run it; decide fixes for R1–R5.
+  at docs/src/twolm/board.md; notes/ holds collaboration content only.
+- Sources moved into the `twolm` package (D-008): src/twolm/board.py +
+  minimal `__init__.py` for twolm and twolm.test; test_board.py copied by the
+  user into src/twolm/test/ and committed.
+- Next: run the test suite; analyze test_board.py; decide fixes for R1–R5.

@@ -21,7 +21,8 @@ propose repo-wide reorganization now.
 ## Layout
 - AGENTS.md — this file; standing instructions only, keep it small
 - NOTES.md — entry point: state, next steps, index (read first)
-- src/ — all Python sources (D-006); src/board.py under development
-- docs/ — code documentation, mirrors src/ (D-007); docs/src/board.md
+- src/ — all Python sources (D-006), package `twolm` (D-008):
+  src/twolm/board.py, unit tests in src/twolm/test/
+- docs/ — code documentation, mirrors src/ (D-007); docs/src/twolm/board.md
 - notes/ — collaboration only: decisions.md · ideas.md · log.md
 - logistello-papers/ — user's reference papers (read-only)

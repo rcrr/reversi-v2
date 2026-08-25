@@ -8,8 +8,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Inventory
 | Item | Status | Note |
 |---|---|---|
-| src/board.py | analyzed 2026-08-25, untouched | docs/src/board.md |
-| test_board.py | NOT YET COPIED (user has tests in the original repo) | pending |
+| src/twolm/board.py | analyzed 2026-08-25, untouched | docs/src/twolm/board.md |
+| src/twolm/test/test_board.py | copied 2026-08-25 (user), not yet analyzed | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -24,20 +24,23 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 
 ## Where we are
 - board.py fully analyzed; 5 real issues + minor ones catalogued
-  (docs/src/board.md). Nothing changed in board.py yet.
+  (docs/src/twolm/board.md). Nothing changed in board.py yet.
+- Sources now live in the `twolm` package under src/ (D-008); board unit
+  tests copied into src/twolm/test/ by the user.
 - Collaboration memory set up: AGENTS.md (auto-injected) + this file + notes/.
   Git repo initialized (D-003).
 
 ## Next steps
-1. Copy test_board.py here (location to be decided, see D-006); analyze it,
-   run it, extend coverage of the fragile points in docs/src/board.md
-   (esp. R1–R5 and the numba overloads).
+1. Run the test suite (`PYTHONPATH=./src python3 -m unittest
+   twolm.test.test_board`); analyze test_board.py and extend coverage of the
+   fragile points in docs/src/twolm/board.md (esp. R1–R5 and the numba
+   overloads).
 2. Decide, issue by issue, what to fix in board.py (start with R1:
    `position_make_move` returns `None` on illegal move vs docstring).
 3. Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index
-- docs/src/board.md — board.py analysis (distilled + full review in appendix)
+- docs/src/twolm/board.md — board.py analysis (distilled + full review in appendix)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log.md — session journal
