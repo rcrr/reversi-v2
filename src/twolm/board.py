@@ -376,12 +376,12 @@ def bitboard_bsr(bb: Bitboard) -> int:
     return n.bit_length() - 1
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def bitboard_count(bb: Bitboard) -> int:
+def bitboard_count(bb: Bitboard) -> np.uint8:
     """
     Returns the number of squares in the set.
     """
     bit_count = np.bitwise_count(bb)
-    return int(bit_count)
+    return bit_count
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_print(bb: Bitboard, output: Union[IO, io.StringIO] = sys.stdout) -> None:

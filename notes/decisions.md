@@ -124,21 +124,24 @@ D-014 | 2026-08-26 | D8 board symmetries canonized in notes/naming.md:
        — the same root cause as T08/D-013. Standing records in
        notes/naming.md + AGENTS.md make the concept permanent.
 D-015 | 2026-08-26 | `position_final_value` diff<0 OverflowError fixed;
-`bitboard_count` now returns a true `int` (T22, report §3-D/§8)
+`bitboard_count` annotated `-> np.uint8` (T22, report §3-D/§8)
        | Real bug, found by probe while adding the missing WOFC branch
-       tests: `bitboard_count` was annotated `-> int` but returned
-       `np.uint8` (`np.bitwise_count` result). In `position_final_value`
-       this made `ec = 64 - (mc + oc)` a `np.uint8`, so the `diff < 0`
-       branch (`delta = diff - ec`) raised OverflowError for EVERY
-       position where the opponent leads by at least one disc. The
-       `diff == 0` and `diff > 0` branches were unaffected (their
-       results fit in uint8).
-       | Fix (approved by Roberto, T22): `bitboard_count` returns
-       `int(np.bitwise_count(bb))` — return matches the annotation; no
-       numba impact (no njit/overload references it, only 5 plain
-       Python callers). In `position_final_value`: `ec = 64 - int(mc +
-       oc)` (Roberto's form; the explicit int guards a future
-       vectorization, since mc+oc <= 64 always). Added the 3 missing
-       WOFC branch tests (draw 1v1 -> 0; opponent leads 1v8, 55
-       empties -> -62, crashed pre-fix; full board 33v31 -> 2). Suite
-       157 -> 160 tests, GREEN.
+       tests: in `position_final_value`, `ec = 64 - (mc + oc)` was
+       computed with np.uint8 operands (`bitboard_count` returns the raw
+       `np.bitwise_count` result), so the `diff < 0` branch
+       (`delta = diff - ec`) raised OverflowError for EVERY position
+       where the opponent leads by at least one disc. The `diff == 0`
+       and `diff > 0` branches were unaffected (their results fit in
+       uint8).
+       | Fix (approved by Roberto, T22): `position_final_value` uses
+       `ec = 64 - int(mc + oc)` (Roberto's form; the explicit int guards
+       the arithmetic — mc+oc <= 64 always, so it stays safe under a
+       future vectorization). `bitboard_count` keeps returning the raw
+       `np.uint8` (no behavior change); its annotation was corrected
+       from `-> int` to `-> np.uint8` so the signature is honest. A
+       first T22 commit had converted the return to a Python int; it was
+       reverted per Roberto's clarification. No numba impact (no
+       njit/overload references it, only plain Python callers). Added
+       the 3 missing WOFC branch tests (draw 1v1 -> 0; opponent leads
+       1v8, 55 empties -> -62, crashed pre-fix; full board 33v31 -> 2).
+       Suite 157 -> 160 tests, GREEN.
