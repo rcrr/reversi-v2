@@ -60,3 +60,7 @@
   GREEN: 157/0/12.
 - T02b (report §5.2): same repair in the test_position_flips_bulk debug
   block (second NameError landmine). Suite GREEN: 157/0/12.
+- T03 (report §5.3): test_position_count_difference dead assertion
+  assertEqual(True, True) replaced by assertEqual(diff, -1) — the value is
+  now pinned (1 mover vs 2 opponent discs). P0 phase complete: all 3
+  suite-breaking defects fixed. Suite GREEN: 157/0/12.

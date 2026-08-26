@@ -1796,7 +1796,7 @@ class TestPositionCountDifference(unittest.TestCase):
         opponent = Bitboard(0x0000000000000006)
         position = make_position(mover, opponent)
         diff = position_count_difference(position)
-        self.assertEqual(True, True)
+        self.assertEqual(diff, -1)
 
 class TestPositionFinalValue(unittest.TestCase):
     
