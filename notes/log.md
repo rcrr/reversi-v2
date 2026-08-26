@@ -47,3 +47,11 @@
   on error branches / D8 group laws / numba surface / endgame scoring;
   bitboard_to_string_list has zero tests; 1 broken test + 2 NameError
   landmines + 1 dead assertion in the file itself.
+
+## 2026-08-26 — session 1
+- Granular fix campaign started (one atomic change per report item:
+  confirm → full suite → commit; plan approved with the user).
+- T01 (report §5.1): repaired test_wrong_array_raises_value_error — the
+  2-D array is now actually passed to bitboard_from_signed_int; the ndim
+  branch (board.py:285-286) is pinned for the first time. Suite GREEN:
+  157 tests, 0 failures, 12 PERF skips.

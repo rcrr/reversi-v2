@@ -283,9 +283,9 @@ class TestBitboardFromSignedInt(unittest.TestCase):
 
     def test_wrong_array_raises_value_error(self):
         """Should reject arrays with more than one dimension."""
+        i = np.array([[0, 1], [3, 7]], dtype=np.int64)
         with self.assertRaises(ValueError):
-            i = np.array([[0, 1], [3, 7]], dtype=np.int64)
-            bitboard_from_signed_int(-1)
+            bitboard_from_signed_int(i)
 
 class TestBitboardToSignedInt(unittest.TestCase):
 
