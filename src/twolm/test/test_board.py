@@ -1172,7 +1172,7 @@ class TestPositionEmpties(unittest.TestCase):
         p = make_position(mover, opponent)
         self.assertEqual(position_empties(p), Bitboard(0x0000000000000000))
 
-    def test_position_eq_wrong_type(self):
+    def test_position_empties_wrong_type(self):
 
         with self.assertRaises(ValidationError):
             position_empties(None)

@@ -64,3 +64,7 @@
   assertEqual(True, True) replaced by assertEqual(diff, -1) — the value is
   now pinned (1 mover vs 2 opponent discs). P0 phase complete: all 3
   suite-breaking defects fixed. Suite GREEN: 157/0/12.
+- T04 (report §5.4): renamed TestPositionEmpties.test_position_eq_wrong_type
+  to test_position_empties_wrong_type (body tests position_empties(None);
+  the name collided with the correctly named twin in TestPositionEq).
+  Suite GREEN: 157/0/12.
