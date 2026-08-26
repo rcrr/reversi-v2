@@ -17,3 +17,11 @@ I-003 | idea | Named move constants (MOVE_PASS=64, MOVE_NOT_AVAILABLE=65,
 
 I-004 | idea | (placeholder — Roberto's future-evolution ideas go here as
        they come up)
+
+I-005 | idea | Next session starts a NEW module (Roberto, 2026-08-26).
+       Target module to be chosen with Roberto. Candidate: a game-loop
+       module (start position, turn/pass/game-over rules, history) —
+       board.py is proven a complete game kernel by the 200-game random
+       simulation of 2026-08-26; the loop itself is ~25 lines on top of
+       the public API. Other candidate: the next source file of the
+       original repo (file-by-file modernization).

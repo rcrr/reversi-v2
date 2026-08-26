@@ -8,8 +8,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Inventory
 | Item | Status | Note |
 |---|---|---|
-| src/twolm/board.py | analyzed 2026-08-25, untouched | docs/src/twolm/board.md |
-| src/twolm/test/test_board.py | analyzed 2026-08-25, untouched; suite GREEN 2026-08-25 | docs/src/twolm/test/test_board.md |
+| src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
+| src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -41,36 +41,30 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
     llvmlite 0.49.0 as a transitive dependency)
 - Test command: `.venv/bin/python -m unittest twolm.test.test_board`
   (the old `PYTHONPATH=./src` prefix still works as a fallback)
-- Suite status (2026-08-25): GREEN — 157 tests, 0 failures, 12 skipped
-  (all 12 are PERF=1 performance gates). Warm run ≈ 1.2 s wall
-  (numba cache warm in src/twolm/__pycache__/).
+- Suite status (2026-08-26, post-campaign): GREEN — 193 tests, 0
+  failures, 12 skipped (all 12 are PERF=1 performance gates). Warm run
+  ≈ 0.5 s wall (numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
-- board.py fully analyzed; 5 real issues + minor ones catalogued
-  (docs/src/twolm/board.md). Nothing changed in board.py yet.
-- test_board.py fully analyzed; 11 test-file defects + 10 systemic
-  gaps catalogued, R1–R5 status mapped, completeness verdict written
-  (docs/src/twolm/test/test_board.md). Nothing changed in the test
-  file yet (D-012).
-- Sources now live in the `twolm` package under src/ (D-008); board unit
-  tests copied into src/twolm/test/ by the user.
-- Environment ready: .venv with the minimal deps (D-010), twolm installed
-  editable in it (D-011). Suite GREEN (157 tests, 12 PERF skips).
-- Collaboration memory set up: AGENTS.md (auto-injected) + this file + notes/.
-  Git repo initialized (D-003).
+- board.py fully analyzed (docs/src/twolm/board.md); test_board.py fully
+  analyzed (docs/src/twolm/test/test_board.md).
+- Fix campaign COMPLETE (2026-08-26): all P0 + P1 items, R1 (T36/T37,
+  D-017), R3 (T38, D-018), and the full P2 batch (T26–T35, one commit,
+  Roberto's explicit "Facciamoli tutti, un solo commit"). Suite grew
+  157 → 193 tests, stayed GREEN throughout. Journal: notes/log.md;
+  decisions: notes/decisions.md (D-001…D-018).
+- R4/R5 remain doc-status only (no code action agreed).
+- Sources live in the `twolm` package under src/ (D-008); board unit
+  tests in src/twolm/test/. Environment: .venv with the minimal deps
+  (D-010), twolm installed editable (D-011). Git repo on master (D-003).
+- Collaboration memory: AGENTS.md (auto-injected) + this file + notes/.
 
 ## Next steps
-Fix campaign in progress (plan approved 2026-08-26; one atomic change per
-report item: confirm → edit → full suite → commit; journal: notes/log.md).
-- Done: T01–T07 (report §5.1–§5.7), 7 commits, suite stays GREEN 157/0/12.
-- T08 (§5.8) REJECTED by user (D-013): the 8 header constants are correct
-  as-is; the report's "transposed" finding imported chess file/rank
-  vocabulary. No code change.
-- Next: T09 (§5.9 bsr docstring) → T10 (§5.10 R3 comment) → T11 (§5.11
-  Square→Move) → T12–T20 (board.py docstrings/comments, 1 commit each;
-  T16 diagram fixes must be re-verified against the pinned test values) →
-  T21–T25d (P1) → T36/T37 (R1 decision + implementation) → T26–T35 (P2,
-  optional). T38 (R3 decision) open.
+- Campaign closed (suite GREEN 193/0/12). Next session: start a NEW
+  module (Roberto's plan; I-005) — module to be chosen with Roberto:
+  game-loop module (board.py is proven a complete game kernel, 2026-08-26)
+  or the next source file of the original repo. R4/R5 remain doc-status
+  only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index

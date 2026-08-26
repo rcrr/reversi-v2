@@ -238,3 +238,17 @@
   no flips, otherwise make_position(o & ~flips, m | flips | move) —
   formula verified over all 42 rows by probe. Suite GREEN: 193/0/12
   (167 baseline + 26 new tests).
+- Gameplay verification (Roberto: "can the board be used for Reversi
+  gameplay?"): throwaway probe (kept at /tmp/play_reversi_probe.py)
+  played 200 full random games using ONLY the board public API —
+  standard start (mover = d5|e4, opponent = d4|e5; note the center
+  block is columns d/e, the first draft wrongly used a/d and was
+  caught by the 4-legal-moves assertion), random legal moves, PA
+  passes, WOF final value. All invariants held at every node: no
+  overlap, disc count non-decreasing, PA legal iff no legal move
+  (T38 contract), position_final_value == independent WOF
+  computation. 196 games ended full board (59-60 moves), 4 by double
+  pass. Verdict: board.py is a complete game kernel; the game loop
+  (start position, pass/game-over rules, history) belongs to a
+  separate module. No workspace files touched by the probe.
+- Session closed (Roberto). Next session: start a NEW module.
