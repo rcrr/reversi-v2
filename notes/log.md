@@ -82,3 +82,7 @@
   the code was right). Naming convention recorded canonically in
   notes/naming.md + AGENTS.md standing rule + NOTES.md pointer (D-013).
   No code change; suite state unchanged (GREEN 157/0/12 at a0d79ea).
+- T09 (report §5.9): test_scalar_bsr_high_bits — stale "np.int8" claim
+  replaced by "int" in the docstring and the type-assert comment (the
+  function is annotated -> int, board.py:363, and the assertions use
+  int; np.int8 no longer exists in NumPy 2.x). Suite GREEN: 157/0/12.

@@ -412,7 +412,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
 class TestBitboardBsr(unittest.TestCase):
 
     def test_scalar_bsr_high_bits(self):
-        """Should precisely identify highest bits near the 64-bit boundary and return np.int8."""
+        """Should precisely identify highest bits near the 64-bit boundary and return int."""
         # Test extreme and standard values
         res_0 = bitboard_bsr(Bitboard(0))
         res_1 = bitboard_bsr(Bitboard(1))
@@ -429,7 +429,7 @@ class TestBitboardBsr(unittest.TestCase):
         self.assertEqual(res_63, 63)
         self.assertEqual(res_max, 63)
 
-        # Verify output type is strictly np.int8
+        # Verify output type is strictly int
         self.assertIsInstance(res_0, int)
         self.assertIsInstance(res_max, int)
 
