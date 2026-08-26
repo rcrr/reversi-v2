@@ -352,7 +352,8 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
         raise ValueError("All hex strings in the array must be exactly 16 characters long")
 
     # 2. Vectorize the 'int(x, 16)' base conversion function
-    # np.frompyfunc converts a standard Python function into an optimized C-level loop
+    # np.frompyfunc wraps the Python callable in a ufunc that applies it
+    # element-wise (one Python call per element, not a C-level loop)
     # Arguments: (function, number_of_inputs, number_of_outputs)
     vectorized_hex_parser = np.frompyfunc(lambda x: int(x, 16), 1, 1)
 

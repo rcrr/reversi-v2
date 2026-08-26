@@ -127,3 +127,8 @@
   mappings) are now canonized in notes/naming.md (D-014), with a
   standing pointer in AGENTS.md; report §6 annotated. Suite GREEN:
   157/0/12.
+- T17 (report §6): `bitboard_from_hex_str` comment corrected —
+  `np.frompyfunc` wraps the Python callable in a ufunc that applies it
+  element-wise (one Python call per element), not an "optimized
+  C-level loop". Comment-only change; no behaviour change. Suite GREEN:
+  157/0/12.
