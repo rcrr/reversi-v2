@@ -160,3 +160,13 @@
   matches the implementation's output), plus a pinning assertion. The 8
   composition identities now check against an independent constant.
   Suite GREEN: 157/0/12.
+- T22 (report §3-D/§8 P1): VERO BUG found and fixed — position_final_value
+  diff<0 branch (opponent ahead) always raised OverflowError:
+  bitboard_count returned np.uint8 despite its -> int annotation, so
+  ec = 64 - (mc + oc) was uint8 and "diff - ec" overflowed on negative
+  diffs. Fix (per Roberto): bitboard_count now returns int(np.bitwise_count)
+  (annotation finally matches; no njit caller affected) and
+  ec = 64 - int(mc + oc). Added the 3 missing WOFC branch tests:
+  draw (1v1 -> 0), opponent leads (1v8, 55 empties -> -62, crashed
+  pre-fix), full board (33v31, 0 empties -> 2). Probed: old 8v1 case
+  still 62. Suite GREEN: 160/0/12.

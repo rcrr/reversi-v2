@@ -1821,6 +1821,30 @@ class TestPositionFinalValue(unittest.TestCase):
         expected_value = 62
         self.assertEqual(position_final_value(position), expected_value)
 
+    def test_position_final_value_draw(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        position = make_position(mover, opponent)
+        expected_value = 0
+        self.assertEqual(position_final_value(position), expected_value)
+
+    def test_position_final_value_opponent_leads(self):
+
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0xFF00000000000000)
+        position = make_position(mover, opponent)
+        expected_value = -62
+        self.assertEqual(position_final_value(position), expected_value)
+
+    def test_position_final_value_full_board(self):
+
+        mover = Bitboard(0x00000001FFFFFFFF)
+        opponent = Bitboard(0xFFFFFFFFFFFF8000)
+        position = make_position(mover, opponent)
+        expected_value = 2
+        self.assertEqual(position_final_value(position), expected_value)
+
 class TestPositionHasToPass(unittest.TestCase):
     
     def test_position_has_to_pass_false(self):

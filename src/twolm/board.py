@@ -381,7 +381,7 @@ def bitboard_count(bb: Bitboard) -> int:
     Returns the number of squares in the set.
     """
     bit_count = np.bitwise_count(bb)
-    return bit_count
+    return int(bit_count)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_print(bb: Bitboard, output: Union[IO, io.StringIO] = sys.stdout) -> None:
@@ -1240,7 +1240,7 @@ def position_final_value(p: PositionField) -> int:
     oc = bitboard_count(p['opponent'])
     diff = int(mc) - int(oc)
     if diff == 0: return 0
-    ec = 64 - (mc + oc)
+    ec = 64 - int(mc + oc)
     if diff > 0:
         delta = diff + ec
     else:
