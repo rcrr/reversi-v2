@@ -187,3 +187,12 @@
   (approved by Roberto — the suite's non-coercion pins depend on v2
   semantics; a major bump must fail loudly, a 2.x upgrade must not
   break the suite). Suite GREEN: 163/0/12.
+- T25 (report §7.3.1 / §8 P1): added the four legal_moves error-
+  branch tests: bare Python int -> ValidationError; shape mismatch ->
+  ValueError (message pinned); non-uint64 array -> ValidationError
+  (rejected by the BitboardArray BeforeValidator, not by the dispatch);
+  mixed scalar/array -> TypeError (message pinned). Probe-verified all
+  four on pydantic 2.13.4. Per Roberto: the dispatch dtype branch
+  (TypeError "The dtype of mover and opponent arrays must be
+  Bitboard.") was confirmed unreachable and REMOVED from board.py —
+  see D-016. Suite GREEN: 167/0/12.

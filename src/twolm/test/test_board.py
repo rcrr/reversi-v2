@@ -1487,6 +1487,36 @@ class TestPositionLegalMoves(unittest.TestCase):
         expected_lms = np.full(size, 0x8000000000000000, dtype=Bitboard)
         nptest.assert_array_equal(lms, expected_lms)
 
+    def test_legal_moves_wrong_scalar_type_raises_validation_error(self):
+
+        with self.assertRaises(ValidationError):
+            legal_moves(4611717676283199524, Bitboard(0x0040201008040200))
+
+    def test_legal_moves_shape_mismatch_raises_value_error(self):
+
+        movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=Bitboard)
+        opponents = np.array([0x0040201008040200, 0x0080402010080402, 0x0000000000000000], dtype=Bitboard)
+        with self.assertRaises(ValueError) as ctx:
+            legal_moves(movers, opponents)
+        self.assertEqual(str(ctx.exception), "The shapes of mover and opponent arrays must be the same.")
+
+    def test_legal_moves_wrong_array_dtype_raises_validation_error(self):
+
+        # A non-uint64 array is rejected by the BitboardArray
+        # BeforeValidator before the dispatch is ever reached.
+        movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=np.int32)
+        opponents = np.array([0x0040201008040200, 0x0080402010080402], dtype=Bitboard)
+        with self.assertRaises(ValidationError) as ctx:
+            legal_moves(movers, opponents)
+        self.assertIn("Array dtype must be uint64, got int32", str(ctx.exception))
+
+    def test_legal_moves_mixed_scalar_array_raises_type_error(self):
+
+        movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=Bitboard)
+        with self.assertRaises(TypeError) as ctx:
+            legal_moves(Bitboard(0x0000000000000001), movers)
+        self.assertEqual(str(ctx.exception), "Inputs must be either both Bitboard or both npt.NDArray[Bitboard].")
+
 class TestPositionCollisions(unittest.TestCase):
 
     def test_position_collisions_scalar(self):

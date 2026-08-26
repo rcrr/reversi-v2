@@ -1082,10 +1082,6 @@ def legal_moves(mover: Bitboard | BitboardArray,
         if mover.shape != opponent.shape:
             raise ValueError("The shapes of mover and opponent arrays must be the same.")
         
-        # Ensure the dtype of the arrays is Bitboard
-        if mover.dtype != Bitboard or opponent.dtype != Bitboard:
-            raise TypeError("The dtype of mover and opponent arrays must be Bitboard.")
-        
         # Call the vectorized function directly
         return _vectorized_legal_moves(mover, opponent)
     else:

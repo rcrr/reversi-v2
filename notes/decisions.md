@@ -145,3 +145,24 @@ D-015 | 2026-08-26 | `position_final_value` diff<0 OverflowError fixed;
        the 3 missing WOFC branch tests (draw 1v1 -> 0; opponent leads
        1v8, 55 empties -> -62, crashed pre-fix; full board 33v31 -> 2).
        Suite 157 -> 160 tests, GREEN.
+D-016 | 2026-08-26 | `legal_moves` dispatch dtype branch is dead code —
+       removed (T25, report §7.3.1)
+       | Probe-verified: the `raise TypeError("The dtype of mover and
+       opponent arrays must be Bitboard.")` branch of `legal_moves` is
+       unreachable. Both arguments are annotated `Bitboard |
+       BitboardArray` and `BitboardArray` carries a `BeforeValidator`
+       (`validate_bitboard_array`) that rejects any ndarray whose dtype
+       is not uint64 before the dispatch runs, so inside the array
+       branch both dtypes are always uint64. The "dtype mismatch"
+       input therefore surfaces as a pydantic ValidationError ("Array
+       dtype must be uint64, got ..."), not as the dispatch TypeError
+       that the report (test_board.md, Area C dispatch contract)
+       describes. Approved by Roberto (T25): the dead branch was
+       removed from the code; the guard's intent is now carried by the
+       `BitboardArray` annotation itself. Note: reachability depends on
+       that annotation — re-annotating `legal_moves` with a bare
+       `npt.NDArray` would make the guard reachable again. Added the
+       four error-branch tests (bare Python int -> ValidationError;
+       shape mismatch -> ValueError, message pinned; non-uint64 array
+       -> ValidationError; mixed scalar/array -> TypeError, message
+       pinned). Suite 163 -> 167 tests, GREEN.
