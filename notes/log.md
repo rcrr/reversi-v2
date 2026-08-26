@@ -58,3 +58,5 @@
 - T02a (report §5.2): test_legal_moves_bulk debug block — undefined
   b.print() replaced by position_print(p) per user preference. Suite
   GREEN: 157/0/12.
+- T02b (report §5.2): same repair in the test_position_flips_bulk debug
+  block (second NameError landmine). Suite GREEN: 157/0/12.

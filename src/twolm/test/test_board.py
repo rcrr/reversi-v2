@@ -1719,8 +1719,8 @@ class TestPositionFlips(unittest.TestCase):
             if flips != ef:
                 print("\nTest fails, computed and expected flips differ.".format())
                 print("Error on data line n. {}".format(i))
-                print("Board:")
-                b.print()
+                print("Position:")
+                position_print(p)
                 print("Move:")
                 m.print()
                 print("Computed flips:")
