@@ -24,7 +24,11 @@ left→right) and **row** (1–8, top→bottom) — never "file"/"rank". Square
 name: column letter then row number. A1 = top-left (N-W) = bit 0 (LSB);
 H8 = bottom-right (S-E) = bit 63 (MSB). row_1 = [A1..H1];
 column_a = [A1..A8]. (Set 2026-08-26, D-013: the code follows this
-convention; do not "fix" names toward chess vocabulary.)
+convention; do not "fix" names toward chess vocabulary.) The eight D8
+board symmetries (names, fixed slot order, anti-transformations, corner
+mappings) are canonized in notes/naming.md (D-014): the order is
+arbitrary but fixed — do not reorder or rename. Board diagrams always
+read row 1 on top, column a on the left.
 
 ## Layout
 - AGENTS.md — this file; standing instructions only, keep it small

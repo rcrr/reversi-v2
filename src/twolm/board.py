@@ -734,7 +734,7 @@ def _numba_fvert_array_impl(arr):
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
-    Returns the bitboard, or the array of bitboards, as it is (rotaded by zero degree).
+    Returns the bitboard, or the array of bitboards, as it is (rotated by zero degree).
     Conceptually it applies a rotation of zero degrees.
     It is the identity transformation.
         

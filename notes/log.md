@@ -115,3 +115,15 @@
   {__move_max_value__ - 1} in both scalar and array variants (no test
   pinned it; verified: 66 accepted, 67 rejects with [0..66]).
   Suite GREEN: 157/0/12.
+- T16 (report §6): resolved — findings (a)–(d) (diagrams swapped /
+  wrong cells) REFUTED by independent cell-by-cell re-verification
+  against the compiled code: all six D8 diagrams match the code, and
+  single-square probes confirm each function implements the symmetry
+  its name promises under the canonical convention (row 1 top, column
+  a left); the false verdicts read the diagrams under a non-canonical
+  convention (root cause same as T08/D-013). Only the "rotaded" typo
+  stood: fixed in the ro000 docstring. Per Roberto, the 8 D8
+  symmetries (names, fixed slot order, anti-transformations, corner
+  mappings) are now canonized in notes/naming.md (D-014), with a
+  standing pointer in AGENTS.md; report §6 annotated. Suite GREEN:
+  157/0/12.

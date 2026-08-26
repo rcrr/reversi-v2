@@ -468,6 +468,15 @@ Test data is consistent with the **code**, not with several docstrings
   `ro270` diagram has one wrong cell (f4 vs true g4); `ro180` diagram
   has 5 wrong cells (b-file drawn in the f-file instead of the g-file);
   `ro000` typo "rotaded". Test data agrees with the code in all cases.
+  **REFUTED 2026-08-26 (D-014):** cell-by-cell re-verification against
+  the compiled code (T16): all six D8 diagrams and the single-square
+  mapping texts match the code exactly, and the code implements exactly
+  the symmetry each name promises under the canonical convention (row 1
+  on top, column a on the left). Findings (a)–(d) above read the
+  diagrams under a non-canonical convention (same root cause as T08/
+  D-013). Only the "rotaded" typo stood; fixed in board.py. Canonical
+  D8 reference (names, fixed slot order, anti-transformations, corner
+  mappings): notes/naming.md.
 - `bitboard_from_hex_str` comment (board.py:353) calls `np.frompyfunc`
   an "optimized C-level loop"; it is a Python-level object loop.
 - `position_empties` docstring "Works on scalar and 1D array inputs" vs
@@ -613,8 +622,9 @@ require an explicit request)
   `position_print` variants; updated-position assertions in
   `test_position_flips_bulk`; rename the transposed header constants
   (REJECTED 2026-08-26, D-013 — constants are correct as-is, see
-  notes/naming.md) and the docstring diagrams in board.py (T16, to be
-  re-verified against the pinned test values before applying).
+  notes/naming.md) and the docstring diagrams in board.py (T16,
+  resolved 2026-08-26: refuted by cell-by-cell re-verification except
+  the typo, D-014).
 
 ## Appendix — class map
 

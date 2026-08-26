@@ -105,3 +105,21 @@ D-013 | 2026-08-26 | T08 (report §5.8) REJECTED: the 8 header constants in
        canonical convention is now recorded in notes/naming.md, with a
        standing rule in AGENTS.md and a pointer in NOTES.md, so the
        vocabulary error cannot recur in future sessions.
+
+D-014 | 2026-08-26 | D8 board symmetries canonized in notes/naming.md:
+       the 8 names, the fixed slot order [ro000, ro090, ro180, ro270,
+       fvert, fh1a8, fhori, fa1h8], the anti-transformation order
+       [ro000, ro270, ro180, ro090, fvert, fh1a8, fhori, fa1h8], and
+       the four-corner mapping of each symmetry. T16 (report §6)
+       resolved: findings (a)–(d) (diagrams swapped / wrong cells) are
+       REFUTED by cell-by-cell re-verification against the compiled
+       code — code, tests, and docstring diagrams agree; only the
+       "rotaded" typo stood and was fixed (ro000 docstring).
+       | Roberto (2026-08-26): the eight transformations are a
+       geometric/algebraic property of the board; their order is
+       arbitrary and he fixed it; for every slot, transformation ∘
+       anti-transformation = identity (rotations pair, reflections are
+       self-inverse). The false diagram verdicts stem from reading the
+       diagrams under a non-canonical convention (row 1 at the bottom)
+       — the same root cause as T08/D-013. Standing records in
+       notes/naming.md + AGENTS.md make the concept permanent.
