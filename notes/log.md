@@ -86,3 +86,7 @@
   replaced by "int" in the docstring and the type-assert comment (the
   function is annotated -> int, board.py:363, and the assertions use
   int; np.int8 no longer exists in NumPy 2.x). Suite GREEN: 157/0/12.
+- T10 (report §5.10): documented the pinned uint64 shift wrap (code
+  >= 64 → 0, NumPy 2.5.2) in test_square_as_bitboard and
+  test_move_as_bitboard with a reference to open decision R3
+  (docs/src/twolm/board.md, I-003). Comments only; suite GREEN: 157/0/12.

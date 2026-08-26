@@ -124,6 +124,10 @@ class TestSquare(unittest.TestCase):
         expected = Bitboard(0x8000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
         sq = Square(64)
+        # Code 64 is out of the square range: square_as_bitboard computes
+        # Bitboard(1) << sq, and NumPy wraps a uint64 shift by >= 64 to 0.
+        # This assertion pins that wrap as-is; making it explicit in the
+        # code is open decision R3 (docs/src/twolm/board.md, I-003).
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
 
@@ -198,6 +202,10 @@ class TestMove(unittest.TestCase):
         mo = Move(63)
         expected = Bitboard(0x8000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
+        # PA/NA/UN (codes 64-66) are not squares: move_as_bitboard computes
+        # Bitboard(1) << mo, and NumPy wraps a uint64 shift by >= 64 to 0.
+        # These assertions pin that wrap as-is; making it explicit in the
+        # code is open decision R3 (docs/src/twolm/board.md, I-003).
         mo = move_from_str('PA')
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
