@@ -71,3 +71,6 @@
 - T05 (report §5.5): removed the 8 identical dead if-False debug blocks in
   TestPositionTrFunctions (one per position_* transformation test).
   Suite GREEN: 157/0/12.
+- T06 (report §5.6): rewrote the stale PERF-fallback comment in
+  test_performance_1m — the branch keys on len(self.test_data) > 2, not on
+  unbound globals as the old text claimed. Suite GREEN: 157/0/12.

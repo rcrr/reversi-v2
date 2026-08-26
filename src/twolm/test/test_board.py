@@ -585,7 +585,9 @@ class BaseBitboardTransformationTest:
     def test_performance_1m(self):
         """Measure operations speed on a dense 1,000,000 matrix sequence."""
         size = 1_000_000
-        # Fallback to a standard matrix if global variable constants like 'sqa1' aren't bound in context
+        # Seed the dense input with the third paired case's input
+        # (a single square in every current subclass); the Bitboard(1)
+        # fallback only fires for subclasses with fewer than 3 cases.
         fallback_seed = self.test_data[2][0] if len(self.test_data) > 2 else Bitboard(1)
         input_vector = np.full(size, fallback_seed, dtype=Bitboard)
         
