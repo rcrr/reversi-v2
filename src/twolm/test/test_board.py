@@ -1900,97 +1900,41 @@ class TestPositionTrFunctions(unittest.TestCase):
 
     def test_position_fa1h8(self):
         trp = position_fa1h8(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x189C092038211808))
         self.assertEqual(trp['opponent'], Bitboard(0xC06376DE475CA000))
 
     def test_position_fh1a8(self):
         trp = position_fh1a8(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x1018841C04903918))
         self.assertEqual(trp['opponent'], Bitboard(0x00053AE27B6EC603))
 
     def test_position_fhori(self):
         trp = position_fhori(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x240040EBCA1C0040))
         self.assertEqual(trp['opponent'], Bitboard(0x48783C143462FC92))
 
     def test_position_fvert(self):
         trp = position_fvert(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x02003853D7020024))
         self.assertEqual(trp['opponent'], Bitboard(0x493F462C283C1E12))
 
     def test_position_ro000(self):
         trp = position_ro000(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x40001CCAEB400024))
         self.assertEqual(trp['opponent'], Bitboard(0x92FC6234143C7848))
 
     def test_position_ro090(self):
         trp = position_ro090(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x183990041C841810))
         self.assertEqual(trp['opponent'], Bitboard(0x03C66E7BE23A0500))
 
     def test_position_ro180(self):
         trp = position_ro180(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x240002D753380002))
         self.assertEqual(trp['opponent'], Bitboard(0x121E3C282C463F49))
 
     def test_position_ro270(self):
         trp = position_ro270(self.p)
-        if False:
-            print(f"Position:")
-            position_print(self.p)
-            print(f"Transformed:")
-            position_print(trp)
-            print(f"mover:    {trp['mover']:016X}")
-            print(f"opponent: {trp['opponent']:016X}")
         self.assertEqual(trp['mover'], Bitboard(0x0818213820099C18))
         self.assertEqual(trp['opponent'], Bitboard(0x00A05C47DE7663C0))
 

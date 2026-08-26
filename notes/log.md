@@ -68,3 +68,6 @@
   to test_position_empties_wrong_type (body tests position_empties(None);
   the name collided with the correctly named twin in TestPositionEq).
   Suite GREEN: 157/0/12.
+- T05 (report §5.5): removed the 8 identical dead if-False debug blocks in
+  TestPositionTrFunctions (one per position_* transformation test).
+  Suite GREEN: 157/0/12.
