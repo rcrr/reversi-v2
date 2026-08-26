@@ -154,3 +154,9 @@
   PositionField | None]. Annotation-only change; @validate_call does
   not validate return values by default, no behaviour change. Suite
   GREEN: 157/0/12.
+- T21 (report §7/§8 P1): test_fa1h8_compositions de-self-referenced —
+  "expected = bitboard_fa1h8(ar)" (implementation's own output) replaced
+  with the header golden constant ar_reflection_a1h8 (probe-verified:
+  matches the implementation's output), plus a pinning assertion. The 8
+  composition identities now check against an independent constant.
+  Suite GREEN: 157/0/12.

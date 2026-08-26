@@ -491,7 +491,10 @@ class TestBitboardCount(unittest.TestCase):
 class TestBitboardTransformationFa1h8Comp(unittest.TestCase):
 
     def test_fa1h8_compositions(self):
-        expected = bitboard_fa1h8(ar)
+        # Golden constant, independent of the implementation under test:
+        # breaks the self-reference of the previous expected value.
+        expected = ar_reflection_a1h8
+        self.assertEqual(bitboard_fa1h8(ar), expected)
         
         computed = bitboard_fa1h8(bitboard_ro000(ar))
         self.assertEqual(computed, expected)
