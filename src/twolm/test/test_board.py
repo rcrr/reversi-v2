@@ -29,7 +29,7 @@
 #
 # How to use the unit tests board module.
 #
-# Change directory into $(REVERSI_HOME)
+# Run from the workspace root (the directory containing .venv and src).
 #
 # -0- Activate the environmeant.
 #
