@@ -111,6 +111,14 @@ class TestSquare(unittest.TestCase):
         with self.assertRaises(ValueError):
             square_from_str("UN")
 
+    def test_lowercase_names_raise_value_error(self):
+        # The parser is case-sensitive: only canonical uppercase names
+        # are accepted.
+        for name in ('a1', 'a8', 'h8'):
+            with self.assertRaises(ValueError) as ctx:
+                square_from_str(name)
+            self.assertIn("Invalid name: '{}'".format(name), str(ctx.exception))
+
     def test_square_to_str(self):
         sq = Square(0)
         sq_as_str = square_to_str(sq)
@@ -189,6 +197,14 @@ class TestMove(unittest.TestCase):
     def test_invalid_name_raises_value_error(self):
         with self.assertRaises(ValueError):
             move_from_str("NO")
+
+    def test_lowercase_names_raise_value_error(self):
+        # The parser is case-sensitive: only canonical uppercase names
+        # are accepted.
+        for name in ('a1', 'pa', 'un'):
+            with self.assertRaises(ValueError) as ctx:
+                move_from_str(name)
+            self.assertIn("Invalid name: '{}'".format(name), str(ctx.exception))
 
     def test_move_to_str(self):
         mo = Move(64)
@@ -859,6 +875,48 @@ class TestBitboardAntiTransformations(unittest.TestCase):
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
         np.testing.assert_array_equal(computed_vector, expected_vector)
 
+class TestBitboardD8GroupLaw(unittest.TestCase):
+    
+    def _boards(self):
+        # Arbitrary boards: empty, one corner, opposite corners,
+        # checkerboard, the golden reference board, full board.
+        return (
+            Bitboard(0x0000000000000000),
+            Bitboard(0x0000000000000001),
+            Bitboard(0x8000000000000000),
+            Bitboard(0x8000000000000003),
+            Bitboard(0x00FF00FF00FF00FF),
+            ar,
+            Bitboard(0xFFFFFFFFFFFFFFFF),
+        )
+
+    def test_ro000_is_identity_property(self):
+        for bb in self._boards():
+            self.assertEqual(bitboard_ro000(bb), bb)
+
+    def test_ro090_twice_equals_ro180(self):
+        for bb in self._boards():
+            self.assertEqual(bitboard_ro090(bitboard_ro090(bb)), bitboard_ro180(bb))
+
+    def test_ro090_compose_ro270_is_identity(self):
+        for bb in self._boards():
+            self.assertEqual(bitboard_ro090(bitboard_ro270(bb)), bb)
+            self.assertEqual(bitboard_ro270(bitboard_ro090(bb)), bb)
+
+    def test_reflections_are_involutions(self):
+        for bb in self._boards():
+            for f in (bitboard_fvert, bitboard_fh1a8, bitboard_fhori, bitboard_fa1h8):
+                self.assertEqual(f(f(bb)), bb)
+
+    def test_anti_transform_inverts_transform(self):
+        # Slot order is the canonized D8 order (notes/naming.md); the
+        # anti-transformation at slot i is the inverse of the
+        # transformation at slot i.
+        for bb in self._boards():
+            t = bitboard_transformations(bb)
+            for i in range(8):
+                self.assertEqual(bitboard_anti_transformations(t[i])[i], bb)
+
 class TestBitboardToSquareList(unittest.TestCase):
     
     def test_bitboard_to_square_list(self):
@@ -870,6 +928,15 @@ class TestBitboardToSquareList(unittest.TestCase):
 
         bb = Bitboard(0x8000000000000003)
         self.assertTrue(bitboard_to_square_list(bb) == [Square(63), Square(1), Square(0)])
+
+    def test_bitboard_to_square_list_full_board(self):
+        # All 64 squares, descending from h8 (bit 63) to a1 (bit 0).
+        squares = bitboard_to_square_list(Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(len(squares), 64)
+        self.assertEqual(squares[0], Square(63))
+        self.assertEqual(squares[-2], Square(1))
+        self.assertEqual(squares[-1], Square(0))
+        self.assertTrue(all(sq == Square(63 - i) for i, sq in enumerate(squares)))
 
     def test_wrong_type_raises_type_error(self):
         with self.assertRaises(ValidationError):
@@ -903,9 +970,47 @@ class TestBitboardToSquareArray(unittest.TestCase):
         self.assertEqual(ar[1], Square(1))
         self.assertEqual(ar[2], Square(0))
 
+    def test_bitboard_to_square_array_full_board(self):
+        # All 64 squares, descending from h8 (bit 63) to a1 (bit 0).
+        ar = bitboard_to_square_array(Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertIsInstance(ar, np.ndarray)
+        self.assertEqual(ar.shape, (64,))
+        self.assertEqual(ar.dtype, Square)
+        self.assertEqual(ar[0], Square(63))
+        self.assertEqual(ar[-2], Square(1))
+        self.assertEqual(ar[-1], Square(0))
+        self.assertTrue(all(sq == Square(63 - i) for i, sq in enumerate(ar)))
+
     def test_wrong_type_raises_type_error(self):
         with self.assertRaises(ValidationError):
             bitboard_to_square_array('Not the right type')
+
+class TestBitboardToStringList(unittest.TestCase):
+    
+    def test_bitboard_to_string_list(self):
+        self.assertEqual(bitboard_to_string_list(Bitboard(0x0000000000000000)), [])
+
+        self.assertEqual(bitboard_to_string_list(Bitboard(0x0000000000000001)), ['A1'])
+
+        self.assertEqual(
+            bitboard_to_string_list(Bitboard(0x8000000000000003)),
+            ['H8', 'B1', 'A1'],
+        )
+
+    def test_bitboard_to_string_list_full_board(self):
+        # All 64 names, descending from h8 to a1, mirroring
+        # bitboard_to_square_list.
+        names = bitboard_to_string_list(Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(len(names), 64)
+        self.assertEqual(names[0], 'H8')
+        self.assertEqual(names[-2], 'B1')
+        self.assertEqual(names[-1], 'A1')
+        squares = bitboard_to_square_list(Bitboard(0xFFFFFFFFFFFFFFFF))
+        self.assertEqual(names, [square_to_str(sq) for sq in squares])
+
+    def test_wrong_type_raises_type_error(self):
+        with self.assertRaises(ValidationError):
+            bitboard_to_string_list('Not the right type')
 
 class TestPositionCreation(unittest.TestCase):
 
@@ -1138,6 +1243,53 @@ class TestPositionEq(unittest.TestCase):
         with self.assertRaises(ValidationError):
             are_eq = position_eq(pos_a, pos_b)
 
+    def test_position_eq_mover_field_isolation(self):
+        # Only the mover field differs, the opponent field is identical.
+        mover = Bitboard(0x1111111111111111)
+        opponent = Bitboard(0x2222222222222222)
+        pos_a = make_position(mover, opponent)
+        pos_b = make_position(mover ^ Bitboard(1), opponent)
+        self.assertFalse(position_eq(pos_a, pos_b))
+
+    def test_position_eq_opponent_field_isolation(self):
+        # Only the opponent field differs, the mover field is identical.
+        mover = Bitboard(0x1111111111111111)
+        opponent = Bitboard(0x2222222222222222)
+        pos_a = make_position(mover, opponent)
+        pos_b = make_position(mover, opponent ^ Bitboard(1))
+        self.assertFalse(position_eq(pos_a, pos_b))
+
+    def test_position_eq_empty_arrays(self):
+        self.assertTrue(position_eq(make_position([], []), make_position([], [])))
+        self.assertFalse(position_eq(make_position([], []), make_position([Bitboard(1)], [Bitboard(2)])))
+
+    def test_position_eq_different_lengths_no_exception(self):
+        # np.array_equal does not broadcast: arrays of different length
+        # are simply not equal, no exception is raised.
+        one = make_position([Bitboard(1)], [Bitboard(2)])
+        three = make_position([Bitboard(1)] * 3, [Bitboard(2)] * 3)
+        self.assertFalse(position_eq(one, three))
+
+class TestPositionFieldValidation(unittest.TestCase):
+    
+    # PositionField = Annotated[np.void, SkipValidation[Any]] (board.py):
+    # the pydantic gate accepts any np.void, so a void with the wrong
+    # dtype is not rejected by validation but later, at the field access,
+    # by NumPy itself.
+
+    def test_wrong_dtype_void_is_rejected_by_field_access(self):
+        wrong = np.zeros(1, dtype=[('x', 'u4')])[0]
+        self.assertIsInstance(wrong, np.void)
+        with self.assertRaises(ValueError) as ctx:
+            position_empties(wrong)
+        self.assertIn('no field of name mover', str(ctx.exception))
+
+    def test_position_eq_wrong_dtype_void_no_error(self):
+        # position_eq has no field access: identical voids compare equal
+        # even with the wrong dtype.
+        wrong = np.zeros(1, dtype=[('x', 'u4')])[0]
+        self.assertTrue(position_eq(wrong, wrong))
+
 class TestPositionPrint(unittest.TestCase):
 
     def test_position_print_output(self):
@@ -1166,6 +1318,74 @@ class TestPositionPrint(unittest.TestCase):
             actual_output = buffer.getvalue()
             
         self.assertEqual(actual_output, expected_output)
+
+    def test_position_print_default_output_argument(self):
+        # output defaults to the stdout captured at definition time; the
+        # validate_call wrapper bakes it into its schema, so the default
+        # path is pinned through the raw function with its __defaults__
+        # swapped to a buffer.
+        mover = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        p = make_position(mover, opponent)
+
+        buffer = io.StringIO()
+        raw = position_print.__wrapped__
+        saved_defaults = raw.__defaults__
+        raw.__defaults__ = (buffer,)
+        try:
+            raw(p)
+        finally:
+            raw.__defaults__ = saved_defaults
+
+        # The default path must render exactly as the explicit-buffer path.
+        with io.StringIO() as buffer2:
+            position_print(p, output=buffer2)
+            explicit_output = buffer2.getvalue()
+        self.assertEqual(buffer.getvalue(), explicit_output)
+
+    def test_position_print_overlap_precedence(self):
+        # A square held by both mover and opponent is printed as '@':
+        # the mover branch is checked first.
+        p = make_position(Bitboard(0x0000000000000001), Bitboard(0x0000000000000001))
+        with io.StringIO() as buffer:
+            position_print(p, output=buffer)
+            actual_output = buffer.getvalue()
+        expected_output = (
+            '  a b c d e f g h\n'
+            '1 @ . . . . . . .\n'
+            '2 . . . . . . . .\n'
+            '3 . . . . . . . .\n'
+            '4 . . . . . . . .\n'
+            '5 . . . . . . . .\n'
+            '6 . . . . . . . .\n'
+            '7 . . . . . . . .\n'
+            '8 . . . . . . . .\n'
+        )
+        self.assertEqual(actual_output, expected_output)
+
+    def test_position_print_empty_board(self):
+        p = make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000000))
+        with io.StringIO() as buffer:
+            position_print(p, output=buffer)
+            lines = buffer.getvalue().splitlines()
+        self.assertEqual(len(lines), 9)
+        self.assertEqual(lines[0], '  a b c d e f g h')
+        for row, line in enumerate(lines[1:], start=1):
+            self.assertEqual(line, str(row) + ' . . . . . . . .')
+
+    def test_position_print_full_mover_board(self):
+        p = make_position(Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        with io.StringIO() as buffer:
+            position_print(p, output=buffer)
+            lines = buffer.getvalue().splitlines()
+        self.assertEqual(len(lines), 9)
+        for row, line in enumerate(lines[1:], start=1):
+            self.assertEqual(line, str(row) + ' @ @ @ @ @ @ @ @')
+
+    def test_position_print_array_rejected(self):
+        p = make_position(Bitboard(0x0000000000000001), Bitboard(0x0000000000000002))
+        with self.assertRaises(ValidationError):
+            position_print(np.array([p, p], dtype=Position))
 
 class TestPositionEmpties(unittest.TestCase):
 
@@ -1399,6 +1619,8 @@ class TestPositionLegalMoves(unittest.TestCase):
             (0x003078f8eb523810, 0x780c0706142c0400, 0x060300010000420a), # 087
             (0x780c0700142c0400, 0x003078ffeb523810, 0x00c080000081c368), # 088
             (0x002070fae8503810, 0x781c0f05172f0400, 0x0603000000004302), # 089
+            (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x0000000000000000), # 090 full mover board: no empty square, no move
+            (0x0000000000000000, 0xFFFFFFFFFFFFFFFF, 0x0000000000000000), # 091 empty mover vs full opponent board: no move
             (0x78180705172f0400, 0x022478fae8503810, 0x04c2800000804068), # 090
             (0x020458eae0503810, 0x787827151f2f0400, 0x0483000000004306), # 091
             (0x78782511172f0400, 0x02055aeee8503810, 0x058280000080c028), # 092
@@ -1777,6 +1999,18 @@ class TestPositionFlips(unittest.TestCase):
                 ef.print()
             self.assertTrue(flips == ef)
 
+            # The updated position: None when nothing flips, otherwise
+            # the mover places the disc and the flipped squares change
+            # side (roles swapped in the returned position).
+            if expected_flips == 0:
+                self.assertIsNone(updated)
+            else:
+                expected_updated = make_position(
+                    Bitboard(opponent & ~expected_flips),
+                    Bitboard(mover | expected_flips | move),
+                )
+                self.assertTrue(position_eq(updated, expected_updated))
+
 class TestPositionMakeMove(unittest.TestCase):
 
     def test_position_make_move(self):
@@ -1878,6 +2112,30 @@ class TestPositionFinalValue(unittest.TestCase):
         opponent = Bitboard(0xFFFFFFFFFFFF8000)
         position = make_position(mover, opponent)
         expected_value = 2
+        self.assertEqual(position_final_value(position), expected_value)
+
+    def test_position_final_value_disjoint_full_board(self):
+        # Full board without overlap: ec == 0 branch, equal counts.
+        mover = Bitboard(0xFFFFFFFF00000000)
+        opponent = Bitboard(0x00000000FFFFFFFF)
+        position = make_position(mover, opponent)
+        expected_value = 0
+        self.assertEqual(position_final_value(position), expected_value)
+
+    def test_position_final_value_mover_all_squares(self):
+        # Full board owned by the mover: diff == 64, ec == 0.
+        mover = Bitboard(0xFFFFFFFFFFFFFFFF)
+        opponent = Bitboard(0x0000000000000000)
+        position = make_position(mover, opponent)
+        expected_value = 64
+        self.assertEqual(position_final_value(position), expected_value)
+
+    def test_position_final_value_opponent_all_squares(self):
+        # Full board owned by the opponent: diff == -64, ec == 0.
+        mover = Bitboard(0x0000000000000000)
+        opponent = Bitboard(0xFFFFFFFFFFFFFFFF)
+        position = make_position(mover, opponent)
+        expected_value = -64
         self.assertEqual(position_final_value(position), expected_value)
 
 class TestPositionHasToPass(unittest.TestCase):

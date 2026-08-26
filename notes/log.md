@@ -211,3 +211,30 @@
   Style follow-up (Roberto): hoisted the single `lms =
   position_legal_moves(p)` call before the pass branch so it is invoked
   once, not in two positions. Suite GREEN: 167/0/12.
+- T26–T35 (report §7.5 P2): whole P2 batch in ONE commit per Roberto's
+  explicit instruction ("Facciamoli tutti, un solo commit") — sanctioned
+  deviation from the per-item protocol. Test-only, no src changes. Every
+  item probed (executable) before pinning; no src bug found. (1) New
+  TestBitboardD8GroupLaw — identity property, ro090²==ro180,
+  ro090∘ro270==id, reflections involutive, anti∘transform==id per
+  canon slot, over 7 arbitrary boards; (2) new TestBitboardToStringList
+  — empty/single/sparse/full/str-rejection, previously zero tests;
+  (3) full-board inputs — to_square_list/array full (64, descending
+  h8→a1), legal_moves_bulk rows #090/#091 (full mover board, empty vs
+  full → 0 moves), position_final_value disjoint full (0), mover-all
+  (64), opponent-all (-64); (4) lowercase-name rejections pinned for
+  square_from_str and move_from_str (ValueError "Invalid name");
+  (5) new TestPositionFieldValidation — the PositionField
+  SkipValidation hole: a wrong-dtype np.void passes the pydantic gate
+  and is rejected later by NumPy at the field access (ValueError "no
+  field of name mover"); position_eq has no field access, so no error;
+  (6) position_eq per-field isolation (mover-only / opponent-only diff
+  → False), empty arrays, different lengths → unequal, no exception;
+  (7) TestPositionPrint variants — default-stdout path pinned through
+  the raw function's __defaults__ swap (the validate_call wrapper bakes
+  real stdout into its schema), '@' overlap precedence, empty and
+  full-mover boards, array input → ValidationError; (8)
+  test_position_flips_bulk now asserts the updated position: None iff
+  no flips, otherwise make_position(o & ~flips, m | flips | move) —
+  formula verified over all 42 rows by probe. Suite GREEN: 193/0/12
+  (167 baseline + 26 new tests).
