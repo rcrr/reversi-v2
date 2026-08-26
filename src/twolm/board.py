@@ -273,8 +273,10 @@ def move_validate_range(mo: Move | MoveArray) -> None:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | BitboardArray:
     """
-    Returns a new Bitboard from a numpy.int64 value given as argument.
-    Works on scalar and 1D array inputs.
+    Returns the Bitboard (uint64) representation of a numpy.int64 value,
+    by reinterpreting its bits. Works on scalar and 1D array inputs.
+    For array input the result is a zero-copy view: it shares the input's
+    data buffer (mutations on either side are visible on the other).
     """
     
     # Standardize input by checking if it came in as a scalar or an array

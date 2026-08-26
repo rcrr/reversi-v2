@@ -104,3 +104,8 @@
   diagonal h1/a8 are fixed points; the swapped pair is a1↔h8. Verified
   on the executable (fh1a8(A1)=H8, fh1a8(H8)=A1, H1/A8 fixed). Diagrams
   in the same docstring are T16 territory. Suite GREEN: 157/0/12.
+- T14 (report §6): bitboard_from_signed_int docstring said "Returns a
+  new Bitboard" while the array path returns i.view(Bitboard), a
+  zero-copy view sharing the input buffer (pinned by
+  test_numpy_array_shared_memory). Docstring now states the zero-copy
+  contract. Suite GREEN: 157/0/12.
