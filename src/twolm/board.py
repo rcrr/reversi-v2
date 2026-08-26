@@ -568,7 +568,7 @@ def _numba_fa1h8_array_impl(arr):
 def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects a bitboard, or an array of bitboards, on the diagonal h1-a8.
-    Square h1 is mapped to a8 and vice versa.
+    Square a1 is mapped to h8 and vice versa.
         
     .    ---- input ----    ---- output ---
     .

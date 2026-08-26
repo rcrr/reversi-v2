@@ -99,3 +99,8 @@
   board.py:506) and the pinned tests (slot 3 = ar_rotate_90c) say
   ro090. Verified empirically against the executable (all 8 slots
   checked); fixed the label. Suite GREEN: 157/0/12.
+- T13 (report §6): bitboard_fh1a8 docstring axis line — the fa1h8
+  phrase "h1 is mapped to a8" was copy-pasted, but on the h1-a8
+  diagonal h1/a8 are fixed points; the swapped pair is a1↔h8. Verified
+  on the executable (fh1a8(A1)=H8, fh1a8(H8)=A1, H1/A8 fixed). Diagrams
+  in the same docstring are T16 territory. Suite GREEN: 157/0/12.
