@@ -28,3 +28,22 @@
   test_performance_1m from the 8 D8 transformation subclasses + 4
   standalone perf methods). Numba cache now warm in
   src/twolm/__pycache__/; warm run ≈ 1.2 s wall.
+
+## 2026-08-25 — session 2
+- Full analysis of test_board.py (2083 lines) in six passes
+  (A 89–511, B1 512–695, B2 696–891, C1 892–1232, C2 1233–1471,
+  D 1472–2083), each cross-checked line by line against board.py; all
+  expected values re-derived independently — zero mismatches (112 D8
+  primitive pairs, 120 legal-moves rows, orbit slot order, print /
+  empties strings, collision messages).
+- Wrote docs/src/twolm/test/test_board.md: coverage by area (39 TestCase
+  classes + 1 blueprint, 157 methods), verified facts, 11 test-file
+  defects, 8 docstring/behaviour mismatches, completeness analysis
+  (R1–R5 status, 10 systemic gaps, verdict, P0/P1/P2 priorities).
+- Test file untouched — analysis is doc-only, fixes only on explicit
+  request (D-012).
+- Completeness feedback delivered to Roberto (Italian): strong
+  happy-path suite with a solid independently verified value base, thin
+  on error branches / D8 group laws / numba surface / endgame scoring;
+  bitboard_to_string_list has zero tests; 1 broken test + 2 NameError
+  landmines + 1 dead assertion in the file itself.

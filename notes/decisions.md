@@ -84,3 +84,12 @@ D-011 | 2026-08-25 | Project packaging: minimal `pyproject.toml` (setuptools,
        numba>=0.60) reproduces the D-010 set in a fresh venv. Test command
        becomes `.venv/bin/python -m unittest twolm.test.test_board` (the
        old PYTHONPATH=./src invocation still works as a fallback).
+
+D-012 | 2026-08-25 | Test-suite analysis is doc-only: all defects and gaps
+       are catalogued in docs/src/twolm/test/test_board.md; nothing in
+       src/twolm/test/test_board.py is changed.
+       | User scope for this task: analysis + completeness feedback, no
+       fixes. Source/test edits only on explicit request (D-004). The 11
+       defects (incl. one broken 2-D test, two NameError landmines in
+       failure paths, one dead assertion) and the P0/P1/P2 priority list
+       are the ready input for a follow-up fix session.

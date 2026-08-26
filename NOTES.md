@@ -9,7 +9,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | Item | Status | Note |
 |---|---|---|
 | src/twolm/board.py | analyzed 2026-08-25, untouched | docs/src/twolm/board.md |
-| src/twolm/test/test_board.py | copied 2026-08-25 (user); suite GREEN 2026-08-25; not yet analyzed | — |
+| src/twolm/test/test_board.py | analyzed 2026-08-25, untouched; suite GREEN 2026-08-25 | docs/src/twolm/test/test_board.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -44,6 +44,10 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Where we are
 - board.py fully analyzed; 5 real issues + minor ones catalogued
   (docs/src/twolm/board.md). Nothing changed in board.py yet.
+- test_board.py fully analyzed; 11 test-file defects + 10 systemic
+  gaps catalogued, R1–R5 status mapped, completeness verdict written
+  (docs/src/twolm/test/test_board.md). Nothing changed in the test
+  file yet (D-012).
 - Sources now live in the `twolm` package under src/ (D-008); board unit
   tests copied into src/twolm/test/ by the user.
 - Environment ready: .venv with the minimal deps (D-010), twolm installed
@@ -52,15 +56,21 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   Git repo initialized (D-003).
 
 ## Next steps
-1. Analyze test_board.py (2087 lines) and map its coverage to the fragile
-   points in docs/src/twolm/board.md (esp. R1–R5 and the numba overloads on
-   the pydantic wrappers).
-2. Decide, issue by issue, what to fix in board.py (start with R1:
-   `position_make_move` returns `None` on illegal move vs docstring).
+1. Decide, issue by issue, what to fix in board.py (start with R1:
+   `position_make_move` returns `None` on illegal move vs docstring —
+   note: the suite pins the current None behaviour
+   (test_position_make_move_illegal_returns_none), so the decision is
+   code-vs-docstring and the test must follow).
+2. Decide on the test suite: fix the catalogued defects (P0: broken
+   2-D test, 2 NameError landmines, dead assertion) and/or expand
+   coverage (P1 fragile pins, P2 expansion) — source/test edits only
+   on explicit request (D-004).
 3. Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index
 - docs/src/twolm/board.md — board.py analysis (distilled + full review in appendix)
+- docs/src/twolm/test/test_board.md — test_board.py analysis (coverage by area,
+  verified values, 11 defects, completeness verdict + priorities)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log.md — session journal
