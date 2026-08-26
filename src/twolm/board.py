@@ -1189,13 +1189,13 @@ def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, Position
     return flips, updated
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_make_move(p: PositionField, move: Move) -> PositionField:
+def position_make_move(p: PositionField, move: Move) -> PositionField | None:
     """
     Executes a game move.
     The move must be in the range A1, ... H8, PA. [0..64].
     When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
     that pass is the only legal move.
-    When an illegal move is passed the same board is returned.
+    When an illegal move is passed None is returned.
     """
     if move == 64: # PASS
         return make_position(p['opponent'], p['mover'])

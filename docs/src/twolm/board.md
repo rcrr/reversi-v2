@@ -69,10 +69,13 @@ Cross-cutting design decisions:
   tie → 0 difference. Correct.
 
 ## Real issues (candidates for fix, priority order)
-- **R1.** `position_make_move` returns `None` on an illegal move; its
-  docstring promises "the same board is returned". Docstring or code, one
-  is wrong. Most important defect: callers relying on the doc can receive
-  `None` where they expect a `Position`.
+- **R1. RESOLVED (2026-08-26, T36/T37, D-017).** `position_make_move`
+  returns `None` on an illegal move while its docstring promised "the
+  same board is returned". Roberto chose "docstring follows the code":
+  the docstring now reads "When an illegal move is passed None is
+  returned." and the return annotation was corrected to
+  `PositionField | None`. Code behavior unchanged; the existing
+  `test_position_make_move_illegal_returns_none` pin stays as is.
 - **R2.** `position_flips` return annotation is wrong: declares
   `Tuple[Bitboard, PositionField]` but returns `(Bitboard, None)` for
   illegal moves. Should be `… | None`.

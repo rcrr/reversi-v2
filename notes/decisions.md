@@ -166,3 +166,21 @@ D-016 | 2026-08-26 | `legal_moves` dispatch dtype branch is dead code —
        shape mismatch -> ValueError, message pinned; non-uint64 array
        -> ValidationError; mixed scalar/array -> TypeError, message
        pinned). Suite 163 -> 167 tests, GREEN.
+D-017 | 2026-08-26 | R1 resolved "docstring follows the code":
+       `position_make_move` illegal-move contract is None (T36/T37)
+       | `position_make_move` had a three-way inconsistency: the
+       docstring promised "the same board is returned" for an illegal
+       move, the code returns None (`position_flips` yields
+       `(Bitboard(0), None)`), and the return annotation said
+       `-> PositionField`. Roberto chose option B — the docstring
+       follows the code: docstring now reads "When an illegal move is
+       passed None is returned." and the annotation is
+       `-> PositionField | None`. Code behavior is unchanged (the
+       annotation is not runtime-validated by @validate_call, which
+       checks arguments only), so the existing
+       `test_position_make_move_illegal_returns_none` pin stays valid
+       and the suite is unaffected. Rationale: None is a useful
+       rejection sentinel for callers; the "same board" line looks
+       residual from the original C in-place idiom; the only internal
+       caller (`position_is_game_over`, PA swap) is unaffected. docs
+       updated (board.md R1 marked resolved). Suite GREEN: 167/0/12.

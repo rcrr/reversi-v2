@@ -196,3 +196,9 @@
   (TypeError "The dtype of mover and opponent arrays must be
   Bitboard.") was confirmed unreachable and REMOVED from board.py —
   see D-016. Suite GREEN: 167/0/12.
+- T36/T37 (report §7.2 R1): resolved the position_make_move contract
+  mismatch — Roberto chose "docstring follows the code": the docstring
+  now documents the real behavior (illegal move -> None) and the return
+  annotation was corrected to PositionField | None. No behavior change,
+  existing None pin stays valid, board.md R1 marked resolved. See D-017.
+  Suite GREEN: 167/0/12.
