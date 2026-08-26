@@ -1422,8 +1422,8 @@ class TestPositionLegalMoves(unittest.TestCase):
             if lm != elm:
                 print("\nTest fails, computed and expected legal moves differ.".format())
                 print("Error on data line n. {}".format(i))
-                print("Board:")
-                b.print()
+                print("Position:")
+                position_print(p)
                 print("Computed legal_moves square set:")
                 lm.print()
                 print("Expected legal_moves square set:")

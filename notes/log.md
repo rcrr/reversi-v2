@@ -55,3 +55,6 @@
   2-D array is now actually passed to bitboard_from_signed_int; the ndim
   branch (board.py:285-286) is pinned for the first time. Suite GREEN:
   157 tests, 0 failures, 12 PERF skips.
+- T02a (report §5.2): test_legal_moves_bulk debug block — undefined
+  b.print() replaced by position_print(p) per user preference. Suite
+  GREEN: 157/0/12.
