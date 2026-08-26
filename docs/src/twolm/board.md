@@ -79,10 +79,13 @@ Cross-cutting design decisions:
 - **R2.** `position_flips` return annotation is wrong: declares
   `Tuple[Bitboard, PositionField]` but returns `(Bitboard, None)` for
   illegal moves. Should be `… | None`.
-- **R3.** `position_is_move_legal` PA branch depends on NumPy semantics
-  `uint64(1) << 64 == 0` (shift count ≥ bit width → 0). Works today,
-  fragile and undocumented; should be an explicit `move == 64` check
-  (relates to I-003).
+- **R3. RESOLVED (2026-08-26, T38, D-018).** `position_is_move_legal`
+  PA branch now uses an explicit `move == 64` check instead of relying
+  on `uint64(1) << 64 == 0`. `move_as_bitboard` documents that the
+  non-square codes (64 PA, 65 NA, 66 UN) wrap to the empty bitboard per
+  NumPy's defined shift semantics (shift >= bit width -> 0, verified on
+  NumPy 2.5.2). Behavior unchanged; the existing pass-branch pins
+  (pass legal iff no legal moves; codes 65/66 illegal) all stay valid.
 - **R4.** Scalar case of `bitboard_from_signed_int` / `bitboard_to_signed_int`:
   `i.view(Bitboard)` requires a real `np.int64`/`np.uint64`; a bare Python
   int passed through pydantic (arbitrary-type handling varies by version)

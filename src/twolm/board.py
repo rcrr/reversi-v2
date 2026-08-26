@@ -257,6 +257,9 @@ def move_as_bitboard(mo: Move) -> Bitboard:
     """
     Converts the move to a bitboard containing only the square indicated by the move.
     """
+    # NumPy defines integer shifts by an amount >= the bit width as 0
+    # (documented NumPy semantics; verified on NumPy 2.5.2), so the
+    # non-square codes (64 PA, 65 NA, 66 UN) wrap to the empty bitboard.
     return Bitboard(Bitboard(1) << mo)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -1272,13 +1275,13 @@ def position_is_move_legal(p: PositionField, move: Move) -> bool:
     Returns true if the move is legal.
     """
     if move > 64: return False
-    lms = position_legal_moves(p)
-    mbb = move_as_bitboard(move)
-    if mbb == 0x0000000000000000: # Pass move
-        if mbb == lms:
+    if move == 64: # Pass move
+        if position_legal_moves(p) == 0x0000000000000000:
             return True
         else:
             return False
+    lms = position_legal_moves(p)
+    mbb = move_as_bitboard(move)
     if (mbb & lms) == mbb:
         return True
     return False

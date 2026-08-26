@@ -184,3 +184,24 @@ D-017 | 2026-08-26 | R1 resolved "docstring follows the code":
        residual from the original C in-place idiom; the only internal
        caller (`position_is_game_over`, PA swap) is unaffected. docs
        updated (board.md R1 marked resolved). Suite GREEN: 167/0/12.
+D-018 | 2026-08-26 | R3 resolved: explicit `move == 64` pass check in
+       `position_is_move_legal` (T38)
+       | `position_is_move_legal` detected the pass move (code 64)
+       through the uint64 shift wrap: `move_as_bitboard(64)` computes
+       `uint64(1) << 64`, which is 0 because NumPy DEFINES integer
+       shifts by an amount >= the bit width as 0 (documented NumPy
+       semantics; probe-verified on NumPy 2.5.2: 64/65/66 all -> 0).
+       Note the attribution matters: the x86 SHL instruction masks the
+       count modulo 64 (Intel SDM), so raw hardware `1 << 64` would be
+       a no-op, not a zero — the guaranteed-0 behavior is NumPy's C
+       implementation, not the ISA. Roberto chose the explicit-check
+       option ("per chiarezza"): `position_is_move_legal` now tests
+       `move == 64` directly (pass is legal iff
+       `position_legal_moves(p) == 0`) and never reaches
+       `move_as_bitboard(64)`; `move_as_bitboard` gained a comment
+       documenting the 64-66 -> 0 wrap. Behavior is unchanged (for
+       codes 0-63 the old pass branch could never trigger since
+       `1 << n` is never 0), so no test change was needed: the existing
+       pins (pass legal iff no legal moves, Move(65)/Move(66) illegal,
+       move_as_bitboard 64/65/66 -> 0) all pass as before. Suite
+       GREEN: 167/0/12.

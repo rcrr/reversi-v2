@@ -202,3 +202,9 @@
   annotation was corrected to PositionField | None. No behavior change,
   existing None pin stays valid, board.md R1 marked resolved. See D-017.
   Suite GREEN: 167/0/12.
+- T38 (report §7.2 R3): position_is_move_legal no longer detects the
+  pass move through the uint64 shift wrap — explicit `move == 64` check
+  now (pass legal iff position_legal_moves(p) == 0); move_as_bitboard
+  documents the 64-66 -> 0 wrap (NumPy-defined shift semantics, verified
+  on 2.5.2). Behavior unchanged, existing pins all pass. See D-018.
+  Suite GREEN: 167/0/12.
