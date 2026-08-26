@@ -236,7 +236,7 @@ class TestMove(unittest.TestCase):
         move_validate_range(move_from_str('UN'))
 
         with self.assertRaises(ValueError):
-            mo = Square(67)
+            mo = Move(67)
             move_validate_range(mo)
 
         moves = np.array([0, 1, 2, 64], dtype=Move)

@@ -90,3 +90,7 @@
   >= 64 → 0, NumPy 2.5.2) in test_square_as_bitboard and
   test_move_as_bitboard with a reference to open decision R3
   (docs/src/twolm/board.md, I-003). Comments only; suite GREEN: 157/0/12.
+- T11 (report §5.11): test_move_validate_range scalar negative case
+  built Square(67) where Move(67) was intended (variable mo, move test);
+  green by accident since both are np.uint8 aliases. Renamed to
+  Move(67); no behaviour change. Suite GREEN: 157/0/12.
