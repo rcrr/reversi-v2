@@ -178,3 +178,12 @@
   empty and both players are stuck on it, so the PA-swap path runs and
   returns True on a not-full board (probed: lmc 0 / swapped lmc 0).
   Suite GREEN: 161/0/12.
+- T24 (report §7.2 R4 / §8 P1): pinned the failing side of
+  bitboard_to_signed_int — bare Python int now asserted to raise
+  ValidationError (probe-verified: pydantic 2.13.4 rejects it via
+  is-instance[uint64], no coercion; before T24 this was only
+  probe-verified, not in the suite; the `from` side was already
+  pinned). Added TestPydanticVersion: asserts pydantic MAJOR == 2
+  (approved by Roberto — the suite's non-coercion pins depend on v2
+  semantics; a major bump must fail loudly, a 2.x upgrade must not
+  break the suite). Suite GREEN: 163/0/12.

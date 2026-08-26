@@ -350,6 +350,11 @@ class TestBitboardToSignedInt(unittest.TestCase):
         with self.assertRaises(ValueError):
             bitboard_to_signed_int(invalid_type_array)
 
+    def test_wrong_type_raises_error(self):
+        """Should reject a bare Python int (pydantic v2 does not coerce it to uint64)."""
+        with self.assertRaises(ValidationError):
+            bitboard_to_signed_int(4611717676283199524)
+
 class TestBitboardFromHexStr(unittest.TestCase):
     
     def test_scalar_conversion_valid(self):
@@ -2073,3 +2078,12 @@ class TestPositionAntiTransformations(unittest.TestCase):
         trps = position_anti_transformations(ps)
         expected = np.tile(self.etrs, (N, 1))        
         nptest.assert_array_equal(trps, expected)
+
+class TestPydanticVersion(unittest.TestCase):
+
+    def test_pydantic_major_version(self):
+        # The validation pins in this suite (bare Python int ->
+        # ValidationError, no coercion of arbitrary types) rely on
+        # pydantic v2 semantics; a major version change must fail
+        # loudly, not pass silently.
+        self.assertEqual(int(pydantic.VERSION.split('.')[0]), 2)
