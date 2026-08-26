@@ -132,3 +132,12 @@
   element-wise (one Python call per element), not an "optimized
   C-level loop". Comment-only change; no behaviour change. Suite GREEN:
   157/0/12.
+- T18 (report §6): docstring shape contract corrected —
+  position_empties / position_collisions / position_check_collisions
+  say "scalar and 1D array inputs" but are shape-agnostic: verified by
+  probe that a 2-D Position-dtype array (2,2) comes back 2-D. The
+  three position_* docstrings now say "scalar and array inputs of any
+  shape" (output keeps the input shape, where an array output exists).
+  The same phrase in bitboard_from_signed_int / bitboard_to_signed_int
+  is CORRECT (both raise ValueError on non-1D arrays) — left as-is.
+  Docstring-only change; no behaviour change. Suite GREEN: 157/0/12.

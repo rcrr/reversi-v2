@@ -942,7 +942,7 @@ def position_print(p: PositionField, output: Union[IO, io.StringIO] = sys.stdout
 def position_empties(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
     """
     Returns the set of empty squares in the game position.
-    Works on scalar and 1D array inputs.
+    Works on scalar and array inputs of any shape (output keeps the input shape).
     """
     return ~(p['mover'] | p['opponent'])
 
@@ -952,7 +952,7 @@ def position_collisions(p: PositionField | PositionArray) -> Bitboard | Bitboard
     Returns the set of overlapping squares between mover and opponent.
     Given the observation that squares cannot be taken by both players,
     it is an invariant that must be always zero (the empty set).
-    Works on scalar and 1D array inputs.
+    Works on scalar and array inputs of any shape (output keeps the input shape).
     """
     return p['mover'] & p['opponent']
 
@@ -963,7 +963,7 @@ def position_check_collisions(p: PositionField | PositionArray) -> None:
     Given the observation that squares cannot be taken by both players,
     it is an invariant that must be always zero (the empty set).
     When a collision is found raises a ValueError.
-    Works on scalar and 1D array inputs.
+    Works on scalar and array inputs of any shape.
     """
     collisions = position_collisions(p)
     if np.any(collisions):
