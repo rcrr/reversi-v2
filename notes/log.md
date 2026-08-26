@@ -141,3 +141,10 @@
   The same phrase in bitboard_from_signed_int / bitboard_to_signed_int
   is CORRECT (both raise ValueError on non-1D arrays) — left as-is.
   Docstring-only change; no behaviour change. Suite GREEN: 157/0/12.
+- T19 (report §6): make_position docstring corrected — the "zero-copy"
+  claim only held for the final view cast: verified by probe that the
+  function always allocates a fresh interleaved (shape, 2) buffer and
+  COPIES the mover/opponent values in (mutating an input ndarray leaves
+  the output unchanged; lists/arrays never aliased). Docstring now
+  states the actual contract. Docstring-only change; no behaviour
+  change. Suite GREEN: 157/0/12.

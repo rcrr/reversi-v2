@@ -151,7 +151,10 @@ def make_position(mover: Union[Bitboard, np.ndarray, List],
                   ) -> Union[np.void, np.ndarray]:
     """
     Creates a single Position scalar, a 1D PositionArray, or a 2D PositionArray.
-    Guarantees zero-copy view casting on the combined data across all dimensionalities.
+    Allocates a fresh interleaved (shape, 2) buffer, copies the mover and
+    opponent values into it, and returns a zero-copy view cast of that
+    buffer to Position dtype. Inputs (lists or arrays) are never aliased;
+    works for inputs of any dimensionality.
     """
     # ARRAY / LIST / MULTI-DIMENSIONAL CASE
     if isinstance(mover, (np.ndarray, list)) or isinstance(opponent, (np.ndarray, list)):
