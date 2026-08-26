@@ -208,3 +208,6 @@
   documents the 64-66 -> 0 wrap (NumPy-defined shift semantics, verified
   on 2.5.2). Behavior unchanged, existing pins all pass. See D-018.
   Suite GREEN: 167/0/12.
+  Style follow-up (Roberto): hoisted the single `lms =
+  position_legal_moves(p)` call before the pass branch so it is invoked
+  once, not in two positions. Suite GREEN: 167/0/12.

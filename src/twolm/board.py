@@ -1275,12 +1275,12 @@ def position_is_move_legal(p: PositionField, move: Move) -> bool:
     Returns true if the move is legal.
     """
     if move > 64: return False
+    lms = position_legal_moves(p)
     if move == 64: # Pass move
-        if position_legal_moves(p) == 0x0000000000000000:
+        if lms == 0x0000000000000000:
             return True
         else:
             return False
-    lms = position_legal_moves(p)
     mbb = move_as_bitboard(move)
     if (mbb & lms) == mbb:
         return True
