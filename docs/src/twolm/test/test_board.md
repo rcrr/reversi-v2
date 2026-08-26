@@ -432,6 +432,10 @@ zero tests** — the only public function with none.
    test author using these constants by name gets transposed geometry.
    (The board.py docstrings use the same vocabulary, so docs and tests
    read coherently while being geometrically misleading.)
+   **REJECTED 2026-08-26 (D-013):** Roberto: this is NOT a problem to
+   fix — the code is correct. This finding imported chess file/rank
+   vocabulary; the project naming convention is row/column (Reversi,
+   not chess). Canonical convention: notes/naming.md. No rename done.
 9. **Stale test docstring:** `test_scalar_bsr_high_bits` says "return
    np.int8"; code and assertion use Python `int` (np.int8 is not a
    subclass of int — the assertion as written is what passes).
@@ -608,7 +612,9 @@ require an explicit request)
   `PositionField` SkipValidation hole; per-field `position_eq`;
   `position_print` variants; updated-position assertions in
   `test_position_flips_bulk`; rename the transposed header constants
-  (and the docstring diagrams in board.py that inherit the confusion).
+  (REJECTED 2026-08-26, D-013 — constants are correct as-is, see
+  notes/naming.md) and the docstring diagrams in board.py (T16, to be
+  re-verified against the pinned test values before applying).
 
 ## Appendix — class map
 

@@ -93,3 +93,15 @@ D-012 | 2026-08-25 | Test-suite analysis is doc-only: all defects and gaps
        defects (incl. one broken 2-D test, two NameError landmines in
        failure paths, one dead assertion) and the P0/P1/P2 priority list
        are the ready input for a follow-up fix session.
+
+D-013 | 2026-08-26 | T08 (report §5.8) REJECTED: the 8 header constants in
+       test_board.py (row_1, row_8, column_a, column_h, half_left,
+       half_right, half_top, half_bottom) are NOT renamed; the code is
+       correct as-is. No code change, no commit of sources.
+       | The report finding used chess vocabulary ("file a", "rank 1") and
+       called the constants "transposed"; the project convention is
+       row/column, not file/rank — this is Reversi, not chess. Roberto
+       (2026-08-26): the error was the analysis, not the code. The
+       canonical convention is now recorded in notes/naming.md, with a
+       standing rule in AGENTS.md and a pointer in NOTES.md, so the
+       vocabulary error cannot recur in future sessions.

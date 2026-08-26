@@ -18,6 +18,14 @@ propose repo-wide reorganization now.
 6. Every decision (including "leave as-is for now") goes to notes/decisions.md
    with date and rationale. Session summary goes to notes/log.md.
 
+## Naming convention (canonical — full text: notes/naming.md)
+This is Reversi, NOT chess: the board vocabulary is **column** (A–H,
+left→right) and **row** (1–8, top→bottom) — never "file"/"rank". Square
+name: column letter then row number. A1 = top-left (N-W) = bit 0 (LSB);
+H8 = bottom-right (S-E) = bit 63 (MSB). row_1 = [A1..H1];
+column_a = [A1..A8]. (Set 2026-08-26, D-013: the code follows this
+convention; do not "fix" names toward chess vocabulary.)
+
 ## Layout
 - AGENTS.md — this file; standing instructions only, keep it small
 - NOTES.md — entry point: state, next steps, index (read first)

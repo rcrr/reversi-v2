@@ -13,6 +13,10 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
+- Board vocabulary is canonical: **row** (1–8, top→bottom) and **column**
+  (A–H, left→right) — never file/rank (chess). A1 = top-left (N-W) = bit 0;
+  H8 = bottom-right (S-E) = bit 63. row_1 = [A1..H1]; column_a = [A1..A8].
+  Full text: notes/naming.md (D-013).
 - Dual scalar/array API: public functions accept scalar OR 1-D array, return
   the input kind. Same validation pattern everywhere
   (is_scalar → atleast_1d → ndim check → dispatch → reshape back).
@@ -56,21 +60,24 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   Git repo initialized (D-003).
 
 ## Next steps
-1. Decide, issue by issue, what to fix in board.py (start with R1:
-   `position_make_move` returns `None` on illegal move vs docstring —
-   note: the suite pins the current None behaviour
-   (test_position_make_move_illegal_returns_none), so the decision is
-   code-vs-docstring and the test must follow).
-2. Decide on the test suite: fix the catalogued defects (P0: broken
-   2-D test, 2 NameError landmines, dead assertion) and/or expand
-   coverage (P1 fragile pins, P2 expansion) — source/test edits only
-   on explicit request (D-004).
-3. Feed notes/ideas.md with Roberto's future-evolution ideas.
+Fix campaign in progress (plan approved 2026-08-26; one atomic change per
+report item: confirm → edit → full suite → commit; journal: notes/log.md).
+- Done: T01–T07 (report §5.1–§5.7), 7 commits, suite stays GREEN 157/0/12.
+- T08 (§5.8) REJECTED by user (D-013): the 8 header constants are correct
+  as-is; the report's "transposed" finding imported chess file/rank
+  vocabulary. No code change.
+- Next: T09 (§5.9 bsr docstring) → T10 (§5.10 R3 comment) → T11 (§5.11
+  Square→Move) → T12–T20 (board.py docstrings/comments, 1 commit each;
+  T16 diagram fixes must be re-verified against the pinned test values) →
+  T21–T25d (P1) → T36/T37 (R1 decision + implementation) → T26–T35 (P2,
+  optional). T38 (R3 decision) open.
+- Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index
 - docs/src/twolm/board.md — board.py analysis (distilled + full review in appendix)
 - docs/src/twolm/test/test_board.md — test_board.py analysis (coverage by area,
   verified values, 11 defects, completeness verdict + priorities)
+- notes/naming.md — canonical board naming convention (row/column, D-013)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log.md — session journal
