@@ -172,3 +172,9 @@
   Added the 3 missing WOFC branch tests: draw (1v1 -> 0), opponent leads
   (1v8, 55 empties -> -62, crashed pre-fix), full board (33v31, 0 empties
   -> 2). Probed: old 8v1 case still 62. Suite GREEN: 160/0/12.
+- T23 (report §3-D P1): added the non-full position_is_game_over true
+  case (per Roberto's position): mover = 0xFFFFFFFFFFFFFF00 (56 discs,
+  rows 2-8), opponent = 0x00000000000000FE (7 discs, B1-H1); only A1 is
+  empty and both players are stuck on it, so the PA-swap path runs and
+  returns True on a not-full board (probed: lmc 0 / swapped lmc 0).
+  Suite GREEN: 161/0/12.

@@ -1877,6 +1877,17 @@ class TestPositionIsGameOver(unittest.TestCase):
         position = make_position(mover, opponent)
         self.assertTrue(position_is_game_over(position))
 
+    def test_position_is_game_over_true_not_full(self):
+
+        # Only A1 (bit 0) is empty; both players are stuck on it:
+        # the row 1 line ends off-board, the column a and the diagonal
+        # lines start with an own disc. Exercises the PA-swap path on
+        # a not-full board.
+        mover = Bitboard(0xFFFFFFFFFFFFFF00)
+        opponent = Bitboard(0x00000000000000FE)
+        position = make_position(mover, opponent)
+        self.assertTrue(position_is_game_over(position))
+
 class TestPositionIsMoveLegal(unittest.TestCase):
 
     def test_position_is_move_legal_false(self):
