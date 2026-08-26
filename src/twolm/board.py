@@ -260,10 +260,10 @@ def move_as_bitboard(mo: Move) -> Bitboard:
 def move_validate_range(mo: Move | MoveArray) -> None:
     if not isinstance(mo, np.ndarray):
         if not mo < __move_max_value__:
-            raise ValueError(f"Value must be in the range [0..{__move_max_value__}].")
+            raise ValueError(f"Value must be in the range [0..{__move_max_value__ - 1}].")
     else:
         if (mo >= __move_max_value__).any():
-            raise ValueError(f"All values in the array must be in the range [0..{__move_max_value__}].")
+            raise ValueError(f"All values in the array must be in the range [0..{__move_max_value__ - 1}].")
     return
 
 

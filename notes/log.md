@@ -109,3 +109,9 @@
   zero-copy view sharing the input buffer (pinned by
   test_numpy_array_shared_memory). Docstring now states the zero-copy
   contract. Suite GREEN: 157/0/12.
+- T15 (report §6): move_validate_range error messages said [0..67] while
+  the check admits 0..66 (mo < __move_max_value__, where the constant is
+  the count = exclusive upper bound). Fixed the visible string with
+  {__move_max_value__ - 1} in both scalar and array variants (no test
+  pinned it; verified: 66 accepted, 67 rejects with [0..66]).
+  Suite GREEN: 157/0/12.
