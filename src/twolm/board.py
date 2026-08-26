@@ -460,7 +460,7 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
      - 0 -> 0 : ro000
      - 0 -> 1 : ro270
      - 0 -> 2 : ro180
-     - 0 -> 3 : ro180
+     - 0 -> 3 : ro090
      - 0 -> 4 : fvert
      - 0 -> 5 : fh1a8
      - 0 -> 6 : fhori

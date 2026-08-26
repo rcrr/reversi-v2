@@ -94,3 +94,8 @@
   built Square(67) where Move(67) was intended (variable mo, move test);
   green by accident since both are np.uint8 aliases. Renamed to
   Move(67); no behaviour change. Suite GREEN: 157/0/12.
+- T12 (report §6): bitboard_anti_transformations docstring table —
+  slot 3 was labelled ro180 (duplicated); code (fa1h8 of fhori,
+  board.py:506) and the pinned tests (slot 3 = ar_rotate_90c) say
+  ro090. Verified empirically against the executable (all 8 slots
+  checked); fixed the label. Suite GREEN: 157/0/12.
