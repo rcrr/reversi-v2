@@ -148,3 +148,9 @@
   the output unchanged; lists/arrays never aliased). Docstring now
   states the actual contract. Docstring-only change; no behaviour
   change. Suite GREEN: 157/0/12.
+- T20 (report §7 R2): position_flips return annotation corrected —
+  declared Tuple[Bitboard, PositionField] but returns (Bitboard, None)
+  on non-single-bit or illegal moves; now Tuple[Bitboard,
+  PositionField | None]. Annotation-only change; @validate_call does
+  not validate return values by default, no behaviour change. Suite
+  GREEN: 157/0/12.

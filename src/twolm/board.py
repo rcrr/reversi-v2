@@ -1170,7 +1170,7 @@ def _kogge_stone_mm(generator: Bitboard,
     return Bitboard(accumulator & ~generator)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, PositionField]:
+def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, PositionField | None]:
     """
     Computes the flip set.
     Return flips as well as the updated game position.
