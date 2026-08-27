@@ -168,6 +168,24 @@ class TestPattern(unittest.TestCase):
             Pattern('BAD_ELLE', Bitboard(0x00000000008080C0))
         self.assertIn("not principal", str(context.exception))
 
+    def test_init_rejects_non_minimum_orbit_masks(self):
+        """R1 (D-020): masks containing all 4 corners tie for minimal BSR in
+        the whole orbit (all 8 transforms have BSR 63). Only the numerically
+        lowest orbit member is the unique principal: a mask is a 64-bit
+        integer, a bijection with 0..2^64-1, so the orbit minimum is
+        well-defined and unique."""
+        corners = Bitboard(0x8100000000000081)  # A1 H1 A8 H8
+        # + b1 (bit 1) is the numerically lowest of the 8 orbit members.
+        p = Pattern('FOURC_B1', corners | Bitboard(0x2))
+        self.assertEqual(p.n_instances, 8)
+        self.assertEqual(p.n_stabilizers, 1)
+        # + a2 (bit 8) and + h2 (bit 15) are the same orbit but larger:
+        # the old BSR-only rule (R1) accepted all of them.
+        for extra in (0x100, 0x8000):
+            with self.assertRaises(ValueError) as context:
+                Pattern('BAD_FOURC', corners | Bitboard(extra))
+            self.assertIn("not principal", str(context.exception))
+
 class TestPatternPack(unittest.TestCase):
 
     def setUp(self):

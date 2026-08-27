@@ -315,16 +315,17 @@ class Pattern:
         def _check_mask_is_principal() -> int:
             """
             Checks if the mask is the principal mask among its transformations.
-            The principal mask is the one having the lower value of the highest bit set.
+            The principal mask is the numerically lowest mask of its orbit:
+            a mask is a 64-bit integer (a bijection with 0..2^64-1), so the
+            orbit minimum is a unique representative (R1, D-020).
         
             Returns:
                 int: The index of the offending transformation if the mask is not principal, otherwise 0.
             """
             instance: int = 0
-            highest_cell_instance_0 = bitboard_bsr(Bitboard(self.tmasks[0]))
+            principal = Bitboard(self.tmasks[0])
             for i in range(1, 8):
-                highest_cell = bitboard_bsr(Bitboard(self.tmasks[i]))
-                if highest_cell < highest_cell_instance_0:
+                if self.tmasks[i] < principal:
                     instance = i
                     break
             return instance

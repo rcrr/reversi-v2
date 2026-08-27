@@ -205,3 +205,46 @@ D-018 | 2026-08-26 | R3 resolved: explicit `move == 64` pass check in
        pins (pass legal iff no legal moves, Move(65)/Move(66) illegal,
        move_as_bitboard 64/65/66 -> 0) all pass as before. Suite
        GREEN: 167/0/12.
+D-019 | 2026-08-27 | pattern.py: review-only session, all fixes deferred
+       to a dedicated session; test_pattern.py analysis deferred too
+       | Roberto's explicit scope for the pattern module session:
+       (1) document pattern.py (docs/src/twolm/pattern.md, D-007 mirror),
+       (2) list the defects in code and docs but apply NO changes —
+       "Poi in una altra sessione dedicata quando questo lavoro e'
+       completato, faremo le changes ed i fix necessari", (3) test_pattern.py
+       is out of scope for analysis entirely ("quella la faremo
+       prossimamente in una sessione dedicata") — running its suite is
+       fine, analyzing it is not. Result: docs/src/twolm/pattern.md
+       written (Pattern, PatternSet, standalone functions, 8 real issues
+       R1-R8 + minor list + conventions); pattern.py and test_pattern.py
+       untouched (AGENTS.md rule 3). One flagged item needs a design
+       decision when the fix session happens: R1 (the principal-mask
+       rule is not a unique representative — the min-BSR check accepts
+       any orbit member tied for minimal BSR; verified counterexample
+       X = 0xFF000000000001FF / Y = 0xFF000000000080FF = fvert(X), both
+       accepted). Options on the table: (a) unique representative =
+       numerically minimum transformed mask, or (b) keep BSR-first and
+       add a value tie-break (min of (BSR, value)); either way a
+       regression test. Note for the fix session: R1 is the only
+       non-mechanical issue; R2-R8 and the minor list are mechanical
+       (doc corrections, dead import, __all__ entry, endianness).
+D-020 | 2026-08-27 | R1 resolved: principal mask = numerically lowest
+       orbit mask (option (a))
+       | Roberto's decision after the R1 discussion: the intent is a
+       bijective correspondence between the set of masks and an
+       orderable set — the natural numbers; a mask is a 64-bit integer,
+       so the orbit minimum is a well-defined unique representative.
+       BSR was a "more computer-science-y" surrogate and is not a total
+       order (all 4-corner masks tie at BSR 63 under all 8 transforms).
+       Implementation (explicit "Fai la modifica ora"):
+       `_check_mask_is_principal` (pattern.py L314-339) now scans t1..t7
+       for a numerically lower mask, reporting the first offender;
+       docstring states the new rule (doc follows code, D-016
+       precedent). Regression test:
+       test_init_rejects_non_minimum_orbit_masks (test_pattern.py) — 4
+       corners + b1 = 0x8100000000000083 accepted (n_instances=8,
+       n_stabilizers=1), the other 7 orbit members (incl. +a2, +h2)
+       rejected with "not principal". Verification: 29 sample patterns
+       still construct; pattern suite 50/0/3, discover 243/0/15, PERF=1
+       50+193 — all GREEN. pattern.md updated (architecture rule, R1
+       marked RESOLVED with full history, verdict).

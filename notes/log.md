@@ -252,3 +252,67 @@
   (start position, pass/game-over rules, history) belongs to a
   separate module. No workspace files touched by the probe.
 - Session closed (Roberto). Next session: start a NEW module.
+
+## 2026-08-27 — session 1 (pattern.py review)
+- Scope (Roberto): document src/twolm/pattern.py (new module, 1203 lines)
+  like board.md; list code+doc defects but apply NO fixes ("le changes ed
+  i fix necessari in un'altra sessione dedicata"); test_pattern.py NOT
+  analyzed this time (dedicated session later). D-019 records the scope.
+- Docs: docs/src/twolm/pattern.md written in 3 incremental parts (Pattern
+  class → PatternSet → standalone functions + consolidated issues),
+  board.md format. Covers: D8 orbit/stabilizer bookkeeping, I/S/T
+  fingerprint → closed 11-type PatternType table, run-based PEXT-style
+  pack plans, base-3 uint32 indexing, principal configuration index
+  (min over induced-stabilizer orbit), PatternSet fused Numba pipeline
+  (8 anti-transforms shared across patterns, per-pattern 3-D plan stack,
+  coset-grouped min reduction), sample_pattern_data, mdp CSV export.
+- Verification (scratch /tmp/pattern_check.py; nothing in-tree touched):
+  fingerprint EDGE = TYPE_2 / DOTA1 = TYPE_3D / CORE = TYPE_9, 29
+  samples → 11 types; EDGE principal dict == brute force, Burnside
+  3321 = (6561+81)/2 (induced C2, 81 fixed); non-principal row-8 mask
+  rejected with the 8-mask listing; n_instances×n_stabilizers = 8 for all
+  29; Set(DOTA1, EDGE, CORE) pipeline == per-pattern reference on 200
+  random collision-free positions, exact (200, 9) match — covers the
+  multi-plane OR branch via CORE's two runs; suite test_pattern GREEN
+  49/0/3 (PERF gates) — run, not analyzed (out of scope).
+- Defect list (no fixes applied): 8 real — R1 principal-mask rule not a
+  unique representative (corner case; min-BSR ties; verified
+  4-corners+a2 / 4-corners+h2 both accepted; fix needs a design
+  decision), R2 false invariant in docstring (DOTA1), R3 wrong
+  "descending priority" wording (actually ascending), R4 "SHA256" vs
+  sha3_256, R5 unused import time, R6 PatternType missing from __all__,
+  R7 stale comment (compute_indexes_on_board), R8 endianness-dependent
+  set hash; plus ~18 minor items (typos, stale env comment, empty-set
+  max() crash, no __repr__, etc.) — full text in docs/src/twolm/pattern.md.
+- Verdict: core math sound (verified against brute force + fused kernel
+  equivalence); defects = 1 design gap (R1) + doc drift (R2-R4, R7) +
+  hygiene (R5-R6, R8 + minors). Nothing blocks the 29 patterns or the
+  GREEN suite.
+- Next session (Roberto's plan): pattern.py fix campaign (R1 decision
+  first), then test_pattern.py analysis.
+
+## 2026-08-27 — session 2 (R1 fix, D-020)
+ - Roberto decided R1: option (a) — principal = numerically lowest mask
+   of the orbit ("corrispondenza biunivoca tra il set dei MASK e un set
+   ordinabile: i numeri naturali"; BSR judged "più informatica").
+   Explicit go-ahead: "Fai la modifica ora. ne abbiamo parlato,
+   procedi."
+ - pattern.py L314-339: `_check_mask_is_principal` now scans t1..t7 for
+   a numerically lower tmasks entry (first offender reported);
+   docstring: "numerically lowest mask of its orbit ... a unique
+   representative (R1, D-020)".
+ - test_pattern.py: +test_init_rejects_non_minimum_orbit_masks (4
+   corners + b1 accepted with n_instances=8/n_stabilizers=1; +a2 and
+   +h2 rejected "not principal"). Suite now 50 tests.
+ - Verification, in Roberto's order: pattern suite 50/0/3 OK; full
+   suite via `unittest discover -s src -p 'test_*.py'` 243/0/15 OK;
+   PERF=1: pattern 50 OK, board 193 OK (perf lines printed as before).
+ - Docs: pattern.md — architecture rule restated (D-020), R1 entry
+   marked RESOLVED with full history (old rule, 4-corners
+   characterization, counterexample, new unique principal
+   0x8100000000000083), verdict updated. decisions.md + NOTES.md + this
+   file updated.
+ - Git: single commit (pattern.py + test_pattern.py + pattern.md +
+   notes).
+ - Next: pattern fix campaign for the mechanical R2-R8 + minor sweep
+   (dedicated session), then test_pattern.py analysis.
