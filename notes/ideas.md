@@ -25,3 +25,11 @@ I-005 | idea | Next session starts a NEW module (Roberto, 2026-08-26).
        simulation of 2026-08-26; the loop itself is ~25 lines on top of
        the public API. Other candidate: the next source file of the
        original repo (file-by-file modernization).
+
+I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
+       PatternSet.names/masks are now @property (attribute-style). If the
+       original 2008 repo contains callers using the old method syntax
+       (.names() / .masks()), those call sites must be updated to
+       parenthesis-free property access when that file is migrated into
+       twolm. Count of affected sites unknown until that file is
+       analyzed — grep the original repo for ".names()" / ".masks()".

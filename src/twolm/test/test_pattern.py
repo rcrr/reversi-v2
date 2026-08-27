@@ -107,11 +107,11 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p, p)
 
     def test_init_invalid_type_arg_1_raises_assertion(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             p = Pattern(1, Bitboard(0x0000000000000107))
 
     def test_init_invalid_type_arg_2_raises_assertion(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             p = Pattern('ELLE', 107)
 
     def test_init_invalid_number_of_squares(self):
@@ -1091,17 +1091,17 @@ class TestPatternSet(unittest.TestCase):
 
     def test_names(self):
         """
-        Test the names method returns the correct list of pattern names.
+        Test the names property returns the correct list of pattern names.
         """
         expected_names = ['EDGE', 'ELLE', 'SNAKE']
-        self.assertEqual(self.pattern_set.names(), expected_names)
+        self.assertEqual(self.pattern_set.names, expected_names)
 
     def test_masks(self):
         """
-        Test the masks method returns the correct numpy array of pattern masks.
+        Test the masks property returns the correct numpy array of pattern masks.
         """
         expected_masks = np.array([self.pattern3.mask, self.pattern1.mask, self.pattern2.mask], dtype=np.uint64)
-        nptest.assert_array_equal(self.pattern_set.masks(), expected_masks)
+        nptest.assert_array_equal(self.pattern_set.masks, expected_masks)
 
     def test_print_summary(self):
         """

@@ -270,8 +270,9 @@ A named collection of Patterns with a fused vectorized pipeline.
   so the value is endianness-dependent (R8).
 
 ### API
-- `names()` / `masks()` (L995/L1004): methods, not properties (mixed access
-  style next to the `name`/`patterns`/`hash` attributes).
+- `names` / `masks`: properties (attribute-style, derived from `patterns`),
+  next to the `name`/`patterns`/`hash` attributes. (Converted from methods
+  in minor #15, D-024.)
 - `print_summary()` / `print()` (L1014/L1025): `@validate_call`, IO default
   stdout.
 - `compute_principal_indexes(positions: PositionArray)` (L1034): **array
@@ -461,21 +462,35 @@ platform assumption), not a code change._
   instead — see "Platform assumption: little-endian only".
 
 ## Minor issues / inconsistencies
-- L7 header typo "Aauthor" → "Author".
-- L296 error message "n_square = {…}" → "n_squares".
-- "patetrn" typos: L188, L211 → "pattern".
+- L7 header typo "Aauthor" → "Author". **[RESOLVED 2026-08-27 — minor #1;
+  fixed in pattern.py, board.py, test_board.py, test_pattern.py; commit
+  b070918.]**
+- L296 error message "n_square = {…}" → "n_squares". **[RESOLVED 2026-08-27
+  — minor #2.]**
+- "patetrn" typos: L188, L211 → "pattern". **[RESOLVED 2026-08-27 — minor
+  #3 (L191, L214 in the current file).]**
 - L233 "A dictionary mapping each configuration index to its principal
   index" — `principal_index_dict` is a dense ndarray (legacy name);
-  reword.
+  reword. **[RESOLVED 2026-08-27 — minor #4: "A dense array mapping
+  ..."; legacy name kept.]**
 - `sample_pattern_data` block comment (L895-908): stale environment
   instructions (REVERSI_HOME, py/ layout, old venv) vs current .venv +
-  editable src (D-006/D-008).
+  editable src (D-006/D-008). **[RESOLVED 2026-08-27 — minor #5: comment
+  now points to `<workspace root>` + `.venv`, no PYTHONPATH.]**
 - `Pattern.__init__` (L287-290) hand-checks with `isinstance` while every
   other public method uses `@validate_call`; numpy string scalars are
-  rejected for `name`.
+  rejected for `name`. **[RESOLVED 2026-08-27 — minor #6, D-023: `__init__`
+  now `@validate_call(strict=True, arbitrary_types_allowed=True)`, manual
+  checks removed; constructor rejects everything that is not a `str` name /
+  `np.uint64` (Bitboard) mask; TypeError → ValidationError; the two
+  pinning tests updated to `ValidationError`.]**
 - Nested `_check_mask_is_principal` (L314) carries `@validate_call` with
   zero arguments (validates nothing); sibling nested helpers are
-  undecorated.
+  undecorated. **[RESOLVED 2026-08-27 — minor #7: removed the two no-op
+  decorators (both `_check_mask_is_principal` and
+  `_precompute_pack_unpack_plans` were decorated, zero arguments);
+  `_get_position_mapping` keeps its (meaningful) decorator; no behavior
+  change.]**
 - `mask_to_index` reversed-enumerate idiom (L302): correct (first-seen
   index) but obscure — a forward comprehension would silently give the
   *last* occurrence. Add a comment.
@@ -485,23 +500,63 @@ platform assumption), not a code change._
   ValueError(duplicate names) (L979).
 - PatternType static fields (n_instances/n_stabilizers/sample_mask/level)
   are never cross-checked against the computed values of the representative
-  (consistent for all 11 — spot-verified).
+  (consistent for all 11 — spot-verified). **[RESOLVED 2026-08-27 — minor
+  #11: cross-check added right after the fingerprint lookup; raises
+  AssertionError if the table ever disagrees with the computed
+  n_instances/n_stabilizers; suite confirms all 11 entries consistent.]**
 - `MAX_NUMBER_OF_SQUARE_FOR_PATTERN`: singular "SQUARE" in the name; value
-  18 conservative (S=19 fits uint32).
+  18 conservative (S=19 fits uint32). **[RESOLVED 2026-08-27 — minor #12:
+  renamed to `MAX_NUMBER_OF_SQUARES_FOR_PATTERN` (plural, consistent with
+  n_squares); the "uint32 space" comment was factually wrong (3^20 < 2^32,
+  even S=20 fits) and reworded as a conservative project choice.]**
 - `fastmath=True` on integer-only kernels (L817, L848, L1114) — harmless,
-  noisy.
+  noisy. **[RESOLVED 2026-08-27 — minor #13: removed from all four
+  kernels (the sweep found four, not three: pack, unpack, computes_indexes,
+  compute_principal_indexes); no floating-point ops anywhere in them;
+  PERF=1 suite fully GREEN after cache rebuild. A/B check (Roberto's
+  request, 4 interleaved PERF=1 runs, fastmath ON/OFF): no measurable
+  difference — pack/unpack ranges fully overlap, principal_indexes ranges
+  overlap (one ON-side 1.23 s outlier from machine load), compute_indexes
+  ~5-6% faster OFF-side but confounded by pair position; fastmath flags
+  only affect floating-point IR, these kernels are pure integer.]**
 - Scalar return surface: `_pack_bb` returns `Bitboard(…)`, `_unpack_bb`
-  returns `np.uint64(…)` — same alias, cosmetic.
+  returns `np.uint64(…)` — same alias, cosmetic. **[RESOLVED 2026-08-27 —
+  minor #14: `_unpack_bb` scalar path now `Bitboard(result.item())`,
+  symmetric with `_pack_bb` (Bitboard is a plain alias of np.uint64, so
+  identical values, consistent style).]**
 - `names()`/`masks()` are methods next to attribute-style
-  `name`/`patterns`/`hash`.
+  `name`/`patterns`/`hash`. **[RESOLVED 2026-08-27 — minor #15 (D-024):
+  both converted to @property (attribute-style, derived from patterns);
+  the two test call sites updated; KNOWN PENDING: legacy callers in the
+  original 2008 repo (if any) use the old .names()/.masks() syntax —
+  update at migration, tracked as I-006 in notes/ideas.md.]**
 - `Pattern` has no `__repr__`/`__str__` (only print methods).
+  **[RESOLVED 2026-08-27 — minor #16: `__repr__` added (Python falls back
+  to it for `__str__` too), one line with name + mask, consistent with the
+  first line of print(); no behavior change. PatternSet still has no
+  __repr__ — out of scope of this item, noted as a possible follow-up.]**
 - Empty `PatternSet(name, [])` is accepted, then
   `compute_principal_indexes` crashes in `max()` (L1050) with an
-  unhelpful error.
+  unhelpful error. **[RESOLVED 2026-08-27 — minor #17: fail-fast
+  `ValueError('Patterns list cannot be empty')` as the first check in
+  PatternSet.__init__; docstring Raises updated; empty sets are
+  meaningless for the indexing pipeline.]**
 - A pattern with `n_squares = 0` (empty mask) is not explicitly rejected:
   n_configurations = 1, empty pack plan — degenerate, probably unintended.
+  **[RESOLVED 2026-08-27 — minor #18: explicit fail-fast ValueError in
+  Pattern.__init__ ("a pattern must select at least one square").
+  Pre-fix the empty mask was rejected only accidentally — its degenerate
+  fingerprint [I0 x8] is absent from the type table, which produced the
+  confusing "fingerprint has not been found" error; same ValueError
+  outcome, now explicit, earlier, and explanatory.]**
 - No mover/opponent collision check in any indexing API (precondition;
-  board.py provides `position_check_collisions`).
+  board.py provides `position_check_collisions`). **[RESOLVED 2026-08-27
+  — minor #19 (D-025): leave-as-is by decision. The "caller validates"
+  contract is already encoded by the tests (which check collisions before
+  calling) and by the upstream engine; duplicating the check on the hot
+  path was rejected. Precondition now documented in both docstrings
+  (compute_indexes_on_position, compute_principal_indexes). No code
+  change.]**
 
 ## Conventions to respect in any new work on this file
 - **D8 slot order (D-014) is load-bearing**: `tmasks[i]` = T_i in
@@ -536,6 +591,9 @@ positions, exact match, both single- and multi-plane branches). All real
 issues are resolved: R1 (D-020) — code fix + regression test; R2-R7
 (D-021) — docstring/hygiene fixes, code behavior untouched; R8 (D-022) —
 closed by decision as a little-endian-only platform assumption (documented,
-no code change). The ~18 minor issues remain (sweep planned). Nothing
-blocks the current 29 sample patterns or the GREEN suite (50 tests, 3
-PERF skips).
+no code change). Minor sweep COMPLETE (2026-08-27): all 19 items resolved
+(D-023 item #6 strict constructor; D-024 item #15 property conversion +
+I-006 legacy-migration follow-up; D-025 item #19 leave-as-is with
+documented precondition; items #1-#5, #7-#12, #14, #16-#18
+doc/hygiene/API-consistency/fail-fast fixes). Nothing blocks the current
+29 sample patterns or the GREEN suite (50 tests, 3 PERF skips).

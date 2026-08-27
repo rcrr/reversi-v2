@@ -273,3 +273,55 @@ D-022 | 2026-08-27 | R8 closed: no code change; engine documented as
        the hash serialization, a "Platform assumption: little-endian
        only" section was added to docs/src/twolm/pattern.md and
        docs/src/twolm/board.md.
+
+D-023 | 2026-08-27 | Pattern.__init__ moved to strict @validate_call
+       (pattern minor sweep, item #6).
+       | User approved converting the hand-written isinstance checks in
+       Pattern.__init__ to @validate_call, with a hard requirement: only
+       np.uint64 (Bitboard) scalars are valid masks for a pattern, and
+       Pattern('ELLE', 107) (Python int) must be rejected. Implemented as
+       @validate_call(config=ConfigDict(strict=True,
+       arbitrary_types_allowed=True)) — arbitrary_types_allowed is
+       required because pydantic 2.13 has no native numpy-scalar schema in
+       strict mode (schema generation fails without it); strict keeps
+       isinstance semantics: no coercion of ints/floats to str for name,
+       no coercion of ints to np.uint64 for mask. The manual TypeError
+       checks were removed. Error type at the constructor changed from
+       TypeError to ValidationError (accepted by the user; other classes
+       pulled into the project later will be fixed if they break). The
+       two tests pinning TypeError
+       (test_init_invalid_type_arg_1/2_raises_assertion) were updated to
+       expect ValidationError. All Pattern(...) construction sites audited:
+       every real mask is Bitboard(...) (np.uint64). Pattern suite stays
+       GREEN (50 tests, 3 PERF skips).
+
+D-024 | 2026-08-27 | PatternSet.names/masks converted from methods to
+       @property (pattern minor sweep, item #15).
+       | API inconsistency: PatternSet exposed name/patterns/hash as
+       attributes but names()/masks() as methods. Converted both to
+       @property so the whole public surface is attribute-style; class
+       docstring reorganized accordingly (names/masks now under
+       Attributes, documented as derived from patterns). Only two call
+       sites exist in this workspace — test_pattern.py
+       test_names/test_masks — updated to parenthesis-free access.
+       KNOWN PENDING FOLLOW-UP (flagged by the user, to be tracked): the
+       original 2008 repo may have legacy callers using the old
+       .names()/.masks() method syntax; those call sites must be updated
+       to property access when that file is migrated into twolm (tracked
+       as I-006 in notes/ideas.md). Suite stays GREEN (50 tests, 3 PERF
+       skips).
+
+D-025 | 2026-08-27 | Pattern indexing APIs keep the collision-check
+       precondition on the caller (pattern minor sweep, item #19) —
+       leave-as-is decision.
+       | compute_indexes_on_position (Pattern) and
+       compute_principal_indexes (PatternSet) do NOT call
+       position_check_collisions internally. User approved option (b):
+       the "caller validates" contract is already expressed by the
+       pattern tests (which call position_check_collisions before the
+       indexing API) and by the upstream engine, which validates
+       positions before any indexing call; duplicating the check on the
+       hot path was rejected as repeated work. The precondition is now
+       documented in both docstrings (Precondition: positions must be
+       collision-free, e.g. via board.position_check_collisions). No
+       code behavior change.
