@@ -374,3 +374,43 @@
    verdict refreshed (sweep complete).
  - Next: commit decision for #2-#19 (batch vs per-item: Roberto to
    decide); then test_pattern.py analysis (dedicated session, D-019).
+
+## 2026-08-27 — session 5 (test_pattern.py analysis)
+- Request: analyze test_pattern.py and prepare test_pattern.md for the
+  next session (coverage, what's good, what to fix, what's missing).
+  Doc-only session: no .py edits, per the D-019 pattern.
+- Read the full test file (1488 lines, 12 classes, 50 tests, 3 PERF
+  gates; test_data in TestPatternSymmetries is a class attribute, not a
+  collected method).
+- Verification: two scratch scripts (verify_pattern_tests2.py,
+  verify_pidx.py) use only twolm.board + pure arithmetic (no
+  twolm.pattern import -> non-circular): 15/15 PASS; the six pack-plan
+  goldens re-derived in this session (6/6 PASS); two hand-derivation
+  facts (DIAG8 symmetry_fs semantics, one-record width 13). Total:
+  21/21 independent re-derivations, zero value mismatches.
+- Apparent DIAG8/SNAKE anomalies resolved: all goldens are consistent
+  (SNAKE 0x0000000C30000000 = bits {28,29,34,35} = {E4,F4,C5,D5},
+  matching the print golden; the scare came from my own scratch
+  hex transcription errors, not from the file).
+- Findings: 16 test-file defects (T1-T16, doc section 5): tautological
+  assertEqual(p,p); dead `if False:` block referencing unimported
+  position_print; 7 dead ar_* fixtures; 5 stale "raises_assertion"
+  names; header typo/grammar; TestCase namedtuple shadow; weak
+  empty-list CSV test; minor-sweep code with zero coverage (#16 repr,
+  #17 empty PatternSet, #18 empty mask); uniform np.full arrays only
+  for the public indexing pipeline; EDGE 6561 dict not pinned directly;
+  self-referential PatternSet.hash golden; no direct PatternType tests;
+  mdp_record goldens 2 of 29 patterns; inconsistent
+  position_check_collisions usage; misleading mock records.
+- Cross-checks: PatternSet stale TypeError Raises lines = known/deferred
+  (not re-raised); mdp_csv_file docstring accurate; pattern.md
+  "11-entry" table vs 12 PatternType members = minor doc inconsistency
+  (M3).
+- Deliverable: docs/src/twolm/test/test_pattern.md (coverage by area,
+  21 verified facts, 16 defects, cross-checks, completeness analysis
+  with P0/P1/P2 priorities - no action taken, awaiting per-item
+  approval).
+- P0 for the fix campaign: 3 tests for the shipped-but-uncovered
+  minor-sweep paths (#16, #17, #18).
+- Next: Roberto's per-item approvals for the test_pattern.py fix
+  campaign (same one-at-a-time flow as pattern.py).

@@ -11,7 +11,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
 | src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes) | docs/src/twolm/pattern.md |
-| src/twolm/test/test_pattern.py | 2026-08-27: +R1 regression test (D-020); minor sweep updated 2 tests to ValidationError (#6) and names/masks property access (#15); suite GREEN 50/0/3 (3 PERF skips); analysis deferred to a dedicated session (D-019) | — |
+| src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 documented; P0 = 3 untested minor-sweep paths (#16/#17/#18); fix campaign awaits approvals | docs/src/twolm/test/test_pattern.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -78,6 +78,15 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   rename (#12), type-table cross-check (#11), and doc/hygiene/API
   consistency fixes (#2-#5, #7-#10, #13, #14, #16). test_pattern.py:
   suite GREEN 50/0/3 (run only, analysis deferred).
+- test_pattern.py analyzed (2026-08-27,
+  docs/src/twolm/test/test_pattern.md): 12 classes, 50 tests, 3 PERF
+  gates. Verification: 21/21 golden values independently re-derived
+  (twolm.board + pure arithmetic only, no twolm.pattern import) — zero
+  value mismatches. 16 test-file defects documented (T1-T16); the
+  material gaps are the three shipped-but-untested minor-sweep paths
+  (#16 __repr__, #17 empty PatternSet, #18 empty mask) and the
+  uniform-np.full-only array tests of the public indexing pipeline.
+  Fix campaign proposed (P0/P1/P2), awaiting per-item approval.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -85,9 +94,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - Collaboration memory: AGENTS.md (auto-injected) + this file + notes/.
 
 ## Next steps
-- Commit the minor sweep (#2-#19; #1 already committed as b070918) —
-  batch vs per-item: Roberto to decide.
-- Then: test_pattern.py analysis (dedicated session, D-019).
+- test_pattern.py fix campaign (per-item approval, D-019 pattern) —
+  priorities in docs/src/twolm/test/test_pattern.md section 7.5:
+  P0 = tests for the 3 untested minor-sweep paths (#16 __repr__,
+  #17 empty PatternSet, #18 empty mask); P1 = multi-position
+  row-independence array tests + direct EDGE 6561-entry principal dict;
+  P2 = hygiene (T1-T7, T15-T16) + breadth (hash pin, PatternType,
+  mdp_record SNAKE/CORE/DIAG8) + deferred M1 stale Raises docstring.
 - Then: next module of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
   the original repo). R4/R5 remain doc-status only, parked.
@@ -96,9 +109,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Index
 - docs/src/twolm/board.md — board.py analysis (distilled + full review in appendix)
 - docs/src/twolm/pattern.md — pattern.py analysis (R1-R8 resolved: D-020,
-  D-021, D-022; little-endian-only platform note; ~18 minors pending)
+  D-021, D-022; little-endian-only platform note; minor sweep complete:
+  19/19 items, D-023/D-024/D-025 + hygiene/API fixes)
 - docs/src/twolm/test/test_board.md — test_board.py analysis (coverage by area,
   verified values, 11 defects, completeness verdict + priorities)
+- docs/src/twolm/test/test_pattern.md — test_pattern.py analysis (coverage by
+  area, 21 verified facts, 16 defects T1-T16, completeness verdict +
+  P0/P1/P2 priorities)
 - notes/naming.md — canonical board naming convention (row/column, D-013)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
