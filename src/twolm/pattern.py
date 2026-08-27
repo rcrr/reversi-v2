@@ -33,7 +33,6 @@ from pydantic import validate_call, ConfigDict, BeforeValidator
 
 import sys
 import io
-import time
 import hashlib
 
 import numpy as np
@@ -57,7 +56,7 @@ from twolm.board import (
 
 
 __all__ = ['Index', 'IndexArray',
-           'Pattern', 'sample_pattern_data',
+           'Pattern', 'PatternType', 'sample_pattern_data',
            'PatternSet']
 
 
@@ -157,7 +156,7 @@ class Pattern:
     n_squares (np.uint8): The number of bits set in the mask (dimensions of the pattern).
     n_configurations (int): The total state space size, representing all possible combinations of Empty, Black, and White discs within the pattern.
                             It holds that: n_configurations = pow(3, n_squares)
-    squares (List[Square]): A list of the bit indices (0-63) of the pattern squares, sorted in descending priority.
+    squares (List[Square]): A list of the bit indices (0-63) of the pattern squares, sorted in ascending board order (A1 first).
     snames (List[str]): Coordinate names (e.g., "A1", "B2") of the squares in the pattern.
 
     3. Transformation & Instance Logic
@@ -181,7 +180,11 @@ class Pattern:
     unique_symmetric_instance_indexes (List[int]): Indices of transformations that leave the mask bitwise identical but might
                                                    permute the internal order of the squares.
                                                    These represent the Automorphism Group of the pattern.
-                                                   It holds that: len (unique_symmetric_instance_indexes) = n_stabilizers - 1
+                                                   It holds that: len (unique_symmetric_instance_indexes) is the number of
+                                                   stabilizer elements that induce a non-identity permutation
+                                                   on the pattern's squares (n_stabilizers - 1 only when no
+                                                   non-identity stabilizer element acts trivially on the
+                                                   squares).
     symmetry_fs (List[Callable]): The specific transformation functions that result in a bitwise identical mask,
                                   used to reduce parameters in the regression model or neural network.
                                   It holds that: len(symmetry_fs) = len (unique_symmetric_instance_indexes)
@@ -476,7 +479,7 @@ class Pattern:
             )
             raise ValueError(f"The pattern fingerprint has not been found: {message}")
 
-        # Used by the compute_indexes_on_board method. 
+        # Used by compute_indexes_on_position and the PatternSet pipeline.
         self.powers_3 = 3 ** np.arange(self.n_squares, dtype=Index)
         self.bit_shifts = np.arange(self.n_squares, dtype=Index)
 
@@ -951,7 +954,7 @@ class PatternSet:
     Attributes:
     name (str): A human-readable label for the set of patterns.
     patterns (List[Pattern]): A list of Pattern objects sorted by their mask values.
-    hash (str): A SHA256 hash of the sorted mask values, serving as a unique identifier for the set.
+    hash (str): A SHA3-256 hash of the sorted mask values, serving as a unique identifier for the set.
 
     Methods:
     names: Returns a list of names of the patterns in the set.

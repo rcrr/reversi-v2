@@ -1,11 +1,13 @@
 # pattern.py analysis
 
 _Analyzed: 2026-08-27 (session 1, review only). Source: `src/twolm/pattern.py`
-(package `twolm`), 1203 lines, GPL-3. Status: analyzed in depth,
-**untouched** — code fixes deferred to a dedicated session (user decision).
-Test suite: `src/twolm/test/test_pattern.py` — run, GREEN: 49 tests, 0
-failures, 3 skipped (PERF=1 gate). The test file's content is out of scope
-for this session (dedicated session planned)._
+(package `twolm`), GPL-3. Status: analyzed in depth; **all real issues
+resolved** — R1 (D-020, code fix + regression test), R2-R7 (D-021,
+docstring/hygiene fixes, code behavior untouched), R8 (D-022, closed by
+decision: little-endian-only platform note, no code change). Test suite:
+`src/twolm/test/test_pattern.py` — GREEN: 50 tests, 0 failures, 3 skipped
+(PERF=1 gate). The test file's content is out of scope (dedicated session
+planned)._
 
 ## What it is
 Pattern recognition for Reversi PDB. A **Pattern** is a fixed set of squares
@@ -22,6 +24,17 @@ closed table of 11 pattern types classified by a transformation fingerprint.
 Depends on `board.py` (D8 transforms + anti tables, bitboards, positions).
 No search, no PDB storage, no disk I/O except the optional CSV writer
 (`Pattern.mdp_csv_file`).
+
+## Platform assumption: little-endian only
+**The entire engine is tested on little-endian processors only.** Every
+function that performs bit or byte manipulation — and in this engine there
+are many (D8 bitboard transforms, PEXT-style packing, base-3 encoding,
+set-hash serialization via native-order `mask.tobytes()`) — is **untested
+on non-little-endian platforms**; behavior there is not guaranteed. User
+decision (D-022, 2026-08-27): the legacy engine is written and validated
+for little-endian; no endianness portability work is planned. R8
+(endianness-dependent set hash) was therefore closed by documenting this
+assumption instead of changing the code.
 
 ## Architecture
 Layers (bottom → top):
@@ -376,9 +389,11 @@ they span exactly the 11 PatternType fingerprints (verified).
   returns None for unknown fingerprints (Pattern then raises, L471-476).
 
 ## Real issues (candidates for fix, priority order)
-_Original session (review-only, D-019): no code was changed, fixes deferred.
-R1 was fixed on 2026-08-27 (D-020) on explicit user request; the rest
-remains deferred to the fix campaign._
+_Original session (review-only, D-019): no code was changed, fixes
+deferred. All items now resolved on 2026-08-27, each approved explicitly
+by the user one at a time (fix campaign): R1 (D-020); R2-R7 (D-021);
+R8 (D-022) — R8 closed as a documentation decision (little-endian-only
+platform assumption), not a code change._
 
 - **R1. [RESOLVED 2026-08-27, D-020] Principal-mask rule — unique
   representative.** Before the fix: `_check_mask_is_principal` (L314-339)
@@ -398,32 +413,52 @@ remains deferred to the fix campaign._
   rejected. Regression test: `test_init_rejects_non_minimum_orbit_masks`
   (test_pattern.py). The 29 sample patterns are unaffected (all re-verified
   constructible); suite GREEN (50 tests, 3 PERF skips).
-- **R2. False docstring invariant (L184).** "It holds that:
+- **R2. [RESOLVED 2026-08-27, D-021] False docstring invariant
+  (L184).** "It holds that:
   len (unique_symmetric_instance_indexes) = n_stabilizers - 1" is false:
   DOTA1 (1 square) has n_stabilizers = 2 (ro000, fa1h8 — both fix A1) but
   both induce the identity permutation on it, so the list is empty.
-  Correct statement: the count is the number of *distinct non-identity
-  permutations* the stabilizer induces on the pattern squares; it equals
-  n_stabilizers − 1 only when the squares separate all stabilizer elements.
-  Doc fix (code behavior is fine).
-- **R3. `squares` docstring wrong (L160).** "sorted in descending priority"
+  Correct statement (now in the docstring): the count is the number of
+  stabilizer *elements* that induce a non-identity permutation on the
+  pattern squares; it equals n_stabilizers − 1 only when no non-identity
+  stabilizer element acts trivially on the squares. Fix applied
+  2026-08-27 (D-021): docstring updated, code untouched.
+- **R3. [RESOLVED 2026-08-27, D-021] `squares` docstring wrong
+  (L160).** "sorted in descending priority"
   — the actual order is **ascending** board order (A1 first; verified:
   EDGE.squares = [0..7]). The entire downstream (pack plan, base-3 digits,
-  fingerprint) relies on ascending order. Doc fix.
-- **R4. PatternSet docstring says "SHA256" (L953); the code computes
-  `hashlib.sha3_256` (L991).** Doc follows code: fix the docstring.
-- **R5. Unused `import time` (L36).** Remove.
-- **R6. `PatternType` missing from `__all__` (L59-61).** It is public
+  fingerprint) relies on ascending order. Fix applied 2026-08-27 (D-021):
+  docstring now reads "sorted in ascending board order (A1 first)".
+- **R4. [RESOLVED 2026-08-27, D-021] PatternSet docstring says "SHA256"
+  (L953); the code computes
+  `hashlib.sha3_256` (L991).** Doc follows code. Fix applied 2026-08-27
+  (D-021): docstring now reads "A SHA3-256 hash of the sorted mask
+  values"; code untouched.
+- **R5. [RESOLVED 2026-08-27, D-021] Unused `import time` (L36).**
+  Fix applied 2026-08-27 (D-021): import removed.
+- **R6. [RESOLVED 2026-08-27, D-021] `PatternType` missing from
+  `__all__` (L59-61).** It is public
   surface (Pattern.type_info, `from_fingerprint`, CSV export) and
   `from twolm.pattern import *` (suggested by the L906 comment) does not
-  import it. Add.
-- **R7. Stale comment (L478).** "Used by the compute_indexes_on_board
+  import it. Fix applied 2026-08-27 (D-021): `PatternType` added to
+  `__all__`; star-import verified to export it.
+- **R7. [RESOLVED 2026-08-27, D-021] Stale comment (L478).** "Used by the
+  compute_indexes_on_board
   method." — no such method exists; the real consumers are
-  `compute_indexes_on_position` (L653) and the PatternSet pipeline.
-- **R8. Set hash is endianness-dependent (L990).**
+  `compute_indexes_on_position` (L653) and the PatternSet pipeline. Fix
+  applied 2026-08-27 (D-021): comment now reads "Used by
+  compute_indexes_on_position and the PatternSet pipeline." (trailing
+  whitespace removed).
+- **R8. [CLOSED 2026-08-27, D-022 — documented, no code change] Set hash
+  is endianness-dependent (L990).**
   `pattern.mask.tobytes()` is native byte order, so the identifier differs
-  between little- and big-endian platforms. Use a fixed order, e.g.
-  `int(mask).to_bytes(8, 'big')`.
+  between little- and big-endian platforms. The proposed fix (fixed
+  big-endian serialization) was **rejected** by the user: the legacy
+  engine is written and tested for little-endian processors only — bit and
+  byte manipulation is pervasive (including the move-generation and
+  legal-moves pipelines) and its behavior on non-little-endian platforms
+  is not guaranteed. Resolution: document the platform assumption
+  instead — see "Platform assumption: little-endian only".
 
 ## Minor issues / inconsistencies
 - L7 header typo "Aauthor" → "Author".
@@ -497,10 +532,10 @@ The core mathematics is sound: orbit/stabilizer bookkeeping, the I/S/T
 fingerprint, the run-based pack plan, and the base-3 + principal reduction
 all verified against brute force (EDGE dict vs hand enumeration, Burnside
 3321 = (6561+81)/2) and against the fused Numba pipeline (200 random
-positions, exact match, both single- and multi-plane branches). R1 is
-RESOLVED (2026-08-27, D-020): the principal is the numerically lowest mask
-of the orbit — a unique representative, pinned by a regression test. The
-remaining defects are concentrated in: (a) **doc-vs-code drift** (R2-R4,
-R7 — mechanical); (b) **hygiene** (R5-R6, R8 + minors — mechanical),
-deferred to the fix campaign. Nothing blocks the current 29 sample
-patterns or the GREEN suite (50 tests, 3 PERF skips).
+positions, exact match, both single- and multi-plane branches). All real
+issues are resolved: R1 (D-020) — code fix + regression test; R2-R7
+(D-021) — docstring/hygiene fixes, code behavior untouched; R8 (D-022) —
+closed by decision as a little-endian-only platform assumption (documented,
+no code change). The ~18 minor issues remain (sweep planned). Nothing
+blocks the current 29 sample patterns or the GREEN suite (50 tests, 3
+PERF skips).

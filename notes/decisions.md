@@ -248,3 +248,28 @@ D-020 | 2026-08-27 | R1 resolved: principal mask = numerically lowest
        still construct; pattern suite 50/0/3, discover 243/0/15, PERF=1
        50+193 — all GREEN. pattern.md updated (architecture rule, R1
        marked RESOLVED with full history, verdict).
+
+D-021 | 2026-08-27 | R2-R7 resolved: docstring/hygiene fixes (code
+       behavior untouched)
+       | Fix campaign 2026-08-27: the user approved each item explicitly,
+       one at a time. R2: docstring invariant
+       len(unique_symmetric_instance_indexes) = n_stabilizers - 1 is
+       false (DOTA1 counterexample: n_stabilizers=2, list empty); the
+       docstring now states the count is the number of stabilizer
+       elements that induce a non-identity permutation on the pattern
+       squares. R3: squares docstring "descending priority" -> "ascending
+       board order (A1 first)". R4: PatternSet docstring "SHA256" ->
+       "SHA3-256" (code computes sha3_256; doc follows code). R5: unused
+       `import time` removed. R6: PatternType added to __all__ (star
+       import now exports it, verified). R7: stale comment
+       "compute_indexes_on_board" -> "compute_indexes_on_position and the
+       PatternSet pipeline". No behavior change; full suite stays GREEN.
+D-022 | 2026-08-27 | R8 closed: no code change; engine documented as
+       little-endian-only
+       | User rejected the proposed big-endian hash fix: the legacy
+       engine (including the legal-moves and moves pipelines) is written
+       and tested for little-endian processors only, and all bit/byte
+       manipulation is untested on non-LE platforms. Instead of changing
+       the hash serialization, a "Platform assumption: little-endian
+       only" section was added to docs/src/twolm/pattern.md and
+       docs/src/twolm/board.md.

@@ -10,7 +10,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 |---|---|---|
 | src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
 | src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
-| src/twolm/pattern.py | analyzed 2026-08-27 (D-019); R1 FIXED same day (D-020): principal = numerically lowest orbit mask + regression test; R2-R8 + minors still deferred | docs/src/twolm/pattern.md |
+| src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); ~18 minors pending | docs/src/twolm/pattern.md |
 | src/twolm/test/test_pattern.py | 2026-08-27: +R1 regression test (D-020); suite GREEN 50/0/3 (3 PERF skips); analysis deferred to a dedicated session (D-019) | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
@@ -62,12 +62,15 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   Roberto's explicit "Facciamoli tutti, un solo commit"). Suite grew
   157 → 193 tests, stayed GREEN throughout. Journal: notes/log.md;
   decisions: notes/decisions.md (D-001…D-019).
-- pattern.py analyzed (2026-08-27, docs/src/twolm/pattern.md). R1 FIXED
-  same day (D-020): principal mask = numerically lowest orbit mask (unique
-  representative; the 4-corners corner case), regression test in
-  test_pattern.py; remaining R2-R8 + ~18 minors deferred to the fix
-  campaign. test_pattern.py: suite GREEN 50/0/3 (run only, analysis
-  deferred).
+- pattern.py analyzed (2026-08-27, docs/src/twolm/pattern.md). All real
+  issues resolved the same day: R1 (D-020) principal mask = numerically
+  lowest orbit mask (unique representative; the 4-corners corner case),
+  regression test in test_pattern.py; R2-R7 (D-021) docstring/hygiene
+  fixes, code behavior untouched (approved one at a time); R8 (D-022)
+  closed by decision — the set-hash endianness stays native, and both
+  module docs now state the engine is tested on little-endian only.
+  ~18 minors remain. test_pattern.py: suite GREEN 50/0/3 (run only,
+  analysis deferred).
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -75,8 +78,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - Collaboration memory: AGENTS.md (auto-injected) + this file + notes/.
 
 ## Next steps
-- Pattern fix campaign: mechanical R2-R8 + minor sweep (R1 already
-  resolved, D-020; dedicated session).
+- Pattern minor sweep: ~18 minor issues in pattern.md (R1-R8 all done:
+  D-020, D-021, D-022).
 - Then: test_pattern.py analysis (dedicated session, D-019).
 - Then: next module of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
@@ -85,7 +88,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 
 ## Index
 - docs/src/twolm/board.md — board.py analysis (distilled + full review in appendix)
-- docs/src/twolm/pattern.md — pattern.py analysis (R1 resolved D-020; R2-R8 + minors deferred)
+- docs/src/twolm/pattern.md — pattern.py analysis (R1-R8 resolved: D-020,
+  D-021, D-022; little-endian-only platform note; ~18 minors pending)
 - docs/src/twolm/test/test_board.md — test_board.py analysis (coverage by area,
   verified values, 11 defects, completeness verdict + priorities)
 - notes/naming.md — canonical board naming convention (row/column, D-013)

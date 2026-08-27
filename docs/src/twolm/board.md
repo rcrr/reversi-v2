@@ -10,6 +10,15 @@ The board domain model of the Reversi/Othello engine: squares, bitboards,
 positions, and everything that operates on them. No game loop, no search,
 no clock, no UI.
 
+## Platform assumption: little-endian only
+**The entire engine is tested on little-endian processors only.** Every
+function that performs bit or byte manipulation — and in this engine there
+are many (bitboards, D8 transforms, legal-move and flip pipelines, Numba
+kernels) — is **untested on non-little-endian platforms**; behavior there
+is not guaranteed. User decision (D-022, 2026-08-27): the legacy engine is
+written and validated for little-endian; no endianness portability work is
+planned. See also `docs/src/twolm/pattern.md`.
+
 ## Architecture
 Layered, low → high:
 

@@ -316,3 +316,25 @@
    notes).
  - Next: pattern fix campaign for the mechanical R2-R8 + minor sweep
    (dedicated session), then test_pattern.py analysis.
+
+## 2026-08-27 — session 3 (R2-R8 campaign)
+ - Fix campaign: each of R2-R8 proposed separately, approved explicitly
+   one at a time. R2-R7 applied in pattern.py (docstring/hygiene, code
+   behavior untouched): R2 invariant restated (count = stabilizer
+   elements inducing a non-identity permutation on the pattern squares),
+   R3 squares "ascending board order (A1 first)", R4 "SHA3-256", R5
+   unused `import time` removed, R6 PatternType added to __all__ (star
+   import verified), R7 comment -> "Used by compute_indexes_on_position
+   and the PatternSet pipeline."
+ - R8 (endianness-dependent set hash) REJECTED as a code fix by Roberto:
+   the legacy engine (incl. legal-moves/moves pipelines) is written and
+   tested for little-endian only; all bit/byte manipulation is untested
+   on non-LE platforms. Resolved as documentation: "Platform assumption:
+   little-endian only" section added to docs/src/twolm/pattern.md and
+   docs/src/twolm/board.md (D-022).
+ - pattern.md: R2-R8 entries marked RESOLVED/CLOSED, header + verdict
+   updated, platform section added. decisions.md: D-021 (R2-R7), D-022
+   (R8).
+ - Verification, Roberto's order: pattern suite 50/0/3 OK; discover
+   243/0/15 OK; PERF=1: pattern 50 OK, board 193 OK.
+ - Next: commit this campaign; then the ~18 minor sweep.
