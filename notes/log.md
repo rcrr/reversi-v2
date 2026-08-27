@@ -338,3 +338,39 @@
  - Verification, Roberto's order: pattern suite 50/0/3 OK; discover
    243/0/15 OK; PERF=1: pattern 50 OK, board 193 OK.
  - Next: commit this campaign; then the ~18 minor sweep.
+
+## 2026-08-27 — session 4 (minor sweep, items #1-#19)
+ - Minor sweep of pattern.md "Minor issues / inconsistencies": 19/19
+   items resolved, each proposed separately and approved explicitly one
+   at a time (Roberto's standing rule).
+ - #1 'Aauthor' typo: dedicated commit b070918 (on Roberto's demand).
+ - #2-#10, #12, #13, #14, #16, #17, #18: applied in this session —
+   error-message fix, doc fixes, nested-helper decorator cleanup,
+   comment clarification, docstring, PatternSet Raises line, MAX_NUMBER
+   renamed to MAX_NUMBER_OF_SQUARES_FOR_PATTERN (3^20 < 2^32 fact, 18
+   is a project choice), fastmath removed from all four Numba kernels
+   (sweep found four, analysis listed three; pure-integer kernels,
+   flags only affect float IR — Roberto challenged with his own PERF
+   data; 4 interleaved ON/OFF runs: no decisive effect), _unpack_bb
+   scalar path -> Bitboard(result.item()) (symmetric with _pack_bb),
+   __repr__ added to Pattern, empty PatternSet rejected with clear
+   ValueError (fail-fast, first check in __init__), empty mask (n_squares
+   = 0) rejected explicitly (previously rejected only accidentally via
+   the missing [I0 x8] type-table entry, with a confusing message).
+ - #6 (D-023): Pattern.__init__ wrapped in strict @validate_call
+   (arbitrary_types_allowed); TypeError -> ValidationError for non-str
+   name / non-uint64 mask; tests updated accordingly.
+ - #15 (D-024): PatternSet.names/masks converted from methods to
+   @property (whole public surface attribute-style); class docstring
+   reorganized; 2 test call sites updated. KNOWN PENDING (I-006): the
+   original 2008 repo may have legacy .names()/.masks() callers —
+   grep at migration time.
+ - #19 (D-025): leave-as-is by decision — collision precondition stays
+   on the caller (tests already check before calling; upstream engine
+   validates); precondition now documented in both indexing docstrings.
+ - Verification: pattern suite 50/0/3 GREEN after every item; final
+   battery: discover 243/0/15 OK, PERF=1 pattern 50 OK + board 193 OK.
+ - docs/src/twolm/pattern.md: all 19 items tagged RESOLVED with details,
+   verdict refreshed (sweep complete).
+ - Next: commit decision for #2-#19 (batch vs per-item: Roberto to
+   decide); then test_pattern.py analysis (dedicated session, D-019).
