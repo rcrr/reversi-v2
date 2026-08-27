@@ -4,7 +4,7 @@
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
 # 
-# Aauthor Roberto Corradini mailto:rob_corradini@yahoo.it
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
