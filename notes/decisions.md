@@ -631,3 +631,31 @@ D-037 | 2026-08-28 | test_mobility.py fix campaign T1-T9 (each item
        replacing the print-on-failure idiom in test_popcount64.
        Suite grew 23 -> 26 tests, GREEN 26/0/1. test_mobility
        campaign CLOSED.
+
+D-038 | 2026-08-28 | feature.py R1-R4 fix batch (all items approved
+       by Roberto in one go, single batch commit; doc/hygiene only,
+       no behavior change):
+       R1 - FeatureSet class docstring hash description corrected:
+       it is sha3_256 (not "SHA256"), over b'INTERCEPT' (if
+       intercept present) + the mset then pset hash hex strings
+       (if present); child hash values, not raw masks; name
+       excluded.
+       R2 - compute_indexes docstring now carries the verified
+       Column contract: column 0 = intercept (constant 0); mobility
+       columns in the MobilitySet's sorted (mask, amask) order;
+       pattern blocks in the PatternSet's sorted mask order, each
+       pattern expanded into n_instances columns in its unique-mask
+       first-seen (D8 instance) order; columns follow the child
+       sets' sorted storage order, not caller insertion order (same
+       treatment as mobility R2).
+       R3 - FeatureSet.__init__ docstring rewritten: real
+       parameters (name, intercept, mset, pset; the stale "list of
+       features" phrase removed), features-building order stated,
+       Raises clause added (ValueError, wrong intercept category).
+       R4 - dead imports removed from the typing import: TypeAlias,
+       List, Tuple, Annotated (List/Tuple appeared only in
+       docstring prose). The Mobility/Pattern imports stay: they
+       are load-bearing for @validate_call annotation resolution
+       under `from __future__ import annotations`.
+       Suite 13/0/1 GREEN; scratch/verify_feature.py ALL CHECKS
+       PASSED. Minor M1-M4 noted in the doc, disposition pending.

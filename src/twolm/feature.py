@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from typing import Self, TypeAlias, List, Tuple, Union, IO, Annotated, Any
+from typing import Self, Union, IO, Any
 
 from dataclasses import dataclass, field
 
@@ -161,7 +161,12 @@ class FeatureSet:
 
     Attributes:
     name (str): A human-readable label for the set of features.
-    hash (str): A SHA256 hash of the intercept, mset, and pset attributes, serving as a unique identifier for the set.
+    hash (str): A SHA3-256 hash serving as a unique identifier for the set:
+        sha3_256 over b'INTERCEPT' (if an intercept is present), followed by
+        the mset hash hex string (if mset is present), followed by the pset
+        hash hex string (if pset is present). The input is the child sets'
+        hash values (transitively their sorted mask contents), not raw
+        masks; the set name is not part of the hash.
     intercept (Feature | None): The intercept feature or none.
     mset (MobilitySet | None): The set of mobility objects.
     pset (PatternSet | None): The set of Pattern objects.
@@ -179,7 +184,17 @@ class FeatureSet:
                  mset: MobilitySet | None,
                  pset: PatternSet | None) -> Self:
         """
-        Initializes a new FeatureSet instance with the given name and list of features.
+        Initializes a new FeatureSet instance from the given name and the
+        three feature sources: an optional intercept Feature, an optional
+        MobilitySet, and an optional PatternSet. The features list is
+        built in the order intercept, mobilities (the MobilitySet's sorted
+        (mask, amask) order), patterns (the PatternSet's sorted mask
+        order); n_instances is their sum and the hash is derived as
+        described in the class docstring.
+
+        Raises:
+            ValueError: If intercept is not None and its category is not
+                Feature.Category.INTERCEPT.
         """
         
         if intercept and intercept.category is not Feature.Category.INTERCEPT:
@@ -249,8 +264,21 @@ class FeatureSet:
         """
         Compute the 2D matrix of indices by horizontally stacking features.
         
-        Handles empty edge cases (N=0 or I=0) gracefully by returning 
-        an empty NumPy array with the correct expected shape.
+        Returns a (N, I) uint32 array, I = sum of the n_instances of the
+        features, with the column layout:
+        
+        - column 0: the intercept feature (constant 0), if present;
+        - then one column per mobility, in the MobilitySet's sorted
+          (mask, amask) order (its compute_indexes block);
+        - then, for each pattern in the PatternSet's sorted mask order,
+          n_instances(pattern) columns: the principal index of each orbit
+          instance, in the pattern's unique-mask first-seen (D8 instance)
+          order (its compute_principal_indexes block).
+        
+        The columns therefore follow the child sets' sorted storage
+        order, not the caller's insertion order. Handles empty edge
+        cases (N=0 or I=0) gracefully by returning an empty NumPy array
+        with the correct expected shape.
         """
         N = len(positions)
         I = sum(f.n_instances for f in self.features)

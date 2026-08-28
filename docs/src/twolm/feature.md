@@ -105,10 +105,10 @@ composition point and owns no board logic of its own.
    mset `2e553593…208a94`, pset `ff97ce55…040ea`,
    feature `f5663932…b74167`.
 
-The class docstring (L164) calls it a "SHA256 hash" — it is
-sha3_256 (R1). The `__init__` docstring (L181-183) still says "with
-the given name and list of features" — there is no features
-parameter (R3).
+The class docstring originally called it a "SHA256 hash" — it is
+sha3_256 (R1, corrected D-038). The `__init__` docstring originally
+said "with the given name and list of features" — there is no
+features parameter (R3, corrected D-038).
 
 ### compute_indexes (L248-275) — column layout
 
@@ -176,16 +176,20 @@ Script: `scratch/verify_feature.py` (untracked, per convention).
 
 ## Real issues (candidates for fix, priority order)
 
-_Proposed 2026-08-28; awaiting Roberto's per-item approval._
+_2026-08-28: all four approved by Roberto in one go and applied the
+same day (D-038, single batch commit; doc/hygiene only, no behavior
+change; suite 13/0/1 GREEN, verifier all green)._
 
-- **R1 — FeatureSet class docstring, hash description (doc-only).**
+- **R1 — FeatureSet class docstring, hash description (doc-only).
+  DONE (D-038).**
   L164 says "A SHA256 hash of the intercept, mset, and pset
   attributes" — it is `hashlib.sha3_256` (L215), and the input is
   precisely: `b'INTERCEPT'` (if intercept present) followed by the
   child sets' hash **hex strings** (UTF-8) in the order mset, pset;
   the set `name` is excluded. Rewrite the line to state this
   construction (V1 ground truth).
-- **R2 — compute_indexes column-layout contract (doc-only).** The
+- **R2 — compute_indexes column-layout contract (doc-only). DONE
+  (D-038).** The
   "column layout" block above is verified but nowhere documented:
   column 0 = intercept; mobility columns in sorted (mask, amask)
   order; pattern blocks in sorted mask order, each pattern expanded
@@ -193,12 +197,13 @@ _Proposed 2026-08-28; awaiting Roberto's per-item approval._
   (D8 instance) order. Add a "Column contract" paragraph to the
   `compute_indexes` docstring (and a pointer in the class docstring)
   — same treatment as mobility R2.
-- **R3 — FeatureSet.__init__ docstring stale (doc-only).** L181-183:
+- **R3 — FeatureSet.__init__ docstring stale (doc-only). DONE
+  (D-038).** L181-183:
   "with the given name and list of features" — the signature has
   (name, intercept, mset, pset); no features parameter. Rewrite with
   the actual parameters and a `Raises:` clause (ValueError, wrong
   intercept category).
-- **R4 — dead imports (hygiene, code).** L30: `TypeAlias`, `List`,
+- **R4 — dead imports (hygiene, code). DONE (D-038).** L30: `TypeAlias`, `List`,
   `Tuple`, `Annotated` are unused in code (`List`/`Tuple` appear only
   in docstring prose). Remove them from the `typing` import. (The
   `Mobility`/`Pattern` imports are load-bearing for

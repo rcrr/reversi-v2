@@ -609,3 +609,35 @@
    test analysis (98c61fb) + T1-T9 campaign (D-037, 5c427ae);
    suite 26/0/1 GREEN. Next session: the next pipeline module,
    named by Roberto.
+
+## 2026-08-28 — session 8 (feature module)
+- feature.py + test_feature.py arrived (Roberto, commit b51bea6);
+  pipeline port continues: feature is the first integration module
+  (intercept + MobilitySet + PatternSet -> one (N, I) index matrix).
+- Module analysis (docs/src/twolm/feature.md, e9adf7b): Feature
+  (blocked __new__, 3 factories, Category IntEnum) + FeatureSet
+  (intercept category check, features list in child sorted order,
+  n_instances sum, sha3_256 hash over b'INTERCEPT' + child hash hex
+  strings, compute_indexes hstack with (N,I) edge returns).
+  Verification (scratch/verify_feature.py, no twolm.feature import
+  in the math): V1 all 3 hashes re-implemented from scratch (match
+  pinned literals); V2 13 pattern orbit sizes mask-sorted
+  [8,4,4,4,4,4,4,4,1,2,4,4,2], sum 53; V3 3x10 compute_indexes
+  golden re-derived in pure Python (LMC pure==kernel, EDGE/DIAG4
+  principal orbit-min columns) — all rows match; V4 live features
+  order = intercept + sorted mobilities + sorted patterns; V5 live
+  matrix == pure Python; V6 edge shapes (0,10)/(3,0)/(0,0); V7
+  factories + RuntimeError/ValueError/ValidationError; V8 suite
+  13/0/1 GREEN. No logic defect found. Candidates proposed: R1
+  (class docstring "SHA256" -> sha3_256 + precise construction),
+  R2 (compute_indexes column-layout contract, mobility-R2 style),
+  R3 (__init__ docstring stale "list of features"), R4 (dead
+  imports TypeAlias/List/Tuple/Annotated); minors M1 (dead pset
+  len>0 guard, asymmetric vs mset), M2 (placeholder-less
+  f-strings in print_summary), M3 (no column-labelling helper —
+  pipeline observation only), M4 (__new__ docstring grammar).
+- Roberto: "bene procediamo con i FIX" — R1-R4 approved in one go;
+  applied as a single batch commit (D-038): doc-only + import
+  hygiene, no behavior change. Suite 13/0/1 GREEN, verifier ALL
+  CHECKS PASSED. M1-M4 disposition pending. Next: test_feature.py
+  analysis (preliminary observations in the module doc's verdict).

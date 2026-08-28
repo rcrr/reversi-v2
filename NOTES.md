@@ -14,6 +14,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found+fixed in T2) + P2 breadth (D-034: T11-T14 + T17), suite 64/0/3 GREEN; T18 noted-only, M1 deferred | docs/src/twolm/test/test_pattern.md |
 | src/twolm/mobility.py | analyzed 2026-08-28: Mobility/MobilitySet + popcount64 SWAR + Numba kernel; feature index formula + n_configurations (distinct index values) + sorted-order columns + hash all verified vs independent ground truth (V1-V8, 200-position differential); R1-R6 fix batch applied (D-035: docstrings + column-order contract + popcount64 test-helper + dead imports + property/repr alignment + n_instances as-is); M1-M5 disposed (D-036: M1 glossary shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any suite); suite 23/0/1 GREEN | docs/src/twolm/mobility.md |
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28: 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented (dead if-False block, stale raises_assertion names, 2 hash self-comparisons, header grammar, dead imports, no multi-position test, R5 __repr__ untested, cosmetic print-on-failure); fix campaign CLOSED (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 -> 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
+| src/twolm/feature.py | analyzed 2026-08-28 (session 8): Feature (blocked __new__ + factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1-M4 pending; suite 13/0/1 GREEN | docs/src/twolm/feature.md |
+| src/twolm/test/test_feature.py | added 2026-08-28 (b51bea6), not yet analyzed | next step: docs/src/twolm/test/test_feature.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -120,6 +122,18 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   the 2008 program), M2/M3/M5 left as-is, M4 corrected after
   Roberto's challenge (no PERF gates in any suite — all PERF tests
   are print-only; ±30% is campaign comparison discipline).
+- feature.py analyzed (2026-08-28, session 8,
+  docs/src/twolm/feature.md): the first integration module —
+  Feature (blocked __new__ + 3 factories, Category IntEnum) +
+  FeatureSet (intercept + MobilitySet + PatternSet -> features
+  list in child sorted order, n_instances sum 53, sha3_256 hash
+  over b'INTERCEPT' + child hash hex strings, compute_indexes
+  (N, I) hstack with (N, I) edge returns). All goldens re-derived
+  independently (V1-V8, zero mismatches: 3x10 index matrix in
+  pure Python, 13 orbit sizes, 3 pinned hashes). R1-R4 applied
+  (D-038, single batch: sha3_256 doc fix, column-layout contract,
+  __init__ docstring, dead imports) — no behavior change; M1-M4
+  disposition pending. Suite 13/0/1 GREEN.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -146,8 +160,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   evolution (Roberto has a list of future changes in mind, out of
   scope for the port). Done so far: board.py (2026-08-26, proven
   complete game kernel), pattern.py, mobility.py. The game-loop
-  module is NOT in the plan (I-005 resolved). Next session: the
-  next pipeline module, named by Roberto. Pattern R4/R5 remain
+  module is NOT in the plan (I-005 resolved). Now: feature.py —
+  analysis done (e9adf7b) + R1-R4 (D-038); M1-M4 disposition
+  pending; next: test_feature.py analysis. Pattern R4/R5 remain
   doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 
