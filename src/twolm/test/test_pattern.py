@@ -73,8 +73,8 @@ ar                 = Bitboard(0x22120a0e1222221e)
 full               = Bitboard(0xffffffffffffffff)
 empty              = Bitboard(0x0000000000000000)
 sqa1               = Bitboard(0x0000000000000001)
-sqa8               = Bitboard(0x0000000000000080)
-sqh1               = Bitboard(0x0100000000000000)
+sqa8               = Bitboard(0x0100000000000000)
+sqh1               = Bitboard(0x0000000000000080)
 sqh8               = Bitboard(0x8000000000000000)
 
 row_1              = Bitboard(0x00000000000000ff)
@@ -205,6 +205,46 @@ class TestPattern(unittest.TestCase):
             with self.assertRaises(ValueError) as context:
                 Pattern('BAD_FOURC', corners | Bitboard(extra))
             self.assertIn("not principal", str(context.exception))
+
+class TestPatternType(unittest.TestCase):
+    """Direct tests of PatternType (T12): from_fingerprint, .data,
+    and the orbit-stabilizer relation n_instances * n_stabilizers = 8."""
+
+    def test_from_fingerprint_roundtrip_all_members(self):
+        self.assertEqual(len(PatternType), 12)
+        for t in PatternType:
+            with self.subTest(type=t.name):
+                self.assertIs(PatternType.from_fingerprint(t.fingerprint), t)
+                # from_fingerprint also accepts a plain list (tuples it).
+                self.assertIs(PatternType.from_fingerprint(list(t.fingerprint)), t)
+
+    def test_from_fingerprint_unknown_returns_none(self):
+        self.assertIsNone(
+            PatternType.from_fingerprint(('I0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'X9')))
+        self.assertIsNone(PatternType.from_fingerprint(('I0', 'T1')))
+
+    def test_data_fields_and_orbit_stabilizer(self):
+        for t in PatternType:
+            with self.subTest(type=t.name):
+                d = t.data
+                self.assertEqual(
+                    set(d),
+                    {"type", "sample_mask", "sample_name", "level",
+                     "n_instances", "n_stabilizers"})
+                self.assertTrue(1 <= d["n_instances"] <= 8)
+                self.assertEqual(d["n_stabilizers"], 8 // d["n_instances"])
+        # Full-data pins for three representative types (verified live
+        # 2026-08-28): a row pattern, the fully-symmetric one, and the
+        # degenerate 3D (point-fixing) case.
+        self.assertEqual(PatternType.TYPE_2.data,
+            {"type": "2", "sample_mask": 0x00000000000000FF, "sample_name": "EDGE",
+             "level": 2, "n_instances": 4, "n_stabilizers": 2})
+        self.assertEqual(PatternType.TYPE_9.data,
+            {"type": "9", "sample_mask": 0x0000001818000000, "sample_name": "CORE",
+             "level": 8, "n_instances": 1, "n_stabilizers": 8})
+        self.assertEqual(PatternType.TYPE_3D.data,
+            {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1",
+             "level": 2, "n_instances": 4, "n_stabilizers": 2})
 
 class TestPatternPack(unittest.TestCase):
 
@@ -839,6 +879,68 @@ class TestPatternMdpRecord(unittest.TestCase):
         actual = p.mdp_record()
         self.assertEqual(actual, expected)
 
+    def test_snake_pattern(self):
+        p = Pattern('SNAKE', Bitboard(0x0000000C30000000))
+        expected = (
+            "SNAKE,0000000C30000000,4,81,4,2,E4:F4:C5:D5,"
+            "0000000C30000000:0000101008080000:0000000C30000000:0000101008080000:"
+            "000000300C000000:0000080810100000:000000300C000000:0000080810100000,"
+            "0:1:0:1:4:5:4:5,"
+            "0000000C30000000:0000101008080000:000000300C000000:0000080810100000,"
+            "0:1:4:5,"
+            "ro000:ro090:fvert:fh1a8,"
+            "ro000:ro270:fvert:fh1a8,"
+            "ro180,"
+            "E4:F4:C5:D5,E5:E6:D3:D4,D5:C5:F4:E4,D4:D3:E6:E5,"
+            "D4:C4:F5:E5,E4:E3:D6:D5,E5:F5:C4:D4,D5:D6:E3:E4,"
+            "I0:T1:S0:S1:T4:T5:S4:S5,"
+            "1"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
+    def test_core_pattern(self):
+        p = Pattern('CORE', Bitboard(0x0000001818000000))
+        expected = (
+            "CORE,0000001818000000,4,81,1,8,D4:E4:D5:E5,"
+            "0000001818000000:0000001818000000:0000001818000000:0000001818000000:"
+            "0000001818000000:0000001818000000:0000001818000000:0000001818000000,"
+            "0:0:0:0:0:0:0:0,"
+            "0000001818000000,"
+            "0,"
+            "ro000,"
+            "ro000,"
+            "ro090:ro180:ro270:fvert:fh1a8:fhori:fa1h8,"
+            "D4:E4:D5:E5,E4:E5:D4:D5,E5:D5:E4:D4,D5:D4:E5:E4,"
+            "E4:D4:E5:D5,E5:E4:D5:D4,D5:E5:D4:E4,D4:D5:E4:E5,"
+            "I0:S0:S0:S0:S0:S0:S0:S0,"
+            "9"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
+    def test_diag8_pattern(self):
+        p = Pattern('DIAG8', Bitboard(0x0102040810204080))
+        expected = (
+            "DIAG8,0102040810204080,8,6561,2,4,H1:G2:F3:E4:D5:C6:B7:A8,"
+            "0102040810204080:8040201008040201:0102040810204080:8040201008040201:"
+            "8040201008040201:0102040810204080:8040201008040201:0102040810204080,"
+            "0:1:0:1:1:0:1:0,"
+            "0102040810204080:8040201008040201,"
+            "0:1,"
+            "ro000:ro090,"
+            "ro000:ro270,"
+            "ro180,"
+            "H1:G2:F3:E4:D5:C6:B7:A8,H8:G7:F6:E5:D4:C3:B2:A1,"
+            "A8:B7:C6:D5:E4:F3:G2:H1,A1:B2:C3:D4:E5:F6:G7:H8,"
+            "A1:B2:C3:D4:E5:F6:G7:H8,H1:G2:F3:E4:D5:C6:B7:A8,"
+            "H8:G7:F6:E5:D4:C3:B2:A1,A8:B7:C6:D5:E4:F3:G2:H1,"
+            "I0:T1:S0:S1:I3:I0:I1:I2,"
+            "7D"
+        )
+        actual = p.mdp_record()
+        self.assertEqual(actual, expected)
+
 class TestTransformationsCayleyTable(unittest.TestCase):
 
     Tr: TypeAlias = Callable[[np.uint64], np.uint64]
@@ -1257,7 +1359,11 @@ class TestPatternSet(unittest.TestCase):
         """
         Test the print_summary method prints the correct summary.
         """
-        expected_hash = self.pattern_set.hash
+        # Pinned (2026-08-28, computed live): sha3_256 over the raw bytes
+        # of the mask-sorted masks (EDGE 0x...FF, ELLE 0x...107,
+        # SNAKE 0x...C30000000). Pinning the literal (instead of
+        # self.pattern_set.hash) makes the line a real golden.
+        expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
         
         expected_output = [
             'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
@@ -1278,7 +1384,11 @@ class TestPatternSet(unittest.TestCase):
         """
         Test the print method prints the correct detailed summary.
         """
-        expected_hash = self.pattern_set.hash
+        # Pinned (2026-08-28, computed live): sha3_256 over the raw bytes
+        # of the mask-sorted masks (EDGE 0x...FF, ELLE 0x...107,
+        # SNAKE 0x...C30000000). Pinning the literal (instead of
+        # self.pattern_set.hash) makes the line a real golden.
+        expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
         
         expected_output = [
             'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
@@ -1623,6 +1733,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
         position = make_position(self.mover, self.opponent)
         positions = np.full(1, position)
+        position_check_collisions(positions)
         principal_indexes = self.pattern_set.compute_principal_indexes(positions)
 
         expected = np.array([[ 420, 116, 1517, 27, 9, 54, 59, 54, 15, 35, 6, 0, 44]], dtype=Index)
@@ -1671,6 +1782,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
             J += I
 
         positions = np.full(N, make_position(self.mover, self.opponent))
+        position_check_collisions(positions)
         principal_indexes = pset.compute_principal_indexes(positions)
 
         self.assertEqual(principal_indexes.shape, (N, J))

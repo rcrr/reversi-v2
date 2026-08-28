@@ -525,3 +525,35 @@ D-033 | 2026-08-28 | P2 hygiene batch for test_pattern.py (T1-T7,
        T16: removed the no-op tearDown (pass) from TestPatternPack.
        Test file only; no behavior change. Suite 58 tests, GREEN
        58/0/3 (test count unchanged by this batch).
+
+D-034 | 2026-08-28 | P2 breadth batch for test_pattern.py (T11,
+       T12, T13, T14 + T17 fixture fix; each item approved one at a
+       time, single batch commit like P0/P1/hygiene).
+       | T17 (carried from the hygiene list): sqa8/sqh1 fixture
+       values corrected to the real board bit layout (sqa8 =
+       0x0100000000000000 = A8 = bit 56; sqh1 = 0x0000000000000080
+       = H1 = bit 7); the old values were the swapped pair.
+       T11: both PatternSet.print_* tests now pin the expected hash
+       5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b
+       (live-computed from the ELLE+SNAKE+EDGE masks) instead of
+       comparing the output against pattern_set.hash (self-
+       comparison).
+       T12: new TestPatternType class (3 tests): 12-member closed set
+       with tuple/list roundtrip through from_fingerprint; unknown
+       8-tuple and 2-tuple return None; .data dict keys plus the
+       orbit-stabilizer identity n_stabilizers == 8 // n_instances
+       verified for all 12 members, with full-data pins for
+       TYPE_2/TYPE_9/TYPE_3D. Live verification exposed a doc
+       miscount ("11 members", 5 spots in docs/src/twolm/pattern.md)
+       corrected to 12 — all 12 types are used by the 29 samples.
+       T13: three mdp_record goldens added (SNAKE, CORE, DIAG8)
+       mirroring the existing EDGE one, live-captured strings.
+       T14: position_check_collisions(positions) added to
+       test_one_record and test_large_set, making the D-025 caller-
+       checks-collisions contract consistent at set level (pattern
+       level already did this; PERF tests deliberately left
+       unchecked, as at pattern level).
+       Suite grew 58 -> 64 tests, GREEN 64/0/3. P2 campaign closed:
+       T18 stays noted-only (np.uint8 n_squares — any 3**n_squares
+       must cast to int; no code action), M1 (stale PatternSet
+       Raises docstring) stays deferred pending Roberto's go-ahead.

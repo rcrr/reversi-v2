@@ -42,7 +42,7 @@ Layers (bottom → top):
 ```
 board.py: D8 transforms / anti tables, bitboards, Position
     |
-PatternType (Enum, 11 members; L82)
+PatternType (Enum, 12 members; L82)
     fingerprint -> {type, sample_mask, sample_name, level, n_instances, n_stabilizers}
     |
 Pattern (one principal mask; L144)
@@ -88,7 +88,7 @@ Cross-cutting design decisions:
    pydantic-wrapped scalar functions directly.
 6. **Closed type table** — a pattern whose computed fingerprint is not in
    the PatternType table raises `ValueError` at construction (L471-476);
-   the 11 types are the closed set of supported pattern shapes.
+   the 12 types are the closed set of supported pattern shapes.
 
 ## Pattern class (L144)
 
@@ -182,14 +182,15 @@ with 3^S when symmetry_fs is empty).
 - Markers: t_i vs the earliest j < i with the matching property; I beats S.
   Example DOTA1 → (I0, T1, T2, T3, I1, I2, I3, **I0**): t7 = fa1h8 fixes A1
   pointwise, so its 1-square *sequence* equals t0's → "I0", not "S0".
-- The 11-member table (L82-130): TYPE_0..TYPE_9 + TYPE_3D (DOTA1) +
+- The 12-member table (L82-130): TYPE_0..TYPE_9 + TYPE_3D (DOTA1) +
   TYPE_7D (DIAG8). Data fields: `type` (string "0".."9"/"3D"/"7D"),
   `sample_mask`, `sample_name`, `level` (metadata 1..8, carried to
   CSV/LaTeX export), `n_instances`, `n_stabilizers`. The table's
   n_instances/n_stabilizers agree with the computed values of the sample
   patterns (DOTA1/EDGE/CORE verified directly; the rest implied by the
   suite's fingerprint matches) — but nothing cross-checks them in code.
-- The 29 `sample_pattern_data` patterns collapse to 11 types: e.g. EDGE
+- The 29 `sample_pattern_data` patterns collapse to 12 types (all of
+  them — verified live 2026-08-28): e.g. EDGE
   (row 1) and R2 (row 2) have *identical* fingerprints → type 2. A type
   classifies the orbit shape, not the position.
 
@@ -400,7 +401,7 @@ they span exactly the 11 PatternType fingerprints (verified).
   document's pattern table.
 
 ### PatternType (L82-140)
-- 11 members: TYPE_0..TYPE_9 + TYPE_3D (DOTA1) + TYPE_7D (DIAG8); each
+- 12 members: TYPE_0..TYPE_9 + TYPE_3D (DOTA1) + TYPE_7D (DIAG8); each
   `(fingerprint tuple, data dict)`. Fingerprint slots 1..7 encode
   I/S/T vs earlier slots (see Pattern section). Representative samples:
   TYPE_0 ELLE (8 inst, 1 stab), TYPE_2 EDGE (4, 2), TYPE_6 COREA (2, 4),

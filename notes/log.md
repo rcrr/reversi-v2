@@ -488,6 +488,26 @@
   - T16: no-op tearDown removed from TestPatternPack.
   Batch committed together (like the P0/P1 batches). Suite GREEN
   58/0/3 (test count unchanged).
-- Next: T17 (sqa8/sqh1 fixture names swapped), then breadth
-  (T11 hash pin, T12 PatternType, T13 mdp_record SNAKE/CORE/DIAG8,
-  T14 collision precondition); T18 stays noted-only; M1 deferred.
+- P2 breadth batch (D-034), each item approved one at a time:
+  - T17 (carried from the hygiene list): sqa8/sqh1 fixture values
+    corrected to the real bit layout (sqa8 = A8 = bit 56,
+    sqh1 = H1 = bit 7); the old values were the swapped pair.
+  - T11: both PatternSet.print_* tests pin the expected hash
+    5e5abf79...9d10b (live-computed) instead of self-comparing
+    against pattern_set.hash.
+  - T12: new TestPatternType class (3 tests): 12-member closed set
+    + roundtrip; unknown fingerprint -> None; .data keys +
+    orbit-stabilizer identity for all 12, full-data pins
+    TYPE_2/TYPE_9/TYPE_3D. Exposed a doc miscount: "11 members"
+    (5 spots in docs/src/twolm/pattern.md) -> corrected to 12.
+  - T13: three mdp_record goldens added (SNAKE, CORE, DIAG8),
+    live-captured.
+  - T14: position_check_collisions(positions) added to
+    test_one_record and test_large_set (D-025 contract now
+    consistent at set level; PERF tests left unchecked, as at
+    pattern level).
+  Suite grew 58 -> 64, GREEN 64/0/3. P2 campaign CLOSED: T18 stays
+  noted-only, M1 deferred.
+- Next: P2 done — remaining known items: M1 (stale PatternSet
+  Raises docstring, deferred), T18 (noted-only), test_board.py
+  header nits (reported, out of scope).

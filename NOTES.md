@@ -11,7 +11,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
 | src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes); D-032 (2026-08-28): Burnside attributes n_invariant_configs / n_unique_configs | docs/src/twolm/pattern.md |
-| src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign in progress: P0 complete (D-026-028, commit 6da0803) + P1 complete (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin), suite 58/0/3; P2 hygiene complete (D-033: T1-T7, T15-T16; T19 found+fixed in T2) | docs/src/twolm/test/test_pattern.md |
+| src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found+fixed in T2) + P2 breadth (D-034: T11-T14 + T17), suite 64/0/3 GREEN; T18 noted-only, M1 deferred | docs/src/twolm/test/test_pattern.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -86,16 +86,21 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   material gaps are the three shipped-but-untested minor-sweep paths
   (#16 __repr__, #17 empty PatternSet, #18 empty mask) and the
   uniform-np.full-only array tests of the public indexing pipeline.
-  Fix campaign in progress (per-item approvals): P0 complete
-  (D-026-028, commit 6da0803), P1 complete (D-029/030/031); P2
-  (hygiene + breadth + M1) awaits approval. In between: D-032
-  (2026-08-28) — Pattern Burnside attributes n_invariant_configs /
-  n_unique_configs (formulas verified 29/29 sample patterns before
-  implementation; goldens incl. CORE 3/21 per Roberto). P2 hygiene
-  batch then complete the same day (D-033: T1-T7, T15-T16, each
-  approved one at a time; T2 became print-on-failure per Roberto's
-  proposal, which exposed T19 — position_print never imported —
-  fixed in the same item).
+  Fix campaign CLOSED (per-item approvals): P0 complete
+  (D-026-028, commit 6da0803), P1 complete (D-029/030/031); in
+  between: D-032 (2026-08-28) — Pattern Burnside attributes
+  n_invariant_configs / n_unique_configs (formulas verified 29/29
+  sample patterns before implementation; goldens incl. CORE 3/21 per
+  Roberto). P2 then complete the same day: hygiene batch (D-033:
+  T1-T7, T15-T16, each approved one at a time; T2 became
+  print-on-failure per Roberto's proposal, which exposed T19 —
+  position_print never imported — fixed in the same item), then
+  breadth batch (D-034: T11 hash pin, T12 PatternType, T13
+  mdp_record SNAKE/CORE/DIAG8, T14 collision preconditions, plus
+  T17 sqa8/sqh1 fixture fix; T12 exposed a doc "11 members"
+  miscount corrected to 12). Final suite: 64 tests, GREEN 64/0/3.
+  Remaining known items: T18 noted-only (no code action), M1
+  deferred (stale PatternSet Raises docstring, awaiting go-ahead).
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -103,14 +108,12 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - Collaboration memory: AGENTS.md (auto-injected) + this file + notes/.
 
 ## Next steps
-- test_pattern.py fix campaign (per-item approval, D-019 pattern) —
-  priorities in docs/src/twolm/test/test_pattern.md section 7.5:
-  P0 complete (D-026/027/028); P1 complete (D-029/030/031); D-032
-  done (pattern Burnside attributes); P2 hygiene done (D-033:
-  T1-T7, T15-T16); next:
-  T17 sqa8/sqh1 fixtures, then breadth (hash pin T11, PatternType
-  T12, mdp_record SNAKE/CORE/DIAG8 T13, collision precondition
-  T14); T18 noted-only; deferred M1 stale Raises docstring.
+- test_pattern.py fix campaign — **CLOSED** (all P0/P1/P2 items
+  approved and done; D-026…D-034; suite 64/0/3, GREEN). Remaining
+  known items (out of scope of the closed campaign): T18 noted-only
+  (np.uint8 `3**n_squares` overflow, no code action); M1 deferred
+  (stale PatternSet Raises docstring, awaiting go-ahead);
+  test_board.py header nits (reported, out of scope).
 - Then: next module of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
   the original repo). R4/R5 remain doc-status only, parked.

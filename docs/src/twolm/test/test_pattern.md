@@ -322,14 +322,23 @@ _Per-item approval, one at a time, per the D-019 pattern. Status
      `TestCase` namedtuple renamed to `SymmetryCase`; T7 CSV header
      content asserted in the empty-list test; T15 mock records
      replaced with the real EDGE/CORNER `mdp_record()` output; T16
-     no-op `tearDown` removed. **PENDING**: T17 (sqa8/sqh1 fixtures
-     have swapped names vs values). T18 (np.uint8 `3**n_squares`
-     overflow) stays noted-only, no code action.
-  7. Golden-pin `PatternSet.hash` (T11) — pending.
-  8. Direct `PatternType.from_fingerprint` tests (T12) — pending.
-  9. Add `mdp_record` goldens for SNAKE/CORE/DIAG8 (T13) — pending.
-  10. Add `position_check_collisions` to the set-level indexing tests
-      (T14) — pending.
+     no-op `tearDown` removed. T17 (sqa8/sqh1 fixture values
+     corrected) is done in the breadth batch below (D-034).
+     T18 (np.uint8 `3**n_squares` overflow) stays noted-only, no
+     code action.
+  7. Add `position_check_collisions` to the set-level indexing tests
+     (T14) — **DONE** (D-034): collision precondition now asserted
+     at both levels.
+  8. Direct `PatternType.from_fingerprint` tests (T12) — **DONE**
+     (D-034): 12-member closed-set + roundtrip, unknown fingerprint
+     → None, `.data` keys + orbit-stabilizer identity (all 12),
+     full-data pins for TYPE_2/TYPE_9/TYPE_3D. Also fixed the doc's
+     "11 members" miscounts (actually 12).
+  9. Add `mdp_record` goldens for SNAKE/CORE/DIAG8 (T13) — **DONE**
+     (D-034): three golden strings mirroring the EDGE one.
+  10. Golden-pin `PatternSet.hash` (T11) — **DONE** (D-034): expected
+     hash `5e5abf79…9d10b` computed from the actual masks, no
+     self-comparison.
   11. Fix the stale `PatternSet` Raises docstring (M1 — deferred item,
       needs Roberto's go-ahead).
 
