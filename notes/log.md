@@ -414,3 +414,13 @@
   minor-sweep paths (#16, #17, #18).
 - Next: Roberto's per-item approvals for the test_pattern.py fix
   campaign (same one-at-a-time flow as pattern.py).
+- Fix campaign in progress (per-item approvals):
+  - D-026 (P0 1/3, T8/#16): TestPattern.test_repr added — three
+    goldens (ELLE/EDGE/SNAKE) pin the one-line repr, incl. str()
+    fallback (no __str__ defined). Suite GREEN 51/0/3.
+  - D-027 (P0 2/3, T8/#17): TestPatternSet.
+    test_init_raises_value_error_for_empty_pattern_list added. Suite
+    GREEN 52/0/3.
+  - D-028 (P0 3/3, T8/#18): TestPattern.
+    test_init_raises_value_error_for_empty_mask added. P0 CLOSED:
+    #16/#17/#18 all covered. Suite GREEN 53/0/3.

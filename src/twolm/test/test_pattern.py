@@ -118,6 +118,13 @@ class TestPattern(unittest.TestCase):
         with self.assertRaises(ValueError):
             p = Pattern('TOO_BIG', Bitboard(0x000000000007FFFF))
 
+    def test_init_raises_value_error_for_empty_mask(self):
+        """Fail-fast check from the 2026-08-27 minor sweep, item #18:
+        a zero mask selects no squares and is rejected at construction."""
+        with self.assertRaises(ValueError) as context:
+            Pattern('EMPTY', Bitboard(0x0000000000000000))
+        self.assertIn("empty mask", str(context.exception))
+
     def test_init_attributes(self):
         mask = Bitboard(0x0000000000000107)
         all_masks = np.full(8, mask, dtype=Bitboard)
@@ -159,7 +166,22 @@ class TestPattern(unittest.TestCase):
             ['A1', 'A2', 'A3', 'B1'],  # 7: fa1h8
         ]
         self.assertEqual(p.snames_t, expected_snames_t)
-        
+
+    def test_repr(self):
+        """#16 (2026-08-27 minor sweep): golden for the one-line __repr__
+        summary, same info as the first line of print() — name in repr
+        form, mask as 16-digit lowercase hex. Pattern defines no __str__,
+        so str() falls back to __repr__ (pinned here too)."""
+        p = Pattern('ELLE', Bitboard(0x0000000000000107))
+        self.assertEqual(repr(p), "Pattern(name='ELLE', mask=0x0000000000000107)")
+        self.assertEqual(str(p),  "Pattern(name='ELLE', mask=0x0000000000000107)")
+        r = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        self.assertEqual(repr(r), "Pattern(name='EDGE', mask=0x00000000000000ff)")
+        self.assertEqual(str(r),  "Pattern(name='EDGE', mask=0x00000000000000ff)")
+        q = Pattern('SNAKE', Bitboard(0x0000000C30000000))
+        self.assertEqual(repr(q), "Pattern(name='SNAKE', mask=0x0000000c30000000)")
+        self.assertEqual(str(q),  "Pattern(name='SNAKE', mask=0x0000000c30000000)")
+
     def test_init_raises_value_error_for_non_principal_mask(self):
         """Test that passing a transformed (non-principal) mask raises ValueError."""
         # 0x00000000008080C0 is the 90-degree rotation of ELLE (0x0000000000000107)
@@ -1196,6 +1218,13 @@ class TestPatternSet(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             PatternSet('DupMaskSet', [p1, p2])
         self.assertIn("duplicate masks", str(context.exception))
+
+    def test_init_raises_value_error_for_empty_pattern_list(self):
+        """Test that an empty pattern list raises ValueError (fail-fast
+        check from the 2026-08-27 minor sweep, item #17)."""
+        with self.assertRaises(ValueError) as context:
+            PatternSet('EmptySet', [])
+        self.assertIn("cannot be empty", str(context.exception))
 
 class TestPatternPrincipalIndex(unittest.TestCase):
 

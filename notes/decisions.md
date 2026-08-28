@@ -325,3 +325,56 @@ D-025 | 2026-08-27 | Pattern indexing APIs keep the collision-check
        documented in both docstrings (Precondition: positions must be
        collision-free, e.g. via board.position_check_collisions). No
        code behavior change.
+
+D-026 | 2026-08-27 | Pattern.__repr__ golden pinned in test_pattern.py
+       (test_pattern fix campaign, P0 item 1/3, defect T8/#16).
+       | __repr__ (pattern.py, added by the 2026-08-27 minor sweep)
+       shipped with zero test coverage. Added TestPattern.test_repr
+       with three goldens (ELLE, EDGE, SNAKE) pinning the exact
+       one-line format: Pattern(name='<NAME>', mask=0x<16-digit
+       lowercase hex>) — the same info as the first line of print().
+       EDGE pins lowercase 'ff', SNAKE pins 'c' (the only hex letters
+       among the sample-set principal masks); all three cover the 16-
+       digit zero padding and the name repr form. Also pins str(p) ==
+       repr(p): Pattern defines no __str__ (verified: '__str__' not in
+       type(p).__dict__), so str() falls back to __repr__; a future
+       divergent __str__ would break the test. Test file only,
+       pattern.py untouched. Goldens verified read-only against the
+       live behavior before approval. Suite grew 50 -> 51 tests,
+       GREEN 51/0/3.
+
+D-027 | 2026-08-27 | Empty-PatternSet ValueError test pinned in
+       test_pattern.py (test_pattern fix campaign, P0 item 2/3, defect
+       T8/#17).
+       | The fail-fast `if not patterns: raise ValueError('Patterns
+       list cannot be empty')` check (PatternSet.__init__, added by the
+       2026-08-27 minor sweep) shipped with no test coverage. Added
+       TestPatternSet.test_init_raises_value_error_for_empty_pattern_
+       list: PatternSet('EmptySet', []) must raise ValueError with a
+       message containing 'cannot be empty'. Style matches the sibling
+       duplicate names/masks ValueError tests (assertRaises +
+       assertIn). The pydantic constructor accepts an empty list (a
+       valid List[Pattern]); the manual check is what raises. Verified
+       read-only against the live behavior before approval. Test file
+       only, pattern.py untouched. The stale TypeError Raises lines in
+       the constructor docstring remain the known deferred item (M1,
+       P2). Suite grew 51 -> 52 tests, GREEN 52/0/3.
+
+D-028 | 2026-08-27 | Empty-mask ValueError test pinned in
+       test_pattern.py (test_pattern fix campaign, P0 item 3/3, defect
+       T8/#18).
+       | The fail-fast `if self.n_squares == 0: raise ValueError(...)`
+       check (Pattern.__init__, L298-299, added by the 2026-08-27 minor
+       sweep) shipped with no test coverage. Added
+       TestPattern.test_init_raises_value_error_for_empty_mask right
+       after test_init_invalid_number_of_squares, so the two
+       constructor guards (n_squares == 0 and n_squares > 18) sit side
+       by side: Pattern('EMPTY', Bitboard(0x0)) must raise ValueError
+       with a message containing 'empty mask' (the name is interpolated
+       by the code and is not part of the pinned contract). The check
+       fires before any derived field is computed (tmasks et al. never
+       run on a zero mask). Verified read-only against the live
+       behavior before approval. Test file only, pattern.py untouched.
+       This closes P0: all three shipped-but-uncovered minor-sweep
+       paths (#16, #17, #18) now have tests. Suite grew 52 -> 53
+       tests, GREEN 53/0/3.
