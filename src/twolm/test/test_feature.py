@@ -152,6 +152,50 @@ class TestFeatureSet(unittest.TestCase):
         expected_hash = 'f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167'
         self.assertEqual(feature_set.hash, expected_hash)
 
+    def test_init_intercept_only(self):
+        """Partial-None: intercept present, mset and pset None."""
+        feature_set = FeatureSet('InterceptOnly', self.intercept, None, None)
+        self.assertEqual(feature_set.hash,
+                         'ab7c1b64b96fe0fb85350613ac69b258a4442f56c390d7f69e5a070611e14b12')
+        self.assertEqual([f.name for f in feature_set.features], ['INTERCEPT'])
+        self.assertEqual(feature_set.n_instances, 1)
+        positions = make_position([0x01054FD4327E1C10, 0x40785CEAFB400004],
+                                  [0xE8D03028C880C084, 0x92042214043C7878])
+        indexes = feature_set.compute_indexes(positions)
+        self.assertEqual(indexes.shape, (2, 1))
+        np.testing.assert_array_equal(indexes, np.zeros((2, 1), dtype=Index))
+
+    def test_init_mobility_only(self):
+        """Partial-None: mset present, intercept and pset None."""
+        feature_set = FeatureSet('MobilityOnly', None, self.mset, None)
+        self.assertEqual(feature_set.hash,
+                         '239e4df42493da52f536f6b3017712a18da05fa48925b76d12adc688d008ecf3')
+        self.assertEqual([f.name for f in feature_set.features],
+                         ['ALMC', 'LMC', 'DLMC'])
+        self.assertEqual(feature_set.n_instances, 3)
+        positions = make_position([0x01054FD4327E1C10, 0x40785CEAFB400004],
+                                  [0xE8D03028C880C084, 0x92042214043C7878])
+        indexes = feature_set.compute_indexes(positions)
+        self.assertEqual(indexes.shape, (2, 3))
+        np.testing.assert_array_equal(indexes, self.mset.compute_indexes(positions))
+
+    def test_init_pattern_only(self):
+        """Partial-None: pset present, intercept and mset None."""
+        feature_set = FeatureSet('PatternOnly', None, None, self.pset)
+        self.assertEqual(feature_set.hash,
+                         '63f0a6c8b2355baa8e1f6fb733454c8d4f1c0d4cdc9a0270eb45dcf2400f5668')
+        self.assertEqual([f.name for f in feature_set.features],
+                         ['2X5COR', 'XEDGE', 'R2', 'CORNER', 'R3', 'DIAG4',
+                          'R4', 'DIAG5', 'CORE', 'RCT2X4', 'DIAG6', 'DIAG7',
+                          'DIAG8'])
+        self.assertEqual(feature_set.n_instances, 49)
+        positions = make_position([0x01054FD4327E1C10, 0x40785CEAFB400004],
+                                  [0xE8D03028C880C084, 0x92042214043C7878])
+        indexes = feature_set.compute_indexes(positions)
+        self.assertEqual(indexes.shape, (2, 49))
+        np.testing.assert_array_equal(
+            indexes, self.pset.compute_principal_indexes(positions))
+
     def test_print_summary(self):
         feature_set = FeatureSet('TestFeatureSet', self.intercept, self.mset, self.pset)
         with io.StringIO() as buffer:

@@ -698,6 +698,25 @@ D-042 | 2026-08-28 | feature.py M4 disposed (approved by Roberto,
        now disposed: D-039 (M1 applied), D-040 (M2 applied),
        D-041 (M3 left as-is, I-007), D-042 (M4 applied).
 
+D-043 | 2026-08-28 | test_feature.py T campaign, item T6 (P1,
+       approved by Roberto, one at a time): three new tests in
+       TestFeatureSet cover the partial-None FeatureSet
+       constructions — test_init_intercept_only (hash
+       ab7c1b64b96fe0fb85350613ac69b258a4442f56c390d7f69e5a070611e14b12
+       = sha3_256(b'INTERCEPT'), features ['INTERCEPT'],
+       n_instances 1, compute_indexes (2,1) zeros),
+       test_init_mobility_only (hash
+       239e4df42493da52f536f6b3017712a18da05fa48925b76d12adc688d008ecf3
+       = sha3_256(mset hash hex), features ['ALMC','LMC','DLMC'],
+       n_instances 3, block == mset.compute_indexes),
+       test_init_pattern_only (hash
+       63f0a6c8b2355baa8e1f6fb733454c8d4f1c0d4cdc9a0270eb45dcf2400f5668
+       = sha3_256(pset hash hex), 13 names in sorted order,
+       n_instances 49, block == pset.compute_principal_indexes).
+       All three hash literals re-derived from scratch (genuine
+       goldens, no self-comparison). Suite 13 -> 16 run tests,
+       GREEN 16/0/1. T1-T5, T7-T9 pending.
+
 D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
        one at a time): the unused `f` prefixes removed from the
        two placeholder-less print_summary lines ("Intercept is

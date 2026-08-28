@@ -3,7 +3,9 @@
 _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 2026-08-28 (commit b51bea6), analyzed after the R1-R4 module batch
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
-skip, 0 failures, GREEN. 4 classes, 1 PERF test._
+skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
+progress one at a time: T6 applied (D-043) → 16 run + 1 PERF skip,
+GREEN 16/0/1; T1-T5, T7-T9 pending._
 
 ## 1. What this file is
 
@@ -112,13 +114,20 @@ mobility suites have their own, closed)._
   ['INTERCEPT', 'ALMC', 'LMC', 'DLMC', '2X5COR', 'XEDGE', 'R2',
   'CORNER', 'R3', 'DIAG4', 'R4', 'DIAG5', 'CORE', 'RCT2X4',
   'DIAG6', 'DIAG7', 'DIAG8'])`.
-- **T6 — partial-None FeatureSet untested.** Only the all-None set
-  is constructed (in the edge tests). Untested code: the hash chunk
-  branches for intercept-only (hash of `b'INTERCEPT'` alone),
-  mset-only, pset-only; and the single-block hstack path of
-  compute_indexes (intercept-only → (N,1); mset-only → (N,3);
-  pset-only → (N,4) for the EDGE+DIAG4 set). The only real
-  code-coverage gap in the module (P1).
+- **T6 — partial-None FeatureSet untested. DONE (D-043).** Only
+  the all-None set was constructed (in the edge tests). Untested
+  code: the hash chunk branches for intercept-only (hash of
+  `b'INTERCEPT'` alone), mset-only, pset-only; and the single-block
+  hstack path of compute_indexes (intercept-only → (N,1);
+  mset-only → (N,3); pset-only → (N,49) for the 13-pattern
+  fixture). The only real code-coverage gap in the module (P1).
+  Fix applied: three new tests in TestFeatureSet
+  (test_init_intercept_only / test_init_mobility_only /
+  test_init_pattern_only) reusing the setUp fixture, each pinning a
+  genuine from-scratch hash literal (ab7c1b64…, 239e4df4…,
+  63f0a6c8…), the names-order list, n_instances (1 / 3 / 49), the
+  output shape, and block equality against the child set's own
+  compute method. Suite 13 → 16 run tests.
 - **T7 — `Feature.__repr__`/`__eq__` untested.** The dataclass
   auto-`__repr__` (5 fields, `ref` excluded) and field-wise
   `__eq__` (ref included) are never pinned; the suite relies on
@@ -203,7 +212,7 @@ awaiting Roberto's approvals._
   1. T6 — partial-None `FeatureSet` tests: intercept-only /
      mset-only / pset-only constructions (hash chunk branches
      pinned against from-scratch values) + single-block
-     `compute_indexes` shapes.
+     `compute_indexes` shapes. **DONE (D-043).**
 - **P2** (hygiene + breadth):
   2. T1 — dead `if False:` block removed.
   3. T2 — 6 dead imports removed.
