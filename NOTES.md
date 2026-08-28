@@ -139,10 +139,16 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   (D-037, defects T1-T9, per-item approvals; suite 23 -> 26,
   GREEN 26/0/1). Mobility module fully done: analysis + R1-R6
   (D-035) + M1-M5 (D-036) + test campaign (D-037).
-- Then: session wrap-up (mobility module complete) and the rest of
-  Roberto's plan (game-loop module — board.py is a proven complete
-  game kernel, 2026-08-26 — or the next source file of the original
-  repo). Pattern R4/R5 remain doc-status only, parked.
+- The plan (confirmed by Roberto, 2026-08-28, session close): port
+  the ENTIRE pipeline — the original repo brought in module by
+  module, this staging workspace's work — with VERIFIED code and
+  COMPLETE tests as the goal: a solid base before further
+  evolution (Roberto has a list of future changes in mind, out of
+  scope for the port). Done so far: board.py (2026-08-26, proven
+  complete game kernel), pattern.py, mobility.py. The game-loop
+  module is NOT in the plan (I-005 resolved). Next session: the
+  next pipeline module, named by Roberto. Pattern R4/R5 remain
+  doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index

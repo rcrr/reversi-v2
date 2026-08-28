@@ -18,13 +18,18 @@ I-003 | idea | Named move constants (MOVE_PASS=64, MOVE_NOT_AVAILABLE=65,
 I-004 | idea | (placeholder — Roberto's future-evolution ideas go here as
        they come up)
 
-I-005 | idea | Next session starts a NEW module (Roberto, 2026-08-26).
+I-005 | done | Next session starts a NEW module (Roberto, 2026-08-26).
        Target module to be chosen with Roberto. Candidate: a game-loop
        module (start position, turn/pass/game-over rules, history) —
        board.py is proven a complete game kernel by the 200-game random
        simulation of 2026-08-26; the loop itself is ~25 lines on top of
        the public API. Other candidate: the next source file of the
        original repo (file-by-file modernization).
+       RESOLVED (2026-08-28, Roberto, session close): the plan is the
+       pipeline port — the original repo brought in module by module
+       with verified code and complete tests; the game-loop candidate
+       is NOT in the plan. mobility.py was the first pipeline module
+       completed (session 7).
 
 I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
        PatternSet.names/masks are now @property (attribute-style). If the

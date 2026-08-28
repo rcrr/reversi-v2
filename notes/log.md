@@ -597,6 +597,15 @@
    grammar), T6 (dead imports shutil/tempfile/legal_moves removed),
    T9 (approved: native assertEqual with line numbers in
    test_popcount64). Suite 23 -> 26, GREEN 26/0/1. Campaign CLOSED.
- - Next: session wrap-up (mobility module fully done: analysis +
-   R1-R6 D-035 + M1-M5 D-036 + test campaign D-037), then the next
-   module of Roberto's plan.
+ - PLAN CORRECTION (Roberto, session close): the plan is the PIPELINE
+   PORT — the original repo brought in module by module, with
+   VERIFIED code and COMPLETE tests as the goal (a solid base before
+   further evolution; he has a list of future changes in mind, out
+   of scope for the port). The game-loop module is NOT in the plan;
+   all forward-looking references corrected (NOTES.md, I-005
+   resolved). Done so far: board.py, pattern.py, mobility.py.
+ - Session closed (Roberto). Mobility module fully done: analysis
+   (75c0307) + R1-R6 (D-035, 304cb2a) + M1-M5 (D-036, 4d3f08b) +
+   test analysis (98c61fb) + T1-T9 campaign (D-037, 5c427ae);
+   suite 26/0/1 GREEN. Next session: the next pipeline module,
+   named by Roberto.
