@@ -662,3 +662,7 @@
   loop (behaviour identical: empty PatternSet impossible, empty
   MobilitySet legal and hstack-safe); now symmetric with the plain
   mset branch. Suite 13/0/1 GREEN, verifier all green. Next: M2.
+- M2 approved and applied (D-040): unused `f` prefixes removed
+  from the two placeholder-less print_summary lines ("Intercept
+  is present." / "Intercept is None."); cosmetic, output
+  identical, goldens unchanged. Suite 13/0/1 GREEN. Next: M3.

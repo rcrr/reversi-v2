@@ -669,3 +669,17 @@ D-039 | 2026-08-28 | feature.py M1 disposed (approved by Roberto,
        Now symmetric with the plain `if self.mset:` branch. Suite
        13/0/1 GREEN; verifier all green. M2-M4 disposition
        pending.
+
+D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
+       one at a time): the two unused `f` prefixes removed from
+       print_summary's placeholder-less lines ("Intercept is
+       present." / "Intercept is None."); cosmetic only, output
+       identical. Suite 13/0/1 GREEN (print_summary goldens
+       unchanged). M3-M4 disposition pending.
+
+D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
+       one at a time): the unused `f` prefixes removed from the
+       two placeholder-less print_summary lines ("Intercept is
+       present." / "Intercept is None."); output identical,
+       cosmetic only. Suite 13/0/1 GREEN (print_summary goldens
+       unchanged). M3-M4 disposition pending.

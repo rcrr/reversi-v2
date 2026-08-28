@@ -240,9 +240,9 @@ class FeatureSet:
         prt = lambda msg: print(msg, file=output)
         prt(f"FeatureSet: name = {self.name}, length = {len(self.features)}, hash = {self.hash}")
         if self.intercept:
-            prt(f"  Intercept is present.")
+            prt("  Intercept is present.")
         else:
-            prt(f"  Intercept is None.")
+            prt("  Intercept is None.")
         if self.mset:
             prt(f"  MobilitySet: name = {self.mset.name}, hash = {self.mset.hash}")
             for i, m in enumerate(self.mset.mobilities):

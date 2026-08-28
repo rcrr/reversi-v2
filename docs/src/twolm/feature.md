@@ -212,7 +212,7 @@ change; suite 13/0/1 GREEN, verifier all green)._
 ## Minor issues / inconsistencies
 
 _Noted 2026-08-28; disposed one at a time per Roberto. M1 DONE
-(D-039); M2-M4 disposition pending._
+(D-039), M2 DONE (D-040); M3-M4 disposition pending._
 
 - **M1 — dead empty-set guard in `compute_indexes`. DONE
   (D-039).** The pset branch of the active-blocks loop was
@@ -223,10 +223,12 @@ _Noted 2026-08-28; disposed one at a time per Roberto. M1 DONE
   (deliberate, mobility M3) and its `(N, 0)` block is handled
   correctly by `hstack`. Dead clause removed for symmetry;
   behaviour identical.
-- **M2 — placeholder-less f-strings in `print_summary`.** L228/L230:
-  `prt(f"  Intercept is present.")` / `"  Intercept is None."` — the
-  `f` prefix is unused (the mset/pset lines below do have
-  placeholders). Cosmetic.
+- **M2 — placeholder-less f-strings in `print_summary`. DONE
+  (D-040).** L228/L230: `prt(f"  Intercept is present.")` /
+  `"  Intercept is None."` — the
+  `f` prefix was unused (the mset/pset lines below do have
+  placeholders). Cosmetic; the `f` prefixes removed, output
+  identical.
 - **M3 — no column labelling helper on FeatureSet (observation
   only).** Unlike `MobilitySet.names`/`masks` (D-024 style),
   `FeatureSet` offers no way to map a matrix column back to its
