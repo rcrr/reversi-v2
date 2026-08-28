@@ -211,16 +211,18 @@ change; suite 13/0/1 GREEN, verifier all green)._
 
 ## Minor issues / inconsistencies
 
-_Noted 2026-08-28; awaiting disposition._
+_Noted 2026-08-28; disposed one at a time per Roberto. M1 DONE
+(D-039); M2-M4 disposition pending._
 
-- **M1 — asymmetric empty-set guards in `__init__`.** L197-202: the
-  pset branch is `if self.pset and len(self.pset.patterns) > 0`
-  while the mset branch is a plain `if self.mset:`. An empty
-  `PatternSet` is impossible (PatternSet fail-fast, D-033-era
-  #17), so the `len(...) > 0` test is dead; an empty `MobilitySet` is
-  legal (deliberate, mobility M3) and its `(N, 0)` block is handled
-  correctly by `hstack`. Harmless; candidate: drop the dead clause
-  for symmetry, or leave as-is.
+- **M1 — dead empty-set guard in `compute_indexes`. DONE
+  (D-039).** The pset branch of the active-blocks loop was
+  `if self.pset and len(self.pset.patterns) > 0`, while the mset
+  branch was a plain `if self.mset:`. An empty `PatternSet` is
+  impossible (PatternSet fail-fast, D-033-era #17), so the
+  `len(...) > 0` test was dead; an empty `MobilitySet` is legal
+  (deliberate, mobility M3) and its `(N, 0)` block is handled
+  correctly by `hstack`. Dead clause removed for symmetry;
+  behaviour identical.
 - **M2 — placeholder-less f-strings in `print_summary`.** L228/L230:
   `prt(f"  Intercept is present.")` / `"  Intercept is None."` — the
   `f` prefix is unused (the mset/pset lines below do have

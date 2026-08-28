@@ -659,3 +659,13 @@ D-038 | 2026-08-28 | feature.py R1-R4 fix batch (all items approved
        under `from __future__ import annotations`.
        Suite 13/0/1 GREEN; scratch/verify_feature.py ALL CHECKS
        PASSED. Minor M1-M4 noted in the doc, disposition pending.
+
+D-039 | 2026-08-28 | feature.py M1 disposed (approved by Roberto,
+       one at a time): the dead `len(self.pset.patterns) > 0`
+       clause removed from the pset branch of compute_indexes'
+       active-blocks loop (behaviour identical — an empty
+       PatternSet is impossible, PatternSet fail-fast; an empty
+       MobilitySet is legal and its (N, 0) block is hstack-safe).
+       Now symmetric with the plain `if self.mset:` branch. Suite
+       13/0/1 GREEN; verifier all green. M2-M4 disposition
+       pending.

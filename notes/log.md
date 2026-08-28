@@ -655,3 +655,10 @@
   print_summary golden). No P0 (R1-R4 was doc/hygiene-only; its
   behaviour is pinned by existing goldens). Campaign pending
   per-item approvals.
+- Roberto: "andiamo uno ad uno come sempre" — feature minors and
+  the T campaign proceed one item at a time. M1 approved and
+  applied (D-039): dead `len(self.pset.patterns) > 0` clause
+  removed from the pset branch of compute_indexes' active-blocks
+  loop (behaviour identical: empty PatternSet impossible, empty
+  MobilitySet legal and hstack-safe); now symmetric with the plain
+  mset branch. Suite 13/0/1 GREEN, verifier all green. Next: M2.
