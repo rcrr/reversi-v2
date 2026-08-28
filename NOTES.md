@@ -12,6 +12,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes); D-032 (2026-08-28): Burnside attributes n_invariant_configs / n_unique_configs | docs/src/twolm/pattern.md |
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found+fixed in T2) + P2 breadth (D-034: T11-T14 + T17), suite 64/0/3 GREEN; T18 noted-only, M1 deferred | docs/src/twolm/test/test_pattern.md |
+| src/twolm/mobility.py | analyzed 2026-08-28: Mobility/MobilitySet + popcount64 SWAR + Numba kernel; feature index formula + n_configurations (distinct index values) + sorted-order columns + hash all verified vs independent ground truth (V1-V8, 200-position differential); 6 fix candidates R1-R6 proposed (doc/consistency/design), none applied; suite 23/0/1 GREEN | docs/src/twolm/mobility.md |
+| src/twolm/test/test_mobility.py | added 2026-08-28 (commit 62748ca); 23 tests, 1 PERF gate; analysis pending (next step) | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -101,6 +103,19 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   miscount corrected to 12). Final suite: 64 tests, GREEN 64/0/3.
   Remaining known items: T18 noted-only (no code action), M1
   deferred (stale PatternSet Raises docstring, awaiting go-ahead).
+- mobility.py analyzed (2026-08-28, session 7,
+  docs/src/twolm/mobility.md): feature index formula
+  `popcount(lms & mask) + (a − popcount(alms & amask))`,
+  n_configurations = k + a + 1 (distinct index values — brute-force
+  verified), columns in the set's SORTED (mask, amask) order (live
+  verified; docstring gap R2), sha3_256 hash re-implemented from
+  scratch (match), 200-position random differential test of
+  compute_indexes vs pure Python (0 mismatches), popcount64 vs
+  int.bit_count on 200,010 values (0 mismatches). No logic defect
+  found. Fix candidates R1-R6 proposed (doc docstrings + column-order
+  contract + popcount64 status + dead imports + property/repr
+  consistency + n_instances note), none applied — awaiting per-item
+  approvals.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -114,9 +129,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   (np.uint8 `3**n_squares` overflow, no code action); M1 deferred
   (stale PatternSet Raises docstring, awaiting go-ahead);
   test_board.py header nits (reported, out of scope).
-- Then: next module of Roberto's plan (game-loop module — board.py is a
+- mobility.py: analysis DONE (2026-08-28, docs/src/twolm/mobility.md).
+  Next: (1) test_mobility.py analysis
+  (docs/src/twolm/test/test_mobility.md); (2) R1-R6 fix candidates,
+  per-item approvals (R3 popcount64 status is Roberto's design call).
+- Then: the rest of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
-  the original repo). R4/R5 remain doc-status only, parked.
+  the original repo). Pattern R4/R5 remain doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 
 ## Index
@@ -130,6 +149,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   area, 21 verified facts, defects T1-T19 (T17/T19 found during the
   campaign), completeness verdict +
   P0/P1/P2 priorities)
+- docs/src/twolm/mobility.md — mobility.py analysis (feature index formula,
+  n_configurations semantics, sorted-order columns, verified V1-V8,
+  candidates R1-R6, minor M1-M5)
 - notes/naming.md — canonical board naming convention (row/column, D-013)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)

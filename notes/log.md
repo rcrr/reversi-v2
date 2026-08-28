@@ -519,3 +519,34 @@
   file of the original repo). Parked: M1 deferred (stale PatternSet
   Raises docstring, awaiting go-ahead), T18 noted-only,
   test_board.py header nits (reported, out of scope).
+
+## 2026-08-28 — session 7 (mobility module)
+ - Roberto added src/twolm/mobility.py (commit 62748ca) + test file;
+   requested the full module analysis first, documented in
+   docs/src/twolm/mobility.md (D-007 mirror).
+ - Module: Mobility (name, mask, amask; n_configurations = k + a + 1
+   = distinct index values) + MobilitySet (sorted (mask, amask)
+   storage, sha3_256 hash, dup name/key checks) + popcount64 (SWAR
+   Numba UFunc) + compute_indexes Numba kernel ((N) -> (N, L) uint32).
+ - Independent verification (scratch/verify_mobility.py, untracked):
+   V1-V2 popcount64 vs int.bit_count 200,010 values scalar +
+   vectorized (0 mismatches); V3 n_configurations == distinct index
+   values, brute force incl. overlapping masks; V4 compute_indexes vs
+   pure Python on 200 random positions x 5 mobilities (0 mismatches);
+   V5 suite golden [53, 13, 66] re-derived (golden position: lms 13,
+   alms 11; columns in the set's SORTED order — a live-verified
+   docstring gap, R2); V6 hash formula re-implemented from scratch
+   (incl. sample hash 2e553593...208a94 + empty-set hash); V7
+   underflow boundary position; V8 legal_moves scalar == array path.
+ - Suite baseline: test_mobility 23/0/1 GREEN.
+ - Fix candidates documented (none applied — awaiting per-item
+   approvals): R1 class docstrings (formula + n_configurations
+   semantics + "mast" typo), R2 compute_indexes column-order
+   contract, R3 popcount64 public vs test-only status (Roberto's
+   decision), R4 dead imports (bitboard_transformations,
+   square_from_str), R5 names()/masks() methods vs PatternSet
+   properties + no __repr__ (D-024 alignment), R6 n_instances = 1
+   doc note. Minor M1-M5 noted (abbreviation glossary, name padding,
+   empty-set acceptance, no PERF gate, per-element UFunc call).
+ - Next: test_mobility.py analysis (docs/src/twolm/test/test_mobility.md)
+   + R1-R6 proposals one at a time.
