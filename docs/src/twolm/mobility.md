@@ -182,38 +182,36 @@ board.py `legal_moves` (itself suite-verified). Script:
 ## Real issues (candidates for fix, priority order)
 
 _Roberto's standing rule: per-item proposal, apply only on explicit
-approval. None applied yet._
+approval. **R1-R6 all approved and applied 2026-08-28 (D-035, batch
+commit); suite 23/0/1 GREEN throughout (no behavior change).**_
 
-- **R1 — Mobility/MobilitySet docstrings (doc-only).** The class
-  docstring L59-63 is grammatically broken ("Otherwise is the
-  measure of...") and does not state the index formula or what
-  `n_configurations` counts (distinct index values — the
-  feature-table size). The set docstring L99 has the typo "mast"
-  (→ mask) and "ascending sorted order" is fine but "stored in a
-  ascending" → "in ascending". Proposed fix: rewrite both docstrings
-  with the verified formula, the n_configurations semantics, and the
-  sorted-order column note.
-- **R2 — compute_indexes docstring (doc-only).** State the column
-  order contract: "columns follow the set's sorted (mask, amask)
-  order, as returned by names()/masks()". This is the trap that
-  inverted my first independent verifier; any future game-module
-  caller will hit it too.
-- **R3 — popcount64 status (design question, no code yet).** Is it
-  the public API for the upcoming game/eval module (keep `__all__`,
-  rewrite docstring), or a test-only helper (move out of `__all__`)?
-  Roberto decides.
-- **R4 — dead imports (hygiene, code).** `bitboard_transformations`
-  (L34) and `square_from_str` (L36) are imported, never used. Remove.
-- **R5 — API-shape consistency with PatternSet (consistency, code).**
-  `names()`/`masks()` are methods here, `@property` in PatternSet
-  (D-024, "whole public surface attribute-style"); `Mobility`/
-  `MobilitySet` have no `__repr__` (Pattern has one, minor-sweep #16).
-  Options: (a) convert to properties + add `__repr__` (align),
-  (b) leave and document the divergence. Roberto decides.
-- **R6 — n_instances = 1 (doc-only or as-is).** Hardcoded; correct for
-  a scalar feature (no orbit instances), but undocumented. Either a
-  docstring sentence ("mobility has no symmetry instances: the mask
-  pair defines the feature directly") or a decision entry.
+- **R1 — Mobility/MobilitySet docstrings (doc-only). DONE (D-035).** The
+  class docstring L59-63 was grammatically broken ("Otherwise is the
+  measure of...") and did not state the index formula or what
+  `n_configurations` counts. Rewritten with the verified formula,
+  the n_configurations semantics, and the n_instances note; the set
+  docstring's "mast" typo and "a ascending" fixed, sorted-order
+  clause added.
+- **R2 — compute_indexes docstring (doc-only). DONE (D-035).** Now
+  states the full contract: formula, args/returns, and the column
+  order rule (sorted (mask, amask) order, same as names/masks, NOT
+  insertion order).
+- **R3 — popcount64 status (design call). DONE (D-035, option b).**
+  Roberto: removed from `__all__` (test/inspection helper, not
+  public API); the upcoming engine "may not be Python — we'll see".
+  Direct import in the test file unaffected.
+- **R4 — dead imports (hygiene, code). DONE (D-035).**
+  `bitboard_transformations` (L34) and `square_from_str` (L36)
+  removed.
+- **R5 — API-shape consistency with PatternSet (consistency, code).
+  DONE (D-035).** `names`/`masks` now `@property` (D-024 alignment);
+  `__repr__` added to both classes (pattern-style one-liner); 4 test
+  call-sites updated; docstring references updated.
+- **R6 — n_instances = 1 (left as-is, decision). DONE (D-035).**
+  Correct for a scalar feature: the index is a single uint32 computed
+  directly from the (mask, amask) pair — no family of symmetric
+  instances with separate tables as in Pattern. Doc note shipped
+  with R1.
 
 ## Minor issues / inconsistencies
 
@@ -257,12 +255,14 @@ against independent ground truth (V1–V8, zero mismatches; 200-position
 random differential testing). The suite (23/0/1) covers construction,
 both collision checks, sorting, hash equivalence, print goldens,
 underflow boundary, empty set, empty positions, and 32-line popcount
-goldens. The gaps are documentary (R1–R3), consistency (R4–R5), and
-the test file itself (to be analyzed next as
-`docs/src/twolm/test/test_mobility.md` — preliminary observations:
-a dead `if False:` block in `TestMobilitySet.test_init` with no live
-assertion, three "raises_assertion" names, hash self-comparisons in
+goldens. The module-side gaps (R1–R6: documentary, consistency,
+dead imports, n_instances) were all approved and applied the same
+day (D-035 batch). What remains is the test file itself (to be
+analyzed next as `docs/src/twolm/test/test_mobility.md` —
+preliminary observations: a dead `if False:` block in
+`TestMobilitySet.test_init` with no live assertion, three
+"raises_assertion" names, hash self-comparisons in
 `test_hash_calculation_verification`/`test_print_summary`, and no
 multi-position row-independence test for `compute_indexes` — the
-known T-patterns from test_pattern.py). No real logic defect found in
-this session.
+known T-patterns from test_pattern.py). No real logic defect found
+in this session.

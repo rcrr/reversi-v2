@@ -548,5 +548,16 @@
    properties + no __repr__ (D-024 alignment), R6 n_instances = 1
    doc note. Minor M1-M5 noted (abbreviation glossary, name padding,
    empty-set acceptance, no PERF gate, per-element UFunc call).
- - Next: test_mobility.py analysis (docs/src/twolm/test/test_mobility.md)
-   + R1-R6 proposals one at a time.
+ - R1-R6 mobility fix batch (D-035), each item proposed and approved
+   one at a time, single batch commit: R1 class docstrings (feature
+   index formula + n_configurations = distinct index values +
+   "mast" typo), R2 compute_indexes column-order contract (sorted
+   (mask, amask) order, not insertion order), R3 popcount64 removed
+   from __all__ (option b, Roberto: test helper, engine may not be
+   Python), R4 dead imports removed (bitboard_transformations,
+   square_from_str), R5 names/masks -> @property (D-024 alignment) +
+   __repr__ on both classes + 4 test call-sites, R6 n_instances = 1
+   left as-is (scalar feature, no orbit instances). Doc-only +
+   consistency, no behavior change. Suite 23/0/1 GREEN throughout.
+ - Next: test_mobility.py analysis
+   (docs/src/twolm/test/test_mobility.md).

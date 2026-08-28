@@ -225,14 +225,14 @@ class TestMobilitySet(unittest.TestCase):
     def test_names(self):
         mobility_list = self.mlf(self.mobility_set_data)
         ms = MobilitySet("Test", mobility_list)
-        computed = ms.names()
+        computed = ms.names
         expected = ['ALMC', 'LMC', 'DLMC']
         self.assertEqual(computed, expected)
 
     def test_masks(self):
         mobility_list = self.mlf(self.mobility_set_data)
         ms = MobilitySet("Test", mobility_list)
-        computed = ms.masks()
+        computed = ms.masks
         expected = np.array([[0x0000000000000000, 0xFFFFFFFFFFFFFFFF],
                              [0xFFFFFFFFFFFFFFFF, 0x0000000000000000],
                              [0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF]], dtype=Bitboard)
@@ -400,10 +400,10 @@ class TestMobilitySet(unittest.TestCase):
         
         self.assertEqual(ms.name, 'EmptySet')
         self.assertEqual(len(ms.mobilities), 0)
-        self.assertEqual(ms.names(), [])
+        self.assertEqual(ms.names, [])
         
         # Verify masks is an empty 2D array with shape (0, 2) and correct dtype
-        masks = ms.masks()
+        masks = ms.masks
         self.assertEqual(masks.shape, (0, 2))
         self.assertEqual(masks.dtype, Bitboard)
         

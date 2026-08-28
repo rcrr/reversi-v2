@@ -557,3 +557,31 @@ D-034 | 2026-08-28 | P2 breadth batch for test_pattern.py (T11,
        T18 stays noted-only (np.uint8 n_squares — any 3**n_squares
        must cast to int; no code action), M1 (stale PatternSet
        Raises docstring) stays deferred pending Roberto's go-ahead.
+
+D-035 | 2026-08-28 | mobility.py fix batch R1-R6 (each item approved
+       one at a time, single batch commit, D-019 pattern).
+       | R1: Mobility class docstring rewritten (feature index
+       formula, n_configurations = k + a + 1 as the count of
+       DISTINCT index values / feature-table size, n_instances
+       note); MobilitySet docstring fixed ("mast" typo, "a
+       ascending" grammar, sorted-order clause). Doc-only.
+       R2: compute_indexes docstring now states the full contract:
+       formula, args/returns, and the column-order rule (columns
+       follow the set's sorted (mask, amask) order, same as
+       names/masks, NOT the caller's insertion order). Doc-only.
+       R3 (Roberto's design call, option b): popcount64 removed
+       from __all__ (test/inspection helper, not public API; the
+       upcoming engine "may not be Python, we'll see"); direct
+       import in the test file unaffected.
+       R4: dead imports bitboard_transformations and square_from_str
+       removed.
+       R5: names()/masks() converted to @property (D-024 alignment
+       with PatternSet); __repr__ added to Mobility and
+       MobilitySet (pattern-style one-liner); 4 test call-sites
+       updated; docstring references updated.
+       R6: n_instances = 1 left as-is (decision): mobility is a
+       scalar feature — the index is a single uint32 computed
+       directly from the (mask, amask) pair, no family of symmetric
+       instances with separate tables as in Pattern; doc note
+       shipped with R1.
+       Suite 23/0/1 GREEN throughout (no behavior change).

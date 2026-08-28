@@ -31,9 +31,7 @@ from typing import List, Union, IO
 
 from twolm.board import (Bitboard, BitboardArray,
                          PositionArray,
-                         bitboard_transformations,
                          bitboard_count,
-                         square_from_str,
                          legal_moves)
 
 from twolm.pattern import (Index, IndexArray)
@@ -50,16 +48,30 @@ from pydantic import validate_call, ConfigDict
 
 
 __all__ = ['Mobility',
-           'MobilitySet',
-           'popcount64']
+           'MobilitySet']
 
 
 
 class Mobility:
     """
-    The Mobility class is a measure of the available moves for the mover, masked by a defined set.
-    Otherwise is the measure of the pseudo-moves available to the opponent as if she would have to move.
-    When both mask and amask are defined, it is the difference between moves and anti-moves.
+    The Mobility class is a measure of the available moves for the
+    mover, masked by a defined set of squares. With only amask
+    defined, it is the measure of the pseudo-moves available to the
+    opponent as if she would have to move. When both mask and amask
+    are defined, it is the difference between moves and anti-moves.
+
+    On a position with the mover's legal moves lms and the
+    opponent's legal moves alms, the feature index is:
+
+        index = popcount(lms & mask) + (popcount(amask)
+                - popcount(alms & amask))
+
+    For popcount(mask) = k and popcount(amask) = a, the index ranges
+    over 0..k+a, so n_configurations = k + a + 1 is the count of the
+    DISTINCT index values (the feature-table size), not the number
+    of (lms, alms) pairs. Mobility features have no symmetry
+    instances: n_instances = 1, the mask/amask pair defines the
+    feature directly.
     """
     
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -82,6 +94,13 @@ class Mobility:
         self.n_configurations = bitboard_count(mask) + bitboard_count(amask) + 1
         self.n_instances = 1
 
+    def __repr__(self) -> str:
+        """
+        A concise one-line summary (same info as the first line of print()).
+        """
+        return (f"Mobility(name={self.name!r}, mask=0x{self.mask:016x}, "
+                f"amask=0x{self.amask:016x})")
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
         """
@@ -96,8 +115,11 @@ class Mobility:
 class MobilitySet:
     """
     The MobilitySet class represents a collection of Mobility objects.
-    It uses the tuple (mast, amask) as a unique key.
-    Mobilities are stored in a ascending sorted order based on their unique key. 
+    It uses the tuple (mask, amask) as a unique key.
+    Mobilities are stored in ascending sorted order based on their
+    unique key (lexicographically: first by mask, then by amask);
+    names, masks and the compute_indexes() output columns all
+    follow this sorted order.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -138,6 +160,15 @@ class MobilitySet:
         
         self.name = name
 
+    def __repr__(self) -> str:
+        """
+        A concise one-line summary (same info as the first line of
+        print_summary()).
+        """
+        return (f"MobilitySet(name={self.name!r}, length={len(self.mobilities)}, "
+                f"hash={self.hash})")
+
+    @property
     def names(self) -> List[str]:
         """
         Returns a list of names of the mobilities in the set.
@@ -147,6 +178,7 @@ class MobilitySet:
         """
         return [mobility.name for mobility in self.mobilities]
 
+    @property
     def masks(self) -> np.ndarray:
         """
         Returns a 2D numpy array (shape = (N, 2)) of the mask values of the mobilities in the set.
@@ -173,7 +205,28 @@ class MobilitySet:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, positions: PositionArray) -> IndexArray:
         """
-        Computes indexes via high-performance Numba kernel.
+        Computes the mobility indexes for an array of positions via
+        the high-performance Numba kernel.
+
+        For each position i and each mobility j, the returned index
+        is:
+
+            popcount(lms[i] & mask_j) + (popcount(amask_j)
+                    - popcount(alms[i] & amask_j))
+
+        where lms[i] / alms[i] are the legal moves of the mover /
+        opponent.
+
+        Column contract: the L output columns follow the set's
+        sorted (mask, amask) order (the same order returned by
+        names and masks), NOT the caller's insertion order.
+        Label columns with ms.names to stay consistent.
+
+        Args:
+            positions (PositionArray): the input positions, shape (N,).
+
+        Returns:
+            IndexArray: the (N, L) uint32 index matrix.
         """
 
         N = positions.shape[0]
@@ -200,7 +253,8 @@ class MobilitySet:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def popcount64(b: Bitboard | BitboardArray) -> Index | IndexArray:
     """
-    Used to test the numba kernel.
+    Scalar/vectorized 64-bit population count, used to test the
+    Numba popcount kernel. Not part of the public API.
     """
     return _numba_popcount64_kernel(b)
 
