@@ -215,23 +215,35 @@ commit); suite 23/0/1 GREEN throughout (no behavior change).**_
 
 ## Minor issues / inconsistencies
 
-- **M1 — abbreviation glossary.** LMC / ALMC / DLMC are never expanded
-  in the module (docstring examples only). Canonical expansions live
-  in the 2008 program (or Roberto's head); propose a glossary line in
-  the class docstring once confirmed.
+_All five noted items disposed 2026-08-28 (D-036), per Roberto:
+M1 applied (glossary), M2/M3/M5 left as-is, M4 corrected (it was
+mis-stated — see below)._
+
+- **M1 — abbreviation glossary. DONE (D-036).** LMC / ALMC / DLMC
+  were never expanded in the module. Canonical expansions confirmed
+  by Roberto (from the 2008 program) and shipped in the Mobility
+  class docstring: LMC = Legal Move Count, ALMC = Anti Legal Move
+  Count, DLMC = Difference Legal Move Count.
 - **M2 — Mobility name padding.** `print` uses `{self.name:8s}` —
   names longer than 8 chars widen the column (no truncation, no
-  error). Cosmetic; noted.
-- **M3 — empty-set acceptance.** Deliberate (tested) but diverges from
-  PatternSet fail-fast; see R6-area / "Construction (MobilitySet)".
-- **M4 — no PERF gate.** The suite's PERF test (1M positions) prints
-  throughput but asserts no threshold (board-suite PERF tests carry
-  ±30% gates). Consistent with pattern-suite style; noted.
+  error). Cosmetic; **left as-is** per Roberto.
+- **M3 — empty-set acceptance.** Deliberate (tested) and diverges
+  from PatternSet fail-fast; **left as-is** per Roberto
+  ("lasciamo così").
+- **M4 — no PERF gate (corrected).** The suite's PERF test (1M
+  positions) prints throughput and asserts no threshold — and
+  neither do the board or pattern PERF tests: all PERF tests in
+  this repo are print-only (they assert output correctness, not a
+  performance target). The ±30% figure in NOTES.md is the
+  campaign comparison discipline (within-campaign deltas are noise;
+  never compare across sessions/machines), not a test gate. The
+  original analysis text claimed the board suite "carries ±30%
+  gates" — that was wrong; corrected here.
 - **M5 — kernel per-element UFunc call.** The inner loop calls the
   `@nb.vectorize`d popcount scalarly per (i, j); a pure `@nb.njit`
   scalar popcount (or per-row vectorization) could remove the UFunc
-  dispatch overhead. Observation only — any change is PERF-gated
-  work, never compared across sessions.
+  dispatch overhead. Observation only — **left as-is** per Roberto
+  ("E' un TEST"); any change would be PERF-gated engine work.
 
 ## Conventions to respect in any new work on this file
 

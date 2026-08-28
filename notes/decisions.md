@@ -585,3 +585,24 @@ D-035 | 2026-08-28 | mobility.py fix batch R1-R6 (each item approved
        instances with separate tables as in Pattern; doc note
        shipped with R1.
        Suite 23/0/1 GREEN throughout (no behavior change).
+
+D-036 | 2026-08-28 | mobility minor notes M1-M5 disposition (per
+       Roberto, item by item).
+       | M1: glossary shipped in the Mobility class docstring —
+       LMC = Legal Move Count, ALMC = Anti Legal Move Count, DLMC
+       = Difference Legal Move Count (expansions confirmed by
+       Roberto from the 2008 program). Doc-only.
+       M2 (name padding in print): left as-is, cosmetic.
+       M3 (empty MobilitySet accepted, diverges from PatternSet
+       fail-fast): left as-is ("lasciamo così") — deliberate and
+       tested behaviour.
+       M4: analysis text corrected — the doc claimed the board
+       suite PERF tests "carry ±30% gates"; on Roberto's challenge
+       and re-verification, NO suite in this repo has performance
+       gates: every PERF test is print-only and asserts output
+       correctness only. The ±30% figure is the campaign
+       comparison discipline (within-campaign deltas are noise;
+       never compare across sessions/machines), not a test gate.
+       Mobility PERF test stays print-only (consistent).
+       M5 (kernel per-element UFunc call): left as-is, observation
+       only — any change would be PERF-gated engine work.

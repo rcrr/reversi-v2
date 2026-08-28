@@ -559,5 +559,15 @@
    __repr__ on both classes + 4 test call-sites, R6 n_instances = 1
    left as-is (scalar feature, no orbit instances). Doc-only +
    consistency, no behavior change. Suite 23/0/1 GREEN throughout.
+ - M1-M5 minor notes disposed (D-036), per Roberto item by item:
+   M1 glossary shipped in the Mobility docstring (LMC = Legal Move
+   Count, ALMC = Anti Legal Move Count, DLMC = Difference Legal
+   Move Count — confirmed by Roberto from the 2008 program); M2
+   (name padding) left as-is; M3 (empty set accepted) left as-is
+   ("lasciamo così"); M4 — on Roberto's challenge I re-verified and
+   corrected my claim: NO suite in the repo has performance gates,
+   every PERF test is print-only asserting output correctness
+   (the ±30% is campaign comparison discipline, not a test gate);
+   M5 (kernel UFunc call) left as-is ("E' un TEST").
  - Next: test_mobility.py analysis
    (docs/src/twolm/test/test_mobility.md).

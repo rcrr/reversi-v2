@@ -55,10 +55,14 @@ __all__ = ['Mobility',
 class Mobility:
     """
     The Mobility class is a measure of the available moves for the
-    mover, masked by a defined set of squares. With only amask
+    mover, masked by a defined set of squares (the standard "LMC",
+    Legal Move Count, uses the full-board mask). With only amask
     defined, it is the measure of the pseudo-moves available to the
-    opponent as if she would have to move. When both mask and amask
-    are defined, it is the difference between moves and anti-moves.
+    opponent as if she would have to move (the standard "ALMC",
+    Anti Legal Move Count, uses the full-board amask). When both
+    mask and amask are defined, it is the difference between moves
+    and anti-moves (the standard "DLMC", Difference Legal Move
+    Count).
 
     On a position with the mover's legal moves lms and the
     opponent's legal moves alms, the feature index is:
