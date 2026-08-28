@@ -641,3 +641,17 @@
   hygiene, no behavior change. Suite 13/0/1 GREEN, verifier ALL
   CHECKS PASSED. M1-M4 disposition pending. Next: test_feature.py
   analysis (preliminary observations in the module doc's verdict).
+- test_feature.py analyzed (docs/src/twolm/test/test_feature.md):
+  4 classes / 14 tests / 1 PERF; verified facts W1-W9 (0
+  mismatches: f5663932 hash from scratch, 17-value n_instances list
+  vs pure-Python orbits, 3x10 matrix vs pure Python, 51 PERF
+  instances); 9 defects T1-T9 (T1 dead if-False block referencing
+  never-imported position_print; T2 6 dead imports npt/nptest/
+  Callable/TypeAlias/List/pydantic; T3 header grammar; T4
+  "environmeant" typo — same as test_board, Roberto's call; T5 no
+  explicit names-order assert; T6 partial-None FeatureSet untested
+  (the only real code-coverage gap) -> P1; T7 Feature repr/eq
+  untested; T8 import-time trailing spaces cosmetic; T9 no full
+  print_summary golden). No P0 (R1-R4 was doc/hygiene-only; its
+  behaviour is pinned by existing goldens). Campaign pending
+  per-item approvals.
