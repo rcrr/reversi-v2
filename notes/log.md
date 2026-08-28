@@ -511,3 +511,11 @@
 - Next: P2 done — remaining known items: M1 (stale PatternSet
   Raises docstring, deferred), T18 (noted-only), test_board.py
   header nits (reported, out of scope).
+- Session closed (Roberto). P2 campaign fully CLOSED: P0 (6da0803),
+  P1 (086ef75), D-032 Burnside (167e182), P2 hygiene (5a7a28a),
+  P2 breadth (2069b9e). Final suite: 64 tests, GREEN 64/0/3.
+  Next session: next module of Roberto's plan (game-loop module —
+  board.py is a proven complete game kernel — or the next source
+  file of the original repo). Parked: M1 deferred (stale PatternSet
+  Raises docstring, awaiting go-ahead), T18 noted-only,
+  test_board.py header nits (reported, out of scope).
