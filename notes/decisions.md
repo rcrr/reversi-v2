@@ -606,3 +606,28 @@ D-036 | 2026-08-28 | mobility minor notes M1-M5 disposition (per
        Mobility PERF test stays print-only (consistent).
        M5 (kernel per-element UFunc call): left as-is, observation
        only — any change would be PERF-gated engine work.
+
+D-037 | 2026-08-28 | test_mobility.py fix campaign T1-T9 (each item
+       approved one at a time, single batch commit, D-019 pattern).
+       | P0: T8 — golden tests added for the R5-shipped __repr__
+       pair (Mobility: LMC full-board + CORNERS partial mask;
+       MobilitySet: standard triple with the pinned hash literal
+       2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94).
+       P1: T7 — test_compute_indexes_multi_position: 2 distinct
+       positions (the golden one + the underflow one), per-row
+       expected values [[53,13,66],[63,0,63]] in sorted column
+       order; row independence of the (N) -> (N, L) kernel.
+       P2: T1 — TestMobilitySet.test_init dead if-False block
+       removed, real assertions added (name, length, sorted names);
+       T2 — the 3 "raises_assertion" tests renamed to
+       "raises_validation_error"; T3+T4 — standard-set hash
+       literal pinned in test_hash_calculation_verification
+       (double assert: byte formula and object) and
+       test_print_summary (self-comparisons eliminated); T5 —
+       header grammar ("How to run the mobility module unit
+       tests."); T6 — dead imports shutil/tempfile/legal_moves
+       removed (the import-time trailing space noted, left as-is);
+       T9 (approved) — native assertEqual with line numbers
+       replacing the print-on-failure idiom in test_popcount64.
+       Suite grew 23 -> 26 tests, GREEN 26/0/1. test_mobility
+       campaign CLOSED.

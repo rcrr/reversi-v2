@@ -26,7 +26,7 @@
 #
 
 #
-# How to use the unit tests mobility module.
+# How to run the mobility module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -43,8 +43,6 @@ import unittest
 import io
 import time        
 import os
-import tempfile
-import shutil
 import hashlib
 
 import numpy as np
@@ -56,8 +54,7 @@ from twolm.board import (Bitboard,
                          Position,
                          bitboard_count,
                          bitboard_from_signed_int,
-                         make_position,
-                         legal_moves)
+                         make_position)
 from twolm.pattern import Index
 from twolm.mobility import (Mobility, MobilitySet,
                             popcount64)
@@ -85,15 +82,15 @@ class TestMobility(unittest.TestCase):
         self.assertEqual(m.amask, Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(m.n_configurations, 129) # 64 + 64 + 1
 
-    def test_init_invalid_type_arg_1_raises_assertion(self):
+    def test_init_invalid_type_arg_1_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             Mobility(1, Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
 
-    def test_init_invalid_type_arg_2_raises_assertion(self):
+    def test_init_invalid_type_arg_2_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             Mobility('LMC', 'wrong type', Bitboard(0x0000000000000000))
 
-    def test_init_invalid_type_arg_3_raises_assertion(self):
+    def test_init_invalid_type_arg_3_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), 1)
 
@@ -104,6 +101,17 @@ class TestMobility(unittest.TestCase):
             m.print(output=buffer)
             actual_output = buffer.getvalue()
         self.assertEqual(actual_output, expected_output)
+
+    def test_repr(self):
+        m = Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
+        expected = ("Mobility(name='LMC', mask=0xffffffffffffffff, "
+                    "amask=0x0000000000000000)")
+        self.assertEqual(repr(m), expected)
+
+        m2 = Mobility('CORNERS', Bitboard(0x8989898989898980), Bitboard(0x0000000000000000))
+        expected2 = ("Mobility(name='CORNERS', mask=0x8989898989898980, "
+                     "amask=0x0000000000000000)")
+        self.assertEqual(repr(m2), expected2)
 
     def test_n_configurations_calculation(self):
         """Tests that n_configurations correctly includes the zero-state (+1)."""
@@ -125,13 +133,9 @@ class TestMobilitySet(unittest.TestCase):
 
     def test_init(self):
         mobility_set = MobilitySet('TestMobilitySet', self.mlf(self.mobility_set_data))
-
-        if False:
-            print()
-            print(f"Mobility Set Name: {mobility_set.name}")
-            for i, m in enumerate(mobility_set.mobilities):
-                print(f"{i}: {m.name:10s} ({m.mask:016X}, {m.amask:016X})")
-            print(f"Hash: {mobility_set.hash}")
+        self.assertEqual(mobility_set.name, 'TestMobilitySet')
+        self.assertEqual(len(mobility_set.mobilities), 3)
+        self.assertEqual(mobility_set.names, ['ALMC', 'LMC', 'DLMC'])
 
     def test_duplicate_name_collision(self):
         """Test that initializing with duplicate mobility names raises a ValueError."""
@@ -172,7 +176,7 @@ class TestMobilitySet(unittest.TestCase):
         self.assertEqual(set_a.hash, set_b.hash)
 
     def test_hash_calculation_verification(self):
-        """Manually compute and verify that the SHA-256 hash matches expected structural bytes."""
+        """Verify the structural hash against the pinned golden literal."""
         ml = [Mobility(n, Bitboard(m), Bitboard(a)) for n, m , a in self.mobility_set_data]
         mobility_set = MobilitySet('TestHash', ml)
         
@@ -181,8 +185,10 @@ class TestMobilitySet(unittest.TestCase):
         
         # Recreate bytes manually
         expected_bytes = b''.join(m.mask.tobytes() + m.amask.tobytes() for m in sorted_ml)
-        expected_hash = hashlib.sha3_256(expected_bytes).hexdigest()
-        
+        # Pinned golden: independently re-derived 2026-08-28, not computed
+        # from the object under test.
+        expected_hash = ('2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94')
+        self.assertEqual(hashlib.sha3_256(expected_bytes).hexdigest(), expected_hash)
         self.assertEqual(mobility_set.hash, expected_hash)
 
     def test_mobility_sorting_order(self):
@@ -241,7 +247,8 @@ class TestMobilitySet(unittest.TestCase):
     def test_print_summary(self):
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
-        expected_hash = ms.hash
+        # Pinned golden hash (independently re-derived), not ms.hash.
+        expected_hash = '2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94'
         expected_output = [
             'MobilitySet: name = Test, length = 3, hash = {}',
             '  Mobility: name = ALMC    , mask = 0x0000000000000000, amask = 0xffffffffffffffff',
@@ -257,6 +264,12 @@ class TestMobilitySet(unittest.TestCase):
 
         self.assertEqual(actual_output, expected_output)
 
+    def test_repr(self):
+        ms = MobilitySet('Test', self.mlf(self.mobility_set_data))
+        expected = ("MobilitySet(name='Test', length=3, "
+                    "hash=2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94)")
+        self.assertEqual(repr(ms), expected)
+
     def test_compute_indexes(self):
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
@@ -269,6 +282,26 @@ class TestMobilitySet(unittest.TestCase):
 
         expected_indexes = [53, 13, 66]
         expected_array = np.array([expected_indexes], dtype=Index)
+        nptest.assert_array_equal(indexes, expected_array)
+
+    def test_compute_indexes_multi_position(self):
+        """Row independence: each output row depends only on its own position."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        # Row 0: the standard golden position (13 mover moves, 11 opponent
+        # pseudo-moves) -> ALMC 53, LMC 13, DLMC 66 (sorted column order).
+        mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent0 = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        # Row 1: mover E1, opponent F1,G1,H1 -> lms = 0, alms = D1 (0x8)
+        # -> ALMC 63, LMC 0, DLMC 63.
+        mover1 = Bitboard(0x0000000000000010)
+        opponent1 = Bitboard(0x00000000000000E0)
+
+        positions = make_position([mover0, mover1], [opponent0, opponent1])
+        indexes = ms.compute_indexes(positions)
+
+        expected_array = np.array([[53, 13, 66],
+                                   [63, 0, 63]], dtype=Index)
         nptest.assert_array_equal(indexes, expected_array)
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
@@ -329,16 +362,10 @@ class TestMobilitySet(unittest.TestCase):
         for i, element in enumerate(data):
             mask, expected = element
             b = Bitboard(mask)
-            computed_a = bitboard_count(b)
-            computed_b = popcount64(b)
-            if computed_a != expected:
-                msg = f"line {i:03}: expected = {expected}, bitboard_count() = {computed_a}"
-                print(msg)
-                self.assertTrue(False, msg)
-            if computed_b != expected:
-                msg = f"line {i:03}: expected = {expected}, popcount64() = {computed_b}"
-                print(msg)
-                self.assertTrue(False, msg)
+            self.assertEqual(int(bitboard_count(b)), expected,
+                             f"line {i:03}: bitboard_count() mismatch")
+            self.assertEqual(int(popcount64(b)), expected,
+                             f"line {i:03}: popcount64() mismatch")
 
         # Vectorized testing (Verifies Numba UFunc processing over entire arrays)
         masks_list = [element[0] for element in data]

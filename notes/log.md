@@ -585,5 +585,18 @@
    T9 (cosmetic) popcount print-on-failure idiom. Priorities
    proposed: P0 = T8, P1 = T7, P2 = T1-T6 + T9 optional. None
    applied — awaiting per-item approvals.
- - Next: per-item approvals for the test_mobility campaign (P0
-   first: the __repr__ golden tests).
+ - test_mobility.py fix campaign T1-T9 (D-037), each item approved
+   one at a time, single batch commit: P0 T8 __repr__ golden tests
+   (the R5-shipped pair, now covered; set golden pins the
+   2e553593...208a94 literal); P1 T7 multi-position row-
+   independence test (golden + underflow positions,
+   [[53,13,66],[63,0,63]]); P2 T1 (test_init dead if-False block
+   removed + real assertions), T2 (3 raises_assertion ->
+   raises_validation_error), T3+T4 (standard-set hash literal
+   pinned in both tests, self-comparisons gone), T5 (header
+   grammar), T6 (dead imports shutil/tempfile/legal_moves removed),
+   T9 (approved: native assertEqual with line numbers in
+   test_popcount64). Suite 23 -> 26, GREEN 26/0/1. Campaign CLOSED.
+ - Next: session wrap-up (mobility module fully done: analysis +
+   R1-R6 D-035 + M1-M5 D-036 + test campaign D-037), then the next
+   module of Roberto's plan.

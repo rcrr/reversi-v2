@@ -1,9 +1,11 @@
 # test_mobility.py — test-suite analysis for `twolm.mobility`
 
-_Analyzed 2026-08-28 (session 7). File: 426 lines, added 2026-08-28
-(commit 62748ca), then touched by the R5 batch (property call-sites,
-commit 304cb2a). Suite baseline: `twolm.test.test_mobility` 23/0/1
-GREEN (1 skip = PERF gate). 2 classes, 23 tests, 1 PERF test._
+_Analyzed 2026-08-28 (session 7). File: 426 lines at analysis, added
+2026-08-28 (commit 62748ca), then touched by the R5 batch (property
+call-sites, commit 304cb2a) and the T1-T9 campaign (D-037). Suite
+baseline at analysis: 23/0/1 GREEN; final state after the campaign:
+26/0/1 GREEN (T8 +2 repr tests, T7 +1 multi-position test). 2
+classes, 1 PERF test._
 
 ## 1. What this file is
 
@@ -184,29 +186,33 @@ module defect; every golden re-derived in this session matched.
 ### 7.5 Fix priorities (campaign progress)
 
 _Per-item approval, one at a time (D-019 pattern). Status
-2026-08-28: **all pending — proposed, none applied.**_
+2026-08-28: **campaign complete — T1-T9 all approved and applied
+(D-037, batch commit); suite 23 → 26 tests, GREEN 26/0/1.**_
 
-- **P0** (shipped code with zero coverage — T8):
+- **P0** (shipped code with zero coverage — T8) — **DONE** (D-037):
   1. Golden tests for `Mobility.__repr__` and
-     `MobilitySet.__repr__` (V13 strings). [proposed]
-- **P1** (coverage of existing behaviour):
-  2. Multi-position `compute_indexes` row-independence test: ≥2
-     distinct positions, per-row expected values from pure-Python
-     ground truth (T7). [proposed]
-- **P2** (hygiene + breadth):
-  3. T1: `TestMobilitySet.test_init` — remove the dead `if False:`
-     block, add real assertions (name, length, names).
-  4. T2: rename the 3 "raises_assertion" tests to
+     `MobilitySet.__repr__` (V13 strings; set golden also pins the
+     standard-set hash literal). [D-037]
+- **P1** (coverage of existing behaviour) — **DONE** (D-037):
+  2. Multi-position `compute_indexes` row-independence test: 2
+     distinct positions (golden + underflow), per-row expected
+     values [[53,13,66],[63,0,63]] (T7). [D-037]
+- **P2** (hygiene + breadth) — **DONE** (D-037):
+  3. T1: `TestMobilitySet.test_init` — dead `if False:` block
+     removed, real assertions added (name, length, names).
+  4. T2: the 3 "raises_assertion" tests renamed to
      "raises_validation_error".
-  5. T3+T4: pin the standard-set hash literal
+  5. T3+T4: standard-set hash literal
      `2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94`
-     in `test_hash_calculation_verification` and
-     `test_print_summary`.
+     pinned in `test_hash_calculation_verification` (double assert:
+     formula and object) and `test_print_summary`.
   6. T5: header grammar → "How to run the mobility module unit
      tests."
-  7. T6: remove dead imports `shutil`, `tempfile`, `legal_moves`.
-  8. T9 (optional/cosmetic): native assertions in
-     `test_popcount64` instead of print-on-failure — Roberto's call.
+  7. T6: dead imports `shutil`, `tempfile`, `legal_moves` removed
+     (the `import time` trailing space was noted, left as-is).
+  8. T9 (Roberto approved): native `assertEqual` with the line
+     number in the message, replacing the print-on-failure idiom in
+     `test_popcount64`.
 
 ---
 
