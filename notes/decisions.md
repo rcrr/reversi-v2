@@ -687,6 +687,17 @@ D-041 | 2026-08-28 | feature.py M3 disposed (Roberto chose option
        columns arrives. Follow-up registered as I-007 in
        notes/ideas.md. No code change.
 
+D-042 | 2026-08-28 | feature.py M4 disposed (approved by Roberto,
+       one at a time): Feature.__new__ docstring rewritten from
+       "Blocks the client to create new instances of feature via
+       the Feature() call." to "Blocks direct instantiation of
+       Feature: calling Feature() always raises RuntimeError. Use
+       the factory methods instead (e.g.
+       Feature.new_from_pattern())." Doc-only, no behaviour
+       change. Suite 13/0/1 GREEN. All four feature minors (M1-M4)
+       now disposed: D-039 (M1 applied), D-040 (M2 applied),
+       D-041 (M3 left as-is, I-007), D-042 (M4 applied).
+
 D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
        one at a time): the unused `f` prefixes removed from the
        two placeholder-less print_summary lines ("Intercept is

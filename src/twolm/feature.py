@@ -81,7 +81,9 @@ class Feature:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         """
-        Blocks the client to create new instances of feature via the Feature() call.
+        Blocks direct instantiation of Feature: calling Feature()
+        always raises RuntimeError. Use the factory methods instead
+        (e.g. Feature.new_from_pattern()).
         """
         raise RuntimeError(
             "Direct use of __init__ or Feature() is not allowed. "

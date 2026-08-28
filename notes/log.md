@@ -672,3 +672,21 @@
   arrives; instance-aware design needed since each pattern
   occupies n_instances D8-instance columns). Follow-up I-007
   registered in notes/ideas.md. Next: M4.
+- M4 approved and applied (D-042): Feature.__new__ docstring
+  rewritten (grammar: "Blocks the client to create..." -> "Blocks
+  direct instantiation of Feature: calling Feature() always raises
+  RuntimeError. Use the factory methods instead (e.g.
+  Feature.new_from_pattern())."). Doc-only, suite 13/0/1 GREEN.
+  All four feature minors disposed: M1 D-039 (applied), M2 D-040
+  (applied), M3 D-041 (left as-is, I-007), M4 D-042 (applied).
+  Module side of feature fully done; next: the T campaign, one at
+  a time (T1-T9 proposed in the test analysis).
+- M4 approved and applied (D-042): Feature.__new__ docstring
+  rewritten (grammar: "Blocks the client to create..." -> "Blocks
+  direct instantiation of Feature: calling Feature() always raises
+  RuntimeError. Use the factory methods instead (e.g.
+  Feature.new_from_pattern())."). Doc-only, suite 13/0/1 GREEN.
+  All four feature minors disposed: M1 D-039 (applied), M2 D-040
+  (applied), M3 D-041 (left as-is, I-007), M4 D-042 (applied).
+  Module side of feature fully done; next: the T campaign, one at
+  a time (T1-T9 proposed in the test analysis).
