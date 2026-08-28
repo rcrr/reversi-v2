@@ -453,3 +453,32 @@ D-031 | 2026-08-27 | EDGE 6561-entry principal dict pinned directly
        (compute_principal_index_dict), external expressions must
        cast too. Test file only. Suite grew 55 -> 56 tests, GREEN
        56/0/3. P1 batch (D-029/D-030/D-031) committed together.
+
+D-032 | 2026-08-28 | New Pattern attributes n_invariant_configs and
+       n_unique_configs (Burnside counts; user-requested feature,
+       approved with CORE added to the golden test).
+       | Study (read-only, pre-approval): G' = {id} plus the distinct
+       non-identity permutations induced by symmetry_fs on the S
+       pattern squares (|G'| = 1 + len(symmetry_fs) exactly — the
+       constructor's unique_symmetric_instance_indexes already
+       dedups identical induced permutations and discards the
+       trivial action; hence n_stabilizers != |G'| in general:
+       DIAG8 4 vs 2, DOTA1/TWOND 2 vs 1). Formulas: n_invariant =
+       3^B (B = number of G'-orbits on the squares) and n_unique =
+       (1/|G'|) * sum_g 3^{c(g)} (Burnside on the 3^S configurations;
+       c(g) = number of cycles of g). Verified on all 29 sample
+       patterns against independent ground truth: n_invariant by
+       full enumeration of the 3^S configurations (vectorized numpy,
+       no Burnside used); n_unique against the production
+       principal_index_count — 29/29 match (EDGE 81/3321, CORE 3/21,
+       FOURC 3/21, 2X6COR 531441/531441).
+       | Implementation: _compute_symmetry_burnside_counts() called
+       in __init__ right after symmetry_fs/anti_symmetry_fs; both
+       attributes are plain Python int (avoids the T18 np.uint8
+       3**S overflow). Class docstring extended (section 5); mirror
+       doc (docs/src/twolm/pattern.md) extended with a "Burnside
+       counts (D-032)" paragraph. Tests: test_burnside_counts_golden
+       (all 29 sample patterns, incl. CORE 3/21 per user) +
+       test_burnside_counts_invariants (1 <= n_inv <= n_uni <=
+       n_configurations; equality with 3^S when symmetry_fs is
+       empty). Suite grew 56 -> 58 tests, GREEN 58/0/3.

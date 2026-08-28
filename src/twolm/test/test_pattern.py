@@ -731,6 +731,74 @@ class TestPatternSymmetries(unittest.TestCase):
                     f"Symmetry list mismatch for {name}"
                 )
 
+    BurnsideCase = namedtuple('BurnsideCase', ['mask', 'name', 'n_invariant', 'n_unique'])
+    burnside_data = [
+        BurnsideCase(0x0000000000000107, 'ELLE',   81, 81),
+        BurnsideCase(0x0000000C30000000, 'SNAKE',  9, 45),
+        BurnsideCase(0x00000000000000FF, 'EDGE',   81, 3321),
+        BurnsideCase(0x000000000000FF00, 'R2',     81, 3321),
+        BurnsideCase(0x0000000000FF0000, 'R3',     81, 3321),
+        BurnsideCase(0x00000000FF000000, 'R4',     81, 3321),
+        BurnsideCase(0x00000000000042FF, 'XEDGE',  243, 29646),
+        BurnsideCase(0x0000000000010204, 'DIAG3',  9, 18),
+        BurnsideCase(0x0000000001020408, 'DIAG4',  9, 45),
+        BurnsideCase(0x0000000102040810, 'DIAG5',  27, 135),
+        BurnsideCase(0x0000010204081020, 'DIAG6',  27, 378),
+        BurnsideCase(0x0001020408102040, 'DIAG7',  81, 1134),
+        BurnsideCase(0x0102040810204080, 'DIAG8',  81, 3321),
+        BurnsideCase(0x0000000000070707, 'CORNER', 729, 10206),
+        BurnsideCase(0x0000000000001F1F, '2X5COR', 59049, 59049),
+        BurnsideCase(0x0000000000003F3F, '2X6COR', 531441, 531441),
+        BurnsideCase(0x0000003C3C000000, 'RCT2X4', 9, 1701),
+        BurnsideCase(0x000000000000C3FF, 'CASTLE', 729, 266085),
+        BurnsideCase(0x030304081020C0C0, 'BARBEL', 243, 147987),
+        BurnsideCase(0x010204081020C0C0, 'MACE',   19683, 39366),
+        BurnsideCase(0x8100000000000081, 'FOURC',  3, 21),
+        BurnsideCase(0x0000001818000000, 'CORE',   3, 21),
+        BurnsideCase(0x0000241818240000, 'CORED',  9, 1035),
+        BurnsideCase(0x000008381C100000, 'COREA',  9, 1665),
+        BurnsideCase(0x83800000000001C1, 'WHIRL',  9, 1665),
+        BurnsideCase(0x010100C1C1000101, 'TAU',    243, 29646),
+        BurnsideCase(0x0000000000000001, 'DOTA1',  3, 3),
+        BurnsideCase(0x0000000000000002, 'DOTB1',  3, 3),
+        BurnsideCase(0x0000000000000201, 'TWOND',  9, 9),
+    ]
+
+    def test_burnside_counts_golden(self):
+        """
+        Pins n_invariant_configs / n_unique_configs (Burnside, D-032) for all
+        29 sample patterns. Ground truth: n_invariant by full enumeration of
+        the 3^S configurations; n_unique via principal_index_count.
+        """
+        for mask_val, name, n_inv, n_uni in self.burnside_data:
+            with self.subTest(name=name):
+                p = Pattern(name, Bitboard(mask_val))
+                self.assertEqual(
+                    p.n_invariant_configs, n_inv,
+                    f"n_invariant_configs mismatch for {name}"
+                )
+                self.assertEqual(
+                    p.n_unique_configs, n_uni,
+                    f"n_unique_configs mismatch for {name}"
+                )
+
+    def test_burnside_counts_invariants(self):
+        """
+        General invariants of the Burnside counts (D-032):
+        1 <= n_invariant_configs <= n_unique_configs <= n_configurations,
+        with equality to n_configurations (3^S) when symmetry_fs is empty
+        (trivial action on the squares).
+        """
+        for mask_val, name, _ in self.test_data:
+            with self.subTest(name=name):
+                p = Pattern(name, Bitboard(mask_val))
+                self.assertGreaterEqual(p.n_invariant_configs, 1)
+                self.assertLessEqual(p.n_invariant_configs, p.n_unique_configs)
+                self.assertLessEqual(p.n_unique_configs, p.n_configurations)
+                if not p.symmetry_fs:
+                    self.assertEqual(p.n_invariant_configs, p.n_configurations)
+                    self.assertEqual(p.n_unique_configs, p.n_configurations)
+
 class TestPatternMdpRecord(unittest.TestCase):
 
     def test_elle_pattern(self):

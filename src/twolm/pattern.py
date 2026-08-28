@@ -191,6 +191,17 @@ class Pattern:
                                   used to reduce parameters in the regression model or neural network.
                                   It holds that: len(symmetry_fs) = len (unique_symmetric_instance_indexes)
     anti_symmetry_fs (List[Callable]): The anti transformation functions for the pattern symmetries.
+    n_invariant_configs (int): The number of configurations (empty/mover/opponent assignments on the
+                               S pattern squares) that are invariant under every pattern symmetry.
+                               It holds that: n_invariant_configs = 3^B, where B is the number of orbits of
+                               the induced symmetry group G' on the pattern squares
+                               (G' = {id} ∪ distinct non-identity permutations induced by symmetry_fs,
+                               |G'| = 1 + len(symmetry_fs)).
+    n_unique_configs (int): The number of equivalence classes of configurations under the pattern
+                            symmetries (Burnside's lemma).
+                            It holds that: n_unique_configs = (1/|G'|) * sum_{g in G'} 3^{c(g)},
+                            c(g) = number of cycles of the permutation g.
+                            It equals principal_index_count after compute_principal_index_dict().
 
     6. Optimization Plans
     pack_plan (Tuple[BitboardArray, BitboardArray, npt.NDArray[np.uint8]]) :
@@ -439,6 +450,7 @@ class Pattern:
         self.unique_symmetric_instance_indexes = [int(x) for i, x in enumerate(symmetric_instance_indexes) if i in unique_pos_map]
         self.symmetry_fs = [bitboard_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
         self.anti_symmetry_fs = [bitboard_anti_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
+        self._compute_symmetry_burnside_counts()
 
         # - Symmetries.
 
@@ -550,6 +562,68 @@ class Pattern:
                 if transformed_cell is not None:
                     self.squares_t[j].append(int(transformed_cell))
                 self.snames_t[j].append(transformed_cell_name)
+
+    def _compute_symmetry_burnside_counts(self) -> None:
+        """
+        Computes the Burnside counts of the pattern configurations.
+
+        Let G' be the group of distinct permutations induced on the S pattern
+        squares by the mask stabilizer, i.e. G' = {id} ∪ {the distinct
+        non-identity permutations induced by symmetry_fs}
+        (|G'| = 1 + len(symmetry_fs); unique_symmetric_instance_indexes
+        already de-duplicates identical induced permutations and discards the
+        trivial action). Then:
+
+        n_invariant_configs = 3^B, where B is the number of G'-orbits on the
+                             squares (a configuration is G'-invariant iff it
+                             is constant on each orbit).
+        n_unique_configs    = (1/|G'|) * sum_{g in G'} 3^{c(g)}, where c(g)
+                             is the number of cycles of g (Burnside on the
+                             3^S configurations; a configuration is fixed by g
+                             iff it is constant on the cycles of g). This
+                             equals principal_index_count once
+                             compute_principal_index_dict() has run.
+        """
+        S = int(self.n_squares)
+        square_index = {sq: i for i, sq in enumerate(self.squares)}
+        perms = [tuple(range(S))]
+        for f in self.symmetry_fs:
+            perm = tuple(square_index[int(bitboard_bsr(f(square_as_bitboard(sq))))]
+                         for sq in self.squares)
+            if perm not in perms:
+                perms.append(perm)
+        # B = number of orbits of G' on the S squares
+        seen = [False] * S
+        n_orbits = 0
+        for i in range(S):
+            if seen[i]:
+                continue
+            n_orbits += 1
+            stack = [i]
+            seen[i] = True
+            while stack:
+                x = stack.pop()
+                for p in perms:
+                    y = p[x]
+                    if not seen[y]:
+                        seen[y] = True
+                        stack.append(y)
+        self.n_invariant_configs = 3 ** n_orbits
+
+        def _cycles(perm: tuple) -> int:
+            visited = [False] * S
+            c = 0
+            for i in range(S):
+                if visited[i]:
+                    continue
+                c += 1
+                x = i
+                while not visited[x]:
+                    visited[x] = True
+                    x = perm[x]
+            return c
+
+        self.n_unique_configs = sum(3 ** _cycles(p) for p in perms) // len(perms)
 
     def _check_invariances(self) -> None:
         """

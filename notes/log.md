@@ -446,3 +446,19 @@
     is np.uint8, 3 ** p.n_squares overflows for >= 7 squares (6561
     wraps to 161); production casts to int, external code must too.
     P1 CLOSED (D-029/030/031), suite GREEN 56/0/3. P1 batch committed.
+  - D-032 (new feature, approved with CORE in the golden): Pattern
+    gains n_invariant_configs / n_unique_configs (Burnside counts),
+    computed in __init__ by _compute_symmetry_burnside_counts()
+    (called right after symmetry_fs/anti_symmetry_fs). Study first
+    (read-only): formulas n_invariant = 3^B and n_unique =
+    (1/|G'|) * sum_g 3^{c(g)} verified against independent ground
+    truth on all 29 sample patterns (full 3^S enumeration for the
+    invariants, production principal_index_count for the unique
+    counts) — 29/29 match (EDGE 81/3321, CORE 3/21, 2X6COR
+    531441/531441). Key subtlety: |G'| = 1 + len(symmetry_fs)
+    exactly (the constructor already dedups identical induced
+    permutations and discards the trivial action), while
+    n_stabilizers != |G'| in degenerate cases (DIAG8 4 vs 2,
+    DOTA1/TWOND 2 vs 1). Tests: test_burnside_counts_golden (29
+    goldens incl. CORE 3/21 per Roberto) +
+    test_burnside_counts_invariants. Suite GREEN 58/0/3.

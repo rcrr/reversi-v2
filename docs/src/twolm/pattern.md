@@ -49,6 +49,7 @@ Pattern (one principal mask; L144)
     orbit: tmasks(8) -> unique_masks (instances); n_stabilizers = 8/n_instances
     induced symmetries: unique_symmetric_instance_indexes + symmetry_fs / anti_symmetry_fs
     fingerprint (I/S/T markers) -> PatternType
+    Burnside counts: n_invariant_configs / n_unique_configs (D-032)
     pack plan: p_masks / u_masks / p_shifts (runs of consecutive set bits)
     config indexing: powers_3, bit_shifts; principal_index_dict (lazy)
     |
@@ -158,6 +159,24 @@ R2 below). The correct statement: the count is the number of distinct
 non-identity permutations induced by the stabilizer; it equals
 `n_stabilizers − 1` only when the pattern's squares separate all
 stabilizer elements.
+
+**Burnside counts (D-032).** The constructor (`_compute_symmetry_burnside_counts`)
+computes two `int` attributes from this induced group
+G′ = {id} ∪ {distinct non-identity induced permutations}
+(|G′| = 1 + len(symmetry_fs)):
+- `n_invariant_configs = 3^B`, B = number of G′-orbits on the S squares
+  (a configuration is G′-invariant iff it is constant on each orbit);
+- `n_unique_configs = (1/|G′|) · Σ_{g∈G′} 3^{c(g)}` (Burnside on the 3^S
+  configurations; c(g) = number of cycles of g) — equals
+  `principal_index_count` after `compute_principal_index_dict()`, but
+  obtained in O(S) instead of O(3^S).
+Both were verified against independent ground truth on all 29 sample
+patterns before implementation (n_invariant: full enumeration of the 3^S
+configurations; n_unique: the production principal dict): EDGE 81/3321,
+CORE 3/21, DOTA1 3/3, 2X6COR 531441/531441. Golden:
+`test_burnside_counts_golden` + invariants `test_burnside_counts_invariants`
+(1 ≤ n_invariant_configs ≤ n_unique_configs ≤ n_configurations; equality
+with 3^S when symmetry_fs is empty).
 
 ### Fingerprint → PatternType
 - Markers: t_i vs the earliest j < i with the matching property; I beats S.
