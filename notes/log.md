@@ -666,3 +666,9 @@
   from the two placeholder-less print_summary lines ("Intercept
   is present." / "Intercept is None."); cosmetic, output
   identical, goldens unchanged. Suite 13/0/1 GREEN. Next: M3.
+- M3 disposed (D-041, Roberto chose option a): no column-
+  labelling helper added to FeatureSet — left as-is (engine-side
+  need, deferred until the pipeline module that labels columns
+  arrives; instance-aware design needed since each pattern
+  occupies n_instances D8-instance columns). Follow-up I-007
+  registered in notes/ideas.md. Next: M4.

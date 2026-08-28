@@ -212,7 +212,8 @@ change; suite 13/0/1 GREEN, verifier all green)._
 ## Minor issues / inconsistencies
 
 _Noted 2026-08-28; disposed one at a time per Roberto. M1 DONE
-(D-039), M2 DONE (D-040); M3-M4 disposition pending._
+(D-039), M2 DONE (D-040), M3 left as-is (D-041, follow-up I-007);
+M4 disposition pending._
 
 - **M1 — dead empty-set guard in `compute_indexes`. DONE
   (D-039).** The pset branch of the active-blocks loop was
@@ -230,12 +231,14 @@ _Noted 2026-08-28; disposed one at a time per Roberto. M1 DONE
   placeholders). Cosmetic; the `f` prefixes removed, output
   identical.
 - **M3 — no column labelling helper on FeatureSet (observation
-  only).** Unlike `MobilitySet.names`/`masks` (D-024 style),
+  only). Left as-is (D-041, option a per Roberto; follow-up
+  I-007).** Unlike `MobilitySet.names`/`masks` (D-024 style),
   `FeatureSet` offers no way to map a matrix column back to its
   feature name (callers must reconstruct it from
-  `intercept`/`mset`/`pset`). The pipeline's table builders will
-  need such labelling; candidate future item, no action on this
-  module now.
+  `intercept`/`mset`/`pset`). It is an engine-side need, not a
+  module requirement; the helper design (each pattern occupies
+  n_instances D8-instance columns) is deferred until the pipeline
+  module that labels columns arrives.
 - **M4 — Feature.__new__ docstring grammar.** L84-85: "Blocks the
   client to create new instances of feature via the Feature() call."
   — minor phrasing; could be folded into an R3-style doc touch.

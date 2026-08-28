@@ -677,6 +677,16 @@ D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
        identical. Suite 13/0/1 GREEN (print_summary goldens
        unchanged). M3-M4 disposition pending.
 
+D-041 | 2026-08-28 | feature.py M3 disposed (Roberto chose option
+       a): FeatureSet keeps NO column-labelling helper — left
+       as-is. Rationale: it is an engine-side need (the pipeline's
+       table builders), not a module requirement; the helper
+       design (each pattern occupies n_instances D8-instance
+       columns, so column-level labelling needs an instance-aware
+       shape) is deferred until the pipeline module that labels
+       columns arrives. Follow-up registered as I-007 in
+       notes/ideas.md. No code change.
+
 D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
        one at a time): the unused `f` prefixes removed from the
        two placeholder-less print_summary lines ("Intercept is

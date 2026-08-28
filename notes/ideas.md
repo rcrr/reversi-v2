@@ -38,3 +38,13 @@ I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
        parenthesis-free property access when that file is migrated into
        twolm. Count of affected sites unknown until that file is
        analyzed — grep the original repo for ".names()" / ".masks()".
+
+I-007 | follow-up | FeatureSet column-labelling helper (raised
+       2026-08-28, D-041, feature module M3): FeatureSet offers no
+       way to map a column of its (N, I) index matrix to the feature
+       name producing it (unlike MobilitySet.names/masks, D-024).
+       The pipeline's table builders will need it. Left as-is on
+       Roberto's decision; design the helper when the pipeline
+       module that labels columns arrives (note: each pattern
+       occupies n_instances D8-instance columns, so a
+       column-level labelling needs an instance-aware design).
