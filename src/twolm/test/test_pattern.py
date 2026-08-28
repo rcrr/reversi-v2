@@ -27,11 +27,11 @@
 
 #
 #
-# How to use the unit tests pattern module.
+# How to run the pattern module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
-# -0- Activate the environmeant.
+# -0- Activate the environment.
 #
 # $ source .venv/bin/activate
 #
@@ -62,21 +62,13 @@ from twolm.board import (
     bitboard_ro000, bitboard_ro090, bitboard_ro180, bitboard_ro270,
     bitboard_fvert, bitboard_fh1a8, bitboard_fhori, bitboard_fa1h8,
     bitboard_transformations, bitboard_from_signed_int,
-    make_position, position_check_collisions
+    make_position, position_check_collisions, position_print
 )
 from twolm.pattern import *
 
 
 
 ar                 = Bitboard(0x22120a0e1222221e)
-
-ar_reflection_h    = Bitboard(0x1e2222120e0a1222)
-ar_reflection_v    = Bitboard(0x4448507048444478)
-ar_reflection_h1a8 = Bitboard(0x00ff888c92610000)
-ar_reflection_a1h8 = Bitboard(0x000086493111ff00)
-ar_rotate_180      = Bitboard(0x7844444870504844)
-ar_rotate_90c      = Bitboard(0x000061928c88ff00)
-ar_rotate_90a      = Bitboard(0x00ff113149860000)
 
 full               = Bitboard(0xffffffffffffffff)
 empty              = Bitboard(0x0000000000000000)
@@ -101,16 +93,22 @@ class TestPattern(unittest.TestCase):
 
     def test_init(self):
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
-        self.assertEqual(p, p)
-        
-        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
-        self.assertEqual(p, p)
+        self.assertEqual(p.name, 'ELLE')
+        self.assertEqual(int(p.mask), 0x0000000000000107)
+        self.assertEqual(int(p.n_squares), 4)
+        self.assertEqual(p.n_configurations, 3 ** 4)
 
-    def test_init_invalid_type_arg_1_raises_assertion(self):
+        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        self.assertEqual(p.name, 'EDGE')
+        self.assertEqual(int(p.mask), 0x00000000000000FF)
+        self.assertEqual(int(p.n_squares), 8)
+        self.assertEqual(p.n_configurations, 3 ** 8)
+
+    def test_init_invalid_type_arg_1_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             p = Pattern(1, Bitboard(0x0000000000000107))
 
-    def test_init_invalid_type_arg_2_raises_assertion(self):
+    def test_init_invalid_type_arg_2_raises_validation_error(self):
         with self.assertRaises(ValidationError):
             p = Pattern('ELLE', 107)
 
@@ -235,9 +233,6 @@ class TestPatternPack(unittest.TestCase):
                                c1, c2, c3, c4, c5, c6, c7, c8,
                               ]
         
-    def tearDown(self):
-        pass
-
     def run_test_vectorized(self, p: Pattern, expected: List[Bitboard]) -> None:
         bitboard_array = np.array(self.bitboard_list, dtype=Bitboard)
         expected_array = np.array(expected, dtype=Bitboard)
@@ -685,37 +680,37 @@ class TestPatternSymmetries(unittest.TestCase):
     fhori = bitboard_fhori
     fa1h8 = bitboard_fa1h8
 
-    TestCase = namedtuple('TestCase', ['mask', 'name', 'expected'])
+    SymmetryCase = namedtuple('SymmetryCase', ['mask', 'name', 'expected'])
     test_data = [
-        TestCase(0x0000000000000107, 'ELLE',   []),
-        TestCase(0x0000000C30000000, 'SNAKE',  [ro180]),
-        TestCase(0x00000000000000FF, 'EDGE',   [fvert]),
-        TestCase(0x000000000000FF00, 'R2',     [fvert]),
-        TestCase(0x0000000000FF0000, 'R3',     [fvert]),
-        TestCase(0x00000000FF000000, 'R4',     [fvert]),
-        TestCase(0x00000000000042FF, 'XEDGE',  [fvert]),
-        TestCase(0x0000000000010204, 'DIAG3',  [fa1h8]),
-        TestCase(0x0000000001020408, 'DIAG4',  [fa1h8]),
-        TestCase(0x0000000102040810, 'DIAG5',  [fa1h8]),
-        TestCase(0x0000010204081020, 'DIAG6',  [fa1h8]),
-        TestCase(0x0001020408102040, 'DIAG7',  [fa1h8]),
-        TestCase(0x0102040810204080, 'DIAG8',  [ro180]),
-        TestCase(0x0000000000070707, 'CORNER', [fa1h8]),
-        TestCase(0x0000000000001F1F, '2X5COR', []),
-        TestCase(0x0000000000003F3F, '2X6COR', []),
-        TestCase(0x0000003C3C000000, 'RCT2X4', [ro180, fvert, fhori]),
-        TestCase(0x000000000000C3FF, 'CASTLE', [fvert]),
-        TestCase(0x030304081020C0C0, 'BARBEL', [ro180, fh1a8, fa1h8]),
-        TestCase(0x010204081020C0C0, 'MACE',   [fh1a8]),
-        TestCase(0x8100000000000081, 'FOURC',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
-        TestCase(0x0000001818000000, 'CORE',   [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
-        TestCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
-        TestCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
-        TestCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
-        TestCase(0x010100C1C1000101, 'TAU',    [fhori]),
-        TestCase(0x0000000000000001, 'DOTA1',  []),
-        TestCase(0x0000000000000002, 'DOTB1',  []),
-        TestCase(0x0000000000000201, 'TWOND',  []),
+        SymmetryCase(0x0000000000000107, 'ELLE',   []),
+        SymmetryCase(0x0000000C30000000, 'SNAKE',  [ro180]),
+        SymmetryCase(0x00000000000000FF, 'EDGE',   [fvert]),
+        SymmetryCase(0x000000000000FF00, 'R2',     [fvert]),
+        SymmetryCase(0x0000000000FF0000, 'R3',     [fvert]),
+        SymmetryCase(0x00000000FF000000, 'R4',     [fvert]),
+        SymmetryCase(0x00000000000042FF, 'XEDGE',  [fvert]),
+        SymmetryCase(0x0000000000010204, 'DIAG3',  [fa1h8]),
+        SymmetryCase(0x0000000001020408, 'DIAG4',  [fa1h8]),
+        SymmetryCase(0x0000000102040810, 'DIAG5',  [fa1h8]),
+        SymmetryCase(0x0000010204081020, 'DIAG6',  [fa1h8]),
+        SymmetryCase(0x0001020408102040, 'DIAG7',  [fa1h8]),
+        SymmetryCase(0x0102040810204080, 'DIAG8',  [ro180]),
+        SymmetryCase(0x0000000000070707, 'CORNER', [fa1h8]),
+        SymmetryCase(0x0000000000001F1F, '2X5COR', []),
+        SymmetryCase(0x0000000000003F3F, '2X6COR', []),
+        SymmetryCase(0x0000003C3C000000, 'RCT2X4', [ro180, fvert, fhori]),
+        SymmetryCase(0x000000000000C3FF, 'CASTLE', [fvert]),
+        SymmetryCase(0x030304081020C0C0, 'BARBEL', [ro180, fh1a8, fa1h8]),
+        SymmetryCase(0x010204081020C0C0, 'MACE',   [fh1a8]),
+        SymmetryCase(0x8100000000000081, 'FOURC',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        SymmetryCase(0x0000001818000000, 'CORE',   [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        SymmetryCase(0x0000241818240000, 'CORED',  [ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8]),
+        SymmetryCase(0x000008381C100000, 'COREA',  [ro090, ro180, ro270]),
+        SymmetryCase(0x83800000000001C1, 'WHIRL',  [ro090, ro180, ro270]),
+        SymmetryCase(0x010100C1C1000101, 'TAU',    [fhori]),
+        SymmetryCase(0x0000000000000001, 'DOTA1',  []),
+        SymmetryCase(0x0000000000000002, 'DOTB1',  []),
+        SymmetryCase(0x0000000000000201, 'TWOND',  []),
     ]
     
     def test_pattern_invariance(self):
@@ -990,10 +985,28 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         """Set up mock Pattern instances and common test data."""
         # Create mocks to isolate the method from the actual Pattern/Bitboard logic
         self.mock_pattern1 = MagicMock(spec=Pattern)
-        self.mock_pattern1.mdp_record.return_value = "EDGE,0xff,8,6561,4,2,cells,tmasks,indexes,u_masks,u_indexes,tr,at,sf,t0,t1,t2,t3,t4,t5,t6,t7,fp,2"
+        # Real mdp_record() output of the EDGE pattern (2026-08-28 verified).
+        self.mock_pattern1.mdp_record.return_value = (
+            "EDGE,00000000000000FF,8,6561,4,2,A1:B1:C1:D1:E1:F1:G1:H1,"
+            "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
+            "0:1:2:3:0:1:2:3,00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,0:1:2:3,"
+            "ro000:ro090:ro180:ro270,ro000:ro270:ro180:ro090,fvert,"
+            "A1:B1:C1:D1:E1:F1:G1:H1,H1:H2:H3:H4:H5:H6:H7:H8,H8:G8:F8:E8:D8:C8:B8:A8,A8:A7:A6:A5:A4:A3:A2:A1,"
+            "H1:G1:F1:E1:D1:C1:B1:A1,H8:H7:H6:H5:H4:H3:H2:H1,A8:B8:C8:D8:E8:F8:G8:H8,A1:A2:A3:A4:A5:A6:A7:A8,"
+            "I0:T1:T2:T3:S0:S1:S2:S3,2"
+        )
         
         self.mock_pattern2 = MagicMock(spec=Pattern)
-        self.mock_pattern2.mdp_record.return_value = "CORNER,0x0f,4,81,1,1,cells,tmasks,indexes,u_masks,u_indexes,tr,at,sf,t0,t1,t2,t3,t4,t5,t6,t7,fp,1"
+        # Real mdp_record() output of the CORNER pattern (2026-08-28 verified).
+        self.mock_pattern2.mdp_record.return_value = (
+            "CORNER,0000000000070707,9,19683,4,2,A1:B1:C1:A2:B2:C2:A3:B3:C3,"
+            "0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000070707,"
+            "0:1:2:3:1:2:3:0,0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000,0:1:2:3,"
+            "ro000:ro090:ro180:ro270,ro000:ro270:ro180:ro090,fa1h8,"
+            "A1:B1:C1:A2:B2:C2:A3:B3:C3,H1:H2:H3:G1:G2:G3:F1:F2:F3,H8:G8:F8:H7:G7:F7:H6:G6:F6,A8:A7:A6:B8:B7:B6:C8:C7:C6,"
+            "H1:G1:F1:H2:G2:F2:H3:G3:F3,H8:H7:H6:G8:G7:G6:F8:F7:F6,A8:B8:C8:A7:B7:C7:A6:B6:C6,A1:A2:A3:B1:B2:B3:C1:C2:C3,"
+            "I0:T1:T2:T3:S1:S2:S3:S0,3"
+        )
         
         self.patterns_list = [self.mock_pattern1, self.mock_pattern2]
         self.filename = "test_output.csv"
@@ -1062,6 +1075,15 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         handle = mock_file()
         # Only 1 write call should occur (the header)
         self.assertEqual(handle.write.call_count, 1)
+        # And that single write must be the CSV header itself.
+        expected_header = (
+            "name,mask,"
+            "n_squares,n_configurations,n_instances,n_stabilizers,"
+            "cells,tmasks,mask_indexes,unique_masks,unique_mask_indexes,tr,at,sf,"
+            "cells_t0,cells_t1,cells_t2,cells_t3,cells_t4,cells_t5,cells_t6,cells_t7,"
+            "fingerprint,type\n"
+        )
+        self.assertEqual(handle.write.call_args_list[0].args[0], expected_header)
 
 class TestPatternComputeIndexes(unittest.TestCase):
 
@@ -1196,21 +1218,21 @@ class TestPatternSet(unittest.TestCase):
         self.assertEqual(self.pattern_set.patterns[1], self.pattern1)
         self.assertEqual(self.pattern_set.patterns[2], self.pattern2)
 
-    def test_init_invalid_type_arg_1_raises_assertion(self):
+    def test_init_invalid_type_arg_1_raises_validation_error(self):
         """
         Test that initializing with a non-string name raises a ValidationError.
         """
         with self.assertRaises(ValidationError):
             PatternSet(1, [self.pattern1, self.pattern2, self.pattern3])
 
-    def test_init_invalid_type_arg_2_raises_assertion(self):
+    def test_init_invalid_type_arg_2_raises_validation_error(self):
         """
         Test that initializing with a non-list patterns raises a ValidationError.
         """
         with self.assertRaises(ValidationError):
             PatternSet('SamplePatternSet', 'NOT A LIST')
 
-    def test_init_invalid_element_type_arg_2_raises_assertion(self):
+    def test_init_invalid_element_type_arg_2_raises_validation_error(self):
         """
         Test that initializing with a list containing non-Pattern elements raises a ValidationError.
         """
@@ -1603,9 +1625,13 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         positions = np.full(1, position)
         principal_indexes = self.pattern_set.compute_principal_indexes(positions)
 
-        if False:
+        expected = np.array([[ 420, 116, 1517, 27, 9, 54, 59, 54, 15, 35, 6, 0, 44]], dtype=Index)
+        try:
+            nptest.assert_array_equal(principal_indexes, expected)
+        except AssertionError:
+            # Debug output, printed only when the test fails:
             position_print(position)
-            
+
             print()
             print(f"Patterns:")
             i0 = 0
@@ -1620,8 +1646,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
             print(f"principal_indexes.shape = {principal_indexes.shape}")
 
-        expected = np.array([[ 420, 116, 1517, 27, 9, 54, 59, 54, 15, 35, 6, 0, 44]], dtype=Index)
-        nptest.assert_array_equal(principal_indexes, expected)
+            raise
 
     def test_large_set(self):
 

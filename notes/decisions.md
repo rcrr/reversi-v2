@@ -482,3 +482,46 @@ D-032 | 2026-08-28 | New Pattern attributes n_invariant_configs and
        test_burnside_counts_invariants (1 <= n_inv <= n_uni <=
        n_configurations; equality with 3^S when symmetry_fs is
        empty). Suite grew 56 -> 58 tests, GREEN 58/0/3.
+
+D-033 | 2026-08-28 | P2 hygiene batch for test_pattern.py (T1-T7,
+       T15, T16; each item approved one at a time, single batch
+       commit like P0/P1).
+       | T1: the test_init tautology assertEqual(p, p) replaced with
+       real assertions (name, mask, n_squares, n_configurations for
+       ELLE and EDGE; values verified live: ELLE 4/81, EDGE 8/6561).
+       T2: the dead if False: debug block in test_one_record
+       replaced by print-on-failure (Roberto's proposal: the block
+       is development diagnostic, keep it but print only on
+       failure): the assertion wrapped in try/except AssertionError,
+       the original debug prints verbatim inside the handler, bare
+       raise. Both branches verified live (failure: board + pattern
+       table + indexes + shape printed, exception re-raised;
+       success: silent). This uncovered NEW DEFECT T19: the block
+       referenced position_print, which was never imported (dead
+       code, so the NameError never fired) — added to the
+       twolm.board import list as part of T2.
+       T3: removed the 7 dead module-level ar_* fixtures
+       (ar_reflection_h/v/h1a8/a1h8, ar_rotate_180/90c/90a); ar
+       kept (used by the Cayley-table test). The same-named
+       fixtures in test_board.py are that module's own, unaffected.
+       T4: renamed the 5 stale tests ..._raises_assertion to
+       ..._raises_validation_error (all 5 already asserted
+       ValidationError; names stale since the D-023 strict
+       constructor).
+       T5: header grammar fix (L30) + typo "environmeant" (L34).
+       Reported: test_board.py carries the same two nits (out of
+       scope for this file, left for Roberto).
+       T6: renamed the TestCase namedtuple to SymmetryCase (class
+       name + type name; 29 test_data rows) — it shadowed
+       unittest.TestCase in the class body.
+       T7: test_mdp_csv_file_with_empty_list now asserts the single
+       write is the CSV header itself (header verified byte-for-
+       byte against mdp_csv_file, pattern.py L279-286).
+       T15: the two mocked mdp_record strings in
+       TestPatternMdpCsvFile.setUp replaced with the real
+       mdp_record() output of EDGE and CORNER (live-verified; the
+       old ones used fake-format values: "0xff" vs 16-hex, and
+       "CORNER,0x0f,4,81,1,1" vs real 0x70707/9/19683/4/2).
+       T16: removed the no-op tearDown (pass) from TestPatternPack.
+       Test file only; no behavior change. Suite 58 tests, GREEN
+       58/0/3 (test count unchanged by this batch).

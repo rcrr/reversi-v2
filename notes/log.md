@@ -462,3 +462,32 @@
     DOTA1/TWOND 2 vs 1). Tests: test_burnside_counts_golden (29
     goldens incl. CORE 3/21 per Roberto) +
     test_burnside_counts_invariants. Suite GREEN 58/0/3.
+
+## 2026-08-28 — session 6
+- D-032 (Burnside attributes) committed as 167e182 (work logged in
+  the session 5 bullet).
+- P2 hygiene batch for test_pattern.py, each item approved one at
+  a time (D-033):
+  - T1: test_init tautology -> real assertions (ELLE 4/81, EDGE
+    8/6561, verified live).
+  - T2: dead if False: block -> print-on-failure (Roberto's
+    proposal: keep the diagnostic, print only on failure). Both
+    branches verified live (failure: board + pattern table +
+    indexes + shape, exception re-raised; success: silent).
+    Uncovered NEW DEFECT T19: position_print was never imported
+    (NameError landmine inside the dead code) — added to the board
+    imports as part of T2.
+  - T3: 7 dead ar_* fixtures removed (ar kept, used by Cayley).
+  - T4: 5 stale raises_assertion names -> raises_validation_error.
+  - T5: header grammar + "environmeant" typo fixed; the same two
+    nits exist in test_board.py (reported to Roberto, out of scope).
+  - T6: TestCase namedtuple -> SymmetryCase (29 rows + type name).
+  - T7: empty-list CSV test now asserts the header content.
+  - T15: mocked mdp_record strings -> real EDGE/CORNER records
+    (live-verified; old ones were fake-format).
+  - T16: no-op tearDown removed from TestPatternPack.
+  Batch committed together (like the P0/P1 batches). Suite GREEN
+  58/0/3 (test count unchanged).
+- Next: T17 (sqa8/sqh1 fixture names swapped), then breadth
+  (T11 hash pin, T12 PatternType, T13 mdp_record SNAKE/CORE/DIAG8,
+  T14 collision precondition); T18 stays noted-only; M1 deferred.

@@ -216,9 +216,18 @@ mismatch):
   `TestPatternSetComputePrincipalIndexes` (same position).
 - **T15. Misleading mock records** (L903, L906): the mocked
   `mdp_record` strings don't follow the real format ("0xff" vs
-  "00000000000000FF"; "CORNER,0x0f,4,81,1,1" vs real 9/19681/4/2) —
+  "00000000000000FF"; "CORNER,0x0f,4,81,1,1" vs real 9/19683/4/2) —
   harmless as mocks, but they misinform.
 - **T16. Cosmetic**: `TestPatternPack.tearDown` is a no-op `pass`.
+- **T17. Fixture names swapped vs values** (L84-85, found during D-029):
+  `sqa8 = 0x80` is actually H1 (bit 7, row 1) and `sqh1 =
+  0x0100000000000000` is actually A8 (bit 56, column a). Only use is
+  the identity-agnostic Cayley-table input, so nothing is wrong
+  numerically — the names mislead.
+- **T19. Missing import inside dead code** (found during T2): the
+  `if False:` debug block in `test_one_record` referenced
+  `position_print`, which was never imported — a NameError landmine
+  if re-enabled. Fixed as part of T2 (print-on-failure + import).
 
 ## 6. Docstring/behaviour mismatches (cross-check findings)
 
@@ -287,31 +296,40 @@ but untested — and (ii) the array dimension of the public indexing API
 are minor; the stale "raises_assertion" names (T4) are the only ones that
 would actively mislead a future reader.
 
-### 7.5 Proposed fix priorities (NO ACTION TAKEN)
-_No edits proposed or made in this session. Each item below requires
-explicit approval, one at a time, per the D-019 pattern:_
+### 7.5 Fix priorities (campaign progress)
+_Per-item approval, one at a time, per the D-019 pattern. Status
+2026-08-28:_
 
-- **P0** (shipped code with zero coverage — T8):
-  1. Test `Pattern.__repr__` (golden, e.g. ELLE/EDGE).
-  2. Test empty `PatternSet` → `ValueError` (message).
-  3. Test empty mask (0x0) → `ValueError` (message).
-- **P1** (coverage of existing behaviour):
+- **P0** (shipped code with zero coverage — T8) — **DONE**
+  (D-026/027/028, commit 6da0803):
+  1. Test `Pattern.__repr__` (golden, e.g. ELLE/EDGE). [D-026]
+  2. Test empty `PatternSet` → `ValueError` (message). [D-027]
+  3. Test empty mask (0x0) → `ValueError` (message). [D-028]
+- **P1** (coverage of existing behaviour) — **DONE**
+  (D-029/030/031, commit 086ef75):
   4. Multi-position array tests (≥2 distinct positions, assert row
      independence) for `compute_indexes_on_position` and
-     `compute_principal_indexes` (T9).
+     `compute_principal_indexes` (T9). [D-029, D-030]
   5. Direct EDGE 6561-entry principal-dict test (length, unique count
-     3321, spot values) (T10).
+     3321, spot values) (T10). [D-031]
 - **P2** (hygiene + breadth):
-  6. T1 replace tautologies with real assertions; T2 remove the dead
-     `if False:` block; T3 remove dead `ar_*` fixtures; T4 rename the 5
-     "raises_assertion" tests; T5 header typo/grammar; T6 rename the
-     `TestCase` namedtuple; T7 assert the CSV header content in the
-     empty-list test; T15 fix or comment the mock records; T16 no-op
-     `tearDown`.
-  7. Golden-pin `PatternSet.hash` (T11).
-  8. Direct `PatternType.from_fingerprint` tests (T12).
-  9. Add `mdp_record` goldens for SNAKE/CORE/DIAG8 (T13).
-  10. Add `position_check_collisions` to the set-level indexing tests (T14).
+  6. Hygiene — **DONE** (D-033, batch commit after P1): T1 tautologies
+     → real assertions; T2 dead `if False:` block → print-on-failure
+     (Roberto's proposal; exposed **T19** — `position_print` was never
+     imported — fixed in the same item); T3 dead `ar_*` fixtures
+     removed (`ar` kept); T4 the 5 "raises_assertion" tests renamed
+     to "raises_validation_error"; T5 header typo/grammar fixed; T6
+     `TestCase` namedtuple renamed to `SymmetryCase`; T7 CSV header
+     content asserted in the empty-list test; T15 mock records
+     replaced with the real EDGE/CORNER `mdp_record()` output; T16
+     no-op `tearDown` removed. **PENDING**: T17 (sqa8/sqh1 fixtures
+     have swapped names vs values). T18 (np.uint8 `3**n_squares`
+     overflow) stays noted-only, no code action.
+  7. Golden-pin `PatternSet.hash` (T11) — pending.
+  8. Direct `PatternType.from_fingerprint` tests (T12) — pending.
+  9. Add `mdp_record` goldens for SNAKE/CORE/DIAG8 (T13) — pending.
+  10. Add `position_check_collisions` to the set-level indexing tests
+      (T14) — pending.
   11. Fix the stale `PatternSet` Raises docstring (M1 — deferred item,
       needs Roberto's go-ahead).
 
