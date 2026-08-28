@@ -569,5 +569,21 @@
    every PERF test is print-only asserting output correctness
    (the ±30% is campaign comparison discipline, not a test gate);
    M5 (kernel UFunc call) left as-is ("E' un TEST").
- - Next: test_mobility.py analysis
-   (docs/src/twolm/test/test_mobility.md).
+ - test_mobility.py analyzed (docs/src/twolm/test/test_mobility.md):
+   2 classes / 23 tests / 1 PERF; all goldens independently
+   re-derived (V1-V13, zero mismatches — print/string goldens,
+   names/masks, sorting, dup messages, n_configurations, [53,13,66]
+   via lms=13/alms=11, underflow position, 31-line popcount table
+   31/31, empty set/positions); new __repr__ goldens captured
+   (V13) — currently untested. 9 defects documented T1-T9: T1
+   TestMobilitySet.test_init dead if-False block + zero live
+   assertions, T2 three raises_assertion names, T3 hash
+   self-comparison (no pinned literal), T4 print_summary hash
+   self-comparison, T5 header grammar, T6 dead imports
+   (shutil/tempfile/legal_moves), T7 no multi-position row-
+   independence test, T8 R5 __repr__ shipped with zero coverage,
+   T9 (cosmetic) popcount print-on-failure idiom. Priorities
+   proposed: P0 = T8, P1 = T7, P2 = T1-T6 + T9 optional. None
+   applied — awaiting per-item approvals.
+ - Next: per-item approvals for the test_mobility campaign (P0
+   first: the __repr__ golden tests).

@@ -13,7 +13,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes); D-032 (2026-08-28): Burnside attributes n_invariant_configs / n_unique_configs | docs/src/twolm/pattern.md |
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found+fixed in T2) + P2 breadth (D-034: T11-T14 + T17), suite 64/0/3 GREEN; T18 noted-only, M1 deferred | docs/src/twolm/test/test_pattern.md |
 | src/twolm/mobility.py | analyzed 2026-08-28: Mobility/MobilitySet + popcount64 SWAR + Numba kernel; feature index formula + n_configurations (distinct index values) + sorted-order columns + hash all verified vs independent ground truth (V1-V8, 200-position differential); R1-R6 fix batch applied (D-035: docstrings + column-order contract + popcount64 test-helper + dead imports + property/repr alignment + n_instances as-is); M1-M5 disposed (D-036: M1 glossary shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any suite); suite 23/0/1 GREEN | docs/src/twolm/mobility.md |
-| src/twolm/test/test_mobility.py | added 2026-08-28 (commit 62748ca); 23 tests, 1 PERF gate; analysis pending (next step) | — |
+| src/twolm/test/test_mobility.py | analyzed 2026-08-28: 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented (dead if-False block, stale raises_assertion names, 2 hash self-comparisons, header grammar, dead imports, no multi-position test, R5 __repr__ untested, cosmetic print-on-failure); priorities P0=T8 / P1=T7 / P2=T1-T6(+T9) proposed, none applied | docs/src/twolm/test/test_mobility.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -134,8 +134,10 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   (stale PatternSet Raises docstring, awaiting go-ahead);
   test_board.py header nits (reported, out of scope).
 - mobility.py: analysis DONE (2026-08-28, docs/src/twolm/mobility.md).
-  R1-R6 fix batch DONE (D-035). Next: test_mobility.py analysis
-  (docs/src/twolm/test/test_mobility.md).
+  R1-R6 fix batch DONE (D-035); M1-M5 disposed (D-036).
+  test_mobility.py analyzed (docs/src/twolm/test/test_mobility.md,
+  23/0/1 GREEN, defects T1-T9 documented); next: per-item approvals
+  for its fix campaign (P0 first: __repr__ golden tests).
 - Then: the rest of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
   the original repo). Pattern R4/R5 remain doc-status only, parked.
@@ -155,6 +157,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - docs/src/twolm/mobility.md — mobility.py analysis (feature index formula,
   n_configurations semantics, sorted-order columns, verified V1-V8,
   R1-R6 applied D-035, minor M1-M5 disposed D-036)
+- docs/src/twolm/test/test_mobility.md — test_mobility.py analysis (coverage by
+  area, 13 verified facts, defects T1-T9, completeness verdict +
+  P0/P1/P2 priorities)
 - notes/naming.md — canonical board naming convention (row/column, D-013)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
