@@ -377,4 +377,79 @@ D-028 | 2026-08-27 | Empty-mask ValueError test pinned in
        behavior before approval. Test file only, pattern.py untouched.
        This closes P0: all three shipped-but-uncovered minor-sweep
        paths (#16, #17, #18) now have tests. Suite grew 52 -> 53
-       tests, GREEN 53/0/3.
+       tests, GREEN 53/0/3. P0 batch committed as 6da0803.
+
+D-029 | 2026-08-27 | Multi-position row-independence test for
+       Pattern.compute_indexes_on_position (test_pattern fix campaign,
+       P1 item 1/3, defect T9a).
+       | All array-input tests so far fed uniform np.full tiles, so a
+       row-mixing bug in the 2D kernel path would be invisible. Added
+       TestPatternComputeIndexes.test_compute_indexes_on_position_
+       multiple_positions: EDGE (4 unique instances) pattern over 3
+       distinct collision-free positions (empty; mover on A1; mover
+       A1 + opponent H1). Output column j is the base-3 configuration
+       of row 1 read through the j-th anti-transformation
+       (unique_mask_indexes [0,1,2,3] = identity, ro270, ro180,
+       ro090); digits 0 = empty, 1 = mover, 2 = opponent; square k
+       (ascending A1..H1) contributes digit * 3^k. Goldens
+       hand-derived from D8 geometry and the kernel digit convention,
+       then verified against the live output ([[0,0,0,0],
+       [1,0,0,2187], [4375,2,0,2187]]): the test pins all three digit
+       values, all four anti-orientations, the base-3 digit order
+       (3^7 = 2187) and row independence. position_check_collisions
+       is called on the array input before indexing (D-025 caller
+       precondition). Module fixtures sqa8/sqh1 deliberately NOT used:
+       their names are swapped w.r.t. the canonical layout (sqa8 =
+       0x80 = H1, sqh1 = 0x1000000000000000 = A8) — logged as new
+       defect T17 (hygiene, P2 candidate; their only use at the
+       Cayley-table inputs is identity-agnostic). Test file only.
+       Suite grew 53 -> 54 tests, GREEN 54/0/3.
+
+D-030 | 2026-08-27 | Multi-position row-independence test for
+       PatternSet.compute_principal_indexes (test_pattern fix
+       campaign, P1 item 2/3, defect T9b).
+       | test_large_set feeds uniform np.full tiles and only checks
+       row 0 (rows 1..N-1 never verified), so a row-mixing bug in
+       the set-level kernel would be invisible. Added
+       TestPatternSetComputePrincipalIndexes.test_compute_principal_
+       indexes_multiple_positions: single-pattern set (EDGE, 4 groups
+       -> 4 output columns, no multi-pattern layout ambiguity;
+       col_offsets already pinned by test_large_set's J=49
+       attribution) over 4 distinct collision-free positions. Each
+       output column g is the principal index of that unique-mask
+       instance's configuration — the min over the two stabilizer
+       elements mapping the pattern onto that unique mask (g0 =
+       min(ro000, fvert) row 1; g1 = min(ro090, fh1a8) col h; g2 =
+       min(ro180, fhori) row 8; g3 = min(ro270, fa1h8) col a); digits
+       0/1/2, square k contributes digit*3^k. Goldens hand-derived
+       and verified against the live output (4/4 rows MATCH):
+       [[0,0,0,0], [1,0,0,1], [2189,2,0,1], [1,0,1,2188]]. NOTE: the
+       first golden attempt failed because of a bug in the scratch
+       diagnostic (mislabeled the four reflection anti-columns);
+       reconstructing the per-slot base-3 indexes via _pack_bb
+       proved the kernel grouping is CORRECT (stabilizer min,
+       consistent with compute_principal_index_dict semantics and the
+       re-derived large-set goldens) — no code defect. Pins the
+       stabilizer min (row 2: 1 vs 2187), the opponent digit (row 3:
+       2189 = min(4375, 2189)), a symmetric configuration (row 4:
+       g3 = min(2188, 2188)) and row independence (4 distinct rows).
+       Test file only. Suite grew 54 -> 55 tests, GREEN 55/0/3.
+
+D-031 | 2026-08-27 | EDGE 6561-entry principal dict pinned directly
+       (test_pattern fix campaign, P1 item 3/3, defect T10).
+       | Added TestPatternComputePrincipalIndexDict.
+       test_edge_pattern_compute_principal_index_dict. Instead of a
+       6561-entry literal, pins the full non-circular
+       specification: EDGE has one non-identity stabilizer element
+       (fvert = base-3 digit reversal), so dict[c] = min(c, flip(c))
+       for all 6561 entries, plus length (6561), unique-principal
+       count (3321 = (6561+81)/2, Burnside with 81 fixed
+       configurations) and five hand-derived spot values (0, 1,
+       2187->1, 27, 4375->2189). All verified read-only before
+       approval. Also logged as T18 (sharp edge, no code action):
+       Pattern.n_squares is np.uint8, so 3 ** p.n_squares overflows
+       (6561 wraps to 161) for patterns with >= 7 squares; the
+       production code already casts to int where needed
+       (compute_principal_index_dict), external expressions must
+       cast too. Test file only. Suite grew 55 -> 56 tests, GREEN
+       56/0/3. P1 batch (D-029/D-030/D-031) committed together.

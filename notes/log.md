@@ -424,3 +424,25 @@
   - D-028 (P0 3/3, T8/#18): TestPattern.
     test_init_raises_value_error_for_empty_mask added. P0 CLOSED:
     #16/#17/#18 all covered. Suite GREEN 53/0/3.
+  - P0 batch committed as 6da0803.
+  - D-029 (P1 1/3, T9a): TestPatternComputeIndexes.
+    test_compute_indexes_on_position_multiple_positions added (EDGE,
+    3 distinct positions, hand-derived goldens verified against the
+    live output). NEW DEFECT T17 found while preparing: module
+    fixtures sqa8/sqh1 have swapped names vs values (sqa8 = 0x80 =
+    H1, sqh1 = 0x1...0 = A8); identity-agnostic use at the Cayley
+    table only — hygiene, P2 candidate. Suite GREEN 54/0/3.
+  - D-030 (P1 2/3, T9b): TestPatternSetComputePrincipalIndexes.
+    test_compute_principal_indexes_multiple_positions added (EDGE_ONLY
+    set, 4 distinct positions, hand-derived goldens verified live
+    4/4). First golden attempt failed on a scratch-diagnostic bug
+    (mislabeled reflection anti-columns); per-slot reconstruction via
+    _pack_bb proved the kernel correct (stabilizer min) — no code
+    defect. Suite GREEN 55/0/3.
+  - D-031 (P1 3/3, T10): TestPatternComputePrincipalIndexDict.
+    test_edge_pattern_compute_principal_index_dict added — full
+    non-circular spec dict[c] = min(c, flip(c)) + 6561 length +
+    3321 unique count + 5 spot values. NEW SHARP EDGE T18: n_squares
+    is np.uint8, 3 ** p.n_squares overflows for >= 7 squares (6561
+    wraps to 161); production casts to int, external code must too.
+    P1 CLOSED (D-029/030/031), suite GREEN 56/0/3. P1 batch committed.

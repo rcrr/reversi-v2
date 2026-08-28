@@ -1032,7 +1032,45 @@ class TestPatternComputeIndexes(unittest.TestCase):
         expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
-        
+
+    def test_compute_indexes_on_position_multiple_positions(self):
+        """T9: array input with DISTINCT positions — every output row
+        must be computed independently. The existing array tests only
+        feed uniform np.full tiles, which cannot catch a row-mixing bug
+        in the 2D kernel path.
+
+        EDGE has 4 unique instances (unique_mask_indexes [0,1,2,3]), so
+        output column j is the base-3 configuration of row 1 read
+        through the j-th anti-transformation: identity, ro270, ro180,
+        ro090. Digits: 0 = empty, 1 = mover, 2 = opponent; square k
+        (squares in ascending board order A1..H1) contributes
+        digit * 3**k.
+
+        Hand-derived goldens from the D8 geometry (ro090: A1->H1,
+        ro180: A1->H8, ro270: A1->A8, ro270: H1->A1) and verified
+        against the live output:
+        - empty position:                   [0, 0, 0, 0]
+        - mover on A1 (bit 0) only:         [1, 0, 0, 3**7]
+        - mover A1 + opponent H1 (bit 7):   [1 + 2*3**7, 2, 0, 3**7]
+        """
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),   # empty
+            make_position(Bitboard(0x1), Bitboard(0x0)),   # mover A1
+            make_position(Bitboard(0x1), Bitboard(0x80)),  # + opponent H1
+        ])
+        position_check_collisions(positions)
+
+        indexes = pat.compute_indexes_on_position(positions)
+
+        expected = np.array([
+            [0, 0, 0, 0],
+            [1, 0, 0, 3**7],
+            [1 + 2 * 3**7, 2, 0, 3**7],
+        ], dtype=np.uint32)
+        nptest.assert_array_equal(indexes, expected)
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         
@@ -1349,6 +1387,60 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
         self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
 
+    def test_edge_pattern_compute_principal_index_dict(self):
+        """T10: EDGE's 6561-entry principal dict is never pinned
+        directly (CORE pins its 81 entries, the others are spot-
+        checked). Pinned here with the full non-circular
+        specification plus length, unique count and spot values.
+
+        EDGE has one non-identity stabilizer element (fvert), so
+        dict[c] = min(c, flip(c)): fvert reads row 1 in the reversed
+        square order, i.e. flip reverses the base-3 digits.
+        Unique principal count = orbits under {id, fvert} =
+        (6561 + 81) / 2 = 3321 (Burnside: 81 configurations are
+        fixed by the digit reversal — 4 free digit pairs).
+
+        NOTE: int(p.n_squares) on purpose — n_squares is np.uint8 and
+        3 ** p.n_squares overflows (6561 wraps to 161) for patterns
+        with >= 7 squares; the production code already casts to int
+        where needed (compute_principal_index_dict).
+        """
+        p = Pattern('EDGE', Bitboard(0x00000000000000FF))
+        S = int(p.n_squares)
+
+        self.assertIsNone(p.principal_index_dict)
+        p.compute_principal_index_dict()
+
+        n = 3 ** S
+        self.assertEqual(len(p.principal_index_dict), n)
+        self.assertEqual(p.principal_index_count, 3321)
+
+        # Spot values (hand-derived):
+        #   0          -> 0    (empty)
+        #   1 (A1)     -> 1    (min(1, 3**7))
+        #   3**7 (H1)  -> 1    (min(3**7, 1))
+        #   3**3 (D1)  -> 27   (min(3**3, 3**4))
+        #   1 + 2*3**7 -> 2189 (min(4375, 2189); A1 mover + H1 opp)
+        for c, expected in ((0, 0), (1, 1), (3 ** 7, 1),
+                            (3 ** 3, 27), (1 + 2 * 3 ** 7, 2189)):
+            self.assertEqual(p.principal_index_dict[c], expected)
+
+        # flip: reverse the base-3 digit order (A1 <-> H1, ...).
+        flip = np.empty(n, dtype=Index)
+        for c in range(n):
+            v, f = c, 0
+            for _ in range(S):
+                f = f * 3 + v % 3
+                v //= 3
+            flip[c] = f
+        # Full non-circular specification: dict[c] = min(c, flip(c)).
+        nptest.assert_array_equal(
+            p.principal_index_dict,
+            np.minimum(np.arange(n, dtype=Index), flip))
+        # And the fvert symmetry as a standalone property.
+        nptest.assert_array_equal(
+            p.principal_index_dict, p.principal_index_dict[flip])
+
     def test_convert_to_principal_index(self):
         p = Pattern('CORE', Bitboard(0x0000001818000000))
         indexes = np.array([9, 0, 80, 19], dtype=Index)
@@ -1494,6 +1586,51 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         expected = np.array(self.expected_large_set_principal_indexes, dtype=Index)
         computed = principal_indexes[0]
         nptest.assert_array_equal(computed, expected)
+
+    def test_compute_principal_indexes_multiple_positions(self):
+        """T9: array input with DISTINCT positions — every output row
+        must be computed independently. test_large_set feeds uniform
+        np.full tiles and only checks row 0, so a row-mixing bug in
+        the set-level kernel path would be invisible.
+
+        Single-pattern set (EDGE): one output column per unique mask
+        (4 groups); column g is the principal index of that instance's
+        configuration — the min over the two stabilizer elements that
+        map the pattern onto the same unique mask:
+        g0 = min(ro000, fvert)   row 1, forward vs reversed reading
+        g1 = min(ro090, fh1a8)   col h, H1-first vs H8-first
+        g2 = min(ro180, fhori)   row 8, H8-first vs A8-first
+        g3 = min(ro270, fa1h8)   col a, A8-first vs A1-first
+        Digits: 0 = empty, 1 = mover, 2 = opponent; square k (ascending
+        order of the instance frame) contributes digit * 3**k.
+
+        Hand-derived goldens (each row cross-checked against the
+        per-slot base-3 indexes reconstructed via _pack_bb) and
+        verified against the live output:
+        - empty position:                   [0, 0, 0, 0]
+        - mover on A1 (bit 0) only:         [1, 0, 0, 1]
+        - mover A1 + opponent H1 (bit 7):   [2189, 2, 0, 1]
+        - mover on A1 + A8 (bits 0, 56):    [1, 0, 1, 2188]
+        """
+        pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+            make_position(Bitboard(0x0100000000000001), Bitboard(0x0)),
+        ])
+        position_check_collisions(positions)
+
+        principal_indexes = pset.compute_principal_indexes(positions)
+
+        expected = np.array([
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [2189, 2, 0, 1],
+            [1, 0, 1, 2188],
+        ], dtype=Index)
+        nptest.assert_array_equal(principal_indexes, expected)
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):

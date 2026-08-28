@@ -11,7 +11,7 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
 | src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes) | docs/src/twolm/pattern.md |
-| src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 documented; fix campaign in progress: P0 complete (D-026/D-027/D-028: #16 repr golden + #17 empty PatternSet + #18 empty mask), suite 53/0/3 | docs/src/twolm/test/test_pattern.md |
+| src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign in progress: P0 complete (D-026-028, commit 6da0803) + P1 complete (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin), suite 56/0/3 | docs/src/twolm/test/test_pattern.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -86,7 +86,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   material gaps are the three shipped-but-untested minor-sweep paths
   (#16 __repr__, #17 empty PatternSet, #18 empty mask) and the
   uniform-np.full-only array tests of the public indexing pipeline.
-  Fix campaign proposed (P0/P1/P2), awaiting per-item approval.
+  Fix campaign in progress (per-item approvals): P0 complete
+  (D-026-028, commit 6da0803), P1 complete (D-029/030/031); P2
+  (hygiene + breadth + M1) awaits approval.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -96,11 +98,10 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 ## Next steps
 - test_pattern.py fix campaign (per-item approval, D-019 pattern) —
   priorities in docs/src/twolm/test/test_pattern.md section 7.5:
-  P0 = tests for the 3 untested minor-sweep paths (#16 __repr__,
-  #17 empty PatternSet, #18 empty mask); P1 = multi-position
-  row-independence array tests + direct EDGE 6561-entry principal dict;
-  P2 = hygiene (T1-T7, T15-T16) + breadth (hash pin, PatternType,
-  mdp_record SNAKE/CORE/DIAG8) + deferred M1 stale Raises docstring.
+  P0 complete (D-026/027/028); P1 complete (D-029/030/031); next:
+  P2 = hygiene (T1-T7, T15-T16, T17 sqa8/sqh1 fixtures, T18 uint8
+  sharp edge noted) + breadth (hash pin, PatternType, mdp_record
+  SNAKE/CORE/DIAG8) + deferred M1 stale Raises docstring.
 - Then: next module of Roberto's plan (game-loop module — board.py is a
   proven complete game kernel, 2026-08-26 — or the next source file of
   the original repo). R4/R5 remain doc-status only, parked.
