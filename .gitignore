@@ -8,3 +8,6 @@ __pycache__/
 
 # Sandbox folder
 scratch/
+
+# Build directory
+build/
