@@ -248,18 +248,32 @@ class StateMachine:
         self.logs.append(event)
         if relevance >= self.verbosity:
             timestamp = evt_time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] [{self.current_step:02}][{self.current_worker_name:15}] [{relevance}:{self.verbosity}] {message}")
+            # Enum names (not numeric values) and an explicit UTC
+            # marker (M6, D-070)
+            print(f"[{timestamp} UTC] [{self.current_step:02}]"
+                  f"[{self.current_worker_name:15}] "
+                  f"[{relevance.name}:{self.verbosity.name}] {message}")
 
     def show_event_log(self) -> None:
+        # M6 (D-070): UTC header, 2-digit step (same as the live
+        # line), relevance names instead of numeric values, aligned
+        # columns.
         print(f"\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---")
-        print(f"______________________________________________________")
-        print(f"TIMESTAMP           | STEP | WORKER           | R | MESSAGE")
+        print(f"{'_' * 66}")
+        print(f"{'TIMESTAMP (UTC)':<19} | {'STEP':<4} | {'WORKER':<15} | "
+              f"{'RELEVANCE':<9} | MESSAGE")
         for entry in self.logs:
             timestamp = entry.time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"{timestamp} | {entry.step:04} | {entry.worker_name:15} | {entry.relevance} | {entry.message}")
+            step_str = f"{entry.step:02}"
+            print(f"{timestamp:<19} | {step_str:<4} | "
+                  f"{entry.worker_name:<15} | {entry.relevance.name:<9} | "
+                  f"{entry.message}")
 
     def show_history_of_moves(self) -> None:
-        print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | {'Start (UTC)':<26} | {'Dur (s)':<14}")
+        # M6 (D-070): the Dur (s) header is right-aligned over its
+        # right-aligned values (was left-14 vs right-15.6f).
+        print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | "
+              f"{'Start (UTC)':<26} | {'Dur (s)':>15}")
         print("-" * 80)
         for entry in self.history:
             start_str = entry.start.strftime("%Y-%m-%d %H:%M:%S.%f")

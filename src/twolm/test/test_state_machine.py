@@ -778,9 +778,9 @@ class TestDisplayGoldens(unittest.TestCase):
         return StateMachine(workers, context, Verbosity.HIGH)
 
     def test_log_event_live_print_format(self):
-        """[ts] [step][name       ] [rel:verb] message — full golden
-        line per event (the numeric enum rendering is pinned too,
-        M6)."""
+        """[ts UTC] [step][name       ] [rel:verb] message — full
+        golden line per event (the enum-name rendering and the UTC
+        marker are pinned too, M6, D-070)."""
         with patch('twolm.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -790,19 +790,20 @@ class TestDisplayGoldens(unittest.TestCase):
         lines = buf.getvalue().splitlines()
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0],
-            "[2026-08-29 12:34:56] [00][CREATED        ] "
-            "[1:0] StateMachine initialized.")
+            "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
+            "[DEBUG:HIGH] StateMachine initialized.")
         self.assertEqual(lines[1],
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Starting worker CONFIG, UP step")
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Starting worker CONFIG, UP step")
         self.assertEqual(lines[2],
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Completed UP step for CONFIG")
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Completed UP step for CONFIG")
 
     def test_show_event_log_golden(self):
         """End-to-end golden: the move's live lines, then the table —
-        banner, 54-dash separator, header, one row per log entry
-        (step:04, name:15, numeric relevance)."""
+        banner, 66-underscore separator, header (UTC timestamp,
+        2-digit step, relevance name), one row per log entry
+        (M6, D-070)."""
         with patch('twolm.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -811,28 +812,29 @@ class TestDisplayGoldens(unittest.TestCase):
                 sm.move_to_step(1)
                 sm.show_event_log()
         expected = (
-            "[2026-08-29 12:34:56] [00][CREATED        ] "
-            "[1:0] StateMachine initialized.\n"
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Starting worker CONFIG, UP step\n"
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Completed UP step for CONFIG\n"
+            "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
+            "[DEBUG:HIGH] StateMachine initialized.\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Starting worker CONFIG, UP step\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Completed UP step for CONFIG\n"
             "\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---\n"
-            "______________________________________________________\n"
-            "TIMESTAMP           | STEP | WORKER           | R | "
+            "__________________________________________________________________\n"
+            "TIMESTAMP (UTC)     | STEP | WORKER          | RELEVANCE | "
             "MESSAGE\n"
-            "2026-08-29 12:34:56 | 0000 | CREATED         | 1 | "
+            "2026-08-29 12:34:56 | 00   | CREATED         | DEBUG     | "
             "StateMachine initialized.\n"
-            "2026-08-29 12:34:56 | 0001 | CONFIG          | 2 | "
+            "2026-08-29 12:34:56 | 01   | CONFIG          | INFO      | "
             "Starting worker CONFIG, UP step\n"
-            "2026-08-29 12:34:56 | 0001 | CONFIG          | 2 | "
+            "2026-08-29 12:34:56 | 01   | CONFIG          | INFO      | "
             "Completed UP step for CONFIG\n"
         )
         self.assertEqual(buf.getvalue(), expected)
 
     def test_show_history_of_moves_golden(self):
         """End-to-end golden: the move's live lines, then the table —
-        header, 80-dash rule, one row per executed step (start at
+        header (Dur (s) right-aligned over its values, D-070),
+        80-dash rule, one row per executed step (start at
         microsecond precision; duration = finish - start, pinned at
         0.003000 by the frozen clock)."""
         with patch('twolm.state_machine.datetime',
@@ -843,18 +845,18 @@ class TestDisplayGoldens(unittest.TestCase):
                 sm.move_to_step(2)
                 sm.show_history_of_moves()
         expected = (
-            "[2026-08-29 12:34:56] [00][CREATED        ] "
-            "[1:0] StateMachine initialized.\n"
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Starting worker CONFIG, UP step\n"
-            "[2026-08-29 12:34:56] [01][CONFIG         ] "
-            "[2:0] Completed UP step for CONFIG\n"
-            "[2026-08-29 12:34:56] [02][POSITIONS      ] "
-            "[2:0] Starting worker POSITIONS, UP step\n"
-            "[2026-08-29 12:34:56] [02][POSITIONS      ] "
-            "[2:0] Completed UP step for POSITIONS\n"
+            "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
+            "[DEBUG:HIGH] StateMachine initialized.\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Starting worker CONFIG, UP step\n"
+            "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
+            "[INFO:HIGH] Completed UP step for CONFIG\n"
+            "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
+            "[INFO:HIGH] Starting worker POSITIONS, UP step\n"
+            "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
+            "[INFO:HIGH] Completed UP step for POSITIONS\n"
             "Step   | Worker          | Dir   | Start (UTC)                | "
-            "Dur (s)       \n"
+            "        Dur (s)\n"
             "--------------------------------------------------------------------------------\n"
             "1      | CONFIG          | up    | 2026-08-29 12:34:56.002000 | "
             "       0.003000\n"
