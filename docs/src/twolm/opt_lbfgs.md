@@ -1,10 +1,11 @@
 # opt_lbfgs.py — analysis
 
 Date: 2026-08-29. Module added by Roberto (2 files: opt_lbfgs.py + test_opt_lbfgs.py).
+**Fix batch T1-T7 applied (D-053) + 9 new tests: suite 4 → 13/0/0 GREEN.**
 
-Suite: **4 tests, GREEN 4/0/0** (no PERF gates). Suite is fast (~0.040s).
+Suite: **13 tests, GREEN 13/0/0** (no PERF gates). Suite is fast (~0.040s).
 
-Full workspace: **389 tests, GREEN, 17 skipped.**
+Full workspace: **398 tests, GREEN, 17 skipped.**
 
 ## Architecture
 
@@ -49,39 +50,28 @@ Standard L-BFGS with:
 
 ## Defects
 
-### T1 — `RuntimeException` typo (L56, HARD BUG)
-`raise RuntimeException(...)` should be `raise RuntimeError(...)`. `RuntimeException` is not defined (would raise `NameError` at runtime). This path fires when `max()` is called on an empty `FixedSizeMaxList`.
+All seven disposed in the fix batch (D-053, 2026-08-29).
 
-**Severity**: Hard — crashes if deque is ever empty when `max()` is called.
+### T1 — `RuntimeException` typo (D-053, FIXED — HARD BUG)
+`raise RuntimeException(...)` → `raise RuntimeError(...)`. `RuntimeException` was not defined (would raise `NameError`). The path fires when `max()` is called on an empty `FixedSizeMaxList`. Now pinned by `TestFixedSizeMaxList.test_max_on_empty_raises`.
 
-### T2 — `CURVATURE_THRESHOLD` dead constant (L400)
-`CURVATURE_THRESHOLD = 1.e-15` is defined but never referenced. The curvature check at L480 uses the literal `1.e-15` directly. Either the constant should be used or removed.
+### T2 — `CURVATURE_THRESHOLD` dead constant (D-053, FIXED)
+The curvature check now uses `CURVATURE_THRESHOLD` instead of the bare literal `1.e-15`.
 
-**Severity**: Cosmetic.
+### T3 — `low_progres_count` misspelling (D-053, FIXED)
+`low_progres_count_f` / `low_progres_count_g` → `low_progress_count_f` / `low_progress_count_g`.
 
-### T3 — `low_progres_count` misspelling (L409-458)
-`low_progres_count_f` and `low_progres_count_g` should be `low_progress_count_*` (missing 's'). Internal variable names only — user-facing log message at L458 correctly says "progress".
+### T4 — `_hermite_cubic_interp_min` fallthrough to non-minimum (D-053, FIXED)
+When neither stationary point has a positive second derivative, the function now returns `None` (no valid minimum in the interval), matching the docstring. Previously it returned the second stationary point unconditionally.
 
-**Severity**: Cosmetic.
+### T5 — `save_fn` type hint / docstring mismatch (D-053, FIXED)
+Type hint and docstring now both specify the actual 7-parameter signature: `save_fn(x, sl, yl, rho, k, f, g_norm)`.
 
-### T4 — `_hermite_cubic_interp_min` fallthrough to non-minimum (L149-152)
-When `stationary_point_0[3] <= 0` (not a minimum), the code returns `stationary_point_1` unconditionally. But if `stationary_point_1[3] <= 0` as well, it should return `None` (no valid minimum in the interval), per the docstring. The current code returns a maximum/inflection point instead.
+### T6 — `min_p_fun_decrease` docstring: "percentage" vs "fraction" (D-053, FIXED)
+Docstring now reads "Minimum fractional acceptable loss decrease".
 
-**Severity**: Medium — could select a non-minimum step in the line search, degrading convergence.
-
-### T5 — `save_fn` type hint / docstring mismatch (L345, L380)
-- Type hint: `Callable[..., int], None]` → 5 parameters `(x, sl, yl, rho, k)`.
-- Docstring: `save_fn(x, sl, yl, rho, k)` → 5 parameters.
-- Actual call at L501: `save_fn(x, sl, yl, rho, k, fgv.fun, g_norm_history.max())` → **7 parameters**.
-
-The code and the test agree on 7 parameters. The type hint and docstring are wrong.
-
-**Severity**: Medium — type-checkers (mypy) would flag the mismatch; docstring misleads users.
-
-### T6 — `min_p_fun_decrease` docstring: "percentage" vs "fraction" (L366)
-The parameter is documented as "Minimum percentage acceptable loss decrease" but the code computes a fractional (not percentage) relative decrease: `p_diff = diff / np.fabs(fgv.fun)`. The default `1e-14` is a fraction, not a percentage.
-
-**Severity**: Minor — docstring only.
+### T7 — Test method with unused parameter (D-053, FIXED)
+`test_a_optimization(self, d=20)` → `test_a_optimization(self)` with `d = 20` moved into the body.
 
 ## Observations (not defects)
 
@@ -94,20 +84,23 @@ The parameter is documented as "Minimum percentage acceptable loss decrease" but
 
 ```
 $ python -m unittest twolm.test.test_opt_lbfgs
-....
+.............
 --------------------------------------------------------------
-Ran 4 tests in 0.040s
+Ran 13 tests in 0.040s
 OK
 ```
 
 | Class | Tests | Coverage |
 |---|---|---|
+| `TestLBFGSInputValidation` | 3 | non-ndarray x0, wrong dtype, non-callable fg (all TypeError) |
+| `TestFixedSizeMaxList` | 4 | max on empty (pins T1), push+max, eviction at maxlen, init |
+| `TestTwoLoopRecursion` | 2 | empty history → identity, random pairs → shape + non-zero |
 | `TestLBFGSBaseFunction` | 1 | Simple quadratic convergence |
 | `TestLBFGSRosenbrockFunction` | 1 | Rosenbrock convergence (1000 iters) |
 | `TestLBFGSZakharovFunction` | 1 | Zakharov 20D convergence (1000 iters) |
 | `TestLBFGSWarmStart` | 1 | Save/resume across two 50-iter runs |
 
-## Appendix: line-number reference (2026-08-29)
+## Appendix: line-number reference (2026-08-29, post T1-T7)
 
 - `FG`: L38
 - `FixedSizeMaxList`: L47
@@ -115,17 +108,17 @@ OK
 - `FixedSizeMaxList.max`: L54
 - `_display_line_search`: L63
 - `_hermite_cubic_interp_min`: L119
-- `_hermite_cubic_interp`: L155
-- `_two_loop_recursion`: L188
-- `_strong_wolfe_line_search`: L232
-- `_zoom`: L289
-- `lbfgs`: L334
-- `CURVATURE_THRESHOLD`: L400
+- `_hermite_cubic_interp`: L156
+- `_two_loop_recursion`: L189
+- `_strong_wolfe_line_search`: L233
+- `_zoom`: L290
+- `lbfgs`: L335
+- `CURVATURE_THRESHOLD`: L402
 - `min_grad` convergence: L432-443
 - `min_p_fun_decrease` convergence: L445-461
 - `Two-loop direction`: L464
 - `Restart logic`: L466-472
-- `Line search call`: L474
-- `Curvature condition`: L480-487
-- `History update`: L481-487
-- `Logging`: L493-497
+- `Line search call`: L476
+- `Curvature condition`: L482 (uses `CURVATURE_THRESHOLD`)
+- `History update`: L482-487
+- `Logging`: L497

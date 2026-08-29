@@ -814,5 +814,36 @@ D-051 | 2026-08-29 | binio analysis complete: 15 verified facts (V1-V15, 0
        mismatches), 4 defects T1-T4 documented. Two test files:
        test_binio.py (41 tests) + test_usage_binio.py (3 tests) = 44/0/0 GREEN,
        no PERF gates. Analysis docs: docs/src/twolm/binio.md and
-       docs/src/twolm/test/test_binio.md. Awaiting Roberto's review before
-       fix campaign.
+       docs/src/twolm/test/test_binio.md. T1-T4 fix batch applied the same
+       day: T1 = lz4 added to pyproject.toml, T2 = dead
+       `from pathlib import Path` removed, T3 = "Aauthor" -> "Author",
+       T4 = test_unknown_type_code_raises added to ArrayTest. Suite
+       44 -> 45/0/0 GREEN. BINIO MODULE DONE.
+
+D-052 | 2026-08-29 | regab analysis complete: 5 verified facts (V1-V5, 0
+       mismatches, incl. sha3_256 golden b507cd34...), 7 defects T1-T7
+       documented. test_regab.py 33 tests, all requiring live PostgreSQL.
+       Analysis docs: docs/src/twolm/regab.md and
+       docs/src/twolm/test/test_regab.md. T1-T7 fix batch applied the same
+       day: T1 = "Aauthor" -> "Author", T2 = dead Callable/Type/Self
+       typing imports removed, T3 = psycopg2/pandas/python-dotenv added to
+       pyproject.toml, T4 = _validate_db_fields DB query deferred (only when
+       colnames needed), T5 = dead test imports removed, T6 =
+       SKIP_REGAB_DB=1 env gate added to BaseTestCase.setUp, T7 = SQL
+       injection guard on where clause (_validate_where_clause +
+       WhereArgument + 4 tests). Suite 33 -> 37/0/0 GREEN.
+       REGAB MODULE DONE.
+
+D-053 | 2026-08-29 | opt_lbfgs analysis complete: 5 verified facts (V1-V5,
+       0 mismatches, incl. two-loop identity + Rosenbrock 5-start), 7
+       defects T1-T7 documented. Analysis docs: docs/src/twolm/opt_lbfgs.md
+       and docs/src/twolm/test/test_opt_lbfgs.md. T1-T7 fix batch + 9 new
+       tests applied the same day: T1 = RuntimeException -> RuntimeError
+       (hard bug), T2 = CURVATURE_THRESHOLD used in curvature check, T3 =
+       low_progres_count -> low_progress_count, T4 =
+       _hermite_cubic_interp_min returns None when neither stationary point
+       is a minimum, T5 = save_fn type hint + docstring -> 7 params,
+       T6 = "percentage" -> "fractional", T7 = d param removed from test
+       method. New tests: TestLBFGSInputValidation (3), TestFixedSizeMaxList
+       (4, incl. T1 regression), TestTwoLoopRecursion (2). Suite 4 -> 13/0/0
+       GREEN. OPT_LBFGS MODULE DONE.

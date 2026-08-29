@@ -1,8 +1,10 @@
 # regab.py — analysis
 
 Date: 2026-08-29. Module added by Roberto (2 files: regab.py + test_regab.py).
+**Fix batch T1-T7 applied (D-052): suite 33 → 37/0/0 GREEN.**
 
-Suite: **33 tests, GREEN 33/0/0** (5 classes, all require live PostgreSQL + `.env`).
+Suite: **37 tests, GREEN 37/0/0** (5 classes; 35 require live PostgreSQL + `.env`, 2 are fully mocked).
+`SKIP_REGAB_DB=1` skips all DB-dependent tests (35 skipped, 2 run — T6).
 
 ## Architecture
 
@@ -48,6 +50,8 @@ binary files via the `binio` module.
 - **`BidArgument`**: `BeforeValidator(_ensure_list)` converts single int→[int]; `Field(ge=0)` per element.
 - **`StatusArgument`**: `BeforeValidator(_ensure_list)` for str→[str]; `Field(min_length=3, max_length=3)` per element.
 - **`EcArgument`**: `Field(ge=0, le=60)`.
+- **`WhereArgument`** (T7): `AfterValidator(_validate_where_clause)` blocks SQL comments, statement terminators, and dangerous keywords to prevent SQL injection via the `where` clause.
+- **`FieldsArgument`**: `AfterValidator(_validate_db_fields)` — DB-backed column check.
 - **`DfMogvArgument`**: `AfterValidator(_ensure_column_count_and_type)` — 3 columns, types int64/int64/int8.
 
 ## Verified facts (V1–V5)
@@ -62,34 +66,28 @@ binary files via the `binio` module.
 
 ## Defects
 
-### T1 — Header typo `Aauthor` (L7)
+All seven disposed in the fix batch (D-052, 2026-08-29).
+
+### T1 — Header typo `Aauthor` (D-052, FIXED)
 `# Aauthor Roberto Corradini` → `# Author Roberto Corradini`. Same as binio T3.
 
-**Severity**: Cosmetic.
+### T2 — Dead typing imports: `Callable`, `Type`, `Self` (D-052, FIXED)
+Removed from the `typing` import line; `Tuple` is used (return type of `generate_positions_and_game_values`) and kept.
 
-### T2 — Dead typing imports: `Callable`, `Type`, `Self` (L43)
-`from typing import TypeAlias, Callable, Union, List, Annotated, Tuple, Type, Self, Any` — `Callable`, `Type`, and `Self` are never used in the code body. `Tuple` is used (L388 return type).
+### T3 — Dependencies missing from `pyproject.toml` (D-052, FIXED)
+`psycopg2`, `pandas`, `python-dotenv` added to the project dependencies.
 
-**Severity**: Cosmetic — unused imports.
+### T4 — `_validate_db_fields` hits DB even when `fields=None` (D-052, FIXED)
+The `SELECT ... LIMIT 0` query for `colnames` is now deferred: it only runs when `fields_input` is actually a string or list (i.e. `colnames` is needed). The common `fields=None` default returns `base_colnames` without touching the database.
 
-### T3 — Dependencies missing from `pyproject.toml`
-`psycopg2`, `pandas`, `python-dotenv` are imported at module level but not listed in `pyproject.toml`. These are hard dependencies: without them, `import twolm.regab` fails.
+### T5 — Dead imports in test_regab.py (D-052, FIXED)
+Removed: `numpy.typing as npt`, `time`, `io`, `itertools`, `mock_open`, `Callable`, `TypeAlias`, `List`.
 
-**Severity**: Hard import failure.
+### T6 — No DB-unavailable skip mechanism (D-052, FIXED)
+`BaseTestCase.setUp` now checks `SKIP_REGAB_DB=1` and calls `skipTest()`. With the env var set: 35 skipped, 2 run (the fully-mocked `TestRegabDataSetFileLoadExceptions`). Without it: 37/0/0 GREEN as before.
 
-### T4 — `_validate_db_fields` hits DB even when `fields=None`
-The validator always runs `SELECT * FROM regab_prng_gp LIMIT 0` (L174-176) to get `colnames`, but when `fields_input` is None/empty (the common default), `colnames` is never used — `base_colnames` is returned directly. The DB query is unnecessary work.
-
-**Severity**: Minor — performance observation, not a correctness bug.
-
-### T7 — SQL injection via `where` parameter
-The `where` parameter in `regab_gp_as_df` (L306-307) is concatenated directly into the SQL string with no validation:
-```python
-q = q + ' AND {:s}'.format(where)
-```
-All other parameters (`bid`, `status`, `ec`, `limit`) are Pydantic-validated. `fields` goes through `_validate_db_fields`. `where` is a bare `str | None` with no validator.
-
-**Severity**: Medium — the function is not publicly exposed (internal pipeline), but bare string concatenation into SQL is a best-practice violation.
+### T7 — SQL injection via `where` parameter (D-052, FIXED)
+New `WhereArgument` with `_validate_where_clause` `AfterValidator`: blocks SQL comments (`--`, `/* */`), statement terminators (`;`), and dangerous keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER, CREATE, EXEC, EXECUTE, TRUNCATE). The `where` parameter of `regab_gp_as_df` is typed `WhereArgument`; docstring documents the forbidden patterns and a valid example. 4 new tests: comment, SELECT, semicolon, valid expression.
 
 ## Observations (not defects)
 
@@ -102,37 +100,46 @@ All other parameters (`bid`, `status`, `ec`, `limit`) are Pydantic-validated. `f
 
 ```
 $ python -m unittest twolm.test.test_regab
-.................................
+.....................................
 --------------------------------------------------------------
-Ran 33 tests in 0.811s
+Ran 37 tests in 0.9s
 OK
+
+$ SKIP_REGAB_DB=1 python -m unittest twolm.test.test_regab
+Ran 37 tests ... OK (skipped=35)
 ```
 
-All 33 tests require a live PostgreSQL database and `.env` file. No PERF gates, no skip-if-DB-unavailable mechanism.
+35 of 37 tests require a live PostgreSQL database and `.env` file;
+2 (`TestRegabDataSetFileLoadExceptions`) are fully mocked.
+`SKIP_REGAB_DB=1` skips the DB-dependent tests (T6). No PERF gates.
 
-## Appendix: line-number reference (2026-08-29)
+## Appendix: line-number reference (2026-08-29, post T1-T7)
 
-- `GameValue`: L62
-- `_validate_game_value_array`: L64
-- `GameValueArray`: L71
-- `RegabDBConnection`: L75
-- `RegabDBConnection.__init__`: L105
-- `RegabDBConnection.activate_conn`: L146
-- `RegabDBConnection.close`: L152
-- `rc_context`: L166
-- `_validate_db_fields`: L169
-- `_validate_with_db_context`: L194
-- `_ensure_list`: L225
-- `BidArgument`: L231
-- `StatusArgument`: L234
-- `EcArgument`: L240
-- `FieldsArgument`: L243
-- `regab_gp_as_df`: L247
-- `_ensure_column_count_and_type`: L328
-- `DfMogvArgument`: L339
-- `RegabDataSet`: L341
-- `RegabDataSet.generate_positions_and_game_values`: L388
-- `RegabDataSet.compute_sha3_256_hash`: L396
-- `regab_extract_data_set_from_db`: L409
-- `regab_load_data_set_from_file`: L441
-- `regab_store_data_set_to_file`: L519
+- `GameValue`: L63
+- `_validate_game_value_array`: L65
+- `GameValueArray`: L72
+- `RegabDBConnection`: L76
+- `RegabDBConnection.__init__`: L106
+- `RegabDBConnection.activate_conn`: L147
+- `RegabDBConnection.close`: L153
+- `rc_context`: L167
+- `_validate_db_fields`: L170
+- `_validate_with_db_context`: L196
+- `_ensure_list`: L227
+- `BidArgument`: L233
+- `StatusArgument`: L236
+- `EcArgument`: L242
+- `_WHERE_FORBIDDEN`: L249
+- `_validate_where_clause`: L255
+- `WhereArgument`: L264
+- `FieldsArgument`: L267
+- `regab_gp_as_df`: L271
+- `_ensure_column_count_and_type`: L357
+- `DfMogvArgument`: L368
+- `RegabDataSet`: L370
+- `RegabDataSet.__init__`: L388
+- `RegabDataSet.generate_positions_and_game_values`: L417
+- `RegabDataSet.compute_sha3_256_hash`: L425
+- `regab_extract_data_set_from_db`: L438
+- `regab_load_data_set_from_file`: L470
+- `regab_store_data_set_to_file`: L548

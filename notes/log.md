@@ -792,4 +792,37 @@
   header typo, T4 = read_array unknown type code not tested.
   Suite 44/0/0 GREEN (41 in test_binio + 3 in test_usage_binio),
   no PERF gates. Docs: docs/src/twolm/binio.md,
-  docs/src/twolm/test/test_binio.md. D-051. Awaiting Roberto.
+  docs/src/twolm/test/test_binio.md. D-051. T1-T4 fix batch applied
+  the same day: T1 = lz4 -> pyproject.toml, T2 = dead Path import,
+  T3 = "Aauthor" typo, T4 = test_unknown_type_code_raises added.
+  Suite 44 -> 45/0/0 GREEN. BINIO MODULE DONE.
+- Session 12 (2026-08-29): Roberto brought in regab.py +
+  test_regab.py. Full analysis: 5 verified facts V1-V5 (0 mismatches,
+  incl. sha3_256 golden b507cd34...), 7 defects T1-T7 documented
+  (Aauthor typo, dead typing imports, 3 deps missing from
+  pyproject.toml, _validate_db_fields DB query on fields=None, dead
+  test imports, no DB-skip gate, SQL injection via where). T1-T7 fix
+  batch applied the same day: SKIP_REGAB_DB=1 gate (35 skipped / 2
+  run), _validate_where_clause + WhereArgument (4 tests), DB query
+  deferred. Suite 33 -> 37/0/0 GREEN. D-052. REGAB MODULE DONE.
+- Session 13 (2026-08-29): Roberto brought in opt_lbfgs.py +
+  test_opt_lbfgs.py (L-BFGS optimizer). Full analysis: 5 verified
+  facts V1-V5 (0 mismatches, two-loop identity + Rosenbrock 5-start),
+  7 defects T1-T7 documented (RuntimeException hard bug, dead
+  CURVATURE_THRESHOLD, low_progres_count typo, hermite fallthrough,
+  save_fn 5-vs-7 param mismatch, percentage-vs-fraction docstring,
+  test method d param). T1-T7 fix batch + 9 new tests applied the
+  same day: TestLBFGSInputValidation (3), TestFixedSizeMaxList (4,
+  incl. T1 regression), TestTwoLoopRecursion (2). Suite 4 -> 13/0/0
+  GREEN. D-053. OPT_LBFGS MODULE DONE.
+- Session 14 (2026-08-29): Full re-verification of the three
+  integration modules (binio, regab, opt_lbfgs) at Roberto's request.
+  Re-ran all suites (45/37/13 GREEN, 17 skipped in workspace).
+  Verified every T-item fix is in place in the code. Found and
+  corrected stale docs: binio.md/test_binio.md (appendix line numbers
+  + corrupted identifiers), regab.md/test_regab.md (T1-T7 marked
+  FIXED, 37 tests, SKIP_REGAB_DB, 4 new T7 tests, class map),
+  opt_lbfgs.md/test_opt_lbfgs.md (T1-T7 marked FIXED, 13 tests, 9
+  new tests, class map). Decisions: D-051 updated (was "awaiting
+  review"), D-052 + D-053 added (both had been referenced in commits
+  but never written). Working tree clean, all suites GREEN.

@@ -96,29 +96,29 @@ All four disposed in the fix batch: lz4 added to pyproject.toml, Path import rem
 
 ## Observations (not defects)
 
-- **No PERF gates**: 44/0/0 — the suite runs in ~0.017s. If the lz4 tests (which create temp files) become slow in CI, a PERF gate could be added.
-- **`test_us_age_binio.py` naming**: follows `test_<something>_binio.py` rather than the project norm `test_binio.py` / `test_binio_stress.py`. Does not affect function.
+- **No PERF gates**: 45/0/0 — the suite runs in ~0.017s. If the lz4 tests (which create temp files) become slow in CI, a PERF gate could be added.
+- **`test_usage_binio.py` naming**: follows `test_<something>_binio.py` rather than the project norm `test_binio.py` / `test_binio_stress.py`. Does not affect function.
 - **`_read_exact` EOF not directly unit-tested**: covered indirectly by `FramingTest.test_truncated_file_raises` and `FramingTest.test_wrong_read_order_detected`.
 
 ## Suite status
 
 ```
-$ PERF=0 python -m unittest twolm.test.test_binio twolm.test.test_usage_binio
-............................................
+$ python -m unittest twolm.test.test_binio twolm.test.test_usage_binio
+.............................................
 --------------------------------------------------------------
-Ran 44 tests in 0.016s
+Ran 45 tests in 0.017s
 OK
 ```
 
 0 failures, 0 skipped.
 
-### Test classes (test_binio.py — 41 tests)
+### Test classes (test_binio.py — 42 tests)
 
 | Class | Tests | Coverage |
 |---|---|---|
 | `ScalarRoundTripTest` | 10 | u8/i8/u16/i16/u32/i32/u64/i64/f32/f64 round-trip |
 | `StringTest` | 4 | ASCII, multibyte UTF-8, empty, byte-length-not-char-length |
-| `ArrayTest` | 7 | all 10 dtypes, multidim, empty, 0-d, writable, non-contiguous, unsupported-dtype-raises |
+| `ArrayTest` | 8 | all 10 dtypes, multidim, empty, 0-d, writable, non-contiguous, unsupported-dtype-raises (write side), unknown-type-code-raises (read side, T4) |
 | `HeaderTest` | 2 | round-trip, wrong-signature-raises |
 | `FramingTest` | 3 | MAGIC mismatch, wrong read order, truncated file |
 | `Sha3_256SidecarTest` | 5 | write+verify, sha3_256sum format, corruption detection, missing sidecar raises, malformed sidecar raises |
@@ -136,31 +136,35 @@ OK
 
 All three usage tests also verify the SHA3-256 sidecar.
 
-## Appendix: line-number reference (2026-08-29)
+## Appendix: line-number reference (2026-08-29, post T1-T4)
 
-- `DEFAULT_MAGIC = 0x314E4942`: L117
-- `DEFAULT_FIEL_SIGNATURE = 0x484F4942`: L122
-- Type codes: L126–L135
-- `_ CODE_BY_NAME`: L138–L149
-- `_ DTYPE_BY_CODE`: L152–L163
-- `struct.Struct` singletons: L166–L176
-- `BinryFormatError`: L179
-- `_ open_arg`: L187
-- `BinryWriter.__init__`: L212
-- `BinryWriter.close`: L264
-- `BinryWriter._write` / `_ open_frame` / `_ close_frame` / `_ scalar`: L295–L312
-- `BinryWriter.write_header`: L316
-- `BinryWriter.write_u8`…`write_f64`: L334–L343
-- `BinryWriter.write_string`: L347
-- `BinryWriter.write_array`: L361
-- `BinryReader.__init__`: L396
-- `BinryReader._read_exact`: L438
-- `BinryReader._expect_magic`: L457
-- `BinryReader._scalar`: L465
-- `BinryReader.read_header`: L473
-- `BinryReader.read_u8`…`read_f64`: L495–L504
-- `BinryReader.read_string`: L508
-- `BinryReader.read_array`: L517
-- `compuete_sha3_256`: L541
-- `writte_sha3_256_sidecar`: L552
-- `veriyy_sha3_256_sidecar`: L568
+- `DEFAULT_MAGIC = 0x314E4942`: L116
+- `DEFAULT_FILE_SIGNATURE = 0x484F4942`: L121
+- `TYPE_INT8`…`TYPE_FLOAT64` (1–10): L125–L134
+- `_CODE_BY_NAME`: L137
+- `_DTYPE_BY_CODE`: L151
+- `_MAGIC` (struct singletons): L165
+- `BinaryFormatError`: L178
+- `_open_arg`: L186
+- `BinaryWriter` (class): L195
+- `BinaryWriter.__init__`: L211
+- `BinaryWriter.close`: L263
+- `BinaryWriter._write`: L294
+- `BinaryWriter._open_frame`: L302
+- `BinaryWriter._scalar`: L308
+- `BinaryWriter.write_header`: L315
+- `BinaryWriter.write_u8`…`write_f64`: L333–L342
+- `BinaryWriter.write_string`: L346
+- `BinaryWriter.write_array`: L360
+- `BinaryReader` (class): L388
+- `BinaryReader.__init__`: L395
+- `BinaryReader._read_exact`: L437
+- `BinaryReader._expect_magic`: L456
+- `BinaryReader._scalar`: L464
+- `BinaryReader.read_header`: L472
+- `BinaryReader.read_u8`…`read_f64`: L494–L503
+- `BinaryReader.read_string`: L507
+- `BinaryReader.read_array`: L516
+- `compute_sha3_256`: L540
+- `write_sha3_256_sidecar`: L551
+- `verify_sha3_256_sidecar`: L567

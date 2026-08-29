@@ -18,6 +18,10 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 8): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); fix priorities proposed (P1 = T6); T6 applied (D-043: 3 partial-None tests with 3 genuine hash literals, suite 13 -> 16 run, GREEN 16/0/1), T1 applied (D-044: dead if-False block removed), T2 applied (D-045: 6 dead imports removed), T3 applied (D-046: header grammar), T5 applied (D-047: names-order assertion), T7 applied (D-048: repr/eq/unhashable goldens, 16 -> 19 run), T9 applied (D-049: full 38-line print_summary golden), T4 applied (D-050: 'environmeant' fixed in both test files); T8 left as-is — campaign CLOSED, suite 19/0/1 GREEN | docs/src/twolm/test/test_feature.md |
 | src/twolm/binio.py | analyzed 2026-08-29 (session 10); T1-T4 fix batch applied (D-051: lz4 in pyproject.toml, dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises added); 15 verified facts V1-V15 (0 mismatches); suite 45/0/0 GREEN | docs/src/twolm/binio.md |
 | src/twolm/test/test_binio.py | analyzed 2026-08-29; T4 applied (D-051): ArrayTest now 8 tests (42 total), test_binio 42 + test_usage_binio 3 = 45 GREEN; no PERF gates | docs/src/twolm/test/test_binio.md |
+| src/twolm/regab.py | analyzed 2026-08-29 (session 12); T1-T7 fix batch applied (D-052: "Aauthor"→"Author", dead typing imports, psycopg2/pandas/python-dotenv in pyproject.toml, _validate_db_fields DB query deferred, SKIP_REGAB_DB=1 gate, _validate_where_clause SQL-injection guard); 5 verified facts V1-V5 (0 mismatches, sha3_256 golden); suite 37/0/0 GREEN (35 DB + 2 mocked, SKIP_REGAB_DB=1 → 35 skip) | docs/src/twolm/regab.md |
+| src/twolm/test/test_regab.py | analyzed 2026-08-29; T5+T6+T7 applied (D-052): dead imports removed, SKIP_REGAB_DB gate, 4 SQL-injection tests added (TestRegabGPAsDF 12→16); suite 33→37/0/0 GREEN | docs/src/twolm/test/test_regab.md |
+| src/twolm/opt_lbfgs.py | analyzed 2026-08-29 (session 13); T1-T7 fix batch applied (D-053: RuntimeException→RuntimeError hard bug, CURVATURE_THRESHOLD used, low_progress_count spelling, hermite None fallthrough, save_fn 7-param hint+docstring, fractional docstring); 5 verified facts V1-V5 (0 mismatches); suite 13/0/0 GREEN | docs/src/twolm/opt_lbfgs.md |
+| src/twolm/test/test_opt_lbfgs.py | analyzed 2026-08-29; T7 applied + 9 new tests (D-053): TestLBFGSInputValidation (3), TestFixedSizeMaxList (4, incl. T1 regression), TestTwoLoopRecursion (2); suite 4→13/0/0 GREEN | docs/src/twolm/test/test_opt_lbfgs.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -154,6 +158,28 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   15 verified facts V1-V15 (0 mismatches); 4 defects T1-T4 fix batch applied the same day (D-051): lz4 added to pyproject.toml,
   dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises
   added to ArrayTest. Suite 45/0/0 GREEN. BINIO MODULE DONE.
+- regab.py analyzed (2026-08-29, session 12, docs/src/twolm/regab.md):
+  REversi GAme Base — psycopg2 DB access + RegabDataSet + binio file
+  serialization. 5 verified facts V1-V5 (0 mismatches, sha3_256 golden);
+  7 defects T1-T7 fix batch applied the same day (D-052): "Aauthor" typo,
+  dead typing imports, psycopg2/pandas/python-dotenv in pyproject.toml,
+  _validate_db_fields DB query deferred, dead test imports, SKIP_REGAB_DB=1
+  gate, _validate_where_clause SQL-injection guard + 4 tests. Suite
+  37/0/0 GREEN (35 DB + 2 mocked). REGAB MODULE DONE.
+- opt_lbfgs.py analyzed (2026-08-29, session 13,
+  docs/src/twolm/opt_lbfgs.md): L-BFGS optimizer (strong Wolfe line
+  search, two-loop recursion, warm-start). 5 verified facts V1-V5 (0
+  mismatches); 7 defects T1-T7 fix batch + 9 new tests applied the same
+  day (D-053): RuntimeException→RuntimeError (hard bug), CURVATURE_THRESHOLD
+  used, low_progress_count spelling, hermite None fallthrough, save_fn
+  7-param hint+docstring, fractional docstring, test d param; +TestLBFGSInputValidation
+  (3) / TestFixedSizeMaxList (4, incl. T1 regression) / TestTwoLoopRecursion
+  (2). Suite 13/0/0 GREEN. OPT_LBFGS MODULE DONE.
+- Re-verification pass (2026-08-29, session 14): all three integration
+  modules (binio, regab, opt_lbfgs) re-checked — every T-item fix in
+  place, all suites GREEN (45/37/13), stale docs corrected (line numbers,
+  identifiers, FIXED status), D-051 updated + D-052/D-053 written into
+  decisions.md.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -178,6 +204,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 - binio.py: analysis DONE (2026-08-29, D-051, docs/src/twolm/binio.md).
   T1-T4 fix batch applied the same day: 15 verified facts V1-V15 (zero
   mismatches), suite 45/0/0 GREEN. BINIO MODULE DONE.
+- regab.py: analysis DONE (2026-08-29, D-052, docs/src/twolm/regab.md).
+  T1-T7 fix batch applied the same day: 5 verified facts V1-V5 (zero
+  mismatches), suite 37/0/0 GREEN. REGAB MODULE DONE.
+- opt_lbfgs.py: analysis DONE (2026-08-29, D-053,
+  docs/src/twolm/opt_lbfgs.md). T1-T7 fix batch + 9 new tests applied
+  the same day: 5 verified facts V1-V5 (zero mismatches), suite 13/0/0
+  GREEN. OPT_LBFGS MODULE DONE.
 - The plan (confirmed by Roberto, 2026-08-28, session close): port
   the ENTIRE pipeline — the original repo brought in module by
   module, this staging workspace's work — with VERIFIED code and
@@ -187,8 +220,12 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   complete game kernel), pattern.py, mobility.py, feature.py
   (analysis + R1-R4 D-038 + M1-M4 D-039..D-042 + test campaign
   D-043..D-050, CLOSED 2026-08-29 — suite 19/0/1 GREEN),
-  binio.py (analysis + T1-T4 D-051, DONE 2026-08-29 — suite 45/0/0 GREEN).
-  The game-loop module is NOT in the plan (I-005 resolved).
+  binio.py (analysis + T1-T4 D-051, DONE 2026-08-29 — suite 45/0/0 GREEN),
+  regab.py (analysis + T1-T7 D-052, DONE 2026-08-29 — suite 37/0/0 GREEN),
+  opt_lbfgs.py (analysis + T1-T7 + 9 tests D-053, DONE 2026-08-29 —
+  suite 13/0/0 GREEN). Re-verified all three integration modules
+  2026-08-29 (session 14). The game-loop module is NOT in the plan
+  (I-005 resolved).
   Next: the next pipeline module to be brought in by Roberto.
   Pattern R4/R5 remain doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
