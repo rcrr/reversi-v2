@@ -985,3 +985,29 @@ D-059 | 2026-08-29 | state_machine R3 resolved as SENTINEL
         semantics. Same discussion: Roberto flagged pipeline
         construction boilerplate in his client — noted as I-009
         (follow-up, blocked on the pipeline module arriving).
+
+D-060 | 2026-08-29 | state_machine R4 resolved (session 19, fix
+        campaign item 4, approved by Roberto): keep the current
+        failure semantics + document + pin (no behaviour change).
+        After a failure at step k, current_step stays at k (the
+        failed step — already pinned by the original test with an
+        intent comment); a same-target retry executes only steps
+        above k, skipping k. Documented: failure semantics added to
+        the move_to_step docstring (L249-267) — recovery is
+        move_to_step(k-1) (invokes k's down(), the domain rollback)
+        then move up; handling a failure is the domain worker's
+        responsibility (the machine re-raises and is
+        domain-agnostic). Pinned by new
+        test_retry_after_failure_skips_failed_step (1 test; closes
+        T6). Suite 19 -> 20/0/0 GREEN; full discover 418, 52
+        skipped.
+        | Roberto: "La state machine non conosce nulla del DOMINIO,
+        quindi non sa se ci sono delle azioni che non sono
+        revertibili, oppure lo sono, ma non sono state
+        rolled-back. ... il metodo esegue raise, quindi propaga la
+        exception ... è il worker di dominio che la deve catchare e
+        gestire." The machine cannot know whether a failed step is
+        safely re-runnable, so rolling current_step back (option b)
+        would assert a state the machine can't verify; honest
+        reporting + documented recovery is the domain-agnostic
+        choice.

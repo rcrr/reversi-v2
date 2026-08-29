@@ -4,13 +4,13 @@ Date: 2026-08-29. Module added by Roberto (2 files: state_machine.py +
 test_state_machine.py), commit 66ab84b. **Analysis session 19; R1
 fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
-R4–R5 OPEN, awaiting Roberto's ruling; fix campaign pending
-approval.**
+R4 resolved (D-060: failure semantics documented + pinned); R5
+OPEN, awaiting Roberto's ruling; fix campaign pending approval.**
 
-Suite: **19 tests, GREEN 19/0/0** (3 classes, no PERF gates). Suite is
-fast (~0.05s).
+Suite: **20 tests, GREEN 20/0/0** (3 classes, no PERF gates). Suite is
+fast (~0.18s).
 
-Full workspace: **417 tests, GREEN, 52 skipped under
+Full workspace: **418 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -54,7 +54,7 @@ as the initial (nothing-executed) state. For a move from `c` to `t`:
   `up()` **runs**.
 - **Down** (`t < c`): executes `down()` of workers `c … t+1` — the
   target's `down()` does **NOT** run; `current_step` is then set to `t`
-  explicitly (L292, required because the down loop's last iteration
+  explicitly (L301, required because the down loop's last iteration
   leaves it at `t+1`).
 
 Consequences, all verified (V3–V6, V8):
@@ -66,8 +66,12 @@ Consequences, all verified (V3–V6, V8):
    module will make the full role explicit when ported — Roberto,
    session 19). Pinned by
    `test_worker_zero_is_sentinel_never_executed`.
-2. **Failure leaves `current_step` at the failed step** `k`; a retry of
-   the same target re-runs only steps `> k`, skipping `k` (R4).
+2. **Failure leaves `current_step` at the failed step** `k`; a retry
+   of the same target re-runs only steps `> k`, skipping `k` —
+   documented and pinned (R4, D-060). Recovery: `move_to_step(k-1)`
+   runs `k`'s `down()` (the domain rollback), then move up to
+   re-execute `k`; handling the failure is the domain worker's
+   responsibility (the machine re-raises and is domain-agnostic).
 3. The down-to-target state is "target step intact, everything above it
    rolled back" — consistent with state(t) = "steps 1..t done".
 
@@ -101,9 +105,9 @@ cited.
 | V1 | Verbosity gate is `relevance >= verbosity` (L213); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
 | V2 | `logs` accumulates every event regardless of verbosity (gate affects print only); entries are frozen `LogEntry` dataclass instances — attribute access, immutable, `asdict()` for dumps (post D-058; at analysis time they were plain dicts and `LogEntry` a dead class: the R2 defect) | Probe + source scan |
 | V3 | Worker 0's `up()`/`down()` are never invoked by `move_to_step`/`move_to_last` (up 0→2 runs up[1], up[2]; down 2→0 runs down[2], down[1]) — now documented as intentional sentinel (D-059) and pinned by a dedicated test | MagicMock call tracking |
-| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L292 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
+| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L301 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
 | V5 | Up c→t runs up() of workers c+1..t (target included) | MagicMock |
-| V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** | side_effect + reset mocks |
+| V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** (documented + pinned, D-060) | side_effect + reset mocks |
 | V7 | `move_to_step(True)` accepted as step 1 (`bool` subclasses `int`); `np.int64(1)` rejected with TypeError | Edge-case probes |
 | V8 | Name lookup case-insensitive; duplicate names → **first** match wins; `move_to_last` on `[A, B, A]` from step 2 lands on step 0 (name resolution) | Edge-case probes |
 | V9 | Cache path at step k = `{prefix}{k:02}_{name}.dat` (active worker); full path = `base_dir / path`; relative prefix joins under `base_dir`, **absolute prefix silently drops `base_dir`** (pathlib `/`); missing `cfg` → `AttributeError`; empty workers → `Path()`, name `"UNDEFINED"`, `move_to_last` no-op | Probes with cfg stubs |
@@ -169,19 +173,26 @@ includes target / down excludes target, L249-258), and pinned by
 `test_worker_zero_is_sentinel_never_executed` (new test — up to 2 and
 back to 0 never touches `up[0]`/`down[0]`).
 
-### R4 — Post-failure retry silently skips the failed step
+### R4 — Post-failure retry silently skips the failed step — RESOLVED (D-060, 2026-08-29)
 After a failure at step `k`, `current_step == k` (the failed step, not
 `k-1` the last successful one — V6, and pinned by
 `test_worker_exception_propagation_and_logging`). A subsequent
-`move_to_step(t)` with `t > k` executes only steps `> k`, so the failed
-worker never re-runs; recovery requires an explicit down-then-up.
-Options: (a) leave as-is + document the quirk (comment at L285 + doc
-note + a pinning test T6); (b) on failure roll `current_step` back to
-`k-1` so a retry naturally re-executes step `k` (behaviour change,
-test update required).
+`move_to_step(t)` with `t > k` executes only steps `> k`, so the
+failed worker never re-runs on a same-target retry.
+Resolved per Roberto's ruling — option (a), **keep + document +
+pin**, no behaviour change: the machine is domain-agnostic and
+cannot know whether a failed action is re-runnable or whether
+partial output is safe; the method re-raises, so it is the domain
+worker's responsibility to catch and handle the exception. The
+documented recovery path: `move_to_step(k-1)` (invokes `k`'s
+`down()` — the domain rollback, e.g. clearing a partial cache file)
+and then move up to re-execute `k`. Disposition: failure semantics
+added to the `move_to_step` docstring (L249-267); pinned by
+`test_retry_after_failure_skips_failed_step` (retry skips `k`;
+down-then-up re-executes it, T6).
 
 ### R5 — `move_to_last` is name-based and misdirects on duplicate names
-`move_to_last` calls `move_to_step(workers[-1].name)` (L294-300); name
+`move_to_last` calls `move_to_step(workers[-1].name)` (L303-309); name
 resolution picks the **first** match (V8). With workers `[A, B, A]`,
 `move_to_last` from step 2 lands on step 0. Minimal fix: use the index
 `len(self.workers) - 1` directly (duplicate names in general remain a
@@ -227,9 +238,9 @@ design wart — first-match is silent, see M12).
 ## Observations (not defects)
 
 - **Half-open interval semantics are correct as implemented**: the
-  L292 reassignment is *required* for down moves (the down range
+  L301 reassignment is *required* for down moves (the down range
   excludes the target), and the up loop naturally ends at the target.
-  The code and the L290 comment are consistent — verified, no change.
+  The code and the L299 comment are consistent — verified, no change.
 - **`np.int64` rejection is acceptable** for a plain-int pipeline API
   (other modules' scalar/array duality doesn't apply here); the
   TypeError message is clear.
@@ -278,8 +289,9 @@ D-057/D-058/D-059)
   gate `>=`: L213; print: L215)
 - `show_event_log`: L217 · `show_history_of_moves`: L225
 - `export_history_of_moves_as_csv`: L233 (fieldnames: L234)
-- `move_to_step`: L248 (docstring: L249-258; string→upper: L260;
-  name lookup: L261; TypeError: L266-267; IndexError: L269-270;
-  same-step no-op: L272-273; up range: L275-277; down range:
-  L278-280; pre-exec step update: L285; down final set: L291-292)
-- `move_to_last`: L294 (name-based call: L300)
+- `move_to_step`: L248 (docstring: L249-267, incl. failure
+  semantics; string→upper: L269; name lookup: L270; TypeError:
+  L275-276; IndexError: L278-279; same-step no-op: L281-282; up
+  range: L284-286; down range: L287-289; pre-exec step update:
+  L294; down final set: L300-301)
+- `move_to_last`: L303 (name-based call: L309)

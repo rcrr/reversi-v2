@@ -4,11 +4,14 @@ Date: 2026-08-29. One test file: `test_state_machine.py` (19 tests, 3
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
-`TestStateMachine` test (D-059); T2–T10 OPEN, fix campaign pending
-Roberto's approval (together with the R4–R5 rulings on the module).**
+`TestStateMachine` test (D-059); R4 failure semantics pinned with 1
+new test (D-060, closes T6); T2–T5, T7–T10 OPEN, fix campaign
+pending Roberto's approval (together with the R5 ruling on the
+module).**
 
-Suite: **19/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
-the R2 tests, → 19 with the R3 sentinel pin). Fast (~0.05s).
+Suite: **20/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
+pin). Fast (~0.18s).
 
 ## How to run
 
@@ -18,7 +21,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (14 tests: original 13 + 1 added D-059)
+### `TestStateMachine` (15 tests: original 13 + 1 D-059 + 1 D-060)
 
 | Test | What it pins |
 |---|---|
@@ -29,6 +32,7 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_down_to_zero` | 2→0: `down[2]` + `down[1]` once each (`down[0]` never); history len 4. |
 | `test_move_to_same_step` | 0→0: no callable executed, empty history. |
 | `test_worker_zero_is_sentinel_never_executed` (D-059) | up 0→2 then down 2→0: `up[0]`/`down[0]` are never invoked — pins the worker-0 sentinel semantics against a future off-by-one "fix". |
+| `test_retry_after_failure_skips_failed_step` (D-060) | failure at step 1 (side_effect), retry of the same target runs only `up[2]` (failed `up[1]` skipped), then down to 0 runs `down[2]`+`down[1]` and up to 2 re-executes `up[1]` — pins the documented failure/retry/recovery semantics (T6). |
 | `test_move_to_step_by_string` | `"positions"` (lowercase) → step 2, both ups executed. |
 | `test_move_to_step_by_invalid_string` | Unknown name → ValueError, message contains "not found in the pipeline". |
 | `test_move_to_step_out_of_bounds_high` | Index 3 (== len) → IndexError. |
@@ -100,10 +104,12 @@ no ISO-8601/`+00:00` format check, no `duration_sec` value check; the
 file is written to the current working directory instead of a tempdir
 (cleanup is `finally`-based).
 
-### T6 — Retry-after-failure quirk unpinned (P1 with R4)
+### T6 — Retry-after-failure quirk unpinned (P1 with R4) — FIXED (D-060)
 A retry of the same target after a failure executes only steps above
-the failed one (V6b) — currently neither documented nor pinned.
-Depends on R4's ruling (document vs. change).
+the failed one (V6b). R4 resolved as "keep + document" (D-060): the
+failure semantics are in the `move_to_step` docstring, and
+`test_retry_after_failure_skips_failed_step` now pins both the
+retry-skip and the down-then-up recovery.
 
 ### T7 — `bool` / `np.int64` edge unpinned (P2)
 `move_to_step(True)` is silently accepted as step 1; `np.int64(1)`
@@ -147,7 +153,7 @@ bool/duplicate names, StepMove field content).
 
 - **P0** (with the R rulings): T1 — done (D-057); T2 (injection
   coverage), R2/R5 code fixes if approved.
-- **P1**: T3 (print/display goldens), T4 (move_to_last), T6 (retry
-  quirk pin, per R4 outcome), R4 disposition.
+- **P1**: T3 (print/display goldens), T4 (move_to_last); T6 — done
+  (D-060); R4 — resolved (D-060).
 - **P2**: T5, T7, T8, T9, T10 (T11 resolved with D-058) + the
   M-sweep (dead imports, cosmetics, doc notes, repr).
