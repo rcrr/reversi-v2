@@ -809,3 +809,10 @@ D-050 | 2026-08-29 | test_feature.py T campaign, item T4 (P2,
        per the test_mobility precedent. Feature module fully done:
        analysis + R1-R4 (D-038) + M1-M4 (D-039..D-042) + test
        campaign (D-043..D-050), suite 19/0/1 GREEN.
+
+D-051 | 2026-08-29 | binio analysis complete: 15 verified facts (V1-V15, 0
+       mismatches), 4 defects T1-T4 documented. Two test files:
+       test_binio.py (41 tests) + test_usage_binio.py (3 tests) = 44/0/0 GREEN,
+       no PERF gates. Analysis docs: docs/src/twolm/binio.md and
+       docs/src/twolm/test/test_binio.md. Awaiting Roberto's review before
+       fix campaign.

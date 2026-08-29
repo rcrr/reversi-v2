@@ -780,3 +780,16 @@
 - FEATURE MODULE FULLY DONE: analysis (e9adf7b) + R1-R4 (D-038)
   + M1-M4 (D-039..D-042) + test campaign (D-043..D-050). Next
   pipeline module: to be brought in by Roberto.
+- Session 11 (2026-08-29): Roberto brought in binio.py +
+  test_binio.py + test_usage_binio.py (3 files). Full analysis
+  complete the same day: 15 verified facts V1-V15 (0 mismatches:
+  MAGIC/SIGNATURE constants, type code ↔ dtype round-trip, on-disk
+  layouts for scalars/strings/arrays/header, 0-d + empty +
+  non-contiguous + big-endian array edge cases, incremental SHA3-256
+  = full re-read, compressed digest over compressed bytes). 4
+  defects T1-T4 documented: T1 = lz4 mandatory import not in
+  pyproject.toml, T2 = pathlib.Path dead import, T3 = "Aauthor"
+  header typo, T4 = read_array unknown type code not tested.
+  Suite 44/0/0 GREEN (41 in test_binio + 3 in test_usage_binio),
+  no PERF gates. Docs: docs/src/twolm/binio.md,
+  docs/src/twolm/test/test_binio.md. D-051. Awaiting Roberto.

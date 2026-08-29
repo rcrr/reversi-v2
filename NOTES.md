@@ -16,6 +16,8 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28: 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented (dead if-False block, stale raises_assertion names, 2 hash self-comparisons, header grammar, dead imports, no multi-position test, R5 __repr__ untested, cosmetic print-on-failure); fix campaign CLOSED (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 -> 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
 | src/twolm/feature.py | analyzed 2026-08-28 (session 8): Feature (blocked __new__ + factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 13/0/1 GREEN | docs/src/twolm/feature.md |
 | src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 8): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); fix priorities proposed (P1 = T6); T6 applied (D-043: 3 partial-None tests with 3 genuine hash literals, suite 13 -> 16 run, GREEN 16/0/1), T1 applied (D-044: dead if-False block removed), T2 applied (D-045: 6 dead imports removed), T3 applied (D-046: header grammar), T5 applied (D-047: names-order assertion), T7 applied (D-048: repr/eq/unhashable goldens, 16 -> 19 run), T9 applied (D-049: full 38-line print_summary golden), T4 applied (D-050: 'environmeant' fixed in both test files); T8 left as-is — campaign CLOSED, suite 19/0/1 GREEN | docs/src/twolm/test/test_feature.md |
+| src/twolm/binio.py | analyzed 2026-08-29 (session 10): BinaryWriter/BinaryReader with MAGIC framing + SHA3-256 sidecar + optional LZ4 whole-file compression; 15 verified facts V1-V15 (0 mismatches: on-disk layouts, type code round-trip, 0-d/non-contiguous/NaN edge cases, incremental checksum); 4 defects T1-T4 documented (lz4 mandatory import missing from pyproject.toml, pathlib.Path dead import, "Aauthor" header typo, unknown type code in read_array not tested); suite 44/0/0 GREEN | docs/src/twolm/binio.md |
+| src/twolm/test/test_binio.py | analyzed 2026-08-29: 9 classes / 41 tests; combined with test_usage_binio.py (3 classes / 3 tests) = 44 tests GREEN; coverage: all 10 scalars at bounds, strings (incl. multibyte byte-length test), arrays (all dtypes + 0-d/empty/non-contiguous/writable), header, framing (3 failure modes), SHA3-256 sidecar (5 standalone + 5 auto-checksum), full document, LZ4 compression (path + file-object); usage tests double as documentation; test-side defect T4 (unknown type code not tested); no PERF gates | docs/src/twolm/test/test_binio.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -146,6 +148,14 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   as-is. Final suite 19/0/1 GREEN. FEATURE MODULE FULLY DONE:
   analysis + R1-R4 (D-038) + M1-M4 (D-039..D-042) + test campaign
   (D-043..D-050).
+- binio.py analyzed (2026-08-29, session 10,
+  docs/src/twolm/binio.md): standalone binary I/O module — BinaryWriter/BinaryReader
+  with MAGIC framing + SHA3-256 sidecar + optional LZ4 whole-file compression.
+  15 verified facts V1-V15 (0 mismatches); 4 defects T1-T4 documented (lz4 mandatory
+  import missing from pyproject.toml, pathlib.Path dead import, "Aauthor" header
+  typo, unknown type code in read_array not tested). Test suite: test_binio.py
+  (41 tests) + test_usage_binio.py (3 tests) = 44/0/0 GREEN, no PERF gates.
+  Awaiting Roberto's review and fix-go-ahead.
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -167,6 +177,11 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   (D-037, defects T1-T9, per-item approvals; suite 23 -> 26,
   GREEN 26/0/1). Mobility module fully done: analysis + R1-R6
   (D-035) + M1-M5 (D-036) + test campaign (D-037).
+- binio.py: analysis DONE (2026-08-29, docs/src/twolm/binio.md),
+  test suite analyzed the same day (docs/src/twolm/test/test_binio.md).
+  15 verified facts V1-V15 (zero mismatches), 4 defects T1-T4 documented.
+  Suite 44/0/0 GREEN. Awaiting Roberto's review. Next: fix campaign
+  (T1-T4, per-item approvals, one at a time) — after Roberto says go.
 - The plan (confirmed by Roberto, 2026-08-28, session close): port
   the ENTIRE pipeline — the original repo brought in module by
   module, this staging workspace's work — with VERIFIED code and
@@ -175,9 +190,11 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   scope for the port). Done so far: board.py (2026-08-26, proven
   complete game kernel), pattern.py, mobility.py, feature.py
   (analysis + R1-R4 D-038 + M1-M4 D-039..D-042 + test campaign
-  D-043..D-050, CLOSED 2026-08-29 — suite 19/0/1 GREEN).
+  D-043..D-050, CLOSED 2026-08-29 — suite 19/0/1 GREEN),
+  binio.py (analysis DONE 2026-08-29, suite 44/0/0 GREEN).
   The game-loop module is NOT in the plan (I-005 resolved).
-  Next: the next pipeline module, to be brought in by Roberto.
+  Next: binio fix campaign (T1-T4) after Roberto's approval, then
+  the next pipeline module to be brought in by Roberto.
   Pattern R4/R5 remain doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 
@@ -204,8 +221,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   minor M1 D-039, M2 D-040, M3 left as-is D-041/I-007, M4 D-042 — all disposed)
 - docs/src/twolm/test/test_feature.md — test_feature.py analysis
   (coverage by area, 9 verified facts W1-W9, defects T1-T9,
-  completeness verdict + P1/P2 priorities; T6 applied D-043,
-  rest pending)
+  completeness verdict + P1/P2 priorities; T campaign CLOSED: D-043..D-050,
+  suite 19/0/1 GREEN)
+- docs/src/twolm/binio.md — binio.py analysis (BinaryWriter/BinaryReader with
+  MAGIC framing + SHA3-256 sidecar + LZ4 compression; 15 verified facts V1-V15,
+  4 defects T1-T4, suite 44/0/0 GREEN)
+- docs/src/twolm/test/test_binio.md — test_binio.py + test_usage_binio.py analysis
+  (12 classes, 44 tests, coverage by area, test-side defect T4)
 - notes/naming.md — canonical board naming convention (row/column, D-013)
 - notes/decisions.md — decisions log (D-NNN)
 - notes/ideas.md — future backlog (I-NNN)
