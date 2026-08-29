@@ -1137,3 +1137,27 @@ D-066 | 2026-08-29 | state_machine T7 resolved (session 19, fix
         guard for bool (M3) remains Roberto's call in the M-sweep;
         the pins document the current behaviour either way.
         Suite 35 -> 37/0/0 GREEN; full discover 435, 52 skipped.
+
+D-067 | 2026-08-29 | state_machine T8 + T9 resolved together
+        (session 19, fix campaign item 11, approved by Roberto:
+        "Procedi T8 e T9 insieme"): 5 new tests in
+        TestStateMachine (no source change — test-only).
+        T8: test_current_worker_name_tracks_current_step — the
+        property is a live view of (workers, current_step):
+        CREATED -> CONFIG -> POSITIONS -> CREATED across up and down
+        moves; test_current_worker_name_empty_workers_undefined —
+        "UNDEFINED" on an empty pipeline (V9f).
+        T9: test_step_move_fields_up — for both up entries,
+        step/worker_name/direction plus aware-UTC start/finish
+        (utcoffset() == 0), finish >= start, and the exact
+        duration == finish - start identity;
+        test_step_move_fields_down — the down sequence confirms the
+        excluded target (last entries: 2/POSITIONS/down then
+        1/CONFIG/down) with the duration identity;
+        test_step_move_recorded_on_failure — a failed step is still
+        recorded by the timer's finally, now pinned at field level
+        (step 1, CONFIG, up, aware-UTC finish, duration identity)
+        instead of a bare len assert (V14). With this, ALL T items
+        (T1-T11) are resolved; the remaining work is the source-side
+        M-sweep. Suite 37 -> 42/0/0 GREEN; full discover 440, 52
+        skipped.

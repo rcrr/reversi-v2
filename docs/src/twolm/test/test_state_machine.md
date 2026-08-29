@@ -15,14 +15,17 @@ suite count is unchanged, it is a rewrite, not an addition)
 together with the new house rule: test artifacts are written only
 under `workspace_root/build/tmp` and removed afterwards;
 T7 resolved with 2 new bool/np.int64 pin tests (D-066);
-T8, T9 remain OPEN.**
+T8 + T9 resolved together with 5 new tests (D-067:
+current_worker_name + StepMove field content). **All T items
+resolved; the M-sweep remains.**
 
-Suite: **37/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **42/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
 pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
 context-injection tests, → 32 with the D-063 display goldens, → 35
 with the D-064 move_to_last pins, → 37 with the D-066
-bool/np.int64 pins). Fast (~0.19s).
+bool/np.int64 pins, → 42 with the D-067 current_worker_name +
+StepMove pins). Fast (~0.18s).
 
 ## How to run
 
@@ -32,7 +35,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (22 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066)
+### `TestStateMachine` (27 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066 + 5 D-067)
 
 | Test | What it pins |
 |---|---|
@@ -54,6 +57,11 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_to_step_invalid_type` | `3.14` → TypeError. |
 | `test_bool_accepted_as_int_step` (D-066) | `move_to_step(True)` → step 1 (`up[1]` executed); back at 0, `move_to_step(False)` → same-step no-op (no callables, no new history entry) — pins the bool-is-a-subclass-of-int behaviour (M3). |
 | `test_numpy_int64_rejected` (D-066) | `move_to_step(np.int64(1))` → TypeError ("integer index or a string worker name") — np.int64 is not a Python int subclass (V7). |
+| `test_current_worker_name_tracks_current_step` (D-067) | The property is a live view of (workers, current_step): CREATED → CONFIG → POSITIONS → CREATED across the moves. |
+| `test_current_worker_name_empty_workers_undefined` (D-067) | No workers → "UNDEFINED" (V9f). |
+| `test_step_move_fields_up` (D-067) | StepMove field content for both up entries: step/worker_name/direction, aware-UTC start/finish (`utcoffset() == 0`), `finish >= start`, and `duration == finish - start` exactly. |
+| `test_step_move_fields_down` (D-067) | Down-move entries: the target is excluded — the last entries are (2, POSITIONS, down) then (1, CONFIG, down), duration identity on both. |
+| `test_step_move_recorded_on_failure` (D-067) | A failed step is still recorded (the timer's finally): field-level pin (step 1, CONFIG, up, aware-UTC finish, duration identity) — not just a len assert. |
 | `test_worker_exception_propagation_and_logging` | `up[1]` raising RuntimeError: re-raised; `current_step == 1` (the failed step); exactly 1 ERROR log with the right step/worker/message; history records the failed attempt (len 1). |
 | `test_history_export_csv` (rewritten D-065) | 2 moves (0→2, 2→0) → CSV with 4 rows; exact header field names (`step,worker_name,direction,start_utc,finish_utc,duration_sec`); row 0 = step 1 CONFIG/up; row 3 = step 1 CONFIG/down; every row: ISO-8601 `+00:00` aware-UTC timestamps (parsed back, `tzinfo` non-None) and `duration_sec == finish - start`. Artifact under `workspace_root/build/tmp`, removed in `finally`. |
 | `test_duplicate_worker_names_raise` (D-061) | Two workers both named `"A"` → `ValueError` at construction, message contains "Duplicate worker name". |
@@ -139,9 +147,10 @@ does not), the failure semantics, and the same-step no-op.
 
 ## Test defects (T1–T11)
 
-Status: T1 (D-057), T2 (D-062), T3 (D-063), T4 (D-064), T5 (D-065),
-T6 (D-060), T7 (D-066), T10 (D-061), T11 (D-058) resolved; T8, T9
-OPEN. Priorities proposed after the R1–R5 rulings.
+Status: all T items resolved — T1 (D-057), T2 (D-062), T3 (D-063),
+T4 (D-064), T5 (D-065), T6 (D-060), T7 (D-066), T8 + T9 (D-067),
+T10 (D-061), T11 (D-058). Priorities proposed after the R1–R5
+rulings.
 
 ### T1 — No Verbosity coverage at all (P0 with R1) — FIXED (D-057)
 `Verbosity` was never exercised: the gate table (V1) — including
@@ -206,15 +215,19 @@ message fragment). The optional strictness guard for bool (M3)
 remains Roberto's call in the M-sweep — the pins document the
 current behaviour either way.
 
-### T8 — `current_worker_name` untested (P2)
-Property never asserted directly, including the "UNDEFINED" empty case
-(V9f).
+### T8 — `current_worker_name` untested (P2) — FIXED (D-067)
+Property never asserted directly, including the "UNDEFINED" empty
+case (V9f). Now pinned: it is a live view of (workers, current_step)
+across up and down moves, and returns "UNDEFINED" on an empty
+pipeline.
 
-### T9 — `StepMove` content untested (P2)
-History entries are asserted only on length/direction/worker_name:
-aware-UTC `start`/`finish`, the `duration == finish - start` identity,
-and the `finally`-append on failure are unpinned at the field level
-(V14; the failure-append half is only len-asserted).
+### T9 — `StepMove` content untested (P2) — FIXED (D-067)
+History entries are now asserted at field level (V14): up and down
+entries carry aware-UTC `start`/`finish` (`utcoffset() == 0`),
+`finish >= start`, and the exact `duration == finish - start`
+identity; the down-move sequence confirms the excluded target; and
+a failed step is still recorded by the timer's `finally` — pinned
+with field content, not just a len assert.
 
 ### T10 — Duplicate-name behaviour unpinned (P2) — RESOLVED (D-061)
 Moot by construction: D-061 rejects duplicate names in `__init__`
@@ -236,14 +249,15 @@ no-op, bounds/type/name errors, exception propagation + logging, CSV
 row semantics), and every expectation matches independently derived
 behaviour.
 
-**What remains untested**: `current_worker_name` (T8) and the
-`StepMove` field content (T9). Everything else is pinned: the
-verbosity gate (D-057), the display layer goldens (D-063),
-retry-after-failure (D-060), duplicate names (D-061), the context
-injection layer — the module's main integration surface with domain
-workers (D-062), `move_to_last` including the single-worker
-sentinel no-op (D-064), the CSV export contract (D-065), and the
-bool/np.int64 index edge (D-066).
+**The whole module is now pinned**: the move mechanics (including
+`move_to_last`, D-064), the verbosity gate (D-057), the display
+layer goldens (D-063), retry-after-failure (D-060), duplicate names
+(D-061), the context injection layer — the module's main
+integration surface with domain workers (D-062), the CSV export
+contract (D-065), the bool/np.int64 index edge (D-066), and
+`current_worker_name` + the `StepMove` field content (D-067).
+Nothing remains in the T list; the open work is the source-side
+M-sweep.
 
 ## Proposed priorities
 
@@ -251,6 +265,6 @@ bool/np.int64 index edge (D-066).
   R2 — resolved (D-058); R5 — resolved (D-061).
 - **P1**: T3 — done (D-063); T4 — done (D-064); T6 — done (D-060);
   R4 — resolved (D-060).
-- **P2**: T8, T9 (T5 — done D-065; T7 — done D-066; T11 resolved
-  with D-058; T10 resolved with D-061) + the M-sweep (dead imports,
+- **P2**: all done — T5 (D-065), T7 (D-066), T8 + T9 (D-067), T11
+  (D-058 side effect), T10 (D-061) — + the M-sweep (dead imports,
   cosmetics, doc notes, repr; M12 closed with D-061).

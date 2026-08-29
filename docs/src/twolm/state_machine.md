@@ -6,12 +6,13 @@ fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
-**All five R items closed**; T8, T9 + M-sweep remain.**
+**All five R items closed; all T items closed** — the M-sweep
+remains.**
 
-Suite: **37 tests, GREEN 37/0/0** (5 classes, no PERF gates). Suite is
-fast (~0.19s).
+Suite: **42 tests, GREEN 42/0/0** (5 classes, no PERF gates). Suite is
+fast (~0.18s).
 
-Full workspace: **435 tests, GREEN, 52 skipped under
+Full workspace: **440 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
