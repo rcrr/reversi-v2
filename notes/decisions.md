@@ -1061,3 +1061,22 @@ D-062 | 2026-08-29 | state_machine T2 resolved (session 19, fix
         live) — appended to M8 as the implicit contract.
         Suite 20 -> 22 -> 29/0/0 GREEN; full discover 427, 52
         skipped.
+
+D-063 | 2026-08-29 | state_machine T3 resolved (session 19, fix
+        campaign item 7, approved by Roberto: "procedi"): 3 new
+        tests in the TestDisplayGoldens class pin the whole display
+        layer (no source change — test-only). The module's datetime
+        is patched with a frozen clock advancing 1ms per now()
+        call, so the goldens are exact and wall-clock independent.
+        test_log_event_live_print_format: the live line format
+        [ts] [step:02][name:15] [rel:verb] message, incl. the
+        numeric IntEnum rendering (M6) and the padding.
+        test_show_event_log_golden + test_show_history_of_moves_golden:
+        full end-to-end buffers (the move's live lines + the table)
+        — banner, 54-dash separator, header, one row per log entry
+        (step:04, name:15, numeric relevance); history table with
+        80-dash rule, microsecond start stamps and duration =
+        finish - start pinned at 0.003000 by the frozen clock.
+        Side effect: setUp's global stdout patch is no longer just
+        noise suppression — captured stdout is now asserted.
+        Suite 29 -> 32/0/0 GREEN; full discover 430, 52 skipped.

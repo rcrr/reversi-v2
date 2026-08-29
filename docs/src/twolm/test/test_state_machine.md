@@ -1,6 +1,6 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (29 tests, 4
+Date: 2026-08-29. One test file: `test_state_machine.py` (32 tests, 5
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
@@ -8,12 +8,14 @@ R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 new test (D-060, closes T6); R5 resolved (D-061) with 2 new
 duplicate-name tests, which also close T10 (duplicates unreachable);
 T2 resolved with 7 new `TestContextInjection` tests (D-062);
-T3–T5, T7–T9 remain OPEN.**
+T3 resolved with 3 new `TestDisplayGoldens` tests (D-063);
+T4, T5, T7–T9 remain OPEN.**
 
-Suite: **29/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **32/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
 pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
-context-injection tests). Fast (~0.10s).
+context-injection tests, → 32 with the D-063 display goldens).
+Fast (~0.09s).
 
 ## How to run
 
@@ -96,6 +98,27 @@ $ python -m unittest twolm.test.test_state_machine
 - **Coverage**: the whole context-injection layer (T2) — the module's
   main integration surface with domain workers.
 
+### `TestDisplayGoldens` (3 tests, added D-063)
+
+The module's `datetime` is patched with a frozen clock advancing
+1ms per `now()` call, so every golden is exact and wall-clock
+independent.
+
+- `test_log_event_live_print_format`: the live line
+  `[ts] [step:02][name:15] [rel:verb] message` — full golden for the
+  init DEBUG line + the two CONFIG INFO lines; pins the numeric
+  IntEnum rendering (`[1:0]`, `[2:0]`, M6) and the padding.
+- `test_show_event_log_golden`: end-to-end buffer — the move's live
+  lines, then the table: banner, 54-dash separator, header, one row
+  per log entry (`step:04`, `name:15`, numeric relevance).
+- `test_show_history_of_moves_golden`: end-to-end buffer — the
+  move's live lines, then the table: header, 80-dash rule, one row
+  per executed step; microsecond start stamps and `duration =
+  finish - start` pinned at 0.003000 by the frozen clock.
+- **Coverage**: the whole display layer (T3) — `setUp`'s global
+  stdout patch is no longer noise suppression: captured stdout is
+  asserted.
+
 **Verified**: every expectation above was re-derived independently
 (ground-truth probes, docs/src/twolm/state_machine.md V1–V17) — zero
 mismatches. The tests correctly pin the load-bearing semantics,
@@ -104,9 +127,9 @@ does not), the failure semantics, and the same-step no-op.
 
 ## Test defects (T1–T11)
 
-Status: T1 (D-057), T2 (D-062), T6 (D-060), T10 (D-061), T11 (D-058)
-resolved; T3–T5, T7–T9 OPEN. Priorities proposed after the R1–R5
-rulings.
+Status: T1 (D-057), T2 (D-062), T3 (D-063), T6 (D-060), T10 (D-061),
+T11 (D-058) resolved; T4, T5, T7–T9 OPEN. Priorities proposed after
+the R1–R5 rulings.
 
 ### T1 — No Verbosity coverage at all (P0 with R1) — FIXED (D-057)
 `Verbosity` was never exercised: the gate table (V1) — including
@@ -126,11 +149,13 @@ a prefix without a trailing separator silently glues the level name
 onto it (any `Path` prefix, since `str(Path)` drops the trailing
 slash) — recorded in M8 (module doc), no code action.
 
-### T3 — stdout is patched but never asserted (P1)
+### T3 — stdout is patched but never asserted (P1) — FIXED (D-063)
 `setUp` patches `sys.stdout` globally, yet no test inspects the
 captured output: `log_event`'s live print format (V12),
-`show_event_log` and `show_history_of_moves` (V13) have no golden at
-all. The patch is currently just noise-suppression.
+`show_event_log` and `show_history_of_moves` (V13) had no golden at
+all. Now `TestDisplayGoldens` pins all three paths with exact
+end-to-end goldens under a frozen clock (1ms per `now()` call); the
+stdout patch is now load-bearing, not noise suppression.
 
 ### T4 — `move_to_last` untested (P1)
 No test exercises `move_to_last` — happy path and empty-workers no-op
@@ -185,21 +210,20 @@ no-op, bounds/type/name errors, exception propagation + logging, CSV
 row semantics), and every expectation matches independently derived
 behaviour.
 
-**Two whole areas are still untested**: (1) the display layer
-(`log_event`'s live print format, `show_event_log`,
-`show_history_of_moves` goldens — T3); (2) the edge semantics
+**One whole area is still untested**: the edge semantics
 (move_to_last happy path, bool/np.int64, StepMove field content —
-T4/T7/T9). The verbosity gate is pinned (D-057), retry-after-failure
-(D-060), duplicate names (D-061), and the context injection layer —
-the module's main integration surface with domain workers — is now
+T4/T7/T9), plus the thin CSV test (T5). The verbosity gate (D-057),
+the display layer goldens (D-063), retry-after-failure (D-060),
+duplicate names (D-061), and the context injection layer — the
+module's main integration surface with domain workers — are all
 pinned (D-062).
 
 ## Proposed priorities
 
 - **P0** (with the R rulings): T1 — done (D-057); T2 — done (D-062);
   R2 — resolved (D-058); R5 — resolved (D-061).
-- **P1**: T3 (print/display goldens), T4 (move_to_last); T6 — done
-  (D-060); R4 — resolved (D-060).
+- **P1**: T3 — done (D-063); T4 (move_to_last); T6 — done (D-060);
+  R4 — resolved (D-060).
 - **P2**: T5, T7, T8, T9 (T11 resolved with D-058; T10 resolved with
   D-061) + the M-sweep (dead imports, cosmetics, doc notes, repr;
   M12 closed with D-061).
