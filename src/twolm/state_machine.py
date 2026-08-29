@@ -43,13 +43,15 @@ __all__ = ['Context', 'Worker', 'StateMachine', 'Verbosity', 'Relevance']
 
 class Verbosity(IntEnum):
     """
-    Logging verbosity levels.
+    Logging verbosity levels: a log event is printed iff
+    event.relevance >= verbosity (NONE = silent, VERY_LOW = ERROR only).
     """
     HIGH      = 0
     MODERATE  = 1
     STANDARD  = 2
     LOW       = 3
-    NONE      = 4
+    VERY_LOW  = 4
+    NONE      = 5
 
 class Relevance(IntEnum):
     """

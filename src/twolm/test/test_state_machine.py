@@ -42,6 +42,7 @@
 
 import unittest
 
+from contextlib import redirect_stdout
 from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime
@@ -223,6 +224,58 @@ class TestStateMachine(unittest.TestCase):
         finally:
             if os.path.exists(test_filename):
                 os.remove(test_filename)
+
+
+class TestVerbosityGating(unittest.TestCase):
+    """Pins the `relevance >= verbosity` print gate (T1, D-057)."""
+
+    EXPECTED_PRINTING = {
+        Verbosity.HIGH: {
+            Relevance.TRACE, Relevance.DEBUG, Relevance.INFO,
+            Relevance.WARN, Relevance.ERROR},
+        Verbosity.MODERATE: {
+            Relevance.DEBUG, Relevance.INFO, Relevance.WARN,
+            Relevance.ERROR},
+        Verbosity.STANDARD: {
+            Relevance.INFO, Relevance.WARN, Relevance.ERROR},
+        Verbosity.LOW: {Relevance.WARN, Relevance.ERROR},
+        Verbosity.VERY_LOW: {Relevance.ERROR},
+        Verbosity.NONE: set(),
+    }
+
+    def setUp(self):
+        """Patch stdout to keep the init log line out of the test output."""
+        self.patcher = patch('sys.stdout', new=StringIO())
+        self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_gating_matrix(self):
+        """All 6 verbosity levels x 5 relevance levels: print iff >=."""
+        for verbosity, printing in self.EXPECTED_PRINTING.items():
+            for relevance in Relevance:
+                machine = StateMachine(
+                    [Worker("A", MagicMock(), MagicMock())],
+                    Context(), verbosity)
+                buffer = StringIO()
+                with redirect_stdout(buffer):
+                    machine.log_event(relevance, "probe")
+                did_print = buffer.getvalue() != ""
+                self.assertEqual(
+                    did_print, relevance in printing,
+                    f"{verbosity.name}/{relevance.name}")
+                # logs accumulate even when nothing is printed
+                self.assertEqual(len(machine.logs), 2)
+
+    def test_enum_values(self):
+        """Level values, incl. the D-057 split: VERY_LOW = 4, NONE = 5."""
+        self.assertEqual(Verbosity.HIGH, 0)
+        self.assertEqual(Verbosity.MODERATE, 1)
+        self.assertEqual(Verbosity.STANDARD, 2)
+        self.assertEqual(Verbosity.LOW, 3)
+        self.assertEqual(Verbosity.VERY_LOW, 4)
+        self.assertEqual(Verbosity.NONE, 5)
 
 
 if __name__ == '__main__':
