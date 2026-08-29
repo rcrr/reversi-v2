@@ -145,6 +145,24 @@ class TestStateMachine(unittest.TestCase):
             mock.assert_not_called()
         self.assertEqual(len(self.sm.history), 0)
 
+    def test_duplicate_worker_names_raise(self):
+        """Duplicate names are rejected at construction (R5, D-061)."""
+        with self.assertRaises(ValueError) as ctx:
+            StateMachine([
+                Worker("A", MagicMock(), MagicMock()),
+                Worker("B", MagicMock(), MagicMock()),
+                Worker("A", MagicMock(), MagicMock()),
+            ], Context())
+        self.assertIn("Duplicate worker name", str(ctx.exception))
+
+    def test_duplicate_worker_names_case_insensitive(self):
+        """'CONFIG' and 'config' are the same name for moves (D-061)."""
+        with self.assertRaises(ValueError):
+            StateMachine([
+                Worker("CONFIG", MagicMock(), MagicMock()),
+                Worker("config", MagicMock(), MagicMock()),
+            ], Context())
+
     def test_retry_after_failure_skips_failed_step(self):
         """A retry of a higher target does NOT re-execute the
         failed step; recovery is down-then-up (R4, D-060)."""

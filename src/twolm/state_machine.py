@@ -131,6 +131,18 @@ class StateMachine:
                  workers: List[Worker],
                  context: Context,
                  verbosity: Verbosity = Verbosity.STANDARD):
+        # Fail fast on duplicate worker names: name-based moves
+        # (move_to_step, move_to_last) resolve by name, so names
+        # must be unique. The check is case-insensitive because
+        # name resolution is case-insensitive (D-061).
+        seen = set()
+        for worker in workers:
+            key = worker.name.upper()
+            if key in seen:
+                raise ValueError(
+                    f"Duplicate worker name '{worker.name}': "
+                    "worker names must be unique (case-insensitive)")
+            seen.add(key)
         self.workers: List[Worker] = workers
         self.context: Context = context
         self.current_step: int = 0
