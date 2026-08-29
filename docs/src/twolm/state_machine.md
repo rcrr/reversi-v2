@@ -6,10 +6,11 @@ fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
-**All five R items closed; all T items closed; M-sweep: M1, M4,
-M7, M10 (D-068) + M3, M5, M8, M11 (D-069) fixed — only M6
-(cosmetic print) and M9 (injection side effect) remain (M2, M12
-done).**
+**All five R items closed; all T items closed; M-sweep COMPLETE:
+M1, M4, M7, M10 (D-068) + M3, M5, M8, M11 (D-069) + M6, M9
+(D-070) fixed — M6 print cleanup with the 3 display goldens
+rewritten, M9 left as-is (Roberto: the injection is load-bearing),
+future redesign parked at I-010 (M2, M12 done).**
 
 Suite: **49 tests, GREEN 49/0/0** (5 classes, no PERF gates). Suite is
 fast (~0.23s).
@@ -119,8 +120,8 @@ cited.
 | V9 | Cache path at step k = `{prefix}{k:02}_{name}.dat` (active worker); full path = `base_dir / path`; relative prefix joins under `base_dir`, **absolute prefix silently drops `base_dir`** (pathlib `/`); missing `cfg` → `AttributeError`; empty workers → `Path()`, name `"UNDEFINED"`, `move_to_last` no-op | Probes with cfg stubs |
 | V10 | CSV header `step,worker_name,direction,start_utc,finish_utc,duration_sec`; ISO-8601 with `+00:00`; float `duration_sec` | File round-trip |
 | V11 | Failed step logs exactly [init, "Starting…", "Error in…"] — no "Completed"; error entry carries the failed step + worker | Log inspection |
-| V12 | Live print: `[{ts}] [{step:02}][{name:15}] [{rel}:{verb}] {msg}` with numeric enum values and no UTC marker in the displayed timestamp | Regex on captured line |
-| V13 | `show_event_log`: "EVENT LOG" banner + `TIMESTAMP | STEP | WORKER | R | MESSAGE` (step 4-digit); `show_history_of_moves`: `Step | Worker | Dir | Start (UTC) | Dur (s)` (microsecond start, 6-decimal duration) | Captured output |
+| V12 | Live print: `[{ts} UTC] [{step:02}][{name:15}] [{rel.name}:{verb.name}] {msg}` — enum names + explicit UTC marker (the pre-cleanup numeric-enum / no-UTC format was re-formatted by D-070/M6) | Regex on captured line |
+| V13 | `show_event_log`: "EVENT LOG" banner + `TIMESTAMP (UTC) | STEP (2-digit) | WORKER | RELEVANCE (name) | MESSAGE` (66-underscore rule); `show_history_of_moves`: `Step | Worker | Dir | Start (UTC) | Dur (s)` (microsecond start, 6-decimal duration, Dur header right-aligned) — both re-formatted by D-070/M6 | Captured output |
 | V14 | `StepMove.start`/`.finish` tz-aware UTC; `duration == finish - start`; history entry appended in `finally` even on failure | Probe + existing test |
 | V15 | Dead import: `Any` (state_machine.py L34 — removed by D-068); the test file's `datetime` import is now used by `TestLogEntry` (D-058, was dead at analysis time) | Source scan |
 | V16 | Invalid target: IndexError (≥len or negative), ValueError (unknown name), TypeError (other types incl. float) | Edge-case probes |
@@ -238,10 +239,18 @@ impossible at construction); V8 restated. Pinned by
   (Roberto): two call sites in the domain modules
   `lm_worker_config` and `logistic_model` must use the new names
   when those modules are ported.
-- **M6** — Cosmetic print drift: `show_event_log` pads step to 4 digits
-  vs 2 in the live log line; `show_history_of_moves` header `Dur (s)`
-  left-14 vs values right-15.6f; no UTC marker on the displayed
-  timestamp; `[rel:verb]` prints numeric enum values, not names.
+- **M6** — Cosmetic print drift: `show_event_log` padded step to 4
+  digits vs 2 in the live log line; `show_history_of_moves` header
+  `Dur (s)` left-14 vs values right-15.6f; no UTC marker on the
+  displayed timestamp; `[rel:verb]` printed numeric enum values,
+  not names — RESOLVED (D-070, Roberto: "M6: 1, pulisci"): the
+  live line now prints enum names (`[DEBUG:HIGH]`) + an explicit
+  `UTC` marker; the event-log table has a `TIMESTAMP (UTC)`
+  header, 2-digit step (consistent with the live line), a
+  `RELEVANCE` name column and a 66-underscore rule; the history
+  table's `Dur (s)` header is right-aligned over its values. The
+  3 frozen-clock display goldens were rewritten to the cleaned
+  format (TestDisplayGoldens).
 - **M7** — No `__repr__` on `Worker`/`StateMachine` (house
   hygiene) — RESOLVED (D-068): `Worker.__repr__` →
   `Worker('NAME')`; `StateMachine.__repr__` →
@@ -263,8 +272,13 @@ impossible at construction); V8 restated. Pinned by
   an absolute `cache_files_prefix` still silently drops `base_dir`
   (pathlib `/`); empty workers → `Path()`.
 - **M9** — `__init__` mutates the caller's context (injection is a
-  side effect); a shared context re-binds to the **last** machine built
-  on it (V17).
+  side effect); a shared context re-binds to the **last** machine
+  built on it (V17) — RESOLVED as leave-as-is (D-070, Roberto:
+  the injection is fundamental, the domain workers depend on it).
+  A future redesign (explicit machine reference / context-owned
+  helpers) is parked in ideas.md as I-010, to be evaluated once
+  all the domain modules are in the workspace and their call
+  patterns are visible.
 - **M10** — `export_history_of_moves_as_csv`: no parent-dir
   creation (a path with missing dirs → `FileNotFoundError`) —
   RESOLVED (D-068): `path.parent.mkdir(parents=True, exist_ok=True)`
@@ -315,8 +329,9 @@ Ran 13 tests in 0.026s
 OK
 ```
 
-## Appendix: line-number reference (2026-08-29, post M-sweep D-068
-+ D-069; all line numbers grep-verified 2026-08-29, file 364 lines)
+## Appendix: line-number reference (2026-08-29, post M-sweep
+D-068 + D-069 + D-070; all line numbers grep-verified 2026-08-29,
+file 378 lines)
 
 - `__all__`: L41
 - `Verbosity`: L45 (VERY_LOW: L54, NONE: L55) · `Relevance`: L57 ·
@@ -344,16 +359,20 @@ OK
   + ValueError, D-068; error log+raise: L227-229)
 - `current_worker_name`: L232 ("UNDEFINED": L234)
 - `log_event`: L238 (D-069 decorator: L237; LogEntry construction:
-  L241-247; append: L248; gate `>=`: L249; print: L251)
-- `show_event_log`: L253 · `show_history_of_moves`: L261
-- `export_history_of_moves_as_csv`: L270 (D-069 decorator: L269;
-  parent-dir mkdir: L275, D-068; fieldnames: L276)
-- `move_to_step`: L290 (docstring: L291-310, incl. failure
-  semantics + bool NOT valid; wrapper try: L311-312; except
-  ValidationError: L313; TypeError re-raise: L317-319, D-069)
-- `_move_to_step_validated`: L323 (strict D-069 decorator:
-  L321-322; string→upper: L327; name lookup: L328; ValueError
-  not-found: L330; IndexError: L333-334; same-step no-op: L336-337;
-  up range: L339-341; down range: L342-344; pre-exec step update:
-  L349; down final set: L355-356)
-- `move_to_last`: L358 (name-based call: L364)
+  L241-247; append: L248; gate `>=`: L249; print: L253-255, enum
+  names + UTC marker, D-070)
+- `show_event_log`: L257 (D-070 table: L258-270 — UTC header,
+  2-digit step, RELEVANCE name column, 66-underscore rule)
+- `show_history_of_moves`: L272 (D-070 right-aligned Dur header:
+  L275-276; 80-dash rule: L277; row print: L281)
+- `export_history_of_moves_as_csv`: L284 (D-069 decorator: L283;
+  parent-dir mkdir: L289, D-068; fieldnames: L290)
+- `move_to_step`: L304 (docstring: L305-324, incl. failure
+  semantics + bool NOT valid; wrapper try: L325-326; except
+  ValidationError: L327; TypeError re-raise: L331-333, D-069)
+- `_move_to_step_validated`: L337 (strict D-069 decorator:
+  L335-336; string→upper: L341; name lookup: L342; ValueError
+  not-found: L344; IndexError: L347-348; same-step no-op: L350-351;
+  up range: L353-355; down range: L356-358; pre-exec step update:
+  L363; down final set: L369-370)
+- `move_to_last`: L372 (name-based call: L378)

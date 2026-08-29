@@ -23,9 +23,15 @@ CSV export creates missing parent dirs); M-sweep: M3 + M5 + M8 +
 M11 applied (D-069: bool rejected, cache helpers renamed
 `*_for_current_level`, pathlib join of the cache prefix,
 @validate_call on the public surface — 3 new tests, the bool test
-rewritten to rejection). **All T items resolved; M-sweep: only M6
-(cosmetic print) and M9 (injection side effect) remain (M2, M12
-done).**
+rewritten to rejection); M-sweep closed with M6 + M9 (D-070: M6
+print cleanup — enum names + explicit UTC marker on the live line,
+`TIMESTAMP (UTC)` header / 2-digit step / `RELEVANCE` name column /
+66-underscore rule in `show_event_log`, right-aligned `Dur (s)`
+header in `show_history_of_moves` — the 3 display goldens
+rewritten in place, suite count unchanged; M9 left as-is, the
+injection is load-bearing — the future redesign is parked at
+I-010). **All T items resolved; M-sweep COMPLETE (M1-M12 all
+disposed; M2, M12 done).**
 
 Suite: **49/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
@@ -136,21 +142,25 @@ $ python -m unittest twolm.test.test_state_machine
 - **Coverage**: the whole context-injection layer (T2) — the module's
   main integration surface with domain workers.
 
-### `TestDisplayGoldens` (3 tests, added D-063)
+### `TestDisplayGoldens` (3 tests, added D-063; goldens rewritten
+in place D-070/M6 to the cleaned format)
 
 The module's `datetime` is patched with a frozen clock advancing
 1ms per `now()` call, so every golden is exact and wall-clock
 independent.
 
 - `test_log_event_live_print_format`: the live line
-  `[ts] [step:02][name:15] [rel:verb] message` — full golden for the
-  init DEBUG line + the two CONFIG INFO lines; pins the numeric
-  IntEnum rendering (`[1:0]`, `[2:0]`, M6) and the padding.
+  `[ts UTC] [step:02][name:15] [rel.name:verb.name] message` — full
+  golden for the init DEBUG line + the two CONFIG INFO lines; pins
+  the enum-NAME rendering (`[DEBUG:HIGH]`) + the explicit `UTC`
+  marker (M6, D-070) and the padding.
 - `test_show_event_log_golden`: end-to-end buffer — the move's live
-  lines, then the table: banner, 54-dash separator, header, one row
-  per log entry (`step:04`, `name:15`, numeric relevance).
+  lines, then the table: banner, 66-underscore separator, header
+  `TIMESTAMP (UTC) | STEP | WORKER | RELEVANCE | MESSAGE` (2-digit
+  step, relevance name), one row per log entry (M6, D-070).
 - `test_show_history_of_moves_golden`: end-to-end buffer — the
-  move's live lines, then the table: header, 80-dash rule, one row
+  move's live lines, then the table: header (the `Dur (s)` header
+  right-aligned over its values, M6, D-070), 80-dash rule, one row
   per executed step; microsecond start stamps and `duration =
   finish - start` pinned at 0.003000 by the frozen clock.
 - **Coverage**: the whole display layer (T3) — `setUp`'s global

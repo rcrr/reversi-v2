@@ -67,3 +67,14 @@ I-009 | follow-up | Pipeline construction boilerplate (raised
         pipeline base class on top of StateMachine to trim it.
         Blocked on: the pipeline module not being in the workspace
         yet (can't see the actual boilerplate).
+
+I-010 | follow-up | Redesign of the StateMachine context injection
+        (parked 2026-08-29, D-070, session 19, M9): the constructor
+        injects log_event + the cache helpers as a side effect on
+        the passed-in Context, so a shared context re-binds to the
+        LAST machine built on it (V17). Roberto's call: leave
+        as-is — the injection is fundamental, the domain workers
+        (lm_worker_config, logistic_model) depend on it. To be
+        evaluated once all the domain modules are in the workspace
+        and their call patterns are visible: an explicit machine
+        reference, or context-owned helpers.

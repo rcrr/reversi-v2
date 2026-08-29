@@ -1233,3 +1233,32 @@ D-069 | 2026-08-29 | state_machine M-sweep batch 2: M3 + M5 + M8 +
         unchanged). Suite 46 -> 49/0/0 GREEN; full discover 447, 52
         skipped. Remaining M items: M6 (cosmetic print drift), M9
         (injection side effect) — both Roberto's calls.
+
+D-070 | 2026-08-29 | state_machine M-sweep close-out: M6 + M9
+        (session 19, fix campaign item 14, approved by Roberto —
+        M6: "1, pulisci"; M9: leave as-is, the context injection is
+        load-bearing for the domain workers): the M-sweep is
+        COMPLETE (M1-M12 all disposed).
+        M6: cosmetic print cleanup, no behaviour change — the live
+        log_event line now prints the enum names ([DEBUG:HIGH])
+        instead of the numeric values and carries an explicit UTC
+        marker after the timestamp; show_event_log's table has a
+        TIMESTAMP (UTC) header, a 2-digit step column (consistent
+        with the live line; was 4-digit), a RELEVANCE name column
+        (was numeric), and a 66-underscore separator rule;
+        show_history_of_moves' Dur (s) header is right-aligned over
+        its right-aligned 6-decimal values (was left-14 vs
+        right-15). The 3 frozen-clock display goldens
+        (TestDisplayGoldens, D-063) were rewritten in place to the
+        cleaned format — suite count unchanged 49/0/0.
+        M9: the __init__ context injection (log_event binding +
+        cache helpers; a shared context re-binds to the last
+        machine built on it, V17) is left as-is — Roberto: the
+        injection is fundamental, the domain workers depend on it.
+        A future redesign (explicit machine reference /
+        context-owned helpers) is parked in ideas.md as I-010, to
+        be evaluated once all the domain modules are in the
+        workspace and their call patterns are visible.
+        Suite 49/0/0 GREEN; full discover 447 tests, 52 skipped,
+        GREEN. STATE_MACHINE module fully done — R1-R5, all T
+        items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070.
