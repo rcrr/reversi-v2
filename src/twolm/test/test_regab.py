@@ -208,6 +208,34 @@ class TestRegabGPAsDF(BaseTestCase):
         with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, 1, 'CMP', 10, limit=5, where=123)
 
+    def test_invalid_where_sql_comment_dash(self):
+        """
+        Tests that a where clause containing -- (SQL comment) is rejected.
+        """
+        with self.assertRaises(ValueError):
+            regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='game_value > 0 -- comment')
+
+    def test_invalid_where_sql_select(self):
+        """
+        Tests that a where clause containing SELECT is rejected.
+        """
+        with self.assertRaises(ValueError):
+            regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='seq IN (SELECT seq FROM other)')
+
+    def test_invalid_where_semicolon(self):
+        """
+        Tests that a where clause containing ; is rejected.
+        """
+        with self.assertRaises(ValueError):
+            regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='game_value > 0; DROP TABLE regab_prng_gp')
+
+    def test_valid_where_expression(self):
+        """
+        Tests that a valid where expression is accepted and produces results.
+        """
+        df = regab_gp_as_df(self.rc, [7, 8], ['CMS', 'CMR'], 10, where='game_value > 0')
+        self.assertFalse(df.empty, "The resulting DataFrame is empty.")
+
     def test_invalid_fields_wrong_string(self):
         """
         Tests that an exception is raised for an invalid fields value.

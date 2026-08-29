@@ -38,6 +38,7 @@ import numpy as np
 import numpy.typing as npt
 import hashlib
 import inspect
+import re
 
 from pathlib import Path
 from typing import TypeAlias, Union, List, Annotated, Tuple, Any
@@ -240,6 +241,28 @@ StatusArgument = Annotated[
 #: Custom type for 'ec': enforces an integer strictly between 0 and 60 inclusive [0..60]
 EcArgument = Annotated[int, Field(ge=0, le=60)]
 
+#: Validates the where clause to prevent SQL injection.
+#: Blocks SQL comments (``--``, ``/* */``), statement terminators (``;``), and
+#: dangerous keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER,
+#: CREATE, EXEC, EXECUTE, TRUNCATE). The where clause must be a valid SQL
+#: boolean expression referencing only columns of the ``regab_prng_gp`` table.
+_WHERE_FORBIDDEN = re.compile(
+    r'(--)|(/\*)|(\*/)|(;\s*$)'
+    r'|\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|EXECUTE|TRUNCATE)\b',
+    re.IGNORECASE
+)
+
+def _validate_where_clause(where_input: Union[str, None]) -> Union[str, None]:
+    if where_input is None:
+        return where_input
+    if _WHERE_FORBIDDEN.search(where_input):
+        raise ValueError(
+            f"where clause contains forbidden SQL: {where_input!r}"
+        )
+    return where_input
+
+WhereArgument = Annotated[Union[str, None], AfterValidator(_validate_where_clause)]
+
 #: Fields Type: Resolves database checks using AfterValidator and validation context
 FieldsArgument = Annotated[Union[str, List[str], None], AfterValidator(_validate_db_fields)]
 
@@ -251,7 +274,7 @@ def regab_gp_as_df(rc: RegabDBConnection,
                    ec: EcArgument,
                    *,
                    limit: Union[int, None] = Field(default=None, ge=0),
-                   where: Union[str, None] = None,
+                   where: WhereArgument = None,
                    fields: FieldsArgument = None) -> pd.DataFrame:
     """
     Retrieves game positions from the database and returns them as a pandas DataFrame.
@@ -279,7 +302,12 @@ def regab_gp_as_df(rc: RegabDBConnection,
 
     where : str, optional
         An additional SQL WHERE clause to further filter the game positions.
-        If specified, must be a string.
+        If specified, must be a string containing only SQL boolean expressions
+        referencing columns of the ``regab_prng_gp`` table. For safety, the
+        following are forbidden and will raise ``ValueError``: SQL comments
+        (``--``, ``/* */``), statement terminators (``;``), and dangerous
+        keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER, CREATE,
+        EXEC, EXECUTE, TRUNCATE). Valid example: ``"game_value > 0 AND mover IS NOT NULL"``.
 
     fields : List[str], optional
         A list of column names to include in the result.
