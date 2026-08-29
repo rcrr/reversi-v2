@@ -31,7 +31,7 @@ from enum import IntEnum
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from contextlib import contextmanager
-from typing import List, Callable, Any
+from typing import List, Callable
 from pathlib import Path
 import csv
 
@@ -89,6 +89,9 @@ class Worker:
     def down(self, context: Context) -> None:
         """Execute the backward (rollback) step logic."""
         self._down_callable(context)
+
+    def __repr__(self) -> str:
+        return f"Worker({self.name!r})"
 
 
 class StateMachine:
@@ -177,6 +180,14 @@ class StateMachine:
 
         self.log_event(Relevance.DEBUG, "StateMachine initialized.")
 
+    def __repr__(self) -> str:
+        # Lightweight on purpose: context, logs and history can hold
+        # large domain data; the essential state is the worker count,
+        # the current step and the verbosity (M7, D-068).
+        return (f"StateMachine(workers={len(self.workers)}, "
+                f"current_step={self.current_step}, "
+                f"verbosity={self.verbosity.name})")
+
     @contextmanager
     def _history_timer(self, step: int, worker_name: str, direction: str):
         start = datetime.now(timezone.utc)
@@ -198,8 +209,12 @@ class StateMachine:
             self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")            
             if direction == 'up':
                 worker.up(self.context)
-            else:
+            elif direction == 'down':
                 worker.down(self.context)
+            else:
+                raise ValueError(
+                    f"Unknown direction {direction!r}: "
+                    "expected 'up' or 'down'")
             self.log_event(Relevance.INFO, f"Completed {direction.upper()} step for {worker.name}")
         except Exception as e:
             self.log_event(Relevance.ERROR, f"Error in {worker.name} during {direction}: {str(e)}")
@@ -243,8 +258,13 @@ class StateMachine:
             print(f"{entry.step:<6} | {entry.worker_name:<15} | {entry.direction:<5} | {start_str:<26} | {dur:>15.6f}")
 
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
+        # Create missing parent directories so nested filenames work
+        # out of the box; a bare filename has parent '.', where
+        # mkdir(exist_ok=True) is a no-op (M10, D-068).
+        path = Path(filename)
+        path.parent.mkdir(parents=True, exist_ok=True)
         keys = ["step", "worker_name", "direction", "start_utc", "finish_utc", "duration_sec"]
-        with open(filename, "w", newline="") as f:
+        with open(path, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=keys)
             writer.writeheader()
             for entry in self.history:

@@ -439,6 +439,66 @@ class TestStateMachine(unittest.TestCase):
             if test_filename.exists():
                 test_filename.unlink()
 
+    def test_run_step_rejects_unknown_direction(self):
+        """The direction dispatch is explicit: only 'up' and 'down'
+        are valid; anything else raises ValueError without executing
+        the worker (M4, D-068)."""
+        with self.assertRaises(ValueError) as ctx:
+            self.sm._run_step(self.workers[1], "sideways")
+        self.assertIn("sideways", str(ctx.exception))
+        self.up_callables[1].assert_not_called()
+        self.down_callables[1].assert_not_called()
+
+    def test_worker_repr(self):
+        """Worker's repr shows the name (M7, D-068)."""
+        self.assertEqual(repr(self.workers[1]), "Worker('CONFIG')")
+
+    def test_state_machine_repr_tracks_state(self):
+        """StateMachine's repr is lightweight (no context, no logs,
+        no history) and tracks the current step (M7, D-068)."""
+        self.assertEqual(
+            repr(self.sm),
+            "StateMachine(workers=3, current_step=0, "
+            "verbosity=STANDARD)")
+        self.sm.move_to_step(2)
+        self.assertEqual(
+            repr(self.sm),
+            "StateMachine(workers=3, current_step=2, "
+            "verbosity=STANDARD)")
+        # a custom verbosity is reflected by name
+        sm = StateMachine(
+            [Worker("A", MagicMock(), MagicMock())],
+            Context(), Verbosity.NONE)
+        self.assertEqual(
+            repr(sm),
+            "StateMachine(workers=1, current_step=0, verbosity=NONE)")
+
+    def test_csv_export_creates_missing_parent_dirs(self):
+        """Missing parent directories are created (M10, D-068); the
+        artifact stays under workspace_root/build/tmp and is removed
+        afterwards (house rule, D-065)."""
+        self.sm.move_to_step(1)
+
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        nested_dir = TMP_DIR / "nested" / "deeper"
+        csv_path = nested_dir / "history.csv"
+        try:
+            self.assertFalse(csv_path.parent.exists())
+            self.sm.export_history_of_moves_as_csv(csv_path)
+            self.assertTrue(csv_path.is_file())
+            with open(csv_path) as f:
+                lines = f.read().splitlines()
+            self.assertEqual(
+                lines[0],
+                "step,worker_name,direction,start_utc,"
+                "finish_utc,duration_sec")
+            self.assertEqual(len(lines), 2)  # header + the 1 executed step
+        finally:
+            csv_path.unlink(missing_ok=True)
+            if nested_dir.exists():
+                nested_dir.rmdir()
+                nested_dir.parent.rmdir()
+
 
 class TestLogEntry(unittest.TestCase):
     """Log records are typed frozen dataclasses (R2, D-058)."""
