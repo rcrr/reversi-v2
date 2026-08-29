@@ -854,3 +854,37 @@ D-053 | 2026-08-29 | opt_lbfgs analysis complete: 5 verified facts (V1-V5,
        method. New tests: TestLBFGSInputValidation (3), TestFixedSizeMaxList
        (4, incl. T1 regression), TestTwoLoopRecursion (2). Suite 4 -> 13/0/0
        GREEN. OPT_LBFGS MODULE DONE.
+
+D-054 | 2026-08-29 | Rigid per-section format for NOTES.md + the
+        session journal, rule written at the top of each file (the
+        journal's block was later moved to notes/log_rules.md): fixed
+        seven-section order for NOTES.md; suite numbers pinned to
+        total/failures/skipped (= unittest "Ran N"); one
+        "## YYYY-MM-DD — session N (title)" per session with a GLOBAL
+        monotonically increasing N (never reset), mandatory title,
+        0/2 bullet indentation, "Session closed (Roberto)." bullets.
+        One-off renumbering of the historical per-day labels (08-26
+        "session 1" → 3; 08-27 "1-5" → 4-8; nested "Session 11-14"
+        bullets → own sections 14-17); cross-refs renumbered to match
+        (ideas.md, 6 docs headers).
+        | Roberto's report: format drift in NOTES/log had caused
+        repeated update mistakes. A mechanical format with the rule
+        written in place makes future updates deterministic and
+        verifiable. The rewrite was verified against the live suites
+        (398 tests GREEN).
+
+D-055 | 2026-08-29 | Session journal rotates into volumes: log.md →
+        log_000.md (sessions 1-17 at rotation time) + log_001.md, ...;
+        a volume holds at most 25 sessions or 2000 lines (whichever
+        first); rotation only at session boundaries (a volume jump
+        never cuts a session); the global session counter never
+        restarts across volumes; format rules consolidated in
+        notes/log_rules.md (single source of truth); each volume
+        starts with H1 "volume 00N (sessions X–...)" + one pointer
+        line.
+        | Roberto's proposal, refined per agent opinion: unbounded
+        growth (≈50 lines/session) would make the journal hard to read
+        and costly for agent context; closed volumes are natural era
+        boundaries and enforce immutability of history; a
+        session-count trigger is deterministic (line counts drift with
+        re-wrapping), the line cap is a backstop.

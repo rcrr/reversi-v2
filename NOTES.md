@@ -229,7 +229,8 @@ now (I-001; see notes/decisions.md).
   in src/twolm/test/. Environment: .venv with the pinned deps (D-010,
   D-051, D-052), twolm installed editable (D-011). Git repo on
   master (D-003). Collaboration memory: AGENTS.md (auto-injected) +
-  this file + notes/.
+  this file + notes/ (journal in rotating volumes
+  log_NNN.md, format rules in log_rules.md — D-055).
 
 ## Next steps
 
@@ -293,4 +294,4 @@ now (I-001; see notes/decisions.md).
 - notes/decisions.md — decisions log (D-NNN; D-001…D-053)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
-- notes/log_000.md — session journal, volume 000 (sessions 1–17)
+- notes/log_000.md — session journal, volume 000 (sessions 1–..., open)
