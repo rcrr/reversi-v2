@@ -123,6 +123,7 @@ D-014 | 2026-08-26 | D8 board symmetries canonized in notes/naming.md:
        diagrams under a non-canonical convention (row 1 at the bottom)
        — the same root cause as T08/D-013. Standing records in
        notes/naming.md + AGENTS.md make the concept permanent.
+
 D-015 | 2026-08-26 | `position_final_value` diff<0 OverflowError fixed;
         `bitboard_count` annotated `-> np.uint8` (T22, report §3-D/§8)
        | Real bug, found by probe while adding the missing WOFC branch
@@ -145,6 +146,7 @@ D-015 | 2026-08-26 | `position_final_value` diff<0 OverflowError fixed;
        the 3 missing WOFC branch tests (draw 1v1 -> 0; opponent leads
        1v8, 55 empties -> -62, crashed pre-fix; full board 33v31 -> 2).
        Suite 157 -> 160 tests, GREEN.
+
 D-016 | 2026-08-26 | `legal_moves` dispatch dtype branch is dead code —
        removed (T25, report §7.3.1)
        | Probe-verified: the `raise TypeError("The dtype of mover and
@@ -166,6 +168,7 @@ D-016 | 2026-08-26 | `legal_moves` dispatch dtype branch is dead code —
        shape mismatch -> ValueError, message pinned; non-uint64 array
        -> ValidationError; mixed scalar/array -> TypeError, message
        pinned). Suite 163 -> 167 tests, GREEN.
+
 D-017 | 2026-08-26 | R1 resolved "docstring follows the code":
        `position_make_move` illegal-move contract is None (T36/T37)
        | `position_make_move` had a three-way inconsistency: the
@@ -184,6 +187,7 @@ D-017 | 2026-08-26 | R1 resolved "docstring follows the code":
        residual from the original C in-place idiom; the only internal
        caller (`position_is_game_over`, PA swap) is unaffected. docs
        updated (board.md R1 marked resolved). Suite GREEN: 167/0/12.
+
 D-018 | 2026-08-26 | R3 resolved: explicit `move == 64` pass check in
        `position_is_move_legal` (T38)
        | `position_is_move_legal` detected the pass move (code 64)
@@ -205,6 +209,7 @@ D-018 | 2026-08-26 | R3 resolved: explicit `move == 64` pass check in
        pins (pass legal iff no legal moves, Move(65)/Move(66) illegal,
        move_as_bitboard 64/65/66 -> 0) all pass as before. Suite
        GREEN: 167/0/12.
+
 D-019 | 2026-08-27 | pattern.py: review-only session, all fixes deferred
        to a dedicated session; test_pattern.py analysis deferred too
        | Roberto's explicit scope for the pattern module session:
@@ -228,6 +233,7 @@ D-019 | 2026-08-27 | pattern.py: review-only session, all fixes deferred
        regression test. Note for the fix session: R1 is the only
        non-mechanical issue; R2-R8 and the minor list are mechanical
        (doc corrections, dead import, __all__ entry, endianness).
+
 D-020 | 2026-08-27 | R1 resolved: principal mask = numerically lowest
        orbit mask (option (a))
        | Roberto's decision after the R1 discussion: the intent is a
@@ -264,6 +270,7 @@ D-021 | 2026-08-27 | R2-R7 resolved: docstring/hygiene fixes (code
        import now exports it, verified). R7: stale comment
        "compute_indexes_on_board" -> "compute_indexes_on_position and the
        PatternSet pipeline". No behavior change; full suite stays GREEN.
+
 D-022 | 2026-08-27 | R8 closed: no code change; engine documented as
        little-endian-only
        | User rejected the proposed big-endian hash fix: the legacy
