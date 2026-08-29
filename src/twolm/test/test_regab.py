@@ -90,6 +90,8 @@ class BaseTestCase(unittest.TestCase):
         Runs before each individual test. 
         Loads credentials and initializes the database connection.
         """
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
         load_dotenv()
         self.dbname = os.getenv('DB_NAME')
         self.user = os.getenv('DB_USER')
