@@ -1120,3 +1120,20 @@ D-065 | 2026-08-29 | state_machine T5 resolved (session 19, fix
         garbage either. No source change; suite count unchanged
         (35 — T5 is a rewrite, not an addition). Suite 35/0/0
         GREEN; full discover 433, 52 skipped.
+
+D-066 | 2026-08-29 | state_machine T7 resolved (session 19, fix
+        campaign item 10, approved by Roberto: "procedi con T7"):
+        2 new tests in TestStateMachine pin the bool/np.int64 index
+        edge (no source change — test-only).
+        test_bool_accepted_as_int_step: move_to_step(True) is
+        silently accepted as step 1 (bool is a subclass of int and
+        passes the isinstance(target_step, int) check) — up[1]
+        executes; back at 0, move_to_step(False) is a same-step
+        no-op (no callables, no new history entry).
+        test_numpy_int64_rejected: np.int64 is NOT a Python int
+        subclass, so move_to_step(np.int64(1)) raises TypeError
+        ("target_step must be an integer index or a string worker
+        name.") — the V7 behaviour. The optional one-line strict
+        guard for bool (M3) remains Roberto's call in the M-sweep;
+        the pins document the current behaviour either way.
+        Suite 35 -> 37/0/0 GREEN; full discover 435, 52 skipped.

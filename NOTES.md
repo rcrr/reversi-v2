@@ -41,8 +41,8 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_regab.py | analyzed 2026-08-29 (session 15); T5+T6+T7 applied (D-052): dead imports removed, SKIP_REGAB_DB gate, 4 SQL-injection tests added (TestRegabGPAsDF 12 → 16); suite 33 → 37/0/0 GREEN | docs/src/twolm/test/test_regab.md |
 | src/twolm/opt_lbfgs.py | analyzed 2026-08-29 (session 16); T1-T7 fix batch applied (D-053: RuntimeException → RuntimeError hard bug, CURVATURE_THRESHOLD used, low_progress_count spelling, hermite None fallthrough, save_fn 7-param hint+docstring, fractional docstring); 5 verified facts V1-V5 (0 mismatches); suite 13/0/0 GREEN | docs/src/twolm/opt_lbfgs.md |
 | src/twolm/test/test_opt_lbfgs.py | analyzed 2026-08-29 (session 16); T7 applied + 9 new tests (D-053): TestLBFGSInputValidation (3), TestFixedSizeMaxList (4, incl. T1 regression), TestTwoLoopRecursion (2); suite 4 → 13/0/0 GREEN | docs/src/twolm/test/test_opt_lbfgs.md |
-| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4 RESOLVED (D-060: keep + document + pin — failure semantics in move_to_step docstring, recovery = move to k-1 (k's down) then up; machine domain-agnostic, exception re-raised for the domain worker; pinned by test_retry_after_failure_skips_failed_step, closes T6); R5 RESOLVED (D-061: __init__ rejects duplicate worker names, case-insensitive ValueError fail-fast — the real ambiguity was name resolution in move_to_step itself, so uniqueness enforced instead of an index fix; move_to_last unchanged, name dispatch now unambiguous; closes M12); T2 coverage added (D-062: TestContextInjection 7 tests; M8 extended with the implicit separator contract); T3 coverage added (D-063: TestDisplayGoldens 3 end-to-end display goldens, frozen clock); T4 coverage added (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 fixed (D-065: CSV test rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp; new house rule: test files only in workspace_root/build/tmp, removed afterwards); minors M1-M11 (M2, M12 done) OPEN; suite 35/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
-| src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 5 classes / 35 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T6 FIXED (D-060: test_retry_after_failure_skips_failed_step — retry-skip + down-then-up recovery); R5 tests added (D-061: 2 duplicate-name tests — reject + case-insensitive, closes T10); T2 FIXED (D-062: TestContextInjection 7 tests — log_event live binding, {level:02} format, base_dir join, absolute-prefix drops base_dir, cfg-missing AttributeError, empty-workers degenerate, V17 shared-context re-bind); T3 FIXED (D-063: TestDisplayGoldens 3 end-to-end goldens — live line, show_event_log table, show_history_of_moves table, frozen clock); T4 FIXED (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 FIXED (D-065: test_history_export_csv rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp + finally cleanup; house rule: test files only in workspace_root/build/tmp); T11 resolved as D-058 side effect; defects T7-T9 OPEN (remaining: bool/np.int64 edge, current_worker_name, StepMove field content); suite count unchanged (T5 is a rewrite, not an addition): 13 → 15 → 18 → 20 → 22 → 29 → 32 → 35, GREEN 35/0/0 | docs/src/twolm/test/test_state_machine.md |
+| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4 RESOLVED (D-060: keep + document + pin — failure semantics in move_to_step docstring, recovery = move to k-1 (k's down) then up; machine domain-agnostic, exception re-raised for the domain worker; pinned by test_retry_after_failure_skips_failed_step, closes T6); R5 RESOLVED (D-061: __init__ rejects duplicate worker names, case-insensitive ValueError fail-fast — the real ambiguity was name resolution in move_to_step itself, so uniqueness enforced instead of an index fix; move_to_last unchanged, name dispatch now unambiguous; closes M12); T2 coverage added (D-062: TestContextInjection 7 tests; M8 extended with the implicit separator contract); T3 coverage added (D-063: TestDisplayGoldens 3 end-to-end display goldens, frozen clock); T4 coverage added (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 fixed (D-065: CSV test rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp; new house rule: test files only in workspace_root/build/tmp, removed afterwards); T7 pinned (D-066: 2 tests — bool accepted as int step, np.int64 TypeError); minors M1-M11 (M2, M12 done) OPEN; suite 37/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
+| src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 5 classes / 35 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T6 FIXED (D-060: test_retry_after_failure_skips_failed_step — retry-skip + down-then-up recovery); R5 tests added (D-061: 2 duplicate-name tests — reject + case-insensitive, closes T10); T2 FIXED (D-062: TestContextInjection 7 tests — log_event live binding, {level:02} format, base_dir join, absolute-prefix drops base_dir, cfg-missing AttributeError, empty-workers degenerate, V17 shared-context re-bind); T3 FIXED (D-063: TestDisplayGoldens 3 end-to-end goldens — live line, show_event_log table, show_history_of_moves table, frozen clock); T4 FIXED (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 FIXED (D-065: test_history_export_csv rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp + finally cleanup; house rule: test files only in workspace_root/build/tmp); T7 pinned (D-066: 2 tests — bool as int step, np.int64 TypeError); T11 resolved as D-058 side effect; defects T8, T9 OPEN (remaining: current_worker_name, StepMove field content); suite count unchanged for T5 (a rewrite): 13 → 15 → 18 → 20 → 22 → 29 → 32 → 35 → 37, GREEN 37/0/0 | docs/src/twolm/test/test_state_machine.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -97,7 +97,7 @@ now (I-001; see notes/decisions.md).
 - Suite status (2026-08-29): board 193/0/12, pattern 64/0/3,
   mobility 26/0/1, feature 20/0/1, binio 45/0/0 (42 + 3 usage),
   regab 37/0/0 (2 mocked run, 35 DB skipped under SKIP_REGAB_DB=1),
-  opt_lbfgs 13/0/0, state_machine 35/0/0 — all GREEN. Totals: 433
+  opt_lbfgs 13/0/0, state_machine 37/0/0 — all GREEN. Totals: 435
   tests, 52 skipped under the gate (17 PERF=1 print-only performance
   tests + 35 DB-gated regab tests; no performance gates in any suite,
   D-036). Warm run ≈ 0.5 s (board) / ≈ 1.6 s (full discover, numba
@@ -258,10 +258,11 @@ now (I-001; see notes/decisions.md).
   no-op); T5 fixed (D-065: CSV test rewritten — header names,
   ISO-8601 +00:00, duration identity, artifact under build/tmp;
   new house rule: test files only in workspace_root/build/tmp,
-  removed afterwards). Fix campaign: next T7-T9, then M-sweep.
-  Suite 35/0/0 GREEN.
+  removed afterwards); T7 pinned (D-066: 2 tests — bool as int
+  step, np.int64 TypeError). Fix campaign: next T8, T9, then
+  M-sweep. Suite 37/0/0 GREEN.
 - test_state_machine.py: analyzed 2026-08-29 (session 19,
-  docs/src/twolm/test/test_state_machine.md): 5 classes / 35 tests /
+  docs/src/twolm/test/test_state_machine.md): 5 classes / 37 tests /
   no PERF; all 13 original expectations independently re-derived
   (0 mismatches) — core move mechanics well pinned (up/down
   asymmetry, failure semantics, same-step no-op, bounds/type/name
@@ -281,8 +282,10 @@ now (I-001; see notes/decisions.md).
   FIXED (D-064: 3 move_to_last tests; suite 32 → 35); T5 FIXED
   (D-065: CSV test rewritten — header names, ISO-8601 +00:00,
   duration identity, artifact under build/tmp; suite count
-  unchanged); T11 resolved as D-058 side effect; T7-T9 OPEN.
-  Fix campaign: next T7-T9, then M-sweep. Suite 35/0/0 GREEN.
+  unchanged); T7 pinned (D-066: 2 tests — bool as int step,
+  np.int64 TypeError; suite 35 → 37); T11 resolved as D-058 side
+  effect; T8, T9 OPEN. Fix campaign: next T8, T9, then M-sweep.
+  Suite 37/0/0 GREEN.
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -315,7 +318,7 @@ now (I-001; see notes/decisions.md).
   'environmeant' typo itself fixed 2026-08-29, D-050).
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 - Next: state_machine fix campaign item by item — R1-R5 all resolved
-  (D-057..D-065); next: T7-T9 (T1-T6/T10/T11 done), then M-sweep (M1-M11; M2, M12 done)
+  (D-057..D-066); next: T8, T9 (T1-T7/T10/T11 done), then M-sweep (M1-M11; M2, M12 done)
   (docs/src/twolm/state_machine.md + docs/src/twolm/test/
   test_state_machine.md).
 
@@ -372,18 +375,18 @@ now (I-001; see notes/decisions.md).
   names enforced in __init__, closes M12), T2 coverage D-062 (context
   injection pinned; M8 separator contract), T3 goldens D-063 (display
   layer pinned), T4 coverage D-064 (move_to_last pinned), T5 D-065
-  (CSV test rewritten; build/tmp house rule), M1-M11 (M2 done)
-  OPEN; suite 35/0/0 GREEN)
+  (CSV test rewritten; build/tmp house rule), T7 pinned D-066
+  (bool/np.int64 edge), M1-M11 (M2 done) OPEN; suite 37/0/0 GREEN)
 - docs/src/twolm/test/test_state_machine.md — test_state_machine.py
-  analysis (35 tests, expectations re-derived, T1 fixed D-057,
+  analysis (37 tests, expectations re-derived, T1 fixed D-057,
   TestLogEntry + sentinel pin + retry pin + 2 duplicate-name + 7
-  context-injection + 3 display-goldens + 3 move_to_last tests added
-  D-058/D-059/D-060/D-061/D-062/D-063/D-064, CSV test rewritten
-  D-065, T11/T6/T10/T2/T3/T4/T5 resolved, T7-T9 OPEN, P0/P1/P2
-  priorities proposed)
+  context-injection + 3 display-goldens + 3 move_to_last + 2
+  bool/np.int64 pin tests added D-058/D-059/D-060/D-061/D-062/
+  D-063/D-064/D-066, CSV test rewritten D-065, T11/T6/T10/T2/T3/
+  T4/T5/T7 resolved, T8/T9 OPEN, P0/P1/P2 priorities proposed)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-065)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-066)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)
