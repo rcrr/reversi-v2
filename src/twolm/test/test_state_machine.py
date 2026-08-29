@@ -299,6 +299,32 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.history), 1)
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
 
+    def test_bool_accepted_as_int_step(self):
+        """bool is a subclass of int: True -> step 1, False -> step
+        0 no-op (M3: pinning the current behaviour; no strictness
+        guard yet — Roberto's call in the M-sweep)."""
+        self.sm.move_to_step(True)
+        self.assertEqual(self.sm.current_step, 1)
+        self.up_callables[1].assert_called_once_with(self.context)
+        # back to 0 so that False is a same-step no-op
+        self.sm.move_to_step(0)
+        for mock in self.up_callables + self.down_callables:
+            mock.reset_mock()
+        self.sm.move_to_step(False)
+        self.assertEqual(self.sm.current_step, 0)
+        for mock in self.up_callables + self.down_callables:
+            mock.assert_not_called()
+        # no extra history entry for the no-op (only the two moves)
+        self.assertEqual(len(self.sm.history), 2)
+
+    def test_numpy_int64_rejected(self):
+        """np.int64 is NOT a Python int subclass: TypeError (V7)."""
+        import numpy as np
+        with self.assertRaises(TypeError) as ctx:
+            self.sm.move_to_step(np.int64(1))
+        self.assertIn("integer index or a string worker name",
+                      str(ctx.exception))
+
     def test_history_export_csv(self):
         """Test exporting history to a CSV file (T5, D-065): header
         names, ISO-8601 +00:00 timestamps, duration identity, and the
