@@ -1161,3 +1161,30 @@ D-067 | 2026-08-29 | state_machine T8 + T9 resolved together
         (T1-T11) are resolved; the remaining work is the source-side
         M-sweep. Suite 37 -> 42/0/0 GREEN; full discover 440, 52
         skipped.
+
+D-068 | 2026-08-29 | state_machine M-sweep batch 1: M1 + M4 + M7 +
+        M10 resolved (session 19, fix campaign item 12, approved by
+        Roberto: "Fai M1, M4, M7, M10 poi mi spieghi meglio gli
+        altri"): 4 source changes, all hygiene, no behaviour change
+        for valid input. M1: the dead `Any` import is removed
+        (V15). M4: _run_step's direction dispatch is made explicit
+        — `elif direction == 'down'` and anything else raises
+        ValueError ("Unknown direction ...: expected 'up' or
+        'down'") instead of the implicit else-as-down; the new
+        ValueError is caught by the existing except block (ERROR
+        log + re-raise), consistent with a worker failure.
+        M7: __repr__ added — Worker: Worker('NAME'); StateMachine:
+        StateMachine(workers=N, current_step=K, verbosity=LEVEL),
+        deliberately lightweight (context, logs and history can
+        hold large domain data and are excluded). M10:
+        export_history_of_moves_as_csv now calls
+        path.parent.mkdir(parents=True, exist_ok=True) before the
+        open — nested filenames work out of the box; a bare
+        filename has parent '.', where the mkdir is a no-op.
+        4 new tests: test_run_step_rejects_unknown_direction
+        (M4), test_worker_repr + test_state_machine_repr_tracks_state
+        (M7), test_csv_export_creates_missing_parent_dirs (M10;
+        artifact under build/tmp, D-065 house rule). Suite 42 ->
+        46/0/0 GREEN; full discover 444, 52 skipped. Remaining M
+        items: M3, M5, M6, M8, M9, M11 (M2, M12 done); M3, M5, M8,
+        M11 are Roberto's call items.

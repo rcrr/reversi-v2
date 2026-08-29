@@ -1,6 +1,6 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (32 tests, 5
+Date: 2026-08-29. One test file: `test_state_machine.py` (46 tests, 5
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
@@ -16,16 +16,21 @@ together with the new house rule: test artifacts are written only
 under `workspace_root/build/tmp` and removed afterwards;
 T7 resolved with 2 new bool/np.int64 pin tests (D-066);
 T8 + T9 resolved together with 5 new tests (D-067:
-current_worker_name + StepMove field content). **All T items
-resolved; the M-sweep remains.**
+current_worker_name + StepMove field content); M-sweep: M1 + M4 +
+M7 + M10 applied with 4 new `TestStateMachine` tests (D-068:
+explicit direction dispatch, `__repr__` on Worker/StateMachine,
+CSV export creates missing parent dirs). **All T items resolved;
+M-sweep in progress: M1, M4, M7, M10 done (D-068) — M3, M5, M6,
+M8, M9, M11 remain (M2, M12 done).**
 
-Suite: **42/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **46/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
 pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
 context-injection tests, → 32 with the D-063 display goldens, → 35
 with the D-064 move_to_last pins, → 37 with the D-066
 bool/np.int64 pins, → 42 with the D-067 current_worker_name +
-StepMove pins). Fast (~0.18s).
+StepMove pins, → 46 with the D-068 M-sweep pins (M4 dispatch, M7
+repr, M10 CSV parent dirs). Fast (~0.25s).
 
 ## How to run
 
@@ -35,7 +40,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (27 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066 + 5 D-067)
+### `TestStateMachine` (31 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066 + 5 D-067 + 4 D-068)
 
 | Test | What it pins |
 |---|---|
@@ -66,6 +71,10 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_history_export_csv` (rewritten D-065) | 2 moves (0→2, 2→0) → CSV with 4 rows; exact header field names (`step,worker_name,direction,start_utc,finish_utc,duration_sec`); row 0 = step 1 CONFIG/up; row 3 = step 1 CONFIG/down; every row: ISO-8601 `+00:00` aware-UTC timestamps (parsed back, `tzinfo` non-None) and `duration_sec == finish - start`. Artifact under `workspace_root/build/tmp`, removed in `finally`. |
 | `test_duplicate_worker_names_raise` (D-061) | Two workers both named `"A"` → `ValueError` at construction, message contains "Duplicate worker name". |
 | `test_duplicate_worker_names_case_insensitive` (D-061) | Workers `"CONFIG"` + `"config"` → same `ValueError`: the uniqueness check is case-insensitive, matching the case-insensitive name resolution. |
+| `test_run_step_rejects_unknown_direction` (D-068) | `_run_step`'s direction dispatch is explicit: `"sideways"` → `ValueError` (the bad value in the message) and neither `up` nor `down` callable runs (M4). |
+| `test_worker_repr` (D-068) | `repr(workers[1]) == "Worker('CONFIG')"` (M7). |
+| `test_state_machine_repr_tracks_state` (D-068) | `repr(sm)` is the compact state summary `workers=3, current_step=0, verbosity=STANDARD`, tracks `current_step` after a move, and reflects a custom verbosity by name (`NONE`); context/logs/history are not in it (M7). |
+| `test_csv_export_creates_missing_parent_dirs` (D-068) | A nested filename under `build/tmp` (parents absent) is created by the export; header + 1 row verified; artifact and its dirs removed in `finally` (M10; D-065 house rule). |
 
 ### `TestLogEntry` (3 tests, added D-058)
 
@@ -255,9 +264,12 @@ layer goldens (D-063), retry-after-failure (D-060), duplicate names
 (D-061), the context injection layer — the module's main
 integration surface with domain workers (D-062), the CSV export
 contract (D-065), the bool/np.int64 index edge (D-066), and
-`current_worker_name` + the `StepMove` field content (D-067).
-Nothing remains in the T list; the open work is the source-side
-M-sweep.
+`current_worker_name` + the `StepMove` field content (D-067), and
+the M-sweep pins (D-068: explicit `_run_step` direction dispatch,
+`__repr__` on Worker/StateMachine, CSV parent-dir creation).
+Nothing remains in the T list; the open work is the rest of the
+source-side M-sweep (M3, M5, M6, M8, M9, M11 — M1, M4, M7, M10
+done in D-068).
 
 ## Proposed priorities
 
@@ -266,5 +278,7 @@ M-sweep.
 - **P1**: T3 — done (D-063); T4 — done (D-064); T6 — done (D-060);
   R4 — resolved (D-060).
 - **P2**: all done — T5 (D-065), T7 (D-066), T8 + T9 (D-067), T11
-  (D-058 side effect), T10 (D-061) — + the M-sweep (dead imports,
-  cosmetics, doc notes, repr; M12 closed with D-061).
+  (D-058 side effect), T10 (D-061) — + M-sweep: M1, M4, M7, M10
+  done (D-068), M12 closed with D-061; remaining: M3 (bool guard),
+  M5 (rename), M6 (cosmetic print), M8 (separator hardening), M9
+  (injection side effect), M11 (@validate_call confirmation).

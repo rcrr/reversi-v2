@@ -6,13 +6,14 @@ fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
-**All five R items closed; all T items closed** — the M-sweep
-remains.**
+**All five R items closed; all T items closed; M-sweep: M1, M4,
+M7, M10 fixed (D-068) — M3, M5, M6, M8, M9, M11 remain (M2, M12
+done).**
 
-Suite: **42 tests, GREEN 42/0/0** (5 classes, no PERF gates). Suite is
-fast (~0.18s).
+Suite: **46 tests, GREEN 46/0/0** (5 classes, no PERF gates). Suite is
+fast (~0.25s).
 
-Full workspace: **440 tests, GREEN, 52 skipped under
+Full workspace: **444 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -35,15 +36,15 @@ subclass/instantiate it.
 | `Verbosity(IntEnum)` HIGH=0 … NONE=4 | Minimum-relevance gate for `log_event` printing. |
 | `Relevance(IntEnum)` TRACE=0 … ERROR=4 | Relevance level of a log event. |
 | `Context` | Empty base class for pipeline contexts; shared state passed between workers. |
-| `Worker(name, up_callable, down_callable)` | One pipeline step; composition over the forward (`up`) and rollback (`down`) callables. |
+| `Worker(name, up_callable, down_callable)` | One pipeline step; composition over the forward (`up`) and rollback (`down`) callables; `__repr__` shows the name (D-068). |
 | `StateMachine.StepMove` (dataclass) | One executed step: step, worker_name, direction, start, finish, duration. |
 | `StateMachine.LogEntry` | Frozen dataclass: typed record for one logged event (time, step, worker_name, relevance, message); `asdict()` gives the dict form for file/DB dumps (D-058). |
 | `StateMachine.__init__` | Stores workers/context/verbosity; injects `log_event` + two cache-path helpers onto the context; emits the init DEBUG log. |
 | `StateMachine._history_timer` | Context manager appending a `StepMove` in `finally` (failure included). |
-| `StateMachine._run_step` | Logs "Starting …", calls `up`/`down`, logs "Completed …"; on exception logs ERROR and re-raises. |
+| `StateMachine._run_step` | Logs "Starting …", dispatches `up`/`down` (explicit: any other direction string raises `ValueError`, D-068), logs "Completed …"; on exception logs ERROR and re-raises. |
 | `StateMachine.log_event` | Always appends to `self.logs`; prints iff `relevance >= verbosity`. |
 | `show_event_log` / `show_history_of_moves` | Terminal pretty-printers of logs / history. |
-| `export_history_of_moves_as_csv` | Writes the history as CSV (ISO-8601 UTC timestamps, float durations). |
+| `export_history_of_moves_as_csv` | Writes the history as CSV (ISO-8601 UTC timestamps, float durations); creates missing parent dirs (D-068). |
 | `move_to_step(int \| str)` | The public move API: int index (case-insensitive worker name accepted too); walks half-open intervals; sets `current_step` **before** each step executes. |
 | `move_to_last` | `move_to_step(workers[-1].name)` — name-based, see R5. |
 
@@ -118,7 +119,7 @@ cited.
 | V12 | Live print: `[{ts}] [{step:02}][{name:15}] [{rel}:{verb}] {msg}` with numeric enum values and no UTC marker in the displayed timestamp | Regex on captured line |
 | V13 | `show_event_log`: "EVENT LOG" banner + `TIMESTAMP | STEP | WORKER | R | MESSAGE` (step 4-digit); `show_history_of_moves`: `Step | Worker | Dir | Start (UTC) | Dur (s)` (microsecond start, 6-decimal duration) | Captured output |
 | V14 | `StepMove.start`/`.finish` tz-aware UTC; `duration == finish - start`; history entry appended in `finally` even on failure | Probe + existing test |
-| V15 | Dead import: `Any` (state_machine.py L34); the test file's `datetime` import is now used by `TestLogEntry` (D-058, was dead at analysis time) | Source scan |
+| V15 | Dead import: `Any` (state_machine.py L34 — removed by D-068); the test file's `datetime` import is now used by `TestLogEntry` (D-058, was dead at analysis time) | Source scan |
 | V16 | Invalid target: IndexError (≥len or negative), ValueError (unknown name), TypeError (other types incl. float) | Edge-case probes |
 | V17 | A context shared by two machines: the second `__init__` **re-binds** `log_event` + both cache helpers to itself (unconditional assignment) | `__self__` inspection |
 
@@ -212,7 +213,7 @@ impossible at construction); V8 restated. Pinned by
 
 ## Minor notes (M1–M12)
 
-- **M1** — Dead import `Any` (L34).
+- **M1** — Dead import `Any` (L34) — RESOLVED (D-068): removed.
 - **M2** — Dead import `datetime` in test_state_machine.py —
   RESOLVED as a side effect of D-058 (now used by `TestLogEntry`).
 - **M3** — `move_to_step` accepts `bool` (True→1, False→0 no-op);
@@ -220,8 +221,11 @@ impossible at construction); V8 restated. Pinned by
   guard if strictness is wanted; otherwise document. Pinned by
   D-066 (test_bool_accepted_as_int_step + test_numpy_int64_rejected)
   — the guard decision stays with Roberto in the M-sweep.
-- **M4** — `_run_step`'s `else` branch treats any non-`'up'` direction
-  string as down (L199-202). Private, only 'up'/'down' are ever passed.
+- **M4** — `_run_step`'s `else` branch treated any non-`'up'`
+  direction string as down (L199-202) — RESOLVED (D-068): the
+  dispatch is now explicit (`elif direction == 'down'`, anything
+  else raises `ValueError`); no behaviour change for valid input.
+  Pinned by `test_run_step_rejects_unknown_direction`.
 - **M5** — Injected names `get_cache_file_path_for_next_level` /
   `get_cache_file_full_path_for_next_level` contradict their own
   docstrings ("currently executing worker"). Renaming is port-breaking
@@ -231,8 +235,14 @@ impossible at construction); V8 restated. Pinned by
   vs 2 in the live log line; `show_history_of_moves` header `Dur (s)`
   left-14 vs values right-15.6f; no UTC marker on the displayed
   timestamp; `[rel:verb]` prints numeric enum values, not names.
-- **M7** — No `__repr__` on `Worker`/`StateMachine` (house hygiene).
-  `LogEntry` now has the dataclass `__repr__` (D-058).
+- **M7** — No `__repr__` on `Worker`/`StateMachine` (house
+  hygiene) — RESOLVED (D-068): `Worker.__repr__` →
+  `Worker('NAME')`; `StateMachine.__repr__` →
+  `StateMachine(workers=N, current_step=K, verbosity=LEVEL)` —
+  deliberately lightweight (context, logs and history can hold
+  large domain data and are excluded). Pinned by
+  `test_worker_repr` + `test_state_machine_repr_tracks_state`.
+  `LogEntry` has the dataclass `__repr__` (D-058).
 - **M8** — Cache-helper contract lives only in inline comments:
   `context.cfg` must carry `cache_files_prefix` + `base_dir` (bare
   `getattr`, no default); absolute `cache_files_prefix` silently drops
@@ -245,9 +255,13 @@ impossible at construction); V8 restated. Pinned by
 - **M9** — `__init__` mutates the caller's context (injection is a
   side effect); a shared context re-binds to the **last** machine built
   on it (V17).
-- **M10** — `export_history_of_moves_as_csv`: no parent-dir creation
-  (a path with missing dirs → `FileNotFoundError`); tested only for
-  row count + 4 cell values.
+- **M10** — `export_history_of_moves_as_csv`: no parent-dir
+  creation (a path with missing dirs → `FileNotFoundError`) —
+  RESOLVED (D-068): `path.parent.mkdir(parents=True, exist_ok=True)`
+  before the `open` (a bare filename has parent `.`, where the mkdir
+  is a no-op). Pinned by
+  `test_csv_export_creates_missing_parent_dirs` (artifact under
+  build/tmp, D-065 house rule).
 - **M11** — No `@validate_call`/input validation on any public
   function (deviation from the house convention; the module is
   deliberately pure stdlib — confirm the deviation is intentional).
@@ -282,37 +296,41 @@ Ran 13 tests in 0.026s
 OK
 ```
 
-## Appendix: line-number reference (2026-08-29, post R1–R5 fixes
-D-057–D-061; all line numbers grep-verified 2026-08-29, file 321 lines)
+## Appendix: line-number reference (2026-08-29, post M-sweep D-068
+— M1, M4, M7, M10; all line numbers grep-verified 2026-08-29, file
+341 lines)
 
 - `__all__`: L40
 - `Verbosity`: L44 (VERY_LOW: L53, NONE: L54) · `Relevance`: L56 ·
   `Context`: L66
-- `Worker.__init__`: L80 · `up`: L85 · `down`: L89
-- `StateMachine` class docstring (state model + sentinel): L95-107
-- `StateMachine.StepMove`: L109-116 (@dataclass L109, class L110) ·
-  `StateMachine.LogEntry`: L118-128 (@dataclass(frozen=True) L118,
-  class L119, fields L124-128)
-- `StateMachine.__init__`: L130 (duplicate-name check: L134-145,
+- `Worker.__init__`: L80 · `up`: L85 · `down`: L89 · `__repr__`: L93
+  (D-068)
+- `StateMachine` class docstring (state model + sentinel): L98-110
+- `StateMachine.StepMove`: L112-119 (@dataclass L112, class L113) ·
+  `StateMachine.LogEntry`: L121-131 (@dataclass(frozen=True) L121,
+  class L122, fields L127-131)
+- `StateMachine.__init__`: L133 (duplicate-name check: L137-148,
   D-061)
-- context.log_event injection: L154
-- `_get_cache_file_path`: L156 (level = current_step: L161; cfg
-  prefix: L164)
-- `get_cache_file_path_for_next_level` injection: L168
-- `_get_cache_file_full_path`: L170 (base_dir join: L173-174);
-  injection: L176
-- init log: L178
-- `_history_timer` (finally append): L180-194
-- `_run_step`: L196 (direction dispatch: L199-202; error log+raise:
-  L205-206)
-- `current_worker_name`: L209 ("UNDEFINED": L211)
-- `log_event`: L214 (LogEntry construction: L217-223; append: L224;
-  gate `>=`: L225; print: L227)
-- `show_event_log`: L229 · `show_history_of_moves`: L237
-- `export_history_of_moves_as_csv`: L245 (fieldnames: L246)
-- `move_to_step`: L260 (docstring: L261-279, incl. failure
-  semantics; string→upper: L281; name lookup: L282; TypeError:
-  L287-288; IndexError: L290-291; same-step no-op: L293-294; up
-  range: L296-298; down range: L299-301; pre-exec step update:
-  L306; down final set: L312-313)
-- `move_to_last`: L315 (name-based call: L321)
+- context.log_event injection: L157
+- `_get_cache_file_path`: L159 (level = current_step: L164; cfg
+  prefix: L167)
+- `get_cache_file_path_for_next_level` injection: L171
+- `_get_cache_file_full_path`: L173 (base_dir join: L176-177);
+  injection: L179
+- init log: L181
+- `StateMachine.__repr__`: L183-189 (D-068)
+- `_history_timer` (finally append): L192-206
+- `_run_step`: L207 (direction dispatch: L210-216, explicit up/down
+  + ValueError, D-068; error log+raise: L219-221)
+- `current_worker_name`: L224 ("UNDEFINED": L226)
+- `log_event`: L229 (LogEntry construction: L232-238; append: L239;
+  gate `>=`: L240; print: L242)
+- `show_event_log`: L244 · `show_history_of_moves`: L252
+- `export_history_of_moves_as_csv`: L260 (parent-dir mkdir: L265,
+  D-068; fieldnames: L266)
+- `move_to_step`: L280 (docstring: L281-299, incl. failure
+  semantics; string→upper: L301; name lookup: L302; TypeError:
+  L307-308; IndexError: L310-311; same-step no-op: L313-314; up
+  range: L316-318; down range: L319-321; pre-exec step update:
+  L326; down final set: L332-333)
+- `move_to_last`: L335 (name-based call: L341)
