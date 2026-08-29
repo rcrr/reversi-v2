@@ -1188,3 +1188,48 @@ D-068 | 2026-08-29 | state_machine M-sweep batch 1: M1 + M4 + M7 +
         46/0/0 GREEN; full discover 444, 52 skipped. Remaining M
         items: M3, M5, M6, M8, M9, M11 (M2, M12 done); M3, M5, M8,
         M11 are Roberto's call items.
+
+D-069 | 2026-08-29 | state_machine M-sweep batch 2: M3 + M5 + M8 +
+        M11 resolved (session 19, fix campaign item 13, approved by
+        Roberto: M3 "come proponi tu va benissimo, bool NON e'
+        accettato come valor valido"; M5 "seguiamo la tua
+        indicazione" (two call sites in the domain modules
+        lm_worker_config and logistic_model will need the new
+        names); M8 "OK"; M11 "aggiungiamo il chek @validate_call"):
+        4 source changes.
+        M3: bool is NOT a valid step — True/False are now rejected
+        with the same TypeError + message as float/np.int64; the
+        D-066 pin test_bool_accepted_as_int_step is rewritten to
+        test_bool_rejected_as_int_step (machine stays untouched).
+        M5: the injected cache helpers are renamed
+        get_cache_file_path_for_current_level /
+        get_cache_file_full_path_for_current_level — the old
+        "for_next_level" names contradicted their own docstrings
+        ("currently executing worker"). Follow-up (Roberto): two
+        call sites in lm_worker_config and logistic_model must use
+        the new names when those modules are ported.
+        M8: the cache prefix is joined with pathlib (Path(prefix) /
+        f"{level:02}_{name}.dat") instead of f-string-concatenated,
+        so a prefix without a trailing separator (str or any Path)
+        can no longer silently glue the level name onto it; the
+        absolute-prefix-drops-base_dir behaviour (V9) is unchanged;
+        pinned by test_path_cache_prefix_joins_without_gluing.
+        M11: @validate_call(config=ConfigDict(
+        arbitrary_types_allowed=True)) on Worker.__init__/up/down,
+        StateMachine.__init__ (non-Worker entries / non-Context ->
+        ValidationError; Context subclasses pass), log_event, and
+        export_history_of_moves_as_csv; move_to_step delegates to a
+        private _move_to_step_validated decorated with
+        ConfigDict(arbitrary_types_allowed=True, strict=True) — the
+        strict gate accepts exactly a Python int or a str (bool,
+        float, np.int64, None rejected — all behaviours probed
+        empirically against pydantic 2.13.4 before the change), and
+        its ValidationError is re-raised as the pinned public
+        TypeError (same message), so the move API's error contract
+        is unchanged. New tests:
+        test_constructor_rejects_non_worker_entry,
+        test_constructor_rejects_non_context. The module now imports
+        pydantic (already a workspace dependency; pyproject.toml
+        unchanged). Suite 46 -> 49/0/0 GREEN; full discover 447, 52
+        skipped. Remaining M items: M6 (cosmetic print drift), M9
+        (injection side effect) — both Roberto's calls.

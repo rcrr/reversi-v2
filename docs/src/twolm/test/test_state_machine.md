@@ -1,6 +1,6 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (46 tests, 5
+Date: 2026-08-29. One test file: `test_state_machine.py` (49 tests, 5
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
@@ -19,18 +19,24 @@ T8 + T9 resolved together with 5 new tests (D-067:
 current_worker_name + StepMove field content); M-sweep: M1 + M4 +
 M7 + M10 applied with 4 new `TestStateMachine` tests (D-068:
 explicit direction dispatch, `__repr__` on Worker/StateMachine,
-CSV export creates missing parent dirs). **All T items resolved;
-M-sweep in progress: M1, M4, M7, M10 done (D-068) — M3, M5, M6,
-M8, M9, M11 remain (M2, M12 done).**
+CSV export creates missing parent dirs); M-sweep: M3 + M5 + M8 +
+M11 applied (D-069: bool rejected, cache helpers renamed
+`*_for_current_level`, pathlib join of the cache prefix,
+@validate_call on the public surface — 3 new tests, the bool test
+rewritten to rejection). **All T items resolved; M-sweep: only M6
+(cosmetic print) and M9 (injection side effect) remain (M2, M12
+done).**
 
-Suite: **46/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **49/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
 pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
 context-injection tests, → 32 with the D-063 display goldens, → 35
 with the D-064 move_to_last pins, → 37 with the D-066
 bool/np.int64 pins, → 42 with the D-067 current_worker_name +
 StepMove pins, → 46 with the D-068 M-sweep pins (M4 dispatch, M7
-repr, M10 CSV parent dirs). Fast (~0.25s).
+repr, M10 CSV parent dirs), → 49 with the D-069 M-sweep pins (M3
+bool rejection, M11 constructor ValidationErrors, M8 Path prefix
+join). Fast (~0.23s).
 
 ## How to run
 
@@ -40,7 +46,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (31 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066 + 5 D-067 + 4 D-068)
+### `TestStateMachine` (34 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064 + 2 D-066 + 5 D-067 + 4 D-068 + 3 D-069)
 
 | Test | What it pins |
 |---|---|
@@ -60,8 +66,10 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_to_step_out_of_bounds_high` | Index 3 (== len) → IndexError. |
 | `test_move_to_step_out_of_bounds_negative` | Index −1 → IndexError. |
 | `test_move_to_step_invalid_type` | `3.14` → TypeError. |
-| `test_bool_accepted_as_int_step` (D-066) | `move_to_step(True)` → step 1 (`up[1]` executed); back at 0, `move_to_step(False)` → same-step no-op (no callables, no new history entry) — pins the bool-is-a-subclass-of-int behaviour (M3). |
-| `test_numpy_int64_rejected` (D-066) | `move_to_step(np.int64(1))` → TypeError ("integer index or a string worker name") — np.int64 is not a Python int subclass (V7). |
+| `test_bool_rejected_as_int_step` (D-069) | `move_to_step(True)` and `move_to_step(False)` → TypeError (same message as the np.int64 case); machine untouched (step 0, no history, init log only) — bool is explicitly NOT a valid step (M3, D-069). Rewritten from `test_bool_accepted_as_int_step` (D-066). |
+| `test_numpy_int64_rejected` (D-066) | `move_to_step(np.int64(1))` → TypeError ("integer index or a string worker name") — np.int64 is not a Python int subclass (V7); still TypeError through the D-069 strict gate + wrapper. |
+| `test_constructor_rejects_non_worker_entry` (D-069) | `StateMachine([42], Context())` → pydantic `ValidationError` (@validate_call on `__init__`, M11) instead of a raw AttributeError. |
+| `test_constructor_rejects_non_context` (D-069) | Non-Context object → `ValidationError`; a `Context` subclass (RLMContext) still passes. |
 | `test_current_worker_name_tracks_current_step` (D-067) | The property is a live view of (workers, current_step): CREATED → CONFIG → POSITIONS → CREATED across the moves. |
 | `test_current_worker_name_empty_workers_undefined` (D-067) | No workers → "UNDEFINED" (V9f). |
 | `test_step_move_fields_up` (D-067) | StepMove field content for both up entries: step/worker_name/direction, aware-UTC start/finish (`utcoffset() == 0`), `finish >= start`, and `duration == finish - start` exactly. |
@@ -75,6 +83,7 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_worker_repr` (D-068) | `repr(workers[1]) == "Worker('CONFIG')"` (M7). |
 | `test_state_machine_repr_tracks_state` (D-068) | `repr(sm)` is the compact state summary `workers=3, current_step=0, verbosity=STANDARD`, tracks `current_step` after a move, and reflects a custom verbosity by name (`NONE`); context/logs/history are not in it (M7). |
 | `test_csv_export_creates_missing_parent_dirs` (D-068) | A nested filename under `build/tmp` (parents absent) is created by the export; header + 1 row verified; artifact and its dirs removed in `finally` (M10; D-065 house rule). |
+| `test_path_cache_prefix_joins_without_gluing` (D-069) | A `Path("cache")` prefix (no trailing slash) is joined with pathlib — `cache/01_CONFIG.dat` and `base/cache/01_CONFIG.dat`, no silent gluing (M8). |
 
 ### `TestLogEntry` (3 tests, added D-058)
 
@@ -100,7 +109,7 @@ $ python -m unittest twolm.test.test_state_machine
 - **Coverage**: the whole verbosity/print gate (T1), including the
   pre-fix behaviour that used to be unpinned.
 
-### `TestContextInjection` (7 tests, added D-062)
+### `TestContextInjection` (8 tests: 7 added D-062 + 1 D-069)
 
 - `test_injected_log_event_is_live_machine_binding`:
   `context.log_event.__self__ is sm` and a call through the injected
@@ -168,16 +177,18 @@ rulings.
 D-057: VERY_LOW ERROR-only, NONE silent) plus the enum values.
 
 ### T2 — No context-injection coverage (P0) — FIXED (D-062)
-The injected `context.log_event` binding, `get_cache_file_path_for_next_level`
-(level/name/`{level:02}` format), `get_cache_file_full_path_for_next_level`
+The injected `context.log_event` binding, `get_cache_file_path_for_current_level`
+(level/name/`{level:02}` format), `get_cache_file_full_path_for_current_level`
 (base_dir join; the absolute-prefix-drops-base_dir case), the
 `cfg`-missing `AttributeError`, and the empty-workers `Path()` /
 "UNDEFINED" / `move_to_last` no-op path are now all pinned by the 7
 `TestContextInjection` tests (incl. the V17 shared-context re-bind).
-Side finding during the work: the prefix is f-string-concatenated, so
-a prefix without a trailing separator silently glues the level name
-onto it (any `Path` prefix, since `str(Path)` drops the trailing
-slash) — recorded in M8 (module doc), no code action.
+Side finding during the work: the prefix was f-string-concatenated,
+so a prefix without a trailing separator silently glued the level
+name onto it (any `Path` prefix, since `str(Path)` drops the
+trailing slash) — recorded in M8 (module doc); FIXED in D-069 with
+the pathlib join + `test_path_cache_prefix_joins_without_gluing`
+(8th test).
 
 ### T3 — stdout is patched but never asserted (P1) — FIXED (D-063)
 `setUp` patches `sys.stdout` globally, yet no test inspects the
@@ -266,10 +277,12 @@ integration surface with domain workers (D-062), the CSV export
 contract (D-065), the bool/np.int64 index edge (D-066), and
 `current_worker_name` + the `StepMove` field content (D-067), and
 the M-sweep pins (D-068: explicit `_run_step` direction dispatch,
-`__repr__` on Worker/StateMachine, CSV parent-dir creation).
-Nothing remains in the T list; the open work is the rest of the
-source-side M-sweep (M3, M5, M6, M8, M9, M11 — M1, M4, M7, M10
-done in D-068).
+`__repr__` on Worker/StateMachine, CSV parent-dir creation; D-069:
+bool rejection, renamed cache helpers, pathlib prefix join,
+@validate_call on the public surface).
+Nothing remains in the T list; the M-sweep is down to M6 (cosmetic
+print drift) and M9 (injection side effect) — both awaiting
+Roberto's call.
 
 ## Proposed priorities
 
@@ -279,6 +292,6 @@ done in D-068).
   R4 — resolved (D-060).
 - **P2**: all done — T5 (D-065), T7 (D-066), T8 + T9 (D-067), T11
   (D-058 side effect), T10 (D-061) — + M-sweep: M1, M4, M7, M10
-  done (D-068), M12 closed with D-061; remaining: M3 (bool guard),
-  M5 (rename), M6 (cosmetic print), M8 (separator hardening), M9
-  (injection side effect), M11 (@validate_call confirmation).
+  done (D-068); M3, M5, M8, M11 done (D-069); M12 closed with
+  D-061; remaining: M6 (cosmetic print), M9 (injection side
+  effect) — both Roberto's calls.

@@ -7,18 +7,20 @@ dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
 **All five R items closed; all T items closed; M-sweep: M1, M4,
-M7, M10 fixed (D-068) — M3, M5, M6, M8, M9, M11 remain (M2, M12
+M7, M10 (D-068) + M3, M5, M8, M11 (D-069) fixed — only M6
+(cosmetic print) and M9 (injection side effect) remain (M2, M12
 done).**
 
-Suite: **46 tests, GREEN 46/0/0** (5 classes, no PERF gates). Suite is
-fast (~0.25s).
+Suite: **49 tests, GREEN 49/0/0** (5 classes, no PERF gates). Suite is
+fast (~0.23s).
 
-Full workspace: **444 tests, GREEN, 52 skipped under
+Full workspace: **447 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
-No new dependencies: the module is pure stdlib (enum, datetime,
-dataclasses, contextlib, typing, pathlib, csv). pyproject.toml
-unchanged.
+Dependencies: pydantic (`@validate_call`, house convention —
+D-069) plus stdlib (enum, datetime, dataclasses, contextlib,
+typing, pathlib, csv). pydantic ≥ 2 was already declared in
+pyproject.toml for the other modules: no new dependency.
 
 ## Architecture
 
@@ -36,16 +38,16 @@ subclass/instantiate it.
 | `Verbosity(IntEnum)` HIGH=0 … NONE=4 | Minimum-relevance gate for `log_event` printing. |
 | `Relevance(IntEnum)` TRACE=0 … ERROR=4 | Relevance level of a log event. |
 | `Context` | Empty base class for pipeline contexts; shared state passed between workers. |
-| `Worker(name, up_callable, down_callable)` | One pipeline step; composition over the forward (`up`) and rollback (`down`) callables; `__repr__` shows the name (D-068). |
+| `Worker(name, up_callable, down_callable)` | One pipeline step; composition over the forward (`up`) and rollback (`down`) callables; `__repr__` shows the name (D-068); `__init__`/`up`/`down` are `@validate_call` (D-069). |
 | `StateMachine.StepMove` (dataclass) | One executed step: step, worker_name, direction, start, finish, duration. |
 | `StateMachine.LogEntry` | Frozen dataclass: typed record for one logged event (time, step, worker_name, relevance, message); `asdict()` gives the dict form for file/DB dumps (D-058). |
-| `StateMachine.__init__` | Stores workers/context/verbosity; injects `log_event` + two cache-path helpers onto the context; emits the init DEBUG log. |
+| `StateMachine.__init__` | Stores workers/context/verbosity; injects `log_event` + two cache-path helpers onto the context; emits the init DEBUG log; `@validate_call` (D-069): non-Worker list entries / non-Context raise `ValidationError`. |
 | `StateMachine._history_timer` | Context manager appending a `StepMove` in `finally` (failure included). |
 | `StateMachine._run_step` | Logs "Starting …", dispatches `up`/`down` (explicit: any other direction string raises `ValueError`, D-068), logs "Completed …"; on exception logs ERROR and re-raises. |
-| `StateMachine.log_event` | Always appends to `self.logs`; prints iff `relevance >= verbosity`. |
+| `StateMachine.log_event` | Always appends to `self.logs`; prints iff `relevance >= verbosity`; `@validate_call` (D-069). |
 | `show_event_log` / `show_history_of_moves` | Terminal pretty-printers of logs / history. |
-| `export_history_of_moves_as_csv` | Writes the history as CSV (ISO-8601 UTC timestamps, float durations); creates missing parent dirs (D-068). |
-| `move_to_step(int \| str)` | The public move API: int index (case-insensitive worker name accepted too); walks half-open intervals; sets `current_step` **before** each step executes. |
+| `export_history_of_moves_as_csv` | Writes the history as CSV (ISO-8601 UTC timestamps, float durations); creates missing parent dirs (D-068); `@validate_call` (D-069). |
+| `move_to_step(int \| str)` | The public move API: a Python int index (case-insensitive worker name accepted too); bool is NOT valid (M3, D-069); the strict `@validate_call` gate in `_move_to_step_validated` re-raises `ValidationError` as the pinned `TypeError` (M11, D-069); walks half-open intervals; sets `current_step` **before** each step executes. |
 | `move_to_last` | `move_to_step(workers[-1].name)` — name-based, see R5. |
 
 ### State model (verified — the load-bearing semantics)
@@ -84,11 +86,12 @@ Consequences, all verified (V3–V6, V8):
 L168, L176):
 
 - `context.log_event = self.log_event` (bound method of this machine);
-- `context.get_cache_file_path_for_next_level` — returns
-  `Path(f"{cfg.cache_files_prefix}{level:02}_{name}.dat")` with
-  `level = current_step`, i.e. the **currently executing** worker (the
-  "for_next_level" name is misleading, M5);
-- `context.get_cache_file_full_path_for_next_level` —
+- `context.get_cache_file_path_for_current_level` (renamed from
+  `..._for_next_level`, M5, D-069) —
+  `Path(cfg.cache_files_prefix) / f"{level:02}_{name}.dat"`
+  (pathlib join, M8, D-069) with `level = current_step`, i.e. the
+  **currently executing** worker;
+- `context.get_cache_file_full_path_for_current_level` —
   `cfg.base_dir / <that path>`.
 
 Both cache helpers require `context.cfg` with `cache_files_prefix` and
@@ -111,7 +114,7 @@ cited.
 | V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L313 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
 | V5 | Up c→t runs up() of workers c+1..t (target included) | MagicMock |
 | V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** (documented + pinned, D-060) | side_effect + reset mocks |
-| V7 | `move_to_step(True)` accepted as step 1 (`bool` subclasses `int`); `np.int64(1)` rejected with TypeError | Edge-case probes |
+| V7 | `move_to_step(True)` now REJECTED — bool is not a valid step (M3, D-069 strict gate; at analysis time it was accepted as step 1); `np.int64(1)` rejected with TypeError; the public TypeError contract is unchanged (D-069 wrapper) | Edge-case probes |
 | V8 | Name lookup case-insensitive; duplicate names are **rejected at construction** since D-061 (ValueError, case-insensitive check) — name-based moves, including `move_to_last`, are unambiguous (at analysis time duplicates were first-match-wins and `move_to_last` on `[A, B, A]` landed on step 0: the R5 defect) | Edge-case probes, re-run post-fix |
 | V9 | Cache path at step k = `{prefix}{k:02}_{name}.dat` (active worker); full path = `base_dir / path`; relative prefix joins under `base_dir`, **absolute prefix silently drops `base_dir`** (pathlib `/`); missing `cfg` → `AttributeError`; empty workers → `Path()`, name `"UNDEFINED"`, `move_to_last` no-op | Probes with cfg stubs |
 | V10 | CSV header `step,worker_name,direction,start_utc,finish_utc,duration_sec`; ISO-8601 with `+00:00`; float `duration_sec` | File round-trip |
@@ -216,21 +219,25 @@ impossible at construction); V8 restated. Pinned by
 - **M1** — Dead import `Any` (L34) — RESOLVED (D-068): removed.
 - **M2** — Dead import `datetime` in test_state_machine.py —
   RESOLVED as a side effect of D-058 (now used by `TestLogEntry`).
-- **M3** — `move_to_step` accepts `bool` (True→1, False→0 no-op);
-  `np.int64` rejected (V7). One-line `isinstance(target_step, bool)`
-  guard if strictness is wanted; otherwise document. Pinned by
-  D-066 (test_bool_accepted_as_int_step + test_numpy_int64_rejected)
-  — the guard decision stays with Roberto in the M-sweep.
+- **M3** — `move_to_step` accepted `bool` (True→1, False→0 no-op)
+  — RESOLVED (D-069, Roberto: bool is NOT a valid step): bool is
+  now rejected like any other non-int/non-str type (TypeError, same
+  message) by the strict gate in `_move_to_step_validated`; pinned
+  by `test_bool_rejected_as_int_step` (rewritten from
+  `test_bool_accepted_as_int_step`, D-066).
 - **M4** — `_run_step`'s `else` branch treated any non-`'up'`
   direction string as down (L199-202) — RESOLVED (D-068): the
   dispatch is now explicit (`elif direction == 'down'`, anything
   else raises `ValueError`); no behaviour change for valid input.
   Pinned by `test_run_step_rejects_unknown_direction`.
-- **M5** — Injected names `get_cache_file_path_for_next_level` /
-  `get_cache_file_full_path_for_next_level` contradict their own
-  docstrings ("currently executing worker"). Renaming is port-breaking
-  if the domain module (not yet in the workspace) references the old
-  names — Roberto's call.
+- **M5** — Injected names `..._for_next_level` contradicted their
+  own docstrings ("currently executing worker") — RESOLVED (D-069,
+  Roberto's call): renamed to
+  `get_cache_file_path_for_current_level` /
+  `get_cache_file_full_path_for_current_level`. Known follow-up
+  (Roberto): two call sites in the domain modules
+  `lm_worker_config` and `logistic_model` must use the new names
+  when those modules are ported.
 - **M6** — Cosmetic print drift: `show_event_log` pads step to 4 digits
   vs 2 in the live log line; `show_history_of_moves` header `Dur (s)`
   left-14 vs values right-15.6f; no UTC marker on the displayed
@@ -243,15 +250,18 @@ impossible at construction); V8 restated. Pinned by
   large domain data and are excluded). Pinned by
   `test_worker_repr` + `test_state_machine_repr_tracks_state`.
   `LogEntry` has the dataclass `__repr__` (D-058).
-- **M8** — Cache-helper contract lives only in inline comments:
-  `context.cfg` must carry `cache_files_prefix` + `base_dir` (bare
-  `getattr`, no default); absolute `cache_files_prefix` silently drops
-  `base_dir` (pathlib `/`, V9); empty workers → `Path()`. The prefix
-  is f-string-concatenated, so it must end with a separator: a prefix
-  without a trailing slash (a `str` without '/', or ANY `Path` —
-  `str(Path)` normalizes it away) silently glues the level name onto
-  it (`'cache'` → `'cache01_CONFIG.dat'`; verified live 2026-08-29
-  during T2, D-062).
+- **M8** — Cache-helper contract — RESOLVED (D-069, hardening):
+  the prefix is now joined with pathlib
+  (`Path(prefix) / f"{level:02}_{name}.dat"`) instead of
+  f-string-concatenated, so a prefix without a trailing separator
+  (a str without '/', or ANY `Path`) can no longer silently glue
+  the level name onto it (`'cache'` → `cache/01_CONFIG.dat`, not
+  `cache01_CONFIG.dat`); pinned by
+  `test_path_cache_prefix_joins_without_gluing`. Remaining
+  contract (documented, V9): `context.cfg` must carry
+  `cache_files_prefix` + `base_dir` (bare `getattr`, no default);
+  an absolute `cache_files_prefix` still silently drops `base_dir`
+  (pathlib `/`); empty workers → `Path()`.
 - **M9** — `__init__` mutates the caller's context (injection is a
   side effect); a shared context re-binds to the **last** machine built
   on it (V17).
@@ -262,9 +272,18 @@ impossible at construction); V8 restated. Pinned by
   is a no-op). Pinned by
   `test_csv_export_creates_missing_parent_dirs` (artifact under
   build/tmp, D-065 house rule).
-- **M11** — No `@validate_call`/input validation on any public
-  function (deviation from the house convention; the module is
-  deliberately pure stdlib — confirm the deviation is intentional).
+- **M11** — No `@validate_call` on any public function — RESOLVED
+  (D-069, Roberto: "aggiungiamo il check @validate_call"):
+  `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`
+  on `Worker.__init__`/`up`/`down`, `StateMachine.__init__`
+  (non-Worker entries / non-Context → `ValidationError`),
+  `log_event`, `export_history_of_moves_as_csv`, and on
+  `move_to_step` — as a strict gate in the private
+  `_move_to_step_validated`, whose `ValidationError` is re-raised as
+  the pinned public `TypeError` (contract unchanged). The module now
+  imports pydantic (already a workspace dependency); pinned by
+  `test_constructor_rejects_non_worker_entry` +
+  `test_constructor_rejects_non_context`.
 - **M12** — Duplicate worker names are allowed; name-based moves are
   first-match and silent — RESOLVED by D-061: `__init__` rejects
   duplicates (case-insensitive, `ValueError`); first-match unreachable.
@@ -297,40 +316,44 @@ OK
 ```
 
 ## Appendix: line-number reference (2026-08-29, post M-sweep D-068
-— M1, M4, M7, M10; all line numbers grep-verified 2026-08-29, file
-341 lines)
++ D-069; all line numbers grep-verified 2026-08-29, file 364 lines)
 
-- `__all__`: L40
-- `Verbosity`: L44 (VERY_LOW: L53, NONE: L54) · `Relevance`: L56 ·
-  `Context`: L66
-- `Worker.__init__`: L80 · `up`: L85 · `down`: L89 · `__repr__`: L93
-  (D-068)
-- `StateMachine` class docstring (state model + sentinel): L98-110
-- `StateMachine.StepMove`: L112-119 (@dataclass L112, class L113) ·
-  `StateMachine.LogEntry`: L121-131 (@dataclass(frozen=True) L121,
-  class L122, fields L127-131)
-- `StateMachine.__init__`: L133 (duplicate-name check: L137-148,
-  D-061)
-- context.log_event injection: L157
-- `_get_cache_file_path`: L159 (level = current_step: L164; cfg
-  prefix: L167)
-- `get_cache_file_path_for_next_level` injection: L171
-- `_get_cache_file_full_path`: L173 (base_dir join: L176-177);
-  injection: L179
-- init log: L181
-- `StateMachine.__repr__`: L183-189 (D-068)
-- `_history_timer` (finally append): L192-206
-- `_run_step`: L207 (direction dispatch: L210-216, explicit up/down
-  + ValueError, D-068; error log+raise: L219-221)
-- `current_worker_name`: L224 ("UNDEFINED": L226)
-- `log_event`: L229 (LogEntry construction: L232-238; append: L239;
-  gate `>=`: L240; print: L242)
-- `show_event_log`: L244 · `show_history_of_moves`: L252
-- `export_history_of_moves_as_csv`: L260 (parent-dir mkdir: L265,
-  D-068; fieldnames: L266)
-- `move_to_step`: L280 (docstring: L281-299, incl. failure
-  semantics; string→upper: L301; name lookup: L302; TypeError:
-  L307-308; IndexError: L310-311; same-step no-op: L313-314; up
-  range: L316-318; down range: L319-321; pre-exec step update:
-  L326; down final set: L332-333)
-- `move_to_last`: L335 (name-based call: L341)
+- `__all__`: L41
+- `Verbosity`: L45 (VERY_LOW: L54, NONE: L55) · `Relevance`: L57 ·
+  `Context`: L67
+- `Worker.__init__`: L82 (D-069 decorator: L81) · `up`: L88 (L87) ·
+  `down`: L93 (L92) · `__repr__`: L97 (D-068)
+- `StateMachine` class docstring (state model + sentinel): L102-114
+- `StateMachine.StepMove`: L116-123 (@dataclass L116, class L117) ·
+  `StateMachine.LogEntry`: L125-135 (@dataclass(frozen=True) L125,
+  class L126, fields L131-135)
+- `StateMachine.__init__`: L138 (D-069 decorator: L137,
+  `arbitrary_types_allowed`; verbosity param: L141; duplicate-name
+  check: L142-153, D-061)
+- context.log_event injection: L162
+- `_get_cache_file_path`: L164 (level = current_step: L169; cfg
+  prefix: L172; pathlib join: L177, D-069)
+- `get_cache_file_path_for_current_level` injection: L179 (D-069
+  rename)
+- `_get_cache_file_full_path`: L181 (base_dir join: L184-185);
+  injection: L187 (D-069 rename)
+- init log: L189
+- `StateMachine.__repr__`: L191-197 (D-068)
+- `_history_timer` (finally append): L200-214
+- `_run_step`: L215 (direction dispatch: L218-225, explicit up/down
+  + ValueError, D-068; error log+raise: L227-229)
+- `current_worker_name`: L232 ("UNDEFINED": L234)
+- `log_event`: L238 (D-069 decorator: L237; LogEntry construction:
+  L241-247; append: L248; gate `>=`: L249; print: L251)
+- `show_event_log`: L253 · `show_history_of_moves`: L261
+- `export_history_of_moves_as_csv`: L270 (D-069 decorator: L269;
+  parent-dir mkdir: L275, D-068; fieldnames: L276)
+- `move_to_step`: L290 (docstring: L291-310, incl. failure
+  semantics + bool NOT valid; wrapper try: L311-312; except
+  ValidationError: L313; TypeError re-raise: L317-319, D-069)
+- `_move_to_step_validated`: L323 (strict D-069 decorator:
+  L321-322; string→upper: L327; name lookup: L328; ValueError
+  not-found: L330; IndexError: L333-334; same-step no-op: L336-337;
+  up range: L339-341; down range: L342-344; pre-exec step update:
+  L349; down final set: L355-356)
+- `move_to_last`: L358 (name-based call: L364)
