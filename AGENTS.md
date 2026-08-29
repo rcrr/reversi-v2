@@ -16,7 +16,7 @@ propose repo-wide reorganization now.
 5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule,
    D-007): architecture, verified invariants, issues, conventions.
 6. Every decision (including "leave as-is for now") goes to notes/decisions.md
-   with date and rationale. Session summary goes to notes/log.md.
+   with date and rationale. Session summary goes to the current session-journal volume (notes/log_NNN.md; format rules: notes/log_rules.md).
 
 ## Naming convention (canonical — full text: notes/naming.md)
 This is Reversi, NOT chess: the board vocabulary is **column** (A–H,
@@ -36,5 +36,5 @@ read row 1 on top, column a on the left.
 - src/ — all Python sources (D-006), package `twolm` (D-008):
   src/twolm/board.py, unit tests in src/twolm/test/
 - docs/ — code documentation, mirrors src/ (D-007); docs/src/twolm/board.md
-- notes/ — collaboration only: decisions.md · ideas.md · log.md
+- notes/ — collaboration only: decisions.md · ideas.md · log_rules.md + log_000.md, log_001.md, ... (session journal, rotating volumes)
 - logistello-papers/ — user's reference papers (read-only)
