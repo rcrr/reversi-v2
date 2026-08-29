@@ -744,5 +744,12 @@
 - T campaign item T3 (P2) approved and applied (D-046): header
   grammar fixed — "How to use the unit tests feature module."
   -> "How to run the feature module unit tests." Comment-only,
-  suite 16/0/1 GREEN. Next: T5 (explicit names-order assertion
-  in test_init).
+  suite 16/0/1 GREEN.
+- T campaign item T5 (P2) approved and applied (D-047): explicit
+  names-order assertion added to TestFeatureSet.test_init —
+  17-name expected list (INTERCEPT + mobilities sorted
+  (mask, amask) + patterns sorted mask) vs
+  [f.name for f in feature_set.features]; the column/feature
+  order contract (R2/D-038) is now directly asserted instead of
+  pinned only via the n_instances list. Suite 16/0/1 GREEN.
+  Next: T7 (Feature __repr__/__eq__ golden tests).

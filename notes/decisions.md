@@ -745,3 +745,18 @@ D-046 | 2026-08-29 | test_feature.py T campaign, item T3 (P2,
        behaviour change. Suite 16/0/1 GREEN. The "environmeant"
        typo at L34 is T4, left to Roberto's call (repo-consistency
        nit, same as test_board.py). T4-T5, T7-T9 pending.
+
+D-047 | 2026-08-29 | test_feature.py T campaign, item T5 (P2,
+       approved by Roberto, one at a time): explicit names-order
+       assertion added to TestFeatureSet.test_init —
+       `expected_names` = ['INTERCEPT', 'ALMC', 'LMC', 'DLMC',
+       '2X5COR', 'XEDGE', 'R2', 'CORNER', 'R3', 'DIAG4', 'R4',
+       'DIAG5', 'CORE', 'RCT2X4', 'DIAG6', 'DIAG7', 'DIAG8']
+       asserted against [f.name for f in feature_set.features], in
+       the same computed/expected style as the n_instances block.
+       The 17-value n_instances list already pinned the order
+       implicitly (the 8/1/2 values sit in the sorted-order
+       slots); this makes the column/feature order contract
+       (feature.md R2/D-038) directly asserted. Suite 16/0/1
+       GREEN (assertion passes; no behaviour change). T4, T7-T9
+       pending.

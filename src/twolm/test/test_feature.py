@@ -144,6 +144,13 @@ class TestFeatureSet(unittest.TestCase):
         computed_n_instances = [f.n_instances for f in feature_set.features]
         self.assertEqual(computed_n_instances, expected_n_instances)
 
+        expected_names = ['INTERCEPT', 'ALMC', 'LMC', 'DLMC',
+                          '2X5COR', 'XEDGE', 'R2', 'CORNER',
+                          'R3', 'DIAG4', 'R4', 'DIAG5', 'CORE',
+                          'RCT2X4', 'DIAG6', 'DIAG7', 'DIAG8']
+        computed_names = [f.name for f in feature_set.features]
+        self.assertEqual(computed_names, expected_names)
+
         expected_hash = 'f5663932421232ba007622198625344deb9eb9aed58f8ad5c71eabc016b74167'
         self.assertEqual(feature_set.hash, expected_hash)
 

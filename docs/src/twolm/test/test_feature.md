@@ -4,9 +4,9 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 2026-08-28 (commit b51bea6), analyzed after the R1-R4 module batch
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
-progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045) and
-T3 (D-046) applied → 16 run + 1 PERF skip, GREEN 16/0/1; T4-T5,
-T7-T9 pending._
+progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045),
+T3 (D-046) and T5 (D-047) applied → 16 run + 1 PERF skip,
+GREEN 16/0/1; T4, T7-T9 pending._
 
 ## 1. What this file is
 
@@ -111,15 +111,15 @@ mobility suites have their own, closed)._
   nit as the test_board.py header (reported there, left to
   Roberto's call). Flagged for a consistent treatment across the
   repo; no separate campaign item unless Roberto wants it.
-- **T5 — no explicit names-order assertion in test_init (L137).**
-  The 17-value n_instances list pins the feature order implicitly
-  (the 8/1/2 values sit in the sorted-order slots), but the
-  column/feature order contract (feature.md R2/D-038) has no
-  direct name-list assertion. Fix: add
-  `assertEqual([f.name for f in feature_set.features],
-  ['INTERCEPT', 'ALMC', 'LMC', 'DLMC', '2X5COR', 'XEDGE', 'R2',
-  'CORNER', 'R3', 'DIAG4', 'R4', 'DIAG5', 'CORE', 'RCT2X4',
-  'DIAG6', 'DIAG7', 'DIAG8'])`.
+- **T5 — no explicit names-order assertion in test_init (L137).
+  DONE (D-047).** The 17-value n_instances list pins the feature
+  order implicitly (the 8/1/2 values sit in the sorted-order
+  slots), but the column/feature order contract (feature.md
+  R2/D-038) has no direct name-list assertion. Fix applied:
+  explicit `expected_names` list (17 names: INTERCEPT + mobilities
+  in sorted (mask, amask) order + patterns in sorted mask order)
+  asserted against `[f.name for f in feature_set.features]`, in
+  the same computed/expected style as the n_instances block.
 - **T6 — partial-None FeatureSet untested. DONE (D-043).** Only
   the all-None set was constructed (in the edge tests). Untested
   code: the hash chunk branches for intercept-only (hash of
@@ -223,7 +223,7 @@ awaiting Roberto's approvals._
   2. T1 — dead `if False:` block removed. **DONE (D-044).**
   3. T2 — 6 dead imports removed. **DONE (D-045).**
   4. T3 — header grammar. **DONE (D-046).**
-  5. T5 — explicit names-order assertion in test_init.
+  5. T5 — explicit names-order assertion in test_init. **DONE (D-047).**
   6. T7 — `Feature.__repr__`/`__eq__` golden tests.
   7. T9 — full print_summary golden (or at least the full 17-row
      feature table).
