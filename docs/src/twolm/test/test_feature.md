@@ -5,8 +5,8 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
 progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045),
-T3 (D-046) and T5 (D-047) applied → 16 run + 1 PERF skip,
-GREEN 16/0/1; T4, T7-T9 pending._
+T3 (D-046), T5 (D-047) and T7 (D-048) applied → 19 run + 1 PERF
+skip, GREEN 19/0/1; T4, T9 pending._
 
 ## 1. What this file is
 
@@ -134,12 +134,18 @@ mobility suites have their own, closed)._
   63f0a6c8…), the names-order list, n_instances (1 / 3 / 49), the
   output shape, and block equality against the child set's own
   compute method. Suite 13 → 16 run tests.
-- **T7 — `Feature.__repr__`/`__eq__` untested.** The dataclass
-  auto-`__repr__` (5 fields, `ref` excluded) and field-wise
-  `__eq__` (ref included) are never pinned; the suite relies on
-  `__eq__` indirectly (the `assertEqual(feature_set.intercept,
-  self.intercept)` style) but has no golden for either. Auto-
-  generated surface (not R-shipped), so P2 rather than P0.
+- **T7 — `Feature.__repr__`/`__eq__` untested. DONE (D-048).**
+  The dataclass auto-`__repr__` (5 fields, `ref` excluded) and
+  field-wise `__eq__` (ref included) were never pinned; the suite
+  relied on `__eq__` indirectly (the
+  `assertEqual(feature_set.intercept, self.intercept)` style) but
+  had no golden for either. Fix applied: 3 new TestFeature tests —
+  `test_repr_golden` (all three factory reprs, incl. the mobility
+  `n_configurations=np.uint8(65)` quirk), `test_eq` (ref compared
+  by object identity — Mobility/Pattern define no value `__eq__`,
+  so distinct field-identical refs are unequal), `test_unhashable`
+  (@dataclass eq, not frozen). Suite 17 -> 20 tests (19 run + 1
+  PERF), GREEN.
 - **T8 — (cosmetic) `import time` trailing spaces (L56).** Same
   wart as test_mobility's `import time` (noted there, left as-is
   per Roberto). Noted, default leave-as-is.
@@ -224,7 +230,7 @@ awaiting Roberto's approvals._
   3. T2 — 6 dead imports removed. **DONE (D-045).**
   4. T3 — header grammar. **DONE (D-046).**
   5. T5 — explicit names-order assertion in test_init. **DONE (D-047).**
-  6. T7 — `Feature.__repr__`/`__eq__` golden tests.
+  6. T7 — `Feature.__repr__`/`__eq__` golden tests. **DONE (D-048).**
   7. T9 — full print_summary golden (or at least the full 17-row
      feature table).
   8. T4 — "environmeant" typo (repo-consistency call, Roberto's).

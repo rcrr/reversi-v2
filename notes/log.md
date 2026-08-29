@@ -752,4 +752,11 @@
   [f.name for f in feature_set.features]; the column/feature
   order contract (R2/D-038) is now directly asserted instead of
   pinned only via the n_instances list. Suite 16/0/1 GREEN.
-  Next: T7 (Feature __repr__/__eq__ golden tests).
+- T campaign item T7 (P2) approved and applied (D-048): three new
+  TestFeature tests — test_repr_golden (3 factory reprs, incl. the
+  np.uint8(65) mobility quirk), test_eq (ref compared by object
+  identity — Mobility/Pattern have no value __eq__),
+  test_unhashable (TypeError on hash()). Documents current
+  semantics, not a feature.py defect. Suite 17 -> 20 tests
+  (19 run + 1 PERF), GREEN 19/0/1. Next: T9 (full print_summary
+  golden).

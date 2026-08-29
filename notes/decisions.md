@@ -760,3 +760,21 @@ D-047 | 2026-08-29 | test_feature.py T campaign, item T5 (P2,
        (feature.md R2/D-038) directly asserted. Suite 16/0/1
        GREEN (assertion passes; no behaviour change). T4, T7-T9
        pending.
+
+D-048 | 2026-08-29 | test_feature.py T campaign, item T7 (P2,
+       approved by Roberto, one at a time): three new TestFeature
+       tests pinning the auto-generated surface — test_repr_golden
+       (the three factory reprs, incl. the mobility
+       n_configurations=np.uint8(65) quirk vs the int 6561 for
+       patterns), test_eq (field-wise dataclass eq with ref
+       compared by OBJECT IDENTITY: Mobility and Pattern define no
+       value __eq__, so distinct field-identical refs make their
+       Features unequal; reflexive equality holds),
+       test_unhashable (@dataclass with eq and not frozen →
+       __hash__ = None, TypeError on hash()). All literals
+       verified live before committing. This documents the current
+       semantics as a design property of Mobility/Pattern, not a
+       feature.py defect; value equality (if ever wanted) is a
+       mobility.py/pattern.py change, out of the T campaign. Suite
+       17 -> 20 tests (19 run + 1 PERF), GREEN 19/0/1. T4, T9
+       pending.

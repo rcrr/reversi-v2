@@ -100,6 +100,51 @@ class TestFeature(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Feature.new_from_pattern("NotAPatternObject")
 
+    def test_repr_golden(self):
+        """Pin the auto-dataclass __repr__ (ref excluded, repr=False)."""
+        self.assertEqual(
+            repr(Feature.new_intercept()),
+            "Feature(category=<Category.INTERCEPT: 0>, name='INTERCEPT', "
+            "n_configurations=1, n_instances=1)")
+        lmc = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
+                       Bitboard(0x0000000000000000))
+        self.assertEqual(
+            repr(Feature.new_from_mobility(lmc)),
+            "Feature(category=<Category.MOBILITY: 1>, name='LMC', "
+            "n_configurations=np.uint8(65), n_instances=1)")
+        edge = Pattern("EDGE", Bitboard(0x00000000000000FF))
+        self.assertEqual(
+            repr(Feature.new_from_pattern(edge)),
+            "Feature(category=<Category.PATTERN: 2>, name='EDGE', "
+            "n_configurations=6561, n_instances=4)")
+
+    def test_eq(self):
+        """Pin field-wise __eq__ with ref compared by object identity:
+        Mobility and Pattern define no value __eq__, so distinct but
+        field-identical refs make their Features unequal."""
+        m1 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
+                      Bitboard(0x0000000000000000))
+        m2 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
+                      Bitboard(0x0000000000000000))
+        a = Feature.new_from_mobility(m1)
+        b = Feature.new_from_mobility(m2)
+        self.assertEqual(a, a)
+        self.assertNotEqual(a, b)
+        p1 = Pattern("EDGE", Bitboard(0x00000000000000FF))
+        p2 = Pattern("EDGE", Bitboard(0x00000000000000FF))
+        self.assertNotEqual(Feature.new_from_pattern(p1),
+                            Feature.new_from_pattern(p2))
+        self.assertNotEqual(a, Feature.new_intercept())
+        self.assertNotEqual(a, Feature.new_from_pattern(p1))
+        d = Mobility("DLMC", Bitboard(0xFFFFFFFFFFFFFFFF),
+                     Bitboard(0x0000000000000000))
+        self.assertNotEqual(a, Feature.new_from_mobility(d))
+
+    def test_unhashable(self):
+        """Feature is unhashable: @dataclass with eq and not frozen."""
+        with self.assertRaises(TypeError):
+            hash(Feature.new_intercept())
+
 class TestFeatureSet(unittest.TestCase):
 
     def setUp(self):
