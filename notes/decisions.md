@@ -1098,3 +1098,25 @@ D-064 | 2026-08-29 | state_machine T4 resolved (session 19, fix
         paths); the duplicate-name misdirection (V8c) is unreachable
         since D-061. Suite 32 -> 35/0/0 GREEN; full discover 433,
         52 skipped.
+
+D-065 | 2026-08-29 | state_machine T5 resolved (session 19, fix
+        campaign item 9, approved by Roberto: "Prosegui con T5")
+        + NEW HOUSE RULE (Roberto: "Scriviamo files solo dentro
+        workspace_root/build/tmp ... e se il test va bene deve
+        rimuoverli poi ... Non scriviamo in nessun altro posto"):
+        unit tests write files ONLY under workspace_root/build/tmp
+        and remove them afterwards; no test writes anywhere else
+        (notably: not the CWD). build/ is already gitignored.
+        Applied here: test_history_export_csv rewritten — now
+        asserts the exact header field names
+        (step/worker_name/direction/start_utc/finish_utc/
+        duration_sec), the ISO-8601 +00:00 aware-UTC format (parsed
+        back with datetime.fromisoformat, tzinfo non-None), and the
+        duration_sec == finish - start identity for every row, in
+        addition to the original row count + cell assertions. The
+        artifact is written to a TMP_DIR constant (workspace root
+        = 3 levels up from the test file) / build / tmp and is
+        unlinked in a finally block, so a failing test leaves no
+        garbage either. No source change; suite count unchanged
+        (35 — T5 is a rewrite, not an addition). Suite 35/0/0
+        GREEN; full discover 433, 52 skipped.

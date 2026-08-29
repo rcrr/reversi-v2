@@ -10,7 +10,11 @@ duplicate-name tests, which also close T10 (duplicates unreachable);
 T2 resolved with 7 new `TestContextInjection` tests (D-062);
 T3 resolved with 3 new `TestDisplayGoldens` tests (D-063);
 T4 resolved with 3 new `move_to_last` tests (D-064);
-T5, T7–T9 remain OPEN.**
+T5 resolved by rewriting `test_history_export_csv` (D-065 — the
+suite count is unchanged, it is a rewrite, not an addition)
+together with the new house rule: test artifacts are written only
+under `workspace_root/build/tmp` and removed afterwards;
+T7–T9 remain OPEN.**
 
 Suite: **35/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
@@ -47,7 +51,7 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_to_step_out_of_bounds_negative` | Index −1 → IndexError. |
 | `test_move_to_step_invalid_type` | `3.14` → TypeError. |
 | `test_worker_exception_propagation_and_logging` | `up[1]` raising RuntimeError: re-raised; `current_step == 1` (the failed step); exactly 1 ERROR log with the right step/worker/message; history records the failed attempt (len 1). |
-| `test_history_export_csv` | 2 moves (0→2, 2→0) → CSV with 4 rows; row 0 = CONFIG/up; row 3 = CONFIG/down. File cleaned up in `finally`. |
+| `test_history_export_csv` (rewritten D-065) | 2 moves (0→2, 2→0) → CSV with 4 rows; exact header field names (`step,worker_name,direction,start_utc,finish_utc,duration_sec`); row 0 = step 1 CONFIG/up; row 3 = step 1 CONFIG/down; every row: ISO-8601 `+00:00` aware-UTC timestamps (parsed back, `tzinfo` non-None) and `duration_sec == finish - start`. Artifact under `workspace_root/build/tmp`, removed in `finally`. |
 | `test_duplicate_worker_names_raise` (D-061) | Two workers both named `"A"` → `ValueError` at construction, message contains "Duplicate worker name". |
 | `test_duplicate_worker_names_case_insensitive` (D-061) | Workers `"CONFIG"` + `"config"` → same `ValueError`: the uniqueness check is case-insensitive, matching the case-insensitive name resolution. |
 
@@ -131,9 +135,9 @@ does not), the failure semantics, and the same-step no-op.
 
 ## Test defects (T1–T11)
 
-Status: T1 (D-057), T2 (D-062), T3 (D-063), T4 (D-064), T6 (D-060),
-T10 (D-061), T11 (D-058) resolved; T5, T7–T9 OPEN. Priorities
-proposed after the R1–R5 rulings.
+Status: T1 (D-057), T2 (D-062), T3 (D-063), T4 (D-064), T5 (D-065),
+T6 (D-060), T10 (D-061), T11 (D-058) resolved; T7–T9 OPEN.
+Priorities proposed after the R1–R5 rulings.
 
 ### T1 — No Verbosity coverage at all (P0 with R1) — FIXED (D-057)
 `Verbosity` was never exercised: the gate table (V1) — including
@@ -171,11 +175,16 @@ single-worker no-op (the only worker is the step-0 sentinel, D-059
 (`test_empty_workers_degenerate_paths`); the duplicate-name
 misdirection (V8c, R5) is unreachable (D-061).
 
-### T5 — CSV test is thin + writes to CWD (P2)
-Only row count and 4 cell values are checked: no header-row assertion,
-no ISO-8601/`+00:00` format check, no `duration_sec` value check; the
-file is written to the current working directory instead of a tempdir
-(cleanup is `finally`-based).
+### T5 — CSV test is thin + writes to CWD (P2) — FIXED (D-065)
+`test_history_export_csv` now asserts the exact header field names,
+the ISO-8601 `+00:00` aware-UTC format (parsed back with
+`datetime.fromisoformat`, `tzinfo` non-None) and the
+`duration_sec == finish - start` identity for every row, in addition
+to the original row count + cell assertions. The artifact is written
+under `workspace_root/build/tmp` (house rule, D-065: test files are
+written ONLY there and removed afterwards — a `finally` unlink, so a
+failing test leaves no garbage either) instead of the current
+working directory.
 
 ### T6 — Retry-after-failure quirk unpinned (P1 with R4) — FIXED (D-060)
 A retry of the same target after a failure executes only steps above
@@ -219,12 +228,13 @@ row semantics), and every expectation matches independently derived
 behaviour.
 
 **What remains untested**: the `bool`/`np.int64` index edge (T7),
-the `StepMove` field content (T9), and the thin CSV test (T5).
+`current_worker_name` (T8), and the `StepMove` field content (T9).
 Everything else is pinned: the verbosity gate (D-057), the display
 layer goldens (D-063), retry-after-failure (D-060), duplicate names
 (D-061), the context injection layer — the module's main
-integration surface with domain workers (D-062), and `move_to_last`
-including the single-worker sentinel no-op (D-064).
+integration surface with domain workers (D-062), `move_to_last`
+including the single-worker sentinel no-op (D-064), and the CSV
+export contract (D-065).
 
 ## Proposed priorities
 
@@ -232,6 +242,6 @@ including the single-worker sentinel no-op (D-064).
   R2 — resolved (D-058); R5 — resolved (D-061).
 - **P1**: T3 — done (D-063); T4 — done (D-064); T6 — done (D-060);
   R4 — resolved (D-060).
-- **P2**: T5, T7, T8, T9 (T11 resolved with D-058; T10 resolved with
-  D-061) + the M-sweep (dead imports, cosmetics, doc notes, repr;
-  M12 closed with D-061).
+- **P2**: T7, T8, T9 (T5 — done D-065; T11 resolved with D-058; T10
+  resolved with D-061) + the M-sweep (dead imports, cosmetics, doc
+  notes, repr; M12 closed with D-061).

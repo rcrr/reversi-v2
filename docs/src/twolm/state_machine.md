@@ -6,7 +6,7 @@ fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
-**All five R items closed**; T5, T7–T9 + M-sweep remain.**
+**All five R items closed**; T7–T9 + M-sweep remain.**
 
 Suite: **35 tests, GREEN 35/0/0** (5 classes, no PERF gates). Suite is
 fast (~0.07s).
