@@ -171,14 +171,15 @@ def _validate_db_fields(fields_input: Union[str, List[str], None]) -> List[str]:
     if rc is None:
         raise RuntimeError("Database connection context 'rc' could not be found.")
         
-    with rc.conn.cursor() as curs:
-        curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
-        colnames = [d[0] for d in curs.description]
-        
     base_colnames = ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
 
     if not fields_input:
         return base_colnames
+
+    with rc.conn.cursor() as curs:
+        curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
+        colnames = [d[0] for d in curs.description]
+        
     if isinstance(fields_input, str):
         if fields_input == '*':
             return colnames
