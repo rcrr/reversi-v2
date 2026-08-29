@@ -48,7 +48,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from twolm.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
@@ -497,6 +497,125 @@ class TestContextInjection(unittest.TestCase):
         self.assertEqual(len(sm2.logs), 2)  # init + this one
         self.assertEqual(len(sm1.logs), 1)  # its own init only
         self.assertEqual(sm2.logs[-1].message, "via shared ctx")
+
+
+class TestDisplayGoldens(unittest.TestCase):
+    """Display goldens for the print paths (T3): the live
+    log_event line, show_event_log, show_history_of_moves. The
+    module clock is frozen (advancing 1ms per now() call), so the
+    goldens are exact — no wall-clock dependence."""
+
+    T0 = datetime(2026, 8, 29, 12, 34, 56, tzinfo=timezone.utc)
+
+    @staticmethod
+    def _frozen_datetime():
+        """Fake module datetime: now() advances 1ms on every call."""
+        state = {"n": 0}
+
+        class FakeDT:
+            @staticmethod
+            def now(tz=None):
+                state["n"] += 1
+                return TestDisplayGoldens.T0 + timedelta(
+                    microseconds=state["n"] * 1000)
+
+        return FakeDT
+
+    def _machine(self):
+        """3-worker machine, verbosity HIGH (everything prints)."""
+        context = Context()
+        workers = [
+            Worker("CREATED", MagicMock(), MagicMock()),
+            Worker("CONFIG", MagicMock(), MagicMock()),
+            Worker("POSITIONS", MagicMock(), MagicMock())
+        ]
+        return StateMachine(workers, context, Verbosity.HIGH)
+
+    def test_log_event_live_print_format(self):
+        """[ts] [step][name       ] [rel:verb] message — full golden
+        line per event (the numeric enum rendering is pinned too,
+        M6)."""
+        with patch('twolm.state_machine.datetime',
+                   self._frozen_datetime()):
+            buf = StringIO()
+            with redirect_stdout(buf):
+                sm = self._machine()  # DEBUG init line
+                sm.move_to_step(1)    # 2x INFO for CONFIG
+        lines = buf.getvalue().splitlines()
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(lines[0],
+            "[2026-08-29 12:34:56] [00][CREATED        ] "
+            "[1:0] StateMachine initialized.")
+        self.assertEqual(lines[1],
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Starting worker CONFIG, UP step")
+        self.assertEqual(lines[2],
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Completed UP step for CONFIG")
+
+    def test_show_event_log_golden(self):
+        """End-to-end golden: the move's live lines, then the table —
+        banner, 54-dash separator, header, one row per log entry
+        (step:04, name:15, numeric relevance)."""
+        with patch('twolm.state_machine.datetime',
+                   self._frozen_datetime()):
+            buf = StringIO()
+            with redirect_stdout(buf):
+                sm = self._machine()
+                sm.move_to_step(1)
+                sm.show_event_log()
+        expected = (
+            "[2026-08-29 12:34:56] [00][CREATED        ] "
+            "[1:0] StateMachine initialized.\n"
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Starting worker CONFIG, UP step\n"
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Completed UP step for CONFIG\n"
+            "\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---\n"
+            "______________________________________________________\n"
+            "TIMESTAMP           | STEP | WORKER           | R | "
+            "MESSAGE\n"
+            "2026-08-29 12:34:56 | 0000 | CREATED         | 1 | "
+            "StateMachine initialized.\n"
+            "2026-08-29 12:34:56 | 0001 | CONFIG          | 2 | "
+            "Starting worker CONFIG, UP step\n"
+            "2026-08-29 12:34:56 | 0001 | CONFIG          | 2 | "
+            "Completed UP step for CONFIG\n"
+        )
+        self.assertEqual(buf.getvalue(), expected)
+
+    def test_show_history_of_moves_golden(self):
+        """End-to-end golden: the move's live lines, then the table —
+        header, 80-dash rule, one row per executed step (start at
+        microsecond precision; duration = finish - start, pinned at
+        0.003000 by the frozen clock)."""
+        with patch('twolm.state_machine.datetime',
+                   self._frozen_datetime()):
+            buf = StringIO()
+            with redirect_stdout(buf):
+                sm = self._machine()
+                sm.move_to_step(2)
+                sm.show_history_of_moves()
+        expected = (
+            "[2026-08-29 12:34:56] [00][CREATED        ] "
+            "[1:0] StateMachine initialized.\n"
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Starting worker CONFIG, UP step\n"
+            "[2026-08-29 12:34:56] [01][CONFIG         ] "
+            "[2:0] Completed UP step for CONFIG\n"
+            "[2026-08-29 12:34:56] [02][POSITIONS      ] "
+            "[2:0] Starting worker POSITIONS, UP step\n"
+            "[2026-08-29 12:34:56] [02][POSITIONS      ] "
+            "[2:0] Completed UP step for POSITIONS\n"
+            "Step   | Worker          | Dir   | Start (UTC)                | "
+            "Dur (s)       \n"
+            "--------------------------------------------------------------------------------\n"
+            "1      | CONFIG          | up    | 2026-08-29 12:34:56.002000 | "
+            "       0.003000\n"
+            "2      | POSITIONS       | up    | 2026-08-29 12:34:56.006000 | "
+            "       0.003000\n"
+        )
+        self.assertEqual(buf.getvalue(), expected)
 
 
 if __name__ == '__main__':
