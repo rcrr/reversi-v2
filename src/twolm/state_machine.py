@@ -33,6 +33,7 @@ from dataclasses import dataclass
 from contextlib import contextmanager
 from typing import List, Callable
 from pathlib import Path
+from pydantic import validate_call, ConfigDict, ValidationError
 import csv
 
 
@@ -77,15 +78,18 @@ class Worker:
     Represents a single step in the pipeline.
     Uses composition to hold the callable logic for moving up and down.
     """
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, up_callable: Callable[[Context], None], down_callable: Callable[[Context], None]):
         self.name = name
         self._up_callable = up_callable
         self._down_callable = down_callable
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def up(self, context: Context) -> None:
         """Execute the forward step logic."""
         self._up_callable(context)
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def down(self, context: Context) -> None:
         """Execute the backward (rollback) step logic."""
         self._down_callable(context)
@@ -130,6 +134,7 @@ class StateMachine:
         relevance: Relevance
         message: str
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
                  workers: List[Worker],
                  context: Context,
@@ -165,10 +170,13 @@ class StateMachine:
             worker_name = self.workers[level].name
             # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
             cache_files_prefix = getattr(self.context, 'cfg').cache_files_prefix
-            file_name = f"{cache_files_prefix}{level:02}_{worker_name}.dat"
-            return Path(file_name)
+            # pathlib join (not f-string concat): a prefix without a
+            # trailing separator, incl. any Path object, is handled
+            # correctly instead of silently gluing the level name
+            # onto it (M8, D-069)
+            return Path(cache_files_prefix) / f"{level:02}_{worker_name}.dat"
             
-        self.context.get_cache_file_path_for_next_level = _get_cache_file_path
+        self.context.get_cache_file_path_for_current_level = _get_cache_file_path
         
         def _get_cache_file_full_path() -> Path:
             """Returns the full cache file path using base_dir from context.cfg."""
@@ -176,7 +184,7 @@ class StateMachine:
             base_dir = getattr(self.context, 'cfg').base_dir
             return base_dir / _get_cache_file_path()
             
-        self.context.get_cache_file_full_path_for_next_level = _get_cache_file_full_path
+        self.context.get_cache_file_full_path_for_current_level = _get_cache_file_full_path
 
         self.log_event(Relevance.DEBUG, "StateMachine initialized.")
 
@@ -226,6 +234,7 @@ class StateMachine:
             return "UNDEFINED"
         return self.workers[self.current_step].name
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def log_event(self, relevance: Relevance, message: str) -> None:
         """Logs an event using the current state step and worker."""
         evt_time = datetime.now(timezone.utc)
@@ -257,6 +266,7 @@ class StateMachine:
             dur = entry.duration.total_seconds()
             print(f"{entry.step:<6} | {entry.worker_name:<15} | {entry.direction:<5} | {start_str:<26} | {dur:>15.6f}")
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
         # Create missing parent directories so nested filenames work
         # out of the box; a bare filename has parent '.', where
@@ -280,8 +290,9 @@ class StateMachine:
     def move_to_step(self, target_step: int | str) -> None:
         """
         Moves the state machine to the target step.
-        Accepts an integer index or the string name of the target
-        worker (case-insensitive). Up moves (t > current) execute
+        Accepts a Python int index or the string name of the target
+        worker (case-insensitive); bool is explicitly NOT a valid
+        step (M3, D-069). Up moves (t > current) execute
         up() of workers current+1..t, target included; down moves
         (t < current) execute down() of workers current..t+1,
         target excluded, leaving the state "steps 1..t done".
@@ -297,15 +308,27 @@ class StateMachine:
         whether a failed step is safely re-runnable, so handling a
         failure is the domain worker's responsibility (D-060).
         """
+        try:
+            self._move_to_step_validated(target_step)
+        except ValidationError as exc:
+            # Public contract (pinned): a wrong target type is a
+            # TypeError with the exact message, not a raw pydantic
+            # ValidationError (M3 + M11, D-069).
+            raise TypeError(
+                "target_step must be an integer index or a string "
+                "worker name.") from exc
+
+    @validate_call(config=ConfigDict(
+        arbitrary_types_allowed=True, strict=True))
+    def _move_to_step_validated(self, target_step: int | str) -> None:
+        # Strict gate (M11, D-069): exactly a Python int or a str —
+        # bool, float, np.int64 and friends are rejected here.
         if isinstance(target_step, str):
             target_step = target_step.upper()
             target_index = next((i for i, w in enumerate(self.workers) if w.name.upper() == target_step), None)
             if target_index is None:
                 raise ValueError(f"Worker '{target_step}' not found in the pipeline.")
             target_step = target_index
-
-        if not isinstance(target_step, int):
-            raise TypeError("target_step must be an integer index or a string worker name.")
 
         if target_step < 0 or target_step >= len(self.workers):
             raise IndexError(f"Target step {target_step} is out of bounds.")

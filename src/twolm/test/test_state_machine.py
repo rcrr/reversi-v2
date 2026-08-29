@@ -299,23 +299,19 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.history), 1)
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
 
-    def test_bool_accepted_as_int_step(self):
-        """bool is a subclass of int: True -> step 1, False -> step
-        0 no-op (M3: pinning the current behaviour; no strictness
-        guard yet — Roberto's call in the M-sweep)."""
-        self.sm.move_to_step(True)
-        self.assertEqual(self.sm.current_step, 1)
-        self.up_callables[1].assert_called_once_with(self.context)
-        # back to 0 so that False is a same-step no-op
-        self.sm.move_to_step(0)
-        for mock in self.up_callables + self.down_callables:
-            mock.reset_mock()
-        self.sm.move_to_step(False)
+    def test_bool_rejected_as_int_step(self):
+        """bool is NOT a valid step (M3, D-069): True/False raise
+        TypeError (the strict gate rejects bool, which a bare
+        isinstance(..., int) would have accepted) and the machine
+        stays untouched."""
+        for bad in (True, False):
+            with self.assertRaises(TypeError) as ctx:
+                self.sm.move_to_step(bad)
+            self.assertIn("integer index or a string worker name",
+                          str(ctx.exception))
         self.assertEqual(self.sm.current_step, 0)
-        for mock in self.up_callables + self.down_callables:
-            mock.assert_not_called()
-        # no extra history entry for the no-op (only the two moves)
-        self.assertEqual(len(self.sm.history), 2)
+        self.assertEqual(len(self.sm.history), 0)
+        self.assertEqual(len(self.sm.logs), 1)  # init log only
 
     def test_numpy_int64_rejected(self):
         """np.int64 is NOT a Python int subclass: TypeError (V7)."""
@@ -324,6 +320,28 @@ class TestStateMachine(unittest.TestCase):
             self.sm.move_to_step(np.int64(1))
         self.assertIn("integer index or a string worker name",
                       str(ctx.exception))
+
+    def test_constructor_rejects_non_worker_entry(self):
+        """__init__ is @validate_call (M11, D-069): a non-Worker
+        list entry raises pydantic ValidationError instead of a raw
+        AttributeError deep in the name check."""
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            StateMachine([42], Context())
+
+    def test_constructor_rejects_non_context(self):
+        """__init__ is @validate_call (M11, D-069): a non-Context
+        object raises ValidationError; Context subclasses still
+        pass."""
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            StateMachine([Worker("A", MagicMock(), MagicMock())], 42)
+
+        class RLMContext(Context):
+            pass
+        sm = StateMachine([Worker("A", MagicMock(), MagicMock())],
+                          RLMContext())
+        self.assertIsInstance(sm.context, RLMContext)
 
     def test_current_worker_name_tracks_current_step(self):
         """current_worker_name is a live view of (workers,
@@ -640,22 +658,22 @@ class TestContextInjection(unittest.TestCase):
         call time (the pre-execution update makes it the active
         worker)."""
         self.assertEqual(
-            self.context.get_cache_file_path_for_next_level(),
+            self.context.get_cache_file_path_for_current_level(),
             Path("cache/00_CREATED.dat"))
         self.sm.move_to_step(2)
         self.assertEqual(
-            self.context.get_cache_file_path_for_next_level(),
+            self.context.get_cache_file_path_for_current_level(),
             Path("cache/02_POSITIONS.dat"))
         self.sm.move_to_step(1)
         self.assertEqual(
-            self.context.get_cache_file_path_for_next_level(),
+            self.context.get_cache_file_path_for_current_level(),
             Path("cache/01_CONFIG.dat"))
 
     def test_cache_file_full_path_joins_base_dir(self):
         """A relative prefix is joined under cfg.base_dir."""
         self.sm.move_to_step(1)
         self.assertEqual(
-            self.context.get_cache_file_full_path_for_next_level(),
+            self.context.get_cache_file_full_path_for_current_level(),
             Path("base/cache/01_CONFIG.dat"))
 
     def test_absolute_cache_prefix_drops_base_dir(self):
@@ -665,8 +683,22 @@ class TestContextInjection(unittest.TestCase):
             cache_files_prefix="/abs/cache/", base_dir=Path("base"))
         self.sm.move_to_step(1)
         self.assertEqual(
-            self.context.get_cache_file_full_path_for_next_level(),
+            self.context.get_cache_file_full_path_for_current_level(),
             Path("/abs/cache/01_CONFIG.dat"))
+
+    def test_path_cache_prefix_joins_without_gluing(self):
+        """A Path prefix (no trailing slash) is joined with pathlib,
+        not f-string-concatenated: no silent gluing of the level
+        name (M8, D-069)."""
+        self.context.cfg = SimpleNamespace(
+            cache_files_prefix=Path("cache"), base_dir=Path("base"))
+        self.sm.move_to_step(1)
+        self.assertEqual(
+            self.context.get_cache_file_path_for_current_level(),
+            Path("cache/01_CONFIG.dat"))
+        self.assertEqual(
+            self.context.get_cache_file_full_path_for_current_level(),
+            Path("base/cache/01_CONFIG.dat"))
 
     def test_missing_cfg_raises_attribute_error(self):
         """Without a populated cfg, both helpers raise AttributeError
@@ -675,17 +707,17 @@ class TestContextInjection(unittest.TestCase):
         bare = Context()
         StateMachine([Worker("A", MagicMock(), MagicMock())], bare)
         with self.assertRaises(AttributeError) as ctx:
-            bare.get_cache_file_path_for_next_level()
+            bare.get_cache_file_path_for_current_level()
         self.assertIn("cfg", str(ctx.exception))
         with self.assertRaises(AttributeError):
-            bare.get_cache_file_full_path_for_next_level()
+            bare.get_cache_file_full_path_for_current_level()
 
     def test_empty_workers_degenerate_paths(self):
         """Empty pipeline: Path() cache path, 'UNDEFINED' worker name,
         move_to_last no-op (V9)."""
         bare = Context()
         sm = StateMachine([], bare)
-        self.assertEqual(bare.get_cache_file_path_for_next_level(), Path())
+        self.assertEqual(bare.get_cache_file_path_for_current_level(), Path())
         self.assertEqual(sm.current_worker_name, "UNDEFINED")
         sm.move_to_last()  # guarded no-op, must not raise
         self.assertEqual(sm.current_step, 0)
@@ -701,11 +733,11 @@ class TestContextInjection(unittest.TestCase):
             Worker("A", MagicMock(), MagicMock()),
             Worker("B", MagicMock(), MagicMock())
         ], shared)
-        self.assertEqual(shared.get_cache_file_path_for_next_level(),
+        self.assertEqual(shared.get_cache_file_path_for_current_level(),
                          Path("cache/00_A.dat"))
         sm2 = StateMachine([Worker("C", MagicMock(), MagicMock())], shared)
         # the helpers now reflect the last machine built
-        self.assertEqual(shared.get_cache_file_path_for_next_level(),
+        self.assertEqual(shared.get_cache_file_path_for_current_level(),
                          Path("cache/00_C.dat"))
         shared.log_event(Relevance.INFO, "via shared ctx")
         self.assertEqual(len(sm2.logs), 2)  # init + this one
