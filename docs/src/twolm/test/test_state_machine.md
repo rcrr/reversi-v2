@@ -1,17 +1,17 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (19 tests, 3
+Date: 2026-08-29. One test file: `test_state_machine.py` (22 tests, 3
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
 `TestStateMachine` test (D-059); R4 failure semantics pinned with 1
-new test (D-060, closes T6); T2–T5, T7–T10 OPEN, fix campaign
-pending Roberto's approval (together with the R5 ruling on the
-module).**
+new test (D-060, closes T6); R5 resolved (D-061) with 2 new
+duplicate-name tests, which also close T10 (duplicates unreachable);
+T2–T5, T7–T9 remain OPEN.**
 
-Suite: **20/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **22/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
-pin). Fast (~0.18s).
+pin, → 22 with the D-061 duplicate-name tests). Fast (~0.08s).
 
 ## How to run
 
@@ -21,7 +21,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (15 tests: original 13 + 1 D-059 + 1 D-060)
+### `TestStateMachine` (17 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061)
 
 | Test | What it pins |
 |---|---|
@@ -40,6 +40,8 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_to_step_invalid_type` | `3.14` → TypeError. |
 | `test_worker_exception_propagation_and_logging` | `up[1]` raising RuntimeError: re-raised; `current_step == 1` (the failed step); exactly 1 ERROR log with the right step/worker/message; history records the failed attempt (len 1). |
 | `test_history_export_csv` | 2 moves (0→2, 2→0) → CSV with 4 rows; row 0 = CONFIG/up; row 3 = CONFIG/down. File cleaned up in `finally`. |
+| `test_duplicate_worker_names_raise` (D-061) | Two workers both named `"A"` → `ValueError` at construction, message contains "Duplicate worker name". |
+| `test_duplicate_worker_names_case_insensitive` (D-061) | Workers `"CONFIG"` + `"config"` → same `ValueError`: the uniqueness check is case-insensitive, matching the case-insensitive name resolution. |
 
 ### `TestLogEntry` (3 tests, added D-058)
 
@@ -95,8 +97,10 @@ captured output: `log_event`'s live print format (V12),
 all. The patch is currently just noise-suppression.
 
 ### T4 — `move_to_last` untested (P1)
-No test exercises `move_to_last` — happy path, empty-workers no-op, or
-the duplicate-name misdirection (V8c, R5).
+No test exercises `move_to_last` — happy path and empty-workers no-op
+remain untested. The duplicate-name misdirection (V8c, R5) is no longer
+reachable: D-061 rejects duplicates at construction, so the happy
+path is the only live behaviour worth pinning.
 
 ### T5 — CSV test is thin + writes to CWD (P2)
 Only row count and 4 cell values are checked: no header-row assertion,
@@ -125,9 +129,11 @@ aware-UTC `start`/`finish`, the `duration == finish - start` identity,
 and the `finally`-append on failure are unpinned at the field level
 (V14; the failure-append half is only len-asserted).
 
-### T10 — Duplicate-name behaviour unpinned (P2)
-First-match-wins on duplicate worker names (V8b) is undocumented and
-unpinned; combined with T4 it hides R5.
+### T10 — Duplicate-name behaviour unpinned (P2) — RESOLVED (D-061)
+Moot by construction: D-061 rejects duplicate names in `__init__`
+(case-insensitive `ValueError`), so first-match-wins (V8b) is
+unreachable. The new behaviour is pinned by the two D-061 tests
+(reject + case-insensitive).
 
 ### T11 — Dead import (P2) — RESOLVED (side effect of D-058)
 `from datetime import datetime` was never used; the new
@@ -152,8 +158,9 @@ bool/duplicate names, StepMove field content).
 ## Proposed priorities
 
 - **P0** (with the R rulings): T1 — done (D-057); T2 (injection
-  coverage), R2/R5 code fixes if approved.
+  coverage); R2 — resolved (D-058); R5 — resolved (D-061).
 - **P1**: T3 (print/display goldens), T4 (move_to_last); T6 — done
   (D-060); R4 — resolved (D-060).
-- **P2**: T5, T7, T8, T9, T10 (T11 resolved with D-058) + the
-  M-sweep (dead imports, cosmetics, doc notes, repr).
+- **P2**: T5, T7, T8, T9 (T11 resolved with D-058; T10 resolved with
+  D-061) + the M-sweep (dead imports, cosmetics, doc notes, repr;
+  M12 closed with D-061).

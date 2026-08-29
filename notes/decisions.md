@@ -1011,3 +1011,29 @@ D-060 | 2026-08-29 | state_machine R4 resolved (session 19, fix
         would assert a state the machine can't verify; honest
         reporting + documented recovery is the domain-agnostic
         choice.
+
+D-061 | 2026-08-29 | state_machine R5 resolved (session 19, fix
+        campaign item 5, ruled by Roberto): worker names are
+        UNIQUE, enforced fail-fast in StateMachine.__init__
+        (case-insensitive duplicate check -> ValueError, raised
+        before any state is touched). Roberto REJECTED the proposed
+        index-based move_to_last fix: the real ambiguity sits in
+        move_to_step's name resolution itself (any duplicate pair
+        would silently land on the first match), and the case does
+        not occur in his client code today — so enforce the
+        invariant instead of patching one call site. The check is
+        case-insensitive because name resolution is
+        case-insensitive (.upper()). move_to_last stays
+        name-based; with unique names its dispatch is unambiguous.
+        Closes M12 (duplicates impossible at construction) and
+        T10 (first-match behaviour unreachable). Pinned by new
+        test_duplicate_worker_names_raise +
+        test_duplicate_worker_names_case_insensitive (2 tests).
+        Suite 20 -> 22/0/0 GREEN; full discover 420, 52 skipped.
+        | Roberto: "No, il fix non va bene. Anche il metodo
+        move_to_step ha il problema nel determinante quale STATO
+        raggiungere se ce ne fossero piu di uno con lo stesso
+        nome... Al momento il caso NON si presenta. Quindi direi di
+        modificare __init__ e forzare un check che i nomi NON siano
+        duplicati. Se lo sono __init__ fallisce con raise Error
+        appropriato. Bisogna anche fare un TEST a tal proposito."

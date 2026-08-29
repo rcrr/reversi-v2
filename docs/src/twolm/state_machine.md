@@ -5,12 +5,13 @@ test_state_machine.py), commit 66ab84b. **Analysis session 19; R1
 fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
-OPEN, awaiting Roberto's ruling; fix campaign pending approval.**
+resolved (D-061: unique worker names enforced in `__init__`).
+**All five R items closed**; T2–T5, T7–T10 + M-sweep remain.**
 
-Suite: **20 tests, GREEN 20/0/0** (3 classes, no PERF gates). Suite is
-fast (~0.18s).
+Suite: **22 tests, GREEN 22/0/0** (3 classes, no PERF gates). Suite is
+fast (~0.08s).
 
-Full workspace: **418 tests, GREEN, 52 skipped under
+Full workspace: **420 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -54,7 +55,7 @@ as the initial (nothing-executed) state. For a move from `c` to `t`:
   `up()` **runs**.
 - **Down** (`t < c`): executes `down()` of workers `c … t+1` — the
   target's `down()` does **NOT** run; `current_step` is then set to `t`
-  explicitly (L301, required because the down loop's last iteration
+  explicitly (L313, required because the down loop's last iteration
   leaves it at `t+1`).
 
 Consequences, all verified (V3–V6, V8):
@@ -77,8 +78,8 @@ Consequences, all verified (V3–V6, V8):
 
 ### Context injection (side effect on the caller's object)
 
-`__init__` unconditionally assigns onto the passed `Context` (L142,
-L156, L164):
+`__init__` unconditionally assigns onto the passed `Context` (L154,
+L168, L176):
 
 - `context.log_event = self.log_event` (bound method of this machine);
 - `context.get_cache_file_path_for_next_level` — returns
@@ -102,14 +103,14 @@ cited.
 
 | # | Fact | Method |
 |---|---|---|
-| V1 | Verbosity gate is `relevance >= verbosity` (L213); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
+| V1 | Verbosity gate is `relevance >= verbosity` (L225); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
 | V2 | `logs` accumulates every event regardless of verbosity (gate affects print only); entries are frozen `LogEntry` dataclass instances — attribute access, immutable, `asdict()` for dumps (post D-058; at analysis time they were plain dicts and `LogEntry` a dead class: the R2 defect) | Probe + source scan |
 | V3 | Worker 0's `up()`/`down()` are never invoked by `move_to_step`/`move_to_last` (up 0→2 runs up[1], up[2]; down 2→0 runs down[2], down[1]) — now documented as intentional sentinel (D-059) and pinned by a dedicated test | MagicMock call tracking |
-| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L301 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
+| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L313 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
 | V5 | Up c→t runs up() of workers c+1..t (target included) | MagicMock |
 | V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** (documented + pinned, D-060) | side_effect + reset mocks |
 | V7 | `move_to_step(True)` accepted as step 1 (`bool` subclasses `int`); `np.int64(1)` rejected with TypeError | Edge-case probes |
-| V8 | Name lookup case-insensitive; duplicate names → **first** match wins; `move_to_last` on `[A, B, A]` from step 2 lands on step 0 (name resolution) | Edge-case probes |
+| V8 | Name lookup case-insensitive; duplicate names are **rejected at construction** since D-061 (ValueError, case-insensitive check) — name-based moves, including `move_to_last`, are unambiguous (at analysis time duplicates were first-match-wins and `move_to_last` on `[A, B, A]` landed on step 0: the R5 defect) | Edge-case probes, re-run post-fix |
 | V9 | Cache path at step k = `{prefix}{k:02}_{name}.dat` (active worker); full path = `base_dir / path`; relative prefix joins under `base_dir`, **absolute prefix silently drops `base_dir`** (pathlib `/`); missing `cfg` → `AttributeError`; empty workers → `Path()`, name `"UNDEFINED"`, `move_to_last` no-op | Probes with cfg stubs |
 | V10 | CSV header `step,worker_name,direction,start_utc,finish_utc,duration_sec`; ISO-8601 with `+00:00`; float `duration_sec` | File round-trip |
 | V11 | Failed step logs exactly [init, "Starting…", "Error in…"] — no "Completed"; error entry carries the failed step + worker | Log inspection |
@@ -152,7 +153,7 @@ file/DB) all benefit from it. Implemented as
   dataclass `__repr__` gives a self-documenting record in the REPL;
 - **`dataclasses.asdict(entry)`**: one-liner dict form for the
   file/DB dump worker (use #3);
-- `log_event` now constructs `LogEntry` directly (L205-211);
+- `log_event` now constructs `LogEntry` directly (L217-223);
   `show_event_log` migrated to attribute access (output format
   unchanged); the `logs` annotation is now true.
 Observable behaviour (prints, CSV, history) unchanged. Pinned by
@@ -169,7 +170,7 @@ make the full role explicit. No behaviour change: the state model is
 self-consistent with step 0 as the "nothing executed yet" state.
 Disposition: documented in the `StateMachine` class docstring (state
 model + sentinel, L95-107) and the `move_to_step` docstring (up
-includes target / down excludes target, L249-258), and pinned by
+includes target / down excludes target, L261-279), and pinned by
 `test_worker_zero_is_sentinel_never_executed` (new test — up to 2 and
 back to 0 never touches `up[0]`/`down[0]`).
 
@@ -187,16 +188,26 @@ worker's responsibility to catch and handle the exception. The
 documented recovery path: `move_to_step(k-1)` (invokes `k`'s
 `down()` — the domain rollback, e.g. clearing a partial cache file)
 and then move up to re-execute `k`. Disposition: failure semantics
-added to the `move_to_step` docstring (L249-267); pinned by
+added to the `move_to_step` docstring (L261-279); pinned by
 `test_retry_after_failure_skips_failed_step` (retry skips `k`;
 down-then-up re-executes it, T6).
 
 ### R5 — `move_to_last` is name-based and misdirects on duplicate names
-`move_to_last` calls `move_to_step(workers[-1].name)` (L303-309); name
+**RESOLVED (D-061)**
+`move_to_last` calls `move_to_step(workers[-1].name)` (L315-321); name
 resolution picks the **first** match (V8). With workers `[A, B, A]`,
-`move_to_last` from step 2 lands on step 0. Minimal fix: use the index
-`len(self.workers) - 1` directly (duplicate names in general remain a
-design wart — first-match is silent, see M12).
+`move_to_last` from step 2 landed on step 0. Roberto **rejected** the
+minimal index fix: the real ambiguity sits in `move_to_step` itself
+(name-based dispatch would keep picking the first match for **any**
+duplicate pair), and the case did not occur in his code — so the fix
+enforces the invariant instead: `__init__` now **rejects duplicate
+worker names, case-insensitively** (L134-145, `ValueError`), fail-fast
+before any state is touched, because name resolution is
+case-insensitive. With unique names, `move_to_last`'s name-based
+dispatch is unambiguous and stays unchanged. M12 closed (duplicates
+impossible at construction); V8 restated. Pinned by
+`test_duplicate_worker_names_raise` and
+`test_duplicate_worker_names_case_insensitive` (22 tests).
 
 ## Minor notes (M1–M12)
 
@@ -207,7 +218,7 @@ design wart — first-match is silent, see M12).
   `np.int64` rejected (V7). One-line `isinstance(target_step, bool)`
   guard if strictness is wanted; otherwise document.
 - **M4** — `_run_step`'s `else` branch treats any non-`'up'` direction
-  string as down (L187-190). Private, only 'up'/'down' are ever passed.
+  string as down (L199-202). Private, only 'up'/'down' are ever passed.
 - **M5** — Injected names `get_cache_file_path_for_next_level` /
   `get_cache_file_full_path_for_next_level` contradict their own
   docstrings ("currently executing worker"). Renaming is port-breaking
@@ -233,14 +244,15 @@ design wart — first-match is silent, see M12).
   function (deviation from the house convention; the module is
   deliberately pure stdlib — confirm the deviation is intentional).
 - **M12** — Duplicate worker names are allowed; name-based moves are
-  first-match and silent.
+  first-match and silent — RESOLVED by D-061: `__init__` rejects
+  duplicates (case-insensitive, `ValueError`); first-match unreachable.
 
 ## Observations (not defects)
 
 - **Half-open interval semantics are correct as implemented**: the
-  L301 reassignment is *required* for down moves (the down range
+  L313 reassignment is *required* for down moves (the down range
   excludes the target), and the up loop naturally ends at the target.
-  The code and the L299 comment are consistent — verified, no change.
+  The code and the L311 comment are consistent — verified, no change.
 - **`np.int64` rejection is acceptable** for a plain-int pipeline API
   (other modules' scalar/array duality doesn't apply here); the
   TypeError message is clear.
@@ -262,8 +274,8 @@ Ran 13 tests in 0.026s
 OK
 ```
 
-## Appendix: line-number reference (2026-08-29, post R1–R3 fixes
-D-057/D-058/D-059)
+## Appendix: line-number reference (2026-08-29, post R1–R5 fixes
+D-057–D-061; all line numbers grep-verified 2026-08-29, file 321 lines)
 
 - `__all__`: L40
 - `Verbosity`: L44 (VERY_LOW: L53, NONE: L54) · `Relevance`: L56 ·
@@ -273,25 +285,26 @@ D-057/D-058/D-059)
 - `StateMachine.StepMove`: L109-116 (@dataclass L109, class L110) ·
   `StateMachine.LogEntry`: L118-128 (@dataclass(frozen=True) L118,
   class L119, fields L124-128)
-- `StateMachine.__init__`: L130
-- context.log_event injection: L142
-- `_get_cache_file_path`: L144 (level = current_step: L149; cfg
-  prefix: L152)
-- `get_cache_file_path_for_next_level` injection: L156
-- `_get_cache_file_full_path`: L158 (base_dir join: L161-162);
-  injection: L164
-- init log: L166
-- `_history_timer` (finally append): L168-182
-- `_run_step`: L184 (direction dispatch: L187-190; error log+raise:
-  L193-194)
-- `current_worker_name`: L197 ("UNDEFINED": L199)
-- `log_event`: L202 (LogEntry construction: L205-211; append: L212;
-  gate `>=`: L213; print: L215)
-- `show_event_log`: L217 · `show_history_of_moves`: L225
-- `export_history_of_moves_as_csv`: L233 (fieldnames: L234)
-- `move_to_step`: L248 (docstring: L249-267, incl. failure
-  semantics; string→upper: L269; name lookup: L270; TypeError:
-  L275-276; IndexError: L278-279; same-step no-op: L281-282; up
-  range: L284-286; down range: L287-289; pre-exec step update:
-  L294; down final set: L300-301)
-- `move_to_last`: L303 (name-based call: L309)
+- `StateMachine.__init__`: L130 (duplicate-name check: L134-145,
+  D-061)
+- context.log_event injection: L154
+- `_get_cache_file_path`: L156 (level = current_step: L161; cfg
+  prefix: L164)
+- `get_cache_file_path_for_next_level` injection: L168
+- `_get_cache_file_full_path`: L170 (base_dir join: L173-174);
+  injection: L176
+- init log: L178
+- `_history_timer` (finally append): L180-194
+- `_run_step`: L196 (direction dispatch: L199-202; error log+raise:
+  L205-206)
+- `current_worker_name`: L209 ("UNDEFINED": L211)
+- `log_event`: L214 (LogEntry construction: L217-223; append: L224;
+  gate `>=`: L225; print: L227)
+- `show_event_log`: L229 · `show_history_of_moves`: L237
+- `export_history_of_moves_as_csv`: L245 (fieldnames: L246)
+- `move_to_step`: L260 (docstring: L261-279, incl. failure
+  semantics; string→upper: L281; name lookup: L282; TypeError:
+  L287-288; IndexError: L290-291; same-step no-op: L293-294; up
+  range: L296-298; down range: L299-301; pre-exec step update:
+  L306; down final set: L312-313)
+- `move_to_last`: L315 (name-based call: L321)
