@@ -57,3 +57,13 @@ I-008 | idea | Extend the logistello-papers reference collection
         page (https://skatgame.net/mburo/publications.html);
         logistello-papers/ is read-only, so collection + index
         updates need Roberto's explicit go-ahead.
+
+I-009 | follow-up | Pipeline construction boilerplate (raised
+        2026-08-29, session 19, R3 discussion): Roberto notes his
+        pipeline client carries a bit of boilerplate in the model
+        construction (worker/context/machine wiring). When the
+        logistic_model/RLM pipeline module arrives in the workspace,
+        evaluate a declarative step table / @step-style helper /
+        pipeline base class on top of StateMachine to trim it.
+        Blocked on: the pipeline module not being in the workspace
+        yet (can't see the actual boilerplate).

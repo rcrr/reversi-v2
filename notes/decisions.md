@@ -962,3 +962,26 @@ D-058 | 2026-08-29 | state_machine R2 fix (session 19, fix campaign
         favour a typed record; "facciamo come riteniamo meglio, non
         dovrebbe rompersi nulla" — verified: show_event_log output,
         live prints, CSV export all byte-identical.
+
+D-059 | 2026-08-29 | state_machine R3 resolved as SENTINEL
+        (session 19, fix campaign item 3, approved by Roberto):
+        worker 0 is an intentional sentinel initial state — its
+        up()/down() callables are never invoked by the machine by
+        design; the domain's first worker (the RLM pipeline's
+        'CREATED') runs outside the machine, and the logistic_model
+        module (next port) will make the full role explicit. No
+        behaviour change: documented in the StateMachine class
+        docstring (state model + sentinel, L95-107) and the
+        move_to_step docstring (up includes target / down excludes
+        target, L249-258); pinned by new
+        test_worker_zero_is_sentinel_never_executed (up 0→2 then
+        down 2→0 never touches up[0]/down[0]). Suite 18 -> 19/0/0
+        GREEN; full discover 417, 52 skipped.
+        | Roberto: "Il ruolo vero è 1. È un sentinel. Quando porto
+        l'implementazione della PIPELINE ... c'è un modulo
+        logistic_model, ti sarà tutto chiaro." The off-by-one fix
+        would have been wrong; a domain fact belongs in the docs,
+        pinned so a future "cleanup" can't silently change the
+        semantics. Same discussion: Roberto flagged pipeline
+        construction boilerplate in his client — noted as I-009
+        (follow-up, blocked on the pipeline module arriving).

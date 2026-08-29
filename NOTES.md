@@ -41,7 +41,7 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_regab.py | analyzed 2026-08-29 (session 15); T5+T6+T7 applied (D-052): dead imports removed, SKIP_REGAB_DB gate, 4 SQL-injection tests added (TestRegabGPAsDF 12 → 16); suite 33 → 37/0/0 GREEN | docs/src/twolm/test/test_regab.md |
 | src/twolm/opt_lbfgs.py | analyzed 2026-08-29 (session 16); T1-T7 fix batch applied (D-053: RuntimeException → RuntimeError hard bug, CURVATURE_THRESHOLD used, low_progress_count spelling, hermite None fallthrough, save_fn 7-param hint+docstring, fractional docstring); 5 verified facts V1-V5 (0 mismatches); suite 13/0/0 GREEN | docs/src/twolm/opt_lbfgs.md |
 | src/twolm/test/test_opt_lbfgs.py | analyzed 2026-08-29 (session 16); T7 applied + 9 new tests (D-053): TestLBFGSInputValidation (3), TestFixedSizeMaxList (4, incl. T1 regression), TestTwoLoopRecursion (2); suite 4 → 13/0/0 GREEN | docs/src/twolm/test/test_opt_lbfgs.md |
-| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3-R5 + minors M1-M12 (M2 done) OPEN awaiting Roberto's rulings (R3 worker 0 unreachable, R4 retry-after-failure skips failed step, R5 move_to_last name collision); suite 18/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
+| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4-R5 + minors M1-M12 (M2 done) OPEN awaiting Roberto's rulings (R4 retry-after-failure skips failed step, R5 move_to_last name collision); suite 19/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
 | src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 3 classes / 18 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T11 resolved as D-058 side effect; 9 defects T2-T10 OPEN (three whole areas untested: context injection, display methods, move_to_last + edge semantics); suite 13 → 15 → 18, GREEN 18/0/0 | docs/src/twolm/test/test_state_machine.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
@@ -92,7 +92,7 @@ now (I-001; see notes/decisions.md).
 - Suite status (2026-08-29): board 193/0/12, pattern 64/0/3,
   mobility 26/0/1, feature 20/0/1, binio 45/0/0 (42 + 3 usage),
   regab 37/0/0 (2 mocked run, 35 DB skipped under SKIP_REGAB_DB=1),
-  opt_lbfgs 13/0/0, state_machine 18/0/0 — all GREEN. Totals: 416
+  opt_lbfgs 13/0/0, state_machine 19/0/0 — all GREEN. Totals: 417
   tests, 52 skipped under the gate (17 PERF=1 print-only performance
   tests + 35 DB-gated regab tests; no performance gates in any suite,
   D-036). Warm run ≈ 0.5 s (board) / ≈ 1.6 s (full discover, numba
@@ -218,33 +218,38 @@ now (I-001; see notes/decisions.md).
   export), domain-agnostic, pure stdlib (no new deps). 17 verified
   facts V1-V17 (0 mismatches): half-open interval semantics (up c→t
   runs workers c+1..t, target included; down c→t runs c..t+1, target
-  excluded, L273 reassignment required), worker 0 unreachable via the
-  public API, failure leaves current_step at the failed step (retry
-  of the same target skips it), verbosity gate is `relevance >=
-  verbosity` (NONE still prints ERROR), LogEntry dead (logs holds
-  plain dicts), move_to_last name-based (duplicate names → first
-  match), context injection is a side effect (shared context re-binds
-  to the last machine). R1 FIXED (D-057: Verbosity.VERY_LOW=4 added,
-  NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly
-  silent, old ERROR-only behaviour kept as VERY_LOW; pinned by T1);
-  R2 FIXED (D-058: LogEntry → frozen dataclass, attribute access +
-  asdict() for the file/DB dump worker, show_event_log migrated to
+  excluded, L292 reassignment required), worker 0 unreachable via the
+  public API — intentional sentinel (D-059), failure leaves
+  current_step at the failed step (retry of the same target skips
+  it — R4 open), verbosity gate is `relevance >= verbosity` (post
+  D-057: VERY_LOW ERROR-only, NONE silent), LogEntry frozen dataclass
+  (D-058), move_to_last name-based (duplicate names → first match —
+  R5 open), context injection is a side effect (shared context
+  re-binds to the last machine). R1 FIXED (D-057: Verbosity.VERY_LOW=4
+  added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE
+  truly silent, old ERROR-only behaviour kept as VERY_LOW; pinned by
+  T1); R2 FIXED (D-058: LogEntry → frozen dataclass, attribute access
+  + asdict() for the file/DB dump worker, show_event_log migrated to
   attribute access, observable behaviour unchanged; pinned by
   TestLogEntry; test-file datetime import now load-bearing → M2/T11
-  resolved); R3-R5 + minors M1-M12 (M2 done) OPEN — awaiting
-  Roberto's rulings; fix campaign pending. Suite 18/0/0 GREEN.
+  resolved); R3 RESOLVED as intentional sentinel (D-059: state model
+  + sentinel documented in class and move_to_step docstrings, pinned
+  by test_worker_zero_is_sentinel_never_executed, no behaviour
+  change); R4-R5 + minors M1-M12 (M2 done) OPEN — awaiting Roberto's
+  rulings; fix campaign pending. Suite 19/0/0 GREEN.
 - test_state_machine.py: analyzed 2026-08-29 (session 19,
-  docs/src/twolm/test/test_state_machine.md): 1 class / 13 tests / no
-  PERF; all 13 expectations independently re-derived (0 mismatches) —
-  core move mechanics well pinned (up/down asymmetry, failure
-  semantics, same-step no-op, bounds/type/name errors). 11 defects
-  T1-T11 OPEN: three whole areas untested (verbosity 5x5 gate,
-  context injection, display methods + move_to_last + edge
+  docs/src/twolm/test/test_state_machine.md): 3 classes / 19 tests /
+  no PERF; all 13 original expectations independently re-derived
+  (0 mismatches) — core move mechanics well pinned (up/down
+  asymmetry, failure semantics, same-step no-op, bounds/type/name
+  errors). 11 defects found; three whole areas untested (verbosity
+  gate, context injection, display methods + move_to_last + edge
   semantics). T1 FIXED (D-057: TestVerbosityGating — 6x5 gating
   matrix + enum values, 2 tests; suite 13 → 15); R2 tests added
-  (D-058: TestLogEntry, 3 tests; suite 15 → 18); T11 resolved as
-  D-058 side effect; T2-T10 OPEN. Fix campaign proposed with the
-  R3-R5 rulings. Suite 18/0/0 GREEN.
+  (D-058: TestLogEntry, 3 tests; suite 15 → 18); R3 sentinel pinned
+  (D-059: test_worker_zero_is_sentinel_never_executed, 1 test;
+  suite 18 → 19); T11 resolved as D-058 side effect; T2-T10 OPEN.
+  Fix campaign proposed with the R4-R5 rulings. Suite 19/0/0 GREEN.
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -277,9 +282,9 @@ now (I-001; see notes/decisions.md).
   'environmeant' typo itself fixed 2026-08-29, D-050).
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 - Next: state_machine fix campaign item by item (R1 done D-057, R2
-  done D-058) — next ruling: R3 (worker 0's up()/down() unreachable
-  via the public API: sentinel or off-by-one), then R4
-  (retry-after-failure), R5 (move_to_last) + T2-T10
+  done D-058, R3 done D-059) — next ruling: R4 (retry-after-failure
+  skips the failed step: document the quirk vs. roll current_step
+  back to k-1), then R5 (move_to_last name collision) + T2-T10
   (docs/src/twolm/state_machine.md +
   docs/src/twolm/test/test_state_machine.md).
 
@@ -331,12 +336,12 @@ now (I-001; see notes/decisions.md).
 - docs/src/twolm/state_machine.md — state_machine.py analysis (generic
   pipeline orchestrator; 17 verified facts V1-V17; R1 fixed D-057
   (VERY_LOW=4, NONE=5), R2 fixed D-058 (frozen LogEntry dataclass +
-  asdict), R3-R5 + M1-M12 (M2 done) OPEN awaiting Roberto's rulings;
-  suite 18/0/0 GREEN)
+  asdict), R3 sentinel documented + pinned D-059, R4-R5 + M1-M12
+  (M2 done) OPEN awaiting Roberto's rulings; suite 19/0/0 GREEN)
 - docs/src/twolm/test/test_state_machine.md — test_state_machine.py
-  analysis (18 tests, expectations re-derived, T1 fixed D-057,
-  TestLogEntry added + T11 resolved D-058, T2-T10 OPEN, P0/P1/P2
-  priorities proposed)
+  analysis (19 tests, expectations re-derived, T1 fixed D-057,
+  TestLogEntry + sentinel pin added D-058/D-059 + T11 resolved,
+  T2-T10 OPEN, P0/P1/P2 priorities proposed)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
 - notes/decisions.md — decisions log (D-NNN; D-001…D-053)

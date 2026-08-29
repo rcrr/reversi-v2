@@ -1,13 +1,14 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (18 tests, 3
+Date: 2026-08-29. One test file: `test_state_machine.py` (19 tests, 3
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
-(D-058, side effect: T11 resolved); T2–T10 OPEN, fix campaign pending
-Roberto's approval (together with the R3–R5 rulings on the module).**
+(D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
+`TestStateMachine` test (D-059); T2–T10 OPEN, fix campaign pending
+Roberto's approval (together with the R4–R5 rulings on the module).**
 
-Suite: **18/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
-the R2 tests). Fast (~0.04s).
+Suite: **19/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+the R2 tests, → 19 with the R3 sentinel pin). Fast (~0.05s).
 
 ## How to run
 
@@ -17,7 +18,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (13 tests)
+### `TestStateMachine` (14 tests: original 13 + 1 added D-059)
 
 | Test | What it pins |
 |---|---|
@@ -27,6 +28,7 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_down_single_step` | 2→1: only `down[2]` called (mocks reset first); history len 3, last direction `down`. |
 | `test_move_down_to_zero` | 2→0: `down[2]` + `down[1]` once each (`down[0]` never); history len 4. |
 | `test_move_to_same_step` | 0→0: no callable executed, empty history. |
+| `test_worker_zero_is_sentinel_never_executed` (D-059) | up 0→2 then down 2→0: `up[0]`/`down[0]` are never invoked — pins the worker-0 sentinel semantics against a future off-by-one "fix". |
 | `test_move_to_step_by_string` | `"positions"` (lowercase) → step 2, both ups executed. |
 | `test_move_to_step_by_invalid_string` | Unknown name → ValueError, message contains "not found in the pipeline". |
 | `test_move_to_step_out_of_bounds_high` | Index 3 (== len) → IndexError. |

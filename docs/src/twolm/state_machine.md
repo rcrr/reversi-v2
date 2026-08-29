@@ -3,13 +3,14 @@
 Date: 2026-08-29. Module added by Roberto (2 files: state_machine.py +
 test_state_machine.py), commit 66ab84b. **Analysis session 19; R1
 fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
-dataclass); R3–R5 OPEN, awaiting Roberto's ruling; fix campaign
-pending approval.**
+dataclass); R3 resolved as sentinel (D-059: documented + pinned);
+R4–R5 OPEN, awaiting Roberto's ruling; fix campaign pending
+approval.**
 
-Suite: **18 tests, GREEN 18/0/0** (3 classes, no PERF gates). Suite is
-fast (~0.04s).
+Suite: **19 tests, GREEN 19/0/0** (3 classes, no PERF gates). Suite is
+fast (~0.05s).
 
-Full workspace: **416 tests, GREEN, 52 skipped under
+Full workspace: **417 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -53,13 +54,18 @@ as the initial (nothing-executed) state. For a move from `c` to `t`:
   `up()` **runs**.
 - **Down** (`t < c`): executes `down()` of workers `c … t+1` — the
   target's `down()` does **NOT** run; `current_step` is then set to `t`
-  explicitly (L278, required because the down loop's last iteration
+  explicitly (L292, required because the down loop's last iteration
   leaves it at `t+1`).
 
 Consequences, all verified (V3–V6, V8):
 
-1. **Worker 0 is unreachable**: no public call ever invokes
-   `workers[0].up()` or `.down()` (R3).
+1. **Worker 0 is unreachable — intentional sentinel** (R3, D-059):
+   no public call ever invokes `workers[0].up()` or `.down()`; by
+   domain design the first worker is a sentinel (the RLM pipeline's
+   'CREATED' bootstrap runs outside the machine; the logistic_model
+   module will make the full role explicit when ported — Roberto,
+   session 19). Pinned by
+   `test_worker_zero_is_sentinel_never_executed`.
 2. **Failure leaves `current_step` at the failed step** `k`; a retry of
    the same target re-runs only steps `> k`, skipping `k` (R4).
 3. The down-to-target state is "target step intact, everything above it
@@ -67,8 +73,8 @@ Consequences, all verified (V3–V6, V8):
 
 ### Context injection (side effect on the caller's object)
 
-`__init__` unconditionally assigns onto the passed `Context` (L134,
-L148, L156):
+`__init__` unconditionally assigns onto the passed `Context` (L142,
+L156, L164):
 
 - `context.log_event = self.log_event` (bound method of this machine);
 - `context.get_cache_file_path_for_next_level` — returns
@@ -92,10 +98,10 @@ cited.
 
 | # | Fact | Method |
 |---|---|---|
-| V1 | Verbosity gate is `relevance >= verbosity` (L205); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
+| V1 | Verbosity gate is `relevance >= verbosity` (L213); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
 | V2 | `logs` accumulates every event regardless of verbosity (gate affects print only); entries are frozen `LogEntry` dataclass instances — attribute access, immutable, `asdict()` for dumps (post D-058; at analysis time they were plain dicts and `LogEntry` a dead class: the R2 defect) | Probe + source scan |
-| V3 | Worker 0's `up()`/`down()` are never invoked by `move_to_step`/`move_to_last` (up 0→2 runs up[1], up[2]; down 2→0 runs down[2], down[1]) | MagicMock call tracking |
-| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L278 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
+| V3 | Worker 0's `up()`/`down()` are never invoked by `move_to_step`/`move_to_last` (up 0→2 runs up[1], up[2]; down 2→0 runs down[2], down[1]) — now documented as intentional sentinel (D-059) and pinned by a dedicated test | MagicMock call tracking |
+| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L292 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
 | V5 | Up c→t runs up() of workers c+1..t (target included) | MagicMock |
 | V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** | side_effect + reset mocks |
 | V7 | `move_to_step(True)` accepted as step 1 (`bool` subclasses `int`); `np.int64(1)` rejected with TypeError | Edge-case probes |
@@ -129,20 +135,20 @@ silent — such a site that wants errors visible should use
 ### R2 — `LogEntry` is dead code and the `logs` annotation lies — RESOLVED (D-058, 2026-08-29)
 `class LogEntry(dict)` with class-level annotations was pure
 documentation: nothing enforced keys or types, and `log_event` built
-**plain dicts** — the declared `List[StateMachine.LogEntry]` (L129)
+**plain dicts** — the declared `List[StateMachine.LogEntry]` (L137)
 was never true (V2 at analysis time). Fixed per Roberto's ruling —
 option (c), a real typed record, chosen because no client reads the
 log today and the three intended consumers (inspection clients,
 interactive REPL search, a final pipeline worker dumping the log to
 file/DB) all benefit from it. Implemented as
-`@dataclass(frozen=True)` `LogEntry` (L110-120):
+`@dataclass(frozen=True)` `LogEntry` (L118-128):
 - **frozen**: a log record is created once and read forever;
   mutation raises `FrozenInstanceError`;
 - **attribute access** (`entry.message`): REPL-ergonomic (use #2);
   dataclass `__repr__` gives a self-documenting record in the REPL;
 - **`dataclasses.asdict(entry)`**: one-liner dict form for the
   file/DB dump worker (use #3);
-- `log_event` now constructs `LogEntry` directly (L197-203);
+- `log_event` now constructs `LogEntry` directly (L205-211);
   `show_event_log` migrated to attribute access (output format
   unchanged); the `logs` annotation is now true.
 Observable behaviour (prints, CSV, history) unchanged. Pinned by
@@ -150,16 +156,18 @@ Observable behaviour (prints, CSV, history) unchanged. Pinned by
 `asdict` 5-key form). Side effect: the test file's previously dead
 `datetime` import is now used (T11/M2 resolved).
 
-### R3 — Worker 0 can never execute (semantic)
-No public call invokes `workers[0].up()` or `.down()` (V3). The state
-model is self-consistent with step 0 as a "nothing executed yet"
-sentinel, but then its `up_callable`/`down_callable` are dead weight
-and the machine cannot (re-)run step 0 — e.g. a "CREATED" worker that
-creates the project directory can never be triggered through the API.
-Question for Roberto: is step 0 an intended sentinel (document + keep),
-or is the domain meant to run worker 0 (then the off-by-one must be
-fixed, e.g. execute worker 0's `up` at init or widen the up interval)?
-The current tests pin the sentinel behaviour.
+### R3 — Worker 0 can never execute (semantic) — RESOLVED as SENTINEL (D-059, 2026-08-29)
+No public call invokes `workers[0].up()` or `.down()` (V3). Roberto
+confirmed the sentinel reading: **by domain design the first worker
+is a sentinel** — the RLM pipeline's 'CREATED' bootstrap runs outside
+the machine, and the logistic_model module (to be ported next) will
+make the full role explicit. No behaviour change: the state model is
+self-consistent with step 0 as the "nothing executed yet" state.
+Disposition: documented in the `StateMachine` class docstring (state
+model + sentinel, L95-107) and the `move_to_step` docstring (up
+includes target / down excludes target, L249-258), and pinned by
+`test_worker_zero_is_sentinel_never_executed` (new test — up to 2 and
+back to 0 never touches `up[0]`/`down[0]`).
 
 ### R4 — Post-failure retry silently skips the failed step
 After a failure at step `k`, `current_step == k` (the failed step, not
@@ -167,13 +175,13 @@ After a failure at step `k`, `current_step == k` (the failed step, not
 `test_worker_exception_propagation_and_logging`). A subsequent
 `move_to_step(t)` with `t > k` executes only steps `> k`, so the failed
 worker never re-runs; recovery requires an explicit down-then-up.
-Options: (a) leave as-is + document the quirk (comment at L271 + doc
+Options: (a) leave as-is + document the quirk (comment at L285 + doc
 note + a pinning test T6); (b) on failure roll `current_step` back to
 `k-1` so a retry naturally re-executes step `k` (behaviour change,
 test update required).
 
 ### R5 — `move_to_last` is name-based and misdirects on duplicate names
-`move_to_last` calls `move_to_step(workers[-1].name)` (L280-286); name
+`move_to_last` calls `move_to_step(workers[-1].name)` (L294-300); name
 resolution picks the **first** match (V8). With workers `[A, B, A]`,
 `move_to_last` from step 2 lands on step 0. Minimal fix: use the index
 `len(self.workers) - 1` directly (duplicate names in general remain a
@@ -188,7 +196,7 @@ design wart — first-match is silent, see M12).
   `np.int64` rejected (V7). One-line `isinstance(target_step, bool)`
   guard if strictness is wanted; otherwise document.
 - **M4** — `_run_step`'s `else` branch treats any non-`'up'` direction
-  string as down (L179-182). Private, only 'up'/'down' are ever passed.
+  string as down (L187-190). Private, only 'up'/'down' are ever passed.
 - **M5** — Injected names `get_cache_file_path_for_next_level` /
   `get_cache_file_full_path_for_next_level` contradict their own
   docstrings ("currently executing worker"). Renaming is port-breaking
@@ -219,9 +227,9 @@ design wart — first-match is silent, see M12).
 ## Observations (not defects)
 
 - **Half-open interval semantics are correct as implemented**: the
-  L278 reassignment is *required* for down moves (the down range
+  L292 reassignment is *required* for down moves (the down range
   excludes the target), and the up loop naturally ends at the target.
-  The code and the L276 comment are consistent — verified, no change.
+  The code and the L290 comment are consistent — verified, no change.
 - **`np.int64` rejection is acceptable** for a plain-int pipeline API
   (other modules' scalar/array duality doesn't apply here); the
   TypeError message is clear.
@@ -243,34 +251,35 @@ Ran 13 tests in 0.026s
 OK
 ```
 
-## Appendix: line-number reference (2026-08-29, post R1+R2 fixes
-D-057/D-058)
+## Appendix: line-number reference (2026-08-29, post R1–R3 fixes
+D-057/D-058/D-059)
 
 - `__all__`: L40
 - `Verbosity`: L44 (VERY_LOW: L53, NONE: L54) · `Relevance`: L56 ·
   `Context`: L66
 - `Worker.__init__`: L80 · `up`: L85 · `down`: L89
-- `StateMachine.StepMove`: L101-108 (@dataclass L101, class L102) ·
-  `StateMachine.LogEntry`: L110-120 (@dataclass(frozen=True) L110,
-  class L111, fields L116-120)
-- `StateMachine.__init__`: L122
-- context.log_event injection: L134
-- `_get_cache_file_path`: L136 (level = current_step: L141; cfg
-  prefix: L144)
-- `get_cache_file_path_for_next_level` injection: L148
-- `_get_cache_file_full_path`: L150 (base_dir join: L153-154);
-  injection: L156
-- init log: L158
-- `_history_timer` (finally append): L160-174
-- `_run_step`: L176 (direction dispatch: L179-182; error log+raise:
-  L185-186)
-- `current_worker_name`: L189 ("UNDEFINED": L191)
-- `log_event`: L194 (LogEntry construction: L197-203; append: L204;
-  gate `>=`: L205; print: L207)
-- `show_event_log`: L209 · `show_history_of_moves`: L217
-- `export_history_of_moves_as_csv`: L225 (fieldnames: L226)
-- `move_to_step`: L240 (string→upper: L246; name lookup: L247;
-  TypeError: L252-253; IndexError: L255-256; same-step no-op:
-  L258-259; up range: L261-263; down range: L264-266; pre-exec
-  step update: L271; down final set: L277-278)
-- `move_to_last`: L280 (name-based call: L286)
+- `StateMachine` class docstring (state model + sentinel): L95-107
+- `StateMachine.StepMove`: L109-116 (@dataclass L109, class L110) ·
+  `StateMachine.LogEntry`: L118-128 (@dataclass(frozen=True) L118,
+  class L119, fields L124-128)
+- `StateMachine.__init__`: L130
+- context.log_event injection: L142
+- `_get_cache_file_path`: L144 (level = current_step: L149; cfg
+  prefix: L152)
+- `get_cache_file_path_for_next_level` injection: L156
+- `_get_cache_file_full_path`: L158 (base_dir join: L161-162);
+  injection: L164
+- init log: L166
+- `_history_timer` (finally append): L168-182
+- `_run_step`: L184 (direction dispatch: L187-190; error log+raise:
+  L193-194)
+- `current_worker_name`: L197 ("UNDEFINED": L199)
+- `log_event`: L202 (LogEntry construction: L205-211; append: L212;
+  gate `>=`: L213; print: L215)
+- `show_event_log`: L217 · `show_history_of_moves`: L225
+- `export_history_of_moves_as_csv`: L233 (fieldnames: L234)
+- `move_to_step`: L248 (docstring: L249-258; string→upper: L260;
+  name lookup: L261; TypeError: L266-267; IndexError: L269-270;
+  same-step no-op: L272-273; up range: L275-277; down range:
+  L278-280; pre-exec step update: L285; down final set: L291-292)
+- `move_to_last`: L294 (name-based call: L300)
