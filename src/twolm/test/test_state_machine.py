@@ -145,6 +145,33 @@ class TestStateMachine(unittest.TestCase):
             mock.assert_not_called()
         self.assertEqual(len(self.sm.history), 0)
 
+    def test_retry_after_failure_skips_failed_step(self):
+        """A retry of a higher target does NOT re-execute the
+        failed step; recovery is down-then-up (R4, D-060)."""
+        self.up_callables[1].side_effect = RuntimeError("boom")
+        with self.assertRaises(RuntimeError):
+            self.sm.move_to_step(2)
+        self.assertEqual(self.sm.current_step, 1)
+        # clear the failure and retry the same target
+        self.up_callables[1].side_effect = None
+        for mock in self.up_callables + self.down_callables:
+            mock.reset_mock()
+        self.sm.move_to_step(2)
+        self.up_callables[2].assert_called_once_with(self.context)
+        self.up_callables[1].assert_not_called()  # skipped
+        self.assertEqual(self.sm.current_step, 2)
+        # recovery: roll back (runs down of 2 and the failed 1) ...
+        for mock in self.up_callables + self.down_callables:
+            mock.reset_mock()
+        self.sm.move_to_step(0)
+        self.down_callables[2].assert_called_once_with(self.context)
+        self.down_callables[1].assert_called_once_with(self.context)
+        # ... then move up: the failed step 1 re-executes
+        self.sm.move_to_step(2)
+        self.up_callables[1].assert_called_once_with(self.context)
+        self.up_callables[2].assert_called_once_with(self.context)
+        self.assertEqual(self.sm.current_step, 2)
+
     def test_worker_zero_is_sentinel_never_executed(self):
         """Worker 0 is the sentinel initial state: its up()/down()
         are never invoked by the machine (R3, D-059)."""

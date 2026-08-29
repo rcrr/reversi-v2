@@ -255,6 +255,15 @@ class StateMachine:
         target excluded, leaving the state "steps 1..t done".
         Worker 0 is the sentinel initial state: it is never
         executed by the machine (see class docstring).
+
+        Failure semantics: a failing worker's exception is logged
+        and re-raised; current_step stays at the failed step k, so
+        logs name the failing worker. A retry of a higher target
+        does NOT re-execute k. To re-run it, first move to k-1
+        (which invokes k's down(), the domain rollback) and then
+        move up. The machine is domain-agnostic: it cannot know
+        whether a failed step is safely re-runnable, so handling a
+        failure is the domain worker's responsibility (D-060).
         """
         if isinstance(target_step, str):
             target_step = target_step.upper()
