@@ -4,9 +4,9 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 2026-08-28 (commit b51bea6), analyzed after the R1-R4 module batch
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
-progress one at a time: T6 (D-043), T1 (D-044) and T2 (D-045)
-applied → 16 run + 1 PERF skip, GREEN 16/0/1; T3-T5, T7-T9
-pending._
+progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045) and
+T3 (D-046) applied → 16 run + 1 PERF skip, GREEN 16/0/1; T4-T5,
+T7-T9 pending._
 
 ## 1. What this file is
 
@@ -103,9 +103,10 @@ mobility suites have their own, closed)._
   (D-045).** Each occurs exactly once (the import line) —
   grep-verified. Precedent: test_mobility T6 (D-037). Fix applied:
   all six removed (4 import lines + 1 consequent blank line).
-- **T3 — header grammar (L30).** "How to use the unit tests feature
-  module." Precedent: test_mobility T5 (D-037) fixed the same wart.
-  Fix: "How to run the feature module unit tests."
+- **T3 — header grammar (L30). DONE (D-046).** "How to use the
+  unit tests feature module." Precedent: test_mobility T5
+  (D-037) fixed the same wart. Fix applied: "How to run the
+  feature module unit tests."
 - **T4 — header typo (L34): "Activate the environmeant."** Same
   nit as the test_board.py header (reported there, left to
   Roberto's call). Flagged for a consistent treatment across the
@@ -221,7 +222,7 @@ awaiting Roberto's approvals._
 - **P2** (hygiene + breadth):
   2. T1 — dead `if False:` block removed. **DONE (D-044).**
   3. T2 — 6 dead imports removed. **DONE (D-045).**
-  4. T3 — header grammar.
+  4. T3 — header grammar. **DONE (D-046).**
   5. T5 — explicit names-order assertion in test_init.
   6. T7 — `Feature.__repr__`/`__eq__` golden tests.
   7. T9 — full print_summary golden (or at least the full 17-row

@@ -737,3 +737,11 @@ D-045 | 2026-08-29 | test_feature.py T campaign, item T2 (P2,
        `from pydantic import ValidationError` stays (used). Pure
        import hygiene, no behaviour change. Suite 16/0/1 GREEN.
        T3-T5, T7-T9 pending.
+
+D-046 | 2026-08-29 | test_feature.py T campaign, item T3 (P2,
+       approved by Roberto, one at a time): header grammar fixed,
+       "How to use the unit tests feature module." -> "How to run
+       the feature module unit tests." (L30). Comment-only, no
+       behaviour change. Suite 16/0/1 GREEN. The "environmeant"
+       typo at L34 is T4, left to Roberto's call (repo-consistency
+       nit, same as test_board.py). T4-T5, T7-T9 pending.

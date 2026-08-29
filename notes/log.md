@@ -741,4 +741,8 @@
   bare pydantic) + one consequent blank line; `from pydantic
   import ValidationError` stays (used). Pure import hygiene, no
   behaviour change. Suite 16/0/1 GREEN (test count unchanged).
-- Next: T3 (header grammar).
+- T campaign item T3 (P2) approved and applied (D-046): header
+  grammar fixed — "How to use the unit tests feature module."
+  -> "How to run the feature module unit tests." Comment-only,
+  suite 16/0/1 GREEN. Next: T5 (explicit names-order assertion
+  in test_init).

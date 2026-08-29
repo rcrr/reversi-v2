@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the unit tests feature module.
+# How to run the feature module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
