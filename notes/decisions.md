@@ -1080,3 +1080,21 @@ D-063 | 2026-08-29 | state_machine T3 resolved (session 19, fix
         Side effect: setUp's global stdout patch is no longer just
         noise suppression — captured stdout is now asserted.
         Suite 29 -> 32/0/0 GREEN; full discover 430, 52 skipped.
+
+D-064 | 2026-08-29 | state_machine T4 resolved (session 19, fix
+        campaign item 8, approved by Roberto: "Procedi con T4"):
+        3 new tests in TestStateMachine pin move_to_last (no source
+        change — test-only). test_move_to_last_happy_path: from step
+        0, move_to_last dispatches by the last worker's name
+        (unambiguous since D-061) and runs the up chain (up[1] +
+        up[2], current_step 2, history len 2).
+        test_move_to_last_from_intermediate_position: from step 1,
+        only the remaining up[2] executes (the already-executed
+        up[1] is not re-run). test_move_to_last_single_worker_noop:
+        a single-worker machine is a no-op — the only worker is the
+        step-0 sentinel (D-059) and target == current (early
+        return), so nothing executes. The empty-workers no-op was
+        already pinned with D-062 (test_empty_workers_degenerate_
+        paths); the duplicate-name misdirection (V8c) is unreachable
+        since D-061. Suite 32 -> 35/0/0 GREEN; full discover 433,
+        52 skipped.

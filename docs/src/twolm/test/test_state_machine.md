@@ -9,13 +9,14 @@ new test (D-060, closes T6); R5 resolved (D-061) with 2 new
 duplicate-name tests, which also close T10 (duplicates unreachable);
 T2 resolved with 7 new `TestContextInjection` tests (D-062);
 T3 resolved with 3 new `TestDisplayGoldens` tests (D-063);
-T4, T5, T7–T9 remain OPEN.**
+T4 resolved with 3 new `move_to_last` tests (D-064);
+T5, T7–T9 remain OPEN.**
 
-Suite: **32/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **35/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
 pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
-context-injection tests, → 32 with the D-063 display goldens).
-Fast (~0.09s).
+context-injection tests, → 32 with the D-063 display goldens, → 35
+with the D-064 move_to_last pins). Fast (~0.07s).
 
 ## How to run
 
@@ -25,7 +26,7 @@ $ python -m unittest twolm.test.test_state_machine
 
 ## Coverage by area
 
-### `TestStateMachine` (17 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061)
+### `TestStateMachine` (20 tests: original 13 + 1 D-059 + 1 D-060 + 2 D-061 + 3 D-064)
 
 | Test | What it pins |
 |---|---|
@@ -35,6 +36,9 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_down_single_step` | 2→1: only `down[2]` called (mocks reset first); history len 3, last direction `down`. |
 | `test_move_down_to_zero` | 2→0: `down[2]` + `down[1]` once each (`down[0]` never); history len 4. |
 | `test_move_to_same_step` | 0→0: no callable executed, empty history. |
+| `test_move_to_last_happy_path` (D-064) | `move_to_last()` from step 0: name-based dispatch to the last worker (unambiguous since D-061) — `up[1]` + `up[2]` executed, `current_step` 2, history len 2. |
+| `test_move_to_last_from_intermediate_position` (D-064) | From step 1: only the remaining `up[2]` executes (already-executed `up[1]` not re-run), `current_step` 2, history len 2. |
+| `test_move_to_last_single_worker_noop` (D-064) | Single-worker machine: the only worker is the step-0 sentinel — `move_to_last()` is a no-op (no callable invoked, state untouched). |
 | `test_worker_zero_is_sentinel_never_executed` (D-059) | up 0→2 then down 2→0: `up[0]`/`down[0]` are never invoked — pins the worker-0 sentinel semantics against a future off-by-one "fix". |
 | `test_retry_after_failure_skips_failed_step` (D-060) | failure at step 1 (side_effect), retry of the same target runs only `up[2]` (failed `up[1]` skipped), then down to 0 runs `down[2]`+`down[1]` and up to 2 re-executes `up[1]` — pins the documented failure/retry/recovery semantics (T6). |
 | `test_move_to_step_by_string` | `"positions"` (lowercase) → step 2, both ups executed. |
@@ -127,9 +131,9 @@ does not), the failure semantics, and the same-step no-op.
 
 ## Test defects (T1–T11)
 
-Status: T1 (D-057), T2 (D-062), T3 (D-063), T6 (D-060), T10 (D-061),
-T11 (D-058) resolved; T4, T5, T7–T9 OPEN. Priorities proposed after
-the R1–R5 rulings.
+Status: T1 (D-057), T2 (D-062), T3 (D-063), T4 (D-064), T6 (D-060),
+T10 (D-061), T11 (D-058) resolved; T5, T7–T9 OPEN. Priorities
+proposed after the R1–R5 rulings.
 
 ### T1 — No Verbosity coverage at all (P0 with R1) — FIXED (D-057)
 `Verbosity` was never exercised: the gate table (V1) — including
@@ -157,11 +161,15 @@ all. Now `TestDisplayGoldens` pins all three paths with exact
 end-to-end goldens under a frozen clock (1ms per `now()` call); the
 stdout patch is now load-bearing, not noise suppression.
 
-### T4 — `move_to_last` untested (P1)
-No test exercises `move_to_last` — happy path and empty-workers no-op
-remain untested. The duplicate-name misdirection (V8c, R5) is no longer
-reachable: D-061 rejects duplicates at construction, so the happy
-path is the only live behaviour worth pinning.
+### T4 — `move_to_last` untested (P1) — FIXED (D-064)
+No test exercised `move_to_last`. Now 3 new `TestStateMachine`
+tests pin the live behaviour: happy path from step 0 (name-based
+dispatch to the last worker — unambiguous since D-061), from an
+intermediate position (only the remaining step executes), and the
+single-worker no-op (the only worker is the step-0 sentinel, D-059
++ D-061). The empty-workers no-op was already pinned with D-062
+(`test_empty_workers_degenerate_paths`); the duplicate-name
+misdirection (V8c, R5) is unreachable (D-061).
 
 ### T5 — CSV test is thin + writes to CWD (P2)
 Only row count and 4 cell values are checked: no header-row assertion,
@@ -210,19 +218,19 @@ no-op, bounds/type/name errors, exception propagation + logging, CSV
 row semantics), and every expectation matches independently derived
 behaviour.
 
-**One whole area is still untested**: the edge semantics
-(move_to_last happy path, bool/np.int64, StepMove field content —
-T4/T7/T9), plus the thin CSV test (T5). The verbosity gate (D-057),
-the display layer goldens (D-063), retry-after-failure (D-060),
-duplicate names (D-061), and the context injection layer — the
-module's main integration surface with domain workers — are all
-pinned (D-062).
+**What remains untested**: the `bool`/`np.int64` index edge (T7),
+the `StepMove` field content (T9), and the thin CSV test (T5).
+Everything else is pinned: the verbosity gate (D-057), the display
+layer goldens (D-063), retry-after-failure (D-060), duplicate names
+(D-061), the context injection layer — the module's main
+integration surface with domain workers (D-062), and `move_to_last`
+including the single-worker sentinel no-op (D-064).
 
 ## Proposed priorities
 
 - **P0** (with the R rulings): T1 — done (D-057); T2 — done (D-062);
   R2 — resolved (D-058); R5 — resolved (D-061).
-- **P1**: T3 — done (D-063); T4 (move_to_last); T6 — done (D-060);
+- **P1**: T3 — done (D-063); T4 — done (D-064); T6 — done (D-060);
   R4 — resolved (D-060).
 - **P2**: T5, T7, T8, T9 (T11 resolved with D-058; T10 resolved with
   D-061) + the M-sweep (dead imports, cosmetics, doc notes, repr;
