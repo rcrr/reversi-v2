@@ -1037,3 +1037,27 @@ D-061 | 2026-08-29 | state_machine R5 resolved (session 19, fix
         modificare __init__ e forzare un check che i nomi NON siano
         duplicati. Se lo sono __init__ fallisce con raise Error
         appropriato. Bisogna anche fare un TEST a tal proposito."
+
+D-062 | 2026-08-29 | state_machine T2 resolved (session 19, fix
+        campaign item 6, approved by Roberto: "Prosegui con T2:
+        sviluppa i test mancanti"): 7 new tests in the
+        TestContextInjection class pin the whole context-injection
+        layer (no source change — test-only): the injected
+        context.log_event is the machine's live bound method
+        (__self__ identity + a call records a LogEntry in this
+        machine's logs); get_cache_file_path_for_next_level's
+        {prefix}{level:02}_{name}.dat format with level =
+        current_step at call time; get_cache_file_full_path_for_next_level
+        joins cfg.base_dir for a relative prefix; an absolute
+        cache_files_prefix drops base_dir (pathlib '/', V9); a
+        missing cfg raises AttributeError naming 'cfg' (bare getattr,
+        no default); empty workers give Path() / "UNDEFINED" /
+        move_to_last guarded no-op; a shared context re-binds to the
+        LAST machine built on it (V17). Side finding (recorded, no
+        code action): the prefix is f-string-concatenated, so a
+        prefix without a trailing separator (a str without '/', or
+        ANY Path — str(Path) normalizes it away) silently glues the
+        level name onto it ('cache' -> 'cache01_CONFIG.dat', verified
+        live) — appended to M8 as the implicit contract.
+        Suite 20 -> 22 -> 29/0/0 GREEN; full discover 427, 52
+        skipped.

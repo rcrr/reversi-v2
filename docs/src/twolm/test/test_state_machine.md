@@ -1,17 +1,19 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (22 tests, 3
+Date: 2026-08-29. One test file: `test_state_machine.py` (29 tests, 4
 classes), added with the module (commit 66ab84b). **Analysis session 19;
 R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
 (D-058, side effect: T11 resolved); R3 sentinel pinned with 1 new
 `TestStateMachine` test (D-059); R4 failure semantics pinned with 1
 new test (D-060, closes T6); R5 resolved (D-061) with 2 new
 duplicate-name tests, which also close T10 (duplicates unreachable);
-T2–T5, T7–T9 remain OPEN.**
+T2 resolved with 7 new `TestContextInjection` tests (D-062);
+T3–T5, T7–T9 remain OPEN.**
 
-Suite: **22/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+Suite: **29/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
 the R2 tests, → 19 with the R3 sentinel pin, → 20 with the R4 retry
-pin, → 22 with the D-061 duplicate-name tests). Fast (~0.08s).
+pin, → 22 with the D-061 duplicate-name tests, → 29 with the D-062
+context-injection tests). Fast (~0.10s).
 
 ## How to run
 
@@ -67,6 +69,33 @@ $ python -m unittest twolm.test.test_state_machine
 - **Coverage**: the whole verbosity/print gate (T1), including the
   pre-fix behaviour that used to be unpinned.
 
+### `TestContextInjection` (7 tests, added D-062)
+
+- `test_injected_log_event_is_live_machine_binding`:
+  `context.log_event.__self__ is sm` and a call through the injected
+  binding appends a `LogEntry` (step/worker/relevance/message pinned)
+  to this machine's logs.
+- `test_cache_file_path_tracks_current_step`:
+  `{prefix}{level:02}_{name}.dat` with `level = current_step` at call
+  time — `00_CREATED` → `02_POSITIONS` → `01_CONFIG` across moves.
+- `test_cache_file_full_path_joins_base_dir`: relative prefix under
+  `cfg.base_dir` → `base/cache/01_CONFIG.dat`.
+- `test_absolute_cache_prefix_drops_base_dir`: absolute prefix
+  (`/abs/cache/`) drops `base_dir` (pathlib `/`, V9) — full path is
+  the bare path.
+- `test_missing_cfg_raises_attribute_error`: without a populated `cfg`
+  both helpers raise `AttributeError` naming `cfg` (bare getattr, no
+  default).
+- `test_empty_workers_degenerate_paths`: empty pipeline → `Path()`
+  cache path, `"UNDEFINED"` worker name, `move_to_last` guarded
+  no-op (no exception, state untouched).
+- `test_shared_context_rebinds_to_last_machine`: a context shared by
+  two machines re-binds to the **last** one built (helper output and
+  `log_event` target flip to machine 2 — V17, the injection is a
+  side effect).
+- **Coverage**: the whole context-injection layer (T2) — the module's
+  main integration surface with domain workers.
+
 **Verified**: every expectation above was re-derived independently
 (ground-truth probes, docs/src/twolm/state_machine.md V1–V17) — zero
 mismatches. The tests correctly pin the load-bearing semantics,
@@ -75,7 +104,9 @@ does not), the failure semantics, and the same-step no-op.
 
 ## Test defects (T1–T11)
 
-All OPEN; priorities proposed after the R1–R5 rulings.
+Status: T1 (D-057), T2 (D-062), T6 (D-060), T10 (D-061), T11 (D-058)
+resolved; T3–T5, T7–T9 OPEN. Priorities proposed after the R1–R5
+rulings.
 
 ### T1 — No Verbosity coverage at all (P0 with R1) — FIXED (D-057)
 `Verbosity` was never exercised: the gate table (V1) — including
@@ -83,12 +114,17 @@ All OPEN; priorities proposed after the R1–R5 rulings.
 `TestVerbosityGating` now pins the full 6×5 gating matrix (post
 D-057: VERY_LOW ERROR-only, NONE silent) plus the enum values.
 
-### T2 — No context-injection coverage (P0)
+### T2 — No context-injection coverage (P0) — FIXED (D-062)
 The injected `context.log_event` binding, `get_cache_file_path_for_next_level`
 (level/name/`{level:02}` format), `get_cache_file_full_path_for_next_level`
 (base_dir join; the absolute-prefix-drops-base_dir case), the
 `cfg`-missing `AttributeError`, and the empty-workers `Path()` /
-"UNDEFINED" / `move_to_last` no-op path are all untested (V9, V17).
+"UNDEFINED" / `move_to_last` no-op path are now all pinned by the 7
+`TestContextInjection` tests (incl. the V17 shared-context re-bind).
+Side finding during the work: the prefix is f-string-concatenated, so
+a prefix without a trailing separator silently glues the level name
+onto it (any `Path` prefix, since `str(Path)` drops the trailing
+slash) — recorded in M8 (module doc), no code action.
 
 ### T3 — stdout is patched but never asserted (P1)
 `setUp` patches `sys.stdout` globally, yet no test inspects the
@@ -149,16 +185,19 @@ no-op, bounds/type/name errors, exception propagation + logging, CSV
 row semantics), and every expectation matches independently derived
 behaviour.
 
-**Three whole areas are untested**: (1) the logging/verbosity layer
-(5×5 gate, live print format, show_* output); (2) the context
-injection layer (the module's main integration surface with domain
-workers); (3) the edge semantics (move_to_last, retry-after-failure,
-bool/duplicate names, StepMove field content).
+**Two whole areas are still untested**: (1) the display layer
+(`log_event`'s live print format, `show_event_log`,
+`show_history_of_moves` goldens — T3); (2) the edge semantics
+(move_to_last happy path, bool/np.int64, StepMove field content —
+T4/T7/T9). The verbosity gate is pinned (D-057), retry-after-failure
+(D-060), duplicate names (D-061), and the context injection layer —
+the module's main integration surface with domain workers — is now
+pinned (D-062).
 
 ## Proposed priorities
 
-- **P0** (with the R rulings): T1 — done (D-057); T2 (injection
-  coverage); R2 — resolved (D-058); R5 — resolved (D-061).
+- **P0** (with the R rulings): T1 — done (D-057); T2 — done (D-062);
+  R2 — resolved (D-058); R5 — resolved (D-061).
 - **P1**: T3 (print/display goldens), T4 (move_to_last); T6 — done
   (D-060); R4 — resolved (D-060).
 - **P2**: T5, T7, T8, T9 (T11 resolved with D-058; T10 resolved with

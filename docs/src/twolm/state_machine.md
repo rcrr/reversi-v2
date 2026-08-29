@@ -6,12 +6,12 @@ fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
 dataclass); R3 resolved as sentinel (D-059: documented + pinned);
 R4 resolved (D-060: failure semantics documented + pinned); R5
 resolved (D-061: unique worker names enforced in `__init__`).
-**All five R items closed**; T2–T5, T7–T10 + M-sweep remain.**
+**All five R items closed**; T3–T5, T7–T9 + M-sweep remain.**
 
-Suite: **22 tests, GREEN 22/0/0** (3 classes, no PERF gates). Suite is
-fast (~0.08s).
+Suite: **29 tests, GREEN 29/0/0** (4 classes, no PERF gates). Suite is
+fast (~0.10s).
 
-Full workspace: **420 tests, GREEN, 52 skipped under
+Full workspace: **427 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -233,7 +233,12 @@ impossible at construction); V8 restated. Pinned by
 - **M8** — Cache-helper contract lives only in inline comments:
   `context.cfg` must carry `cache_files_prefix` + `base_dir` (bare
   `getattr`, no default); absolute `cache_files_prefix` silently drops
-  `base_dir` (pathlib `/`, V9); empty workers → `Path()`.
+  `base_dir` (pathlib `/`, V9); empty workers → `Path()`. The prefix
+  is f-string-concatenated, so it must end with a separator: a prefix
+  without a trailing slash (a `str` without '/', or ANY `Path` —
+  `str(Path)` normalizes it away) silently glues the level name onto
+  it (`'cache'` → `'cache01_CONFIG.dat'`; verified live 2026-08-29
+  during T2, D-062).
 - **M9** — `__init__` mutates the caller's context (injection is a
   side effect); a shared context re-binds to the **last** machine built
   on it (V17).
