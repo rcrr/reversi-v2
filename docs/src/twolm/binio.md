@@ -1,8 +1,7 @@
 # binio.py — analysis
 
 Date: 2026-08-29. Module added by Roberto (3 files: binio.py + test_binio.py + test_usage_binio.py).
-
-Suite: **44 tests, GREEN 44/0/0** (41 in test_binio + 3 in test_usage_binio). No PERF gates.
+**Fix batch T1-T4 applied (D-051): suite 44 → 45/0/0 GREEN.**
 
 ## Architecture
 
@@ -87,25 +86,13 @@ All independently verified via pure Python / manual byte-level inspection, zero 
 
 ## Defects
 
-### T1 — `lz4` mandatory import, missing from `pyproject.toml`
-`import lz4.frame` at module level (L99). Without `lz4` installed, `import twolm.binio` raises `ModuleNotFoundError`. `lz4` is not listed in `pyproject.toml` dependencies.
+### T1 — `lz4` mandatory import, missing from `pyproject.toml` (D-051, FIXED)
+### T2 — `from pathlib import Path` dead import (D-051, FIXED)
+### T3 — Header typo `Aauthor` (D-051, FIXED)
+### T4 — No test for unknown type code in `read_array` (D-051, FIXED)
 
-**Severity**: Hard import failure. Either `lz4` should be added to `pyproject.toml` (simplest), or the import should be made lazy (import inside the compressed code paths only).
-
-### T2 — `from pathlib import Path` dead import (L96)
-`Path` is imported but never used. The module uses `os.PathLike` for isinstance checks and `os.fspath` for path conversion; `Path` is never referenced.
-
-**Severity**: Cosmetic — unused import.
-
-### T3 — Header typo `Aauthor` (L7)
-`# Aauthor Roberto Corradini` → `# Author Roberto Corradini`. Classic copy-paste artifact from the original 2008 headers, seen in other modules too.
-
-**Severity**: Cosmetic — comment only.
-
-### T4 — No test for unknown type code in `read_array`
-`BinaryReader.read_array()` raises `BinaryFormatError("unknown array type code: {code}")` when the on-disk type code is not in `_DTYPE_BY_CODE`. This path has no test coverage (verified by manual injection of type_code=99).
-
-**Severity**: Uncovered error path. Low risk (foreign files are caught by MAGIC and signature first), but the error message and exception type should be pinned by a test.
+All four disposed in the fix batch: lz4 added to pyproject.toml, Path import removed,
+"Aauthor" → "Author", `test_unknown_type_code_raises` added to ArrayTest (now 45 tests).
 
 ## Observations (not defects)
 

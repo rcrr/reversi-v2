@@ -1,6 +1,6 @@
 # test_binio.md — analysis
 
-Date: 2026-08-29. Two test files: `test_binio.py` (41 tests, 9 classes) + `test_usage_binio.py` (3 tests, 3 classes). Combined: **44 tests, GREEN 44/0/0, no PERF gates**.
+Date: 2026-08-29. Two test files: `test_binio.py` (41 → 42 tests, 9 classes) + `test_usage_binio.py` (3 tests, 3 classes). **T4 applied (D-051): suite 44 → 45/0/0 GREEN.**
 
 ## How to run
 
@@ -105,10 +105,10 @@ All three tests use `tempfile.mktempdir` + `addCleanup(shutil.rmtree, tmpdir)` �
 
 ## Defects (test files only)
 
-### T4 — No test for unknown type code in `read_array`
-`BinaryReader.read_array()` raises `BinaryFormatError` when the on-disk type_code is not in `_ DTYPE_BY_CODE`. This path has no test coverage. The existing `ArrayTest` covers the write-side unsupported dtype (`write_array` raises), but not the read-side unknown code.
+### T4 — No test for unknown type code in `read_array` (D-051, FIXED)
 
-**Severity**: Low — the on-disk byte would need to be corrupted to hit this, and framing / signature checks catch that first. But the error path should be pinned by a test.
+`test_unknown_type_code_raises` added to `ArrayTest` — crafts a record with type_code=99,
+verifies `BinaryFormatError`. Suite now 42 + 3 = 45 tests.
 
 ### Observations (test files only)
 
