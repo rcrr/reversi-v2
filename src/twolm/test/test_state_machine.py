@@ -43,6 +43,7 @@
 import unittest
 
 from contextlib import redirect_stdout
+from dataclasses import asdict, FrozenInstanceError
 from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime
@@ -185,12 +186,12 @@ class TestStateMachine(unittest.TestCase):
         # The state machine should still be at step 1 because step 1 failed during execution
         self.assertEqual(self.sm.current_step, 1)
         
-        # Check that an error log was generated
-        error_logs = [log for log in self.sm.logs if log['relevance'] == Relevance.ERROR]
+        # Check that an error log was generated (typed record, D-058)
+        error_logs = [log for log in self.sm.logs if log.relevance == Relevance.ERROR]
         self.assertEqual(len(error_logs), 1)
-        self.assertIn("Simulated computation failure", error_logs[0]['message'])
-        self.assertEqual(error_logs[0]['worker_name'], "CONFIG")
-        self.assertEqual(error_logs[0]['step'], 1)
+        self.assertIn("Simulated computation failure", error_logs[0].message)
+        self.assertEqual(error_logs[0].worker_name, "CONFIG")
+        self.assertEqual(error_logs[0].step, 1)
         
         # History should still record the attempted move
         self.assertEqual(len(self.sm.history), 1)
@@ -224,6 +225,51 @@ class TestStateMachine(unittest.TestCase):
         finally:
             if os.path.exists(test_filename):
                 os.remove(test_filename)
+
+
+class TestLogEntry(unittest.TestCase):
+    """Log records are typed frozen dataclasses (R2, D-058)."""
+
+    def setUp(self):
+        """Fresh machine (3 workers); the init log is logs[0]."""
+        self.patcher = patch('sys.stdout', new=StringIO())
+        self.patcher.start()
+        self.context = Context()
+        self.up_callables = [MagicMock() for _ in range(3)]
+        self.down_callables = [MagicMock() for _ in range(3)]
+        self.workers = [
+            Worker("CREATED", self.up_callables[0], self.down_callables[0]),
+            Worker("CONFIG", self.up_callables[1], self.down_callables[1]),
+            Worker("POSITIONS", self.up_callables[2], self.down_callables[2])
+        ]
+        self.sm = StateMachine(self.workers, self.context)
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_init_log_is_typed_record(self):
+        """logs[0] is a LogEntry with the 5 expected field values."""
+        entry = self.sm.logs[0]
+        self.assertIsInstance(entry, StateMachine.LogEntry)
+        self.assertIsInstance(entry.time, datetime)
+        self.assertEqual(entry.step, 0)
+        self.assertEqual(entry.worker_name, "CREATED")
+        self.assertEqual(entry.relevance, Relevance.DEBUG)
+        self.assertEqual(entry.message, "StateMachine initialized.")
+
+    def test_log_entry_is_immutable(self):
+        """Frozen dataclass: mutating a field raises."""
+        entry = self.sm.logs[0]
+        with self.assertRaises(FrozenInstanceError):
+            entry.message = "tampered"
+
+    def test_asdict_form_for_dump(self):
+        """dataclasses.asdict() yields the 5-key dict (file/DB dump)."""
+        entry = self.sm.logs[0]
+        as_dict = asdict(entry)
+        self.assertEqual(
+            set(as_dict),
+            {"time", "step", "worker_name", "relevance", "message"})
 
 
 class TestVerbosityGating(unittest.TestCase):

@@ -107,8 +107,12 @@ class StateMachine:
         finish: datetime
         duration: timedelta
 
-    class LogEntry(dict):
-        """Typed dictionary for log events."""
+    @dataclass(frozen=True)
+    class LogEntry:
+        """
+        Typed record for one logged event (immutable;
+        dataclasses.asdict() gives the dict form for file/DB dumps).
+        """
         time: datetime
         step: int
         worker_name: str
@@ -190,13 +194,13 @@ class StateMachine:
     def log_event(self, relevance: Relevance, message: str) -> None:
         """Logs an event using the current state step and worker."""
         evt_time = datetime.now(timezone.utc)
-        event = {
-            "time": evt_time,
-            "step": self.current_step,
-            "worker_name": self.current_worker_name,
-            "relevance": relevance,
-            "message": message
-        }
+        event = self.LogEntry(
+            time=evt_time,
+            step=self.current_step,
+            worker_name=self.current_worker_name,
+            relevance=relevance,
+            message=message,
+        )
         self.logs.append(event)
         if relevance >= self.verbosity:
             timestamp = evt_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -207,9 +211,8 @@ class StateMachine:
         print(f"______________________________________________________")
         print(f"TIMESTAMP           | STEP | WORKER           | R | MESSAGE")
         for entry in self.logs:
-            time = entry['time']
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"{timestamp} | {entry['step']:04} | {entry['worker_name']:15} | {entry['relevance']} | {entry['message']}")
+            timestamp = entry.time.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{timestamp} | {entry.step:04} | {entry.worker_name:15} | {entry.relevance} | {entry.message}")
 
     def show_history_of_moves(self) -> None:
         print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | {'Start (UTC)':<26} | {'Dur (s)':<14}")
