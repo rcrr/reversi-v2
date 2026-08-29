@@ -31,7 +31,7 @@
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
-# -0- Activate the environmeant.
+# -0- Activate the environment.
 #
 # $ source .venv/bin/activate
 #

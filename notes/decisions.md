@@ -794,3 +794,18 @@ D-049 | 2026-08-29 | test_feature.py T campaign, item T9 (P2,
        end. Suite 19/0/1 GREEN. T4 ("environmeant" typo) remains
        Roberto's call; T8 (import time trailing spaces) left
        as-is.
+
+D-050 | 2026-08-29 | test_feature.py T campaign, item T4 (P2,
+       approved by Roberto — option (a) — one at a time): the
+       "environmeant" header typo fixed in BOTH test files
+       (test_feature.py L34 and test_board.py L34: "Activate the
+       environment.") — Roberto's repo-consistency call; the
+       same nit had been reported on test_board.py's header and
+       left open. Comment-only; suites unchanged: test_feature
+       19/0/1, test_board 193/0/12. This closes the test_feature
+       T campaign: T6 (D-043), T1 (D-044), T2 (D-045), T3
+       (D-046), T5 (D-047), T7 (D-048), T9 (D-049), T4 (D-050)
+       all applied; T8 (import time trailing spaces) left as-is
+       per the test_mobility precedent. Feature module fully done:
+       analysis + R1-R4 (D-038) + M1-M4 (D-039..D-042) + test
+       campaign (D-043..D-050), suite 19/0/1 GREEN.

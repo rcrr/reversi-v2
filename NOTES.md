@@ -9,13 +9,13 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
 | Item | Status | Note |
 |---|---|---|
 | src/twolm/board.py | analyzed 2026-08-25; modified by fix campaign (T22, T25, T36, T37, T38) | docs/src/twolm/board.md |
-| src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12 | docs/src/twolm/test/test_board.md |
+| src/twolm/test/test_board.py | analyzed 2026-08-25; fix campaign completed 2026-08-26, suite GREEN 193/0/12; header 'environmeant' typo fixed 2026-08-29 (D-050, with test_feature T4) | docs/src/twolm/test/test_board.md |
 | src/twolm/pattern.py | analyzed 2026-08-27 (D-019); all real issues resolved: R1 (D-020) principal = numerically lowest orbit mask + regression test; R2-R7 doc/hygiene fixes (D-021); R8 closed as little-endian-only platform note (D-022); minor sweep complete 2026-08-27: 19/19 items (D-023, D-024, D-025 + doc/hygiene/API fixes); D-032 (2026-08-28): Burnside attributes n_invariant_configs / n_unique_configs | docs/src/twolm/pattern.md |
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27: 12 classes / 50 tests / 3 PERF gates; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found+fixed in T2) + P2 breadth (D-034: T11-T14 + T17), suite 64/0/3 GREEN; T18 noted-only, M1 deferred | docs/src/twolm/test/test_pattern.md |
 | src/twolm/mobility.py | analyzed 2026-08-28: Mobility/MobilitySet + popcount64 SWAR + Numba kernel; feature index formula + n_configurations (distinct index values) + sorted-order columns + hash all verified vs independent ground truth (V1-V8, 200-position differential); R1-R6 fix batch applied (D-035: docstrings + column-order contract + popcount64 test-helper + dead imports + property/repr alignment + n_instances as-is); M1-M5 disposed (D-036: M1 glossary shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any suite); suite 23/0/1 GREEN | docs/src/twolm/mobility.md |
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28: 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented (dead if-False block, stale raises_assertion names, 2 hash self-comparisons, header grammar, dead imports, no multi-position test, R5 __repr__ untested, cosmetic print-on-failure); fix campaign CLOSED (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 -> 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
 | src/twolm/feature.py | analyzed 2026-08-28 (session 8): Feature (blocked __new__ + factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 13/0/1 GREEN | docs/src/twolm/feature.md |
-| src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 8): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); fix priorities proposed (P1 = T6); T6 applied (D-043: 3 partial-None tests with 3 genuine hash literals, suite 13 -> 16 run, GREEN 16/0/1), T1 applied (D-044: dead if-False block removed), T2 applied (D-045: 6 dead imports removed), T3 applied (D-046: header grammar), T5 applied (D-047: names-order assertion), T7 applied (D-048: repr/eq/unhashable goldens, 16 -> 19 run), T9 applied (D-049: full 38-line print_summary golden); T4 pending (Roberto's call), T8 left as-is | docs/src/twolm/test/test_feature.md |
+| src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 8): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); fix priorities proposed (P1 = T6); T6 applied (D-043: 3 partial-None tests with 3 genuine hash literals, suite 13 -> 16 run, GREEN 16/0/1), T1 applied (D-044: dead if-False block removed), T2 applied (D-045: 6 dead imports removed), T3 applied (D-046: header grammar), T5 applied (D-047: names-order assertion), T7 applied (D-048: repr/eq/unhashable goldens, 16 -> 19 run), T9 applied (D-049: full 38-line print_summary golden), T4 applied (D-050: 'environmeant' fixed in both test files); T8 left as-is — campaign CLOSED, suite 19/0/1 GREEN | docs/src/twolm/test/test_feature.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -141,11 +141,11 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   position_print, 6 dead imports, header grammar + "environmeant"
   typo, no names-order assert, partial-None FeatureSet untested
   (P1), Feature repr/eq untested, no full print_summary golden);
-  campaign in progress one at a time: T6 (P1) applied (D-043,
-  suite 16/0/1), T1 applied (D-044), T2 applied (D-045),
-  T3 applied (D-046), T5 applied (D-047), T7 applied (D-048),
-  T9 applied (D-049, suite 19/0/1); T4 pending (Roberto's call),
-  T8 left as-is.
+  test campaign CLOSED 2026-08-29 (D-043..D-050): T6, T1, T2,
+  T3, T5, T7, T9, T4 (both files) applied one at a time; T8 left
+  as-is. Final suite 19/0/1 GREEN. FEATURE MODULE FULLY DONE:
+  analysis + R1-R4 (D-038) + M1-M4 (D-039..D-042) + test campaign
+  (D-043..D-050).
 - R4/R5 remain doc-status only (no code action agreed).
 - Sources live in the `twolm` package under src/ (D-008); board unit
   tests in src/twolm/test/. Environment: .venv with the minimal deps
@@ -158,7 +158,9 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   known items (out of scope of the closed campaign): T18 noted-only
   (np.uint8 `3**n_squares` overflow, no code action); M1 deferred
   (stale PatternSet Raises docstring, awaiting go-ahead);
-  test_board.py header nits (reported, out of scope).
+  test_board.py header nits: 'environmeant' typo fixed
+  2026-08-29 (D-050, with test_feature T4), the grammar nit
+  stays reported-only.
 - mobility.py: analysis DONE (2026-08-28, docs/src/twolm/mobility.md).
   R1-R6 fix batch DONE (D-035); M1-M5 disposed (D-036).
   test_mobility.py analyzed + fix campaign CLOSED the same day
@@ -171,14 +173,11 @@ work live here. Full-repo restructure: planned, not now (see notes/decisions.md)
   COMPLETE tests as the goal: a solid base before further
   evolution (Roberto has a list of future changes in mind, out of
   scope for the port). Done so far: board.py (2026-08-26, proven
-  complete game kernel), pattern.py, mobility.py. The game-loop
-  module is NOT in the plan (I-005 resolved). Now: feature.py —
-  analysis done (e9adf7b) + R1-R4 (D-038) + test analysis
-  (T6 applied D-043, T1 applied D-044, T2 applied D-045,
-  T3 applied D-046, T5 applied D-047, T7 applied D-048,
-  T9 applied D-049, T4 pending Roberto's call, T8 left
-  as-is). M1 applied (D-039), M2 applied (D-040), M3 left
-  as-is (D-041, I-007), M4 applied (D-042) — all disposed.
+  complete game kernel), pattern.py, mobility.py, feature.py
+  (analysis + R1-R4 D-038 + M1-M4 D-039..D-042 + test campaign
+  D-043..D-050, CLOSED 2026-08-29 — suite 19/0/1 GREEN).
+  The game-loop module is NOT in the plan (I-005 resolved).
+  Next: the next pipeline module, to be brought in by Roberto.
   Pattern R4/R5 remain doc-status only, parked.
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 

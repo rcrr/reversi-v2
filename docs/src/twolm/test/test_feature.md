@@ -5,9 +5,9 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
 progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045),
-T3 (D-046), T5 (D-047), T7 (D-048) and T9 (D-049) applied → 19
-run + 1 PERF skip, GREEN 19/0/1; T4 pending (Roberto's call),
-T8 left as-is._
+T3 (D-046), T5 (D-047), T7 (D-048), T9 (D-049) and T4 (D-050)
+applied → 19 run + 1 PERF skip, GREEN 19/0/1; T8 left as-is.
+Campaign CLOSED 2026-08-29._
 
 ## 1. What this file is
 
@@ -108,10 +108,12 @@ mobility suites have their own, closed)._
   unit tests feature module." Precedent: test_mobility T5
   (D-037) fixed the same wart. Fix applied: "How to run the
   feature module unit tests."
-- **T4 — header typo (L34): "Activate the environmeant."** Same
-  nit as the test_board.py header (reported there, left to
-  Roberto's call). Flagged for a consistent treatment across the
-  repo; no separate campaign item unless Roberto wants it.
+- **T4 — header typo (L34): "Activate the environmeant." DONE
+  (D-050).** Same nit as the test_board.py header (reported
+  there, left to Roberto's call). Roberto chose option (a):
+  fixed in BOTH test_feature.py and test_board.py ("environmeant"
+  -> "environment") — repo-consistent, comment-only; both suites
+  unchanged (19/0/1 and 193/0/12).
 - **T5 — no explicit names-order assertion in test_init (L137).
   DONE (D-047).** The 17-value n_instances list pins the feature
   order implicitly (the 8/1/2 values sit in the sorted-order
@@ -194,36 +196,42 @@ is exercised by every golden.
 
 ### 7.2 Status of known issues
 
-Module side: R1-R4 applied (D-038); M1-M4 disposition pending.
-The suite does not pin `Feature.__repr__` (T7), the partial-None
-construction (T6), or an explicit names order (T5).
+Module side: R1-R4 applied (D-038); M1-M4 all disposed
+(D-039..D-042). The suite now pins `Feature.__repr__`/`__eq__`
+(T7, D-048), the partial-None construction (T6, D-043), and an
+explicit names order (T5, D-047).
 
-### 7.3 Systematic gaps
+### 7.3 Systematic gaps (all closed by the campaign)
 
-1. **Partial-None construction** (T6) — the `__init__` hash chunk
-   branches and the single-block hstack path are untested code;
-   every other branch has coverage.
-2. **Auto-surface `__repr__`/`__eq__`** (T7) — relied upon, never
-   pinned.
-3. **Hygiene** (T1-T3, T5, T9) — the familiar idiom warts (dead
-   block, dead imports, header grammar) plus one explicit-order
-   and one full-golden breadth item.
+1. **Partial-None construction** (T6) — **CLOSED (D-043):** the
+   three partial-None tests cover the hash chunk branches and the
+   single-block hstack path.
+2. **Auto-surface `__repr__`/`__eq__`** (T7) — **CLOSED (D-048):**
+   three golden tests (repr, identity-based ref equality,
+   unhashable).
+3. **Hygiene** (T1-T3, T5, T9) — **CLOSED (D-044, D-045, D-046,
+   D-047, D-049):** dead block, dead imports, header grammar,
+   names-order assertion, full print_summary golden.
 
 ### 7.4 Verdict
 
 A **good** suite for the pipeline's first integration module:
-13/0/1 GREEN, real pinned goldens everywhere it matters (the new
-feature-level hash, the ordering-sensitive n_instances list, the
-3×10 matrix), and honest edge/typing coverage. The gaps are one
-genuine coverage hole (partial-None, T6), one auto-surface pin
-(T7), and the standard hygiene set (T1-T3, T5, T9) — none of them
-indicates a module defect; every golden re-derived in this session
-matched (W1-W8).
+13/0/1 GREEN at analysis (19/0/1 after the campaign, D-043..D-050),
+real pinned goldens everywhere it matters (the new feature-level
+hash, the ordering-sensitive n_instances list, the 3×10 matrix),
+and honest edge/typing coverage. The gaps were one genuine
+coverage hole (partial-None, T6), one auto-surface pin (T7), and
+the standard hygiene set (T1-T3, T5, T9) — none of them indicated
+a module defect; every golden re-derived in this session matched
+(W1-W8). All closed by the campaign; only T8 (cosmetic
+`import time` spaces) remains, left as-is.
 
-### 7.5 Fix priorities (campaign pending)
+### 7.5 Fix priorities (campaign CLOSED 2026-08-29)
 
-_Per-item approval (D-019 pattern). Status 2026-08-28: proposed,
-awaiting Roberto's approvals._
+_Per-item approval (D-019 pattern). Status 2026-08-29: all items
+approved and applied one at a time — T6 (D-043), T1 (D-044),
+T2 (D-045), T3 (D-046), T5 (D-047), T7 (D-048), T9 (D-049),
+T4 (D-050, both test files); T8 left as-is._
 
 - **P0** (shipped code with zero coverage): none — the R1-R4 batch
   was doc/hygiene-only, and its behaviour (hash, column order) is
@@ -241,37 +249,44 @@ awaiting Roberto's approvals._
   6. T7 — `Feature.__repr__`/`__eq__` golden tests. **DONE (D-048).**
   7. T9 — full print_summary golden (or at least the full 17-row
      feature table). **DONE (D-049).**
-  8. T4 — "environmeant" typo (repo-consistency call, Roberto's).
+  8. T4 — "environmeant" typo, fixed in both test files (option
+     a). **DONE (D-050).**
   9. T8 — `import time` trailing spaces (default leave-as-is, per
-     test_mobility precedent).
+     test_mobility precedent; recorded with D-050).
 
 ---
 
 ## Appendix — class map
 
 ```
-TestFeature (L66)                              5 tests
-├── test_init_raises_runtime_error (L68)
-├── test_new_intercept (L72)
-├── test_new_from_mobility (L81)
-├── test_new_from_pattern (L92)
-└── test_new_from_pattern_invalid_type (L103)
+TestFeature (L61)                              8 tests
+├── test_init_raises_runtime_error (L63)
+├── test_new_intercept (L67)
+├── test_new_from_mobility (L76)
+├── test_new_from_pattern (L87)
+├── test_new_from_pattern_invalid_type (L98)
+├── test_repr_golden (L103)                           [T7 D-048]
+├── test_eq (L121)                                    [T7 D-048]
+└── test_unhashable (L143)                            [T7 D-048]
 
-TestFeatureSet (L108)                          3 tests
-├── setUp (L110): 13-pattern + 3-mobility fixtures, insertion order
-├── test_init (L137)                                        [T5 gap]
-├── test_print_summary (L155)                               [T9]
-└── test_init_invalid_intercept_category_raises_value_error (L173)
+TestFeatureSet (L148)                          6 tests
+├── setUp (L150): 13-pattern + 3-mobility fixtures, insertion order
+├── test_init (L177)
+├── test_init_intercept_only (L202)                   [T6 D-043]
+├── test_init_mobility_only (L215)                    [T6 D-043]
+├── test_init_pattern_only (L229)                     [T6 D-043]
+├── test_print_summary (L246)                     [T9 D-049 full golden]
+└── test_init_invalid_intercept_category_raises_value_error (L293)
 
-TestFeatureSetComputeIndexes (L184)             5 tests
-├── setUp (L186): EDGE + DIAG4 set, LMC, intercept, 3 positions,
+TestFeatureSetComputeIndexes (L304)             5 tests
+├── setUp (L306): EDGE + DIAG4 set, LMC, intercept, 3 positions,
 │                 10-column golden (verified W3)
-├── test_compute_indexes (L219)                           [T1 dead block]
-├── test_compute_indexes_empty_positions (L249)
-├── test_compute_indexes_empty_features (L260)
-├── test_compute_indexes_both_empty (L272)
-└── test_compute_indexes_wrong_argument_type (L282)
+├── test_compute_indexes (L339)                       [T1 D-044 clean]
+├── test_compute_indexes_empty_positions (L352)
+├── test_compute_indexes_empty_features (L363)
+├── test_compute_indexes_both_empty (L375)
+└── test_compute_indexes_wrong_argument_type (L385)
 
-TestFeatureSetComputeIndexesPerf (L296)          1 test
-└── test_performance_1m (L299) PERF, print-only   [W8: 51 instances]
+TestFeatureSetComputeIndexesPerf (L399)          1 test
+└── test_performance_1m (L402) PERF, print-only   [W8: 51 instances]
 ```

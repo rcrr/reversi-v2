@@ -766,6 +766,17 @@
   :10,d thousands separators, np.uint8(65) rendering, and the
   IntEnum-as-int 0/1/2 category columns end to end. One
   transcription slip (LMC n_configurations 65 vs 129) caught by
-  the suite on first run, fixed. GREEN 19/0/1. T4 ("environmeant"
-  typo) remains Roberto's call; T8 (import time trailing spaces)
-  left as-is.
+  the suite on first run, fixed. GREEN 19/0/1.
+- T campaign item T4 approved (option (a)) and applied (D-050):
+  the "environmeant" header typo fixed in BOTH test files
+  (test_feature.py L34, test_board.py L34) — repo-consistent,
+  comment-only; test_feature 19/0/1, test_board 193/0/12
+  unchanged.
+- TEST_FEATURE T CAMPAIGN CLOSED: T6 (D-043), T1 (D-044),
+  T2 (D-045), T3 (D-046), T5 (D-047), T7 (D-048), T9 (D-049),
+  T4 (D-050) all applied one at a time; T8 (import time trailing
+  spaces) left as-is per the test_mobility precedent. Final suite:
+  20 tests, 19 run + 1 PERF, GREEN 19/0/1.
+- FEATURE MODULE FULLY DONE: analysis (e9adf7b) + R1-R4 (D-038)
+  + M1-M4 (D-039..D-042) + test campaign (D-043..D-050). Next
+  pipeline module: to be brought in by Roberto.
