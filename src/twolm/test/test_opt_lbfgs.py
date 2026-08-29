@@ -44,7 +44,82 @@ import unittest
 import numpy as np
 import numpy.testing as nptest
 
-from twolm.opt_lbfgs import lbfgs
+from twolm.opt_lbfgs import lbfgs, FixedSizeMaxList, _two_loop_recursion
+
+
+class TestLBFGSInputValidation(unittest.TestCase):
+    """Tests input validation in lbfgs()."""
+
+    @staticmethod
+    def _quad_fg(x):
+        f = 0.5 * (x[0]**2 + x[1]**2)
+        return f, x.copy()
+
+    def test_non_ndarray_x0_raises(self):
+        with self.assertRaises(TypeError):
+            lbfgs(self._quad_fg, 'not_an_array', max_iters=5)
+
+    def test_wrong_dtype_raises(self):
+        with self.assertRaises(TypeError):
+            lbfgs(self._quad_fg, np.array([1, 2], dtype=np.int32), max_iters=5)
+
+    def test_non_callable_fg_raises(self):
+        with self.assertRaises(TypeError):
+            lbfgs('not_callable', np.array([1.0, 2.0]), max_iters=5)
+
+
+class TestFixedSizeMaxList(unittest.TestCase):
+    """Tests the FixedSizeMaxList helper."""
+
+    def test_max_on_empty_raises(self):
+        fsl = FixedSizeMaxList(3)
+        with self.assertRaises(RuntimeError):
+            fsl.max()
+
+    def test_push_and_max(self):
+        fsl = FixedSizeMaxList(3)
+        fsl.push(1.0)
+        fsl.push(3.0)
+        fsl.push(2.0)
+        self.assertEqual(fsl.max(), 3.0)
+        self.assertEqual(len(fsl), 3)
+
+    def test_eviction(self):
+        fsl = FixedSizeMaxList(2)
+        fsl.push(5.0)
+        fsl.push(1.0)
+        fsl.push(3.0)  # evicts 5.0
+        self.assertEqual(fsl.max(), 3.0)
+        self.assertEqual(len(fsl), 2)
+
+    def test_len_zero_initially(self):
+        fsl = FixedSizeMaxList(5)
+        self.assertEqual(len(fsl), 0)
+
+
+class TestTwoLoopRecursion(unittest.TestCase):
+    """Tests the L-BFGS two-loop recursion."""
+
+    def test_empty_history_returns_identity(self):
+        g = np.array([1.0, -2.0, 0.5])
+        r = _two_loop_recursion(g, [], [], [])
+        nptest.assert_allclose(r, g, atol=1e-15)
+
+    def test_random_pairs_shape_and_descent(self):
+        np.random.seed(42)
+        n, m = 5, 3
+        s_list, y_list, rho_list = [], [], []
+        for _ in range(m):
+            s = np.random.randn(n)
+            y = 2 * s + 0.1 * np.random.randn(n)
+            s_list.append(s)
+            y_list.append(y)
+            rho_list.append(1.0 / np.dot(y, s))
+        g = np.random.randn(n)
+        r = _two_loop_recursion(g, s_list, y_list, rho_list)
+        self.assertEqual(r.shape, g.shape)
+        self.assertGreater(np.linalg.norm(r), 1e-10,
+                           'two-loop result should be non-zero for random input')
 
 
 class TestLBFGSBaseFunction(unittest.TestCase):
@@ -107,7 +182,8 @@ class TestLBFGSZakharovFunction(unittest.TestCase):
         y1 = 2. * x + ( 1. + 2. * sum22 ) * sum2 * a
         return y, y1
 
-    def test_a_optimization(self, d=20):
+    def test_a_optimization(self):
+        d = 20
         self.d = d
         self.x_min = np.zeros((d,), dtype=np.double)
         np.random.seed(42) # Set seed for reproducibility

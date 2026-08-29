@@ -53,7 +53,7 @@ class FixedSizeMaxList:
 
     def max(self) -> float:
         if not self._buffer:
-            raise RuntimeException('Something went wrong with the deque.')
+            raise RuntimeError('Something went wrong with the deque.')
         return max(self._buffer)
         
     def __len__(self) -> int:
@@ -148,8 +148,9 @@ def _hermite_cubic_interp_min(x0: float, y0: float, dy0: float,
 
     if stationary_point_0[3] > 0.:
         return stationary_point_0
-    else:
+    if stationary_point_1[3] > 0.:
         return stationary_point_1
+    return None
 
 
 def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
@@ -342,7 +343,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
           log_every_n: int = 0,
           logger: Callable[[str], None] = print,
           save_every_n: int = 0,
-          save_fn: Optional[Callable[[np.ndarray, List[np.ndarray], List[np.ndarray], List[float], int], None]] = None,
+          save_fn: Optional[Callable[[np.ndarray, List[np.ndarray], List[np.ndarray], List[float], int, float, float], None]] = None,
           initial_sl: Optional[List[np.ndarray]] = None,
           initial_yl: Optional[List[np.ndarray]] = None,
           initial_rho: Optional[List[float]] = None,
@@ -364,7 +365,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         Stopping tolerance for gradient norm. Stops if ||grad f(x)|| < min_grad[0] 
         for min_grad[1] consecutive iterations.
     min_p_fun_decrease : Tuple[float, int]
-        Minimum percentage acceptable loss decrease. Stops if relative decrease 
+        Minimum fractional acceptable loss decrease. Stops if relative decrease 
         is < min_p_fun_decrease[0] for min_p_fun_decrease[1] consecutive iterations.
     max_iters : int
         Maximum number of iterations.
@@ -377,7 +378,8 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     save_every_n : int
         Frequency of saving checkpoints. 0 = no save.
     save_fn : Callable
-        Function to save state: save_fn(x, sl, yl, rho, k).
+        Function to save state: ``save_fn(x, sl, yl, rho, k, f, g_norm)``.
+        Called every ``save_every_n`` iterations.
     initial_sl, initial_yl, initial_rho : List
         Initial state for warm starting (resuming an optimization).
 
@@ -406,8 +408,8 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     fg_call_count = 0
     fg_call_count_last = 0
     
-    low_progres_count_f = 0
-    low_progres_count_g = 0
+    low_progress_count_f = 0
+    low_progress_count_g = 0
 
     def fgc_plain(x: np.ndarray) -> FG:
         """Compute FG namedtuple (fun, grad) at x and increment call count."""
@@ -431,11 +433,11 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         # --- Stopping criteria ---
         g_norm = np.linalg.norm(fgv.grad)
         if g_norm < min_grad_value:
-            low_progres_count_g += 1
+            low_progress_count_g += 1
         else:
-            low_progres_count_g = 0
+            low_progress_count_g = 0
             
-        if low_progres_count_g >= min_grad_count:
+        if low_progress_count_g >= min_grad_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Converged at iteration {k}, gradient norm {g_norm:.3e}")
             is_converged = True
@@ -447,13 +449,13 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
                 diff = fgv_fun_prev - fgv.fun
                 p_diff = diff / np.fabs(fgv.fun)
                 if p_diff < min_p_fun_decrease_value:
-                    low_progres_count_f += 1
+                    low_progress_count_f += 1
                 else:
-                    low_progres_count_f = 0
+                    low_progress_count_f = 0
             else:
-                low_progres_count_f += 1
+                low_progress_count_f += 1
                 
-        if low_progres_count_f >= min_p_fun_decrease_count:
+        if low_progress_count_f >= min_p_fun_decrease_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Stopped at iteration {k}, low function progress")
             is_converged = True
@@ -477,7 +479,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         s = x_new - x
         y = fgv_new.grad - fgv.grad
 
-        if np.dot(y, s) > 1.e-15:
+        if np.dot(y, s) > CURVATURE_THRESHOLD:
             if len(sl) == m:
                 sl.pop(0)
                 yl.pop(0)
