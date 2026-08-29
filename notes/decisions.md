@@ -888,3 +888,51 @@ D-055 | 2026-08-29 | Session journal rotates into volumes: log.md →
         boundaries and enforce immutability of history; a
         session-count trigger is deterministic (line counts drift with
         re-wrapping), the line cap is a backstop.
+
+D-056 | 2026-08-29 | state_machine.py + test_state_machine.py
+        analyzed (session 19, review-only so far — no source change):
+        suite 13/0/0 GREEN (full discover 411 tests, 52 skipped); 17
+        verified facts V1-V17 by an independent 54-check probe (0
+        mismatches); findings OPEN pending Roberto's rulings —
+        R1 Verbosity.NONE prints ERROR (gate is `relevance >=
+        verbosity`; choose `>` semantics vs. renaming levels),
+        R2 LogEntry dead class + `logs` annotation lists LogEntry but
+        holds plain dicts, R3 worker 0's up()/down() unreachable via
+        the public API (step 0 sentinel vs. off-by-one), R4 failure
+        leaves current_step at the failed step so a retry of the same
+        target silently skips it (document vs. roll back to k-1),
+        R5 move_to_last resolves by the last worker's NAME so
+        duplicate names land on the first match (fix: use the index);
+        12 minors M1-M12 (dead imports Any/datetime, bool accepted as
+        index, misleading "for_next_level" names, cosmetics, no
+        @validate_call, ...); 11 test defects T1-T11 (three whole
+        areas untested: verbosity gate, context injection, display
+        methods + move_to_last + edge semantics). Fix campaign to be
+        proposed per the rulings.
+        | House process (AGENTS.md rules 5-6): mirror docs written
+        (docs/src/twolm/state_machine.md + test doc), findings
+        registered before any change so each fix can reference its
+        ruling; the five R items are behaviour-defining (R1 shifts
+        every verbosity level if `>` is chosen; R3/R4 change which
+        workers execute; R5 changes the landing step) and touch the
+        contract with the not-yet-ported RLM module, so they need
+        Roberto's decision instead of agent discretion.
+
+D-057 | 2026-08-29 | state_machine R1 fix + T1 (session 19, fix
+        campaign item 1, approved by Roberto): `Verbosity` gains
+        `VERY_LOW = 4` and `NONE` moves 4 → 5; the `relevance >=
+        verbosity` gate (L201) is UNCHANGED. HIGH/MODERATE/
+        STANDARD/LOW behaviour is byte-identical; NONE is now truly
+        silent and the old NONE behaviour (ERROR-only) is preserved
+        under the honest name VERY_LOW. The only behavioural delta:
+        call sites explicitly passing `Verbosity.NONE` now get silence
+        instead of ERROR-only (such a site that wants errors visible
+        should use VERY_LOW). Docstring documents the gate. Pinned by
+        new `TestVerbosityGating` (T1): 6 verbosity × 5 relevance
+        gating matrix on captured stdout + enum-values test (suite 13
+        -> 15/0/0 GREEN; full discover 413, 52 skipped).
+        | Roberto's choice (he has client-code visibility, the agent
+        does not): keeping `>=` and values 0-3 means zero behaviour
+        change for every existing level, which is safe for the
+        unknown client; the alternative (gate `>`) would have shifted
+        the effective threshold of all five levels at once.
