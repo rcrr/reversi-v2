@@ -52,6 +52,11 @@ from datetime import datetime, timezone, timedelta
 
 from twolm.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
+# House rule (D-065): test artifacts are written ONLY under
+# workspace_root/build/tmp and removed afterwards. The workspace
+# root is 3 levels up from this file (src/twolm/test/).
+TMP_DIR = Path(__file__).resolve().parents[3] / "build" / "tmp"
+
 
 
 class TestStateMachine(unittest.TestCase):
@@ -295,33 +300,56 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
 
     def test_history_export_csv(self):
-        """Test exporting history to a CSV file."""
-        import os
+        """Test exporting history to a CSV file (T5, D-065): header
+        names, ISO-8601 +00:00 timestamps, duration identity, and the
+        artifact under workspace_root/build/tmp, removed afterwards."""
         import csv
-        
+
         self.sm.move_to_step(2)
         self.sm.move_to_step(0)
-        
-        test_filename = "test_history_export.csv"
+
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        test_filename = TMP_DIR / "test_history_export.csv"
         try:
             self.sm.export_history_of_moves_as_csv(test_filename)
-            
-            self.assertTrue(os.path.exists(test_filename))
-            
+
+            self.assertTrue(test_filename.exists())
+
             with open(test_filename, "r") as f:
                 reader = csv.DictReader(f)
+                fieldnames = reader.fieldnames
                 rows = list(reader)
-                
+
+            # header row: the exact field names
+            self.assertEqual(fieldnames, [
+                "step", "worker_name", "direction",
+                "start_utc", "finish_utc", "duration_sec"])
+
             # We made 2 move_to_step calls, resulting in 4 individual steps
             self.assertEqual(len(rows), 4)
+            self.assertEqual(rows[0]['step'], "1")
             self.assertEqual(rows[0]['worker_name'], "CONFIG")
             self.assertEqual(rows[0]['direction'], "up")
             # When moving down to 0, the last worker to execute 'down' is step 1 (CONFIG)
+            self.assertEqual(rows[3]['step'], "1")
             self.assertEqual(rows[3]['worker_name'], "CONFIG")
             self.assertEqual(rows[3]['direction'], "down")
+            for row in rows:
+                # ISO-8601 with explicit +00:00 (aware UTC)
+                self.assertTrue(row['start_utc'].endswith("+00:00"))
+                self.assertTrue(row['finish_utc'].endswith("+00:00"))
+                start = datetime.fromisoformat(row['start_utc'])
+                finish = datetime.fromisoformat(row['finish_utc'])
+                self.assertIsNotNone(start.tzinfo)
+                self.assertIsNotNone(finish.tzinfo)
+                # duration_sec == finish - start (the dataclass identity)
+                self.assertAlmostEqual(
+                    float(row['duration_sec']),
+                    (finish - start).total_seconds(),
+                    places=6)
         finally:
-            if os.path.exists(test_filename):
-                os.remove(test_filename)
+            if test_filename.exists():
+                test_filename.unlink()
 
 
 class TestLogEntry(unittest.TestCase):
