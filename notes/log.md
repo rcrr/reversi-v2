@@ -736,5 +736,9 @@
 - Notes hygiene: removed the committed duplicate D-040 entry from
   decisions.md (edit-retry artifact from the M2 work; the in-order
   original kept).
-- Next: T2 (6 dead imports: npt, nptest, Callable, TypeAlias, List,
-  bare pydantic).
+- T campaign item T2 (P2) approved and applied (D-045): the six
+  dead imports removed (npt, nptest, Callable, TypeAlias, List,
+  bare pydantic) + one consequent blank line; `from pydantic
+  import ValidationError` stays (used). Pure import hygiene, no
+  behaviour change. Suite 16/0/1 GREEN (test count unchanged).
+- Next: T3 (header grammar).

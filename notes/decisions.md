@@ -726,3 +726,14 @@ D-044 | 2026-08-29 | test_feature.py T campaign, item T1 (P2,
        undefined name `indexes`; the live 3x10 golden assertion is
        unchanged. Suite 16/0/1 GREEN (test count unchanged: 16 run
        + 1 PERF skip). T2-T5, T7-T9 pending.
+
+D-045 | 2026-08-29 | test_feature.py T campaign, item T2 (P2,
+       approved by Roberto, one at a time): the six dead imports
+       removed — `numpy.typing as npt` (L52),
+       `numpy.testing as nptest` (L53),
+       `from typing import Callable, TypeAlias, List` (L59), bare
+       `import pydantic` (L61) — plus one consequent blank line.
+       Each name occurs exactly once (its import line);
+       `from pydantic import ValidationError` stays (used). Pure
+       import hygiene, no behaviour change. Suite 16/0/1 GREEN.
+       T3-T5, T7-T9 pending.

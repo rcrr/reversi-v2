@@ -49,16 +49,11 @@ from twolm.mobility import Mobility, MobilitySet
 from twolm.pattern import Pattern, PatternSet, Index
 
 import numpy as np
-import numpy.typing as npt
-import numpy.testing as nptest
 
 import io
 import time        
 import os
 
-from typing import Callable, TypeAlias, List
-
-import pydantic
 from pydantic import ValidationError
 
 
