@@ -690,3 +690,37 @@
   block == pset.compute_principal_indexes); all literals
   re-derived from scratch (genuine goldens). Suite 13 -> 16 run
   tests, GREEN 16/0/1. Next: T1 (dead if-False block).
+
+## 2026-08-29 — session 9 (web search: Buro publications)
+- Tooling first: the web_search tool failed all session with
+  "api key ****764d is invalid" — the DEEPSEEK_API_KEY credential
+  (~/.dsh/.credentials.yaml) held an OpenRouter key (sk-or-v1-...)
+  while the provider calls DeepSeek's Anthropic-compatible endpoint
+  (api.deepseek.com/anthropic/v1). Roberto replaced it with a real
+  DeepSeek key (sk-b6e5... in the credentials file); the first
+  attempt then failed with "Insufficient Balance" (account credit),
+  resolved by a top-up. Search works now; the key is re-resolved on
+  every search, so no restart is needed on credential changes.
+- Roberto requested web research on Michael Buro's scientific
+  publications on Othello/Reversi/Logistello.
+- Findings: the local reference collection logistello-papers/
+  (16 documents, 1994-2002, index: logistello-papers-index.md)
+  already covers the ENTIRE Logistello era — nothing new there.
+  The search located the canonical online homes of the main works:
+  1997 Murakami match report (SAGE / ICGA Journal), 2002 survey
+  "Improving Heuristic Mini-Max Search by Supervised Learning"
+  (ZbMATH / Artificial Intelligence), MPC paper (Semantic Scholar,
+  CiNii, Mendeley), GLEM (Semantic Scholar / LNCS 1558), "The
+  Evolution of Strong Othello Programs" (Springer chapter,
+  IWEC-2002 / Kluwer 2003), JAIR feature-combination paper (KipHub).
+- Gap: post-2002 works are missing from the local collection — the
+  Nao era (successor program, world champion 2015-2016; covered by
+  Wikipedia + chessprogramming) and the book "Reversi for Optimal
+  Players" (review on BrainKing). Canonical source for a complete
+  current catalog: Buro's own publications page
+  https://skatgame.net/mburo/publications.html (web_search cannot
+  fetch page contents, so the catalog needs a direct visit or a
+  follow-up session with page-fetch tooling).
+- Note added per Roberto's request: this journal entry + I-008
+  (backlog: extend the collection beyond 2002). logistello-papers/
+  stays read-only; its index is not touched.
