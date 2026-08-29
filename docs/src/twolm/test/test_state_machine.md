@@ -1,12 +1,13 @@
 # test_state_machine.md — analysis
 
-Date: 2026-08-29. One test file: `test_state_machine.py` (15 tests, 2
+Date: 2026-08-29. One test file: `test_state_machine.py` (18 tests, 3
 classes), added with the module (commit 66ab84b). **Analysis session 19;
-R1 + T1 applied (D-057); T2–T11 OPEN, fix campaign pending Roberto's
-approval (together with the R2–R5 rulings on the module).**
+R1 + T1 applied (D-057); R2 applied with 3 new `TestLogEntry` tests
+(D-058, side effect: T11 resolved); T2–T10 OPEN, fix campaign pending
+Roberto's approval (together with the R3–R5 rulings on the module).**
 
-Suite: **15/0/0 GREEN, no PERF gates** (13 → 15 with T1). Fast
-(~0.11s).
+Suite: **18/0/0 GREEN, no PERF gates** (13 → 15 with T1, → 18 with
+the R2 tests). Fast (~0.04s).
 
 ## How to run
 
@@ -33,6 +34,19 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_move_to_step_invalid_type` | `3.14` → TypeError. |
 | `test_worker_exception_propagation_and_logging` | `up[1]` raising RuntimeError: re-raised; `current_step == 1` (the failed step); exactly 1 ERROR log with the right step/worker/message; history records the failed attempt (len 1). |
 | `test_history_export_csv` | 2 moves (0→2, 2→0) → CSV with 4 rows; row 0 = CONFIG/up; row 3 = CONFIG/down. File cleaned up in `finally`. |
+
+### `TestLogEntry` (3 tests, added D-058)
+
+- `test_init_log_is_typed_record`: `logs[0]` is a `StateMachine.LogEntry`
+  with the 5 field values pinned (aware-UTC `time`, step 0,
+  "CREATED", `Relevance.DEBUG`, the init message).
+- `test_log_entry_is_immutable`: assigning a field raises
+  `FrozenInstanceError` (frozen dataclass).
+- `test_asdict_form_for_dump`: `dataclasses.asdict(entry)` yields
+  exactly the 5 keys `time/step/worker_name/relevance/message`
+  (the file/DB dump shape for the intended final pipeline worker).
+- **Coverage**: the R2 typed-record contract, incl. the three
+  intended log-consumer uses (inspection, REPL, dump).
 
 ### `TestVerbosityGating` (2 tests, added D-057)
 
@@ -107,8 +121,11 @@ and the `finally`-append on failure are unpinned at the field level
 First-match-wins on duplicate worker names (V8b) is undocumented and
 unpinned; combined with T4 it hides R5.
 
-### T11 — Dead import (P2)
-`from datetime import datetime` (L47) is never used.
+### T11 — Dead import (P2) — RESOLVED (side effect of D-058)
+`from datetime import datetime` was never used; the new
+`TestLogEntry.test_init_log_is_typed_record` uses it
+(`assertIsInstance(entry.time, datetime)`), so the import is now
+load-bearing. (Now at L49 after the two D-057/D-058 import adds.)
 
 ## Completeness verdict
 
@@ -130,5 +147,5 @@ bool/duplicate names, StepMove field content).
   coverage), R2/R5 code fixes if approved.
 - **P1**: T3 (print/display goldens), T4 (move_to_last), T6 (retry
   quirk pin, per R4 outcome), R4 disposition.
-- **P2**: T5, T7, T8, T9, T10, T11 + the M-sweep (dead imports,
-  cosmetics, doc notes, repr).
+- **P2**: T5, T7, T8, T9, T10 (T11 resolved with D-058) + the
+  M-sweep (dead imports, cosmetics, doc notes, repr).

@@ -2,13 +2,14 @@
 
 Date: 2026-08-29. Module added by Roberto (2 files: state_machine.py +
 test_state_machine.py), commit 66ab84b. **Analysis session 19; R1
-fixed + T1 pinned (D-057); R2–R5 OPEN, awaiting Roberto's ruling;
-fix campaign pending approval.**
+fixed + T1 pinned (D-057); R2 fixed (D-058: frozen `LogEntry`
+dataclass); R3–R5 OPEN, awaiting Roberto's ruling; fix campaign
+pending approval.**
 
-Suite: **15 tests, GREEN 15/0/0** (2 classes, no PERF gates). Suite is
-fast (~0.11s).
+Suite: **18 tests, GREEN 18/0/0** (3 classes, no PERF gates). Suite is
+fast (~0.04s).
 
-Full workspace: **413 tests, GREEN, 52 skipped under
+Full workspace: **416 tests, GREEN, 52 skipped under
 `SKIP_REGAB_DB=1`** (17 PERF print-only + 35 regab DB-gated).
 
 No new dependencies: the module is pure stdlib (enum, datetime,
@@ -33,7 +34,7 @@ subclass/instantiate it.
 | `Context` | Empty base class for pipeline contexts; shared state passed between workers. |
 | `Worker(name, up_callable, down_callable)` | One pipeline step; composition over the forward (`up`) and rollback (`down`) callables. |
 | `StateMachine.StepMove` (dataclass) | One executed step: step, worker_name, direction, start, finish, duration. |
-| `StateMachine.LogEntry(dict)` | "Typed dictionary for log events" — **never instantiated; see R2**. |
+| `StateMachine.LogEntry` | Frozen dataclass: typed record for one logged event (time, step, worker_name, relevance, message); `asdict()` gives the dict form for file/DB dumps (D-058). |
 | `StateMachine.__init__` | Stores workers/context/verbosity; injects `log_event` + two cache-path helpers onto the context; emits the init DEBUG log. |
 | `StateMachine._history_timer` | Context manager appending a `StepMove` in `finally` (failure included). |
 | `StateMachine._run_step` | Logs "Starting …", calls `up`/`down`, logs "Completed …"; on exception logs ERROR and re-raises. |
@@ -52,7 +53,7 @@ as the initial (nothing-executed) state. For a move from `c` to `t`:
   `up()` **runs**.
 - **Down** (`t < c`): executes `down()` of workers `c … t+1` — the
   target's `down()` does **NOT** run; `current_step` is then set to `t`
-  explicitly (L275, required because the down loop's last iteration
+  explicitly (L278, required because the down loop's last iteration
   leaves it at `t+1`).
 
 Consequences, all verified (V3–V6, V8):
@@ -66,8 +67,8 @@ Consequences, all verified (V3–V6, V8):
 
 ### Context injection (side effect on the caller's object)
 
-`__init__` unconditionally assigns onto the passed `Context` (L130,
-L144, L152):
+`__init__` unconditionally assigns onto the passed `Context` (L134,
+L148, L156):
 
 - `context.log_event = self.log_event` (bound method of this machine);
 - `context.get_cache_file_path_for_next_level` — returns
@@ -91,10 +92,10 @@ cited.
 
 | # | Fact | Method |
 |---|---|---|
-| V1 | Verbosity gate is `relevance >= verbosity` (L201); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
-| V2 | `logs` accumulates every event regardless of verbosity (gate affects print only); entries are plain dicts, never `LogEntry`; `LogEntry` never instantiated anywhere in the module | Probe + source scan |
+| V1 | Verbosity gate is `relevance >= verbosity` (L205); current table (post D-057): HIGH all, MODERATE DEBUG..ERROR, STANDARD INFO..ERROR, LOW WARN+ERROR, VERY_LOW ERROR-only, NONE silent — re-verified 2026-08-29 (at analysis time NONE(4) printed ERROR: the R1 defect) | 6×5 print-matrix probe on captured stdout, re-run post-fix |
+| V2 | `logs` accumulates every event regardless of verbosity (gate affects print only); entries are frozen `LogEntry` dataclass instances — attribute access, immutable, `asdict()` for dumps (post D-058; at analysis time they were plain dicts and `LogEntry` a dead class: the R2 defect) | Probe + source scan |
 | V3 | Worker 0's `up()`/`down()` are never invoked by `move_to_step`/`move_to_last` (up 0→2 runs up[1], up[2]; down 2→0 runs down[2], down[1]) | MagicMock call tracking |
-| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L275 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
+| V4 | Down c→t runs down() of workers c..t+1 (target excluded); final `current_step == t`; the L278 reassignment is **required** (last loop iteration leaves it at t+1) | MagicMock + state inspection |
 | V5 | Up c→t runs up() of workers c+1..t (target included) | MagicMock |
 | V6 | Failure at step k leaves `current_step == k`; retry of the same target executes only steps > k — the failed worker is **skipped** | side_effect + reset mocks |
 | V7 | `move_to_step(True)` accepted as step 1 (`bool` subclasses `int`); `np.int64(1)` rejected with TypeError | Edge-case probes |
@@ -105,7 +106,7 @@ cited.
 | V12 | Live print: `[{ts}] [{step:02}][{name:15}] [{rel}:{verb}] {msg}` with numeric enum values and no UTC marker in the displayed timestamp | Regex on captured line |
 | V13 | `show_event_log`: "EVENT LOG" banner + `TIMESTAMP | STEP | WORKER | R | MESSAGE` (step 4-digit); `show_history_of_moves`: `Step | Worker | Dir | Start (UTC) | Dur (s)` (microsecond start, 6-decimal duration) | Captured output |
 | V14 | `StepMove.start`/`.finish` tz-aware UTC; `duration == finish - start`; history entry appended in `finally` even on failure | Probe + existing test |
-| V15 | Dead imports: `Any` (state_machine.py L34) and `datetime` (test file L48) — each appears only on its import line | Source scan |
+| V15 | Dead import: `Any` (state_machine.py L34); the test file's `datetime` import is now used by `TestLogEntry` (D-058, was dead at analysis time) | Source scan |
 | V16 | Invalid target: IndexError (≥len or negative), ValueError (unknown name), TypeError (other types incl. float) | Edge-case probes |
 | V17 | A context shared by two machines: the second `__init__` **re-binds** `log_event` + both cache helpers to itself (unconditional assignment) | `__self__` inspection |
 
@@ -125,14 +126,29 @@ silent — such a site that wants errors visible should use
 `VERY_LOW`; accepted given Roberto's client visibility). Pinned by
 `TestVerbosityGating` (6×5 gating matrix + enum values, T1).
 
-### R2 — `LogEntry` is dead code and the `logs` annotation lies
-`class LogEntry(dict)` (L110) with class-level annotations is pure
-documentation: nothing enforces keys or types, and `log_event` builds
-**plain dicts** (L193-199) — the declared `List[StateMachine.LogEntry]`
-(L125) is never true (V2). Options: (a) instantiate `LogEntry` in
-`log_event`; (b) delete the class and annotate `List[dict]`; (c) a
-proper dataclass/TypedDict log record (cleaner, but an API change for
-any future consumer reading `logs`).
+### R2 — `LogEntry` is dead code and the `logs` annotation lies — RESOLVED (D-058, 2026-08-29)
+`class LogEntry(dict)` with class-level annotations was pure
+documentation: nothing enforced keys or types, and `log_event` built
+**plain dicts** — the declared `List[StateMachine.LogEntry]` (L129)
+was never true (V2 at analysis time). Fixed per Roberto's ruling —
+option (c), a real typed record, chosen because no client reads the
+log today and the three intended consumers (inspection clients,
+interactive REPL search, a final pipeline worker dumping the log to
+file/DB) all benefit from it. Implemented as
+`@dataclass(frozen=True)` `LogEntry` (L110-120):
+- **frozen**: a log record is created once and read forever;
+  mutation raises `FrozenInstanceError`;
+- **attribute access** (`entry.message`): REPL-ergonomic (use #2);
+  dataclass `__repr__` gives a self-documenting record in the REPL;
+- **`dataclasses.asdict(entry)`**: one-liner dict form for the
+  file/DB dump worker (use #3);
+- `log_event` now constructs `LogEntry` directly (L197-203);
+  `show_event_log` migrated to attribute access (output format
+  unchanged); the `logs` annotation is now true.
+Observable behaviour (prints, CSV, history) unchanged. Pinned by
+`TestLogEntry` (3 tests: typed record + field values, immutability,
+`asdict` 5-key form). Side effect: the test file's previously dead
+`datetime` import is now used (T11/M2 resolved).
 
 ### R3 — Worker 0 can never execute (semantic)
 No public call invokes `workers[0].up()` or `.down()` (V3). The state
@@ -151,13 +167,13 @@ After a failure at step `k`, `current_step == k` (the failed step, not
 `test_worker_exception_propagation_and_logging`). A subsequent
 `move_to_step(t)` with `t > k` executes only steps `> k`, so the failed
 worker never re-runs; recovery requires an explicit down-then-up.
-Options: (a) leave as-is + document the quirk (comment at L268 + doc
+Options: (a) leave as-is + document the quirk (comment at L271 + doc
 note + a pinning test T6); (b) on failure roll `current_step` back to
 `k-1` so a retry naturally re-executes step `k` (behaviour change,
 test update required).
 
 ### R5 — `move_to_last` is name-based and misdirects on duplicate names
-`move_to_last` calls `move_to_step(workers[-1].name)` (L281-283); name
+`move_to_last` calls `move_to_step(workers[-1].name)` (L280-286); name
 resolution picks the **first** match (V8). With workers `[A, B, A]`,
 `move_to_last` from step 2 lands on step 0. Minimal fix: use the index
 `len(self.workers) - 1` directly (duplicate names in general remain a
@@ -166,12 +182,13 @@ design wart — first-match is silent, see M12).
 ## Minor notes (M1–M12)
 
 - **M1** — Dead import `Any` (L34).
-- **M2** — Dead import `datetime` in test_state_machine.py (L48).
+- **M2** — Dead import `datetime` in test_state_machine.py —
+  RESOLVED as a side effect of D-058 (now used by `TestLogEntry`).
 - **M3** — `move_to_step` accepts `bool` (True→1, False→0 no-op);
   `np.int64` rejected (V7). One-line `isinstance(target_step, bool)`
   guard if strictness is wanted; otherwise document.
 - **M4** — `_run_step`'s `else` branch treats any non-`'up'` direction
-  string as down (L175-178). Private, only 'up'/'down' are ever passed.
+  string as down (L179-182). Private, only 'up'/'down' are ever passed.
 - **M5** — Injected names `get_cache_file_path_for_next_level` /
   `get_cache_file_full_path_for_next_level` contradict their own
   docstrings ("currently executing worker"). Renaming is port-breaking
@@ -182,6 +199,7 @@ design wart — first-match is silent, see M12).
   left-14 vs values right-15.6f; no UTC marker on the displayed
   timestamp; `[rel:verb]` prints numeric enum values, not names.
 - **M7** — No `__repr__` on `Worker`/`StateMachine` (house hygiene).
+  `LogEntry` now has the dataclass `__repr__` (D-058).
 - **M8** — Cache-helper contract lives only in inline comments:
   `context.cfg` must carry `cache_files_prefix` + `base_dir` (bare
   `getattr`, no default); absolute `cache_files_prefix` silently drops
@@ -201,9 +219,9 @@ design wart — first-match is silent, see M12).
 ## Observations (not defects)
 
 - **Half-open interval semantics are correct as implemented**: the
-  L275 reassignment is *required* for down moves (the down range
+  L278 reassignment is *required* for down moves (the down range
   excludes the target), and the up loop naturally ends at the target.
-  The code and the L273 comment are consistent — verified, no change.
+  The code and the L276 comment are consistent — verified, no change.
 - **`np.int64` rejection is acceptable** for a plain-int pipeline API
   (other modules' scalar/array duality doesn't apply here); the
   TypeError message is clear.
@@ -225,31 +243,34 @@ Ran 13 tests in 0.026s
 OK
 ```
 
-## Appendix: line-number reference (2026-08-29, post R1 fix D-057)
+## Appendix: line-number reference (2026-08-29, post R1+R2 fixes
+D-057/D-058)
 
 - `__all__`: L40
 - `Verbosity`: L44 (VERY_LOW: L53, NONE: L54) · `Relevance`: L56 ·
   `Context`: L66
 - `Worker.__init__`: L80 · `up`: L85 · `down`: L89
-- `StateMachine.StepMove`: L101 · `StateMachine.LogEntry`: L110
-- `StateMachine.__init__`: L118
-- context.log_event injection: L130
-- `_get_cache_file_path`: L132 (level = current_step: L137; cfg
-  prefix: L140)
-- `get_cache_file_path_for_next_level` injection: L144
-- `_get_cache_file_full_path`: L146 (base_dir join: L150); injection:
-  L152
-- init log: L154
-- `_history_timer` (finally append): L157-170
-- `_run_step`: L172 (direction dispatch: L175; error log+raise:
-  L180-182)
-- `current_worker_name`: L185 ("UNDEFINED": L187)
-- `log_event`: L190 (event dict: L193-199; append: L200; gate `>=`:
-  L201; print: L203)
-- `show_event_log`: L205 · `show_history_of_moves`: L214
-- `export_history_of_moves_as_csv`: L222 (fieldnames: L223)
-- `move_to_step`: L237 (string→upper: L243; name lookup: L244;
-  TypeError: L249-250; IndexError: L252-253; same-step no-op:
-  L255-256; up range: L258-260; down range: L262-263; pre-exec
-  step update: L268; down final set: L273-275)
-- `move_to_last`: L277 (name-based call: L283)
+- `StateMachine.StepMove`: L101-108 (@dataclass L101, class L102) ·
+  `StateMachine.LogEntry`: L110-120 (@dataclass(frozen=True) L110,
+  class L111, fields L116-120)
+- `StateMachine.__init__`: L122
+- context.log_event injection: L134
+- `_get_cache_file_path`: L136 (level = current_step: L141; cfg
+  prefix: L144)
+- `get_cache_file_path_for_next_level` injection: L148
+- `_get_cache_file_full_path`: L150 (base_dir join: L153-154);
+  injection: L156
+- init log: L158
+- `_history_timer` (finally append): L160-174
+- `_run_step`: L176 (direction dispatch: L179-182; error log+raise:
+  L185-186)
+- `current_worker_name`: L189 ("UNDEFINED": L191)
+- `log_event`: L194 (LogEntry construction: L197-203; append: L204;
+  gate `>=`: L205; print: L207)
+- `show_event_log`: L209 · `show_history_of_moves`: L217
+- `export_history_of_moves_as_csv`: L225 (fieldnames: L226)
+- `move_to_step`: L240 (string→upper: L246; name lookup: L247;
+  TypeError: L252-253; IndexError: L255-256; same-step no-op:
+  L258-259; up range: L261-263; down range: L264-266; pre-exec
+  step update: L271; down final set: L277-278)
+- `move_to_last`: L280 (name-based call: L286)

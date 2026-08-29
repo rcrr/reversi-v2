@@ -936,3 +936,29 @@ D-057 | 2026-08-29 | state_machine R1 fix + T1 (session 19, fix
         change for every existing level, which is safe for the
         unknown client; the alternative (gate `>`) would have shifted
         the effective threshold of all five levels at once.
+
+D-058 | 2026-08-29 | state_machine R2 fix (session 19, fix campaign
+        item 2, approved by Roberto): `LogEntry` is now a real typed
+        record — `@dataclass(frozen=True)` (L110-120) with the 5
+        fields time/step/worker_name/relevance/message, replacing the
+        dead `dict` subclass. `log_event` constructs it directly
+        (L197-203); `show_event_log` migrated to attribute access
+        (output format unchanged); the `logs: List[LogEntry]`
+        annotation is now true. Rationale for the dataclass (over
+        TypedDict): attribute access is REPL-ergonomic (intended use:
+        interactive log search), `dataclasses.asdict()` is the
+        one-liner dict form for the planned final pipeline worker
+        that dumps the log to file/DB, and frozen guarantees a log
+        record is never mutated after creation. No observable
+        behaviour change (prints/CSV/history identical); no client
+        reads the log today (Roberto). Pinned by new `TestLogEntry`
+        (3 tests: typed record + field values, FrozenInstanceError,
+        asdict 5-key form); the exception-logging test migrated to
+        attribute access. Side effect: the test file's `datetime`
+        import is now used by TestLogEntry (T11/M2 resolved). Suite
+        15 -> 18/0/0 GREEN; full discover 416, 52 skipped.
+        | Roberto: no current log consumers exist; three intended
+        uses (inspection clients, REPL search, log-dump worker) all
+        favour a typed record; "facciamo come riteniamo meglio, non
+        dovrebbe rompersi nulla" — verified: show_event_log output,
+        live prints, CSV export all byte-identical.
