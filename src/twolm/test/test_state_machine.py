@@ -147,6 +147,44 @@ class TestStateMachine(unittest.TestCase):
             mock.assert_not_called()
         self.assertEqual(len(self.sm.history), 0)
 
+    def test_move_to_last_happy_path(self):
+        """move_to_last dispatches by the last worker's name
+        (unambiguous since D-061) and runs the up chain."""
+        self.sm.move_to_last()
+
+        self.assertEqual(self.sm.current_step, 2)
+        self.up_callables[1].assert_called_once_with(self.context)
+        self.up_callables[2].assert_called_once_with(self.context)
+        for mock in self.down_callables:
+            mock.assert_not_called()
+        self.assertEqual(len(self.sm.history), 2)
+        self.assertEqual(self.sm.history[-1].direction, 'up')
+
+    def test_move_to_last_from_intermediate_position(self):
+        """From step 1, only the remaining step executes."""
+        self.sm.move_to_step(1)
+        for mock in self.up_callables + self.down_callables:
+            mock.reset_mock()
+
+        self.sm.move_to_last()
+
+        self.assertEqual(self.sm.current_step, 2)
+        self.up_callables[2].assert_called_once_with(self.context)
+        self.up_callables[1].assert_not_called()  # already executed
+        self.assertEqual(len(self.sm.history), 2)  # step 1 up + step 2 up
+
+    def test_move_to_last_single_worker_noop(self):
+        """A single-worker machine: the only worker is the sentinel
+        at step 0, so move_to_last is a no-op (D-059 + D-061)."""
+        up = MagicMock()
+        down = MagicMock()
+        sm = StateMachine([Worker("ONLY", up, down)], Context())
+        sm.move_to_last()
+        up.assert_not_called()
+        down.assert_not_called()
+        self.assertEqual(sm.current_step, 0)
+        self.assertEqual(sm.history, [])
+
     def test_duplicate_worker_names_raise(self):
         """Duplicate names are rejected at construction (R5, D-061)."""
         with self.assertRaises(ValueError) as ctx:
