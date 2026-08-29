@@ -271,23 +271,6 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
 
         computed_indexes = fset.compute_indexes(positions)
         
-        if False:
-            print()
-            fset.print_summary()
-            print()
-            print(f"Number of positions: {len(positions)}")
-            for i, p in enumerate(positions):
-                print()
-                print(f"Position #{i}:")
-                position_print(p)
-
-            print()
-            print(f"type(indexes) = {type(computed_indexes)}")
-            print(f"indexes: shape = {computed_indexes.shape}, dtype = {computed_indexes.dtype}")
-            print(f"{computed_indexes}")
-            print()
-            print(f"{expected_indexes}")
-
         np.testing.assert_array_equal(computed_indexes, expected_indexes)
 
     def test_compute_indexes_empty_positions(self):

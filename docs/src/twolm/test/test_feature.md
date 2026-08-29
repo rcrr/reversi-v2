@@ -4,8 +4,8 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 2026-08-28 (commit b51bea6), analyzed after the R1-R4 module batch
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
-progress one at a time: T6 applied (D-043) → 16 run + 1 PERF skip,
-GREEN 16/0/1; T1-T5, T7-T9 pending._
+progress one at a time: T6 (D-043) and T1 (D-044) applied → 16
+run + 1 PERF skip, GREEN 16/0/1; T2-T5, T7-T9 pending._
 
 ## 1. What this file is
 
@@ -88,12 +88,15 @@ _Numbering is local to this file (fresh T series; the pattern and
 mobility suites have their own, closed)._
 
 - **T1 — `TestFeatureSetComputeIndexes.test_compute_indexes`
-  (L230-245): dead `if False:` block, 16 unreachable lines.**
+  (L230-245): dead `if False:` block, 16 unreachable lines. DONE
+  (D-044).**
   References `position_print` (L238) — never imported (the board
   import at L45-46 is `Bitboard, make_position` only) — a latent
-  NameError if the block is ever re-activated. The live assertion
-  (L247) is real. Precedents: test_pattern T1 (D-033),
-  test_mobility T1 (D-037). Fix: remove the dead block.
+  NameError if the block is ever re-activated; plus the undefined
+  name `indexes`. The live assertion (L247) is real. Precedents:
+  test_pattern T1 (D-033),
+  test_mobility T1 (D-037). Fix applied: dead block removed,
+  golden assertion unchanged.
 - **T2 — dead imports (L52, L53, L59, L61): `npt`, `nptest`,
   `Callable`, `TypeAlias`, `List`, bare `pydantic`.** Each occurs
   exactly once (the import line) — grep-verified. Precedent:
@@ -214,7 +217,7 @@ awaiting Roberto's approvals._
      pinned against from-scratch values) + single-block
      `compute_indexes` shapes. **DONE (D-043).**
 - **P2** (hygiene + breadth):
-  2. T1 — dead `if False:` block removed.
+  2. T1 — dead `if False:` block removed. **DONE (D-044).**
   3. T2 — 6 dead imports removed.
   4. T3 — header grammar.
   5. T5 — explicit names-order assertion in test_init.

@@ -717,9 +717,12 @@ D-043 | 2026-08-28 | test_feature.py T campaign, item T6 (P1,
        goldens, no self-comparison). Suite 13 -> 16 run tests,
        GREEN 16/0/1. T1-T5, T7-T9 pending.
 
-D-040 | 2026-08-28 | feature.py M2 disposed (approved by Roberto,
-       one at a time): the unused `f` prefixes removed from the
-       two placeholder-less print_summary lines ("Intercept is
-       present." / "Intercept is None."); output identical,
-       cosmetic only. Suite 13/0/1 GREEN (print_summary goldens
-       unchanged). M3-M4 disposition pending.
+D-044 | 2026-08-29 | test_feature.py T campaign, item T1 (P2,
+       approved by Roberto, one at a time): the dead `if False:`
+       debug block (16 unreachable lines) removed from
+       TestFeatureSetComputeIndexes.test_compute_indexes. It
+       referenced position_print (never imported — a latent
+       NameError if the block were ever re-activated) and the
+       undefined name `indexes`; the live 3x10 golden assertion is
+       unchanged. Suite 16/0/1 GREEN (test count unchanged: 16 run
+       + 1 PERF skip). T2-T5, T7-T9 pending.

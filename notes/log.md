@@ -724,3 +724,17 @@
 - Note added per Roberto's request: this journal entry + I-008
   (backlog: extend the collection beyond 2002). logistello-papers/
   stays read-only; its index is not touched.
+
+## 2026-08-29 — session 10 (feature module: T campaign)
+- T campaign item T1 (P2) approved and applied (D-044): the 16-line
+  dead `if False:` debug block removed from
+  TestFeatureSetComputeIndexes.test_compute_indexes — it referenced
+  position_print (never imported; latent NameError if ever
+  re-activated) and the undefined name `indexes`; the 3x10 golden
+  assertion is unchanged. Suite 16/0/1 GREEN (test count
+  unchanged: 16 run + 1 PERF skip).
+- Notes hygiene: removed the committed duplicate D-040 entry from
+  decisions.md (edit-retry artifact from the M2 work; the in-order
+  original kept).
+- Next: T2 (6 dead imports: npt, nptest, Callable, TypeAlias, List,
+  bare pydantic).
