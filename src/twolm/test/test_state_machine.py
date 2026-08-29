@@ -145,6 +145,18 @@ class TestStateMachine(unittest.TestCase):
             mock.assert_not_called()
         self.assertEqual(len(self.sm.history), 0)
 
+    def test_worker_zero_is_sentinel_never_executed(self):
+        """Worker 0 is the sentinel initial state: its up()/down()
+        are never invoked by the machine (R3, D-059)."""
+        self.sm.move_to_step(2)
+        self.up_callables[0].assert_not_called()
+        self.down_callables[0].assert_not_called()
+        for mock in self.up_callables + self.down_callables:
+            mock.reset_mock()
+        self.sm.move_to_step(0)
+        self.up_callables[0].assert_not_called()
+        self.down_callables[0].assert_not_called()
+
     def test_move_to_step_by_string(self):
         """Test moving to a step using the worker's name (case-insensitive)."""
         self.sm.move_to_step("positions")

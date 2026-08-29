@@ -96,6 +96,14 @@ class StateMachine:
     Generic state machine orchestrating a sequence of Workers.
     It manages logging, history tracking, and state transitions.
     It is completely agnostic of the domain logic.
+
+    State model: current_step is the index of the last executed
+    step. Step 0 is the initial sentinel state (nothing has been
+    executed): the workers[0] up/down callables are never invoked
+    by the machine — by domain design the first worker is a
+    sentinel (e.g. the RLM pipeline's 'CREATED' bootstrap, which
+    runs outside the machine). See move_to_step for the execution
+    semantics of up/down moves.
     """
 
     @dataclass
@@ -240,7 +248,13 @@ class StateMachine:
     def move_to_step(self, target_step: int | str) -> None:
         """
         Moves the state machine to the target step.
-        Accepts an integer index or the string name of the target worker.
+        Accepts an integer index or the string name of the target
+        worker (case-insensitive). Up moves (t > current) execute
+        up() of workers current+1..t, target included; down moves
+        (t < current) execute down() of workers current..t+1,
+        target excluded, leaving the state "steps 1..t done".
+        Worker 0 is the sentinel initial state: it is never
+        executed by the machine (see class docstring).
         """
         if isinstance(target_step, str):
             target_step = target_step.upper()
