@@ -778,3 +778,19 @@ D-048 | 2026-08-29 | test_feature.py T campaign, item T7 (P2,
        mobility.py/pattern.py change, out of the T campaign. Suite
        17 -> 20 tests (19 run + 1 PERF), GREEN 19/0/1. T4, T9
        pending.
+
+D-049 | 2026-08-29 | test_feature.py T campaign, item T9 (P2,
+       approved by Roberto, one at a time): the 11 spot-check
+       assertIn in test_print_summary replaced by a single
+       assertEqual against the full 38-line output captured live
+       from the standard fixture (header with f566… hash,
+       intercept-present line, MobilitySet line with 2e55… hash +
+       3 sorted mobility rows, PatternSet line with ff97… hash +
+       13 sorted-mask pattern rows, feature-table header, 17
+       feature rows). Pins hex widths, `10s` name padding,
+       `:10,d` thousands separators (59,049 / 19,683 / 6,561 /
+       2,187), the np.uint8 mobility n_configurations rendering,
+       and the IntEnum-as-int 0/1/2 category rendering end to
+       end. Suite 19/0/1 GREEN. T4 ("environmeant" typo) remains
+       Roberto's call; T8 (import time trailing spaces) left
+       as-is.

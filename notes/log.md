@@ -758,5 +758,14 @@
   identity — Mobility/Pattern have no value __eq__),
   test_unhashable (TypeError on hash()). Documents current
   semantics, not a feature.py defect. Suite 17 -> 20 tests
-  (19 run + 1 PERF), GREEN 19/0/1. Next: T9 (full print_summary
-  golden).
+  (19 run + 1 PERF), GREEN 19/0/1.
+- T campaign item T9 (P2) approved and applied (D-049): the 11
+  spot-check assertIn in test_print_summary replaced by a single
+  assertEqual against the full 38-line golden captured live from
+  the standard fixture — pins hex widths, 10s padding,
+  :10,d thousands separators, np.uint8(65) rendering, and the
+  IntEnum-as-int 0/1/2 category columns end to end. One
+  transcription slip (LMC n_configurations 65 vs 129) caught by
+  the suite on first run, fixed. GREEN 19/0/1. T4 ("environmeant"
+  typo) remains Roberto's call; T8 (import time trailing spaces)
+  left as-is.

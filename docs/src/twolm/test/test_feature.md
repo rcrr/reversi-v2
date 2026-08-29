@@ -5,8 +5,9 @@ _Analyzed 2026-08-28 (session 8). File: 362 lines at analysis, added
 (D-038, commit b91fef2). Suite baseline: 14 tests — 13 run + 1 PERF
 skip, 0 failures, GREEN. 4 classes, 1 PERF test. Campaign in
 progress one at a time: T6 (D-043), T1 (D-044), T2 (D-045),
-T3 (D-046), T5 (D-047) and T7 (D-048) applied → 19 run + 1 PERF
-skip, GREEN 19/0/1; T4, T9 pending._
+T3 (D-046), T5 (D-047), T7 (D-048) and T9 (D-049) applied → 19
+run + 1 PERF skip, GREEN 19/0/1; T4 pending (Roberto's call),
+T8 left as-is._
 
 ## 1. What this file is
 
@@ -149,12 +150,19 @@ mobility suites have their own, closed)._
 - **T8 — (cosmetic) `import time` trailing spaces (L56).** Same
   wart as test_mobility's `import time` (noted there, left as-is
   per Roberto). Noted, default leave-as-is.
-- **T9 — `test_print_summary` (L155): 8 `assertIn` lines, no full
-  golden.** The per-feature table rows (17 lines), the
-  intercept-present line, and the two set lines are only spot-
-  checked; a full-output golden (or at least the full feature
-  table) would pin the `IntEnum`-as-int rendering and the
-  `:10s`/`:10,d` formatting end to end. Optional breadth.
+- **T9 — `test_print_summary` (L155): 11 `assertIn` lines, no
+  full golden. DONE (D-049).** The per-feature table rows
+  (17 lines), the intercept-present line, and the two set lines
+  were only spot-checked; a full-output golden (or at least the
+  full feature table) would pin the `IntEnum`-as-int rendering
+  and the `:10s`/`:10,d` formatting end to end. Fix applied:
+  the 11 assertIn replaced by a single assertEqual against the
+  full 38-line output captured live from the standard fixture
+  (header + intercept line + MobilitySet line + 3 sorted
+  mobility rows + PatternSet line + 13 sorted-mask pattern rows
+  + feature-table header + 17 feature rows), pinning hex widths,
+  `10s` padding, thousands separators, and IntEnum 0/1/2
+  rendering end to end. Suite 19/0/1 GREEN.
 
 ## 6. Docstring/behaviour mismatches (cross-check findings)
 
@@ -232,7 +240,7 @@ awaiting Roberto's approvals._
   5. T5 — explicit names-order assertion in test_init. **DONE (D-047).**
   6. T7 — `Feature.__repr__`/`__eq__` golden tests. **DONE (D-048).**
   7. T9 — full print_summary golden (or at least the full 17-row
-     feature table).
+     feature table). **DONE (D-049).**
   8. T4 — "environmeant" typo (repo-consistency call, Roberto's).
   9. T8 — `import time` trailing spaces (default leave-as-is, per
      test_mobility precedent).
