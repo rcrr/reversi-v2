@@ -12,6 +12,9 @@ dependencies = [
     "pydantic>=2",
     "numba>=0.60",
     "lz4",
+    "psycopg2",
+    "pandas",
+    "python-dotenv",
 ]
 
 [tool.setuptools.packages.find]

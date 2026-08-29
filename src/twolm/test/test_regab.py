@@ -60,7 +60,7 @@
 
 
 import unittest
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, MagicMock
 
 from twolm.board import Bitboard, make_position
 from twolm.regab import (RegabDBConnection,
@@ -72,18 +72,13 @@ from twolm.regab import (RegabDBConnection,
                          regab_load_data_set_from_file)
 
 import numpy as np
-import numpy.typing as npt
 import numpy.testing as nptest
 import pandas as pd
 
-import io
-import time        
 import os
 import tempfile
 import shutil
-import itertools
 
-from typing import Callable, TypeAlias, List
 from pydantic import ValidationError
 from dotenv import load_dotenv
 
