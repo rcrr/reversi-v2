@@ -325,6 +325,68 @@ class TestStateMachine(unittest.TestCase):
         self.assertIn("integer index or a string worker name",
                       str(ctx.exception))
 
+    def test_current_worker_name_tracks_current_step(self):
+        """current_worker_name is a live view of (workers,
+        current_step) (T8, D-067)."""
+        self.assertEqual(self.sm.current_worker_name, "CREATED")
+        self.sm.move_to_step(1)
+        self.assertEqual(self.sm.current_worker_name, "CONFIG")
+        self.sm.move_to_step(2)
+        self.assertEqual(self.sm.current_worker_name, "POSITIONS")
+        self.sm.move_to_step(0)
+        self.assertEqual(self.sm.current_worker_name, "CREATED")
+
+    def test_current_worker_name_empty_workers_undefined(self):
+        """With no workers the name is 'UNDEFINED' (T8, V9f)."""
+        sm = StateMachine([], Context())
+        self.assertEqual(sm.current_worker_name, "UNDEFINED")
+
+    def test_step_move_fields_up(self):
+        """StepMove field content for up moves (T9, D-067):
+        aware-UTC start/finish and duration == finish - start."""
+        self.sm.move_to_step(2)
+        expected = [(1, "CONFIG", "up"), (2, "POSITIONS", "up")]
+        for entry, (step, name, direction) in zip(
+                self.sm.history, expected):
+            self.assertEqual(entry.step, step)
+            self.assertEqual(entry.worker_name, name)
+            self.assertEqual(entry.direction, direction)
+            self.assertIsInstance(entry.start, datetime)
+            self.assertIsInstance(entry.finish, datetime)
+            self.assertIsNotNone(entry.start.tzinfo)
+            self.assertIsNotNone(entry.finish.tzinfo)
+            self.assertEqual(entry.start.utcoffset(), timedelta(0))
+            self.assertEqual(entry.finish.utcoffset(), timedelta(0))
+            self.assertGreaterEqual(entry.finish, entry.start)
+            self.assertEqual(entry.duration, entry.finish - entry.start)
+
+    def test_step_move_fields_down(self):
+        """StepMove field content for down moves: the target is
+        excluded, so the last entry is the step above it (T9,
+        D-067)."""
+        self.sm.move_to_step(2)
+        self.sm.move_to_step(0)
+        tail = self.sm.history[2:]
+        self.assertEqual(
+            [(e.step, e.worker_name, e.direction) for e in tail],
+            [(2, "POSITIONS", "down"), (1, "CONFIG", "down")])
+        for e in tail:
+            self.assertEqual(e.duration, e.finish - e.start)
+
+    def test_step_move_recorded_on_failure(self):
+        """A failed step is still recorded (the timer's finally,
+        T9, D-067) — pinning the field content, not just the len."""
+        self.up_callables[1].side_effect = RuntimeError("boom")
+        with self.assertRaises(RuntimeError):
+            self.sm.move_to_step(2)
+        self.assertEqual(len(self.sm.history), 1)
+        e = self.sm.history[0]
+        self.assertEqual(e.step, 1)
+        self.assertEqual(e.worker_name, "CONFIG")
+        self.assertEqual(e.direction, "up")
+        self.assertIsNotNone(e.finish.tzinfo)
+        self.assertEqual(e.duration, e.finish - e.start)
+
     def test_history_export_csv(self):
         """Test exporting history to a CSV file (T5, D-065): header
         names, ISO-8601 +00:00 timestamps, duration identity, and the
