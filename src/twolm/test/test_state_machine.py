@@ -44,6 +44,8 @@ import unittest
 
 from contextlib import redirect_stdout
 from dataclasses import asdict, FrozenInstanceError
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime
@@ -379,6 +381,122 @@ class TestVerbosityGating(unittest.TestCase):
         self.assertEqual(Verbosity.LOW, 3)
         self.assertEqual(Verbosity.VERY_LOW, 4)
         self.assertEqual(Verbosity.NONE, 5)
+
+
+class TestContextInjection(unittest.TestCase):
+    """The context injection layer (T2): __init__ binds live
+    infrastructure helpers onto the shared Context, which is the
+    module's main integration surface with domain workers."""
+
+    def setUp(self):
+        """Fresh machine (3 workers); cfg simulated as a domain worker
+        (e.g., the ConfigWorker) would populate it."""
+        self.patcher = patch('sys.stdout', new=StringIO())
+        self.patcher.start()
+        self.context = Context()
+        self.up_callables = [MagicMock() for _ in range(3)]
+        self.down_callables = [MagicMock() for _ in range(3)]
+        self.workers = [
+            Worker("CREATED", self.up_callables[0], self.down_callables[0]),
+            Worker("CONFIG", self.up_callables[1], self.down_callables[1]),
+            Worker("POSITIONS", self.up_callables[2], self.down_callables[2])
+        ]
+        self.sm = StateMachine(self.workers, self.context)
+        self.context.cfg = SimpleNamespace(
+            cache_files_prefix="cache/", base_dir=Path("base"))
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_injected_log_event_is_live_machine_binding(self):
+        """context.log_event is this machine's bound method: a call
+        through it records a LogEntry in this machine's logs."""
+        self.assertIs(self.context.log_event.__self__, self.sm)
+        self.assertEqual(len(self.sm.logs), 1)  # the init log only
+        self.context.log_event(Relevance.INFO, "injected")
+        self.assertEqual(len(self.sm.logs), 2)
+        entry = self.sm.logs[-1]
+        self.assertEqual(entry.step, 0)
+        self.assertEqual(entry.worker_name, "CREATED")
+        self.assertEqual(entry.relevance, Relevance.INFO)
+        self.assertEqual(entry.message, "injected")
+
+    def test_cache_file_path_tracks_current_step(self):
+        """{prefix}{level:02}_{name}.dat with level = current_step at
+        call time (the pre-execution update makes it the active
+        worker)."""
+        self.assertEqual(
+            self.context.get_cache_file_path_for_next_level(),
+            Path("cache/00_CREATED.dat"))
+        self.sm.move_to_step(2)
+        self.assertEqual(
+            self.context.get_cache_file_path_for_next_level(),
+            Path("cache/02_POSITIONS.dat"))
+        self.sm.move_to_step(1)
+        self.assertEqual(
+            self.context.get_cache_file_path_for_next_level(),
+            Path("cache/01_CONFIG.dat"))
+
+    def test_cache_file_full_path_joins_base_dir(self):
+        """A relative prefix is joined under cfg.base_dir."""
+        self.sm.move_to_step(1)
+        self.assertEqual(
+            self.context.get_cache_file_full_path_for_next_level(),
+            Path("base/cache/01_CONFIG.dat"))
+
+    def test_absolute_cache_prefix_drops_base_dir(self):
+        """An absolute cache_files_prefix silently drops base_dir
+        (pathlib '/' semantics, V9)."""
+        self.context.cfg = SimpleNamespace(
+            cache_files_prefix="/abs/cache/", base_dir=Path("base"))
+        self.sm.move_to_step(1)
+        self.assertEqual(
+            self.context.get_cache_file_full_path_for_next_level(),
+            Path("/abs/cache/01_CONFIG.dat"))
+
+    def test_missing_cfg_raises_attribute_error(self):
+        """Without a populated cfg, both helpers raise AttributeError
+        naming 'cfg' (bare getattr, no default — the documented
+        contract)."""
+        bare = Context()
+        StateMachine([Worker("A", MagicMock(), MagicMock())], bare)
+        with self.assertRaises(AttributeError) as ctx:
+            bare.get_cache_file_path_for_next_level()
+        self.assertIn("cfg", str(ctx.exception))
+        with self.assertRaises(AttributeError):
+            bare.get_cache_file_full_path_for_next_level()
+
+    def test_empty_workers_degenerate_paths(self):
+        """Empty pipeline: Path() cache path, 'UNDEFINED' worker name,
+        move_to_last no-op (V9)."""
+        bare = Context()
+        sm = StateMachine([], bare)
+        self.assertEqual(bare.get_cache_file_path_for_next_level(), Path())
+        self.assertEqual(sm.current_worker_name, "UNDEFINED")
+        sm.move_to_last()  # guarded no-op, must not raise
+        self.assertEqual(sm.current_step, 0)
+        self.assertEqual(sm.history, [])
+
+    def test_shared_context_rebinds_to_last_machine(self):
+        """A shared context re-binds to the LAST machine built on it:
+        the injection is a side effect (V17)."""
+        shared = Context()
+        shared.cfg = SimpleNamespace(
+            cache_files_prefix="cache/", base_dir=Path("base"))
+        sm1 = StateMachine([
+            Worker("A", MagicMock(), MagicMock()),
+            Worker("B", MagicMock(), MagicMock())
+        ], shared)
+        self.assertEqual(shared.get_cache_file_path_for_next_level(),
+                         Path("cache/00_A.dat"))
+        sm2 = StateMachine([Worker("C", MagicMock(), MagicMock())], shared)
+        # the helpers now reflect the last machine built
+        self.assertEqual(shared.get_cache_file_path_for_next_level(),
+                         Path("cache/00_C.dat"))
+        shared.log_event(Relevance.INFO, "via shared ctx")
+        self.assertEqual(len(sm2.logs), 2)  # init + this one
+        self.assertEqual(len(sm1.logs), 1)  # its own init only
+        self.assertEqual(sm2.logs[-1].message, "via shared ctx")
 
 
 if __name__ == '__main__':
