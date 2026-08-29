@@ -338,8 +338,8 @@ D-026 | 2026-08-27 | Pattern.__repr__ golden pinned in test_pattern.py
        | __repr__ (pattern.py, added by the 2026-08-27 minor sweep)
        shipped with zero test coverage. Added TestPattern.test_repr
        with three goldens (ELLE, EDGE, SNAKE) pinning the exact
-       one-line format: Pattern(name='<NAME>', mask=0x<16-digit
-       lowercase hex>) — the same info as the first line of print().
+       one-line format: `Pattern(name='<NAME>', mask=0x<16-digit
+       lowercase hex>)` — the same info as the first line of print().
        EDGE pins lowercase 'ff', SNAKE pins 'c' (the only hex letters
        among the sample-set principal masks); all three cover the 16-
        digit zero padding and the name repr form. Also pins str(p) ==

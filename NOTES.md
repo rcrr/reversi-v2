@@ -7,14 +7,14 @@ AGENTS.md standing rule 2: keep it updated after each milestone / end
 of work session. Rules:
 
 1. Sections — exactly these seven, in this order, no others: Project · Inventory · Conventions in the code · Environment · Where we are · Next steps · Index.
-2. Language: English. Dates: YYYY-MM-DD. Suite numbers: <total>/<failures>/<skipped>, where total = unittest's "Ran N" (e.g. 193/0/12). Arrows: →. Ellipsis: ... (three dots). References: D-NNN (notes/decisions.md), I-NNN (notes/ideas.md), session N (notes/log.md global numbering), T-NN (test defect), R# (code issue), M# (minor note).
+2. Language: English. Dates: YYYY-MM-DD. Suite numbers: `<total>/<failures>/<skipped>`, where total = unittest's "Ran N" (e.g. 193/0/12). Arrows: →. Ellipsis: ... (three dots). References: D-NNN (notes/decisions.md), I-NNN (notes/ideas.md), session N (notes/log.md global numbering), T-NN (test defect), R# (code issue), M# (minor note). Placeholder tokens are always inline code (backticks): bare `<word>` looks like an HTML tag to Markdown renderers and corrupts the rest of the rendering.
 3. Project — plain text, at most 4 sentences.
-4. Inventory — table "| Item | Status | Note |", one row per tracked source file and test file (separate rows), plus the logistello-papers row. Status grammar: "analyzed <date>[ (session N)]; <terse history, semicolon-separated>; suite <total>/<f>/<s> GREEN" — it always ENDS with the CURRENT suite state of that file. Note column = the doc path (D-007 mirror).
+4. Inventory — table "| Item | Status | Note |", one row per tracked source file and test file (separate rows), plus the logistello-papers row. Status grammar: `analyzed <date>[ (session N)]; <terse history, semicolon-separated>; suite <total>/<f>/<s> GREEN` — it always ENDS with the CURRENT suite state of that file. Note column = the doc path (D-007 mirror).
 5. Conventions in the code — "- " bullets, one convention per bullet.
-6. Environment — "- " bullets, one fact per bullet, in this order: venv, packaging, dependencies, test command, suite status. Suite status grammar: "Suite status (<date>): <module> <total>/<f>/<s>, ... — all GREEN. <skip explanation>. Warm run ≈ <t> s."
+6. Environment — "- " bullets, one fact per bullet, in this order: venv, packaging, dependencies, test command, suite status. Suite status grammar: `Suite status (<date>): <module> <total>/<f>/<s>, ... — all GREEN. <skip explanation>. Warm run ≈ <t> s.`
 7. Where we are — "- " bullets, one per file (source and tests separately) in the order the modules were brought in; then the re-verification bullet (if any); then the plan bullet; then one context bullet. Each bullet starts with the file name. Current state only — the session-by-session detail lives in notes/log.md.
 8. Next steps — "- " bullets, OPEN items only (closed work belongs in Where we are); the LAST bullet is the next concrete action.
-9. Index — "- " bullets, one per doc/notes file: "<path> — <one-line description>".
+9. Index — "- " bullets, one per doc/notes file: `<path> — <one-line description>`.
 
 ## Project
 
