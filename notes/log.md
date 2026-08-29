@@ -1,6 +1,34 @@
 # Session journal
 
-## 2026-08-25 — session 1
+## Format rules (rigid — follow when editing this file)
+
+1. One "## YYYY-MM-DD — session N (title)" section per session,
+   appended in chronological order. N is a GLOBAL, monotonically
+   increasing counter starting at 1: it never resets per day, per
+   file, or per topic. The parenthesized title is mandatory.
+2. Inside a section: top-level "- " bullets in chronological order.
+   A top-level bullet's continuation lines are indented exactly
+   2 spaces; sub-bullets are indented exactly 2 spaces ("  - ")
+   with their continuations at 4. No other indentation.
+3. A bullet states one fact or action and starts with its subject:
+   an item id (T-NN, R#, M#), a decision (D-NNN), a file name, or
+   "Next:" / "Session closed". Suite results:
+   "<total>/<failures>/<skipped> GREEN" where total = unittest's
+   "Ran N" (e.g. 193/0/12); when the suite grew: "<old> → <new>,
+   GREEN <total>/<f>/<s>".
+4. A session Roberto closed ends with a "Session closed (Roberto)."
+   bullet; a "Next:" bullet may be last.
+5. Completed sessions are immutable except factual corrections.
+   One-off 2026-08-29 renumbering: the historical per-day labels
+   (08-26 "session 1" → 3; 08-27 "sessions 1-5" → 4-8) were folded
+   into the global scheme, and the "Session 11-14" bullets nested in
+   the 08-29 feature section are now their own sections 14-17. The
+   feature-module entries of 2026-08-28/29 count RUN tests in the
+   first slot (e.g. "19/0/1" = 19 run + 1 PERF skip, 20 total);
+   they are kept verbatim as history. Older git commit messages keep
+   their original labels.
+
+## 2026-08-25 — session 1 (board.py analysis + workspace setup)
 - Deep analysis of board.py (1380 lines): architecture, hand-verified D8
   transformation tables, Kogge-Stone legal-move boundary masks, flip-set
   computation. Catalogued 5 real issues (R1–R5) + minor ones → notes/board.md.
@@ -29,7 +57,7 @@
   standalone perf methods). Numba cache now warm in
   src/twolm/__pycache__/; warm run ≈ 1.2 s wall.
 
-## 2026-08-25 — session 2
+## 2026-08-25 — session 2 (test_board.py analysis)
 - Full analysis of test_board.py (2083 lines) in six passes
   (A 89–511, B1 512–695, B2 696–891, C1 892–1232, C2 1233–1471,
   D 1472–2083), each cross-checked line by line against board.py; all
@@ -48,7 +76,7 @@
   bitboard_to_string_list has zero tests; 1 broken test + 2 NameError
   landmines + 1 dead assertion in the file itself.
 
-## 2026-08-26 — session 1
+## 2026-08-26 — session 3 (board.py fix campaign)
 - Granular fix campaign started (one atomic change per report item:
   confirm → full suite → commit; plan approved with the user).
 - T01 (report §5.1): repaired test_wrong_array_raises_value_error — the
@@ -84,7 +112,7 @@
   No code change; suite state unchanged (GREEN 157/0/12 at a0d79ea).
 - T09 (report §5.9): test_scalar_bsr_high_bits — stale "np.int8" claim
   replaced by "int" in the docstring and the type-assert comment (the
-  function is annotated -> int, board.py:363, and the assertions use
+  function is annotated → int, board.py:363, and the assertions use
   int; np.int8 no longer exists in NumPy 2.x). Suite GREEN: 157/0/12.
 - T10 (report §5.10): documented the pinned uint64 shift wrap (code
   >= 64 → 0, NumPy 2.5.2) in test_square_as_bitboard and
@@ -166,12 +194,12 @@
   returns np.uint8), so "diff - ec" overflowed on negative diffs.
   Fix (per Roberto): ec = 64 - int(mc + oc) — explicit int guards the
   arithmetic (mc+oc <= 64 always). bitboard_count keeps returning the raw
-  np.uint8; its annotation was corrected from -> int to -> np.uint8
+  np.uint8; its annotation was corrected from → int to → np.uint8
   (honest signature; the first T22 commit had converted the return to a
   Python int, reverted per Roberto's clarification in a follow-up commit).
-  Added the 3 missing WOFC branch tests: draw (1v1 -> 0), opponent leads
-  (1v8, 55 empties -> -62, crashed pre-fix), full board (33v31, 0 empties
-  -> 2). Probed: old 8v1 case still 62. Suite GREEN: 160/0/12.
+  Added the 3 missing WOFC branch tests: draw (1v1 → 0), opponent leads
+  (1v8, 55 empties → -62, crashed pre-fix), full board (33v31, 0 empties
+  → 2). Probed: old 8v1 case still 62. Suite GREEN: 160/0/12.
 - T23 (report §3-D P1): added the non-full position_is_game_over true
   case (per Roberto's position): mover = 0xFFFFFFFFFFFFFF00 (56 discs,
   rows 2-8), opponent = 0x00000000000000FE (7 discs, B1-H1); only A1 is
@@ -188,24 +216,24 @@
   semantics; a major bump must fail loudly, a 2.x upgrade must not
   break the suite). Suite GREEN: 163/0/12.
 - T25 (report §7.3.1 / §8 P1): added the four legal_moves error-
-  branch tests: bare Python int -> ValidationError; shape mismatch ->
-  ValueError (message pinned); non-uint64 array -> ValidationError
+  branch tests: bare Python int → ValidationError; shape mismatch ->
+  ValueError (message pinned); non-uint64 array → ValidationError
   (rejected by the BitboardArray BeforeValidator, not by the dispatch);
-  mixed scalar/array -> TypeError (message pinned). Probe-verified all
+  mixed scalar/array → TypeError (message pinned). Probe-verified all
   four on pydantic 2.13.4. Per Roberto: the dispatch dtype branch
   (TypeError "The dtype of mover and opponent arrays must be
   Bitboard.") was confirmed unreachable and REMOVED from board.py —
   see D-016. Suite GREEN: 167/0/12.
 - T36/T37 (report §7.2 R1): resolved the position_make_move contract
   mismatch — Roberto chose "docstring follows the code": the docstring
-  now documents the real behavior (illegal move -> None) and the return
+  now documents the real behavior (illegal move → None) and the return
   annotation was corrected to PositionField | None. No behavior change,
   existing None pin stays valid, board.md R1 marked resolved. See D-017.
   Suite GREEN: 167/0/12.
 - T38 (report §7.2 R3): position_is_move_legal no longer detects the
   pass move through the uint64 shift wrap — explicit `move == 64` check
   now (pass legal iff position_legal_moves(p) == 0); move_as_bitboard
-  documents the 64-66 -> 0 wrap (NumPy-defined shift semantics, verified
+  documents the 64-66 → 0 wrap (NumPy-defined shift semantics, verified
   on 2.5.2). Behavior unchanged, existing pins all pass. See D-018.
   Suite GREEN: 167/0/12.
   Style follow-up (Roberto): hoisted the single `lms =
@@ -253,7 +281,7 @@
   separate module. No workspace files touched by the probe.
 - Session closed (Roberto). Next session: start a NEW module.
 
-## 2026-08-27 — session 1 (pattern.py review)
+## 2026-08-27 — session 4 (pattern.py review)
 - Scope (Roberto): document src/twolm/pattern.py (new module, 1203 lines)
   like board.md; list code+doc defects but apply NO fixes ("le changes ed
   i fix necessari in un'altra sessione dedicata"); test_pattern.py NOT
@@ -291,91 +319,91 @@
 - Next session (Roberto's plan): pattern.py fix campaign (R1 decision
   first), then test_pattern.py analysis.
 
-## 2026-08-27 — session 2 (R1 fix, D-020)
- - Roberto decided R1: option (a) — principal = numerically lowest mask
-   of the orbit ("corrispondenza biunivoca tra il set dei MASK e un set
-   ordinabile: i numeri naturali"; BSR judged "più informatica").
-   Explicit go-ahead: "Fai la modifica ora. ne abbiamo parlato,
-   procedi."
- - pattern.py L314-339: `_check_mask_is_principal` now scans t1..t7 for
-   a numerically lower tmasks entry (first offender reported);
-   docstring: "numerically lowest mask of its orbit ... a unique
-   representative (R1, D-020)".
- - test_pattern.py: +test_init_rejects_non_minimum_orbit_masks (4
-   corners + b1 accepted with n_instances=8/n_stabilizers=1; +a2 and
-   +h2 rejected "not principal"). Suite now 50 tests.
- - Verification, in Roberto's order: pattern suite 50/0/3 OK; full
-   suite via `unittest discover -s src -p 'test_*.py'` 243/0/15 OK;
-   PERF=1: pattern 50 OK, board 193 OK (perf lines printed as before).
- - Docs: pattern.md — architecture rule restated (D-020), R1 entry
-   marked RESOLVED with full history (old rule, 4-corners
-   characterization, counterexample, new unique principal
-   0x8100000000000083), verdict updated. decisions.md + NOTES.md + this
-   file updated.
- - Git: single commit (pattern.py + test_pattern.py + pattern.md +
-   notes).
- - Next: pattern fix campaign for the mechanical R2-R8 + minor sweep
-   (dedicated session), then test_pattern.py analysis.
+## 2026-08-27 — session 5 (R1 fix, D-020)
+- Roberto decided R1: option (a) — principal = numerically lowest mask
+  of the orbit ("corrispondenza biunivoca tra il set dei MASK e un set
+  ordinabile: i numeri naturali"; BSR judged "più informatica").
+  Explicit go-ahead: "Fai la modifica ora. ne abbiamo parlato,
+  procedi."
+- pattern.py L314-339: `_check_mask_is_principal` now scans t1..t7 for
+  a numerically lower tmasks entry (first offender reported);
+  docstring: "numerically lowest mask of its orbit ... a unique
+  representative (R1, D-020)".
+- test_pattern.py: +test_init_rejects_non_minimum_orbit_masks (4
+  corners + b1 accepted with n_instances=8/n_stabilizers=1; +a2 and
+  +h2 rejected "not principal"). Suite now 50 tests.
+- Verification, in Roberto's order: pattern suite 50/0/3 OK; full
+  suite via `unittest discover -s src -p 'test_*.py'` 243/0/15 OK;
+  PERF=1: pattern 50 OK, board 193 OK (perf lines printed as before).
+- Docs: pattern.md — architecture rule restated (D-020), R1 entry
+  marked RESOLVED with full history (old rule, 4-corners
+  characterization, counterexample, new unique principal
+  0x8100000000000083), verdict updated. decisions.md + NOTES.md + this
+  file updated.
+- Git: single commit (pattern.py + test_pattern.py + pattern.md +
+  notes).
+- Next: pattern fix campaign for the mechanical R2-R8 + minor sweep
+  (dedicated session), then test_pattern.py analysis.
 
-## 2026-08-27 — session 3 (R2-R8 campaign)
- - Fix campaign: each of R2-R8 proposed separately, approved explicitly
-   one at a time. R2-R7 applied in pattern.py (docstring/hygiene, code
-   behavior untouched): R2 invariant restated (count = stabilizer
-   elements inducing a non-identity permutation on the pattern squares),
-   R3 squares "ascending board order (A1 first)", R4 "SHA3-256", R5
-   unused `import time` removed, R6 PatternType added to __all__ (star
-   import verified), R7 comment -> "Used by compute_indexes_on_position
-   and the PatternSet pipeline."
- - R8 (endianness-dependent set hash) REJECTED as a code fix by Roberto:
-   the legacy engine (incl. legal-moves/moves pipelines) is written and
-   tested for little-endian only; all bit/byte manipulation is untested
-   on non-LE platforms. Resolved as documentation: "Platform assumption:
-   little-endian only" section added to docs/src/twolm/pattern.md and
-   docs/src/twolm/board.md (D-022).
- - pattern.md: R2-R8 entries marked RESOLVED/CLOSED, header + verdict
-   updated, platform section added. decisions.md: D-021 (R2-R7), D-022
-   (R8).
- - Verification, Roberto's order: pattern suite 50/0/3 OK; discover
-   243/0/15 OK; PERF=1: pattern 50 OK, board 193 OK.
- - Next: commit this campaign; then the ~18 minor sweep.
+## 2026-08-27 — session 6 (R2-R8 campaign)
+- Fix campaign: each of R2-R8 proposed separately, approved explicitly
+  one at a time. R2-R7 applied in pattern.py (docstring/hygiene, code
+  behavior untouched): R2 invariant restated (count = stabilizer
+  elements inducing a non-identity permutation on the pattern squares),
+  R3 squares "ascending board order (A1 first)", R4 "SHA3-256", R5
+  unused `import time` removed, R6 PatternType added to __all__ (star
+  import verified), R7 comment → "Used by compute_indexes_on_position
+  and the PatternSet pipeline."
+- R8 (endianness-dependent set hash) REJECTED as a code fix by Roberto:
+  the legacy engine (incl. legal-moves/moves pipelines) is written and
+  tested for little-endian only; all bit/byte manipulation is untested
+  on non-LE platforms. Resolved as documentation: "Platform assumption:
+  little-endian only" section added to docs/src/twolm/pattern.md and
+  docs/src/twolm/board.md (D-022).
+- pattern.md: R2-R8 entries marked RESOLVED/CLOSED, header + verdict
+  updated, platform section added. decisions.md: D-021 (R2-R7), D-022
+  (R8).
+- Verification, Roberto's order: pattern suite 50/0/3 OK; discover
+  243/0/15 OK; PERF=1: pattern 50 OK, board 193 OK.
+- Next: commit this campaign; then the ~18 minor sweep.
 
-## 2026-08-27 — session 4 (minor sweep, items #1-#19)
- - Minor sweep of pattern.md "Minor issues / inconsistencies": 19/19
-   items resolved, each proposed separately and approved explicitly one
-   at a time (Roberto's standing rule).
- - #1 'Aauthor' typo: dedicated commit b070918 (on Roberto's demand).
- - #2-#10, #12, #13, #14, #16, #17, #18: applied in this session —
-   error-message fix, doc fixes, nested-helper decorator cleanup,
-   comment clarification, docstring, PatternSet Raises line, MAX_NUMBER
-   renamed to MAX_NUMBER_OF_SQUARES_FOR_PATTERN (3^20 < 2^32 fact, 18
-   is a project choice), fastmath removed from all four Numba kernels
-   (sweep found four, analysis listed three; pure-integer kernels,
-   flags only affect float IR — Roberto challenged with his own PERF
-   data; 4 interleaved ON/OFF runs: no decisive effect), _unpack_bb
-   scalar path -> Bitboard(result.item()) (symmetric with _pack_bb),
-   __repr__ added to Pattern, empty PatternSet rejected with clear
-   ValueError (fail-fast, first check in __init__), empty mask (n_squares
-   = 0) rejected explicitly (previously rejected only accidentally via
-   the missing [I0 x8] type-table entry, with a confusing message).
- - #6 (D-023): Pattern.__init__ wrapped in strict @validate_call
-   (arbitrary_types_allowed); TypeError -> ValidationError for non-str
-   name / non-uint64 mask; tests updated accordingly.
- - #15 (D-024): PatternSet.names/masks converted from methods to
-   @property (whole public surface attribute-style); class docstring
-   reorganized; 2 test call sites updated. KNOWN PENDING (I-006): the
-   original 2008 repo may have legacy .names()/.masks() callers —
-   grep at migration time.
- - #19 (D-025): leave-as-is by decision — collision precondition stays
-   on the caller (tests already check before calling; upstream engine
-   validates); precondition now documented in both indexing docstrings.
- - Verification: pattern suite 50/0/3 GREEN after every item; final
-   battery: discover 243/0/15 OK, PERF=1 pattern 50 OK + board 193 OK.
- - docs/src/twolm/pattern.md: all 19 items tagged RESOLVED with details,
-   verdict refreshed (sweep complete).
- - Next: commit decision for #2-#19 (batch vs per-item: Roberto to
-   decide); then test_pattern.py analysis (dedicated session, D-019).
+## 2026-08-27 — session 7 (minor sweep, items #1-#19)
+- Minor sweep of pattern.md "Minor issues / inconsistencies": 19/19
+  items resolved, each proposed separately and approved explicitly one
+  at a time (Roberto's standing rule).
+- #1 'Aauthor' typo: dedicated commit b070918 (on Roberto's demand).
+- #2-#10, #12, #13, #14, #16, #17, #18: applied in this session —
+  error-message fix, doc fixes, nested-helper decorator cleanup,
+  comment clarification, docstring, PatternSet Raises line, MAX_NUMBER
+  renamed to MAX_NUMBER_OF_SQUARES_FOR_PATTERN (3^20 < 2^32 fact, 18
+  is a project choice), fastmath removed from all four Numba kernels
+  (sweep found four, analysis listed three; pure-integer kernels,
+  flags only affect float IR — Roberto challenged with his own PERF
+  data; 4 interleaved ON/OFF runs: no decisive effect), _unpack_bb
+  scalar path → Bitboard(result.item()) (symmetric with _pack_bb),
+  __repr__ added to Pattern, empty PatternSet rejected with clear
+  ValueError (fail-fast, first check in __init__), empty mask (n_squares
+  = 0) rejected explicitly (previously rejected only accidentally via
+  the missing [I0 x8] type-table entry, with a confusing message).
+- #6 (D-023): Pattern.__init__ wrapped in strict @validate_call
+  (arbitrary_types_allowed); TypeError → ValidationError for non-str
+  name / non-uint64 mask; tests updated accordingly.
+- #15 (D-024): PatternSet.names/masks converted from methods to
+  @property (whole public surface attribute-style); class docstring
+  reorganized; 2 test call sites updated. KNOWN PENDING (I-006): the
+  original 2008 repo may have legacy .names()/.masks() callers —
+  grep at migration time.
+- #19 (D-025): leave-as-is by decision — collision precondition stays
+  on the caller (tests already check before calling; upstream engine
+  validates); precondition now documented in both indexing docstrings.
+- Verification: pattern suite 50/0/3 GREEN after every item; final
+  battery: discover 243/0/15 OK, PERF=1 pattern 50 OK + board 193 OK.
+- docs/src/twolm/pattern.md: all 19 items tagged RESOLVED with details,
+  verdict refreshed (sweep complete).
+- Next: commit decision for #2-#19 (batch vs per-item: Roberto to
+  decide); then test_pattern.py analysis (dedicated session, D-019).
 
-## 2026-08-27 — session 5 (test_pattern.py analysis)
+## 2026-08-27 — session 8 (test_pattern.py analysis)
 - Request: analyze test_pattern.py and prepare test_pattern.md for the
   next session (coverage, what's good, what to fix, what's missing).
   Doc-only session: no .py edits, per the D-019 pattern.
@@ -384,7 +412,7 @@
   collected method).
 - Verification: two scratch scripts (verify_pattern_tests2.py,
   verify_pidx.py) use only twolm.board + pure arithmetic (no
-  twolm.pattern import -> non-circular): 15/15 PASS; the six pack-plan
+  twolm.pattern import → non-circular): 15/15 PASS; the six pack-plan
   goldens re-derived in this session (6/6 PASS); two hand-derivation
   facts (DIAG8 symmetry_fs semantics, one-record width 13). Total:
   21/21 independent re-derivations, zero value mismatches.
@@ -463,14 +491,14 @@
     goldens incl. CORE 3/21 per Roberto) +
     test_burnside_counts_invariants. Suite GREEN 58/0/3.
 
-## 2026-08-28 — session 6
+## 2026-08-28 — session 9 (test_pattern.py P2 campaign)
 - D-032 (Burnside attributes) committed as 167e182 (work logged in
-  the session 5 bullet).
+  the session 8 bullet).
 - P2 hygiene batch for test_pattern.py, each item approved one at
   a time (D-033):
-  - T1: test_init tautology -> real assertions (ELLE 4/81, EDGE
+  - T1: test_init tautology → real assertions (ELLE 4/81, EDGE
     8/6561, verified live).
-  - T2: dead if False: block -> print-on-failure (Roberto's
+  - T2: dead if False: block → print-on-failure (Roberto's
     proposal: keep the diagnostic, print only on failure). Both
     branches verified live (failure: board + pattern table +
     indexes + shape, exception re-raised; success: silent).
@@ -478,12 +506,12 @@
     (NameError landmine inside the dead code) — added to the board
     imports as part of T2.
   - T3: 7 dead ar_* fixtures removed (ar kept, used by Cayley).
-  - T4: 5 stale raises_assertion names -> raises_validation_error.
+  - T4: 5 stale raises_assertion names → raises_validation_error.
   - T5: header grammar + "environmeant" typo fixed; the same two
     nits exist in test_board.py (reported to Roberto, out of scope).
-  - T6: TestCase namedtuple -> SymmetryCase (29 rows + type name).
+  - T6: TestCase namedtuple → SymmetryCase (29 rows + type name).
   - T7: empty-list CSV test now asserts the header content.
-  - T15: mocked mdp_record strings -> real EDGE/CORNER records
+  - T15: mocked mdp_record strings → real EDGE/CORNER records
     (live-verified; old ones were fake-format).
   - T16: no-op tearDown removed from TestPatternPack.
   Batch committed together (like the P0/P1 batches). Suite GREEN
@@ -496,17 +524,17 @@
     5e5abf79...9d10b (live-computed) instead of self-comparing
     against pattern_set.hash.
   - T12: new TestPatternType class (3 tests): 12-member closed set
-    + roundtrip; unknown fingerprint -> None; .data keys +
+    + roundtrip; unknown fingerprint → None; .data keys +
     orbit-stabilizer identity for all 12, full-data pins
     TYPE_2/TYPE_9/TYPE_3D. Exposed a doc miscount: "11 members"
-    (5 spots in docs/src/twolm/pattern.md) -> corrected to 12.
+    (5 spots in docs/src/twolm/pattern.md) → corrected to 12.
   - T13: three mdp_record goldens added (SNAKE, CORE, DIAG8),
     live-captured.
   - T14: position_check_collisions(positions) added to
     test_one_record and test_large_set (D-025 contract now
     consistent at set level; PERF tests left unchecked, as at
     pattern level).
-  Suite grew 58 -> 64, GREEN 64/0/3. P2 campaign CLOSED: T18 stays
+  Suite grew 58 → 64, GREEN 64/0/3. P2 campaign CLOSED: T18 stays
   noted-only, M1 deferred.
 - Next: P2 done — remaining known items: M1 (stale PatternSet
   Raises docstring, deferred), T18 (noted-only), test_board.py
@@ -520,100 +548,100 @@
   Raises docstring, awaiting go-ahead), T18 noted-only,
   test_board.py header nits (reported, out of scope).
 
-## 2026-08-28 — session 7 (mobility module)
- - Roberto added src/twolm/mobility.py (commit 62748ca) + test file;
-   requested the full module analysis first, documented in
-   docs/src/twolm/mobility.md (D-007 mirror).
- - Module: Mobility (name, mask, amask; n_configurations = k + a + 1
-   = distinct index values) + MobilitySet (sorted (mask, amask)
-   storage, sha3_256 hash, dup name/key checks) + popcount64 (SWAR
-   Numba UFunc) + compute_indexes Numba kernel ((N) -> (N, L) uint32).
- - Independent verification (scratch/verify_mobility.py, untracked):
-   V1-V2 popcount64 vs int.bit_count 200,010 values scalar +
-   vectorized (0 mismatches); V3 n_configurations == distinct index
-   values, brute force incl. overlapping masks; V4 compute_indexes vs
-   pure Python on 200 random positions x 5 mobilities (0 mismatches);
-   V5 suite golden [53, 13, 66] re-derived (golden position: lms 13,
-   alms 11; columns in the set's SORTED order — a live-verified
-   docstring gap, R2); V6 hash formula re-implemented from scratch
-   (incl. sample hash 2e553593...208a94 + empty-set hash); V7
-   underflow boundary position; V8 legal_moves scalar == array path.
- - Suite baseline: test_mobility 23/0/1 GREEN.
- - Fix candidates documented (none applied — awaiting per-item
-   approvals): R1 class docstrings (formula + n_configurations
-   semantics + "mast" typo), R2 compute_indexes column-order
-   contract, R3 popcount64 public vs test-only status (Roberto's
-   decision), R4 dead imports (bitboard_transformations,
-   square_from_str), R5 names()/masks() methods vs PatternSet
-   properties + no __repr__ (D-024 alignment), R6 n_instances = 1
-   doc note. Minor M1-M5 noted (abbreviation glossary, name padding,
-   empty-set acceptance, no PERF gate, per-element UFunc call).
- - R1-R6 mobility fix batch (D-035), each item proposed and approved
-   one at a time, single batch commit: R1 class docstrings (feature
-   index formula + n_configurations = distinct index values +
-   "mast" typo), R2 compute_indexes column-order contract (sorted
-   (mask, amask) order, not insertion order), R3 popcount64 removed
-   from __all__ (option b, Roberto: test helper, engine may not be
-   Python), R4 dead imports removed (bitboard_transformations,
-   square_from_str), R5 names/masks -> @property (D-024 alignment) +
-   __repr__ on both classes + 4 test call-sites, R6 n_instances = 1
-   left as-is (scalar feature, no orbit instances). Doc-only +
-   consistency, no behavior change. Suite 23/0/1 GREEN throughout.
- - M1-M5 minor notes disposed (D-036), per Roberto item by item:
-   M1 glossary shipped in the Mobility docstring (LMC = Legal Move
-   Count, ALMC = Anti Legal Move Count, DLMC = Difference Legal
-   Move Count — confirmed by Roberto from the 2008 program); M2
-   (name padding) left as-is; M3 (empty set accepted) left as-is
-   ("lasciamo così"); M4 — on Roberto's challenge I re-verified and
-   corrected my claim: NO suite in the repo has performance gates,
-   every PERF test is print-only asserting output correctness
-   (the ±30% is campaign comparison discipline, not a test gate);
-   M5 (kernel UFunc call) left as-is ("E' un TEST").
- - test_mobility.py analyzed (docs/src/twolm/test/test_mobility.md):
-   2 classes / 23 tests / 1 PERF; all goldens independently
-   re-derived (V1-V13, zero mismatches — print/string goldens,
-   names/masks, sorting, dup messages, n_configurations, [53,13,66]
-   via lms=13/alms=11, underflow position, 31-line popcount table
-   31/31, empty set/positions); new __repr__ goldens captured
-   (V13) — currently untested. 9 defects documented T1-T9: T1
-   TestMobilitySet.test_init dead if-False block + zero live
-   assertions, T2 three raises_assertion names, T3 hash
-   self-comparison (no pinned literal), T4 print_summary hash
-   self-comparison, T5 header grammar, T6 dead imports
-   (shutil/tempfile/legal_moves), T7 no multi-position row-
-   independence test, T8 R5 __repr__ shipped with zero coverage,
-   T9 (cosmetic) popcount print-on-failure idiom. Priorities
-   proposed: P0 = T8, P1 = T7, P2 = T1-T6 + T9 optional. None
-   applied — awaiting per-item approvals.
- - test_mobility.py fix campaign T1-T9 (D-037), each item approved
-   one at a time, single batch commit: P0 T8 __repr__ golden tests
-   (the R5-shipped pair, now covered; set golden pins the
-   2e553593...208a94 literal); P1 T7 multi-position row-
-   independence test (golden + underflow positions,
-   [[53,13,66],[63,0,63]]); P2 T1 (test_init dead if-False block
-   removed + real assertions), T2 (3 raises_assertion ->
-   raises_validation_error), T3+T4 (standard-set hash literal
-   pinned in both tests, self-comparisons gone), T5 (header
-   grammar), T6 (dead imports shutil/tempfile/legal_moves removed),
-   T9 (approved: native assertEqual with line numbers in
-   test_popcount64). Suite 23 -> 26, GREEN 26/0/1. Campaign CLOSED.
- - PLAN CORRECTION (Roberto, session close): the plan is the PIPELINE
-   PORT — the original repo brought in module by module, with
-   VERIFIED code and COMPLETE tests as the goal (a solid base before
-   further evolution; he has a list of future changes in mind, out
-   of scope for the port). The game-loop module is NOT in the plan;
-   all forward-looking references corrected (NOTES.md, I-005
-   resolved). Done so far: board.py, pattern.py, mobility.py.
- - Session closed (Roberto). Mobility module fully done: analysis
-   (75c0307) + R1-R6 (D-035, 304cb2a) + M1-M5 (D-036, 4d3f08b) +
-   test analysis (98c61fb) + T1-T9 campaign (D-037, 5c427ae);
-   suite 26/0/1 GREEN. Next session: the next pipeline module,
-   named by Roberto.
+## 2026-08-28 — session 10 (mobility module)
+- Roberto added src/twolm/mobility.py (commit 62748ca) + test file;
+  requested the full module analysis first, documented in
+  docs/src/twolm/mobility.md (D-007 mirror).
+- Module: Mobility (name, mask, amask; n_configurations = k + a + 1
+  = distinct index values) + MobilitySet (sorted (mask, amask)
+  storage, sha3_256 hash, dup name/key checks) + popcount64 (SWAR
+  Numba UFunc) + compute_indexes Numba kernel ((N) → (N, L) uint32).
+- Independent verification (scratch/verify_mobility.py, untracked):
+  V1-V2 popcount64 vs int.bit_count 200,010 values scalar +
+  vectorized (0 mismatches); V3 n_configurations == distinct index
+  values, brute force incl. overlapping masks; V4 compute_indexes vs
+  pure Python on 200 random positions x 5 mobilities (0 mismatches);
+  V5 suite golden [53, 13, 66] re-derived (golden position: lms 13,
+  alms 11; columns in the set's SORTED order — a live-verified
+  docstring gap, R2); V6 hash formula re-implemented from scratch
+  (incl. sample hash 2e553593...208a94 + empty-set hash); V7
+  underflow boundary position; V8 legal_moves scalar == array path.
+- Suite baseline: test_mobility 23/0/1 GREEN.
+- Fix candidates documented (none applied — awaiting per-item
+  approvals): R1 class docstrings (formula + n_configurations
+  semantics + "mast" typo), R2 compute_indexes column-order
+  contract, R3 popcount64 public vs test-only status (Roberto's
+  decision), R4 dead imports (bitboard_transformations,
+  square_from_str), R5 names()/masks() methods vs PatternSet
+  properties + no __repr__ (D-024 alignment), R6 n_instances = 1
+  doc note. Minor M1-M5 noted (abbreviation glossary, name padding,
+  empty-set acceptance, no PERF gate, per-element UFunc call).
+- R1-R6 mobility fix batch (D-035), each item proposed and approved
+  one at a time, single batch commit: R1 class docstrings (feature
+  index formula + n_configurations = distinct index values +
+  "mast" typo), R2 compute_indexes column-order contract (sorted
+  (mask, amask) order, not insertion order), R3 popcount64 removed
+  from __all__ (option b, Roberto: test helper, engine may not be
+  Python), R4 dead imports removed (bitboard_transformations,
+  square_from_str), R5 names/masks → @property (D-024 alignment) +
+  __repr__ on both classes + 4 test call-sites, R6 n_instances = 1
+  left as-is (scalar feature, no orbit instances). Doc-only +
+  consistency, no behavior change. Suite 23/0/1 GREEN throughout.
+- M1-M5 minor notes disposed (D-036), per Roberto item by item:
+  M1 glossary shipped in the Mobility docstring (LMC = Legal Move
+  Count, ALMC = Anti Legal Move Count, DLMC = Difference Legal
+  Move Count — confirmed by Roberto from the 2008 program); M2
+  (name padding) left as-is; M3 (empty set accepted) left as-is
+  ("lasciamo così"); M4 — on Roberto's challenge I re-verified and
+  corrected my claim: NO suite in the repo has performance gates,
+  every PERF test is print-only asserting output correctness
+  (the ±30% is campaign comparison discipline, not a test gate);
+  M5 (kernel UFunc call) left as-is ("E' un TEST").
+- test_mobility.py analyzed (docs/src/twolm/test/test_mobility.md):
+  2 classes / 23 tests / 1 PERF; all goldens independently
+  re-derived (V1-V13, zero mismatches — print/string goldens,
+  names/masks, sorting, dup messages, n_configurations, [53,13,66]
+  via lms=13/alms=11, underflow position, 31-line popcount table
+  31/31, empty set/positions); new __repr__ goldens captured
+  (V13) — currently untested. 9 defects documented T1-T9: T1
+  TestMobilitySet.test_init dead if-False block + zero live
+  assertions, T2 three raises_assertion names, T3 hash
+  self-comparison (no pinned literal), T4 print_summary hash
+  self-comparison, T5 header grammar, T6 dead imports
+  (shutil/tempfile/legal_moves), T7 no multi-position row-
+  independence test, T8 R5 __repr__ shipped with zero coverage,
+  T9 (cosmetic) popcount print-on-failure idiom. Priorities
+  proposed: P0 = T8, P1 = T7, P2 = T1-T6 + T9 optional. None
+  applied — awaiting per-item approvals.
+- test_mobility.py fix campaign T1-T9 (D-037), each item approved
+  one at a time, single batch commit: P0 T8 __repr__ golden tests
+  (the R5-shipped pair, now covered; set golden pins the
+  2e553593...208a94 literal); P1 T7 multi-position row-
+  independence test (golden + underflow positions,
+  [[53,13,66],[63,0,63]]); P2 T1 (test_init dead if-False block
+  removed + real assertions), T2 (3 raises_assertion ->
+  raises_validation_error), T3+T4 (standard-set hash literal
+  pinned in both tests, self-comparisons gone), T5 (header
+  grammar), T6 (dead imports shutil/tempfile/legal_moves removed),
+  T9 (approved: native assertEqual with line numbers in
+  test_popcount64). Suite 23 → 26, GREEN 26/0/1. Campaign CLOSED.
+- PLAN CORRECTION (Roberto, session close): the plan is the PIPELINE
+  PORT — the original repo brought in module by module, with
+  VERIFIED code and COMPLETE tests as the goal (a solid base before
+  further evolution; he has a list of future changes in mind, out
+  of scope for the port). The game-loop module is NOT in the plan;
+  all forward-looking references corrected (NOTES.md, I-005
+  resolved). Done so far: board.py, pattern.py, mobility.py.
+- Session closed (Roberto). Mobility module fully done: analysis
+  (75c0307) + R1-R6 (D-035, 304cb2a) + M1-M5 (D-036, 4d3f08b) +
+  test analysis (98c61fb) + T1-T9 campaign (D-037, 5c427ae);
+  suite 26/0/1 GREEN. Next session: the next pipeline module,
+  named by Roberto.
 
-## 2026-08-28 — session 8 (feature module)
+## 2026-08-28 — session 11 (feature module)
 - feature.py + test_feature.py arrived (Roberto, commit b51bea6);
   pipeline port continues: feature is the first integration module
-  (intercept + MobilitySet + PatternSet -> one (N, I) index matrix).
+  (intercept + MobilitySet + PatternSet → one (N, I) index matrix).
 - Module analysis (docs/src/twolm/feature.md, e9adf7b): Feature
   (blocked __new__, 3 factories, Category IntEnum) + FeatureSet
   (intercept category check, features list in child sorted order,
@@ -629,7 +657,7 @@
   matrix == pure Python; V6 edge shapes (0,10)/(3,0)/(0,0); V7
   factories + RuntimeError/ValueError/ValidationError; V8 suite
   13/0/1 GREEN. No logic defect found. Candidates proposed: R1
-  (class docstring "SHA256" -> sha3_256 + precise construction),
+  (class docstring "SHA256" → sha3_256 + precise construction),
   R2 (compute_indexes column-layout contract, mobility-R2 style),
   R3 (__init__ docstring stale "list of features"), R4 (dead
   imports TypeAlias/List/Tuple/Annotated); minors M1 (dead pset
@@ -650,7 +678,7 @@
   Callable/TypeAlias/List/pydantic; T3 header grammar; T4
   "environmeant" typo — same as test_board, Roberto's call; T5 no
   explicit names-order assert; T6 partial-None FeatureSet untested
-  (the only real code-coverage gap) -> P1; T7 Feature repr/eq
+  (the only real code-coverage gap) → P1; T7 Feature repr/eq
   untested; T8 import-time trailing spaces cosmetic; T9 no full
   print_summary golden). No P0 (R1-R4 was doc/hygiene-only; its
   behaviour is pinned by existing goldens). Campaign pending
@@ -673,7 +701,7 @@
   occupies n_instances D8-instance columns). Follow-up I-007
   registered in notes/ideas.md. Next: M4.
 - M4 approved and applied (D-042): Feature.__new__ docstring
-  rewritten (grammar: "Blocks the client to create..." -> "Blocks
+  rewritten (grammar: "Blocks the client to create..." → "Blocks
   direct instantiation of Feature: calling Feature() always raises
   RuntimeError. Use the factory methods instead (e.g.
   Feature.new_from_pattern())."). Doc-only, suite 13/0/1 GREEN.
@@ -683,15 +711,15 @@
   a time (T1-T9 proposed in the test analysis).
 - T campaign item T6 (P1) approved and applied (D-043): three new
   TestFeatureSet tests for the partial-None constructions —
-  intercept-only (hash ab7c1b64… = sha3_256(b'INTERCEPT'),
-  (N,1) zeros), mobility-only (hash 239e4df4… = sha3_256(mset
+  intercept-only (hash ab7c1b64... = sha3_256(b'INTERCEPT'),
+  (N,1) zeros), mobility-only (hash 239e4df4... = sha3_256(mset
   hex), block == mset.compute_indexes), pattern-only (hash
-  63f0a6c8… = sha3_256(pset hex), 13 sorted names, n_instances 49,
+  63f0a6c8... = sha3_256(pset hex), 13 sorted names, n_instances 49,
   block == pset.compute_principal_indexes); all literals
-  re-derived from scratch (genuine goldens). Suite 13 -> 16 run
+  re-derived from scratch (genuine goldens). Suite 13 → 16 run
   tests, GREEN 16/0/1. Next: T1 (dead if-False block).
 
-## 2026-08-29 — session 9 (web search: Buro publications)
+## 2026-08-29 — session 12 (web search: Buro publications)
 - Tooling first: the web_search tool failed all session with
   "api key ****764d is invalid" — the DEEPSEEK_API_KEY credential
   (~/.dsh/.credentials.yaml) held an OpenRouter key (sk-or-v1-...)
@@ -725,7 +753,7 @@
   (backlog: extend the collection beyond 2002). logistello-papers/
   stays read-only; its index is not touched.
 
-## 2026-08-29 — session 10 (feature module: T campaign)
+## 2026-08-29 — session 13 (feature module: T campaign)
 - T campaign item T1 (P2) approved and applied (D-044): the 16-line
   dead `if False:` debug block removed from
   TestFeatureSetComputeIndexes.test_compute_indexes — it referenced
@@ -743,7 +771,7 @@
   behaviour change. Suite 16/0/1 GREEN (test count unchanged).
 - T campaign item T3 (P2) approved and applied (D-046): header
   grammar fixed — "How to use the unit tests feature module."
-  -> "How to run the feature module unit tests." Comment-only,
+  → "How to run the feature module unit tests." Comment-only,
   suite 16/0/1 GREEN.
 - T campaign item T5 (P2) approved and applied (D-047): explicit
   names-order assertion added to TestFeatureSet.test_init —
@@ -757,7 +785,7 @@
   np.uint8(65) mobility quirk), test_eq (ref compared by object
   identity — Mobility/Pattern have no value __eq__),
   test_unhashable (TypeError on hash()). Documents current
-  semantics, not a feature.py defect. Suite 17 -> 20 tests
+  semantics, not a feature.py defect. Suite 17 → 20 tests
   (19 run + 1 PERF), GREEN 19/0/1.
 - T campaign item T9 (P2) approved and applied (D-049): the 11
   spot-check assertIn in test_print_summary replaced by a single
@@ -780,7 +808,8 @@
 - FEATURE MODULE FULLY DONE: analysis (e9adf7b) + R1-R4 (D-038)
   + M1-M4 (D-039..D-042) + test campaign (D-043..D-050). Next
   pipeline module: to be brought in by Roberto.
-- Session 11 (2026-08-29): Roberto brought in binio.py +
+## 2026-08-29 — session 14 (binio module)
+- Roberto brought in binio.py +
   test_binio.py + test_usage_binio.py (3 files). Full analysis
   complete the same day: 15 verified facts V1-V15 (0 mismatches:
   MAGIC/SIGNATURE constants, type code ↔ dtype round-trip, on-disk
@@ -793,10 +822,11 @@
   Suite 44/0/0 GREEN (41 in test_binio + 3 in test_usage_binio),
   no PERF gates. Docs: docs/src/twolm/binio.md,
   docs/src/twolm/test/test_binio.md. D-051. T1-T4 fix batch applied
-  the same day: T1 = lz4 -> pyproject.toml, T2 = dead Path import,
+  the same day: T1 = lz4 → pyproject.toml, T2 = dead Path import,
   T3 = "Aauthor" typo, T4 = test_unknown_type_code_raises added.
-  Suite 44 -> 45/0/0 GREEN. BINIO MODULE DONE.
-- Session 12 (2026-08-29): Roberto brought in regab.py +
+  Suite 44 → 45/0/0 GREEN. BINIO MODULE DONE.
+## 2026-08-29 — session 15 (regab module)
+- Roberto brought in regab.py +
   test_regab.py. Full analysis: 5 verified facts V1-V5 (0 mismatches,
   incl. sha3_256 golden b507cd34...), 7 defects T1-T7 documented
   (Aauthor typo, dead typing imports, 3 deps missing from
@@ -804,8 +834,9 @@
   test imports, no DB-skip gate, SQL injection via where). T1-T7 fix
   batch applied the same day: SKIP_REGAB_DB=1 gate (35 skipped / 2
   run), _validate_where_clause + WhereArgument (4 tests), DB query
-  deferred. Suite 33 -> 37/0/0 GREEN. D-052. REGAB MODULE DONE.
-- Session 13 (2026-08-29): Roberto brought in opt_lbfgs.py +
+  deferred. Suite 33 → 37/0/0 GREEN. D-052. REGAB MODULE DONE.
+## 2026-08-29 — session 16 (opt_lbfgs module)
+- Roberto brought in opt_lbfgs.py +
   test_opt_lbfgs.py (L-BFGS optimizer). Full analysis: 5 verified
   facts V1-V5 (0 mismatches, two-loop identity + Rosenbrock 5-start),
   7 defects T1-T7 documented (RuntimeException hard bug, dead
@@ -813,9 +844,10 @@
   save_fn 5-vs-7 param mismatch, percentage-vs-fraction docstring,
   test method d param). T1-T7 fix batch + 9 new tests applied the
   same day: TestLBFGSInputValidation (3), TestFixedSizeMaxList (4,
-  incl. T1 regression), TestTwoLoopRecursion (2). Suite 4 -> 13/0/0
+  incl. T1 regression), TestTwoLoopRecursion (2). Suite 4 → 13/0/0
   GREEN. D-053. OPT_LBFGS MODULE DONE.
-- Session 14 (2026-08-29): Full re-verification of the three
+## 2026-08-29 — session 17 (re-verification pass)
+- Full re-verification of the three
   integration modules (binio, regab, opt_lbfgs) at Roberto's request.
   Re-ran all suites (45/37/13 GREEN, 17 skipped in workspace).
   Verified every T-item fix is in place in the code. Found and

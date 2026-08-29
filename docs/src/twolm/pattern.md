@@ -1,6 +1,6 @@
 # pattern.py analysis
 
-_Analyzed: 2026-08-27 (session 1, review only). Source: `src/twolm/pattern.py`
+_Analyzed: 2026-08-27 (session 4, review only). Source: `src/twolm/pattern.py`
 (package `twolm`), GPL-3. Status: analyzed in depth; **all real issues
 resolved** — R1 (D-020, code fix + regression test), R2-R7 (D-021,
 docstring/hygiene fixes, code behavior untouched), R8 (D-022, closed by

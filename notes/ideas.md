@@ -29,7 +29,7 @@ I-005 | done | Next session starts a NEW module (Roberto, 2026-08-26).
        pipeline port — the original repo brought in module by module
        with verified code and complete tests; the game-loop candidate
        is NOT in the plan. mobility.py was the first pipeline module
-       completed (session 7).
+       completed (session 10).
 
 I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
        PatternSet.names/masks are now @property (attribute-style). If the
@@ -50,7 +50,7 @@ I-007 | follow-up | FeatureSet column-labelling helper (raised
        column-level labelling needs an instance-aware design).
 
 I-008 | idea | Extend the logistello-papers reference collection
-        beyond 2002 (raised 2026-08-29, session 9, web search on
+        beyond 2002 (raised 2026-08-29, session 12, web search on
         Buro's publications): post-2002 works are missing — the
         Nao era (world champion 2015-2016) and the book "Reversi
         for Optimal Players". Start from Buro's own publications

@@ -1,6 +1,6 @@
 # feature.py analysis
 
-_Analyzed 2026-08-28 (session 8). Source: 275 lines, added 2026-08-28
+_Analyzed 2026-08-28 (session 11). Source: 275 lines, added 2026-08-28
 (commit b51bea6). Suite baseline: `twolm.test.test_feature` 13/0/1
 GREEN (1 skip = PERF gate). Environment: numpy 2.5.2, numba 0.67.0,
 Python 3.12.3._

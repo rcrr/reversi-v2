@@ -1,6 +1,6 @@
 # test_mobility.py — test-suite analysis for `twolm.mobility`
 
-_Analyzed 2026-08-28 (session 7). File: 426 lines at analysis, added
+_Analyzed 2026-08-28 (session 10). File: 426 lines at analysis, added
 2026-08-28 (commit 62748ca), then touched by the R5 batch (property
 call-sites, commit 304cb2a) and the T1-T9 campaign (D-037). Suite
 baseline at analysis: 23/0/1 GREEN; final state after the campaign:
@@ -60,7 +60,7 @@ independence of `compute_indexes` (T7).
 ## 4. Verified facts (independently re-derived — no value mismatches)
 
 Ground truth: pure-Python `int.bit_count()` + the verified module
-behaviour (mobility.md V1–V8). Live session 7, all match:
+behaviour (mobility.md V1–V8). Live session 10, all match:
 
 | # | fact | result |
 |---|------|--------|

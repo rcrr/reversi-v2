@@ -124,7 +124,7 @@ D-014 | 2026-08-26 | D8 board symmetries canonized in notes/naming.md:
        — the same root cause as T08/D-013. Standing records in
        notes/naming.md + AGENTS.md make the concept permanent.
 D-015 | 2026-08-26 | `position_final_value` diff<0 OverflowError fixed;
-`bitboard_count` annotated `-> np.uint8` (T22, report §3-D/§8)
+        `bitboard_count` annotated `-> np.uint8` (T22, report §3-D/§8)
        | Real bug, found by probe while adding the missing WOFC branch
        tests: in `position_final_value`, `ec = 64 - (mc + oc)` was
        computed with np.uint8 operands (`bitboard_count` returns the raw

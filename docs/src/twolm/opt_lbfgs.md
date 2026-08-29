@@ -5,7 +5,7 @@ Date: 2026-08-29. Module added by Roberto (2 files: opt_lbfgs.py + test_opt_lbfg
 
 Suite: **13 tests, GREEN 13/0/0** (no PERF gates). Suite is fast (~0.040s).
 
-Full workspace: **398 tests, GREEN, 17 skipped.**
+Full workspace: **398 tests, GREEN, 17 skipped** (17 = PERF-only; without a live PostgreSQL — i.e. under `SKIP_REGAB_DB=1` — the 35 regab DB tests add 35 skips, 52 total).
 
 ## Architecture
 

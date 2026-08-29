@@ -1,6 +1,6 @@
 # test_pattern.py — test-suite analysis for `twolm.pattern`
 
-_Analyzed 2026-08-27 (session 5), per the deferred analysis promised in D-019.
+_Analyzed 2026-08-27 (session 8), per the deferred analysis promised in D-019.
 Doc-only analysis: no source or test edits in this session — a fix campaign
 awaits explicit per-item approval, same pattern as pattern.py (D-019)._
 

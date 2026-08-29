@@ -1,6 +1,6 @@
 # mobility.py analysis
 
-_Analyzed 2026-08-28 (session 7). Source: 248 lines, added 2026-08-28
+_Analyzed 2026-08-28 (session 10). Source: 248 lines, added 2026-08-28
 (commit 62748ca). Suite baseline: `twolm.test.test_mobility` 23/0/1
 GREEN (1 skip = PERF gate). Environment: numpy 2.5.2, numba 0.67.0,
 Python 3.12.3._

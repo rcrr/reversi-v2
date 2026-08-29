@@ -85,9 +85,11 @@ Cross-cutting design decisions:
   returned." and the return annotation was corrected to
   `PositionField | None`. Code behavior unchanged; the existing
   `test_position_make_move_illegal_returns_none` pin stays as is.
-- **R2.** `position_flips` return annotation is wrong: declares
-  `Tuple[Bitboard, PositionField]` but returns `(Bitboard, None)` for
-  illegal moves. Should be `… | None`.
+- **R2. RESOLVED (2026-08-26, T20).** `position_flips` return
+  annotation corrected: it was `Tuple[Bitboard, PositionField]`, but
+  the function returns `(Bitboard, None)` on non-single-bit or illegal
+  moves; now `Tuple[Bitboard, PositionField | None]`. Annotation-only
+  change (@validate_call does not validate return values).
 - **R3. RESOLVED (2026-08-26, T38, D-018).** `position_is_move_legal`
   PA branch now uses an explicit `move == 64` check instead of relying
   on `uint64(1) << 64 == 0`. `move_as_bitboard` documents that the
@@ -95,34 +97,43 @@ Cross-cutting design decisions:
   NumPy's defined shift semantics (shift >= bit width -> 0, verified on
   NumPy 2.5.2). Behavior unchanged; the existing pass-branch pins
   (pass legal iff no legal moves; codes 65/66 illegal) all stay valid.
-- **R4.** Scalar case of `bitboard_from_signed_int` / `bitboard_to_signed_int`:
-  `i.view(Bitboard)` requires a real `np.int64`/`np.uint64`; a bare Python
-  int passed through pydantic (arbitrary-type handling varies by version)
-  would give `AttributeError` instead of a validation error. Needs a
-  version-pinned test.
-- **R5.** `bitboard_count` uses `np.bitwise_count` → implicit **NumPy ≥ 2.0**
-  dependency, declared nowhere.
+- **R4. RESOLVED (2026-08-26, T24).** The failing side is now pinned
+  in the suite: a bare Python int passed to `bitboard_to_signed_int`
+  raises ValidationError (probe-verified on pydantic 2.13.4: rejected
+  via is-instance[uint64], no coercion). TestPydanticVersion asserts
+  pydantic MAJOR == 2, so a major-version change breaks the suite
+  loudly (the non-coercion pins depend on v2 semantics).
+- **R5. RESOLVED (2026-08-25, D-011).** `bitboard_count` uses
+  `np.bitwise_count` → implicit **NumPy ≥ 2.0** dependency; now
+  declared in pyproject.toml (`numpy>=2.0`).
 
 ## Minor issues / inconsistencies
 - `bitboard_ro000` returns the input (aliasing), `position_ro000` returns a
   copy — inconsistent identity between the two layers.
-- `move_validate_range` error message says "range [0..67]" but the max valid
-  value is 66 (the check itself is correct).
+- `move_validate_range` error message said "range [0..67]" while the max
+  valid value is 66 (the check itself was correct). FIXED (2026-08-26,
+  T15): the visible string now reads [0..66] in both scalar and array
+  variants (no test pinned it; verified 66 accepted, 67 rejected).
 - `square_validate_range` hardcodes 64 while the move version uses a
   constant — inconsistent pattern.
 - `bitboard_from_hex_str` uses `np.frompyfunc` with a comment claiming a
   "C-level loop": it is actually a slow Python-level object-array wrapper.
-- `make_position` "zero-copy" claim applies only to the final view, not the
-  inputs (copied into `data`).
+  FIXED (2026-08-26, T17): comment corrected (element-wise Python calls);
+  the implementation is unchanged.
+- `make_position` "zero-copy" claim applied only to the final view, not the
+  inputs (copied into `data`). FIXED (2026-08-26, T19): docstring now
+  states the actual contract (fresh interleaved buffer, inputs copied).
 - Function/label tables are `np.array` of objects; plain Python
   lists/tuples would be more idiomatic.
 - Numba decoration inconsistent: `fastmath=True` on D8 transforms (irrelevant
   for integer ops) and absent on `_vectorized_legal_moves`.
 - `legal_moves` is stricter than the rest of the API: only accepts
   `np.uint64`/`ndarray` (no lists, no Python ints).
-- Typos: "Aauthor" (header), "Applys" (×5 docstrings), "arry", "lenght",
-  "lovercase", "rotaded", "does't", "whould", "Chanpionship" (the WOFC quote
-  says "Championship" in the original).
+- Typos: "Applys" (×5 docstrings), "arry", "lenght", "lovercase", "does't",
+  "whould", "Chanpionship" (the WOFC quote says "Championship" in the
+  original) — still open (source changes need an explicit request).
+  "rotaded" FIXED (2026-08-26, T16, ro000 docstring); "Aauthor" (header)
+  was already absent from the staged board.py.
 - Numba overloads registered on `@validate_call` wrappers (not raw
   functions): needs a dedicated test in a numba context.
 
