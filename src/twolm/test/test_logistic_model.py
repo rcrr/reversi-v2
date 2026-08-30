@@ -133,8 +133,7 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(self.model.current_step, 0)
         self.assertEqual(self.model.current_worker_name, "CREATED")
 
-    #: Restore the tests when the POSITION STEP is added.
-    def _test_move_to_step_delegates_to_state_machine(self):
+    def test_move_to_step_delegates_to_state_machine(self):
         """Test that moving to a step triggers the correct mock worker."""
         self.model.move_to_step(1) # Move to CONFIG
         

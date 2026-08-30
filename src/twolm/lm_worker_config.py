@@ -99,7 +99,14 @@ def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
-    cache_file_path = cfg.base_dir / ctx.get_cache_file_path_for_current_level()
+    # cache_files_prefix is a filename prefix (the schema's "Filename
+    # prefix for the level specific cache files"): it is concatenated
+    # onto the level name the injected closure returns, yielding the
+    # flat base_dir/rlmwf_01_CONFIG.dat. A pathlib join would instead
+    # treat the trailing-underscore prefix as a directory component
+    # (base_dir/rlmwf_/01_CONFIG.dat) and fail on the missing dir.
+    level_name = ctx.get_cache_file_path_for_current_level().name
+    cache_file_path = cfg.base_dir / f"{cfg.cache_files_prefix}{level_name}"
     checksum_file_path = cache_file_path.with_name(cache_file_path.name + ".SHA3-256")
     
     ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, current_checksum = {current_checksum}")

@@ -15,6 +15,7 @@ dependencies = [
     "psycopg2",
     "pandas",
     "python-dotenv",
+    "json5",
 ]
 
 [tool.setuptools.packages.find]

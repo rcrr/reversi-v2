@@ -323,51 +323,64 @@ class StateMachine:
         failure is the domain worker's responsibility (D-060).
         """
         try:
-            self._move_to_step_validated(target_step)
+            target_index = self._validate_target_step(target_step)
         except ValidationError as exc:
             # Public contract (pinned): a wrong target type is a
             # TypeError with the exact message, not a raw pydantic
-            # ValidationError (M3 + M11, D-069).
+            # ValidationError (M3 + M11, D-069). The gate is a
+            # SEPARATE @validate_call function from the move
+            # execution (D-076), so only gate errors are converted;
+            # a pydantic ValidationError raised by a DOMAIN worker
+            # during the move (e.g. a config schema) propagates
+            # unchanged — D-060 failure semantics, the machine is
+            # domain-agnostic.
             raise TypeError(
                 "target_step must be an integer index or a string "
                 "worker name.") from exc
+        self._execute_move(target_index)
 
     @validate_call(config=ConfigDict(
         arbitrary_types_allowed=True, strict=True))
-    def _move_to_step_validated(self, target_step: int | str) -> None:
+    def _validate_target_step(self, target_step: int | str) -> int:
         # Strict gate (M11, D-069): exactly a Python int or a str —
         # bool, float, np.int64 and friends are rejected here.
+        # Deliberately separate from the move execution (D-076):
+        # its ValidationErrors are the ones converted to the pinned
+        # TypeError by move_to_step.
         if isinstance(target_step, str):
             target_step = target_step.upper()
             target_index = next((i for i, w in enumerate(self.workers) if w.name.upper() == target_step), None)
             if target_index is None:
                 raise ValueError(f"Worker '{target_step}' not found in the pipeline.")
-            target_step = target_index
+        else:
+            target_index = target_step
 
-        if target_step < 0 or target_step >= len(self.workers):
-            raise IndexError(f"Target step {target_step} is out of bounds.")
+        if target_index < 0 or target_index >= len(self.workers):
+            raise IndexError(f"Target step {target_index} is out of bounds.")
+        return target_index
 
-        if target_step == self.current_step:
+    def _execute_move(self, target_index: int) -> None:
+        if target_index == self.current_step:
             return
 
-        if target_step > self.current_step:
-            steps = range(self.current_step + 1, target_step + 1)
+        if target_index > self.current_step:
+            steps = range(self.current_step + 1, target_index + 1)
             direction = 'up'
         else:
-            steps = range(self.current_step, target_step, -1)
+            steps = range(self.current_step, target_index, -1)
             direction = 'down'
 
         for step_idx in steps:
             worker = self.workers[step_idx]
             # Update the current step BEFORE execution so logs reflect the active worker
             self.current_step = step_idx
-            
+
             with self._history_timer(step_idx, worker.name, direction):
                 self._run_step(worker, direction)
-        
+
         # If we moved down, the final step is the target step (which is less than the last executed step_idx)
         if direction == 'down':
-            self.current_step = target_step
+            self.current_step = target_index
 
     def move_to_last(self) -> None:
         """
