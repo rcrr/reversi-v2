@@ -1800,3 +1800,68 @@ D-079 | 2026-08-30 | lm_worker_positions + rlm_config_schemas
         SKIP_REGAB_DB=1, GREEN; build/tmp clean (3 session-21
         probe leftovers removed; the probe now self-cleans via
         atexit).
+D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
+        "tutte le tue considerazioni sono corrette. Correggile
+        tutte" — lm_worker_positions + rlm_config_schemas; "fai
+        tutto anche qui" — test): lm_worker_positions — R1
+        FIXED: load_from_db now passes ALL the schema's
+        connection params (RegabDBConnection(dbname, user, host,
+        str(conn_params.port), conn_params.password)) — a
+        non-default port is no longer silently ignored, a
+        configured password reaches the connection string; the
+        DEBUG connection log now includes the port (never the
+        password); the fixture (no port/password) connects
+        exactly as before. M1 FIXED: @validate_call
+        (config=ConfigDict(arbitrary_types_allowed=True)) on the
+        factory (the D-068 M11 / D-078 M4 pattern). M2 FIXED:
+        the dead pathlib.Path import removed. M3 FIXED: the
+        D-079-flagged trailing-whitespace lines (L73/L89/L92)
+        cleaned — scope as in D-078 M3 (the remaining
+        original-file trailing whitespace — license header,
+        import block, is_cache_consistent body — stays, as in
+        lm_worker_config post-campaign). M4 FIXED: load_fn now
+        passes checksum=False (a lambda) — the redundant double
+        file-checksum on every cache hit is gone. Cross-ref
+        note RESOLVED: regab_store_data_set_to_file's docstring
+        no longer promises the checksum calculation (in the
+        pipeline flow cache_manager writes the sidecar, D-072);
+        regab.md's API-table row corrected in the same batch.
+        rlm_config_schemas — R1 FIXED: check_wolfe_constants, a
+        model_validator(mode="after") on OptimizationConfig,
+        enforces c2 > c1 (ValueError → ValidationError with both
+        values) — the strong-Wolfe invariant is no longer
+        docstring-only. M1 FIXED: both parse_hex_to_bitboard
+        docstrings now show '0000000000000107' (16 digits, no
+        0x prefix) + PatternConfig's mask field description says
+        so. M2 RESOLVED BY R1: the model_validator import is
+        now load-bearing. M3 FIXED: ValidationDataSetConfig.
+        status is now List[StatusString] (strict, symmetric with
+        RegabDataSetConfig; StatusString moved to L50, above its
+        first user — a forward reference would have broken the
+        class build) + StatModelConfig now extends RLMBaseConfig
+        (the properties bag is present, default {}). M4 FIXED:
+        both bare [] defaults → Field(default_factory=list).
+        test_lm_worker_positions — T1 FIXED: the D-065 idiom
+        (CUSTOM_TMP_BASE via __file__ + setUpClass mkdir +
+        TemporaryDirectory FIRST in setUp + defensive
+        tearDown). T2 FIXED: the SKIP_REGAB_DB gate at the top
+        of setUp (the test_regab pattern). T3 FIXED: the dead
+        if-False blocks in both tests + the sys import removed.
+        T4 FIXED: header grammar ("How to run the
+        lm_worker_positions unit tests.") + the run note
+        documents the DB requirement and the gate. Approved
+        behaviour changes (Roberto's call): c2<=c1 configs now
+        fail schema validation (fixture c1=1e-4/c2=0.9
+        unaffected); validation_data_set.status now requires 3
+        uppercase letters (fixture CMS/CMR unaffected); a
+        non-default port / configured password now actually
+        takes effect in the DB connection (fixture has neither
+        — identical connection). The 49-check probe re-pinned
+        to the fixed behaviour (51 checks — E6b + E8b added;
+        A4/A5/A6/E6/E7/E8/E9/F1/F2/F3 re-pinned): 0
+        mismatches. Suites: gated full discover 498/0/54 GREEN
+        (17 PERF + 35 regab + 2 positions); ungated full
+        discover (live DB): 498 run, 17 skipped (PERF only),
+        GREEN — all 35 DB tests + the 2 positions tests pass
+        through the fixed 5-arg connection and the
+        checksum=False load; build/tmp clean.

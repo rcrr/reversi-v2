@@ -3,7 +3,8 @@
 Analysis date: 2026-08-30 — analysis session 22 (D-079); the
 probe (scratch/verify_lm_worker_positions.py, 49 checks) was
 started in the interrupted tail of session 21 and completed in
-session 22.
+session 22. Fix campaign D-080 applied 2026-08-30 (session 22,
+Roberto: "correggile tutte").
 
 The POSITIONS worker of the RLM pipeline — the FIRST domain worker
 that consumes cache_manager. It loads (or computes from the regab
@@ -19,23 +20,29 @@ materialized (probe B4, re-verified).
 
 ## Suite status (session 22, D-079)
 
-- `test_lm_worker_positions`: 2/0/0 (Roberto's file, as-copied,
-  green on first run)
-- Full discover: 498 tests, 52 skipped under `SKIP_REGAB_DB=1`,
-  GREEN. Note: both tests need the LIVE regab DB (see the test
-  doc, T2).
+- `test_lm_worker_positions`: 2/0/0 (Roberto's file; D-080
+  applied T1-T4 — the D-065 idiom, the SKIP_REGAB_DB gate, the
+  dead blocks removed, header grammar; both tests DB-gated, run
+  with the live DB)
+- Full discover: 498 tests, 54 skipped under `SKIP_REGAB_DB=1`
+  (17 PERF + 35 regab + 2 positions), GREEN; ungated (live DB):
+  498 run, 17 skipped, GREEN.
 
 ## State per Roberto
 
 Pipeline-in-progress, 3 active levels (CREATED → CONFIG →
-POSITIONS). The next line-by-line step is
+POSITIONS). D-080 (Roberto: "tutte le tue considerazioni sono
+corrette. Correggile tutte"): R1 + M1-M4 + the cross-ref note
+all FIXED — module CLOSED. The next line-by-line step is
 `lm_worker_features()` + restoring the last muted test
 (`_test_move_to_step_by_string` in test_logistic_model.py).
 
 ## Architecture (179 lines)
 
-- `lm_worker_positions() -> Worker` (L176-178): factory returning
-  `Worker("POSITIONS", _up, _down)`. No `@validate_call` (M1).
+- `lm_worker_positions() -> Worker` (L180-182): factory returning
+  `Worker("POSITIONS", _up, _down)`; D-080 M1: now
+  `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`
+  (L179, the D-068 M11 / D-078 M4 pattern).
 - `_up` (L54-90):
   - INFO "Loading training game positions...".
   - `cache_manager_load_or_compute(...)` (L58-66) — the D-072
@@ -45,8 +52,9 @@ POSITIONS). The next line-by-line step is
     flat `base_dir/rlmwf_02_POSITIONS.dat`),
     `is_allowed  = ctx.use_cache` (the CONFIG worker's switch,
     consumed here — F4),
-    `load_fn     = regab_load_data_set_from_file` (bare function,
-    `checksum=True` default — M4),
+    `load_fn     = lambda path: regab_load_data_set_from_file(
+    path, checksum=False)` (D-080 M4 — the sidecar was already
+    verified by cache_manager's step 3),
     `store_fn    = regab_store_data_set_to_file`,
     `validate_fn = lambda cached_rds: is_cache_consistent(ctx,
     cached_rds)`,
@@ -72,12 +80,15 @@ POSITIONS). The next line-by-line step is
   DEBUG log always prints the bool; the per-field mismatch detail
   is built only on inconsistency.
 - `load_from_db(ctx, *, bid=None, status=None) -> RegabDataSet`
-  (L154-173): `RegabDBConnection(dbname, user, host)` — the 3-arg
-  call DROPS port + password (R1) → `regab_extract_data_set_from_
-  db(rc, bid, status, ec)` → DEBUG "Extracted {n:,} positions
-  from the database." → `finally: rc.close()` + close log.
+  (L155-176): D-080 R1 — `RegabDBConnection(dbname, user, host,
+  str(conn_params.port), conn_params.password)` (the 5-arg call
+  passes ALL the schema's connection params — the old 3-arg call
+  dropped port + password) → `regab_extract_data_set_from_db(rc,
+  bid, status, ec)` → DEBUG "Extracted {n:,} positions from the
+  database." (the connection log now includes the port, never
+  the password) → `finally: rc.close()` + close log.
 
-## Verified facts (D-079 probe, 49 checks, 0 mismatches)
+## Verified facts (D-079 probe, re-pinned D-080 — 51 checks, 0 mismatches)
 
 - V1 (B1): after `move_to_step("POSITIONS")` — step 2, worker
   "POSITIONS".
@@ -120,36 +131,39 @@ POSITIONS). The next line-by-line step is
 - V13 (F4): `is_allowed = ctx.use_cache` — the switch copied by
   the CONFIG worker is genuinely consumed here.
 
-## Issues — OPEN (awaiting Roberto's call)
+## Issues — resolved (D-080)
 
-- **R1 (F1):** `load_from_db` builds
-  `RegabDBConnection(dbname, user, host)` — DROPPING `port` and
-  `password` although the schema has both
-  (`RegabDBConnectionConfig.port: int = 5432`, `password:
-  Optional[str]`). A non-default port in the config is silently
-  ignored (the connection always opens on 5432); a configured
-  password is silently ignored (regab's connection string carries
-  `password=...` only when one is passed — L137-138).
+- **R1 — FIXED (D-080).** `load_from_db` now passes ALL the
+  schema's connection params — `RegabDBConnection(dbname, user,
+  host, str(conn_params.port), conn_params.password)` — so a
+  non-default configured port is no longer silently ignored and
+  a configured password reaches the connection string (regab
+  carries `password=...` when one is passed). The DEBUG
+  connection log now includes the port (never the password). The
+  fixture (no port/password set) connects exactly as before
+  (default 5432, no password). Re-pinned by probe F1.
 
-## Minor notes — OPEN (awaiting Roberto's call)
+## Minor notes — resolved (D-080)
 
-- M1 (A4): no `@validate_call` on the public factory
-  (lm_worker_config has it since D-078 M4 — house convention
-  D-068 M11; Worker.__init__ is already gated, so this is a
-  convention-only delta).
-- M2 (A5): `from pathlib import Path` imported (L33) but unused.
-- M3 (A6): trailing-whitespace lines (L73, L89, L92).
-- M4 (F2): `load_fn` is the BARE `regab_load_data_set_from_file`
-  with its `checksum=True` default — cache_manager's step 3
-  already verified the file sidecar, and the load re-verifies the
-  SAME sidecar: the file checksum is computed twice on every cache
-  hit (redundant, harmless).
-- Cross-ref note (F3): `regab_store_data_set_to_file`'s docstring
-  promises it "calculates the SHA3-256 checksum", but it writes
-  only the .dat — in this flow the sidecar is written by
-  cache_manager (`write_sha3_256_sidecar`, D-072). The docstring
-  is aspirational. Cross-reference on the CLOSED regab module —
-  Roberto's call (regab-side doc fix, or leave).
+- M1 (A4): FIXED — `@validate_call(config=ConfigDict
+  (arbitrary_types_allowed=True))` on the public factory (the
+  D-068 M11 / D-078 M4 pattern; Worker.__init__ is already gated
+  behind it).
+- M2 (A5): FIXED — the dead `from pathlib import Path` removed.
+- M3 (A6): FIXED — the D-079-flagged trailing-whitespace lines
+  (L73/L89/L92 at analysis) cleaned. Scope as in D-078 M3: the
+  remaining original-file trailing whitespace (license header,
+  import block, is_cache_consistent body) stays, as in
+  lm_worker_config post-campaign.
+- M4 (F2): FIXED — `load_fn` now passes `checksum=False` (a
+  lambda), so the load does not re-verify the sidecar that
+  cache_manager's step 3 already checked (the redundant double
+  file-checksum on every cache hit is gone).
+- Cross-ref note (F3): RESOLVED — the
+  `regab_store_data_set_to_file` docstring no longer promises the
+  checksum calculation (in the pipeline flow cache_manager writes
+  the sidecar, D-072); docs/src/twolm/regab.md's API-table row
+  corrected in the same batch. Re-pinned by probe F3.
 
 ## Integration notes
 
@@ -173,13 +187,13 @@ POSITIONS). The next line-by-line step is
 
 ## Appendix — line reference
 
-179 lines, as of 601de87.
+183 lines, as of D-080.
 
-- L28-46: imports (numpy L30, `pathlib.Path` L33 — M2, regab
-  L36-42, cache_manager L43, TYPE_CHECKING RLMContext L45-46)
-- L50: `__all__`
-- L54-90: `_up` (cache call L58-66, post-processing L68-88)
-- L93-100: `_down`
-- L103-152: `is_cache_consistent`
-- L154-173: `load_from_db` (R1 3-arg connection call L157)
-- L176-178: `lm_worker_positions()` (M1 no @validate_call)
+- L28-47: imports (numpy L30, pydantic L34 [M1], regab L37-43,
+  cache_manager L44, TYPE_CHECKING RLMContext L46-47)
+- L51: `__all__`
+- L55-91: `_up` (cache call L59-67, post-processing L69-89)
+- L94-101: `_down`
+- L104-153: `is_cache_consistent`
+- L155-176: `load_from_db` (R1 5-arg connection call L158-160)
+- L179-182: `lm_worker_positions()` (M1 @validate_call L179)

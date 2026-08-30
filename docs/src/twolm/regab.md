@@ -23,7 +23,7 @@ binary files via the `binio` module.
 | `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` | Queries `regab_prng_gp` table, returns `pd.DataFrame`. |
 | `RegabDataSet(rc, bid, status, ec, df_mogv)` | Holds a dataset: connection params + 3-column DataFrame (mover int64, opponent int64, game_value int8). |
 | `regab_extract_data_set_from_db(rc, bid, status, ec)` | Extracts a `RegabDataSet` from the database. |
-| `regab_store_data_set_to_file(rds, filename)` | Serializes to a `binio` framed binary file with SHA3-256 sidecar. |
+| `regab_store_data_set_to_file(rds, filename)` | Serializes to a `binio` framed binary file. No sidecar is written here — in the pipeline flow cache_manager writes it (D-080 cross-ref fix, with the docstring). |
 | `regab_load_data_set_from_file(filename, checksum)` | Deserializes from a `binio` file; verifies checksum by default. |
 
 ### On-disk format (via binio)
