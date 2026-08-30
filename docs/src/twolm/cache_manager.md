@@ -5,11 +5,18 @@ test_cache_manager.py, commit a0cd31f). **Analysis session 20; fix
 campaign batch 1 applied (D-071): R1 resolved as intentional
 (documented + pinned), R2 fixed (validate in the try), R4 fixed
 (@validate_call), M1-M3 fixed, T1/T2/T3/T4/T5/T7 pinned + 8 new
-tests — suite 13 → 21. Still OPEN: R3 (awaiting Roberto's ruling),
-T6 (awaiting Roberto's OK), T8 (report-only).**
+tests — suite 13 → 21. Batch 2 applied (D-072): R3 RESOLVED (binio
+sidecar API adopted: `import hashlib` and the two re-implemented
+helpers deleted, thin `_verify_checksum` wrapper over
+`verify_sha3_256_sidecar`, sidecar now in binio's sha3_256sum
+format, legacy bare-hex sidecars still verify), T6 fixed (artifact
+base anchored to the workspace root), T3 pin restated, R3 +
+legacy-compat + malformed/undecodable pins added, 2
+direct-compute helper tests dropped — suite 21 → 21. All OPEN items
+closed; T8 report-only. Module CLOSED.**
 
 Suite: **21 tests, GREEN 21/0/0** (no PERF gates). Suite is fast
-(~0.034s).
+(~0.15s).
 
 Full workspace: **468 tests, GREEN, 52 skipped under the gate**
 (17 PERF + 35 regab DB-gated; without `SKIP_REGAB_DB=1` the DB tests
@@ -21,7 +28,9 @@ run against live PostgreSQL and only 17 skip).
 public function orchestrates a 4-step validation pipeline for
 "load cached result or recompute" around injected business-logic
 callbacks. It is the first domain module to import
-`twolm.state_machine` (`Relevance` for the injected logger). The
+`twolm.state_machine` (`Relevance` for the injected logger) and
+`twolm.binio` (the checksum sidecar API, D-072 — no import cycle:
+binio imports no twolm module; no new pyproject dependency). The
 public function carries the house `@validate_call` gate (D-071/R4):
 `cache_path` is coerced `str` → `Path`, non-coercible values raise
 `ValidationError`.
@@ -31,12 +40,11 @@ public function carries the house `@validate_call` gate (D-071/R4):
 | Component | Role |
 |---|---|
 | `cache_manager_load_or_compute(...)` | The only public API. 4-step pipeline (below). Returns `(cache_hit: bool, data: T, data_checksum: str \| None)`. |
-| `_compute_checksum(path)` | SHA3-256 of a file (8 KiB read chunks) → 64-char lowercase hex. |
-| `_verify_checksum(path)` | Step 2: sidecar exists AND content (stripped) equals the recomputed file checksum. |
-| `_save_checksum(path)` | Writes the sidecar with the bare hexdigest (no newline, no filename). |
+| `_verify_checksum(path)` | Step 2: thin wrapper over binio's `verify_sha3_256_sidecar` (D-072); maps `FileNotFoundError` / `BinaryFormatError` / `UnicodeDecodeError` → `False` (a bad sidecar invalidates, never crashes). |
 | `_delete_cache_files(path)` | Unlinks data + sidecar, both `missing_ok=True` (idempotent). |
+| binio sidecar API (imported, D-072) | `compute_sha3_256`, `write_sha3_256_sidecar`, `verify_sha3_256_sidecar`, `BinaryFormatError` — own file hashing + sidecar I/O; replace the deleted `_compute_checksum` / `_save_checksum`. |
 | `_compute_sha3_256_hash(data)` | Duck typing: if the data object has a callable `compute_sha3_256_hash` attribute, call it and return the result, else `None`. |
-| `_compute_and_store(...)` | The shared "compute" tail: INFO log, `compute_fn()`, data checksum, `store_fn(data, path)`, sidecar, INFO logs; returns `(False, data, data_checksum)`. |
+| `_compute_and_store(...)` | The shared "compute" tail: INFO log, `compute_fn()`, data checksum, `store_fn(data, path)`, binio `write_sha3_256_sidecar`, INFO logs; returns `(False, data, data_checksum)`. |
 | `SHA3_256_CHECKSUM_SUFFIX` | `".SHA3-256"` — sidecar suffix constant. |
 | `ComputeFunc / LoadFunc / StoreFunc / ValidateFunc / LoggerFunc` | Type aliases for the injected callbacks. |
 
@@ -67,13 +75,15 @@ the pipeline never returns partially validated state.
 ### The two checksums (do not confuse)
 
 - **File checksum** (the sidecar): integrity of the cached bytes on
-  disk. Bare hexdigest format (V15).
+  disk. binio's `sha3_256sum` format `<hex>  <basename>\n` (V15,
+  restated in D-072); pre-D-072 legacy bare-hexdigest sidecars still
+  verify (binio's first-token parser).
 - **Data checksum** (3rd return element): content hash of the business
   data object, obtained duck-typing `data.compute_sha3_256_hash()`.
   `None` when the object has no such callable. Intended for the
   caller to record (e.g. in the DB) which content was loaded/computed.
   Different value AND different concept from the file checksum (per
-  the docstring, L142 — typos in original, M2).
+  the docstring, L136 — typos in original, M2).
 
 ### Integration notes
 
@@ -84,9 +94,12 @@ the pipeline never returns partially validated state.
   produced by the state_machine `Context` cache helpers
   (`{prefix}{level:02}_{name}.dat`, D-069 M5/M8): this module is the
   load-or-compute engine for exactly those files.
-- Sidecar naming (`<full-name>.SHA3-256`) is the same scheme binio
-  uses for its sidecars (V2), but the **content format differs**
-  (V15c, R3).
+- Sidecar naming AND content format are now exactly binio's
+  (D-072/R3): `write_sha3_256_sidecar` writes, the
+  `verify_sha3_256_sidecar`-backed wrapper verifies. Cross-process
+  sidecars written by binio tooling (or a plain `sha3_256sum`-style
+  writer) now verify (V15c flipped); legacy bare-hex sidecars keep
+  verifying (zero cache invalidation).
 
 ## Verified facts (V1-V17)
 
@@ -95,9 +108,9 @@ Independently re-derived (scratch/verify_cache_manager.py, 33 checks
 
 | # | Fact | Method |
 |---|---|---|
-| V1 | `_compute_checksum` = independent `hashlib.sha3_256` of the file bytes; 64-char lowercase hex; deterministic | Direct compare + charset check |
+| V1 | File hashing is binio's `compute_sha3_256` (1 MiB chunks, SHA3-256): 64-char lowercase hex, deterministic. The old re-implemented `_compute_checksum` (8 KiB chunks) was proven identical by the D-071 probe and is deleted in D-072 | Direct compare + charset check (D-071 probe) |
 | V2 | Sidecar name = `<full-original-name>.SHA3-256` (`with_suffix` re-applies the original suffix: `data.dat` → `data.dat.SHA3-256`, `a.b.dat` → `a.b.dat.SHA3-256`, extension-less `data` → `data.SHA3-256`) — same naming scheme as binio | Path probes |
-| V3 | `_verify_checksum`: False when sidecar missing; True after `_save_checksum`; False after data tamper; False after sidecar tamper | 4-case probe |
+| V3 | `_verify_checksum` (wrapper, D-072): False when sidecar missing (FileNotFoundError → False); True after binio `write_sha3_256_sidecar`; False after data tamper (digest mismatch); False on a malformed sidecar (BinaryFormatError → False) and on an undecodable one (UnicodeDecodeError → False) | 4-case probe + 2 wrapper probes |
 | V4 | `_delete_cache_files` removes both files; idempotent (second call no-raise) | Probe |
 | V5 | Step 0 (`is_allowed=False`): compute tail runs — **data + sidecar are written anyway** (V5b, INTENTIONAL per D-071/R1); returns `(False, data, None)`; INFO "Cache not allowed by configuration. Forcing computation." | Pipeline probe with pre-existing cache |
 | V6 | Step 1 (file missing): compute tail; data + sidecar created; `(False, data, None)` | Pipeline probe |
@@ -109,14 +122,16 @@ Independently re-derived (scratch/verify_cache_manager.py, 33 checks
 | V12 | `_compute_sha3_256_hash`: non-callable attribute (e.g. int) → `None`, no exception; attribute absent (e.g. dict) → `None` | Direct probe |
 | V13 | `compute_sha3_256_hash` raising on the LOAD path is caught by the same try/except as load failure → delete + recompute, ERROR log carries the exception text | Pipeline probe |
 | V14 | `logger_fn` is always called with `(Relevance, str)` | Pipeline probe |
-| V15 | Sidecar content = bare 64-hex hexdigest, NO trailing newline; a binio `sha3_256sum`-format sidecar (`<hex>  <name>\n`) FAILS `_verify_checksum` (content includes the basename) | Format probe |
+| V15 | Sidecar content = binio's `sha3_256sum` line `<hex>  <name>\n` (D-072, restated); a binio-written sidecar now VERIFIES (V15c flipped — pre-D-072 it failed); a legacy bare-hexdigest sidecar still verifies (first-token parser) | Format probe + 2 D-072 pins |
 | V16 | `validate_fn` raising is now CAUGHT by the step-3 try/except (D-071/R2) → delete + recompute, ERROR log carries the exception text (was: propagated to the caller with the stale cache left in place) | Boundary probe + test |
 | V17 | `@validate_call` gate (D-071/R4): `str` `cache_path` is coerced to `Path` (works); `int`/`None` → pydantic `ValidationError` (was: bare `AttributeError`) | Edge probe |
 
 ## Issues (R1-R4)
 
 R1, R2, R4 resolved/fixed in the D-071 campaign (2026-08-30,
-Roberto's approvals); R3 OPEN, awaiting his ruling.
+Roberto's approvals); R3 RESOLVED in the D-072 campaign (batch 2,
+2026-08-30, Roberto's approval of the binio-import proposal). All
+issues closed.
 
 ### R1 — Step 0 still writes the cache — RESOLVED as intentional (D-071)
 `is_allowed=False` → the code calls `_compute_and_store`, i.e. it
@@ -126,7 +141,7 @@ comportamento atteso. Quando la cache e' disabilitata viene forzato
 il ricalcolo, ma il risultato e' sempre trascritto nel cache_file" —
 a cache-disabled run forces the recompute but the result is ALWAYS
 transcribed to the cache file. No behaviour change; documented in the
-`is_allowed` docstring line (L150-153) and pinned by
+`is_allowed` docstring line (L141-144) and pinned by
 `test_step0_not_allowed_forces_computation` (T4: file rewritten +
 valid sidecar).
 
@@ -134,7 +149,7 @@ valid sidecar).
 Roberto: "risolviamo la asimmetria, mettiamo anche validate nel try,
 se validate si interrompe con eccezione, cancellare tutto e
 ricompute". `validate_fn(cached_data)` moved INSIDE the step-3
-try/except (L187-194): a raising validator now deletes the cache
+try/except (L178-185): a raising validator now deletes the cache
 files and forces recomputation, exactly like a load failure. The
 ERROR message was re-worded to "Failed to load or validate cache
 file '<path>': <e>. Recomputing." (covers all three callables in the
@@ -142,7 +157,7 @@ try; pinned by test_step3a + test_validate_exception_forces_
 recomputation + test_load_path_checksum_method_raises_recomputes).
 The `validate_fn` returning False (no exception) path is unchanged.
 
-### R3 — Sidecar content format is not binio-compatible — OPEN, awaiting Roberto's ruling
+### R3 — Sidecar content format is not binio-compatible — RESOLVED (D-072)
 `_save_checksum` writes the bare hexdigest (64 chars, no newline, no
 filename); binio's `write_sha3_256_sidecar` writes
 `"<hex>  <basename>\n"` (the standard `sha3_256sum` format,
@@ -164,18 +179,32 @@ overwritten in the bare format; the first load after a compute
 succeeds. The risk is cross-process: any cache file whose sidecar
 was written OUTSIDE the pipeline by the binio tooling
 (`write_sha3_256_sidecar`, or a plain `sha3_256sum`-style writer) is
-rejected by cache_manager → wasted recomputation. Options:
-(a) leave as-is + document that cache_manager sidecars are its own
-format (and the pipeline always owns its sidecars); (b) make
-`_verify_checksum` tolerant — accept the first whitespace-separated
-token as the digest (both formats verify; a bare hexdigest is still
-accepted since it has no whitespace). Awaiting Roberto's ruling.
+rejected by cache_manager → wasted recomputation. Roberto's ruling:
+"ho capito che NON va bene" — with his proposal: import binio into
+cache_manager and use the native binio API instead of
+re-implementing the three helpers. Applied in D-072 (superseding
+option (b)): `import hashlib` deleted, `_compute_checksum` and
+`_save_checksum` deleted (binio's `compute_sha3_256` /
+`write_sha3_256_sidecar` own the job); `_verify_checksum` is now a
+5-line wrapper over `verify_sha3_256_sidecar` mapping
+(FileNotFoundError, BinaryFormatError, UnicodeDecodeError) → False
+(a corrupt sidecar invalidates, never crashes);
+`_compute_and_store` writes the sidecar via
+`write_sha3_256_sidecar`. Bonus of binio's first-token parser:
+legacy bare-hex sidecars keep verifying (zero cache invalidation)
+AND binio-format sidecars now pass (V15c flips). Pinned:
+`test_binio_sidecar_verifies` (R3), `test_legacy_bare_hex_sidecar_
+still_verifies` (compat), `test_verify_checksum_fails_if_sidecar_
+malformed` (exception mapping), `test_sidecar_content_is_binio_
+format` (T3 restated). Trade-off recorded: cache_manager now
+imports twolm.binio (same package; no import cycle — binio imports
+no twolm module; no new pyproject dependency).
 
 ### R4 — `@validate_call` added (D-071)
 House convention (NOTES.md "Conventions in the code"; state_machine
 D-069 M11). Roberto: "aggiungi". `@validate_call(config=
 ConfigDict(arbitrary_types_allowed=True))` on
-`cache_manager_load_or_compute` (L132); pydantic is now a module
+`cache_manager_load_or_compute` (L124); pydantic is now a module
 import (already a workspace dependency, pyproject unchanged).
 Behaviour change (approved with the fix): a `str` `cache_path` is
 coerced to `Path` and works; non-coercible values (`int`, `None`, ...)
@@ -195,25 +224,25 @@ raise a pydantic `ValidationError` instead of a bare `AttributeError`
   mismatch ..." — wrong when the sidecar is merely missing); pinned
   by test_step2 + test_step2_missing_sidecar_forces_recomputation.
 
-## Appendix: line-number reference (2026-08-30, post D-071; file
-203 lines)
+## Appendix: line-number reference (2026-08-30, post D-072; file
+194 lines)
 
-- `__all__`: L46
-- `T` TypeVar: L51 · `ComputeFunc/LoadFunc/StoreFunc/ValidateFunc/
-  LoggerFunc`: L54-58
-- `SHA3_256_CHECKSUM_SUFFIX`: L61
-- `_compute_checksum`: L64 (8 KiB chunk loop: L68-70)
-- `_verify_checksum`: L73 (sidecar: L75, exists check: L76, read +
-  strip: L79, compare: L82)
-- `_save_checksum`: L85 (bare hexdigest write: L89)
-- `_delete_cache_files`: L92 (both unlinks `missing_ok=True`: L95-96)
-- `_compute_sha3_256_hash`: L99 (getattr: L102, callable gate:
-  L105, call: L106, None: L108)
-- `_compute_and_store`: L112 (INFO: L118, compute: L119, data
-  checksum: L121, store: L124, sidecar: L126, return: L129)
-- `cache_manager_load_or_compute`: L133 (D-071 decorator: L132;
-  docstring: L141-165, incl. the R1 is_allowed note L150-153;
-  Step 0: L167-170; Step 1: L172-175; Step 2: L177-181, M3 message
-  L179; Step 3: L183-199 — try L187-194 (load L188, data checksum
-  L189, validate L190, R2 comment L184-186), False branch L196-199;
-  success: L201-203)
+- `__all__`: L50
+- `T` TypeVar: L55 · `ComputeFunc/LoadFunc/StoreFunc/ValidateFunc/
+  LoggerFunc`: L58-62
+- `SHA3_256_CHECKSUM_SUFFIX`: L65
+- binio import (D-072): L41-45 · state_machine import: L46
+- `_verify_checksum`: L68 (binio call: L78, exception mapping:
+  L79-80)
+- `_delete_cache_files`: L83 (both unlinks `missing_ok=True`:
+  L86-87)
+- `_compute_sha3_256_hash`: L90 (getattr: L93, callable gate:
+  L96, call: L97, None: L99)
+- `_compute_and_store`: L103 (INFO: L109, compute: L110, data
+  checksum: L112, store: L115, binio sidecar: L117, return: L120)
+- `cache_manager_load_or_compute`: L124 (D-071 decorator: L123;
+  docstring: L132-156, incl. the R1 is_allowed note L141-144;
+  Step 0: L158-161; Step 1: L163-166; Step 2: L168-172, M3 message
+  L170; Step 3: L174-185 — try L178-185 (load L179, data checksum
+  L180, validate L181, R2 comment L175-177), False branch L187-190;
+  success: L192-194)

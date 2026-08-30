@@ -1331,3 +1331,56 @@ D-071 | 2026-08-30 | cache_manager fix campaign batch 1: R1
         grammar, report-only).
         Suite 13 -> 21/0/0 GREEN; full discover 460 -> 468 tests,
         52 skipped under the gate, GREEN.
+
+D-072 | 2026-08-30 | cache_manager fix campaign batch 2: R3
+        resolved (binio sidecar API adopted), T6 fixed, T3 pin
+        restated, legacy-compat + malformed wrapper pins added, 2
+        direct-compute helper tests dropped (session 20, approved by
+        Roberto: "T6: OK"; R3 "ho capito che NON va bene. Brava ad
+        aver trovato questa inconsistenza! Mia proposta: importiamo
+        binio nel modulo cache_manager, e usiamo le API native di
+        binio al posto di riscrivere le tre funzioni
+        _compute_checksum _verify_checksum _save_checksum" —
+        proposal presented with the 5-line wrapper refinement,
+        "Approvato!"): source changes + test adaptations.
+        R3 (RESOLVED): cache_manager now imports twolm.binio
+        (BinaryFormatError, verify_sha3_256_sidecar,
+        write_sha3_256_sidecar) — same package, no import cycle
+        (binio imports no twolm module), no new pyproject
+        dependency. Removed: `import hashlib`, `_compute_checksum`,
+        `_save_checksum`. `_verify_checksum` is now a thin wrapper
+        over `verify_sha3_256_sidecar(file_path,
+        suffix=SHA3_256_CHECKSUM_SUFFIX)` mapping
+        (FileNotFoundError, BinaryFormatError, UnicodeDecodeError)
+        -> False: a missing, malformed or undecodable sidecar
+        invalidates the cache, it never crashes the pipeline.
+        `_compute_and_store` writes the sidecar via
+        `write_sha3_256_sidecar` (binio's sha3_256sum format
+        "<hex>  <basename>\n"). Sidecar naming unchanged
+        (<full-name>.SHA3-256, the same scheme binio uses).
+        Consequence: a binio-written sidecar now verifies (V15c
+        flips); a legacy pre-D-072 bare-hex sidecar STILL verifies
+        (binio's parser takes the first whitespace-separated token)
+        -> zero cache invalidation for existing on-disk caches.
+        T6: CUSTOM_TMP_BASE is now
+        Path(__file__).resolve().parents[3] / "build" / "tmp"
+        (workspace-root anchored, the D-065 idiom of
+        test_state_machine.py).
+        Tests (21 -> 21): the 2 direct-compute helper tests dropped
+        (the hash belongs to the binio suite); TestChecksumHelpers
+        reorganised: test_binio_sidecar_verifies (R3 pin),
+        test_legacy_bare_hex_sidecar_still_verifies (compat pin),
+        test_verify_checksum_fails_if_sidecar_mismatched,
+        test_verify_checksum_fails_if_sidecar_malformed
+        (BinaryFormatError + UnicodeDecodeError -> False, never
+        raise), test_sidecar_content_is_binio_format (T3
+        restated: "<hexdigest>  <basename>\n"); all pipeline
+        set-ups switched _save_checksum -> write_sha3_256_sidecar
+        (behaviour pins unchanged).
+        Suite 21/0/0 GREEN (test_cache_manager); full discover 468
+        tests, 52 skipped under the gate, GREEN.
+        CACHE_MANAGER module CLOSED: R1-R4 + M1-M3 + T1-T7 all
+        resolved; T8 (header grammar) report-only. Next: the domain
+        modules lm_worker_config + logistic_model (their 2
+        cache-helper call sites must use the D-069 names
+        *_for_current_level).

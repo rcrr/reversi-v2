@@ -4,10 +4,15 @@ Date: 2026-08-30. One test file: `test_cache_manager.py` (21 tests,
 2 classes + 1 base), added with the module (commit a0cd31f).
 **Analysis session 20; fix campaign batch 1 applied (D-071):
 T1/T2/T3/T4/T5/T7 fixed with 8 new tests + new asserts in the 6
-existing pipeline tests — suite 13 → 21. Still OPEN: T6 (CWD-relative
-artifact base — awaiting Roberto's OK), T8 (report-only).**
+existing pipeline tests — suite 13 → 21. Batch 2 applied (D-072):
+T6 fixed (artifact base anchored to the workspace root), helper
+suite rebuilt around the binio API (2 direct-compute tests dropped —
+binio's suite owns them; T3 pin restated; R3, legacy-compat,
+malformed/undecodable pins added), pipeline set-ups switched to
+`write_sha3_256_sidecar` — suite 21 → 21. All OPEN items closed;
+T8 report-only. Module CLOSED.**
 
-Suite: **21/0/0 GREEN, no PERF gates.** Fast (~0.034s).
+Suite: **21/0/0 GREEN, no PERF gates.** Fast (~0.15s).
 
 ## How to run
 
@@ -19,24 +24,32 @@ $ python -m unittest twolm.test.test_cache_manager
 
 ### `TestChecksumHelpers` (8 tests)
 
-- `test_compute_checksum_returns_valid_sha3_256`: 64-char lowercase
-  hex — pins the format shape (V1a/V1b), not the value.
-- `test_compute_checksum_is_deterministic`: two calls equal (V1).
-- `test_save_and_verify_checksum_success`: `_save_checksum` +
-  `_verify_checksum` round-trip True (V3b).
-- `test_verify_checksum_fails_if_sidecar_missing`: False without
-  sidecar (V3a).
-- `test_verify_checksum_fails_if_sidecar_corrupted`: False with a
-  `"0" * 64` sidecar (V3d).
+- `test_binio_sidecar_verifies` (R3, D-072): a sidecar written by
+  binio's `write_sha3_256_sidecar` verifies True through the
+  `_verify_checksum` wrapper — both modules now share one sidecar
+  format and one verifier (V3).
+- `test_legacy_bare_hex_sidecar_still_verifies` (D-072 compat): a
+  pre-D-072 bare-hexdigest sidecar still verifies True — binio's
+  first-token parser accepts it; zero cache invalidation.
+- `test_verify_checksum_fails_if_sidecar_missing`: False without a
+  sidecar (FileNotFoundError → False) (V3a).
+- `test_verify_checksum_fails_if_sidecar_mismatched`: False with a
+  well-formed but wrong digest (`"0" * 64`) (V3c).
+- `test_verify_checksum_fails_if_sidecar_malformed` (D-072): False
+  for a non-hex first token (BinaryFormatError) and for an
+  undecodable sidecar (UnicodeDecodeError) — the wrapper maps both
+  to False, never raises (V3).
 - `test_delete_cache_files_removes_both`: data + sidecar gone after
-  deletion (V4).
+  deletion (sidecar written via binio, D-072) (V4).
 - `test_delete_cache_files_does_not_raise_if_missing`: double delete
   no-raise (V4 idempotency).
-- `test_sidecar_content_is_bare_hexdigest` (T3, D-071): the sidecar
-  holds exactly the 64-char hex digest — no trailing newline, no
-  filename (V15; this is cache_manager's own format, see R3).
-- **Coverage**: the 4 low-level helpers, happy + fail paths + the
-  sidecar content format.
+- `test_sidecar_content_is_binio_format` (T3, restated D-072): the
+  sidecar holds exactly binio's `sha3_256sum` line
+  `<hexdigest>  <basename>\n` (V15, restated).
+- **Coverage**: the 2 remaining low-level helpers + the wrapper's
+  exception mapping, happy + fail paths + the sidecar content
+  format. Direct SHA3-256 computation is owned by the binio suite
+  (the 2 old direct-compute helper tests were dropped in D-072).
 
 ### `TestCacheManagerPipeline` (13 tests)
 
@@ -102,7 +115,9 @@ $ python -m unittest twolm.test.test_cache_manager
 ## Test defects (T1-T8)
 
 Status: T1-T5 + T7 FIXED in the D-071 campaign (Roberto's
-approvals); T6 OPEN (awaiting his OK); T8 report-only.
+approvals); T6 FIXED in the D-072 campaign (Roberto's OK); T3 pin
+restated in D-072 with the format flip; T8 report-only. All
+fixable items closed.
 
 ### T1 — The 3rd return element (data checksum) was never asserted (P1) — FIXED (D-071)
 Every pipeline test unpacked `checksum` and never checked it. Now:
@@ -121,10 +136,13 @@ delete + recompute, ERROR log carries the exception text (V13).
 Plus `test_validate_exception_forces_recomputation` pinning the
 D-071/R2 behaviour for a raising validator (V16).
 
-### T3 — Sidecar content format not pinned (P2) — FIXED (D-071)
-New `TestChecksumHelpers.test_sidecar_content_is_bare_hexdigest`:
-the sidecar holds exactly the 64-char hex digest — no trailing
-newline, no filename (V15).
+### T3 — Sidecar content format not pinned (P2) — FIXED (D-071), restated (D-072)
+Originally `test_sidecar_content_is_bare_hexdigest`: the sidecar
+holds exactly the 64-char hex digest (V15, pre-D-072 format). D-072
+flipped the format: the pin is now
+`test_sidecar_content_is_binio_format` — the sidecar holds exactly
+binio's `sha3_256sum` line `<hexdigest>  <basename>\n` (V15,
+restated).
 
 ### T4 — Step 0 "still writes the cache" not pinned (P1, after R1) — FIXED (D-071)
 R1 ruled intentional by Roberto: the result is ALWAYS transcribed to
@@ -137,14 +155,16 @@ New `test_step2_missing_sidecar_forces_recomputation`: data present,
 no sidecar → same WARN message as the mismatch case, compute +
 store, load not called (V7).
 
-### T6 — Artifacts under CWD-relative `./build/tmp` (P1, house rule) — OPEN, awaiting Roberto's OK
-`CUSTOM_TMP_BASE = Path("./build/tmp")` is relative to the CWD, not
-the workspace root. The D-065 house rule (test artifacts ONLY under
+### T6 — Artifacts under CWD-relative `./build/tmp` (P1, house rule) — FIXED (D-072)
+`CUSTOM_TMP_BASE = Path("./build/tmp")` was relative to the CWD, not
+the workspace root; the D-065 house rule (test artifacts ONLY under
 `workspace_root/build/tmp`) is applied in test_state_machine.py via
 `Path(__file__).resolve().parents[3] / "build" / "tmp"`. Running the
 suite from any other CWD would create `build/tmp` wherever it is
-invoked (and would NOT find the existing tree). Proposed fix: derive
-the root from `__file__` like the other suite. No source impact.
+invoked (and would NOT find the existing tree). Roberto approved the
+proposed fix ("T6: OK"); D-072 applied it: `CUSTOM_TMP_BASE` is now
+anchored to the workspace root via `__file__`, same idiom as
+test_state_machine.py. No source impact.
 
 ### T7 — No on-disk assertion after recompute (P2) — FIXED (D-071)
 `test_step2`, `test_step3a`, `test_step3b` (and the two new T2/R2
@@ -161,7 +181,7 @@ report-only pattern.
 
 ## Observations
 
-- **No PERF gates**: 13 tests in 0.025s; `tempfile.TemporaryDirectory`
+- **No PERF gates**: 21 tests in 0.15s; `tempfile.TemporaryDirectory`
   under build/tmp with `tearDown` cleanup is the right idiom here.
 - **`DUMMY_DATA` is shared module state** (a dict literal reused by
   every mock): safe today because no test mutates it, but a per-test
@@ -169,7 +189,8 @@ report-only pattern.
 - **`_fake_store` writes `str(data)` to disk**: the pipeline tests
   never actually load what they stored (load is mocked to return
   `DUMMY_DATA`); the step-3 tests write "valid data" by hand +
-  `_save_checksum`, so load-vs-store round-trip consistency is NOT
+  `write_sha3_256_sidecar` (D-072), so load-vs-store round-trip
+  consistency is NOT
   exercised end-to-end. Acceptable for a utility whose load/store are
   injected by the domain — but worth one note: an end-to-end
   (store then load the same object) test would pin T7 at the same
@@ -188,27 +209,31 @@ return element on every path (T1), the step-0 warm-cache effect
 
 **Verdict**: 21/0/0 GREEN. Campaign batch 1 (D-071) closed T1-T5 +
 T7; the module's distinctive data-checksum feature is now pinned.
-Remaining: T6 (artifact base — awaiting Roberto's OK) and T8
-(report-only).
+Campaign batch 2 (D-072) closed T6, restated the T3 pin for the
+binio format, and added the R3 / legacy-compat / malformed wrapper
+pins. Remaining: T8 (report-only). Module CLOSED.
 
-## Appendix: class map (2026-08-30, post D-071; file 595 lines)
+## Appendix: class map (2026-08-30, post D-072; file 603 lines)
 
 | Line | Class / item | Tests |
 |---|---|---|
-| 72 | `DUMMY_DATA` | — |
-| 75 | `CUSTOM_TMP_BASE` (CWD-relative — T6 OPEN) | — |
+| 71 | `DUMMY_DATA` | — |
+| 75 | `CUSTOM_TMP_BASE` (workspace-root anchored — T6 FIXED) | — |
 | 78 | `DataWithChecksum` (D-071 helper) | — |
 | 89 | `DataWithBrokenChecksum` (D-071 helper) | — |
 | 96 | `checksum_path_for` (D-071 helper) | — |
 | 101 | `BaseCacheTestCase` | — |
 | 118 | `TestChecksumHelpers` | 8 |
-| 176 | `test_sidecar_content_is_bare_hexdigest` (T3) | — |
-| 187 | `TestCacheManagerPipeline` | 13 |
-| 410 | `test_compute_path_returns_data_checksum` (T2) | — |
-| 433 | `test_load_path_returns_data_checksum` (T2) | — |
-| 458 | `test_checksum_method_missing_returns_none` (T2/T1) | — |
-| 479 | `test_checksum_attribute_not_callable_returns_none` (T2) | — |
-| 504 | `test_load_path_checksum_method_raises_recomputes` (T2/V13) | — |
-| 533 | `test_validate_exception_forces_recomputation` (R2) | — |
-| 564 | `test_step2_missing_sidecar_forces_recomputation` (T5) | — |
-| 594 | `unittest.main` guard | — |
+| 126 | `test_binio_sidecar_verifies` (R3, D-072) | — |
+| 133 | `test_legacy_bare_hex_sidecar_still_verifies` (D-072 compat) | — |
+| 154 | `test_verify_checksum_fails_if_sidecar_malformed` (D-072) | — |
+| 185 | `test_sidecar_content_is_binio_format` (T3, D-072) | — |
+| 195 | `TestCacheManagerPipeline` | 13 |
+| 418 | `test_compute_path_returns_data_checksum` (T2) | — |
+| 441 | `test_load_path_returns_data_checksum` (T2) | — |
+| 466 | `test_checksum_method_missing_returns_none` (T2/T1) | — |
+| 487 | `test_checksum_attribute_not_callable_returns_none` (T2) | — |
+| 512 | `test_load_path_checksum_method_raises_recomputes` (T2/V13) | — |
+| 541 | `test_validate_exception_forces_recomputation` (R2) | — |
+| 572 | `test_step2_missing_sidecar_forces_recomputation` (T5) | — |
+| 602 | `unittest.main` guard | — |
