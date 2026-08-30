@@ -205,7 +205,7 @@ class LogisticModel(BaseModel):
         workers: List[Worker] = [
             Worker("CREATED", _created_up, _created_down),
             lm_worker_config(),
-            #lm_worker_positions(),
+            lm_worker_positions(),
             #lm_worker_features(),
             #lm_worker_indexes(),
             #lm_worker_wmaps(),
