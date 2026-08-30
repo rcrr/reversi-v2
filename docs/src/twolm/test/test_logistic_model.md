@@ -3,7 +3,8 @@
 Date: 2026-08-30. One test file: `test_logistic_model.py` (156 lines,
 1 class, 7 test methods — 5 active + 2 muted with a `_` prefix per
 Roberto), added with the module (6bb45fb). **Analysis session 21;
-fix campaign pending Roberto's calls.**
+the source modules' fix batch 1 is applied (D-074) — the TEST batch
+(T1-T6) is still pending Roberto's calls. Test file untouched.**
 
 Suite: **5/0/0 GREEN, no PERF gates.** Fast (~0.009s).
 

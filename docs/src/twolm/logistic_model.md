@@ -3,7 +3,11 @@
 Date: 2026-08-30. Module added by Roberto (6bb45fb, 6-file batch with
 base_model + lm_worker_config + lm_worker_positions +
 rlm_config_schemas + test_logistic_model). **Analysis session 21;
-fix campaign pending Roberto's calls.** Sibling modules
+fix campaign batch 1 applied (D-074): R1 RESOLVED (D-069 rename —
+RLMContext fields + the 2 ported worker call sites), R2 RESOLVED
+(8 annotations → `str | None`, no import), R3 RESOLVED
+(@validate_call, with base_model R1), M1-M4 fixed; M5 NEW and OPEN
+(dead `field` import).** Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
@@ -11,8 +15,8 @@ seguito").
 State per Roberto (intentional, NOT defects):
 - the pipeline is deliberately PARTIAL: of the 15 workers only
   `CREATED` is active; `lm_worker_config` / `lm_worker_positions` are
-  imported (L39-40) but their list entries are commented (L197-198);
-  the other 12 factory imports are commented (L41-52, "Remove
+  imported (L41-42) but their list entries are commented (L207-208);
+  the other 12 factory imports are commented (L43-54, "Remove
   comments when modules are added");
 - the 2 muted tests in test_logistic_model come back "una riga alla
   volta, seguendo lo sviluppo della pipeline".
@@ -24,7 +28,7 @@ Suite: 5/0/0 GREEN (test_logistic_model, 5 active + 2 muted).
 `LogisticModel` is the first concrete **domain facade**: it extends
 `BaseModel` (base_model.md) and wires the generic StateMachine to the
 RLM (Reversi Logistic Model) pipeline. Construction is a 4-step
-recipe (L183-214): (1) validate the domain paths with the plain
+recipe (L183-224): (1) validate the domain paths with the plain
 helpers, (2) build the shared `RLMContext` dataclass, (3) assemble
 the worker list (sentinel + commented factory calls), (4)
 `super().__init__` hands workers + context + verbosity to
@@ -36,7 +40,9 @@ the shared blackboard: 38 fields holding config state + every data
 artifact produced by the (future) workers, grouped by pipeline
 stage (positions → features → indexes → wmaps → design matrix →
 zed → gradient → optimization → dense w → validation → analytics),
-plus the 3 infrastructure callables. The 8 checksum fields
+plus the 3 infrastructure callables (D-069 `*_for_current_level`
+names post D-074/R1, lambda no-op defaults as the pre-injection
+fallback). The 8 checksum fields
 (`*_checksum`) pair with `cache_manager`'s duck-typed
 `compute_sha3_256_hash` flow: workers store the data checksum the
 same way `cache_manager_load_or_compute` returns it.
@@ -45,11 +51,11 @@ same way `cache_manager_load_or_compute` returns it.
 
 | Component | Role |
 |---|---|
-| `_check_config_file_path(str\|Path) -> Path` | Type-check (bare TypeError), `Path(...)` coercion, existence (FileNotFoundError), is-file (FileNotFoundError — see M3). |
+| `_check_config_file_path(str\|Path) -> Path` | Type-check (bare TypeError), `Path(...)` coercion, existence (FileNotFoundError), is-file (IsADirectoryError — fixed in M3). |
 | `_check_base_dir_override(str\|Path) -> Path` | Same pattern; is-dir check raises NotADirectoryError. |
-| `RLMContext(Context)` | `@dataclass`, 38 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 29 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers — see R1 for the name issue). |
+| `RLMContext(Context)` | `@dataclass`, 38 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 29 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers, D-069 `*_for_current_level` names — R1). |
 | `_created_up` / `_created_down` | Level-0 sentinel workers: log ERROR + raise RuntimeError ("should never happen") — the D-059 sentinel made explicit, as planned in the state_machine resolution. |
-| `LogisticModel(BaseModel)` | The facade; 4-step construction (L183-214). |
+| `LogisticModel(BaseModel)` | The facade; 4-step construction (L183-224), `@validate_call`-gated `__init__` (R3). |
 
 ### Pipeline shape (15 levels, per the commented worker list)
 
@@ -67,116 +73,133 @@ probe), zero mismatches.
 
 | # | Fact | Method |
 |---|---|---|
-| V1 | `RLMContext` is a dataclass on a PLAIN (non-dataclass) `Context` base; `config_file_path` is the only no-default field; `use_cache` defaults to None; the 2 injected cache-helper fields carry the PRE-D-069 `_for_next_level` names with lambda no-op defaults; the D-069 `*_for_current_level` names are NOT dataclass fields | dataclasses.fields inspection |
-| V2 | After `LogisticModel(...)`: the context has BOTH `get_cache_file_path_for_next_level` (the no-op lambda — calling it returns None) AND `get_cache_file_path_for_current_level` (the real injected closure) — the D-069 name divergence is live | Live probe |
+| V1 | `RLMContext` is a dataclass on a PLAIN (non-dataclass) `Context` base; `config_file_path` is the only no-default field; `use_cache` defaults to None; the 2 injected cache-helper fields carry the D-069 `*_for_current_level` names with lambda no-op defaults (the pre-injection fallback, D-074/R1) | dataclasses.fields inspection |
+| V2 | After `LogisticModel(...)`: the `*_for_current_level` context attributes ARE the injected closures (the dataclass lambda defaults replaced at init — the same mechanism as `log_event`); no dual-name state remains (D-074/R1) | Live probe (re-run post D-074) |
 | V3 | `model.context is model.sm.context`; verbosity get/set delegates; at init step 0 / "CREATED" | Probe |
 | V4 | Sentinel callables log ERROR then raise RuntimeError on DIRECT call; a bare (non-injected) context runs them safely (no-op log, still raises) | Probe |
-| V5 | `_check_config_file_path`: str/Path → Path; int → TypeError ("Argument config_file_path is not an instance of str or Path"); a directory → FileNotFoundError ("File path is not a file: ...") | Probe |
+| V5 | `_check_config_file_path`: str/Path → Path; int → TypeError ("Argument config_file_path is not an instance of str or Path"); a directory → IsADirectoryError ("File path is not a file: ...") post M3/D-074 | Probe |
 | V6 | `_check_base_dir_override`: str/Path → Path; int → TypeError; a file → NotADirectoryError ("File path is not a directory: ...") | Probe |
 | V7 | 1-worker machine boundaries (the muted tests' preconditions): `move_to_step(1)` → IndexError "Target step 1 is out of bounds."; `move_to_step("POSITIONS")` → ValueError "Worker 'POSITIONS' not found in the pipeline."; `move_to_last()` at step 0 is a no-op | Probe |
-| V8 | `typing.get_type_hints(RLMContext)` → **NameError: name 'Union' is not defined** — the missing import is latent, masked by `from __future__ import annotations` (PEP 563) | Probe |
-| V9 | The 8 `*_checksum` fields: rds, rlm_indexes, wmaps_obj, design_matrix, zed, w, dense_w, vld_rds (all `Union[str, None]`) | dataclasses.fields inspection |
-| V10 | The two ALREADY-PORTED worker call sites use the pre-D-069 names: lm_worker_config.py L102 `ctx.get_cache_file_path_for_next_level()`, lm_worker_positions.py L59 `ctx.get_cache_file_full_path_for_next_level()` — so once those workers are enabled they would resolve to the no-op lambdas and silently get `None` | grep (cross-reference, modules not otherwise analyzed) |
+| V8 | (pre-D-074 state) `typing.get_type_hints(RLMContext)` → **NameError: name 'Union' is not defined** — the missing import was latent, masked by `from __future__ import annotations` (PEP 563); post D-074/R2 the annotations are `str | None` and `get_type_hints` resolves | Probe (pre) + re-check (post) |
+| V9 | The 8 `*_checksum` fields: rds, rlm_indexes, wmaps_obj, design_matrix, zed, w, dense_w, vld_rds (all `str | None` post D-074/R2) | dataclasses.fields inspection |
+| V10 | The two ALREADY-PORTED worker call sites use the D-069 names (D-074/R1): lm_worker_config.py `ctx.get_cache_file_path_for_current_level()`, lm_worker_positions.py `ctx.get_cache_file_full_path_for_current_level()` — they resolve to the real injected closures once the worker entries are enabled | grep (cross-reference, modules not otherwise analyzed) |
 
 ## Issues (R1-R3)
 
-### R1 — D-069 name divergence: RLMContext + the ported workers use the OLD cache-helper names — OPEN, awaiting Roberto's call
+### R1 — D-069 name divergence: RLMContext + the ported workers use the OLD cache-helper names — RESOLVED (D-074, session 21)
 D-069 (state_machine M5) renamed the injected cache helpers to
 `get_cache_file_path_for_current_level` /
 `get_cache_file_full_path_for_current_level` and flagged "two call
 sites in domain modules lm_worker_config + logistic_model to update
-at port". The port did NOT update them: `RLMContext` still declares
+at port". The port did NOT update them: `RLMContext` still declared
 the injected callables under the pre-D-069 `_for_next_level` names
-(L157-158, lambda no-op defaults, "# Injected by StateMachine"), and
-both ported workers call the old names (V10). Today nothing breaks —
-the worker list entries are commented — but the divergence is a
+(lambda no-op defaults, "# Injected by StateMachine"), and both
+ported workers called the old names (V10). Nothing broke yet — the
+worker list entries are commented — but the divergence was a
 **silent-failure trap**: `StateMachine.__init__` injects the real
 closures under the NEW names (state_machine L179/L187, plain
 instance attributes), so a worker running against this context would
 find the no-op lambda under the old name and get `None` for its
-cache path, with no exception. Fix options: (a) rename the 2
-`RLMContext` fields to the D-069 names (the lambda defaults then
-serve as the pre-injection fallback, exactly like `log_event`) AND
-rename the 2 worker call sites — 4 lines total, D-069-compliant, my
-recommendation; (b) keep the old names everywhere and revert the SM
-injection to the old names (against D-069); (c) defer until the
-worker modules are analyzed.
+cache path, with no exception. **Applied (D-074), option (a),
+Roberto-approved:** the 2 `RLMContext` fields renamed to the D-069
+names (the lambda defaults are now the pre-injection fallback under
+the SAME names, exactly like `log_event`) AND the 2 ported worker
+call sites renamed (lm_worker_config `get_cache_file_path_for_
+current_level`, lm_worker_positions `get_cache_file_full_path_for_
+current_level`) — 4 lines total, D-069-compliant. Verified: the
+injected closures bind under the renamed fields, no `for_next_level`
+reference remains in src/; the D-069 follow-up in the state_machine
+doc is marked CLOSED.
 
-### R2 — `Union` is used but never imported — OPEN, awaiting Roberto's call
+### R2 — `Union` is used but never imported — RESOLVED (D-074, session 21)
 `from typing import List, Any, Callable` (L32) has no `Union`, yet 8
-RLMContext fields are annotated `Union[str, None]` (L101, L110,
-L114, L123, L127, L136, L140, L144). It only works because
-`from __future__ import annotations` (L28) makes PEP 563 store
-annotations as unevaluated strings; `typing.get_type_hints(RLMContext)`
-proves the latent NameError (V8). Fix: import `Union` (minimal), or —
-matching the file's own modern style (`Path | None`, `bool | None`) —
-rewrite the 8 annotations as `str | None`.
+RLMContext fields were annotated `Union[str, None]`. It only worked
+because `from __future__ import annotations` (L28) makes PEP 563
+store annotations as unevaluated strings; `typing.get_type_hints
+(RLMContext)` proved the latent NameError (V8, pre-state). **Applied
+(D-074):** matching the file's own modern style (`Path | None`,
+`bool | None`), the 8 annotations were rewritten as `str | None` —
+no import needed; `get_type_hints` now resolves.
 
-### R3 — No `@validate_call` on `LogisticModel.__init__` — OPEN, awaiting Roberto's call
+### R3 — No `@validate_call` on `LogisticModel.__init__` — RESOLVED (D-074, session 21, with base_model R1)
 Same call as base_model.md R1 (decided once, applied to both facades):
-the manual `isinstance` checks raise bare TypeErrors; the house
+the manual `isinstance` checks raised bare TypeErrors; the house
 `@validate_call` gate (D-069 M11 pattern on the SM) would give
-pydantic ValidationErrors + the `str` → `Path` coercion for free
-(the manual `Path(...)` coercion at L66/L76 then becomes belt-and-
-braces for the existence checks).
+pydantic ValidationErrors. **Applied (D-074), Roberto-approved:**
+`@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` on
+`LogisticModel.__init__` AND on `BaseModel.__init__` (pydantic is
+now an import in both modules). Approved behaviour change:
+wrong-typed constructor args (e.g. an `int` config_file_path) now
+raise a pydantic `ValidationError` at the facade boundary instead of
+the manual `TypeError` / the inner SM gate; valid `str` paths are
+unchanged — `arbitrary_types_allowed=True` keeps the manual helpers
+as the single gate for existence/type semantics (the `Path(...)`
+coercion at L68/L78 stays belt-and-braces for the checks that follow
+it).
 
 ## Minor notes (M1-M4)
 
-- **M1** — Comment typo: "Full exploded weigth array" (L139) →
-  "weight".
-- **M2** — `vld__pop_stats` (L147): double underscore, unlike every
-  other vld field (`vld_positions`, `vld_game_values`,
-  `vld_rds_checksum`, `vld_metrics`). Nothing references it yet
-  (the vld workers are not ported), so it is inert for now — but
-  decide: typo for `vld_pop_stats`, or the original repo's name
-  (kept for fidelity)?
-- **M3** — `_check_config_file_path` raises FileNotFoundError for the
-  "path exists but is a directory" case (L69-70); `IsADirectoryError`
-  would be the accurate type (asymmetry with `_check_base_dir_
-  override`'s NotADirectoryError, L80).
-- **M4** — `LogisticModel.__init__` has no docstring (house style:
-  public methods documented — the facade methods in base_model.py
-  all have one-liners).
+- **M1** (FIXED, D-074) — Comment typo: "Full exploded weigth array"
+  → "weight" (now L141).
+- **M2** (FIXED, D-074) — `vld__pop_stats` (now L149): double
+  underscore, unlike every other vld field (`vld_positions`,
+  `vld_game_values`, `vld_rds_checksum`, `vld_metrics`). Roberto:
+  "e' un typo" → renamed `vld_pop_stats`.
+- **M3** (FIXED, D-074) — `_check_config_file_path` raised
+  FileNotFoundError for the "path exists but is a directory" case;
+  now raises `IsADirectoryError` (L71-72) — the accurate type,
+  symmetric with `_check_base_dir_override`'s NotADirectoryError (
+  L81-82).
+- **M4** (FIXED, D-074) — `LogisticModel.__init__` docstring added
+  (L187-191) (house style: public methods documented — the facade
+  methods in base_model.py all have one-liners).
+- **M5** (OPEN, found during the D-074 batch) — Dead import:
+  `field` from `dataclasses` (L30) is imported but never used —
+  `RLMContext` has no `field(...)` members. Roberto's call.
 
 ## Integration notes
 
 - **cache_manager flow**: when the worker entries are uncommented,
   the workers call `cache_manager_load_or_compute(...)` with
   `is_allowed = ctx.use_cache` (lm_worker_positions L60) and the
-  cache paths from the injected helpers — the R1 names are what
-  feed that flow.
+  cache paths from the injected helpers — the D-069
+  `*_for_current_level` names (D-074/R1) are what feed that flow.
 - **cfg precondition**: both injected closures read
   `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` (state_machine
   L172/L184) — `cfg` must be populated by the CONFIG worker before
   any cache call (the closures raise AttributeError otherwise; the
-  lambda no-op fallback under the old names would instead silently
-  return None — the R1 trap).
+  lambda no-op fallback sits under the same names now but is
+  reachable only pre-injection, i.e. on a bare RLMContext).
 - **use_cache**: `lm_worker_config` sets `ctx.use_cache = cfg.use_
   cache` from the config (rlm_config_schemas `use_cache: bool =
   True`), and the CONFIG down path resets it to None (L58/L66) —
   the cache switch is per-run, per the R1 ruling pattern of
   cache_manager (D-071).
 
-## Appendix: line-number reference (2026-08-30, file 214 lines)
+## Appendix: line-number reference (2026-08-30, file 224 lines,
+post D-074)
 
 - `from __future__ import annotations`: L28
-- imports: L30-32 (typing, no Union — R2) · L34 (state_machine) ·
-  L35 (base_model) · L37-52 (worker factories: L39-40 active,
-  L41-52 commented)
-- `__all__`: L55
-- `_check_config_file_path`: L63-71 (Type check L64-65, existence
-  L67-68, is-file L69-70)
-- `_check_base_dir_override`: L73-81 (is-dir L79-80)
-- `RLMContext`: L86 (`@dataclass` L85, docstring L87-90) —
-  `config_file_path` L91, `base_dir_override` L92, `use_cache` L93,
-  `cfg` L98, positions group L101-104, `feature_set` L107, indexes
-  L110-111, wmaps L114-120, design matrix L123-124, zed L127-130,
-  `fg` L133, opt L136-137, dense w L140-141 (typo L139 — M1), vld
-  positions L144-147 (`vld__pop_stats` L147 — M2), `vld_metrics`
-  L150, `analytics_report` L153, injected callables L156-158
-  (legacy names — R1)
-- `_created_up` / `_created_down`: L163-169 (level-0 comment L161)
-- `LogisticModel`: L172 (class docstring L173-176) —
-  `__init__` L178-214: signature L178-181, path validation L184-186,
-  context build L189-192, workers list L195-211 (sentinel L196,
-  commented factory calls L197-210), `super().__init__` L214
+- imports: L30-32 (dataclasses — `field` is dead, M5 · pathlib ·
+  typing) · L34 (pydantic, D-074/R3) · L36 (state_machine) ·
+  L37 (base_model) · L39-54 (worker factories: L41-42 active,
+  L43-54 commented)
+- `__all__`: L57
+- `_check_config_file_path`: L65-73 (type check L66-67, existence
+  L69-70, is-file L71-72 — IsADirectoryError, M3)
+- `_check_base_dir_override`: L75-83 (is-dir L81-82)
+- `RLMContext`: L88 (`@dataclass` L87, docstring L89-92) —
+  `config_file_path` L93, `base_dir_override` L94, `use_cache` L95,
+  `cfg` L100, positions group L103-106, `feature_set` L109, indexes
+  L112-113, wmaps L116-122, design matrix L125-126, zed L129-132,
+  `fg` L135, opt L138-139, dense w L142-143 (comment L141 — M1
+  fixed), vld group L146-149 (`vld_pop_stats` L149 — M2 fixed),
+  `vld_metrics` L152, `analytics_report` L155, injected callables
+  L157-162 (comment L157-159, `log_event` L160, D-069
+  `*_for_current_level` names L161-162 — R1 resolved)
+- `_created_up` / `_created_down`: L167-173 (level-0 comment L165)
+- `LogisticModel`: L176 (class docstring L177-180) —
+  `__init__` L183-224: `@validate_call` L182 (R3), signature
+  L183-186, docstring L187-191 (M4), path validation L193-196,
+  context build L199-202, workers list L205-221 (sentinel L206,
+  commented factory calls L207-220), `super().__init__` L224

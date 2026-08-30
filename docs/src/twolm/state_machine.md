@@ -236,9 +236,11 @@ impossible at construction); V8 restated. Pinned by
   Roberto's call): renamed to
   `get_cache_file_path_for_current_level` /
   `get_cache_file_full_path_for_current_level`. Known follow-up
-  (Roberto): two call sites in the domain modules
-  `lm_worker_config` and `logistic_model` must use the new names
-  when those modules are ported.
+  (Roberto) — CLOSED (D-074, session 21): the 2 ported call sites
+  (lm_worker_config, lm_worker_positions — the actual second call
+  site, not logistic_model) and `RLMContext`'s 2 field names are all
+  renamed to the new names; no `for_next_level` reference remains in
+  src/.
 - **M6** — Cosmetic print drift: `show_event_log` padded step to 4
   digits vs 2 in the live log line; `show_history_of_moves` header
   `Dur (s)` left-14 vs values right-15.6f; no UTC marker on the

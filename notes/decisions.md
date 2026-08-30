@@ -1453,3 +1453,47 @@ D-073 | 2026-08-30 | Analysis of the three new domain modules
         T6 header grammar report-only.
         Suite 5/0/0 GREEN (test_logistic_model); full discover
         468 -> 473 tests, 52 skipped under the gate, GREEN.
+D-074 | 2026-08-30 | logistic_model fix campaign batch 1 (session 21,
+        Roberto: "parti con R1 + R2 + M1 + M2 + M3, per R2 aggiungi
+        la @validate_call. M4: vld__pop_stats e' un typo, deve
+        essere vld_pop_stats") — interpreted as approving R1, R2,
+        R3 (the @validate_call he asks for) and M1-M4 (the vld
+        rename); no test changes (the T1-T6 test batch stays
+        pending). R1 RESOLVED: the 2 RLMContext injected-callable
+        fields renamed _for_next_level -> _for_current_level (the
+        lambda defaults are now the pre-injection fallback under
+        the SAME names the machine injects, like log_event) + the 2
+        already-ported worker call sites renamed (lm_worker_config
+        get_cache_file_path_for_current_level, lm_worker_positions
+        get_cache_file_full_path_for_current_level) — the
+        silently-None cache-path trap is closed; the D-069
+        follow-up in the state_machine doc is marked CLOSED
+        (correction of record: the second call site was always in
+        lm_worker_positions, not logistic_model). R2 RESOLVED: the
+        8 `Union[str, None]` RLMContext annotations modernized to
+        `str | None` (no import added — the file's own style,
+        PEP 563-safe); typing.get_type_hints(RLMContext) now
+        resolves. R3 RESOLVED (with base_model R1 — decided once,
+        applied to both facades): @validate_call(
+        config=ConfigDict(arbitrary_types_allowed=True)) on
+        LogisticModel.__init__ AND BaseModel.__init__ (pydantic is
+        now an import in both); approved behaviour change:
+        wrong-typed constructor args (e.g. int paths) now raise a
+        pydantic ValidationError at the facade boundary instead of
+        the manual TypeError / the inner SM gate; valid str paths
+        unchanged (str stays str until the manual helper coerces to
+        Path + existence checks). M1 "weigth" -> "weight". M2
+        vld__pop_stats -> vld_pop_stats (Roberto: typo). M3
+        directory-as-config now raises IsADirectoryError (was
+        FileNotFoundError; symmetric with the base_dir helper's
+        NotADirectoryError). M4 LogisticModel.__init__ docstring
+        added. NEW finding during the batch: M5 OPEN — dead
+        `field` import (dataclasses.field imported, never used);
+        awaiting Roberto's call. base_model M1 (missing __all__)
+        NOT in the approved scope, stays OPEN. Verified: the
+        injected closures bind under the renamed field names (no
+        dual-name state); int args -> ValidationError; dir-as-
+        config -> IsADirectoryError; no `for_next_level` reference
+        left in src/. Suite 5/0/0 GREEN (test_logistic_model —
+        untouched); full discover 473 tests, 52 skipped under the
+        gate, GREEN.
