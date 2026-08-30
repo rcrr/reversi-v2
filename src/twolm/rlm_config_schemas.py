@@ -47,9 +47,11 @@ __all__ = ['ReversiLogisticModelConfig']
 class RLMBaseConfig(BaseModel):
     properties: dict[str, Any] = Field(default_factory=dict)
 
+StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
+
 class ValidationDataSetConfig(RLMBaseConfig):
     bid: List[NonNegativeInt]
-    status: List[str]
+    status: List[StatusString]
 
 class OptimizationConfig(RLMBaseConfig):
     """
@@ -64,7 +66,17 @@ class OptimizationConfig(RLMBaseConfig):
     log_every_n: int = Field(default=0, ge=0, description="Frequency of logging. 0 = no log, 1 = every iteration.")
     save_every_n: int = Field(default=0, ge=0, description="Frequency of saving checkpoints. 0 = no save.")
     checkpoint_file: Path = Field(..., description="Checkpoint file name used to save optimization status.")
-    
+
+    @model_validator(mode="after")
+    def check_wolfe_constants(self) -> "OptimizationConfig":
+        """Enforce c2 > c1 (the strong-Wolfe condition pair)."""
+        if self.c2 <= self.c1:
+            raise ValueError(
+                f"c2 ({self.c2}) must be greater than c1 ({self.c1}) "
+                "for the strong-Wolfe conditions."
+            )
+        return self
+
 class AnalyticsConfig(RLMBaseConfig):
     """
     Configuration for model analytics report generation.
@@ -88,8 +100,6 @@ class RegabDBConnectionConfig(RLMBaseConfig):
     port: int = 5432
     password: Optional[str] = None
 
-StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
-
 class RegabDataSetConfig(RLMBaseConfig):
     """
     Configuration for a Regab data set, including the database connection and filtering criteria.
@@ -104,18 +114,19 @@ class PatternConfig(RLMBaseConfig):
     Configuration for a pattern, including its name and mask.
     """
     name: str
-    mask: Bitboard = Field(..., description="A 64-bit hex string (16 hex digits), case-insensitive.")
- 
+    mask: Bitboard = Field(..., description="A 64-bit hex string: 16 hex digits, no 0x prefix, case-insensitive.")
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("mask", mode="before")
     @classmethod
     def parse_hex_to_bitboard(cls, h: str) -> Bitboard:
         """
-        Converts a hex string (e.g., '0x0000000000000107') into a Bitboard.
+        Converts a hex string (e.g., '0000000000000107' — 16 digits,
+        no 0x prefix) into a Bitboard.
         """
         return bitboard_from_hex_str(h)
- 
+
     @field_serializer("mask")
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
@@ -125,7 +136,7 @@ class PatternSetConfig(RLMBaseConfig):
     Configuration for a set of patterns, including the name and a list of individual pattern configurations.
     """
     name: str
-    patterns: List[PatternConfig] = []
+    patterns: List[PatternConfig] = Field(default_factory=list)
 
 class MobilityFeatureConfig(RLMBaseConfig):
     """
@@ -141,7 +152,8 @@ class MobilityFeatureConfig(RLMBaseConfig):
     @classmethod
     def parse_hex_to_bitboard(cls, h: str) -> Bitboard:
         """
-        Converts a hex string (e.g., '0x0000000000000107') into a Bitboard.
+        Converts a hex string (e.g., '0000000000000107' — 16 digits,
+        no 0x prefix) into a Bitboard.
         """
         return bitboard_from_hex_str(h)
 
@@ -154,7 +166,7 @@ class MobilitySetConfig(RLMBaseConfig):
     Configuration for a set of mobility features, including the name and a list of individual configurations.
     """
     name: str
-    mobility_features: List[MobilityFeatureConfig] = []
+    mobility_features: List[MobilityFeatureConfig] = Field(default_factory=list)
 
 class FeatureSetConfig(RLMBaseConfig):
     """
@@ -165,7 +177,7 @@ class FeatureSetConfig(RLMBaseConfig):
     mobility_set: Optional[MobilitySetConfig] = None
     pattern_set: Optional[PatternSetConfig] = None
     
-class StatModelConfig(BaseModel):
+class StatModelConfig(RLMBaseConfig):
     """
     Configuration for a statistical model, including the frequency cut-off threshold.
     """

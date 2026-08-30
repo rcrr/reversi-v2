@@ -547,7 +547,10 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
     """
-    Saves the RegabDataSet instance to a binary file and calculates the SHA3-256 checksum.
+    Saves the RegabDataSet instance to a binary file.
+
+    Note: no SHA3-256 sidecar is written by this function — in the
+    pipeline flow the sidecar is written by cache_manager.
 
     Parameters
     ----------

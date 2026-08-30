@@ -30,7 +30,8 @@ from __future__ import annotations
 import numpy as np
 
 from typing import TYPE_CHECKING
-from pathlib import Path
+
+from pydantic import validate_call, ConfigDict
 
 from twolm.state_machine import Worker, Relevance
 from twolm.regab import (
@@ -58,7 +59,7 @@ def _up(ctx: "RLMContext") -> None:
     cache_hit, rds, rds_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = regab_load_data_set_from_file,
+        load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_rds: is_cache_consistent(ctx, cached_rds),
         compute_fn  = lambda: load_from_db(ctx),
@@ -70,7 +71,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.positions = positions
     ctx.game_values = game_values
     ctx.rds_checksum = rds_checksum
-    
+
     ctx.log_event(Relevance.INFO, f"Regab data set object checksum (rds_checksum): {rds_checksum}.")
     ctx.log_event(Relevance.INFO, "Model attributes positions, game_values and rds_checksum have been set.")
 
@@ -86,10 +87,10 @@ def _up(ctx: "RLMContext") -> None:
         'std_dev': std_dev,
         'variance': variance
     }
-    
+
     return
 
-        
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing training game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
@@ -154,9 +155,11 @@ def is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet, *, bid=None, statu
 def load_from_db(ctx: "RLMContext", *, bid=None, status=None) -> RegabDataSet:
     """Extract dataset from the database safely."""
     conn_params = ctx.cfg.regab_data_set.regab_db_connection
-    rc = RegabDBConnection(conn_params.dbname, conn_params.user, conn_params.host)
-    
-    ctx.log_event(Relevance.DEBUG, f"Regab Database connection {(conn_params.dbname, conn_params.user, conn_params.host)} established successfully.")
+    rc = RegabDBConnection(conn_params.dbname, conn_params.user,
+                           conn_params.host, str(conn_params.port),
+                           conn_params.password)
+
+    ctx.log_event(Relevance.DEBUG, f"Regab Database connection {(conn_params.dbname, conn_params.user, conn_params.host, conn_params.port)} established successfully.")
 
     query_params = ctx.cfg.regab_data_set
     if bid is None:
@@ -173,6 +176,7 @@ def load_from_db(ctx: "RLMContext", *, bid=None, status=None) -> RegabDataSet:
         ctx.log_event(Relevance.DEBUG, "Regab Database connection closed successfully.")
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_positions() -> Worker:
     """Factory function that returns the POSITIONS worker instance."""
     return Worker("POSITIONS", _up, _down)

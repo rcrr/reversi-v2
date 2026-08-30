@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the unit tests lm_worker_positions module.
+# How to run the lm_worker_positions unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -35,15 +35,15 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests.
+# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1
+#     skips the DB-gated tests, as in test_regab).
 #
-# time PERF=0 python3 -m unittest twolm.test.test_lm_worker_positions
+# time python3 -m unittest twolm.test.test_lm_worker_positions
 #
 
 import unittest
-import sys
+import os
 import tempfile
-import shutil
 
 from unittest.mock import patch
 from io import StringIO
@@ -53,55 +53,71 @@ from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 
 
+# T1 (D-080): the D-065 idiom — test artifacts ONLY under
+# <workspace-root>/build/tmp, anchored via __file__ (not CWD).
+CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
+
+
 
 class TestLMWorkerPositions(unittest.TestCase):
     """Tests for the POSITIONS worker basic movements and DB/Cache interactions."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
+        # T2 (D-080): the SKIP_REGAB_DB gate, as in test_regab —
+        # both tests need the live regab DB.
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
         self.json_config = 'src/twolm/test/data/rlm_00.json'
-        
+
         # Instance 1: Will populate the cache
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
-        
+
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
         self.rlm.move_to_step('CONFIG')
         self.assertEqual(self.rlm.current_step, 1)
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_read_db_and_populate_cache(self):
         """First run should hit the DB, extract data, and create the cache file."""
         self.rlm.move_to_step('POSITIONS')
         self.assertEqual(self.rlm.current_step, 2)
         self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
-        
+
         # Verify cache files were actually created on disk
-        cache_file = Path(self.tmp_dir) / 'rlmwf_02_POSITIONS.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_02_POSITIONS.dat.SHA3-256'
+        cache_file = self.tmp_dir / 'rlmwf_02_POSITIONS.dat'
+        checksum_file = self.tmp_dir / 'rlmwf_02_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
-        
+
         # Check logs to confirm DB was hit
         logs = self.mock_stdout.getvalue()
         self.assertIn("Extracted", logs)
         self.assertIn("positions from the database.", logs)
 
-        if False:
-            sys.__stdout__.write(logs)
-
     def test_read_cache_on_new_instance(self):
         """A second instance should read from the cache and NOT hit the DB."""
-        
+
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('POSITIONS')
         self.assertEqual(self.rlm.current_step, 2)
@@ -110,26 +126,24 @@ class TestLMWorkerPositions(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('CONFIG') # Reach the step before POSITIONS
-        
+        rlm2.move_to_step('CONFIG')  # Reach the step before POSITIONS
+
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
         self.mock_stdout.truncate(0)
-        
+
         # 3. Move to POSITIONS in the second instance
         rlm2.move_to_step('POSITIONS')
         self.assertEqual(rlm2.current_step, 2)
-        
+
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()
         self.assertIn("Cache successfully loaded and validated", logs)
-        
+
         # And confirm DB was NOT hit
         self.assertNotIn("Extracted", logs, "DB was queried even though a valid cache existed.")
         self.assertNotIn("established successfully", logs, "DB connection was opened even though a valid cache existed.")
 
-        if False:
-            sys.__stdout__.write(logs)
 
 if __name__ == '__main__':
     unittest.main()
