@@ -89,8 +89,9 @@ L168, L176):
 - `context.log_event = self.log_event` (bound method of this machine);
 - `context.get_cache_file_path_for_current_level` (renamed from
   `..._for_next_level`, M5, D-069) —
-  `Path(cfg.cache_files_prefix) / f"{level:02}_{name}.dat"`
-  (pathlib join, M8, D-069) with `level = current_step`, i.e. the
+  `Path(f"{cfg.cache_files_prefix}{level:02}_{name}.dat")`
+  (filename-prefix concatenation, D-078 — replaces the D-069 M8
+  pathlib join) with `level = current_step`, i.e. the
   **currently executing** worker;
 - `context.get_cache_file_full_path_for_current_level` —
   `cfg.base_dir / <that path>`.
@@ -261,14 +262,19 @@ impossible at construction); V8 restated. Pinned by
   large domain data and are excluded). Pinned by
   `test_worker_repr` + `test_state_machine_repr_tracks_state`.
   `LogEntry` has the dataclass `__repr__` (D-058).
-- **M8** — Cache-helper contract — RESOLVED (D-069, hardening):
-  the prefix is now joined with pathlib
-  (`Path(prefix) / f"{level:02}_{name}.dat"`) instead of
-  f-string-concatenated, so a prefix without a trailing separator
-  (a str without '/', or ANY `Path`) can no longer silently glue
-  the level name onto it (`'cache'` → `cache/01_CONFIG.dat`, not
-  `cache01_CONFIG.dat`); pinned by
-  `test_path_cache_prefix_joins_without_gluing`. Remaining
+- **M8** — Cache-helper contract — RESOLVED (D-069, hardening),
+  then REPLACED (D-078): D-069 made the prefix a pathlib join
+  (`Path(prefix) / f"{level:02}_{name}.dat"` — no silent gluing);
+  D-078 (the RLM domain showed `cache_files_prefix` is a
+  *filename* prefix — "Filename prefix for the level specific
+  cache files" — so the join turned "rlmwf_" into a directory
+  component and broke every cache-consuming worker) changed the
+  closure to verbatim filename-prefix concatenation
+  (`Path(f"{prefix}{level:02}_{name}.dat")`): a bare prefix now
+  glues (`'cache'` → `cache01_CONFIG.dat`), a directory-like
+  prefix must end with a separator (`'cache/'` →
+  `cache/01_CONFIG.dat`, as in the other pinned tests); re-pinned
+  by `test_cache_prefix_is_concatenated_verbatim`. Remaining
   contract (documented, V9): `context.cfg` must carry
   `cache_files_prefix` + `base_dir` (bare `getattr`, no default);
   an absolute `cache_files_prefix` still silently drops `base_dir`

@@ -84,8 +84,9 @@ $ python -m unittest twolm.test.test_logistic_model
     the cache helpers return None, `log_event()` does nothing.
   - `test_injected_cache_helper_computes_the_worker_path`: with a
     dummy `cfg` (SimpleNamespace), the injected closures compute
-    `cache/00_CREATED.dat` and `base/cache/00_CREATED.dat` (the
-    pathlib join of D-069 M8 through the facade context).
+    `cache00_CREATED.dat` and `base/cache00_CREATED.dat` (the
+    filename-prefix concatenation of D-078 through the facade
+    context — re-pinned from the D-069 M8 pathlib join).
   - `test_created_sentinel_workers_raise`: direct calls to
     `_created_up`/`_created_down` raise the pinned RuntimeErrors
     ("Executing/Cleaning created step should never happen." — the
@@ -170,7 +171,8 @@ file-as-base_dir → NotADirectoryError); (d) the
 artifact). **Applied (D-075):** 7 new tests — (a) the injected
 closures' `__name__`s + `log_event` identity, the bare-context
 no-op-lambda fallback, and the path computation through a dummy
-`cfg` (`cache/00_CREATED.dat`, `base/cache/00_CREATED.dat`); (b)
+`cfg` (`cache00_CREATED.dat`, `base/cache00_CREATED.dat` —
+re-pinned D-078 from the D-069 M8 join); (b)
 both sentinels' pinned RuntimeError messages; (c) both helpers'
 edge branches; (d) the CSV pass-through (header-only file, header
 pinned, artifact under the build/tmp temp dir).

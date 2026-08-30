@@ -78,3 +78,16 @@ I-010 | follow-up | Redesign of the StateMachine context injection
         evaluated once all the domain modules are in the workspace
         and their call patterns are visible: an explicit machine
         reference, or context-owned helpers.
+
+I-011 | idea | "Storicizzazione" of the JSON config used to generate a
+        model (raised 2026-08-30, session 21, D-077 R1 discussion):
+        Roberto questions whether the CONFIG step needs a CACHE at
+        all — the cache_manager-style load-or-compute flow does not
+        fit a JSON file. The real need may be a STORICIZZAZIONE:
+        keeping (with history) a copy of the JSON config that
+        generated a given model, as an audit/stability artifact of
+        the run — distinct from a recomputable cache. D-078 keeps
+        the current ad-hoc behaviour (write-if-changed, checksummed
+        flat files) as-is; to be evaluated WHEN THE FULL PIPELINE IS
+        COMPLETE, together with the cache-flow consistency question
+        (bare-hex vs binio sidecar, the proven read asymmetry).

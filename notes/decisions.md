@@ -1651,3 +1651,84 @@ D-077 | 2026-08-30 | lm_worker_config analysis (session 21,
         None); T4 the bare-hex sidecar format unpinned (or
         replace if R1 changes it); T5 header grammar + T6 mtime
         coarseness (report-only).
+D-078 | 2026-08-30 | lm_worker_config fix campaign (session 21,
+        Roberto's calls on D-077: "R1: Non cambiamo il
+        funzionamento. Quando tutta la pipeline e' completa, questo e'
+        un punto da rivedere. la cache costruita dalla libreria
+        cache_manager, non va bene per il file JSON. Lo step config
+        non ha bisogno di una cache. Forse voglio una
+        'storicizzazione' del file JSON usato per generare un
+        modello. R2: si ok e' da sistemare, ma perche' continua ad
+        uscire? la dobbiamo sistemare in tutti i worker??? R3: OK
+        cambiali con quelli corretti. M1-M5: OK. T1-T6: OK."):
+        R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays
+        untouched (hashlib + manual verify + bare-hex sidecar,
+        unconditional write); the cache_manager/binio standard
+        revisited only when the full pipeline is complete; the
+        "storicizzazione" idea (keep a historical copy of the JSON
+        config that generated a model — audit artifact, not a
+        recomputable cache) recorded at I-011; M5 therefore closed
+        as keep (the hashlib import stays). R2 RESOLVED AT MACHINE
+        LEVEL (answer to Roberto's "perche' continua ad uscire":
+        the problem lived in the ONE shared injected closure that
+        every cache-consuming worker calls, so it would have recurred
+        in every worker — fixed once instead):
+        state_machine._get_cache_file_path now CONCATENATES the
+        prefix onto the level name (Path(f"{prefix}{level:02}_
+        {name}.dat")) instead of pathlib-joining it — the domain's
+        cache_files_prefix is a filename prefix per the schema, so
+        "rlmwf_" + "01_CONFIG.dat" = flat "rlmwf_01_CONFIG.dat";
+        a directory-like prefix must end with a separator; this
+        REPLACES the D-069 M8 join decision; the lm_worker_config
+        per-worker concatenation of D-076 was replaced by a direct
+        use of the injected full-path closure (uniform with
+        lm_worker_positions — the rlmwf_/02_POSITIONS.dat
+        subdirectory + no-mkdir trap is gone before POSITIONS is
+        enabled). Re-pinned: test_state_machine
+        test_path_cache_prefix_joins_without_gluing →
+        test_cache_prefix_is_concatenated_verbatim (bare prefix
+        'cache' glues to 'cache01_CONFIG.dat'); test_logistic_model
+        T4 corner (cache00_CREATED.dat / base/cache00_CREATED.dat).
+        The other 3 pinned prefix tests are byte-identical under
+        concatenation (they use trailing-separator or absolute
+        prefixes). R3 FIXED — _validate_base_dir raises the precise
+        OS types: FileNotFoundError ("doesn't exist"),
+        NotADirectoryError ("is not a directory"), PermissionError
+        ("is not writable"); messages unchanged; the not-writable
+        test updated to PermissionError. M1-M5 FIXED — M1: the
+        DEBUG log prints ctx.config_file_path, not the file object
+        repr; M2: "stored to cache file." logged AFTER
+        _store_to_file; M3: trailing whitespace removed (L91/L96);
+        M4: @validate_call(config=ConfigDict
+        (arbitrary_types_allowed=True)) on the public factory
+        lm_worker_config() (house convention D-068 M11); M5: keep
+        (per R1). T1-T6: T1 FIXED — the D-065 idiom on all 4
+        classes (CUSTOM_TMP_BASE = Path(__file__).resolve().
+        parents[3] / "build" / "tmp" + setUpClass mkdir +
+        tempfile.TemporaryDirectory FIRST in setUp + defensive
+        tearDown; the dead shutil import removed; a stray per-test
+        tempfile.mkdtemp(dir='./build/tmp') inside
+        test_base_dir_is_a_file_raises_error removed — it leaked
+        tmp dirs every run, found via build/tmp leftovers); T2
+        FIXED — the bare-Exception pin replaced with ValueError
+        (note: json5 0.15.0 raises a plain ValueError on a syntax
+        error — the module has NO JSON5Exception attribute in this
+        version, so the originally proposed JSON5Exception pin was
+        not usable); T3 FIXED — the _down reset pinned (cfg is
+        None / use_cache is None in test_move_down); T4 FIXED —
+        the bare-hex sidecar format pinned (content ==
+        sha3_256(.dat bytes) hexdigest, no binio basename column);
+        T5/T6 report-only, unchanged. During the batch: the first
+        not-writable-test rewrite (a read-only CHILD dir +
+        addCleanup chmod-revert) FAILED — in CPython 3.12 the
+        addCleanup callbacks run AFTER tearDown, so the revert hit
+        a dir the TemporaryDirectory had already deleted
+        (FileNotFoundError, no visible frames) — reverted to
+        Roberto's original structure (the tmp dir itself is the
+        read-only one, chmod-restore in tearDown). Suite:
+        test_lm_worker_config 14/0/0, test_state_machine 49/0/0,
+        test_logistic_model 14/0/0; full discover 496 tests, 52
+        skipped under SKIP_REGAB_DB=1, GREEN; build/tmp clean; the
+        35-check probe (scratch/verify_lm_worker_config.py, D1-D3
+        re-pinned to the R3 types) re-run: 0 mismatches. Code
+        commit d6a850e.

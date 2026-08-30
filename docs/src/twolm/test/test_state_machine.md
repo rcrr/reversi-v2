@@ -89,7 +89,7 @@ $ python -m unittest twolm.test.test_state_machine
 | `test_worker_repr` (D-068) | `repr(workers[1]) == "Worker('CONFIG')"` (M7). |
 | `test_state_machine_repr_tracks_state` (D-068) | `repr(sm)` is the compact state summary `workers=3, current_step=0, verbosity=STANDARD`, tracks `current_step` after a move, and reflects a custom verbosity by name (`NONE`); context/logs/history are not in it (M7). |
 | `test_csv_export_creates_missing_parent_dirs` (D-068) | A nested filename under `build/tmp` (parents absent) is created by the export; header + 1 row verified; artifact and its dirs removed in `finally` (M10; D-065 house rule). |
-| `test_path_cache_prefix_joins_without_gluing` (D-069) | A `Path("cache")` prefix (no trailing slash) is joined with pathlib — `cache/01_CONFIG.dat` and `base/cache/01_CONFIG.dat`, no silent gluing (M8). |
+| `test_cache_prefix_is_concatenated_verbatim` (D-069, re-pinned D-078) | A `Path("cache")` prefix (no trailing slash) is concatenated verbatim onto the level name — `cache01_CONFIG.dat` and `base/cache01_CONFIG.dat`; a directory-like prefix must end with a separator (D-078 replaced the D-069 M8 join). |
 
 ### `TestLogEntry` (3 tests, added D-058)
 
@@ -198,7 +198,11 @@ so a prefix without a trailing separator silently glued the level
 name onto it (any `Path` prefix, since `str(Path)` drops the
 trailing slash) — recorded in M8 (module doc); FIXED in D-069 with
 the pathlib join + `test_path_cache_prefix_joins_without_gluing`
-(8th test).
+(8th test). D-078 reversed the D-069 join (the RLM domain's
+`cache_files_prefix` is a *filename* prefix, so the join broke the
+real workers): the test was renamed
+`test_cache_prefix_is_concatenated_verbatim` and re-pinned to the
+verbatim concatenation (`cache01_CONFIG.dat`).
 
 ### T3 — stdout is patched but never asserted (P1) — FIXED (D-063)
 `setUp` patches `sys.stdout` globally, yet no test inspects the

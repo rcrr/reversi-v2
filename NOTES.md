@@ -41,17 +41,17 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_regab.py | analyzed 2026-08-29 (session 15); T5+T6+T7 applied (D-052): dead imports removed, SKIP_REGAB_DB gate, 4 SQL-injection tests added (TestRegabGPAsDF 12 → 16); suite 33 → 37/0/0 GREEN | docs/src/twolm/test/test_regab.md |
 | src/twolm/opt_lbfgs.py | analyzed 2026-08-29 (session 16); T1-T7 fix batch applied (D-053: RuntimeException → RuntimeError hard bug, CURVATURE_THRESHOLD used, low_progress_count spelling, hermite None fallthrough, save_fn 7-param hint+docstring, fractional docstring); 5 verified facts V1-V5 (0 mismatches); suite 13/0/0 GREEN | docs/src/twolm/opt_lbfgs.md |
 | src/twolm/test/test_opt_lbfgs.py | analyzed 2026-08-29 (session 16); T7 applied + 9 new tests (D-053): TestLBFGSInputValidation (3), TestFixedSizeMaxList (4, incl. T1 regression), TestTwoLoopRecursion (2); suite 4 → 13/0/0 GREEN | docs/src/twolm/test/test_opt_lbfgs.md |
-| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4 RESOLVED (D-060: keep + document + pin — failure semantics in move_to_step docstring, recovery = move to k-1 (k's down) then up; machine domain-agnostic, exception re-raised for the domain worker; pinned by test_retry_after_failure_skips_failed_step, closes T6); R5 RESOLVED (D-061: __init__ rejects duplicate worker names, case-insensitive ValueError fail-fast — the real ambiguity was name resolution in move_to_step itself, so uniqueness enforced instead of an index fix; move_to_last unchanged, name dispatch now unambiguous; closes M12); T2 coverage added (D-062: TestContextInjection 7 tests; M8 extended with the implicit separator contract); T3 coverage added (D-063: TestDisplayGoldens 3 end-to-end display goldens, frozen clock); T4 coverage added (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 fixed (D-065: CSV test rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp; new house rule: test files only in workspace_root/build/tmp, removed afterwards); T7 pinned (D-066: 2 tests — bool accepted as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 applied (D-068: M1 dead Any import removed, M4 _run_step direction dispatch explicit (elif 'down' + ValueError), M7 __repr__ on Worker + StateMachine (lightweight), M10 CSV export creates missing parent dirs); M-sweep batch 2 applied (D-069: M3 bool rejected — strict gate, TypeError same message, test rewritten to rejection; M5 cache helpers renamed *_for_current_level (the 2 ported domain call sites + RLMContext's 2 field names renamed D-074 — follow-up closed); M8 cache prefix pathlib join — no more silent gluing; M11 @validate_call on Worker init/up/down + SM init/log_event/export + move_to_step via strict private impl re-raising the pinned TypeError; pydantic now a module dep, already in pyproject); ALL T ITEMS CLOSED; M-sweep COMPLETE (D-068: M1, M4, M7, M10; D-069: M3, M5, M8, M11; D-070: M6 print cleanup — enum names + UTC marker on the live line, UTC header / 2-digit step / RELEVANCE name column / 66-underscore rule, right-aligned Dur (s), 3 display goldens rewritten in place; M9 left as-is — injection load-bearing, redesign parked at I-010); suite 49/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
-| src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 5 classes / 49 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T6 FIXED (D-060: test_retry_after_failure_skips_failed_step — retry-skip + down-then-up recovery); R5 tests added (D-061: 2 duplicate-name tests — reject + case-insensitive, closes T10); T2 FIXED (D-062: TestContextInjection 7 tests — log_event live binding, {level:02} format, base_dir join, absolute-prefix drops base_dir, cfg-missing AttributeError, empty-workers degenerate, V17 shared-context re-bind); T3 FIXED (D-063: TestDisplayGoldens 3 end-to-end goldens — live line, show_event_log table, show_history_of_moves table, frozen clock); T4 FIXED (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 FIXED (D-065: test_history_export_csv rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp + finally cleanup; house rule: test files only in workspace_root/build/tmp); T7 pinned (D-066: 2 tests — bool as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 pinned (D-068: 4 tests — _run_step unknown direction ValueError, Worker __repr__, StateMachine __repr__ tracks state, CSV export creates missing parent dirs); M-sweep batch 2 pinned (D-069: bool test rewritten to rejection + 2 constructor ValidationError tests + Path prefix join test); M6 display goldens rewritten in place to the cleaned format (D-070 — enum names + UTC marker, TIMESTAMP (UTC) / 2-digit step / RELEVANCE name / 66-underscore table, right-aligned Dur (s) header; suite count unchanged); T11 resolved as D-058 side effect; ALL T ITEMS CLOSED (T1-T11); M-sweep COMPLETE; suite count unchanged for T5 (a rewrite): 13 → 15 → 18 → 20 → 22 → 29 → 32 → 35 → 37 → 42 → 46 → 49, GREEN 49/0/0 | docs/src/twolm/test/test_state_machine.md |
+| src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4 RESOLVED (D-060: keep + document + pin — failure semantics in move_to_step docstring, recovery = move to k-1 (k's down) then up; machine domain-agnostic, exception re-raised for the domain worker; pinned by test_retry_after_failure_skips_failed_step, closes T6); R5 RESOLVED (D-061: __init__ rejects duplicate worker names, case-insensitive ValueError fail-fast — the real ambiguity was name resolution in move_to_step itself, so uniqueness enforced instead of an index fix; move_to_last unchanged, name dispatch now unambiguous; closes M12); T2 coverage added (D-062: TestContextInjection 7 tests; M8 extended with the implicit separator contract); T3 coverage added (D-063: TestDisplayGoldens 3 end-to-end display goldens, frozen clock); T4 coverage added (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 fixed (D-065: CSV test rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp; new house rule: test files only in workspace_root/build/tmp, removed afterwards); T7 pinned (D-066: 2 tests — bool accepted as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 applied (D-068: M1 dead Any import removed, M4 _run_step direction dispatch explicit (elif 'down' + ValueError), M7 __repr__ on Worker + StateMachine (lightweight), M10 CSV export creates missing parent dirs); M-sweep batch 2 applied (D-069: M3 bool rejected — strict gate, TypeError same message, test rewritten to rejection; M5 cache helpers renamed *_for_current_level (the 2 ported domain call sites + RLMContext's 2 field names renamed D-074 — follow-up closed); M8 cache prefix pathlib join — no more silent gluing; M11 @validate_call on Worker init/up/down + SM init/log_event/export + move_to_step via strict private impl re-raising the pinned TypeError; pydantic now a module dep, already in pyproject); ALL T ITEMS CLOSED; M-sweep COMPLETE (D-068: M1, M4, M7, M10; D-069: M3, M5, M8, M11; D-070: M6 print cleanup — enum names + UTC marker on the live line, UTC header / 2-digit step / RELEVANCE name column / 66-underscore rule, right-aligned Dur (s), 3 display goldens rewritten in place; M9 left as-is — injection load-bearing, redesign parked at I-010); D-078 (the lm_worker_config R2 fix, at machine level): the injected cache-path closure now concatenates the prefix verbatim onto the level name (filename-prefix semantics per the domain schema — one shared fix for all cache-consuming workers) instead of the D-069 M8 pathlib join; suite 49/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
+| src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 5 classes / 49 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T6 FIXED (D-060: test_retry_after_failure_skips_failed_step — retry-skip + down-then-up recovery); R5 tests added (D-061: 2 duplicate-name tests — reject + case-insensitive, closes T10); T2 FIXED (D-062: TestContextInjection 7 tests — log_event live binding, {level:02} format, base_dir join, absolute-prefix drops base_dir, cfg-missing AttributeError, empty-workers degenerate, V17 shared-context re-bind); T3 FIXED (D-063: TestDisplayGoldens 3 end-to-end goldens — live line, show_event_log table, show_history_of_moves table, frozen clock); T4 FIXED (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 FIXED (D-065: test_history_export_csv rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp + finally cleanup; house rule: test files only in workspace_root/build/tmp); T7 pinned (D-066: 2 tests — bool as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 pinned (D-068: 4 tests — _run_step unknown direction ValueError, Worker __repr__, StateMachine __repr__ tracks state, CSV export creates missing parent dirs); M-sweep batch 2 pinned (D-069: bool test rewritten to rejection + 2 constructor ValidationError tests + Path prefix join test); M6 display goldens rewritten in place to the cleaned format (D-070 — enum names + UTC marker, TIMESTAMP (UTC) / 2-digit step / RELEVANCE name / 66-underscore table, right-aligned Dur (s) header; suite count unchanged); T11 resolved as D-058 side effect; ALL T ITEMS CLOSED (T1-T11); M-sweep COMPLETE; suite count unchanged for T5 (a rewrite): 13 → 15 → 18 → 20 → 22 → 29 → 32 → 35 → 37 → 42 → 46 → 49; D-078: test_path_cache_prefix_joins_without_gluing renamed test_cache_prefix_is_concatenated_verbatim + re-pinned to verbatim concatenation (cache01_CONFIG.dat), count unchanged; GREEN 49/0/0 | docs/src/twolm/test/test_state_machine.md |
 | src/twolm/cache_manager.py | analyzed 2026-08-30 (session 20, added by Roberto in commit a0cd31f) + fix campaign batches 1+2 (D-071/D-072): generic load-or-compute cache pipeline (4-step validation: allowed → present → checksum → business validity) + duck-typed data checksum + injected callbacks; first domain module importing state_machine (Relevance) + binio (sidecar API, D-072); 17 verified facts V1-V17 (0 mismatches, 33-check probe + 2 boundary probes); D-071: R1 RESOLVED as intentional (step-0 cache-disabled run still warms the cache file — documented + pinned), R2 FIXED (validate_fn in the step-3 try — raising validator deletes + recomputes), R4 FIXED (@validate_call, str→Path coercion, approved behaviour change), M1-M3 fixed (dead Any import, docstring typos, step-2 msg accurate); D-072: R3 RESOLVED — binio sidecar API adopted (hashlib + the 2 re-implemented helpers deleted, _verify_checksum thin wrapper over verify_sha3_256_sidecar, sidecar now binio sha3_256sum format, legacy bare-hex sidecars still verify); CLOSED: R1-R4 + M1-M3 + T1-T7 resolved (T8 report-only); suite 21/0/0 GREEN (test_cache_manager.py) | docs/src/twolm/cache_manager.md |
 | src/twolm/test/test_cache_manager.py | analyzed 2026-08-30 (session 20) + fix campaign batches 1+2 (D-071/D-072): 2 classes / 21 tests / no PERF (13 → 21 batch 1: T2 5 duck-typed-hash tests + R2 raising-validator pin + T5 missing-sidecar pipeline test + T3 sidecar-format test; 21 → 21 batch 2); D-071: T1 (assertIsNone on all 6 pipeline tests), T2 (P0 — the duck-typed compute_sha3_256_hash path: with-method both paths, missing → None, non-callable → None, raising on load → recompute), T3 (sidecar format pin), T4 (step-0 on-disk warm-cache effect, per R1 ruling), T5, T7 (on-disk replacement + valid sidecar after every recompute) FIXED; D-072: T6 FIXED (CUSTOM_TMP_BASE anchored to the workspace root via __file__), T3 pin restated to the binio sha3_256sum format, helper suite rebuilt around the binio API (R3 + legacy-compat + malformed/undecodable wrapper pins added, 2 direct-compute tests dropped), pipeline set-ups on write_sha3_256_sidecar; T8 report-only (header grammar); suite 21/0/0 GREEN | docs/src/twolm/test/test_cache_manager.md |
 | src/twolm/base_model.py | analyzed 2026-08-30 (session 21): thin facade base over StateMachine — pure delegation (current_step / current_worker_name / verbosity get+set, move_to_step / move_to_last, 2 display methods, CSV export); context identity with sm.context + delegation verified (30-check probe, 0 mismatches); D-074 (batch 1): R1 RESOLVED — @validate_call on __init__ (the one decision with logistic_model R3, applied to both facades; approved behaviour change: wrong-typed constructor args now raise a pydantic ValidationError at the facade boundary); D-075 (batch 2): M1 FIXED — __all__ = ['BaseModel'] added (L39, D-068 M1 pattern; 89 lines); M2 docstring forward-references not-yet-ported DeepNetworkModel (informational, kept by design); ALL R/M CLOSED; no dedicated suite (covered via test_logistic_model) | docs/src/twolm/base_model.md |
 | src/twolm/logistic_model.py | analyzed 2026-08-30 (session 21): first concrete domain facade — RLMContext (@dataclass over plain Context; 38 fields, 8 *_checksum, artifact blackboard) + LogisticModel 4-step construction (plain path validation → context → 15-level worker list, deliberately partial per Roberto: 1 active sentinel + 2 imported-but-commented + 12 commented) + level-0 CREATED sentinel (D-059 made explicit); 10 verified facts V1-V10 (30-check probe, 0 mismatches); OPEN: R1 D-069 name divergence (RLMContext + both ported workers on the pre-D-069 _for_next_level names; SM injects _for_current_level — silently-None trap once enabled), R2 Union used (8 annotations) but not imported (latent NameError, PEP 563 mask), R3 no @validate_call on __init__ (one call with base_model R1), M1-M4 (weigth typo, vld__pop_stats double underscore, dir-as-config exception type, __init__ docstring); D-074 (batch 1): R1-R3 RESOLVED (D-069 rename — 2 RLMContext fields + 2 ported worker call sites; 8 annotations → str | None; @validate_call with base_model R1), M1-M4 fixed (weight, vld_pop_stats, IsADirectoryError, docstring); D-075 (batch 2): M5 FIXED (dead `field` import removed); ALL R/M CLOSED; D-076 (Roberto): `lm_worker_config()` uncommented — the pipeline is now 2 active levels (CREATED sentinel + CONFIG); suite 14/0/0 GREEN (test_logistic_model.py, D-076 restored test) | docs/src/twolm/logistic_model.md |
 | src/twolm/test/test_logistic_model.py | analyzed 2026-08-30 (session 21): 1 class / 15 methods post D-076 (14 active + 1 muted per Roberto — restored line-by-line with the pipeline; D-076: Roberto restored test_move_to_step_delegates_to_state_machine, the CONFIG level now exists; `_test_move_to_step_by_string` still muted — comes back with POSITIONS); D-075 test campaign: T1 FIXED (smoke test replaced by per-method delegation pins + views/verbosity round-trip), T2 FIXED (build/tmp artifact base, D-065 idiom, defensive tearDown), T3 intentional (muted tests), T4 FIXED (7 corner tests — injected-closure names/fallback/path computation, sentinel RuntimeErrors, helper edge branches, CSV pass-through), T5 FIXED (dead Relevance import removed), T6 report-only; suite 14/0/0 GREEN | docs/src/twolm/test/test_logistic_model.md |
-| src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 RuntimeError gates) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4)); 35-check probe, 0 mismatches; D-076 fixed its cache naming (prefix concatenation, not pathlib join) + the SM gate split it exposed; OPEN: R1 (ad-hoc cache flow vs D-072 cache_manager/binio standard — proven sidecar asymmetry, unconditional write, use_cache never consulted), R2 (prefix-semantics cross-ref — lm_worker_positions latent), R3 (RuntimeError vs precise OS types), M1-M5; suite 14/0/0 GREEN (test_lm_worker_config.py) | docs/src/twolm/lm_worker_config.md |
-| src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077): 4 classes / 14 tests / no PERF (Roberto's new file); D-076: 2 path typos py/→src/ + schema-complete validation payload; OPEN: T1 (CWD-relative mkdtemp, D-065 idiom), T2 (bare-Exception pin), T3 (_down reset unpinned), T4 (bare-hex sidecar format unpinned), T5/T6 report-only; suite 14/0/0 GREEN | docs/src/twolm/test/test_lm_worker_config.md |
+| src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto's calls): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 precise OS exception types, R3 fixed) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4), via the injected full-path closure); 35-check probe, 0 mismatches (re-run post D-078); D-076 fixed its cache naming + the SM gate split it exposed; D-078: R2 RESOLVED AT MACHINE LEVEL (closure concatenates the prefix verbatim — replaces the D-069 M8 join; the worker's per-worker concatenation replaced by the full-path closure), R3 precise OS types (FileNotFoundError/NotADirectoryError/PermissionError, messages unchanged), M1-M5 fixed (M5 keep per R1); R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays until the full pipeline is complete (I-011 "storicizzazione"); suite 14/0/0 GREEN (test_lm_worker_config.py) | docs/src/twolm/lm_worker_config.md |
+| src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto: "T1-T6: OK"): 4 classes / 14 tests / no PERF (Roberto's new file); D-076: 2 path typos py/→src/ + schema-complete validation payload; D-078: T1 FIXED (D-065 idiom on all 4 classes; dead shutil import removed; a stray per-test mkdtemp in the a-file test removed — it leaked dirs), T2 FIXED (ValueError — json5 0.15.0 raises a plain ValueError, no JSON5Exception in this version), T3 FIXED (_down reset pinned: cfg/use_cache None), T4 FIXED (bare-hex sidecar format pinned); the not-writable test updated to PermissionError (R3); T5/T6 report-only; suite 14/0/0 GREEN | docs/src/twolm/test/test_lm_worker_config.md |
 | src/twolm/test/data/rlm_00.json | test data (session 21, Roberto): JSON5 config fixture (comment header — json5 load-bearing, D-076; base_dir placeholder "will/be/overwritten/by/python/during/unittesting", use_cache True, cache_files_prefix rlmwf_) | — |
-| src/twolm/lm_worker_positions.py | queued for analysis (Roberto session 21: "Lo faremo in seguito"); D-074 cross-reference change: L59 cache-helper call site renamed to the D-069 name (with RLMContext, part of logistic_model R1); D-077 latent: L58-59 passes the full-path closure result (rlmwf_/02_POSITIONS.dat subdirectory form) into cache_manager which does no mkdir — same ENOENT on first write | — |
+| src/twolm/lm_worker_positions.py | queued for analysis (Roberto session 21: "Lo faremo in seguito"); D-074 cross-reference change: L59 cache-helper call site renamed to the D-069 name (with RLMContext, part of logistic_model R1); D-077 latent (L58-59 passes the full-path closure result into cache_manager, which does no mkdir) CROSSED OUT by D-078 at machine level — the closure now concatenates (flat rlmwf_02_POSITIONS.dat), so the subdirectory ENOENT trap is gone before the worker is enabled; to re-verify in its analysis round | — |
 | src/twolm/rlm_config_schemas.py | queued for analysis (Roberto session 21: "Lo faremo in seguito"); cross-reference: use_cache: bool = True config field feeds ctx.use_cache | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
@@ -304,7 +304,14 @@ now (I-001; see notes/decisions.md).
   for the domain workers (V17 shared-context re-bind documented);
   future redesign parked at I-010 (post-port). All M items
   (M1-M12) disposed. STATE_MACHINE module fully done — R1-R5, all T
-  items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070. Suite
+  items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070.
+  D-078 (machine-level fix for the lm_worker_config R2): the
+  injected cache-path closure now CONCATENATES the prefix onto the
+  level name (filename-prefix semantics, per the domain schema)
+  instead of the D-069 M8 pathlib join — one shared fix for ALL
+  cache-consuming workers (the rlmwf_/02_POSITIONS.dat subdirectory
+  trap is gone for lm_worker_positions before it is enabled);
+  re-pinned by test_cache_prefix_is_concatenated_verbatim. Suite
   49/0/0 GREEN.
 - test_state_machine.py: analyzed 2026-08-29 (session 19,
   docs/src/twolm/test/test_state_machine.md): 5 classes / 49 tests /
@@ -339,8 +346,10 @@ now (I-001; see notes/decisions.md).
   place to the cleaned format (D-070 — enum names + UTC marker on
   the live line, TIMESTAMP (UTC) / 2-digit step / RELEVANCE name /
   66-underscore table, right-aligned Dur (s) header; suite count
-  unchanged) — all T items closed, M-sweep COMPLETE. Suite 49/0/0
-  GREEN.
+  unchanged) — all T items closed, M-sweep COMPLETE. D-078: the
+  D-069 M8 pin renamed test_cache_prefix_is_concatenated_verbatim
+  and re-pinned to the verbatim concatenation (cache01_CONFIG.dat),
+  count unchanged. Suite 49/0/0 GREEN.
 - cache_manager.py: analyzed 2026-08-30 (session 20,
   docs/src/twolm/cache_manager.md) + fix campaign batches 1+2
   (D-071/D-072) — the pipeline's load-or-compute cache engine
@@ -475,6 +484,9 @@ now (I-001; see notes/decisions.md).
   test_move_to_step_delegates_to_state_machine restored
   (renamed, no leading underscore) — the CONFIG level it targets
   now exists; suite 13/0/0 → 14/0/0 (14 active + 1 muted).
+  D-078: the T4 corner re-pinned to the filename-prefix
+  concatenation (cache00_CREATED.dat / base/cache00_CREATED.dat,
+  from the D-069 M8 join).
 - lm_worker_config.py: brought in with the batch (6bb45fb);
   D-074 cross-reference change (call-site rename, part of
   logistic_model R1); D-076 (Roberto + fixes):
@@ -484,21 +496,30 @@ now (I-001; see notes/decisions.md).
   Roberto's "nomi della CACHE" suspicion confirmed), the SM gate
   split it exposed (domain pydantic ValidationErrors no longer
   converted to the gate's TypeError), json5 declared in
-  pyproject.toml. Analyzed D-077 (35-check probe, 0 mismatches):
-  OPEN R1 (ad-hoc cache flow vs the D-072 cache_manager/binio
-  standard — sidecar asymmetry proven both ways, unconditional
-  write, use_cache never consulted in _store_to_file), R2 (prefix
-  semantics — lm_worker_positions latent cross-ref), R3
-  (RuntimeError vs precise OS types in _validate_base_dir),
-  M1-M5, T1-T6 (docs/src/twolm/lm_worker_config.md).
+  pyproject.toml. Analyzed D-077 (35-check probe, 0 mismatches);
+  fix campaign D-078 (Roberto's calls): R1 RESOLVED AS DEFERRED
+  (the ad-hoc cache flow stays — the cache_manager flow does not
+  fit a JSON file, and the step may not need a cache at all;
+  revisit when the full pipeline is complete; the
+  "storicizzazione" idea recorded at I-011), R2 RESOLVED AT
+  MACHINE LEVEL (the injected closure concatenates the prefix
+  verbatim — one fix for all workers; the worker now uses the
+  full-path closure directly, uniform with lm_worker_positions),
+  R3 FIXED (FileNotFoundError / NotADirectoryError /
+  PermissionError, messages unchanged), M1-M5 fixed (M5 keep per
+  R1), T1-T4 fixed in the test file
+  (docs/src/twolm/lm_worker_config.md). Campaign CLOSED — only
+  the R1 full-pipeline revisit remains.
 - lm_worker_positions.py / rlm_config_schemas.py: brought in with
   the batch (6bb45fb), analysis deferred by Roberto ("Lo faremo in
   seguito"); D-074 cross-reference changes (call-site renames,
   part of logistic_model R1): lm_worker_positions L59 now calls
-  the D-069 cache-helper name. D-077 latent: lm_worker_positions
-  L58-59 passes the full-path closure result (the rlmwf_/
-  02_POSITIONS.dat subdirectory form) into cache_manager, which
-  does no mkdir — same ENOENT on first write; lm_worker_config
+  the D-069 cache-helper name. D-077 latent (L58-59 passes the
+  full-path closure result into a cache_manager that does no
+  mkdir) CROSSED OUT by D-078 at machine level — the closure now
+  concatenates (flat rlmwf_02_POSITIONS.dat), so the subdirectory
+  ENOENT trap is gone before the worker is enabled (re-verify in
+  its analysis round); lm_worker_config
   sets `ctx.use_cache = cfg.use_cache` (down path resets it to
   None) — the cache_manager `is_allowed` switch for the later
   cache-consuming workers.
@@ -549,17 +570,19 @@ now (I-001; see notes/decisions.md).
   5/0/0 → 13/0/0, full discover 473 → 481/52 GREEN. The
   logistic_model + base_model campaigns are CLOSED (all R/M
   resolved).
-- Awaiting Roberto's calls: lm_worker_config D-077 — R1 (ad-hoc
-  cache flow vs the D-072 cache_manager/binio standard: adopt /
-  keep + document / keep raise semantics with binio-format
-  sidecars), R2 (prefix semantics — the lm_worker_positions
-  cross-ref), R3 (RuntimeError vs precise OS types in
-  _validate_base_dir), M1-M5, T1-T6.
-- Next (after the calls): apply the approved lm_worker_config
-  batch; then analyze lm_worker_positions + rlm_config_schemas
-  (Roberto: "lo faremo in seguito"); then the pipeline grows one
-  commented line at a time (uncommenting lm_worker_positions +
-  restoring the last muted test).
+- Done (2026-08-30): lm_worker_config fix campaign (D-078,
+  Roberto's calls on D-077): R2 resolved AT MACHINE LEVEL (the
+  injected cache-path closure concatenates the prefix verbatim —
+  filename-prefix semantics, one fix for all workers; replaces the
+  D-069 M8 join, 2 pins re-pinned), R3 precise OS exception types,
+  M1-M5 fixed (M5 keep per R1), T1-T4 fixed in test_lm_worker_
+  config; R1 deferred to the full-pipeline review (the
+  "storicizzazione" idea recorded at I-011); suite 496/52 GREEN,
+  build/tmp clean, 35-check probe 0 mismatches.
+- Next: analyze lm_worker_positions + rlm_config_schemas (Roberto:
+  "lo faremo in seguito"); then the pipeline grows one commented
+  line at a time (uncommenting lm_worker_positions + restoring the
+  last muted test).
 
 ## Index
 
@@ -656,17 +679,19 @@ now (I-001; see notes/decisions.md).
   import removed; T3 intentional, T6 report-only — test campaign
   CLOSED)
 - docs/src/twolm/lm_worker_config.md — lm_worker_config.py
-  analysis + D-076/D-077 (CONFIG worker: JSON5 load → pydantic →
-  flat checksummed cache rlmwf_01_CONFIG.dat; 35-check probe, 0
-  mismatches; OPEN R1 cache-flow consistency / R2 prefix
-  cross-ref / R3 exception types, M1-M5, T1-T6)
+  analysis + D-076/D-077/D-078 (CONFIG worker: JSON5 load →
+  pydantic → flat checksummed cache rlmwf_01_CONFIG.dat; 35-check
+  probe 0 mismatches; D-078: R2 machine-level prefix fix, R3
+  precise OS types, M1-M5 fixed, R1 deferred to the full-pipeline
+  review — I-011)
 - docs/src/twolm/test/test_lm_worker_config.md —
-  test_lm_worker_config.py analysis + D-077 (4 classes / 14
-  tests; D-076 path typos + schema-complete payload; OPEN T1-T4,
-  T5/T6 report-only)
+  test_lm_worker_config.py analysis + D-077/D-078 (4 classes / 14
+  tests; D-076 path typos + schema-complete payload; D-078 T1-T4
+  FIXED — D-065 idiom, ValueError pin, _down reset, bare-hex
+  sidecar; T5/T6 report-only)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-077)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-078)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)
