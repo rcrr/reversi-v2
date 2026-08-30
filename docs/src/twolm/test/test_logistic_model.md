@@ -1,13 +1,16 @@
 # test_logistic_model.md — analysis
 
-Date: 2026-08-30. One test file: `test_logistic_model.py` (294 lines
-post D-075, 1 class, 15 test methods — 13 active + 2 muted with a
-`_` prefix per Roberto), added with the module (6bb45fb). **Analysis
+Date: 2026-08-30. One test file: `test_logistic_model.py` (post
+D-076, 1 class, 15 test methods — 14 active + 1 muted with a `_`
+prefix per Roberto: D-076 restored `test_move_to_step_delegates_to_
+state_machine`, the CONFIG level it targets now exists;
+`_test_move_to_step_by_string` stays muted until POSITIONS), added
+with the module (6bb45fb). **Analysis
 session 21; the source modules' fix batch 1 (D-074) and the TEST
 batch (D-075: T1/T2/T4/T5 fixed, T3 intentional report-only, T6
 report-only) are applied.**
 
-Suite: **13/0/0 GREEN, no PERF gates.** Fast (~0.05s).
+Suite: **14/0/0 GREEN, no PERF gates.** Fast (~0.05s).
 
 ## How to run
 

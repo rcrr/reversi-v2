@@ -7,21 +7,29 @@ fix campaign batch 1 applied (D-074): R1 RESOLVED (D-069 rename —
 RLMContext fields + the 2 ported worker call sites), R2 RESOLVED
 (8 annotations → `str | None`, no import), R3 RESOLVED
 (@validate_call, with base_model R1), M1-M4 fixed; M5 NEW and OPEN
-(dead `field` import).** Sibling modules
+(dead `field` import); D-075: M5 FIXED — all R/M CLOSED.
+D-076: `lm_worker_config()` uncommented in the worker list
+(pipeline: CREATED + CONFIG now the 2 active levels), json5
+declared in pyproject.toml, SM gate split (domain pydantic
+ValidationErrors from the CONFIG worker no longer converted to the
+gate's TypeError).** Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
-- the pipeline is deliberately PARTIAL: of the 15 workers only
-  `CREATED` is active; `lm_worker_config` / `lm_worker_positions` are
-  imported (L41-42) but their list entries are commented (L207-208);
-  the other 12 factory imports are commented (L43-54, "Remove
-  comments when modules are added");
-- the 2 muted tests in test_logistic_model come back "una riga alla
-  volta, seguendo lo sviluppo della pipeline".
+- the pipeline is deliberately PARTIAL: of the 15 workers
+  `CREATED` + `CONFIG` are active (D-076: `lm_worker_config()`
+  uncommented, L207); `lm_worker_positions` is imported (L42) but
+  its list entry is commented (L208); the other 12 factory imports
+  are commented (L43-54, "Remove comments when modules are added");
+- the 1 muted test in test_logistic_model (`_test_move_to_step_by_
+  string`) comes back "una riga alla volta, seguendo lo sviluppo
+  della pipeline" (D-076: `test_move_to_step_delegates_to_state_
+  machine` restored — the CONFIG level it targets now exists).
 
-Suite: 5/0/0 GREEN (test_logistic_model, 5 active + 2 muted).
+Suite: 14/0/0 GREEN (test_logistic_model, 14 active + 1 muted,
+post D-075/D-076).
 
 ## Architecture
 

@@ -1548,3 +1548,106 @@ D-075 | 2026-08-30 | logistic_model fix campaign batch 2 (session 21,
         schemas, Roberto: "Lo faremo in seguito"), then the
         pipeline grows one commented line at a time (uncommenting
         workers + restoring the 2 muted tests).
+D-076 | 2026-08-30 | RLM pipeline enablement + two root-cause
+        fixes (session 21, Roberto: "Ma fai girare tu i tests per
+        favore e fissa gli errori. Quando i TEST vono VERDI, fai un
+        git commit, e partiamo con la analisi."): (1) json5 added to
+        pyproject.toml dependencies — lm_worker_config L31 +
+        test_lm_worker_config import it; rlm_00.json is JSON5
+        (comment header) so plain json cannot parse it (probe E6).
+        (2) lm_worker_config cache naming fix (L102-110):
+        `cache_files_prefix` is a FILENAME prefix per the schema
+        ("Filename prefix for the level specific cache files"), so
+        the physical file is flat `base_dir/rlmwf_01_CONFIG.dat`;
+        the old code path-joined `Path(prefix) / level_name`,
+        treating `rlmwf_` as a directory component
+        (base_dir/rlmwf_/01_CONFIG.dat) → FileNotFoundError (ENOENT)
+        on first write — Roberto's suspected "problema con i nomi
+        della CACHE" confirmed. Now:
+        `level_name = ctx.get_cache_file_path_for_current_level().
+        name`, `cache_file_path = cfg.base_dir / f"{prefix}
+        {level_name}"`. (3) state_machine move_to_step: the gate
+        wrapped BOTH the gate and the execution in one try/except
+        ValidationError, so domain pydantic ValidationErrors
+        (invalid config data / base_dir problems raised inside the
+        CONFIG worker) were converted to the gate's pinned
+        TypeError — structurally separated into
+        `_validate_target_step` (strict @validate_call, int | str,
+        name resolution, bounds) + `_execute_move(target_index)`;
+        the gate's pinned behaviour is byte-identical (bool /
+        float / np.int64 → TypeError, unknown name →
+        ValueError "Worker 'X' not found in the pipeline.",
+        out of bounds → IndexError "Target step N is out of
+        bounds."), domain errors propagate to the orchestrator
+        (D-060). The first fix attempt (loc-based gate
+        discrimination) FAILED: pydantic union errors use
+        positional locs (1.int / 1.str), so loc-based
+        discrimination of gate vs. domain errors is impossible.
+        (4) test_lm_worker_config.py (Roberto's new file, D-076
+        commit): 'py/twolm/...' → 'src/...' path typos x2; the
+        invalid-config validation payload made schema-complete
+        (output / stat_model / optimization.checkpoint_file /
+        validation_data_set added) so each invalid test pins the
+        ONE constraint under test instead of passing on any
+        missing field. (5) Roberto's own changes in the same
+        commit: lm_worker_config() uncommented in the pipeline
+        (CREATED + CONFIG now the 2 active levels) and
+        _test_move_to_step_delegates_to_state_machine restored
+        (renamed without the underscore). Suite: test_lm_worker_
+        config 14/0/0 (new), test_state_machine 49/0/0 (regression
+        check after the gate split), test_logistic_model 14/0/0
+        (13 + restored test), full discover 481 → 496 tests, 52
+        skipped under SKIP_REGAB_DB=1, GREEN; build/tmp clean.
+        Code commit 6ac9d74.
+D-077 | 2026-08-30 | lm_worker_config analysis (session 21,
+        docs/src/twolm/lm_worker_config.md): the CONFIG worker —
+        JSON5 load (json5, E6) → ReversiLogisticModelConfig
+        (pydantic) → base_dir validation (3 RuntimeError gates) →
+        checksummed FLAT cache write: rlmwf_01_CONFIG.dat + bare-
+        hex .SHA3-256 sidecar of model_dump_json(indent=4);
+        ctx.cfg + ctx.use_cache set for the later workers, _down
+        resets both to None. 35-check probe
+        scratch/verify_lm_worker_config.py: 0 mismatches (A
+        structure; B real-config behaviour incl. flat naming +
+        binio-can-read-worker-sidecar; C re-runs/mutations incl.
+        corruption RAISES + missing sidecar RAISES +
+        worker-cannot-read-binio-sidecar asymmetry; D base_dir
+        errors; E integration/D-076: domain ValidationError
+        propagates, gate pins unchanged, closures need cfg,
+        use_cache never consulted in _store_to_file). OPEN,
+        awaiting Roberto's calls: R1 cache-flow consistency —
+        ad-hoc hashlib + manual 8192-chunk verify + bare-hex
+        sidecar instead of the D-072 cache_manager/binio
+        standard; proven asymmetry (binio reads the worker's
+        sidecar, the worker rejects a binio-format one);
+        corruption RAISES (pinned) vs cache_manager's delete +
+        recompute (would change the corruption test's semantics);
+        use_cache copied to the context but never consulted —
+        options: (a) adopt the cache_manager flow, (b) keep
+        ad-hoc + document the divergence, (c) keep the raise
+        semantics but write/parse binio-format sidecars. R2
+        cross-ref (deferred module): the SM closure does
+        Path(prefix)/name (D-069 M8) while the schema calls the
+        prefix a filename prefix; lm_worker_positions L58-59 is
+        latent — it passes the full-path closure result
+        (rlmwf_/02_POSITIONS.dat subdirectory form) into
+        cache_manager, which performs no mkdir anywhere → the
+        same ENOENT on first write; resolution belongs to the
+        positions round. R3 _validate_base_dir: 3x RuntimeError
+        (exists / is_dir / writable, distinct logged messages) vs
+        the precise OS types (FileNotFoundError /
+        NotADirectoryError / PermissionError) used by the
+        logistic_model helpers. M1 L71 DEBUG log prints the file
+        object repr, not the config path; M2 L60 "stored to cache
+        file." logged BEFORE _store_to_file runs; M3 trailing
+        whitespace L91/L96; M4 no @validate_call on the public
+        factory (house convention D-068 M11 — Worker.__init__ is
+        already gated, convention-only delta); M5 hashlib import
+        (redundant only if R1(a)/(c) adopted). T1 (test):
+        mkdtemp(dir='./build/tmp') CWD-relative + no base mkdir —
+        the D-065 __file__-anchored idiom; T2 test_invalid_json_
+        syntax pins bare Exception (pin json5.JSON5Exception); T3
+        the _down reset unpinned (cfg is None / use_cache is
+        None); T4 the bare-hex sidecar format unpinned (or
+        replace if R1 changes it); T5 header grammar + T6 mtime
+        coarseness (report-only).
