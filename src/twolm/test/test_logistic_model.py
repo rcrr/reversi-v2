@@ -43,27 +43,48 @@
 import unittest
 import tempfile
 import os
+from io import StringIO
+from pathlib import Path
+from types import SimpleNamespace
 
 from unittest.mock import MagicMock, patch
-from io import StringIO
 
-from twolm.logistic_model import LogisticModel, RLMContext
-from twolm.state_machine import Worker, Verbosity, Relevance
+from twolm.logistic_model import (LogisticModel, RLMContext,
+                                  _check_base_dir_override,
+                                  _check_config_file_path,
+                                  _created_down, _created_up)
+from twolm.state_machine import Worker, Verbosity
+
+
+#: Custom base directory for temporary test files, anchored to the
+#: workspace root, not the system temp dir (T2, D-075: the D-065
+#: house rule, as in test_cache_manager T6/D-072).
+CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
 
 
 
 class TestLogisticModel(unittest.TestCase):
     """Test suite for the LogisticModel facade and RLMContext."""
 
+    @classmethod
+    def setUpClass(cls):
+        """Ensure the build/tmp base directory exists (T2, D-075)."""
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         """Set up a dummy config file and patch stdout and worker factories."""
+        # T2 (D-075): the dummy config lives under
+        # <workspace-root>/build/tmp (the D-065 house rule), not the
+        # system temp dir. Created first, so a mid-setup failure
+        # still leaves a temp_dir that tearDown (or the GC) cleans.
+        self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+
         # Patch stdout to keep test output clean
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
         # Create a dummy config file
-        self.temp_dir = tempfile.mkdtemp()
-        self.dummy_config_path = os.path.join(self.temp_dir, "dummy_config.json")
+        self.dummy_config_path = os.path.join(self.temp_dir.name, "dummy_config.json")
         with open(self.dummy_config_path, "w") as f:
             f.write("{}") # Empty JSON is enough for path validation
 
@@ -89,15 +110,16 @@ class TestLogisticModel(unittest.TestCase):
         )
 
     def tearDown(self):
-        """Clean up patches and temporary files."""
-        self.patcher_stdout.stop()
-        self.patcher_config.stop()
-        self.patcher_positions.stop()
-        
-        if os.path.exists(self.dummy_config_path):
-            os.remove(self.dummy_config_path)
-        if os.path.exists(self.temp_dir):
-            os.rmdir(self.temp_dir)
+        """Clean up patches and temporary files. T2 (D-075):
+        defensive against mid-setup failures — stop only the
+        patchers that exist, then remove the temp dir."""
+        for name in ('patcher_stdout', 'patcher_config', 'patcher_positions'):
+            patcher = getattr(self, name, None)
+            if patcher is not None:
+                patcher.stop()
+        temp_dir = getattr(self, 'temp_dir', None)
+        if temp_dir is not None:
+            temp_dir.cleanup()
 
     def test_context_initialization(self):
         """Test that RLMContext is correctly initialized with paths."""
@@ -142,14 +164,130 @@ class TestLogisticModel(unittest.TestCase):
                 base_dir_override="non_existent_dir"
             )
 
-    def test_facade_methods_exist(self):
-        """Verify that facade methods correctly point to the state machine."""
-        # We just check they are callable and don't raise exceptions
-        try:
+    def test_facade_delegates_to_state_machine(self):
+        """T1 (D-075): every facade method is a pure pass-through —
+        pin the delegation per method on the shared model's
+        StateMachine (replaces the old try/except smoke test)."""
+        with patch.object(self.model.sm, "show_event_log") as m:
             self.model.show_event_log()
+            m.assert_called_once_with()
+        with patch.object(self.model.sm, "show_history_of_moves") as m:
             self.model.show_history_of_moves()
-        except Exception as e:
-            self.fail(f"Facade methods raised an unexpected exception: {e}")
+            m.assert_called_once_with()
+        with patch.object(self.model.sm, "move_to_step") as m:
+            self.model.move_to_step(1)
+            m.assert_called_once_with(1)
+        with patch.object(self.model.sm, "move_to_step") as m:
+            self.model.move_to_step("CONFIG")
+            m.assert_called_once_with("CONFIG")
+        with patch.object(self.model.sm, "move_to_last") as m:
+            self.model.move_to_last()
+            m.assert_called_once_with()
+        with patch.object(self.model.sm,
+                          "export_history_of_moves_as_csv") as m:
+            self.model.export_history_of_moves_as_csv("history.csv")
+            m.assert_called_once_with("history.csv")
+
+    def test_facade_views_and_verbosity_round_trip(self):
+        """T1 (D-075): the read-only views mirror the StateMachine
+        and the verbosity property round-trips through it."""
+        self.assertEqual(self.model.current_step, self.model.sm.current_step)
+        self.assertEqual(self.model.current_worker_name,
+                         self.model.sm.current_worker_name)
+        self.assertEqual(self.model.verbosity, self.model.sm.verbosity)
+        self.model.verbosity = Verbosity.HIGH
+        self.assertIs(self.model.sm.verbosity, Verbosity.HIGH)
+        self.assertIs(self.model.verbosity, Verbosity.HIGH)
+        # Leave the shared model at its default.
+        self.model.verbosity = Verbosity.STANDARD
+
+
+    def test_injected_cache_helpers_are_the_machine_closures(self):
+        """T4 (D-075): post-construction, the context's
+        *_for_current_level attributes ARE the closures StateMachine
+        injected under the D-069 names (pre-D-074 a regression to
+        the old names would have left the no-op lambda defaults and
+        returned None — this pin would have caught R1)."""
+        ctx = self.model.context
+        self.assertEqual(ctx.get_cache_file_path_for_current_level.__name__,
+                         "_get_cache_file_path")
+        self.assertEqual(
+            ctx.get_cache_file_full_path_for_current_level.__name__,
+            "_get_cache_file_full_path")
+        self.assertEqual(ctx.log_event.__name__, "log_event")
+
+    def test_pre_injection_fallback_is_no_op_lambda(self):
+        """T4 (D-075): a bare (un-injected) RLMContext keeps the
+        lambda no-op defaults — the cache helpers return None and
+        log_event does nothing, without crashing."""
+        bare = RLMContext(config_file_path=Path(self.dummy_config_path))
+        self.assertIsNone(bare.get_cache_file_path_for_current_level())
+        self.assertIsNone(bare.get_cache_file_full_path_for_current_level())
+        bare.log_event()
+
+    def test_injected_cache_helper_computes_the_worker_path(self):
+        """T4 (D-075): with a dummy cfg, the injected path closures
+        compute the per-level cache path (pathlib join, D-069 M8):
+        <prefix>/<level:02>_<worker>.dat, and the full variant
+        prepends cfg.base_dir."""
+        ctx = self.model.context
+        ctx.cfg = SimpleNamespace(cache_files_prefix="cache",
+                                  base_dir=Path("base"))
+        self.addCleanup(setattr, ctx, "cfg", None)
+        self.assertEqual(ctx.get_cache_file_path_for_current_level(),
+                         Path("cache/00_CREATED.dat"))
+        self.assertEqual(ctx.get_cache_file_full_path_for_current_level(),
+                         Path("base/cache/00_CREATED.dat"))
+
+    def test_created_sentinel_workers_raise(self):
+        """T4 (D-075): the level-0 CREATED sentinels are explicit
+        (D-059) — a direct call logs ERROR then raises RuntimeError."""
+        with self.assertRaisesRegex(
+                RuntimeError, "Executing created step should never happen."):
+            _created_up(self.model.context)
+        with self.assertRaisesRegex(
+                RuntimeError, "Cleaning created step should never happen."):
+            _created_down(self.model.context)
+
+    def test_config_path_helper_edge_branches(self):
+        """T4 (D-075): _check_config_file_path edge branches —
+        non-str/Path -> TypeError, missing -> FileNotFoundError,
+        a directory -> IsADirectoryError (M3, D-074)."""
+        with self.assertRaisesRegex(
+                TypeError,
+                "Argument config_file_path is not an instance of str or Path"):
+            _check_config_file_path(123)
+        with self.assertRaisesRegex(
+                FileNotFoundError, "No such file: 'ghost.json'"):
+            _check_config_file_path("ghost.json")
+        with self.assertRaisesRegex(IsADirectoryError,
+                                    "File path is not a file:"):
+            _check_config_file_path(self.temp_dir.name)
+
+    def test_base_dir_helper_edge_branches(self):
+        """T4 (D-075): _check_base_dir_override edge branches —
+        non-str/Path -> TypeError, a file -> NotADirectoryError."""
+        with self.assertRaisesRegex(
+                TypeError,
+                "Argument base_dir_override is not an instance of str or Path"):
+            _check_base_dir_override(123)
+        with self.assertRaisesRegex(NotADirectoryError,
+                                    "File path is not a directory:"):
+            _check_base_dir_override(self.dummy_config_path)
+
+    def test_export_history_of_moves_as_csv_pass_through(self):
+        """T4 (D-075): the CSV export pass-through writes a real file
+        (the SM's exporter, parent-dir creation M10/D-068); with an
+        empty history the file is header-only. The artifact stays
+        under build/tmp (D-065) and the temp dir is removed in
+        tearDown."""
+        csv_path = Path(self.temp_dir.name) / "history.csv"
+        self.model.export_history_of_moves_as_csv(csv_path)
+        self.assertTrue(csv_path.is_file())
+        self.assertEqual(
+            csv_path.read_text().splitlines(),
+            ["step,worker_name,direction,start_utc,"
+             "finish_utc,duration_sec"])
 
 
 if __name__ == '__main__':

@@ -36,6 +36,8 @@ from pydantic import ConfigDict, validate_call
 from twolm.state_machine import StateMachine, Worker, Context, Verbosity
 
 
+__all__ = ['BaseModel']
+
 
 class BaseModel:
     """
