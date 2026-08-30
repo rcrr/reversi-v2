@@ -1497,3 +1497,54 @@ D-074 | 2026-08-30 | logistic_model fix campaign batch 1 (session 21,
         left in src/. Suite 5/0/0 GREEN (test_logistic_model —
         untouched); full discover 473 tests, 52 skipped under the
         gate, GREEN.
+D-075 | 2026-08-30 | logistic_model fix campaign batch 2 (session 21,
+        Roberto: "M5: rimuovi. base_model M1: aggiungi. T1-T6:
+        procedi"): M5 FIXED — the dead `field` import removed from
+        logistic_model L30 (`from dataclasses import dataclass`);
+        base_model M1 FIXED — `__all__ = ['BaseModel']` added (L39,
+        the D-068 M1 pattern; the module is 89 lines). TEST campaign
+        (test_logistic_model.py, 156 -> 294 lines, 5 -> 13 active
+        tests, 2 muted unchanged): T1 FIXED — test_facade_methods_
+        exist (the overpromising try/except smoke test) replaced by
+        test_facade_delegates_to_state_machine (per-method
+        patch.object(self.model.sm, ...) + assert_called_once_with
+        pins for show_event_log, show_history_of_moves,
+        move_to_step with BOTH an int and a name string,
+        move_to_last, export_history_of_moves_as_csv) and
+        test_facade_views_and_verbosity_round_trip (the 3 read-only
+        views mirror model.sm; the verbosity property round-trips
+        HIGH -> visible on the SM -> restored STANDARD); T2 FIXED —
+        the D-065 idiom as in test_cache_manager (module-level
+        CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] /
+        "build" / "tmp" + setUpClass mkdir +
+        tempfile.TemporaryDirectory(dir=...) created FIRST in setUp
+        so a mid-setup failure still leaves a cleanable temp_dir +
+        defensive tearDown that stops only the patchers that exist);
+        T3 unchanged (intentional — the 2 muted tests come back
+        "una riga alla volta" with the pipeline; report-only); T4
+        FIXED — 7 corner tests: the injected closures' __name__s
+        (_get_cache_file_path / _get_cache_file_full_path — a pin
+        that would have caught R1) + log_event bound-method
+        identity, the bare-context no-op-lambda fallback (helpers
+        return None), the path computation through a dummy cfg
+        (SimpleNamespace: cache/00_CREATED.dat,
+        base/cache/00_CREATED.dat — the D-069 M8 pathlib join,
+        restored via addCleanup), both sentinel RuntimeError
+        messages (D-059 explicit sentinel), both helpers' edge
+        branches (int -> TypeError, missing -> FileNotFoundError,
+        dir -> IsADirectoryError post M3/D-074, file ->
+        NotADirectoryError), the CSV pass-through (header-only file
+        under the build/tmp artifact dir, header pinned to
+        step,worker_name,direction,start_utc,finish_utc,duration_
+        sec); T5 FIXED — the dead Relevance import removed (the
+        top-level import now also pulls the 4 private helpers for
+        T4); T6 unchanged (header grammar, report-only).
+        Suite 13/0/0 GREEN (test_logistic_model); full discover
+        473 -> 481 tests, 52 skipped under the gate, GREEN;
+        build/tmp clean after the run. base_model R/M: all closed
+        (M2 informational, kept by design); logistic_model: all
+        R/M closed. Next: the deferred sibling modules
+        (lm_worker_config / lm_worker_positions / rlm_config_
+        schemas, Roberto: "Lo faremo in seguito"), then the
+        pipeline grows one commented line at a time (uncommenting
+        workers + restoring the 2 muted tests).

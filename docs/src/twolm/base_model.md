@@ -2,10 +2,11 @@
 
 Date: 2026-08-30. Module added by Roberto (6bb45fb, 6-file batch with
 logistic_model + 3 sibling domain modules + test_logistic_model).
-**Analysis session 21; fix campaign batch 1 applied (D-074): R1
-RESOLVED (@validate_call on `__init__`, decided once with
-logistic_model R3, applied to both facades); M1 (missing `__all__`)
-NOT in the approved scope, still OPEN.**
+**Analysis session 21; fix campaign: batch 1 (D-074) R1 RESOLVED
+(@validate_call on `__init__`, decided once with logistic_model R3,
+applied to both facades); batch 2 (D-075) M1 FIXED (`__all__`
+added, Roberto: "aggiungi"). All R/M items closed (M2 is
+informational, kept by design).**
 Sibling modules lm_worker_config / lm_worker_positions /
 rlm_config_schemas are deliberately NOT analyzed in this session
 (Roberto: "Lo faremo in seguito").
@@ -50,7 +51,7 @@ mismatches.
 | V2 | `model.sm` is a StateMachine; `verbosity` defaults to STANDARD; the setter delegates (set on the facade → visible on the SM) | Probe |
 | V3 | At construction `current_step == 0`, `current_worker_name == "CREATED"` (the SM starts at the sentinel) | Probe |
 | V4 | All 7 pass-through methods are one-line delegations (source-verified); type errors on `move_to_step`/`move_to_last` surface from the SM's @validate_call gate, not from the facade. Post D-074/R1 the `__init__` boundary itself is facade-gated, so the class is now gated at BOTH its own entry and the inner SM boundary | Source + probe (state_machine docs) |
-| V5 | base_model.py has NO `__all__` — the only twolm module without one (all other 13 define it) | grep |
+| V5 | (pre-D-075) base_model.py had NO `__all__` — the only twolm module without one (all other 13 define it); post D-075/M1 `__all__ = ['BaseModel']` (L39) | grep (pre) + re-check (post) |
 
 ## Issues (R1)
 
@@ -74,26 +75,27 @@ still runs behind it (belt-and-braces).
 
 ## Minor notes (M1-M2)
 
-- **M1** — Missing `__all__ = ['BaseModel']` (V5): every other twolm
-  module defines `__all__` (D-068 M1 pattern).
+- **M1** (FIXED, D-075) — Missing `__all__ = ['BaseModel']` (V5):
+  every other twolm module defines `__all__` (D-068 M1 pattern).
+  Added (L39, Roberto: "aggiungi") — the module is now 89 lines.
 - **M2** — The docstring forward-references `DeepNetworkModel` (a
   not-yet-ported module). Informational; keep — it documents the
   intended reuse of the facade.
 
-## Appendix: line-number reference (2026-08-30, file 87 lines,
-post D-074)
+## Appendix: line-number reference (2026-08-30, file 89 lines,
+post D-075)
 
 - `# twolm/base_model.py` header comment: L28
 - imports: L31 (pathlib) · L32 (typing.List) · L34 (pydantic,
   D-074/R1) · L36 (state_machine)
-- `class BaseModel`: L40 (docstring: L41-45)
-- `__init__`: L48 (body: L49-54) — `@validate_call` L47 (R1)
-- `current_step` property: L57-58
-- `current_worker_name` property: L61-62
-- `verbosity` property: L65-66 (getter) · L68-70 (setter)
-- `move_to_step`: L72-74
-- `move_to_last`: L76-78
-- `show_event_log`: L80-81
-- `show_history_of_moves`: L83-84
-- `export_history_of_moves_as_csv`: L86-87
-- (no `__all__` — M1, still OPEN)
+- `__all__`: L39 (M1, D-075)
+- `class BaseModel`: L42 (docstring: L43-47)
+- `__init__`: L50 (body: L51-56) — `@validate_call` L49 (R1)
+- `current_step` property: L59-60
+- `current_worker_name` property: L63-64
+- `verbosity` property: L67-68 (getter) · L70-72 (setter)
+- `move_to_step`: L74-76
+- `move_to_last`: L78-80
+- `show_event_log`: L82-83
+- `show_history_of_moves`: L85-86
+- `export_history_of_moves_as_csv`: L88-89

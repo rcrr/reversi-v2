@@ -153,9 +153,9 @@ it).
 - **M4** (FIXED, D-074) — `LogisticModel.__init__` docstring added
   (L187-191) (house style: public methods documented — the facade
   methods in base_model.py all have one-liners).
-- **M5** (OPEN, found during the D-074 batch) — Dead import:
-  `field` from `dataclasses` (L30) is imported but never used —
-  `RLMContext` has no `field(...)` members. Roberto's call.
+- **M5** (FIXED, D-075) — Dead import: `field` from `dataclasses`
+  (L30) was imported but never used — `RLMContext` has no
+  `field(...)` members. Removed (Roberto: "rimuovi").
 
 ## Integration notes
 
@@ -180,10 +180,10 @@ it).
 post D-074)
 
 - `from __future__ import annotations`: L28
-- imports: L30-32 (dataclasses — `field` is dead, M5 · pathlib ·
-  typing) · L34 (pydantic, D-074/R3) · L36 (state_machine) ·
-  L37 (base_model) · L39-54 (worker factories: L41-42 active,
-  L43-54 commented)
+- imports: L30-32 (dataclasses — `field` removed M5/D-075 ·
+  pathlib · typing) · L34 (pydantic, D-074/R3) · L36 (state_
+  machine) · L37 (base_model) · L39-54 (worker factories: L41-42
+  active, L43-54 commented)
 - `__all__`: L57
 - `_check_config_file_path`: L65-73 (type check L66-67, existence
   L69-70, is-file L71-72 — IsADirectoryError, M3)
