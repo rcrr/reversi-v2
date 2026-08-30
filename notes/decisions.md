@@ -1732,3 +1732,71 @@ D-078 | 2026-08-30 | lm_worker_config fix campaign (session 21,
         35-check probe (scratch/verify_lm_worker_config.py, D1-D3
         re-pinned to the R3 types) re-run: 0 mismatches. Code
         commit d6a850e.
+D-079 | 2026-08-30 | lm_worker_positions + rlm_config_schemas
+        analysis (session 22 — resumed after the session-21
+        crash; the probe scratch/verify_lm_worker_positions.py
+        was started in the interrupted tail of session 21 and
+        finalized in session 22: atexit rmtree of PROBE_TMP +
+        sys.exit on failure, the house probe convention):
+        POSITIONS enabled line-by-line in 601de87 (Roberto:
+        uncomment lm_worker_positions() + copy the related
+        test) — the pipeline now runs 3 active levels (CREATED
+        sentinel → CONFIG → POSITIONS); the new
+        test_lm_worker_positions.py (1 class / 2 tests,
+        Roberto's file from the original repo) green on first
+        run, no fixes needed; the latent rlmwf_/ subdirectory +
+        no-mkdir trap re-verified GONE (flat
+        rlmwf_02_POSITIONS.dat + .SHA3-256, binio-format
+        sidecar). 49-check probe re-run: 0 mismatches.
+        lm_worker_positions — OPEN awaiting Roberto's call: R1
+        (load_from_db's 3-arg RegabDBConnection call drops port
+        + password — a non-default configured port is silently
+        ignored (connection always opens on 5432), a configured
+        password never reaches the connection string (regab
+        carries password=... only when one is passed)), M1 (no
+        @validate_call on the public factory — convention-only
+        delta, the D-068 M11 / D-078 M4 pattern), M2 (dead
+        pathlib.Path import L33), M3 (trailing whitespace
+        L73/L89/L92), M4 (the bare load_fn
+        regab_load_data_set_from_file with its checksum=True
+        default re-verifies the sidecar that cache_manager's
+        step 3 already checked — redundant double file-checksum
+        on every cache hit); cross-ref note (regab_store_data_
+        set_to_file's docstring promises it "calculates the
+        SHA3-256 checksum" but writes no sidecar — in this flow
+        the sidecar is cache_manager's, D-072; the regab module
+        is closed, Roberto's call). rlm_config_schemas — OPEN:
+        R1 (OptimizationConfig.c2's description "Must be > c1"
+        is docstring-only — NO cross-field validator, (c1=0.9,
+        c2=0.1) validates; candidate fix = a
+        model_validator(mode="after") on OptimizationConfig,
+        which would give the unused M2 import a job), M1 (the
+        0x-prefixed docstring example contradicts the 16-hex
+        parser — bitboard_from_hex_str requires exactly 16 hex
+        chars with NO 0x prefix; affects BOTH
+        PatternConfig.parse_hex_to_bitboard L115 and
+        MobilityFeatureConfig.parse_hex_to_bitboard L144), M2
+        (model_validator imported L32, never used), M3
+        (asymmetries: validation_data_set.status loose
+        List[str] vs RegabDataSetConfig.status strict List[
+        StatusString]; StatModelConfig extends BaseModel
+        directly and lacks the RLMBaseConfig properties bag),
+        M4 (bare mutable [] defaults — PatternSetConfig L128,
+        MobilitySetConfig L157 — safe by pydantic's per-instance
+        default copying, pinned E10, non-idiomatic next to the
+        file's own Field(default_factory=...) convention).
+        test_lm_worker_positions — OPEN: T1 (mkdtemp(
+        dir='./build/tmp') CWD-relative + no base mkdir — the
+        D-065 __file__-anchored idiom), T2 (no DB gate — both
+        tests need the live regab DB; the SKIP_REGAB_DB=1
+        pattern), T3 (the dead if-False blocks in both tests +
+        the dead sys import — the test_feature T1 / D-043
+        anti-pattern), T4 (header grammar, report-only). Docs:
+        3 new mirror docs (docs/src/twolm/lm_worker_positions.
+        md, docs/src/twolm/rlm_config_schemas.md,
+        docs/src/twolm/test/test_lm_worker_positions.md).
+        Suite: test_lm_worker_positions 2/0/0 (new, live DB);
+        full discover 496 → 498 tests, 52 skipped under
+        SKIP_REGAB_DB=1, GREEN; build/tmp clean (3 session-21
+        probe leftovers removed; the probe now self-cleans via
+        atexit).
