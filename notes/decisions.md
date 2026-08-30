@@ -1384,3 +1384,72 @@ D-072 | 2026-08-30 | cache_manager fix campaign batch 2: R3
         modules lm_worker_config + logistic_model (their 2
         cache-helper call sites must use the D-069 names
         *_for_current_level).
+
+D-073 | 2026-08-30 | Analysis of the three new domain modules
+        Roberto brought in (commit 6bb45fb): base_model,
+        logistic_model, test_logistic_model (session 21).
+        lm_worker_config / lm_worker_positions / rlm_config_schemas
+        are deliberately deferred (Roberto: "Lo faremo in seguito").
+        Analysis only, NO code changes; 30-check probe
+        scratch/verify_logistic_model.py, 0 mismatches.
+        base_model: thin facade base over StateMachine — pure
+        delegation (current_step / current_worker_name / verbosity
+        get+set, move_to_step / move_to_last, 2 display methods, CSV
+        export); model.context is model.sm.context (identity
+        verified). OPEN: R1 no @validate_call on __init__ (house
+        convention; the SM gate, D-069 M11, still catches wrong
+        types at the inner boundary) — to be decided ONCE together
+        with logistic_model R3; M1 missing __all__ (the only twolm
+        module without one); M2 docstring forward-references the
+        not-yet-ported DeepNetworkModel (informational).
+        logistic_model: first concrete domain facade — RLMContext
+        (@dataclass over the plain Context; 38 fields, 8
+        *_checksum, the pipeline artifact blackboard) + LogisticModel
+        (4-step construction: plain path validation -> context ->
+        15-level worker list, DELIBERATELY partial per Roberto:
+        CREATED active, CONFIG/POSITIONS imported but list entries
+        commented, 12 factory imports commented — "una riga alla
+        volta") + level-0 CREATED sentinel (D-059 made explicit:
+        log ERROR + RuntimeError on direct call). 10 verified facts
+        V1-V10. OPEN: R1 the D-069 NAME DIVERGENCE — RLMContext
+        declares the injected callables under the PRE-D-069
+        `_for_next_level` names (lambda no-op defaults, L157-158)
+        while StateMachine injects `_for_current_level` (L179/L187);
+        BOTH already-ported workers call the old names
+        (lm_worker_config L102, lm_worker_positions L59) -> a
+        silently-None cache path once the worker entries are
+        enabled; options: (a) rename the 2 RLMContext fields + the
+        2 worker call sites (4 lines, D-069-compliant — recommended),
+        (b) revert the SM injection to the old names (against
+        D-069), (c) defer; R2 `Union` used in 8 annotations but
+        never imported — latent NameError proven via
+        typing.get_type_hints(RLMContext), masked by PEP 563
+        (from __future__ import annotations); fix: import Union or
+        modernize to `str | None` (the file's own style); R3 no
+        @validate_call on __init__ (decided once with base_model
+        R1); M1 "weigth" comment typo (L139); M2 `vld__pop_stats`
+        double underscore (L147) — typo for vld_pop_stats or the
+        original repo's name? (inert for now, nothing references
+        it); M3 directory-as-config raises FileNotFoundError where
+        IsADirectoryError would be accurate (asymmetry with the
+        base_dir helper's NotADirectoryError); M4 __init__ without
+        docstring.
+        test_logistic_model: 5 active + 2 muted (Roberto's design —
+        restored line-by-line with the pipeline; the factory
+        patches are currently inert; the muted tests' preconditions
+        verified: 1-worker machine rejects move_to_step(1) with
+        IndexError and move_to_step("POSITIONS") with ValueError).
+        OPEN: T1 test_facade_methods_exist overpromises (smoke test
+        with a try/except+self.fail anti-pattern, only 2 of 7
+        methods exercised — propose real delegation pins + the
+        verbosity round-trip + the CSV pass-through); T2
+        tempfile.mkdtemp() with no dir= -> system temp dir, the
+        D-065 deviation fixed in test_cache_manager T6/D-072 (fix:
+        __file__-anchored build/tmp + mid-setup-failure cleanup);
+        T3 the 2 muted tests (intentional, report-only); T4
+        untested corners (the injected callables — a pin would have
+        caught R1 —, the sentinel RuntimeError, the helper edge
+        branches, the CSV pass-through); T5 dead import Relevance;
+        T6 header grammar report-only.
+        Suite 5/0/0 GREEN (test_logistic_model); full discover
+        468 -> 473 tests, 52 skipped under the gate, GREEN.
