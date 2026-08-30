@@ -686,19 +686,21 @@ class TestContextInjection(unittest.TestCase):
             self.context.get_cache_file_full_path_for_current_level(),
             Path("/abs/cache/01_CONFIG.dat"))
 
-    def test_path_cache_prefix_joins_without_gluing(self):
-        """A Path prefix (no trailing slash) is joined with pathlib,
-        not f-string-concatenated: no silent gluing of the level
-        name (M8, D-069)."""
+    def test_cache_prefix_is_concatenated_verbatim(self):
+        """D-078 (replaces the D-069 M8 pathlib-join pin): the prefix
+        is a *filename* prefix, concatenated verbatim onto the level
+        name — a bare prefix 'cache' glues to 'cache01_CONFIG.dat';
+        a directory-like prefix must end with a separator (as in the
+        other tests of this class, 'cache/')."""
         self.context.cfg = SimpleNamespace(
             cache_files_prefix=Path("cache"), base_dir=Path("base"))
         self.sm.move_to_step(1)
         self.assertEqual(
             self.context.get_cache_file_path_for_current_level(),
-            Path("cache/01_CONFIG.dat"))
+            Path("cache01_CONFIG.dat"))
         self.assertEqual(
             self.context.get_cache_file_full_path_for_current_level(),
-            Path("base/cache/01_CONFIG.dat"))
+            Path("base/cache01_CONFIG.dat"))
 
     def test_missing_cfg_raises_attribute_error(self):
         """Without a populated cfg, both helpers raise AttributeError

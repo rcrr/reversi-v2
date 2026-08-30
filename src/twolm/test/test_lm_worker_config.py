@@ -43,8 +43,8 @@
 import unittest
 import os
 import json5
+import hashlib
 import tempfile
-import shutil
 
 from unittest.mock import patch
 from io import StringIO
@@ -55,16 +55,28 @@ from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 
 
+# T1 (D-078): the D-065 idiom — test artifacts ONLY under
+# <workspace-root>/build/tmp, anchored via __file__ (not CWD).
+CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
+
+
 
 class TestLMWorkerConfig(unittest.TestCase):
     """Tests for the CONFIG worker basic up/down movements and properties."""
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
         # Patch stdout to keep test output clean
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
         self.json_config = 'src/twolm/test/data/rlm_00.json'
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
@@ -73,8 +85,10 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_move_up(self):
         self.rlm.move_to_step('CONFIG')
@@ -89,6 +103,10 @@ class TestLMWorkerConfig(unittest.TestCase):
         rlm.move_to_step('CREATED')
         self.assertEqual(rlm.current_step, 0)
         self.assertEqual(rlm.current_worker_name, 'CREATED')
+        # T3 (D-078): the _down reset is pinned — both context
+        # artifacts are cleared.
+        self.assertIsNone(rlm.context.cfg)
+        self.assertIsNone(rlm.context.use_cache)
 
     def test_move_up_with_cache(self):
         rlm = self.rlm
@@ -128,11 +146,16 @@ class TestLMWorkerConfig(unittest.TestCase):
 class TestLMWorkerConfigValidation(unittest.TestCase):
     """Tests that Pydantic correctly rejects invalid JSON configurations."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
         # Schema-complete payload: valid EXCEPT the one field each test
         # breaks, so the assertions pin the constraint under test.
         self.valid_json_content = {
@@ -161,8 +184,10 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
         }
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def _write_json(self, payload: dict) -> Path:
         """Helper to write a JSON payload to a temp file and return its path."""
@@ -177,7 +202,10 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
         file_path.write_text("{ this is not valid json }")
         
         rlm = LogisticModel(file_path, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
-        with self.assertRaises(Exception): # json5 or pydantic will raise
+        # T2 (D-078): pin the actual exception — json5 0.15.0 raises
+        # a plain ValueError on a syntax error (no JSON5Exception in
+        # this version), before pydantic ever sees the payload.
+        with self.assertRaises(ValueError):
             rlm.move_to_step('CONFIG')
 
     def test_invalid_ec_out_of_range(self):
@@ -211,20 +239,31 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
 class TestLMWorkerConfigBaseDir(unittest.TestCase):
     """Tests the validation of the base_dir_override parameter."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+
     def tearDown(self):
-        self.patcher_stdout.stop()
-        if hasattr(self, 'tmp_dir') and os.path.exists(self.tmp_dir):
-            # Restore write permissions before deleting
-            os.chmod(self.tmp_dir, 0o755)
-            shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            # Restore write permissions before deleting (the
+            # not-writable test leaves the dir at 0o444).
+            try:
+                os.chmod(self.tmp_dir, 0o755)
+            except OSError:
+                pass
+            self._tmp.cleanup()
 
     def test_base_dir_is_a_file_raises_error(self):
         """Test that passing a file path instead of a directory raises NotADirectoryError."""
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
         fake_file = Path(self.tmp_dir) / "I_am_a_file.txt"
         fake_file.touch()
         
@@ -237,14 +276,14 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         self.assertIn("not a directory", str(context.exception).lower())
 
     def test_base_dir_is_not_writable_raises_error(self):
-        """Test that an un-writable directory raises RuntimeError."""
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        """Test that an un-writable directory raises PermissionError."""
         os.chmod(self.tmp_dir, 0o444)
-        
+
         valid_json = Path('src/twolm/test/data/rlm_00.json')
         rlm = LogisticModel(valid_json, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
-        
-        with self.assertRaises(RuntimeError) as context:
+
+        # R3 (D-078): the precise OS exception type, not RuntimeError.
+        with self.assertRaises(PermissionError) as context:
             rlm.move_to_step('CONFIG')
         self.assertIn("not writable", str(context.exception))
 
@@ -252,11 +291,16 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
 class TestLMWorkerConfigCacheLogic(unittest.TestCase):
     """Tests the specific cache/sentinel behaviors of the CONFIG worker."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
         self.json_config = 'src/twolm/test/data/rlm_00.json'
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
@@ -266,8 +310,10 @@ class TestLMWorkerConfigCacheLogic(unittest.TestCase):
         self.checksum_file = Path(self.tmp_dir) / 'rlmwf_01_CONFIG.dat.SHA3-256'
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_cache_files_created_on_first_run(self):
         """Test that moving to CONFIG creates both .dat and .SHA3-256 files."""
@@ -275,9 +321,14 @@ class TestLMWorkerConfigCacheLogic(unittest.TestCase):
         self.assertFalse(self.checksum_file.exists())
         
         self.rlm.move_to_step('CONFIG')
-        
+
         self.assertTrue(self.cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(self.checksum_file.exists(), "Checksum sidecar file was not created.")
+        # T4 (D-078): pin the sidecar format — the BARE hex sha3_256
+        # of the .dat content (no binio basename column).
+        self.assertEqual(
+            self.checksum_file.read_text().strip(),
+            hashlib.sha3_256(self.cache_file.read_bytes()).hexdigest())
 
     def test_cache_skipped_on_identical_second_run(self):
         """Test that running CONFIG twice does not overwrite the cache files."""

@@ -170,11 +170,14 @@ class StateMachine:
             worker_name = self.workers[level].name
             # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
             cache_files_prefix = getattr(self.context, 'cfg').cache_files_prefix
-            # pathlib join (not f-string concat): a prefix without a
-            # trailing separator, incl. any Path object, is handled
-            # correctly instead of silently gluing the level name
-            # onto it (M8, D-069)
-            return Path(cache_files_prefix) / f"{level:02}_{worker_name}.dat"
+            # Filename-prefix concatenation (D-078, replaces the
+            # D-069 M8 pathlib join): the domain's
+            # cache_files_prefix is a *filename* prefix ("Filename
+            # prefix for the level specific cache files"), so
+            # "rlmwf_" + "01_CONFIG.dat" yields the flat
+            # "rlmwf_01_CONFIG.dat". A directory-like prefix must end
+            # with a separator.
+            return Path(f"{cache_files_prefix}{level:02}_{worker_name}.dat")
             
         self.context.get_cache_file_path_for_current_level = _get_cache_file_path
         

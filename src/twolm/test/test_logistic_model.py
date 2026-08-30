@@ -225,18 +225,19 @@ class TestLogisticModel(unittest.TestCase):
         bare.log_event()
 
     def test_injected_cache_helper_computes_the_worker_path(self):
-        """T4 (D-075): with a dummy cfg, the injected path closures
-        compute the per-level cache path (pathlib join, D-069 M8):
-        <prefix>/<level:02>_<worker>.dat, and the full variant
-        prepends cfg.base_dir."""
+        """T4 (D-075, re-pinned D-078): with a dummy cfg, the injected
+        path closures compute the per-level cache path by
+        filename-prefix concatenation (D-078, replacing the D-069 M8
+        pathlib join): <prefix><level:02>_<worker>.dat, and the full
+        variant prepends cfg.base_dir."""
         ctx = self.model.context
         ctx.cfg = SimpleNamespace(cache_files_prefix="cache",
                                   base_dir=Path("base"))
         self.addCleanup(setattr, ctx, "cfg", None)
         self.assertEqual(ctx.get_cache_file_path_for_current_level(),
-                         Path("cache/00_CREATED.dat"))
+                         Path("cache00_CREATED.dat"))
         self.assertEqual(ctx.get_cache_file_full_path_for_current_level(),
-                         Path("base/cache/00_CREATED.dat"))
+                         Path("base/cache00_CREATED.dat"))
 
     def test_created_sentinel_workers_raise(self):
         """T4 (D-075): the level-0 CREATED sentinels are explicit

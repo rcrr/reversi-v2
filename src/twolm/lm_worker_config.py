@@ -34,6 +34,8 @@ import hashlib
 from typing import TYPE_CHECKING, Callable
 from pathlib import Path
 
+from pydantic import ConfigDict, validate_call
+
 from twolm.state_machine import Worker, Relevance
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 
@@ -57,8 +59,8 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
     ctx.use_cache = cfg.use_cache
     ctx.cfg = cfg
-    ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} stored to cache file.")
     _store_to_file(ctx, cfg)
+    ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} stored to cache file.")
 
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing configuration...")
@@ -68,7 +70,7 @@ def _down(ctx: "RLMContext") -> None:
 def _load(ctx: "RLMContext") -> ReversiLogisticModelConfig:
     with ctx.config_file_path.open("r", encoding="utf-8") as f:
         config_raw_data = json5.load(f)
-        ctx.log_event(Relevance.DEBUG, f"JSON file '{f}' read.")
+        ctx.log_event(Relevance.DEBUG, f"JSON file '{ctx.config_file_path}' read.")
 
     if ctx.base_dir_override is not None:
         config_raw_data['base_dir'] = ctx.base_dir_override
@@ -84,29 +86,26 @@ def _validate_base_dir(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> No
     if not cfg.base_dir.exists():
         error_message = f"The base dir: '{cfg.base_dir}' doesn't exist."
         ctx.log_event(Relevance.ERROR, error_message)
-        raise RuntimeError(error_message)
+        raise FileNotFoundError(error_message)
     if not cfg.base_dir.is_dir():
         error_message = f"The base dir: '{cfg.base_dir}' is not a directory."
         ctx.log_event(Relevance.ERROR, error_message)
-        raise RuntimeError(error_message)    
+        raise NotADirectoryError(error_message)
     is_writable = os.access(cfg.base_dir, os.W_OK)
     if not is_writable:
         error_message = f"The base dir: '{cfg.base_dir}' is not writable."
         ctx.log_event(Relevance.ERROR, error_message)
-        raise RuntimeError(error_message)    
+        raise PermissionError(error_message)
 
 def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
-    # cache_files_prefix is a filename prefix (the schema's "Filename
-    # prefix for the level specific cache files"): it is concatenated
-    # onto the level name the injected closure returns, yielding the
-    # flat base_dir/rlmwf_01_CONFIG.dat. A pathlib join would instead
-    # treat the trailing-underscore prefix as a directory component
-    # (base_dir/rlmwf_/01_CONFIG.dat) and fail on the missing dir.
-    level_name = ctx.get_cache_file_path_for_current_level().name
-    cache_file_path = cfg.base_dir / f"{cfg.cache_files_prefix}{level_name}"
+    # The injected closure returns the flat per-level cache file
+    # path: cache_files_prefix is a filename prefix per the schema,
+    # and the machine concatenates it onto the level name (D-078),
+    # so the physical file is base_dir/rlmwf_01_CONFIG.dat.
+    cache_file_path = ctx.get_cache_file_full_path_for_current_level()
     checksum_file_path = cache_file_path.with_name(cache_file_path.name + ".SHA3-256")
     
     ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, current_checksum = {current_checksum}")
@@ -148,6 +147,7 @@ def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
         ctx.log_event(Relevance.INFO, f"Existing file '{cache_file_path}' and checksum are up to date.")
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_config() -> Worker:
     """Factory function that returns the CONFIG worker instance."""
     return Worker("CONFIG", _up, _down)
