@@ -56,7 +56,7 @@ def _up(ctx: "RLMContext") -> None:
 
     # Execute the abstracted pipeline.
     cache_hit, rds, rds_checksum = cache_manager_load_or_compute(
-        cache_path  = ctx.get_cache_file_full_path_for_next_level(),
+        cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = regab_load_data_set_from_file,
         store_fn    = regab_store_data_set_to_file,

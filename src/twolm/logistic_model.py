@@ -31,6 +31,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Any, Callable
 
+from pydantic import ConfigDict, validate_call
+
 from twolm.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
 from twolm.base_model import BaseModel
 
@@ -67,7 +69,7 @@ def _check_config_file_path(config_file_path: Path | str) -> Path:
     if not cfp.exists():
         raise FileNotFoundError(f"No such file: '{config_file_path}'")
     if not cfp.is_file():
-        raise FileNotFoundError(f"File path is not a file: '{config_file_path}'")
+        raise IsADirectoryError(f"File path is not a file: '{config_file_path}'")
     return cfp
 
 def _check_base_dir_override(base_dir_override: Path | str) -> Path:
@@ -98,7 +100,7 @@ class RLMContext(Context):
     cfg: Any = None
 
     # Game positions and game values attributes:
-    rds_checksum: Union[str, None] = None
+    rds_checksum: str | None = None
     positions: Any = None
     game_values: Any = None
     training_pop_stats: Any = None
@@ -107,11 +109,11 @@ class RLMContext(Context):
     feature_set: Any = None
 
     # Indexes attribute:
-    rlm_indexes_checksum: Union[str, None] = None
+    rlm_indexes_checksum: str | None = None
     rlm_indexes: Any = None
 
     # Wmaps attributes:
-    wmaps_obj_checksum: Union[str, None] = None
+    wmaps_obj_checksum: str | None = None
     feature_w_ranges: Any = None
     iwmap_feature_offset: Any = None
     iwmap: Any = None
@@ -120,11 +122,11 @@ class RLMContext(Context):
     w: Any = None
 
     # Design Matrix attribute:
-    design_matrix_checksum: Union[str, None] = None
+    design_matrix_checksum: str | None = None
     design_matrix: Any = None
     
     # ZED attributes:
-    zed_checksum: Union[str, None] = None
+    zed_checksum: str | None = None
     y2z: Any = None
     z2y: Any = None
     z: Any = None
@@ -133,18 +135,18 @@ class RLMContext(Context):
     fg: Any = None
 
     # Optimization outcome attribute:
-    w_checksum: Union[str, None] = None
+    w_checksum: str | None = None
     opt_info: Any = None
 
-    # Full exploded weigth array:
-    dense_w_checksum: Union[str, None] = None
+    # Full exploded weight array:
+    dense_w_checksum: str | None = None
     w_dense: Any = None
 
     # Game Position for Validation attributes:
-    vld_rds_checksum: Union[str, None] = None
+    vld_rds_checksum: str | None = None
     vld_positions: Any = None
     vld_game_values: Any = None
-    vld__pop_stats: Any = None
+    vld_pop_stats: Any = None
 
     # Validation attributes:
     vld_metrics: Any = None
@@ -152,10 +154,12 @@ class RLMContext(Context):
     # Analytic attribute:
     analytics_report: Any = None
     
-    # Injected by StateMachine
+    # Injected by StateMachine: the lambda defaults are the
+    # pre-injection fallback, under the same D-069
+    # *_for_current_level names the machine injects (D-074/R1).
     log_event: Callable = lambda *args: None
-    get_cache_file_path_for_next_level: Callable = lambda: None
-    get_cache_file_full_path_for_next_level: Callable = lambda: None
+    get_cache_file_path_for_current_level: Callable = lambda: None
+    get_cache_file_full_path_for_current_level: Callable = lambda: None
 
 
 # --- Level 0: CREATED (Kept here as it's just a dummy blocker) ---
@@ -175,11 +179,17 @@ class LogisticModel(BaseModel):
     Orchestrates the state machine and the shared context.
     """
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
                  config_file_path: str | Path,
                  verbosity: Verbosity = Verbosity.STANDARD,
                  base_dir_override: str | Path | None = None):
-        
+        """
+        Build the RLM facade: validate the domain paths, create the
+        shared RLMContext, assemble the worker pipeline and hand the
+        parts to the StateMachine (via BaseModel).
+        """
+
         # 1. Validate domain specific paths
         config_file_path = _check_config_file_path(config_file_path)
         if base_dir_override is not None:

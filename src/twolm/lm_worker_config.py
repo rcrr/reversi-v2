@@ -99,7 +99,7 @@ def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     
-    cache_file_path = cfg.base_dir / ctx.get_cache_file_path_for_next_level()
+    cache_file_path = cfg.base_dir / ctx.get_cache_file_path_for_current_level()
     checksum_file_path = cache_file_path.with_name(cache_file_path.name + ".SHA3-256")
     
     ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, current_checksum = {current_checksum}")

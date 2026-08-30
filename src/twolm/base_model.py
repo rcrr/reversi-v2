@@ -31,6 +31,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
+from pydantic import ConfigDict, validate_call
+
 from twolm.state_machine import StateMachine, Worker, Context, Verbosity
 
 
@@ -42,6 +44,7 @@ class BaseModel:
     in concrete domain-specific model classes (e.g., LogisticModel, DeepNetworkModel).
     """
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, workers: List[Worker], context: Context, verbosity: Verbosity = Verbosity.STANDARD):
         self.context = context
         self.sm = StateMachine(
