@@ -1,11 +1,13 @@
 # test_cache_manager.md — analysis
 
-Date: 2026-08-30. One test file: `test_cache_manager.py` (13 tests,
+Date: 2026-08-30. One test file: `test_cache_manager.py` (21 tests,
 2 classes + 1 base), added with the module (commit a0cd31f).
-**Analysis session 20 — no test changes yet; T1-T8 documented,
-priorities proposed, campaign pending Roberto's approvals.**
+**Analysis session 20; fix campaign batch 1 applied (D-071):
+T1/T2/T3/T4/T5/T7 fixed with 8 new tests + new asserts in the 6
+existing pipeline tests — suite 13 → 21. Still OPEN: T6 (CWD-relative
+artifact base — awaiting Roberto's OK), T8 (report-only).**
 
-Suite: **13/0/0 GREEN, no PERF gates.** Fast (~0.025s).
+Suite: **21/0/0 GREEN, no PERF gates.** Fast (~0.034s).
 
 ## How to run
 
@@ -15,7 +17,7 @@ $ python -m unittest twolm.test.test_cache_manager
 
 ## Coverage by area
 
-### `TestChecksumHelpers` (7 tests)
+### `TestChecksumHelpers` (8 tests)
 
 - `test_compute_checksum_returns_valid_sha3_256`: 64-char lowercase
   hex — pins the format shape (V1a/V1b), not the value.
@@ -30,98 +32,132 @@ $ python -m unittest twolm.test.test_cache_manager
   deletion (V4).
 - `test_delete_cache_files_does_not_raise_if_missing`: double delete
   no-raise (V4 idempotency).
-- **Coverage**: the 4 low-level helpers, happy + fail paths. What is
-  NOT pinned: the sidecar content format (T3), the data-file content
-  after a re-store (T7).
+- `test_sidecar_content_is_bare_hexdigest` (T3, D-071): the sidecar
+  holds exactly the 64-char hex digest — no trailing newline, no
+  filename (V15; this is cache_manager's own format, see R3).
+- **Coverage**: the 4 low-level helpers, happy + fail paths + the
+  sidecar content format.
 
-### `TestCacheManagerPipeline` (6 tests)
+### `TestCacheManagerPipeline` (13 tests)
 
 - `test_step0_not_allowed_forces_computation`: `is_allowed=False`
   with a pre-existing cache file → compute once, store once with
-  `(DUMMY_DATA, cache_path)`, load not called, `cache_hit=False`;
-  INFO "Cache not allowed by configuration. Forcing computation."
-  pinned (V5a/V5c). What is NOT pinned: that the cache file is
-  re-written anyway (T4, depends on R1), and that the 3rd return
-  element is `None` (T1).
+  `(DUMMY_DATA, cache_path)`, load not called, `cache_hit=False`,
+  3rd element `None` (T1), INFO "Cache not allowed by configuration.
+  Forcing computation." pinned (V5a/V5c). D-071 (T4, R1 ruling): the
+  cache file is re-written anyway — data + valid sidecar asserted on
+  disk (V5b).
 - `test_step1_missing_file_forces_computation`: no file → compute +
-  store, load not called, `cache_hit=False` (V6).
+  store, load not called, `cache_hit=False`, 3rd element `None` (T1)
+  (V6).
 - `test_step2_checksum_mismatch_forces_recomputation`: data +
-  wrong sidecar → compute + store, load not called, WARN "Checksum
-  mismatch for '<path>'. Deleting cache and recomputing." pinned (V7).
-  Only the MISMATCH variant: the missing-sidecar variant is never
-  exercised at pipeline level (T5).
+  wrong sidecar → compute + store, load not called, 3rd element
+  `None` (T1), WARN "Checksum validation failed for '<path>' (sidecar
+  missing or mismatched). Deleting cache and recomputing." pinned
+  (V7, post D-071/M3); T7: the stale bytes are replaced and the new
+  sidecar verifies.
 - `test_step3a_load_exception_forces_recomputation`: valid checksum,
-  `load_fn` raises IOError → compute + store, ERROR "Failed to load
-  cache file '<path>': Disk read error. Recomputing." pinned (V8).
+  `load_fn` raises IOError → compute + store, 3rd element `None`
+  (T1), ERROR "Failed to load or validate cache file '<path>': Disk
+  read error. Recomputing." pinned (V8, post D-071); T7: on-disk
+  replacement + valid sidecar.
 - `test_step3b_validation_fails_forces_recomputation`: valid checksum
   + load, `validate_fn` False → compute + store, validate called once
-  with the loaded data (V9).
+  with the loaded data, 3rd element `None` (T1), T7 on-disk
+  (V9).
 - `test_success_path_returns_cached_data`: valid checksum + load +
-  validate → `cache_hit=True`, the loaded payload returned, load
-  called once with the path, validate once with the payload, compute
-  + store NOT called, INFO "Cache successfully loaded and validated
-  from '<path>'." pinned (V10).
-- **Coverage**: all 4 pipeline steps + the success path, with the
-  cache_hit flag and the key log messages. What is NOT covered at
-  all: the duck-typed data-checksum feature (T2, P0) and the 3rd
-  return element (T1).
+  validate → `cache_hit=True`, the loaded payload returned (identity),
+  3rd element `None` (T1), load called once with the path, validate
+  once with the payload, compute + store NOT called, INFO "Cache
+  successfully loaded and validated from '<path>'." pinned (V10).
+- `test_compute_path_returns_data_checksum` (T2, D-071): data WITH a
+  `compute_sha3_256_hash` method → the method's digest is the 3rd
+  return element on the compute path (V11a).
+- `test_load_path_returns_data_checksum` (T2, D-071): valid cache,
+  loaded data WITH the method → its digest is the 3rd element on the
+  load path (V11b).
+- `test_checksum_method_missing_returns_none` (T2 + T1, D-071):
+  plain dict data (no method) → `None` on the compute path (V12).
+- `test_checksum_attribute_not_callable_returns_none` (T2, D-071):
+  a `compute_sha3_256_hash` attribute set to a non-callable → `None`,
+  no exception, success path intact (V12).
+- `test_load_path_checksum_method_raises_recomputes` (T2, D-071):
+  the data checksum method RAISING on the load path is caught by the
+  step-3 try/except → delete + recompute, ERROR log carries the
+  exception text, 3rd element `None`, on-disk replacement (V13).
+- `test_validate_exception_forces_recomputation` (R2, D-071): a
+  `validate_fn` that RAISES is now caught like a load failure →
+  delete + recompute, ERROR log carries the exception text, on-disk
+  replacement (V16, post D-071).
+- `test_step2_missing_sidecar_forces_recomputation` (T5, D-071):
+  data file present but NO sidecar → the step-2 branch fires (same
+  WARN message as the mismatch case), compute + store, load not
+  called (V7 missing-sidecar variant).
+- **Coverage**: all 4 pipeline steps + the success path, the
+  cache_hit flag, the key log messages (post D-071 wordings), the
+  full duck-typed data-checksum feature, the 3rd return element on
+  every path, and the on-disk effects of step 0 and every
+  invalidation.
 
 ## Test defects (T1-T8)
 
-Status: all OPEN — campaign pending Roberto's approvals.
+Status: T1-T5 + T7 FIXED in the D-071 campaign (Roberto's
+approvals); T6 OPEN (awaiting his OK); T8 report-only.
 
-### T1 — The 3rd return element (data checksum) is never asserted (P1)
-Every pipeline test unpacks `checksum` and never checks it. The
-documented contract (`str | None`, the data object's own checksum)
-is unpinned: it is `None` for the plain `DUMMY_DATA` dict on every
-path, and that is exactly what should be asserted.
+### T1 — The 3rd return element (data checksum) was never asserted (P1) — FIXED (D-071)
+Every pipeline test unpacked `checksum` and never checked it. Now:
+`assertIsNone(checksum)` ("plain dict data has no
+compute_sha3_256_hash method") in all 6 existing pipeline tests, and
+the real digest values are asserted in the T2 tests.
 
-### T2 — The duck-typed `compute_sha3_256_hash` path is untested (P0)
-The module's headline feature (docstring L141-143) is invisible to
-the suite: no test data object has a `compute_sha3_256_hash`
-method. Unpinned: the value flows to the 3rd return element on BOTH
-the compute and the load paths (V11); a non-callable attribute or a
-missing one yields `None` (V12); a raising method on the LOAD path
-is caught by the step-3 try/except → recompute (V13). This is the
-only load-bearing branch of the module with zero coverage.
+### T2 — The duck-typed `compute_sha3_256_hash` path was untested (P0) — FIXED (D-071)
+The module's headline feature was invisible to the suite. Now 5 new
+`TestCacheManagerPipeline` tests + 2 helper classes
+(`DataWithChecksum`, `DataWithBrokenChecksum`): compute path returns
+the data's own digest (V11a); load path returns it (V11b); missing
+method → `None`; non-callable attribute → `None`, no exception;
+raising method on the load path → caught by the step-3 try/except,
+delete + recompute, ERROR log carries the exception text (V13).
+Plus `test_validate_exception_forces_recomputation` pinning the
+D-071/R2 behaviour for a raising validator (V16).
 
-### T3 — Sidecar content format not pinned (P2)
-Only the round-trip through `_verify_checksum` is tested; the actual
-on-disk format (bare 64-hex, no trailing newline, V15) is never
-asserted. Pin it so the format cannot drift (and so the R3 decision
-has a pin to rewrite).
+### T3 — Sidecar content format not pinned (P2) — FIXED (D-071)
+New `TestChecksumHelpers.test_sidecar_content_is_bare_hexdigest`:
+the sidecar holds exactly the 64-char hex digest — no trailing
+newline, no filename (V15).
 
-### T4 — Step 0 "still writes the cache" not pinned (P1, after R1)
-`test_step0` asserts the call pattern but not the on-disk effect:
-the data file + sidecar are created even with `is_allowed=False`
-(V5b). Whichever way R1 is ruled, this behaviour must be pinned
-(rewritten if the ruling is "compute only").
+### T4 — Step 0 "still writes the cache" not pinned (P1, after R1) — FIXED (D-071)
+R1 ruled intentional by Roberto: the result is ALWAYS transcribed to
+the cache file. `test_step0` now asserts the on-disk effect: data
+file + sidecar exist, the sidecar verifies, and the content is the
+recomputed payload (V5b).
 
-### T5 — Step 2 missing-sidecar variant untested at pipeline level (P2)
-The step-2 branch fires on BOTH mismatch and missing sidecar; the
-suite covers only the mismatch. Add the missing-sidecar case (same
-WARN message, V7/V15c adjacency).
+### T5 — Step 2 missing-sidecar variant untested at pipeline level (P2) — FIXED (D-071)
+New `test_step2_missing_sidecar_forces_recomputation`: data present,
+no sidecar → same WARN message as the mismatch case, compute +
+store, load not called (V7).
 
-### T6 — Artifacts under CWD-relative `./build/tmp` (P1, house rule)
-`CUSTOM_TMP_BASE = Path("./build/tmp")` (L75) is relative to the
-CWD, not the workspace root. The D-065 house rule (test artifacts
-ONLY under `workspace_root/build/tmp`) is applied in
-test_state_machine.py via `Path(__file__).resolve().parents[3] /
-"build" / "tmp"`. Running the suite from any other CWD would create
-`build/tmp` wherever it is invoked (and would NOT find the existing
-tree). Fix: derive the root from `__file__` like the other suite.
+### T6 — Artifacts under CWD-relative `./build/tmp` (P1, house rule) — OPEN, awaiting Roberto's OK
+`CUSTOM_TMP_BASE = Path("./build/tmp")` is relative to the CWD, not
+the workspace root. The D-065 house rule (test artifacts ONLY under
+`workspace_root/build/tmp`) is applied in test_state_machine.py via
+`Path(__file__).resolve().parents[3] / "build" / "tmp"`. Running the
+suite from any other CWD would create `build/tmp` wherever it is
+invoked (and would NOT find the existing tree). Proposed fix: derive
+the root from `__file__` like the other suite. No source impact.
 
-### T7 — No on-disk assertion after recompute (P2)
-The three "forces recomputation" tests check the return value and
-the calls, but never the file: that the recompute actually replaced
-the corrupt/stale bytes and left a VALID sidecar (V7b/V8b/V9b) is
-unpinned. A store_fn that writes nothing would pass today.
+### T7 — No on-disk assertion after recompute (P2) — FIXED (D-071)
+`test_step2`, `test_step3a`, `test_step3b` (and the two new T2/R2
+recompute tests) now assert the file: the recompute replaced the
+stale bytes (content == `str(DUMMY_DATA)`) and left a VALID sidecar
+(`_verify_checksum` True). A store_fn that wrote nothing would no
+longer pass.
 
-### T8 — Header grammar (cosmetic, report-only)
+### T8 — Header grammar (cosmetic, report-only) — OPEN, report-only
 L30: "How to use the unit tests cache_manager module." — same
 pattern as the test_board/test_feature header nits; the
-'Activate the environment.' line itself is fine. Report-only unless
-Roberto wants it swept in the campaign.
+'Activate the environment.' line itself is fine. Left as-is per the
+report-only pattern.
 
 ## Observations
 
@@ -143,27 +179,36 @@ Roberto wants it swept in the campaign.
 
 ## Completeness verdict
 
-**Pipeline coverage is good** (all 4 steps + success, flags and log
-messages pinned; the delete-and-recompute invariant is consistently
-asserted through the call pattern). **The gap is the data-checksum
-feature** — the module's distinctive addition over a plain
-load-or-compute (T2, P0) — plus the unpinned 3rd return element (T1)
-and the D-065 artifact-path deviation (T6).
+**Pipeline coverage is now complete** (post D-071): all 4 steps +
+success with flags and (updated) log messages, the delete-and-
+recompute invariant asserted both through the call pattern AND on
+disk (T7), the full duck-typed data-checksum feature (T2), the 3rd
+return element on every path (T1), the step-0 warm-cache effect
+(T4/R1) and the missing-sidecar variant (T5).
 
-**Verdict**: 13/0/0 GREEN as-is. Proposed campaign: P0 = T2 (4-5
-tests: with-method compute path, with-method load path, no-method →
-None, non-callable attr, raising method on load); P1 = T1 + T4 (after
-the R1 ruling) + T6; P2 = T3 + T5 + T7 (+ optional end-to-end store→
-load) + T8 if Roberto wants it. Source-side items (R1-R4, M1-M3)
-are separate Roberto's-call items in the module doc.
+**Verdict**: 21/0/0 GREEN. Campaign batch 1 (D-071) closed T1-T5 +
+T7; the module's distinctive data-checksum feature is now pinned.
+Remaining: T6 (artifact base — awaiting Roberto's OK) and T8
+(report-only).
 
-## Appendix: class map (2026-08-30, at analysis)
+## Appendix: class map (2026-08-30, post D-071; file 595 lines)
 
 | Line | Class / item | Tests |
 |---|---|---|
 | 72 | `DUMMY_DATA` | — |
-| 75 | `CUSTOM_TMP_BASE` (CWD-relative — T6) | — |
-| 78 | `BaseCacheTestCase` | — |
-| 95 | `TestChecksumHelpers` | 7 |
-| 154 | `TestCacheManagerPipeline` | 6 |
-| 344 | `unittest.main` guard | — |
+| 75 | `CUSTOM_TMP_BASE` (CWD-relative — T6 OPEN) | — |
+| 78 | `DataWithChecksum` (D-071 helper) | — |
+| 89 | `DataWithBrokenChecksum` (D-071 helper) | — |
+| 96 | `checksum_path_for` (D-071 helper) | — |
+| 101 | `BaseCacheTestCase` | — |
+| 118 | `TestChecksumHelpers` | 8 |
+| 176 | `test_sidecar_content_is_bare_hexdigest` (T3) | — |
+| 187 | `TestCacheManagerPipeline` | 13 |
+| 410 | `test_compute_path_returns_data_checksum` (T2) | — |
+| 433 | `test_load_path_returns_data_checksum` (T2) | — |
+| 458 | `test_checksum_method_missing_returns_none` (T2/T1) | — |
+| 479 | `test_checksum_attribute_not_callable_returns_none` (T2) | — |
+| 504 | `test_load_path_checksum_method_raises_recomputes` (T2/V13) | — |
+| 533 | `test_validate_exception_forces_recomputation` (R2) | — |
+| 564 | `test_step2_missing_sidecar_forces_recomputation` (T5) | — |
+| 594 | `unittest.main` guard | — |

@@ -43,8 +43,8 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_opt_lbfgs.py | analyzed 2026-08-29 (session 16); T7 applied + 9 new tests (D-053): TestLBFGSInputValidation (3), TestFixedSizeMaxList (4, incl. T1 regression), TestTwoLoopRecursion (2); suite 4 → 13/0/0 GREEN | docs/src/twolm/test/test_opt_lbfgs.md |
 | src/twolm/state_machine.py | analyzed 2026-08-29 (session 19): generic pipeline orchestrator (Workers up/down + Context + logging/history/CSV), pure stdlib, no new deps; 17 verified facts V1-V17 (0 mismatches, 54-check probe); R1 FIXED (D-057: Verbosity.VERY_LOW=4 added, NONE=5, `>=` gate unchanged — HIGH..LOW byte-identical, NONE truly silent, old ERROR-only behaviour kept as VERY_LOW); R2 FIXED (D-058: LogEntry now a frozen dataclass — attribute access, asdict() for file/DB dumps, show_event_log migrated, observable behaviour unchanged; test-file datetime import now used → M2/T11 resolved); R3 RESOLVED as intentional sentinel (D-059: documented in class + move_to_step docstrings, pinned by test_worker_zero_is_sentinel_never_executed, no behaviour change — the RLM 'CREATED' worker runs outside the machine, logistic_model will make it explicit); R4 RESOLVED (D-060: keep + document + pin — failure semantics in move_to_step docstring, recovery = move to k-1 (k's down) then up; machine domain-agnostic, exception re-raised for the domain worker; pinned by test_retry_after_failure_skips_failed_step, closes T6); R5 RESOLVED (D-061: __init__ rejects duplicate worker names, case-insensitive ValueError fail-fast — the real ambiguity was name resolution in move_to_step itself, so uniqueness enforced instead of an index fix; move_to_last unchanged, name dispatch now unambiguous; closes M12); T2 coverage added (D-062: TestContextInjection 7 tests; M8 extended with the implicit separator contract); T3 coverage added (D-063: TestDisplayGoldens 3 end-to-end display goldens, frozen clock); T4 coverage added (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 fixed (D-065: CSV test rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp; new house rule: test files only in workspace_root/build/tmp, removed afterwards); T7 pinned (D-066: 2 tests — bool accepted as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 applied (D-068: M1 dead Any import removed, M4 _run_step direction dispatch explicit (elif 'down' + ValueError), M7 __repr__ on Worker + StateMachine (lightweight), M10 CSV export creates missing parent dirs); M-sweep batch 2 applied (D-069: M3 bool rejected — strict gate, TypeError same message, test rewritten to rejection; M5 cache helpers renamed *_for_current_level (domain modules lm_worker_config + logistic_model: 2 call sites to update at port); M8 cache prefix pathlib join — no more silent gluing; M11 @validate_call on Worker init/up/down + SM init/log_event/export + move_to_step via strict private impl re-raising the pinned TypeError; pydantic now a module dep, already in pyproject); ALL T ITEMS CLOSED; M-sweep COMPLETE (D-068: M1, M4, M7, M10; D-069: M3, M5, M8, M11; D-070: M6 print cleanup — enum names + UTC marker on the live line, UTC header / 2-digit step / RELEVANCE name column / 66-underscore rule, right-aligned Dur (s), 3 display goldens rewritten in place; M9 left as-is — injection load-bearing, redesign parked at I-010); suite 49/0/0 GREEN (test_state_machine.py) | docs/src/twolm/state_machine.md |
 | src/twolm/test/test_state_machine.py | analyzed 2026-08-29 (session 19): 5 classes / 49 tests / no PERF; all 13 original expectations independently re-derived (0 mismatches); T1 FIXED (D-057: TestVerbosityGating — 6x5 gating matrix + enum values); R2 tests added (D-058: TestLogEntry 3 tests — typed record, immutability, asdict 5-key form); T6 FIXED (D-060: test_retry_after_failure_skips_failed_step — retry-skip + down-then-up recovery); R5 tests added (D-061: 2 duplicate-name tests — reject + case-insensitive, closes T10); T2 FIXED (D-062: TestContextInjection 7 tests — log_event live binding, {level:02} format, base_dir join, absolute-prefix drops base_dir, cfg-missing AttributeError, empty-workers degenerate, V17 shared-context re-bind); T3 FIXED (D-063: TestDisplayGoldens 3 end-to-end goldens — live line, show_event_log table, show_history_of_moves table, frozen clock); T4 FIXED (D-064: 3 move_to_last tests — happy path, intermediate position, single-worker sentinel no-op); T5 FIXED (D-065: test_history_export_csv rewritten — exact header names, ISO-8601 +00:00, duration identity, artifact under build/tmp + finally cleanup; house rule: test files only in workspace_root/build/tmp); T7 pinned (D-066: 2 tests — bool as int step, np.int64 TypeError); T8 + T9 pinned (D-067: 5 tests — current_worker_name live view + UNDEFINED, StepMove field content incl. aware-UTC timestamps, duration identity, finally-append on failure); M-sweep batch 1 pinned (D-068: 4 tests — _run_step unknown direction ValueError, Worker __repr__, StateMachine __repr__ tracks state, CSV export creates missing parent dirs); M-sweep batch 2 pinned (D-069: bool test rewritten to rejection + 2 constructor ValidationError tests + Path prefix join test); M6 display goldens rewritten in place to the cleaned format (D-070 — enum names + UTC marker, TIMESTAMP (UTC) / 2-digit step / RELEVANCE name / 66-underscore table, right-aligned Dur (s) header; suite count unchanged); T11 resolved as D-058 side effect; ALL T ITEMS CLOSED (T1-T11); M-sweep COMPLETE; suite count unchanged for T5 (a rewrite): 13 → 15 → 18 → 20 → 22 → 29 → 32 → 35 → 37 → 42 → 46 → 49, GREEN 49/0/0 | docs/src/twolm/test/test_state_machine.md |
-| src/twolm/cache_manager.py | analyzed 2026-08-30 (session 20, added by Roberto in commit a0cd31f): generic load-or-compute cache pipeline (4-step validation: allowed → present → checksum → business validity) + duck-typed data checksum + injected callbacks; first domain module importing state_machine (Relevance); 17 verified facts V1-V17 (0 mismatches, 33-check probe + 2 boundary probes); R1-R4 OPEN, Roberto's calls (R1 step-0 still stores, R2 validate_fn exceptions propagate, R3 sidecar format not binio-compatible, R4 no @validate_call); M1-M3 minor (dead Any import, docstring typos, "Checksum mismatch" msg on missing sidecar); suite 13/0/0 GREEN (test_cache_manager.py) | docs/src/twolm/cache_manager.md |
-| src/twolm/test/test_cache_manager.py | analyzed 2026-08-30 (session 20): 2 classes / 13 tests / no PERF; all 4 pipeline steps + success covered, cache_hit flag + key log messages pinned; 8 defects T1-T8 documented (T1 3rd return element never asserted, T2 duck-typed compute_sha3_256_hash path untested — P0, T3 sidecar format unpinned, T4 step-0 on-disk effect unpinned (after R1), T5 missing-sidecar pipeline variant untested, T6 artifacts under CWD-relative ./build/tmp — D-065 deviation, T7 no on-disk assert after recompute, T8 header grammar report-only); campaign pending Roberto's approvals; suite 13/0/0 GREEN | docs/src/twolm/test/test_cache_manager.md |
+| src/twolm/cache_manager.py | analyzed 2026-08-30 (session 20, added by Roberto in commit a0cd31f) + fix campaign batch 1 (D-071): generic load-or-compute cache pipeline (4-step validation: allowed → present → checksum → business validity) + duck-typed data checksum + injected callbacks; first domain module importing state_machine (Relevance); 17 verified facts V1-V17 (0 mismatches, 33-check probe + 2 boundary probes); D-071: R1 RESOLVED as intentional (step-0 cache-disabled run still warms the cache file — documented + pinned), R2 FIXED (validate_fn in the step-3 try — raising validator deletes + recomputes), R4 FIXED (@validate_call, str→Path coercion, approved behaviour change), M1-M3 fixed (dead Any import, docstring typos, step-2 msg accurate); R3 OPEN — sidecar content (bare hex) not binio sha3_256sum-compatible, awaiting Roberto's ruling; suite 21/0/0 GREEN (test_cache_manager.py) | docs/src/twolm/cache_manager.md |
+| src/twolm/test/test_cache_manager.py | analyzed 2026-08-30 (session 20) + fix campaign batch 1 (D-071): 2 classes / 21 tests / no PERF (13 → 21: T2 5 duck-typed-hash tests + R2 raising-validator pin + T5 missing-sidecar pipeline test + T3 sidecar-format test); D-071: T1 (assertIsNone on all 6 pipeline tests), T2 (P0 — the duck-typed compute_sha3_256_hash path: with-method both paths, missing → None, non-callable → None, raising on load → recompute), T3 (sidecar = bare 64-hex, no newline), T4 (step-0 on-disk warm-cache effect, per R1 ruling), T5, T7 (on-disk replacement + valid sidecar after every recompute) FIXED; T6 OPEN (CWD-relative ./build/tmp — D-065 deviation, fix proposed: __file__-derived root, awaiting OK), T8 report-only (header grammar); suite 21/0/0 GREEN | docs/src/twolm/test/test_cache_manager.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -99,8 +99,8 @@ now (I-001; see notes/decisions.md).
 - Suite status (2026-08-30): board 193/0/12, pattern 64/0/3,
   mobility 26/0/1, feature 20/0/1, binio 45/0/0 (42 + 3 usage),
   regab 37/0/0 (2 mocked run, 35 DB skipped under SKIP_REGAB_DB=1),
-  opt_lbfgs 13/0/0, state_machine 49/0/0, cache_manager 13/0/0 —
-  all GREEN. Totals: 460 tests, 52 skipped under the gate (17
+  opt_lbfgs 13/0/0, state_machine 49/0/0, cache_manager 21/0/0 —
+  all GREEN. Totals: 468 tests, 52 skipped under the gate (17
   PERF=1 print-only performance tests + 35 DB-gated regab tests; no
   performance gates in any suite, D-036). Warm run ≈ 0.5 s (board)
   / ≈ 1.7 s (full discover, numba cache warm in
@@ -330,32 +330,43 @@ now (I-001; see notes/decisions.md).
   unchanged) — all T items closed, M-sweep COMPLETE. Suite 49/0/0
   GREEN.
 - cache_manager.py: analyzed 2026-08-30 (session 20,
-  docs/src/twolm/cache_manager.md) — the pipeline's load-or-compute
-  cache engine (first domain module to import state_machine, for
-  Relevance): 4-step validation (allowed → present → checksum →
-  business validity), all failure paths converge on the shared
-  compute+store tail; two checksums — the file sidecar (bare
-  hexdigest, same `<name>.SHA3-256` naming scheme as binio) and the
-  duck-typed data checksum (`compute_sha3_256_hash` on the data
-  object, 3rd return element). 17 verified facts V1-V17 (0
-  mismatches, independent probe scratch/verify_cache_manager.py).
-  OPEN, Roberto's calls: R1 (step 0 `is_allowed=False` still writes
-  the cache — V5b), R2 (validate_fn exceptions propagate outside the
-  step-3 try — V16), R3 (sidecar content not binio
-  sha3_256sum-compatible — V15c), R4 (no @validate_call, house
-  convention — V17); minor M1-M3 (dead `Any` import, docstring
-  typos, "Checksum mismatch" msg on missing sidecar). Suite 13/0/0
-  GREEN.
+  docs/src/twolm/cache_manager.md) + fix campaign batch 1 (D-071) —
+  the pipeline's load-or-compute cache engine (first domain module
+  to import state_machine, for Relevance): 4-step validation
+  (allowed → present → checksum → business validity), all failure
+  paths converge on the shared compute+store tail; two checksums —
+  the file sidecar (bare hexdigest, same `<name>.SHA3-256` naming
+  scheme as binio) and the duck-typed data checksum
+  (`compute_sha3_256_hash` on the data object, 3rd return element).
+  17 verified facts V1-V17 (0 mismatches, independent probe
+  scratch/verify_cache_manager.py). D-071 (Roberto's approvals): R1
+  RESOLVED as intentional (step 0 `is_allowed=False` still warms the
+  cache file — docstring + pin), R2 FIXED (validate_fn moved into
+  the step-3 try — a raising validator deletes + recomputes like a
+  load failure; ERROR msg re-worded "Failed to load or validate
+  cache file ..."), R4 FIXED (@validate_call — str→Path coercion is
+  the approved behaviour change, non-coercible → ValidationError),
+  M1-M3 fixed (dead `Any` import, docstring typos, step-2 WARN now
+  accurate "(sidecar missing or mismatched)"). Still OPEN: R3
+  (sidecar content is the bare hexdigest, not binio's
+  sha3_256sum format — a binio-written sidecar fails verification
+  → silent recompute; leave + document vs tolerant first-token
+  parse — awaiting Roberto's ruling). Suite 21/0/0 GREEN.
 - test_cache_manager.py: analyzed 2026-08-30 (session 20,
-  docs/src/twolm/test/test_cache_manager.md): 2 classes / 13 tests /
-  no PERF; pipeline coverage good (all 4 steps + success, flags +
-  key log messages pinned). 8 defects T1-T8: the distinctive
-  duck-typed data-checksum feature is completely untested (T2, P0),
-  the 3rd return element never asserted (T1), the step-0 on-disk
-  effect unpinned (T4, after R1), artifacts under CWD-relative
-  `./build/tmp` (T6, D-065 deviation), + T3/T5/T7 breadth and T8
-  grammar (report-only). Campaign pending Roberto's approvals —
-  P0 = T2, P1 = T1 + T4 (after R1) + T6, P2 = T3 + T5 + T7 + T8.
+  docs/src/twolm/test/test_cache_manager.md) + fix campaign batch 1
+  (D-071): 2 classes / 21 tests / no PERF (13 → 21). T2 (P0) closed:
+  5 new tests pin the whole duck-typed data-checksum feature
+  (with-method digest on compute + load paths, missing method →
+  None, non-callable attribute → None, raising method on the load
+  path → recompute) + a pin for the D-071/R2 raising validator; T1
+  (3rd element asserted on all 6 original pipeline tests), T4
+  (step-0 on-disk warm-cache effect, per the R1 ruling), T5
+  (missing-sidecar pipeline variant), T3 (sidecar content = bare
+  64-hex, no newline), T7 (on-disk replacement + valid sidecar
+  after every recompute) all FIXED. T6 OPEN: artifacts under
+  CWD-relative `./build/tmp` (D-065 deviation; proposed fix:
+  __file__-derived workspace root — awaiting Roberto's OK); T8
+  header grammar report-only.
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -389,16 +400,15 @@ now (I-001; see notes/decisions.md).
 - Reported-only: test_board.py header grammar nit (the
   'environmeant' typo itself fixed 2026-08-29, D-050).
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
-- Next: cache_manager fix campaign, item by item, pending Roberto's
-  approvals — R1-R4 are his calls (R1 step-0 store semantics, R2
-  validate_fn exception policy, R3 binio sidecar interop, R4
-  @validate_call); test campaign P0 = T2 (duck-typed
-  compute_sha3_256_hash coverage), P1 = T1 + T4 (after R1) + T6
-  (D-065 artifact path), P2 = T3 + T5 + T7 + T8
-  (docs/src/twolm/cache_manager.md + docs/src/twolm/test/
-  test_cache_manager.md). When the domain modules lm_worker_config
-  + logistic_model arrive, their 2 cache-helper call sites must use
-  the D-069 names (*_for_current_level).
+- Next: cache_manager campaign batch 1 DONE (D-071: R1 resolved, R2
+  + R4 fixed, M1-M3 fixed, T1-T5 + T7 pinned, suite 21/0/0). Awaiting
+  Roberto's calls: R3 (sidecar content vs binio sha3_256sum format —
+  leave + document vs tolerant first-token parse in
+  _verify_checksum) and T6 (CWD-relative ./build/tmp → __file__-
+  derived workspace root, D-065); T8 header grammar report-only.
+  Then the domain modules lm_worker_config + logistic_model — their
+  2 cache-helper call sites must use the D-069 names
+  (*_for_current_level).
 
 ## Index
 
@@ -469,14 +479,15 @@ now (I-001; see notes/decisions.md).
   (bool rejection, constructor ValidationErrors, Path prefix join)
   + M6 display goldens rewritten in place D-070,
   ALL T items resolved, P0/P1/P2 priorities proposed)
-- docs/src/twolm/cache_manager.md — cache_manager.py analysis
-  (4-step load-or-compute cache pipeline + duck-typed data
-  checksum; 17 verified facts V1-V17; R1-R4 OPEN — Roberto's calls;
-  M1-M3 minor; suite 13/0/0 GREEN)
+- docs/src/twolm/cache_manager.md — cache_manager.py analysis +
+  D-071 fix campaign batch 1 (4-step load-or-compute cache pipeline
+  + duck-typed data checksum; 17 verified facts V1-V17; R1
+  intentional + pinned, R2 validate-in-try, R4 @validate_call, M1-M3
+  fixed; R3 OPEN — binio sidecar interop; suite 21/0/0 GREEN)
 - docs/src/twolm/test/test_cache_manager.md — test_cache_manager.py
-  analysis (2 classes / 13 tests; pipeline coverage good; 8 defects
-  T1-T8, T2 duck-typed hash path untested = P0; priorities P0/P1/P2
-  proposed, campaign pending)
+  analysis + D-071 (2 classes / 21 tests; T1-T5 + T7 fixed with 8
+  new tests — incl. the full duck-typed hash path; T6 OPEN awaiting
+  OK, T8 report-only)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
 - notes/decisions.md — decisions log (D-NNN; D-001…D-069)

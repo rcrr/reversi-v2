@@ -1262,3 +1262,72 @@ D-070 | 2026-08-29 | state_machine M-sweep close-out: M6 + M9
         Suite 49/0/0 GREEN; full discover 447 tests, 52 skipped,
         GREEN. STATE_MACHINE module fully done — R1-R5, all T
         items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070.
+
+D-071 | 2026-08-30 | cache_manager fix campaign batch 1: R1
+        resolved as intentional, R2 + R4 fixed, M1-M3 fixed, T1/T2/
+        T3/T4/T5/T7 pinned with 8 new tests (session 20, approved by
+        Roberto: R1 "e' comportamento atteso. Quando la cache e'
+        disabilitata viene forzato il ricalcolo, ma il risultato e'
+        sempre trascritto nel cache_file"; R2 "risolviamo la
+        asimmetria, mettiamo anche validate nel try, se validate si
+        interrompe con eccezione, cancellare tutto e ricompute"; R4
+        "aggiungi"; P0 "aggiungi i tests"; P1 "T1 aggiungi assert";
+        P2 "aggiungi nei tests tutti i casi che mancano"; M1-M3
+        "ok"): source changes + test additions.
+        R1: no behaviour change — step 0 (is_allowed=False)
+        computes AND stores by design (a cache-disabled run always
+        warms the cache file); documented in the is_allowed
+        docstring (L150-153); pinned by test_step0's new on-disk
+        assertions (data + valid sidecar, T4).
+        R2: validate_fn(cached_data) moved INSIDE the step-3
+        try/except (L187-194) — a raising validator now deletes the
+        cache files and forces recomputation, exactly like a load
+        failure or a raising data checksum; the ERROR message is
+        re-worded to "Failed to load or validate cache file
+        '<path>': <e>. Recomputing." (covers all three callables in
+        the try; the False-return WARN path is unchanged); pinned by
+        test_validate_exception_forces_recomputation + the re-worded
+        test_step3a pin + test_load_path_checksum_method_raises_
+        recomputes.
+        R4: @validate_call(config=ConfigDict(arbitrary_types_allowed=
+        True)) on cache_manager_load_or_compute (L132) — house
+        convention; pydantic now a module import (already a
+        workspace dependency; pyproject.toml unchanged). Approved
+        behaviour change: a str cache_path is coerced to Path and
+        works; non-coercible values (int, None, ...) raise a
+        pydantic ValidationError instead of the old bare
+        AttributeError (V17 re-stated).
+        M1: dead Any import removed. M2: docstring typos fixed
+        ("difefrent"/"cacke" -> "different"/"cache"; "Look up for"
+        -> "Look for"). M3: the step-2 WARN is now "Checksum
+        validation failed for '<path>' (sidecar missing or
+        mismatched). Deleting cache and recomputing." (was
+        "Checksum mismatch..." — inaccurate when the sidecar is
+        merely missing); both wordings pinned.
+        Tests (13 -> 21): T2 (P0) 5 new TestCacheManagerPipeline
+        tests + DataWithChecksum/DataWithBrokenChecksum helpers —
+        compute path returns the data's own digest, load path
+        returns it, missing method -> None, non-callable attribute
+        -> None, raising method on the load path -> delete +
+        recompute (V11/V12/V13); R2 pin: raising validate_fn ->
+        delete + recompute; T1: assertIsNone(checksum) added to all
+        6 existing pipeline tests; T4: test_step0 now asserts the
+        on-disk warm-cache effect (R1); T5: new
+        test_step2_missing_sidecar_forces_recomputation (the
+        missing-sidecar variant of step 2); T3: new
+        TestChecksumHelpers.test_sidecar_content_is_bare_hexdigest
+        (the sidecar holds exactly the 64-hex digest, no newline, no
+        filename — V15); T7: the recompute tests (step2/3a/3b + the
+        two new T2/R2 recompute tests) now assert the on-disk
+        replacement + a valid sidecar.
+        Still OPEN: R3 (sidecar content format vs binio's
+        sha3_256sum format — same sidecar file name, different
+        content; a binio-written sidecar fails _verify_checksum ->
+        silent recompute; options: leave + document, or tolerant
+        first-token parse; detailed explanation given, awaiting
+        Roberto's ruling), T6 (CWD-relative ./build/tmp artifact
+        base, D-065 deviation — fix proposed: derive the workspace
+        root from __file__; awaiting Roberto's OK), T8 (header
+        grammar, report-only).
+        Suite 13 -> 21/0/0 GREEN; full discover 460 -> 468 tests,
+        52 skipped under the gate, GREEN.
