@@ -35,7 +35,9 @@ from __future__ import annotations
 import hashlib
 
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Callable, TypeVar
+
+from pydantic import ConfigDict, validate_call
 
 from twolm.state_machine import Relevance
 
@@ -95,8 +97,8 @@ def _delete_cache_files(cache_path: Path) -> None:
 
 
 def _compute_sha3_256_hash(data: T) -> str | None:
-    # Look up for the compute_sha3_256_hash method in the data object.
-    # If not found, callable_method is set to None.
+    # Look for the compute_sha3_256_hash method in the data object.
+    # If not found, or not callable, data_checksum is set to None.
     callable_method = getattr(data, "compute_sha3_256_hash", None)
 
     # Verify that the attribute exists and it is a method.
@@ -127,6 +129,7 @@ def _compute_and_store(cache_path: Path,
     return False, data, data_checksum
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def cache_manager_load_or_compute(cache_path: Path,
                                   is_allowed: bool,
                                   load_fn: LoadFunc[T],
@@ -139,12 +142,15 @@ def cache_manager_load_or_compute(cache_path: Path,
     Orchestrate the 4-step cache validation pipeline.
 
     When the computed data object has a method named 'compute_sha3_256_hash' it is used to
-    compute the data checksum, different value and difefrent concept from the cacke file checksum,
-    that is returned by the method as third element of the tuple.
-    
+    compute the data checksum, different value and different concept from the cache file
+    checksum, that is returned by the method as third element of the tuple.
+
     Args:
         cache_path: Path to the cache file.
-        is_allowed: Step 0 - Is caching allowed for this step ?
+        is_allowed: Step 0 - Is caching allowed for this step? When
+            False, computation is forced; the result is STILL stored
+            to the cache file (intentional: a cache-disabled run
+            always warms the cache, D-071).
         load_fn: Function to load data from cache_path.
         store_fn: Function to store data to cache_path.
         validate_fn: Step 3 - Business logic to validate loaded data.
@@ -170,20 +176,24 @@ def cache_manager_load_or_compute(cache_path: Path,
 
     #: Step 2: Is checksum consistent?
     if not _verify_checksum(cache_path):
-        logger_fn(Relevance.WARN, f"Checksum mismatch for '{cache_path}'. Deleting cache and recomputing.")
+        logger_fn(Relevance.WARN, f"Checksum validation failed for '{cache_path}' (sidecar missing or mismatched). Deleting cache and recomputing.")
         _delete_cache_files(cache_path)
         return _compute_and_store(cache_path, compute_fn, store_fn, logger_fn)
 
     #: Step 3: Is application data valid? (Business Logic)
+    # load + data checksum + validation are all in the try: a raising
+    # load_fn, a raising data checksum, or a raising validate_fn all
+    # invalidate the cache and force recomputation (R2, D-071).
     try:
         cached_data = load_fn(cache_path)
         cached_checksum = _compute_sha3_256_hash(cached_data)
+        is_valid = validate_fn(cached_data)
     except Exception as e:
-        logger_fn(Relevance.ERROR, f"Failed to load cache file '{cache_path}': {e}. Recomputing.")
+        logger_fn(Relevance.ERROR, f"Failed to load or validate cache file '{cache_path}': {e}. Recomputing.")
         _delete_cache_files(cache_path)
         return _compute_and_store(cache_path, compute_fn, store_fn, logger_fn)
 
-    if not validate_fn(cached_data):
+    if not is_valid:
         logger_fn(Relevance.WARN, f"Application data validation failed for '{cache_path}'. Deleting cache and recomputing.")
         _delete_cache_files(cache_path)
         return _compute_and_store(cache_path, compute_fn, store_fn, logger_fn)

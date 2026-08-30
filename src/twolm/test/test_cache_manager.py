@@ -75,6 +75,29 @@ DUMMY_DATA = {"result": "success", "value": 42}
 CUSTOM_TMP_BASE = Path("./build/tmp")
 
 
+class DataWithChecksum:
+    """Data object WITH the duck-typed compute_sha3_256_hash method (T2)."""
+
+    def __init__(self, payload, digest):
+        self.payload = payload
+        self.digest = digest
+
+    def compute_sha3_256_hash(self):
+        return self.digest
+
+
+class DataWithBrokenChecksum(DataWithChecksum):
+    """Data object whose compute_sha3_256_hash raises (T2, V13)."""
+
+    def compute_sha3_256_hash(self):
+        raise RuntimeError("hash boom")
+
+
+def checksum_path_for(data_path: Path) -> Path:
+    """The module's sidecar path for a data file."""
+    return data_path.with_suffix(data_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
+
+
 class BaseCacheTestCase(unittest.TestCase):
     """Base test case to handle custom temporary directory setup and teardown."""
 
@@ -150,6 +173,16 @@ class TestChecksumHelpers(BaseCacheTestCase):
         _delete_cache_files(self.temp_path)
         _delete_cache_files(self.temp_path)
 
+    def test_sidecar_content_is_bare_hexdigest(self):
+        """T3 (V15): the sidecar holds exactly the 64-char hex digest —
+        no trailing newline, no filename. This is cache_manager's own
+        format, not binio's sha3_256sum format (see R3, module doc)."""
+        _save_checksum(self.temp_path)
+        content = checksum_path_for(self.temp_path).read_text()
+        self.assertEqual(content, _compute_checksum(self.temp_path))
+        self.assertEqual(len(content), 64)
+        self.assertFalse(content.endswith("\n"))
+
 
 class TestCacheManagerPipeline(BaseCacheTestCase):
     """
@@ -191,13 +224,21 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertFalse(cache_hit, "cache_hit must be False when cache is not allowed.")
         self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_compute.assert_called_once()
         self.mock_store.assert_called_once_with(DUMMY_DATA, self.cache_path)
         self.mock_load.assert_not_called()
-        
+
         self.mock_logger.assert_any_call(
             Relevance.INFO, "Cache not allowed by configuration. Forcing computation."
         )
+
+        # T4 (R1 ruling, D-071): even when caching is not allowed the
+        # result is transcribed to the cache file — warm the cache.
+        self.assertTrue(self.cache_path.exists())
+        self.assertTrue(checksum_path_for(self.cache_path).exists())
+        self.assertTrue(_verify_checksum(self.cache_path))
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
 
     def test_step1_missing_file_forces_computation(self):
         """
@@ -216,6 +257,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertFalse(cache_hit, "cache_hit must be False when file is missing.")
         self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_compute.assert_called_once()
         self.mock_store.assert_called_once()
         self.mock_load.assert_not_called()
@@ -243,13 +285,21 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertFalse(cache_hit, "cache_hit must be False on checksum mismatch.")
         self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_compute.assert_called_once()
         self.mock_store.assert_called_once()
         self.mock_load.assert_not_called()
-        
+
         self.mock_logger.assert_any_call(
-            Relevance.WARN, f"Checksum mismatch for '{self.cache_path}'. Deleting cache and recomputing."
+            Relevance.WARN,
+            f"Checksum validation failed for '{self.cache_path}' "
+            f"(sidecar missing or mismatched). Deleting cache and recomputing.",
         )
+
+        # T7: the recompute actually replaced the stale bytes and
+        # left a valid sidecar behind.
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
+        self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_step3a_load_exception_forces_recomputation(self):
         """
@@ -273,13 +323,19 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertFalse(cache_hit, "cache_hit must be False when load_fn raises an exception.")
         self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_compute.assert_called_once()
         self.mock_store.assert_called_once()
-        
+
         self.mock_logger.assert_any_call(
-            Relevance.ERROR, 
-            f"Failed to load cache file '{self.cache_path}': Disk read error. Recomputing."
+            Relevance.ERROR,
+            f"Failed to load or validate cache file '{self.cache_path}': Disk read error. Recomputing."
         )
+
+        # T7: the recompute actually replaced the stale bytes and
+        # left a valid sidecar behind.
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
+        self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_step3b_validation_fails_forces_recomputation(self):
         """
@@ -303,9 +359,15 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertFalse(cache_hit, "cache_hit must be False when validation fails.")
         self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_compute.assert_called_once()
         self.mock_store.assert_called_once()
         self.mock_validate.assert_called_once_with(DUMMY_DATA)
+
+        # T7: the recompute actually replaced the stale bytes and
+        # left a valid sidecar behind.
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
+        self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_success_path_returns_cached_data(self):
         """
@@ -330,14 +392,202 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
         self.assertTrue(cache_hit, "cache_hit must be True on successful cache load.")
         self.assertEqual(result, cached_payload)
+        self.assertIsNone(checksum, "plain dict data has no compute_sha3_256_hash method.")
         self.mock_load.assert_called_once_with(self.cache_path)
         self.mock_validate.assert_called_once_with(cached_payload)
-        
+
         self.mock_compute.assert_not_called()
         self.mock_store.assert_not_called()
 
         self.mock_logger.assert_any_call(
             Relevance.INFO, f"Cache successfully loaded and validated from '{self.cache_path}'."
+        )
+
+    # ------------------------------------------------------------------
+    # T2 (P0): the duck-typed compute_sha3_256_hash data-checksum path.
+    # ------------------------------------------------------------------
+
+    def test_compute_path_returns_data_checksum(self):
+        """
+        T2 (V11a): data WITH a compute_sha3_256_hash method -> the
+        method's value is the 3rd return element on the compute path.
+        """
+        digest = "ab" * 32
+        data = DataWithChecksum(payload="computed", digest=digest)
+        self.mock_compute.return_value = data
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=False,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertIs(result, data)
+        self.assertEqual(checksum, digest)
+
+    def test_load_path_returns_data_checksum(self):
+        """
+        T2 (V11b): valid cache, loaded data WITH the method -> its
+        value is the 3rd return element on the load path.
+        """
+        self.cache_path.write_text("valid data")
+        _save_checksum(self.cache_path)
+        digest = "cd" * 32
+        cached = DataWithChecksum(payload="cached", digest=digest)
+        self.mock_load.return_value = cached
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=True,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertTrue(cache_hit)
+        self.assertIs(result, cached)
+        self.assertEqual(checksum, digest)
+
+    def test_checksum_method_missing_returns_none(self):
+        """
+        T2 + T1 (V12): data WITHOUT the method (plain dict) -> the
+        3rd return element is None on the compute path.
+        """
+        self.cache_path.write_text("old data")
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=False,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum)
+
+    def test_checksum_attribute_not_callable_returns_none(self):
+        """
+        T2 (V12): a compute_sha3_256_hash attribute that is NOT
+        callable -> None, no exception, success path intact.
+        """
+        self.cache_path.write_text("valid data")
+        _save_checksum(self.cache_path)
+        cached = DataWithChecksum(payload="cached", digest="ef" * 32)
+        cached.compute_sha3_256_hash = 5  # non-callable attribute
+        self.mock_load.return_value = cached
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=True,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertTrue(cache_hit)
+        self.assertIs(result, cached)
+        self.assertIsNone(checksum)
+
+    def test_load_path_checksum_method_raises_recomputes(self):
+        """
+        T2 (V13) + R2 (D-071): the data checksum method RAISING on
+        the load path is caught by the step-3 try/except -> delete +
+        recompute; the ERROR log carries the exception text.
+        """
+        self.cache_path.write_text("valid data")
+        _save_checksum(self.cache_path)
+        self.mock_load.return_value = DataWithBrokenChecksum(payload="cached", digest="00" * 32)
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=True,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertEqual(result, DUMMY_DATA, "the broken load is discarded, the data is recomputed")
+        self.assertIsNone(checksum, "the recomputed plain dict has no checksum method")
+        self.mock_logger.assert_any_call(
+            Relevance.ERROR,
+            f"Failed to load or validate cache file '{self.cache_path}': hash boom. Recomputing.",
+        )
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
+
+    def test_validate_exception_forces_recomputation(self):
+        """
+        R2 (D-071): a validate_fn that RAISES is now caught by the
+        step-3 try/except (same treatment as a load failure) ->
+        delete + recompute; the ERROR log carries the exception text.
+        """
+        self.cache_path.write_text("valid data")
+        _save_checksum(self.cache_path)
+
+        def bad_validate(data):
+            raise ValueError("validator bug")
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=True,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=bad_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum)
+        self.mock_logger.assert_any_call(
+            Relevance.ERROR,
+            f"Failed to load or validate cache file '{self.cache_path}': validator bug. Recomputing.",
+        )
+        self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
+
+    def test_step2_missing_sidecar_forces_recomputation(self):
+        """
+        T5: the step-2 branch also fires when the sidecar is merely
+        MISSING (not only on mismatch): WARN, delete, recompute.
+        """
+        self.cache_path.write_text("valid data")  # data exists, no sidecar
+
+        cache_hit, result, checksum = cache_manager_load_or_compute(
+            cache_path=self.cache_path,
+            is_allowed=True,
+            load_fn=self.mock_load,
+            store_fn=self.mock_store,
+            validate_fn=self.mock_validate,
+            compute_fn=self.mock_compute,
+            logger_fn=self.mock_logger
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertEqual(result, DUMMY_DATA)
+        self.assertIsNone(checksum)
+        self.mock_compute.assert_called_once()
+        self.mock_store.assert_called_once()
+        self.mock_load.assert_not_called()
+        self.mock_logger.assert_any_call(
+            Relevance.WARN,
+            f"Checksum validation failed for '{self.cache_path}' "
+            f"(sidecar missing or mismatched). Deleting cache and recomputing.",
         )
 
 
