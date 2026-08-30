@@ -28,17 +28,21 @@
 """
 Utility module to handle computation caching with a 4-step validation pipeline.
 It abstracts file I/O, checksum validation, and cache invalidation.
+Checksum sidecar I/O is delegated to the twolm.binio sidecar API (D-072).
 """
 
 from __future__ import annotations
-
-import hashlib
 
 from pathlib import Path
 from typing import Callable, TypeVar
 
 from pydantic import ConfigDict, validate_call
 
+from twolm.binio import (
+    BinaryFormatError,
+    verify_sha3_256_sidecar,
+    write_sha3_256_sidecar,
+)
 from twolm.state_machine import Relevance
 
 
@@ -61,32 +65,19 @@ LoggerFunc = Callable[[Relevance, str], None]
 SHA3_256_CHECKSUM_SUFFIX = ".SHA3-256"
 
 
-def _compute_checksum(file_path: Path) -> str:
-    """Compute SHA3-256 checksum of a file."""
-    h = hashlib.sha3_256()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
 def _verify_checksum(file_path: Path) -> bool:
-    """Step 2: Verify if the checksum file exists and matches the data file."""
-    checksum_path = file_path.with_suffix(file_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
-    if not checksum_path.exists():
+    """
+    Step 2: Verify if the checksum file exists and matches the data file.
+
+    Delegates to the binio sidecar API (D-072): a missing sidecar
+    (FileNotFoundError), a malformed sidecar (BinaryFormatError) and an
+    undecodable sidecar (UnicodeDecodeError) all mean "no valid sidecar"
+    for the pipeline, so they are mapped to False instead of raising.
+    """
+    try:
+        return verify_sha3_256_sidecar(file_path, suffix=SHA3_256_CHECKSUM_SUFFIX)
+    except (FileNotFoundError, BinaryFormatError, UnicodeDecodeError):
         return False
-    
-    expected_checksum = checksum_path.read_text().strip()
-    actual_checksum = _compute_checksum(file_path)
-    
-    return expected_checksum == actual_checksum
-
-
-def _save_checksum(file_path: Path) -> None:
-    """Save the checksum file after successful computation and storage."""
-    checksum_path = file_path.with_suffix(file_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
-    checksum = _compute_checksum(file_path)
-    checksum_path.write_text(checksum)
 
 
 def _delete_cache_files(cache_path: Path) -> None:
@@ -123,7 +114,7 @@ def _compute_and_store(cache_path: Path,
     logger_fn(Relevance.INFO, f"Computation finished. Storing to cache '{cache_path}'...")
     store_fn(data, cache_path)
     
-    _save_checksum(cache_path)
+    write_sha3_256_sidecar(cache_path, suffix=SHA3_256_CHECKSUM_SUFFIX)
     logger_fn(Relevance.INFO, "Cache file and checksum successfully written.")
     
     return False, data, data_checksum

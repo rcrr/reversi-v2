@@ -56,11 +56,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from twolm.binio import compute_sha3_256, write_sha3_256_sidecar
 from twolm.cache_manager import (
     cache_manager_load_or_compute,
-    _compute_checksum,
     _verify_checksum,
-    _save_checksum,
     _delete_cache_files,
     SHA3_256_CHECKSUM_SUFFIX,
 )
@@ -72,7 +71,8 @@ from twolm.state_machine import Relevance
 DUMMY_DATA = {"result": "success", "value": 42}
 
 #: Custom base directory for temporary test files
-CUSTOM_TMP_BASE = Path("./build/tmp")
+#: (T6, D-072: anchored to the workspace root, not the process CWD).
+CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
 
 
 class DataWithChecksum:
@@ -107,7 +107,7 @@ class BaseCacheTestCase(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        """Create a temporary directory inside ./build/tmp/."""
+        """Create a temporary directory inside <workspace-root>/build/tmp/."""
         self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         
     def tearDown(self):
@@ -123,39 +123,48 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.temp_path = Path(self.temp_dir.name) / "test_data.dat"
         self.temp_path.write_text("Hello, Cache World!")
 
-    def test_compute_checksum_returns_valid_sha3_256(self):
-        """Verify that _compute_checksum returns a 64-character hex string (SHA3-256)."""
-        checksum = _compute_checksum(self.temp_path)
-        self.assertEqual(len(checksum), 64)
-        self.assertTrue(all(c in '0123456789abcdef' for c in checksum))
+    def test_binio_sidecar_verifies(self):
+        """R3 (D-072): a sidecar written by binio's own API verifies
+        through the _verify_checksum wrapper — both modules now share
+        one sidecar format and one verifier."""
+        write_sha3_256_sidecar(self.temp_path)
+        self.assertTrue(_verify_checksum(self.temp_path))
 
-    def test_compute_checksum_is_deterministic(self):
-        """Verify that computing the checksum twice yields the same result."""
-        checksum1 = _compute_checksum(self.temp_path)
-        checksum2 = _compute_checksum(self.temp_path)
-        self.assertEqual(checksum1, checksum2)
-
-    def test_save_and_verify_checksum_success(self):
-        """Verify that a saved checksum passes the verification step."""
-        _save_checksum(self.temp_path)
+    def test_legacy_bare_hex_sidecar_still_verifies(self):
+        """D-072 compat: a legacy bare-hexdigest sidecar (pre-D-072
+        format, no filename, no newline) still verifies, because binio's
+        parser takes the first whitespace-separated token — no cache
+        invalidation for existing on-disk caches."""
+        checksum_path_for(self.temp_path).write_text(
+            compute_sha3_256(self.temp_path)
+        )
         self.assertTrue(_verify_checksum(self.temp_path))
 
     def test_verify_checksum_fails_if_sidecar_missing(self):
         """Verify that verification returns False if the .SHA3-256 file does not exist."""
         self.assertFalse(_verify_checksum(self.temp_path))
 
-    def test_verify_checksum_fails_if_sidecar_corrupted(self):
-        """Verify that verification returns False if the sidecar content is altered."""
-        checksum_path = self.temp_path.with_suffix(
-            self.temp_path.suffix + SHA3_256_CHECKSUM_SUFFIX
-        )
-        checksum_path.write_text("0" * 64)
+    def test_verify_checksum_fails_if_sidecar_mismatched(self):
+        """Verify that a well-formed sidecar holding the WRONG digest
+        fails the verification step (binio compares it against the
+        recomputed hash)."""
+        checksum_path_for(self.temp_path).write_text("0" * 64)
+        self.assertFalse(_verify_checksum(self.temp_path))
+
+    def test_verify_checksum_fails_if_sidecar_malformed(self):
+        """Verify that a malformed sidecar (binio's BinaryFormatError)
+        or an undecodable one (UnicodeDecodeError) maps to False via
+        the wrapper, never to a raised exception."""
+        checksum_path = checksum_path_for(self.temp_path)
+        checksum_path.write_text("not a hex digest at all")
+        self.assertFalse(_verify_checksum(self.temp_path))
+        checksum_path.write_bytes(b"\xff\xfe\x00garbage")
         self.assertFalse(_verify_checksum(self.temp_path))
 
     def test_delete_cache_files_removes_both(self):
         """Verify that _delete_cache_files removes both data and checksum files."""
-        _save_checksum(self.temp_path)
-        
+        write_sha3_256_sidecar(self.temp_path)
+
         self.assertTrue(self.temp_path.exists())
         self.assertTrue(self.temp_path.with_suffix(
             self.temp_path.suffix + SHA3_256_CHECKSUM_SUFFIX
@@ -173,15 +182,14 @@ class TestChecksumHelpers(BaseCacheTestCase):
         _delete_cache_files(self.temp_path)
         _delete_cache_files(self.temp_path)
 
-    def test_sidecar_content_is_bare_hexdigest(self):
-        """T3 (V15): the sidecar holds exactly the 64-char hex digest —
-        no trailing newline, no filename. This is cache_manager's own
-        format, not binio's sha3_256sum format (see R3, module doc)."""
-        _save_checksum(self.temp_path)
+    def test_sidecar_content_is_binio_format(self):
+        """T3 (D-072, restated): the sidecar holds binio's
+        sha3_256sum-style line "<hexdigest>  <basename>\n" — cache_manager
+        no longer keeps its own bare-hexdigest format (see R3, module doc)."""
+        write_sha3_256_sidecar(self.temp_path)
+        digest = compute_sha3_256(self.temp_path)
         content = checksum_path_for(self.temp_path).read_text()
-        self.assertEqual(content, _compute_checksum(self.temp_path))
-        self.assertEqual(len(content), 64)
-        self.assertFalse(content.endswith("\n"))
+        self.assertEqual(content, f"{digest}  {self.temp_path.name}\n")
 
 
 class TestCacheManagerPipeline(BaseCacheTestCase):
@@ -307,7 +315,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         it must delete files, compute, store, and return cache_hit=False.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
 
         self.mock_load.side_effect = IOError("Disk read error")
 
@@ -343,7 +351,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         it must delete files, compute, store, and return cache_hit=False.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
 
         self.mock_validate.return_value = False
 
@@ -375,7 +383,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         WITHOUT calling compute or store, and return cache_hit=True.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
 
         cached_payload = {"result": "from_cache"}
         self.mock_load.return_value = cached_payload
@@ -436,7 +444,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         value is the 3rd return element on the load path.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
         digest = "cd" * 32
         cached = DataWithChecksum(payload="cached", digest=digest)
         self.mock_load.return_value = cached
@@ -482,7 +490,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         callable -> None, no exception, success path intact.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
         cached = DataWithChecksum(payload="cached", digest="ef" * 32)
         cached.compute_sha3_256_hash = 5  # non-callable attribute
         self.mock_load.return_value = cached
@@ -508,7 +516,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         recompute; the ERROR log carries the exception text.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
         self.mock_load.return_value = DataWithBrokenChecksum(payload="cached", digest="00" * 32)
 
         cache_hit, result, checksum = cache_manager_load_or_compute(
@@ -537,7 +545,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         delete + recompute; the ERROR log carries the exception text.
         """
         self.cache_path.write_text("valid data")
-        _save_checksum(self.cache_path)
+        write_sha3_256_sidecar(self.cache_path)
 
         def bad_validate(data):
             raise ValueError("validator bug")
