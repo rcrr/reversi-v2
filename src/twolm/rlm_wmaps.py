@@ -32,7 +32,6 @@ import numpy as np
 
 from typing import TYPE_CHECKING
 from pathlib import Path
-from itertools import accumulate
 from pydantic import validate_call, ConfigDict
 
 from twolm import binio
@@ -159,7 +158,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
 
         rlm_indexes_checksum = r.read_string()
         cut_off = r.read_i32()
-        
+
         feature_w_ranges = r.read_array()
         iwmap_feature_offset = r.read_array()
         iwmap = r.read_array()
@@ -179,9 +178,15 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
     )
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     """
     Computes WMaps based on feature frequencies and the cut-off threshold.
+
+    The input pindexes matrix is dense by contract: every cell holds a
+    valid configuration index in 0..n_configurations - 1 (the indexes
+    are unsigned and never -1 — D-086 R1), so the -1 'unseen
+    configuration' sentinel can only appear in the OUTPUT iwmap.
 
     The method performs the following steps:
         1. Initializes the cut-off value from the configuration.
@@ -199,16 +204,16 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     """
     cut_off = ctx.cfg.stat_model.frequency_cut_off
     features = ctx.feature_set.features
-    
+
     # Extract configurations from the underlying feature objects.
     f_num_configurations = np.array([f.n_configurations for f in features], dtype=np.uint32)
-    
+
     # Compute the offset array using numpy's cumulative sum
     iwmap_feature_offset = np.zeros(len(features) + 1, dtype=np.uint32)
     iwmap_feature_offset[1:] = np.cumsum(f_num_configurations)
-    
+
     K = iwmap_feature_offset[-1]
-    
+
     iwmap = np.full(K, -1, dtype=np.int64)
     pindexes = ctx.rlm_indexes.indexes
     N = pindexes.shape[0]
@@ -216,21 +221,21 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     f_w_ranges = []
     wmap_blocks = []
     fallback_data = []
-    
+
     col_offset = 0
     for fid, f in enumerate(features):
         # Extract the columns for this specific feature
         cols = list(range(col_offset, col_offset + f.n_instances))
         f_pindexes = pindexes[:, cols]
         flat_f_pindexes = f_pindexes.ravel()
-        
+
         unique_values, counts = np.unique(flat_f_pindexes, return_counts=True)
         stats = np.column_stack((unique_values, counts))
-        
+
         mask = stats[:, 1] < cut_off
         stats_filtered_below = stats[mask]
         stats_filtered_above = stats[~mask]
-        
+
         w_indices = np.empty(len(stats), dtype=np.int64)
         if len(stats_filtered_below) > 0:
             fallback = next_w
@@ -240,17 +245,17 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
         else:
             fallback = -1
             fallback_feature_configuration_is_present = False
-            
+
         n_above = (~mask).sum()
         if n_above > 0:
             w_indices[~mask] = np.arange(next_w, next_w + n_above)
             next_w += n_above
-            
+
         stats = np.column_stack((stats, w_indices))
-        
+
         f_iwmap = iwmap[iwmap_feature_offset[fid]:iwmap_feature_offset[fid + 1]]
         f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]
-        
+
         w_min = w_indices.min() if len(w_indices) > 0 else -1
         w_max = w_indices.max() if len(w_indices) > 0 else -1
         f_w_ranges.append({
@@ -258,21 +263,21 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
             'w_min': w_min,
             'w_max': w_max
         })
-        
+
         num_w_feature = w_max - w_min + 1
         feature_w_mapping = np.empty((num_w_feature, 3), dtype=np.int64)
         feature_w_mapping[:, 0] = fid
         feature_w_mapping[:, 1] = -1
-        
+
         if fallback_feature_configuration_is_present:
             fallback_freq = stats_filtered_below[:, 1].sum()
             fallback_rel_idx = fallback - w_min
             feature_w_mapping[fallback_rel_idx, 2] = fallback_freq
-            
+
             for row in stats_filtered_below:
                 fallback_data.append([fid, row[0], row[1]])
-                
-        above_mask = ~mask 
+
+        above_mask = ~mask
         if above_mask.any():
             w_above = stats[above_mask, 2]
             config_above = stats[above_mask, 0]
@@ -281,17 +286,17 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
             feature_w_mapping[relative_indices, 1] = config_above
             feature_w_mapping[relative_indices, 2] = freq_above
         wmap_blocks.append(feature_w_mapping)
-        
+
         col_offset += f.n_instances
-        
+
     wmap = np.vstack(wmap_blocks)
-    fallback_details_table = np.array(fallback_data, dtype=np.int64)      
+    fallback_details_table = np.array(fallback_data, dtype=np.int64)
     if fallback_details_table.size == 0:
         fallback_details_table = fallback_details_table.reshape(0, 3)
-    
+
     feature_w_ranges_arr = np.array([[m['fallback'], m['w_min'], m['w_max']] for m in f_w_ranges], dtype=np.int64)
     w = np.zeros(next_w, dtype=np.float32)
-    
+
     return ReversiLogisticModelWMaps(
         rlm_indexes_checksum=ctx.rlm_indexes_checksum,
         cut_off=cut_off,

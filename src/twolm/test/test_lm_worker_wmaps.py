@@ -42,6 +42,7 @@
 #
 
 import unittest
+import os
 import tempfile
 
 import numpy as np
@@ -65,6 +66,12 @@ class TestLMWorkerWmaps(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
+        # T1 (D-086): the SKIP_REGAB_DB gate, as in test_regab —
+        # all three tests need the live regab DB (the setUp moves
+        # to INDEXES, which runs POSITIONS on a fresh base dir).
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
@@ -74,15 +81,15 @@ class TestLMWorkerWmaps(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
-        
+
         # Instance 1: Will populate the cache
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
-        
+
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
-        
+
         # Move to INDEXES first, as WMAPS depends on the rlm_indexes loaded there
         self.rlm.move_to_step('INDEXES')
         self.assertEqual(self.rlm.current_step, 4)
@@ -99,17 +106,17 @@ class TestLMWorkerWmaps(unittest.TestCase):
         self.rlm.move_to_step('WMAPS')
         self.assertEqual(self.rlm.current_step, 5)
         self.assertEqual(self.rlm.current_worker_name, 'WMAPS')
-        
+
         # Verify cache files were actually created on disk
         cache_file = Path(self.tmp_dir) / 'rlmwf_05_WMAPS.dat'
         checksum_file = Path(self.tmp_dir) / 'rlmwf_05_WMAPS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
-        
+
         # Check logs to confirm computation was executed
         logs = self.mock_stdout.getvalue()
         self.assertIn("Forcing computation", logs)
-        
+
         # Verify context was updated with the 6 attributes
         self.assertIsNotNone(self.rlm.context.feature_w_ranges)
         self.assertIsNotNone(self.rlm.context.iwmap_feature_offset)
@@ -121,7 +128,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
 
     def test_read_cache_on_new_instance(self):
         """A second instance should read from the cache and NOT recompute."""
-        
+
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('WMAPS')
         self.assertEqual(self.rlm.current_step, 5)
@@ -131,22 +138,22 @@ class TestLMWorkerWmaps(unittest.TestCase):
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
         rlm2.move_to_step('INDEXES') # Reach the step before WMAPS
-        
+
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
         self.mock_stdout.truncate(0)
-        
+
         # 3. Move to WMAPS in the second instance
         rlm2.move_to_step('WMAPS')
         self.assertEqual(rlm2.current_step, 5)
-        
+
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()
         self.assertIn("Cache successfully loaded and validated", logs)
-        
+
         # And confirm heavy computation was NOT executed
         self.assertNotIn("Forcing computation", logs, "WMAPS were recomputed even though a valid cache existed.")
-        
+
         # Verify context was updated with cached data
         self.assertIsNotNone(rlm2.context.feature_w_ranges)
         self.assertIsNotNone(rlm2.context.w)
@@ -161,6 +168,13 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
+        # T1 (D-086): the SKIP_REGAB_DB gate, as in test_regab —
+        # the golden-content test needs the live regab DB (the
+        # setUp moves to INDEXES, which runs POSITIONS on a fresh
+        # base dir).
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
@@ -169,11 +183,11 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")
-        
+
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
-        
+
         # Move to INDEXES first
         self.rlm.move_to_step('INDEXES')
         self.assertEqual(self.rlm.current_step, 4)
@@ -186,16 +200,16 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
 
     def test_compute_wmaps_exact_values(self):
         ctx = self.rlm.context
-        
+
         self.assertIsNone(ctx.feature_w_ranges)
         self.assertIsNone(ctx.iwmap_feature_offset)
         self.assertIsNone(ctx.iwmap)
         self.assertIsNone(ctx.wmap)
         self.assertIsNone(ctx.wmap_fallback)
         self.assertIsNone(ctx.w)
-        
+
         self.rlm.move_to_step('WMAPS')
-        
+
         self.assertIsNotNone(ctx.feature_w_ranges)
         self.assertIsNotNone(ctx.iwmap)
         self.assertIsNotNone(ctx.iwmap_feature_offset)
@@ -211,20 +225,20 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
 
         expected_ridge_regularization = 0.00
         self.assertEqual(expected_ridge_regularization, ctx.cfg.stat_model.ridge_regularization)
-        
+
         # Checking feature_w_ranges
         # NOTE: F is now the count of all features (Intercept + Mobility + Patterns)
         F = len(ctx.feature_set.features)
         expected_fwr_shape = (F, 3)
         self.assertEqual(expected_fwr_shape, ctx.feature_w_ranges.shape)
-        
+
         expected_fwr = np.array([[-1, 0, 0], [1, 1, 4], [5, 5, 15], [16, 16, 20]], dtype=np.int64)
         nptest.assert_array_equal(expected_fwr, ctx.feature_w_ranges)
 
         # Checking iwmap_feature_offset
         expected_iwmap_fo_shape = (F + 1,)
         self.assertEqual(expected_iwmap_fo_shape, ctx.iwmap_feature_offset.shape)
-        
+
         expected_iwmap_fo = np.array([0, 1, 66, 93, 174], dtype=np.uint32)
         nptest.assert_array_equal(expected_iwmap_fo, ctx.iwmap_feature_offset)
 
