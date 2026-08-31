@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the unit tests lm_worker_features module.
+# How to run the lm_worker_features unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -35,14 +35,17 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests.
+# -1- Run the tests (a live regab DB is required — the setUp
+#     moves through POSITIONS, which hits the DB on a fresh base
+#     dir; SKIP_REGAB_DB=1 skips the DB-gated tests, as in
+#     test_regab).
 #
-# time PERF=0 python3 -m unittest twolm.test.test_lm_worker_features
+# time python3 -m unittest twolm.test.test_lm_worker_features
 #
 
 import unittest
+import os
 import tempfile
-import shutil
 
 from unittest.mock import patch
 from io import StringIO
@@ -52,45 +55,114 @@ from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 
 
+# T1 (D-082): the D-065 idiom — test artifacts ONLY under
+# <workspace-root>/build/tmp, anchored via __file__ (not CWD).
+CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
+
+
 
 class TestLMWorkerFeatures(unittest.TestCase):
     """Tests for the FEATURES worker basic movements and feature set generation."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
+        # T2 (D-082): the SKIP_REGAB_DB gate, as in test_regab —
+        # the setUp moves through POSITIONS, which needs the live
+        # regab DB (a fresh base dir has no warm cache).
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
         # Patch stdout to keep test output clean
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
         self.json_config = 'src/twolm/test/data/rlm_00.json'
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
                                  base_dir_override=self.tmp_dir)
-        
+
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
-        
+
         # Move to POSITIONS first, as FEATURES depends on the configuration loaded there
         self.rlm.move_to_step('POSITIONS')
         self.assertEqual(self.rlm.current_step, 2)
         self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_build_feature_set(self):
         rlm = self.rlm
-        
+
         # Before moving to FEATURES, the feature_set should be None
         self.assertIsNone(rlm.context.feature_set)
 
         rlm.move_to_step('FEATURES')
         self.assertEqual(rlm.current_step, 3)
-        self.assertEqual(rlm.current_worker_name, 'FEATURES')            
+        self.assertEqual(rlm.current_worker_name, 'FEATURES')
 
         # After moving, the feature_set should be populated
         self.assertIsNotNone(rlm.context.feature_set)
+
+    def test_feature_set_content_golden(self):
+        """The rlm_00.json fixture must build the exact expected FeatureSet."""
+        rlm = self.rlm
+        rlm.move_to_step('FEATURES')
+        fs = rlm.context.feature_set
+
+        # The fixture has no name key: the schema default applies.
+        self.assertEqual(fs.name, 'NoNameFeatureSet')
+
+        # Golden hashes (independently re-derived, session 22, D-082):
+        # the FeatureSet hash is sha3_256 over b'INTERCEPT' + the
+        # mset hash hex string + the pset hash hex string.
+        self.assertEqual(fs.hash,
+                         '453e918aeabfa3f7ff43f110ab72719b3f1d1906158933436234b7bab075a159')
+        self.assertEqual(fs.mset.hash,
+                         '2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94')
+        self.assertEqual(fs.pset.hash,
+                         '04d52f12d3438393dd3cd9d47df73c1135ffdf9ed8e9f4d4571f5d1adcbb8c18')
+
+        # Intercept: the canonical INTERCEPT feature.
+        self.assertIsNotNone(fs.intercept)
+        self.assertEqual(fs.intercept.name, 'INTERCEPT')
+        self.assertEqual(fs.intercept.n_configurations, 1)
+        self.assertEqual(fs.intercept.n_instances, 1)
+
+        # MobilitySet: the 3 fixture members, in the sorted
+        # (mask, amask) order.
+        self.assertEqual(fs.mset.name, 'BasicMobilitySet')
+        self.assertEqual([(m.name, f'{m.mask:016X}', f'{m.amask:016X}')
+                          for m in fs.mset.mobilities],
+                         [('ALMC', '0000000000000000', 'FFFFFFFFFFFFFFFF'),
+                          ('LMC', 'FFFFFFFFFFFFFFFF', '0000000000000000'),
+                          ('DLMC', 'FFFFFFFFFFFFFFFF', 'FFFFFFFFFFFFFFFF')])
+
+        # PatternSet: the 2 fixture members, in the sorted mask order.
+        self.assertEqual(fs.pset.name, 'BasicPatternSet')
+        self.assertEqual([(p.name, f'{p.mask:016X}') for p in fs.pset.patterns],
+                         [('EDGE', '00000000000000FF'),
+                          ('ELLE', '0000000000000107')])
+
+        # Feature list: intercept, then the mobilities, then the
+        # patterns — with the per-feature n_configurations /
+        # n_instances.
+        self.assertEqual([(f.name, f.n_configurations, f.n_instances)
+                          for f in fs.features],
+                         [('INTERCEPT', 1, 1), ('ALMC', 65, 1), ('LMC', 65, 1),
+                          ('DLMC', 129, 1), ('EDGE', 6561, 4), ('ELLE', 81, 8)])
+        self.assertEqual(fs.n_instances, 16)
 
 
 if __name__ == '__main__':

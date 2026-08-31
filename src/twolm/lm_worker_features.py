@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import validate_call, ConfigDict
+
 from twolm.state_machine import Worker, Relevance
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
@@ -46,7 +48,7 @@ __all__ = ['lm_worker_features']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Loading board features as defined by the model...")
     ctx.feature_set = _load_features(ctx)
-        
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing features...")
     ctx.feature_set = None
@@ -60,7 +62,6 @@ def _load_features(ctx: "RLMContext") -> FeatureSet:
     ctx.log_event(Relevance.DEBUG, f"Feature set object created, hash = '{feature_set.hash}'.")
     n_features = len(feature_set.features)
     if n_features == 0:
-        #: Empty String SHA-256 Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         error_msg = f"The feature count is zero. It is not possible to generate a model without features."
         ctx.log_event(Relevance.ERROR, error_msg)
         raise ValueError(error_msg)
@@ -75,7 +76,7 @@ def _load_features(ctx: "RLMContext") -> FeatureSet:
     ctx.log_event(Relevance.DEBUG, f"  Features list: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
     for i, f in enumerate(feature_set.features):
         ctx.log_event(Relevance.DEBUG, f"    {i:03d} [{f.category}] {f.name:10s} {f.n_instances} {f.n_configurations:8d}")
-        
+
     return feature_set
 
 def _load_intercept(ctx: "RLMContext") -> Feature:
@@ -109,7 +110,7 @@ def _load_mobility(ctx: "RLMContext") -> MobilitySet:
         ctx.log_event(Relevance.DEBUG, f"Mobility set name: '{mset_name}', mobilities:")
         mobility_features = [Mobility(elt.name, elt.mask, elt.amask) for elt in cfg_mset.mobility_features]
         for i, m in enumerate(mobility_features):
-            ctx.log_event(Relevance.DEBUG, f"  -{i:02}- Mobility: name = {m.name:8s}, mask = {m.mask:016X}, amask = {m.mask:016X}")
+            ctx.log_event(Relevance.DEBUG, f"  -{i:02}- Mobility: name = {m.name:8s}, mask = {m.mask:016X}, amask = {m.amask:016X}")
         mset = MobilitySet(cfg_mset.name, mobility_features)
         ctx.log_event(Relevance.DEBUG, f"Mobility set object created, hash = '{mset.hash}'.")
     else:
@@ -117,6 +118,7 @@ def _load_mobility(ctx: "RLMContext") -> MobilitySet:
     return mset
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_features() -> Worker:
     """Factory function that returns the FEATURES worker instance."""
     return Worker("FEATURES", _up, _down)
