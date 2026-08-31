@@ -30,9 +30,7 @@ from __future__ import annotations
 import hashlib
 
 from typing import TYPE_CHECKING
-from enum import IntEnum
-from typing import Protocol
-from pydantic import validate_call, ConfigDict, BeforeValidator, AfterValidator, Field
+from pydantic import validate_call, ConfigDict
 from pathlib import Path
 from twolm import binio
 
@@ -53,7 +51,7 @@ __all__ = ['ReversiLogisticModelIndexes',
 
 class ReversiLogisticModelIndexes:
     """
-    Represents the 2D index matrix togheter with the hash signature of the feature set
+    Represents the 2D index matrix together with the hash signature of the feature set
     used to compute them.
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -83,6 +81,15 @@ class ReversiLogisticModelIndexes:
         sha3_256_hash = hasher.hexdigest()
         return sha3_256_hash
 
+    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+    def __repr__(self) -> str:
+        """
+        A concise one-line summary.
+        """
+        return (f"ReversiLogisticModelIndexes(rds_checksum={self.rds_checksum!r}, "
+                f"feature_set_hash={self.feature_set_hash!r}, "
+                f"indexes={self.indexes.shape})")
+
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def rlm_indexes_store_to_file(
@@ -90,7 +97,10 @@ def rlm_indexes_store_to_file(
         filename: str | Path
 ) -> None:
     """
-    Saves the ReversiLogisticModelIndexes instance to a binary file and calculates the SHA3-256 checksum.
+    Saves the ReversiLogisticModelIndexes instance to a binary file.
+
+    Note: no SHA3-256 sidecar is written by this function — in the
+    pipeline flow the sidecar is written by cache_manager.
     """
     filename = Path(filename)
 
@@ -110,7 +120,7 @@ def rlm_indexes_store_to_file(
 
         # Write the data of the 2D indexes matrix
         w.write_array(rlm_indexes.indexes)
-    
+
     return
 
 
@@ -137,7 +147,7 @@ def rlm_indexes_load_from_file(
         description, version = r.read_header()
         if description != expected_description:
             raise RuntimeError(f"The file is not a proper {expected_description}.")
-        if version != 1:
+        if version != expected_version:
             raise RuntimeError(f"The file version is not consistent, found {version}, expected {expected_version}")
 
         #: Read the rds_checksum
@@ -145,12 +155,12 @@ def rlm_indexes_load_from_file(
 
         #: Read the feature_set_hash
         feature_set_hash = r.read_string()
-        
+
         # read the data of the 2D indexes matrix
         indexes = r.read_array()
 
     rlm_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
-    
+
     return rlm_indexes
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
@@ -176,5 +186,5 @@ def rlm_indexes_is_cache_consistent(
     expected_rds_checksum = ctx.rds_checksum
     expected_feature_set_hash = ctx.feature_set.hash
     is_cache_consistent = (cached_feature_set_hash == expected_feature_set_hash) and (cached_rds_checksum == expected_rds_checksum)
-    
+
     return is_cache_consistent

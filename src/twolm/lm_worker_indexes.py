@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import validate_call, ConfigDict
+
 from twolm.state_machine import Worker, Relevance
 from twolm.rlm_indexes import (ReversiLogisticModelIndexes,
                                rlm_indexes_load_from_file,
@@ -53,25 +55,26 @@ def _up(ctx: "RLMContext") -> None:
     cache_hit, rlm_indexes, rlm_indexes_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = rlm_indexes_load_from_file,
+        load_fn     = lambda path: rlm_indexes_load_from_file(path, checksum=False),
         store_fn    = rlm_indexes_store_to_file,
         validate_fn = lambda cached_rlm_indexes: rlm_indexes_is_cache_consistent(ctx, cached_rlm_indexes),
         compute_fn  = lambda: rlm_indexes_compute(ctx),
         logger_fn   = ctx.log_event
     )
-    
+
     ctx.log_event(Relevance.INFO, "Model attribute rlm_indexes has been set.")
     ctx.rlm_indexes = rlm_indexes
     ctx.log_event(Relevance.INFO, f"Indexes checksum (rlm_indexes_checksum): {rlm_indexes_checksum}.")
     ctx.rlm_indexes_checksum = rlm_indexes_checksum
 
-        
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing rlm_indexes...")
     ctx.rlm_indexes = None
     ctx.rlm_indexes_checksum = None
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_indexes() -> Worker:
     """Factory function that returns the INDEXES worker instance."""
     return Worker("INDEXES", _up, _down)
