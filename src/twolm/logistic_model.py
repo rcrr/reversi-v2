@@ -40,7 +40,7 @@ from twolm.base_model import BaseModel
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config
 from twolm.lm_worker_positions import lm_worker_positions
-#from twolm.lm_worker_features import lm_worker_features
+from twolm.lm_worker_features import lm_worker_features
 #from twolm.lm_worker_indexes import lm_worker_indexes
 #from twolm.lm_worker_wmaps import lm_worker_wmaps
 #from twolm.lm_worker_design_matrix import lm_worker_design_matrix
@@ -206,7 +206,7 @@ class LogisticModel(BaseModel):
             Worker("CREATED", _created_up, _created_down),
             lm_worker_config(),
             lm_worker_positions(),
-            #lm_worker_features(),
+            lm_worker_features(),
             #lm_worker_indexes(),
             #lm_worker_wmaps(),
             #lm_worker_design_matrix(),
