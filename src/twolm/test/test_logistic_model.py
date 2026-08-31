@@ -54,13 +54,7 @@ from twolm.logistic_model import (LogisticModel, RLMContext,
                                   _check_config_file_path,
                                   _created_down, _created_up)
 from twolm.state_machine import Worker, Verbosity
-
-
-#: Custom base directory for temporary test files, anchored to the
-#: workspace root, not the system temp dir (T2, D-075: the D-065
-#: house rule, as in test_cache_manager T6/D-072).
-CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
-
+from twolm.test.paths import CUSTOM_TMP_BASE
 
 
 class TestLogisticModel(unittest.TestCase):

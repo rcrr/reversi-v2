@@ -64,15 +64,11 @@ from twolm.cache_manager import (
     SHA3_256_CHECKSUM_SUFFIX,
 )
 from twolm.state_machine import Relevance
-
+from twolm.test.paths import CUSTOM_TMP_BASE
 
 
 #: A constant dummy payload to simulate computed/cached data
 DUMMY_DATA = {"result": "success", "value": 42}
-
-#: Custom base directory for temporary test files
-#: (T6, D-072: anchored to the workspace root, not the process CWD).
-CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
 
 
 class DataWithChecksum:

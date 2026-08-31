@@ -51,12 +51,7 @@ from pathlib import Path
 
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-
-
-# T1 (D-080): the D-065 idiom — test artifacts ONLY under
-# <workspace-root>/build/tmp, anchored via __file__ (not CWD).
-CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" / "tmp"
-
+from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 
 class TestLMWorkerPositions(unittest.TestCase):
@@ -80,7 +75,7 @@ class TestLMWorkerPositions(unittest.TestCase):
         # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = 'src/twolm/test/data/rlm_00.json'
+        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
 
         # Instance 1: Will populate the cache
         self.rlm = LogisticModel(self.json_config,

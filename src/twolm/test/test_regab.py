@@ -70,6 +70,7 @@ from twolm.regab import (RegabDBConnection,
                          regab_extract_data_set_from_db,
                          regab_store_data_set_to_file,
                          regab_load_data_set_from_file)
+from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 import numpy as np
 import numpy.testing as nptest
@@ -92,7 +93,7 @@ class BaseTestCase(unittest.TestCase):
         """
         if os.getenv('SKIP_REGAB_DB', '0') == '1':
             self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
-        load_dotenv()
+        load_dotenv(WORKSPACE_ROOT / ".env")
         self.dbname = os.getenv('DB_NAME')
         self.user = os.getenv('DB_USER')
         self.password = os.getenv('DB_PASSWORD')
@@ -570,7 +571,7 @@ class TestRegabDataSetChecksum(BaseTestCase):
             'game_value': 'int8'
         })
         self.rds = RegabDataSet(self.rc, self.bid, self.status, self.ec, self.df_mogv)
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
+        self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
         self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
 
     def tearDown(self):
