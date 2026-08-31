@@ -91,3 +91,13 @@ I-011 | idea | "Storicizzazione" of the JSON config used to generate a
         flat files) as-is; to be evaluated WHEN THE FULL PIPELINE IS
         COMPLETE, together with the cache-flow consistency question
         (bare-hex vs binio sidecar, the proven read asymmetry).
+I-012 | idea | Pipeline level order: evaluate moving FEATURES
+        BEFORE POSITIONS (raised 2026-08-31, session 22, D-081
+        test-M1 discussion, D-082): Roberto confirms the test
+        setUp comment ("Move to POSITIONS first, as FEATURES
+        depends on the configuration loaded there") is inaccurate
+        — FEATURES depends on the config loaded at the CONFIG
+        level (step 1), not on POSITIONS — and wants to EVALUATE
+        moving the FEATURES level before POSITIONS in the
+        pipeline. The comment is left as-is in the test for now.
+        To be evaluated as a line-by-line pipeline change.

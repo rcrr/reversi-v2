@@ -1,7 +1,10 @@
 # twolm/lm_worker_features.py
 
-Analysis date: 2026-08-31 — analysis session 22 (D-081). Probe
-(scratch/verify_lm_worker_features.py, 42 checks): 0 mismatches.
+Analysis date: 2026-08-31 — analysis session 22 (D-081). Fix
+campaign D-082 applied 2026-08-31 (session 22, Roberto: R1 "ok,
+fissa il bug", M1-M3 OK, test T1-T4 + M2 OK, plus the golden
+content test). Probe (scratch/verify_lm_worker_features.py,
+re-pinned D-082 — 44 checks): 0 mismatches.
 
 The FEATURES worker of the RLM pipeline — the 4th active level
 (CREATED sentinel → CONFIG → POSITIONS → FEATURES), enabled
@@ -16,35 +19,38 @@ the workers that follow.
 
 ## Suite status (session 22, D-081)
 
-- `test_lm_worker_features`: 1/0/0 (Roberto's file; the test is
-  DB-DEPENDENT — the setUp moves through POSITIONS, which hits the
-  DB on a fresh base dir — and T2 flags the missing SKIP_REGAB_DB
-  gate; run with the live DB)
-- Full discover: 499 tests, 54 skipped under `SKIP_REGAB_DB=1`
-  (17 PERF + 35 regab + 2 positions; the new test RUNS ungated —
-  it needs the live DB), GREEN; ungated (live DB): 499 run,
-  17 skipped (PERF only), GREEN.
+- `test_lm_worker_features`: 2/0/0 (D-082: T1-T4 + M2 fixed +
+  the golden content test added per Roberto; both tests DB-gated
+  — the setUp moves through POSITIONS, which hits the DB on a
+  fresh base dir; run with the live DB)
+- Full discover: 500 tests, 56 skipped under `SKIP_REGAB_DB=1`
+  (17 PERF + 35 regab + 2 positions + 2 features), GREEN;
+  ungated (live DB): 500 run, 17 skipped (PERF only), GREEN.
 
 ## State per Roberto
 
 Pipeline-in-progress, 4 active levels (CREATED → CONFIG →
-POSITIONS → FEATURES). OPEN: R1 (the amask debug log) + M1-M3;
-test T1-T4 + M1-M2 (awaiting Roberto's call). The next line-by-line
-step is `lm_worker_indexes()` + the last muted test
-(`_test_move_to_step_by_string` in test_logistic_model.py — a test
-file change, Roberto's call).
+POSITIONS → FEATURES). D-082 (Roberto: R1 "ok, fissa il bug",
+M1-M3 OK, test T1-T4 + M2 OK): R1 + M1-M3 + T1-T4 + M2 all
+FIXED, the golden content test added — module CLOSED. Test M1
+(the POSITIONS-dependency comment) left as-is per Roberto's
+call — recorded at I-012 (evaluate moving the FEATURES level
+before POSITIONS). The next line-by-line step is
+`lm_worker_indexes()` + the last muted test
+(`_test_move_to_step_by_string` in test_logistic_model.py — a
+test file change, Roberto's call).
 
-## Architecture (123 lines)
+## Architecture (125 lines)
 
-- `lm_worker_features() -> Worker` (L120-122): factory returning
-  `Worker("FEATURES", _up, _down)`. M1: no `@validate_call` (the
-  house convention, applied to the lm_worker_positions factory in
-  D-080 M1).
-- `_up` (L46-48): INFO "Loading board features as defined by the
+- `lm_worker_features() -> Worker` (L121-124): factory returning
+  `Worker("FEATURES", _up, _down)`; D-082 M1:
+  `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`
+  (L121, the D-080 M1 pattern applied to lm_worker_positions).
+- `_up` (L48-50): INFO "Loading board features as defined by the
   model..." → `ctx.feature_set = _load_features(ctx)`.
-- `_down` (L50-52): INFO "Clearing features..." →
+- `_down` (L52-54): INFO "Clearing features..." →
   `ctx.feature_set = None`.
-- `_load_features(ctx) -> FeatureSet` (L54-79): (1)
+- `_load_features(ctx) -> FeatureSet` (L56-80): (1)
   `intercept = _load_intercept(ctx)`; (2) `mset = _load_mobility
   (ctx)`; (3) `pset = _load_patterns(ctx)`; (4)
   `FeatureSet(ctx.cfg.feature_set.name, intercept, mset, pset)` —
@@ -53,28 +59,28 @@ file change, Roberto's call).
   probe B3b); (5) the zero-feature guard:
   `len(feature_set.features) == 0` → ERROR log + ValueError
   ("The feature count is zero. It is not possible to generate a
-  model without features.") — the comment at L63 quotes the
-  empty-string SHA-256 hash, which the message does not use (M3);
+  model without features.") — D-082 M3: the orphan L63 comment
+  quoting the unused empty-string SHA-256 hash removed;
   (6) the INFO summary (name, hash, has Intercept / has
   MobilitySet / has PatternSet + the children's name/hash) and the
   DEBUG per-feature table
   (`{i:03d} [category] name n_instances n_configurations`).
-- `_load_intercept(ctx) -> Feature | None` (L81-89): truthy
+- `_load_intercept(ctx) -> Feature | None` (L82-90): truthy
   `cfg.feature_set.intercept` (schema: `Optional[bool] = False`) →
   `Feature.new_intercept()` (name "INTERCEPT", 1/1), else None.
-- `_load_patterns(ctx) -> PatternSet | None` (L91-103): truthy
+- `_load_patterns(ctx) -> PatternSet | None` (L92-104): truthy
   `cfg.feature_set.pattern_set` → `Pattern(elt.name, elt.mask)`
   per element (the schema's field_validator already converted the
   16-hex no-0x strings to Bitboard, rlm_config_schemas D-080 M1)
   → `PatternSet(cfg_pset.name, patterns)` + a DEBUG per-pattern
   table; else None.
-- `_load_mobility(ctx) -> MobilitySet | None` (L105-117): same
+- `_load_mobility(ctx) -> MobilitySet | None` (L106-118): same
   pattern → `Mobility(elt.name, elt.mask, elt.amask)` per element
   → `MobilitySet(cfg_mset.name, mobility_features)` + a DEBUG
-  per-mobility table — R1: the table's amask slot prints
-  `m.mask`; else None.
+  per-mobility table — D-082 R1: the table now prints `m.amask`
+  in the amask slot (L113); else None.
 
-## Verified facts (D-081 probe — 42 checks, 0 mismatches)
+## Verified facts (D-081 probe, re-pinned D-082 — 44 checks, 0 mismatches)
 
 - V1 (B1a/B1b, B2): after `move_to_step("FEATURES")` — step 3,
   worker "FEATURES"; the 4-worker list is
@@ -104,11 +110,11 @@ file change, Roberto's call).
   pset.hash)` — recomputed independently; the independently built
   FeatureSet (public API only, fixture constants) has the same
   feature list and hash.
-- V9 (B8a-c): the R1 behaviour pin — at verbosity HIGH the 3
-  mobility DEBUG lines print `m.mask` twice: the LMC line shows
-  `amask = FFFFFFFFFFFFFFFF` (true amask: 0), the ALMC line shows
-  `amask = 0000000000000000` (true amask: FFFFFFFFFFFFFFFF);
-  DLMC (both all-1s) is unaffected.
+- V9 (B8a-c, re-pinned D-082): at verbosity HIGH the 3 mobility
+  DEBUG lines now show the TRUE amasks: LMC
+  `mask = FFFFFFFFFFFFFFFF, amask = 0000000000000000`, ALMC
+  `mask = 0000000000000000, amask = FFFFFFFFFFFFFFFF`, DLMC both
+  all-1s.
 - V10 (B11a/b): the zero-feature guard — a cfg with intercept
   False and no pset/mset → ValueError "The feature count is
   zero..." + an ERROR log.
@@ -122,34 +128,34 @@ file change, Roberto's call).
   (the circular-import guard: logistic_model imports this
   module).
 
-## Issues (OPEN)
+## Issues — resolved (D-082)
 
-- **R1 — the amask debug log prints the mask (log-only, no data
-  impact).** L112:
+- **R1 — FIXED (D-082).** The amask debug log printed the mask
+  (log-only, no data impact): L113 was
   `f"... mask = {m.mask:016X}, amask = {m.mask:016X}"` — the amask
-  slot re-prints `m.mask`. For the fixture: LMC (true amask 0)
-  logs FFFFFFFFFFFFFFFF, ALMC (true amask FFFFFFFFFFFFFFFF) logs
-  0000000000000000; DLMC (both all-1s) is unaffected. The
-  FeatureSet / MobilitySet are built from the correct `m.amask`
-  values (V5) — the defect is confined to the DEBUG table, which
-  is only visible at verbosity HIGH (the test's Verbosity.LOW
-  never reaches it). Fix: print `m.amask` in the amask slot.
-  Pinned by A7 + B8a-c.
+  slot re-printed `m.mask`. For the fixture: LMC (true amask 0)
+  logged FFFFFFFFFFFFFFFF, ALMC (true amask FFFFFFFFFFFFFFFF)
+  logged 0000000000000000; DLMC (both all-1s) was unaffected.
+  The FeatureSet / MobilitySet were built from the correct
+  `m.amask` values (V5) — the defect was confined to the DEBUG
+  table, only visible at verbosity HIGH (the test's Verbosity.LOW
+  never reaches it). Fixed: the slot now prints `m.amask`.
+  Re-pinned by A7 + B8a-c.
 
-## Minor notes (OPEN)
+## Minor notes — resolved (D-082)
 
-- M1 (A6): the factory lacks
+- M1 (A6): FIXED —
   `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`
-  — the house convention (D-080 M1 applied it to
-  lm_worker_positions; the factory takes no args, so the impact is
+  on the public factory (L121 + the pydantic import L32 — the
+  D-080 M1 pattern; the factory takes no args, so the impact is
   convention-only).
-- M2 (A9): 2 non-header trailing-whitespace lines (L49 after the
-  `_up` body, L78 after the feature loop). Scope as in D-078 M3:
-  the license-header `# ` lines stay.
-- M3 (A8): the orphan comment at L63 —
-  `#: Empty String SHA-256 Hash: "e3b0c442..."` — the hash is
-  quoted but never used in the error message (a leftover of an
-  earlier draft).
+- M2 (A9): FIXED — the 2 non-header trailing-whitespace lines
+  (L49 after the `_up` body, L78 after the feature loop) cleaned.
+  Scope as in D-078 M3: the license-header `# ` lines stay.
+- M3 (A8): FIXED — the orphan comment at L63
+  (`#: Empty String SHA-256 Hash: "e3b0c442..."`, quoted but
+  never used in the error message — a leftover of an earlier
+  draft) removed.
 
 ## Integration notes
 
@@ -173,16 +179,16 @@ file change, Roberto's call).
 
 ## Appendix — line reference
 
-123 lines, as of D-081.
+125 lines, as of D-082.
 
-- L28-38: imports (state_machine L32, feature L33, mobility L34,
-  pattern L35, TYPE_CHECKING RLMContext L37-38)
-- L42: `__all__`
-- L46-48: `_up` (M2 whitespace L49)
-- L50-52: `_down`
-- L54-79: `_load_features` (zero-feature guard L62-66 [M3 comment
-  L63], summary logs L67-77 [M2 whitespace L78])
-- L81-89: `_load_intercept`
-- L91-103: `_load_patterns`
-- L105-117: `_load_mobility` (R1 L112)
-- L120-122: `lm_worker_features()` (M1)
+- L28-40: imports (pydantic L32 [M1], state_machine L34, feature
+  L35, mobility L36, pattern L37, TYPE_CHECKING RLMContext L39-40)
+- L44: `__all__`
+- L48-50: `_up`
+- L52-54: `_down`
+- L56-80: `_load_features` (zero-feature guard L64-67 [M3
+  comment removed], summary logs L68-78)
+- L82-90: `_load_intercept`
+- L92-104: `_load_patterns`
+- L106-118: `_load_mobility` (R1 fixed L113)
+- L121-124: `lm_worker_features()` (M1 @validate_call L121)

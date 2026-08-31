@@ -1945,3 +1945,61 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
          next pipeline line (lm_worker_indexes) + the last muted
          test _test_move_to_step_by_string (test file change —
          Roberto's call).
+ D-082 | 2026-08-31 | D-081 fix campaign (session 22, Roberto:
+         R1 "ok, fissa il bug", M1-M3 OK + "rimuovi commento
+         orfano", test T1-T4 + M2 OK, plus the golden content
+         test he proposed):
+         lm_worker_features — R1 FIXED: the amask DEBUG log now
+         prints m.amask in the amask slot (L113 — log-only
+         defect, the FeatureSet / MobilitySet were always built
+         from the correct values; the fixture's LMC line now
+         shows amask = 0000000000000000, ALMC's amask =
+         FFFFFFFFFFFFFFFF). M1 FIXED: @validate_call
+         (config=ConfigDict(arbitrary_types_allowed=True)) on
+         the factory (L121) + the pydantic import (L32) — the
+         D-080 M1 pattern. M2 FIXED: the 2 non-header trailing-
+         whitespace lines cleaned (the license-header `# ` lines
+         stay, D-078 M3 scope). M3 FIXED: the orphan "Empty
+         String SHA-256 Hash" comment (the hash was quoted,
+         never used) removed. File now 125 lines.
+         test_lm_worker_features — T1 FIXED: the D-065 idiom
+         (CUSTOM_TMP_BASE under build/tmp via __file__,
+         setUpClass mkdir, TemporaryDirectory created FIRST in
+         setUp, defensive tearDown) replaces the CWD-relative
+         mkdtemp — the test now runs from any CWD. T2 FIXED: the
+         SKIP_REGAB_DB gate at the top of setUp (the setUp moves
+         through POSITIONS on a fresh base dir → DB hit; a
+         no-DB environment now skips instead of ERRORing). T3
+         RESOLVED BY T1: the dead Path import is now
+         load-bearing (CUSTOM_TMP_BASE). T4 FIXED: header
+         grammar ("How to run the lm_worker_features unit
+         tests.") + the run note documents the DB requirement
+         and the gate. M2 FIXED: trailing whitespace (L90 + 3
+         whitespace-only lines) removed. M1 LEFT AS-IS per
+         Roberto's call — he wants to evaluate moving the
+         FEATURES level BEFORE POSITIONS in the pipeline:
+         recorded at I-012. NEW (Roberto: "Dovremmo avere almeno
+         1 goldentest che controlla il contenuto di feature_set
+         in context"): test_feature_set_content_golden added —
+         name 'NoNameFeatureSet' (the schema default), the 3
+         golden hash literals (fs 453e918a...5a159 =
+         sha3_256(b'INTERCEPT' + mset.hash + pset.hash), mset
+         2e553593...08a94 — the literal test_mobility pins, pset
+         04d52f12...c18), the intercept (INTERCEPT, 1/1), the
+         3 mobilities in the sorted (mask, amask) order (ALMC,
+         LMC, DLMC), the 2 patterns in the sorted mask order
+         (EDGE, ELLE), the feature order + per-feature
+         n_configurations / n_instances (6 features,
+         n_instances 16). Goldens independently re-derived
+         (public API, D-081 probe B9). File now 169 lines.
+         Probe scratch/verify_lm_worker_features.py re-pinned
+         to the fixed behaviour (44 checks — A6/A7/A8/A9
+         flipped, B8b/B8c re-pinned to the true amasks, C3/C4/
+         C5/C6/C8 flipped, C9/C10 new for the golden test): 0
+         mismatches. Suites: gated full discover 500/0/56 GREEN
+         (17 PERF + 35 regab + 2 positions + 2 features);
+         ungated full discover (live DB): 500 run, 17 skipped
+         (PERF only), GREEN; build/tmp clean. Next: the next
+         pipeline line (lm_worker_indexes) + the last muted
+         test _test_move_to_step_by_string (test file change —
+         Roberto's call) + the I-012 evaluation.

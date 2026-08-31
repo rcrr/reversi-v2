@@ -54,8 +54,8 @@ now (I-001; see notes/decisions.md).
 | src/twolm/lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): the first cache_manager consumer in the pipeline — 4-step load-or-compute over the regab data set (binio-format sidecar + duck-typed data checksum rds.compute_sha3_256_hash) + post-processing (positions / game_values / rds_checksum / training_pop_stats on the context) + is_cache_consistent (pure metadata compare); enabled line-by-line 601de87 (CREATED → CONFIG → POSITIONS); 13 verified facts V1-V13 (49-check probe, 0 mismatches): flat rlmwf_02_POSITIONS.dat (D-078 machine-level fix re-verified — the latent rlmwf_/ subdirectory trap gone), cross-run cache round-trip identity, D-071 R1 cache-warming visible in a domain worker, corruption / business-inconsistency → delete + recompute, is_allowed=ctx.use_cache consumed; D-080 fix campaign (Roberto: "correggile tutte"): R1 FIXED (5-arg connection call — port + password now take effect, DEBUG log includes the port never the password), M1-M4 FIXED (@validate_call factory, dead pathlib import, flagged trailing whitespace, load_fn checksum=False), cross-ref note RESOLVED (regab_store docstring + regab.md row — the sidecar is cache_manager's, D-072); probe re-pinned (51 checks, 0 mismatches); suite 2/0/0 GREEN (test_lm_worker_positions.py, 2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_positions.md |
 | src/twolm/test/test_lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): Roberto's file, copied from the original repo with the POSITIONS enablement (601de87, line-by-line step 1); 1 class / 2 tests / no PERF; end-to-end cache round-trip pin (DB hit + flat files; second instance cache hit + no DB), stdout captured via patched StringIO; green on first run, no fixes; D-080 (Roberto: "fai tutto anche qui"): T1-T4 FIXED (D-065 idiom, SKIP_REGAB_DB gate, dead if-False blocks + sys import removed, header grammar) — test campaign CLOSED; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/test/test_lm_worker_positions.md |
 | src/twolm/rlm_config_schemas.py | analyzed 2026-08-30 (session 22, D-079): the pydantic config domain — ReversiLogisticModelConfig (10 fields, JSON5 entry point) over the nested tree, all RLMBaseConfig (free-form properties bag) except StatModelConfig; Bitboard hex fields (16-hex no-0x parse, uppercase 16-hex serializer); 12 verified facts V1-V12 (probe E, 0 mismatches); D-080: R1 FIXED (c2>c1 cross-field model_validator — the strong-Wolfe invariant enforced), M1-M4 FIXED (hex docstring example, model_validator import now load-bearing, strict List[StatusString] + StatModelConfig → RLMBaseConfig, default_factory lists); no dedicated suite (covered by test_lm_worker_config validation class + the D-079 probe E, re-pinned D-080) | docs/src/twolm/rlm_config_schemas.md |
-| src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; OPEN: R1 (amask DEBUG log prints m.mask — log-only), M1 (no @validate_call on the factory), M2 (2 trailing-whitespace lines), M3 (orphan empty-string SHA-256 comment) | docs/src/twolm/lm_worker_features.md |
-| src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test / no PERF; green on first run with the live DB; OPEN: T1 (not the D-065 idiom), T2 (NO SKIP_REGAB_DB gate — the setUp hits the DB via POSITIONS), T3 (dead Path import), T4 (header grammar), M1 (misleading POSITIONS-dependency comment), M2 (trailing whitespace); suite 1/0/0 GREEN (DB-dependent, run with live DB) | docs/src/twolm/test/test_lm_worker_features.md |
+| src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): R1 + M1-M3 FIXED (amask log, @validate_call factory, whitespace, orphan comment removed) — module CLOSED; 44-check probe 0 mismatches; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_features.md |
+| src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test at analysis; green on first run with the live DB; D-082 (Roberto: T1-T4 + M2 OK + his own proposal for the golden content test): T1-T4 + M2 FIXED (D-065 idiom, SKIP_REGAB_DB gate, Path import now load-bearing, header grammar, whitespace), M1 LEFT AS-IS (recorded at I-012 — evaluate moving FEATURES before POSITIONS), test_feature_set_content_golden ADDED (3 hash literals + full content pin) — test campaign CLOSED; 1 → 2 tests; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/test/test_lm_worker_features.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -115,13 +115,12 @@ now (I-001; see notes/decisions.md).
   D-074/D-075 fix batches; D-076 restored delegation test),
   lm_worker_config 14/0/0 (D-076), lm_worker_positions 2/0/0
   (601de87; 2 DB-gated, run with live DB), lm_worker_features
-  1/0/0 (f051dd3; DB-dependent, NO gate — T2 OPEN, run with
-  live DB) —
-  all GREEN. Totals: 499 tests, 54 skipped under the gate (17
-  PERF=1 print-only performance tests + 35 DB-gated regab tests +
-  2 DB-gated lm_worker_positions tests; the new FEATURES test
-  RUNS ungated — it needs the live DB; no performance gates in
-  any suite, D-036). Warm run ≈ 0.5 s (board) / ≈ 2.5 s (full
+  2/0/0 (f051dd3; 2 DB-gated post D-082, run with live DB) —
+  all GREEN. Totals: 500 tests, 56 skipped under the gate (17
+  PERF=1 print-only performance tests + 35 DB-gated regab tests
+  + 2 DB-gated lm_worker_positions tests + 2 DB-gated
+  lm_worker_features tests; no performance gates in any suite,
+  D-036). Warm run ≈ 0.5 s (board) / ≈ 2.5 s (full
   discover, numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
@@ -611,6 +610,12 @@ now (I-001; see notes/decisions.md).
   factory — convention-only), M2 (2 non-header trailing-
   whitespace lines L49/L78), M3 (the orphan L63 comment quoting
   the empty-string SHA-256 hash, unused in the error message).
+  D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): ALL FIXED —
+  the amask log now prints m.amask (L113), @validate_call on the
+  factory (L121) + pydantic import, the 2 flagged lines cleaned
+  (license-header whitespace stays, D-078 M3 scope), the orphan
+  comment removed — module CLOSED (file 123 → 125 lines; probe
+  re-pinned to 44 checks, 0 mismatches).
 - test_lm_worker_features.py: Roberto's file, copied from the
   original repo with the FEATURES enablement (f051dd3; suite
   498 → 499); analyzed 2026-08-31 (session 22, D-081,
@@ -632,7 +637,23 @@ now (I-001; see notes/decisions.md).
   Uncovered (report-only): the feature set content (probe
   V4-V8 pins it), the _down path (probe B12), the zero-feature
   guard (probe B11), the R1 log defect (DEBUG — invisible at
-  the test's Verbosity.LOW).
+  the test's Verbosity.LOW). D-082 (Roberto: T1-T4 + M2 OK +
+  his own proposal "Dovremmo avere almeno 1 goldentest che
+  controlla il contenuto di feature_set in context. Puoi
+  aggiungerlo?"): T1 FIXED (the D-065 idiom), T2 FIXED (the
+  SKIP_REGAB_DB gate — both tests now DB-gated), T3 RESOLVED BY
+  T1 (the Path import now load-bearing), T4 FIXED (header
+  grammar + DB/gate run note), M2 FIXED (whitespace clean); M1
+  LEFT AS-IS per Roberto — he wants to evaluate moving the
+  FEATURES level BEFORE POSITIONS: recorded at I-012. NEW
+  test_feature_set_content_golden (L118-167): name
+  'NoNameFeatureSet', the 3 golden hash literals (fs
+  453e918a...5a159, mset 2e553593...08a94 — the literal
+  test_mobility pins, pset 04d52f12...c18), the intercept, the
+  3 mobilities sorted (mask, amask) [ALMC, LMC, DLMC], the 2
+  patterns sorted mask [EDGE, ELLE], the feature order + counts
+  (6 features, n_instances 16) — test campaign CLOSED (file 97
+  → 169 lines, 1 → 2 tests).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -714,10 +735,20 @@ now (I-001; see notes/decisions.md).
   re-pinned — 35 checks, 0 mismatches). OPEN awaiting Roberto's
   call: lm_worker_features R1 + M1-M3, test_lm_worker_features
   T1-T4 + M1-M2. Suite 499/0/54 gated GREEN, build/tmp clean.
+- Done (2026-08-31, session 22): D-082 fix campaign (Roberto:
+  R1 "ok, fissa il bug", M1-M3 OK, test T1-T4 + M2 OK + his own
+  proposal for the golden content test) — lm_worker_features
+  R1 + M1-M3 FIXED (module CLOSED), test T1-T4 + M2 FIXED,
+  M1 left as-is (I-012: evaluate moving FEATURES before
+  POSITIONS), test_feature_set_content_golden added (3 hash
+  literals + full content pin, per Roberto); probe re-pinned
+  (44 checks, 0 mismatches); suites 500/0/56 gated + 500 run /
+  17 skipped ungated (live DB), build/tmp clean.
 - Next: the pipeline grows one commented line at a time
   (uncommenting lm_worker_indexes + restoring the last muted
   test _test_move_to_step_by_string — a test file change,
-  Roberto's call).
+  Roberto's call) + the I-012 evaluation (FEATURES before
+  POSITIONS).
 
 ## Index
 
@@ -845,15 +876,15 @@ now (I-001; see notes/decisions.md).
   2 tests; the end-to-end cache round-trip pin; T1-T4 FIXED
   D-080 — D-065 idiom + SKIP_REGAB_DB gate; suite 2/0/0 GREEN)
 - docs/src/twolm/lm_worker_features.md — lm_worker_features.py
-  analysis + D-081 (the first pure-compute level: FeatureSet
+  analysis + D-081/D-082 (the first pure-compute level: FeatureSet
   from the cfg, no DB / no cache_manager / no cache file; 13
-  verified facts V1-V13; OPEN R1 amask log + M1-M3; suite
-  1/0/0 GREEN via test_lm_worker_features)
+  verified facts V1-V13; R1 amask log + M1-M3 FIXED D-082 —
+  module CLOSED; suite 2/0/0 GREEN via test_lm_worker_features)
 - docs/src/twolm/test/test_lm_worker_features.md —
-  test_lm_worker_features.py analysis + D-081 (1 class / 1
-  test; green on first run with the live DB; OPEN T1-T4 — D-065
-  idiom, missing SKIP_REGAB_DB gate, dead Path import, header
-  grammar — + M1-M2)
+  test_lm_worker_features.py analysis + D-081/D-082 (1 class /
+  2 tests; T1-T4 + M2 FIXED D-082 — D-065 idiom + SKIP_REGAB_DB
+  gate, M1 as-is → I-012; the golden content test added per
+  Roberto — 3 hash literals + full pin; suite 2/0/0 GREEN)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
 - notes/decisions.md — decisions log (D-NNN; D-001…D-081)
