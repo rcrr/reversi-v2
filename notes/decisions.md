@@ -2003,3 +2003,45 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
          pipeline line (lm_worker_indexes) + the last muted
          test _test_move_to_step_by_string (test file change —
          Roberto's call) + the I-012 evaluation.
+
+ D-083 | 2026-08-31 | INDEXES line-by-line enablement + analysis
+         (session 23): Roberto brought in lm_worker_indexes +
+         rlm_indexes + the two test files in a323e0f and
+         uncommented the lm_worker_indexes() import + worker-list
+         entry in logistic_model.py (the only 2 lines the commit
+         touched there — the rlm_indexes / rlm_indexes_checksum
+         blackboard fields were already declared in RLMContext at
+         first import). The pipeline now runs 5 active levels
+         (CREATED sentinel → CONFIG → POSITIONS → FEATURES →
+         INDEXES). Analysis (review-only, doc-only — no source
+         change): rlm_indexes.md + lm_worker_indexes.md + the two
+         test mirror docs (D-007); 47-check probe
+         scratch/verify_rlm_indexes.py (tiers A structure, B
+         rlm_indexes runtime pure, C pipeline integration live
+         DB, D worker structure, E/F test-file structure): 0
+         mismatches; scratch/verify_logistic_model.py re-pinned
+         to the 5-worker state (V3c; V10 unchanged — 8
+         *_checksum fields, no features_checksum): 35 checks, 0
+         mismatches. OPEN awaiting Roberto's call: rlm_indexes
+         R1 (store docstring overpromises the checksum — the
+         sidecar is cache_manager's, D-072; as in regab D-079/
+         D-080) + M1-M5 (5 dead imports, "togheter" typo, 4
+         trailing-whitespace lines, the version-gate literal, the
+         by-design no-@validate_call on compute/consistent —
+         documented circular-import constraint); lm_worker_
+         indexes M1-M3 (no @validate_call on the factory, 2
+         trailing-whitespace lines, load_fn bare → redundant
+         sidecar re-verify, the D-080 M4 shape); test_rlm_
+         indexes T1-T5 + M1-M2 (dead IndexArray import, header
+         grammar, 2 broad assertRaises(Exception), the
+         missing-rds_checksum test that passes for the wrong
+         reason, the Italian comment, 19 whitespace lines, the
+         rds-only is_cache_consistent coverage gap); test_lm_
+         worker_indexes T1-T3 + M1 (no D-065 idiom, no
+         SKIP_REGAB_DB gate, header grammar, 13 whitespace
+         lines). Suites: full discover 515/0/56 gated + 515 run /
+         17 skipped ungated (live DB), GREEN; build/tmp clean.
+         Next: Roberto's calls on the INDEXES R/M/T items; then
+         the next pipeline line (lm_worker_wmaps) + the last
+         muted test _test_move_to_step_by_string (test file
+         change — Roberto's call) + the I-012 evaluation.
