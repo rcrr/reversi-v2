@@ -2411,3 +2411,19 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           CLOSED + line counts, Environment 535/61, where-we-are
           bullets refreshed, next-steps Done bullet, index
           D-087 + the 4 doc rows), journal session 23.
+ D-088 | 2026-08-31 | Correction — the D-087 M1 "9-space __init__
+          indent" observation is a MISREAD (session 23, Roberto:
+          "ReversiLogisticModelWMaps allinea ai canonici 8 spazi,
+          per favore."): Roberto approved the alignment of the
+          ReversiLogisticModelWMaps.__init__ body (L101-108) to
+          the canonical 8-space indent. Verification (per-line
+          leading-space count on the committed file, HEAD and
+          working tree): every line already carries exactly 8
+          spaces — the original observation was a misread of the
+          displayed content (the read-tool display padding).
+          No code change; the working tree file is byte-identical
+          to HEAD for this file. The doc mirror
+          (docs/src/twolm/rlm_wmaps.md M1) and the NOTES.md
+          inventory row corrected accordingly. Lesson: verify
+          whitespace/indentation claims programmatically
+          (len(l) - len(l.lstrip(' '))) before reporting them.

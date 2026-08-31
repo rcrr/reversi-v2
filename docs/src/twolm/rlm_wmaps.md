@@ -170,9 +170,12 @@ T1-T4 + T9 + T10 fixed (13 → the full new-coverage suite).
   `above_mask = ~mask` and the `fallback_details_table = ...`
   assignment); scope as in D-078 M3: the license-header `# ` lines
   stay.
-- **M1 observed (left as-is, minor)**: the `__init__` body
-  (L101-108) is indented 9 spaces (one short of the house 4-space
-  multiple) — valid Python, purely cosmetic.
+- **M1 corrected (D-088)**: the "9-space `__init__` indent"
+  reported in D-087 was a misread — the body (L101-108) is
+  verified to carry exactly the canonical 8-space indent
+  (per-line `len(l) - len(l.lstrip(' ')) == 8` check). No code
+  change; Roberto asked for the alignment (2026-08-31) and the
+  verification showed it was already aligned.
 
 ## Integration notes
 
