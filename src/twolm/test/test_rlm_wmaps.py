@@ -43,7 +43,6 @@
 
 import unittest
 import tempfile
-import shutil
 
 import numpy as np
 import numpy.testing as nptest
@@ -58,6 +57,7 @@ from twolm.rlm_wmaps import (ReversiLogisticModelWMaps,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_load_from_file,
                              rlm_wmaps_is_cache_consistent)
+from twolm.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMWmapsCompute(unittest.TestCase):
@@ -205,9 +205,16 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
 class TestRLMWmapsIO(unittest.TestCase):
     """Tests the binary serialization and deserialization."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.filepath = Path(self.tmp_dir) / "wmaps_test.dat"
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.filepath = self.tmp_dir / "wmaps_test.dat"
         
         # Create a fully populated WMaps object to serialize
         self.wmaps_original = ReversiLogisticModelWMaps(
@@ -222,7 +229,8 @@ class TestRLMWmapsIO(unittest.TestCase):
         )
 
     def tearDown(self):
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_store_and_load_cycle(self):
         """Test that storing and loading returns an identical object."""

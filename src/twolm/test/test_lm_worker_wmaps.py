@@ -43,7 +43,6 @@
 
 import unittest
 import tempfile
-import shutil
 
 import numpy as np
 import numpy.testing as nptest
@@ -54,19 +53,27 @@ from pathlib import Path
 
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 
 
 class TestLMWorkerWmaps(unittest.TestCase):
     """Tests for the WMAPS worker basic movements and cache interactions."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'src/twolm/test/data/rlm_00.json'
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
         
         # Instance 1: Will populate the cache
         self.rlm = LogisticModel(self.json_config,
@@ -82,8 +89,10 @@ class TestLMWorkerWmaps(unittest.TestCase):
         self.assertEqual(self.rlm.current_worker_name, 'INDEXES')
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_compute_and_populate_cache(self):
         """First run should compute WMAPS and create the cache file."""
@@ -147,12 +156,19 @@ class TestLMWorkerWmaps(unittest.TestCase):
 class TestLMWorkerWmapsExactValues(unittest.TestCase):
     """Tests the exact values of the WMAPS computation using rlm_01.json."""
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'src/twolm/test/data/rlm_01.json'
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")
         
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
@@ -163,8 +179,10 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 4)
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_compute_wmaps_exact_values(self):
         ctx = self.rlm.context
