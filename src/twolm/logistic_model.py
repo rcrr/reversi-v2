@@ -42,7 +42,7 @@ from twolm.lm_worker_config import lm_worker_config
 from twolm.lm_worker_positions import lm_worker_positions
 from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes
-#from twolm.lm_worker_wmaps import lm_worker_wmaps
+from twolm.lm_worker_wmaps import lm_worker_wmaps
 #from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 #from twolm.lm_worker_zed import lm_worker_zed
 #from twolm.lm_worker_gradient import lm_worker_gradient
@@ -208,7 +208,7 @@ class LogisticModel(BaseModel):
             lm_worker_positions(),
             lm_worker_features(),
             lm_worker_indexes(),
-            #lm_worker_wmaps(),
+            lm_worker_wmaps(),
             #lm_worker_design_matrix(),
             #lm_worker_zed(),
             #lm_worker_gradient(),
