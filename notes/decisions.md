@@ -2212,3 +2212,116 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           re-anchored 294→288 lines + the muted-test table
           corrected to the current 14 active + 1 muted);
           decisions/index/journal/NOTES updated.
+ D-086 | 2026-08-31 | WMAPS bring-in: analysis + the D-085
+          paths idiom applied to the new test files (session 23,
+          Roberto: "Ho attivato il worker WMAPS. Aggiunto i due
+          moduli: lm_worker_wmaps e rlm_wmaps, con i tests.
+          Tutti i tests sono GREEN, bisogna introdurre la change
+          delle PATHS con il nuovo design appena finalizzato.
+          Va fatta la solita analisi." — commit 73b4342, 6
+          files, +1018/−2): the bring-in. Roberto's commit
+          activates the 6th pipeline level (the
+          lm_worker_wmaps import + list entry uncommented in
+          logistic_model.py; RLMContext's 7 Wmaps fields were
+          already pre-declared — the context was brought in
+          whole, the pipeline grows line-by-line); 2 new source
+          modules (rlm_wmaps.py 311 lines — the
+          ReversiLogisticModelWMaps 6-array object
+          [rlm_indexes_checksum, cut_off, feature_w_ranges
+          (F,3) int64, iwmap_feature_offset (F+1,) uint32,
+          iwmap (K,) int64 with −1 = unseen config, wmap (W,3)
+          int64 with −1 = fallback row, wmap_fallback (F_cut,3)
+          int64, w (W,) float32 zeros] + store / load / compute
+          / is_cache_consistent + the duck-typed
+          compute_sha3_256_hash over the 6 arrays, the 3rd
+          cache_manager consumer; lm_worker_wmaps.py 87 lines —
+          the uniform 7-kwargs cache wiring, flat
+          rlmwf_05_WMAPS.dat + .SHA3-256, D-078 naming) + the
+          rlm_01.json fixture (the golden-content variant:
+          stat_model {cut_off 2, logit 0.03, ridge 0.0} vs
+          rlm_00 {1, 0.05, 0.0}; intercept + LMC(65) +
+          DIAG3(27) + CORE(81) → F=4, K=174) + 2 test files
+          (test_rlm_wmaps 6 tests no DB: the handcrafted 4×3
+          mock compute pins + consistency + store/load;
+          test_lm_worker_wmaps 3 tests all DB-dependent: the
+          round-trip + the rlm_01 golden content). Analysis
+          (probe scratch/verify_wmaps.py, 60 checks, 0
+          mismatches): the golden literals INDEPENDENTLY
+          RE-DERIVED (tier E: pipeline run on rlm_01 → all 6
+          arrays vs the test literals extracted from the source,
+          E0-E9) — 21 weights float32, offsets [0,1,66,93,174],
+          iwmap 174, wmap (21,3), wmap_fallback (10,3), the
+          fallback wmap rows' freqs == the sums of the
+          wmap_fallback rows, contiguous per-feature w ranges,
+          no −1 sentinel rows (the fixture pindexes is dense).
+          The approved change (this decision): the D-085 paths
+          idiom applied to both new test files — the
+          CWD-relative mkdtemp (×3) → TemporaryDirectory under
+          the shared CUSTOM_TMP_BASE, the 2 CWD json_config
+          lines anchored to WORKSPACE_ROOT, defensive
+          tearDowns, the dead shutil imports removed, the
+          twolm.test.paths imports added; test_rlm_wmaps 251 →
+          259, test_lm_worker_wmaps 283 → 301; both suites
+          green (6/0/0 no DB + 3/0/0 live DB). PENDING
+          Roberto's call (the remaining T items, house
+          classes): T1 test_lm_worker_wmaps — the missing
+          SKIP_REGAB_DB gate (the header L38-39 claims one,
+          "SKIP_REGAB_DB=1 skips the DB-gated tests", but no
+          gate exists in the code; the 3 tests hit the DB
+          through POSITIONS/INDEXES and would ERROR, not skip,
+          in a no-DB environment — the D-080 T2 / D-084 T2
+          class); T2 test_rlm_wmaps — the header L38-39 claims
+          "a live regab DB is required" although the file is
+          DB-free (the D-084 T3 header-grammar class); T3
+          test_rlm_wmaps L162 — the leftover generation comment
+          "(sostituisci la classe TestRLMWmapsCacheConsistency)"
+          (the D-084 T5 Italian-leftover class); T4 dead
+          imports — test_rlm_wmaps 'from io import StringIO'
+          (L51), rlm_wmaps 'from itertools import accumulate'
+          (L35) (the D-084 M1 class); T5 rlm_wmaps L307/L182 —
+          is_cache_consistent + compute lack @validate_call
+          with NO explanatory note (rlm_indexes carries the
+          L166 note documenting the TYPE_CHECKING constraint —
+          add the same comment, the decorator itself stays off);
+          T6 lm_worker_wmaps L85 — the factory lacks
+          @validate_call (the other 5 worker factories all have
+          it, the D-084 M1 class) + the missing pydantic import;
+          T7 lm_worker_wmaps L54 — load_fn is the raw
+          rlm_wmaps_load_from_file (checksum defaults True →
+          the sidecar is validated twice, once by
+          cache_manager) — the house shape is
+          lambda path: ...(path, checksum=False) (the D-080 M4
+          / D-084 M3 class); T8 lm_worker_wmaps _down — clears
+          the 6 arrays but NOT ctx.wmaps_obj_checksum (set in
+          _up L72) — the house shape clears object + checksum
+          (lm_worker_indexes._down); T9 whitespace — 68
+          non-comment trailing-whitespace lines across the 4
+          files (rlm_wmaps 23 incl. the L275 'above_mask =
+          ~mask ' and L288 code lines, lm_worker_wmaps 4,
+          test_rlm_wmaps 21, test_lm_worker_wmaps 20) (the
+          D-084 M3 class); T10 (coverage, optional) — no
+          golden-hash test for compute_sha3_256_hash (the
+          D-081 golden-content philosophy), the checksum=True
+          sidecar path is untested, the description/version
+          RuntimeError branches are untested, no __init__
+          ValidationError test. R1 (design, his contract) —
+          the −1 input sentinel is unguarded at rlm_wmaps L252
+          (f_iwmap[stats[:,0]] = stats[:,2]): if the pindexes
+          matrix ever contains −1 cells (missing
+          configurations), −1 becomes a "configuration" in
+          np.unique — below cut-off it folds into the fallback
+          (a [fid, −1, count] row enters wmap_fallback) AND
+          f_iwmap[−1] overwrites the feature's LAST
+          configuration slot; at/above cut-off it gets its own
+          weight and still corrupts the last slot. The rlm_01
+          fixture is dense (E8) so it is unexercised — needs
+          his answer on whether pindexes is contractually
+          dense; if not, a stats[:,0] >= 0 guard.
+          Verification: both suites green post-idiom
+          (test_rlm_wmaps 6/0/0 no DB, test_lm_worker_wmaps
+          3/0/0 live DB); full discover 519 → 528 tests,
+          528/0/58 gated + 528 run / 17 skipped ungated (live
+          DB), GREEN; build/tmp clean. Notes: NOTES.md all
+          sections (4 new inventory rows, Environment 528,
+          where-we-are 2 bullets, next-steps the in-progress
+          bullet, index D-086), journal session 23.

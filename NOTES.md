@@ -62,6 +62,10 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 1 class / 2 tests / no PERF; the end-to-end cache round-trip pin (DB hit through POSITIONS + flat rlmwf_04_INDEXES.dat + "Executing heavy computation"; second instance "Cache successfully loaded and validated" + no heavy computation); green on first run with the live DB; the dependency comment is ACCURATE (contrast test_lm_worker_features M1); D-084 (Roberto: "Sì fai tutto"): T1-T3 + M1 FIXED (the D-065 idiom — CUSTOM_TMP_BASE via __file__, setUpClass mkdir, TemporaryDirectory first, defensive tearDown; the SKIP_REGAB_DB gate — both tests now DB-gated, header grammar + the live-DB / gate run note, 13 trailing-whitespace lines); file 137 → 158 lines; test campaign CLOSED; suite 2/0/0 GREEN (2 DB-gated, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_indexes.md |
 | src/twolm/test/paths.py | introduced 2026-08-31 (session 23, D-085 — Roberto's design choice "A"): the single home of the workspace-root-anchored test paths — WORKSPACE_ROOT (marker-based derivation: the first ancestor holding pyproject.toml — not a parents[N] level count, survives file moves) + CUSTOM_TMP_BASE (= <root>/build/tmp, the D-065 base); the per-test-file __file__ derivations, the CWD-relative JSON fixture paths (now str(WORKSPACE_ROOT / "src/twolm/test/data/rlm_00.json")), and the test_regab .env / mkdtemp are all re-anchored to it; no public functions (constants only), hence no @validate_call | docs/src/twolm/test/paths.md |
 | src/twolm/test/test_paths.py | introduced 2026-08-31 (session 23, D-085): 1 class / 3 tests / no DB / no gate / no artifacts — pins WORKSPACE_ROOT absolute + marker-holding + ancestor of src/twolm/test/, CUSTOM_TMP_BASE == <root>/build/tmp absolute; imports the module (from twolm.test import paths) so a rename surfaces in one place | docs/src/twolm/test/test_paths.md |
+| src/twolm/rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th pipeline level): the WMAPS data object (ReversiLogisticModelWMaps: rlm_indexes_checksum, cut_off, feature_w_ranges (F,3) int64 [fallback, w_min, w_max] per feature, iwmap_feature_offset (F+1,) uint32, iwmap (K,) int64 (−1 = configuration unseen in the dataset), wmap (W,3) int64 [fid, config_id_or_−1, freq], wmap_fallback (F_cut,3) int64, w (W,) float32 zeros) + the 4 public fns (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash over the 6 arrays; the 3rd cache_manager consumer in the pipeline; analysis D-086: the dead itertools accumulate import (L35), 23 non-comment trailing-whitespace lines (incl. the L275 / L288 code lines), compute + is_cache_consistent lack @validate_call with no rlm_indexes-L166-style note (the TYPE_CHECKING constraint); R: the −1 input sentinel is unguarded at L252 (f_iwmap[stats[:,0]] — fine if pindexes is dense, unexercised by the fixture); file 311 lines; module OPEN (T items pending Roberto's call) | docs/src/twolm/rlm_wmaps.md (TBD — post fix campaign) |
+| src/twolm/lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_05_WMAPS.dat + .SHA3-256 sidecar, the D-078 machine); _up sets the 6 ctx arrays + wmaps_obj_checksum; analysis D-086: the factory lacks @validate_call (the other 5 workers all have it) + no pydantic import; load_fn is the raw function (checksum defaults True → double sidecar validation — the house shape is lambda path: ...(path, checksum=False), D-080 M4 / D-084 M3); _down does NOT clear ctx.wmaps_obj_checksum (the house shape clears object + checksum, lm_worker_indexes); 4 whitespace-only lines; file 87 lines; module OPEN (T items pending Roberto's call) | docs/src/twolm/lm_worker_wmaps.md (TBD — post fix campaign) |
+| src/twolm/test/test_rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 3 classes / 6 tests / no DB / no gate — compute on the handcrafted 4×3 mock (fallback + the cut_off=0 no-fallback branch), is_cache_consistent (3), store/load cycle (1, checksum=False both sides); the D-085 idiom APPLIED (Roberto's instruction): the CWD-relative mkdtemp → TemporaryDirectory under the shared CUSTOM_TMP_BASE, defensive tearDown, the twolm.test.paths import, the dead shutil import gone; file 251 → 259 lines; analysis D-086 PENDING: the header claims a live DB the file has none of, the dead StringIO import, the leftover generation comment (L162, Italian), 21 whitespace-only lines; no golden-hash test (compute_sha3_256_hash never called); suite 6/0/0 GREEN | docs/src/twolm/test/test_rlm_wmaps.md (TBD — post fix campaign) |
+| src/twolm/test/test_lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit, no recompute; cache names + steps 4/5 pinned) + the golden content (rlm_01.json, cut_off=2: feature_w_ranges (4,3), offsets [0,1,66,93,174], iwmap 174, wmap (21,3), wmap_fallback (10,3), w=21 float32 zeros — every literal independently re-derived by the probe, E0-E9, 0 mismatches); the D-085 idiom APPLIED (both classes: the CWD mkdtemp + CWD json_config → TemporaryDirectory under the shared CUSTOM_TMP_BASE + WORKSPACE_ROOT-anchored json, defensive tearDown, the paths import, the dead shutil import gone); file 283 → 301 lines; analysis D-086 PENDING: the missing SKIP_REGAB_DB gate (the header claims one; the 3 tests hit the DB through POSITIONS/INDEXES) + 20 whitespace-only lines; suite 3/0/0 GREEN (live DB) | docs/src/twolm/test/test_lm_worker_wmaps.md (TBD — post fix campaign) |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -126,7 +130,10 @@ now (I-001; see notes/decisions.md).
   all file I/O mocked), lm_worker_indexes 2/0/0 (a323e0f; 2
   DB-gated post D-084 T2 — the setUp moves through POSITIONS,
   run with live DB), paths 3/0/0 (D-085 — no DB, pure path
-  assertions) — all GREEN. Totals: 519 tests, 58 skipped
+  assertions), rlm_wmaps 6/0/0 (73b4342 — no DB, no gate),
+  lm_worker_wmaps 3/0/0 (73b4342; 3 DB-dependent, NOT gated
+  — D-086 T-pending) — all GREEN. Totals: 528 tests, 58
+  skipped
   under the gate (17 PERF=1 print-only performance tests + 35
   DB-gated regab tests + 2 DB-gated lm_worker_positions tests +
   2 DB-gated lm_worker_features tests + 2 DB-gated
@@ -775,6 +782,38 @@ now (I-001; see notes/decisions.md).
   from the explicit root path and its mkdtemp uses the shared
   base. test_paths: 3/0/0 GREEN (no DB). Full discover: 516 →
   519 tests, the 58/17 skip split unchanged, both ways GREEN.
+- rlm_wmaps.py + lm_worker_wmaps.py (new, WMAPS bring-in,
+  session 23): Roberto's commit 73b4342 activated the 6th
+  pipeline level (the lm_worker_wmaps import + list entry
+  uncommented; RLMContext's 7 Wmaps fields were pre-declared).
+  rlm_wmaps: the 6-array weight-maps object (feature_w_ranges /
+  iwmap_feature_offset / iwmap / wmap / wmap_fallback / w) +
+  store / load / compute / is_cache_consistent + the duck-typed
+  compute_sha3_256_hash; the 3rd cache_manager consumer.
+  lm_worker_wmaps: the uniform 7-kwargs cache wiring (flat
+  rlmwf_05_WMAPS.dat, D-078). Analysis D-086 (probe
+  scratch/verify_wmaps.py, 60 checks, 0 mismatches — the golden
+  literals re-derived E0-E9): source T items (dead accumulate
+  import, 23 ws lines, undocumented decorator gaps on
+  rlm_wmaps; factory @validate_call missing, load_fn raw
+  checksum=True double sidecar check, _down not clearing
+  wmaps_obj_checksum on the worker); R item: the −1 input
+  sentinel unguarded at rlm_wmaps L252 (needs Roberto's
+  pindexes-density contract).
+- test_rlm_wmaps.py + test_lm_worker_wmaps.py (new, WMAPS
+  bring-in, session 23): 6 tests (no DB: the handcrafted-mock
+  compute pins, consistency, store/load) + 3 tests (live DB:
+  the round-trip + the rlm_01 golden content — 21 weights, all
+  arrays pinned, independently re-derived GREEN). The D-085
+  idiom APPLIED per Roberto's instruction (both files: the
+  shared CUSTOM_TMP_BASE + WORKSPACE_ROOT-anchored json,
+  defensive tearDowns, the dead shutil imports gone). Pending
+  T items (his call): the missing SKIP_REGAB_DB gate in
+  test_lm_worker_wmaps (header claims one), the header DB
+  claim in test_rlm_wmaps (file is DB-free), dead StringIO
+  import, the leftover Italian generation comment (L162), 41
+  whitespace-only lines across the two files, no golden-hash
+  test for compute_sha3_256_hash.
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -896,6 +935,21 @@ now (I-001; see notes/decisions.md).
   E1/E2, features C1/C3/C5 — 0 mismatches); 2 new mirror docs +
   7 test docs updated; suites 516 → 519 tests, 519/0/58 gated +
   519 run / 17 skipped ungated (live DB), build/tmp clean.
+- In progress (2026-08-31, session 23): D-086 WMAPS bring-in
+  (Roberto's commit 73b4342 — lm_worker_wmaps + rlm_wmaps +
+  rlm_01.json + 2 test files; 519 → 528 tests, 528/0/58 gated +
+  528 run / 17 skipped ungated, build/tmp clean): analysis DONE
+  (probe verify_wmaps.py 60 checks 0 mismatches, golden
+  re-derived E0-E9); the D-085 paths idiom APPLIED to both new
+  test files (Roberto's explicit instruction — committed).
+  PENDING Roberto's call: T items — test_lm_worker_wmaps the
+  missing SKIP_REGAB_DB gate + 20 ws lines, test_rlm_wmaps the
+  header DB claim + dead StringIO + the leftover Italian
+  comment + 21 ws lines, rlm_wmaps the dead accumulate import
+  + 23 ws lines + the undocumented decorator gaps,
+  lm_worker_wmaps the factory @validate_call + load_fn
+  checksum=False + _down wmaps_obj_checksum + 4 ws lines; R:
+  the −1 input-sentinel guard (his pindexes contract).
 - Next: the pipeline grows one commented line at a time
   (uncommenting lm_worker_wmaps + restoring the last muted
   test _test_move_to_step_by_string — a test file change,
@@ -1073,7 +1127,7 @@ now (I-001; see notes/decisions.md).
   test_paths.py (D-085): 3/0/0, no DB — pins the constants
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-085)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-086)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)
