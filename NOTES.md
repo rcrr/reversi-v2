@@ -66,6 +66,9 @@ now (I-001; see notes/decisions.md).
 | src/twolm/lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_05_WMAPS.dat + .SHA3-256 sidecar, the D-078 machine); _up sets the 6 ctx arrays + wmaps_obj_checksum; analysis D-086: the factory lacks @validate_call (the other 5 workers all have it) + no pydantic import; load_fn is the raw function (checksum defaults True → double sidecar validation — the house shape is lambda path: ...(path, checksum=False), D-080 M4 / D-084 M3); _down does NOT clear ctx.wmaps_obj_checksum (the house shape clears object + checksum, lm_worker_indexes); fix campaign D-087 CLOSED: factory @validate_call + pydantic import, load_fn = lambda checksum=False (the house shape), _down clears wmaps_obj_checksum, 4 ws lines stripped; file 87 → 91 lines; module CLOSED | docs/src/twolm/lm_worker_wmaps.md |
 | src/twolm/test/test_rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 3 classes / 6 tests / no DB / no gate — compute on the handcrafted 4×3 mock (fallback + the cut_off=0 no-fallback branch), is_cache_consistent (3), store/load cycle (1, checksum=False both sides); the D-085 idiom APPLIED (Roberto's instruction): the CWD-relative mkdtemp → TemporaryDirectory under the shared CUSTOM_TMP_BASE, defensive tearDown, the twolm.test.paths import, the dead shutil import gone; file 251 → 259 lines; fix campaign D-087 CLOSED: header corrected (the file is DB-free), dead StringIO + patch imports gone, the leftover generation comment gone, 21 ws lines stripped, +5 IO pins (the golden hash 12c3344e…, sidecar valid/mismatch, wrong description, version mismatch) + TestRLMWmapsInit (2 tests) — 6 → 13 tests; file 259 → 325 lines; suite 13/0/0 GREEN | docs/src/twolm/test/test_rlm_wmaps.md |
 | src/twolm/test/test_lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit, no recompute; cache names + steps 4/5 pinned) + the golden content (rlm_01.json, cut_off=2: feature_w_ranges (4,3), offsets [0,1,66,93,174], iwmap 174, wmap (21,3), wmap_fallback (10,3), w=21 float32 zeros — every literal independently re-derived by the probe, E0-E9, 0 mismatches); the D-085 idiom APPLIED (both classes: the CWD mkdtemp + CWD json_config → TemporaryDirectory under the shared CUSTOM_TMP_BASE + WORKSPACE_ROOT-anchored json, defensive tearDown, the paths import, the dead shutil import gone); file 283 → 301 lines; fix campaign D-087 CLOSED: the SKIP_REGAB_DB gate added to both setUps (now 3/0/3 under the gate, as claimed by the header) + 20 ws lines stripped; file 301 → 315 lines; suite 3/0/0 GREEN (live DB) | docs/src/twolm/test/test_lm_worker_wmaps.md |
+| src/twolm/rlm_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in — the DESIGN_MTR enablement, 7th pipeline level): the Design Matrix data object (ReversiLogisticModelDesignMatrix: wmaps_obj_checksum str + X (N,7) uint32 — the w-index of each (position, feature-instance) cell) + the 4 public fns (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash over X; the 4th cache_manager consumer in the pipeline; the approved warning fix APPLIED (Roberto: "Esegui la modifica"): the NumPy 2.5 DeprecationWarning (implicit int64->uint32 output cast in np.take) → the explicit .astype(np.uint32) + the note (L123-124); analysis D-089: the two guards L115/L118 check the SAME invariant (R item — L118 redundant), compute + is_cache_consistent lack the no-validation note (the rlm_indexes L166 class), 3 ws lines; file 133 → 135 lines; module OPEN (T items pending Roberto's call) | docs/src/twolm/rlm_design_matrix.md (TBD — post fix campaign) |
+| src/twolm/lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in — the DESIGN_MTR enablement, 7th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_06_DESIGN_MTR.dat + .SHA3-256 sidecar, the D-078 machine); _up sets design_matrix + design_matrix_checksum; _down clears BOTH (the house shape); analysis D-089: the factory lacks @validate_call (the other 6 workers all have it) + no pydantic import, load_fn is the raw function (checksum defaults True — double sidecheck), 2 ws lines; file 77 lines; module OPEN (T items pending Roberto's call) | docs/src/twolm/lm_worker_design_matrix.md (TBD — post fix campaign) |
+| src/twolm/test/test_lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit; cache names + steps 5/6 pinned) + the golden content (rlm_01.json: X (10,7) uint32 — 10 pinned rows, independently re-derived by the probe D0-D10 incl. the X = iwmap[pindexes + col_offsets] recomputation, 0 mismatches); analysis D-089 PENDING: the missing SKIP_REGAB_DB gate (the header claims one — the D-087 T1 class), the CWD-relative mkdtemp ×2 + json ×2 (the D-085 idiom NOT applied), 21 ws lines; NO dedicated test_rlm_design_matrix.py (the coverage question — T item); the shutil import IS used (tearDown); file 202 lines; suite 3/0/0 GREEN (live DB) | docs/src/twolm/test/test_lm_worker_design_matrix.md (TBD — post fix campaign) |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -130,11 +133,12 @@ now (I-001; see notes/decisions.md).
   all file I/O mocked), lm_worker_indexes 2/0/0 (a323e0f; 2
   DB-gated post D-084 T2 — the setUp moves through POSITIONS,
   run with live DB), paths 3/0/0 (D-085 — no DB, pure path
-  assertions), rlm_wmaps 6/0/0 (73b4342 — no DB, no gate),
-  lm_worker_wmaps 3/0/0 (73b4342; 3 DB-gated post D-087
-  T1 — the setUp moves through INDEXES, run with live DB),
-  rlm_wmaps 13/0/0 (post D-087 T10 — no DB, no gate) — all
-  GREEN. Totals: 535 tests, 61 skipped
+  assertions), rlm_wmaps 13/0/0 (73b4342 + D-087 T10 — no DB,
+  no gate), lm_worker_wmaps 3/0/0 (73b4342; 3 DB-gated post
+  D-087 T1 — the setUp moves through INDEXES, run with live DB),
+  lm_worker_design_matrix 3/0/0 (2026-08-31 uncommitted
+  bring-in; 3 DB-dependent, NOT gated — D-089 T-pending) — all
+  GREEN. Totals: 538 tests, 61 skipped
   under the gate (17 PERF=1 print-only performance tests + 35
   DB-gated regab tests + 2 DB-gated lm_worker_positions tests +
   2 DB-gated lm_worker_features tests + 2 DB-gated
@@ -816,6 +820,29 @@ now (I-001; see notes/decisions.md).
   description, version mismatch; + TestRLMWmapsInit 2 tests):
   6 → 13 tests (13/0/0) + 3/0/0.
 
+- rlm_design_matrix.py + lm_worker_design_matrix.py +
+  test_lm_worker_design_matrix.py (new, DESIGN_MTR bring-in,
+  session 23, Roberto's UNCOMMITTED bring-in): the 7th pipeline
+  level activated (the import + list entry uncommented;
+  RLMContext's design_matrix + design_matrix_checksum fields
+  were pre-declared). rlm_design_matrix: the (N,7) uint32 X
+  object (the w-index per (position, feature-instance) cell) +
+  store / load / compute / is_cache_consistent + the duck-typed
+  hash; the 4th cache_manager consumer. The approved warning
+  fix (Roberto: "Esegui la modifica"): the NumPy 2.5
+  DeprecationWarning on the implicit int64->uint32 np.take
+  output cast → the explicit .astype(np.uint32) + the note; his
+  -W error command + the full -W error discover now clean.
+  lm_worker_design_matrix: the uniform 7-kwargs cache wiring
+  (flat rlmwf_06_DESIGN_MTR.dat, D-078). Analysis D-089 (probe
+  scratch/verify_design_matrix.py, 54 checks, 0 mismatches —
+  the golden (10,7) X re-derived D0-D10 incl. the independent
+  X = iwmap[pindexes + col_offsets] recompute; the live layout
+  is n_instances [1,1,4,1] / n_configurations [1,65,27,81]):
+  T items pending (factory @validate_call, raw load_fn, missing
+  gate, D-085 idiom, 26 ws lines, no dedicated rlm_design_matrix
+  test file); R item: the two compute guards are redundant
+  (L118 checks the same invariant as L115).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -950,11 +977,26 @@ now (I-001; see notes/decisions.md).
   68 ws lines, +7 new tests), R1 resolved as no-guard by
   Roberto's pindexes-density contract (documented in the
   source).
+- Done (2026-08-31, session 23): D-089 DESIGN_MTR bring-in
+  (Roberto's UNCOMMITTED bring-in — lm_worker_design_matrix +
+  rlm_design_matrix + test_lm_worker_design_matrix; 535 → 538
+  tests, 538/0/61 gated + 538 run / 17 skipped ungated,
+  -W error full discover clean, build/tmp clean): the approved
+  warning fix APPLIED (the NumPy 2.5 implicit int64->uint32
+  np.take output cast → the explicit .astype + note); analysis
+  D-089 DONE (probe verify_design_matrix.py 54 checks 0
+  mismatches, golden (10,7) X re-derived D0-D10). PENDING
+  Roberto's call: T items — the missing SKIP_REGAB_DB gate
+  (worker test), the D-085 idiom (CWD mkdtemp ×2 + json ×2),
+  factory @validate_call + pydantic, load_fn checksum=False,
+  the no-validation note (rlm_indexes style), 26 ws lines, the
+  dedicated test_rlm_design_matrix.py question (coverage); R:
+  the redundant L118 guard.
 - Next: the pipeline grows one commented line at a time
-  (uncommenting lm_worker_wmaps + restoring the last muted
-  test _test_move_to_step_by_string — a test file change,
-  Roberto's call) + the I-012 evaluation (FEATURES before
-  POSITIONS).
+  (the next commented entry is now lm_worker_zed) + restoring
+  the last muted test _test_move_to_step_by_string (a test
+  file change, Roberto's call) + the I-012 evaluation (FEATURES
+  before POSITIONS).
 
 ## Index
 
@@ -1127,7 +1169,7 @@ now (I-001; see notes/decisions.md).
   test_paths.py (D-085): 3/0/0, no DB — pins the constants
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-087)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-089)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)

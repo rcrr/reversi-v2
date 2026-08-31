@@ -2427,3 +2427,85 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           inventory row corrected accordingly. Lesson: verify
           whitespace/indentation claims programmatically
           (len(l) - len(l.lstrip(' '))) before reporting them.
+
+ D-089 | 2026-08-31 | DESIGN_MTR bring-in: the NumPy 2.5 warning
+          fix (APPLIED — Roberto: "Esegui la modifica. Poi analisi
+          completa.") + the full analysis, opening the 7th pipeline
+          level (session 23). Roberto's UNCOMMITTED bring-in:
+          rlm_design_matrix.py + lm_worker_design_matrix.py +
+          test_lm_worker_design_matrix.py (the logistic_model.py
+          uncomment is his; the 3 files stay his staging state — no
+          agent commit of them).
+          FIX — the warning: "Implicit casting of output to a
+          different kind is deprecated. In a future version, this
+          will result in an error. (Deprecated NumPy 2.5)".
+          Mechanism: X is uint32, ctx.iwmap is int64 (the -1 unseen
+          config sentinel); np.take(int64, idx, out=uint32) performs
+          an implicit kind cast into the output buffer — deprecated
+          in NumPy 2.5.2 (the venv version). In a normal run the
+          cast is value-correct (verified: identical values) and the
+          warning is only emitted once (default filters hide it);
+          under -W error it is FATAL — the take aborts and X keeps
+          the np.empty garbage. Future NumPy: a hard error. Fix
+          applied in rlm_design_matrix_compute (L122-124): the
+          explicit source cast np.take(ctx.iwmap.astype(np.uint32),
+          pindexes_with_offsets, out=X) + the 2-line note; K x 4
+          byte temp, the out= path and the guards preserved.
+          Verified: his exact -W error command OK; the full -W
+          error discover clean. The alternative (X =
+          iwmap[pindexes_with_offsets].astype(np.uint32)) was
+          rejected — larger N x k int64 temp.
+          ANALYSIS (probe scratch/verify_design_matrix.py, 54
+          checks, 0 mismatches): structure pinned post-fix (135/77/
+          202 lines); 4 @validate_call decorators (init/hash/store/
+          load — NOT compute/is_cache_consistent, and NO
+          no-validation note — the rlm_indexes L166 class); the
+          worker factory has NO @validate_call + no pydantic import
+          (unlike the other 6 workers); load_fn raw (checksum
+          defaults True — the double sidecar check); the test
+          header CLAIMS the SKIP_REGAB_DB gate but NO gate exists
+          (3 DB tests); the D-085 idiom NOT applied (CWD mkdtemp
+          x2 + CWD json x2); 26 ws lines (3+2+21); the triple
+          blanks are house precedent (rlm_indexes carries the
+          same) — not an item; the shutil import IS used
+          (tearDown); _down clears BOTH attrs (the house shape).
+          GOLDEN (D0-D10, live DB, rlm_01): the (10,7) uint32 X
+          literal (extracted from the test source) matches the
+          pipeline; the independent recompute X = iwmap[pindexes +
+          repeat(offsets[:-1], n_instances)] matches; all values
+          are valid w indices (< W=21); the intercept column is all
+          0; the per-feature columns stay within their iwmap
+          regions; the flat cache files + the data checksum are
+          correct. Live layout (correcting my first reading):
+          n_instances [1,1,4,1] (DIAG3 = 4 instances, CORE = 1),
+          n_configurations [1,65,27,81] (K=174) — the WMAPS
+          fixture, reused. Cross: RLMContext's design_matrix /
+          design_matrix_checksum fields were PRE-DECLARED; the 4
+          later levels remain commented (zed is next).
+          PENDING Roberto's call — T: T1 the missing SKIP_REGAB_DB
+          gate in both test setUps (the D-087 T1 class; needs
+          import os); T2 the worker factory @validate_call +
+          pydantic import; T3 raw load_fn → the lambda
+          checksum=False idiom; T4 the no-validation note on
+          compute/is_cache_consistent (the rlm_indexes L166
+          class); T5 the 26 ws lines; T6 (coverage question) NO
+          dedicated test_rlm_design_matrix.py — the WMAPS level
+          has one (store/load cycle, RuntimeError pins, golden hash
+          test, init ValidationError pins) — add it?; T7 the D-085
+          idiom in the test file (TemporaryDirectory/CUSTOM_TMP_
+          BASE + WORKSPACE_ROOT anchors + defensive tearDown). R:
+          R1 the two compute guards are REDUNDANT — L115 any(== -1)
+          and L118 count_nonzero(>= 0) check the same invariant
+          (iwmap values are -1 or >= 0) — keep both or merge?
+          R2 RESOLVED: the implicit-cast warning (above).
+          | The bring-in pattern of the previous 6 levels: fix what
+          was explicitly approved, analyze the rest, wait for the
+          call on the T batch. The warning fix is a one-line,
+          value-preserving, verified change (his explicit
+          instruction). The analysis follows the WMAPS template
+          (structure + golden re-derivation + cross-facts), the
+          golden X re-derived from the pipeline, not transcribed.
+          Suite: 538 tests (535 + 3), 538/0/61 gated + 538 run /
+          17 skipped ungated, build/tmp clean (3 pre-fix leftovers
+          removed). Docs (D-007): the 3 mirror docs follow the fix
+          campaign, as in WMAPS.
