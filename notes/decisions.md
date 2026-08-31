@@ -2139,3 +2139,76 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
          line (lm_worker_wmaps) + the last muted test
          _test_move_to_step_by_string (test file change —
          Roberto's call) + the I-012 evaluation.
+ D-085 | 2026-08-31 | TMP-dir design: the shared workspace-root-
+          anchored test paths (session 23, Roberto: "Mi hai
+          convinto, sono anche io per la A, con inclusi i JSON e
+          .env. Procedi con la modifica." — solution A of the
+          design discussion, incl. the JSON + .env anchoring):
+          the design. Roberto's question: per-test or shared TMP
+          dirs, and why CUSTOM_TMP_BASE is
+          "Path(__file__).resolve().parents[3] / 'build' / 'tmp'"
+          (a source-file reference) instead of an absolute
+          workspace-root reference, the JSON files being
+          workspace-relative. Answer: the base dir is SHARED
+          (created once per test class in setUpClass, idempotent)
+          while each test gets its OWN fresh sub-directory
+          (tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)) and
+          removes it in its defensive tearDown (D-065: no
+          artifacts left, even on failure) — per-test isolation,
+          shared base. And parents[3] IS the workspace root
+          (src/twolm/test/ is 3 levels below it) — the file path
+          is only the computation mechanism, since a test needs
+          some absolute starting point. The real inconsistency
+          (Roberto's) was: tmp absolute/file-anchored vs JSON
+          CWD-relative in the same setUp. Solution A (chosen,
+          over A' per-file documented, B package-anchored, C
+          CWD + assert): new module src/twolm/test/paths.py —
+          WORKSPACE_ROOT = the first ancestor of the module
+          holding the workspace marker (pyproject.toml;
+          marker-based, not a parents[N] level count — survives
+          file moves; the only remaining "file reference" is the
+          walk-up start point inside the helper, one place),
+          CUSTOM_TMP_BASE = WORKSPACE_ROOT / "build" / "tmp";
+          dedicated test module test_paths.py (3 tests, no DB,
+          pins: root absolute + marker-holding, root ancestor of
+          src/twolm/test/, CUSTOM_TMP_BASE == <root>/build/tmp
+          absolute). Applied: the 6 D-065 test files
+          (test_cache_manager, test_logistic_model,
+          test_lm_worker_config/positions/features/indexes)
+          import the constants instead of recomputing them (the
+          per-file __file__ derivations + comment blocks are
+          gone); the 7 json_config lines (4 files) are anchored
+          to the same WORKSPACE_ROOT (were CWD-relative
+          'src/twolm/test/data/rlm_00.json'); test_regab loads
+          .env via load_dotenv(WORKSPACE_ROOT / ".env") (was the
+          caller-relative search) and its last CWD-relative
+          mkdtemp(dir='./build/tmp') uses str(CUSTOM_TMP_BASE).
+          Scope note: test_regab's mkdtemp is the PRE-D-065
+          mechanism (non-defensive rmtree in tearDown, the
+          build/tmp existence assumption) — only the dir= anchor
+          changed, per the approved scope; a full D-065
+          conversion there is a future call. Verification: the
+          8 touched suites green (paths 3/0/0; cache_manager +
+          logistic_model 38/0/0; the 4 lm_worker 20/0/0); full
+          discover 516 → 519 tests, 519/0/58 gated + 519 run /
+          17 skipped ungated (live DB), GREEN; build/tmp clean;
+          the 2 probes pinning the changed lines re-pinned
+          (verify_rlm_indexes E1 158→153 + E2 the idiom import;
+          verify_lm_worker_features C1 169→164 + C3 the idiom
+          import + C5 the Path rationale) — 0 mismatches.
+          Observed, out of scope (pre-existing stale behavioral
+          pins, confirmed pre-existing by a stash test):
+          verify_lm_worker_features B1a (pins the 4-worker list —
+          the pipeline now has 5 active levels since D-084),
+          verify_lm_worker_config E2/E3 (exception expectations
+          stale after the pipeline growth), verify_cache_manager
+          (imports the renamed-away _compute_checksum),
+          verify_mobility (a TypeError) — a probe-maintenance
+          batch when convenient. 2 new mirror docs
+          (docs/src/twolm/test/paths.md,
+          docs/src/twolm/test/test_paths.md) + 7 test docs
+          updated (the idiom references, the JSON notes, the
+          line anchors; test_logistic_model.md appendix
+          re-anchored 294→288 lines + the muted-test table
+          corrected to the current 14 active + 1 muted);
+          decisions/index/journal/NOTES updated.

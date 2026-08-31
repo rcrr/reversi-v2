@@ -18,12 +18,13 @@ Suite: **14/0/0 GREEN, no PERF gates.** Fast (~0.05s).
 $ python -m unittest twolm.test.test_logistic_model
 ```
 
-## Testbed design (setUp, L74-110)
+## Testbed design (setUp, L68-104)
 
-- `setUpClass` (L70): `CUSTOM_TMP_BASE.mkdir(parents=True,
-  exist_ok=True)` — the module-level `CUSTOM_TMP_BASE` (L62) is
-  `Path(__file__).resolve().parents[3] / "build" / "tmp"` (the D-065
-  idiom, T2/D-075, as in test_cache_manager).
+- `setUpClass` (L64): `CUSTOM_TMP_BASE.mkdir(parents=True,
+  exist_ok=True)` — `CUSTOM_TMP_BASE` (L57) is imported from the
+  shared `twolm.test.paths` module (the D-065 idiom, T2/D-075;
+  centralized in D-085 — originally the module-level
+  `Path(__file__).resolve().parents[3]` derivation).
 - `sys.stdout` patched to a StringIO (keeps the SM display output
   out of the test log).
 - A dummy `dummy_config.json` (`{}`) in
@@ -100,17 +101,17 @@ $ python -m unittest twolm.test.test_logistic_model
     export writes a real header-only file (empty history) under the
     build/tmp artifact dir (D-065); header pinned to
     `step,worker_name,direction,start_utc,finish_utc,duration_sec`.
-- **Muted (2, Roberto's plan — "una riga alla volta")**:
-  - `_test_move_to_step_delegates_to_state_machine`: after
-    `move_to_step(1)`, step 1, `config_up_mock` called ONCE with the
-    context, `config_down_mock` not called.
+- **Muted (1, Roberto's plan — "una riga alla volta")**:
   - `_test_move_to_step_by_string`: `move_to_step("POSITIONS")` →
     step 2, both up-mocks called once with the context (name-based
     move through 2 levels).
-  - Precondition today (verified by probe): with only CREATED in
-    the list, `move_to_step(1)` → IndexError (out of bounds) and
+  - Precondition at analysis (verified by probe): with only CREATED
+    in the list, `move_to_step(1)` → IndexError (out of bounds) and
     `move_to_step("POSITIONS")` → ValueError (unknown worker) — the
-    tests are correctly muted.
+    test was correctly muted. (Superseded by the pipeline growth:
+    `test_move_to_step_delegates_to_state_machine` was restored in
+    D-076 with the CONFIG level; `_test_move_to_step_by_string`
+    stays muted per Roberto's call.)
 
 ## Test defects (T1-T6)
 
@@ -140,9 +141,11 @@ the system temp (e.g. /tmp), not under `workspace_root/build/tmp`
 — the same deviation Roberto fixed in test_cache_manager (T6,
 D-072). Additionally, if setUp raised between `mkdtemp()` and the
 end of setUp, `tearDown` was never run and the dir leaked. **Applied
-(D-075):** the test_cache_manager idiom — module-level
-`CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" /
-"tmp"` (L62) + `setUpClass` mkdir (L70) +
+(D-075; centralized in D-085 in the shared twolm.test.paths
+module):** the test_cache_manager idiom — the `CUSTOM_TMP_BASE`
+import (L57; originally the module-level
+`Path(__file__).resolve().parents[3]` derivation) + `setUpClass`
+mkdir (L64) +
 `tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))` created
 FIRST in setUp (a mid-setup failure still leaves a `temp_dir` that
 tearDown or the GC cleans) + defensive tearDown (stops only the
@@ -219,29 +222,28 @@ header grammar report-only (T6).
 **Verdict**: 13/0/0 GREEN. Test campaign CLOSED (T1/T2/T4/T5
 fixed, T3 intentional, T6 report-only); D-075.
 
-## Appendix: class map (2026-08-30, file 294 lines, post D-075)
+## Appendix: class map (as of D-085, file 288 lines)
 
 | Line | Class / item | Notes |
 |---|---|---|
-| 43-56 | imports | L48 SimpleNamespace (T4 dummy cfg) · L50 MagicMock/patch · L52-55 twolm (incl. the 4 private helpers for T4; Relevance removed — T5) |
-| 62 | `CUSTOM_TMP_BASE` | build/tmp, D-065 idiom (T2) |
-| 66 | `TestLogisticModel` | 15 methods (13 active + 2 muted) |
-| 70 | `setUpClass` | mkdir CUSTOM_TMP_BASE (T2) |
-| 74 | `setUp` | TemporaryDirectory FIRST (T2), stdout patch, dummy config under build/tmp, factory patches (inert — T3), shared model |
-| 112 | `tearDown` | defensive patcher stops + temp_dir.cleanup() (T2) |
-| 124 | `test_context_initialization` | active |
-| 131 | `test_state_machine_initialization` | active |
-| 137 | `_test_move_to_step_delegates_to_state_machine` | MUTED (T3) |
-| 146 | `_test_move_to_step_by_string` | MUTED (T3) |
-| 154 | `test_invalid_config_path` | active |
-| 159 | `test_base_dir_override_validation` | active |
-| 167 | `test_facade_delegates_to_state_machine` | active — T1 pin (replaces test_facade_methods_exist) |
-| 191 | `test_facade_views_and_verbosity_round_trip` | active — T1 pin |
-| 205 | `test_injected_cache_helpers_are_the_machine_closures` | active — T4 (would have caught R1) |
-| 219 | `test_pre_injection_fallback_is_no_op_lambda` | active — T4 |
-| 228 | `test_injected_cache_helper_computes_the_worker_path` | active — T4 (dummy cfg, addCleanup restore) |
-| 242 | `test_created_sentinel_workers_raise` | active — T4 (D-059 sentinel) |
-| 252 | `test_config_path_helper_edge_branches` | active — T4 |
-| 267 | `test_base_dir_helper_edge_branches` | active — T4 |
-| 278 | `test_export_history_of_moves_as_csv_pass_through` | active — T4 (header-only, build/tmp) |
-| 293 | `unittest.main` guard | — |
+| 43-57 | imports | L48 SimpleNamespace (T4 dummy cfg) · L50 MagicMock/patch · L52-55 twolm (incl. the 4 private helpers for T4; Relevance removed — T5) · L57 the D-085 twolm.test.paths import (CUSTOM_TMP_BASE) |
+| 60 | `TestLogisticModel` | 15 methods (14 active + 1 muted) |
+| 64 | `setUpClass` | mkdir CUSTOM_TMP_BASE (T2) |
+| 68 | `setUp` | TemporaryDirectory FIRST (T2), stdout patch, dummy config under build/tmp, factory patches (inert — T3), shared model |
+| 106 | `tearDown` | defensive patcher stops + temp_dir.cleanup() (T2) |
+| 118 | `test_context_initialization` | active |
+| 125 | `test_state_machine_initialization` | active |
+| 130 | `test_move_to_step_delegates_to_state_machine` | active (restored D-076, the CONFIG level exists) |
+| 139 | `_test_move_to_step_by_string` | MUTED (T3) |
+| 147 | `test_invalid_config_path` | active |
+| 152 | `test_base_dir_override_validation` | active |
+| 160 | `test_facade_delegates_to_state_machine` | active — T1 pin (replaces test_facade_methods_exist) |
+| 184 | `test_facade_views_and_verbosity_round_trip` | active — T1 pin |
+| 198 | `test_injected_cache_helpers_are_the_machine_closures` | active — T4 (would have caught R1) |
+| 212 | `test_pre_injection_fallback_is_no_op_lambda` | active — T4 |
+| 221 | `test_injected_cache_helper_computes_the_worker_path` | active — T4 (dummy cfg, addCleanup restore) |
+| 236 | `test_created_sentinel_workers_raise` | active — T4 (D-059 sentinel) |
+| 246 | `test_config_path_helper_edge_branches` | active — T4 |
+| 261 | `test_base_dir_helper_edge_branches` | active — T4 |
+| 272 | `test_export_history_of_moves_as_csv_pass_through` | active — T4 (header-only, build/tmp) |
+| 287 | `unittest.main` guard | — |

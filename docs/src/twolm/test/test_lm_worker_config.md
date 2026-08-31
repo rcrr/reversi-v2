@@ -34,16 +34,20 @@ pipeline enablement. 4 classes / 14 tests / no PERF:
 
 ## D-078 fix campaign (Roberto: "T1-T6: OK")
 
-- T1 FIXED — the D-065 idiom on all 4 classes: module-level
-  `CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] / "build" /
-  "tmp"` + `setUpClass` mkdir + `tempfile.TemporaryDirectory(dir=...)`
+- T1 FIXED (re-anchored D-085) — the D-065 idiom on all 4 classes:
+  the shared `CUSTOM_TMP_BASE` (imported from twolm.test.paths
+  since D-085; originally the module-level `Path(__file__).
+  resolve().parents[3] / "build" / "tmp"` derivation) +
+  `setUpClass` mkdir + `tempfile.TemporaryDirectory(dir=...)`
   created FIRST in setUp (a mid-setup failure still leaves a
-  cleanable temp dir) + defensive tearDown (stops only the patchers
-  / cleanups that exist). The dead `shutil` import removed. A stray
-  per-test `tempfile.mkdtemp(dir='./build/tmp')` inside
-  `test_base_dir_is_a_file_raises_error` (Roberto's original line)
-  removed — it leaked a tmp dir on every run; caught via build/tmp
-  leftovers after the campaign run.
+  cleanable temp dir) + defensive tearDown (stops only the
+  patchers / cleanups that exist). The dead `shutil` import
+  removed. A stray per-test `tempfile.mkdtemp(dir='./build/tmp')`
+  inside `test_base_dir_is_a_file_raises_error` (Roberto's
+  original line) removed — it leaked a tmp dir on every run;
+  caught via build/tmp leftovers after the campaign run. D-085:
+  the two `json_config` lines are anchored to the same
+  `WORKSPACE_ROOT` (were CWD-relative).
 - T2 FIXED — `test_invalid_json_syntax` pinned `ValueError` instead
   of bare `Exception` (the actual json5 0.15.0 exception for a
   syntax error; this version of the module exposes no

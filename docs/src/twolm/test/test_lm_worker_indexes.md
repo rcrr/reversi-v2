@@ -8,7 +8,10 @@ Roberto's file, brought in with the INDEXES enablement (a323e0f,
 the line-by-line pipeline step 5). 1 class / 2 tests / no PERF.
 Green on first run with the live DB. T1-T3 + M1 all resolved in
 D-084 (the D-065 idiom, the SKIP_REGAB_DB gate, the header
-grammar, the whitespace).
+grammar, the whitespace). D-085 (same session): the D-065 idiom
+re-anchored to the shared twolm.test.paths module — the per-file
+__file__ derivation and the CWD-relative JSON path are now both
+anchored to WORKSPACE_ROOT.
 
 ## Suite status (session 23, post D-084)
 
@@ -16,30 +19,34 @@ grammar, the whitespace).
   setUp moves through POSITIONS on a fresh base dir, so a live DB
   is required; `SKIP_REGAB_DB=1` skips both tests, as in the
   other worker test files)
-- Full discover: 516 tests, 58 skipped under `SKIP_REGAB_DB=1`
+- Full discover: 519 tests, 58 skipped under `SKIP_REGAB_DB=1`
   (17 PERF + 35 regab + 2 positions + 2 features + 2 indexes),
-  GREEN; ungated (live DB): 516 run, 17 skipped (PERF only), GREEN.
+  GREEN; ungated (live DB): 519 run, 17 skipped (PERF only), GREEN.
+  (D-085: +3 — the new test_paths module; the skip breakdown is
+  unchanged.)
 
 ## Coverage
 
-- setUp (L69-97, D-084 T1/T2 idiom): the SKIP_REGAB_DB gate at
-  the top → stdout patched to a StringIO (logs captured, output
-  clean) + `TemporaryDirectory` created FIRST under the
-  `__file__`-anchored `CUSTOM_TMP_BASE` (L58) + a `LogisticModel`
-  on the `rlm_00.json` fixture (`base_dir_override` = the tmp
-  dir) + `move_to_step('FEATURES')` (the comment L94 is
+- setUp (L64-92, D-084 T1/T2 idiom, D-085 re-anchored): the
+  SKIP_REGAB_DB gate at the top → stdout patched to a StringIO
+  (logs captured, output clean) + `TemporaryDirectory` created
+  FIRST under the shared `CUSTOM_TMP_BASE` (imported from
+  twolm.test.paths, L54) + a `LogisticModel` on the `rlm_00.json`
+  fixture — anchored to the same `WORKSPACE_ROOT` since D-085
+  (`base_dir_override` = the tmp dir) + `move_to_step('FEATURES')`
+  (the comment L89 is
   ACCURATE — "INDEXES depends on the feature_set loaded there";
   in contrast to the test_lm_worker_features M1 comment, which
   pointed at POSITIONS). The pipeline preconditions are pinned
   (step 0 / `CREATED`, step 3 / `FEATURES` after the move).
-  Defensive tearDown (L99-103, getattr guards).
-- `test_compute_and_populate_cache` (L105-122): move to INDEXES
+  Defensive tearDown (L94-98, getattr guards).
+- `test_compute_and_populate_cache` (L100-117): move to INDEXES
   (step 4 pinned) — the FLAT cache files
   `rlmwf_04_INDEXES.dat` + `rlmwf_04_INDEXES.dat.SHA3-256` exist
   on disk (the D-078 machine-level naming pinned end-to-end) and
   the logs contain "Executing heavy computation"; the context
   holds a non-None `rlm_indexes`.
-- `test_read_cache_on_new_instance` (L124-155): the first
+- `test_read_cache_on_new_instance` (L119-150): the first
   instance moves to INDEXES (compute + store, warms the cache);
   a SECOND instance on the same cache dir moves to FEATURES, the
   StringIO is cleared, then to INDEXES: the logs contain "Cache
@@ -58,16 +65,20 @@ hash / rds-checksum metadata, the `_down` clearing (C7), and the
 
 ## Defects — RESOLVED (D-084)
 
-- **T1 FIXED (E2)**: the D-065 idiom applied — `CUSTOM_TMP_BASE =
-  Path(__file__).resolve().parents[3] / "build" / "tmp"` (L58,
-  workspace-root-anchored, not CWD), `setUpClass` mkdir (L65-67),
-  `TemporaryDirectory` created FIRST in setUp (L85-88, so a
-  mid-setup failure still leaves a cleanable temp dir), defensive
-  tearDown with getattr guards (L99-103). The `shutil` import and
-  the CWD-relative `mkdtemp` are gone. The same fix as
-  test_lm_worker_positions T1 / test_lm_worker_features T1.
+- **T1 FIXED (E2, re-anchored D-085)**: the D-065 idiom applied —
+  the D-084 per-file `CUSTOM_TMP_BASE =
+  Path(__file__).resolve().parents[3] / "build" / "tmp"`
+  derivation is replaced by the import of the shared constants
+  from `twolm.test.paths` (L54, marker-based workspace root; the
+  `json_config` is anchored to the same `WORKSPACE_ROOT` since
+  D-085), `setUpClass` mkdir (L61-63), `TemporaryDirectory`
+  created FIRST in setUp (L76-77, so a mid-setup failure still
+  leaves a cleanable temp dir), defensive tearDown with getattr
+  guards (L94-98). The `shutil` import and the CWD-relative
+  `mkdtemp` are gone. The same fix as test_lm_worker_positions T1
+  / test_lm_worker_features T1.
 - **T2 FIXED (E3)**: the `SKIP_REGAB_DB` gate at the top of setUp
-  (L71-73, the test_regab wording) — a no-DB environment running
+  (L68-69, the test_regab wording) — a no-DB environment running
   the canonical gated command now skips both tests instead of
   erroring in setUp. The same fix as test_lm_worker_positions T2
   / test_lm_worker_features T2.

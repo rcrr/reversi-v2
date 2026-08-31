@@ -2,6 +2,9 @@
 
 Date: 2026-08-29. One test file: `test_regab.py` (37 tests, 5 classes).
 **T5 + T6 + T7 applied (D-052): suite 33 → 37/0/0 GREEN.**
+D-085 (session 23): the `.env` load and the checksum test's
+`mkdtemp` re-anchored to the shared twolm.test.paths module
+(`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 
 Suite: **37/0/0 GREEN, no PERF gates.** 35 tests require a live PostgreSQL
 database and `.env` file; 2 (`TestRegabDataSetFileLoadExceptions`) are fully
@@ -34,7 +37,7 @@ TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT=...
 ## Coverage by area
 
 ### `BaseTestCase` (abstract, extended by 4 classes)
-- `setUp`: checks `SKIP_REGAB_DB` (T6) and skips when set; loads `.env` via `load_dotenv()`, creates `RegabDBConnection`, asserts connection is open.
+- `setUp`: checks `SKIP_REGAB_DB` (T6) and skips when set; loads `.env` via `load_dotenv(WORKSPACE_ROOT / ".env")` (D-085: explicit workspace-root path, not the caller-relative search), creates `RegabDBConnection`, asserts connection is open.
 - `tearDown`: closes connection, asserts it's closed.
 - **Every test inherits** DB setup/teardown, so all 31 DB-dependent tests in the four subclasses exercise the real database.
 
@@ -79,7 +82,7 @@ TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT=...
 - **Coverage**: excellent — all validation paths + DB extraction + generation + hash golden.
 
 ### `TestRegabDataSetChecksum` (4 tests)
-- Uses `setUp` (creates temp dir `./build/tmp`, builds a `RegabDataSet`) + `tearDown` (removes temp dir).
+- Uses `setUp` (creates temp dir under the shared `CUSTOM_TMP_BASE` — D-085: was the CWD-relative `./build/tmp` — builds a `RegabDataSet`) + `tearDown` (removes temp dir).
 - `test_store_and_load`: store→load round-trip, all fields match.
 - `test_load_without_checksum`: store then load with `checksum=False` — still matches.
 - `test_load_missing_checksum_file`: store then remove `.SHA3-256` sidecar → `FileNotFoundError`.
@@ -102,7 +105,7 @@ Removed: `numpy.typing as npt`, `time`, `io`, `itertools`, `mock_open`, and the 
 
 ## Observations (test file only)
 
-- **Test data relies on `.env`**: `BaseTestCase` reads credentials from `.env` via `load_dotenv()`. The `.env` file is not committed (and should not be). This means tests are not self-contained — they require environment setup.
+- **Test data relies on `.env`**: `BaseTestCase` reads credentials from `.env` via `load_dotenv(WORKSPACE_ROOT / ".env")` (D-085: anchored to the workspace root, not the CWD / caller). The `.env` file is not committed (and should not be). This means tests are not self-contained — they require environment setup.
 - **`test_extract_data_from_db` params in `.env`**: `TEST_RDATA_TEST_EXTRACTION_ARG_BID` etc. are optional — if not set, the test raises `ValueError` in `setUp`, not in the test itself.
 - **No unit tests for `_validate_db_fields` standalone**: the validator is tested only through `regab_gp_as_df`. A standalone unit test (mocking the DB cursor) would isolate the validation logic.
 - **No test for `regab_store_data_set_to_file` with `compressed=True`**: only the default (uncompressed) binio path is tested.
@@ -113,13 +116,13 @@ Removed: `numpy.typing as npt`, `time`, `io`, `itertools`, `mock_open`, and the 
 
 **Verdict**: 37/0/0 GREEN. T5, T6, T7 all fixed (D-052). The `SKIP_REGAB_DB` gate makes CI and DB-less local runs possible.
 
-## Appendix: class map (2026-08-29, post T1-T7)
+## Appendix: class map (as of D-085; the D-085 import shifted all lines by +1)
 
 | Line | Class | Tests | Requires DB |
 |---|---|---|---|
-| 87 | `BaseTestCase` | 0 (base) | yes |
-| 125 | `TestRegabDB` | 2 | yes |
-| 145 | `TestRegabGPAsDF` | 16 | yes |
-| 279 | `TestRegabDataSet` | 13 | yes (1 optional `.env`-driven) |
-| 552 | `TestRegabDataSetChecksum` | 4 | yes (inherits BaseTestCase) |
-| 647 | `TestRegabDataSetFileLoadExceptions` | 2 | no (fully mocked) |
+| 88 | `BaseTestCase` | 0 (base) | yes |
+| 126 | `TestRegabDB` | 2 | yes |
+| 146 | `TestRegabGPAsDF` | 16 | yes |
+| 280 | `TestRegabDataSet` | 13 | yes (1 optional `.env`-driven) |
+| 553 | `TestRegabDataSetChecksum` | 4 | yes (inherits BaseTestCase) |
+| 648 | `TestRegabDataSetFileLoadExceptions` | 2 | no (fully mocked) |

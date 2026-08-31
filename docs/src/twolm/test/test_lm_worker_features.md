@@ -22,22 +22,24 @@ I-012 (evaluate moving the FEATURES level before POSITIONS).
 
 ## Coverage
 
-- setUp (L71-97): the SKIP_REGAB_DB gate FIRST (T2 — as in
+- setUp (L66-92): the SKIP_REGAB_DB gate FIRST (T2 — as in
   test_regab) + stdout patched to a StringIO (logs captured,
-  output clean) + the D-065 `TemporaryDirectory` idiom (T1 —
-  `CUSTOM_TMP_BASE` via `__file__`, setUpClass mkdir,
+  output clean) + the D-065 `TemporaryDirectory` idiom (T1,
+  re-anchored D-085 — `CUSTOM_TMP_BASE` imported from the
+  shared twolm.test.paths module, setUpClass mkdir,
   TemporaryDirectory created FIRST so a mid-setup failure still
   leaves a cleanable dir) + a `LogisticModel` on the
-  `src/twolm/test/data/rlm_00.json` fixture (CWD-relative path,
-  `base_dir_override` = the tmp dir, Verbosity.LOW) + the
+  `rlm_00.json` fixture (anchored to the same `WORKSPACE_ROOT`
+  since D-085; `base_dir_override` = the tmp dir, Verbosity.LOW)
+  + the
   pipeline preconditions pinned (step 0 / `CREATED`) + a move to
   'POSITIONS' (step 2 / `POSITIONS` pinned — the DB-dependent
   part; the "as FEATURES depends on the configuration loaded
   there" comment stays — M1 / I-012). Defensive tearDown.
-- `test_build_feature_set` (L105-116): `feature_set` is None
+- `test_build_feature_set` (L100-111): `feature_set` is None
   before the level; move to 'FEATURES' (step 3 / `FEATURES`
   pinned); `feature_set` is non-None after.
-- `test_feature_set_content_golden` (L118-167, added D-082 per
+- `test_feature_set_content_golden` (L113-164, added D-082 per
   Roberto): the rlm_00.json fixture must build the exact
   expected FeatureSet — name 'NoNameFeatureSet' (the schema
   default, the fixture has no name key); the 3 golden hash
@@ -59,8 +61,10 @@ I-012 (evaluate moving the FEATURES level before POSITIONS).
 
 ## Defects — resolved (D-082)
 
-- T1 — FIXED: the D-065 idiom (CUSTOM_TMP_BASE under build/tmp
-  via `__file__`, setUpClass mkdir, TemporaryDirectory created
+- T1 — FIXED (re-anchored D-085): the D-065 idiom (the shared
+  CUSTOM_TMP_BASE under build/tmp — imported from
+  twolm.test.paths since D-085, originally the per-file `__file__`
+  derivation — setUpClass mkdir, TemporaryDirectory created
   FIRST, defensive tearDown) replaces the CWD-relative
   `mkdtemp(dir='./build/tmp')` (the test now runs from any CWD
   and a setUp failure leaks no dir). Pinned by C3.
@@ -69,8 +73,8 @@ I-012 (evaluate moving the FEATURES level before POSITIONS).
   no-DB environment now skips instead of ERRORing) — the
   test_regab pattern. Pinned by C4.
 - T3 — FIXED: the dead `from pathlib import Path` import became
-  load-bearing with the D-065 idiom (CUSTOM_TMP_BASE). Pinned
-  by C5.
+  load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to
+  twolm.test.paths). Pinned by C5.
 - T4 — FIXED: header grammar "How to run the lm_worker_features
   unit tests." + the run note documents the DB requirement and
   the gate. Pinned by C6.
@@ -98,19 +102,22 @@ I-012 (evaluate moving the FEATURES level before POSITIONS).
 - `Verbosity.LOW`: the pipeline logs stay quiet — note the R1
   amask log defect (fixed D-082) was DEBUG-level and therefore
   invisible to this test.
-- CWD-relative paths: `json_config` (the header's "Run from the
-  workspace root" is load-bearing); the temp base is now
-  `__file__`-anchored (T1).
+- Path anchoring (D-085): `json_config` and the temp base are
+  both anchored to the shared `WORKSPACE_ROOT` (twolm.test.paths)
+  — the CWD-relative `json_config` and the per-file `__file__`
+  tmp derivation unified (T1).
 
 ## Appendix — line reference
 
-169 lines, as of D-082.
+164 lines, as of D-085 (the D-065 idiom moved to twolm.test.paths).
 
 - L28-44: header (T4 grammar L30, run note L38-43)
-- L46-55: imports (T3 `Path` now load-bearing L52)
-- L58-60: T1 `CUSTOM_TMP_BASE` (D-065 idiom)
-- L64-102: TestLMWorkerFeatures (setUpClass L68, setUp L71-97
-  [T2 gate L75-76, T1 TemporaryDirectory L84-85, the M1/I-012
-  comment L94], tearDown L99-102)
-- L105-116: test_build_feature_set
-- L118-167: test_feature_set_content_golden (D-082, per Roberto)
+- L46-56: imports (T3 `Path` load-bearing L52; the D-085
+  twolm.test.paths import L56)
+- L62-65: TestLMWorkerFeatures class head + setUpClass (the
+  D-065 CUSTOM_TMP_BASE mkdir, T1)
+- L66-92: setUp [T2 gate L67-71, T1 TemporaryDirectory L79,
+  the D-085 WORKSPACE_ROOT-anchored json_config L81, the
+  M1/I-012 comment L89], tearDown L94-98
+- L100-111: test_build_feature_set
+- L113-164: test_feature_set_content_golden (D-082, per Roberto)

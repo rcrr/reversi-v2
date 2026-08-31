@@ -164,7 +164,10 @@ suite from any other CWD would create `build/tmp` wherever it is
 invoked (and would NOT find the existing tree). Roberto approved the
 proposed fix ("T6: OK"); D-072 applied it: `CUSTOM_TMP_BASE` is now
 anchored to the workspace root via `__file__`, same idiom as
-test_state_machine.py. No source impact.
+test_state_machine.py. No source impact. D-085 (session 23): the
+idiom centralized — `CUSTOM_TMP_BASE` is imported from the shared
+`twolm.test.paths` module (the marker-based workspace root); this
+file's per-file `__file__` derivation is gone.
 
 ### T7 — No on-disk assertion after recompute (P2) — FIXED (D-071)
 `test_step2`, `test_step3a`, `test_step3b` (and the two new T2/R2
