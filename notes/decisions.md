@@ -2325,3 +2325,89 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           sections (4 new inventory rows, Environment 528,
           where-we-are 2 bullets, next-steps the in-progress
           bullet, index D-086), journal session 23.
+ D-087 | 2026-08-31 | WMAPS fix campaign — ALL approved (session
+          23, Roberto: "T1: OK / T2: OK / ... / T10: OK —
+          Procedi su tutto per favore. R1: non succede mai che
+          un indice o un pindice (principale) sia -1. Gli indici
+          sono degli uint, sono per definizione un numero compreso
+          tra 0 e n_configurations - 1."): the WMAPS fix
+          campaign, closing D-086. All 10 T items approved + the
+          R1 design question answered. Fixes applied:
+          test_lm_worker_wmaps T1 — the SKIP_REGAB_DB gate added
+          to BOTH setUps (top of setUp, the D-080 T2 / D-084 T2
+          shape) + import os; the header's claim now true (3/0/3
+          under the gate). test_rlm_wmaps T2 — header "-1- Run
+          the tests." (the file is DB-free; the false DB claim
+          removed, the D-084 T3 class); T3 — the leftover
+          generation comment (L162, Italian "sostituisci la
+          classe...") deleted; T4 — dead imports: 'from io import
+          StringIO' AND 'from unittest.mock import patch' removed
+          (both zero uses, AST-verified). rlm_wmaps T4 — the
+          dead 'from itertools import accumulate' removed (the
+          offsets use np.cumsum); T5 — the no-validation note
+          added above rlm_wmaps_compute (L181, the exact
+          rlm_indexes L166 wording, covering compute +
+          is_cache_consistent — the TYPE_CHECKING circular-import
+          constraint); T9 — 23 non-comment trailing-whitespace
+          lines stripped (incl. the 2 code lines: 'above_mask =
+          ~mask ' and the fallback_details_table assignment).
+          lm_worker_wmaps T6 — @validate_call
+          (config=ConfigDict(arbitrary_types_allowed=True)) on
+          the factory + the pydantic import (the D-080 M1 /
+          D-082 M1 / D-084 M1 pattern — now all 6 worker
+          factories decorated); T7 — load_fn =
+          lambda path: rlm_wmaps_load_from_file(path,
+          checksum=False) (the redundant double sidecar
+          verification is gone — cache_manager verifies in step
+          2, the raw function would verify again in step 3; the
+          D-080 M4 / D-084 M3 house shape); T8 — _down now
+          clears ctx.wmaps_obj_checksum (the house shape: object
+          + checksum, as in lm_worker_indexes._down); T9 — 4
+          whitespace-only lines stripped. test files T9 — 21
+          (test_rlm_wmaps) + 20 (test_lm_worker_wmaps)
+          whitespace-only lines stripped; scope as in D-078 M3:
+          the license-header '# ' lines stay. test_rlm_wmaps
+          T10 (the coverage batch) — +5 IO tests:
+          test_compute_sha3_256_hash_golden (the duck-typed hash
+          on the known IO object =
+          12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2ea
+          bc73c861dfa — the D-081 golden-content philosophy),
+          test_load_with_valid_sidecar (the checksum=True happy
+          path, the D-072 machine), test_load_with_mismatched_
+          sidecar (a byte-flip → RuntimeError "checksum file
+          signature doesn't match"), test_load_rejects_wrong_
+          description (RuntimeError "not a proper ..."),
+          test_load_rejects_version_mismatch (RuntimeError
+          "version mismatch"); + the TestRLMWmapsInit class (2
+          tests: valid constructor + the precise pydantic
+          ValidationError on a string cut_off — the D-084 T3
+          pattern). 6 → 13 tests. R1 RESOLVED as NO-GUARD, by
+          Roberto's contract: the indexes are unsigned by
+          definition (0..n_configurations−1), so the pindexes
+          input is DENSE — no −1 cells ever, and the unguarded
+          f_iwmap[stats[:,0]] (L252) is correct. The contract is
+          now documented in the rlm_wmaps_compute docstring (a
+          future change to the input contract is a deliberate,
+          documented act). New observation (left as-is, minor,
+          flagged to Roberto): the __init__ body (L101-108) is
+          indented 9 spaces (one short of the house 4-space
+          multiple) — valid Python, cosmetic only. Line counts
+          post-campaign: rlm_wmaps 311 → 316, lm_worker_wmaps
+          87 → 91, test_rlm_wmaps 259 → 325, test_lm_worker_
+          wmaps 301 → 315. Docs (D-007 mirror rule, post
+          fix-campaign as per the D-083/D-084 pattern): the 4
+          new mirror docs written (docs/src/twolm/rlm_wmaps.md,
+          lm_worker_wmaps.md, test/test_rlm_wmaps.md,
+          test/test_lm_worker_wmaps.md). Probe re-pinned:
+          scratch/verify_wmaps.py updated to the post-campaign
+          state (all T items now pinned as FIXED, line counts
+          refreshed). Verification: test_rlm_wmaps 13/0/0 (no
+          DB), test_lm_worker_wmaps 3/0/0 (live DB) + 3/0/3
+          under SKIP_REGAB_DB=1 (the gate works); full discover
+          535 tests (528 + 7 new): 535/0/61 gated (17 PERF + 35
+          regab + 2 pos + 2 feat + 2 idx + 3 wmaps) + 535 run /
+          17 skipped ungated (live DB), both GREEN; build/tmp
+          clean. Notes: NOTES.md all sections (inventory rows
+          CLOSED + line counts, Environment 535/61, where-we-are
+          bullets refreshed, next-steps Done bullet, index
+          D-087 + the 4 doc rows), journal session 23.
