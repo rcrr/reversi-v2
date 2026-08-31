@@ -56,10 +56,10 @@ now (I-001; see notes/decisions.md).
 | src/twolm/rlm_config_schemas.py | analyzed 2026-08-30 (session 22, D-079): the pydantic config domain — ReversiLogisticModelConfig (10 fields, JSON5 entry point) over the nested tree, all RLMBaseConfig (free-form properties bag) except StatModelConfig; Bitboard hex fields (16-hex no-0x parse, uppercase 16-hex serializer); 12 verified facts V1-V12 (probe E, 0 mismatches); D-080: R1 FIXED (c2>c1 cross-field model_validator — the strong-Wolfe invariant enforced), M1-M4 FIXED (hex docstring example, model_validator import now load-bearing, strict List[StatusString] + StatModelConfig → RLMBaseConfig, default_factory lists); no dedicated suite (covered by test_lm_worker_config validation class + the D-079 probe E, re-pinned D-080) | docs/src/twolm/rlm_config_schemas.md |
 | src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): R1 + M1-M3 FIXED (amask log, @validate_call factory, whitespace, orphan comment removed) — module CLOSED; 44-check probe 0 mismatches; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_features.md |
 | src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test at analysis; green on first run with the live DB; D-082 (Roberto: T1-T4 + M2 OK + his own proposal for the golden content test): T1-T4 + M2 FIXED (D-065 idiom, SKIP_REGAB_DB gate, Path import now load-bearing, header grammar, whitespace), M1 LEFT AS-IS (recorded at I-012 — evaluate moving FEATURES before POSITIONS), test_feature_set_content_golden ADDED (3 hash literals + full content pin) — test campaign CLOSED; 1 → 2 tests; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/test/test_lm_worker_features.md |
-| src/twolm/rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement, 5th active level): the 5th-level data object (2-D uint32 index matrix + rds_checksum + feature_set_hash, by-reference storage) + the 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash (the cache_manager 3rd-return-element hook); the SECOND cache_manager consumer in the pipeline after POSITIONS; 12 verified facts V1-V12 (47-check probe, 0 mismatches); OPEN awaiting Roberto's call: R1 (store docstring overpromises the checksum — the sidecar is cache_manager's, D-072; as in regab D-079/D-080), M1-M5 (5 dead imports, "togheter" typo, 4 trailing-whitespace lines, the version-gate literal, by-design no-@validate_call on compute/consistent — documented circular-import constraint), M6 (no __repr__ — optional); suite 13/0/0 GREEN (test_rlm_indexes.py) | docs/src/twolm/rlm_indexes.md |
-| src/twolm/lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement): the cache-consuming level — the uniform 7-kwargs cache_manager wiring (the injected full-path closure — flat rlmwf_04_INDEXES.dat, the D-078 machine-level naming — use_cache, the 5 rlm_indexes fns, the metadata-compare validate_fn); _down clears BOTH context attributes; 8 verified facts V1-V8 (47-check probe, 0 mismatches): flat cache files (no rlmwf_03_FEATURES*), data vs file checksum distinction, (N, 16) uint32 identity, cross-run round-trip, the _down clearing; OPEN awaiting Roberto's call: M1-M3 (no @validate_call on the factory — the D-080/D-082 pattern, 2 trailing-whitespace lines, load_fn bare → redundant sidecar re-verify — the D-080 M4 checksum=False shape); suite 2/0/0 GREEN (test_lm_worker_indexes.py) | docs/src/twolm/lm_worker_indexes.md |
-| src/twolm/test/test_rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 5 classes / 13 tests / no PERF; all file I/O mocked (binio patched), no temp dirs, no DB; the store/load contract fully pinned (exact 4-call sequence, both checksum flags, all 3 RuntimeError messages, the by-reference init); OPEN awaiting Roberto's call: T1-T5 + M1-M2 (the dead IndexArray import — AST-verified, header grammar, the 2 broad assertRaises(Exception) → pin the pydantic ValidationError, the missing-rds_checksum test that passes for the wrong reason, the Italian comment L233, 19 trailing-whitespace lines, the rds-only is_cache_consistent coverage gap — probe B11; P2 candidate); suite 13/0/0 GREEN | docs/src/twolm/test/test_rlm_indexes.md |
-| src/twolm/test/test_lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 1 class / 2 tests / no PERF; the end-to-end cache round-trip pin (DB hit through POSITIONS + flat rlmwf_04_INDEXES.dat + "Executing heavy computation"; second instance "Cache successfully loaded and validated" + no heavy computation); green on first run with the live DB; the dependency comment is ACCURATE (contrast test_lm_worker_features M1); OPEN awaiting Roberto's call: T1-T3 + M1 (NOT the D-065 idiom — CWD-relative mkdtemp, no setUpClass / TemporaryDirectory, non-defensive tearDown; NO SKIP_REGAB_DB gate — a no-DB environment would ERROR; header grammar; 13 trailing-whitespace lines); suite 2/0/0 GREEN | docs/src/twolm/test/test_lm_worker_indexes.md |
+| src/twolm/rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement, 5th active level): the 5th-level data object (2-D uint32 index matrix + rds_checksum + feature_set_hash, by-reference storage) + the 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash (the cache_manager 3rd-return-element hook); the SECOND cache_manager consumer in the pipeline after POSITIONS; 12 verified facts V1-V12 (probe re-pinned D-084: 56 checks, 0 mismatches); D-084 (Roberto: "Sì fai tutto"): R1 + M1-M4 + M6 FIXED (store docstring corrected — the sidecar is cache_manager's, D-072; 5 dead imports removed, "togheter" typo, 4 trailing-whitespace lines, version gate via expected_version, __repr__ added), M5 left as-is (by design — documented circular-import constraint); 5 @validate_call decorators (the 5th is __repr__); file 180 → 190 lines; module CLOSED; suite 14/0/0 GREEN (test_rlm_indexes.py) | docs/src/twolm/rlm_indexes.md |
+| src/twolm/lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement): the cache-consuming level — the uniform 7-kwargs cache_manager wiring (the injected full-path closure — flat rlmwf_04_INDEXES.dat, the D-078 machine-level naming — use_cache, the 5 rlm_indexes fns, the metadata-compare validate_fn); _down clears BOTH context attributes; 8 verified facts V1-V8 (probe re-pinned D-084: 56 checks, 0 mismatches): flat cache files (no rlmwf_03_FEATURES*), data vs file checksum distinction, (N, 16) uint32 identity, cross-run round-trip, the _down clearing; D-084 (Roberto: "Sì fai tutto"): M1-M3 FIXED (@validate_call on the factory + pydantic import — the D-080/D-082 pattern, 2 trailing-whitespace lines, load_fn → lambda path: ...(path, checksum=False) — the D-080 M4 shape); file 77 → 80 lines; module CLOSED; suite 2/0/0 GREEN (test_lm_worker_indexes.py, 2 DB-gated post D-084 T2) | docs/src/twolm/lm_worker_indexes.md |
+| src/twolm/test/test_rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 5 classes / 14 tests / no PERF (13 at analysis + the rds-only-differs test added D-084 M2); all file I/O mocked (binio patched), no temp dirs, no DB; the store/load contract fully pinned (exact 4-call sequence, both checksum flags, all 3 RuntimeError messages, the by-reference init); D-084 (Roberto: "Sì fai tutto"): T1-T5 + M1-M2 FIXED (dead IndexArray import removed, header grammar, the 2 broad assertRaises(Exception) → the precise pydantic ValidationError, rds_checksum added to test_init_fails_with_invalid_indexes_type — the invalid indexes is now the thing under test, Italian comment → English, 19 trailing-whitespace lines, the rds-only is_cache_consistent branch now unit-tested); file 287 → 304 lines; test campaign CLOSED; suite 14/0/0 GREEN | docs/src/twolm/test/test_rlm_indexes.md |
+| src/twolm/test/test_lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 1 class / 2 tests / no PERF; the end-to-end cache round-trip pin (DB hit through POSITIONS + flat rlmwf_04_INDEXES.dat + "Executing heavy computation"; second instance "Cache successfully loaded and validated" + no heavy computation); green on first run with the live DB; the dependency comment is ACCURATE (contrast test_lm_worker_features M1); D-084 (Roberto: "Sì fai tutto"): T1-T3 + M1 FIXED (the D-065 idiom — CUSTOM_TMP_BASE via __file__, setUpClass mkdir, TemporaryDirectory first, defensive tearDown; the SKIP_REGAB_DB gate — both tests now DB-gated, header grammar + the live-DB / gate run note, 13 trailing-whitespace lines); file 137 → 158 lines; test campaign CLOSED; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/test/test_lm_worker_indexes.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -120,13 +120,14 @@ now (I-001; see notes/decisions.md).
   lm_worker_config 14/0/0 (D-076), lm_worker_positions 2/0/0
   (601de87; 2 DB-gated, run with live DB), lm_worker_features
   2/0/0 (f051dd3; 2 DB-gated post D-082, run with live DB),
-  rlm_indexes 13/0/0 (a323e0f; no DB — all file I/O mocked),
-  lm_worker_indexes 2/0/0 (a323e0f; no gate at arrival — the
-  setUp moves through POSITIONS, run with live DB) — all
-  GREEN. Totals: 515 tests, 56 skipped under the gate (17
-  PERF=1 print-only performance tests + 35 DB-gated regab tests
-  + 2 DB-gated lm_worker_positions tests + 2 DB-gated
-  lm_worker_features tests; no performance gates in any suite,
+  rlm_indexes 14/0/0 (a323e0f; 14 tests post D-084 M2 — no DB,
+  all file I/O mocked), lm_worker_indexes 2/0/0 (a323e0f; 2
+  DB-gated post D-084 T2 — the setUp moves through POSITIONS,
+  run with live DB) — all GREEN. Totals: 516 tests, 58 skipped
+  under the gate (17 PERF=1 print-only performance tests + 35
+  DB-gated regab tests + 2 DB-gated lm_worker_positions tests +
+  2 DB-gated lm_worker_features tests + 2 DB-gated
+  lm_worker_indexes tests; no performance gates in any suite,
   D-036). Warm run ≈ 0.5 s (board) / ≈ 2.8 s (full discover,
   numba cache warm in src/twolm/__pycache__/).
 
@@ -667,91 +668,98 @@ now (I-001; see notes/decisions.md).
   patterns sorted mask [EDGE, ELLE], the feature order + counts
   (6 features, n_instances 16) — test campaign CLOSED (file 97
   → 169 lines, 1 → 2 tests).
- - rlm_indexes.py: brought in by Roberto in a323e0f (the
-   INDEXES line-by-line step 5 — the pipeline now runs 5 active
-   levels; the only other lines the commit touched were the
-   logistic_model import L44 + worker-list entry); analyzed
-   2026-08-31 (session 23, D-083, docs/src/twolm/rlm_indexes.md):
-   the 5th-level data object — ReversiLogisticModelIndexes (the
-   2-D uint32 index matrix + rds_checksum + feature_set_hash,
-   stored by reference) + the 4 public functions (store:
-   header/description + version 1 + 2 strings + the array; load:
-   the binio sidecar verify + the 3 RuntimeError gates; compute:
-   the no-validation documented by the source — the RLMContext
-   annotation is unresolvable by pydantic, the import sits under
-   TYPE_CHECKING; is_cache_consistent: the 2-field metadata
-   compare) + the duck-typed compute_sha3_256_hash =
-   sha3_256(indexes.tobytes()). The SECOND cache_manager consumer
-   in the pipeline after POSITIONS (D-079): the flat
-   rlmwf_04_INDEXES.dat + .SHA3-256 materialize (unlike
-   FEATURES), the data checksum vs the file checksum
-   distinction, the cross-run round-trip, the _down clearing of
-   BOTH context attributes. 12 verified facts V1-V12 (47-check
-   probe scratch/verify_rlm_indexes.py, 0 mismatches). OPEN
-   awaiting Roberto's call: R1 (the store docstring promises
-   "calculates the SHA3-256 checksum" — the module writes NO
-   sidecar, cache_manager does, D-072; as in regab D-079/D-080),
-   M1 (5 dead imports — IntEnum, Protocol, BeforeValidator,
-   AfterValidator, Field), M2 (the "togheter" typo), M3 (4
-   non-comment trailing-whitespace lines), M4 (the version gate
-   compares the literal 1, not expected_version), M5 (by-design
-   no @validate_call on compute / is_cache_consistent —
-   documented circular-import constraint, no action proposed),
-   M6 (no __repr__ — optional).
- - lm_worker_indexes.py: brought in + enabled by Roberto in
-   a323e0f (the line-by-line step 5); analyzed 2026-08-31
-   (session 23, D-083, docs/src/twolm/lm_worker_indexes.md):
-   the cache-consuming level — the uniform 7-kwargs
-   cache_manager wiring (the injected full-path closure — flat
-   rlmwf_04_INDEXES.dat via the D-078 machine-level naming —
-   is_allowed = ctx.use_cache, load/store/validate/compute fns,
-   logger_fn), no per-worker naming code; _down clears BOTH
-   ctx.rlm_indexes and ctx.rlm_indexes_checksum. 8 verified
-   facts V1-V8 (probe tiers C+D, live DB: step 4 / "INDEXES",
-   flat files with NO rlmwf_03_FEATURES*, the (N, 16) uint32
-   identity vs the independent recompute, the cross-run cache
-   hit + no heavy computation, the clearing). OPEN awaiting
-   Roberto's call: M1 (no @validate_call on the factory — the
-   D-080 M1 / D-082 M1 pattern), M2 (2 non-comment trailing-
-   whitespace lines), M3 (load_fn passed bare — the
-   checksum=True default re-verifies the sidecar cache_manager
-   already checked; POSITIONS carries the D-080 M4
-   checksum=False shape).
- - test_rlm_indexes.py: Roberto's file, brought in with a323e0f
-   (suite 500 → 515); analyzed 2026-08-31 (session 23, D-083,
-   docs/src/twolm/test/test_rlm_indexes.md): 5 classes / 13
-   tests / no PERF; all file I/O mocked (binio patched), no
-   temp-dir machinery, no DB. The store/load contract fully
-   pinned (exact 4-call sequence + method_calls equality, both
-   checksum flags, all 3 RuntimeError messages, the by-reference
-   init). OPEN: T1 (the dead `from twolm.pattern import
-   IndexArray` import — zero code-level uses, AST-verified), T2
-   (header grammar), T3 (the 2 broad assertRaises(Exception) —
-   pin the pydantic ValidationError), T4 (test_init_fails_
-   with_invalid_indexes_type OMITS the required rds_checksum —
-   the test passes for the wrong reason; the docstring's claim
-   is not pinned), T5 (the Italian comment L233 — English
-   notes per AGENTS.md rule 4), M1 (19 non-comment trailing-
-   whitespace lines), M2 (the rds-only-differs
-   is_cache_consistent branch untested — probe B11 covers it;
-   a 3rd test as P2 candidate).
- - test_lm_worker_indexes.py: Roberto's file, brought in with
-   a323e0f; analyzed 2026-08-31 (session 23, D-083,
-   docs/src/twolm/test/test_lm_worker_indexes.md): 1 class / 2
-   tests / no PERF; the end-to-end cache round-trip pin (setUp
-   → FEATURES on a fresh base dir — DB hit through POSITIONS;
-   first run: flat rlmwf_04_INDEXES.dat + .SHA3-256 +
-   "Executing heavy computation"; second instance: "Cache
-   successfully loaded and validated" + no heavy computation);
-   green on first run with the live DB. The dependency comment
-   is ACCURATE (in contrast to the test_lm_worker_features M1
-   misleading comment). OPEN: T1 (NOT the D-065 idiom — CWD-
-   relative mkdtemp, no setUpClass mkdir, no TemporaryDirectory,
-   non-defensive tearDown), T2 (NO SKIP_REGAB_DB gate — the
-   setUp moves to FEATURES, which runs POSITIONS: a no-DB
-   environment with the canonical gated command would ERROR
-   instead of skip), T3 (header grammar), M1 (13 non-comment
-   trailing-whitespace lines, incl. the whitespace-only L137).
+- rlm_indexes.py: brought in by Roberto in a323e0f (the
+  INDEXES line-by-line step 5 — the pipeline now runs 5 active
+  levels; the only other lines the commit touched were the
+  logistic_model import L44 + worker-list entry); analyzed
+  2026-08-31 (session 23, D-083, docs/src/twolm/rlm_indexes.md):
+  the 5th-level data object — ReversiLogisticModelIndexes (the
+  2-D uint32 index matrix + rds_checksum + feature_set_hash,
+  stored by reference) + the 4 public functions (store:
+  header/description + version 1 + 2 strings + the array; load:
+  the binio sidecar verify + the 3 RuntimeError gates; compute:
+  the no-validation documented by the source — the RLMContext
+  annotation is unresolvable by pydantic, the import sits under
+  TYPE_CHECKING; is_cache_consistent: the 2-field metadata
+  compare) + the duck-typed compute_sha3_256_hash =
+  sha3_256(indexes.tobytes()). The SECOND cache_manager consumer
+  in the pipeline after POSITIONS (D-079): the flat
+  rlmwf_04_INDEXES.dat + .SHA3-256 materialize (unlike
+  FEATURES), the data checksum vs the file checksum
+  distinction, the cross-run round-trip, the _down clearing of
+  BOTH context attributes. 12 verified facts V1-V12 (probe
+  scratch/verify_rlm_indexes.py, re-pinned D-084: 56 checks,
+  0 mismatches). D-084 (Roberto: "Sì fai tutto, mi è tutto
+  chiaro"): R1 + M1-M4 + M6 ALL FIXED — the store docstring no
+  longer promises the checksum (the regab D-080 Note: the
+  sidecar is written by cache_manager), the 5 dead imports
+  removed (IntEnum, Protocol, BeforeValidator, AfterValidator,
+  Field), the "togheter" typo fixed, the 4 non-comment
+  trailing-whitespace lines stripped, the version gate compares
+  expected_version, __repr__ added (the 5th @validate_call
+  decorator — house style as in pattern.py / mobility.py);
+  M5 left as-is (by design — the documented circular-import
+  constraint, source L166). Module CLOSED (file 180 → 190
+  lines).
+- lm_worker_indexes.py: brought in + enabled by Roberto in
+  a323e0f (the line-by-line step 5); analyzed 2026-08-31
+  (session 23, D-083, docs/src/twolm/lm_worker_indexes.md):
+  the cache-consuming level — the uniform 7-kwargs
+  cache_manager wiring (the injected full-path closure — flat
+  rlmwf_04_INDEXES.dat via the D-078 machine-level naming —
+  is_allowed = ctx.use_cache, load/store/validate/compute fns,
+  logger_fn), no per-worker naming code; _down clears BOTH
+  ctx.rlm_indexes and ctx.rlm_indexes_checksum. 8 verified
+  facts V1-V8 (probe tiers C+D, live DB: step 4 / "INDEXES",
+  flat files with NO rlmwf_03_FEATURES*, the (N, 16) uint32
+  identity vs the independent recompute, the cross-run cache
+  hit + no heavy computation, the clearing). D-084 (Roberto:
+  "Sì fai tutto"): M1-M3 ALL FIXED — @validate_call on the
+  factory + the pydantic import (the D-080 M1 / D-082 M1
+  pattern), the 2 non-comment trailing-whitespace lines
+  stripped, load_fn = lambda path:
+  rlm_indexes_load_from_file(path, checksum=False) (the
+  redundant sidecar re-verification is gone, the D-080 M4
+  shape as in POSITIONS). Module CLOSED (file 77 → 80 lines).
+- test_rlm_indexes.py: Roberto's file, brought in with a323e0f
+  (suite 500 → 515); analyzed 2026-08-31 (session 23, D-083,
+  docs/src/twolm/test/test_rlm_indexes.md): 5 classes / 14
+  tests / no PERF (13 at analysis); all file I/O mocked (binio
+  patched), no temp-dir machinery, no DB. The store/load
+  contract fully pinned (exact 4-call sequence + method_calls
+  equality, both checksum flags, all 3 RuntimeError messages,
+  the by-reference init). D-084 (Roberto: "Sì fai tutto"):
+  T1-T5 + M1-M2 ALL FIXED — the dead IndexArray import removed,
+  header grammar, the 2 broad assertRaises(Exception) → the
+  precise pydantic ValidationError, rds_checksum added to
+  test_init_fails_with_invalid_indexes_type (the invalid
+  indexes=[[1, 2], [3, 4]] — a list of lists, rejected by the
+  NDArray gate — is now the thing under test, as the docstring
+  claims), the Italian comment → English, the 19 non-comment
+  trailing-whitespace lines stripped, the rds-only-differs
+  is_cache_consistent branch now unit-tested (new
+  test_is_cache_consistent_returns_false_rds_differs — both
+  single-field branches pinned; 13 → 14 tests). Test campaign
+  CLOSED (file 287 → 304 lines).
+- test_lm_worker_indexes.py: Roberto's file, brought in with
+  a323e0f; analyzed 2026-08-31 (session 23, D-083,
+  docs/src/twolm/test/test_lm_worker_indexes.md): 1 class / 2
+  tests / no PERF; the end-to-end cache round-trip pin (setUp
+  → FEATURES on a fresh base dir — DB hit through POSITIONS;
+  first run: flat rlmwf_04_INDEXES.dat + .SHA3-256 +
+  "Executing heavy computation"; second instance: "Cache
+  successfully loaded and validated" + no heavy computation);
+  green on first run with the live DB. The dependency comment
+  is ACCURATE (in contrast to the test_lm_worker_features M1
+  misleading comment). D-084 (Roberto: "Sì fai tutto"):
+  T1-T3 + M1 ALL FIXED — the D-065 idiom (CUSTOM_TMP_BASE via
+  __file__, setUpClass mkdir, TemporaryDirectory first in
+  setUp, defensive tearDown; the CWD-relative mkdtemp + the
+  shutil import are gone), the SKIP_REGAB_DB gate at the top of
+  setUp (both tests now DB-gated — a no-DB environment skips
+  instead of erroring), header grammar + the live-DB / gate
+  run note, the 13 non-comment trailing-whitespace lines
+  stripped. Test campaign CLOSED (file 137 → 158 lines).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -847,11 +855,22 @@ now (I-001; see notes/decisions.md).
   the two tests, the worker uncommented — the pipeline now runs 5
   active levels) + D-083 analysis (47-check probe, 0 mismatches;
   4 new mirror docs; the stale session-22 logistic_model probe
-  re-pinned — 35 checks, 0 mismatches). OPEN awaiting Roberto's
-  call: rlm_indexes R1 + M1-M5 (+ M6 optional), lm_worker_indexes
-  M1-M3, test_rlm_indexes T1-T5 + M1-M2, test_lm_worker_indexes
-  T1-T3 + M1. Suites 515/0/56 gated + 515 run / 17 skipped
-  ungated (live DB), build/tmp clean.
+  re-pinned — 35 checks, 0 mismatches). Suites 515/0/56 gated +
+  515 run / 17 skipped ungated (live DB), build/tmp clean.
+- Done (2026-08-31, session 23): D-084 fix campaign (Roberto:
+  "Sì fai tutto, mi è tutto chiaro" — the full approved R/M/T
+  table) — rlm_indexes R1 + M1-M4 + M6 FIXED (M5 left as-is, by
+  design — the documented circular-import constraint),
+  lm_worker_indexes M1-M3 FIXED, test_rlm_indexes T1-T5 + M1-M2
+  FIXED (the rds-only-differs is_cache_consistent branch now
+  unit-tested — 13 → 14 tests), test_lm_worker_indexes T1-T3 +
+  M1 FIXED (D-065 idiom + SKIP_REGAB_DB gate + header +
+  whitespace); probe re-pinned (56 checks, 0 mismatches — the
+  9 C-tier live-DB checks included); 4 mirror docs re-stated to
+  the FIXED state (campaign CLOSED); suites 515 → 516 tests,
+  56 → 58 skipped gated (the 2 lm_worker_indexes tests now
+  skip), 516/0/58 gated + 516 run / 17 skipped ungated (live
+  DB), build/tmp clean.
 - Next: the pipeline grows one commented line at a time
   (uncommenting lm_worker_wmaps + restoring the last muted
   test _test_move_to_step_by_string — a test file change,
@@ -995,31 +1014,36 @@ now (I-001; see notes/decisions.md).
   gate, M1 as-is → I-012; the golden content test added per
   Roberto — 3 hash literals + full pin; suite 2/0/0 GREEN)
 - docs/src/twolm/rlm_indexes.md — rlm_indexes.py analysis +
-  D-083 (the 5th-level data object: index matrix + rds_checksum +
-  feature_set_hash, by reference; the 4 public functions + the
-  duck-typed compute_sha3_256_hash; second cache_manager consumer
-  in the pipeline; 12 verified facts V1-V12, 47-check probe 0
-  mismatches; OPEN R1 store-docstring overpromise + M1-M5 + M6
-  optional; suite 13/0/0 GREEN via test_rlm_indexes)
+  D-083/D-084 (the 5th-level data object: index matrix +
+  rds_checksum + feature_set_hash, by reference; the 4 public
+  functions + the duck-typed compute_sha3_256_hash; second
+  cache_manager consumer in the pipeline; 12 verified facts V1-
+  V12, 56-check probe 0 mismatches (re-pinned D-084); R1 + M1-
+  M4 + M6 FIXED D-084, M5 as-is by design, __repr__ added —
+  module CLOSED; suite 14/0/0 GREEN via test_rlm_indexes)
 - docs/src/twolm/lm_worker_indexes.md — lm_worker_indexes.py
-  analysis + D-083 (the cache-consuming level: uniform 7-kwargs
-  cache_manager wiring, flat rlmwf_04_INDEXES.dat via the D-078
-  machine-level naming; 8 verified facts V1-V8; OPEN M1-M3 —
-  factory @validate_call, whitespace, load_fn bare; suite 2/0/0
-  GREEN via test_lm_worker_indexes)
+  analysis + D-083/D-084 (the cache-consuming level: uniform
+  7-kwargs cache_manager wiring, flat rlmwf_04_INDEXES.dat via
+  the D-078 machine-level naming; 8 verified facts V1-V8; M1-M3
+  FIXED D-084 — factory @validate_call, whitespace, load_fn
+  checksum=False — module CLOSED; suite 2/0/0 GREEN via
+  test_lm_worker_indexes, 2 DB-gated)
 - docs/src/twolm/test/test_rlm_indexes.md — test_rlm_indexes.py
-  analysis + D-083 (5 classes / 13 tests; all file I/O mocked, no
-  temp dirs, no DB; store/load contract fully pinned; OPEN T1-T5
-  + M1-M2 — incl. the missing-rds_checksum test that passes for
-  the wrong reason; suite 13/0/0 GREEN)
+  analysis + D-083/D-084 (5 classes / 14 tests; all file I/O
+  mocked, no temp dirs, no DB; store/load contract fully pinned;
+  T1-T5 + M1-M2 FIXED D-084 — incl. the rds_checksum added to
+  test_init_fails_with_invalid_indexes_type + the new rds-only-
+  differs is_cache_consistent test — test campaign CLOSED;
+  suite 14/0/0 GREEN)
 - docs/src/twolm/test/test_lm_worker_indexes.md —
-  test_lm_worker_indexes.py analysis + D-083 (1 class / 2 tests;
-  the end-to-end cache round-trip pin; OPEN T1-T3 + M1 — no D-065
-  idiom, no SKIP_REGAB_DB gate, header grammar, whitespace; suite
-  2/0/0 GREEN)
+  test_lm_worker_indexes.py analysis + D-083/D-084 (1 class /
+  2 tests; the end-to-end cache round-trip pin; T1-T3 + M1
+  FIXED D-084 — D-065 idiom, SKIP_REGAB_DB gate, header
+  grammar, whitespace — test campaign CLOSED; suite 2/0/0
+  GREEN, 2 DB-gated)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-083)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-084)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)

@@ -2045,3 +2045,97 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
          the next pipeline line (lm_worker_wmaps) + the last
          muted test _test_move_to_step_by_string (test file
          change — Roberto's call) + the I-012 evaluation.
+
+ D-084 | 2026-08-31 | INDEXES fix campaign (session 23, Roberto:
+         "Sì fai tutto, mi è tutto chiaro" — the full approved
+         R/M/T table from D-083): rlm_indexes R1 + M1-M4 + M6
+         (M5 left as-is, by design). R1 FIXED: the store
+         docstring no longer promises the checksum — "Saves the
+         ReversiLogisticModelIndexes instance to a binary file."
+         + the regab D-080 Note ("no SHA3-256 sidecar is written
+         by this function — in the pipeline flow the sidecar is
+         written by cache_manager."); doc-only. M1 FIXED: the 5
+         dead imports removed (IntEnum, Protocol,
+         BeforeValidator, AfterValidator, Field) — the import
+         block is now hashlib / TYPE_CHECKING / validate_call +
+         ConfigDict / Path / binio / IndexArray / the TYPE_
+         CHECKING RLMContext. M2 FIXED: the class docstring
+         typo "togheter" → "together". M3 FIXED: the 4 non-
+         comment trailing-whitespace lines stripped (license-
+         header `# ` lines stay, D-078 M3 scope). M4 FIXED:
+         the version gate compares the variable — `if version
+         != expected_version:` (L150). M5 left as-is (by
+         design, documented in the source L166: the RLMContext
+         annotation cannot be resolved by pydantic without a
+         real import; the import is deliberately under TYPE_
+         CHECKING; the house convention already has sanctioned
+         deviations, cf. the D-069 M11 gate functions). M6
+         FIXED (optional, applied): __repr__ added to
+         ReversiLogisticModelIndexes (L84-91, @validate_call —
+         house style as in pattern.py / mobility.py):
+         ReversiLogisticModelIndexes(rds_checksum='...',
+         feature_set_hash='...', indexes=(N, 16)). File now
+         190 lines (180 at arrival); 5 @validate_call
+         decorators (the 5th is __repr__). lm_worker_indexes
+         M1-M3 FIXED. M1 FIXED: @validate_call(config=ConfigDict
+         (arbitrary_types_allowed=True)) on the factory (L77) +
+         the `from pydantic import validate_call, ConfigDict`
+         import (L32) — the D-080 M1 / D-082 M1 pattern. M2
+         FIXED: the 2 non-comment trailing-whitespace lines
+         stripped. M3 FIXED: load_fn = lambda path:
+         rlm_indexes_load_from_file(path, checksum=False) (L57)
+         — the redundant sidecar re-verification is gone, the
+         same shape as POSITIONS' D-080 M4 fix. File now 80
+         lines (77 at arrival). test_rlm_indexes T1-T5 + M1-M2
+         FIXED, 13 → 14 tests. T1 FIXED: the dead `from twolm.
+         pattern import IndexArray` import removed. T2 FIXED:
+         header grammar "How to run the rlm_indexes unit tests.
+         ". T3 FIXED: the 2 broad assertRaises(Exception)
+         replaced with the precise pydantic ValidationError
+         (import added, L51). T4 FIXED: test_init_fails_with_
+         invalid_indexes_type now passes rds_checksum="valid_
+         hash" — the invalid indexes=[[1, 2], [3, 4]] (a list
+         of lists, rejected by the NDArray gate: "Input should
+         be an instance of ndarray") is the thing under test,
+         as the docstring claims. T5 FIXED: the Italian
+         comment ("Non mockiamo il modulo...") translated to
+         English. M1 FIXED: the 19 non-comment trailing-
+         whitespace lines stripped. M2 FIXED: the rds-only-
+         differs is_cache_consistent branch now unit-tested
+         (new test_is_cache_consistent_returns_false_rds_
+         differs, L287-299 — roles swapped: rds "live_hash" vs
+         "outdated_cached_hash", feature_set_hash identical).
+         File now 304 lines (287 at arrival). test_lm_worker_
+         indexes T1-T3 + M1 FIXED. T1 FIXED: the D-065 idiom —
+         CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3]
+         / "build" / "tmp" (L58), setUpClass mkdir (L65-67),
+         TemporaryDirectory created FIRST in setUp (L85-88),
+         defensive tearDown with getattr guards (L99-103); the
+         CWD-relative mkdtemp + the shutil import are gone. T2
+         FIXED: the SKIP_REGAB_DB gate at the top of setUp
+         (L71-73, the test_regab wording). T3 FIXED: header
+         grammar + the live-DB / gate run note. M1 FIXED: the
+         13 non-comment trailing-whitespace lines stripped.
+         File now 158 lines (137 at arrival). Verification:
+         the 4 suites green (test_rlm_indexes 14/0/0 — no DB,
+         no gates; test_lm_worker_indexes 2/0/0 — live DB).
+         Probe scratch/verify_rlm_indexes.py re-pinned to the
+         post-campaign state (56 checks, tiers A-F; the A8/A9/
+         A10, D3/D5/D6, E2/E3/E4/E7, F3/F4/F5/F7/F8/F9 pins
+         flipped; the A1/A3/D1/E1/F1 line counts re-anchored):
+         0 mismatches (tier C live-DB). Probe
+         scratch/verify_logistic_model.py unchanged (35 checks,
+         0 mismatches — the worker list is untouched by this
+         campaign). Suites: gated full discover 516/0/58 GREEN
+         (17 PERF + 35 regab + 2 positions + 2 features + 2
+         indexes — the 2 lm_worker_indexes tests now skip
+         under SKIP_REGAB_DB=1); ungated full discover (live
+         DB): 516 run, 17 skipped (PERF only), GREEN;
+         build/tmp clean. 4 mirror docs re-stated to the FIXED
+         state (campaign CLOSED): docs/src/twolm/rlm_indexes.
+         md, docs/src/twolm/lm_worker_indexes.md, docs/src/
+         twolm/test/test_rlm_indexes.md, docs/src/twolm/test/
+         test_lm_worker_indexes.md. Next: the next pipeline
+         line (lm_worker_wmaps) + the last muted test
+         _test_move_to_step_by_string (test file change —
+         Roberto's call) + the I-012 evaluation.

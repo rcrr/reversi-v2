@@ -1,12 +1,14 @@
 # twolm/rlm_indexes.py
 
-Analysis date: 2026-08-31 — analysis session 23 (D-083). Brought in
-by Roberto together with lm_worker_indexes in a323e0f (2026-08-31,
-the 5th active level of the pipeline — the import + worker-list entry
-in logistic_model.py were the only 2 lines the commit touched there;
-RLMContext already carried the `rlm_indexes` /
-`rlm_indexes_checksum` blackboard fields from first import). Probe
-(scratch/verify_rlm_indexes.py, 47 checks, tiers A–F): 0 mismatches.
+Analysis date: 2026-08-31 — analysis session 23 (D-083); fix campaign
+D-084 approved by Roberto ("Sì fai tutto") and applied in the same
+session. Brought in by Roberto together with lm_worker_indexes in
+a323e0f (2026-08-31, the 5th active level of the pipeline — the
+import + worker-list entry in logistic_model.py were the only 2 lines
+the commit touched there; RLMContext already carried the
+`rlm_indexes` / `rlm_indexes_checksum` blackboard fields from first
+import). Probe (scratch/verify_rlm_indexes.py, 56 checks, tiers A–F,
+re-pinned in D-084 to the post-campaign state): 0 mismatches.
 
 The INDEXES domain module of the RLM pipeline: the
 `ReversiLogisticModelIndexes` data object (the 2-D uint32 index
@@ -17,16 +19,17 @@ matrix + its two metadata hashes) + the 4 public functions
 SECOND cache_manager consumer in the pipeline (after POSITIONS,
 D-079).
 
-## Suite status (session 23, D-083)
+## Suite status (session 23, post D-084)
 
-- `test_rlm_indexes`: 13/0/0 (5 classes; all file I/O mocked —
-  `twolm.rlm_indexes.binio` patched, no temp dirs, no DB).
+- `test_rlm_indexes`: 14/0/0 (5 classes; all file I/O mocked —
+  `twolm.rlm_indexes.binio` patched, no temp dirs, no DB; the
+  rds-only-differs `is_cache_consistent` test added in D-084 M2).
 - `test_lm_worker_indexes`: 2/0/0 (1 class / 2 tests; the end-to-end
   cache round-trip pin — the setUp moves through POSITIONS on a
-  fresh base dir, so a live DB is required; NOT gated at arrival).
-- Full discover: 515 tests, 56 skipped under `SKIP_REGAB_DB=1`
-  (17 PERF + 35 regab + 2 positions + 2 features), GREEN; ungated
-  (live DB): 515 run, 17 skipped (PERF only), GREEN.
+  fresh base dir, so a live DB is required; DB-gated since D-084 T2).
+- Full discover: 516 tests, 58 skipped under `SKIP_REGAB_DB=1`
+  (17 PERF + 35 regab + 2 positions + 2 features + 2 indexes),
+  GREEN; ungated (live DB): 516 run, 17 skipped (PERF only), GREEN.
 
 ## State per Roberto
 
@@ -35,49 +38,57 @@ POSITIONS → FEATURES → INDEXES), enabled line-by-line by Roberto in
 a323e0f (uncommented the `lm_worker_indexes` import L44 + worker
 list entry, added the two modules + the two tests). The next
 line-by-line step is `lm_worker_wmaps` (the next commented entry,
-L45). Awaiting Roberto's call: R1 + M1-M5 (this module) +
-M1-M3 (lm_worker_indexes) + the test items.
+L45). INDEXES fix campaign (D-084) CLOSED: R1 + M1-M4 + M6 fixed
+(M5 left as-is by design, documented in the source); lm_worker
+indexes M1-M3 fixed; both test files T/M fixed.
 
-## Architecture (180 lines)
+## Architecture (190 lines, post D-084)
 
-- `ReversiLogisticModelIndexes` (L54-84): plain class, no
-  dataclass / pydantic model. `__init__` (L60-77) is
+- `ReversiLogisticModelIndexes` (L52-91): plain class, no
+  dataclass / pydantic model. `__init__` (L57-75) is
   `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`
   with 3 fields — `rds_checksum: str`, `feature_set_hash: str`,
   `indexes: IndexArray` — assigned by reference (no copy, probe B1).
   `IndexArray` (pattern.py L74) =
   `Annotated[npt.NDArray[np.uint32], BeforeValidator(
   validate_index_array)]` — the pydantic gate coerces/validates the
-  array. `compute_sha3_256_hash` (L80-84, `@validate_call`):
+  array. `compute_sha3_256_hash` (L77-82, `@validate_call`):
   `sha3_256(self.indexes.tobytes()).hexdigest()` — the duck-typed
   data-checksum hook cache_manager invokes (the 3rd return element,
-  D-071 T2 pattern).
-- `rlm_indexes_store_to_file` (L88-114, `@validate_call`):
+  D-071 T2 pattern). `__repr__` (L84-91, `@validate_call` — house
+  style as in pattern.py / mobility.py): one-line summary with
+  rds_checksum, feature_set_hash and the indexes shape (D-084 M6).
+- `rlm_indexes_store_to_file` (L94-119, `@validate_call`):
   `filename: str | Path` → Path; `binio.BinaryWriter` —
   `write_header(description, version=1)` (description =
   `"ReversiLogisticModelIndexes binary data file"`) →
   `write_string(rds_checksum)` → `write_string(feature_set_hash)` →
-  `write_array(indexes)`. Write order pinned (probe A5/B3).
-- `rlm_indexes_load_from_file` (L118-154, `@validate_call`):
+  `write_array(indexes)`. Write order pinned (probe A5/B3). The
+  docstring (L98-104) carries the D-084 R1 correction: the file is
+  stored, but NO sidecar is written by this function — in the
+  pipeline flow the sidecar is written by cache_manager.
+- `rlm_indexes_load_from_file` (L127-165, `@validate_call`):
   `checksum: bool = True` — when True, `binio.verify_sha3_256_sidecar
   (filename)` first; mismatch → RuntimeError "The checksum file
   signature doesn't match with current file." (D-072 binio sidecar
   API, as in regab). Then the header gate: wrong description →
   RuntimeError "The file is not a proper {expected_description}.";
-  wrong version → RuntimeError "The file version is not consistent,
-  found {version}, expected {expected_version}". Then
+  wrong version (L150, `if version != expected_version:` — D-084 M4)
+  → RuntimeError "The file version is not consistent, found
+  {version}, expected {expected_version}". Then
   read_string ×2 + read_array → a fresh
   `ReversiLogisticModelIndexes`.
-- `rlm_indexes_compute` (L157-165): NO `@validate_call` — the
-  source documents why (L156: "Here validation is not possible, it
+- `rlm_indexes_compute` (L167-175): NO `@validate_call` — the
+  source documents why (L166: "Here validation is not possible, it
   brings in a convoluted issue with circular imports" — the
   `ctx: RLMContext` annotation is a string under `from __future__
   import annotations`; pydantic cannot resolve it, the import sits
-  under TYPE_CHECKING). Body: `rds_checksum = ctx.rds_checksum`,
+  under TYPE_CHECKING; D-084 M5, left as-is by design). Body:
+  `rds_checksum = ctx.rds_checksum`,
   `feature_set_hash = ctx.feature_set.hash`,
   `indexes = ctx.feature_set.compute_indexes(ctx.positions)` (the
   public FeatureSet API, feature.py) → fresh object.
-- `rlm_indexes_is_cache_consistent` (L168-180): NO `@validate_call`
+- `rlm_indexes_is_cache_consistent` (L178-190): NO `@validate_call`
   (same constraint, no comment); the 2-field metadata compare —
   `cached_feature_set_hash == ctx.feature_set.hash` AND
   `cached_rds_checksum == ctx.rds_checksum` (pure; no DB params in
@@ -85,7 +96,7 @@ M1-M3 (lm_worker_indexes) + the test items.
   (business validity, step 3/4 — a mismatch deletes + recomputes,
   D-071 R2).
 
-## Verified facts (D-083 probe — 47 checks, 0 mismatches)
+## Verified facts (D-084 probe — 56 checks, 0 mismatches)
 
 - V1 (B1): init — attribute identity; `obj.indexes is` the exact
   ndarray passed in (stored by reference, not copied).
@@ -101,8 +112,8 @@ M1-M3 (lm_worker_indexes) + the test items.
   version is not consistent, found 99, expected 1".
 - V5 (B9-B11): `is_cache_consistent` — True when both fields match;
   False when ONLY `feature_set_hash` differs; False when ONLY
-  `rds_checksum` differs (the rds-only branch is the unit-test
-  coverage gap — probe-only coverage, T-side M2).
+  `rds_checksum` differs (the rds-only branch now has BOTH unit-test
+  coverage (D-084 M2) and probe coverage).
 - V6 (B12-B13): `compute` — a real fixture FeatureSet (the
   NoNameFeatureSet from test_lm_worker_features' fixture constants,
   public API) + a fabricated 2-position array: the (2, 16) uint32
@@ -130,60 +141,59 @@ M1-M3 (lm_worker_indexes) + the test items.
   matrix).
 - V10 (C7, live DB): `_down` (down to FEATURES) clears BOTH
   `ctx.rlm_indexes` and `ctx.rlm_indexes_checksum`.
-- V11 (A1-A11): structure — 180 lines; `__all__` = the 5 public
-  names; exactly 4 `@validate_call` decorators (init,
-  compute_sha3_256_hash, store, load — NOT compute /
-  is_cache_consistent); the compute no-validation comment (A4);
-  the store write order (A5); the load checksum default + sidecar
-  verify + the 3 RuntimeError messages (A6); the 2-field
-  is_cache_consistent compare + no DB params (A7); the store
-  docstring checksum promise (A8, see R1); the "togheter" typo
-  (A9, M2); 4 non-comment trailing-whitespace lines (A10, M3);
-  the compute body (A11).
-- V12 (D1-D6, worker file): 77 lines; `__all__ =
+- V11 (A1-A11): structure — 190 lines; `__all__` = the 5 public
+  names; exactly 5 `@validate_call` decorators (init,
+  compute_sha3_256_hash, `__repr__`, store, load — NOT compute /
+  is_cache_consistent; D-084 M6 added the 5th); the compute
+  no-validation comment (A4); the store write order (A5); the load
+  checksum default + sidecar verify + the 3 RuntimeError messages
+  (A6); the 2-field is_cache_consistent compare + no DB params (A7);
+  the corrected store docstring (A8, D-084 R1); "together" spelled
+  correctly (A9, D-084 M2); 0 non-comment trailing-whitespace lines
+  (A10, D-084 M3); the compute body (A11).
+- V12 (D1-D6, worker file): 80 lines; `__all__ =
   ['lm_worker_indexes']`; the factory returns
-  `Worker("INDEXES", _up, _down)` with NO `@validate_call` (D3,
-  worker M1); the RLMContext import under TYPE_CHECKING (D4); the
-  full 7-kwargs cache_manager wiring (D5); `_down` clears both
-  attributes + 2 non-comment trailing-whitespace lines (D6).
+  `Worker("INDEXES", _up, _down)` WITH `@validate_call` (D3,
+  D-084 M1); the RLMContext import under TYPE_CHECKING (D4); the
+  full 7-kwargs cache_manager wiring with the
+  `load_fn = lambda path: rlm_indexes_load_from_file(path,
+  checksum=False)` shape (D5, D-084 M3 — as in the other cache
+  workers post D-080); `_down` clears both attributes + 0 non-comment
+  trailing-whitespace lines (D6, D-084 M2).
 
-## Issues — OPEN (awaiting Roberto's call)
+## Issues — RESOLVED (D-084)
 
-- **R1 — the store docstring overpromises (as in regab D-079 /
-  D-080).** L93: "Saves the ... to a binary file and calculates the
-  SHA3-256 checksum." — the module writes NO sidecar: in the
-  pipeline flow the sidecar is written by cache_manager's compute
-  tail (`write_sha3_256_sidecar`, D-072), and `binio`'s
-  `write_sha3_256_sidecar` never appears in this module (probe A8).
-  Same cross-ref note as regab's `regab_store_data_set_to_file`,
-  resolved there in D-080 by correcting the docstring. Proposed fix:
-  re-word the docstring (the file is stored; the sidecar belongs to
-  the cache flow) — doc-only.
+- **R1 — the store docstring overpromise (as in regab D-079 /
+  D-080). FIXED.** The docstring now reads "Saves the
+  ReversiLogisticModelIndexes instance to a binary file." + the
+  Note: "no SHA3-256 sidecar is written by this function — in the
+  pipeline flow the sidecar is written by cache_manager." (the
+  regab D-080 wording). Doc-only.
 
-## Minor notes — OPEN (awaiting Roberto's call)
+## Minor notes — RESOLVED (D-084)
 
-- M1: dead imports (L33-35) — `IntEnum`, `Protocol` and the pydantic
-  names `BeforeValidator`, `AfterValidator`, `Field` (all 5 appear
-  only in the import lines; the IndexArray Annotated/BeforeValidator
-  machinery lives in pattern.py).
-- M2: class docstring typo "togheter" (L56, for "together").
-- M3: 4 non-comment trailing-whitespace lines (L113, L148, L153,
-  L179). Scope as in D-078 M3: the license-header `# ` lines stay.
-- M4: the version gate compares the literal — L140 `if version != 1:`
-  while `expected_version = 1` (L132) is used only in the error
-  message; the comparison should use the variable (style, no
-  behaviour change).
-- M5 (no action proposed): NO `@validate_call` on
-  `rlm_indexes_compute` / `rlm_indexes_is_cache_consistent` —
-  RESOLVED AS BY DESIGN, documented in the source (L156: the
-  RLMContext annotation cannot be resolved by pydantic without a
-  real import; the import is deliberately under TYPE_CHECKING).
-  The house convention (`@validate_call` on all public functions)
-  already has sanctioned deviations (the D-069 M11 gate functions
-  re-raise; the worker factories pre-D-080/D-082).
-- M6 (optional): no `__repr__` on `ReversiLogisticModelIndexes`
-  (the domain data objects in this family — RegabDataSet — have
-  none; the pattern/mobility classes do).
+- **M1 FIXED**: the 5 dead imports removed (`IntEnum`, `Protocol`,
+  `BeforeValidator`, `AfterValidator`, `Field`) — the import block
+  is now `hashlib` / `TYPE_CHECKING` / `validate_call, ConfigDict` /
+  `Path` / `binio` / `IndexArray` / the TYPE_CHECKING RLMContext.
+- **M2 FIXED**: the class docstring typo "togheter" → "together".
+- **M3 FIXED**: the 4 non-comment trailing-whitespace lines (L113,
+  L148, L153, L179 pre-fix) stripped; scope as in D-078 M3: the
+  license-header `# ` lines stay.
+- **M4 FIXED**: the version gate now compares the variable —
+  `if version != expected_version:` (L150).
+- **M5 left as-is (by design, documented in the source L166)**: NO
+  `@validate_call` on `rlm_indexes_compute` /
+  `rlm_indexes_is_cache_consistent` — the RLMContext annotation
+  cannot be resolved by pydantic without a real import; the import
+  is deliberately under TYPE_CHECKING. The house convention
+  (`@validate_call` on all public functions) already has sanctioned
+  deviations (the D-069 M11 gate functions re-raise).
+- **M6 FIXED (optional, applied)**: `__repr__` added to
+  `ReversiLogisticModelIndexes` (L84-91, `@validate_call` — house
+  style as in pattern.py / mobility.py):
+  `ReversiLogisticModelIndexes(rds_checksum='...',
+  feature_set_hash='...', indexes=(N, 16))`.
 
 ## Integration notes
 
@@ -209,16 +219,17 @@ M1-M3 (lm_worker_indexes) + the test items.
 
 ## Appendix — line reference
 
-180 lines, as of a323e0f.
+190 lines, as of D-084 (180 at a323e0f arrival).
 
-- L28-42: imports (pydantic L35 [M1: 5 dead names], pattern
-  IndexArray L39, TYPE_CHECKING RLMContext L41-42)
-- L46-50: `__all__`
-- L54-84: `ReversiLogisticModelIndexes` (docstring L56 [M2],
-  `__init__` L60-77, `compute_sha3_256_hash` L80-84)
-- L88-114: `rlm_indexes_store_to_file` (docstring L93 [R1],
-  L113 whitespace [M3])
-- L118-154: `rlm_indexes_load_from_file` (L126-129 checksum gate,
-  L131-141 header gate [M4 L140], L148/L153 whitespace [M3])
-- L156-165: `rlm_indexes_compute` (L156 no-validation comment [M5])
-- L168-180: `rlm_indexes_is_cache_consistent` (L179 whitespace [M3])
+- L28-42: imports (pydantic L33 [M1: the 5 dead names removed],
+  pattern IndexArray L37, TYPE_CHECKING RLMContext L39-40)
+- L44-48: `__all__`
+- L52-91: `ReversiLogisticModelIndexes` (docstring L54 [M2 fixed],
+  `__init__` L57-75, `compute_sha3_256_hash` L77-82,
+  `__repr__` L84-91 [M6 added])
+- L94-119: `rlm_indexes_store_to_file` (docstring L98-104 [R1
+  fixed])
+- L127-165: `rlm_indexes_load_from_file` (L135-138 checksum gate,
+  L142-152 header gate [M4: L150 `if version != expected_version:`])
+- L166-175: `rlm_indexes_compute` (L166 no-validation comment [M5])
+- L178-190: `rlm_indexes_is_cache_consistent`
