@@ -2509,3 +2509,67 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           17 skipped ungated, build/tmp clean (3 pre-fix leftovers
           removed). Docs (D-007): the 3 mirror docs follow the fix
           campaign, as in WMAPS.
+
+ D-090 | 2026-08-31 | DESIGN_MTR fix campaign — ALL approved
+          (session 23, Roberto: "Procedi su tutti i T, e R1. Poi
+          commit."): the D-089 T batch + R1, closing the DESIGN_MTR
+          bring-in. Fixes applied (source, per the explicit
+          approval):
+          test_lm_worker_design_matrix T1 — the SKIP_REGAB_DB gate
+          added to BOTH setUps (top of setUp, the D-080 T2 /
+          D-084 T2 / D-087 T1 shape) + import os; the header's
+          claim now true (3/0/3 under the gate). T7 — the D-085
+          idiom applied to both classes: mkdtemp('./build/tmp') →
+          TemporaryDirectory under the shared CUSTOM_TMP_BASE
+          created FIRST, tmp_dir = Path(_tmp.name), CWD json ×2 →
+          WORKSPACE_ROOT-anchored, the shutil.rmtree teardowns →
+          the defensive getattr tearDown, the dead shutil import
+          gone. T5 — the 21 ws lines stripped; file 202 → 226
+          lines. lm_worker_design_matrix T2 — the factory
+          @validate_call (config=ConfigDict
+          (arbitrary_types_allowed=True)) + the pydantic import
+          (the D-080 M1 / D-082 M1 / D-084 M1 / D-087 T6 house
+          convention). T3 — load_fn → lambda path:
+          rlm_design_matrix_load_from_file(path, checksum=False)
+          (the double sidecar check gone, D-080 M4 / D-084 M3 /
+          D-087 T7 shape). T5 — the 2 ws lines stripped; file 77
+          → 80 lines. rlm_design_matrix T4 — the no-validation
+          note above rlm_design_matrix_compute (the rlm_indexes
+          L166 wording, as in rlm_wmaps L181). R1 — the redundant
+          2nd guard (count_nonzero) merged away: iwmap values are
+          -1 or >= 0, so any(== -1) and count_nonzero(>= 0) !=
+          size check the SAME invariant; the single -1 guard with
+          the precise ValueError remains (a defensive re-check of
+          the WMAPS R1 dense-pindexes contract). T5 — the 3 ws
+          lines stripped; file 135 → 133 lines. T6 — the
+          dedicated test_rlm_design_matrix.py ADDED (12 tests, 4
+          classes, mirroring test_rlm_wmaps): 2 compute (the
+          handcrafted-mock (4,3) uint32 golden, hand-derived
+          X = iwmap[pindexes + col_offsets], + the guard's
+          ValueError pin) + 2 consistency (the 1-field compare) +
+          6 IO (store/load cycle, the golden hash
+          da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89
+          ea9719757b pinned, the valid/mismatched sidecar, the
+          wrong-description + version-mismatch RuntimeError pins)
+          + 2 init (ValidationError). The D-085 idiom from day
+          one, no DB, no gate, no DB claim in the header.
+          | All 7 T items + R1 were on the table since D-089 and
+          follow the exact precedents of the 6 previous levels
+          (same classes, same idioms); Roberto approved the whole
+          batch. The R1 merge is value-identical (the 2 guards
+          were provably equivalent for int64 iwmap values) and
+          drops 1 of the 3 gathers. The T6 file closes the only
+          coverage gap of the batch (the WMAPS level has the
+          equivalent suite; DESIGN_MTR arrived with only the
+          worker test). Verification: the 12 new tests 12/0/0
+          (no DB); the worker test 3/0/3 gated + 3/0/0 live;
+          full discover 550/0/64 gated + 550 run / 17 skipped
+          ungated + the full -W error discover clean;
+          build/tmp clean; the probe re-pinned to the
+          post-campaign state (55 checks, 0 mismatches — tiers
+          A/B/C re-pinned + the new G tier for the dedicated
+          suite + the D0-D10 live golden re-derivation
+          unchanged). The 4 D-007 mirror docs written
+          (rlm_design_matrix, lm_worker_design_matrix,
+          test_lm_worker_design_matrix, test_rlm_design_matrix)
+          in the post-campaign state, as in WMAPS.
