@@ -1865,3 +1865,83 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
         GREEN — all 35 DB tests + the 2 positions tests pass
         through the fixed 5-arg connection and the
         checksum=False load; build/tmp clean.
+ D-081 | 2026-08-31 | lm_worker_features + test_lm_worker_features
+         analysis (session 22; the FEATURES line-by-line enablement
+         f051dd3 is Roberto's: the factory import L43 + the
+         worker-list entry L209 uncommented in logistic_model.py +
+         the 2 new files added — the pipeline now runs 4 active
+         levels: CREATED sentinel → CONFIG → POSITIONS →
+         FEATURES):
+         lm_worker_features — the 4th pipeline level, and the FIRST
+         pure-compute level: it builds a FeatureSet from the
+         CONFIG-loaded cfg (no DB, no cache_manager, no cache file —
+         the flat rlmwf_03_FEATURES* files never materialize, probe
+         B10; RLMContext carries no features_checksum field,
+         probe V10) and exposes ctx.feature_set. 13 verified facts
+         V1-V13 (42-check probe scratch/verify_lm_worker_features.
+         py, 0 mismatches): the 4-worker list; feature_set None →
+         set → cleared by _down; name 'NoNameFeatureSet' (the
+         FeatureSetConfig.name default — the fixture has no name
+         key); the 3 fixture mobilities + 2 patterns with the
+         CORRECT values (the R1 defect is log-only); feature order
+         [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE] (intercept,
+         mobilities sorted (mask, amask), patterns sorted mask);
+         n_features 6 / n_instances 16 (per-feature LMC 65/1,
+         ALMC 65/1, DLMC 129/1, ELLE 81/8, EDGE 6561/4); hash =
+         sha3_256(b'INTERCEPT' + mset.hash + pset.hash) re-derived
+         independently (the public-API FeatureSet matches name +
+         hash); the zero-feature guard (ValueError + ERROR log);
+         cross-run identity (second instance: POSITIONS cache hit,
+         FEATURES recomputed, identical set); the TYPE_CHECKING
+         circular-import guard. OPEN awaiting Roberto's call: R1
+         (the amask DEBUG log prints m.mask twice — L112; for the
+         fixture LMC (true amask 0) logs FFFFFFFFFFFFFFFF and
+         ALMC (true amask FFFFFFFFFFFFFFFF) logs 0000000000000000,
+         DLMC unaffected; no data impact — the FeatureSet /
+         MobilitySet are built from the correct m.amask; visible
+         only at verbosity HIGH, which the test's Verbosity.LOW
+         never reaches; fix = print m.amask in the amask slot), M1
+         (no @validate_call on the public factory — convention-
+         only, the D-080 M1 pattern), M2 (2 non-header trailing-
+         whitespace lines L49/L78 — D-078 M3 scope), M3 (the orphan
+         L63 comment quoting the empty-string SHA-256 hash, which
+         the error message does not use). test_lm_worker_features —
+         1 class / 1 test / no PERF, green on first run with the
+         live DB. OPEN: T1 (not the D-065 idiom: mkdtemp(dir=
+         './build/tmp') CWD-relative, no setUpClass mkdir, no
+         TemporaryDirectory, the tearDown rmtree not in a finally),
+         T2 (NO SKIP_REGAB_DB gate: the setUp moves to POSITIONS on
+         a fresh base dir → DB hit; in a no-DB environment the
+         canonical gated command would ERROR instead of skip — same
+         pattern as test_lm_worker_positions T2, fixed D-080), T3
+         (dead `from pathlib import Path` import), T4 (header
+         grammar "How to use the unit tests ... module."), M1 (the
+         setUp comment "FEATURES depends on the configuration
+         loaded there" is inaccurate — the dependency is the CONFIG
+         level, and the explicit POSITIONS move is functionally
+         redundant though it pins the step numbering), M2 (trailing
+         whitespace L90 + 3 whitespace-only lines). Housekeeping:
+         scratch/verify_logistic_model.py discovered STALE — the
+         session-21 original pinned the pre-D-074 state (legacy
+         _for_next_level names, the latent-Union get_type_hints
+         NameError, FileNotFoundError-for-a-directory, 1-worker
+         boundaries) and was never re-pinned after the D-074/D-075/
+         D-076 batches; re-pinned in this batch to the post-
+         D-074/D-076/D-081 state (35 checks, 0 mismatches: the
+         *_for_current_level lambda fields + legacy names gone,
+         get_type_hints succeeds, IsADirectoryError for a directory
+         as config + the facade @validate_call ValidationError, the
+         4-worker list, the 4-worker boundaries — the empty {}
+         config makes the CONFIG worker's pydantic ValidationError
+         propagate (the D-076 gate split) and a failed move leaves
+         current_step at 1 (D-060), the checksum inventory + the
+         absent features_checksum). No code modified by this
+         decision (analysis only; f051dd3 is Roberto's). Suites:
+         gated full discover 499/0/54 GREEN (17 PERF + 35 regab +
+         2 positions; the new FEATURES test RUNS ungated — it
+         needs the live DB); ungated full discover (live DB): 499
+         run, 17 skipped (PERF only), GREEN. Next: awaiting
+         Roberto's call on the FEATURES R/M + T items; then the
+         next pipeline line (lm_worker_indexes) + the last muted
+         test _test_move_to_step_by_string (test file change —
+         Roberto's call).

@@ -12,17 +12,25 @@ D-076: `lm_worker_config()` uncommented in the worker list
 (pipeline: CREATED + CONFIG now the 2 active levels), json5
 declared in pyproject.toml, SM gate split (domain pydantic
 ValidationErrors from the CONFIG worker no longer converted to the
-gate's TypeError).** Sibling modules
+gate's TypeError). D-079/D-080: lm_worker_positions enabled
+(601de87) + analyzed/fixed; rlm_config_schemas analyzed/fixed.
+D-081 (f051dd3, Roberto): `lm_worker_features()` uncommented —
+the pipeline now runs 4 active levels (CREATED sentinel → CONFIG
+→ POSITIONS → FEATURES); the 35-check probe re-pinned to the
+post-D-074/D-076/D-081 state (the session-21 original pinned the
+pre-D-074 state and was never re-pinned): 0 mismatches.**
+Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
 - the pipeline is deliberately PARTIAL: of the 15 workers
-  `CREATED` + `CONFIG` are active (D-076: `lm_worker_config()`
-  uncommented, L207); `lm_worker_positions` is imported (L42) but
-  its list entry is commented (L208); the other 12 factory imports
-  are commented (L43-54, "Remove comments when modules are added");
+  `CREATED` + `CONFIG` + `POSITIONS` + `FEATURES` are active
+  (D-076: `lm_worker_config()` uncommented, L207; 601de87:
+  `lm_worker_positions()`, L208; f051dd3: `lm_worker_features()`,
+  L209); the other 10 factory imports are commented (L44-54,
+  "Remove comments when modules are added");
 - the 1 muted test in test_logistic_model (`_test_move_to_step_by_
   string`) comes back "una riga alla volta, seguendo lo sviluppo
   della pipeline" (D-076: `test_move_to_step_delegates_to_state_
@@ -69,15 +77,26 @@ same way `cache_manager_load_or_compute` returns it.
 
 CREATED (0, sentinel) → CONFIG → POSITIONS → FEATURES → INDEXES →
 WMAPS → DESIGN_MATRIX → ZED → GRADIENT → OPTIMIZE → GENERATE →
-VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. Only CREATED is active
-today; the worker factories follow the pattern `lm_worker_x()` →
-`Worker` (the tests patch `twolm.logistic_model.lm_worker_config`
-etc., i.e. the factory names in THIS module's namespace).
+VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 4 levels are active
+today (CREATED → CONFIG → POSITIONS → FEATURES, D-081); the worker
+factories follow the pattern `lm_worker_x()` → `Worker` (the tests
+patch `twolm.logistic_model.lm_worker_config` etc., i.e. the
+factory names in THIS module's namespace).
 
 ## Verified facts (V1-V10)
 
-Independently re-derived (scratch/verify_logistic_model.py, 30-check
-probe), zero mismatches.
+Independently re-derived (scratch/verify_logistic_model.py,
+35-check probe), zero mismatches. Re-pinned in D-081 (session 22)
+to the post-D-074/D-076/D-081 state: V1e/V1f now pin the
+D-074/R1 rename (the legacy `_for_next_level` names gone, the
+`*_for_current_level` lambda fields present), V8 pins
+`get_type_hints` SUCCEEDING (D-074/R2), V6 pins the
+`IsADirectoryError` for a directory as config (D-074/M3) + the
+facade `@validate_call` ValidationError (D-074/R3), V3c pins the
+4-worker list (D-081), V9 pins the 4-worker boundaries (D-076 gate
+split + D-060 failure semantics), V10 pins the absence of a
+`features_checksum` field (the FEATURES level is a pure in-memory
+derivation).
 
 | # | Fact | Method |
 |---|---|---|
@@ -87,10 +106,10 @@ probe), zero mismatches.
 | V4 | Sentinel callables log ERROR then raise RuntimeError on DIRECT call; a bare (non-injected) context runs them safely (no-op log, still raises) | Probe |
 | V5 | `_check_config_file_path`: str/Path → Path; int → TypeError ("Argument config_file_path is not an instance of str or Path"); a directory → IsADirectoryError ("File path is not a file: ...") post M3/D-074 | Probe |
 | V6 | `_check_base_dir_override`: str/Path → Path; int → TypeError; a file → NotADirectoryError ("File path is not a directory: ...") | Probe |
-| V7 | 1-worker machine boundaries (the muted tests' preconditions): `move_to_step(1)` → IndexError "Target step 1 is out of bounds."; `move_to_step("POSITIONS")` → ValueError "Worker 'POSITIONS' not found in the pipeline."; `move_to_last()` at step 0 is a no-op | Probe |
+| V7 | 4-worker machine boundaries (re-pinned D-081 — the 1-worker pre-D-076 preconditions are obsolete): on the `{}` dummy config, `move_to_step(1)`, `move_to_step("POSITIONS")` and `move_to_last()` all hit the CONFIG worker first and raise its pydantic ValidationError (the D-076 gate split — no conversion to the gate's TypeError); a failed move leaves `current_step` at the failed step 1 (D-060) | Probe (fresh model per boundary) |
 | V8 | (pre-D-074 state) `typing.get_type_hints(RLMContext)` → **NameError: name 'Union' is not defined** — the missing import was latent, masked by `from __future__ import annotations` (PEP 563); post D-074/R2 the annotations are `str | None` and `get_type_hints` resolves | Probe (pre) + re-check (post) |
 | V9 | The 8 `*_checksum` fields: rds, rlm_indexes, wmaps_obj, design_matrix, zed, w, dense_w, vld_rds (all `str | None` post D-074/R2) | dataclasses.fields inspection |
-| V10 | The two ALREADY-PORTED worker call sites use the D-069 names (D-074/R1): lm_worker_config.py `ctx.get_cache_file_path_for_current_level()`, lm_worker_positions.py `ctx.get_cache_file_full_path_for_current_level()` — they resolve to the real injected closures once the worker entries are enabled | grep (cross-reference, modules not otherwise analyzed) |
+| V10 | The two cache-consuming worker call sites use the D-069 names (D-074/R1): lm_worker_config.py `ctx.get_cache_file_path_for_current_level()`, lm_worker_positions.py `ctx.get_cache_file_full_path_for_current_level()` — they resolve to the real injected closures now that both entries are enabled (lm_worker_features is the 3rd enabled worker but never touches the closures — no cache, D-081) | grep (cross-reference) + probe V3c |
 
 ## Issues (R1-R3)
 
@@ -190,8 +209,8 @@ post D-074)
 - `from __future__ import annotations`: L28
 - imports: L30-32 (dataclasses — `field` removed M5/D-075 ·
   pathlib · typing) · L34 (pydantic, D-074/R3) · L36 (state_
-  machine) · L37 (base_model) · L39-54 (worker factories: L41-42
-  active, L43-54 commented)
+  machine) · L37 (base_model) · L39-54 (worker factories: L41-43
+  active post f051dd3/D-081, L44-54 commented)
 - `__all__`: L57
 - `_check_config_file_path`: L65-73 (type check L66-67, existence
   L69-70, is-file L71-72 — IsADirectoryError, M3)
@@ -210,4 +229,5 @@ post D-074)
   `__init__` L183-224: `@validate_call` L182 (R3), signature
   L183-186, docstring L187-191 (M4), path validation L193-196,
   context build L199-202, workers list L205-221 (sentinel L206,
-  commented factory calls L207-220), `super().__init__` L224
+  active factory calls L207-209 post f051dd3/D-081, commented
+  factory calls L210-220), `super().__init__` L224
