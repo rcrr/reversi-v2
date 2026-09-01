@@ -42,8 +42,8 @@
 #
 
 import unittest
+import os
 import tempfile
-import shutil
 
 import numpy as np
 import numpy.testing as nptest
@@ -55,6 +55,7 @@ from pathlib import Path
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.rlm_zed import zed_fun_factory
+from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
 
@@ -69,7 +70,7 @@ class TestZedFunFactory(unittest.TestCase):
         transformed_values = y2z(values)
         expected_transformed_values = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)
         nptest.assert_allclose(expected_transformed_values, transformed_values, rtol=1e-6, atol=1e-7)
-        
+
         re_transformed_values = z2y(transformed_values)
         nptest.assert_allclose(np.float32(values), re_transformed_values, rtol=1e-6, atol=1e-7)
 
@@ -78,23 +79,35 @@ class TestLMWorkerZed(unittest.TestCase):
     """Tests the ZED worker integration and exact values using rlm_01.json."""
 
     def setUp(self):
+        # T1 (D-091): the SKIP_REGAB_DB gate, as in test_regab —
+        # the worker tests need the live regab DB (the setUp moves to
+        # DESIGN_MTR, which runs the positions chain on a fresh base dir).
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
+        # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'src/twolm/test/data/rlm_01.json'
-        
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")
+
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
-        
+
         # Move up to DESIGN_MTR to ensure full pipeline consistency
         self.rlm.move_to_step('DESIGN_MTR')
         self.assertEqual(self.rlm.current_step, 6)
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_compute_zed(self):
         self.assertIsNone(self.rlm.context.y2z)
@@ -105,21 +118,21 @@ class TestLMWorkerZed(unittest.TestCase):
         self.assertEqual(expected_logit_clipping, logit_clipping)
 
         expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)
-        
+
         # In the new design, game_values is already a numpy array in the context
         y = np.asarray(self.rlm.context.game_values, dtype=np.int8)
         nptest.assert_array_equal(expected_y, y)
 
         self.rlm.move_to_step('ZED')
         self.assertEqual(self.rlm.current_step, 7)
-        
+
         self.assertIsNotNone(self.rlm.context.y2z)
         self.assertIsNotNone(self.rlm.context.z)
-        
+
         self.assertEqual(type(self.rlm.context.z), np.ndarray)
         self.assertEqual(self.rlm.context.z.dtype, np.float32)
         self.assertEqual(self.rlm.context.z.shape, (10,))
-                
+
         expected_z = np.array([0.5734375,
                                0.764375,
                                0.3384375,
@@ -132,6 +145,19 @@ class TestLMWorkerZed(unittest.TestCase):
                                0.5146875], dtype=np.float32)
 
         nptest.assert_array_equal(expected_z, self.rlm.context.z)
+
+    def test_down_clears_zed_attributes(self):
+        # T5 (D-091): pin the _down clearing (live-verified, probe D12).
+        self.rlm.move_to_step('ZED')
+        self.assertIsNotNone(self.rlm.context.z)
+
+        self.rlm.move_to_step(6)
+        self.assertEqual(self.rlm.current_step, 6)
+        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')
+        self.assertIsNone(self.rlm.context.y2z)
+        self.assertIsNone(self.rlm.context.z2y)
+        self.assertIsNone(self.rlm.context.z)
+        self.assertIsNone(self.rlm.context.zed_checksum)
 
 
 if __name__ == '__main__':

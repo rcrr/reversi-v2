@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import validate_call, ConfigDict
+
 from twolm.state_machine import Worker, Relevance
 from twolm.rlm_zed import rlm_zed_compute
 
@@ -43,16 +45,16 @@ __all__ = ['lm_worker_zed']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing Zed array (Z) and transformations...")
-    
+
     # ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.
     zed_obj = rlm_zed_compute(ctx)
     zed_checksum = zed_obj.compute_sha3_256_hash()
-    
+
     ctx.y2z = zed_obj.y2z
     ctx.z2y = zed_obj.z2y
     ctx.z = zed_obj.z
     ctx.zed_checksum = zed_checksum
-    
+
     ctx.log_event(Relevance.INFO, f"Zed array computed. Shape: {ctx.z.shape}")
     ctx.log_event(Relevance.INFO, f"Zed array checksum (zed_checksum): {zed_checksum}.")
 
@@ -65,6 +67,7 @@ def _down(ctx: "RLMContext") -> None:
     ctx.zed_checksum = None
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_zed() -> Worker:
     """Factory function that returns the ZED worker instance."""
     return Worker("ZED", _up, _down)

@@ -67,6 +67,7 @@ class ReversiLogisticModelZed:
         return sha3_256_hash
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],
                                                      Callable[[npt.NDArray[np.float32]], npt.NDArray[np.float32]]]:
     """
@@ -80,16 +81,17 @@ def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int
         y = np.float32(y)
         z = a + y * b
         return z
-    
+
     a1 = np.float32(-64. / (1. - 2. * logit_clipping))
     b1 = np.float32(128. / (1. - 2. * logit_clipping))
     def z_to_y(z: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
         y = a1 + z * b1
         return y
-    
+
     return y_to_z, z_to_y
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:
     """
     Computes Z vector and transformation functions based on logit_clipping.
