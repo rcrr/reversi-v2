@@ -2573,3 +2573,127 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           (rlm_design_matrix, lm_worker_design_matrix,
           test_lm_worker_design_matrix, test_rlm_design_matrix)
           in the post-campaign state, as in WMAPS.
+
+ D-091 | 2026-08-31 | ZED bring-in + full bring-in analysis
+          (session 24, Roberto's commit 439c966 — "Ho aggiunto
+          il modulo lm_worker_zed con il relativo modulo di
+          dominio rlm_zed, e i tests. Procedi con la analisi,
+          grazie."): the 8th pipeline level activated (the
+          import L47 + the worker-list entry L213 — the only
+          2 lines the commit touched in logistic_model.py;
+          RLMContext's zed_checksum / y2z / z2y / z fields
+          were PRE-DECLARED). rlm_zed (101 lines): the Z data
+          object (ReversiLogisticModelZed: the y2z/z2y affine
+          closures + z (N,) float32 — game_values mapped
+          [−64, 64] → [c, 1−c], c = cfg.stat_model.
+          logit_clipping) + zed_fun_factory (the pure math,
+          exported in __all__) + rlm_zed_compute + the duck-
+          typed compute_sha3_256_hash over z.tobytes() only;
+          NO store / load / is_cache_consistent — the FIRST
+          non-cache level in the pipeline (by design — the
+          worker comment documents the on-the-fly choice).
+          lm_worker_zed (70 lines): the "ZED" worker, NO
+          cache_manager wiring (no rlmwf_07* file ever
+          materializes — verified live, probe D11); _up sets
+          ctx.y2z / z2y / z / zed_checksum, _down clears ALL
+          FOUR (the house shape — no gap at bring-in).
+          test_lm_worker_zed (138 lines): 2 classes / 2 tests
+          — the isolated factory math (alpha=0.02: [-64, 0, 6,
+          64] → [0.02, 0.5, 0.545, 0.98] + the round-trip) +
+          the rlm_01.json integration (logit_clipping 0.03,
+          y (10,) int8, z (10,) float32 golden, the step pins
+          DESIGN_MTR=6 / ZED=7). Analysis (analysis-only per
+          Roberto's request — no source changes): probe
+          scratch/verify_zed.py, 50 checks, 0 mismatches (A
+          structural rlm_zed + B worker + C test + D the live
+          golden + F cross) — the golden z re-derived
+          independently (the float32-exact recompute
+          0.5 + y·(1−2c)/128 + the float64 reference, the
+          checksum = sha3_256(z.tobytes()), the endpoints
+          y2z(±64) = c / 1−c, the round-trip, the _down
+          clearing, the no-cache-file check, the 8-worker
+          list, the pre-declared fields, the 7 commented
+          imports). NO warnings (the full −W error discover
+          clean — no implicit-cast pattern this time), NO R
+          items (no redundancy; the no-cache choice is
+          intentional + documented). Suite 550 → 552
+          (552/0/64 gated + 552 run / 17 skipped ungated,
+          build/tmp clean). PENDING Roberto's call — T: T1 the
+          missing SKIP_REGAB_DB gate in the test setUp (the
+          header L38-39 CLAIMS it — false, as in D-089 T1
+          pre-fix; verified: under the gate the 2 tests RUN on
+          the live DB, ".." not "ss"); T2 the worker factory
+          @validate_call + the pydantic import (all the other
+          6 workers have it); T3 NO dedicated test_rlm_zed.py
+          — the domain module has zero dedicated coverage (the
+          compute, the class init, the hash, the factory
+          edges — the D-090 T6 class gap; WMAPS and
+          DESIGN_MTR have the equivalent suites); T4 the
+          D-085 idiom not applied in the test (the CWD
+          mkdtemp './build/tmp' L84 + the CWD json L85 + the
+          dead shutil L46 + the dead Path L53 + the
+          non-defensive tearDown); T5 NO _down test in the
+          worker test (the D-078 T3 class — _down verified
+          working live, probe D12); T6 the no-validation note
+          missing above rlm_zed_compute (the rlm_indexes L166
+          class — the TYPE_CHECKING constraint applies
+          identically); T7 zed_fun_factory in __all__ but
+          WITHOUT @validate_call (the only exported public
+          function in the pipeline missing it); T8 the 12
+          code ws lines (rlm_zed 2: L83/L89; worker 3:
+          L46/L50/L55; test 7: L72/L86/L90/L108/L115/L118/
+          L122). M (informational, no action planned): M1 the
+          duck-typed hash covers z only — the closures are
+          pure functions of logit_clipping (not stored on the
+          object); same game_values + different clipping →
+          different z → different hash, so no collision risk
+          today, but a future cache would need the clipping
+          in the checksum; M2 the flat-file numbering skips
+          07 (FEATURES skipped 03) — the next cache level
+          (GRADIENT) takes rlmwf_08.
+          | The bring-in pattern of the 7 previous levels:
+          full structural pin + golden re-derivation + cross-
+          facts, wait for the call on the T batch. The
+          no-cache design is the first deviation from the
+          uniform 7-kwargs cache_manager wiring — intentional,
+          documented, verified (D11); the 4 ctx attributes are
+          still cleared on down (the machine contract holds,
+          D12).
+ D-092 | 2026-08-31 | ZED fix campaign CLOSED (Roberto: "T1-T8: OK").
+          All 8 T items applied: (T1) the SKIP_REGAB_DB gate added to
+          TestLMWorkerZed.setUp FIRST (the test header L38-39 claim
+          was false at bring-in: under the gate the 2 worker tests
+          RAN on the live DB; now 3/0/2 gated, 3/0/0 live —
+          TestZedFunFactory is DB-free and not gated); (T2)
+          lm_worker_zed() got the @validate_call decorator + the
+          pydantic import (all 6 other workers have it); (T3) the
+          dedicated test_rlm_zed.py created (10 tests, 3 classes,
+          no DB: the factory goldens/inverse/round-trip/
+          2-clippling endpoints, the handcrafted-mock compute
+          golden (4,) exact + hash identity, the 2 init
+          ValidationError pins + by-reference, the rlm_01 hash
+          golden 3d49fd5d56ced2f7bb70e5c24c8100b3318a7e66e7c990de53
+          ed2f16f365d9b2); (T4) the worker-test D-085 idiom
+          (TemporaryDirectory under CUSTOM_TMP_BASE created FIRST,
+          WORKSPACE_ROOT-anchored rlm_01.json, defensive tearDown,
+          the dead shutil import gone, Path now load-bearing);
+          (T5) test_down_clears_zed_attributes added (move to ZED,
+          move_to_step(6), pins step 6 + worker name DESIGN_MTR +
+          all 4 ctx attrs None — live-verified by the D12 probe);
+          (T6) the no-validation note above rlm_zed_compute (the
+          rlm_indexes L166 note class); (T7) zed_fun_factory
+          decorated @validate_call (the only exported public
+          function in the pipeline missing it); (T8) the 12
+          non-comment ws lines emptied in place across the 3
+          pre-existing files (the new file clean from day one).
+          Verified: full discover 563 tests (552 + 10 + 1), 66
+          skipped gated (64 + 2 zed), 17 ungated, GREEN; the
+          -W error discover clean; build/tmp clean; the re-pinned
+          probe scratch/verify_zed.py (60 checks, tiers A–G
+          including the NEW G tier for the dedicated suite) passes
+          0 mismatches. The M1/M2 informational items are recorded
+          in the docs (rlm_zed.md Minor notes) and left open — the
+          hash-covers-z-only choice and the 07 numbering skip are
+          by design, no action. The D-007 mirror docs written for
+          all 4 files (rlm_zed.md, lm_worker_zed.md,
+          test_lm_worker_zed.md, test_rlm_zed.md).

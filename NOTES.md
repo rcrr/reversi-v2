@@ -70,6 +70,10 @@ now (I-001; see notes/decisions.md).
 | src/twolm/lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in — the DESIGN_MTR enablement, 7th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_06_DESIGN_MTR.dat + .SHA3-256 sidecar, the D-078 machine); _up sets design_matrix + design_matrix_checksum; _down clears BOTH (the house shape — no gap at bring-in); fix campaign D-090 CLOSED: the factory @validate_call + pydantic import added (T2, the house convention) + load_fn → the lambda checksum=False idiom (T3, the double sidecheck gone) + 2 ws lines stripped; file 77 → 80 lines; suite: test_lm_worker_design_matrix 3/0/0 (3 DB-gated post D-090 T1) | docs/src/twolm/lm_worker_design_matrix.md |
 | src/twolm/test/test_lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit; cache names + steps 5/6 pinned) + the golden content (rlm_01.json: X (10,7) uint32 — 10 pinned rows, independently re-derived by the probe D0-D10 incl. the X = iwmap[pindexes + col_offsets] recomputation, 0 mismatches); fix campaign D-090 CLOSED: the SKIP_REGAB_DB gate added to BOTH setUps + import os (T1 — the header claim now true, 3/0/3 under the gate) + the D-085 idiom applied to both classes (T7 — TemporaryDirectory under CUSTOM_TMP_BASE created first, WORKSPACE_ROOT-anchored json ×2, defensive tearDown, the dead shutil import gone) + 21 ws lines stripped; file 202 → 226 lines; suite 3/0/0 GREEN (live DB; 3/0/3 gated) | docs/src/twolm/test/test_lm_worker_design_matrix.md |
 | src/twolm/test/test_rlm_design_matrix.py | created 2026-08-31 (session 23, D-090 T6 — the dedicated data-object suite closing the coverage gap, mirroring test_rlm_wmaps): 4 classes / 12 tests / no DB, no gate — the handcrafted-mock compute pins (X = iwmap[pindexes + col_offsets], the (4,3) uint32 golden + the guard's ValueError pin, post-R1 single guard) + the 1-field consistency compare (2 tests) + the store/load cycle + golden hash (da86a916...57b) + sidecar/error-path pins (3 RuntimeError + the D-072 machine) + the init validation (2 tests); the D-085 idiom from day one; file 258 lines; suite 12/0/0 GREEN (no DB) | docs/src/twolm/test/test_rlm_design_matrix.md |
+| src/twolm/rlm_zed.py | introduced 2026-08-31 (session 24, Roberto's commit 439c966 — the ZED bring-in, 8th pipeline level): the Z data object (ReversiLogisticModelZed: the y2z/z2y affine closures + z (N,) float32 — game_values mapped [−64,64] → [c, 1−c], c = cfg.stat_model.logit_clipping) + zed_fun_factory (in __all__) + rlm_zed_compute + the duck-typed hash over z only; the FIRST non-cache level (no store / load / is_cache_consistent); analysis D-091 (probe re-pinned D-092: 60 checks, tiers A–G, 0 mismatches): rlm_zed_compute lacked the no-validation note (T6), zed_fun_factory lacked @validate_call (T7), 2 code ws lines (T8); fix campaign D-092 CLOSED (Roberto: "T1-T8: OK"): the no-validation note added (L94, the rlm_indexes L166 class), the factory @validate_call (L70), 2 ws lines stripped; M1 informational (the hash covers z only — the closures are a pure function of logit_clipping); file 101 → 103 lines; module CLOSED | docs/src/twolm/rlm_zed.md |
+| src/twolm/lm_worker_zed.py | introduced 2026-08-31 (session 24, Roberto's commit 439c966 — the ZED bring-in, 8th active level): the "ZED" worker — the first non-cache level (no cache_manager wiring, no rlmwf_07* file ever, by design — the on-the-fly comment L49); _up sets ctx.y2z / z2y / z / zed_checksum, _down clears ALL FOUR (the house shape — no gap at bring-in, pinned live D12); analysis D-091: the factory lacked @validate_call + the pydantic import (T2, all the other 6 workers have it), 3 code ws lines (T8); fix campaign D-092 CLOSED (Roberto: "T1-T8: OK"): the factory @validate_call (L70) + pydantic import (L32), 3 ws lines stripped; file 70 → 73 lines; module CLOSED; suite 3/0/0 GREEN (test_lm_worker_zed — 1 DB-free + 2 DB-gated post D-092 T1, run with live DB) | docs/src/twolm/lm_worker_zed.md |
+| src/twolm/test/test_lm_worker_zed.py | introduced 2026-08-31 (session 24, Roberto's commit 439c966): 2 classes / 3 tests / no PERF — the isolated zed_fun_factory math (alpha=0.02: [−64, 0, 6, 64] → [0.02, 0.5, 0.545, 0.98] + round-trip, no DB) + the rlm_01.json integration (logit_clipping 0.03, y (10,) int8, z (10,) float32 golden — independently re-derived by the probe D tier, 0 mismatches; step pins DESIGN_MTR=6 / ZED=7) + the _down clearing (D-092 T5); analysis D-091: T1 (NO SKIP_REGAB_DB gate — the header L38-39 claims it, false; under the gate the tests RAN on the live DB), T4 (the D-085 idiom not applied: CWD mkdtemp + CWD json + dead shutil import + non-defensive tearDown), T5 (no _down test), 7 code ws lines (T8); fix campaign D-092 CLOSED (Roberto: "T1-T8: OK"): the SKIP_REGAB_DB gate added to the worker setUp (the header claim now true — 3/0/2 under the gate), the D-085 idiom applied (TemporaryDirectory under CUSTOM_TMP_BASE created first, WORKSPACE_ROOT-anchored json, defensive tearDown, the dead shutil gone, Path load-bearing), the _down test added (step 6 + DESIGN_MTR + 4 None pins), 5 ws lines stripped; file 138 → 164 lines, 2 → 3 tests; test campaign CLOSED; suite 3/0/0 GREEN (live DB; 3/0/2 gated) | docs/src/twolm/test/test_lm_worker_zed.md |
+| src/twolm/test/test_rlm_zed.py | created 2026-08-31 (session 24, D-092 T3 — the dedicated data-object suite closing the D-091 coverage gap, mirroring test_rlm_wmaps / test_rlm_design_matrix): 3 classes / 10 tests / no DB, no gate — the factory math (the 0.02 golden [0.02, 0.5, 0.545, 0.98], the inverse, the round-trip, the 2-clippling endpoints), the handcrafted-mock compute (the (4,) EXACT golden [0.5734375, 0.764375, 0.3384375, 0.646875] + the hash identity), the init validation (2 ValidationError pins + by-reference), the rlm_01 hash golden (3d49fd5d...f365d9b2); file 157 lines; suite 10/0/0 GREEN (no DB) | docs/src/twolm/test/test_rlm_zed.md |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -139,13 +143,18 @@ now (I-001; see notes/decisions.md).
   D-087 T1 — the setUp moves through INDEXES, run with live DB),
   lm_worker_design_matrix 3/0/0 (D-090 T1 — 3 DB-gated;
   the setUp moves through WMAPS, run with live DB),
-  rlm_design_matrix 12/0/0 (D-090 T6 — no DB, no gate) — all
-  GREEN. Totals: 550 tests, 64 skipped
+  rlm_design_matrix 12/0/0 (D-090 T6 — no DB, no gate),
+  rlm_zed 10/0/0 (D-092 T3 — no DB, no gate), lm_worker_zed 3/0/0
+  (439c966 + D-092 T1 — 1 DB-free + 2 DB-gated; the setUp moves
+  through DESIGN_MTR, run with live DB) — all
+  GREEN. Totals: 563 tests, 66 skipped
   under the gate (17 PERF=1 print-only performance tests + 35
   DB-gated regab tests + 2 DB-gated lm_worker_positions tests +
   2 DB-gated lm_worker_features tests + 2 DB-gated
-  lm_worker_indexes tests + 3 DB-gated lm_worker_wmaps tests; no
-  performance gates in any suite, D-036). Warm run ≈ 0.5 s (board) / ≈ 2.8 s (full discover,
+  lm_worker_indexes tests + 3 DB-gated lm_worker_wmaps tests +
+  3 DB-gated lm_worker_design_matrix tests + 2 DB-gated
+  lm_worker_zed tests — D-092 T1; no performance gates in any
+  suite, D-036). Warm run ≈ 0.5 s (board) / ≈ 2.8 s (full discover,
   numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
@@ -849,6 +858,40 @@ now (I-001; see notes/decisions.md).
   dedicated test_rlm_design_matrix.py ADDED (T6, 12 tests). Suite
   538 → 550 (550/0/64 gated + 550/17 ungated, -W error clean).
   All 3+1 mirror docs written (post-campaign state).
+- rlm_zed.py + lm_worker_zed.py + test_lm_worker_zed.py (new,
+  ZED bring-in, session 24, Roberto's commit 439c966): the 8th
+  pipeline level activated (the import + list entry uncommented;
+  RLMContext's zed_checksum / y2z / z2y / z fields were
+  pre-declared). rlm_zed: the Z object (z (N,) float32 = the
+  y2z mapping of game_values into [c, 1−c] + the 2 affine
+  closures) + zed_fun_factory + rlm_zed_compute + the duck-
+  typed hash over z only; the FIRST non-cache level — no store/
+  load/is_cache_consistent, no rlmwf_07* file (the on-the-fly
+  computation is documented in the worker). lm_worker_zed: _up
+  sets the 4 ctx attributes, _down clears all four.
+  test_lm_worker_zed: 2 tests — the isolated factory math
+  (alpha=0.02) + the rlm_01 integration golden (y (10,) int8,
+  z (10,) float32, clipping 0.03 — independently re-derived).
+  Analysis D-091 (probe scratch/verify_zed.py, 50 checks, 0
+  mismatches): NO warnings (the −W error discover clean), NO R
+  items — the 8 T items + 2 M informational. Fix campaign D-092
+  CLOSED (Roberto: "T1-T8: OK"): T1 the SKIP_REGAB_DB gate in the
+  worker-test setUp (the header claim now true — 3/0/2 under the
+  gate), T2 the worker factory @validate_call + pydantic import
+  (L32/L70), T3 the dedicated test_rlm_zed.py ADDED (10 tests,
+  no DB — factory math 4, mock compute 2, init validation 4,
+  incl. the rlm_01 hash golden 3d49fd5d...f365d9b2), T4 the
+  D-085 idiom in the worker test, T5 the _down clearing test
+  (step 6 + DESIGN_MTR + 4 None pins), T6 the no-validation note
+  on rlm_zed_compute (L94), T7 zed_fun_factory @validate_call
+  (L70), T8 the 12 ws lines stripped (5 in the worker test — 2
+  were inside the replaced setUp block); M1-M2 informational
+  (the hash covers z only; the flat-file numbering skips 07 —
+  the next cache level takes rlmwf_08). Probe re-pinned to the
+  post-campaign state (60 checks, tiers A–G, 0 mismatches). All
+  4 mirror docs written (post-campaign state). Suite 552 → 563
+  (563/0/66 gated + 563/17 ungated, −W error clean, build/tmp
+  clean).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -1014,11 +1057,44 @@ now (I-001; see notes/decisions.md).
   mismatches); the 4 mirror docs written; 538 → 550 tests
   (550/0/64 gated + 550 run / 17 skipped ungated, -W error full
   discover clean, build/tmp clean).
-- Next: the pipeline grows one commented line at a time
-  (the next commented entry is now lm_worker_zed) + restoring
-  the last muted test _test_move_to_step_by_string (a test
-  file change, Roberto's call) + the I-012 evaluation (FEATURES
-  before POSITIONS).
+- Done (2026-08-31, session 24): D-091 ZED bring-in analysis
+  (Roberto's commit 439c966 — lm_worker_zed + rlm_zed +
+  test_lm_worker_zed; the 8th pipeline level, the FIRST non-
+  cache level — no rlmwf_07* file; 550 → 552 tests, 552/0/64
+  gated + 552 run / 17 skipped ungated, −W error full discover
+  clean, build/tmp clean): probe scratch/verify_zed.py 50
+  checks 0 mismatches (the live golden re-derived: z =
+  0.5 + y·(1−2c)/128 float32-exact + the float64 reference, the
+  checksum sha3_256(z.tobytes()), the endpoints ±64 → c / 1−c,
+  the round-trip, the _down clearing, the no-cache-file check);
+  NO warnings, NO R items. PENDING Roberto's call: T1-T8 — the
+  missing SKIP_REGAB_DB gate (the header claim is false), the
+  factory @validate_call + pydantic, the dedicated
+  test_rlm_zed.py (coverage gap), the D-085 idiom in the test,
+  the _down test, the no-validation note on rlm_zed_compute,
+  zed_fun_factory @validate_call, the 12 ws lines; M1-M2
+  informational.
+- Done (2026-08-31, session 24): D-092 ZED fix campaign (Roberto:
+  "T1-T8: OK"): T1 the SKIP_REGAB_DB gate in the worker-test setUp
+  (3/0/2 under the gate — the header claim now true), T2 the
+  worker factory @validate_call + pydantic import, T3 the
+  dedicated test_rlm_zed.py ADDED (10 tests, no DB — factory
+  goldens/inverse/round-trip/endpoints, the mock-compute exact
+  (4,) golden + hash identity, 2 init ValidationError pins, the
+  rlm_01 hash golden 3d49fd5d...f365d9b2), T4 the D-085 idiom in
+  the worker test, T5 the _down clearing test (step 6 +
+  DESIGN_MTR + 4 None pins), T6 the no-validation note on
+  rlm_zed_compute (L94), T7 zed_fun_factory @validate_call (L70),
+  T8 the 12 ws lines stripped; M1-M2 informational (recorded in
+  the docs); probe re-pinned to the post-campaign state (60
+  checks, tiers A–G, 0 mismatches); 4 mirror docs written;
+  552 → 563 tests (563/0/66 gated + 563 run / 17 skipped ungated,
+  -W error full discover clean, build/tmp clean).
+- Next: the pipeline grows one commented line at a time (the next
+  commented entry is lm_worker_gradient — awaiting Roberto's
+  bring-in) + restoring the last muted test
+  _test_move_to_step_by_string (a test file change, Roberto's
+  call) + the I-012 evaluation (FEATURES before POSITIONS).
 
 ## Index
 
@@ -1189,9 +1265,68 @@ now (I-001; see notes/decisions.md).
   paths (marker-based WORKSPACE_ROOT + CUSTOM_TMP_BASE)
 - docs/src/twolm/test/test_paths.md —
   test_paths.py (D-085): 3/0/0, no DB — pins the constants
+- docs/src/twolm/rlm_wmaps.md — rlm_wmaps.py analysis +
+  D-086/D-087 (the 6-array weight-maps object + store / load /
+  compute / is_cache_consistent + the duck-typed hash; 3rd
+  cache_manager consumer; R1 resolved as no-guard — the pindexes
+  density contract; 60-check probe 0 mismatches; module CLOSED)
+- docs/src/twolm/lm_worker_wmaps.py — lm_worker_wmaps.py
+  analysis + D-086/D-087 (the uniform 7-kwargs cache wiring,
+  flat rlmwf_05_WMAPS.dat; factory @validate_call, load_fn
+  checksum=False, _down checksum — module CLOSED)
+- docs/src/twolm/test/test_rlm_wmaps.py — test_rlm_wmaps.py
+  analysis + D-087 (6 → 13 tests: the D-085 idiom, +5 IO pins
+  incl. the golden hash 12c3344e…, + TestRLMWmapsInit; no DB,
+  no gate; suite 13/0/0 GREEN)
+- docs/src/twolm/test/test_lm_worker_wmaps.py —
+  test_lm_worker_wmaps.py analysis + D-087 (3 tests, all
+  DB-gated post T1 — the round-trip + the rlm_01 golden content,
+  independently re-derived E0-E9; the D-085 idiom; suite
+  3/0/0 GREEN)
+- docs/src/twolm/rlm_design_matrix.md — rlm_design_matrix.py
+  analysis + D-089/D-090 (the (N,7) uint32 X object + 4 public
+  fns + the duck-typed hash; 4th cache_manager consumer; the
+  approved NumPy 2.5 warning fix — explicit .astype; R1
+  redundant guard merged, T4 no-validation note — module
+  CLOSED; 55-check probe 0 mismatches)
+- docs/src/twolm/lm_worker_design_matrix.py —
+  lm_worker_design_matrix.py analysis + D-089/D-090 (the
+  uniform 7-kwargs cache wiring, flat rlmwf_06_DESIGN_MTR.dat;
+  factory @validate_call + pydantic, load_fn lambda checksum=
+  False — module CLOSED; suite 3/0/0 GREEN)
+- docs/src/twolm/test/test_lm_worker_design_matrix.py —
+  test_lm_worker_design_matrix.py analysis + D-090 (2 classes /
+  3 tests, all DB-gated post T1 — the round-trip + the rlm_01
+  golden (10,7) X, re-derived D0-D10; the D-085 idiom; suite
+  3/0/0 GREEN)
+- docs/src/twolm/test/test_rlm_design_matrix.py —
+  test_rlm_design_matrix.py analysis (D-090 T6, NEW): 4 classes
+  / 12 tests, no DB — the mock compute pins, the consistency
+  compare, the store/load cycle + golden hash da86a916…57b, the
+  sidecar/error-path pins, the init validation; suite 12/0/0
+  GREEN
+- docs/src/twolm/rlm_zed.md — rlm_zed.py analysis +
+  D-091/D-092 (the Z object + zed_fun_factory + rlm_zed_compute
+  + the duck-typed hash over z only; FIRST non-cache level; T6
+  note + T7 factory @validate_call + T8 ws D-092 — module
+  CLOSED; 60-check probe 0 mismatches)
+- docs/src/twolm/lm_worker_zed.md — lm_worker_zed.py analysis +
+  D-091/D-092 (the first non-cache worker — no cache_manager
+  wiring by design; T2 factory @validate_call + pydantic + T8
+  ws D-092 — module CLOSED; suite 3/0/0 GREEN)
+- docs/src/twolm/test/test_lm_worker_zed.md —
+  test_lm_worker_zed.py analysis + D-091/D-092 (2 classes / 3
+  tests — the factory math + the rlm_01 golden + the _down
+  pin; T1 gate, T4 D-085 idiom, T5 _down test, T8 ws — test
+  campaign CLOSED; suite 3/0/0 GREEN)
+- docs/src/twolm/test/test_rlm_zed.md — test_rlm_zed.py
+  analysis (D-092 T3, NEW): 3 classes / 10 tests, no DB — the
+  factory math, the mock-compute exact golden, the init
+  validation, the rlm_01 hash golden 3d49fd5d…f365d9b2; suite
+  10/0/0 GREEN
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-090)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-092)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–..., open)
