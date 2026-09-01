@@ -116,3 +116,21 @@ I-013 | performance | Study whether the GRADIENT fg closure can be
         evaluated only after the pipeline is complete (I-013 is
         the post-pipeline performance study); the float32 return
         contract (D-094 R1) is a constraint on any rewrite.
+
+I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE
+        level from the checkpoint's warm weights (raised 2026-09-01,
+        session 26, during the D-096 R1 discussion): when a
+        ridge_regularization change invalidates the checkpoint,
+        D-096 R1 makes the run start FROM SCRATCH — the same
+        behavior as a logit_clipping (zed) change — and that is the
+        behavior Roberto chose ("keep the clipping-equivalent
+        behavior"); the alternative, resuming the L-BFGS from the
+        checkpoint's warm state under the new objective, was
+        explicitly parked. Roberto: "un'ottimizzazione che
+        svilupperei solo in seguito, se capiamo che ha un valore
+        pratico". The plumbing already exists (the checkpoint
+        carries the full L-BFGS state — w + sl/yl/rho + iters — and
+        opt_lbfgs has the warm-start kwargs, consumed on the
+        INCOMPLETE resume path); the open question is whether a warm
+        restart under a CHANGED objective is numerically sound /
+        worth the extra semantics.

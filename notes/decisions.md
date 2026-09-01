@@ -2868,3 +2868,150 @@ D-095 | 2026-09-01 | binio sidecar empty-suffix guard (session
           48/0/0. Docstrings + V16 (the guard + the pre-fix
           clobbering) + binio.md (header, components table,
           suite status, appendix re-pinned) updated.
+
+D-096 | 2026-09-01 | OPTIMIZE bring-in analysis + fix campaign
+          (session 26, Roberto's commit 1ebdd8b — lm_worker_optimize
+          + rlm_optimize + the two tests + the logistic_model
+          enablement, the 10th active level): analysis of the two
+          modules — the only pipeline level whose "cache" is NOT a
+          data class behind the store/load/is_cache_consistent trio
+          but a plain CHECKPOINT DICT serialized with binio (the L56-
+          57 design comment) — and the fix campaign, approved in the
+          same session (Roberto: R1 keep the clipping-equivalent
+          behavior, hot-restart parked as I-014 "un'ottimizzazione
+          che svilupperei solo in seguito, se capiamo che ha un valore
+          pratico"; R2 "mettiamo try/catch"; R3 "verifichiamo la
+          checksum. Sta li per questo motivo!"; R4 _down also clears
+          w_checksum + opt_info; T1-T15 "falli tutti"; M "falli
+          tutti"), and applied in the same session:
+          R1: the ridge gate moved INTO is_optimization_cache_
+          consistent (it sat in is_optimization_status_converged) — a
+          ridge_regularization change now invalidates the checkpoint
+          EXACTLY like a zed-checksum change ("Starting from
+          scratch"): the consistency function is now 3-gate (design
+          matrix, zed, ridge — each failed gate emits its own 3×WARN
+          diagnostic block; math.isclose rel_tol=1e-5 abs_tol=1e-8,
+          the f32-stored value never trips it) and the status
+          function is slimmed to its true job: the stored g_norm is
+          re-judged against the CURRENT min_grad tolerance (a
+          judgement criterion, not part of the objective — a looser
+          tolerance accepts a not-converged checkpoint, a stricter
+          one forces further iterations; the dead mg_is_consistent
+          isclose + its TRACE log removed). The alternative — a warm
+          "restart a caldo" from the checkpoint's weights under the
+          new objective — is parked at I-014.
+          R2: try/except (RuntimeError, binio.BinaryFormatError,
+          OSError) around load_optimization_checkpoint in the
+          worker's _up — a checkpoint that cannot be parsed or
+          verified (e.g. truncated by a crash mid-save) is deleted
+          (content + .SHA3-256 sidecar, both unlink(missing_ok=True))
+          with a WARN, and the run starts from scratch instead of
+          killing the worker.
+          R3: load_optimization_checkpoint verifies the SHA3-256
+          sidecar (binio.verify_sha3_256_sidecar) after the 2 header
+          gates and BEFORE any payload is trusted — a mismatch
+          raises RuntimeError "Checkpoint checksum mismatch ... does
+          not match its SHA3-256 sidecar" (the sidecar "sta lì per
+          questo motivo").
+          R4: the worker's _down now clears ctx.fg + ctx.w_checksum +
+          ctx.opt_info (was: fg only); ctx.w is deliberately KEPT —
+          it is the (re-optimized) WMAPS weight vector, and the WMAPS
+          cache restores the zero-initialized value when that level
+          recomputes.
+          T1-T15 (the two test files + source hygiene, per the 4
+          mirror docs): worker test T1-T7 — the missing
+          SKIP_REGAB_DB gate (the header claim was false, as in D-091
+          T1 / D-093 T5), the D-085 idiom (TemporaryDirectory under
+          CUSTOM_TMP_BASE first, WORKSPACE_ROOT-anchored rlm_02.json,
+          defensive tearDown), the dead if-False block, the dead
+          imports, the stray #: ### comment, the VACUOUS
+          assertNotIn("Starting L-BFGS optimization") — opt_lbfgs
+          never logs that string, so it passed trivially — replaced
+          with the ACTUAL per-iteration marker "L-BFGS - [", and the
+          new test_down_clears_optimize pinning R4 (fg + w_checksum +
+          opt_info None, ctx.w byte-identical); worker source T8
+          ("Aauthor" → "Author"), T9/T9b the dead imports (the
+          worker's Path, the rlm's Tuple), T10 the factory
+          @validate_call + pydantic import (all 10 worker factories
+          now share the pattern); rlm source T11 the 2 no-validation
+          notes above is_optimization_cache_consistent /
+          is_optimization_status_converged (RLMContext is a
+          TYPE_CHECKING import — the rlm_indexes L166 constraint
+          class), T13 the header "rglm.py" → "rlm_optimize.py" (the
+          original repo name); rlm test T14 (the header claimed "a
+          live regab DB is required" although the file uses no DB —
+          corrected: "no live regab DB required — pure checkpoint IO
+          and cache-validation tests, as in test_rlm_gradient") +
+          T15 (the 2 consistency tests renamed
+          test_inconsistent_iters / test_inconsistent_m →
+          ..._design_matrix_checksum / ..._zed_checksum — they test
+          the checksum gates, not iters/m).
+          M1-M10: worker M1 (min_grad_count unpacked but unused →
+          min_grad_value, _), M2 (the trailing "state is
+          unrecognized" else removed — unreachable: iters is an int,
+          so iters >= max_iters or iters < max_iters always holds;
+          the comment documents why), M4 ("cecksum" → "checksum" ×2
+          in the worker logs), M5 (the intermediate checkpoints now
+          store iters=k+1 — completed-count semantics, as the final
+          save: a resume starts exactly where the interrupted run
+          stopped, no redundant iteration); rlm M3 (the status
+          function slimming — see R1), M6 (save_optimization_
+          checkpoint fails fast with ValueError when sl/yl/rho
+          differ in length — the file format is a single length
+          prefix + one (s, y, rho) triple per entry and cannot
+          represent asymmetric lengths; the check runs before the
+          writer opens, so no file is left behind — the D-095 guard
+          shape), M7 (the consistency/status functions log
+          WARN/TRACE — a deviation from the silent rlm_* is_
+          cache_consistent shape, resolved KEEP+DOCUMENT: those
+          functions inspect the live cfg and carry the per-parameter
+          diagnostics the worker's generic "Checkpoint config
+          mismatch" WARN cannot), M8 (the checkpoint file name is
+          config-driven — optimization.checkpoint_file, not
+          rlmwf_-prefixed — intentional: a user-addressable
+          checkpoint; the next cache level still takes rlmwf_08),
+          M9 (the "Atomically serialize" comment dropped — there is
+          no temp-file + rename; the R2 delete+scratch recovery is
+          what makes a crash-mid-save recoverable); test M10
+          (test_rlm_optimize expanded 4 → 19 tests in 4 classes,
+          no DB, no gate: the round-trip WITH dtype pins (w/sl/yl
+          float32, rho float64), the empty-history round-trip, the
+          M6 fail-fast, the 2 header RuntimeError gates message-
+          pinned, the R3 corrupted-content gate (last byte flipped,
+          sidecar untouched), the deterministic file golden hash
+          6e01ff86…1bd280 + the sidecar produced-and-matches, the 3
+          helper tests (info-dict 5-keys + KeyError + the weights-
+          hash golden 78a7baac…dc060 = independent sha3_256 of
+          w.tobytes()), the 4 consistency branches incl. the new
+          test_inconsistent_ridge (R1), the 4 status branches incl.
+          the f32 round-trip and the judged-against-new-tolerance
+          test (M3 semantics)).
+          VERIFIED: the 92-check probe (scratch/verify_optimize.py,
+          tiers A–H, re-pinned to the post-campaign state) 0
+          mismatches — the deterministic checkpoint bytes + the
+          binio sha3_256sum sidecar, the dtype-preserving round-
+          trip, the 4 checkpoint decision paths verified LIVE on the
+          10-level pipeline (completed: 2nd instance "already
+          completed", zero lbfgs calls, byte-identical weights; warm-
+          resume: a crafted INCOMPLETE checkpoint resumes from
+          iteration 5 with the warm sl/yl/rho consumed; zed-
+          inconsistent (clipping 0.01→0.02) → scratch; ridge-
+          ONLY-inconsistent (R1: ridge 0.01→0.02 with an UNCHANGED
+          zed checksum) → scratch, the same behavior as a clipping
+          change; use_cache=False → no load but the checkpoint is
+          still saved — the D-071 R1 pattern; corrupted checkpoint
+          (R2+R3) → load raises, the worker deletes the file +
+          sidecar, re-optimizes and re-saves a valid checkpoint), the
+          f32-stored ridge/min_grad never trip the isclose gates
+          (f32 relative error ~6e-8 ≪ rel_tol 1e-5/1e-3: no false
+          inconsistency on a round-tripped checkpoint), and the
+          GRADIENT float32 contract (D-094 R1) is consumed
+          losslessly (lbfgs x0.copy() keeps float32 end-to-end —
+          ctx.w is float32 after 50 iterations — so the NDArray
+          [np.float32] gate of weights_compute_sha3_256_hash can
+          never reject a live weight vector). The stale
+          logistic_model probe re-pinned (V3c 9 → 10-worker list —
+          it had gone stale at a0adc6e). Suites: 576 → 598 tests
+          (598/0/71 gated + 598 run / 17 skipped ungated, −W error
+          full discover clean, build/tmp clean). 5 mirror docs (4
+          new + the logistic_model.md 10-worker update).
