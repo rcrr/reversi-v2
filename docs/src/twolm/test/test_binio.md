@@ -1,6 +1,6 @@
 # test_binio.md — analysis
 
-Date: 2026-08-29. Two test files: `test_binio.py` (42 tests, 9 classes) + `test_usage_binio.py` (3 tests, 3 classes). **T4 applied (D-051): suite 45/0/0 GREEN.**
+Date: 2026-08-29. Two test files: `test_binio.py` (45 tests, 9 classes) + `test_usage_binio.py` (3 tests, 3 classes). **T4 applied (D-051): suite 45/0/0 GREEN. D-095 (2026-09-01): 3 empty-sidecar-suffix guard tests added — suite 48/0/0 GREEN.**
 
 ## How to run
 
@@ -13,14 +13,14 @@ $ time PERF=0 python3 -m unittest twolm.test.test_binio twolm.test.test_usage_bi
 
 | # | Fact | Method |
 |---|---|---|
-| W1 | All 45 tests pass (0 failures, 0 skipped) | `unittest twolm.test.test_binio twolm.test.test_usage_binio` |
+| W1 | All 48 tests pass (0 failures, 0 skipped) | `unittest twolm.test.test_binio twolm.test.test_usage_binio` |
 | W2 | No PERF gate skips — the suite is fast enough without them | grep for `skipIf` / `skipUnless` / `PERF` in both files |
 | W3 | All dead imports checked — no unused imports in either file | `hashlib`, `io`, `os`, `tempfile`, `unittest`, `numpy` (as `np`), `twolm.binio` all referenced |
 | W4 | `shutil` imported and used in `test_usage_binio.py` (L57: `shutil.rmtree`) — not dead | grep + body scan |
 
 ## Coverage by area
 
-### test_binio.py — 9 classes, 42 tests
+### test_binio.py — 9 classes, 45 tests
 
 #### `ScalarRoundTripTest` (10 tests)
 - `test_u8`, `test_i8`, `test_u16`, `test_i16`, `test_u32`, `test_i32`, `test_u64`, `test_i64`: round-trip using `_round_trip` helper at type bounds.
@@ -139,10 +139,10 @@ Remaining gaps (minor, noted-only):
 | 162 | `ArrayTest` | 8 |
 | 230 | `HeaderTest` | 2 |
 | 253 | `FramingTest` | 3 |
-| 288 | `Sha3_256SidecarTest` | 5 |
-| 342 | `AutoChecksumTest` | 5 |
-| 393 | `FullDocumentTest` | 1 |
-| 420 | `Lz4CompressionTest` | 4 |
+| 288 | `Sha3_256SidecarTest` | 7 (+2 D-095: write empty-suffix raises + content intact, verify empty-suffix raises) |
+| 357 | `AutoChecksumTest` | 6 (+1 D-095: constructor raises before the file is opened) |
+| 415 | `FullDocumentTest` | 1 |
+| 442 | `Lz4CompressionTest` | 4 |
 
 ### test_usage_binio.py
 

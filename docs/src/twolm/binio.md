@@ -2,6 +2,12 @@
 
 Date: 2026-08-29. Module added by Roberto (3 files: binio.py + test_binio.py + test_usage_binio.py).
 **Fix batch T1-T4 applied (D-051): suite 44 → 45/0/0 GREEN.**
+**D-095 (2026-09-01, session 25): the empty-sidecar-suffix guard —
+an empty `suffix` / `checksum_suffix` made the sidecar path BE the
+content file, which the write paths truncated and overwrote (data
+loss, empirically confirmed pre-fix); all three sidecar entry points
+now raise `ValueError` (the writer fails fast in `__init__`, before
+the file is opened); suite 45 → 48/0/0 GREEN.**
 
 ## Architecture
 
@@ -14,13 +20,13 @@ supports optional LZ4 whole-file compression.
 
 | Component | Role |
 |---|---|
-| `BinaryWriter(file, *, magic, signature, checksum, checksum_suffix, compressed)` | Write framed records. Default `checksum=True` writes a `sha3_256sum`-format sidecar on `close()` (path-based) or exposes the digest via `sha3_256_hexdigest` (file-object-based). `compressed=True` buffers all writes in memory, compresses with LZ4, and writes on `close()`. |
+| `BinaryWriter(file, *, magic, signature, checksum, checksum_suffix, compressed)` | Write framed records. Default `checksum=True` writes a `sha3_256sum`-format sidecar on `close()` (path-based) or exposes the digest via `sha3_256_hexdigest` (file-object-based). `compressed=True` buffers all writes in memory, compresses with LZ4, and writes on `close()`. An empty `checksum_suffix` raises `ValueError` in `__init__` (D-095 — it would clobber the content file at `close()`; `checksum=False` is the no-sidecar knob). |
 | `BinaryReader(file, *, magic, signature, compressed)` | Read records in the exact order written. `compressed=True` decompresses the whole file into memory before reading. |
 | `FileHeader = namedtuple("FileHeader", ["description", "version"])` | Return type of `read_header()`. |
 | `BinaryFormatError(Exception)` | Raised on MAGIC mismatch, unexpected EOF, unknown type code, corrupted sidecar, or LZ4 decompression failure. |
 | `compute_sha3_256(path)` | Return hex digest of a file. |
-| `write_sha3_256_sidecar(path)` | Write `<path>.SHA3-256` sidecar; returns sidecar path. |
-| `verify_sha3_256_sidecar(path)` | Recompute and compare; returns `bool`. |
+| `write_sha3_256_sidecar(path, *, suffix=".SHA3-256")` | Write `<path><suffix>` sidecar; returns sidecar path. Empty `suffix` raises `ValueError` (D-095). |
+| `verify_sha3_256_sidecar(path, *, suffix=".SHA3-256")` | Recompute and compare; returns `bool`. Empty `suffix` raises `ValueError` (D-095). |
 
 ### On-disk layout (verified — all 4 record types match the docstring)
 
@@ -59,6 +65,7 @@ All independently verified via pure Python / manual byte-level inspection, zero 
 | V13 | Empty array and `_read_exact(0)` | `np.array([], dtype=np.int32)` round-trips; `_read_exact(0)` returns `b''` |
 | V14 | Incremental SHA3-256 = full re-read | `BinaryWriter` with `checksum=True` + `compute_sha3_256()` — matched |
 | V15 | Compressed digest over compressed bytes | `BinaryWriter(compressed=True)` sidecar matches `compute_sha3_256()` on the compressed file |
+| V16 | Empty sidecar suffix is rejected (D-095): `BinaryWriter(checksum_suffix="")` raises `ValueError` in `__init__` (before the file is opened — no file created), `write_sha3_256_sidecar(suffix="")` raises `ValueError` and leaves the content byte-identical, `verify_sha3_256_sidecar(suffix="")` raises `ValueError`. Pre-fix behaviour (empirically confirmed): the empty suffix made the sidecar path equal the content path, so both write paths truncated the content file and replaced it with the sidecar line (data loss) | 3-path probe (pre-fix) + 3 new unit tests (post-fix) |
 
 ## Design notes
 
@@ -96,7 +103,7 @@ All four disposed in the fix batch: lz4 added to pyproject.toml, Path import rem
 
 ## Observations (not defects)
 
-- **No PERF gates**: 45/0/0 — the suite runs in ~0.017s. If the lz4 tests (which create temp files) become slow in CI, a PERF gate could be added.
+- **No PERF gates**: 48/0/0 — the suite runs in ~0.02s. If the lz4 tests (which create temp files) become slow in CI, a PERF gate could be added.
 - **`test_usage_binio.py` naming**: follows `test_<something>_binio.py` rather than the project norm `test_binio.py` / `test_binio_stress.py`. Does not affect function.
 - **`_read_exact` EOF not directly unit-tested**: covered indirectly by `FramingTest.test_truncated_file_raises` and `FramingTest.test_wrong_read_order_detected`.
 
@@ -104,15 +111,15 @@ All four disposed in the fix batch: lz4 added to pyproject.toml, Path import rem
 
 ```
 $ python -m unittest twolm.test.test_binio twolm.test.test_usage_binio
-.............................................
+................................................
 --------------------------------------------------------------
-Ran 45 tests in 0.017s
+Ran 48 tests in 0.019s
 OK
 ```
 
-0 failures, 0 skipped.
+0 failures, 0 skipped (post D-095: 45 → 48 — the 3 empty-suffix guard tests).
 
-### Test classes (test_binio.py — 42 tests)
+### Test classes (test_binio.py — 45 tests)
 
 | Class | Tests | Coverage |
 |---|---|---|
@@ -121,8 +128,8 @@ OK
 | `ArrayTest` | 8 | all 10 dtypes, multidim, empty, 0-d, writable, non-contiguous, unsupported-dtype-raises (write side), unknown-type-code-raises (read side, T4) |
 | `HeaderTest` | 2 | round-trip, wrong-signature-raises |
 | `FramingTest` | 3 | MAGIC mismatch, wrong read order, truncated file |
-| `Sha3_256SidecarTest` | 5 | write+verify, sha3_256sum format, corruption detection, missing sidecar raises, malformed sidecar raises |
-| `AutoChecksumTest` | 5 | sidecar on close, incremental=match_reread, disabled=no_sidecar, digest property on file-object, digest raises when disabled |
+| `Sha3_256SidecarTest` | 7 | write+verify, sha3_256sum format, corruption detection, missing sidecar raises, malformed sidecar raises, write empty-suffix raises + content intact (D-095), verify empty-suffix raises (D-095) |
+| `AutoChecksumTest` | 6 | sidecar on close, incremental=match_reread, disabled=no_sidecar, empty checksum_suffix raises on construction (D-095), digest property on file-object, digest raises when disabled |
 | `FullDocumentTest` | 1 | header + mixed scalars + string + 2 arrays |
 | `Lz4CompressionTest` | 4 | round-trip with path, actually compresses, checksum over compressed bytes, round-trip with file-object |
 
@@ -136,7 +143,8 @@ OK
 
 All three usage tests also verify the SHA3-256 sidecar.
 
-## Appendix: line-number reference (2026-08-29, post T1-T4)
+## Appendix: line-number reference (2026-09-01, post D-095 — everything
+from `BinaryWriter.__init__` on shifted +10; the three guards added)
 
 - `DEFAULT_MAGIC = 0x314E4942`: L116
 - `DEFAULT_FILE_SIGNATURE = 0x484F4942`: L121
@@ -146,25 +154,25 @@ All three usage tests also verify the SHA3-256 sidecar.
 - `_MAGIC` (struct singletons): L165
 - `BinaryFormatError`: L178
 - `_open_arg`: L186
-- `BinaryWriter` (class): L195
-- `BinaryWriter.__init__`: L211
-- `BinaryWriter.close`: L263
-- `BinaryWriter._write`: L294
-- `BinaryWriter._open_frame`: L302
-- `BinaryWriter._scalar`: L308
-- `BinaryWriter.write_header`: L315
-- `BinaryWriter.write_u8`…`write_f64`: L333–L342
-- `BinaryWriter.write_string`: L346
-- `BinaryWriter.write_array`: L360
-- `BinaryReader` (class): L388
-- `BinaryReader.__init__`: L395
-- `BinaryReader._read_exact`: L437
-- `BinaryReader._expect_magic`: L456
-- `BinaryReader._scalar`: L464
-- `BinaryReader.read_header`: L472
-- `BinaryReader.read_u8`…`read_f64`: L494–L503
-- `BinaryReader.read_string`: L507
-- `BinaryReader.read_array`: L516
-- `compute_sha3_256`: L540
-- `write_sha3_256_sidecar`: L551
-- `verify_sha3_256_sidecar`: L567
+- `BinaryWriter` (class): L195 (docstring: the non-empty suffix note, D-095)
+- `BinaryWriter.__init__`: L216 (empty-suffix guard L226-230, D-095)
+- `BinaryWriter.close`: L273 (sidecar write L294)
+- `BinaryWriter._write`: L304
+- `BinaryWriter._open_frame`: L312
+- `BinaryWriter._scalar`: L318
+- `BinaryWriter.write_header`: L325
+- `BinaryWriter.write_u8`…`write_f64`: L343–L352
+- `BinaryWriter.write_string`: L356
+- `BinaryWriter.write_array`: L370
+- `BinaryReader` (class): L398
+- `BinaryReader.__init__`: L405
+- `BinaryReader._read_exact`: L447
+- `BinaryReader._expect_magic`: L466
+- `BinaryReader._scalar`: L474
+- `BinaryReader.read_header`: L482
+- `BinaryReader.read_u8`…`read_f64`: L504–L513
+- `BinaryReader.read_string`: L517
+- `BinaryReader.read_array`: L526
+- `compute_sha3_256`: L550
+- `write_sha3_256_sidecar`: L561 (empty-suffix guard L572, D-095)
+- `verify_sha3_256_sidecar`: L584 (empty-suffix guard L592, D-095)

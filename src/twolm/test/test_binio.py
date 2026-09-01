@@ -338,6 +338,21 @@ class Sha3_256SidecarTest(unittest.TestCase):
         with self.assertRaises(BinaryFormatError):
             binio.verify_sha3_256_sidecar(self.path)
 
+    def test_write_empty_suffix_raises_and_content_intact(self):
+        # An empty suffix points the sidecar at the content file itself:
+        # the call must be rejected and the content must survive.
+        with open(self.path, "rb") as f:
+            before = f.read()
+        with self.assertRaises(ValueError):
+            binio.write_sha3_256_sidecar(self.path, suffix="")
+        with open(self.path, "rb") as f:
+            self.assertEqual(f.read(), before)
+
+    def test_verify_empty_suffix_raises(self):
+        binio.write_sha3_256_sidecar(self.path)
+        with self.assertRaises(ValueError):
+            binio.verify_sha3_256_sidecar(self.path, suffix="")
+
 
 class AutoChecksumTest(unittest.TestCase):
     """
@@ -374,6 +389,13 @@ class AutoChecksumTest(unittest.TestCase):
         with BinaryWriter(self.path, checksum=False) as w:
             w.write_u32(1)
         self.assertFalse(os.path.exists(self.path + ".SHA3-256"))
+
+    def test_empty_checksum_suffix_raises_on_construction(self):
+        # Fail fast, before the file is even opened (an empty suffix
+        # would clobber the content file at close).
+        with self.assertRaises(ValueError):
+            BinaryWriter(self.path, checksum_suffix="")
+        self.assertFalse(os.path.exists(self.path))
 
     def test_digest_property_on_file_object(self):
         # With a file object (no path) the digest is exposed, not a sidecar.

@@ -206,6 +206,11 @@ class BinaryWriter:
     target is a file object (no path), the digest is still available via the
     ``sha3_256_hexdigest`` property. With ``checksum=False`` no hashing happens;
     you may still create a sidecar afterwards with ``write_sha3_256_sidecar``.
+
+    ``checksum_suffix`` must be non-empty: with an empty suffix the
+    ``<path><suffix>`` sidecar would BE the content file, which ``close()``
+    truncates and overwrites. Use ``checksum=False`` (not an empty suffix)
+    to skip the sidecar. Raises ``ValueError`` if empty.
     """
 
     def __init__(
@@ -218,6 +223,11 @@ class BinaryWriter:
         checksum_suffix: str = ".SHA3-256",
         compressed: bool = False
     ):
+        if not checksum_suffix:
+            raise ValueError(
+                "checksum_suffix must be a non-empty string (an empty "
+                "suffix would overwrite the content file on close; use "
+                "checksum=False to disable the sidecar)")
         self._path = os.fspath(file) if isinstance(file, (str, os.PathLike)) else None
         self._actual_f = None
         self._compressed = compressed
@@ -555,7 +565,14 @@ def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
     The line is ``"<hexdigest>  <basename>\\n"`` so the file is verifiable
     with the standard ``sha3_256sum -c`` tool from the same directory.
     Returns the sidecar path.
+
+    Raises ``ValueError`` if ``suffix`` is empty (the sidecar would be the
+    content file itself, which would be overwritten).
     """
+    if not suffix:
+        raise ValueError(
+            "suffix must be a non-empty string (an empty suffix would "
+            "overwrite the content file)")
     digest = compute_sha3_256(path)
     sidecar = os.fspath(path) + suffix
     name = os.path.basename(os.fspath(path))
@@ -569,8 +586,13 @@ def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
     Recompute the file's SHA3-256 and compare it to its sidecar.
 
     Returns True if they match. Raises ``FileNotFoundError`` if the sidecar
-    is missing, ``BinaryFormatError`` if it is malformed.
+    is missing, ``BinaryFormatError`` if it is malformed, ``ValueError`` if
+    ``suffix`` is empty (it would read the content file as its sidecar).
     """
+    if not suffix:
+        raise ValueError(
+            "suffix must be a non-empty string (an empty suffix would "
+            "read the content file as its sidecar)")
     sidecar = os.fspath(path) + suffix
     with open(sidecar, "r", encoding="ascii") as f:
         line = f.readline().strip()
