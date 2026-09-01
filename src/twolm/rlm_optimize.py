@@ -1,5 +1,5 @@
 #
-# rglm.py
+# rlm_optimize.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -33,7 +33,7 @@ import numpy as np
 import numpy.typing as npt
 
 from pathlib import Path
-from typing import List, Tuple, Dict, Any, TYPE_CHECKING
+from typing import List, Dict, Any, TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from twolm import binio
@@ -74,6 +74,12 @@ def save_optimization_checkpoint(filepath: Path,
                                  yl: List[np.ndarray],
                                  rho: List[float]) -> None:
     """Saves the L-BFGS state and metadata to a binary checkpoint file."""
+    # M6 (D-096): the file stores a single length prefix plus one
+    # (s, y, rho) triple per entry, so the three history lists must
+    # have equal length (fail fast instead of a framing error at load).
+    if not (len(sl) == len(yl) == len(rho)):
+        raise ValueError("sl, yl and rho must have the same length "
+                         "(the L-BFGS history is stored as (s, y, rho) triples)")
     with binio.BinaryWriter(filepath) as bw:
         bw.write_header("RGLM Optimization Checkpoint", 1)
         bw.write_string(design_matrix_checksum)
@@ -87,13 +93,13 @@ def save_optimization_checkpoint(filepath: Path,
         bw.write_i32(iters)
         bw.write_f32(f)
         bw.write_f32(g_norm)
-        
+
         bw.write_i32(len(sl))
         bw.write_array(w)
-        
-        # Atomically serialize the L-BFGS history vectors chronologically.
-        # zip() pairs each displacement vector (s) with its corresponding 
-        # gradient change (y) and scaling factor (rho) to write them 
+
+        # Serialize the L-BFGS history vectors chronologically:
+        # zip() pairs each displacement vector (s) with its corresponding
+        # gradient change (y) and scaling factor (rho) and writes them
         # sequentially into the binary file for a seamless warm start.
         for s, y, r in zip(sl, yl, rho):
             bw.write_array(s)
@@ -105,6 +111,9 @@ def save_optimization_checkpoint(filepath: Path,
 def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
     """
     Loads the L-BFGS state from a binary checkpoint file.
+    Verifies the header (description and version) and the SHA3-256
+    sidecar before trusting any payload: the sidecar exists precisely
+    for this (D-096 R3).
     """
     with binio.BinaryReader(filepath) as br:
         # Read header properly!
@@ -114,12 +123,16 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
         if version != 1:
             raise RuntimeError(f"Checkpoint version mismatch: found {version}, expected 1")
 
+        if not binio.verify_sha3_256_sidecar(filepath):
+            raise RuntimeError(
+                f"Checkpoint checksum mismatch: {filepath} does not match its SHA3-256 sidecar")
+
         # Read the checksum from earlier steps
         design_matrix_checksum = br.read_string()
         zed_checksum = br.read_string()
         ridge_regularization = br.read_f32()
         min_grad_value = br.read_f32()
-        
+
         # 2. Read the metadata
         max_iters = br.read_i32()
         m = br.read_i32()
@@ -128,17 +141,16 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
         iters = br.read_i32()
         f = br.read_f32()
         g_norm = br.read_f32()
-        
+
         # 3. Read the L-BFGS memory state
         len_mem = br.read_i32()
         w = br.read_array()
-        
+
         sl, yl, rho = [], [], []
         for _ in range(len_mem):
             sl.append(br.read_array())
             yl.append(br.read_array())
             rho.append(br.read_f64())
-            
     return {
         'design_matrix_checksum': design_matrix_checksum,
         'zed_checksum': zed_checksum,
@@ -158,31 +170,44 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
     }
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def is_optimization_cache_consistent(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
     """
     Validates the checkpoint against current configuration.
-    The two gates are:
+    The three gates are:
       - ctx.design_matrix_checksum
         It ensures that the game positions, feature set, frequency clipping are all
         unchanged. The actual JSON config and database extraction are consistent with
-        the reloaded data from the checpoint file cache.
+        the reloaded data from the checkpoint file cache.
       - ctx.zed_checksum
         It ensures that the game values and logit clipping are consistent as well.
+      - ctx.cfg.stat_model.ridge_regularization
+        The ridge coefficient is part of the objective function, so a change
+        invalidates the checkpoint exactly like a zed checksum change does
+        (D-096 R1: a ridge change keeps the same behavior as a
+        logit_clipping change — recompute from scratch).
     """
 
     if ctx.design_matrix_checksum != checkpoint['design_matrix_checksum']:
-        ctx.log_event(Relevance.WARN, f"The definition of the Design Matrix has changed.")
+        ctx.log_event(Relevance.WARN, "The definition of the Design Matrix has changed.")
         ctx.log_event(Relevance.WARN, f"ctx.design_matrix_checksum:           {ctx.design_matrix_checksum}.")
         ctx.log_event(Relevance.WARN, f"checkpoint['design_matrix_checksum']: {checkpoint['design_matrix_checksum']}.")
         return False
-    
+
     if ctx.zed_checksum != checkpoint['zed_checksum']:
-        ctx.log_event(Relevance.WARN, f"The definition of the Z array has changed.")
+        ctx.log_event(Relevance.WARN, "The definition of the Z array has changed.")
         ctx.log_event(Relevance.WARN, f"ctx.zed_checksum:           {ctx.zed_checksum}.")
         ctx.log_event(Relevance.WARN, f"checkpoint['zed_checksum']: {checkpoint['zed_checksum']}.")
         return False
-    
-    ctx.log_event(Relevance.INFO, f"The definition of the Design Matrix and Z array are unchanged.")
+
+    if not math.isclose(ctx.cfg.stat_model.ridge_regularization,
+                        checkpoint['ridge_regularization'], rel_tol=1e-5, abs_tol=1e-8):
+        ctx.log_event(Relevance.WARN, "The ridge regularization parameter has changed.")
+        ctx.log_event(Relevance.WARN, f"ctx.cfg.stat_model.ridge_regularization: {ctx.cfg.stat_model.ridge_regularization:.4e}.")
+        ctx.log_event(Relevance.WARN, f"checkpoint['ridge_regularization']: {checkpoint['ridge_regularization']:.4e}.")
+        return False
+
+    ctx.log_event(Relevance.INFO, "The definition of the Design Matrix, the Z array and the ridge regularization are unchanged.")
     return True
 
 
@@ -202,38 +227,35 @@ def optimization_info_dict(lbfgs_info: dict) -> dict:
     return info
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def is_optimization_status_converged(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
     """
-    Validates the checkpoint convergence status against current configuration requirements.
+    Validates the checkpoint convergence status against the current
+    stopping tolerance.
+    The configuration consistency (design matrix, z array and ridge
+    gates) is checked by is_optimization_cache_consistent before this
+    function is reached, so here only the stored gradient norm is
+    compared with the CURRENT min_grad tolerance: the tolerance is a
+    judgement criterion, not part of the objective, so a changed
+    tolerance re-judges the stored state (a looser tolerance may accept
+    a not-converged checkpoint, a stricter one forces further
+    iterations).
     """
-    ridge_regularization = ctx.cfg.stat_model.ridge_regularization
     min_grad = ctx.cfg.optimization.min_grad
-    ctx.log_event(Relevance.TRACE, f"Parameter ctx.cfg.stat_model.ridge_regularization = {ridge_regularization:.4e}")
     ctx.log_event(Relevance.TRACE, f"Parameter ctx.cfg.optimization.min_grad = ({min_grad[0]:.4e}, {min_grad[1]})")
     min_grad_value, _ = min_grad
 
-    cp_ridge_regularization = checkpoint['ridge_regularization']
     cp_min_grad_value = checkpoint['min_grad_value']
-    ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['ridge_regularization'] = {cp_ridge_regularization:.4e}")
     ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['min_grad_value'] = {cp_min_grad_value:.4e}")
-
-    rr_is_consistent = math.isclose(ridge_regularization, cp_ridge_regularization, rel_tol=1e-5, abs_tol=1e-8)
-    mg_is_consistent = math.isclose(min_grad_value, cp_min_grad_value, rel_tol=1e-3, abs_tol=1e-8)
-    ctx.log_event(Relevance.TRACE, f"Parameter rr_is_consistent = {rr_is_consistent}")
-    ctx.log_event(Relevance.TRACE, f"Parameter mg_is_consistent = {mg_is_consistent}")
-
-    if not rr_is_consistent:
-        ctx.log_event(Relevance.DEBUG, f"Configuration parameter ridge_regularization has been changed.")
-        return False
 
     cp_g_norm = checkpoint['g_norm']
     ctx.log_event(Relevance.TRACE, f"Parameter checkpoint['g_norm'] = {cp_g_norm:.4e}")
 
     if cp_g_norm < min_grad_value:
-        ctx.log_event(Relevance.INFO, f"Obtained gradient norm is lower than required, convergence is reached.")
+        ctx.log_event(Relevance.INFO, "Obtained gradient norm is lower than required, convergence is reached.")
         return True
     else:
-        ctx.log_event(Relevance.INFO, f"Obtained gradient norm is greater than required, convergence is not reached.")
+        ctx.log_event(Relevance.INFO, "Obtained gradient norm is greater than required, convergence is not reached.")
         return False
 
 
