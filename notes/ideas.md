@@ -101,3 +101,18 @@ I-012 | idea | Pipeline level order: evaluate moving FEATURES
         moving the FEATURES level before POSITIONS in the
         pipeline. The comment is left as-is in the test for now.
         To be evaluated as a line-by-line pipeline change.
+
+I-013 | performance | Study whether the GRADIENT fg closure can be
+        sped up (raised 2026-09-01, session 25, during the D-094
+        R1 discussion): Roberto believes the closure is (or will
+        be) the pipeline bottleneck for large models — "Quando
+        avremo completato la PIPELINE, uno degli interventi da
+        fare sarà verificare se sia possibile velocizzare questa
+        funzione, credo sia il collo di bottiglia della PIPELINE
+        per modelli di grosse dimensioni. Ma vedremo". The hot
+        spots: the per-call `w[X]` fancy indexing + per-row sum
+        (M×P), the sigmoid over (M,), and the broadcast +
+        np.bincount gradient accumulation (M×P → N). To be
+        evaluated only after the pipeline is complete (I-013 is
+        the post-pipeline performance study); the float32 return
+        contract (D-094 R1) is a constraint on any rewrite.

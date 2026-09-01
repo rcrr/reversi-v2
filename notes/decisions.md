@@ -2760,3 +2760,71 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           level — the next cache level takes rlmwf_08, the /M
           normalization by design; the worker triple blank lines
           L37-39 / L41-43). The fix campaign would be D-094.
+D-094 | 2026-09-01 | GRADIENT fix campaign — R1 + T1-T9 + M1
+          applied, M2 / M4 left as-is (session 25, Roberto's
+          call — R1: "caspita, brava, ho verificato
+          indipendentemente ed in effetti hai ragione ... la
+          funzione dice che ritorna float32, facciamo ritornare
+          un float32 ... Quando avremo completato la PIPELINE,
+          uno degli interventi da fare sarà verificare se sia
+          possibile velocizzare questa funzione, credo sia il
+          collo di bottiglia della PIPELINE per modelli di grosse
+          dimensioni" + "T1-T9 falli tutti" + "M1: OK. M2: No,
+          non metterei la validate call sulla funzione sigmoid.
+          E' un wrapper, è chiamata in continuazione durante la
+          ottimizzazione. M3-M4: OK."): R1 (rlm_gradient.py
+          L89: `return f, g` → `return np.float32(f),
+          g.astype(np.float32, copy=False)` — the behaviour
+          change Roberto chose: the fg closure now returns
+          (float32 f, float32 g), matching the return annotation;
+          the test goldens stay valid — the value change < 1
+          float32 ulp, inside the pinned tolerances; the future
+          OPTIMIZE level consumes this float32 contract; the
+          performance study of the closure is recorded at I-013);
+          T1 (pyproject.toml: "scipy" added to the dependencies);
+          T2 (lm_worker_gradient.py: the pydantic import + the
+          factory @validate_call(config=ConfigDict(
+          arbitrary_types_allowed=True)) — like all 7 other
+          workers); T3 (rlm_gradient.py: the no-validation note
+          above rlm_gradient_compute — the rlm_indexes L166
+          class, "Here validation is not possible, it brings in
+          a convoluted issue with circular imports"); T4 (9 ws
+          lines emptied in place: rlm_gradient 6, worker 3); T5
+          (test_lm_worker_gradient.py: the SKIP_REGAB_DB gate in
+          setUp FIRST — the header L38-39 claim now true, 2/0/2
+          under the gate); T6 (the test: the D-085 idiom —
+          TemporaryDirectory under CUSTOM_TMP_BASE created first,
+          WORKSPACE_ROOT-anchored rlm_02.json, the paths import,
+          the dead shutil gone, the defensive tearDown); T7
+          (the test: test_down_clears_gradient added — GRADIENT
+          → step 8 + fg not None, back to step 7 → ZED + fg
+          None); T8 (the test: 4 ws lines emptied); T9 (the
+          sigmoid docstring: "funxtion" → "function", "provide"
+          → "provides", "very small values of x" → "extreme
+          values of x"); M1 (test_rlm_gradient.py ADDED — 8
+          tests, 2 classes, no DB: the sigmoid goldens/symmetry
+          vs the hand-rolled float64 1/(1+exp(−x)), the
+          SimpleNamespace mock compute — the zero-weights
+          goldens 4/75 + [1/30, 0, −1/30] on the (3, 2)
+          handcrafted matrix, the nonzero-weights float64
+          re-derivation, the ridge /M scaling (g(b)−g(a) =
+          (b−a)/M·w, f(b)−f(a) = 0.5·(b−a)/M·‖w‖²), the
+          minlength empty bucket (the uncovered w-index keeps
+          the pure ridge term, g (N,) shape), the R1 float32
+          dtype pins, the closure statelessness); M2 left as-is
+          (Roberto's call: the sigmoid stays a bare wrapper —
+          called in the optimization hot loop); M3
+          informational (the second non-cache level — rlmwf_08
+          next, the /M by design); M4 left as-is (the worker
+          triple blank lines = the canonical pattern of all 8
+          worker files — house style, do not strip). File
+          changes: rlm_gradient.py 90 → 91 lines,
+          lm_worker_gradient.py 59 → 62,
+          test_lm_worker_gradient.py 118 → 142 (1 → 2 tests),
+          test_rlm_gradient.py new 169 lines, pyproject.toml +1
+          line. The 61-check probe re-pinned to the
+          post-campaign state (tiers A–G, 0 mismatches); 5
+          mirror docs written (4 new + the logistic_model.md
+          9-worker update). Suite 564 → 573 (573/0/68 gated +
+          573 run / 17 skipped ungated, −W error full discover
+          clean, build/tmp clean).
