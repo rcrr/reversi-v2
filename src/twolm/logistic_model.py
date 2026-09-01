@@ -47,7 +47,7 @@ from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 from twolm.lm_worker_zed import lm_worker_zed
 from twolm.lm_worker_gradient import lm_worker_gradient
 from twolm.lm_worker_optimize import lm_worker_optimize
-#from twolm.lm_worker_generate import lm_worker_generate
+from twolm.lm_worker_generate import lm_worker_generate
 #from twolm.lm_worker_vld_positions import lm_worker_vld_positions
 #from twolm.lm_worker_validate import lm_worker_validate
 #from twolm.lm_worker_analytics import lm_worker_analytics
@@ -213,7 +213,7 @@ class LogisticModel(BaseModel):
             lm_worker_zed(),
             lm_worker_gradient(),
             lm_worker_optimize(),
-            #lm_worker_generate(),
+            lm_worker_generate(),
             #lm_worker_vld_positions(),
             #lm_worker_validate(),
             #lm_worker_analytics(),
