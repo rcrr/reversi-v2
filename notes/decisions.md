@@ -2828,3 +2828,43 @@ D-094 | 2026-09-01 | GRADIENT fix campaign — R1 + T1-T9 + M1
           9-worker update). Suite 564 → 573 (573/0/68 gated +
           573 run / 17 skipped ungated, −W error full discover
           clean, build/tmp clean).
+D-095 | 2026-09-01 | binio sidecar empty-suffix guard (session
+          25, Roberto's pre-OPTIMIZE question: "Cosa succede se
+          il suffisso del sidecar è una stringa vuota? Viene
+          sovrascritto il file dei contenuti? Se fosse così va
+          introdotto un controllo che alza un errore ... cosa ne
+          pensi?" → my analysis + proposal → Roberto:
+          "procedi!"): VERIFIED (3-path probe, pre-fix) that with
+          an empty suffix the sidecar path BE the content path
+          and BOTH write paths destroy the content file —
+          BinaryWriter(checksum_suffix="") truncates and
+          overwrites the content with the sidecar line at
+          close() (after all writes have "succeeded" — the
+          nastiest part), write_sha3_256_sidecar(suffix="")
+          hashes the content then replaces it with its own
+          sidecar line, verify_sha3_256_sidecar(suffix="")
+          raises a confusing BinaryFormatError (no data loss
+          there). DECISION (as proposed, approved): ValueError
+          (the argument-misuse type — the module precedent is
+          the L260 "checksum service is disabled" ValueError;
+          BinaryFormatError stays reserved for on-disk data) at
+          ALL THREE sidecar entry points for a uniform API
+          contract: BinaryWriter.__init__ fails FAST (before the
+          file is opened — the pre-fix destruction happened at
+          close(), after a successful-looking write),
+          write_sha3_256_sidecar, verify_sha3_256_sidecar. The
+          empty suffix has no legitimate use — checksum=False
+          is the no-sidecar knob on the writer, and the
+          standalone functions exist to create a sidecar — so
+          the guard removes no functionality; the messages say
+          why ("an empty suffix would overwrite the content
+          file"). Zero pipeline impact: cache_manager hardcodes
+          the .SHA3-256 constant (L65) and the rlm_wmaps /
+          rlm_design_matrix / rlm_indexes / regab callers use
+          the default suffix. 3 new tests (Sha3_256SidecarTest:
+          write empty-suffix raises + content byte-identical
+          after, verify empty-suffix raises; AutoChecksumTest:
+          constructor raises + no file created): suite 45 →
+          48/0/0. Docstrings + V16 (the guard + the pre-fix
+          clobbering) + binio.md (header, components table,
+          suite status, appendix re-pinned) updated.

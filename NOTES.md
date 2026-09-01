@@ -35,8 +35,8 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28 (session 10): 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented; fix campaign CLOSED the same day (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 → 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
 | src/twolm/feature.py | analyzed 2026-08-28 (session 11): Feature (blocked __new__ + 3 factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 20/0/1 GREEN (test_feature.py, 19 run + 1 PERF) | docs/src/twolm/feature.md |
 | src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 11): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); T campaign CLOSED 2026-08-29 (D-043..D-050: T6, T1, T2, T3, T5, T7, T9, T4 — both files; T8 left as-is); suite 20 tests (19 run + 1 PERF), GREEN 20/0/1 | docs/src/twolm/test/test_feature.md |
-| src/twolm/binio.py | analyzed 2026-08-29 (session 14); T1-T4 fix batch applied (D-051: lz4 in pyproject.toml, dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises added); 15 verified facts V1-V15 (0 mismatches); suite 45/0/0 GREEN (test_binio 42 + test_usage_binio 3) | docs/src/twolm/binio.md |
-| src/twolm/test/test_binio.py | analyzed 2026-08-29 (session 14, with test_usage_binio.py); T4 applied (D-051): ArrayTest now 8 tests (42 total in test_binio); suite 44 → 45, GREEN 45/0/0, no PERF | docs/src/twolm/test/test_binio.md |
+| src/twolm/binio.py | analyzed 2026-08-29 (session 14); T1-T4 fix batch applied (D-051: lz4 in pyproject.toml, dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises added); 15 verified facts V1-V15 (0 mismatches); D-095 (2026-09-01, session 25, Roberto: "procedi!"): the empty-sidecar-suffix guard — with `suffix=""` the sidecar path BE the content file, which both write paths truncated and overwrote (data loss, empirically confirmed pre-fix; verify raised a confusing BinaryFormatError); all 3 sidecar entry points now raise ValueError (the writer fails fast in __init__ before the file is opened — the empty suffix has no legitimate use, checksum=False is the no-sidecar knob); docstrings updated; 16 verified facts V1-V16 (V16 the guard + the pre-fix clobbering); suite 48/0/0 GREEN (test_binio 45 + test_usage_binio 3) | docs/src/twolm/binio.md |
+| src/twolm/test/test_binio.py | analyzed 2026-08-29 (session 14, with test_usage_binio.py); T4 applied (D-051): ArrayTest now 8 tests (42 total in test_binio); D-095: 3 empty-suffix guard tests added (Sha3_256SidecarTest: write raises + content intact, verify raises; AutoChecksumTest: constructor raises before the file is opened — the file must not exist); suite 45 → 48, GREEN 48/0/0, no PERF | docs/src/twolm/test/test_binio.md |
 | src/twolm/regab.py | analyzed 2026-08-29 (session 15); T1-T7 fix batch applied (D-052: "Aauthor" → "Author", dead typing imports, psycopg2/pandas/python-dotenv in pyproject.toml, _validate_db_fields DB query deferred, SKIP_REGAB_DB=1 gate, _validate_where_clause SQL-injection guard); 5 verified facts V1-V5 (0 mismatches, sha3_256 golden); suite 37/0/0 GREEN (35 DB + 2 mocked; SKIP_REGAB_DB=1 → 35 skip) | docs/src/twolm/regab.md |
 | src/twolm/test/test_regab.py | analyzed 2026-08-29 (session 15); T5+T6+T7 applied (D-052): dead imports removed, SKIP_REGAB_DB gate, 4 SQL-injection tests added (TestRegabGPAsDF 12 → 16); suite 33 → 37/0/0 GREEN; D-085: the .env load + the checksum-test mkdtemp re-anchored to the shared twolm.test.paths module | docs/src/twolm/test/test_regab.md |
 | src/twolm/opt_lbfgs.py | analyzed 2026-08-29 (session 16); T1-T7 fix batch applied (D-053: RuntimeException → RuntimeError hard bug, CURVATURE_THRESHOLD used, low_progress_count spelling, hermite None fallthrough, save_fn 7-param hint+docstring, fractional docstring); 5 verified facts V1-V5 (0 mismatches); suite 13/0/0 GREEN | docs/src/twolm/opt_lbfgs.md |
@@ -131,7 +131,7 @@ now (I-001; see notes/decisions.md).
   test_regab needs a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to
   skip the 35 DB tests (2 mocked run).
 - Suite status (2026-09-01): board 193/0/12, pattern 64/0/3,
-  mobility 26/0/1, feature 20/0/1, binio 45/0/0 (42 + 3 usage),
+  mobility 26/0/1, feature 20/0/1, binio 48/0/0 (45 + 3 usage),
   regab 37/0/0 (2 mocked run, 35 DB skipped under SKIP_REGAB_DB=1),
   opt_lbfgs 13/0/0, state_machine 49/0/0, cache_manager 21/0/0,
   logistic_model 14/0/0 (1 test muted per Roberto, D-073;
@@ -154,7 +154,7 @@ now (I-001; see notes/decisions.md).
   through DESIGN_MTR, run with live DB), lm_worker_gradient 2/0/0
   (a0adc6e + D-094 T5 — 2 DB-gated; the setUp moves through ZED,
   run with live DB), test_rlm_gradient 8/0/0 (D-094 M1 — no DB,
-  no gate) — all GREEN. Totals: 573 tests, 68 skipped
+  no gate) — all GREEN. Totals: 576 tests, 68 skipped
   under the gate (17 PERF=1 print-only performance tests + 35
   DB-gated regab tests + 2 DB-gated lm_worker_positions tests +
   2 DB-gated lm_worker_features tests + 2 DB-gated
@@ -247,8 +247,16 @@ now (I-001; see notes/decisions.md).
   framing + SHA3-256 sidecar + optional LZ4 whole-file compression.
   15 verified facts V1-V15 (0 mismatches); T1-T4 fix batch (D-051:
   lz4 in pyproject.toml, dead Path import, "Aauthor" → "Author",
-  test_unknown_type_code_raises). Suite 45/0/0 GREEN (42 + 3 usage).
-  BINIO module done.
+  test_unknown_type_code_raises). D-095 (2026-09-01, session 25,
+  Roberto: "procedi!"): the empty-sidecar-suffix guard — with an
+  empty suffix the sidecar path BE the content file, which
+  BinaryWriter.close() and write_sha3_256_sidecar truncate and
+  overwrite (data loss, empirically confirmed pre-fix); all 3
+  sidecar entry points now raise ValueError (the writer fails
+  fast in __init__, before the file is opened; the empty suffix
+  has no legitimate use — checksum=False is the no-sidecar
+  knob); 3 new tests (45 → 48/0/0), docstrings + V16 + doc
+  updated. BINIO module done.
 - test_binio.py: analyzed 2026-08-29 (session 14,
   docs/src/twolm/test/test_binio.md, with test_usage_binio.py): 12
   classes / 44 tests at analysis; T4 applied (D-051, ArrayTest now 8
@@ -1184,6 +1192,24 @@ now (I-001; see notes/decisions.md).
   performance study, post-pipeline). 564 → 573 tests
   (573/0/68 gated + 573 run / 17 skipped ungated, −W error full
   discover clean, build/tmp clean).
+- Done (2026-09-01, session 25): D-095 binio sidecar empty-
+  suffix guard (Roberto's pre-OPTIMIZE question: "Cosa succede
+  se il suffisso del sidecar è una stringa vuota? ... va
+  introdotto un controllo che alza un errore" → "procedi!"):
+  verified pre-fix that with `suffix=""` both write paths
+  DESTROY the content file (the sidecar path BE the content
+  path: `BinaryWriter.close()` and `write_sha3_256_sidecar`
+  truncate + overwrite it; `verify` raised a confusing
+  BinaryFormatError); the guard as proposed — ValueError at
+  all 3 sidecar entry points, the writer fails fast in
+  `__init__` before the file is opened (the empty suffix has
+  no legitimate use: `checksum=False` is the no-sidecar knob) —
+  + 3 tests pinning the raises + content intact + no file
+  created; docstrings + V16 + binio.md updated. Zero pipeline
+  impact (cache_manager hardcodes the .SHA3-256 constant, L65;
+  the rlm_* / regab callers use the default). Suite 573 → 576
+  (576/0/68 gated + 576/17 ungated, −W error full discover
+  clean, build/tmp clean).
 - Next: Roberto brings in lm_worker_optimize (the next commented
   entry — the fg float32 return contract is now the input it
   will consume) + restoring the last muted test
@@ -1439,7 +1465,7 @@ now (I-001; see notes/decisions.md).
   8/0/0 GREEN
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-094)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-095)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
