@@ -2697,3 +2697,66 @@ D-080 | 2026-08-30 | D-079 fix campaign (session 22, Roberto:
           by design, no action. The D-007 mirror docs written for
           all 4 files (rlm_zed.md, lm_worker_zed.md,
           test_lm_worker_zed.md, test_rlm_zed.md).
+ D-093 | 2026-09-01 | GRADIENT bring-in + full bring-in analysis
+          (session 25, Roberto's commit a0adc6e — lm_worker_
+          gradient + rlm_gradient + test_lm_worker_gradient +
+          rlm_02.json + the logistic_model enablement; the 9th
+          active level, the SECOND non-cache level after ZED):
+          rlm_gradient is a function-only module (sigmoid = the
+          scipy expit wrapper + rlm_gradient_compute, the fg
+          closure builder capturing X / z / alpha =
+          ridge_regularization/M; f = 0.5·(mean(rn²) + alpha·
+          ‖w‖²), g via the broadcast-bincount trick; the linear
+          predictor is the per-row sum of w[X[m,p]] — the
+          w-INDEX sum, not X·w); no data class, no store/load/
+          hash, no init validation (unlike every other rlm_*
+          level). Verified (probe scratch/verify_gradient.py,
+          52 checks, 0 mismatches, tiers A–E; the live D tier on
+          the rlm_02 199952-position dataset): X (199952, 8)
+          uint32 + w (2981,) float32 + z (199952,) float32;
+          f(w=0) float32 0.020493777 and g(w=0) re-derived
+          independently in float64 (np.add.at + hand-rolled
+          sigmoid vs expit), matching the test goldens
+          (0.02049378 / 3.558e-4 / −2.395e-4 / 1.101e-3); f + g
+          at a seeded w≠0 re-derived (the ridge term included);
+          the closure stateless (2 calls identical); the feature
+          set (no intercept, DIAG3 + EDGE, 0 mobilities, 8
+          instances); the _down live (fg None back at ZED); NO
+          rlmwf_07* / rlmwf_08* files ever; RLMContext.fg pre-
+          declared (L135); the 9-worker list; scipy 1.18.1
+          installed but NOT in pyproject.toml;
+          StatModelConfig.ridge_regularization pre-declared
+          (L186, ge=0.00). Suite 563 → 564 (564/0/66 gated +
+          564 run / 17 skipped ungated, −W error clean,
+          build/tmp clean). The stale logistic_model probe
+          re-pinned (V3c the 5-worker a323e0f pin → the 9-worker
+          list — the WMAPS / DESIGN_MTR / ZED activations never
+          re-pinned it). OPEN awaiting Roberto's call: R1 (the
+          rlm_gradient_compute return annotation claims
+          NDArray[np.float32] for the gradient but the actual g
+          is FLOAT64 — np.bincount upcasts the float32 weights
+          to float64; f IS float32, matching its annotation —
+          fix the annotation vs cast g, the OPTIMIZE consumer's
+          expectation will decide); T1-T9 (T1 scipy missing from
+          pyproject.toml, T2 the worker factory without
+          @validate_call + pydantic import, T3 the no-validation
+          note above rlm_gradient_compute — the rlm_indexes
+          L166 class, T4 the 9 source ws lines (rlm_gradient 6
+          + worker 3), T5 the test NO SKIP_REGAB_DB gate (the
+          header L38-39 claim is false — under the gate the
+          test RAN on the live DB), T6 the test D-085 idiom not
+          applied (CWD mkdtemp + CWD json + no
+          TemporaryDirectory + non-defensive tearDown + the
+          dead-after-idiom shutil import), T7 the test no _down
+          test, T8 the test 4 ws lines, T9 the sigmoid
+          docstring — "funxtion" typo, "provide" → "provides",
+          the "very small values of x" stability claim
+          imprecise (expit's advantage is for large |x|));
+          M1-M2 (M1 no dedicated test_rlm_gradient.py —
+          rlm_gradient_compute is mockable with a SimpleNamespace
+          ctx, the zed pattern; M2 the exported sigmoid without
+          @validate_call — decorating would reject scalar
+          input); M3-M4 informational (the second non-cache
+          level — the next cache level takes rlmwf_08, the /M
+          normalization by design; the worker triple blank lines
+          L37-39 / L41-43). The fix campaign would be D-094.
