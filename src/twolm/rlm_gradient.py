@@ -44,11 +44,12 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
     Computes the sigmoid (logistic) function on the given array of float values.
     It was computed as:
       return 1. / (1. + np.exp(-x))
-    The expit funxtion from scipy provide more numerical stability for very small values of x.
+    The expit function from scipy provides more numerical stability for extreme values of x.
     """
     return expit(x)
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:
     """
     Builds the function returning loss and gradient.
@@ -62,29 +63,29 @@ def rlm_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]
     X_flat = X.ravel()
     z = ctx.z
     alpha = ctx.cfg.stat_model.ridge_regularization / M
-    
+
     # Pre-allocate buffers for performance inside the closure
     bincount_weights_buffer = np.empty(M * P, dtype=np.float32)
     bincount_weights_view = bincount_weights_buffer.reshape(M, P)
-    
+
     def fg(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:
         linear_predictor = np.sum(w[X], axis=1)
         zh = sigmoid(linear_predictor)
         dzh = zh * (1. - zh)
         rn = zh - z
-        
+
         # Normalized loss (Mean Squared Error + Ridge regularization)
         norm_rn = np.dot(rn, rn)
         norm_w = np.dot(w, w)
         f = 0.5 * ((norm_rn / M) + alpha * norm_w)
-        
+
         # Normalized gradient
         dzh_rn = dzh * rn
         bincount_weights_view[:] = dzh_rn[:, None]
         g0 = np.bincount(X_flat, weights=bincount_weights_buffer, minlength=N) / M
         g1 = alpha * w
         g = g0 + g1
-        
-        return f, g
-    
+
+        return np.float32(f), g.astype(np.float32, copy=False)
+
     return fg

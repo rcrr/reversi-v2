@@ -42,8 +42,8 @@
 #
 
 import unittest
+import os
 import tempfile
-import shutil
 
 import numpy as np
 import numpy.testing as nptest
@@ -54,6 +54,7 @@ from pathlib import Path
 
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
 
@@ -61,24 +62,35 @@ class TestLMWorkerGradient(unittest.TestCase):
     """Tests the GRADIENT worker integration and exact values using rlm_02.json."""
 
     def setUp(self):
+        # T5 (D-093): the SKIP_REGAB_DB gate, as in test_regab —
+        # the worker test needs the live regab DB (the setUp moves to
+        # ZED, which runs the positions chain on a fresh base dir).
+        if os.getenv('SKIP_REGAB_DB', '0') == '1':
+            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+
         # Patch stdout to keep test output clean, especially for large datasets
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        self.tmp_dir = tempfile.mkdtemp(dir='./build/tmp')
-        self.json_config = 'src/twolm/test/data/rlm_02.json'
-        
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json")
+
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
                                  base_dir_override=self.tmp_dir)
-        
+
         # Move up to ZED to prepare the full state for GRADIENT
         self.rlm.move_to_step('ZED')
         self.assertEqual(self.rlm.current_step, 7)
 
     def tearDown(self):
-        self.patcher_stdout.stop()
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def test_generate_gradient(self):
         ctx = self.rlm.context
@@ -93,13 +105,13 @@ class TestLMWorkerGradient(unittest.TestCase):
         # Move to GRADIENT
         self.rlm.move_to_step('GRADIENT')
         self.assertEqual(self.rlm.current_step, 8)
-        
+
         self.assertIsNotNone(ctx.fg)
         self.assertTrue(callable(ctx.fg), "The attribute fg should be callable")
 
         # Evaluate the function at the initial weights (all zeros)
         f, g = ctx.fg(ctx.w)
-        
+
         # Assertions on outputs
         expected_f = np.float32(0.02049378)
         nptest.assert_allclose(f, expected_f, rtol=1e-6, atol=1e-7)
@@ -112,6 +124,18 @@ class TestLMWorkerGradient(unittest.TestCase):
 
         expected_g_2980 = np.float32(1.101e-3)
         nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
+
+    def test_down_clears_gradient(self):
+        # The _down clearing: from GRADIENT (step 8) back to ZED
+        # (step 7), the worker must clear ctx.fg.
+        self.rlm.move_to_step('GRADIENT')
+        self.assertEqual(self.rlm.current_step, 8)
+        self.assertIsNotNone(self.rlm.context.fg)
+
+        self.rlm.move_to_step(7)
+        self.assertEqual(self.rlm.current_step, 7)
+        self.assertEqual(self.rlm.current_worker_name, 'ZED')
+        self.assertIsNone(self.rlm.context.fg)
 
 
 if __name__ == '__main__':

@@ -18,19 +18,27 @@ D-081 (f051dd3, Roberto): `lm_worker_features()` uncommented —
 the pipeline now runs 4 active levels (CREATED sentinel → CONFIG
 → POSITIONS → FEATURES); the 35-check probe re-pinned to the
 post-D-074/D-076/D-081 state (the session-21 original pinned the
-pre-D-074 state and was never re-pinned): 0 mismatches.**
+pre-D-074 state and was never re-pinned): 0 mismatches. D-083/D-085/
+D-087/D-088/D-091/D-092: WMAPS + DESIGN_MTR + ZED brought in by
+Roberto (a323e0f, 582841e, 439c966) and analyzed/fixed per level —
+the pipeline now runs 9 active levels. D-093 (a0adc6e, Roberto):
+GRADIENT brought in — 9th active level; the 35-check probe
+re-pinned to the 9-worker state (V3c had pinned the stale 5-worker
+list since a323e0f): 0 mismatches. D-094: GRADIENT fix campaign
+(R1 float32 cast, T1-T9, M1 dedicated suite) — no change to this
+module.**
 Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
-- the pipeline is deliberately PARTIAL: of the 15 workers
-  `CREATED` + `CONFIG` + `POSITIONS` + `FEATURES` are active
-  (D-076: `lm_worker_config()` uncommented, L207; 601de87:
-  `lm_worker_positions()`, L208; f051dd3: `lm_worker_features()`,
-  L209); the other 10 factory imports are commented (L44-54,
-  "Remove comments when modules are added");
+- the pipeline is deliberately PARTIAL: of the 15 workers 9 are
+  active (CREATED sentinel + CONFIG + POSITIONS + FEATURES +
+  INDEXES + WMAPS + DESIGN_MTR + ZED + GRADIENT — the worker list
+  L205-213); the 6 remaining factory imports are commented
+  (L48-54, "Remove comments when modules are added"): optimize,
+  generate, vld_positions, validate, analytics, save;
 - the 1 muted test in test_logistic_model (`_test_move_to_step_by_
   string`) comes back "una riga alla volta, seguendo lo sviluppo
   della pipeline" (D-076: `test_move_to_step_delegates_to_state_
@@ -76,9 +84,10 @@ same way `cache_manager_load_or_compute` returns it.
 ### Pipeline shape (15 levels, per the commented worker list)
 
 CREATED (0, sentinel) → CONFIG → POSITIONS → FEATURES → INDEXES →
-WMAPS → DESIGN_MATRIX → ZED → GRADIENT → OPTIMIZE → GENERATE →
-VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 4 levels are active
-today (CREATED → CONFIG → POSITIONS → FEATURES, D-081); the worker
+WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE →
+VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 9 levels are active
+today (through GRADIENT, D-093); the next line-by-line step is
+`lm_worker_optimize` (the next commented entry). The worker
 factories follow the pattern `lm_worker_x()` → `Worker` (the tests
 patch `twolm.logistic_model.lm_worker_config` etc., i.e. the
 factory names in THIS module's namespace).
@@ -93,10 +102,10 @@ D-074/R1 rename (the legacy `_for_next_level` names gone, the
 `get_type_hints` SUCCEEDING (D-074/R2), V6 pins the
 `IsADirectoryError` for a directory as config (D-074/M3) + the
 facade `@validate_call` ValidationError (D-074/R3), V3c pins the
-4-worker list (D-081), V9 pins the 4-worker boundaries (D-076 gate
-split + D-060 failure semantics), V10 pins the absence of a
-`features_checksum` field (the FEATURES level is a pure in-memory
-derivation).
+9-worker list (re-pinned D-093 — it had gone stale at a323e0f),
+V9 pins the worker boundaries (D-076 gate split + D-060 failure
+semantics), V10 pins the absence of a `features_checksum` field
+(the FEATURES level is a pure in-memory derivation).
 
 | # | Fact | Method |
 |---|---|---|

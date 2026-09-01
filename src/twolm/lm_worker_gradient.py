@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import validate_call, ConfigDict
+
 from twolm.state_machine import Worker, Relevance
 from twolm.rlm_gradient import rlm_gradient_compute
 
@@ -43,17 +45,18 @@ __all__ = ['lm_worker_gradient']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Building gradient and loss function (fg)...")
-    
+
     # GRADIENT building is a closure generation, very fast. No cache needed.
     ctx.fg = rlm_gradient_compute(ctx)
-    
+
     ctx.log_event(Relevance.INFO, "Gradient function generated.")
-        
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing gradient function...")
     ctx.fg = None
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_gradient() -> Worker:
     """Factory function that returns the GRADIENT worker instance."""
     return Worker("GRADIENT", _up, _down)

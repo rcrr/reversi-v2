@@ -16,6 +16,7 @@ dependencies = [
     "pandas",
     "python-dotenv",
     "json5",
+    "scipy",
 ]
 
 [tool.setuptools.packages.find]
