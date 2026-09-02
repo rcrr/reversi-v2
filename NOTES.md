@@ -46,7 +46,7 @@ now (I-001; see notes/decisions.md).
 | src/twolm/cache_manager.py | analyzed 2026-08-30 (session 20, added by Roberto in commit a0cd31f) + fix campaign batches 1+2 (D-071/D-072): generic load-or-compute cache pipeline (4-step validation: allowed → present → checksum → business validity) + duck-typed data checksum + injected callbacks; first domain module importing state_machine (Relevance) + binio (sidecar API, D-072); 17 verified facts V1-V17 (0 mismatches, 33-check probe + 2 boundary probes); D-071: R1 RESOLVED as intentional (step-0 cache-disabled run still warms the cache file — documented + pinned), R2 FIXED (validate_fn in the step-3 try — raising validator deletes + recomputes), R4 FIXED (@validate_call, str→Path coercion, approved behaviour change), M1-M3 fixed (dead Any import, docstring typos, step-2 msg accurate); D-072: R3 RESOLVED — binio sidecar API adopted (hashlib + the 2 re-implemented helpers deleted, _verify_checksum thin wrapper over verify_sha3_256_sidecar, sidecar now binio sha3_256sum format, legacy bare-hex sidecars still verify); CLOSED: R1-R4 + M1-M3 + T1-T7 resolved (T8 report-only); suite 21/0/0 GREEN (test_cache_manager.py) | docs/src/twolm/cache_manager.md |
 | src/twolm/test/test_cache_manager.py | analyzed 2026-08-30 (session 20) + fix campaign batches 1+2 (D-071/D-072): 2 classes / 21 tests / no PERF (13 → 21 batch 1: T2 5 duck-typed-hash tests + R2 raising-validator pin + T5 missing-sidecar pipeline test + T3 sidecar-format test; 21 → 21 batch 2); D-071: T1 (assertIsNone on all 6 pipeline tests), T2 (P0 — the duck-typed compute_sha3_256_hash path: with-method both paths, missing → None, non-callable → None, raising on load → recompute), T3 (sidecar format pin), T4 (step-0 on-disk warm-cache effect, per R1 ruling), T5, T7 (on-disk replacement + valid sidecar after every recompute) FIXED; D-072: T6 FIXED (CUSTOM_TMP_BASE anchored to the workspace root via __file__), T3 pin restated to the binio sha3_256sum format, helper suite rebuilt around the binio API (R3 + legacy-compat + malformed/undecodable wrapper pins added, 2 direct-compute tests dropped), pipeline set-ups on write_sha3_256_sidecar; T8 report-only (header grammar); suite 21/0/0 GREEN; D-085: CUSTOM_TMP_BASE now imported from the shared twolm.test.paths module | docs/src/twolm/test/test_cache_manager.md |
 | src/twolm/base_model.py | analyzed 2026-08-30 (session 21): thin facade base over StateMachine — pure delegation (current_step / current_worker_name / verbosity get+set, move_to_step / move_to_last, 2 display methods, CSV export); context identity with sm.context + delegation verified (30-check probe, 0 mismatches); D-074 (batch 1): R1 RESOLVED — @validate_call on __init__ (the one decision with logistic_model R3, applied to both facades; approved behaviour change: wrong-typed constructor args now raise a pydantic ValidationError at the facade boundary); D-075 (batch 2): M1 FIXED — __all__ = ['BaseModel'] added (L39, D-068 M1 pattern; 89 lines); M2 docstring forward-references not-yet-ported DeepNetworkModel (informational, kept by design); ALL R/M CLOSED; no dedicated suite (covered via test_logistic_model) | docs/src/twolm/base_model.md |
-| src/twolm/logistic_model.py | analyzed 2026-08-30 (session 21): first concrete domain facade — RLMContext (@dataclass over plain Context; 38 fields, 8 *_checksum, artifact blackboard) + LogisticModel 4-step construction (plain path validation → context → 15-level worker list, deliberately partial per Roberto: CREATED sentinel + CONFIG + POSITIONS active (D-076, 601de87), 11 factory imports commented) + level-0 CREATED sentinel (D-059 made explicit); 10 verified facts V1-V10 (30-check probe, 0 mismatches); OPEN: R1 D-069 name divergence (RLMContext + both ported workers on the pre-D-069 _for_next_level names; SM injects _for_current_level — silently-None trap once enabled), R2 Union used (8 annotations) but not imported (latent NameError, PEP 563 mask), R3 no @validate_call on __init__ (one call with base_model R1), M1-M4 (weigth typo, vld__pop_stats double underscore, dir-as-config exception type, __init__ docstring); D-074 (batch 1): R1-R3 RESOLVED (D-069 rename — 2 RLMContext fields + 2 ported worker call sites; 8 annotations → str | None; @validate_call with base_model R1), M1-M4 fixed (weight, vld_pop_stats, IsADirectoryError, docstring); D-075 (batch 2): M5 FIXED (dead `field` import removed); ALL R/M CLOSED; D-076 (Roberto): `lm_worker_config()` uncommented; 601de87: POSITIONS; f051dd3 (D-081): `lm_worker_features()` uncommented — 4 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES); a323e0f (D-083): `lm_worker_indexes()` uncommented — 5 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES; the rlm_indexes / rlm_indexes_checksum blackboard fields pre-existed at first import); a0adc6e (D-093): `lm_worker_gradient()` uncommented — 9 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT; the RLMContext.fg blackboard field pre-declared at L135; the WMAPS / DESIGN_MTR / ZED activations 73b4342 / D-090 / 439c966 landed without a row update); probe re-pinned to the post-a0adc6e state (35 checks, 0 mismatches — V3c the 9-worker list, V10 unchanged); suite 14/0/0 GREEN (test_logistic_model.py) | docs/src/twolm/logistic_model.md |
+| src/twolm/logistic_model.py | analyzed 2026-08-30 (session 21): first concrete domain facade — RLMContext (@dataclass over plain Context; 38 fields, 8 *_checksum, artifact blackboard) + LogisticModel 4-step construction (plain path validation → context → 15-level worker list, deliberately partial per Roberto: CREATED sentinel + CONFIG + POSITIONS active (D-076, 601de87), 11 factory imports commented) + level-0 CREATED sentinel (D-059 made explicit); 10 verified facts V1-V10 (30-check probe, 0 mismatches); OPEN: R1 D-069 name divergence (RLMContext + both ported workers on the pre-D-069 _for_next_level names; SM injects _for_current_level — silently-None trap once enabled), R2 Union used (8 annotations) but not imported (latent NameError, PEP 563 mask), R3 no @validate_call on __init__ (one call with base_model R1), M1-M4 (weigth typo, vld__pop_stats double underscore, dir-as-config exception type, __init__ docstring); D-074 (batch 1): R1-R3 RESOLVED (D-069 rename — 2 RLMContext fields + 2 ported worker call sites; 8 annotations → str | None; @validate_call with base_model R1), M1-M4 fixed (weight, vld_pop_stats, IsADirectoryError, docstring); D-075 (batch 2): M5 FIXED (dead `field` import removed); ALL R/M CLOSED; D-076 (Roberto): `lm_worker_config()` uncommented; 601de87: POSITIONS; f051dd3 (D-081): `lm_worker_features()` uncommented — 4 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES); a323e0f (D-083): `lm_worker_indexes()` uncommented — 5 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES; the rlm_indexes / rlm_indexes_checksum blackboard fields pre-existed at first import); a0adc6e (D-093): `lm_worker_gradient()` uncommented — 9 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT; the RLMContext.fg blackboard field pre-declared at L135; the WMAPS / DESIGN_MTR / ZED activations 73b4342 / D-090 / 439c966 landed without a row update); probe re-pinned to the post-a0adc6e state (35 checks, 0 mismatches — V3c the 9-worker list, V10 unchanged); e31c061 (D-097): `lm_worker_generate()` uncommented — 11 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE; the w_dense / dense_w_checksum blackboard fields pre-existed at L142-143); probe re-pinned (35 checks, V3c the 11-worker list, 0 mismatches); suite 14/0/0 GREEN (test_logistic_model.py) | docs/src/twolm/logistic_model.md |
 | src/twolm/test/test_logistic_model.py | analyzed 2026-08-30 (session 21): 1 class / 15 methods post D-076 (14 active + 1 muted per Roberto — restored line-by-line with the pipeline; D-076: Roberto restored test_move_to_step_delegates_to_state_machine, the CONFIG level now exists; `_test_move_to_step_by_string` still muted — comes back with POSITIONS); D-075 test campaign: T1 FIXED (smoke test replaced by per-method delegation pins + views/verbosity round-trip), T2 FIXED (build/tmp artifact base, D-065 idiom, defensive tearDown), T3 intentional (muted tests), T4 FIXED (7 corner tests — injected-closure names/fallback/path computation, sentinel RuntimeErrors, helper edge branches, CSV pass-through), T5 FIXED (dead Relevance import removed), T6 report-only; suite 14/0/0 GREEN; D-085: CUSTOM_TMP_BASE now imported from the shared twolm.test.paths module | docs/src/twolm/test/test_logistic_model.md |
 | src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto's calls): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 precise OS exception types, R3 fixed) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4), via the injected full-path closure); 35-check probe, 0 mismatches (re-run post D-078); D-076 fixed its cache naming + the SM gate split it exposed; D-078: R2 RESOLVED AT MACHINE LEVEL (closure concatenates the prefix verbatim — replaces the D-069 M8 join; the worker's per-worker concatenation replaced by the full-path closure), R3 precise OS types (FileNotFoundError/NotADirectoryError/PermissionError, messages unchanged), M1-M5 fixed (M5 keep per R1); R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays until the full pipeline is complete (I-011 "storicizzazione"); suite 14/0/0 GREEN (test_lm_worker_config.py) | docs/src/twolm/lm_worker_config.md |
 | src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto: "T1-T6: OK"): 4 classes / 14 tests / no PERF (Roberto's new file); D-076: 2 path typos py/→src/ + schema-complete validation payload; D-078: T1 FIXED (D-065 idiom on all 4 classes; dead shutil import removed; a stray per-test mkdtemp in the a-file test removed — it leaked dirs), T2 FIXED (ValueError — json5 0.15.0 raises a plain ValueError, no JSON5Exception in this version), T3 FIXED (_down reset pinned: cfg/use_cache None), T4 FIXED (bare-hex sidecar format pinned); the not-writable test updated to PermissionError (R3); T5/T6 report-only; suite 14/0/0 GREEN; D-085: the idiom + both json_config lines re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_config.md |
@@ -81,8 +81,12 @@ now (I-001; see notes/decisions.md).
 | src/twolm/lm_worker_optimize.py | introduced 2026-09-01 (session 26, Roberto's commit 1ebdd8b — the OPTIMIZE bring-in, 10th active level): the optimizer level — the 4-step _up (1. checkpoint consultation through the 2 gates → the 3-way decision completed-load / warm-resume / scratch; 2. the two lbfgs wrappers — logger_fn → ctx.log_event, save_fn → the intermediate INCOMPLETE checkpoints; 3. the lbfgs run on the GRADIENT ctx.fg closure, the float32 contract D-094 R1 consumed losslessly; 4. the context update + the final save); analysis D-096: R2 (a corrupted checkpoint must not kill the worker), R4 (_down clears only fg — w_checksum + opt_info left stale), T8 ("Aauthor" → "Author"), T9 (the dead Path import), T10 (the factory without @validate_call + pydantic import), M1 (min_grad_count unpacked but unused), M2 (the trailing "state is unrecognized" else — unreachable), M4 ("cecksum" ×2), M5 (the intermediate checkpoints stored the iteration index k, not k+1); fix campaign D-096 CLOSED (Roberto: R2 "mettiamo try/catch" — corrupted checkpoint deleted (content + .SHA3-256 sidecar) + scratch, R4 _down also clears w_checksum + opt_info — ctx.w kept, the re-optimized WMAPS vector, T1-T15 + M "falli tutti"): the try/except (RuntimeError, BinaryFormatError, OSError), the _down scope (pinned by the new test_down_clears_optimize), the T10 @validate_call (all 10 worker factories now share the pattern), M1-M5 fixed (M5: the intermediate saves now store iters=k+1 — completed-count semantics, as the final save); file 169 → 190 lines; module CLOSED; suite 3/0/0 GREEN (test_lm_worker_optimize, all 3 tests DB-gated post T1, run with live DB) | docs/src/twolm/lm_worker_optimize.md |
 | src/twolm/test/test_lm_worker_optimize.py | introduced 2026-09-01 (session 26, Roberto's commit 1ebdd8b): 1 class / 2 tests / no PERF — the OPTIMIZE worker integration (the loss-decrease run; the max-iters → completed → checkpoint-reload run — byte-identical weights, no lbfgs in run 2); green on first run; analysis D-096: T1 (NO SKIP_REGAB_DB gate — the header claim false: the setUp moves through GRADIENT on a fresh base dir, which hits the live DB), T2 (the D-085 idiom not applied — CWD mkdtemp + CWD json), T3 (the dead if-False block), T4 (the dead imports), T5 (the stray #: ### comment), T6 (the VACUOUS assertNotIn("Starting L-BFGS optimization") — opt_lbfgs never logs that string, it passed trivially — replaced with the ACTUAL per-iteration marker "L-BFGS - ["), T7 (no _down test); fix campaign D-096 CLOSED (Roberto: "T1-T15: falli tutti"): all 7 applied (gate first in the setUp, the D-085 idiom, the cleanup, the real marker, the new test_down_clears_optimize pinning R4); file 149 → 174 lines, 2 → 3 tests; test campaign CLOSED; suite 3/0/0 GREEN (live DB; 3/0/3 gated) | docs/src/twolm/test/test_lm_worker_optimize.md |
 | src/twolm/test/test_rlm_optimize.py | introduced 2026-09-01 (session 26, Roberto's commit 1ebdd8b): 2 classes / 4 tests / no DB, no gate — the IO round-trip + the 3 consistency tests; green on first run, but the header claimed "a live regab DB is required" although the file uses no DB (T14), the 2 consistency tests were misleadingly named (T15: they test the checksum gates — test_inconsistent_iters / test_inconsistent_m), and the D-085 idiom was not applied; fix campaign D-096 CLOSED (Roberto: "M: falli tutti" + T14/T15): T14 the header corrected (no DB required — pure checkpoint IO and cache-validation tests, as in test_rlm_gradient), T15 the renames + the new test_inconsistent_ridge (R1), and the M10 dedicated-suite expansion 4 → 19 tests / 4 classes, no DB: the round-trip WITH the dtype pins (w/sl/yl float32, rho float64), the empty-history round-trip, the M6 fail-fast (no file left behind), the 2 header RuntimeError gates message-pinned, the R3 corrupted-content gate (last byte flipped, sidecar untouched), the deterministic file golden hash 6e01ff86…1bd280 + the sidecar produced-and-matches, the 3 helper tests (the 5-key info dict + KeyError + the weights-hash golden 78a7baac…dc060), the 4 consistency branches incl. the R1 ridge gate, the 4 status branches incl. the f32 round-trip + the judged-against-new-tolerance test (M3 semantics); file 157 → 340 lines; test campaign CLOSED; suite 19/0/0 GREEN (no DB) | docs/src/twolm/test/test_rlm_optimize.md |
+| src/twolm/rlm_generate.py | introduced 2026-09-02 (session 27, Roberto's commit e31c061 — the GENERATE bring-in, 11th pipeline level): the dense-weights data object (w_checksum = the OPTIMIZE compressed-w checksum — the consistency anchor; w_dense (K,) float32 over all theoretical configurations; the duck-typed hash over w_dense.tobytes()) + store / load / is_cache_consistent + compute_w_dense (the compressed → dense expansion: intercept broadcast, pattern orbit propagation with the UNSEEN/REPRESENTATIVE configs taking the frequency-weighted mean of the seen configs — the D-098 R2 ruling, the trained fallback weight logged not used, mobility np.interp with clamping); the 5th cache_manager consumer (uniform 7-kwargs wiring, flat rlmwf_10_GENERATE.dat + .SHA3-256, step 10); analysis D-097 (43-check probe scratch/verify_generate.py, tiers A–F, re-pinned to the post-campaign state, 0 mismatches): R1 (P0 — the D-074 R1 trap re-introduced in the worker, not here), R2 (the unseen/fallback semantics — Roberto's call, now documented in code), T1 (the missing version gate), T2 (the 2 missing no-validation notes), M1-M4 (dead f_w, the MOB duplicate, the literal msg, the np.interp note); the live rlm_02 golden re-derived (K = 6588 = 1 + 6561 + 27, orbit invariance, seen-config exactness, hash ec9d6545…b15b4); fix campaign D-098 CLOSED (T1-T2 + M1-M5 applied, T8 withdrawn as a false positive — the 3 blank lines above __all__ are the house pattern, 6/8 rlm_* data modules); module CLOSED (206 → 225 lines) | docs/src/twolm/rlm_generate.md |
+| src/twolm/lm_worker_generate.py | introduced 2026-09-02 (session 27, Roberto's commit e31c061): the GENERATE worker (the 11th active level) — _up the cache_manager_load_or_compute flow (the 5th consumer, the uniform 7-kwargs wiring, flat rlmwf_10_GENERATE.dat + .SHA3-256) materializing ctx.w_dense + ctx.dense_w_checksum, _down clears both; fix campaign D-098 CLOSED: R1 the one-line rename to get_cache_file_full_path_for_current_level() (the D-074 R1 trap re-introduced — empirically the rlm_02 pipeline died at [10][GENERATE] AttributeError; the alias simulation proved the level otherwise works end-to-end), T3 the factory @validate_call + pydantic import (all 10 worker factories now share the pattern), T7 4 ws lines; the triple blank lines L43-45 / L47-49 are the house worker pattern (D-094 M4); 75 → 78 lines | docs/src/twolm/lm_worker_generate.md |
+| src/twolm/test/test_rlm_generate.py | introduced 2026-09-02 (session 27, Roberto's commit e31c061): 1 class / 1 test at the bring-in (the 3-feature mock compute golden); D-098 T4 expansion: 4 classes / 14 tests, no DB, no gate — TestRLMGenerateCompute (the kept golden INT 0.5 / PAT weighted-mean −0.2 / MOB [1,1,2,3,3], the unknown-category RuntimeError message-pinned, the empty-MOB zeros + exactly-one-WARN), TestRLMGenerateCacheConsistency (2 branches), TestRLMGenerateIO (6 tests: the checksum=False round-trip, the hash golden 460c993d…07a, the valid sidecar, the corrupted-content gate, the wrong-description gate, the version-mismatch gate [T1] — the 3 header messages pinned), TestRLMGenerateInit (3 validation branches); T6 the Italian comment → English, T7 13 ws lines, M5 the dead mock ctx.z removed; 127 → 312 lines; suite 14/0/0 GREEN | docs/src/twolm/test/test_rlm_generate.md |
+| src/twolm/test/test_lm_worker_generate.py | NEW 2026-09-02 (session 27, D-098 T5 — Roberto: "Aggiungi anche il file test_lm_worker_generate.py con i dovuti tests sul worker"; the bring-in had no worker test at all): 1 class / 3 tests, all DB-gated (the D-085 idiom, rlm_02, the setUp moves through OPTIMIZE — the lbfgs run) — test_compute_and_populate_cache (the pre-state None pins, the (6588,) float32 golden, the hash golden ec9d6545…b15b4 + the duck-typed identity, the flat files + sidecar verify, "Executing heavy computation"), test_read_cache_on_new_instance (2nd instance on the same base dir: "Cache successfully loaded and validated", no recompute, array-equal), test_down_clears_generate_attributes (the _down scope pin); 3/0/0 live (10.5 s), 3/0/3 gated; 185 lines | docs/src/twolm/test/test_lm_worker_generate.md |
 | src/twolm/test/data/rlm_01.json | test data (session 23, Roberto's commit 73b4342 — the WMAPS bring-in; the row was missing, restored 2026-09-01 with the D-093 analysis): JSON5 config fixture behind the wmaps / design_matrix / zed worker-test goldens (frequency_cut_off 2, logit_clipping 0.03, bid [7], status CMS, ec 20 — the 10-position dataset behind the 12c3344e… / da86a916… / 3d49fd5d… golden hashes) | — |
-| src/twolm/test/data/rlm_02.json | test data (session 25, Roberto's commit a0adc6e — the GRADIENT bring-in): JSON5 config fixture for the gradient worker test (logit_clipping 0.01, ridge_regularization 0.01, frequency_cut_off 1, ec 20, bid [6, 7], no intercept, the DIAG3 + EDGE patterns, no mobilities — the 199952-position dataset; the "optimization" block now consumed by the OPTIMIZE level, 1ebdd8b/D-096) | — |
+| src/twolm/test/data/rlm_02.json | test data (session 25, Roberto's commit a0adc6e — the GRADIENT bring-in): JSON5 config fixture for the gradient worker test (logit_clipping 0.01, ridge_regularization 0.01, frequency_cut_off 1, ec 20, bid [6, 7], no intercept, the DIAG3 + EDGE patterns, no mobilities — the 199952-position dataset; the "optimization" block now consumed by the OPTIMIZE level, 1ebdd8b/D-096; base of the lm_worker_generate golden, e31c061/D-097) | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
 ## Conventions in the code (respect them in any new work)
@@ -134,7 +138,7 @@ now (I-001; see notes/decisions.md).
   (the old `PYTHONPATH=./src` prefix still works as a fallback);
   test_regab needs a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to
   skip the 35 DB tests (2 mocked run).
-- Suite status (2026-09-01): board 193/0/12, pattern 64/0/3,
+- Suite status (2026-09-02): board 193/0/12, pattern 64/0/3,
   mobility 26/0/1, feature 20/0/1, binio 48/0/0 (45 + 3 usage),
   regab 37/0/0 (2 mocked run, 35 DB skipped under SKIP_REGAB_DB=1),
   opt_lbfgs 13/0/0, state_machine 49/0/0, cache_manager 21/0/0,
@@ -160,17 +164,21 @@ now (I-001; see notes/decisions.md).
   run with live DB), test_rlm_gradient 8/0/0 (D-094 M1 — no DB,
   no gate), rlm_optimize 19/0/0 (1ebdd8b + D-096 M10 — no DB, no
   gate), lm_worker_optimize 3/0/0 (1ebdd8b; 3 DB-gated post
-  D-096 T1 — the setUp moves through GRADIENT, run with live DB)
-  — all GREEN. Totals: 598 tests, 71 skipped under the gate (17
+  D-096 T1 — the setUp moves through GRADIENT, run with live DB),
+  rlm_generate 14/0/0 (e31c061 + D-098 T4 — no DB, no gate),
+  lm_worker_generate 3/0/0 (e31c061 + D-098 T5 — 3 DB-gated; the
+  setUp moves through OPTIMIZE, run with live DB) — all GREEN.
+  Totals: 615 tests, 74 skipped under the gate (17
   PERF=1 print-only performance tests + 35 DB-gated regab tests +
   2 DB-gated lm_worker_positions tests + 2 DB-gated
   lm_worker_features tests + 2 DB-gated lm_worker_indexes tests +
   3 DB-gated lm_worker_wmaps tests + 3 DB-gated
   lm_worker_design_matrix tests + 2 DB-gated lm_worker_zed tests +
   2 DB-gated lm_worker_gradient tests + 3 DB-gated
-  lm_worker_optimize tests — D-096 T1; no performance gates in
-  any suite, D-036). Warm run ≈ 0.5 s (board) / ≈ 2.8 s (full
-  discover, numba cache warm in src/twolm/__pycache__/).
+  lm_worker_optimize tests + 3 DB-gated lm_worker_generate tests
+  — D-098 T5; no performance gates in any suite, D-036). Warm run
+  ≈ 0.5 s (board) / ≈ 2.3 s (gated full discover) / ≈ 35 s (live
+  full discover, numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
 
@@ -1030,6 +1038,103 @@ now (I-001; see notes/decisions.md).
   session (campaign + docs on disk uncommitted, notes not
   updated); re-verified on resume — all GREEN, 4 doc corrections
   + the stale probe re-pin (journal session 26).
+- rlm_generate.py + lm_worker_generate.py + test_rlm_generate.py
+  (introduced 2026-09-02, session 27, Roberto's commit e31c061)
+  + test_lm_worker_generate.py (NEW, D-098 T5 — the bring-in had
+  no worker test, Roberto confirmed): the 11th pipeline level
+  activated (the import L50 + worker-list entry L216 uncommented;
+  RLMContext's w_dense + dense_w_checksum fields pre-declared at
+  L142-143 — the D-094 fg pattern; the 4 remaining commented
+  imports: vld_positions, validate, analytics, save).
+  rlm_generate: the ReversiLogisticModelDenseWeights object
+  (w_checksum = the OPTIMIZE compressed-w checksum — the
+  consistency anchor; w_dense (K,) float32 over all theoretical
+  configurations; the duck-typed hash over w_dense.tobytes()) +
+  store / load / compute_w_dense / is_cache_consistent; the 5th
+  cache_manager consumer (the uniform 7-kwargs wiring, the flat
+  rlmwf_10_GENERATE.dat + .SHA3-256, step 10 — the next cache
+  level will take rlmwf_11). compute_w_dense semantics:
+  intercept broadcast; pattern = the seen-principal weights over
+  the D8 orbits, the unseen/representative configs inherit the
+  frequency-WEIGHTED MEAN of the seen configs (the D-098 R2
+  ruling, documented in code L188-197 — the trained fallback
+  weight is logged, never used: at training it is the single
+  learnable representative — stability + overfitting control; at
+  inference the regularized mean is the plug-in estimate of the
+  expected contribution under the training distribution, the
+  fallback weight a noisy loss proxy for rare configs; in
+  rlm_02 — cut_off 1 — there is no fallback slot at all,
+  fallback = −1); mobility = np.interp over the above-cutoff
+  configs, clamped outside (the ascending precondition is
+  structural — rlm_wmaps' np.unique slot allocation). Analysis
+  D-097 (probe scratch/verify_generate.py, 43 checks, tiers A–F;
+  the pre-campaign state had 11 mismatches = exactly the
+  worklist; all behavior GREEN pre-campaign): R1 (P0, blocking —
+  lm_worker_generate L52 called the nonexistent
+  ctx.get_cache_file_full_path_for_next_level(), the D-074 R1
+  trap re-introduced; empirically: the rlm_02 pipeline ran the 9
+  prior levels fine then died at [10][GENERATE] AttributeError;
+  the alias simulation proved the level otherwise works end-to-
+  end — file + sidecar, (6588,) float32, 2nd-instance cache hit,
+  _down clears both); R2 (the unseen/fallback semantics —
+  Roberto's call); T1 (the load missing the version gate — the 4
+  sibling data modules all gate; a version-2 file loaded
+  SILENTLY); T2 (the 2 no-validation notes missing); T3 (the
+  factory @validate_call + pydantic — 9/10 siblings have it);
+  T4 (test_rlm_generate thin — 1 happy-path test vs the sibling
+  10-19); T5 (no test_lm_worker_generate at all); T6 (the
+  Italian comment "AGGIUNTO ref mock"); T7 (41 trailing-ws
+  lines: 24 + 4 + 13); T8 (WITHDRAWN on re-check — 6/8 rlm_*
+  data modules have exactly 3 blank lines above __all__: house
+  pattern, left as-is); T9 (the stale logistic_model + optimize
+  probes); M1 (the dead f_w computed in every branch, used
+  intercept-only), M2 (the MOB f_wmap duplicate recompute), M3
+  (the RuntimeError msg carrying the literal "f.category"), M4
+  (the np.interp ascending dependency undocumented), M5 (the
+  dead mock field ctx.z). Fix campaign D-098 CLOSED (Roberto:
+  R1 "esegui i fix"; R2 "il weighted mean è la semantica voluta
+  … e' un tema da data_science non da informatica"; T1-T9 +
+  M1-M5 "ok"; "Aggiungi anche il file test_lm_worker_generate.py
+  con i dovuti tests sul worker"): R1 the one-line rename to
+  get_cache_file_full_path_for_current_level() (the D-074 R1
+  trap closed); T1 the version gate (the 4-sibling
+  expected_description / expected_version shape, "File version
+  mismatch: found {v}, expected 1"); T2 the 2 house notes (L99 /
+  L104); T3 the factory @validate_call + pydantic import (all 10
+  worker factories now share the pattern); T4 test_rlm_generate
+  1 → 14 tests / 4 classes (the unknown-category message pin
+  "The feature category is unknown: 9", the empty-MOB zeros +
+  exactly-one-WARN, the 6 IO tests incl. the 3 header gates
+  message-pinned + the hash golden 460c993d…07a, the 3 init
+  validations); T5 test_lm_worker_generate.py ADDED (1 class /
+  3 tests, all DB-gated, the D-085 idiom, rlm_02: the first-run
+  golden (6588,) float32 + hash golden ec9d6545…b15b4 + the
+  sidecar verify + "Executing heavy computation", the
+  2nd-instance cache hit with no recompute, the _down clearing
+  pin); T6 the comment → English; T7 the 41 ws lines stripped;
+  T9 the probes re-pinned (verify_logistic_model V3c 10 → 11 +
+  the session-27 header note; verify_optimize E1 10 → 11 / E2 5
+  → 4 — 92/0). M1-M5 fixed (f_w into the intercept branch L138;
+  the MOB duplicate removed; the msg "The feature category is
+  unknown: {f.category}"; the np.interp note L156-158; ctx.z
+  gone). The probe had 2 self-defects found post-campaign and
+  fixed (A2/A3 checked the literal "TYPE_CHECKING" — the house
+  note doesn't mention it → the checks now match the note text;
+  A4 expected the expected_version variable → the code now uses
+  the 4-sibling shape). The live rlm_02 golden re-derived: K =
+  6588 = 1 + 6561 (EDGE) + 27 (DIAG3), orbit invariance, seen-
+  config exactness, the full independent re-derivation ==
+  ctx.w_dense, weighted means EDGE −0.022497505937226207 /
+  DIAG3 0.013062398455957221 (total_freq 799808 = 199952 × 4),
+  hash ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4
+  == ctx.dense_w_checksum. File sizes: rlm_generate 206 → 225;
+  lm_worker_generate 75 → 78; test_rlm_generate 127 → 312 (1 →
+  14 tests); test_lm_worker_generate 185 lines new. Suite 599 →
+  615 (615/0/74 gated + 615 run / 17 skipped ungated (35.8 s),
+  −W error full discover clean (35.0 s), build/tmp clean). All
+  5 mirror docs written (4 new + the logistic_model.md 11-worker
+  update, 6 spots: header, state-per-Roberto, pipeline shape,
+  the V3c sentence, the 2 appendix lines).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -1307,8 +1412,29 @@ now (I-001; see notes/decisions.md).
   doc corrections applied (session 25 → 26 in the 4 new docs,
   2/0/2 → 3/0/3 gated in the worker-test doc, the stale line
   numbers in test_rlm_optimize.md), session closed.
-- Next: Roberto brings in lm_worker_generate (the next commented
-  entry) + restoring the last muted test
+- Done (2026-09-02, session 27): D-097 GENERATE bring-in
+  analysis (Roberto's commit e31c061 — rlm_generate +
+  lm_worker_generate + test_rlm_generate + the logistic_model
+  enablement; the 11th pipeline level; 599-test baseline
+  599/0/71 gated + 599 run / 17 skipped ungated): probe
+  scratch/verify_generate.py, 43 checks, tiers A–F, the pre-
+  campaign state with 11 mismatches = exactly the worklist
+  (R1 the _for_next_level trap re-introduced — empirically the
+  rlm_02 pipeline dies at [10][GENERATE]; R2 the unseen/
+  fallback semantics; T1-T9 + M1-M5 — details in the Where-we-
+  are bullet). Fix campaign D-098 CLOSED (Roberto: R1 "esegui
+  i fix"; R2 "il weighted mean è la semantica voluta" — ruled +
+  documented in code; T1-T9 + M1-M5 "ok" (T8 withdrawn — house
+  pattern); test_lm_worker_generate.py ADDED per his request):
+  all applied; the probes re-pinned to 0 mismatches (incl. the
+  2 probe self-defects fixed — A2/A3 the house note text, A4
+  the 4-sibling expected_version shape); 5 mirror docs (4 new +
+  the logistic_model.md 11-worker update, 6 spots). Suite 599 →
+  615 tests (615/0/74 gated + 615 run / 17 skipped ungated
+  (35.8 s), −W error full discover clean (35.0 s), build/tmp
+  clean); 2 commits (code+docs, then notes).
+- Next: Roberto brings in lm_worker_vld_positions (the next
+  commented entry) + restoring the last muted test
   _test_move_to_step_by_string (a test file change, Roberto's
   call) + the I-012 evaluation (FEATURES before POSITIONS).
 
@@ -1582,9 +1708,32 @@ now (I-001; see notes/decisions.md).
   the file golden hash, the sidecar, the 3 helpers, the 4
   consistency branches (incl. the R1 ridge gate), the 4 status
   branches; suite 19/0/0 GREEN
+- docs/src/twolm/rlm_generate.md — rlm_generate.py analysis
+  (D-097 analysis + D-098 fix campaign CLOSED, post-campaign
+  state): the 11th level data object (w_checksum anchor +
+  w_dense (K,) float32), the D-098 R2 ruling documented in code
+  (unseen/fallback → frequency-weighted mean, the fallback
+  weight logged not used), the 43-check probe re-pinned 0
+  mismatches, module CLOSED
+- docs/src/twolm/lm_worker_generate.md — lm_worker_generate.py
+  analysis (D-098): the 5th cache_manager consumer (flat
+  rlmwf_10_GENERATE.dat), the R1 one-line rename (the D-074 R1
+  trap closed), the T3 factory @validate_call (all 10 workers
+  now share it), module CLOSED
+- docs/src/twolm/test/test_rlm_generate.md — test_rlm_generate.py
+  analysis (D-098 T4 expansion): 4 classes / 14 tests, no DB —
+  the mock compute golden, the error branches, the 2
+  consistency branches, the 6 IO tests (3 header gates message-
+  pinned + hash golden), the 3 init validations; suite 14/0/0
+  GREEN
+- docs/src/twolm/test/test_lm_worker_generate.md —
+  test_lm_worker_generate.py (NEW, D-098 T5): 1 class / 3 tests,
+  all DB-gated — the first-run (6588,) float32 + hash-golden +
+  sidecar, the 2nd-instance cache hit with no recompute, the
+  _down pin; 3/0/0 live, 3/0/3 gated
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-096)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-098)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)

@@ -3015,3 +3015,133 @@ D-096 | 2026-09-01 | OPTIMIZE bring-in analysis + fix campaign
           (598/0/71 gated + 598 run / 17 skipped ungated, −W error
           full discover clean, build/tmp clean). 5 mirror docs (4
           new + the logistic_model.md 10-worker update).
+
+D-097 | 2026-09-02 | GENERATE bring-in analysis (session 27,
+       Roberto's commit e31c061 — rlm_generate + lm_worker_
+       generate + test_rlm_generate + the logistic_model
+       enablement, the 11th active level): analysis findings —
+       R1 (P0, blocking): lm_worker_generate L52 calls
+       `ctx.get_cache_file_full_path_for_next_level()`, a method
+       that does NOT exist on RLMContext (the StateMachine
+       injects only `..._for_current_level`; all 8 other
+       cache-using workers use it; verify_logistic_model V4a
+       even pins the legacy name GONE) — the D-074 R1 trap
+       re-introduced; empirically demonstrated: the rlm_02
+       pipeline runs the 9 prior levels fine then dies at
+       [10][GENERATE] AttributeError; the alias simulation on a
+       fresh instance proves the level works end-to-end once
+       renamed (file + sidecar, (6588,) float32, 2nd-instance
+       cache hit, _down clearing). R2 (semantic question): the
+       pattern branch assigns the frequency-weighted mean of
+       the seen configs to the unseen/representative
+       configurations; the trained fallback weight is logged,
+       never used — Roberto's call. T1 (the load gates only the
+       description — all 4 sibling data modules also gate the
+       version; a version-2 file loaded SILENTLY), T2 (the 2
+       no-validation notes missing — the house pattern), T3
+       (the factory lacks @validate_call + the pydantic import
+       — 9/10 siblings have it), T4 (test_rlm_generate thin:
+       1 happy-path test vs the sibling 10-19), T5 (no
+       test_lm_worker_generate at all — Roberto confirmed), T6
+       (the Italian comment "AGGIUNTO ref mock" in the test),
+       T7 (41 trailing-ws lines: 24 rlm_generate + 4
+       lm_worker_generate + 13 test_rlm_generate), T8 (3 blank
+       lines above __all__ — WITHDRAWN on re-check: 6/8 rlm_*
+       data modules have exactly 3: house pattern, left as-is),
+       T9 (stale probes: verify_logistic_model V3c 10 → 11
+       workers, verify_optimize E1 10 → 11 / E2 5 → 4). M1 (the
+       dead `f_w = w[w_min:w_max+1]` computed in every branch,
+       used only for the intercept), M2 (the MOB branch
+       recomputes f_wmap_mask / f_wmap — duplicates the
+       feature-level lines), M3 (the RuntimeError message
+       carries the literal "f.category" source-identifier
+       text), M4 (the np.interp ascending precondition rests
+       on rlm_wmaps' np.unique slot allocation — structurally
+       guaranteed, undocumented), M5 (the dead mock field
+       ctx.z in the test). | All behavior verified GREEN pre-
+       campaign: the 43-check probe (scratch/verify_generate.
+       py, tiers A–F — hand re-derivation of the test fixture
+       golden, the data-object behavior, the live rlm_02 golden
+       re-derivation: K = 6588 = 1 + 6561 (EDGE) + 27 (DIAG3),
+       orbit invariance, seen-config exactness, the full
+       independent re-derivation == ctx.w_dense, weighted
+       means EDGE −0.022497505937226207 / DIAG3
+       0.013062398455957221, total_freq 799808 = 199952 × 4,
+       hash golden ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4
+       == ctx.dense_w_checksum; the pre-campaign state carried
+       the 11 worklist mismatches exactly).
+
+D-098 | 2026-09-02 | GENERATE fix campaign, CLOSED (same
+       session; Roberto: R1 "esegui i fix"; R2 "il weighted
+       mean è la semantica voluta ... e' un tema da
+       data_science non da informatica, ci ho riflettuto a
+       lungo ... durante l'inference non vedo ragioni per
+       preferire il valore di fallback a quello medio per le
+       configurazioni rare"; T1-T9 + M1-M5 "ok"; "Aggiungi
+       anche il file test_lm_worker_generate.py con i dovuti
+       tests sul worker"): R1 the one-line rename to
+       `get_cache_file_full_path_for_current_level()` (the
+       D-074 R1 trap closed). R2 RULED + documented in code
+       (rlm_generate L188-197): at inference the
+       unseen/fallback configurations inherit the frequency-
+       weighted mean of the seen configs, NOT the trained
+       fallback weight — the fallback slot is a SINGLE
+       learnable representative: during training it keeps the
+       loss well-defined and shrinks the rare configurations
+       (overfitting control); at inference the regularized
+       mean is the plug-in estimate of the expected pattern
+       contribution under the training distribution, while the
+       fallback weight is a loss proxy, noisy for the rare
+       configurations; the weight stays in the logs for
+       transparency. In rlm_02 (frequency_cut_off 1) there is
+       no fallback slot at all (fallback = −1), so the
+       weighted mean is the active behavior there. T1: the
+       version gate added to rlm_generate_load_from_file (the
+       4-sibling shape: expected_description / expected_
+       version variables, "File version mismatch: found {v},
+       expected 1"; the 2 pinned messages unchanged). T2: the
+       2 house no-validation notes (L99 / L104). T3: the
+       factory @validate_call + pydantic import (all 10 worker
+       factories now share the pattern). T4: test_rlm_generate
+       expanded 1 → 14 tests / 4 classes (no DB, no gate: the
+       kept 3-feature mock golden, the unknown-category
+       RuntimeError message-pinned "The feature category is
+       unknown: 9", the empty-MOB zeros + exactly-one-WARN,
+       the 2 consistency branches, the 6 IO tests incl. the 3
+       header gates message-pinned + the hash golden
+       460c993da80d5ff6fd5581660d71be905c482eadc5520718b56051f6545cd07a,
+       the 3 init validations). T5: test_lm_worker_generate.py
+       ADDED (1 class / 3 tests, all DB-gated — the setUp moves
+       through OPTIMIZE on a fresh base dir, so a live DB is
+       required; the D-085 idiom, rlm_02: the first-run golden
+       (6588,) float32 + hash golden ec9d6545…b15b4 + the
+       sidecar verify + "Executing heavy computation", the
+       2nd-instance cache hit "Cache successfully loaded and
+       validated" with no recompute, the _down clearing pin).
+       T6: the Italian comment → English. T7: the 41 ws lines
+       stripped (24 + 4 + 13). T8: WITHDRAWN as a false
+       positive (house pattern — 6/8 rlm_* data modules have
+       the triple blank above __all__; the 6/8 split is the
+       3-blank majority, kept). T9: the stale probes re-pinned
+       (verify_logistic_model V3c 10 → 11 incl. the session-27
+       header note — 35 checks; verify_optimize E1 10 → 11 /
+       E2 5 → 4 — 92 checks). M1-M5 fixed as analyzed (f_w
+       into the intercept branch L138; the MOB duplicate
+       removed; the msg "The feature category is unknown:
+       {f.category}"; the np.interp note L156-158; ctx.z gone).
+       | VERIFIED: the 43-check probe 0 mismatches (the live E
+       tier: the pipeline reaches GENERATE, the golden
+       re-derivation, the 2nd-instance cache hit, the _down
+       clearing) — 2 probe self-defects found post-campaign
+       and fixed (A2/A3 checked the literal "TYPE_CHECKING" in
+       the note — the house note never mentions it → the checks
+       now match the house note text; A4 expected the
+       expected_version variable → the code now uses the
+       4-sibling shape, better than bending the probe);
+       test_rlm_generate 14/0/0 (no DB); test_lm_worker_
+       generate 3/0/0 live (10.5 s) + 3/0/3 gated; full
+       discover 599 → 615 tests (615/0/74 gated + 615 run / 17
+       skipped ungated (35.8 s), −W error full discover clean
+       (35.0 s), build/tmp clean). 5 mirror docs (4 new + the
+       logistic_model.md 11-worker update, 6 spots). 2 commits
+       (code+docs, then notes).
