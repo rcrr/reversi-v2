@@ -1,16 +1,18 @@
 # test_logistic_model.md — analysis
 
-Date: 2026-08-30. One test file: `test_logistic_model.py` (post
-D-076, 1 class, 15 test methods — 14 active + 1 muted with a `_`
-prefix per Roberto: D-076 restored `test_move_to_step_delegates_to_
-state_machine`, the CONFIG level it targets now exists;
-`_test_move_to_step_by_string` stays muted until POSITIONS), added
-with the module (6bb45fb). **Analysis
-session 21; the source modules' fix batch 1 (D-074) and the TEST
-batch (D-075: T1/T2/T4/T5 fixed, T3 intentional report-only, T6
-report-only) are applied.**
+Date: 2026-08-30. One test file: `test_logistic_model.py` (1 class,
+15 test methods — ALL 15 active: D-076 restored
+`test_move_to_step_delegates_to_state_machine` with the CONFIG
+level; the last muted test `test_move_to_step_by_string` restored
+2026-09-02, session 28, per Roberto's approval — the "una riga
+alla volta" plan of D-073/D-075 T3, the POSITIONS level having
+existed since 601de87/D-079), added with the module (6bb45fb).
+**Analysis session 21; the source modules' fix batch 1 (D-074)
+and the TEST batch (D-075: T1/T2/T4/T5 fixed, T3 intentional
+report-only — both muted tests now restored, T6 report-only) are
+applied.**
 
-Suite: **14/0/0 GREEN, no PERF gates.** Fast (~0.05s).
+Suite: **15/0/0 GREEN, no PERF gates.** Fast (~0.02s).
 
 ## How to run
 
@@ -101,17 +103,18 @@ $ python -m unittest twolm.test.test_logistic_model
     export writes a real header-only file (empty history) under the
     build/tmp artifact dir (D-065); header pinned to
     `step,worker_name,direction,start_utc,finish_utc,duration_sec`.
-- **Muted (1, Roberto's plan — "una riga alla volta")**:
-  - `_test_move_to_step_by_string`: `move_to_step("POSITIONS")` →
+- **Restored (session 28, Roberto's approval — the "una riga
+  alla volta" plan, D-073/D-075 T3)**:
+  - `test_move_to_step_by_string`: `move_to_step("POSITIONS")` →
     step 2, both up-mocks called once with the context (name-based
-    move through 2 levels).
-  - Precondition at analysis (verified by probe): with only CREATED
-    in the list, `move_to_step(1)` → IndexError (out of bounds) and
-    `move_to_step("POSITIONS")` → ValueError (unknown worker) — the
-    test was correctly muted. (Superseded by the pipeline growth:
+    move through 2 levels). Muted since the session-21 analysis
+    (precondition verified by probe at the time: with only CREATED
+    in the list, `move_to_step(1)` → IndexError (out of bounds)
+    and `move_to_step("POSITIONS")` → ValueError (unknown worker));
     `test_move_to_step_delegates_to_state_machine` was restored in
-    D-076 with the CONFIG level; `_test_move_to_step_by_string`
-    stays muted per Roberto's call.)
+    D-076 with the CONFIG level; this last one with the POSITIONS
+    level (existing since 601de87, D-079) — the pipeline now
+    passes the name-based move through 2 levels cleanly.
 
 ## Test defects (T1-T6)
 
@@ -151,14 +154,19 @@ FIRST in setUp (a mid-setup failure still leaves a `temp_dir` that
 tearDown or the GC cleans) + defensive tearDown (stops only the
 patchers that exist, then `temp_dir.cleanup()`).
 
-### T3 — Two muted tests (intentional — pipeline development)
+### T3 — Two muted tests (intentional — pipeline development) — RESOLVED (both restored)
 `_test_move_to_step_delegates_to_state_machine` and
-`_test_move_to_step_by_string` are muted by Roberto's design; they
-come back when the corresponding worker entries are uncommented
-("Restore the tests when the POSITION STEP is added", L114/L123).
-Note: their factory patches are currently inert (nothing calls
-`lm_worker_config()`/`lm_worker_positions()` in the source). Report-
-only: do not touch until the pipeline grows.
+`_test_move_to_step_by_string` were muted by Roberto's design; they
+came back when the corresponding worker entries were uncommented
+("Restore the tests when the POSITION STEP is added", L114/L123
+at the time). `test_move_to_step_delegates_to_state_machine` was
+restored in D-076 with the CONFIG level; `test_move_to_step_by_
+string` was restored in session 28 (2026-09-02, Roberto's
+approval) with the POSITIONS level — all 15 methods active, 0
+muted. Note: the setUp factory patches mock
+`lm_worker_config()`/`lm_worker_positions()` only — the other
+worker factories in the (now 14-level) list are the real ones but
+are never invoked (the tests move at most to step 2).
 
 ### T4 — Integration corners untested (P2, breadth) — FIXED (D-075)
 Nothing pinned: (a) the INJECTED callables — `log_event` default is
@@ -214,36 +222,36 @@ validators (plus the edge branches, T4), the sentinel start AND the
 sentinel callables themselves (T4), the full delegation contract
 per method (T1), the injected callables' identity + fallback +
 path computation (T4 — would have caught R1), the CSV pass-through
-(T4), and the D-065 artifact base (T2). The two muted tests already
+(T4), and the D-065 artifact base (T2). The two once-muted tests
 pin the delegation semantics of `move_to_step` (int + name) and
-will activate with the pipeline (T3, intentional). Remaining:
+are active (T3, both restored — D-076 and session 28). Remaining:
 header grammar report-only (T6).
 
 **Verdict**: 13/0/0 GREEN. Test campaign CLOSED (T1/T2/T4/T5
 fixed, T3 intentional, T6 report-only); D-075.
 
-## Appendix: class map (as of D-085, file 288 lines)
+## Appendix: class map (as of session 28, file 287 lines)
 
 | Line | Class / item | Notes |
 |---|---|---|
 | 43-57 | imports | L48 SimpleNamespace (T4 dummy cfg) · L50 MagicMock/patch · L52-55 twolm (incl. the 4 private helpers for T4; Relevance removed — T5) · L57 the D-085 twolm.test.paths import (CUSTOM_TMP_BASE) |
-| 60 | `TestLogisticModel` | 15 methods (14 active + 1 muted) |
+| 60 | `TestLogisticModel` | 15 methods (all active) |
 | 64 | `setUpClass` | mkdir CUSTOM_TMP_BASE (T2) |
-| 68 | `setUp` | TemporaryDirectory FIRST (T2), stdout patch, dummy config under build/tmp, factory patches (inert — T3), shared model |
+| 68 | `setUp` | TemporaryDirectory FIRST (T2), stdout patch, dummy config under build/tmp, factory patches (the CONFIG + POSITIONS mocks, exercised by the 2 move tests), shared model |
 | 106 | `tearDown` | defensive patcher stops + temp_dir.cleanup() (T2) |
 | 118 | `test_context_initialization` | active |
 | 125 | `test_state_machine_initialization` | active |
 | 130 | `test_move_to_step_delegates_to_state_machine` | active (restored D-076, the CONFIG level exists) |
-| 139 | `_test_move_to_step_by_string` | MUTED (T3) |
-| 147 | `test_invalid_config_path` | active |
-| 152 | `test_base_dir_override_validation` | active |
-| 160 | `test_facade_delegates_to_state_machine` | active — T1 pin (replaces test_facade_methods_exist) |
-| 184 | `test_facade_views_and_verbosity_round_trip` | active — T1 pin |
-| 198 | `test_injected_cache_helpers_are_the_machine_closures` | active — T4 (would have caught R1) |
-| 212 | `test_pre_injection_fallback_is_no_op_lambda` | active — T4 |
-| 221 | `test_injected_cache_helper_computes_the_worker_path` | active — T4 (dummy cfg, addCleanup restore) |
-| 236 | `test_created_sentinel_workers_raise` | active — T4 (D-059 sentinel) |
-| 246 | `test_config_path_helper_edge_branches` | active — T4 |
-| 261 | `test_base_dir_helper_edge_branches` | active — T4 |
-| 272 | `test_export_history_of_moves_as_csv_pass_through` | active — T4 (header-only, build/tmp) |
-| 287 | `unittest.main` guard | — |
+| 138 | `test_move_to_step_by_string` | active (the last muted test, restored session 28 — the POSITIONS level exists since 601de87/D-079) |
+| 146 | `test_invalid_config_path` | active |
+| 151 | `test_base_dir_override_validation` | active |
+| 159 | `test_facade_delegates_to_state_machine` | active — T1 pin (replaces test_facade_methods_exist) |
+| 183 | `test_facade_views_and_verbosity_round_trip` | active — T1 pin |
+| 197 | `test_injected_cache_helpers_are_the_machine_closures` | active — T4 (would have caught R1) |
+| 211 | `test_pre_injection_fallback_is_no_op_lambda` | active — T4 |
+| 220 | `test_injected_cache_helper_computes_the_worker_path` | active — T4 (dummy cfg, addCleanup restore) |
+| 235 | `test_created_sentinel_workers_raise` | active — T4 (D-059 sentinel) |
+| 245 | `test_config_path_helper_edge_branches` | active — T4 |
+| 260 | `test_base_dir_helper_edge_branches` | active — T4 |
+| 271 | `test_export_history_of_moves_as_csv_pass_through` | active — T4 (header-only, build/tmp) |
+| 286 | `unittest.main` guard | — |

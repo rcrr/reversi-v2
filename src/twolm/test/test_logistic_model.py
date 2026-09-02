@@ -135,8 +135,7 @@ class TestLogisticModel(unittest.TestCase):
         self.config_up_mock.assert_called_once_with(self.model.context)
         self.config_down_mock.assert_not_called()
 
-    #: Restore the tests when the POSITION STEP is added.
-    def _test_move_to_step_by_string(self):
+    def test_move_to_step_by_string(self):
         """Test moving using the worker name string."""
         self.model.move_to_step("POSITIONS")
         

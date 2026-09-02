@@ -55,13 +55,16 @@ State per Roberto (intentional, NOT defects):
   GENERATE + VLD_POSITIONS — the worker list L205-217); the 3
   remaining factory imports are commented (L52-54, "Remove
   comments when modules are added"): validate, analytics, save;
-- the 1 muted test in test_logistic_model (`_test_move_to_step_by_
-  string`) comes back "una riga alla volta, seguendo lo sviluppo
-  della pipeline" (D-076: `test_move_to_step_delegates_to_state_
-  machine` restored — the CONFIG level it targets now exists).
+- the 2 tests in test_logistic_model that were once muted
+  (`test_move_to_step_delegates_to_state_machine`,
+  `test_move_to_step_by_string`) are both restored "una riga alla
+  volta, seguendo lo sviluppo della pipeline": D-076 (the CONFIG
+  level) + session 28 (the POSITIONS level, existing since
+  601de87/D-079, per Roberto's approval) — all 15 methods active,
+  0 muted.
 
-Suite: 14/0/0 GREEN (test_logistic_model, 14 active + 1 muted,
-post D-075/D-076).
+Suite: 15/0/0 GREEN (test_logistic_model, all 15 active,
+post D-075/D-076 + the session-28 restore).
 
 ## Architecture
 
