@@ -3472,3 +3472,143 @@ D-102 | 2026-09-02 | VALIDATE fix campaign (session 28, Roberto:
         test). Next bring-in: lm_worker_analytics (the next
         commented entry, logistic_model L53 / worker list L219),
         then lm_worker_save (L54 / L220). |
+D-103 | 2026-09-02 | ANALYTICS bring-in + fix campaign (session 28,
+        Roberto: "T1: OK, T2: OK, T4: OK, T5: OK, T6: OK, M1-M3:
+        OK. Procedi!" — the D-103 worklist; T3 verified no-action,
+        both headers already carry their own names):
+        Bring-in (96dacb5, Roberto): lm_worker_analytics +
+        rlm_analytics — the 14th active level, the 2nd bring-in
+        with a dedicated data module (function-only like
+        rlm_gradient / rlm_validate: 3 public functions + 3
+        private helpers, no data class, no cache_manager — the
+        5th non-cache level, the rlmwf_12 slot stays unused like
+        03/07/08). Analysis: no P0 (the schema AnalyticsConfig is
+        non-optional with a default_factory → ctx.cfg.analytics
+        always exists → the worker's L60 direct access is safe);
+        O1-O6 report-only, O1 (the mixed-representation
+        Generalization Gap) quantified: the TRAINING column is the
+        COMPRESSED forward pass (ctx.w over ctx.design_matrix —
+        what lbfgs trained), the VALIDATION column the DENSE
+        forward pass (ctx.w_dense); the two differ only for
+        configurations whose orbit is unseen in training (the
+        dense substitution: pattern orbit frequency-weighted mean
+        / mobility np.interp — D-098 R2); measured on rlm_02: 0
+        of the 1600 vld instances (200 × 8) hit an unseen orbit
+        (EDGE seen configs 2963/6561, DIAG3 18/27 cover all
+        touched orbits) → the −0.13 gap is a clean train-vs-vld
+        data difference on this fixture (on sparser datasets it
+        would additionally carry the substitution delta); the
+        compressed design-matrix path RAISES on any −1 (the
+        "should never happen" guard — the training pindexes are
+        all seen by construction), which is exactly why VALIDATE
+        must use the dense path.
+        T1: the factory lm_worker_analytics() got @validate_call
+        (config=ConfigDict(arbitrary_types_allowed=True)) + the
+        pydantic import — all 13 worker factories now share the
+        pattern. T2: the dead imports removed (the worker's
+        `from pathlib import Path`; the rlm_analytics `import sys`
+        + the unused `Optional`/`List` in the typing line). T3:
+        verified no-action. T4: the 45 ws lines stripped (worker
+        6 — L47/50/53/57 ws-only + L63/65 trailing — +
+        rlm_analytics 39, docstring trailing/ws-only included;
+        the license headers untouched). T5:
+        test_lm_worker_analytics.py ADDED — 2 classes / 4 tests /
+        no PERF, all DB-gated (gate first in setUp; the setUp
+        moves to VALIDATE step 12 on a fresh base dir, which runs
+        the whole 13-level chain, so a live DB is required), the
+        D-085 idiom, the module-level _masked_report_hash helper
+        (the file report embeds datetime.now() → the date-masked
+        sha3_256 is the stable golden): class 1
+        TestLMWorkerAnalytics (rlm_02, setUp → VALIDATE step 12):
+        test_analytics_report_goldens (pre-state None/None; the
+        7-key dict pinned EXACTLY — train_mae_y
+        12.346794566613694, train_rmse_y 15.58872172931622,
+        train_loss 0.00712497066706419 (= opt_info['f'], the
+        OPTIMIZE final objective, ridge-inclusive), train_samples
+        199952, pop_mae_y 21.729816221648974, pop_rmse_y
+        26.40637507956623, pop_loss 0.020437248051166534; the
+        console report pins incl. "Total Parameters (W) : 2,981"
+        / "Dense Parameters (K) : 6,588" / "Generalization Gap
+        (RMSE) : -0.13"; the file report: EDGE rows + DIAG3
+        omitted (1 omitted line), no "MOBILITY FEATURE:" line,
+        date-masked hash 9b97746c69436fc23fd4f7a06274174d66ed1d0c
+        b8467619b78a409e7f743c66; the log lines pinned),
+        test_second_instance_deterministic (identical metrics +
+        report, exactly 6 "Cache successfully loaded and
+        validated" hits, no "Extracted" / "established
+        successfully"), test_down_clears_analytics_attributes
+        (back to step 12: both None; the file remains on disk —
+        artifact semantics, _down does not unlink). Class 2
+        TestLMWorkerAnalyticsMobility (rlm_01, setUp → VALIDATE
+        step 12): test_mobility_and_pattern_tables (the train
+        goldens — mae 9.874833279184258e-05, rmse
+        0.00013206900478667877, loss 4.704681197571781e-13,
+        samples 10, pop_mae 15.6, pop_rmse 18.39565166010707,
+        pop_loss 0.009125067852437496; "MOBILITY FEATURE: LMC
+        (fid=1)", "PATTERN FEATURE: DIAG3 (fid=2)", "PATTERN
+        FEATURE: CORE (fid=3)", exactly 1 "(Table rows omitted"
+        line, date-masked hash 77fa815ada656152b5f8f893134624d5d0
+        23ffc66e9c81e4fcda9a1ecc0c083d; the logs "Optimization
+        Status : CONVERGED_MIN_GRAD (16 iters)" + "Generalization
+        Gap (RMSE) : 27.22" — the 10-sample model overfits).
+        4/0/0 live (7.3 s), 4/0/4 gated. T6:
+        src/twolm/test/data/rlm_01.json — analytics.detailed_
+        report ["DIAG3"] → ["DIAG3", "LMC"] (so the 65-row LMC
+        mobility table prints; no other rlm_01-based golden
+        affected — the analytics block is consumed only by the
+        ANALYTICS level). M1: RLMContext pre-declares
+        `train_metrics: Any = None` (L155, the "Analytic
+        attributes" comment now covers both fields; the worker
+        set it as an ad-hoc dataclass attribute — works, no
+        __slots__ — but every other blackboard field is
+        pre-declared (the D-099 idiom), and the worker's own
+        comment says the SAVE worker will consume it later). M2:
+        compute_training_metrics annotation Dict[str, float] →
+        Dict[str, float | int] (train_samples is an int). M3: the
+        hasattr(ctx.cfg, 'analytics') guard in format_file_report
+        (4 lines) replaced by the direct
+        `detailed_report_list = ctx.cfg.analytics.detailed_report`
+        (the schema's default factory makes the field always
+        exist and non-None — dead-code guard). File sizes:
+        lm_worker_analytics 78 → 80 (pydantic import + decorator,
+        6 ws emptied in place); rlm_analytics 456 → 453 (−1
+        `import sys`, −2 net on the M3 guard, 39 ws stripped);
+        logistic_model 224 → 225 (the M1 field); rlm_01.json the
+        detailed_report line; test 304 lines new. The 33-check
+        probe (scratch/verify_analytics.py, tiers A12 / B5 / C11 /
+        D3 — the D tier the hand-computed 2-position case: mae
+        10.0 / rmse 10.0 / train_loss 0.123 = opt_info['f'] /
+        pop_loss 0.0030517578125, the opt_info-None branch, the
+        console N/A branch 15 lines / 3×N/A) reported pre-campaign
+        exactly the 7 worklist mismatches (A2, A3, A4, A6a, A6b,
+        A11, A12); post D-103 all 33 pass (gated + live). The
+        35-check logistic_model probe re-pinned V3c 13 → 14
+        workers: 0 mismatches. 3 mirror docs (2 new:
+        lm_worker_analytics.md + rlm_analytics.md + the test doc;
+        the logistic_model.md 14-worker update: header,
+        state-per-Roberto, pipeline shape, V3c, the 39-field
+        re-pin with the M1 line-shift cascaded through the
+        appendix line numbers, appendix imports L41-53 active /
+        L54 commented, appendix worker list L208-220 / L221).
+        Report-only carried, no number: the TRAINING "Loss
+        (MSE/2)" cell is opt_info['f'] — the ridge-inclusive
+        final objective — while the VALIDATION/POPULATION cells
+        are pure 0.5·mean(rn²) (intentional asymmetry, documented
+        in rlm_analytics.md); the ONE INFO log line from the data
+        module (compute_training_metrics) — consistent with
+        rlm_validate; the 3 public data functions carry no
+        @validate_call (the rlm_indexes-L166 TYPE_CHECKING class,
+        consistent with rlm_validate, D-102 approved without
+        one); rlm_02's detailed_report lists ELLE/LMC — names
+        absent from that fixture (harmless; the block looks
+        copied — the fixture is Roberto's); the report file
+        overwritten per run and never unlinked by _down (artifact
+        semantics, like the OPTIMIZE checkpoint). Suite 622 →
+        626: 626/0/84 gated (2.8 s) + 626 run / 17 skipped
+        ungated (39.1 s) + −W error full discover clean (38.9 s),
+        build/tmp clean. ANALYTICS module CLOSED (worker + data +
+        test). Next bring-in: lm_worker_save (logistic_model L54
+        / worker list L221) — the LAST commented entry; the
+        pipeline then reaches 15 levels, and ctx.analytics_report
+        / ctx.train_metrics are pre-stored "if needed by the SAVE
+        worker later". |

@@ -46,7 +46,7 @@ now (I-001; see notes/decisions.md).
 | src/twolm/cache_manager.py | analyzed 2026-08-30 (session 20, added by Roberto in commit a0cd31f) + fix campaign batches 1+2 (D-071/D-072): generic load-or-compute cache pipeline (4-step validation: allowed → present → checksum → business validity) + duck-typed data checksum + injected callbacks; first domain module importing state_machine (Relevance) + binio (sidecar API, D-072); 17 verified facts V1-V17 (0 mismatches, 33-check probe + 2 boundary probes); D-071: R1 RESOLVED as intentional (step-0 cache-disabled run still warms the cache file — documented + pinned), R2 FIXED (validate_fn in the step-3 try — raising validator deletes + recomputes), R4 FIXED (@validate_call, str→Path coercion, approved behaviour change), M1-M3 fixed (dead Any import, docstring typos, step-2 msg accurate); D-072: R3 RESOLVED — binio sidecar API adopted (hashlib + the 2 re-implemented helpers deleted, _verify_checksum thin wrapper over verify_sha3_256_sidecar, sidecar now binio sha3_256sum format, legacy bare-hex sidecars still verify); CLOSED: R1-R4 + M1-M3 + T1-T7 resolved (T8 report-only); suite 21/0/0 GREEN (test_cache_manager.py) | docs/src/twolm/cache_manager.md |
 | src/twolm/test/test_cache_manager.py | analyzed 2026-08-30 (session 20) + fix campaign batches 1+2 (D-071/D-072): 2 classes / 21 tests / no PERF (13 → 21 batch 1: T2 5 duck-typed-hash tests + R2 raising-validator pin + T5 missing-sidecar pipeline test + T3 sidecar-format test; 21 → 21 batch 2); D-071: T1 (assertIsNone on all 6 pipeline tests), T2 (P0 — the duck-typed compute_sha3_256_hash path: with-method both paths, missing → None, non-callable → None, raising on load → recompute), T3 (sidecar format pin), T4 (step-0 on-disk warm-cache effect, per R1 ruling), T5, T7 (on-disk replacement + valid sidecar after every recompute) FIXED; D-072: T6 FIXED (CUSTOM_TMP_BASE anchored to the workspace root via __file__), T3 pin restated to the binio sha3_256sum format, helper suite rebuilt around the binio API (R3 + legacy-compat + malformed/undecodable wrapper pins added, 2 direct-compute tests dropped), pipeline set-ups on write_sha3_256_sidecar; T8 report-only (header grammar); suite 21/0/0 GREEN; D-085: CUSTOM_TMP_BASE now imported from the shared twolm.test.paths module | docs/src/twolm/test/test_cache_manager.md |
 | src/twolm/base_model.py | analyzed 2026-08-30 (session 21): thin facade base over StateMachine — pure delegation (current_step / current_worker_name / verbosity get+set, move_to_step / move_to_last, 2 display methods, CSV export); context identity with sm.context + delegation verified (30-check probe, 0 mismatches); D-074 (batch 1): R1 RESOLVED — @validate_call on __init__ (the one decision with logistic_model R3, applied to both facades; approved behaviour change: wrong-typed constructor args now raise a pydantic ValidationError at the facade boundary); D-075 (batch 2): M1 FIXED — __all__ = ['BaseModel'] added (L39, D-068 M1 pattern; 89 lines); M2 docstring forward-references not-yet-ported DeepNetworkModel (informational, kept by design); ALL R/M CLOSED; no dedicated suite (covered via test_logistic_model) | docs/src/twolm/base_model.md |
-| src/twolm/logistic_model.py | analyzed 2026-08-30 (session 21): first concrete domain facade — RLMContext (@dataclass over plain Context; 38 fields, 8 *_checksum, artifact blackboard) + LogisticModel 4-step construction (plain path validation → context → 15-level worker list, deliberately partial per Roberto: CREATED sentinel + CONFIG + POSITIONS active (D-076, 601de87), 11 factory imports commented) + level-0 CREATED sentinel (D-059 made explicit); 10 verified facts V1-V10 (30-check probe, 0 mismatches); OPEN: R1 D-069 name divergence (RLMContext + both ported workers on the pre-D-069 _for_next_level names; SM injects _for_current_level — silently-None trap once enabled), R2 Union used (8 annotations) but not imported (latent NameError, PEP 563 mask), R3 no @validate_call on __init__ (one call with base_model R1), M1-M4 (weigth typo, vld__pop_stats double underscore, dir-as-config exception type, __init__ docstring); D-074 (batch 1): R1-R3 RESOLVED (D-069 rename — 2 RLMContext fields + 2 ported worker call sites; 8 annotations → str | None; @validate_call with base_model R1), M1-M4 fixed (weight, vld_pop_stats, IsADirectoryError, docstring); D-075 (batch 2): M5 FIXED (dead `field` import removed); ALL R/M CLOSED; D-076 (Roberto): `lm_worker_config()` uncommented; 601de87: POSITIONS; f051dd3 (D-081): `lm_worker_features()` uncommented — 4 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES); a323e0f (D-083): `lm_worker_indexes()` uncommented — 5 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES; the rlm_indexes / rlm_indexes_checksum blackboard fields pre-existed at first import); a0adc6e (D-093): `lm_worker_gradient()` uncommented — 9 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT; the RLMContext.fg blackboard field pre-declared at L135; the WMAPS / DESIGN_MTR / ZED activations 73b4342 / D-090 / 439c966 landed without a row update); probe re-pinned to the post-a0adc6e state (35 checks, 0 mismatches — V3c the 9-worker list, V10 unchanged); e31c061 (D-097): `lm_worker_generate()` uncommented — 11 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE; the w_dense / dense_w_checksum blackboard fields pre-existed at L142-143); probe re-pinned (35 checks, V3c the 11-worker list, 0 mismatches); ede2efe (D-099): `lm_worker_vld_positions()` uncommented — 12 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE → VLD_POSITIONS; the 4 vld_* blackboard fields pre-existed at L146-149, vld_metrics / analytics_report at L152/155 for the future levels); 3 commented imports remain (validate, analytics, save); probe re-pinned (35 checks, V3c the 12-worker list, 0 mismatches); 536eadc (D-101): `lm_worker_validate()` uncommented — 13 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE → VLD_POSITIONS → VALIDATE); 2 commented imports remain (analytics, save); probe re-pinned (35 checks, V3c the 13-worker list, 0 mismatches); D-102: VALIDATE fix campaign (R1 + T1-T5 + M1-M3, test file added — no change to this module); suite 15/0/0 GREEN (test_logistic_model.py) | docs/src/twolm/logistic_model.md |
+| src/twolm/logistic_model.py | analyzed 2026-08-30 (session 21): first concrete domain facade — RLMContext (@dataclass over plain Context; 38 fields, 8 *_checksum, artifact blackboard) + LogisticModel 4-step construction (plain path validation → context → 15-level worker list, deliberately partial per Roberto: CREATED sentinel + CONFIG + POSITIONS active (D-076, 601de87), 11 factory imports commented) + level-0 CREATED sentinel (D-059 made explicit); 10 verified facts V1-V10 (30-check probe, 0 mismatches); OPEN: R1 D-069 name divergence (RLMContext + both ported workers on the pre-D-069 _for_next_level names; SM injects _for_current_level — silently-None trap once enabled), R2 Union used (8 annotations) but not imported (latent NameError, PEP 563 mask), R3 no @validate_call on __init__ (one call with base_model R1), M1-M4 (weigth typo, vld__pop_stats double underscore, dir-as-config exception type, __init__ docstring); D-074 (batch 1): R1-R3 RESOLVED (D-069 rename — 2 RLMContext fields + 2 ported worker call sites; 8 annotations → str | None; @validate_call with base_model R1), M1-M4 fixed (weight, vld_pop_stats, IsADirectoryError, docstring); D-075 (batch 2): M5 FIXED (dead `field` import removed); ALL R/M CLOSED; D-076 (Roberto): `lm_worker_config()` uncommented; 601de87: POSITIONS; f051dd3 (D-081): `lm_worker_features()` uncommented — 4 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES); a323e0f (D-083): `lm_worker_indexes()` uncommented — 5 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES; the rlm_indexes / rlm_indexes_checksum blackboard fields pre-existed at first import); a0adc6e (D-093): `lm_worker_gradient()` uncommented — 9 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT; the RLMContext.fg blackboard field pre-declared at L135; the WMAPS / DESIGN_MTR / ZED activations 73b4342 / D-090 / 439c966 landed without a row update); probe re-pinned to the post-a0adc6e state (35 checks, 0 mismatches — V3c the 9-worker list, V10 unchanged); e31c061 (D-097): `lm_worker_generate()` uncommented — 11 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE; the w_dense / dense_w_checksum blackboard fields pre-existed at L142-143); probe re-pinned (35 checks, V3c the 11-worker list, 0 mismatches); ede2efe (D-099): `lm_worker_vld_positions()` uncommented — 12 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE → VLD_POSITIONS; the 4 vld_* blackboard fields pre-existed at L146-149, vld_metrics / analytics_report at L152/155 for the future levels); 3 commented imports remain (validate, analytics, save); probe re-pinned (35 checks, V3c the 12-worker list, 0 mismatches); 536eadc (D-101): `lm_worker_validate()` uncommented — 13 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE → VLD_POSITIONS → VALIDATE); 2 commented imports remain (analytics, save); probe re-pinned (35 checks, V3c the 13-worker list, 0 mismatches); D-102: VALIDATE fix campaign (R1 + T1-T5 + M1-M3, test file added — no change to this module); D-103 (96dacb5, Roberto): `lm_worker_analytics()` uncommented — 14 active levels (CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE → VLD_POSITIONS → VALIDATE → ANALYTICS); 1 commented import remains (save); probe re-pinned (35 checks, V3c the 14-worker list, 0 mismatches); D-103 fix campaign (T1-T6 + M1-M3, test file added — M1: the train_metrics field pre-declared on RLMContext, 38 → 39 fields); suite 15/0/0 GREEN (test_logistic_model.py) | docs/src/twolm/logistic_model.md |
 | src/twolm/test/test_logistic_model.py | analyzed 2026-08-30 (session 21): 1 class / 15 methods post D-076 (14 active + 1 muted per Roberto — restored line-by-line with the pipeline; D-076: Roberto restored test_move_to_step_delegates_to_state_machine, the CONFIG level now exists; `_test_move_to_step_by_string` restored session 28 (887880e, the D-073/D-075 T3 plan executed — all 15 methods active, 0 muted); D-075 test campaign: T1 FIXED (smoke test replaced by per-method delegation pins + views/verbosity round-trip), T2 FIXED (build/tmp artifact base, D-065 idiom, defensive tearDown), T3 intentional (muted tests), T4 FIXED (7 corner tests — injected-closure names/fallback/path computation, sentinel RuntimeErrors, helper edge branches, CSV pass-through), T5 FIXED (dead Relevance import removed), T6 report-only; suite 15/0/0 GREEN (15 active, 0 muted — session 28 restore); D-085: CUSTOM_TMP_BASE now imported from the shared twolm.test.paths module | docs/src/twolm/test/test_logistic_model.md |
 | src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto's calls): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 precise OS exception types, R3 fixed) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4), via the injected full-path closure); 35-check probe, 0 mismatches (re-run post D-078); D-076 fixed its cache naming + the SM gate split it exposed; D-078: R2 RESOLVED AT MACHINE LEVEL (closure concatenates the prefix verbatim — replaces the D-069 M8 join; the worker's per-worker concatenation replaced by the full-path closure), R3 precise OS types (FileNotFoundError/NotADirectoryError/PermissionError, messages unchanged), M1-M5 fixed (M5 keep per R1); R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays until the full pipeline is complete (I-011 "storicizzazione"); suite 14/0/0 GREEN (test_lm_worker_config.py) | docs/src/twolm/lm_worker_config.md |
 | src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto: "T1-T6: OK"): 4 classes / 14 tests / no PERF (Roberto's new file); D-076: 2 path typos py/→src/ + schema-complete validation payload; D-078: T1 FIXED (D-065 idiom on all 4 classes; dead shutil import removed; a stray per-test mkdtemp in the a-file test removed — it leaked dirs), T2 FIXED (ValueError — json5 0.15.0 raises a plain ValueError, no JSON5Exception in this version), T3 FIXED (_down reset pinned: cfg/use_cache None), T4 FIXED (bare-hex sidecar format pinned); the not-writable test updated to PermissionError (R3); T5/T6 report-only; suite 14/0/0 GREEN; D-085: the idiom + both json_config lines re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_config.md |
@@ -90,7 +90,10 @@ now (I-001; see notes/decisions.md).
 | src/twolm/lm_worker_validate.py | introduced 2026-09-02 (session 28, Roberto's commit 536eadc — the VALIDATE bring-in, the 13th active level): the THIRD non-cache worker (after FEATURES/ZED/GRADIENT) — no cache_manager wiring (the rlmwf_12 slot stays unused, confirmed live), _up publishes the ONE ctx.vld_metrics (the 7-key dict post D-102 M3), _down clears it; D-101 analysis: R1 + T1-T5 + M1-M3 worklist (28-check probe); fix campaign D-102 CLOSED (Roberto: all OK): T1 factory @validate_call + pydantic import (all 12 worker factories now share it), T2 the dead numpy import removed, T4 the 3 ws lines, M1 the RMSE/MAE ratio zero-guarded (the n/a line on a perfect Y-space fit — pre-campaign it raised ZeroDivisionError, demonstrated live); file 71 → 75 lines; module CLOSED | docs/src/twolm/lm_worker_validate.md |
 | src/twolm/rlm_validate.py | introduced 2026-09-02 (session 28, Roberto's commit 536eadc): the FIRST dedicated data module of a non-cache pipeline level — validate_model(ctx) -> Dict[str, Any]: the forward pass over the validation positions (the same ctx.feature_set, the dense ctx.w_dense, sigmoid REUSED from rlm_gradient) returning the 7-metric dict (loss/mse_z/mae_z/mae_y/mse_y/rmse_y/samples); D-101 analysis + fix campaign D-102 CLOSED: R1 the `Any` import added (the PEP 563-masked latent NameError — the D-074 R2 class, nothing calls get_type_hints on it today; NO live crash unlike D-097/D-099 — the level has no cache-path call), T2 the 2 dead regab imports removed (the data comes from ctx.vld_*), T3 header rlm_config_schemas.py → rlm_validate.py, T4 the 27 ws lines (docstring included), M2 vld_P → underscore unpack (the D-096 M1 pattern), M3 vld_mse_y added to the dict (7 keys); report-only: the dense-mapping idiom (np.repeat + fancy indexing) vs rlm_generate's per-feature loop — both valid; file 152 lines (net 0: −1 import + 1 dict line); no dedicated suite (covered by test_lm_worker_validate + the probe D tier) | docs/src/twolm/rlm_validate.md |
 | src/twolm/test/test_lm_worker_validate.py | NEW 2026-09-02 (session 28, D-102 T5 — the bring-in 536eadc shipped no tests): 1 class / 3 tests / no PERF, all DB-gated (gate first in setUp; the setUp moves to VLD_POSITIONS step 11 on a fresh base dir, which runs the whole 12-level chain, so a live DB is required), the D-085 idiom from day one (TemporaryDirectory under the shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored rlm_02.json, defensive tearDown): test_validate_model_goldens (the first run to VALIDATE step 12 — the pre-state None, the 7-key dict pinned EXACTLY: loss 0.00700794393196702, mse_z 0.01401588786393404, mae_z 0.09311295300722122, mae_y 12.161691665649414, mse_y 239.10484313964844, rmse_y 15.46301555633545, samples 200 + the 7 INFO log lines incl. RMSE/MAE 1.27), test_second_instance_deterministic (2nd instance on the same base dir: identical metrics — VALIDATE has no cache file, determinism is the pin — + exactly 6 "Cache successfully loaded and validated" hits, no "Extracted"), test_down_clears_vld_metrics (the _down scope pin); green on first run; suite 3/0/0 GREEN (live DB; 3/0/3 gated) | docs/src/twolm/test/test_lm_worker_validate.md |
-| src/twolm/test/data/rlm_01.json | test data (session 23, Roberto's commit 73b4342 — the WMAPS bring-in; the row was missing, restored 2026-09-01 with the D-093 analysis): JSON5 config fixture behind the wmaps / design_matrix / zed worker-test goldens (frequency_cut_off 2, logit_clipping 0.03, bid [7], status CMS, ec 20 — the 10-position dataset behind the 12c3344e… / da86a916… / 3d49fd5d… golden hashes) | — |
+| src/twolm/lm_worker_analytics.py | introduced 2026-09-02 (session 28, Roberto's commit 96dacb5 — the ANALYTICS bring-in, the 14th active level; "Ho aggiunto i due moduli lm_worker_analytics e rlm_analytics, non ci sono tests, vanno pensati e realizzati. Intanto partiamo con la analisi per favore."): the FIFTH non-cache worker (after FEATURES/ZED/GRADIENT/VALIDATE) — no cache_manager wiring (the rlmwf_12 slot stays unused, confirmed live); _up publishes the TWO ctx attributes (train_metrics — the 7-key dict from rlm_analytics.compute_training_metrics, the compressed forward pass — + analytics_report, the console report string, pre-stored for the SAVE worker), logs the 15-line console report line by line, writes the complete file report to base_dir/<cfg.analytics.report_file_name> (overwritten per run, NOT unlinked by _down — artifact semantics); _down clears both; D-103 analysis (33-check probe scratch/verify_analytics.py, tiers A–D; the pre-campaign state = the 7 worklist mismatches exactly): T1 (the factory lacks @validate_call + pydantic import — all 12 sibling worker factories have it), T2 (the dead pathlib Path import), T4 (6 ws lines), T5 (no test file), T6 (rlm_01.json detailed_report ["DIAG3"] → ["DIAG3", "LMC"] — the mobility-table branch gets end-to-end coverage), M1 (train_metrics set as an ad-hoc dataclass attribute — pre-declare it on RLMContext, the D-099 idiom, the worker's own comment says SAVE will consume it); T3 verified no-action (both headers already carry their own names — unlike D-102); M2/M3 in rlm_analytics; O1-O6 report-only (O1 the mixed-representation Generalization Gap — quantified: on rlm_02 0 of 1600 vld instances sit on an unseen orbit, the −0.13 gap is a clean train-vs-vld data difference); file 78 → 80 lines; module CLOSED | docs/src/twolm/lm_worker_analytics.md |
+| src/twolm/rlm_analytics.py | introduced 2026-09-02 (session 28, Roberto's commit 96dacb5): the 2nd dedicated data module of a non-cache level — function-only like rlm_gradient / rlm_validate (3 public fns + 3 private helpers, no data class, no store/load, no cache_manager, no @validate_call — the rlm_indexes-L166 TYPE_CHECKING class): compute_training_metrics (the COMPRESSED forward pass — ctx.w over ctx.design_matrix, sigmoid REUSED from rlm_gradient, the 7-key dict; the TRAINING "Loss (MSE/2)" cell is opt_info['f'], the ridge-inclusive final objective), format_console_report (the 15-line header, no date), format_file_report (detailed header with Creation Date + feature-set summary + the per-feature tables — mobility C/IA/IC statuses, pattern C/AB/CL + principal indexes, print_rows gated by cfg.analytics.detailed_report); D-103 analysis + fix campaign D-103 CLOSED (Roberto: all OK): T2 the dead imports removed (sys + Optional/List), T4 the 39 ws lines stripped, M2 the annotation Dict[str, float | int] (train_samples is an int), M3 the hasattr dead guard → direct access (the schema's default factory makes the field always exist); report-only: the O1 mixed representations (the dense VALIDATION column vs the compressed TRAINING column — the substitution delta is 0 on rlm_02, measured); file 456 → 453 lines; no dedicated suite (covered by test_lm_worker_analytics + the probe C/D tiers) | docs/src/twolm/rlm_analytics.md |
+| src/twolm/test/test_lm_worker_analytics.py | NEW 2026-09-02 (session 28, D-103 T5 — the bring-in 96dacb5 shipped no tests; Roberto: "non ci sono tests, vanno pensati e realizzati"): 2 classes / 4 tests / no PERF, all DB-gated (gate first in setUp; the setUp moves to VALIDATE step 12 on a fresh base dir, which runs the whole 13-level chain, so a live DB is required), the D-085 idiom from day one (TemporaryDirectory under the shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json, defensive tearDown) + the module-level _masked_report_hash helper (the file report embeds datetime.now() — the date-masked sha3_256 is the stable golden): TestLMWorkerAnalytics (rlm_02) — test_analytics_report_goldens (the pre-state None/None, the 7-key dict pinned EXACTLY: train_mae_y 12.346794566613694, train_rmse_y 15.58872172931622, train_loss 0.00712497066706419 (= opt_info['f']), train_samples 199952, pop_mae_y 21.729816221648974, pop_rmse_y 26.40637507956623, pop_loss 0.020437248051166534; the console report pins incl. "Total Parameters (W) : 2,981" / "Dense Parameters (K) : 6,588" / "Generalization Gap (RMSE) : -0.13"; the file report: EDGE rows + DIAG3 omitted (1 omitted line), no mobility table, date-masked hash 9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619b78a409e7f743c66; the log lines pinned), test_second_instance_deterministic (identical metrics + report — ANALYTICS has no cache file, determinism is the pin — + exactly 6 cache hits, no "Extracted" / "established successfully"), test_down_clears_analytics_attributes (both None; the file remains on disk); TestLMWorkerAnalyticsMobility (rlm_01, the ONLY fixture exercising the mobility table helper end-to-end — post D-103 T6 detailed_report ["DIAG3", "LMC"]) — test_mobility_and_pattern_tables (the train goldens: mae 9.874833279184258e-05, rmse 0.00013206900478667877, loss 4.704681197571781e-13, samples 10, pop_mae 15.6, pop_rmse 18.39565166010707, pop_loss 0.009125067852437496; "MOBILITY FEATURE: LMC (fid=1)" + "PATTERN FEATURE: DIAG3 (fid=2)" / "CORE (fid=3)" + exactly 1 omitted line + hash 77fa815ada656152b5f8f893134624d5d023ffc66e9c81e4fcda9a1ecc0c083d; the logs "CONVERGED_MIN_GRAD (16 iters)" + gap 27.22); 4/0/0 live (7.3 s), 4/0/4 gated | docs/src/twolm/test/test_lm_worker_analytics.md |
+| src/twolm/test/data/rlm_01.json | test data (session 23, Roberto's commit 73b4342 — the WMAPS bring-in; the row was missing, restored 2026-09-01 with the D-093 analysis): JSON5 config fixture behind the wmaps / design_matrix / zed worker-test goldens (frequency_cut_off 2, logit_clipping 0.03, bid [7], status CMS, ec 20 — the 10-position dataset behind the 12c3344e… / da86a916… / 3d49fd5d… golden hashes); D-103 T6: analytics.detailed_report ["DIAG3"] → ["DIAG3", "LMC"] (the 65-row LMC mobility table prints in the ANALYTICS file report — the analytics block is consumed by the ANALYTICS level only, no other rlm_01-based golden affected) | — |
 | src/twolm/test/data/rlm_02.json | test data (session 25, Roberto's commit a0adc6e — the GRADIENT bring-in): JSON5 config fixture for the gradient worker test (logit_clipping 0.01, ridge_regularization 0.01, frequency_cut_off 1, ec 20, bid [6, 7], no intercept, the DIAG3 + EDGE patterns, no mobilities — the 199952-position dataset; the "optimization" block now consumed by the OPTIMIZE level, 1ebdd8b/D-096; base of the lm_worker_generate golden, e31c061/D-097; base of the lm_worker_vld_positions golden — the validation block {bid [8], status CMS+CMR} → 200 positions, e8087903…f4c48, ede2efe/D-099) | — |
 | logistello-papers/ | reference material, read-only | user's papers |
 
@@ -177,8 +180,10 @@ now (I-001; see notes/decisions.md).
   lm_worker_vld_positions 3/0/0 (D-100 T5 — 3 DB-gated; the
   setUp moves through GENERATE, run with live DB),
   lm_worker_validate 3/0/0 (D-102 T5 — 3 DB-gated; the setUp
-  moves through VLD_POSITIONS, run with live DB) — all GREEN.
-  Totals: 622 tests, 80 skipped under the gate (17
+  moves through VLD_POSITIONS, run with live DB),
+  lm_worker_analytics 4/0/0 (D-103 T5 — 4 DB-gated; the setUp
+  moves through VALIDATE, run with live DB) — all GREEN.
+  Totals: 626 tests, 84 skipped under the gate (17
   PERF=1 print-only performance tests + 35 DB-gated regab tests +
   2 DB-gated lm_worker_positions tests + 2 DB-gated
   lm_worker_features tests + 2 DB-gated lm_worker_indexes tests +
@@ -187,9 +192,10 @@ now (I-001; see notes/decisions.md).
   2 DB-gated lm_worker_gradient tests + 3 DB-gated
   lm_worker_optimize tests + 3 DB-gated lm_worker_generate tests
   + 3 DB-gated lm_worker_vld_positions tests — D-100 T5 + 3
-  DB-gated lm_worker_validate tests — D-102 T5; no
+  DB-gated lm_worker_validate tests — D-102 T5 + 4 DB-gated
+  lm_worker_analytics tests — D-103 T5; no
   performance gates in any suite, D-036). Warm run ≈ 0.5 s
-  (board) / ≈ 2.6 s (gated full discover) / ≈ 24 s (live full
+  (board) / ≈ 2.8 s (gated full discover) / ≈ 39 s (live full
   discover, numba cache warm in src/twolm/__pycache__/).
 
 ## Where we are
@@ -1279,6 +1285,91 @@ now (I-001; see notes/decisions.md).
   (2 new + the logistic_model.md 13-worker update, 6 spots).
   Suite 619 → 622 (622/0/80 gated + 622 run / 17 skipped
   ungated (30.6 s), −W error clean (31.2 s), build/tmp clean).
+ - lm_worker_analytics.py + rlm_analytics.py: brought in
+  2026-09-02 (session 28, Roberto's commit 96dacb5, "Ho aggiunto
+  i due moduli lm_worker_analytics e rlm_analytics, non ci sono
+  tests, vanno pensati e realizzati. Intanto partiamo con la
+  analisi per favore.") — the 14th active level, the 2nd bring-in
+  with a dedicated data module (rlm_analytics.py — function-only
+  like rlm_gradient / rlm_validate, no data class); NO cache file
+  at this level (pure compute, the 5th non-cache level — the
+  rlmwf_12 slot stays unused, confirmed live). D-103 analysis
+  (33-check probe scratch/verify_analytics.py, tiers A–D; the
+  pre-campaign state = the 7 worklist mismatches exactly): T1 the
+  factory @validate_call + T2 the dead imports (the worker
+  pathlib, the rlm_analytics sys + Optional/List) + T4 the ws
+  lines (worker 6 + rlm_analytics 39) + T5 no test file + T6
+  rlm_01.json detailed_report += "LMC" (the mobility-table branch
+  coverage); T3 verified no-action (both headers already carry
+  their own names — unlike D-102); M1 (train_metrics set as an
+  ad-hoc dataclass attribute — pre-declare on RLMContext, the
+  D-099 idiom), M2 (the Dict[str, float] annotation while
+  train_samples is an int), M3 (the hasattr dead guard in
+  format_file_report — the schema's default factory makes the
+  field always exist); O1-O6 report-only (O1 the
+  mixed-representation Generalization Gap quantified: TRAINING
+  column = the compressed forward pass (ctx.w over
+  ctx.design_matrix — what lbfgs trained), VALIDATION column =
+  the dense forward pass (ctx.w_dense); they differ only for
+  configs whose orbit is unseen in training (the dense
+  substitution: pattern orbit weighted-mean / mobility
+  np.interp — D-098 R2); measured on rlm_02: 0 of 1600 vld
+  instances hit an unseen orbit (EDGE 2963/6561 + DIAG3 18/27
+  configs seen) → the −0.13 gap is a clean train-vs-vld data
+  difference there; the compressed design-matrix path RAISES on
+  any −1, which is exactly why VALIDATE must use the dense path);
+  O2 rlm_02 detailed_report lists ELLE/LMC absent from the
+  fixture (harmless); O3 the 1 INFO log from the data module
+  (consistent with rlm_validate); O4 no no-validation note
+  (consistent with rlm_validate, D-102 approved without); O5 the
+  report file overwritten per run, never unlinked by _down
+  (artifact semantics, like the OPTIMIZE checkpoint); O6 the
+  rlm_01 detailed_report post T6. Goldens (rlm_02 live, bid
+  [6,7] training model, 199952 samples): train_mae_y
+  12.346794566613694, train_rmse_y 15.58872172931622, train_loss
+  0.00712497066706419 (= opt_info['f'], the OPTIMIZE final
+  objective, ridge-inclusive), train_samples 199952, pop_mae_y
+  21.729816221648974, pop_rmse_y 26.40637507956623, pop_loss
+  0.020437248051166534; the file report (EDGE rows + DIAG3
+  omitted, no mobility section) date-masked sha3_256
+  9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619b78a409e7f743c
+  66; rlm_01 (bid [7], 10 samples): train_mae_y
+  9.874833279184258e-05, train_rmse_y 0.00013206900478667877,
+  train_loss 4.704681197571781e-13 (CONVERGED_MIN_GRAD, 16
+  iters — the 10-sample model interpolates), samples 10,
+  pop_mae_y 15.6, pop_rmse_y 18.39565166010707, pop_loss
+  0.009125067852437496, the LMC 65-row mobility table + DIAG3 /
+  CORE pattern tables (1 omitted line), hash 77fa815ada656152b5f
+  8f893134624d5d023ffc66e9c81e4fcda9a1ecc0c083d. Fix campaign
+  D-103 CLOSED (Roberto: "T1: OK, T2: OK, T4: OK, T5: OK, T6:
+  OK, M1-M3: OK. Procedi!"): T1 the factory @validate_call +
+  pydantic import (all 13 worker factories now uniform), T2 the
+  dead imports removed, T4 the 45 ws lines stripped (worker 6 +
+  rlm_analytics 39), T5 test_lm_worker_analytics.py ADDED (2
+  classes / 4 tests, all DB-gated, the D-085 idiom, the
+  _masked_report_hash helper — rlm_02: the 7-metric goldens +
+  the console report pins + the file hash + the 2nd-instance
+  determinism with exactly 6 cache hits + the _down pin; rlm_01:
+  the mobility + pattern tables + the 2nd hash + CONVERGED_MIN_
+  GRAD (16 iters) + gap 27.22) — 4/0/0 live (7.3 s), 4/0/4
+  gated; T6 rlm_01.json detailed_report ["DIAG3"] → ["DIAG3",
+  "LMC"] (the 65-row LMC table prints; no other rlm_01-based
+  golden affected); M1 RLMContext pre-declares train_metrics
+  (L155, 38 → 39 fields), M2 the Dict[str, float | int]
+  annotation, M3 the hasattr dead guard → direct access; the
+  33-check probe re-pinned post-campaign (A12/B5/C11/D3 — the D
+  tier the hand-computed 2-position case: mae 10.0 / rmse 10.0 /
+  train_loss 0.123 = opt_info['f'] / pop_loss 0.0030517578125,
+  the opt_info-None branch, the console N/A branch 15 lines /
+  3×N/A): 0 mismatches gated + live (the C tier re-verified the
+  full live chain + the independent float64 re-derivation). 3
+  mirror docs (2 new + the test doc) + the logistic_model.md
+  14-worker update (header, state-per-Roberto, pipeline shape,
+  V3c, the 39-field re-pin with the M1 line-shift cascaded
+  through the appendix, appendix imports L41-53 active / L54
+  commented, appendix worker list L208-220 / L221). Suite 622 →
+  626 (626/0/84 gated (2.8 s) + 626 run / 17 skipped ungated
+  (39.1 s), −W error clean (38.9 s), build/tmp clean).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -1652,9 +1743,37 @@ now (I-001; see notes/decisions.md).
   6 spots). Suite 619 → 622 (622/0/80 gated + 622 run / 17
   skipped ungated (30.6 s), −W error clean (31.2 s), build/tmp
   clean); 2 commits (code+docs, then notes).
-- Next: the next bring-in is lm_worker_analytics (the next
-  commented entry, logistic_model L53 / worker list L219); then
-  lm_worker_save (L54 / L220).
+- Done (2026-09-02, session 28): D-103 ANALYTICS bring-in
+  (96dacb5, Roberto: "Ho aggiunto i due moduli ... Intanto
+  partiamo con la analisi per favore.") + fix campaign (Roberto:
+  "T1: OK, T2: OK, T4: OK, T5: OK, T6: OK, M1-M3: OK. Procedi!"):
+  T1 the factory @validate_call + pydantic import (all 13 worker
+  factories now uniform), T2 the dead imports (worker pathlib +
+  rlm_analytics sys / Optional / List), T3 verified no-action
+  (both headers already correct), T4 the 45 ws lines (worker 6 +
+  rlm_analytics 39), T5 test_lm_worker_analytics.py ADDED (2
+  classes / 4 tests, all DB-gated, the D-085 idiom, the
+  _masked_report_hash helper — the rlm_02 7-metric goldens +
+  file hash 9b97746c… + 2nd-instance determinism with 6 cache
+  hits + _down pin, and the rlm_01 mobility-table test —
+  LMC/DIAG3/CORE + hash 77fa815a… + CONVERGED_MIN_GRAD (16
+  iters) + gap 27.22) — 4/0/0 live (7.3 s), 4/0/4 gated; T6
+  rlm_01.json detailed_report ["DIAG3"] → ["DIAG3", "LMC"]; M1
+  RLMContext pre-declares train_metrics (L155, 38 → 39 fields),
+  M2 the Dict[str, float | int] annotation, M3 the hasattr dead
+  guard → direct access; O1 quantified (the mixed-representation
+  Generalization Gap — 0 of 1600 rlm_02 vld instances on unseen
+  orbits, explained in detail to Roberto in the closing reply);
+  the 33-check probe re-pinned (0 mismatches gated + live), the
+  logistic_model 35-check probe re-pinned V3c 13 → 14 workers;
+  3 mirror docs (2 new + the test doc) + the logistic_model.md
+  14-worker update. Suite 622 → 626 (626/0/84 gated (2.8 s) +
+  626 run / 17 skipped ungated (39.1 s), −W error clean (38.9
+  s), build/tmp clean); 2 commits (code+docs, then notes).
+- Next (the LAST bring-in): lm_worker_save (logistic_model L54 /
+  worker list L221) — the pipeline then reaches 15 levels, and
+  ctx.analytics_report / ctx.train_metrics are pre-stored "if
+  needed by the SAVE worker later".
 
 ## Index
 
@@ -1979,9 +2098,26 @@ now (I-001; see notes/decisions.md).
   tests, all DB-gated — the first-run 7-metric goldens + log
   lines, the 2nd-instance deterministic recompute with 6 cache
   hits, the _down pin; 3/0/0 live, 3/0/3 gated
+- docs/src/twolm/lm_worker_analytics.md — lm_worker_analytics.py
+  analysis (D-103, the 14th active level — the 5th non-cache
+  worker; the 33-check probe; D-103 campaign T1-T6 + M1-M3
+  CLOSED; rlm_02/rlm_01 goldens + the 2 date-masked file-report
+  hashes; the O1 mixed-representation gap quantified)
+- docs/src/twolm/rlm_analytics.md — rlm_analytics.py analysis
+  (function-only data module: the compressed-forward-pass
+  compute_training_metrics 7-key dict + the console/file report
+  formatters with the per-feature C/IA/IC and C/AB/CL tables;
+  D-103 campaign T2/T4/M2/M3; the O1 note + the ridge-inclusive
+  train_loss asymmetry documented)
+- docs/src/twolm/test/test_lm_worker_analytics.md —
+  test_lm_worker_analytics.py (NEW, D-103 T5): 2 classes / 4
+  tests, all DB-gated — the rlm_02 7-metric goldens + file hash +
+  2nd-instance determinism + _down pin, the rlm_01 mobility-
+  table test (LMC/DIAG3/CORE + hash + CONVERGED_MIN_GRAD); 4/0/0
+  live, 4/0/4 gated
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-102)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-103)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
