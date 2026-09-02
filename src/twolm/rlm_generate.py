@@ -80,27 +80,34 @@ def rlm_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("Checksum mismatch.")
-            
+
+    expected_description = "RGLM Dense Weights binary data file"
+    expected_version = 1
+
     with binio.BinaryReader(filename) as r:
         description, version = r.read_header()
-        if description != "RGLM Dense Weights binary data file":
+        if description != expected_description:
             raise RuntimeError(f"Wrong file format: {description}")
+        if version != expected_version:
+            raise RuntimeError(f"File version mismatch: found {version}, expected {expected_version}")
         w_checksum = r.read_string()
         w_dense = r.read_array()
-        
+
     return ReversiLogisticModelDenseWeights(w_checksum, w_dense)
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_generate_is_cache_consistent(ctx: "RLMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
     return dw.w_checksum == ctx.w_checksum
 
 
+#: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     """
     Computes the dense weight vector (w_dense) of size K (all theoretical configurations).
     Unseen configurations and fallbacks are handled according to feature type:
     - Intercept: Direct mapping.
-    - Pattern (Categorical): Symmetric configurations inherit the weight of their Principal Index. 
+    - Pattern (Categorical): Symmetric configurations inherit the weight of their Principal Index.
       If the Principal is unseen/fallback, they inherit the weighted mean of the pattern's weights.
     - Mobility (Ordinal): Internal missing values are linearly interpolated, external ones clamped.
     """
@@ -111,7 +118,7 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
     wmap = ctx.wmap
     w = ctx.w
     w_checksum = ctx.w_checksum
-    
+
     K = iwmap_feature_offset[-1]
     w_dense = np.zeros(K, dtype=np.float32)
 
@@ -119,28 +126,26 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
         start_idx = iwmap_feature_offset[fid]
         end_idx = iwmap_feature_offset[fid + 1]
         f_iwmap = iwmap[start_idx:end_idx]
-        
+
         fallback, w_min, w_max = feature_w_ranges[fid]
-        f_w = w[w_min : w_max + 1]
-        
+
         # Extract frequencies for this feature from wmap
         # wmap columns: [fid, config_id, frequency]
         f_wmap_mask = wmap[:, 0] == fid
         f_wmap = wmap[f_wmap_mask]
-        
+
         if f.category == 0:  # Intercept
+            f_w = w[w_min : w_max + 1]
             w_dense[start_idx:end_idx] = f_w[0]
-                
+
         elif f.category == 1:  # Mobility
-            # To find the true "above cutoff" configurations, we must look at wmap, 
+            # To find the true "above cutoff" configurations, we must look at wmap,
             # because iwmap points rare configs to the fallback index.
-            f_wmap_mask = wmap[:, 0] == fid
-            f_wmap = wmap[f_wmap_mask]
-            
+
             # True configs are those with config_id >= 0 in wmap
             true_configs_mask = f_wmap[:, 1] >= 0
             known_configs = f_wmap[true_configs_mask, 1].astype(np.int64)
-            
+
             if len(known_configs) > 0:
                 # Get the specific weights for these true configs via iwmap
                 w_indices = f_iwmap[known_configs]
@@ -148,59 +153,73 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
 
                 # Interpolate over the full range of possible configurations (0 to n_configurations-1)
                 # np.interp automatically clamps external values to the nearest known boundary.
+                # It also requires the known configurations to be ascending: rlm_wmaps
+                # allocates the true slots via np.unique, which emits the configurations
+                # in ascending order, so the precondition is structural, not an assumption.
                 all_configs = np.arange(f.n_configurations)
                 w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
                     all_configs, known_configs, known_weights
                 ).astype(np.float32)
             else:
                 ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
-                
+
         elif f.category == 2:  # Pattern
             # We only want configurations that are NOT fallback (config_id >= 0)
             # and that were actually assigned a weight (seen in dataset, above cutoff)
             true_configs_mask = f_wmap[:, 1] >= 0
             true_freqs = f_wmap[true_configs_mask, 2]
-            
+
             # Get the weights for these true configs via iwmap
             true_config_ids = f_wmap[true_configs_mask, 1].astype(np.int64)
             w_indices = f_iwmap[true_config_ids]
             true_weights = w[w_indices]
-            
+
             if len(true_weights) > 0 and np.sum(true_freqs) > 0:
                 weighted_mean = np.dot(true_weights, true_freqs) / np.sum(true_freqs)
             else:
                 weighted_mean = 0.0
-                
+
             ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) weighted mean is {weighted_mean:.4f}.")
-            
+
             if fallback != -1:
                 fallback_w_val = w[fallback]
                 ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}.")
 
+            # Inference semantics (D-098, Roberto's ruling): the unseen and
+            # fallback configurations inherit the frequency-weighted mean of
+            # the seen configurations, not the trained fallback weight. The
+            # fallback slot is a single learnable representative: during
+            # training it keeps the loss well-defined and shrinks the rare
+            # configurations (overfitting control); at inference the
+            # regularized mean is the plug-in estimate of the expected
+            # pattern contribution under the training distribution, while the
+            # fallback weight is a loss proxy, noisy for the rare
+            # configurations. The weight is logged above for transparency only.
+
             # --- Populate w_dense propagating Principal Index weights ---
-            
+
             # 1. Get all theoretical configuration IDs for this pattern (MUST BE uint32 for Pydantic validation)
             all_configs = np.arange(f.n_configurations, dtype=np.uint32)
-            
+
             # 2. Map every config to its Principal Index
             principal_configs = f.ref.convert_to_principal_index(all_configs)
-            
+
             # 3. Find the w_idx for each of these principal configurations
             # Cast back to int64 for safe indexing into f_iwmap
             principal_w_indices = f_iwmap[principal_configs.astype(np.int64)]
-            
+
             # 4. Initialize the dense weights for this feature with the weighted_mean
             f_w_dense = np.full(f.n_configurations, weighted_mean, dtype=np.float32)
-            
+
             # 5. Where the principal configuration was actually computed (not fallback, not unseen)
             is_computed = (principal_w_indices >= 0) & (principal_w_indices != fallback)
-            
+
             # 6. Propagate the principal weight to all symmetric configurations
             f_w_dense[is_computed] = w[principal_w_indices[is_computed].astype(np.int64)]
-            
+
             w_dense[start_idx:end_idx] = f_w_dense
-            
+
         else:  # Undefined feature
-            raise RuntimeError(f"The feature category is unknown, f.category = {f.category}")
+            raise RuntimeError(f"The feature category is unknown: {f.category}")
 
     return ReversiLogisticModelDenseWeights(w_checksum, w_dense)

@@ -29,6 +29,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import validate_call, ConfigDict
+
 from twolm.state_machine import Worker, Relevance
 from twolm.rlm_generate import (compute_w_dense,
                                 rlm_generate_store_to_file,
@@ -49,7 +51,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating dense weight vector (w_dense) for inference...")
 
     cache_hit, dense_obj, dense_w_checksum = cache_manager_load_or_compute(
-        cache_path  = ctx.get_cache_file_full_path_for_next_level(),
+        cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
         load_fn     = rlm_generate_load_from_file,
         store_fn    = rlm_generate_store_to_file,
@@ -57,19 +59,20 @@ def _up(ctx: "RLMContext") -> None:
         compute_fn  = lambda: compute_w_dense(ctx),
         logger_fn   = ctx.log_event
     )
-    
+
     ctx.w_dense = dense_obj.w_dense
     ctx.log_event(Relevance.INFO, f"Dense weight vector generated/loaded. Shape: {ctx.w_dense.shape}")
-    
+
     ctx.log_event(Relevance.INFO, f"Dense weight vector (dense_w_checksum): {dense_w_checksum}.")
     ctx.dense_w_checksum = dense_w_checksum
 
-    
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing dense weight vector...")
     ctx.w_dense = None
     ctx.dense_w_checksum = None
-    
 
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_generate() -> Worker:
     return Worker("GENERATE", _up, _down)
