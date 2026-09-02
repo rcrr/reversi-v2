@@ -3296,3 +3296,179 @@ D-100 | 2026-09-02 | VLD_POSITIONS fix campaign, CLOSED (same
        lines). File sizes: lm_worker_vld_positions 108 → 112;
        test_lm_worker_vld_positions 195 lines new. 2 commits
        (code+docs, then notes).
+
+D-101 | 2026-09-02 | VALIDATE bring-in analysis (session 28,
+        Roberto's commit 536eadc — lm_worker_validate + rlm_validate
+        + the logistic_model enablement (import L52 + worker-list
+        entry L218), the 13th active level; 2 remaining commented
+        imports (analytics, save); the RLMContext.vld_metrics field
+        pre-declared at L152): the first bring-in with a dedicated
+        DATA module (rlm_validate.py) alongside the worker. VALIDATE
+        has NO cache file (no cache_manager use — pure compute, like
+        FEATURES/ZED/GRADIENT; the rlmwf_12 slot stays unused; the
+        _down clears the single vld_metrics field the _up sets —
+        scope complete, positive). validate_model reuses the
+        cross-level artifacts: ctx.vld_positions / ctx.vld_game_
+        values (VLD_POSITIONS), ctx.feature_set (FEATURES),
+        ctx.iwmap_feature_offset (WMAPS), ctx.w_dense (GENERATE),
+        ctx.y2z / ctx.z2y (ZED — zed_fun_factory, the float32 cast
+        BEFORE the affine: no int8 overflow at y=64), sigmoid
+        (imported from rlm_gradient — defined + exported there).
+        The dense-mapping idiom differs from rlm_generate's per-
+        feature start/end loop (np.repeat offsets + fancy indexing +
+        np.sum axis=1 — both valid, idiom divergence noted,
+        report-only). Analysis findings — R1: rlm_validate L47
+        `-> Dict[str, Any]` — `Any` is NEVER imported (a latent
+        NameError under get_type_hints, PEP 563 masks it; nothing in
+        src/ calls get_type_hints on validate_model today — the
+        D-074 R2 class; fix = the `Any` import or the annotation
+        change). Unlike D-097/D-099 there is NO live crash: the
+        rlm_02 pipeline reaches VALIDATE step 12 cleanly (the level
+        has no cache-path call — the D-074 R1 trap does not apply
+        this time). T1: the worker factory has NO @validate_call +
+        no pydantic import (all 11 sibling worker factories uniform
+        — the D-100 T1 pattern). T2: the dead imports — the worker
+        `numpy as np` (never used), rlm_validate `RegabDBConnection
+        + regab_extract_data_set_from_db` (never used — the data
+        comes from the ctx.vld_* fields set by VLD_POSITIONS, not a
+        DB extraction). T3: the rlm_validate L2 header says
+        `# rlm_config_schemas.py` (copy-paste). T4: the ws lines —
+        the worker L48/L49/L51 (2 ws-only + the trailing on the
+        validate_model call), rlm_validate 27 lines (the docstring
+        trailing ws + the docstring ws-only lines + L108/L118; the
+        license header stays — the house scope). T5: no test file
+        (propose test_lm_worker_validate.py per Roberto's call, the
+        D-100 T5 pattern: 1 class / 3 tests, all DB-gated, the D-085
+        idiom, rlm_02, setUp → VLD_POSITIONS step 11: the first-run
+        6-metric goldens + the log lines, the 2nd-instance
+        determinism (no VALIDATE cache file — the metrics recompute
+        while the 6 cache_manager levels hit), the _down pin). M1:
+        the worker's L57 ratio log line
+        `metrics['vld_rmse_y']/metrics['vld_mae_y']` divides by
+        vld_mae_y WITHOUT a zero guard — a latent
+        ZeroDivisionError on a perfect Y-space fit (demonstrated
+        live in the probe D tier: a hand-built ctx with mae_y == 0
+        crashes the _up log line); the docstring's RMSE/MAE = 1.253
+        normal-distribution indicator makes the ratio meaningful.
+        M2: the unpacked vld_P (L112) is unused — keep or
+        underscore. M3 (report-only): the returned dict has exactly
+        6 keys (vld_loss, vld_mse_z, vld_mae_z, vld_mae_y,
+        vld_rmse_y — all float() casts — + vld_samples int) and
+        OMITS vld_mse_y (computed at L142 only to feed rmse_y; the
+        worker logs the 5 metrics + the ratio, never MSE(y)) — by
+        design or a missing key is Roberto's call. | All behavior
+        verified GREEN pre-campaign via the 28-check probe
+        (scratch/verify_validate.py, tiers A–D; the pre-campaign
+        state carries the 8 worklist mismatches exactly: A2 the
+        factory gate, A3 the worker dead import, A4 the data dead
+        import, A5 the unimported Any, A6 the header name, A7a/A7b
+        the ws lines, A8 the missing test file): the rlm_02 pipeline
+        reaches VALIDATE (step 12) with NO crash, the 6-metric
+        goldens (loss 0.00700794393196702, mse_z 0.01401588786393404,
+        mae_z 0.09311295300722122, mae_y 12.161691665649414, rmse_y
+        15.46301555633545, samples 200; RMSE/MAE 1.27 — the
+        docstring's normal-distribution indicator is 1.253; the vld
+        loss ≈ the training final loss 7.1250e-03 — no overfitting
+        signal), the HIGH-verbosity log lines, the no-rlmwf_12-file
+        fact, the 2nd-instance determinism (identical metrics, the 6
+        cache_manager levels hit — CONFIG + the OPTIMIZE checkpoint
+        have their own load flows), the _down clearing, and the D
+        tier re-derives the full metric math on a hand-computed 2-
+        position case (loss 0.0625 / mse_z 0.125 / mae_z 0.25 /
+        mae_y 32.0 / rmse_y sqrt(2048) / samples 2) + the float()
+        types + the M1 ZeroDivisionError demo. The 4 stale probes
+        re-pinned: verify_logistic_model V3c 12 → 13 workers + the
+        session-28 header note (35 checks, 0 mismatches);
+        verify_optimize E1 12 → 13 / E2 3 → 2 (92 checks, 0
+        mismatches); verify_generate F2 3 → 2 commented imports /
+        F3 12 → 13 levels / 11 → 12 calls (43 checks, 0
+        mismatches); verify_vld_positions B2 3 → 2 / B3 12 → 13
+        (31 checks, 0 mismatches). Suite 618 → 619 (the last muted
+        test _test_move_to_step_by_string restored 887880e — the
+        execution of the approved D-073/D-075 T3 plan, no new D
+        number): 619/0/77 gated (2.5 s) + 619 run / 17 skipped
+        ungated (23.9 s), −W error full discover clean (2.5 s),
+        build/tmp clean. OPEN awaiting Roberto's call: R1 + T1-T5 +
+        M1-M3 (the fix campaign will be D-102).
+D-102 | 2026-09-02 | VALIDATE fix campaign (session 28, Roberto:
+        "R1: OK, T1: OK, T2: OK, T3, T4: OK, T5: OK, M1-M3: OK.
+        Procedi." — the D-101 worklist in full):
+        R1: `from typing import TYPE_CHECKING, Any, Dict` in
+        rlm_validate (the unimported `Any` in the
+        `Dict[str, Any]` return annotation — the PEP 563-masked
+        latent NameError under get_type_hints, the D-074 R2 class;
+        NO live crash: nothing in src/ calls get_type_hints on
+        validate_model, and the level has no cache-path call, so
+        the pipeline reached step 12 cleanly). T1: the factory
+        lm_worker_validate() got @validate_call
+        (config=ConfigDict(arbitrary_types_allowed=True)) + the
+        pydantic import — all 12 active worker factories now share
+        the pattern (the D-092/D-098/D-100 T1 convention). T2: the
+        dead imports removed (the worker's `import numpy as np`
+        replaced by the pydantic line; the rlm_validate
+        `RegabDBConnection, regab_extract_data_set_from_db` pair —
+        the data comes from ctx.vld_positions / ctx.vld_game_values
+        set by VLD_POSITIONS, never from a DB call). T3: the
+        rlm_validate header `# rlm_config_schemas.py` →
+        `# rlm_validate.py` (copy-paste). T4: the 30 ws lines
+        stripped (worker L48/49/51 — 2 ws-only + 1 trailing on the
+        validate_model call — + rlm_validate 27, docstring
+        trailing/ws-only included; the license headers untouched).
+        T5: test_lm_worker_validate.py ADDED — 1 class / 3 tests /
+        no PERF, all DB-gated (gate first in setUp; the setUp
+        moves to VLD_POSITIONS step 11 on a fresh base dir, which
+        runs the whole 12-level chain, so a live DB is required),
+        the D-085 idiom from day one (TemporaryDirectory under the
+        shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored
+        rlm_02.json, defensive tearDown, the twolm.test.paths
+        import): test_validate_model_goldens (the first run to
+        VALIDATE step 12, worker name pinned: the pre-state
+        vld_metrics None, the 7-key dict pinned EXACTLY — loss
+        0.00700794393196702, mse_z 0.01401588786393404, mae_z
+        0.09311295300722122, mae_y 12.161691665649414, mse_y
+        239.10484313964844, rmse_y 15.46301555633545, samples
+        200 — + the 7 INFO log lines incl. RMSE/MAE 1.27),
+        test_second_instance_deterministic (a 2nd instance on the
+        same base dir: identical vld_metrics — VALIDATE has no
+        cache file, so determinism is the pin — + exactly 6 "Cache
+        successfully loaded and validated" hits (the 6
+        cache_manager levels; CONFIG + the OPTIMIZE checkpoint
+        have their own load flows), NO "Extracted" / NO
+        "established successfully"), test_down_clears_vld_metrics
+        (back to step 11 VLD_POSITIONS: vld_metrics None — the
+        single field _up sets). M1: the worker's RMSE/MAE ratio
+        log line zero-guarded (a perfect Y-space fit, vld_mae_y
+        == 0 — pre-campaign it RAISED ZeroDivisionError,
+        demonstrated live (probe D3) — now logs the
+        "n/a (vld_mae_y is 0 — perfect Y-space fit)" line).
+        M2: `vld_M, _ = vld_indexes.shape` (the unused vld_P
+        underscore-unpacked, the D-096 M1 pattern). M3:
+        `vld_mse_y` added to the returned dict (7 keys, between
+        vld_mae_y and vld_rmse_y — Roberto's call: the computed
+        mse_y belongs in the dict, not only as the rmse_y feeder).
+        File sizes: lm_worker_validate 71 → 75 lines (pydantic
+        import + decorator + guard + 3 ws emptied); rlm_validate
+        152 → 152 (net 0: −1 import + 1 dict line, 27 ws
+        stripped in place); test_lm_worker_validate 179 lines new.
+        The 28-check probe re-pinned post-campaign (A12 6 → 7
+        keys, A13 the underscore form, C2 the mse_y golden, C4
+        rmse_y² ≈ mse_y at rel_tol 1e-6 — float32-derived, the
+        round-trip gap is 2.9e-8, D1 mse_y 2048.0, D3 the n/a
+        branch instead of the raise): 0 mismatches, gated + live
+        (the C tier re-verified the full live chain incl. the new
+        golden). 3 mirror docs (2 new: lm_worker_validate.md +
+        rlm_validate.md, + the test doc; the logistic_model.md
+        13-worker update, 6 spots: header, state-per-Roberto,
+        pipeline shape, V3c, appendix imports L41-52 active /
+        L53-54 commented, appendix worker list L207-218 /
+        L219-220). Report-only carried, no number: the
+        dense-mapping idiom divergence (np.repeat + fancy indexing
+        + np.sum vs rlm_generate's per-feature loop — both
+        valid); the VALIDATE no-cache-by-design (confirmed
+        intent, rlmwf_12 stays unused like 03/07/08). Suite 619 →
+        622: 622/0/80 gated (2.6 s) + 622 run / 17 skipped
+        ungated (30.6 s) + −W error full discover clean (31.2 s),
+        build/tmp clean. VALIDATE module CLOSED (worker + data +
+        test). Next bring-in: lm_worker_analytics (the next
+        commented entry, logistic_model L53 / worker list L219),
+        then lm_worker_save (L54 / L220). |
