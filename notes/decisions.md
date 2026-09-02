@@ -3145,3 +3145,154 @@ D-098 | 2026-09-02 | GENERATE fix campaign, CLOSED (same
        (35.0 s), build/tmp clean). 5 mirror docs (4 new + the
        logistic_model.md 11-worker update, 6 spots). 2 commits
        (code+docs, then notes).
+
+D-099 | 2026-09-02 | VLD_POSITIONS bring-in analysis (session 28,
+       Roberto's commit ede2efe — lm_worker_vld_positions + the
+       logistic_model enablement (import L51 + worker-list entry
+       L217), the 12th active level; 3 remaining commented
+       imports (validate, analytics, save); RLMContext's 4 vld_*
+       fields pre-declared at L146-149, the future vld_metrics /
+       analytics_report at L152/155; the rlm_02/01/00 fixtures all
+       carry the validation_data_set block {bid [8], status
+       CMS+CMR}): the worker is the POSITIONS TWIN over the
+       validation data set — it REUSES load_from_db +
+       is_cache_consistent from lm_worker_positions (the keyword
+       bid/status overrides; the DB connection + ec come from the
+       shared regab_data_set block) with the uniform 7-kwargs
+       cache_manager wiring; the flat cache file is
+       rlmwf_11_VLD_POSITIONS.dat + .SHA3-256 (the slot predicted
+       in D-097/D-098: "the next cache level takes rlmwf_11").
+       Analysis findings — R1 (P0, blocking, the 2nd occurrence):
+       lm_worker_vld_positions L62 calls
+       `ctx.get_cache_file_full_path_for_next_level()`, a method
+       that does NOT exist on RLMContext (the StateMachine injects
+       only `..._for_current_level`, a per-instance attribute,
+       state_machine L190; verify_logistic_model V4a pins the
+       legacy name GONE) — the D-074 R1 trap re-introduced, exactly
+       as in lm_worker_generate (D-097 R1, fixed D-098);
+       empirically demonstrated: the rlm_02 pipeline runs the 10
+       prior levels fine then dies at [11][VLD_POSITIONS] with
+       "Error in VLD_POSITIONS during up: 'RLMContext' object has
+       no attribute 'get_cache_file_full_path_for_next_level'";
+       the alias simulation (binding _for_next_level to
+       _for_current_level on a fresh instance, same base dir)
+       proves the level otherwise works end-to-end: rlmwf_11_
+       VLD_POSITIONS.dat + .SHA3-256 exist + verify, vld_positions
+       (200,2) u64 structured, int8 game values in [−58, 56], the
+       golden stats count 200 / mean 3.64 / std
+       23.809880302093077 / variance 566.9104, vld_rds_checksum
+       e8087903437d9d42d64499626f5b4426505d3b9538539e19fb8f45dc9c9f4c48
+       (distinct from the training 32da0ed3…), the 2nd-instance
+       cache hit ("Cache successfully loaded and validated", no
+       "Extracted"), _down clears all 4 fields. T1 (the factory
+       L106 lacks @validate_call + the pydantic import — all 10
+       sibling worker factories have it: D-080 M4 / D-082 M1 /
+       D-084 M1 / D-090 T2 / D-092 T2 / D-094 T2 / D-096 T10 /
+       D-098 T3 pattern). T2 (5 dead imports: `from pathlib
+       import Path` L33 — no Path use, the cache_path comes from
+       the injected closure; RegabDataSet / RegabDBConnection /
+       regab_extract_data_set_from_db L37-39 — the file delegates
+       extraction to lm_worker_positions.load_from_db, which uses
+       all three internally; only regab_load_data_set_from_file +
+       regab_store_data_set_to_file are directly needed). T3 (the
+       load_fn L64 is the raw regab_load_data_set_from_file —
+       checksum defaults True → the sidecar is verified twice on
+       every cache hit; the house shape is the checksum=False
+       lambda, D-080 M4, as in lm_worker_positions). T4 (3 ws-
+       only lines in the _up/_down bodies, L76/L92/L95; the import-
+       block trailing ws L37/38/40 + the license header stay — the
+       D-078 M3 / D-080 M3 house scope, as in lm_worker_positions
+       post-campaign). T5 (no test file at all — the bring-in
+       ships zero tests; propose creating test_lm_worker_
+       vld_positions.py per Roberto's call, the D-098 T5 pattern).
+       M1 (informational): the vld query inherits ec from
+       ctx.cfg.regab_data_set (the training block) —
+       ValidationDataSetConfig declares only bid + status (no ec
+       field); the shared ec (20) gates BOTH the extraction
+       (load_from_db) and the consistency check — consistent across
+       the two call sites (no trap), but the validation block
+       cannot override ec — document. M2 (informational): the
+       unpacked cache_hit is unused (L61) — the identical
+       lm_worker_positions L59 shape, keep. M3 (positive): _down
+       clears ALL FOUR fields (vld_positions / vld_game_values /
+       vld_rds_checksum / vld_pop_stats) — the house shape, no gap
+       (contrast D-096 R4). | All behavior verified GREEN pre-
+       campaign via the 31-check probe (scratch/verify_vld_
+       positions.py, tiers A–D; the pre-campaign state carries the
+       6 worklist mismatches exactly: A2 the _for_current_level
+       naming, A3 the factory gate, A4 the load_fn shape, A5 the
+       dead imports, A6 the ws lines, C1 the live crash; the D
+       tier pins the override semantics without a DB: full match
+       → True, bid / status / ec / connection mismatch → False, no
+       override → the TRAINING cfg params are used → False, i.e.
+       the worker must pass the vld bid/status explicitly — it
+       does). The 3 stale probes re-pinned: verify_logistic_model
+       V3c 11 → 12 workers + the session-28 header note (35
+       checks, 0 mismatches); verify_optimize E1 11 → 12 / E2 4 →
+       3 (92 checks, 0 mismatches); verify_generate F2 4 → 3
+       commented imports / F3 10 → 11 factory calls (43 checks, 0
+       mismatches). Suite baseline UNCHANGED: 615/0/74 gated (2.5
+       s) — no new tests, none of the 14 test_logistic_model
+       tests pins the worker count. OPEN awaiting Roberto's call:
+       R1 + T1-T5 + M1-M3 (the fix campaign will be D-100).
+
+D-100 | 2026-09-02 | VLD_POSITIONS fix campaign, CLOSED (same
+       session 28; Roberto: "T1 - T5: OK, M1 - M3: OK,
+       Procedi, grazie."): R1 RESOLVED — the one-line rename
+       (lm_worker_vld_positions L62/L65 →
+       get_cache_file_full_path_for_current_level(); the 2nd
+       occurrence of the D-074 R1 trap, the 1st in
+       lm_worker_generate D-097 R1; post-fix the rlm_02
+       pipeline reaches VLD_POSITIONS cleanly — file + sidecar,
+       (200,2) u64 positions, 2nd-instance cache hit). T1 the
+       factory @validate_call + pydantic import (all 11 worker
+       factories now uniform). T2 the 5 dead imports removed
+       (the pathlib Path + RegabDataSet + RegabDBConnection +
+       regab_extract_data_set_from_db — the file delegates
+       extraction to lm_worker_positions.load_from_db, which
+       uses all three internally). T3 the load_fn now the
+       checksum=False lambda (the D-080 M4 shape — the
+       redundant double sidecar verify on every cache hit is
+       gone). T4 the 3 ws-only lines stripped (L76/L92/L95);
+       the import-block trailing ws (the regab_load_data_set_
+       from_file line) + the license header stay — the D-078
+       M3 / D-080 M3 house scope, as in lm_worker_positions.
+       T5 test_lm_worker_vld_positions.py ADDED (1 class / 3
+       tests, all DB-gated, the D-085 idiom, rlm_02, setUp →
+       GENERATE step 10: the first-run golden (200 positions,
+       the structured dtype names, vld_rds_checksum
+       e8087903…f4c48, pop_stats count 200 / mean 3.64, the
+       flat rlmwf_11_VLD_POSITIONS.dat + .SHA3-256 + the
+       sidecar verify, "Executing heavy computation"), the
+       2nd-instance cache hit ("Cache successfully loaded and
+       validated", no "Executing heavy computation",
+       array_equal + checksums equal), the _down pin (all four
+       fields cleared on the move back to step 10)). M1
+       DOCUMENTED — the vld query inherits ec from
+       ctx.cfg.regab_data_set (the training block;
+       ValidationDataSetConfig declares only bid + status) —
+       the _up note L58-61. M2 KEEP (the unpacked cache_hit
+       unused — the identical lm_worker_positions L59 shape,
+       reported-only). M3 POSITIVE (the _down scope clears all
+       four fields — no gap, contrast D-096 R4). | VERIFIED:
+       the 31-check probe (scratch/verify_vld_positions.py,
+       tiers A–D) re-pinned to the post-campaign state, 0
+       mismatches (the live C tier: the pipeline reaches
+       VLD_POSITIONS with NO alias fallback, the golden
+       re-derivation, the 2nd-instance cache hit, the _down
+       clearing); the 3 re-pinned probes stay at 0 mismatches
+       (verify_logistic_model 35 checks — V3c the 12-worker
+       list; verify_optimize 92 checks — E1 12 / E2 3;
+       verify_generate 43 checks — F2 3 commented / F3 11
+       calls). test_lm_worker_vld_positions 3/0/0 live (8.5
+       s) + 3/0/3 gated. Full discover 615 → 618 tests
+       (618/0/77 gated (2.6 s) + 618 run / 17 skipped ungated
+       (23.6 s), −W error full discover clean (23.8 s),
+       build/tmp clean). 3 mirror docs (lm_worker_vld_
+       positions.md + test/test_lm_worker_vld_positions.md
+       new, post-campaign state; the logistic_model.md
+       12-worker update, 6 spots: header, state-per-Roberto,
+       pipeline shape, the V3c sentence, the 2 appendix
+       lines). File sizes: lm_worker_vld_positions 108 → 112;
+       test_lm_worker_vld_positions 195 lines new. 2 commits
+       (code+docs, then notes).
