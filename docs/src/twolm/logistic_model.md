@@ -48,19 +48,27 @@ D-101 (536eadc, Roberto): VALIDATE brought in (lm_worker_validate
 besides the worker; the import L52 + worker-list entry L218) — 13th
 active level. D-102: the VALIDATE fix campaign (R1 + T1-T5 +
 M1-M3, test file added) — no change to this module beyond the
-bring-in lines.**
+bring-in lines. D-103 (96dacb5, Roberto): ANALYTICS brought in
+(lm_worker_analytics + rlm_analytics — the 2nd bring-in with a
+dedicated data module, function-only; the import L53 + worker-list
+entry L220) — 14th active level; the 35-check probe re-pinned to
+the 14-worker state (V3c had pinned the 13-worker list since
+536eadc): 0 mismatches. D-103 campaign: the ANALYTICS fix campaign
+(T1-T6 + M1-M3, test file added, rlm_01.json detailed_report +=
+LMC) — this module: RLMContext pre-declares train_metrics (M1,
+L155), 39 fields.**
 Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
-- the pipeline is deliberately PARTIAL: of the 15 workers 13 are
+- the pipeline is deliberately PARTIAL: of the 15 workers 14 are
   active (CREATED sentinel + CONFIG + POSITIONS + FEATURES +
   INDEXES + WMAPS + DESIGN_MTR + ZED + GRADIENT + OPTIMIZE +
-  GENERATE + VLD_POSITIONS + VALIDATE — the worker list L205-218);
-  the 2 remaining factory imports are commented (L53-54, "Remove
-  comments when modules are added"): analytics, save;
+  GENERATE + VLD_POSITIONS + VALIDATE + ANALYTICS — the worker
+  list L206-220); the last remaining factory import is commented
+  (L54, "Remove comments when modules are added"): save;
 - the 2 tests in test_logistic_model that were once muted
   (`test_move_to_step_delegates_to_state_machine`,
   `test_move_to_step_by_string`) are both restored "una riga alla
@@ -77,7 +85,7 @@ post D-075/D-076 + the session-28 restore).
 `LogisticModel` is the first concrete **domain facade**: it extends
 `BaseModel` (base_model.md) and wires the generic StateMachine to the
 RLM (Reversi Logistic Model) pipeline. Construction is a 4-step
-recipe (L183-224): (1) validate the domain paths with the plain
+recipe (L184-225): (1) validate the domain paths with the plain
 helpers, (2) build the shared `RLMContext` dataclass, (3) assemble
 the worker list (sentinel + commented factory calls), (4)
 `super().__init__` hands workers + context + verbosity to
@@ -85,7 +93,7 @@ the worker list (sentinel + commented factory calls), (4)
 `log_event` + the two cache-path closures into the context (V17).
 
 `RLMContext` (a `@dataclass` extending the plain `Context` base) is
-the shared blackboard: 38 fields holding config state + every data
+the shared blackboard: 39 fields holding config state + every data
 artifact produced by the (future) workers, grouped by pipeline
 stage (positions → features → indexes → wmaps → design matrix →
 zed → gradient → optimization → dense w → validation → analytics),
@@ -102,7 +110,7 @@ same way `cache_manager_load_or_compute` returns it.
 |---|---|
 | `_check_config_file_path(str\|Path) -> Path` | Type-check (bare TypeError), `Path(...)` coercion, existence (FileNotFoundError), is-file (IsADirectoryError — fixed in M3). |
 | `_check_base_dir_override(str\|Path) -> Path` | Same pattern; is-dir check raises NotADirectoryError. |
-| `RLMContext(Context)` | `@dataclass`, 38 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 29 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers, D-069 `*_for_current_level` names — R1). |
+| `RLMContext(Context)` | `@dataclass`, 39 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 32 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers, D-069 `*_for_current_level` names — R1). |
 | `_created_up` / `_created_down` | Level-0 sentinel workers: log ERROR + raise RuntimeError ("should never happen") — the D-059 sentinel made explicit, as planned in the state_machine resolution. |
 | `LogisticModel(BaseModel)` | The facade; 4-step construction (L183-224), `@validate_call`-gated `__init__` (R3). |
 
@@ -110,9 +118,9 @@ same way `cache_manager_load_or_compute` returns it.
 
 CREATED (0, sentinel) → CONFIG → POSITIONS → FEATURES → INDEXES →
 WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE →
-VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 13 levels are active
-today (through VALIDATE, D-101); the next line-by-line step
-is `lm_worker_analytics` (the next commented entry). The worker
+VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 14 levels are active
+today (through ANALYTICS, D-103); the next line-by-line step
+is `lm_worker_save` (the last commented entry). The worker
 factories follow the pattern `lm_worker_x()` → `Worker` (the tests
 patch `twolm.logistic_model.lm_worker_config` etc., i.e. the
 factory names in THIS module's namespace).
@@ -127,8 +135,8 @@ D-074/R1 rename (the legacy `_for_next_level` names gone, the
 `get_type_hints` SUCCEEDING (D-074/R2), V6 pins the
 `IsADirectoryError` for a directory as config (D-074/M3) + the
 facade `@validate_call` ValidationError (D-074/R3), V3c pins the
-13-worker list (re-pinned D-101 — it had been stale since
-ede2efe),
+14-worker list (re-pinned D-103 — it had been stale since
+536eadc),
 V9 pins the worker boundaries (D-076 gate split + D-060 failure
 semantics), V10 pins the absence of a `features_checksum` field
 (the FEATURES level is a pure in-memory derivation).
@@ -238,14 +246,14 @@ it).
   the cache switch is per-run, per the R1 ruling pattern of
   cache_manager (D-071).
 
-## Appendix: line-number reference (2026-08-30, file 224 lines,
-post D-074)
+## Appendix: line-number reference (2026-09-02, file 225 lines,
+post D-103)
 
 - `from __future__ import annotations`: L28
 - imports: L30-32 (dataclasses — `field` removed M5/D-075 ·
   pathlib · typing) · L34 (pydantic, D-074/R3) · L36 (state_
-  machine) · L37 (base_model) · L39-54 (worker factories: L41-52
-  active post 536eadc/D-101, L53-54 commented)
+  machine) · L37 (base_model) · L39-54 (worker factories: L41-53
+  active post 96dacb5/D-103, L54 commented — save)
 - `__all__`: L57
 - `_check_config_file_path`: L65-73 (type check L66-67, existence
   L69-70, is-file L71-72 — IsADirectoryError, M3)
@@ -256,13 +264,14 @@ post D-074)
   L112-113, wmaps L116-122, design matrix L125-126, zed L129-132,
   `fg` L135, opt L138-139, dense w L142-143 (comment L141 — M1
   fixed), vld group L146-149 (`vld_pop_stats` L149 — M2 fixed),
-  `vld_metrics` L152, `analytics_report` L155, injected callables
-  L157-162 (comment L157-159, `log_event` L160, D-069
-  `*_for_current_level` names L161-162 — R1 resolved)
-- `_created_up` / `_created_down`: L167-173 (level-0 comment L165)
-- `LogisticModel`: L176 (class docstring L177-180) —
-  `__init__` L183-224: `@validate_call` L182 (R3), signature
-  L183-186, docstring L187-191 (M4), path validation L193-196,
-  context build L199-202, workers list L205-221 (sentinel L206,
-  active factory calls L207-218 post 536eadc/D-101, commented
-  factory calls L219-220), `super().__init__` L224
+  `vld_metrics` L152, `train_metrics` L155 (D-103 M1),
+  `analytics_report` L156, injected callables
+  L158-163 (comment L158-160, `log_event` L161, D-069
+  `*_for_current_level` names L162-163 — R1 resolved)
+- `_created_up` / `_created_down`: L168-174 (level-0 comment L166)
+- `LogisticModel`: L177 (class docstring L178-181) —
+  `__init__` L184-225: `@validate_call` L183 (R3), signature
+  L184-187, docstring L188-192 (M4), path validation L194-197,
+  context build L200-203, workers list L206-222 (sentinel L207,
+  active factory calls L208-220 post 96dacb5/D-103, commented
+  factory call L221 — save), `super().__init__` L225

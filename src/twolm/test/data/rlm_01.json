@@ -49,7 +49,7 @@
     },
     "analytics": {
         "report_file_name": "model_analytics_report.txt",
-        "detailed_report": ["DIAG3"]
+        "detailed_report": ["DIAG3", "LMC"]
     },
     "regab_data_set": {
         "regab_db_connection": {

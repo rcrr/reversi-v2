@@ -28,10 +28,9 @@
 from __future__ import annotations
 
 import io
-import sys
 import numpy as np
 
-from typing import TYPE_CHECKING, Dict, Optional, List
+from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
 from twolm.rlm_gradient import sigmoid
@@ -54,14 +53,14 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
     n_configurations = feature.n_configurations
     n_instances = feature.n_instances
     offset = ctx.iwmap_feature_offset[fid]
-    
+
     fallback_idx = int(ctx.feature_w_ranges[fid,0])
     fallback_freqs = {}
     if ctx.wmap_fallback is not None and len(ctx.wmap_fallback) > 0:
         for row in ctx.wmap_fallback:
             if int(row[0]) == fid:
                 fallback_freqs[int(row[1])] = int(row[2])
-                
+
     fallback_total_freq = sum(fallback_freqs.values())
     if fallback_idx != -1:
         fallback_weight = float(ctx.w[fallback_idx])
@@ -84,14 +83,14 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
     train_indexes = ctx.rlm_indexes.indexes[:, cols]
     train_flat = train_indexes.ravel()
-    
+
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
-    
+
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
-    
+
     total_y_mean = np.mean(y_repeated)
     ss_total = np.sum((y_repeated - total_y_mean)**2)
     valid_mask = counts > 0
@@ -121,10 +120,10 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
         f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | {'CONF_IDX':<8} | {'FREQUENCY':>10} | {'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}\n"
         f"{'-' * 135}\n"
     )
-    
+
     if not print_rows:
         return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * 135}\n"
-        
+
     rows = []
     for conf_id in range(n_configurations):
         w_dense_idx = offset + conf_id
@@ -133,7 +132,7 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
         freq = 0
         avg_gv = 0.0
         rmse_gv = 0.0
-        
+
         if conf_id in fallback_freqs:
             status = 'IC'
             w_idx_str = 'NA'
@@ -148,22 +147,22 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
             status = 'IA'
             w_idx_str = 'NA'
             weight = float(ctx.w_dense[w_dense_idx])
-            
+
         # Calculate stats for any config that has occurrences in the dataset
         if counts[conf_id] > 0:
             avg_gv = sum_y[conf_id] / counts[conf_id]
             var = (sum_y2[conf_id] / counts[conf_id]) - (avg_gv**2)
             rmse_gv = np.sqrt(max(var, 0))
-            
+
         weight_str = f"{weight:+.3f}"
         avg_gv_str = f"{avg_gv:>10.2f}" if freq > 0 else f"{'N/A':>10}"
         rmse_gv_str = f"{rmse_gv:>8.2f}" if freq > 0 else f"{'N/A':>8}"
         freq_str = f"{freq:>10,}"
-                
+
         rows.append(
             f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {freq_str} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
-        
+
     return header + "".join(rows) + f"{'-' * 135}\n"
 
 
@@ -175,14 +174,14 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
     n_configurations = feature.n_configurations
     n_instances = feature.n_instances
     offset = ctx.iwmap_feature_offset[fid]
-    
+
     fallback_idx = int(ctx.feature_w_ranges[fid,0])
     fallback_freqs = {}
     if ctx.wmap_fallback is not None and len(ctx.wmap_fallback) > 0:
         for row in ctx.wmap_fallback:
             if int(row[0]) == fid:
                 fallback_freqs[int(row[1])] = int(row[2])
-                
+
     fallback_total_freq = sum(fallback_freqs.values())
     if fallback_idx != -1:
         fallback_weight = float(ctx.w[fallback_idx])
@@ -221,14 +220,14 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
     train_indexes = ctx.rlm_indexes.indexes[:, cols]
     train_flat = train_indexes.ravel()
-    
+
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
-    
+
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
-    
+
     total_y_mean = np.mean(y_repeated)
     ss_total = np.sum((y_repeated - total_y_mean)**2)
     valid_mask = counts > 0
@@ -260,10 +259,10 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
         f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | {'CONF_IDX':<8} | {'PRINCIPAL_IDX':<14} | {'FREQUENCY':>10} | {'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}\n"
         f"{'-' * 135}\n"
     )
-    
+
     if not print_rows:
         return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * 135}\n"
-    
+
     rows = []
     for conf_id in range(n_configurations):
         w_dense_idx = offset + conf_id
@@ -273,7 +272,7 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
         freq = 0
         avg_gv = 0.0
         rmse_gv = 0.0
-        
+
         if conf_id in fallback_freqs:
             status = 'CL'
             w_idx_str = 'NA'
@@ -288,22 +287,22 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
             status = 'AB'
             w_idx_str = 'NA'
             weight = float(ctx.w_dense[w_dense_idx])
-            
+
         # Calculate stats for any config that has occurrences in the dataset
         if counts[conf_id] > 0:
             avg_gv = sum_y[conf_id] / counts[conf_id]
             var = (sum_y2[conf_id] / counts[conf_id]) - (avg_gv**2)
             rmse_gv = np.sqrt(max(var, 0))
-            
+
         weight_str = f"{weight:+.3f}"
         avg_gv_str = f"{avg_gv:>10.2f}" if freq > 0 else f"{'N/A':>10}"
         rmse_gv_str = f"{rmse_gv:>8.2f}" if freq > 0 else f"{'N/A':>8}"
         freq_str = f"{freq:>10,}"
-                
+
         rows.append(
             f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {principal_idx_str:<14} | {freq_str} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
-        
+
     return header + "".join(rows) + f"{'-' * 135}\n"
 
 
@@ -314,20 +313,20 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     model_name = ctx.cfg.name
     total_params = len(ctx.w)
     dense_params = len(ctx.w_dense) if ctx.w_dense is not None else 0
-    
+
     opt_info = ctx.opt_info or {}
     opt_status = opt_info.get('reason', 'N/A')
     opt_iters = opt_info.get('iters', 0)
-    
+
     # Read metrics from context
     train_metrics = ctx.train_metrics or {}
     vld_metrics = ctx.vld_metrics
-    
+
     train_rmse = train_metrics.get('train_rmse_y', 0.0)
     train_mae = train_metrics.get('train_mae_y', 0.0)
     train_loss = train_metrics.get('train_loss', 0.0)
     train_samples = train_metrics.get('train_samples', 0)
-    
+
     if vld_metrics:
         vld_rmse_str = f"{vld_metrics.get('vld_rmse_y', 0.0):.2f}"
         vld_mae_str = f"{vld_metrics.get('vld_mae_y', 0.0):.2f}"
@@ -344,11 +343,11 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     pop_loss_str = f"{train_metrics.get('pop_loss', 0.0):.4e}"
 
     header = f"\n{'=' * 135}\nMODEL ANALYTICS REPORT: {model_name}\n{'=' * 135}\n"
-    
+
     if detailed:
         creation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         stat_model_cfg = ctx.cfg.stat_model
-        
+
         header += f"  Creation Date               : {creation_date}\n"
         header += f"  Training/Validation Records : {train_samples:,} / {vld_samples:,}\n"
         header += f"  Frequency Cut-Off           : {stat_model_cfg.frequency_cut_off}\n"
@@ -389,12 +388,10 @@ def format_file_report(ctx: "RLMContext") -> str:
     ctx.feature_set.print_summary(output=buffer)
     feature_summary = buffer.getvalue()
     report += f"\nFEATURE SET SUMMARY:\n{'-' * 135}\n{feature_summary}\n"
-    
-    # Safely read the config list
-    detailed_report_list = []
-    if hasattr(ctx.cfg, 'analytics') and ctx.cfg.analytics is not None:
-        detailed_report_list = getattr(ctx.cfg.analytics, 'detailed_report', [])
-    
+
+    # ctx.cfg.analytics always exists (the schema's default factory)
+    detailed_report_list = ctx.cfg.analytics.detailed_report
+
     report += f"MOBILITY FEATURES DETAILS:\n{'-' * 135}\n"
     col_offset = 0
     for fid, feature in enumerate(ctx.feature_set.features):
@@ -402,7 +399,7 @@ def format_file_report(ctx: "RLMContext") -> str:
             print_rows = feature.name in detailed_report_list
             report += _format_mobility_feature_table(ctx, fid, col_offset, print_rows=print_rows)
         col_offset += feature.n_instances
-        
+
     report += f"\nPATTERN FEATURES DETAILS:\n{'-' * 135}\n"
     col_offset = 0
     for fid, feature in enumerate(ctx.feature_set.features):
@@ -414,35 +411,35 @@ def format_file_report(ctx: "RLMContext") -> str:
     return report
 
 
-def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float]:
+def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
     """
     Computes MAE(y) and RMSE(y) on the training set using the optimized weights (w).
     Also computes baseline (population mean) metrics for comparison.
     """
     ctx.log_event(Relevance.INFO, "Computing metrics on the training set...")
-    
+
     # --- Model Metrics ---
     linear_predictor = np.sum(ctx.w[ctx.design_matrix].astype(np.float64), axis=1)
     z_pred = sigmoid(linear_predictor)
-    
+
     y_pred = ctx.z2y(z_pred)
     y_true = ctx.game_values.astype(np.float64)
-    
+
     rn_y = y_pred - y_true
     mae_y = np.mean(np.abs(rn_y))
     rmse_y = np.sqrt(np.dot(rn_y, rn_y) / len(rn_y))
-    
+
     # --- Population (Baseline) Metrics ---
     y_mean = np.mean(y_true)
     rn_y_pop = y_true - y_mean
     pop_mae_y = np.mean(np.abs(rn_y_pop))
     pop_rmse_y = np.sqrt(np.dot(rn_y_pop, rn_y_pop) / len(rn_y_pop))
-    
+
     z_true = ctx.y2z(ctx.game_values)
     z_mean = np.mean(z_true)
     rn_z_pop = z_true - z_mean
     pop_loss = 0.5 * (np.dot(rn_z_pop, rn_z_pop) / len(rn_z_pop))
-    
+
     return {
         'train_mae_y': float(mae_y),
         'train_rmse_y': float(rmse_y),

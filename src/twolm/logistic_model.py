@@ -151,7 +151,8 @@ class RLMContext(Context):
     # Validation attributes:
     vld_metrics: Any = None
 
-    # Analytic attribute:
+    # Analytic attributes:
+    train_metrics: Any = None
     analytics_report: Any = None
     
     # Injected by StateMachine: the lambda defaults are the

@@ -1,0 +1,137 @@
+# twolm/test/test_lm_worker_analytics.py
+
+Analysis date: 2026-09-02 — analysis session 28 (D-103, the
+ANALYTICS bring-in + fix campaign). New file added by the D-103
+campaign (T5, Roberto-approved: "T5: OK. Procedi!"), the dedicated
+suite for the ANALYTICS level — the first suite to cover TWO
+non-cache levels' downstream data (the 5th non-cache level itself +
+the rlm_01 mobility-table branch of the file report).
+
+## How to run
+
+Run from the workspace root (the directory containing `.venv` and
+`src`):
+
+- With the live regab DB:
+  `time python3 -m unittest twolm.test.test_lm_worker_analytics`
+- Gated (no DB): `SKIP_REGAB_DB=1 python3 -m unittest
+  twolm.test.test_lm_worker_analytics` — all 4 tests skip
+  (4/0/4).
+
+Suite status (session 28, post D-103): 4/0/0 live (7.3 s);
+full discover 626 tests, 84 skipped under `SKIP_REGAB_DB=1`,
+GREEN (2.8 s); ungated 626 run, 17 skipped, GREEN (39.1 s); the
+full `-W error` discover is clean.
+
+## Architecture (304 lines)
+
+Module-level: the GPL header (L1-27, Roberto's, as in all test
+files), the run instructions (L29-41), imports (L43-55 —
+`hashlib`/`re` for the masked hash, `unittest.mock.patch` +
+`StringIO` for the log capture, `LogisticModel`, the D-085
+`WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` paths), and the
+`_masked_report_hash(text)` helper (L58-65): the file report
+embeds `datetime.now()` (the Creation Date line), so the golden is
+the sha3_256 of the text with the date regex-masked to "DATE" —
+every other byte is deterministic.
+
+`TestLMWorkerAnalytics` (L68-220) — the rlm_02 integration class.
+`setUp` (L77-100): the SKIP_REGAB_DB gate first (D-085 idiom — the
+setUp moves through the whole 13-level chain to VALIDATE on a fresh
+base dir, so the live regab DB is required); the stdout patcher;
+`TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))` created FIRST (a
+mid-setup failure still leaves a cleanable temp dir); the
+`WORKSPACE_ROOT`-anchored rlm_02.json; `LogisticModel(config,
+verbosity=HIGH, base_dir_override=tmp)`; `move_to_step('VALIDATE')`
+→ step 12 asserted. `tearDown` (L102-106): defensive
+`getattr`-guarded patcher stop + tmp cleanup.
+
+- `test_analytics_report_goldens` (L108-168): pre-state pins
+  (`analytics_report` + `train_metrics` both None — the fields exist
+  pre-declared on RLMContext since D-103 M1 but unset);
+  `move_to_step('ANALYTICS')` → step 13 / worker "ANALYTICS"; the
+  7-key dict pinned EXACTLY (rlm_02, bid [6,7], 199952 samples:
+  train_mae_y 12.346794566613694, train_rmse_y
+  15.58872172931622, train_loss 0.00712497066706419 —
+  `opt_info['f']`, train_samples 199952, pop_mae_y
+  21.729816221648974, pop_rmse_y 26.40637507956623, pop_loss
+  0.020437248051166534); the console report: title line (the model
+  name from the fixture), "Total Parameters (W) : 2,981", "Dense
+  Parameters (K) : 6,588", "Generalization Gap (RMSE) : -0.13",
+  NO "Creation Date", NO "PATTERN FEATURE" (header-only); the file
+  report: exists at `base_dir/model_analytics_report.txt`, has the
+  Creation Date + the empty MOBILITY section (rlm_02 has no
+  mobility features), the EDGE (fid=0) + DIAG3 (fid=1) pattern
+  headers, exactly ONE "(Table rows omitted" line (DIAG3 — not in
+  the fixture's `detailed_report`; EDGE is), and the date-masked
+  sha3_256 golden `9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619
+  b78a409e7f743c66`; the captured logs: "Generating model
+  analytics report...", "Computing metrics on the training set..."
+  (the data module's INFO line), "Analytics report saved to ", and
+  NO "PATTERN FEATURE" (the tables go to the file, not the logs).
+- `test_second_instance_deterministic` (L170-205): a second
+  `LogisticModel` on the SAME base dir moved to ANALYTICS: exactly 6
+  "Cache successfully loaded and validated" hits (the 6 cache_manager
+  levels — POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE,
+  VLD_POSITIONS; CONFIG + the OPTIMIZE checkpoint have their own
+  load flows; FEATURES/ZED/GRADIENT/VALIDATE/ANALYTICS recompute),
+  no "Extracted" (no DB query), no "established successfully" (no
+  DB connection); the recomputed `train_metrics` dict and the
+  `analytics_report` string are IDENTICAL to the first instance
+  (the no-cache determinism pin).
+- `test_down_clears_analytics_attributes` (L207-220): back to
+  VALIDATE (step 12) clears BOTH blackboard fields to None while the
+  report file REMAINS on disk (the artifact semantics — `_down`
+  does not unlink, like the OPTIMIZE checkpoint).
+
+`TestLMWorkerAnalyticsMobility` (L223-300) — the rlm_01
+mobility-table class. Same setUp idiom on rlm_01.json (the
+intercept + LMC mobility + DIAG3 + CORE patterns;
+`analytics.detailed_report = ["DIAG3", "LMC"]` post D-103 T6 — the
+ONLY fixture that exercises the mobility table helper end-to-end).
+
+- `test_mobility_and_pattern_tables` (L264-300): first run to
+  ANALYTICS; the rlm_01 7-metric goldens (bid [7], 10 samples:
+  train_mae_y 9.874833279184258e-05, train_rmse_y
+  0.00013206900478667877, train_loss 4.704681197571781e-13 — the
+  10-sample model converges to interpolation, train_samples 10,
+  pop_mae_y 15.6, pop_rmse_y 18.39565166010707, pop_loss
+  0.009125067852437496); the file report: "MOBILITY FEATURE: LMC
+  (fid=1)", "PATTERN FEATURE: DIAG3 (fid=2)", "PATTERN FEATURE:
+  CORE (fid=3)", exactly ONE omitted-rows line (CORE — LMC and
+  DIAG3 are in the detailed list); the rlm_01 date-masked sha3_256
+  golden `77fa815ada656152b5f8f893134624d5d023ffc66e9c81e4fcda9a1
+  ecc0c083d`; the logs: "Optimization Status : CONVERGED_MIN_GRAD
+  (16 iters)" + "Generalization Gap (RMSE) : 27.22" (the 10-sample
+  model overfits — vld_rmse far above the interpolated train_rmse).
+
+## Conventions / notes
+
+- D-085 idiom: the SKIP_REGAB_DB gate is FIRST in setUp (before the
+  stdout patch / tmp dir), as in the other worker suites.
+- Goldens are EXACT floats (no tolerance) — the pipeline is
+  deterministic (the rlmwf checksum + sha3 flows pin every
+  upstream artifact; the recompute is a pure float64 pass over
+  pinned data, re-derived by scratch/verify_analytics.py tier C
+  with 0 mismatches).
+- The `detailed_report` fixture change (T6: rlm_01.json
+  `["DIAG3"]` → `["DIAG3", "LMC"]`) is the only fixture edit of the
+  campaign — the analytics block is consumed by the ANALYTICS level
+  only, so no other golden moved (the rlm_01 file-report hash above
+  is the post-T6 value).
+- The 6-hit cache count mirrors the D-102 VALIDATE suite's count —
+  the 5th non-cache level adds no cache file (the rlmwf_12 slot
+  stays unused, the flat-file numbering skips 12 like 03/07/08).
+
+## Appendix — line reference
+
+304 lines, as of D-103 (new file).
+
+- L43-55: imports
+- L58-65: `_masked_report_hash`
+- L68-220: `TestLMWorkerAnalytics` (setUp L77-100, tearDown
+  L102-106, goldens L108-168, second instance L170-205, _down
+  L207-220)
+- L223-300: `TestLMWorkerAnalyticsMobility` (setUp L233-256,
+  tearDown L258-262, tables test L264-300)
+- L303-304: `unittest.main()`
