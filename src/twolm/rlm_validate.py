@@ -1,5 +1,5 @@
 #
-# rlm_config_schemas.py
+# rlm_validate.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -29,11 +29,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from twolm.rlm_gradient import sigmoid
 from twolm.state_machine import Relevance
-from twolm.regab import RegabDBConnection, regab_extract_data_set_from_db
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -50,48 +49,48 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
 
     Validation Metrics for Logistic Curve Fitting on an Ordinal Scale
     -----------------------------------------------------------------
-    When using a logistic model as a non-linear regression function, the discrete game 
-    values (Y, on an ordinal scale like [-64, +64] with steps of 2) are transformed 
+    When using a logistic model as a non-linear regression function, the discrete game
+    values (Y, on an ordinal scale like [-64, +64] with steps of 2) are transformed
     into a continuous target space Z (range [0, 1]) via an affine transformation.
-    
-    The metrics below are computed in this Z space. They act as pure geometric 
-    indicators of distance, measuring how well the continuous logistic curve aligns 
+
+    The metrics below are computed in this Z space. They act as pure geometric
+    indicators of distance, measuring how well the continuous logistic curve aligns
     with the discrete target points.
 
     1. MAE (Mean Absolute Error)
     ----------------------------
-    MAE computes the average of the absolute differences between the true transformed 
+    MAE computes the average of the absolute differences between the true transformed
     values (z) and the continuous predictions from the logistic curve (z_hat).
-    
+
     MAE = (1 / n) * sum(|z_i - z_hat_i|)
 
-    - Physical Interpretation: It tells you, on average, how far the logistic curve 
-      misses the true target in the Z space. Because Z is bounded between 0 and 1, 
-      an MAE of 0.04 means the model's predictions deviate by 4% of the total scale 
+    - Physical Interpretation: It tells you, on average, how far the logistic curve
+      misses the true target in the Z space. Because Z is bounded between 0 and 1,
+      an MAE of 0.04 means the model's predictions deviate by 4% of the total scale
       on average.
-    - Mathematical Weight: MAE treats all errors linearly. A single large mistake 
-      affects the final metric exactly the same as multiple small mistakes. It 
+    - Mathematical Weight: MAE treats all errors linearly. A single large mistake
+      affects the final metric exactly the same as multiple small mistakes. It
       provides an intuitive baseline for the "typical" accuracy of the curve.
 
     2. MSE (Mean Squared Error)
     ---------------------------
-    MSE computes the average of the squared differences between the true transformed 
+    MSE computes the average of the squared differences between the true transformed
     values and the logistic predictions.
-    
+
     MSE = (1 / n) * sum((z_i - z_hat_i)^2)
 
-    - Physical Interpretation: It measures the variance of the residuals. To bring 
-      it back to the Z scale units, you can take its square root to get the RMSE 
-      (Root Mean Squared Error), which represents the standard deviation of the 
+    - Physical Interpretation: It measures the variance of the residuals. To bring
+      it back to the Z scale units, you can take its square root to get the RMSE
+      (Root Mean Squared Error), which represents the standard deviation of the
       prediction error.
-    - Mathematical Weight: MSE penalizes outliers and large deviations aggressively. 
-      If the curve misses a point by 0.1, it adds a penalty of 0.01; a miss of 0.5 
+    - Mathematical Weight: MSE penalizes outliers and large deviations aggressively.
+      If the curve misses a point by 0.1, it adds a penalty of 0.01; a miss of 0.5
       adds a penalty of 0.25.
-    - Why it matters for the Logistic Curve: Logistic curves naturally flatten out 
-      into horizontal asymptotes at their tails (near 0 and 1) and have a steep 
-      inflection point in the middle. If the empirical data does not flatten out at 
-      the same rate as the mathematical curve, the model will generate massive errors 
-      at the boundaries. MSE is the perfect alarm system to tell you if the logistic 
+    - Why it matters for the Logistic Curve: Logistic curves naturally flatten out
+      into horizontal asymptotes at their tails (near 0 and 1) and have a steep
+      inflection point in the middle. If the empirical data does not flatten out at
+      the same rate as the mathematical curve, the model will generate massive errors
+      at the boundaries. MSE is the perfect alarm system to tell you if the logistic
       shape is fundamentally a bad fit for certain regions of the dataset.
 
     3. RMSE (Root Mean Squared Error)
@@ -101,21 +100,21 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
     RMSE = sqrt(MSE)
 
     - When RMSE / MAE = sqrt(pi/2) = 1.253... the distribution is normal.
-    
+
     """
     vld_positions = ctx.vld_positions
     vld_game_values = ctx.vld_game_values
-        
+
     # Compute indexes for validation positions using the SAME feature_set
     ctx.log_event(Relevance.INFO, "Computing indexes for validation set...")
     vld_indexes = ctx.feature_set.compute_indexes(vld_positions)
-    vld_M, vld_P = vld_indexes.shape
+    vld_M, _ = vld_indexes.shape
 
     # Map to dense weights and compute linear predictor
     # We need the column offsets for each feature instance
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
-    
+
     # Apply offsets to raw indexes to point directly into w_dense
     dense_indices = vld_indexes + col_offsets
 
@@ -147,6 +146,7 @@ def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
         'vld_mse_z': float(mse_z),
         'vld_mae_z': float(mae_z),
         'vld_mae_y': float(mae_y),
+        'vld_mse_y': float(mse_y),
         'vld_rmse_y': float(rmse_y),
         'vld_samples': int(vld_M)
     }

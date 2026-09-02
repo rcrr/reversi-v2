@@ -42,19 +42,25 @@ entry L217) — 12th active level; the probe re-pinned to the
 12-worker state (V3c had pinned the 11-worker list since
 e31c061): 0 mismatches — no change to this module. D-100: the
 VLD_POSITIONS fix campaign (R1 + T1-T5 + M1-M3, test file
-added) — no change to this module beyond the bring-in lines.**
+added) — no change to this module beyond the bring-in lines.
+D-101 (536eadc, Roberto): VALIDATE brought in (lm_worker_validate
++ rlm_validate — the first bring-in with a dedicated data module
+besides the worker; the import L52 + worker-list entry L218) — 13th
+active level. D-102: the VALIDATE fix campaign (R1 + T1-T5 +
+M1-M3, test file added) — no change to this module beyond the
+bring-in lines.**
 Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
-- the pipeline is deliberately PARTIAL: of the 15 workers 12 are
+- the pipeline is deliberately PARTIAL: of the 15 workers 13 are
   active (CREATED sentinel + CONFIG + POSITIONS + FEATURES +
   INDEXES + WMAPS + DESIGN_MTR + ZED + GRADIENT + OPTIMIZE +
-  GENERATE + VLD_POSITIONS — the worker list L205-217); the 3
-  remaining factory imports are commented (L52-54, "Remove
-  comments when modules are added"): validate, analytics, save;
+  GENERATE + VLD_POSITIONS + VALIDATE — the worker list L205-218);
+  the 2 remaining factory imports are commented (L53-54, "Remove
+  comments when modules are added"): analytics, save;
 - the 2 tests in test_logistic_model that were once muted
   (`test_move_to_step_delegates_to_state_machine`,
   `test_move_to_step_by_string`) are both restored "una riga alla
@@ -104,9 +110,9 @@ same way `cache_manager_load_or_compute` returns it.
 
 CREATED (0, sentinel) → CONFIG → POSITIONS → FEATURES → INDEXES →
 WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE →
-VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 12 levels are active
-today (through VLD_POSITIONS, D-099); the next line-by-line step
-is `lm_worker_validate` (the next commented entry). The worker
+VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 13 levels are active
+today (through VALIDATE, D-101); the next line-by-line step
+is `lm_worker_analytics` (the next commented entry). The worker
 factories follow the pattern `lm_worker_x()` → `Worker` (the tests
 patch `twolm.logistic_model.lm_worker_config` etc., i.e. the
 factory names in THIS module's namespace).
@@ -121,8 +127,8 @@ D-074/R1 rename (the legacy `_for_next_level` names gone, the
 `get_type_hints` SUCCEEDING (D-074/R2), V6 pins the
 `IsADirectoryError` for a directory as config (D-074/M3) + the
 facade `@validate_call` ValidationError (D-074/R3), V3c pins the
-12-worker list (re-pinned D-099 — it had been stale since
-e31c061),
+13-worker list (re-pinned D-101 — it had been stale since
+ede2efe),
 V9 pins the worker boundaries (D-076 gate split + D-060 failure
 semantics), V10 pins the absence of a `features_checksum` field
 (the FEATURES level is a pure in-memory derivation).
@@ -238,8 +244,8 @@ post D-074)
 - `from __future__ import annotations`: L28
 - imports: L30-32 (dataclasses — `field` removed M5/D-075 ·
   pathlib · typing) · L34 (pydantic, D-074/R3) · L36 (state_
-  machine) · L37 (base_model) · L39-54 (worker factories: L41-51
-  active post ede2efe/D-099, L52-54 commented)
+  machine) · L37 (base_model) · L39-54 (worker factories: L41-52
+  active post 536eadc/D-101, L53-54 commented)
 - `__all__`: L57
 - `_check_config_file_path`: L65-73 (type check L66-67, existence
   L69-70, is-file L71-72 — IsADirectoryError, M3)
@@ -258,5 +264,5 @@ post D-074)
   `__init__` L183-224: `@validate_call` L182 (R3), signature
   L183-186, docstring L187-191 (M4), path validation L193-196,
   context build L199-202, workers list L205-221 (sentinel L206,
-  active factory calls L207-217 post ede2efe/D-099, commented
-  factory calls L218-220), `super().__init__` L224
+  active factory calls L207-218 post 536eadc/D-101, commented
+  factory calls L219-220), `super().__init__` L224

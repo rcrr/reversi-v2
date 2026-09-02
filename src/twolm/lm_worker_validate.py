@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-import numpy as np
+from pydantic import validate_call, ConfigDict
 
 from typing import TYPE_CHECKING
 
@@ -45,16 +45,19 @@ __all__ = ['lm_worker_validate']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting model validation...")
-    
-    metrics = validate_model(ctx)    
+
+    metrics = validate_model(ctx)
     ctx.vld_metrics = metrics
-    
+
     ctx.log_event(Relevance.INFO, f"Validation completed. Loss (MSE/2): {metrics['vld_loss']:.8e}")
     ctx.log_event(Relevance.INFO, f"  MSE:      {metrics['vld_mse_z']:.4e}")
     ctx.log_event(Relevance.INFO, f"  MAE:      {metrics['vld_mae_z']:.4e}")
     ctx.log_event(Relevance.INFO, f"  MAE(y):   {metrics['vld_mae_y']:.2f}")
     ctx.log_event(Relevance.INFO, f"  RMSE(y):  {metrics['vld_rmse_y']:.2f}")
-    ctx.log_event(Relevance.INFO, f"  RMSE/MAE: {(metrics['vld_rmse_y']/metrics['vld_mae_y']):.2f}")
+    if metrics['vld_mae_y'] > 0.0:
+        ctx.log_event(Relevance.INFO, f"  RMSE/MAE: {(metrics['vld_rmse_y']/metrics['vld_mae_y']):.2f}")
+    else:
+        ctx.log_event(Relevance.INFO, "  RMSE/MAE: n/a (vld_mae_y is 0 — perfect Y-space fit)")
 
     return
 
@@ -66,6 +69,7 @@ def _down(ctx: "RLMContext") -> None:
     return
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_validate() -> Worker:
     """Factory function that returns the VALIDATE worker instance."""
     return Worker("VALIDATE", _up, _down)
