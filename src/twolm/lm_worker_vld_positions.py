@@ -30,13 +30,11 @@ from __future__ import annotations
 import numpy as np
 
 from typing import TYPE_CHECKING
-from pathlib import Path
+
+from pydantic import validate_call, ConfigDict
 
 from twolm.state_machine import Worker, Relevance
 from twolm.regab import (
-    RegabDataSet, 
-    RegabDBConnection, 
-    regab_extract_data_set_from_db,
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file
 )
@@ -57,11 +55,16 @@ def _up(ctx: "RLMContext") -> None:
 
     vld_cfg = ctx.cfg.validation_data_set
 
+    # Note: the vld query inherits ec from ctx.cfg.regab_data_set (the
+    # training block) — ValidationDataSetConfig declares only bid and
+    # status; the shared ec gates both the extraction and the cache
+    # consistency check (D-100 M1).
+
     # Execute the abstracted pipeline.
     cache_hit, vld_rds, vld_rds_checksum = cache_manager_load_or_compute(
-        cache_path  = ctx.get_cache_file_full_path_for_next_level(),
+        cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = regab_load_data_set_from_file,
+        load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_vld_rds: is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status),
         compute_fn  = lambda: load_from_db(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
@@ -73,7 +76,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.vld_positions = vld_positions
     ctx.vld_game_values = vld_game_values
     ctx.vld_rds_checksum = vld_rds_checksum
-    
+
     ctx.log_event(Relevance.INFO, f"Regab validation data set object checksum (vld_rds_checksum): {vld_rds_checksum}.")
     ctx.log_event(Relevance.INFO, "Model attributes vld_positions, vld_game_values and vld_rds_checksum have been set.")
 
@@ -89,10 +92,10 @@ def _up(ctx: "RLMContext") -> None:
         'std_dev': std_dev,
         'variance': variance
     }
-    
+
     return
 
-        
+
 def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation game positions vld_positions, vld_game_values and vld_rds_checksum attributes.")
     ctx.vld_positions = None
@@ -103,6 +106,7 @@ def _down(ctx: "RLMContext") -> None:
     return
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_vld_positions() -> Worker:
     """Factory function that returns the VLD_POSITIONS worker instance."""
     return Worker("VLD_POSITIONS", _up, _down)
