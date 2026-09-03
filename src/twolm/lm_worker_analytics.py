@@ -32,7 +32,9 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from twolm.state_machine import Worker, Relevance
-from twolm.rlm_analytics import compute_training_metrics, format_console_report, format_file_report
+from twolm.rlm_analytics import (compute_training_metrics,
+                                 compute_training_dense_metrics,
+                                 format_console_report, format_file_report)
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -46,8 +48,11 @@ __all__ = ['lm_worker_analytics']
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating model analytics report...")
 
-    # 1. Compute and store training metrics in context
+    # 1. Compute and store training metrics in context (the compressed
+    #    pass — what lbfgs fit — and the dense pass, the shipped
+    #    inference rules; D-105/M2)
     ctx.train_metrics = compute_training_metrics(ctx)
+    ctx.train_dense_metrics = compute_training_dense_metrics(ctx)
 
     # 2. Format the console report
     console_report = format_console_report(ctx)
@@ -71,6 +76,7 @@ def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing analytics attributes...")
     ctx.analytics_report = None
     ctx.train_metrics = None
+    ctx.train_dense_metrics = None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

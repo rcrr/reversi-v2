@@ -16,28 +16,27 @@ compute on every up-move: it recomputes the training metrics, logs
 the console report line by line, writes the complete file report to
 `base_dir/<cfg.analytics.report_file_name>` (plain text, overwritten
 every run — the OPTIMIZE-checkpoint artifact semantics; `_down`
-does NOT unlink it). The machine contract: `_up` publishes the TWO
-context attributes `ctx.train_metrics` (the 7-key dict) and
+does NOT unlink it). The machine contract: `_up` publishes the
+THREE context attributes `ctx.train_metrics` (the 7-key dict),
+`ctx.train_dense_metrics` (the 4-key dense-pass dict, D-105/M2) and
 `ctx.analytics_report` (the console report string); `_down` clears
-both.
+all three.
 
-## Suite status (session 28, post D-103)
+## Suite status (session 29, post D-105)
 
 - `test_lm_worker_analytics`: 4/0/0 live (2 classes — the rlm_02
   golden/determinism/_down trio + the rlm_01 mobility-table test;
   all 4 tests DB-gated — the setUp moves through VALIDATE on a fresh
   base dir, so the live regab DB is required; under `SKIP_REGAB_DB=1`
   the 4 tests skip — 4/0/4 gated).
-- Full discover: 626 tests, 84 skipped under `SKIP_REGAB_DB=1`,
-  GREEN (2.8 s); ungated (live DB): 626 run, 17 skipped, GREEN
-  (39.1 s). The full `-W error` discover is clean (38.9 s).
+- Full discover: 631 tests, 87 skipped under `SKIP_REGAB_DB=1`,
+  GREEN (3.2 s); ungated (live DB): 631 run, 18 skipped, GREEN
+  (46.8 s). The module-level `-W error` run is clean (8.0 s).
 
 ## State per Roberto
 
-Pipeline-in-progress, 14 active levels, enabled by Roberto's
-2026-09-02 bring-in (96dacb5). The next line-by-line step is
-`lm_worker_save` (the last commented entry, L54 / worker list L221).
-ANALYTICS fix campaign (D-103) CLOSED: T1 (factory `@validate_call`
+Pipeline COMPLETE (15/15 active levels post D-104). The ANALYTICS
+fix campaign (D-103) is CLOSED: T1 (factory `@validate_call`
 + pydantic import — all 13 worker factories now uniform), T2 (the
 dead `pathlib.Path` import removed here + the dead `sys` /
 `Optional` / `List` imports removed in rlm_analytics), T4 (6 ws
@@ -45,56 +44,67 @@ lines), T5 (the dedicated test file added), T6 (rlm_01.json
 `detailed_report` += "LMC" — the mobility-table branch gets
 end-to-end coverage), M1 (RLMContext pre-declares `train_metrics`),
 M2/M3 in rlm_analytics. T3 verified no-action (both headers already
-carry their own names — unlike D-102's rlm_validate).
+carry their own names — unlike D-102's rlm_validate). D-105 (M2
+approved by Roberto, 2026-09-03): the dense-pass 3-metric table —
+this file: `_up` publishes the 4-key `train_dense_metrics` dict
+(pre-declared on RLMContext L156) before the format calls, `_down`
+clears it (3 fields), the data module logs one extra INFO line.
 
-## Architecture (80 lines, post D-103)
+## Architecture (86 lines, post D-105)
 
 - Imports (L28-38): `Worker, Relevance` from state_machine (L34),
-  the 3 public data functions from rlm_analytics (L35),
-  `validate_call, ConfigDict` from pydantic (L30 — added in D-103
-  T1, replacing the dead `from pathlib import Path` line — T2),
-  `RLMContext` under TYPE_CHECKING (L37-38). NO
+  the 4 public data functions from rlm_analytics (L35-37, 3 lines
+  since D-105/M2), `validate_call, ConfigDict` from pydantic (L30 —
+  added in D-103 T1, replacing the dead `from pathlib import Path`
+  line — T2), `RLMContext` under TYPE_CHECKING (L37-38). NO
   `twolm.cache_manager` import (by design).
-- `_up` (L46-68): `log_event(INFO, "Generating model analytics
-  report...")` (L47); `ctx.train_metrics = compute_training_metrics
-  (ctx)` (L50 — the field is pre-declared on RLMContext L155 since
-  D-103 M1); `console_report = format_console_report(ctx)` (L53);
-  the 15 header lines logged line by line (L56-57 — "so it shows up
-  in the StateMachine logs", per the comment); `file_report =
-  format_file_report(ctx)` (L60) written to
-  `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name` (L61-63);
-  `log_event(INFO, f"Analytics report saved to ...")` (L65);
-  publishes `ctx.analytics_report = console_report` (L68, "Store in
-  context if needed by the SAVE worker later").
-- `_down` (L70-73): `log_event(INFO, "Clearing analytics
-  attributes...")` then clears the TWO attributes to None (L72-73)
-  — the scope is complete: `_up` sets exactly `analytics_report` +
-  `train_metrics` (pinned by probe A8 and
-  test_down_clears_analytics_attributes).
-- `lm_worker_analytics()` (L76-79): the factory — `@validate_call
+- `_up` (L48-73): `log_event(INFO, "Generating model analytics
+  report...")` (L49); `ctx.train_metrics = compute_training_metrics
+  (ctx)` (L54 — the field is pre-declared on RLMContext L155 since
+  D-103 M1); `ctx.train_dense_metrics =
+  compute_training_dense_metrics(ctx)` (L55 — pre-declared on
+  RLMContext L156 since D-105/M2); `console_report =
+  format_console_report(ctx)` (L58); the 17 header lines logged
+  line by line (L61-62 — "so it shows up in the StateMachine
+  logs", per the comment); `file_report = format_file_report(ctx)`
+  (L65) written to `ctx.cfg.base_dir / ctx.cfg.analytics.
+  report_file_name` (L66-69); `log_event(INFO, f"Analytics report
+  saved to ...")` (L71); publishes `ctx.analytics_report =
+  console_report` (L73, "Store in context if needed by the SAVE
+  worker later").
+- `_down` (L75-79): `log_event(INFO, "Clearing analytics
+  attributes...")` then clears the THREE attributes to None
+  (L77-79) — the scope is complete: `_up` sets exactly
+  `analytics_report` + `train_metrics` + `train_dense_metrics`
+  (pinned by probe A8 and test_down_clears_analytics_attributes).
+- `lm_worker_analytics()` (L82-85): the factory — `@validate_call
   (config=ConfigDict(arbitrary_types_allowed=True))` since D-103
-  T1 (all 13 sibling worker factories share the pattern) — returns
-  `Worker("ANALYTICS", _up, _down)` (L79).
+  T1 (all 14 sibling worker factories share the pattern) — returns
+  `Worker("ANALYTICS", _up, _down)` (L85).
 
-## Verified facts (D-103 probe — 33 checks, 0 mismatches)
+## Verified facts (D-105 probe — 41 checks, 0 mismatches)
 
-scratch/verify_analytics.py, tiers A (structure, 12 checks), B
-(pipeline state, 5), C (live golden re-derivation, 11, gated on
-SKIP_REGAB_DB), D (unit math, no DB, 3). Pre-campaign the probe
+scratch/verify_analytics.py, tiers A (structure, 14), B (pipeline
+state, 5), C (live golden re-derivation, 18 incl. sub-checks, gated
+on SKIP_REGAB_DB), D (unit math, no DB, 4). Pre D-103 the probe
 reported exactly the 7 worklist mismatches (A2, A3, A4, A6a, A6b,
-A11, A12); post D-103 all 33 pass.
+A11, A12); post D-103 all 33 pass; D-105 re-pinned (A1, A8, A10,
+B2, B3, C2, C6, C6a, C8, C9, C11, D3) and added A13, C4b, C11b,
+D4 — post D-105 all 41 pass.
 
-- V1 (A-tier): structure — 80 lines; `__all__ =
-  ['lm_worker_analytics']` (L42); the factory WITH `@validate_call`
+- V1 (A-tier): structure — 86 lines; `__all__ =
+  ['lm_worker_analytics']` (L44); the factory WITH `@validate_call`
   + the pydantic import (D-103 T1); NO pathlib import (T2); NO
-  cache_manager import (A9); `_up` sets the 2 ctx attributes (L50,
-  L68); `_down` clears both (L72-73); `Worker("ANALYTICS", ...)`
-  (L79); 0 non-comment trailing-whitespace lines (D-103 T4 — 6 pre).
-- V2 (B-tier): the import L53 + worker-list entry L220 uncommented;
-  1 commented import remains (save, L54); 14 active levels (CREATED
-  sentinel + 13 factory calls); the schema `AnalyticsConfig`
-  (default factory) makes `ctx.cfg.analytics` always exist — the
-  worker's L60 direct access is safe (B5).
+  cache_manager import (A9); `_up` sets the 3 ctx attributes (L54,
+  L55, L73); `_down` clears all three (L77-79);
+  `Worker("ANALYTICS", ...)` (L85); 0 non-comment
+  trailing-whitespace lines (D-103 T4 — 6 pre).
+- V2 (B-tier): the import L53 + worker-list entry L220 uncommented
+  (D-103); 0 commented worker imports remain (D-104 made the
+  pipeline complete); 15 active levels (CREATED sentinel + 14
+  factory calls); the schema `AnalyticsConfig` (default factory)
+  makes `ctx.cfg.analytics` always exist — the worker's L65 direct
+  access is safe (B5).
 - V3 (C-tier, live DB, rlm_02): the full pipeline through ANALYTICS
   (step 13, no crash) with the 7-metric training goldens:
   `train_mae_y 12.346794566613694`, `train_rmse_y
@@ -102,31 +112,44 @@ A11, A12); post D-103 all 33 pass.
   `opt_info['f']`, the OPTIMIZE final objective), `train_samples
   199952`, `pop_mae_y 21.729816221648974`, `pop_rmse_y
   26.40637507956623`, `pop_loss 0.020437248051166534` (the bid [6,7]
-  training model, 199952 samples). The step-13 log span from
-  "Generating model analytics report..." to "Analytics report saved
-  to ..." is exactly 18 lines (1 Generating + 1 "Computing metrics
-  on the training set..." + 15 header lines + 1 saved). NO rlmwf_12*
-  file and the rlmwf_* set unchanged (C7/C7b). Second instance:
-  identical metrics + identical console report (deterministic
-  recompute) + no DB re-extraction + exactly 6 "Cache successfully
-  loaded and validated" hits (C8). The `_down` clearing (C9).
-  Independent float64 re-derivation of the training metrics: 0
-  mismatch (C10).
+  training model, 199952 samples) + the 4-key dense goldens
+  (D-105/M2, C4b): `train_dense_mae_y 12.346794548249868`,
+  `train_dense_rmse_y 15.58872171282352`, `train_dense_loss
+  0.00712234852835536`, `train_dense_samples 199952` (cut 1 — the
+  residual vs compressed is the f32 rounding of `w_dense`). The
+  step-13 log span from "Generating model analytics report..." to
+  "Analytics report saved to ..." is exactly 21 lines (1
+  Generating + 1 "Computing metrics on the training set..." + 1
+  "Computing dense-pass metrics on the training set..." (D-105/M2)
+  + 17 header lines + 1 saved). NO rlmwf_12* file and the rlmwf_*
+  set unchanged (C7/C7b). Second instance: identical train_metrics
+  + identical train_dense_metrics + identical console report
+  (deterministic recompute) + no DB re-extraction + exactly 6
+  "Cache successfully loaded and validated" hits (C8). The `_down`
+  clearing of all 3 attributes (C9). Independent float64
+  re-derivation of the training metrics: 0 mismatch (C10). The
+  header's Generalization Gap = vld_rmse_y − train_dense_rmse_y
+  (dense-vs-dense, C11) and Substitution Delta = train_dense_rmse_y
+  − train_rmse_y ("−0.00" at rlm_02's cut 1, C11b).
 - V4 (C-tier, live DB, rlm_02 file report): the file exists at
   `base_dir/model_analytics_report.txt`; structure = header
   (detailed — with the Creation Date) + FEATURE SET SUMMARY +
   MOBILITY FEATURES DETAILS (empty — no mobility features) + PATTERN
   details (EDGE rows printed — in `detailed_report`; DIAG3 rows
   omitted; ELLE/LMC absent from the fixture); date-masked
-  sha3_256 golden `9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619
-  b78a409e7f743c66` (C5/C5a/C5b — deterministic, recompute-identical).
+  sha3_256 golden `94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e
+  15d2b263158120b0` (C5/C5a/C5b — deterministic, recompute-identical;
+  re-pinned D-105 for the 3-metric header).
 - V5 (D-tier, no DB): the full training-metric math on a hand-
   computed 2-position case (predictor 0 → z_pred 0.5 → y_pred 0:
   mae_y 10.0, rmse_y 10.0, train_loss 0.123 = `opt_info['f']`,
   samples 2, pop_mae_y 10.0, pop_rmse_y 10.0, pop_loss
-  0.0030517578125); the `opt_info` None branch → train_loss 0.0;
-  the console-report N/A branch (vld_metrics None → 3 "N/A" strings,
-  gen_gap 0.00, 15 lines).
+  0.0030517578125) (D1); the `opt_info` None branch → train_loss
+  0.0 (D2); the console-report N/A branch (train_dense_metrics +
+  vld_metrics both None → 6 "N/A" cells, Population line, both gaps
+  0.00, 17 lines) (D3); the dense-pass metric math on the same
+  hand-computed case (mae_y 10.0, rmse_y 10.0, loss
+  0.0030517578125, samples 2) (D4, D-105/M2).
 
 ## Minor notes
 
@@ -137,7 +160,9 @@ A11, A12); post D-103 all 33 pass.
   the worker as an ad-hoc dataclass attribute: it works (no
   `__slots__`), but every other blackboard field is pre-declared on
   RLMContext (the D-099 idiom), and the worker's own comment says
-  the SAVE worker will consume it later. Now declared (L155).
+  the SAVE worker will consume it later. Now declared (L155); the
+  same idiom was applied to `train_dense_metrics` (L156) in
+  D-105/M2.
 - **M2 (FIXED, D-103, rlm_analytics)** — the `Dict[str, float]`
   return annotation on compute_training_metrics while
   `train_samples` is an int → `Dict[str, float | int]`.
@@ -145,26 +170,30 @@ A11, A12); post D-103 all 33 pass.
   'analytics')` guard in format_file_report was dead code: the
   schema field is non-optional with a `default_factory`, so the
   attribute always exists and is never None → direct access.
-- **Report-only — the mixed-representation Generalization Gap
-  (O1, quantified):** the TRAINING column is the COMPRESSED forward
-  pass (`ctx.w` over `ctx.design_matrix` — exactly what the
-  optimizer trained), the VALIDATION column the DENSE forward pass
-  (`ctx.w_dense` — the GENERATE materialization). The two differ
-  only for configurations whose orbit was unseen in training
-  (dense: orbit frequency-weighted mean / mobility np.interp —
-  D-098 R2; compressed: the feature fallback index). Measured on
-  rlm_02: 0 of the 1600 validation instances (200 × 8) hit an
-  unseen orbit (EDGE seen configs 2963/6561, DIAG3 18/27 cover all
-  touched orbits), so the −0.13 gap is a clean train-vs-vld data
-  difference there; on sparser datasets the gap would additionally
-  carry the substitution delta. Left as-is (documented, not
-  changed) — the dense path is the only one that can always run on
-  validation data (the compressed design-matrix guard would raise
-  on unseen configs).
-- Report-only: `compute_training_metrics` logs ONE INFO line from
-  the data module — consistent with rlm_validate (3 such lines in
+- **RESOLVED (D-105/M2) — the mixed-representation Generalization
+  Gap (O1):** pre D-105 the TRAINING column was the COMPRESSED
+  forward pass (`ctx.w` over `ctx.design_matrix` — exactly what the
+  optimizer trained) and the VALIDATION column the DENSE forward
+  pass (`ctx.w_dense` — the GENERATE materialization, the shipped
+  inference rules). The two training representations differ only
+  for positions that touch configurations whose orbit was unseen in
+  training (dense: orbit frequency-weighted mean / mobility
+  np.interp — D-098 R2; compressed: the trained fallback weight).
+  Roberto's correction (D-104, the O1 answer) — "dense ≡ compressed
+  only when nothing is below the frequency_cut_off" — was verified
+  empirically: rlm_04 (cut 10) 1923/199932 training positions
+  differ, rlm_01 (cut 2) 5/10, rlm_02/rlm_03 (cut 1) identical up
+  to the f32 `w_dense` copy. D-105 made the table explicit: the
+  3-metric header now carries BOTH training representations
+  (TRAINING + TRAINING-DENSE), the Generalization Gap is dense-vs-
+  dense (pure), and the Substitution Delta row quantifies the
+  compressed-vs-dense cost (0.00 at cut=1, 0.01 on rlm_04, 3.36 on
+  rlm_01).
+- Report-only: the data module logs TWO INFO lines
+  (compute_training_metrics + compute_training_dense_metrics,
+  D-105/M2) — consistent with rlm_validate (3 such lines in
   validate_model).
-- Report-only: the 3 public data functions carry NO `@validate_call`
+- Report-only: the 4 public data functions carry NO `@validate_call`
   and no no-validation note (the rlm_indexes-L166 TYPE_CHECKING
   class) — consistent with rlm_validate, approved in D-102 without
   one.
@@ -178,7 +207,8 @@ A11, A12); post D-103 all 33 pass.
 
 ## Integration notes
 
-- Pipeline ordering: ANALYTICS is the 14th level; its inputs come
+- Pipeline ordering: ANALYTICS is the 14th level of 15 (the
+  pipeline is COMPLETE post D-104); its inputs come
   from CONFIG (`ctx.cfg` — base_dir, name, analytics, stat_model),
   FEATURES (`ctx.feature_set`), INDEXES (`ctx.rlm_indexes`), WMAPS
   (`ctx.w`, `ctx.iwmap`, `ctx.iwmap_feature_offset`,
@@ -196,22 +226,23 @@ A11, A12); post D-103 all 33 pass.
   (state_machine L87-90): a bare SimpleNamespace is rejected — the
   D-tier probe fakes use SimpleNamespace only for the rlm_analytics
   data functions (which take ctx under TYPE_CHECKING).
-- Downstream: SAVE (the last commented level) will consume
-  `ctx.train_metrics` + `ctx.analytics_report` (the worker's "Store
-  in context if needed by the SAVE worker later" comment).
+- Downstream: SAVE (level 15, active post D-104) consumes
+  `ctx.vld_metrics` + `ctx.training_pop_stats` + `ctx.opt_info` for
+  the model_weights file (the worker's "Store in context if needed
+  by the SAVE worker later" comment).
 
 ## Appendix — line reference
 
-80 lines, as of D-103 (78 at the 96dacb5 bring-in; D-103: +1
-pydantic import line [T1, replacing the pathlib line — T2], +1
-decorator line [T1], 6 ws lines emptied in place [T4]).
+86 lines, as of D-105 (80 at D-103; D-105/M2: +2 import lines
+[the 3-line import], +3 comment lines in `_up` step 1, +1 the
+dense publish line, +1 the dense None clear in `_down`).
 
 - L28-38: imports (pydantic L30 [T1], state_machine L34,
-  rlm_analytics L35, TYPE_CHECKING L37-38)
-- L42: `__all__`
-- L46-68: `_up` (L47 start log, L50 the train_metrics publish,
-  L53 the console report, L56-57 the line-by-line log loop, L60-63
-  the file report write, L65 the saved log, L68 the
-  analytics_report publish)
-- L70-73: `_down` (L72-73 the two None clears)
-- L76-79: `lm_worker_analytics` (L76 decorator [T1], L79 the Worker)
+  rlm_analytics L35-37 [4 names, D-105/M2], TYPE_CHECKING L37-38)
+- L44: `__all__`
+- L48-73: `_up` (L49 the start log, L54 the train_metrics publish,
+  L55 the train_dense_metrics publish [D-105/M2], L58 the console
+  report, L61-62 the line-by-line log loop, L65-69 the file report
+  write, L71 the saved log, L73 the analytics_report publish)
+- L75-79: `_down` (L77-79 the three None clears)
+- L82-85: `lm_worker_analytics` (L82 decorator [T1], L85 the Worker)

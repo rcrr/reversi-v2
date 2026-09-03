@@ -106,8 +106,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_analytics_report_goldens(self):
-        """First run to ANALYTICS: the 7-metric dict, the console report,
-        the report file and the INFO log lines.
+        """First run to ANALYTICS: the 7-metric dict, the 4-key dense dict
+        (D-105/M2), the console report, the report file and the INFO log lines.
 
         Goldens: rlm_02 live (the bid [6,7] training model, 199952
         samples), re-derived independently by scratch/verify_analytics.py
@@ -116,6 +116,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         # Pre-state: the ANALYTICS blackboard fields are not set yet.
         self.assertIsNone(self.rlm.context.analytics_report)
         self.assertIsNone(self.rlm.context.train_metrics)
+        self.assertIsNone(self.rlm.context.train_dense_metrics)
 
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 13)
@@ -134,6 +135,18 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertEqual(met['pop_rmse_y'], 26.40637507956623)
         self.assertEqual(met['pop_loss'], 0.020437248051166534)
 
+        # The D-105/M2 dense-pass dict: the shipped inference rules (w_dense)
+        # on the training data. rlm_02 has frequency_cut_off=1, so the dense
+        # values match the compressed ones up to the f32 rounding of w_dense.
+        dmet = self.rlm.context.train_dense_metrics
+        self.assertIsNotNone(dmet)
+        self.assertEqual(set(dmet), {'train_dense_mae_y', 'train_dense_rmse_y',
+                                     'train_dense_loss', 'train_dense_samples'})
+        self.assertEqual(dmet['train_dense_mae_y'], 12.346794548249868)
+        self.assertEqual(dmet['train_dense_rmse_y'], 15.58872171282352)
+        self.assertEqual(dmet['train_dense_loss'], 0.00712234852835536)
+        self.assertEqual(dmet['train_dense_samples'], 199952)
+
         # The console report (header only — no tables, no date) is stored
         # on the context and logged line by line.
         rep = self.rlm.context.analytics_report
@@ -141,7 +154,10 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Unit Test 02 (rlm_02.json)", rep)
         self.assertIn("  Total Parameters (W)        : 2,981", rep)
         self.assertIn("  Dense Parameters (K)        : 6,588", rep)
+        self.assertIn("Loss (MSE/2)    | 7.1250e-03     | 7.1223e-03     | 7.0079e-03", rep)
+        self.assertIn("Population (baseline)  : RMSE 26.41  MAE 21.73  Loss 2.0437e-02", rep)
         self.assertIn("Generalization Gap (RMSE)   : -0.13", rep)
+        self.assertIn("Substitution Delta (RMSE)   : -0.00", rep)
         self.assertNotIn("Creation Date", rep)
         self.assertNotIn("PATTERN FEATURE", rep)
 
@@ -159,7 +175,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: DIAG3 (fid=1)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
         self.assertEqual(_masked_report_hash(content),
-                         "9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619b78a409e7f743c66")
+                         "94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Generating model analytics report...", logs)
@@ -173,6 +189,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         levels hit and the DB is not re-extracted."""
         self.rlm.move_to_step('ANALYTICS')
         met = self.rlm.context.train_metrics
+        dmet = self.rlm.context.train_dense_metrics
         rep = self.rlm.context.analytics_report
         self.assertIsNotNone(met)
 
@@ -201,20 +218,24 @@ class TestLMWorkerAnalytics(unittest.TestCase):
 
         # ANALYTICS recomputes from the cached artifacts — deterministic.
         self.assertEqual(rlm2.context.train_metrics, met)
+        self.assertEqual(rlm2.context.train_dense_metrics, dmet)
         self.assertEqual(rlm2.context.analytics_report, rep)
         self.assertTrue((self.tmp_dir / "model_analytics_report.txt").exists())
 
     def test_down_clears_analytics_attributes(self):
-        """Pin the _down scope: back to VALIDATE clears train_metrics and
-        analytics_report (the report file itself is not removed)."""
+        """Pin the _down scope: back to VALIDATE clears train_metrics,
+        train_dense_metrics and analytics_report (the report file itself is
+        not removed)."""
         self.rlm.move_to_step('ANALYTICS')
         self.assertIsNotNone(self.rlm.context.train_metrics)
+        self.assertIsNotNone(self.rlm.context.train_dense_metrics)
         self.assertIsNotNone(self.rlm.context.analytics_report)
 
         self.rlm.move_to_step(12)
         self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'VALIDATE')
         self.assertIsNone(self.rlm.context.train_metrics)
+        self.assertIsNone(self.rlm.context.train_dense_metrics)
         self.assertIsNone(self.rlm.context.analytics_report)
         # The report file is a base_dir artifact — _down does not unlink it.
         self.assertTrue((self.tmp_dir / "model_analytics_report.txt").exists())
@@ -263,7 +284,10 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
 
     def test_mobility_and_pattern_tables(self):
         """First run to ANALYTICS on rlm_01: the training metrics golden,
-        the mobility + pattern table structure and the file-report hash.
+        the dense-pass golden (rlm_01 has frequency_cut_off=2, so 5 of its
+        10 training positions touch IC slots — the substitution delta is
+        3.36, the clearest demonstration of the D-105/M2 table), the
+        mobility + pattern table structure and the file-report hash.
 
         Goldens: rlm_01 live (bid [7] training, 10 samples), re-derived
         independently by the campaign probe (0 mismatches).
@@ -281,6 +305,15 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertEqual(met['pop_rmse_y'], 18.39565166010707)
         self.assertEqual(met['pop_loss'], 0.009125067852437496)
 
+        # The dense pass on the same 10 positions: the compressed fit is
+        # exact (rmse 0.00) but the shipped model substitutes 5 below-cutoff
+        # configurations — the Substitution Delta row reads 3.36.
+        dmet = self.rlm.context.train_dense_metrics
+        self.assertEqual(dmet['train_dense_mae_y'], 1.854193878173828)
+        self.assertEqual(dmet['train_dense_rmse_y'], 3.3556084739848866)
+        self.assertEqual(dmet['train_dense_loss'], 0.0003036324051208794)
+        self.assertEqual(dmet['train_dense_samples'], 10)
+
         report_path = self.tmp_dir / "model_analytics_report.txt"
         self.assertTrue(report_path.exists())
         content = report_path.read_text(encoding="utf-8")
@@ -293,11 +326,12 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: CORE (fid=3)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
         self.assertEqual(_masked_report_hash(content),
-                         "77fa815ada656152b5f8f893134624d5d023ffc66e9c81e4fcda9a1ecc0c083d")
+                         "f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Optimization Status         : CONVERGED_MIN_GRAD (16 iters)", logs)
-        self.assertIn("Generalization Gap (RMSE)   : 27.22", logs)
+        self.assertIn("Generalization Gap (RMSE)   : 23.87", logs)
+        self.assertIn("Substitution Delta (RMSE)   : 3.36", logs)
 
 
 if __name__ == '__main__':

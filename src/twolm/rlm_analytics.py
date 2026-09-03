@@ -41,7 +41,8 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['compute_training_metrics', 'format_console_report', 'format_file_report']
+__all__ = ['compute_training_metrics', 'compute_training_dense_metrics',
+           'format_console_report', 'format_file_report']
 
 
 
@@ -309,6 +310,16 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
 def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     """
     Formats the common header metrics table for both console and file reports.
+
+    The table is three-metric wide (D-105/M2): TRAINING is the COMPRESSED
+    forward pass (the trained w over the design matrix — what lbfgs fit);
+    TRAINING-DENSE is the DENSE forward pass (w_dense — the exact forward
+    rules of the saved model, as rlm_client computes them) on the same
+    training data; VALIDATION is the dense pass on the validation data.
+    The two training columns differ exactly for the positions that touch
+    below-cutoff (IC) configurations — the Substitution Delta row
+    quantifies that; the Generalization Gap row is dense-vs-dense (a
+    pure generalization measure).
     """
     model_name = ctx.cfg.name
     total_params = len(ctx.w)
@@ -320,6 +331,7 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
 
     # Read metrics from context
     train_metrics = ctx.train_metrics or {}
+    train_dense_metrics = ctx.train_dense_metrics or {}
     vld_metrics = ctx.vld_metrics
 
     train_rmse = train_metrics.get('train_rmse_y', 0.0)
@@ -327,16 +339,31 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     train_loss = train_metrics.get('train_loss', 0.0)
     train_samples = train_metrics.get('train_samples', 0)
 
+    train_dense_rmse = train_dense_metrics.get('train_dense_rmse_y', 0.0)
+    train_dense_mae = train_dense_metrics.get('train_dense_mae_y', 0.0)
+    train_dense_loss = train_dense_metrics.get('train_dense_loss', 0.0)
+    if train_dense_metrics:
+        train_dense_rmse_str = f"{train_dense_rmse:.2f}"
+        train_dense_mae_str = f"{train_dense_mae:.2f}"
+        train_dense_loss_str = f"{train_dense_loss:.4e}"
+    else:
+        train_dense_rmse_str = train_dense_mae_str = train_dense_loss_str = "N/A"
+
     if vld_metrics:
         vld_rmse_str = f"{vld_metrics.get('vld_rmse_y', 0.0):.2f}"
         vld_mae_str = f"{vld_metrics.get('vld_mae_y', 0.0):.2f}"
         vld_loss_str = f"{vld_metrics.get('vld_loss', 0.0):.4e}"
         vld_samples = vld_metrics.get('vld_samples', 0)
-        gen_gap = vld_metrics.get('vld_rmse_y', 0.0) - train_rmse
+        # The gap is DENSE vs DENSE (the shipped inference rules on both
+        # sets): a pure generalization measure. The compressed-vs-dense
+        # substitution effect is the separate Substitution Delta below.
+        gen_gap = vld_metrics.get('vld_rmse_y', 0.0) - train_dense_rmse
+        substitution_delta = train_dense_rmse - train_rmse
     else:
         vld_rmse_str = vld_mae_str = vld_loss_str = "N/A"
         vld_samples = 0
         gen_gap = 0.0
+        substitution_delta = 0.0
 
     pop_rmse_str = f"{train_metrics.get('pop_rmse_y', 0.0):.2f}"
     pop_mae_str = f"{train_metrics.get('pop_mae_y', 0.0):.2f}"
@@ -359,13 +386,15 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
         f"  Dense Parameters (K)        : {dense_params:,}\n"
         f"  Optimization Status         : {opt_status} ({opt_iters} iters)\n"
         f"{'-' * 135}\n"
-        f"  {'METRIC':<15} | {'TRAINING':<14} | {'VALIDATION':<14} | {'POPULATION':<14}\n"
+        f"  {'METRIC':<15} | {'TRAINING':<14} | {'TRAINING-DENSE':<14} | {'VALIDATION':<14}\n"
         f"{'-' * 135}\n"
-        f"  {'RMSE (y)':<15} | {train_rmse:<14.2f} | {vld_rmse_str:<14} | {pop_rmse_str:<14}\n"
-        f"  {'MAE (y)':<15} | {train_mae:<14.2f} | {vld_mae_str:<14} | {pop_mae_str:<14}\n"
-        f"  {'Loss (MSE/2)':<15} | {train_loss:<14.4e} | {vld_loss_str:<14} | {pop_loss_str:<14}\n"
+        f"  {'RMSE (y)':<15} | {train_rmse:<14.2f} | {train_dense_rmse_str:<14} | {vld_rmse_str:<14}\n"
+        f"  {'MAE (y)':<15} | {train_mae:<14.2f} | {train_dense_mae_str:<14} | {vld_mae_str:<14}\n"
+        f"  {'Loss (MSE/2)':<15} | {train_loss:<14.4e} | {train_dense_loss_str:<14} | {vld_loss_str:<14}\n"
+        f"  Population (baseline)  : RMSE {pop_rmse_str}  MAE {pop_mae_str}  Loss {pop_loss_str}\n"
         f"{'-' * 135}\n"
         f"  Generalization Gap (RMSE)   : {gen_gap:.2f}\n"
+        f"  Substitution Delta (RMSE)   : {substitution_delta:.2f}\n"
         f"{'=' * 135}\n"
     )
     return header
@@ -448,6 +477,46 @@ def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
         'pop_mae_y': float(pop_mae_y),
         'pop_rmse_y': float(pop_rmse_y),
         'pop_loss': float(pop_loss)
+    }
+
+
+def compute_training_dense_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
+    """
+    Computes MAE(y), RMSE(y) and the Z-space loss on the training set using
+    the DENSE weights (w_dense) — the exact forward pass of the saved model
+    (the rlm_client inference rules). The TRAINING table column shows the
+    compressed pass (what lbfgs fit); this column shows what the shipped
+    model actually computes on the training data. The two differ exactly
+    for the positions that touch below-cutoff (IC) configurations, where
+    the dense slots hold the substitution values instead of the trained
+    fallback weights (D-105/M2).
+    """
+    ctx.log_event(Relevance.INFO, "Computing dense-pass metrics on the training set...")
+
+    # The per-instance w_dense start offsets (the rlm_wmaps boundary
+    # array, the same expanded-offsets construction as rlm_validate)
+    n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
+    col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
+
+    dense_indices = ctx.rlm_indexes.indexes + col_offsets
+    linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)
+    z_pred = sigmoid(linear_predictor)
+
+    y_pred = ctx.z2y(z_pred)
+    y_true = ctx.game_values.astype(np.float64)
+    rn_y = y_pred - y_true
+    mae_y = np.mean(np.abs(rn_y))
+    rmse_y = np.sqrt(np.dot(rn_y, rn_y) / len(rn_y))
+
+    z_true = ctx.y2z(ctx.game_values)
+    rn_z = z_pred - z_true
+    loss = 0.5 * (np.dot(rn_z, rn_z) / len(rn_z))
+
+    return {
+        'train_dense_mae_y': float(mae_y),
+        'train_dense_rmse_y': float(rmse_y),
+        'train_dense_loss': float(loss),
+        'train_dense_samples': int(len(y_true))
     }
 
 

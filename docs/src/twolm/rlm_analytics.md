@@ -54,23 +54,30 @@ complete file report with the per-feature configuration tables).
   D8 orbit representatives), and STATUS CL (collapsed to the
   fallback bucket) / C / AB (absent — never seen, the dense
   orbit-mean weight per D-098 R2).
-- `_format_header(ctx, detailed=False)` (L309-371): the common
+- `_format_header(ctx, detailed=False)` (L310-401): the common
   header — `MODEL ANALYTICS REPORT: <name>`, Total Parameters (W)
   = len(ctx.w), Dense Parameters (K) = len(ctx.w_dense), the
   Optimization Status (reason + iters from `ctx.opt_info`), then the
-  4-column metric table (TRAINING from `ctx.train_metrics` —
-  TRAINING column "Loss (MSE/2)" is `opt_info['f']`, the ridge-
-  inclusive final objective, while the VALIDATION/POPULATION losses
-  are pure 0.5·mean(rn²) — the intentional asymmetry of the
-  training-side objective), VALIDATION from `ctx.vld_metrics` (the
-  N/A triple + gen_gap 0.0 when None), POPULATION from the
-  train-metrics population baseline, and the Generalization Gap
-  (vld_rmse − train_rmse, see the lm_worker_analytics doc O1 note).
-  `detailed=True` adds the Creation Date + the stat_model lines
-  (frequency cut-off, logit clipping, ridge).
-- `format_console_report(ctx)` (L374-378): `_format_header
-  (detailed=False)` — the 15-line report, no date, no tables.
-- `format_file_report(ctx)` (L381-411): the complete report —
+  3-metric table (D-105/M2): TRAINING from `ctx.train_metrics`
+  (the COMPRESSED forward pass — what lbfgs fit; its "Loss (MSE/2)"
+  cell is `opt_info['f']`, the ridge-inclusive final objective),
+  TRAINING-DENSE from `ctx.train_dense_metrics` (the DENSE forward
+  pass over `w_dense` — the exact shipped inference rules of
+  rlm_client; all 3 cells pure forward-pass metrics), VALIDATION
+  from `ctx.vld_metrics` (the N/A triple + both gaps 0.0 when
+  None); then the Population (baseline) line (the train-metrics
+  population baseline — RMSE/MAE/Loss on one row), the
+  Generalization Gap (vld_rmse − train_dense_rmse — DENSE vs
+  DENSE post D-105: a pure generalization measure) and the
+  Substitution Delta (train_dense_rmse − train_rmse — the
+  compressed-vs-dense difference: exactly 0 for
+  frequency_cut_off=1 up to the f32 rounding of `w_dense`, which
+  renders "-0.00" on rlm_02/rlm_03). `detailed=True` adds the
+  Creation Date + the stat_model lines (frequency cut-off, logit
+  clipping, ridge).
+- `format_console_report(ctx)` (L403-407): `_format_header
+  (detailed=False)` — the 17-line report, no date, no tables.
+- `format_file_report(ctx)` (L410-441): the complete report —
   detailed header + FEATURE SET SUMMARY (`ctx.feature_set.
   print_summary(output=buffer)`) + the MOBILITY FEATURES DETAILS
   section (one table per category-1 feature) + the PATTERN FEATURES
@@ -82,7 +89,7 @@ complete file report with the per-feature configuration tables).
   features (intercept included) so each table's column slice lines
   up with `ctx.rlm_indexes.indexes` (the design-matrix column
   layout).
-- `compute_training_metrics(ctx)` (L414-453) → `Dict[str, float |
+- `compute_training_metrics(ctx)` (L443-481) → `Dict[str, float |
   int]` (D-103 M2 annotation — `train_samples` is the int): ONE
   INFO log line ("Computing metrics on the training set..."); the
   compressed forward pass: `np.sum(ctx.w[ctx.design_matrix].astype
@@ -94,19 +101,40 @@ complete file report with the per-feature configuration tables).
   squared z residuals via `ctx.y2z`); `train_loss = opt_info['f']`
   (0.0 when `opt_info` is None); `train_samples = int(len
   (y_true))`.
+- `compute_training_dense_metrics(ctx)` (L483-521, D-105/M2) →
+  `Dict[str, float | int]`: ONE INFO log line ("Computing
+  dense-pass metrics on the training set..."); the DENSE forward
+  pass — the same expanded-offsets construction as rlm_validate:
+  `col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1],
+  n_instances_per_feature)`, `dense_indices = ctx.rlm_indexes.
+  indexes + col_offsets`, `np.sum(ctx.w_dense[dense_indices],
+  axis=1)` → `sigmoid` → `ctx.z2y`; the 4-key dict
+  `train_dense_{mae_y, rmse_y, loss, samples}`; the loss is the
+  PURE 0.5·mean(rn_z²) forward-pass loss (there is no dense
+  optimizer objective — the ridge lives on the compressed side).
 
-## Verified facts (D-103 probe — 33 checks, 0 mismatches)
+## Verified facts (D-105 probe — 41 checks, 0 mismatches)
 
-scratch/verify_analytics.py, tiers A (structure, 12), B (pipeline
-state, 5), C (live golden re-derivation, 11, gated), D (unit math,
-no DB, 3). Pre-campaign the probe reported exactly the 7 worklist
-mismatches; post D-103 all 33 pass.
+scratch/verify_analytics.py, tiers A (structure, 14), B (pipeline
+state, 5), C (live golden re-derivation, 18 incl. sub-checks,
+gated), D (unit math, no DB, 4). Pre D-103 the probe reported
+exactly the 7 worklist mismatches; post D-103 all 33 pass. D-105
+re-pin: the 3 stale pre-D-104 pins (A1 the 4 `__all__` names, B2
+0 commented worker imports — the pipeline is complete, B3 15
+active levels), the D-105 table re-pins (A8 the 3 cleared fields,
+A10 the 4 data fns, C2 the pre-state, C6/C6a the 17-line header +
+21-line span, C8/C9 the dense dict in determinism/_down, C11 the
+dense-vs-dense gap formula) and 4 new checks (A13 the
+`train_dense_metrics` pre-declaration, C4b the dense goldens, C11b
+the substitution-delta formula, D4 the dense hand-computed math).
 
-- V1 (A-tier): structure — 453 lines; `__all__` = the 3 public
-  names (L44); 0 non-comment trailing-whitespace lines (D-103 T4 —
-  39 pre); the typing line is `TYPE_CHECKING, Dict` (T2); NO
-  `@validate_call` anywhere (the rlm_indexes-L166 TYPE_CHECKING
-  class — consistent with rlm_validate, report-only).
+- V1 (A-tier): structure — 522 lines; `__all__` = the 4 public
+  names (L44-45, D-105/M2 added
+  `compute_training_dense_metrics`); 0 non-comment
+  trailing-whitespace lines (D-103 T4 — 39 pre); the typing line is
+  `TYPE_CHECKING, Dict` (T2); NO `@validate_call` anywhere (the
+  rlm_indexes-L166 TYPE_CHECKING class — consistent with
+  rlm_validate, report-only).
 - V2 (C-tier, live DB, rlm_02): the 7-metric training goldens
   (rlm_02, bid [6,7], 199952 samples): `train_mae_y
   12.346794566613694`, `train_rmse_y 15.58872172931622`,
@@ -114,17 +142,25 @@ mismatches; post D-103 all 33 pass.
   `train_samples 199952`, `pop_mae_y 21.729816221648974`,
   `pop_rmse_y 26.40637507956623`, `pop_loss
   0.020437248051166534`; independent float64 re-derivation: 0
-  mismatch (C10).
+  mismatch (C10). The 4-key dense goldens (D-105/M2, C4b —
+  rlm_02 has frequency_cut_off=1, so the dense values match the
+  compressed ones up to the f32 rounding of `w_dense`):
+  `train_dense_mae_y 12.346794548249868`, `train_dense_rmse_y
+  15.58872171282352`, `train_dense_loss 0.00712234852835536`,
+  `train_dense_samples 199952` (the compressed-vs-dense rmse
+  residual is −1.6e-08 — the f32 copy, no substitution).
 - V3 (C-tier, live DB, file reports): the rlm_02 file report
   (EDGE rows printed — in the fixture's `detailed_report`; DIAG3
   omitted; the MOBILITY section empty — no mobility features) is
   byte-deterministic: date-masked sha3_256
-  `9b97746c69436fc23fd4f7a06274174d66ed1d0cb8467619b78a409e7f743c66`
-  (C5a/C5b, recompute-identical). The rlm_01 file report (LMC +
+  `94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0`
+  (C5a/C5b, recompute-identical; re-pinned D-105 — the new
+  3-metric header). The rlm_01 file report (LMC +
   DIAG3 rows printed post D-103 T6, CORE omitted — exactly one
   "(Table rows omitted" line; the LMC table's 65 rows exercise the
   mobility helper end-to-end) is pinned by the same mask:
-  `77fa815ada656152b5f8f893134624d5d023ffc66e9c81e4fcda9a1ecc0c083d`.
+  `f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c`
+  (re-pinned D-105).
 - V4 (C-tier, live DB, rlm_01): the 7-metric training goldens
   (bid [7], 10 samples): `train_mae_y 9.874833279184258e-05`,
   `train_rmse_y 0.00013206900478667877`, `train_loss
@@ -137,8 +173,12 @@ mismatches; post D-103 all 33 pass.
   mae_y 10.0, rmse_y 10.0, train_loss 0.123 = `opt_info['f']`,
   samples 2, pop_mae_y 10.0, pop_rmse_y 10.0, pop_loss
   0.0030517578125) (D1); the `opt_info` None branch → train_loss
-  0.0 (D2); the console-report N/A branch (vld_metrics None → 3
-  "N/A" strings, gen_gap 0.00, 15 lines) (D3).
+  0.0 (D2); the console-report N/A branch (train_dense_metrics +
+  vld_metrics both None → 6 "N/A" cells, Population baseline line,
+  both gaps 0.00, 17 lines) (D3); the dense-pass metric math on
+  the same hand-computed case (D-105/M2 — dense indices [[0,1],
+  [1,0]] over `w_dense` [1,-1] → predictor 0: mae_y 10.0, rmse_y
+  10.0, loss 0.0030517578125, samples 2) (D4).
 
 ## Minor notes
 
@@ -152,18 +192,28 @@ mismatches; post D-103 all 33 pass.
   `is not None` guard in format_file_report (4 lines) was dead
   code: the schema field is non-optional with a `default_factory` →
   direct `ctx.cfg.analytics.detailed_report` access.
-- Report-only — the mixed-representation Generalization Gap: the
-  TRAINING column is the compressed forward pass, the VALIDATION
-  column the dense one; on rlm_02 all 1600 validation instances sit
-  on seen orbits (0 unseen — measured), so the gap is a clean
-  data difference there (full note in the lm_worker_analytics doc,
-  O1).
+- **RESOLVED (D-105/M2)** — the mixed-representation Generalization
+  Gap: pre D-105 the TRAINING column was the compressed forward pass
+  and the VALIDATION column the dense one — the gap mixed the data
+  difference with the substitution effect. Now the table carries
+  both training representations as two columns, the gap is dense-vs-
+  dense (pure generalization) and the substitution effect has its
+  own Substitution Delta row (0.00 at cut=1; 0.01 on rlm_04 with
+  1923/199932 IC positions; 3.36 on rlm_01 where 5/10 training
+  positions are IC).
 - Report-only: the TRAINING "Loss (MSE/2)" cell is `opt_info['f']`
-  — the ridge-inclusive final objective — while the other two
-  columns are pure 0.5·mean(rn²); intentional (the training-side
-  objective is what the optimizer minimized), documented here.
-- Report-only: the ONE INFO log line comes from the data module
-  (compute_training_metrics) — consistent with rlm_validate.
+  — the ridge-inclusive final objective — while the TRAINING-DENSE,
+  VALIDATION and Population cells are pure 0.5·mean(rn²);
+  intentional (the training-side objective is what the optimizer
+  minimized), documented here.
+- Report-only: the dense pass reads the f32 `w_dense` copy while
+  the compressed pass reads the float64 `w` — so even at
+  frequency_cut_off=1 the two training columns differ by the f32
+  rounding (rlm_02: −1.6e-08 in rmse; renders "-0.00" in the
+  Substitution Delta row).
+- Report-only: the TWO INFO log lines come from the data module
+  (compute_training_metrics, compute_training_dense_metrics) —
+  consistent with rlm_validate.
 - Report-only: rlm_02's `detailed_report` lists ELLE/LMC (absent
   from that fixture) — harmless, the block looks copied (the
   fixture is Roberto's).
@@ -171,7 +221,7 @@ mismatches; post D-103 all 33 pass.
 ## Integration notes
 
 - Consumers: ONLY the ANALYTICS worker (lm_worker_analytics.py) —
-  the 3 public functions are the module's whole API (`__all__`).
+  the 4 public functions are the module's whole API (`__all__`).
 - Inputs: CONFIG (`ctx.cfg` — name, base_dir, analytics,
   stat_model), FEATURES (`ctx.feature_set` + `feature.ref` for the
   pattern principals), INDEXES (`ctx.rlm_indexes.indexes`),
@@ -180,7 +230,9 @@ mismatches; post D-103 all 33 pass.
   `ctx.wmap_fallback`), DESIGN_MTR (`ctx.design_matrix` — the raw
   X array), ZED (`ctx.y2z` / `ctx.z2y`), OPTIMIZE (`ctx.opt_info`),
   GENERATE (`ctx.w_dense`), VALIDATE (`ctx.vld_metrics` for the
-  header's VALIDATION column).
+  header's VALIDATION column), and the worker's own same-_up
+  outputs (`ctx.train_metrics`, `ctx.train_dense_metrics` —
+  computed in `_up` before the format calls).
 - The `sigmoid` is REUSED from rlm_gradient (defined + exported
   there) — no local copy (L36).
 - No cache file: the reports are derived artifacts — the file
@@ -189,21 +241,26 @@ mismatches; post D-103 all 33 pass.
 
 ## Appendix — line reference
 
-453 lines, as of D-103 (456 at the 96dacb5 bring-in; D-103: −1
-`import sys` line [T2], −2 net on the M3 guard, 39 ws lines
-emptied in place [T4]).
+522 lines, as of D-105 (453 at D-103; D-105/M2: +1 `__all__` line,
++9 docstring lines on `_format_header`, +2 table lines [Population
+baseline + Substitution Delta], +16 dense-metrics lines in
+`_format_header`, +40 the new `compute_training_dense_metrics`).
 
 - L28-37: imports (L33 typing [T2], L36 the rlm_gradient sigmoid)
-- L44: `__all__`
-- L48-166: `_format_mobility_feature_table` (L113-122 the header,
-  L124-125 the print_rows gate, L127-164 the rows)
-- L169-306: `_format_pattern_feature_table` (L204-215 the
-  max/min lines, L217-218 the principals, L250-261 the header,
-  L263-264 the print_rows gate, L266-304 the rows)
-- L309-371: `_format_header` (L347-355 the detailed lines,
-  L357-370 the metric table)
-- L374-378: `format_console_report`
-- L381-411: `format_file_report` (L392-393 the M3 direct access,
-  L395-401 the mobility section, L403-408 the pattern section)
-- L414-453: `compute_training_metrics` (L417 the M2 annotation,
-  L425 the compressed forward pass, L446-454 the 7-key dict)
+- L44-45: `__all__` (4 names, D-105/M2)
+- L49-167: `_format_mobility_feature_table` (L114-123 the header,
+  L125-126 the print_rows gate, L128-165 the rows)
+- L170-307: `_format_pattern_feature_table` (L205-216 the
+  max/min lines, L218-219 the principals, L251-262 the header,
+  L264-265 the print_rows gate, L267-305 the rows)
+- L310-401: `_format_header` (L311-323 the D-105/M2 docstring,
+  L352-360 the detailed lines, L362-400 the 3-metric table +
+  Population line + the two gap lines)
+- L403-407: `format_console_report`
+- L410-441: `format_file_report` (L421-422 the M3 direct access,
+  L424-430 the mobility section, L432-437 the pattern section)
+- L443-481: `compute_training_metrics` (L446 the M2 annotation,
+  L454 the compressed forward pass, L472-480 the 7-key dict)
+- L483-521: `compute_training_dense_metrics` (D-105/M2; L494 the
+  INFO line, L498-499 the per-instance offsets, L501-502 the dense
+  forward pass, L514 the pure z-loss, L516-520 the 4-key dict)

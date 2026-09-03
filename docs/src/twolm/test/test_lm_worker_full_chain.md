@@ -9,21 +9,23 @@ session. The module is the pipeline's END-TO-END test: it runs the
 whole 15-level chain (CREATED through SAVE) on two fixtures and pins
 the complete saved-model round-trip.
 
-## Suite status (session 29, post D-104)
+## Suite status (session 29, post D-105)
 
 - 5 tests total: 2 in `TestFullChainA2030` (both DB-gated), 1 in
   `TestFullChainA2050` (DB- AND LONG-gated), 2 in
   `TestModelWeightsReadGuards` (ungated, no DB).
 - Live: A2030 pair ~6 s (two full rlm_04 chains + a third for the
   determinism test), guards ~0 s; A2050 ~10 min (1999179 training
-  samples, 397 lbfgs iters) only with `LONG=1`.
+  samples, 397 lbfgs iters) only with `LONG=1` (705 s measured on
+  the D-105 re-pin run).
 - `SKIP_REGAB_DB=1`: 3 skips (A2030 ×2 + A2050) + 2 guard runs, ~0 s.
   Pre-campaign the bring-in's A2030 had NO gate and ran (and would
   error without a DB) in "gated" mode: `SKIP_REGAB_DB` is a test-side
   convention only — no production code reads it.
-- Full discover post-campaign: 631 tests, 87 skipped gated (2.6 s).
+- Full discover post-campaign: 631 tests, 87 skipped gated (3.2 s);
+  ungated 631 run, 18 skipped, GREEN (46.8 s).
 
-## Architecture (444 lines, post D-104)
+## Architecture (467 lines, post D-105)
 
 - L28-33 the "How to run" block (added by T5 — the bring-in had no
   such block; house pattern, mentions SKIP_REGAB_DB and LONG).
@@ -47,7 +49,11 @@ the complete saved-model round-trip.
     `base_dir_override`.
   - L104-194 `test_full_worker_chain`: `move_to_last()` + step/worker
     pin (14 / SAVE), then the exact goldens — vld 7-key dict, train
-    7-key dict, pop 4-key dict, opt (converged/reason/iters), the
+    7-key dict, the dense 4-key dict (D-105/M2 — rlm_04 cut 10,
+    1923 training positions touch IC configs: train_dense_mae_y
+    10.905119078281873, train_dense_rmse_y 13.831248070093375,
+    train_dense_loss 0.0056069279089570045, train_dense_samples
+    199932), pop 4-key dict, opt (converged/reason/iters), the
     model file (21603 B, sha3 `bcf8d918979aaddba52ed2c9a80571f4fdc939a985ff4f3705510fa4f8010abb`,
     sidecar), the full read-back (metadata, tps f32 truncations, opt 4
     keys, vld 4 keys, `feature_set.hash`
@@ -57,9 +63,14 @@ the complete saved-model round-trip.
     + array equality), the log-line pins (VALIDATE "Validation
     completed. Loss (MSE/2): 5.75742032e-03", the 2 SAVE lines), the
     console-report pins (title, "Loss (MSE/2)    | 5.6064e-03     |
-    5.7574e-03     | 2.0438e-02", "Generalization Gap (RMSE)   :
-    0.19"), the file-report pins (Creation Date, the EDGE/LMC detail
-    sections, masked hash `90fe4cf6c235d18d8617fe523fdf063fdbb65019553db0ba53a3a67ff2fa5b6e`),
+    5.6069e-03     | 5.7574e-03" (D-105/M2 — the 3-metric row),
+    "Population (baseline)  : RMSE 26.41  MAE 21.73  Loss
+    2.0438e-02", "Generalization Gap (RMSE)   : 0.18" (D-105/M2 —
+    now dense-vs-dense, was 0.19 mixed), "Substitution Delta
+    (RMSE)   : 0.01" (D-105/M2)), the file-report pins (Creation
+    Date, the EDGE/LMC detail sections, masked hash
+    `d44557a8efd007f4634c2949a0cf9eca60d7b38f790c2bbd1e058245a4045a2e`
+    (D-105/M2 re-pin)),
     and the EF pins (6 training positions bit-exact + `vld_positions[42]`
     → 11.932792663574219, the O4 substitution-path pin).
   - L196-215 `test_second_instance_deterministic` (added by T6): a
@@ -79,12 +90,22 @@ the complete saved-model round-trip.
   train 7 exact (loss 0.001444403431378305, rmse_y 7.015377800787937,
   mae_y 5.396253447071691, samples 1999179, pop_mae_y
   21.758215006979484, pop_rmse_y 26.417003454424307, pop_loss
-  0.020453333854675293), pop 4 exact, opt (CONVERGED_MIN_GRAD, 397
+  0.020453333854675293), the dense 4-key dict (D-105/M2 — rlm_03
+  cut 1: the dense values equal the compressed ones up to the f32
+  `w_dense` rounding, the Substitution Delta renders "-0.00":
+  train_dense_mae_y 5.396253444189108, train_dense_rmse_y
+  7.015377798958687, train_dense_loss 0.0014424461405724287,
+  train_dense_samples 1999179), pop 4 exact, opt (CONVERGED_MIN_GRAD, 397
   iters), the console pins (title, "Loss (MSE/2)    | 1.4444e-03     |
-  1.5789e-03     | 2.0453e-02", "Generalization Gap (RMSE)   : 0.32",
+  1.4424e-03     | 1.5789e-03" (D-105/M2 — the 3-metric row),
+  "Population (baseline)  : RMSE 26.42  MAE 21.76  Loss
+  2.0453e-02", "Generalization Gap (RMSE)   : 0.32" (unchanged —
+  cut 1 makes the gap dense-vs-dense without moving it),
+  "Substitution Delta (RMSE)   : -0.00" (D-105/M2),
   NOT-in: FEATURE SET SUMMARY / MOBILITY FEATURES DETAILS), the
   file-report pins (Creation Date, PATTERN FEATURE: XEDGE, masked hash
-  `62fe06bc6773de99260d5eff02bd0adfbfac8d3b6dc953b9c93b5748dea94ac0`),
+  `57f9766b7e5115903319f3387b192e490c71674eebc2e2c199040579b5fad83a`
+  (D-105/M2 re-pin)),
   the model file (515042 B, sha3
   `3ad1805815c536e4506b0804b5be9e8662de53402c37fc3268c8dbbbb6847ff4`,
   sidecar), the read-back (fs hash `2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d`,
@@ -99,16 +120,22 @@ the complete saved-model round-trip.
   header version, expected '1', found '99'."). Ungated: no DB, no
   model file needed.
 
-## Verified facts (D-104 probe — 30 checks, 0 mismatches)
+## Verified facts (D-105 probe — 32 checks, 0 mismatches)
 
-- A2030 pair GREEN live (6.2 s with the guards), A2050 GREEN under
-  `LONG=1` (~10 min) — all goldens above derived from live runs
-  (scratch/o104_probe.py, o104_rlm03.py, o104_clip.py) before being
-  pinned.
-- rlm_04 gap 0.19 = 14.015637397766113 − 13.822995683195872 (vld
-  slightly worse than train — a healthy model on bid [5]).
+- A2030 pair GREEN live, A2050 GREEN under `LONG=1` (705 s on the
+  D-105 re-pin run) — all goldens above derived from live runs
+  (scratch/o104_probe.py, o104_rlm03.py, o104_clip.py; the D-105
+  dense goldens from the D-105 capture runs) before being pinned.
+- rlm_04 gap 0.18 (D-105/M2 — now dense-vs-dense) =
+  14.015637397766113 − 13.831248070093375 (vld slightly worse than
+  the dense train — a healthy model on bid [5]); was 0.19 when the
+  gap mixed in the compressed train (13.822995683195872). The new
+  Substitution Delta row reads 0.01 (13.831248070093375 −
+  13.822995683195872 — 1923/199932 training positions touch IC
+  configs).
 - rlm_03 gap 0.32 (the production A2050 model generalizes well: 1.99M
-  train samples).
+  train samples); Substitution Delta -0.00 (cut 1: the dense-vs-
+  compressed residual is the f32 `w_dense` rounding, −1.7e-07).
 - The bring-in's original pins (3-4 significant digits, `assert_approx_equal`
   / `assertAlmostEqual`) were replaced by exact `assertEqual` pins
   (T6, the house pattern since D-096); the 3-4-digit values all
@@ -150,13 +177,15 @@ the complete saved-model round-trip.
   (the house's existing LONG convention; the suite stays ~3 s gated /
   ~40 s live).
 
-## Appendix — line reference (post D-104, 444 lines)
+## Appendix — line reference (post D-105, 467 lines)
 
 - L1-26 license header (canonical, untouched)
 - L28-33 How-to-run block (T5)
 - L35-63 imports (T2/T5)
 - L66-69 `_masked_report_hash`
-- L72-215 `TestFullChainA2030` (gate, idiom, goldens, EF, 2nd instance)
-- L218-330 `TestFullChainA2050` (LONG + DB gate, rlm_03 goldens)
-- L333-367 `TestModelWeightsReadGuards`
-- L441-444 `__main__`
+- L72-266 `TestFullChainA2030` (gate, idiom, goldens incl. the D-105
+  dense 4-key dict, EF, 2nd instance)
+- L269-433 `TestFullChainA2050` (LONG + DB gate, rlm_03 goldens
+  incl. the D-105 dense 4-key dict)
+- L436-464 `TestModelWeightsReadGuards`
+- L465-467 `__main__`

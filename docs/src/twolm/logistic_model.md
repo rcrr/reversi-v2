@@ -64,7 +64,9 @@ L54 import + the L221 worker-list entry uncommented by the bring-in
 itself); the 35-check probe re-pinned to the 15-worker state (V3c
 had pinned the 14-worker list since 96dacb5): 0 mismatches. D-104
 campaign: the SAVE fix campaign (T1-T6 + M1 + O4, all in the new
-files — no change to this module).**
+files — no change to this module). D-105 (M2, Roberto: OK): the
+dense-pass 3-metric analytics table — this module: RLMContext
+pre-declares train_dense_metrics (L156), 40 fields.**
 Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
@@ -97,7 +99,7 @@ post D-075/D-076 + the session-28 restore).
 `LogisticModel` is the first concrete **domain facade**: it extends
 `BaseModel` (base_model.md) and wires the generic StateMachine to the
 RLM (Reversi Logistic Model) pipeline. Construction is a 4-step
-recipe (L184-225): (1) validate the domain paths with the plain
+recipe (L185-226): (1) validate the domain paths with the plain
 helpers, (2) build the shared `RLMContext` dataclass, (3) assemble
 the worker list (sentinel + commented factory calls), (4)
 `super().__init__` hands workers + context + verbosity to
@@ -105,7 +107,7 @@ the worker list (sentinel + commented factory calls), (4)
 `log_event` + the two cache-path closures into the context (V17).
 
 `RLMContext` (a `@dataclass` extending the plain `Context` base) is
-the shared blackboard: 39 fields holding config state + every data
+the shared blackboard: 40 fields holding config state + every data
 artifact produced by the (future) workers, grouped by pipeline
 stage (positions → features → indexes → wmaps → design matrix →
 zed → gradient → optimization → dense w → validation → analytics),
@@ -122,9 +124,9 @@ same way `cache_manager_load_or_compute` returns it.
 |---|---|
 | `_check_config_file_path(str\|Path) -> Path` | Type-check (bare TypeError), `Path(...)` coercion, existence (FileNotFoundError), is-file (IsADirectoryError — fixed in M3). |
 | `_check_base_dir_override(str\|Path) -> Path` | Same pattern; is-dir check raises NotADirectoryError. |
-| `RLMContext(Context)` | `@dataclass`, 39 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 32 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers, D-069 `*_for_current_level` names — R1). |
+| `RLMContext(Context)` | `@dataclass`, 40 fields: 3 path/flags (`config_file_path` — the only no-default field, `base_dir_override`, `use_cache`), `cfg`, 33 data artifacts (8 of them `*_checksum`), 3 injected callables with lambda no-op defaults (`log_event`, the 2 cache helpers, D-069 `*_for_current_level` names — R1). |
 | `_created_up` / `_created_down` | Level-0 sentinel workers: log ERROR + raise RuntimeError ("should never happen") — the D-059 sentinel made explicit, as planned in the state_machine resolution. |
-| `LogisticModel(BaseModel)` | The facade; 4-step construction (L183-224), `@validate_call`-gated `__init__` (R3). |
+| `LogisticModel(BaseModel)` | The facade; 4-step construction (L184-225), `@validate_call`-gated `__init__` (R3). |
 
 ### Pipeline shape (15 levels, per the commented worker list)
 
@@ -279,13 +281,14 @@ post D-104)
   `fg` L135, opt L138-139, dense w L142-143 (comment L141 — M1
   fixed), vld group L146-149 (`vld_pop_stats` L149 — M2 fixed),
   `vld_metrics` L152, `train_metrics` L155 (D-103 M1),
-  `analytics_report` L156, injected callables
-  L158-163 (comment L158-160, `log_event` L161, D-069
-  `*_for_current_level` names L162-163 — R1 resolved)
-- `_created_up` / `_created_down`: L168-174 (level-0 comment L166)
-- `LogisticModel`: L177 (class docstring L178-181) —
-  `__init__` L184-225: `@validate_call` L183 (R3), signature
-  L184-187, docstring L188-192 (M4), path validation L194-197,
-  context build L200-203, workers list L206-222 (sentinel L207,
-  active factory calls L208-221 post fe506c6/D-104),
-  `super().__init__` L225
+  `train_dense_metrics` L156 (D-105/M2),
+  `analytics_report` L157, injected callables
+  L159-164 (comment L159-161, `log_event` L162, D-069
+  `*_for_current_level` names L163-164 — R1 resolved)
+- `_created_up` / `_created_down`: L169-175 (level-0 comment L167)
+- `LogisticModel`: L178 (class docstring L179-182) —
+  `__init__` L185-226: `@validate_call` L184 (R3), signature
+  L185-188, docstring L189-193 (M4), path validation L195-198,
+  context build L201-204, workers list L207-223 (sentinel L208,
+  active factory calls L209-222 post fe506c6/D-104),
+  `super().__init__` L226

@@ -125,6 +125,16 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(t['pop_rmse_y'], 26.406980394267364)
         self.assertEqual(t['pop_loss'], 0.020438173785805702)
 
+        # --- Dense training metrics (exact goldens, D-105/M2: the w_dense
+        #     forward pass — the shipped inference rules — on the training
+        #     data; differs from the compressed pass on the 1923 positions
+        #     touching below-cutoff (IC) configurations) ---
+        td = ctx.train_dense_metrics
+        self.assertEqual(td['train_dense_samples'], 199932)
+        self.assertEqual(td['train_dense_mae_y'], 10.905119078281873)
+        self.assertEqual(td['train_dense_rmse_y'], 13.831248070093375)
+        self.assertEqual(td['train_dense_loss'], 0.0056069279089570045)
+
         # --- Training population statistics (exact goldens) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 199932)
@@ -197,8 +207,10 @@ class TestFullChainA2030(unittest.TestCase):
         # --- Analytics console report (exact pins) ---
         report = ctx.analytics_report
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Short-Long Test 04 (rlm_04.json)", report)
-        self.assertIn("Loss (MSE/2)    | 5.6064e-03     | 5.7574e-03     | 2.0438e-02", report)
-        self.assertIn("Generalization Gap (RMSE)   : 0.19", report)
+        self.assertIn("Loss (MSE/2)    | 5.6064e-03     | 5.6069e-03     | 5.7574e-03", report)
+        self.assertIn("Population (baseline)  : RMSE 26.41  MAE 21.73  Loss 2.0438e-02", report)
+        self.assertIn("Generalization Gap (RMSE)   : 0.18", report)
+        self.assertIn("Substitution Delta (RMSE)   : 0.01", report)
 
         # --- Analytics file report (detailed_report: EDGE + LMC) ---
         report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
@@ -208,7 +220,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: EDGE (fid=2)", file_report)
         self.assertIn("MOBILITY FEATURE: LMC (fid=1)", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '90fe4cf6c235d18d8617fe523fdf063fdbb65019553db0ba53a3a67ff2fa5b6e')
+                         'd44557a8efd007f4634c2949a0cf9eca60d7b38f790c2bbd1e058245a4045a2e')
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned training
         #     positions (rlm_04 has frequency_cut_off=10, so training positions
@@ -312,6 +324,15 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertEqual(t['pop_rmse_y'], 26.417003454424307)
         self.assertEqual(t['pop_loss'], 0.020453333854675293)
 
+        # --- Dense training metrics (exact goldens, D-105/M2: rlm_03 has
+        #     frequency_cut_off=1, so the dense pass matches the compressed
+        #     one up to the f32 rounding of w_dense — delta "-0.00") ---
+        td = ctx.train_dense_metrics
+        self.assertEqual(td['train_dense_samples'], 1999179)
+        self.assertEqual(td['train_dense_mae_y'], 5.396253444189108)
+        self.assertEqual(td['train_dense_rmse_y'], 7.015377798958687)
+        self.assertEqual(td['train_dense_loss'], 0.0014424461405724287)
+
         # --- Training population statistics (exact goldens) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 1999179)
@@ -327,8 +348,10 @@ class TestFullChainA2050(unittest.TestCase):
         # --- Analytics console report (exact pins; no detailed tables) ---
         console_report = ctx.analytics_report
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Long Test 03 (rlm_03.json)", console_report)
-        self.assertIn("Loss (MSE/2)    | 1.4444e-03     | 1.5789e-03     | 2.0453e-02", console_report)
+        self.assertIn("Loss (MSE/2)    | 1.4444e-03     | 1.4424e-03     | 1.5789e-03", console_report)
+        self.assertIn("Population (baseline)  : RMSE 26.42  MAE 21.76  Loss 2.0453e-02", console_report)
         self.assertIn("Generalization Gap (RMSE)   : 0.32", console_report)
+        self.assertIn("Substitution Delta (RMSE)   : -0.00", console_report)
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
 
@@ -339,7 +362,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: XEDGE", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '62fe06bc6773de99260d5eff02bd0adfbfac8d3b6dc953b9c93b5748dea94ac0')
+                         '57f9766b7e5115903319f3387b192e490c71674eebc2e2c199040579b5fad83a')
 
         # --- Saved model file: exists, size, sha3_256, sidecar ---
         output_path = ctx.cfg.base_dir / ctx.cfg.output

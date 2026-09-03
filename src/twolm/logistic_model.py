@@ -153,6 +153,7 @@ class RLMContext(Context):
 
     # Analytic attributes:
     train_metrics: Any = None
+    train_dense_metrics: Any = None
     analytics_report: Any = None
     
     # Injected by StateMachine: the lambda defaults are the
