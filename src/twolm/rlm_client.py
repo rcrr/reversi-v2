@@ -31,10 +31,13 @@ import numpy as np
 
 from typing import Callable
 
-from twolm.model_weights import ModelWeights, model_weights_read_file
+from twolm.model_weights import ModelWeights
 from twolm.rlm_zed import zed_fun_factory
 from twolm.rlm_gradient import sigmoid
 from twolm.board import Position
+
+
+__all__ = ['make_evaluation_function']
 
 
 def make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]:
@@ -43,7 +46,7 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]:
     """
     offsets = mw.iwmap_feature_offset
     _, z2y = zed_fun_factory(mw.logit_clipping)
-    
+
     # Pre-compute the expanded offsets for all instances
     # e.g. if EDGE has 4 instances, its offset is repeated 4 times
     n_instances_per_feature = [f.n_instances for f in mw.feature_set.features]
@@ -52,18 +55,18 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]:
     def ef(p: Position) -> float:
         # 1. Compute Principal Indexes (returns array of length total_instances)
         indexes = mw.feature_set.compute_indexes(np.array([p]))[0]
-        
+
         # 2. Map directly to w_dense using expanded offsets
         w_indices = expanded_offsets + indexes
         weights = mw.w_dense[w_indices]
-        
+
         # 3. Linear predictor and Sigmoid (Z space)
         linear_predictor = np.sum(weights)
         z_pred = sigmoid(linear_predictor)
-        
+
         # 4. Transform back to Y space
         y_pred = z2y(np.array([z_pred], dtype=np.float32))[0]
-        
+
         return float(y_pred)
 
     return ef

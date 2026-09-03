@@ -56,19 +56,31 @@ the 14-worker state (V3c had pinned the 13-worker list since
 536eadc): 0 mismatches. D-103 campaign: the ANALYTICS fix campaign
 (T1-T6 + M1-M3, test file added, rlm_01.json detailed_report +=
 LMC) — this module: RLMContext pre-declares train_metrics (M1,
-L155), 39 fields.**
+L155), 39 fields. D-104 (fe506c6, Roberto): SAVE brought in
+(lm_worker_save + model_weights + rlm_client +
+test_lm_worker_full_chain + the rlm_03/rlm_04 fixtures) — 15th and
+LAST active level: 15/15 workers active, 0 commented imports (the
+L54 import + the L221 worker-list entry uncommented by the bring-in
+itself); the 35-check probe re-pinned to the 15-worker state (V3c
+had pinned the 14-worker list since 96dacb5): 0 mismatches. D-104
+campaign: the SAVE fix campaign (T1-T6 + M1 + O4, all in the new
+files — no change to this module).**
 Sibling modules
 lm_worker_config / lm_worker_positions / rlm_config_schemas are
 deliberately NOT analyzed this session (Roberto: "Lo faremo in
 seguito").
 
 State per Roberto (intentional, NOT defects):
-- the pipeline is deliberately PARTIAL: of the 15 workers 14 are
-  active (CREATED sentinel + CONFIG + POSITIONS + FEATURES +
-  INDEXES + WMAPS + DESIGN_MTR + ZED + GRADIENT + OPTIMIZE +
-  GENERATE + VLD_POSITIONS + VALIDATE + ANALYTICS — the worker
-  list L206-220); the last remaining factory import is commented
-  (L54, "Remove comments when modules are added"): save;
+- the pipeline is COMPLETE: all 15 workers are active (CREATED
+  sentinel + CONFIG + POSITIONS + FEATURES + INDEXES + WMAPS +
+  DESIGN_MTR + ZED + GRADIENT + OPTIMIZE + GENERATE +
+  VLD_POSITIONS + VALIDATE + ANALYTICS + SAVE — the worker list
+  L206-221); 0 commented factory imports, 0 commented worker-list
+  entries (D-104, fe506c6 — the last bring-in). The "A2050" /
+  "A2030" test class names in test_lm_worker_full_chain are Roberto's
+  legacy production naming: A2xxx is the endgame-solver model family
+  (A2 + ec*10; A2050 = ec 20; production runs A2050, A2150, A2250,
+  ...);
 - the 2 tests in test_logistic_model that were once muted
   (`test_move_to_step_delegates_to_state_machine`,
   `test_move_to_step_by_string`) are both restored "una riga alla
@@ -118,12 +130,14 @@ same way `cache_manager_load_or_compute` returns it.
 
 CREATED (0, sentinel) → CONFIG → POSITIONS → FEATURES → INDEXES →
 WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE →
-VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. 14 levels are active
-today (through ANALYTICS, D-103); the next line-by-line step
-is `lm_worker_save` (the last commented entry). The worker
-factories follow the pattern `lm_worker_x()` → `Worker` (the tests
-patch `twolm.logistic_model.lm_worker_config` etc., i.e. the
-factory names in THIS module's namespace).
+VLD_POSITIONS → VALIDATE → ANALYTICS → SAVE. ALL 15 levels are
+active (through SAVE, D-104) — the pipeline is complete; no
+commented entries remain. The worker factories follow the pattern
+`lm_worker_x()` → `Worker` (the tests patch
+`twolm.logistic_model.lm_worker_config` etc., i.e. the factory
+names in THIS module's namespace); all 14 factories carry the
+uniform `@validate_call` gate (D-092/D-098/D-100/D-103 T1
+convention, completed by D-104 for `lm_worker_save`).
 
 ## Verified facts (V1-V10)
 
@@ -135,8 +149,8 @@ D-074/R1 rename (the legacy `_for_next_level` names gone, the
 `get_type_hints` SUCCEEDING (D-074/R2), V6 pins the
 `IsADirectoryError` for a directory as config (D-074/M3) + the
 facade `@validate_call` ValidationError (D-074/R3), V3c pins the
-14-worker list (re-pinned D-103 — it had been stale since
-536eadc),
+15-worker list (re-pinned D-104 — it had been stale since
+96dacb5),
 V9 pins the worker boundaries (D-076 gate split + D-060 failure
 semantics), V10 pins the absence of a `features_checksum` field
 (the FEATURES level is a pure in-memory derivation).
@@ -247,13 +261,13 @@ it).
   cache_manager (D-071).
 
 ## Appendix: line-number reference (2026-09-02, file 225 lines,
-post D-103)
+post D-104)
 
 - `from __future__ import annotations`: L28
 - imports: L30-32 (dataclasses — `field` removed M5/D-075 ·
   pathlib · typing) · L34 (pydantic, D-074/R3) · L36 (state_
-  machine) · L37 (base_model) · L39-54 (worker factories: L41-53
-  active post 96dacb5/D-103, L54 commented — save)
+  machine) · L37 (base_model) · L39-54 (worker factories: L41-54
+  active post fe506c6/D-104 — L54 lm_worker_save)
 - `__all__`: L57
 - `_check_config_file_path`: L65-73 (type check L66-67, existence
   L69-70, is-file L71-72 — IsADirectoryError, M3)
@@ -273,5 +287,5 @@ post D-103)
   `__init__` L184-225: `@validate_call` L183 (R3), signature
   L184-187, docstring L188-192 (M4), path validation L194-197,
   context build L200-203, workers list L206-222 (sentinel L207,
-  active factory calls L208-220 post 96dacb5/D-103, commented
-  factory call L221 — save), `super().__init__` L225
+  active factory calls L208-221 post fe506c6/D-104),
+  `super().__init__` L225

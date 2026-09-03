@@ -149,11 +149,11 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
             raise ValueError(f"File header mismatch, expected '{MODEL_WEIGHTS_FILE_HEADER_STR}', found '{description}'.")
         if version != MODEL_WEIGHTS_FILE_HEADER_VER:
             raise ValueError(f"File header version, expected '{MODEL_WEIGHTS_FILE_HEADER_VER}', found '{version}'.")
-        
+
         name = r.read_string()
         ec = r.read_u32()
         logit_clipping = r.read_f32()
-        
+
         tps_count = r.read_u64()
         tps_mean = r.read_f32()
         tps_std_dev = r.read_f32()

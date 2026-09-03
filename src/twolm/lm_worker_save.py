@@ -27,8 +27,9 @@
 
 from __future__ import annotations
 
+from pydantic import validate_call, ConfigDict
+
 from typing import TYPE_CHECKING
-from pathlib import Path
 
 from twolm.state_machine import Worker, Relevance
 from twolm.model_weights import model_weights_write_file
@@ -44,9 +45,9 @@ __all__ = ['lm_worker_save']
 
 def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Saving model weights to disk...")
-    
+
     output_path = ctx.cfg.base_dir / ctx.cfg.output
-    
+
     model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
 
@@ -54,6 +55,7 @@ def _down(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing save attributes...")
     # Nothing to clear from context, as we just read from it.
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def lm_worker_save() -> Worker:
     """Factory function that returns the SAVE worker instance."""
     return Worker("SAVE", _up, _down)
