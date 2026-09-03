@@ -3612,3 +3612,122 @@ D-103 | 2026-09-02 | ANALYTICS bring-in + fix campaign (session 28,
         pipeline then reaches 15 levels, and ctx.analytics_report
         / ctx.train_metrics are pre-stored "if needed by the SAVE
         worker later". |
+D-104 | 2026-09-02 | SAVE bring-in + fix campaign (session 29,
+         Roberto: "T1: OK / T2: OK / T4: OK / T5: OK / T6: OK /
+         M1: OK ... O4: OK / O5: OK ... Procedi!" — the D-104
+         worklist; T3 verified no-action, T7 = the house flow):
+         Bring-in (fe506c6, Roberto): lm_worker_save +
+         model_weights + rlm_client + test_lm_worker_full_chain +
+         the rlm_03/rlm_04 fixtures — the 15th and LAST active
+         level; the bring-in itself uncommented the final 2 lines
+         (import L54 + worker-list entry L221): 15/15 workers
+         active, 0 commented imports/entries — the pipeline is
+         COMPLETE, there is no next bring-in.
+         The O1 correction (Roberto, the crux of the session): my
+         D-103 O1 stated forward_dense(training) ≡
+         forward_compressed(training) — WRONG as a general
+         statement. Roberto: "it's true only when there is no
+         frequency_cut_off" (he first wrote "clipping", then
+         corrected himself). VERIFIED MEASURED: the two passes
+         differ exactly on training positions touching a
+         below-cutoff ("IC") configuration — in the COMPRESSED
+         path such configs map to the per-feature TRAINED fallback
+         weight (wmap row (fid, -1, ...)); in the DENSE path
+         (w_dense) they get the SUBSTITUTION value (frequency-
+         weighted orbit mean for patterns, np.interp for mobility —
+         rlm_generate L189-196). Measured: rlm_04 (cut 10): 1923
+         of 199932 training positions differ (373 EDGE configs in
+         wmap_fallback with freq < 10); max |Δy| 31.56, mean 4.98.
+         rlm_01 (cut 2): 5 of 10. rlm_02/rlm_03 (cut 1): identical
+         by construction (every seen config confirmed). My earlier
+         "12/12 bit-equal EF" evidence was the client (dense) vs
+         my own dense formula — a tautology that never compared the
+         compressed pass; corrected. General rule now: dense ≡
+         compressed on training data iff every seen configuration
+         is confirmed (cut 1, or all frequencies ≥ cut).
+         M2 (the D-103 3-metric-table proposal) REFRAMED: with
+         the cut>1 distinction, the TRAINING(compressed) |
+         TRAINING-DENSE (the shipped inference rules) | VALIDATION
+         (dense) table is genuinely informative on cut>1 datasets
+         — the middle column measures the substitution's impact on
+         training data itself, and vld_dense − train_dense is the
+         pure generalization gap. PENDING Roberto's decision
+         (D-105 candidate): small rlm_analytics change, re-pins
+         the D-103 analytics goldens.
+         Naming (Roberto, report-only): "A2050" is a legacy
+         production naming convention, not a test bug — A2xxx is
+         the endgame-solver production model family (A2 + ec*10;
+         A2050 = ec 20; production runs A2050, A2150, A2250, ...
+         generating the resolved positions). No rename of the
+         test classes (accepted, O3).
+         T1: the lm_worker_save() factory got @validate_call
+         (config=ConfigDict(arbitrary_types_allowed=True)) + the
+         pydantic import — all 14 worker factories now share the
+         uniform pattern (D-092/D-098/D-100/D-103 T1 convention
+         completed). Also proved: SKIP_REGAB_DB is a TEST-SIDE
+         convention only — no production code reads it; pre-
+         campaign the ungated A2030 test passed (ran live) in
+         "gated" mode and would ERROR on a DB-less machine.
+         T2: dead imports removed (the worker's `from pathlib
+         import Path`; the client's `model_weights_read_file`;
+         the test's `numpy.testing as nptest`). T4: the 41 ws
+         lines stripped (worker 2, model_weights 2, client 5,
+         test 37 — 31 ws-only + 6 code-line trailing). T5: the
+         test file got the D-085 idiom — the SKIP_REGAB_DB gate
+         FIRST in both setUps (test_regab pattern),
+         WORKSPACE_ROOT/CUSTOM_TMP_BASE (the bring-in's CWD-
+         relative './build/tmp' + relative json paths were CWD-
+         locked), the stray "#: ###" removed, the How-to-run
+         block added. T6: the 3-4-significant-digit pins replaced
+         by exact assertEqual goldens (the D-096 house pattern):
+         A2030/rlm_04 — vld 7 + train 7 + pop 4 + opt 5-key +
+         file 21603 B sha3 bcf8d918...abb + sidecar + full
+         read-back (tps f32 truncations pinned as distinct
+         values; fs hash ec4f1537...; iwmap [0,1,66,6627];
+         w_dense (6627,) f32 sha3 7ecdeba6...f4f37) + EF 6
+         training positions bit-exact + the O4 pin (O4 accepted
+         by Roberto): ef(vld_positions[42]) =
+         11.932792663574219 — rlm_04's cut 10 + bid [5]
+         validation make that position exercise the w_dense
+         substitution path end-to-end; NEW: the 2nd-instance
+         determinism test (byte-identical file + 6 "Cache
+         successfully loaded and validated" hits — 7 cache files,
+         CONFIG re-stores its snapshot, a 'stored' line not a
+         'hit'). A2050/rlm_03 — vld 7 + train 7 + pop 4 + opt
+         (397 iters) + file 515042 B sha3 3ad18058...ff4 +
+         sidecar + read-back (fs hash 2c8bb32b...; 14-entry
+         boundary array; w_dense (167331,) f32 sha3
+         a012689f...27fc) + EF 6 training positions bit-exact
+         (cut 1: dense ≡ compressed there) + console + file-
+         report (masked) pins. NEW: the TestModelWeightsRead
+         Guards class (ungated, no DB): the 2 ValueError guards
+         with exact messages ("File header mismatch, expected
+         'RGLM_BINARY_WEIGHTS', found 'WRONG_DESC'." / "File
+         header version, expected '1', found '99'."). M1:
+         `__all__ = ['make_evaluation_function']` in rlm_client
+         (the bring-in had no __all__; the other 3 new modules
+         have one).
+         Verified (scratch/verify_save.py, 30-check probe: A15
+         static + B2 read guards + C13 rlm_04 live + D9 rlm_03
+         LONG): pre-campaign would have reported exactly the
+         worklist mismatches (A1/A2/A4/A5 class, the ungated
+         A2030, the ws lines, the 3-4-digit pins); post D-104
+         ALL CHECKS PASSED (A-C tiers) + D tier green under
+         LONG=1 (~10 min). A2030 pair live 6.2 s (GREEN), A2050
+         LONG GREEN (~10 min, all goldens).
+         Docs: 4 new mirror docs (lm_worker_save.md,
+         model_weights.md, rlm_client.md — incl. the dense-path
+         / substitution-rule section + the measured deltas;
+         test_lm_worker_full_chain.md) + the logistic_model.md
+         15-worker update (header D-104, state-per-Roberto
+         COMPLETE + the naming note, pipeline shape ALL 15, V3c
+         15-worker re-pin, appendix L39-54 active / L208-221).
+         The 35-check logistic_model probe re-pinned V3c 14 →
+         15 workers: ALL CHECKS PASSED.
+         Suite 628 → 631: 631/0/87 gated (2.6 s) + 631 run /
+         18 skipped live (44.8 s) + −W error full discover clean
+         (3.4 s). 2 commits (code+docs, then notes).
+         Pipeline state: 15 levels CLOSED — no further bring-in
+         exists. Open: the M2 3-metric table (D-105 candidate,
+         Roberto's call) + any future endgame-solver integration
+         of rlm_client (the production context for A2050). |
