@@ -3731,3 +3731,54 @@ D-104 | 2026-09-02 | SAVE bring-in + fix campaign (session 29,
          exists. Open: the M2 3-metric table (D-105 candidate,
          Roberto's call) + any future endgame-solver integration
          of rlm_client (the production context for A2050). |
+D-105 | 2026-09-03 | ANALYTICS 3-metric header + dense training
+         metrics (session 29, Roberto: "D-105, M2: OK, facciamolo
+         ora che lo abbiamo fresco e chiaro in mente. Procedi!" —
+         approved while the D-104 O1 quantification was fresh):
+         Design (the M2 worklist, approved as proposed):
+         _format_header becomes 3-metric wide: TRAINING (the
+         COMPRESSED forward pass) | TRAINING-DENSE (the DENSE
+         forward pass over w_dense — the exact shipped inference
+         rules of rlm_client) | VALIDATION (dense); the POPULATION
+         table column becomes a "Population (baseline)  : RMSE ...
+         MAE ... Loss ..." line; the Generalization Gap is
+         REDEFINED dense-vs-dense (vld_rmse_y −
+         train_dense_rmse_y — a pure generalization measure); NEW
+         Substitution Delta row (train_dense_rmse_y −
+         train_rmse_y — the compressed-vs-dense cost, the O1
+         effect isolated in its own number).
+         New public function compute_training_dense_metrics(ctx):
+         per-instance offsets np.repeat(iwmap_feature_offset[:-1],
+         n_instances_per_feature) + rlm_indexes.indexes (the same
+         expanded construction as rlm_validate), forward pass over
+         ctx.w_dense → sigmoid → z2y; 4-key dict
+         train_dense_{mae_y,rmse_y,loss,samples}; the loss is the
+         PURE 0.5·mean(rn_z²) forward-pass loss (no ridge — there
+         is no dense optimizer objective). RLMContext: 40th field
+         train_dense_metrics (L156, the D-099 idiom); the ANALYTICS
+         worker publishes it in _up (2nd INFO line "Computing
+         dense-pass metrics on the training set...") and clears it
+         in _down (3 fields now).
+         Goldens (measured, re-pinned in both test files + both
+         probes): rlm_01 (cut 2, 10 samples, 5 IC positions):
+         dense rmse 3.3556 vs compressed 0.000132 → Substitution
+         Delta 3.36, gap 27.22 → 23.87 (vld 27.22 − 3.36). rlm_04
+         (cut 10): dense 13.8312 → gap 0.18 (was 0.19 mixed),
+         delta 0.01. rlm_02/rlm_03 (cut 1): delta "-0.00" — the
+         residual is the f32 rounding of the w_dense copy (−1.6e-08
+         / −1.7e-07), NOT substitution; gaps unchanged (−0.13 /
+         0.32). File-report hashes re-pinned (rlm_01 f6b54954…,
+         rlm_02 94a4af7e…, rlm_03 57f9766b…, rlm_04 d44557a8…);
+         header 15 → 17 lines; the step-13 log span 18 → 21.
+         Verified: analytics module 4/0 live + 4/0/4 gated + −W
+         error clean (8.0 s); full suite 631/0/87 gated (3.2 s) +
+         631 run / 18 skipped live (46.8 s); full-chain A2030 live
+         GREEN + A2050 LONG GREEN (705 s, 5/0);
+         scratch/verify_analytics.py 41 checks +
+         scratch/verify_save.py 32 checks ALL PASSED (incl. the D
+         tiers under LONG=1). Docs: rlm_analytics.md /
+         lm_worker_analytics.md / logistic_model.md (39 → 40
+         fields) / both test docs updated. 2 commits (code+docs,
+         then notes). O1 is now RESOLVED: the table shows both
+         training representations, the gap is pure, the
+         substitution cost has its own row. |
