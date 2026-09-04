@@ -3897,3 +3897,85 @@ D-107 | 2026-09-04 | D-106 follow-up rulings, the three
       scratch/classification.md: a stale-import fix must be
       followed by a full re-run of the probe — the sweep runs
       AFTER the fix, never before. |
+D-108 | 2026-09-04 | D-106 step 3: the one-by-one split of the
+      18 probe files carrying c checks — no source file touched,
+      probes/ + tests only (Roberto's standing approval for the
+      split; each deletion verified against the ACTUAL test
+      source, the classification's labels being stale in BOTH
+      directions):
+      (1) Method (per file, one commit each, suite green per
+      test-touching commit, the affected probe green per probe-
+      only commit): delete the c groups (pointer comment at each
+      site naming the pinning test), resolve the a?/c? marks by
+      reading the test (NOT the classification's audit claims),
+      keep the a groups, preserve any load-bearing side effect of
+      a deleted check (the binding becomes a bare assignment with
+      a comment; the chain-bootstrap calls stay).
+      (2) The ~135 c deletions + the resolutions, file by file
+      (18 commits, ad88299 to c36c919): mobility 5 c; hub
+      verify_logistic_model 12 c (V6f to test, V6a/V7a stay a);
+      lm_worker_config 6 c (D1/E2/E3/E4b to tests);
+      lm_worker_features C1/C2 re-pin (206 lines / 2 classes / 3
+      methods) + B11 to test; lm_worker_positions 7 c (E to NEW
+      test_rlm_config_schemas.py 13 tests, D4a-g to
+      TestIsCacheConsistent); vld_positions C1/C2/C5/C6/C7 to c
+      + C3c/C3d to a KEEP (the test pins count 200 + mean 3.64
+      but NOT std 23.809880302093077 / variance 566.9104, nor the
+      int8 range [-58,56]) + D2-D7 to NEW
+      test_lm_worker_vld_positions.py::TestIsCacheConsistentOver
+      ride (6 DB-free tests); validate C1/C2/C3/C6/C7 to c (C6
+      the classification's 'a' is stale: test_second_instance_
+      deterministic pins identical metrics + no re-extraction +
+      6 hits; C7 test_down_clears_vld_metrics) + D1/D3 to NEW
+      test_lm_worker_validate.py::TestValidateModelUnit (2
+      DB-free tests; M1 zero-guard via a REAL RLMContext since
+      Worker.up is @validate_call-gated); cache_manager 11 c
+      groups (V2/V9c/V10b/V16 stay a; V17 to
+      TestValidateCallCoercion::test_str_cache_path_is_coerced_t
+      o_Path; the dead Dummy classes + hash imports removed);
+      analytics C4b/C6 to c (the '6c' overcount; the td binding
+      restored — the side-effect trap); feature D1-D4 to c (in
+      test_feature.py, NOT test_features.py — stale name; f_int
+      kept, D5 uses it); design_matrix D0-D4/D9 to c (the
+      extraction machinery removed; D5 the independent recompute
+      stays a); gradient D1-D4/D11 to c (the deleted D1/D2 were
+      LOAD-BEARING move_to_step bootstraps — restored
+      rlm.move_to_step('GRADIENT') before the D5-D12 loop,
+      otherwise 7 mismatches); wmaps E0-E8 to c (the classification
+      audited a STALE probe version — E1-E12 don't match the
+      actual E0-E9; E1-E6 were tautological against the test's
+      verbatim pins, E7/E8 operate on the pinned literals —
+      implied; E9 the live per-feature row-count invariant stays
+      a); zed A13-A15/D2/D3/D4/D12 to c (the dead GOLDEN_Y/GOLDEN
+      _Z removed) + D1/D8 to a KEEP (the test pins only 2 of 4
+      pre-state attrs; never the z2y pre-down wiring);
+      rlm_indexes B1/B14 to c (c? resolves: test_init_success
+      pins all three incl. assertIs; test_init_fails_with_
+      invalid_hash_type is B14) + B9/B10/B11/C1/C6a/C6b to c
+      (the 'unit-test coverage gap' note is stale —
+      test_is_cache_consistent_returns_false_rds_differs covers
+      the rds branch); optimize F1-F10 + G1/G2/G4/G5 to c
+      (TestRLMOptimizeIO pins ALL the checkpoint IO with real
+      files; the helper/branch tests pin the rest; G3 the hash
+      oracle + the whole H tier stay a); save B1/B2 + C1-C4 +
+      C6-C14 + D1-D10 to c (the classification's C12 'a+c' and
+      D8 'a' are STALE: the full-chain test pins ALL 5 report
+      substrings + 2 log lines at L209-213 / L350-354) — C5
+      SPLIT: converged/reason/iters are c (pinned) but the
+      live-ctx f/g_norm floats (pre-f32-roundtrip) stay as the
+      one a portion (the test pins f/g_norm only on the read-
+      back); generate D1/D2 + D4-D10 + D12/D13 + E1/E3/E8-E11
+      to c, C1/C2 to a (test-file meta, not pipeline state);
+      E2/E4/E5/E7/D3/D11 stay a (the cross-derivations + hand re-
+      derivation + absolute hash golden).
+      (3) The section-4 test conversions (probe_rules section 4 —
+      cheap deterministic single-module behavior to tests;
+      source-text inspections, heavy E2E re-derivations, pipeline
+      state stay probes): 631 to 664 tests.
+      (4) Campaign sweep (gates the notes commit): full suite
+      664/0/87 gated + 664 run/18 skipped live + -W error clean;
+      all 20 probes green in BOTH gated and live modes.
+      (5) scratch/ now EMPTY: the 6 o1* investigation one-offs +
+      classification.md archived to notes/analyses/ (ARCHIVED
+      headers); verify_t2 + verify_burnside were already archived
+      at step 2. |

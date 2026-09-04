@@ -1876,14 +1876,35 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   D-072 API; 2 b2 archived to notes/analyses/; suite 631/0/87
   gated + 631/18 live + −W error clean, all 20 probes green
   gated + live).
+- Done (session 30, D-106 step 3, 2026-09-04): the one-by-one
+  split of the 18 probe files carrying c checks (1 commit per
+  file, ad88299 → c36c919): ~135 c checks deleted (pointer
+  comment at each site naming the pinning test) + every a?/c?
+  mark resolved by reading the ACTUAL test sources (the
+  classification's labels flipped both ways repeatedly — the
+  file is the source of truth: vld C3c/C3d → a KEEP, wmaps
+  E7/E8 → c but E9 → a, validate C6/C7 → c, save C12/D8 → c
+  (stale a labels) with C5's live f/g_norm the one live a
+  portion kept, zed D1/D8 → a, rlm_indexes B1/B14 → c,
+  generate C1 → a) + the §4 test conversions (test_rlm_config_
+  schemas NEW 13; test_lm_worker_positions TestIsCacheConsistent
+  7; test_lm_worker_vld_positions TestIsCacheConsistentOverride
+  6; test_lm_worker_validate TestValidateModelUnit 2;
+  test_cache_manager TestValidateCallCoercion 1; plus the
+  test_logistic_model / test_lm_worker_config /
+  test_state_machine / test_lm_worker_features conversions of
+  the earlier sub-steps — 631 → 664 tests). The side-effect
+  trap handled per file (deleted c checks that carried
+  load-bearing bindings: analytics td, validate met, vld s,
+  feature f_int, zed y/z, wmaps extractions, gradient the
+  GRADIENT bootstrap). Campaign sweep GREEN: suite
+  664/0/87 gated + 664 run/18 skipped live + -W error clean;
+  all 20 probes green in BOTH gated and live modes; scratch/
+  now EMPTY (the 6 o1* one-offs + classification.md archived to
+  notes/analyses/ with ARCHIVED headers).
 - OPEN (method, session 30 — the notes/docs hygiene migration,
-  D-106): NEXT ACTION: the one-by-one split of the 20 probes —
-  the c deletions (~108 groups) + the a?/c? resolutions (~17) +
-  the test conversions (probe_rules §4), one commit per file
-  (suite green per commit), until scratch/ is empty (then the o1*
-  one-off archives + the classification.md archive); then the
-  docs/ rewrite one file at a time (board.md first — docs_rules
-  §8).
+  D-106): NEXT ACTION: the docs/ rewrite one file at a time
+  (board.md first — docs_rules §8; 70 docs / ~804 KB).
 
 ## Index
 
@@ -2249,7 +2270,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   guards class)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
-- notes/decisions.md — decisions log (D-NNN; D-001…D-105)
+- notes/decisions.md — decisions log (D-NNN; D-001…D-108)
+- notes/analyses/ — archived one-off investigations + the D-106
+  classification (verify_t2, verify_burnside, the 6 o1* one-offs,
+  classification.md)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the
