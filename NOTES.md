@@ -260,9 +260,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   .masks() call sites tracked as I-006), D-025 (collision
   precondition stays on the caller) + fail-fast checks (#17 empty
   PatternSet, #18 empty mask), constant rename (#12), type-table
-  cross-check (#11), doc/hygiene/API fixes. D-032 (2026-08-28,
-  session 10): Burnside attributes n_invariant_configs /
-  n_unique_configs (formulas verified 29/29 sample patterns).
+  cross-check (#11), doc/hygiene/API fixes. D-032 (2026-08-28, session
+  10): Burnside attributes n_invariant_configs / n_unique_configs
+  (formulas verified 29/29 sample patterns); pattern.md MIGRATED at
+  D-106 step 5 (schema validation file #2: 6-name API table, 13
+  pinned invariants, the 3 unmarked minor items verified closed in
+  source, M1 = PatternSet __repr__ — the verbatim session-4 review
+  in notes/analyses/pattern_session4_review.md).
 - test_pattern.py: analyzed 2026-08-27 (session 8,
   docs/src/twolm/test/test_pattern.md): 12 classes / 50 tests / 3
   PERF; 21/21 goldens independently re-derived (0 mismatches); 16
@@ -1909,8 +1913,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   notes/analyses/ with ARCHIVED headers).
 - OPEN (method, session 30 — the notes/docs hygiene migration,
   D-106): NEXT ACTION: the docs/ rewrite one file at a time
-  (docs_rules §8; board.md DONE at step 4 — schema validation,
-  first file; next: pattern.md; 69 docs / ~804 KB remain).
+  (docs_rules §8; board.md + pattern.md DONE at steps 4-5 — next:
+  the C-class hubs; 68 docs / ~804 KB remain).
 
 ## Index
 
@@ -1919,10 +1923,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   Architecture, 12 pinned invariants, M1-M7, Conventions,
   Integration; the verbatim session-1 review in
   notes/analyses/board_session1_review.md)
-- docs/src/twolm/pattern.md — pattern.py analysis (R1-R8 resolved:
-  D-020, D-021, D-022; little-endian-only platform note; minor sweep
-  complete 19/19: D-023/D-024/D-025 + hygiene/API fixes; Burnside
-  attributes D-032)
+- docs/src/twolm/pattern.md — pattern.py mirror (MIGRATED at D-106
+  step 5: 4-line header, 6-name API table, Architecture, 13 pinned
+  invariants, M1, Conventions, Integration; the verbatim session-4
+  review in notes/analyses/pattern_session4_review.md)
 - docs/src/twolm/test/test_board.md — test_board.py analysis
   (coverage by area, verified values, 11 defects, completeness
   verdict + priorities)
@@ -2282,8 +2286,9 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 - notes/decisions.md — decisions log (D-NNN; D-001…D-108)
 - notes/analyses/ — archived one-off investigations + the D-106
   classification (verify_t2, verify_burnside, the 6 o1* one-offs,
-  classification.md) + the verbatim session-1 board.py review
-  (board_session1_review.md, extracted at D-106 step 4)
+  classification.md) + the extracted verbatim reviews
+  (board_session1_review.md at step 4, pattern_session4_review.md
+  at step 5)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the
