@@ -3979,3 +3979,37 @@ D-108 | 2026-09-04 | D-106 step 3: the one-by-one split of the
       classification.md archived to notes/analyses/ (ARCHIVED
       headers); verify_t2 + verify_burnside were already archived
       at step 2. |
+D-109 | 2026-09-04 | docs/ rewrite: board.md migrated to the
+      docs_rules schema (D-106 step 4, first file, schema
+      validation); the State-line convention established
+      (docs_rules §2: D-NNN = the last decision that changed the
+      module, <short-hash> = the last commit touching the
+      module's source, date = that commit's date); the verbatim
+      session-1 review extracted to
+      notes/analyses/board_session1_review.md
+      | Roberto's approval ("Procedi ora con board.md"). Method:
+      docs_rules §8 — lossless extraction of the historical
+      material + rewrite to the schema, one commit per file,
+      board.md first as schema validation. The session-1 verbatim
+      Italian review (the R1 "most important flaw" appendix that
+      motivated §1 — the failure mode these rules prevent) moved
+      verbatim to notes/analyses/board_session1_review.md (frozen
+      record, original language kept, ARCHIVED-style header).
+      Rewrite to the 7-section schema, 201 lines (hub budget
+      150-200; 1 line over, driven by the 68-name API minimum):
+      4-line header (State: D-018 · b070918 · 2026-08-27 · suite
+      193/0/12), one 68-name API table with a family column,
+      Architecture (dual scalar/array API, Numba, Pydantic, the
+      zero-copy discipline, Kogge-Stone legal moves + flip set,
+      the fixed D8 slot order D-014, little-endian D-022), 12
+      verified invariants each pinned to a named test_board.py
+      class, Open issues M1-M7 re-verified against the CURRENT
+      source (the source-of-truth rule, again: the old doc's
+      "Applys ×5" is actually "Aplays ×4" — a double-p typo the
+      analysis mis-transcribed; the anti-transformations docstring
+      typo was already fixed at 0aca5e6 and no longer exists),
+      Conventions, Integration (6 consumers). No source change:
+      the M items stay open pending an explicit request (AGENTS.md
+      rule 3). Suite unchanged (docs-only commit): 664/0/87 gated
+      re-verified. Next per §8: pattern.md, then the C-class
+      hubs, then B batches, then A. |

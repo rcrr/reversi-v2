@@ -38,7 +38,11 @@ mode these rules exist to prevent.
 The `> State:` line is the ONLY time permitted in the file: no
 "Analysis date", no "brought in by Roberto (commit …)", no
 "post D-xxx". The suite cell is the MODULE'S OWN suite (or its
-gated form), never the global discover.
+gated form), never the global discover. The cells mark the
+snapshot: D-NNN = the last decision that changed the module;
+`<short-hash>` = the last commit touching the module's source;
+`YYYY-MM-DD` = that commit's date (established at the board.md
+migration, D-109).
 
 ## 3. Sections (fixed order; only the appendix is optional)
 
