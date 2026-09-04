@@ -595,5 +595,33 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         )
 
 
+class TestValidateCallCoercion(unittest.TestCase):
+    """The @validate_call on cache_manager_load_or_compute (the
+    D-076-era gate idiom) type-coerces the arguments in pydantic
+    lax mode."""
+
+    def test_str_cache_path_is_coerced_to_path(self):
+        """A str cache_path is coerced to a Path: the inner store_fn
+        callback observes a pathlib Path, and the flow then dies in
+        the framework's sidecar write (FileNotFoundError — the no-op
+        store_fn never created the file).
+
+        D-106 step 3 (probe_rules.md §4): converted from the
+        verify_cache_manager.py V17 probe (the D-106/D-107 re-pin —
+        the original 'no @validate_call, raw str reaches .exists()'
+        premise is stale; the coercion is unique, no other test
+        covered it)."""
+        seen = []
+        with self.assertRaises(FileNotFoundError):
+            cache_manager_load_or_compute(
+                cache_path="not-a-path", is_allowed=False,
+                load_fn=lambda p: None,
+                store_fn=lambda d, p: seen.append(p),
+                validate_fn=lambda d: True, compute_fn=lambda: None,
+                logger_fn=lambda r, m: None)
+        self.assertTrue(seen, "store_fn was not called")
+        self.assertIsInstance(seen[0], Path)
+
+
 if __name__ == '__main__':
     unittest.main()
