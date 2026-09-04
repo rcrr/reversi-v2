@@ -423,7 +423,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   for the domain workers (V17 shared-context re-bind documented);
   future redesign parked at I-010 (post-port). All M items
   (M1-M12) disposed. STATE_MACHINE module fully done — R1-R5, all T
-  items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070.
+  items (T1-T11), M-sweep (M1-M12) closed, D-057..D-070;
+  state_machine.md MIGRATED at D-106 step 7 (5-name API table,
+  13 pinned invariants over the 49-test suite, Open issues None —
+  the verbatim session-19 review in
+  notes/analyses/state_machine_session19_review.md).
   D-078 (machine-level fix for the lm_worker_config R2): the
   injected cache-path closure now CONCATENATES the prefix onto the
   level name (filename-prefix semantics, per the domain schema)
@@ -591,7 +595,14 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   VALIDATE); 2 commented imports remain (analytics, save); the
   vld_metrics / analytics_report blackboard fields pre-declared
   for the future levels; the 35-check probe re-pinned (V3c the
-  13-worker list, 0 mismatches).
+  13-worker list, 0 mismatches) — superseded: the pipeline is now
+  15/15 complete (fe506c6/D-104 SAVE, 0 commented imports) and the
+  probe is the 21-check probes/verify_logistic_model.py (D-106
+  step 3 converted the V6f/V4b-class checks to tests — suite 15 →
+  17); logistic_model.md MIGRATED at D-106 step 6 (2-name API
+  table, 13 pinned invariants, M1 the stale 'Remove comments' line
+  — the verbatim session-21 review in
+  notes/analyses/logistic_model_session21_review.md).
 - test_logistic_model.py: analyzed 2026-08-30 (session 21,
   docs/src/twolm/test/test_logistic_model.md) — 1 class / 7
   methods (5 active + 2 muted with a `_` prefix per Roberto —
@@ -1913,8 +1924,9 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   notes/analyses/ with ARCHIVED headers).
 - OPEN (method, session 30 — the notes/docs hygiene migration,
   D-106): NEXT ACTION: the docs/ rewrite one file at a time
-  (docs_rules §8; board.md + pattern.md DONE at steps 4-5 — next:
-  the C-class hubs; 68 docs / ~804 KB remain).
+  (docs_rules §8; board.md + pattern.md + logistic_model.md +
+  state_machine.md DONE at steps 4-7 — next: the B batches; 66
+  docs / ~804 KB remain).
 
 ## Index
 
@@ -1966,20 +1978,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   verified facts, T1-T7 + 9 new tests D-053, suite 13/0/0 GREEN)
 - docs/src/twolm/test/test_opt_lbfgs.md — test_opt_lbfgs.py analysis
   (coverage by area, T7 + 9 new tests D-053, suite 13/0/0 GREEN)
-- docs/src/twolm/state_machine.md — state_machine.py analysis (generic
-  pipeline orchestrator; 17 verified facts V1-V17; R1 fixed D-057
-  (VERY_LOW=4, NONE=5), R2 fixed D-058 (frozen LogEntry dataclass +
-  asdict), R3 sentinel documented + pinned D-059, R4 documented +
-  pinned D-060, R5 resolved D-061 (unique case-insensitive worker
-  names enforced in __init__, closes M12), T2 coverage D-062 (context
-  injection pinned; M8 separator contract), T3 goldens D-063 (display
-  layer pinned), T4 coverage D-064 (move_to_last pinned), T5 D-065
-  (CSV test rewritten; build/tmp house rule), T7 pinned D-066
-  (bool/np.int64 edge), T8 + T9 pinned D-067 (current_worker_name +
-  StepMove fields; all T items closed), M-sweep D-068 + D-069 +
-  D-070 (M1-M12 all disposed — M6 print cleanup + display goldens
-  rewritten, M9 as-is, redesign parked at I-010); suite 49/0/0
-  GREEN)
+- docs/src/twolm/state_machine.md — state_machine.py mirror
+  (MIGRATED at D-106 step 7: 5-name API table, the state model +
+  D-059 sentinel + D-060 failure semantics + D-076 separate gate +
+  D-070 injection + D-078 verbatim cache prefix in Architecture,
+  13 pinned invariants over the 49-test suite, Open issues None;
+  the verbatim session-19 review in
+  notes/analyses/state_machine_session19_review.md)
 - docs/src/twolm/test/test_state_machine.md — test_state_machine.py
   analysis (49 tests, expectations re-derived, T1 fixed D-057,
   TestLogEntry + sentinel pin + retry pin + 2 duplicate-name + 7
@@ -2005,18 +2010,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   context identity; R1 @validate_call RESOLVED D-074 with
   logistic_model R3; M1 __all__ FIXED D-075; M2 informational —
   module CLOSED)
-- docs/src/twolm/logistic_model.md — logistic_model.py analysis +
-  D-074/D-075 + D-081 + D-083 + D-096 + D-097/D-098 + D-099/D-100
-  + D-101/D-102 (first domain facade: RLMContext 38 fields +
-  15-level pipeline, deliberately partial — 13 active levels
-  post 536eadc: CREATED sentinel → CONFIG → POSITIONS → FEATURES
-  → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE →
-  GENERATE → VLD_POSITIONS → VALIDATE (the doc's last re-pin is
-  the 13-worker state, D-101/D-102); 10 verified facts; R1-R3
-  RESOLVED D-074 — D-069 rename, str | None, @validate_call —
-  M1-M4 fixed D-074, M5 fixed D-075 — module CLOSED; 35-check
-  probe re-pinned D-081, D-083, D-093, D-096, D-097, D-099,
-  D-101 — 13-worker state)
+- docs/src/twolm/logistic_model.md — logistic_model.py mirror
+  (MIGRATED at D-106 step 6: 2-name API table, the 4-step
+  construction + the 40-field blackboard + the 15/15 complete
+  pipeline in Architecture, 13 pinned invariants (the 21-check
+  probe + the 17-test suite), M1 the stale 'Remove comments' line;
+  the verbatim session-21 review in
+  notes/analyses/logistic_model_session21_review.md)
 - docs/src/twolm/test/test_logistic_model.md — test_logistic_model.
   py analysis + D-075 (13 active + 2 muted per Roberto; T1/T2/T4/
   T5 fixed — delegation pins, build/tmp base, 7 corner tests, dead
@@ -2288,7 +2288,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   classification (verify_t2, verify_burnside, the 6 o1* one-offs,
   classification.md) + the extracted verbatim reviews
   (board_session1_review.md at step 4, pattern_session4_review.md
-  at step 5)
+  at step 5, logistic_model_session21_review.md +
+  state_machine_session19_review.md at steps 6-7)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the
