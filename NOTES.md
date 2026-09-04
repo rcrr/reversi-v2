@@ -1860,9 +1860,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   the logistic_model.md 40-field re-pin); 2 commits (code+docs,
   then notes). O1 RESOLVED: both training representations in the
   table, the gap pure, the substitution cost its own row.
-- Next (awaiting Roberto's call): the endgame-solver integration of
+- Open (awaiting Roberto's call): the endgame-solver integration of
   rlm_client (the production context of the A2xxx family) — the
-  only open item on the pipeline side; everything else is closed.
+  only open item on the pipeline side.
+- OPEN (method, session 30 — the notes/docs hygiene migration, plan
+  approved by Roberto, D-106): step 0 DONE (notes/docs_rules.md +
+  notes/probe_rules.md approved; AGENTS.md rules 5/7 + Layout
+  updated). Then: the a/b/c classification of the 28 scratch files +
+  the verify_lm_worker_config E2/E3 investigation (contract or bug,
+  awaiting ruling), then probes/ at the root + the hub
+  centralization + the one-by-one split into probes/tests (scratch/
+  to empty), then the docs/ rewrite one file at a time (board.md
+  first — docs_rules §8). NEXT ACTION: the a/b/c classification +
+  the E2/E3 investigation.
 
 ## Index
 
@@ -2231,5 +2241,15 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 - notes/decisions.md — decisions log (D-NNN; D-001…D-105)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
+- notes/docs_rules.md — mirror-doc format rules (rigid; the
+  current-state contract: the 4-line header with the `> State:` line
+  as the only permitted time, 7 sections, the forbidden-history
+  list, the same-commit lifecycle, the test-doc variant, the
+  migration state)
+- notes/probe_rules.md — verification-apparatus rules (rigid; the
+  a/b/c classification + the independent-derivation criterion, the
+  test/probe line, the pipeline-state centralization in the hub,
+  the campaign sweep rule, the archive to notes/analyses/, the
+  baseline)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/log_001.md — session journal, volume 001 (sessions 25–..., open)

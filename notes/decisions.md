@@ -3782,3 +3782,74 @@ D-105 | 2026-09-03 | ANALYTICS 3-metric header + dense training
          then notes). O1 is now RESOLVED: the table shows both
          training representations, the gap is pure, the
          substitution cost has its own row. |
+
+D-106 | 2026-09-04 | METHOD: the notes/docs hygiene migration.
+         (1) Mirror docs become current-state CONTRACTS, codified in
+         the new prescriptive file notes/docs_rules.md: the 4-line
+         header with the `> State:` line as the only time permitted
+         in the file; 7 sections (API / Architecture / Verified
+         invariants, each pinned to a test or probe / Open issues,
+         open-only / Conventions / Integration / optional line-ref
+         appendix); the forbidden list (provenance narrative,
+         campaign tags in prose, FIXED/RESOLVED lists, verbatim
+         analysis appendices — those move losslessly to
+         notes/analyses/ — the global suite status, report tenses);
+         the lifecycle (doc updated in the SAME commit as its code,
+         rewritten not appended; a "pinned by" into the void is a
+         defect); size budget 60-120 lines (hubs 150-200); the
+         test-doc variant (Coverage map + Goldens pinned).
+         (2) The verification apparatus is separated from the
+         disposable sandbox, codified in notes/probe_rules.md:
+         probes move from scratch/ (gitignored, untracked) to
+         probes/ at the workspace root (tracked, one
+         verify_<module>.py per module — src/ stays the twolm
+         package, D-006); every check classified a/b/c (a
+         independent invariant KEEP / b obsolete: b1 re-pin —
+         pipeline-wide facts re-pinned ONCE in the hub
+         verify_logistic_model.py, b2 retire to notes/analyses/
+         with an ARCHIVED header / c overlap DELETE — with the
+         operational criterion "would the check still have value if
+         the duplicated test were wrong together with the code?");
+         the test/probe line (cheap single-module behavior and
+         hand-computed unit math become TESTS; source-text
+         inspections, heavy end-to-end re-derivations and the
+         pipeline state stay PROBES); the campaign sweep rule (full
+         suite + all probes green before the notes commit).
+         (3) Migration order: step 0 = this entry; then the a/b/c
+         classification of the 28 scratch files + the
+         verify_lm_worker_config E2/E3 investigation (unknown
+         worker name raises no exception: contract or bug, awaiting
+         ruling); then the probes/ move + hub centralization + the
+         one-by-one split, scratch/ ending empty (disposable
+         again); then the docs/ rewrite one file at a time,
+         board.md first (schema validation), then pattern.md, the
+         C-class hubs, B batches, A. | Session 30 (the Qwen3.8 QoL
+         DSH setup test) became a method session on Roberto's
+         observation that NOTES.md and the docs are "pesanti".
+         Evidence: (a) NOTES.md is ~80% history — ~440 "Done (…)"
+         bullets in Next steps, a 1196-line "Where we are",
+         inventory rows carrying full campaign narratives (the
+         logistic_model row even broke its table line) — while the
+         same history already lives in the journal (174 KB),
+         decisions.md (230 KB) and git log; (b) the 70 mirror docs
+         (804 KB) drifted from contracts into analysis reports:
+         board.md contradicts itself (R1 "the most important flaw"
+         in the verbatim session-1 appendix, "RESOLVED" in the
+         body), rlm_analytics.md is stale within two weeks of its
+         creation (header pins 626 tests, body includes D-105,
+         suite is 631), 34/37 production docs carry line-number
+         appendices that rot with every code change; (c) the first
+         full probe audit run (2026-09-04, 28 scripts, DB live,
+         no gate): 14 green, 13 stale (9 duplicated pipeline-state
+         pins each asserting "N active levels" at its own bring-in,
+         1 stale import, 1 stale API, 2 dead one-offs), 1 to
+         investigate (E2/E3) — the "verified invariants" chain
+         cites artifacts a fresh clone does not contain, and the
+         decay was invisible exactly because nothing tracked the
+         probes. Roberto's rulings: "La storia deve stare nei
+         commit GIT e nel LOG. NOTES deve contenere solo le
+         informazioni DISTILLATE"; "il file NOME_MODULO.md deve
+         dire cosa fa il modulo ORA"; one-off probes are archived,
+         not kept green; the per-file change LOG idea declined
+         (a 4th copy of facts already in git + decisions + journal —
+         the per-file view is derivable via git log --follow). |

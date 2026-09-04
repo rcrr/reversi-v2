@@ -14,9 +14,14 @@ propose repo-wide reorganization now.
    logistello-papers/ is read-only reference material.
 4. Notes and comments in this workspace: English. Replies to the user: Italian.
 5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule,
-   D-007): architecture, verified invariants, issues, conventions.
+   D-007): architecture, verified invariants, issues, conventions (format
+   rules: notes/docs_rules.md).
 6. Every decision (including "leave as-is for now") goes to notes/decisions.md
    with date and rationale. Session summary goes to the current session-journal volume (notes/log_NNN.md; format rules: notes/log_rules.md).
+7. The verification apparatus lives in probes/ (tracked; the hub probe
+   verify_logistic_model.py owns the pipeline-wide state); scratch/ is a
+   disposable, gitignored session area — nothing permanent there
+   (rules: notes/probe_rules.md).
 
 ## Naming convention (canonical — full text: notes/naming.md)
 This is Reversi, NOT chess: the board vocabulary is **column** (A–H,
@@ -36,5 +41,7 @@ read row 1 on top, column a on the left.
 - src/ — all Python sources (D-006), package `twolm` (D-008):
   src/twolm/board.py, unit tests in src/twolm/test/
 - docs/ — code documentation, mirrors src/ (D-007); docs/src/twolm/board.md
-- notes/ — collaboration only: decisions.md · ideas.md · log_rules.md + log_000.md, log_001.md, ... (session journal, rotating volumes)
+- probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
+- notes/ — collaboration only: decisions.md · ideas.md · log_rules.md · docs_rules.md · probe_rules.md + log_000.md, log_001.md, ... (session journal, rotating volumes)
+- scratch/ — disposable session area, gitignored, never tracked
 - logistello-papers/ — user's reference papers (read-only)
