@@ -5,7 +5,7 @@ sources already in the package — the constant intercept, `Mobility`
 `Feature` (one evaluation feature, factory-only) and `FeatureSet`
 (a named collection that builds the flat feature list and the
 `(N, I)` uint32 index matrix a feature-table evaluation consumes).
-> State: D-042 · 8e72171 · 2026-08-28 · suite 19/0/1
+> State: D-110 · de01cf2 · 2026-09-04 · suite 19/0/1
 
 ## API
 
@@ -80,12 +80,10 @@ Pinned by `test_feature.py` (19 tests + 1 PERF, no DB):
 
 ## Open issues
 
-- OPEN R1 (new, D-106 step 10 re-read): `BeforeValidator` is
-  imported (L49) but never referenced — the dtype check rides on
-  the imported `IndexArray` alias (pattern.py L74); the import has
-  been dead since the module's first commit (b51bea6) and the D-038
-  R4 batch removed only the dead typing imports. REPORTED, not
-  fixed (source change on explicit request only).
+None. (The OPEN R1 of the step-10 re-read — the unused
+`BeforeValidator` import, dead since b51bea6, the dtype check
+riding on the imported `IndexArray` alias — was FIXED at D-110:
+the import line now carries only `validate_call, ConfigDict`.)
 
 ## Conventions
 
