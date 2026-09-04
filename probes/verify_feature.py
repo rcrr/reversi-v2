@@ -248,62 +248,24 @@ from twolm.pattern import Pattern, PatternSet
 
 # D1. Factories
 f_int = F.Feature.new_intercept()
-check("new_intercept fields",
-      (f_int.category, f_int.name, f_int.n_configurations, f_int.n_instances, f_int.ref),
-      (F.Feature.Category.INTERCEPT, "INTERCEPT", 1, 1, None))
-
-m = Mobility("LMC", Bitboard(FULL), Bitboard(0))
-f_mob = F.Feature.new_from_mobility(m)
-check("new_from_mobility fields",
-      (f_mob.category, f_mob.name, f_mob.n_configurations, f_mob.n_instances, f_mob.ref),
-      (F.Feature.Category.MOBILITY, "LMC", 65, 1, m))
-
-p = Pattern("EDGE", Bitboard(EDGE))
-f_pat = F.Feature.new_from_pattern(p)
-check("new_from_pattern fields",
-      (f_pat.category, f_pat.name, f_pat.n_configurations, f_pat.n_instances, f_pat.ref),
-      (F.Feature.Category.PATTERN, "EDGE", 3 ** 8, 4, p))
-
-# D2. Direct construction blocked
-try:
-    F.Feature(F.Feature.Category.INTERCEPT, "INTERCEPT", 1, 1)
-    check("Feature() raises RuntimeError", "no exception", "RuntimeError")
-except RuntimeError:
-    check("Feature() raises RuntimeError", "RuntimeError", "RuntimeError")
-except Exception as e:
-    check("Feature() raises RuntimeError", f"{type(e).__name__}: {e}", "RuntimeError")
-
-# D3. FeatureSet structural
-mset = MobilitySet('TestMobilitySet',
-                   [Mobility(n, Bitboard(mm), Bitboard(aa)) for n, mm, aa in MOB3])
-pset = PatternSet('TestPatternSet',
-                  [Pattern(n, Bitboard(mm)) for n, mm in PAT13])
-fset = F.FeatureSet('TestFeatureSet', f_int, mset, pset)
-check("FeatureSet.hash", fset.hash, GOLDEN_FEATURE_HASH)
-check("FeatureSet.n_instances", fset.n_instances, 53)
-check("len(features)", len(fset.features), 17)
-got_names = [f.name for f in fset.features]
-want_names = (["INTERCEPT"] + [n for n, _, _ in mob_sorted]
-              + [n for n, _ in pat_sorted])
-check("features order (intercept, sorted mobilities, sorted patterns)",
-      got_names, want_names)
-got_cat = [f.category for f in fset.features]
-want_cat = ([F.Feature.Category.INTERCEPT]
-            + [F.Feature.Category.MOBILITY] * 3
-            + [F.Feature.Category.PATTERN] * 13)
-check("features categories", got_cat, want_cat)
-
-# D4. Wrong intercept category
-try:
-    F.FeatureSet('Wrong', f_mob, mset, pset)
-    check("wrong intercept category raises ValueError", "no exception", "ValueError")
-except ValueError as e:
-    check("wrong intercept category raises ValueError",
-          "ValueError" if "wrong category" in str(e) else f"ValueError: {e}",
-          "ValueError")
-except Exception as e:
-    check("wrong intercept category raises ValueError",
-          f"{type(e).__name__}: {e}", "ValueError")
+# (D1 field pins — new_intercept / new_from_mobility / new_from_
+#  pattern — deleted at D-106 step 3, class c: pinned by
+#  test_feature.py::TestFeature::test_new_intercept /
+#  test_new_from_mobility / test_new_from_pattern, all 5 fields
+#  each. The f_int binding stays: D5 uses it; the m/f_mob and
+#  p/f_pat bindings were used only by the deleted checks.)
+# (D2 Feature() direct-construction RuntimeError deleted at D-106
+#  step 3, class c: pinned by test_feature.py::TestFeature::
+#  test_init_raises_runtime_error)
+# (D3 FeatureSet structural — hash golden, n_instances 53,
+#  len(features) 17, feature order, categories — deleted at D-106
+#  step 3, class c: pinned by test_feature.py::TestFeatureSet::
+#  test_init (the exact hash, the per-feature n_instances list, the
+#  17-name order). The mset/pset bindings it defined were used only
+#  by the deleted D4.)
+# (D4 wrong-intercept ValueError deleted at D-106 step 3, class c:
+#  pinned by test_feature.py::TestFeatureSet::
+#  test_init_invalid_intercept_category_raises_value_error)
 
 # D5. compute_indexes live vs pure Python matrix
 ml = [x[0] for x in POSITIONS]
