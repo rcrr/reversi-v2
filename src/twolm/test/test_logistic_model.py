@@ -49,6 +49,8 @@ from types import SimpleNamespace
 
 from unittest.mock import MagicMock, patch
 
+from pydantic import ValidationError
+
 from twolm.logistic_model import (LogisticModel, RLMContext,
                                   _check_base_dir_override,
                                   _check_config_file_path,
@@ -126,6 +128,17 @@ class TestLogisticModel(unittest.TestCase):
         """Test that the state machine is initialized at step 0 (CREATED)."""
         self.assertEqual(self.model.current_step, 0)
         self.assertEqual(self.model.current_worker_name, "CREATED")
+
+    def test_init_non_str_config_path_raises_validation_error(self):
+        """The @validate_call on __init__ (D-074 R3) rejects a non-str/Path
+        config_file_path with a pydantic ValidationError before any worker
+        factory runs (fail-fast guard).
+
+        Converted from the verify_logistic_model.py V6f probe at D-106
+        step 3 (probe_rules.md §4: cheap deterministic unit behavior of
+        one module belongs in the tests, not the probes)."""
+        with self.assertRaises(ValidationError):
+            LogisticModel(123)
 
     def test_move_to_step_delegates_to_state_machine(self):
         """Test that moving to a step triggers the correct mock worker."""

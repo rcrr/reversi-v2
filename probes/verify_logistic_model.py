@@ -69,7 +69,7 @@ def check(name, ok, detail=""):
 # --- V1: RLMContext dataclass shape --------------------------------------
 from twolm.logistic_model import RLMContext, LogisticModel
 from twolm.base_model import BaseModel
-from twolm.state_machine import Verbosity, StateMachine, Context, Worker
+from twolm.state_machine import Context
 
 check("V1a is_dataclass", dataclasses.is_dataclass(RLMContext))
 fields = {f.name: f for f in dataclasses.fields(RLMContext)}
@@ -103,57 +103,34 @@ from twolm.logistic_model import _check_config_file_path, _check_base_dir_overri
 cfg_file = TMP / "dummy.json"
 cfg_file.write_text("{}")
 a_dir = TMP
-a_file = cfg_file
 
 check("V6a valid str -> Path", _check_config_file_path(str(cfg_file)) == cfg_file)
 check("V6b valid Path -> Path", _check_config_file_path(cfg_file) == cfg_file)
-for bad, exc in [(123, TypeError), (a_dir, IsADirectoryError), (TMP / "missing.json", FileNotFoundError)]:
-    try:
-        _check_config_file_path(bad)
-        check(f"V6 raises for {bad!r}", False, "no exception")
-    except exc as e:
-        check(f"V6 raises {exc.__name__} for {type(bad).__name__}", True, str(e))
-    except Exception as e:
-        check(f"V6 raises {exc.__name__} for {type(bad).__name__}", False,
-              f"got {type(e).__name__}: {e}")
+# (V6 raises deleted at D-106 step 3, class c: all three bad inputs
+#  pinned by test_logistic_model.py::TestLogisticModel::test_config_
+#  path_helper_edge_branches)
 
 from pydantic import ValidationError
-try:
-    LogisticModel(123)
-    check("V6f @validate_call on __init__: int -> ValidationError (D-074 R3)", False, "no exception")
-except ValidationError:
-    check("V6f @validate_call on __init__: int -> ValidationError (D-074 R3)", True)
-except Exception as e:
-    check("V6f @validate_call on __init__: int -> ValidationError (D-074 R3)", False,
-          f"got {type(e).__name__}: {e}")
+# (V6f moved to a test at D-106 step 3, class a §4 conversion:
+#  test_logistic_model.py::TestLogisticModel::test_init_non_str_config_
+#  path_raises_validation_error — the init type-coercion fail-fast guard)
 
 check("V7a valid dir str -> Path", _check_base_dir_override(str(a_dir)) == a_dir)
 check("V7b valid dir Path -> Path", _check_base_dir_override(a_dir) == a_dir)
-for bad, exc in [(123, TypeError), (a_file, NotADirectoryError)]:
-    try:
-        _check_base_dir_override(bad)
-        check(f"V7 raises for {bad!r}", False, "no exception")
-    except exc as e:
-        check(f"V7 raises {exc.__name__} for {type(bad).__name__}", True, str(e))
-    except Exception as e:
-        check(f"V7 raises {exc.__name__} for {type(bad).__name__}", False,
-              f"got {type(e).__name__}: {e}")
+# (V7 raises deleted at D-106 step 3, class c: both bad inputs pinned by
+#  test_logistic_model.py::TestLogisticModel::test_base_dir_helper_edge_
+#  branches)
 
 # --- V2-V5: model construction + facade ----------------------------------
 model = LogisticModel(config_file_path=str(cfg_file))
 ctx = model.context
 
-check("V2a model.context is model.sm.context (identity)",
-      ctx is model.sm.context)
-check("V2b model.sm is a StateMachine", isinstance(model.sm, StateMachine))
-check("V2c verbosity default STANDARD",
-      model.verbosity is Verbosity.STANDARD)
-model.verbosity = Verbosity.NONE
-check("V2d verbosity setter delegates", model.sm.verbosity is Verbosity.NONE)
-model.verbosity = Verbosity.STANDARD
-
-check("V3a current_step 0", model.current_step == 0)
-check("V3b current_worker_name CREATED", model.current_worker_name == "CREATED")
+# (V2a-d deleted at D-106 step 3, class c: pinned by test_logistic_model.py
+#  test_context_initialization / test_state_machine_initialization /
+#  test_facade_views_and_verbosity_round_trip)
+# (V3a/V3b deleted at D-106 step 3, class c: the fresh-model state is
+#  pinned at the top of every full-chain test, e.g. test_lm_worker_
+#  indexes.py — and is the hub's V3c pre-state)
 check("V3c 15 active levels (D-104: SAVE enabled, fe506c6 — complete)",
       [w.name for w in model.sm.workers]
       == ["CREATED", "CONFIG", "POSITIONS", "FEATURES", "INDEXES",
@@ -174,32 +151,16 @@ check("V3d 0 commented worker imports / entries in logistic_model.py "
 check("V4a legacy _for_next_level gone from the live context (D-074 R1)",
       not hasattr(ctx, "get_cache_file_path_for_next_level")
       and not hasattr(ctx, "get_cache_file_full_path_for_next_level"))
-cur = ctx.get_cache_file_path_for_current_level
-check("V4b injected _for_current_level is a real closure",
-      callable(cur) and cur.__name__ == "_get_cache_file_path")
-full = ctx.get_cache_file_full_path_for_current_level
-check("V4c injected _for_current_level full-path closure",
-      callable(full) and full.__name__ == "_get_cache_file_full_path")
+# (V4b/c deleted at D-106 step 3, class c: the injected closures'
+#  __name__s pinned by test_logistic_model.py::test_injected_cache_
+#  helpers_are_the_machine_closures + test_injected_cache_helper_
+#  computes_the_worker_path)
 check("V4d log_event injected (bound method, not the lambda default)",
       ctx.log_event.__class__.__name__ == "method")
 
-# sentinels (V5): direct call must raise; log_event no-op path pre-injection
-from twolm.logistic_model import _created_up, _created_down
-for fn, msg in [(_created_up, "up"), (_created_down, "down")]:
-    try:
-        fn(ctx)
-        check(f"V5 sentinel {msg} raises RuntimeError", False, "no exception")
-    except RuntimeError as e:
-        check(f"V5 sentinel {msg} raises RuntimeError", True, str(e))
-bare = RLMContext(config_file_path=cfg_file)
-try:
-    _created_up(bare)
-    check("V5b bare-context sentinel raises RuntimeError", False, "no exception")
-except RuntimeError as e:
-    check("V5b bare-context sentinel raises RuntimeError", True, str(e))
-except Exception as e:
-    check("V5b bare-context sentinel raises RuntimeError", False,
-          f"no-op log crashed instead: {type(e).__name__}: {e}")
+# (V5/V5b deleted at D-106 step 3, class c: pinned by test_logistic_
+#  model.py::test_created_sentinel_workers_raise /
+#  test_pre_injection_fallback_is_no_op_lambda)
 
 # --- V9: 5-worker machine boundaries (re-pinned D-083) -------------------
 # With CONFIG active (D-076) and the gate split, the empty {} config makes
