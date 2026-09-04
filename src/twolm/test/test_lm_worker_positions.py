@@ -45,12 +45,19 @@ import unittest
 import os
 import tempfile
 
+import json5
+import numpy as np
+import pandas as pd
+
 from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
 from twolm.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from twolm.logistic_model import LogisticModel, RLMContext
+from twolm.rlm_config_schemas import ReversiLogisticModelConfig
+from twolm.regab import RegabDBConnection, RegabDataSet
+from twolm.lm_worker_positions import is_cache_consistent
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 
@@ -138,6 +145,74 @@ class TestLMWorkerPositions(unittest.TestCase):
         # And confirm DB was NOT hit
         self.assertNotIn("Extracted", logs, "DB was queried even though a valid cache existed.")
         self.assertNotIn("established successfully", logs, "DB connection was opened even though a valid cache existed.")
+
+
+class TestIsCacheConsistent(unittest.TestCase):
+    """Unit semantics of lm_worker_positions.is_cache_consistent.
+
+    D-106 step 3 (probe_rules.md §4): converted from the
+    verify_lm_worker_positions.py D4a-g probe. The probe warmed a
+    real cache file through the live pipeline and compared against
+    it; the test builds the same rds metadata in memory (fixture
+    rlm_00 values: bid [8], status ["CMS", "CMR"], ec 20,
+    tst_regab @ localhost:5432) — no DB, no cache file."""
+
+    def setUp(self):
+        self.json_path = (WORKSPACE_ROOT / "src" / "twolm" / "test" /
+                          "data" / "rlm_00.json")
+        self.rc = RegabDBConnection("tst_regab", "tst_regab", "localhost",
+                                    "5432", activate_conn=False)
+        self.df = pd.DataFrame({
+            'mover': [1, 2],
+            'opponent': [3, 4],
+            'game_value': [4, 6]
+        }).astype({'mover': 'int64', 'opponent': 'int64', 'game_value': 'int8'})
+        self.rds = RegabDataSet(self.rc, [8], ["CMS", "CMR"], 20, self.df)
+
+    def _ctx(self, mutate=None) -> RLMContext:
+        d = json5.loads(self.json_path.read_text())
+        if mutate:
+            mutate(d)
+        cx = RLMContext(config_file_path=Path("rlm_00.json"))
+        cx.cfg = ReversiLogisticModelConfig(**d)
+        return cx
+
+    def test_same_cfg_is_consistent(self):
+        self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
+
+    def test_different_ec_is_inconsistent(self):
+        def _ec19(d):
+            d["regab_data_set"]["ec"] = 19
+        self.assertIs(is_cache_consistent(self._ctx(_ec19), self.rds), False)
+
+    def test_different_bid_is_inconsistent(self):
+        def _bid9(d):
+            d["regab_data_set"]["bid"] = [9]
+        self.assertIs(is_cache_consistent(self._ctx(_bid9), self.rds), False)
+
+    def test_different_status_is_inconsistent(self):
+        def _st_cms(d):
+            d["regab_data_set"]["status"] = ["CMS"]
+        self.assertIs(is_cache_consistent(self._ctx(_st_cms), self.rds), False)
+
+    def test_different_dbname_is_inconsistent(self):
+        def _dbname(d):
+            d["regab_data_set"]["regab_db_connection"]["dbname"] = "other_db"
+        self.assertIs(is_cache_consistent(self._ctx(_dbname), self.rds), False)
+
+    def test_keyword_override_wins(self):
+        """The bid/status keyword args override the cfg values."""
+        self.assertIs(is_cache_consistent(self._ctx(), self.rds,
+                                          bid=[9]), False)
+        self.assertIs(is_cache_consistent(self._ctx(), self.rds,
+                                          bid=[8],
+                                          status=["CMS", "CMR"]), True)
+
+    def test_str_port_vs_int_port_compares_equal(self):
+        """rds.rc.port is a str ('5432'), the schema port an int:
+        the comparison still passes (int coercion on the cache side)."""
+        self.assertEqual(self.rds.rc.port, "5432")
+        self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
 
 
 if __name__ == '__main__':
