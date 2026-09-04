@@ -4,7 +4,6 @@
 # Ground truth: pure-Python popcount (int.bit_count) + board.legal_moves
 # (independently verified by the board suite).
 #
-import hashlib
 import random
 
 import numpy as np
@@ -130,32 +129,13 @@ def main():
         failures.append(f'golden mismatch: {derived}')
 
     # ------------------------------------------------------------------
-    # 5. hash formula, independent
+    # 5. (deleted at D-106 step 3, class c): hash formula,
+    #    order-insensitivity and empty-set hash are pinned by
+    #    test_mobility.py::TestMobilitySet::test_hash_calculation_
+    #    verification / test_hash_equivalence_same_keys /
+    #    test_init_empty_list (the latter also pins e.masks' (0, 2)
+    #    shape — the group 5 b1-mod re-pin of step 2 collapses there)
     # ------------------------------------------------------------------
-    ml = [Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0)),
-          Mobility('ALMC', Bitboard(0), Bitboard(0xFFFFFFFFFFFFFFFF)),
-          Mobility('DLMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0xFFFFFFFFFFFFFFFF))]
-    s = MobilitySet('H', ml)
-    # sorted by (mask, amask): ALMC (0, all), LMC (all, 0), DLMC (all, all)
-    pairs = sorted([(m.mask, m.amask) for m in ml])
-    hexp = hashlib.sha3_256(b''.join(int(m).to_bytes(8, 'little') +
-                                     int(a).to_bytes(8, 'little')
-                                     for m, a in pairs)).hexdigest()
-    print('hash independent:', hexp)
-    print('hash class     :', s.hash)
-    if s.hash != hexp:
-        failures.append('hash formula mismatch')
-    # order-insensitivity
-    s2 = MobilitySet('H2', list(reversed(ml)))
-    if s2.hash != s.hash:
-        failures.append('hash not order-insensitive')
-    # empty set
-    e = MobilitySet('E', [])
-    if e.hash != hashlib.sha3_256(b'').hexdigest():
-        failures.append('empty-set hash mismatch')
-    # (D-106 re-pin: masks is a property now, not a method)
-    if e.masks.shape != (0, 2):
-        failures.append(f'empty masks shape {e.masks.shape}')
 
     # ------------------------------------------------------------------
     # 6. underflow boundary: alms_count can equal shift (max)
