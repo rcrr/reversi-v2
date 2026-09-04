@@ -27,7 +27,6 @@ Run from the workspace root:  .venv/bin/python scratch/verify_generate.py
 """
 import hashlib
 import os
-import re
 import sys
 import tempfile
 from pathlib import Path
@@ -118,12 +117,7 @@ check("C2 no non-comment trailing whitespace",
 # ----------------------------------------------------------------------
 # D. data-object behavior (no DB)
 # ----------------------------------------------------------------------
-from pydantic import ValidationError
-from twolm import binio
 from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
-                                rlm_generate_store_to_file,
-                                rlm_generate_load_from_file,
-                                rlm_generate_is_cache_consistent,
                                 compute_w_dense)
 
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -132,92 +126,32 @@ CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     tmp = Path(tmp)
 
-    # D1 init validation
-    try:
-        ReversiLogisticModelDenseWeights("x", [1.0, 2.0])
-        check("D1 list w_dense rejected (NDArray gate)", False, "no error")
-    except ValidationError:
-        check("D1 list w_dense rejected (NDArray gate)", True)
-    try:
-        ReversiLogisticModelDenseWeights(123, np.zeros(2, np.float32))
-        check("D2 non-str w_checksum rejected", False, "no error")
-    except ValidationError:
-        check("D2 non-str w_checksum rejected", True)
+    # (D1 list w_dense rejected / D2 non-str w_checksum rejected
+    #  deleted at D-106 step 3, class c: test_rlm_generate.py::
+    #  TestRLMGenerateInit::test_init_fails_with_list_w_dense /
+    #  test_init_fails_with_non_str_w_checksum)
 
-    # D2 hash
+    # D3 hash
     arr = np.array([0.5, -0.2, 3.0], dtype=np.float32)
     dw = ReversiLogisticModelDenseWeights("abc", arr)
     h = hashlib.sha3_256(arr.tobytes()).hexdigest()
     check("D3 compute_sha3_256_hash == independent sha3_256(w_dense.tobytes())",
           dw.compute_sha3_256_hash() == h, dw.compute_sha3_256_hash())
 
-    # D3 round-trip
-    p = tmp / "dense.dat"
-    rlm_generate_store_to_file(dw, p)
-    dw2 = rlm_generate_load_from_file(p, checksum=True)
-    check("D4 store/load round-trip (w_checksum + w_dense + sidecar)",
-          dw2.w_checksum == "abc" and np.array_equal(dw2.w_dense, arr)
-          and (p.parent / "dense.dat.SHA3-256").exists())
-
-    # D4 corrupted sidecar (the hash field)
-    sc = tmp / "dense.dat.SHA3-256"
-    orig = sc.read_text()
-    line = orig.splitlines()[0]
-    hexf, name = line.split(None, 1)
-    bad = ("0" if hexf[0] != "0" else "1") + hexf[1:] + "  " + name
-    sc.write_text(bad + "\n" + orig[len(line) + 1:])
-    try:
-        rlm_generate_load_from_file(p, checksum=True)
-        check("D5 corrupted hash sidecar -> RuntimeError 'Checksum mismatch.'", False, "no error")
-    except RuntimeError as e:
-        check("D5 corrupted hash sidecar -> RuntimeError 'Checksum mismatch.'",
-              str(e) == "Checksum mismatch.", str(e))
-    finally:
-        sc.write_text(orig)
-
-    # D5 wrong description
-    bad_p = tmp / "wrong.dat"
-    with binio.BinaryWriter(bad_p) as w:
-        w.write_header("Some other file", 1)
-        w.write_string("abc")
-        w.write_array(arr)
-    try:
-        rlm_generate_load_from_file(bad_p, checksum=False)
-        check("D6 wrong description -> RuntimeError 'Wrong file format: ...'", False, "no error")
-    except RuntimeError as e:
-        check("D6 wrong description -> RuntimeError 'Wrong file format: ...'",
-              str(e) == "Wrong file format: Some other file", str(e))
-
-    # D6 version gate (post T2)
-    v2 = tmp / "v2.dat"
-    with binio.BinaryWriter(v2) as w:
-        w.write_header("RGLM Dense Weights binary data file", 2)
-        w.write_string("abc")
-        w.write_array(arr)
-    try:
-        rlm_generate_load_from_file(v2, checksum=False)
-        check("D7 version-2 file -> RuntimeError 'File version mismatch: found 2, expected 1'",
-              False, "loaded silently (no version gate)")
-    except RuntimeError as e:
-        check("D7 version-2 file -> RuntimeError 'File version mismatch: found 2, expected 1'",
-              str(e) == "File version mismatch: found 2, expected 1", str(e))
-
-    # D7 checksum=False skips the sidecar
-    p2 = tmp / "nosidecar.dat"
-    with binio.BinaryWriter(p2) as w:
-        w.write_header("RGLM Dense Weights binary data file", 1)
-        w.write_string("abc")
-        w.write_array(arr)
-    dw3 = rlm_generate_load_from_file(p2, checksum=False)
-    check("D8 checksum=False loads without a sidecar", dw3.w_dense.shape == (3,))
-
-    # D8 is_cache_consistent
-    class Ctx:
-        w_checksum = "abc"
-    check("D9 is_cache_consistent True on match", rlm_generate_is_cache_consistent(Ctx(), dw) is True)
-    class Ctx2:
-        w_checksum = "def"
-    check("D10 is_cache_consistent False on mismatch", rlm_generate_is_cache_consistent(Ctx2(), dw) is False)
+    # (D4 store/load round-trip + sidecar, D5 corrupted sidecar ->
+    #  'Checksum mismatch.', D6 wrong description -> 'Wrong file
+    #  format', D7 version-2 gate, D8 checksum=False load, D9/D10
+    #  is_cache_consistent True/False deleted at D-106 step 3, class
+    #  c: test_rlm_generate.py::TestRLMGenerateIO pins all of it —
+    #  test_store_and_load_cycle (round-trip + the
+    #  checksum=False load at L241 + the valid sidecar),
+    #  test_load_with_mismatched_sidecar,
+    #  test_load_rejects_wrong_description,
+    #  test_load_rejects_version_mismatch, and
+    #  TestRLMGenerateCacheConsistency::test_consistent_checksum /
+    #  test_inconsistent_checksum. The file-building scaffolding
+    #  (BinaryWriter blocks, the Ctx/Ctx2 fakes) was used only by
+    #  them.)
 
     # D11 the test-mock fixture golden (independently re-derived by hand:
     #      INT 0.5; PAT weighted_mean = (-0.2*10)/10 = -0.2, only config 1
@@ -246,41 +180,12 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
           wd.dtype == np.float32 and len(wd) == 9 and np.array_equal(wd, expected),
           repr(wd.tolist()))
 
-    # D12 unknown category -> RuntimeError
-    ctx_bad = SimpleNamespace()
-    ctx_bad.feature_set = SimpleNamespace(
-        hash="x",
-        features=[SimpleNamespace(name="X", category=9, n_instances=1, n_configurations=1)])
-    ctx_bad.iwmap_feature_offset = np.array([0, 1], dtype=np.uint32)
-    ctx_bad.iwmap = np.array([0], dtype=np.int64)
-    ctx_bad.feature_w_ranges = np.array([[-1, 0, 0]], dtype=np.int64)
-    ctx_bad.wmap = np.zeros((0, 3), dtype=np.int64)
-    ctx_bad.w = np.array([0.1], dtype=np.float32)
-    ctx_bad.w_checksum = "z"
-    ctx_bad.log_event = lambda rel, msg: None
-    try:
-        compute_w_dense(ctx_bad)
-        check("D12 unknown category (9) -> RuntimeError", False, "no error")
-    except RuntimeError as e:
-        check("D12 unknown category (9) -> RuntimeError",
-              "unknown" in str(e).lower() and "9" in str(e), str(e))
-
-    # D13 mobility with no seen configs -> zeros + WARN (no crash)
-    ctx_m = SimpleNamespace()
-    ctx_m.feature_set = SimpleNamespace(
-        hash="x",
-        features=[SimpleNamespace(name="MOB", category=1, n_instances=1, n_configurations=4)])
-    ctx_m.iwmap_feature_offset = np.array([0, 4], dtype=np.uint32)
-    ctx_m.iwmap = np.array([-1, -1, -1, -1], dtype=np.int64)
-    ctx_m.feature_w_ranges = np.array([[-1, 0, 0]], dtype=np.int64)
-    ctx_m.wmap = np.zeros((0, 3), dtype=np.int64)
-    ctx_m.w = np.array([0.0], dtype=np.float32)
-    ctx_m.w_checksum = "z"
-    warns = []
-    ctx_m.log_event = lambda rel, msg: warns.append(msg)
-    wm = compute_w_dense(ctx_m).w_dense
-    check("D13 mobility no-seen branch -> zeros + WARN log",
-          np.array_equal(wm, np.zeros(4, np.float32)) and len(warns) == 1 and "no seen" in warns[0])
+    # (D12 unknown category -> RuntimeError + D13 mobility no-seen
+    #  branch (zeros + WARN) deleted at D-106 step 3, class c:
+    #  test_rlm_generate.py::TestRLMGenerateCompute::
+    #  test_unknown_category_raises /
+    #  test_mobility_without_seen_configs_warns_and_zeroes. The
+    #  ctx_bad / ctx_m scaffolding was used only by them.)
 
 
 # ----------------------------------------------------------------------
@@ -295,20 +200,22 @@ else:
         from twolm.state_machine import Verbosity
         m = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
+        # (E1 'the pipeline reaches GENERATE' deleted at D-106 step 3,
+        #  class c: test_lm_worker_generate.py::TestLMWorkerGenerate::
+        #  test_compute_and_populate_cache pins step 10 / GENERATE)
         try:
             m.move_to_step("GENERATE")
             crashed = False
-        except AttributeError as e:
+        except AttributeError:
             crashed = True
-            check("E1 the pipeline reaches GENERATE (pre-fix R1: AttributeError "
-                  "'get_cache_file_full_path_for_next_level')", False, str(e))
         ctx = m.context
         w, iwmap, off, wmap, fwr = ctx.w, ctx.iwmap, ctx.iwmap_feature_offset, ctx.wmap, ctx.feature_w_ranges
 
         if not crashed:
             K = int(off[-1])
             check("E2 K = 6588 = 6561 (EDGE) + 27 (DIAG3)", K == 6588, f"{K}")
-            check("E3 w_dense (6588,) float32", ctx.w_dense.shape == (6588,) and ctx.w_dense.dtype == np.float32)
+            # (E3 w_dense shape/dtype (6588,) float32 deleted at D-106
+            #  step 3, class c: test_lm_worker_generate.py L128-129)
             # independent per-feature re-derivation (a different code path)
             ref = np.full(K, np.nan, dtype=np.float64)
             wm_ok = True
@@ -337,35 +244,16 @@ else:
             check("E7 hash golden ec9d6545...b15b4 == ctx.dense_w_checksum",
                   h == "ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4"
                   and h == ctx.dense_w_checksum, h)
-            check("E8 the flat cache files rlmwf_10_GENERATE.dat + .SHA3-256 exist + verify",
-                  (tmp / "rlmwf_10_GENERATE.dat").exists()
-                  and binio.verify_sha3_256_sidecar(tmp / "rlmwf_10_GENERATE.dat"))
-            # second instance: cache hit
-            m2 = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json"),
-                               verbosity=Verbosity.LOW, base_dir_override=tmp)
-            m2.move_to_step("GENERATE")
-            check("E9 second instance: the GENERATE cache hit (w_dense identical)",
-                  np.array_equal(m2.context.w_dense, ctx.w_dense))
-            # the version gate on the real file (post T2): rewrite header v2
-            with binio.BinaryReader(tmp / "rlmwf_10_GENERATE.dat") as r:
-                desc, version = r.read_header()
-            v2f = tmp / "v2.dat"
-            with binio.BinaryWriter(v2f) as wwr:
-                wwr.write_header(desc, 2)
-                wwr.write_string(ctx.w_checksum)
-                wwr.write_array(ctx.w_dense)
-            try:
-                rlm_generate_load_from_file(v2f, checksum=False)
-                check("E10 version-2 file -> RuntimeError 'File version mismatch' (post T2)", False,
-                      "loaded silently")
-            except RuntimeError as e:
-                check("E10 version-2 file -> RuntimeError 'File version mismatch' (post T2)",
-                      "version mismatch" in str(e).lower(), str(e))
-            # _down clearing
-            from twolm.lm_worker_generate import lm_worker_generate
-            lm_worker_generate().down(ctx)
-            check("E11 _down clears w_dense + dense_w_checksum",
-                  ctx.w_dense is None and ctx.dense_w_checksum is None)
+            # (E8 flat cache files + sidecar verify deleted at D-106
+            #  step 3, class c: test_lm_worker_generate.py pins both
+            #  files. E9 second-instance cache hit + w_dense identity
+            #  -> c: test_read_cache_on_new_instance
+            #  (nptest.assert_array_equal). E10 version-2 gate on the
+            #  real file -> c: test_load_rejects_version_mismatch.
+            #  E11 _down scope -> c:
+            #  test_down_clears_generate_attributes. The second
+            #  instance run and the v2 header rewrite were used only
+            #  by them.)
 
 
 # ----------------------------------------------------------------------
