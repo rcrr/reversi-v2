@@ -69,17 +69,11 @@ check('A11 TYPE_CHECKING guard for RLMContext (L37-38)',
       rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from twolm.logistic_model import RLMContext')
 check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == {6, 11, 16, 21})
-from twolm.rlm_zed import zed_fun_factory  # noqa: E402
-y2z_f, z2y_f = zed_fun_factory(0.02)
-v = np.array([-64, 0, 6, 64], dtype=np.int8)
-zt = y2z_f(v)
-check('A13 factory(0.02) golden: [-64,0,6,64] -> [0.02, 0.5, 0.545, 0.98] float32',
-      np.allclose(zt, np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32), rtol=1e-6, atol=1e-7),
-      str(zt))
-check('A14 factory round-trip: z2y(y2z(y)) == float32(y) (allclose 1e-6/1e-7)',
-      np.allclose(z2y_f(zt), v.astype(np.float32), rtol=1e-6, atol=1e-7))
-check('A15 factory endpoints: y2z(-64) ~= c, y2z(64) ~= 1-c (allclose)',
-      abs(float(y2z_f(np.int8(-64))) - 0.02) < 1e-6 and abs(float(y2z_f(np.int8(64))) - 0.98) < 1e-6)
+# (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
+#  at D-106 step 3, class c: test_rlm_zed.py::TestZedFunFactory pins
+#  the same — test_factory_alpha_0.02_golden (the same literal),
+#  test_round_trip, and the endpoints for TWO clippings (0.02 AND
+#  0.03, a superset of the probe's))
 
 # ---------------------------------------------------------------- B tier
 wk = lines_of('lm_worker_zed.py')
@@ -148,9 +142,6 @@ sys.path.insert(0, str(ROOT / 'src'))
 from twolm.logistic_model import LogisticModel  # noqa: E402
 from twolm.state_machine import Verbosity  # noqa: E402
 
-GOLDEN_Y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)
-GOLDEN_Z = np.array([0.5734375, 0.764375, 0.3384375, 0.6321875, 0.3825,
-                     0.6028125, 0.3384375, 0.646875, 0.5, 0.5146875], dtype=np.float32)
 CLIP = 0.03
 
 tmp = tempfile.TemporaryDirectory(dir=str(ROOT / 'build' / 'tmp'))
@@ -160,20 +151,22 @@ try:
     with contextlib.redirect_stdout(buf):
         rlm01 = LogisticModel(str(ROOT / 'src' / 'twolm' / 'test' / 'data' / 'rlm_01.json'),
                               verbosity=Verbosity.HIGH, base_dir_override=base)
+        # (D1 c? resolves to a (KEEP): the test pins only the y2z +
+        #  z pre-state; z2y / zed_checksum pre-state are probe-unique)
         check('D1  pre-state before the first ZED up: y2z/z2y/z/zed_checksum all None',
               rlm01.context.y2z is None and rlm01.context.z2y is None
               and rlm01.context.z is None and rlm01.context.zed_checksum is None)
         rlm01.move_to_step('ZED')
-    check('D2  ZED is step 7, worker name "ZED"',
-          rlm01.current_step == 7 and rlm01.current_worker_name == 'ZED')
+    # (D2 step 7 / name ZED deleted at D-106 step 3, class c:
+    #  test_lm_worker_zed.py::test_compute_zed pins it)
     y = rlm01.context.game_values
-    check('D3  game_values == golden y (10,) int8',
-          y.dtype == np.int8 and y.shape == (10,) and np.array_equal(y, GOLDEN_Y),
-          f'dtype={y.dtype} {y}')
+    # (D3 game_values == golden y deleted at D-106 step 3, class c:
+    #  the test pins expected_y verbatim. The y binding stays: D5
+    #  and D10 use it.)
     z = rlm01.context.z
-    check('D4  ctx.z == golden z (10,) float32 (literal pin)',
-          z.dtype == np.float32 and z.shape == (10,) and np.array_equal(z, GOLDEN_Z),
-          str(z))
+    # (D4 ctx.z == golden z deleted at D-106 step 3, class c: the
+    #  test pins expected_z verbatim (the same 10 floats). The z
+    #  binding stays: D5-D7 use it.)
     c = rlm01.context.cfg.stat_model.logit_clipping
     b64 = np.float32((1. - 2. * c) / 128.)
     z_ref = np.float32(0.5) + y.astype(np.float32) * b64
@@ -186,6 +179,8 @@ try:
           rlm01.context.zed_checksum == hashlib.sha3_256(z.tobytes()).hexdigest(),
           rlm01.context.zed_checksum)
     y2z, z2y = rlm01.context.y2z, rlm01.context.z2y
+    # (D8 a? resolves to a (KEEP): the test pins y2z not-None but
+    #  never the z2y pre-down wiring)
     check('D8  ctx.y2z / ctx.z2y are callables (closures from the factory)',
           callable(y2z) and callable(z2y))
     check('D9  live endpoints: y2z(-64) ~= 0.03, y2z(0) == 0.5, y2z(64) ~= 0.97',
@@ -205,9 +200,9 @@ try:
           files == expected_files, str(files))
     with contextlib.redirect_stdout(io.StringIO()):
         rlm01.move_to_step(6)
-    check('D12 _down live: back at step 6, all 4 ctx attrs None again',
-          rlm01.current_step == 6 and rlm01.context.y2z is None and rlm01.context.z2y is None
-          and rlm01.context.z is None and rlm01.context.zed_checksum is None)
+    # (D12 _down live (step 6, 4 attrs None) deleted at D-106 step
+    #  3, class c: test_down_clears_zed_attributes pins exactly this
+    #  scope — the 4 assertIsNone at L157-160)
 finally:
     tmp.cleanup()
 
