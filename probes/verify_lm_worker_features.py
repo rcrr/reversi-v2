@@ -184,18 +184,10 @@ check("B10 flat cache files: CONFIG + POSITIONS only (no rlmwf_03_FEATURES*)",
       files == ["rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
                 "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256"])
 
-# Zero-feature guard: minimal config, intercept off, no pset/mset.
-events = []
-d = json5.load(open(CFG))
-d["feature_set"] = {"intercept": False}
-cfg0 = ReversiLogisticModelConfig(**d)
-ctx0 = types.SimpleNamespace(log_event=lambda rel, msg: events.append((rel, msg)), cfg=cfg0)
-try:
-    lwf._load_features(ctx0)
-    check("B11a zero features -> ValueError", False, "no exception raised")
-except ValueError as e:
-    check("B11a zero features -> ValueError", str(e).startswith("The feature count is zero"))
-    check("B11b zero features -> ERROR logged", any(rel == Relevance.ERROR for rel, _ in events))
+# (B11a/B11b moved to a test at D-106 step 3, class a §4 conversion:
+#  test_lm_worker_features.py::TestLMWorkerFeaturesGuards::
+#  test_zero_features_raises_value_error — the zero-feature fail-fast
+#  guard, ValueError message + ERROR log event)
 
 # Down direction: FEATURES (3) -> CONFIG (1) clears the feature_set.
 m1.move_to_step("CONFIG")
@@ -220,10 +212,12 @@ check("B13c second run: identical feature set (name + hash)",
 
 tsrc = (ROOT / "src" / "twolm" / "test" / "test_lm_worker_features.py").read_text()
 
-check("C1 164 lines (post D-085: the D-065 idiom moved to twolm.test.paths; -3 idiom block, -3 blank lines, +1 import)",
-      len(tsrc.splitlines()) == 164)
-check("C2 1 class / 2 test methods (the D-082 golden content test added)",
-      "class TestLMWorkerFeatures" in tsrc and len(re.findall(r"    def test_", tsrc)) == 2)
+check("C1 206 lines (post D-106 step 3: the zero-feature guard test class added; pre: 164, post D-085)",
+      len(tsrc.splitlines()) == 206)
+check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-082 golden content test kept)",
+      "class TestLMWorkerFeatures" in tsrc
+      and "class TestLMWorkerFeaturesGuards" in tsrc
+      and len(re.findall(r"    def test_", tsrc)) == 3)
 check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared twolm.test.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
       "from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc

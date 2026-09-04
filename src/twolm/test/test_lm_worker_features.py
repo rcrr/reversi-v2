@@ -46,12 +46,17 @@
 import unittest
 import os
 import tempfile
+from types import SimpleNamespace
+
+import json5
 
 from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm.state_machine import Verbosity
+import twolm.lm_worker_features as lmwf
+from twolm.rlm_config_schemas import ReversiLogisticModelConfig
+from twolm.state_machine import Relevance, Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
@@ -158,6 +163,43 @@ class TestLMWorkerFeatures(unittest.TestCase):
                          [('INTERCEPT', 1, 1), ('ALMC', 65, 1), ('LMC', 65, 1),
                           ('DLMC', 129, 1), ('EDGE', 6561, 4), ('ELLE', 81, 8)])
         self.assertEqual(fs.n_instances, 16)
+
+
+class TestLMWorkerFeaturesGuards(unittest.TestCase):
+    """DB-free guards for lm_worker_features.
+
+    The guard fires before any data access, so the check drives
+    _load_features directly with a minimal context — no regab DB,
+    no model, no cache.
+
+    D-106 step 3 (probe_rules.md §4): converted from the
+    verify_lm_worker_features.py B11 probe."""
+
+    def setUp(self):
+        self.patcher_stdout = patch('sys.stdout', new=StringIO())
+        self.mock_stdout = self.patcher_stdout.start()
+
+    def tearDown(self):
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+
+    def test_zero_features_raises_value_error(self):
+        """A feature set with zero features (intercept off, no
+        mobility/pattern sets) is rejected with a ValueError and an
+        ERROR log event (the fail-fast guard)."""
+        payload = json5.loads(
+            (WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" /
+             "rlm_00.json").read_text())
+        payload["feature_set"] = {"intercept": False}
+        cfg0 = ReversiLogisticModelConfig(**payload)
+        events = []
+        ctx0 = SimpleNamespace(
+            log_event=lambda rel, msg: events.append((rel, msg)),
+            cfg=cfg0)
+        with self.assertRaises(ValueError) as context:
+            lmwf._load_features(ctx0)
+        self.assertIn("The feature count is zero", str(context.exception))
+        self.assertTrue(any(rel == Relevance.ERROR for rel, _ in events))
 
 
 if __name__ == '__main__':
