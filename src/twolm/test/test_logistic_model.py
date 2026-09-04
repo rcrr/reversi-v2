@@ -140,6 +140,17 @@ class TestLogisticModel(unittest.TestCase):
         with self.assertRaises(ValidationError):
             LogisticModel(123)
 
+    def test_injected_cache_closure_requires_cfg(self):
+        """The injected _for_current_level closure dereferences ctx.cfg;
+        before the CONFIG worker runs, cfg is None and the call must
+        fail with AttributeError (the injection-order fact; a bare
+        RLMContext instead keeps the no-op lambda default, D-074 R1).
+
+        Converted from the verify_lm_worker_config.py E4b probe at D-106
+        step 3 (probe_rules.md §4)."""
+        with self.assertRaises(AttributeError):
+            self.model.context.get_cache_file_path_for_current_level()
+
     def test_move_to_step_delegates_to_state_machine(self):
         """Test that moving to a step triggers the correct mock worker."""
         self.model.move_to_step(1) # Move to CONFIG

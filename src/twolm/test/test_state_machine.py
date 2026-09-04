@@ -256,16 +256,27 @@ class TestStateMachine(unittest.TestCase):
         self.up_callables[2].assert_called_once_with(self.context)
 
     def test_move_to_step_by_invalid_string(self):
-        """Test that providing an invalid string name raises ValueError."""
+        """Test that providing an invalid string name raises ValueError.
+
+        D-106 step 3 (probe_rules.md §4): pins the FULL message,
+        converted from the verify_lm_worker_config.py E2 probe (the
+        D-107 re-pin of the guard contract)."""
         with self.assertRaises(ValueError) as context:
             self.sm.move_to_step("NON_EXISTENT_WORKER")
-        
-        self.assertIn("not found in the pipeline", str(context.exception))
+
+        self.assertEqual(str(context.exception),
+                         "Worker 'NON_EXISTENT_WORKER' not found in the pipeline.")
 
     def test_move_to_step_out_of_bounds_high(self):
-        """Test that providing an index >= len(workers) raises IndexError."""
-        with self.assertRaises(IndexError):
+        """Test that providing an index >= len(workers) raises IndexError.
+
+        D-106 step 3 (probe_rules.md §4): pins the FULL message,
+        converted from the verify_lm_worker_config.py E3 probe (the
+        D-107 re-pin of the guard contract)."""
+        with self.assertRaises(IndexError) as context:
             self.sm.move_to_step(3)
+
+        self.assertEqual(str(context.exception), "Target step 3 is out of bounds.")
 
     def test_move_to_step_out_of_bounds_negative(self):
         """Test that providing a negative index raises IndexError."""

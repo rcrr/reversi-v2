@@ -10,7 +10,6 @@ import hashlib
 import inspect
 import json
 import json5
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -67,20 +66,19 @@ try:
     base1 = fresh(TMP_BASE, "run1")
     model = LogisticModel(str(CONFIG_JSON), verbosity=Verbosity.LOW,
                           base_dir_override=base1)
-    check("B1 starts at step 0 / CREATED",
-          model.current_step == 0 and model.current_worker_name == "CREATED")
-
+    # (B1/B2 deleted at D-106 step 3, class c: pinned by
+    #  test_lm_worker_config.py — setUp (step 0 / CREATED) and
+    #  test_move_up (step 1 / CONFIG))
     model.move_to_step("CONFIG")
     ctx = model.context
-    check("B2 moved to step 1 / CONFIG",
-          model.current_step == 1 and model.current_worker_name == "CONFIG")
     check("B3 ctx.cfg is a ReversiLogisticModelConfig",
           isinstance(ctx.cfg, ReversiLogisticModelConfig))
     raw = json5.loads(CONFIG_JSON.read_text())
     check("B4 cfg.name round-trips from the json",
           ctx.cfg.name == raw["name"], ctx.cfg.name)
-    check("B5 base_dir_override wins over the json base_dir",
-          ctx.cfg.base_dir == base1, str(ctx.cfg.base_dir))
+    # (B5 deleted at D-106 step 3, class c: the override is pinned by
+    #  TestLMWorkerConfigCacheLogic — the cache files are asserted in
+    #  the base_dir_override tmp dir)
     check("B6 ctx.use_cache set from the config (True)",
           ctx.use_cache is True, repr(ctx.use_cache))
 
@@ -174,114 +172,37 @@ try:
 
     # ------------------------------------------------------------------ D
     print("--- D. base_dir validation and errors ---")
-    # nonexistent base_dir (no override -> the json's relative base_dir)
-    bad = json5.loads(CONFIG_JSON.read_text())
-    bad["base_dir"] = str(TMP_BASE / "no_such_dir_xyz")
-    bad_path = TMP_BASE / "rlm_00_nodir.json"
-    bad_path.write_text(json5.dumps(bad))
-    m8 = LogisticModel(str(bad_path), verbosity=Verbosity.LOW)
-    try:
-        m8.move_to_step("CONFIG")
-        check("D1 nonexistent base_dir -> FileNotFoundError 'doesn't exist'",
-              False, "no exception")
-    except FileNotFoundError as e:
-        check("D1 nonexistent base_dir -> FileNotFoundError 'doesn't exist'",
-              "doesn't exist" in str(e), str(e))
-
-    # base_dir is a file
-    ffile = TMP_BASE / "i_am_a_file.txt"
-    ffile.write_text("x")
-    bad2 = json5.loads(CONFIG_JSON.read_text())
-    bad2["base_dir"] = str(ffile)
-    bad2_path = TMP_BASE / "rlm_00_filebase.json"
-    bad2_path.write_text(json5.dumps(bad2))
-    m9 = LogisticModel(str(bad2_path), verbosity=Verbosity.LOW)
-    try:
-        m9.move_to_step("CONFIG")
-        check("D2 file base_dir -> NotADirectoryError 'is not a directory'",
-              False, "no exception")
-    except NotADirectoryError as e:
-        check("D2 file base_dir -> NotADirectoryError 'is not a directory'",
-              "is not a directory" in str(e), str(e))
-
-    # unwritable base_dir
-    wdir = fresh(TMP_BASE, "unwritable")
-    os.chmod(wdir, 0o444)
-    try:
-        m10 = LogisticModel(str(CONFIG_JSON), verbosity=Verbosity.LOW,
-                            base_dir_override=wdir)
-        m10.move_to_step("CONFIG")
-        check("D3 unwritable base_dir -> PermissionError 'is not writable'",
-              False, "no exception")
-    except PermissionError as e:
-        check("D3 unwritable base_dir -> PermissionError 'is not writable'",
-              "is not writable" in str(e), str(e))
-    finally:
-        os.chmod(wdir, 0o755)
+    # (D1 moved to a test at D-106 step 3, class a §4 conversion:
+    #  test_lm_worker_config.py::TestLMWorkerConfigBaseDir::
+    #  test_base_dir_missing_raises_file_not_found_error)
+    # (D2 deleted at D-106 step 3, class c: pinned by test_lm_worker_
+    #  config.py::test_base_dir_is_a_file_raises_error)
+    # (D3 deleted at D-106 step 3, class c (env-dependent, non-root):
+    #  pinned by test_lm_worker_config.py::test_base_dir_is_not_
+    #  writable_raises_error)
 
     # ------------------------------------------------------------------ E
     print("--- E. gate / integration ---")
-    # a domain pydantic ValidationError must NOT become the gate TypeError
-    vbad = json5.loads(CONFIG_JSON.read_text())
-    vbad["regab_data_set"]["ec"] = 99
-    vbad_path = TMP_BASE / "rlm_00_bade.json"
-    vbad_path.write_text(json5.dumps(vbad))
-    m11 = LogisticModel(str(vbad_path), verbosity=Verbosity.LOW,
-                        base_dir_override=fresh(TMP_BASE, "run5"))
-    try:
-        m11.move_to_step("CONFIG")
-        check("E1 domain ValidationError propagates (D-076)", False,
-              "no exception")
-    except Exception as e:
-        from pydantic import ValidationError
-        check("E1 domain ValidationError propagates (D-076)",
-              type(e) is ValidationError and "ec" in str(e),
-              type(e).__name__)
+    # (E1 deleted at D-106 step 3, class c: pinned by test_lm_worker_
+    #  config.py::TestLMWorkerConfigValidation — test_invalid_ec_
+    #  out_of_range + the status / hex-mask siblings)
 
     # gate behaviour unchanged
-    # (D-106 re-pin: the E2/E3 premises are from the 2-worker era.
-    #  "POSITIONS" is a valid worker now (index 2) and step 2 is in
-    #  bounds, because the pipeline is complete at D-104 (14 factory
-    #  workers + the CREATED sentinel). Re-pin with genuinely-invalid
-    #  targets — an unknown name and an out-of-range index — so we
-    #  still exercise the state_machine guard contract (ValueError /
-    #  IndexError with the exact message). Verified live 2026-09-04:
-    #  move_to_step("NOT_A_WORKER") -> ValueError, move_to_step(99)
-    #  -> IndexError. Also: the old E2 target was now VALID, so the
-    #  old call would have performed a real move (side effect); the
-    #  re-pin is a pure validation-guard check.)
-    m12 = LogisticModel(str(CONFIG_JSON), verbosity=Verbosity.LOW,
-                        base_dir_override=fresh(TMP_BASE, "run6"))
-    try:
-        m12.move_to_step("NOT_A_WORKER")
-        check("E2 unknown worker name -> ValueError (D-106 re-pin)",
-              False, "no exception")
-    except ValueError as e:
-        check("E2 unknown worker name -> ValueError (D-106 re-pin)",
-              "Worker 'NOT_A_WORKER' not found in the pipeline." in str(e), str(e))
-    try:
-        m12.move_to_step(99)
-        check("E3 out-of-bounds index -> IndexError (D-106 re-pin)",
-              False, "no exception")
-    except IndexError as e:
-        check("E3 out-of-bounds index -> IndexError (D-106 re-pin)",
-              "Target step 99 is out of bounds." in str(e), str(e))
+    # (E2/E3 moved to tests at D-106 step 3, class a §4 conversion —
+    #  the D-107 re-pinned guard contract now lives in
+    #  test_state_machine.py::test_move_to_step_by_invalid_string /
+    #  test_move_to_step_out_of_bounds_high, which pin the FULL
+    #  messages ("Worker '<name>' not found in the pipeline." /
+    #  "Target step <n> is out of bounds."), not just the type.)
 
     # the INJECTED closure needs ctx.cfg (ordering load-bearing); a bare
     # (un-injected) RLMContext instead keeps the no-op lambda (returns None)
     bare = RLMContext(config_file_path=CONFIG_JSON)
     check("E4a bare-context no-op lambda returns None",
           bare.get_cache_file_path_for_current_level() is None)
-    m12b = LogisticModel(str(CONFIG_JSON), verbosity=Verbosity.LOW,
-                         base_dir_override=fresh(TMP_BASE, "run6b"))
-    m12b.context.cfg = None
-    try:
-        m12b.context.get_cache_file_path_for_current_level()
-        check("E4b injected closure w/o cfg -> AttributeError",
-              False, "no exception")
-    except AttributeError as e:
-        check("E4b injected closure w/o cfg -> AttributeError",
-              "cfg" in str(e) or "cache_files_prefix" in str(e), str(e))
+    # (E4b moved to a test at D-106 step 3, class a §4 conversion:
+    #  test_logistic_model.py::TestLogisticModel::
+    #  test_injected_cache_closure_requires_cfg)
 
     # use_cache is never consulted in _store_to_file (source fact)
     src = inspect.getsource(lwc._store_to_file)
@@ -308,5 +229,5 @@ try:
 finally:
     shutil.rmtree(TMP_BASE, ignore_errors=True)
 
-print(f"\n{len(mismatches)} mismatches out of 35 checks.")
+print(f"\n{len(mismatches)} mismatches.")
 sys.exit(1 if mismatches else 0)

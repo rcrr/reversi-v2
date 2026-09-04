@@ -282,6 +282,26 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
             rlm.move_to_step('CONFIG')
         self.assertIn("not writable", str(context.exception))
 
+    def test_base_dir_missing_raises_file_not_found_error(self):
+        """Test that a base_dir that doesn't exist (from the json, no
+        override) raises FileNotFoundError from the CONFIG worker.
+
+        D-106 step 3 (probe_rules.md §4): the third base_dir guard
+        branch, converted from the verify_lm_worker_config.py D1 probe.
+        The file (NotADirectoryError) and not-writable (PermissionError)
+        branches are pinned above."""
+        payload = json5.loads(
+            (WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json").read_text())
+        payload["base_dir"] = str(Path(self.tmp_dir) / "no_such_dir_xyz")
+        json_path = Path(self.tmp_dir) / "rlm_00_nodir.json"
+        with open(json_path, "w") as f:
+            json5.dump(payload, f)
+
+        rlm = LogisticModel(json_path, verbosity=Verbosity.LOW)
+        with self.assertRaises(FileNotFoundError) as context:
+            rlm.move_to_step('CONFIG')
+        self.assertIn("doesn't exist", str(context.exception))
+
 
 class TestLMWorkerConfigCacheLogic(unittest.TestCase):
     """Tests the specific cache/sentinel behaviors of the CONFIG worker."""
