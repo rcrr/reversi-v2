@@ -128,7 +128,6 @@ from twolm import binio, rlm_indexes
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
 from twolm.pattern import Pattern, PatternSet
-from pydantic import ValidationError
 
 
 def u(h):
@@ -148,9 +147,11 @@ my_fs = FeatureSet("NoNameFeatureSet", Feature.new_intercept(), my_mset, my_pset
 
 idx = np.arange(32, dtype=np.uint32).reshape(2, 16)
 obj = rlm_indexes.ReversiLogisticModelIndexes("RDSHASH", my_fs.hash, idx)
-check("B1 init: attribute identity (rds_checksum, feature_set_hash, the exact IndexArray)",
-      obj.rds_checksum == "RDSHASH" and obj.feature_set_hash == my_fs.hash
-      and obj.indexes is idx)
+# (B1 init attribute identity (c? resolves to c) deleted at D-106
+#  step 3, class c: test_rlm_indexes.py::TestReversiLogisticModelIndexes
+#  ::test_init_success pins all three — the two equalities +
+#  assertIs(obj.indexes, DUMMY_INDEXES). The obj binding stays:
+#  B2/B3 use it.)
 check("B2 data checksum: sha3_256 over indexes.tobytes() (independent recompute)",
       obj.compute_sha3_256_hash() == hashlib.sha3_256(idx.tobytes()).hexdigest())
 
@@ -203,18 +204,11 @@ try:
 except RuntimeError as e:
     check("B8 wrong version -> RuntimeError", "version is not consistent" in str(e))
 
-ok_ctx = types.SimpleNamespace(
-    rds_checksum="identical_hash",
-    feature_set=types.SimpleNamespace(hash="identical_hash"))
-check("B9 is_cache_consistent: True when both fields match",
-      rlm_indexes.rlm_indexes_is_cache_consistent(ok_ctx,
-          rlm_indexes.ReversiLogisticModelIndexes("identical_hash", "identical_hash", idx)) is True)
-check("B10 is_cache_consistent: False when only the feature_set_hash differs",
-      rlm_indexes.rlm_indexes_is_cache_consistent(ok_ctx,
-          rlm_indexes.ReversiLogisticModelIndexes("identical_hash", "outdated", idx)) is False)
-check("B11 is_cache_consistent: False when only the rds_checksum differs (the unit-test coverage gap)",
-      rlm_indexes.rlm_indexes_is_cache_consistent(ok_ctx,
-          rlm_indexes.ReversiLogisticModelIndexes("outdated", "identical_hash", idx)) is False)
+# (B9/B10/B11 is_cache_consistent True/False branches deleted at
+#  D-106 step 3, class c: test_rlm_indexes.py pins all three —
+#  test_is_cache_consistent_returns_true / _returns_false /
+#  _returns_false_rds_differs. The ok_ctx scaffolding was used only
+#  by them.)
 
 # compute: a REAL FeatureSet (fixture constants) + a fabricated 2-position array.
 positions2 = np.array([[0x0280820280828002, 0x0041414141414100],
@@ -228,11 +222,10 @@ check("B12 compute: (2, 16) uint32 matrix identical to FeatureSet.compute_indexe
 check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.hash)",
       res.rds_checksum == "RDSFAKE" and res.feature_set_hash == my_fs.hash)
 
-try:
-    rlm_indexes.ReversiLogisticModelIndexes(rds_checksum="a", feature_set_hash=12345, indexes=idx)
-    check("B14 init rejects a non-str hash (pydantic ValidationError)", False, "no exception")
-except ValidationError:
-    check("B14 init rejects a non-str hash (pydantic ValidationError)", True)
+# (B14 init rejects a non-str hash (c? resolves to c) deleted at
+#  D-106 step 3, class c: test_rlm_indexes.py::
+#  test_init_fails_with_invalid_hash_type is exactly this case
+#  (feature_set_hash=12345 -> ValidationError))
 
 #
 # C — pipeline integration (live regab DB required).
@@ -249,8 +242,9 @@ with contextlib.redirect_stdout(out1):
     m1.move_to_step("INDEXES")
 s1 = out1.getvalue()
 
-check("C1 step 4 / 'INDEXES' after the move",
-      m1.current_step == 4 and m1.current_worker_name == "INDEXES")
+# (C1 step 4 / 'INDEXES' deleted at D-106 step 3, class c:
+#  test_lm_worker_indexes.py pins step 4 / name INDEXES in three
+#  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
 check("C2 flat cache files: CONFIG + POSITIONS + INDEXES (no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
       files == ["rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
@@ -276,10 +270,10 @@ with contextlib.redirect_stdout(out2):
     m2.move_to_step("INDEXES")
 s2 = out2.getvalue()
 ri2 = m2.context.rlm_indexes
-check("C6a second run: INDEXES cache hit ('Cache successfully loaded and validated')",
-      "Cache successfully loaded and validated" in s2)
-check("C6b second run: no 'Executing heavy computation' (nothing recomputed)",
-      "Executing heavy computation" not in s2)
+# (C6a/C6b second-run cache-hit log pins deleted at D-106 step 3,
+#  class c: test_read_cache_on_new_instance pins the same two log
+#  facts — assertIn 'Cache successfully loaded and validated' +
+#  assertNotIn 'Executing heavy computation')
 check("C6c second run: identical rlm_indexes (checksum + indexes)",
       m2.context.rlm_indexes_checksum == m1.context.rlm_indexes_checksum
       and np.array_equal(ri2.indexes, ri.indexes))
