@@ -46,7 +46,7 @@ from twolm.mobility import (Mobility, MobilitySet)
 
 import numpy as np
 
-from pydantic import validate_call, ConfigDict, BeforeValidator
+from pydantic import validate_call, ConfigDict
 
 
 
