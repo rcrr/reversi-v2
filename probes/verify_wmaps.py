@@ -192,38 +192,13 @@ check("D12 defensive tearDown in both classes (getattr guards, no shutil)",
 #    The literals are extracted from the test source (single source of
 #    truth); the pipeline output is compared against them.
 # ----------------------------------------------------------------------
-import ast
 import json5
 import tempfile
 
-T2SRC = read("src/twolm/test/test_lm_worker_wmaps.py")
-
-
-def extract_test_array(name):
-    """Extract the value of '<name> = np.array(...)' from the test source."""
-    anchor = f"{name} = np.array("
-    i = T2SRC.index(anchor) + len(anchor)
-    depth = 1
-    j = i
-    while depth:
-        if T2SRC[j] == "(":
-            depth += 1
-        elif T2SRC[j] == ")":
-            depth -= 1
-        j += 1
-    body = re.sub(r"\s+", " ", T2SRC[i:j - 1].rstrip())
-    body = re.sub(r",\s*dtype=\S+$", "", body)
-    return ast.literal_eval(body)
-
-
-expected_fwr = np.array(extract_test_array("expected_fwr"), dtype=np.int64)
-expected_iwfo = np.array(extract_test_array("expected_iwmap_fo"), dtype=np.uint32)
-expected_iwmap = np.array(extract_test_array("expected_iwmap"), dtype=np.int64)
-expected_wmap = np.array(extract_test_array("expected_wmap"), dtype=np.int64)
-expected_wf = np.array(extract_test_array("expected_wmap_fallback"), dtype=np.int64)
-
-check("E0 extraction sanity: the pinned iwmap literal has 174 entries",
-      len(expected_iwmap) == 174, f"{len(expected_iwmap)}")
+# (E0 + the test-source extraction machinery deleted at D-106
+#  step 3, class c: the five expected_* literals are pinned verbatim
+#  by test_lm_worker_wmaps.py::test_compute_wmaps_exact_values, so
+#  extracting them and comparing was tautological.)
 
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
@@ -236,35 +211,15 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     rlm_lm.move_to_step("WMAPS")
     ctx = rlm_lm.context
 
-    # E1 — feature_w_ranges
-    check("E1 feature_w_ranges == the pinned (4,3) literal",
-          ctx.feature_w_ranges.shape == (4, 3)
-          and np.array_equal(ctx.feature_w_ranges, expected_fwr))
-    # E2 — iwmap_feature_offset
-    check("E2 iwmap_feature_offset == the pinned [0,1,66,93,174] uint32",
-          np.array_equal(ctx.iwmap_feature_offset, expected_iwfo))
-    # E3 — iwmap
-    check("E3 iwmap has 174 entries and equals the pinned literal",
-          ctx.iwmap.shape == (174,) and np.array_equal(ctx.iwmap, expected_iwmap))
-    # E4 — wmap
-    check("E4 wmap is (21,3) and equals the pinned literal",
-          ctx.wmap.shape == (21, 3) and np.array_equal(ctx.wmap, expected_wmap))
-    # E5 — wmap_fallback
-    check("E5 wmap_fallback is (10,3) and equals the pinned literal",
-          ctx.wmap_fallback.shape == (10, 3) and np.array_equal(ctx.wmap_fallback, expected_wf))
-    # E6 — w
-    check("E6 w is 21 float32 zeros",
-          ctx.w.shape == (21,) and ctx.w.dtype == np.float32 and np.all(ctx.w == 0))
-    # E7 — the fallback freqs in wmap are the sums of the wmap_fallback rows
-    ok = True
-    for row in expected_wmap[expected_wmap[:, 1] == -1]:
-        fid = row[0]
-        s = expected_wf[expected_wf[:, 0] == fid, 2].sum()
-        ok = ok and row[2] == s
-    check("E7 each wmap fallback row's freq == sum of its wmap_fallback rows", ok)
-    # E8 — no -1-sentinel rows in wmap_fallback (rlm_01 pindexes is dense — the R1 contract)
-    check("E8 wmap_fallback carries no -1 config ids (the R1 dense contract holds for the fixture)",
-          (expected_wf[:, 1] >= 0).all())
+    # (E1-E6 deleted at D-106 step 3, class c: feature_w_ranges,
+    #  iwmap_feature_offset, iwmap, wmap, wmap_fallback, w are all
+    #  pinned verbatim (full literal, shape + dtype) by
+    #  test_lm_worker_wmaps.py::test_compute_wmaps_exact_values —
+    #  the probe's comparisons against its own extracted literals
+    #  were tautological.)
+    # (E7/E8 deleted at D-106 step 3, class c: both operate on the
+    #  pinned literals, which the test pins verbatim — the fallback
+    #  freq sums and the no-(-1)-sentinel property are implied.)
     # E9 — the w index ranges per feature are contiguous
     ok = True
     for fid in range(len(ctx.feature_w_ranges)):
