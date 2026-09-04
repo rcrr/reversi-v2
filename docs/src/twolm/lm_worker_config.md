@@ -1,167 +1,113 @@
 # twolm/lm_worker_config.py
+The CONFIG worker of the RLM pipeline — the second level, the first
+non-sentinel. It loads the RLM JSON5 config file, validates it into
+the rlm_config_schemas domain model, stores a checksummed copy in
+the per-worker cache slot, and publishes the model (and the
+`use_cache` flag) on the context for the workers that follow.
+> State: D-078 · d6a850e · 2026-08-30 · suite 15/0/0
 
-Analysis date: 2026-07-22 — analysis session 21 (D-077); fix
-campaign D-078 applied 2026-08-30 (session 21).
+## API
 
-The CONFIG worker of the RLM pipeline. It loads the RLM JSON5 config
-file, validates it into a pydantic model, stores a checksummed copy in
-the per-worker cache slot, and exposes the resulting model (and the
-`use_cache` flag) on the context for the workers that follow. D-076
-enabled it in the pipeline (the first non-SENTINEL level) and fixed
-its cache naming; D-078 applied Roberto's calls on the analysis
-(R2 machine-level prefix fix, R3 precise exception types, M1-M5,
-T1-T4; R1 deferred to the full-pipeline review, I-011).
-
-## Suite status (session 21, post D-078)
-
-- `test_lm_worker_config`: 14/0/0 (Roberto's file; D-076 fixed 2 path
-  typos + completed the validation payload; D-078 applied the T1-T4
-  campaign)
-- Full discover: 496 tests, 52 skipped under `SKIP_REGAB_DB=1`, GREEN
-
-## State per Roberto
-
-Pipeline-in-progress: CONFIG is the second active level (SENTINEL →
-CONFIG). D-078 ruling on the cache flow (R1): **leave it as-is** —
-the cache_manager-style load-or-compute does not fit a JSON file, the
-CONFIG step may not need a cache at all, and the whole question is
-revisited **when the full pipeline is complete** (the
-"storicizzazione" idea — a historical copy of the config that
-generated a model — is recorded at I-011).
+| name | contract |
+|---|---|
+| `lm_worker_config()` | the only `__all__` name; `@validate_call` factory returning `Worker("CONFIG", _up, _down)` |
+| `_up` / `_down` | the worker callables (module-level privates, 6 with `_load`, `_validate`, `_validate_base_dir`, `_store_to_file`) |
 
 ## Architecture
 
-- `lm_worker_config() -> Worker` (L150-153): factory returning
-  `Worker("CONFIG", _up, _down)`; D-078 M4: now
-  `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`.
-- `_up` (L51-63): log → `_load` → `_validate` → INFO
-  name/description/base_dir → `ctx.use_cache = cfg.use_cache` →
-  `ctx.cfg = cfg` → `_store_to_file` → "stored to cache file." log
-  (D-078 M2: now AFTER the store).
-- `_down` (L65-68): "Clearing configuration..." (ERROR) →
+- `_up`: log → `_load` → `_validate` → INFO (name/description/
+  base_dir) → `ctx.use_cache = cfg.use_cache` → `ctx.cfg = cfg` →
+  `_store_to_file` → the "stored to cache file." log (AFTER the
+  store).
+- `_down`: the ERROR "Clearing configuration..." →
   `ctx.cfg = None`, `ctx.use_cache = None`.
-- `_load` (L70-80): `json5.load` (UTF-8), DEBUG log of the config
-  path (D-078 M1: was the file object repr), optional
-  `ctx.base_dir_override` applied to the raw dict before
-  `ReversiLogisticModelConfig(**raw)`.
-- `_validate` (L82-83): only calls `_validate_base_dir`.
-- `_validate_base_dir` (L85-98): three gates, D-078 R3 precise OS
-  types: `FileNotFoundError` ("doesn't exist"), `NotADirectoryError`
-  ("is not a directory"), `PermissionError` ("is not writable");
-  each logged at ERROR before the raise; messages unchanged.
-- `_store_to_file` (L100-147): the cache write/verify logic (below).
+- `_load`: `json5.load` (UTF-8) of `ctx.config_file_path` with the
+  DEBUG log of the path; an optional `ctx.base_dir_override` is
+  applied to the raw dict before `ReversiLogisticModelConfig(**raw)`.
+- `_validate` → `_validate_base_dir`: three gates with the precise
+  OS exception types, each logged at ERROR before the raise —
+  `FileNotFoundError` (doesn't exist), `NotADirectoryError`
+  (is not a directory), `PermissionError` (is not writable).
+- `_store_to_file`: a self-contained load-or-store (kept ad-hoc,
+  the D-078 R1 ruling — see Open issues). The path comes from the
+  injected machine closure (the naming authority, D-078): the
+  physical file is FLAT, `base_dir/rlmwf_01_CONFIG.dat`. First run
+  writes the `.dat` (`cfg.model_dump_json(indent=4)`) + the
+  `.SHA3-256` sidecar (bare hex digest of the `.dat`). Repeat run:
+  the sidecar must exist (else RuntimeError "is missing"); the
+  on-disk digest is recomputed in 8192-byte chunks and compared
+  (else "not matching"); identical → no-op, different → rewrite.
+  It never consults `ctx.use_cache` — caching is unconditional.
 
-## Cache flow (verified, D-078 state)
+## Verified invariants
 
-`_store_to_file` is a self-contained load-or-store implementation
-(kept ad-hoc per the D-078 R1 ruling):
+Pinned by `probes/verify_lm_worker_config.py` (25 checks) +
+`test_lm_worker_config.py` (15 tests, 4 classes).
 
-- `cache_file_path = ctx.get_cache_file_full_path_for_current_level()`
-  — the injected machine closure, which does the naming:
-  `Path(f"{cache_files_prefix}{level:02}_{name}.dat")` (filename-
-  prefix concatenation, D-078 — the machine-level R2 fix), under
-  `cfg.base_dir`. The physical file is flat:
-  `base_dir/rlmwf_01_CONFIG.dat` (probe B7-B9).
-- Sidecar `<dat>.SHA3-256` containing the bare hex digest (no binio
-  basename column) of `cfg.model_dump_json(indent=4)` (B10-B12).
-- First run: dat missing → write both. Repeat run: dat present →
-  sidecar must exist ("is missing" → RuntimeError), on-disk digest
-  recomputed in 8192-byte chunks and compared to the stored one
-  ("not matching" → RuntimeError), then current-vs-stored: identical
-  → no-op (C1-C2), different → rewrite (C4).
-- `ctx.use_cache` is never consulted by this function (E5): caching
-  is unconditional.
+- Source shape: the `__all__` name, the factory name "CONFIG", the
+  module callables, the 6 privates — probe section A.
+- The loaded state: `ctx.cfg` a ReversiLogisticModelConfig, name
+  round-trip, `use_cache` True from the config — probe B3/B4/B6.
+- The cache files: the flat `base_dir/rlmwf_01_CONFIG.dat` + the
+  `.SHA3-256` sidecar, no `rlmwf_` subdirectory, the `.dat`
+  content == `model_dump_json(indent=4)`, the sidecar == bare hex
+  `sha3_256` of the dump, NOT binio format, and binio can still
+  READ the bare-hex sidecar — probe B7-B13.
+- The repeat-run behaviour: the identical second run leaves mtime
+  and content untouched, the `_down` reset, the changed-config
+  rewrite — probe C1-C4.
+- The failure behaviour: the corrupted `.dat` → RuntimeError
+  "not matching", the missing sidecar → "is missing", the
+  binio-format sidecar makes the worker verify FAIL (the
+  asymmetry) — probe C5-C7.
+- The integration: the bare (un-injected) context keeps the no-op
+  closure lambda, `use_cache` is absent from the `_store_to_file`
+  source, `rlm_00.json` is NOT plain JSON (json5 load-bearing),
+  the down log line — probe E4a/E5/E6/E7.
+- The moves: up (config loaded, `ctx.cfg` set), down (the reset
+  pins), the with-cache no-op, the property round-trips —
+  `TestLMWorkerConfig`.
+- The validation: invalid json5 → `ValueError` (json5 0.15.0
+  raises a plain ValueError), ec out of range / invalid status /
+  invalid hex mask → pydantic ValidationError, one constraint per
+  test (the payload is schema-complete) —
+  `TestLMWorkerConfigValidation`.
+- The base_dir gates: the a-file → `NotADirectoryError`, the
+  not-writable → `PermissionError` "not writable", the missing →
+  `FileNotFoundError` — `TestLMWorkerConfigBaseDir`.
+- The cache logic: first-run files at the flat names with the
+  bare-hex sidecar, the skip-identical second run, the
+  update-on-change, the corruption RuntimeError —
+  `TestLMWorkerConfigCacheLogic`.
 
-## Issues — disposed (D-078)
+## Open issues
 
-- **R1 — RESOLVED AS DEFERRED.** The ad-hoc cache flow (hashlib +
-  manual 8192-chunk verify + bare-hex sidecar) stays. The
-  cache_manager/binio standard (D-072) is revisited only when the
-  full pipeline is complete. Verified asymmetry on record (probe):
-  binio's verifier CAN read the worker's bare-hex sidecar (first
-  token), the worker's full-content compare CANNOT read a binio-
-  format sidecar (C7). Corruption RAISES here (pinned) vs
-  cache_manager's delete + recompute. `use_cache` is copied to the
-  context (B6) but never consumed in this module. Roberto's
-  "storicizzazione" idea → I-011.
-- **R2 — RESOLVED AT MACHINE LEVEL.** The prefix semantics clash
-  (SM closure pathlib join vs the schema's "Filename prefix") lived
-  in the ONE shared injected closure, so it would have recurred in
-  every cache-consuming worker — fixed once in
-  `state_machine._get_cache_file_path` (D-078: verbatim
-  filename-prefix concatenation; replaces the D-069 M8 join). This
-  worker's D-076 per-worker concatenation was replaced by a direct
-  use of the injected full-path closure (uniform with
-  lm_worker_positions). The latent `rlmwf_/02_POSITIONS.dat`
-  subdirectory + no-mkdir trap for lm_worker_positions is thereby
-  gone before that worker is enabled.
-- **R3 — FIXED.** `_validate_base_dir` now raises the precise OS
-  types (FileNotFoundError / NotADirectoryError / PermissionError)
-  as in the logistic_model helpers; messages unchanged; the
-  not-writable test updated to `PermissionError`.
+- **R1 (deferred, D-078 ruling)** — the ad-hoc cache flow
+  (hashlib + the manual 8192-chunk verify + the bare-hex sidecar)
+  stays: the cache_manager-style load-or-compute does not fit a
+  JSON file, and the CONFIG step may not need a cache at all.
+  Revisited when the full pipeline is complete; the
+  "storicizzazione" idea (a historical copy of the config that
+  generated a model) is recorded at I-011.
 
-## Minor notes — disposed (D-078)
+## Conventions
 
-- M1 (was L71): FIXED — the DEBUG log prints
-  `ctx.config_file_path`, not the file object repr.
-- M2 (was L60): FIXED — "stored to cache file." logged after
-  `_store_to_file`.
-- M3 (was L91/L96): FIXED — trailing whitespace removed.
-- M4 (was L151): FIXED — `@validate_call` on the public factory
-  (house convention D-068 M11).
-- M5 (L32): CLOSED AS KEEP — `import hashlib` stays, per the R1
-  ruling (the ad-hoc flow is kept).
+- The injected machine closures are the naming authority
+  (D-078) — the worker does no path arithmetic of its own.
+- `json5` is a declared dependency (added for this worker,
+  D-076) — the config fixture `rlm_00.json` is JSON5 with
+  comments.
+- The test artifacts follow the D-065 idiom (`build/tmp`,
+  `CUSTOM_TMP_BASE` from `twolm.test.paths`).
+- `@validate_call` on the public factory (house convention
+  D-069, applied D-078 M4).
 
-## Test notes (test_lm_worker_config.py, D-078)
+## Integration
 
-- T1 FIXED: the D-065 idiom on all 4 classes (`CUSTOM_TMP_BASE =
-  Path(__file__).resolve().parents[3] / "build" / "tmp"` +
-  setUpClass mkdir + `tempfile.TemporaryDirectory(dir=...)` FIRST in
-  setUp + defensive tearDown); the dead `shutil` import removed; a
-  stray per-test `tempfile.mkdtemp(dir='./build/tmp')` inside
-  `test_base_dir_is_a_file_raises_error` removed — it leaked a tmp
-  dir on every run (found via build/tmp leftovers).
-- T2 FIXED: the bare-`Exception` pin replaced with `ValueError` —
-  note: json5 0.15.0 raises a plain `ValueError` on a syntax error;
-  this version of the module has NO `JSON5Exception` attribute, so
-  the originally proposed `json5.JSON5Exception` pin was not usable.
-- T3 FIXED: the `_down` reset pinned in `test_move_down`
-  (`context.cfg is None` / `context.use_cache is None`).
-- T4 FIXED: the bare-hex sidecar format pinned in
-  `test_cache_files_created_on_first_run` (content ==
-  `sha3_256(.dat bytes).hexdigest()`, no basename column).
-- T5/T6 report-only, unchanged (header grammar; mtime coarseness in
-  the skip-identical test — the content assertion already pins it).
-
-## Integration notes
-
-- D-074 R1: `ctx.cfg` must be set before any injected
-  `get_cache_file_*_for_current_level` closure is called — the
-  closures read `getattr(self.context, 'cfg')` and raise
-  `AttributeError` without it (E4a/E4b). The pipeline ordering
-  (CONFIG before the cache-consuming workers) is load-bearing.
-- D-076: the SM gate split means pydantic ValidationErrors raised
-  here (invalid config data) propagate as domain errors to the
-  orchestrator instead of being mis-converted to the gate's
-  `TypeError` (E1; D-060). (The base_dir gates now raise the
-  precise OS types, D-078 R3 — also domain errors, propagated.)
-- `use_cache` is copied from the config onto the context (B6) but
-  never consumed in this module — it is the intended switch for the
-  later cache-consuming workers (R1 / I-011 scope).
-- `rlm_config_schemas.py` is the config domain: field-by-field
-  analysis deferred to its own round (Roberto's order: positions +
-  schemas after this one).
-
-## Appendix — line reference
-
-153 lines, as of the D-078 commit.
-
-- L28-41: imports (json5 L31, hashlib L32, pydantic L37)
-- L47: `__all__`
-- L51-63: `_up` (M2 store-then-log)
-- L65-68: `_down`
-- L70-80: `_load` (M1 path log)
-- L82-83: `_validate`
-- L85-98: `_validate_base_dir` (R3 precise OS types)
-- L100-147: `_store_to_file` (full-path closure L108)
-- L150-153: `lm_worker_config()` (M4 `@validate_call`)
+- The CONFIG level of the RLM pipeline: the facade
+  (`logistic_model.py`) instantiates `Worker` and the machine;
+  this module provides the level's `_up`/`_down`.
+- Consumes `rlm_config_schemas` (the domain) and
+  `state_machine.Worker`; publishes `ctx.cfg` / `ctx.use_cache`
+  that every later cache-consuming worker reads.
+- Test fixture: `src/twolm/test/data/rlm_00.json` (JSON5).

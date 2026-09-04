@@ -1,66 +1,56 @@
 # twolm/test/test_lm_worker_config.py
+The test module of the CONFIG worker (Roberto's file, brought in
+with the D-076 pipeline enablement; the D-078 T1-T4 campaign
+re-anchored it, and step 3 of D-106 moved probe check D1 into it).
+4 classes / 15 tests / no PERF gates.
+> State: D-106 · 73a72d3 · 2026-09-04 · suite 15/0/0
 
-Analysis date: 2026-07-22 — analysis session 21.
+## Coverage
 
-Roberto's new test file (session 21), brought in with the D-076
-pipeline enablement. 4 classes / 14 tests / no PERF:
+| class | what it pins |
+|---|---|
+| `TestLMWorkerConfig` (4) | the moves: up (step 1, name `CONFIG`, `ctx.cfg` set, `use_cache` True), down (back to step 0 `CREATED` + the `cfg`/`use_cache` reset), the with-cache round-trip CONFIG → CREATED → CONFIG, and the `properties` bag round-trip from the fixture |
+| `TestLMWorkerConfigValidation` (4) | one constraint per test over a schema-complete payload: invalid json5 → `ValueError` (json5 0.15.0 raises a plain ValueError — this version exposes no JSON5Exception), ec 99 → ValidationError, invalid status list → ValidationError, invalid hex mask → ValidationError |
+| `TestLMWorkerConfigBaseDir` (3) | the three `_validate_base_dir` gates with the precise OS types (D-078 R3): the a-file → `NotADirectoryError` (raised in the FACADE `__init__`, not the worker), the not-writable (chmod 0o444, chmod-back in tearDown) → `PermissionError`, the missing → `FileNotFoundError` (the D1 test: the fixture loaded with json5, `base_dir` pointed at a non-existent dir, re-dumped to a temp json, passed WITHOUT an override) |
+| `TestLMWorkerConfigCacheLogic` (4) | first-run files at the FLAT `rlmwf_01_CONFIG.dat` + `.SHA3-256` (the D-076/D-078 naming), the skip-identical second run, the update-on-change, the corruption → RuntimeError "not matching" |
 
-- `TestLMWorkerConfig` — move_up (config loads, ctx.cfg set,
-  use_cache True), move_down (step/name + the D-078 T3 reset pins),
-  with_cache (repeated up is a no-op), property checks (name /
-  description / base_dir round-trips).
-- `TestLMWorkerConfigBaseDir` — a-file base_dir → NotADirectoryError
-  at construction (the facade's `__init__` check, not the worker);
-  not-writable (chmod 0o444 + chmod-back in tearDown) →
-  PermissionError "not writable" (D-078 R3: was RuntimeError).
-- `TestLMWorkerConfigValidation` — invalid json5 (D-078 T2:
-  `ValueError` — json5 0.15.0 raises a plain ValueError, this
-  version has no JSON5Exception), ec out of range (99), invalid
-  status list, invalid hex mask — each a pydantic ValidationError.
-  The payload is schema-complete (D-076 fix: output / stat_model /
-  optimization.checkpoint_file / validation_data_set added) so each
-  test pins the ONE constraint under test.
-- `TestLMWorkerConfigCacheLogic` — first-run files at the FLAT
-  `rlmwf_01_CONFIG.dat` + `.SHA3-256` (the D-076/D-078 naming; the
-  D-078 T4 pin: bare-hex sidecar == sha3_256 of the .dat),
-  update-on-change, skip-identical second run, corruption →
-  RuntimeError "not matching".
+## Goldens pinned
 
-## D-076 fixes (applied, with Roberto's knowledge)
+- The sidecar format: `checksum_file.read_text().strip()` ==
+  `hashlib.sha3_256(cache_file.read_bytes()).hexdigest()` — bare
+  hex, no binio basename column (protects the D-076/D-078 naming
+  + the ad-hoc cache flow; the C7 probe asymmetry is the other
+  side — a binio-format sidecar FAILS the worker's verify).
+- The flat path: `base_dir/rlmwf_01_CONFIG.dat` (no `rlmwf_`
+  subdirectory) — the filename-prefix concatenation semantics.
+- The invalid-case payloads (one constraint each over the
+  schema-complete payload — `ec=10`, `status ["CMS"]`, the
+  `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern):
+  `ec=99`, `status=["INVALID"]`, `mask="ZZZZZZZZZZZZZZZZ"`.
+- The skip-identical second run pins BOTH the mtime equality and
+  the checksum content equality (the no-rewrite behaviour).
+- The gate messages: "not a directory", "not writable",
+  "doesn't exist" (assertIn on the exception text, lower-case
+  where noted).
+- The properties-bag values from `rlm_00.json`: `number == 7`,
+  `string == 'A string'`, `is_on is False`, missing key →
+  `None` (the D-080 `RLMBaseConfig.properties` extension bag,
+  exercised end-to-end through the worker).
+- The `ValueError` type for the invalid-json5 case — pins the
+  json5 0.15.0 behaviour (upgrading json5 must re-check this
+  golden).
 
-- `py/twolm/test/data/rlm_00.json` → `src/twolm/test/data/rlm_00.json`
-  x2 (the original-repo layout prefix).
-- Validation payload completed as above.
+## Conventions
 
-## D-078 fix campaign (Roberto: "T1-T6: OK")
+- The D-065 idiom on all 4 classes: the shared `CUSTOM_TMP_BASE`
+  (from `twolm.test.paths`) + `setUpClass` mkdir +
+  `TemporaryDirectory(dir=...)` created FIRST in setUp +
+  defensive tearDown.
+- The json_config paths are `WORKSPACE_ROOT`-anchored (D-085),
+  never CWD-relative.
 
-- T1 FIXED (re-anchored D-085) — the D-065 idiom on all 4 classes:
-  the shared `CUSTOM_TMP_BASE` (imported from twolm.test.paths
-  since D-085; originally the module-level `Path(__file__).
-  resolve().parents[3] / "build" / "tmp"` derivation) +
-  `setUpClass` mkdir + `tempfile.TemporaryDirectory(dir=...)`
-  created FIRST in setUp (a mid-setup failure still leaves a
-  cleanable temp dir) + defensive tearDown (stops only the
-  patchers / cleanups that exist). The dead `shutil` import
-  removed. A stray per-test `tempfile.mkdtemp(dir='./build/tmp')`
-  inside `test_base_dir_is_a_file_raises_error` (Roberto's
-  original line) removed — it leaked a tmp dir on every run;
-  caught via build/tmp leftovers after the campaign run. D-085:
-  the two `json_config` lines are anchored to the same
-  `WORKSPACE_ROOT` (were CWD-relative).
-- T2 FIXED — `test_invalid_json_syntax` pinned `ValueError` instead
-  of bare `Exception` (the actual json5 0.15.0 exception for a
-  syntax error; this version of the module exposes no
-  `JSON5Exception` attribute — the D-077 proposal was adjusted).
-- T3 FIXED — `test_move_down` now pins the `_down` reset:
-  `context.cfg is None` and `context.use_cache is None`.
-- T4 FIXED — `test_cache_files_created_on_first_run` now pins the
-  sidecar format: `checksum_file.read_text().strip()` ==
-  `hashlib.sha3_256(cache_file.read_bytes()).hexdigest()` (bare hex,
-  no binio basename column).
-- T5/T6 unchanged (report-only: header grammar; mtime coarseness —
-  the content assertion already pins the no-rewrite behaviour).
-- R3 side effect: `test_base_dir_is_not_writable_raises_error` now
-  expects `PermissionError` (was `RuntimeError`), message pin kept.
+## Integration
 
-Suite: 14/0/0 GREEN (D-076 commit 6ac9d74; D-078 commit d6a850e).
+- Exercises `lm_worker_config.py` through the real StateMachine
+  (the CONFIG level of the RLM pipeline) with the
+  `rlm_00.json` fixture.

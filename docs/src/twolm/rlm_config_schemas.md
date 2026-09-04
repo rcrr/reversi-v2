@@ -1,152 +1,115 @@
 # twolm/rlm_config_schemas.py
+The pydantic config DOMAIN of the RLM pipeline: one public entry,
+`ReversiLogisticModelConfig`, over a tree of nested configs — the
+JSON5 document that lm_worker_config loads and validates. Every
+nested config extends `RLMBaseConfig`, whose `properties:
+dict[str, Any]` bag (default `{}`) is a free-form extension point.
+> State: D-080 · cfb55fa · 2026-08-31 · suite 13/0/0
 
-Analysis date: 2026-08-30 — analysis session 22 (D-079). Fix
-campaign D-080 applied 2026-08-30 (session 22, Roberto:
-"correggile tutte").
+## API
 
-The pydantic config DOMAIN of the RLM pipeline. One public entry
-point, `ReversiLogisticModelConfig` (L188-207) — the JSON5 file
-that lm_worker_config loads and validates (D-077) — over a small
-tree of nested configs. Every nested config extends
-`RLMBaseConfig`, whose `properties: dict[str, Any]` (default `{}`)
-is a free-form extension bag (D-080 M3: `StatModelConfig`
-included — it previously extended `BaseModel` directly and
-lacked it).
+| name | role |
+|---|---|
+| `ReversiLogisticModelConfig` | the only `__all__` name — the top-level config |
+| `RLMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
+| `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
+| `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
+| `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator |
+| `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (default `model_analytics_report.txt`) |
+| `RegabDBConnectionConfig` | `dbname`/`user`/`host` required, `port=5432`, `password=None` |
+| `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
+| `PatternConfig` | `name` + `mask: Bitboard` (hex-string in, 16-hex out) |
+| `PatternSetConfig` | `name` + `patterns: List[PatternConfig]` (default empty) |
+| `MobilityFeatureConfig` | `name` + `mask` + `amask`, both Bitboard |
+| `MobilitySetConfig` | `name` + `mobility_features` (default empty) |
+| `FeatureSetConfig` | `name='NoNameFeatureSet'`, `intercept=False`, optional `mobility_set`/`pattern_set` |
+| `StatModelConfig` | `frequency_cut_off` (PositiveInt=1), `logit_clipping` (0.05, 0<x<0.5), `ridge_regularization` (0.0, ge=0) |
 
-## Suite status (session 22, D-079)
+## Architecture
 
-- No dedicated suite: covered by test_lm_worker_config's
-  validation class (14/0/0) + the D-079 probe E section
-  (re-pinned D-080 — 17 behaviour checks, independently
-  re-derived, 0 mismatches).
+- **The bitboard mask pair** — `PatternConfig.mask` and
+  `MobilityFeatureConfig.mask`/`amask` are `Bitboard` (from
+  board.py) behind a `mode="before"` `field_validator`
+  (`bitboard_from_hex_str`) and a `field_serializer`
+  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix
+  (case-insensitive); out, uppercase 16-hex. The docstrings and
+  the field descriptions say exactly that (the D-080 M1 fix
+  removed the contradictory 0x-prefixed examples);
+  `model_config` is `arbitrary_types_allowed`.
+- **The strong-Wolfe invariant** — `OptimizationConfig` carries
+  the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
+  `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`,
+  `min_p_fun_decrease=(1e-14, 7)`, `log_every_n`/`save_every_n`
+  ge=0, `checkpoint_file` required) plus
+  `check_wolfe_constants`, a `model_validator(mode="after")`
+  that enforces `c2 > c1` (ValueError → ValidationError, both
+  values in the message) — the invariant is code, not
+  docstring (the D-080 R1 fix).
+- **The top level** — `name`, `description`, `base_dir`,
+  `output` (required); `use_cache=True`; `cache_files_prefix`
+  default `"rlmwf_"` ("Filename prefix for the level specific
+  cache files" — the filename-prefix concatenation the
+  state_machine closures implement); the five required domain
+  sections (`regab_data_set`, `feature_set`, `stat_model`,
+  `optimization`, `validation_data_set`); `analytics` by default
+  factory.
+- **Strictness** — the 3-letter uppercase status is enforced in
+  BOTH status lists (regab + validation data set); `ec` is
+  0..60; `frequency_cut_off` is a PositiveInt.
 
-## Architecture (207 lines, as of D-080)
+## Verified invariants
 
-- `RLMBaseConfig` (L47-48): `BaseModel` + `properties:
-  dict[str, Any] = Field(default_factory=dict)`.
-- `StatusString` (L50): `Annotated[str, Field(pattern=
-  r"^[A-Z]{3}$")]` — exactly 3 uppercase letters. D-080 M3:
-  moved above its first user (ValidationDataSetConfig).
-- `ValidationDataSetConfig` (L52-54): `bid: List[NonNegativeInt]`,
-  `status: List[StatusString]` (STRICT — D-080 M3; was loose
-  `List[str]`).
-- `OptimizationConfig` (L56-78): the L-BFGS knobs — `max_iters`
-  (500, ge=1), `m` (50, ge=1), `c1` (1e-4, 0<c1<1), `c2` (0.9,
-  0<c2<1, description "Must be > c1" — now ENFORCED by the
-  `check_wolfe_constants` `model_validator(mode="after")`,
-  D-080 R1), `min_grad` (1e-5, 3), `min_p_fun_decrease` (1e-14,
-  7), `log_every_n` / `save_every_n` (ge=0), `checkpoint_file`
-  (Path, required).
-- `AnalyticsConfig` (L68-79): `detailed_report` list (default
-  empty), `report_file_name` default.
-- `RegabDBConnectionConfig` (L93-101): `dbname` / `user` / `host`
-  required, `port: int = 5432`, `password: Optional[str] = None`.
-- `RegabDataSetConfig` (L103-109): the connection + `bid:
-  List[NonNegativeInt]` + `status: List[StatusString]` (STRICT) +
-  `ec: int` (0..60).
-- `PatternConfig` (L112-132): `name` + `mask: Bitboard` with a
-  `mode="before"` field_validator (`bitboard_from_hex_str`) and a
-  field_serializer `f"{mask:016X}"` (uppercase 16-hex);
-  `arbitrary_types_allowed`; D-080 M1: the docstring example is
-  now '0000000000000107' (16 digits, no 0x prefix) and the field
-  description says so.
-- `PatternSetConfig` (L134-139): `name` + `patterns:
-  List[PatternConfig] = Field(default_factory=list)` (D-080 M4).
-- `MobilityFeatureConfig` (L141-162): `name` + `mask` + `amask`,
-  both Bitboard, same validator/serializer pair; D-080 M1: the
-  docstring example corrected as in PatternConfig.
-- `MobilitySetConfig` (L164-169): `name` + `mobility_features:
-  List[MobilityFeatureConfig] = Field(default_factory=list)`
-  (D-080 M4).
-- `FeatureSetConfig` (L171-178): `name` default
-  'NoNameFeatureSet', `intercept` default False, optional
-  `mobility_set` / `pattern_set`.
-- `StatModelConfig` (L180-186): `RLMBaseConfig` (D-080 M3 — was
-  plain `BaseModel`, no properties bag): `frequency_cut_off`
-  (PositiveInt = 1), `logit_clipping` (0.05, 0<x<0.5),
-  `ridge_regularization` (0.0, ge=0).
-- `ReversiLogisticModelConfig` (L188-207): `name`, `description`,
-  `base_dir: Path`, `output: Path` (required), `use_cache: bool =
-  True`, `cache_files_prefix = "rlmwf_"` ("Filename prefix for the
-  level specific cache files" — the D-078 machine-level fix
-  implements exactly this semantics), `regab_data_set` /
-  `feature_set` / `stat_model` / `optimization` /
-  `validation_data_set` (all required), `analytics` (default
-  factory).
+Pinned by `test_rlm_config_schemas.py` (13 tests,
+`TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
+E-section).
 
-## Verified behaviour (D-079 probe E section, re-pinned D-080, 0 mismatches)
+- The `model_dump_json` round-trip: the mask serializes back to
+  uppercase 16-hex, `cache_files_prefix` preserved —
+  `test_model_dump_json_round_trip`.
+- `'0000000000000107'` (16-hex, no 0x) → Bitboard 0x107 →
+  serialized back as the same string —
+  `test_pattern_mask_16_hex_parsed_and_serialized`.
+- The 0x-prefixed form is REJECTED; a non-hex mask ("ZZZZ") is
+  rejected — `test_pattern_mask_0x_prefix_rejected`,
+  `test_invalid_hex_mask_rejected`.
+- `ec` outside 0..60 rejected — `test_ec_out_of_range_rejected`.
+- Lowercase / wrong-length status codes rejected (StatusString)
+  — `test_invalid_status_rejected`.
+- `c1=0.9` + `c2=0.1` rejected, `c1=0.1` + `c2=0.9` accepted (the
+  cross-field validator) — `test_optimization_c2_lte_c1_rejected`,
+  `test_optimization_c2_gt_c1_accepted`.
+- `validation_data_set.status` is strict (rejects `'xyz'`,
+  accepts valid codes) — `test_validation_dataset_status_strict`.
+- `'properties'` is in the `model_fields` of
+  `ValidationDataSetConfig` AND `StatModelConfig` —
+  `test_properties_field_in_model_fields`.
+- The default `patterns` list is NOT shared across instances —
+  `test_pattern_set_mutable_default_not_shared`.
+- Missing `output` rejected (required) —
+  `test_missing_output_rejected`.
+- The `cache_files_prefix` default is `'rlmwf_'` —
+  `test_cache_files_prefix_default`.
 
-- V1 (E1): round-trip via `model_dump_json` — the mask serializes
-  back to uppercase 16-hex, `cache_files_prefix` preserved.
-- V2 (E2): `'0000000000000107'` (16-hex, no 0x) → Bitboard 0x107;
-  serialized as `'0000000000000107'`.
-- V3 (E2b): `'0x0000000000000107'` → REJECTED (ValidationError) —
-  the docstring example contradicts the parser (M1).
-- V4 (E3): `'ZZZZ'` mask → ValidationError.
-- V5 (E4a/E4b): `ec` 99 / -1 → ValidationError (0..60 enforced).
-- V6 (E5a/E5b): status `'cms'` / `'CMSX'` → ValidationError
-  (StatusString strict).
-- V7 (E6/E6b): `c1=0.9` + `c2=0.1` → ValidationError (the
-  cross-field `c2 > c1` validator, D-080 R1); `c1=0.1` +
-  `c2=0.9` accepted.
-- V8 (E8/E8b): `validation_data_set.status` REJECTS `['xyz']`
-  (strict StatusString, D-080 M3) and accepts valid 3-letter
-  codes.
-- V9 (E9): `'properties'` is in BOTH
-  `ValidationDataSetConfig.model_fields` and
-  `StatModelConfig.model_fields` (D-080 M3).
-- V10 (E10): the bare `[]` default of `PatternSetConfig.patterns`
-  is NOT shared across instances (pydantic per-instance default
-  copy) — M4 is safe but non-idiomatic.
-- V11 (E11): missing `output` → ValidationError (required).
-- V12 (E12): `cache_files_prefix` default `'rlmwf_'`.
+## Open issues
 
-## Issues — resolved (D-080)
+None.
 
-- **R1 — FIXED (D-080).** `check_wolfe_constants`, a
-  `model_validator(mode="after")` on `OptimizationConfig`, now
-  enforces `c2 > c1` (raises ValueError → pydantic
-  ValidationError, with both values in the message). The
-  strong-Wolfe invariant is no longer docstring-only; re-pinned
-  by probe E6/E6b. This gave the M2 import its job (below).
+## Conventions
 
-## Minor notes — resolved (D-080)
+- Every nested config extends `RLMBaseConfig` — the `properties`
+  bag is present in all of them (the D-080 M3 fix brought
+  `StatModelConfig` into line).
+- Mutable defaults are `Field(default_factory=...)` — never bare
+  literals.
+- A mask is 16 hex digits, no 0x prefix — parser, docstring and
+  field description stay in sync.
+- Cross-field invariants live in a `model_validator`, not only in
+  a description.
 
-- M1 (E2b): FIXED — both `parse_hex_to_bitboard` docstrings now
-  show `'0000000000000107'` ("16 digits, no 0x prefix"), and
-  `PatternConfig`'s mask field description says the same
-  (MobilityFeatureConfig's already did).
-- M2 (E7): RESOLVED BY R1 — the `model_validator` import is now
-  used by the `check_wolfe_constants` validator (re-pinned by
-  probe E7).
-- M3 (E8/E9): FIXED — `ValidationDataSetConfig.status` is now
-  `List[StatusString]` (strict, symmetric with
-  `RegabDataSetConfig`; `StatusString` moved to L50, above its
-  first user); `StatModelConfig` now extends `RLMBaseConfig` (the
-  properties bag is present, default `{}`). Re-pinned by probe
-  E8/E8b/E9.
-- M4 (E10): FIXED — both bare `[]` defaults replaced with
-  `Field(default_factory=list)` (the file's own convention; the
-  E10 not-shared pin still holds).
+## Integration
 
-## Appendix — line reference
-
-207 lines, as of D-080.
-
-- L28-42: imports (pydantic L30-32 — `model_validator` now
-  load-bearing, R1; board L37-38)
-- L43: `__all__ = ['ReversiLogisticModelConfig']`
-- L47-48: `RLMBaseConfig`
-- L50: `StatusString` (D-080 M3: moved up)
-- L52-54: `ValidationDataSetConfig` (M3 strict status)
-- L56-78: `OptimizationConfig` (R1 check_wolfe_constants)
-- L80-91: `AnalyticsConfig`
-- L93-101: `RegabDBConnectionConfig`
-- L103-109: `RegabDataSetConfig`
-- L112-132: `PatternConfig` (M1 docstring)
-- L134-139: `PatternSetConfig` (M4 default_factory)
-- L141-162: `MobilityFeatureConfig` (M1 docstring)
-- L164-169: `MobilitySetConfig` (M4 default_factory)
-- L171-178: `FeatureSetConfig`
-- L180-186: `StatModelConfig` (M3 RLMBaseConfig)
-- L188-207: `ReversiLogisticModelConfig`
+- Consumed by `lm_worker_config` (`ReversiLogisticModelConfig
+  (**raw)` after the json5 load).
+- The Bitboard primitive + `bitboard_from_hex_str` come from
+  `board.py`.
+- The JSON5 fixture: `src/twolm/test/data/rlm_00.json`.
