@@ -152,27 +152,14 @@ def d_main():
         rlm = LogisticModel(json_config, verbosity=Verbosity.LOW,
                             base_dir_override=tmp)
 
-        def d1():
-            rlm.move_to_step("ZED")
-            assert rlm.current_step == 7, rlm.current_step
-            assert rlm.context.fg is None
-
-        def d2():
-            rlm.move_to_step("GRADIENT")
-            assert rlm.current_step == 8
-            assert rlm.current_worker_name == "GRADIENT"
-
-        def d3():
-            assert rlm.context.fg is not None and callable(rlm.context.fg)
-
-        def d4():
-            ctx = rlm.context
-            assert ctx.design_matrix.shape == (199952, 8), ctx.design_matrix.shape
-            assert ctx.design_matrix.dtype == np.uint32
-            assert len(ctx.w) == 2981, len(ctx.w)
-            assert ctx.w.dtype == np.float32
-            assert ctx.z.shape == (199952,), ctx.z.shape
-            assert ctx.z.dtype == np.float32
+        # (D1 pre-state / D2 move to GRADIENT / D3 fg callable /
+        #  D4 X/w/z shapes+dtypes deleted at D-106 step 3, class c:
+        #  test_lm_worker_gradient.py pins all of it — setUp the
+        #  step-7 pre-state, test_generate_gradient the fg-None
+        #  pre-state + step 8 + callable + the (199952, 8) / 2981
+        #  shapes, test_down_clears_gradient the step pins again.
+        #  The dtype sub-assertions are the cross-module contracts
+        #  of ZED / DESIGN_MTR, pinned by their own module tests.)
 
         def d5():
             ctx = rlm.context
@@ -252,11 +239,9 @@ def d_main():
                       "rlmwf_06_DESIGN_MTR.dat"):
                 assert n in files, files
 
-        def d11():
-            rlm.move_to_step(7)
-            assert rlm.current_step == 7
-            assert rlm.current_worker_name == "ZED"
-            assert rlm.context.fg is None
+        # (D11 _down live (fg None) deleted at D-106 step 3, class
+        #  c: test_down_clears_gradient pins the same scope — step
+        #  7, name ZED, fg None)
 
         def d12():
             ctx = rlm.context
@@ -268,17 +253,21 @@ def d_main():
             total = sum(p.n_instances for p in fs.pset.patterns)
             assert total == 8, total
 
-        for name, fn in (("D1 pre-state (ZED, fg None)", d1),
-                         ("D2 move to GRADIENT (step 8)", d2),
-                         ("D3 fg callable", d3),
-                         ("D4 X/w/z shapes+dtypes", d4),
-                         ("D5 alpha + clipping", d5),
+        # The pipeline bootstrap the deleted D1/D2 used to carry as
+        # side effects: move to GRADIENT runs the whole chain
+        # (POSITIONS ... DESIGN_MTR, ZED, GRADIENT) and populates
+        # design_matrix / w / z / feature_set / fg that D5-D12 read.
+        # (The assertions around the moves — the step-7 pre-state,
+        # step 8, name GRADIENT, fg callable — were class c, deleted
+        # at D-106 step 3: test_lm_worker_gradient.py pins them.)
+        rlm.move_to_step("GRADIENT")
+
+        for name, fn in (("D5 alpha + clipping", d5),
                          ("D6 f(w=0) re-derived", d6),
                          ("D7 g(w=0) re-derived + float32 (R1)", d7),
                          ("D8 f+g(w!=0) re-derived (ridge)", d8),
                          ("D9 closure stateless (2 calls)", d9),
                          ("D10 no rlmwf_07*/08* files", d10),
-                         ("D11 _down live (fg None)", d11),
                          ("D12 feature set (8 instances)", d12)):
             live(name, fn)
 
