@@ -3853,3 +3853,47 @@ D-106 | 2026-09-04 | METHOD: the notes/docs hygiene migration.
          not kept green; the per-file change LOG idea declined
          (a 4th copy of facts already in git + decisions + journal —
          the per-file view is derivable via git log --follow). |
+
+D-107 | 2026-09-04 | D-106 follow-up rulings, the three
+      "stale-unruled" probes resolved at the probes/ move (step 2,
+      4091e72) — no source, doc, or test touched:
+      (1) verify_lm_worker_config E2/E3 — NOT a bug: the premises
+      are 2-worker-era (the probe was written 2026-08-30 while the
+      pipeline was [CREATED, CONFIG]; D-080, same day, enabled
+      POSITIONS and every later bring-in added more). The current
+      pipeline — 14 factory workers + the CREATED sentinel,
+      complete since D-104 — makes "POSITIONS" a valid worker
+      (index 2) and step 2 in bounds, so no exception is CORRECT;
+      worse, the old E2 call would have performed a real
+      CONFIG+POSITIONS move (an unintended side effect). The guard
+      contract (ValueError / IndexError with the exact messages) is
+      intact (state_machine.py L357/L362) and the tests pin the
+      TYPE (test_state_machine L258-273) but not the IndexError
+      message — so the re-pin with genuinely-invalid targets
+      ('NOT_A_WORKER' -> ValueError exact message; 99 -> IndexError
+      'Target step 99 is out of bounds.') stays in the probe
+      (b1 -> a; verified live 2026-09-04).
+      (2) verify_cache_manager V7c (the step-2 WARN message) —
+      category c: test_cache_manager's
+      test_step2_checksum_mismatch_forces_recomputation pins the
+      exact current message + Relevance.WARN via assert_any_call;
+      the probe's pinned text was stale ("Checksum mismatch" vs the
+      current "Checksum validation failed for … (sidecar missing
+      or mismatched) …") — DELETED at the move.
+      (3) verify_cache_manager V17 — its premise ("no
+      @validate_call here, the raw str reaches .exists() as an
+      AttributeError") is obsolete: the function carries
+      @validate_call now (the D-076-era gate idiom) and pydantic
+      lax mode coerces str -> Path (verified live: the inner
+      store_fn sees a pathlib.PosixPath; the flow then dies
+      FileNotFoundError in the framework's sidecar write) —
+      RE-PINNED as the coercion check (a: unique, no test covers
+      it; the §4 test-conversion candidate now converts the
+      coercion fact). | (2) and (3) were LATENT: the audit's
+      ImportError masked them (the probe never ran past the import,
+      so the source-only classification assumed them green), and
+      the import fix exposed the next layer of staleness. Lesson
+      codified in the step-2 amendment of
+      scratch/classification.md: a stale-import fix must be
+      followed by a full re-run of the probe — the sweep runs
+      AFTER the fix, never before. |

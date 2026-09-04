@@ -1863,16 +1863,27 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 - Open (awaiting Roberto's call): the endgame-solver integration of
   rlm_client (the production context of the A2xxx family) — the
   only open item on the pipeline side.
-- OPEN (method, session 30 — the notes/docs hygiene migration, plan
-  approved by Roberto, D-106): step 0 DONE (notes/docs_rules.md +
-  notes/probe_rules.md approved; AGENTS.md rules 5/7 + Layout
-  updated). Then: the a/b/c classification of the 28 scratch files +
-  the verify_lm_worker_config E2/E3 investigation (contract or bug,
-  awaiting ruling), then probes/ at the root + the hub
-  centralization + the one-by-one split into probes/tests (scratch/
-  to empty), then the docs/ rewrite one file at a time (board.md
-  first — docs_rules §8). NEXT ACTION: the a/b/c classification +
-  the E2/E3 investigation.
+- Done (session 30, D-106 step 1+2, 2026-09-04): the a/b/c
+  classification of the 28 scratch files (scratch/classification.md:
+  a ≈ 218 / b1 = 28, of which 22 → the hub / b2 = 2 / c ≈ 108) +
+  the verify_lm_worker_config E2/E3 investigation (D-107: the
+  contract holds — NOT a bug; the premises were 2-worker-era;
+  re-pinned with genuinely-invalid targets) + the probes/ move +
+  the hub centralization (20 probes moved to probes/, the 22
+  duplicated pipeline-state pins deleted from the 9 module probes
+  — the hub V3c/V3d is the sole owner, V3d added — the 3 b1-mod
+  re-pins: config E2/E3, mobility masks property, cache_manager
+  D-072 API; 2 b2 archived to notes/analyses/; suite 631/0/87
+  gated + 631/18 live + −W error clean, all 20 probes green
+  gated + live).
+- OPEN (method, session 30 — the notes/docs hygiene migration,
+  D-106): NEXT ACTION: the one-by-one split of the 20 probes —
+  the c deletions (~108 groups) + the a?/c? resolutions (~17) +
+  the test conversions (probe_rules §4), one commit per file
+  (suite green per commit), until scratch/ is empty (then the o1*
+  one-off archives + the classification.md archive); then the
+  docs/ rewrite one file at a time (board.md first — docs_rules
+  §8).
 
 ## Index
 
