@@ -40,16 +40,22 @@
 # time python3 -m unittest twolm.test.test_lm_worker_validate
 #
 
+import math
 import unittest
 import os
 import tempfile
+from types import SimpleNamespace
+
+import numpy as np
 
 from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
 from twolm.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from twolm.logistic_model import LogisticModel, RLMContext
+from twolm.lm_worker_validate import lm_worker_validate
+from twolm.rlm_validate import validate_model
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
@@ -173,6 +179,79 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 11)
         self.assertEqual(self.rlm.current_worker_name, 'VLD_POSITIONS')
         self.assertIsNone(self.rlm.context.vld_metrics)
+
+
+class TestValidateModelUnit(unittest.TestCase):
+    """DB-free unit facts for the VALIDATE metric math.
+
+    D-106 step 3 (probe_rules.md §4): converted from the
+    verify_validate.py D1 + D3 probes — the hand-computed
+    2-position case and the M1 (D-102) zero-guard branch. Runs
+    under SKIP_REGAB_DB=1 (no DB)."""
+
+    def _fake_ctx(self, game_values, indexes, offsets, w_dense):
+        # The y2z/z2y lambdas mirror the zed factory (rlm_zed
+        # L80-83/L87-89): the float32 CAST BEFORE the affine (the
+        # real y2z does NOT overflow on int8 64 — a raw (y + 64)
+        # on int8 would wrap to -128).
+        return SimpleNamespace(
+            vld_positions=np.zeros(len(game_values), dtype=np.uint64),
+            vld_game_values=np.asarray(game_values, dtype=np.int8),
+            feature_set=SimpleNamespace(
+                compute_indexes=lambda p: np.asarray(indexes, dtype=np.int64),
+                features=[SimpleNamespace(n_instances=len(offsets) - 1)]),
+            iwmap_feature_offset=np.asarray(offsets, dtype=np.int64),
+            w_dense=np.asarray(w_dense, dtype=np.float64),
+            y2z=lambda y: (np.float32(y) + 64) / 128,
+            z2y=lambda z: 128 * z - 64,
+            log_event=lambda rel, msg: None)
+
+    def test_full_metric_math_on_hand_computed_case(self):
+        """The full metric math on the hand-computed 2-position case.
+
+        1 feature / 2 instances, 2 positions. vld_indexes
+        [[0,1],[1,0]] + col_offsets [0,0] -> dense_indices
+        [[0,1],[1,0]]; w_dense [0.5,-0.5] -> linear_predictor
+        [0,0] -> z_pred [0.5,0.5]. y2z(y)=(y+64)/128: game
+        [0,64] -> vld_z [0.5,1.0]; rn_z [0,-0.5]: norm 0.25,
+        loss 0.0625, mse_z 0.125, mae_z 0.25. z2y(z)=128z-64:
+        y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048,
+        rmse_y sqrt(2048)."""
+        d = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
+                                          [0, 2], [0.5, -0.5]))
+        self.assertEqual(d["vld_loss"], 0.0625)
+        self.assertEqual(d["vld_mse_z"], 0.125)
+        self.assertEqual(d["vld_mae_z"], 0.25)
+        self.assertEqual(d["vld_mae_y"], 32.0)
+        self.assertEqual(d["vld_mse_y"], 2048.0)
+        self.assertEqual(d["vld_rmse_y"], math.sqrt(2048.0))
+        self.assertEqual(d["vld_samples"], 2)
+
+    def test_rmse_mae_line_is_zero_guarded(self):
+        """M1 (D-102): a perfect Y-space fit (mae_y == 0) must take
+        the worker's zero-guard branch — the n/a ratio line, no
+        ZeroDivisionError.
+
+        game [0,0] -> vld_z [0.5,0.5]; w_dense [0,0] -> z_pred
+        [0.5,0.5] -> y_pred [0,0] -> rn_y 0 -> mae_y 0.0,
+        rmse_y 0.0. (a REAL RLMContext: Worker.up is
+        @validate_call-gated with context: Context,
+        state_machine L87-90 — a SimpleNamespace is rejected)"""
+        ctx = RLMContext(config_file_path=Path("dummy.json"))
+        ctx.vld_positions = np.zeros(2, dtype=np.uint64)
+        ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)
+        ctx.feature_set = SimpleNamespace(
+            compute_indexes=lambda p: np.asarray([[0, 1], [1, 0]], dtype=np.int64),
+            features=[SimpleNamespace(n_instances=2)])
+        ctx.iwmap_feature_offset = np.asarray([0, 2], dtype=np.int64)
+        ctx.w_dense = np.asarray([0.0, 0.0], dtype=np.float64)
+        ctx.y2z = lambda y: (np.float32(y) + 64) / 128
+        ctx.z2y = lambda z: 128 * z - 64
+        logs = []
+        ctx.log_event = lambda rel, msg: logs.append(msg)
+        lm_worker_validate().up(ctx)
+        self.assertTrue(any("RMSE/MAE: n/a" in m for m in logs),
+                        f"logs={logs}")
 
 
 if __name__ == '__main__':

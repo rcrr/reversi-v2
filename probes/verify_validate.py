@@ -157,34 +157,13 @@ else:
         out = buf.getvalue()
         ctx = m.context
 
-        # C1 the pipeline reaches VALIDATE (no R1-class trap this time — the
-        # level has no cache-path call; the plain run must land on step 12).
-        check("C1 the rlm_02 pipeline reaches VALIDATE (step 12) with no crash",
-              ctx.current_worker_name == "VALIDATE" if hasattr(ctx, "current_worker_name")
-              else m.current_worker_name == "VALIDATE" and m.current_step == 12,
-              f"step={m.current_step} name={m.current_worker_name}")
+        # (C1 deleted at D-106 step 3, class c: step 12 / VALIDATE is
+        #  pinned by all three test_lm_worker_validate.py tests)
         met = ctx.vld_metrics
-        check("C2 the vld_metrics goldens (rlm_02 live, bid [8] validation vs the "
-              "bid [6,7] training model): loss 0.00700794393196702, mse_z "
-              "0.01401588786393404, mae_z 0.09311295300722122, mae_y "
-              "12.161691665649414, mse_y 239.10484313964844, rmse_y "
-              "15.46301555633545, samples 200",
-              met is not None
-              and met["vld_loss"] == 0.00700794393196702
-              and met["vld_mse_z"] == 0.01401588786393404
-              and met["vld_mae_z"] == 0.09311295300722122
-              and met["vld_mae_y"] == 12.161691665649414
-              and met["vld_mse_y"] == 239.10484313964844
-              and met["vld_rmse_y"] == 15.46301555633545
-              and met["vld_samples"] == 200,
-              f"got {met}")
-        check("C3 the log lines (INFO): 'Starting model validation...' + the 6 "
-              "formatted metric lines (Loss 7.00794393e-03, RMSE/MAE 1.27)",
-              "Starting model validation..." in out
-              and "Validation completed. Loss (MSE/2): 7.00794393e-03" in out
-              and "RMSE/MAE: 1.27" in out
-              and "Computing indexes for validation set..." in out
-              and "Computing predictions (forward pass) on validation set..." in out)
+        # (C2 deleted at D-106 step 3, class c: the 7-key dict + all
+        #  7 exact goldens are pinned by test_validate_model_goldens)
+        # (C3 deleted at D-106 step 3, class c: all 5 log lines are
+        #  pinned by test_validate_model_goldens)
         # C4 the internal consistency (independent re-derivation from the ctx arrays)
         vld_z = ctx.y2z(ctx.vld_game_values)
         check("C4 internal consistency: mse_z == 2*vld_loss, mae_y <= rmse_y "
@@ -203,36 +182,19 @@ else:
         c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_12")]
         check("C5 no rlmwf_12_* cache file in the base dir (VALIDATE is pure compute)",
               c12 == [], f"files: {c12}")
-        # C6 second instance on the same base dir: deterministic metrics,
-        # all the cached levels hit (no DB re-extraction)
-        buf2 = io.StringIO()
-        with contextlib.redirect_stdout(buf2):
-            m2 = LogisticModel(cfg_path, verbosity=Verbosity.HIGH, base_dir_override=tmp)
-            m2.move_to_step("VALIDATE")
-        out2 = buf2.getvalue()
-        # the 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR,
-        # GENERATE, VLD_POSITIONS) log the hit; CONFIG (rlmwf_01) + the
-        # OPTIMIZE checkpoint have their own load flows; FEATURES / ZED /
-        # GRADIENT / VALIDATE have no cache file.
-        check("C6 second instance: identical vld_metrics (deterministic recompute) "
-              "+ no DB re-extraction + the 6 cache_manager levels all hit",
-              m2.context.vld_metrics == met
-              and "Extracted" not in out2
-              and out2.count("Cache successfully loaded and validated") == 6,
-              f"m2={m2.context.vld_metrics} hits={out2.count('Cache successfully loaded and validated')}")
-        # C7 the _down scope
-        m2.move_to_step(11)
-        check("C7 _down (back to VLD_POSITIONS, step 11) clears vld_metrics",
-              m2.context.vld_metrics is None
-              and m2.current_step == 11
-              and m2.current_worker_name == "VLD_POSITIONS")
+        # (C6 deleted at D-106 step 3, class c: identical metrics +
+        #  no DB re-extraction + the 6 cache_manager hits are pinned
+        #  by test_second_instance_deterministic — the classification
+        #  had marked this a, assuming the test file held only 2
+        #  golden-run tests; it has 3, and this is one of them)
+        # (C7 deleted at D-106 step 3, class c (a? resolved): the
+        #  _down scope is pinned by test_down_clears_vld_metrics)
 
 
 # ----------------------------------------------------------------------
 # D. unit facts (no DB) — the full metric math on a hand-computed case
 # ----------------------------------------------------------------------
 from twolm.rlm_validate import validate_model
-from twolm.lm_worker_validate import lm_worker_validate
 
 
 def fake_ctx(game_values, indexes, offsets, w_dense):
@@ -259,48 +221,19 @@ def fake_ctx(game_values, indexes, offsets, w_dense):
 # rn_z [0,-0.5]: norm 0.25, loss 0.0625, mse_z 0.125, mae_z 0.25
 # z2y(z)=128z-64: y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048, rmse_y sqrt(2048)
 _d = validate_model(fake_ctx([0, 64], [[0, 1], [1, 0]], [0, 2], [0.5, -0.5]))
-check("D1 the full metric math on the hand-computed 2-position case: loss 0.0625, "
-      "mse_z 0.125, mae_z 0.25, mae_y 32.0, mse_y 2048.0, rmse_y sqrt(2048), samples 2",
-      _d["vld_loss"] == 0.0625
-      and _d["vld_mse_z"] == 0.125
-      and _d["vld_mae_z"] == 0.25
-      and _d["vld_mae_y"] == 32.0
-      and _d["vld_mse_y"] == 2048.0
-      and _d["vld_rmse_y"] == math.sqrt(2048.0)
-      and _d["vld_samples"] == 2,
-      f"got {_d}")
+# (D1 moved to a test at D-106 step 3, class a §4 conversion:
+#  test_lm_worker_validate.py::TestValidateModelUnit::
+#  test_full_metric_math_on_hand_computed_case — the same
+#  hand-computed 2-position fixture. The call stays here because
+#  D2 pins the result TYPES.)
 check("D2 every metric value is a PYTHON float (the float() casts) + vld_samples an int",
       all(type(_d[k]) is float for k in ("vld_loss", "vld_mse_z", "vld_mae_z",
                                          "vld_mae_y", "vld_mse_y", "vld_rmse_y"))
       and type(_d["vld_samples"]) is int)
-# M1 (D-102): a perfect Y-space fit (mae_y == 0.0) -> the worker's ratio log
-# line must take the zero-guard branch (n/a line, no ZeroDivisionError).
-# game [0,0] -> vld_z [0.5,0.5]; w_dense [0,0] -> z_pred [0.5,0.5] -> y_pred [0,0]
-# -> rn_y 0 -> mae_y 0.0, rmse_y 0.0.
-# (a REAL RLMContext: Worker.up is @validate_call-gated with
-# context: Context, state_machine L87-90 — a SimpleNamespace is rejected)
-from twolm.logistic_model import RLMContext
-_m1_ctx = RLMContext(config_file_path=Path("dummy.json"))
-_m1_ctx.vld_positions = np.zeros(2, dtype=np.uint64)
-_m1_ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)
-_m1_ctx.feature_set = SimpleNamespace(
-    compute_indexes=lambda p: np.asarray([[0, 1], [1, 0]], dtype=np.int64),
-    features=[SimpleNamespace(n_instances=2)])
-_m1_ctx.iwmap_feature_offset = np.asarray([0, 2], dtype=np.int64)
-_m1_ctx.w_dense = np.asarray([0.0, 0.0], dtype=np.float64)
-_m1_ctx.y2z = lambda y: (np.float32(y) + 64) / 128
-_m1_ctx.z2y = lambda z: 128 * z - 64
-_m1_logs = []
-_m1_ctx.log_event = lambda rel, msg: _m1_logs.append(msg)
-_raised = None
-try:
-    lm_worker_validate().up(_m1_ctx)
-except ZeroDivisionError:
-    _raised = "ZeroDivisionError"
-check("D3 the worker's RMSE/MAE line is zero-guarded (M1, D-102): a perfect "
-      "Y-space fit (mae_y == 0) logs the n/a line instead of raising",
-      _raised is None and any("RMSE/MAE: n/a" in m for m in _m1_logs),
-      f"raised={_raised} logs={_m1_logs}")
+# (D3 moved to a test at D-106 step 3, class a §4 conversion:
+#  test_lm_worker_validate.py::TestValidateModelUnit::
+#  test_rmse_mae_line_is_zero_guarded — the M1 (D-102) zero-guard
+#  branch on a perfect Y-space fit)
 
 
 # ----------------------------------------------------------------------
