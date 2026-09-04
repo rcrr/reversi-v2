@@ -21,13 +21,10 @@ none — the bring-in has no test file, T6):
 
 Run from the workspace root:  .venv/bin/python scratch/verify_vld_positions.py
 """
-import contextlib
-import io
 import os
 import sys
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
 import numpy as np
 
@@ -129,7 +126,6 @@ check("B5 ReversiLogisticModelConfig.validation_data_set: ValidationDataSetConfi
 if os.getenv("SKIP_REGAB_DB", "0") == "1":
     skip("C-tier (live DB golden re-derivation)", "SKIP_REGAB_DB=1")
 else:
-    from twolm import binio
     from twolm.logistic_model import LogisticModel
     from twolm.state_machine import Verbosity
     from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -153,10 +149,14 @@ else:
         try:
             m = make_model(aliased=False)
             m.move_to_step("VLD_POSITIONS")
-        except AttributeError as e:
+        except AttributeError:
             crashed = True
-            check("C1 the pipeline reaches VLD_POSITIONS (pre-campaign R1: "
-                  "AttributeError on the missing _for_next_level method)", False, str(e))
+            # (C1 deleted at D-106 step 3, class c: reaching
+            #  VLD_POSITIONS / step 11 is pinned by test_lm_worker_
+            #  vld_positions.py — test_compute_and_populate_cache,
+            #  test_read_cache_on_new_instance, and the down test.
+            #  This branch is dead on the current pipeline: the R1
+            #  AttributeError no longer happens.)
         if crashed:
             print("     alias simulation: binding _for_next_level -> _for_current_level "
                   "and retrying on a fresh instance (same base dir)...")
@@ -164,15 +164,11 @@ else:
             m.move_to_step("VLD_POSITIONS")
         ctx = m.context
 
-        # C2 context fields
-        check("C2 ctx.vld_positions structured (N,2) u64 array + vld_game_values 1-D "
-              "+ vld_rds_checksum str + vld_pop_stats dict (4 keys)",
-              ctx.vld_positions is not None
-              and ctx.vld_positions.dtype.names == ("mover", "opponent")
-              and ctx.vld_game_values.ndim == 1
-              and isinstance(ctx.vld_rds_checksum, str)
-              and isinstance(ctx.vld_pop_stats, dict)
-              and set(ctx.vld_pop_stats) == {"count", "mean", "std_dev", "variance"})
+        # (C2 deleted at D-106 step 3, class c: the structural facts —
+        #  dtype.names ("mover", "opponent"), 1-D game values, the
+        #  checksum, and the stats-dict keys — are pinned by
+        #  test_compute_and_populate_cache; the exact 4-key set stays
+        #  pinned here by C3b, which indexes all four keys)
 
         # C3 the stats goldens (independent re-derivation from the raw arrays)
         n_pos = len(ctx.vld_positions)
@@ -203,30 +199,14 @@ else:
               "(two distinct data sets, two distinct cache files)",
               ctx.vld_rds_checksum != ctx.rds_checksum)
 
-        # C5 the flat cache files
-        check("C5 the flat cache files rlmwf_11_VLD_POSITIONS.dat + .SHA3-256 exist + verify",
-              (tmp / "rlmwf_11_VLD_POSITIONS.dat").exists()
-              and binio.verify_sha3_256_sidecar(tmp / "rlmwf_11_VLD_POSITIONS.dat"))
+        # (C5 deleted at D-106 step 3, class c: both flat files + the
+        #  sidecar verify are pinned by test_compute_and_populate_cache)
 
-        # C6 second instance: the cache hit (no DB extraction, identical data)
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            m2 = make_model(aliased=crashed, verbosity=Verbosity.HIGH)
-            m2.move_to_step("VLD_POSITIONS")
-        out2 = buf.getvalue()
-        check("C6 second instance: the VLD_POSITIONS cache hit (no re-extraction, "
-              "identical positions + checksum)",
-              "Cache successfully loaded and validated" in out2
-              and "Extracted" not in out2
-              and np.array_equal(m2.context.vld_positions, ctx.vld_positions)
-              and m2.context.vld_rds_checksum == ctx.vld_rds_checksum)
-
-        # C7 the _down scope (all four attributes cleared)
-        from twolm.lm_worker_vld_positions import lm_worker_vld_positions
-        lm_worker_vld_positions().down(ctx)
-        check("C7 _down clears vld_positions + vld_game_values + vld_rds_checksum + vld_pop_stats",
-              ctx.vld_positions is None and ctx.vld_game_values is None
-              and ctx.vld_rds_checksum is None and ctx.vld_pop_stats is None)
+        # (C6 deleted at D-106 step 3, class c: the cache hit + no
+        #  re-extraction + data identity (assert_array_equal +
+        #  checksum) are pinned by test_read_cache_on_new_instance)
+        # (C7 deleted at D-106 step 3, class c: the _down scope is
+        #  pinned by test_down_clears_vld_positions_attributes)
 
 
 # ----------------------------------------------------------------------
@@ -240,37 +220,11 @@ check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callable
       w.name == "VLD_POSITIONS" and callable(w.up) and callable(w.down))
 
 
-def fake_vld_ctx():
-    """A SimpleNamespace RLMContext carrying the rlm_02 vld + training cfg."""
-    conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
-                           host="localhost", port=5432, password="x")
-    vld = SimpleNamespace(bid=[8], status=["CMS", "CMR"])
-    regab = SimpleNamespace(regab_db_connection=conn, bid=[6, 7],
-                            status=["CMR", "CMS"], ec=20)
-    cfg = SimpleNamespace(regab_data_set=regab, validation_data_set=vld)
-    return SimpleNamespace(cfg=cfg, log_event=lambda rel, msg: None)
-
-
-def fake_rds(bid=[8], status=["CMS", "CMR"], ec=20, host="localhost"):
-    conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
-                           host=host, port="5432", password="x")
-    return SimpleNamespace(rc=conn, bid=bid, status=status, ec=ec)
-
-
-check("D2 is_cache_consistent True on a full match (vld params)",
-      is_cache_consistent(fake_vld_ctx(), fake_rds(), bid=[8], status=["CMS", "CMR"]) is True)
-check("D3 bid mismatch -> False",
-      is_cache_consistent(fake_vld_ctx(), fake_rds(), bid=[6, 7], status=["CMS", "CMR"]) is False)
-check("D4 status mismatch -> False",
-      is_cache_consistent(fake_vld_ctx(), fake_rds(), bid=[8], status=["CMS"]) is False)
-check("D5 ec mismatch -> False (the shared regab_data_set.ec is the gate)",
-      is_cache_consistent(fake_vld_ctx(), fake_rds(ec=22), bid=[8], status=["CMS", "CMR"]) is False)
-check("D6 connection mismatch -> False",
-      is_cache_consistent(fake_vld_ctx(), fake_rds(host="otherhost"),
-                          bid=[8], status=["CMS", "CMR"]) is False)
-check("D7 no override -> the TRAINING cfg params are used (the vld rds differs "
-      "-> False): the worker must pass bid/status explicitly",
-      is_cache_consistent(fake_vld_ctx(), fake_rds()) is False)
+# (D2-D7 moved to tests at D-106 step 3, class a §4 conversion:
+#  test_lm_worker_vld_positions.py::TestIsCacheConsistentOverride —
+#  the SimpleNamespace stand-ins for the context and the cached rds
+#  come along; the test runs under SKIP_REGAB_DB=1 (no DB). D8 keeps
+#  the reuse-identity pin here.)
 check("D8 load_from_db + is_cache_consistent are the reused lm_worker_positions "
       "functions (identity, not re-implementations)",
       load_from_db.__module__ == "twolm.lm_worker_positions"

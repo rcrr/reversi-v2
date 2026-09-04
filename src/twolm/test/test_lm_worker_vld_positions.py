@@ -44,6 +44,7 @@
 import unittest
 import os
 import tempfile
+from types import SimpleNamespace
 
 import numpy as np
 import numpy.testing as nptest
@@ -55,6 +56,7 @@ from pathlib import Path
 from twolm import binio
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.lm_worker_positions import is_cache_consistent
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 
@@ -189,6 +191,64 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertIsNone(self.rlm.context.vld_game_values)
         self.assertIsNone(self.rlm.context.vld_rds_checksum)
         self.assertIsNone(self.rlm.context.vld_pop_stats)
+
+
+class TestIsCacheConsistentOverride(unittest.TestCase):
+    """Unit semantics of the VLD_POSITIONS is_cache_consistent override.
+
+    The worker reuses lm_worker_positions.is_cache_consistent and
+    must pass the validation_data_set bid/status explicitly (the
+    no-override call would compare against the TRAINING
+    regab_data_set params). SimpleNamespace stand-ins for the
+    context and the cached rds — no DB, so this class runs under
+    SKIP_REGAB_DB=1 too.
+
+    D-106 step 3 (probe_rules.md §4): converted from the
+    verify_vld_positions.py D2-D7 probe."""
+
+    def _ctx(self):
+        """An rlm_02-shaped context: training bid [6, 7] /
+        ["CMR", "CMS"], validation bid [8] / ["CMS", "CMR"], shared
+        ec 20, tst_regab @ localhost:5432."""
+        conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
+                               host="localhost", port=5432, password="x")
+        vld = SimpleNamespace(bid=[8], status=["CMS", "CMR"])
+        regab = SimpleNamespace(regab_db_connection=conn, bid=[6, 7],
+                                status=["CMR", "CMS"], ec=20)
+        cfg = SimpleNamespace(regab_data_set=regab, validation_data_set=vld)
+        return SimpleNamespace(cfg=cfg, log_event=lambda rel, msg: None)
+
+    def _rds(self, bid=[8], status=["CMS", "CMR"], ec=20, host="localhost"):
+        conn = SimpleNamespace(dbname="tst_regab", user="tst_regab",
+                               host=host, port="5432", password="x")
+        return SimpleNamespace(rc=conn, bid=bid, status=status, ec=ec)
+
+    def test_full_match_is_consistent(self):
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+                                          bid=[8], status=["CMS", "CMR"]), True)
+
+    def test_bid_mismatch_is_inconsistent(self):
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+                                          bid=[6, 7], status=["CMS", "CMR"]), False)
+
+    def test_status_mismatch_is_inconsistent(self):
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds(),
+                                          bid=[8], status=["CMS"]), False)
+
+    def test_ec_mismatch_is_inconsistent(self):
+        """The shared regab_data_set.ec is the gate."""
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds(ec=22),
+                                          bid=[8], status=["CMS", "CMR"]), False)
+
+    def test_connection_mismatch_is_inconsistent(self):
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds(host="otherhost"),
+                                          bid=[8], status=["CMS", "CMR"]), False)
+
+    def test_no_override_uses_training_cfg(self):
+        """No override -> the TRAINING cfg params are used (they differ
+        from the vld rds -> False): the worker must pass bid/status
+        explicitly."""
+        self.assertIs(is_cache_consistent(self._ctx(), self._rds()), False)
 
 
 if __name__ == '__main__':
