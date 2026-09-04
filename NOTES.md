@@ -33,7 +33,7 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27 (session 8): 12 classes / 50 tests / 3 PERF; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found + fixed in T2) + P2 breadth (D-034: T11-T14 + T17); T18 noted-only, M1 deferred; suite 64/0/3 GREEN | docs/src/twolm/test/test_pattern.md |
 | src/twolm/mobility.py | analyzed 2026-08-28 (session 10): Mobility/MobilitySet + popcount64 SWAR + Numba kernel; index formula + n_configurations (distinct index values) + sorted-order columns + hash verified vs independent ground truth (V1-V8, 200-position differential, popcount on 200,010 values); R1-R6 fix batch applied (D-035: docstrings + column-order contract + popcount64 test-helper + dead imports + property/repr alignment + n_instances as-is), no behavior change; M1-M5 disposed (D-036: M1 glossary shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any suite); suite 26/0/1 GREEN (test_mobility.py) | docs/src/twolm/mobility.md |
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28 (session 10): 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented; fix campaign CLOSED the same day (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 → 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
-| src/twolm/feature.py | analyzed 2026-08-28 (session 11): Feature (blocked __new__ + 3 factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 19/0/1 (19 run + 1 PERF skip); D-106 step-10 re-read: NEW OPEN R1 (the BeforeValidator import never referenced — the dtype check rides on the imported IndexArray alias, pattern.py L74; dead since b51bea6, R4/D-038 removed only the typing imports) — REPORTED | docs/src/twolm/feature.md |
+| src/twolm/feature.py | analyzed 2026-08-28 (session 11): Feature (blocked __new__ + 3 factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 19/0/1 (19 run + 1 PERF skip); D-106 step-10 re-read: OPEN R1 (the BeforeValidator import never referenced — the dtype check rides on the imported IndexArray alias, pattern.py L74; dead since b51bea6, R4/D-038 removed only the typing imports) — FIXED per Roberto's "fiaas ora" ruling (D-110, de01cf2, 2026-09-04: the import line now carries only validate_call, ConfigDict) | docs/src/twolm/feature.md |
 | src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 11): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); T campaign CLOSED 2026-08-29 (D-043..D-050: T6, T1, T2, T3, T5, T7, T9, T4 — both files; T8 left as-is); suite 19/0/1 (19 run + 1 PERF skip; the file is unchanged since a5db33b) | docs/src/twolm/test/test_feature.md |
 | src/twolm/binio.py | analyzed 2026-08-29 (session 14); T1-T4 fix batch applied (D-051: lz4 in pyproject.toml, dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises added); 15 verified facts V1-V15 (0 mismatches); D-095 (2026-09-01, session 25, Roberto: "procedi!"): the empty-sidecar-suffix guard — with `suffix=""` the sidecar path BE the content file, which both write paths truncated and overwrote (data loss, empirically confirmed pre-fix; verify raised a confusing BinaryFormatError); all 3 sidecar entry points now raise ValueError (the writer fails fast in __init__ before the file is opened — the empty suffix has no legitimate use, checksum=False is the no-sidecar knob); docstrings updated; 16 verified facts V1-V16 (V16 the guard + the pre-fix clobbering); suite 48/0/0 GREEN (test_binio 45 + test_usage_binio 3) | docs/src/twolm/binio.md |
 | src/twolm/test/test_binio.py | analyzed 2026-08-29 (session 14, with test_usage_binio.py); T4 applied (D-051): ArrayTest now 8 tests (42 total in test_binio); D-095: 3 empty-suffix guard tests added (Sha3_256SidecarTest: write raises + content intact, verify raises; AutoChecksumTest: constructor raises before the file is opened — the file must not exist); suite 45 → 48, GREEN 48/0/0, no PERF | docs/src/twolm/test/test_binio.md |
@@ -305,7 +305,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   never referenced — the dtype check rides on the imported
   IndexArray alias, pattern.py L74; dead since b51bea6, R4/D-038
   removed only the typing imports; the old doc L144
-  misattributed it) — REPORTED, awaiting Roberto's call.
+  misattributed it) — FIXED per Roberto's "fiaas ora" ruling
+  (D-110, de01cf2, 2026-09-04): the import line now carries only
+  validate_call, ConfigDict; State line updated, Open issues
+  None.
 - test_feature.py: analyzed 2026-08-28 (session 11,
   docs/src/twolm/test/test_feature.md): 4 classes / 14 tests / 1
   PERF; 9 verified facts W1-W9 (0 mismatches); 9 defects T1-T9. T
@@ -1953,11 +1956,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (docs_rules §8; board/pattern/logistic_model/state_machine at
   steps 4-7, B batch #1 = CONFIG at step 8 + the new
   test_rlm_config_schemas.md mirror at 8b, B batch #2 = POSITIONS
-  at step 9, B batch #3 = the FEATURES family at step 10 — next:
+  at step 9, B batch #3 = the FEATURES family at step 10 + the
+  feature.py R1 fix at 10b — next:
   B batch #4 = the INDEXES family (lm_worker_indexes, rlm_indexes
-  + their 2 test docs); 57 docs / ~804 KB remain; OPEN R1 in the
-  new feature.md — the unused BeforeValidator import, awaiting
-  Roberto's call).
+  + their 2 test docs); 57 docs / ~804 KB remain).
 
 ## Index
 

@@ -4013,3 +4013,17 @@ D-109 | 2026-09-04 | docs/ rewrite: board.md migrated to the
       rule 3). Suite unchanged (docs-only commit): 664/0/87 gated
       re-verified. Next per §8: pattern.md, then the C-class
       hubs, then B batches, then A. |
+D-110 | 2026-09-04 | feature.py OPEN R1 disposition (surfaced by
+       the D-106 step-10 re-read): the `BeforeValidator` import
+       (L49) is never referenced — the dtype check rides on the
+       imported `IndexArray` alias (pattern.py L74: Annotated +
+       BeforeValidator (validate_index_array)); the import had
+       been dead since the module's first commit (b51bea6) and
+       the D-038 R4 batch removed only the dead typing imports
+       (TypeAlias/List/Tuple/Annotated). FIXED per Roberto's
+       ruling ("fiaas ora [fix it now]"): the import line now
+       carries only `validate_call, ConfigDict` (commit de01cf2,
+       one-line change, no behaviour change). Suite 19/0/1
+       GREEN + full gated 664/0/87 GREEN. The feature.md mirror
+       updated in the same wave (State line D-110, Open issues
+       None). |
