@@ -163,34 +163,14 @@ check("C14 the before-DESIGN_MTR None-ness is pinned (L173)",
 #    truth); the pipeline output is compared, and X is independently
 #    recomputed from iwmap + pindexes + col_offsets.
 # ----------------------------------------------------------------------
-import ast
 import json5
 import tempfile
 
-TSRC = read("src/twolm/test/test_lm_worker_design_matrix.py")
-
-
-def extract_test_array(name):
-    """Extract the value of '<name> = np.array(...)' from the test source."""
-    anchor = f"{name} = np.array("
-    i = TSRC.index(anchor) + len(anchor)
-    depth = 1
-    j = i
-    while depth:
-        if TSRC[j] == "(":
-            depth += 1
-        elif TSRC[j] == ")":
-            depth -= 1
-        j += 1
-    body = re.sub(r"\s+", " ", TSRC[i:j - 1].rstrip())
-    body = re.sub(r",\s*dtype=\S+$", "", body)
-    return ast.literal_eval(body)
-
-
-expected_X = np.array(extract_test_array("expected_X"), dtype=np.uint32)
-
-check("D0 extraction sanity: the pinned expected_X literal is (10,7)",
-      expected_X.shape == (10, 7), f"{expected_X.shape}")
+# (D0 + the test-source extraction machinery deleted at D-106 step 3,
+#  class c: the pinned expected_X literal is pinned by the test
+#  itself — C12 meta-pins the nptest.assert_array_equal
+#  (expected_X, X) call in the test source, and the literal's
+#  (10,7) shape is the shape the test compares against.)
 
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
@@ -207,13 +187,11 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     seen_n_inst = [f.n_instances for f in ctx.feature_set.features]
     seen_n_conf = [f.n_configurations for f in ctx.feature_set.features]
 
-    check("D1 the pipeline step is 6 (DESIGN_MTR, the 7th level)",
-          rlm_lm.current_step == 6 and rlm_lm.current_worker_name == "DESIGN_MTR",
-          f"{rlm_lm.current_step}/{rlm_lm.current_worker_name}")
-    check("D2 X has the pinned shape (10,7)", ctx.design_matrix.shape == (10, 7), f"{ctx.design_matrix.shape}")
-    check("D3 X dtype is uint32 (the pinned contract)", ctx.design_matrix.dtype == np.uint32, f"{ctx.design_matrix.dtype}")
-    check("D4 X == the pinned (10,7) literal from the test source",
-          np.array_equal(ctx.design_matrix, expected_X))
+    # (D1-D4 deleted at D-106 step 3, class c: step 6 / the (10,7)
+    #  shape / the uint32 dtype / X == the pinned literal are all
+    #  pinned by test_lm_worker_design_matrix.py — the step in both
+    #  setUps, the dtype 3x, and
+    #  nptest.assert_array_equal(expected_X, X))
     # Independent recomputation: X[i,j] = iwmap[pindexes[i,j] + col_offsets[j]]
     n_inst = [f.n_instances for f in ctx.feature_set.features]
     col_off = np.repeat(ctx.iwmap_feature_offset[:-1], n_inst)
@@ -234,9 +212,8 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     check("D7 per feature: X's instance columns stay within the owning feature's iwmap region", ok)
     check("D8 the intercept column is all zeros (single config 0 -> w index 0)",
           (ctx.design_matrix[:, 0] == 0).all(), ctx.design_matrix[:, 0].tolist())
-    check("D9 the flat cache files exist (rlmwf_06_DESIGN_MTR.dat + .SHA3-256)",
-          (Path(tmp) / "rlmwf_06_DESIGN_MTR.dat").exists()
-          and (Path(tmp) / "rlmwf_06_DESIGN_MTR.dat.SHA3-256").exists())
+    # (D9 deleted at D-106 step 3, class c: both flat files'
+    #  existence is asserted by the DB test, L109-110)
     check("D10 design_matrix_checksum == sha3_256(X.tobytes()) (the DATA checksum)",
           ctx.design_matrix_checksum == __import__("hashlib").sha3_256(ctx.design_matrix.tobytes()).hexdigest())
 
