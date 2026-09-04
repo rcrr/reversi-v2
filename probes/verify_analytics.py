@@ -218,18 +218,11 @@ else:
                   and tm["train_loss"] == ctx.opt_info["f"]
                   and tm["train_mae_y"] <= tm["train_rmse_y"]
                   and tm["pop_mae_y"] <= tm["pop_rmse_y"])
+        # (C4b deleted at D-106 step 3, class c: the train_dense_
+        #  metrics goldens are pinned by test_lm_worker_analytics.py::
+        #  test_reach_analytics_level — the 4-key dict + exact values.
+        #  The binding stays: C8 + the gap/delta line checks use td)
         td = ctx.train_dense_metrics
-        check("C4b the train_dense_metrics goldens (D-105/M2, rlm_02 live — the "
-              "w_dense pass on the training data; cut 1, so it matches the "
-              "compressed pass up to f32 rounding): 4 keys, exact values",
-              td is not None
-              and set(td) == {"train_dense_mae_y", "train_dense_rmse_y",
-                              "train_dense_loss", "train_dense_samples"}
-              and td["train_dense_samples"] == 199952
-              and td["train_dense_mae_y"] == 12.346794548249868
-              and td["train_dense_rmse_y"] == 15.58872171282352
-              and td["train_dense_loss"] == 0.00712234852835536,
-              f"got {td}")
         # C5 the report file
         rpt = tmp / "model_analytics_report.txt"
         check("C5 the report file exists at base_dir/model_analytics_report.txt",
@@ -259,20 +252,9 @@ else:
             check("C5b the file report is deterministic (date-masked) — "
                   "recompute via format_file_report and compare",
                   hashlib.sha3_256(recomputed.encode()).hexdigest() == FILE_HASH)
-        # C6 the console report = the logged lines = ctx.analytics_report
-        check("C6 console report: 17 header lines logged (no date, no tables) "
-              "+ the 4 worker/data INFO lines; ctx.analytics_report carries it",
-              "Generating model analytics report..." in out3
-              and "Computing metrics on the training set..." in out3
-              and "Computing dense-pass metrics on the training set..." in out3
-              and "Analytics report saved to " in out3
-              and "MODEL ANALYTICS REPORT: RGLM (Logistic) - Unit Test 02 (rlm_02.json)" in out3
-              and "Generalization Gap (RMSE)" in out3
-              and "Substitution Delta (RMSE)" in out3
-              and out3.count("MODEL ANALYTICS REPORT") == 1
-              and isinstance(ctx.analytics_report, str)
-              and "MODEL ANALYTICS REPORT" in ctx.analytics_report
-              and "Creation Date" not in ctx.analytics_report)
+        # (C6 deleted at D-106 step 3, class c: the 17 header lines +
+        #  the 4 worker/data INFO lines are pinned by
+        #  test_lm_worker_analytics.py::test_analytics_report_lines)
         _ls = out3.splitlines()
         _l0 = (next(i for i, l in enumerate(_ls)
                     if "Generating model analytics report..." in l)
