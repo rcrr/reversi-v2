@@ -26,7 +26,6 @@ import tempfile
 import traceback
 from io import StringIO
 from pathlib import Path
-from types import SimpleNamespace
 
 import numpy as np
 
@@ -286,179 +285,34 @@ check("E8 rlm_02 optimization block",
       and '"checkpoint_file": "checkpoint_optimize.dat"' in j)
 
 # ---------------------------------------------------------------- F tier
-print("== tier F: checkpoint IO (no DB)")
-from twolm import binio
-from twolm.rlm_optimize import (save_optimization_checkpoint,
-                                load_optimization_checkpoint,
-                                weights_compute_sha3_256_hash)
-
-
-def f_main():
-    with tempfile.TemporaryDirectory(dir=ROOT / "build" / "tmp") as tmp:
-        p = Path(tmp) / "checkpoint_test.dat"
-        w = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-        sl = [np.array([0.01, 0.02, 0.03], dtype=np.float32)]
-        yl = [np.array([0.04, 0.05, 0.06], dtype=np.float32)]
-        rho = [1.5]
-        kw = dict(filepath=p, design_matrix_checksum="abc123",
-                  zed_checksum="xyz789", ridge_regularization=0.01,
-                  min_grad_value=1.e-05, max_iters=500, m=50,
-                  converged=True, reason="CONVERGED_MIN_GRAD",
-                  iters=42, f=0.123, g_norm=0.001,
-                  w=w, sl=sl, yl=yl, rho=rho)
-        save_optimization_checkpoint(**kw)
-
-        def f1():
-            cp = load_optimization_checkpoint(p)
-            assert cp["design_matrix_checksum"] == "abc123"
-            assert cp["zed_checksum"] == "xyz789"
-            assert cp["max_iters"] == 500 and cp["m"] == 50
-            assert cp["converged"] is True
-            assert cp["reason"] == "CONVERGED_MIN_GRAD" and cp["iters"] == 42
-            assert cp["w"].dtype == np.float32
-            assert cp["sl"][0].dtype == np.float32 and cp["yl"][0].dtype == np.float32
-            assert cp["rho"][0] == 1.5 and isinstance(cp["rho"][0], float)
-            np.testing.assert_array_equal(cp["w"], w)
-            np.testing.assert_array_equal(cp["sl"][0], sl[0])
-            np.testing.assert_array_equal(cp["yl"][0], yl[0])
-
-        def f2():
-            p2 = Path(tmp) / "empty.dat"
-            kw2 = dict(kw); kw2.update(filepath=p2, sl=[], yl=[], rho=[])
-            save_optimization_checkpoint(**kw2)
-            cp = load_optimization_checkpoint(p2)
-            assert cp["sl"] == [] and cp["yl"] == [] and cp["rho"] == []
-            np.testing.assert_array_equal(cp["w"], w)
-
-        def f3():
-            p3 = Path(tmp) / "wrong_desc.dat"
-            with binio.BinaryWriter(p3) as bw:
-                bw.write_header("Something Else", 1)
-            try:
-                load_optimization_checkpoint(p3)
-                raise AssertionError("no error raised")
-            except RuntimeError as exc:
-                assert "The file is not a proper optimization checkpoint. Found: Something Else" in str(exc), exc
-
-        def f4():
-            p4 = Path(tmp) / "wrong_version.dat"
-            with binio.BinaryWriter(p4) as bw:
-                bw.write_header("RGLM Optimization Checkpoint", 2)
-            try:
-                load_optimization_checkpoint(p4)
-                raise AssertionError("no error raised")
-            except RuntimeError as exc:
-                assert "Checkpoint version mismatch: found 2, expected 1" in str(exc), exc
-
-        def f5():
-            data = p.read_bytes()
-            h = hashlib.sha3_256(data).hexdigest()
-            assert h == "6e01ff8614e8732484b7af59b01615989357ce1af2419864621965af221bd280", h
-
-        def f6():
-            sc_path = p.parent / (p.name + ".SHA3-256")
-            assert sc_path.exists()
-            sc = sc_path.read_text().split()
-            assert sc[0] == "6e01ff8614e8732484b7af59b01615989357ce1af2419864621965af221bd280"
-            assert sc[1] == "checkpoint_test.dat"
-
-        def f7():
-            # R3 (D-096): the load path now verifies the sidecar
-            assert "verify_sha3_256_sidecar" in read("rlm_optimize.py")
-            assert binio.verify_sha3_256_sidecar(p) is True
-
-        def f8():
-            cp = load_optimization_checkpoint(p)
-            assert np.float32(cp["ridge_regularization"]) == np.float32(0.01)
-            assert abs(float(cp["f"]) - 0.123) < 1e-7
-
-        def f9():
-            # R3 (D-096): a corrupted content file is rejected at load
-            data = bytearray(p.read_bytes())
-            data[-1] ^= 0x01
-            p.write_bytes(bytes(data))
-            try:
-                load_optimization_checkpoint(p)
-                raise AssertionError("no error raised")
-            except RuntimeError as exc:
-                assert "Checkpoint checksum mismatch" in str(exc), exc
-
-        def f10():
-            # M6 (D-096): asymmetric history lengths fail fast
-            p10 = Path(tmp) / "bad_history.dat"
-            try:
-                save_optimization_checkpoint(
-                    filepath=p10,
-                    design_matrix_checksum="abc123", zed_checksum="xyz789",
-                    ridge_regularization=0.01, min_grad_value=1.e-05,
-                    max_iters=500, m=50, converged=False,
-                    reason="INCOMPLETE", iters=0, f=0.5, g_norm=0.25,
-                    w=w, sl=[w], yl=[], rho=[])
-                raise AssertionError("no error raised")
-            except ValueError as exc:
-                assert "same length" in str(exc), exc
-            assert not p10.exists(), "the file must not be created"
-
-        for name, fn in (("F1 round-trip + dtypes", f1),
-                         ("F2 empty-history round-trip", f2),
-                         ("F3 wrong description RuntimeError", f3),
-                         ("F4 wrong version RuntimeError", f4),
-                         ("F5 file golden hash", f5),
-                         ("F6 sidecar produced + matches", f6),
-                         ("F7 R3: load verifies the sidecar", f7),
-                         ("F8 f32 metadata round-trip", f8),
-                         ("F9 R3: corrupted content rejected", f9),
-                         ("F10 M6: asymmetric history fails fast", f10)):
-            try:
-                fn()
-                check(name, True)
-            except Exception as exc:
-                check(name, False, f"{exc!r}\n{traceback.format_exc()}")
-
-
-f_main()
+# (F1-F10 checkpoint IO (real files) deleted at D-106 step 3, class
+#  c: test_rlm_optimize.py::TestRLMOptimizeIO pins ALL of it with
+#  real files — test_store_and_load_cycle (the round-trip + dtypes +
+#  rho float, the f32 metadata), test_empty_history_roundtrip,
+#  test_wrong_description_raises, test_wrong_version_raises,
+#  test_file_golden_hash (the same 6e01ff86... literal),
+#  test_sidecar_produced_and_matches (existence + verify),
+#  test_checksum_mismatch_raises (R3: corrupted content rejected),
+#  test_history_length_mismatch_raises (M6: asymmetric history).
+#  The save_optimization_checkpoint / load_optimization_checkpoint /
+#  binio imports they used are removed with them.)
+# (weights_compute_sha3_256_hash is still imported for the G3 oracle
+#  check, which stays — in the G-tier import below.)
 
 # ---------------------------------------------------------------- G tier
 print("== tier G: helper functions (no DB)")
-from twolm.rlm_optimize import (optimization_info_dict,
-                                is_optimization_cache_consistent,
-                                is_optimization_status_converged)
+from twolm.rlm_optimize import weights_compute_sha3_256_hash
 
 
 def g_main():
-    def rec_log(events):
-        def log_event(level, msg):
-            events.append((level, msg))
-        return log_event
-
-    def make_ctx(ridge=0.01, min_grad=(1e-3, 3)):
-        events = []
-        return SimpleNamespace(
-            log_event=rec_log(events),
-            design_matrix_checksum="dm", zed_checksum="zed",
-            cfg=SimpleNamespace(stat_model=SimpleNamespace(ridge_regularization=ridge),
-                                optimization=SimpleNamespace(min_grad=min_grad)),
-            _events=events)
-
-    try:
-        info = optimization_info_dict({"converged": True, "reason": "X",
-                                       "iters": 7, "f": 0.5, "g_norm": 0.1,
-                                       "w": "extra", "sl": [1]})
-        assert info == {"converged": True, "reason": "X", "iters": 7,
-                        "f": 0.5, "g_norm": 0.1}, info
-        check("G1 info_dict filters to the 5 context keys", True)
-    except Exception as exc:
-        check("G1 info_dict filters to the 5 context keys", False, repr(exc))
-    try:
-        ok = True
-        try:
-            optimization_info_dict({"converged": True})
-            ok = False
-        except KeyError:
-            pass
-        check("G2 info_dict KeyError on missing key", ok)
-    except Exception as exc:
-        check("G2 info_dict KeyError on missing key", False, repr(exc))
+    # (G1/G2 info_dict branches, G4 cache_consistent 4 branches,
+    #  G5 status_converged 4 branches deleted at D-106 step 3, class
+    #  c: test_rlm_optimize.py pins all of it —
+    #  test_info_dict_filters_to_context_keys,
+    #  test_info_dict_missing_key_raises, the 4
+    #  TestRLMOptimizeCacheConsistency tests, the 4
+    #  TestRLMOptimizeStatusConverged tests. The rec_log / make_ctx
+    #  scaffolding was used only by G4/G5.)
     try:
         w = np.array([0.1, 0.2, 0.3], dtype=np.float32)
         h = weights_compute_sha3_256_hash(w)
@@ -467,50 +321,6 @@ def g_main():
         check("G3 weights hash golden + independent", True)
     except Exception as exc:
         check("G3 weights hash golden + independent", False, repr(exc))
-    try:
-        ctx = make_ctx()
-        base = {"design_matrix_checksum": "dm", "zed_checksum": "zed",
-                "ridge_regularization": 0.01}
-        assert is_optimization_cache_consistent(ctx, dict(base)) is True
-        assert [lvl.name for lvl, _ in ctx._events] == ["INFO"], ctx._events
-        ctx = make_ctx()
-        bad = dict(base); bad["design_matrix_checksum"] = "other"
-        assert is_optimization_cache_consistent(ctx, bad) is False
-        assert [lvl.name for lvl, _ in ctx._events] == ["WARN"] * 3, ctx._events
-        ctx = make_ctx()
-        bad = dict(base); bad["zed_checksum"] = "other"
-        assert is_optimization_cache_consistent(ctx, bad) is False
-        assert [lvl.name for lvl, _ in ctx._events] == ["WARN"] * 3, ctx._events
-        ctx = make_ctx()
-        bad = dict(base); bad["ridge_regularization"] = 0.02
-        assert is_optimization_cache_consistent(ctx, bad) is False
-        assert [lvl.name for lvl, _ in ctx._events] == ["WARN"] * 3, ctx._events
-        check("G4 cache_consistent 4 branches (incl. R1 ridge) + log pattern", True)
-    except Exception as exc:
-        check("G4 cache_consistent 4 branches (incl. R1 ridge) + log pattern",
-              False, f"{exc!r}\n{traceback.format_exc()}")
-    try:
-        ctx = make_ctx(ridge=0.01, min_grad=(1e-3, 3))
-        assert is_optimization_status_converged(
-            ctx, {"ridge_regularization": 0.01, "min_grad_value": 1e-3,
-                  "g_norm": 1e-4}) is True
-        assert is_optimization_status_converged(
-            ctx, {"ridge_regularization": 0.01, "min_grad_value": 1e-3,
-                  "g_norm": 0.5}) is False
-        # f32 round-trip does not break the comparison
-        assert is_optimization_status_converged(
-            ctx, {"ridge_regularization": np.float32(0.01),
-                  "min_grad_value": np.float32(1e-3),
-                  "g_norm": np.float32(1e-4)}) is True
-        # tolerance change: judged against the NEW min_grad (M3 semantics)
-        ctx2 = make_ctx(ridge=0.01, min_grad=(1e-2, 3))
-        assert is_optimization_status_converged(
-            ctx2, {"ridge_regularization": 0.01, "min_grad_value": 1e-3,
-                   "g_norm": 5e-3}) is True
-        check("G5 status_converged 4 branches (judged on the new tolerance)", True)
-    except Exception as exc:
-        check("G5 status_converged 4 branches (judged on the new tolerance)",
-              False, f"{exc!r}\n{traceback.format_exc()}")
 
 
 g_main()
@@ -519,6 +329,8 @@ g_main()
 print("== tier H: live pipeline through OPTIMIZE (DB required)")
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.rlm_optimize import (load_optimization_checkpoint,
+                                save_optimization_checkpoint)
 
 
 def h_main():
