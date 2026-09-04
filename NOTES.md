@@ -56,12 +56,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 (test_logistic_model.py)
  | docs/src/twolm/logistic_model.md |
 | src/twolm/test/test_logistic_model.py | analyzed 2026-08-30 (session 21): 1 class / 15 methods post D-076 (14 active + 1 muted per Roberto — restored line-by-line with the pipeline; D-076: Roberto restored test_move_to_step_delegates_to_state_machine, the CONFIG level now exists; `_test_move_to_step_by_string` restored session 28 (887880e, the D-073/D-075 T3 plan executed — all 15 methods active, 0 muted); D-075 test campaign: T1 FIXED (smoke test replaced by per-method delegation pins + views/verbosity round-trip), T2 FIXED (build/tmp artifact base, D-065 idiom, defensive tearDown), T3 intentional (muted tests), T4 FIXED (7 corner tests — injected-closure names/fallback/path computation, sentinel RuntimeErrors, helper edge branches, CSV pass-through), T5 FIXED (dead Relevance import removed), T6 report-only; suite 15/0/0 GREEN (15 active, 0 muted — session 28 restore); D-085: CUSTOM_TMP_BASE now imported from the shared twolm.test.paths module | docs/src/twolm/test/test_logistic_model.md |
-| src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto's calls): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 precise OS exception types, R3 fixed) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4), via the injected full-path closure); 35-check probe, 0 mismatches (re-run post D-078); D-076 fixed its cache naming + the SM gate split it exposed; D-078: R2 RESOLVED AT MACHINE LEVEL (closure concatenates the prefix verbatim — replaces the D-069 M8 join; the worker's per-worker concatenation replaced by the full-path closure), R3 precise OS types (FileNotFoundError/NotADirectoryError/PermissionError, messages unchanged), M1-M5 fixed (M5 keep per R1); R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays until the full pipeline is complete (I-011 "storicizzazione"); suite 14/0/0 GREEN (test_lm_worker_config.py) | docs/src/twolm/lm_worker_config.md |
-| src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto: "T1-T6: OK"): 4 classes / 14 tests / no PERF (Roberto's new file); D-076: 2 path typos py/→src/ + schema-complete validation payload; D-078: T1 FIXED (D-065 idiom on all 4 classes; dead shutil import removed; a stray per-test mkdtemp in the a-file test removed — it leaked dirs), T2 FIXED (ValueError — json5 0.15.0 raises a plain ValueError, no JSON5Exception in this version), T3 FIXED (_down reset pinned: cfg/use_cache None), T4 FIXED (bare-hex sidecar format pinned); the not-writable test updated to PermissionError (R3); T5/T6 report-only; suite 14/0/0 GREEN; D-085: the idiom + both json_config lines re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_config.md |
+| src/twolm/lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto's calls): CONFIG worker — JSON5 load → ReversiLogisticModelConfig → base_dir validation (3 precise OS exception types, R3 fixed) → flat checksummed cache write (rlmwf_01_CONFIG.dat + bare-hex .SHA3-256 sidecar of model_dump_json(indent=4), via the injected full-path closure); 25-check probe, 0 mismatches (post step-3 c-deletions); D-076 fixed its cache naming + the SM gate split it exposed; D-078: R2 RESOLVED AT MACHINE LEVEL (closure concatenates the prefix verbatim — replaces the D-069 M8 join; the worker's per-worker concatenation replaced by the full-path closure), R3 precise OS types (FileNotFoundError/NotADirectoryError/PermissionError, messages unchanged), M1-M5 fixed (M5 keep per R1); R1 RESOLVED AS DEFERRED — the ad-hoc cache flow stays until the full pipeline is complete (I-011 "storicizzazione"); suite 15/0/0 GREEN (test_lm_worker_config.py, post the step-3 D1 move) | docs/src/twolm/lm_worker_config.md |
+| src/twolm/test/test_lm_worker_config.py | analyzed 2026-08-30 (session 21, D-077) + fix campaign D-078 (Roberto: "T1-T6: OK"): 4 classes / 15 tests / no PERF (Roberto's new file; D1 moved in at step 3); D-076: 2 path typos py/→src/ + schema-complete validation payload; D-078: T1 FIXED (D-065 idiom on all 4 classes; dead shutil import removed; a stray per-test mkdtemp in the a-file test removed — it leaked dirs), T2 FIXED (ValueError — json5 0.15.0 raises a plain ValueError, no JSON5Exception in this version), T3 FIXED (_down reset pinned: cfg/use_cache None), T4 FIXED (bare-hex sidecar format pinned); the not-writable test updated to PermissionError (R3); T5/T6 report-only; suite 15/0/0 GREEN; D-085: the idiom + both json_config lines re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_config.md |
 | src/twolm/test/data/rlm_00.json | test data (session 21, Roberto): JSON5 config fixture (comment header — json5 load-bearing, D-076; base_dir placeholder "will/be/overwritten/by/python/during/unittesting", use_cache True, cache_files_prefix rlmwf_) | — |
 | src/twolm/lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): the first cache_manager consumer in the pipeline — 4-step load-or-compute over the regab data set (binio-format sidecar + duck-typed data checksum rds.compute_sha3_256_hash) + post-processing (positions / game_values / rds_checksum / training_pop_stats on the context) + is_cache_consistent (pure metadata compare); enabled line-by-line 601de87 (CREATED → CONFIG → POSITIONS); 13 verified facts V1-V13 (49-check probe, 0 mismatches): flat rlmwf_02_POSITIONS.dat (D-078 machine-level fix re-verified — the latent rlmwf_/ subdirectory trap gone), cross-run cache round-trip identity, D-071 R1 cache-warming visible in a domain worker, corruption / business-inconsistency → delete + recompute, is_allowed=ctx.use_cache consumed; D-080 fix campaign (Roberto: "correggile tutte"): R1 FIXED (5-arg connection call — port + password now take effect, DEBUG log includes the port never the password), M1-M4 FIXED (@validate_call factory, dead pathlib import, flagged trailing whitespace, load_fn checksum=False), cross-ref note RESOLVED (regab_store docstring + regab.md row — the sidecar is cache_manager's, D-072); probe re-pinned (51 checks, 0 mismatches); suite 2/0/0 GREEN (test_lm_worker_positions.py, 2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_positions.md |
 | src/twolm/test/test_lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): Roberto's file, copied from the original repo with the POSITIONS enablement (601de87, line-by-line step 1); 1 class / 2 tests / no PERF; end-to-end cache round-trip pin (DB hit + flat files; second instance cache hit + no DB), stdout captured via patched StringIO; green on first run, no fixes; D-080 (Roberto: "fai tutto anche qui"): T1-T4 FIXED (D-065 idiom, SKIP_REGAB_DB gate, dead if-False blocks + sys import removed, header grammar) — test campaign CLOSED; suite 2/0/0 GREEN (2 DB-gated, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_positions.md |
-| src/twolm/rlm_config_schemas.py | analyzed 2026-08-30 (session 22, D-079): the pydantic config domain — ReversiLogisticModelConfig (10 fields, JSON5 entry point) over the nested tree, all RLMBaseConfig (free-form properties bag) except StatModelConfig; Bitboard hex fields (16-hex no-0x parse, uppercase 16-hex serializer); 12 verified facts V1-V12 (probe E, 0 mismatches); D-080: R1 FIXED (c2>c1 cross-field model_validator — the strong-Wolfe invariant enforced), M1-M4 FIXED (hex docstring example, model_validator import now load-bearing, strict List[StatusString] + StatModelConfig → RLMBaseConfig, default_factory lists); no dedicated suite (covered by test_lm_worker_config validation class + the D-079 probe E, re-pinned D-080) | docs/src/twolm/rlm_config_schemas.md |
+| src/twolm/rlm_config_schemas.py | analyzed 2026-08-30 (session 22, D-079): the pydantic config domain — ReversiLogisticModelConfig (10 fields, JSON5 entry point) over the nested tree, all RLMBaseConfig (free-form properties bag) except StatModelConfig; Bitboard hex fields (16-hex no-0x parse, uppercase 16-hex serializer); 12 verified facts V1-V12 (probe E, 0 mismatches); D-080: R1 FIXED (c2>c1 cross-field model_validator — the strong-Wolfe invariant enforced), M1-M4 FIXED (hex docstring example, model_validator import now load-bearing, strict List[StatusString] + StatModelConfig → RLMBaseConfig, default_factory lists); no dedicated suite pre step 3 — since then test_rlm_config_schemas.py 13/0/0 (the E-section §4 conversion); 25-check probe 0 mismatches | docs/src/twolm/rlm_config_schemas.md |
 | src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): R1 + M1-M3 FIXED (amask log, @validate_call factory, whitespace, orphan comment removed) — module CLOSED; 44-check probe 0 mismatches; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_features.md |
 | src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test at analysis; green on first run with the live DB; D-082 (Roberto: T1-T4 + M2 OK + his own proposal for the golden content test): T1-T4 + M2 FIXED (D-065 idiom, SKIP_REGAB_DB gate, Path import now load-bearing, header grammar, whitespace), M1 LEFT AS-IS (recorded at I-012 — evaluate moving FEATURES before POSITIONS), test_feature_set_content_golden ADDED (3 hash literals + full content pin) — test campaign CLOSED; 1 → 2 tests; suite 2/0/0 GREEN (2 DB-gated, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_features.md |
 | src/twolm/rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement, 5th active level): the 5th-level data object (2-D uint32 index matrix + rds_checksum + feature_set_hash, by-reference storage) + the 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash (the cache_manager 3rd-return-element hook); the SECOND cache_manager consumer in the pipeline after POSITIONS; 12 verified facts V1-V12 (probe re-pinned D-084: 56 checks, 0 mismatches); D-084 (Roberto: "Sì fai tutto"): R1 + M1-M4 + M6 FIXED (store docstring corrected — the sidecar is cache_manager's, D-072; 5 dead imports removed, "togheter" typo, 4 trailing-whitespace lines, version gate via expected_version, __repr__ added), M5 left as-is (by design — documented circular-import constraint); 5 @validate_call decorators (the 5th is __repr__); file 180 → 190 lines; module CLOSED; suite 14/0/0 GREEN (test_rlm_indexes.py) | docs/src/twolm/rlm_indexes.md |
@@ -668,7 +668,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   PermissionError, messages unchanged), M1-M5 fixed (M5 keep per
   R1), T1-T4 fixed in the test file
   (docs/src/twolm/lm_worker_config.md). Campaign CLOSED — only
-  the R1 full-pipeline revisit remains.
+  the R1 full-pipeline revisit remains. MIGRATED at D-106 step 8
+  (CONFIG batch #1): 113-line mirror, 13 pinned invariants (the
+  25-check probe — post step-3 c-deletions — + the 15-test suite
+  — post the D1 move), R1 stays the open issue (I-011).
 - lm_worker_positions.py: brought in with the batch (6bb45fb);
   D-074 cross-reference change (call-site rename, part of
   logistic_model R1); the D-077 latent (L58-59 full-path closure
@@ -727,7 +730,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   model_validator import became load-bearing), M1-M4 FIXED (hex
   docstring example corrected, strict List[StatusString]
   validation status + StatModelConfig → RLMBaseConfig,
-  default_factory lists) — module CLOSED.
+  default_factory lists) — module CLOSED. MIGRATED at D-106
+  step 8 (CONFIG batch #1): 115-line mirror; the V1-V12 facts
+  now pinned in the dedicated test_rlm_config_schemas.py suite
+  (13/0/0, created at step 3 as the E-section §4 conversion) —
+  the old "no dedicated suite" note is superseded.
 - lm_worker_features.py: brought in + enabled by Roberto in
   f051dd3 (the line-by-line step 4 — the pipeline now runs 4
   active levels); analyzed 2026-08-31 (session 22, D-081,
@@ -1925,8 +1932,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 - OPEN (method, session 30 — the notes/docs hygiene migration,
   D-106): NEXT ACTION: the docs/ rewrite one file at a time
   (docs_rules §8; board.md + pattern.md + logistic_model.md +
-  state_machine.md DONE at steps 4-7 — next: the B batches; 66
-  docs / ~804 KB remain).
+  state_machine.md at steps 4-7, B batch #1 = the CONFIG family
+  at step 8 — next: the remaining B batches; 63 docs / ~804 KB
+  remain; GAP: test_rlm_config_schemas.py has no mirror doc —
+  the batch-1 approval covered its 3 existing docs, the missing
+  one needs a ruling).
 
 ## Index
 
@@ -2022,17 +2032,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   T5 fixed — delegation pins, build/tmp base, 7 corner tests, dead
   import removed; T3 intentional, T6 report-only — test campaign
   CLOSED)
-- docs/src/twolm/lm_worker_config.md — lm_worker_config.py
-  analysis + D-076/D-077/D-078 (CONFIG worker: JSON5 load →
-  pydantic → flat checksummed cache rlmwf_01_CONFIG.dat; 35-check
-  probe 0 mismatches; D-078: R2 machine-level prefix fix, R3
-  precise OS types, M1-M5 fixed, R1 deferred to the full-pipeline
-  review — I-011)
+- docs/src/twolm/lm_worker_config.md — lm_worker_config.py mirror
+  (MIGRATED at D-106 step 8, CONFIG batch #1: 2-name API table,
+  the _up flow + the 3 precise-OS-type base_dir gates + the
+  load-or-store cache flow, invariants pinned to the 25-check
+  probe + the 15-test suite, R1 deferred open (I-011); the
+  verbatim session-21 review in
+  notes/analyses/lm_worker_config_session21_review.md)
 - docs/src/twolm/test/test_lm_worker_config.md —
-  test_lm_worker_config.py analysis + D-077/D-078 (4 classes / 14
-  tests; D-076 path typos + schema-complete payload; D-078 T1-T4
-  FIXED — D-065 idiom, ValueError pin, _down reset, bare-hex
-  sidecar; T5/T6 report-only)
+  test_lm_worker_config.py mirror (MIGRATED at D-106 step 8,
+  CONFIG batch #1: the 4-class coverage map, the goldens — bare-
+  hex sidecar, flat path, the gate messages, the properties-bag
+  values; the verbatim session-21 review in
+  notes/analyses/test_lm_worker_config_session21_review.md)
 - docs/src/twolm/lm_worker_positions.md — lm_worker_positions.py
   analysis + D-079/D-080 (first cache_manager consumer in the
   pipeline: 4-step load-or-compute over the regab data set +
@@ -2040,11 +2052,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   FIXED D-080 + cross-ref note resolved; suite 2/0/0 GREEN via
   test_lm_worker_positions)
 - docs/src/twolm/rlm_config_schemas.md — rlm_config_schemas.py
-  analysis + D-079/D-080 (pydantic config domain:
-  ReversiLogisticModelConfig over the nested RLMBaseConfig tree,
-  Bitboard hex fields; 12 verified facts V1-V12; R1 + M1-M4
-  FIXED D-080 — c2>c1 validator, strict status, RLMBaseConfig;
-  no dedicated suite)
+  mirror (MIGRATED at D-106 step 8, CONFIG batch #1: the 14-name
+  API table, the bitboard mask pair + the strong-Wolfe validator +
+  the strictness rules, 13 invariants pinned to
+  test_rlm_config_schemas.py — the step-3 E-section conversion;
+  the verbatim session-22 review in
+  notes/analyses/rlm_config_schemas_session22_review.md)
 - docs/src/twolm/test/test_lm_worker_positions.md —
   test_lm_worker_positions.py analysis + D-079/D-080 (1 class /
   2 tests; the end-to-end cache round-trip pin; T1-T4 FIXED
@@ -2289,7 +2302,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   classification.md) + the extracted verbatim reviews
   (board_session1_review.md at step 4, pattern_session4_review.md
   at step 5, logistic_model_session21_review.md +
-  state_machine_session19_review.md at steps 6-7)
+  state_machine_session19_review.md at steps 6-7, the CONFIG
+  batch #1 trio at step 8: lm_worker_config_session21_review.md,
+  rlm_config_schemas_session22_review.md,
+  test_lm_worker_config_session21_review.md)
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the
