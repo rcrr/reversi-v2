@@ -33,8 +33,8 @@ now (I-001; see notes/decisions.md).
 | src/twolm/test/test_pattern.py | analyzed 2026-08-27 (session 8): 12 classes / 50 tests / 3 PERF; 21/21 goldens independently re-derived (0 mismatches); 16 defects T1-T16 + T17 (sqa8/sqh1 fixtures swapped names/values) documented; fix campaign CLOSED: P0 (D-026-028, 6da0803) + P1 (D-029/030/031: row independence both public indexing APIs + EDGE 6561-entry dict pin) + P2 hygiene (D-033: T1-T7, T15-T16; T19 found + fixed in T2) + P2 breadth (D-034: T11-T14 + T17); T18 noted-only, M1 deferred; suite 64/0/3 GREEN | docs/src/twolm/test/test_pattern.md |
 | src/twolm/mobility.py | analyzed 2026-08-28 (session 10): Mobility/MobilitySet + popcount64 SWAR + Numba kernel; index formula + n_configurations (distinct index values) + sorted-order columns + hash verified vs independent ground truth (V1-V8, 200-position differential, popcount on 200,010 values); R1-R6 fix batch applied (D-035: docstrings + column-order contract + popcount64 test-helper + dead imports + property/repr alignment + n_instances as-is), no behavior change; M1-M5 disposed (D-036: M1 glossary shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any suite); suite 26/0/1 GREEN (test_mobility.py) | docs/src/twolm/mobility.md |
 | src/twolm/test/test_mobility.py | analyzed 2026-08-28 (session 10): 2 classes / 23 tests / 1 PERF; 13 verified facts V1-V13 (0 mismatches, incl. 31-line popcount table and [53,13,66] golden); 9 defects T1-T9 documented; fix campaign CLOSED the same day (D-037: T1-T9, per-item approvals, single batch commit — P0 __repr__ goldens, P1 multi-position row independence, P2 hygiene/breadth incl. pinned hash literal 2e553593...208a94); suite 23 → 26, GREEN 26/0/1 | docs/src/twolm/test/test_mobility.md |
-| src/twolm/feature.py | analyzed 2026-08-28 (session 11): Feature (blocked __new__ + 3 factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 20/0/1 GREEN (test_feature.py, 19 run + 1 PERF) | docs/src/twolm/feature.md |
-| src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 11): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); T campaign CLOSED 2026-08-29 (D-043..D-050: T6, T1, T2, T3, T5, T7, T9, T4 — both files; T8 left as-is); suite 20 tests (19 run + 1 PERF), GREEN 20/0/1 | docs/src/twolm/test/test_feature.md |
+| src/twolm/feature.py | analyzed 2026-08-28 (session 11): Feature (blocked __new__ + 3 factories) + FeatureSet (intercept/mset/pset composition, sorted-order features, hash over child hash hex strings); all goldens re-derived independently (V1-V8, zero mismatches: 3x10 index matrix, 13 orbit sizes, 3 pinned hashes); R1-R4 fix batch applied (D-038: sha3_256 doc fix + column-layout contract + __init__ docstring + dead imports); M1 applied (D-039), M2 applied (D-040), M3 left as-is (D-041, follow-up I-007), M4 applied (D-042) — all disposed; suite 19/0/1 (19 run + 1 PERF skip); D-106 step-10 re-read: NEW OPEN R1 (the BeforeValidator import never referenced — the dtype check rides on the imported IndexArray alias, pattern.py L74; dead since b51bea6, R4/D-038 removed only the typing imports) — REPORTED | docs/src/twolm/feature.md |
+| src/twolm/test/test_feature.py | analyzed 2026-08-28 (session 11): 4 classes / 14 tests / 1 PERF; 9 verified facts W1-W9 (0 mismatches, incl. 3x10 matrix and f5663932 hash literal); 9 defects T1-T9 documented (dead if-False block w/ never-imported position_print, 6 dead imports, header grammar + "environmeant" typo, no names-order assert, partial-None FeatureSet untested, Feature repr/eq untested, cosmetic import-time spaces, no full print_summary golden); T campaign CLOSED 2026-08-29 (D-043..D-050: T6, T1, T2, T3, T5, T7, T9, T4 — both files; T8 left as-is); suite 19/0/1 (19 run + 1 PERF skip; the file is unchanged since a5db33b) | docs/src/twolm/test/test_feature.md |
 | src/twolm/binio.py | analyzed 2026-08-29 (session 14); T1-T4 fix batch applied (D-051: lz4 in pyproject.toml, dead Path import removed, "Aauthor" → "Author", test_unknown_type_code_raises added); 15 verified facts V1-V15 (0 mismatches); D-095 (2026-09-01, session 25, Roberto: "procedi!"): the empty-sidecar-suffix guard — with `suffix=""` the sidecar path BE the content file, which both write paths truncated and overwrote (data loss, empirically confirmed pre-fix; verify raised a confusing BinaryFormatError); all 3 sidecar entry points now raise ValueError (the writer fails fast in __init__ before the file is opened — the empty suffix has no legitimate use, checksum=False is the no-sidecar knob); docstrings updated; 16 verified facts V1-V16 (V16 the guard + the pre-fix clobbering); suite 48/0/0 GREEN (test_binio 45 + test_usage_binio 3) | docs/src/twolm/binio.md |
 | src/twolm/test/test_binio.py | analyzed 2026-08-29 (session 14, with test_usage_binio.py); T4 applied (D-051): ArrayTest now 8 tests (42 total in test_binio); D-095: 3 empty-suffix guard tests added (Sha3_256SidecarTest: write raises + content intact, verify raises; AutoChecksumTest: constructor raises before the file is opened — the file must not exist); suite 45 → 48, GREEN 48/0/0, no PERF | docs/src/twolm/test/test_binio.md |
 | src/twolm/regab.py | analyzed 2026-08-29 (session 15); T1-T7 fix batch applied (D-052: "Aauthor" → "Author", dead typing imports, psycopg2/pandas/python-dotenv in pyproject.toml, _validate_db_fields DB query deferred, SKIP_REGAB_DB=1 gate, _validate_where_clause SQL-injection guard); 5 verified facts V1-V5 (0 mismatches, sha3_256 golden); suite 37/0/0 GREEN (35 DB + 2 mocked; SKIP_REGAB_DB=1 → 35 skip) | docs/src/twolm/regab.md |
@@ -62,8 +62,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 | src/twolm/lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): the first cache_manager consumer in the pipeline — 4-step load-or-compute over the regab data set (binio-format sidecar + duck-typed data checksum rds.compute_sha3_256_hash) + post-processing (positions / game_values / rds_checksum / training_pop_stats on the context) + is_cache_consistent (pure metadata compare); enabled line-by-line 601de87 (CREATED → CONFIG → POSITIONS); 13 verified facts V1-V13 (21-check probe post step 3, 0 mismatches): flat rlmwf_02_POSITIONS.dat (D-078 machine-level fix re-verified — the latent rlmwf_/ subdirectory trap gone), cross-run cache round-trip identity, D-071 R1 cache-warming visible in a domain worker, corruption / business-inconsistency → delete + recompute, is_allowed=ctx.use_cache consumed; D-080 fix campaign (Roberto: "correggile tutte"): R1 FIXED (5-arg connection call — port + password now take effect, DEBUG log includes the port never the password), M1-M4 FIXED (@validate_call factory, dead pathlib import, flagged trailing whitespace, load_fn checksum=False), cross-ref note RESOLVED (regab_store docstring + regab.md row — the sidecar is cache_manager's, D-072); probe post step 3 (21 checks, 0 mismatches — c groups dropped, D4/E -> tests); suite 9/0/0 GREEN (test_lm_worker_positions.py: 2 DB-gated end-to-end + 7 in-memory is_cache_consistent units, run with live DB) | docs/src/twolm/lm_worker_positions.md |
 | src/twolm/test/test_lm_worker_positions.py | analyzed 2026-08-30 (session 22, D-079): Roberto's file, copied from the original repo with the POSITIONS enablement (601de87, line-by-line step 1); 2 classes / 9 tests / no PERF (post step 3: the D4a-g probe units moved in as TestIsCacheConsistent — 7 in-memory, no DB); end-to-end cache round-trip pin (DB hit + flat files; second instance cache hit + no DB), stdout captured via patched StringIO; green on first run, no fixes; D-080 (Roberto: "fai tutto anche qui"): T1-T4 FIXED (D-065 idiom, SKIP_REGAB_DB gate, dead if-False blocks + sys import removed, header grammar) — test campaign CLOSED; suite 9/0/0 GREEN (2 DB-gated + 7 in-memory, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_positions.md |
 | src/twolm/rlm_config_schemas.py | analyzed 2026-08-30 (session 22, D-079): the pydantic config domain — ReversiLogisticModelConfig (10 fields, JSON5 entry point) over the nested tree, all RLMBaseConfig (free-form properties bag) except StatModelConfig; Bitboard hex fields (16-hex no-0x parse, uppercase 16-hex serializer); 12 verified facts V1-V12 (probe E, 0 mismatches); D-080: R1 FIXED (c2>c1 cross-field model_validator — the strong-Wolfe invariant enforced), M1-M4 FIXED (hex docstring example, model_validator import now load-bearing, strict List[StatusString] + StatModelConfig → RLMBaseConfig, default_factory lists); no dedicated suite pre step 3 — since then test_rlm_config_schemas.py 13/0/0 (the E-section §4 conversion); 25-check probe 0 mismatches | docs/src/twolm/rlm_config_schemas.md |
-| src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): R1 + M1-M3 FIXED (amask log, @validate_call factory, whitespace, orphan comment removed) — module CLOSED; 44-check probe 0 mismatches; suite 2/0/0 GREEN (2 DB-gated, run with live DB) | docs/src/twolm/lm_worker_features.md |
-| src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test at analysis; green on first run with the live DB; D-082 (Roberto: T1-T4 + M2 OK + his own proposal for the golden content test): T1-T4 + M2 FIXED (D-065 idiom, SKIP_REGAB_DB gate, Path import now load-bearing, header grammar, whitespace), M1 LEFT AS-IS (recorded at I-012 — evaluate moving FEATURES before POSITIONS), test_feature_set_content_golden ADDED (3 hash literals + full content pin) — test campaign CLOSED; 1 → 2 tests; suite 2/0/0 GREEN (2 DB-gated, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_features.md |
+| src/twolm/lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081); enabled in f051dd3 (Roberto) — the pipeline now runs 4 active levels (CREATED → CONFIG → POSITIONS → FEATURES); the FIRST pure-compute level (no DB, no cache_manager, no cache file, no features_checksum field); 13 verified facts V1-V13 (42-check probe, 0 mismatches): feature order [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE], 6 features / 16 n_instances, hash re-derived independently, zero-feature guard, cross-run identity; D-082 (Roberto: R1 "ok, fissa il bug", M1-M3 OK): R1 + M1-M3 FIXED (amask log, @validate_call factory, whitespace, orphan comment removed) — module CLOSED; probe post step 3 (b05adfd): 40 checks (B11 → test), 0 mismatches; suite 3/0/0 (2 DB-gated + 1 DB-free zero-feature guard, run with live DB) | docs/src/twolm/lm_worker_features.md |
+| src/twolm/test/test_lm_worker_features.py | analyzed 2026-08-31 (session 22, D-081): Roberto's file, brought in with the FEATURES enablement (f051dd3); 1 class / 1 test at analysis; green on first run with the live DB; D-082 (Roberto: T1-T4 + M2 OK + his own proposal for the golden content test): T1-T4 + M2 FIXED (D-065 idiom, SKIP_REGAB_DB gate, Path import now load-bearing, header grammar, whitespace), M1 LEFT AS-IS (recorded at I-012 — evaluate moving FEATURES before POSITIONS), test_feature_set_content_golden ADDED (3 hash literals + full content pin) — test campaign CLOSED; 1 → 2 tests; post step 3 (b05adfd): 2 classes / 3 tests (the B11 zero-feature guard converted to a DB-free test); suite 3/0/0 (2 DB-gated + 1 DB-free, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT) | docs/src/twolm/test/test_lm_worker_features.md |
 | src/twolm/rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement, 5th active level): the 5th-level data object (2-D uint32 index matrix + rds_checksum + feature_set_hash, by-reference storage) + the 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash (the cache_manager 3rd-return-element hook); the SECOND cache_manager consumer in the pipeline after POSITIONS; 12 verified facts V1-V12 (probe re-pinned D-084: 56 checks, 0 mismatches); D-084 (Roberto: "Sì fai tutto"): R1 + M1-M4 + M6 FIXED (store docstring corrected — the sidecar is cache_manager's, D-072; 5 dead imports removed, "togheter" typo, 4 trailing-whitespace lines, version gate via expected_version, __repr__ added), M5 left as-is (by design — documented circular-import constraint); 5 @validate_call decorators (the 5th is __repr__); file 180 → 190 lines; module CLOSED; suite 14/0/0 GREEN (test_rlm_indexes.py) | docs/src/twolm/rlm_indexes.md |
 | src/twolm/lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); brought in with a323e0f (Roberto — the INDEXES line-by-line enablement): the cache-consuming level — the uniform 7-kwargs cache_manager wiring (the injected full-path closure — flat rlmwf_04_INDEXES.dat, the D-078 machine-level naming — use_cache, the 5 rlm_indexes fns, the metadata-compare validate_fn); _down clears BOTH context attributes; 8 verified facts V1-V8 (probe re-pinned D-084: 56 checks, 0 mismatches): flat cache files (no rlmwf_03_FEATURES*), data vs file checksum distinction, (N, 16) uint32 identity, cross-run round-trip, the _down clearing; D-084 (Roberto: "Sì fai tutto"): M1-M3 FIXED (@validate_call on the factory + pydantic import — the D-080/D-082 pattern, 2 trailing-whitespace lines, load_fn → lambda path: ...(path, checksum=False) — the D-080 M4 shape); file 77 → 80 lines; module CLOSED; suite 2/0/0 GREEN (test_lm_worker_indexes.py, 2 DB-gated post D-084 T2) | docs/src/twolm/lm_worker_indexes.md |
 | src/twolm/test/test_rlm_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 5 classes / 14 tests / no PERF (13 at analysis + the rds-only-differs test added D-084 M2); all file I/O mocked (binio patched), no temp dirs, no DB; the store/load contract fully pinned (exact 4-call sequence, both checksum flags, all 3 RuntimeError messages, the by-reference init); D-084 (Roberto: "Sì fai tutto"): T1-T5 + M1-M2 FIXED (dead IndexArray import removed, header grammar, the 2 broad assertRaises(Exception) → the precise pydantic ValidationError, rds_checksum added to test_init_fails_with_invalid_indexes_type — the invalid indexes is now the thing under test, Italian comment → English, 19 trailing-whitespace lines, the rds-only is_cache_consistent branch now unit-tested); file 287 → 304 lines; test campaign CLOSED; suite 14/0/0 GREEN | docs/src/twolm/test/test_rlm_indexes.md |
@@ -300,12 +300,20 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   All goldens re-derived independently (V1-V8, zero mismatches: 3x10
   matrix, 13 orbit sizes, 3 pinned hashes). R1-R4 (D-038) + M1-M4
   (D-039..D-042; M3 left as-is → I-007) — all disposed.
+  MIGRATED at D-106 step 10 (FEATURES batch): 107-line mirror; the
+  re-read surfaced NEW OPEN R1 (the BeforeValidator import is
+  never referenced — the dtype check rides on the imported
+  IndexArray alias, pattern.py L74; dead since b51bea6, R4/D-038
+  removed only the typing imports; the old doc L144
+  misattributed it) — REPORTED, awaiting Roberto's call.
 - test_feature.py: analyzed 2026-08-28 (session 11,
   docs/src/twolm/test/test_feature.md): 4 classes / 14 tests / 1
   PERF; 9 verified facts W1-W9 (0 mismatches); 9 defects T1-T9. T
   campaign CLOSED 2026-08-29 (D-043..D-050: T6, T1, T2, T3, T5, T7,
   T9, T4 — both files; T8 left as-is). Final suite 20 tests (19 run
-  + 1 PERF), GREEN 20/0/1. FEATURE module fully done.
+  + 1 PERF), GREEN 19/0/1. FEATURE module fully done. MIGRATED at
+  D-106 step 10 (FEATURES batch): the file is UNCHANGED since D-050
+  (a5db33b) — the old doc was already current with it.
 - binio.py: analyzed 2026-08-29 (session 14,
   docs/src/twolm/binio.md) — BinaryWriter/BinaryReader with MAGIC
   framing + SHA3-256 sidecar + optional LZ4 whole-file compression.
@@ -774,7 +782,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   factory (L121) + pydantic import, the 2 flagged lines cleaned
   (license-header whitespace stays, D-078 M3 scope), the orphan
   comment removed — module CLOSED (file 123 → 125 lines; probe
-  re-pinned to 44 checks, 0 mismatches).
+  re-pinned to 44 checks, 0 mismatches). MIGRATED at D-106 step 10
+  (FEATURES batch): 119-line mirror; post step 3 (b05adfd) the
+  probe is 40 checks (B11 → test) and the suite 3/0/0 (2 DB-gated
+  + the new DB-free zero-feature guard class).
 - test_lm_worker_features.py: Roberto's file, copied from the
   original repo with the FEATURES enablement (f051dd3; suite
   498 → 499); analyzed 2026-08-31 (session 22, D-081,
@@ -812,7 +823,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   3 mobilities sorted (mask, amask) [ALMC, LMC, DLMC], the 2
   patterns sorted mask [EDGE, ELLE], the feature order + counts
   (6 features, n_instances 16) — test campaign CLOSED (file 97
-  → 169 lines, 1 → 2 tests).
+  → 169 lines, 1 → 2 tests). MIGRATED at D-106 step 10 (FEATURES
+  batch); post step 3 (b05adfd) the file is 2 classes / 3 tests
+  (206 lines): TestLMWorkerFeaturesGuards.test_zero_features_
+  raises_value_error, converted from the B11 probe — DB-free.
 - rlm_indexes.py: brought in by Roberto in a323e0f (the
   INDEXES line-by-line step 5 — the pipeline now runs 5 active
   levels; the only other lines the commit touched were the
@@ -1939,9 +1953,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (docs_rules §8; board/pattern/logistic_model/state_machine at
   steps 4-7, B batch #1 = CONFIG at step 8 + the new
   test_rlm_config_schemas.md mirror at 8b, B batch #2 = POSITIONS
-  at step 9 — next: B batch #3 = the FEATURES family (feature,
-  lm_worker_features + their 2 test docs); 61 docs / ~804 KB
-  remain).
+  at step 9, B batch #3 = the FEATURES family at step 10 — next:
+  B batch #4 = the INDEXES family (lm_worker_indexes, rlm_indexes
+  + their 2 test docs); 57 docs / ~804 KB remain; OPEN R1 in the
+  new feature.md — the unused BeforeValidator import, awaiting
+  Roberto's call).
 
 ## Index
 
@@ -1967,14 +1983,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 - docs/src/twolm/test/test_mobility.md — test_mobility.py analysis
   (coverage by area, 13 verified facts, defects T1-T9, completeness
   verdict + P0/P1/P2 priorities)
-- docs/src/twolm/feature.md — feature.py analysis (first pipeline
-  integration module: Feature factories + blocked __new__, FeatureSet
-  composition/hash/column layout, verified V1-V8, R1-R4 D-038,
-  M1-M4 D-039..D-042 — all disposed)
-- docs/src/twolm/test/test_feature.md — test_feature.py analysis
-  (coverage by area, 9 verified facts W1-W9, defects T1-T9,
-  completeness verdict + P1/P2 priorities; T campaign CLOSED
-  D-043..D-050, suite 20/0/1 GREEN)
+- docs/src/twolm/feature.md — feature.py mirror (MIGRATED at
+  D-106 step 10, FEATURES batch: the factory-only Feature +
+  FeatureSet, the hash-over-child-hashes contract, the
+  compute_indexes column layout, 19-test suite pins, NEW OPEN R1
+  = the unused BeforeValidator import; the verbatim session-11
+  review in notes/analyses/feature_session11_review.md)
+- docs/src/twolm/test/test_feature.md — test_feature.py mirror
+  (MIGRATED at D-106 step 10, FEATURES batch: 4 classes / 19+1
+  PERF coverage map, the f5663932 hash + 3x10 matrix + 51-instance
+  goldens; the file unchanged since D-050; the verbatim
+  session-11 review in notes/analyses/test_feature_session11_review.md)
 - docs/src/twolm/binio.md — binio.py analysis (MAGIC framing +
   SHA3-256 sidecar + LZ4 compression; 15 verified facts V1-V15,
   T1-T4 applied D-051, suite 45/0/0 GREEN)
@@ -2076,15 +2095,16 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   lines, the fixture metadata; the verbatim session-22 review in
   notes/analyses/test_lm_worker_positions_session22_review.md)
 - docs/src/twolm/lm_worker_features.md — lm_worker_features.py
-  analysis + D-081/D-082 (the first pure-compute level: FeatureSet
-  from the cfg, no DB / no cache_manager / no cache file; 13
-  verified facts V1-V13; R1 amask log + M1-M3 FIXED D-082 —
-  module CLOSED; suite 2/0/0 GREEN via test_lm_worker_features)
+  mirror (MIGRATED at D-106 step 10, FEATURES batch: the 4th
+  level, pure-compute, the 40-check probe + 3-test suite pins,
+  the B10 no-cache-file boundary; the verbatim session-22 review
+  in notes/analyses/lm_worker_features_session22_review.md)
 - docs/src/twolm/test/test_lm_worker_features.md —
-  test_lm_worker_features.py analysis + D-081/D-082 (1 class /
-  2 tests; T1-T4 + M2 FIXED D-082 — D-065 idiom + SKIP_REGAB_DB
-  gate, M1 as-is → I-012; the golden content test added per
-  Roberto — 3 hash literals + full pin; suite 2/0/0 GREEN)
+  test_lm_worker_features.py mirror (MIGRATED at D-106 step 10,
+  FEATURES batch: 2 classes / 3 tests — the 2 DB-gated end-to-end
+  + the DB-free zero-feature guard (the step-3 B11 conversion),
+  the full FeatureSet content golden; the verbatim session-22
+  review in notes/analyses/test_lm_worker_features_session22_review.md)
 - docs/src/twolm/rlm_indexes.md — rlm_indexes.py analysis +
   D-083/D-084 (the 5th-level data object: index matrix +
   rds_checksum + feature_set_hash, by reference; the 4 public
@@ -2320,7 +2340,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   rlm_config_schemas_session22_review.md,
   test_lm_worker_config_session21_review.md, the POSITIONS pair
   at step 9: lm_worker_positions_session22_review.md +
-  test_lm_worker_positions_session22_review.md)
+  test_lm_worker_positions_session22_review.md, the FEATURES
+  quartet at step 10: feature_session11_review.md +
+  test_feature_session11_review.md (session 11) +
+  lm_worker_features_session22_review.md +
+  test_lm_worker_features_session22_review.md (session 22))
 - notes/ideas.md — future backlog (I-NNN)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the
