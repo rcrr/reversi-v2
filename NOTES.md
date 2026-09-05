@@ -286,6 +286,14 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (D-035, no behavior change); M1-M5 disposed (D-036: M1 glossary
   shipped, M2/M3/M5 left as-is, M4 corrected — no PERF gates in any
   suite).
+  MIGRATED at D-106 step 24 (MOBILITY batch): 120-line mobility
+  mirror (schema: the LMC/ALMC/DLMC glossary, the index formula +
+  n_configurations = k + a + 1, the sorted-column contract, the set
+  hash, the 5 left-as-is conventions) + 45-line test mirror
+  (schema §6: 2 classes / 26 tests, post-D-037 class lines); the
+  V1-V9 + R1-R6 + M1-M5 narrative frozen in
+  notes/analyses/mobility_session10_review.md +
+  test_mobility_session10_review.md.
 - test_mobility.py: analyzed 2026-08-28 (session 10,
   docs/src/twolm/test/test_mobility.md): 2 classes / 23 tests / 1
   PERF; 13 verified facts (0 mismatches); 9 defects T1-T9. Fix
@@ -294,6 +302,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   independence, P2 hygiene/breadth incl. pinned hash literal
   2e553593...208a94). Suite 23 → 26, GREEN 26/0/1. Mobility module
   fully done.
+  MIGRATED at D-106 step 24 (MOBILITY batch): 45-line test mirror
+  (schema §6: the 2-class Coverage table with the post-D-037 class
+  lines — TestMobility L64: 7, TestMobilitySet L123: 19); the T1-T9
+  + per-test narrative frozen in
+  notes/analyses/test_mobility_session10_review.md.
 - feature.py: analyzed 2026-08-28 (session 11,
   docs/src/twolm/feature.md) — the first integration module
   (intercept + MobilitySet + PatternSet → one (N, I) index matrix).
@@ -2122,12 +2135,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   VLD_POSITIONS family at step 19, B batch #13 = the ANALYTICS
   family at step 20, B batch #14 = the SAVE family at step 21,
   B batch #15 = the BINIO family at step 22 (non-pipeline phase),
-  B batch #16 = the CACHE_MANAGER family at step 23 — next: the
-  remaining non-pipeline families (13 docs: base_model,
-  mobility+test, model_weights, regab+test, rlm_client, paths+test,
-  test_board, test_pattern, test_state_machine, test_logistic_model
-  — verify each family's docs, group sensibly); 13 docs remain
-  (recount at each batch)).
+  B batch #16 = the CACHE_MANAGER family at step 23, B batch #17 =
+  the MOBILITY family at step 24 — next: the remaining non-pipeline
+  families (11 docs: base_model, model_weights, regab+test,
+  rlm_client, paths+test, test_board, test_pattern,
+  test_state_machine, test_logistic_model — verify each family's
+  docs, group sensibly); 11 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2147,12 +2160,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (coverage by area, 21 verified facts, defects T1-T19 (T17/T19
   found during the campaign), completeness verdict + P0/P1/P2
   priorities)
-- docs/src/twolm/mobility.md — mobility.py analysis (feature index
-  formula, n_configurations semantics, sorted-order columns,
-  verified V1-V8, R1-R6 applied D-035, minor M1-M5 disposed D-036)
-- docs/src/twolm/test/test_mobility.md — test_mobility.py analysis
-  (coverage by area, 13 verified facts, defects T1-T9, completeness
-  verdict + P0/P1/P2 priorities)
+- docs/src/twolm/mobility.md — mobility.py mirror (MIGRATED at
+  D-106 step 24, MOBILITY batch: the LMC/ALMC/DLMC glossary, the
+  index formula + n_configurations semantics, the sorted-column
+  contract, the set hash, the 5 left-as-is conventions; invariants
+  pinned to the 5-section probe + the 26-test suite; the verbatim
+  session-10 review in notes/analyses/mobility_session10_review.md)
+- docs/src/twolm/test/test_mobility.md — test_mobility.py mirror
+  (MIGRATED at D-106 step 24, MOBILITY batch: schema §6 — 2 classes
+  / 26 tests, the post-D-037 class lines, the [53,13,66] + hash
+  literal goldens; the verbatim session-10 review in
+  notes/analyses/test_mobility_session10_review.md)
 - docs/src/twolm/feature.md — feature.py mirror (MIGRATED at
   D-106 step 10, FEATURES batch: the factory-only Feature +
   FeatureSet, the hash-over-child-hashes contract, the
