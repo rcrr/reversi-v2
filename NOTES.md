@@ -1544,6 +1544,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   commented, appendix worker list L208-220 / L221). Suite 622 →
   626 (626/0/84 gated (2.8 s) + 626 run / 17 skipped ungated
   (39.1 s), −W error clean (38.9 s), build/tmp clean).
+  MIGRATED at D-106 step 20 (ANALYTICS batch): 116-line
+  rlm_analytics mirror (schema: the 2nd function-only data
+  module — 4 public fns + 3 table helpers, the 3-metric header
+  table, the rlm_02 7-metric + file-hash goldens, D1-D4 unit
+  math) + 120-line worker mirror (the 5th non-cache worker, the
+  3-attribute machine contract, the 21-line log span, the 6
+  cache hits on the 2nd instance) + 54-line test mirror (2
+  classes / 4 tests, all DB-gated — the rlm_02 7+4 goldens +
+  the rlm_01 65-row LMC table); the probe is now 36 checks
+  (A14 + B2 + C16 + D4 — post step 3: B1-B3 to the hub, C4b +
+  C6 class c; the old "41" counted the pre-step-3 state).
 - Re-verification pass (2026-08-29, session 17): all three
   integration modules (binio, regab, opt_lbfgs) re-checked — every
   T-item fix in place, all suites GREEN (45/37/13), stale docs
@@ -2068,11 +2079,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   GRADIENT family at step 15, B batch #9 = the OPTIMIZE family
   at step 16, B batch #10 = the GENERATE family at step 17, B
   batch #11 = the VALIDATE family at step 18, B batch #12 = the
-  VLD_POSITIONS family at step 19 — next: B batch #13 = the
-  ANALYTICS family (rlm_analytics, lm_worker_analytics +
-  test_lm_worker_analytics — 3 docs, all exist; the 14th level:
-  the 5th non-cache level — rlm_analytics IS the 2nd function-
-  only data module, like rlm_gradient / rlm_validate); 22 docs
+  VLD_POSITIONS family at step 19, B batch #13 = the ANALYTICS
+  family at step 20 — next: B batch #14 = the SAVE family
+  (lm_worker_save + test_lm_worker_full_chain — 2 docs, all
+  exist; the 15th and LAST level — the 6th non-cache worker, the
+  pure SINK: the pipeline is 15/15 COMPLETE post D-104); 19 docs
   remain (recount at each batch)).
 
 ## Index
@@ -2464,22 +2475,27 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   M1 zero-guard branch); the verbatim session-28 review in
   notes/analyses/test_lm_worker_validate_session28_review.md)
 - docs/src/twolm/lm_worker_analytics.md — lm_worker_analytics.py
-  analysis (D-103, the 14th active level — the 5th non-cache
-  worker; the 33-check probe; D-103 campaign T1-T6 + M1-M3
-  CLOSED; rlm_02/rlm_01 goldens + the 2 date-masked file-report
-  hashes; the O1 mixed-representation gap quantified)
-- docs/src/twolm/rlm_analytics.md — rlm_analytics.py analysis
-  (function-only data module: the compressed-forward-pass
-  compute_training_metrics 7-key dict + the console/file report
-  formatters with the per-feature C/IA/IC and C/AB/CL tables;
-  D-103 campaign T2/T4/M2/M3; the O1 note + the ridge-inclusive
-  train_loss asymmetry documented)
+  mirror (MIGRATED at D-106 step 20, ANALYTICS batch: the 5th
+  non-cache worker — the 3-attribute machine contract
+  (train_metrics + train_dense_metrics + analytics_report), the
+  21-line log span, the 6 cache hits on the 2nd instance, the
+  file-report artifact semantics; the 36-check probe + the 4-test
+  worker suite; the verbatim session-28 review in
+  notes/analyses/lm_worker_analytics_session28_review.md)
+- docs/src/twolm/rlm_analytics.md — rlm_analytics.py mirror
+  (MIGRATED at D-106 step 20, ANALYTICS batch: the 2nd function-
+  only data module — 4 public fns + 3 table helpers, the 3-metric
+  header table (D-105/M2), the rlm_02 7-metric + file-hash
+  goldens, the rlm_01 goldens (values in the test doc), D1-D4
+  unit math; the verbatim session-28 review in
+  notes/analyses/rlm_analytics_session28_review.md)
 - docs/src/twolm/test/test_lm_worker_analytics.md —
-  test_lm_worker_analytics.py (NEW, D-103 T5): 2 classes / 4
-  tests, all DB-gated — the rlm_02 7-metric goldens + file hash +
-  2nd-instance determinism + _down pin, the rlm_01 mobility-
-  table test (LMC/DIAG3/CORE + hash + CONVERGED_MIN_GRAD); 4/0/0
-  live, 4/0/4 gated
+  test_lm_worker_analytics.py mirror (MIGRATED at D-106 step 20,
+  ANALYTICS batch: 2 classes / 4 tests, all DB-gated — the rlm_02
+  7+4 goldens + the date-masked file-report hashes + 2nd-
+  instance determinism + _down pin, the rlm_01 65-row LMC table
+  pin; the verbatim session-28 review in
+  notes/analyses/test_lm_worker_analytics_session28_review.md)
 - docs/src/twolm/lm_worker_save.md — lm_worker_save.py analysis
   (D-104, the 15th and LAST active level — the 6th non-cache
   worker, the pure SINK: 2 INFO logs + the model-weight write,
