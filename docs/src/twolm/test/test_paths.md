@@ -1,36 +1,33 @@
-# `src/twolm/test/test_paths.py`
+# twolm/test/test_paths.py
+Unit tests for the `twolm.test.paths` workspace-root constants
+(D-085): 1 class / 3 tests, no DB, no gate, no artifacts (pure path
+assertions).
+> State: D-085 · aef6188 · 2026-08-31 · suite 3/0/0 (1 class /
+  3 tests, no DB)
 
-Unit tests for the `twolm.test.paths` workspace-root constants (D-085,
-session 23, 2026-08-31). Suite: 3/0/0 GREEN, no DB, no gate, no artifacts
-(pure path assertions).
+## Coverage
 
-## How to run
+| class (line) | tests | what it pins |
+|---|---|---|
+| `TestPaths` (L51, plain `unittest.TestCase`) | 3 | `test_workspace_root_holds_the_marker` (L54): `WORKSPACE_ROOT` is absolute and holds the `pyproject.toml` marker (the marker-based derivation, not a `parents[N]` level count); `test_workspace_root_is_ancestor_of_this_file` (L59): `WORKSPACE_ROOT / "src" / "twolm" / "test" / "paths.py"` exists — the root is the ancestor of the test package (the `src/twolm/test/` layout); `test_custom_tmp_base_is_under_the_root` (L63): `CUSTOM_TMP_BASE` is exactly `<root>/build/tmp` and absolute |
 
-Run from the workspace root (the directory containing `.venv` and `src`):
+## Goldens pinned
 
-```
-source .venv/bin/activate
-time python3 -m unittest twolm.test.test_paths
-```
+- No float goldens: the pins are the three path identities above —
+  the marker presence, the `src/twolm/test/paths.py` descendant, and
+  the `<root>/build/tmp` equality.
 
-## Content (1 class / 3 tests)
+## Conventions
 
-`TestPaths`:
+- The module under test is imported as `from twolm.test import paths`
+  and the constants are read as attributes
+  (`paths.WORKSPACE_ROOT`, ...) — a future rename surfaces in exactly
+  one place.
+- No DB involvement, hence no `SKIP_REGAB_DB` gate and no
+  `build/tmp` artifacts: these tests only assert on the computed
+  paths.
 
-- `test_workspace_root_holds_the_marker` — `WORKSPACE_ROOT` is absolute and
-  holds the `pyproject.toml` marker (the marker-based derivation, D-085:
-  not a `parents[N]` level count).
-- `test_workspace_root_is_ancestor_of_this_file` —
-  `WORKSPACE_ROOT / "src" / "twolm" / "test" / "paths.py"` exists: pins that
-  the root is the ancestor of the test package (the `src/twolm/test/` layout).
-- `test_custom_tmp_base_is_under_the_root` — `CUSTOM_TMP_BASE` is exactly
-  `<root>/build/tmp` and absolute.
+## Integration
 
-## Notes
-
-- The module under test is imported as `from twolm.test import paths` and the
-  constants are read as attributes (`paths.WORKSPACE_ROOT`, ...) — the tests
-  pin the module-level constants without importing the names, so a future
-  rename surfaces in exactly one place.
-- No DB involvement, hence no `SKIP_REGAB_DB` gate and no `build/tmp`
-  artifacts: these tests only assert on the computed paths.
+- Module under test: `paths.md` — the shared path-derivation module
+  of the D-065 test suite.
