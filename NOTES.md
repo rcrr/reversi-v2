@@ -1305,7 +1305,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   −W error full discover clean (35.0 s), build/tmp clean). All
   5 mirror docs written (4 new + the logistic_model.md 11-worker
   update, 6 spots: header, state-per-Roberto, pipeline shape,
-  the V3c sentence, the 2 appendix lines).
+  the V3c sentence, the 2 appendix lines). MIGRATED at
+  D-106 step 17 (GENERATE batch): 120-line rlm_generate mirror
+  (schema: the 11th level data object, the 3 category branches
+  with the R2 weighted-mean ruling, invariants pinned to the
+  15-check probe + the 17-test pair, Open issues None) + 86-
+  line lm_worker_generate mirror (the uniform 7-kwargs flow,
+  the D-074 _for_current_level name, the _down scope) + the 2
+  test mirrors (51 / 49 lines, §6 variant); the probe is now 15
+  checks (A1-A5 / B1-B3 / C1-C2 / D3+D11 / E2+E4+E5+E7 / F1 —
+  post step 3: D1/D2 + D4-D10 + D12/D13 to test_rlm_generate,
+  E1/E3/E8/E9/E10/E11 to test_lm_worker_generate, F2/F3 to the
+  hub V3c/V3d; the old "43" counted the pre-step-3 state; the
+  probe prints "All checks passed." without a numeric count).
 - lm_worker_vld_positions.py (new, VLD_POSITIONS bring-in,
   session 28, Roberto's commit ede2efe — the 12th pipeline
   level: the import L51 + worker-list entry L217 uncommented;
@@ -2028,10 +2040,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   step 12, B batch #6 = the DESIGN_MATRIX family at step 13,
   B batch #7 = the ZED family at step 14, B batch #8 = the
   GRADIENT family at step 15, B batch #9 = the OPTIMIZE family
-  at step 16 — next: B batch #10 = the GENERATE family
-  (rlm_generate, lm_worker_generate + their 2 test docs — all 4
-  docs exist; the 11th level, the dense-weight expansion); 31
-  docs remain (recount at each batch)).
+  at step 16, B batch #10 = the GENERATE family at step 17 —
+  next: B batch #11 = the VALIDATE family (rlm_validate,
+  lm_worker_validate + test_lm_worker_validate — 3 docs, all
+  exist; the 12th level: the validation-data twin with no
+  test_rlm_validate); 27 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2348,29 +2361,37 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   former F1-F10 + G1/G2 + G4 + G5; the verbatim session-26
   review in notes/analyses/test_rlm_optimize_session26_review.
   md)
-- docs/src/twolm/rlm_generate.md — rlm_generate.py analysis
-  (D-097 analysis + D-098 fix campaign CLOSED, post-campaign
-  state): the 11th level data object (w_checksum anchor +
-  w_dense (K,) float32), the D-098 R2 ruling documented in code
-  (unseen/fallback → frequency-weighted mean, the fallback
-  weight logged not used), the 43-check probe re-pinned 0
-  mismatches, module CLOSED
+- docs/src/twolm/rlm_generate.md — rlm_generate.py mirror
+  (MIGRATED at D-106 step 17, GENERATE batch: the 11th level
+  data object — the 3 category branches with the D-098 R2
+  weighted-mean ruling, the 3 header gates, the single-field
+  consistency gate; invariants pinned to the 15-check probe
+  A1-A5 / D3+D11 / E2+E4+E5+E7 / F1 + the 17-test pair; the
+  verbatim session-27 review in
+  notes/analyses/rlm_generate_session27_review.md)
 - docs/src/twolm/lm_worker_generate.md — lm_worker_generate.py
-  analysis (D-098): the 5th cache_manager consumer (flat
-  rlmwf_10_GENERATE.dat), the R1 one-line rename (the D-074 R1
-  trap closed), the T3 factory @validate_call (all 10 workers
-  now share it), module CLOSED
-- docs/src/twolm/test/test_rlm_generate.md — test_rlm_generate.py
-  analysis (D-098 T4 expansion): 4 classes / 14 tests, no DB —
-  the mock compute golden, the error branches, the 2
-  consistency branches, the 6 IO tests (3 header gates message-
-  pinned + hash golden), the 3 init validations; suite 14/0/0
-  GREEN
+  mirror (MIGRATED at D-106 step 17, GENERATE batch: the
+  uniform 7-kwargs cache_manager flow, the D-074
+  _for_current_level name, the _down scope, the rlmwf_10 flat
+  file; probe B1-B3 + E tier + the 3-test suite; the verbatim
+  session-27 review in
+  notes/analyses/lm_worker_generate_session27_review.md)
+- docs/src/twolm/test/test_rlm_generate.md — test_rlm_generate.
+  py mirror (MIGRATED at D-106 step 17, GENERATE batch: 4
+  classes / 14 tests, no DB — the mock compute golden, the 2
+  error branches, the 6 IO tests incl. the T1 version gate, the
+  3 init validations, the hash golden 460c993d…07a — after
+  step 3 it also owns the probe's former D1/D2 + D4-D10 + D12/
+  D13; the verbatim session-27 review in
+  notes/analyses/test_rlm_generate_session27_review.md)
 - docs/src/twolm/test/test_lm_worker_generate.md —
-  test_lm_worker_generate.py (NEW, D-098 T5): 1 class / 3 tests,
-  all DB-gated — the first-run (6588,) float32 + hash-golden +
-  sidecar, the 2nd-instance cache hit with no recompute, the
-  _down pin; 3/0/0 live, 3/0/3 gated
+  test_lm_worker_generate.py mirror (MIGRATED at D-106 step 17,
+  GENERATE batch: 1 class / 3 DB-gated tests — the first-run
+  (6588,) float32 + hash-golden + sidecar, the 2nd-instance
+  cache hit, the _down pin — after step 3 it also owns the
+  probe's former E1/E3/E8/E9/E10/E11; the verbatim session-27
+  review in
+  notes/analyses/test_lm_worker_generate_session27_review.md)
 - docs/src/twolm/lm_worker_vld_positions.md — lm_worker_vld_
   positions.py analysis (D-099/D-100): the POSITIONS TWIN over
   the validation data set (the reused load_from_db /
