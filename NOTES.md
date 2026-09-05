@@ -997,7 +997,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 
 - rlm_design_matrix.py + lm_worker_design_matrix.py +
   test_lm_worker_design_matrix.py (new, DESIGN_MTR bring-in,
-  session 23, Roberto's UNCOMMITTED bring-in): the 7th pipeline
+  session 23, Roberto's commit 06023cc — the D-089+D-090
+  campaign): the 7th pipeline
   level activated (the import + list entry uncommented;
   RLMContext's design_matrix + design_matrix_checksum fields
   were pre-declared). rlm_design_matrix: the (N,7) uint32 X
@@ -1021,7 +1022,16 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   redundant guard merged (the single -1 guard remains), and the
   dedicated test_rlm_design_matrix.py ADDED (T6, 12 tests). Suite
   538 → 550 (550/0/64 gated + 550/17 ungated, -W error clean).
-  All 3+1 mirror docs written (post-campaign state).
+  All 3+1 mirror docs written (post-campaign state). MIGRATED at
+  D-106 step 13 (DESIGN_MATRIX batch): 119-line rlm_design_matrix
+  mirror (schema: the (N,I) uint32 X object, the single guard +
+  the explicit-cast note, the 1-field compare, the 2-checksum
+  distinction, invariants pinned to the 53-call probe + the 2
+  suites, Open issues None) + 110-line lm_worker_design_matrix
+  mirror (the 4th cache_manager consumer, the 7-kwargs wiring,
+  the bare-ndarray blackboard); the probe is now 53 calls (post
+  4091e72 move + step 3: D0 + the extraction machinery / D1-D4 /
+  D9 to the tests, F2/F3 to the hub V3c/V3d).
 - rlm_zed.py + lm_worker_zed.py + test_lm_worker_zed.py (new,
   ZED bring-in, session 24, Roberto's commit 439c966): the 8th
   pipeline level activated (the import + list entry uncommented;
@@ -1987,12 +1997,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   at step 9, B batch #3 = the FEATURES family at step 10 + the
   feature.py R1 fix at 10b (D-110, de01cf2), B batch #4 = the
   INDEXES family at step 11, B batch #5 = the WMAPS family at
-  step 12 — next:
-  B batch #6 = the DESIGN_MATRIX family (rlm_design_matrix,
-  lm_worker_design_matrix + their 2 test docs — all 4 docs
-  exist, the sources committed at 06023cc D-089+D-090,
-  2026-08-31); 49 docs / ~524 KB remain (recount at each
-  batch)).
+  step 12, B batch #6 = the DESIGN_MATRIX family at step 13 —
+  next: B batch #7 = the ZED family (rlm_zed, lm_worker_zed +
+  their 2 test docs — all 4 docs exist; the FIRST non-cache
+  level); 45 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2197,27 +2205,34 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   re-derivation; the verbatim session-23 review in
   notes/analyses/test_lm_worker_wmaps_session23_review.md)
 - docs/src/twolm/rlm_design_matrix.md — rlm_design_matrix.py
-  analysis + D-089/D-090 (the (N,7) uint32 X object + 4 public
-  fns + the duck-typed hash; 4th cache_manager consumer; the
-  approved NumPy 2.5 warning fix — explicit .astype; R1
-  redundant guard merged, T4 no-validation note — module
-  CLOSED; 55-check probe 0 mismatches)
-- docs/src/twolm/lm_worker_design_matrix.py —
-  lm_worker_design_matrix.py analysis + D-089/D-090 (the
-  uniform 7-kwargs cache wiring, flat rlmwf_06_DESIGN_MTR.dat;
-  factory @validate_call + pydantic, load_fn lambda checksum=
-  False — module CLOSED; suite 3/0/0 GREEN)
-- docs/src/twolm/test/test_lm_worker_design_matrix.py —
-  test_lm_worker_design_matrix.py analysis + D-090 (2 classes /
-  3 tests, all DB-gated post T1 — the round-trip + the rlm_01
-  golden (10,7) X, re-derived D0-D10; the D-085 idiom; suite
-  3/0/0 GREEN)
-- docs/src/twolm/test/test_rlm_design_matrix.py —
-  test_rlm_design_matrix.py analysis (D-090 T6, NEW): 4 classes
-  / 12 tests, no DB — the mock compute pins, the consistency
-  compare, the store/load cycle + golden hash da86a916…57b, the
-  sidecar/error-path pins, the init validation; suite 12/0/0
-  GREEN
+  mirror (MIGRATED at D-106 step 13, DESIGN_MATRIX batch: the
+  (N,I) uint32 X data object + 4 public fns + the duck-typed
+  hash; the 4th cache_manager consumer; the single guard + the
+  explicit-cast note; the 1-field compare; invariants pinned to
+  the 53-call probe A1-A15 / B1-B9 / D5-D10 / F1/F4/F5 + the 2
+  suites; the verbatim session-23 review in
+  notes/analyses/rlm_design_matrix_session23_review.md)
+- docs/src/twolm/lm_worker_design_matrix.md —
+  lm_worker_design_matrix.py mirror (MIGRATED at D-106 step 13,
+  DESIGN_MATRIX batch: the 7th-level worker, the 7-kwargs cache
+  wiring, flat rlmwf_06_DESIGN_MTR.dat, the bare-ndarray
+  blackboard; probe B1-B9 + C1-C14 + the 3-test end-to-end
+  suite; the verbatim session-23 review in
+  notes/analyses/lm_worker_design_matrix_session23_review.md)
+- docs/src/twolm/test/test_rlm_design_matrix.md —
+  test_rlm_design_matrix.py mirror (MIGRATED at D-106 step 13,
+  DESIGN_MATRIX batch: 4 classes / 12 tests, no DB — the 2
+  compute branches, the 2 consistency branches, the 6 IO pins
+  incl. the golden hash da86a916…, the 2 init tests; the verbatim
+  session-23 review in
+  notes/analyses/test_rlm_design_matrix_session23_review.md)
+- docs/src/twolm/test/test_lm_worker_design_matrix.md —
+  test_lm_worker_design_matrix.py mirror (MIGRATED at D-106 step
+  13, DESIGN_MATRIX batch: 2 classes / 3 tests, all DB-gated —
+  the end-to-end round-trip + the rlm_01 golden (10,7) X as the
+  single source of truth for the step-3 D-tier re-derivation; the
+  verbatim session-23 review in
+  notes/analyses/test_lm_worker_design_matrix_session23_review.md)
 - docs/src/twolm/rlm_zed.md — rlm_zed.py analysis +
   D-091/D-092 (the Z object + zed_fun_factory + rlm_zed_compute
   + the duck-typed hash over z only; FIRST non-cache level; T6
