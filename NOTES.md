@@ -1995,6 +1995,18 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   2 commits (code+docs, then notes). The 15-level pipeline is
   COMPLETE — 15/15 workers active, 0 commented imports/entries,
   no further bring-in.
+  MIGRATED at D-106 step 21 (SAVE batch): 113-line lm_worker_save
+  mirror (schema: the 15th and LAST level, the 6th non-cache
+  worker, the pure SINK — the 1 binary artifact, _down no-op,
+  artifact never unlinked, the rlmwf_15 slot unused) + 59-line
+  test mirror (schema §6: the Coverage table for the 3 classes /
+  5 tests, the rlm_04 + rlm_03 EXACT goldens incl. the D-105
+  dense 4-key dicts, the 2 file-report masks, the EF vld[42] O4
+  pin, the 2nd-instance determinism + 6 cache hits, the 2
+  ungated read guards); the probe is now 17 checks (A15 + the C5
+  a-portion + the D0 placeholder — post step 3: B1-B2 + C1-C14 +
+  D1-D10 all to this test file as class c; the old "32" counted
+  the pre-step-3 state, the D1-D10 tier runs only under LONG=1).
 - Done (2026-09-03, session 29): D-105 the 3-metric analytics table
   (Roberto: "D-105, M2: OK, facciamolo ora che lo abbiamo fresco e
   chiaro in mente. Procedi!" — approved while the D-104 O1
@@ -2080,11 +2092,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   at step 16, B batch #10 = the GENERATE family at step 17, B
   batch #11 = the VALIDATE family at step 18, B batch #12 = the
   VLD_POSITIONS family at step 19, B batch #13 = the ANALYTICS
-  family at step 20 — next: B batch #14 = the SAVE family
-  (lm_worker_save + test_lm_worker_full_chain — 2 docs, all
-  exist; the 15th and LAST level — the 6th non-cache worker, the
-  pure SINK: the pipeline is 15/15 COMPLETE post D-104); 19 docs
-  remain (recount at each batch)).
+  family at step 20, B batch #14 = the SAVE family at step 21 —
+  the pipeline docs are 15/15 COMPLETE; next: the non-pipeline
+  families (17 docs: base_model, binio+test, cache_manager+test,
+  mobility+test, model_weights, regab+test, rlm_client, paths+test,
+  test_board, test_pattern, test_state_machine, test_logistic_model
+  — verify each family's docs, group sensibly); 17 docs remain
+  (recount at each batch)).
 
 ## Index
 
@@ -2496,12 +2510,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   instance determinism + _down pin, the rlm_01 65-row LMC table
   pin; the verbatim session-28 review in
   notes/analyses/test_lm_worker_analytics_session28_review.md)
-- docs/src/twolm/lm_worker_save.md — lm_worker_save.py analysis
-  (D-104, the 15th and LAST active level — the 6th non-cache
-  worker, the pure SINK: 2 INFO logs + the model-weight write,
-  _down no-op, artifact never unlinked; D-104 campaign T1/T2/T4;
-  2nd instance byte-identical with 6 cache hits — CONFIG re-
-  stores, a 'stored' line not a hit)
+- docs/src/twolm/lm_worker_save.md — lm_worker_save.py mirror
+  (MIGRATED at D-106 step 21, SAVE batch: the 15th and LAST
+  active level — the 6th non-cache worker, the pure SINK: the 2
+  INFO logs + the model-weight write, _down no-op, the artifact
+  never unlinked, the rlmwf_15 slot unused; the 17-check probe +
+  the 5-test suite; the verbatim session-29 review in
+  notes/analyses/lm_worker_save_session29_review.md)
 - docs/src/twolm/model_weights.md — model_weights.py analysis
   (the 3rd data module, the FIRST with a plain @dataclass: the
   10-field ModelWeights + header constants + write/read of the
@@ -2513,11 +2528,14 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   substitution-rule section with the measured rlm_04/rlm_01
   deltas — the D-104 O1 correction)
 - docs/src/twolm/test/test_lm_worker_full_chain.md —
-  test_lm_worker_full_chain.py (D-104 T5/T6): the END-TO-END
-  15-level chain test — A2030/rlm_04 + A2050/rlm_03 (LONG) EXACT
-  goldens (file hashes, read-back, EF bit-exact, the O4
-  vld[42] pin, the 2nd-instance determinism, the ungated read-
-  guards class)
+  test_lm_worker_full_chain.py mirror (MIGRATED at D-106 step 21,
+  SAVE batch: schema §6 — the Coverage table for the 3 classes /
+  5 tests, the rlm_04 + rlm_03 EXACT goldens (file hashes,
+  read-back, the D-105 dense 4-key dicts, the 2 file-report
+  masks, the EF O4 vld[42] pin, the 2nd-instance determinism, the
+  ungated read-guard class — the D-106 step-3 class-c home of
+  probe B1-B2 + C1-C14 + D1-D10); the verbatim session-29 review
+  in notes/analyses/test_lm_worker_full_chain_session29_review.md)
 - notes/naming.md — canonical board naming convention (row/column,
   D-013; D8 symmetries, D-014)
 - notes/decisions.md — decisions log (D-NNN; D-001…D-108)
