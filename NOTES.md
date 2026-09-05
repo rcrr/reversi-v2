@@ -70,10 +70,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 | src/twolm/test/test_lm_worker_indexes.py | analyzed 2026-08-31 (session 23, D-083); Roberto's file, brought in with a323e0f; 1 class / 2 tests / no PERF; the end-to-end cache round-trip pin (DB hit through POSITIONS + flat rlmwf_04_INDEXES.dat + "Executing heavy computation"; second instance "Cache successfully loaded and validated" + no heavy computation); green on first run with the live DB; the dependency comment is ACCURATE (contrast test_lm_worker_features M1); D-084 (Roberto: "Sì fai tutto"): T1-T3 + M1 FIXED (the D-065 idiom — CUSTOM_TMP_BASE via __file__, setUpClass mkdir, TemporaryDirectory first, defensive tearDown; the SKIP_REGAB_DB gate — both tests now DB-gated, header grammar + the live-DB / gate run note, 13 trailing-whitespace lines); file 137 → 158 lines; test campaign CLOSED; suite 2/0/0 GREEN (2 DB-gated, run with live DB); D-085: the idiom + the json_config line re-anchored to the shared twolm.test.paths (WORKSPACE_ROOT); D-106 step 11: the doc rewritten to the test-variant schema (session-23 analysis archived to notes/analyses/test_lm_worker_indexes_session23_review.md; file unchanged since D-085) | docs/src/twolm/test/test_lm_worker_indexes.md |
 | src/twolm/test/paths.py | introduced 2026-08-31 (session 23, D-085 — Roberto's design choice "A"): the single home of the workspace-root-anchored test paths — WORKSPACE_ROOT (marker-based derivation: the first ancestor holding pyproject.toml — not a parents[N] level count, survives file moves) + CUSTOM_TMP_BASE (= <root>/build/tmp, the D-065 base); the per-test-file __file__ derivations, the CWD-relative JSON fixture paths (now str(WORKSPACE_ROOT / "src/twolm/test/data/rlm_00.json")), and the test_regab .env / mkdtemp are all re-anchored to it; no public functions (constants only), hence no @validate_call | docs/src/twolm/test/paths.md |
 | src/twolm/test/test_paths.py | introduced 2026-08-31 (session 23, D-085): 1 class / 3 tests / no DB / no gate / no artifacts — pins WORKSPACE_ROOT absolute + marker-holding + ancestor of src/twolm/test/, CUSTOM_TMP_BASE == <root>/build/tmp absolute; imports the module (from twolm.test import paths) so a rename surfaces in one place | docs/src/twolm/test/test_paths.md |
-| src/twolm/rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th pipeline level): the WMAPS data object (ReversiLogisticModelWMaps: rlm_indexes_checksum, cut_off, feature_w_ranges (F,3) int64 [fallback, w_min, w_max] per feature, iwmap_feature_offset (F+1,) uint32, iwmap (K,) int64 (−1 = configuration unseen in the dataset), wmap (W,3) int64 [fid, config_id_or_−1, freq], wmap_fallback (F_cut,3) int64, w (W,) float32 zeros) + the 4 public fns (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash over the 6 arrays; the 3rd cache_manager consumer in the pipeline; analysis D-086: the dead itertools accumulate import (L35), 23 non-comment trailing-whitespace lines (incl. the L275 / L288 code lines), compute + is_cache_consistent lack @validate_call with no rlm_indexes-L166-style note (the TYPE_CHECKING constraint); R1 RESOLVED as no-guard (Roberto's contract: the indexes are unsigned, 0..n_configurations−1, never −1 — dense by contract, documented in the compute docstring); fix campaign D-087 CLOSED (Roberto: "Procedi su tutto"): the dead accumulate import gone, the no-validation note added (the rlm_indexes style), 23 ws lines stripped; the D-087 '9-space __init__ indent' observation corrected as a misread (D-088 — verified 8 spaces, canonical, no change); file 311 → 316 lines; module CLOSED | docs/src/twolm/rlm_wmaps.md |
-| src/twolm/lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_05_WMAPS.dat + .SHA3-256 sidecar, the D-078 machine); _up sets the 6 ctx arrays + wmaps_obj_checksum; analysis D-086: the factory lacks @validate_call (the other 5 workers all have it) + no pydantic import; load_fn is the raw function (checksum defaults True → double sidecar validation — the house shape is lambda path: ...(path, checksum=False), D-080 M4 / D-084 M3); _down does NOT clear ctx.wmaps_obj_checksum (the house shape clears object + checksum, lm_worker_indexes); fix campaign D-087 CLOSED: factory @validate_call + pydantic import, load_fn = lambda checksum=False (the house shape), _down clears wmaps_obj_checksum, 4 ws lines stripped; file 87 → 91 lines; module CLOSED | docs/src/twolm/lm_worker_wmaps.md |
-| src/twolm/test/test_rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 3 classes / 6 tests / no DB / no gate — compute on the handcrafted 4×3 mock (fallback + the cut_off=0 no-fallback branch), is_cache_consistent (3), store/load cycle (1, checksum=False both sides); the D-085 idiom APPLIED (Roberto's instruction): the CWD-relative mkdtemp → TemporaryDirectory under the shared CUSTOM_TMP_BASE, defensive tearDown, the twolm.test.paths import, the dead shutil import gone; file 251 → 259 lines; fix campaign D-087 CLOSED: header corrected (the file is DB-free), dead StringIO + patch imports gone, the leftover generation comment gone, 21 ws lines stripped, +5 IO pins (the golden hash 12c3344e…, sidecar valid/mismatch, wrong description, version mismatch) + TestRLMWmapsInit (2 tests) — 6 → 13 tests; file 259 → 325 lines; suite 13/0/0 GREEN | docs/src/twolm/test/test_rlm_wmaps.md |
-| src/twolm/test/test_lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit, no recompute; cache names + steps 4/5 pinned) + the golden content (rlm_01.json, cut_off=2: feature_w_ranges (4,3), offsets [0,1,66,93,174], iwmap 174, wmap (21,3), wmap_fallback (10,3), w=21 float32 zeros — every literal independently re-derived by the probe, E0-E9, 0 mismatches); the D-085 idiom APPLIED (both classes: the CWD mkdtemp + CWD json_config → TemporaryDirectory under the shared CUSTOM_TMP_BASE + WORKSPACE_ROOT-anchored json, defensive tearDown, the paths import, the dead shutil import gone); file 283 → 301 lines; fix campaign D-087 CLOSED: the SKIP_REGAB_DB gate added to both setUps (now 3/0/3 under the gate, as claimed by the header) + 20 ws lines stripped; file 301 → 315 lines; suite 3/0/0 GREEN (live DB) | docs/src/twolm/test/test_lm_worker_wmaps.md |
+| src/twolm/rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th pipeline level): the WMAPS data object (ReversiLogisticModelWMaps: rlm_indexes_checksum, cut_off, feature_w_ranges (F,3) int64 [fallback, w_min, w_max] per feature, iwmap_feature_offset (F+1,) uint32, iwmap (K,) int64 (−1 = configuration unseen in the dataset), wmap (W,3) int64 [fid, config_id_or_−1, freq], wmap_fallback (F_cut,3) int64, w (W,) float32 zeros) + the 4 public fns (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash over the 6 arrays; the 3rd cache_manager consumer in the pipeline; analysis D-086: the dead itertools accumulate import (L35), 23 non-comment trailing-whitespace lines (incl. the L275 / L288 code lines), compute + is_cache_consistent lack @validate_call with no rlm_indexes-L166-style note (the TYPE_CHECKING constraint); R1 RESOLVED as no-guard (Roberto's contract: the indexes are unsigned, 0..n_configurations−1, never −1 — dense by contract, documented in the compute docstring); fix campaign D-087 CLOSED (Roberto: "Procedi su tutto"): the dead accumulate import gone, the no-validation note added (the rlm_indexes style), 23 ws lines stripped; the D-087 '9-space __init__ indent' observation corrected as a misread (D-088 — verified 8 spaces, canonical, no change); file 311 → 316 lines; module CLOSED; D-106 step 12: the doc rewritten to the schema (session-23 analysis archived to notes/analyses/rlm_wmaps_session23_review.md; probe re-pinned 64 → 53 calls at the 4091e72 move + the step-3 class c deletions E0-E8 to the tests, F4/F6 to the hub, only E9 survives) | docs/src/twolm/rlm_wmaps.md |
+| src/twolm/lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342 — the WMAPS bring-in, 6th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_05_WMAPS.dat + .SHA3-256 sidecar, the D-078 machine); _up sets the 6 ctx arrays + wmaps_obj_checksum; analysis D-086: the factory lacks @validate_call (the other 5 workers all have it) + no pydantic import; load_fn is the raw function (checksum defaults True → double sidecar validation — the house shape is lambda path: ...(path, checksum=False), D-080 M4 / D-084 M3); _down does NOT clear ctx.wmaps_obj_checksum (the house shape clears object + checksum, lm_worker_indexes); fix campaign D-087 CLOSED: factory @validate_call + pydantic import, load_fn = lambda checksum=False (the house shape), _down clears wmaps_obj_checksum, 4 ws lines stripped; file 87 → 91 lines; module CLOSED; D-106 step 12: the doc rewritten to the schema (session-23 analysis archived to notes/analyses/lm_worker_wmaps_session23_review.md; probe B tier now part of the 53-call verify_wmaps.py at the 4091e72 move) | docs/src/twolm/lm_worker_wmaps.md |
+| src/twolm/test/test_rlm_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 3 classes / 6 tests / no DB / no gate — compute on the handcrafted 4×3 mock (fallback + the cut_off=0 no-fallback branch), is_cache_consistent (3), store/load cycle (1, checksum=False both sides); the D-085 idiom APPLIED (Roberto's instruction): the CWD-relative mkdtemp → TemporaryDirectory under the shared CUSTOM_TMP_BASE, defensive tearDown, the twolm.test.paths import, the dead shutil import gone; file 251 → 259 lines; fix campaign D-087 CLOSED: header corrected (the file is DB-free), dead StringIO + patch imports gone, the leftover generation comment gone, 21 ws lines stripped, +5 IO pins (the golden hash 12c3344e…, sidecar valid/mismatch, wrong description, version mismatch) + TestRLMWmapsInit (2 tests) — 6 → 13 tests; file 259 → 325 lines; suite 13/0/0 GREEN; D-106 step 12: the doc rewritten to the test-variant schema (session-23 analysis archived to notes/analyses/test_rlm_wmaps_session23_review.md; file unchanged since D-087) | docs/src/twolm/test/test_rlm_wmaps.md |
+| src/twolm/test/test_lm_worker_wmaps.py | introduced 2026-08-31 (session 23, Roberto's commit 73b4342): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit, no recompute; cache names + steps 4/5 pinned) + the golden content (rlm_01.json, cut_off=2: feature_w_ranges (4,3), offsets [0,1,66,93,174], iwmap 174, wmap (21,3), wmap_fallback (10,3), w=21 float32 zeros — every literal independently re-derived by the probe, E0-E9, 0 mismatches); the D-085 idiom APPLIED (both classes: the CWD mkdtemp + CWD json_config → TemporaryDirectory under the shared CUSTOM_TMP_BASE + WORKSPACE_ROOT-anchored json, defensive tearDown, the paths import, the dead shutil import gone); file 283 → 301 lines; fix campaign D-087 CLOSED: the SKIP_REGAB_DB gate added to both setUps (now 3/0/3 under the gate, as claimed by the header) + 20 ws lines stripped; file 301 → 315 lines; suite 3/0/0 GREEN (live DB); D-106 step 12: the doc rewritten to the test-variant schema (session-23 analysis archived to notes/analyses/test_lm_worker_wmaps_session23_review.md; file unchanged since D-087; the E0-E9 golden re-derivation now owned by TestLMWorkerWmapsExactValues) | docs/src/twolm/test/test_lm_worker_wmaps.md |
 | src/twolm/rlm_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in — the DESIGN_MTR enablement, 7th pipeline level): the Design Matrix data object (ReversiLogisticModelDesignMatrix: wmaps_obj_checksum str + X (N,7) uint32 — the w-index of each (position, feature-instance) cell) + the 4 public fns (store / load / compute / is_cache_consistent) + the duck-typed compute_sha3_256_hash over X; the 4th cache_manager consumer in the pipeline; the approved warning fix APPLIED (Roberto: "Esegui la modifica"): the NumPy 2.5 DeprecationWarning (implicit int64->uint32 output cast in np.take) → the explicit .astype(np.uint32) + the note (now L119-122); fix campaign D-090 CLOSED (Roberto: "Procedi su tutti i T, e R1"): the no-validation note added above compute (the rlm_indexes L166 class, T4) + the redundant 2nd guard merged away (R1 — the single -1 guard with the precise ValueError remains) + 3 ws lines stripped; file 135 → 133 lines; suite: test_rlm_design_matrix 12/0/0 (new, D-090 T6) + test_lm_worker_design_matrix 3/0/0 (live DB) | docs/src/twolm/rlm_design_matrix.md |
 | src/twolm/lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in — the DESIGN_MTR enablement, 7th active level): the cache-consuming level, the uniform 7-kwargs cache_manager wiring (flat rlmwf_06_DESIGN_MTR.dat + .SHA3-256 sidecar, the D-078 machine); _up sets design_matrix + design_matrix_checksum; _down clears BOTH (the house shape — no gap at bring-in); fix campaign D-090 CLOSED: the factory @validate_call + pydantic import added (T2, the house convention) + load_fn → the lambda checksum=False idiom (T3, the double sidecheck gone) + 2 ws lines stripped; file 77 → 80 lines; suite: test_lm_worker_design_matrix 3/0/0 (3 DB-gated post D-090 T1) | docs/src/twolm/lm_worker_design_matrix.md |
 | src/twolm/test/test_lm_worker_design_matrix.py | introduced 2026-08-31 (session 23, Roberto's UNCOMMITTED bring-in): 2 classes / 3 tests / all DB-dependent — the worker round-trip (2 tests: first run "Forcing computation" + both D-078 files, second instance cache hit; cache names + steps 5/6 pinned) + the golden content (rlm_01.json: X (10,7) uint32 — 10 pinned rows, independently re-derived by the probe D0-D10 incl. the X = iwmap[pindexes + col_offsets] recomputation, 0 mismatches); fix campaign D-090 CLOSED: the SKIP_REGAB_DB gate added to BOTH setUps + import os (T1 — the header claim now true, 3/0/3 under the gate) + the D-085 idiom applied to both classes (T7 — TemporaryDirectory under CUSTOM_TMP_BASE created first, WORKSPACE_ROOT-anchored json ×2, defensive tearDown, the dead shutil import gone) + 21 ws lines stripped; file 202 → 226 lines; suite 3/0/0 GREEN (live DB; 3/0/3 gated) | docs/src/twolm/test/test_lm_worker_design_matrix.md |
@@ -966,7 +966,15 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   _down wmaps_obj_checksum — all fixed; R1 RESOLVED as no-guard
   (Roberto's contract: the indexes are unsigned 0..
   n_configurations−1, never −1 — documented in the compute
-  docstring).
+  docstring). MIGRATED at D-106 step 12 (WMAPS batch): 120-line
+  rlm_wmaps mirror (schema: the 8-field data object BY REFERENCE,
+  the compute body, the 3 load error messages, the PURE 2-field
+  compare, invariants pinned to the 53-call probe + the 2 suites,
+  Open issues None) + 94-line lm_worker_wmaps mirror (the 3rd
+  cache_manager consumer, the 7-kwargs wiring, _down clears all 7
+  attributes); post step 3 the probe is 53 calls (E0-E8 + the
+  extraction machinery to the tests, F4/F6 to the hub, only E9
+  survives).
 - test_rlm_wmaps.py + test_lm_worker_wmaps.py (new, WMAPS
   bring-in, session 23): 6 + 3 tests (no-DB handcrafted-mock
   pins + live-DB round-trip + the rlm_01 golden content — 21
@@ -979,7 +987,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   20 ws lines — all fixed; T10 coverage batch added (+5 IO
   pins: golden hash 12c3344e…, sidecar valid/mismatch, wrong
   description, version mismatch; + TestRLMWmapsInit 2 tests):
-  6 → 13 tests (13/0/0) + 3/0/0.
+  6 → 13 tests (13/0/0) + 3/0/0. MIGRATED at D-106 step 12
+  (WMAPS batch): 50-line test_rlm_wmaps mirror (schema §6: 4
+  classes / 13 tests, the 2 compute branches, the 3 consistency
+  branches, the 6 IO pins, the golden hash) + 48-line
+  test_lm_worker_wmaps mirror (the end-to-end round-trip + the
+  rlm_01 golden content — the single source of truth for the
+  step-3 E-tier re-derivation).
 
 - rlm_design_matrix.py + lm_worker_design_matrix.py +
   test_lm_worker_design_matrix.py (new, DESIGN_MTR bring-in,
@@ -1972,10 +1986,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   test_rlm_config_schemas.md mirror at 8b, B batch #2 = POSITIONS
   at step 9, B batch #3 = the FEATURES family at step 10 + the
   feature.py R1 fix at 10b (D-110, de01cf2), B batch #4 = the
-  INDEXES family at step 11 — next:
-  B batch #5 = the WMAPS family (lm_worker_wmaps, rlm_wmaps +
-  their 2 test docs); 53 docs / ~804 KB remain (recount at
-  each batch)).
+  INDEXES family at step 11, B batch #5 = the WMAPS family at
+  step 12 — next:
+  B batch #6 = the DESIGN_MATRIX family (rlm_design_matrix,
+  lm_worker_design_matrix + their 2 test docs — all 4 docs
+  exist, the sources committed at 06023cc D-089+D-090,
+  2026-08-31); 49 docs / ~524 KB remain (recount at each
+  batch)).
 
 ## Index
 
@@ -2152,24 +2169,33 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   paths (marker-based WORKSPACE_ROOT + CUSTOM_TMP_BASE)
 - docs/src/twolm/test/test_paths.md —
   test_paths.py (D-085): 3/0/0, no DB — pins the constants
-- docs/src/twolm/rlm_wmaps.md — rlm_wmaps.py analysis +
-  D-086/D-087 (the 6-array weight-maps object + store / load /
-  compute / is_cache_consistent + the duck-typed hash; 3rd
-  cache_manager consumer; R1 resolved as no-guard — the pindexes
-  density contract; 60-check probe 0 mismatches; module CLOSED)
-- docs/src/twolm/lm_worker_wmaps.py — lm_worker_wmaps.py
-  analysis + D-086/D-087 (the uniform 7-kwargs cache wiring,
-  flat rlmwf_05_WMAPS.dat; factory @validate_call, load_fn
-  checksum=False, _down checksum — module CLOSED)
-- docs/src/twolm/test/test_rlm_wmaps.py — test_rlm_wmaps.py
-  analysis + D-087 (6 → 13 tests: the D-085 idiom, +5 IO pins
-  incl. the golden hash 12c3344e…, + TestRLMWmapsInit; no DB,
-  no gate; suite 13/0/0 GREEN)
+- docs/src/twolm/rlm_wmaps.md — rlm_wmaps.py mirror
+  (MIGRATED at D-106 step 12, WMAPS batch: the 6th-level data
+  object — the 8 fields by reference + the 4 public fns + the
+  duck-typed data checksum; the compute body, the 3 load error
+  messages, the PURE 2-field compare; the 53-call probe + the 2
+  suites pins; the verbatim session-23 review in
+  notes/analyses/rlm_wmaps_session23_review.md)
+- docs/src/twolm/lm_worker_wmaps.md — lm_worker_wmaps.py
+  mirror (MIGRATED at D-106 step 12, WMAPS batch: the 6th active
+  level, the 3rd cache_manager consumer, the uniform 7-kwargs
+  cache wiring, flat rlmwf_05_WMAPS.dat + .SHA3-256, _down clears
+  all 7 attrs; probe B1-B9 + C1-C15 + E9 + the 3-test end-to-end
+  suite; the verbatim session-23 review in
+  notes/analyses/lm_worker_wmaps_session23_review.md)
+- docs/src/twolm/test/test_rlm_wmaps.md — test_rlm_wmaps.py
+  mirror (MIGRATED at D-106 step 12, WMAPS batch: 4 classes / 13
+  tests, no DB — the 2 compute branches, the 3 consistency
+  branches, the 6 IO pins incl. the golden hash 12c3344e…, the 2
+  init tests; the verbatim session-23 review in
+  notes/analyses/test_rlm_wmaps_session23_review.md)
 - docs/src/twolm/test/test_lm_worker_wmaps.py —
-  test_lm_worker_wmaps.py analysis + D-087 (3 tests, all
-  DB-gated post T1 — the round-trip + the rlm_01 golden content,
-  independently re-derived E0-E9; the D-085 idiom; suite
-  3/0/0 GREEN)
+  test_lm_worker_wmaps.py mirror (MIGRATED at D-106 step 12,
+  WMAPS batch: 2 classes / 3 tests, all DB-gated — the
+  end-to-end round-trip + the rlm_01 golden content (21 weights)
+  as the single source of truth for the step-3 E-tier
+  re-derivation; the verbatim session-23 review in
+  notes/analyses/test_lm_worker_wmaps_session23_review.md)
 - docs/src/twolm/rlm_design_matrix.md — rlm_design_matrix.py
   analysis + D-089/D-090 (the (N,7) uint32 X object + 4 public
   fns + the duck-typed hash; 4th cache_manager consumer; the
