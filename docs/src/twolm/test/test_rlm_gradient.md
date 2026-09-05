@@ -1,79 +1,41 @@
 # twolm/test/test_rlm_gradient.py
+The dedicated data-object suite of the rlm_gradient module —
+CREATED in the D-094 fix campaign (M1, Roberto "OK"): the D-093
+analysis found the coverage gap (at bring-in the fg math was only
+tested through the full 9-level pipeline run on the 199952-
+position dataset). 2 classes / 8 tests / no DB, no gate, no
+artifacts — the handcrafted-mock pattern, as in test_rlm_zed.
+> State: D-094 · 34442b2 · 2026-09-01 · suite 8/0/0
 
-Analysis date: 2026-09-01 — CREATED in the D-094 fix campaign
-(session 25, D-094 M1 — the coverage gap found by the D-093
-analysis: at bring-in the fg math was only tested through the full
-8-level pipeline run on the 199952-position dataset). Probe
-(scratch/verify_gradient.py, 61 checks, tier G): 0 mismatches.
+## Coverage
 
-## Suite status (session 25)
+| class | tests | what it pins |
+|---|---|---|
+| `TestSigmoid` (no DB) | 2 | `test_sigmoid_golden`: `sigmoid([−1, 0, 1])` vs the hand-rolled float64 `1/(1+exp(−x))` (independent of the scipy expit path). `test_sigmoid_symmetry`: `sigmoid(x) + sigmoid(−x) == 1` |
+| `TestRLMGradientCompute` (a `SimpleNamespace` mock ctx: `cfg.stat_model.ridge_regularization`, `w`, `design_matrix` uint32, `z` float32 — the 4 attributes `rlm_gradient_compute` reads; the `_reference` helper = the independent float64 re-derivation: hand-rolled sigmoid, the per-row `w[X]` w-INDEX sum via `np.add.at` — a different accumulation than the closure's broadcast bincount) | 6 | `test_compute_zero_weights_golden`: the EXACT goldens on the handcrafted (3, 2) matrix X = `[[0,1],[1,2],[0,2]]`, z = `[0.1, 0.9, 0.5]`, w = 0, ridge 0: f = 4/75, g = `[1/30, 0, −1/30]`. `test_compute_nonzero_weights`: the full math (sigmoid + residual + ridge) at w ≠ 0 vs the `_reference` (rtol 1e-5 — float32 pipeline vs float64 reference). `test_ridge_scaling`: `g(b)−g(a) = (b−a)/M·w` and `f(b)−f(a) = 0.5·(b−a)/M·‖w‖²` (the per-position /M normalization pinned directly). `test_minlength_empty_bucket`: an uncovered w-index still gets the pure ridge term (the `minlength=N` pin) and g keeps the full (N,) shape. `test_output_dtypes`: the R1 (D-093) pin — f dtype float32, g dtype float32, g shape (N,). `test_closure_stateless`: two evaluations of the same w are identical (the pre-allocated buffers do not leak) |
 
-- `test_rlm_gradient`: 8/0/0 (2 classes; no DB, no gate, no
-  artifacts — the handcrafted-mock pattern, as in test_rlm_zed).
+## Goldens pinned
 
-## State per Roberto
+- The exact zero-weights goldens: f = 4/75, g = `[1/30, 0,
+  −1/30]` — by construction (w = 0, ridge 0 → f =
+  0.5·mean((0.5−z)²), g[k] = 0.25·Σ_{m: X[m,*]=k}(0.5−z[m])/M).
+- The hand-rolled sigmoid reference (independent of scipy).
 
-NEW in D-094 (M1: Roberto "OK"). No further campaign — the file is
-clean from day one (no ws lines, no dead imports, the no-DB header
-claim true from the first line).
+## Conventions
 
-## Architecture (169 lines)
-
-- 2 classes:
-- `TestSigmoid` (L54-69): `test_sigmoid_golden` (L57-63) —
-  sigmoid([−1, 0, 1]) vs the hand-rolled float64
-  `1/(1+exp(−x))` (independent of the scipy expit path);
-  `test_sigmoid_symmetry` (L65-69) — `sigmoid(x) + sigmoid(−x)
-  == 1`.
-- `TestRLMGradientCompute` (L71-165): `_mock_ctx` (L74-79) — the
-  SimpleNamespace chain (`cfg.stat_model.ridge_regularization`,
-  `w`, `design_matrix` uint32, `z` float32); `_reference` (L81-96)
-  — the independent float64 re-derivation (hand-rolled sigmoid,
-  the per-row `w[X]` w-INDEX sum, np.add.at — a different
-  accumulation than the closure's broadcast bincount);
-  `test_compute_zero_weights_golden` (L98-108) — the exact
-  goldens on the (3, 2) handcrafted matrix: f = 4/75, g =
-  [1/30, 0, −1/30] (w = 0, ridge 0); `test_compute_nonzero_weights`
-  (L110-119) — the full math (sigmoid + residual + ridge) at w ≠ 0
-  vs the `_reference`; `test_ridge_scaling` (L121-133) —
-  g(b)−g(a) = (b−a)/M·w and f(b)−f(a) = 0.5·(b−a)/M·‖w‖² (the
-  per-position /M normalization pinned directly);
-  `test_minlength_empty_bucket` (L136-143) — an uncovered w-index
-  still gets the pure ridge term (g[2] = 0.015·0.3) and g keeps
-  the full (N,) shape; `test_output_dtypes` (L146-153) — the R1
-  (D-093) pin: f dtype float32, g dtype float32, g shape (N,);
-  `test_closure_stateless` (L156-163) — two evaluations of the
-  same w are identical (the pre-allocated buffers do not leak).
-
-## Verified facts
-
-- 8/0/0 without any DB / gate / temp artifact (the tier-G probe
-  pins the no-DB wiring: no `from twolm.logistic_model`, no
-  SKIP_REGAB_DB, no twolm.test.paths, no `import os`).
-- The goldens are exact by construction: with w = 0 and ridge 0,
-  f = 0.5·mean((0.5−z)²) = 4/75 and g[k] = 0.25·Σ_{m: X[m,*]=k}
-  (0.5−z[m])/M = [1/30, 0, −1/30] on the handcrafted
-  X = [[0,1],[1,2],[0,2]], z = [0.1, 0.9, 0.5].
-- The nonzero-weights case agrees with the independent float64
-  re-derivation at rtol 1e-5 (the float32 pipeline vs the
-  float64 reference).
-- The R1 dtype pins (f + g float32) hold post-D-094-cast.
-
-## Minor notes
-
-- The mock context needs only the 4 attributes
-  `rlm_gradient_compute` reads (`ctx.w`, `ctx.design_matrix`,
-  `ctx.z`, `ctx.cfg.stat_model.ridge_regularization`) — the
-  SimpleNamespace chain is the minimal mock, the zed pattern.
-- No init-validation tests: rlm_gradient is a function-only
+- DB-free BY CONSTRUCTION (the module has no file I/O) — hence
+  no SKIP_REGAB_DB gate and no `twolm.test.paths` import.
+- NO init-validation tests: rlm_gradient is a function-only
   module (no data class to validate) — unlike test_rlm_zed.
+- Clean from day one (no ws lines, no dead imports, the no-DB
+  header claim true from the first line) — no further campaign.
 
-## Appendix — line reference
+## Integration
 
-169 lines (created at D-094).
-
-- L45-51: imports (SimpleNamespace L46, numpy L48-49, the 2
-  domain names L51)
-- L54-69: `TestSigmoid` (golden L57-63, symmetry L65-69)
-- L71-165: `TestRLMGradientCompute` (mock L74-79, reference
-  L81-96, 6 tests L98-163)
+- Independent of the pipeline: the per-function pin that would
+  catch a signature change to `rlm_gradient` (the worker test
+  only exercises the end-to-end path on the live 199952-
+  position rlm_02 dataset).
+- The LIVE goldens (the 4 pinned values at w=0) live in
+  test_lm_worker_gradient.py — the single source of truth after
+  the step-3 class c deletions (D1-D4 + D11 to that file).

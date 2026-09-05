@@ -1,15 +1,4 @@
 # twolm/rlm_gradient.py
-
-Analysis date: 2026-09-01 — analysis session 25 (D-093); fix
-campaign D-094 approved by Roberto (the R1 cast + "T1-T9 falli
-tutti" + M1 OK / M2 left as-is) and applied in the same session.
-Brought in by Roberto (commit a0adc6e — the 9th active level of the
-pipeline — the import + worker-list entry in logistic_model.py were
-his; RLMContext already carried the `fg` blackboard field from first
-import, logistic_model.py L135). Probe (scratch/verify_gradient.py,
-61 checks, tiers A–G, re-pinned in D-094 to the post-campaign
-state): 0 mismatches.
-
 The GRADIENT domain module of the RLM pipeline — the function-only
 module: NO data class, NO store / load / is_cache_consistent, NO
 init validation, NO hash (unlike every other rlm_* level). Two
@@ -19,148 +8,108 @@ public names: `sigmoid` (the scipy `expit` wrapper) +
 the normalized loss and gradient). The 9th active level (CREATED
 sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
 DESIGN_MTR → ZED → GRADIENT) and the SECOND non-cache level (after
-ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever —
-the next cache level takes rlmwf_08.
+ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
+> State: D-094 · 34442b2 · 2026-09-01 · suite 8/0/0
 
-## Suite status (session 25, post D-094)
+## API
 
-- `test_rlm_gradient`: 8/0/0 (2 classes; no DB, no gate — the
-  sigmoid goldens/symmetry, the handcrafted-mock compute: the
-  zero-weights goldens 4/75 + [1/30, 0, −1/30], the nonzero-weights
-  full math vs the independent float64 re-derivation, the ridge /M
-  scaling, the minlength empty-bucket pin, the R1 float32 dtype
-  pins, the closure statelessness) — NEW in D-094 (M1).
-- `test_lm_worker_gradient`: 2/0/0 live (1 class; both tests
-  DB-gated since D-094 T5 — the setUp moves through ZED on a fresh
-  base dir, so a live DB is required).
-- Full discover: 573 tests, 68 skipped under `SKIP_REGAB_DB=1`
-  (17 PERF + 35 regab + 2 positions + 2 features + 2 indexes + 3
-  wmaps + 3 design_matrix + 2 zed + 2 gradient), GREEN; ungated
-  (live DB): 573 run, 17 skipped (PERF only), GREEN. The full
-  `-W error` discover is clean.
+| name | contract |
+|---|---|
+| `sigmoid(x)` | the scipy `expit` wrapper — NO `@validate_call` (the hot-loop call, left as-is by Roberto) |
+| `rlm_gradient_compute(ctx)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))` |
 
-## State per Roberto
+## Architecture
 
-Pipeline-in-progress, 9 active levels, enabled by Roberto's
-2026-09-01 bring-in (commit a0adc6e: the two modules + the test +
-rlm_02.json, uncommented the `lm_worker_gradient` import + worker-
-list entry). The next line-by-line step is `lm_worker_optimize`
-(the next commented entry). GRADIENT fix campaign (D-094) CLOSED:
-R1 (the float32 cast on the return — the behaviour change Roberto
-chose: "la funzione dice che ritorna float32, facciamo ritornare un
-float32"), T1 (scipy in pyproject.toml), T2 (the worker factory
-@validate_call), T3 (the no-validation note), T4 (9 source ws
-lines), T5 (the test gate), T6 (the test D-085 idiom), T7 (the
-_down test), T8 (4 test ws lines), T9 (the sigmoid docstring).
-M1 (the dedicated suite) added; M2 left as-is by Roberto's call
-(the sigmoid stays a bare wrapper — it is called in the
-optimization hot loop); M4 left as-is (the triple blank lines are
-the canonical pattern of all 8 worker files).
+- `sigmoid(x)`: `return expit(x)` (the scipy import). NO
+  `@validate_call` (M2, left as-is by Roberto's call — it is
+  called in the optimization hot loop). Docstring: the naive
+  `1 / (1 + exp(−x))` is what it replaced; expit's stability
+  advantage is at extreme x (where the naive `np.exp(−x)`
+  overflows).
+- `rlm_gradient_compute`: NO `@validate_call` (the L52
+  no-validation note — the rlm_indexes L166 class, the D-094 T3
+  fix). Captures: `N = len(ctx.w)`, `X = ctx.design_matrix`,
+  `M, P = X.shape` (M = positions), `X_flat = X.ravel()`,
+  `z = ctx.z`, `alpha = ctx.cfg.stat_model.ridge_regularization
+  / M`. Pre-allocated buffers (the D-094 perf shape):
+  `bincount_weights_buffer = np.empty(M*P, float32)` + the
+  `(M, P)` view.
+- The `fg(w)` closure body: `linear_predictor = np.sum(w[X],
+  axis=1)` (the w-INDEX sum — NOT `X @ w`); `zh =
+  sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`;
+  the normalized loss `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)` (MSE +
+  ridge, /M-normalized for dataset-size-independent convergence
+  criteria); the normalized gradient `g = bincount(X_flat,
+  weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
+  `return np.float32(f), g.astype(np.float32, copy=False)` — the
+  R1 (D-093, fixed in D-094) cast: the return type says float32,
+  so both outputs are float32 (the behaviour change Roberto
+  chose).
 
-## Architecture (91 lines, post D-094)
+## Verified invariants
 
-- `sigmoid(x)` (L42-49, in `__all__` L39): `return expit(x)` — the
-  scipy `expit` (L34 import). NO `@validate_call` (M2: Roberto's
-  call — the hot-loop wrapper). Docstring (L43-48): the naive
-  `1 / (1 + exp(−x))` is what it replaced; T9 (D-094) fixed the
-  "funxtion" typo + "provide" grammar and the stability claim
-  ("very small values of x" → "extreme values of x" — expit's
-  advantage is where the naive `np.exp(−x)` overflows, large
-  negative x).
-- `rlm_gradient_compute(ctx)` (L53-91): NO `@validate_call` — the
-  source documents why (L52 note, the rlm_indexes L166 class:
-  `RLMContext` under TYPE_CHECKING, the circular-import issue).
-  Captures: `N = len(ctx.w)` (L60), `X = ctx.design_matrix`
-  (L61), `M, P = X.shape` (L62), `X_flat = X.ravel()` (L63),
-  `z = ctx.z` (L64), `alpha = ridge_regularization / M` (L65) —
-  the per-position normalization (docstring L54-58). Pre-allocates
-  the (M·P,) float32 buffer + (M, P) view (L68-69) once, outside
-  the closure.
-- The `fg(w)` closure (L71-89): `linear_predictor =
-  np.sum(w[X], axis=1)` (L72) — the per-row sum of the WEIGHT
-  VALUES at the cell w-indices (NOT X·w — X holds w-indices, not
-  feature columns); `zh = sigmoid(lp)` (L73); `dzh = zh·(1−zh)`
-  (L74); `rn = zh − z` (L75); `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)`
-  (L77-79) — the normalized MSE + ridge; `g = bincount(X_flat,
-  weights=broadcast(dzh·rn)) / M + alpha·w` (L82-87) — the
-  broadcast (L84: each row m spreads `dzh_rn[m]` over its P cells)
-  + `np.bincount` accumulation + `minlength=N` (g keeps the full
-  (N,) shape even for uncovered w-indices); return (L89, R1/
-  D-094): `np.float32(f), g.astype(np.float32, copy=False)` — BOTH
-  outputs float32, matching the return annotation.
-- `return fg` (L91).
+Pinned by the 54-call `probes/verify_gradient.py` +
+`test_rlm_gradient.py` (8 tests, no DB) +
+`test_lm_worker_gradient.py` (2 DB-gated tests).
 
-## Verified facts
+- Source shape (probe A1-A13): 91 lines, the 2-name `__all__`,
+  the expit import, the no-validation note (L52), the captures
+  (L60-65), the buffers (L68-69), the fg body (L71-89), the R1
+  return (L89), 0 non-comment trailing-whitespace lines.
+- The worker file shape (probe B1-B9): 62 lines, the factory WITH
+  `@validate_call` + the pydantic import (T2), NO cache_manager
+  import (the L48 by-design comment pinned), `_up` sets `ctx.fg`,
+  `_down` clears it, `Worker("GRADIENT", ...)`.
+- The live-DB golden re-derivation (probe D0 + D5-D10 + D12,
+  rlm_02 — 199952 positions): the pipeline bootstrap through
+  GRADIENT; alpha + clipping; f(w=0) + g(w=0) re-derived
+  (independent float64, the float32 R1 pin); f+g at w ≠ 0
+  (ridge); the closure stateless (2 calls); NO rlmwf_07*/08*
+  files; the feature set (8 instances).
+- The cross-file facts (probe E1/E4-E8): RLMContext's `fg` field
+  pre-declared; scipy in pyproject.toml (T1) + in the venv
+  (1.18.1); the StatModelConfig `ridge_regularization` field
+  (`ge=0.00`); the rlm_02 config.
+- The unit suite (8 tests, no DB): the sigmoid goldens/symmetry;
+  the mock compute (the exact zero-weights goldens, the nonzero
+  full math vs the independent float64 re-derivation, the /M
+  scaling, the minlength empty-bucket pin, the R1 dtype pins, the
+  statelessness).
+- The live goldens (DB-gated, `test_lm_worker_gradient.py`): the
+  4 pinned values at w=0 on the 199952-position rlm_02 — the
+  single source of truth after the step-3 class c deletions (D1-
+  D4 + D11 to the worker test, E2/E3 to the hub).
 
-- f(w=0) = 0.020493777 (float32) and g(w=0) re-derived
-  independently in float64 (np.add.at + hand-rolled sigmoid vs
-  expit) on the live rlm_02 dataset (199952 positions) — matching
-  the test goldens (0.02049378 / 3.558e-4 / −2.395e-4 / 1.101e-3)
-  at the test tolerances (probe D6/D7).
-- f + g at a seeded w ≠ 0 (the ridge term included) re-derived the
-  same way — the closure is the exact normalized MSE + ridge
-  gradient (probe D8).
-- The closure is stateless: two evaluations of the same w are
-  identical (the pre-allocated buffers do not leak — probe D9 +
-  the dedicated test_closure_stateless).
-- R1 (D-093) → FIXED (D-094): before the cast, `g` came back
-  FLOAT64 (np.bincount upcasts the float32 weights to float64)
-  while the return annotation said NDArray[np.float32] (f was
-  already float32, matching its annotation). After the cast both
-  outputs are float32 (pinned by the dedicated test_output_dtypes
-  + the probe D7).
-- The zero-weights goldens are exact: with w = 0 and ridge 0,
-  f = 0.5·mean((0.5−z)²) and g[k] = 0.25·Σ_{m: X[m,*]=k}(0.5−z[m])
-  / M (the dedicated test pins 4/75 and [1/30, 0, −1/30] on a
-  (3, 2) handcrafted matrix).
-- The ridge term is exactly linear in ridge: g(b)−g(a) =
-  (b−a)/M·w and f(b)−f(a) = 0.5·(b−a)/M·‖w‖² (the dedicated
-  test_ridge_scaling — the /M normalization pinned directly).
+## Open issues
 
-## Minor notes
+None.
 
-- M2 (left as-is by Roberto's call): the exported `sigmoid` has no
-  @validate_call — it is a one-line hot-loop wrapper called at
-  every optimization iteration; decorating it would also reject
-  scalar input (expit itself accepts scalars).
-- M3 (informational, by design): the SECOND non-cache level (after
-  ZED) — the rlmwf_08* file never materializes; the next cache
-  level (OPTIMIZE) takes rlmwf_08. The per-position /M
-  normalization is by design (dataset-size-independent
-  convergence criteria, docstring L56-57).
-- M4 (left as-is): the worker file's triple blank lines
-  (lm_worker_gradient.py L39-41 / L43-45) are the canonical
-  pattern of ALL 8 worker files (every sibling shares them — a
-  house style, not a defect).
-- Performance (post-pipeline, Roberto's note → ideas.md I-013):
-  this closure is the suspected pipeline bottleneck for large
-  models — a speed-up study is planned for after the pipeline is
-  complete.
+## Conventions
 
-## Integration notes
+- The R1 float32 return contract (D-093 → D-094): the NEXT level
+  (OPTIMIZE) sees both `f` and `g` as float32.
+- The linear predictor is `np.sum(w[X], axis=1)` — the w-INDEX
+  sum (each X cell is a w-index), NOT `X @ w`.
+- The /M normalization: both the MSE and the ridge terms are
+  scaled by 1/M — the optimizer's convergence criteria are
+  dataset-size independent (pinned directly by the ridge_scaling
+  test).
+- M2 (left as-is): `sigmoid` stays a bare wrapper (no
+  `@validate_call`) — hot-loop performance.
+- M4 (left as-is, the worker file): the triple blank lines are
+  the canonical pattern of all 8 worker files (house style).
+- The scipy `expit` is the only special-function dependency of
+  the pipeline (scipy in pyproject.toml since D-094 T1).
 
-- The GRADIENT worker (`lm_worker_gradient`) calls
-  `rlm_gradient_compute(ctx)` in `_up` and stores the closure in
-  `ctx.fg` (the pre-declared RLMContext field, logistic_model.py
-  L135); `_down` clears it. The NEXT level (OPTIMIZE — not yet
-  brought in) will consume `fg` — the float32 return contract (R1)
-  is what the optimizer will see.
-- The scipy `expit` is the only special-function dependency of the
-  pipeline (scipy in pyproject.toml since D-094 T1).
+## Integration
 
-## Appendix — line reference
-
-91 lines, as of D-094 (90 at the D-093 bring-in; D-094: +1 note
-line [T3]; the R1 cast + T9 docstring + 6 ws lines changed in
-place).
-
-- L28-34: imports (typing L30, numpy L31-32, scipy.special.expit
-  L34)
-- L36-37: `RLMContext` under TYPE_CHECKING
-- L39: `__all__` (the 2 public names)
-- L42-49: `sigmoid` (docstring L43-48 — T9 fixed line L47)
-- L52: the no-validation note [T3]
-- L53-91: `rlm_gradient_compute` (docstring L54-58; captures
-  L60-65; buffer L68-69; `fg` L71-89 — lp L72, sigmoid L73, dzh
-  L74, rn L75, loss L77-79, gradient L82-87, R1 return L89;
-  `return fg` L91)
+- The 9th RLM level; the worker (lm_worker_gradient.py) is the
+  thin glue, this module the math. Consumes `ctx.design_matrix`
+  (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32
+  weight vector, W = total weights; 2981 on live rlm_02; the
+  OPTIMIZE level later overwrites it with the optimized values)
+  + `ctx.cfg.stat_model.ridge_regularization` (CONFIG).
+- Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE
+  level. The flat-file numbering stops at rlmwf_06_DESIGN_MTR —
+  the next cache level (OPTIMIZE) takes rlmwf_08 (07 is skipped,
+  as 03 was at FEATURES).

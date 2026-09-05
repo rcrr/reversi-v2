@@ -1,84 +1,91 @@
 # twolm/lm_worker_gradient.py
-
-Analysis date: 2026-09-01 — analysis session 25 (D-093); fix
-campaign D-094 approved by Roberto and applied in the same session.
-Brought in by Roberto (commit a0adc6e — the 9th active level of the
-pipeline). Probe (scratch/verify_gradient.py, 61 checks, tiers
-A–G, re-pinned in D-094 to the post-campaign state): 0 mismatches.
-
 The GRADIENT worker of the RLM pipeline: builds the loss/gradient
 closure in `_up` (`ctx.fg = rlm_gradient_compute(ctx)`) and clears
 it in `_down`. The SECOND non-cache level (after ZED): the comment
 at L48 documents the on-the-fly choice — "GRADIENT building is a
 closure generation, very fast. No cache needed." No cache_manager
-wiring, no rlmwf_07* / rlmwf_08* file ever (the next cache level
-takes rlmwf_08).
+wiring, no rlmwf_07* / rlmwf_08* file ever.
+> State: D-094 · 34442b2 · 2026-09-01 · suite 2/0/0 (2 DB-gated)
 
-## Suite status (session 25, post D-094)
+## API
 
-- `test_lm_worker_gradient`: 2/0/0 live (1 class; both tests
-  DB-gated since D-094 T5 — the setUp moves through ZED on a fresh
-  base dir, so a live DB is required).
-- `test_rlm_gradient` (the domain module, D-094 M1): 8/0/0.
-- Full discover: 573 tests, 68 skipped under `SKIP_REGAB_DB=1`,
-  GREEN; ungated (live DB): 573 run, 17 skipped (PERF only),
-  GREEN. The full `-W error` discover is clean.
+| name | contract |
+|---|---|
+| `lm_worker_gradient()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-094 T2, like all the other worker factories) returning `Worker("GRADIENT", _up, _down)` |
 
-## State per Roberto
+## Architecture
 
-Pipeline-in-progress, 9 active levels. GRADIENT fix campaign
-(D-094) CLOSED: T2 (the factory `@validate_call` + the pydantic
-import) + T4 (3 ws lines) applied; M4 (the triple blank lines L39-
-41 / L43-45) left as-is — the canonical pattern of all 8 worker
-files (house style).
+- Imports: `Worker, Relevance` from state_machine;
+  `rlm_gradient_compute` from rlm_gradient; `validate_call,
+  ConfigDict` from pydantic (added in D-094 T2); `RLMContext`
+  under TYPE_CHECKING. NO `twolm.cache_manager` import (by
+  design — pinned by probe B).
+- `_up`: INFO "Building gradient and loss function (fg)..." →
+  the by-design comment (L48: "GRADIENT building is a closure
+  generation, very fast. No cache needed.") →
+  `ctx.fg = rlm_gradient_compute(ctx)` → INFO "Gradient function
+  generated."
+- `_down`: INFO "Clearing gradient function..." → `ctx.fg =
+  None`.
+- The house-style triple blank lines (before `__all__` and
+  before `_up`) — left as-is by Roberto (M4, the canonical
+  pattern of all 8 worker files).
 
-## Architecture (62 lines, post D-094)
+## Verified invariants
 
-- `_up` (L46-52): logs "Building gradient and loss function
-  (fg)..." (L47), the by-design comment (L48: "GRADIENT building
-  is a closure generation, very fast. No cache needed."),
-  `ctx.fg = rlm_gradient_compute(ctx)` (L50), logs "Gradient
-  function generated." (L52).
-- `_down` (L54-56): logs "Clearing gradient function..." (L55),
-  `ctx.fg = None` (L56).
-- `lm_worker_gradient()` (L60-62, `@validate_call
-  (config=ConfigDict(arbitrary_types_allowed=True))` since D-094
-  T2 — like all 7 other worker factories): returns
-  `Worker("GRADIENT", _up, _down)`.
+Pinned by the `probes/verify_gradient.py` B + C + D + E + G
+tiers + the 2-test suite.
 
-## Verified facts
+- Source shape (probe B1-B9): the 62-line file, `__all__ =
+  ['lm_worker_gradient']`, the factory WITH `@validate_call` +
+  the pydantic import (T2), NO cache_manager import (the L48
+  by-design comment pinned), `_up` sets `ctx.fg`, `_down` clears
+  it, `Worker("GRADIENT", ...)`.
+- The worker-test source shape (probe C1-C10): the 142-line
+  file, the 1 class / 2 tests, the gate (T5), the D-085 idiom
+  (T6), the step pins, the 4 goldens, the _down test (T7), 0
+  non-comment ws lines (T8).
+- The full pipeline through GRADIENT (live DB, probe D0 +
+  D5-D10 + D12, rlm_02 — 199952 positions): the pipeline
+  bootstrap (the move to GRADIENT runs the whole chain); alpha +
+  clipping; f(w=0) + g(w=0) re-derived (the independent float64
+  reference, the float32 R1 pin); f+g at w ≠ 0 (the ridge); the
+  closure stateless (2 calls); NO rlmwf_07*/08* file in the base
+  dir (the cache files stop at rlmwf_06_DESIGN_MTR); the feature
+  set (8 instances: DIAG3 + EDGE, no intercept, no mobilities).
+- The cross-file facts (probe E1/E4-E8): RLMContext's `fg`
+  field pre-declared; scipy in pyproject.toml + in the venv; the
+  `ridge_regularization` field; the rlm_02 config.
+- The dedicated suite (probe G1-G8): the 169-line file, 2
+  classes / 8 tests, no DB wiring, the goldens pinned.
+- The live goldens (DB-gated): `test_generate_gradient` (the 4
+  pinned values at w=0) + `test_down_clears_gradient` (the
+  step-7 / "ZED" / fg-None pin) — `test_lm_worker_gradient.py`
+  (2 tests, both DB-gated since D-094 T5).
 
-- The worker list is the 9 active entries (probe E2): CREATED
-  sentinel + CONFIG + POSITIONS + FEATURES + INDEXES + WMAPS +
-  DESIGN_MTR + ZED + GRADIENT.
-- Live: at ZED `ctx.fg` is None; after `move_to_step('GRADIENT')`
-  (step 8) `ctx.fg` is callable (probe D1/D2/D3); after
-  `move_to_step(7)` back to ZED, `ctx.fg` is None again (probe
-  D11, the worker test test_down_clears_gradient since D-094 T7).
-- No `rlmwf_07*` / `rlmwf_08*` file ever materializes in the base
-  dir (probe D10) — the cache files stop at rlmwf_06_DESIGN_MTR.
-- The `fg` blackboard field was pre-declared in RLMContext
-  (logistic_model.py L135) at first import.
+## Open issues
 
-## Minor notes
+None.
 
-- M3 (informational, by design): the second non-cache level — the
-  next cache level (OPTIMIZE) takes rlmwf_08.
-- M4 (left as-is): the triple blank lines (L39-41 before `__all__`,
-  L43-45 before `_up`) are the canonical pattern of all 8 worker
-  files.
+## Conventions
 
-## Appendix — line reference
+- The no-cache design is the second deviation from the uniform
+  7-kwargs `cache_manager` wiring (ZED first) — intentional and
+  documented (the L48 comment); `ctx.fg` is still cleared on
+  down (the machine contract holds).
+- No `use_cache` interaction: with `ctx.use_cache=False` the
+  other levels still warm their cache files; GRADIENT has
+  nothing to warm — the behavior is identical either way.
 
-62 lines, as of D-094 (59 at the D-093 bring-in; D-094: +1 pydantic
-import line +1 decorator line [T2], 3 ws lines emptied in place
-[T4]).
+## Integration
 
-- L28-35: imports (pydantic L32 [T2], state_machine L34,
-  rlm_gradient L35)
-- L37-38: `RLMContext` under TYPE_CHECKING
-- L39-41 + L43-45: the house-style triple blanks [M4]
-- L42: `__all__`
-- L46-52: `_up` (comment L48, compute L50)
-- L54-56: `_down`
-- L59-62: the factory (L59 decorator [T2], docstring L61)
+- The 9th RLM level; the domain module (rlm_gradient.py)
+  carries the closure math, this worker the machine glue.
+- Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED),
+  `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`
+  (CONFIG) — the SM half-open interval semantics guarantee all
+  are set. The worker-test setUp moves through ZED (step 7)
+  first, so the full 9-level chain is exercised end-to-end on
+  the live DB.
+- Publishes `ctx.fg` (the loss/gradient closure) for the
+  OPTIMIZE level onward.

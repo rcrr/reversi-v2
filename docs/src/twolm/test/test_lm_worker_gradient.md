@@ -1,86 +1,49 @@
 # twolm/test/test_lm_worker_gradient.py
+The worker integration test of the GRADIENT level: the rlm_02
+end-to-end golden (the 4 values at w=0 — the single source of
+truth after the step-3 class c deletions of the former probe
+D1-D4 / D11 pipeline-state tier) + the `_down` clearing pin
+(D-094 T7). 1 class / 2 tests, both DB-gated (the setUp moves
+through ZED on a fresh base dir, so a live DB is required —
+`test_lm_worker_gradient` 2/0/2 under the gate).
+> State: D-094 · 34442b2 · 2026-09-01 · suite 2/0/0 (2 DB-gated)
 
-Analysis date: 2026-09-01 — analysis session 25 (D-093); fix
-campaign D-094 approved by Roberto and applied in the same session.
-Brought in by Roberto (commit a0adc6e). Probe (scratch/
-verify_gradient.py, 61 checks, tiers A–G, re-pinned in D-094 to the
-post-campaign state): 0 mismatches.
+## Coverage
 
-## Suite status (session 25, post D-094)
+| class | what it pins |
+|---|---|
+| `TestLMWorkerGradient` (2 tests, DB-gated) | shared setUp: the `SKIP_REGAB_DB` gate FIRST (L65-69, the D-094 T5 fix — the header's live-DB claim is now true) → the stdout patcher → the D-085 idiom (T6: `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST, `tmp_dir = Path(...)`, the `WORKSPACE_ROOT`-anchored `rlm_02.json`) → a fresh `LogisticModel` (LOW) → the move to ZED + the step-7 pin; defensive `getattr` tearDown. `test_generate_gradient`: the pre-state (fg None, X (199952, 8), len(w) 2981); `move_to_step('GRADIENT')` + the step-8 pin; fg not-None + callable; the goldens at w = 0: f 0.02049378 (rtol 1e-6 / atol 1e-7), g[0] 3.558e-4, g[1] −2.395e-4, g[2980] 1.101e-3 (rtol 1e-4 / atol 1e-7). `test_down_clears_gradient` (D-094 T7): move to GRADIENT (step 8, fg not-None), then `move_to_step(7)` — pins step 7 + `current_worker_name == 'ZED'` + `ctx.fg is None` |
 
-- `test_lm_worker_gradient`: 2/0/0 live (1 class / 2 tests; both
-  DB-gated since D-094 T5 — the setUp moves through ZED on a fresh
-  base dir, so a live DB is required; 2/0/2 under the gate).
-- `test_rlm_gradient` (the domain module, D-094 M1): 8/0/0.
-- Full discover: 573 tests, 68 skipped under `SKIP_REGAB_DB=1`,
-  GREEN; ungated (live DB): 573 run, 17 skipped (PERF only),
-  GREEN.
+## Goldens pinned
 
-## State per Roberto
+- The 4 live values at w=0 on the rlm_02 dataset (199952
+  positions, 8 pattern instances — DIAG3 + EDGE, no intercept,
+  no mobilities; 2981 w entries) — all re-derived by the probe
+  D6/D7 tier (the independent float64 reference).
+- The step pins: 7 (ZED) in setUp + 8 (GRADIENT) in
+  `test_generate_gradient` + 7/ZED again in the _down test — the
+  9-level pipeline ordering locked.
 
-GRADIENT fix campaign (D-094) CLOSED: T5 (the SKIP_REGAB_DB gate —
-the header L38-39 claim was false at bring-in: under the gate the
-test RAN on the live DB; now 2/0/2 gated), T6 (the D-085 idiom),
-T7 (the _down test), T8 (4 ws lines) applied. The file now follows
-the exact worker-test house pattern (gate FIRST in setUp,
-TemporaryDirectory under CUSTOM_TMP_BASE created first,
-WORKSPACE_ROOT-anchored json, defensive tearDown).
+## Conventions
 
-## Architecture (142 lines, post D-094)
+- Both tests are DB-gated (D-094 T5): the setUp's move to ZED
+  runs the positions chain (the live regab DB) on a fresh base
+  dir — the same gate class as the other worker tests.
+- The goldens are the BRING-IN values (unchanged by D-094): the
+  R1 float32 cast of g changes the values by < 1 float32 ulp
+  (≈1e-10 absolute at these magnitudes) — inside the pinned
+  tolerances.
+- The "How to run" header documented the gate at bring-in
+  (L38-39) — the claim was false then (T5), true since D-094.
 
-- 1 class: `TestLMWorkerGradient` (L61) — "Tests the GRADIENT
-  worker integration and exact values using rlm_02.json."
-- setUp (L64-87): the T5 gate (L65-69, `# T5 (D-093):` comment —
-  the worker test needs the live regab DB, the setUp moves through
-  ZED on a fresh base dir); the stdout patcher (L72-73); the T6
-  idiom (L75-79: `TemporaryDirectory` under `CUSTOM_TMP_BASE`
-  created FIRST, `self.tmp_dir = Path(self._tmp.name)`, the
-  `WORKSPACE_ROOT`-anchored rlm_02.json path); the model (L81-83,
-  `Verbosity.LOW`); `move_to_step('ZED')` + step 7 pin (L86-87).
-- tearDown (L89-92): defensive (both `getattr` guards — the D-085
-  idiom).
-- `test_generate_gradient` (L95-126): pre-state pins (fg None,
-  X (199952, 8), len(w) 2981); `move_to_step('GRADIENT')` + step 8
-  pin; fg not-None + callable; the goldens at w = 0: f
-  0.02049378 (rtol 1e-6 / atol 1e-7), g[0] 3.558e-4, g[1] −2.395e-4,
-  g[2980] 1.101e-3 (rtol 1e-4 / atol 1e-7) — all re-derived by the
-  probe D6/D7 tier.
-- `test_down_clears_gradient` (L128-138, NEW in D-094 T7): move to
-  GRADIENT (step 8, fg not-None), then `move_to_step(7)` — pins
-  step 7 + `current_worker_name == 'ZED'` + `ctx.fg is None`
-  (live-verified by the probe D11).
+## Integration
 
-## Verified facts
-
-- All 4 goldens match the independent float64 re-derivation on the
-  live rlm_02 dataset (the probe D6/D7: f 0.020493777 float32,
-  g re-derived via np.add.at + hand-rolled sigmoid).
-- The (199952, 8) / 2981 shape pins match the live pipeline state
-  (probe D4): 199952 positions, 8 pattern instances (DIAG3 + EDGE,
-  no intercept, no mobilities — probe D12), 2981 w entries.
-- The _down clearing is live-verified (probe D11 + the T7 test).
-
-## Minor notes
-
-- The goldens are the BRING-IN values (unchanged by D-094): the R1
-  float32 cast of g changes the values by < 1 float32 ulp (≈1e-10
-  absolute at these magnitudes) — inside the pinned tolerances.
-- The "How to run" header (L30-42) already documented the
-  SKIP_REGAB_DB gate at bring-in (L38-39) — the claim was false
-  then (T5), true since D-094.
-
-## Appendix — line reference
-
-142 lines, as of D-094 (118 at the D-093 bring-in; D-094: the
-setUp T5 gate + T6 idiom, the T7 _down test, 4 ws lines emptied
-in place).
-
-- L44-57: imports (os L45 [T5], tempfile L46, paths L57 [T6],
-  shutil gone [T6])
-- L61: `TestLMWorkerGradient`
-- L64-87: setUp (gate L65-69 [T5], patcher L72-73, idiom L75-79
-  [T6], model L81-83, ZED L86-87)
-- L89-92: defensive tearDown [T6]
-- L95-126: `test_generate_gradient` (pre-state L98-102, GRADIENT
-  L106-107, goldens L116-126)
-- L128-138: `test_down_clears_gradient` [T7]
+- No cache round-trip test exists (and none can): GRADIENT has
+  no cache file (the second non-cache level) — the end-to-end
+  coverage is the single compute + the `_down` pin.
+- The rlm_02.json fixture (the full 199952-position training set
+  — the largest fixture in the pipeline; the zero-weights
+  handcrafted-mock goldens live in test_rlm_gradient.py instead).
+- The independent re-derivation of the goldens (float32-exact
+  f, the np.add.at + hand-rolled-sigmoid g) is probe-side
+  (D6/D7) + unit-side (`test_rlm_gradient`'s `_reference`).
