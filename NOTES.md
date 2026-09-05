@@ -1378,6 +1378,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   docs (2 new + the logistic_model.md 12-worker update, 6
   spots). File sizes: lm_worker_vld_positions 108 → 112;
   test_lm_worker_vld_positions 195 lines new.
+  MIGRATED at D-106 step 19 (VLD_POSITIONS batch): 120-line
+  lm_worker_vld_positions mirror (schema: the POSITIONS twin —
+  the reused load_from_db / is_cache_consistent pair, the bid/
+  status overrides, the inherited-ec M1 note, the rlmwf_11
+  slot, the 4-field _down, invariants pinned to the 17-check
+  probe + the 9-test suite) + 47-line test mirror (2 classes /
+  9 tests — the D-106 step-3 conversion of probe D2-D7 into the
+  DB-free TestIsCacheConsistentOverride class, 195 → 255 lines
+  at 14a0827); the probe is now 17 checks (A1-A8 + B4/B5 +
+  C3a-C3d + C4 + D1/D8 — post step 3: B1-B3 to the hub,
+  C1/C2/C5/C6/C7 to the test file, D2-D7 converted into
+  TestIsCacheConsistentOverride; the old "31" counted the
+  pre-step-3 state).
 - lm_worker_validate.py + rlm_validate.py: brought in
   2026-09-02 (session 28, Roberto's commit 536eadc, "Ho aggiunto
   lm_worker_validate e rlm_validate, non ci sono tests. Fatto
@@ -2053,13 +2066,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   step 12, B batch #6 = the DESIGN_MATRIX family at step 13,
   B batch #7 = the ZED family at step 14, B batch #8 = the
   GRADIENT family at step 15, B batch #9 = the OPTIMIZE family
-  at step 16, B batch #10 = the GENERATE family at step 17 —
-  next: B batch #11 = the VALIDATE family at step 18 — next:
-  B batch #12 = the VLD_POSITIONS family (lm_worker_vld_
-  positions + test_lm_worker_vld_positions — 2 docs, all exist;
-  the 12th level: the POSITIONS twin over the validation data
-  set, it reuses lm_worker_positions' load_from_db /
-  is_cache_consistent — no rlm_vld_positions module); 24 docs
+  at step 16, B batch #10 = the GENERATE family at step 17, B
+  batch #11 = the VALIDATE family at step 18, B batch #12 = the
+  VLD_POSITIONS family at step 19 — next: B batch #13 = the
+  ANALYTICS family (rlm_analytics, lm_worker_analytics +
+  test_lm_worker_analytics — 3 docs, all exist; the 14th level:
+  the 5th non-cache level — rlm_analytics IS the 2nd function-
+  only data module, like rlm_gradient / rlm_validate); 22 docs
   remain (recount at each batch)).
 
 ## Index
@@ -2409,17 +2422,24 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   review in
   notes/analyses/test_lm_worker_generate_session27_review.md)
 - docs/src/twolm/lm_worker_vld_positions.md — lm_worker_vld_
-  positions.py analysis (D-099/D-100): the POSITIONS TWIN over
-  the validation data set (the reused load_from_db /
-  is_cache_consistent pair, the keyword bid/status overrides,
-  the inherited-ec fact, the 7-kwargs wiring, the rlmwf_11 flat
-  slot, the rlm_02 golden 200 positions / e8087903…f4c48 / mean
-  3.64); D-100 R1 + T1-T5 + M1-M3 CLOSED; module CLOSED
+  positions.py mirror (MIGRATED at D-106 step 19, VLD_POSITIONS
+  batch: the POSITIONS TWIN over the validation data set — the
+  reused load_from_db / is_cache_consistent pair, the keyword
+  bid/status overrides, the inherited-ec fact, the 7-kwargs
+  wiring, the rlmwf_11 flat slot, the rlm_02 golden 200
+  positions / e8087903…f4c48 / mean 3.64; probe A1-A8 + B4/B5 +
+  C3a-C3d + C4 + D1/D8 + the 9-test suite; the verbatim
+  session-28 review in notes/analyses/lm_worker_vld_positions_
+  session28_review.md)
 - docs/src/twolm/test/test_lm_worker_vld_positions.md —
-  test_lm_worker_vld_positions.py (NEW, D-100 T5): 1 class / 3
-  tests, all DB-gated — the first-run 200-position + hash-golden
-  + sidecar, the 2nd-instance cache hit with no re-extraction,
-  the _down pin; 3/0/0 live, 3/0/3 gated
+  test_lm_worker_vld_positions.py mirror (MIGRATED at D-106
+  step 19, VLD_POSITIONS batch: 2 classes / 9 tests — the first-
+  run 200-position + hash-golden + sidecar, the 2nd-instance
+  cache hit with no re-extraction, the _down pin (3 DB-gated) +
+  the 6 DB-free TestIsCacheConsistentOverride tests (the D-106
+  step-3 conversion of probe D2-D7); the verbatim session-28
+  review in notes/analyses/test_lm_worker_vld_positions_
+  session28_review.md)
 - docs/src/twolm/lm_worker_validate.md — lm_worker_validate.py
   mirror (MIGRATED at D-106 step 18, VALIDATE batch: the THIRD
   non-cache worker — the 7-key vld_metrics dict, the M1
