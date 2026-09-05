@@ -1,145 +1,119 @@
-# regab.py — analysis
+# twolm/regab.py
+`regab` (REversi GAme Base) is the database-access and serialization
+layer of the pipeline: it queries a PostgreSQL database for game
+positions (the `regab_prng_gp` table), wraps the results in a
+`RegabDataSet`, and serializes/deserializes datasets to binary files
+via the `binio` module. It is the data source of the POSITIONS and
+VLD levels.
+> State: D-080 · cfb55fa · 2026-08-31 · suite 37/0/0 (35 live-DB tests;
+  SKIP_REGAB_DB=1 → 35 skipped / 2 run, 0.9 s)
 
-Date: 2026-08-29. Module added by Roberto (2 files: regab.py + test_regab.py).
-**Fix batch T1-T7 applied (D-052): suite 33 → 37/0/0 GREEN.**
+## API
 
-Suite: **37 tests, GREEN 37/0/0** (5 classes; 35 require live PostgreSQL + `.env`, 2 are fully mocked).
-`SKIP_REGAB_DB=1` skips all DB-dependent tests (35 skipped, 2 run — T6).
+| name | contract |
+|---|---|
+| `GameValue = np.int8` (L63) / `GameValueArray` (L72) | The game-value types (-64 to +64); `GameValueArray` is the pydantic-validated `NDArray[np.int8]` |
+| `RegabDBConnection(dbname, user, host, port, password, activate_conn=True)` (L76) | Wraps a `psycopg2` connection; `__init__` (L106), `activate_conn` (L147), `close` (L153 — the `if self.conn` guard prevents most double-close); sets `search_path` to `reversi` |
+| `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` (L271) | Queries `regab_prng_gp`, returns a `pd.DataFrame`; the double-decorated entry point (below); `where` is `WhereArgument`-guarded (T7) |
+| `RegabDataSet(rc, bid, status, ec, df_mogv)` (L370) | A dataset: connection params + a 3-column DataFrame (mover int64, opponent int64, game_value int8); `__init__` (L388); `generate_positions_and_game_values` (L417 — reinterprets the int64 columns as `Bitboard` via `.view`, no data loss); `compute_sha3_256_hash` (L425 — over the column `tobytes()` in insertion order mover→opponent→game_value, implicit but deterministic) |
+| `regab_extract_data_set_from_db(rc, bid, status, ec)` (L438) | Extracts a `RegabDataSet` from the database |
+| `regab_store_data_set_to_file(rds, filename)` (L548) | Serializes to a `binio` framed binary file; **no sidecar is written here** — in the pipeline flow `cache_manager` writes it (D-080 docstring, the D-079 cross-ref resolved) |
+| `regab_load_data_set_from_file(filename, checksum=True)` (L470) | Deserializes; verifies the `binio` sidecar checksum by default |
+
+The on-disk format (binio-framed): header `"RegabDataSet binary
+data file"` / version 1, then dbname, user, host, port (strings),
+num_bid + bid[] (u32), num_status + status[] (strings), ec (u32),
+mover (int64), opponent (int64), game_value (int8).
 
 ## Architecture
 
-`regab` (REversi GAme Base) is the database-access and serialization layer.
-It queries a PostgreSQL database for game positions (`regab_prng_gp` table),
-wraps results in a `RegabDataSet`, and can serialize/deserialize datasets to
-binary files via the `binio` module.
+604 lines (post D-052 + D-080).
 
-### Components
+- Types (L63-72): `GameValue` + the `GameValueArray`
+  BeforeValidator.
+- Connection (L76-165): `RegabDBConnection` — the psycopg2 wrapper
+  with the `reversi` search path.
+- The ContextVar bridge (L167-225): `rc_context` (L167);
+  `_validate_db_fields` (L170) does the DB-backed column check
+  (deferred — the `SELECT ... LIMIT 0` colnames query runs only when
+  `fields_input` is actually a string or list, the T4 fix);
+  `_validate_with_db_context` (L196) sets the ContextVar before
+  `@validate_call` and resets it in `finally`; `_ensure_list` (L227).
+- Argument validators (L233-267): `BidArgument` (int→[int], `ge=0`),
+  `StatusArgument` (str→[str], 3 chars each), `EcArgument`
+  (`ge=0, le=60`), `_WHERE_FORBIDDEN` (L249) +
+  `_validate_where_clause` (L255) + `WhereArgument` (L264 — the T7
+  SQL-injection guard: blocks comments `--`/`/* */`, the `;`
+  terminator, and the dangerous keywords SELECT/INSERT/UPDATE/
+  DELETE/DROP/UNION/ALTER/CREATE/EXEC/EXECUTE/TRUNCATE),
+  `FieldsArgument` (L267).
+- `regab_gp_as_df` (L271-355): double-decorated —
+  `@_validate_with_db_context` FIRST (sets the ContextVar) then
+  `@validate_call` (pydantic), so the DB-backed validators can read
+  the connection from the ContextVar; builds the parametrized query
+  (status strings are safe — pydantic enforces len=3, no quotes
+  possible).
+- The DataFrame guard (L357-368): `_ensure_column_count_and_type`
+  (3 columns, dtypes compared as the strings `'int64'`/`'int8'`) +
+  `DfMogvArgument`.
+- `RegabDataSet` (L370-435) + the three module-level functions
+  (L438-604).
 
-| Component | Role |
-|---|---|
-| `GameValue = np.int8` | Type alias for game values (-64 to +64). |
-| `GameValueArray` | Pydantic-validated `NDArray[np.int8]`. |
-| `RegabDBConnection(dbname, user, host, port, password, activate_conn)` | Wraps `psycopg2` connection; sets `search_path` to `reversi`. |
-| `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` | Queries `regab_prng_gp` table, returns `pd.DataFrame`. |
-| `RegabDataSet(rc, bid, status, ec, df_mogv)` | Holds a dataset: connection params + 3-column DataFrame (mover int64, opponent int64, game_value int8). |
-| `regab_extract_data_set_from_db(rc, bid, status, ec)` | Extracts a `RegabDataSet` from the database. |
-| `regab_store_data_set_to_file(rds, filename)` | Serializes to a `binio` framed binary file. No sidecar is written here — in the pipeline flow cache_manager writes it (D-080 cross-ref fix, with the docstring). |
-| `regab_load_data_set_from_file(filename, checksum)` | Deserializes from a `binio` file; verifies checksum by default. |
+## Verified invariants
 
-### On-disk format (via binio)
+No dedicated probe — the invariants are pinned by the
+`test_regab` suite (see test_regab.md) and by the live-DB run of the
+module suite.
 
-```
-[header: "RegabDataSet binary data file", version=1]
-[dbname: string]
-[user: string]
-[host: string]
-[port: string]
-[num_bid: u32]
-[bid[0]..bid[n-1]: u32]
-[num_status: u32]
-[status[0]..status[n-1]: string]
-[ec: u32]
-[mover: int64 array]
-[opponent: int64 array]
-[game_value: int8 array]
-```
+- V1: `compute_sha3_256_hash` matches an independent
+  `hashlib.sha3_256` recomputation over the column `tobytes()` —
+  pinned by `TestRegabDataSet.test_compute_sha3_256_hash` with the
+  golden `b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670`.
+- V2: `generate_positions_and_game_values` uses `.view(Bitboard)`
+  (int64→uint64 reinterpret, bit-width match, no data loss) —
+  pinned by `TestRegabDataSet.test_generate_positions_and_game_values`.
+- V3: the dtype guard compares the STRING `'int64'` (pandas
+  dtypes) — pinned by `test_invalid_df_mogv_column_types` (float64
+  game_value → TypeError).
+- V4: `status_str` construction is safe — pydantic enforces len=3 on
+  the status strings, so no quotes/special chars can reach the
+  query (the T4/T7-era hardening).
+- V5: the ContextVar pattern is correct — set before `@validate_call`,
+  reset in `finally` (concurrent-safe by construction; no test can
+  exercise the concurrency, the pattern is verified by inspection +
+  the double-decorator order in `regab_gp_as_df`).
 
-### Validation pipeline
+## Open issues
 
-- **`regab_gp_as_df`**: double-decorated — `@_validate_with_db_context` (sets `ContextVar`) then `@validate_call` (Pydantic). Pydantic validators access the DB connection via `ContextVar` to validate `fields` against actual column names.
-- **`BidArgument`**: `BeforeValidator(_ensure_list)` converts single int→[int]; `Field(ge=0)` per element.
-- **`StatusArgument`**: `BeforeValidator(_ensure_list)` for str→[str]; `Field(min_length=3, max_length=3)` per element.
-- **`EcArgument`**: `Field(ge=0, le=60)`.
-- **`WhereArgument`** (T7): `AfterValidator(_validate_where_clause)` blocks SQL comments, statement terminators, and dangerous keywords to prevent SQL injection via the `where` clause.
-- **`FieldsArgument`**: `AfterValidator(_validate_db_fields)` — DB-backed column check.
-- **`DfMogvArgument`**: `AfterValidator(_ensure_column_count_and_type)` — 3 columns, types int64/int64/int8.
+None. (The T1-T7 fix batch was applied at D-052, 2026-08-29 — the
+campaign narrative froze in the archive.)
 
-## Verified facts (V1–V5)
+## Conventions
 
-| # | Fact | Method |
-|---|---|---|
-| V1 | `compute_sha3_256_hash` golden matches independent recomputation | `hashlib.sha3_256` over column `tobytes()` in insertion order → `b507cd34...` |
-| V2 | `generate_positions_and_game_values` uses `.view(Bitboard)` to reinterpret int64→uint64 | bit-width match, no data loss |
-| V3 | `_ensure_column_count_and_type` dtype comparison (`'int64'` string) works with pandas | `df.dtypes.iloc[i] == 'int64'` → True |
-| V4 | `status_str` construction safe: Pydantic enforces len=3 on status strings | no quotes or special chars possible |
-| V5 | `ContextVar` pattern correct: `_validate_with_db_context` sets before `@validate_call`, resets in `finally` | concurrent-safe |
+- `SKIP_REGAB_DB=1` skips the 35 DB-dependent tests (the T6 gate in
+  `BaseTestCase.setUp`); the 2 fully-mocked
+  `TestRegabDataSetFileLoadExceptions` tests always run.
+- The test data relies on `.env` in the workspace root (D-085:
+  `load_dotenv(WORKSPACE_ROOT / ".env")`): the suite is NOT
+  self-contained; `test_extract_data_from_db` reads its optional
+  `TEST_RDATA_TEST_EXTRACTION_*` params there.
+- `_validate_db_fields` needs a live DB even for purely structural
+  checks (a standalone mock-based test would isolate it — not done;
+  the suite uses the real DB).
+- `compute_sha3_256_hash` iterates `for col in df` — the insertion
+  order (mover→opponent→game_value), deterministic but implicit.
+- Only the default (uncompressed) `binio` store path is tested.
 
-## Defects
+## Integration
 
-All seven disposed in the fix batch (D-052, 2026-08-29).
-
-### T1 — Header typo `Aauthor` (D-052, FIXED)
-`# Aauthor Roberto Corradini` → `# Author Roberto Corradini`. Same as binio T3.
-
-### T2 — Dead typing imports: `Callable`, `Type`, `Self` (D-052, FIXED)
-Removed from the `typing` import line; `Tuple` is used (return type of `generate_positions_and_game_values`) and kept.
-
-### T3 — Dependencies missing from `pyproject.toml` (D-052, FIXED)
-`psycopg2`, `pandas`, `python-dotenv` added to the project dependencies.
-
-### T4 — `_validate_db_fields` hits DB even when `fields=None` (D-052, FIXED)
-The `SELECT ... LIMIT 0` query for `colnames` is now deferred: it only runs when `fields_input` is actually a string or list (i.e. `colnames` is needed). The common `fields=None` default returns `base_colnames` without touching the database.
-
-### T5 — Dead imports in test_regab.py (D-052, FIXED)
-Removed: `numpy.typing as npt`, `time`, `io`, `itertools`, `mock_open`, `Callable`, `TypeAlias`, `List`.
-
-### T6 — No DB-unavailable skip mechanism (D-052, FIXED)
-`BaseTestCase.setUp` now checks `SKIP_REGAB_DB=1` and calls `skipTest()`. With the env var set: 35 skipped, 2 run (the fully-mocked `TestRegabDataSetFileLoadExceptions`). Without it: 37/0/0 GREEN as before.
-
-### T7 — SQL injection via `where` parameter (D-052, FIXED)
-New `WhereArgument` with `_validate_where_clause` `AfterValidator`: blocks SQL comments (`--`, `/* */`), statement terminators (`;`), and dangerous keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER, CREATE, EXEC, EXECUTE, TRUNCATE). The `where` parameter of `regab_gp_as_df` is typed `WhereArgument`; docstring documents the forbidden patterns and a valid example. 4 new tests: comment, SELECT, semicolon, valid expression.
-
-## Observations (not defects)
-
-- **`_validate_db_fields` DB dependency**: the validator requires a live DB connection even for purely structural validation (e.g., testing that `fields=['seq', 'seq']` raises a duplicate error). This makes offline unit testing difficult — tests must mock or have a DB. (The test suite uses a real DB.)
-- **`compute_sha3_256_hash` column order**: iterates `for col in df`, which uses DataFrame insertion order (always mover→opponent→game_value). Deterministic but implicit.
-- **`regab_store_data_set_to_file` uses `Path(filename)`**: confirms `from pathlib import Path` is used (not dead).
-- **No `self._closed` guard on `RegabDBConnection.close()`**: calling `close()` twice may raise if `conn` is already closed — but the `if self.conn:` guard at L156 prevents most double-close errors.
-
-## Suite status
-
-```
-$ python -m unittest twolm.test.test_regab
-.....................................
---------------------------------------------------------------
-Ran 37 tests in 0.9s
-OK
-
-$ SKIP_REGAB_DB=1 python -m unittest twolm.test.test_regab
-Ran 37 tests ... OK (skipped=35)
-```
-
-35 of 37 tests require a live PostgreSQL database and `.env` file;
-2 (`TestRegabDataSetFileLoadExceptions`) are fully mocked.
-`SKIP_REGAB_DB=1` skips the DB-dependent tests (T6). No PERF gates.
-
-## Appendix: line-number reference (2026-08-29, post T1-T7)
-
-- `GameValue`: L63
-- `_validate_game_value_array`: L65
-- `GameValueArray`: L72
-- `RegabDBConnection`: L76
-- `RegabDBConnection.__init__`: L106
-- `RegabDBConnection.activate_conn`: L147
-- `RegabDBConnection.close`: L153
-- `rc_context`: L167
-- `_validate_db_fields`: L170
-- `_validate_with_db_context`: L196
-- `_ensure_list`: L227
-- `BidArgument`: L233
-- `StatusArgument`: L236
-- `EcArgument`: L242
-- `_WHERE_FORBIDDEN`: L249
-- `_validate_where_clause`: L255
-- `WhereArgument`: L264
-- `FieldsArgument`: L267
-- `regab_gp_as_df`: L271
-- `_ensure_column_count_and_type`: L357
-- `DfMogvArgument`: L368
-- `RegabDataSet`: L370
-- `RegabDataSet.__init__`: L388
-- `RegabDataSet.generate_positions_and_game_values`: L417
-- `RegabDataSet.compute_sha3_256_hash`: L425
-- `regab_extract_data_set_from_db`: L438
-- `regab_load_data_set_from_file`: L470
-- `regab_store_data_set_to_file`: L548
+- The POSITIONS level: `lm_worker_positions` builds the 5-arg
+  `RegabDBConnection` from `ctx.cfg.regab_data_set.regab_db_connection`
+  (port + password take effect since the D-080 R1 fix), extracts via
+  `regab_extract_data_set_from_db`, and wires
+  `regab_load_data_set_from_file(path, checksum=False)` /
+  `regab_store_data_set_to_file` as the `cache_manager` data
+  functions (the sidecar is written by `cache_manager`, not here).
+- The VLD level: `lm_worker_vld_positions` uses the same load/store
+  pair for the validation dataset.
+- `binio.md` is the serialization backend; `cache_manager.md` the
+  sidecar writer in the pipeline flow.
