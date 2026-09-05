@@ -1000,6 +1000,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   from the explicit root path and its mkdtemp uses the shared
   base. test_paths: 3/0/0 GREEN (no DB). Full discover: 516 →
   519 tests, the 58/17 skip split unchanged, both ways GREEN.
+  MIGRATED at D-106 step 27 (PATHS pair): 77-line paths mirror
+  (the fixed schema order, the marker-based derivation pinned to
+  the 3 named tests, the 56-line line map) + 33-line test mirror
+  (schema §6: the 3 path-identity goldens); the D-085 design-
+  discussion narrative frozen in
+  notes/analyses/paths_session23_review.md +
+  test_paths_session23_review.md.
 - rlm_wmaps.py + lm_worker_wmaps.py (new, WMAPS bring-in,
   session 23): Roberto's commit 73b4342 activated the 6th
   pipeline level (the lm_worker_wmaps import + list entry
@@ -2149,10 +2156,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   B batch #16 = the CACHE_MANAGER family at step 23, B batch #17 =
   the MOBILITY family at step 24, B batch #18 = the MODEL_WEIGHTS +
   RLM_CLIENT pair at step 25, B batch #19 = the REGAB family at
-  step 26 — next: the remaining non-pipeline families (7 docs:
-  base_model, paths+test, test_board, test_pattern,
-  test_state_machine, test_logistic_model — verify each family's
-  docs, group sensibly); 7 docs remain (recount at each batch)).
+  step 26, B batch #20 = the PATHS + TEST_PATHS pair at step 27 —
+  next: the remaining non-pipeline families (5 docs: base_model,
+  test_board, test_pattern, test_state_machine, test_logistic_model
+  — verify each family's docs, group sensibly); 5 docs remain
+  (recount at each batch)).
 
 ## Index
 
@@ -2347,10 +2355,16 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   end-to-end cache round-trip; the verbatim session-23 review
   in notes/analyses/test_lm_worker_indexes_session23_review.md)
 - docs/src/twolm/test/paths.md —
-  paths.py (D-085): the shared workspace-root-anchored test
-  paths (marker-based WORKSPACE_ROOT + CUSTOM_TMP_BASE)
+  paths.py mirror (MIGRATED at D-106 step 27, PATHS pair: the
+  shared workspace-root-anchored test paths — marker-based
+  WORKSPACE_ROOT + CUSTOM_TMP_BASE; invariants pinned to the 3
+  named test_paths tests; the verbatim session-23 review in
+  notes/analyses/paths_session23_review.md)
 - docs/src/twolm/test/test_paths.md —
-  test_paths.py (D-085): 3/0/0, no DB — pins the constants
+  test_paths.py mirror (MIGRATED at D-106 step 27, PATHS pair:
+  schema §6 — 1 class / 3 tests, the 3 path-identity goldens; the
+  verbatim session-23 review in
+  notes/analyses/test_paths_session23_review.md)
 - docs/src/twolm/rlm_wmaps.md — rlm_wmaps.py mirror
   (MIGRATED at D-106 step 12, WMAPS batch: the 6th-level data
   object — the 8 fields by reference + the 4 public fns + the
