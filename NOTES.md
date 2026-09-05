@@ -527,6 +527,15 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   verify (zero cache invalidation). CACHE_MANAGER module fully done
   — R1-R4, M1-M3, T1-T7 all resolved (T8 report-only),
   D-071..D-072. Suite 21/0/0 GREEN.
+  MIGRATED at D-106 step 23 (CACHE_MANAGER batch): 120-line
+  cache_manager mirror (schema: the 4-step load-or-compute pipeline,
+  the two-checksum distinction, the D-072 binio sidecar adoption;
+  invariants pinned to the 6-check probe V2 ×3 / V9c / V10b / V16 +
+  the 22-test suite) + 49-line test mirror (schema §6: 3 classes /
+  22 tests — the D-106 step-3 class-a §4 conversion of probe V17
+  added TestValidateCallCoercion); the V1-V17 + T1-T8 narrative
+  frozen in notes/analyses/cache_manager_session20_review.md +
+  test_cache_manager_session20_review.md.
 - test_cache_manager.py: analyzed 2026-08-30 (session 20,
   docs/src/twolm/test/test_cache_manager.md) + fix campaign
   batches 1+2 (D-071/D-072): 2 classes / 21 tests / no PERF (13 →
@@ -548,6 +557,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   hash); pipeline set-ups switched to write_sha3_256_sidecar. T8
   header grammar report-only. CACHE_MANAGER module CLOSED — T1-T7
   all resolved.
+  MIGRATED at D-106 step 23 (CACHE_MANAGER batch): 49-line test
+  mirror (schema §6: the 3-class / 22-test Coverage table with the
+  post-step-3 class lines — TestChecksumHelpers L114,
+  TestCacheManagerPipeline L191, TestValidateCallCoercion L598);
+  the T1-T8 + per-class narrative frozen in
+  notes/analyses/test_cache_manager_session20_review.md.
 - base_model.py: analyzed 2026-08-30 (session 21,
   docs/src/twolm/base_model.md) — thin facade base over
   StateMachine: pure delegation (current_step /
@@ -2106,12 +2121,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   batch #11 = the VALIDATE family at step 18, B batch #12 = the
   VLD_POSITIONS family at step 19, B batch #13 = the ANALYTICS
   family at step 20, B batch #14 = the SAVE family at step 21,
-  B batch #15 = the BINIO family at step 22 (non-pipeline phase) —
-  next: the remaining non-pipeline families (15 docs:
-  base_model, cache_manager+test, mobility+test, model_weights,
-  regab+test, rlm_client, paths+test, test_board, test_pattern,
-  test_state_machine, test_logistic_model — verify each family's
-  docs, group sensibly); 15 docs remain (recount at each batch)).
+  B batch #15 = the BINIO family at step 22 (non-pipeline phase),
+  B batch #16 = the CACHE_MANAGER family at step 23 — next: the
+  remaining non-pipeline families (13 docs: base_model,
+  mobility+test, model_weights, regab+test, rlm_client, paths+test,
+  test_board, test_pattern, test_state_machine, test_logistic_model
+  — verify each family's docs, group sensibly); 13 docs remain
+  (recount at each batch)).
 
 ## Index
 
@@ -2194,16 +2210,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (bool rejection, constructor ValidationErrors, Path prefix join)
   + M6 display goldens rewritten in place D-070,
   ALL T items resolved, P0/P1/P2 priorities proposed)
-- docs/src/twolm/cache_manager.md — cache_manager.py analysis +
-  D-071/D-072 fix campaign (4-step load-or-compute cache pipeline
-  + duck-typed data checksum; 17 verified facts V1-V17; R1
-  intentional + pinned, R2 validate-in-try, R4 @validate_call, M1-M3
-  fixed, R3 resolved — binio sidecar API adopted, legacy sidecars
-  still verify; suite 21/0/0 GREEN; module CLOSED)
+- docs/src/twolm/cache_manager.md — cache_manager.py mirror
+  (MIGRATED at D-106 step 23, CACHE_MANAGER batch: the 4-step
+  load-or-compute pipeline, the two-checksum distinction, the D-072
+  binio sidecar adoption; invariants pinned to the 6-check probe +
+  the 22-test suite; the verbatim session-20 review in
+  notes/analyses/cache_manager_session20_review.md)
 - docs/src/twolm/test/test_cache_manager.md — test_cache_manager.py
-  analysis + D-071/D-072 (2 classes / 21 tests; T1-T7 all fixed —
-  incl. the full duck-typed hash path; T6 fixed — workspace-root
-  artifact base; T8 report-only; module CLOSED)
+  mirror (MIGRATED at D-106 step 23, CACHE_MANAGER batch: schema
+  §6 — 3 classes / 22 tests, the D-106 step-3 class-a §4 conversion
+  of probe V17; the verbatim session-20 review in
+  notes/analyses/test_cache_manager_session20_review.md)
 - docs/src/twolm/base_model.md — base_model.py analysis + D-074/
   D-075 (facade base over StateMachine; pure delegation verified,
   context identity; R1 @validate_call RESOLVED D-074 with
