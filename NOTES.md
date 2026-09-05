@@ -1065,7 +1065,15 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   post-campaign state (60 checks, tiers A–G, 0 mismatches). All
   4 mirror docs written (post-campaign state). Suite 552 → 563
   (563/0/66 gated + 563/17 ungated, −W error clean, build/tmp
-  clean).
+  clean). MIGRATED at D-106 step 14 (ZED batch): 120-line
+  rlm_zed mirror (schema: the z (N,) float32 object + the 2
+  affine closures, the factory math, the no-cache level, invariants
+  pinned to the 51-call probe + the 2 suites, Open issues None) +
+  92-line lm_worker_zed mirror (the first non-cache worker, the
+  L49 by-design comment, the 4 ctx attrs published/cleared); the
+  probe is now 51 calls (post 4091e72 move + step 3: A13-A15 to
+  the factory tests, D2-D4 + D12 to the worker tests, F2/F3 to
+  the hub V3c/V3d).
 - rlm_gradient.py + lm_worker_gradient.py +
   test_lm_worker_gradient.py (new, GRADIENT bring-in, session 25,
   Roberto's commit a0adc6e): the 9th pipeline level activated
@@ -1997,10 +2005,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   at step 9, B batch #3 = the FEATURES family at step 10 + the
   feature.py R1 fix at 10b (D-110, de01cf2), B batch #4 = the
   INDEXES family at step 11, B batch #5 = the WMAPS family at
-  step 12, B batch #6 = the DESIGN_MATRIX family at step 13 —
-  next: B batch #7 = the ZED family (rlm_zed, lm_worker_zed +
-  their 2 test docs — all 4 docs exist; the FIRST non-cache
-  level); 45 docs remain (recount at each batch)).
+  step 12, B batch #6 = the DESIGN_MATRIX family at step 13,
+  B batch #7 = the ZED family at step 14 — next: B batch #8 =
+  the GRADIENT family (rlm_gradient, lm_worker_gradient + their
+  2 test docs — all 4 docs exist; the function-only level, no
+  data class); 41 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2233,25 +2242,31 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   single source of truth for the step-3 D-tier re-derivation; the
   verbatim session-23 review in
   notes/analyses/test_lm_worker_design_matrix_session23_review.md)
-- docs/src/twolm/rlm_zed.md — rlm_zed.py analysis +
-  D-091/D-092 (the Z object + zed_fun_factory + rlm_zed_compute
-  + the duck-typed hash over z only; FIRST non-cache level; T6
-  note + T7 factory @validate_call + T8 ws D-092 — module
-  CLOSED; 60-check probe 0 mismatches)
-- docs/src/twolm/lm_worker_zed.md — lm_worker_zed.py analysis +
-  D-091/D-092 (the first non-cache worker — no cache_manager
-  wiring by design; T2 factory @validate_call + pydantic + T8
-  ws D-092 — module CLOSED; suite 3/0/0 GREEN)
+- docs/src/twolm/rlm_zed.md — rlm_zed.py mirror (MIGRATED at
+  D-106 step 14, ZED batch: the z (N,) float32 data object + the
+  2 affine closures, zed_fun_factory + rlm_zed_compute; the
+  FIRST non-cache level; the hash covers z only; invariants
+  pinned to the 51-call probe A1-A12 / B1-B8 / D1/D5-D11 /
+  F1/F4/F5 + the 2 suites; the verbatim session-24 review in
+  notes/analyses/rlm_zed_session24_review.md)
+- docs/src/twolm/lm_worker_zed.md — lm_worker_zed.py mirror
+  (MIGRATED at D-106 step 14, ZED batch: the first non-cache
+  worker — no cache_manager wiring by design, the L49 comment;
+  the 4 ctx attributes published/cleared; probe B1-B8 + C1-C10 +
+  the 3-test end-to-end suite; the verbatim session-24 review in
+  notes/analyses/lm_worker_zed_session24_review.md)
 - docs/src/twolm/test/test_lm_worker_zed.md —
-  test_lm_worker_zed.py analysis + D-091/D-092 (2 classes / 3
-  tests — the factory math + the rlm_01 golden + the _down
-  pin; T1 gate, T4 D-085 idiom, T5 _down test, T8 ws — test
-  campaign CLOSED; suite 3/0/0 GREEN)
-- docs/src/twolm/test/test_rlm_zed.md — test_rlm_zed.py
-  analysis (D-092 T3, NEW): 3 classes / 10 tests, no DB — the
-  factory math, the mock-compute exact golden, the init
-  validation, the rlm_01 hash golden 3d49fd5d…f365d9b2; suite
-  10/0/0 GREEN
+  test_lm_worker_zed.py mirror (MIGRATED at D-106 step 14, ZED
+  batch: 2 classes / 3 tests — the factory math + the rlm_01
+  y/z golden as the single source of truth for the step-3 D-tier
+  re-derivation + the _down pin; the verbatim session-24 review
+  in notes/analyses/test_lm_worker_zed_session24_review.md)
+- docs/src/twolm/test/test_rlm_zed.md — test_rlm_zed.py mirror
+  (MIGRATED at D-106 step 14, ZED batch: 3 classes / 10 tests,
+  no DB — the 4 factory math tests, the 2 mock-compute pins, the
+  4 init/hash tests incl. the (10,) hash golden 3d49fd5d…; the
+  verbatim session-24 review in
+  notes/analyses/test_rlm_zed_session24_review.md)
 - docs/src/twolm/rlm_gradient.md — rlm_gradient.py analysis
   (D-093 + fix campaign D-094 CLOSED, post-campaign state): the
   function-only module (sigmoid + rlm_gradient_compute, the fg
