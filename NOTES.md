@@ -370,10 +370,21 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   pyproject.toml, DB query deferred, SKIP_REGAB_DB=1 gate,
   _validate_where_clause SQL-injection guard). Suite 37/0/0 GREEN
   (35 DB + 2 mocked). REGAB module done.
+  MIGRATED at D-106 step 26 (REGAB batch): 119-line regab mirror
+  (schema: the 7-line API table, the on-disk format, the ContextVar
+  double-decorator order, the 6 argument validators; V1-V5 pinned to
+  the named suite tests — no dedicated probe) + 47-line test mirror
+  (schema §6: the 6-class Coverage table, the b507cd34…681670
+  golden); the T1-T7 campaign narrative frozen in
+  notes/analyses/regab_session15_review.md +
+  test_regab_session15_review.md.
 - test_regab.py: analyzed 2026-08-29 (session 15,
   docs/src/twolm/test/test_regab.md): T5+T6+T7 applied (D-052): dead
   imports, SKIP_REGAB_DB gate, 4 SQL-injection tests
   (TestRegabGPAsDF 12 → 16). Suite 33 → 37/0/0 GREEN.
+  MIGRATED at D-106 step 26 (REGAB batch): 47-line test mirror
+  (schema §6) — the T5-T7 narrative frozen in
+  notes/analyses/test_regab_session15_review.md.
 - opt_lbfgs.py: analyzed 2026-08-29 (session 16,
   docs/src/twolm/opt_lbfgs.md) — L-BFGS optimizer (strong Wolfe line
   search, two-loop recursion, warm-start). 5 verified facts V1-V5
@@ -2137,11 +2148,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   B batch #15 = the BINIO family at step 22 (non-pipeline phase),
   B batch #16 = the CACHE_MANAGER family at step 23, B batch #17 =
   the MOBILITY family at step 24, B batch #18 = the MODEL_WEIGHTS +
-  RLM_CLIENT pair at step 25 — next: the remaining non-pipeline
-  families (9 docs: base_model, regab+test, paths+test, test_board,
-  test_pattern, test_state_machine, test_logistic_model — verify
-  each family's docs, group sensibly); 9 docs remain (recount at
-  each batch)).
+  RLM_CLIENT pair at step 25, B batch #19 = the REGAB family at
+  step 26 — next: the remaining non-pipeline families (7 docs:
+  base_model, paths+test, test_board, test_pattern,
+  test_state_machine, test_logistic_model — verify each family's
+  docs, group sensibly); 7 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2194,13 +2205,18 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   45-test Coverage table + the 3 usage tests pinned; the verbatim
   session-14 review in
   notes/analyses/test_binio_session14_review.md)
-- docs/src/twolm/regab.md — regab.py analysis (psycopg2 DB access +
-  RegabDataSet + binio serialization; 5 verified facts, T1-T7
-  applied D-052, suite 37/0/0 GREEN; D-080 cross-ref: the store
-  docstring + API-table row corrected — the sidecar is
-  cache_manager's)
-- docs/src/twolm/test/test_regab.md — test_regab.py analysis
-  (coverage by area, T5-T7 applied D-052, suite 37/0/0 GREEN)
+- docs/src/twolm/regab.md — regab.py mirror (MIGRATED at D-106
+  step 26, REGAB batch: the DB-access + binio serialization layer,
+  the 7-line API table, the on-disk format, the ContextVar
+  double-decorator order, the 6 argument validators incl. the T7
+  SQL-injection guard; V1-V5 pinned to the named suite tests; the
+  verbatim session-15 review in
+  notes/analyses/regab_session15_review.md)
+- docs/src/twolm/test/test_regab.md — test_regab.py mirror
+  (MIGRATED at D-106 step 26, REGAB batch: schema §6 — the 6-class
+  Coverage table with the post-D-085 class lines, the b507cd34…
+  golden + the .env extraction expectation; the verbatim session-15
+  review in notes/analyses/test_regab_session15_review.md)
 - docs/src/twolm/opt_lbfgs.md — opt_lbfgs.py mirror (MIGRATED
   at D-106 step 16, OPTIMIZE batch: the standalone L-BFGS
   engine — strong Wolfe line search, two-loop recursion,
