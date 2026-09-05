@@ -247,7 +247,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   verification (2026-08-26, session 3): 200 random full games on the
   public API only, zero invariant violations — board.py is a proven
   complete game kernel (the game loop belongs to a separate module —
-  NOT in the port plan, I-005 resolved).
+  NOT in the port plan, I-005 resolved). MIGRATED at D-106 step 28
+  (the FINAL batch): 53-line test mirror (schema §6: the 5-area
+  Coverage table rebuilt from the post-T-campaign 2377-line / 193-
+  test file, 43 classes with lines + counts, the D8 group-law +
+  to_string_list + Field-validation + pydantic-v2 pins) — the
+  pre-campaign session-2 review frozen in
+  notes/analyses/test_board_session2_review.md.
 - pattern.py: analyzed 2026-08-27 (session 4,
   docs/src/twolm/pattern.md, review-only per D-019). All real issues
   resolved: R1 (D-020) principal mask = numerically lowest orbit
@@ -277,6 +283,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   breadth (D-034: T11-T14 + T17). Final suite 64/0/3 GREEN. Parked:
   T18 noted-only (np.uint8 3**n_squares overflow, no code action),
   M1 deferred (stale PatternSet Raises docstring, awaiting go-ahead).
+  MIGRATED at D-106 step 28 (the FINAL batch): 59-line test mirror
+  (schema §6: the 13-class Coverage table rebuilt from the post-
+  campaign 1859-line / 64-test file, the pack/Cayley/symmetry/hash
+  goldens) — the pre-campaign session-8 review frozen in
+  notes/analyses/test_pattern_session8_review.md.
 - mobility.py: analyzed 2026-08-28 (session 10,
   docs/src/twolm/mobility.md): feature index formula,
   n_configurations = distinct index values, columns in the set's
@@ -520,7 +531,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   unchanged) — all T items closed, M-sweep COMPLETE. D-078: the
   D-069 M8 pin renamed test_cache_prefix_is_concatenated_verbatim
   and re-pinned to the verbatim concatenation (cache01_CONFIG.dat),
-  count unchanged. Suite 49/0/0 GREEN.
+  count unchanged. Suite 49/0/0 GREEN. MIGRATED at D-106 step 28
+  (the FINAL batch): 53-line test mirror (schema §6: the 5 classes /
+  49 tests with the full pin inventory incl. the E2/E3 full-message
+  pins converted from the probe at D-106 step 3) — the D-057..D-070
+  campaign narrative frozen in
+  notes/analyses/test_state_machine_session19_review.md.
 - cache_manager.py: analyzed 2026-08-30 (session 20,
   docs/src/twolm/cache_manager.md) + fix campaign batches 1+2
   (D-071/D-072) — the pipeline's load-or-compute cache engine
@@ -602,6 +618,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   `__all__ = ['BaseModel']` added (L39, the D-068 M1 pattern);
   ALL R/M CLOSED. M2 the docstring forward-references the not-
   yet-ported DeepNetworkModel (informational, kept by design).
+  MIGRATED at D-106 step 28 (the FINAL batch): 84-line module
+  mirror (schema: the thin facade base over the StateMachine, the
+  8-row API table, V1-V4 pinned to the named test_logistic_model
+  tests + the 21-check family probe) — the session-21 review frozen
+  in notes/analyses/base_model_session21_review.md.
 - logistic_model.py: analyzed 2026-08-30 (session 21,
   docs/src/twolm/logistic_model.md) — the first concrete domain
   facade: RLMContext (@dataclass over the plain Context; 38 fields,
@@ -708,7 +729,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   comment line removed, the leading underscore removed) — all 15
   methods active, 0 muted; suite 14/0/0 → 15/0/0 GREEN; the
   mirror doc re-pinned (287 lines, class map, all line refs ≥ 139
-  shifted −1).
+  shifted −1). MIGRATED at D-106 step 28 (the FINAL batch): 59-line
+  test mirror (schema §6: the 1 class / 17 tests incl. the 2 step-3
+  probe conversions (D1/E4b), the testbed design with the module-
+  namespace factory patches) — the session-21 review frozen in
+  notes/analyses/test_logistic_model_session21_review.md.
 - lm_worker_config.py: brought in with the batch (6bb45fb);
   D-074 cross-reference change (call-site rename, part of
   logistic_model R1); D-076 (Roberto + fixes):
@@ -2137,8 +2162,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   all 20 probes green in BOTH gated and live modes; scratch/
   now EMPTY (the 6 o1* one-offs + classification.md archived to
   notes/analyses/ with ARCHIVED headers).
-- OPEN (method, session 30 — the notes/docs hygiene migration,
-  D-106): NEXT ACTION: the docs/ rewrite one file at a time
+- DONE (session 30, steps 4-28 — the notes/docs hygiene
+  migration, D-106): the docs/ rewrite completed one file at a time
   (docs_rules §8; board/pattern/logistic_model/state_machine at
   steps 4-7, B batch #1 = CONFIG at step 8 + the new
   test_rlm_config_schemas.md mirror at 8b, B batch #2 = POSITIONS
@@ -2156,11 +2181,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   B batch #16 = the CACHE_MANAGER family at step 23, B batch #17 =
   the MOBILITY family at step 24, B batch #18 = the MODEL_WEIGHTS +
   RLM_CLIENT pair at step 25, B batch #19 = the REGAB family at
-  step 26, B batch #20 = the PATHS + TEST_PATHS pair at step 27 —
-  next: the remaining non-pipeline families (5 docs: base_model,
-  test_board, test_pattern, test_state_machine, test_logistic_model
-  — verify each family's docs, group sensibly); 5 docs remain
-  (recount at each batch)).
+  step 26, B batch #20 = the PATHS + TEST_PATHS pair at step 27,
+  B batch #21 = the FINAL batch at step 28 (base_model + the 4
+  remaining test docs). ALL 71 docs migrated (71/71 with State
+  lines, 0 remaining); 21 content batches + 21 notes waves, 30
+  verbatim archives in notes/analyses/ (84 files total, 76 .md +
+  8 .py); full gated suite 664/0/87, all probes green. The
+  migration is COMPLETE — no open D-106 action.
 
 ## Index
 
@@ -2173,13 +2200,18 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   step 5: 4-line header, 6-name API table, Architecture, 13 pinned
   invariants, M1, Conventions, Integration; the verbatim session-4
   review in notes/analyses/pattern_session4_review.md)
-- docs/src/twolm/test/test_board.md — test_board.py analysis
-  (coverage by area, verified values, 11 defects, completeness
-  verdict + priorities)
-- docs/src/twolm/test/test_pattern.md — test_pattern.py analysis
-  (coverage by area, 21 verified facts, defects T1-T19 (T17/T19
-  found during the campaign), completeness verdict + P0/P1/P2
-  priorities)
+- docs/src/twolm/test/test_board.md — test_board.py mirror
+  (MIGRATED at D-106 step 28, the FINAL batch: schema §6 — the
+  5-area Coverage table rebuilt from the post-T-campaign 2377-line /
+  193-test file, the ar print + D8 golden pins; the verbatim
+  session-2 review in
+  notes/analyses/test_board_session2_review.md)
+- docs/src/twolm/test/test_pattern.md — test_pattern.py mirror
+  (MIGRATED at D-106 step 28, the FINAL batch: schema §6 — the
+  13-class Coverage table rebuilt from the post-campaign 1859-line /
+  64-test file, the pack/Cayley/symmetry/hash goldens; the verbatim
+  session-8 review in
+  notes/analyses/test_pattern_session8_review.md)
 - docs/src/twolm/mobility.md — mobility.py mirror (MIGRATED at
   D-106 step 24, MOBILITY batch: the LMC/ALMC/DLMC glossary, the
   index formula + n_configurations semantics, the sorted-column
@@ -2243,16 +2275,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   13 pinned invariants over the 49-test suite, Open issues None;
   the verbatim session-19 review in
   notes/analyses/state_machine_session19_review.md)
-- docs/src/twolm/test/test_state_machine.md — test_state_machine.py
-  analysis (49 tests, expectations re-derived, T1 fixed D-057,
-  TestLogEntry + sentinel pin + retry pin + 2 duplicate-name + 7
-  context-injection + 3 display-goldens + 3 move_to_last + 2
-  bool/np.int64 + 5 current_worker_name/StepMove pin tests added
-  D-058/D-059/D-060/D-061/D-062/D-063/D-064/D-066/D-067, CSV test
-  rewritten D-065, 4 M-sweep pins D-068 + M-sweep batch 2 D-069
-  (bool rejection, constructor ValidationErrors, Path prefix join)
-  + M6 display goldens rewritten in place D-070,
-  ALL T items resolved, P0/P1/P2 priorities proposed)
+- docs/src/twolm/test/test_state_machine.md — test_state_machine.
+  py mirror (MIGRATED at D-106 step 28, the FINAL batch: schema §6 —
+  the 5 classes / 49 tests with the full pin inventory incl. the
+  E2/E3 full-message pins converted from the probe at D-106 step 3;
+  the D-057..D-070 campaign narrative frozen in
+  notes/analyses/test_state_machine_session19_review.md)
 - docs/src/twolm/cache_manager.md — cache_manager.py mirror
   (MIGRATED at D-106 step 23, CACHE_MANAGER batch: the 4-step
   load-or-compute pipeline, the two-checksum distinction, the D-072
@@ -2264,11 +2292,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   §6 — 3 classes / 22 tests, the D-106 step-3 class-a §4 conversion
   of probe V17; the verbatim session-20 review in
   notes/analyses/test_cache_manager_session20_review.md)
-- docs/src/twolm/base_model.md — base_model.py analysis + D-074/
-  D-075 (facade base over StateMachine; pure delegation verified,
-  context identity; R1 @validate_call RESOLVED D-074 with
-  logistic_model R3; M1 __all__ FIXED D-075; M2 informational —
-  module CLOSED)
+- docs/src/twolm/base_model.md — base_model.py mirror (MIGRATED at
+  D-106 step 28, the FINAL batch: the thin facade base class over
+  the StateMachine, the 8-row API table, V1-V4 pinned to the named
+  test_logistic_model tests + the 21-check family probe; the verbatim
+  session-21 review in
+  notes/analyses/base_model_session21_review.md)
 - docs/src/twolm/logistic_model.md — logistic_model.py mirror
   (MIGRATED at D-106 step 6: 2-name API table, the 4-step
   construction + the 40-field blackboard + the 15/15 complete
@@ -2277,10 +2306,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   the verbatim session-21 review in
   notes/analyses/logistic_model_session21_review.md)
 - docs/src/twolm/test/test_logistic_model.md — test_logistic_model.
-  py analysis + D-075 (13 active + 2 muted per Roberto; T1/T2/T4/
-  T5 fixed — delegation pins, build/tmp base, 7 corner tests, dead
-  import removed; T3 intentional, T6 report-only — test campaign
-  CLOSED)
+  py mirror (MIGRATED at D-106 step 28, the FINAL batch: schema §6 —
+  the 1 class / 17 tests incl. the 2 step-3 probe conversions (D1 /
+  E4b), the testbed design with the module-namespace factory
+  patches; the verbatim session-21 review in
+  notes/analyses/test_logistic_model_session21_review.md)
 - docs/src/twolm/lm_worker_config.md — lm_worker_config.py mirror
   (MIGRATED at D-106 step 8, CONFIG batch #1: 2-name API table,
   the _up flow + the 3 precise-OS-type base_dir gates + the
