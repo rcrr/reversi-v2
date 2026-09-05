@@ -2136,11 +2136,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   family at step 20, B batch #14 = the SAVE family at step 21,
   B batch #15 = the BINIO family at step 22 (non-pipeline phase),
   B batch #16 = the CACHE_MANAGER family at step 23, B batch #17 =
-  the MOBILITY family at step 24 — next: the remaining non-pipeline
-  families (11 docs: base_model, model_weights, regab+test,
-  rlm_client, paths+test, test_board, test_pattern,
-  test_state_machine, test_logistic_model — verify each family's
-  docs, group sensibly); 11 docs remain (recount at each batch)).
+  the MOBILITY family at step 24, B batch #18 = the MODEL_WEIGHTS +
+  RLM_CLIENT pair at step 25 — next: the remaining non-pipeline
+  families (9 docs: base_model, regab+test, paths+test, test_board,
+  test_pattern, test_state_machine, test_logistic_model — verify
+  each family's docs, group sensibly); 9 docs remain (recount at
+  each batch)).
 
 ## Index
 
@@ -2570,16 +2571,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   never unlinked, the rlmwf_15 slot unused; the 17-check probe +
   the 5-test suite; the verbatim session-29 review in
   notes/analyses/lm_worker_save_session29_review.md)
-- docs/src/twolm/model_weights.md — model_weights.py analysis
-  (the 3rd data module, the FIRST with a plain @dataclass: the
-  10-field ModelWeights + header constants + write/read of the
-  INFERENCE subset — opt 4/5, vld 4/7, tps f32 truncations; the 2
-  ValueError guards pinned)
-- docs/src/twolm/rlm_client.md — rlm_client.py analysis (the
-  first pure CONSUMER: make_evaluation_function's 4-step ef, the
-  expanded_offsets boundary-array verification, the dense-path /
-  substitution-rule section with the measured rlm_04/rlm_01
-  deltas — the D-104 O1 correction)
+- docs/src/twolm/model_weights.md — model_weights.py mirror
+  (MIGRATED at D-106 step 25, the MODEL_WEIGHTS + RLM_CLIENT pair:
+  the 8 write sections with the f32 truncation + the 4/5 opt + 4/7
+  vld subsets, the 2 ValueError guards with the exact strings; the
+  statics A4-A6 of verify_save.py + the full-chain read-back
+  goldens; the verbatim session-29 review in
+  notes/analyses/model_weights_session29_review.md)
+- docs/src/twolm/rlm_client.md — rlm_client.py mirror (MIGRATED at
+  D-106 step 25, the MODEL_WEIGHTS + RLM_CLIENT pair: the 4-step
+  ef, the dense-path / substitution-rule section with the measured
+  rlm_04 1923/199932 + rlm_01 5/10 deltas, the 12 bit-exact EF
+  goldens; the verbatim session-29 review in
+  notes/analyses/rlm_client_session29_review.md)
 - docs/src/twolm/test/test_lm_worker_full_chain.md —
   test_lm_worker_full_chain.py mirror (MIGRATED at D-106 step 21,
   SAVE batch: schema §6 — the Coverage table for the 3 classes /
