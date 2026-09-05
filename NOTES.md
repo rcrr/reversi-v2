@@ -332,10 +332,23 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   has no legitimate use — checksum=False is the no-sidecar
   knob); 3 new tests (45 → 48/0/0), docstrings + V16 + doc
   updated. BINIO module done.
+  MIGRATED at D-106 step 22 (BINIO batch): 120-line binio mirror
+  (schema: the C/Rust framing module — the 4 on-disk record layouts,
+  the 3 D-095 empty-suffix guards, the incremental/deferred SHA3-256
+  + LZ4; invariants pinned to the 48-test suite — no dedicated
+  probe) + 53-line test mirror (the 9-class / 45-test Coverage
+  table); the V1-V16 + T1-T4 narrative frozen in
+  notes/analyses/binio_session14_review.md + test_binio_
+  session14_review.md; pre-existing mirror gap: test_usage_binio.py
+  has no doc (reported, not fixed).
 - test_binio.py: analyzed 2026-08-29 (session 14,
   docs/src/twolm/test/test_binio.md, with test_usage_binio.py): 12
   classes / 44 tests at analysis; T4 applied (D-051, ArrayTest now 8
   tests). Suite 44 → 45, GREEN 45/0/0, no PERF.
+  MIGRATED at D-106 step 22 (BINIO batch): 53-line test mirror
+  (schema §6: the 9-class / 45-test Coverage table + the 3 usage
+  tests pinned); the W1-W4 + per-class narrative frozen in
+  notes/analyses/test_binio_session14_review.md.
 - regab.py: analyzed 2026-08-29 (session 15,
   docs/src/twolm/regab.md) — REversi GAme Base: psycopg2 DB access +
   RegabDataSet + binio file serialization. 5 verified facts V1-V5
@@ -2092,13 +2105,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   at step 16, B batch #10 = the GENERATE family at step 17, B
   batch #11 = the VALIDATE family at step 18, B batch #12 = the
   VLD_POSITIONS family at step 19, B batch #13 = the ANALYTICS
-  family at step 20, B batch #14 = the SAVE family at step 21 —
-  the pipeline docs are 15/15 COMPLETE; next: the non-pipeline
-  families (17 docs: base_model, binio+test, cache_manager+test,
-  mobility+test, model_weights, regab+test, rlm_client, paths+test,
-  test_board, test_pattern, test_state_machine, test_logistic_model
-  — verify each family's docs, group sensibly); 17 docs remain
-  (recount at each batch)).
+  family at step 20, B batch #14 = the SAVE family at step 21,
+  B batch #15 = the BINIO family at step 22 (non-pipeline phase) —
+  next: the remaining non-pipeline families (15 docs:
+  base_model, cache_manager+test, mobility+test, model_weights,
+  regab+test, rlm_client, paths+test, test_board, test_pattern,
+  test_state_machine, test_logistic_model — verify each family's
+  docs, group sensibly); 15 docs remain (recount at each batch)).
 
 ## Index
 
@@ -2135,12 +2148,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   PERF coverage map, the f5663932 hash + 3x10 matrix + 51-instance
   goldens; the file unchanged since D-050; the verbatim
   session-11 review in notes/analyses/test_feature_session11_review.md)
-- docs/src/twolm/binio.md — binio.py analysis (MAGIC framing +
-  SHA3-256 sidecar + LZ4 compression; 15 verified facts V1-V15,
-  T1-T4 applied D-051, suite 45/0/0 GREEN)
-- docs/src/twolm/test/test_binio.md — test_binio.py +
-  test_usage_binio.py analysis (12 classes, 45 tests after T4,
-  coverage by area)
+- docs/src/twolm/binio.md — binio.py mirror (MIGRATED at D-106
+  step 22, BINIO batch: the C/Rust framing module — the 4 on-disk
+  record layouts, the 3 D-095 empty-suffix guards, the
+  incremental/deferred SHA3-256 + LZ4 strategies; invariants pinned
+  to the 48-test suite, no dedicated probe; the verbatim session-14
+  review in notes/analyses/binio_session14_review.md)
+- docs/src/twolm/test/test_binio.md — test_binio.py mirror
+  (MIGRATED at D-106 step 22, BINIO batch: schema §6 — the 9-class /
+  45-test Coverage table + the 3 usage tests pinned; the verbatim
+  session-14 review in
+  notes/analyses/test_binio_session14_review.md)
 - docs/src/twolm/regab.md — regab.py analysis (psycopg2 DB access +
   RegabDataSet + binio serialization; 5 verified facts, T1-T7
   applied D-052, suite 37/0/0 GREEN; D-080 cross-ref: the store
