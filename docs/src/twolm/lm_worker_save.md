@@ -1,110 +1,105 @@
 # twolm/lm_worker_save.py
-
-Analysis date: 2026-09-02 — analysis session 29 (D-104, the SAVE
-bring-in, Roberto's commit fe506c6 — the LAST bring-in of the pipeline);
-fix campaign D-104 approved by Roberto ("T1: OK, T2: OK, T4: OK, T5: OK,
-T6: OK, M1: OK ... Procedi!") and applied in the same session. Brought in
-by Roberto together with `model_weights.py` (the persistence layer) and
-`rlm_client.py` (the inference API) plus the full-chain test module and
-the rlm_03/rlm_04 fixtures.
-
-The SAVE worker of the RLM pipeline: the FIFTEENTH and last pipeline
-level (step index 14, after ANALYTICS). The SIXTH non-cache worker
-(after FEATURES, ZED, GRADIENT, VALIDATE, ANALYTICS) — no
+The SAVE worker — the 15th and LAST active level of the RLM pipeline
+(step 14, after ANALYTICS; the pipeline is 15/15 COMPLETE since the
+D-104 bring-in fe506c6, which brought this worker in together with
+model_weights.py, rlm_client.py, the full-chain test module, and the
+rlm_03/rlm_04 fixtures). The 6th non-cache worker — no
 `cache_manager` wiring, no rlmwf_15* file (no cache level ever used a
-"15" slot; the pattern of skipping slots 03/07/08/09/12/13 continues).
-The level is a pure SINK on every up-move: it reads context attributes
-and writes ONE binary artifact — `base_dir/<cfg.output>` (the model
-weights file, lz4-compressed by default, with a `.SHA3-256` sidecar
-written by binio). It adds NO context attributes; `_down` is a no-op
-(log only) — the artifact is never unlinked (the OPTIMIZE-checkpoint /
+"15" slot; the flat-file numbering skips 03/07/08/09/12/13/15). A pure
+SINK on every up-move: it reads context attributes and writes ONE
+binary artifact — `base_dir/<cfg.output>` (the model weights file,
+lz4-compressed by default, with the `.SHA3-256` sidecar written by
+binio). It adds NO context attributes; `_down` is a no-op (log only) —
+the artifact is never unlinked (the OPTIMIZE-checkpoint /
 ANALYTICS-report artifact semantics: build/ files persist across runs).
+> State: D-104 · 7fb070b · 2026-09-03 · suite 5/0/0 (via
+  test_lm_worker_full_chain — 2 ungated read-guard tests; 3 DB-gated,
+  A2050 additionally LONG-gated)
 
-## Suite status (session 29, post D-104)
+## API
 
-- `test_lm_worker_full_chain`: 3/0/0 live (2 A2030 methods + the 2 read
-  guards are the only ungated additions; see the test doc), A2050
-  LONG-gated (~10 min, `LONG=1`).
-- Full discover: 631 tests, 87 skipped under `SKIP_REGAB_DB=1`, GREEN
-  (2.6 s). Pre-campaign the bring-in left 628/85; the campaign added 3
-  tests (A2030 second-instance + 2 read guards) and 2 gated skips
-  (the SKIP_REGAB_DB gate added to both A2030 methods — pre-campaign
-  A2030 ran in "gated" mode silently, because `SKIP_REGAB_DB` is a
-  test-side convention only: no production code reads it).
+| name | contract |
+|---|---|
+| `lm_worker_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-104 T1 — with it all 14 worker factories are uniform) returning `Worker("SAVE", _up, _down)` |
 
-## State per Roberto
+## Architecture
 
-Pipeline COMPLETE: 15 active levels, 0 commented imports, 0 commented
-worker-list entries (pre-campaign: the last two commented lines, the
-L54 import and the L221 worker-list entry, were uncommented by the
-bring-in itself). The `A2050` / `A2030` class names in the test module
-are Roberto's legacy production naming: `A2xxx` is the
-endgame-solver production model family (A2 + ec*10; A2050 = ec 20;
-production runs A2050, A2150, A2250, ...).
+61 lines (post D-104).
 
-## Architecture (61 lines, post D-104)
+- Imports (L28-38): pydantic `validate_call`/`ConfigDict` (L30, T1),
+  `TYPE_CHECKING` (L32), `Worker`/`Relevance` from state_machine (L34),
+  `model_weights_write_file` (L35), `RLMContext` under TYPE_CHECKING
+  (L37-38, the rlm_indexes-L166 class, as in every worker). The
+  bring-in's dead `from pathlib import Path` is removed (T2).
+- `__all__ = ['lm_worker_save']` (L42).
+- `_up` (L46-52): INFO "Saving model weights to disk..." (L47) →
+  `output_path = ctx.cfg.base_dir / ctx.cfg.output` (L49) →
+  `model_weights_write_file(ctx, output_path, compressed=True)` (L51)
+  → INFO "Model weights saved to {output_path}" (L52). The SAVE log
+  span is exactly these 2 lines (plus the state-machine's "Starting
+  worker SAVE, UP step" / "Completed UP step" lines).
+- `_down` (L54-56): INFO "Clearing save attributes..." + the comment
+  "Nothing to clear from context, as we just read from it." — SAVE is
+  the only worker whose `_down` clears nothing (VALIDATE clears 1,
+  ANALYTICS clears 2, ...).
+- `lm_worker_save()` (L58-61): the factory, `@validate_call` since the
+  D-104 T1 gate.
 
-- L28-37 imports: pydantic `validate_call`/`ConfigDict` (T1),
-  `TYPE_CHECKING`, `Worker`/`Relevance` from state_machine,
-  `model_weights_write_file` from model_weights; `RLMContext` under
-  TYPE_CHECKING (the rlm_indexes-L166 class, as in every worker).
-  The bring-in's dead `from pathlib import Path` (T2) is removed.
-- L42 `__all__ = ['lm_worker_save']`.
-- L46-52 `_up(ctx)`: INFO "Saving model weights to disk..." →
-  `output_path = ctx.cfg.base_dir / ctx.cfg.output` →
-  `model_weights_write_file(ctx, output_path, compressed=True)` →
-  INFO "Model weights saved to {output_path}". The SAVE log span is
-  exactly these 2 lines (plus the state-machine's "Starting worker
-  SAVE, UP step" / "Completed UP step" lines).
-- L54-56 `_down(ctx)`: INFO "Clearing save attributes..." + the
-  comment "Nothing to clear from context, as we just read from it." —
-  no context attribute is touched (SAVE is the only worker whose
-  `_down` clears nothing; VALIDATE clears 1, ANALYTICS clears 2, etc.).
-- L58-61 `lm_worker_save()` — the D-104 T1 gate:
-  `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))`,
-  returning `Worker("SAVE", _up, _down)`. All 14 worker factories are
-  now uniform (the D-092/D-098/D-100/D-103 T1 convention, completed).
+## Verified invariants
 
-## Verified facts (D-104 probe — 30 checks, 0 mismatches)
+Pinned by `probes/verify_save.py` (17 checks: A1-A15 static, the C5
+a-portion, the D0 LONG placeholder) + the 5-test
+`test_lm_worker_full_chain` suite (2 ungated + 3 DB-gated, A2050
+additionally LONG-gated).
 
-- The full 15-level chain runs to step 14 / "SAVE" on rlm_04 (3 s,
-  probe C1) and rlm_03 (~10 min, D tier, LONG).
-- rlm_04 artifact: `rglm_logistic_model_ec_20_TEST04.dat`, 21603 bytes,
-  sha3_256 `bcf8d918979aaddba52ed2c9a80571f4fdc939a985ff4f3705510fa4f8010abb`,
-  sidecar valid (C6). rlm_03 artifact: 515042 bytes,
-  sha3_256 `3ad1805815c536e4506b0804b5be9e8662de53402c37fc3268c8dbbbb6847ff4`
-  (D6).
-- The write is DETERMINISTIC: a second full instance in the same base
-  dir produces a byte-identical file and 6 "Cache successfully loaded
-  and validated" hits (C14). Note the 7 cache files vs 6 hits: CONFIG
-  re-stores its snapshot on every run ("Configuration file ... stored to
-  cache file", INFO — a 'stored' line, not a 'hit'); the 6 hits are
-  POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS
-  (POSITIONS and VLD_POSITIONS additionally log the DEBUG
-  "is_cache_consistent = True." from their validate_fn).
-- `_down` semantics: no attribute cleared, artifact persists (the
-  build/tmp dir listing after a chain shows the model file + its
-  sidecar alongside the caches, the checkpoint and the analytics
-  report).
+- Source shape (probe A1-A3, A10-A15): the `@validate_call` factory +
+  pydantic import (A1), no pathlib (A2), 0 non-comment trailing-ws
+  lines (A3, T4), the test's 2 SKIP_REGAB_DB gates + the D-085 idiom
+  (A10-A11), no dead imports (A13), the fixtures' `output` fields +
+  cuts (A15: rlm_03 cut=1, rlm_04 cut=10).
+- The live rlm_04 chain (the A2030 suite + probe C5): the full
+  15-level chain runs to step 14 / "SAVE"; the artifact
+  `rglm_logistic_model_ec_20_TEST04.dat` is 21603 bytes, sha3_256
+  `bcf8d918979aaddba52ed2c9a80571f4fdc939a985ff4f3705510fa4f8010abb`,
+  sidecar valid; probe C5 (the a-portion): the LIVE pre-f32 opt
+  `f` 0.00560641149058938 + `g_norm` 4.3686068238457665e-05 — the
+  test pins f/g_norm only on the read-back `mw.opt_info` (f32).
+- The write is DETERMINISTIC (test_second_instance_deterministic): a
+  second full instance in the same base dir produces a byte-identical
+  file and exactly 6 "Cache successfully loaded and validated" hits
+  (7 cache files: CONFIG re-stores its snapshot on every run — a
+  'stored' line, not a 'hit'; the 6 hits are POSITIONS, INDEXES,
+  WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS), no "Extracted", no
+  "established successfully".
+- `_down` semantics: no attribute cleared, the artifact persists (the
+  base-dir listing after a chain shows the model file + its sidecar
+  alongside the caches, the checkpoint and the analytics report).
 
-## Minor notes (D-104 observations, report-only)
+## Open issues
 
-- O1: the model file is never unlinked by `_down` (artifact semantics,
-  consistent with the ANALYTICS report file, D-103 O5).
-- The factory gate (T1) is the last of the 14 — with it, every worker
-  factory in the pipeline validates its (zero) arguments uniformly.
+None.
+
+## Conventions
+
+- The no-cache design is the 6th deviation from the uniform 7-kwargs
+  `cache_manager` wiring — intentional and accepted by Roberto (the
+  rlmwf_15 slot stays unused like 03/07/08/12).
 - `compressed=True` is the only call form in the repo; the
   `compressed` parameter default is True anyway (the read side mirrors
   it).
+- The A2030/A2050 test class names are Roberto's legacy production
+  naming: A2xxx is the endgame-solver production model family (A2 +
+  ec*10; A2050 = ec 20; production runs A2050, A2150, A2250, ...) —
+  rlm_03's pattern set is literally named "A2050", rlm_04's is named
+  "EDGE" (the class keeps the legacy name — left as-is, accepted,
+  O3).
 
-## Integration notes
+## Integration
 
-- `ctx.cfg.output` is a REQUIRED field of
-  `ReversiLogisticModelConfig` (rlm_config_schemas L196,
-  `output: Path = Field(...)`) — pre-stored by Roberto in all four
-  fixtures (rlm_01 L31 / rlm_02 L31 / rlm_03 L31 / rlm_04 L31) "if
-  needed by the SAVE worker later", exactly as the pipeline's
-  train_metrics/analytics_report attributes were pre-stored for it.
+- Consumers: the terminal level of the StateMachine — nothing runs
+  after SAVE; the saved file is consumed by `twolm/rlm_client.py`
+  (`make_evaluation_function`) + `twolm/model_weights.py`
+  (`model_weights_read_file`).
 - The data it persists is the INFERENCE subset: w_dense +
   iwmap_feature_offset + the full FeatureSet + training-population
   stats + 4/5 opt_info keys + 4/7 vld metrics (model_weights.md).
@@ -112,17 +107,7 @@ production runs A2050, A2150, A2250, ...).
   deliberately NOT persisted: the client reconstructs everything it
   needs (rlm_client.md) — the zed transforms are a pure function of
   `logit_clipping`.
-
-## Appendix — line reference (post D-104, 61 lines)
-
-- L1-26 license header (canonical, untouched)
-- L28 `from __future__ import annotations`
-- L30 `from pydantic import validate_call, ConfigDict` (T1)
-- L32 `from typing import TYPE_CHECKING`
-- L34-35 state_machine + model_weights imports
-- L37-38 RLMContext under TYPE_CHECKING
-- L42 `__all__`
-- L46-52 `_up` (2 INFO logs + the write call)
-- L54-56 `_down` (no-op)
-- L58 `@validate_call(...)`
-- L59-61 `lm_worker_save()` factory
+- `ctx.cfg.output` is a REQUIRED field of
+  `ReversiLogisticModelConfig` (rlm_config_schemas L196,
+  `output: Path = Field(...)`) — pre-stored by Roberto in all four
+  fixtures (each L31) "if needed by the SAVE worker later".
