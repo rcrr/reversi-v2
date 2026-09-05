@@ -1198,7 +1198,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   ungated, −W error clean, build/tmp clean). System crash mid-
   session (campaign + docs on disk uncommitted, notes not
   updated); re-verified on resume — all GREEN, 4 doc corrections
-  + the stale probe re-pin (journal session 26).
+  + the stale probe re-pin (journal session 26). MIGRATED at
+  D-106 step 16 (OPTIMIZE batch): 120-line rlm_optimize mirror
+  (schema: the checkpoint-dict level, the 6 names, the 3-gate
+  consistency check, invariants pinned to the 76-check probe +
+  the 2 suites, Open issues None) + 119-line
+  lm_worker_optimize mirror (the 4-step _up recipe, the R4
+  _down scope) + 97-line opt_lbfgs mirror (the standalone
+  L-BFGS engine); the probe is now 76 checks (post 4091e72 move
+  + step 3: E1/E2 to the hub V3c/V3d, F1-F10 + G1/G2 + G4 + G5
+  to test_rlm_optimize — the try/except dual-branch labels
+  account for the raw vs unique label count difference).
 - rlm_generate.py + lm_worker_generate.py + test_rlm_generate.py
   (introduced 2026-09-02, session 27, Roberto's commit e31c061)
   + test_lm_worker_generate.py (NEW, D-098 T5 — the bring-in had
@@ -2017,11 +2027,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   INDEXES family at step 11, B batch #5 = the WMAPS family at
   step 12, B batch #6 = the DESIGN_MATRIX family at step 13,
   B batch #7 = the ZED family at step 14, B batch #8 = the
-  GRADIENT family at step 15 — next: B batch #9 = the OPTIMIZE
-  family (rlm_optimize, lm_worker_optimize, opt_lbfgs + their
-  3 test docs — all 6 docs exist; the 10th level with the
-  external LBFGS solver); 37 docs remain (recount at each
-  batch)).
+  GRADIENT family at step 15, B batch #9 = the OPTIMIZE family
+  at step 16 — next: B batch #10 = the GENERATE family
+  (rlm_generate, lm_worker_generate + their 2 test docs — all 4
+  docs exist; the 11th level, the dense-weight expansion); 31
+  docs remain (recount at each batch)).
 
 ## Index
 
@@ -2071,11 +2081,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   cache_manager's)
 - docs/src/twolm/test/test_regab.md — test_regab.py analysis
   (coverage by area, T5-T7 applied D-052, suite 37/0/0 GREEN)
-- docs/src/twolm/opt_lbfgs.md — opt_lbfgs.py analysis (L-BFGS:
-  strong Wolfe line search + two-loop recursion + warm-start; 5
-  verified facts, T1-T7 + 9 new tests D-053, suite 13/0/0 GREEN)
-- docs/src/twolm/test/test_opt_lbfgs.md — test_opt_lbfgs.py analysis
-  (coverage by area, T7 + 9 new tests D-053, suite 13/0/0 GREEN)
+- docs/src/twolm/opt_lbfgs.md — opt_lbfgs.py mirror (MIGRATED
+  at D-106 step 16, OPTIMIZE batch: the standalone L-BFGS
+  engine — strong Wolfe line search, two-loop recursion,
+  restart, dual convergence, warm-start, the 7-param save_fn;
+  the verbatim session-22 review in
+  notes/analyses/opt_lbfgs_session22_review.md)
+- docs/src/twolm/test/test_opt_lbfgs.md — test_opt_lbfgs.py
+  mirror (MIGRATED at D-106 step 16, OPTIMIZE batch: 7 classes
+  / 13 tests — the 4 test functions, the warm-start, the T1
+  regression pin; the verbatim session-22 review in
+  notes/analyses/test_opt_lbfgs_session22_review.md)
 - docs/src/twolm/state_machine.md — state_machine.py mirror
   (MIGRATED at D-106 step 7: 5-name API table, the state model +
   D-059 sentinel + D-060 failure semantics + D-076 separate gate +
@@ -2304,27 +2320,34 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   weights exact goldens 4/75 + [1/30, 0, −1/30], the R1 dtype
   pins; the verbatim session-25 review in
   notes/analyses/test_rlm_gradient_session25_review.md)
-- docs/src/twolm/rlm_optimize.md — rlm_optimize.py analysis
-  (D-096, bring-in + fix campaign CLOSED, post-campaign state):
-  the checkpoint-dict level (the only non-data-class "cache"),
-  the R1 ridge gate in the consistency function, the R3 sidecar
-  verify in load, the 92-check probe re-pinned tiers A–H,
-  module CLOSED
+- docs/src/twolm/rlm_optimize.md — rlm_optimize.py mirror
+  (MIGRATED at D-106 step 16, OPTIMIZE batch: the checkpoint-
+  dict level — the 6 names, the R1 ridge gate in the
+  consistency function, the R3 sidecar verify, invariants
+  pinned to the 76-check probe A1-A20 / B1-B17 / H4-H8+H6b +
+  the 2 suites; the verbatim session-26 review in
+  notes/analyses/rlm_optimize_session26_review.md)
 - docs/src/twolm/lm_worker_optimize.md — lm_worker_optimize.py
-  analysis (D-096): the 4-step _up, the R2 try/except, the R4
-  _down scope, the T10 factory @validate_call (all 10 workers
-  now share it), the M5 iters=k+1, module CLOSED
+  mirror (MIGRATED at D-106 step 16, OPTIMIZE batch: the
+  4-step _up, the R2 try/except, the R4 _down scope, the T10
+  factory @validate_call; probe B1-B17 + D1-D11 + the 3-test
+  end-to-end suite; the verbatim session-26 review in
+  notes/analyses/lm_worker_optimize_session26_review.md)
 - docs/src/twolm/test/test_lm_worker_optimize.md —
-  test_lm_worker_optimize.py analysis (D-096): the T1 gate +
-  the T2 D-085 idiom + the T6 real lbfgs marker + the T7 _down
-  test, 3/0/0 live, 3/0/3 gated
+  test_lm_worker_optimize.py mirror (MIGRATED at D-106 step 16,
+  OPTIMIZE batch: 1 class / 3 DB-gated tests — the loss-decrease
+  run, the max-iters → completed → reload run with the T6 real
+  lbfgs marker, the R4 _down pin; the verbatim session-26
+  review in notes/analyses/test_lm_worker_optimize_session26_
+  review.md)
 - docs/src/twolm/test/test_rlm_optimize.md — test_rlm_optimize.
-  py analysis (D-096 M10 expansion): 4 classes / 19 tests, no
-  DB — the round-trip + dtype pins, the empty-history, the M6
-  fail-fast, the 2 header gates, the R3 corrupted-content gate,
-  the file golden hash, the sidecar, the 3 helpers, the 4
-  consistency branches (incl. the R1 ridge gate), the 4 status
-  branches; suite 19/0/0 GREEN
+  py mirror (MIGRATED at D-106 step 16, OPTIMIZE batch: 4
+  classes / 19 tests, no DB — the round-trip + dtype pins, the
+  M6/R3/header gates, the 2 golden hashes, the 4 consistency +
+  4 status branches — after step 3 it also owns the probe's
+  former F1-F10 + G1/G2 + G4 + G5; the verbatim session-26
+  review in notes/analyses/test_rlm_optimize_session26_review.
+  md)
 - docs/src/twolm/rlm_generate.md — rlm_generate.py analysis
   (D-097 analysis + D-098 fix campaign CLOSED, post-campaign
   state): the 11th level data object (w_checksum anchor +
