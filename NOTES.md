@@ -1433,6 +1433,19 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (2 new + the logistic_model.md 13-worker update, 6 spots).
   Suite 619 → 622 (622/0/80 gated + 622 run / 17 skipped
   ungated (30.6 s), −W error clean (31.2 s), build/tmp clean).
+  MIGRATED at D-106 step 18 (VALIDATE batch): 117-line
+  rlm_validate mirror (schema: the pure-compute level — the
+  single validate_model function, the dense-mapping idiom, the
+  7-metric dict, invariants pinned to the 18-check probe + the
+  5-test suite, Open issues None) + 110-line lm_worker_validate
+  mirror (the third non-cache worker, the M1 zero-guard, the ONE
+  ctx.vld_metrics attribute) + 53-line test mirror (2 classes /
+  5 tests — the D-106 step-3 conversion of probe D1/D3 into the
+  DB-free TestValidateModelUnit class, 179 → 258 lines at
+  7964b96); the probe is now 18 checks (A1-A13 + B4 + C4/C5 +
+  D2 — post step 3: B1-B3 to the hub, C1/C2/C3/C6/C7 to the test
+  file, D1/D3 converted into TestValidateModelUnit; the old "28"
+  counted the pre-step-3 state).
  - lm_worker_analytics.py + rlm_analytics.py: brought in
   2026-09-02 (session 28, Roberto's commit 96dacb5, "Ho aggiunto
   i due moduli lm_worker_analytics e rlm_analytics, non ci sono
@@ -2041,10 +2054,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   B batch #7 = the ZED family at step 14, B batch #8 = the
   GRADIENT family at step 15, B batch #9 = the OPTIMIZE family
   at step 16, B batch #10 = the GENERATE family at step 17 —
-  next: B batch #11 = the VALIDATE family (rlm_validate,
-  lm_worker_validate + test_lm_worker_validate — 3 docs, all
-  exist; the 12th level: the validation-data twin with no
-  test_rlm_validate); 27 docs remain (recount at each batch)).
+  next: B batch #11 = the VALIDATE family at step 18 — next:
+  B batch #12 = the VLD_POSITIONS family (lm_worker_vld_
+  positions + test_lm_worker_vld_positions — 2 docs, all exist;
+  the 12th level: the POSITIONS twin over the validation data
+  set, it reuses lm_worker_positions' load_from_db /
+  is_cache_consistent — no rlm_vld_positions module); 24 docs
+  remain (recount at each batch)).
 
 ## Index
 
@@ -2405,21 +2421,28 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   + sidecar, the 2nd-instance cache hit with no re-extraction,
   the _down pin; 3/0/0 live, 3/0/3 gated
 - docs/src/twolm/lm_worker_validate.md — lm_worker_validate.py
-  analysis (D-101/D-102): the 13th active level, the THIRD non-
-  cache worker (the rlmwf_12 slot unused), the 7-key vld_metrics
-  dict, the M1 zero-guarded RMSE/MAE line; R1 + T1-T5 + M1-M3
-  CLOSED D-102; module CLOSED
-- docs/src/twolm/rlm_validate.md — rlm_validate.py analysis
-  (D-101/D-102): the FIRST dedicated data module of a non-cache
-  level — validate_model's forward pass + the 7-metric dict
-  (post M3: incl. vld_mse_y); R1 the Any import, T2-T4, M2 the
-  underscore unpack; the dense-mapping idiom report-only; module
-  CLOSED
+  mirror (MIGRATED at D-106 step 18, VALIDATE batch: the THIRD
+  non-cache worker — the 7-key vld_metrics dict, the M1
+  zero-guarded RMSE/MAE line, the ONE ctx.vld_metrics attribute,
+  the rlmwf_12 slot unused; probe A + C tiers + the 3-test
+  worker suite; the verbatim session-28 review in
+  notes/analyses/lm_worker_validate_session28_review.md)
+- docs/src/twolm/rlm_validate.md — rlm_validate.py mirror
+  (MIGRATED at D-106 step 18, VALIDATE batch: the FIRST
+  dedicated data module of a non-cache level — validate_model's
+  forward pass + the 7-metric dict (incl. vld_mse_y post M3),
+  the dense-mapping idiom, the y2z float32 cast; probe A1-A13 +
+  C4/C5 + D2 + the 5-test suite; the verbatim session-28 review
+  in notes/analyses/rlm_validate_session28_review.md)
 - docs/src/twolm/test/test_lm_worker_validate.md —
-  test_lm_worker_validate.py (NEW, D-102 T5): 1 class / 3
-  tests, all DB-gated — the first-run 7-metric goldens + log
-  lines, the 2nd-instance deterministic recompute with 6 cache
-  hits, the _down pin; 3/0/0 live, 3/0/3 gated
+  test_lm_worker_validate.py mirror (MIGRATED at D-106 step 18,
+  VALIDATE batch: 2 classes / 5 tests — the first-run 7-metric
+  goldens + log lines, the 2nd-instance deterministic recompute
+  with 6 cache hits, the _down pin (3 DB-gated) + the 2 DB-free
+  TestValidateModelUnit tests (the D-106 step-3 conversion of
+  probe D1/D3 — the hand-computed 2-position metric math + the
+  M1 zero-guard branch); the verbatim session-28 review in
+  notes/analyses/test_lm_worker_validate_session28_review.md)
 - docs/src/twolm/lm_worker_analytics.md — lm_worker_analytics.py
   analysis (D-103, the 14th active level — the 5th non-cache
   worker; the 33-check probe; D-103 campaign T1-T6 + M1-M3
