@@ -1123,7 +1123,17 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   Probe re-pinned (61 checks, tiers A–G, 0 mismatches). All 5
   mirror docs written (4 new + the logistic_model.md 9-worker
   update). Suite 563 → 573 (573/0/68 gated + 573 run / 17
-  skipped ungated, −W error clean, build/tmp clean).
+  skipped ungated, −W error clean, build/tmp clean). MIGRATED at
+  D-106 step 15 (GRADIENT batch): 115-line rlm_gradient mirror
+  (schema: the function-only module — the sigmoid wrapper, the
+  fg closure math, the R1 float32 cast, the /M normalization,
+  invariants pinned to the 54-call probe + the 2 suites, Open
+  issues None) + 91-line lm_worker_gradient mirror (the second
+  non-cache worker, the L48 by-design comment, _up sets ctx.fg,
+  _down clears it); the probe is now 54 calls (post 4091e72
+  move + step 3: D1-D4 + D11 to the worker test, E2/E3 to the
+  hub V3c/V3d — the D-tier live() checks are not counted by the
+  plain check() grep).
 - rlm_optimize.py + lm_worker_optimize.py + test_rlm_optimize.py
   + test_lm_worker_optimize.py (new, OPTIMIZE bring-in, session
   26, Roberto's commit 1ebdd8b): the 10th pipeline level
@@ -2006,10 +2016,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   feature.py R1 fix at 10b (D-110, de01cf2), B batch #4 = the
   INDEXES family at step 11, B batch #5 = the WMAPS family at
   step 12, B batch #6 = the DESIGN_MATRIX family at step 13,
-  B batch #7 = the ZED family at step 14 — next: B batch #8 =
-  the GRADIENT family (rlm_gradient, lm_worker_gradient + their
-  2 test docs — all 4 docs exist; the function-only level, no
-  data class); 41 docs remain (recount at each batch)).
+  B batch #7 = the ZED family at step 14, B batch #8 = the
+  GRADIENT family at step 15 — next: B batch #9 = the OPTIMIZE
+  family (rlm_optimize, lm_worker_optimize, opt_lbfgs + their
+  3 test docs — all 6 docs exist; the 10th level with the
+  external LBFGS solver); 37 docs remain (recount at each
+  batch)).
 
 ## Index
 
@@ -2267,25 +2279,31 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   4 init/hash tests incl. the (10,) hash golden 3d49fd5d…; the
   verbatim session-24 review in
   notes/analyses/test_rlm_zed_session24_review.md)
-- docs/src/twolm/rlm_gradient.md — rlm_gradient.py analysis
-  (D-093 + fix campaign D-094 CLOSED, post-campaign state): the
-  function-only module (sigmoid + rlm_gradient_compute, the fg
-  closure builder), the R1 float32 cast, the 61-check probe
-  re-pinned, tiers A–G
+- docs/src/twolm/rlm_gradient.md — rlm_gradient.py mirror
+  (MIGRATED at D-106 step 15, GRADIENT batch: the function-only
+  module — sigmoid + rlm_gradient_compute, the fg closure math,
+  the R1 float32 cast, invariants pinned to the 54-call probe
+  A1-A13 / B1-B9 / D0+D5-D10+D12 / E1+E4-E8 + the 2 suites; the
+  verbatim session-25 review in
+  notes/analyses/rlm_gradient_session25_review.md)
 - docs/src/twolm/lm_worker_gradient.md — lm_worker_gradient.py
-  analysis (D-093 + D-094): the second non-cache level (no
-  rlmwf_07*/08* file ever), the T2 @validate_call factory, the
-  M4 house-style triple blanks
+  mirror (MIGRATED at D-106 step 15, GRADIENT batch: the second
+  non-cache worker — the L48 by-design comment, _up sets ctx.fg,
+  _down clears it; probe B1-B9 + C1-C10 + the 2-test end-to-end
+  suite; the verbatim session-25 review in
+  notes/analyses/lm_worker_gradient_session25_review.md)
 - docs/src/twolm/test/test_lm_worker_gradient.md —
-  test_lm_worker_gradient.py analysis (D-093 + D-094): the T5
-  gate + the T6 D-085 idiom + the T7 _down test, 2/0/0 live,
-  2/0/2 gated
+  test_lm_worker_gradient.py mirror (MIGRATED at D-106 step 15,
+  GRADIENT batch: 1 class / 2 DB-gated tests — the rlm_02
+  4-value golden at w=0 + the _down pin; the verbatim session-25
+  review in notes/analyses/test_lm_worker_gradient_session25_
+  review.md)
 - docs/src/twolm/test/test_rlm_gradient.md — test_rlm_gradient.
-  py analysis (D-094 M1, NEW): 2 classes / 8 tests, no DB — the
-  sigmoid goldens/symmetry, the mock-compute zero-weights
-  goldens 4/75 + [1/30, 0, −1/30], the ridge /M scaling, the
-  minlength empty bucket, the R1 float32 dtype pins; suite
-  8/0/0 GREEN
+  py mirror (MIGRATED at D-106 step 15, GRADIENT batch: 2
+  classes / 8 tests, no DB — the sigmoid goldens, the zero-
+  weights exact goldens 4/75 + [1/30, 0, −1/30], the R1 dtype
+  pins; the verbatim session-25 review in
+  notes/analyses/test_rlm_gradient_session25_review.md)
 - docs/src/twolm/rlm_optimize.md — rlm_optimize.py analysis
   (D-096, bring-in + fix campaign CLOSED, post-campaign state):
   the checkpoint-dict level (the only non-data-class "cache"),
