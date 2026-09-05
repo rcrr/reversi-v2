@@ -1,257 +1,59 @@
-# test_logistic_model.md — analysis
+# twolm/test/test_logistic_model.py
+The logistic-model unit suite — 1 class / 17 tests (15 original + 2
+converted from the verify_lm_worker_config.py D1/E4b probe checks at
+D-106 step 3), no PERF gates, ~0.15 s, no DB. 311 lines; the D-075
+T-campaign narrative froze in the archive.
+> State: D-106 · 73a72d3 · 2026-09-04 · suite 17/0/0 (no PERF gates,
+  no DB)
 
-Date: 2026-08-30. One test file: `test_logistic_model.py` (1 class,
-15 test methods — ALL 15 active: D-076 restored
-`test_move_to_step_delegates_to_state_machine` with the CONFIG
-level; the last muted test `test_move_to_step_by_string` restored
-2026-09-02, session 28, per Roberto's approval — the "una riga
-alla volta" plan of D-073/D-075 T3, the POSITIONS level having
-existed since 601de87/D-079), added with the module (6bb45fb).
-**Analysis session 21; the source modules' fix batch 1 (D-074)
-and the TEST batch (D-075: T1/T2/T4/T5 fixed, T3 intentional
-report-only — both muted tests now restored, T6 report-only) are
-applied.**
+## Coverage
 
-Suite: **15/0/0 GREEN, no PERF gates.** Fast (~0.02s).
-
-## How to run
-
-```
-$ python -m unittest twolm.test.test_logistic_model
-```
+| class (line) | tests | what it pins |
+|---|---|---|
+| `TestLogisticModel` (L62) | 17 | the context init (RLMContext, `config_file_path` round-trip, `base_dir_override` None, `cfg` None); the SM sentinel start (`current_step == 0`, "CREATED"); the init `ValidationError` on a non-str config path (step 3: the D1 probe conversion, the D-107 guard contract); the injected cache closure requiring `cfg` (AttributeError before CONFIG — step 3, the E4b conversion); the `move_to_step` delegation (int + str name) with the CONFIG level; the invalid config path + base_dir override `FileNotFoundError`s; the facade pass-through pins (`test_facade_delegates_to_state_machine` — per-method `patch.object(self.model.sm, ...)` + `assert_called_once_with`; the T1 replacement of the overpromising smoke test); the views + verbosity round-trip; the injected cache helpers ARE the machine closures (would have caught R1); the pre-injection no-op lambda fallback; the injected helper computing the worker path (dummy `cfg`, `addCleanup` restore); the CREATED sentinel workers raise (D-059); the config/base_dir helper edge branches (str-vs-Path, trailing-slash); the CSV export pass-through (header-only artifact, under `build/tmp`) |
 
 ## Testbed design (setUp, L68-104)
 
 - `setUpClass` (L64): `CUSTOM_TMP_BASE.mkdir(parents=True,
-  exist_ok=True)` — `CUSTOM_TMP_BASE` (L57) is imported from the
-  shared `twolm.test.paths` module (the D-065 idiom, T2/D-075;
-  centralized in D-085 — originally the module-level
-  `Path(__file__).resolve().parents[3]` derivation).
-- `sys.stdout` patched to a StringIO (keeps the SM display output
-  out of the test log).
-- A dummy `dummy_config.json` (`{}`) in
-  `tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)` — under
-  `<workspace-root>/build/tmp`, NOT the system temp (T2 FIXED).
-  Created FIRST in setUp, so a mid-setup failure still leaves a
-  `temp_dir` that tearDown (or the GC of the unentered
-  TemporaryDirectory) cleans.
-- `patch('twolm.logistic_model.lm_worker_config', return_value=
-  Worker("CONFIG", ...))` + the same for `lm_worker_positions`:
-  the factories are replaced in the MODULE namespace, so when the
-  worker-list entries are uncommented the construction picks up the
-  dummy workers. The patches are currently INERT (the list entries
-  are commented — see T3).
-- `LogisticModel(config_file_path=..., verbosity=STANDARD)` built
-  once in setUp and shared by all tests (the tests are
-  non-mutating: they only read facade state or construct fresh
-  models; the one test that mutates the shared context —
-  `test_injected_cache_helper_computes_the_worker_path`, which sets
-  a dummy `cfg` — restores it via `addCleanup`).
-- `tearDown` (L112): defensive against mid-setup failures — stops
-  only the patchers that exist, then `temp_dir.cleanup()`.
+  exist_ok=True)` — imported from the shared `twolm.test.paths`
+  module (D-065 idiom, T2/D-075, centralized at D-085).
+- `sys.stdout` patched to a StringIO (keeps the SM display out of
+  the test log); the dummy `dummy_config.json` (`{}`) in a
+  `tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)` created FIRST in
+  setUp (mid-setup failures still leave a cleanable `temp_dir`).
+- `patch('twolm.logistic_model.lm_worker_config', ...)` + the same
+  for `lm_worker_positions`: the factories are replaced in the MODULE
+  namespace, so the uncommented worker-list entries pick up the dummy
+  workers.
+- One shared `LogisticModel` built in setUp (the tests are
+  non-mutating; the one mutating test restores via `addCleanup`);
+  `tearDown` (L112) is defensive against mid-setup failures.
 
-## Coverage by area
+## Goldens pinned
 
-### `TestLogisticModel` (13 active tests)
+- The pass-through `assert_called_once_with` contracts (per-method).
+- The closure identity pins (injected helpers == the machine
+  closures; pre-injection == the no-op lambda default).
+- The exception types/messages at the facade boundary (the D-107
+  guard contract: the init ValidationError, the helper
+  FileNotFoundErrors, the sentinel raises).
+- The cache-path computation for the dummy `cfg` (the worker-path
+  pin).
 
-- `test_context_initialization`: `model.context` is an RLMContext;
-  `config_file_path` round-trips (str compare); `base_dir_override`
-  None; `cfg` None (V: context starts empty).
-- `test_state_machine_initialization`: `current_step == 0`,
-  `current_worker_name == "CREATED"` (the sentinel start).
-- `test_invalid_config_path`: a non-existent config file →
-  FileNotFoundError (the `_check_config_file_path` existence branch;
-  also exercises the `str` input type).
-- `test_base_dir_override_validation`: a non-existent override dir
-  → FileNotFoundError (the existence branch).
-- **T1 (D-075)** — `test_facade_methods_exist` (the overpromising
-  try/except smoke test) REPLACED by:
-  - `test_facade_delegates_to_state_machine`: per-method
-    `patch.object(self.model.sm, ...)` pins — `show_event_log`,
-    `show_history_of_moves`, `move_to_step` (int AND str name),
-    `move_to_last`, `export_history_of_moves_as_csv` each land on
-    the SM with the same arguments (`assert_called_once_with`).
-  - `test_facade_views_and_verbosity_round_trip`: the read-only
-    views (`current_step`, `current_worker_name`, `verbosity`)
-    mirror `model.sm`, and the `verbosity` property round-trips
-    (set HIGH → visible on the SM → restored to STANDARD).
-- **T4 (D-075)** — the integration corners:
-  - `test_injected_cache_helpers_are_the_machine_closures`: post-
-    construction the context's `*_for_current_level` attributes are
-    the SM-injected closures (`__name__` = `_get_cache_file_path` /
-    `_get_cache_file_full_path`), `log_event` the bound SM method —
-    a regression to the pre-D-074 names would have left the no-op
-    lambda defaults (this pin would have caught R1).
-  - `test_pre_injection_fallback_is_no_op_lambda`: a bare
-    (un-injected) `RLMContext` keeps the lambda no-op defaults —
-    the cache helpers return None, `log_event()` does nothing.
-  - `test_injected_cache_helper_computes_the_worker_path`: with a
-    dummy `cfg` (SimpleNamespace), the injected closures compute
-    `cache00_CREATED.dat` and `base/cache00_CREATED.dat` (the
-    filename-prefix concatenation of D-078 through the facade
-    context — re-pinned from the D-069 M8 pathlib join).
-  - `test_created_sentinel_workers_raise`: direct calls to
-    `_created_up`/`_created_down` raise the pinned RuntimeErrors
-    ("Executing/Cleaning created step should never happen." — the
-    D-059 explicit sentinel).
-  - `test_config_path_helper_edge_branches`: int → TypeError,
-    missing → FileNotFoundError ("No such file: 'ghost.json'"),
-    directory → IsADirectoryError (the M3/D-074 type).
-  - `test_base_dir_helper_edge_branches`: int → TypeError, a file
-    → NotADirectoryError.
-  - `test_export_history_of_moves_as_csv_pass_through`: the CSV
-    export writes a real header-only file (empty history) under the
-    build/tmp artifact dir (D-065); header pinned to
-    `step,worker_name,direction,start_utc,finish_utc,duration_sec`.
-- **Restored (session 28, Roberto's approval — the "una riga
-  alla volta" plan, D-073/D-075 T3)**:
-  - `test_move_to_step_by_string`: `move_to_step("POSITIONS")` →
-    step 2, both up-mocks called once with the context (name-based
-    move through 2 levels). Muted since the session-21 analysis
-    (precondition verified by probe at the time: with only CREATED
-    in the list, `move_to_step(1)` → IndexError (out of bounds)
-    and `move_to_step("POSITIONS")` → ValueError (unknown worker));
-    `test_move_to_step_delegates_to_state_machine` was restored in
-    D-076 with the CONFIG level; this last one with the POSITIONS
-    level (existing since 601de87, D-079) — the pipeline now
-    passes the name-based move through 2 levels cleanly.
+## Conventions
 
-## Test defects (T1-T6)
+- The D-075 T1-T6 campaign: T1 the smoke-test replacement, T2 the
+  `build/tmp` artifact rule, T4 the closure/helper pins, T5/T6 the
+  restored tests (D-076 + the 2026-09-02 `test_move_to_step_by_
+  string` restoration per Roberto's approval — the "una riga alla
+  volta" plan of D-073/D-075 T3).
+- The D-106 step-3 conversions (73a72d3) added the 2 probe-derived
+  tests (the full guard-contract pin).
 
-Status: T1/T2/T4/T5 FIXED (D-075); T3 intentional (pipeline
-development), T6 report-only — both unchanged by design.
+## Integration
 
-### T1 — `test_facade_methods_exist` overpromises and underpins (P1) — FIXED (D-075)
-The name and docstring ("Verify that facade methods correctly point
-to the state machine") promised a delegation check; the body only
-CALLED two of the seven facade methods (`show_event_log`,
-`show_history_of_moves`) inside a `try/except` that converted any
-exception to `self.fail` — a smoke test in disguise, and the
-try/except+fail is an anti-pattern (letting the exception propagate
-fails the test just as clearly, with a better traceback). Uncovered:
-`move_to_step`, `move_to_last`, the `verbosity` property (get + set),
-`export_history_of_moves_as_csv`. **Applied (D-075):** the method is
-replaced by `test_facade_delegates_to_state_machine` (per-method
-`patch.object(self.model.sm, ...)` + `assert_called_once_with` pins
-for all five pass-throughs, `move_to_step` pinned with BOTH an int
-and a name string) and `test_facade_views_and_verbosity_round_trip`
-(the three read-only views mirror the SM; the verbosity property
-round-trips and is restored).
-
-### T2 — Artifacts in the SYSTEM temp dir (P1, D-065 house rule) — FIXED (D-075)
-`tempfile.mkdtemp()` with no `dir=` created the dummy config under
-the system temp (e.g. /tmp), not under `workspace_root/build/tmp`
-— the same deviation Roberto fixed in test_cache_manager (T6,
-D-072). Additionally, if setUp raised between `mkdtemp()` and the
-end of setUp, `tearDown` was never run and the dir leaked. **Applied
-(D-075; centralized in D-085 in the shared twolm.test.paths
-module):** the test_cache_manager idiom — the `CUSTOM_TMP_BASE`
-import (L57; originally the module-level
-`Path(__file__).resolve().parents[3]` derivation) + `setUpClass`
-mkdir (L64) +
-`tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))` created
-FIRST in setUp (a mid-setup failure still leaves a `temp_dir` that
-tearDown or the GC cleans) + defensive tearDown (stops only the
-patchers that exist, then `temp_dir.cleanup()`).
-
-### T3 — Two muted tests (intentional — pipeline development) — RESOLVED (both restored)
-`_test_move_to_step_delegates_to_state_machine` and
-`_test_move_to_step_by_string` were muted by Roberto's design; they
-came back when the corresponding worker entries were uncommented
-("Restore the tests when the POSITION STEP is added", L114/L123
-at the time). `test_move_to_step_delegates_to_state_machine` was
-restored in D-076 with the CONFIG level; `test_move_to_step_by_
-string` was restored in session 28 (2026-09-02, Roberto's
-approval) with the POSITIONS level — all 15 methods active, 0
-muted. Note: the setUp factory patches mock
-`lm_worker_config()`/`lm_worker_positions()` only — the other
-worker factories in the (now 14-level) list are the real ones but
-are never invoked (the tests move at most to step 2).
-
-### T4 — Integration corners untested (P2, breadth) — FIXED (D-075)
-Nothing pinned: (a) the INJECTED callables — `log_event` default is
-a no-op lambda pre-injection / a bound SM method post-injection,
-and the two cache-helper names (a pin would have caught R1 — the
-D-069 name divergence — immediately); (b) the sentinel callables
-(`_created_up`/`_created_down` raise RuntimeError on direct call —
-the D-059 "explicit sentinel" the state_machine resolution
-anticipated); (c) the helper edge branches (int → TypeError,
-directory-as-config → IsADirectoryError "not a file" post M3/D-074,
-file-as-base_dir → NotADirectoryError); (d) the
-`export_history_of_moves_as_csv` pass-through (with a build/tmp
-artifact). **Applied (D-075):** 7 new tests — (a) the injected
-closures' `__name__`s + `log_event` identity, the bare-context
-no-op-lambda fallback, and the path computation through a dummy
-`cfg` (`cache00_CREATED.dat`, `base/cache00_CREATED.dat` —
-re-pinned D-078 from the D-069 M8 join); (b)
-both sentinels' pinned RuntimeError messages; (c) both helpers'
-edge branches; (d) the CSV pass-through (header-only file, header
-pinned, artifact under the build/tmp temp dir).
-
-### T5 — Dead import (P2) — FIXED (D-075)
-`Relevance` was imported but never used in the test file. **Applied
-(D-075):** removed from the import (the top-level import now also
-pulls the private helpers `_check_config_file_path`,
-`_check_base_dir_override`, `_created_up`, `_created_down` for the
-T4 corner pins).
-
-### T6 — Header grammar (cosmetic, report-only)
-L30: "How to use the unit tests logistic_model module." — the same
-pattern as the test_board/test_feature/test_cache_manager header
-nits; left as-is per the report-only pattern unless Roberto wants a
-sweep.
-
-## Observations
-
-- **No PERF gates**: 5 tests in 0.009s; the shared-in-setUp model is
-  cheap (1-worker machine) and safe because no test mutates
-  `self.model`.
-- **The stdout patch is load-bearing** for clean output but is also
-  what hides any display-layer regression: a test could capture the
-  StringIO and assert the table output — the state_machine display
-  goldens (D-063) own that idiom and are not duplicated here.
-- **The factory-patch design is forward-looking**: it will keep
-  working verbatim as each worker entry is uncommented, because the
-  patch targets the names in `twolm.logistic_model`'s own namespace.
-
-## Completeness verdict
-
-**Facade basics + integration corners pinned (post D-075)**:
-context + SM initialization, both exception paths of the path
-validators (plus the edge branches, T4), the sentinel start AND the
-sentinel callables themselves (T4), the full delegation contract
-per method (T1), the injected callables' identity + fallback +
-path computation (T4 — would have caught R1), the CSV pass-through
-(T4), and the D-065 artifact base (T2). The two once-muted tests
-pin the delegation semantics of `move_to_step` (int + name) and
-are active (T3, both restored — D-076 and session 28). Remaining:
-header grammar report-only (T6).
-
-**Verdict**: 13/0/0 GREEN. Test campaign CLOSED (T1/T2/T4/T5
-fixed, T3 intentional, T6 report-only); D-075.
-
-## Appendix: class map (as of session 28, file 287 lines)
-
-| Line | Class / item | Notes |
-|---|---|---|
-| 43-57 | imports | L48 SimpleNamespace (T4 dummy cfg) · L50 MagicMock/patch · L52-55 twolm (incl. the 4 private helpers for T4; Relevance removed — T5) · L57 the D-085 twolm.test.paths import (CUSTOM_TMP_BASE) |
-| 60 | `TestLogisticModel` | 15 methods (all active) |
-| 64 | `setUpClass` | mkdir CUSTOM_TMP_BASE (T2) |
-| 68 | `setUp` | TemporaryDirectory FIRST (T2), stdout patch, dummy config under build/tmp, factory patches (the CONFIG + POSITIONS mocks, exercised by the 2 move tests), shared model |
-| 106 | `tearDown` | defensive patcher stops + temp_dir.cleanup() (T2) |
-| 118 | `test_context_initialization` | active |
-| 125 | `test_state_machine_initialization` | active |
-| 130 | `test_move_to_step_delegates_to_state_machine` | active (restored D-076, the CONFIG level exists) |
-| 138 | `test_move_to_step_by_string` | active (the last muted test, restored session 28 — the POSITIONS level exists since 601de87/D-079) |
-| 146 | `test_invalid_config_path` | active |
-| 151 | `test_base_dir_override_validation` | active |
-| 159 | `test_facade_delegates_to_state_machine` | active — T1 pin (replaces test_facade_methods_exist) |
-| 183 | `test_facade_views_and_verbosity_round_trip` | active — T1 pin |
-| 197 | `test_injected_cache_helpers_are_the_machine_closures` | active — T4 (would have caught R1) |
-| 211 | `test_pre_injection_fallback_is_no_op_lambda` | active — T4 |
-| 220 | `test_injected_cache_helper_computes_the_worker_path` | active — T4 (dummy cfg, addCleanup restore) |
-| 235 | `test_created_sentinel_workers_raise` | active — T4 (D-059 sentinel) |
-| 245 | `test_config_path_helper_edge_branches` | active — T4 |
-| 260 | `test_base_dir_helper_edge_branches` | active — T4 |
-| 271 | `test_export_history_of_moves_as_csv_pass_through` | active — T4 (header-only, build/tmp) |
-| 286 | `unittest.main` guard | — |
+- Module under test: `logistic_model.md` (the first concrete domain
+  facade — LogisticModel + the RLMContext dataclass) on
+  `base_model.md` (the BaseModel facade base).
+- `test_state_machine.md` covers the SM core; this suite covers the
+  facade boundary + the RLMContext shape + the injection layer.
