@@ -55,7 +55,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Position | `position_collisions(p) -> Bitboard \| BitboardArray` | `mover & opponent` — must always be 0 |
 | Position | `position_check_collisions(p) -> None` | ValueError with count + first index when non-zero |
 | Position | `position_legal_moves(p) -> Bitboard \| BitboardArray` | the legal-move set (delegates to `legal_moves`) |
-| Position | `legal_moves(mover, opponent) -> Bitboard \| BitboardArray` | dual; both args the same kind (mixed → TypeError); strict uint64 in (Open M5) |
+| Position | `legal_moves(mover, opponent) -> Bitboard \| BitboardArray` | dual; both args the same kind (mixed → TypeError); strict uint64 in, 1-D guard (D-111 M5: 2-D → ValueError) |
 | Position | `position_legal_moves_count(p) -> int` | popcount of the legal set; scalar |
 | Position | `position_flips(p, move: Bitboard) -> Tuple[Bitboard, PositionField \| None]` | Kogge-Stone flip set + updated position; illegal or non-single-bit move → `(0, None)` |
 | Position | `position_make_move(p, move: Move) -> PositionField \| None` | execute; 64 (PA) swaps the players without verification; > 64 → ValueError; illegal square → None |
@@ -86,12 +86,13 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard, the
   numba kernel, the output adapted back to the input kind.
   `legal_moves` is the exception: strict uint64 scalar or ndarray
-  only (Open M5).
+  only, with the standard 1-D guard (D-111 M5).
 - **Numba** — `njit(parallel=True, cache=True)` on the hot kernels
   (the two D8 batch transform fns, the 8 scalar transform impls,
   `_vectorized_legal_moves`), `prange` on the batch loops;
   `@overload` on the 4 reflection primitives so JIT code can call
-  them (registered on the pydantic-wrapped names — Open M7).
+  them (registered on the pydantic-wrapped names — verified
+  resolvable in a JIT context, D-111 M7).
 - **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on
   every public function; `Annotated` + `BeforeValidator` enforce the
   dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
@@ -157,12 +158,13 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - Position-level D8 transforms (scalar + array) —
   `test_board::TestPositionTrFunctions` /
   `TestPositionTransformations` / `TestPositionAntiTransformations`.
+- The `@overload` of the 4 reflection primitives in a numba JIT
+  context (D-111 M7) — `test_board::TestNumbaReflectionOverloads`
+  (scalar + array JIT outputs vs the direct-call goldens).
 
 ## Open issues
 
-- M7 — the `@overload` of the 4 reflection primitives is registered
-  on the `@validate_call` wrappers; no test exercises the overloads
-  in a numba (JIT) context.
+None.
 
 ## Conventions
 

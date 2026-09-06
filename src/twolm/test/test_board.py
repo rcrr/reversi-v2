@@ -53,6 +53,7 @@ from pydantic import ValidationError
 import numpy as np
 import numpy.typing as npt
 import numpy.testing as nptest
+import numba as nb
 
 from twolm.board import *
 
@@ -909,6 +910,51 @@ class TestD8FunctionTables(unittest.TestCase):
                              'bitboard_' + bitboard_transformation_labels[i])
             self.assertEqual(bitboard_anti_trans_fs[i].__name__,
                              'bitboard_' + bitboard_anti_transformation_labels[i])
+
+@nb.njit
+def _jit_reflections_scalar(x):
+    # D-111 M7: the JIT-side entry points for the @overload-registered
+    # reflection primitives (the overloads are resolved through the
+    # @validate_call wrapper globals).
+    return (bitboard_fa1h8(x), bitboard_fh1a8(x),
+            bitboard_fhori(x), bitboard_fvert(x))
+
+@nb.njit
+def _jit_reflections_array(x):
+    arr = np.array([x, np.uint64(0x1)], dtype=np.uint64)
+    return (bitboard_fa1h8(arr), bitboard_fh1a8(arr),
+            bitboard_fhori(arr), bitboard_fvert(arr))
+
+class TestNumbaReflectionOverloads(unittest.TestCase):
+    """
+    D-111 M7: the @overload of the 4 reflection primitives is
+    exercised in a numba (JIT) context — before this test nothing
+    called them from JIT code.
+    """
+
+    x = Bitboard(0x40001CCAEB400024)
+
+    def test_scalar_overloads_in_jit(self):
+        # The JIT results must match the direct (interpreter-side)
+        # calls, and carry the hard goldens for the a1h8/h1a8/hori/
+        # vert reflections of the shared fixture.
+        self.assertEqual(_jit_reflections_scalar(self.x),
+                         (bitboard_fa1h8(self.x), bitboard_fh1a8(self.x),
+                          bitboard_fhori(self.x), bitboard_fvert(self.x)))
+        self.assertEqual(_jit_reflections_scalar(self.x),
+                         (Bitboard(0x189C092038211808),
+                          Bitboard(0x1018841C04903918),
+                          Bitboard(0x240040EBCA1C0040),
+                          Bitboard(0x2003853D7020024)))
+
+    def test_array_overloads_in_jit(self):
+        jit_out = _jit_reflections_array(self.x)
+        direct = (bitboard_fa1h8(np.array([self.x, Bitboard(0x1)], dtype=Bitboard)),
+                  bitboard_fh1a8(np.array([self.x, Bitboard(0x1)], dtype=Bitboard)),
+                  bitboard_fhori(np.array([self.x, Bitboard(0x1)], dtype=Bitboard)),
+                  bitboard_fvert(np.array([self.x, Bitboard(0x1)], dtype=Bitboard)))
+        for a, b in zip(jit_out, direct):
+            np.testing.assert_array_equal(a, b)
 
 class TestBitboardD8GroupLaw(unittest.TestCase):
     
