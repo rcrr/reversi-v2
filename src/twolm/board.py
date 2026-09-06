@@ -438,7 +438,7 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
         
     return ts.view(Bitboard)
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
     
     # Allocate memory for output transformations matrix
@@ -497,7 +497,7 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
         
     return ts.view(Bitboard)
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_bitboard_anti_transformations(bb_arr: BitboardArray) -> BitboardArray:
     
     # Allocate memory for output transformations matrix
@@ -565,7 +565,7 @@ def _numba_fa1h8_scalar_impl(s):
     s = s ^       (t ^ (t >> 7))
     return s
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_fa1h8_array_impl(arr):
     N = arr.shape[0]
     out = np.empty(N, dtype=Bitboard)
@@ -618,7 +618,7 @@ def _numba_fh1a8_scalar_impl(s):
     s = s ^       (t ^ (t >> 9))
     return s
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_fh1a8_array_impl(arr):
     N = arr.shape[0]
     out = np.empty(N, dtype=Bitboard)
@@ -678,7 +678,7 @@ def _numba_fhori_scalar_impl(s):
          ((s >> 56) & mask00))
     return s
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_fhori_array_impl(arr):
     N = arr.shape[0]
     out = np.empty(N, dtype=Bitboard)
@@ -728,7 +728,7 @@ def _numba_fvert_scalar_impl(s):
     s = ((s >> 4) & k4) | ((s & k4) << 4)
     return s
 
-@nb.njit(parallel=True, cache=True, fastmath=True)
+@nb.njit(parallel=True, cache=True)
 def _numba_fvert_array_impl(arr):
     N = arr.shape[0]
     out = np.empty(N, dtype=Bitboard)

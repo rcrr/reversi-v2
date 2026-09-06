@@ -158,9 +158,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M4 — numba decoration inconsistent: `fastmath=True` on the D8
-  transform kernels (meaningless for integer ops), absent on
-  `_vectorized_legal_moves`.
 - M5 — `legal_moves` accepts only the uint64 scalar/ndarray (bare
   Python int → ValidationError, no lists) — stricter than the rest
   of the dual API.
