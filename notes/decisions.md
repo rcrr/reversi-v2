@@ -4027,3 +4027,39 @@ D-110 | 2026-09-04 | feature.py OPEN R1 disposition (surfaced by
        GREEN + full gated 664/0/87 GREEN. The feature.md mirror
        updated in the same wave (State line D-110, Open issues
        None). |
+
+D-111 | 2026-09-06 | board.py OPEN M1-M7 fix campaign: all 7 open
+       issues of the session-1 analysis fixed, one commit each
+       (Roberto: "fissare le sette ISSUES in board.md... una alla
+       volta"). M1 (47ac5da): bitboard_ro000 now returns a fresh
+       copy (arrays: bb.copy(), scalars: Bitboard(bb)) — the
+       identity contract is copy at BOTH layers (position_ro000
+       already copied; ro000 was the only D8 fn not allocating).
+       M2 (1558321): square_validate_range now uses the existing
+       (unused) __square_max_value__ constant — message text
+       byte-identical. M3 (dfa12cd): the 4 D8 function/label
+       tables are plain lists (were np.object arrays; pattern.py
+       consumer-checked: indexing, set(), join — all compatible).
+       M4 (35de3e4): fastmath=True dropped from the 6 D8 njit
+       kernels (pure integer ops — fastmath is a no-op; now every
+       kernel is decorated identically). M5 (ac4f15e): the doc
+       claim was empirically false (the whole dual API rejects
+       bare int/lists uniformly) — the REAL gap was the missing
+       1-D ndim guard: a 2-D array crashed deep in the numba
+       kernel with a TypingError; the standard house-pattern guard
+       added on both arguments. M6 (47a4241): the 14 docstring
+       typos fixed (Applays x4, arry x4, lenght x4, lovercase,
+       does't, whould, Chanpionship). M7 (5ae49c0): the
+       @overload registration on the @validate_call wrappers was
+       empirically verified to RESOLVE in a JIT context (scalar +
+       array) — the gap was the missing coverage: new
+       TestNumbaReflectionOverloads (2 tests) + module-level njit
+       helpers. | House rules 3/5: explicit request authorizes the
+       source change; mirror rule — board.md updated per commit
+       (Open issues now "None.", suite 201/0/12). New pins: 8
+       tests (M1 x1, M2 message pins, M3 x3, M5 x2, M7 x2) — the
+       suite grew 193 → 201 (full gated 664 → 672, 0 failures).
+       No perf regressions: A/B bench for M4 (21.5/25.6M b/s with
+       fastmath vs 28.2/27.5M without — equal or faster), ro000
+       copy 191M b/s (not a hot kernel), M2/M5/M6/M7 have no hot-
+       path surface. |

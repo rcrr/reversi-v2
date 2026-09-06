@@ -4,7 +4,7 @@ bitboards, positions, and everything that operates on them — the
 D8 symmetry group, legal-move and flip-set computation, move
 execution, end-of-game scoring. No game loop, no search, no clock,
 no UI.
-> State: D-018 · b070918 · 2026-08-27 · suite 193/0/12
+> State: D-111 · 5ae49c0 · 2026-09-06 · suite 201/0/12
 
 ## API
 

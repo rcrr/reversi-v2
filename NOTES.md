@@ -202,7 +202,7 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   run only with LONG=1; 3 DB-gated under the gate — 2/0/3 gated;
   the 15-level END-TO-END chain + the full saved-model round-trip)
   — all GREEN.
-  Totals: 631 tests, 87 skipped under the gate (17
+  Totals: 672 tests, 87 skipped under the gate (17
   PERF=1 print-only performance tests + 35 DB-gated regab tests +
   2 DB-gated lm_worker_positions tests + 2 DB-gated
   lm_worker_features tests + 2 DB-gated lm_worker_indexes tests +
@@ -213,7 +213,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   + 3 DB-gated lm_worker_vld_positions tests — D-100 T5 + 3
   DB-gated lm_worker_validate tests — D-102 T5 + 4 DB-gated
   lm_worker_analytics tests — D-103 T5 + 2 DB-gated
-  test_lm_worker_full_chain A2030 tests — D-104 T5; the A2050
+  test_lm_worker_full_chain A2030 tests — D-104 T5 + 8 board.py
+  M-sweep pins — D-111; the A2050
   full-chain test is LONG-gated; no
   performance gates in any suite, D-036). Warm run ≈ 0.5 s
   (board) / ≈ 2.6 s (gated full discover) / ≈ 45 s (live full
@@ -236,6 +237,13 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   file, schema validation: 68-name API table, 12 pinned
   invariants, M1-M7 re-verified against source — the verbatim
   session-1 review now in notes/analyses/board_session1_review.md).
+  M-sweep D-111 (2026-09-06, Roberto: "una alla volta"): all 7
+  minors M1-M7 fixed, 7 commits — M1 identity = copy at both
+  layers, M2 __square_max_value__, M3 plain-list D8 tables,
+  M4 no fastmath (A/B benched), M5 the real gap was the missing
+  1-D guard (the "stricter" claim was empirically false), M6 14
+  typos, M7 overloads verified resolvable in JIT + 2 new JIT
+  tests; board.md Open issues = None.; test_board 193 → 201.
 - test_board.py: analyzed 2026-08-25 (session 2,
   docs/src/twolm/test/test_board.md): coverage by area, values
   re-derived independently, 11 defects, completeness verdict +
@@ -1665,6 +1673,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 
 ## Next steps
 
+- Done (2026-09-06): board.py M-sweep (D-111) — all 7 open minors
+  M1-M7 fixed, 7 commits (identity copy, __square_max_value__,
+  plain-list D8 tables, no fastmath, legal_moves 1-D guard, 14
+  docstring typos, JIT-overload tests); board.md Open issues =
+  None.; test_board 193 → 201, full gated 664 → 672.
 - Parked (no action planned): test_pattern T18 noted-only (np.uint8
   3**n_squares overflow — external expressions must cast to int);
   test_pattern M1 (stale PatternSet Raises docstring) — awaiting
@@ -2193,9 +2206,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 
 - docs/src/twolm/board.md — board.py mirror (MIGRATED at D-106
   step 4, schema validation: 4-line header, 68-name API table,
-  Architecture, 12 pinned invariants, M1-M7, Conventions,
-  Integration; the verbatim session-1 review in
-  notes/analyses/board_session1_review.md)
+  Architecture, pinned invariants, Conventions, Integration; the
+  verbatim session-1 review in
+  notes/analyses/board_session1_review.md; then D-111 2026-09-06:
+  all 7 open minors M1-M7 fixed — Open issues now None., suite
+  201/0/12)
 - docs/src/twolm/pattern.md — pattern.py mirror (MIGRATED at D-106
   step 5: 4-line header, 6-name API table, Architecture, 13 pinned
   invariants, M1, Conventions, Integration; the verbatim session-4
