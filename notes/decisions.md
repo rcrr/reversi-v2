@@ -4155,3 +4155,35 @@ D-115 | 2026-09-06 | Separated the active rules from the historical log
         files" section). One-shot migration: the 114 D-entries
         audited, ~30 active rules extracted into rules.md; no
         source touched; full gated suite re-run GREEN.
+
+D-116 | 2026-09-06 | Fixed the corrupted markdown table rows —
+        the Obsidian rendering break at the Inventory's
+        logistic_model.py entry (Roberto: "alla entry
+        src/twolm/logistic_model.py succede qualcosa di
+        sbagliato... da li in avanti la formattazione
+        sparisce") + the unescaped pipes in the two mirror-doc
+        tables found by the same sweep.
+        | A markdown table requires one physical line per row:
+        the logistic_model.py Inventory row was physically
+        split across 8 lines (a wrap dating from the D-106-era
+        notes wave, inherited by the D-115 trim verbatim), so
+        Obsidian parsed the table only up to that point and
+        lost the formatting from there on. Also, several rows
+        carried literal unescaped "|" characters inside the
+        Status cell (acting as phantom column separators):
+        NOTES.md rlm_analytics ("Dict[str, float | int]",
+        "TRAINING | TRAINING-DENSE | VALIDATION") and
+        rlm_client ("max |Δy| 31.56"); mirror docs pattern.md
+        ("n_instances = |Orb|", "8/|Orb|") and
+        test_state_machine.md (the quoted CSV header "TIMESTAMP
+        (UTC) | STEP | WORKER | RELEVANCE | MESSAGE"). Fix: the
+        split row rejoined onto one line; every in-cell pipe
+        escaped as \| (the standard markdown table-cell
+        escape); the Obsidian alignment reformat it had written
+        into the working tree dropped (a single hunk inside the
+        table region — no content edits by the user). The
+        lesson was PROMOTED into rules.md (table cells: one
+        physical line per row; in-cell | escaped \|).
+        Verification: every table in NOTES.md + all 38 docs/
+        now uniform row-by-row (consistent cell-pipe counts);
+        zero source touched.

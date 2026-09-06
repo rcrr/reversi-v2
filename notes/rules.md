@@ -34,7 +34,8 @@ theme, with its origin D-number.
   (journal volumes), T-NN (test defect), R# (code issue),
   M# (minor note). Inventory: one row per tracked source and
   test file, the Status ENDS with the current suite state of
-  that file. Where we are: one bullet per file, present tense
+  that file. Table cells: one physical line per row; a literal
+  `|` inside a cell is escaped `\|` (D-116). Where we are: one bullet per file, present tense
   only — status, open/parked items, suite, D-pointers; no
   session narrative (that lives in the journal volumes + the
   decision log); a bullet shrinks back to 1–2 lines when its
