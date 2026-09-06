@@ -7,7 +7,9 @@ time and developed here. A full-repo restructure is planned later — do not
 propose repo-wide reorganization now.
 
 ## Standing rules
-1. Before working: read NOTES.md (state, next steps, index).
+1. Before working: read NOTES.md (state, next steps, index);
+   when a standing rule is in question, consult notes/rules.md
+   (the active legislation).
 2. Notes are autonomous: after each milestone and at the end of a work
    session, update NOTES.md and the relevant notes/ files without being asked.
 3. Source files (*.py and any code): modify ONLY on explicit user request.
@@ -16,8 +18,14 @@ propose repo-wide reorganization now.
 5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule,
    D-007): architecture, verified invariants, issues, conventions (format
    rules: notes/docs_rules.md).
-6. Every decision (including "leave as-is for now") goes to notes/decisions.md
-   with date and rationale. Session summary goes to the current session-journal volume (notes/log_NNN.md; format rules: notes/log_rules.md).
+6. Every decision (including "leave as-is for now") goes to
+   notes/decisions.md (the historical log) with date and rationale.
+   A rule that must outlive the campaign is promoted to
+   notes/rules.md (the active legislation) with its D-number, in
+   the same commit; a retirement removes the line and is logged
+   with a new D-number. Session summary goes to the current
+   session-journal volume (notes/log_NNN.md; format rules:
+   notes/log_rules.md).
 7. The verification apparatus lives in probes/ (tracked; the hub probe
    verify_logistic_model.py owns the pipeline-wide state); scratch/ is a
    disposable, gitignored session area — nothing permanent there
@@ -42,6 +50,9 @@ read row 1 on top, column a on the left.
   src/twolm/board.py, unit tests in src/twolm/test/
 - docs/ — code documentation, mirrors src/ (D-007); docs/src/twolm/board.md
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
-- notes/ — collaboration only: decisions.md · ideas.md · log_rules.md · docs_rules.md · probe_rules.md + log_000.md, log_001.md, ... (session journal, rotating volumes)
+- notes/ — collaboration only: rules.md (active legislation) ·
+  decisions.md (historical log) · ideas.md · log_rules.md ·
+  docs_rules.md · probe_rules.md · naming.md + log_000.md,
+  log_001.md, ... (session journal, rotating volumes)
 - scratch/ — disposable session area, gitignored, never tracked
 - logistello-papers/ — user's reference papers (read-only)

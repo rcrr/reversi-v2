@@ -1,6 +1,17 @@
-# Decisions log
+# Decisions log — historical record
 
 Format: D-NNN | date | decision | rationale
+
+This is the append-only HISTORICAL LOG: the "why" of every action
+and commit in this workspace. It grows without bound and is
+consulted only when needed or for historical research. The rules
+in force right now live in notes/rules.md (the active
+legislation): when a decision establishes an enduring rule, the
+rule is promoted there with this D-number as the origin pointer
+(same commit); a retirement removes the line from rules.md and
+is logged here with a new D-number. D-numbers are sequential and
+never reused or renumbered (the docs' State lines and the
+cross-references depend on them).
 
 D-001 | 2026-08-25 | Incremental staging workflow: copy one source file at a
        time into this workspace and develop here; no full-repo work now.
@@ -4109,3 +4120,38 @@ D-114 | 2026-09-06 | Open-issues section normalization across all
        impact. The cross-doc audit found no remaining OPEN
        R/M/T items anywhere: the only non-"None." Open-issues
        section in the whole docs/ tree is the deferred R1. |
+
+D-115 | 2026-09-06 | Separated the active rules from the historical log
+        (Roberto: "dobbiamo assolutamente dividere i LOG
+        storici, incidentali, dalle REGOLE ATTIVE. ... mantenere
+        'snello il corpo legislativo', le regole, che possono
+        essere lette e consultate sempre velocemente, da un LOG
+        di decisioni/azioni che crescerà sempre, e va consultato
+        solo in caso di reale necessità e ricerca storica"):
+        notes/rules.md CREATED as the register of the active
+        legislation — one rule per line or two, grouped by theme
+        (roles of the notes files, language & collaboration,
+        layout & tree, naming & platform, test discipline,
+        pipeline contracts, docs, journal), each with its origin
+        D-number, ~150-line budget, lifecycle RECORD (every
+        decision → decisions.md) / PROMOTE (enduring rule →
+        rules.md, same commit) / RETIRE (removal logged with a
+        new D-number). decisions.md is now the pure historical
+        log: append-only, all 114 D-entries kept, header
+        rewritten with the role + the promote/retire protocol.
+        AGENTS.md updated: rule 1 (consult notes/rules.md when a
+        standing rule is in question), rule 6 (RECORD/PROMOTE/
+        RETIRE wording), Layout (rules.md + the historical-log
+        role). NOTES.md re-scoped to the STATE layer: the
+        Where-we-are bullets reduced from the 1460-line
+        campaign chronicles to state-only bullets (2–4 lines
+        each, present tense, status + open/parked items + suite
+        + D-pointers; a bullet shrinks back to 1–2 lines when
+        its module's work closes); the 32 "Done (date)" bullets
+        dropped from Next steps (their content lives in the
+        decision log and the journal volumes — the D-pointers
+        carry it); the rigid format rules moved from the
+        NOTES.md header into rules.md (the "roles of the notes
+        files" section). One-shot migration: the 114 D-entries
+        audited, ~30 active rules extracted into rules.md; no
+        source touched; full gated suite re-run GREEN.
