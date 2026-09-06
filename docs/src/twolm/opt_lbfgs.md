@@ -62,10 +62,7 @@ suite is the verification apparatus).
 
 ## Open issues
 
-None. (Known open coverage, low/medium priority, frozen at
-D-053: the min_grad / min_p_fun_decrease stopping branches, the
-restart branch, the curvature skip, the Hermite + line-search
-internals — covered via integration only.)
+None.
 
 ## Conventions
 

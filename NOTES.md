@@ -1683,6 +1683,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 
 ## Next steps
 
+- Done (2026-09-06): cross-doc Open-issues normalization (D-114) —
+  the 5 narrative "None. (...)" sections (base_model, feature,
+  lm_worker_features, opt_lbfgs, regab) reduced to the bare
+  "None." per docs_rules.md §4; the single Deferred item
+  (lm_worker_config R1) stays. All 38 module docs now report
+  either "None." or the deferred R1 only.
 - Done (2026-09-06): pattern.py M-sweep (D-112) — M1
   PatternSet __repr__ added + pinned (65/0/3); logistic_model.py
   M-sweep (D-113) — M1 the stale "Remove comments" line dropped

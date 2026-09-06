@@ -4090,3 +4090,22 @@ D-113 | 2026-09-06 | logistic_model.py OPEN M1 fix: the stale
        change: zero behaviour, suite unchanged 17/0/0, the
        21-check probe still GREEN. logistic_model.md Open issues =
        None. |
+
+D-114 | 2026-09-06 | Open-issues section normalization across all
+       38 module docs (Roberto: "dove non ci sono OPEN ISSUES,
+       scrivi semplicemente None. ... c'è un commento che trovo
+       dispersivo, rimuovilo"). Five docs carried narrative
+       parentheses after the "None." (base_model, feature,
+       lm_worker_features, opt_lbfgs, regab — e.g. the opt_lbfgs
+       "known open coverage, frozen at D-053" remark). Now all
+       five are the bare "None.", per docs_rules.md §4 which
+       already prescribed exactly this: "OPEN R/M/T items only,
+       with their pointers. If none: one line, None. Closed items
+       never appear." The removed narratives remain traceable in
+       decisions.md / the journals / the analyses archive. The
+       single Deferred item (lm_worker_config R1, the D-078
+       ruling) stays in place per Roberto ("quello lascialo per
+       ora"). | Doc-only change, no source touched, no suite
+       impact. The cross-doc audit found no remaining OPEN
+       R/M/T items anywhere: the only non-"None." Open-issues
+       section in the whole docs/ tree is the deferred R1. |

@@ -85,8 +85,7 @@ module suite.
 
 ## Open issues
 
-None. (The T1-T7 fix batch was applied at D-052, 2026-08-29 — the
-campaign narrative froze in the archive.)
+None.
 
 ## Conventions
 

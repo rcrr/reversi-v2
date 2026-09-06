@@ -96,9 +96,7 @@ the 3-test `test_lm_worker_features.py`.
 
 ## Open issues
 
-None. (The I-012 idea — moving the FEATURES level before
-POSITIONS — lives in notes/ideas.md; the setUp comment stays as-is
-per Roberto's call.)
+None.
 
 ## Conventions
 

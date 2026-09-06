@@ -80,10 +80,7 @@ Pinned by `test_feature.py` (19 tests + 1 PERF, no DB):
 
 ## Open issues
 
-None. (The OPEN R1 of the step-10 re-read — the unused
-`BeforeValidator` import, dead since b51bea6, the dtype check
-riding on the imported `IndexArray` alias — was FIXED at D-110:
-the import line now carries only `validate_call, ConfigDict`.)
+None.
 
 ## Conventions
 

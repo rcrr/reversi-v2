@@ -60,8 +60,7 @@ suite (17 tests) through the LogisticModel subclass. The pre-step-3
 
 ## Open issues
 
-None. (R1 resolved at D-074; M1 fixed at D-075; M2 informational by
-design — the campaign narrative froze in the archive.)
+None.
 
 ## Conventions
 
