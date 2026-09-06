@@ -741,9 +741,13 @@ def _numba_fvert_array_impl(arr):
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
-    Returns the bitboard, or the array of bitboards, as it is (rotated by zero degree).
+    Returns the bitboard, or the array of bitboards, unchanged
+    (rotated by zero degree).
     Conceptually it applies a rotation of zero degrees.
-    It is the identity transformation.
+    It is the identity transformation: like the other seven D8
+    functions, the result is a fresh copy of the input (no aliasing),
+    so the identity contract is the same at the bitboard and the
+    position layers (position_ro000).
         
     .    ---- input ----    ---- output ---
     .
@@ -759,7 +763,9 @@ def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 8  . 1 . . . 1 . .    . 1 . . . 1 . .
     
     """
-    return bb
+    if isinstance(bb, np.ndarray):
+        return bb.copy()
+    return Bitboard(bb)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_ro090(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:

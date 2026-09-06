@@ -39,7 +39,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | D8 | `bitboard_transformations(bb) -> BitboardArray` | all 8: scalar → (8,), (N,) → (N,8); fixed slot order (D-014): ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8 |
 | D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090) |
 | D8 | `bitboard_fa1h8` / `fh1a8` / `fhori` / `fvert` | the 4 reflections; dual scalar/array; each has a numba `@overload` for JIT contexts |
-| D8 | `bitboard_ro000(bb)` | the identity — returns its input as-is (Open M1) |
+| D8 | `bitboard_ro000(bb)` | the identity — a fresh copy of the input (D-111 M1: no aliasing, the same contract as the other 7 D8 functions and `position_ro000`) |
 | D8 | `bitboard_ro090` / `ro180` / `ro270 (bb)` | the rotations (clockwise), composed from the reflections |
 | D8 | `bitboard_trans_fs` | the 8 transform functions, as an `np.array` of callables (Open M3) |
 | D8 | `bitboard_anti_trans_fs` | the 8 inverse functions, same form |
@@ -119,7 +119,9 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 - D8 group law: ro000 identity, ro090² = ro180, ro090∘ro270 = id,
   the 4 reflections involutive, anti-transform inverts transform —
-  `test_board::TestBitboardD8GroupLaw` (+ `TestBitboardTransformationFa1h8Comp`).
+  `test_board::TestBitboardD8GroupLaw` (+ `TestBitboardTransformationFa1h8Comp`);
+  the identity copy (no aliasing) at
+  `TestBitboardD8GroupLaw::test_ro000_array_is_a_fresh_copy`.
 - All 8 bitboard transforms vs hand-computed scalar goldens and
   (N,8) vectorized outputs — per-transform
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
@@ -156,9 +158,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M1 — `bitboard_ro000` returns its input as-is (aliasing),
-  `position_ro000` returns a copy: the identity contract is
-  inconsistent across the two layers.
 - M2 — `square_validate_range` hardcodes 64; `move_validate_range`
   uses the `__move_max_value__` constant.
 - M3 — `bitboard_trans_fs`, `bitboard_anti_trans_fs` and the two

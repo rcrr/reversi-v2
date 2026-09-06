@@ -894,6 +894,18 @@ class TestBitboardD8GroupLaw(unittest.TestCase):
         for bb in self._boards():
             self.assertEqual(bitboard_ro000(bb), bb)
 
+    def test_ro000_array_is_a_fresh_copy(self):
+        # D-111 M1: the identity is a copy, not an alias — the same
+        # contract as the other 7 D8 functions and as position_ro000.
+        arr = np.array([Bitboard(0x1234567890ABCDEF),
+                        Bitboard(0x8000000000000003)], dtype=Bitboard)
+        out = bitboard_ro000(arr)
+        self.assertIsInstance(out, np.ndarray)
+        self.assertFalse(np.shares_memory(out, arr))
+        np.testing.assert_array_equal(out, arr)
+        out[0] = Bitboard(0)
+        self.assertEqual(arr[0], Bitboard(0x1234567890ABCDEF))
+
     def test_ro090_twice_equals_ro180(self):
         for bb in self._boards():
             self.assertEqual(bitboard_ro090(bitboard_ro090(bb)), bitboard_ro180(bb))
