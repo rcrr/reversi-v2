@@ -880,6 +880,36 @@ class TestBitboardAntiTransformations(unittest.TestCase):
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
         np.testing.assert_array_equal(computed_vector, expected_vector)
 
+class TestD8FunctionTables(unittest.TestCase):
+    """
+    D-111 M3: the 4 D8 function/label tables are plain Python lists
+    (not np.object arrays), with the canonized D8 slot order
+    (notes/naming.md, D-014).
+    """
+
+    def test_tables_are_plain_lists_of_8(self):
+        for table in (bitboard_trans_fs, bitboard_anti_trans_fs,
+                      bitboard_transformation_labels,
+                      bitboard_anti_transformation_labels):
+            self.assertIsInstance(table, list)
+            self.assertEqual(len(table), 8)
+
+    def test_slot_order_is_canonized(self):
+        self.assertEqual(bitboard_transformation_labels,
+                         ['ro000', 'ro090', 'ro180', 'ro270',
+                          'fvert', 'fh1a8', 'fhori', 'fa1h8'])
+        # The anti tables swap slots 1 and 3 only.
+        self.assertEqual(bitboard_anti_transformation_labels,
+                         ['ro000', 'ro270', 'ro180', 'ro090',
+                          'fvert', 'fh1a8', 'fhori', 'fa1h8'])
+
+    def test_function_slots_match_the_labels(self):
+        for i in range(8):
+            self.assertEqual(bitboard_trans_fs[i].__name__,
+                             'bitboard_' + bitboard_transformation_labels[i])
+            self.assertEqual(bitboard_anti_trans_fs[i].__name__,
+                             'bitboard_' + bitboard_anti_transformation_labels[i])
+
 class TestBitboardD8GroupLaw(unittest.TestCase):
     
     def _boards(self):

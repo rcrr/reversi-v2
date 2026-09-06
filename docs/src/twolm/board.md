@@ -41,7 +41,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | D8 | `bitboard_fa1h8` / `fh1a8` / `fhori` / `fvert` | the 4 reflections; dual scalar/array; each has a numba `@overload` for JIT contexts |
 | D8 | `bitboard_ro000(bb)` | the identity — a fresh copy of the input (D-111 M1: no aliasing, the same contract as the other 7 D8 functions and `position_ro000`) |
 | D8 | `bitboard_ro090` / `ro180` / `ro270 (bb)` | the rotations (clockwise), composed from the reflections |
-| D8 | `bitboard_trans_fs` | the 8 transform functions, as an `np.array` of callables (Open M3) |
+| D8 | `bitboard_trans_fs` | the 8 transform functions, as a plain list (D-111 M3) |
 | D8 | `bitboard_anti_trans_fs` | the 8 inverse functions, same form |
 | D8 | `bitboard_transformation_labels` | the 8 slot labels, `np.array` of str |
 | D8 | `bitboard_anti_transformation_labels` | the 8 anti slot labels |
@@ -158,9 +158,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M3 — `bitboard_trans_fs`, `bitboard_anti_trans_fs` and the two
-  label tables are `np.array` of objects; plain lists would be more
-  idiomatic.
 - M4 — numba decoration inconsistent: `fastmath=True` on the D8
   transform kernels (meaningless for integer ops), absent on
   `_vectorized_legal_moves`.
