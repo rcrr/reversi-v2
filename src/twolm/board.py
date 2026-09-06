@@ -223,11 +223,11 @@ def square_as_bitboard(sq: Square) -> Bitboard:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def square_validate_range(sq: Square | SquareArray) -> None:
     if not isinstance(sq, np.ndarray):
-        if not sq < 64:
-            raise ValueError(f"Value must be in the range [0..63].")
+        if not sq < __square_max_value__:
+            raise ValueError(f"Value must be in the range [0..{__square_max_value__ - 1}].")
     else:
-        if (sq >= 64).any():
-            raise ValueError("All values in the array must be in the range [0..63].")
+        if (sq >= __square_max_value__).any():
+            raise ValueError(f"All values in the array must be in the range [0..{__square_max_value__ - 1}].")
     return
 
 

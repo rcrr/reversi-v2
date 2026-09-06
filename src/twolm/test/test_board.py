@@ -154,16 +154,21 @@ class TestSquare(unittest.TestCase):
             sq = Square(i)
             square_validate_range(sq)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as cm:
             sq = Square(64)
             square_validate_range(sq)
+        # D-111 M2: the message is built from the __square_max_value__
+        # constant (mirrors move_validate_range).
+        self.assertEqual(str(cm.exception), "Value must be in the range [0..63].")
 
         squares = np.array([0, 1, 2], dtype=Square)
         square_validate_range(squares)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as cm:
             squares = np.array([0, 1, 64], dtype=Square)
             square_validate_range(squares)
+        self.assertEqual(str(cm.exception),
+                         "All values in the array must be in the range [0..63].")
 
 class TestMove(unittest.TestCase):
 

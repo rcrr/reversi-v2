@@ -158,8 +158,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M2 — `square_validate_range` hardcodes 64; `move_validate_range`
-  uses the `__move_max_value__` constant.
 - M3 — `bitboard_trans_fs`, `bitboard_anti_trans_fs` and the two
   label tables are `np.array` of objects; plain lists would be more
   idiomatic.
