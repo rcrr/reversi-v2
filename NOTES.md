@@ -202,7 +202,7 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   run only with LONG=1; 3 DB-gated under the gate — 2/0/3 gated;
   the 15-level END-TO-END chain + the full saved-model round-trip)
   — all GREEN.
-  Totals: 672 tests, 87 skipped under the gate (17
+  Totals: 673 tests, 87 skipped under the gate (17
   PERF=1 print-only performance tests + 35 DB-gated regab tests +
   2 DB-gated lm_worker_positions tests + 2 DB-gated
   lm_worker_features tests + 2 DB-gated lm_worker_indexes tests +
@@ -214,7 +214,8 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   DB-gated lm_worker_validate tests — D-102 T5 + 4 DB-gated
   lm_worker_analytics tests — D-103 T5 + 2 DB-gated
   test_lm_worker_full_chain A2030 tests — D-104 T5 + 8 board.py
-  M-sweep pins — D-111; the A2050
+  M-sweep pins — D-111 + 1 PatternSet __repr__ pin — D-112; the
+  A2050
   full-chain test is LONG-gated; no
   performance gates in any suite, D-036). Warm run ≈ 0.5 s
   (board) / ≈ 2.6 s (gated full discover) / ≈ 45 s (live full
@@ -280,7 +281,12 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   D-106 step 5 (schema validation file #2: 6-name API table, 13
   pinned invariants, the 3 unmarked minor items verified closed in
   source, M1 = PatternSet __repr__ — the verbatim session-4 review
-  in notes/analyses/pattern_session4_review.md).
+  in notes/analyses/pattern_session4_review.md). D-112
+  (2026-09-06): M1 PatternSet __repr__ added (name + the sha3_256
+  set hash + the patterns in mask-sorted order via
+  Pattern.__repr__; the golden pinned in
+  TestPatternSet::test_repr) — pattern.md Open issues now None.;
+  test_pattern 64 → 65.
 - test_pattern.py: analyzed 2026-08-27 (session 8,
   docs/src/twolm/test/test_pattern.md): 12 classes / 50 tests / 3
   PERF; 21/21 goldens independently re-derived (0 mismatches); 16
@@ -694,7 +700,11 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   17); logistic_model.md MIGRATED at D-106 step 6 (2-name API
   table, 13 pinned invariants, M1 the stale 'Remove comments' line
   — the verbatim session-21 review in
-  notes/analyses/logistic_model_session21_review.md).
+  notes/analyses/logistic_model_session21_review.md). D-113
+  (2026-09-06): M1 the stale "Remove comments when modules are
+  added." line dropped (the pipeline is 15/15 complete — nothing
+  left to uncomment) — logistic_model.md Open issues now None.;
+  comment-only, suite unchanged 17/0/0.
 - test_logistic_model.py: analyzed 2026-08-30 (session 21,
   docs/src/twolm/test/test_logistic_model.md) — 1 class / 7
   methods (5 active + 2 muted with a `_` prefix per Roberto —
@@ -1673,6 +1683,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
 
 ## Next steps
 
+- Done (2026-09-06): pattern.py M-sweep (D-112) — M1
+  PatternSet __repr__ added + pinned (65/0/3); logistic_model.py
+  M-sweep (D-113) — M1 the stale "Remove comments" line dropped
+  (17/0/0); both docs' Open issues now None.
 - Done (2026-09-06): board.py M-sweep (D-111) — all 7 open minors
   M1-M7 fixed, 7 commits (identity copy, __square_max_value__,
   plain-list D8 tables, no fastmath, legal_moves 1-D guard, 14
@@ -2213,8 +2227,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   201/0/12)
 - docs/src/twolm/pattern.md — pattern.py mirror (MIGRATED at D-106
   step 5: 4-line header, 6-name API table, Architecture, 13 pinned
-  invariants, M1, Conventions, Integration; the verbatim session-4
-  review in notes/analyses/pattern_session4_review.md)
+  invariants, Conventions, Integration; the verbatim session-4
+  review in notes/analyses/pattern_session4_review.md; then D-112
+  2026-09-06: the PatternSet __repr__ row + pin, Open issues now
+  None., suite 65/0/3)
 - docs/src/twolm/test/test_board.md — test_board.py mirror
   (MIGRATED at D-106 step 28, the FINAL batch: schema §6 — the
   5-area Coverage table rebuilt from the post-T-campaign 2377-line /
@@ -2317,9 +2333,10 @@ train_dense_metrics (L156), 39 → 40 fields; suite 15/0/0 GREEN
   (MIGRATED at D-106 step 6: 2-name API table, the 4-step
   construction + the 40-field blackboard + the 15/15 complete
   pipeline in Architecture, 13 pinned invariants (the 21-check
-  probe + the 17-test suite), M1 the stale 'Remove comments' line;
-  the verbatim session-21 review in
-  notes/analyses/logistic_model_session21_review.md)
+  probe + the 17-test suite); the verbatim session-21 review in
+  notes/analyses/logistic_model_session21_review.md; then D-113
+  2026-09-06: the stale 'Remove comments' line dropped, Open
+  issues now None.)
 - docs/src/twolm/test/test_logistic_model.md — test_logistic_model.
   py mirror (MIGRATED at D-106 step 28, the FINAL batch: schema §6 —
   the 1 class / 17 tests incl. the 2 step-3 probe conversions (D1 /

@@ -7,7 +7,7 @@ and the principal configuration index under the induced symmetries.
 PatternSet computes all principal indexes for N positions in one
 fused Numba pipeline; PatternType is the closed table of shapes. No
 search, no PDB storage, no disk I/O except the CSV writer.
-> State: D-032 · 167e182 · 2026-08-28 · suite 64/0/3
+> State: D-112 · 66c3588 · 2026-09-06 · suite 65/0/3
 
 ## API
 

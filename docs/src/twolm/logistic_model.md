@@ -6,7 +6,7 @@ assemble the 15-level worker list, hand the parts to BaseModel →
 StateMachine) — plus the RLMContext @dataclass: config state, every
 data artifact produced by the 15 levels, the 8 checksum fields, and
 the 3 infrastructure callables the machine injects at construction.
-> State: D-105 · 8cdf20b · 2026-09-03 · suite 17/0/0
+> State: D-113 · 0fd93bd · 2026-09-06 · suite 17/0/0
 
 ## API
 

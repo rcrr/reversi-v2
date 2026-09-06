@@ -4063,3 +4063,30 @@ D-111 | 2026-09-06 | board.py OPEN M1-M7 fix campaign: all 7 open
        fastmath vs 28.2/27.5M without — equal or faster), ro000
        copy 191M b/s (not a hot kernel), M2/M5/M6/M7 have no hot-
        path surface. |
+
+D-112 | 2026-09-06 | pattern.py OPEN M1 fix: PatternSet.__repr__
+       added (the follow-up noted during the minor sweep; Pattern
+       already had one). The house one-line style, mirroring
+       Pattern.__repr__: name (repr-quoted), the sha3_256 set hash,
+       the patterns in the mask-sorted order via their own
+       Pattern.__repr__ (the list display delegates per element).
+       New pin: TestPatternSet::test_repr (the full golden line for
+       the 3-pattern SamplePatternSet). | House rules 3/5 (explicit
+       request — "il medesimo lavoro per pattern e
+       logistic_model"); mirror rule. pattern.md: API-table row +
+       the TestPatternSet invariants bullet extended, Open issues =
+       None. Suite 64 → 65 (full gated 672 → 673). No perf surface
+       (__repr__ is a display-only cold path; the fused kernels
+       and the pack/unpack hot paths are untouched).
+
+D-113 | 2026-09-06 | logistic_model.py OPEN M1 fix: the stale
+       comment "# Remove comments when modules are added." above
+       the factory imports removed. It is a leftover of the
+       line-by-line pipeline build (D-076 → D-104 era); the
+       pipeline is 15/15 complete with 0 commented imports, so
+       there is nothing left to uncomment — the line is dead and
+       misleading. The accurate "# Import worker factories"
+       section label stays. | Same ruling as D-112. Comment-only
+       change: zero behaviour, suite unchanged 17/0/0, the
+       21-check probe still GREEN. logistic_model.md Open issues =
+       None. |
