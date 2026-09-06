@@ -8,11 +8,10 @@ bullet. Consult it before editing.
 
 ## Project
 
-File-by-file modernization of Roberto Corradini's Reversi engine
-(18-year-old repo). This workspace is a staging area: only files
-under active work live here. Full-repo restructure: planned, not
-now (I-001; see notes/decisions.md).
-
+This workspace is dedicated to the research and development of
+evaluation functions for Reversi positions. The methods employed
+focus on machine learning techniques that leverage solved
+positions generated from random gameplay paths.
 
 ## Conventions in the code (respect them in any new work)
 

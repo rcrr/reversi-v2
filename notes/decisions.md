@@ -65,3 +65,22 @@ D-118 | 2026-09-06 | Rotated the decision log into volumes: the
         rules.md (the Roles section) in the same commit. The
         next rotation happens at a session boundary, like the
         journal volumes.
+
+D-119 | 2026-09-06 | The Project section of notes/overview.md was
+        rewritten with Roberto's new identity statement,
+        replacing the "file-by-file modernization" text (the
+        D-115-era wording).
+        | The port campaign is complete (the pipeline is 15/15,
+        D-104/D-113): the workspace's identity has moved from
+        "a modernization in progress" to what it actually does
+        now — the research and development of evaluation
+        functions for Reversi positions, machine-learning
+        methods over the solved positions generated from random
+        gameplay paths (the 15-level pipeline). Nothing the old
+        text carried is lost: the staging constraint ("only
+        files under active work live here") lives in AGENTS.md
+        (auto-injected, stronger form), and the I-001
+        full-repo-restructure pointer lives in notes/ideas.md
+        (referenced from the Next steps). The Project section
+        stays a pure identity statement; the current phase
+        stays in Where we are.
