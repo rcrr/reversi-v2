@@ -160,9 +160,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M6 — docstring typos still in the file: "Aplays" ×4, "arry" ×4,
-  "lenght" ×4, "lovercase", "does't", "whould", "Chanpionship" (the
-  WOFC citation; the original reads "Championship").
 - M7 — the `@overload` of the 4 reflection primitives is registered
   on the `@validate_call` wrappers; no test exercises the overloads
   in a numba (JIT) context.

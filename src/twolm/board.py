@@ -332,7 +332,7 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
     """
     Returns a new Bitboard object from the hexadecimal string given as argument.
     The h string must be 16 character long having values in the range [0..F].
-    Characters could be uppercase or lovercase.
+    Characters could be uppercase or lowercase.
     Note that the argument string is not prefixed with '0x'.
     Works on scalar and 1D array inputs.
     """
@@ -408,7 +408,7 @@ def bitboard_print(bb: Bitboard, output: Union[IO, io.StringIO] = sys.stdout) ->
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
-    Applays the eight D8 transformations on the input bitboards.
+    Applies the eight D8 transformations on the input bitboards.
     
      - 0 -> 0 : ro000
      - 0 -> 1 : ro090
@@ -419,8 +419,8 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
      - 0 -> 6 : fhori
      - 0 -> 7 : fa1h8
 
-    When input is a scalar Bitboard output is an arry of Bitboards having shape (8,).
-    When input is an array of Bitboards of lenght N, the output has shape (N, 8).
+    When input is a scalar Bitboard output is an array of Bitboards having shape (8,).
+    When input is an array of Bitboards of length N, the output has shape (N, 8).
     """
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
@@ -464,7 +464,7 @@ def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
-    Applays the eight D8 anti-transformations on the input bitboards.
+    Applies the eight D8 anti-transformations on the input bitboards.
     
      - 0 -> 0 : ro000
      - 0 -> 1 : ro270
@@ -475,8 +475,8 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
      - 0 -> 6 : fhori
      - 0 -> 7 : fa1h8
 
-    When input is a scalar Bitboard output is an arry of Bitboards having shape (8,).
-    When input is an array of Bitboards of lenght N, the output has shape (N, 8).
+    When input is a scalar Bitboard output is an array of Bitboards having shape (8,).
+    When input is an array of Bitboards of length N, the output has shape (N, 8).
     
     Applies the anti-transformations by reversing index 1 and 3 of bitboard_transformations.
     Operates in-place on the generated matrix for maximum efficiency.
@@ -1127,7 +1127,7 @@ def position_legal_moves_count(p: PositionField) -> int:
 #: make_move code starts here.
 #:
 #: make_move and flips functions are strictly scalar.
-#: If we whould need to develop a version vectorized for numpy arrays
+#: If we would need to develop a version vectorized for numpy arrays
 #: a few steps are required:
 #:  - transform _kogge_stone_mm as done for _kogge_stone_lms
 #:    split the loop on the 8 directions into two loops on 4 ...
@@ -1246,7 +1246,7 @@ def position_final_value(p: PositionField) -> int:
     assigning the empty squares to the player having most discs.
 
     From the web site of the World Othello Federation,
-    World Othello Chanpionship Rules, scoring:
+    World Othello Championship Rules, scoring:
     "At the end of the game, if both players have completed their moves in
     the allowed time, the winner is the player with the greater number of
     discs of his colour on the board at the end. The official score of the
@@ -1268,7 +1268,7 @@ def position_final_value(p: PositionField) -> int:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_has_to_pass(p: PositionField) -> bool:
     """
-    Returns true if the mover player does't have any legal move.
+    Returns true if the mover player doesn't have any legal move.
     """
     lmc = position_legal_moves_count(p)
     if lmc == 0:
@@ -1364,7 +1364,7 @@ def position_ro270(p: PositionField) -> PositionField:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
-    Applays the eight D8 transformations on the input game positions.
+    Applies the eight D8 transformations on the input game positions.
     
      - 0 -> 0 : ro000
      - 0 -> 1 : ro090
@@ -1375,8 +1375,8 @@ def position_transformations(p: PositionField | PositionArray) -> PositionArray:
      - 0 -> 6 : fhori
      - 0 -> 7 : fa1h8
 
-    When input is a scalar Position output is an arry of Positions having shape (8,).
-    When input is an array of Positions of lenght N, the output has shape (N, 8).
+    When input is a scalar Position output is an array of Positions having shape (8,).
+    When input is an array of Positions of length N, the output has shape (N, 8).
     """
     mtrs = bitboard_transformations(p['mover'])
     otrs = bitboard_transformations(p['opponent'])
@@ -1385,7 +1385,7 @@ def position_transformations(p: PositionField | PositionArray) -> PositionArray:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_anti_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
-    Applays the eight D8 anti-transformations on the input game positions.
+    Applies the eight D8 anti-transformations on the input game positions.
     
      - 0 -> 0 : ro000
      - 0 -> 1 : ro270
@@ -1396,8 +1396,8 @@ def position_anti_transformations(p: PositionField | PositionArray) -> PositionA
      - 0 -> 6 : fhori
      - 0 -> 7 : fa1h8
 
-    When input is a scalar Position output is an arry of Positions having shape (8,).
-    When input is an array of Positions of lenght N, the output has shape (N, 8).
+    When input is a scalar Position output is an array of Positions having shape (8,).
+    When input is an array of Positions of length N, the output has shape (N, 8).
     """
     mtrs = bitboard_anti_transformations(p['mover'])
     otrs = bitboard_anti_transformations(p['opponent'])
