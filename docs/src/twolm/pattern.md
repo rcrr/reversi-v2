@@ -26,6 +26,7 @@ search, no PDB storage, no disk I/O except the CSV writer.
 | Data | `sample_pattern_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
 | PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | strict; ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
+| PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` (D-112 M1) |
 | PatternSet | `print_summary(output)` / `print(output)` | text rendering |
 | PatternSet | `compute_principal_indexes(positions) -> IndexArray` | the fused Numba pipeline; (N,) PositionArray → (N, Σ n_instances); precondition: the positions are collision-free (the caller checks, e.g. `board.position_check_collisions`) |
 
@@ -153,8 +154,8 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   `test_pattern::TestPatternType`.
 - The PatternSet guards (empty list, duplicate names, duplicate
   masks, strict element types), the mask-sorted storage, the
-  `names`/`masks` properties and the sha3_256 hash —
-  `test_pattern::TestPatternSet`.
+  `names`/`masks` properties, the sha3_256 hash, and the `__repr__`
+  golden (D-112 M1) — `test_pattern::TestPatternSet`.
 - The MDP output: the `mdp_record` golden lines (ELLE, EDGE, SNAKE,
   CORE, DIAG8), the `mdp_csv_file` type errors, the written content
   and the empty-list case — `test_pattern::TestPatternMdpRecord`,
@@ -168,8 +169,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
 
 ## Open issues
 
-- M1 — `PatternSet` has no `__repr__` (a follow-up noted during the
-  minor sweep; `Pattern` has one).
+None.
 
 ## Conventions
 

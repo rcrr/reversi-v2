@@ -1105,6 +1105,13 @@ class PatternSet:
         
         self.name = name
 
+    def __repr__(self) -> str:
+        """
+        A concise one-line summary (name, the set hash, and the
+        patterns via their own __repr__) — D-112 M1.
+        """
+        return f"PatternSet(name={self.name!r}, hash={self.hash}, patterns={self.patterns})"
+
     @property
     def names(self) -> List[str]:
         """

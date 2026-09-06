@@ -1320,6 +1320,18 @@ class TestPatternSet(unittest.TestCase):
         self.assertEqual(self.pattern_set.patterns[1], self.pattern1)
         self.assertEqual(self.pattern_set.patterns[2], self.pattern2)
 
+    def test_repr(self):
+        """
+        D-112 M1: PatternSet has a __repr__ (name, the set hash, the
+        patterns in the mask-sorted order via Pattern.__repr__).
+        """
+        self.assertEqual(repr(self.pattern_set),
+             "PatternSet(name='SamplePatternSet', hash="
+             "5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b, "
+             "patterns=[Pattern(name='EDGE', mask=0x00000000000000ff), "
+             "Pattern(name='ELLE', mask=0x0000000000000107), "
+             "Pattern(name='SNAKE', mask=0x0000000c30000000)])")
+
     def test_init_invalid_type_arg_1_raises_validation_error(self):
         """
         Test that initializing with a non-string name raises a ValidationError.
