@@ -136,9 +136,7 @@ were converted to tests at D-106 step 3).
 
 ## Open issues
 
-- M1 — the stale comment "Remove comments when modules are added."
-  above the factory imports: the pipeline is complete (15/15, 0
-  commented imports), nothing is left to uncomment.
+None.
 
 ## Conventions
 

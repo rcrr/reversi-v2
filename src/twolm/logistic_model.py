@@ -36,7 +36,6 @@ from pydantic import ConfigDict, validate_call
 from twolm.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
 from twolm.base_model import BaseModel
 
-# Remove comments when modules are added.
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config
 from twolm.lm_worker_positions import lm_worker_positions
