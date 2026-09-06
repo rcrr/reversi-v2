@@ -131,7 +131,9 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - Legal-move correctness at all 4 boundaries × both senses, incl.
   runs broken by empty squares — `test_board::TestPositionLegalMoves`
   (corner c1/h8 + bulk hand-computed table),
-  `TestPositionLegalMovesCount`.
+  `TestPositionLegalMovesCount`; the 1-D guard (D-111 M5: 2-D →
+  ValueError) at `TestPositionLegalMoves::test_legal_moves_2d_{
+  mover,opponent}_raises_value_error`.
 - The flip set (runs up to 7, blocker past the run end, move square
   excluded) — `test_board::TestPositionFlips` (base + bulk),
   `TestPositionMakeMove` (incl. the PA swap and None on illegal).
@@ -158,9 +160,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-- M5 — `legal_moves` accepts only the uint64 scalar/ndarray (bare
-  Python int → ValidationError, no lists) — stricter than the rest
-  of the dual API.
 - M6 — docstring typos still in the file: "Aplays" ×4, "arry" ×4,
   "lenght" ×4, "lovercase", "does't", "whould", "Chanpionship" (the
   WOFC citation; the original reads "Championship").

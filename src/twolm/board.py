@@ -1074,19 +1074,32 @@ def legal_moves(mover: Bitboard | BitboardArray,
                 opponent: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Calculate Reversi legal moves for a single or multiple board configurations.
+
+    When input is a scalar Bitboard the output is a Bitboard.
+    When input is a 1-D array of Bitboards (both arguments, same
+    shape), the output is an array with shape (N,). Bare Python ints
+    and lists are rejected (Pydantic) as for the rest of the dual API.
     """
     # Check if inputs are scalars
     if isinstance(mover, Bitboard) and isinstance(opponent, Bitboard):
         # Wrap the scalar inputs into numpy arrays
         movers = np.array([mover], dtype=Bitboard)
         opponents = np.array([opponent], dtype=Bitboard)
-        
+
         # Call the vectorized function
         result = _vectorized_legal_moves(movers, opponents)
-        
+
         # Return the result as a scalar
         return result[0]
     elif isinstance(mover, np.ndarray) and isinstance(opponent, np.ndarray):
+        # D-111 M5: the standard 1-D guard (house pattern) — a 2-D
+        # array used to crash deep in the numba kernel with a
+        # TypingError instead of a clean ValueError.
+        if mover.ndim != 1:
+            raise ValueError(f"When the argument mover is an array, it must be 1D, got shape {mover.shape}")
+        if opponent.ndim != 1:
+            raise ValueError(f"When the argument opponent is an array, it must be 1D, got shape {opponent.shape}")
+
         # Ensure the arrays have the same shape
         if mover.shape != opponent.shape:
             raise ValueError("The shapes of mover and opponent arrays must be the same.")

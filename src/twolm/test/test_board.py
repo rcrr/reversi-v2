@@ -1769,6 +1769,24 @@ class TestPositionLegalMoves(unittest.TestCase):
             legal_moves(movers, opponents)
         self.assertEqual(str(ctx.exception), "The shapes of mover and opponent arrays must be the same.")
 
+    def test_legal_moves_2d_mover_raises_value_error(self):
+        # D-111 M5: the standard 1-D guard — before it, a 2-D array
+        # crashed deep in the numba kernel with a TypingError.
+        movers = np.array([[0x0000000000000001, 0x0000000000000002]], dtype=Bitboard)
+        opponents = np.array([[0x0040201008040200, 0x0080402010080402]], dtype=Bitboard)
+        with self.assertRaises(ValueError) as ctx:
+            legal_moves(movers, opponents)
+        self.assertEqual(str(ctx.exception),
+                         "When the argument mover is an array, it must be 1D, got shape (1, 2)")
+
+    def test_legal_moves_2d_opponent_raises_value_error(self):
+        movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=Bitboard)
+        opponents = np.array([[0x0040201008040200], [0x0080402010080402]], dtype=Bitboard)
+        with self.assertRaises(ValueError) as ctx:
+            legal_moves(movers, opponents)
+        self.assertEqual(str(ctx.exception),
+                         "When the argument opponent is an array, it must be 1D, got shape (2, 1)")
+
     def test_legal_moves_wrong_array_dtype_raises_validation_error(self):
 
         # A non-uint64 array is rejected by the BitboardArray
