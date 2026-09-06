@@ -23,27 +23,39 @@ theme, with its origin D-number.
 - AGENTS.md — the constitution: standing instructions,
   auto-injected, kept small.
 - notes/rules.md — this file: the active legislation.
-- NOTES.md — state, next steps, index: current state only
-  (entry point; read first; updated after each milestone and at
-  the end of each work session). Rigid format: exactly the
-  seven sections, in this order — Project · Inventory ·
-  Conventions in the code · Environment · Where we are · Next
-  steps · Index; English; dates YYYY-MM-DD; suite numbers
+- notes/overview.md — state, next steps, index: current state
+  only (entry point; read first; updated after each milestone
+  and at the end of each work session; D-117: renamed from
+  NOTES.md). Rigid format: exactly the eight sections, in this
+  order — Project · Conventions in the code · Environment ·
+  Where we are · Next steps · Source files · Test files ·
+  Index; English; dates YYYY-MM-DD; suite numbers
   `<total>/<failures>/<skipped>` (total = unittest's "Ran N");
   references D-NNN (decisions.md), I-NNN (ideas.md), session N
   (journal volumes), T-NN (test defect), R# (code issue),
-  M# (minor note). Inventory: one row per tracked source and
-  test file, the Status ENDS with the current suite state of
-  that file. Table cells: one physical line per row; a literal
-  `|` inside a cell is escaped `\|` (D-116). Where we are: one bullet per file, present tense
-  only — status, open/parked items, suite, D-pointers; no
-  session narrative (that lives in the journal volumes + the
-  decision log); a bullet shrinks back to 1–2 lines when its
-  module's work closes. Next steps: OPEN items only (no "Done"
-  bullets); the LAST bullet is the next concrete action.
-  Index: one bullet per doc/notes file, one-line description.
-- notes/decisions.md — the historical decision log (append-only;
-  "the why"; consulted on demand or for historical research).
+  M# (minor note). Source files / Test files: one table per
+  kind, one row per tracked file, alphabetical by full path;
+  the State cell is ONE line — a status word + the open/parked
+  items (if any) + the D-pointer range (the campaign history
+  lives in the decision log, never in the row; D-117); the
+  Suite cell carries the file's current verified suite (live
+  DB); the Doc cell the mirror path. Table cells: one physical
+  line per row; a literal `|` inside a cell is escaped `\|`
+  (D-116). Where we are: the non-file state only (the plan, the
+  collaboration memory) — the per-file state lives in the
+  tables (D-117); no session narrative (that lives in the
+  journal volumes + the decision log). Next steps: OPEN items
+  only (no "Done" bullets); the LAST bullet is the next
+  concrete action. Index: one bullet per notes/ file, one-line
+  description; the docs/ mirrors are NOT listed (their paths
+  are the Doc column of the tables).
+- notes/decisions.md — the OPEN historical decision log
+  (append-only; "the why"; consulted on demand or for
+  historical research). Volume rotation (D-118, same rhythm as
+  the journals): the open volume keeps this name; when it
+  exceeds 2000 lines it closes at a session boundary as
+  decisions_NNN.md and a new decisions.md is opened; the
+  D-numbers stay global and immutable across volumes.
 - notes/log_NNN.md — the session journals (rotating volumes;
   format rules in notes/log_rules.md).
 - notes/naming.md, notes/docs_rules.md, notes/log_rules.md,
@@ -57,9 +69,9 @@ theme, with its origin D-number.
 - Notes and workspace comments: English. Replies to the user:
   Italian. (D-002)
 - Notes are autonomous: after each milestone and at the end of a
-  work session, update NOTES.md and the relevant notes/ files
-  without being asked; source files are modified only on
-  explicit user request. (D-004; AGENTS rules 2–3)
+  work session, update notes/overview.md and the relevant
+  notes/ files without being asked; source files are modified
+  only on explicit user request. (D-004; AGENTS rules 2–3)
 - One D-number per fix campaign; one commit per item + a
   notes-wave commit at the campaign close (the D-111 pattern).
 

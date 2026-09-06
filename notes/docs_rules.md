@@ -81,8 +81,8 @@ migration, D-109).
 - verbatim appendices of original analyses: they move losslessly
   to notes/analyses/ (one file per artifact, original language
   kept), with a pointer recorded in the journal
-- the GLOBAL suite status: it lives exactly once, in NOTES.md →
-  Environment
+- the GLOBAL suite status: it lives exactly once, in
+  notes/overview.md → Environment
 - report tenses ("Status: analyzed in depth, untouched") — the
   doc describes a present, it does not report a past
 
@@ -120,7 +120,8 @@ The State line uses the test file's own suite counts.
 ## 7. Scope exceptions
 
 - src/twolm/test/data/*.json are fixtures, not source: no mirror
-  doc; their doc line is the NOTES.md inventory row.
+  doc; their doc line is the Test files data note in
+  notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim
   analyses, retired one-off investigations): they are frozen
   records, never updated — a changed fact gets a NEW analysis,
