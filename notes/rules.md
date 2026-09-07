@@ -123,6 +123,9 @@ theme, with its origin D-number.
 - Worker factories: a uniform @validate_call gate (the
   arbitrary_types_allowed config); tests patch the factory by
   name in the importing module's namespace. (D-100 T2)
+- The test runner is unittest (stdlib), deliberate — pytest is
+  not a dependency; do not propose a migration to pytest or
+  other runners. (D-124)
 
 ## Pipeline contracts (RLM)
 

@@ -183,3 +183,20 @@ D-123 | 2026-09-06 | AGENTS.md slimmed: the title is now
         overview.md / the full canon in notes/naming.md) is the
         same as the cache-flow and mirror-format lines in
         rules.md. overview.md and naming.md untouched.
+
+D-124 | 2026-09-06 | The unittest runner choice made explicit:
+        the Environment bullet of overview.md states it is by
+        design; the Test discipline of rules.md carries the
+        guard.
+        | A clarification / leave-as-is decision (AGENTS rule 6:
+        these go to the log too). The original repo is written
+        in unittest and the 673 tests + goldens were built that
+        way; a migration to pytest (the de-facto Python-world
+        standard, and the prior the agent kept re-deriving
+        against — it already cost a real "No module named
+        pytest") would be a full-suite rewrite for zero
+        functional gain here. The guard form ("do not propose a
+        migration") follows the rule 8 / A2xxx pattern: state
+        alone (the command in the bullet) does not block a
+        future session's "well, let's use pytest" suggestion —
+        legislation does.

@@ -62,7 +62,8 @@ positions generated from random gameplay paths.
 - Test command: `.venv/bin/python -m unittest twolm.test.<module>`
   (the old `PYTHONPATH=./src` prefix still works as a fallback);
   test_regab needs a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to
-  skip the 35 DB tests (2 mocked run).
+  skip the 35 DB tests (2 mocked run). The runner is unittest by
+  design (D-124): pytest is not a dependency (and not in the venv).
 - Suite status (verified 2026-09-06, live DB): 673 tests / 0
   failures / 18 skipped (17 PERF print-only + 1 LONG-gated
   A2050 chain). Gated run (SKIP_REGAB_DB=1, no LONG): 87
