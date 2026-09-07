@@ -285,3 +285,29 @@ D-127 | 2026-09-07 | After the VM restart (4 -> 8 vCPU) two
         live DB (A2030 + read guards + analytics + validate
         + vld_positions; the A2050 LONG re-run
         separately); the 3 mirror docs updated.
+
+D-128 | 2026-09-07 | Fixed the alignment of the
+        state-machine live log line (Roberto): the
+        [REL:VERB] field was variable-width because the
+        enum names are variable-length (Relevance 4-5:
+        INFO/WARN vs TRACE/DEBUG/ERROR; Verbosity 3-8: LOW
+        vs VERY_LOW/MODERATE/STANDARD), so the message
+        column never aligned.
+        | The field is now fixed-width 16 with right-
+        justified, space-filled names:
+        [{relevance.name:>5}:{verbosity.name:>8}] — the 5/8
+        widths exactly cover all existing names (e.g.
+        [INFO:HIGH] -> [ INFO:    HIGH],
+        [DEBUG:HIGH] -> [DEBUG:    HIGH]). One print line
+        (state_machine.py L256-260, the M6/D-070 comment
+        extended with the D-128 reference). The EVENT LOG /
+        history tables are untouched (a different, left-
+        justified design).
+        | Impact map (closed): 11 prefix pins in
+        test_state_machine.py (the 3 golden tests: live
+        line, show_event_log, show_history_of_moves)
+        updated; the mirror doc's format description
+        updated; no other test (message-only assertIn),
+        probe or DB-gated golden depends on the prefix.
+        | Verification: test_state_machine 49/49; gated
+        suite 673/0/87 (unchanged).

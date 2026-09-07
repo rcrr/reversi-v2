@@ -804,13 +804,13 @@ class TestDisplayGoldens(unittest.TestCase):
         self.assertEqual(len(lines), 3)
         self.assertEqual(lines[0],
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
-            "[DEBUG:HIGH] StateMachine initialized.")
+            "[DEBUG:    HIGH] StateMachine initialized.")
         self.assertEqual(lines[1],
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Starting worker CONFIG, UP step")
+            "[ INFO:    HIGH] Starting worker CONFIG, UP step")
         self.assertEqual(lines[2],
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Completed UP step for CONFIG")
+            "[ INFO:    HIGH] Completed UP step for CONFIG")
 
     def test_show_event_log_golden(self):
         """End-to-end golden: the move's live lines, then the table —
@@ -826,11 +826,11 @@ class TestDisplayGoldens(unittest.TestCase):
                 sm.show_event_log()
         expected = (
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
-            "[DEBUG:HIGH] StateMachine initialized.\n"
+            "[DEBUG:    HIGH] StateMachine initialized.\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Starting worker CONFIG, UP step\n"
+            "[ INFO:    HIGH] Starting worker CONFIG, UP step\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Completed UP step for CONFIG\n"
+            "[ INFO:    HIGH] Completed UP step for CONFIG\n"
             "\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---\n"
             "__________________________________________________________________\n"
             "TIMESTAMP (UTC)     | STEP | WORKER          | RELEVANCE | "
@@ -859,15 +859,15 @@ class TestDisplayGoldens(unittest.TestCase):
                 sm.show_history_of_moves()
         expected = (
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
-            "[DEBUG:HIGH] StateMachine initialized.\n"
+            "[DEBUG:    HIGH] StateMachine initialized.\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Starting worker CONFIG, UP step\n"
+            "[ INFO:    HIGH] Starting worker CONFIG, UP step\n"
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
-            "[INFO:HIGH] Completed UP step for CONFIG\n"
+            "[ INFO:    HIGH] Completed UP step for CONFIG\n"
             "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
-            "[INFO:HIGH] Starting worker POSITIONS, UP step\n"
+            "[ INFO:    HIGH] Starting worker POSITIONS, UP step\n"
             "[2026-08-29 12:34:56 UTC] [02][POSITIONS      ] "
-            "[INFO:HIGH] Completed UP step for POSITIONS\n"
+            "[ INFO:    HIGH] Completed UP step for POSITIONS\n"
             "Step   | Worker          | Dir   | Start (UTC)                | "
             "        Dur (s)\n"
             "--------------------------------------------------------------------------------\n"

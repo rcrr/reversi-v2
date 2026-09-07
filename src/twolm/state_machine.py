@@ -252,10 +252,12 @@ class StateMachine:
         if relevance >= self.verbosity:
             timestamp = evt_time.strftime("%Y-%m-%d %H:%M:%S")
             # Enum names (not numeric values) and an explicit UTC
-            # marker (M6, D-070)
+            # marker (M6, D-070); fixed-width 5/8 right-justified
+            # fields for the variable-length names (D-128)
             print(f"[{timestamp} UTC] [{self.current_step:02}]"
                   f"[{self.current_worker_name:15}] "
-                  f"[{relevance.name}:{self.verbosity.name}] {message}")
+                  f"[{relevance.name:>5}:{self.verbosity.name:>8}] "
+                  f"{message}")
 
     def show_event_log(self) -> None:
         # M6 (D-070): UTC header, 2-digit step (same as the live
