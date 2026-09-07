@@ -132,6 +132,11 @@ theme, with its origin D-number.
   int/uint counts, f32-quantized values (train_loss, g_norm,
   the tps read-back truncations), sha3 hashes and the
   in-run determinism tests. (D-127)
+- Before every commit: run the FULL test suite with no
+  gates (the live regab DB is the normal environment);
+  the gated run (SKIP_REGAB_DB=1) covers only the DB-free
+  subset and is not a substitute for the pre-commit
+  verification. (D-129)
 
 ## Pipeline contracts (RLM)
 

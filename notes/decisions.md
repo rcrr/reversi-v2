@@ -311,3 +311,20 @@ D-128 | 2026-09-07 | Fixed the alignment of the
         probe or DB-gated golden depends on the prefix.
         | Verification: test_state_machine 49/49; gated
         suite 673/0/87 (unchanged).
+
+D-129 | 2026-09-07 | Pre-commit verification rule
+        (Roberto): the D-127 and D-128 commits were
+        verified with the GATED suite (SKIP_REGAB_DB=1,
+        87 skipped) + targeted live runs, not the 100%
+        live suite; Roberto ruled that every commit must
+        be preceded by the full test run.
+        | New bullet in rules.md (Test discipline):
+        before every commit, run the full test suite with
+        no gates — the live regab DB is the normal
+        environment; a gated run is not a substitute.
+        Retroactive: after the D-128 commit Roberto ran
+        the full live suite himself — all green; the
+        agent's own full live run (journal step 45)
+        re-confirms the 2026-09-06 baseline on the
+        8-vCPU VM: 673 tests / 0 failures / 18 skipped
+        (~3 min).
