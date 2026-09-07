@@ -52,6 +52,7 @@ from pathlib import Path
 
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
+from twolm.test.closecheck import assert_close
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
@@ -127,13 +128,14 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertEqual(set(met), {'train_mae_y', 'train_rmse_y', 'train_loss',
                                     'train_samples', 'pop_mae_y', 'pop_rmse_y',
                                     'pop_loss'})
-        self.assertEqual(met['train_mae_y'], 12.346794566613694)
-        self.assertEqual(met['train_rmse_y'], 15.58872172931622)
+        assert_close(self, met['train_mae_y'], 12.346794566613694, 'train_mae_y')
+        assert_close(self, met['train_rmse_y'], 15.58872172931622, 'train_rmse_y')
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
         self.assertEqual(met['train_loss'], 0.00712497066706419)
         self.assertEqual(met['train_samples'], 199952)
-        self.assertEqual(met['pop_mae_y'], 21.729816221648974)
-        self.assertEqual(met['pop_rmse_y'], 26.40637507956623)
-        self.assertEqual(met['pop_loss'], 0.020437248051166534)
+        assert_close(self, met['pop_mae_y'], 21.729816221648974, 'pop_mae_y')
+        assert_close(self, met['pop_rmse_y'], 26.40637507956623, 'pop_rmse_y')
+        assert_close(self, met['pop_loss'], 0.020437248051166534, 'pop_loss')
 
         # The D-105/M2 dense-pass dict: the shipped inference rules (w_dense)
         # on the training data. rlm_02 has frequency_cut_off=1, so the dense
@@ -142,9 +144,9 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIsNotNone(dmet)
         self.assertEqual(set(dmet), {'train_dense_mae_y', 'train_dense_rmse_y',
                                      'train_dense_loss', 'train_dense_samples'})
-        self.assertEqual(dmet['train_dense_mae_y'], 12.346794548249868)
-        self.assertEqual(dmet['train_dense_rmse_y'], 15.58872171282352)
-        self.assertEqual(dmet['train_dense_loss'], 0.00712234852835536)
+        assert_close(self, dmet['train_dense_mae_y'], 12.346794548249868, 'train_dense_mae_y')
+        assert_close(self, dmet['train_dense_rmse_y'], 15.58872171282352, 'train_dense_rmse_y')
+        assert_close(self, dmet['train_dense_loss'], 0.00712234852835536, 'train_dense_loss')
         self.assertEqual(dmet['train_dense_samples'], 199952)
 
         # The console report (header only — no tables, no date) is stored
@@ -297,21 +299,22 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
 
         met = self.rlm.context.train_metrics
         self.assertIsNotNone(met)
-        self.assertEqual(met['train_mae_y'], 9.874833279184258e-05)
-        self.assertEqual(met['train_rmse_y'], 0.00013206900478667877)
+        assert_close(self, met['train_mae_y'], 9.874833279184258e-05, 'train_mae_y')
+        assert_close(self, met['train_rmse_y'], 0.00013206900478667877, 'train_rmse_y')
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
         self.assertEqual(met['train_loss'], 4.704681197571781e-13)
         self.assertEqual(met['train_samples'], 10)
-        self.assertEqual(met['pop_mae_y'], 15.6)
-        self.assertEqual(met['pop_rmse_y'], 18.39565166010707)
-        self.assertEqual(met['pop_loss'], 0.009125067852437496)
+        assert_close(self, met['pop_mae_y'], 15.6, 'pop_mae_y')
+        assert_close(self, met['pop_rmse_y'], 18.39565166010707, 'pop_rmse_y')
+        assert_close(self, met['pop_loss'], 0.009125067852437496, 'pop_loss')
 
         # The dense pass on the same 10 positions: the compressed fit is
         # exact (rmse 0.00) but the shipped model substitutes 5 below-cutoff
         # configurations — the Substitution Delta row reads 3.36.
         dmet = self.rlm.context.train_dense_metrics
-        self.assertEqual(dmet['train_dense_mae_y'], 1.854193878173828)
-        self.assertEqual(dmet['train_dense_rmse_y'], 3.3556084739848866)
-        self.assertEqual(dmet['train_dense_loss'], 0.0003036324051208794)
+        assert_close(self, dmet['train_dense_mae_y'], 1.854193878173828, 'train_dense_mae_y')
+        assert_close(self, dmet['train_dense_rmse_y'], 3.3556084739848866, 'train_dense_rmse_y')
+        assert_close(self, dmet['train_dense_loss'], 0.0003036324051208794, 'train_dense_loss')
         self.assertEqual(dmet['train_dense_samples'], 10)
 
         report_path = self.tmp_dir / "model_analytics_report.txt"

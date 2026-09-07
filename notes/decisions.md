@@ -239,3 +239,49 @@ D-126 | 2026-09-06 | Scrubbed the git history of
         commit + three historical records) kept — the same
         "keep historical records" ruling as the journals
         (Roberto).
+
+D-127 | 2026-09-07 | After the VM restart (4 -> 8 vCPU) two
+        DB-gated float goldens failed at the last-ULP level
+        (analytics test_analytics_report_goldens,
+        full_chain test_full_worker_chain). Investigation
+        (Roberto): the failing quantities are float64
+        reductions over up to ~2M terms (np.dot,
+        rlm_analytics.py L459/L509) running through the
+        multi-threaded OpenBLAS ddot (scipy-bundled 0.3.34,
+        DYNAMIC_ARCH NO_AFFINITY): the last ULPs depend on
+        the thread count x the CPU kernel selected at
+        runtime.
+        | Evidence: three different values for the same
+        rlm_04 metrics (1 thread / 8 threads / the old VM);
+        per-run determinism intact (3/3 identical); the drift
+        across the rlm_02/04/03 chains is 2-301 ULP (rel
+        2e-16...4e-14); ALL bit-exact contracts hold in the
+        new environment (model file sha3, w_dense sha3, EF
+        pins, report hashes, f32 train_loss/g_norm, iters,
+        samples); every golden literal round-trips (full
+        precision reprs - no re-recording needed).
+        | Fix (Roberto's GO, as proposed): the tolerance is
+        the portable contract - pinning OMP_NUM_THREADS
+        would be a weaker version of the same problem
+        (single-threaded DYNAMIC_ARCH is still CPU-
+        dependent): new twolm/test/closecheck.py
+        assert_close (math.isclose, rel 1e-9 / abs 1e-12:
+        the measured drift is <= 4e-14, a genuine
+        regression shows up at >= 1e-6 - ~5 orders of
+        magnitude of detection margin); 56 float
+        comparisons converted in test_lm_worker_analytics.
+        py (16), test_lm_worker_full_chain.py (34, A2030 +
+        A2050), test_lm_worker_validate.py (6). Bit-exact
+        assertEqual stays for: the int/uint counts, the
+        f32-quantized values (train_loss = float(opt f32),
+        g_norm, the tps read-back truncations, the vld file
+        read-back, the EF pins), the sha3 hashes, and the
+        second-instance determinism tests (the in-run
+        bit-identity contract); the hand-derived 2-position
+        constants and the deterministic 3.64 mean stay
+        exact.
+        | Promoted to rules.md (Test discipline).
+        Verification: the four worker suites 23/23 on the
+        live DB (A2030 + read guards + analytics + validate
+        + vld_positions; the A2050 LONG re-run
+        separately); the 3 mirror docs updated.

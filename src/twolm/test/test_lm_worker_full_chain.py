@@ -60,6 +60,7 @@ from twolm.binio import BinaryWriter, verify_sha3_256_sidecar
 from twolm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
 from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid
+from twolm.test.closecheck import assert_close
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
@@ -105,42 +106,43 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 14)
         self.assertEqual(self.rlm.current_worker_name, 'SAVE')
 
-        # --- Validation metrics (exact goldens, bid [5] vld, 20000 samples) ---
+        # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 20000)
-        self.assertEqual(m['vld_loss'], 0.00575742032378912)
-        self.assertEqual(m['vld_mse_z'], 0.01151484064757824)
-        self.assertEqual(m['vld_mae_z'], 0.0845922976732254)
-        self.assertEqual(m['vld_mae_y'], 11.048789978027344)
-        self.assertEqual(m['vld_mse_y'], 196.43809509277344)
-        self.assertEqual(m['vld_rmse_y'], 14.015637397766113)
+        assert_close(self, m['vld_loss'], 0.00575742032378912, 'vld_loss')
+        assert_close(self, m['vld_mse_z'], 0.01151484064757824, 'vld_mse_z')
+        assert_close(self, m['vld_mae_z'], 0.0845922976732254, 'vld_mae_z')
+        assert_close(self, m['vld_mae_y'], 11.048789978027344, 'vld_mae_y')
+        assert_close(self, m['vld_mse_y'], 196.43809509277344, 'vld_mse_y')
+        assert_close(self, m['vld_rmse_y'], 14.015637397766113, 'vld_rmse_y')
 
-        # --- Training metrics (exact goldens, bid [6], 199932 samples) ---
+        # --- Training metrics (assert_close goldens, D-127; bid [6], 199932 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 199932)
-        self.assertEqual(t['train_mae_y'], 10.899353761577668)
-        self.assertEqual(t['train_rmse_y'], 13.822995683195872)
+        assert_close(self, t['train_mae_y'], 10.899353761577668, 'train_mae_y')
+        assert_close(self, t['train_rmse_y'], 13.822995683195872, 'train_rmse_y')
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
         self.assertEqual(t['train_loss'], 0.00560641149058938)
-        self.assertEqual(t['pop_mae_y'], 21.73034518830014)
-        self.assertEqual(t['pop_rmse_y'], 26.406980394267364)
-        self.assertEqual(t['pop_loss'], 0.020438173785805702)
+        assert_close(self, t['pop_mae_y'], 21.73034518830014, 'pop_mae_y')
+        assert_close(self, t['pop_rmse_y'], 26.406980394267364, 'pop_rmse_y')
+        assert_close(self, t['pop_loss'], 0.020438173785805702, 'pop_loss')
 
-        # --- Dense training metrics (exact goldens, D-105/M2: the w_dense
+        # --- Dense training metrics (assert_close, D-127; D-105/M2: the w_dense
         #     forward pass — the shipped inference rules — on the training
         #     data; differs from the compressed pass on the 1923 positions
         #     touching below-cutoff (IC) configurations) ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 199932)
-        self.assertEqual(td['train_dense_mae_y'], 10.905119078281873)
-        self.assertEqual(td['train_dense_rmse_y'], 13.831248070093375)
-        self.assertEqual(td['train_dense_loss'], 0.0056069279089570045)
+        assert_close(self, td['train_dense_mae_y'], 10.905119078281873, 'train_dense_mae_y')
+        assert_close(self, td['train_dense_rmse_y'], 13.831248070093375, 'train_dense_rmse_y')
+        assert_close(self, td['train_dense_loss'], 0.0056069279089570045, 'train_dense_loss')
 
-        # --- Training population statistics (exact goldens) ---
+        # --- Training population statistics (assert_close, D-127) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 199932)
-        self.assertEqual(p['mean'], -1.3912930396334753)
-        self.assertEqual(p['std_dev'], 26.40698039426738)
-        self.assertEqual(p['variance'], 697.3286135432216)
+        assert_close(self, p['mean'], -1.3912930396334753, 'pop mean')
+        assert_close(self, p['std_dev'], 26.40698039426738, 'pop std_dev')
+        assert_close(self, p['variance'], 697.3286135432216, 'pop variance')
 
         # --- Optimization info (5-key dict) ---
         self.assertTrue(ctx.opt_info['converged'])
@@ -304,41 +306,42 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 14)
         self.assertEqual(self.rlm.current_worker_name, 'SAVE')
 
-        # --- Validation metrics (exact goldens, bid [6] vld, 199932 samples) ---
+        # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 199932)
-        self.assertEqual(m['vld_loss'], 0.001578879076987505)
-        self.assertEqual(m['vld_mse_z'], 0.00315775815397501)
-        self.assertEqual(m['vld_mae_z'], 0.04321568086743355)
-        self.assertEqual(m['vld_mae_y'], 5.644496440887451)
-        self.assertEqual(m['vld_mse_y'], 53.86997604370117)
-        self.assertEqual(m['vld_rmse_y'], 7.339616775512695)
+        assert_close(self, m['vld_loss'], 0.001578879076987505, 'vld_loss')
+        assert_close(self, m['vld_mse_z'], 0.00315775815397501, 'vld_mse_z')
+        assert_close(self, m['vld_mae_z'], 0.04321568086743355, 'vld_mae_z')
+        assert_close(self, m['vld_mae_y'], 5.644496440887451, 'vld_mae_y')
+        assert_close(self, m['vld_mse_y'], 53.86997604370117, 'vld_mse_y')
+        assert_close(self, m['vld_rmse_y'], 7.339616775512695, 'vld_rmse_y')
 
-        # --- Training metrics (exact goldens, bid [3], 1999179 samples) ---
+        # --- Training metrics (assert_close goldens, D-127; bid [3], 1999179 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 1999179)
-        self.assertEqual(t['train_mae_y'], 5.396253447071691)
-        self.assertEqual(t['train_rmse_y'], 7.015377800787937)
+        assert_close(self, t['train_mae_y'], 5.396253447071691, 'train_mae_y')
+        assert_close(self, t['train_rmse_y'], 7.015377800787937, 'train_rmse_y')
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
         self.assertEqual(t['train_loss'], 0.001444403431378305)
-        self.assertEqual(t['pop_mae_y'], 21.758215006979484)
-        self.assertEqual(t['pop_rmse_y'], 26.417003454424307)
-        self.assertEqual(t['pop_loss'], 0.020453333854675293)
+        assert_close(self, t['pop_mae_y'], 21.758215006979484, 'pop_mae_y')
+        assert_close(self, t['pop_rmse_y'], 26.417003454424307, 'pop_rmse_y')
+        assert_close(self, t['pop_loss'], 0.020453333854675293, 'pop_loss')
 
-        # --- Dense training metrics (exact goldens, D-105/M2: rlm_03 has
+        # --- Dense training metrics (assert_close, D-127; D-105/M2: rlm_03 has
         #     frequency_cut_off=1, so the dense pass matches the compressed
         #     one up to the f32 rounding of w_dense — delta "-0.00") ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 1999179)
-        self.assertEqual(td['train_dense_mae_y'], 5.396253444189108)
-        self.assertEqual(td['train_dense_rmse_y'], 7.015377798958687)
-        self.assertEqual(td['train_dense_loss'], 0.0014424461405724287)
+        assert_close(self, td['train_dense_mae_y'], 5.396253444189108, 'train_dense_mae_y')
+        assert_close(self, td['train_dense_rmse_y'], 7.015377798958687, 'train_dense_rmse_y')
+        assert_close(self, td['train_dense_loss'], 0.0014424461405724287, 'train_dense_loss')
 
-        # --- Training population statistics (exact goldens) ---
+        # --- Training population statistics (assert_close, D-127) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 1999179)
-        self.assertEqual(p['mean'], -1.3259453005458741)
-        self.assertEqual(p['std_dev'], 26.417003454424318)
-        self.assertEqual(p['variance'], 697.8580715110664)
+        assert_close(self, p['mean'], -1.3259453005458741, 'pop mean')
+        assert_close(self, p['std_dev'], 26.417003454424318, 'pop std_dev')
+        assert_close(self, p['variance'], 697.8580715110664, 'pop variance')
 
         # --- Optimization info (5-key dict) ---
         self.assertTrue(ctx.opt_info['converged'])

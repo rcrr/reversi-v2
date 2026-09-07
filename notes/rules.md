@@ -124,6 +124,14 @@ theme, with its origin D-number.
 - The test runner is unittest (stdlib), deliberate — pytest is
   not a dependency; do not propose a migration to pytest or
   other runners. (D-124)
+- Float64 pipeline-metric goldens use assert_close
+  (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12): the
+  multi-threaded OpenBLAS ddot is not bit-portable across
+  thread counts or CPUs (last-ULP drift, measured 2–301 ULP
+  after a 4 → 8 vCPU move). Bit-exact assertEqual stays for
+  int/uint counts, f32-quantized values (train_loss, g_norm,
+  the tps read-back truncations), sha3 hashes and the
+  in-run determinism tests. (D-127)
 
 ## Pipeline contracts (RLM)
 

@@ -56,6 +56,7 @@ from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.lm_worker_validate import lm_worker_validate
 from twolm.rlm_validate import validate_model
+from twolm.test.closecheck import assert_close
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 
@@ -117,12 +118,12 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.assertEqual(set(met), {'vld_loss', 'vld_mse_z', 'vld_mae_z',
                                     'vld_mae_y', 'vld_mse_y', 'vld_rmse_y',
                                     'vld_samples'})
-        self.assertEqual(met['vld_loss'], 0.00700794393196702)
-        self.assertEqual(met['vld_mse_z'], 0.01401588786393404)
-        self.assertEqual(met['vld_mae_z'], 0.09311295300722122)
-        self.assertEqual(met['vld_mae_y'], 12.161691665649414)
-        self.assertEqual(met['vld_mse_y'], 239.10484313964844)
-        self.assertEqual(met['vld_rmse_y'], 15.46301555633545)
+        assert_close(self, met['vld_loss'], 0.00700794393196702, 'vld_loss')
+        assert_close(self, met['vld_mse_z'], 0.01401588786393404, 'vld_mse_z')
+        assert_close(self, met['vld_mae_z'], 0.09311295300722122, 'vld_mae_z')
+        assert_close(self, met['vld_mae_y'], 12.161691665649414, 'vld_mae_y')
+        assert_close(self, met['vld_mse_y'], 239.10484313964844, 'vld_mse_y')
+        assert_close(self, met['vld_rmse_y'], 15.46301555633545, 'vld_rmse_y')
         self.assertEqual(met['vld_samples'], 200)
 
         logs = self.mock_stdout.getvalue()
