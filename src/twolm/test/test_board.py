@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the unit tests board module.
+# How to run the board module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

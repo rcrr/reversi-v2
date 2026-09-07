@@ -1074,8 +1074,8 @@ class PatternSet:
             patterns (List[Pattern]): A list of Pattern objects to be included in the set.
         
         Raises:
-            TypeError: If the name is not a string.
-            TypeError: If the patterns list contains non-Pattern objects.
+            ValidationError: If the name is not a string (@validate_call).
+            ValidationError: If the patterns list contains non-Pattern objects (@validate_call).
             ValueError: If the patterns list is empty.
             ValueError: If there are duplicate names in the patterns list.
             ValueError: If there are duplicate masks in the patterns list.

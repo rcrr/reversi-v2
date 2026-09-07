@@ -98,12 +98,6 @@ at the end of this file.
 
 ## Next steps
 
-- Parked (no action planned): test_pattern T18 noted-only
-  (np.uint8 3**n_squares overflow — external expressions must
-  cast to int); test_pattern M1 (the stale PatternSet Raises
-  docstring) — awaiting Roberto's go-ahead.
-- Reported-only: the test_board.py header grammar nit (the
-  'environmeant' typo itself fixed 2026-08-29, D-050).
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
 - lm_worker_config R1 (the ad-hoc cache flow): the D-078
   ruling — the revisit trigger (the pipeline completion) is
@@ -144,7 +138,7 @@ module.
 | src/twolm/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/twolm/mobility.md |
 | src/twolm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/model_weights.md |
 | src/twolm/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/twolm/opt_lbfgs.md |
-| src/twolm/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112) | 65/0/3 | docs/src/twolm/pattern.md |
+| src/twolm/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/twolm/pattern.md |
 | src/twolm/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052) | 37/0/0 | docs/src/twolm/regab.md |
 | src/twolm/rlm_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/twolm/rlm_analytics.md |
 | src/twolm/rlm_client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/rlm_client.md |
@@ -166,7 +160,7 @@ One row per test file, alphabetical.
 | --- | --- | --- | --- |
 | src/twolm/test/paths.py | the single home for workspace-root-anchored test paths (D-085) — helper module (0 tests) | — | docs/src/twolm/test/paths.md |
 | src/twolm/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/twolm/test/test_binio.md |
-| src/twolm/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the "environmeant" header typo fixed (D-050). Reported-only: the remaining header grammar nit | 201/0/12 | docs/src/twolm/test/test_board.md |
+| src/twolm/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121) | 201/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/twolm/test/test_cache_manager.md |
 | src/twolm/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/twolm/test/test_feature.md |
 | src/twolm/test/test_lm_worker_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105) | 4/0/0 | docs/src/twolm/test/test_lm_worker_analytics.md |
@@ -187,7 +181,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/twolm/test/test_mobility.md |
 | src/twolm/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/twolm/test/test_opt_lbfgs.md |
 | src/twolm/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/twolm/test/test_paths.md |
-| src/twolm/test/test_pattern.py | PARKED — awaiting Roberto's GO: T18 (np.uint8 3**n_squares overflow, noted-only) + M1 (the stale PatternSet Raises docstring). The fix campaign is closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived) | 65/0/3 | docs/src/twolm/test/test_pattern.md |
+| src/twolm/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/twolm/test/test_pattern.md |
 | src/twolm/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the SKIP_REGAB_DB gate (35 DB tests) | 37/0/0 | docs/src/twolm/test/test_regab.md |
 | src/twolm/test/test_rlm_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/twolm/test/test_rlm_config_schemas.md |
 | src/twolm/test/test_rlm_design_matrix.py | complete: the dedicated 12-test data suite (D-090) | 12/0/0 | docs/src/twolm/test/test_rlm_design_matrix.md |

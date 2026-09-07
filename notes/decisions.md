@@ -114,3 +114,32 @@ D-120 | 2026-09-06 | Next-steps trim (Roberto's item-by-item
         'environmeant' typo itself was fixed in D-050) — both
         touch .py files, so both await Roberto's explicit
         go-ahead (AGENTS rule 3).
+
+D-121 | 2026-09-06 | The parked test items closed (Roberto's
+        calls): T18 retired, M1 fixed, the test_board header
+        nit fixed.
+        | T18 (the np.uint8 3**n_squares overflow) retired by
+        Roberto's ruling: 3 ** n_squares is never to be computed
+        from the attribute — the canonical value is
+        n_configurations (it is the max value of an Index, and
+        Index is uint32 on purpose). The source audit he
+        requested (all 3**-sites, tests excluded, 7 found): no
+        unguarded site exists — the only two legitimate
+        3**n_squares consumers already cast to int
+        (n_configurations = 3 ** int(n_squares), the definition
+        itself; the index-dict N = 3 ** n_squares, called with
+        int(self.n_squares)); the remaining sites are
+        per-element 3**arange power tables and the Python-int
+        Burnside sums (n_invariant/n_unique configs). No
+        substitution was needed: the code already does what the
+        note prescribed. M1 fixed: the PatternSet __init__
+        Raises docstring now says ValidationError (the
+        @validate_call checks) instead of the stale TypeError —
+        docstring-only; the tests already assert ValidationError
+        (the behavior was always the documented-after-fix one).
+        The test_board.py header sentence fixed to the
+        test_feature.py wording ("How to run the board module
+        unit tests."). Next steps slimmed to two bullets (the
+        ideas feed + the R1 re-evaluation, last).
+        test_pattern 65/0/3 + test_board 201/0/12 green after
+        the change.
