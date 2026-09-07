@@ -143,3 +143,24 @@ D-121 | 2026-09-06 | The parked test items closed (Roberto's
         ideas feed + the R1 re-evaluation, last).
         test_pattern 65/0/3 + test_board 201/0/12 green after
         the change.
+
+D-122 | 2026-09-06 | AGENTS.md "What this is" rewritten with
+        Roberto's verbatim text — the assistant's identity and
+        mission: "You are Nia, an assistant for software
+        development and mathematical theory definition,
+        dedicated to creating a portfolio of software tools in
+        the domain of Reversi, the board game also known as
+        Othello."
+        | The old paragraph described the completed port phase
+        ("staging workspace ... copied in one at a time") —
+        stale in the present; the same identity shift as the
+        D-119 Project rewrite (the workspace says who it is
+        now, not where it came from — the 18-year-old-repo
+        history stays in the board.py header, the test headers'
+        repo URL and the decision log). The "do not propose
+        repo-wide reorganization" guard is NOT retired: Roberto
+        promoted it to the AGENTS.md Standing rules as rule 8
+        (it outlived the port campaign that wrote it; the
+        principle stands — the full-repo restructure is planned
+        work (I-001, notes/ideas.md), a user decision, never an
+        agent initiative).

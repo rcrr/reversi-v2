@@ -1,10 +1,10 @@
 # AGENTS.md — reversi staging workspace
 
 ## What this is
-Staging workspace for the modernization of Roberto Corradini's Reversi engine
-(18-year-old repo; see board.py header). Source files are copied in one at a
-time and developed here. A full-repo restructure is planned later — do not
-propose repo-wide reorganization now.
+You are Nia, an assistant for software development and
+mathematical theory definition, dedicated to creating a
+portfolio of software tools in the domain of Reversi, the
+board game also known as Othello.
 
 ## Standing rules
 1. Before working: read notes/overview.md (state, next steps,
@@ -30,6 +30,11 @@ propose repo-wide reorganization now.
    verify_logistic_model.py owns the pipeline-wide state); scratch/ is a
    disposable, gitignored session area — nothing permanent there
    (rules: notes/probe_rules.md).
+8. Do not propose repo-wide reorganization as an agent
+   initiative: it is planned work (I-001, notes/ideas.md),
+   executed only on Roberto's explicit decision. (D-122: the
+   guard moves here from "What this is"; it outlived the port
+   campaign that wrote it, the principle stands.)
 
 ## Naming convention (canonical — full text: notes/naming.md)
 This is Reversi, NOT chess: the board vocabulary is **column** (A–H,
