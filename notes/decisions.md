@@ -164,3 +164,22 @@ D-122 | 2026-09-06 | AGENTS.md "What this is" rewritten with
         principle stands — the full-repo restructure is planned
         work (I-001, notes/ideas.md), a user decision, never an
         agent initiative).
+
+D-123 | 2026-09-06 | AGENTS.md slimmed: the title is now
+        "reversi workspace" (the "staging" era is over) and the
+        Naming convention paragraph reduced to guards + the bit
+        anchor + the canon pointer.
+        | The paragraph mixed behavioral guards (the not-chess
+        vocabulary, A1 = bit 0 / H8 = bit 63, the fixed D8
+        order, the diagram orientation) with reference material
+        (the square-name mechanics, the row_1/column_a examples,
+        the "Set 2026-08-26" date) — the latter duplicates
+        notes/naming.md (the canon) and the Conventions bullet of
+        notes/overview.md (the working reference). The
+        auto-injected constitution now carries only what shapes
+        every session (the guards); the reference material stays
+        where it is read when board work happens. The 3-layer
+        pattern (guards in AGENTS.md / working facts in
+        overview.md / the full canon in notes/naming.md) is the
+        same as the cache-flow and mirror-format lines in
+        rules.md. overview.md and naming.md untouched.
