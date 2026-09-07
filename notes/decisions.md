@@ -216,3 +216,26 @@ D-125 | 2026-09-06 | Removed logistello-papers/ from the
         records; no copyrighted content). The git-history scrub
         (the PDFs sit in all 292 pre-scrub commits — added at the
         bootstrap, never modified) follows as D-126.
+
+D-126 | 2026-09-06 | Scrubbed the git history of
+        logistello-papers/ (D-125): the 16 PDFs sat in all 292
+        pre-scrub commits (added at the bootstrap, never
+        modified).
+        | git filter-branch (index-filter 'git rm -r --cached
+        --ignore-unmatch logistello-papers') rewrote master;
+        refs/original + reflog cleaned; aggressive GC.
+        Verification battery: no commit on any ref touches the
+        path; zero .pdf blobs in any object; content sweep
+        (distinctive phrases extracted from three PDFs:
+        '181,440', 'semi-automatic construction of evaluation
+        functions', 'structured evaluation function
+        representation', 'eight puzzle') — 0 hits across all
+        objects; git fsck --full clean; tip tree identical to
+        the pre-scrub tip; .git 27.2 MiB → ~2 MiB; gated suite
+        673/0/87.
+        The dangling present-tense folder line in the bootstrap
+        commit message was also removed (surgical msg-filter);
+        the four remaining message mentions (the D-125 removal
+        commit + three historical records) kept — the same
+        "keep historical records" ruling as the journals
+        (Roberto).
