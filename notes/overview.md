@@ -105,16 +105,11 @@ at the end of this file.
 - Reported-only: the test_board.py header grammar nit (the
   'environmeant' typo itself fixed 2026-08-29, D-050).
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
-- Open (awaiting Roberto's call): the endgame-solver
-  integration of rlm_client (the production context of the
-  A2xxx family) — the only open item on the pipeline side.
-- Deferred: lm_worker_config R1 (the ad-hoc cache flow) — the
-  D-078 ruling, revisit with the pipeline completion (I-011).
-- Journal: log_001.md is over the 2000-line cap (log_rules.md)
-  — rotate to log_002.md at the next session boundary.
-- Next concrete action: the D-115 notes restructure (this
-  session) — after it, no active work remains; the ball is with
-  Roberto on the parked / open / deferred items above.
+- lm_worker_config R1 (the ad-hoc cache flow): the D-078
+  ruling — the revisit trigger (the pipeline completion) is
+  now met (15/15); re-evaluate the ad-hoc flow against the
+  completed pipeline and the "storicizzazione" idea (I-011) —
+  the next concrete action.
 
 
 ## Source files

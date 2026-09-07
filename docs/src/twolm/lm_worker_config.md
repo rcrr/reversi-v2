@@ -82,13 +82,13 @@ Pinned by `probes/verify_lm_worker_config.py` (25 checks) +
 
 ## Open issues
 
-- **R1 (deferred, D-078 ruling)** — the ad-hoc cache flow
+- **R1 (revisit due, D-078 ruling)** — the ad-hoc cache flow
   (hashlib + the manual 8192-chunk verify + the bare-hex sidecar)
   stays: the cache_manager-style load-or-compute does not fit a
   JSON file, and the CONFIG step may not need a cache at all.
-  Revisited when the full pipeline is complete; the
-  "storicizzazione" idea (a historical copy of the config that
-  generated a model) is recorded at I-011.
+  Revisited when the full pipeline is complete (now met, 15/15);
+  the "storicizzazione" idea (a historical copy of the config
+  that generated a model) is recorded at I-011.
 
 ## Conventions
 

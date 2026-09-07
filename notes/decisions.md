@@ -84,3 +84,33 @@ D-119 | 2026-09-06 | The Project section of notes/overview.md was
         (referenced from the Next steps). The Project section
         stays a pure identity statement; the current phase
         stays in Where we are.
+
+D-120 | 2026-09-06 | Next-steps trim (Roberto's item-by-item
+        review).
+        | (1) The endgame-solver integration item removed
+        (Roberto's call; the A2xxx production context stays in
+        the rlm_client.md intro — its Open issues were already
+        None, so nothing went stale). (2) The "Deferred" label
+        of lm_worker_config R1 retired (Roberto: every item in
+        Next steps is "next" by definition) — and the item is
+        now LIVE: its D-078 revisit trigger (the pipeline
+        completion) is met (15/15), so it becomes the last
+        bullet = the next concrete action; the mirror doc
+        label updated "deferred" → "revisit due" (docs only).
+        (3) The journal-rotation reminder bullet removed:
+        rotation is the standing log_rules.md legislation
+        (log_001 → log_002 at the next session boundary), not a
+        next step. (4) The stale "Next concrete action" bullet
+        (pointing at the D-115 restructure) removed. Kept, with
+        the explanation given in session: the parked
+        test_pattern T18 (noted-only — the production code
+        already casts to int; the note is for external
+        expressions; no code action) + M1 (the stale PatternSet
+        Raises docstring: it says TypeError, but the
+        @validate_call checks raise ValidationError — a
+        one-line docstring fix) and the reported-only
+        test_board.py header grammar nit (the broken "How to
+        use the unit tests board module." sentence; the
+        'environmeant' typo itself was fixed in D-050) — both
+        touch .py files, so both await Roberto's explicit
+        go-ahead (AGENTS rule 3).
