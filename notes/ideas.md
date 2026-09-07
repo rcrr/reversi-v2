@@ -49,15 +49,6 @@ I-007 | follow-up | FeatureSet column-labelling helper (raised
        occupies n_instances D8-instance columns, so a
        column-level labelling needs an instance-aware design).
 
-I-008 | idea | Extend the logistello-papers reference collection
-        beyond 2002 (raised 2026-08-29, session 12, web search on
-        Buro's publications): post-2002 works are missing — the
-        Nao era (world champion 2015-2016) and the book "Reversi
-        for Optimal Players". Start from Buro's own publications
-        page (https://skatgame.net/mburo/publications.html);
-        logistello-papers/ is read-only, so collection + index
-        updates need Roberto's explicit go-ahead.
-
 I-009 | follow-up | Pipeline construction boilerplate (raised
         2026-08-29, session 19, R3 discussion): Roberto notes his
         pipeline client carries a bit of boilerplate in the model

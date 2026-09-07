@@ -13,7 +13,6 @@ board game also known as Othello.
 2. Notes are autonomous: after each milestone and at the end of a work
    session, update notes/overview.md and the relevant notes/ files without being asked.
 3. Source files (*.py and any code): modify ONLY on explicit user request.
-   logistello-papers/ is read-only reference material.
 4. Notes and comments in this workspace: English. Replies to the user: Italian.
 5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule,
    D-007): architecture, verified invariants, issues, conventions (format
@@ -60,4 +59,3 @@ the left.
   log_rules.md · docs_rules.md · probe_rules.md · naming.md +
   log_000.md, log_001.md, ... (session journal, rotating volumes)
 - scratch/ — disposable session area, gitignored, never tracked
-- logistello-papers/ — user's reference papers (read-only)

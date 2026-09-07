@@ -199,8 +199,6 @@ Test data (src/twolm/test/data/): rlm_00.json (the JSON5 config, D-076),
 rlm_01.json (the training DB dump), rlm_02.json (the DB dump), rlm_03.json +
 rlm_04.json (the validation sets) — the per-file mirror docs cover them.
 
-Reference: logistello-papers/ (user's papers, read-only).
-
 ## Index
 The docs/ mirrors (one per source/test file, D-007) are NOT listed
 here: their paths are the Doc column of the two tables above.

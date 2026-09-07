@@ -89,8 +89,6 @@ theme, with its origin D-number.
   json5 (D-011/D-051/D-052/D-094).
 - docs/ mirrors src/ one file to one file: src/twolm/X.py →
   docs/src/twolm/X.md (D-007).
-- logistello-papers/ is read-only reference material (AGENTS
-  rule 3).
 
 ## Naming & platform
 

@@ -200,3 +200,19 @@ D-124 | 2026-09-06 | The unittest runner choice made explicit:
         alone (the command in the bullet) does not block a
         future session's "well, let's use pytest" suggestion —
         legislation does.
+
+D-125 | 2026-09-06 | Removed logistello-papers/ from the
+        workspace ahead of the planned GitHub publication
+        (Roberto): 16 copyrighted papers (1994–2002, incl. one
+        IEEE) + the collection index, copied out of the workspace
+        to /home/rcrr/base/prj/logistello-papers.
+        | Live pointers removed in the same commit: the AGENTS.md
+        rule 3 read-only clause + the Layout line; the rules.md
+        Layout & tree bullet; the notes/overview.md Index line.
+        I-008 (extend the collection beyond 2002) removed from
+        the backlog (the collection is now out of workspace
+        scope; Roberto's call: drop, not move). Historical
+        journal/decision mentions of the folder kept (append-only
+        records; no copyrighted content). The git-history scrub
+        (the PDFs sit in all 292 pre-scrub commits — added at the
+        bootstrap, never modified) follows as D-126.
