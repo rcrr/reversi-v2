@@ -30,7 +30,7 @@ from __future__ import annotations
 from twolm.board import (Bitboard, PositionArray,
                          make_position)
 
-from twolm import binio
+from reversi.tools import binio
 
 import psycopg2 as pg
 import pandas as pd

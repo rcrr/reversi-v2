@@ -23,8 +23,8 @@ echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} SKIP_REGAB_D
 
 MODULES=(
     # 0 — tools
-    twolm.test.test_binio
-    twolm.test.test_usage_binio
+    reversi.test.test_binio
+    reversi.test.test_usage_binio
     twolm.test.test_opt_lbfgs
     # 1 — board & pattern concepts
     twolm.test.test_board

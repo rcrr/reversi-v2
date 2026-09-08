@@ -1,4 +1,4 @@
-# twolm/binio.py
+# reversi/tools/binio.py
 A minimal, C/Rust-interoperable binary I/O module: it frames every
 record between two identical 32-bit MAGIC markers (spelling `BIN1` in
 little-endian), handles whole-file integrity via SHA3-256 sidecar

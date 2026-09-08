@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_binio
+# time PERF=0 python3 -m unittest reversi.test.test_binio
 #
 
 """
@@ -52,8 +52,8 @@ import unittest
 
 import numpy as np
 
-import twolm.binio as binio
-from twolm.binio import BinaryFormatError, BinaryReader, BinaryWriter
+import reversi.tools.binio as binio
+from reversi.tools.binio import BinaryFormatError, BinaryReader, BinaryWriter
 
 
 class ScalarRoundTripTest(unittest.TestCase):
@@ -213,7 +213,7 @@ class ArrayTest(unittest.TestCase):
     def test_unknown_type_code_raises(self):
         # A record with an unknown on-disk type code must raise.
         import struct
-        from twolm.binio import DEFAULT_MAGIC
+        from reversi.tools.binio import DEFAULT_MAGIC
         magic = struct.pack("<I", DEFAULT_MAGIC)
         # type_code=99 (unknown), ndim=1, shape=(1,), 4 bytes of int32 payload
         payload = (struct.pack("<B", 99)

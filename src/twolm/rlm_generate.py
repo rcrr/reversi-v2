@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:

@@ -28,7 +28,7 @@
 """
 Utility module to handle computation caching with a 4-step validation pipeline.
 It abstracts file I/O, checksum validation, and cache invalidation.
-Checksum sidecar I/O is delegated to the twolm.binio sidecar API (D-072).
+Checksum sidecar I/O is delegated to the reversi.tools.binio sidecar API (D-072).
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ from typing import Callable, TypeVar
 
 from pydantic import ConfigDict, validate_call
 
-from twolm.binio import (
+from reversi.tools.binio import (
     BinaryFormatError,
     verify_sha3_256_sidecar,
     write_sha3_256_sidecar,

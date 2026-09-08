@@ -1,4 +1,4 @@
-# twolm/test/test_binio.py
+# reversi/test/test_binio.py
 The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s
 infrastructure suite). Added by Roberto together with the module (3
 files: binio.py + test_binio.py + test_usage_binio.py); extended at

@@ -54,7 +54,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT

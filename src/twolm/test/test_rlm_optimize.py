@@ -50,7 +50,7 @@ from types import SimpleNamespace
 import numpy as np
 import numpy.testing as nptest
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.rlm_optimize import (save_optimization_checkpoint,
                                 load_optimization_checkpoint,
                                 is_optimization_cache_consistent,

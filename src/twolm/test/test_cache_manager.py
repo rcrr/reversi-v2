@@ -56,7 +56,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from twolm.binio import compute_sha3_256, write_sha3_256_sidecar
+from reversi.tools.binio import compute_sha3_256, write_sha3_256_sidecar
 from twolm.cache_manager import (
     cache_manager_load_or_compute,
     _verify_checksum,

@@ -21,7 +21,7 @@ from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 from twolm.state_machine import Verbosity
 import twolm.lm_worker_config as lwc
-import twolm.binio as binio
+import reversi.tools.binio as binio
 
 TMP_BASE = ROOT / "build" / "tmp" / "vlog_lmwc_d077"
 CONFIG_JSON = ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json"

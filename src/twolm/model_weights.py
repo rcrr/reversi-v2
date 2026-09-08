@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING, Any, Dict
 from pathlib import Path
 import numpy as np
 
-from twolm.binio import BinaryWriter, BinaryReader
+from reversi.tools.binio import BinaryWriter, BinaryReader
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
 from twolm.pattern import Pattern, PatternSet

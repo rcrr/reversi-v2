@@ -152,7 +152,7 @@ check("B15 R2: corrupted checkpoint -> delete + scratch",
       and "Deleting it and starting from scratch." in b
       and "checkpoint_path.unlink(missing_ok=True)" in b
       and 'checkpoint_path.name + ".SHA3-256"' in b
-      and "from twolm import binio" in b)
+      and "from reversi.tools import binio" in b)
 check("B16 no code ws lines (house sweep)", ws_lines(b) == set(),
       str(sorted(ws_lines(b))))
 check("B17 final save uses info['w']/['sl']/['yl']/['rho']",

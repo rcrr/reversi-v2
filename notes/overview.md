@@ -137,7 +137,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | --- | --- | --- | --- |
 | src/twolm/base_model.py | complete: thin facade base over StateMachine (pure delegation); closed (D-074/D-075) | 17/0/0 (via test_logistic_model) | docs/src/twolm/base_model.md |
 | src/twolm/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); all issues closed — R1–R5 (D-017 era) + M1–M7 (D-111); I-005: no game-loop module | 201/0/12 | docs/src/twolm/board.md |
-| src/twolm/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/twolm/binio.md |
+| src/reversi/tools/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/twolm/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/twolm/cache_manager.md |
 | src/twolm/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/twolm/feature.md |
 | src/twolm/lm_worker_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/twolm/lm_worker_analytics.md |
@@ -179,7 +179,7 @@ One row per test file, alphabetical.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/twolm/test/paths.py | the single home for workspace-root-anchored test paths (D-085) — helper module (0 tests) | — | docs/src/twolm/test/paths.md |
-| src/twolm/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/twolm/test/test_binio.md |
+| src/reversi/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/reversi/test/test_binio.md |
 | src/twolm/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121) | 201/0/12 | docs/src/twolm/test/test_board.md |
 | src/twolm/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/twolm/test/test_cache_manager.md |
 | src/twolm/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/twolm/test/test_feature.md |
@@ -212,7 +212,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_rlm_wmaps.py | complete: the WMAPS data suite (D-087) | 13/0/0 | docs/src/twolm/test/test_rlm_wmaps.md |
 | src/twolm/test/test_rlm_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/twolm/test/test_rlm_zed.md |
 | src/twolm/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/twolm/test/test_state_machine.md |
-| src/twolm/test/test_usage_binio.py | complete: the 3 usage tests (D-051) | 3/0/0 | docs/src/twolm/test/test_usage_binio.md |
+| src/reversi/test/test_usage_binio.py | complete: the 3 usage tests (D-051) | 3/0/0 | docs/src/reversi/test/test_usage_binio.md |
 
 Test data (src/twolm/test/data/): rlm_00.json (the JSON5 config, D-076),
 rlm_01.json (the training DB dump), rlm_02.json (the DB dump), rlm_03.json +

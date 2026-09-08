@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
-from twolm import binio
+from reversi.tools import binio
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

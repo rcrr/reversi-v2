@@ -37,11 +37,11 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_usage_binio
+# time PERF=0 python3 -m unittest reversi.test.test_usage_binio
 #
 
 """
-Linear, copy-pasteable usage examples for twolm.binio.
+Linear, copy-pasteable usage examples for reversi.tools.binio.
 
 These tests double as documentation. Each one is a single straight sequence
 with no helper methods, showing a complete write -> read cycle.
@@ -59,7 +59,7 @@ import unittest
 
 import numpy as np
 
-from twolm import binio
+from reversi.tools import binio
 
 
 class UsageWithContextManagerTest(unittest.TestCase):

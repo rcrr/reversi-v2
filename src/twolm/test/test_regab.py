@@ -653,8 +653,8 @@ class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
         # We just need a dummy filename string since we are mocking everything
         self.filename = "dummy_file.bin"
 
-    @patch('twolm.binio.BinaryReader')
-    @patch('twolm.binio.verify_sha3_256_sidecar')
+    @patch('reversi.tools.binio.BinaryReader')
+    @patch('reversi.tools.binio.verify_sha3_256_sidecar')
     def test_load_invalid_file_description(self, mock_verify, mock_reader_cls):
         """
         Tests that loading a file with an incorrect 'description' header raises RuntimeError.
@@ -673,8 +673,8 @@ class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
             
         self.assertIn("not a proper", str(context.exception))
 
-    @patch('twolm.binio.BinaryReader')
-    @patch('twolm.binio.verify_sha3_256_sidecar')
+    @patch('reversi.tools.binio.BinaryReader')
+    @patch('reversi.tools.binio.verify_sha3_256_sidecar')
     def test_load_invalid_file_version(self, mock_verify, mock_reader_cls):
         """
         Tests that loading a file with an incorrect 'version' header raises RuntimeError.

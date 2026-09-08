@@ -32,7 +32,7 @@ import hashlib
 from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 from pathlib import Path
-from twolm import binio
+from reversi.tools import binio
 
 from twolm.pattern import IndexArray
 

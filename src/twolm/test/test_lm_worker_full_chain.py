@@ -57,7 +57,7 @@ from pathlib import Path
 
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.binio import BinaryWriter, verify_sha3_256_sidecar
+from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
 from twolm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
 from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid

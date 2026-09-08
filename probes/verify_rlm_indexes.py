@@ -124,7 +124,8 @@ check("A11 compute body: rds_checksum + feature_set.hash + feature_set.compute_i
 
 import numpy as np
 
-from twolm import binio, rlm_indexes
+from reversi.tools import binio
+from twolm import rlm_indexes
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
 from twolm.pattern import Pattern, PatternSet

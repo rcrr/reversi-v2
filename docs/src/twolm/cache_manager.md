@@ -3,7 +3,7 @@ A small, domain-agnostic caching utility: one public function
 orchestrates a 4-step validation pipeline for "load cached result or
 recompute" around injected business-logic callbacks — the load-or-
 compute engine behind every rlmwf cache file, and the first domain
-module to import `twolm.state_machine` (`Relevance`) + `twolm.binio`
+module to import `twolm.state_machine` (`Relevance`) + `reversi.tools.binio`
 (the sidecar API, no cycle). House `@validate_call` gate:
 `cache_path` coerced `str` → `Path`.
 > State: D-072 · ca8e761 · 2026-08-30 · suite 22/0/0 (no DB)
@@ -103,7 +103,7 @@ None.
 - `logger_fn` takes `(Relevance, str)` — the natural binding is the
   `log_event` method `StateMachine.__init__` injects into the shared
   `Context` (M9 left as-is per D-070).
-- The R3 trade-off: importing twolm.binio buys the exact-binio
+- The R3 trade-off: importing reversi.tools.binio buys the exact-binio
   sidecar naming + content, cross-process sidecars verifying, legacy
   bare-hex keeping valid (zero cache invalidation).
 - No PERF gates: 22 tests in ~0.05 s.

@@ -54,7 +54,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.lm_worker_positions import is_cache_consistent

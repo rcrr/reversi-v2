@@ -51,7 +51,7 @@ from types import SimpleNamespace
 
 from pydantic import ValidationError
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Relevance
 from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
                                 rlm_generate_store_to_file,

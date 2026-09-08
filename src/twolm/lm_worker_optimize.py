@@ -30,7 +30,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pydantic import validate_call, ConfigDict
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Worker, Relevance
 from twolm.opt_lbfgs import lbfgs
 from twolm.rlm_optimize import (optimization_info_dict,

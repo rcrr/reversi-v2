@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import List, Dict, Any, TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.state_machine import Relevance
 
 if TYPE_CHECKING:

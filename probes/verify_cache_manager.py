@@ -11,9 +11,9 @@ from twolm.cache_manager import (
     SHA3_256_CHECKSUM_SUFFIX,
 )
 # D-072: _compute_checksum / _save_checksum were removed from
-# cache_manager (the checksum service moved to twolm.binio); the sidecar
+# cache_manager (the checksum service moved to reversi.tools.binio); the sidecar
 # is now written in sha3_256sum format by write_sha3_256_sidecar.
-from twolm.binio import write_sha3_256_sidecar
+from reversi.tools.binio import write_sha3_256_sidecar
 from twolm.state_machine import Relevance
 
 TMP = Path(tempfile.mkdtemp(dir="build/tmp"))
@@ -75,7 +75,7 @@ def sidecar(p: Path) -> Path:
 
 
 # (V1 deleted at D-106: _compute_checksum was removed in D-072 — the
-# file-checksum fact now lives in twolm.binio, pinned by test_binio /
+# file-checksum fact now lives in reversi.tools.binio, pinned by test_binio /
 # test_cache_manager; re-pin = c.)
 
 # --- V2 sidecar naming ---------------------------------------------------

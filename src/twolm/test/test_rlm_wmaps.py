@@ -51,7 +51,7 @@ from types import SimpleNamespace
 
 from pydantic import ValidationError
 
-from twolm import binio
+from reversi.tools import binio
 from twolm.rlm_wmaps import (ReversiLogisticModelWMaps,
                              rlm_wmaps_compute,
                              rlm_wmaps_store_to_file,
