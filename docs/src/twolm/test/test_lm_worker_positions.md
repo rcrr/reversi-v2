@@ -16,7 +16,7 @@ moved the D4a-g probe unit checks into it). 2 classes / 9 tests
 The shared setUp (both classes): the `db_long_gate` FIRST (the
 SKIP_REGAB_DB + LONG gates, D-130; where applicable) + stdout patched to a StringIO (logs captured,
 output clean) + the D-065 `TemporaryDirectory` idiom (the shared
-`CUSTOM_TMP_BASE` from `twolm.test.paths`, `setUpClass` mkdir,
+`CUSTOM_TMP_BASE` from `reversi.test.paths`, `setUpClass` mkdir,
 the temp dir created FIRST so a mid-setup failure still leaves a
 cleanable dir) + a `LogisticModel` on the `rlm_00.json` fixture
 (anchored to `WORKSPACE_ROOT`) with `base_dir_override` = the
@@ -41,7 +41,7 @@ the fixture values instead of warming a real cache file.
 ## Conventions
 
 - The D-065 idiom + the D-085 `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE`
-  anchoring (shared `twolm.test.paths`).
+  anchoring (shared `reversi.test.paths`).
 - The `SKIP_REGAB_DB` gate at the top of setUp (the test_regab
   pattern) — without it a missing DB would fail setUp for every
   test.

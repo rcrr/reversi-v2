@@ -18,7 +18,7 @@ The shared setUp of the DB-gated class: the db_long_gate FIRST
 through POSITIONS, which hits the DB on a
 fresh base dir) + stdout patched to a StringIO + the D-065
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
-`twolm.test.paths`, `setUpClass` mkdir, the temp dir created FIRST
+`reversi.test.paths`, `setUpClass` mkdir, the temp dir created FIRST
 so a mid-setup failure still leaves a cleanable dir) + a
 `LogisticModel` on the `rlm_00.json` fixture (anchored to
 `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir,
@@ -50,7 +50,7 @@ POSITIONS — it also pins the step numbering).
 ## Conventions
 
 - The D-065 idiom + the D-085 `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE`
-  anchoring (shared `twolm.test.paths`).
+  anchoring (shared `reversi.test.paths`).
 - The `SKIP_REGAB_DB` gate at the top of setUp (the test_regab
   pattern) — the setUp moves to POSITIONS, which needs the live
   regab DB.

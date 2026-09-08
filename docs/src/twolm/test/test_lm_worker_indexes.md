@@ -16,7 +16,7 @@ LONG gates, D-130; the setUp moves
 to FEATURES, which runs POSITIONS — a DB hit on a fresh base
 dir) + stdout patched to a StringIO + the D-065
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
-`twolm.test.paths`, `setUpClass` mkdir, the temp dir created FIRST
+`reversi.test.paths`, `setUpClass` mkdir, the temp dir created FIRST
 so a mid-setup failure still leaves a cleanable dir) + a
 `LogisticModel` on the `rlm_00.json` fixture (anchored to
 `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir) +
@@ -39,7 +39,7 @@ pointed at POSITIONS) + a defensive tearDown (getattr guards).
 ## Conventions
 
 - The D-065 idiom + the D-085 `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE`
-  anchoring (shared `twolm.test.paths`) — the CWD-relative
+  anchoring (shared `reversi.test.paths`) — the CWD-relative
   `mkdtemp` and the per-file `__file__` derivation are gone.
 - The `SKIP_REGAB_DB` gate at the top of setUp (the test_regab
   pattern).

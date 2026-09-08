@@ -34,7 +34,7 @@ existing tests (count unchanged).
 - The `setUp` global stdout patch is LOAD-BEARING: the captured
   stdout is asserted (D-063) — not noise suppression.
 - Test artifacts are written ONLY under `workspace_root/build/tmp`
-  (the D-065 house rule, now via the shared `twolm.test.paths`
+  (the D-065 house rule, now via the shared `reversi.test.paths`
   `CUSTOM_TMP_BASE`) and removed in `finally` — a failing test leaves
   no garbage.
 - The D-107 re-pin of the guard contract (E2/E3) lives in the suite

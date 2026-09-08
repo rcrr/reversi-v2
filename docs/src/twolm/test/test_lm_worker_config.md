@@ -43,7 +43,7 @@ re-anchored it, and step 3 of D-106 moved probe check D1 into it).
 ## Conventions
 
 - The D-065 idiom on all 4 classes: the shared `CUSTOM_TMP_BASE`
-  (from `twolm.test.paths`) + `setUpClass` mkdir +
+  (from `reversi.test.paths`) + `setUpClass` mkdir +
   `TemporaryDirectory(dir=...)` created FIRST in setUp +
   defensive tearDown.
 - The json_config paths are `WORKSPACE_ROOT`-anchored (D-085),

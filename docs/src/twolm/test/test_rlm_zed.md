@@ -5,7 +5,7 @@ worker test, this file closes the coverage gap; the D-090 T6
 class). 3 classes / 10 tests / no DB, no gate — the file is fully
 offline: the module has no file I/O and no RLMContext beyond the
 two attributes `rlm_zed_compute` reads, so no `tempfile`, no
-`twolm.test.paths`, no `import os`.
+`reversi.test.paths`, no `import os`.
 > State: D-092 · 17a5f95 · 2026-09-01 · suite 10/0/0
 
 ## Coverage
@@ -29,7 +29,7 @@ two attributes `rlm_zed_compute` reads, so no `tempfile`, no
 ## Conventions
 
 - DB-free BY CONSTRUCTION (the module has no file I/O) — hence no
-  SKIP_REGAB_DB gate and no `twolm.test.paths` import (the D-065
+  SKIP_REGAB_DB gate and no `reversi.test.paths` import (the D-065
   artifact rule has nothing to apply to).
 - Mirrors the test_rlm_wmaps / test_rlm_design_matrix house
   pattern: the isolated factory math, the handcrafted-mock

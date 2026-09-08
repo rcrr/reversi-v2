@@ -5,7 +5,7 @@ require a live PostgreSQL database + the workspace `.env`; 2
 `SKIP_REGAB_DB=1` (or the absent LONG tier, D-130) skips the
 DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`,
 T6, D-052). D-085 re-anchored the `.env` load and
-the checksum test's `mkdtemp` to the shared `twolm.test.paths`
+the checksum test's `mkdtemp` to the shared `reversi.test.paths`
 constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 > State: D-085 · aef6188 · 2026-08-31 · suite 37/0/0 (35 live-DB;
   SKIP_REGAB_DB=1 → 35 skipped / 2 run, 0.9 s)

@@ -16,7 +16,7 @@ fresh base dir, which runs POSITIONS).
 The shared setUp: the `db_long_gate` FIRST (the SKIP_REGAB_DB +
 LONG gates, D-130; the D-087 T1
 fix — the header's gate claim is now true) + the D-065/D-085
-idiom (the shared `CUSTOM_TMP_BASE` from `twolm.test.paths`,
+idiom (the shared `CUSTOM_TMP_BASE` from `reversi.test.paths`,
 `setUpClass` mkdir, `TemporaryDirectory` first in setUp, the
 `WORKSPACE_ROOT`-anchored json_config, defensive tearDowns).
 

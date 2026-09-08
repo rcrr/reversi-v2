@@ -24,7 +24,7 @@ artifacts — the handcrafted-mock pattern, as in test_rlm_zed.
 ## Conventions
 
 - DB-free BY CONSTRUCTION (the module has no file I/O) — hence
-  no SKIP_REGAB_DB gate and no `twolm.test.paths` import.
+  no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
 - NO init-validation tests: rlm_gradient is a function-only
   module (no data class to validate) — unlike test_rlm_zed.
 - Clean from day one (no ws lines, no dead imports, the no-DB

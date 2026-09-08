@@ -30,7 +30,7 @@ as in test_rlm_zed / test_rlm_gradient.
 
 - DB-free BY CONSTRUCTION (no file I/O outside the IO class,
   which uses TemporaryDirectory) — hence no SKIP_REGAB_DB gate
-  and no `twolm.test.paths` import beyond CUSTOM_TMP_BASE.
+  and no `reversi.test.paths` import beyond CUSTOM_TMP_BASE.
 - The empty-array `wmap` in the error-branch tests is
   `np.zeros((0, 3), dtype=np.int64)` — the (0,3) shape keeps the
   column indexing `wmap[:, 0] == fid` well-defined.

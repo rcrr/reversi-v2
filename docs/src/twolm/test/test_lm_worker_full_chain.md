@@ -62,7 +62,7 @@ file-report hashes).
 
 ## Integration
 
-- `twolm.test.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the
+- `reversi.test.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the
   module runnable from any CWD (the bring-in's `'./build/tmp'` +
   relative json paths were CWD-locked, T5).
 - A2050 has no second-instance test and its goldens are pinned from

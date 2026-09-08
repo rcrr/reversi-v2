@@ -15,7 +15,7 @@ T-campaign narrative froze in the archive.
 ## Testbed design (setUp, L68-104)
 
 - `setUpClass` (L64): `CUSTOM_TMP_BASE.mkdir(parents=True,
-  exist_ok=True)` — imported from the shared `twolm.test.paths`
+  exist_ok=True)` — imported from the shared `reversi.test.paths`
   module (D-065 idiom, T2/D-075, centralized at D-085).
 - `sys.stdout` patched to a StringIO (keeps the SM display out of
   the test log); the dummy `dummy_config.json` (`{}`) in a
