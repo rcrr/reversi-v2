@@ -1,4 +1,4 @@
-# twolm/model_weights.py
+# reversi/lm/model_weights.py
 The persistence layer of the saved RLM model: the third data module in
 the pipeline family (after hlp_indexes/hlp_wmaps and the hlp_generate
 store/load pair) and the first with a plain `@dataclass` (no pydantic

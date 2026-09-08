@@ -98,7 +98,7 @@ None.
 
 - Consumers: the terminal level of the StateMachine — nothing runs
   after SAVE; the saved file is consumed by `twolm/rlm_client.py`
-  (`make_evaluation_function`) + `twolm/model_weights.py`
+  (`make_evaluation_function`) + `reversi/lm/model_weights.py`
   (`model_weights_read_file`).
 - The data it persists is the INFERENCE subset: w_dense +
   iwmap_feature_offset + the full FeatureSet + training-population
