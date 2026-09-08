@@ -237,7 +237,7 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
 
 # ----------------------------------------------------------------------
 # G. test_rlm_design_matrix.py (new in D-090 T6 — the dedicated unit
-#    tests for the data object, mirroring test_rlm_wmaps)
+#    tests for the data object, mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
 g = lines("src/twolm/test/test_rlm_design_matrix.py")
 check("G1 test_rlm_design_matrix.py is 258 lines (new file, D-090 T6)", len(g) == 258, f"{len(g)}")
