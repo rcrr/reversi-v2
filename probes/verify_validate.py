@@ -109,7 +109,7 @@ check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
       "ctx.vld_metrics = None" in wk_src
       and wk_src.count("ctx.vld_metrics = None") == 1
       and "ctx.vld_metrics = metrics" in wk_src)
-check("A10 rlm_validate REUSES sigmoid from rlm_gradient (defined + exported there)",
+check("A10 rlm_validate REUSES sigmoid from hlp_gradient (defined + exported there)",
       "from reversi.lm.hlp_gradient import sigmoid" in dv_src
       and "def sigmoid(x: np.ndarray) -> np.ndarray:" in read("src/reversi/lm/hlp_gradient.py")
       and "'sigmoid'" in read("src/reversi/lm/hlp_gradient.py").split("__all__ = ")[1].split("]")[0])

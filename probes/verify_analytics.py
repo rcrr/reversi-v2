@@ -3,7 +3,7 @@
 verify_analytics.py — scratch probe for the ANALYTICS bring-in
 (session 28, Roberto's commit 96dacb5 — the 14th pipeline level,
 the 2nd bring-in with a dedicated data module, rlm_analytics,
-function-only like rlm_gradient / rlm_validate).
+function-only like hlp_gradient / rlm_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
