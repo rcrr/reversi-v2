@@ -91,7 +91,7 @@ check("A5 no non-comment trailing whitespace",
 # ----------------------------------------------------------------------
 # B. lm_worker_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
-wk_src = read("src/twolm/lm_worker_generate.py")
+wk_src = read("src/reversi/lm/wrk_generate.py")
 check("B1 the worker uses the D-074 house name _for_current_level (the "
       "pre-campaign _for_next_level call is the R1 AttributeError)",
       "get_cache_file_full_path_for_current_level" in wk_src
@@ -101,8 +101,8 @@ check("B2 the factory is @validate_call-decorated + pydantic imported "
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_generate" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("B3 no non-comment trailing whitespace",
-      not ws_lines("src/twolm/lm_worker_generate.py"),
-      f"lines {ws_lines('src/twolm/lm_worker_generate.py')}")
+      not ws_lines("src/reversi/lm/wrk_generate.py"),
+      f"lines {ws_lines('src/reversi/lm/wrk_generate.py')}")
 
 # ----------------------------------------------------------------------
 # C. test_hlp_generate.py structure (post-campaign)

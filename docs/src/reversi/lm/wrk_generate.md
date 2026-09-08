@@ -1,4 +1,4 @@
-# twolm/lm_worker_generate.py
+# reversi/lm/wrk_generate.py
 The GENERATE worker — the pipeline's dense-expansion level. `_up`
 runs the uniform 7-kwargs `cache_manager_load_or_compute` flow to
 materialize the dense weight vector (`ctx.w_dense` +

@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_generate.py
+# reversi/test/test_wrk_generate.py
 The GENERATE worker integration suite — CREATED in the D-098 T5
 campaign (Roberto: "T5: ok" + "Aggiungi anche il file
 test_lm_worker_generate.py con i dovuti tests sul worker"): at
