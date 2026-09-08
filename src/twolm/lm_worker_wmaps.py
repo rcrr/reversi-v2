@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.rlm_wmaps import (rlm_wmaps_load_from_file,
+from reversi.lm.hlp_wmaps import (rlm_wmaps_load_from_file,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_compute,
                              rlm_wmaps_is_cache_consistent)

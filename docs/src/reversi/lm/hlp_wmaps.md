@@ -1,4 +1,4 @@
-# twolm/rlm_wmaps.py
+# reversi/lm/hlp_wmaps.py
 The WMAPS domain module of the RLM pipeline: the
 `ReversiLogisticModelWMaps` data object (the 6 weight-map arrays
 + the 2 metadata scalars) + 4 public functions (store / load /

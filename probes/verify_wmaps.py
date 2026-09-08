@@ -45,27 +45,27 @@ def lines(p):
 # ----------------------------------------------------------------------
 # A. rlm_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-rlm = lines("src/twolm/rlm_wmaps.py")
+rlm = lines("src/reversi/lm/hlp_wmaps.py")
 check("A1 rlm_wmaps.py is 316 lines (post D-087: 311 - accumulate + note + contract + 0 ws net)", len(rlm) == 316, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
-      "from itertools import accumulate" not in read("src/twolm/rlm_wmaps.py")
-      and "accumulate" not in read("src/twolm/rlm_wmaps.py"))
+      "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
+      and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
 check("A3 __all__ lists the 5 public names",
-      "'ReversiLogisticModelWMaps'," in read("src/twolm/rlm_wmaps.py")
-      and "'rlm_wmaps_is_cache_consistent']" in read("src/twolm/rlm_wmaps.py"))
+      "'ReversiLogisticModelWMaps'," in read("src/reversi/lm/hlp_wmaps.py")
+      and "'rlm_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/twolm/rlm_wmaps.py"))
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A5 rlm_wmaps_compute has NO @validate_call but the no-validation note (L181, the rlm_indexes style — D-087 T5)",
-      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef rlm_wmaps_compute" not in read("src/twolm/rlm_wmaps.py")
+      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef rlm_wmaps_compute" not in read("src/reversi/lm/hlp_wmaps.py")
       and rlm[180] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
       repr(rlm[180]))
 check("A6 rlm_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
-      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef rlm_wmaps_is_cache_consistent" not in read("src/twolm/rlm_wmaps.py"))
+      "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef rlm_wmaps_is_cache_consistent" not in read("src/reversi/lm/hlp_wmaps.py"))
 check("A7 the R1 contract is documented in the compute docstring (D-087 R1 — dense by contract, no guard)",
-      "The input pindexes matrix is dense by contract: every cell holds a" in read("src/twolm/rlm_wmaps.py")
-      and "are unsigned and never -1 — D-086 R1" in read("src/twolm/rlm_wmaps.py"))
+      "The input pindexes matrix is dense by contract: every cell holds a" in read("src/reversi/lm/hlp_wmaps.py")
+      and "are unsigned and never -1 — D-086 R1" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A8 store docstring makes no sidecar promise (D-072 shape)",
-      '"""Saves the WMaps instance to a binary file."""' in read("src/twolm/rlm_wmaps.py"))
+      '"""Saves the WMaps instance to a binary file."""' in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
 check("A10 the above_mask code line is clean (L280, no trailing space)",
@@ -105,7 +105,7 @@ check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[
 # ----------------------------------------------------------------------
 # C. test_rlm_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-t1 = lines("src/twolm/test/test_rlm_wmaps.py")
+t1 = lines("src/reversi/test/test_hlp_wmaps.py")
 check("C1 test_rlm_wmaps.py is 325 lines (post D-087: 259 + 7 new tests - import/comment/ws net)", len(t1) == 325, f"{len(t1)}")
 check("C2 4 classes / 13 tests (the 2 compute + 3 consistency + 6 IO + 2 init since D-087 T10)",
       sum(1 for l in t1 if l.startswith("class ")) == 4 and
@@ -113,40 +113,40 @@ check("C2 4 classes / 13 tests (the 2 compute + 3 consistency + 6 IO + 2 init si
 check("C3 the header is corrected (L38: '-1- Run the tests.' — the file is DB-free, D-087 T2)",
       t1[37] == "# -1- Run the tests.", repr(t1[37]))
 check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no DB)",
-      read("src/twolm/test/test_rlm_wmaps.py").count("SKIP_REGAB_DB") == 0)
-check("C5 no DB import in the file", "from reversi.regab" not in read("src/twolm/test/test_rlm_wmaps.py")
-      and "import regab" not in read("src/twolm/test/test_rlm_wmaps.py"))
+      read("src/reversi/test/test_hlp_wmaps.py").count("SKIP_REGAB_DB") == 0)
+check("C5 no DB import in the file", "from reversi.regab" not in read("src/reversi/test/test_hlp_wmaps.py")
+      and "import regab" not in read("src/reversi/test/test_hlp_wmaps.py"))
 check("C6 D-085 idiom applied: setUpClass (L207) + TemporaryDirectory under CUSTOM_TMP_BASE (L213)",
       t1[206] == "    def setUpClass(cls):"
       and t1[212] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
       repr(t1[212]))
 check("C7 defensive tearDown (getattr _tmp guard, no shutil)",
-      "        if getattr(self, '_tmp', None) is not None:" in read("src/twolm/test/test_rlm_wmaps.py")
-      and "shutil" not in read("src/twolm/test/test_rlm_wmaps.py"))
+      "        if getattr(self, '_tmp', None) is not None:" in read("src/reversi/test/test_hlp_wmaps.py")
+      and "shutil" not in read("src/reversi/test/test_hlp_wmaps.py"))
 check("C8 the D-085 paths import is present (L60)",
       t1[59] == "from reversi.test.paths import CUSTOM_TMP_BASE", repr(t1[59]))
 check("C9 the dead StringIO AND patch imports are gone (D-087 T4)",
-      "StringIO" not in read("src/twolm/test/test_rlm_wmaps.py")
-      and "unittest.mock" not in read("src/twolm/test/test_rlm_wmaps.py")
-      and "patch" not in read("src/twolm/test/test_rlm_wmaps.py"))
+      "StringIO" not in read("src/reversi/test/test_hlp_wmaps.py")
+      and "unittest.mock" not in read("src/reversi/test/test_hlp_wmaps.py")
+      and "patch" not in read("src/reversi/test/test_hlp_wmaps.py"))
 check("C10 the leftover generation comment is gone (D-087 T3)",
-      "sostituisci" not in read("src/twolm/test/test_rlm_wmaps.py"))
+      "sostituisci" not in read("src/reversi/test/test_hlp_wmaps.py"))
 ws_t1 = [i + 1 for i, l in enumerate(t1) if l != l.rstrip() and not l.strip().startswith("#")]
 check("C11 0 whitespace-only lines (D-087 T9: 21 stripped)", len(ws_t1) == 0, f"{ws_t1}")
 check("C12 the store/load cycle still pins checksum=False on both sides",
-      "rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)" in read("src/twolm/test/test_rlm_wmaps.py")
-      and "rlm_wmaps_load_from_file(self.filepath, checksum=False)" in read("src/twolm/test/test_rlm_wmaps.py"))
+      "rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)" in read("src/reversi/test/test_hlp_wmaps.py")
+      and "rlm_wmaps_load_from_file(self.filepath, checksum=False)" in read("src/reversi/test/test_hlp_wmaps.py"))
 check("C13 the golden-hash test is present with the pinned literal (D-087 T10)",
-      "def test_compute_sha3_256_hash_golden" in read("src/twolm/test/test_rlm_wmaps.py")
-      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read("src/twolm/test/test_rlm_wmaps.py"))
+      "def test_compute_sha3_256_hash_golden" in read("src/reversi/test/test_hlp_wmaps.py")
+      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read("src/reversi/test/test_hlp_wmaps.py"))
 check("C14 the 4 new load-path tests are present (D-087 T10: sidecar valid/mismatch, description, version)",
-      all(f"def {n}" in read("src/twolm/test/test_rlm_wmaps.py")
+      all(f"def {n}" in read("src/reversi/test/test_hlp_wmaps.py")
           for n in ("test_load_with_valid_sidecar", "test_load_with_mismatched_sidecar",
                     "test_load_rejects_wrong_description", "test_load_rejects_version_mismatch")))
 check("C15 the TestRLMWmapsInit class is present with the precise ValidationError (D-087 T10)",
-      "class TestRLMWmapsInit" in read("src/twolm/test/test_rlm_wmaps.py")
-      and "from pydantic import ValidationError" in read("src/twolm/test/test_rlm_wmaps.py")
-      and "assertRaises(ValidationError)" in read("src/twolm/test/test_rlm_wmaps.py"))
+      "class TestRLMWmapsInit" in read("src/reversi/test/test_hlp_wmaps.py")
+      and "from pydantic import ValidationError" in read("src/reversi/test/test_hlp_wmaps.py")
+      and "assertRaises(ValidationError)" in read("src/reversi/test/test_hlp_wmaps.py"))
 
 # ----------------------------------------------------------------------
 # D. test_lm_worker_wmaps.py structure (post D-087)

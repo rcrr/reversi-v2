@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_rlm_wmaps
+# time python3 -m unittest reversi.test.test_hlp_wmaps
 #
 
 import unittest
@@ -52,7 +52,7 @@ from types import SimpleNamespace
 from pydantic import ValidationError
 
 from reversi.tools import binio
-from twolm.rlm_wmaps import (ReversiLogisticModelWMaps,
+from reversi.lm.hlp_wmaps import (ReversiLogisticModelWMaps,
                              rlm_wmaps_compute,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_load_from_file,

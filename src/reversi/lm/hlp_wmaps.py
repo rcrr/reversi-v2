@@ -1,5 +1,5 @@
 #
-# rlm_wmaps.py
+# hlp_wmaps.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
