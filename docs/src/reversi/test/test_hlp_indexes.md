@@ -45,4 +45,4 @@ gates.
 - The 52-call probe re-derives the store/load round-trip with
   REAL files (B3-B8) and the pipeline integration (C2-C7); the
   step-3 class c deletions (B1, B9-B11, B14, C1, C6a/C6b) all
-  point at tests in this file or in test_lm_worker_indexes.py.
+  point at tests in this file or in test_wrk_indexes.py.

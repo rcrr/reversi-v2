@@ -6,7 +6,7 @@
 # the domain module (src/reversi/lm/hlp_indexes.py) and the worker
 # (src/reversi/lm/wrk_indexes.py), plus the source structure of
 # their two test files (test_hlp_indexes.py,
-# test_lm_worker_indexes.py), session 23 (D-083 analysis).
+# test_wrk_indexes.py), session 23 (D-083 analysis).
 #
 # The B tier is pure (no DB): the store/load round-trip, the
 # sidecar flow, the is_cache_consistent logic and the compute
@@ -24,11 +24,11 @@
 # hlp_indexes R1 (A8 docstring corrected) + M1 (imports gone) +
 # M2 (A9 typo fixed) + M3 (A10 4→0 whitespace) + M4 (version
 # gate via expected_version) + M6 (__repr__ added — A3 4→5);
-# lm_worker_indexes M1 (D3 @validate_call) + M2 (D6 2→0) +
+# wrk_indexes M1 (D3 @validate_call) + M2 (D6 2→0) +
 # M3 (D5 load_fn checksum=False); test_hlp_indexes T1-T5 +
 # M1-M2 (F3 import gone, F4 header, F5 English comment, F7
 # ValidationError pins + rds_checksum present, F8 both branches,
-# F9 19→0, 13→14 tests); test_lm_worker_indexes T1-T3 + M1
+# F9 19→0, 13→14 tests); test_wrk_indexes T1-T3 + M1
 # (E2 D-065 idiom, E3 gate, E4 header, E7 13→0 + defensive
 # tearDown).
 #
@@ -244,7 +244,7 @@ with contextlib.redirect_stdout(out1):
 s1 = out1.getvalue()
 
 # (C1 step 4 / 'INDEXES' deleted at D-106 step 3, class c:
-#  test_lm_worker_indexes.py pins step 4 / name INDEXES in three
+#  test_wrk_indexes.py pins step 4 / name INDEXES in three
 #  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
 check("C2 flat cache files: CONFIG + POSITIONS + INDEXES (no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
@@ -285,16 +285,16 @@ check("C7 down to FEATURES: hlp_indexes + hlp_indexes_checksum cleared",
       and m1.context.hlp_indexes_checksum is None)
 
 #
-# D — source structure of lm_worker_indexes.py (content pins).
+# D — source structure of wrk_indexes.py (content pins).
 #
 
-wsrc = (ROOT / "src" / "twolm" / "lm_worker_indexes.py").read_text()
+wsrc = (ROOT / "src" / "twolm" / "wrk_indexes.py").read_text()
 
 check("D1 80 lines (D-084: +1 pydantic import, +1 @validate_call)",
       len(wsrc.splitlines()) == 80)
-check("D2 __all__ = ['lm_worker_indexes']", "__all__ = ['lm_worker_indexes']" in wsrc)
+check("D2 __all__ = ['wrk_indexes']", "__all__ = ['wrk_indexes']" in wsrc)
 check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @validate_call (house convention, as in the other workers post-campaign)",
-      '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_indexes() -> Worker:' in wsrc
+      '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_indexes() -> Worker:' in wsrc
       and 'return Worker("INDEXES", _up, _down)' in wsrc
       and "from pydantic import validate_call, ConfigDict" in wsrc)
 check("D4 RLMContext import under TYPE_CHECKING (circular-import guard)",
@@ -312,10 +312,10 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
       and sum(1 for l in wsrc.splitlines() if l != l.rstrip() and not l.lstrip().startswith("#")) == 0)
 
 #
-# E — source structure of test_lm_worker_indexes.py (content pins).
+# E — source structure of test_wrk_indexes.py (content pins).
 #
 
-tsrc = (ROOT / "src" / "twolm" / "test" / "test_lm_worker_indexes.py").read_text()
+tsrc = (ROOT / "src" / "twolm" / "test" / "test_wrk_indexes.py").read_text()
 
 check("E1 153 lines, 1 class / 2 tests (post D-085: the D-065 idiom moved to reversi.test.paths)",
       len(tsrc.splitlines()) == 153
@@ -329,8 +329,8 @@ check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom 
 check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the setUp moves to FEATURES (step 3), which runs POSITIONS — a DB hit on a fresh base dir)",
       "SKIP_REGAB_DB" in tsrc and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
-check("E4 D-084 T3: header grammar 'How to run the lm_worker_indexes unit tests.' + the DB run note",
-      "How to run the lm_worker_indexes unit tests." in tsrc
+check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",
+      "How to run the wrk_indexes unit tests." in tsrc
       and "a live regab DB is required" in tsrc)
 check("E5 the rlmwf_04_INDEXES.dat + .SHA3-256 pins and the 'Executing heavy computation' pin",
       "rlmwf_04_INDEXES.dat" in tsrc and "rlmwf_04_INDEXES.dat.SHA3-256" in tsrc

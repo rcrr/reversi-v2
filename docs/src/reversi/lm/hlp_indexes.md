@@ -82,7 +82,7 @@ Pinned by the 52-call `probes/verify_hlp_indexes.py` + the two test files (14 un
   3 RuntimeError messages), the compute with a MagicMock ctx,
   the 3 `is_cache_consistent` single-field-diff branches.
 - The end-to-end round-trip (DB-gated,
-  `test_lm_worker_indexes.py`, 2 `SKIP_REGAB_DB`-gated tests):
+  `test_wrk_indexes.py`, 2 `SKIP_REGAB_DB`-gated tests):
   the compute + store run ("Executing heavy computation", the
   flat files on disk) and the second-instance cache hit ("Cache
   successfully loaded and validated", no heavy computation).
@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The 5th RLM level; the worker (lm_worker_indexes.py) carries
+- The 5th RLM level; the worker (wrk_indexes.py) carries
   the cache wiring, this module the data object + the 4
   functions. Consumes `ctx.rds_checksum` (POSITIONS) and
   `ctx.feature_set` (FEATURES) — both must be set before

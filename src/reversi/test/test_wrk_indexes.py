@@ -1,5 +1,5 @@
 #
-# test_lm_worker_indexes.py
+# test_wrk_indexes.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the lm_worker_indexes unit tests.
+# How to run the wrk_indexes unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

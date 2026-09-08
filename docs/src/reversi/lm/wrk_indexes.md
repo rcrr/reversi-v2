@@ -12,7 +12,7 @@ pipeline (after POSITIONS), and unlike FEATURES the flat
 
 | name | contract |
 |---|---|
-| `lm_worker_indexes()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("INDEXES", _up, _down)` |
+| `wrk_indexes()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("INDEXES", _up, _down)` |
 
 ## Architecture
 
@@ -42,7 +42,7 @@ Pinned by the `probes/verify_hlp_indexes.py` D tier + the 2-test
 suite.
 
 - Source shape: the 80-line file, `__all__ =
-  ['lm_worker_indexes']`, the factory name "INDEXES" WITH
+  ['wrk_indexes']`, the factory name "INDEXES" WITH
   `@validate_call` (the D-084 M1 house convention), the RLMContext
   import under TYPE_CHECKING (the circular-import guard), the full
   7-kwargs cache wiring with the `checksum=False` load_fn, the
@@ -61,7 +61,7 @@ suite.
   computation", non-None `hlp_indexes`) and `test_read_cache_on_
   new_instance` (the second instance: the "Cache successfully
   loaded and validated" + the NEGATIVE "Executing heavy
-  computation" pin) — `test_lm_worker_indexes.py` (2 tests,
+  computation" pin) — `test_wrk_indexes.py` (2 tests,
   `SKIP_REGAB_DB` gated).
 
 ## Open issues

@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_indexes']
+__all__ = ['wrk_indexes']
 
 
 
@@ -75,6 +75,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_indexes() -> Worker:
+def wrk_indexes() -> Worker:
     """Factory function that returns the INDEXES worker instance."""
     return Worker("INDEXES", _up, _down)

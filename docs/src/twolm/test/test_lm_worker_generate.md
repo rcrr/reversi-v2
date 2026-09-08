@@ -3,7 +3,7 @@ The GENERATE worker integration suite — CREATED in the D-098 T5
 campaign (Roberto: "T5: ok" + "Aggiungi anche il file
 test_lm_worker_generate.py con i dovuti tests sul worker"): at
 the bring-in there was NO worker test at all. House worker-test
-shape (as in test_lm_worker_indexes / test_lm_worker_optimize
+shape (as in test_wrk_indexes / test_lm_worker_optimize
 et al.): a live-DB suite that moves the machine through the full
 10-level chain on a fresh base dir and then exercises the
 GENERATE level. 1 class / 3 tests, all DB-gated.
