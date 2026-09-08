@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_gradient import rlm_gradient_compute
+from reversi.lm.hlp_gradient import hlp_gradient_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -47,7 +47,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Building gradient and loss function (fg)...")
 
     # GRADIENT building is a closure generation, very fast. No cache needed.
-    ctx.fg = rlm_gradient_compute(ctx)
+    ctx.fg = hlp_gradient_compute(ctx)
 
     ctx.log_event(Relevance.INFO, "Gradient function generated.")
 

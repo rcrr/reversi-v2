@@ -36,7 +36,7 @@
 # $ source .venv/bin/activate
 #
 # -1- Run the tests (no live regab DB required — pure checkpoint IO
-#     and cache-validation tests, as in test_rlm_gradient).
+#     and cache-validation tests, as in test_hlp_gradient).
 #
 # time python3 -m unittest twolm.test.test_rlm_optimize
 #

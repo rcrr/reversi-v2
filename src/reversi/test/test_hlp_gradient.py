@@ -1,5 +1,5 @@
 #
-# test_rlm_gradient.py
+# test_hlp_gradient.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_gradient unit tests.
+# How to run the hlp_gradient unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -47,7 +47,7 @@ from types import SimpleNamespace
 import numpy as np
 import numpy.testing as nptest
 
-from reversi.lm.hlp_gradient import rlm_gradient_compute, sigmoid
+from reversi.lm.hlp_gradient import hlp_gradient_compute, sigmoid
 
 
 
@@ -69,7 +69,7 @@ class TestSigmoid(unittest.TestCase):
 
 
 class TestRLMGradientCompute(unittest.TestCase):
-    """Tests rlm_gradient_compute on a handcrafted mock context (no DB)."""
+    """Tests hlp_gradient_compute on a handcrafted mock context (no DB)."""
 
     def _mock_ctx(self, ridge, w, X, z):
         return SimpleNamespace(
@@ -102,7 +102,7 @@ class TestRLMGradientCompute(unittest.TestCase):
         # over its two cells, divided by M.
         ctx = self._mock_ctx(0.0, [0.0, 0.0, 0.0],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
-        fg = rlm_gradient_compute(ctx)
+        fg = hlp_gradient_compute(ctx)
         f, g = fg(ctx.w)
         nptest.assert_allclose(f, 4 / 75, rtol=1e-6, atol=1e-8)
         nptest.assert_allclose(g, [1 / 30, 0.0, -1 / 30], rtol=1e-6, atol=1e-8)
@@ -112,7 +112,7 @@ class TestRLMGradientCompute(unittest.TestCase):
         # the independent float64 re-derivation.
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
-        fg = rlm_gradient_compute(ctx)
+        fg = hlp_gradient_compute(ctx)
         f, g = fg(ctx.w)
         f_ref, g_ref = self._reference(ctx, ctx.w)
         nptest.assert_allclose(f, f_ref, rtol=1e-5, atol=1e-7)
@@ -126,8 +126,8 @@ class TestRLMGradientCompute(unittest.TestCase):
         X = [[0, 1], [1, 2], [0, 2]]
         z = [0.1, 0.9, 0.5]
         w = np.array([0.1, -0.2, 0.05], dtype=np.float32)
-        f_a, g_a = rlm_gradient_compute(self._mock_ctx(0.01, [0.1, -0.2, 0.05], X, z))(w)
-        f_b, g_b = rlm_gradient_compute(self._mock_ctx(0.50, [0.1, -0.2, 0.05], X, z))(w)
+        f_a, g_a = hlp_gradient_compute(self._mock_ctx(0.01, [0.1, -0.2, 0.05], X, z))(w)
+        f_b, g_b = hlp_gradient_compute(self._mock_ctx(0.50, [0.1, -0.2, 0.05], X, z))(w)
         dw = w.astype(np.float64)
         nptest.assert_allclose(g_b - g_a, (0.50 - 0.01) / 3 * dw, rtol=1e-6, atol=1e-9)
         nptest.assert_allclose(f_b - f_a, 0.5 * (0.50 - 0.01) / 3 * float(np.dot(dw, dw)),
@@ -138,7 +138,7 @@ class TestRLMGradientCompute(unittest.TestCase):
         # alpha * w[2] = (0.03 / 2) * 0.3 = 0.0045, and g keeps the
         # full (N,) shape regardless of the cell coverage.
         ctx = self._mock_ctx(0.03, [0.1, 0.2, 0.3], [[0, 0], [1, 1]], [0.3, 0.7])
-        fg = rlm_gradient_compute(ctx)
+        fg = hlp_gradient_compute(ctx)
         f, g = fg(ctx.w)
         self.assertEqual(g.shape, (3,))
         nptest.assert_allclose(g[2], 0.015 * 0.3, rtol=1e-6, atol=1e-9)
@@ -147,7 +147,7 @@ class TestRLMGradientCompute(unittest.TestCase):
         # R1 (D-093): the closure returns (np.float32, NDArray[float32]).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
-        fg = rlm_gradient_compute(ctx)
+        fg = hlp_gradient_compute(ctx)
         f, g = fg(ctx.w)
         self.assertEqual(f.dtype, np.float32)
         self.assertEqual(g.dtype, np.float32)
@@ -158,7 +158,7 @@ class TestRLMGradientCompute(unittest.TestCase):
         # pre-allocated buffers must not leak state between calls).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
-        fg = rlm_gradient_compute(ctx)
+        fg = hlp_gradient_compute(ctx)
         f1, g1 = fg(ctx.w)
         f2, g2 = fg(ctx.w)
         self.assertEqual(f1, f2)

@@ -1,17 +1,17 @@
 #
 # verify_gradient.py — independent verification probe for the GRADIENT
-# bring-in (rlm_gradient.py, lm_worker_gradient.py,
+# bring-in (hlp_gradient.py, lm_worker_gradient.py,
 # test_lm_worker_gradient.py, rlm_02.json), re-pinned to the
 # post-D-094-campaign state.
 #
 # Tiers:
-#   A  rlm_gradient.py structure (post-campaign)
+#   A  hlp_gradient.py structure (post-campaign)
 #   B  lm_worker_gradient.py structure (post-campaign)
 #   C  test_lm_worker_gradient.py structure (post-campaign)
 #   D  live pipeline through GRADIENT (DB required) + independent
 #      float64 re-derivation of f and g (w = 0 and w != 0)
 #   E  cross-file (logistic_model, schemas, pyproject, rlm_02.json)
-#   G  dedicated test_rlm_gradient.py (no DB)
+#   G  dedicated test_hlp_gradient.py (no DB)
 #
 # Run:  .venv/bin/python scratch/verify_gradient.py
 #
@@ -43,16 +43,16 @@ def ws_lines(text):
 
 
 # ---------------------------------------------------------------- A tier
-print("== tier A: rlm_gradient.py structure (post D-094)")
-a = read("rlm_gradient.py")
+print("== tier A: hlp_gradient.py structure (post D-094)")
+a = read("hlp_gradient.py")
 al = a.splitlines()
 check("A1 line count 91", len(al) == 91, f"{len(al)}")
-check("A2 __all__", "__all__ = ['rlm_gradient_compute', 'sigmoid']" in a)
+check("A2 __all__", "__all__ = ['hlp_gradient_compute', 'sigmoid']" in a)
 check("A3 scipy import", "from scipy.special import expit" in a)
 check("A4 TYPE_CHECKING RLMContext",
       "if TYPE_CHECKING:" in a and
       "from twolm.logistic_model import RLMContext" in a)
-check("A5 no validate_call (rlm_gradient_compute — the L166 class)",
+check("A5 no validate_call (hlp_gradient_compute — the L166 class)",
       "validate_call" not in a)
 check("A6 no pydantic import", "pydantic" not in a)
 check("A7 no ws lines", ws_lines(a) == set(), str(sorted(ws_lines(a))))
@@ -62,7 +62,7 @@ check("A8 sigmoid docstring fixed",
 check("A9 three defs",
       re.findall(r"^(?:def |    def ).*$", a, re.M) ==
       ["def sigmoid(x: np.ndarray) -> np.ndarray:",
-       "def rlm_gradient_compute(ctx: \"RLMContext\") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:",
+       "def hlp_gradient_compute(ctx: \"RLMContext\") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:",
        "    def fg(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:"])
 check("A10 docstring claims",
       "normalized by the number of positions (M)" in a and
@@ -85,7 +85,7 @@ check("B3 T2 factory @validate_call + pydantic import",
       "def lm_worker_gradient() -> Worker:" in b)
 check("B4 non-cache comment",
       "GRADIENT building is a closure generation, very fast. No cache needed." in b)
-check("B5 _up sets fg", "ctx.fg = rlm_gradient_compute(ctx)" in b)
+check("B5 _up sets fg", "ctx.fg = hlp_gradient_compute(ctx)" in b)
 check("B6 _down clears fg", "ctx.fg = None" in b)
 check("B7 no ws lines", ws_lines(b) == set(), str(sorted(ws_lines(b))))
 check("B8 M4 triple blanks kept (house worker style, L39-41 + L43-45)",
@@ -296,8 +296,8 @@ check("E8 rlm_02 trailing comma (JSON5)",
       re.search(r'"ridge_regularization": 0\.01,\s*\n\s*\}', j) is not None)
 
 # ---------------------------------------------------------------- G tier
-print("== tier G: dedicated test_rlm_gradient.py (no DB)")
-gd = read("test/test_rlm_gradient.py")
+print("== tier G: dedicated test_hlp_gradient.py (no DB)")
+gd = read("test/test_hlp_gradient.py")
 gdl = gd.splitlines()
 check("G1 line count 169 + no-DB header claim",
       len(gdl) == 169 and

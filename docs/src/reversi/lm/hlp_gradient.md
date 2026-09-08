@@ -3,7 +3,7 @@ The GRADIENT domain module of the RLM pipeline — the function-only
 module: NO data class, NO store / load / is_cache_consistent, NO
 init validation, NO hash (unlike every other rlm_* level). Two
 public names: `sigmoid` (the scipy `expit` wrapper) +
-`rlm_gradient_compute` (the closure builder: captures X, z and
+`hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates
 the normalized loss and gradient). The 9th active level (CREATED
 sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
@@ -16,7 +16,7 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
 | name | contract |
 |---|---|
 | `sigmoid(x)` | the scipy `expit` wrapper — NO `@validate_call` (the hot-loop call, left as-is by Roberto) |
-| `rlm_gradient_compute(ctx)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))` |
+| `hlp_gradient_compute(ctx)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))` |
 
 ## Architecture
 
@@ -26,7 +26,7 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
   `1 / (1 + exp(−x))` is what it replaced; expit's stability
   advantage is at extreme x (where the naive `np.exp(−x)`
   overflows).
-- `rlm_gradient_compute`: NO `@validate_call` (the L52
+- `hlp_gradient_compute`: NO `@validate_call` (the L52
   no-validation note — the hlp_indexes L166 class, the D-094 T3
   fix). Captures: `N = len(ctx.w)`, `X = ctx.design_matrix`,
   `M, P = X.shape` (M = positions), `X_flat = X.ravel()`,
@@ -49,7 +49,7 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
 ## Verified invariants
 
 Pinned by the 54-call `probes/verify_gradient.py` +
-`test_rlm_gradient.py` (8 tests, no DB) +
+`test_hlp_gradient.py` (8 tests, no DB) +
 `test_lm_worker_gradient.py` (2 DB-gated tests).
 
 - Source shape (probe A1-A13): 91 lines, the 2-name `__all__`,

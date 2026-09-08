@@ -1,6 +1,6 @@
 # twolm/lm_worker_gradient.py
 The GRADIENT worker of the RLM pipeline: builds the loss/gradient
-closure in `_up` (`ctx.fg = rlm_gradient_compute(ctx)`) and clears
+closure in `_up` (`ctx.fg = hlp_gradient_compute(ctx)`) and clears
 it in `_down`. The SECOND non-cache level (after ZED): the comment
 at L48 documents the on-the-fly choice — "GRADIENT building is a
 closure generation, very fast. No cache needed." No cache_manager
@@ -16,14 +16,14 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 ## Architecture
 
 - Imports: `Worker, Relevance` from state_machine;
-  `rlm_gradient_compute` from rlm_gradient; `validate_call,
+  `hlp_gradient_compute` from hlp_gradient; `validate_call,
   ConfigDict` from pydantic (added in D-094 T2); `RLMContext`
   under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by
   design — pinned by probe B).
 - `_up`: INFO "Building gradient and loss function (fg)..." →
   the by-design comment (L48: "GRADIENT building is a closure
   generation, very fast. No cache needed.") →
-  `ctx.fg = rlm_gradient_compute(ctx)` → INFO "Gradient function
+  `ctx.fg = hlp_gradient_compute(ctx)` → INFO "Gradient function
   generated."
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg =
   None`.
@@ -79,7 +79,7 @@ None.
 
 ## Integration
 
-- The 9th RLM level; the domain module (rlm_gradient.py)
+- The 9th RLM level; the domain module (hlp_gradient.py)
   carries the closure math, this worker the machine glue.
 - Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED),
   `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`

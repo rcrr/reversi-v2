@@ -1,6 +1,6 @@
 # twolm/rlm_analytics.py
 The ANALYTICS data module — the 14th active level (the 13th step), the 2nd
-function-only data module of a non-cache level (like rlm_gradient /
+function-only data module of a non-cache level (like hlp_gradient /
 rlm_validate): 4 public functions + 3 private helpers, NO data class, NO
 store/load, NO cache_manager. Computes the training-side metrics (the
 COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the
@@ -93,7 +93,7 @@ None.
 ## Conventions
 - NO `@validate_call` on the 4 public data functions and no no-validation
   note — consistent with rlm_validate, approved in D-102 without one.
-- The `sigmoid` is REUSED from rlm_gradient (L36) — no local copy.
+- The `sigmoid` is REUSED from hlp_gradient (L36) — no local copy.
 - Report-only: the TRAINING "Loss (MSE/2)" cell is `opt_info['f']`
   (ridge-inclusive) while the TRAINING-DENSE / VALIDATION / Population
   cells are pure 0.5·mean(rn²) — intentional (the objective the optimizer

@@ -25,7 +25,7 @@ plug into.
   model_weights (the T2 dead import of `model_weights_read_file` is
   gone — the client does not read files, it only consumes an
   already-loaded `ModelWeights`), `zed_fun_factory` from hlp_zed,
-  `sigmoid` from rlm_gradient, `Position` from board (annotation
+  `sigmoid` from hlp_gradient, `Position` from board (annotation
   only).
 - `make_evaluation_function` (L43-72): the closure setup (L47-53),
   then `ef(p)` (L55-70), four steps per call: 1.
@@ -105,7 +105,7 @@ None.
   `expanded_offsets` u32 + `indexes` int32 promotes to int64 — a
   safe fancy-index dtype.
 - The sigmoid/z2y calls reuse the pipeline's own functions
-  (hlp_zed / rlm_gradient) — the client cannot drift from the
+  (hlp_zed / hlp_gradient) — the client cannot drift from the
   model's own transforms.
 
 ## Integration

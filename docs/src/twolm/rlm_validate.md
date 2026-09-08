@@ -1,7 +1,7 @@
 # twolm/rlm_validate.py
 The VALIDATE domain module of the RLM pipeline — the 13th active
 level (the 12th step). Unlike every other rlm_* level except
-hlp_zed / rlm_gradient, this one is PURE COMPUTE: no data class,
+hlp_zed / hlp_gradient, this one is PURE COMPUTE: no data class,
 no store / load / is_cache_consistent trio, no checksum, no
 rlmwf_12 file (the slot stays unused, as 03/07/08). The single
 public function `validate_model(ctx) -> Dict[str, Any]` runs the
@@ -19,7 +19,7 @@ the predictions mapped back with `ctx.z2y`), plus
 
 | name | contract |
 |---|---|
-| `validate_model(ctx)` | the single public function — the forward pass + the 7-metric dict; NO `@validate_call` (the rlm_gradient function-only shape over an already-validated context) |
+| `validate_model(ctx)` | the single public function — the forward pass + the 7-metric dict; NO `@validate_call` (the hlp_gradient function-only shape over an already-validated context) |
 
 ## Architecture
 
@@ -38,7 +38,7 @@ the predictions mapped back with `ctx.z2y`), plus
     `linear_predictor = np.sum(ctx.w_dense[dense_indices],
     axis=1)` (L123).
   - The forward pass (L124-127): `z_pred = sigmoid(linear_
-    predictor)` (the rlm_gradient sigmoid REUSE, L34) +
+    predictor)` (the hlp_gradient sigmoid REUSE, L34) +
     `vld_z = ctx.y2z(vld_game_values)` (L127 — `y2z` does
     `y = np.float32(y)` BEFORE the affine, so the int8
     `vld_game_values` never overflow).

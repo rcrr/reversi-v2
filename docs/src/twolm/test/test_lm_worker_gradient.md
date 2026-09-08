@@ -44,7 +44,7 @@ through ZED on a fresh base dir, so a live DB is required —
   coverage is the single compute + the `_down` pin.
 - The rlm_02.json fixture (the full 199952-position training set
   — the largest fixture in the pipeline; the zero-weights
-  handcrafted-mock goldens live in test_rlm_gradient.py instead).
+  handcrafted-mock goldens live in test_hlp_gradient.py instead).
 - The independent re-derivation of the goldens (float32-exact
   f, the np.add.at + hand-rolled-sigmoid g) is probe-side
-  (D6/D7) + unit-side (`test_rlm_gradient`'s `_reference`).
+  (D6/D7) + unit-side (`test_hlp_gradient`'s `_reference`).
