@@ -56,7 +56,7 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.lm_worker_validate import lm_worker_validate
-from twolm.rlm_validate import validate_model
+from reversi.lm.hlp_validate import validate_model
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from reversi.test.tags import db_long_gate

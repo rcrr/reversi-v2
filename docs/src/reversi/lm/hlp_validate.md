@@ -1,4 +1,4 @@
-# twolm/rlm_validate.py
+# reversi/lm/hlp_validate.py
 The VALIDATE domain module of the RLM pipeline — the 13th active
 level (the 12th step). Unlike every other rlm_* level except
 hlp_zed / hlp_gradient, this one is PURE COMPUTE: no data class,
