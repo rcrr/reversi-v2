@@ -194,7 +194,7 @@ None.
 
 - Consumes `board.py` (the D8 transforms + anti tables, the
   bitboard utils, `Position`).
-- Consumed by: `feature.py`, `lm_worker_features.py` (the FEATURES
+- Consumed by: `feature.py`, `wrk_features.py` (the FEATURES
   pipeline level), `mobility.py`, `model_weights.py`,
   `rlm_indexes.py`.
 - Not a pipeline level itself: a domain module used BY the workers.

@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_features']
+__all__ = ['wrk_features']
 
 
 
@@ -119,7 +119,7 @@ def _load_mobility(ctx: "RLMContext") -> MobilitySet:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_features() -> Worker:
+def wrk_features() -> Worker:
     """Factory function that returns the FEATURES worker instance."""
     return Worker("FEATURES", _up, _down)
 

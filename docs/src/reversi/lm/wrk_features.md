@@ -11,7 +11,7 @@ files never materialize) and exposes it as `ctx.feature_set`.
 
 | name | contract |
 |---|---|
-| `lm_worker_features()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("FEATURES", _up, _down)` |
+| `wrk_features()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("FEATURES", _up, _down)` |
 
 (The loaders `_load_features` / `_load_intercept` /
 `_load_patterns` / `_load_mobility` are private helpers; the
@@ -51,10 +51,10 @@ zero-feature guard test drives `_load_features` directly.)
 ## Verified invariants
 
 Pinned by the 40-check `probes/verify_wrk_features.py` +
-the 3-test `test_lm_worker_features.py`.
+the 3-test `test_wrk_features.py`.
 
 - Source shape: the 125-line file, `__all__ =
-  ['lm_worker_features']`, the factory name "FEATURES", the
+  ['wrk_features']`, the factory name "FEATURES", the
   RLMContext import under TYPE_CHECKING (circular guard), the
   worker does NOT import cache_manager, the `@validate_call`
   factory (D-082 M1), the amask log (D-082 R1), the orphan

@@ -112,7 +112,7 @@ None.
 
 ## Integration
 
-- The FEATURES pipeline level: lm_worker_features (L111) builds
+- The FEATURES pipeline level: wrk_features (L111) builds
   the level's `Mobility` objects from the config
   (`cfg_mset.mobility_features`); the feature order there is
   [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE].

@@ -1,5 +1,5 @@
 #
-# test_lm_worker_features.py
+# test_wrk_features.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the lm_worker_features unit tests.
+# How to run the wrk_features unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -166,7 +166,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
 
 
 class TestLMWorkerFeaturesGuards(unittest.TestCase):
-    """DB-free guards for lm_worker_features.
+    """DB-free guards for wrk_features.
 
     The guard fires before any data access, so the check drives
     _load_features directly with a minimal context — no regab DB,

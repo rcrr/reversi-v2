@@ -39,7 +39,7 @@ from reversi.base_model import BaseModel
 # Import worker factories
 from reversi.lm.wrk_config import wrk_config
 from reversi.lm.wrk_positions import wrk_positions
-from reversi.lm.wrk_features import lm_worker_features
+from reversi.lm.wrk_features import wrk_features
 from twolm.lm_worker_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps
 from twolm.lm_worker_design_matrix import lm_worker_design_matrix
@@ -207,7 +207,7 @@ class LogisticModel(BaseModel):
             Worker("CREATED", _created_up, _created_down),
             wrk_config(),
             wrk_positions(),
-            lm_worker_features(),
+            wrk_features(),
             lm_worker_indexes(),
             lm_worker_wmaps(),
             lm_worker_design_matrix(),

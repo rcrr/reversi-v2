@@ -22,7 +22,7 @@ so a mid-setup failure still leaves a cleanable dir) + a
 `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir) +
 `move_to_step('FEATURES')` (step 3 pinned; the comment is
 ACCURATE — "INDEXES depends on the feature_set loaded there" —
-in contrast to the test_lm_worker_features M1 comment, which
+in contrast to the test_wrk_features M1 comment, which
 pointed at POSITIONS) + a defensive tearDown (getattr guards).
 
 ## Goldens pinned

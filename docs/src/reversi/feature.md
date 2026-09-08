@@ -98,5 +98,5 @@ None.
 - The composition point of `board` (PositionArray), `pattern`
   (Pattern/PatternSet/Index/IndexArray) and `mobility`
   (Mobility/MobilitySet) — it owns no board logic of its own.
-- Consumed by the FEATURES worker (lm_worker_features.py) and,
+- Consumed by the FEATURES worker (wrk_features.py) and,
   through `ctx.feature_set`, by the INDEXES level onward.

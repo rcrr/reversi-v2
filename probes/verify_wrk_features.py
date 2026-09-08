@@ -61,23 +61,23 @@ def check(label, cond, detail=""):
 
 
 #
-# A — source structure of lm_worker_features.py (content pins).
+# A — source structure of wrk_features.py (content pins).
 #
 
-src = (ROOT / "src" / "twolm" / "lm_worker_features.py").read_text()
+src = (ROOT / "src" / "twolm" / "wrk_features.py").read_text()
 
 check("A1 125 lines (post D-082: +pydantic import +decorator, -orphan comment)",
       len(src.splitlines()) == 125)
-check("A2 __all__ = ['lm_worker_features']", "__all__ = ['lm_worker_features']" in src)
+check("A2 __all__ = ['wrk_features']", "__all__ = ['wrk_features']" in src)
 check("A3 factory returns Worker('FEATURES', _up, _down)",
-      'def lm_worker_features() -> Worker:' in src and 'return Worker("FEATURES", _up, _down)' in src)
+      'def wrk_features() -> Worker:' in src and 'return Worker("FEATURES", _up, _down)' in src)
 check("A4 RLMContext import under TYPE_CHECKING (circular-import guard)",
       'if TYPE_CHECKING:\n    from twolm.logistic_model import RLMContext' in src)
 check("A5 worker does not import cache_manager (pure compute, no cache files)",
       "cache_manager" not in src)
 check("A6 M1 FIXED (D-082): @validate_call on the factory + the pydantic import",
       "@validate_call" in src and "from pydantic import validate_call, ConfigDict" in src
-      and '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_features() -> Worker:' in src)
+      and '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_features() -> Worker:' in src)
 check("A7 R1 FIXED (D-082): amask debug log prints m.amask",
       'amask = {m.amask:016X}' in src and 'amask = {m.mask:016X}' not in src)
 check("A8 M3 FIXED (D-082): the orphan 'Empty String SHA-256 Hash' comment removed",
@@ -185,7 +185,7 @@ check("B10 flat cache files: CONFIG + POSITIONS only (no rlmwf_03_FEATURES*)",
                 "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256"])
 
 # (B11a/B11b moved to a test at D-106 step 3, class a §4 conversion:
-#  test_lm_worker_features.py::TestLMWorkerFeaturesGuards::
+#  test_wrk_features.py::TestLMWorkerFeaturesGuards::
 #  test_zero_features_raises_value_error — the zero-feature fail-fast
 #  guard, ValueError message + ERROR log event)
 
@@ -207,10 +207,10 @@ check("B13c second run: identical feature set (name + hash)",
       m2.context.feature_set.name == fs.name and m2.context.feature_set.hash == fs.hash)
 
 #
-# C — source structure of test_lm_worker_features.py (content pins).
+# C — source structure of test_wrk_features.py (content pins).
 #
 
-tsrc = (ROOT / "src" / "twolm" / "test" / "test_lm_worker_features.py").read_text()
+tsrc = (ROOT / "src" / "twolm" / "test" / "test_wrk_features.py").read_text()
 
 check("C1 206 lines (post D-106 step 3: the zero-feature guard test class added; pre: 164, post D-085)",
       len(tsrc.splitlines()) == 206)
@@ -228,8 +228,8 @@ check("C4 T2 FIXED (D-082): the SKIP_REGAB_DB gate at the top of setUp",
       and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in tsrc)
 check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to reversi.test.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
-check("C6 T4 FIXED (D-082): header grammar 'How to run the lm_worker_features unit tests.' + DB/gate run note",
-      "How to run the lm_worker_features unit tests." in tsrc
+check("C6 T4 FIXED (D-082): header grammar 'How to run the wrk_features unit tests.' + DB/gate run note",
+      "How to run the wrk_features unit tests." in tsrc
       and "SKIP_REGAB_DB=1 skips the DB-gated tests" in tsrc)
 check("C7 M1 (D-082, as-is per Roberto — I-012: evaluate moving FEATURES before POSITIONS): the setUp comment stays",
       "as FEATURES depends on the configuration loaded there" in tsrc)
