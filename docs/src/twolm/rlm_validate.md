@@ -1,7 +1,7 @@
 # twolm/rlm_validate.py
 The VALIDATE domain module of the RLM pipeline — the 13th active
 level (the 12th step). Unlike every other rlm_* level except
-rlm_zed / rlm_gradient, this one is PURE COMPUTE: no data class,
+hlp_zed / rlm_gradient, this one is PURE COMPUTE: no data class,
 no store / load / is_cache_consistent trio, no checksum, no
 rlmwf_12 file (the slot stays unused, as 03/07/08). The single
 public function `validate_model(ctx) -> Dict[str, Any]` runs the

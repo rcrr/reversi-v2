@@ -192,7 +192,7 @@ class TestValidateModelUnit(unittest.TestCase):
     under SKIP_REGAB_DB=1 (no DB)."""
 
     def _fake_ctx(self, game_values, indexes, offsets, w_dense):
-        # The y2z/z2y lambdas mirror the zed factory (rlm_zed
+        # The y2z/z2y lambdas mirror the zed factory (hlp_zed
         # L80-83/L87-89): the float32 CAST BEFORE the affine (the
         # real y2z does NOT overflow on int8 64 — a raw (y + 64)
         # on int8 would wrap to -128).

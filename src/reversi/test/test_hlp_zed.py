@@ -1,5 +1,5 @@
 #
-# test_rlm_zed.py
+# test_hlp_zed.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_zed unit tests.
+# How to run the hlp_zed unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -51,7 +51,7 @@ import numpy.testing as nptest
 from pydantic import ValidationError
 
 from reversi.lm.hlp_zed import (ReversiLogisticModelZed,
-                           rlm_zed_compute,
+                           hlp_zed_compute,
                            zed_fun_factory)
 
 
@@ -88,7 +88,7 @@ class TestZedFunFactory(unittest.TestCase):
 
 
 class TestRLMZedCompute(unittest.TestCase):
-    """Tests rlm_zed_compute on a handcrafted mock context (no DB)."""
+    """Tests hlp_zed_compute on a handcrafted mock context (no DB)."""
 
     def _mock_ctx(self, clipping, values):
         return SimpleNamespace(
@@ -97,7 +97,7 @@ class TestRLMZedCompute(unittest.TestCase):
 
     def test_compute_golden(self):
         ctx = self._mock_ctx(0.03, [10, 36, -22, 20])
-        zed = rlm_zed_compute(ctx)
+        zed = hlp_zed_compute(ctx)
         self.assertIsInstance(zed, ReversiLogisticModelZed)
         self.assertTrue(callable(zed.y2z))
         self.assertTrue(callable(zed.z2y))
@@ -111,7 +111,7 @@ class TestRLMZedCompute(unittest.TestCase):
 
     def test_compute_hash(self):
         ctx = self._mock_ctx(0.03, [10, 36, -22, 20])
-        zed = rlm_zed_compute(ctx)
+        zed = hlp_zed_compute(ctx)
         self.assertEqual(zed.compute_sha3_256_hash(),
                          hashlib.sha3_256(zed.z.tobytes()).hexdigest())
 

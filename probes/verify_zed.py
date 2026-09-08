@@ -4,12 +4,12 @@
 # to the POST-CAMPAIGN state (D-092: T1-T8 applied).
 #
 # Tiers:
-#   A  rlm_zed.py structural pins (post T6/T7/T8)
+#   A  hlp_zed.py structural pins (post T6/T7/T8)
 #   B  lm_worker_zed.py structural pins (post T2/T8)
 #   C  test_lm_worker_zed.py structural pins (post T1/T4/T5/T8)
 #   D  live golden (rlm_01.json pipeline through ZED, independent recompute)
 #   F  cross-module facts (logistic_model.py, repo state)
-#   G  dedicated test_rlm_zed.py (post T3)
+#   G  dedicated test_hlp_zed.py (post T3)
 #
 import contextlib
 import hashlib
@@ -33,11 +33,11 @@ def lines_of(relpath):
     return (SRC / relpath).read_text().splitlines()
 
 # ---------------------------------------------------------------- A tier
-rlm = lines_of('rlm_zed.py')
-check('A1  rlm_zed.py is 103 lines (post T6 note + T7 decorator)', len(rlm) == 103, f'{len(rlm)}')
+rlm = lines_of('hlp_zed.py')
+check('A1  hlp_zed.py is 103 lines (post T6 note + T7 decorator)', len(rlm) == 103, f'{len(rlm)}')
 check('A2  __all__ = class + compute + factory (L42-44)',
       rlm[41] == "__all__ = ['ReversiLogisticModelZed',"
-      and rlm[42] == "           'rlm_zed_compute',"
+      and rlm[42] == "           'hlp_zed_compute',"
       and rlm[43] == "           'zed_fun_factory']")
 check('A3  class ReversiLogisticModelZed at L48', rlm[47].startswith('class ReversiLogisticModelZed'))
 check('A4  __init__ @validate_call (L53-54) w/ arbitrary_types_allowed',
@@ -55,22 +55,22 @@ check('A7  factory math pins: a=0.5 (L78), b=(1-2c)/128 (L79), a1 (L85), b1 (L86
       and rlm[78] == '    b = np.float32((1. - 2. * logit_clipping) / 128.)'
       and rlm[84] == '    a1 = np.float32(-64. / (1. - 2. * logit_clipping))'
       and rlm[85] == '    b1 = np.float32(128. / (1. - 2. * logit_clipping))')
-check('A8  T6 DONE: the no-validation note at L94 above rlm_zed_compute (L95)',
+check('A8  T6 DONE: the no-validation note at L94 above hlp_zed_compute (L95)',
       rlm[93] == '#: Here validation is not possible, it brings in a convoluted issue with circular imports.'
-      and rlm[94] == 'def rlm_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:'
+      and rlm[94] == 'def hlp_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:'
       and sum(1 for l in rlm if 'Here validation is not possible' in l) == 1)
 check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L102)',
       rlm[98] == '    alpha = ctx.cfg.stat_model.logit_clipping'
       and rlm[100] == '    y = ctx.game_values'
       and rlm[101] == '    z = y2z(y)')
-check('A10 no cache API in rlm_zed (no store / load / is_cache_consistent)',
-      not any(k in l for l in rlm for k in ('def rlm_zed_store', 'def rlm_zed_load', 'def rlm_zed_is_cache')))
+check('A10 no cache API in hlp_zed (no store / load / is_cache_consistent)',
+      not any(k in l for l in rlm for k in ('def hlp_zed_store', 'def hlp_zed_load', 'def hlp_zed_is_cache')))
 check('A11 TYPE_CHECKING guard for RLMContext (L37-38)',
       rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from twolm.logistic_model import RLMContext')
 check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == {6, 11, 16, 21})
 # (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
-#  at D-106 step 3, class c: test_rlm_zed.py::TestZedFunFactory pins
+#  at D-106 step 3, class c: test_hlp_zed.py::TestZedFunFactory pins
 #  the same — test_factory_alpha_0.02_golden (the same literal),
 #  test_round_trip, and the endpoints for TWO clippings (0.02 AND
 #  0.03, a superset of the probe's))
@@ -215,19 +215,19 @@ check('F1  RLMContext zed fields pre-declared (L129-132), untouched by the commi
       and lm_lines[131] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
-check('F4  T3 DONE: dedicated test_rlm_zed.py exists, 10 tests, no DB wiring',
-      (SRC / 'test' / 'test_rlm_zed.py').exists()
-      and sum(1 for l in lines_of('test/test_rlm_zed.py') if l.startswith('    def test_')) == 10
-      and 'from twolm.logistic_model' not in '\n'.join(lines_of('test/test_rlm_zed.py')))
+check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
+      (SRC / 'test' / 'test_hlp_zed.py').exists()
+      and sum(1 for l in lines_of('test/test_hlp_zed.py') if l.startswith('    def test_')) == 10
+      and 'from twolm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
 check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
-      (ROOT / 'docs' / 'src' / 'twolm' / 'rlm_zed.md').exists()
+      (ROOT / 'docs' / 'src' / 'twolm' / 'hlp_zed.md').exists()
       and (ROOT / 'docs' / 'src' / 'twolm' / 'lm_worker_zed.md').exists()
       and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_lm_worker_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_rlm_zed.md').exists())
+      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_hlp_zed.md').exists())
 
 # ---------------------------------------------------------------- G tier (dedicated suite)
-gd = lines_of('test/test_rlm_zed.py')
-check('G1  test_rlm_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
+gd = lines_of('test/test_hlp_zed.py')
+check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from twolm.logistic_model', 'SKIP_REGAB_DB',
                                            'reversi.test.paths', 'import os')))
@@ -255,9 +255,9 @@ check('G8  header: no-DB claim ("no live regab DB required — the compute test"
       'no live regab DB required' in '\n'.join(gd))
 check('G9  T8 clean: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == {6, 11, 16, 21})
-check('G10 the 3 domain names imported (ReversiLogisticModelZed / rlm_zed_compute / zed_fun_factory)',
+check('G10 the 3 domain names imported (ReversiLogisticModelZed / hlp_zed_compute / zed_fun_factory)',
       'from reversi.lm.hlp_zed import (ReversiLogisticModelZed,' in '\n'.join(gd)
-      and 'rlm_zed_compute,' in '\n'.join(gd)
+      and 'hlp_zed_compute,' in '\n'.join(gd)
       and 'zed_fun_factory)' in '\n'.join(gd))
 
 # ---------------------------------------------------------------- report

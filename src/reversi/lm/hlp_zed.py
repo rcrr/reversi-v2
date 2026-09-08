@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
 
 __all__ = ['ReversiLogisticModelZed',
-           'rlm_zed_compute',
+           'hlp_zed_compute',
            'zed_fun_factory']
 
 
@@ -92,7 +92,7 @@ def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def rlm_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:
+def hlp_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:
     """
     Computes Z vector and transformation functions based on logit_clipping.
     """

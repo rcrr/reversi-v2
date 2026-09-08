@@ -17,14 +17,14 @@ attributes, `_down` clears ALL FOUR.
 
 ## Architecture
 
-- Imports: `Worker, Relevance` from state_machine; `rlm_zed_compute`
-  from rlm_zed; `validate_call, ConfigDict` from pydantic (added
+- Imports: `Worker, Relevance` from state_machine; `hlp_zed_compute`
+  from hlp_zed; `validate_call, ConfigDict` from pydantic (added
   in D-092 T2); `RLMContext` under TYPE_CHECKING. NO
   `reversi.tools.cache_manager` import (by design — pinned by probe B).
 - `_up`: INFO "Computing Zed array (Z) and transformations..." →
   the by-design comment (L49: "ZED computation is very fast
   (vectorized math), so we compute it on the fly without disk
-  caching.") → `zed_obj = rlm_zed_compute(ctx)` →
+  caching.") → `zed_obj = hlp_zed_compute(ctx)` →
   `zed_checksum = zed_obj.compute_sha3_256_hash()` → publishes
   `ctx.y2z / ctx.z2y / ctx.z / ctx.zed_checksum` → the 2 INFO
   lines (the shape + the checksum).
@@ -51,7 +51,7 @@ the 3-test suite.
   test (T5), 0 non-comment ws lines (T8).
 - The full pipeline through ZED (live DB, probe D1/D5-D11,
   rlm_01): the pre-state (all 4 ctx attrs None), step 7 + worker
-  name "ZED", the golden y/z content (the rlm_zed doc), the
+  name "ZED", the golden y/z content (the hlp_zed doc), the
   checksum identity, the endpoints + round-trip of the published
   closures, EXACTLY the 5 flat files + 5 sidecars in the base
   dir (no rlmwf_07*).
@@ -81,7 +81,7 @@ None.
 
 ## Integration
 
-- The 8th RLM level; the domain module (rlm_zed.py) carries the
+- The 8th RLM level; the domain module (hlp_zed.py) carries the
   data object + the math, this worker the machine glue.
 - Consumes `ctx.game_values` (POSITIONS) + `ctx.cfg.stat_model.
   logit_clipping` (CONFIG) — the SM half-open interval semantics

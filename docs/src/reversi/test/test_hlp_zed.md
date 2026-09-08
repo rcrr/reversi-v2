@@ -1,10 +1,10 @@
 # reversi/test/test_hlp_zed.py
-The dedicated data-object suite of the rlm_zed module (created in
+The dedicated data-object suite of the hlp_zed module (created in
 the D-092 fix campaign, T3 — the ZED level arrived with only the
 worker test, this file closes the coverage gap; the D-090 T6
 class). 3 classes / 10 tests / no DB, no gate — the file is fully
 offline: the module has no file I/O and no RLMContext beyond the
-two attributes `rlm_zed_compute` reads, so no `tempfile`, no
+two attributes `hlp_zed_compute` reads, so no `tempfile`, no
 `reversi.test.paths`, no `import os`.
 > State: D-092 · 17a5f95 · 2026-09-01 · suite 10/0/0
 
@@ -38,7 +38,7 @@ two attributes `rlm_zed_compute` reads, so no `tempfile`, no
 ## Integration
 
 - Independent of the pipeline: the per-function pin that would
-  catch a signature change to `rlm_zed` (the worker test only
+  catch a signature change to `hlp_zed` (the worker test only
   exercises the end-to-end path).
 - The LIVE golden (the rlm_01 (10,) y/z) lives in
   test_lm_worker_zed.py (`TestLMWorkerZed`) — the single source

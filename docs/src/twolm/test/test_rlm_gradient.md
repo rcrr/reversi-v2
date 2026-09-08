@@ -4,7 +4,7 @@ CREATED in the D-094 fix campaign (M1, Roberto "OK"): the D-093
 analysis found the coverage gap (at bring-in the fg math was only
 tested through the full 9-level pipeline run on the 199952-
 position dataset). 2 classes / 8 tests / no DB, no gate, no
-artifacts — the handcrafted-mock pattern, as in test_rlm_zed.
+artifacts — the handcrafted-mock pattern, as in test_hlp_zed.
 > State: D-094 · 34442b2 · 2026-09-01 · suite 8/0/0
 
 ## Coverage
@@ -26,7 +26,7 @@ artifacts — the handcrafted-mock pattern, as in test_rlm_zed.
 - DB-free BY CONSTRUCTION (the module has no file I/O) — hence
   no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
 - NO init-validation tests: rlm_gradient is a function-only
-  module (no data class to validate) — unlike test_rlm_zed.
+  module (no data class to validate) — unlike test_hlp_zed.
 - Clean from day one (no ws lines, no dead imports, the no-DB
   header claim true from the first line) — no further campaign.
 

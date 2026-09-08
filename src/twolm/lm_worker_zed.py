@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_zed import rlm_zed_compute
+from reversi.lm.hlp_zed import hlp_zed_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
@@ -47,7 +47,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing Zed array (Z) and transformations...")
 
     # ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.
-    zed_obj = rlm_zed_compute(ctx)
+    zed_obj = hlp_zed_compute(ctx)
     zed_checksum = zed_obj.compute_sha3_256_hash()
 
     ctx.y2z = zed_obj.y2z

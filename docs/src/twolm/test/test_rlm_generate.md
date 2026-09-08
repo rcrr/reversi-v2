@@ -3,7 +3,7 @@ The dedicated data-object suite of the rlm_generate module —
 expanded from the bring-in's 1 class / 1 test to 4 classes /
 14 tests in the D-098 T4 campaign (Roberto: "T4: ok"). No DB, no
 gate, no artifacts — the SimpleNamespace mock-fixture pattern,
-as in test_rlm_zed / test_rlm_gradient.
+as in test_hlp_zed / test_rlm_gradient.
 > State: D-098 · 9d2ae80 · 2026-09-02 · suite 14/0/0
 
 ## Coverage
