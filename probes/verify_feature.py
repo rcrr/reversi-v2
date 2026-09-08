@@ -3,7 +3,7 @@
 # verify_feature.py — independent verification of the feature module goldens.
 #
 # Independence rules (same discipline as the mobility/pattern campaigns):
-#  - NO import of twolm.feature (the module under test).
+#  - NO import of reversi.feature (the module under test).
 #  - reversi.board (proven kernel, 193/0/12 GREEN) is used ONLY for:
 #      * the 8 D8 transformations / anti-transformations of masks/positions
 #        (slot order canonized in notes/naming.md, D-014),
@@ -16,7 +16,7 @@
 #   B. Per-pattern n_instances (orbit sizes) in mask-sorted order.
 #   C. compute_indexes golden: 3 positions x 10 columns, pure Python.
 #   D. LMC cross-check: pure Python legal moves vs board.legal_moves.
-#   E. Live structural check (imports twolm.feature only here):
+#   E. Live structural check (imports reversi.feature only here):
 #      factories, features order, n_instances, edge shapes, raises.
 #
 # Run: .venv/bin/python scratch/verify_feature.py
@@ -33,7 +33,7 @@ from reversi.board import (Bitboard, make_position, legal_moves,
 FULL = 0xFFFFFFFFFFFFFFFF
 
 # ---------------------------------------------------------------------------
-# Pure Python helpers (independent of twolm.feature)
+# Pure Python helpers (independent of reversi.feature)
 # ---------------------------------------------------------------------------
 
 def squares_of(mask):
@@ -175,7 +175,7 @@ def check(label, got, want):
 # A. Hashes, re-implemented from scratch
 # ---------------------------------------------------------------------------
 print("=" * 72)
-print("A. Hashes (re-implemented, no twolm.feature / no .hash attribute)")
+print("A. Hashes (re-implemented, no reversi.feature / no .hash attribute)")
 print("=" * 72)
 
 mob_sorted = sorted(MOB3, key=lambda t: (t[1], t[2]))
@@ -235,14 +235,14 @@ for i, (m, o) in enumerate(POSITIONS):
     rows.append(cols)
 
 # ---------------------------------------------------------------------------
-# D. Live structural check (only here we import twolm.feature)
+# D. Live structural check (only here we import reversi.feature)
 # ---------------------------------------------------------------------------
 print()
 print("=" * 72)
-print("D. Live structural check (twolm.feature)")
+print("D. Live structural check (reversi.feature)")
 print("=" * 72)
 
-import twolm.feature as F
+import reversi.feature as F
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 

@@ -30,7 +30,7 @@ MODULES=(
     reversi.test.test_board
     reversi.test.test_pattern
     reversi.test.test_mobility
-    twolm.test.test_feature
+    reversi.test.test_feature
     # 2 — infrastructure
     reversi.test.test_cache_manager
     reversi.test.test_state_machine

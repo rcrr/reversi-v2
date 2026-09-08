@@ -1,4 +1,4 @@
-# twolm/feature.py
+# reversi/feature.py
 The first pipeline-integration module: it wraps the three feature
 sources already in the package — the constant intercept, `Mobility`
 (mobility.py) and `Pattern` (pattern.py) — into two classes:

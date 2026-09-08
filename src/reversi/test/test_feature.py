@@ -37,14 +37,14 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_feature
+# time PERF=0 python3 -m unittest reversi.test.test_feature
 #
 
 import unittest
 
 from reversi.board import (Bitboard,
                          make_position)
-from twolm.feature import Feature, FeatureSet
+from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet, Index
 

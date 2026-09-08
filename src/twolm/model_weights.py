@@ -33,7 +33,7 @@ from pathlib import Path
 import numpy as np
 
 from reversi.tools.binio import BinaryWriter, BinaryReader
-from twolm.feature import Feature, FeatureSet
+from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 

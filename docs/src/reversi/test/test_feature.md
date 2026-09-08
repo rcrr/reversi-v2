@@ -1,4 +1,4 @@
-# twolm/test/test_feature.py
+# reversi/test/test_feature.py
 The unit suite of the first pipeline-integration module (the
 `feature.py` mirror): the `Feature` factory methods + the blocked
 direct construction, `FeatureSet` construction (ordering,
@@ -36,7 +36,7 @@ edges, strict typing, the 1M-position PERF). 4 classes / 20 tests
 ## Conventions
 
 - How to run (header): from the workspace root,
-  `time PERF=0 python3 -m unittest twolm.test.test_feature` —
+  `time PERF=0 python3 -m unittest reversi.test.test_feature` —
   `PERF=1` enables the 1M-position test (print-only, no gate —
   consistent with the whole repo).
 - Strict-typing tests assert `pydantic.ValidationError` (1 in
