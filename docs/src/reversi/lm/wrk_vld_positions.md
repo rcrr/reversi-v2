@@ -1,4 +1,4 @@
-# twolm/lm_worker_vld_positions.py
+# reversi/lm/wrk_vld_positions.py
 The VLD_POSITIONS worker — the 12th active level (the 11th step). The
 POSITIONS TWIN over the validation data set: the 6th `cache_manager`
 consumer and the only worker that REUSES another level's data module —

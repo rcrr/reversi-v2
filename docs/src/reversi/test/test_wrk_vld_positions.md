@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_vld_positions.py
+# reversi/test/test_wrk_vld_positions.py
 The VLD_POSITIONS worker integration suite — ADDED by the D-100
 T5 campaign (the bring-in ede2efe shipped zero tests, the
 D-097 T5 pattern repeated; per Roberto's "T1 - T5: OK"), then

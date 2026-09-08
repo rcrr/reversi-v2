@@ -59,7 +59,7 @@ MODULES=(
     reversi.test.test_wrk_optimize
     reversi.test.test_hlp_generate
     reversi.test.test_wrk_generate
-    twolm.test.test_lm_worker_vld_positions
+    reversi.test.test_wrk_vld_positions
     twolm.test.test_lm_worker_validate
     twolm.test.test_lm_worker_analytics
     twolm.test.test_lm_worker_full_chain

@@ -63,7 +63,7 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 # A. lm_worker_vld_positions.py structure
 # ----------------------------------------------------------------------
-wk_src = read("src/twolm/lm_worker_vld_positions.py")
+wk_src = read("src/reversi/lm/wrk_vld_positions.py")
 check("A1 Worker named VLD_POSITIONS + __all__",
       'Worker("VLD_POSITIONS", _up, _down)' in wk_src
       and "__all__ = ['lm_worker_vld_positions']" in wk_src)
@@ -84,11 +84,11 @@ check("A5 no dead imports (the file delegates extraction to lm_worker_positions.
       and "regab_extract_data_set_from_db" not in wk_src
       and "regab_load_data_set_from_file" in wk_src
       and "regab_store_data_set_to_file" in wk_src)
-_vld_ws = ws_lines("src/twolm/lm_worker_vld_positions.py")
+_vld_ws = ws_lines("src/reversi/lm/wrk_vld_positions.py")
 check("A6 the 3 ws-only lines are gone; the only remaining code ws line is the "
       "import-block line (the D-078/D-080 M3 house scope, as in lm_worker_positions)",
       len(_vld_ws) == 1
-      and lines("src/twolm/lm_worker_vld_positions.py")[_vld_ws[0] - 1].strip()
+      and lines("src/reversi/lm/wrk_vld_positions.py")[_vld_ws[0] - 1].strip()
       == "regab_load_data_set_from_file,",
       f"lines {_vld_ws}")
 check("A7 reuses load_from_db + is_cache_consistent from lm_worker_positions",
@@ -212,7 +212,7 @@ else:
 # ----------------------------------------------------------------------
 # D. unit facts (no DB)
 # ----------------------------------------------------------------------
-from twolm.lm_worker_vld_positions import lm_worker_vld_positions
+from reversi.lm.wrk_vld_positions import lm_worker_vld_positions
 from reversi.lm.wrk_positions import is_cache_consistent, load_from_db
 
 w = lm_worker_vld_positions()
