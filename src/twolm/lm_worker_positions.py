@@ -41,7 +41,7 @@ from twolm.regab import (
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file
 )
-from twolm.cache_manager import cache_manager_load_or_compute
+from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

@@ -32,7 +32,7 @@ MODULES=(
     twolm.test.test_mobility
     twolm.test.test_feature
     # 2 — infrastructure
-    twolm.test.test_cache_manager
+    reversi.test.test_cache_manager
     twolm.test.test_state_machine
     twolm.test.test_logistic_model
     twolm.test.test_paths

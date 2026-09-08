@@ -37,7 +37,7 @@ from twolm.rlm_indexes import (ReversiLogisticModelIndexes,
                                rlm_indexes_store_to_file,
                                rlm_indexes_compute,
                                rlm_indexes_is_cache_consistent)
-from twolm.cache_manager import cache_manager_load_or_compute
+from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

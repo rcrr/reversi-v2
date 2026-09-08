@@ -37,11 +37,11 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_cache_manager
+# time python3 -m unittest reversi.test.test_cache_manager
 #
 
 """
-Unit tests for the twolm.cache_manager module.
+Unit tests for the reversi.tools.cache_manager module.
 
 This suite verifies the 4-step validation pipeline, ensuring that caching,
 checksum validation, fallback computation logic, and the cache_hit flag 
@@ -57,7 +57,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from reversi.tools.binio import compute_sha3_256, write_sha3_256_sidecar
-from twolm.cache_manager import (
+from reversi.tools.cache_manager import (
     cache_manager_load_or_compute,
     _verify_checksum,
     _delete_cache_files,

@@ -36,7 +36,7 @@ from twolm.rlm_wmaps import (rlm_wmaps_load_from_file,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_compute,
                              rlm_wmaps_is_cache_consistent)
-from twolm.cache_manager import cache_manager_load_or_compute
+from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

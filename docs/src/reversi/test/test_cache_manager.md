@@ -1,4 +1,4 @@
-# twolm/test/test_cache_manager.py
+# reversi/test/test_cache_manager.py
 The cache_manager unit suite — 3 classes / 22 tests + 1 base + the
 `DataWithChecksum` / `DataWithBrokenChecksum` duck-typed helpers, no
 DB (~0.05 s). Added with the module (a0cd31f); rebuilt at D-071

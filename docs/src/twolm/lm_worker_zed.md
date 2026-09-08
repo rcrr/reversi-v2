@@ -20,7 +20,7 @@ attributes, `_down` clears ALL FOUR.
 - Imports: `Worker, Relevance` from state_machine; `rlm_zed_compute`
   from rlm_zed; `validate_call, ConfigDict` from pydantic (added
   in D-092 T2); `RLMContext` under TYPE_CHECKING. NO
-  `twolm.cache_manager` import (by design — pinned by probe B).
+  `reversi.tools.cache_manager` import (by design — pinned by probe B).
 - `_up`: INFO "Computing Zed array (Z) and transformations..." →
   the by-design comment (L49: "ZED computation is very fast
   (vectorized math), so we compute it on the fly without disk

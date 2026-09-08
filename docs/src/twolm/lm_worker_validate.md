@@ -23,7 +23,7 @@ clears it.
   dead `numpy as np` import replaced by the pydantic line),
   `Worker, Relevance` (L34), `validate_model` (L35),
   `RLMContext` under TYPE_CHECKING (L37-38). NO
-  `twolm.cache_manager` import (by design).
+  `reversi.tools.cache_manager` import (by design).
 - `_up` (L46-62): `log_event(INFO, "Starting model
   validation...")` (L47); `metrics = validate_model(ctx)` (L49);
   publishes `ctx.vld_metrics = metrics` (L50); then 7 INFO log

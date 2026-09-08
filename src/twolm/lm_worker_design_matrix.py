@@ -36,7 +36,7 @@ from twolm.rlm_design_matrix import (rlm_design_matrix_load_from_file,
                                      rlm_design_matrix_store_to_file,
                                      rlm_design_matrix_compute,
                                      rlm_design_matrix_is_cache_consistent)
-from twolm.cache_manager import cache_manager_load_or_compute
+from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

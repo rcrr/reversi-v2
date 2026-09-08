@@ -6,7 +6,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from twolm.cache_manager import (
+from reversi.tools.cache_manager import (
     cache_manager_load_or_compute,
     SHA3_256_CHECKSUM_SUFFIX,
 )

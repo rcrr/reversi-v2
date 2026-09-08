@@ -38,7 +38,7 @@ from twolm.regab import (
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file
 )
-from twolm.cache_manager import cache_manager_load_or_compute
+from reversi.tools.cache_manager import cache_manager_load_or_compute
 from twolm.lm_worker_positions import load_from_db, is_cache_consistent
 
 if TYPE_CHECKING:

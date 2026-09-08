@@ -30,7 +30,7 @@ and `ctx.analytics_report` (the console report string);
   dead `from pathlib import Path` line, T2), `Worker,
   Relevance` (L34), the 4 public data functions from
   rlm_analytics (L35-37, 3 lines since D-105/M2), `RLMContext`
-  under TYPE_CHECKING (L37-38). NO `twolm.cache_manager`
+  under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager`
   import (by design).
 - `_up` (L48-73): `log_event(INFO, "Generating model analytics
   report...")` (L49); `ctx.train_metrics =

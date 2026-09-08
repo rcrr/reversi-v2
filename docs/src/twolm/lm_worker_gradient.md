@@ -18,7 +18,7 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 - Imports: `Worker, Relevance` from state_machine;
   `rlm_gradient_compute` from rlm_gradient; `validate_call,
   ConfigDict` from pydantic (added in D-094 T2); `RLMContext`
-  under TYPE_CHECKING. NO `twolm.cache_manager` import (by
+  under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by
   design — pinned by probe B).
 - `_up`: INFO "Building gradient and loss function (fg)..." →
   the by-design comment (L48: "GRADIENT building is a closure

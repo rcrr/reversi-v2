@@ -1,4 +1,4 @@
-# twolm/cache_manager.py
+# reversi/tools/cache_manager.py
 A small, domain-agnostic caching utility: one public function
 orchestrates a 4-step validation pipeline for "load cached result or
 recompute" around injected business-logic callbacks — the load-or-
