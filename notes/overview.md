@@ -152,7 +152,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/twolm/lm_worker_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/lm_worker_save.md |
 | src/twolm/lm_worker_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/twolm/lm_worker_validate.md |
 | src/twolm/lm_worker_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/twolm/lm_worker_vld_positions.md |
-| src/twolm/lm_worker_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/twolm/lm_worker_wmaps.md |
+| src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/twolm/lm_worker_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/twolm/lm_worker_zed.md |
 | src/twolm/logistic_model.py | complete: the RLM facade — RLMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/twolm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
@@ -195,7 +195,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080) | 9/0/0 | docs/src/reversi/test/test_wrk_positions.md |
 | src/twolm/test/test_lm_worker_validate.py | complete: the VALIDATE worker suite (D-101/D-102) | 5/0/0 | docs/src/twolm/test/test_lm_worker_validate.md |
 | src/twolm/test/test_lm_worker_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100) | 9/0/0 | docs/src/twolm/test/test_lm_worker_vld_positions.md |
-| src/twolm/test/test_lm_worker_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/twolm/test/test_lm_worker_wmaps.md |
+| src/reversi/test/test_wrk_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/reversi/test/test_wrk_wmaps.md |
 | src/twolm/test/test_lm_worker_zed.py | complete: the ZED worker suite (D-091/D-092) | 3/0/0 | docs/src/twolm/test/test_lm_worker_zed.md |
 | src/twolm/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/twolm/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |

@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_wmaps.py
+# reversi/test/test_wrk_wmaps.py
 The suite of the WMAPS worker (Roberto's file, brought in with
 the 73b4342 enablement; the D-085 paths idiom applied per Roberto
 in D-086, the D-087 T1 + T9 campaign). 2 classes / 3 tests / no

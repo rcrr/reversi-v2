@@ -78,7 +78,7 @@ check("A12 the -1 input sentinel is unguarded at L257 — correct by the R1 dens
 # ----------------------------------------------------------------------
 # B. lm_worker_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-w = lines("src/twolm/lm_worker_wmaps.py")
+w = lines("src/reversi/lm/wrk_wmaps.py")
 check("B1 lm_worker_wmaps.py is 91 lines (post D-087: 87 + pydantic + decorator + checksum clear)", len(w) == 91, f"{len(w)}")
 check("B2 the pydantic import is present (L32 — D-087 T6)", w[31] == "from pydantic import validate_call, ConfigDict", repr(w[31]))
 check("B3 the factory lm_worker_wmaps is @validate_call-decorated (L88 — D-087 T6)",
@@ -87,7 +87,7 @@ check("B3 the factory lm_worker_wmaps is @validate_call-decorated (L88 — D-087
 check("B4 load_fn is the house lambda with checksum=False (L56 — D-087 T7)",
       w[55] == "        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),", repr(w[55]))
 check("B5 the 7-arg cache wiring matches the house key set",
-      all(k in read("src/twolm/lm_worker_wmaps.py") for k in
+      all(k in read("src/reversi/lm/wrk_wmaps.py") for k in
           ("cache_path  = ctx.get_cache_file_full_path_for_current_level(),",
            "is_allowed  = ctx.use_cache,", "store_fn    = hlp_wmaps_store_to_file,",
            "validate_fn = lambda cached_wmaps: hlp_wmaps_is_cache_consistent(ctx, cached_wmaps),",
@@ -95,9 +95,9 @@ check("B5 the 7-arg cache wiring matches the house key set",
 check("B6 _down clears ctx.wmaps_obj_checksum (L85 — D-087 T8, the house shape)",
       w[84] == "    ctx.wmaps_obj_checksum = None", repr(w[84]))
 check("B7 _up sets the 6 ctx arrays + wmaps_obj_checksum (the 7 attributes)",
-      all(f"ctx.{a} = wmaps_obj.{a}" in read("src/twolm/lm_worker_wmaps.py")
+      all(f"ctx.{a} = wmaps_obj.{a}" in read("src/reversi/lm/wrk_wmaps.py")
           for a in ("feature_w_ranges", "iwmap_feature_offset", "iwmap", "wmap", "wmap_fallback", "w"))
-      and "ctx.wmaps_obj_checksum = wmaps_obj_checksum" in read("src/twolm/lm_worker_wmaps.py"))
+      and "ctx.wmaps_obj_checksum = wmaps_obj_checksum" in read("src/reversi/lm/wrk_wmaps.py"))
 ws_w = [i + 1 for i, l in enumerate(w) if l != l.rstrip() and not l.strip().startswith("#")]
 check("B8 0 whitespace-only lines (D-087 T9: 4 stripped)", ws_w == [], f"{ws_w}")
 check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[46] == "" and w[47] == "" and w[48] == "")
@@ -151,7 +151,7 @@ check("C15 the TestRLMWmapsInit class is present with the precise ValidationErro
 # ----------------------------------------------------------------------
 # D. test_lm_worker_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-t2 = lines("src/twolm/test/test_lm_worker_wmaps.py")
+t2 = lines("src/reversi/test/test_wrk_wmaps.py")
 check("D1 test_lm_worker_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", len(t2) == 315, f"{len(t2)}")
 check("D2 2 classes / 3 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
@@ -174,18 +174,18 @@ check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L83 rlm_00, L185 rlm
 check("D7 the D-085 paths import is present (L57)",
       t2[56] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[56]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
-      read("src/twolm/test/test_lm_worker_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
+      read("src/reversi/test/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
 check("D9 the D-078 cache names are pinned (rlmwf_05_WMAPS.dat + .SHA3-256)",
-      "'rlmwf_05_WMAPS.dat'" in read("src/twolm/test/test_lm_worker_wmaps.py")
-      and "'rlmwf_05_WMAPS.dat.SHA3-256'" in read("src/twolm/test/test_lm_worker_wmaps.py"))
+      "'rlmwf_05_WMAPS.dat'" in read("src/reversi/test/test_wrk_wmaps.py")
+      and "'rlmwf_05_WMAPS.dat.SHA3-256'" in read("src/reversi/test/test_wrk_wmaps.py"))
 check("D10 step pins: INDEXES=4, WMAPS=5 (the 6-level pipeline)",
-      "self.assertEqual(self.rlm.current_step, 4)" in read("src/twolm/test/test_lm_worker_wmaps.py")
-      and "self.assertEqual(self.rlm.current_step, 5)" in read("src/twolm/test/test_lm_worker_wmaps.py"))
+      "self.assertEqual(self.rlm.current_step, 4)" in read("src/reversi/test/test_wrk_wmaps.py")
+      and "self.assertEqual(self.rlm.current_step, 5)" in read("src/reversi/test/test_wrk_wmaps.py"))
 ws_t2 = [i + 1 for i, l in enumerate(t2) if l != l.rstrip() and not l.strip().startswith("#")]
 check("D11 0 whitespace-only lines (D-087 T9: 20 stripped)", len(ws_t2) == 0, f"{ws_t2}")
 check("D12 defensive tearDown in both classes (getattr guards, no shutil)",
-      read("src/twolm/test/test_lm_worker_wmaps.py").count("        if getattr(self, '_tmp', None) is not None:") == 2
-      and "shutil" not in read("src/twolm/test/test_lm_worker_wmaps.py"))
+      read("src/reversi/test/test_wrk_wmaps.py").count("        if getattr(self, '_tmp', None) is not None:") == 2
+      and "shutil" not in read("src/reversi/test/test_wrk_wmaps.py"))
 
 # ----------------------------------------------------------------------
 # E. GOLDEN re-derivation (live DB) — rlm_01.json

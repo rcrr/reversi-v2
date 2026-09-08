@@ -1,4 +1,4 @@
-# twolm/lm_worker_wmaps.py
+# reversi/lm/wrk_wmaps.py
 The WMAPS worker of the RLM pipeline — the 6th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS),
 enabled line-by-line by Roberto in 73b4342. Like POSITIONS and
