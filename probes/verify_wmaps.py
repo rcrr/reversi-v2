@@ -156,23 +156,21 @@ check("D1 test_wrk_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", 
 check("D2 2 classes / 3 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
       sum(1 for l in t2 if l.strip().startswith("def test_")) == 3)
-check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (D-087 T1 — the header claim is now true)",
-      t2[71] == "        if os.getenv('SKIP_REGAB_DB', '0') == '1':"
-      and t2[72] == "            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')"
-      and t2[174] == "        if os.getenv('SKIP_REGAB_DB', '0') == '1':"
-      and t2[175] == "            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')",
-      repr(t2[71:73]))
-check("D4 import os is present (L45 — for the gate)", t2[44] == "import os", repr(t2[44]))
-check("D5 both setUps use the D-085 TemporaryDirectory idiom (L81, L183)",
-      t2[80] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
+check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (D-087 T1; D-130: the db_long_gate idiom)",
+      t2[73] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)"
+      and t2[175] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)",
+      repr(t2[73:75]))
+check("D4 import os is present (L46 — for the gate)", t2[45] == "import os", repr(t2[45]))
+check("D5 both setUps use the D-085 TemporaryDirectory idiom (L82, L183)",
+      t2[81] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
       and t2[182] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
-      repr(t2[80]))
-check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L83 rlm_00, L185 rlm_01)",
-      t2[82] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_00.json\")"
+      repr(t2[81]))
+check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L84 rlm_00, L185 rlm_01)",
+      t2[83] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_00.json\")"
       and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_01.json\")",
-      repr(t2[82]))
-check("D7 the D-085 paths import is present (L57)",
-      t2[56] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[56]))
+      repr(t2[83]))
+check("D7 the D-085 paths import is present (L58)",
+      t2[57] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("src/reversi/test/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
 check("D9 the D-078 cache names are pinned (rlmwf_05_WMAPS.dat + .SHA3-256)",

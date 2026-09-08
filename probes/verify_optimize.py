@@ -213,11 +213,10 @@ check("C12 no code ws lines (house sweep)", ws_lines(c) == set(),
 print("== tier D: test_wrk_optimize.py structure (post D-096)")
 d = read("test/test_wrk_optimize.py")
 dl = d.splitlines()
-check("D1 line count 174", len(dl) == 174, f"{len(dl)}")
-check("D2 T1: SKIP_REGAB_DB gate in setUp (header claim now true)",
+check("D1 line count 175 (D-130: the tier note adds a header line)", len(dl) == 175, f"{len(dl)}")
+check("D2 T1: SKIP_REGAB_DB gate in setUp (D-130: the db_long_gate idiom)",
       "# T1 (D-096):" in d
-      and "if os.getenv('SKIP_REGAB_DB', '0') == '1':" in d
-      and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in d)
+      and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in d)
 check("D3 T2: D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in d
       and "Path(self._tmp.name)" in d
@@ -225,7 +224,7 @@ check("D3 T2: D-085 idiom applied",
       and "mkdtemp" not in d and "shutil" not in d)
 check("D4 T4: dead imports removed (skipUnless gone; os/Path now used)",
       "skipUnless" not in d
-      and "import os" in d and "os.getenv" in d
+      and "import os" in d and "db_long_gate(self)" in d
       and "from pathlib import Path" in d and "Path(" in d)
 check("D5 T3: dead if-False block removed", "if False:" not in d)
 check("D6 T5: stray ':# ###' comment removed", "#: ###" not in d)

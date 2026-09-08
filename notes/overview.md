@@ -104,8 +104,10 @@ at the end of this file.
   Roberto's approved mapping: the 36 modules moved + renamed
   (2 commits each), twolm/ removed, editable reinstall, probes
   re-pinned, the Source/Test tables carry the reversi paths.
-  Verification regime while the local DB is down (pre-existing,
-  Roberto to restore): SKIP_REGAB_DB=1 ./run_utests.sh.
+  Verification regime while the local DB was down (restored
+  2026-09-08, D-135): SKIP_REGAB_DB=1 ./run_utests.sh per
+  commit; post-restore the full LONG=1 suite (673/0/18) + the
+  21/21 probe sweep are green.
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
@@ -125,11 +127,7 @@ at the end of this file.
 - RLMContext → LMContext: the final inventory review
   (Roberto's call, D-133/D-134) — the inventory count is in
   D-134; the rename happens only on his go-ahead.
-- Restore the local PostgreSQL cluster (pre-existing gap: the
-  machine lost it — no cluster data anywhere; 35 pipeline DB
-  tests + the 13 DB-gated probes need it back). Roberto
-  provisions it; the remote DB (gandalf.skynet, .env) is live
-  and test_regab passes against it (37/0/0).
+
 
 
 ## Source files

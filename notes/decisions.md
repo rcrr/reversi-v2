@@ -488,3 +488,25 @@ D-134 | 2026-09-08 | I-001 / D-133 campaign closed: the
         Packaging / Where-we-are / Next steps), ideas.md
         (I-001 → done), the touched mirror docs — the
         history notes stay untouched.
+D-135 | 2026-09-08 | The local PostgreSQL cluster is
+        restored (Roberto re-provisioned it) — the full live
+        verification completes.
+        | Full suite: LONG=1 ./run_utests.sh → 673/0/18 GREEN
+        (the DB-gated tests now run; only 18 skipped — the
+        non-DB skips).
+        | The DB-gated probe sweep (the 13 probes the campaign
+        ran against SKIP_REGAB_DB) surfaced the campaign's
+        last cleanup: 9 probe files pinned the PRE-D-130
+        test-file state — the D-130 tier note adds a header
+        line (line counts +1, line anchors shift) and D-130
+        replaced the literal os.getenv / skipTest gate with
+        the db_long_gate(self) idiom (reversi.test.tags) —
+        plus verify_analytics / verify_design_matrix pinned
+        the rlm_indexes field name on the ctx mocks / the
+        recomputation (D-133 renamed it to hlp_indexes).
+        Re-pinned: verify_gradient, verify_optimize,
+        verify_wmaps, verify_hlp_indexes, verify_wrk_features,
+        verify_zed, verify_design_matrix, verify_analytics.
+        The frozen labels and the rlm_0X data names stay.
+        | Probe sweep (probe_rules §5.2): 21/21 green (the 20
+        verify probes + measure_suite), all DB tiers live.

@@ -418,7 +418,7 @@ check("D3 the console report (no tables, no date): the N/A TRAINING-DENSE "
 # as D1: mae_y 10, rmse_y 10, loss 0.5*mean(rn_z^2) = 0.0030517578125.
 def fake_dense_ctx(game_values, indexes, w_dense, offsets, n_instances):
     return SimpleNamespace(
-        rlm_indexes=SimpleNamespace(indexes=np.asarray(indexes, dtype=np.int32)),
+        hlp_indexes=SimpleNamespace(indexes=np.asarray(indexes, dtype=np.int32)),
         iwmap_feature_offset=np.asarray(offsets, dtype=np.uint32),
         feature_set=SimpleNamespace(
             features=[SimpleNamespace(n_instances=n_instances)]),

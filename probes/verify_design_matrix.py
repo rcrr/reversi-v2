@@ -123,9 +123,10 @@ check("C1 test_wrk_design_matrix.py is 226 lines (post D-090: 202 + gates + idio
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
-check("C3 T1 FIXED: the gate is in BOTH setUps and the header claim is now true",
-      "# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1" in read("src/reversi/test/test_wrk_design_matrix.py")
-      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.skipTest('SKIP_REGAB_DB=1: database tests skipped')") == 2
+check("C3 T1 FIXED: the gate is in BOTH setUps (D-130: the db_long_gate idiom) and the header claim is now true",
+      "# -1- Run the tests (a live regab DB + LONG=1 is required;" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)") == 2
       and "import os" in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE x2)",
       read("src/reversi/test/test_wrk_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
@@ -195,7 +196,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     # Independent recomputation: X[i,j] = iwmap[pindexes[i,j] + col_offsets[j]]
     n_inst = [f.n_instances for f in ctx.feature_set.features]
     col_off = np.repeat(ctx.iwmap_feature_offset[:-1], n_inst)
-    X_recomputed = ctx.iwmap[ctx.rlm_indexes.indexes + col_off].astype(np.uint32)
+    X_recomputed = ctx.iwmap[ctx.hlp_indexes.indexes + col_off].astype(np.uint32)
     check("D5 independent recompute: X == iwmap[pindexes + col_offsets] (the D-086-style single source of truth)",
           np.array_equal(ctx.design_matrix, X_recomputed))
     check("D6 every X value is a valid w index (< W = len(w))",

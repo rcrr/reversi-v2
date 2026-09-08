@@ -223,9 +223,9 @@ check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared re
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc
       and 'tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))' in tsrc
       and "mkdtemp" not in tsrc)
-check("C4 T2 FIXED (D-082): the SKIP_REGAB_DB gate at the top of setUp",
+check("C4 T2 FIXED (D-082; D-130: the db_long_gate idiom): the SKIP_REGAB_DB gate at the top of setUp",
       "SKIP_REGAB_DB" in tsrc
-      and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in tsrc)
+      and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in tsrc)
 check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to reversi.test.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
 check("C6 T4 FIXED (D-082): header grammar 'How to run the wrk_features unit tests.' + DB/gate run note",

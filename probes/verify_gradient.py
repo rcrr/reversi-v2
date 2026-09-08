@@ -98,15 +98,15 @@ check("B9 factory docstring",
 print("== tier C: test_wrk_gradient.py structure (post D-094)")
 c = read("test/test_wrk_gradient.py")
 cl = c.splitlines()
-check("C1 line count 142", len(cl) == 142, f"{len(cl)}")
-check("C2 header gate claim",
-      "a live regab DB is required; SKIP_REGAB_DB=1" in c and
-      "skips the DB-gated tests, as in test_regab" in c)
+check("C1 line count 143 (D-130: the tier note adds a header line)", len(cl) == 143, f"{len(cl)}")
+check("C2 header gate claim (D-130 tier wording)",
+      "a live regab DB + LONG=1 is required;" in c and
+      "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in c and
+      "VLONG=1 implies LONG, D-130" in c)
 code_no_header = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
-check("C3 T5 gate in code",
+check("C3 T5 gate in code (D-130: the db_long_gate idiom)",
       "import os" in code_no_header and
-      "if os.getenv('SKIP_REGAB_DB', '0') == '1':" in code_no_header and
-      "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in code_no_header and
+      "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in code_no_header and
       "# T5 (D-093): the SKIP_REGAB_DB gate, as in test_regab" in c)
 check("C4 T6 D-085 idiom",
       "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and

@@ -99,39 +99,41 @@ check('B8  T8 DONE: trailing-ws lines = header only (6,11,16,21)',
 
 # ---------------------------------------------------------------- C tier
 tc = lines_of('test/test_wrk_zed.py')
-check('C1  test_wrk_zed.py is 164 lines (post T1/T4/T5)', len(tc) == 164, f'{len(tc)}')
-check('C2  2 classes: TestZedFunFactory (L62, 1 test) + TestLMWorkerZed (L78, 2 tests)',
-      tc[61] == 'class TestZedFunFactory(unittest.TestCase):'
-      and tc[77] == 'class TestLMWorkerZed(unittest.TestCase):'
+check('C1  test_wrk_zed.py is 165 lines (post T1/T4/T5; D-130: the tier note adds a header line)', len(tc) == 165, f'{len(tc)}')
+check('C2  2 classes: TestZedFunFactory (L64, 1 test) + TestLMWorkerZed (L80, 2 tests)',
+      tc[63] == 'class TestZedFunFactory(unittest.TestCase):'
+      and tc[79] == 'class TestLMWorkerZed(unittest.TestCase):'
       and sum(1 for l in tc if l.startswith('    def test_')) == 3)
-check('C3  T1 DONE: import os (L45) + gate in setUp (L85) + paths import (L58)',
-      tc[44] == 'import os'
-      and tc[84] == "        if os.getenv('SKIP_REGAB_DB', '0') == '1':"
-      and tc[57] == 'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
-      and 'self.skipTest(' in '\n'.join(tc))
-check('C4  header CLAIMS the gate (L38-39) — the claim is NOW true (ties to C3)',
-      'SKIP_REGAB_DB=1' in tc[37] and 'skips the DB-gated tests' in tc[38])
-check('C5  T4 DONE: TemporaryDirectory FIRST (L94) under CUSTOM_TMP_BASE + tmp_dir = Path (L95) + WORKSPACE_ROOT json (L96)',
-      tc[93] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
-      and tc[94] == '        self.tmp_dir = Path(self._tmp.name)'
-      and tc[95] == '        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")')
+check('C3  T1 DONE: import os (L46) + the db_long_gate idiom in setUp (L87, D-130) + paths import (L59)',
+      tc[45] == 'import os'
+      and tc[86] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)"
+      and tc[58] == 'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
+      and 'from reversi.test.tags import db_long_gate' in '\n'.join(tc))
+check('C4  header CLAIMS the gate (L38-40, D-130 tier wording) — the claim is NOW true (ties to C3)',
+      'a live regab DB + LONG=1 is required;' in tc[37]
+      and 'SKIP_REGAB_DB=1' in tc[38] and 'skips the DB-gated tests' in tc[38]
+      and 'VLONG=1 implies LONG, D-130' in tc[39])
+check('C5  T4 DONE: TemporaryDirectory FIRST (L95) under CUSTOM_TMP_BASE + tmp_dir = Path (L96) + WORKSPACE_ROOT json (L97)',
+      tc[94] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
+      and tc[95] == '        self.tmp_dir = Path(self._tmp.name)'
+      and tc[96] == '        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")')
 check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(self._tmp.name))',
-      'import shutil' not in '\n'.join(tc) and tc[52] == 'from pathlib import Path'
+      'import shutil' not in '\n'.join(tc) and tc[53] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
-check('C7  step pins: DESIGN_MTR = 6 (L103-104), ZED = 7 (L126-127)',
-      tc[102] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[103] == '        self.assertEqual(self.rlm.current_step, 6)'
-      and tc[125] == "        self.rlm.move_to_step('ZED')" and tc[126] == '        self.assertEqual(self.rlm.current_step, 7)')
-check('C8  goldens: logit_clipping 0.03 (L116), y (10,) int8 (L120), z (10,) float32 (L136-145)',
-      tc[115] == '        expected_logit_clipping = 0.03'
-      and tc[119] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'
-      and tc[135] == '        expected_z = np.array([0.5734375,'
-      and tc[144] == '                               0.5146875], dtype=np.float32)')
-check('C9  T5 DONE: test_down_clears_zed_attributes (L149) — move(6) (L154), step 6 (L155), DESIGN_MTR name (L156), 4 assertIsNone (L157-160)',
-      tc[148] == '    def test_down_clears_zed_attributes(self):'
-      and tc[153] == '        self.rlm.move_to_step(6)'
-      and tc[154] == '        self.assertEqual(self.rlm.current_step, 6)'
-      and tc[155] == "        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')"
-      and tc[156:160] == ['        self.assertIsNone(self.rlm.context.y2z)',
+check('C7  step pins: DESIGN_MTR = 6 (L104-105), ZED = 7 (L127-128)',
+      tc[103] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[104] == '        self.assertEqual(self.rlm.current_step, 6)'
+      and tc[126] == "        self.rlm.move_to_step('ZED')" and tc[127] == '        self.assertEqual(self.rlm.current_step, 7)')
+check('C8  goldens: logit_clipping 0.03 (L117), y (10,) int8 (L121), z (10,) float32 (L137-146)',
+      tc[116] == '        expected_logit_clipping = 0.03'
+      and tc[120] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'
+      and tc[136] == '        expected_z = np.array([0.5734375,'
+      and tc[145] == '                               0.5146875], dtype=np.float32)')
+check('C9  T5 DONE: test_down_clears_zed_attributes (L150) — move(6) (L155), step 6 (L156), DESIGN_MTR name (L157), 4 assertIsNone (L158-161)',
+      tc[149] == '    def test_down_clears_zed_attributes(self):'
+      and tc[154] == '        self.rlm.move_to_step(6)'
+      and tc[155] == '        self.assertEqual(self.rlm.current_step, 6)'
+      and tc[156] == "        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')"
+      and tc[157:161] == ['        self.assertIsNone(self.rlm.context.y2z)',
                           '        self.assertIsNone(self.rlm.context.z2y)',
                           '        self.assertIsNone(self.rlm.context.z)',
                           '        self.assertIsNone(self.rlm.context.zed_checksum)'])
@@ -209,11 +211,11 @@ finally:
 
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
-check('F1  RLMContext zed fields pre-declared (L129-132), untouched by the commit',
-      lm_lines[128] == '    zed_checksum: str | None = None'
-      and lm_lines[129] == '    y2z: Any = None'
-      and lm_lines[130] == '    z2y: Any = None'
-      and lm_lines[131] == '    z: Any = None')
+check('F1  RLMContext zed fields pre-declared (L128-131), untouched by the commit',
+      lm_lines[127] == '    zed_checksum: str | None = None'
+      and lm_lines[128] == '    y2z: Any = None'
+      and lm_lines[129] == '    z2y: Any = None'
+      and lm_lines[130] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',

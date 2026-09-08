@@ -317,8 +317,8 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 
 tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_indexes.py").read_text()
 
-check("E1 153 lines, 1 class / 2 tests (post D-085: the D-065 idiom moved to reversi.test.paths)",
-      len(tsrc.splitlines()) == 153
+check("E1 154 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a header line)",
+      len(tsrc.splitlines()) == 154
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
 check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
@@ -327,11 +327,11 @@ check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom 
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
 check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the setUp moves to FEATURES (step 3), which runs POSITIONS — a DB hit on a fresh base dir)",
-      "SKIP_REGAB_DB" in tsrc and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in tsrc
+      "SKIP_REGAB_DB" in tsrc and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",
       "How to run the wrk_indexes unit tests." in tsrc
-      and "a live regab DB is required" in tsrc)
+      and "a live regab DB + LONG=1 is required;" in tsrc)
 check("E5 the rlmwf_04_INDEXES.dat + .SHA3-256 pins and the 'Executing heavy computation' pin",
       "rlmwf_04_INDEXES.dat" in tsrc and "rlmwf_04_INDEXES.dat.SHA3-256" in tsrc
       and '"Executing heavy computation"' in tsrc)
