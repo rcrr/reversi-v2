@@ -13,7 +13,7 @@ materialize (probe D-tier).
 
 | name | contract |
 |---|---|
-| `lm_worker_design_matrix()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("DESIGN_MTR", _up, _down)` |
+| `wrk_design_matrix()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("DESIGN_MTR", _up, _down)` |
 
 ## Architecture
 
@@ -46,7 +46,7 @@ Pinned by the `probes/verify_design_matrix.py` B + C + D + F
 tiers + the 3-test suite.
 
 - Source shape (probe B1-B9): the 80-line file, `__all__ =
-  ['lm_worker_design_matrix']`, the factory name "DESIGN_MTR" WITH
+  ['wrk_design_matrix']`, the factory name "DESIGN_MTR" WITH
   `@validate_call` + the pydantic import, the full 7-kwargs cache
   wiring with the `checksum=False` load_fn, `_up` sets
   `ctx.design_matrix` (the bare `dm_obj.X`) +
@@ -76,7 +76,7 @@ tiers + the 3-test suite.
   WMAPS, then DESIGN_MTR: "Cache successfully loaded and
   validated", no "Forcing computation", same shape + uint32), and
   `test_compute_design_matrix_exact_values` (the rlm_01 (10,7)
-  uint32 X literal) — `test_lm_worker_design_matrix.py` (3 tests,
+  uint32 X literal) — `test_wrk_design_matrix.py` (3 tests,
   `SKIP_REGAB_DB` gated).
 
 ## Open issues

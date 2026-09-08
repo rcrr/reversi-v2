@@ -27,7 +27,7 @@ DB-gated worker tests.
 - The 2 worker tests are DB-gated (D-092 T1) because the setUp's
   move to DESIGN_MTR runs the positions chain (the live regab DB)
   on a fresh base dir — the same gate class as
-  test_lm_worker_design_matrix (D-090 T1); since D-130 the gate
+  test_wrk_design_matrix (D-090 T1); since D-130 the gate
   is the db_long_gate (SKIP_REGAB_DB + LONG). The factory test is
   NOT gated (no DB) — 3/0/2 under the gate.
 - The D-085 idiom applied in D-092 T4 (the CWD `mkdtemp` + CWD

@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_design_matrix']
+__all__ = ['wrk_design_matrix']
 
 
 
@@ -75,6 +75,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_design_matrix() -> Worker:
+def wrk_design_matrix() -> Worker:
     """Factory function that returns the DESIGN_MTR worker instance."""
     return Worker("DESIGN_MTR", _up, _down)

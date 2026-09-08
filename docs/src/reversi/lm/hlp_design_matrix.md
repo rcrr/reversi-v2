@@ -54,7 +54,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 
 Pinned by the 53-call `probes/verify_design_matrix.py` +
 `test_hlp_design_matrix.py` (12 tests, no DB) +
-`test_lm_worker_design_matrix.py` (3 DB-gated tests).
+`test_wrk_design_matrix.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A15): 133 lines, the 5-name `__all__`,
   exactly 4 `@validate_call` (NOT on compute / is_cache_consistent
@@ -77,7 +77,7 @@ Pinned by the 53-call `probes/verify_design_matrix.py` +
   WMAPS one), the consistency compare, the store/load contract
   (cycle + golden hash + the 3 error paths), the init validation.
   The end-to-end round-trip + the (10,7) golden (DB-gated,
-  `test_lm_worker_design_matrix.py`) is the single source of truth
+  `test_wrk_design_matrix.py`) is the single source of truth
   after the step-3 class c deletions (D0 + the extraction
   machinery, D1-D4, D9).
 
@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The 7th RLM level; the worker (lm_worker_design_matrix.py)
+- The 7th RLM level; the worker (wrk_design_matrix.py)
   carries the cache wiring, this module the data object + the 4
   functions. Consumes `ctx.hlp_indexes` (INDEXES) + `ctx.iwmap` +
   `ctx.iwmap_feature_offset` + `ctx.wmaps_obj_checksum` (WMAPS) +

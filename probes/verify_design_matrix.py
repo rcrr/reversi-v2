@@ -6,11 +6,11 @@ verify_design_matrix.py — scratch probe for the DESIGN_MTR bring-in
 Re-derives and verifies, independently of the test files:
   A. hlp_design_matrix.py structure (post warning-fix: explicit cast,
      guards, decorators, whitespace)
-  B. lm_worker_design_matrix.py structure (worker shape vs the house)
-  C. test_lm_worker_design_matrix.py structure (DB claim vs gate, idiom,
+  B. wrk_design_matrix.py structure (worker shape vs the house)
+  C. test_wrk_design_matrix.py structure (DB claim vs gate, idiom,
      golden pins, whitespace)
   D. GOLDEN re-derivation (live DB): the rlm_01.json pipeline DESIGN_MTR
-     output vs the literal pinned in test_lm_worker_design_matrix, plus
+     output vs the literal pinned in test_wrk_design_matrix, plus
      the independent X = iwmap[pindexes + col_offsets] recomputation
   F. Cross-fixture / context facts (RLMContext fields, the rlm_01
      feature layout)
@@ -87,15 +87,15 @@ check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carrie
       rlm[41] == "" and rlm[42] == "" and rlm[43] == "" and rlm[49] == "" and rlm[50] == "" and rlm[51] == "")
 
 # ----------------------------------------------------------------------
-# B. lm_worker_design_matrix.py structure
+# B. wrk_design_matrix.py structure
 # ----------------------------------------------------------------------
 w = lines("src/reversi/lm/wrk_design_matrix.py")
-check("B1 lm_worker_design_matrix.py is 80 lines (post D-090: 77 + pydantic import + decorator)", len(w) == 80, f"{len(w)}")
+check("B1 wrk_design_matrix.py is 80 lines (post D-090: 77 + pydantic import + decorator)", len(w) == 80, f"{len(w)}")
 check("B2 T2 FIXED: the pydantic import is present (as in the other 6 workers)",
       "from pydantic import validate_call, ConfigDict" in read("src/reversi/lm/wrk_design_matrix.py"))
-check("B3 T2 FIXED: the factory lm_worker_design_matrix is @validate_call-decorated",
+check("B3 T2 FIXED: the factory wrk_design_matrix is @validate_call-decorated",
       w[76] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
-      and w[77] == "def lm_worker_design_matrix() -> Worker:")
+      and w[77] == "def wrk_design_matrix() -> Worker:")
 check("B4 T3 FIXED: load_fn is the lambda with checksum=False (single sidecar check)",
       "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B5 the 7-arg cache wiring matches the house key set",
@@ -116,10 +116,10 @@ check("B9 the worker name is DESIGN_MTR (Worker('DESIGN_MTR', _up, _down))",
       'return Worker("DESIGN_MTR", _up, _down)' in read("src/reversi/lm/wrk_design_matrix.py"))
 
 # ----------------------------------------------------------------------
-# C. test_lm_worker_design_matrix.py structure
+# C. test_wrk_design_matrix.py structure
 # ----------------------------------------------------------------------
 t = lines("src/reversi/test/test_wrk_design_matrix.py")
-check("C1 test_lm_worker_design_matrix.py is 226 lines (post D-090: 202 + gates + idiom - ws strip)", len(t) == 226, f"{len(t)}")
+check("C1 test_wrk_design_matrix.py is 226 lines (post D-090: 202 + gates + idiom - ws strip)", len(t) == 226, f"{len(t)}")
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
@@ -189,7 +189,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 
     # (D1-D4 deleted at D-106 step 3, class c: step 6 / the (10,7)
     #  shape / the uint32 dtype / X == the pinned literal are all
-    #  pinned by test_lm_worker_design_matrix.py — the step in both
+    #  pinned by test_wrk_design_matrix.py — the step in both
     #  setUps, the dtype 3x, and
     #  nptest.assert_array_equal(expected_X, X))
     # Independent recomputation: X[i,j] = iwmap[pindexes[i,j] + col_offsets[j]]

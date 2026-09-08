@@ -48,7 +48,7 @@ followed from day one).
   to `hlp_design_matrix_*` (the worker test only exercises the
   end-to-end path).
 - The LIVE golden (the rlm_01 (10,7) X) lives in
-  test_lm_worker_design_matrix.py
+  test_wrk_design_matrix.py
   (`TestLMWorkerDesignMatrixExactValues`) — the single source of
   truth after the step-3 class c deletions of the former probe
   D0-D4/D9 tier.
