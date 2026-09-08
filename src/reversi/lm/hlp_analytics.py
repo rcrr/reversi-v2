@@ -314,7 +314,7 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     The table is three-metric wide (D-105/M2): TRAINING is the COMPRESSED
     forward pass (the trained w over the design matrix — what lbfgs fit);
     TRAINING-DENSE is the DENSE forward pass (w_dense — the exact forward
-    rules of the saved model, as rlm_client computes them) on the same
+    rules of the saved model, as client computes them) on the same
     training data; VALIDATION is the dense pass on the validation data.
     The two training columns differ exactly for the positions that touch
     below-cutoff (IC) configurations — the Substitution Delta row
@@ -484,7 +484,7 @@ def compute_training_dense_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
     """
     Computes MAE(y), RMSE(y) and the Z-space loss on the training set using
     the DENSE weights (w_dense) — the exact forward pass of the saved model
-    (the rlm_client inference rules). The TRAINING table column shows the
+    (the client inference rules). The TRAINING table column shows the
     compressed pass (what lbfgs fit); this column shows what the shipped
     model actually computes on the training data. The two differ exactly
     for the positions that touch below-cutoff (IC) configurations, where

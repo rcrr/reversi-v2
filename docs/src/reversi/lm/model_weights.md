@@ -5,7 +5,7 @@ store/load pair) and the first with a plain `@dataclass` (no pydantic
 BaseModel, no `@validate_call` on the data functions — consistent with
 hlp_validate/hlp_analytics). It serializes the INFERENCE SUBSET of
 `RLMContext` into one lz4-compressed binary file (binio) so that
-`rlm_client.make_evaluation_function` can evaluate board positions
+`client.make_evaluation_function` can evaluate board positions
 without the database, the cache, or most of the pipeline state.
 > State: D-104 · 7fb070b · 2026-09-03 · suite 5/0/0 (via
   test_lm_worker_full_chain — 2 ungated read guards; the rest DB-

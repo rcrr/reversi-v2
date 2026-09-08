@@ -185,6 +185,6 @@ None.
 
 - Consumed by: `pattern.py` (the D8 orbits, the principal masks),
   `mobility.py`, `feature.py`, `regab.py` (DB row ↔ position),
-  `rlm_client.py`, `rlm_config_schemas.py`.
+  `client.py`, `hlp_config_schemas.py`.
 - A pure domain module: not a pipeline level, no ctx fields, no
   cache.

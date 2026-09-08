@@ -2,7 +2,7 @@
 The SAVE worker — the 15th and LAST active level of the RLM pipeline
 (step 14, after ANALYTICS; the pipeline is 15/15 COMPLETE since the
 D-104 bring-in fe506c6, which brought this worker in together with
-model_weights.py, rlm_client.py, the full-chain test module, and the
+model_weights.py, client.py, the full-chain test module, and the
 rlm_03/rlm_04 fixtures). The 6th non-cache worker — no
 `cache_manager` wiring, no rlmwf_15* file (no cache level ever used a
 "15" slot; the flat-file numbering skips 03/07/08/09/12/13/15). A pure
@@ -105,7 +105,7 @@ None.
   stats + 4/5 opt_info keys + 4/7 vld metrics (model_weights.md).
   `ctx.w` (the compressed trained vector) and the zed transforms are
   deliberately NOT persisted: the client reconstructs everything it
-  needs (rlm_client.md) — the zed transforms are a pure function of
+  needs (client.md) — the zed transforms are a pure function of
   `logit_clipping`.
 - `ctx.cfg.output` is a REQUIRED field of
   `ReversiLogisticModelConfig` (rlm_config_schemas L196,
