@@ -1,4 +1,4 @@
-# twolm/rlm_indexes.py
+# reversi/lm/hlp_indexes.py
 The INDEXES domain module of the RLM pipeline: the
 `ReversiLogisticModelIndexes` data object (the 2-D uint32 index
 matrix + its two metadata hashes) + 4 public functions (store /
@@ -52,7 +52,7 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
 
 ## Verified invariants
 
-Pinned by the 52-call `probes/verify_rlm_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated end-to-end).
+Pinned by the 52-call `probes/verify_hlp_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated end-to-end).
 
 - Source shape (probe A1-A11): 190 lines, the 5-name `__all__`,
   exactly 5 `@validate_call` (NOT on compute / is_cache_consistent

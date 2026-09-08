@@ -37,11 +37,11 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_rlm_indexes
+# time python3 -m unittest reversi.test.test_hlp_indexes
 #
 
 """
-Unit tests for the twolm.rlm_indexes module.
+Unit tests for the reversi.lm.hlp_indexes module.
 """
 
 import unittest
@@ -50,7 +50,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from twolm import rlm_indexes
+from reversi.lm import hlp_indexes as rlm_indexes
 
 import numpy as np
 
@@ -101,7 +101,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
 class TestRlmIndexesStoreToFile(unittest.TestCase):
     """Tests for the rlm_indexes_store_to_file function."""
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_store_to_file_success(self, mock_binio):
         """Test that data is written to the binary file in the correct order and format."""
         mock_writer = MagicMock()
@@ -134,7 +134,7 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
 
         self.assertEqual(mock_writer.method_calls, expected_calls)
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_store_to_file_accepts_path_object(self, mock_binio):
         """Test that the function handles pathlib.Path objects correctly."""
         mock_writer = MagicMock()
@@ -152,7 +152,7 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
 class TestRlmIndexesLoadFromFile(unittest.TestCase):
     """Tests for the rlm_indexes_load_from_file function."""
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_success_with_checksum(self, mock_binio):
         """Test successful loading when checksum verification is enabled (default)."""
         mock_binio.verify_sha3_256_sidecar.return_value = True
@@ -174,7 +174,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
         self.assertEqual(result.indexes.dtype, np.uint32)
         self.assertIs(result.indexes, DUMMY_INDEXES)
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_success_without_checksum(self, mock_binio):
         """Test that checksum verification is skipped when checksum=False."""
         mock_reader = MagicMock()
@@ -188,7 +188,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
 
         mock_binio.verify_sha3_256_sidecar.assert_not_called()
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_checksum_mismatch(self, mock_binio):
         """Test that RuntimeError is raised if the sidecar checksum fails."""
         mock_binio.verify_sha3_256_sidecar.return_value = False
@@ -198,7 +198,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
 
         self.assertIn("checksum file signature doesn't match", str(context.exception))
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_invalid_description(self, mock_binio):
         """Test behavior when the file header description is incorrect."""
         mock_binio.verify_sha3_256_sidecar.return_value = True
@@ -212,7 +212,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
 
         self.assertIn("not a proper", str(context.exception))
 
-    @patch('twolm.rlm_indexes.binio')
+    @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_invalid_version(self, mock_binio):
         """Test behavior when the file header version is incorrect."""
         mock_binio.verify_sha3_256_sidecar.return_value = True

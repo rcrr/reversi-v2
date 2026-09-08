@@ -38,7 +38,7 @@ pipeline (after POSITIONS), and unlike FEATURES the flat
 
 ## Verified invariants
 
-Pinned by the `probes/verify_rlm_indexes.py` D tier + the 2-test
+Pinned by the `probes/verify_hlp_indexes.py` D tier + the 2-test
 suite.
 
 - Source shape: the 80-line file, `__all__ =

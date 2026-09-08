@@ -1,8 +1,8 @@
-# twolm/test/test_rlm_indexes.py
+# reversi/test/test_hlp_indexes.py
 The unit suite of the rlm_indexes domain module (Roberto's file,
 brought in with the a323e0f enablement; the D-084 T1-T5 + M1-M2
 campaign). 5 classes / 14 tests / no PERF — all file I/O MOCKED
-(`twolm.rlm_indexes.binio` patched): no temp dirs, no DB, no
+(`reversi.lm.hlp_indexes.binio` patched): no temp dirs, no DB, no
 gates.
 > State: D-084 · 297e531 · 2026-08-31 · suite 14/0/0
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 #
-# verify_rlm_indexes.py
+# verify_hlp_indexes.py
 #
 # Probe pinning the verified behaviour of the INDEXES level:
-# the domain module (src/twolm/rlm_indexes.py) and the worker
+# the domain module (src/reversi/lm/hlp_indexes.py) and the worker
 # (src/twolm/lm_worker_indexes.py), plus the source structure of
 # their two test files (test_rlm_indexes.py,
 # test_lm_worker_indexes.py), session 23 (D-083 analysis).
@@ -48,7 +48,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 
-TMP = ROOT / "build" / "tmp" / "verify_rlm_indexes"
+TMP = ROOT / "build" / "tmp" / "verify_hlp_indexes"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
@@ -125,7 +125,7 @@ check("A11 compute body: rds_checksum + feature_set.hash + feature_set.compute_i
 import numpy as np
 
 from reversi.tools import binio
-from twolm import rlm_indexes
+from reversi.lm import hlp_indexes
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
@@ -183,7 +183,7 @@ except Exception as e:
           f"got {type(e).__name__}: {e}")
 
 # A file with the wrong description / version (checksum=False to reach the header).
-from twolm import rlm_indexes as ri
+from reversi.lm import hlp_indexes as ri
 with binio.BinaryWriter(TMP / "wrong_desc.bin") as w:
     w.write_header("Wrong Description", 1)
     w.write_string("a")
@@ -354,7 +354,7 @@ check("F1 304 lines, 5 classes / 14 tests (D-084 M2: the rds-only-differs test a
       and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc)
 check("F2 no temp-dir machinery at all (every file I/O is mocked — binio patched): no mkdtemp / TemporaryDirectory / CUSTOM_TMP_BASE",
       "mkdtemp" not in fsrc and "TemporaryDirectory" not in fsrc
-      and "CUSTOM_TMP_BASE" not in fsrc and "@patch('twolm.rlm_indexes.binio')" in fsrc)
+      and "CUSTOM_TMP_BASE" not in fsrc and "@patch('reversi.lm.hlp_indexes.binio')" in fsrc)
 import ast as _ast
 _idx_name_uses = [n for n in _ast.walk(_ast.parse(fsrc))
                   if isinstance(n, _ast.Name) and n.id == "IndexArray"]

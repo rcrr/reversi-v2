@@ -166,7 +166,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/twolm/rlm_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090) | 12/0/0 | docs/src/twolm/rlm_design_matrix.md |
 | src/twolm/rlm_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098) | 14/0/0 | docs/src/twolm/rlm_generate.md |
 | src/twolm/rlm_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract); closed (D-093/D-094) | 8/0/0 | docs/src/twolm/rlm_gradient.md |
-| src/twolm/rlm_indexes.py | complete: the INDEXES data module; closed (D-083/D-084) | 14/0/0 | docs/src/twolm/rlm_indexes.md |
+| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/twolm/rlm_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096) | 19/0/0 | docs/src/twolm/rlm_optimize.md |
 | src/twolm/rlm_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/twolm/rlm_validate.md |
 | src/twolm/rlm_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088) | 13/0/0 | docs/src/twolm/rlm_wmaps.md |
@@ -207,7 +207,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_rlm_design_matrix.py | complete: the dedicated 12-test data suite (D-090) | 12/0/0 | docs/src/twolm/test/test_rlm_design_matrix.md |
 | src/twolm/test/test_rlm_generate.py | complete: the GENERATE data suite (D-097/D-098) | 14/0/0 | docs/src/twolm/test/test_rlm_generate.md |
 | src/twolm/test/test_rlm_gradient.py | complete: the GRADIENT data suite (D-094 M1) | 8/0/0 | docs/src/twolm/test/test_rlm_gradient.md |
-| src/twolm/test/test_rlm_indexes.py | complete: 14 tests (D-084) | 14/0/0 | docs/src/twolm/test/test_rlm_indexes.md |
+| src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/twolm/test/test_rlm_optimize.py | complete: the OPTIMIZE data suite (D-096) | 19/0/0 | docs/src/twolm/test/test_rlm_optimize.md |
 | src/twolm/test/test_rlm_wmaps.py | complete: the WMAPS data suite (D-087) | 13/0/0 | docs/src/twolm/test/test_rlm_wmaps.md |
 | src/twolm/test/test_rlm_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/twolm/test/test_rlm_zed.md |
