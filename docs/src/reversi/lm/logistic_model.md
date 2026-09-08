@@ -1,4 +1,4 @@
-# twolm/logistic_model.py
+# reversi/lm/logistic_model.py
 The first concrete domain facade: it wires the generic StateMachine
 to the RLM (Reversi Logistic Model) pipeline — a 4-step construction
 (validate the domain paths, build the shared RLMContext blackboard,
@@ -64,7 +64,7 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
   No commented factory imports or worker-list entries remain. The
   factories follow `lm_worker_x()` → `Worker`; the tests patch them
   by name in THIS module's namespace
-  (`twolm.logistic_model.wrk_config`, …). All 14 factories
+  (`reversi.lm.logistic_model.wrk_config`, …). All 14 factories
   carry the uniform `@validate_call` gate.
 - **use_cache is per-run** — `wrk_config` sets
   `ctx.use_cache` from the config (`rlm_config_schemas`

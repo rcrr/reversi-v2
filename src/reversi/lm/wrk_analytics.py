@@ -37,7 +37,7 @@ from reversi.lm.hlp_analytics import (compute_training_metrics,
                                  format_console_report, format_file_report)
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

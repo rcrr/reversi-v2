@@ -39,7 +39,7 @@ from reversi.lm.hlp_design_matrix import (hlp_design_matrix_load_from_file,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

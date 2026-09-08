@@ -38,7 +38,7 @@ from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_gradient import hlp_gradient_compute
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

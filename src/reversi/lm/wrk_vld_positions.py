@@ -42,7 +42,7 @@ from reversi.tools.cache_manager import cache_manager_load_or_compute
 from reversi.lm.wrk_positions import load_from_db, is_cache_consistent
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

@@ -38,7 +38,7 @@
 #     VLONG=1 enables the ~10-min A2050 chain on rlm_03 and
 #     implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_lm_worker_full_chain
+# time python3 -m unittest reversi.test.test_lm_worker_full_chain
 #
 
 import unittest
@@ -56,7 +56,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
 from reversi.lm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
 from reversi.lm.client import make_evaluation_function

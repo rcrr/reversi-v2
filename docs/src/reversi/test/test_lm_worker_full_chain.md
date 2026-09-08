@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_full_chain.py
+# reversi/test/test_lm_worker_full_chain.py
 The pipeline's END-TO-END test: it runs the whole 15-level chain
 (CREATED through SAVE) on two fixtures and pins the complete
 saved-model round-trip (file + sidecar + read-back + evaluation

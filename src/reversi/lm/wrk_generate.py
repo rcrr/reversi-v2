@@ -39,7 +39,7 @@ from reversi.lm.hlp_generate import (compute_w_dense,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

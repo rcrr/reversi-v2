@@ -130,7 +130,7 @@ check("A13 the unused vld_indexes.shape[1] is underscore-unpacked (M2, D-102; "
 # B. context facts (the B1-B3 pipeline-state pins moved to the hub
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 check("B4 RLMContext pre-declared vld_metrics (the future analytics_report)",
       "    vld_metrics: Any = None" in lm_src
       and "    analytics_report: Any = None" in lm_src)
@@ -141,7 +141,7 @@ check("B4 RLMContext pre-declared vld_metrics (the future analytics_report)",
 if os.getenv("SKIP_REGAB_DB", "0") == "1":
     skip("C-tier (live DB golden re-derivation)", "SKIP_REGAB_DB=1")
 else:
-    from twolm.logistic_model import LogisticModel
+    from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 

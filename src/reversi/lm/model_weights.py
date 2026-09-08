@@ -38,7 +38,7 @@ from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

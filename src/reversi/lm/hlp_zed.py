@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING, Tuple, Callable
 from pydantic import validate_call, ConfigDict
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

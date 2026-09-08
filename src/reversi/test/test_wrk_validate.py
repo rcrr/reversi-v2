@@ -54,7 +54,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, RLMContext
 from reversi.lm.wrk_validate import wrk_validate
 from reversi.lm.hlp_validate import validate_model
 from reversi.test.closecheck import assert_close

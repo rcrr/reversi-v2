@@ -51,7 +51,7 @@ check("A2 __all__", "__all__ = ['hlp_gradient_compute', 'sigmoid']" in a)
 check("A3 scipy import", "from scipy.special import expit" in a)
 check("A4 TYPE_CHECKING RLMContext",
       "if TYPE_CHECKING:" in a and
-      "from twolm.logistic_model import RLMContext" in a)
+      "from reversi.lm.logistic_model import RLMContext" in a)
 check("A5 no validate_call (hlp_gradient_compute — the L166 class)",
       "validate_call" not in a)
 check("A6 no pydantic import", "pydantic" not in a)
@@ -135,7 +135,7 @@ check("C10 step pins + T7 _down test",
 # ---------------------------------------------------------------- D tier
 print("== tier D: live pipeline + independent re-derivation (DB)")
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 
 
 def live(name, fn):
@@ -307,7 +307,7 @@ check("G2 2 classes 8 tests",
       gd.count("class Test") == 2 and
       len(re.findall(r"    def test_\w+", gd)) == 8)
 check("G3 no DB wiring",
-      "from twolm.logistic_model" not in gd and
+      "from reversi.lm.logistic_model" not in gd and
       "SKIP_REGAB_DB" not in gd and
       "reversi.test.paths" not in gd and
       "import os" not in gd)

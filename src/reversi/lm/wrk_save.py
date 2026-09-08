@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.model_weights import model_weights_write_file
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

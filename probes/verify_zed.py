@@ -66,7 +66,7 @@ check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L1
 check('A10 no cache API in hlp_zed (no store / load / is_cache_consistent)',
       not any(k in l for l in rlm for k in ('def hlp_zed_store', 'def hlp_zed_load', 'def hlp_zed_is_cache')))
 check('A11 TYPE_CHECKING guard for RLMContext (L37-38)',
-      rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from twolm.logistic_model import RLMContext')
+      rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from reversi.lm.logistic_model import RLMContext')
 check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == {6, 11, 16, 21})
 # (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
@@ -139,7 +139,7 @@ check('C10 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
 
 # ---------------------------------------------------------------- D tier (live)
 sys.path.insert(0, str(ROOT / 'src'))
-from twolm.logistic_model import LogisticModel  # noqa: E402
+from reversi.lm.logistic_model import LogisticModel  # noqa: E402
 from reversi.tools.state_machine import Verbosity  # noqa: E402
 
 CLIP = 0.03
@@ -218,7 +218,7 @@ check('F1  RLMContext zed fields pre-declared (L129-132), untouched by the commi
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
       (SRC / 'test' / 'test_hlp_zed.py').exists()
       and sum(1 for l in lines_of('test/test_hlp_zed.py') if l.startswith('    def test_')) == 10
-      and 'from twolm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
+      and 'from reversi.lm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
 check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
       (ROOT / 'docs' / 'src' / 'twolm' / 'hlp_zed.md').exists()
       and (ROOT / 'docs' / 'src' / 'twolm' / 'wrk_zed.md').exists()
@@ -229,7 +229,7 @@ check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
 gd = lines_of('test/test_hlp_zed.py')
 check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
-      all(k not in '\n'.join(gd) for k in ('from twolm.logistic_model', 'SKIP_REGAB_DB',
+      all(k not in '\n'.join(gd) for k in ('from reversi.lm.logistic_model', 'SKIP_REGAB_DB',
                                            'reversi.test.paths', 'import os')))
 check('G3  3 classes (L59/90/119): TestZedFunFactory + TestRLMZedCompute + TestReversiLogisticModelZed',
       gd[58] == 'class TestZedFunFactory(unittest.TestCase):'

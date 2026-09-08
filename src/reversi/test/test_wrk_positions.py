@@ -55,7 +55,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, RLMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
 from reversi.lm.wrk_positions import is_cache_consistent

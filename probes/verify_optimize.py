@@ -328,7 +328,7 @@ g_main()
 # ---------------------------------------------------------------- H tier
 print("== tier H: live pipeline through OPTIMIZE (DB required)")
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.hlp_optimize import (load_optimization_checkpoint,
                                 save_optimization_checkpoint)
 

@@ -154,7 +154,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/twolm/logistic_model.py | complete: the RLM facade — RLMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/twolm/logistic_model.md |
+| src/reversi/lm/logistic_model.py | complete: the RLM facade — RLMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
@@ -187,7 +187,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_config.py | complete: 15 tests (D-078) | 15/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/twolm/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins | 5/0/1 | docs/src/twolm/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins | 5/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
@@ -197,7 +197,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100) | 9/0/0 | docs/src/reversi/test/test_wrk_vld_positions.md |
 | src/reversi/test/test_wrk_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/reversi/test/test_wrk_wmaps.md |
 | src/reversi/test/test_wrk_zed.py | complete: the ZED worker suite (D-091/D-092) | 3/0/0 | docs/src/reversi/test/test_wrk_zed.md |
-| src/twolm/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/twolm/test/test_logistic_model.md |
+| src/reversi/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |
 | src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |

@@ -101,7 +101,7 @@ check("A8 the vld query params are passed to BOTH the compute and the validate f
 # B. context facts (the B1-B3 pipeline-state pins moved to the hub
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 check("B4 RLMContext pre-declared vld fields (vld_rds_checksum, vld_positions, "
       "vld_game_values, vld_pop_stats) + the future vld_metrics / analytics_report",
       "    vld_rds_checksum: str | None = None" in lm_src
@@ -126,7 +126,7 @@ check("B5 ReversiLogisticModelConfig.validation_data_set: ValidationDataSetConfi
 if os.getenv("SKIP_REGAB_DB", "0") == "1":
     skip("C-tier (live DB golden re-derivation)", "SKIP_REGAB_DB=1")
 else:
-    from twolm.logistic_model import LogisticModel
+    from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 

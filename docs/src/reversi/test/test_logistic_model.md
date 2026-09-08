@@ -1,4 +1,4 @@
-# twolm/test/test_logistic_model.py
+# reversi/test/test_logistic_model.py
 The logistic-model unit suite — 1 class / 17 tests (15 original + 2
 converted from the verify_wrk_config.py D1/E4b probe checks at
 D-106 step 3), no PERF gates, ~0.15 s, no DB. 311 lines; the D-075
@@ -21,7 +21,7 @@ T-campaign narrative froze in the archive.
   the test log); the dummy `dummy_config.json` (`{}`) in a
   `tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)` created FIRST in
   setUp (mid-setup failures still leave a cleanable `temp_dir`).
-- `patch('twolm.logistic_model.wrk_config', ...)` + the same
+- `patch('reversi.lm.logistic_model.wrk_config', ...)` + the same
   for `wrk_positions`: the factories are replaced in the MODULE
   namespace, so the uncommented worker-list entries pick up the dummy
   workers.

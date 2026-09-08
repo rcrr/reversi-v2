@@ -54,7 +54,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from reversi.test.tags import db_long_gate
 

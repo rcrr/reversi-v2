@@ -41,7 +41,7 @@ from reversi.lm.hlp_optimize import (optimization_info_dict,
                                 weights_compute_sha3_256_hash)
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 
 

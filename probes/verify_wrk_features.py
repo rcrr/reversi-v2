@@ -72,7 +72,7 @@ check("A2 __all__ = ['wrk_features']", "__all__ = ['wrk_features']" in src)
 check("A3 factory returns Worker('FEATURES', _up, _down)",
       'def wrk_features() -> Worker:' in src and 'return Worker("FEATURES", _up, _down)' in src)
 check("A4 RLMContext import under TYPE_CHECKING (circular-import guard)",
-      'if TYPE_CHECKING:\n    from twolm.logistic_model import RLMContext' in src)
+      'if TYPE_CHECKING:\n    from reversi.lm.logistic_model import RLMContext' in src)
 check("A5 worker does not import cache_manager (pure compute, no cache files)",
       "cache_manager" not in src)
 check("A6 M1 FIXED (D-082): @validate_call on the factory + the pydantic import",
@@ -92,7 +92,7 @@ check("A9 M2 FIXED (D-082): no non-comment trailing-whitespace lines",
 import numpy as np
 
 from reversi.tools.state_machine import Relevance, Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet

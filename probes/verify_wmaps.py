@@ -204,7 +204,7 @@ from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
-    from twolm.logistic_model import LogisticModel
+    from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
@@ -239,7 +239,7 @@ check("F2 rlm_00 stat_model == {cut_off 1, logit 0.05, ridge 0.0}",
       fix0["stat_model"] == {"frequency_cut_off": 1, "logit_clipping": 0.05, "ridge_regularization": 0.0})
 check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_' (D-078)",
       fix["use_cache"] is True and fix["cache_files_prefix"] == "rlmwf_")
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 # (F4/F6 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check("F5 RLMContext declares the 7 Wmaps fields (pre-existing, untouched by the commit)",

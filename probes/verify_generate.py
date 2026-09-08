@@ -196,7 +196,7 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
 else:
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
-        from twolm.logistic_model import LogisticModel
+        from reversi.lm.logistic_model import LogisticModel
         from reversi.tools.state_machine import Verbosity
         m = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
@@ -259,7 +259,7 @@ else:
 # ----------------------------------------------------------------------
 # F. context facts
 # ----------------------------------------------------------------------
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 check("F1 RLMContext declares w_dense + dense_w_checksum (pre-declared, the D-094 fg pattern)",
       "    dense_w_checksum: str | None = None" in lm_src
       and "    w_dense: Any = None" in lm_src)

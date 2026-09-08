@@ -233,7 +233,7 @@ check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.
 #
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 
 (TMP / "base1").mkdir(parents=True, exist_ok=True)
 
@@ -298,7 +298,7 @@ check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @vali
       and 'return Worker("INDEXES", _up, _down)' in wsrc
       and "from pydantic import validate_call, ConfigDict" in wsrc)
 check("D4 RLMContext import under TYPE_CHECKING (circular-import guard)",
-      'if TYPE_CHECKING:\n    from twolm.logistic_model import RLMContext' in wsrc)
+      'if TYPE_CHECKING:\n    from reversi.lm.logistic_model import RLMContext' in wsrc)
 check("D5 the D-072 cache wiring: the 7 kwargs (full-path closure, use_cache, the 5 hlp_indexes fns)",
       "cache_path  = ctx.get_cache_file_full_path_for_current_level()," in wsrc
       and "is_allowed  = ctx.use_cache," in wsrc

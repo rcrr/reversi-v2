@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from twolm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, RLMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Verbosity
 import reversi.lm.wrk_config as lwc

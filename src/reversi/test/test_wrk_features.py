@@ -57,7 +57,7 @@ from pathlib import Path
 import reversi.lm.wrk_features as lmwf
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Relevance, Verbosity
-from twolm.logistic_model import LogisticModel
+from reversi.lm.logistic_model import LogisticModel
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from reversi.test.tags import db_long_gate
 

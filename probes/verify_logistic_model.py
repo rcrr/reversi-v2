@@ -67,7 +67,7 @@ def check(name, ok, detail=""):
         failures.append(name)
 
 # --- V1: RLMContext dataclass shape --------------------------------------
-from twolm.logistic_model import RLMContext, LogisticModel
+from reversi.lm.logistic_model import RLMContext, LogisticModel
 from reversi.base_model import BaseModel
 from reversi.tools.state_machine import Context
 
@@ -98,7 +98,7 @@ except Exception as e:
           f"{type(e).__name__}: {e}")
 
 # --- V6/V7: path-check helpers -------------------------------------------
-from twolm.logistic_model import _check_config_file_path, _check_base_dir_override
+from reversi.lm.logistic_model import _check_config_file_path, _check_base_dir_override
 
 cfg_file = TMP / "dummy.json"
 cfg_file.write_text("{}")
@@ -139,11 +139,11 @@ check("V3c 15 active levels (D-104: SAVE enabled, fe506c6 — complete)",
 # V3d (D-106 hub centralization): the module probes' pipeline-state
 # copies move to the hub — the source-level completeness fact.
 lm_src = (Path(__file__).resolve().parents[1]
-          / "src" / "twolm" / "logistic_model.py").read_text()
+          / "src" / "reversi" / "lm" / "logistic_model.py").read_text()
 check("V3d 0 commented worker imports / entries in logistic_model.py "
       "(D-104: pipeline complete)",
-      not any(ln.strip().startswith("#from twolm.lm_worker_")
-              or (ln.lstrip().startswith("#") and "lm_worker_" in ln
+      not any(ln.strip().startswith("#from reversi.lm.wrk_")
+              or (ln.lstrip().startswith("#") and "wrk_" in ln
                   and "()" in ln)
               for ln in lm_src.splitlines()))
 

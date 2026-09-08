@@ -178,7 +178,7 @@ CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 seen_n_inst = None
 seen_n_conf = None
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
-    from twolm.logistic_model import LogisticModel
+    from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
@@ -220,7 +220,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 # ----------------------------------------------------------------------
 # F. Cross-fixture / context facts
 # ----------------------------------------------------------------------
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 check("F1 RLMContext declares design_matrix_checksum + design_matrix (pre-existing, as in the WMAPS fields)",
       "    design_matrix_checksum: str | None = None" in lm_src
       and "    design_matrix: Any = None" in lm_src)

@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_logistic_model
+# time python3 -m unittest reversi.test.test_logistic_model
 #
 
 import unittest
@@ -51,7 +51,7 @@ from unittest.mock import MagicMock, patch
 
 from pydantic import ValidationError
 
-from twolm.logistic_model import (LogisticModel, RLMContext,
+from reversi.lm.logistic_model import (LogisticModel, RLMContext,
                                   _check_base_dir_override,
                                   _check_config_file_path,
                                   _created_down, _created_up)
@@ -91,9 +91,9 @@ class TestLogisticModel(unittest.TestCase):
         self.positions_down_mock = MagicMock()
 
         # Patch the factory functions to return our dummy workers
-        self.patcher_config = patch('twolm.logistic_model.wrk_config', 
+        self.patcher_config = patch('reversi.lm.logistic_model.wrk_config', 
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
-        self.patcher_positions = patch('twolm.logistic_model.wrk_positions', 
+        self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
         
         self.mock_config_factory = self.patcher_config.start()

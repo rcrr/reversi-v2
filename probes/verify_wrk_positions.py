@@ -34,7 +34,7 @@ import numpy as np
 sys.path.insert(0, "src")
 
 from reversi.tools.state_machine import Verbosity
-from twolm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, RLMContext
 from reversi.regab import regab_load_data_set_from_file
 from reversi.lm.wrk_positions import wrk_positions
 

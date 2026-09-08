@@ -134,17 +134,17 @@ check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
 check("A12 RLMContext pre-declares train_metrics (pre-campaign: it does NOT — "
       "the worker sets an ad-hoc attribute; dataclasses allow it, but every "
       "other blackboard field is declared; Roberto's call)",
-      "    train_metrics: Any = None" in read("src/twolm/logistic_model.py"))
+      "    train_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
 check("A13 RLMContext pre-declares train_dense_metrics (D-105/M2 — the "
       "dense-pass dict the ANALYTICS worker publishes, same idiom as "
       "train_metrics)",
-      "    train_dense_metrics: Any = None" in read("src/twolm/logistic_model.py"))
+      "    train_dense_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
 
 # ----------------------------------------------------------------------
 # B. context facts (the B1-B3 pipeline-state pins moved to the hub
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
-lm_src = read("src/twolm/logistic_model.py")
+lm_src = read("src/reversi/lm/logistic_model.py")
 check("B4 RLMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
       "+ train_dense_metrics (L156, D-105/M2) + analytics_report (L157)",
       "    vld_metrics: Any = None" in lm_src
@@ -165,7 +165,7 @@ check("B5 the schema has AnalyticsConfig (detailed_report default [], "
 if os.getenv("SKIP_REGAB_DB", "0") == "1":
     skip("C-tier (live DB golden re-derivation)", "SKIP_REGAB_DB=1")
 else:
-    from twolm.logistic_model import LogisticModel
+    from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
     from reversi.lm.hlp_analytics import format_file_report
@@ -190,7 +190,7 @@ else:
               ctx.analytics_report is None
               and getattr(ctx, "train_metrics", None) is None
               and getattr(ctx, "train_dense_metrics", None) is None
-              and (A12_DECLARED := ("    train_metrics: Any = None" in read("src/twolm/logistic_model.py"))
+              and (A12_DECLARED := ("    train_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
                    or "train_metrics" not in vars(ctx)),
               f"train_metrics in vars(ctx): {'train_metrics' in vars(ctx)}")
         # C3 the 13th-level move: ANALYTICS

@@ -34,7 +34,7 @@ MODULES=(
     # 2 — infrastructure
     reversi.test.test_cache_manager
     reversi.test.test_state_machine
-    twolm.test.test_logistic_model
+    reversi.test.test_logistic_model
     reversi.test.test_paths
     # 3 — DB access
     reversi.test.test_regab
@@ -62,7 +62,7 @@ MODULES=(
     reversi.test.test_wrk_vld_positions
     reversi.test.test_wrk_validate
     reversi.test.test_wrk_analytics
-    twolm.test.test_lm_worker_full_chain
+    reversi.test.test_lm_worker_full_chain
 )
 
 exec python -m unittest "${MODULES[@]}"

@@ -34,7 +34,7 @@ import numpy.typing as npt
 from scipy.special import expit
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 __all__ = ['hlp_gradient_compute', 'sigmoid']
 

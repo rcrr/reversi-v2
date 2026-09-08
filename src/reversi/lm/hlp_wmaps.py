@@ -37,7 +37,7 @@ from pydantic import validate_call, ConfigDict
 from reversi.tools import binio
 
 if TYPE_CHECKING:
-    from twolm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import RLMContext
 
 __all__ = ['ReversiLogisticModelWMaps',
            'hlp_wmaps_store_to_file',
