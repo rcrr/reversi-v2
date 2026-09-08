@@ -2,12 +2,12 @@
 """
 verify_analytics.py — scratch probe for the ANALYTICS bring-in
 (session 28, Roberto's commit 96dacb5 — the 14th pipeline level,
-the 2nd bring-in with a dedicated data module, rlm_analytics,
+the 2nd bring-in with a dedicated data module, hlp_analytics,
 function-only like hlp_gradient / hlp_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
-  A. lm_worker_analytics.py + rlm_analytics.py structure (pinned to
+  A. lm_worker_analytics.py + hlp_analytics.py structure (pinned to
      the post-campaign expectations: T1 the factory gate, T2 the
      dead imports, T4 the ws lines, T5 the missing test file,
      R1-class the undeclared train_metrics blackboard field)
@@ -74,7 +74,7 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. lm_worker_analytics.py + rlm_analytics.py structure
+# A. lm_worker_analytics.py + hlp_analytics.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/twolm/lm_worker_analytics.py")
 dv_src = read("src/reversi/lm/hlp_analytics.py")
@@ -93,7 +93,7 @@ check("A2 the factory is @validate_call-decorated + pydantic imported "
 check("A3 no dead import in the worker (`Path` is never used — the report "
       "path is built from ctx.cfg.base_dir, already a Path)",
       "from pathlib import Path" not in wk_src)
-check("A4 no dead imports in rlm_analytics (`sys` is never used; `Optional` "
+check("A4 no dead imports in hlp_analytics (`sys` is never used; `Optional` "
       "and `List` are in the typing line but never referenced)",
       "import sys" not in dv_src
       and re.search(r"from typing import .*", dv_src).group(0)
@@ -106,7 +106,7 @@ _dv_ws = ws_lines("src/reversi/lm/hlp_analytics.py")
 check("A6a the worker has no code ws lines (pre-campaign: 6 — L47/50/53/57 "
       "ws-only + L63/65 trailing)",
       _wk_ws == [], f"lines {_wk_ws}")
-check("A6b rlm_analytics has no code ws lines (pre-campaign: 39 — the "
+check("A6b hlp_analytics has no code ws lines (pre-campaign: 39 — the "
       "ws-only + trailing lines across the table helpers)",
       _dv_ws == [], f"lines {_dv_ws}")
 check("A7 the worker writes the report to base_dir/<cfg.analytics."

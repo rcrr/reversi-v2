@@ -29,7 +29,7 @@ and `ctx.analytics_report` (the console report string);
 - Imports (L28-38): pydantic (L30 — D-103 T1, replacing the
   dead `from pathlib import Path` line, T2), `Worker,
   Relevance` (L34), the 4 public data functions from
-  rlm_analytics (L35-37, 3 lines since D-105/M2), `RLMContext`
+  hlp_analytics (L35-37, 3 lines since D-105/M2), `RLMContext`
   under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager`
   import (by design).
 - `_up` (L48-73): `log_event(INFO, "Generating model analytics
@@ -98,7 +98,7 @@ None.
 - The no-cache design is the fifth deviation from the uniform
   7-kwargs `cache_manager` wiring — intentional and confirmed
   by Roberto (the rlmwf_12 slot stays unused like 03/07/08).
-- The 2 data-module INFO lines come from rlm_analytics
+- The 2 data-module INFO lines come from hlp_analytics
   (compute_training_metrics + compute_training_dense_metrics) —
   consistent with hlp_validate.
 - `Worker.up` is `@validate_call`-gated with `context: Context`
@@ -109,7 +109,7 @@ None.
 
 - Pipeline ordering: ANALYTICS is level 14 of 15 (COMPLETE
   post D-104); its inputs come from every upstream level (the
-  field list in the rlm_analytics doc) — the SM half-open
+  field list in the hlp_analytics doc) — the SM half-open
   interval semantics guarantee every up-move to step 13 passes
   through all of them. The test setUp moves through VALIDATE
   (step 12) first, so the full 14-level chain is exercised

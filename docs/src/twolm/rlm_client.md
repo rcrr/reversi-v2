@@ -97,7 +97,7 @@ None.
 ## Conventions
 
 - No `@validate_call` on `make_evaluation_function` (O5, accepted):
-  it is a data-side factory like the rlm_analytics functions, not a
+  it is a data-side factory like the hlp_analytics functions, not a
   worker factory.
 - `compute_indexes(np.array([p]))` wraps the single Position in a
   length-1 array (the batched API); the `[0]` unwraps it.
