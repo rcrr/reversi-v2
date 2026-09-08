@@ -25,7 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-# twolm/base_model.py
+# reversi/base_model.py
 from __future__ import annotations
 
 from pathlib import Path

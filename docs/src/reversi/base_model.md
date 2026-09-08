@@ -1,4 +1,4 @@
-# twolm/base_model.py
+# reversi/base_model.py
 `BaseModel` is a thin **facade base class** for pipeline domains: it
 encapsulates the generic delegation to `reversi.tools.state_machine.StateMachine`
 so concrete domain facades (LogisticModel today, DeepNetworkModel in the

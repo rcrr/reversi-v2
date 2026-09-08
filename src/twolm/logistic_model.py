@@ -34,7 +34,7 @@ from typing import List, Any, Callable
 from pydantic import ConfigDict, validate_call
 
 from reversi.tools.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
-from twolm.base_model import BaseModel
+from reversi.base_model import BaseModel
 
 # Import worker factories
 from twolm.lm_worker_config import lm_worker_config
