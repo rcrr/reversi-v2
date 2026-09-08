@@ -314,7 +314,7 @@ else:
         # C10 independent re-derivation of the training metrics (compressed path)
         X = ctx.design_matrix
         pred = np.sum(ctx.w[X].astype(np.float64), axis=1)
-        from twolm.rlm_gradient import sigmoid
+        from reversi.lm.hlp_gradient import sigmoid
         z_pred = sigmoid(pred)
         y_pred = ctx.z2y(z_pred)
         y_true = ctx.game_values.astype(np.float64)

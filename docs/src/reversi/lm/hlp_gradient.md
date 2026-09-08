@@ -1,4 +1,4 @@
-# twolm/rlm_gradient.py
+# reversi/lm/hlp_gradient.py
 The GRADIENT domain module of the RLM pipeline — the function-only
 module: NO data class, NO store / load / is_cache_consistent, NO
 init validation, NO hash (unlike every other rlm_* level). Two

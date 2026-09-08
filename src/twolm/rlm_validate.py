@@ -31,7 +31,7 @@ import numpy as np
 
 from typing import TYPE_CHECKING, Any, Dict
 
-from twolm.rlm_gradient import sigmoid
+from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:

@@ -33,7 +33,7 @@ from typing import Callable
 
 from twolm.model_weights import ModelWeights
 from reversi.lm.hlp_zed import zed_fun_factory
-from twolm.rlm_gradient import sigmoid
+from reversi.lm.hlp_gradient import sigmoid
 from reversi.board import Position
 
 

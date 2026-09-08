@@ -110,9 +110,9 @@ check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
       and wk_src.count("ctx.vld_metrics = None") == 1
       and "ctx.vld_metrics = metrics" in wk_src)
 check("A10 rlm_validate REUSES sigmoid from rlm_gradient (defined + exported there)",
-      "from twolm.rlm_gradient import sigmoid" in dv_src
-      and "def sigmoid(x: np.ndarray) -> np.ndarray:" in read("src/twolm/rlm_gradient.py")
-      and "'sigmoid'" in read("src/twolm/rlm_gradient.py").split("__all__ = ")[1].split("]")[0])
+      "from reversi.lm.hlp_gradient import sigmoid" in dv_src
+      and "def sigmoid(x: np.ndarray) -> np.ndarray:" in read("src/reversi/lm/hlp_gradient.py")
+      and "'sigmoid'" in read("src/reversi/lm/hlp_gradient.py").split("__all__ = ")[1].split("]")[0])
 check("A11 the worker uses NO cache_manager (VALIDATE is pure compute — like "
       "FEATURES / ZED / GRADIENT; the rlmwf_12 slot stays unused)",
       "cache_manager" not in wk_src and "cache_manager" not in dv_src)

@@ -1,4 +1,4 @@
-# twolm/test/test_rlm_gradient.py
+# reversi/test/test_hlp_gradient.py
 The dedicated data-object suite of the rlm_gradient module —
 CREATED in the D-094 fix campaign (M1, Roberto "OK"): the D-093
 analysis found the coverage gap (at bring-in the fg math was only

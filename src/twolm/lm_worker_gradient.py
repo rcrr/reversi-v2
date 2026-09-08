@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.rlm_gradient import rlm_gradient_compute
+from reversi.lm.hlp_gradient import rlm_gradient_compute
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
