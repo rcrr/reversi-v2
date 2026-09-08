@@ -80,15 +80,16 @@ theme, with its origin D-number.
 - The workspace is a git repo (D-003); minimal .gitignore:
   .venv/, build/, scratch/, .obsidian/ (D-009); scratch/ is a
   disposable session area, never tracked (AGENTS rule 7).
-- All Python sources under src/ (D-006); the package is `twolm`
-  under src/twolm/ (D-008); unit tests in src/twolm/test/.
+- All Python sources under src/ (D-006); the package is `reversi`
+  under src/reversi/ (D-008; D-133: core at the top level, the
+  tools/ and lm/ subpackages); unit tests in src/reversi/test/.
 - .venv at the workspace root (gitignored), minimal pinned deps
   (D-010); pyproject.toml is the minimal editable-install form
   with the implicit requirements declared as they are hit —
   NumPy ≥ 2.0, lz4, psycopg2, pandas, python-dotenv, scipy,
   json5 (D-011/D-051/D-052/D-094).
-- docs/ mirrors src/ one file to one file: src/twolm/X.py →
-  docs/src/twolm/X.md (D-007).
+- docs/ mirrors src/ one file to one file: src/reversi/X.py →
+  docs/src/reversi/X.md (D-007).
 
 ## Naming & platform
 

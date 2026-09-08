@@ -51,7 +51,7 @@ file-report hashes).
   (the suite stays ~3 s gated / ~40 s live).
 - D-127: the float64 metric goldens (the vld / train / dense
   dicts + the pop statistics) are compared with assert_close
-  (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
+  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
   last ULPs of the OpenBLAS ddot depend on the thread count
   x the CPU kernel. Still bit-exact assertEqual: the
   f32-quantized values (train_loss = float(opt f32), g_norm,

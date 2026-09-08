@@ -22,7 +22,7 @@ A probe is NOT:
 - a second copy of a test (see §4, the test/probe line)
 - a permanent home for investigation one-offs (see §6)
 - part of the shipped package: probes live in probes/ at the
-  workspace root — src/ is the twolm package (D-006) only
+  workspace root — src/ is the reversi package (D-006) only
 
 ## 2. Location and tracking
 

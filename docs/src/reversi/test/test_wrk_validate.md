@@ -27,7 +27,7 @@ below); the 7 INFO log lines pinned ("Starting model validation...", "Computing 
   `vld_rmse_y 15.46301555633545`, `vld_samples 200` (bid [8]
   validation vs the bid [6,7] training model); since D-127
   the six float metrics are compared with assert_close
-  (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
+  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
   np.dot reductions run through the multi-threaded OpenBLAS
   ddot, whose last ULPs depend on the thread count x the CPU
   kernel; vld_samples stays an exact int, and the

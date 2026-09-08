@@ -40,7 +40,7 @@ pinned (assert_close, D-127; the ints exact; D-105/M2 — cut
   gates, D-130) is FIRST in setUp (before the stdout patch / tmp
   dir).
 - The float64 metric goldens are compared with assert_close
-  (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12) since
+  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) since
   D-127: the np.dot reductions over up to ~2M f64 terms run
   through the multi-threaded OpenBLAS ddot (scipy 0.3.34,
   DYNAMIC_ARCH NO_AFFINITY) — the last ULPs depend on the

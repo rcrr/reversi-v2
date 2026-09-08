@@ -9,7 +9,7 @@ assertions).
 
 | class (line) | tests | what it pins |
 |---|---|---|
-| `TestPaths` (L51, plain `unittest.TestCase`) | 3 | `test_workspace_root_holds_the_marker` (L54): `WORKSPACE_ROOT` is absolute and holds the `pyproject.toml` marker (the marker-based derivation, not a `parents[N]` level count); `test_workspace_root_is_ancestor_of_this_file` (L59): `WORKSPACE_ROOT / "src" / "twolm" / "test" / "paths.py"` exists — the root is the ancestor of the test package (the `src/twolm/test/` layout); `test_custom_tmp_base_is_under_the_root` (L63): `CUSTOM_TMP_BASE` is exactly `<root>/build/tmp` and absolute |
+| `TestPaths` (L51, plain `unittest.TestCase`) | 3 | `test_workspace_root_holds_the_marker` (L54): `WORKSPACE_ROOT` is absolute and holds the `pyproject.toml` marker (the marker-based derivation, not a `parents[N]` level count); `test_workspace_root_is_ancestor_of_this_file` (L59): `WORKSPACE_ROOT / "src" / "reversi" / "test" / "paths.py"` exists — the root is the ancestor of the test package (the `src/reversi/test/` layout); `test_custom_tmp_base_is_under_the_root` (L63): `CUSTOM_TMP_BASE` is exactly `<root>/build/tmp` and absolute |
 
 ## Goldens pinned
 
@@ -19,7 +19,7 @@ assertions).
 
 ## Conventions
 
-- The module under test is imported as `from twolm.test import paths`
+- The module under test is imported as `from reversi.test import paths`
   and the constants are read as attributes
   (`paths.WORKSPACE_ROOT`, ...) — a future rename surfaces in exactly
   one place.

@@ -49,9 +49,10 @@ positions generated from random gameplay paths.
 
 - Venv: `.venv/` (gitignored, D-010), Python 3.12.3, created
   2026-08-25.
-- Packaging: `pyproject.toml` (setuptools, src layout) with twolm
-  installed editable in .venv (`pip install -e .`, D-011) —
-  `import twolm` works without PYTHONPATH, resolving to src/.
+- Packaging: `pyproject.toml` (setuptools, src layout) with the
+  `reversi` package (name, D-133) installed editable in .venv
+  (`pip install -e .`, D-011) — `import reversi` works without
+  PYTHONPATH, resolving to src/.
 - Dependencies (pyproject.toml, minimal set, kept in step with the
   modules brought in): numpy ≥ 2.0 (bitboards / structured dtypes;
   the code requires NumPy ≥ 2.0 — board.md R5), pydantic ≥ 2
@@ -65,7 +66,7 @@ positions generated from random gameplay paths.
   A2050 chain and implies LONG; PERF=1 adds the print-only perf
   tests). The standard pre-commit run is LONG=1 ./run_utests.sh
   (D-129/D-131); VLONG=1 only when useful. A single module:
-  `.venv/bin/python -m unittest twolm.test.<module>`. The
+  `.venv/bin/python -m unittest reversi.test.<module>`. The
   DB-gated suites (test_regab + the worker suites) need a live
   PostgreSQL + .env + LONG=1, or
   `SKIP_REGAB_DB=1` to skip the 70 DB tests (2 mocked run). The
@@ -98,12 +99,17 @@ at the end of this file.
   base before further evolution (his list of future changes is
   out of scope). DONE: all 15 pipeline levels active (15/15);
   the game-loop module is NOT in the plan (I-005 resolved).
-- THE REORGANIZATION CAMPAIGN (I-001, D-133, open since
-  2026-09-08): twolm → reversi with the core/tools/lm split
-  per Roberto's approved mapping — 2 commits per module
-  (file + references, then the method renames), bottom-up
-  (tools → core → lm in machine order); the Source / Test
-  tables update row by row as each module moves.
+- THE REORGANIZATION CAMPAIGN (I-001, D-133/D-134, 2026-09-08):
+  CLOSED — twolm → reversi with the core/tools/lm split per
+  Roberto's approved mapping: the 36 modules moved + renamed
+  (2 commits each), twolm/ removed, editable reinstall, probes
+  re-pinned, the Source/Test tables carry the reversi paths.
+  Verification regime while the local DB is down (pre-existing,
+  Roberto to restore): SKIP_REGAB_DB=1 ./run_utests.sh.
+- Sources live in the `reversi` package under src/ (D-008;
+  D-133: core top-level + tools/ + lm/ subpackages); unit tests
+  in src/reversi/test/. Environment: .venv with the pinned deps
+  (D-010/D-051/D-052), reversi installed editable (D-011, D-133).
 - Sources live in the `twolm` package under src/ (D-008); unit
   tests in src/twolm/test/. Environment: .venv with the pinned
   deps (D-010/D-051/D-052), twolm installed editable (D-011).
@@ -119,11 +125,14 @@ at the end of this file.
   ruling — the revisit trigger (the pipeline completion) is
   now met (15/15); re-evaluate the ad-hoc flow against the
   completed pipeline and the "storicizzazione" idea (I-011).
-- The reorganization campaign (I-001, D-133): the twolm →
-  reversi reorganization per Roberto's approved mapping —
-  phase 1, the 36 modules bottom-up (tools → core → lm in
-  machine order); RLMContext → LMContext to be reviewed in
-  the final inventory.
+- RLMContext → LMContext: the final inventory review
+  (Roberto's call, D-133/D-134) — the inventory count is in
+  D-134; the rename happens only on his go-ahead.
+- Restore the local PostgreSQL cluster (pre-existing gap: the
+  machine lost it — no cluster data anywhere; 35 pipeline DB
+  tests + the 13 DB-gated probes need it back). Roberto
+  provisions it; the remote DB (gandalf.skynet, .env) is live
+  and test_regab passes against it (37/0/0).
 
 
 ## Source files

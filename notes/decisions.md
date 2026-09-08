@@ -441,3 +441,50 @@ D-133 | 2026-09-08 | I-001 executes: the reorganization
         order) → 2 the twolm/ removal + reinstall + the
         residual sweep → 3 the closing notes wave + the full
         sweep (probe_rules §5.2).
+D-134 | 2026-09-08 | I-001 / D-133 campaign closed: the
+        twolm → reversi reorganization complete.
+        | Execution: the 36 modules moved bottom-up (tools →
+        core → lm in machine order), 2 commits each (A: the
+        file + test + doc moves with every repo reference
+        updated, suite green; B: the method renames —
+        lm_worker_* → wrk_*, rlm_*_* → hlp_*_* — suite
+        green); name-unchanged modules: phase B a verified
+        no-op. 4 probe files renamed (the only names
+        embedding a module name); the level probes kept
+        their names, their hardcoded source/test paths and
+        cross-module pins re-pointed as each module moved;
+        the hub probe re-pinned (the worker-import hygiene
+        literals → the wrk_ form) at the logistic_model
+        move. The test helpers (paths/tags/closecheck) + the
+        data fixtures + test_paths moved to reversi.test;
+        the frozen analyses-file refs, the historical
+        probe-header lineage and the D-pointer comments
+        keep their old names (they point at frozen records).
+        | Phase 2: the emptied twolm/ (src + docs) removed;
+        pip install -e . under the `reversi` name; the
+        global residual sweep — `twolm` survives only in the
+        history notes (decisions_000, the log volumes,
+        analyses/), the D-133 entry itself, the session-31
+        journal, and the frozen probe headers.
+        | Verification regime (the local DB down — pre-
+        existing, flagged to Roberto): SKIP_REGAB_DB=1
+        ./run_utests.sh per commit, 673/0/87 GREEN through-
+        out; test_regab verified live against the remote DB
+        (37/0/0); the probe sweep (probe_rules §5.2): 7 fully
+        green, 13 environmental at the DB stage (all
+        file/path stages pass).
+        | Open items: RLMContext → LMContext — the inventory
+        (Roberto's call, per D-133): RLMContext 106 sites in
+        src (192 incl. probes + docs), RLMBaseConfig 14, the
+        bare RLM token 3; the rename happens only on his
+        go-ahead. Pre-existing gaps flagged: the missing
+        test_usage_binio.md mirror doc (the overview row
+        references it); the local PostgreSQL cluster absent
+        from the machine (35 pipeline DB tests + the 13
+        DB-gated probes wait for it).
+        | Notes wave: rules.md (layout + the mirror rule),
+        AGENTS.md (Layout bullet), probe_rules.md, naming.md,
+        docs_rules.md (examples), overview.md (Environment /
+        Packaging / Where-we-are / Next steps), ideas.md
+        (I-001 → done), the touched mirror docs — the
+        history notes stay untouched.

@@ -23,7 +23,7 @@ RLMContext).
 | `move_to_last` (L78), `show_event_log` (L82), `show_history_of_moves` (L85), `export_history_of_moves_as_csv` (L88) | Pass-throughs |
 
 `__all__` (L39) = [BaseModel] (M1, D-075 — before that this was the only
-twolm module without one).
+reversi module without one).
 
 ## Architecture
 

@@ -2,7 +2,7 @@
 
 Format: I-NNN | status (idea | in-progress | done | dropped) | idea
 
-I-001 | in-progress | Full restructure of the original repo (executing as D-133: the twolm → reversi reorganization, Roberto's explicit decision, 2026-09-08).
+I-001 | done | Full restructure of the original repo (executed as D-133/D-134: the twolm → reversi reorganization, Roberto's explicit decision, 2026-09-08).
        The notes produced here should migrate into the new repo as its
        documentation skeleton.
 
@@ -36,7 +36,7 @@ I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
        original 2008 repo contains callers using the old method syntax
        (.names() / .masks()), those call sites must be updated to
        parenthesis-free property access when that file is migrated into
-       twolm. Count of affected sites unknown until that file is
+       reversi. Count of affected sites unknown until that file is
        analyzed — grep the original repo for ".names()" / ".masks()".
 
 I-007 | follow-up | FeatureSet column-labelling helper (raised

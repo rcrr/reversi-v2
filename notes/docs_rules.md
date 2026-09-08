@@ -30,7 +30,7 @@ mode these rules exist to prevent.
 ## 2. Header (fixed, 4 lines)
 
 ```
-# twolm/<module>.py
+# reversi/<module>.py
 <What it is: 2-4 sentences, present tense, no history.>
 > State: D-NNN · <short-hash> · YYYY-MM-DD · suite <n>/<f>/<s> [gated: <n>/<f>/<s>]
 ```
@@ -103,7 +103,7 @@ migration, D-109).
    logistic_model, state_machine) 150-200. A doc that cannot state
    its module in that budget is hiding history or is a hub.
 
-## 6. Test-doc variant (docs/src/twolm/test/test_X.md)
+## 6. Test-doc variant (docs/src/reversi/test/test_X.md)
 
 Same skeleton, two substitutions:
 
@@ -119,7 +119,7 @@ The State line uses the test file's own suite counts.
 
 ## 7. Scope exceptions
 
-- src/twolm/test/data/*.json are fixtures, not source: no mirror
+- src/reversi/test/data/*.json are fixtures, not source: no mirror
   doc; their doc line is the Test files data note in
   notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim

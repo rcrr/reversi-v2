@@ -45,9 +45,10 @@ Pinned by the `test_paths` suite (3/0/0, see test_paths.md):
 
 - `WORKSPACE_ROOT` is absolute and holds `pyproject.toml`
   (`test_workspace_root_holds_the_marker`).
-- `WORKSPACE_ROOT / "src" / "twolm" / "test" / "paths.py"` exists —
-  the root is the ancestor of the test package, pinning the
-  `src/twolm/test/` layout (`test_workspace_root_is_ancestor_of_this_file`).
+- `WORKSPACE_ROOT / "src" / "reversi" / "test" / "paths.py"`
+  exists — the root is the ancestor of the test package, pinning
+  the `src/reversi/test/` layout
+  (`test_workspace_root_is_ancestor_of_this_file`).
 - `CUSTOM_TMP_BASE == WORKSPACE_ROOT / "build" / "tmp"`, absolute
   (`test_custom_tmp_base_is_under_the_root`).
 

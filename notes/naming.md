@@ -59,8 +59,8 @@ is its own inverse.
 
 The slot order above is exactly the output order of
 `bitboard_transformations` / `bitboard_anti_transformations` in
-src/twolm/board.py and of the orbit test classes in
-src/twolm/test/test_board.py. Code, tests, and the docstring diagrams
+src/reversi/board.py and of the orbit test classes in
+src/reversi/test/test_board.py. Code, tests, and the docstring diagrams
 were re-verified cell-by-cell on 2026-08-26 (T16, D-014): they agree.
 
 Reading rule for every board diagram in this workspace: row 1 on top,
