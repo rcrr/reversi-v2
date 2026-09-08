@@ -50,9 +50,9 @@ def dump_cfg(cfg):
 try:
     # ------------------------------------------------------------------ A
     print("--- A. structure ---")
-    check("A1 __all__ == ['lm_worker_config']",
-          lwc.__all__ == ["lm_worker_config"], repr(lwc.__all__))
-    w = lwc.lm_worker_config()
+    check("A1 __all__ == ['wrk_config']",
+          lwc.__all__ == ["wrk_config"], repr(lwc.__all__))
+    w = lwc.wrk_config()
     check("A2 factory name is 'CONFIG'", w.name == "CONFIG", w.name)
     check("A3 factory up/down are the module callables",
           w._up_callable is lwc._up and w._down_callable is lwc._down)
@@ -67,7 +67,7 @@ try:
     model = LogisticModel(str(CONFIG_JSON), verbosity=Verbosity.LOW,
                           base_dir_override=base1)
     # (B1/B2 deleted at D-106 step 3, class c: pinned by
-    #  test_lm_worker_config.py — setUp (step 0 / CREATED) and
+    #  test_wrk_config.py — setUp (step 0 / CREATED) and
     #  test_move_up (step 1 / CONFIG))
     model.move_to_step("CONFIG")
     ctx = model.context
@@ -173,12 +173,12 @@ try:
     # ------------------------------------------------------------------ D
     print("--- D. base_dir validation and errors ---")
     # (D1 moved to a test at D-106 step 3, class a §4 conversion:
-    #  test_lm_worker_config.py::TestLMWorkerConfigBaseDir::
+    #  test_wrk_config.py::TestLMWorkerConfigBaseDir::
     #  test_base_dir_missing_raises_file_not_found_error)
     # (D2 deleted at D-106 step 3, class c: pinned by test_lm_worker_
     #  config.py::test_base_dir_is_a_file_raises_error)
     # (D3 deleted at D-106 step 3, class c (env-dependent, non-root):
-    #  pinned by test_lm_worker_config.py::test_base_dir_is_not_
+    #  pinned by test_wrk_config.py::test_base_dir_is_not_
     #  writable_raises_error)
 
     # ------------------------------------------------------------------ E
