@@ -5,15 +5,15 @@ matrix + its two metadata hashes) + 4 public functions (store /
 load / compute / is_cache_consistent) — the data object of the
 5th active level (CREATED → CONFIG → POSITIONS → FEATURES →
 INDEXES), the SECOND cache_manager consumer after POSITIONS.
-> State: D-084 · 297e531 · 2026-08-31 · suite 14/0/0
+> State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `LMIndexes` | plain class — 3 fields `rds_checksum: str`, `feature_set_hash: str`, `indexes: IndexArray`, assigned BY REFERENCE (no copy); `compute_sha3_256_hash()` = the duck-typed data checksum; one-line `__repr__` |
-| `hlp_indexes_store_to_file(hlp_indexes, filename)` | binio write: header + the 2 strings + the array; NO sidecar (cache_manager writes it) |
-| `hlp_indexes_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
+| `hlp_indexes_store_to_file(hlp_indexes, filename, compressed=True)` | binio write: header + the 2 strings + the array; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
+| `hlp_indexes_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
 | `hlp_indexes_compute(ctx)` | builds a fresh object from `ctx` (NO `@validate_call` — see Conventions) |
 | `hlp_indexes_is_cache_consistent(ctx, hlp_indexes)` | the pure 2-field metadata compare (NO `@validate_call`) |
 
@@ -31,16 +31,21 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
   → Path; `binio.BinaryWriter` — header
   ("LMIndexes binary data file", version 1),
   the 2 strings (rds_checksum, feature_set_hash), the array
-  (write order pinned, probe A5). Docstring Note: no sidecar is
-  written here — in the pipeline flow the sidecar is written by
-  cache_manager (as in regab).
-- `hlp_indexes_load_from_file` (validated): `checksum=True` →
-  `binio.verify_sha3_256_sidecar(filename)` first (mismatch →
-  RuntimeError); then the header gate — wrong description →
-  RuntimeError "The file is not a proper ...", wrong version →
-  RuntimeError "The file version is not consistent, found ...,
-  expected 1"; then `read_string` ×2 + `read_array` → a fresh
-  object.
+  (write order pinned, probe A5). The writer runs with
+  `compressed=True` by default (D-139, as in model_weights) —
+  the LZ4 whole-file frame; the SHA3-256 sidecar is written by
+  the binio writer (the checksum service is on by default), and
+  in the pipeline flow cache_manager re-writes the same sidecar
+  (idempotent).
+- `hlp_indexes_load_from_file` (validated): `compressed=True` →
+  the LZ4 frame guard + decompress (a non-frame file → the binio
+  BinaryFormatError — the self-healing delete+recompute path);
+  `checksum=True` → `binio.verify_sha3_256_sidecar(filename)`
+  first (mismatch → RuntimeError); then the header gate — wrong
+  description → RuntimeError "The file is not a proper ...", wrong
+  version → RuntimeError "The file version is not consistent,
+  found ..., expected 1"; then `read_string` ×2 + `read_array` → a
+  fresh object.
 - `hlp_indexes_compute`: `rds_checksum = ctx.rds_checksum`,
   `feature_set_hash = ctx.feature_set.hash`, `indexes =
   ctx.feature_set.compute_indexes(ctx.positions)` (public
@@ -52,9 +57,9 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
 
 ## Verified invariants
 
-Pinned by the 52-call `probes/verify_hlp_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated end-to-end).
+Pinned by the 53-call `probes/verify_hlp_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated end-to-end).
 
-- Source shape (probe A1-A11): 190 lines, the 5-name `__all__`,
+- Source shape (probe A1-A11): 197 lines, the 5-name `__all__`,
   exactly 5 `@validate_call` (NOT on compute / is_cache_consistent
   — the no-validation comment), the store write order, the 3
   load RuntimeError messages, the 2-field compare, the D-084
@@ -102,8 +107,10 @@ None.
   DATA checksum (sha3_256 over the raw uint32 bytes); the
   `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum`
   format over the serialized `.dat`).
-- The store writes NO sidecar — cache_manager owns it in the
-  pipeline flow (the D-072/D-080 pattern).
+- The sidecar story (D-139, the stale note corrected): the binio
+  writer writes the `.SHA3-256` over the compressed bytes (the
+  checksum service is on by default); in the pipeline flow
+  cache_manager re-writes the same sidecar (idempotent).
 
 ## Integration
 

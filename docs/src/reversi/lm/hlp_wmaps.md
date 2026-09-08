@@ -6,15 +6,15 @@ compute / is_cache_consistent) + the duck-typed
 `compute_sha3_256_hash` — the 6th active level's data object
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS), the
 THIRD cache_manager consumer after POSITIONS and INDEXES.
-> State: D-087 · ded27eb · 2026-08-31 · suite 13/0/0
+> State: D-139 · 9ba523b · 2026-09-08 · suite 15/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `LMWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
-| `hlp_wmaps_store_to_file(wmaps, filename)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; NO sidecar (cache_manager writes it) |
-| `hlp_wmaps_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
+| `hlp_wmaps_store_to_file(wmaps, filename, compressed=True)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
+| `hlp_wmaps_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
 | `hlp_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
 | `hlp_wmaps_is_cache_consistent(ctx, wmaps)` | the pure 2-field metadata compare (NO `@validate_call`) |
 
@@ -32,15 +32,20 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   ("LMWMaps binary data file", 1)`,
   `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`,
   `write_array` ×6 in declaration order (the write order is
-  pinned). Plain docstring — no sidecar promise (the pipeline-flow
-  sidecar is written by cache_manager, the D-072 machine).
-- `hlp_wmaps_load_from_file` (validated): `checksum=True` →
-  `binio.verify_sha3_256_sidecar(filename)` first (mismatch →
-  RuntimeError); then the header gate — wrong description →
-  RuntimeError "The file is not a proper ...", wrong version →
-  "File version mismatch: found ..., expected 1" (the DIFFERENT
-  wording vs hlp_indexes); then `read_string` + `read_i32` +
-  `read_array` ×6 → a fresh object.
+  pinned). The writer runs with `compressed=True` by default
+  (D-139, as in model_weights) — the LZ4 whole-file frame; the
+  SHA3-256 sidecar is written by the binio writer (the checksum
+  service is on by default), and in the pipeline flow
+  cache_manager re-writes the same sidecar (idempotent).
+- `hlp_wmaps_load_from_file` (validated): `compressed=True` →
+  the LZ4 frame guard + decompress (a non-frame file → the binio
+  BinaryFormatError — the self-healing delete+recompute path);
+  `checksum=True` → `binio.verify_sha3_256_sidecar(filename)`
+  first (mismatch → RuntimeError); then the header gate — wrong
+  description → RuntimeError "The file is not a proper ...",
+  wrong version → "File version mismatch: found ..., expected 1"
+  (the DIFFERENT wording vs hlp_indexes); then `read_string` +
+  `read_i32` + `read_array` ×6 → a fresh object.
 - `hlp_wmaps_compute`: `cut_off =
   ctx.cfg.stat_model.frequency_cut_off`; per feature: the pindexes
   column slice (cols from col_offset), `np.unique(...,
@@ -58,11 +63,11 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated tests).
+Pinned by the 54-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated tests).
 
-- Source shape (probe A1-A12 + B1-B9): module 316 lines, the
+- Source shape (probe A1-A12 + B1-B9): module 322 lines, the
   5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
-  is_cache_consistent — the L181 no-validation comment), the
+  is_cache_consistent — the L187 no-validation comment), the
   store write order, the 3 load RuntimeError messages, the 2-field
   compare, 0 non-comment trailing-whitespace lines; worker 91
   lines, the factory WITH `@validate_call`, the 7-kwargs cache
@@ -74,7 +79,7 @@ Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, 
   pairs (no `rlmwf_03_FEATURES*`); the cross-run cache hit +
   identical data; E9 — the per-feature wmap row count == `w_max −
   w_min + 1` (contiguous ranges).
-- The unit suite (`test_hlp_wmaps.py`, 13 tests, no DB): the
+- The unit suite (`test_hlp_wmaps.py`, 15 tests, no DB): the
   compute semantics (both branches — a handcrafted 4×3 mock
   pindexes: cut_off=2 → the single fallback weight per feature;
   cut_off=0 → no fallback, the mock-only branch), the 3
@@ -102,7 +107,7 @@ None.
   input guard is added (resolved as no-guard).
 - No `@validate_call` on `hlp_wmaps_compute` /
   `hlp_wmaps_is_cache_consistent` — the same TYPE_CHECKING
-  circular-import constraint as hlp_indexes (the L181 note).
+  circular-import constraint as hlp_indexes (the L187 note).
 - The two checksums are distinct (as in INDEXES):
   `wmaps_obj_checksum` = the DATA checksum (sha3_256 over the 6
   raw array tobytes); the `.SHA3-256` sidecar = the FILE checksum

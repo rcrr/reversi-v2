@@ -8,32 +8,35 @@ worker consults, the lbfgs-info projection and the duck-typed
 weight hash. The 10th active level (CREATED sentinel → CONFIG →
 POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED →
 GRADIENT → OPTIMIZE).
-> State: D-096 · b1b8934 · 2026-09-01 · suite 19/0/0
+> State: D-139 · 9ba523b · 2026-09-08 · suite 20/0/0
 
 ## API
 
 | name | contract |
 |---|---|
-| `save_optimization_checkpoint(filepath, ...)` | `@validate_call` — the binary write (header "RGLM Optimization Checkpoint" v1 + checksums + scalars + metadata + the history triples) |
-| `load_optimization_checkpoint(filepath)` | `@validate_call` — the mirror read; returns the 17-key checkpoint dict |
+| `save_optimization_checkpoint(filepath, ..., compressed=True)` | `@validate_call` — the binary write (header "RGLM Optimization Checkpoint" v1 + checksums + scalars + metadata + the history triples); LZ4 whole-file frame by default (D-139) |
+| `load_optimization_checkpoint(filepath, compressed=True)` | `@validate_call` — the mirror read (LZ4 guard + decompress by default, D-139); returns the 17-key checkpoint dict |
 | `is_optimization_cache_consistent(ctx, checkpoint)` | the 3-gate check (NO `@validate_call` — see Conventions) |
-| `is_optimization_status_converged(ctx, checkpoint)` | the g_norm-vs-tolerance judgement (NO `@validate_call` — the L230 note) |
+| `is_optimization_status_converged(ctx, checkpoint)` | the g_norm-vs-tolerance judgement (NO `@validate_call` — the L234 note) |
 | `optimization_info_dict(lbfgs_info)` | `@validate_call` — projects the lbfgs 9-key info to the 5 context keys; `KeyError` on a missing key |
 | `weights_compute_sha3_256_hash(w)` | `@validate_call`, `NDArray[np.float32]` gate — plain `sha3_256(w.tobytes())` (no data class at this level) |
 
 ## Architecture
 
-- `save_optimization_checkpoint` (L60-107): header + the two
+- `save_optimization_checkpoint` (L60-110): header + the two
   upstream checksum strings (design-matrix, zed) + ridge/min_grad
   as f32 + max_iters/m/converged/reason/iters + f/g_norm as f32 +
   the `len(sl)` length prefix + w + one (s, y, rho) triple per
   history entry (zip). Fail-fast `ValueError` on asymmetric
-  history lengths (M6, L77-82), before the writer opens.
-- `load_optimization_checkpoint` (L110-170): the header gates
-  (description + version, 2 `RuntimeError`) → the R3 SHA3-256
-  sidecar verify (L126) BEFORE any payload is trusted → the
-  17-key dict.
-- `is_optimization_cache_consistent` (L174-211, the L173
+  history lengths (M6, L81-86), before the writer opens. The
+  writer runs with `compressed=True` by default (D-139) — the LZ4
+  whole-file frame; the sidecar is written by the binio writer
+  (cache_manager re-writes it idempotently in the pipeline flow).
+- `load_optimization_checkpoint` (L114-174): the LZ4 guard +
+  decompress (D-139 default) → the header gates (description +
+  version, 2 `RuntimeError`) → the R3 SHA3-256 sidecar verify
+  (L130) BEFORE any payload is trusted → the 17-key dict.
+- `is_optimization_cache_consistent` (L178-215, the L177
   no-validation note — the hlp_indexes L166 class): THREE gates
   (R1 added the third): the design-matrix checksum, the zed
   checksum, `math.isclose(ridge, cp_ridge, rel_tol=1e-5,
@@ -41,23 +44,23 @@ GRADIENT → OPTIMIZE).
   invalidates the checkpoint exactly like a zed change). Each
   failed gate emits its own 3×WARN diagnostic block (M7
   keep+document).
-- `optimization_info_dict` (L214-227): the 5 context keys
+- `optimization_info_dict` (L219-231): the 5 context keys
   (converged/reason/iters/f/g_norm), extras dropped.
-- `is_optimization_status_converged` (L231-259, the L230 note;
+- `is_optimization_status_converged` (L235-263, the L234 note;
   D-096 slimmed it): compare the stored g_norm with the CURRENT
   `min_grad[0]` tolerance — a judgement criterion, NOT part of
   the objective: a looser tolerance accepts a not-converged
   checkpoint, a stricter one forces further iterations.
-- `weights_compute_sha3_256_hash` (L262-267): the duck-typed
+- `weights_compute_sha3_256_hash` (L267-271): the duck-typed
   data-checksum hook.
 
 ## Verified invariants
 
-Pinned by the 76-check `probes/verify_optimize.py` +
-`test_hlp_optimize.py` (19 tests, no DB) +
+Pinned by the 83-check `probes/verify_optimize.py` +
+`test_hlp_optimize.py` (20 tests, no DB) +
 `test_wrk_optimize.py` (3 DB-gated tests).
 
-- Module source shape (probe A1-A20): 267 lines, the 6-name
+- Module source shape (probe A1-A20): 271 lines, the 6-name
   `__all__`, the design comment, the M6 check, the 3 gates, the
   R3 verify, the 2 no-validation notes.
 - Worker source shape (probe B1-B17): the 190-line file, the T10
@@ -75,9 +78,10 @@ Pinned by the 76-check `probes/verify_optimize.py` +
   worker deletes file + sidecar, re-optimizes, re-saves).
 - The determinism + round-trip facts (the probe's former F1-F10
   moved to test_hlp_optimize at step 3; the G3 weights hash
-  golden survives the probe): the deterministic fixture bytes
-  hash to `6e01ff8614e8732484b7af59b01615989357ce1af241986462196
-  5af221bd280`; the sidecar verifies; the dtypes survive (w/sl/
+  golden survives the probe): the deterministic compressed file
+  (the D-139 LZ4 frame) hashes to
+  `2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f`;
+  the sidecar verifies; the dtypes survive (w/sl/
   yl float32, rho float64, f32 metadata back through np.float32).
 - The f32-stored ridge/min_grad never trip the isclose gates (f32
   error ~6e-8 ≪ rel_tol 1e-5): no false inconsistency on a
@@ -103,7 +107,8 @@ None.
   documented deviation from the silent rlm_* shape (M7).
 - The checkpoint is deterministic for a given input (fixed
   header, fixed field order, no timestamps) — the golden-hash
-  pins depend on it.
+  pins depend on it; the LZ4 frame keeps the determinism (same
+  input → same frame, the python-lz4 defaults, no timestamps).
 
 ## Integration
 

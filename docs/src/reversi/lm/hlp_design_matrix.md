@@ -6,15 +6,15 @@ X — the w-index of each (position, feature-instance) cell — + the
 duck-typed `compute_sha3_256_hash` — the 7th active level's data
 object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 → DESIGN_MTR), the FOURTH cache_manager consumer in the pipeline.
-> State: D-090 · 06023cc · 2026-08-31 · suite 12/0/0
+> State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
-| `hlp_design_matrix_store_to_file(dm, filename)` | binio write: header + the checksum string + X; NO sidecar (cache_manager writes it) |
-| `hlp_design_matrix_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
+| `hlp_design_matrix_store_to_file(dm, filename, compressed=True)` | binio write: header + the checksum string + X; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
+| `hlp_design_matrix_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
 | `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
 | `hlp_design_matrix_is_cache_consistent(ctx, dm)` | the pure 1-field metadata compare (NO `@validate_call`) |
 
@@ -29,11 +29,18 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
   Path` → Path; `binio.BinaryWriter` — `write_header
   ("LMDesignMatrix binary data file", 1)`,
   `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`.
-- `hlp_design_matrix_load_from_file` (validated): `checksum=True`
-  → `binio.verify_sha3_256_sidecar` first (mismatch → RuntimeError
-  "The checksum file signature doesn't match..."); the header gate
-  (wrong description / wrong version → the 2 RuntimeError
-  messages); `read_string` + `read_array` → a fresh object.
+  The writer runs with `compressed=True` by default (D-139, as
+  in model_weights) — the LZ4 whole-file frame; the sidecar is
+  written by the binio writer (cache_manager re-writes it
+  idempotently in the pipeline flow).
+- `hlp_design_matrix_load_from_file` (validated): `compressed=True`
+  → the LZ4 frame guard + decompress (a non-frame file → the binio
+  BinaryFormatError — the self-healing delete+recompute path);
+  `checksum=True` → `binio.verify_sha3_256_sidecar` first
+  (mismatch → RuntimeError "The checksum file signature
+  doesn't match..."); the header gate (wrong description / wrong
+  version → the 2 RuntimeError messages); `read_string` +
+  `read_array` → a fresh object.
 - `hlp_design_matrix_compute`: `pindexes =
   ctx.hlp_indexes.indexes`; `col_offsets = np.repeat
   (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
@@ -42,7 +49,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
   ValueError "It should never happen, pindexes is referring an
   invalid value."; `X = np.empty(pindexes.shape, uint32)` filled
   by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets,
-  out=X)` — the explicit source cast (the L119-122 note, see
+  out=X)` — the explicit source cast (the L125-128 note, see
   Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm.
   wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field
@@ -52,15 +59,15 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_design_matrix.py` +
-`test_hlp_design_matrix.py` (12 tests, no DB) +
+Pinned by the 54-call `probes/verify_design_matrix.py` +
+`test_hlp_design_matrix.py` (14 tests, no DB) +
 `test_wrk_design_matrix.py` (3 DB-gated tests).
 
-- Source shape (probe A1-A15): 133 lines, the 5-name `__all__`,
+- Source shape (probe A1-A15): 139 lines, the 5-name `__all__`,
   exactly 4 `@validate_call` (NOT on compute / is_cache_consistent
-  — the L107 note), the store write order, the 3 load RuntimeError
+  — the L113 note), the store write order, the 3 load RuntimeError
   messages, the 1-field compare, the explicit cast + single guard
-  pinned (L119-122 / L116-117).
+  pinned (L125-128 / L122-123).
 - Worker file shape (probe B1-B9): 80 lines, the factory WITH
   `@validate_call`, the 7-kwargs cache wiring (the
   `checksum=False` load_fn), `_down` clears BOTH attributes.
@@ -72,7 +79,7 @@ Pinned by the 53-call `probes/verify_design_matrix.py` +
 - Cross-fixture facts (probe F1/F4/F5): LMContext has both
   fields; rlm_01 stat_model {cut_off 2, logit 0.03, ridge 0.0},
   layout n_instances [1,1,4,1] (sum 7) / n_configurations
-  [1,65,27,81] (K=174). The unit suite (12 tests, no DB): the
+  [1,65,27,81] (K=174). The unit suite (14 tests, no DB): the
   compute math (both branches — a handcrafted mock mirroring the
   WMAPS one), the consistency compare, the store/load contract
   (cycle + golden hash + the 3 error paths), the init validation.
@@ -87,7 +94,7 @@ None.
 
 ## Conventions
 
-- The explicit-cast note (L119-122, D-089): `astype(np.uint32)`
+- The explicit-cast note (L125-128, D-089): `astype(np.uint32)`
   is REQUIRED — the implicit int64 → uint32 output cast in
   `np.take(..., out=X)` is deprecated in NumPy 2.5 (future hard
   error), FATAL under `-W error` (X keeps the `np.empty` garbage).
@@ -98,7 +105,7 @@ None.
   hence "It should never happen").
 - No `@validate_call` on `hlp_design_matrix_compute` /
   `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
-  circular-import constraint (the L107 note).
+  circular-import constraint (the L113 note).
 - The two checksums are distinct (as in WMAPS/INDEXES):
   `design_matrix_checksum` = the DATA checksum (sha3_256 over
   `X.tobytes()`); the `.SHA3-256` sidecar = the FILE checksum
