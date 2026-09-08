@@ -2,5 +2,5 @@
 
 Run from the project root:
 
-    PYTHONPATH="./src" python3 -m unittest twolm.test.test_board
+    PYTHONPATH="./src" python3 -m unittest reversi.test.test_board
 """

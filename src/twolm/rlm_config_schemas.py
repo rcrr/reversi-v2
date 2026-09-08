@@ -35,7 +35,7 @@ from typing import List, Annotated, Optional, Any, Tuple
 
 from pathlib import Path
 
-from twolm.board import (Bitboard,
+from reversi.board import (Bitboard,
                          bitboard_from_hex_str)
 
 

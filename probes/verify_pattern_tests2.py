@@ -1,12 +1,12 @@
 """Independent re-derivation of test_pattern.py golden values.
 
-Uses ONLY twolm.board (verified in the board campaign) + pure-Python math.
+Uses ONLY reversi.board (verified in the board campaign) + pure-Python math.
 Does NOT import twolm.pattern, so the checks are non-circular.
 """
 import sys
 import numpy as np
 sys.path.insert(0, 'src')
-from twolm.board import (Bitboard, Square, square_as_bitboard,
+from reversi.board import (Bitboard, Square, square_as_bitboard,
                          bitboard_ro000, bitboard_ro090, bitboard_ro180,
                          bitboard_ro270, bitboard_fvert, bitboard_fh1a8,
                          bitboard_fhori, bitboard_fa1h8)

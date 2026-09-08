@@ -34,7 +34,7 @@ from typing import Callable
 from twolm.model_weights import ModelWeights
 from twolm.rlm_zed import zed_fun_factory
 from twolm.rlm_gradient import sigmoid
-from twolm.board import Position
+from reversi.board import Position
 
 
 __all__ = ['make_evaluation_function']

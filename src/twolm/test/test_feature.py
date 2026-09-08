@@ -42,7 +42,7 @@
 
 import unittest
 
-from twolm.board import (Bitboard,
+from reversi.board import (Bitboard,
                          make_position)
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet

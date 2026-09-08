@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from typing import List, Union, IO
 
-from twolm.board import (Bitboard, BitboardArray,
+from reversi.board import (Bitboard, BitboardArray,
                          PositionArray,
                          bitboard_count,
                          legal_moves)

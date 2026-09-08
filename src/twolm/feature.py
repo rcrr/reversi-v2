@@ -37,7 +37,7 @@ import io
 
 from enum import IntEnum
 
-from twolm.board import PositionArray
+from reversi.board import PositionArray
 
 from twolm.pattern import (Pattern, PatternSet,
                            Index, IndexArray)

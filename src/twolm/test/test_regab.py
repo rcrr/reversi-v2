@@ -64,7 +64,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from twolm.board import Bitboard, make_position
+from reversi.board import Bitboard, make_position
 from twolm.regab import (RegabDBConnection,
                          RegabDataSet,
                          GameValue,

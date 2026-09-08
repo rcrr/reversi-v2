@@ -50,7 +50,7 @@ import numpy.testing as nptest
 
 from pydantic import ValidationError
 
-from twolm.board import (Bitboard,
+from reversi.board import (Bitboard,
                          Position,
                          bitboard_count,
                          bitboard_from_signed_int,

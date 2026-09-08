@@ -8,7 +8,7 @@ import random
 
 import numpy as np
 
-from twolm.board import (Bitboard, bitboard_count, bitboard_from_signed_int,
+from reversi.board import (Bitboard, bitboard_count, bitboard_from_signed_int,
                          legal_moves, make_position)
 from twolm.mobility import Mobility, MobilitySet, popcount64
 

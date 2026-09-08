@@ -40,7 +40,7 @@ import numpy.typing as npt
 
 import numba as nb
 
-from twolm.board import (
+from reversi.board import (
     Square,
     square_as_bitboard, square_from_str,square_to_str,
     Bitboard, BitboardArray,
@@ -1007,7 +1007,7 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
 #: $ cd <workspace root>
 #: $ source .venv/bin/activate
 #: $ python
-#: >>> from twolm.board import *
+#: >>> from reversi.board import *
 #: >>> from twolm.pattern import *
 #: >>> sample_patterns = [Pattern(name, Bitboard(mask)) for name, mask in sample_pattern_data]
 #: >>> Pattern.mdp_csv_file(sample_patterns, 'build/tmp/mdp_test.csv')

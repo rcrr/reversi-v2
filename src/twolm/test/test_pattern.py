@@ -56,7 +56,7 @@ import numpy.testing as nptest
 from collections import namedtuple
 from typing import Callable, TypeAlias, List
 
-from twolm.board import (
+from reversi.board import (
     Square,
     Bitboard,
     bitboard_ro000, bitboard_ro090, bitboard_ro180, bitboard_ro270,

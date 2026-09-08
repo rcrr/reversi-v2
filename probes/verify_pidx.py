@@ -2,7 +2,7 @@
 import sys
 import numpy as np
 sys.path.insert(0, 'src')
-from twolm.board import (Bitboard, bitboard_ro000, bitboard_ro090, bitboard_ro180,
+from reversi.board import (Bitboard, bitboard_ro000, bitboard_ro090, bitboard_ro180,
                          bitboard_ro270, bitboard_fvert, bitboard_fh1a8,
                          bitboard_fhori, bitboard_fa1h8, bitboard_to_square_list,
                          square_as_bitboard)

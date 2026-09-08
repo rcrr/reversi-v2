@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_board
+# time PERF=0 python3 -m unittest reversi.test.test_board
 #
 
 import unittest
@@ -55,7 +55,7 @@ import numpy.typing as npt
 import numpy.testing as nptest
 import numba as nb
 
-from twolm.board import *
+from reversi.board import *
 
 
 
@@ -136,7 +136,7 @@ class TestSquare(unittest.TestCase):
         # Code 64 is out of the square range: square_as_bitboard computes
         # Bitboard(1) << sq, and NumPy wraps a uint64 shift by >= 64 to 0.
         # This assertion pins that wrap as-is; making it explicit in the
-        # code is open decision R3 (docs/src/twolm/board.md, I-003).
+        # code is open decision R3 (docs/src/reversi/board.md, I-003).
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
 
@@ -227,7 +227,7 @@ class TestMove(unittest.TestCase):
         # PA/NA/UN (codes 64-66) are not squares: move_as_bitboard computes
         # Bitboard(1) << mo, and NumPy wraps a uint64 shift by >= 64 to 0.
         # These assertions pin that wrap as-is; making it explicit in the
-        # code is open decision R3 (docs/src/twolm/board.md, I-003).
+        # code is open decision R3 (docs/src/reversi/board.md, I-003).
         mo = move_from_str('PA')
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)

@@ -27,7 +27,7 @@
 
 from __future__ import annotations
 
-from twolm.board import (Bitboard, PositionArray,
+from reversi.board import (Bitboard, PositionArray,
                          make_position)
 
 from reversi.tools import binio

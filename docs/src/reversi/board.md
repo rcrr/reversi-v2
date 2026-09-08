@@ -1,4 +1,4 @@
-# twolm/board.py
+# reversi/board.py
 The board domain model of the Reversi engine: squares, moves,
 bitboards, positions, and everything that operates on them — the
 D8 symmetry group, legal-move and flip-set computation, move

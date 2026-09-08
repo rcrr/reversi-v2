@@ -50,8 +50,8 @@ the left.
 - AGENTS.md — this file; standing instructions only, keep it small
 - notes/overview.md — entry point: state, next steps, index (read first)
 - src/ — all Python sources (D-006), package `twolm` (D-008):
-  src/twolm/board.py, unit tests in src/twolm/test/
-- docs/ — code documentation, mirrors src/ (D-007); docs/src/twolm/board.md
+  src/reversi/board.py, unit tests in src/twolm/test/
+- docs/ — code documentation, mirrors src/ (D-007); docs/src/reversi/board.md
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
 - notes/ — collaboration only: rules.md (active legislation) ·
   decisions.md (open historical log; closed volumes

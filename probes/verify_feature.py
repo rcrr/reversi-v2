@@ -4,7 +4,7 @@
 #
 # Independence rules (same discipline as the mobility/pattern campaigns):
 #  - NO import of twolm.feature (the module under test).
-#  - twolm.board (proven kernel, 193/0/12 GREEN) is used ONLY for:
+#  - reversi.board (proven kernel, 193/0/12 GREEN) is used ONLY for:
 #      * the 8 D8 transformations / anti-transformations of masks/positions
 #        (slot order canonized in notes/naming.md, D-014),
 #      * legal_moves (proven game kernel).
@@ -27,7 +27,7 @@ import sys
 
 import numpy as np
 
-from twolm.board import (Bitboard, make_position, legal_moves,
+from reversi.board import (Bitboard, make_position, legal_moves,
                          bitboard_transformations, bitboard_anti_transformations)
 
 FULL = 0xFFFFFFFFFFFFFFFF

@@ -1,8 +1,8 @@
-# twolm/test/test_board.py
+# reversi/test/test_board.py
 The board unit suite — 43 classes / 193 tests (161 defined + 32
 inherited through the 8 D8 blueprint subclasses), 12 PERF-gated
 (`@skipUnless(PERF == '1')`), ~1.3 s. Companion of
-docs/src/twolm/board.md. The file is 2377 lines post the board T
+docs/src/reversi/board.md. The file is 2377 lines post the board T
 campaign (T16-T35, D-016..D-050 era — the old analysis predates it).
 > State: D-050 · a5db33b · 2026-08-29 · suite 193/0/12 (12 PERF-gated,
   no DB)
