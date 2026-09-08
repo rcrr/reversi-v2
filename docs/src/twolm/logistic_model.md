@@ -30,7 +30,7 @@ LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     1. _check_config_file_path / _check_base_dir_override (plain helpers)
     2. RLMContext(config_file_path, base_dir_override)  — the blackboard
     3. workers = [ Worker("CREATED", _created_up, _created_down),
-                   wrk_config(), wrk_positions(), ..., lm_worker_save() ]
+                   wrk_config(), wrk_positions(), ..., wrk_save() ]
     4. super().__init__(workers, context, verbosity)
            |
 BaseModel -> StateMachine: stores workers/context, INJECTS log_event +

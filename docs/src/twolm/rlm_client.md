@@ -67,7 +67,7 @@ rlm_03 pins (cut 1) equal the compressed values as well.
 
 Pinned by the statics of `probes/verify_save.py` (A7 no dead import,
 A8 the `__all__`, A9 no ws lines; the full 17-check census is in
-lm_worker_save.md) + the full-chain suite — the D-104 probe's EF
+wrk_save.md) + the full-chain suite — the D-104 probe's EF
 tier (C10/C11/D10) moved to the suite at D-106 step 3 (frozen in the
 archive).
 

@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_save']
+__all__ = ['wrk_save']
 
 
 
@@ -56,6 +56,6 @@ def _down(ctx: "RLMContext") -> None:
     # Nothing to clear from context, as we just read from it.
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_save() -> Worker:
+def wrk_save() -> Worker:
     """Factory function that returns the SAVE worker instance."""
     return Worker("SAVE", _up, _down)

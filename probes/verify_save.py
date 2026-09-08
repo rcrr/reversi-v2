@@ -42,7 +42,7 @@ def ws_lines(path):
 
 
 def tier_a():
-    w = SRC / 'twolm' / 'lm_worker_save.py'
+    w = SRC / 'twolm' / 'wrk_save.py'
     wt = w.read_text()
     check('A1 worker: @validate_call factory (T1)',
           '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))' in wt

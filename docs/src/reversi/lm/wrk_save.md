@@ -20,7 +20,7 @@ ANALYTICS-report artifact semantics: build/ files persist across runs).
 
 | name | contract |
 |---|---|
-| `lm_worker_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-104 T1 — with it all 14 worker factories are uniform) returning `Worker("SAVE", _up, _down)` |
+| `wrk_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-104 T1 — with it all 14 worker factories are uniform) returning `Worker("SAVE", _up, _down)` |
 
 ## Architecture
 
@@ -31,7 +31,7 @@ ANALYTICS-report artifact semantics: build/ files persist across runs).
   `model_weights_write_file` (L35), `RLMContext` under TYPE_CHECKING
   (L37-38, the hlp_indexes-L166 class, as in every worker). The
   bring-in's dead `from pathlib import Path` is removed (T2).
-- `__all__ = ['lm_worker_save']` (L42).
+- `__all__ = ['wrk_save']` (L42).
 - `_up` (L46-52): INFO "Saving model weights to disk..." (L47) →
   `output_path = ctx.cfg.base_dir / ctx.cfg.output` (L49) →
   `model_weights_write_file(ctx, output_path, compressed=True)` (L51)
@@ -42,7 +42,7 @@ ANALYTICS-report artifact semantics: build/ files persist across runs).
   "Nothing to clear from context, as we just read from it." — SAVE is
   the only worker whose `_down` clears nothing (VALIDATE clears 1,
   ANALYTICS clears 2, ...).
-- `lm_worker_save()` (L58-61): the factory, `@validate_call` since the
+- `wrk_save()` (L58-61): the factory, `@validate_call` since the
   D-104 T1 gate.
 
 ## Verified invariants

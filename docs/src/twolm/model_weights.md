@@ -56,7 +56,7 @@ without the database, the cache, or most of the pipeline state.
 
 Pinned by the statics of `probes/verify_save.py` (A4 no-ws, A5 the
 header str/ver + the 3-`__all__`, A6 the 10 fields; the full 17-
-check census is in lm_worker_save.md) + the full-chain suite. The
+check census is in wrk_save.md) + the full-chain suite. The
 D-104 probe's live tier (the C/D round-trip goldens, deleted at
 D-106 step 3 → the test pins) froze in the archive.
 
@@ -101,7 +101,7 @@ None.
 
 ## Integration
 
-- Consumed only by `lm_worker_save` (write) and `rlm_client` + the
+- Consumed only by `wrk_save` (write) and `rlm_client` + the
   test module (read).
 - The `ModelWeights` instance is the ONLY argument of
   `make_evaluation_function` — the client API's contract type.

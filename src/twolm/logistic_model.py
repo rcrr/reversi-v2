@@ -50,7 +50,7 @@ from reversi.lm.wrk_generate import wrk_generate
 from reversi.lm.wrk_vld_positions import wrk_vld_positions
 from reversi.lm.wrk_validate import wrk_validate
 from reversi.lm.wrk_analytics import wrk_analytics
-from reversi.lm.wrk_save import lm_worker_save
+from reversi.lm.wrk_save import wrk_save
 
 
 __all__ = ['RLMContext', 'LogisticModel']
@@ -218,7 +218,7 @@ class LogisticModel(BaseModel):
             wrk_vld_positions(),
             wrk_validate(),
             wrk_analytics(),
-            lm_worker_save()
+            wrk_save()
         ]
 
         # 4. Call the superclass constructor with the assembled parts
