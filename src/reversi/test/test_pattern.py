@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_pattern
+# time PERF=0 python3 -m unittest reversi.test.test_pattern
 #
 
 import unittest
@@ -64,7 +64,7 @@ from reversi.board import (
     bitboard_transformations, bitboard_from_signed_int,
     make_position, position_check_collisions, position_print
 )
-from twolm.pattern import *
+from reversi.pattern import *
 
 
 

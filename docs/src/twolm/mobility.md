@@ -23,7 +23,7 @@ DLMC = Difference Legal Move Count (both all-64). Numba kernel,
 306 lines (post D-035/D-036).
 
 - Imports (L32-44): `reversi.board` (Bitboard, BitboardArray,
-  PositionArray, legal_moves, bitboard_count), `twolm.pattern` (L37
+  PositionArray, legal_moves, bitboard_count), `reversi.pattern` (L37
   — only the `Index` / `IndexArray` type aliases, deliberate reuse),
   numpy, numba; `__all__` (L50) = [Mobility, MobilitySet].
 - `Mobility` (L55): the class docstring (L57-77) carries the

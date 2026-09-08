@@ -244,7 +244,7 @@ print("=" * 72)
 
 import twolm.feature as F
 from twolm.mobility import Mobility, MobilitySet
-from twolm.pattern import Pattern, PatternSet
+from reversi.pattern import Pattern, PatternSet
 
 # D1. Factories
 f_int = F.Feature.new_intercept()

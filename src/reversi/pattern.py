@@ -1008,7 +1008,7 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
 #: $ source .venv/bin/activate
 #: $ python
 #: >>> from reversi.board import *
-#: >>> from twolm.pattern import *
+#: >>> from reversi.pattern import *
 #: >>> sample_patterns = [Pattern(name, Bitboard(mask)) for name, mask in sample_pattern_data]
 #: >>> Pattern.mdp_csv_file(sample_patterns, 'build/tmp/mdp_test.csv')
 #:

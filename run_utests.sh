@@ -28,7 +28,7 @@ MODULES=(
     reversi.test.test_opt_lbfgs
     # 1 — board & pattern concepts
     reversi.test.test_board
-    twolm.test.test_pattern
+    reversi.test.test_pattern
     twolm.test.test_mobility
     twolm.test.test_feature
     # 2 — infrastructure

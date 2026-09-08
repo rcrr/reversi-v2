@@ -1,7 +1,7 @@
 """Independent re-derivation of test_pattern.py golden values.
 
 Uses ONLY reversi.board (verified in the board campaign) + pure-Python math.
-Does NOT import twolm.pattern, so the checks are non-circular.
+Does NOT import reversi.pattern, so the checks are non-circular.
 """
 import sys
 import numpy as np

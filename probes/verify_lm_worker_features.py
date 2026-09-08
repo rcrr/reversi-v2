@@ -95,7 +95,7 @@ from reversi.tools.state_machine import Relevance, Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
-from twolm.pattern import Pattern, PatternSet
+from reversi.pattern import Pattern, PatternSet
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 import twolm.lm_worker_features as lwf
 

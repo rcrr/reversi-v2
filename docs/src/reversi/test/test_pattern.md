@@ -1,4 +1,4 @@
-# twolm/test/test_pattern.py
+# reversi/test/test_pattern.py
 The pattern unit suite — 13 classes / 64 tests, 3 PERF-gated (1M-size
 pack, `compute_indexes_on_position`, set `compute_principal_indexes`),
 ~1.1 s, no DB. 1859 lines post the pattern fix campaigns (P0/P1/P2 —
@@ -42,7 +42,7 @@ the old analysis predates them: 50 tests at analysis time).
   (`"not principal"`, `"duplicate names"`, `"duplicate masks"`),
   EXCEPT `mdp_csv_file` where all three `TypeError` messages are exact
   `assertEqual`.
-- Star import `from twolm.pattern import *` (the 6 `__all__` names)
+- Star import `from reversi.pattern import *` (the 6 `__all__` names)
   + explicit board-function imports; the 29-pattern
   `sample_pattern_data` is the Cayley-table exercise set.
 - The module-level D8 fixtures (L66-79 area): `ar` + 7 pre-transformed

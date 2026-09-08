@@ -34,7 +34,7 @@ from reversi.board import (Bitboard, BitboardArray,
                          bitboard_count,
                          legal_moves)
 
-from twolm.pattern import (Index, IndexArray)
+from reversi.pattern import (Index, IndexArray)
 
 import sys
 import io

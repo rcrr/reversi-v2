@@ -39,7 +39,7 @@ from enum import IntEnum
 
 from reversi.board import PositionArray
 
-from twolm.pattern import (Pattern, PatternSet,
+from reversi.pattern import (Pattern, PatternSet,
                            Index, IndexArray)
 
 from twolm.mobility import (Mobility, MobilitySet)

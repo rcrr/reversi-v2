@@ -1,4 +1,4 @@
-# twolm/pattern.py
+# reversi/pattern.py
 Pattern recognition for Reversi PDB: the D8 orbit of a pattern mask
 (instances, stabilizer, the induced permutations on its squares), a
 PEXT-style packing of the 64-bit board into S contiguous bits, the

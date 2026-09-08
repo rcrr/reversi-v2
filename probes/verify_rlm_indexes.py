@@ -128,7 +128,7 @@ from reversi.tools import binio
 from twolm import rlm_indexes
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
-from twolm.pattern import Pattern, PatternSet
+from reversi.pattern import Pattern, PatternSet
 
 
 def u(h):
@@ -358,8 +358,8 @@ check("F2 no temp-dir machinery at all (every file I/O is mocked — binio patch
 import ast as _ast
 _idx_name_uses = [n for n in _ast.walk(_ast.parse(fsrc))
                   if isinstance(n, _ast.Name) and n.id == "IndexArray"]
-check("F3 D-084 T1: the dead 'from twolm.pattern import IndexArray' import removed (only the docstring occurrence remains; zero code-level uses)",
-      "from twolm.pattern import IndexArray" not in fsrc
+check("F3 D-084 T1: the dead 'from reversi.pattern import IndexArray' import removed (only the docstring occurrence remains; zero code-level uses)",
+      "from reversi.pattern import IndexArray" not in fsrc
       and len(re.findall(r"\bIndexArray\b", fsrc)) == 1
       and len(_idx_name_uses) == 0)
 check("F4 D-084 T2: header grammar 'How to run the rlm_indexes unit tests.'",

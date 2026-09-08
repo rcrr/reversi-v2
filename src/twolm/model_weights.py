@@ -35,7 +35,7 @@ import numpy as np
 from reversi.tools.binio import BinaryWriter, BinaryReader
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
-from twolm.pattern import Pattern, PatternSet
+from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
