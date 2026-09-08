@@ -35,7 +35,7 @@ from types import SimpleNamespace
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
-SRC = WS / "src" / "twolm"
+SRC = WS / "src" / "reversi"
 
 failures = []
 skipped = []
@@ -104,7 +104,7 @@ check("A7b hlp_validate has no code ws lines (pre-campaign: 27 lines — the "
       "docstring trailing ws + the docstring ws-only lines + L108/L118)",
       _dv_ws == [], f"lines {_dv_ws}")
 check("A8 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "twolm" / "test" / "test_wrk_validate.py").exists())
+      (WS / "src" / "reversi" / "test" / "test_wrk_validate.py").exists())
 check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
       "ctx.vld_metrics = None" in wk_src
       and wk_src.count("ctx.vld_metrics = None") == 1

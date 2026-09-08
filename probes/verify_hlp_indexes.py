@@ -288,7 +288,7 @@ check("C7 down to FEATURES: hlp_indexes + hlp_indexes_checksum cleared",
 # D — source structure of wrk_indexes.py (content pins).
 #
 
-wsrc = (ROOT / "src" / "twolm" / "wrk_indexes.py").read_text()
+wsrc = (ROOT / "src" / "reversi" / "lm" / "wrk_indexes.py").read_text()
 
 check("D1 80 lines (D-084: +1 pydantic import, +1 @validate_call)",
       len(wsrc.splitlines()) == 80)
@@ -315,7 +315,7 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 # E — source structure of test_wrk_indexes.py (content pins).
 #
 
-tsrc = (ROOT / "src" / "twolm" / "test" / "test_wrk_indexes.py").read_text()
+tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_indexes.py").read_text()
 
 check("E1 153 lines, 1 class / 2 tests (post D-085: the D-065 idiom moved to reversi.test.paths)",
       len(tsrc.splitlines()) == 153

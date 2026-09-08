@@ -29,7 +29,7 @@ from pathlib import Path
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
-SRC = WS / "src" / "twolm"
+SRC = WS / "src" / "reversi"
 
 failures = []
 skipped = []

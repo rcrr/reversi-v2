@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / 'src' / 'twolm'
+SRC = ROOT / 'src' / 'reversi'
 
 RESULTS = []
 
@@ -30,7 +30,8 @@ def check(name, cond, detail=''):
     return cond
 
 def lines_of(relpath):
-    return (SRC / relpath).read_text().splitlines()
+    path = SRC / relpath if relpath.startswith('test/') else SRC / 'lm' / relpath
+    return path.read_text().splitlines()
 
 # ---------------------------------------------------------------- A tier
 rlm = lines_of('hlp_zed.py')
@@ -149,7 +150,7 @@ try:
     base = Path(tmp.name)
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        rlm01 = LogisticModel(str(ROOT / 'src' / 'twolm' / 'test' / 'data' / 'rlm_01.json'),
+        rlm01 = LogisticModel(str(ROOT / 'src' / 'reversi' / 'test' / 'data' / 'rlm_01.json'),
                               verbosity=Verbosity.HIGH, base_dir_override=base)
         # (D1 c? resolves to a (KEEP): the test pins only the y2z +
         #  z pre-state; z2y / zed_checksum pre-state are probe-unique)
@@ -220,10 +221,10 @@ check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
       and sum(1 for l in lines_of('test/test_hlp_zed.py') if l.startswith('    def test_')) == 10
       and 'from reversi.lm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
 check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
-      (ROOT / 'docs' / 'src' / 'twolm' / 'hlp_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'wrk_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_wrk_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_hlp_zed.md').exists())
+      (ROOT / 'docs' / 'src' / 'reversi' / 'lm' / 'hlp_zed.md').exists()
+      and (ROOT / 'docs' / 'src' / 'reversi' / 'lm' / 'wrk_zed.md').exists()
+      and (ROOT / 'docs' / 'src' / 'reversi' / 'test' / 'test_wrk_zed.md').exists()
+      and (ROOT / 'docs' / 'src' / 'reversi' / 'test' / 'test_hlp_zed.md').exists())
 
 # ---------------------------------------------------------------- G tier (dedicated suite)
 gd = lines_of('test/test_hlp_zed.py')

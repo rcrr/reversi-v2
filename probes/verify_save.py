@@ -42,7 +42,7 @@ def ws_lines(path):
 
 
 def tier_a():
-    w = SRC / 'twolm' / 'wrk_save.py'
+    w = SRC / 'reversi' / 'lm' / 'wrk_save.py'
     wt = w.read_text()
     check('A1 worker: @validate_call factory (T1)',
           '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))' in wt
@@ -50,7 +50,7 @@ def tier_a():
     check('A2 worker: no pathlib import (T2)', 'from pathlib import Path' not in wt)
     check('A3 worker: no ws lines (T4)', not ws_lines(w), str(ws_lines(w)))
 
-    m = SRC / 'twolm' / 'model_weights.py'
+    m = SRC / 'reversi' / 'lm' / 'model_weights.py'
     mt = m.read_text()
     check('A4 model_weights: no ws lines (T4)', not ws_lines(m), str(ws_lines(m)))
     check('A5 model_weights: header str/ver + __all__ 3',
@@ -69,7 +69,7 @@ def tier_a():
     check('A8 client: __all__ (M1)', "__all__ = ['make_evaluation_function']" in ct)
     check('A9 client: no ws lines (T4)', not ws_lines(c), str(ws_lines(c)))
 
-    t = SRC / 'twolm' / 'test' / 'test_lm_worker_full_chain.py'
+    t = SRC / 'reversi' / 'test' / 'test_lm_worker_full_chain.py'
     tt = t.read_text()
     check('A10 test: SKIP_REGAB_DB gate x2 (T5a)', tt.count("os.getenv('SKIP_REGAB_DB', '0') == '1'") == 2)
     check('A11 test: D-085 idiom (T5b)',
@@ -82,8 +82,8 @@ def tier_a():
           'numpy.testing as nptest' not in tt and 'nptest.' not in tt)
     check('A14 test: no ws lines (T4)', not ws_lines(t), str(ws_lines(t)))
 
-    f3 = (SRC / 'twolm' / 'test' / 'data' / 'rlm_03.json').read_text()
-    f4 = (SRC / 'twolm' / 'test' / 'data' / 'rlm_04.json').read_text()
+    f3 = (SRC / 'reversi' / 'test' / 'data' / 'rlm_03.json').read_text()
+    f4 = (SRC / 'reversi' / 'test' / 'data' / 'rlm_04.json').read_text()
     check('A15 fixtures: output field + cuts (rlm_03 cut=1, rlm_04 cut=10)',
           '"output": "rglm_logistic_model_ec_20_TEST03.dat"' in f3
           and '"output": "rglm_logistic_model_ec_20_TEST04.dat"' in f4
@@ -105,7 +105,7 @@ def _chain(fixture, name_prefix):
     from reversi.lm.logistic_model import LogisticModel
     with patch('sys.stdout', new=StringIO()) as out:
         tmp = tempfile.mkdtemp(dir=str(SRC.parent / 'build' / 'tmp'))
-        rlm = LogisticModel(str(SRC / 'twolm' / 'test' / 'data' / fixture),
+        rlm = LogisticModel(str(SRC / 'reversi' / 'test' / 'data' / fixture),
                             verbosity=Verbosity.HIGH, base_dir_override=tmp)
         rlm.move_to_last()
     return rlm, out.getvalue()

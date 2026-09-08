@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src" / "twolm"
+SRC = ROOT / "src" / "reversi"
 
 results = []
 
@@ -34,7 +34,8 @@ def check(name, cond, detail=""):
 
 
 def read(name):
-    return (SRC / name).read_text()
+    base = SRC if name.startswith("test/") else SRC / "lm"
+    return (base / name).read_text()
 
 
 def ws_lines(text):
@@ -111,7 +112,7 @@ check("C4 T6 D-085 idiom",
       "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c and
       "Path(self._tmp.name)" in c and
-      "WORKSPACE_ROOT / \"src\" / \"twolm\" / \"test\" / \"data\" / \"rlm_02.json\"" in c
+      "WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_02.json\"" in c
       and "mkdtemp" not in c and "shutil" not in c)
 check("C5 1 class 2 tests",
       c.count("class Test") == 1 and
@@ -285,7 +286,7 @@ check("E4 T1 scipy in pyproject", '"scipy",' in py)
 import scipy
 check("E5 scipy in venv 1.18.1", scipy.__version__ == "1.18.1", scipy.__version__)
 check("E6 StatModelConfig ridge field",
-      "ridge_regularization: float = Field(default=0.00, ge=0.00)" in read("rlm_config_schemas.py"))
+      "ridge_regularization: float = Field(default=0.00, ge=0.00)" in read("hlp_config_schemas.py"))
 j = (SRC / "test" / "data" / "rlm_02.json").read_text()
 check("E7 rlm_02 config",
       '"logit_clipping": 0.01' in j and '"ridge_regularization": 0.01' in j

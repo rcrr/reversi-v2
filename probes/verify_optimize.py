@@ -30,7 +30,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src" / "twolm"
+SRC = ROOT / "src" / "reversi"
 
 results = []
 
@@ -40,7 +40,8 @@ def check(name, cond, detail=""):
 
 
 def read(name):
-    return (SRC / name).read_text()
+    base = SRC if name.startswith("test/") else SRC / "lm"
+    return (base / name).read_text()
 
 
 def ws_lines(text):
@@ -261,11 +262,11 @@ check("E3 RLMContext pre-declared fields (w, fg, w_checksum, opt_info, dense_w_c
       and "    w_checksum: str | None = None" in lm
       and "    opt_info: Any = None" in lm
       and "    dense_w_checksum: str | None = None" in lm)
-sc = read("rlm_config_schemas.py")
+sc = read("hlp_config_schemas.py")
 check("E4 OptimizationConfig: min_grad Tuple[float, int] + checkpoint_file Path",
       "min_grad: Tuple[float, int] = Field(default=(1e-5, 3)" in sc
       and "checkpoint_file: Path = Field(..., description=" in sc)
-obl = read("opt_lbfgs.py")
+obl = (SRC / "tools" / "opt_lbfgs.py").read_text()
 check("E5 lbfgs signature has all 16 kwargs the worker passes",
       all(k in obl for k in ["x0", "c1", "c2", "min_grad", "min_p_fun_decrease",
                              "max_iters", "m", "log_every_n", "logger",

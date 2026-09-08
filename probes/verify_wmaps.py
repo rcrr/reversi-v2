@@ -23,7 +23,7 @@ from pathlib import Path
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
-SRC = WS / "src" / "twolm"
+SRC = WS / "src" / "reversi"
 
 failures = []
 
@@ -168,8 +168,8 @@ check("D5 both setUps use the D-085 TemporaryDirectory idiom (L81, L183)",
       and t2[182] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
       repr(t2[80]))
 check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L83 rlm_00, L185 rlm_01)",
-      t2[82] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"twolm\" / \"test\" / \"data\" / \"rlm_00.json\")"
-      and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"twolm\" / \"test\" / \"data\" / \"rlm_01.json\")",
+      t2[82] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_00.json\")"
+      and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_01.json\")",
       repr(t2[82]))
 check("D7 the D-085 paths import is present (L57)",
       t2[56] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[56]))

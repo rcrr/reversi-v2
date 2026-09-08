@@ -42,7 +42,7 @@ from types import SimpleNamespace
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
-SRC = WS / "src" / "twolm"
+SRC = WS / "src" / "reversi"
 
 failures = []
 skipped = []
@@ -130,7 +130,7 @@ check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       and dv_src.count('def ') == 7
       and "if TYPE_CHECKING:" in dv_src)
 check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "twolm" / "test" / "test_wrk_analytics.py").exists())
+      (WS / "src" / "reversi" / "test" / "test_wrk_analytics.py").exists())
 check("A12 RLMContext pre-declares train_metrics (pre-campaign: it does NOT — "
       "the worker sets an ad-hoc attribute; dataclasses allow it, but every "
       "other blackboard field is declared; Roberto's call)",
