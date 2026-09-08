@@ -48,7 +48,7 @@ from reversi.lm.wrk_gradient import wrk_gradient
 from reversi.lm.wrk_optimize import wrk_optimize
 from reversi.lm.wrk_generate import wrk_generate
 from reversi.lm.wrk_vld_positions import wrk_vld_positions
-from reversi.lm.wrk_validate import lm_worker_validate
+from reversi.lm.wrk_validate import wrk_validate
 from twolm.lm_worker_analytics import lm_worker_analytics
 from twolm.lm_worker_save import lm_worker_save
 
@@ -216,7 +216,7 @@ class LogisticModel(BaseModel):
             wrk_optimize(),
             wrk_generate(),
             wrk_vld_positions(),
-            lm_worker_validate(),
+            wrk_validate(),
             lm_worker_analytics(),
             lm_worker_save()
         ]

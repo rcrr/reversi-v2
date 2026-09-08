@@ -13,7 +13,7 @@ validation dict: the Z-space metrics (`vld_loss = 0.5·‖rn_z‖²/M`,
 the Y-space metrics (`vld_mae_y`, `vld_mse_y`, `vld_rmse_y` —
 the predictions mapped back with `ctx.z2y`), plus
 `vld_samples = M`.
-> State: D-102 · b98edaa · 2026-09-02 · suite 5/0/0 (via test_lm_worker_validate, 3 DB-gated)
+> State: D-102 · b98edaa · 2026-09-02 · suite 5/0/0 (via test_wrk_validate, 3 DB-gated)
 
 ## API
 
@@ -58,7 +58,7 @@ the predictions mapped back with `ctx.z2y`), plus
 ## Verified invariants
 
 Pinned by the 18-check `probes/verify_validate.py` +
-`test_lm_worker_validate.py` (5 tests: 2 DB-free + 3 DB-gated).
+`test_wrk_validate.py` (5 tests: 2 DB-free + 3 DB-gated).
 
 - Module + worker source shape (probe A1-A13, 14 checks): the
   single-name `__all__`, the header name, the `Any` import, NO

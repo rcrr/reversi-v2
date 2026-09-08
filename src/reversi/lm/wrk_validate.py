@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_validate']
+__all__ = ['wrk_validate']
 
 
 
@@ -70,6 +70,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_validate() -> Worker:
+def wrk_validate() -> Worker:
     """Factory function that returns the VALIDATE worker instance."""
     return Worker("VALIDATE", _up, _down)

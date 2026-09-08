@@ -15,7 +15,7 @@ clears it.
 
 | name | contract |
 |---|---|
-| `lm_worker_validate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-102 T1, all 12 active worker factories now share the pattern) returning `Worker("VALIDATE", _up, _down)` |
+| `wrk_validate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-102 T1, all 12 active worker factories now share the pattern) returning `Worker("VALIDATE", _up, _down)` |
 
 ## Architecture
 
@@ -38,7 +38,7 @@ clears it.
   then clears the ONE attribute to None (L67) — the scope is
   complete: `_up` sets exactly `vld_metrics` (pinned by probe
   A9 + `test_down_clears_vld_metrics`).
-- `lm_worker_validate()` (L72-75): the factory,
+- `wrk_validate()` (L72-75): the factory,
   `@validate_call`-decorated since D-102 T1.
 
 ## Verified invariants
@@ -47,7 +47,7 @@ Pinned by the `probes/verify_validate.py` A + C tiers + the
 3-test worker suite.
 
 - Worker source shape (probe A-tier, with the module tier): the
-  75-line file, `__all__ = ['lm_worker_validate']`, the factory
+  75-line file, `__all__ = ['wrk_validate']`, the factory
   WITH `@validate_call` + the pydantic import (T1), NO numpy
   import (T2), `validate_model` the single data name, NO
   cache_manager import, `_up` sets the 1 ctx attribute, `_down`
@@ -56,7 +56,7 @@ Pinned by the `probes/verify_validate.py` A + C tiers + the
 - The live rlm_02 flow (probe C-tier + the worker suite): the
   full pipeline through VALIDATE (step 12, no crash — unlike
   D-097/D-099 there is no cache-path trap this time); the 7
-  metric goldens are pinned in test_lm_worker_validate
+  metric goldens are pinned in test_wrk_validate
   (vld_loss 0.00700794393196702, vld_mse_z
   0.01401588786393404, vld_mae_z 0.09311295300722122,
   vld_mae_y 12.161691665649414, vld_mse_y 239.10484313964844,

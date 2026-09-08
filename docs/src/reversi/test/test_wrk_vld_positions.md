@@ -31,7 +31,7 @@ today.
   the live DB.
 - The 2nd-instance test is the cache round-trip pin: "cache hit
   + no re-extraction + array-equal" — the mirror of the no-
-  cache determinism pin in test_lm_worker_validate.
+  cache determinism pin in test_wrk_validate.
 - The TestIsCacheConsistentOverride class keeps the 6 override-
   semantic branches testable without the live regab DB (the §4
   conversion).

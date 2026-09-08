@@ -1,5 +1,5 @@
 #
-# test_lm_worker_validate.py
+# test_wrk_validate.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -26,7 +26,7 @@
 #
 #
 #
-# How to run the lm_worker_validate unit tests.
+# How to run the wrk_validate unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -55,7 +55,7 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
-from reversi.lm.wrk_validate import lm_worker_validate
+from reversi.lm.wrk_validate import wrk_validate
 from reversi.lm.hlp_validate import validate_model
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -251,7 +251,7 @@ class TestValidateModelUnit(unittest.TestCase):
         ctx.z2y = lambda z: 128 * z - 64
         logs = []
         ctx.log_event = lambda rel, msg: logs.append(msg)
-        lm_worker_validate().up(ctx)
+        wrk_validate().up(ctx)
         self.assertTrue(any("RMSE/MAE: n/a" in m for m in logs),
                         f"logs={logs}")
 

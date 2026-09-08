@@ -6,7 +6,7 @@ the first bring-in with a dedicated data module hlp_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
-  A. lm_worker_validate.py + hlp_validate.py structure (pinned to
+  A. wrk_validate.py + hlp_validate.py structure (pinned to
      the post-campaign expectations: R1 the unimported `Any`
      annotation, T1 the factory gate, T2 the dead imports, T3 the
      wrong header name, T4 the ws lines, T5 the missing test file)
@@ -67,17 +67,17 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. lm_worker_validate.py + hlp_validate.py structure
+# A. wrk_validate.py + hlp_validate.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_validate.py")
 dv_src = read("src/reversi/lm/hlp_validate.py")
 check("A1 Worker named VALIDATE + __all__ + validate_model the single public data name",
       'Worker("VALIDATE", _up, _down)' in wk_src
-      and "__all__ = ['lm_worker_validate']" in wk_src
+      and "__all__ = ['wrk_validate']" in wk_src
       and "__all__ = ['validate_model']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
       "(all 11 sibling worker factories — the D-100 T1 pattern)",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_validate" in wk_src
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_validate" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("A3 no dead import in the worker (`numpy as np` is never used)",
       "import numpy as np" not in wk_src)
@@ -104,7 +104,7 @@ check("A7b hlp_validate has no code ws lines (pre-campaign: 27 lines — the "
       "docstring trailing ws + the docstring ws-only lines + L108/L118)",
       _dv_ws == [], f"lines {_dv_ws}")
 check("A8 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "twolm" / "test" / "test_lm_worker_validate.py").exists())
+      (WS / "src" / "twolm" / "test" / "test_wrk_validate.py").exists())
 check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
       "ctx.vld_metrics = None" in wk_src
       and wk_src.count("ctx.vld_metrics = None") == 1
@@ -158,7 +158,7 @@ else:
         ctx = m.context
 
         # (C1 deleted at D-106 step 3, class c: step 12 / VALIDATE is
-        #  pinned by all three test_lm_worker_validate.py tests)
+        #  pinned by all three test_wrk_validate.py tests)
         met = ctx.vld_metrics
         # (C2 deleted at D-106 step 3, class c: the 7-key dict + all
         #  7 exact goldens are pinned by test_validate_model_goldens)
@@ -222,7 +222,7 @@ def fake_ctx(game_values, indexes, offsets, w_dense):
 # z2y(z)=128z-64: y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048, rmse_y sqrt(2048)
 _d = validate_model(fake_ctx([0, 64], [[0, 1], [1, 0]], [0, 2], [0.5, -0.5]))
 # (D1 moved to a test at D-106 step 3, class a §4 conversion:
-#  test_lm_worker_validate.py::TestValidateModelUnit::
+#  test_wrk_validate.py::TestValidateModelUnit::
 #  test_full_metric_math_on_hand_computed_case — the same
 #  hand-computed 2-position fixture. The call stays here because
 #  D2 pins the result TYPES.)
@@ -231,7 +231,7 @@ check("D2 every metric value is a PYTHON float (the float() casts) + vld_samples
                                          "vld_mae_y", "vld_mse_y", "vld_rmse_y"))
       and type(_d["vld_samples"]) is int)
 # (D3 moved to a test at D-106 step 3, class a §4 conversion:
-#  test_lm_worker_validate.py::TestValidateModelUnit::
+#  test_wrk_validate.py::TestValidateModelUnit::
 #  test_rmse_mae_line_is_zero_guarded — the M1 (D-102) zero-guard
 #  branch on a perfect Y-space fit)
 
