@@ -77,7 +77,7 @@ def ws_lines(p):
 # A. lm_worker_analytics.py + rlm_analytics.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/twolm/lm_worker_analytics.py")
-dv_src = read("src/twolm/rlm_analytics.py")
+dv_src = read("src/reversi/lm/hlp_analytics.py")
 check("A1 Worker named ANALYTICS + __all__ + the 4 public data names "
       "(function-only module — no data class, no store/load; D-105/M2 "
       "added compute_training_dense_metrics)",
@@ -100,9 +100,9 @@ check("A4 no dead imports in rlm_analytics (`sys` is never used; `Optional` "
       == "from typing import TYPE_CHECKING, Dict")
 check("A5 both headers carry their own names",
       lines("src/twolm/lm_worker_analytics.py")[1] == "# lm_worker_analytics.py"
-      and lines("src/twolm/rlm_analytics.py")[1] == "# rlm_analytics.py")
+      and lines("src/reversi/lm/hlp_analytics.py")[1] == "# hlp_analytics.py")
 _wk_ws = ws_lines("src/twolm/lm_worker_analytics.py")
-_dv_ws = ws_lines("src/twolm/rlm_analytics.py")
+_dv_ws = ws_lines("src/reversi/lm/hlp_analytics.py")
 check("A6a the worker has no code ws lines (pre-campaign: 6 — L47/50/53/57 "
       "ws-only + L63/65 trailing)",
       _wk_ws == [], f"lines {_wk_ws}")
@@ -168,7 +168,7 @@ else:
     from twolm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
     from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-    from twolm.rlm_analytics import format_file_report
+    from reversi.lm.hlp_analytics import format_file_report
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
@@ -351,7 +351,7 @@ else:
 # ----------------------------------------------------------------------
 # D. unit facts (no DB) — the full metric math on a hand-computed case
 # ----------------------------------------------------------------------
-from twolm.rlm_analytics import (compute_training_metrics,
+from reversi.lm.hlp_analytics import (compute_training_metrics,
                                  compute_training_dense_metrics,
                                  format_console_report)
 

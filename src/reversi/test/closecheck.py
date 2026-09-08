@@ -31,7 +31,7 @@
 # (D-127).
 #
 # The train/vld/pop metric reductions (np.dot over up to ~2M f64 terms —
-# rlm_analytics.py L459/L509, hlp_validate.py) run through the
+# hlp_analytics.py L459/L509, hlp_validate.py) run through the
 # multi-threaded OpenBLAS ddot: the last ULPs depend on the thread
 # count and the DYNAMIC_ARCH CPU kernel of the machine running the
 # tests. A 4 -> 8 vCPU move shifts the goldens by up to ~4e-14

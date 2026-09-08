@@ -1,4 +1,4 @@
-# twolm/rlm_analytics.py
+# reversi/lm/hlp_analytics.py
 The ANALYTICS data module — the 14th active level (the 13th step), the 2nd
 function-only data module of a non-cache level (like hlp_gradient /
 hlp_validate): 4 public functions + 3 private helpers, NO data class, NO

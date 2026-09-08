@@ -32,7 +32,7 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.rlm_analytics import (compute_training_metrics,
+from reversi.lm.hlp_analytics import (compute_training_metrics,
                                  compute_training_dense_metrics,
                                  format_console_report, format_file_report)
 

@@ -1,5 +1,5 @@
 #
-# rlm_analytics.py
+# hlp_analytics.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
