@@ -37,5 +37,5 @@ artifacts — the handcrafted-mock pattern, as in test_hlp_zed.
   only exercises the end-to-end path on the live 199952-
   position rlm_02 dataset).
 - The LIVE goldens (the 4 pinned values at w=0) live in
-  test_lm_worker_gradient.py — the single source of truth after
+  test_wrk_gradient.py — the single source of truth after
   the step-3 class c deletions (D1-D4 + D11 to that file).

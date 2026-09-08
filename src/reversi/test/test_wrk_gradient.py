@@ -1,5 +1,5 @@
 #
-# test_lm_worker_gradient.py
+# test_wrk_gradient.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the lm_worker_gradient unit tests.
+# How to run the wrk_gradient unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

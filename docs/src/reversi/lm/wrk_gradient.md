@@ -11,7 +11,7 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 
 | name | contract |
 |---|---|
-| `lm_worker_gradient()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-094 T2, like all the other worker factories) returning `Worker("GRADIENT", _up, _down)` |
+| `wrk_gradient()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-094 T2, like all the other worker factories) returning `Worker("GRADIENT", _up, _down)` |
 
 ## Architecture
 
@@ -37,7 +37,7 @@ Pinned by the `probes/verify_gradient.py` B + C + D + E + G
 tiers + the 2-test suite.
 
 - Source shape (probe B1-B9): the 62-line file, `__all__ =
-  ['lm_worker_gradient']`, the factory WITH `@validate_call` +
+  ['wrk_gradient']`, the factory WITH `@validate_call` +
   the pydantic import (T2), NO cache_manager import (the L48
   by-design comment pinned), `_up` sets `ctx.fg`, `_down` clears
   it, `Worker("GRADIENT", ...)`.
@@ -60,7 +60,7 @@ tiers + the 2-test suite.
   classes / 8 tests, no DB wiring, the goldens pinned.
 - The live goldens (DB-gated): `test_generate_gradient` (the 4
   pinned values at w=0) + `test_down_clears_gradient` (the
-  step-7 / "ZED" / fg-None pin) — `test_lm_worker_gradient.py`
+  step-7 / "ZED" / fg-None pin) — `test_wrk_gradient.py`
   (2 tests, both DB-gated since D-094 T5).
 
 ## Open issues

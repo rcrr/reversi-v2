@@ -1,13 +1,13 @@
 #
 # verify_gradient.py — independent verification probe for the GRADIENT
-# bring-in (hlp_gradient.py, lm_worker_gradient.py,
-# test_lm_worker_gradient.py, rlm_02.json), re-pinned to the
+# bring-in (hlp_gradient.py, wrk_gradient.py,
+# test_wrk_gradient.py, rlm_02.json), re-pinned to the
 # post-D-094-campaign state.
 #
 # Tiers:
 #   A  hlp_gradient.py structure (post-campaign)
-#   B  lm_worker_gradient.py structure (post-campaign)
-#   C  test_lm_worker_gradient.py structure (post-campaign)
+#   B  wrk_gradient.py structure (post-campaign)
+#   C  test_wrk_gradient.py structure (post-campaign)
 #   D  live pipeline through GRADIENT (DB required) + independent
 #      float64 re-derivation of f and g (w = 0 and w != 0)
 #   E  cross-file (logistic_model, schemas, pyproject, rlm_02.json)
@@ -74,15 +74,15 @@ check("A13 R1 float32 cast",
       "return np.float32(f), g.astype(np.float32, copy=False)" in a)
 
 # ---------------------------------------------------------------- B tier
-print("== tier B: lm_worker_gradient.py structure (post D-094)")
-b = read("lm_worker_gradient.py")
+print("== tier B: wrk_gradient.py structure (post D-094)")
+b = read("wrk_gradient.py")
 bl = b.splitlines()
 check("B1 line count 62", len(bl) == 62, f"{len(bl)}")
 check("B2 worker name", 'Worker("GRADIENT", _up, _down)' in b)
 check("B3 T2 factory @validate_call + pydantic import",
       "from pydantic import validate_call, ConfigDict" in b and
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n"
-      "def lm_worker_gradient() -> Worker:" in b)
+      "def wrk_gradient() -> Worker:" in b)
 check("B4 non-cache comment",
       "GRADIENT building is a closure generation, very fast. No cache needed." in b)
 check("B5 _up sets fg", "ctx.fg = hlp_gradient_compute(ctx)" in b)
@@ -94,8 +94,8 @@ check("B9 factory docstring",
       '"""Factory function that returns the GRADIENT worker instance."""' in b)
 
 # ---------------------------------------------------------------- C tier
-print("== tier C: test_lm_worker_gradient.py structure (post D-094)")
-c = read("test/test_lm_worker_gradient.py")
+print("== tier C: test_wrk_gradient.py structure (post D-094)")
+c = read("test/test_wrk_gradient.py")
 cl = c.splitlines()
 check("C1 line count 142", len(cl) == 142, f"{len(cl)}")
 check("C2 header gate claim",
@@ -154,7 +154,7 @@ def d_main():
 
         # (D1 pre-state / D2 move to GRADIENT / D3 fg callable /
         #  D4 X/w/z shapes+dtypes deleted at D-106 step 3, class c:
-        #  test_lm_worker_gradient.py pins all of it — setUp the
+        #  test_wrk_gradient.py pins all of it — setUp the
         #  step-7 pre-state, test_generate_gradient the fg-None
         #  pre-state + step 8 + callable + the (199952, 8) / 2981
         #  shapes, test_down_clears_gradient the step pins again.
@@ -259,7 +259,7 @@ def d_main():
         # design_matrix / w / z / feature_set / fg that D5-D12 read.
         # (The assertions around the moves — the step-7 pre-state,
         # step 8, name GRADIENT, fg callable — were class c, deleted
-        # at D-106 step 3: test_lm_worker_gradient.py pins them.)
+        # at D-106 step 3: test_wrk_gradient.py pins them.)
         rlm.move_to_step("GRADIENT")
 
         for name, fn in (("D5 alpha + clipping", d5),

@@ -5,7 +5,7 @@ truth after the step-3 class c deletions of the former probe
 D1-D4 / D11 pipeline-state tier) + the `_down` clearing pin
 (D-094 T7). 1 class / 2 tests, both DB-gated (the setUp moves
 through ZED on a fresh base dir, so a live DB is required —
-`test_lm_worker_gradient` 2/0/2 under the gate).
+`test_wrk_gradient` 2/0/2 under the gate).
 > State: D-094 · 34442b2 · 2026-09-01 · suite 2/0/0 (2 DB-gated)
 
 ## Coverage

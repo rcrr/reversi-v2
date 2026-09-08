@@ -44,7 +44,7 @@ from reversi.lm.wrk_indexes import wrk_indexes
 from reversi.lm.wrk_wmaps import wrk_wmaps
 from reversi.lm.wrk_design_matrix import wrk_design_matrix
 from reversi.lm.wrk_zed import wrk_zed
-from reversi.lm.wrk_gradient import lm_worker_gradient
+from reversi.lm.wrk_gradient import wrk_gradient
 from twolm.lm_worker_optimize import lm_worker_optimize
 from twolm.lm_worker_generate import lm_worker_generate
 from twolm.lm_worker_vld_positions import lm_worker_vld_positions
@@ -212,7 +212,7 @@ class LogisticModel(BaseModel):
             wrk_wmaps(),
             wrk_design_matrix(),
             wrk_zed(),
-            lm_worker_gradient(),
+            wrk_gradient(),
             lm_worker_optimize(),
             lm_worker_generate(),
             lm_worker_vld_positions(),

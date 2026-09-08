@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_gradient']
+__all__ = ['wrk_gradient']
 
 
 
@@ -57,6 +57,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_gradient() -> Worker:
+def wrk_gradient() -> Worker:
     """Factory function that returns the GRADIENT worker instance."""
     return Worker("GRADIENT", _up, _down)

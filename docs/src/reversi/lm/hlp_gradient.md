@@ -50,7 +50,7 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
 
 Pinned by the 54-call `probes/verify_gradient.py` +
 `test_hlp_gradient.py` (8 tests, no DB) +
-`test_lm_worker_gradient.py` (2 DB-gated tests).
+`test_wrk_gradient.py` (2 DB-gated tests).
 
 - Source shape (probe A1-A13): 91 lines, the 2-name `__all__`,
   the expit import, the no-validation note (L52), the captures
@@ -75,7 +75,7 @@ Pinned by the 54-call `probes/verify_gradient.py` +
   full math vs the independent float64 re-derivation, the /M
   scaling, the minlength empty-bucket pin, the R1 dtype pins, the
   statelessness).
-- The live goldens (DB-gated, `test_lm_worker_gradient.py`): the
+- The live goldens (DB-gated, `test_wrk_gradient.py`): the
   4 pinned values at w=0 on the 199952-position rlm_02 — the
   single source of truth after the step-3 class c deletions (D1-
   D4 + D11 to the worker test, E2/E3 to the hub).
@@ -103,7 +103,7 @@ None.
 
 ## Integration
 
-- The 9th RLM level; the worker (lm_worker_gradient.py) is the
+- The 9th RLM level; the worker (wrk_gradient.py) is the
   thin glue, this module the math. Consumes `ctx.design_matrix`
   (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32
   weight vector, W = total weights; 2981 on live rlm_02; the
