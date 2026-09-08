@@ -38,7 +38,7 @@ from reversi.base_model import BaseModel
 
 # Import worker factories
 from reversi.lm.wrk_config import wrk_config
-from twolm.lm_worker_positions import lm_worker_positions
+from reversi.lm.wrk_positions import lm_worker_positions
 from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps

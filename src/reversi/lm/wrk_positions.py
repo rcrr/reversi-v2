@@ -1,5 +1,5 @@
 #
-# lm_worker_positions.py
+# wrk_positions.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

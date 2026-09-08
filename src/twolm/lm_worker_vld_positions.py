@@ -39,7 +39,7 @@ from reversi.regab import (
     regab_store_data_set_to_file
 )
 from reversi.tools.cache_manager import cache_manager_load_or_compute
-from twolm.lm_worker_positions import load_from_db, is_cache_consistent
+from reversi.lm.wrk_positions import load_from_db, is_cache_consistent
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

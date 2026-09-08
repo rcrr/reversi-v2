@@ -39,7 +39,7 @@
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
 #     VLONG=1 implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_lm_worker_positions
+# time python3 -m unittest reversi.test.test_wrk_positions
 #
 
 import unittest
@@ -58,7 +58,7 @@ from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
-from twolm.lm_worker_positions import is_cache_consistent
+from reversi.lm.wrk_positions import is_cache_consistent
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from reversi.test.tags import db_long_gate
 
@@ -152,7 +152,7 @@ class TestIsCacheConsistent(unittest.TestCase):
     """Unit semantics of lm_worker_positions.is_cache_consistent.
 
     D-106 step 3 (probe_rules.md §4): converted from the
-    verify_lm_worker_positions.py D4a-g probe. The probe warmed a
+    verify_wrk_positions.py D4a-g probe. The probe warmed a
     real cache file through the live pipeline and compared against
     it; the test builds the same rds metadata in memory (fixture
     rlm_00 values: bid [8], status ["CMS", "CMR"], ec 20,

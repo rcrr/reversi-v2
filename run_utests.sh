@@ -43,7 +43,7 @@ MODULES=(
     #     chain — including SAVE — last)
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
-    twolm.test.test_lm_worker_positions
+    reversi.test.test_wrk_positions
     twolm.test.test_lm_worker_features
     twolm.test.test_rlm_indexes
     twolm.test.test_lm_worker_indexes

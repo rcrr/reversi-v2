@@ -1,7 +1,7 @@
 # reversi/test/test_hlp_config_schemas.py
 The first test module of the rlm_config_schemas config domain —
 created at D-106 step 3 as the probe_rules §4 conversion of the
-verify_lm_worker_positions probe E section (the probe keeps only
+verify_wrk_positions probe E section (the probe keeps only
 its E7 source-text pin — source inspections stay probes per §4).
 1 class / 13 tests / no PERF gates / no database (the schemas
 validate in memory only).

@@ -63,7 +63,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     D-106 step 3 (probe_rules.md §4): this is the first test file
     for the rlm_config_schemas module. The checks were converted
-    from the verify_lm_worker_positions.py E section (the probe
+    from the verify_wrk_positions.py E section (the probe
     keeps only its E7 source-text pin — source inspections stay
     probes per §4). The base payload is the rlm_00.json fixture
     (the same one the probe used)."""

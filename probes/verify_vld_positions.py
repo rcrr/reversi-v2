@@ -92,7 +92,7 @@ check("A6 the 3 ws-only lines are gone; the only remaining code ws line is the "
       == "regab_load_data_set_from_file,",
       f"lines {_vld_ws}")
 check("A7 reuses load_from_db + is_cache_consistent from lm_worker_positions",
-      "from twolm.lm_worker_positions import load_from_db, is_cache_consistent" in wk_src)
+      "from reversi.lm.wrk_positions import load_from_db, is_cache_consistent" in wk_src)
 check("A8 the vld query params are passed to BOTH the compute and the validate fns",
       "is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src
       and "load_from_db(ctx, bid=vld_cfg.bid, status=vld_cfg.status)" in wk_src)
@@ -213,7 +213,7 @@ else:
 # D. unit facts (no DB)
 # ----------------------------------------------------------------------
 from twolm.lm_worker_vld_positions import lm_worker_vld_positions
-from twolm.lm_worker_positions import is_cache_consistent, load_from_db
+from reversi.lm.wrk_positions import is_cache_consistent, load_from_db
 
 w = lm_worker_vld_positions()
 check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callables",
@@ -227,8 +227,8 @@ check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callable
 #  the reuse-identity pin here.)
 check("D8 load_from_db + is_cache_consistent are the reused lm_worker_positions "
       "functions (identity, not re-implementations)",
-      load_from_db.__module__ == "twolm.lm_worker_positions"
-      and is_cache_consistent.__module__ == "twolm.lm_worker_positions")
+      load_from_db.__module__ == "reversi.lm.wrk_positions"
+      and is_cache_consistent.__module__ == "reversi.lm.wrk_positions")
 
 
 # ----------------------------------------------------------------------

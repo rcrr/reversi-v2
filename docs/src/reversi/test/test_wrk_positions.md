@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_positions.py
+# reversi/test/test_wrk_positions.py
 The test module of the POSITIONS worker (Roberto's file, copied
 from the original repo with the D-080-era pipeline enablement;
 the D-080 T1-T4 campaign re-anchored it, and step 3 of D-106

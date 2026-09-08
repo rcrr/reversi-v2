@@ -1,5 +1,5 @@
 #
-# verify_lm_worker_positions.py
+# verify_wrk_positions.py
 #
 # Independent ground-truth probe for lm_worker_positions.py +
 # hlp_config_schemas.py (session 21, D-079 analysis; re-pinned to
@@ -36,7 +36,7 @@ sys.path.insert(0, "src")
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from reversi.regab import regab_load_data_set_from_file
-from twolm.lm_worker_positions import lm_worker_positions
+from reversi.lm.wrk_positions import lm_worker_positions
 
 WS = Path(__file__).resolve().parents[1]
 TMP_BASE = WS / "build" / "tmp"
@@ -95,7 +95,7 @@ def cfg_dict_mutate(mutate=None) -> dict:
 
 # ------------------------------------------------------------------ A
 print("--- A. structure / source pins (no DB) ---")
-import twolm.lm_worker_positions as lp
+import reversi.lm.wrk_positions as lp
 
 check("A1 __all__ exposes factory + 2 helpers",
       lp.__all__ == ['lm_worker_positions', 'load_from_db', 'is_cache_consistent'],

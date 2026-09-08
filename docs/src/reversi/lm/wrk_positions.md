@@ -1,4 +1,4 @@
-# twolm/lm_worker_positions.py
+# reversi/lm/wrk_positions.py
 The POSITIONS worker of the RLM pipeline — the FIRST domain
 worker that consumes cache_manager: the training data set comes
 from the regab DB through the standard 4-step load-or-compute

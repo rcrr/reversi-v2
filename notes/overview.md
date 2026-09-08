@@ -148,7 +148,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/twolm/lm_worker_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1); closed (D-093/D-094) | 2/0/0 | docs/src/twolm/lm_worker_gradient.md |
 | src/twolm/lm_worker_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/twolm/lm_worker_indexes.md |
 | src/twolm/lm_worker_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/twolm/lm_worker_optimize.md |
-| src/twolm/lm_worker_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; closed (D-079/D-080) | 9/0/0 | docs/src/twolm/lm_worker_positions.md |
+| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; closed (D-079/D-080) | 9/0/0 | docs/src/reversi/lm/wrk_positions.md |
 | src/twolm/lm_worker_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/lm_worker_save.md |
 | src/twolm/lm_worker_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/twolm/lm_worker_validate.md |
 | src/twolm/lm_worker_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/twolm/lm_worker_vld_positions.md |
@@ -192,7 +192,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_lm_worker_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/twolm/test/test_lm_worker_gradient.md |
 | src/twolm/test/test_lm_worker_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/twolm/test/test_lm_worker_indexes.md |
 | src/twolm/test/test_lm_worker_optimize.py | complete: the OPTIMIZE worker suite (D-096) | 3/0/0 | docs/src/twolm/test/test_lm_worker_optimize.md |
-| src/twolm/test/test_lm_worker_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080) | 9/0/0 | docs/src/twolm/test/test_lm_worker_positions.md |
+| src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080) | 9/0/0 | docs/src/reversi/test/test_wrk_positions.md |
 | src/twolm/test/test_lm_worker_validate.py | complete: the VALIDATE worker suite (D-101/D-102) | 5/0/0 | docs/src/twolm/test/test_lm_worker_validate.md |
 | src/twolm/test/test_lm_worker_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100) | 9/0/0 | docs/src/twolm/test/test_lm_worker_vld_positions.md |
 | src/twolm/test/test_lm_worker_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/twolm/test/test_lm_worker_wmaps.md |
