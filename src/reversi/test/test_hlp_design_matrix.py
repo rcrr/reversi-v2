@@ -1,5 +1,5 @@
 #
-# test_rlm_design_matrix.py
+# test_hlp_design_matrix.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_design_matrix unit tests.
+# How to run the hlp_design_matrix unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -53,18 +53,18 @@ from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.lm.hlp_design_matrix import (ReversiLogisticModelDesignMatrix,
-                                     rlm_design_matrix_compute,
-                                     rlm_design_matrix_store_to_file,
-                                     rlm_design_matrix_load_from_file,
-                                     rlm_design_matrix_is_cache_consistent)
+                                     hlp_design_matrix_compute,
+                                     hlp_design_matrix_store_to_file,
+                                     hlp_design_matrix_load_from_file,
+                                     hlp_design_matrix_is_cache_consistent)
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMDesignMatrixCompute(unittest.TestCase):
-    """Tests the mathematical logic of rlm_design_matrix_compute in isolation."""
+    """Tests the mathematical logic of hlp_design_matrix_compute in isolation."""
 
     def setUp(self):
-        # Create a dummy context to feed into rlm_design_matrix_compute
+        # Create a dummy context to feed into hlp_design_matrix_compute
         self.ctx = SimpleNamespace(
             wmaps_obj_checksum="abc123"
         )
@@ -98,7 +98,7 @@ class TestRLMDesignMatrixCompute(unittest.TestCase):
 
     def test_compute(self):
         """Test the Design Matrix computation: X[i,j] = iwmap[pindexes + col_offsets]."""
-        dm = rlm_design_matrix_compute(self.ctx)
+        dm = hlp_design_matrix_compute(self.ctx)
 
         # The wmaps checksum is carried over for the cache consistency check
         self.assertEqual(dm.wmaps_obj_checksum, "abc123")
@@ -123,7 +123,7 @@ class TestRLMDesignMatrixCompute(unittest.TestCase):
         # Feature 0 config 2 maps to no weight (the -1 sentinel)
         self.ctx.iwmap = np.array([1, 0, -1, 2, 3], dtype=np.int64)
         with self.assertRaises(ValueError) as context:
-            rlm_design_matrix_compute(self.ctx)
+            hlp_design_matrix_compute(self.ctx)
         self.assertIn("pindexes is referring an invalid value", str(context.exception))
 
 
@@ -146,10 +146,10 @@ class TestRLMDesignMatrixCacheConsistency(unittest.TestCase):
         )
 
     def test_consistent_cache(self):
-        self.assertTrue(rlm_design_matrix_is_cache_consistent(self.ctx, self.dm_valid))
+        self.assertTrue(hlp_design_matrix_is_cache_consistent(self.ctx, self.dm_valid))
 
     def test_inconsistent_checksum(self):
-        self.assertFalse(rlm_design_matrix_is_cache_consistent(self.ctx, self.dm_wrong_checksum))
+        self.assertFalse(hlp_design_matrix_is_cache_consistent(self.ctx, self.dm_wrong_checksum))
 
 
 class TestRLMDesignMatrixIO(unittest.TestCase):
@@ -179,11 +179,11 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
     def test_store_and_load_cycle(self):
         """Test that storing and loading returns an identical object."""
         # Write to disk
-        rlm_design_matrix_store_to_file(self.dm_original, self.filepath)
+        hlp_design_matrix_store_to_file(self.dm_original, self.filepath)
         self.assertTrue(self.filepath.exists())
 
         # Read from disk
-        dm_loaded = rlm_design_matrix_load_from_file(self.filepath, checksum=False)
+        dm_loaded = hlp_design_matrix_load_from_file(self.filepath, checksum=False)
 
         # Validate scalar attributes
         self.assertEqual(dm_loaded.wmaps_obj_checksum, "io_test_hash")
@@ -200,14 +200,14 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
 
     def test_load_with_valid_sidecar(self):
         """The checksum=True path accepts a matching sidecar (the D-072 machine)."""
-        rlm_design_matrix_store_to_file(self.dm_original, self.filepath)
+        hlp_design_matrix_store_to_file(self.dm_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
-        dm_loaded = rlm_design_matrix_load_from_file(self.filepath, checksum=True)
+        dm_loaded = hlp_design_matrix_load_from_file(self.filepath, checksum=True)
         self.assertEqual(dm_loaded.wmaps_obj_checksum, "io_test_hash")
 
     def test_load_with_mismatched_sidecar(self):
         """A corrupted .dat against its sidecar raises the precise RuntimeError."""
-        rlm_design_matrix_store_to_file(self.dm_original, self.filepath)
+        hlp_design_matrix_store_to_file(self.dm_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
         with open(self.filepath, "r+b") as f:
             f.seek(-1, 2)
@@ -215,7 +215,7 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
             f.seek(-1, 2)
             f.write(bytes([original[0] ^ 0xFF]))
         with self.assertRaises(RuntimeError) as context:
-            rlm_design_matrix_load_from_file(self.filepath, checksum=True)
+            hlp_design_matrix_load_from_file(self.filepath, checksum=True)
         self.assertIn("checksum file signature doesn't match", str(context.exception))
 
     def test_load_rejects_wrong_description(self):
@@ -223,7 +223,7 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("A description that is not the Design Matrix one", 1)
         with self.assertRaises(RuntimeError) as context:
-            rlm_design_matrix_load_from_file(self.filepath, checksum=False)
+            hlp_design_matrix_load_from_file(self.filepath, checksum=False)
         self.assertIn("not a proper", str(context.exception))
 
     def test_load_rejects_version_mismatch(self):
@@ -231,7 +231,7 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("ReversiLogisticModelDesignMatrix binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
-            rlm_design_matrix_load_from_file(self.filepath, checksum=False)
+            hlp_design_matrix_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
 
 

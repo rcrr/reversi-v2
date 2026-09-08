@@ -32,10 +32,10 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_design_matrix import (rlm_design_matrix_load_from_file,
-                                     rlm_design_matrix_store_to_file,
-                                     rlm_design_matrix_compute,
-                                     rlm_design_matrix_is_cache_consistent)
+from reversi.lm.hlp_design_matrix import (hlp_design_matrix_load_from_file,
+                                     hlp_design_matrix_store_to_file,
+                                     hlp_design_matrix_compute,
+                                     hlp_design_matrix_is_cache_consistent)
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
@@ -53,10 +53,10 @@ def _up(ctx: "RLMContext") -> None:
     cache_hit, dm_obj, dm_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = lambda path: rlm_design_matrix_load_from_file(path, checksum=False),
-        store_fn    = rlm_design_matrix_store_to_file,
-        validate_fn = lambda cached_dm: rlm_design_matrix_is_cache_consistent(ctx, cached_dm),
-        compute_fn  = lambda: rlm_design_matrix_compute(ctx),
+        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False),
+        store_fn    = hlp_design_matrix_store_to_file,
+        validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm),
+        compute_fn  = lambda: hlp_design_matrix_compute(ctx),
         logger_fn   = ctx.log_event
     )
 

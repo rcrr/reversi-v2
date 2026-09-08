@@ -13,10 +13,10 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 | name | contract |
 |---|---|
 | `ReversiLogisticModelDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
-| `rlm_design_matrix_store_to_file(dm, filename)` | binio write: header + the checksum string + X; NO sidecar (cache_manager writes it) |
-| `rlm_design_matrix_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
-| `rlm_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
-| `rlm_design_matrix_is_cache_consistent(ctx, dm)` | the pure 1-field metadata compare (NO `@validate_call`) |
+| `hlp_design_matrix_store_to_file(dm, filename)` | binio write: header + the checksum string + X; NO sidecar (cache_manager writes it) |
+| `hlp_design_matrix_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
+| `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
+| `hlp_design_matrix_is_cache_consistent(ctx, dm)` | the pure 1-field metadata compare (NO `@validate_call`) |
 
 ## Architecture
 
@@ -25,16 +25,16 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
   `compute_sha3_256_hash` (validated) = sha3_256 over
   `X.tobytes()` ONLY (the single data array — the duck-typed
   data-checksum hook).
-- `rlm_design_matrix_store_to_file` (validated): `filename: str |
+- `hlp_design_matrix_store_to_file` (validated): `filename: str |
   Path` → Path; `binio.BinaryWriter` — `write_header
   ("ReversiLogisticModelDesignMatrix binary data file", 1)`,
   `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`.
-- `rlm_design_matrix_load_from_file` (validated): `checksum=True`
+- `hlp_design_matrix_load_from_file` (validated): `checksum=True`
   → `binio.verify_sha3_256_sidecar` first (mismatch → RuntimeError
   "The checksum file signature doesn't match..."); the header gate
   (wrong description / wrong version → the 2 RuntimeError
   messages); `read_string` + `read_array` → a fresh object.
-- `rlm_design_matrix_compute`: `pindexes =
+- `hlp_design_matrix_compute`: `pindexes =
   ctx.hlp_indexes.indexes`; `col_offsets = np.repeat
   (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE
@@ -44,7 +44,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
   by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets,
   out=X)` — the explicit source cast (the L119-122 note, see
   Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
-- `rlm_design_matrix_is_cache_consistent`: `dm.
+- `hlp_design_matrix_is_cache_consistent`: `dm.
   wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field
   compare (no DB params, no independent model params: X is a
   pure function of the WMAPS outputs + pindexes, unlike WMAPS's
@@ -53,7 +53,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 ## Verified invariants
 
 Pinned by the 53-call `probes/verify_design_matrix.py` +
-`test_rlm_design_matrix.py` (12 tests, no DB) +
+`test_hlp_design_matrix.py` (12 tests, no DB) +
 `test_lm_worker_design_matrix.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A15): 133 lines, the 5-name `__all__`,
@@ -96,8 +96,8 @@ None.
   guard remains a defensive re-check of the WMAPS R1 contract
   (pindexes dense, unsigned — a referenced −1 slot is a data bug,
   hence "It should never happen").
-- No `@validate_call` on `rlm_design_matrix_compute` /
-  `rlm_design_matrix_is_cache_consistent` — the TYPE_CHECKING
+- No `@validate_call` on `hlp_design_matrix_compute` /
+  `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
   circular-import constraint (the L107 note).
 - The two checksums are distinct (as in WMAPS/INDEXES):
   `design_matrix_checksum` = the DATA checksum (sha3_256 over

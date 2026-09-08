@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_design_matrix.py
-The dedicated data-object suite of the rlm_design_matrix module
+The dedicated data-object suite of the hlp_design_matrix module
 (created by the D-090 fix campaign, T6 — the DESIGN_MTR level
 arrived with only the worker test, this file closes the coverage
 gap). 4 classes / 12 tests / no PERF — no DB, no gate: the
@@ -45,7 +45,7 @@ followed from day one).
 
 - Independent of the pipeline: no model, no DB, no cache file —
   the per-function pin that would catch a future signature change
-  to `rlm_design_matrix_*` (the worker test only exercises the
+  to `hlp_design_matrix_*` (the worker test only exercises the
   end-to-end path).
 - The LIVE golden (the rlm_01 (10,7) X) lives in
   test_lm_worker_design_matrix.py

@@ -4,7 +4,7 @@ verify_design_matrix.py — scratch probe for the DESIGN_MTR bring-in
 (session 23, the 7th pipeline level).
 
 Re-derives and verifies, independently of the test files:
-  A. rlm_design_matrix.py structure (post warning-fix: explicit cast,
+  A. hlp_design_matrix.py structure (post warning-fix: explicit cast,
      guards, decorators, whitespace)
   B. lm_worker_design_matrix.py structure (worker shape vs the house)
   C. test_lm_worker_design_matrix.py structure (DB claim vs gate, idiom,
@@ -43,10 +43,10 @@ def lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. rlm_design_matrix.py structure (post the approved warning fix)
+# A. hlp_design_matrix.py structure (post the approved warning fix)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_design_matrix.py")
-check("A1 rlm_design_matrix.py is 133 lines (post D-090: 135 + note - redundant guard - ws strip)", len(rlm) == 133, f"{len(rlm)}")
+check("A1 hlp_design_matrix.py is 133 lines (post D-090: 135 + note - redundant guard - ws strip)", len(rlm) == 133, f"{len(rlm)}")
 check("A2 the explicit-cast fix is in place (L123-124: astype on the source + the note)",
       rlm[118] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
       and rlm[119] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel),"
@@ -57,13 +57,13 @@ check("A3 no raw int64->uint32 np.take remains",
       "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A4 __all__ lists the 5 public names",
       "'ReversiLogisticModelDesignMatrix'," in read("src/reversi/lm/hlp_design_matrix.py")
-      and "'rlm_design_matrix_is_cache_consistent']" in read("src/reversi/lm/hlp_design_matrix.py"))
+      and "'hlp_design_matrix_is_cache_consistent']" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT compute / is_cache_consistent)",
       read("src/reversi/lm/hlp_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
-      and "\ndef rlm_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
-check("A6 T4 FIXED: the no-validation note sits above rlm_design_matrix_compute (the rlm_indexes L166 class)",
+      and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
+check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
       rlm[106] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
-      and rlm[107] == "def rlm_design_matrix_compute(ctx: \"RLMContext\") -> ReversiLogisticModelDesignMatrix:")
+      and rlm[107] == "def hlp_design_matrix_compute(ctx: \"RLMContext\") -> ReversiLogisticModelDesignMatrix:")
 check("A7 R1 FIXED: the single -1 guard remains (L116-117) with the precise ValueError",
       rlm[115] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
       and rlm[116] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
@@ -97,13 +97,13 @@ check("B3 T2 FIXED: the factory lm_worker_design_matrix is @validate_call-decora
       w[76] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
       and w[77] == "def lm_worker_design_matrix() -> Worker:")
 check("B4 T3 FIXED: load_fn is the lambda with checksum=False (single sidecar check)",
-      "        load_fn     = lambda path: rlm_design_matrix_load_from_file(path, checksum=False)," in read("src/twolm/lm_worker_design_matrix.py"))
+      "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/twolm/lm_worker_design_matrix.py"))
 check("B5 the 7-arg cache wiring matches the house key set",
       all(k in read("src/twolm/lm_worker_design_matrix.py") for k in
           ("cache_path  = ctx.get_cache_file_full_path_for_current_level(),",
-           "is_allowed  = ctx.use_cache,", "store_fn    = rlm_design_matrix_store_to_file,",
-           "validate_fn = lambda cached_dm: rlm_design_matrix_is_cache_consistent(ctx, cached_dm),",
-           "compute_fn  = lambda: rlm_design_matrix_compute(ctx),", "logger_fn   = ctx.log_event")))
+           "is_allowed  = ctx.use_cache,", "store_fn    = hlp_design_matrix_store_to_file,",
+           "validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm),",
+           "compute_fn  = lambda: hlp_design_matrix_compute(ctx),", "logger_fn   = ctx.log_event")))
 check("B6 _up sets both ctx.design_matrix and ctx.design_matrix_checksum",
       "    ctx.design_matrix = dm_obj.X" in read("src/twolm/lm_worker_design_matrix.py")
       and "    ctx.design_matrix_checksum = dm_checksum" in read("src/twolm/lm_worker_design_matrix.py"))
@@ -236,11 +236,11 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
       f"n_inst={seen_n_inst} n_conf={seen_n_conf}")
 
 # ----------------------------------------------------------------------
-# G. test_rlm_design_matrix.py (new in D-090 T6 — the dedicated unit
+# G. test_hlp_design_matrix.py (new in D-090 T6 — the dedicated unit
 #    tests for the data object, mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
 g = lines("src/reversi/test/test_hlp_design_matrix.py")
-check("G1 test_rlm_design_matrix.py is 258 lines (new file, D-090 T6)", len(g) == 258, f"{len(g)}")
+check("G1 test_hlp_design_matrix.py is 258 lines (new file, D-090 T6)", len(g) == 258, f"{len(g)}")
 check("G2 4 classes / 12 tests (2 compute + 2 consistency + 6 IO + 2 init)",
       sum(1 for l in g if l.startswith("class ")) == 4 and
       sum(1 for l in g if l.strip().startswith("def test_")) == 12)

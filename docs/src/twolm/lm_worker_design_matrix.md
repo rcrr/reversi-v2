@@ -3,7 +3,7 @@ The DESIGN_MTR worker of the RLM pipeline — the 7th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
 DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a
 CACHE-CONSUMING level: the 4-step load-or-compute over the
-rlm_design_matrix object (the flat `rlmwf_06_DESIGN_MTR.dat` +
+hlp_design_matrix object (the flat `rlmwf_06_DESIGN_MTR.dat` +
 binio sidecar + the duck-typed data checksum) — the FOURTH
 cache_manager consumer in the pipeline; the flat files DO
 materialize (probe D-tier).
@@ -23,13 +23,13 @@ materialize (probe D-tier).
   ctx.get_cache_file_full_path_for_current_level()` (the injected
   machine closure — flat `rlmwf_06_DESIGN_MTR.dat`), `is_allowed =
   ctx.use_cache` (the CONFIG switch, the D-071 R1 semantics),
-  `load_fn = lambda path: rlm_design_matrix_load_from_file(path,
+  `load_fn = lambda path: hlp_design_matrix_load_from_file(path,
   checksum=False)` (the house shape — the sidecar was already
   verified by cache_manager), `store_fn =
-  rlm_design_matrix_store_to_file`, `validate_fn = lambda
-  cached_dm: rlm_design_matrix_is_cache_consistent(ctx,
+  hlp_design_matrix_store_to_file`, `validate_fn = lambda
+  cached_dm: hlp_design_matrix_is_cache_consistent(ctx,
   cached_dm)` (the 1-field metadata compare), `compute_fn =
-  lambda: rlm_design_matrix_compute(ctx)`, `logger_fn =
+  lambda: hlp_design_matrix_compute(ctx)`, `logger_fn =
   ctx.log_event`. Then `ctx.design_matrix = dm_obj.X` (the BARE
   ndarray, NOT the object) + the INFO "Design Matrix
   computed/loaded. Shape: ..." lines + `ctx.
@@ -105,6 +105,6 @@ None.
 - The 7th RLM level (the 7-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES, WMAPS, DESIGN_MTR]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
-- Consumes the `rlm_design_matrix` module (all 5 public names) +
+- Consumes the `hlp_design_matrix` module (all 5 public names) +
   `cache_manager`; publishes `ctx.design_matrix` (the (N,I) uint32
   X) + `ctx.design_matrix_checksum` for the ZED level onward.

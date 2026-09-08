@@ -36,7 +36,7 @@
 # $ source .venv/bin/activate
 #
 # -1- Run the tests (no live regab DB required — the compute test
-#     uses a handcrafted mock context, as in test_rlm_design_matrix).
+#     uses a handcrafted mock context, as in test_hlp_design_matrix).
 #
 # time python3 -m unittest twolm.test.test_rlm_zed
 #

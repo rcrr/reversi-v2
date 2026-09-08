@@ -43,10 +43,10 @@ if TYPE_CHECKING:
 
 
 __all__ = ['ReversiLogisticModelDesignMatrix',
-           'rlm_design_matrix_store_to_file',
-           'rlm_design_matrix_load_from_file',
-           'rlm_design_matrix_compute',
-           'rlm_design_matrix_is_cache_consistent']
+           'hlp_design_matrix_store_to_file',
+           'hlp_design_matrix_load_from_file',
+           'hlp_design_matrix_compute',
+           'hlp_design_matrix_is_cache_consistent']
 
 
 
@@ -66,7 +66,7 @@ class ReversiLogisticModelDesignMatrix:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filename: str | Path) -> None:
+def hlp_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filename: str | Path) -> None:
     """Saves the Design Matrix instance to a binary file."""
     filename = Path(filename)
     description = "ReversiLogisticModelDesignMatrix binary data file"
@@ -79,7 +79,7 @@ def rlm_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filena
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_design_matrix_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDesignMatrix:
+def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDesignMatrix:
     """Loads a Design Matrix instance from a binary file."""
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
@@ -105,7 +105,7 @@ def rlm_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def rlm_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMatrix:
+def hlp_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMatrix:
     """Computes the Design Matrix X from principal indexes and iwmap."""
     pindexes = ctx.hlp_indexes.indexes
 
@@ -127,7 +127,7 @@ def rlm_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMa
     )
 
 
-def rlm_design_matrix_is_cache_consistent(ctx: "RLMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
+def hlp_design_matrix_is_cache_consistent(ctx: "RLMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
     """Validates the cache by checking wmaps_obj_checksum."""
     is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum
     return is_hash_consistent
