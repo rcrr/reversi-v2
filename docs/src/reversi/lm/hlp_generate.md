@@ -1,4 +1,4 @@
-# twolm/rlm_generate.py
+# reversi/lm/hlp_generate.py
 The GENERATE domain module of the RLM pipeline — the 11th active
 level (CREATED sentinel → CONFIG → POSITIONS → FEATURES →
 INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE →

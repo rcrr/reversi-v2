@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_rlm_generate
+# time python3 -m unittest reversi.test.test_hlp_generate
 #
 
 import unittest
@@ -53,7 +53,7 @@ from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
-from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
+from reversi.lm.hlp_generate import (ReversiLogisticModelDenseWeights,
                                 rlm_generate_store_to_file,
                                 rlm_generate_load_from_file,
                                 rlm_generate_is_cache_consistent,

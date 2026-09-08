@@ -68,7 +68,7 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 # A. rlm_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
-rlm_src = read("src/twolm/rlm_generate.py")
+rlm_src = read("src/reversi/lm/hlp_generate.py")
 check("A1 __all__ lists the 5 public names",
       "'ReversiLogisticModelDenseWeights'," in rlm_src
       and "'rlm_generate_store_to_file'," in rlm_src
@@ -85,8 +85,8 @@ check("A4 load gates the file version (the 4 sibling data modules all do — T2)
       "expected_version" in rlm_src
       and "File version mismatch" in rlm_src)
 check("A5 no non-comment trailing whitespace",
-      not ws_lines("src/twolm/rlm_generate.py"),
-      f"lines {ws_lines('src/twolm/rlm_generate.py')}")
+      not ws_lines("src/reversi/lm/hlp_generate.py"),
+      f"lines {ws_lines('src/reversi/lm/hlp_generate.py')}")
 
 # ----------------------------------------------------------------------
 # B. lm_worker_generate.py structure (post-campaign)
@@ -107,17 +107,17 @@ check("B3 no non-comment trailing whitespace",
 # ----------------------------------------------------------------------
 # C. test_rlm_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
-test_src = read("src/twolm/test/test_rlm_generate.py")
+test_src = read("src/reversi/test/test_hlp_generate.py")
 check("C1 the Italian comment is gone (AGENTS.md rule 4 — house fix D-084 T3 class)",
       "AGGIUNTO" not in test_src)
 check("C2 no non-comment trailing whitespace",
-      not ws_lines("src/twolm/test/test_rlm_generate.py"),
-      f"lines {ws_lines('src/twolm/test/test_rlm_generate.py')}")
+      not ws_lines("src/reversi/test/test_hlp_generate.py"),
+      f"lines {ws_lines('src/reversi/test/test_hlp_generate.py')}")
 
 # ----------------------------------------------------------------------
 # D. data-object behavior (no DB)
 # ----------------------------------------------------------------------
-from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
+from reversi.lm.hlp_generate import (ReversiLogisticModelDenseWeights,
                                 compute_w_dense)
 
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
