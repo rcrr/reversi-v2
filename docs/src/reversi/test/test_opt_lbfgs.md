@@ -1,4 +1,4 @@
-# twolm/test/test_opt_lbfgs.py
+# reversi/test/test_opt_lbfgs.py
 The opt_lbfgs unit suite: integration-level coverage (4 diverse
 test functions + warm-start) plus, since D-053, unit-level tests
 for the main internal components (input validation,

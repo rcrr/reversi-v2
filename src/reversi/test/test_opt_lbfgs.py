@@ -37,14 +37,14 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_opt_lbfgs
+# time python3 -m unittest reversi.test.test_opt_lbfgs
 #
 
 import unittest
 import numpy as np
 import numpy.testing as nptest
 
-from twolm.opt_lbfgs import lbfgs, FixedSizeMaxList, _two_loop_recursion
+from reversi.tools.opt_lbfgs import lbfgs, FixedSizeMaxList, _two_loop_recursion
 
 
 class TestLBFGSInputValidation(unittest.TestCase):

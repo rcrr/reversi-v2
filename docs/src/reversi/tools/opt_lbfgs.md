@@ -1,4 +1,4 @@
-# twolm/opt_lbfgs.py
+# reversi/tools/opt_lbfgs.py
 The Limited-memory BFGS optimizer — the standalone numerical
 engine the OPTIMIZE level runs. Implements L-BFGS with strong
 Wolfe line search (cubic interpolation + zoom phase), restart

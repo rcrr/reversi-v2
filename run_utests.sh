@@ -25,7 +25,7 @@ MODULES=(
     # 0 — tools
     reversi.test.test_binio
     reversi.test.test_usage_binio
-    twolm.test.test_opt_lbfgs
+    reversi.test.test_opt_lbfgs
     # 1 — board & pattern concepts
     twolm.test.test_board
     twolm.test.test_pattern
