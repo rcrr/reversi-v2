@@ -1,4 +1,4 @@
-# twolm/test/test_rlm_design_matrix.py
+# reversi/test/test_hlp_design_matrix.py
 The dedicated data-object suite of the rlm_design_matrix module
 (created by the D-090 fix campaign, T6 — the DESIGN_MTR level
 arrived with only the worker test, this file closes the coverage

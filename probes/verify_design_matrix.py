@@ -45,7 +45,7 @@ def lines(p):
 # ----------------------------------------------------------------------
 # A. rlm_design_matrix.py structure (post the approved warning fix)
 # ----------------------------------------------------------------------
-rlm = lines("src/twolm/rlm_design_matrix.py")
+rlm = lines("src/reversi/lm/hlp_design_matrix.py")
 check("A1 rlm_design_matrix.py is 133 lines (post D-090: 135 + note - redundant guard - ws strip)", len(rlm) == 133, f"{len(rlm)}")
 check("A2 the explicit-cast fix is in place (L123-124: astype on the source + the note)",
       rlm[118] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
@@ -54,13 +54,13 @@ check("A2 the explicit-cast fix is in place (L123-124: astype on the source + th
       and rlm[121] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
       repr(rlm[118:122]))
 check("A3 no raw int64->uint32 np.take remains",
-      "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/twolm/rlm_design_matrix.py"))
+      "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A4 __all__ lists the 5 public names",
-      "'ReversiLogisticModelDesignMatrix'," in read("src/twolm/rlm_design_matrix.py")
-      and "'rlm_design_matrix_is_cache_consistent']" in read("src/twolm/rlm_design_matrix.py"))
+      "'ReversiLogisticModelDesignMatrix'," in read("src/reversi/lm/hlp_design_matrix.py")
+      and "'rlm_design_matrix_is_cache_consistent']" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT compute / is_cache_consistent)",
-      read("src/twolm/rlm_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
-      and "\ndef rlm_design_matrix_compute" in read("src/twolm/rlm_design_matrix.py"))
+      read("src/reversi/lm/hlp_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
+      and "\ndef rlm_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above rlm_design_matrix_compute (the rlm_indexes L166 class)",
       rlm[106] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
       and rlm[107] == "def rlm_design_matrix_compute(ctx: \"RLMContext\") -> ReversiLogisticModelDesignMatrix:")
@@ -68,21 +68,21 @@ check("A7 R1 FIXED: the single -1 guard remains (L116-117) with the precise Valu
       rlm[115] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
       and rlm[116] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
 check("A8 R1 FIXED: the redundant count_nonzero guard is GONE",
-      "count_nonzero" not in read("src/twolm/rlm_design_matrix.py")
-      and "mismatch between indexes and valid values" not in read("src/twolm/rlm_design_matrix.py"))
+      "count_nonzero" not in read("src/reversi/lm/hlp_design_matrix.py")
+      and "mismatch between indexes and valid values" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A9 store docstring makes no sidecar promise (D-072 shape)",
-      '"""Saves the Design Matrix instance to a binary file."""' in read("src/twolm/rlm_design_matrix.py"))
+      '"""Saves the Design Matrix instance to a binary file."""' in read("src/reversi/lm/hlp_design_matrix.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A10 T5 FIXED: zero non-comment trailing-whitespace lines", ws_rl == [], f"{ws_rl}")
 check("A11 X is allocated uint32 (the test pins the dtype contract)",
-      "    X = np.empty(pindexes.shape, dtype=np.uint32)" in read("src/twolm/rlm_design_matrix.py"))
+      "    X = np.empty(pindexes.shape, dtype=np.uint32)" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A12 col_offsets = repeat(iwmap_feature_offset[:-1], n_instances per feature)",
-      "col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)" in read("src/twolm/rlm_design_matrix.py")
-      and "pindexes_with_offsets = pindexes + col_offsets" in read("src/twolm/rlm_design_matrix.py"))
+      "col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)" in read("src/reversi/lm/hlp_design_matrix.py")
+      and "pindexes_with_offsets = pindexes + col_offsets" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A13 the hash is over X.tobytes() (the single data array)",
-      "hasher.update(self.X.tobytes())" in read("src/twolm/rlm_design_matrix.py"))
+      "hasher.update(self.X.tobytes())" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A14 is_cache_consistent compares wmaps_obj_checksum only (the 1-field compare)",
-      "is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum" in read("src/twolm/rlm_design_matrix.py"))
+      "is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carries the same)",
       rlm[41] == "" and rlm[42] == "" and rlm[43] == "" and rlm[49] == "" and rlm[50] == "" and rlm[51] == "")
 
@@ -239,23 +239,23 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
 # G. test_rlm_design_matrix.py (new in D-090 T6 — the dedicated unit
 #    tests for the data object, mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
-g = lines("src/twolm/test/test_rlm_design_matrix.py")
+g = lines("src/reversi/test/test_hlp_design_matrix.py")
 check("G1 test_rlm_design_matrix.py is 258 lines (new file, D-090 T6)", len(g) == 258, f"{len(g)}")
 check("G2 4 classes / 12 tests (2 compute + 2 consistency + 6 IO + 2 init)",
       sum(1 for l in g if l.startswith("class ")) == 4 and
       sum(1 for l in g if l.strip().startswith("def test_")) == 12)
 check("G3 the header makes NO DB claim (the file is DB-free, dummy ctx)",
-      "# -1- Run the tests." in read("src/twolm/test/test_rlm_design_matrix.py")
-      and "SKIP_REGAB_DB" not in read("src/twolm/test/test_rlm_design_matrix.py"))
+      "# -1- Run the tests." in read("src/reversi/test/test_hlp_design_matrix.py")
+      and "SKIP_REGAB_DB" not in read("src/reversi/test/test_hlp_design_matrix.py"))
 check("G4 the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE, defensive tearDown)",
-      "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in read("src/twolm/test/test_rlm_design_matrix.py")
-      and "if getattr(self, '_tmp', None) is not None:" in read("src/twolm/test/test_rlm_design_matrix.py"))
+      "self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in read("src/reversi/test/test_hlp_design_matrix.py")
+      and "if getattr(self, '_tmp', None) is not None:" in read("src/reversi/test/test_hlp_design_matrix.py"))
 check("G5 the golden hash of the IO object is pinned",
-      "da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea9719757b" in read("src/twolm/test/test_rlm_design_matrix.py"))
+      "da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea9719757b" in read("src/reversi/test/test_hlp_design_matrix.py"))
 check("G6 the 3 RuntimeError pins + the ValidationError pin + the guard ValueError pin",
-      read("src/twolm/test/test_rlm_design_matrix.py").count("assertRaises(RuntimeError)") == 3
-      and "assertRaises(ValidationError)" in read("src/twolm/test/test_rlm_design_matrix.py")
-      and "pindexes is referring an invalid value" in read("src/twolm/test/test_rlm_design_matrix.py"))
+      read("src/reversi/test/test_hlp_design_matrix.py").count("assertRaises(RuntimeError)") == 3
+      and "assertRaises(ValidationError)" in read("src/reversi/test/test_hlp_design_matrix.py")
+      and "pindexes is referring an invalid value" in read("src/reversi/test/test_hlp_design_matrix.py"))
 ws_g = [i + 1 for i, l in enumerate(g) if l != l.rstrip() and not l.strip().startswith("#")]
 check("G7 zero whitespace-only lines", ws_g == [], f"{ws_g}")
 

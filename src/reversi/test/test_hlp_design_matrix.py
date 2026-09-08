@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_rlm_design_matrix
+# time python3 -m unittest reversi.test.test_hlp_design_matrix
 #
 
 import unittest
@@ -52,7 +52,7 @@ from types import SimpleNamespace
 from pydantic import ValidationError
 
 from reversi.tools import binio
-from twolm.rlm_design_matrix import (ReversiLogisticModelDesignMatrix,
+from reversi.lm.hlp_design_matrix import (ReversiLogisticModelDesignMatrix,
                                      rlm_design_matrix_compute,
                                      rlm_design_matrix_store_to_file,
                                      rlm_design_matrix_load_from_file,

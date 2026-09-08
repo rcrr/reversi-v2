@@ -1,4 +1,4 @@
-# twolm/rlm_design_matrix.py
+# reversi/lm/hlp_design_matrix.py
 The DESIGN_MTR domain module of the RLM pipeline: the
 `ReversiLogisticModelDesignMatrix` data object (the (N,I) uint32
 X — the w-index of each (position, feature-instance) cell — + the

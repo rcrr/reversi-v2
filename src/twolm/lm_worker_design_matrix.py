@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.rlm_design_matrix import (rlm_design_matrix_load_from_file,
+from reversi.lm.hlp_design_matrix import (rlm_design_matrix_load_from_file,
                                      rlm_design_matrix_store_to_file,
                                      rlm_design_matrix_compute,
                                      rlm_design_matrix_is_cache_consistent)

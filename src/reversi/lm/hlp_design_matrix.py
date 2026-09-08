@@ -1,5 +1,5 @@
 #
-# rlm_design_matrix.py
+# hlp_design_matrix.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -25,7 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-# twolm/rlm_design_matrix.py
+# reversi/lm/hlp_design_matrix.py
 from __future__ import annotations
 
 import hashlib
