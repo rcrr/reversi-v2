@@ -1,5 +1,5 @@
 #
-# verify_mobility.py — independent verification of twolm/mobility.py
+# verify_mobility.py — independent verification of reversi/mobility.py
 #
 # Ground truth: pure-Python popcount (int.bit_count) + board.legal_moves
 # (independently verified by the board suite).
@@ -10,7 +10,7 @@ import numpy as np
 
 from reversi.board import (Bitboard, bitboard_count, bitboard_from_signed_int,
                          legal_moves, make_position)
-from twolm.mobility import Mobility, MobilitySet, popcount64
+from reversi.mobility import Mobility, MobilitySet, popcount64
 
 
 def main():

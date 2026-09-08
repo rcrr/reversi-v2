@@ -34,7 +34,7 @@ import numpy as np
 
 from reversi.tools.binio import BinaryWriter, BinaryReader
 from twolm.feature import Feature, FeatureSet
-from twolm.mobility import Mobility, MobilitySet
+from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:

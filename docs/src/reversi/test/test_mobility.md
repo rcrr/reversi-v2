@@ -1,4 +1,4 @@
-# twolm/test/test_mobility.py
+# reversi/test/test_mobility.py
 The mobility unit suite — 2 classes / 26 tests + 1 PERF (print-only),
 no DB (~0.03 s). Added with the module (62748ca); touched by the
 D-035 R5 property call-sites (304cb2a) and the D-037 T1-T9 campaign

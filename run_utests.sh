@@ -29,7 +29,7 @@ MODULES=(
     # 1 — board & pattern concepts
     reversi.test.test_board
     reversi.test.test_pattern
-    twolm.test.test_mobility
+    reversi.test.test_mobility
     twolm.test.test_feature
     # 2 — infrastructure
     reversi.test.test_cache_manager

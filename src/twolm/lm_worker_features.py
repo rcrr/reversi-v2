@@ -33,7 +33,7 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
 from twolm.feature import Feature, FeatureSet
-from twolm.mobility import Mobility, MobilitySet
+from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:

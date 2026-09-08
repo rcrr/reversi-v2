@@ -36,7 +36,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest twolm.test.test_mobility
+# time PERF=0 python3 -m unittest reversi.test.test_mobility
 #
 
 import unittest
@@ -56,7 +56,7 @@ from reversi.board import (Bitboard,
                          bitboard_from_signed_int,
                          make_position)
 from reversi.pattern import Index
-from twolm.mobility import (Mobility, MobilitySet,
+from reversi.mobility import (Mobility, MobilitySet,
                             popcount64)
 
 

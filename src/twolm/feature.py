@@ -42,7 +42,7 @@ from reversi.board import PositionArray
 from reversi.pattern import (Pattern, PatternSet,
                            Index, IndexArray)
 
-from twolm.mobility import (Mobility, MobilitySet)
+from reversi.mobility import (Mobility, MobilitySet)
 
 import numpy as np
 

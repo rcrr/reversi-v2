@@ -1,4 +1,4 @@
-# twolm/mobility.py
+# reversi/mobility.py
 The mobility feature of the Reversi engine: a scalar table-lookup
 feature counting the mover's legal moves masked by a square set
 (`mask`), optionally combined with the opponent's pseudo-legal moves

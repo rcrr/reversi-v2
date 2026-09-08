@@ -45,7 +45,7 @@ import unittest
 from reversi.board import (Bitboard,
                          make_position)
 from twolm.feature import Feature, FeatureSet
-from twolm.mobility import Mobility, MobilitySet
+from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet, Index
 
 import numpy as np

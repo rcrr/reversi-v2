@@ -243,7 +243,7 @@ print("D. Live structural check (twolm.feature)")
 print("=" * 72)
 
 import twolm.feature as F
-from twolm.mobility import Mobility, MobilitySet
+from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 # D1. Factories

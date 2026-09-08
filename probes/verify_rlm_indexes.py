@@ -127,7 +127,7 @@ import numpy as np
 from reversi.tools import binio
 from twolm import rlm_indexes
 from twolm.feature import Feature, FeatureSet
-from twolm.mobility import Mobility, MobilitySet
+from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 
