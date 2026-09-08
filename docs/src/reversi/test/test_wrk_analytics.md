@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_analytics.py
+# reversi/test/test_wrk_analytics.py
 The ANALYTICS worker integration suite — added by the D-103
 campaign (T5, Roberto-approved: "T5: OK. Procedi!"), the
 dedicated suite for the ANALYTICS level — the first suite to

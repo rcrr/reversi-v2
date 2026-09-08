@@ -1,5 +1,5 @@
 #
-# lm_worker_analytics.py
+# wrk_analytics.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

@@ -38,7 +38,7 @@
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
 #     VLONG=1 implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_lm_worker_analytics
+# time python3 -m unittest reversi.test.test_wrk_analytics
 #
 
 import hashlib

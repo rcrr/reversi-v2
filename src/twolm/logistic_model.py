@@ -49,7 +49,7 @@ from reversi.lm.wrk_optimize import wrk_optimize
 from reversi.lm.wrk_generate import wrk_generate
 from reversi.lm.wrk_vld_positions import wrk_vld_positions
 from reversi.lm.wrk_validate import wrk_validate
-from twolm.lm_worker_analytics import lm_worker_analytics
+from reversi.lm.wrk_analytics import lm_worker_analytics
 from twolm.lm_worker_save import lm_worker_save
 
 

@@ -1,4 +1,4 @@
-# twolm/lm_worker_analytics.py
+# reversi/lm/wrk_analytics.py
 The ANALYTICS worker — the 14th active level (the 13th step).
 The FIFTH non-cache worker (after FEATURES, ZED, GRADIENT,
 VALIDATE) — no `cache_manager` wiring at all (no load-or-

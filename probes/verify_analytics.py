@@ -76,7 +76,7 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 # A. lm_worker_analytics.py + hlp_analytics.py structure
 # ----------------------------------------------------------------------
-wk_src = read("src/twolm/lm_worker_analytics.py")
+wk_src = read("src/reversi/lm/wrk_analytics.py")
 dv_src = read("src/reversi/lm/hlp_analytics.py")
 check("A1 Worker named ANALYTICS + __all__ + the 4 public data names "
       "(function-only module — no data class, no store/load; D-105/M2 "
@@ -99,9 +99,9 @@ check("A4 no dead imports in hlp_analytics (`sys` is never used; `Optional` "
       and re.search(r"from typing import .*", dv_src).group(0)
       == "from typing import TYPE_CHECKING, Dict")
 check("A5 both headers carry their own names",
-      lines("src/twolm/lm_worker_analytics.py")[1] == "# lm_worker_analytics.py"
+      lines("src/reversi/lm/wrk_analytics.py")[1] == "# wrk_analytics.py"
       and lines("src/reversi/lm/hlp_analytics.py")[1] == "# hlp_analytics.py")
-_wk_ws = ws_lines("src/twolm/lm_worker_analytics.py")
+_wk_ws = ws_lines("src/reversi/lm/wrk_analytics.py")
 _dv_ws = ws_lines("src/reversi/lm/hlp_analytics.py")
 check("A6a the worker has no code ws lines (pre-campaign: 6 — L47/50/53/57 "
       "ws-only + L63/65 trailing)",
