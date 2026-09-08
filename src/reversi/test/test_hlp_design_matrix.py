@@ -60,7 +60,7 @@ from reversi.lm.hlp_design_matrix import (LMDesignMatrix,
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 
-class TestRLMDesignMatrixCompute(unittest.TestCase):
+class TestHlpDesignMatrixCompute(unittest.TestCase):
     """Tests the mathematical logic of hlp_design_matrix_compute in isolation."""
 
     def setUp(self):
@@ -127,7 +127,7 @@ class TestRLMDesignMatrixCompute(unittest.TestCase):
         self.assertIn("pindexes is referring an invalid value", str(context.exception))
 
 
-class TestRLMDesignMatrixCacheConsistency(unittest.TestCase):
+class TestHlpDesignMatrixCacheConsistency(unittest.TestCase):
     """Tests the cache validation logic."""
 
     def setUp(self):
@@ -152,7 +152,7 @@ class TestRLMDesignMatrixCacheConsistency(unittest.TestCase):
         self.assertFalse(hlp_design_matrix_is_cache_consistent(self.ctx, self.dm_wrong_checksum))
 
 
-class TestRLMDesignMatrixIO(unittest.TestCase):
+class TestHlpDesignMatrixIO(unittest.TestCase):
     """Tests the binary serialization and deserialization."""
 
     @classmethod
@@ -235,7 +235,7 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
         self.assertIn("version mismatch", str(context.exception))
 
 
-class TestRLMDesignMatrixInit(unittest.TestCase):
+class TestHlpDesignMatrixInit(unittest.TestCase):
     """Tests the __init__ validation of LMDesignMatrix."""
 
     def _make_valid(self, **overrides):

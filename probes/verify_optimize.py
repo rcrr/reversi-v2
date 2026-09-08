@@ -198,8 +198,8 @@ check("C10 M10 tests: error paths, dtypes, empty history, golden hashes, helpers
       and "def test_file_golden_hash(" in c
       and "6e01ff8614e8732484b7af59b01615989357ce1af2419864621965af221bd280" in c
       and "def test_sidecar_produced_and_matches(" in c
-      and "class TestRLMOptimizeHelpers" in c
-      and "class TestRLMOptimizeStatusConverged" in c
+      and "class TestHlpOptimizeHelpers" in c
+      and "class TestHlpOptimizeStatusConverged" in c
       and "78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7dc060" in c
       and "def test_f32_roundtrip_passes(" in c
       and "def test_judged_against_new_tolerance(" in c)
@@ -286,7 +286,7 @@ check("E8 rlm_02 optimization block",
 
 # ---------------------------------------------------------------- F tier
 # (F1-F10 checkpoint IO (real files) deleted at D-106 step 3, class
-#  c: test_hlp_optimize.py::TestRLMOptimizeIO pins ALL of it with
+#  c: test_hlp_optimize.py::TestHlpOptimizeIO pins ALL of it with
 #  real files — test_store_and_load_cycle (the round-trip + dtypes +
 #  rho float, the f32 metadata), test_empty_history_roundtrip,
 #  test_wrong_description_raises, test_wrong_version_raises,
@@ -310,8 +310,8 @@ def g_main():
     #  c: test_hlp_optimize.py pins all of it —
     #  test_info_dict_filters_to_context_keys,
     #  test_info_dict_missing_key_raises, the 4
-    #  TestRLMOptimizeCacheConsistency tests, the 4
-    #  TestRLMOptimizeStatusConverged tests. The rec_log / make_ctx
+    #  TestHlpOptimizeCacheConsistency tests, the 4
+    #  TestHlpOptimizeStatusConverged tests. The rec_log / make_ctx
     #  scaffolding was used only by G4/G5.)
     try:
         w = np.array([0.1, 0.2, 0.3], dtype=np.float32)

@@ -87,7 +87,7 @@ class TestZedFunFactory(unittest.TestCase):
             self.assertAlmostEqual(float(y2z(np.int8(64))), hi, places=6)
 
 
-class TestRLMZedCompute(unittest.TestCase):
+class TestHlpZedCompute(unittest.TestCase):
     """Tests hlp_zed_compute on a handcrafted mock context (no DB)."""
 
     def _mock_ctx(self, clipping, values):

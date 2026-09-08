@@ -128,7 +128,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 
     # (D1 list w_dense rejected / D2 non-str w_checksum rejected
     #  deleted at D-106 step 3, class c: test_hlp_generate.py::
-    #  TestRLMGenerateInit::test_init_fails_with_list_w_dense /
+    #  TestHlpGenerateInit::test_init_fails_with_list_w_dense /
     #  test_init_fails_with_non_str_w_checksum)
 
     # D3 hash
@@ -142,13 +142,13 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     #  'Checksum mismatch.', D6 wrong description -> 'Wrong file
     #  format', D7 version-2 gate, D8 checksum=False load, D9/D10
     #  is_cache_consistent True/False deleted at D-106 step 3, class
-    #  c: test_hlp_generate.py::TestRLMGenerateIO pins all of it —
+    #  c: test_hlp_generate.py::TestHlpGenerateIO pins all of it —
     #  test_store_and_load_cycle (round-trip + the
     #  checksum=False load at L241 + the valid sidecar),
     #  test_load_with_mismatched_sidecar,
     #  test_load_rejects_wrong_description,
     #  test_load_rejects_version_mismatch, and
-    #  TestRLMGenerateCacheConsistency::test_consistent_checksum /
+    #  TestHlpGenerateCacheConsistency::test_consistent_checksum /
     #  test_inconsistent_checksum. The file-building scaffolding
     #  (BinaryWriter blocks, the Ctx/Ctx2 fakes) was used only by
     #  them.)
@@ -182,7 +182,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 
     # (D12 unknown category -> RuntimeError + D13 mobility no-seen
     #  branch (zeros + WARN) deleted at D-106 step 3, class c:
-    #  test_hlp_generate.py::TestRLMGenerateCompute::
+    #  test_hlp_generate.py::TestHlpGenerateCompute::
     #  test_unknown_category_raises /
     #  test_mobility_without_seen_configs_warns_and_zeroes. The
     #  ctx_bad / ctx_m scaffolding was used only by them.)

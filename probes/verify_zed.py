@@ -234,9 +234,9 @@ check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from reversi.lm.logistic_model', 'SKIP_REGAB_DB',
                                            'reversi.test.paths', 'import os')))
-check('G3  3 classes (L59/90/119): TestZedFunFactory + TestRLMZedCompute + TestLMZed',
+check('G3  3 classes (L59/90/119): TestZedFunFactory + TestHlpZedCompute + TestLMZed',
       gd[58] == 'class TestZedFunFactory(unittest.TestCase):'
-      and gd[89] == 'class TestRLMZedCompute(unittest.TestCase):'
+      and gd[89] == 'class TestHlpZedCompute(unittest.TestCase):'
       and gd[118] == 'class TestLMZed(unittest.TestCase):')
 check('G4  factory goldens: alpha 0.02 literal [0.02, 0.5, 0.545, 0.98] + round-trip + 2-clippling endpoints',
       'expected = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)' in '\n'.join(gd)

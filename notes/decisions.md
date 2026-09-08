@@ -577,3 +577,20 @@ D-137 | 2026-09-08 | The ReversiLogisticModel* data
         are inconsistent.
         | Verification: the gated suite 673/0/87 GREEN + the
         full probe sweep 21/21 (live DB).
+D-138 | 2026-09-08 | The remaining hlp test scaffolding
+        classes renamed to TestHlp* (Roberto: fix the
+        inconsistency flagged in D-136/D-137).
+        | The flag turned out bigger than wmaps/zed: 18
+        classes across the SIX hlp test files still carried
+        the 2008-era TestRLM* names (TestRLMWmaps* 4,
+        TestRLMZedCompute, TestRLMDesignMatrix* 4,
+        TestRLMGenerate* 4, TestRLMGradientCompute,
+        TestRLMOptimize* 4), while test_hlp_indexes.py had
+        already become TestHlpIndexes* in phase B. Rule:
+        TestRLM<X> → TestHlp<X> (the function-named form,
+        parallel to TestHlpIndexesCompute). The live probe
+        pins (verify_wmaps C15, verify_zed G3,
+        verify_optimize, verify_generate) + the 6 test
+        mirror docs re-pinned.
+        | Verification: the gated suite 673/0/87 GREEN + the
+        full probe sweep 21/21 (live DB).

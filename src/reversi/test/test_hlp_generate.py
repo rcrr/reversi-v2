@@ -61,7 +61,7 @@ from reversi.lm.hlp_generate import (LMDenseWeights,
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 
-class TestRLMGenerateCompute(unittest.TestCase):
+class TestHlpGenerateCompute(unittest.TestCase):
     """Tests the dense weight generation logic."""
 
     def setUp(self):
@@ -193,7 +193,7 @@ class TestRLMGenerateCompute(unittest.TestCase):
         self.assertIn("no seen configurations", events[0][1])
 
 
-class TestRLMGenerateCacheConsistency(unittest.TestCase):
+class TestHlpGenerateCacheConsistency(unittest.TestCase):
     """Tests the cache consistency logic (the w_checksum metadata compare)."""
 
     def setUp(self):
@@ -209,7 +209,7 @@ class TestRLMGenerateCacheConsistency(unittest.TestCase):
         self.assertFalse(hlp_generate_is_cache_consistent(self.ctx, self.dw_stale))
 
 
-class TestRLMGenerateIO(unittest.TestCase):
+class TestHlpGenerateIO(unittest.TestCase):
     """Tests the binary serialization and deserialization."""
 
     @classmethod
@@ -293,7 +293,7 @@ class TestRLMGenerateIO(unittest.TestCase):
             "File version mismatch: found 2, expected 1")
 
 
-class TestRLMGenerateInit(unittest.TestCase):
+class TestHlpGenerateInit(unittest.TestCase):
     """Tests the __init__ validation of LMDenseWeights."""
 
     def test_init_accepts_valid_arrays(self):

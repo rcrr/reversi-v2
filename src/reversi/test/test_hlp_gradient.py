@@ -68,7 +68,7 @@ class TestSigmoid(unittest.TestCase):
         nptest.assert_allclose(sigmoid(x) + sigmoid(-x), 1.0, rtol=1e-6, atol=1e-7)
 
 
-class TestRLMGradientCompute(unittest.TestCase):
+class TestHlpGradientCompute(unittest.TestCase):
     """Tests hlp_gradient_compute on a handcrafted mock context (no DB)."""
 
     def _mock_ctx(self, ridge, w, X, z):

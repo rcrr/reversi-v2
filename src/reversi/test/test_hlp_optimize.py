@@ -78,7 +78,7 @@ def _mock_ctx(ridge=0.01, min_grad=(1e-3, 3),
         _events=events)
 
 
-class TestRLMOptimizeIO(unittest.TestCase):
+class TestHlpOptimizeIO(unittest.TestCase):
     """Tests the binary serialization and deserialization of the optimization checkpoint."""
 
     def setUp(self):
@@ -237,7 +237,7 @@ class TestRLMOptimizeIO(unittest.TestCase):
         self.assertTrue(binio.verify_sha3_256_sidecar(self.filepath))
 
 
-class TestRLMOptimizeHelpers(unittest.TestCase):
+class TestHlpOptimizeHelpers(unittest.TestCase):
     """Tests the standalone helper functions (no IO)."""
 
     def test_info_dict_filters_to_context_keys(self):
@@ -261,7 +261,7 @@ class TestRLMOptimizeHelpers(unittest.TestCase):
         self.assertEqual(h, hashlib.sha3_256(w.tobytes()).hexdigest())
 
 
-class TestRLMOptimizeCacheConsistency(unittest.TestCase):
+class TestHlpOptimizeCacheConsistency(unittest.TestCase):
     """Tests the cache validation logic (design matrix / zed / ridge gates)."""
 
     def setUp(self):
@@ -305,7 +305,7 @@ class TestRLMOptimizeCacheConsistency(unittest.TestCase):
         self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_changed_ridge))
 
 
-class TestRLMOptimizeStatusConverged(unittest.TestCase):
+class TestHlpOptimizeStatusConverged(unittest.TestCase):
     """Tests the convergence-status logic against the current stopping tolerance."""
 
     def setUp(self):

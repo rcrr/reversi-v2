@@ -143,8 +143,8 @@ check("C14 the 4 new load-path tests are present (D-087 T10: sidecar valid/misma
       all(f"def {n}" in read("src/reversi/test/test_hlp_wmaps.py")
           for n in ("test_load_with_valid_sidecar", "test_load_with_mismatched_sidecar",
                     "test_load_rejects_wrong_description", "test_load_rejects_version_mismatch")))
-check("C15 the TestRLMWmapsInit class is present with the precise ValidationError (D-087 T10)",
-      "class TestRLMWmapsInit" in read("src/reversi/test/test_hlp_wmaps.py")
+check("C15 the TestHlpWmapsInit class is present with the precise ValidationError (D-087 T10)",
+      "class TestHlpWmapsInit" in read("src/reversi/test/test_hlp_wmaps.py")
       and "from pydantic import ValidationError" in read("src/reversi/test/test_hlp_wmaps.py")
       and "assertRaises(ValidationError)" in read("src/reversi/test/test_hlp_wmaps.py"))
 

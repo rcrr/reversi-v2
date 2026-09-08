@@ -60,7 +60,7 @@ from reversi.lm.hlp_wmaps import (LMWMaps,
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 
-class TestRLMWmapsCompute(unittest.TestCase):
+class TestHlpWmapsCompute(unittest.TestCase):
     """Tests the mathematical logic of hlp_wmaps_compute in isolation."""
 
     def setUp(self):
@@ -159,7 +159,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         self.assertEqual(wmaps.feature_w_ranges[0, 0], -1)
 
 
-class TestRLMWmapsCacheConsistency(unittest.TestCase):
+class TestHlpWmapsCacheConsistency(unittest.TestCase):
     """Tests the cache validation logic."""
 
     def setUp(self):
@@ -200,7 +200,7 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
         self.assertFalse(hlp_wmaps_is_cache_consistent(self.ctx, self.wmaps_wrong_cutoff))
 
 
-class TestRLMWmapsIO(unittest.TestCase):
+class TestHlpWmapsIO(unittest.TestCase):
     """Tests the binary serialization and deserialization."""
 
     @classmethod
@@ -296,7 +296,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         self.assertIn("version mismatch", str(context.exception))
 
 
-class TestRLMWmapsInit(unittest.TestCase):
+class TestHlpWmapsInit(unittest.TestCase):
     """Tests the __init__ validation of LMWMaps."""
 
     def _make_valid(self, **overrides):
