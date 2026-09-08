@@ -1,5 +1,5 @@
 #
-# lm_worker_indexes.py
+# wrk_indexes.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_indexes.py
+# reversi/test/test_wrk_indexes.py
 The suite of the INDEXES worker (Roberto's file, brought in with
 the a323e0f line-by-line enablement; the D-084 T1-T3 + M1
 campaign + the D-085 re-anchoring). 1 class / 2 tests / no PERF

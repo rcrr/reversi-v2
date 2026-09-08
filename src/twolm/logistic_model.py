@@ -40,7 +40,7 @@ from reversi.base_model import BaseModel
 from reversi.lm.wrk_config import wrk_config
 from reversi.lm.wrk_positions import wrk_positions
 from reversi.lm.wrk_features import wrk_features
-from twolm.lm_worker_indexes import lm_worker_indexes
+from reversi.lm.wrk_indexes import lm_worker_indexes
 from twolm.lm_worker_wmaps import lm_worker_wmaps
 from twolm.lm_worker_design_matrix import lm_worker_design_matrix
 from twolm.lm_worker_zed import lm_worker_zed

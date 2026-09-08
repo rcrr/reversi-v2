@@ -1,4 +1,4 @@
-# twolm/lm_worker_indexes.py
+# reversi/lm/wrk_indexes.py
 The INDEXES worker of the RLM pipeline — the 5th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES), enabled
 line-by-line by Roberto in a323e0f. Like POSITIONS it is a

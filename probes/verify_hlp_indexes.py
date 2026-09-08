@@ -4,7 +4,7 @@
 #
 # Probe pinning the verified behaviour of the INDEXES level:
 # the domain module (src/reversi/lm/hlp_indexes.py) and the worker
-# (src/twolm/lm_worker_indexes.py), plus the source structure of
+# (src/reversi/lm/wrk_indexes.py), plus the source structure of
 # their two test files (test_hlp_indexes.py,
 # test_lm_worker_indexes.py), session 23 (D-083 analysis).
 #

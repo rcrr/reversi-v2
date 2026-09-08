@@ -46,7 +46,7 @@ MODULES=(
     reversi.test.test_wrk_positions
     reversi.test.test_wrk_features
     reversi.test.test_hlp_indexes
-    twolm.test.test_lm_worker_indexes
+    reversi.test.test_wrk_indexes
     twolm.test.test_rlm_wmaps
     twolm.test.test_lm_worker_wmaps
     twolm.test.test_rlm_design_matrix
