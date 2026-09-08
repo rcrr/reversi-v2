@@ -64,7 +64,7 @@ def check(label, cond, detail=""):
 # A — source structure of wrk_features.py (content pins).
 #
 
-src = (ROOT / "src" / "twolm" / "wrk_features.py").read_text()
+src = (ROOT / "src" / "reversi" / "lm" / "wrk_features.py").read_text()
 
 check("A1 125 lines (post D-082: +pydantic import +decorator, -orphan comment)",
       len(src.splitlines()) == 125)
@@ -210,7 +210,7 @@ check("B13c second run: identical feature set (name + hash)",
 # C — source structure of test_wrk_features.py (content pins).
 #
 
-tsrc = (ROOT / "src" / "twolm" / "test" / "test_wrk_features.py").read_text()
+tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_features.py").read_text()
 
 check("C1 206 lines (post D-106 step 3: the zero-feature guard test class added; pre: 164, post D-085)",
       len(tsrc.splitlines()) == 206)
