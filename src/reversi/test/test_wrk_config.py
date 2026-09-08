@@ -1,5 +1,5 @@
 #
-# test_lm_worker_config.py
+# test_wrk_config.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to use the unit tests lm_worker_config module.
+# How to use the unit tests wrk_config module.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

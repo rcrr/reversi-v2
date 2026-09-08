@@ -110,7 +110,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
     def test_invalid_hex_mask_rejected(self):
         """A non-hex mask in the full config is rejected by the
         schema (the worker-level pin of the ec/status siblings
-        lives in test_lm_worker_config.py)."""
+        lives in test_wrk_config.py)."""
         def _badmask(d):
             d["feature_set"]["pattern_set"]["patterns"][0]["mask"] = "ZZZZ"
         with self.assertRaises(ValidationError):

@@ -51,6 +51,6 @@ re-anchored it, and step 3 of D-106 moved probe check D1 into it).
 
 ## Integration
 
-- Exercises `lm_worker_config.py` through the real StateMachine
+- Exercises `wrk_config.py` through the real StateMachine
   (the CONFIG level of the RLM pipeline) with the
   `rlm_00.json` fixture.

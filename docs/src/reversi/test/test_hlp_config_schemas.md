@@ -46,5 +46,5 @@ validate in memory only).
   no machine, no DB (the `SKIP_REGAB_DB` gate is not needed).
 - The worker-level pins of the ec/status/hex-mask constraints
   (through the CONFIG worker end-to-end) live in
-  `test_lm_worker_config.py` — the docstring cross-reference is
+  `test_wrk_config.py` — the docstring cross-reference is
   deliberate: schema-level here, worker-level there.

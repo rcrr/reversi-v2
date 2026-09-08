@@ -21,7 +21,7 @@ T-campaign narrative froze in the archive.
   the test log); the dummy `dummy_config.json` (`{}`) in a
   `tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)` created FIRST in
   setUp (mid-setup failures still leave a cleanable `temp_dir`).
-- `patch('twolm.logistic_model.lm_worker_config', ...)` + the same
+- `patch('twolm.logistic_model.wrk_config', ...)` + the same
   for `lm_worker_positions`: the factories are replaced in the MODULE
   namespace, so the uncommented worker-list entries pick up the dummy
   workers.

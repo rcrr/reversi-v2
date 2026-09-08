@@ -10,7 +10,7 @@ the per-worker cache slot, and publishes the model (and the
 
 | name | contract |
 |---|---|
-| `lm_worker_config()` | the only `__all__` name; `@validate_call` factory returning `Worker("CONFIG", _up, _down)` |
+| `wrk_config()` | the only `__all__` name; `@validate_call` factory returning `Worker("CONFIG", _up, _down)` |
 | `_up` / `_down` | the worker callables (module-level privates, 6 with `_load`, `_validate`, `_validate_base_dir`, `_store_to_file`) |
 
 ## Architecture
@@ -42,7 +42,7 @@ the per-worker cache slot, and publishes the model (and the
 ## Verified invariants
 
 Pinned by `probes/verify_wrk_config.py` (25 checks) +
-`test_lm_worker_config.py` (15 tests, 4 classes).
+`test_wrk_config.py` (15 tests, 4 classes).
 
 - Source shape: the `__all__` name, the factory name "CONFIG", the
   module callables, the 6 privates — probe section A.

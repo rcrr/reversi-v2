@@ -30,7 +30,7 @@ LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     1. _check_config_file_path / _check_base_dir_override (plain helpers)
     2. RLMContext(config_file_path, base_dir_override)  — the blackboard
     3. workers = [ Worker("CREATED", _created_up, _created_down),
-                   lm_worker_config(), lm_worker_positions(), ..., lm_worker_save() ]
+                   wrk_config(), lm_worker_positions(), ..., lm_worker_save() ]
     4. super().__init__(workers, context, verbosity)
            |
 BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
@@ -64,9 +64,9 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
   No commented factory imports or worker-list entries remain. The
   factories follow `lm_worker_x()` → `Worker`; the tests patch them
   by name in THIS module's namespace
-  (`twolm.logistic_model.lm_worker_config`, …). All 14 factories
+  (`twolm.logistic_model.wrk_config`, …). All 14 factories
   carry the uniform `@validate_call` gate.
-- **use_cache is per-run** — `lm_worker_config` sets
+- **use_cache is per-run** — `wrk_config` sets
   `ctx.use_cache` from the config (`rlm_config_schemas`
   `use_cache: bool = True`); the CONFIG down path resets it to None
   (the D-071 cache_switch pattern).

@@ -1,7 +1,7 @@
 # reversi/lm/hlp_config_schemas.py
 The pydantic config DOMAIN of the RLM pipeline: one public entry,
 `ReversiLogisticModelConfig`, over a tree of nested configs — the
-JSON5 document that lm_worker_config loads and validates. Every
+JSON5 document that wrk_config loads and validates. Every
 nested config extends `RLMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
 > State: D-080 · cfb55fa · 2026-08-31 · suite 13/0/0
@@ -108,7 +108,7 @@ None.
 
 ## Integration
 
-- Consumed by `lm_worker_config` (`ReversiLogisticModelConfig
+- Consumed by `wrk_config` (`ReversiLogisticModelConfig
   (**raw)` after the json5 load).
 - The Bitboard primitive + `bitboard_from_hex_str` come from
   `board.py`.

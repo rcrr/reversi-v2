@@ -37,7 +37,7 @@ from reversi.tools.state_machine import StateMachine, Worker, Context, Verbosity
 from reversi.base_model import BaseModel
 
 # Import worker factories
-from reversi.lm.wrk_config import lm_worker_config
+from reversi.lm.wrk_config import wrk_config
 from twolm.lm_worker_positions import lm_worker_positions
 from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes
@@ -205,7 +205,7 @@ class LogisticModel(BaseModel):
         # 3. Build the pipeline using the factory functions
         workers: List[Worker] = [
             Worker("CREATED", _created_up, _created_down),
-            lm_worker_config(),
+            wrk_config(),
             lm_worker_positions(),
             lm_worker_features(),
             lm_worker_indexes(),

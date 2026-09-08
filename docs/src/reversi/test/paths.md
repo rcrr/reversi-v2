@@ -32,7 +32,7 @@ functions/factories only).
 
 The test files import the constants instead of recomputing them:
 `test_cache_manager.py`, `test_logistic_model.py` (CUSTOM_TMP_BASE);
-`test_lm_worker_config/positions/features/indexes.py` (both — the
+`test_wrk_config/positions/features/indexes.py` (both — the
 JSON fixture is anchored to the same root:
 `str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
 "rlm_00.json")`); `test_regab.py` (both — the one remaining

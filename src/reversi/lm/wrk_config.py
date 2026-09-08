@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_config']
+__all__ = ['wrk_config']
 
 
 
@@ -148,6 +148,6 @@ def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_config() -> Worker:
+def wrk_config() -> Worker:
     """Factory function that returns the CONFIG worker instance."""
     return Worker("CONFIG", _up, _down)

@@ -115,7 +115,7 @@ at the end of this file.
 ## Next steps
 
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
-- lm_worker_config R1 (the ad-hoc cache flow): the D-078
+- wrk_config R1 (the ad-hoc cache flow): the D-078
   ruling — the revisit trigger (the pipeline completion) is
   now met (15/15); re-evaluate the ad-hoc flow against the
   completed pipeline and the "storicizzazione" idea (I-011).
