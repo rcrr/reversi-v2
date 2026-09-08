@@ -1,4 +1,4 @@
-# twolm/lm_worker_features.py
+# reversi/lm/wrk_features.py
 The FEATURES worker of the RLM pipeline — the 4th active level
 (CREATED → CONFIG → POSITIONS → FEATURES), enabled line-by-line
 by Roberto in f051dd3. Unlike POSITIONS this is a PURE-COMPUTE
@@ -50,7 +50,7 @@ zero-feature guard test drives `_load_features` directly.)
 
 ## Verified invariants
 
-Pinned by the 40-check `probes/verify_lm_worker_features.py` +
+Pinned by the 40-check `probes/verify_wrk_features.py` +
 the 3-test `test_lm_worker_features.py`.
 
 - Source shape: the 125-line file, `__all__ =

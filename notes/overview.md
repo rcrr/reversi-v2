@@ -143,7 +143,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/twolm/lm_worker_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/twolm/lm_worker_analytics.md |
 | src/reversi/lm/wrk_config.py | complete: the CONFIG worker (JSON5 → config → base_dir validation + cache persistence); closed (D-077/D-078). DEFERRED: R1 the ad-hoc cache flow (the D-078 ruling, revisit with the pipeline completion; I-011) | 15/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/twolm/lm_worker_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/twolm/lm_worker_design_matrix.md |
-| src/twolm/lm_worker_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/twolm/lm_worker_features.md |
+| src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/reversi/lm/wrk_features.md |
 | src/twolm/lm_worker_generate.py | complete: the GENERATE 11th level (dense weights materialization; the R1 for-next-level trap fix); closed (D-097/D-098) | 3/0/0 | docs/src/twolm/lm_worker_generate.md |
 | src/twolm/lm_worker_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1); closed (D-093/D-094) | 2/0/0 | docs/src/twolm/lm_worker_gradient.md |
 | src/twolm/lm_worker_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/twolm/lm_worker_indexes.md |
@@ -186,7 +186,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_lm_worker_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105) | 4/0/0 | docs/src/twolm/test/test_lm_worker_analytics.md |
 | src/reversi/test/test_wrk_config.py | complete: 15 tests (D-078) | 15/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/twolm/test/test_lm_worker_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/twolm/test/test_lm_worker_design_matrix.md |
-| src/twolm/test/test_lm_worker_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/twolm/test/test_lm_worker_features.md |
+| src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
 | src/twolm/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins | 5/0/1 | docs/src/twolm/test/test_lm_worker_full_chain.md |
 | src/twolm/test/test_lm_worker_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/twolm/test/test_lm_worker_generate.md |
 | src/twolm/test/test_lm_worker_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/twolm/test/test_lm_worker_gradient.md |

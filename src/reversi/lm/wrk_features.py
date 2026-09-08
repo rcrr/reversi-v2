@@ -1,5 +1,5 @@
 #
-# lm_worker_features.py
+# wrk_features.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

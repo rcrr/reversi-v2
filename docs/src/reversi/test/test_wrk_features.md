@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_features.py
+# reversi/test/test_wrk_features.py
 The suite of the FEATURES worker (Roberto's file, copied from the
 original repo with the f051dd3 line-by-line enablement; the
 D-082 T1-T4 + M2 campaign re-anchored it, and D-106 step 3 moved
@@ -11,7 +11,7 @@ the B11 probe guard into it). 2 classes / 3 tests (2 DB-gated +
 | class | what it pins |
 |---|---|
 | `TestLMWorkerFeatures` (2, `SKIP_REGAB_DB` gated) | `test_build_feature_set` (feature_set None before, move to 'FEATURES' = step 3 / worker "FEATURES" pinned, populated after) and `test_feature_set_content_golden` (the rlm_00.json fixture must build the EXACT expected FeatureSet — see the goldens below) |
-| `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event. D-106 step 3: converted from the verify_lm_worker_features.py B11 probe |
+| `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event. D-106 step 3: converted from the verify_wrk_features.py B11 probe |
 
 The shared setUp of the DB-gated class: the db_long_gate FIRST
 (the SKIP_REGAB_DB + LONG tier gates, D-130; the setUp moves

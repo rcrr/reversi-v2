@@ -40,7 +40,7 @@
 #     base dir; SKIP_REGAB_DB=1 skips the DB-gated tests as in
 #     test_regab; VLONG=1 implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_lm_worker_features
+# time python3 -m unittest reversi.test.test_wrk_features
 #
 
 import unittest
@@ -54,7 +54,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-import twolm.lm_worker_features as lmwf
+import reversi.lm.wrk_features as lmwf
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Relevance, Verbosity
 from twolm.logistic_model import LogisticModel
@@ -173,7 +173,7 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
     no model, no cache.
 
     D-106 step 3 (probe_rules.md §4): converted from the
-    verify_lm_worker_features.py B11 probe."""
+    verify_wrk_features.py B11 probe."""
 
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())

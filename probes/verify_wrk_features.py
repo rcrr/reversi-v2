@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 #
-# verify_lm_worker_features.py
+# verify_wrk_features.py
 #
 # Probe pinning the verified behaviour of the FEATURES worker
-# (src/twolm/lm_worker_features.py) and of its test file
-# (src/twolm/test/test_lm_worker_features.py), session 22
+# (src/reversi/lm/wrk_features.py) and of its test file
+# (src/reversi/test/test_wrk_features.py), session 22
 # (D-081 analysis). Re-pinned in session 22 (D-082) to the fixed
 # behaviour: R1 (the amask log prints m.amask), M1-M3 (factory
 # @validate_call, the 2 whitespace lines, the orphan comment
@@ -42,7 +42,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 
-TMP = ROOT / "build" / "tmp" / "verify_lm_worker_features"
+TMP = ROOT / "build" / "tmp" / "verify_wrk_features"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
@@ -97,7 +97,7 @@ from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
-import twolm.lm_worker_features as lwf
+import reversi.lm.wrk_features as lwf
 
 
 def u(h):
