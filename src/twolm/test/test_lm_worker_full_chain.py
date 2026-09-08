@@ -33,9 +33,10 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1
-#     skips the DB-gated tests, as in test_regab. LONG=1 enables the
-#     long-running A2050 chain on rlm_03).
+# -1- Run the tests (a live regab DB + LONG=1 is required;
+#     SKIP_REGAB_DB=1 skips the DB-gated tests, as in test_regab.
+#     VLONG=1 enables the ~10-min A2050 chain on rlm_03 and
+#     implies LONG, D-130).
 #
 # time python3 -m unittest twolm.test.test_lm_worker_full_chain
 #
@@ -62,6 +63,7 @@ from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid
 from twolm.test.closecheck import assert_close
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from twolm.test.tags import db_long_gate
 
 
 def _masked_report_hash(report_text):
@@ -78,8 +80,7 @@ class TestFullChainA2030(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the full chain reads
         # training and validation positions from the regab database.
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         if self.suppress_stdout_io:
             self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -267,7 +268,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertNotIn("established successfully", logs2)
 
 
-@skipUnless(os.environ.get('LONG') == '1', "Skipping long-running test (set LONG=1 to run)")
+@skipUnless(os.environ.get('VLONG') == '1', "Skipping very-long test (set VLONG=1 to run; D-130)")
 class TestFullChainA2050(unittest.TestCase):
     """Tests the full Reversi Logistic Model chain on the A2050 configuration
     (the production endgame-solver model family: A2 + ec*10; A2050 = ec 20)."""
@@ -277,8 +278,7 @@ class TestFullChainA2050(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the full chain reads
         # training and validation positions from the regab database.
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         if self.suppress_stdout_io:
             self.patcher_stdout = patch('sys.stdout', new=StringIO())

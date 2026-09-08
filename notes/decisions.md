@@ -328,3 +328,43 @@ D-129 | 2026-09-07 | Pre-commit verification rule
         re-confirms the 2026-09-06 baseline on the
         8-vCPU VM: 673 tests / 0 failures / 18 skipped
         (~3 min).
+
+D-130 | 2026-09-07 | Suite tiers LONG/VLONG + canonical
+        ordered runner (Roberto-approved proposal;
+        study first: per-test durations measured over the
+        whole suite — 40.6 s of 44.5 s are the 14
+        DB-dependent files).
+        | Rename: the only LONG gate (A2050, ~10 min) is
+        now VLONG; the NEW LONG tier = every DB-gated
+        test (the criterion is the external-DB dependency,
+        not the per-test time — the "only the six heavy
+        files" alternative would leave ~9.4 s, no margin).
+        VLONG=1 implies LONG. SKIP_REGAB_DB=1 stays
+        orthogonal (a no-DB environment skips all DB
+        tests whatever the tier).
+        | New: twolm/test/tags.py db_long_gate(testcase) —
+        the shared setUp gate (the T2 shape): SKIP_REGAB_DB
+        or not (LONG or VLONG); the 17 gate sites in 14
+        files (the 13 worker suites + test_regab) are now
+        db_long_gate(self); the headers state the tiered
+        state (D-080 T2).
+        | New: run_utests.sh (workspace root) — the
+        canonical runner: venv activation + the 34 test
+        modules in canonical order (tools, board/pattern
+        concepts, infrastructure, DB access, then the
+        pipeline in machine order 1-14 — each data module
+        immediately before its worker, the 15-level chain
+        last; Roberto's merge of the rlm/lm groups); a
+        new test module is inserted at its logical
+        position, never appended.
+        | Measured tiers (8-vCPU VM, 2026-09-07): default
+        5.3 s (586 run, 87 skipped) — under the 10 s
+        target with margin; LONG=1 45.5 s (655 run, 18
+        skipped); VLONG=1 ~15-16 min on the loaded 8-vCPU VM
+        (A2050: the full_chain module measured 794.9 s today,
+        the D-104 standalone 331.7 s is the unloaded floor).
+        | Impact (closed): rules.md (the tier bullet + the
+        db_long_gate bullet; the D-129 bullet: full =
+        VLONG=1 ./run_utests.sh); overview.md suite-status
+        bullet; the 14 mirror docs (the gate-mechanism
+        naming); the A2050 skipUnless is VLONG.

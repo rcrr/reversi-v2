@@ -13,8 +13,9 @@ the B11 probe guard into it). 2 classes / 3 tests (2 DB-gated +
 | `TestLMWorkerFeatures` (2, `SKIP_REGAB_DB` gated) | `test_build_feature_set` (feature_set None before, move to 'FEATURES' = step 3 / worker "FEATURES" pinned, populated after) and `test_feature_set_content_golden` (the rlm_00.json fixture must build the EXACT expected FeatureSet — see the goldens below) |
 | `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event. D-106 step 3: converted from the verify_lm_worker_features.py B11 probe |
 
-The shared setUp of the DB-gated class: the SKIP_REGAB_DB gate
-FIRST (the setUp moves through POSITIONS, which hits the DB on a
+The shared setUp of the DB-gated class: the db_long_gate FIRST
+(the SKIP_REGAB_DB + LONG tier gates, D-130; the setUp moves
+through POSITIONS, which hits the DB on a
 fresh base dir) + stdout patched to a StringIO + the D-065
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
 `twolm.test.paths`, `setUpClass` mkdir, the temp dir created FIRST

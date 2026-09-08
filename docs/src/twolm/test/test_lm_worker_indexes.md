@@ -11,7 +11,8 @@ campaign + the D-085 re-anchoring). 1 class / 2 tests / no PERF
 |---|---|
 | `TestLMWorkerIndexes` (2, `SKIP_REGAB_DB` gated) | `test_compute_and_populate_cache` — move to INDEXES (step 4 pinned): the FLAT `rlmwf_04_INDEXES.dat` + `rlmwf_04_INDEXES.dat.SHA3-256` exist on disk (the D-078 machine-level naming pinned end-to-end), the logs contain "Executing heavy computation", `ctx.rlm_indexes` non-None. `test_read_cache_on_new_instance` — the first instance warms the cache; a SECOND instance on the same cache dir (move to FEATURES, the StringIO cleared, then to INDEXES): the logs contain "Cache successfully loaded and validated" and do NOT contain "Executing heavy computation" (cache hit, nothing recomputed); `ctx.rlm_indexes` non-None |
 
-The shared setUp: the SKIP_REGAB_DB gate FIRST (the setUp moves
+The shared setUp: the db_long_gate FIRST (the SKIP_REGAB_DB +
+LONG gates, D-130; the setUp moves
 to FEATURES, which runs POSITIONS — a DB hit on a fresh base
 dir) + stdout patched to a StringIO + the D-065
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from

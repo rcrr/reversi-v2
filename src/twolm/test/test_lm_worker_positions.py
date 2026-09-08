@@ -35,8 +35,9 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1
-#     skips the DB-gated tests, as in test_regab).
+# -1- Run the tests (a live regab DB + LONG=1 is required;
+#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
+#     VLONG=1 implies LONG, D-130).
 #
 # time python3 -m unittest twolm.test.test_lm_worker_positions
 #
@@ -59,6 +60,7 @@ from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 from twolm.regab import RegabDBConnection, RegabDataSet
 from twolm.lm_worker_positions import is_cache_consistent
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from twolm.test.tags import db_long_gate
 
 
 class TestLMWorkerPositions(unittest.TestCase):
@@ -71,8 +73,7 @@ class TestLMWorkerPositions(unittest.TestCase):
     def setUp(self):
         # T2 (D-080): the SKIP_REGAB_DB gate, as in test_regab —
         # both tests need the live regab DB.
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())

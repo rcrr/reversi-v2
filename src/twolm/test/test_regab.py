@@ -35,7 +35,9 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests.
+# -1- Run the tests (the whole suite here is DB-gated: a live
+#     regab DB + LONG=1 are required; SKIP_REGAB_DB=1 skips them,
+#     VLONG=1 implies LONG, D-130).
 #
 # time python3 -m unittest twolm.test.test_regab
 #
@@ -71,6 +73,7 @@ from twolm.regab import (RegabDBConnection,
                          regab_store_data_set_to_file,
                          regab_load_data_set_from_file)
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from twolm.test.tags import db_long_gate
 
 import numpy as np
 import numpy.testing as nptest
@@ -91,8 +94,7 @@ class BaseTestCase(unittest.TestCase):
         Runs before each individual test. 
         Loads credentials and initializes the database connection.
         """
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
         load_dotenv(WORKSPACE_ROOT / ".env")
         self.dbname = os.getenv('DB_NAME')
         self.user = os.getenv('DB_USER')

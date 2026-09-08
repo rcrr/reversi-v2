@@ -13,8 +13,8 @@ moved the D4a-g probe unit checks into it). 2 classes / 9 tests
 | `TestLMWorkerPositions` (2, `SKIP_REGAB_DB` gated) | the end-to-end cache round-trip on a real data set: `test_read_db_and_populate_cache` (move to POSITIONS, step 2 pinned — the FLAT `rlmwf_02_POSITIONS.dat` + `.SHA3-256` exist on disk and the logs contain "Extracted … positions from the database.") and `test_read_cache_on_new_instance` (a SECOND instance on the same cache dir: the logs contain "Cache successfully loaded and validated" and NOT "Extracted" / "established successfully") |
 | `TestIsCacheConsistent` (7, in-memory — no DB, no cache file) | the unit semantics of `is_cache_consistent`: same cfg → True; a differing ec / bid / status / dbname → False; the `bid=`/`status=` keyword overrides win; the str-port (regab) vs int-port (schema) compares equal |
 
-The shared setUp (both classes): the `SKIP_REGAB_DB` gate FIRST
-(where applicable) + stdout patched to a StringIO (logs captured,
+The shared setUp (both classes): the `db_long_gate` FIRST (the
+SKIP_REGAB_DB + LONG gates, D-130; where applicable) + stdout patched to a StringIO (logs captured,
 output clean) + the D-065 `TemporaryDirectory` idiom (the shared
 `CUSTOM_TMP_BASE` from `twolm.test.paths`, `setUpClass` mkdir,
 the temp dir created FIRST so a mid-setup failure still leaves a

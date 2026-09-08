@@ -35,8 +35,9 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1
-#     skips the DB-gated tests, as in test_regab).
+# -1- Run the tests (a live regab DB + LONG=1 is required;
+#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
+#     VLONG=1 implies LONG, D-130).
 #
 # time python3 -m unittest twolm.test.test_lm_worker_design_matrix
 #
@@ -55,6 +56,7 @@ from pathlib import Path
 from twolm.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from twolm.test.tags import db_long_gate
 
 
 
@@ -65,8 +67,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
         # T1 (D-089): the SKIP_REGAB_DB gate, as in test_regab —
         # all three tests need the live regab DB (the setUp moves to
         # WMAPS, which runs the WMAPS chain on a fresh base dir).
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -166,8 +167,7 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
         # the golden-content test needs the live regab DB (the
         # setUp moves to WMAPS, which runs the WMAPS chain on a fresh
         # base dir).
-        if os.getenv('SKIP_REGAB_DB', '0') == '1':
-            self.skipTest('SKIP_REGAB_DB=1: database tests skipped')
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()

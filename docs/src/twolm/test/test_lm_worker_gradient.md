@@ -28,7 +28,8 @@ through ZED on a fresh base dir, so a live DB is required —
 
 - Both tests are DB-gated (D-094 T5): the setUp's move to ZED
   runs the positions chain (the live regab DB) on a fresh base
-  dir — the same gate class as the other worker tests.
+  dir — the same gate class as the other worker tests (the
+  db_long_gate: SKIP_REGAB_DB + LONG, D-130).
 - The goldens are the BRING-IN values (unchanged by D-094): the
   R1 float32 cast of g changes the values by < 1 float32 ulp
   (≈1e-10 absolute at these magnitudes) — inside the pinned

@@ -31,9 +31,9 @@ fresh base dir).
   anchoring (both classes — the D-090 T7 fix: the CWD
   `mkdtemp(dir='./build/tmp')` is gone, the dead `shutil` import
   with it).
-- The `SKIP_REGAB_DB` gate at the top of both setUps (the D-090
-  T1 fix, the D-080 T2 / D-084 T2 / D-087 T1 class — 3/0/3 under
-  the gate).
+- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates, D-130)
+  at the top of both setUps (the D-090 T1 fix, the D-080 T2 /
+  D-084 T2 / D-087 T1 class — 3/0/3 under the gate).
 - The `verbosity=Verbosity.HIGH` house pattern of the worker
   tests.
 

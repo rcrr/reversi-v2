@@ -114,8 +114,10 @@ theme, with its origin D-number.
   (the shared twolm.test.paths module), setUpClass mkdir,
   TemporaryDirectory FIRST in setUp, defensive tearDown,
   WORKSPACE_ROOT-anchored paths.
-- DB-dependent tests: SKIP_REGAB_DB gate at the top of setUp
-  (the D-080 T2 shape); the header must state the gated state.
+- DB-dependent tests: db_long_gate(self) (twolm/test/tags.py)
+  first in setUp (the D-080 T2 shape, extended by D-130: the
+  SKIP_REGAB_DB gate plus the LONG tier); the header must state
+  the gated state.
 - PERF=1 performance tests are print-only — no performance gates
   in any suite (D-036).
 - Worker factories: a uniform @validate_call gate (the
@@ -133,10 +135,23 @@ theme, with its origin D-number.
   the tps read-back truncations), sha3 hashes and the
   in-run determinism tests. (D-127)
 - Before every commit: run the FULL test suite with no
-  gates (the live regab DB is the normal environment);
+  gates (the live regab DB is the normal environment;
+  full = VLONG=1 ./run_utests.sh);
   the gated run (SKIP_REGAB_DB=1) covers only the DB-free
   subset and is not a substitute for the pre-commit
   verification. (D-129)
+- Suite tiers (D-130): default = the fast tier (~5 s,
+  586 tests, no DB); LONG=1 adds the DB-gated pipeline
+  tests (~45 s); VLONG=1 adds the ~10-min A2050 end-to-end
+  chain and implies LONG. PERF=1 (D-036) and
+  SKIP_REGAB_DB=1 are orthogonal. The canonical runner is
+  run_utests.sh (workspace root: venv activation + the
+  modules in canonical order — tools, board/pattern
+  concepts, infrastructure, DB access, then the pipeline in
+  machine order 1-14 with each data module immediately
+  before its worker, the 15-level chain last); a new test
+  module is inserted at its logical position in the script,
+  never appended at the end.
 
 ## Pipeline contracts (RLM)
 

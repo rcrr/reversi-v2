@@ -12,7 +12,8 @@ T5-T6 (the D-085 idiom, the SKIP_REGAB_DB gates, the exact
 (the dense 4-key dicts, the 3-metric console rows, the two
 file-report hashes).
 > State: D-105 · 8cdf20b · 2026-09-03 · suite 5/0/0 (2 ungated +
-  3 DB-gated; A2050 additionally LONG-gated, ~10 min)
+  3 DB-gated (LONG); A2050 additionally VLONG-gated, ~10 min,
+  D-130)
 
 ## Coverage
 

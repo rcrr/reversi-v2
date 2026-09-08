@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# run_utests.sh — the twolm.test suite in canonical order (D-130).
+#
+# Usage:
+#   ./run_utests.sh              fast tier (~4 s, 577 tests, no DB)
+#   PERF=1 ./run_utests.sh       + the print-only performance tests
+#   LONG=1 ./run_utests.sh       + the DB-gated pipeline tests (~45 s)
+#   VLONG=1 ./run_utests.sh      + the ~10-min A2050 chain (~6-11 min)
+#   SKIP_REGAB_DB=1 ...          no-DB environment: every DB test is
+#                                skipped whatever the tier
+#
+# The PERF / LONG / VLONG / SKIP_REGAB_DB variables are inherited by
+# the test process as-is (VLONG=1 implies LONG). The module order is
+# the canonical one (D-130): a new test module is inserted here at
+# its logical position — never appended at the end.
+#
+set -euo pipefail
+cd "$(dirname "$0")"
+source .venv/bin/activate
+
+echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} SKIP_REGAB_DB=${SKIP_REGAB_DB:-0}"
+
+MODULES=(
+    # 0 — tools
+    twolm.test.test_binio
+    twolm.test.test_usage_binio
+    twolm.test.test_opt_lbfgs
+    # 1 — board & pattern concepts
+    twolm.test.test_board
+    twolm.test.test_pattern
+    twolm.test.test_mobility
+    twolm.test.test_feature
+    # 2 — infrastructure
+    twolm.test.test_cache_manager
+    twolm.test.test_state_machine
+    twolm.test.test_logistic_model
+    twolm.test.test_paths
+    # 3 — DB access
+    twolm.test.test_regab
+    # 4 — the pipeline, machine order 1-14 (each data module
+    #     immediately before its worker; the 15-level end-to-end
+    #     chain — including SAVE — last)
+    twolm.test.test_rlm_config_schemas
+    twolm.test.test_lm_worker_config
+    twolm.test.test_lm_worker_positions
+    twolm.test.test_lm_worker_features
+    twolm.test.test_rlm_indexes
+    twolm.test.test_lm_worker_indexes
+    twolm.test.test_rlm_wmaps
+    twolm.test.test_lm_worker_wmaps
+    twolm.test.test_rlm_design_matrix
+    twolm.test.test_lm_worker_design_matrix
+    twolm.test.test_rlm_zed
+    twolm.test.test_lm_worker_zed
+    twolm.test.test_rlm_gradient
+    twolm.test.test_lm_worker_gradient
+    twolm.test.test_rlm_optimize
+    twolm.test.test_lm_worker_optimize
+    twolm.test.test_rlm_generate
+    twolm.test.test_lm_worker_generate
+    twolm.test.test_lm_worker_vld_positions
+    twolm.test.test_lm_worker_validate
+    twolm.test.test_lm_worker_analytics
+    twolm.test.test_lm_worker_full_chain
+)
+
+exec python -m unittest "${MODULES[@]}"

@@ -32,8 +32,9 @@ GENERATE level. 1 class / 3 tests, all DB-gated.
 - The 2nd instance re-running through OPTIMIZE exercises the
   checkpoint-reload path for free (the no-"L-BFGS - [" behavior
   of test_lm_worker_optimize's run 2).
-- Written directly to the house pattern in D-098 T5: gate first
-  in setUp (with the why-comment), the D-085 idiom, the house
+- Written directly to the house pattern in D-098 T5: the
+  db_long_gate first in setUp (the SKIP_REGAB_DB + LONG tier,
+  D-130; with the why-comment), the D-085 idiom, the house
   run-instruction header (the DB-gated claim TRUE — the gate is
   in setUp), defensive tearDown.
 

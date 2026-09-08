@@ -13,7 +13,8 @@ fresh base dir, which runs POSITIONS).
 | `TestLMWorkerWmaps` (2, rlm_00.json from `WORKSPACE_ROOT`, stdout patched to a StringIO, base dir under `CUSTOM_TMP_BASE`) | `test_compute_and_populate_cache`: `move_to_step("WMAPS")` (step 5 pinned) — the FLAT `rlmwf_05_WMAPS.dat` + `rlmwf_05_WMAPS.dat.SHA3-256` on disk (the D-078 machine-level naming pinned end-to-end), "Forcing computation" in the logs (the cache_manager first-run string), all 6 ctx arrays non-None + `len(ctx.w) > 0`, `verbosity=Verbosity.HIGH` (the house pattern). `test_read_cache_on_new_instance`: the second instance on the SAME base dir moves to INDEXES first (the 5-worker list is exercised: CONFIG → POSITIONS → FEATURES → INDEXES), then WMAPS HITS the cache: "Cache successfully loaded and validated" in the logs, "Forcing computation" NOT in the logs (the negative pin), the wmaps data IDENTICAL to the first run |
 | `TestLMWorkerWmapsExactValues` (1, rlm_01.json, cut_off=2) | `test_compute_wmaps_exact_values`: the GOLDEN CONTENT pin — before WMAPS: all 6 ctx arrays None (the half-open interval guarantee); after: `expected_fwr` (4,3) = [[−1,0,0],[1,1,4],[5,5,15],[16,16,20]] int64 (per-feature [fallback, w_min, w_max]); `expected_iwmap_feature_offset` = [0,1,66,93,174] uint32 (F+1 cumulative); `expected_iwmap` (174,) int64 (mostly −1 — the unseen configurations); `expected_wmap` (21,3); `expected_wf` (10,3) all freq 1 (f1: 6,11,15; f2: 3,5,10,11,20,23; f3: 40); `w` = 21 float32 zeros. Every literal is independently re-derived by the probe C tier (the pipeline run vs these literals) |
 
-The shared setUp: the `SKIP_REGAB_DB` gate FIRST (the D-087 T1
+The shared setUp: the `db_long_gate` FIRST (the SKIP_REGAB_DB +
+LONG gates, D-130; the D-087 T1
 fix — the header's gate claim is now true) + the D-065/D-085
 idiom (the shared `CUSTOM_TMP_BASE` from `twolm.test.paths`,
 `setUpClass` mkdir, `TemporaryDirectory` first in setUp, the

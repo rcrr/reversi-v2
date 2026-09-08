@@ -59,18 +59,23 @@ positions generated from random gameplay paths.
   llvmlite), lz4 (binio, D-051), psycopg2 / pandas / python-dotenv
   (regab, D-052). Installed in .venv: numpy 2.5.2, pydantic 2.13.4,
   numba 0.67.0, llvmlite 0.49.0.
-- Test command: `.venv/bin/python -m unittest twolm.test.<module>`
-  (the old `PYTHONPATH=./src` prefix still works as a fallback);
-  test_regab needs a live PostgreSQL + .env, or `SKIP_REGAB_DB=1` to
-  skip the 35 DB tests (2 mocked run). The runner is unittest by
-  design (D-124): pytest is not a dependency (and not in the venv).
-- Suite status (verified 2026-09-06, live DB): 673 tests / 0
-  failures / 18 skipped (17 PERF print-only + 1 LONG-gated
-  A2050 chain). Gated run (SKIP_REGAB_DB=1, no LONG): 87
-  skipped = 17 PERF + 35 regab DB + 35 worker-level DB-gated
-  (the worker setUp walks the pipeline levels). Per-file
-  suites: the Suite column of the Source files / Test files
-  tables below.
+- Test command: `./run_utests.sh` (the canonical runner, D-130:
+  venv activation + the modules in canonical order; tiers:
+  default fast ~5 s, LONG=1 ~45 s, VLONG=1 ~10 min incl. the
+  A2050 chain and implies LONG; PERF=1 adds the print-only perf
+  tests). A single module: `.venv/bin/python -m unittest
+  twolm.test.<module>`. The DB-gated suites (test_regab + the
+  worker suites) need a live PostgreSQL + .env + LONG=1, or
+  `SKIP_REGAB_DB=1` to skip the 70 DB tests (2 mocked run). The
+  runner is unittest by design (D-124): pytest is not a
+  dependency (and not in the venv).
+- Suite status (verified 2026-09-07, live DB, D-130 tiers):
+  673 tests / 0 failures. Default tier: 586 run in ~5 s / 87
+  skipped (70 DB-gated + 17 PERF print-only). LONG=1: 655 run
+  in ~45 s / 18 skipped (17 PERF + 1 VLONG-gated A2050). Gated
+  run (SKIP_REGAB_DB=1): 87 skipped = 17 PERF + 70 DB (35 regab
+  + 35 worker-level). Per-file suites: the Suite column of the
+  Source files / Test files tables below.
 - Probes: 20 tracked under probes/ (hub:
   verify_logistic_model.py owns the pipeline-wide state;
   rules: notes/probe_rules.md); 20/20 green in both gated and
@@ -111,8 +116,8 @@ at the end of this file.
 One row per source file, alphabetical (the package path sorts future
 packages first). State = a status word + the open/parked items (if any)
 + the D-pointer range; the campaign history lives in the decision log.
-Suite = the current verified suite (live DB, 2026-09-06) of the file's test
-module.
+Suite = the current verified suite (live DB, D-130 tiers,
+2026-09-07) of the file's test module.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
@@ -168,7 +173,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_lm_worker_config.py | complete: 15 tests (D-078) | 15/0/0 | docs/src/twolm/test/test_lm_worker_config.md |
 | src/twolm/test/test_lm_worker_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/twolm/test/test_lm_worker_design_matrix.md |
 | src/twolm/test/test_lm_worker_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/twolm/test/test_lm_worker_features.md |
-| src/twolm/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain LONG-gated (~10 min); the D-104/D-105 pins | 5/0/1 | docs/src/twolm/test/test_lm_worker_full_chain.md |
+| src/twolm/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins | 5/0/1 | docs/src/twolm/test/test_lm_worker_full_chain.md |
 | src/twolm/test/test_lm_worker_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/twolm/test/test_lm_worker_generate.md |
 | src/twolm/test/test_lm_worker_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/twolm/test/test_lm_worker_gradient.md |
 | src/twolm/test/test_lm_worker_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/twolm/test/test_lm_worker_indexes.md |
@@ -183,7 +188,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/twolm/test/test_opt_lbfgs.md |
 | src/twolm/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/twolm/test/test_paths.md |
 | src/twolm/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/twolm/test/test_pattern.md |
-| src/twolm/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the SKIP_REGAB_DB gate (35 DB tests) | 37/0/0 | docs/src/twolm/test/test_regab.md |
+| src/twolm/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/twolm/test/test_regab.md |
 | src/twolm/test/test_rlm_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/twolm/test/test_rlm_config_schemas.md |
 | src/twolm/test/test_rlm_design_matrix.py | complete: the dedicated 12-test data suite (D-090) | 12/0/0 | docs/src/twolm/test/test_rlm_design_matrix.md |
 | src/twolm/test/test_rlm_generate.py | complete: the GENERATE data suite (D-097/D-098) | 14/0/0 | docs/src/twolm/test/test_rlm_generate.md |

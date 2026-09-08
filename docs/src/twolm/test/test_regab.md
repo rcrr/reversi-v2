@@ -2,8 +2,9 @@
 The regab unit suite — 6 classes / 37 tests, no PERF gates. 35 tests
 require a live PostgreSQL database + the workspace `.env`; 2
 (`TestRegabDataSetFileLoadExceptions`) are fully mocked.
-`SKIP_REGAB_DB=1` skips the DB-dependent tests (the T6 gate in
-`BaseTestCase.setUp`, D-052). D-085 re-anchored the `.env` load and
+`SKIP_REGAB_DB=1` (or the absent LONG tier, D-130) skips the
+DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`,
+T6, D-052). D-085 re-anchored the `.env` load and
 the checksum test's `mkdtemp` to the shared `twolm.test.paths`
 constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 > State: D-085 · aef6188 · 2026-08-31 · suite 37/0/0 (35 live-DB;

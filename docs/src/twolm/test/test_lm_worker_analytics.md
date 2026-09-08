@@ -36,8 +36,9 @@ pinned (assert_close, D-127; the ints exact; D-105/M2 — cut
 
 ## Conventions
 
-- D-085 idiom: the SKIP_REGAB_DB gate is FIRST in setUp (before
-  the stdout patch / tmp dir).
+- D-085 idiom: the db_long_gate (the SKIP_REGAB_DB + LONG tier
+  gates, D-130) is FIRST in setUp (before the stdout patch / tmp
+  dir).
 - The float64 metric goldens are compared with assert_close
   (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12) since
   D-127: the np.dot reductions over up to ~2M f64 terms run
