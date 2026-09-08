@@ -33,7 +33,7 @@ from pydantic import validate_call, ConfigDict
 from reversi.tools import binio
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.tools.opt_lbfgs import lbfgs
-from twolm.rlm_optimize import (optimization_info_dict,
+from reversi.lm.hlp_optimize import (optimization_info_dict,
                                 save_optimization_checkpoint,
                                 load_optimization_checkpoint,
                                 is_optimization_cache_consistent,

@@ -54,7 +54,7 @@ a = read("rlm_optimize.py")
 al = a.splitlines()
 check("A1 line count 267", len(al) == 267, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
-      al[1] == "# rlm_optimize.py" and "rglm.py" not in a)
+      al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)
 check("A4 T9: Tuple dead import removed",
       "from typing import List, Dict, Any, TYPE_CHECKING" in a
@@ -301,7 +301,7 @@ check("E8 rlm_02 optimization block",
 
 # ---------------------------------------------------------------- G tier
 print("== tier G: helper functions (no DB)")
-from twolm.rlm_optimize import weights_compute_sha3_256_hash
+from reversi.lm.hlp_optimize import weights_compute_sha3_256_hash
 
 
 def g_main():
@@ -329,7 +329,7 @@ g_main()
 print("== tier H: live pipeline through OPTIMIZE (DB required)")
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.rlm_optimize import (load_optimization_checkpoint,
+from reversi.lm.hlp_optimize import (load_optimization_checkpoint,
                                 save_optimization_checkpoint)
 
 

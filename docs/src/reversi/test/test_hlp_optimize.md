@@ -1,4 +1,4 @@
-# twolm/test/test_rlm_optimize.py
+# reversi/test/test_hlp_optimize.py
 The dedicated rlm_optimize suite — the house pattern (D-094 M1
 for gradient, D-090 T6 for design_matrix, D-092 T3 for zed): a
 NO-DB suite (handcrafted checkpoint fixtures + a SimpleNamespace

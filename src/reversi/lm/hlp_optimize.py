@@ -1,5 +1,5 @@
 #
-# rlm_optimize.py
+# hlp_optimize.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

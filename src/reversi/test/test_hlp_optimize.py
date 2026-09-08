@@ -38,7 +38,7 @@
 # -1- Run the tests (no live regab DB required — pure checkpoint IO
 #     and cache-validation tests, as in test_hlp_gradient).
 #
-# time python3 -m unittest twolm.test.test_rlm_optimize
+# time python3 -m unittest reversi.test.test_hlp_optimize
 #
 
 import hashlib
@@ -51,7 +51,7 @@ import numpy as np
 import numpy.testing as nptest
 
 from reversi.tools import binio
-from twolm.rlm_optimize import (save_optimization_checkpoint,
+from reversi.lm.hlp_optimize import (save_optimization_checkpoint,
                                 load_optimization_checkpoint,
                                 is_optimization_cache_consistent,
                                 is_optimization_status_converged,
