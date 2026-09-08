@@ -13,7 +13,7 @@ attributes, `_down` clears ALL FOUR.
 
 | name | contract |
 |---|---|
-| `lm_worker_zed()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (the D-092 T2 house-convention fix) returning `Worker("ZED", _up, _down)` |
+| `wrk_zed()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (the D-092 T2 house-convention fix) returning `Worker("ZED", _up, _down)` |
 
 ## Architecture
 
@@ -39,7 +39,7 @@ Pinned by the `probes/verify_zed.py` B + C + D + F + G tiers +
 the 3-test suite.
 
 - Source shape (probe B1-B8): the 73-line file, `__all__ =
-  ['lm_worker_zed']`, the factory WITH `@validate_call` + the
+  ['wrk_zed']`, the factory WITH `@validate_call` + the
   pydantic import (T2), NO cache_manager import (the L49
   by-design comment pinned), `_up` sets the 4 ctx attributes,
   `_down` clears all four, `Worker("ZED", ...)` (L73), 0
@@ -61,7 +61,7 @@ the 3-test suite.
 - The end-to-end golden (DB-gated): `test_compute_zed` (the
   (10,) y int8 + z float32 literals, the step-7 pin, the
   pre-state pins) + `test_down_clears_zed_attributes` —
-  `test_lm_worker_zed.py` (3 tests, 2 DB-gated since D-092 T1).
+  `test_wrk_zed.py` (3 tests, 2 DB-gated since D-092 T1).
 
 ## Open issues
 

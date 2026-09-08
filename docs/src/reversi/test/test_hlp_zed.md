@@ -41,7 +41,7 @@ two attributes `hlp_zed_compute` reads, so no `tempfile`, no
   catch a signature change to `hlp_zed` (the worker test only
   exercises the end-to-end path).
 - The LIVE golden (the rlm_01 (10,) y/z) lives in
-  test_lm_worker_zed.py (`TestLMWorkerZed`) — the single source
+  test_wrk_zed.py (`TestLMWorkerZed`) — the single source
   of truth after the step-3 class c deletions (the former probe
   A13-A15 + D2-D4 pins); this file's mock values reuse the rlm_01
   fixture values as a subset.

@@ -47,7 +47,7 @@ wiring, no rlmwf_07* file — see the worker doc).
 ## Verified invariants
 
 Pinned by the 51-call `probes/verify_zed.py` + `test_hlp_zed.py`
-(10 tests, no DB) + `test_lm_worker_zed.py` (3 tests, 2
+(10 tests, no DB) + `test_wrk_zed.py` (3 tests, 2
 DB-gated).
 
 - Source shape (probe A1-A12): 103 lines, the 3-name `__all__`,
@@ -75,7 +75,7 @@ DB-gated).
   branches + 2-clippling endpoints), the mock compute (the exact
   (4,) golden + the hash identity), the init validation (2
   ValidationError pins + by-reference).
-- The live golden (DB-gated, `test_lm_worker_zed.py`): the
+- The live golden (DB-gated, `test_wrk_zed.py`): the
   rlm_01 (10,) y/z literals — the single source of truth after
   the step-3 class c deletions (A13-A15 to the factory tests,
   D2-D4 + D12 to the worker tests).

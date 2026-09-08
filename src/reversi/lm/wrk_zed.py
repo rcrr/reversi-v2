@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_zed']
+__all__ = ['wrk_zed']
 
 
 
@@ -68,6 +68,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_zed() -> Worker:
+def wrk_zed() -> Worker:
     """Factory function that returns the ZED worker instance."""
     return Worker("ZED", _up, _down)

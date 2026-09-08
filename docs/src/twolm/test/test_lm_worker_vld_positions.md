@@ -26,7 +26,7 @@ today.
 ## Conventions
 
 - The setUp moves to GENERATE (step 10) BEFORE the tests — the
-  level BEFORE VLD_POSITIONS (step 11), the test_lm_worker_zed
+  level BEFORE VLD_POSITIONS (step 11), the test_wrk_zed
   pattern; the full 11-level chain is exercised end-to-end on
   the live DB.
 - The 2nd-instance test is the cache round-trip pin: "cache hit

@@ -5,8 +5,8 @@
 #
 # Tiers:
 #   A  hlp_zed.py structural pins (post T6/T7/T8)
-#   B  lm_worker_zed.py structural pins (post T2/T8)
-#   C  test_lm_worker_zed.py structural pins (post T1/T4/T5/T8)
+#   B  wrk_zed.py structural pins (post T2/T8)
+#   C  test_wrk_zed.py structural pins (post T1/T4/T5/T8)
 #   D  live golden (rlm_01.json pipeline through ZED, independent recompute)
 #   F  cross-module facts (logistic_model.py, repo state)
 #   G  dedicated test_hlp_zed.py (post T3)
@@ -76,13 +76,13 @@ check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
 #  0.03, a superset of the probe's))
 
 # ---------------------------------------------------------------- B tier
-wk = lines_of('lm_worker_zed.py')
-check('B1  lm_worker_zed.py is 73 lines (post T2 +1 import +1 decorator)', len(wk) == 73, f'{len(wk)}')
-check('B2  __all__ = ["lm_worker_zed"] (L42)', wk[41] == "__all__ = ['lm_worker_zed']")
+wk = lines_of('wrk_zed.py')
+check('B1  wrk_zed.py is 73 lines (post T2 +1 import +1 decorator)', len(wk) == 73, f'{len(wk)}')
+check('B2  __all__ = ["wrk_zed"] (L42)', wk[41] == "__all__ = ['wrk_zed']")
 check('B3  T2 DONE: pydantic import (L32) + factory decorated (L70) + def (L71)',
       wk[31] == 'from pydantic import validate_call, ConfigDict'
       and wk[69] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and wk[70] == 'def lm_worker_zed() -> Worker:')
+      and wk[70] == 'def wrk_zed() -> Worker:')
 check('B4  no cache_manager import (by design: no disk caching, L49 comment)',
       'cache_manager' not in '\n'.join(wk)
       and 'ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.' in wk[48])
@@ -97,8 +97,8 @@ check('B8  T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(wk) if l != l.rstrip()} == {6, 11, 16, 21})
 
 # ---------------------------------------------------------------- C tier
-tc = lines_of('test/test_lm_worker_zed.py')
-check('C1  test_lm_worker_zed.py is 164 lines (post T1/T4/T5)', len(tc) == 164, f'{len(tc)}')
+tc = lines_of('test/test_wrk_zed.py')
+check('C1  test_wrk_zed.py is 164 lines (post T1/T4/T5)', len(tc) == 164, f'{len(tc)}')
 check('C2  2 classes: TestZedFunFactory (L62, 1 test) + TestLMWorkerZed (L78, 2 tests)',
       tc[61] == 'class TestZedFunFactory(unittest.TestCase):'
       and tc[77] == 'class TestLMWorkerZed(unittest.TestCase):'
@@ -158,7 +158,7 @@ try:
               and rlm01.context.z is None and rlm01.context.zed_checksum is None)
         rlm01.move_to_step('ZED')
     # (D2 step 7 / name ZED deleted at D-106 step 3, class c:
-    #  test_lm_worker_zed.py::test_compute_zed pins it)
+    #  test_wrk_zed.py::test_compute_zed pins it)
     y = rlm01.context.game_values
     # (D3 game_values == golden y deleted at D-106 step 3, class c:
     #  the test pins expected_y verbatim. The y binding stays: D5
@@ -221,8 +221,8 @@ check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
       and 'from twolm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
 check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
       (ROOT / 'docs' / 'src' / 'twolm' / 'hlp_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'lm_worker_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_lm_worker_zed.md').exists()
+      and (ROOT / 'docs' / 'src' / 'twolm' / 'wrk_zed.md').exists()
+      and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_wrk_zed.md').exists()
       and (ROOT / 'docs' / 'src' / 'twolm' / 'test' / 'test_hlp_zed.md').exists())
 
 # ---------------------------------------------------------------- G tier (dedicated suite)

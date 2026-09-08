@@ -40,7 +40,7 @@ below); the 7 INFO log lines pinned ("Starting model validation...", "Computing 
 
 - The setUp moves to VLD_POSITIONS (step 11) BEFORE the tests,
   so every worker test exercises the full 13-level chain
-  end-to-end on the live DB (the test_lm_worker_zed pattern:
+  end-to-end on the live DB (the test_wrk_zed pattern:
   setUp at the level before the one under test).
 - The 2nd-instance test is the no-cache twin of the cache
   round-trip tests (test_wrk_positions et al.): where they
