@@ -45,6 +45,6 @@ idiom, applied per Roberto in D-086 before the campaign).
   contract (cycle + golden + the 3 error paths), the init
   validation.
 - The LIVE golden content (the rlm_01 pipeline run vs the
-  literals) lives in test_lm_worker_wmaps.py
+  literals) lives in test_wrk_wmaps.py
   (`TestLMWorkerWmapsExactValues`) — the single source of truth
   after the step-3 class c deletions of the former probe E tier.

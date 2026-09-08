@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_wmaps']
+__all__ = ['wrk_wmaps']
 
 
 
@@ -86,6 +86,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_wmaps() -> Worker:
+def wrk_wmaps() -> Worker:
     """Factory function that returns the WMAPS worker instance."""
     return Worker("WMAPS", _up, _down)

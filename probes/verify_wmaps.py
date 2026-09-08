@@ -4,11 +4,11 @@ verify_wmaps.py — scratch probe for the WMAPS bring-in (session 23).
 
 Re-derives and verifies, independently of the test files:
   A. hlp_wmaps.py structure (post D-087: lines, imports, note, contract, ws)
-  B. lm_worker_wmaps.py structure (post D-087: worker shape vs the house)
+  B. wrk_wmaps.py structure (post D-087: worker shape vs the house)
   C. test_hlp_wmaps.py structure (post D-087: header, idiom, new coverage)
-  D. test_lm_worker_wmaps.py structure (post D-087: gate, idiom, ws)
+  D. test_wrk_wmaps.py structure (post D-087: gate, idiom, ws)
   E. GOLDEN re-derivation (live DB): the rlm_01.json pipeline WMAPS output
-     vs the literals pinned in test_lm_worker_wmaps.TestLMWorkerWmapsExactValues
+     vs the literals pinned in test_wrk_wmaps.TestLMWorkerWmapsExactValues
   F. Cross-fixture / context facts (rlm_01 stat_model, RLMContext fields)
 
 Re-pinned in D-087 to the post-campaign state (all T items pinned FIXED,
@@ -76,13 +76,13 @@ check("A12 the -1 input sentinel is unguarded at L257 — correct by the R1 dens
       rlm[256] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[256]))
 
 # ----------------------------------------------------------------------
-# B. lm_worker_wmaps.py structure (post D-087)
+# B. wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 w = lines("src/reversi/lm/wrk_wmaps.py")
-check("B1 lm_worker_wmaps.py is 91 lines (post D-087: 87 + pydantic + decorator + checksum clear)", len(w) == 91, f"{len(w)}")
+check("B1 wrk_wmaps.py is 91 lines (post D-087: 87 + pydantic + decorator + checksum clear)", len(w) == 91, f"{len(w)}")
 check("B2 the pydantic import is present (L32 — D-087 T6)", w[31] == "from pydantic import validate_call, ConfigDict", repr(w[31]))
-check("B3 the factory lm_worker_wmaps is @validate_call-decorated (L88 — D-087 T6)",
-      w[87] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" and w[88] == "def lm_worker_wmaps() -> Worker:",
+check("B3 the factory wrk_wmaps is @validate_call-decorated (L88 — D-087 T6)",
+      w[87] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" and w[88] == "def wrk_wmaps() -> Worker:",
       repr(w[87:89]))
 check("B4 load_fn is the house lambda with checksum=False (L56 — D-087 T7)",
       w[55] == "        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),", repr(w[55]))
@@ -149,10 +149,10 @@ check("C15 the TestRLMWmapsInit class is present with the precise ValidationErro
       and "assertRaises(ValidationError)" in read("src/reversi/test/test_hlp_wmaps.py"))
 
 # ----------------------------------------------------------------------
-# D. test_lm_worker_wmaps.py structure (post D-087)
+# D. test_wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t2 = lines("src/reversi/test/test_wrk_wmaps.py")
-check("D1 test_lm_worker_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", len(t2) == 315, f"{len(t2)}")
+check("D1 test_wrk_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", len(t2) == 315, f"{len(t2)}")
 check("D2 2 classes / 3 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
       sum(1 for l in t2 if l.strip().startswith("def test_")) == 3)
@@ -197,7 +197,7 @@ import tempfile
 
 # (E0 + the test-source extraction machinery deleted at D-106
 #  step 3, class c: the five expected_* literals are pinned verbatim
-#  by test_lm_worker_wmaps.py::test_compute_wmaps_exact_values, so
+#  by test_wrk_wmaps.py::test_compute_wmaps_exact_values, so
 #  extracting them and comparing was tautological.)
 
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -214,7 +214,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     # (E1-E6 deleted at D-106 step 3, class c: feature_w_ranges,
     #  iwmap_feature_offset, iwmap, wmap, wmap_fallback, w are all
     #  pinned verbatim (full literal, shape + dtype) by
-    #  test_lm_worker_wmaps.py::test_compute_wmaps_exact_values —
+    #  test_wrk_wmaps.py::test_compute_wmaps_exact_values —
     #  the probe's comparisons against its own extracted literals
     #  were tautological.)
     # (E7/E8 deleted at D-106 step 3, class c: both operate on the

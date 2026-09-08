@@ -12,7 +12,7 @@ materialize).
 
 | name | contract |
 |---|---|
-| `lm_worker_wmaps()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("WMAPS", _up, _down)` |
+| `wrk_wmaps()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("WMAPS", _up, _down)` |
 
 ## Architecture
 
@@ -42,7 +42,7 @@ materialize).
 
 Pinned by the `probes/verify_wmaps.py` B tier + the 3-test suite.
 
-- Source shape: the 91-line file, `__all__ = ['lm_worker_wmaps']`,
+- Source shape: the 91-line file, `__all__ = ['wrk_wmaps']`,
   the factory name "WMAPS" WITH `@validate_call` + the pydantic
   import, the RLMContext import under TYPE_CHECKING (the
   circular-import guard), the full 7-kwargs cache wiring with the
@@ -62,7 +62,7 @@ Pinned by the `probes/verify_wmaps.py` B tier + the 3-test suite.
   INDEXES first, then WMAPS: "Cache successfully loaded and
   validated", no "Forcing computation", the data identical), and
   `test_compute_wmaps_exact_values` (the rlm_01 golden — all 6
-  arrays vs the test literals) — `test_lm_worker_wmaps.py` (3
+  arrays vs the test literals) — `test_wrk_wmaps.py` (3
   tests, `SKIP_REGAB_DB` gated).
 
 ## Open issues

@@ -58,7 +58,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, no DB) + `test_lm_worker_wmaps.py` (3 DB-gated tests).
+Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A12 + B1-B9): module 316 lines, the
   5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
@@ -82,7 +82,7 @@ Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, 
   store/load contract (the 8-field cycle, the golden hash, the 3
   load error paths, both checksum flags), the init validation.
 - The end-to-end round-trip + the golden content (DB-gated,
-  `test_lm_worker_wmaps.py`): the compute + store run, the
+  `test_wrk_wmaps.py`): the compute + store run, the
   second-instance cache hit, and the rlm_01 golden (cut_off 2,
   F=4, K=174, W=21 — all 6 arrays vs the test literals, the
   single source of truth; the former probe E tier moved here at
@@ -110,7 +110,7 @@ None.
 
 ## Integration
 
-- The 6th RLM level; the worker (lm_worker_wmaps.py) carries the
+- The 6th RLM level; the worker (wrk_wmaps.py) carries the
   cache wiring, this module the data object + the 4 functions.
 - Consumes `ctx.hlp_indexes_checksum` (INDEXES) +
   `ctx.cfg.stat_model.frequency_cut_off` (CONFIG) + the pindexes
