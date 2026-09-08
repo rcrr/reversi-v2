@@ -1,4 +1,4 @@
-# twolm/lm_worker_save.py
+# reversi/lm/wrk_save.py
 The SAVE worker — the 15th and LAST active level of the RLM pipeline
 (step 14, after ANALYTICS; the pipeline is 15/15 COMPLETE since the
 D-104 bring-in fe506c6, which brought this worker in together with

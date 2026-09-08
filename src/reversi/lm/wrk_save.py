@@ -1,5 +1,5 @@
 #
-# lm_worker_save.py
+# wrk_save.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
