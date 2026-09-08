@@ -54,7 +54,7 @@ GRADIENT → OPTIMIZE).
 ## Verified invariants
 
 Pinned by the 76-check `probes/verify_optimize.py` +
-`test_rlm_optimize.py` (19 tests, no DB) +
+`test_hlp_optimize.py` (19 tests, no DB) +
 `test_lm_worker_optimize.py` (3 DB-gated tests).
 
 - Module source shape (probe A1-A20): 267 lines, the 6-name
@@ -74,7 +74,7 @@ Pinned by the 76-check `probes/verify_optimize.py` +
   D-071 R1 pattern); corrupted (R2+R3: the load raises, the
   worker deletes file + sidecar, re-optimizes, re-saves).
 - The determinism + round-trip facts (the probe's former F1-F10
-  moved to test_rlm_optimize at step 3; the G3 weights hash
+  moved to test_hlp_optimize at step 3; the G3 weights hash
   golden survives the probe): the deterministic fixture bytes
   hash to `6e01ff8614e8732484b7af59b01615989357ce1af241986462196
   5af221bd280`; the sidecar verifies; the dtypes survive (w/sl/

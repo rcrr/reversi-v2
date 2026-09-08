@@ -1,5 +1,5 @@
 #
-# test_rlm_optimize.py
+# test_hlp_optimize.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_optimize unit tests.
+# How to run the hlp_optimize unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

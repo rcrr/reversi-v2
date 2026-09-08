@@ -1,13 +1,13 @@
 #
 # verify_optimize.py — independent verification probe for the OPTIMIZE
-# bring-in (rlm_optimize.py, lm_worker_optimize.py,
-# test_rlm_optimize.py, test_lm_worker_optimize.py), re-pinned to the
+# bring-in (hlp_optimize.py, lm_worker_optimize.py,
+# test_hlp_optimize.py, test_lm_worker_optimize.py), re-pinned to the
 # post-D-096-campaign state.
 #
 # Tiers:
-#   A  rlm_optimize.py structure (post-campaign)
+#   A  hlp_optimize.py structure (post-campaign)
 #   B  lm_worker_optimize.py structure (post-campaign)
-#   C  test_rlm_optimize.py structure (post-campaign, M10 expansion)
+#   C  test_hlp_optimize.py structure (post-campaign, M10 expansion)
 #   D  test_lm_worker_optimize.py structure (post-campaign)
 #   E  cross-file (logistic_model, RLMContext, schemas, opt_lbfgs,
 #      rlm_02.json)
@@ -49,8 +49,8 @@ def ws_lines(text):
 
 
 # ---------------------------------------------------------------- A tier
-print("== tier A: rlm_optimize.py structure (post D-096)")
-a = read("rlm_optimize.py")
+print("== tier A: hlp_optimize.py structure (post D-096)")
+a = read("hlp_optimize.py")
 al = a.splitlines()
 check("A1 line count 267", len(al) == 267, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
@@ -160,8 +160,8 @@ check("B17 final save uses info['w']/['sl']/['yl']/['rho']",
       and "yl=info['yl']," in b and "rho=info['rho']" in b)
 
 # ---------------------------------------------------------------- C tier
-print("== tier C: test_rlm_optimize.py structure (post D-096)")
-c = read("test/test_rlm_optimize.py")
+print("== tier C: test_hlp_optimize.py structure (post D-096)")
+c = read("test/test_hlp_optimize.py")
 cl = c.splitlines()
 c_code = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
 check("C1 line count 340", len(cl) == 340, f"{len(cl)}")
@@ -286,7 +286,7 @@ check("E8 rlm_02 optimization block",
 
 # ---------------------------------------------------------------- F tier
 # (F1-F10 checkpoint IO (real files) deleted at D-106 step 3, class
-#  c: test_rlm_optimize.py::TestRLMOptimizeIO pins ALL of it with
+#  c: test_hlp_optimize.py::TestRLMOptimizeIO pins ALL of it with
 #  real files — test_store_and_load_cycle (the round-trip + dtypes +
 #  rho float, the f32 metadata), test_empty_history_roundtrip,
 #  test_wrong_description_raises, test_wrong_version_raises,
@@ -307,7 +307,7 @@ from reversi.lm.hlp_optimize import weights_compute_sha3_256_hash
 def g_main():
     # (G1/G2 info_dict branches, G4 cache_consistent 4 branches,
     #  G5 status_converged 4 branches deleted at D-106 step 3, class
-    #  c: test_rlm_optimize.py pins all of it —
+    #  c: test_hlp_optimize.py pins all of it —
     #  test_info_dict_filters_to_context_keys,
     #  test_info_dict_missing_key_raises, the 4
     #  TestRLMOptimizeCacheConsistency tests, the 4

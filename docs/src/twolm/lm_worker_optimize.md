@@ -1,7 +1,7 @@
 # twolm/lm_worker_optimize.py
 The OPTIMIZE worker — the pipeline's optimizer level. `_up`
 implements a 4-step recipe: (1) consult the existing checkpoint
-(if any) through the two rlm_optimize gates, deciding between
+(if any) through the two hlp_optimize gates, deciding between
 completed-load, warm-resume and scratch; (2) build the two lbfgs
 wrappers (`logger_fn` → `ctx.log_event`, `save_fn` →
 intermediate INCOMPLETE checkpoints); (3) run `lbfgs` (opt_lbfgs)

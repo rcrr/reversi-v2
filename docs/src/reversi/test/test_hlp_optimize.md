@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_optimize.py
-The dedicated rlm_optimize suite — the house pattern (D-094 M1
+The dedicated hlp_optimize suite — the house pattern (D-094 M1
 for gradient, D-090 T6 for design_matrix, D-092 T3 for zed): a
 NO-DB suite (handcrafted checkpoint fixtures + a SimpleNamespace
 ctx mock) that pins the binary round-trip, the error paths, the
@@ -53,5 +53,5 @@ and T14/T15 fixed the header claim + the misleading names.
   the worker's R2 path (probe H8) is
   `test_checksum_mismatch_raises`.
 - The per-function pin that would catch a signature change to
-  any of the 6 rlm_optimize names; the worker test only
+  any of the 6 hlp_optimize names; the worker test only
   exercises the end-to-end paths.
