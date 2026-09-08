@@ -59,7 +59,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 ## Verified invariants
 
-Pinned by `test_rlm_config_schemas.py` (13 tests,
+Pinned by `test_hlp_config_schemas.py` (13 tests,
 `TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
 E-section).
 

@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_config_schemas.py
-The first test module of the rlm_config_schemas config domain —
+The first test module of the hlp_config_schemas config domain —
 created at D-106 step 3 as the probe_rules §4 conversion of the
 verify_wrk_positions probe E section (the probe keeps only
 its E7 source-text pin — source inspections stay probes per §4).
@@ -42,7 +42,7 @@ validate in memory only).
 
 ## Integration
 
-- Exercises `rlm_config_schemas.py` in memory only — no worker,
+- Exercises `hlp_config_schemas.py` in memory only — no worker,
   no machine, no DB (the `SKIP_REGAB_DB` gate is not needed).
 - The worker-level pins of the ec/status/hex-mask constraints
   (through the CONFIG worker end-to-end) live in

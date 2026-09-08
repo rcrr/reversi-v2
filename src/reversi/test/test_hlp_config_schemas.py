@@ -1,5 +1,5 @@
 #
-# test_rlm_config_schemas.py
+# test_hlp_config_schemas.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_config_schemas unit tests.
+# How to run the hlp_config_schemas unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -59,10 +59,10 @@ from reversi.test.paths import WORKSPACE_ROOT
 
 
 class TestRlmConfigSchemas(unittest.TestCase):
-    """Deterministic pydantic unit behaviour of rlm_config_schemas.
+    """Deterministic pydantic unit behaviour of hlp_config_schemas.
 
     D-106 step 3 (probe_rules.md §4): this is the first test file
-    for the rlm_config_schemas module. The checks were converted
+    for the hlp_config_schemas module. The checks were converted
     from the verify_wrk_positions.py E section (the probe
     keeps only its E7 source-text pin — source inspections stay
     probes per §4). The base payload is the rlm_00.json fixture

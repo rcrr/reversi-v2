@@ -101,7 +101,7 @@ None.
 
 ## Integration
 
-- Consumed only by `wrk_save` (write) and `rlm_client` + the
+- Consumed only by `wrk_save` (write) and `client` + the
   test module (read).
 - The `ModelWeights` instance is the ONLY argument of
   `make_evaluation_function` — the client API's contract type.

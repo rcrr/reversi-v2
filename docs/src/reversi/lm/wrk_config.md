@@ -1,7 +1,7 @@
 # reversi/lm/wrk_config.py
 The CONFIG worker of the RLM pipeline — the second level, the first
 non-sentinel. It loads the RLM JSON5 config file, validates it into
-the rlm_config_schemas domain model, stores a checksummed copy in
+the hlp_config_schemas domain model, stores a checksummed copy in
 the per-worker cache slot, and publishes the model (and the
 `use_cache` flag) on the context for the workers that follow.
 > State: D-078 · d6a850e · 2026-08-30 · suite 15/0/0
@@ -107,7 +107,7 @@ Pinned by `probes/verify_wrk_config.py` (25 checks) +
 - The CONFIG level of the RLM pipeline: the facade
   (`logistic_model.py`) instantiates `Worker` and the machine;
   this module provides the level's `_up`/`_down`.
-- Consumes `rlm_config_schemas` (the domain) and
+- Consumes `hlp_config_schemas` (the domain) and
   `state_machine.Worker`; publishes `ctx.cfg` / `ctx.use_cache`
   that every later cache-consuming worker reads.
 - Test fixture: `src/reversi/test/data/rlm_00.json` (JSON5).

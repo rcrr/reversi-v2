@@ -108,6 +108,6 @@ None.
   needs (client.md) — the zed transforms are a pure function of
   `logit_clipping`.
 - `ctx.cfg.output` is a REQUIRED field of
-  `ReversiLogisticModelConfig` (rlm_config_schemas L196,
+  `ReversiLogisticModelConfig` (hlp_config_schemas L196,
   `output: Path = Field(...)`) — pre-stored by Roberto in all four
   fixtures (each L31) "if needed by the SAVE worker later".

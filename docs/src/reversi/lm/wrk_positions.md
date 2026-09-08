@@ -75,7 +75,7 @@ Pinned by the 21-check probe + the 9-test suite (named per bullet).
   ec=20, new cfg ec=10) → "Application data validation failed" +
   delete + recompute with the NEW params — probe D2/D3/D3b.
 - The cross-module import pin: the `model_validator` import in
-  rlm_config_schemas is now load-bearing (the c2>c1 validator) —
+  hlp_config_schemas is now load-bearing (the c2>c1 validator) —
   probe E7.
 - The end-to-end round-trip (DB-gated): the first instance hits
   the DB ("Extracted … positions from the database.") and writes
@@ -114,7 +114,7 @@ None.
   `Worker`.
 - Consumes `regab` (the extract/store/load trio),
   `cache_manager` (the 4-step flow) and the
-  `rlm_config_schemas` types (`RegabDBConnection`,
+  `hlp_config_schemas` types (`RegabDBConnection`,
   `RegabDataSet`); publishes `ctx.positions` /
   `ctx.game_values` / `ctx.rds_checksum` /
   `ctx.training_pop_stats` for the FEATURES level onward.
