@@ -108,7 +108,7 @@ None.
 
 ## Integration
 
-- The worker (lm_worker_generate.py) calls all 5 names through
+- The worker (wrk_generate.py) calls all 5 names through
   the uniform 7-kwargs `cache_manager_load_or_compute` (config
   via `ctx.get_cache_file_full_path_for_current_level()`,
   `is_allowed = ctx.use_cache`, store/load/validate/compute

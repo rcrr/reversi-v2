@@ -48,4 +48,4 @@ as in test_hlp_zed / test_hlp_gradient.
   branches the live data cannot reach.
 - The LIVE goldens (K = 6588, the per-feature weighted means,
   orbit invariance, the hash golden) live in the probe E tier +
-  test_lm_worker_generate.py — the single source of truth.
+  test_wrk_generate.py — the single source of truth.

@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_generate']
+__all__ = ['wrk_generate']
 
 
 
@@ -74,5 +74,5 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_generate() -> Worker:
+def wrk_generate() -> Worker:
     return Worker("GENERATE", _up, _down)

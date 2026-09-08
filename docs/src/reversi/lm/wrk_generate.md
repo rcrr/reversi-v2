@@ -14,7 +14,7 @@ cache level before the future VLD_POSITIONS (rlmwf_11).
 
 | name | contract |
 |---|---|
-| `lm_worker_generate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-098 T3, all worker factories now share the pattern) returning `Worker("GENERATE", _up, _down)` |
+| `wrk_generate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-098 T3, all worker factories now share the pattern) returning `Worker("GENERATE", _up, _down)` |
 
 ## Architecture
 
@@ -36,7 +36,7 @@ cache level before the future VLD_POSITIONS (rlmwf_11).
   sets `ctx.w_dense = None` + `ctx.dense_w_checksum = None` — the
   scope pinned by the worker test
   `test_down_clears_generate_attributes`.
-- `lm_worker_generate()` (L76-78): the factory,
+- `wrk_generate()` (L76-78): the factory,
   `@validate_call`-decorated since D-098 T3.
 
 ## Verified invariants

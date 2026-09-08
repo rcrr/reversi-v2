@@ -1,7 +1,7 @@
 # reversi/test/test_wrk_generate.py
 The GENERATE worker integration suite — CREATED in the D-098 T5
 campaign (Roberto: "T5: ok" + "Aggiungi anche il file
-test_lm_worker_generate.py con i dovuti tests sul worker"): at
+test_wrk_generate.py con i dovuti tests sul worker"): at
 the bring-in there was NO worker test at all. House worker-test
 shape (as in test_wrk_indexes / test_wrk_optimize
 et al.): a live-DB suite that moves the machine through the full

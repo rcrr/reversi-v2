@@ -4,7 +4,7 @@ verify_generate.py — scratch probe for the GENERATE bring-in (session 27).
 
 Re-derives and verifies, independently of the test files:
   A. hlp_generate.py structure (post-campaign: note, version gate, ws)
-  B. lm_worker_generate.py structure (post-campaign: factory gate, the
+  B. wrk_generate.py structure (post-campaign: factory gate, the
      D-074 _for_current_level naming, ws)
   C. test_hlp_generate.py structure (post-campaign: English comment, ws)
   D. data-object behavior (no DB): init validation, hash, store/load
@@ -89,7 +89,7 @@ check("A5 no non-comment trailing whitespace",
       f"lines {ws_lines('src/reversi/lm/hlp_generate.py')}")
 
 # ----------------------------------------------------------------------
-# B. lm_worker_generate.py structure (post-campaign)
+# B. wrk_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_generate.py")
 check("B1 the worker uses the D-074 house name _for_current_level (the "
@@ -98,7 +98,7 @@ check("B1 the worker uses the D-074 house name _for_current_level (the "
       and "for_next_level" not in wk_src)
 check("B2 the factory is @validate_call-decorated + pydantic imported "
       "(all 10 sibling worker factories — D-092 T2 / D-096 T10 pattern)",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_generate" in wk_src
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_generate" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("B3 no non-comment trailing whitespace",
       not ws_lines("src/reversi/lm/wrk_generate.py"),
@@ -201,7 +201,7 @@ else:
         m = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
         # (E1 'the pipeline reaches GENERATE' deleted at D-106 step 3,
-        #  class c: test_lm_worker_generate.py::TestLMWorkerGenerate::
+        #  class c: test_wrk_generate.py::TestLMWorkerGenerate::
         #  test_compute_and_populate_cache pins step 10 / GENERATE)
         try:
             m.move_to_step("GENERATE")
@@ -215,7 +215,7 @@ else:
             K = int(off[-1])
             check("E2 K = 6588 = 6561 (EDGE) + 27 (DIAG3)", K == 6588, f"{K}")
             # (E3 w_dense shape/dtype (6588,) float32 deleted at D-106
-            #  step 3, class c: test_lm_worker_generate.py L128-129)
+            #  step 3, class c: test_wrk_generate.py L128-129)
             # independent per-feature re-derivation (a different code path)
             ref = np.full(K, np.nan, dtype=np.float64)
             wm_ok = True
@@ -245,7 +245,7 @@ else:
                   h == "ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4"
                   and h == ctx.dense_w_checksum, h)
             # (E8 flat cache files + sidecar verify deleted at D-106
-            #  step 3, class c: test_lm_worker_generate.py pins both
+            #  step 3, class c: test_wrk_generate.py pins both
             #  files. E9 second-instance cache hit + w_dense identity
             #  -> c: test_read_cache_on_new_instance
             #  (nptest.assert_array_equal). E10 version-2 gate on the
