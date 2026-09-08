@@ -53,7 +53,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.lm_worker_validate import lm_worker_validate
 from twolm.rlm_validate import validate_model

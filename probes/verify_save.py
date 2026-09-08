@@ -101,7 +101,7 @@ def tier_b():
 def _chain(fixture, name_prefix):
     from unittest.mock import patch
     from io import StringIO
-    from twolm.state_machine import Verbosity
+    from reversi.tools.state_machine import Verbosity
     from twolm.logistic_model import LogisticModel
     with patch('sys.stdout', new=StringIO()) as out:
         tmp = tempfile.mkdtemp(dir=str(SRC.parent / 'build' / 'tmp'))

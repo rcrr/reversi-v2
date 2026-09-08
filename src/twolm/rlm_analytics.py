@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
 from twolm.rlm_gradient import sigmoid
-from twolm.state_machine import Relevance
+from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

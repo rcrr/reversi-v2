@@ -63,7 +63,7 @@ from reversi.tools.cache_manager import (
     _delete_cache_files,
     SHA3_256_CHECKSUM_SUFFIX,
 )
-from twolm.state_machine import Relevance
+from reversi.tools.state_machine import Relevance
 from twolm.test.paths import CUSTOM_TMP_BASE
 
 

@@ -33,7 +33,7 @@ from typing import List
 
 from pydantic import ConfigDict, validate_call
 
-from twolm.state_machine import StateMachine, Worker, Context, Verbosity
+from reversi.tools.state_machine import StateMachine, Worker, Context, Verbosity
 
 
 __all__ = ['BaseModel']

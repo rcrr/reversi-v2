@@ -35,7 +35,7 @@ from pathlib import Path
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools import binio
-from twolm.state_machine import Relevance
+from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

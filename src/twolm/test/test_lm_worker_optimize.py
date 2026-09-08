@@ -52,7 +52,7 @@ from unittest.mock import patch
 import numpy as np
 import numpy.testing as nptest
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from twolm.test.tags import db_long_gate

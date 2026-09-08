@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import validate_call, ConfigDict
 
-from twolm.state_machine import Worker, Relevance
+from reversi.tools.state_machine import Worker, Relevance
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet
 from twolm.pattern import Pattern, PatternSet

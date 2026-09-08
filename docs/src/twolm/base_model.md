@@ -1,6 +1,6 @@
 # twolm/base_model.py
 `BaseModel` is a thin **facade base class** for pipeline domains: it
-encapsulates the generic delegation to `twolm.state_machine.StateMachine`
+encapsulates the generic delegation to `reversi.tools.state_machine.StateMachine`
 so concrete domain facades (LogisticModel today, DeepNetworkModel in the
 planned future) do not repeat the boilerplate. It owns NO pipeline state
 of its own: the `StateMachine` is the only stateful object, and the

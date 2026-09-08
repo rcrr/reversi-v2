@@ -140,7 +140,7 @@ check('C10 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
 # ---------------------------------------------------------------- D tier (live)
 sys.path.insert(0, str(ROOT / 'src'))
 from twolm.logistic_model import LogisticModel  # noqa: E402
-from twolm.state_machine import Verbosity  # noqa: E402
+from reversi.tools.state_machine import Verbosity  # noqa: E402
 
 CLIP = 0.03
 

@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import validate_call, ConfigDict
 
-from twolm.state_machine import Worker, Relevance
+from reversi.tools.state_machine import Worker, Relevance
 from twolm.rlm_indexes import (ReversiLogisticModelIndexes,
                                rlm_indexes_load_from_file,
                                rlm_indexes_store_to_file,

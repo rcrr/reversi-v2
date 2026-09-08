@@ -232,7 +232,7 @@ check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.
 # C — pipeline integration (live regab DB required).
 #
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 
 (TMP / "base1").mkdir(parents=True, exist_ok=True)

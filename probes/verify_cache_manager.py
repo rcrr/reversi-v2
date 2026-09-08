@@ -14,7 +14,7 @@ from reversi.tools.cache_manager import (
 # cache_manager (the checksum service moved to reversi.tools.binio); the sidecar
 # is now written in sha3_256sum format by write_sha3_256_sidecar.
 from reversi.tools.binio import write_sha3_256_sidecar
-from twolm.state_machine import Relevance
+from reversi.tools.state_machine import Relevance
 
 TMP = Path(tempfile.mkdtemp(dir="build/tmp"))
 FAILS = []

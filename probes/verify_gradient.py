@@ -134,7 +134,7 @@ check("C10 step pins + T7 _down test",
 
 # ---------------------------------------------------------------- D tier
 print("== tier D: live pipeline + independent re-derivation (DB)")
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 
 

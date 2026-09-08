@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_state_machine
+# time python3 -m unittest reversi.test.test_state_machine
 #
 
 import unittest
@@ -50,7 +50,7 @@ from unittest.mock import MagicMock, patch
 from io import StringIO
 from datetime import datetime, timezone, timedelta
 
-from twolm.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
+from reversi.tools.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
 # House rule (D-065): test artifacts are written ONLY under
 # workspace_root/build/tmp and removed afterwards. The workspace
@@ -794,7 +794,7 @@ class TestDisplayGoldens(unittest.TestCase):
         """[ts UTC] [step][name       ] [rel:verb] message — full
         golden line per event (the enum-name rendering and the UTC
         marker are pinned too, M6, D-070)."""
-        with patch('twolm.state_machine.datetime',
+        with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
             with redirect_stdout(buf):
@@ -817,7 +817,7 @@ class TestDisplayGoldens(unittest.TestCase):
         banner, 66-underscore separator, header (UTC timestamp,
         2-digit step, relevance name), one row per log entry
         (M6, D-070)."""
-        with patch('twolm.state_machine.datetime',
+        with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
             with redirect_stdout(buf):
@@ -850,7 +850,7 @@ class TestDisplayGoldens(unittest.TestCase):
         80-dash rule, one row per executed step (start at
         microsecond precision; duration = finish - start, pinned at
         0.003000 by the frozen clock)."""
-        with patch('twolm.state_machine.datetime',
+        with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
             with redirect_stdout(buf):

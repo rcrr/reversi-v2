@@ -33,7 +33,7 @@ import numpy as np
 
 sys.path.insert(0, "src")
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.regab import regab_load_data_set_from_file
 from twolm.lm_worker_positions import lm_worker_positions

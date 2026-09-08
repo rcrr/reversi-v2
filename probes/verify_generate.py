@@ -197,7 +197,7 @@ else:
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
         from twolm.logistic_model import LogisticModel
-        from twolm.state_machine import Verbosity
+        from reversi.tools.state_machine import Verbosity
         m = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
         # (E1 'the pipeline reaches GENERATE' deleted at D-106 step 3,

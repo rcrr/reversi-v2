@@ -43,7 +43,7 @@ from reversi.tools.binio import (
     verify_sha3_256_sidecar,
     write_sha3_256_sidecar,
 )
-from twolm.state_machine import Relevance
+from reversi.tools.state_machine import Relevance
 
 
 

@@ -69,7 +69,7 @@ def check(name, ok, detail=""):
 # --- V1: RLMContext dataclass shape --------------------------------------
 from twolm.logistic_model import RLMContext, LogisticModel
 from twolm.base_model import BaseModel
-from twolm.state_machine import Context
+from reversi.tools.state_machine import Context
 
 check("V1a is_dataclass", dataclasses.is_dataclass(RLMContext))
 fields = {f.name: f for f in dataclasses.fields(RLMContext)}

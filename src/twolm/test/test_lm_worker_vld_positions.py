@@ -55,7 +55,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools import binio
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.lm_worker_positions import is_cache_consistent
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT

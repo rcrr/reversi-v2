@@ -33,7 +33,7 @@ MODULES=(
     twolm.test.test_feature
     # 2 — infrastructure
     reversi.test.test_cache_manager
-    twolm.test.test_state_machine
+    reversi.test.test_state_machine
     twolm.test.test_logistic_model
     twolm.test.test_paths
     # 3 — DB access

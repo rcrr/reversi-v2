@@ -166,7 +166,7 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
     skip("C-tier (live DB golden re-derivation)", "SKIP_REGAB_DB=1")
 else:
     from twolm.logistic_model import LogisticModel
-    from twolm.state_machine import Verbosity
+    from reversi.tools.state_machine import Verbosity
     from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
     from twolm.rlm_analytics import format_file_report
 

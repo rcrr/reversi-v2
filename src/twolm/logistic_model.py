@@ -33,7 +33,7 @@ from typing import List, Any, Callable
 
 from pydantic import ConfigDict, validate_call
 
-from twolm.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
+from reversi.tools.state_machine import StateMachine, Worker, Context, Verbosity, Relevance
 from twolm.base_model import BaseModel
 
 # Import worker factories

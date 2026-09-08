@@ -53,7 +53,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.rlm_zed import zed_fun_factory
 from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE

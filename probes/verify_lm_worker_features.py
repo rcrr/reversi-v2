@@ -91,7 +91,7 @@ check("A9 M2 FIXED (D-082): no non-comment trailing-whitespace lines",
 
 import numpy as np
 
-from twolm.state_machine import Relevance, Verbosity
+from reversi.tools.state_machine import Relevance, Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.feature import Feature, FeatureSet
 from twolm.mobility import Mobility, MobilitySet

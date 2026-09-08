@@ -54,7 +54,7 @@ from unittest.mock import patch
 from io import StringIO
 from pathlib import Path
 
-from twolm.state_machine import Verbosity
+from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 from twolm.regab import RegabDBConnection, RegabDataSet

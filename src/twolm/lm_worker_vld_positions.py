@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import validate_call, ConfigDict
 
-from twolm.state_machine import Worker, Relevance
+from reversi.tools.state_machine import Worker, Relevance
 from twolm.regab import (
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file

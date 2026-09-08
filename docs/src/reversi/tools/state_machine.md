@@ -1,4 +1,4 @@
-# twolm/state_machine.py
+# reversi/tools/state_machine.py
 A generic, domain-agnostic pipeline orchestrator: a StateMachine
 drives an ordered list of Worker steps over a shared Context, with
 relevance-gated logging, per-step timing history and CSV export of

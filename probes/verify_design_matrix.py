@@ -179,7 +179,7 @@ seen_n_inst = None
 seen_n_conf = None
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     from twolm.logistic_model import LogisticModel
-    from twolm.state_machine import Verbosity
+    from reversi.tools.state_machine import Verbosity
     rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
     rlm_lm.move_to_step("DESIGN_MTR")

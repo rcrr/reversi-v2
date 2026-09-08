@@ -1,4 +1,4 @@
-# twolm/test/test_state_machine.py
+# reversi/test/test_state_machine.py
 The state-machine unit suite — 5 classes / 49 tests, no PERF gates,
 ~0.3 s, no DB. The D-057..D-070 T/M campaign narrative froze in the
 archive; at D-106 step 3 the verify_lm_worker_config.py E2/E3 probe

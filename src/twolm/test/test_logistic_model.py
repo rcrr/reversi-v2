@@ -55,7 +55,7 @@ from twolm.logistic_model import (LogisticModel, RLMContext,
                                   _check_base_dir_override,
                                   _check_config_file_path,
                                   _created_down, _created_up)
-from twolm.state_machine import Worker, Verbosity
+from reversi.tools.state_machine import Worker, Verbosity
 from twolm.test.paths import CUSTOM_TMP_BASE
 
 

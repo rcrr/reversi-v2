@@ -31,7 +31,7 @@ from pydantic import validate_call, ConfigDict
 
 from typing import TYPE_CHECKING
 
-from twolm.state_machine import Worker, Relevance
+from reversi.tools.state_machine import Worker, Relevance
 from twolm.rlm_validate import validate_model
 
 if TYPE_CHECKING:
