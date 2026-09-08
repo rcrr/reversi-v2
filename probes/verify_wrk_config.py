@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from twolm.logistic_model import LogisticModel, RLMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Verbosity
-import twolm.lm_worker_config as lwc
+import reversi.lm.wrk_config as lwc
 import reversi.tools.binio as binio
 
 TMP_BASE = ROOT / "build" / "tmp" / "vlog_lmwc_d077"

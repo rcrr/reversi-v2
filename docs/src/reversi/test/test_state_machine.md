@@ -1,7 +1,7 @@
 # reversi/test/test_state_machine.py
 The state-machine unit suite — 5 classes / 49 tests, no PERF gates,
 ~0.3 s, no DB. The D-057..D-070 T/M campaign narrative froze in the
-archive; at D-106 step 3 the verify_lm_worker_config.py E2/E3 probe
+archive; at D-106 step 3 the verify_wrk_config.py E2/E3 probe
 checks were converted into full-message `assertEqual` pins in two
 existing tests (count unchanged).
 > State: D-106 · 73a72d3 · 2026-09-04 · suite 49/0/0 (no PERF gates,
@@ -49,5 +49,5 @@ existing tests (count unchanged).
   load-bearing (M9 left as-is; the future redesign is parked at
   I-010).
 - The D-106 step-3 conversions (73a72d3) came from
-  `probes/verify_lm_worker_config.py` (E2/E3 → the two
+  `probes/verify_wrk_config.py` (E2/E3 → the two
   `TestStateMachine` full-message pins).

@@ -1,5 +1,5 @@
 #
-# lm_worker_config.py
+# wrk_config.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

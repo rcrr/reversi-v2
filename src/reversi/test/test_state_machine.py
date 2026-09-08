@@ -259,7 +259,7 @@ class TestStateMachine(unittest.TestCase):
         """Test that providing an invalid string name raises ValueError.
 
         D-106 step 3 (probe_rules.md §4): pins the FULL message,
-        converted from the verify_lm_worker_config.py E2 probe (the
+        converted from the verify_wrk_config.py E2 probe (the
         D-107 re-pin of the guard contract)."""
         with self.assertRaises(ValueError) as context:
             self.sm.move_to_step("NON_EXISTENT_WORKER")
@@ -271,7 +271,7 @@ class TestStateMachine(unittest.TestCase):
         """Test that providing an index >= len(workers) raises IndexError.
 
         D-106 step 3 (probe_rules.md §4): pins the FULL message,
-        converted from the verify_lm_worker_config.py E3 probe (the
+        converted from the verify_wrk_config.py E3 probe (the
         D-107 re-pin of the guard contract)."""
         with self.assertRaises(IndexError) as context:
             self.sm.move_to_step(3)

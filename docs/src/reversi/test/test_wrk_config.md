@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_config.py
+# reversi/test/test_wrk_config.py
 The test module of the CONFIG worker (Roberto's file, brought in
 with the D-076 pipeline enablement; the D-078 T1-T4 campaign
 re-anchored it, and step 3 of D-106 moved probe check D1 into it).

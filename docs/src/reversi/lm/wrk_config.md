@@ -1,4 +1,4 @@
-# twolm/lm_worker_config.py
+# reversi/lm/wrk_config.py
 The CONFIG worker of the RLM pipeline — the second level, the first
 non-sentinel. It loads the RLM JSON5 config file, validates it into
 the rlm_config_schemas domain model, stores a checksummed copy in
@@ -41,7 +41,7 @@ the per-worker cache slot, and publishes the model (and the
 
 ## Verified invariants
 
-Pinned by `probes/verify_lm_worker_config.py` (25 checks) +
+Pinned by `probes/verify_wrk_config.py` (25 checks) +
 `test_lm_worker_config.py` (15 tests, 4 classes).
 
 - Source shape: the `__all__` name, the factory name "CONFIG", the

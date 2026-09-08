@@ -37,7 +37,7 @@ from reversi.tools.state_machine import StateMachine, Worker, Context, Verbosity
 from reversi.base_model import BaseModel
 
 # Import worker factories
-from twolm.lm_worker_config import lm_worker_config
+from reversi.lm.wrk_config import lm_worker_config
 from twolm.lm_worker_positions import lm_worker_positions
 from twolm.lm_worker_features import lm_worker_features
 from twolm.lm_worker_indexes import lm_worker_indexes

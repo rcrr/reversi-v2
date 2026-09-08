@@ -1,6 +1,6 @@
 # twolm/test/test_logistic_model.py
 The logistic-model unit suite — 1 class / 17 tests (15 original + 2
-converted from the verify_lm_worker_config.py D1/E4b probe checks at
+converted from the verify_wrk_config.py D1/E4b probe checks at
 D-106 step 3), no PERF gates, ~0.15 s, no DB. 311 lines; the D-075
 T-campaign narrative froze in the archive.
 > State: D-106 · 73a72d3 · 2026-09-04 · suite 17/0/0 (no PERF gates,

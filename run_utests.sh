@@ -42,7 +42,7 @@ MODULES=(
     #     immediately before its worker; the 15-level end-to-end
     #     chain — including SAVE — last)
     reversi.test.test_hlp_config_schemas
-    twolm.test.test_lm_worker_config
+    reversi.test.test_wrk_config
     twolm.test.test_lm_worker_positions
     twolm.test.test_lm_worker_features
     twolm.test.test_rlm_indexes

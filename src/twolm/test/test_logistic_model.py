@@ -146,7 +146,7 @@ class TestLogisticModel(unittest.TestCase):
         fail with AttributeError (the injection-order fact; a bare
         RLMContext instead keeps the no-op lambda default, D-074 R1).
 
-        Converted from the verify_lm_worker_config.py E4b probe at D-106
+        Converted from the verify_wrk_config.py E4b probe at D-106
         step 3 (probe_rules.md §4)."""
         with self.assertRaises(AttributeError):
             self.model.context.get_cache_file_path_for_current_level()

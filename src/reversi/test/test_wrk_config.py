@@ -37,7 +37,7 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_lm_worker_config
+# time python3 -m unittest reversi.test.test_wrk_config
 #
 
 import unittest
@@ -287,7 +287,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         override) raises FileNotFoundError from the CONFIG worker.
 
         D-106 step 3 (probe_rules.md §4): the third base_dir guard
-        branch, converted from the verify_lm_worker_config.py D1 probe.
+        branch, converted from the verify_wrk_config.py D1 probe.
         The file (NotADirectoryError) and not-writable (PermissionError)
         branches are pinned above."""
         payload = json5.loads(
