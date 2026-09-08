@@ -368,3 +368,17 @@ D-130 | 2026-09-07 | Suite tiers LONG/VLONG + canonical
         VLONG=1 ./run_utests.sh); overview.md suite-status
         bullet; the 14 mirror docs (the gate-mechanism
         naming); the A2050 skipUnless is VLONG.
+
+D-131 | 2026-09-08 | Pre-commit verification scope =
+        LONG=1, not VLONG (Roberto): the D-130 wording
+        ("full = VLONG=1 ./run_utests.sh") is corrected —
+        the standard pre-commit suite is LONG=1
+        ./run_utests.sh (the fast tier + the DB-gated
+        pipeline, ~50 s); VLONG=1 (the ~10-min A2050
+        chain) is used ONLY when we understand it is
+        useful (e.g. a change touching the full_chain /
+        A2050 code).
+        | rules.md D-129 bullet amended (now D-129,
+        D-131). Note: the actual D-130 pre-commit
+        verification ran the VLONG tier — a superset, so
+        that commit is covered.

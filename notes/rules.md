@@ -134,12 +134,15 @@ theme, with its origin D-number.
   int/uint counts, f32-quantized values (train_loss, g_norm,
   the tps read-back truncations), sha3 hashes and the
   in-run determinism tests. (D-127)
-- Before every commit: run the FULL test suite with no
-  gates (the live regab DB is the normal environment;
-  full = VLONG=1 ./run_utests.sh);
-  the gated run (SKIP_REGAB_DB=1) covers only the DB-free
-  subset and is not a substitute for the pre-commit
-  verification. (D-129)
+- Before every commit: run the FULL pre-commit suite =
+  LONG=1 ./run_utests.sh (the fast tier + all the
+  DB-gated pipeline tests; the live regab DB is the normal
+  environment). VLONG=1 is NOT part of the standard
+  pre-commit — run it only when we understand it is useful
+  (the ~10-min A2050 chain). The gated run
+  (SKIP_REGAB_DB=1) covers only the DB-free subset and is
+  not a substitute for the pre-commit verification.
+  (D-129, D-131)
 - Suite tiers (D-130): default = the fast tier (~5 s,
   586 tests, no DB); LONG=1 adds the DB-gated pipeline
   tests (~45 s); VLONG=1 adds the ~10-min A2050 end-to-end

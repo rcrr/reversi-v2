@@ -63,9 +63,11 @@ positions generated from random gameplay paths.
   venv activation + the modules in canonical order; tiers:
   default fast ~5 s, LONG=1 ~45 s, VLONG=1 ~10 min incl. the
   A2050 chain and implies LONG; PERF=1 adds the print-only perf
-  tests). A single module: `.venv/bin/python -m unittest
-  twolm.test.<module>`. The DB-gated suites (test_regab + the
-  worker suites) need a live PostgreSQL + .env + LONG=1, or
+  tests). The standard pre-commit run is LONG=1 ./run_utests.sh
+  (D-129/D-131); VLONG=1 only when useful. A single module:
+  `.venv/bin/python -m unittest twolm.test.<module>`. The
+  DB-gated suites (test_regab + the worker suites) need a live
+  PostgreSQL + .env + LONG=1, or
   `SKIP_REGAB_DB=1` to skip the 70 DB tests (2 mocked run). The
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
