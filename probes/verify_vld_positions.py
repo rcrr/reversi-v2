@@ -110,7 +110,7 @@ check("B4 RLMContext pre-declared vld fields (vld_rds_checksum, vld_positions, "
       and "    vld_pop_stats: Any = None" in lm_src
       and "    vld_metrics: Any = None" in lm_src
       and "    analytics_report: Any = None" in lm_src)
-sc_src = read("src/twolm/rlm_config_schemas.py")
+sc_src = read("src/reversi/lm/hlp_config_schemas.py")
 check("B5 ReversiLogisticModelConfig.validation_data_set: ValidationDataSetConfig "
       "(bid: List[NonNegativeInt] + status: List[StatusString], no ec field — "
       "the vld query inherits ec from regab_data_set)",

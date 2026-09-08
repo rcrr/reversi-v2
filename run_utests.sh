@@ -41,7 +41,7 @@ MODULES=(
     # 4 — the pipeline, machine order 1-14 (each data module
     #     immediately before its worker; the 15-level end-to-end
     #     chain — including SAVE — last)
-    twolm.test.test_rlm_config_schemas
+    reversi.test.test_hlp_config_schemas
     twolm.test.test_lm_worker_config
     twolm.test.test_lm_worker_positions
     twolm.test.test_lm_worker_features

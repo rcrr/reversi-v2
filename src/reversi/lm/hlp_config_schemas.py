@@ -1,5 +1,5 @@
 #
-# rlm_config_schemas.py
+# hlp_config_schemas.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

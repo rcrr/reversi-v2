@@ -1,4 +1,4 @@
-# twolm/test/test_rlm_config_schemas.py
+# reversi/test/test_hlp_config_schemas.py
 The first test module of the rlm_config_schemas config domain —
 created at D-106 step 3 as the probe_rules §4 conversion of the
 verify_lm_worker_positions probe E section (the probe keeps only

@@ -1,4 +1,4 @@
-# twolm/rlm_config_schemas.py
+# reversi/lm/hlp_config_schemas.py
 The pydantic config DOMAIN of the RLM pipeline: one public entry,
 `ReversiLogisticModelConfig`, over a tree of nested configs — the
 JSON5 document that lm_worker_config loads and validates. Every

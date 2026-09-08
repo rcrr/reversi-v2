@@ -38,7 +38,7 @@
 # -1- Run the tests (no database required — the schemas validate
 #     in memory only).
 #
-# time python3 -m unittest twolm.test.test_rlm_config_schemas
+# time python3 -m unittest reversi.test.test_hlp_config_schemas
 #
 
 import unittest
@@ -47,7 +47,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from twolm.rlm_config_schemas import (
+from reversi.lm.hlp_config_schemas import (
     ReversiLogisticModelConfig,
     PatternConfig,
     PatternSetConfig,

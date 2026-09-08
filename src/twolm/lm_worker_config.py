@@ -37,7 +37,7 @@ from pathlib import Path
 from pydantic import ConfigDict, validate_call
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.rlm_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 
 if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext

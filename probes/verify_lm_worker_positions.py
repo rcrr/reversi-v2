@@ -2,7 +2,7 @@
 # verify_lm_worker_positions.py
 #
 # Independent ground-truth probe for lm_worker_positions.py +
-# rlm_config_schemas.py (session 21, D-079 analysis; re-pinned to
+# hlp_config_schemas.py (session 21, D-079 analysis; re-pinned to
 # the fixed behaviour in session 22, D-080).
 #
 # A: structure / source pins (no DB)
@@ -227,7 +227,7 @@ print("--- E. rlm_config_schemas validation behaviour ---")
 #  deterministic pydantic unit behaviour, no DB, no live pipeline.
 #  E7 stays here: a source-text inspection, which stays a probe per
 #  probe_rules.md §4.)
-import twolm.rlm_config_schemas as rs
+import reversi.lm.hlp_config_schemas as rs
 rsrc = Path(rs.__file__).read_text()
 check("E7 model_validator import now used by the c2>c1 validator (D-080 R1/M2)",
       "model_validator" in rsrc.split("from pydantic import")[1].split(")")[0]

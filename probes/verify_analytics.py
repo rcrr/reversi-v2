@@ -154,10 +154,10 @@ check("B4 RLMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
 check("B5 the schema has AnalyticsConfig (detailed_report default [], "
       "report_file_name default 'model_analytics_report.txt') — so "
       "ctx.cfg.analytics always exists and L60 of the worker is safe",
-      "class AnalyticsConfig(RLMBaseConfig)" in read("src/twolm/rlm_config_schemas.py")
-      and 'report_file_name: str = Field(' in read("src/twolm/rlm_config_schemas.py")
-      and 'default="model_analytics_report.txt"' in read("src/twolm/rlm_config_schemas.py")
-      and "    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)" in read("src/twolm/rlm_config_schemas.py"))
+      "class AnalyticsConfig(RLMBaseConfig)" in read("src/reversi/lm/hlp_config_schemas.py")
+      and 'report_file_name: str = Field(' in read("src/reversi/lm/hlp_config_schemas.py")
+      and 'default="model_analytics_report.txt"' in read("src/reversi/lm/hlp_config_schemas.py")
+      and "    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)" in read("src/reversi/lm/hlp_config_schemas.py"))
 
 # ----------------------------------------------------------------------
 # C. GOLDEN re-derivation (live DB) — the rlm_02.json pipeline to ANALYTICS
