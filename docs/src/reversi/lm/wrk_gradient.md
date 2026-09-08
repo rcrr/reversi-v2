@@ -1,4 +1,4 @@
-# twolm/lm_worker_gradient.py
+# reversi/lm/wrk_gradient.py
 The GRADIENT worker of the RLM pipeline: builds the loss/gradient
 closure in `_up` (`ctx.fg = hlp_gradient_compute(ctx)`) and clears
 it in `_down`. The SECOND non-cache level (after ZED): the comment

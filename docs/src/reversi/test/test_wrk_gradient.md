@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_gradient.py
+# reversi/test/test_wrk_gradient.py
 The worker integration test of the GRADIENT level: the rlm_02
 end-to-end golden (the 4 values at w=0 — the single source of
 truth after the step-3 class c deletions of the former probe
