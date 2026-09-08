@@ -1,7 +1,7 @@
 # twolm/rlm_analytics.py
 The ANALYTICS data module — the 14th active level (the 13th step), the 2nd
 function-only data module of a non-cache level (like hlp_gradient /
-rlm_validate): 4 public functions + 3 private helpers, NO data class, NO
+hlp_validate): 4 public functions + 3 private helpers, NO data class, NO
 store/load, NO cache_manager. Computes the training-side metrics (the
 COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the
 DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
@@ -53,7 +53,7 @@ DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
   `pop_loss` (0.5·mean squared z residuals via `ctx.y2z`); `train_loss =
   opt_info['f']` (0.0 when `opt_info` is None).
 - `compute_training_dense_metrics` (L483-521, D-105/M2): the DENSE forward
-  pass — the rlm_validate expanded-offsets idiom (`col_offsets =
+  pass — the hlp_validate expanded-offsets idiom (`col_offsets =
   np.repeat(...)`, `dense_indices = ctx.hlp_indexes.indexes + col_offsets`)
   → `sigmoid` → `ctx.z2y`.
 
@@ -92,7 +92,7 @@ None.
 
 ## Conventions
 - NO `@validate_call` on the 4 public data functions and no no-validation
-  note — consistent with rlm_validate, approved in D-102 without one.
+  note — consistent with hlp_validate, approved in D-102 without one.
 - The `sigmoid` is REUSED from hlp_gradient (L36) — no local copy.
 - Report-only: the TRAINING "Loss (MSE/2)" cell is `opt_info['f']`
   (ridge-inclusive) while the TRAINING-DENSE / VALIDATION / Population

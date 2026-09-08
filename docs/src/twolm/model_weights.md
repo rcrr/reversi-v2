@@ -3,7 +3,7 @@ The persistence layer of the saved RLM model: the third data module in
 the pipeline family (after hlp_indexes/hlp_wmaps and the hlp_generate
 store/load pair) and the first with a plain `@dataclass` (no pydantic
 BaseModel, no `@validate_call` on the data functions — consistent with
-rlm_validate/rlm_analytics). It serializes the INFERENCE SUBSET of
+hlp_validate/rlm_analytics). It serializes the INFERENCE SUBSET of
 `RLMContext` into one lz4-compressed binary file (binio) so that
 `rlm_client.make_evaluation_function` can evaluate board positions
 without the database, the cache, or most of the pipeline state.
@@ -94,7 +94,7 @@ None.
   opt_info, 4/7 vld metrics, tps 4/4 — nothing in the client or the
   tests requires the dropped keys (O2, report-only).
 - No `@validate_call` on the two data functions (consistent with
-  rlm_validate / rlm_analytics — O5, accepted by Roberto).
+  hlp_validate / rlm_analytics — O5, accepted by Roberto).
 - The f32 truncation of the float64 tps stats is a FORMAT property,
   not a bug: the file is the inference artifact, f32 throughout the
   weight-bearing parts.

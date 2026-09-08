@@ -100,7 +100,7 @@ None.
   by Roberto (the rlmwf_12 slot stays unused like 03/07/08).
 - The 2 data-module INFO lines come from rlm_analytics
   (compute_training_metrics + compute_training_dense_metrics) —
-  consistent with rlm_validate.
+  consistent with hlp_validate.
 - `Worker.up` is `@validate_call`-gated with `context: Context`
   (state_machine L87-90): a bare SimpleNamespace is rejected
   (the D-tier probe fakes use it only for the data functions).

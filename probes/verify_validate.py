@@ -2,11 +2,11 @@
 """
 verify_validate.py — scratch probe for the VALIDATE bring-in
 (session 28, Roberto's commit 536eadc — the 13th pipeline level,
-the first bring-in with a dedicated data module rlm_validate).
+the first bring-in with a dedicated data module hlp_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
-  A. lm_worker_validate.py + rlm_validate.py structure (pinned to
+  A. lm_worker_validate.py + hlp_validate.py structure (pinned to
      the post-campaign expectations: R1 the unimported `Any`
      annotation, T1 the factory gate, T2 the dead imports, T3 the
      wrong header name, T4 the ws lines, T5 the missing test file)
@@ -67,7 +67,7 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. lm_worker_validate.py + rlm_validate.py structure
+# A. lm_worker_validate.py + hlp_validate.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/twolm/lm_worker_validate.py")
 dv_src = read("src/reversi/lm/hlp_validate.py")
@@ -81,7 +81,7 @@ check("A2 the factory is @validate_call-decorated + pydantic imported "
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("A3 no dead import in the worker (`numpy as np` is never used)",
       "import numpy as np" not in wk_src)
-check("A4 no dead import in rlm_validate (RegabDBConnection + "
+check("A4 no dead import in hlp_validate (RegabDBConnection + "
       "regab_extract_data_set_from_db are never used — the data comes from "
       "ctx.vld_positions / ctx.vld_game_values, set by VLD_POSITIONS)",
       "RegabDBConnection" not in dv_src
@@ -92,7 +92,7 @@ check("A5 the `Any` in the `Dict[str, Any]` return annotation is imported "
       "calls get_type_hints on validate_model today; the D-074 R2 class)",
       "Any" in _typing_line or "-> Dict[str, Any]:" not in dv_src,
       f"typing line: {repr(_typing_line)}")
-check("A6 the rlm_validate header carries its OWN name (the bring-in says "
+check("A6 the hlp_validate header carries its OWN name (the bring-in says "
       "rlm_config_schemas.py — copy-paste)",
       lines("src/reversi/lm/hlp_validate.py")[1] == "# hlp_validate.py")
 _wk_ws = ws_lines("src/twolm/lm_worker_validate.py")
@@ -100,7 +100,7 @@ _dv_ws = ws_lines("src/reversi/lm/hlp_validate.py")
 check("A7a the worker has no code ws lines (pre-campaign: L48/L49/L51 — the 2 "
       "ws-only + the trailing on the validate_model call)",
       _wk_ws == [], f"lines {_wk_ws}")
-check("A7b rlm_validate has no code ws lines (pre-campaign: 27 lines — the "
+check("A7b hlp_validate has no code ws lines (pre-campaign: 27 lines — the "
       "docstring trailing ws + the docstring ws-only lines + L108/L118)",
       _dv_ws == [], f"lines {_dv_ws}")
 check("A8 a test file exists for the worker (pre-campaign: absent — T5)",
@@ -109,7 +109,7 @@ check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
       "ctx.vld_metrics = None" in wk_src
       and wk_src.count("ctx.vld_metrics = None") == 1
       and "ctx.vld_metrics = metrics" in wk_src)
-check("A10 rlm_validate REUSES sigmoid from hlp_gradient (defined + exported there)",
+check("A10 hlp_validate REUSES sigmoid from hlp_gradient (defined + exported there)",
       "from reversi.lm.hlp_gradient import sigmoid" in dv_src
       and "def sigmoid(x: np.ndarray) -> np.ndarray:" in read("src/reversi/lm/hlp_gradient.py")
       and "'sigmoid'" in read("src/reversi/lm/hlp_gradient.py").split("__all__ = ")[1].split("]")[0])

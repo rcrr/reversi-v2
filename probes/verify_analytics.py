@@ -3,7 +3,7 @@
 verify_analytics.py — scratch probe for the ANALYTICS bring-in
 (session 28, Roberto's commit 96dacb5 — the 14th pipeline level,
 the 2nd bring-in with a dedicated data module, rlm_analytics,
-function-only like hlp_gradient / rlm_validate).
+function-only like hlp_gradient / hlp_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
@@ -124,7 +124,7 @@ check("A9 the worker uses NO cache_manager (ANALYTICS is pure compute — like "
       "cache_manager" not in wk_src and "cache_manager" not in dv_src)
 check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       "@validate_call (the rlm_indexes-L166 class — consistent with "
-      "rlm_validate.validate_model; report-only pin; D-105/M2 added "
+      "hlp_validate.validate_model; report-only pin; D-105/M2 added "
       "compute_training_dense_metrics)",
       dv_src.count("@validate_call") == 0
       and dv_src.count('def ') == 7
