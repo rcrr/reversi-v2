@@ -198,7 +198,7 @@ from twolm.rlm_validate import validate_model
 
 
 def fake_ctx(game_values, indexes, offsets, w_dense):
-    # The y2z/z2y lambdas mirror the zed factory (rlm_zed L80-83/L87-89):
+    # The y2z/z2y lambdas mirror the zed factory (hlp_zed L80-83/L87-89):
     # the float32 CAST BEFORE the affine (the real y2z does NOT overflow on
     # int8 64 — a raw (y + 64) on int8 would wrap to -128).
     return SimpleNamespace(

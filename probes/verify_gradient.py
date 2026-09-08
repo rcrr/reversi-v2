@@ -302,7 +302,7 @@ gdl = gd.splitlines()
 check("G1 line count 169 + no-DB header claim",
       len(gdl) == 169 and
       "no live regab DB required" in gd and
-      "as in test_rlm_zed" in gd, f"{len(gdl)}")
+      "as in test_hlp_zed" in gd, f"{len(gdl)}")
 check("G2 2 classes 8 tests",
       gd.count("class Test") == 2 and
       len(re.findall(r"    def test_\w+", gd)) == 8)
