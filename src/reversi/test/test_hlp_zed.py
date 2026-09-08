@@ -38,7 +38,7 @@
 # -1- Run the tests (no live regab DB required — the compute test
 #     uses a handcrafted mock context, as in test_hlp_design_matrix).
 #
-# time python3 -m unittest twolm.test.test_rlm_zed
+# time python3 -m unittest reversi.test.test_hlp_zed
 #
 
 import unittest
@@ -50,7 +50,7 @@ import numpy.testing as nptest
 
 from pydantic import ValidationError
 
-from twolm.rlm_zed import (ReversiLogisticModelZed,
+from reversi.lm.hlp_zed import (ReversiLogisticModelZed,
                            rlm_zed_compute,
                            zed_fun_factory)
 

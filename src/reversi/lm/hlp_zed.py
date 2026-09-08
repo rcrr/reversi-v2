@@ -1,5 +1,5 @@
 #
-# rlm_zed.py
+# hlp_zed.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

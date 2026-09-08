@@ -1,4 +1,4 @@
-# twolm/test/test_rlm_zed.py
+# reversi/test/test_hlp_zed.py
 The dedicated data-object suite of the rlm_zed module (created in
 the D-092 fix campaign, T3 — the ZED level arrived with only the
 worker test, this file closes the coverage gap; the D-090 T6

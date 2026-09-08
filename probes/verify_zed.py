@@ -256,7 +256,7 @@ check('G8  header: no-DB claim ("no live regab DB required — the compute test"
 check('G9  T8 clean: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == {6, 11, 16, 21})
 check('G10 the 3 domain names imported (ReversiLogisticModelZed / rlm_zed_compute / zed_fun_factory)',
-      'from twolm.rlm_zed import (ReversiLogisticModelZed,' in '\n'.join(gd)
+      'from reversi.lm.hlp_zed import (ReversiLogisticModelZed,' in '\n'.join(gd)
       and 'rlm_zed_compute,' in '\n'.join(gd)
       and 'zed_fun_factory)' in '\n'.join(gd))
 

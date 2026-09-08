@@ -55,7 +55,7 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.rlm_zed import zed_fun_factory
+from reversi.lm.hlp_zed import zed_fun_factory
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from reversi.test.tags import db_long_gate
 

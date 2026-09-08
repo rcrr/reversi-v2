@@ -1,4 +1,4 @@
-# twolm/rlm_zed.py
+# reversi/lm/hlp_zed.py
 The ZED domain module of the RLM pipeline: the
 `ReversiLogisticModelZed` data object (the z (N,) float32 vector —
 the affine image of the per-position game values — + the two affine
