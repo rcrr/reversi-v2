@@ -57,7 +57,7 @@ from twolm.rlm_optimize import (save_optimization_checkpoint,
                                 is_optimization_status_converged,
                                 optimization_info_dict,
                                 weights_compute_sha3_256_hash)
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 def _mock_ctx(ridge=0.01, min_grad=(1e-3, 3),

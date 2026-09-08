@@ -48,7 +48,7 @@
 #
 # Usage (a plain function called on the test case):
 #
-#     from twolm.test.closecheck import assert_close
+#     from reversi.test.closecheck import assert_close
 #     assert_close(self, met['train_rmse_y'], 15.58872172931622,
 #                  'train_rmse_y')
 

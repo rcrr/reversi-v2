@@ -120,7 +120,7 @@ check("C2 no non-comment trailing whitespace",
 from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
                                 compute_w_dense)
 
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
@@ -198,7 +198,7 @@ else:
         tmp = Path(tmp)
         from twolm.logistic_model import LogisticModel
         from reversi.tools.state_machine import Verbosity
-        m = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json"),
+        m = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
         # (E1 'the pipeline reaches GENERATE' deleted at D-106 step 3,
         #  class c: test_lm_worker_generate.py::TestLMWorkerGenerate::

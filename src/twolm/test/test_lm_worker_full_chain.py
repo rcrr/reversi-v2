@@ -61,9 +61,9 @@ from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
 from twolm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
 from twolm.rlm_client import make_evaluation_function
 from twolm.rlm_gradient import sigmoid
-from twolm.test.closecheck import assert_close
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from twolm.test.tags import db_long_gate
+from reversi.test.closecheck import assert_close
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.tags import db_long_gate
 
 
 def _masked_report_hash(report_text):
@@ -87,7 +87,7 @@ class TestFullChainA2030(unittest.TestCase):
             self.mock_stdout = self.patcher_stdout.start()
 
         self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_04.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_04.json")
 
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
@@ -285,7 +285,7 @@ class TestFullChainA2050(unittest.TestCase):
             self.mock_stdout = self.patcher_stdout.start()
 
         self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_03.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_03.json")
 
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,

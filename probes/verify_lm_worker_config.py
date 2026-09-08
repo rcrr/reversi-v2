@@ -3,7 +3,7 @@
 Verification probe for the lm_worker_config analysis (session 21, D-077).
 
 Independently re-derives the module's invariants against the real test
-config (src/twolm/test/data/rlm_00.json) with a scratch base dir under
+config (src/reversi/test/data/rlm_00.json) with a scratch base dir under
 build/tmp (D-065). Prints ok/FAIL per check and a mismatch count.
 """
 import hashlib
@@ -24,7 +24,7 @@ import twolm.lm_worker_config as lwc
 import reversi.tools.binio as binio
 
 TMP_BASE = ROOT / "build" / "tmp" / "vlog_lmwc_d077"
-CONFIG_JSON = ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json"
+CONFIG_JSON = ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json"
 
 mismatches = []
 

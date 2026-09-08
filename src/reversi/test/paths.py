@@ -40,7 +40,7 @@ def _workspace_root() -> Path:
     for parent in (here, *here.parents):
         if (parent / "pyproject.toml").is_file():
             return parent
-    raise RuntimeError("workspace root not found: no pyproject.toml upwards from twolm/test/")
+    raise RuntimeError("workspace root not found: no pyproject.toml upwards from reversi/test/")
 
 
 #: The workspace root: the first ancestor of this file holding the

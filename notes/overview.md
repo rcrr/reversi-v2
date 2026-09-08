@@ -178,7 +178,7 @@ One row per test file, alphabetical.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
-| src/twolm/test/paths.py | the single home for workspace-root-anchored test paths (D-085) — helper module (0 tests) | — | docs/src/twolm/test/paths.md |
+| src/reversi/test/paths.py | the single home for workspace-root-anchored test paths (D-085) — helper module (0 tests) | — | docs/src/reversi/test/paths.md |
 | src/reversi/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/reversi/test/test_binio.md |
 | src/reversi/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121) | 201/0/12 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
@@ -200,7 +200,7 @@ One row per test file, alphabetical.
 | src/twolm/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/twolm/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |
 | src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
-| src/twolm/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/twolm/test/test_paths.md |
+| src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
 | src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/reversi/test/test_regab.md |
 | src/twolm/test/test_rlm_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/twolm/test/test_rlm_config_schemas.md |
@@ -214,7 +214,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/reversi/test/test_state_machine.md |
 | src/reversi/test/test_usage_binio.py | complete: the 3 usage tests (D-051) | 3/0/0 | docs/src/reversi/test/test_usage_binio.md |
 
-Test data (src/twolm/test/data/): rlm_00.json (the JSON5 config, D-076),
+Test data (src/reversi/test/data/): rlm_00.json (the JSON5 config, D-076),
 rlm_01.json (the training DB dump), rlm_02.json (the DB dump), rlm_03.json +
 rlm_04.json (the validation sets) — the per-file mirror docs cover them.
 

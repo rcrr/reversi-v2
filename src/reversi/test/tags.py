@@ -40,7 +40,7 @@
 # Usage (called on the test case, FIRST in setUp, as the D-080
 # T2 gate shape):
 #
-#     from twolm.test.tags import db_long_gate
+#     from reversi.test.tags import db_long_gate
 #     ...
 #     def setUp(self):
 #         db_long_gate(self)

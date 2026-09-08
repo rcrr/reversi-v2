@@ -58,8 +58,8 @@ import twolm.lm_worker_features as lmwf
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Relevance, Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from twolm.test.tags import db_long_gate
+from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from reversi.test.tags import db_long_gate
 
 
 class TestLMWorkerFeatures(unittest.TestCase):
@@ -83,7 +83,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
                                  base_dir_override=self.tmp_dir)
@@ -188,7 +188,7 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
         mobility/pattern sets) is rejected with a ValueError and an
         ERROR log event (the fail-fast guard)."""
         payload = json5.loads(
-            (WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" /
+            (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_00.json").read_text())
         payload["feature_set"] = {"intercept": False}
         cfg0 = ReversiLogisticModelConfig(**payload)

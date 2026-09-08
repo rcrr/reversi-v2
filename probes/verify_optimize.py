@@ -172,7 +172,7 @@ check("C3 no SKIP_REGAB_DB gate in code (not needed — no DB)",
       "os.getenv" not in c_code and "skipTest" not in c_code)
 check("C4 D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c
-      and "from twolm.test.paths import CUSTOM_TMP_BASE" in c
+      and "from reversi.test.paths import CUSTOM_TMP_BASE" in c
       and "mkdtemp" not in c and "shutil" not in c)
 check("C5 defensive tearDown",
       "if getattr(self, '_tmp', None) is not None:\n            self._tmp.cleanup()" in c)
@@ -220,7 +220,7 @@ check("D2 T1: SKIP_REGAB_DB gate in setUp (header claim now true)",
 check("D3 T2: D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in d
       and "Path(self._tmp.name)" in d
-      and 'WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json"' in d
+      and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"' in d
       and "mkdtemp" not in d and "shutil" not in d)
 check("D4 T4: dead imports removed (skipUnless gone; os/Path now used)",
       "skipUnless" not in d
@@ -338,7 +338,7 @@ def h_main():
         # HIGH (not LOW): at LOW=3 the machine only displays WARN+, so the
         # worker INFO logs (and the lbfgs logger INFO lines) would never be
         # captured — same verbosity choice as the worker test itself.
-        json_config = str(ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json")
+        json_config = str(ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
         rlm = LogisticModel(json_config, verbosity=Verbosity.HIGH,
                             base_dir_override=tmp)
         out = StringIO()

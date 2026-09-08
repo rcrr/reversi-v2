@@ -64,7 +64,7 @@ from reversi.tools.cache_manager import (
     SHA3_256_CHECKSUM_SUFFIX,
 )
 from reversi.tools.state_machine import Relevance
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 #: A constant dummy payload to simulate computed/cached data

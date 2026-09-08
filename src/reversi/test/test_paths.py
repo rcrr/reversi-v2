@@ -37,19 +37,19 @@
 #
 # -1- Run the tests.
 #
-# time python3 -m unittest twolm.test.test_paths
+# time python3 -m unittest reversi.test.test_paths
 #
 
 
 
 import unittest
 
-from twolm.test import paths
+from reversi.test import paths
 
 
 
 class TestPaths(unittest.TestCase):
-    """Tests for the twolm.test.paths workspace-root constants (D-085)."""
+    """Tests for the reversi.test.paths workspace-root constants (D-085)."""
 
     def test_workspace_root_holds_the_marker(self):
         """WORKSPACE_ROOT is absolute and holds the pyproject.toml marker."""
@@ -58,7 +58,7 @@ class TestPaths(unittest.TestCase):
 
     def test_workspace_root_is_ancestor_of_this_file(self):
         """The root contains the test package this file belongs to."""
-        self.assertTrue((paths.WORKSPACE_ROOT / "src" / "twolm" / "test" / "paths.py").is_file())
+        self.assertTrue((paths.WORKSPACE_ROOT / "src" / "reversi" / "test" / "paths.py").is_file())
 
     def test_custom_tmp_base_is_under_the_root(self):
         """CUSTOM_TMP_BASE is exactly <root>/build/tmp, absolute."""

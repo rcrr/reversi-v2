@@ -54,8 +54,8 @@ import numpy.testing as nptest
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from twolm.test.tags import db_long_gate
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.tags import db_long_gate
 
 
 class TestLMWorkerOptimize(unittest.TestCase):
@@ -75,7 +75,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
         # under the shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored config.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
 
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,

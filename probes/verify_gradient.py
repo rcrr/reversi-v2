@@ -108,7 +108,7 @@ check("C3 T5 gate in code",
       "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in code_no_header and
       "# T5 (D-093): the SKIP_REGAB_DB gate, as in test_regab" in c)
 check("C4 T6 D-085 idiom",
-      "from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
+      "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c and
       "Path(self._tmp.name)" in c and
       "WORKSPACE_ROOT / \"src\" / \"twolm\" / \"test\" / \"data\" / \"rlm_02.json\"" in c
@@ -148,7 +148,7 @@ def live(name, fn):
 
 def d_main():
     with tempfile.TemporaryDirectory(dir=ROOT / "build" / "tmp") as tmp:
-        json_config = str(ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json")
+        json_config = str(ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
         rlm = LogisticModel(json_config, verbosity=Verbosity.LOW,
                             base_dir_override=tmp)
 
@@ -309,7 +309,7 @@ check("G2 2 classes 8 tests",
 check("G3 no DB wiring",
       "from twolm.logistic_model" not in gd and
       "SKIP_REGAB_DB" not in gd and
-      "twolm.test.paths" not in gd and
+      "reversi.test.paths" not in gd and
       "import os" not in gd)
 check("G4 SimpleNamespace mock",
       "from types import SimpleNamespace" in gd and

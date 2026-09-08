@@ -59,8 +59,8 @@ from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
 from twolm.lm_worker_positions import is_cache_consistent
-from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from twolm.test.tags import db_long_gate
+from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from reversi.test.tags import db_long_gate
 
 
 class TestLMWorkerPositions(unittest.TestCase):
@@ -83,7 +83,7 @@ class TestLMWorkerPositions(unittest.TestCase):
         # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")
 
         # Instance 1: Will populate the cache
         self.rlm = LogisticModel(self.json_config,
@@ -159,7 +159,7 @@ class TestIsCacheConsistent(unittest.TestCase):
     tst_regab @ localhost:5432) — no DB, no cache file."""
 
     def setUp(self):
-        self.json_path = (WORKSPACE_ROOT / "src" / "twolm" / "test" /
+        self.json_path = (WORKSPACE_ROOT / "src" / "reversi" / "test" /
                           "data" / "rlm_00.json")
         self.rc = RegabDBConnection("tst_regab", "tst_regab", "localhost",
                                     "5432", activate_conn=False)

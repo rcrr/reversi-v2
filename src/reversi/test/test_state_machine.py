@@ -54,7 +54,7 @@ from reversi.tools.state_machine import StateMachine, Worker, Context, Relevance
 
 # House rule (D-065): test artifacts are written ONLY under
 # workspace_root/build/tmp and removed afterwards. The workspace
-# root is 3 levels up from this file (src/twolm/test/).
+# root is 3 levels up from this file (src/reversi/test/).
 TMP_DIR = Path(__file__).resolve().parents[3] / "build" / "tmp"
 
 

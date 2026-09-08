@@ -73,10 +73,10 @@ def tier_a():
     tt = t.read_text()
     check('A10 test: SKIP_REGAB_DB gate x2 (T5a)', tt.count("os.getenv('SKIP_REGAB_DB', '0') == '1'") == 2)
     check('A11 test: D-085 idiom (T5b)',
-          'from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE' in tt
+          'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE' in tt
           and 'mkdtemp(dir=str(CUSTOM_TMP_BASE))' in tt
-          and 'WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_04.json"' in tt
-          and 'WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_03.json"' in tt)
+          and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_04.json"' in tt
+          and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_03.json"' in tt)
     check('A12 test: no stray #: ### (T5c)', '#: ###' not in tt)
     check('A13 test: no dead imports (T2)',
           'numpy.testing as nptest' not in tt and 'nptest.' not in tt)

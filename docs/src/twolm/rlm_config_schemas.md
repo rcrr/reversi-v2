@@ -112,4 +112,4 @@ None.
   (**raw)` after the json5 load).
 - The Bitboard primitive + `bitboard_from_hex_str` come from
   `board.py`.
-- The JSON5 fixture: `src/twolm/test/data/rlm_00.json`.
+- The JSON5 fixture: `src/reversi/test/data/rlm_00.json`.

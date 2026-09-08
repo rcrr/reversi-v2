@@ -58,7 +58,7 @@ from twolm.rlm_generate import (ReversiLogisticModelDenseWeights,
                                 rlm_generate_load_from_file,
                                 rlm_generate_is_cache_consistent,
                                 compute_w_dense)
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMGenerateCompute(unittest.TestCase):

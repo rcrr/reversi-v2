@@ -52,7 +52,7 @@ TMP = ROOT / "build" / "tmp" / "verify_rlm_indexes"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
-CFG = "src/twolm/test/data/rlm_00.json"
+CFG = "src/reversi/test/data/rlm_00.json"
 
 fails = 0
 
@@ -317,12 +317,12 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 
 tsrc = (ROOT / "src" / "twolm" / "test" / "test_lm_worker_indexes.py").read_text()
 
-check("E1 153 lines, 1 class / 2 tests (post D-085: the D-065 idiom moved to twolm.test.paths)",
+check("E1 153 lines, 1 class / 2 tests (post D-085: the D-065 idiom moved to reversi.test.paths)",
       len(tsrc.splitlines()) == 153
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
-check("E2 D-084 T1 (D-085: re-anchored via twolm.test.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
-      "from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
+check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
+      "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "setUpClass" in tsrc
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)

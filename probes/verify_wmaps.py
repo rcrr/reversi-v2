@@ -124,7 +124,7 @@ check("C7 defensive tearDown (getattr _tmp guard, no shutil)",
       "        if getattr(self, '_tmp', None) is not None:" in read("src/twolm/test/test_rlm_wmaps.py")
       and "shutil" not in read("src/twolm/test/test_rlm_wmaps.py"))
 check("C8 the D-085 paths import is present (L60)",
-      t1[59] == "from twolm.test.paths import CUSTOM_TMP_BASE", repr(t1[59]))
+      t1[59] == "from reversi.test.paths import CUSTOM_TMP_BASE", repr(t1[59]))
 check("C9 the dead StringIO AND patch imports are gone (D-087 T4)",
       "StringIO" not in read("src/twolm/test/test_rlm_wmaps.py")
       and "unittest.mock" not in read("src/twolm/test/test_rlm_wmaps.py")
@@ -172,7 +172,7 @@ check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L83 rlm_00, L185 rlm
       and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"twolm\" / \"test\" / \"data\" / \"rlm_01.json\")",
       repr(t2[82]))
 check("D7 the D-085 paths import is present (L57)",
-      t2[56] == "from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[56]))
+      t2[56] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[56]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("src/twolm/test/test_lm_worker_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
 check("D9 the D-078 cache names are pinned (rlmwf_05_WMAPS.dat + .SHA3-256)",
@@ -200,13 +200,13 @@ import tempfile
 #  by test_lm_worker_wmaps.py::test_compute_wmaps_exact_values, so
 #  extracting them and comparing was tautological.)
 
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     from twolm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json"),
+    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
     rlm_lm.move_to_step("WMAPS")
     ctx = rlm_lm.context
@@ -230,11 +230,11 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 # ----------------------------------------------------------------------
 # F. Cross-fixture / context facts
 # ----------------------------------------------------------------------
-fix = json5.loads((WS / "src" / "twolm" / "test" / "data" / "rlm_01.json").read_text())
+fix = json5.loads((WS / "src" / "reversi" / "test" / "data" / "rlm_01.json").read_text())
 sm = fix["stat_model"]
 check("F1 rlm_01 stat_model == {cut_off 2, logit 0.03, ridge 0.0}",
       sm == {"frequency_cut_off": 2, "logit_clipping": 0.03, "ridge_regularization": 0.0}, repr(sm))
-fix0 = json5.loads((WS / "src" / "twolm" / "test" / "data" / "rlm_00.json").read_text())
+fix0 = json5.loads((WS / "src" / "reversi" / "test" / "data" / "rlm_00.json").read_text())
 check("F2 rlm_00 stat_model == {cut_off 1, logit 0.05, ridge 0.0}",
       fix0["stat_model"] == {"frequency_cut_off": 1, "logit_clipping": 0.05, "ridge_regularization": 0.0})
 check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_' (D-078)",

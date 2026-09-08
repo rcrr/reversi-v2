@@ -35,7 +35,7 @@ MODULES=(
     reversi.test.test_cache_manager
     reversi.test.test_state_machine
     twolm.test.test_logistic_model
-    twolm.test.test_paths
+    reversi.test.test_paths
     # 3 — DB access
     reversi.test.test_regab
     # 4 — the pipeline, machine order 1-14 (each data module

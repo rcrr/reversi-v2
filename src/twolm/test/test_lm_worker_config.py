@@ -53,7 +53,7 @@ from pydantic import ValidationError
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
-from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 
 
 class TestLMWorkerConfig(unittest.TestCase):
@@ -72,7 +72,7 @@ class TestLMWorkerConfig(unittest.TestCase):
         # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
                                  base_dir_override=self.tmp_dir)
@@ -262,7 +262,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         fake_file = Path(self.tmp_dir) / "I_am_a_file.txt"
         fake_file.touch()
         
-        valid_json = Path('src/twolm/test/data/rlm_00.json')
+        valid_json = Path('src/reversi/test/data/rlm_00.json')
 
         # The check happens in __init__, not in the worker!
         with self.assertRaises(NotADirectoryError) as context:
@@ -274,7 +274,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         """Test that an un-writable directory raises PermissionError."""
         os.chmod(self.tmp_dir, 0o444)
 
-        valid_json = Path('src/twolm/test/data/rlm_00.json')
+        valid_json = Path('src/reversi/test/data/rlm_00.json')
         rlm = LogisticModel(valid_json, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
 
         # R3 (D-078): the precise OS exception type, not RuntimeError.
@@ -291,7 +291,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         The file (NotADirectoryError) and not-writable (PermissionError)
         branches are pinned above."""
         payload = json5.loads(
-            (WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json").read_text())
+            (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json").read_text())
         payload["base_dir"] = str(Path(self.tmp_dir) / "no_such_dir_xyz")
         json_path = Path(self.tmp_dir) / "rlm_00_nodir.json"
         with open(json_path, "w") as f:
@@ -316,7 +316,7 @@ class TestLMWorkerConfigCacheLogic(unittest.TestCase):
 
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.LOW,
                                  base_dir_override=self.tmp_dir)

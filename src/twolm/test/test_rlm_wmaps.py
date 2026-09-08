@@ -57,7 +57,7 @@ from twolm.rlm_wmaps import (ReversiLogisticModelWMaps,
                              rlm_wmaps_store_to_file,
                              rlm_wmaps_load_from_file,
                              rlm_wmaps_is_cache_consistent)
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMWmapsCompute(unittest.TestCase):

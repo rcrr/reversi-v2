@@ -56,8 +56,8 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from twolm.rlm_zed import zed_fun_factory
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from twolm.test.tags import db_long_gate
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.tags import db_long_gate
 
 
 
@@ -94,7 +94,7 @@ class TestLMWorkerZed(unittest.TestCase):
         # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")
+        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")
 
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,

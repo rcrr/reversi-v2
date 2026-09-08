@@ -55,7 +55,7 @@ from twolm.rlm_config_schemas import (
     ValidationDataSetConfig,
     StatModelConfig,
 )
-from twolm.test.paths import WORKSPACE_ROOT
+from reversi.test.paths import WORKSPACE_ROOT
 
 
 class TestRlmConfigSchemas(unittest.TestCase):
@@ -70,7 +70,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def setUp(self):
         self.base = json5.loads(
-            (WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" /
+            (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_00.json").read_text())
 
     def _cfg_dict(self, mutate=None) -> dict:

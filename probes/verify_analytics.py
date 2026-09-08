@@ -167,13 +167,13 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
 else:
     from twolm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+    from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
     from twolm.rlm_analytics import format_file_report
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
-        cfg_path = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_02.json")
+        cfg_path = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
 
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):

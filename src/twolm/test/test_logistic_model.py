@@ -56,7 +56,7 @@ from twolm.logistic_model import (LogisticModel, RLMContext,
                                   _check_config_file_path,
                                   _created_down, _created_up)
 from reversi.tools.state_machine import Worker, Verbosity
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestLogisticModel(unittest.TestCase):

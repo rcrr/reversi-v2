@@ -1,5 +1,5 @@
-# twolm/test/test_paths.py
-Unit tests for the `twolm.test.paths` workspace-root constants
+# reversi/test/test_paths.py
+Unit tests for the `reversi.test.paths` workspace-root constants
 (D-085): 1 class / 3 tests, no DB, no gate, no artifacts (pure path
 assertions).
 > State: D-085 · aef6188 · 2026-08-31 · suite 3/0/0 (1 class /
@@ -14,7 +14,7 @@ assertions).
 ## Goldens pinned
 
 - No float goldens: the pins are the three path identities above —
-  the marker presence, the `src/twolm/test/paths.py` descendant, and
+  the marker presence, the `src/reversi/test/paths.py` descendant, and
   the `<root>/build/tmp` equality.
 
 ## Conventions

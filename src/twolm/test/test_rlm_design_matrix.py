@@ -57,7 +57,7 @@ from twolm.rlm_design_matrix import (ReversiLogisticModelDesignMatrix,
                                      rlm_design_matrix_store_to_file,
                                      rlm_design_matrix_load_from_file,
                                      rlm_design_matrix_is_cache_consistent)
-from twolm.test.paths import CUSTOM_TMP_BASE
+from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMDesignMatrixCompute(unittest.TestCase):

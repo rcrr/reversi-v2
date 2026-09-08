@@ -98,7 +98,7 @@ Pinned by `probes/verify_lm_worker_config.py` (25 checks) +
   D-076) — the config fixture `rlm_00.json` is JSON5 with
   comments.
 - The test artifacts follow the D-065 idiom (`build/tmp`,
-  `CUSTOM_TMP_BASE` from `twolm.test.paths`).
+  `CUSTOM_TMP_BASE` from `reversi.test.paths`).
 - `@validate_call` on the public factory (house convention
   D-069, applied D-078 M4).
 
@@ -110,4 +110,4 @@ Pinned by `probes/verify_lm_worker_config.py` (25 checks) +
 - Consumes `rlm_config_schemas` (the domain) and
   `state_machine.Worker`; publishes `ctx.cfg` / `ctx.use_cache`
   that every later cache-consuming worker reads.
-- Test fixture: `src/twolm/test/data/rlm_00.json` (JSON5).
+- Test fixture: `src/reversi/test/data/rlm_00.json` (JSON5).

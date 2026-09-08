@@ -72,8 +72,8 @@ from reversi.regab import (RegabDBConnection,
                          regab_extract_data_set_from_db,
                          regab_store_data_set_to_file,
                          regab_load_data_set_from_file)
-from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from twolm.test.tags import db_long_gate
+from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from reversi.test.tags import db_long_gate
 
 import numpy as np
 import numpy.testing as nptest

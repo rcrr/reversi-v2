@@ -47,7 +47,7 @@ TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
 ALL1 = 0xFFFFFFFFFFFFFFFF
-CFG = "src/twolm/test/data/rlm_00.json"
+CFG = "src/reversi/test/data/rlm_00.json"
 
 fails = 0
 
@@ -218,15 +218,15 @@ check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 3)
-check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared twolm.test.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
-      "from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
+check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared reversi.test.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
+      "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc
       and 'tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))' in tsrc
       and "mkdtemp" not in tsrc)
 check("C4 T2 FIXED (D-082): the SKIP_REGAB_DB gate at the top of setUp",
       "SKIP_REGAB_DB" in tsrc
       and "self.skipTest('SKIP_REGAB_DB=1: database tests skipped')" in tsrc)
-check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to twolm.test.paths)",
+check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to reversi.test.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
 check("C6 T4 FIXED (D-082): header grammar 'How to run the lm_worker_features unit tests.' + DB/gate run note",
       "How to run the lm_worker_features unit tests." in tsrc

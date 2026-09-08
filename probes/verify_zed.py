@@ -106,14 +106,14 @@ check('C2  2 classes: TestZedFunFactory (L62, 1 test) + TestLMWorkerZed (L78, 2 
 check('C3  T1 DONE: import os (L45) + gate in setUp (L85) + paths import (L58)',
       tc[44] == 'import os'
       and tc[84] == "        if os.getenv('SKIP_REGAB_DB', '0') == '1':"
-      and tc[57] == 'from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
+      and tc[57] == 'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
       and 'self.skipTest(' in '\n'.join(tc))
 check('C4  header CLAIMS the gate (L38-39) — the claim is NOW true (ties to C3)',
       'SKIP_REGAB_DB=1' in tc[37] and 'skips the DB-gated tests' in tc[38])
 check('C5  T4 DONE: TemporaryDirectory FIRST (L94) under CUSTOM_TMP_BASE + tmp_dir = Path (L95) + WORKSPACE_ROOT json (L96)',
       tc[93] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
       and tc[94] == '        self.tmp_dir = Path(self._tmp.name)'
-      and tc[95] == '        self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")')
+      and tc[95] == '        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")')
 check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(self._tmp.name))',
       'import shutil' not in '\n'.join(tc) and tc[52] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
@@ -230,7 +230,7 @@ gd = lines_of('test/test_rlm_zed.py')
 check('G1  test_rlm_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from twolm.logistic_model', 'SKIP_REGAB_DB',
-                                           'twolm.test.paths', 'import os')))
+                                           'reversi.test.paths', 'import os')))
 check('G3  3 classes (L59/90/119): TestZedFunFactory + TestRLMZedCompute + TestReversiLogisticModelZed',
       gd[58] == 'class TestZedFunFactory(unittest.TestCase):'
       and gd[89] == 'class TestRLMZedCompute(unittest.TestCase):'

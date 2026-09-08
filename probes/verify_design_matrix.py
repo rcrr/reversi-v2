@@ -131,10 +131,10 @@ check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_
       read("src/twolm/test/test_lm_worker_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
       and "mkdtemp" not in read("src/twolm/test/test_lm_worker_design_matrix.py"))
 check("C5 T7 FIXED: both json_config paths are WORKSPACE_ROOT-anchored (rlm_00 + rlm_01)",
-      'self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_00.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and 'self.json_config = str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py"))
-check("C6 T7 FIXED: the twolm.test.paths import is present (WORKSPACE_ROOT + CUSTOM_TMP_BASE)",
-      "from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py")
+      and 'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+check("C6 T7 FIXED: the reversi.test.paths import is present (WORKSPACE_ROOT + CUSTOM_TMP_BASE)",
+      "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
 check("C7 T7 FIXED: the (former) shutil import is gone with the rmtree teardowns",
       "shutil" not in read("src/twolm/test/test_lm_worker_design_matrix.py"))
 check("C8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
@@ -172,7 +172,7 @@ import tempfile
 #  (expected_X, X) call in the test source, and the literal's
 #  (10,7) shape is the shape the test compares against.)
 
-from twolm.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 seen_n_inst = None
@@ -180,7 +180,7 @@ seen_n_conf = None
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     from twolm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "twolm" / "test" / "data" / "rlm_01.json"),
+    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
     rlm_lm.move_to_step("DESIGN_MTR")
     ctx = rlm_lm.context
@@ -227,7 +227,7 @@ check("F1 RLMContext declares design_matrix_checksum + design_matrix (pre-existi
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 import json5 as _j
-fix = _j.loads((WS / "src" / "twolm" / "test" / "data" / "rlm_01.json").read_text())
+fix = _j.loads((WS / "src" / "reversi" / "test" / "data" / "rlm_01.json").read_text())
 check("F4 rlm_01 stat_model == {cut_off 2, logit 0.03, ridge 0.0} (the WMAPS fixture, reused)",
       fix["stat_model"] == {"frequency_cut_off": 2, "logit_clipping": 0.03, "ridge_regularization": 0.0})
 check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations [1,65,27,81] (K=174)",
