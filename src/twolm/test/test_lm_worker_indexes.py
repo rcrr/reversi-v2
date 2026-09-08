@@ -115,7 +115,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
         self.assertIn("Executing heavy computation", logs)
 
         # Verify context was updated
-        self.assertIsNotNone(self.rlm.context.rlm_indexes)
+        self.assertIsNotNone(self.rlm.context.hlp_indexes)
 
     def test_read_cache_on_new_instance(self):
         """A second instance should read from the cache and NOT recompute."""
@@ -146,7 +146,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
         self.assertNotIn("Executing heavy computation", logs, "Indexes were recomputed even though a valid cache existed.")
 
         # Verify context was updated with cached data
-        self.assertIsNotNone(rlm2.context.rlm_indexes)
+        self.assertIsNotNone(rlm2.context.hlp_indexes)
 
 
 if __name__ == '__main__':

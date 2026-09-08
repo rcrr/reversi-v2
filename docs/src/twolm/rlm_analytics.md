@@ -45,7 +45,7 @@ DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
   name is in `ctx.cfg.analytics.detailed_report` (D-103 M3: non-optional
   field with a `default_factory`); `col_offset` accumulates over ALL
   features (intercept included) to line the column slices up with
-  `ctx.rlm_indexes.indexes`.
+  `ctx.hlp_indexes.indexes`.
 - `compute_training_metrics` (L443-481): the compressed forward pass —
   `np.sum(ctx.w[ctx.design_matrix].astype(np.float64), axis=1)` → `sigmoid`
   (reused) → `ctx.z2y`; `y_pred` vs `ctx.game_values`: `train_mae_y` /
@@ -54,7 +54,7 @@ DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
   opt_info['f']` (0.0 when `opt_info` is None).
 - `compute_training_dense_metrics` (L483-521, D-105/M2): the DENSE forward
   pass — the rlm_validate expanded-offsets idiom (`col_offsets =
-  np.repeat(...)`, `dense_indices = ctx.rlm_indexes.indexes + col_offsets`)
+  np.repeat(...)`, `dense_indices = ctx.hlp_indexes.indexes + col_offsets`)
   → `sigmoid` → `ctx.z2y`.
 
 ## Verified invariants
@@ -105,7 +105,7 @@ None.
 - Consumers: ONLY the ANALYTICS worker — the 4 public functions are the
   module's whole API (`__all__`).
 - Inputs: CONFIG (`ctx.cfg`), FEATURES (`ctx.feature_set` + `feature.ref`),
-  INDEXES (`ctx.rlm_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS
+  INDEXES (`ctx.hlp_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS
   (`ctx.w` + offsets/ranges/fallback), DESIGN_MTR (`ctx.design_matrix`),
   ZED (`ctx.y2z` / `ctx.z2y`), OPTIMIZE (`ctx.opt_info`), GENERATE
   (`ctx.w_dense`), VALIDATE (`ctx.vld_metrics` — the header's VALIDATION

@@ -53,7 +53,7 @@ class ReversiLogisticModelWMaps:
 
     Attributes
     ----------
-    rlm_indexes_checksum : str
+    hlp_indexes_checksum : str
         The hash of the Reversi Logistic Model indexes.
     cut_off : int
         The frequency cut-off threshold used to filter rare configurations.
@@ -90,7 +90,7 @@ class ReversiLogisticModelWMaps:
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
-                 rlm_indexes_checksum: str,
+                 hlp_indexes_checksum: str,
                  cut_off: int,
                  feature_w_ranges: np.ndarray,
                  iwmap_feature_offset: np.ndarray,
@@ -98,7 +98,7 @@ class ReversiLogisticModelWMaps:
                  wmap: np.ndarray,
                  wmap_fallback: np.ndarray,
                  w: np.ndarray):
-        self.rlm_indexes_checksum = rlm_indexes_checksum
+        self.hlp_indexes_checksum = hlp_indexes_checksum
         self.cut_off = cut_off
         self.feature_w_ranges = feature_w_ranges
         self.iwmap_feature_offset = iwmap_feature_offset
@@ -129,7 +129,7 @@ def rlm_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Pa
 
     with binio.BinaryWriter(filename) as w:
         w.write_header(description, version)
-        w.write_string(wmaps.rlm_indexes_checksum)
+        w.write_string(wmaps.hlp_indexes_checksum)
         w.write_i32(wmaps.cut_off)
         w.write_array(wmaps.feature_w_ranges)
         w.write_array(wmaps.iwmap_feature_offset)
@@ -156,7 +156,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
         if version != expected_version:
             raise RuntimeError(f"File version mismatch: found {version}, expected {expected_version}")
 
-        rlm_indexes_checksum = r.read_string()
+        hlp_indexes_checksum = r.read_string()
         cut_off = r.read_i32()
 
         feature_w_ranges = r.read_array()
@@ -167,7 +167,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
         w = r.read_array()
 
     return ReversiLogisticModelWMaps(
-        rlm_indexes_checksum=rlm_indexes_checksum,
+        hlp_indexes_checksum=hlp_indexes_checksum,
         cut_off=cut_off,
         feature_w_ranges=feature_w_ranges,
         iwmap_feature_offset=iwmap_feature_offset,
@@ -215,7 +215,7 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     K = iwmap_feature_offset[-1]
 
     iwmap = np.full(K, -1, dtype=np.int64)
-    pindexes = ctx.rlm_indexes.indexes
+    pindexes = ctx.hlp_indexes.indexes
     N = pindexes.shape[0]
     next_w = 0
     f_w_ranges = []
@@ -298,7 +298,7 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     w = np.zeros(next_w, dtype=np.float32)
 
     return ReversiLogisticModelWMaps(
-        rlm_indexes_checksum=ctx.rlm_indexes_checksum,
+        hlp_indexes_checksum=ctx.hlp_indexes_checksum,
         cut_off=cut_off,
         feature_w_ranges=feature_w_ranges_arr,
         iwmap_feature_offset=iwmap_feature_offset,
@@ -310,7 +310,7 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
 
 
 def rlm_wmaps_is_cache_consistent(ctx: "RLMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
-    """Validates the cache by checking rlm_indexes_checksum and cut_off."""
-    is_hash_consistent = wmaps.rlm_indexes_checksum == ctx.rlm_indexes_checksum
+    """Validates the cache by checking hlp_indexes_checksum and cut_off."""
+    is_hash_consistent = wmaps.hlp_indexes_checksum == ctx.hlp_indexes_checksum
     is_cut_off_consistent = wmaps.cut_off == ctx.cfg.stat_model.frequency_cut_off
     return is_hash_consistent and is_cut_off_consistent

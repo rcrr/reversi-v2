@@ -66,7 +66,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
     def setUp(self):
         # Create a dummy context to feed into rlm_wmaps_compute
         self.ctx = SimpleNamespace(
-            rlm_indexes_checksum="abc123"
+            hlp_indexes_checksum="abc123"
         )
 
         # 1. Define a mock feature set with 2 features
@@ -88,7 +88,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         # 3. Define a mock indexes matrix (Shape: N=4, I=3)
         # F0 (col 0): 0 appears 2x, 1 appears 1x, 2 appears 1x
         # F1 (col 1,2): raveled 0 appears 4x, 1 appears 4x
-        self.ctx.rlm_indexes = SimpleNamespace(
+        self.ctx.hlp_indexes = SimpleNamespace(
             indexes=np.array([
                 [0, 0, 0],  # F0=0, F1=0,0
                 [0, 0, 0],  # F0=0, F1=0,0
@@ -102,7 +102,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         wmaps = rlm_wmaps_compute(self.ctx)
 
         # Check basic attributes
-        self.assertEqual(wmaps.rlm_indexes_checksum, "abc123")
+        self.assertEqual(wmaps.hlp_indexes_checksum, "abc123")
         self.assertEqual(wmaps.cut_off, 2)
         self.assertEqual(len(wmaps.w), 4)  # Expected weights: 1 fallback + 1 above for F0, 2 above for F1
 
@@ -164,7 +164,7 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
 
     def setUp(self):
         self.ctx = SimpleNamespace(
-            rlm_indexes_checksum="abc123"
+            hlp_indexes_checksum="abc123"
         )
         self.ctx.feature_set = SimpleNamespace(hash="zyz789")
         self.ctx.cfg = SimpleNamespace(stat_model=SimpleNamespace(frequency_cut_off=5))
@@ -173,19 +173,19 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
         empty_arr = np.array([])
 
         self.wmaps_valid = ReversiLogisticModelWMaps(
-            rlm_indexes_checksum="abc123", cut_off=5,
+            hlp_indexes_checksum="abc123", cut_off=5,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
 
         self.wmaps_wrong_hash = ReversiLogisticModelWMaps(
-            rlm_indexes_checksum="wrong", cut_off=5,
+            hlp_indexes_checksum="wrong", cut_off=5,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
 
         self.wmaps_wrong_cutoff = ReversiLogisticModelWMaps(
-            rlm_indexes_checksum="abc123", cut_off=99,
+            hlp_indexes_checksum="abc123", cut_off=99,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
@@ -216,7 +216,7 @@ class TestRLMWmapsIO(unittest.TestCase):
 
         # Create a fully populated WMaps object to serialize
         self.wmaps_original = ReversiLogisticModelWMaps(
-            rlm_indexes_checksum="io_test_hash",
+            hlp_indexes_checksum="io_test_hash",
             cut_off=42,
             feature_w_ranges=np.array([[0, 1, 2]], dtype=np.int64),
             iwmap_feature_offset=np.array([0, 3], dtype=np.uint32),
@@ -240,7 +240,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         wmaps_loaded = rlm_wmaps_load_from_file(self.filepath, checksum=False)
 
         # Validate scalar attributes
-        self.assertEqual(wmaps_loaded.rlm_indexes_checksum, "io_test_hash")
+        self.assertEqual(wmaps_loaded.hlp_indexes_checksum, "io_test_hash")
         self.assertEqual(wmaps_loaded.cut_off, 42)
 
         # Validate numpy arrays
@@ -263,7 +263,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
         wmaps_loaded = rlm_wmaps_load_from_file(self.filepath, checksum=True)
-        self.assertEqual(wmaps_loaded.rlm_indexes_checksum, "io_test_hash")
+        self.assertEqual(wmaps_loaded.hlp_indexes_checksum, "io_test_hash")
         self.assertEqual(wmaps_loaded.cut_off, 42)
 
     def test_load_with_mismatched_sidecar(self):
@@ -301,7 +301,7 @@ class TestRLMWmapsInit(unittest.TestCase):
 
     def _make_valid(self, **overrides):
         kwargs = dict(
-            rlm_indexes_checksum="abc123",
+            hlp_indexes_checksum="abc123",
             cut_off=5,
             feature_w_ranges=np.array([[0, 0, 1]], dtype=np.int64),
             iwmap_feature_offset=np.array([0, 2], dtype=np.uint32),

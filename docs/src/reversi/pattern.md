@@ -196,5 +196,5 @@ None.
   bitboard utils, `Position`).
 - Consumed by: `feature.py`, `wrk_features.py` (the FEATURES
   pipeline level), `mobility.py`, `model_weights.py`,
-  `rlm_indexes.py`.
+  `hlp_indexes.py`.
 - Not a pipeline level itself: a domain module used BY the workers.

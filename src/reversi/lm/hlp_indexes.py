@@ -42,10 +42,10 @@ if TYPE_CHECKING:
 
 
 __all__ = ['ReversiLogisticModelIndexes',
-           'rlm_indexes_store_to_file',
-           'rlm_indexes_load_from_file',
-           'rlm_indexes_compute',
-           'rlm_indexes_is_cache_consistent']
+           'hlp_indexes_store_to_file',
+           'hlp_indexes_load_from_file',
+           'hlp_indexes_compute',
+           'hlp_indexes_is_cache_consistent']
 
 
 
@@ -92,8 +92,8 @@ class ReversiLogisticModelIndexes:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_indexes_store_to_file(
-        rlm_indexes: ReversiLogisticModelIndexes,
+def hlp_indexes_store_to_file(
+        hlp_indexes: ReversiLogisticModelIndexes,
         filename: str | Path
 ) -> None:
     """
@@ -113,19 +113,19 @@ def rlm_indexes_store_to_file(
         w.write_header(description, version)
 
         #: Write the rds_checksum
-        w.write_string(rlm_indexes.rds_checksum)
+        w.write_string(hlp_indexes.rds_checksum)
 
         #: Write the feature_set_hash
-        w.write_string(rlm_indexes.feature_set_hash)
+        w.write_string(hlp_indexes.feature_set_hash)
 
         # Write the data of the 2D indexes matrix
-        w.write_array(rlm_indexes.indexes)
+        w.write_array(hlp_indexes.indexes)
 
     return
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_indexes_load_from_file(
+def hlp_indexes_load_from_file(
         filename: str | Path,
         checksum: bool = True
 ) -> ReversiLogisticModelIndexes:
@@ -159,30 +159,30 @@ def rlm_indexes_load_from_file(
         # read the data of the 2D indexes matrix
         indexes = r.read_array()
 
-    rlm_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
+    hlp_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
 
-    return rlm_indexes
+    return hlp_indexes
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def rlm_indexes_compute(
+def hlp_indexes_compute(
         ctx: RLMContext
 ) -> ReversiLogisticModelIndexes:
     """Computes model indexes."""
     rds_checksum = ctx.rds_checksum
     feature_set_hash = ctx.feature_set.hash
     indexes = ctx.feature_set.compute_indexes(ctx.positions)
-    rlm_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
-    return rlm_indexes
+    hlp_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
+    return hlp_indexes
 
 
-def rlm_indexes_is_cache_consistent(
+def hlp_indexes_is_cache_consistent(
         ctx: RLMContext,
-        rlm_indexes: ReversiLogisticModelIndexes
+        hlp_indexes: ReversiLogisticModelIndexes
 ) -> bool:
     """Compare live configuration with cached dataset metadata."""
 
-    cached_rds_checksum = rlm_indexes.rds_checksum
-    cached_feature_set_hash = rlm_indexes.feature_set_hash
+    cached_rds_checksum = hlp_indexes.rds_checksum
+    cached_feature_set_hash = hlp_indexes.feature_set_hash
     expected_rds_checksum = ctx.rds_checksum
     expected_feature_set_hash = ctx.feature_set.hash
     is_cache_consistent = (cached_feature_set_hash == expected_feature_set_hash) and (cached_rds_checksum == expected_rds_checksum)

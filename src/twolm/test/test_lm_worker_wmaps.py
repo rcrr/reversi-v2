@@ -91,7 +91,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
-        # Move to INDEXES first, as WMAPS depends on the rlm_indexes loaded there
+        # Move to INDEXES first, as WMAPS depends on the hlp_indexes loaded there
         self.rlm.move_to_step('INDEXES')
         self.assertEqual(self.rlm.current_step, 4)
         self.assertEqual(self.rlm.current_worker_name, 'INDEXES')

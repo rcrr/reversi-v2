@@ -35,7 +35,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
   (wrong description / wrong version → the 2 RuntimeError
   messages); `read_string` + `read_array` → a fresh object.
 - `rlm_design_matrix_compute`: `pindexes =
-  ctx.rlm_indexes.indexes`; `col_offsets = np.repeat
+  ctx.hlp_indexes.indexes`; `col_offsets = np.repeat
   (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE
   guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)` →
@@ -109,7 +109,7 @@ None.
 
 - The 7th RLM level; the worker (lm_worker_design_matrix.py)
   carries the cache wiring, this module the data object + the 4
-  functions. Consumes `ctx.rlm_indexes` (INDEXES) + `ctx.iwmap` +
+  functions. Consumes `ctx.hlp_indexes` (INDEXES) + `ctx.iwmap` +
   `ctx.iwmap_feature_offset` + `ctx.wmaps_obj_checksum` (WMAPS) +
   the per-feature `n_instances` (FEATURES) — the SM half-open
   interval semantics guarantee all are set before `compute` runs.

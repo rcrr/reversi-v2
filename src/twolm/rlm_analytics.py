@@ -82,7 +82,7 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
         weighted_mean = 0.0
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    train_indexes = ctx.rlm_indexes.indexes[:, cols]
+    train_indexes = ctx.hlp_indexes.indexes[:, cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)
@@ -219,7 +219,7 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
     principal_configs = feature.ref.convert_to_principal_index(all_configs)
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    train_indexes = ctx.rlm_indexes.indexes[:, cols]
+    train_indexes = ctx.hlp_indexes.indexes[:, cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)
@@ -498,7 +498,7 @@ def compute_training_dense_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
 
-    dense_indices = ctx.rlm_indexes.indexes + col_offsets
+    dense_indices = ctx.hlp_indexes.indexes + col_offsets
     linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)
     z_pred = sigmoid(linear_predictor)
 

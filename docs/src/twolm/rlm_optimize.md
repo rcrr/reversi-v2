@@ -34,7 +34,7 @@ GRADIENT → OPTIMIZE).
   sidecar verify (L126) BEFORE any payload is trusted → the
   17-key dict.
 - `is_optimization_cache_consistent` (L174-211, the L173
-  no-validation note — the rlm_indexes L166 class): THREE gates
+  no-validation note — the hlp_indexes L166 class): THREE gates
   (R1 added the third): the design-matrix checksum, the zed
   checksum, `math.isclose(ridge, cp_ridge, rel_tol=1e-5,
   abs_tol=1e-8)` (the ridge is part of the objective — a change

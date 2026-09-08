@@ -27,7 +27,7 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
   advantage is at extreme x (where the naive `np.exp(−x)`
   overflows).
 - `rlm_gradient_compute`: NO `@validate_call` (the L52
-  no-validation note — the rlm_indexes L166 class, the D-094 T3
+  no-validation note — the hlp_indexes L166 class, the D-094 T3
   fix). Captures: `N = len(ctx.w)`, `X = ctx.design_matrix`,
   `M, P = X.shape` (M = positions), `X_flat = X.ravel()`,
   `z = ctx.z`, `alpha = ctx.cfg.stat_model.ridge_regularization

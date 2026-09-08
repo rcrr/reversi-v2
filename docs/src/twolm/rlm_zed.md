@@ -35,7 +35,7 @@ wiring, no rlmwf_07* file — see the worker doc).
   `z_to_y(z)`: the EXACT inverse, `a1 = float32(−64/(1 − 2c))`,
   `b1 = float32(128/(1 − 2c))`, `y = a1 + z·b1`.
 - `rlm_zed_compute`: NO `@validate_call` (the L94 no-validation
-  note — the rlm_indexes L166 class, the D-092 T6 fix). Body:
+  note — the hlp_indexes L166 class, the D-092 T6 fix). Body:
   `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y =
   zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
   returns the object.

@@ -33,10 +33,10 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_indexes import (ReversiLogisticModelIndexes,
-                               rlm_indexes_load_from_file,
-                               rlm_indexes_store_to_file,
-                               rlm_indexes_compute,
-                               rlm_indexes_is_cache_consistent)
+                               hlp_indexes_load_from_file,
+                               hlp_indexes_store_to_file,
+                               hlp_indexes_compute,
+                               hlp_indexes_is_cache_consistent)
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
@@ -52,26 +52,26 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing indexes for the feature set...")
 
     # Execute the abstracted pipeline.
-    cache_hit, rlm_indexes, rlm_indexes_checksum = cache_manager_load_or_compute(
+    cache_hit, hlp_indexes, hlp_indexes_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = lambda path: rlm_indexes_load_from_file(path, checksum=False),
-        store_fn    = rlm_indexes_store_to_file,
-        validate_fn = lambda cached_rlm_indexes: rlm_indexes_is_cache_consistent(ctx, cached_rlm_indexes),
-        compute_fn  = lambda: rlm_indexes_compute(ctx),
+        load_fn     = lambda path: hlp_indexes_load_from_file(path, checksum=False),
+        store_fn    = hlp_indexes_store_to_file,
+        validate_fn = lambda cached_hlp_indexes: hlp_indexes_is_cache_consistent(ctx, cached_hlp_indexes),
+        compute_fn  = lambda: hlp_indexes_compute(ctx),
         logger_fn   = ctx.log_event
     )
 
-    ctx.log_event(Relevance.INFO, "Model attribute rlm_indexes has been set.")
-    ctx.rlm_indexes = rlm_indexes
-    ctx.log_event(Relevance.INFO, f"Indexes checksum (rlm_indexes_checksum): {rlm_indexes_checksum}.")
-    ctx.rlm_indexes_checksum = rlm_indexes_checksum
+    ctx.log_event(Relevance.INFO, "Model attribute hlp_indexes has been set.")
+    ctx.hlp_indexes = hlp_indexes
+    ctx.log_event(Relevance.INFO, f"Indexes checksum (hlp_indexes_checksum): {hlp_indexes_checksum}.")
+    ctx.hlp_indexes_checksum = hlp_indexes_checksum
 
 
 def _down(ctx: "RLMContext") -> None:
-    ctx.log_event(Relevance.INFO, "Clearing rlm_indexes...")
-    ctx.rlm_indexes = None
-    ctx.rlm_indexes_checksum = None
+    ctx.log_event(Relevance.INFO, "Clearing hlp_indexes...")
+    ctx.hlp_indexes = None
+    ctx.hlp_indexes_checksum = None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

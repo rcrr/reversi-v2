@@ -87,7 +87,7 @@ class TestRLMDesignMatrixCompute(unittest.TestCase):
         self.ctx.iwmap = np.array([1, 0, 0, 2, 3], dtype=np.int64)
 
         # 4. Define a mock indexes matrix (Shape: N=4, I=3)
-        self.ctx.rlm_indexes = SimpleNamespace(
+        self.ctx.hlp_indexes = SimpleNamespace(
             indexes=np.array([
                 [0, 0, 0],  # F0=0, F1=0,0
                 [0, 1, 1],  # F0=0, F1=1,1

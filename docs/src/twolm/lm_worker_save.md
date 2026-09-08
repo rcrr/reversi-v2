@@ -29,7 +29,7 @@ ANALYTICS-report artifact semantics: build/ files persist across runs).
 - Imports (L28-38): pydantic `validate_call`/`ConfigDict` (L30, T1),
   `TYPE_CHECKING` (L32), `Worker`/`Relevance` from state_machine (L34),
   `model_weights_write_file` (L35), `RLMContext` under TYPE_CHECKING
-  (L37-38, the rlm_indexes-L166 class, as in every worker). The
+  (L37-38, the hlp_indexes-L166 class, as in every worker). The
   bring-in's dead `from pathlib import Path` is removed (T2).
 - `__all__ = ['lm_worker_save']` (L42).
 - `_up` (L46-52): INFO "Saving model weights to disk..." (L47) →

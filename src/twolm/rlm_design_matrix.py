@@ -107,7 +107,7 @@ def rlm_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def rlm_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMatrix:
     """Computes the Design Matrix X from principal indexes and iwmap."""
-    pindexes = ctx.rlm_indexes.indexes
+    pindexes = ctx.hlp_indexes.indexes
 
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)

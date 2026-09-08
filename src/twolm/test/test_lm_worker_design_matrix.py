@@ -118,7 +118,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
         self.assertIsNotNone(self.rlm.context.design_matrix)
 
         # The Design Matrix must have the same shape as the principal indexes matrix
-        expected_shape = self.rlm.context.rlm_indexes.indexes.shape
+        expected_shape = self.rlm.context.hlp_indexes.indexes.shape
         self.assertEqual(self.rlm.context.design_matrix.shape, expected_shape)
 
         # And must be of type uint32
@@ -154,7 +154,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
 
         # Verify context was updated with cached data
         self.assertIsNotNone(rlm2.context.design_matrix)
-        expected_shape = rlm2.context.rlm_indexes.indexes.shape
+        expected_shape = rlm2.context.hlp_indexes.indexes.shape
         self.assertEqual(rlm2.context.design_matrix.shape, expected_shape)
         self.assertEqual(rlm2.context.design_matrix.dtype, np.uint32)
 

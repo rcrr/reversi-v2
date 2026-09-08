@@ -1,5 +1,5 @@
 #
-# test_rlm_indexes.py
+# test_hlp_indexes.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_indexes unit tests.
+# How to run the hlp_indexes unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -50,7 +50,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from reversi.lm import hlp_indexes as rlm_indexes
+from reversi.lm import hlp_indexes
 
 import numpy as np
 
@@ -65,7 +65,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
         """Test successful initialization with valid parameters."""
         hash_val = "abc123"
 
-        obj = rlm_indexes.ReversiLogisticModelIndexes(
+        obj = hlp_indexes.ReversiLogisticModelIndexes(
             rds_checksum=hash_val,
             feature_set_hash=hash_val,
             indexes=DUMMY_INDEXES
@@ -82,7 +82,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
         indexes = DUMMY_INDEXES
 
         with self.assertRaises(ValidationError):
-            rlm_indexes.ReversiLogisticModelIndexes(
+            hlp_indexes.ReversiLogisticModelIndexes(
                 rds_checksum='abc',
                 feature_set_hash=12345,
                 indexes=indexes
@@ -91,15 +91,15 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
     def test_init_fails_with_invalid_indexes_type(self):
         """Test that Pydantic validation fails if indexes is not an IndexArray."""
         with self.assertRaises(ValidationError):
-            rlm_indexes.ReversiLogisticModelIndexes(
+            hlp_indexes.ReversiLogisticModelIndexes(
                 rds_checksum="valid_hash",
                 feature_set_hash="valid_hash",
                 indexes=[[1, 2], [3, 4]]
             )
 
 
-class TestRlmIndexesStoreToFile(unittest.TestCase):
-    """Tests for the rlm_indexes_store_to_file function."""
+class TestHlpIndexesStoreToFile(unittest.TestCase):
+    """Tests for the hlp_indexes_store_to_file function."""
 
     @patch('reversi.lm.hlp_indexes.binio')
     def test_store_to_file_success(self, mock_binio):
@@ -110,10 +110,10 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
         hash_val_a = "hash_xyz"
         hash_val_b = "hash_abc"
         indexes = DUMMY_INDEXES
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(hash_val_a, hash_val_b, indexes)
+        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(hash_val_a, hash_val_b, indexes)
         filename = "test_output.bin"
 
-        rlm_indexes.rlm_indexes_store_to_file(rlm_idx, filename)
+        hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename)
 
         # 1. Verify the writer was instantiated correctly
         mock_binio.BinaryWriter.assert_called_once_with(Path(filename))
@@ -141,16 +141,16 @@ class TestRlmIndexesStoreToFile(unittest.TestCase):
         mock_binio.BinaryWriter.return_value.__enter__.return_value = mock_writer
 
         indexes = DUMMY_INDEXES
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes("h", "h", indexes)
+        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes("h", "h", indexes)
         filename_path = Path("dir/test_output.bin")
 
-        rlm_indexes.rlm_indexes_store_to_file(rlm_idx, filename_path)
+        hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename_path)
 
         mock_binio.BinaryWriter.assert_called_once_with(filename_path)
 
 
-class TestRlmIndexesLoadFromFile(unittest.TestCase):
-    """Tests for the rlm_indexes_load_from_file function."""
+class TestHlpIndexesLoadFromFile(unittest.TestCase):
+    """Tests for the hlp_indexes_load_from_file function."""
 
     @patch('reversi.lm.hlp_indexes.binio')
     def test_load_from_file_success_with_checksum(self, mock_binio):
@@ -164,11 +164,11 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
 
         mock_binio.BinaryReader.return_value.__enter__.return_value = mock_reader
 
-        result = rlm_indexes.rlm_indexes_load_from_file("test.bin", checksum=True)
+        result = hlp_indexes.hlp_indexes_load_from_file("test.bin", checksum=True)
 
         mock_binio.verify_sha3_256_sidecar.assert_called_once_with("test.bin")
 
-        self.assertIsInstance(result, rlm_indexes.ReversiLogisticModelIndexes)
+        self.assertIsInstance(result, hlp_indexes.ReversiLogisticModelIndexes)
         self.assertEqual(result.feature_set_hash, "stored_hash")
         self.assertIsInstance(result.indexes, np.ndarray)
         self.assertEqual(result.indexes.dtype, np.uint32)
@@ -184,7 +184,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
 
         mock_binio.BinaryReader.return_value.__enter__.return_value = mock_reader
 
-        rlm_indexes.rlm_indexes_load_from_file("test.bin", checksum=False)
+        hlp_indexes.hlp_indexes_load_from_file("test.bin", checksum=False)
 
         mock_binio.verify_sha3_256_sidecar.assert_not_called()
 
@@ -194,7 +194,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
         mock_binio.verify_sha3_256_sidecar.return_value = False
 
         with self.assertRaises(RuntimeError) as context:
-            rlm_indexes.rlm_indexes_load_from_file("test.bin", checksum=True)
+            hlp_indexes.hlp_indexes_load_from_file("test.bin", checksum=True)
 
         self.assertIn("checksum file signature doesn't match", str(context.exception))
 
@@ -208,7 +208,7 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
         mock_binio.BinaryReader.return_value.__enter__.return_value = mock_reader
 
         with self.assertRaises(RuntimeError) as context:
-            rlm_indexes.rlm_indexes_load_from_file("test.bin")
+            hlp_indexes.hlp_indexes_load_from_file("test.bin")
 
         self.assertIn("not a proper", str(context.exception))
 
@@ -222,13 +222,13 @@ class TestRlmIndexesLoadFromFile(unittest.TestCase):
         mock_binio.BinaryReader.return_value.__enter__.return_value = mock_reader
 
         with self.assertRaises(RuntimeError) as context:
-            rlm_indexes.rlm_indexes_load_from_file("test.bin")
+            hlp_indexes.hlp_indexes_load_from_file("test.bin")
 
         self.assertIn("version is not consistent", str(context.exception))
 
 
-class TestRlmIndexesCompute(unittest.TestCase):
-    """Tests for the rlm_indexes_compute function."""
+class TestHlpIndexesCompute(unittest.TestCase):
+    """Tests for the hlp_indexes_compute function."""
 
     def test_compute_success(self):
         """Test that indexes are computed correctly from the model."""
@@ -242,17 +242,17 @@ class TestRlmIndexesCompute(unittest.TestCase):
         mock_model.feature_set.compute_indexes.return_value = expected_indexes
         mock_model.positions = "dummy_positions"
 
-        result = rlm_indexes.rlm_indexes_compute(mock_model)
+        result = hlp_indexes.hlp_indexes_compute(mock_model)
 
         mock_model.feature_set.compute_indexes.assert_called_once_with("dummy_positions")
 
-        self.assertIsInstance(result, rlm_indexes.ReversiLogisticModelIndexes)
+        self.assertIsInstance(result, hlp_indexes.ReversiLogisticModelIndexes)
         self.assertEqual(result.feature_set_hash, expected_hash)
         self.assertIs(result.indexes, expected_indexes)
 
 
-class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
-    """Tests for the rlm_indexes_is_cache_consistent function."""
+class TestHlpIndexesIsCacheConsistent(unittest.TestCase):
+    """Tests for the hlp_indexes_is_cache_consistent function."""
 
     def test_is_cache_consistent_returns_true(self):
         """Test that the function returns True when hashes match."""
@@ -260,13 +260,13 @@ class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "identical_hash"
 
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
             rds_checksum="identical_hash",
             feature_set_hash="identical_hash",
             indexes=DUMMY_INDEXES
         )
 
-        result = rlm_indexes.rlm_indexes_is_cache_consistent(mock_model, rlm_idx)
+        result = hlp_indexes.hlp_indexes_is_cache_consistent(mock_model, rlm_idx)
         self.assertTrue(result)
 
     def test_is_cache_consistent_returns_false(self):
@@ -275,13 +275,13 @@ class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "live_hash"
 
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
             rds_checksum="identical_hash",
             feature_set_hash="outdated_cached_hash",
             indexes=DUMMY_INDEXES
         )
 
-        result = rlm_indexes.rlm_indexes_is_cache_consistent(mock_model, rlm_idx)
+        result = hlp_indexes.hlp_indexes_is_cache_consistent(mock_model, rlm_idx)
         self.assertFalse(result)
 
     def test_is_cache_consistent_returns_false_rds_differs(self):
@@ -290,13 +290,13 @@ class TestRlmIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "live_hash"
         mock_model.feature_set.hash = "identical_hash"
 
-        rlm_idx = rlm_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
             rds_checksum="outdated_cached_hash",
             feature_set_hash="identical_hash",
             indexes=DUMMY_INDEXES
         )
 
-        result = rlm_indexes.rlm_indexes_is_cache_consistent(mock_model, rlm_idx)
+        result = hlp_indexes.hlp_indexes_is_cache_consistent(mock_model, rlm_idx)
         self.assertFalse(result)
 
 

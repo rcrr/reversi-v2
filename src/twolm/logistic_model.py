@@ -108,8 +108,8 @@ class RLMContext(Context):
     feature_set: Any = None
 
     # Indexes attribute:
-    rlm_indexes_checksum: str | None = None
-    rlm_indexes: Any = None
+    hlp_indexes_checksum: str | None = None
+    hlp_indexes: Any = None
 
     # Wmaps attributes:
     wmaps_obj_checksum: str | None = None

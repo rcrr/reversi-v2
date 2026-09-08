@@ -12,7 +12,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelWMaps` | plain class — 8 fields, assigned BY REFERENCE: `rlm_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
+| `ReversiLogisticModelWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
 | `rlm_wmaps_store_to_file(wmaps, filename)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; NO sidecar (cache_manager writes it) |
 | `rlm_wmaps_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
 | `rlm_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
@@ -30,7 +30,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 - `rlm_wmaps_store_to_file` (validated): `filename: str | Path` →
   Path; `binio.BinaryWriter` — `write_header
   ("ReversiLogisticModelWMaps binary data file", 1)`,
-  `write_string(rlm_indexes_checksum)`, `write_i32(cut_off)`,
+  `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`,
   `write_array` ×6 in declaration order (the write order is
   pinned). Plain docstring — no sidecar promise (the pipeline-flow
   sidecar is written by cache_manager, the D-072 machine).
@@ -39,7 +39,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   RuntimeError); then the header gate — wrong description →
   RuntimeError "The file is not a proper ...", wrong version →
   "File version mismatch: found ..., expected 1" (the DIFFERENT
-  wording vs rlm_indexes); then `read_string` + `read_i32` +
+  wording vs hlp_indexes); then `read_string` + `read_i32` +
   `read_array` ×6 → a fresh object.
 - `rlm_wmaps_compute`: `cut_off =
   ctx.cfg.stat_model.frequency_cut_off`; per feature: the pindexes
@@ -53,7 +53,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   `wmap_fallback` = the excluded rows; `w = zeros(next_w, float32)`.
 - `rlm_wmaps_is_cache_consistent` (PURE 2-field compare, no DB
   params, no recompute — the cache_manager `validate_fn`):
-  `cached.rlm_indexes_checksum == ctx.rlm_indexes_checksum AND
+  `cached.hlp_indexes_checksum == ctx.hlp_indexes_checksum AND
   cached.cut_off == ctx.cfg.stat_model.frequency_cut_off`.
 
 ## Verified invariants
@@ -102,7 +102,7 @@ None.
   input guard is added (resolved as no-guard).
 - No `@validate_call` on `rlm_wmaps_compute` /
   `rlm_wmaps_is_cache_consistent` — the same TYPE_CHECKING
-  circular-import constraint as rlm_indexes (the L181 note).
+  circular-import constraint as hlp_indexes (the L181 note).
 - The two checksums are distinct (as in INDEXES):
   `wmaps_obj_checksum` = the DATA checksum (sha3_256 over the 6
   raw array tobytes); the `.SHA3-256` sidecar = the FILE checksum
@@ -112,7 +112,7 @@ None.
 
 - The 6th RLM level; the worker (lm_worker_wmaps.py) carries the
   cache wiring, this module the data object + the 4 functions.
-- Consumes `ctx.rlm_indexes_checksum` (INDEXES) +
+- Consumes `ctx.hlp_indexes_checksum` (INDEXES) +
   `ctx.cfg.stat_model.frequency_cut_off` (CONFIG) + the pindexes
   layout (POSITIONS/FEATURES) — the SM half-open interval
   semantics guarantee all are set before `compute` runs.

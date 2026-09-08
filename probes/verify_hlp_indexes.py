@@ -5,7 +5,7 @@
 # Probe pinning the verified behaviour of the INDEXES level:
 # the domain module (src/reversi/lm/hlp_indexes.py) and the worker
 # (src/twolm/lm_worker_indexes.py), plus the source structure of
-# their two test files (test_rlm_indexes.py,
+# their two test files (test_hlp_indexes.py,
 # test_lm_worker_indexes.py), session 23 (D-083 analysis).
 #
 # The B tier is pure (no DB): the store/load round-trip, the
@@ -21,11 +21,11 @@
 # atexit; exit code 1 on any mismatch.
 #
 # Re-pinned in session 23 (D-084) to the post-campaign state:
-# rlm_indexes R1 (A8 docstring corrected) + M1 (imports gone) +
+# hlp_indexes R1 (A8 docstring corrected) + M1 (imports gone) +
 # M2 (A9 typo fixed) + M3 (A10 4→0 whitespace) + M4 (version
 # gate via expected_version) + M6 (__repr__ added — A3 4→5);
 # lm_worker_indexes M1 (D3 @validate_call) + M2 (D6 2→0) +
-# M3 (D5 load_fn checksum=False); test_rlm_indexes T1-T5 +
+# M3 (D5 load_fn checksum=False); test_hlp_indexes T1-T5 +
 # M1-M2 (F3 import gone, F4 header, F5 English comment, F7
 # ValidationError pins + rds_checksum present, F8 both branches,
 # F9 19→0, 13→14 tests); test_lm_worker_indexes T1-T3 + M1
@@ -66,10 +66,10 @@ def check(label, cond, detail=""):
 
 
 #
-# A — source structure of rlm_indexes.py (content pins).
+# A — source structure of hlp_indexes.py (content pins).
 #
 
-src = (ROOT / "src" / "twolm" / "rlm_indexes.py").read_text()
+src = (ROOT / "src" / "twolm" / "hlp_indexes.py").read_text()
 
 check("A1 190 lines (D-084: -2 dead imports, +3 docstring Note, +8 __repr__)",
       len(src.splitlines()) == 190
@@ -80,18 +80,18 @@ check("A1 190 lines (D-084: -2 dead imports, +3 docstring Note, +8 __repr__)",
       and "Field" not in src)
 check("A2 __all__: the 5 public names",
       "__all__ = ['ReversiLogisticModelIndexes'," in src
-      and "'rlm_indexes_store_to_file'" in src
-      and "'rlm_indexes_load_from_file'" in src
-      and "'rlm_indexes_compute'" in src
-      and "'rlm_indexes_is_cache_consistent']" in src)
+      and "'hlp_indexes_store_to_file'" in src
+      and "'hlp_indexes_load_from_file'" in src
+      and "'hlp_indexes_compute'" in src
+      and "'hlp_indexes_is_cache_consistent']" in src)
 check("A3 @validate_call on __init__ / compute_sha3_256_hash / __repr__ / store / load — and NOT on compute / is_cache_consistent (5 total; D-084 M6 __repr__)",
       src.count("@validate_call") == 5)
 check("A4 compute: the deliberate no-validation comment (circular import)",
-      "#: Here validation is not possible, it brings in a convoluted issue with circular imports.\ndef rlm_indexes_compute(" in src)
+      "#: Here validation is not possible, it brings in a convoluted issue with circular imports.\ndef hlp_indexes_compute(" in src)
 i_hdr = src.index("w.write_header(description, version)")
-i_s1 = src.index("w.write_string(rlm_indexes.rds_checksum)")
-i_s2 = src.index("w.write_string(rlm_indexes.feature_set_hash)")
-i_arr = src.index("w.write_array(rlm_indexes.indexes)")
+i_s1 = src.index("w.write_string(hlp_indexes.rds_checksum)")
+i_s2 = src.index("w.write_string(hlp_indexes.feature_set_hash)")
+i_arr = src.index("w.write_array(hlp_indexes.indexes)")
 check("A5 store: description + version 1, write order header -> rds_checksum -> feature_set_hash -> array",
       'description = "ReversiLogisticModelIndexes binary data file"' in src
       and "version = 1" in src
@@ -119,7 +119,7 @@ check("A11 compute body: rds_checksum + feature_set.hash + feature_set.compute_i
       and "indexes = ctx.feature_set.compute_indexes(ctx.positions)" in src)
 
 #
-# B — rlm_indexes runtime, NO DB (independent derivation).
+# B — hlp_indexes runtime, NO DB (independent derivation).
 #
 
 import numpy as np
@@ -147,9 +147,9 @@ my_pset = PatternSet("BasicPatternSet", [
 my_fs = FeatureSet("NoNameFeatureSet", Feature.new_intercept(), my_mset, my_pset)
 
 idx = np.arange(32, dtype=np.uint32).reshape(2, 16)
-obj = rlm_indexes.ReversiLogisticModelIndexes("RDSHASH", my_fs.hash, idx)
+obj = hlp_indexes.ReversiLogisticModelIndexes("RDSHASH", my_fs.hash, idx)
 # (B1 init attribute identity (c? resolves to c) deleted at D-106
-#  step 3, class c: test_rlm_indexes.py::TestReversiLogisticModelIndexes
+#  step 3, class c: test_hlp_indexes.py::TestReversiLogisticModelIndexes
 #  ::test_init_success pins all three — the two equalities +
 #  assertIs(obj.indexes, DUMMY_INDEXES). The obj binding stays:
 #  B2/B3 use it.)
@@ -157,15 +157,15 @@ check("B2 data checksum: sha3_256 over indexes.tobytes() (independent recompute)
       obj.compute_sha3_256_hash() == hashlib.sha3_256(idx.tobytes()).hexdigest())
 
 dat = TMP / "idx.bin"
-rlm_indexes.rlm_indexes_store_to_file(obj, dat)
+hlp_indexes.hlp_indexes_store_to_file(obj, dat)
 check("B3 store writes the .dat", dat.exists())
-loaded = rlm_indexes.rlm_indexes_load_from_file(dat, checksum=False)
+loaded = hlp_indexes.hlp_indexes_load_from_file(dat, checksum=False)
 check("B4 load (checksum=False): the fields round-trip",
       loaded.rds_checksum == "RDSHASH" and loaded.feature_set_hash == my_fs.hash
       and np.array_equal(loaded.indexes, idx) and loaded.indexes.dtype == np.uint32)
 
 binio.write_sha3_256_sidecar(dat)
-loaded2 = rlm_indexes.rlm_indexes_load_from_file(dat)  # checksum=True default
+loaded2 = hlp_indexes.hlp_indexes_load_from_file(dat)  # checksum=True default
 check("B5 load (checksum=True, default) with a valid sidecar round-trips",
       np.array_equal(loaded2.indexes, idx))
 
@@ -173,7 +173,7 @@ blob = bytearray(dat.read_bytes())
 blob[len(blob) // 2] ^= 0xFF
 dat.write_bytes(bytes(blob))
 try:
-    rlm_indexes.rlm_indexes_load_from_file(dat)
+    hlp_indexes.hlp_indexes_load_from_file(dat)
     check("B6 corrupted file + checksum=True -> RuntimeError (sidecar mismatch)", False, "no exception")
 except RuntimeError as e:
     check("B6 corrupted file + checksum=True -> RuntimeError (sidecar mismatch)",
@@ -190,7 +190,7 @@ with binio.BinaryWriter(TMP / "wrong_desc.bin") as w:
     w.write_string("b")
     w.write_array(idx)
 try:
-    rlm_indexes.rlm_indexes_load_from_file(TMP / "wrong_desc.bin", checksum=False)
+    hlp_indexes.hlp_indexes_load_from_file(TMP / "wrong_desc.bin", checksum=False)
     check("B7 wrong description -> RuntimeError", False, "no exception")
 except RuntimeError as e:
     check("B7 wrong description -> RuntimeError", "not a proper" in str(e))
@@ -200,13 +200,13 @@ with binio.BinaryWriter(TMP / "wrong_ver.bin") as w:
     w.write_string("b")
     w.write_array(idx)
 try:
-    rlm_indexes.rlm_indexes_load_from_file(TMP / "wrong_ver.bin", checksum=False)
+    hlp_indexes.hlp_indexes_load_from_file(TMP / "wrong_ver.bin", checksum=False)
     check("B8 wrong version -> RuntimeError", False, "no exception")
 except RuntimeError as e:
     check("B8 wrong version -> RuntimeError", "version is not consistent" in str(e))
 
 # (B9/B10/B11 is_cache_consistent True/False branches deleted at
-#  D-106 step 3, class c: test_rlm_indexes.py pins all three —
+#  D-106 step 3, class c: test_hlp_indexes.py pins all three —
 #  test_is_cache_consistent_returns_true / _returns_false /
 #  _returns_false_rds_differs. The ok_ctx scaffolding was used only
 #  by them.)
@@ -215,7 +215,7 @@ except RuntimeError as e:
 positions2 = np.array([[0x0280820280828002, 0x0041414141414100],
                        [0x1414102410284141, 0x0BEB8B9BD3D3FBBE]], dtype=np.uint64)
 fake_ctx = types.SimpleNamespace(rds_checksum="RDSFAKE", feature_set=my_fs, positions=positions2)
-res = rlm_indexes.rlm_indexes_compute(fake_ctx)
+res = hlp_indexes.hlp_indexes_compute(fake_ctx)
 expected = my_fs.compute_indexes(positions2)
 check("B12 compute: (2, 16) uint32 matrix identical to FeatureSet.compute_indexes called directly",
       res.indexes.shape == (2, 16) and res.indexes.dtype == np.uint32
@@ -224,7 +224,7 @@ check("B13 compute: the checksums come from the ctx (rds_checksum + feature_set.
       res.rds_checksum == "RDSFAKE" and res.feature_set_hash == my_fs.hash)
 
 # (B14 init rejects a non-str hash (c? resolves to c) deleted at
-#  D-106 step 3, class c: test_rlm_indexes.py::
+#  D-106 step 3, class c: test_hlp_indexes.py::
 #  test_init_fails_with_invalid_hash_type is exactly this case
 #  (feature_set_hash=12345 -> ValidationError))
 
@@ -251,14 +251,14 @@ check("C2 flat cache files: CONFIG + POSITIONS + INDEXES (no rlmwf_03_FEATURES* 
       files == ["rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
                 "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
                 "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256"])
-ri = m1.context.rlm_indexes
-check("C3 ctx.rlm_indexes set + the data checksum = sha3_256(indexes.tobytes()) (independent recompute)",
+ri = m1.context.hlp_indexes
+check("C3 ctx.hlp_indexes set + the data checksum = sha3_256(indexes.tobytes()) (independent recompute)",
       ri is not None
-      and m1.context.rlm_indexes_checksum == hashlib.sha3_256(ri.indexes.tobytes()).hexdigest())
+      and m1.context.hlp_indexes_checksum == hashlib.sha3_256(ri.indexes.tobytes()).hexdigest())
 sc = (TMP / "base1" / "rlmwf_04_INDEXES.dat.SHA3-256").read_text()
 check("C4 the sidecar is the flat sha3_256sum line over the .dat file (the FILE checksum — different from the data checksum)",
       sc == f"{binio.compute_sha3_256(TMP / 'base1' / 'rlmwf_04_INDEXES.dat')}  rlmwf_04_INDEXES.dat\n"
-      and sc.split()[0] != m1.context.rlm_indexes_checksum)
+      and sc.split()[0] != m1.context.hlp_indexes_checksum)
 n_pos = len(m1.context.positions)
 indep = m1.context.feature_set.compute_indexes(m1.context.positions)
 check("C5 indexes shape (N, 16) uint32 (N = the training position count, 16 = the fixture n_instances sum) and identical to the independent recompute",
@@ -270,19 +270,19 @@ with contextlib.redirect_stdout(out2):
     m2 = LogisticModel(CFG, verbosity=Verbosity.HIGH, base_dir_override=str(TMP / "base1"))
     m2.move_to_step("INDEXES")
 s2 = out2.getvalue()
-ri2 = m2.context.rlm_indexes
+ri2 = m2.context.hlp_indexes
 # (C6a/C6b second-run cache-hit log pins deleted at D-106 step 3,
 #  class c: test_read_cache_on_new_instance pins the same two log
 #  facts — assertIn 'Cache successfully loaded and validated' +
 #  assertNotIn 'Executing heavy computation')
-check("C6c second run: identical rlm_indexes (checksum + indexes)",
-      m2.context.rlm_indexes_checksum == m1.context.rlm_indexes_checksum
+check("C6c second run: identical hlp_indexes (checksum + indexes)",
+      m2.context.hlp_indexes_checksum == m1.context.hlp_indexes_checksum
       and np.array_equal(ri2.indexes, ri.indexes))
 
 m1.move_to_step("FEATURES")
-check("C7 down to FEATURES: rlm_indexes + rlm_indexes_checksum cleared",
-      m1.current_step == 3 and m1.context.rlm_indexes is None
-      and m1.context.rlm_indexes_checksum is None)
+check("C7 down to FEATURES: hlp_indexes + hlp_indexes_checksum cleared",
+      m1.current_step == 3 and m1.context.hlp_indexes is None
+      and m1.context.hlp_indexes_checksum is None)
 
 #
 # D — source structure of lm_worker_indexes.py (content pins).
@@ -299,16 +299,16 @@ check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @vali
       and "from pydantic import validate_call, ConfigDict" in wsrc)
 check("D4 RLMContext import under TYPE_CHECKING (circular-import guard)",
       'if TYPE_CHECKING:\n    from twolm.logistic_model import RLMContext' in wsrc)
-check("D5 the D-072 cache wiring: the 7 kwargs (full-path closure, use_cache, the 5 rlm_indexes fns)",
+check("D5 the D-072 cache wiring: the 7 kwargs (full-path closure, use_cache, the 5 hlp_indexes fns)",
       "cache_path  = ctx.get_cache_file_full_path_for_current_level()," in wsrc
       and "is_allowed  = ctx.use_cache," in wsrc
-      and "load_fn     = lambda path: rlm_indexes_load_from_file(path, checksum=False)," in wsrc
-      and "store_fn    = rlm_indexes_store_to_file," in wsrc
-      and "rlm_indexes_is_cache_consistent(ctx, cached_rlm_indexes)" in wsrc
-      and "compute_fn  = lambda: rlm_indexes_compute(ctx)," in wsrc
+      and "load_fn     = lambda path: hlp_indexes_load_from_file(path, checksum=False)," in wsrc
+      and "store_fn    = hlp_indexes_store_to_file," in wsrc
+      and "hlp_indexes_is_cache_consistent(ctx, cached_hlp_indexes)" in wsrc
+      and "compute_fn  = lambda: hlp_indexes_compute(ctx)," in wsrc
       and "logger_fn   = ctx.log_event" in wsrc)
 check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespace lines (D-084 M2)",
-      "ctx.rlm_indexes = None" in wsrc and "ctx.rlm_indexes_checksum = None" in wsrc
+      "ctx.hlp_indexes = None" in wsrc and "ctx.hlp_indexes_checksum = None" in wsrc
       and sum(1 for l in wsrc.splitlines() if l != l.rstrip() and not l.lstrip().startswith("#")) == 0)
 
 #
@@ -342,10 +342,10 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
       and tsrc.count("getattr(self, ") == 2)
 
 #
-# F — source structure of test_rlm_indexes.py (content pins).
+# F — source structure of test_hlp_indexes.py (content pins).
 #
 
-fsrc = (ROOT / "src" / "twolm" / "test" / "test_rlm_indexes.py").read_text()
+fsrc = (ROOT / "src" / "twolm" / "test" / "test_hlp_indexes.py").read_text()
 
 check("F1 304 lines, 5 classes / 14 tests (D-084 M2: the rds-only-differs test added)",
       len(fsrc.splitlines()) == 304
@@ -362,8 +362,8 @@ check("F3 D-084 T1: the dead 'from reversi.pattern import IndexArray' import rem
       "from reversi.pattern import IndexArray" not in fsrc
       and len(re.findall(r"\bIndexArray\b", fsrc)) == 1
       and len(_idx_name_uses) == 0)
-check("F4 D-084 T2: header grammar 'How to run the rlm_indexes unit tests.'",
-      "How to run the rlm_indexes unit tests." in fsrc)
+check("F4 D-084 T2: header grammar 'How to run the hlp_indexes unit tests.'",
+      "How to run the hlp_indexes unit tests." in fsrc)
 check("F5 D-084 T5: the Italian comment replaced with English (AGENTS.md rule 4)",
       "Non mockiamo il modulo" not in fsrc
       and "The module is not mocked; only a fake \"model\" object is created" in fsrc)
@@ -376,7 +376,7 @@ check("F7 D-084 T3+T4: the 2 assertRaises(ValidationError) pins (no broad Except
       and 'feature_set_hash="valid_hash"' in fsrc
       and "indexes=[[1, 2], [3, 4]]" in fsrc
       and "rds_checksum" in fsrc[fsrc.index("def test_init_fails_with_invalid_indexes_type"):
-                fsrc.index("class TestRlmIndexesStoreToFile")])
+                fsrc.index("class TestHlpIndexesStoreToFile")])
 check("F8 D-084 M2: is_cache_consistent — BOTH single-field branches tested (feature_set_hash-only and rds-only)",
       fsrc.count('"identical_hash"') >= 8
       and fsrc.count("outdated") == 2)

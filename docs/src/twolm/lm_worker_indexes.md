@@ -3,7 +3,7 @@ The INDEXES worker of the RLM pipeline — the 5th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES), enabled
 line-by-line by Roberto in a323e0f. Like POSITIONS it is a
 CACHE-CONSUMING level: the 4-step load-or-compute over the
-rlm_indexes object — the SECOND cache_manager consumer in the
+hlp_indexes object — the SECOND cache_manager consumer in the
 pipeline (after POSITIONS), and unlike FEATURES the flat
 `rlmwf_04_INDEXES.dat` + binio sidecar DO materialize.
 > State: D-084 · 297e531 · 2026-08-31 · suite 2/0/0 (2 DB-gated)
@@ -22,19 +22,19 @@ pipeline (after POSITIONS), and unlike FEATURES the flat
   ctx.get_cache_file_full_path_for_current_level()` (the injected
   machine closure — flat `rlmwf_04_INDEXES.dat`), `is_allowed =
   ctx.use_cache` (the CONFIG switch, the D-071 R1 semantics),
-  `load_fn = lambda path: rlm_indexes_load_from_file(path,
+  `load_fn = lambda path: hlp_indexes_load_from_file(path,
   checksum=False)` (the D-084 M3 shape — the sidecar was already
   verified by cache_manager, no redundant re-check), `store_fn =
-  rlm_indexes_store_to_file`, `validate_fn = lambda cached:
-  rlm_indexes_is_cache_consistent(ctx, cached)` (the 2-field
-  metadata compare), `compute_fn = lambda: rlm_indexes_compute
+  hlp_indexes_store_to_file`, `validate_fn = lambda cached:
+  hlp_indexes_is_cache_consistent(ctx, cached)` (the 2-field
+  metadata compare), `compute_fn = lambda: hlp_indexes_compute
   (ctx)`, `logger_fn = ctx.log_event`. Then the INFO "Model
-  attribute rlm_indexes has been set." + `ctx.rlm_indexes =
-  rlm_indexes` + the INFO checksum line + `ctx.rlm_indexes_
-  checksum = rlm_indexes_checksum` (the cache_manager 3rd return
+  attribute hlp_indexes has been set." + `ctx.hlp_indexes =
+  hlp_indexes` + the INFO checksum line + `ctx.hlp_indexes_
+  checksum = hlp_indexes_checksum` (the cache_manager 3rd return
   element — the DATA checksum).
-- `_down`: INFO "Clearing rlm_indexes..." → BOTH
-  `ctx.rlm_indexes` and `ctx.rlm_indexes_checksum` set to None.
+- `_down`: INFO "Clearing hlp_indexes..." → BOTH
+  `ctx.hlp_indexes` and `ctx.hlp_indexes_checksum` set to None.
 
 ## Verified invariants
 
@@ -58,7 +58,7 @@ suite.
 - The end-to-end round-trip (DB-gated): `test_compute_and_
   populate_cache` (move to INDEXES = step 4 pinned, the FLAT
   `rlmwf_04_INDEXES.dat` + `.SHA3-256` on disk, "Executing heavy
-  computation", non-None `rlm_indexes`) and `test_read_cache_on_
+  computation", non-None `hlp_indexes`) and `test_read_cache_on_
   new_instance` (the second instance: the "Cache successfully
   loaded and validated" + the NEGATIVE "Executing heavy
   computation" pin) — `test_lm_worker_indexes.py` (2 tests,
@@ -89,6 +89,6 @@ None.
 - The 5th RLM level (the 5-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
-- Consumes the `rlm_indexes` module (all 5 public names) +
-  `cache_manager`; publishes `ctx.rlm_indexes` /
-  `ctx.rlm_indexes_checksum` for the WMAPS level onward.
+- Consumes the `hlp_indexes` module (all 5 public names) +
+  `cache_manager`; publishes `ctx.hlp_indexes` /
+  `ctx.hlp_indexes_checksum` for the WMAPS level onward.
