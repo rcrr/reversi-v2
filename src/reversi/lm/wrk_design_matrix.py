@@ -1,5 +1,5 @@
 #
-# lm_worker_design_matrix.py
+# wrk_design_matrix.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi

@@ -89,73 +89,73 @@ check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carrie
 # ----------------------------------------------------------------------
 # B. lm_worker_design_matrix.py structure
 # ----------------------------------------------------------------------
-w = lines("src/twolm/lm_worker_design_matrix.py")
+w = lines("src/reversi/lm/wrk_design_matrix.py")
 check("B1 lm_worker_design_matrix.py is 80 lines (post D-090: 77 + pydantic import + decorator)", len(w) == 80, f"{len(w)}")
 check("B2 T2 FIXED: the pydantic import is present (as in the other 6 workers)",
-      "from pydantic import validate_call, ConfigDict" in read("src/twolm/lm_worker_design_matrix.py"))
+      "from pydantic import validate_call, ConfigDict" in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B3 T2 FIXED: the factory lm_worker_design_matrix is @validate_call-decorated",
       w[76] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
       and w[77] == "def lm_worker_design_matrix() -> Worker:")
 check("B4 T3 FIXED: load_fn is the lambda with checksum=False (single sidecar check)",
-      "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/twolm/lm_worker_design_matrix.py"))
+      "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B5 the 7-arg cache wiring matches the house key set",
-      all(k in read("src/twolm/lm_worker_design_matrix.py") for k in
+      all(k in read("src/reversi/lm/wrk_design_matrix.py") for k in
           ("cache_path  = ctx.get_cache_file_full_path_for_current_level(),",
            "is_allowed  = ctx.use_cache,", "store_fn    = hlp_design_matrix_store_to_file,",
            "validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm),",
            "compute_fn  = lambda: hlp_design_matrix_compute(ctx),", "logger_fn   = ctx.log_event")))
 check("B6 _up sets both ctx.design_matrix and ctx.design_matrix_checksum",
-      "    ctx.design_matrix = dm_obj.X" in read("src/twolm/lm_worker_design_matrix.py")
-      and "    ctx.design_matrix_checksum = dm_checksum" in read("src/twolm/lm_worker_design_matrix.py"))
+      "    ctx.design_matrix = dm_obj.X" in read("src/reversi/lm/wrk_design_matrix.py")
+      and "    ctx.design_matrix_checksum = dm_checksum" in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B7 _down clears BOTH ctx.design_matrix and ctx.design_matrix_checksum (the house shape)",
-      "    ctx.design_matrix = None" in read("src/twolm/lm_worker_design_matrix.py")
-      and "    ctx.design_matrix_checksum = None" in read("src/twolm/lm_worker_design_matrix.py"))
+      "    ctx.design_matrix = None" in read("src/reversi/lm/wrk_design_matrix.py")
+      and "    ctx.design_matrix_checksum = None" in read("src/reversi/lm/wrk_design_matrix.py"))
 ws_w = [i + 1 for i, l in enumerate(w) if l != l.rstrip() and not l.strip().startswith("#")]
 check("B8 T5 FIXED: zero whitespace-only lines", ws_w == [], f"{ws_w}")
 check("B9 the worker name is DESIGN_MTR (Worker('DESIGN_MTR', _up, _down))",
-      'return Worker("DESIGN_MTR", _up, _down)' in read("src/twolm/lm_worker_design_matrix.py"))
+      'return Worker("DESIGN_MTR", _up, _down)' in read("src/reversi/lm/wrk_design_matrix.py"))
 
 # ----------------------------------------------------------------------
 # C. test_lm_worker_design_matrix.py structure
 # ----------------------------------------------------------------------
-t = lines("src/twolm/test/test_lm_worker_design_matrix.py")
+t = lines("src/reversi/test/test_wrk_design_matrix.py")
 check("C1 test_lm_worker_design_matrix.py is 226 lines (post D-090: 202 + gates + idiom - ws strip)", len(t) == 226, f"{len(t)}")
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
 check("C3 T1 FIXED: the gate is in BOTH setUps and the header claim is now true",
-      "# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1" in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and read("src/twolm/test/test_lm_worker_design_matrix.py").count("self.skipTest('SKIP_REGAB_DB=1: database tests skipped')") == 2
-      and "import os" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "# -1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.skipTest('SKIP_REGAB_DB=1: database tests skipped')") == 2
+      and "import os" in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE x2)",
-      read("src/twolm/test/test_lm_worker_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
-      and "mkdtemp" not in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      read("src/reversi/test/test_wrk_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
+      and "mkdtemp" not in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C5 T7 FIXED: both json_config paths are WORKSPACE_ROOT-anchored (rlm_00 + rlm_01)",
-      'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and 'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")' in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")' in read("src/reversi/test/test_wrk_design_matrix.py")
+      and 'self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")' in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C6 T7 FIXED: the reversi.test.paths import is present (WORKSPACE_ROOT + CUSTOM_TMP_BASE)",
-      "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C7 T7 FIXED: the (former) shutil import is gone with the rmtree teardowns",
-      "shutil" not in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "shutil" not in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
-      read("src/twolm/test/test_lm_worker_design_matrix.py").count("verbosity=Verbosity.HIGH") == 3)
+      read("src/reversi/test/test_wrk_design_matrix.py").count("verbosity=Verbosity.HIGH") == 3)
 check("C9 the D-078 cache names are pinned (rlmwf_06_DESIGN_MTR.dat + .SHA3-256)",
-      "'rlmwf_06_DESIGN_MTR.dat'" in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and "'rlmwf_06_DESIGN_MTR.dat.SHA3-256'" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "'rlmwf_06_DESIGN_MTR.dat'" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and "'rlmwf_06_DESIGN_MTR.dat.SHA3-256'" in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C10 step pins: WMAPS=5 (x2 setUps), DESIGN_MTR=6 (x2 self.rlm + x1 rlm2 — the 7-level pipeline)",
-      read("src/twolm/test/test_lm_worker_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 5)") == 2
-      and read("src/twolm/test/test_lm_worker_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 6)") == 2
-      and read("src/twolm/test/test_lm_worker_design_matrix.py").count("self.assertEqual(rlm2.current_step, 6)") == 1)
+      read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 5)") == 2
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 6)") == 2
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(rlm2.current_step, 6)") == 1)
 ws_t = [i + 1 for i, l in enumerate(t) if l != l.rstrip() and not l.strip().startswith("#")]
 check("C11 T5 FIXED: zero whitespace-only lines", len(ws_t) == 0, f"{ws_t}")
 check("C12 the golden literal is (10,7) uint32 with the 10 pinned rows",
-      "self.assertEqual(X.shape, (10, 7))" in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and "], dtype=np.uint32)" in read("src/twolm/test/test_lm_worker_design_matrix.py")
-      and "nptest.assert_array_equal(expected_X, X)" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "self.assertEqual(X.shape, (10, 7))" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and "], dtype=np.uint32)" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and "nptest.assert_array_equal(expected_X, X)" in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C13 the uint32 dtype contract is pinned 3x (L112, L146, L183)",
-      read("src/twolm/test/test_lm_worker_design_matrix.py").count("np.uint32") == 4)
+      read("src/reversi/test/test_wrk_design_matrix.py").count("np.uint32") == 4)
 check("C14 the before-DESIGN_MTR None-ness is pinned (L173)",
-      "self.assertIsNone(self.rlm.context.design_matrix)" in read("src/twolm/test/test_lm_worker_design_matrix.py"))
+      "self.assertIsNone(self.rlm.context.design_matrix)" in read("src/reversi/test/test_wrk_design_matrix.py"))
 
 # ----------------------------------------------------------------------
 # D. GOLDEN re-derivation (live DB) — rlm_01.json

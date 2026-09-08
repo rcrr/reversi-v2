@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_design_matrix.py
+# reversi/test/test_wrk_design_matrix.py
 The suite of the DESIGN_MTR worker — the end-to-end cache
 round-trip pin for the 7th active level + the rlm_01 golden-
 content pin (the (10,7) uint32 X literal). 2 classes / 3 tests /

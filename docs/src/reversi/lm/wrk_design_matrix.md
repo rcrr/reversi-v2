@@ -1,4 +1,4 @@
-# twolm/lm_worker_design_matrix.py
+# reversi/lm/wrk_design_matrix.py
 The DESIGN_MTR worker of the RLM pipeline — the 7th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
 DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a
