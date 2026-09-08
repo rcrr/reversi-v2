@@ -66,21 +66,27 @@ class LMDesignMatrix:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_design_matrix_store_to_file(dm: LMDesignMatrix, filename: str | Path) -> None:
-    """Saves the Design Matrix instance to a binary file."""
+def hlp_design_matrix_store_to_file(dm: LMDesignMatrix, filename: str | Path,
+                                    compressed: bool = True) -> None:
+    """Saves the Design Matrix instance to a binary file.
+
+    LZ4 whole-file compression by default (D-139, as in model_weights)."""
     filename = Path(filename)
     description = "LMDesignMatrix binary data file"
     version = 1
 
-    with binio.BinaryWriter(filename) as w:
+    with binio.BinaryWriter(filename, compressed=compressed) as w:
         w.write_header(description, version)
         w.write_string(dm.wmaps_obj_checksum)
         w.write_array(dm.X)
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True) -> LMDesignMatrix:
-    """Loads a Design Matrix instance from a binary file."""
+def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True,
+                                     compressed: bool = True) -> LMDesignMatrix:
+    """Loads a Design Matrix instance from a binary file.
+
+    LZ4 whole-file compression by default (D-139, as in model_weights)."""
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("The checksum file signature doesn't match with current file.")
@@ -88,7 +94,7 @@ def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
     expected_description = "LMDesignMatrix binary data file"
     expected_version = 1
 
-    with binio.BinaryReader(filename) as r:
+    with binio.BinaryReader(filename, compressed=compressed) as r:
         description, version = r.read_header()
         if description != expected_description:
             raise RuntimeError(f"The file is not a proper {expected_description}.")

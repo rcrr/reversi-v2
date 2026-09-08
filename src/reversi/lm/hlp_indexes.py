@@ -94,20 +94,24 @@ class LMIndexes:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_indexes_store_to_file(
         hlp_indexes: LMIndexes,
-        filename: str | Path
+        filename: str | Path,
+        compressed: bool = True
 ) -> None:
     """
     Saves the LMIndexes instance to a binary file.
 
-    Note: no SHA3-256 sidecar is written by this function — in the
-    pipeline flow the sidecar is written by cache_manager.
+    LZ4 whole-file compression by default (D-139, as in model_weights).
+
+    Note: the SHA3-256 sidecar is written by the binio writer (the
+    checksum service is on by default); in the pipeline flow
+    cache_manager re-writes the same sidecar (idempotent).
     """
     filename = Path(filename)
 
     description = "LMIndexes binary data file"
     version = 1
 
-    with binio.BinaryWriter(filename) as w:
+    with binio.BinaryWriter(filename, compressed=compressed) as w:
 
         #: Write header
         w.write_header(description, version)
@@ -127,10 +131,13 @@ def hlp_indexes_store_to_file(
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_indexes_load_from_file(
         filename: str | Path,
-        checksum: bool = True
+        checksum: bool = True,
+        compressed: bool = True
 ) -> LMIndexes:
     """
     Loads a LMIndexes instance from a binary file.
+
+    LZ4 whole-file compression by default (D-139, as in model_weights).
     """
 
     if checksum:
@@ -141,7 +148,7 @@ def hlp_indexes_load_from_file(
     expected_description = "LMIndexes binary data file"
     expected_version = 1
 
-    with binio.BinaryReader(filename) as r:
+    with binio.BinaryReader(filename, compressed=compressed) as r:
 
         # Read the file header info
         description, version = r.read_header()

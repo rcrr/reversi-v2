@@ -274,7 +274,8 @@ class TestHlpGenerateIO(unittest.TestCase):
 
     def test_load_rejects_wrong_description(self):
         """A file whose header description is not the dense-weights one is rejected."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("A description that is not the dense-weights one", 1)
         with self.assertRaises(RuntimeError) as context:
             hlp_generate_load_from_file(self.filepath, checksum=False)
@@ -284,13 +285,33 @@ class TestHlpGenerateIO(unittest.TestCase):
 
     def test_load_rejects_version_mismatch(self):
         """A file whose header version is not 1 is rejected (the T1 gate)."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("RGLM Dense Weights binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
             hlp_generate_load_from_file(self.filepath, checksum=False)
         self.assertEqual(
             str(context.exception),
             "File version mismatch: found 2, expected 1")
+
+    def test_store_compressed_by_default(self):
+        """D-139: store writes an LZ4 frame by default and load (the
+        compressed default) round-trips it."""
+        hlp_generate_store_to_file(self.dw_original, self.filepath)
+        with open(self.filepath, "rb") as f:
+            self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
+        dw_loaded = hlp_generate_load_from_file(self.filepath, checksum=False)
+        self.assertEqual(dw_loaded.w_checksum, self.dw_original.w_checksum)
+        nptest.assert_array_equal(dw_loaded.w_dense, self.dw_original.w_dense)
+
+    def test_load_defaults_reject_uncompressed_file(self):
+        """D-139: the compressed default fails loud on a legacy
+        uncompressed file (cache invalidation, not a silent misread)."""
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=False) as w:
+            w.write_header("RGLM Dense Weights binary data file", 1)
+        with self.assertRaises(binio.BinaryFormatError):
+            hlp_generate_load_from_file(self.filepath, checksum=False)
 
 
 class TestHlpGenerateInit(unittest.TestCase):

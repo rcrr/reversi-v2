@@ -71,8 +71,8 @@ def check(label, cond, detail=""):
 
 src = (ROOT / "src" / "reversi" / "lm" / "hlp_indexes.py").read_text()
 
-check("A1 190 lines (D-084: -2 dead imports, +3 docstring Note, +8 __repr__)",
-      len(src.splitlines()) == 190
+check("A1 197 lines (post D-139: 190 + the 2x compressed kwarg + docstring lines)",
+      len(src.splitlines()) == 197
       and "from enum import IntEnum" not in src
       and "Protocol" not in src
       and "BeforeValidator" not in src
@@ -106,8 +106,10 @@ check("A7 is_cache_consistent: the 2-field metadata compare (feature_set_hash + 
       "cached_feature_set_hash == expected_feature_set_hash" in src
       and "cached_rds_checksum == expected_rds_checksum" in src
       and "dbname" not in src and "bid" not in src)
-check("A8 D-084 R1: the store docstring corrected — no sidecar promise, the Note points at cache_manager (D-072)",
-      "Note: no SHA3-256 sidecar is written by this function" in src
+check("A8 D-139: the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note corrected: the binio writer writes it, cache_manager re-writes it idempotently)",
+      "LZ4 whole-file compression by default (D-139, as in model_weights)." in src
+      and "the SHA3-256 sidecar is written by the binio writer" in src
+      and "no SHA3-256 sidecar is written by this function" not in src
       and "write_sha3_256_sidecar" not in src)
 check("A9 D-084 M2: the 'togheter' typo fixed (the docstring reads 'together')",
       "together with the hash signature" in src and "togheter" not in src)
@@ -184,7 +186,7 @@ except Exception as e:
 
 # A file with the wrong description / version (checksum=False to reach the header).
 from reversi.lm import hlp_indexes as ri
-with binio.BinaryWriter(TMP / "wrong_desc.bin") as w:
+with binio.BinaryWriter(TMP / "wrong_desc.bin", compressed=True) as w:
     w.write_header("Wrong Description", 1)
     w.write_string("a")
     w.write_string("b")
@@ -194,7 +196,7 @@ try:
     check("B7 wrong description -> RuntimeError", False, "no exception")
 except RuntimeError as e:
     check("B7 wrong description -> RuntimeError", "not a proper" in str(e))
-with binio.BinaryWriter(TMP / "wrong_ver.bin") as w:
+with binio.BinaryWriter(TMP / "wrong_ver.bin", compressed=True) as w:
     w.write_header("LMIndexes binary data file", 99)
     w.write_string("a")
     w.write_string("b")
@@ -347,8 +349,8 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
 
 fsrc = (ROOT / "src" / "reversi" / "test" / "test_hlp_indexes.py").read_text()
 
-check("F1 304 lines, 5 classes / 14 tests (D-084 M2: the rds-only-differs test added)",
-      len(fsrc.splitlines()) == 304
+check("F1 307 lines, 5 classes / 14 tests (post D-139: the compressed=True mock pins)",
+      len(fsrc.splitlines()) == 307
       and len(re.findall(r"^class Test", fsrc, flags=re.M)) == 5
       and len(re.findall(r"    def test_", fsrc)) == 14
       and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc)

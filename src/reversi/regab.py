@@ -467,9 +467,12 @@ def regab_extract_data_set_from_db(rc: RegabDBConnection,
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -> RegabDataSet:
+def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
+                                  compressed: bool = True) -> RegabDataSet:
     """
     Loads a RegabDataSet instance from a binary file.
+
+    LZ4 whole-file compression by default (D-139, as in model_weights).
 
     Parameters
     ----------
@@ -477,6 +480,8 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
         The name of the file from which to load the data.
     checksum : bool, optional
         Whether to verify the SHA3-256 checksum of the file. Default is True.
+    compressed : bool, optional
+        Whether the file is LZ4 compressed. Default is True (D-139).
 
     Returns
     -------
@@ -499,7 +504,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
     expected_description = "RegabDataSet binary data file"
     expected_version = 1
     
-    with binio.BinaryReader(filename) as r:
+    with binio.BinaryReader(filename, compressed=compressed) as r:
 
         # Read the file header info
         description, version = r.read_header()
@@ -545,17 +550,23 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True) -
 #: ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> None:
+def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path,
+                                 compressed: bool = True) -> None:
     """
     Saves the RegabDataSet instance to a binary file.
 
-    Note: no SHA3-256 sidecar is written by this function — in the
-    pipeline flow the sidecar is written by cache_manager.
+    LZ4 whole-file compression by default (D-139, as in model_weights).
+
+    Note: the SHA3-256 sidecar is written by the binio writer (the
+    checksum service is on by default); in the pipeline flow
+    cache_manager re-writes the same sidecar (idempotent).
 
     Parameters
     ----------
     filename : str | Path
         The name of the file in which to save the data.
+    compressed : bool, optional
+        Whether the file is LZ4 compressed. Default is True (D-139).
 
     Returns
     -------
@@ -567,7 +578,7 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path) -> Non
     description = "RegabDataSet binary data file"
     version = 1
 
-    with binio.BinaryWriter(filename) as w:
+    with binio.BinaryWriter(filename, compressed=compressed) as w:
 
         #: Write header
         w.write_header(description, version)

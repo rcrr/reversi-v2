@@ -72,15 +72,18 @@ def save_optimization_checkpoint(filepath: Path,
                                  w: np.ndarray,
                                  sl: List[np.ndarray],
                                  yl: List[np.ndarray],
-                                 rho: List[float]) -> None:
-    """Saves the L-BFGS state and metadata to a binary checkpoint file."""
+                                 rho: List[float],
+                                 compressed: bool = True) -> None:
+    """Saves the L-BFGS state and metadata to a binary checkpoint file.
+
+    LZ4 whole-file compression by default (D-139, as in model_weights)."""
     # M6 (D-096): the file stores a single length prefix plus one
     # (s, y, rho) triple per entry, so the three history lists must
     # have equal length (fail fast instead of a framing error at load).
     if not (len(sl) == len(yl) == len(rho)):
         raise ValueError("sl, yl and rho must have the same length "
                          "(the L-BFGS history is stored as (s, y, rho) triples)")
-    with binio.BinaryWriter(filepath) as bw:
+    with binio.BinaryWriter(filepath, compressed=compressed) as bw:
         bw.write_header("RGLM Optimization Checkpoint", 1)
         bw.write_string(design_matrix_checksum)
         bw.write_string(zed_checksum)
@@ -108,14 +111,15 @@ def save_optimization_checkpoint(filepath: Path,
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
+def load_optimization_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:
     """
     Loads the L-BFGS state from a binary checkpoint file.
+    LZ4 whole-file compression by default (D-139, as in model_weights).
     Verifies the header (description and version) and the SHA3-256
     sidecar before trusting any payload: the sidecar exists precisely
     for this (D-096 R3).
     """
-    with binio.BinaryReader(filepath) as br:
+    with binio.BinaryReader(filepath, compressed=compressed) as br:
         # Read header properly!
         description, version = br.read_header()
         if description != "RGLM Optimization Checkpoint":

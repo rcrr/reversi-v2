@@ -72,13 +72,13 @@ positions generated from random gameplay paths.
   `SKIP_REGAB_DB=1` to skip the 70 DB tests (2 mocked run). The
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
-- Suite status (verified 2026-09-07, live DB, D-130 tiers):
-  673 tests / 0 failures. Default tier: 586 run in ~5 s / 87
-  skipped (70 DB-gated + 17 PERF print-only). LONG=1: 655 run
-  in ~45 s / 18 skipped (17 PERF + 1 VLONG-gated A2050). Gated
-  run (SKIP_REGAB_DB=1): 87 skipped = 17 PERF + 70 DB (35 regab
-  + 35 worker-level). Per-file suites: the Suite column of the
-  Source files / Test files tables below.
+- Suite status (verified 2026-09-08, live DB, D-130 tiers,
+  D-139): 680 tests / 0 failures. Default tier: 593 run in
+  ~5 s / 87 skipped (70 DB-gated + 17 PERF print-only). LONG=1:
+  662 run in ~45 s / 18 skipped (17 PERF + 1 VLONG-gated
+  A2050). Gated run (SKIP_REGAB_DB=1): 87 skipped = 17 PERF +
+  70 DB (35 regab + 35 worker-level). Per-file suites: the
+  Suite column of the Source files / Test files tables below.
 - Probes: 21 tracked under probes/ (hub:
   verify_logistic_model.py owns the pipeline-wide state;
   measure_suite.py is the D-132 timing-measurement tool, no
@@ -106,8 +106,18 @@ at the end of this file.
   re-pinned, the Source/Test tables carry the reversi paths.
   Verification regime while the local DB was down (restored
   2026-09-08, D-135): SKIP_REGAB_DB=1 ./run_utests.sh per
-  commit; post-restore the full LONG=1 suite (673/0/18) + the
-  21/21 probe sweep are green.
+  commit; post-restore the full LONG=1 suite + the 21/21 probe
+  sweep are green.
+- CACHE consistency (D-139, 2026-09-08): every cache file
+  function now defaults to the LZ4 whole-file compression, as
+  model_weights did (Roberto: "usiamola consistentemente"):
+  the 10 store/load functions across hlp_indexes / hlp_wmaps /
+  hlp_design_matrix / hlp_generate + the checkpoint pair + the
+  2 regab rds functions. A2050 measured: 868.1 → 690.8 MB
+  (79.58%, ~177 MB saved). Self-healing against legacy
+  uncompressed files (the LZ4 guard at load → the
+  delete+recompute paths). The CONFIG ad-hoc flow remains the
+  only open cache oddity (D-078 R1, deferred — Next steps).
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
@@ -124,6 +134,8 @@ at the end of this file.
   ruling — the revisit trigger (the pipeline completion) is
   now met (15/15); re-evaluate the ad-hoc flow against the
   completed pipeline and the "storicizzazione" idea (I-011).
+  Confirmed OUT of scope for D-139 (the CACHE campaign) with
+  Roberto — it stays the only open cache oddity.
 
 
 
@@ -133,7 +145,7 @@ One row per source file, alphabetical (the package path sorts future
 packages first). State = a status word + the open/parked items (if any)
 + the D-pointer range; the campaign history lives in the decision log.
 Suite = the current verified suite (live DB, D-130 tiers,
-2026-09-07) of the file's test module.
+2026-09-08) of the file's test module.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
@@ -161,17 +173,17 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052) | 37/0/0 | docs/src/reversi/regab.md |
+| src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139) | 37/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
-| src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090) | 12/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
-| src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098) | 14/0/0 | docs/src/reversi/lm/hlp_generate.md |
+| src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
+| src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098); the LZ4 default (D-139) | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract); closed (D-093/D-094) | 8/0/0 | docs/src/reversi/lm/hlp_gradient.md |
-| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
-| src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096) | 19/0/0 | docs/src/reversi/lm/hlp_optimize.md |
+| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
+| src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
-| src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088) | 13/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
+| src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module (8th level); closed (D-091/D-092) | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
 | src/reversi/tools/state_machine.py | complete: the generic pipeline orchestrator (Workers up/down + Context + logging / history / CSV); closed (D-057..D-070, D-074, D-078); standing contracts: sentinel worker 0 (D-059), failure semantics (D-060), unique names (D-061), *_for_current_level naming (D-069) | 49/0/0 | docs/src/reversi/tools/state_machine.md |
 
@@ -206,12 +218,12 @@ One row per test file, alphabetical.
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
 | src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/reversi/test/test_regab.md |
 | src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
-| src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 12-test data suite (D-090) | 12/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |
-| src/reversi/test/test_hlp_generate.py | complete: the GENERATE data suite (D-097/D-098) | 14/0/0 | docs/src/reversi/test/test_hlp_generate.md |
+| src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite (D-090, +2 with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |
+| src/reversi/test/test_hlp_generate.py | complete: the GENERATE data suite (D-097/D-098, +2 with D-139) | 16/0/0 | docs/src/reversi/test/test_hlp_generate.md |
 | src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1) | 8/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
-| src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
-| src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096) | 19/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
-| src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087) | 13/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
+| src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
+| src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
+| src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/reversi/test/test_state_machine.md |
 | src/reversi/test/test_usage_binio.py | complete: the 3 usage tests (D-051) | 3/0/0 | docs/src/reversi/test/test_usage_binio.md |

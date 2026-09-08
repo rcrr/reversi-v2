@@ -71,7 +71,9 @@ def tier_a():
 
     t = SRC / 'reversi' / 'test' / 'test_lm_worker_full_chain.py'
     tt = t.read_text()
-    check('A10 test: SKIP_REGAB_DB gate x2 (T5a)', tt.count("os.getenv('SKIP_REGAB_DB', '0') == '1'") == 2)
+    check('A10 test: the DB+LONG gate via db_long_gate x2 (T5a, the D-130 tag function replaced the inline getenv idiom — the stale pin re-derived)',
+          tt.count("db_long_gate(self)") == 2
+          and "from reversi.test.tags import db_long_gate" in tt)
     check('A11 test: D-085 idiom (T5b)',
           'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE' in tt
           and 'mkdtemp(dir=str(CUSTOM_TMP_BASE))' in tt

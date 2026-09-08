@@ -46,7 +46,7 @@ def lines(p):
 # A. hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_wmaps.py")
-check("A1 hlp_wmaps.py is 316 lines (post D-087: 311 - accumulate + note + contract + 0 ws net)", len(rlm) == 316, f"{len(rlm)}")
+check("A1 hlp_wmaps.py is 322 lines (post D-139: 316 + the 2x compressed kwarg + docstring lines)", len(rlm) == 322, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -55,25 +55,26 @@ check("A3 __all__ lists the 5 public names",
       and "'hlp_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))
-check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L181, the rlm_indexes style — D-087 T5)",
+check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L187, the rlm_indexes style — D-087 T5)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read("src/reversi/lm/hlp_wmaps.py")
-      and rlm[180] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
-      repr(rlm[180]))
+      and rlm[186] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
+      repr(rlm[186]))
 check("A6 hlp_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_is_cache_consistent" not in read("src/reversi/lm/hlp_wmaps.py"))
 check("A7 the R1 contract is documented in the compute docstring (D-087 R1 — dense by contract, no guard)",
       "The input pindexes matrix is dense by contract: every cell holds a" in read("src/reversi/lm/hlp_wmaps.py")
       and "are unsigned and never -1 — D-086 R1" in read("src/reversi/lm/hlp_wmaps.py"))
-check("A8 store docstring makes no sidecar promise (D-072 shape)",
-      '"""Saves the WMaps instance to a binary file."""' in read("src/reversi/lm/hlp_wmaps.py"))
+check("A8 store docstring: the D-139 compression line, no sidecar promise",
+      '"""Saves the WMaps instance to a binary file.' in read("src/reversi/lm/hlp_wmaps.py")
+      and "LZ4 whole-file compression by default (D-139, as in model_weights)." in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
-check("A10 the above_mask code line is clean (L280, no trailing space)",
-      rlm[279] == "        above_mask = ~mask", repr(rlm[279]))
-check("A11 the fallback_details_table code line is clean (L293, no trailing spaces)",
-      rlm[292] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[292]))
-check("A12 the -1 input sentinel is unguarded at L257 — correct by the R1 dense contract (no guard added)",
-      rlm[256] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[256]))
+check("A10 the above_mask code line is clean (L286, no trailing space)",
+      rlm[285] == "        above_mask = ~mask", repr(rlm[285]))
+check("A11 the fallback_details_table code line is clean (L299, no trailing spaces)",
+      rlm[298] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[298]))
+check("A12 the -1 input sentinel is unguarded at L263 — correct by the R1 dense contract (no guard added)",
+      rlm[262] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[262]))
 
 # ----------------------------------------------------------------------
 # B. wrk_wmaps.py structure (post D-087)
@@ -106,10 +107,10 @@ check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[
 # C. test_hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t1 = lines("src/reversi/test/test_hlp_wmaps.py")
-check("C1 test_hlp_wmaps.py is 325 lines (post D-087: 259 + 7 new tests - import/comment/ws net)", len(t1) == 325, f"{len(t1)}")
-check("C2 4 classes / 13 tests (the 2 compute + 3 consistency + 6 IO + 2 init since D-087 T10)",
+check("C1 test_hlp_wmaps.py is 346 lines (post D-139: 325 + the 2 D-139 pins + the compressed kwarg lines)", len(t1) == 346, f"{len(t1)}")
+check("C2 4 classes / 15 tests (the 2 compute + 3 consistency + 8 IO + 2 init since D-139)",
       sum(1 for l in t1 if l.startswith("class ")) == 4 and
-      sum(1 for l in t1 if l.strip().startswith("def test_")) == 13)
+      sum(1 for l in t1 if l.strip().startswith("def test_")) == 15)
 check("C3 the header is corrected (L38: '-1- Run the tests.' — the file is DB-free, D-087 T2)",
       t1[37] == "# -1- Run the tests.", repr(t1[37]))
 check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no DB)",

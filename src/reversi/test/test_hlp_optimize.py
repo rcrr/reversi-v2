@@ -200,7 +200,7 @@ class TestHlpOptimizeIO(unittest.TestCase):
     def test_wrong_description_raises(self):
         """A file with a wrong header description is rejected."""
         p = Path(self._tmp.name) / "wrong_desc.dat"
-        with binio.BinaryWriter(p) as bw:
+        with binio.BinaryWriter(p, compressed=True) as bw:
             bw.write_header("Something Else", 1)
         with self.assertRaises(RuntimeError) as cm:
             load_optimization_checkpoint(p)
@@ -209,26 +209,33 @@ class TestHlpOptimizeIO(unittest.TestCase):
     def test_wrong_version_raises(self):
         """A file with a wrong header version is rejected."""
         p = Path(self._tmp.name) / "wrong_version.dat"
-        with binio.BinaryWriter(p) as bw:
+        with binio.BinaryWriter(p, compressed=True) as bw:
             bw.write_header("RGLM Optimization Checkpoint", 2)
         with self.assertRaises(RuntimeError) as cm:
             load_optimization_checkpoint(p)
         self.assertIn("Checkpoint version mismatch: found 2, expected 1", str(cm.exception))
 
     def test_checksum_mismatch_raises(self):
-        """R3 (D-096): load verifies the SHA3-256 sidecar; a corrupted
-        content file is rejected."""
-        data = bytearray(self.filepath.read_bytes())
-        data[-1] ^= 0x01
-        self.filepath.write_bytes(bytes(data))
+        """R3 (D-096): load verifies the SHA3-256 sidecar; a mismatched
+        sidecar is rejected. (D-139: a corrupted CONTENT file now trips
+        the LZ4 frame guard first — a different guard, caught by the
+        worker per D-096 R2.)"""
+        sidecar = self.filepath.parent / (self.filepath.name + ".SHA3-256")
+        sidecar.write_text("deadbeef" * 8 + "\n", encoding="ascii")
         with self.assertRaises(RuntimeError) as cm:
             load_optimization_checkpoint(self.filepath)
         self.assertIn("Checkpoint checksum mismatch", str(cm.exception))
 
     def test_file_golden_hash(self):
-        """The deterministic checkpoint bytes have a pinned SHA3-256."""
+        """The deterministic checkpoint bytes have a pinned SHA3-256
+        (the D-139 LZ4-compressed frame; re-derived at D-139)."""
         h = hashlib.sha3_256(self.filepath.read_bytes()).hexdigest()
-        self.assertEqual(h, "6e01ff8614e8732484b7af59b01615989357ce1af2419864621965af221bd280")
+        self.assertEqual(h, "2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f")
+
+    def test_store_compressed_by_default(self):
+        """D-139: the checkpoint is an LZ4 frame by default."""
+        with open(self.filepath, "rb") as f:
+            self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
 
     def test_sidecar_produced_and_matches(self):
         """The checkpoint is written with its .SHA3-256 sidecar (binio default)."""

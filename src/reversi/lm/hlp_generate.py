@@ -66,9 +66,11 @@ class LMDenseWeights:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path) -> None:
+def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path,
+                               compressed: bool = True) -> None:
+    # LZ4 whole-file compression by default (D-139, as in model_weights).
     filename = Path(filename)
-    with binio.BinaryWriter(filename) as w:
+    with binio.BinaryWriter(filename, compressed=compressed) as w:
         w.write_header("RGLM Dense Weights binary data file", 1)
         w.write_string(dw.w_checksum)
         w.write_array(dw.w_dense)
@@ -76,7 +78,9 @@ def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path) -> None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> LMDenseWeights:
+def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True,
+                                compressed: bool = True) -> LMDenseWeights:
+    # LZ4 whole-file compression by default (D-139, as in model_weights).
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("Checksum mismatch.")
@@ -84,7 +88,7 @@ def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
     expected_description = "RGLM Dense Weights binary data file"
     expected_version = 1
 
-    with binio.BinaryReader(filename) as r:
+    with binio.BinaryReader(filename, compressed=compressed) as r:
         description, version = r.read_header()
         if description != expected_description:
             raise RuntimeError(f"Wrong file format: {description}")

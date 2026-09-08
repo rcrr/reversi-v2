@@ -594,3 +594,86 @@ D-138 | 2026-09-08 | The remaining hlp test scaffolding
         mirror docs re-pinned.
         | Verification: the gated suite 673/0/87 GREEN + the
         full probe sweep 21/21 (live DB).
+D-139 | 2026-09-08 | LZ4 whole-file compression by
+        default in EVERY cache file function (Roberto:
+        "Focalizziamoci sulla CACHE ... comprimiamo tutti
+        i file della cache con LZ4, come facciamo per il
+        model_weight ... usiamola consistentemente"; then
+        after the A2050 probe: "Si confermo tutto.
+        Comprimiamo. Fare i distinguo crea solo
+        complessita' ... usiamolo").
+        | Scope: 10 functions across 6 modules gain a
+        trailing `compressed: bool = True`:
+        hlp_indexes_{store_to_file,load_from_file},
+        hlp_wmaps_{store_to_file,load_from_file},
+        hlp_design_matrix_{store_to_file,load_from_file},
+        hlp_generate_{store_to_file,load_from_file},
+        hlp_optimize {save_optimization_checkpoint,
+        load_optimization_checkpoint}, regab
+        {regab_store_data_set_to_file,
+        regab_load_data_set_from_file}. Zero worker
+        changes: the full-chain read guards pass
+        compressed=False explicitly (they pin the
+        uncompressed model_weights path), the worker
+        load_fns go through the plain functions / the
+        house `checksum=False` lambda — symmetric via
+        the defaults.
+        | A2050 measured (rlm_03, 1,999,179 train /
+        199,932 vld; the probe kept the TMP dir, every
+        file compressed with the stock lz4 1.9.4 CLI —
+        the same one Roberto's C run used): INDEXES
+        383.8 → 281.0 MB (73.20%), DESIGN_MTR 383.8 →
+        312.1 MB (81.31%), checkpoint 58.3 MB (100.00%),
+        POSITIONS 34.0 MB (100.00%), WMAPS 3.5 MB
+        (28.17%), VLD_POSITIONS 3.4 MB (100.00%),
+        GENERATE 669 KB (76.87%), weights 515 KB
+        (99.22%), CONFIG JSON 3.9 KB (33.13% — out of
+        scope); total 868.1 → 690.8 MB (79.58%, ~177 MB
+        saved).
+        | Uniform default, NO per-file distinguo: the
+        incompressible files pay +51 B of frame for the
+        consistency (Roberto's ruling above).
+        | Self-healing: an uncompressed legacy .dat
+        fails the LZ4 frame guard at load → the
+        cache_manager delete+recompute (step 3) and the
+        wrk_optimize (RuntimeError, BinaryFormatError,
+        OSError) catch (D-096 R2) both recover; the load
+        functions verify the sidecar BEFORE opening the
+        reader, so a sidecar mismatch still raises the
+        RuntimeError first (D-096 R3).
+        | Out of scope (confirmed with Roberto): the
+        CONFIG JSON (the D-078 R1 ad-hoc flow) and the
+        analytics text report — the only open cache
+        oddity remains the CONFIG ad-hoc flow, deferred.
+        | Drive-by (flagged during analysis, fixed in
+        the same commit): the stale sidecar docstrings in
+        the 6 modules — the sidecar IS written by the
+        binio writer (the checksum service is on by
+        default); in the pipeline flow cache_manager
+        re-writes the same sidecar (idempotent). The old
+        "NO sidecar (cache_manager writes it)" claim was
+        wrong.
+        | Tests: the manual-writer tests (wrong
+        description / version) pass compressed=True (the
+        D-139 variant: the header gate is still
+        reached); the hlp_optimize + hlp_indexes mock
+        pins get compressed=True; test_checksum_mismatch_raises
+        now corrupts the sidecar (a content-byte flip
+        trips the LZ4 guard first); new pins:
+        test_store_compressed_by_default (the LZ4 magic
+        bytes) in all 5 hlp suites +
+        test_load_defaults_reject_uncompressed_file in
+        the 3 data-object suites; the checkpoint golden
+        hash re-derived on the compressed file.
+        | Probe re-pin: verify_wmaps /
+        verify_design_matrix / verify_hlp_indexes /
+        verify_optimize (line counts, the docstring
+        pins, the manual writers, the golden hash, the
+        test counts) + verify_save A10 — a PRE-EXISTING
+        stale pin, D-130-era: it counted the inline
+        getenv idiom that db_long_gate replaced (the
+        test file has zero getenv occurrences);
+        re-pinned to the db_long_gate x2.
+        | Verification: the gated suite 680/0/87 + the
+        full suite LONG=1 680/0/18 (live DB) + the full
+        probe sweep 21/21 (live DB).

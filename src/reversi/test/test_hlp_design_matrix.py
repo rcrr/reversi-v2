@@ -220,7 +220,8 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
 
     def test_load_rejects_wrong_description(self):
         """A file whose header description is not the Design Matrix one is rejected."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("A description that is not the Design Matrix one", 1)
         with self.assertRaises(RuntimeError) as context:
             hlp_design_matrix_load_from_file(self.filepath, checksum=False)
@@ -228,11 +229,31 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
 
     def test_load_rejects_version_mismatch(self):
         """A file whose header version is not 1 is rejected."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("LMDesignMatrix binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
             hlp_design_matrix_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
+
+    def test_store_compressed_by_default(self):
+        """D-139: store writes an LZ4 frame by default and load (the
+        compressed default) round-trips it."""
+        hlp_design_matrix_store_to_file(self.dm_original, self.filepath)
+        with open(self.filepath, "rb") as f:
+            self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
+        dm_loaded = hlp_design_matrix_load_from_file(self.filepath, checksum=False)
+        self.assertEqual(dm_loaded.wmaps_obj_checksum, "io_test_hash")
+        nptest.assert_array_equal(dm_loaded.X, self.dm_original.X)
+
+    def test_load_defaults_reject_uncompressed_file(self):
+        """D-139: the compressed default fails loud on a legacy
+        uncompressed file (cache invalidation, not a silent misread)."""
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=False) as w:
+            w.write_header("LMDesignMatrix binary data file", 1)
+        with self.assertRaises(binio.BinaryFormatError):
+            hlp_design_matrix_load_from_file(self.filepath, checksum=False)
 
 
 class TestHlpDesignMatrixInit(unittest.TestCase):

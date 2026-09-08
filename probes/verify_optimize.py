@@ -53,7 +53,7 @@ def ws_lines(text):
 print("== tier A: hlp_optimize.py structure (post D-096)")
 a = read("hlp_optimize.py")
 al = a.splitlines()
-check("A1 line count 267", len(al) == 267, f"{len(al)}")
+check("A1 line count 271 (post D-139: 267 + the compressed kwarg + the docstring lines)", len(al) == 271, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
       al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)
@@ -78,9 +78,9 @@ check("A9 M9: 'Atomically' removed (no atomic write in the code)",
 check("A10 M6: history lists must have equal length (fail fast)",
       "if not (len(sl) == len(yl) == len(rho)):" in a
       and "(the L-BFGS history is stored as (s, y, rho) triples)" in a)
-check("A11 load @validate_call + 2 RuntimeError gates",
+check("A11 load @validate_call + 2 RuntimeError gates (D-139: the compressed kwarg in the signature)",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n"
-      "def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:" in a
+      "def load_optimization_checkpoint(filepath: Path, compressed: bool = True) -> Dict[str, Any]:" in a
       and 'The file is not a proper optimization checkpoint. Found: {description}' in a
       and "Checkpoint version mismatch: found {version}, expected 1" in a)
 check("A12 R3: load verifies the SHA3-256 sidecar",
@@ -88,10 +88,10 @@ check("A12 R3: load verifies the SHA3-256 sidecar",
       and "Checkpoint checksum mismatch: {filepath} does not match its SHA3-256 sidecar" in a)
 check("A13 exactly 4 @validate_call decorators", a.count("@validate_call") == 4,
       f"{a.count('@validate_call')}")
-check("A14 T11: two no-validation notes (L173 + L230)",
+check("A14 T11: two no-validation notes (L177 + L234, post D-139 line shift)",
       a.count("#: Here validation is not possible, it brings in a convoluted issue with circular imports.") == 2
-      and al[172].startswith("#: Here validation is not possible")
-      and al[229].startswith("#: Here validation is not possible"))
+      and al[176].startswith("#: Here validation is not possible")
+      and al[233].startswith("#: Here validation is not possible"))
 check("A15 R1: ridge gate in is_optimization_cache_consistent (3rd gate)",
       "The ridge regularization parameter has changed." in a
       and "math.isclose(ctx.cfg.stat_model.ridge_regularization," in a
@@ -165,7 +165,7 @@ print("== tier C: test_hlp_optimize.py structure (post D-096)")
 c = read("test/test_hlp_optimize.py")
 cl = c.splitlines()
 c_code = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
-check("C1 line count 340", len(cl) == 340, f"{len(cl)}")
+check("C1 line count 347 (post D-139: 340 + the compressed-default pin + the kwarg lines)", len(cl) == 347, f"{len(cl)}")
 check("C2 T14: header fixed (no live regab DB required)",
       "no live regab DB required" in c and "SKIP_REGAB_DB" not in c
       and "logistic_model" not in c_code and "regab" not in c_code.lower())
@@ -177,8 +177,8 @@ check("C4 D-085 idiom applied",
       and "mkdtemp" not in c and "shutil" not in c)
 check("C5 defensive tearDown",
       "if getattr(self, '_tmp', None) is not None:\n            self._tmp.cleanup()" in c)
-check("C6 4 classes / 19 tests (M10 expansion)",
-      c.count("class Test") == 4 and len(re.findall(r"    def test_\w+", c)) == 19)
+check("C6 4 classes / 20 tests (D-139: the M10 expansion + the compressed-default pin)",
+      c.count("class Test") == 4 and len(re.findall(r"    def test_\w+", c)) == 20)
 check("C7 T15: test names fixed (they test the checksum gates)",
       "def test_inconsistent_design_matrix_checksum(" in c
       and "def test_inconsistent_zed_checksum(" in c
@@ -190,13 +190,14 @@ check("C8 R1 test: ridge gate branch",
 check("C9 R3 test: corrupted content rejected at load",
       "def test_checksum_mismatch_raises(" in c
       and "Checkpoint checksum mismatch" in c)
-check("C10 M10 tests: error paths, dtypes, empty history, golden hashes, helpers",
+check("C10 tests: error paths, dtypes, empty history, golden hashes, the D-139 compressed pin, helpers",
       "def test_wrong_description_raises(" in c
       and "def test_wrong_version_raises(" in c
       and "def test_empty_history_roundtrip(" in c
       and "def test_history_length_mismatch_raises(" in c
       and "def test_file_golden_hash(" in c
-      and "6e01ff8614e8732484b7af59b01615989357ce1af2419864621965af221bd280" in c
+      and "2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f" in c
+      and "def test_store_compressed_by_default(" in c
       and "def test_sidecar_produced_and_matches(" in c
       and "class TestHlpOptimizeHelpers" in c
       and "class TestHlpOptimizeStatusConverged" in c

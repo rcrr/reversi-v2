@@ -281,7 +281,8 @@ class TestHlpWmapsIO(unittest.TestCase):
 
     def test_load_rejects_wrong_description(self):
         """A file whose header description is not the WMaps one is rejected."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("A description that is not the WMaps one", 1)
         with self.assertRaises(RuntimeError) as context:
             hlp_wmaps_load_from_file(self.filepath, checksum=False)
@@ -289,11 +290,31 @@ class TestHlpWmapsIO(unittest.TestCase):
 
     def test_load_rejects_version_mismatch(self):
         """A file whose header version is not 1 is rejected."""
-        with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=True) as w:
             w.write_header("LMWMaps binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
             hlp_wmaps_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
+
+    def test_store_compressed_by_default(self):
+        """D-139: store writes an LZ4 frame by default and load (the
+        compressed default) round-trips it."""
+        hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)
+        with open(self.filepath, "rb") as f:
+            self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
+        wmaps_loaded = hlp_wmaps_load_from_file(self.filepath, checksum=False)
+        self.assertEqual(wmaps_loaded.hlp_indexes_checksum, "io_test_hash")
+        self.assertEqual(wmaps_loaded.cut_off, 42)
+
+    def test_load_defaults_reject_uncompressed_file(self):
+        """D-139: the compressed default fails loud on a legacy
+        uncompressed file (cache invalidation, not a silent misread)."""
+        with binio.BinaryWriter(str(self.filepath), checksum=False,
+                                compressed=False) as w:
+            w.write_header("LMWMaps binary data file", 1)
+        with self.assertRaises(binio.BinaryFormatError):
+            hlp_wmaps_load_from_file(self.filepath, checksum=False)
 
 
 class TestHlpWmapsInit(unittest.TestCase):
