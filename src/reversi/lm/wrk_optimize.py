@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_optimize']
+__all__ = ['wrk_optimize']
 
 
 
@@ -185,6 +185,6 @@ def _down(ctx: "RLMContext") -> None:
     ctx.opt_info = None
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_optimize() -> Worker:
+def wrk_optimize() -> Worker:
     """Factory function that returns the OPTIMIZE worker instance."""
     return Worker("OPTIMIZE", _up, _down)

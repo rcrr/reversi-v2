@@ -85,7 +85,7 @@ None.
 
 ## Integration
 
-- Consumed ONLY by the OPTIMIZE level (lm_worker_optimize step
+- Consumed ONLY by the OPTIMIZE level (wrk_optimize step
   3): the worker passes `fg=ctx.fg`, `x0=w_init`, the 5 config
   scalars (max_iters, m, min_grad, min_p_fun_decrease,
   alpha-scaling), the two wrapper hooks and the 4 warm-start

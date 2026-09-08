@@ -1,14 +1,14 @@
 #
 # verify_optimize.py — independent verification probe for the OPTIMIZE
-# bring-in (hlp_optimize.py, lm_worker_optimize.py,
-# test_hlp_optimize.py, test_lm_worker_optimize.py), re-pinned to the
+# bring-in (hlp_optimize.py, wrk_optimize.py,
+# test_hlp_optimize.py, test_wrk_optimize.py), re-pinned to the
 # post-D-096-campaign state.
 #
 # Tiers:
 #   A  hlp_optimize.py structure (post-campaign)
-#   B  lm_worker_optimize.py structure (post-campaign)
+#   B  wrk_optimize.py structure (post-campaign)
 #   C  test_hlp_optimize.py structure (post-campaign, M10 expansion)
-#   D  test_lm_worker_optimize.py structure (post-campaign)
+#   D  test_wrk_optimize.py structure (post-campaign)
 #   E  cross-file (logistic_model, RLMContext, schemas, opt_lbfgs,
 #      rlm_02.json)
 #   F  checkpoint IO (no DB)
@@ -108,8 +108,8 @@ check("A19 'Read header properly!' colloquial comment kept",
 check("A20 'checpoint' typo fixed in the docstring", "checpoint" not in a)
 
 # ---------------------------------------------------------------- B tier
-print("== tier B: lm_worker_optimize.py structure (post D-096)")
-b = read("lm_worker_optimize.py")
+print("== tier B: wrk_optimize.py structure (post D-096)")
+b = read("wrk_optimize.py")
 bl = b.splitlines()
 check("B1 line count 190", len(bl) == 190, f"{len(bl)}")
 check("B2 T8: 'Aauthor' typo fixed",
@@ -120,7 +120,7 @@ check("B3 T9: Path dead import removed",
 check("B4 T10: factory @validate_call + pydantic import",
       "from pydantic import validate_call, ConfigDict" in b and
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n"
-      "def lm_worker_optimize() -> Worker:" in b)
+      "def wrk_optimize() -> Worker:" in b)
 check("B5 triple blanks kept (house worker style, L45-47)",
       all(bl[i] == "" for i in (44, 45, 46)))
 check("B6 checkpoint path via cfg (config-driven name, not rlmwf_ prefix)",
@@ -209,8 +209,8 @@ check("C12 no code ws lines (house sweep)", ws_lines(c) == set(),
       str(sorted(ws_lines(c))))
 
 # ---------------------------------------------------------------- D tier
-print("== tier D: test_lm_worker_optimize.py structure (post D-096)")
-d = read("test/test_lm_worker_optimize.py")
+print("== tier D: test_wrk_optimize.py structure (post D-096)")
+d = read("test/test_wrk_optimize.py")
 dl = d.splitlines()
 check("D1 line count 174", len(dl) == 174, f"{len(dl)}")
 check("D2 T1: SKIP_REGAB_DB gate in setUp (header claim now true)",

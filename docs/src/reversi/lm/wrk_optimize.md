@@ -18,7 +18,7 @@ pattern: a cache-disabled run still warms the checkpoint).
 
 | name | contract |
 |---|---|
-| `lm_worker_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-096 T10, all 9 worker factories now share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
+| `wrk_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-096 T10, all 9 worker factories now share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
 
 ## Architecture
 

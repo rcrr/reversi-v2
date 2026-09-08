@@ -3,7 +3,7 @@ The GENERATE worker integration suite — CREATED in the D-098 T5
 campaign (Roberto: "T5: ok" + "Aggiungi anche il file
 test_lm_worker_generate.py con i dovuti tests sul worker"): at
 the bring-in there was NO worker test at all. House worker-test
-shape (as in test_wrk_indexes / test_lm_worker_optimize
+shape (as in test_wrk_indexes / test_wrk_optimize
 et al.): a live-DB suite that moves the machine through the full
 10-level chain on a fresh base dir and then exercises the
 GENERATE level. 1 class / 3 tests, all DB-gated.
@@ -27,11 +27,11 @@ GENERATE level. 1 class / 3 tests, all DB-gated.
 
 - The setUp's OPTIMIZE move is what makes the suite DB-bound AND
   slow (the lbfgs run, ~10 s per test) — the same cost
-  test_lm_worker_optimize already carries; the GENERATE level
+  test_wrk_optimize already carries; the GENERATE level
   itself is cheap (the vectorized expansion).
 - The 2nd instance re-running through OPTIMIZE exercises the
   checkpoint-reload path for free (the no-"L-BFGS - [" behavior
-  of test_lm_worker_optimize's run 2).
+  of test_wrk_optimize's run 2).
 - Written directly to the house pattern in D-098 T5: the
   db_long_gate first in setUp (the SKIP_REGAB_DB + LONG tier,
   D-130; with the why-comment), the D-085 idiom, the house

@@ -55,7 +55,7 @@ GRADIENT → OPTIMIZE).
 
 Pinned by the 76-check `probes/verify_optimize.py` +
 `test_hlp_optimize.py` (19 tests, no DB) +
-`test_lm_worker_optimize.py` (3 DB-gated tests).
+`test_wrk_optimize.py` (3 DB-gated tests).
 
 - Module source shape (probe A1-A20): 267 lines, the 6-name
   `__all__`, the design comment, the M6 check, the 3 gates, the
@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The worker (lm_worker_optimize.py) calls all six functions; the
+- The worker (wrk_optimize.py) calls all six functions; the
   checkpoint is written on EVERY run (intermediate via the lbfgs
   `save_fn` when `save_every_n > 0`, final unconditionally) and
   read only when `checkpoint_path.exists() and ctx.use_cache`; it
