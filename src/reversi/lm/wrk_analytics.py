@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_analytics']
+__all__ = ['wrk_analytics']
 
 
 
@@ -80,7 +80,7 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_analytics() -> Worker:
+def wrk_analytics() -> Worker:
     """Factory function that returns the ANALYTICS worker instance."""
     return Worker("ANALYTICS", _up, _down)
 

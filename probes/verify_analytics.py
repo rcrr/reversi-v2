@@ -7,7 +7,7 @@ function-only like hlp_gradient / hlp_validate).
 
 Re-derives and verifies, independently of the test files (there
 are none — the bring-in has no test file, T5):
-  A. lm_worker_analytics.py + hlp_analytics.py structure (pinned to
+  A. wrk_analytics.py + hlp_analytics.py structure (pinned to
      the post-campaign expectations: T1 the factory gate, T2 the
      dead imports, T4 the ws lines, T5 the missing test file,
      R1-class the undeclared train_metrics blackboard field)
@@ -74,7 +74,7 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. lm_worker_analytics.py + hlp_analytics.py structure
+# A. wrk_analytics.py + hlp_analytics.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_analytics.py")
 dv_src = read("src/reversi/lm/hlp_analytics.py")
@@ -82,13 +82,13 @@ check("A1 Worker named ANALYTICS + __all__ + the 4 public data names "
       "(function-only module — no data class, no store/load; D-105/M2 "
       "added compute_training_dense_metrics)",
       'Worker("ANALYTICS", _up, _down)' in wk_src
-      and "__all__ = ['lm_worker_analytics']" in wk_src
+      and "__all__ = ['wrk_analytics']" in wk_src
       and "__all__ = ['compute_training_metrics', 'compute_training_dense_metrics',\n"
       "           'format_console_report', 'format_file_report']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
       "(all 12 sibling worker factories — the D-102 T1 pattern; "
       "pre-campaign: missing)",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_analytics" in wk_src
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_analytics" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("A3 no dead import in the worker (`Path` is never used — the report "
       "path is built from ctx.cfg.base_dir, already a Path)",
@@ -130,7 +130,7 @@ check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       and dv_src.count('def ') == 7
       and "if TYPE_CHECKING:" in dv_src)
 check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "twolm" / "test" / "test_lm_worker_analytics.py").exists())
+      (WS / "src" / "twolm" / "test" / "test_wrk_analytics.py").exists())
 check("A12 RLMContext pre-declares train_metrics (pre-campaign: it does NOT — "
       "the worker sets an ad-hoc attribute; dataclasses allow it, but every "
       "other blackboard field is declared; Roberto's call)",
@@ -219,7 +219,7 @@ else:
                   and tm["train_mae_y"] <= tm["train_rmse_y"]
                   and tm["pop_mae_y"] <= tm["pop_rmse_y"])
         # (C4b deleted at D-106 step 3, class c: the train_dense_
-        #  metrics goldens are pinned by test_lm_worker_analytics.py::
+        #  metrics goldens are pinned by test_wrk_analytics.py::
         #  test_reach_analytics_level — the 4-key dict + exact values.
         #  The binding stays: C8 + the gap/delta line checks use td)
         td = ctx.train_dense_metrics
@@ -254,7 +254,7 @@ else:
                   hashlib.sha3_256(recomputed.encode()).hexdigest() == FILE_HASH)
         # (C6 deleted at D-106 step 3, class c: the 17 header lines +
         #  the 4 worker/data INFO lines are pinned by
-        #  test_lm_worker_analytics.py::test_analytics_report_lines)
+        #  test_wrk_analytics.py::test_analytics_report_lines)
         _ls = out3.splitlines()
         _l0 = (next(i for i, l in enumerate(_ls)
                     if "Generating model analytics report..." in l)

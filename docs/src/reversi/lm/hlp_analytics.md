@@ -6,7 +6,7 @@ store/load, NO cache_manager. Computes the training-side metrics (the
 COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the
 DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
 (17-line console header; complete file report with the per-feature tables).
-> State: D-105 · 8cdf20b · 2026-09-03 · suite 4/0/0 (via test_lm_worker_analytics, all DB-gated)
+> State: D-105 · 8cdf20b · 2026-09-03 · suite 4/0/0 (via test_wrk_analytics, all DB-gated)
 
 ## API
 | name | contract |

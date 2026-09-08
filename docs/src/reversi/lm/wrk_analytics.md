@@ -20,7 +20,7 @@ and `ctx.analytics_report` (the console report string);
 
 | name | contract |
 |---|---|
-| `lm_worker_analytics()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-103 T1, all 14 sibling worker factories share the pattern) returning `Worker("ANALYTICS", _up, _down)` |
+| `wrk_analytics()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-103 T1, all 14 sibling worker factories share the pattern) returning `Worker("ANALYTICS", _up, _down)` |
 
 ## Architecture
 
@@ -50,7 +50,7 @@ and `ctx.analytics_report` (the console report string);
   is complete: `_up` sets exactly `analytics_report` +
   `train_metrics` + `train_dense_metrics` (pinned by probe A8 +
   `test_down_clears_analytics_attributes`).
-- `lm_worker_analytics()` (L82-85): the factory,
+- `wrk_analytics()` (L82-85): the factory,
   `@validate_call`-decorated since D-103 T1.
 
 ## Verified invariants
@@ -59,7 +59,7 @@ Pinned by the 36-check `probes/verify_analytics.py` + the 4-test
 worker suite (2 classes, all DB-gated).
 
 - Source shape (probe A-tier): the 86-line file, `__all__ =
-  ['lm_worker_analytics']`, the factory WITH `@validate_call` +
+  ['wrk_analytics']`, the factory WITH `@validate_call` +
   the pydantic import, NO pathlib import, NO cache_manager
   import (A9), `_up` sets the 3 ctx attributes, `_down` clears
   all three, `Worker("ANALYTICS", ...)`, 0 non-comment trailing-
