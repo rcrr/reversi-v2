@@ -2122,6 +2122,199 @@ class TestPositionFlips(unittest.TestCase):
                 )
                 self.assertTrue(position_eq(updated, expected_updated))
 
+    # D-140: the array path of the dual API.
+
+    def test_position_flips_array_bulk(self):
+        # The same 42-line dataset as test_position_flips_bulk, played
+        # through the array path in a single call.
+        data = [
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000000, 0x0000000000000000), # 000
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000001, 0x0000000000000000), # 001
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000002, 0x0000000000000000), # 002
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000040, 0x0000000000000000), # 003
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000080, 0x0000000000000000), # 004
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000200, 0x0000000000020000), # 005
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000008000, 0x0000001020400000), # 006
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000010000000000, 0x0000060204000000), # 007
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0001000000000000, 0x0000020400000000), # 008
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0002000000000000, 0x0000060200000000), # 009
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0040000000000000, 0x0038404040400000), # 010
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0100000000000000, 0x0000000000000000), # 011
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0200000000000000, 0x0000000000000000), # 012
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0400000000000000, 0x0000000000000000), # 013
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0800000000000000, 0x0018000000000000), # 014
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x2000000000000000, 0x0030000000000000), # 015
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x4000000000000000, 0x0020100000000000), # 016
+            (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x8000000000000000, 0x0000000000000000), # 017
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000001, 0x0000000000000000), # 018
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000002, 0x0000000000080400), # 019
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000040, 0x0000000000002020), # 020
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000080, 0x0000000000000000), # 021
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000100, 0x0000000000000000), # 022
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000000200, 0x0000000000043C00), # 023
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000008000, 0x0000000000000000), # 024
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000010000, 0x0000000002000000), # 025
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000020000, 0x00000002020C0400), # 026
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000000800000, 0x0000000000000000), # 027
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000001000000, 0x0000040200000000), # 028
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000004000000, 0x0000000000040400), # 029
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000000100000000, 0x0000010202040800), # 030
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000008000000000, 0x0000004000000000), # 031
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0000400000000000, 0x0000004000000000), # 032
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0010000000000000, 0x0000080000000000), # 033
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0040000000000000, 0x0000000000000000), # 034
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0080000000000000, 0x0000000000000000), # 035
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x0100000000000000, 0x0602040000000000), # 036
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x1000000000000000, 0x0000000000000000), # 037
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x2000000000000000, 0x0000000000000000), # 038
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x4000000000000000, 0x0000000000000000), # 039
+            (0x0829322CF850401C, 0x06068D52022C3C20, 0x8000000000000000, 0x0000000000000000), # 040
+            (0xFF0315CBE5713900, 0x00FC6A341A0E067F, 0x0000800000000000, 0x00C0600000000000), # 041
+        ]
+
+        data_array = np.array(data, dtype=Bitboard)
+        positions = make_position(data_array[:, 0], data_array[:, 1])
+        position_check_collisions(positions)
+
+        flips, updated = position_flips(positions, data_array[:, 2])
+        nptest.assert_array_equal(flips, data_array[:, 3])
+
+        for i in range(data_array.shape[0]):
+            # The updated position: the input position unchanged when
+            # nothing flips, otherwise the mover places the disc and the
+            # flipped squares change side (the scalar rule, elementwise).
+            if data_array[i, 3] == 0:
+                self.assertTrue(position_eq(updated[i], positions[i]))
+            else:
+                expected_updated = make_position(
+                    Bitboard(data_array[i, 1] & ~data_array[i, 3]),
+                    Bitboard(data_array[i, 0] | data_array[i, 3] | data_array[i, 2]),
+                )
+                self.assertTrue(position_eq(updated[i], expected_updated))
+
+    def test_position_flips_array_matches_scalar(self):
+        # D-140: elementwise parity with the scalar path on random data
+        # (fixed seed), including zero and multi-bit moves; for the
+        # single-bit moves the flip set is non-empty exactly when the
+        # move is in the legal-move set.
+        rng = np.random.default_rng(20260908)
+        n = 2000
+        movers = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
+        opponents = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
+        opponents &= ~movers
+        moves = np.zeros(n, dtype=Bitboard)
+        single_bit = np.zeros(n, dtype=bool)
+        for k in range(n):
+            r = rng.random()
+            if r < 0.1:
+                moves[k] = Bitboard(0)
+            elif r < 0.3:
+                a = int(rng.integers(0, 64))
+                b = (a + int(rng.integers(1, 64))) % 64
+                moves[k] = (Bitboard(1) << a) | (Bitboard(1) << b)
+            else:
+                moves[k] = Bitboard(1) << int(rng.integers(0, 64))
+                single_bit[k] = True
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        flips, updated = position_flips(positions, moves)
+        lms = position_legal_moves(positions)
+
+        for i in range(n):
+            sf, su = position_flips(positions[i], moves[i])
+            self.assertEqual(int(flips[i]), int(sf))
+            if single_bit[i]:
+                legal = bool(moves[i] & lms[i] != 0)
+                empty = bool(moves[i] & ~(movers[i] | opponents[i]) != 0)
+                if empty:
+                    # An empty square is legal exactly when it flips
+                    # something (the flip kernel and the legal-moves
+                    # kernel share the same geometry).
+                    self.assertEqual(legal, bool(flips[i] != 0))
+                else:
+                    # An occupied square is never legal; the flip kernel
+                    # does not check the move square emptiness (the
+                    # 2008 scalar behaviour, the caller's responsibility)
+                    # so flips may still be non-zero here.
+                    self.assertFalse(legal)
+            if sf == 0:
+                self.assertTrue(position_eq(updated[i], positions[i]))
+            else:
+                self.assertTrue(position_eq(updated[i], su))
+
+    def test_position_flips_array_2d_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_flips(positions.view(Position).reshape(1, 2), np.array([0x1], dtype=Bitboard))
+        self.assertEqual(str(ctx.exception),
+                         "When the argument p is an array, it must be 1D, got shape (1, 2)")
+
+    def test_position_flips_move_array_2d_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_flips(positions, np.array([[0x1], [0x2]], dtype=Bitboard))
+        self.assertEqual(str(ctx.exception),
+                         "When the argument move is an array, it must be 1D, got shape (2, 1)")
+
+    def test_position_flips_array_shape_mismatch_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_flips(positions, np.array([0x1], dtype=Bitboard))
+        self.assertEqual(str(ctx.exception),
+                         "The shapes of p and move arrays must be the same.")
+
+    def test_position_flips_mixed_scalar_array_raises_type_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(TypeError) as ctx:
+            position_flips(positions, Bitboard(0x1))
+        self.assertEqual(str(ctx.exception),
+                         "Inputs must be either both scalar or both 1-D arrays.")
+
+    def test_position_flips_wrong_move_array_dtype_raises_validation_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        moves = np.array([0x1, 0x2], dtype=np.int64)
+        with self.assertRaises(ValidationError) as ctx:
+            position_flips(positions, moves)
+        self.assertIn("Array dtype must be uint64, got int64", str(ctx.exception))
+
+    def test_position_flips_empty_array(self):
+        movers = np.array([], dtype=Bitboard)
+        opponents = np.array([], dtype=Bitboard)
+        positions = make_position(movers, opponents)
+        flips, updated = position_flips(positions, np.array([], dtype=Bitboard))
+        self.assertEqual(flips.shape, (0,))
+        self.assertEqual(updated.shape, (0,))
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        size = 1_000_000
+        movers = np.full(size, 0x0000000000000001, dtype=Bitboard)
+        opponents = np.full(size, 0x0040201008040200, dtype=Bitboard)
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        moves = np.full(size, 0x8000000000000000, dtype=Bitboard)
+
+        # Warmup
+        position_flips(positions[:10], moves[:10])
+
+        start = time.perf_counter()
+        flips, updated = position_flips(positions, moves)
+        end = time.perf_counter()
+
+        duration = end - start
+        print(f"\n[PERF position_flips] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+
+        nptest.assert_array_equal(flips, np.full(size, 0x0040201008040200, dtype=Bitboard))
+        nptest.assert_array_equal(updated['mover'], np.full(size, 0x0000000000000000, dtype=Bitboard))
+        nptest.assert_array_equal(updated['opponent'], np.full(size, 0x8040201008040201, dtype=Bitboard))
+
 class TestPositionMakeMove(unittest.TestCase):
 
     def test_position_make_move(self):
@@ -2180,6 +2373,147 @@ class TestPositionMakeMove(unittest.TestCase):
         result = position_make_move(p, illegal_move)
         
         self.assertIsNone(result)
+
+    # D-140: the array path of the dual API.
+
+    def test_position_make_move_array_mixed_batch(self):
+        # One batch with a legal move, an illegal move, a PA and a
+        # second legal move: the elementwise semantics (D-140).
+        movers = np.array([
+            0x0000000000000001,
+            0x0000000000000001,
+            0x0000000000000001,
+            0x0000000000000001,
+        ], dtype=Bitboard)
+        opponents = np.array([
+            0x0000000000000002,
+            0x0000000000000002,
+            0x0000000000000000,
+            0x0000000000000002,
+        ], dtype=Bitboard)
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        moves = np.array([2, 20, 64, 2], dtype=np.uint8)
+
+        updated = position_make_move(positions, moves)
+
+        # Legal square: the flip and the placed disc.
+        self.assertTrue(position_eq(updated[0], make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
+        # Illegal square: the input position unchanged (no None in the array).
+        self.assertTrue(position_eq(updated[1], positions[1]))
+        # PA: the players swapped.
+        self.assertTrue(position_eq(updated[2], make_position(positions[2]['opponent'], positions[2]['mover'])))
+        # Legal again.
+        self.assertTrue(position_eq(updated[3], make_position(Bitboard(0x0000000000000000), Bitboard(0x0000000000000007))))
+
+    def test_position_make_move_array_pass_batch(self):
+        # A batch of pure PASS moves: every element is the swap.
+        movers = np.array([0x0000000000000001, 0x000428080A2C7C3C], dtype=Bitboard)
+        opponents = np.array([0x0000000000000000, 0x10B8D6F7F5D30100], dtype=Bitboard)
+        positions = make_position(movers, opponents)
+        moves = np.array([64, 64], dtype=np.uint8)
+        updated = position_make_move(positions, moves)
+        for i in range(2):
+            self.assertTrue(position_eq(updated[i], make_position(positions[i]['opponent'], positions[i]['mover'])))
+
+    def test_position_make_move_array_matches_scalar(self):
+        # D-140: elementwise parity with the scalar path on random data
+        # (fixed seed), with PA interleaved; an illegal square (scalar
+        # None) keeps the input position.
+        rng = np.random.default_rng(20260909)
+        n = 2000
+        movers = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
+        opponents = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
+        opponents &= ~movers
+        moves = rng.integers(0, 65, n, dtype=np.uint8)
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        updated = position_make_move(positions, moves)
+
+        for i in range(n):
+            s = position_make_move(positions[i], moves[i])
+            if s is None:
+                self.assertTrue(position_eq(updated[i], positions[i]))
+            else:
+                self.assertTrue(position_eq(updated[i], s))
+
+    def test_position_make_move_array_2d_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_make_move(positions.view(Position).reshape(1, 2), np.array([2], dtype=np.uint8))
+        self.assertEqual(str(ctx.exception),
+                         "When the argument p is an array, it must be 1D, got shape (1, 2)")
+
+    def test_position_make_move_move_array_2d_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_make_move(positions, np.array([[2], [4]], dtype=np.uint8))
+        self.assertEqual(str(ctx.exception),
+                         "When the argument move is an array, it must be 1D, got shape (2, 1)")
+
+    def test_position_make_move_array_shape_mismatch_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_make_move(positions, np.array([2], dtype=np.uint8))
+        self.assertEqual(str(ctx.exception),
+                         "The shapes of p and move arrays must be the same.")
+
+    def test_position_make_move_mixed_scalar_array_raises_type_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(TypeError) as ctx:
+            position_make_move(positions, Move(2))
+        self.assertEqual(str(ctx.exception),
+                         "Inputs must be either both scalar or both 1-D arrays.")
+
+    def test_position_make_move_out_of_range_array_raises_value_error(self):
+        positions = make_position(np.array([0x1, 0x2, 0x4], dtype=Bitboard),
+                                  np.array([0x2, 0x4, 0x8], dtype=Bitboard))
+        with self.assertRaises(ValueError) as ctx:
+            position_make_move(positions, np.array([2, 65, 64], dtype=np.uint8))
+        self.assertEqual(str(ctx.exception),
+                         "All moves in the array must be in the range [0..64].")
+
+    def test_position_make_move_wrong_move_array_dtype_raises_validation_error(self):
+        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
+                                  np.array([0x2, 0x4], dtype=Bitboard))
+        with self.assertRaises(ValidationError) as ctx:
+            position_make_move(positions, np.array([2, 4], dtype=np.int64))
+        self.assertIn("Array dtype must be uint8, got int64", str(ctx.exception))
+
+    def test_position_make_move_empty_array(self):
+        movers = np.array([], dtype=Bitboard)
+        opponents = np.array([], dtype=Bitboard)
+        positions = make_position(movers, opponents)
+        updated = position_make_move(positions, np.array([], dtype=np.uint8))
+        self.assertEqual(updated.shape, (0,))
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
+    def test_performance_1m(self):
+        size = 1_000_000
+        movers = np.full(size, 0x0000000000000001, dtype=Bitboard)
+        opponents = np.full(size, 0x0040201008040200, dtype=Bitboard)
+
+        positions = make_position(movers, opponents)
+        position_check_collisions(positions)
+        moves = np.full(size, np.uint8(63))
+
+        # Warmup
+        position_make_move(positions[:10], moves[:10])
+
+        start = time.perf_counter()
+        updated = position_make_move(positions, moves)
+        end = time.perf_counter()
+
+        duration = end - start
+        print(f"\n[PERF position_make_move] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
+
+        nptest.assert_array_equal(updated['mover'], np.full(size, 0x0000000000000000, dtype=Bitboard))
+        nptest.assert_array_equal(updated['opponent'], np.full(size, 0x8040201008040201, dtype=Bitboard))
 
 class TestPositionCountDifference(unittest.TestCase):
 

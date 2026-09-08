@@ -73,10 +73,10 @@ positions generated from random gameplay paths.
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
 - Suite status (verified 2026-09-08, live DB, D-130 tiers,
-  D-139): 680 tests / 0 failures. Default tier: 593 run in
-  ~5 s / 87 skipped (70 DB-gated + 17 PERF print-only). LONG=1:
-  662 run in ~45 s / 18 skipped (17 PERF + 1 VLONG-gated
-  A2050). Gated run (SKIP_REGAB_DB=1): 87 skipped = 17 PERF +
+  D-140): 700 tests / 0 failures. Default tier: 611 run in
+  ~5 s / 89 skipped (70 DB-gated + 19 PERF print-only). LONG=1:
+  680 run in ~33 s / 20 skipped (19 PERF + 1 VLONG-gated
+  A2050). Gated run (SKIP_REGAB_DB=1): 89 skipped = 19 PERF +
   70 DB (35 regab + 35 worker-level). Per-file suites: the
   Suite column of the Source files / Test files tables below.
 - Probes: 21 tracked under probes/ (hub:
@@ -118,6 +118,13 @@ at the end of this file.
   uncompressed files (the LZ4 guard at load → the
   delete+recompute paths). The CONFIG ad-hoc flow remains the
   only open cache oddity (D-078 R1, deferred — Next steps).
+- BOARD (D-140, 2026-09-08): position_flips +
+  position_make_move are now dual scalar/array, the same
+  technique as legal_moves (D-111): the 2 prange kernels +
+  the shared _kogge_stone_mm (njit inline); the 2008 "PASS
+  as a special case" note is resolved per-element in the
+  kernel; array illegal moves keep the input position
+  (Roberto's ruling). Board suite 221/0/14.
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
@@ -150,7 +157,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/base_model.py | complete: thin facade base over StateMachine (pure delegation); closed (D-074/D-075) | 17/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); all issues closed — R1–R5 (D-017 era) + M1–M7 (D-111); I-005: no game-loop module | 201/0/12 | docs/src/reversi/board.md |
+| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); all issues closed — R1–R5 (D-017 era) + M1–M7 (D-111); flips/make_move vectorized (D-140); I-005: no game-loop module | 221/0/14 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
@@ -194,7 +201,7 @@ One row per test file, alphabetical.
 | --- | --- | --- | --- |
 | src/reversi/test/paths.py | the single home for workspace-root-anchored test paths (D-085) — helper module (0 tests) | — | docs/src/reversi/test/paths.md |
 | src/reversi/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/reversi/test/test_binio.md |
-| src/reversi/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121) | 201/0/12 | docs/src/reversi/test/test_board.md |
+| src/reversi/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121); +20 D-140 tests (array path + 2 PERF) | 221/0/14 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |

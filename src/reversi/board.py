@@ -1126,15 +1126,15 @@ def position_legal_moves_count(p: PositionField) -> int:
 
 #: make_move code starts here.
 #:
-#: make_move and flips functions are strictly scalar.
-#: If we would need to develop a version vectorized for numpy arrays
-#: a few steps are required:
-#:  - transform _kogge_stone_mm as done for _kogge_stone_lms
-#:    split the loop on the 8 directions into two loops on 4 ...
-#:    add the numba tag ... @njit(parallel=True, cache=True) ...
-#:    consider to parallelize the kogge_stone code using prange ...
-#:  - Find a way to check for PASS moves not as a special case ...
-#:    if not possible, the PASS moves has to be filter out from the kogge_stone call
+#: flips and make_move are dual scalar/array (D-140), the same
+#: technique as legal_moves (D-111): a numba prange kernel over the
+#: N-board batch (_vectorized_flips / _vectorized_make_move), the
+#: per-element _kogge_stone_mm under njit(inline), the standard 1-D /
+#: shape guards, the output re-assembled with make_position (the fresh
+#: interleaved buffer, zero-copy view). The scalar path keeps its 2008
+#: behaviour bit-for-bit; the 2008 note's "PASS as a special case" is
+#: resolved per-element inside the make_move kernel (move == 64 -> the
+#: player swap, no filter needed).
 
 _mm_mask = np.array([
     _all_squares_except_column_a,
@@ -1154,6 +1154,7 @@ _mm_slide_dw_2 = np.array([0,  0,  0,  0,  2, 14, 16, 18], dtype=np.uint8)
 _mm_slide_up_4 = np.array([4, 28, 32, 36,  0,  0,  0,  0], dtype=np.uint8)
 _mm_slide_dw_4 = np.array([0,  0,  0,  0,  4, 28, 32, 36], dtype=np.uint8)
 
+@nb.njit(inline='always')
 def _kogge_stone_mm(generator: Bitboard,
                     propagator: Bitboard,
                     blocker: Bitboard) -> Bitboard:
@@ -1187,8 +1188,46 @@ def _kogge_stone_mm(generator: Bitboard,
 
     return Bitboard(accumulator & ~generator)
 
+#: Internal use function.
+@nb.njit(parallel=True, cache=True)
+def _vectorized_flips(movers: np.ndarray, opponents: np.ndarray, moves: np.ndarray) -> tuple:
+    """
+    Vectorized flip-set calculation over an N-board batch (D-140).
+    For a non-single-bit (or zero) move the element keeps the input
+    position and gets a 0 flip set; for a legal move the flipped
+    opponent discs change side and the mover places the disc.
+    """
+    n = movers.shape[0]
+    flips = np.empty(n, dtype=Bitboard)
+    out_movers = np.empty(n, dtype=Bitboard)
+    out_opponents = np.empty(n, dtype=Bitboard)
+
+    # Parallel loop across all board instances
+    for i in nb.prange(n):
+        mover = Bitboard(movers[i])
+        opponent = Bitboard(opponents[i])
+        move = Bitboard(moves[i])
+        if move == 0 or (move & (move - 1)) != 0:
+            # Empty or non-single-bit move: no flip, position unchanged.
+            flips[i] = Bitboard(0)
+            out_movers[i] = mover
+            out_opponents[i] = opponent
+        else:
+            f = _kogge_stone_mm(move, opponent, mover)
+            flips[i] = f
+            if f != 0:
+                out_movers[i] = opponent & ~f
+                out_opponents[i] = mover | f | move
+            else:
+                out_movers[i] = mover
+                out_opponents[i] = opponent
+
+    return flips, out_movers, out_opponents
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, PositionField | None]:
+def position_flips(p: PositionField | PositionArray,
+                   move: Bitboard | BitboardArray) -> Tuple[Bitboard | BitboardArray,
+                                                            PositionField | PositionArray | None]:
     """
     Computes the flip set.
     Return flips as well as the updated game position.
@@ -1198,34 +1237,121 @@ def position_flips(p: PositionField, move: Bitboard) -> Tuple[Bitboard, Position
     When move is 0ULL, 0ULL is returned.
     The updated board is also returned as second element of the tuple when the move is legal,
     None otherwise.
+
+    Dual scalar/array (D-140, as legal_moves): when input is a scalar
+    the output is scalar; when p is a 1-D PositionArray and move a 1-D
+    Bitboard array of the same shape, the output is a Bitboard array
+    and a PositionArray. In the array case an illegal (or
+    non-single-bit) move element i gets flips[i] = 0 and updated[i]
+    left as the input position (no per-element None). Bare Python ints
+    and lists are rejected (Pydantic) as for the rest of the dual API.
     """
-    if bitboard_count(move) != 1:
-        return Bitboard(0x0000000000000000), None
-    m = p['mover']
-    o = p['opponent']
-    flips = _kogge_stone_mm(move, o, m)
-    if flips != 0x0000000000000000:
-        updated = make_position(o & ~flips, m | flips | move)
-    else:
-        updated = None
-    return flips, updated
+    if isinstance(p, np.ndarray) and isinstance(move, np.ndarray):
+        # D-140: the standard 1-D guard (house pattern, as legal_moves)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        if move.ndim != 1:
+            raise ValueError(f"When the argument move is an array, it must be 1D, got shape {move.shape}")
+        if p.shape != move.shape:
+            raise ValueError("The shapes of p and move arrays must be the same.")
+        flips, out_movers, out_opponents = _vectorized_flips(p['mover'], p['opponent'], move)
+        return flips, make_position(out_movers, out_opponents)
+    if isinstance(p, np.void) and isinstance(move, Bitboard):
+        if bitboard_count(move) != 1:
+            return Bitboard(0x0000000000000000), None
+        m = p['mover']
+        o = p['opponent']
+        # The njit primitive returns a Python int at the Python boundary
+        # (numba scalar-return idiom) — re-wrap to Bitboard.
+        flips = Bitboard(_kogge_stone_mm(move, o, m))
+        if flips != 0x0000000000000000:
+            updated = make_position(o & ~flips, m | flips | move)
+        else:
+            updated = None
+        return flips, updated
+    raise TypeError("Inputs must be either both scalar or both 1-D arrays.")
+
+#: Internal use function.
+@nb.njit(parallel=True, cache=True)
+def _vectorized_make_move(movers: np.ndarray, opponents: np.ndarray, moves: np.ndarray) -> tuple:
+    """
+    Vectorized game-move execution over an N-board batch (D-140).
+    moves is a 1-D uint8 array with values in [0..64]: 64 (PA) swaps
+    the player and opponent bitboards of the element (it is not
+    verified that pass is the only legal move); a legal square flips
+    as in _vectorized_flips; an illegal square leaves the input
+    position unchanged. The flips output mirrors the flip set (0 for
+    PA and for illegal squares).
+    """
+    n = movers.shape[0]
+    flips = np.empty(n, dtype=Bitboard)
+    out_movers = np.empty(n, dtype=Bitboard)
+    out_opponents = np.empty(n, dtype=Bitboard)
+
+    # Parallel loop across all board instances
+    for i in nb.prange(n):
+        mover = Bitboard(movers[i])
+        opponent = Bitboard(opponents[i])
+        move = moves[i]
+        if move == 64:
+            # PASS: swap the players.
+            flips[i] = Bitboard(0)
+            out_movers[i] = opponent
+            out_opponents[i] = mover
+        else:
+            move_bb = Bitboard(1) << move
+            f = _kogge_stone_mm(move_bb, opponent, mover)
+            flips[i] = f
+            if f != 0:
+                out_movers[i] = opponent & ~f
+                out_opponents[i] = mover | f | move_bb
+            else:
+                out_movers[i] = mover
+                out_opponents[i] = opponent
+
+    return flips, out_movers, out_opponents
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_make_move(p: PositionField, move: Move) -> PositionField | None:
+def position_make_move(p: PositionField | PositionArray,
+                       move: Move | MoveArray) -> PositionField | PositionArray | None:
     """
     Executes a game move.
     The move must be in the range A1, ... H8, PA. [0..64].
     When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
     that pass is the only legal move.
     When an illegal move is passed None is returned.
+
+    Dual scalar/array (D-140, as legal_moves): when input is a scalar
+    the output is scalar (the 2008 behaviour, including the PASS swap
+    and the out-of-range ValueError); when p is a 1-D PositionArray
+    and move a 1-D uint8 MoveArray of the same shape, the output is a
+    PositionArray. In the array case PA elements swap the players, a
+    legal square updates the position, and an illegal square leaves
+    the input position unchanged (no per-element None). Any value
+    above 64 in the array raises ValueError before the kernel.
     """
-    if move == 64: # PASS
-        return make_position(p['opponent'], p['mover'])
-    if move > 64:
-        raise ValueError(f"Argument move {int(move)} is out of range [0..64]")
-    m = move_as_bitboard(move)
-    _, updated = position_flips(p, m)
-    return updated
+    if isinstance(p, np.ndarray) and isinstance(move, np.ndarray):
+        # D-140: the standard 1-D guard (house pattern, as legal_moves)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        if move.ndim != 1:
+            raise ValueError(f"When the argument move is an array, it must be 1D, got shape {move.shape}")
+        if p.shape != move.shape:
+            raise ValueError("The shapes of p and move arrays must be the same.")
+        if (move > 64).any():
+            raise ValueError("All moves in the array must be in the range [0..64].")
+        _, out_movers, out_opponents = _vectorized_make_move(p['mover'], p['opponent'], move)
+        return make_position(out_movers, out_opponents)
+    if isinstance(p, np.void) and isinstance(move, np.uint8):
+        # Scalar path: the 2008 behaviour, unchanged.
+        if move == 64: # PASS
+            return make_position(p['opponent'], p['mover'])
+        if move > 64:
+            raise ValueError(f"Argument move {int(move)} is out of range [0..64]")
+        m = move_as_bitboard(move)
+        _, updated = position_flips(p, m)
+        return updated
+    raise TypeError("Inputs must be either both scalar or both 1-D arrays.")
 
 #: make_move code ends here.
 

@@ -677,3 +677,71 @@ D-139 | 2026-09-08 | LZ4 whole-file compression by
         | Verification: the gated suite 680/0/87 + the
         full suite LONG=1 680/0/18 (live DB) + the full
         probe sweep 21/21 (live DB).
+D-140 | 2026-09-08 | Vectorized position_flips +
+        position_make_move with the same technique as
+        position_legal_moves (D-111) (Roberto: "Vanno
+        vettorizzate con la stessa tecnica di
+        position_legal_moves ... Va testato
+        approfonditamente ... Serve sviluppare anche un
+        test PERF").
+        | API (strict dual — Roberto's ruling 8a "come
+        legal_moves" + 8b "posizione in input invariata"):
+        position_flips(p: PositionField | PositionArray,
+        move: Bitboard | BitboardArray) -> (Bitboard |
+        BitboardArray, PositionField | PositionArray |
+        None); position_make_move(p, move: Move |
+        MoveArray) -> PositionField | PositionArray |
+        None. Scalar + scalar -> the 2008 scalar behaviour
+        bit-for-bit (the PA swap, the out-of-range
+        ValueError, the (0, None) on illegal); array +
+        array -> the kernel with the standard 1-D guard +
+        the same-shape ValueError; mixed -> TypeError.
+        | Array semantics: flips[i] = 0 for a zero or
+        multi-bit move; updated[i] = the INPUT POSITION
+        UNCHANGED for an illegal move (no per-element None
+        in the structured array); in make_move the PA
+        (64) swaps the players per element INSIDE the
+        kernel — the 2008 "PASS as a special case" note is
+        resolved (no filter needed); any value > 64 in the
+        array raises ValueError before the kernel.
+        | Kernels: _vectorized_flips /
+        _vectorized_make_move @njit(parallel=True,
+        cache=True), prange over the N-board batch,
+        3-array return (flips, out_movers, out_opponents)
+        re-assembled with make_position (the fresh
+        interleaved buffer, zero-copy view); the shared
+        per-element primitive _kogge_stone_mm is now
+        @njit(inline='always') (body unchanged) — the
+        scalar path calls it as before. The 8-direction
+        up/down slide idiom is ported 1:1 per element
+        (the 4x2 LMS idiom was the alternative; rejected:
+        it would require re-deriving the blocker gt test,
+        same cost, higher risk).
+        | De-risk (scratch, before touching board.py):
+        numba 0.67 scalar-return idiom (the njit primitive
+        returns a Python int at the Python boundary -> the
+        scalar branch re-wraps with Bitboard()); the
+        structured-array element assignment from a tuple
+        does NOT compile in numba -> the 3-arrays return
+        design (confirmed by the de-risk run).
+        | Fuzz invariant pinned: an EMPTY square is legal
+        exactly when it flips something (the flip kernel
+        and the legal-moves kernel share the geometry); an
+        occupied square is never legal and the flip kernel
+        does not check the move square emptiness (the 2008
+        scalar behaviour, the caller's responsibility) —
+        the first draft of the invariant (flips != 0 iff
+        legal) was wrong for mover-occupied squares.
+        | Tests: 20 new (board 201 -> 221, 12 -> 14
+        skipped): the 42-line bulk dataset re-played in
+        array form (a single call), the mixed
+        legal/illegal/PA batch, the all-PA batch,
+        deterministic fuzz parity vs the scalar (2000
+        cases, fixed seeds, zero/multi-bit moves + PA),
+        the guard patterns per function (2-D p, 2-D move,
+        shape mismatch, mixed kind, out-of-range/dtype) +
+        the empty-array edge + the 2 PERF tests (PERF=1,
+        1M boards, the house print pattern).
+        | Verification: the board suite 221/0/14 + the
+        gated suite 700/0/89 + the full suite LONG=1
+        700/0/20 (live DB).
