@@ -110,9 +110,6 @@ at the end of this file.
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
   (D-010/D-051/D-052), reversi installed editable (D-011, D-133).
-- Sources live in the `twolm` package under src/ (D-008); unit
-  tests in src/twolm/test/. Environment: .venv with the pinned
-  deps (D-010/D-051/D-052), twolm installed editable (D-011).
   Git repo on master (D-003). Collaboration memory: AGENTS.md
   (constitution) + notes/rules.md (active rules) + this file
   (state) + notes/ (the log: decisions.md the open decision log

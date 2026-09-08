@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run_utests.sh — the twolm.test suite in canonical order (D-130).
+# run_utests.sh — the reversi.test suite in canonical order (D-130).
 #
 # Usage:
 #   ./run_utests.sh              fast tier (~4 s, 577 tests, no DB)

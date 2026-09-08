@@ -100,7 +100,7 @@ theme, with its origin D-number.
 - The platform is little-endian only: hashes use native tobytes,
   no portability work. (D-022)
 - A2xxx = the legacy production model family — do NOT "fix"
-  these names (session 21 review; docs/src/twolm/logistic_model.
+  these names (session 21 review; docs/src/reversi/lm/logistic_model.
   md conventions).
 - The injected cache helpers are named *_for_current_level —
   workers must use them in lockstep with the StateMachine
@@ -112,10 +112,10 @@ theme, with its origin D-number.
 - Tests write files only under workspace_root/build/tmp, and
   clean up afterwards (D-065).
 - Test-file idiom (D-085): CUSTOM_TMP_BASE derived via __file__
-  (the shared twolm.test.paths module), setUpClass mkdir,
+  (the shared reversi.test.paths module), setUpClass mkdir,
   TemporaryDirectory FIRST in setUp, defensive tearDown,
   WORKSPACE_ROOT-anchored paths.
-- DB-dependent tests: db_long_gate(self) (twolm/test/tags.py)
+- DB-dependent tests: db_long_gate(self) (reversi/test/tags.py)
   first in setUp (the D-080 T2 shape, extended by D-130: the
   SKIP_REGAB_DB gate plus the LONG tier); the header must state
   the gated state.
@@ -128,7 +128,7 @@ theme, with its origin D-number.
   not a dependency; do not propose a migration to pytest or
   other runners. (D-124)
 - Float64 pipeline-metric goldens use assert_close
-  (twolm/test/closecheck.py, rel 1e-9 / abs 1e-12): the
+  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12): the
   multi-threaded OpenBLAS ddot is not bit-portable across
   thread counts or CPUs (last-ULP drift, measured 2–301 ULP
   after a 4 → 8 vCPU move). Bit-exact assertEqual stays for
