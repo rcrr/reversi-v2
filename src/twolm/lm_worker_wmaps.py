@@ -32,10 +32,10 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_wmaps import (rlm_wmaps_load_from_file,
-                             rlm_wmaps_store_to_file,
-                             rlm_wmaps_compute,
-                             rlm_wmaps_is_cache_consistent)
+from reversi.lm.hlp_wmaps import (hlp_wmaps_load_from_file,
+                             hlp_wmaps_store_to_file,
+                             hlp_wmaps_compute,
+                             hlp_wmaps_is_cache_consistent)
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
@@ -53,10 +53,10 @@ def _up(ctx: "RLMContext") -> None:
     cache_hit, wmaps_obj, wmaps_obj_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = lambda path: rlm_wmaps_load_from_file(path, checksum=False),
-        store_fn    = rlm_wmaps_store_to_file,
-        validate_fn = lambda cached_wmaps: rlm_wmaps_is_cache_consistent(ctx, cached_wmaps),
-        compute_fn  = lambda: rlm_wmaps_compute(ctx),
+        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),
+        store_fn    = hlp_wmaps_store_to_file,
+        validate_fn = lambda cached_wmaps: hlp_wmaps_is_cache_consistent(ctx, cached_wmaps),
+        compute_fn  = lambda: hlp_wmaps_compute(ctx),
         logger_fn   = ctx.log_event
     )
 

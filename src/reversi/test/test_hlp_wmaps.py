@@ -1,5 +1,5 @@
 #
-# test_rlm_wmaps.py
+# test_hlp_wmaps.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_wmaps unit tests.
+# How to run the hlp_wmaps unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -53,18 +53,18 @@ from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.lm.hlp_wmaps import (ReversiLogisticModelWMaps,
-                             rlm_wmaps_compute,
-                             rlm_wmaps_store_to_file,
-                             rlm_wmaps_load_from_file,
-                             rlm_wmaps_is_cache_consistent)
+                             hlp_wmaps_compute,
+                             hlp_wmaps_store_to_file,
+                             hlp_wmaps_load_from_file,
+                             hlp_wmaps_is_cache_consistent)
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestRLMWmapsCompute(unittest.TestCase):
-    """Tests the mathematical logic of rlm_wmaps_compute in isolation."""
+    """Tests the mathematical logic of hlp_wmaps_compute in isolation."""
 
     def setUp(self):
-        # Create a dummy context to feed into rlm_wmaps_compute
+        # Create a dummy context to feed into hlp_wmaps_compute
         self.ctx = SimpleNamespace(
             hlp_indexes_checksum="abc123"
         )
@@ -99,7 +99,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
 
     def test_compute_with_fallback(self):
         """Test WMAPS computation with frequency cut-off active."""
-        wmaps = rlm_wmaps_compute(self.ctx)
+        wmaps = hlp_wmaps_compute(self.ctx)
 
         # Check basic attributes
         self.assertEqual(wmaps.hlp_indexes_checksum, "abc123")
@@ -146,7 +146,7 @@ class TestRLMWmapsCompute(unittest.TestCase):
         # Modify cut-off to 0
         self.ctx.cfg.stat_model.frequency_cut_off = 0
 
-        wmaps = rlm_wmaps_compute(self.ctx)
+        wmaps = hlp_wmaps_compute(self.ctx)
 
         # With no fallback, every unique config gets its own weight
         # F0 has 3 configs (w=0, 1, 2), F1 has 2 configs (w=3, 4)
@@ -191,13 +191,13 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
         )
 
     def test_consistent_cache(self):
-        self.assertTrue(rlm_wmaps_is_cache_consistent(self.ctx, self.wmaps_valid))
+        self.assertTrue(hlp_wmaps_is_cache_consistent(self.ctx, self.wmaps_valid))
 
     def test_inconsistent_hash(self):
-        self.assertFalse(rlm_wmaps_is_cache_consistent(self.ctx, self.wmaps_wrong_hash))
+        self.assertFalse(hlp_wmaps_is_cache_consistent(self.ctx, self.wmaps_wrong_hash))
 
     def test_inconsistent_cutoff(self):
-        self.assertFalse(rlm_wmaps_is_cache_consistent(self.ctx, self.wmaps_wrong_cutoff))
+        self.assertFalse(hlp_wmaps_is_cache_consistent(self.ctx, self.wmaps_wrong_cutoff))
 
 
 class TestRLMWmapsIO(unittest.TestCase):
@@ -233,11 +233,11 @@ class TestRLMWmapsIO(unittest.TestCase):
     def test_store_and_load_cycle(self):
         """Test that storing and loading returns an identical object."""
         # Write to disk
-        rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)
+        hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)
         self.assertTrue(self.filepath.exists())
 
         # Read from disk
-        wmaps_loaded = rlm_wmaps_load_from_file(self.filepath, checksum=False)
+        wmaps_loaded = hlp_wmaps_load_from_file(self.filepath, checksum=False)
 
         # Validate scalar attributes
         self.assertEqual(wmaps_loaded.hlp_indexes_checksum, "io_test_hash")
@@ -260,15 +260,15 @@ class TestRLMWmapsIO(unittest.TestCase):
 
     def test_load_with_valid_sidecar(self):
         """The checksum=True path accepts a matching sidecar (the D-072 machine)."""
-        rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)
+        hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
-        wmaps_loaded = rlm_wmaps_load_from_file(self.filepath, checksum=True)
+        wmaps_loaded = hlp_wmaps_load_from_file(self.filepath, checksum=True)
         self.assertEqual(wmaps_loaded.hlp_indexes_checksum, "io_test_hash")
         self.assertEqual(wmaps_loaded.cut_off, 42)
 
     def test_load_with_mismatched_sidecar(self):
         """A corrupted .dat against its sidecar raises the precise RuntimeError."""
-        rlm_wmaps_store_to_file(self.wmaps_original, self.filepath)
+        hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
         with open(self.filepath, "r+b") as f:
             f.seek(100)
@@ -276,7 +276,7 @@ class TestRLMWmapsIO(unittest.TestCase):
             f.seek(100)
             f.write(bytes([original[0] ^ 0xFF]))
         with self.assertRaises(RuntimeError) as context:
-            rlm_wmaps_load_from_file(self.filepath, checksum=True)
+            hlp_wmaps_load_from_file(self.filepath, checksum=True)
         self.assertIn("checksum file signature doesn't match", str(context.exception))
 
     def test_load_rejects_wrong_description(self):
@@ -284,7 +284,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("A description that is not the WMaps one", 1)
         with self.assertRaises(RuntimeError) as context:
-            rlm_wmaps_load_from_file(self.filepath, checksum=False)
+            hlp_wmaps_load_from_file(self.filepath, checksum=False)
         self.assertIn("not a proper", str(context.exception))
 
     def test_load_rejects_version_mismatch(self):
@@ -292,7 +292,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("ReversiLogisticModelWMaps binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
-            rlm_wmaps_load_from_file(self.filepath, checksum=False)
+            hlp_wmaps_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
 
 

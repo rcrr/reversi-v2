@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_wmaps.py
-The unit suite of the rlm_wmaps domain module (Roberto's file,
+The unit suite of the hlp_wmaps domain module (Roberto's file,
 brought in with the 73b4342 WMAPS enablement; the D-087 T2/T3/T4
 + T9 + T10 campaign). 4 classes / 13 tests / no PERF — no DB, no
 gate: the compute tests use a handcrafted mock ctx, the IO tests

@@ -32,7 +32,7 @@ followed from day one).
 
 - The D-085 paths idiom on the IO tests (real temp dir under the
   shared `CUSTOM_TMP_BASE` + defensive tearDown) — the same
-  style as test_rlm_wmaps, which it mirrors (the same 2-feature
+  style as test_hlp_wmaps, which it mirrors (the same 2-feature
   mock layout 1/3 + 2/2, so the X values hand-verify against the
   iwmap in the comment).
 - The precise-message pins (no broad `assertRaises(Exception)`).

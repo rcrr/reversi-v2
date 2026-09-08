@@ -40,10 +40,10 @@ if TYPE_CHECKING:
     from twolm.logistic_model import RLMContext
 
 __all__ = ['ReversiLogisticModelWMaps',
-           'rlm_wmaps_store_to_file',
-           'rlm_wmaps_load_from_file',
-           'rlm_wmaps_compute',
-           'rlm_wmaps_is_cache_consistent']
+           'hlp_wmaps_store_to_file',
+           'hlp_wmaps_load_from_file',
+           'hlp_wmaps_compute',
+           'hlp_wmaps_is_cache_consistent']
 
 
 class ReversiLogisticModelWMaps:
@@ -121,7 +121,7 @@ class ReversiLogisticModelWMaps:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Path) -> None:
+def hlp_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Path) -> None:
     """Saves the WMaps instance to a binary file."""
     filename = Path(filename)
     description = "ReversiLogisticModelWMaps binary data file"
@@ -140,7 +140,7 @@ def rlm_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Pa
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelWMaps:
+def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelWMaps:
     """Loads a WMaps instance from a binary file."""
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
@@ -179,7 +179,7 @@ def rlm_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
+def hlp_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     """
     Computes WMaps based on feature frequencies and the cut-off threshold.
 
@@ -309,7 +309,7 @@ def rlm_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     )
 
 
-def rlm_wmaps_is_cache_consistent(ctx: "RLMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
+def hlp_wmaps_is_cache_consistent(ctx: "RLMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
     """Validates the cache by checking hlp_indexes_checksum and cut_off."""
     is_hash_consistent = wmaps.hlp_indexes_checksum == ctx.hlp_indexes_checksum
     is_cut_off_consistent = wmaps.cut_off == ctx.cfg.stat_model.frequency_cut_off

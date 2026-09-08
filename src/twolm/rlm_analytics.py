@@ -493,7 +493,7 @@ def compute_training_dense_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
     """
     ctx.log_event(Relevance.INFO, "Computing dense-pass metrics on the training set...")
 
-    # The per-instance w_dense start offsets (the rlm_wmaps boundary
+    # The per-instance w_dense start offsets (the hlp_wmaps boundary
     # array, the same expanded-offsets construction as rlm_validate)
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)

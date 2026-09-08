@@ -41,7 +41,7 @@ plug into.
 
 The dense path and the substitution rule (verified):
 `iwmap_feature_offset` is a BOUNDARY array of shape (F+1,) —
-rlm_wmaps L212-213 builds it as `np.zeros(len(features) + 1,
+hlp_wmaps L212-213 builds it as `np.zeros(len(features) + 1,
 dtype=np.uint32)` with `[1:] = np.cumsum(f_num_configurations)`;
 `offsets[fid]` is the first w_dense slot of feature `fid`
 (`offsets[F]` = K). So `offsets[:-1]` is the per-feature start and

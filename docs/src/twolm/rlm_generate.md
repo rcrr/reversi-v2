@@ -47,7 +47,7 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
     with the seen configs (wmap `config_id >= 0` rows) —
     internal missing values interpolated, external clamped (the
     L156-158 note: the ascending precondition is structural,
-    rlm_wmaps allocates via `np.unique`); zero seen configs →
+    hlp_wmaps allocates via `np.unique`); zero seen configs →
     zeros + exactly one `Relevance.WARN` (L163-164).
   - Pattern (L166-220): every config maps to its Principal
     Index (`ref.convert_to_principal_index`, the uint32 cast at
@@ -102,7 +102,7 @@ None.
 - The consistency gate is a single field (the OPTIMIZE
   `w_checksum`): a dense recomputation is only needed when the
   optimized compressed weights change.
-- The np.interp ascending precondition is structural (rlm_wmaps
+- The np.interp ascending precondition is structural (hlp_wmaps
   `np.unique` slot allocation), not an assumption — the L156-158
   note.
 

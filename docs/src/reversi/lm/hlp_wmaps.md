@@ -13,10 +13,10 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 | name | contract |
 |---|---|
 | `ReversiLogisticModelWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
-| `rlm_wmaps_store_to_file(wmaps, filename)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; NO sidecar (cache_manager writes it) |
-| `rlm_wmaps_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
-| `rlm_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
-| `rlm_wmaps_is_cache_consistent(ctx, wmaps)` | the pure 2-field metadata compare (NO `@validate_call`) |
+| `hlp_wmaps_store_to_file(wmaps, filename)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; NO sidecar (cache_manager writes it) |
+| `hlp_wmaps_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
+| `hlp_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
+| `hlp_wmaps_is_cache_consistent(ctx, wmaps)` | the pure 2-field metadata compare (NO `@validate_call`) |
 
 ## Architecture
 
@@ -27,21 +27,21 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   of the 6 ARRAYS in declaration order (NOT the 2 scalars) — the
   duck-typed data-checksum hook cache_manager invokes (its 3rd
   return element).
-- `rlm_wmaps_store_to_file` (validated): `filename: str | Path` →
+- `hlp_wmaps_store_to_file` (validated): `filename: str | Path` →
   Path; `binio.BinaryWriter` — `write_header
   ("ReversiLogisticModelWMaps binary data file", 1)`,
   `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`,
   `write_array` ×6 in declaration order (the write order is
   pinned). Plain docstring — no sidecar promise (the pipeline-flow
   sidecar is written by cache_manager, the D-072 machine).
-- `rlm_wmaps_load_from_file` (validated): `checksum=True` →
+- `hlp_wmaps_load_from_file` (validated): `checksum=True` →
   `binio.verify_sha3_256_sidecar(filename)` first (mismatch →
   RuntimeError); then the header gate — wrong description →
   RuntimeError "The file is not a proper ...", wrong version →
   "File version mismatch: found ..., expected 1" (the DIFFERENT
   wording vs hlp_indexes); then `read_string` + `read_i32` +
   `read_array` ×6 → a fresh object.
-- `rlm_wmaps_compute`: `cut_off =
+- `hlp_wmaps_compute`: `cut_off =
   ctx.cfg.stat_model.frequency_cut_off`; per feature: the pindexes
   column slice (cols from col_offset), `np.unique(...,
   return_counts=True)`, `mask = counts < cut_off` — below-cutoff
@@ -51,14 +51,14 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   `f_iwmap[stats[:,0]] = stats[:,2]` scatter; wmap rows
   `[fid, config_id_or_−1, freq]` (−1 rows = the fallbacks);
   `wmap_fallback` = the excluded rows; `w = zeros(next_w, float32)`.
-- `rlm_wmaps_is_cache_consistent` (PURE 2-field compare, no DB
+- `hlp_wmaps_is_cache_consistent` (PURE 2-field compare, no DB
   params, no recompute — the cache_manager `validate_fn`):
   `cached.hlp_indexes_checksum == ctx.hlp_indexes_checksum AND
   cached.cut_off == ctx.cfg.stat_model.frequency_cut_off`.
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_wmaps.py` + `test_rlm_wmaps.py` (13 tests, no DB) + `test_lm_worker_wmaps.py` (3 DB-gated tests).
+Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (13 tests, no DB) + `test_lm_worker_wmaps.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A12 + B1-B9): module 316 lines, the
   5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
@@ -74,7 +74,7 @@ Pinned by the 53-call `probes/verify_wmaps.py` + `test_rlm_wmaps.py` (13 tests, 
   pairs (no `rlmwf_03_FEATURES*`); the cross-run cache hit +
   identical data; E9 — the per-feature wmap row count == `w_max −
   w_min + 1` (contiguous ranges).
-- The unit suite (`test_rlm_wmaps.py`, 13 tests, no DB): the
+- The unit suite (`test_hlp_wmaps.py`, 13 tests, no DB): the
   compute semantics (both branches — a handcrafted 4×3 mock
   pindexes: cut_off=2 → the single fallback weight per feature;
   cut_off=0 → no fallback, the mock-only branch), the 3
@@ -94,14 +94,14 @@ None.
 
 ## Conventions
 
-- R1 (by Roberto's contract, documented in the `rlm_wmaps_compute`
+- R1 (by Roberto's contract, documented in the `hlp_wmaps_compute`
   docstring): the input pindexes matrix is DENSE — every cell
   holds a valid configuration index in 0..n_configurations − 1
   (the indexes are unsigned, never −1); the −1 'unseen
   configuration' sentinel can only appear in the OUTPUT iwmap. NO
   input guard is added (resolved as no-guard).
-- No `@validate_call` on `rlm_wmaps_compute` /
-  `rlm_wmaps_is_cache_consistent` — the same TYPE_CHECKING
+- No `@validate_call` on `hlp_wmaps_compute` /
+  `hlp_wmaps_is_cache_consistent` — the same TYPE_CHECKING
   circular-import constraint as hlp_indexes (the L181 note).
 - The two checksums are distinct (as in INDEXES):
   `wmaps_obj_checksum` = the DATA checksum (sha3_256 over the 6

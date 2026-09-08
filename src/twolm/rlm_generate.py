@@ -153,7 +153,7 @@ def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
 
                 # Interpolate over the full range of possible configurations (0 to n_configurations-1)
                 # np.interp automatically clamps external values to the nearest known boundary.
-                # It also requires the known configurations to be ascending: rlm_wmaps
+                # It also requires the known configurations to be ascending: hlp_wmaps
                 # allocates the true slots via np.unique, which emits the configurations
                 # in ascending order, so the precondition is structural, not an assumption.
                 all_configs = np.arange(f.n_configurations)

@@ -3,7 +3,7 @@ The WMAPS worker of the RLM pipeline — the 6th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS),
 enabled line-by-line by Roberto in 73b4342. Like POSITIONS and
 INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
-over the rlm_wmaps object — the THIRD cache_manager consumer in
+over the hlp_wmaps object — the THIRD cache_manager consumer in
 the pipeline (the flat `rlmwf_05_WMAPS.dat` + binio sidecar DO
 materialize).
 > State: D-087 · ded27eb · 2026-08-31 · suite 3/0/0 (3 DB-gated)
@@ -22,12 +22,12 @@ materialize).
   ctx.get_cache_file_full_path_for_current_level()` (the injected
   machine closure — flat `rlmwf_05_WMAPS.dat`), `is_allowed =
   ctx.use_cache` (the CONFIG switch, the D-071 R1 semantics),
-  `load_fn = lambda path: rlm_wmaps_load_from_file(path,
+  `load_fn = lambda path: hlp_wmaps_load_from_file(path,
   checksum=False)` (the house shape — the sidecar was already
-  verified by cache_manager), `store_fn = rlm_wmaps_store_to_file`,
-  `validate_fn = lambda cached: rlm_wmaps_is_cache_consistent
+  verified by cache_manager), `store_fn = hlp_wmaps_store_to_file`,
+  `validate_fn = lambda cached: hlp_wmaps_is_cache_consistent
   (ctx, cached)` (the 2-field metadata compare), `compute_fn =
-  lambda: rlm_wmaps_compute(ctx)`, `logger_fn = ctx.log_event`.
+  lambda: hlp_wmaps_compute(ctx)`, `logger_fn = ctx.log_event`.
   Then the 6 separate context attributes are populated
   (feature_w_ranges, iwmap_feature_offset, iwmap, wmap,
   wmap_fallback, w) + the INFO "Total weights (W)" line +
@@ -89,6 +89,6 @@ None.
 - The 6th RLM level (the 6-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES, WMAPS]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
-- Consumes the `rlm_wmaps` module (all 5 public names) +
+- Consumes the `hlp_wmaps` module (all 5 public names) +
   `cache_manager`; publishes the 6 ctx arrays +
   `ctx.wmaps_obj_checksum` for the DESIGN_MTR level onward.

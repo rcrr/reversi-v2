@@ -31,7 +31,7 @@ two attributes `rlm_zed_compute` reads, so no `tempfile`, no
 - DB-free BY CONSTRUCTION (the module has no file I/O) — hence no
   SKIP_REGAB_DB gate and no `reversi.test.paths` import (the D-065
   artifact rule has nothing to apply to).
-- Mirrors the test_rlm_wmaps / test_rlm_design_matrix house
+- Mirrors the test_hlp_wmaps / test_rlm_design_matrix house
   pattern: the isolated factory math, the handcrafted-mock
   compute pins, the init validation, the hash golden.
 
