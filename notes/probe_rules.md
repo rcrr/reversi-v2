@@ -37,6 +37,13 @@ A probe is NOT:
   decayed untracked).
 - probe artifacts go under build/tmp (the D-065 base) and are
   removed afterwards, like test artifacts.
+- measure_suite.py (D-132) is a suite-level MEASUREMENT
+  tool, not a verification probe: it makes no a/b/c checks and
+  no assertions — it records per-test durations in
+  milliseconds (output to scratch/test_durations.txt). It is
+  tracked in probes/ as the timing instrument for the D-130
+  tiering and, not being a check, is outside the campaign
+  sweep of §5.2.
 
 ## 3. Classification of every probe check (a / b / c)
 

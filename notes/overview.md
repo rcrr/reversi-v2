@@ -78,10 +78,12 @@ positions generated from random gameplay paths.
   run (SKIP_REGAB_DB=1): 87 skipped = 17 PERF + 70 DB (35 regab
   + 35 worker-level). Per-file suites: the Suite column of the
   Source files / Test files tables below.
-- Probes: 20 tracked under probes/ (hub:
+- Probes: 21 tracked under probes/ (hub:
   verify_logistic_model.py owns the pipeline-wide state;
-  rules: notes/probe_rules.md); 20/20 green in both gated and
-  live modes (last campaign sweep, D-104/D-105).
+  measure_suite.py is the D-132 timing-measurement tool, no
+  checks; rules: notes/probe_rules.md); 20/20 verify probes
+  green in both gated and live modes (last campaign sweep,
+  D-104/D-105).
 
 ## Where we are
 Current state only — the session-by-session history lives in the

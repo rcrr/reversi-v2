@@ -382,3 +382,18 @@ D-131 | 2026-09-08 | Pre-commit verification scope =
         D-131). Note: the actual D-130 pre-commit
         verification ran the VLONG tier — a superset, so
         that commit is covered.
+
+D-132 | 2026-09-08 | measure_suite.py graduates from
+        scratch/ to probes/ (Roberto's GO): the
+        per-test-timing tool of the D-130 study becomes
+        tracked verification apparatus.
+        | It is a MEASUREMENT tool, not a verification
+        probe: no a/b/c checks, no assertions — it records
+        every test's duration in ms (the builtin
+        unittest --durations hides sub-1 ms and reports
+        seconds) and writes scratch/test_durations.txt.
+        probe_rules.md §2 classifies it accordingly (outside
+        the campaign sweep — it is not a check); overview.md
+        probe count 20 → 21. Verified from the workspace
+        root: 673 tests / 4.0 s wall / 87 skipped (the
+        default tier).
