@@ -5,7 +5,7 @@ verify_vld_positions.py — scratch probe for the VLD_POSITIONS bring-in
 
 Re-derives and verifies, independently of the test files (there are
 none — the bring-in has no test file, T6):
-  A. lm_worker_vld_positions.py structure (pinned to the post-campaign
+  A. wrk_vld_positions.py structure (pinned to the post-campaign
      expectations: R1 the _for_current_level naming, T2 the factory
      gate, T3 the dead imports, T4 the load_fn checksum=False shape,
      T5 the 3 ws-only lines)
@@ -61,19 +61,19 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. lm_worker_vld_positions.py structure
+# A. wrk_vld_positions.py structure
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_vld_positions.py")
 check("A1 Worker named VLD_POSITIONS + __all__",
       'Worker("VLD_POSITIONS", _up, _down)' in wk_src
-      and "__all__ = ['lm_worker_vld_positions']" in wk_src)
+      and "__all__ = ['wrk_vld_positions']" in wk_src)
 check("A2 the worker uses the D-074 house name _for_current_level (the "
       "_for_next_level call is the R1 AttributeError)",
       "get_cache_file_full_path_for_current_level" in wk_src
       and "for_next_level" not in wk_src)
 check("A3 the factory is @validate_call-decorated + pydantic imported "
       "(all 10 sibling worker factories — D-092 T2 / D-096 T10 / D-098 T3 pattern)",
-      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef lm_worker_vld_positions" in wk_src
+      "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_vld_positions" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
 check("A4 load_fn passes checksum=False (the D-080 M4 shape — no double sidecar verify)",
       "lambda path: regab_load_data_set_from_file(path, checksum=False)" in wk_src)
@@ -212,16 +212,16 @@ else:
 # ----------------------------------------------------------------------
 # D. unit facts (no DB)
 # ----------------------------------------------------------------------
-from reversi.lm.wrk_vld_positions import lm_worker_vld_positions
+from reversi.lm.wrk_vld_positions import wrk_vld_positions
 from reversi.lm.wrk_positions import is_cache_consistent, load_from_db
 
-w = lm_worker_vld_positions()
+w = wrk_vld_positions()
 check("D1 the factory returns a Worker named VLD_POSITIONS with up/down callables",
       w.name == "VLD_POSITIONS" and callable(w.up) and callable(w.down))
 
 
 # (D2-D7 moved to tests at D-106 step 3, class a §4 conversion:
-#  test_lm_worker_vld_positions.py::TestIsCacheConsistentOverride —
+#  test_wrk_vld_positions.py::TestIsCacheConsistentOverride —
 #  the SimpleNamespace stand-ins for the context and the cached rds
 #  come along; the test runs under SKIP_REGAB_DB=1 (no DB). D8 keeps
 #  the reuse-identity pin here.)

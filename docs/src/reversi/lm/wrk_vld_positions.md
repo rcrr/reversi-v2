@@ -13,7 +13,7 @@ D-097/D-098).
 
 | name | contract |
 |---|---|
-| `lm_worker_vld_positions()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-100 T1, all 11 worker factories now share the pattern) returning `Worker("VLD_POSITIONS", _up, _down)` |
+| `wrk_vld_positions()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-100 T1, all 11 worker factories now share the pattern) returning `Worker("VLD_POSITIONS", _up, _down)` |
 
 ## Architecture
 
@@ -61,7 +61,7 @@ D-097/D-098).
 ## Verified invariants
 
 Pinned by the 17-check `probes/verify_vld_positions.py` +
-`test_lm_worker_vld_positions.py` (9 tests: 3 DB-gated + 6 DB-free).
+`test_wrk_vld_positions.py` (9 tests: 3 DB-gated + 6 DB-free).
 
 - Source shape (probe A1-A8): the REUSED wrk_positions
   pair (D8 with the live-factory check D1), the R1

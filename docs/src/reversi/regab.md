@@ -112,7 +112,7 @@ None.
   `regab_load_data_set_from_file(path, checksum=False)` /
   `regab_store_data_set_to_file` as the `cache_manager` data
   functions (the sidecar is written by `cache_manager`, not here).
-- The VLD level: `lm_worker_vld_positions` uses the same load/store
+- The VLD level: `wrk_vld_positions` uses the same load/store
   pair for the validation dataset.
 - `binio.md` is the serialization backend; `cache_manager.md` the
   sidecar writer in the pipeline flow.

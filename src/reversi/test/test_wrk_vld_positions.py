@@ -1,5 +1,5 @@
 #
-# test_lm_worker_vld_positions.py
+# test_wrk_vld_positions.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the lm_worker_vld_positions unit tests.
+# How to run the wrk_vld_positions unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #

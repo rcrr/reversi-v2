@@ -44,5 +44,5 @@ constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 
 - Module under test: `regab.md`. The live-DB tests are the only
   in-repo coverage of the PostgreSQL path (no probe for this module).
-- `test_wrk_positions.md` / `test_lm_worker_vld_positions.md`
+- `test_wrk_positions.md` / `test_wrk_vld_positions.md`
   cover the pipeline-level consumers (the cache_manager wiring).

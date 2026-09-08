@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_vld_positions']
+__all__ = ['wrk_vld_positions']
 
 
 
@@ -107,6 +107,6 @@ def _down(ctx: "RLMContext") -> None:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_vld_positions() -> Worker:
+def wrk_vld_positions() -> Worker:
     """Factory function that returns the VLD_POSITIONS worker instance."""
     return Worker("VLD_POSITIONS", _up, _down)
