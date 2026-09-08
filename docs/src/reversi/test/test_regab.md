@@ -1,4 +1,4 @@
-# twolm/test/test_regab.py
+# reversi/test/test_regab.py
 The regab unit suite — 6 classes / 37 tests, no PERF gates. 35 tests
 require a live PostgreSQL database + the workspace `.env`; 2
 (`TestRegabDataSetFileLoadExceptions`) are fully mocked.

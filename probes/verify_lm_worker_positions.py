@@ -35,7 +35,7 @@ sys.path.insert(0, "src")
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
-from twolm.regab import regab_load_data_set_from_file
+from reversi.regab import regab_load_data_set_from_file
 from twolm.lm_worker_positions import lm_worker_positions
 
 WS = Path(__file__).resolve().parents[1]
@@ -243,7 +243,7 @@ check("F1 load_from_db passes port + password (5-arg RegabDBConnection call) (D-
       "                           conn_params.password)" in seg)
 check("F2 load_fn passes checksum=False — no redundant sidecar verify (D-080 M4)",
       "load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False)" in lpsrc)
-import twolm.regab as rg
+import reversi.regab as rg
 rgsrc = Path(rg.__file__).read_text()
 store_fn_src = rgsrc.split("def regab_store_data_set_to_file")[1].split("\ndef ")[0]
 check("F3 regab_store docstring corrected — no sidecar promise (D-080 cross-ref)",

@@ -57,7 +57,7 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from twolm.rlm_config_schemas import ReversiLogisticModelConfig
-from twolm.regab import RegabDBConnection, RegabDataSet
+from reversi.regab import RegabDBConnection, RegabDataSet
 from twolm.lm_worker_positions import is_cache_consistent
 from twolm.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from twolm.test.tags import db_long_gate

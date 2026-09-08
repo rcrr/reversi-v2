@@ -159,7 +159,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/twolm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
-| src/twolm/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052) | 37/0/0 | docs/src/twolm/regab.md |
+| src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052) | 37/0/0 | docs/src/reversi/regab.md |
 | src/twolm/rlm_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/twolm/rlm_analytics.md |
 | src/twolm/rlm_client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/rlm_client.md |
 | src/twolm/rlm_config_schemas.py | complete: the pydantic config domain (the ReversiLogisticModelConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/twolm/rlm_config_schemas.md |
@@ -202,7 +202,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/twolm/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/twolm/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
-| src/twolm/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/twolm/test/test_regab.md |
+| src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/reversi/test/test_regab.md |
 | src/twolm/test/test_rlm_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/twolm/test/test_rlm_config_schemas.md |
 | src/twolm/test/test_rlm_design_matrix.py | complete: the dedicated 12-test data suite (D-090) | 12/0/0 | docs/src/twolm/test/test_rlm_design_matrix.md |
 | src/twolm/test/test_rlm_generate.py | complete: the GENERATE data suite (D-097/D-098) | 14/0/0 | docs/src/twolm/test/test_rlm_generate.md |

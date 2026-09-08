@@ -1,4 +1,4 @@
-# twolm/regab.py
+# reversi/regab.py
 `regab` (REversi GAme Base) is the database-access and serialization
 layer of the pipeline: it queries a PostgreSQL database for game
 positions (the `regab_prng_gp` table), wraps the results in a

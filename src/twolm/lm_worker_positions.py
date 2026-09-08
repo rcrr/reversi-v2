@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from twolm.regab import (
+from reversi.regab import (
     RegabDataSet, 
     RegabDBConnection, 
     regab_extract_data_set_from_db,

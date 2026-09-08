@@ -39,7 +39,7 @@
 #     regab DB + LONG=1 are required; SKIP_REGAB_DB=1 skips them,
 #     VLONG=1 implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_regab
+# time python3 -m unittest reversi.test.test_regab
 #
 # -Notes-
 #
@@ -65,7 +65,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from reversi.board import Bitboard, make_position
-from twolm.regab import (RegabDBConnection,
+from reversi.regab import (RegabDBConnection,
                          RegabDataSet,
                          GameValue,
                          regab_gp_as_df,

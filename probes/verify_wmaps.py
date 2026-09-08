@@ -114,7 +114,7 @@ check("C3 the header is corrected (L38: '-1- Run the tests.' — the file is DB-
       t1[37] == "# -1- Run the tests.", repr(t1[37]))
 check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no DB)",
       read("src/twolm/test/test_rlm_wmaps.py").count("SKIP_REGAB_DB") == 0)
-check("C5 no DB import in the file", "from twolm.regab" not in read("src/twolm/test/test_rlm_wmaps.py")
+check("C5 no DB import in the file", "from reversi.regab" not in read("src/twolm/test/test_rlm_wmaps.py")
       and "import regab" not in read("src/twolm/test/test_rlm_wmaps.py"))
 check("C6 D-085 idiom applied: setUpClass (L207) + TemporaryDirectory under CUSTOM_TMP_BASE (L213)",
       t1[206] == "    def setUpClass(cls):"

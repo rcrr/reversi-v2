@@ -37,7 +37,7 @@ MODULES=(
     twolm.test.test_logistic_model
     twolm.test.test_paths
     # 3 — DB access
-    twolm.test.test_regab
+    reversi.test.test_regab
     # 4 — the pipeline, machine order 1-14 (each data module
     #     immediately before its worker; the 15-level end-to-end
     #     chain — including SAVE — last)
