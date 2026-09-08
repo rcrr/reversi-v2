@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from reversi.lm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.tools.state_machine import Verbosity
 import reversi.lm.wrk_config as lwc
@@ -196,8 +196,8 @@ try:
     #  "Target step <n> is out of bounds."), not just the type.)
 
     # the INJECTED closure needs ctx.cfg (ordering load-bearing); a bare
-    # (un-injected) RLMContext instead keeps the no-op lambda (returns None)
-    bare = RLMContext(config_file_path=CONFIG_JSON)
+    # (un-injected) LMContext instead keeps the no-op lambda (returns None)
+    bare = LMContext(config_file_path=CONFIG_JSON)
     check("E4a bare-context no-op lambda returns None",
           bare.get_cache_file_path_for_current_level() is None)
     # (E4b moved to a test at D-106 step 3, class a §4 conversion:

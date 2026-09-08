@@ -42,7 +42,7 @@ from reversi.tools.cache_manager import cache_manager_load_or_compute
 from reversi.lm.wrk_positions import load_from_db, is_cache_consistent
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -50,7 +50,7 @@ __all__ = ['wrk_vld_positions']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Loading validation game positions...")
 
     vld_cfg = ctx.cfg.validation_data_set
@@ -96,7 +96,7 @@ def _up(ctx: "RLMContext") -> None:
     return
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation game positions vld_positions, vld_game_values and vld_rds_checksum attributes.")
     ctx.vld_positions = None
     ctx.vld_game_values = None

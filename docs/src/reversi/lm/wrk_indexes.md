@@ -1,5 +1,5 @@
 # reversi/lm/wrk_indexes.py
-The INDEXES worker of the RLM pipeline — the 5th active level
+The INDEXES worker of the LM pipeline — the 5th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES), enabled
 line-by-line by Roberto in a323e0f. Like POSITIONS it is a
 CACHE-CONSUMING level: the 4-step load-or-compute over the
@@ -43,7 +43,7 @@ suite.
 
 - Source shape: the 80-line file, `__all__ =
   ['wrk_indexes']`, the factory name "INDEXES" WITH
-  `@validate_call` (the D-084 M1 house convention), the RLMContext
+  `@validate_call` (the D-084 M1 house convention), the LMContext
   import under TYPE_CHECKING (the circular-import guard), the full
   7-kwargs cache wiring with the `checksum=False` load_fn, the
   double-clear `_down`, 0 non-comment trailing-whitespace lines —
@@ -86,7 +86,7 @@ None.
 
 ## Integration
 
-- The 5th RLM level (the 5-worker list `[CREATED, CONFIG,
+- The 5th LM level (the 5-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_indexes` module (all 5 public names) +

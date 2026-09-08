@@ -1,5 +1,5 @@
 # reversi/lm/wrk_positions.py
-The POSITIONS worker of the RLM pipeline — the FIRST domain
+The POSITIONS worker of the LM pipeline — the FIRST domain
 worker that consumes cache_manager: the training data set comes
 from the regab DB through the standard 4-step load-or-compute
 flow, then positions / game_values arrays + the training
@@ -109,7 +109,7 @@ None.
 
 ## Integration
 
-- The 3rd RLM level (CREATED sentinel → CONFIG → POSITIONS);
+- The 3rd LM level (CREATED sentinel → CONFIG → POSITIONS);
   the facade (`logistic_model.py`) instantiates the machine +
   `Worker`.
 - Consumes `regab` (the extract/store/load trio),

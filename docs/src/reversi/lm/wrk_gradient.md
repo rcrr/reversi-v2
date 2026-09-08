@@ -1,5 +1,5 @@
 # reversi/lm/wrk_gradient.py
-The GRADIENT worker of the RLM pipeline: builds the loss/gradient
+The GRADIENT worker of the LM pipeline: builds the loss/gradient
 closure in `_up` (`ctx.fg = hlp_gradient_compute(ctx)`) and clears
 it in `_down`. The SECOND non-cache level (after ZED): the comment
 at L48 documents the on-the-fly choice — "GRADIENT building is a
@@ -17,7 +17,7 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 
 - Imports: `Worker, Relevance` from state_machine;
   `hlp_gradient_compute` from hlp_gradient; `validate_call,
-  ConfigDict` from pydantic (added in D-094 T2); `RLMContext`
+  ConfigDict` from pydantic (added in D-094 T2); `LMContext`
   under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by
   design — pinned by probe B).
 - `_up`: INFO "Building gradient and loss function (fg)..." →
@@ -53,7 +53,7 @@ tiers + the 2-test suite.
   closure stateless (2 calls); NO rlmwf_07*/08* file in the base
   dir (the cache files stop at rlmwf_06_DESIGN_MTR); the feature
   set (8 instances: DIAG3 + EDGE, no intercept, no mobilities).
-- The cross-file facts (probe E1/E4-E8): RLMContext's `fg`
+- The cross-file facts (probe E1/E4-E8): LMContext's `fg`
   field pre-declared; scipy in pyproject.toml + in the venv; the
   `ridge_regularization` field; the rlm_02 config.
 - The dedicated suite (probe G1-G8): the 169-line file, 2
@@ -79,7 +79,7 @@ None.
 
 ## Integration
 
-- The 9th RLM level; the domain module (hlp_gradient.py)
+- The 9th LM level; the domain module (hlp_gradient.py)
   carries the closure math, this worker the machine glue.
 - Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED),
   `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`

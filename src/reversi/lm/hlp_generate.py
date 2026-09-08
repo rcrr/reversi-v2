@@ -38,7 +38,7 @@ from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -97,12 +97,12 @@ def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_generate_is_cache_consistent(ctx: "RLMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
+def hlp_generate_is_cache_consistent(ctx: "LMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
     return dw.w_checksum == ctx.w_checksum
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def compute_w_dense(ctx: "RLMContext") -> ReversiLogisticModelDenseWeights:
+def compute_w_dense(ctx: "LMContext") -> ReversiLogisticModelDenseWeights:
     """
     Computes the dense weight vector (w_dense) of size K (all theoretical configurations).
     Unseen configurations and fallbacks are handled according to feature type:

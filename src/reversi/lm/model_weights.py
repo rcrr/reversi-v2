@@ -38,7 +38,7 @@ from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -69,7 +69,7 @@ MODEL_WEIGHTS_FILE_HEADER_STR = "RGLM_BINARY_WEIGHTS"
 MODEL_WEIGHTS_FILE_HEADER_VER = 1
 
 
-def model_weights_write_file(ctx: "RLMContext",
+def model_weights_write_file(ctx: "LMContext",
                              path: Path,
                              compressed: bool = True) -> None:
     """

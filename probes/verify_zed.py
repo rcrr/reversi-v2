@@ -58,7 +58,7 @@ check('A7  factory math pins: a=0.5 (L78), b=(1-2c)/128 (L79), a1 (L85), b1 (L86
       and rlm[85] == '    b1 = np.float32(128. / (1. - 2. * logit_clipping))')
 check('A8  T6 DONE: the no-validation note at L94 above hlp_zed_compute (L95)',
       rlm[93] == '#: Here validation is not possible, it brings in a convoluted issue with circular imports.'
-      and rlm[94] == 'def hlp_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:'
+      and rlm[94] == 'def hlp_zed_compute(ctx: "LMContext") -> ReversiLogisticModelZed:'
       and sum(1 for l in rlm if 'Here validation is not possible' in l) == 1)
 check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L102)',
       rlm[98] == '    alpha = ctx.cfg.stat_model.logit_clipping'
@@ -66,8 +66,8 @@ check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L1
       and rlm[101] == '    z = y2z(y)')
 check('A10 no cache API in hlp_zed (no store / load / is_cache_consistent)',
       not any(k in l for l in rlm for k in ('def hlp_zed_store', 'def hlp_zed_load', 'def hlp_zed_is_cache')))
-check('A11 TYPE_CHECKING guard for RLMContext (L37-38)',
-      rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from reversi.lm.logistic_model import RLMContext')
+check('A11 TYPE_CHECKING guard for LMContext (L37-38)',
+      rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from reversi.lm.logistic_model import LMContext')
 check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == {6, 11, 16, 21})
 # (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
@@ -211,7 +211,7 @@ finally:
 
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
-check('F1  RLMContext zed fields pre-declared (L128-131), untouched by the commit',
+check('F1  LMContext zed fields pre-declared (L128-131), untouched by the commit',
       lm_lines[127] == '    zed_checksum: str | None = None'
       and lm_lines[128] == '    y2z: Any = None'
       and lm_lines[129] == '    z2y: Any = None'

@@ -1,5 +1,5 @@
 # reversi/lm/wrk_wmaps.py
-The WMAPS worker of the RLM pipeline — the 6th active level
+The WMAPS worker of the LM pipeline — the 6th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS),
 enabled line-by-line by Roberto in 73b4342. Like POSITIONS and
 INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
@@ -44,7 +44,7 @@ Pinned by the `probes/verify_wmaps.py` B tier + the 3-test suite.
 
 - Source shape: the 91-line file, `__all__ = ['wrk_wmaps']`,
   the factory name "WMAPS" WITH `@validate_call` + the pydantic
-  import, the RLMContext import under TYPE_CHECKING (the
+  import, the LMContext import under TYPE_CHECKING (the
   circular-import guard), the full 7-kwargs cache wiring with the
   `checksum=False` load_fn, `_up` sets the 6 ctx arrays +
   `wmaps_obj_checksum` (7 attributes), `_down` clears all 7, 0
@@ -86,7 +86,7 @@ None.
 
 ## Integration
 
-- The 6th RLM level (the 6-worker list `[CREATED, CONFIG,
+- The 6th LM level (the 6-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES, WMAPS]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_wmaps` module (all 5 public names) +

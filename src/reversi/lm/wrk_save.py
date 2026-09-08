@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.model_weights import model_weights_write_file
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -43,7 +43,7 @@ __all__ = ['wrk_save']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Saving model weights to disk...")
 
     output_path = ctx.cfg.base_dir / ctx.cfg.output
@@ -51,7 +51,7 @@ def _up(ctx: "RLMContext") -> None:
     model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing save attributes...")
     # Nothing to clear from context, as we just read from it.
 

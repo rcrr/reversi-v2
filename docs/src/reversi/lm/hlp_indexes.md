@@ -1,5 +1,5 @@
 # reversi/lm/hlp_indexes.py
-The INDEXES domain module of the RLM pipeline: the
+The INDEXES domain module of the LM pipeline: the
 `ReversiLogisticModelIndexes` data object (the 2-D uint32 index
 matrix + its two metadata hashes) + 4 public functions (store /
 load / compute / is_cache_consistent) — the data object of the
@@ -95,7 +95,7 @@ None.
 
 - M5 (by design, source L166): NO `@validate_call` on
   `hlp_indexes_compute` / `hlp_indexes_is_cache_consistent` —
-  the `ctx: RLMContext` annotation cannot be resolved by
+  the `ctx: LMContext` annotation cannot be resolved by
   pydantic without a real import, so it stays under
   TYPE_CHECKING (the circular-import guard).
 - The two checksums are distinct: `hlp_indexes_checksum` = the
@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The 5th RLM level; the worker (wrk_indexes.py) carries
+- The 5th LM level; the worker (wrk_indexes.py) carries
   the cache wiring, this module the data object + the 4
   functions. Consumes `ctx.rds_checksum` (POSITIONS) and
   `ctx.feature_set` (FEATURES) — both must be set before

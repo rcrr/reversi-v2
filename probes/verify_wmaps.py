@@ -9,7 +9,7 @@ Re-derives and verifies, independently of the test files:
   D. test_wrk_wmaps.py structure (post D-087: gate, idiom, ws)
   E. GOLDEN re-derivation (live DB): the rlm_01.json pipeline WMAPS output
      vs the literals pinned in test_wrk_wmaps.TestLMWorkerWmapsExactValues
-  F. Cross-fixture / context facts (rlm_01 stat_model, RLMContext fields)
+  F. Cross-fixture / context facts (rlm_01 stat_model, LMContext fields)
 
 Re-pinned in D-087 to the post-campaign state (all T items pinned FIXED,
 R1 pinned as the documented no-guard contract). 64 checks.
@@ -240,7 +240,7 @@ check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_' (D-078)",
 lm_src = read("src/reversi/lm/logistic_model.py")
 # (F4/F6 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
-check("F5 RLMContext declares the 7 Wmaps fields (pre-existing, untouched by the commit)",
+check("F5 LMContext declares the 7 Wmaps fields (pre-existing, untouched by the commit)",
       all(f"    {a}: " in lm_src for a in
           ("wmaps_obj_checksum", "feature_w_ranges", "iwmap_feature_offset", "iwmap",
            "wmap", "wmap_fallback", "w")))

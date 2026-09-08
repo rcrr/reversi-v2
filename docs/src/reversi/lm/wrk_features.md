@@ -1,5 +1,5 @@
 # reversi/lm/wrk_features.py
-The FEATURES worker of the RLM pipeline — the 4th active level
+The FEATURES worker of the LM pipeline — the 4th active level
 (CREATED → CONFIG → POSITIONS → FEATURES), enabled line-by-line
 by Roberto in f051dd3. Unlike POSITIONS this is a PURE-COMPUTE
 level: it builds a FeatureSet from the CONFIG-loaded cfg (no DB,
@@ -55,7 +55,7 @@ the 3-test `test_wrk_features.py`.
 
 - Source shape: the 125-line file, `__all__ =
   ['wrk_features']`, the factory name "FEATURES", the
-  RLMContext import under TYPE_CHECKING (circular guard), the
+  LMContext import under TYPE_CHECKING (circular guard), the
   worker does NOT import cache_manager, the `@validate_call`
   factory (D-082 M1), the amask log (D-082 R1), the orphan
   comment gone (D-082 M3), no non-comment trailing whitespace —
@@ -110,7 +110,7 @@ None.
 
 ## Integration
 
-- The 4th RLM level; the facade (`logistic_model.py`) instantiates
+- The 4th LM level; the facade (`logistic_model.py`) instantiates
   the machine + `Worker` (the line-by-line enablement f051dd3).
 - Consumes the `feature` module (Feature/FeatureSet) and the
   CONFIG-loaded `ctx.cfg.feature_set`; publishes

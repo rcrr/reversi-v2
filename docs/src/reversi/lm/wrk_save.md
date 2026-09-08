@@ -1,5 +1,5 @@
 # reversi/lm/wrk_save.py
-The SAVE worker — the 15th and LAST active level of the RLM pipeline
+The SAVE worker — the 15th and LAST active level of the LM pipeline
 (step 14, after ANALYTICS; the pipeline is 15/15 COMPLETE since the
 D-104 bring-in fe506c6, which brought this worker in together with
 model_weights.py, client.py, the full-chain test module, and the
@@ -28,7 +28,7 @@ ANALYTICS-report artifact semantics: build/ files persist across runs).
 
 - Imports (L28-38): pydantic `validate_call`/`ConfigDict` (L30, T1),
   `TYPE_CHECKING` (L32), `Worker`/`Relevance` from state_machine (L34),
-  `model_weights_write_file` (L35), `RLMContext` under TYPE_CHECKING
+  `model_weights_write_file` (L35), `LMContext` under TYPE_CHECKING
   (L37-38, the hlp_indexes-L166 class, as in every worker). The
   bring-in's dead `from pathlib import Path` is removed (T2).
 - `__all__ = ['wrk_save']` (L42).

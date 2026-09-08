@@ -68,7 +68,7 @@ class Context:
     """
     Base class for pipeline contexts.
     Holds the shared state and data artifacts passed between workers.
-    Subclass this in the domain module to hold specific data (e.g., RLMContext).
+    Subclass this in the domain module to hold specific data (e.g., LMContext).
     """
     pass
 
@@ -108,7 +108,7 @@ class StateMachine:
     step. Step 0 is the initial sentinel state (nothing has been
     executed): the workers[0] up/down callables are never invoked
     by the machine — by domain design the first worker is a
-    sentinel (e.g. the RLM pipeline's 'CREATED' bootstrap, which
+    sentinel (e.g. the LM pipeline's 'CREATED' bootstrap, which
     runs outside the machine). See move_to_step for the execution
     semantics of up/down moves.
     """

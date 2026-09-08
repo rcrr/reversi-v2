@@ -24,7 +24,7 @@ removed, the T6 vacuous-assertion fix, the new `_down` test).
 - The T6 real lbfgs marker `"L-BFGS - ["` (the per-iteration
   log line).
 - The cfg mutations (`ctx.cfg.optimization.max_iters = 10`,
-  `log_every_n = 0`) work because the RLMBaseConfig models are
+  `log_every_n = 0`) work because the LMBaseConfig models are
   not frozen.
 
 ## Conventions

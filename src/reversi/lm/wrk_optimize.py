@@ -41,7 +41,7 @@ from reversi.lm.hlp_optimize import (optimization_info_dict,
                                 weights_compute_sha3_256_hash)
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -49,7 +49,7 @@ __all__ = ['wrk_optimize']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting OPTIMIZE worker...")
 
     opt_cfg = ctx.cfg.optimization
@@ -175,7 +175,7 @@ def _up(ctx: "RLMContext") -> None:
         rho=info['rho']
     )
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing optimization attributes...")
     ctx.fg = None
     # R4 (D-096): also clear the OPTIMIZE-owned artifacts. ctx.w is kept:

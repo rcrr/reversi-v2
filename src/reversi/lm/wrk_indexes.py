@@ -40,7 +40,7 @@ from reversi.lm.hlp_indexes import (ReversiLogisticModelIndexes,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -48,7 +48,7 @@ __all__ = ['wrk_indexes']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing indexes for the feature set...")
 
     # Execute the abstracted pipeline.
@@ -68,7 +68,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.hlp_indexes_checksum = hlp_indexes_checksum
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing hlp_indexes...")
     ctx.hlp_indexes = None
     ctx.hlp_indexes_checksum = None

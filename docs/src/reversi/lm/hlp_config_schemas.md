@@ -1,8 +1,8 @@
 # reversi/lm/hlp_config_schemas.py
-The pydantic config DOMAIN of the RLM pipeline: one public entry,
+The pydantic config DOMAIN of the LM pipeline: one public entry,
 `ReversiLogisticModelConfig`, over a tree of nested configs — the
 JSON5 document that wrk_config loads and validates. Every
-nested config extends `RLMBaseConfig`, whose `properties:
+nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
 > State: D-080 · cfb55fa · 2026-08-31 · suite 13/0/0
 
@@ -11,7 +11,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 | name | role |
 |---|---|
 | `ReversiLogisticModelConfig` | the only `__all__` name — the top-level config |
-| `RLMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
+| `LMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator |
@@ -96,7 +96,7 @@ None.
 
 ## Conventions
 
-- Every nested config extends `RLMBaseConfig` — the `properties`
+- Every nested config extends `LMBaseConfig` — the `properties`
   bag is present in all of them (the D-080 M3 fix brought
   `StatModelConfig` into line).
 - Mutable defaults are `Field(default_factory=...)` — never bare

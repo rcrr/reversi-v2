@@ -49,7 +49,7 @@ Pinned by the `probes/verify_generate.py` B + E + F tiers + the
   factory decorator + pydantic import, no trailing ws.
 - The pre-declared blackboard fields (probe F1): `w_dense:
   Any = None` + `dense_w_checksum: str | None = None` in
-  RLMContext (the D-094 fg pattern — the bring-in needed no
+  LMContext (the D-094 fg pattern — the bring-in needed no
   context change).
 - The live rlm_02 flow (probe E tier + the worker suite): the
   full pipeline to GENERATE writes `rlmwf_10_GENERATE.dat` +
@@ -75,7 +75,7 @@ None.
 
 ## Integration
 
-- The 11th RLM level; the only cache-level consumer in the
+- The 11th LM level; the only cache-level consumer in the
   pipeline after OPTIMIZE. Consumes the OPTIMIZE `ctx.w` +
   `ctx.w_checksum` + the WMAPS / FEATURES blackboard (via
   compute_w_dense); produces `ctx.w_dense` +

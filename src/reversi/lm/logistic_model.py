@@ -53,7 +53,7 @@ from reversi.lm.wrk_analytics import wrk_analytics
 from reversi.lm.wrk_save import wrk_save
 
 
-__all__ = ['RLMContext', 'LogisticModel']
+__all__ = ['LMContext', 'LogisticModel']
 
 
 
@@ -84,7 +84,7 @@ def _check_base_dir_override(base_dir_override: Path | str) -> Path:
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 @dataclass
-class RLMContext(Context):
+class LMContext(Context):
     """
     Context for the Reversi Logistic Model pipeline.
     Holds all data artifacts and configuration state shared across workers.
@@ -165,11 +165,11 @@ class RLMContext(Context):
 
 # --- Level 0: CREATED (Kept here as it's just a dummy blocker) ---
 
-def _created_up(ctx: RLMContext) -> None:
+def _created_up(ctx: LMContext) -> None:
     ctx.log_event(Relevance.ERROR, "Executing CREATED up worker should never happen.")
     raise RuntimeError("Executing created step should never happen.")
         
-def _created_down(ctx: RLMContext) -> None:
+def _created_down(ctx: LMContext) -> None:
     ctx.log_event(Relevance.ERROR, "Executing CREATED down worker should never happen.")
     raise RuntimeError("Cleaning created step should never happen.")
 
@@ -186,8 +186,8 @@ class LogisticModel(BaseModel):
                  verbosity: Verbosity = Verbosity.STANDARD,
                  base_dir_override: str | Path | None = None):
         """
-        Build the RLM facade: validate the domain paths, create the
-        shared RLMContext, assemble the worker pipeline and hand the
+        Build the LM facade: validate the domain paths, create the
+        shared LMContext, assemble the worker pipeline and hand the
         parts to the StateMachine (via BaseModel).
         """
 
@@ -197,7 +197,7 @@ class LogisticModel(BaseModel):
             base_dir_override = _check_base_dir_override(base_dir_override)
 
         # 2. Initialize the shared context
-        context = RLMContext(
+        context = LMContext(
             config_file_path=config_file_path,
             base_dir_override=base_dir_override
         )

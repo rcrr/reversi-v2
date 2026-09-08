@@ -6,7 +6,7 @@ planned future) do not repeat the boilerplate. It owns NO pipeline state
 of its own: the `StateMachine` is the only stateful object, and the
 facade is a pure pass-through layer. `self.context` is the SAME object
 as `self.sm.context` (identity verified — both point at the shared
-RLMContext).
+LMContext).
 > State: D-075 · afd8f76 · 2026-08-30 · suite 17/0/0 (via
   test_logistic_model through the LogisticModel subclass, no dedicated
   suite)

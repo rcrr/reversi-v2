@@ -54,7 +54,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from reversi.lm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.wrk_validate import wrk_validate
 from reversi.lm.hlp_validate import validate_model
 from reversi.test.closecheck import assert_close
@@ -236,10 +236,10 @@ class TestValidateModelUnit(unittest.TestCase):
 
         game [0,0] -> vld_z [0.5,0.5]; w_dense [0,0] -> z_pred
         [0.5,0.5] -> y_pred [0,0] -> rn_y 0 -> mae_y 0.0,
-        rmse_y 0.0. (a REAL RLMContext: Worker.up is
+        rmse_y 0.0. (a REAL LMContext: Worker.up is
         @validate_call-gated with context: Context,
         state_machine L87-90 — a SimpleNamespace is rejected)"""
-        ctx = RLMContext(config_file_path=Path("dummy.json"))
+        ctx = LMContext(config_file_path=Path("dummy.json"))
         ctx.vld_positions = np.zeros(2, dtype=np.uint64)
         ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)
         ctx.feature_set = SimpleNamespace(

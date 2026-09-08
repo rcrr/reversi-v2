@@ -1,5 +1,5 @@
 # reversi/lm/hlp_generate.py
-The GENERATE domain module of the RLM pipeline — the 11th active
+The GENERATE domain module of the LM pipeline — the 11th active
 level (CREATED sentinel → CONFIG → POSITIONS → FEATURES →
 INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE →
 GENERATE) and the 5th cache_manager consumer. It expands the
@@ -34,7 +34,7 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
   version mismatch: found 2, expected 1") — all BEFORE any
   payload parse.
 - `hlp_generate_is_cache_consistent` (L99-101, the L98
-  no-validation note — `RLMContext` is a TYPE_CHECKING import):
+  no-validation note — `LMContext` is a TYPE_CHECKING import):
   the single-field gate on `w_checksum` — when the OPTIMIZE
   weights change, the dense expansion must be recomputed.
 - `compute_w_dense` (L104-225): per feature, the slice
@@ -89,7 +89,7 @@ Pinned by the 15-check `probes/verify_generate.py` + the
   array (the live re-derivation exercises it).
 - The blackboard fields `w_dense: Any = None` +
   `dense_w_checksum: str | None = None` were pre-declared in
-  RLMContext at first import (probe F1 — the D-094 fg pattern).
+  LMContext at first import (probe F1 — the D-094 fg pattern).
 
 ## Open issues
 

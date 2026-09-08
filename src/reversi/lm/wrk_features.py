@@ -37,7 +37,7 @@ from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -45,15 +45,15 @@ __all__ = ['wrk_features']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Loading board features as defined by the model...")
     ctx.feature_set = _load_features(ctx)
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing features...")
     ctx.feature_set = None
 
-def _load_features(ctx: "RLMContext") -> FeatureSet:
+def _load_features(ctx: "LMContext") -> FeatureSet:
     intercept = _load_intercept(ctx)
     mset = _load_mobility(ctx)
     pset = _load_patterns(ctx)
@@ -79,7 +79,7 @@ def _load_features(ctx: "RLMContext") -> FeatureSet:
 
     return feature_set
 
-def _load_intercept(ctx: "RLMContext") -> Feature:
+def _load_intercept(ctx: "LMContext") -> Feature:
     cfg_intercept = ctx.cfg.feature_set.intercept
     ctx.log_event(Relevance.DEBUG, f"Intercept feature configuration: '{cfg_intercept}'")
     if cfg_intercept:
@@ -89,7 +89,7 @@ def _load_intercept(ctx: "RLMContext") -> Feature:
         intercept = None
     return intercept
 
-def _load_patterns(ctx: "RLMContext") -> PatternSet:
+def _load_patterns(ctx: "LMContext") -> PatternSet:
     cfg_pset = ctx.cfg.feature_set.pattern_set
     if cfg_pset:
         pset_name = cfg_pset.name
@@ -103,7 +103,7 @@ def _load_patterns(ctx: "RLMContext") -> PatternSet:
         pset = None
     return pset
 
-def _load_mobility(ctx: "RLMContext") -> MobilitySet:
+def _load_mobility(ctx: "LMContext") -> MobilitySet:
     cfg_mset = ctx.cfg.feature_set.mobility_set
     if cfg_mset:
         mset_name = cfg_mset.name

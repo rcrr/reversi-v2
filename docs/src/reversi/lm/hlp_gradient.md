@@ -1,5 +1,5 @@
 # reversi/lm/hlp_gradient.py
-The GRADIENT domain module of the RLM pipeline — the function-only
+The GRADIENT domain module of the LM pipeline — the function-only
 module: NO data class, NO store / load / is_cache_consistent, NO
 init validation, NO hash (unlike every other rlm_* level). Two
 public names: `sigmoid` (the scipy `expit` wrapper) +
@@ -66,7 +66,7 @@ Pinned by the 54-call `probes/verify_gradient.py` +
   (independent float64, the float32 R1 pin); f+g at w ≠ 0
   (ridge); the closure stateless (2 calls); NO rlmwf_07*/08*
   files; the feature set (8 instances).
-- The cross-file facts (probe E1/E4-E8): RLMContext's `fg` field
+- The cross-file facts (probe E1/E4-E8): LMContext's `fg` field
   pre-declared; scipy in pyproject.toml (T1) + in the venv
   (1.18.1); the StatModelConfig `ridge_regularization` field
   (`ge=0.00`); the rlm_02 config.
@@ -103,7 +103,7 @@ None.
 
 ## Integration
 
-- The 9th RLM level; the worker (wrk_gradient.py) is the
+- The 9th LM level; the worker (wrk_gradient.py) is the
   thin glue, this module the math. Consumes `ctx.design_matrix`
   (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32
   weight vector, W = total weights; 2981 on live rlm_02; the

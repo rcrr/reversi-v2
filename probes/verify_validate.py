@@ -10,7 +10,7 @@ are none — the bring-in has no test file, T5):
      the post-campaign expectations: R1 the unimported `Any`
      annotation, T1 the factory gate, T2 the dead imports, T3 the
      wrong header name, T4 the ws lines, T5 the missing test file)
-  B. context facts (the RLMContext pre-declared vld_metrics /
+  B. context facts (the LMContext pre-declared vld_metrics /
      analytics_report fields)
   C. GOLDEN re-derivation (live DB, gated on SKIP_REGAB_DB): the
      rlm_02.json pipeline to VALIDATE (step 12) — the 6-metric
@@ -131,7 +131,7 @@ check("A13 the unused vld_indexes.shape[1] is underscore-unpacked (M2, D-102; "
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("B4 RLMContext pre-declared vld_metrics (the future analytics_report)",
+check("B4 LMContext pre-declared vld_metrics (the future analytics_report)",
       "    vld_metrics: Any = None" in lm_src
       and "    analytics_report: Any = None" in lm_src)
 

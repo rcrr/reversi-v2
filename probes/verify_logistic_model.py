@@ -1,7 +1,7 @@
 #
 # verify_logistic_model.py — independent verification probe
 #
-# Re-derives the key facts about logistic_model.LogisticModel/RLMContext
+# Re-derives the key facts about logistic_model.LogisticModel/LMContext
 # and the state_machine integration without trusting the module's own
 # tests. Artifacts: build/tmp only (D-065), removed afterwards.
 #
@@ -19,7 +19,7 @@
 # Re-pinned in session 23 (D-083) to the post-a323e0f state: INDEXES
 # enabled (the lm_worker_indexes() import + worker-list entry
 # uncommented) — 5 active levels (CREATED sentinel, CONFIG, POSITIONS,
-# FEATURES, INDEXES). V10 unchanged: RLMContext already declared the
+# FEATURES, INDEXES). V10 unchanged: LMContext already declared the
 # rlm_indexes / rlm_indexes_checksum blackboard fields at first import
 # (8 *_checksum fields, no features_checksum).
 #
@@ -66,13 +66,13 @@ def check(name, ok, detail=""):
     if not ok:
         failures.append(name)
 
-# --- V1: RLMContext dataclass shape --------------------------------------
-from reversi.lm.logistic_model import RLMContext, LogisticModel
+# --- V1: LMContext dataclass shape --------------------------------------
+from reversi.lm.logistic_model import LMContext, LogisticModel
 from reversi.base_model import BaseModel
 from reversi.tools.state_machine import Context
 
-check("V1a is_dataclass", dataclasses.is_dataclass(RLMContext))
-fields = {f.name: f for f in dataclasses.fields(RLMContext)}
+check("V1a is_dataclass", dataclasses.is_dataclass(LMContext))
+fields = {f.name: f for f in dataclasses.fields(LMContext)}
 check("V1b context is plain (non-dataclass) base",
       not dataclasses.is_dataclass(Context))
 check("V1c config_file_path field no default",
@@ -91,7 +91,7 @@ check("V1g log_event default is a lambda",
 
 # --- V8: annotations resolve (D-074 R2) ----------------------------------
 try:
-    typing.get_type_hints(RLMContext)
+    typing.get_type_hints(LMContext)
     check("V8 get_type_hints succeeds (str | None annotations, no latent Union NameError)", True)
 except Exception as e:
     check("V8 get_type_hints succeeds (str | None annotations, no latent Union NameError)", False,
@@ -185,7 +185,7 @@ for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_la
         check(f"V9 {label} -> pydantic ValidationError (CONFIG), step stays at 1", False,
               f"got {type(e).__name__}: {e}; step {m.current_step}")
 
-# --- V10: RLMContext artifact inventory (doc support) --------------------
+# --- V10: LMContext artifact inventory (doc support) --------------------
 check("V10 checksum-typed fields: 8, and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
       sum(1 for n in fields if n.endswith("_checksum")) == 8
       and "features_checksum" not in fields,

@@ -1,5 +1,5 @@
 # reversi/lm/hlp_optimize.py
-The OPTIMIZE domain module of the RLM pipeline. Unlike every other
+The OPTIMIZE domain module of the LM pipeline. Unlike every other
 rlm_* level, the "cache" of this level is NOT a data class behind
 a store/load/is_cache_consistent trio: it is a plain **checkpoint
 dictionary** serialized with binio (the L56-57 design comment).

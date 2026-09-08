@@ -39,7 +39,7 @@ from reversi.lm.hlp_wmaps import (hlp_wmaps_load_from_file,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -47,7 +47,7 @@ __all__ = ['wrk_wmaps']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing weight maps (WMAPS) for the feature set...")
 
     cache_hit, wmaps_obj, wmaps_obj_checksum = cache_manager_load_or_compute(
@@ -74,7 +74,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.wmaps_obj_checksum = wmaps_obj_checksum
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing WMAPS and W attributes...")
     ctx.feature_w_ranges = None
     ctx.iwmap_feature_offset = None

@@ -34,7 +34,7 @@ import numpy.typing as npt
 from scipy.special import expit
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 __all__ = ['hlp_gradient_compute', 'sigmoid']
 
@@ -50,7 +50,7 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_gradient_compute(ctx: "RLMContext") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:
+def hlp_gradient_compute(ctx: "LMContext") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:
     """
     Builds the function returning loss and gradient.
     Captures X, z, and alpha in a closure for fast repeated evaluations during optimization.

@@ -1,5 +1,5 @@
 # reversi/lm/hlp_zed.py
-The ZED domain module of the RLM pipeline: the
+The ZED domain module of the LM pipeline: the
 `ReversiLogisticModelZed` data object (the z (N,) float32 vector —
 the affine image of the per-position game values — + the two affine
 transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the
@@ -67,7 +67,7 @@ DB-gated).
   `y2z(0) == 0.5`, `y2z(64) ≈ 1−c`; live round-trip
   `z2y(y2z(y)) == float32(y)`; the base dir holds EXACTLY the 5
   flat files + 5 sidecars of the 5 cache levels (no rlmwf_07*).
-- The cross-module facts (probe F1/F4/F5): RLMContext's 4 zed
+- The cross-module facts (probe F1/F4/F5): LMContext's 4 zed
   fields pre-declared (L129-132), untouched by the commit; the
   dedicated test exists (10 tests, no DB wiring); the 4 D-007
   mirror docs exist.

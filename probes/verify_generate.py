@@ -16,7 +16,7 @@ Re-derives and verifies, independently of the test files:
      means, orbit invariance, the seen-config exactness, the full
      independent re-derivation, the hash golden, the file naming,
      the second-instance cache hit, the _down clearing, the version gate
-  F. context facts (RLMContext pre-declared fields)
+  F. context facts (LMContext pre-declared fields)
 
 Pinned to the POST-campaign state: the A/B/C structural checks and the
 E1/E11 + D6 behavior pins FAIL until the fix campaign is applied
@@ -260,7 +260,7 @@ else:
 # F. context facts
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("F1 RLMContext declares w_dense + dense_w_checksum (pre-declared, the D-094 fg pattern)",
+check("F1 LMContext declares w_dense + dense_w_checksum (pre-declared, the D-094 fg pattern)",
       "    dense_w_checksum: str | None = None" in lm_src
       and "    w_dense: Any = None" in lm_src)
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py

@@ -9,7 +9,7 @@
 #   B  wrk_optimize.py structure (post-campaign)
 #   C  test_hlp_optimize.py structure (post-campaign, M10 expansion)
 #   D  test_wrk_optimize.py structure (post-campaign)
-#   E  cross-file (logistic_model, RLMContext, schemas, opt_lbfgs,
+#   E  cross-file (logistic_model, LMContext, schemas, opt_lbfgs,
 #      rlm_02.json)
 #   F  checkpoint IO (no DB)
 #   G  helper functions (no DB)
@@ -256,7 +256,7 @@ print("== tier E: cross-file")
 lm = read("logistic_model.py")
 # (E1/E2 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
-check("E3 RLMContext pre-declared fields (w, fg, w_checksum, opt_info, dense_w_checksum)",
+check("E3 LMContext pre-declared fields (w, fg, w_checksum, opt_info, dense_w_checksum)",
       "    w: Any = None" in lm and "    fg: Any = None" in lm
       and "    w_checksum: str | None = None" in lm
       and "    opt_info: Any = None" in lm

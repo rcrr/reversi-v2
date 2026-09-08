@@ -51,7 +51,7 @@ from unittest.mock import MagicMock, patch
 
 from pydantic import ValidationError
 
-from reversi.lm.logistic_model import (LogisticModel, RLMContext,
+from reversi.lm.logistic_model import (LogisticModel, LMContext,
                                   _check_base_dir_override,
                                   _check_config_file_path,
                                   _created_down, _created_up)
@@ -60,7 +60,7 @@ from reversi.test.paths import CUSTOM_TMP_BASE
 
 
 class TestLogisticModel(unittest.TestCase):
-    """Test suite for the LogisticModel facade and RLMContext."""
+    """Test suite for the LogisticModel facade and LMContext."""
 
     @classmethod
     def setUpClass(cls):
@@ -118,8 +118,8 @@ class TestLogisticModel(unittest.TestCase):
             temp_dir.cleanup()
 
     def test_context_initialization(self):
-        """Test that RLMContext is correctly initialized with paths."""
-        self.assertIsInstance(self.model.context, RLMContext)
+        """Test that LMContext is correctly initialized with paths."""
+        self.assertIsInstance(self.model.context, LMContext)
         self.assertEqual(str(self.model.context.config_file_path), self.dummy_config_path)
         self.assertIsNone(self.model.context.base_dir_override)
         self.assertIsNone(self.model.context.cfg) # Should start empty
@@ -144,7 +144,7 @@ class TestLogisticModel(unittest.TestCase):
         """The injected _for_current_level closure dereferences ctx.cfg;
         before the CONFIG worker runs, cfg is None and the call must
         fail with AttributeError (the injection-order fact; a bare
-        RLMContext instead keeps the no-op lambda default, D-074 R1).
+        LMContext instead keeps the no-op lambda default, D-074 R1).
 
         Converted from the verify_wrk_config.py E4b probe at D-106
         step 3 (probe_rules.md §4)."""
@@ -233,10 +233,10 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(ctx.log_event.__name__, "log_event")
 
     def test_pre_injection_fallback_is_no_op_lambda(self):
-        """T4 (D-075): a bare (un-injected) RLMContext keeps the
+        """T4 (D-075): a bare (un-injected) LMContext keeps the
         lambda no-op defaults — the cache helpers return None and
         log_event does nothing, without crashing."""
-        bare = RLMContext(config_file_path=Path(self.dummy_config_path))
+        bare = LMContext(config_file_path=Path(self.dummy_config_path))
         self.assertIsNone(bare.get_cache_file_path_for_current_level())
         self.assertIsNone(bare.get_cache_file_full_path_for_current_level())
         bare.log_event()

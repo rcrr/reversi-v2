@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING, Tuple, Callable
 from pydantic import validate_call, ConfigDict
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -92,7 +92,7 @@ def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_zed_compute(ctx: "RLMContext") -> ReversiLogisticModelZed:
+def hlp_zed_compute(ctx: "LMContext") -> ReversiLogisticModelZed:
     """
     Computes Z vector and transformation functions based on logit_clipping.
     """

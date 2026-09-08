@@ -1,5 +1,5 @@
 # reversi/lm/hlp_validate.py
-The VALIDATE domain module of the RLM pipeline — the 13th active
+The VALIDATE domain module of the LM pipeline — the 13th active
 level (the 12th step). Unlike every other rlm_* level except
 hlp_zed / hlp_gradient, this one is PURE COMPUTE: no data class,
 no store / load / is_cache_consistent trio, no checksum, no
@@ -91,7 +91,7 @@ None.
 ## Conventions
 
 - No init validation, no `@validate_call`: single function over
-  an already-validated context — the `ctx: "RLMContext"` string
+  an already-validated context — the `ctx: "LMContext"` string
   annotation + TYPE_CHECKING import is the house pattern for the
   circular constraint.
 - The dense-mapping idiom (`np.repeat` + fancy indexing +

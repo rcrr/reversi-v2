@@ -510,3 +510,27 @@ D-135 | 2026-09-08 | The local PostgreSQL cluster is
         The frozen labels and the rlm_0X data names stay.
         | Probe sweep (probe_rules §5.2): 21/21 green (the 20
         verify probes + measure_suite), all DB tiers live.
+D-136 | 2026-09-08 | RLM → LM: the final inventory ruling
+        (the D-133 deferral — Roberto: "Rinomina").
+        | Scope: RLMContext → LMContext (106 sites in src, 192
+        incl. probes + docs), RLMBaseConfig → LMBaseConfig
+        (14), the bare RLM abbreviation in comments / prose
+        (3 in src; the lm docs — "the RLM pipeline" → "the LM
+        pipeline", "RLM facade" → "LM facade", "RLM level" →
+        "LM level"). Applied to src (code + docstrings), the
+        test files, the mirror docs, and ALL probes — the
+        live pins (the source-text strings, the
+        TYPE_CHECKING import pins, the LMContext(...)
+        instantiations) and the hub header live refs renamed
+        with the class (the live identifier; the frozen
+        module-name lineage lm_worker_* in the same header
+        stays). The history notes (decisions, the journal,
+        analyses/) keep the old names.
+        | Out of scope (flagged, D-137): the hlp test
+        scaffolding classes TestRLMWmaps* (4) +
+        TestRLMZedCompute — named after the original 2008
+        function names; test_hlp_indexes was renamed to
+        TestHlpIndexes* in phase B, so the siblings are
+        inconsistent.
+        | Verification: the gated suite 673/0/87 GREEN + the
+        full probe sweep 21/21 (live DB).

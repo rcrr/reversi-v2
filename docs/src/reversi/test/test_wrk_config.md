@@ -34,7 +34,7 @@ re-anchored it, and step 3 of D-106 moved probe check D1 into it).
   where noted).
 - The properties-bag values from `rlm_00.json`: `number == 7`,
   `string == 'A string'`, `is_on is False`, missing key →
-  `None` (the D-080 `RLMBaseConfig.properties` extension bag,
+  `None` (the D-080 `LMBaseConfig.properties` extension bag,
   exercised end-to-end through the worker).
 - The `ValueError` type for the invalid-json5 case — pins the
   json5 0.15.0 behaviour (upgrading json5 must re-check this
@@ -52,5 +52,5 @@ re-anchored it, and step 3 of D-106 moved probe check D1 into it).
 ## Integration
 
 - Exercises `wrk_config.py` through the real StateMachine
-  (the CONFIG level of the RLM pipeline) with the
+  (the CONFIG level of the LM pipeline) with the
   `rlm_00.json` fixture.

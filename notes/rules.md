@@ -174,7 +174,7 @@ theme, with its origin D-number.
 - Gate split: domain pydantic ValidationErrors are NOT converted
   to the gate's TypeError — the gate passes domain errors
   through. (D-076)
-- Blackboard: RLMContext fields are pre-declared before a worker
+- Blackboard: LMContext fields are pre-declared before a worker
   consumes or publishes them. (D-099)
 - Cache flow: the cache_manager load-or-compute with the
   .SHA3-256 sidecar and the 8192-chunk verify (D-071/D-072);

@@ -37,7 +37,7 @@ from pydantic import validate_call, ConfigDict
 from reversi.tools import binio
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 __all__ = ['ReversiLogisticModelWMaps',
            'hlp_wmaps_store_to_file',
@@ -179,7 +179,7 @@ def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
+def hlp_wmaps_compute(ctx: "LMContext") -> ReversiLogisticModelWMaps:
     """
     Computes WMaps based on feature frequencies and the cut-off threshold.
 
@@ -309,7 +309,7 @@ def hlp_wmaps_compute(ctx: "RLMContext") -> ReversiLogisticModelWMaps:
     )
 
 
-def hlp_wmaps_is_cache_consistent(ctx: "RLMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
+def hlp_wmaps_is_cache_consistent(ctx: "LMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
     """Validates the cache by checking hlp_indexes_checksum and cut_off."""
     is_hash_consistent = wmaps.hlp_indexes_checksum == ctx.hlp_indexes_checksum
     is_cut_off_consistent = wmaps.cut_off == ctx.cfg.stat_model.frequency_cut_off

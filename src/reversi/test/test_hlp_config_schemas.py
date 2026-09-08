@@ -164,7 +164,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(ok.status, ["CMS", "CMR"])
 
     def test_properties_field_in_model_fields(self):
-        """Both RLMBaseConfig descendants carry the 'properties'
+        """Both LMBaseConfig descendants carry the 'properties'
         field (D-080 M3)."""
         self.assertIn("properties", StatModelConfig.model_fields)
         self.assertIn("properties", ValidationDataSetConfig.model_fields)

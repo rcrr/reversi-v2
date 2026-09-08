@@ -1,9 +1,9 @@
 # reversi/lm/logistic_model.py
 The first concrete domain facade: it wires the generic StateMachine
-to the RLM (Reversi Logistic Model) pipeline — a 4-step construction
-(validate the domain paths, build the shared RLMContext blackboard,
+to the LM (Reversi Logistic Model) pipeline — a 4-step construction
+(validate the domain paths, build the shared LMContext blackboard,
 assemble the 15-level worker list, hand the parts to BaseModel →
-StateMachine) — plus the RLMContext @dataclass: config state, every
+StateMachine) — plus the LMContext @dataclass: config state, every
 data artifact produced by the 15 levels, the 8 checksum fields, and
 the 3 infrastructure callables the machine injects at construction.
 > State: D-113 · 0fd93bd · 2026-09-06 · suite 17/0/0
@@ -12,7 +12,7 @@ the 3 infrastructure callables the machine injects at construction.
 
 | family | name | contract |
 |---|---|---|
-| Context | `RLMContext(Context)` | `@dataclass`, 40 fields; the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
+| Context | `LMContext(Context)` | `@dataclass`, 40 fields; the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
 | Context | config group | `config_file_path: Path`, `base_dir_override: Path \| None`, `use_cache: bool \| None`, `cfg: Any` |
 | Context | data artifacts (33) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`; indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`; analytics `train_metrics`/`train_dense_metrics`/`analytics_report` — the 8 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
 | Context | injected callables | `log_event`, `get_cache_file_path_for_current_level`, `get_cache_file_full_path_for_current_level` (the D-069 names; lambda no-op defaults = pre-injection fallback, replaced at init by the machine's closures) |
@@ -28,7 +28,7 @@ the 3 infrastructure callables the machine injects at construction.
 ```
 LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     1. _check_config_file_path / _check_base_dir_override (plain helpers)
-    2. RLMContext(config_file_path, base_dir_override)  — the blackboard
+    2. LMContext(config_file_path, base_dir_override)  — the blackboard
     3. workers = [ Worker("CREATED", _created_up, _created_down),
                    wrk_config(), wrk_positions(), ..., wrk_save() ]
     4. super().__init__(workers, context, verbosity)
@@ -39,14 +39,14 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 ```
 
 - **4-step construction** — (1) validate the domain paths with the
-  plain helpers, (2) build the shared `RLMContext`, (3) assemble the
+  plain helpers, (2) build the shared `LMContext`, (3) assemble the
   worker list (sentinel + the 14 factory calls), (4)
   `super().__init__` hands workers + context + verbosity to
   `BaseModel` → `StateMachine`, which injects `log_event` + the two
   cache-path closures into the context (replacing the lambda
   defaults under the same names — the same mechanism as
   `log_event`).
-- **RLMContext is the shared blackboard** — a `@dataclass` extending
+- **LMContext is the shared blackboard** — a `@dataclass` extending
   the plain (non-dataclass) `Context` base; workers publish to the
   pre-declared fields (the D-099 idiom — an ad-hoc attribute works
   but breaks the pattern); `cfg` must be populated by the CONFIG
@@ -81,12 +81,12 @@ Pinned by `probes/verify_logistic_model.py` (21 checks) +
 `test_logistic_model.py` (17 tests; the V6f/V4b-class probe checks
 were converted to tests at D-106 step 3).
 
-- The RLMContext dataclass shape: plain `Context` base,
+- The LMContext dataclass shape: plain `Context` base,
   `config_file_path` the only no-default field, `use_cache` default
   None, the legacy `_for_next_level` names gone, the
   `*_for_current_level` fields with lambda defaults, the `log_event`
   lambda default — probe V1a-V1g.
-- `typing.get_type_hints(RLMContext)` succeeds (the `str | None`
+- `typing.get_type_hints(LMContext)` succeeds (the `str | None`
   annotations, no latent Union NameError) — probe V8.
 - The config-path helper: str/Path → Path, TypeError,
   FileNotFoundError, IsADirectoryError — probe V6a-V6b +
@@ -115,7 +115,7 @@ were converted to tests at D-106 step 3).
   full variant prepending `cfg.base_dir` —
   `test_logistic_model::test_injected_cache_helper_computes_the_worker_
   path`.
-- The pre-injection fallback: a bare (un-injected) `RLMContext` keeps
+- The pre-injection fallback: a bare (un-injected) `LMContext` keeps
   the no-op lambda defaults (helpers return None, `log_event`
   does nothing) — `test_logistic_model::test_pre_injection_fallback_
   is_no_op_lambda`; a bare call of an injected closure before the
@@ -144,7 +144,7 @@ None.
   contract — a context field renamed back to `_for_next_level`
   silently returns None to the workers (the R1 trap); keep the names
   in lockstep with the StateMachine injection.
-- Blackboard fields are pre-declared on RLMContext (the D-099 idiom)
+- Blackboard fields are pre-declared on LMContext (the D-099 idiom)
   before a worker consumes or publishes them.
 - A2xxx = legacy production model family (A2 + ec·10) — do not
   "fix" these names.
@@ -159,6 +159,6 @@ None.
   Verbosity, Relevance) + `base_model.py` (BaseModel) + the 14
   `lm_worker_*` factory modules.
 - Consumed by: the 14 workers and their `rlm_*` data modules
-  (RLMContext as the shared blackboard / type reference),
+  (LMContext as the shared blackboard / type reference),
   `model_weights.py`.
 - Not a pipeline level itself: the facade that RUNS the pipeline.

@@ -9,7 +9,7 @@ none — the bring-in has no test file, T6):
      expectations: R1 the _for_current_level naming, T2 the factory
      gate, T3 the dead imports, T4 the load_fn checksum=False shape,
      T5 the 3 ws-only lines)
-  B. context facts (the RLMContext pre-declared vld fields, the
+  B. context facts (the LMContext pre-declared vld fields, the
      ValidationDataSetConfig schema)
   C. GOLDEN re-derivation (live DB, gated on SKIP_REGAB_DB): the
      rlm_02.json pipeline to VLD_POSITIONS — the pre-campaign R1
@@ -102,7 +102,7 @@ check("A8 the vld query params are passed to BOTH the compute and the validate f
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("B4 RLMContext pre-declared vld fields (vld_rds_checksum, vld_positions, "
+check("B4 LMContext pre-declared vld fields (vld_rds_checksum, vld_positions, "
       "vld_game_values, vld_pop_stats) + the future vld_metrics / analytics_report",
       "    vld_rds_checksum: str | None = None" in lm_src
       and "    vld_positions: Any = None" in lm_src
@@ -115,7 +115,7 @@ check("B5 ReversiLogisticModelConfig.validation_data_set: ValidationDataSetConfi
       "(bid: List[NonNegativeInt] + status: List[StatusString], no ec field — "
       "the vld query inherits ec from regab_data_set)",
       "validation_data_set: ValidationDataSetConfig" in sc_src
-      and "class ValidationDataSetConfig(RLMBaseConfig):" in sc_src
+      and "class ValidationDataSetConfig(LMBaseConfig):" in sc_src
       and "bid: List[NonNegativeInt]" in sc_src
       and "status: List[StatusString]" in sc_src
       and "ec" not in sc_src.split("class ValidationDataSetConfig")[1].split("class ")[0])

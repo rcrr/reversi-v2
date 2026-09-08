@@ -55,7 +55,7 @@ from io import StringIO
 from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
-from reversi.lm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
 from reversi.lm.wrk_positions import is_cache_consistent
@@ -170,11 +170,11 @@ class TestIsCacheConsistent(unittest.TestCase):
         }).astype({'mover': 'int64', 'opponent': 'int64', 'game_value': 'int8'})
         self.rds = RegabDataSet(self.rc, [8], ["CMS", "CMR"], 20, self.df)
 
-    def _ctx(self, mutate=None) -> RLMContext:
+    def _ctx(self, mutate=None) -> LMContext:
         d = json5.loads(self.json_path.read_text())
         if mutate:
             mutate(d)
-        cx = RLMContext(config_file_path=Path("rlm_00.json"))
+        cx = LMContext(config_file_path=Path("rlm_00.json"))
         cx.cfg = ReversiLogisticModelConfig(**d)
         return cx
 

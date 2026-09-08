@@ -40,7 +40,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -48,7 +48,7 @@ __all__ = ['wrk_config']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Loading configuration file '{ctx.config_file_path}' ...")
     cfg = _load(ctx)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} loaded.")
@@ -62,12 +62,12 @@ def _up(ctx: "RLMContext") -> None:
     _store_to_file(ctx, cfg)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} stored to cache file.")
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing configuration...")
     ctx.cfg = None
     ctx.use_cache = None
 
-def _load(ctx: "RLMContext") -> ReversiLogisticModelConfig:
+def _load(ctx: "LMContext") -> ReversiLogisticModelConfig:
     with ctx.config_file_path.open("r", encoding="utf-8") as f:
         config_raw_data = json5.load(f)
         ctx.log_event(Relevance.DEBUG, f"JSON file '{ctx.config_file_path}' read.")
@@ -79,10 +79,10 @@ def _load(ctx: "RLMContext") -> ReversiLogisticModelConfig:
     cfg = ReversiLogisticModelConfig(**config_raw_data)
     return cfg
 
-def _validate(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _validate(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
     _validate_base_dir(ctx, cfg)
 
-def _validate_base_dir(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _validate_base_dir(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
     if not cfg.base_dir.exists():
         error_message = f"The base dir: '{cfg.base_dir}' doesn't exist."
         ctx.log_event(Relevance.ERROR, error_message)
@@ -97,7 +97,7 @@ def _validate_base_dir(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> No
         ctx.log_event(Relevance.ERROR, error_message)
         raise PermissionError(error_message)
 
-def _store_to_file(ctx: "RLMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _store_to_file(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     

@@ -1,10 +1,10 @@
 # reversi/lm/model_weights.py
-The persistence layer of the saved RLM model: the third data module in
+The persistence layer of the saved LM model: the third data module in
 the pipeline family (after hlp_indexes/hlp_wmaps and the hlp_generate
 store/load pair) and the first with a plain `@dataclass` (no pydantic
 BaseModel, no `@validate_call` on the data functions — consistent with
 hlp_validate/hlp_analytics). It serializes the INFERENCE SUBSET of
-`RLMContext` into one lz4-compressed binary file (binio) so that
+`LMContext` into one lz4-compressed binary file (binio) so that
 `client.make_evaluation_function` can evaluate board positions
 without the database, the cache, or most of the pipeline state.
 > State: D-104 · 7fb070b · 2026-09-03 · suite 5/0/0 (via
@@ -26,7 +26,7 @@ without the database, the cache, or most of the pipeline state.
 - Imports (L28-41): dataclass, typing (TYPE_CHECKING, Any, Dict),
   pathlib.Path, numpy, binio `BinaryWriter`/`BinaryReader`,
   `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/
-  `PatternSet`; `RLMContext` under TYPE_CHECKING. `__all__` (L45-47) =
+  `PatternSet`; `LMContext` under TYPE_CHECKING. `__all__` (L45-47) =
   [ModelWeights, model_weights_read_file, model_weights_write_file].
 - `model_weights_write_file` (L72-136) — section order (the numbered
   comments are the spec): 1. header + `name` + `ec` +

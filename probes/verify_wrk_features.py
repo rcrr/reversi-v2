@@ -71,8 +71,8 @@ check("A1 125 lines (post D-082: +pydantic import +decorator, -orphan comment)",
 check("A2 __all__ = ['wrk_features']", "__all__ = ['wrk_features']" in src)
 check("A3 factory returns Worker('FEATURES', _up, _down)",
       'def wrk_features() -> Worker:' in src and 'return Worker("FEATURES", _up, _down)' in src)
-check("A4 RLMContext import under TYPE_CHECKING (circular-import guard)",
-      'if TYPE_CHECKING:\n    from reversi.lm.logistic_model import RLMContext' in src)
+check("A4 LMContext import under TYPE_CHECKING (circular-import guard)",
+      'if TYPE_CHECKING:\n    from reversi.lm.logistic_model import LMContext' in src)
 check("A5 worker does not import cache_manager (pure compute, no cache files)",
       "cache_manager" not in src)
 check("A6 M1 FIXED (D-082): @validate_call on the factory + the pydantic import",
@@ -113,7 +113,7 @@ with contextlib.redirect_stdout(out1):
     m1 = LogisticModel(CFG, verbosity=Verbosity.HIGH, base_dir_override=str(TMP / "base1"))
     # (B1a the worker-list pin moved to the hub verify_logistic_model.py
     # V3c/V3d at D-106)
-    check("B1b RLMContext feature_set field exists, None before the level",
+    check("B1b LMContext feature_set field exists, None before the level",
           m1.context.feature_set is None)
     m1.move_to_step("FEATURES")
 s1 = out1.getvalue()

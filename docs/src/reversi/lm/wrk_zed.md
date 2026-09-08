@@ -1,5 +1,5 @@
 # reversi/lm/wrk_zed.py
-The ZED worker of the RLM pipeline — the 8th active level and the
+The ZED worker of the LM pipeline — the 8th active level and the
 FIRST non-cache worker in the pipeline: no `cache_manager` wiring
 at all (no load-or-compute cycle, no `is_allowed` switch, no
 rlmwf_07* file). The level is recomputed on every up-move: the
@@ -19,7 +19,7 @@ attributes, `_down` clears ALL FOUR.
 
 - Imports: `Worker, Relevance` from state_machine; `hlp_zed_compute`
   from hlp_zed; `validate_call, ConfigDict` from pydantic (added
-  in D-092 T2); `RLMContext` under TYPE_CHECKING. NO
+  in D-092 T2); `LMContext` under TYPE_CHECKING. NO
   `reversi.tools.cache_manager` import (by design — pinned by probe B).
 - `_up`: INFO "Computing Zed array (Z) and transformations..." →
   the by-design comment (L49: "ZED computation is very fast
@@ -81,7 +81,7 @@ None.
 
 ## Integration
 
-- The 8th RLM level; the domain module (hlp_zed.py) carries the
+- The 8th LM level; the domain module (hlp_zed.py) carries the
   data object + the math, this worker the machine glue.
 - Consumes `ctx.game_values` (POSITIONS) + `ctx.cfg.stat_model.
   logit_clipping` (CONFIG) — the SM half-open interval semantics

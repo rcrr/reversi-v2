@@ -50,9 +50,9 @@ al = a.splitlines()
 check("A1 line count 91", len(al) == 91, f"{len(al)}")
 check("A2 __all__", "__all__ = ['hlp_gradient_compute', 'sigmoid']" in a)
 check("A3 scipy import", "from scipy.special import expit" in a)
-check("A4 TYPE_CHECKING RLMContext",
+check("A4 TYPE_CHECKING LMContext",
       "if TYPE_CHECKING:" in a and
-      "from reversi.lm.logistic_model import RLMContext" in a)
+      "from reversi.lm.logistic_model import LMContext" in a)
 check("A5 no validate_call (hlp_gradient_compute — the L166 class)",
       "validate_call" not in a)
 check("A6 no pydantic import", "pydantic" not in a)
@@ -63,7 +63,7 @@ check("A8 sigmoid docstring fixed",
 check("A9 three defs",
       re.findall(r"^(?:def |    def ).*$", a, re.M) ==
       ["def sigmoid(x: np.ndarray) -> np.ndarray:",
-       "def hlp_gradient_compute(ctx: \"RLMContext\") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:",
+       "def hlp_gradient_compute(ctx: \"LMContext\") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:",
        "    def fg(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:"])
 check("A10 docstring claims",
       "normalized by the number of positions (M)" in a and
@@ -278,7 +278,7 @@ live("D0 live pipeline through GRADIENT", d_main)
 # ---------------------------------------------------------------- E tier
 print("== tier E: cross-file")
 lm = read("logistic_model.py")
-check("E1 RLMContext fg field", "    fg: Any = None" in lm)
+check("E1 LMContext fg field", "    fg: Any = None" in lm)
 # (E2/E3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 py = (ROOT / "pyproject.toml").read_text()

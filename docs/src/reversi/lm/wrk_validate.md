@@ -22,7 +22,7 @@ clears it.
 - Imports (L28-38): `pydantic` (L30 — the D-102 T1/T2 shape: the
   dead `numpy as np` import replaced by the pydantic line),
   `Worker, Relevance` (L34), `validate_model` (L35),
-  `RLMContext` under TYPE_CHECKING (L37-38). NO
+  `LMContext` under TYPE_CHECKING (L37-38). NO
   `reversi.tools.cache_manager` import (by design).
 - `_up` (L46-62): `log_event(INFO, "Starting model
   validation...")` (L47); `metrics = validate_model(ctx)` (L49);
@@ -72,7 +72,7 @@ Pinned by the `probes/verify_validate.py` A + C tiers + the
 - The M1 zero-guard branch is unit-tested DB-free (the D-106
   step-3 conversion of probe D3 →
   `TestValidateModelUnit::test_rmse_mae_line_is_zero_guarded`, a
-  REAL RLMContext — `Worker.up` is `@validate_call`-gated with
+  REAL LMContext — `Worker.up` is `@validate_call`-gated with
   `context: Context`, state_machine L87-90, so a SimpleNamespace
   is rejected).
 

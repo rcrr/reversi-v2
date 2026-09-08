@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_validate import validate_model
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -43,7 +43,7 @@ __all__ = ['wrk_validate']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Starting model validation...")
 
     metrics = validate_model(ctx)
@@ -62,7 +62,7 @@ def _up(ctx: "RLMContext") -> None:
     return
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing validation attributes...")
     ctx.vld_metrics = None
 

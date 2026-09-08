@@ -12,7 +12,7 @@ Re-derives and verifies, independently of the test files:
   D. GOLDEN re-derivation (live DB): the rlm_01.json pipeline DESIGN_MTR
      output vs the literal pinned in test_wrk_design_matrix, plus
      the independent X = iwmap[pindexes + col_offsets] recomputation
-  F. Cross-fixture / context facts (RLMContext fields, the rlm_01
+  F. Cross-fixture / context facts (LMContext fields, the rlm_01
      feature layout)
 
 Run from the workspace root:  .venv/bin/python scratch/verify_design_matrix.py
@@ -63,7 +63,7 @@ check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT c
       and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
       rlm[106] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
-      and rlm[107] == "def hlp_design_matrix_compute(ctx: \"RLMContext\") -> ReversiLogisticModelDesignMatrix:")
+      and rlm[107] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> ReversiLogisticModelDesignMatrix:")
 check("A7 R1 FIXED: the single -1 guard remains (L116-117) with the precise ValueError",
       rlm[115] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
       and rlm[116] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
@@ -222,7 +222,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 # F. Cross-fixture / context facts
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("F1 RLMContext declares design_matrix_checksum + design_matrix (pre-existing, as in the WMAPS fields)",
+check("F1 LMContext declares design_matrix_checksum + design_matrix (pre-existing, as in the WMAPS fields)",
       "    design_matrix_checksum: str | None = None" in lm_src
       and "    design_matrix: Any = None" in lm_src)
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py

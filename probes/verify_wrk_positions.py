@@ -34,7 +34,7 @@ import numpy as np
 sys.path.insert(0, "src")
 
 from reversi.tools.state_machine import Verbosity
-from reversi.lm.logistic_model import LogisticModel, RLMContext
+from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.regab import regab_load_data_set_from_file
 from reversi.lm.wrk_positions import wrk_positions
 
@@ -116,7 +116,7 @@ check("A6 D-079-flagged trailing-whitespace lines (L73/L89/L92) now clean (D-080
       "\n    ctx.rds_checksum = rds_checksum\n\n" in src
       and "    }\n\n    return\n\n\ndef _down" in src)
 
-ctx = RLMContext(config_file_path=Path("rlm_00.json"))
+ctx = LMContext(config_file_path=Path("rlm_00.json"))
 ctx.positions = object()
 ctx.game_values = object()
 ctx.rds_checksum = "x"

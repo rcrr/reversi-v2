@@ -45,7 +45,7 @@ existing tests (count unchanged).
 - Module under test: `state_machine.md` (the generic pipeline
   state-machine core). The context-injection layer (this suite's
   `TestContextInjection`) is the module's main integration surface
-  with the domain workers — the `RLMContext` injection is
+  with the domain workers — the `LMContext` injection is
   load-bearing (M9 left as-is; the future redesign is parked at
   I-010).
 - The D-106 step-3 conversions (73a72d3) came from

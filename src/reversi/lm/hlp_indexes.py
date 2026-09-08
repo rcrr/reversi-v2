@@ -37,7 +37,7 @@ from reversi.tools import binio
 from reversi.pattern import IndexArray
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -165,7 +165,7 @@ def hlp_indexes_load_from_file(
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def hlp_indexes_compute(
-        ctx: RLMContext
+        ctx: LMContext
 ) -> ReversiLogisticModelIndexes:
     """Computes model indexes."""
     rds_checksum = ctx.rds_checksum
@@ -176,7 +176,7 @@ def hlp_indexes_compute(
 
 
 def hlp_indexes_is_cache_consistent(
-        ctx: RLMContext,
+        ctx: LMContext,
         hlp_indexes: ReversiLogisticModelIndexes
 ) -> bool:
     """Compare live configuration with cached dataset metadata."""

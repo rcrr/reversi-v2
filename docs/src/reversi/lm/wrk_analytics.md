@@ -29,15 +29,15 @@ and `ctx.analytics_report` (the console report string);
 - Imports (L28-38): pydantic (L30 — D-103 T1, replacing the
   dead `from pathlib import Path` line, T2), `Worker,
   Relevance` (L34), the 4 public data functions from
-  hlp_analytics (L35-37, 3 lines since D-105/M2), `RLMContext`
+  hlp_analytics (L35-37, 3 lines since D-105/M2), `LMContext`
   under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager`
   import (by design).
 - `_up` (L48-73): `log_event(INFO, "Generating model analytics
   report...")` (L49); `ctx.train_metrics =
   compute_training_metrics(ctx)` (L54 — pre-declared on
-  RLMContext L155 since D-103 M1); `ctx.train_dense_metrics =
+  LMContext L155 since D-103 M1); `ctx.train_dense_metrics =
   compute_training_dense_metrics(ctx)` (L55 — pre-declared on
-  RLMContext L156 since D-105/M2); `console_report =
+  LMContext L156 since D-105/M2); `console_report =
   format_console_report(ctx)` (L58); the 17 header lines logged
   line by line (L61-62); `file_report = format_file_report(ctx)`
   (L65) written

@@ -39,7 +39,7 @@ from reversi.lm.hlp_generate import (compute_w_dense,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -47,7 +47,7 @@ __all__ = ['wrk_generate']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating dense weight vector (w_dense) for inference...")
 
     cache_hit, dense_obj, dense_w_checksum = cache_manager_load_or_compute(
@@ -67,7 +67,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.dense_w_checksum = dense_w_checksum
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing dense weight vector...")
     ctx.w_dense = None
     ctx.dense_w_checksum = None

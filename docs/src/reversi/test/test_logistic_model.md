@@ -10,7 +10,7 @@ T-campaign narrative froze in the archive.
 
 | class (line) | tests | what it pins |
 |---|---|---|
-| `TestLogisticModel` (L62) | 17 | the context init (RLMContext, `config_file_path` round-trip, `base_dir_override` None, `cfg` None); the SM sentinel start (`current_step == 0`, "CREATED"); the init `ValidationError` on a non-str config path (step 3: the D1 probe conversion, the D-107 guard contract); the injected cache closure requiring `cfg` (AttributeError before CONFIG — step 3, the E4b conversion); the `move_to_step` delegation (int + str name) with the CONFIG level; the invalid config path + base_dir override `FileNotFoundError`s; the facade pass-through pins (`test_facade_delegates_to_state_machine` — per-method `patch.object(self.model.sm, ...)` + `assert_called_once_with`; the T1 replacement of the overpromising smoke test); the views + verbosity round-trip; the injected cache helpers ARE the machine closures (would have caught R1); the pre-injection no-op lambda fallback; the injected helper computing the worker path (dummy `cfg`, `addCleanup` restore); the CREATED sentinel workers raise (D-059); the config/base_dir helper edge branches (str-vs-Path, trailing-slash); the CSV export pass-through (header-only artifact, under `build/tmp`) |
+| `TestLogisticModel` (L62) | 17 | the context init (LMContext, `config_file_path` round-trip, `base_dir_override` None, `cfg` None); the SM sentinel start (`current_step == 0`, "CREATED"); the init `ValidationError` on a non-str config path (step 3: the D1 probe conversion, the D-107 guard contract); the injected cache closure requiring `cfg` (AttributeError before CONFIG — step 3, the E4b conversion); the `move_to_step` delegation (int + str name) with the CONFIG level; the invalid config path + base_dir override `FileNotFoundError`s; the facade pass-through pins (`test_facade_delegates_to_state_machine` — per-method `patch.object(self.model.sm, ...)` + `assert_called_once_with`; the T1 replacement of the overpromising smoke test); the views + verbosity round-trip; the injected cache helpers ARE the machine closures (would have caught R1); the pre-injection no-op lambda fallback; the injected helper computing the worker path (dummy `cfg`, `addCleanup` restore); the CREATED sentinel workers raise (D-059); the config/base_dir helper edge branches (str-vs-Path, trailing-slash); the CSV export pass-through (header-only artifact, under `build/tmp`) |
 
 ## Testbed design (setUp, L68-104)
 
@@ -53,7 +53,7 @@ T-campaign narrative froze in the archive.
 ## Integration
 
 - Module under test: `logistic_model.md` (the first concrete domain
-  facade — LogisticModel + the RLMContext dataclass) on
+  facade — LogisticModel + the LMContext dataclass) on
   `base_model.md` (the BaseModel facade base).
 - `test_state_machine.md` covers the SM core; this suite covers the
-  facade boundary + the RLMContext shape + the injection layer.
+  facade boundary + the LMContext shape + the injection layer.

@@ -41,7 +41,7 @@ recursion). 7 classes / 13 tests, no DB, no PERF gate (~0.040s).
 ## Integration
 
 - Independent of the pipeline: the standalone verification of the
-  numerical engine the OPTIMIZE level runs (no RLMContext, no DB,
+  numerical engine the OPTIMIZE level runs (no LMContext, no DB,
   no fixtures).
 - Known open gaps (frozen at D-053, low/medium priority): the
   min_grad / min_p_fun_decrease stopping branches, the restart

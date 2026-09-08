@@ -37,7 +37,7 @@ from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -46,7 +46,7 @@ __all__ = ['compute_training_metrics', 'compute_training_dense_metrics',
 
 
 
-def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
+def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
     Generates a detailed ASCII table for a specific mobility feature.
     """
@@ -167,7 +167,7 @@ def _format_mobility_feature_table(ctx: "RLMContext", fid: int, indexes_col_offs
     return header + "".join(rows) + f"{'-' * 135}\n"
 
 
-def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
+def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
     Generates a detailed ASCII table for a specific pattern feature.
     """
@@ -307,7 +307,7 @@ def _format_pattern_feature_table(ctx: "RLMContext", fid: int, indexes_col_offse
     return header + "".join(rows) + f"{'-' * 135}\n"
 
 
-def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
+def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
     """
     Formats the common header metrics table for both console and file reports.
 
@@ -400,14 +400,14 @@ def _format_header(ctx: "RLMContext", detailed: bool = False) -> str:
     return header
 
 
-def format_console_report(ctx: "RLMContext") -> str:
+def format_console_report(ctx: "LMContext") -> str:
     """
     Formats the short summary report for console output.
     """
     return _format_header(ctx, detailed=False)
 
 
-def format_file_report(ctx: "RLMContext") -> str:
+def format_file_report(ctx: "LMContext") -> str:
     """
     Formats the complete detailed report for TXT file output.
     """
@@ -440,7 +440,7 @@ def format_file_report(ctx: "RLMContext") -> str:
     return report
 
 
-def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
+def compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
     """
     Computes MAE(y) and RMSE(y) on the training set using the optimized weights (w).
     Also computes baseline (population mean) metrics for comparison.
@@ -480,7 +480,7 @@ def compute_training_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
     }
 
 
-def compute_training_dense_metrics(ctx: "RLMContext") -> Dict[str, float | int]:
+def compute_training_dense_metrics(ctx: "LMContext") -> Dict[str, float | int]:
     """
     Computes MAE(y), RMSE(y) and the Z-space loss on the training set using
     the DENSE weights (w_dense) — the exact forward pass of the saved model

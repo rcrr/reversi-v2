@@ -44,7 +44,7 @@ from reversi.regab import (
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -52,7 +52,7 @@ __all__ = ['wrk_positions', 'load_from_db', 'is_cache_consistent']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Loading training game positions...")
 
     # Execute the abstracted pipeline.
@@ -91,7 +91,7 @@ def _up(ctx: "RLMContext") -> None:
     return
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing training game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
     ctx.game_values = None
@@ -101,7 +101,7 @@ def _down(ctx: "RLMContext") -> None:
     return
 
 
-def is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet, *, bid=None, status=None) -> bool:
+def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status=None) -> bool:
     """Compare live configuration with cached dataset metadata."""
     
     # 1. Check DB Connection parameters
@@ -152,7 +152,7 @@ def is_cache_consistent(ctx: "RLMContext", rds: RegabDataSet, *, bid=None, statu
 
     return is_cache_consistent
 
-def load_from_db(ctx: "RLMContext", *, bid=None, status=None) -> RegabDataSet:
+def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
     """Extract dataset from the database safely."""
     conn_params = ctx.cfg.regab_data_set.regab_db_connection
     rc = RegabDBConnection(conn_params.dbname, conn_params.user,

@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_zed import hlp_zed_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -43,7 +43,7 @@ __all__ = ['wrk_zed']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing Zed array (Z) and transformations...")
 
     # ZED computation is very fast (vectorized math), so we compute it on the fly without disk caching.
@@ -59,7 +59,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Zed array checksum (zed_checksum): {zed_checksum}.")
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing Zed attributes...")
     ctx.y2z = None
     ctx.z2y = None

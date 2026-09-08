@@ -348,11 +348,11 @@ class TestStateMachine(unittest.TestCase):
         with self.assertRaises(ValidationError):
             StateMachine([Worker("A", MagicMock(), MagicMock())], 42)
 
-        class RLMContext(Context):
+        class LMContext(Context):
             pass
         sm = StateMachine([Worker("A", MagicMock(), MagicMock())],
-                          RLMContext())
-        self.assertIsInstance(sm.context, RLMContext)
+                          LMContext())
+        self.assertIsInstance(sm.context, LMContext)
 
     def test_current_worker_name_tracks_current_step(self):
         """current_worker_name is a live view of (workers,

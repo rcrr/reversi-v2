@@ -38,7 +38,7 @@ from pydantic import validate_call, ConfigDict
 from reversi.tools import binio
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -105,7 +105,7 @@ def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMatrix:
+def hlp_design_matrix_compute(ctx: "LMContext") -> ReversiLogisticModelDesignMatrix:
     """Computes the Design Matrix X from principal indexes and iwmap."""
     pindexes = ctx.hlp_indexes.indexes
 
@@ -127,7 +127,7 @@ def hlp_design_matrix_compute(ctx: "RLMContext") -> ReversiLogisticModelDesignMa
     )
 
 
-def hlp_design_matrix_is_cache_consistent(ctx: "RLMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
+def hlp_design_matrix_is_cache_consistent(ctx: "LMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
     """Validates the cache by checking wmaps_obj_checksum."""
     is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum
     return is_hash_consistent

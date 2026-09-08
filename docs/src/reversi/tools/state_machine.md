@@ -3,7 +3,7 @@ A generic, domain-agnostic pipeline orchestrator: a StateMachine
 drives an ordered list of Worker steps over a shared Context, with
 relevance-gated logging, per-step timing history and CSV export of
 the history. It knows nothing about Reversi — the domain modules
-(e.g. the RLM facade) subclass Context and feed it domain workers.
+(e.g. the LM facade) subclass Context and feed it domain workers.
 > State: D-078 · d6a850e · 2026-08-30 · suite 49/0/0
 
 ## API
@@ -31,7 +31,7 @@ the history. It knows nothing about Reversi — the domain modules
   `current_step = t` is set explicitly (the down loop's last
   iteration leaves it at t+1).
 - **Worker 0 is the intentional sentinel (D-059)** — no public call
-  ever invokes `workers[0].up()`/`.down()`; in the RLM pipeline the
+  ever invokes `workers[0].up()`/`.down()`; in the LM pipeline the
   level-0 CREATED is a dummy blocker (log ERROR + RuntimeError).
 - **Failure semantics (D-060)** — a failure at step k leaves
   `current_step == k`; a same-target retry re-runs only steps > k
@@ -150,6 +150,6 @@ None.
   dependency) + stdlib (enum, datetime, dataclasses, contextlib,
   typing, pathlib, csv).
 - Consumed by: `base_model.py` (BaseModel) → `logistic_model.py`
-  (the RLM facade); the domain workers consume the injected
+  (the LM facade); the domain workers consume the injected
   `log_event` + cache helpers.
 - Not a domain module: it knows nothing about Reversi.

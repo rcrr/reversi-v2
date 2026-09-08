@@ -1,5 +1,5 @@
 # reversi/lm/hlp_wmaps.py
-The WMAPS domain module of the RLM pipeline: the
+The WMAPS domain module of the LM pipeline: the
 `ReversiLogisticModelWMaps` data object (the 6 weight-map arrays
 + the 2 metadata scalars) + 4 public functions (store / load /
 compute / is_cache_consistent) + the duck-typed
@@ -110,7 +110,7 @@ None.
 
 ## Integration
 
-- The 6th RLM level; the worker (wrk_wmaps.py) carries the
+- The 6th LM level; the worker (wrk_wmaps.py) carries the
   cache wiring, this module the data object + the 4 functions.
 - Consumes `ctx.hlp_indexes_checksum` (INDEXES) +
   `ctx.cfg.stat_model.frequency_cut_off` (CONFIG) + the pindexes

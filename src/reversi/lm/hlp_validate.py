@@ -35,7 +35,7 @@ from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -43,7 +43,7 @@ __all__ = ['validate_model']
 
 
 
-def validate_model(ctx: "RLMContext") -> Dict[str, Any]:
+def validate_model(ctx: "LMContext") -> Dict[str, Any]:
     """
     Extracts validation data, computes predictions using w_dense, and calculates metrics.
 

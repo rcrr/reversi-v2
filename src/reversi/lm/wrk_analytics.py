@@ -37,7 +37,7 @@ from reversi.lm.hlp_analytics import (compute_training_metrics,
                                  format_console_report, format_file_report)
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -45,7 +45,7 @@ __all__ = ['wrk_analytics']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Generating model analytics report...")
 
     # 1. Compute and store training metrics in context (the compressed
@@ -72,7 +72,7 @@ def _up(ctx: "RLMContext") -> None:
     # Store in context if needed by the SAVE worker later
     ctx.analytics_report = console_report
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing analytics attributes...")
     ctx.analytics_report = None
     ctx.train_metrics = None

@@ -14,7 +14,7 @@ gap 27.22 → 23.87).
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestLMWorkerAnalytics` (rlm_02; setUp: the SKIP_REGAB_DB gate FIRST (D-085 idiom — the setUp moves through the whole 13-level chain to VALIDATE on a fresh base dir, so the live regab DB is required); the stdout patcher; `TemporaryDirectory` created FIRST; the `WORKSPACE_ROOT`-anchored rlm_02.json; `move_to_step('VALIDATE')` → step 12; defensive tearDown) | 3 | `test_analytics_report_goldens`: pre-state — `analytics_report` + `train_metrics` + `train_dense_metrics` all None (pre-declared on RLMContext since D-103 M1 / D-105 M2 but unset); `move_to_step('ANALYTICS')` → step 13 / worker "ANALYTICS"; the 7-key dict pinned (the six float metrics via
+| `TestLMWorkerAnalytics` (rlm_02; setUp: the SKIP_REGAB_DB gate FIRST (D-085 idiom — the setUp moves through the whole 13-level chain to VALIDATE on a fresh base dir, so the live regab DB is required); the stdout patcher; `TemporaryDirectory` created FIRST; the `WORKSPACE_ROOT`-anchored rlm_02.json; `move_to_step('VALIDATE')` → step 12; defensive tearDown) | 3 | `test_analytics_report_goldens`: pre-state — `analytics_report` + `train_metrics` + `train_dense_metrics` all None (pre-declared on LMContext since D-103 M1 / D-105 M2 but unset); `move_to_step('ANALYTICS')` → step 13 / worker "ANALYTICS"; the 7-key dict pinned (the six float metrics via
 assert_close, D-127; the f32-quantized train_loss and
 train_samples exact; rlm_02, bid [6,7], 199952 samples —
 the goldens in the module doc) + the 4-key dense dict

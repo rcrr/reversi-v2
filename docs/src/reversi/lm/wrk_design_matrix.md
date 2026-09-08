@@ -1,5 +1,5 @@
 # reversi/lm/wrk_design_matrix.py
-The DESIGN_MTR worker of the RLM pipeline — the 7th active level
+The DESIGN_MTR worker of the LM pipeline — the 7th active level
 (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
 DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a
 CACHE-CONSUMING level: the 4-step load-or-compute over the
@@ -102,7 +102,7 @@ None.
 
 ## Integration
 
-- The 7th RLM level (the 7-worker list `[CREATED, CONFIG,
+- The 7th LM level (the 7-worker list `[CREATED, CONFIG,
   POSITIONS, FEATURES, INDEXES, WMAPS, DESIGN_MTR]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_design_matrix` module (all 5 public names) +

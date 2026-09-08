@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The 10th RLM level; consumes `ctx.fg` (the GRADIENT-level
+- The 10th LM level; consumes `ctx.fg` (the GRADIENT-level
   closure, D-093/D-094) and the WMAPS-level `ctx.w` (zero-
   initialized at WMAPS compute time) + the `optimization` config
   block.

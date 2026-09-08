@@ -11,7 +11,7 @@ are none — the bring-in has no test file, T5):
      the post-campaign expectations: T1 the factory gate, T2 the
      dead imports, T4 the ws lines, T5 the missing test file,
      R1-class the undeclared train_metrics blackboard field)
-  B. context facts (the RLMContext pre-declared fields)
+  B. context facts (the LMContext pre-declared fields)
   C. GOLDEN re-derivation (live DB, gated on SKIP_REGAB_DB): the
      rlm_02.json pipeline to ANALYTICS (step 13) — the 7-metric
      training goldens, the 4-key dense-pass goldens (D-105/M2), the
@@ -131,11 +131,11 @@ check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       and "if TYPE_CHECKING:" in dv_src)
 check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
       (WS / "src" / "reversi" / "test" / "test_wrk_analytics.py").exists())
-check("A12 RLMContext pre-declares train_metrics (pre-campaign: it does NOT — "
+check("A12 LMContext pre-declares train_metrics (pre-campaign: it does NOT — "
       "the worker sets an ad-hoc attribute; dataclasses allow it, but every "
       "other blackboard field is declared; Roberto's call)",
       "    train_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
-check("A13 RLMContext pre-declares train_dense_metrics (D-105/M2 — the "
+check("A13 LMContext pre-declares train_dense_metrics (D-105/M2 — the "
       "dense-pass dict the ANALYTICS worker publishes, same idiom as "
       "train_metrics)",
       "    train_dense_metrics: Any = None" in read("src/reversi/lm/logistic_model.py"))
@@ -145,7 +145,7 @@ check("A13 RLMContext pre-declares train_dense_metrics (D-105/M2 — the "
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("B4 RLMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
+check("B4 LMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
       "+ train_dense_metrics (L156, D-105/M2) + analytics_report (L157)",
       "    vld_metrics: Any = None" in lm_src
       and "    train_metrics: Any = None" in lm_src
@@ -154,7 +154,7 @@ check("B4 RLMContext pre-declared vld_metrics (L152) + train_metrics (L155) "
 check("B5 the schema has AnalyticsConfig (detailed_report default [], "
       "report_file_name default 'model_analytics_report.txt') — so "
       "ctx.cfg.analytics always exists and L60 of the worker is safe",
-      "class AnalyticsConfig(RLMBaseConfig)" in read("src/reversi/lm/hlp_config_schemas.py")
+      "class AnalyticsConfig(LMBaseConfig)" in read("src/reversi/lm/hlp_config_schemas.py")
       and 'report_file_name: str = Field(' in read("src/reversi/lm/hlp_config_schemas.py")
       and 'default="model_analytics_report.txt"' in read("src/reversi/lm/hlp_config_schemas.py")
       and "    analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)" in read("src/reversi/lm/hlp_config_schemas.py"))

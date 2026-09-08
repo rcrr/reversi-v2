@@ -3,7 +3,7 @@ The dedicated data-object suite of the hlp_zed module (created in
 the D-092 fix campaign, T3 — the ZED level arrived with only the
 worker test, this file closes the coverage gap; the D-090 T6
 class). 3 classes / 10 tests / no DB, no gate — the file is fully
-offline: the module has no file I/O and no RLMContext beyond the
+offline: the module has no file I/O and no LMContext beyond the
 two attributes `hlp_zed_compute` reads, so no `tempfile`, no
 `reversi.test.paths`, no `import os`.
 > State: D-092 · 17a5f95 · 2026-09-01 · suite 10/0/0

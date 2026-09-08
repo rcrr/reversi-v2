@@ -35,7 +35,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_gradient import hlp_gradient_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -43,7 +43,7 @@ __all__ = ['wrk_gradient']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Building gradient and loss function (fg)...")
 
     # GRADIENT building is a closure generation, very fast. No cache needed.
@@ -51,7 +51,7 @@ def _up(ctx: "RLMContext") -> None:
 
     ctx.log_event(Relevance.INFO, "Gradient function generated.")
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing gradient function...")
     ctx.fg = None
 

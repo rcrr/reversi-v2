@@ -124,9 +124,7 @@ at the end of this file.
   ruling — the revisit trigger (the pipeline completion) is
   now met (15/15); re-evaluate the ad-hoc flow against the
   completed pipeline and the "storicizzazione" idea (I-011).
-- RLMContext → LMContext: the final inventory review
-  (Roberto's call, D-133/D-134) — the inventory count is in
-  D-134; the rename happens only on his go-ahead.
+
 
 
 
@@ -158,7 +156,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/lm/logistic_model.py | complete: the RLM facade — RLMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
+| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |

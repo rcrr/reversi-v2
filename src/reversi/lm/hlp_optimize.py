@@ -40,7 +40,7 @@ from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -171,7 +171,7 @@ def load_optimization_checkpoint(filepath: Path) -> Dict[str, Any]:
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def is_optimization_cache_consistent(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
+def is_optimization_cache_consistent(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
     """
     Validates the checkpoint against current configuration.
     The three gates are:
@@ -228,7 +228,7 @@ def optimization_info_dict(lbfgs_info: dict) -> dict:
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def is_optimization_status_converged(ctx: "RLMContext", checkpoint: Dict[str, Any]) -> bool:
+def is_optimization_status_converged(ctx: "LMContext", checkpoint: Dict[str, Any]) -> bool:
     """
     Validates the checkpoint convergence status against the current
     stopping tolerance.

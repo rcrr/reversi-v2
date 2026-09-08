@@ -44,16 +44,16 @@ __all__ = ['ReversiLogisticModelConfig']
 
 
 
-class RLMBaseConfig(BaseModel):
+class LMBaseConfig(BaseModel):
     properties: dict[str, Any] = Field(default_factory=dict)
 
 StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 
-class ValidationDataSetConfig(RLMBaseConfig):
+class ValidationDataSetConfig(LMBaseConfig):
     bid: List[NonNegativeInt]
     status: List[StatusString]
 
-class OptimizationConfig(RLMBaseConfig):
+class OptimizationConfig(LMBaseConfig):
     """
     Configuration for the L-BFGS optimizer.
     """
@@ -77,7 +77,7 @@ class OptimizationConfig(RLMBaseConfig):
             )
         return self
 
-class AnalyticsConfig(RLMBaseConfig):
+class AnalyticsConfig(LMBaseConfig):
     """
     Configuration for model analytics report generation.
     """
@@ -90,7 +90,7 @@ class AnalyticsConfig(RLMBaseConfig):
         description="Filename for the detailed analytics report."
     )
     
-class RegabDBConnectionConfig(RLMBaseConfig):
+class RegabDBConnectionConfig(LMBaseConfig):
     """
     Configuration for connecting to the Regab database.
     """
@@ -100,7 +100,7 @@ class RegabDBConnectionConfig(RLMBaseConfig):
     port: int = 5432
     password: Optional[str] = None
 
-class RegabDataSetConfig(RLMBaseConfig):
+class RegabDataSetConfig(LMBaseConfig):
     """
     Configuration for a Regab data set, including the database connection and filtering criteria.
     """
@@ -109,7 +109,7 @@ class RegabDataSetConfig(RLMBaseConfig):
     status: List[StatusString]
     ec: int = Field(..., ge=0, le=60)
 
-class PatternConfig(RLMBaseConfig):
+class PatternConfig(LMBaseConfig):
     """
     Configuration for a pattern, including its name and mask.
     """
@@ -131,14 +131,14 @@ class PatternConfig(RLMBaseConfig):
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 
-class PatternSetConfig(RLMBaseConfig):
+class PatternSetConfig(LMBaseConfig):
     """
     Configuration for a set of patterns, including the name and a list of individual pattern configurations.
     """
     name: str
     patterns: List[PatternConfig] = Field(default_factory=list)
 
-class MobilityFeatureConfig(RLMBaseConfig):
+class MobilityFeatureConfig(LMBaseConfig):
     """
     Configuration for a mobility feature.
     """
@@ -161,14 +161,14 @@ class MobilityFeatureConfig(RLMBaseConfig):
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
     
-class MobilitySetConfig(RLMBaseConfig):
+class MobilitySetConfig(LMBaseConfig):
     """
     Configuration for a set of mobility features, including the name and a list of individual configurations.
     """
     name: str
     mobility_features: List[MobilityFeatureConfig] = Field(default_factory=list)
 
-class FeatureSetConfig(RLMBaseConfig):
+class FeatureSetConfig(LMBaseConfig):
     """
     Configuration for the set of features.
     """
@@ -177,7 +177,7 @@ class FeatureSetConfig(RLMBaseConfig):
     mobility_set: Optional[MobilitySetConfig] = None
     pattern_set: Optional[PatternSetConfig] = None
     
-class StatModelConfig(RLMBaseConfig):
+class StatModelConfig(LMBaseConfig):
     """
     Configuration for a statistical model, including the frequency cut-off threshold.
     """
@@ -185,7 +185,7 @@ class StatModelConfig(RLMBaseConfig):
     logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
     ridge_regularization: float = Field(default=0.00, ge=0.00)
 
-class ReversiLogisticModelConfig(RLMBaseConfig):
+class ReversiLogisticModelConfig(LMBaseConfig):
     """
     Configuration for the Reversi Logistic Model, including general settings,
     data set configuration.

@@ -4,7 +4,7 @@ engine the OPTIMIZE level runs. Implements L-BFGS with strong
 Wolfe line search (cubic interpolation + zoom phase), restart
 logic, dual convergence monitoring, warm-start capability,
 logging and checkpointing via callback hooks. Self-contained: no
-RLMContext, no pipeline imports, no DB.
+LMContext, no pipeline imports, no DB.
 > State: D-053 · 65f63be · 2026-08-29 · suite 13/0/0
 
 ## API

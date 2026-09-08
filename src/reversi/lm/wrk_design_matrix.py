@@ -39,7 +39,7 @@ from reversi.lm.hlp_design_matrix import (hlp_design_matrix_load_from_file,
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
-    from reversi.lm.logistic_model import RLMContext
+    from reversi.lm.logistic_model import LMContext
 
 
 
@@ -47,7 +47,7 @@ __all__ = ['wrk_design_matrix']
 
 
 
-def _up(ctx: "RLMContext") -> None:
+def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Computing Design Matrix (X)...")
 
     cache_hit, dm_obj, dm_checksum = cache_manager_load_or_compute(
@@ -68,7 +68,7 @@ def _up(ctx: "RLMContext") -> None:
     ctx.design_matrix_checksum = dm_checksum
 
 
-def _down(ctx: "RLMContext") -> None:
+def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing Design Matrix attribute...")
     ctx.design_matrix = None
     ctx.design_matrix_checksum = None

@@ -1,5 +1,5 @@
 # reversi/lm/hlp_design_matrix.py
-The DESIGN_MTR domain module of the RLM pipeline: the
+The DESIGN_MTR domain module of the LM pipeline: the
 `ReversiLogisticModelDesignMatrix` data object (the (N,I) uint32
 X — the w-index of each (position, feature-instance) cell — + the
 `wmaps_obj_checksum` metadata) + 4 public functions + the
@@ -69,7 +69,7 @@ Pinned by the 53-call `probes/verify_design_matrix.py` +
   value a valid w index (< W=21), per-feature columns within
   their iwmap regions, intercept column all 0, the DATA checksum
   identity.
-- Cross-fixture facts (probe F1/F4/F5): RLMContext has both
+- Cross-fixture facts (probe F1/F4/F5): LMContext has both
   fields; rlm_01 stat_model {cut_off 2, logit 0.03, ridge 0.0},
   layout n_instances [1,1,4,1] (sum 7) / n_configurations
   [1,65,27,81] (K=174). The unit suite (12 tests, no DB): the
@@ -107,7 +107,7 @@ None.
 
 ## Integration
 
-- The 7th RLM level; the worker (wrk_design_matrix.py)
+- The 7th LM level; the worker (wrk_design_matrix.py)
   carries the cache wiring, this module the data object + the 4
   functions. Consumes `ctx.hlp_indexes` (INDEXES) + `ctx.iwmap` +
   `ctx.iwmap_feature_offset` + `ctx.wmaps_obj_checksum` (WMAPS) +
