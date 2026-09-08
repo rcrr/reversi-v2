@@ -1,5 +1,5 @@
 #
-# test_lm_worker_positions.py
+# test_wrk_positions.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the lm_worker_positions unit tests.
+# How to run the wrk_positions unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -149,7 +149,7 @@ class TestLMWorkerPositions(unittest.TestCase):
 
 
 class TestIsCacheConsistent(unittest.TestCase):
-    """Unit semantics of lm_worker_positions.is_cache_consistent.
+    """Unit semantics of wrk_positions.is_cache_consistent.
 
     D-106 step 3 (probe_rules.md §4): converted from the
     verify_wrk_positions.py D4a-g probe. The probe warmed a

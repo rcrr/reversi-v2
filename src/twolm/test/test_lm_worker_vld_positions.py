@@ -197,7 +197,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
 class TestIsCacheConsistentOverride(unittest.TestCase):
     """Unit semantics of the VLD_POSITIONS is_cache_consistent override.
 
-    The worker reuses lm_worker_positions.is_cache_consistent and
+    The worker reuses wrk_positions.is_cache_consistent and
     must pass the validation_data_set bid/status explicitly (the
     no-override call would compare against the TRAINING
     regab_data_set params). SimpleNamespace stand-ins for the

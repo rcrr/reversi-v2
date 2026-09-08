@@ -49,7 +49,7 @@ pointed at POSITIONS) + a defensive tearDown (getattr guards).
 ## Integration
 
 - The end-to-end cache round-trip pin, one level deeper than
-  test_lm_worker_positions (the same shape).
+  test_wrk_positions (the same shape).
 - What the tests do NOT pin (probe-only): the on-disk content /
   data-checksum identity (probe C3-C5), the exact
   feature-set-hash / rds-checksum metadata, the `_down` clearing

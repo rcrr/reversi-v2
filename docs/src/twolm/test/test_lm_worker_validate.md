@@ -43,7 +43,7 @@ below); the 7 INFO log lines pinned ("Starting model validation...", "Computing 
   end-to-end on the live DB (the test_lm_worker_zed pattern:
   setUp at the level before the one under test).
 - The 2nd-instance test is the no-cache twin of the cache
-  round-trip tests (test_lm_worker_positions et al.): where they
+  round-trip tests (test_wrk_positions et al.): where they
   pin "cache hit + no recompute", this one pins "recompute +
   identical result + 6 sibling cache hits".
 - The TestValidateModelUnit class runs under SKIP_REGAB_DB=1

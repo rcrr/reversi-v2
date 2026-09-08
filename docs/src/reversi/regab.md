@@ -105,7 +105,7 @@ None.
 
 ## Integration
 
-- The POSITIONS level: `lm_worker_positions` builds the 5-arg
+- The POSITIONS level: `wrk_positions` builds the 5-arg
   `RegabDBConnection` from `ctx.cfg.regab_data_set.regab_db_connection`
   (port + password take effect since the D-080 R1 fix), extracts via
   `regab_extract_data_set_from_db`, and wires

@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['lm_worker_positions', 'load_from_db', 'is_cache_consistent']
+__all__ = ['wrk_positions', 'load_from_db', 'is_cache_consistent']
 
 
 
@@ -177,7 +177,7 @@ def load_from_db(ctx: "RLMContext", *, bid=None, status=None) -> RegabDataSet:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def lm_worker_positions() -> Worker:
+def wrk_positions() -> Worker:
     """Factory function that returns the POSITIONS worker instance."""
     return Worker("POSITIONS", _up, _down)
 

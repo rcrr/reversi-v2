@@ -10,7 +10,7 @@ population stats are derived for the workers that follow.
 
 | name | contract |
 |---|---|
-| `lm_worker_positions()` | the factory — `@validate_call` returning `Worker("POSITIONS", _up, _down)` |
+| `wrk_positions()` | the factory — `@validate_call` returning `Worker("POSITIONS", _up, _down)` |
 | `load_from_db(ctx, *, bid=None, status=None)` | the compute half: extract the data set from the regab DB into a fresh `RegabDataSet` |
 | `is_cache_consistent(ctx, rds, *, bid=None, status=None)` | the validate half: a PURE metadata compare (no DB, no file access) between the cached data set and the current config |
 

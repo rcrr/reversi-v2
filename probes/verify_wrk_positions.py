@@ -1,7 +1,7 @@
 #
 # verify_wrk_positions.py
 #
-# Independent ground-truth probe for lm_worker_positions.py +
+# Independent ground-truth probe for wrk_positions.py +
 # hlp_config_schemas.py (session 21, D-079 analysis; re-pinned to
 # the fixed behaviour in session 22, D-080).
 #
@@ -36,7 +36,7 @@ sys.path.insert(0, "src")
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
 from reversi.regab import regab_load_data_set_from_file
-from reversi.lm.wrk_positions import lm_worker_positions
+from reversi.lm.wrk_positions import wrk_positions
 
 WS = Path(__file__).resolve().parents[1]
 TMP_BASE = WS / "build" / "tmp"
@@ -98,13 +98,13 @@ print("--- A. structure / source pins (no DB) ---")
 import reversi.lm.wrk_positions as lp
 
 check("A1 __all__ exposes factory + 2 helpers",
-      lp.__all__ == ['lm_worker_positions', 'load_from_db', 'is_cache_consistent'],
+      lp.__all__ == ['wrk_positions', 'load_from_db', 'is_cache_consistent'],
       repr(lp.__all__))
-w = lm_worker_positions()
+w = wrk_positions()
 check("A2 factory name POSITIONS", w.name == "POSITIONS", w.name)
 src = Path(lp.__file__).read_text()
 check("A4 factory HAS @validate_call (D-080 M1)",
-      "def lm_worker_positions() -> Worker:" in src
+      "def wrk_positions() -> Worker:" in src
       and "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in src)
 check("A5 pathlib.Path import removed (D-080 M2)",
       "from pathlib import Path" not in src)
@@ -132,7 +132,7 @@ b_dir = fresh("b_first_run")
 m1, b_logs = run_model(CONFIG_JSON, b_dir, ("POSITIONS",))
 c1 = m1.context
 # (B1 deleted at D-106 step 3, class c: step 2 / POSITIONS pinned by
-#  test_lm_worker_positions.py::test_read_db_and_populate_cache)
+#  test_wrk_positions.py::test_read_db_and_populate_cache)
 check("B2 positions/game_values/rds_checksum set",
       c1.positions is not None and c1.game_values is not None
       and isinstance(c1.rds_checksum, str) and len(c1.rds_checksum) == 64,
@@ -151,7 +151,7 @@ check("B3b stats values match independent numpy recompute",
 dat = b_dir / "rlmwf_02_POSITIONS.dat"
 side = b_dir / "rlmwf_02_POSITIONS.dat.SHA3-256"
 # (B4 deleted at D-106 step 3, class c: both flat files pinned by
-#  test_lm_worker_positions.py::test_read_db_and_populate_cache —
+#  test_wrk_positions.py::test_read_db_and_populate_cache —
 #  the 'no rlmwf_ subdir' negative is implied by the flat paths)
 side_text = side.read_text()
 check("B5 sidecar is binio format '<hex>  <basename>'",
@@ -161,7 +161,7 @@ rds_b = regab_load_data_set_from_file(dat)
 check("B6 rds_checksum = the rds data checksum (duck-typed)",
       rds_b.compute_sha3_256_hash() == c1.rds_checksum)
 # (B7 deleted at D-106 step 3, class c: the 'Extracted … positions
-#  from the database.' log pin lives in test_lm_worker_positions.py
+#  from the database.' log pin lives in test_wrk_positions.py
 #  test_read_db_and_populate_cache; the 200 count stays pinned by B3a)
 
 # ------------------------------------------------------------------ C
@@ -169,7 +169,7 @@ print("--- C. live pipeline second run (cache hit, no DB) ---")
 m2, c_logs = run_model(CONFIG_JSON, b_dir, ("CONFIG", "POSITIONS"))
 c2 = m2.context
 # (C1/C2 deleted at D-106 step 3, class c: step 2 + the cache-hit /
-#  no-DB log pins live in test_lm_worker_positions.py::
+#  no-DB log pins live in test_wrk_positions.py::
 #  test_read_cache_on_new_instance)
 check("C3 data identical across runs",
       np.array_equal(c1.positions, c2.positions)
@@ -215,7 +215,7 @@ check("D3b cache rewritten with the NEW params (ec=10)", rds_d3.ec == 10,
       f"ec={rds_d3.ec}")
 
 # (D4a-g moved to tests at D-106 step 3, class a §4 conversion:
-#  test_lm_worker_positions.py::TestIsCacheConsistent — the probe
+#  test_wrk_positions.py::TestIsCacheConsistent — the probe
 #  warmed a real cache file through the live pipeline; the test
 #  builds the same rds metadata in memory (no DB, no cache file))
 
@@ -236,7 +236,7 @@ check("E7 model_validator import now used by the c2>c1 validator (D-080 R1/M2)",
 # ------------------------------------------------------------------ F
 print("--- F. source-level cross-reference pins ---")
 lpsrc = src
-seg = lpsrc.split("def load_from_db")[1].split("def lm_worker_positions")[0]
+seg = lpsrc.split("def load_from_db")[1].split("def wrk_positions")[0]
 check("F1 load_from_db passes port + password (5-arg RegabDBConnection call) (D-080 R1)",
       "RegabDBConnection(conn_params.dbname, conn_params.user,\n"
       "                           conn_params.host, str(conn_params.port),\n"

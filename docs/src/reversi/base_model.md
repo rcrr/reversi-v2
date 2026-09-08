@@ -74,7 +74,7 @@ None.
 
 - `LogisticModel` (logistic_model.md) is the first concrete domain
   facade on this base; the sibling modules
-  wrk_config / lm_worker_positions / rlm_config_schemas were
+  wrk_config / wrk_positions / rlm_config_schemas were
   deliberately NOT analyzed in the session-21 analysis (Roberto: "Lo
   faremo in seguito") — they were brought in afterwards as the
   pipeline levels.

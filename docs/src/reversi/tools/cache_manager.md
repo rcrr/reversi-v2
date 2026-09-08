@@ -117,4 +117,4 @@ None.
   `verify_sha3_256_sidecar` (D-072; the sidecar format of the whole
   cache system — binio.md); the `data_checksum` 3rd element feeds
   the `is_cache_consistent` comparisons of the data workers (e.g.
-  lm_worker_positions).
+  wrk_positions).

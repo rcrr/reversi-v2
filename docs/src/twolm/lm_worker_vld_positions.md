@@ -3,7 +3,7 @@ The VLD_POSITIONS worker — the 12th active level (the 11th step). The
 POSITIONS TWIN over the validation data set: the 6th `cache_manager`
 consumer and the only worker that REUSES another level's data module —
 `load_from_db` + `is_cache_consistent` imported from
-`lm_worker_positions` (L42), the keyword `bid`/`status` overrides
+`wrk_positions` (L42), the keyword `bid`/`status` overrides
 selecting the validation query. The flat file is
 `rlmwf_11_VLD_POSITIONS.dat` + `.SHA3-256` (the slot predicted in
 D-097/D-098).
@@ -24,7 +24,7 @@ D-097/D-098).
     M1 note (L58-61): the query INHERITS `ec` from
     `ctx.cfg.regab_data_set` (the training block) — the shared
     `ec` (20 in rlm_02) gates BOTH the extraction
-    (lm_worker_positions L171) and the cache consistency check
+    (wrk_positions L171) and the cache consistency check
     (L122 there); the validation block cannot override `ec`.
   - The uniform 7-kwargs `cache_manager_load_or_compute`
     (L64-72): `cache_path = ctx.get_cache_file_full_path_for_
@@ -63,7 +63,7 @@ D-097/D-098).
 Pinned by the 17-check `probes/verify_vld_positions.py` +
 `test_lm_worker_vld_positions.py` (9 tests: 3 DB-gated + 6 DB-free).
 
-- Source shape (probe A1-A8): the REUSED lm_worker_positions
+- Source shape (probe A1-A8): the REUSED wrk_positions
   pair (D8 with the live-factory check D1), the R1
   `_for_current_level` name, the T3 `checksum=False` load_fn,
   the bid/status overrides, the factory gate, no numpy / Path /
@@ -99,15 +99,15 @@ None.
 ## Conventions
 
 - The unpacked `cache_hit` is unused (M2, report-only): the
-  identical `lm_worker_positions` L59 shape, kept.
+  identical `wrk_positions` L59 shape, kept.
 - The `load_fn` `checksum=False` (D-100 T3, the D-080 M4
   shape): the sidecar was verified by cache_manager step 3.
 - The import-block trailing ws (L38) stays — the D-078 M3 /
-  D-080 M3 house scope, as in lm_worker_positions.
+  D-080 M3 house scope, as in wrk_positions.
 
 ## Integration
 
-- Reuses `lm_worker_positions.load_from_db` +
+- Reuses `wrk_positions.load_from_db` +
   `is_cache_consistent` — the twin relationship: same
   extraction machinery, different `bid`/`status` (validation
   bid [8] vs training bid [6,7] in rlm_02). The flat files are

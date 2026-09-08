@@ -93,7 +93,7 @@ class TestLogisticModel(unittest.TestCase):
         # Patch the factory functions to return our dummy workers
         self.patcher_config = patch('twolm.logistic_model.wrk_config', 
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
-        self.patcher_positions = patch('twolm.logistic_model.lm_worker_positions', 
+        self.patcher_positions = patch('twolm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
         
         self.mock_config_factory = self.patcher_config.start()
