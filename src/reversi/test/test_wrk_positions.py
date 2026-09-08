@@ -56,7 +56,7 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel, LMContext
-from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.regab import RegabDBConnection, RegabDataSet
 from reversi.lm.wrk_positions import is_cache_consistent
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
@@ -175,7 +175,7 @@ class TestIsCacheConsistent(unittest.TestCase):
         if mutate:
             mutate(d)
         cx = LMContext(config_file_path=Path("rlm_00.json"))
-        cx.cfg = ReversiLogisticModelConfig(**d)
+        cx.cfg = LMConfig(**d)
         return cx
 
     def test_same_cfg_is_consistent(self):

@@ -1,6 +1,6 @@
 # reversi/lm/hlp_config_schemas.py
 The pydantic config DOMAIN of the LM pipeline: one public entry,
-`ReversiLogisticModelConfig`, over a tree of nested configs — the
+`LMConfig`, over a tree of nested configs — the
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
@@ -10,7 +10,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 | name | role |
 |---|---|
-| `ReversiLogisticModelConfig` | the only `__all__` name — the top-level config |
+| `LMConfig` | the only `__all__` name — the top-level config |
 | `LMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
@@ -108,7 +108,7 @@ None.
 
 ## Integration
 
-- Consumed by `wrk_config` (`ReversiLogisticModelConfig
+- Consumed by `wrk_config` (`LMConfig
   (**raw)` after the json5 load).
 - The Bitboard primitive + `bitboard_from_hex_str` come from
   `board.py`.

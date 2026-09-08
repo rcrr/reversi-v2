@@ -1,6 +1,6 @@
 # reversi/lm/hlp_wmaps.py
 The WMAPS domain module of the LM pipeline: the
-`ReversiLogisticModelWMaps` data object (the 6 weight-map arrays
+`LMWMaps` data object (the 6 weight-map arrays
 + the 2 metadata scalars) + 4 public functions (store / load /
 compute / is_cache_consistent) + the duck-typed
 `compute_sha3_256_hash` — the 6th active level's data object
@@ -12,7 +12,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
+| `LMWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
 | `hlp_wmaps_store_to_file(wmaps, filename)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; NO sidecar (cache_manager writes it) |
 | `hlp_wmaps_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
 | `hlp_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
@@ -20,7 +20,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
 
 ## Architecture
 
-- `ReversiLogisticModelWMaps.__init__` is
+- `LMWMaps.__init__` is
   `@validate_call(arbitrary_types_allowed)` — plain
   `np.ndarray` annotations (no IndexArray alias here);
   `compute_sha3_256_hash` (validated): sha3_256 over the tobytes
@@ -29,7 +29,7 @@ THIRD cache_manager consumer after POSITIONS and INDEXES.
   return element).
 - `hlp_wmaps_store_to_file` (validated): `filename: str | Path` →
   Path; `binio.BinaryWriter` — `write_header
-  ("ReversiLogisticModelWMaps binary data file", 1)`,
+  ("LMWMaps binary data file", 1)`,
   `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`,
   `write_array` ×6 in declaration order (the write order is
   pinned). Plain docstring — no sidecar promise (the pipeline-flow

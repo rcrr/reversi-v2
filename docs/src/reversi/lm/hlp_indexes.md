@@ -1,6 +1,6 @@
 # reversi/lm/hlp_indexes.py
 The INDEXES domain module of the LM pipeline: the
-`ReversiLogisticModelIndexes` data object (the 2-D uint32 index
+`LMIndexes` data object (the 2-D uint32 index
 matrix + its two metadata hashes) + 4 public functions (store /
 load / compute / is_cache_consistent) — the data object of the
 5th active level (CREATED → CONFIG → POSITIONS → FEATURES →
@@ -11,7 +11,7 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelIndexes` | plain class — 3 fields `rds_checksum: str`, `feature_set_hash: str`, `indexes: IndexArray`, assigned BY REFERENCE (no copy); `compute_sha3_256_hash()` = the duck-typed data checksum; one-line `__repr__` |
+| `LMIndexes` | plain class — 3 fields `rds_checksum: str`, `feature_set_hash: str`, `indexes: IndexArray`, assigned BY REFERENCE (no copy); `compute_sha3_256_hash()` = the duck-typed data checksum; one-line `__repr__` |
 | `hlp_indexes_store_to_file(hlp_indexes, filename)` | binio write: header + the 2 strings + the array; NO sidecar (cache_manager writes it) |
 | `hlp_indexes_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
 | `hlp_indexes_compute(ctx)` | builds a fresh object from `ctx` (NO `@validate_call` — see Conventions) |
@@ -19,7 +19,7 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
 
 ## Architecture
 
-- `ReversiLogisticModelIndexes.__init__` is
+- `LMIndexes.__init__` is
   `@validate_call(arbitrary_types_allowed)` — `IndexArray`
   (pattern.py L74: `Annotated[npt.NDArray[np.uint32],
   BeforeValidator(validate_index_array)]`) is what coerces the
@@ -29,7 +29,7 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
   validated (house style) — a one-line summary.
 - `hlp_indexes_store_to_file` (validated): `filename: str | Path`
   → Path; `binio.BinaryWriter` — header
-  ("ReversiLogisticModelIndexes binary data file", version 1),
+  ("LMIndexes binary data file", version 1),
   the 2 strings (rds_checksum, feature_set_hash), the array
   (write order pinned, probe A5). Docstring Note: no sidecar is
   written here — in the pipeline flow the sidecar is written by

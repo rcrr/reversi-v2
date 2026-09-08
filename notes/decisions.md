@@ -534,3 +534,46 @@ D-136 | 2026-09-08 | RLM → LM: the final inventory ruling
         inconsistent.
         | Verification: the gated suite 673/0/87 GREEN + the
         full probe sweep 21/21 (live DB).
+D-137 | 2026-09-08 | The ReversiLogisticModel* data
+        containers renamed to the LM family (Roberto:
+        "sistemiamo anche quelle" — analysis first).
+        | Analysis: the family is SIX classes (the "tre
+        classi" of the request — actually 6), the per-level
+        data containers of the 15-stage pipeline, one per
+        data level, produced by the hlp_* data module and
+        consumed by the paired wrk_* worker: LMIndexes (the
+        2D index matrix + the feature-set hash;
+        hlp_indexes → wrk_indexes; 31 uses), LMConfig (the
+        pydantic entry config, LMBaseConfig; wrk_config /
+        wrk_features / wrk_positions; 19), LMWMaps (the
+        weight-map arrays; 18), LMDesignMatrix (the design
+        matrix X + wmaps checksum; 17), LMDenseWeights (the
+        dense w vector + checksum; 16), LMZed (the z vector
+        + the y2z/z2y closures; 11). All six came from the
+        original 2008 repo as-is: the "ReversiLogisticModel"
+        prefix is the domain name in long form (the RLM
+        abbreviation) — descriptive, NOT a module prefix,
+        which is why phase B left it (the D-133 narrow
+        scope). After D-133/D-136 the domain prefix is "LM"
+        (LMContext / LMBaseConfig), so the long form was
+        redundant inside reversi/lm/.
+        | Targets: ReversiLogisticModelX → LMX (parallel to
+        the LMContext blackboard that holds the instances);
+        the 2 test scaffolding classes follow the class
+        rename: TestReversiLogisticModelIndexes →
+        TestLMIndexes, TestReversiLogisticModelZed →
+        TestLMZed (the D-133 scaffolding ruling). The
+        spelled-out domain prose in docstrings ("Reversi
+        Logistic Model", with spaces) stays.
+        | Self-contained: the indexes .bin header
+        description ("LMIndexes binary data file") is
+        generated and verified within the same run
+        (TemporaryDirectory, D-085) — no committed .bin
+        artifact carries the old string.
+        | Out of scope (flagged, Roberto's call if he wants
+        it): TestRLMWmaps* (4) + TestRLMZedCompute — 2008-era
+        function-named scaffolding; test_hlp_indexes was
+        already TestHlpIndexes* in phase B, so the siblings
+        are inconsistent.
+        | Verification: the gated suite 673/0/87 GREEN + the
+        full probe sweep 21/21 (live DB).

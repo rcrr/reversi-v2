@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_indexes import (ReversiLogisticModelIndexes,
+from reversi.lm.hlp_indexes import (LMIndexes,
                                hlp_indexes_load_from_file,
                                hlp_indexes_store_to_file,
                                hlp_indexes_compute,

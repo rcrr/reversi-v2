@@ -53,7 +53,7 @@ from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
-from reversi.lm.hlp_generate import (ReversiLogisticModelDenseWeights,
+from reversi.lm.hlp_generate import (LMDenseWeights,
                                 hlp_generate_store_to_file,
                                 hlp_generate_load_from_file,
                                 hlp_generate_is_cache_consistent,
@@ -199,8 +199,8 @@ class TestRLMGenerateCacheConsistency(unittest.TestCase):
     def setUp(self):
         self.ctx = SimpleNamespace(w_checksum="abc654")
         arr = np.array([0.5, -0.2], dtype=np.float32)
-        self.dw_matching = ReversiLogisticModelDenseWeights("abc654", arr)
-        self.dw_stale = ReversiLogisticModelDenseWeights("stale", arr)
+        self.dw_matching = LMDenseWeights("abc654", arr)
+        self.dw_stale = LMDenseWeights("stale", arr)
 
     def test_consistent_checksum(self):
         self.assertTrue(hlp_generate_is_cache_consistent(self.ctx, self.dw_matching))
@@ -224,7 +224,7 @@ class TestRLMGenerateIO(unittest.TestCase):
         self.filepath = self.tmp_dir / "dense.dat"
 
         # A fully populated dense-weights object to serialize
-        self.dw_original = ReversiLogisticModelDenseWeights(
+        self.dw_original = LMDenseWeights(
             "io_test_checksum",
             np.array([0.5, -0.2, 1.0, 3.0], dtype=np.float32)
         )
@@ -294,18 +294,18 @@ class TestRLMGenerateIO(unittest.TestCase):
 
 
 class TestRLMGenerateInit(unittest.TestCase):
-    """Tests the __init__ validation of ReversiLogisticModelDenseWeights."""
+    """Tests the __init__ validation of LMDenseWeights."""
 
     def test_init_accepts_valid_arrays(self):
-        ReversiLogisticModelDenseWeights("abc", np.array([0.5], dtype=np.float32))
+        LMDenseWeights("abc", np.array([0.5], dtype=np.float32))
 
     def test_init_fails_with_list_w_dense(self):
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelDenseWeights("abc", [1.0, 2.0])
+            LMDenseWeights("abc", [1.0, 2.0])
 
     def test_init_fails_with_non_str_w_checksum(self):
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelDenseWeights(123, np.zeros(2, dtype=np.float32))
+            LMDenseWeights(123, np.zeros(2, dtype=np.float32))
 
 
 if __name__ == '__main__':

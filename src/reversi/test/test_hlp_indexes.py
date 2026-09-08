@@ -58,14 +58,14 @@ import numpy as np
 DUMMY_INDEXES = np.zeros((2, 2), dtype=np.uint32)
 
 
-class TestReversiLogisticModelIndexes(unittest.TestCase):
-    """Tests for the ReversiLogisticModelIndexes class."""
+class TestLMIndexes(unittest.TestCase):
+    """Tests for the LMIndexes class."""
 
     def test_init_success(self):
         """Test successful initialization with valid parameters."""
         hash_val = "abc123"
 
-        obj = hlp_indexes.ReversiLogisticModelIndexes(
+        obj = hlp_indexes.LMIndexes(
             rds_checksum=hash_val,
             feature_set_hash=hash_val,
             indexes=DUMMY_INDEXES
@@ -82,7 +82,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
         indexes = DUMMY_INDEXES
 
         with self.assertRaises(ValidationError):
-            hlp_indexes.ReversiLogisticModelIndexes(
+            hlp_indexes.LMIndexes(
                 rds_checksum='abc',
                 feature_set_hash=12345,
                 indexes=indexes
@@ -91,7 +91,7 @@ class TestReversiLogisticModelIndexes(unittest.TestCase):
     def test_init_fails_with_invalid_indexes_type(self):
         """Test that Pydantic validation fails if indexes is not an IndexArray."""
         with self.assertRaises(ValidationError):
-            hlp_indexes.ReversiLogisticModelIndexes(
+            hlp_indexes.LMIndexes(
                 rds_checksum="valid_hash",
                 feature_set_hash="valid_hash",
                 indexes=[[1, 2], [3, 4]]
@@ -110,7 +110,7 @@ class TestHlpIndexesStoreToFile(unittest.TestCase):
         hash_val_a = "hash_xyz"
         hash_val_b = "hash_abc"
         indexes = DUMMY_INDEXES
-        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(hash_val_a, hash_val_b, indexes)
+        rlm_idx = hlp_indexes.LMIndexes(hash_val_a, hash_val_b, indexes)
         filename = "test_output.bin"
 
         hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename)
@@ -119,7 +119,7 @@ class TestHlpIndexesStoreToFile(unittest.TestCase):
         mock_binio.BinaryWriter.assert_called_once_with(Path(filename))
 
         # 2. Define the exact expected sequence of calls
-        expected_desc = "ReversiLogisticModelIndexes binary data file"
+        expected_desc = "LMIndexes binary data file"
         expected_version = 1
 
         expected_calls = [
@@ -141,7 +141,7 @@ class TestHlpIndexesStoreToFile(unittest.TestCase):
         mock_binio.BinaryWriter.return_value.__enter__.return_value = mock_writer
 
         indexes = DUMMY_INDEXES
-        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes("h", "h", indexes)
+        rlm_idx = hlp_indexes.LMIndexes("h", "h", indexes)
         filename_path = Path("dir/test_output.bin")
 
         hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename_path)
@@ -158,7 +158,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
         mock_binio.verify_sha3_256_sidecar.return_value = True
 
         mock_reader = MagicMock()
-        mock_reader.read_header.return_value = ("ReversiLogisticModelIndexes binary data file", 1)
+        mock_reader.read_header.return_value = ("LMIndexes binary data file", 1)
         mock_reader.read_string.return_value = "stored_hash"
         mock_reader.read_array.return_value = DUMMY_INDEXES
 
@@ -168,7 +168,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
 
         mock_binio.verify_sha3_256_sidecar.assert_called_once_with("test.bin")
 
-        self.assertIsInstance(result, hlp_indexes.ReversiLogisticModelIndexes)
+        self.assertIsInstance(result, hlp_indexes.LMIndexes)
         self.assertEqual(result.feature_set_hash, "stored_hash")
         self.assertIsInstance(result.indexes, np.ndarray)
         self.assertEqual(result.indexes.dtype, np.uint32)
@@ -178,7 +178,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
     def test_load_from_file_success_without_checksum(self, mock_binio):
         """Test that checksum verification is skipped when checksum=False."""
         mock_reader = MagicMock()
-        mock_reader.read_header.return_value = ("ReversiLogisticModelIndexes binary data file", 1)
+        mock_reader.read_header.return_value = ("LMIndexes binary data file", 1)
         mock_reader.read_string.return_value = "stored_hash"
         mock_reader.read_array.return_value = DUMMY_INDEXES
 
@@ -218,7 +218,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
         mock_binio.verify_sha3_256_sidecar.return_value = True
 
         mock_reader = MagicMock()
-        mock_reader.read_header.return_value = ("ReversiLogisticModelIndexes binary data file", 99)
+        mock_reader.read_header.return_value = ("LMIndexes binary data file", 99)
         mock_binio.BinaryReader.return_value.__enter__.return_value = mock_reader
 
         with self.assertRaises(RuntimeError) as context:
@@ -246,7 +246,7 @@ class TestHlpIndexesCompute(unittest.TestCase):
 
         mock_model.feature_set.compute_indexes.assert_called_once_with("dummy_positions")
 
-        self.assertIsInstance(result, hlp_indexes.ReversiLogisticModelIndexes)
+        self.assertIsInstance(result, hlp_indexes.LMIndexes)
         self.assertEqual(result.feature_set_hash, expected_hash)
         self.assertIs(result.indexes, expected_indexes)
 
@@ -260,7 +260,7 @@ class TestHlpIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "identical_hash"
 
-        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.LMIndexes(
             rds_checksum="identical_hash",
             feature_set_hash="identical_hash",
             indexes=DUMMY_INDEXES
@@ -275,7 +275,7 @@ class TestHlpIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "identical_hash"
         mock_model.feature_set.hash = "live_hash"
 
-        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.LMIndexes(
             rds_checksum="identical_hash",
             feature_set_hash="outdated_cached_hash",
             indexes=DUMMY_INDEXES
@@ -290,7 +290,7 @@ class TestHlpIndexesIsCacheConsistent(unittest.TestCase):
         mock_model.rds_checksum = "live_hash"
         mock_model.feature_set.hash = "identical_hash"
 
-        rlm_idx = hlp_indexes.ReversiLogisticModelIndexes(
+        rlm_idx = hlp_indexes.LMIndexes(
             rds_checksum="outdated_cached_hash",
             feature_set_hash="identical_hash",
             indexes=DUMMY_INDEXES

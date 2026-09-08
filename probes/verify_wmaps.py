@@ -51,7 +51,7 @@ check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
 check("A3 __all__ lists the 5 public names",
-      "'ReversiLogisticModelWMaps'," in read("src/reversi/lm/hlp_wmaps.py")
+      "'LMWMaps'," in read("src/reversi/lm/hlp_wmaps.py")
       and "'hlp_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))

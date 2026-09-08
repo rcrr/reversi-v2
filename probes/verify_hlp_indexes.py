@@ -79,7 +79,7 @@ check("A1 190 lines (D-084: -2 dead imports, +3 docstring Note, +8 __repr__)",
       and "AfterValidator" not in src
       and "Field" not in src)
 check("A2 __all__: the 5 public names",
-      "__all__ = ['ReversiLogisticModelIndexes'," in src
+      "__all__ = ['LMIndexes'," in src
       and "'hlp_indexes_store_to_file'" in src
       and "'hlp_indexes_load_from_file'" in src
       and "'hlp_indexes_compute'" in src
@@ -93,7 +93,7 @@ i_s1 = src.index("w.write_string(hlp_indexes.rds_checksum)")
 i_s2 = src.index("w.write_string(hlp_indexes.feature_set_hash)")
 i_arr = src.index("w.write_array(hlp_indexes.indexes)")
 check("A5 store: description + version 1, write order header -> rds_checksum -> feature_set_hash -> array",
-      'description = "ReversiLogisticModelIndexes binary data file"' in src
+      'description = "LMIndexes binary data file"' in src
       and "version = 1" in src
       and i_hdr < i_s1 < i_s2 < i_arr)
 check("A6 load: checksum=True default + sidecar verify + header checks + the 3 RuntimeError messages",
@@ -147,9 +147,9 @@ my_pset = PatternSet("BasicPatternSet", [
 my_fs = FeatureSet("NoNameFeatureSet", Feature.new_intercept(), my_mset, my_pset)
 
 idx = np.arange(32, dtype=np.uint32).reshape(2, 16)
-obj = hlp_indexes.ReversiLogisticModelIndexes("RDSHASH", my_fs.hash, idx)
+obj = hlp_indexes.LMIndexes("RDSHASH", my_fs.hash, idx)
 # (B1 init attribute identity (c? resolves to c) deleted at D-106
-#  step 3, class c: test_hlp_indexes.py::TestReversiLogisticModelIndexes
+#  step 3, class c: test_hlp_indexes.py::TestLMIndexes
 #  ::test_init_success pins all three — the two equalities +
 #  assertIs(obj.indexes, DUMMY_INDEXES). The obj binding stays:
 #  B2/B3 use it.)
@@ -195,7 +195,7 @@ try:
 except RuntimeError as e:
     check("B7 wrong description -> RuntimeError", "not a proper" in str(e))
 with binio.BinaryWriter(TMP / "wrong_ver.bin") as w:
-    w.write_header("ReversiLogisticModelIndexes binary data file", 99)
+    w.write_header("LMIndexes binary data file", 99)
     w.write_string("a")
     w.write_string("b")
     w.write_array(idx)

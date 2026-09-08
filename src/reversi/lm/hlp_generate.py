@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['ReversiLogisticModelDenseWeights',
+__all__ = ['LMDenseWeights',
            'hlp_generate_store_to_file',
            'hlp_generate_load_from_file',
            'compute_w_dense',
@@ -50,7 +50,7 @@ __all__ = ['ReversiLogisticModelDenseWeights',
 
 
 
-class ReversiLogisticModelDenseWeights:
+class LMDenseWeights:
     """Wrapper for the dense weight vector and its metadata."""
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, w_checksum: str, w_dense: np.ndarray):
@@ -66,7 +66,7 @@ class ReversiLogisticModelDenseWeights:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: str | Path) -> None:
+def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path) -> None:
     filename = Path(filename)
     with binio.BinaryWriter(filename) as w:
         w.write_header("RGLM Dense Weights binary data file", 1)
@@ -76,7 +76,7 @@ def hlp_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: s
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDenseWeights:
+def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> LMDenseWeights:
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("Checksum mismatch.")
@@ -93,16 +93,16 @@ def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
         w_checksum = r.read_string()
         w_dense = r.read_array()
 
-    return ReversiLogisticModelDenseWeights(w_checksum, w_dense)
+    return LMDenseWeights(w_checksum, w_dense)
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_generate_is_cache_consistent(ctx: "LMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
+def hlp_generate_is_cache_consistent(ctx: "LMContext", dw: LMDenseWeights) -> bool:
     return dw.w_checksum == ctx.w_checksum
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def compute_w_dense(ctx: "LMContext") -> ReversiLogisticModelDenseWeights:
+def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
     """
     Computes the dense weight vector (w_dense) of size K (all theoretical configurations).
     Unseen configurations and fallbacks are handled according to feature type:
@@ -222,4 +222,4 @@ def compute_w_dense(ctx: "LMContext") -> ReversiLogisticModelDenseWeights:
         else:  # Undefined feature
             raise RuntimeError(f"The feature category is unknown: {f.category}")
 
-    return ReversiLogisticModelDenseWeights(w_checksum, w_dense)
+    return LMDenseWeights(w_checksum, w_dense)

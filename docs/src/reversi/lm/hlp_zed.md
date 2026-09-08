@@ -1,6 +1,6 @@
 # reversi/lm/hlp_zed.py
 The ZED domain module of the LM pipeline: the
-`ReversiLogisticModelZed` data object (the z (N,) float32 vector —
+`LMZed` data object (the z (N,) float32 vector —
 the affine image of the per-position game values — + the two affine
 transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the
 pure math) + `hlp_zed_compute` + the duck-typed
@@ -15,13 +15,13 @@ wiring, no rlmwf_07* file — see the worker doc).
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelZed` | plain class — 3 fields, assigned BY REFERENCE: `y2z` (int8 → float32), `z2y` (float32 → float32), `z: NDArray[float32]` |
+| `LMZed` | plain class — 3 fields, assigned BY REFERENCE: `y2z` (int8 → float32), `z2y` (float32 → float32), `z: NDArray[float32]` |
 | `zed_fun_factory(logit_clipping)` | `@validate_call` — returns the two affine closures |
 | `hlp_zed_compute(ctx)` | builds the object from `ctx.game_values` + the clipping (NO `@validate_call` — see Conventions) |
 
 ## Architecture
 
-- `ReversiLogisticModelZed.__init__` is
+- `LMZed.__init__` is
   `@validate_call(arbitrary_types_allowed)`;
   `compute_sha3_256_hash` (validated) = sha3_256 over
   `z.tobytes()` ONLY (the single data vector — the duck-typed

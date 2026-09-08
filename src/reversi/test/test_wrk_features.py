@@ -55,7 +55,7 @@ from io import StringIO
 from pathlib import Path
 
 import reversi.lm.wrk_features as lmwf
-from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.tools.state_machine import Relevance, Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
@@ -191,7 +191,7 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
             (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_00.json").read_text())
         payload["feature_set"] = {"intercept": False}
-        cfg0 = ReversiLogisticModelConfig(**payload)
+        cfg0 = LMConfig(**payload)
         events = []
         ctx0 = SimpleNamespace(
             log_event=lambda rel, msg: events.append((rel, msg)),

@@ -40,7 +40,7 @@ from reversi.board import (Bitboard,
 
 
 
-__all__ = ['ReversiLogisticModelConfig']
+__all__ = ['LMConfig']
 
 
 
@@ -185,7 +185,7 @@ class StatModelConfig(LMBaseConfig):
     logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
     ridge_regularization: float = Field(default=0.00, ge=0.00)
 
-class ReversiLogisticModelConfig(LMBaseConfig):
+class LMConfig(LMBaseConfig):
     """
     Configuration for the Reversi Logistic Model, including general settings,
     data set configuration.

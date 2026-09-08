@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['ReversiLogisticModelIndexes',
+__all__ = ['LMIndexes',
            'hlp_indexes_store_to_file',
            'hlp_indexes_load_from_file',
            'hlp_indexes_compute',
@@ -49,7 +49,7 @@ __all__ = ['ReversiLogisticModelIndexes',
 
 
 
-class ReversiLogisticModelIndexes:
+class LMIndexes:
     """
     Represents the 2D index matrix together with the hash signature of the feature set
     used to compute them.
@@ -60,7 +60,7 @@ class ReversiLogisticModelIndexes:
                  feature_set_hash: str,
                  indexes: IndexArray):
         """
-        Initializes a ReversiLogisticModelIndexes instance.
+        Initializes a LMIndexes instance.
 
         Parameters
         ----------
@@ -86,25 +86,25 @@ class ReversiLogisticModelIndexes:
         """
         A concise one-line summary.
         """
-        return (f"ReversiLogisticModelIndexes(rds_checksum={self.rds_checksum!r}, "
+        return (f"LMIndexes(rds_checksum={self.rds_checksum!r}, "
                 f"feature_set_hash={self.feature_set_hash!r}, "
                 f"indexes={self.indexes.shape})")
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_indexes_store_to_file(
-        hlp_indexes: ReversiLogisticModelIndexes,
+        hlp_indexes: LMIndexes,
         filename: str | Path
 ) -> None:
     """
-    Saves the ReversiLogisticModelIndexes instance to a binary file.
+    Saves the LMIndexes instance to a binary file.
 
     Note: no SHA3-256 sidecar is written by this function — in the
     pipeline flow the sidecar is written by cache_manager.
     """
     filename = Path(filename)
 
-    description = "ReversiLogisticModelIndexes binary data file"
+    description = "LMIndexes binary data file"
     version = 1
 
     with binio.BinaryWriter(filename) as w:
@@ -128,9 +128,9 @@ def hlp_indexes_store_to_file(
 def hlp_indexes_load_from_file(
         filename: str | Path,
         checksum: bool = True
-) -> ReversiLogisticModelIndexes:
+) -> LMIndexes:
     """
-    Loads a ReversiLogisticModelIndexes instance from a binary file.
+    Loads a LMIndexes instance from a binary file.
     """
 
     if checksum:
@@ -138,7 +138,7 @@ def hlp_indexes_load_from_file(
         if not is_consistent:
             raise RuntimeError("The checksum file signature doesn't match with current file.")
 
-    expected_description = "ReversiLogisticModelIndexes binary data file"
+    expected_description = "LMIndexes binary data file"
     expected_version = 1
 
     with binio.BinaryReader(filename) as r:
@@ -159,25 +159,25 @@ def hlp_indexes_load_from_file(
         # read the data of the 2D indexes matrix
         indexes = r.read_array()
 
-    hlp_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
+    hlp_indexes = LMIndexes(rds_checksum, feature_set_hash, indexes)
 
     return hlp_indexes
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def hlp_indexes_compute(
         ctx: LMContext
-) -> ReversiLogisticModelIndexes:
+) -> LMIndexes:
     """Computes model indexes."""
     rds_checksum = ctx.rds_checksum
     feature_set_hash = ctx.feature_set.hash
     indexes = ctx.feature_set.compute_indexes(ctx.positions)
-    hlp_indexes = ReversiLogisticModelIndexes(rds_checksum, feature_set_hash, indexes)
+    hlp_indexes = LMIndexes(rds_checksum, feature_set_hash, indexes)
     return hlp_indexes
 
 
 def hlp_indexes_is_cache_consistent(
         ctx: LMContext,
-        hlp_indexes: ReversiLogisticModelIndexes
+        hlp_indexes: LMIndexes
 ) -> bool:
     """Compare live configuration with cached dataset metadata."""
 

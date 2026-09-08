@@ -37,10 +37,10 @@ def lines_of(relpath):
 rlm = lines_of('hlp_zed.py')
 check('A1  hlp_zed.py is 103 lines (post T6 note + T7 decorator)', len(rlm) == 103, f'{len(rlm)}')
 check('A2  __all__ = class + compute + factory (L42-44)',
-      rlm[41] == "__all__ = ['ReversiLogisticModelZed',"
+      rlm[41] == "__all__ = ['LMZed',"
       and rlm[42] == "           'hlp_zed_compute',"
       and rlm[43] == "           'zed_fun_factory']")
-check('A3  class ReversiLogisticModelZed at L48', rlm[47].startswith('class ReversiLogisticModelZed'))
+check('A3  class LMZed at L48', rlm[47].startswith('class LMZed'))
 check('A4  __init__ @validate_call (L53-54) w/ arbitrary_types_allowed',
       rlm[52] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
       and rlm[53] == '    def __init__(self,')
@@ -58,7 +58,7 @@ check('A7  factory math pins: a=0.5 (L78), b=(1-2c)/128 (L79), a1 (L85), b1 (L86
       and rlm[85] == '    b1 = np.float32(128. / (1. - 2. * logit_clipping))')
 check('A8  T6 DONE: the no-validation note at L94 above hlp_zed_compute (L95)',
       rlm[93] == '#: Here validation is not possible, it brings in a convoluted issue with circular imports.'
-      and rlm[94] == 'def hlp_zed_compute(ctx: "LMContext") -> ReversiLogisticModelZed:'
+      and rlm[94] == 'def hlp_zed_compute(ctx: "LMContext") -> LMZed:'
       and sum(1 for l in rlm if 'Here validation is not possible' in l) == 1)
 check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L102)',
       rlm[98] == '    alpha = ctx.cfg.stat_model.logit_clipping'
@@ -234,10 +234,10 @@ check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from reversi.lm.logistic_model', 'SKIP_REGAB_DB',
                                            'reversi.test.paths', 'import os')))
-check('G3  3 classes (L59/90/119): TestZedFunFactory + TestRLMZedCompute + TestReversiLogisticModelZed',
+check('G3  3 classes (L59/90/119): TestZedFunFactory + TestRLMZedCompute + TestLMZed',
       gd[58] == 'class TestZedFunFactory(unittest.TestCase):'
       and gd[89] == 'class TestRLMZedCompute(unittest.TestCase):'
-      and gd[118] == 'class TestReversiLogisticModelZed(unittest.TestCase):')
+      and gd[118] == 'class TestLMZed(unittest.TestCase):')
 check('G4  factory goldens: alpha 0.02 literal [0.02, 0.5, 0.545, 0.98] + round-trip + 2-clippling endpoints',
       'expected = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)' in '\n'.join(gd)
       and 'def test_round_trip' in '\n'.join(gd)
@@ -248,8 +248,8 @@ check('G5  mock compute: SimpleNamespace ctx + (4,) exact golden [0.5734375, 0.7
       and 'expected = np.array([0.5734375, 0.764375, 0.3384375, 0.646875],' in '\n'.join(gd)
       and 'nptest.assert_array_equal(expected, zed.z)' in '\n'.join(gd))
 check('G6  init: 2 ValidationError pins (not_an_array / not_callable) + stores-by-reference',
-      'ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z="not_an_array")' in '\n'.join(gd)
-      and 'ReversiLogisticModelZed(y2z="not_callable", z2y=z2y,' in '\n'.join(gd)
+      'LMZed(y2z=y2z, z2y=z2y, z="not_an_array")' in '\n'.join(gd)
+      and 'LMZed(y2z="not_callable", z2y=z2y,' in '\n'.join(gd)
       and 'def test_init_stores_by_reference' in '\n'.join(gd)
       and '\n'.join(gd).count('assertRaises(ValidationError)') == 2)
 check('G7  hash golden: the rlm_01 (10,) literal pinned to 3d49fd5d...f365d9b2',
@@ -258,8 +258,8 @@ check('G8  header: no-DB claim ("no live regab DB required — the compute test"
       'no live regab DB required' in '\n'.join(gd))
 check('G9  T8 clean: trailing-ws lines = header only (6,11,16,21)',
       {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == {6, 11, 16, 21})
-check('G10 the 3 domain names imported (ReversiLogisticModelZed / hlp_zed_compute / zed_fun_factory)',
-      'from reversi.lm.hlp_zed import (ReversiLogisticModelZed,' in '\n'.join(gd)
+check('G10 the 3 domain names imported (LMZed / hlp_zed_compute / zed_fun_factory)',
+      'from reversi.lm.hlp_zed import (LMZed,' in '\n'.join(gd)
       and 'hlp_zed_compute,' in '\n'.join(gd)
       and 'zed_fun_factory)' in '\n'.join(gd))
 

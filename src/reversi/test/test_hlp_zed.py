@@ -50,7 +50,7 @@ import numpy.testing as nptest
 
 from pydantic import ValidationError
 
-from reversi.lm.hlp_zed import (ReversiLogisticModelZed,
+from reversi.lm.hlp_zed import (LMZed,
                            hlp_zed_compute,
                            zed_fun_factory)
 
@@ -98,7 +98,7 @@ class TestRLMZedCompute(unittest.TestCase):
     def test_compute_golden(self):
         ctx = self._mock_ctx(0.03, [10, 36, -22, 20])
         zed = hlp_zed_compute(ctx)
-        self.assertIsInstance(zed, ReversiLogisticModelZed)
+        self.assertIsInstance(zed, LMZed)
         self.assertTrue(callable(zed.y2z))
         self.assertTrue(callable(zed.z2y))
         # Hand-derived: z = 0.5 + y * (1 - 2*0.03) / 128 — the same
@@ -116,7 +116,7 @@ class TestRLMZedCompute(unittest.TestCase):
                          hashlib.sha3_256(zed.z.tobytes()).hexdigest())
 
 
-class TestReversiLogisticModelZed(unittest.TestCase):
+class TestLMZed(unittest.TestCase):
     """Tests the data-object init validation and the hash golden."""
 
     def _closures(self):
@@ -125,7 +125,7 @@ class TestReversiLogisticModelZed(unittest.TestCase):
     def test_init_stores_by_reference(self):
         y2z, z2y = self._closures()
         z = np.array([0.5, 0.51], dtype=np.float32)
-        zed = ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z=z)
+        zed = LMZed(y2z=y2z, z2y=z2y, z=z)
         self.assertIs(zed.y2z, y2z)
         self.assertIs(zed.z2y, z2y)
         self.assertIs(zed.z, z)
@@ -133,12 +133,12 @@ class TestReversiLogisticModelZed(unittest.TestCase):
     def test_init_rejects_invalid_z(self):
         y2z, z2y = self._closures()
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z="not_an_array")
+            LMZed(y2z=y2z, z2y=z2y, z="not_an_array")
 
     def test_init_rejects_non_callable(self):
         y2z, z2y = self._closures()
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelZed(y2z="not_callable", z2y=z2y,
+            LMZed(y2z="not_callable", z2y=z2y,
                                     z=np.array([0.5], dtype=np.float32))
 
     def test_hash_golden(self):
@@ -148,7 +148,7 @@ class TestReversiLogisticModelZed(unittest.TestCase):
                       0.6028125, 0.3384375, 0.646875, 0.5, 0.5146875],
                      dtype=np.float32)
         y2z, z2y = self._closures()
-        zed = ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z=z)
+        zed = LMZed(y2z=y2z, z2y=z2y, z=z)
         self.assertEqual(zed.compute_sha3_256_hash(),
                          '3d49fd5d56ced2f7bb70e5c24c8100b3318a7e66e7c990de53ed2f16f365d9b2')
 

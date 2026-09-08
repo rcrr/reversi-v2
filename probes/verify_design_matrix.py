@@ -56,14 +56,14 @@ check("A2 the explicit-cast fix is in place (L123-124: astype on the source + th
 check("A3 no raw int64->uint32 np.take remains",
       "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A4 __all__ lists the 5 public names",
-      "'ReversiLogisticModelDesignMatrix'," in read("src/reversi/lm/hlp_design_matrix.py")
+      "'LMDesignMatrix'," in read("src/reversi/lm/hlp_design_matrix.py")
       and "'hlp_design_matrix_is_cache_consistent']" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT compute / is_cache_consistent)",
       read("src/reversi/lm/hlp_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
       and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
       rlm[106] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
-      and rlm[107] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> ReversiLogisticModelDesignMatrix:")
+      and rlm[107] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> LMDesignMatrix:")
 check("A7 R1 FIXED: the single -1 guard remains (L116-117) with the precise ValueError",
       rlm[115] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
       and rlm[116] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")

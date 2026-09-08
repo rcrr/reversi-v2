@@ -23,7 +23,7 @@ the per-worker cache slot, and publishes the model (and the
   `ctx.cfg = None`, `ctx.use_cache = None`.
 - `_load`: `json5.load` (UTF-8) of `ctx.config_file_path` with the
   DEBUG log of the path; an optional `ctx.base_dir_override` is
-  applied to the raw dict before `ReversiLogisticModelConfig(**raw)`.
+  applied to the raw dict before `LMConfig(**raw)`.
 - `_validate` → `_validate_base_dir`: three gates with the precise
   OS exception types, each logged at ERROR before the raise —
   `FileNotFoundError` (doesn't exist), `NotADirectoryError`
@@ -46,7 +46,7 @@ Pinned by `probes/verify_wrk_config.py` (25 checks) +
 
 - Source shape: the `__all__` name, the factory name "CONFIG", the
   module callables, the 6 privates — probe section A.
-- The loaded state: `ctx.cfg` a ReversiLogisticModelConfig, name
+- The loaded state: `ctx.cfg` a LMConfig, name
   round-trip, `use_cache` True from the config — probe B3/B4/B6.
 - The cache files: the flat `base_dir/rlmwf_01_CONFIG.dat` + the
   `.SHA3-256` sidecar, no `rlmwf_` subdirectory, the `.dat`

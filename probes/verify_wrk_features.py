@@ -96,7 +96,7 @@ from reversi.lm.logistic_model import LogisticModel
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
-from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import LMConfig
 import reversi.lm.wrk_features as lwf
 
 

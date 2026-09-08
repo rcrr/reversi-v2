@@ -52,7 +52,7 @@ from types import SimpleNamespace
 from pydantic import ValidationError
 
 from reversi.tools import binio
-from reversi.lm.hlp_wmaps import (ReversiLogisticModelWMaps,
+from reversi.lm.hlp_wmaps import (LMWMaps,
                              hlp_wmaps_compute,
                              hlp_wmaps_store_to_file,
                              hlp_wmaps_load_from_file,
@@ -172,19 +172,19 @@ class TestRLMWmapsCacheConsistency(unittest.TestCase):
         # Use empty arrays instead of None to satisfy Pydantic validation
         empty_arr = np.array([])
 
-        self.wmaps_valid = ReversiLogisticModelWMaps(
+        self.wmaps_valid = LMWMaps(
             hlp_indexes_checksum="abc123", cut_off=5,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
 
-        self.wmaps_wrong_hash = ReversiLogisticModelWMaps(
+        self.wmaps_wrong_hash = LMWMaps(
             hlp_indexes_checksum="wrong", cut_off=5,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
         )
 
-        self.wmaps_wrong_cutoff = ReversiLogisticModelWMaps(
+        self.wmaps_wrong_cutoff = LMWMaps(
             hlp_indexes_checksum="abc123", cut_off=99,
             feature_w_ranges=empty_arr, iwmap_feature_offset=empty_arr, iwmap=empty_arr,
             wmap=empty_arr, wmap_fallback=empty_arr, w=np.zeros(1)
@@ -215,7 +215,7 @@ class TestRLMWmapsIO(unittest.TestCase):
         self.filepath = self.tmp_dir / "wmaps_test.dat"
 
         # Create a fully populated WMaps object to serialize
-        self.wmaps_original = ReversiLogisticModelWMaps(
+        self.wmaps_original = LMWMaps(
             hlp_indexes_checksum="io_test_hash",
             cut_off=42,
             feature_w_ranges=np.array([[0, 1, 2]], dtype=np.int64),
@@ -290,14 +290,14 @@ class TestRLMWmapsIO(unittest.TestCase):
     def test_load_rejects_version_mismatch(self):
         """A file whose header version is not 1 is rejected."""
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
-            w.write_header("ReversiLogisticModelWMaps binary data file", 2)
+            w.write_header("LMWMaps binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
             hlp_wmaps_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
 
 
 class TestRLMWmapsInit(unittest.TestCase):
-    """Tests the __init__ validation of ReversiLogisticModelWMaps."""
+    """Tests the __init__ validation of LMWMaps."""
 
     def _make_valid(self, **overrides):
         kwargs = dict(
@@ -311,7 +311,7 @@ class TestRLMWmapsInit(unittest.TestCase):
             w=np.zeros(2, dtype=np.float32),
         )
         kwargs.update(overrides)
-        return ReversiLogisticModelWMaps(**kwargs)
+        return LMWMaps(**kwargs)
 
     def test_init_accepts_valid_arrays(self):
         self._make_valid()

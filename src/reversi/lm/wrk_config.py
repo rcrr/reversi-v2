@@ -37,7 +37,7 @@ from pathlib import Path
 from pydantic import ConfigDict, validate_call
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import LMConfig
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -67,7 +67,7 @@ def _down(ctx: "LMContext") -> None:
     ctx.cfg = None
     ctx.use_cache = None
 
-def _load(ctx: "LMContext") -> ReversiLogisticModelConfig:
+def _load(ctx: "LMContext") -> LMConfig:
     with ctx.config_file_path.open("r", encoding="utf-8") as f:
         config_raw_data = json5.load(f)
         ctx.log_event(Relevance.DEBUG, f"JSON file '{ctx.config_file_path}' read.")
@@ -76,13 +76,13 @@ def _load(ctx: "LMContext") -> ReversiLogisticModelConfig:
         config_raw_data['base_dir'] = ctx.base_dir_override
         ctx.log_event(Relevance.DEBUG, f"Value for base_dir changed to '{ctx.base_dir_override}'.")
 
-    cfg = ReversiLogisticModelConfig(**config_raw_data)
+    cfg = LMConfig(**config_raw_data)
     return cfg
 
-def _validate(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _validate(ctx: "LMContext", cfg: LMConfig) -> None:
     _validate_base_dir(ctx, cfg)
 
-def _validate_base_dir(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _validate_base_dir(ctx: "LMContext", cfg: LMConfig) -> None:
     if not cfg.base_dir.exists():
         error_message = f"The base dir: '{cfg.base_dir}' doesn't exist."
         ctx.log_event(Relevance.ERROR, error_message)
@@ -97,7 +97,7 @@ def _validate_base_dir(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> Non
         ctx.log_event(Relevance.ERROR, error_message)
         raise PermissionError(error_message)
 
-def _store_to_file(ctx: "LMContext", cfg: ReversiLogisticModelConfig) -> None:
+def _store_to_file(ctx: "LMContext", cfg: LMConfig) -> None:
     config_json = cfg.model_dump_json(indent=4)
     current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
     

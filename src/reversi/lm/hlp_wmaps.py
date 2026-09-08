@@ -39,14 +39,14 @@ from reversi.tools import binio
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
-__all__ = ['ReversiLogisticModelWMaps',
+__all__ = ['LMWMaps',
            'hlp_wmaps_store_to_file',
            'hlp_wmaps_load_from_file',
            'hlp_wmaps_compute',
            'hlp_wmaps_is_cache_consistent']
 
 
-class ReversiLogisticModelWMaps:
+class LMWMaps:
     """
     Represents the computed Weight Maps (WMaps) for the model.
     Holds the arrays mapping feature configurations to the weight vector W.
@@ -121,10 +121,10 @@ class ReversiLogisticModelWMaps:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Path) -> None:
+def hlp_wmaps_store_to_file(wmaps: LMWMaps, filename: str | Path) -> None:
     """Saves the WMaps instance to a binary file."""
     filename = Path(filename)
-    description = "ReversiLogisticModelWMaps binary data file"
+    description = "LMWMaps binary data file"
     version = 1
 
     with binio.BinaryWriter(filename) as w:
@@ -140,13 +140,13 @@ def hlp_wmaps_store_to_file(wmaps: ReversiLogisticModelWMaps, filename: str | Pa
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelWMaps:
+def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> LMWMaps:
     """Loads a WMaps instance from a binary file."""
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("The checksum file signature doesn't match with current file.")
 
-    expected_description = "ReversiLogisticModelWMaps binary data file"
+    expected_description = "LMWMaps binary data file"
     expected_version = 1
 
     with binio.BinaryReader(filename) as r:
@@ -166,7 +166,7 @@ def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
         wmap_fallback = r.read_array()
         w = r.read_array()
 
-    return ReversiLogisticModelWMaps(
+    return LMWMaps(
         hlp_indexes_checksum=hlp_indexes_checksum,
         cut_off=cut_off,
         feature_w_ranges=feature_w_ranges,
@@ -179,7 +179,7 @@ def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True) -> Rev
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_wmaps_compute(ctx: "LMContext") -> ReversiLogisticModelWMaps:
+def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
     """
     Computes WMaps based on feature frequencies and the cut-off threshold.
 
@@ -297,7 +297,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> ReversiLogisticModelWMaps:
     feature_w_ranges_arr = np.array([[m['fallback'], m['w_min'], m['w_max']] for m in f_w_ranges], dtype=np.int64)
     w = np.zeros(next_w, dtype=np.float32)
 
-    return ReversiLogisticModelWMaps(
+    return LMWMaps(
         hlp_indexes_checksum=ctx.hlp_indexes_checksum,
         cut_off=cut_off,
         feature_w_ranges=feature_w_ranges_arr,
@@ -309,7 +309,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> ReversiLogisticModelWMaps:
     )
 
 
-def hlp_wmaps_is_cache_consistent(ctx: "LMContext", wmaps: ReversiLogisticModelWMaps) -> bool:
+def hlp_wmaps_is_cache_consistent(ctx: "LMContext", wmaps: LMWMaps) -> bool:
     """Validates the cache by checking hlp_indexes_checksum and cut_off."""
     is_hash_consistent = wmaps.hlp_indexes_checksum == ctx.hlp_indexes_checksum
     is_cut_off_consistent = wmaps.cut_off == ctx.cfg.stat_model.frequency_cut_off

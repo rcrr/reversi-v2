@@ -70,7 +70,7 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 rlm_src = read("src/reversi/lm/hlp_generate.py")
 check("A1 __all__ lists the 5 public names",
-      "'ReversiLogisticModelDenseWeights'," in rlm_src
+      "'LMDenseWeights'," in rlm_src
       and "'hlp_generate_store_to_file'," in rlm_src
       and "'hlp_generate_load_from_file'," in rlm_src
       and "'compute_w_dense'," in rlm_src
@@ -117,7 +117,7 @@ check("C2 no non-comment trailing whitespace",
 # ----------------------------------------------------------------------
 # D. data-object behavior (no DB)
 # ----------------------------------------------------------------------
-from reversi.lm.hlp_generate import (ReversiLogisticModelDenseWeights,
+from reversi.lm.hlp_generate import (LMDenseWeights,
                                 compute_w_dense)
 
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -133,7 +133,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 
     # D3 hash
     arr = np.array([0.5, -0.2, 3.0], dtype=np.float32)
-    dw = ReversiLogisticModelDenseWeights("abc", arr)
+    dw = LMDenseWeights("abc", arr)
     h = hashlib.sha3_256(arr.tobytes()).hexdigest()
     check("D3 compute_sha3_256_hash == independent sha3_256(w_dense.tobytes())",
           dw.compute_sha3_256_hash() == h, dw.compute_sha3_256_hash())

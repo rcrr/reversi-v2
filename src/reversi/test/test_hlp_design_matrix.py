@@ -52,7 +52,7 @@ from types import SimpleNamespace
 from pydantic import ValidationError
 
 from reversi.tools import binio
-from reversi.lm.hlp_design_matrix import (ReversiLogisticModelDesignMatrix,
+from reversi.lm.hlp_design_matrix import (LMDesignMatrix,
                                      hlp_design_matrix_compute,
                                      hlp_design_matrix_store_to_file,
                                      hlp_design_matrix_load_from_file,
@@ -135,12 +135,12 @@ class TestRLMDesignMatrixCacheConsistency(unittest.TestCase):
             wmaps_obj_checksum="abc123"
         )
 
-        self.dm_valid = ReversiLogisticModelDesignMatrix(
+        self.dm_valid = LMDesignMatrix(
             wmaps_obj_checksum="abc123",
             X=np.array([[0, 1], [2, 3]], dtype=np.uint32)
         )
 
-        self.dm_wrong_checksum = ReversiLogisticModelDesignMatrix(
+        self.dm_wrong_checksum = LMDesignMatrix(
             wmaps_obj_checksum="wrong",
             X=np.array([[0, 1], [2, 3]], dtype=np.uint32)
         )
@@ -167,7 +167,7 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
         self.filepath = self.tmp_dir / "design_matrix_test.dat"
 
         # Create a fully populated Design Matrix object to serialize
-        self.dm_original = ReversiLogisticModelDesignMatrix(
+        self.dm_original = LMDesignMatrix(
             wmaps_obj_checksum="io_test_hash",
             X=np.array([[1, 2, 2], [1, 3, 3]], dtype=np.uint32)
         )
@@ -229,14 +229,14 @@ class TestRLMDesignMatrixIO(unittest.TestCase):
     def test_load_rejects_version_mismatch(self):
         """A file whose header version is not 1 is rejected."""
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
-            w.write_header("ReversiLogisticModelDesignMatrix binary data file", 2)
+            w.write_header("LMDesignMatrix binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
             hlp_design_matrix_load_from_file(self.filepath, checksum=False)
         self.assertIn("version mismatch", str(context.exception))
 
 
 class TestRLMDesignMatrixInit(unittest.TestCase):
-    """Tests the __init__ validation of ReversiLogisticModelDesignMatrix."""
+    """Tests the __init__ validation of LMDesignMatrix."""
 
     def _make_valid(self, **overrides):
         kwargs = dict(
@@ -244,7 +244,7 @@ class TestRLMDesignMatrixInit(unittest.TestCase):
             X=np.array([[0, 0, 1], [0, 1, 2]], dtype=np.uint32),
         )
         kwargs.update(overrides)
-        return ReversiLogisticModelDesignMatrix(**kwargs)
+        return LMDesignMatrix(**kwargs)
 
     def test_init_accepts_valid_arrays(self):
         self._make_valid()

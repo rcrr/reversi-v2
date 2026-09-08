@@ -1,6 +1,6 @@
 # reversi/lm/hlp_design_matrix.py
 The DESIGN_MTR domain module of the LM pipeline: the
-`ReversiLogisticModelDesignMatrix` data object (the (N,I) uint32
+`LMDesignMatrix` data object (the (N,I) uint32
 X — the w-index of each (position, feature-instance) cell — + the
 `wmaps_obj_checksum` metadata) + 4 public functions + the
 duck-typed `compute_sha3_256_hash` — the 7th active level's data
@@ -12,7 +12,7 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
+| `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
 | `hlp_design_matrix_store_to_file(dm, filename)` | binio write: header + the checksum string + X; NO sidecar (cache_manager writes it) |
 | `hlp_design_matrix_load_from_file(filename, checksum=True)` | sidecar verify (when enabled) + header gate (description + version) + read back a fresh object |
 | `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
@@ -20,14 +20,14 @@ object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
 
 ## Architecture
 
-- `ReversiLogisticModelDesignMatrix.__init__` is
+- `LMDesignMatrix.__init__` is
   `@validate_call(arbitrary_types_allowed)`;
   `compute_sha3_256_hash` (validated) = sha3_256 over
   `X.tobytes()` ONLY (the single data array — the duck-typed
   data-checksum hook).
 - `hlp_design_matrix_store_to_file` (validated): `filename: str |
   Path` → Path; `binio.BinaryWriter` — `write_header
-  ("ReversiLogisticModelDesignMatrix binary data file", 1)`,
+  ("LMDesignMatrix binary data file", 1)`,
   `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`.
 - `hlp_design_matrix_load_from_file` (validated): `checksum=True`
   → `binio.verify_sha3_256_sidecar` first (mismatch → RuntimeError

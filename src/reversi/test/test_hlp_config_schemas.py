@@ -48,7 +48,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from reversi.lm.hlp_config_schemas import (
-    ReversiLogisticModelConfig,
+    LMConfig,
     PatternConfig,
     PatternSetConfig,
     OptimizationConfig,
@@ -85,7 +85,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
     def test_model_dump_json_round_trip(self):
         """The full config round-trips via model_dump_json: the name
         survives and cache_files_prefix keeps its 'rlmwf_' value."""
-        cfg = ReversiLogisticModelConfig(**self._cfg_dict())
+        cfg = LMConfig(**self._cfg_dict())
         dumped = json5.loads(cfg.model_dump_json())
         self.assertEqual(dumped["name"], self.base["name"])
         self.assertEqual(dumped["cache_files_prefix"], "rlmwf_")
@@ -114,7 +114,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         def _badmask(d):
             d["feature_set"]["pattern_set"]["patterns"][0]["mask"] = "ZZZZ"
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelConfig(**self._cfg_dict(_badmask))
+            LMConfig(**self._cfg_dict(_badmask))
 
     # -- E4/E5: regab_data_set constraints ------------------------------------
 
@@ -127,7 +127,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
                 def _bdec(d, e=bad_ec):
                     d["regab_data_set"]["ec"] = e
                 with self.assertRaises(ValidationError):
-                    ReversiLogisticModelConfig(**self._cfg_dict(_bdec))
+                    LMConfig(**self._cfg_dict(_bdec))
 
     def test_invalid_status_rejected(self):
         """status must be exactly 3 uppercase letters: lowercase
@@ -137,7 +137,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
                 def _badst(d, s=bad):
                     d["regab_data_set"]["status"] = [s]
                 with self.assertRaises(ValidationError):
-                    ReversiLogisticModelConfig(**self._cfg_dict(_badst))
+                    LMConfig(**self._cfg_dict(_badst))
 
     # -- E6: optimization cross-field validator --------------------------------
 
@@ -187,13 +187,13 @@ class TestRlmConfigSchemas(unittest.TestCase):
         def _nooutput(d):
             del d["output"]
         with self.assertRaises(ValidationError):
-            ReversiLogisticModelConfig(**self._cfg_dict(_nooutput))
+            LMConfig(**self._cfg_dict(_nooutput))
 
     def test_cache_files_prefix_default(self):
         """cache_files_prefix defaults to 'rlmwf_' when absent."""
         def _noidx(d):
             del d["cache_files_prefix"]
-        cfg = ReversiLogisticModelConfig(**self._cfg_dict(_noidx))
+        cfg = LMConfig(**self._cfg_dict(_noidx))
         self.assertEqual(cfg.cache_files_prefix, "rlmwf_")
 
 

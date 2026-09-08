@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['ReversiLogisticModelDesignMatrix',
+__all__ = ['LMDesignMatrix',
            'hlp_design_matrix_store_to_file',
            'hlp_design_matrix_load_from_file',
            'hlp_design_matrix_compute',
@@ -50,7 +50,7 @@ __all__ = ['ReversiLogisticModelDesignMatrix',
 
 
 
-class ReversiLogisticModelDesignMatrix:
+class LMDesignMatrix:
     """Represents the computed Design Matrix (X)."""
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, wmaps_obj_checksum: str, X: np.ndarray):
@@ -66,10 +66,10 @@ class ReversiLogisticModelDesignMatrix:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filename: str | Path) -> None:
+def hlp_design_matrix_store_to_file(dm: LMDesignMatrix, filename: str | Path) -> None:
     """Saves the Design Matrix instance to a binary file."""
     filename = Path(filename)
-    description = "ReversiLogisticModelDesignMatrix binary data file"
+    description = "LMDesignMatrix binary data file"
     version = 1
 
     with binio.BinaryWriter(filename) as w:
@@ -79,13 +79,13 @@ def hlp_design_matrix_store_to_file(dm: ReversiLogisticModelDesignMatrix, filena
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDesignMatrix:
+def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True) -> LMDesignMatrix:
     """Loads a Design Matrix instance from a binary file."""
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("The checksum file signature doesn't match with current file.")
 
-    expected_description = "ReversiLogisticModelDesignMatrix binary data file"
+    expected_description = "LMDesignMatrix binary data file"
     expected_version = 1
 
     with binio.BinaryReader(filename) as r:
@@ -98,14 +98,14 @@ def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True
         wmaps_obj_checksum = r.read_string()
         X = r.read_array()
 
-    return ReversiLogisticModelDesignMatrix(
+    return LMDesignMatrix(
         wmaps_obj_checksum=wmaps_obj_checksum,
         X=X
     )
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_design_matrix_compute(ctx: "LMContext") -> ReversiLogisticModelDesignMatrix:
+def hlp_design_matrix_compute(ctx: "LMContext") -> LMDesignMatrix:
     """Computes the Design Matrix X from principal indexes and iwmap."""
     pindexes = ctx.hlp_indexes.indexes
 
@@ -121,13 +121,13 @@ def hlp_design_matrix_compute(ctx: "LMContext") -> ReversiLogisticModelDesignMat
     #: X is uint32 — the implicit output cast is deprecated (NumPy 2.5).
     np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)
 
-    return ReversiLogisticModelDesignMatrix(
+    return LMDesignMatrix(
         wmaps_obj_checksum=ctx.wmaps_obj_checksum,
         X=X
     )
 
 
-def hlp_design_matrix_is_cache_consistent(ctx: "LMContext", dm: ReversiLogisticModelDesignMatrix) -> bool:
+def hlp_design_matrix_is_cache_consistent(ctx: "LMContext", dm: LMDesignMatrix) -> bool:
     """Validates the cache by checking wmaps_obj_checksum."""
     is_hash_consistent = dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum
     return is_hash_consistent

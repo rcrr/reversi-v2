@@ -39,13 +39,13 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['ReversiLogisticModelZed',
+__all__ = ['LMZed',
            'hlp_zed_compute',
            'zed_fun_factory']
 
 
 
-class ReversiLogisticModelZed:
+class LMZed:
     """
     Holds the Z vector and the transformation functions y2z and z2y.
     """
@@ -92,7 +92,7 @@ def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def hlp_zed_compute(ctx: "LMContext") -> ReversiLogisticModelZed:
+def hlp_zed_compute(ctx: "LMContext") -> LMZed:
     """
     Computes Z vector and transformation functions based on logit_clipping.
     """
@@ -100,4 +100,4 @@ def hlp_zed_compute(ctx: "LMContext") -> ReversiLogisticModelZed:
     y2z, z2y = zed_fun_factory(alpha)
     y = ctx.game_values
     z = y2z(y)
-    return ReversiLogisticModelZed(y2z=y2z, z2y=z2y, z=z)
+    return LMZed(y2z=y2z, z2y=z2y, z=z)

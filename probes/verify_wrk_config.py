@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from reversi.lm.logistic_model import LogisticModel, LMContext
-from reversi.lm.hlp_config_schemas import ReversiLogisticModelConfig
+from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.tools.state_machine import Verbosity
 import reversi.lm.wrk_config as lwc
 import reversi.tools.binio as binio
@@ -71,8 +71,8 @@ try:
     #  test_move_up (step 1 / CONFIG))
     model.move_to_step("CONFIG")
     ctx = model.context
-    check("B3 ctx.cfg is a ReversiLogisticModelConfig",
-          isinstance(ctx.cfg, ReversiLogisticModelConfig))
+    check("B3 ctx.cfg is a LMConfig",
+          isinstance(ctx.cfg, LMConfig))
     raw = json5.loads(CONFIG_JSON.read_text())
     check("B4 cfg.name round-trips from the json",
           ctx.cfg.name == raw["name"], ctx.cfg.name)

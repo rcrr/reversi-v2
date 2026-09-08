@@ -15,7 +15,7 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 
 | name | contract |
 |---|---|
-| `ReversiLogisticModelDenseWeights` | the data object — `__init__(w_checksum: str, w_dense: NDArray)` both `@validate_call` (the NDArray gate rejects lists) |
+| `LMDenseWeights` | the data object — `__init__(w_checksum: str, w_dense: NDArray)` both `@validate_call` (the NDArray gate rejects lists) |
 | `.compute_sha3_256_hash()` | `@validate_call` — `sha3_256(w_dense.tobytes())` ONLY (the duck-typed data-checksum hook, same shape as the 4 siblings) |
 | `hlp_generate_store_to_file(dw, filename)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; NO sidecar (cache_manager writes it, D-072) |
 | `hlp_generate_load_from_file(filename, checksum=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the D-098 T1 version gate) → the object |
@@ -24,7 +24,7 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 
 ## Architecture
 
-- `ReversiLogisticModelDenseWeights` (L53-65): plain class, 2
+- `LMDenseWeights` (L53-65): plain class, 2
   fields.
 - `hlp_generate_store_to_file` (L68-75) /
   `hlp_generate_load_from_file` (L78-96): the standard binio
