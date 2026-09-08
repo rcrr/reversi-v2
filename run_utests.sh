@@ -52,7 +52,7 @@ MODULES=(
     reversi.test.test_hlp_design_matrix
     reversi.test.test_wrk_design_matrix
     reversi.test.test_hlp_zed
-    twolm.test.test_lm_worker_zed
+    reversi.test.test_wrk_zed
     twolm.test.test_rlm_gradient
     twolm.test.test_lm_worker_gradient
     twolm.test.test_rlm_optimize

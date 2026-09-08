@@ -43,7 +43,7 @@ from reversi.lm.wrk_features import wrk_features
 from reversi.lm.wrk_indexes import wrk_indexes
 from reversi.lm.wrk_wmaps import wrk_wmaps
 from reversi.lm.wrk_design_matrix import wrk_design_matrix
-from twolm.lm_worker_zed import lm_worker_zed
+from reversi.lm.wrk_zed import lm_worker_zed
 from twolm.lm_worker_gradient import lm_worker_gradient
 from twolm.lm_worker_optimize import lm_worker_optimize
 from twolm.lm_worker_generate import lm_worker_generate

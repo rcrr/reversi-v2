@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_zed.py
+# reversi/test/test_wrk_zed.py
 The worker integration test of the ZED level: the isolated
 factory math + the rlm_01.json end-to-end golden (the y / z
 literals — the single source of truth after the step-3 class c

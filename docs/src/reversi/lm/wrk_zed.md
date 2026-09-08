@@ -1,4 +1,4 @@
-# twolm/lm_worker_zed.py
+# reversi/lm/wrk_zed.py
 The ZED worker of the RLM pipeline — the 8th active level and the
 FIRST non-cache worker in the pipeline: no `cache_manager` wiring
 at all (no load-or-compute cycle, no `is_allowed` switch, no
