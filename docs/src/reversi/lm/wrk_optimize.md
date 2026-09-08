@@ -1,4 +1,4 @@
-# twolm/lm_worker_optimize.py
+# reversi/lm/wrk_optimize.py
 The OPTIMIZE worker — the pipeline's optimizer level. `_up`
 implements a 4-step recipe: (1) consult the existing checkpoint
 (if any) through the two hlp_optimize gates, deciding between

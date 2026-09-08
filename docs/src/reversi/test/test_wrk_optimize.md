@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_optimize.py
+# reversi/test/test_wrk_optimize.py
 The OPTIMIZE worker integration suite — the house worker-test
 shape (same as test_wrk_gradient et al.): a live-DB suite
 that moves the machine through the full 9-level chain on a fresh

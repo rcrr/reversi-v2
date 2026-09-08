@@ -56,7 +56,7 @@ MODULES=(
     reversi.test.test_hlp_gradient
     reversi.test.test_wrk_gradient
     reversi.test.test_hlp_optimize
-    twolm.test.test_lm_worker_optimize
+    reversi.test.test_wrk_optimize
     twolm.test.test_rlm_generate
     twolm.test.test_lm_worker_generate
     twolm.test.test_lm_worker_vld_positions
