@@ -1,4 +1,4 @@
-# twolm/rlm_client.py
+# reversi/lm/client.py
 The INFERENCE API of the twolm package — the first module that is a
 pure CONSUMER of the pipeline output: given a `ModelWeights` (loaded
 from the saved file), `make_evaluation_function` closes over it and

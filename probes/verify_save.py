@@ -3,7 +3,7 @@
 verify_save.py — D-104 SAVE bring-in probe (post-campaign goldens).
 
 Tiers:
-  A: static hygiene (worker, model_weights, rlm_client, test file, fixtures)
+  A: static hygiene (worker, model_weights, client, test file, fixtures)
   B: model_weights read guards (no DB)
   C: live rlm_04 full 15-level chain (DB)
   D: live rlm_03 full 15-level chain (DB; run only with LONG=1)
@@ -63,11 +63,11 @@ def tier_a():
           len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)]) == 10,
           str(len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)])))
 
-    c = SRC / 'twolm' / 'rlm_client.py'
+    c = SRC / 'reversi' / 'lm' / 'client.py'
     ct = c.read_text()
-    check('A7 rlm_client: no dead import (T2)', 'model_weights_read_file' not in ct)
-    check('A8 rlm_client: __all__ (M1)', "__all__ = ['make_evaluation_function']" in ct)
-    check('A9 rlm_client: no ws lines (T4)', not ws_lines(c), str(ws_lines(c)))
+    check('A7 client: no dead import (T2)', 'model_weights_read_file' not in ct)
+    check('A8 client: __all__ (M1)', "__all__ = ['make_evaluation_function']" in ct)
+    check('A9 client: no ws lines (T4)', not ws_lines(c), str(ws_lines(c)))
 
     t = SRC / 'twolm' / 'test' / 'test_lm_worker_full_chain.py'
     tt = t.read_text()

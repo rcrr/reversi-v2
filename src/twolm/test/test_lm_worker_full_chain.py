@@ -59,7 +59,7 @@ from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel
 from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
 from reversi.lm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
-from twolm.rlm_client import make_evaluation_function
+from reversi.lm.client import make_evaluation_function
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE

@@ -161,7 +161,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052) | 37/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
-| src/twolm/rlm_client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/twolm/rlm_client.md |
+| src/reversi/lm/client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the ReversiLogisticModelConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090) | 12/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098) | 14/0/0 | docs/src/reversi/lm/hlp_generate.md |
