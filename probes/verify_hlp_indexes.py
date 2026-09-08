@@ -69,7 +69,7 @@ def check(label, cond, detail=""):
 # A — source structure of hlp_indexes.py (content pins).
 #
 
-src = (ROOT / "src" / "twolm" / "hlp_indexes.py").read_text()
+src = (ROOT / "src" / "reversi" / "lm" / "hlp_indexes.py").read_text()
 
 check("A1 190 lines (D-084: -2 dead imports, +3 docstring Note, +8 __repr__)",
       len(src.splitlines()) == 190
@@ -345,7 +345,7 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
 # F — source structure of test_hlp_indexes.py (content pins).
 #
 
-fsrc = (ROOT / "src" / "twolm" / "test" / "test_hlp_indexes.py").read_text()
+fsrc = (ROOT / "src" / "reversi" / "test" / "test_hlp_indexes.py").read_text()
 
 check("F1 304 lines, 5 classes / 14 tests (D-084 M2: the rds-only-differs test added)",
       len(fsrc.splitlines()) == 304
