@@ -98,6 +98,12 @@ at the end of this file.
   base before further evolution (his list of future changes is
   out of scope). DONE: all 15 pipeline levels active (15/15);
   the game-loop module is NOT in the plan (I-005 resolved).
+- THE REORGANIZATION CAMPAIGN (I-001, D-133, open since
+  2026-09-08): twolm → reversi with the core/tools/lm split
+  per Roberto's approved mapping — 2 commits per module
+  (file + references, then the method renames), bottom-up
+  (tools → core → lm in machine order); the Source / Test
+  tables update row by row as each module moves.
 - Sources live in the `twolm` package under src/ (D-008); unit
   tests in src/twolm/test/. Environment: .venv with the pinned
   deps (D-010/D-051/D-052), twolm installed editable (D-011).
@@ -112,8 +118,12 @@ at the end of this file.
 - lm_worker_config R1 (the ad-hoc cache flow): the D-078
   ruling — the revisit trigger (the pipeline completion) is
   now met (15/15); re-evaluate the ad-hoc flow against the
-  completed pipeline and the "storicizzazione" idea (I-011) —
-  the next concrete action.
+  completed pipeline and the "storicizzazione" idea (I-011).
+- The reorganization campaign (I-001, D-133): the twolm →
+  reversi reorganization per Roberto's approved mapping —
+  phase 1, the 36 modules bottom-up (tools → core → lm in
+  machine order); RLMContext → LMContext to be reviewed in
+  the final inventory.
 
 
 ## Source files
@@ -245,4 +255,5 @@ here: their paths are the Doc column of the two tables above.
   the campaign sweep rule, the archive to notes/analyses/, the
   baseline)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
-- notes/log_001.md — session journal, volume 001 (sessions 25–..., open)
+- notes/log_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
+- notes/log_002.md — session journal, volume 002 (sessions 31–..., open)

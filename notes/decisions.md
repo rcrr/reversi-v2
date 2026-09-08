@@ -397,3 +397,47 @@ D-132 | 2026-09-08 | measure_suite.py graduates from
         probe count 20 → 21. Verified from the workspace
         root: 673 tests / 4.0 s wall / 87 skipped (the
         default tier).
+
+D-133 | 2026-09-08 | I-001 executes: the reorganization
+        campaign — twolm → reversi with the core/tools/lm
+        split (Roberto's approved mapping, his written
+        request; the AGENTS rule-8 guard lifts on his
+        explicit decision).
+        | Layout: the core game modules at the package top
+        level (board, pattern, mobility, feature, base_model,
+        regab); the shared infrastructure in reversi/tools/
+        (binio, cache_manager, opt_lbfgs, state_machine); the
+        RLM pipeline in reversi/lm/ (the 15 wrk_* workers,
+        their hlp_* data modules, hlp_config_schemas,
+        model_weights, client, logistic_model). The layering
+        is a verified DAG: lm → core, core → tools (base_model
+        → state_machine), tools imports nothing from the
+        package.
+        | Method scope ruling: only the identifiers embedding
+        the old module name are renamed (lm_worker_* →
+        wrk_*, rlm_*_* → hlp_*_*); the domain classes
+        (RLMContext, LogisticModel, BaseModel,
+        ReversiLogisticModel*) and the unprefixed public fns
+        (sigmoid, load_from_db, ...) stay. rlm_client →
+        client (Roberto: "tua proposta perfetta"). RLMContext
+        → LMContext: deferred — reviewed in the final
+        inventory (Roberto).
+        | Mechanics: 2 commits per module (A: the file + test
+        + doc moves with every repo reference updated, suite
+        green; B: the method renames, suite green); the test
+        files follow the new module names (test_wrk_*,
+        test_hlp_*); the probe files rename only when their
+        name embeds the old module name (verify_lm_worker_* →
+        verify_wrk_*, verify_rlm_indexes → verify_hlp_indexes);
+        the mirror-doc State line keeps its content-snapshot
+        marker across a pure move (the header path line
+        updates, the hash stays the last content-changing
+        commit); the history notes (decisions_000.md, the log
+        volumes, notes/analyses/) stay untouched. pyproject
+        name twolm → reversi; packages.find auto-discovers the
+        subpackages.
+        | Phases: 0 the skeleton (this entry) → 1 the 36
+        modules bottom-up (tools → core → lm in machine
+        order) → 2 the twolm/ removal + reinstall + the
+        residual sweep → 3 the closing notes wave + the full
+        sweep (probe_rules §5.2).
