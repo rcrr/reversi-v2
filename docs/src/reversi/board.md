@@ -4,7 +4,7 @@ bitboards, positions, and everything that operates on them — the
 D8 symmetry group, legal-move and flip-set computation, move
 execution, end-of-game scoring. No game loop, no search, no clock,
 no UI.
-> State: D-111 · 5ae49c0 · 2026-09-06 · suite 201/0/12
+> State: D-140 · ed00989 · 2026-09-08 · suite 221/0/14
 
 ## API
 
@@ -57,8 +57,8 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Position | `position_legal_moves(p) -> Bitboard \| BitboardArray` | the legal-move set (delegates to `legal_moves`) |
 | Position | `legal_moves(mover, opponent) -> Bitboard \| BitboardArray` | dual; both args the same kind (mixed → TypeError); strict uint64 in, 1-D guard (D-111 M5: 2-D → ValueError) |
 | Position | `position_legal_moves_count(p) -> int` | popcount of the legal set; scalar |
-| Position | `position_flips(p, move: Bitboard) -> Tuple[Bitboard, PositionField \| None]` | Kogge-Stone flip set + updated position; illegal or non-single-bit move → `(0, None)` |
-| Position | `position_make_move(p, move: Move) -> PositionField \| None` | execute; 64 (PA) swaps the players without verification; > 64 → ValueError; illegal square → None |
+| Position | `position_flips(p: PositionField \| PositionArray, move: Bitboard \| BitboardArray) -> (Bitboard \| BitboardArray, PositionField \| PositionArray \| None)` | dual (D-140): scalar — Kogge-Stone flip set + updated position, illegal or non-single-bit move → `(0, None)`; array — per-element, flips[i] = 0 and the input position unchanged for an illegal move (no None in the array); both args the same kind (mixed → TypeError), the standard 1-D guard |
+| Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual (D-140): scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal square → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), the standard 1-D guard |
 | Position | `position_count_difference(p) -> int` | `count(mover) - count(opponent)` |
 | Position | `position_final_value(p) -> int` | WOFC end score: the difference, empty squares assigned to the leader |
 | Position | `position_has_to_pass(p) -> bool` | the mover has no legal move |
@@ -85,14 +85,19 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - **Dual scalar/array API** — every public function: an
   `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard, the
   numba kernel, the output adapted back to the input kind.
-  `legal_moves` is the exception: strict uint64 scalar or ndarray
-  only, with the standard 1-D guard (D-111 M5).
+  `legal_moves`, `position_flips` and `position_make_move` are the
+  strict dual (D-140, the same technique as D-111 M5): scalar or
+  1-D ndarray only, the mixed kind → TypeError, the standard 1-D
+  guard + the same-shape check.
 - **Numba** — `njit(parallel=True, cache=True)` on the hot kernels
   (the two D8 batch transform fns, the 8 scalar transform impls,
-  `_vectorized_legal_moves`), `prange` on the batch loops;
-  `@overload` on the 4 reflection primitives so JIT code can call
-  them (registered on the pydantic-wrapped names — verified
-  resolvable in a JIT context, D-111 M7).
+  `_vectorized_legal_moves`, `_vectorized_flips`,
+  `_vectorized_make_move`), `prange` on the batch loops;
+  `_kogge_stone_mm` is `@njit(inline='always')` (the shared
+  per-element flip primitive, D-140 — the scalar path calls it as
+  before); `@overload` on the 4 reflection primitives so JIT code
+  can call them (registered on the pydantic-wrapped names —
+  verified resolvable in a JIT context, D-111 M7).
 - **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on
   every public function; `Annotated` + `BeforeValidator` enforce the
   dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
@@ -110,7 +115,12 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - **Flip set** (`_kogge_stone_mm`) — the same 1/2/4 slides over 8
   directions; the blocker `gt` requires a mover disc immediately
   past the run end; the result is `& ~generator` (move square
-  excluded).
+  excluded). D-140: the primitive is `@njit(inline='always')` and
+  runs per element inside the `_vectorized_flips` /
+  `_vectorized_make_move` `prange` kernels (3-array return,
+  re-assembled with `make_position`); the flip kernel does NOT
+  check the move square emptiness (the 2008 scalar behaviour, the
+  caller's responsibility).
 - **D8 slot order** is fixed (D-014, notes/naming.md) — the anti
   tables swap only slots 1/3.
 - **Platform: little-endian only** (D-022) — no portability work
@@ -136,8 +146,15 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   ValueError) at `TestPositionLegalMoves::test_legal_moves_2d_{
   mover,opponent}_raises_value_error`.
 - The flip set (runs up to 7, blocker past the run end, move square
-  excluded) — `test_board::TestPositionFlips` (base + bulk),
-  `TestPositionMakeMove` (incl. the PA swap and None on illegal).
+  excluded) — `test_board::TestPositionFlips` (base + bulk + the
+  D-140 array bulk/fuzz parity + guards),
+  `TestPositionMakeMove` (incl. the PA swap, None on illegal, the
+  D-140 array batch + fuzz parity + guards).
+- The empty-square equivalence (D-140): an empty square is legal
+  exactly when it flips something (the flip kernel and the
+  legal-moves kernel share the geometry); an occupied square is
+  never legal — `test_board::TestPositionFlips::
+  test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
 - The collision invariant (mover & opponent = 0) —
   `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
 - `make_position` copy-then-view (inputs never aliased) —
