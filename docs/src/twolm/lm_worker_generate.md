@@ -25,8 +25,8 @@ cache level before the future VLD_POSITIONS (rlmwf_11).
   (L54 — the D-074 house name; the bring-in called the
   nonexistent `..._for_next_level()`, the D-074 R1 trap
   re-introduced, fixed in D-098 R1), `is_allowed = ctx.use_cache`,
-  `load_fn = rlm_generate_load_from_file`,
-  `store_fn = rlm_generate_store_to_file`, `validate_fn` = the
+  `load_fn = hlp_generate_load_from_file`,
+  `store_fn = hlp_generate_store_to_file`, `validate_fn` = the
   is_cache_consistent closure, `compute_fn` = the compute_w_dense
   closure, `logger_fn = ctx.log_event`. Then
   `ctx.w_dense = dense_obj.w_dense` (L63) + the shape log (L64),

@@ -43,7 +43,7 @@ GENERATE level. 1 class / 3 tests, all DB-gated.
 - After the step-3 class c deletions this file owns the probe's
   former E1 (bootstrap to GENERATE), E3 (shape/dtype), E8 (the
   flat files + sidecar), E9 (the second-instance cache hit),
-  E10 (the version gate on the real file — via the rlm_generate
+  E10 (the version gate on the real file — via the hlp_generate
   load path) + E11 (the `_down` scope).
 - The E2/E4/E5/E7 live re-derivation (K, orbit invariance, the
   full vector, the hash) survives the probe — the test pins the

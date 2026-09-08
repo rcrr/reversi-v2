@@ -34,7 +34,7 @@ the predictions mapped back with `ctx.z2y`), plus
     np.repeat(ctx.iwmap_feature_offset[:-1],
     n_instances_per_feature)` then `dense_indices = vld_indexes +
     col_offsets` (the fancy-index idiom — contrast
-    rlm_generate's per-feature loop, both valid) and
+    hlp_generate's per-feature loop, both valid) and
     `linear_predictor = np.sum(ctx.w_dense[dense_indices],
     axis=1)` (L123).
   - The forward pass (L124-127): `z_pred = sigmoid(linear_
@@ -95,7 +95,7 @@ None.
   annotation + TYPE_CHECKING import is the house pattern for the
   circular constraint.
 - The dense-mapping idiom (`np.repeat` + fancy indexing +
-  `np.sum`) differs from rlm_generate's per-feature start/end
+  `np.sum`) differs from hlp_generate's per-feature start/end
   loop — both valid, left as is (report-only, no number).
 - The `y2z` float32 cast before the affine is what keeps the
   int8 `vld_game_values` overflow-free (a raw `int8 + 64` at y=64

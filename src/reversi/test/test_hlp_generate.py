@@ -1,5 +1,5 @@
 #
-# test_rlm_generate.py
+# test_hlp_generate.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -27,7 +27,7 @@
 
 #
 #
-# How to run the rlm_generate unit tests.
+# How to run the hlp_generate unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -54,9 +54,9 @@ from pydantic import ValidationError
 from reversi.tools import binio
 from reversi.tools.state_machine import Relevance
 from reversi.lm.hlp_generate import (ReversiLogisticModelDenseWeights,
-                                rlm_generate_store_to_file,
-                                rlm_generate_load_from_file,
-                                rlm_generate_is_cache_consistent,
+                                hlp_generate_store_to_file,
+                                hlp_generate_load_from_file,
+                                hlp_generate_is_cache_consistent,
                                 compute_w_dense)
 from reversi.test.paths import CUSTOM_TMP_BASE
 
@@ -203,10 +203,10 @@ class TestRLMGenerateCacheConsistency(unittest.TestCase):
         self.dw_stale = ReversiLogisticModelDenseWeights("stale", arr)
 
     def test_consistent_checksum(self):
-        self.assertTrue(rlm_generate_is_cache_consistent(self.ctx, self.dw_matching))
+        self.assertTrue(hlp_generate_is_cache_consistent(self.ctx, self.dw_matching))
 
     def test_inconsistent_checksum(self):
-        self.assertFalse(rlm_generate_is_cache_consistent(self.ctx, self.dw_stale))
+        self.assertFalse(hlp_generate_is_cache_consistent(self.ctx, self.dw_stale))
 
 
 class TestRLMGenerateIO(unittest.TestCase):
@@ -235,10 +235,10 @@ class TestRLMGenerateIO(unittest.TestCase):
 
     def test_store_and_load_cycle(self):
         """Test that storing and loading returns an identical object."""
-        rlm_generate_store_to_file(self.dw_original, self.filepath)
+        hlp_generate_store_to_file(self.dw_original, self.filepath)
         self.assertTrue(self.filepath.exists())
 
-        dw_loaded = rlm_generate_load_from_file(self.filepath, checksum=False)
+        dw_loaded = hlp_generate_load_from_file(self.filepath, checksum=False)
 
         self.assertEqual(dw_loaded.w_checksum, "io_test_checksum")
         self.assertEqual(dw_loaded.w_dense.dtype, np.float32)
@@ -252,15 +252,15 @@ class TestRLMGenerateIO(unittest.TestCase):
 
     def test_load_with_valid_sidecar(self):
         """The checksum=True path accepts a matching sidecar (the D-072 machine)."""
-        rlm_generate_store_to_file(self.dw_original, self.filepath)
+        hlp_generate_store_to_file(self.dw_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
-        dw_loaded = rlm_generate_load_from_file(self.filepath, checksum=True)
+        dw_loaded = hlp_generate_load_from_file(self.filepath, checksum=True)
         self.assertEqual(dw_loaded.w_checksum, "io_test_checksum")
         nptest.assert_array_equal(dw_loaded.w_dense, self.dw_original.w_dense)
 
     def test_load_with_mismatched_sidecar(self):
         """A corrupted .dat against its sidecar raises the precise RuntimeError."""
-        rlm_generate_store_to_file(self.dw_original, self.filepath)
+        hlp_generate_store_to_file(self.dw_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
         size = self.filepath.stat().st_size
         with open(self.filepath, "r+b") as f:
@@ -269,7 +269,7 @@ class TestRLMGenerateIO(unittest.TestCase):
             f.seek(size // 2)
             f.write(bytes([original[0] ^ 0xFF]))
         with self.assertRaises(RuntimeError) as context:
-            rlm_generate_load_from_file(self.filepath, checksum=True)
+            hlp_generate_load_from_file(self.filepath, checksum=True)
         self.assertEqual(str(context.exception), "Checksum mismatch.")
 
     def test_load_rejects_wrong_description(self):
@@ -277,7 +277,7 @@ class TestRLMGenerateIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("A description that is not the dense-weights one", 1)
         with self.assertRaises(RuntimeError) as context:
-            rlm_generate_load_from_file(self.filepath, checksum=False)
+            hlp_generate_load_from_file(self.filepath, checksum=False)
         self.assertEqual(
             str(context.exception),
             "Wrong file format: A description that is not the dense-weights one")
@@ -287,7 +287,7 @@ class TestRLMGenerateIO(unittest.TestCase):
         with binio.BinaryWriter(str(self.filepath), checksum=False) as w:
             w.write_header("RGLM Dense Weights binary data file", 2)
         with self.assertRaises(RuntimeError) as context:
-            rlm_generate_load_from_file(self.filepath, checksum=False)
+            hlp_generate_load_from_file(self.filepath, checksum=False)
         self.assertEqual(
             str(context.exception),
             "File version mismatch: found 2, expected 1")

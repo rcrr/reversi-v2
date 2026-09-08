@@ -17,23 +17,23 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 |---|---|
 | `ReversiLogisticModelDenseWeights` | the data object — `__init__(w_checksum: str, w_dense: NDArray)` both `@validate_call` (the NDArray gate rejects lists) |
 | `.compute_sha3_256_hash()` | `@validate_call` — `sha3_256(w_dense.tobytes())` ONLY (the duck-typed data-checksum hook, same shape as the 4 siblings) |
-| `rlm_generate_store_to_file(dw, filename)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; NO sidecar (cache_manager writes it, D-072) |
-| `rlm_generate_load_from_file(filename, checksum=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the D-098 T1 version gate) → the object |
-| `rlm_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the L99 note) |
+| `hlp_generate_store_to_file(dw, filename)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; NO sidecar (cache_manager writes it, D-072) |
+| `hlp_generate_load_from_file(filename, checksum=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the D-098 T1 version gate) → the object |
+| `hlp_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the L99 note) |
 | `compute_w_dense(ctx)` | `@validate_call`-free (the L104 note) — the compressed → dense expansion over the 3 feature categories |
 
 ## Architecture
 
 - `ReversiLogisticModelDenseWeights` (L53-65): plain class, 2
   fields.
-- `rlm_generate_store_to_file` (L68-75) /
-  `rlm_generate_load_from_file` (L78-96): the standard binio
+- `hlp_generate_store_to_file` (L68-75) /
+  `hlp_generate_load_from_file` (L78-96): the standard binio
   round-trip; the load gates in order: the R3-class sidecar
   verify (L80-82, "Checksum mismatch."), the description gate
   (L89-90), the D-098 T1 version gate (L84, L91-92, "File
   version mismatch: found 2, expected 1") — all BEFORE any
   payload parse.
-- `rlm_generate_is_cache_consistent` (L99-101, the L98
+- `hlp_generate_is_cache_consistent` (L99-101, the L98
   no-validation note — `RLMContext` is a TYPE_CHECKING import):
   the single-field gate on `w_checksum` — when the OPTIMIZE
   weights change, the dense expansion must be recomputed.

@@ -43,10 +43,10 @@ if TYPE_CHECKING:
 
 
 __all__ = ['ReversiLogisticModelDenseWeights',
-           'rlm_generate_store_to_file',
-           'rlm_generate_load_from_file',
+           'hlp_generate_store_to_file',
+           'hlp_generate_load_from_file',
            'compute_w_dense',
-           'rlm_generate_is_cache_consistent']
+           'hlp_generate_is_cache_consistent']
 
 
 
@@ -66,7 +66,7 @@ class ReversiLogisticModelDenseWeights:
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: str | Path) -> None:
+def hlp_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: str | Path) -> None:
     filename = Path(filename)
     with binio.BinaryWriter(filename) as w:
         w.write_header("RGLM Dense Weights binary data file", 1)
@@ -76,7 +76,7 @@ def rlm_generate_store_to_file(dw: ReversiLogisticModelDenseWeights, filename: s
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def rlm_generate_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDenseWeights:
+def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True) -> ReversiLogisticModelDenseWeights:
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("Checksum mismatch.")
@@ -97,7 +97,7 @@ def rlm_generate_load_from_file(filename: str | Path, checksum: bool = True) -> 
 
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
-def rlm_generate_is_cache_consistent(ctx: "RLMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
+def hlp_generate_is_cache_consistent(ctx: "RLMContext", dw: ReversiLogisticModelDenseWeights) -> bool:
     return dw.w_checksum == ctx.w_checksum
 
 

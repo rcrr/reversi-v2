@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_generate.py
-The dedicated data-object suite of the rlm_generate module —
+The dedicated data-object suite of the hlp_generate module —
 expanded from the bring-in's 1 class / 1 test to 4 classes /
 14 tests in the D-098 T4 campaign (Roberto: "T4: ok"). No DB, no
 gate, no artifacts — the SimpleNamespace mock-fixture pattern,

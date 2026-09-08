@@ -52,7 +52,7 @@ configuration — which is why `expanded_offsets + indexes` indexes
 misalign every feature after the first). The gathered values are the
 TRAINED weights for confirmed configurations (frequency ≥
 `stat_model.frequency_cut_off`) and the SUBSTITUTION values (orbit
-mean for patterns, `np.interp` for mobility — rlm_generate L167-196)
+mean for patterns, `np.interp` for mobility — hlp_generate L167-196)
 for every configuration without a dedicated weight (unseen + below-
 cutoff "IC"). Consequence (D-104, verified measured): the dense path
 and the literal compressed model (`ctx.w` over `ctx.design_matrix`)

@@ -33,9 +33,9 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_generate import (compute_w_dense,
-                                rlm_generate_store_to_file,
-                                rlm_generate_load_from_file,
-                                rlm_generate_is_cache_consistent)
+                                hlp_generate_store_to_file,
+                                hlp_generate_load_from_file,
+                                hlp_generate_is_cache_consistent)
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 
 if TYPE_CHECKING:
@@ -53,9 +53,9 @@ def _up(ctx: "RLMContext") -> None:
     cache_hit, dense_obj, dense_w_checksum = cache_manager_load_or_compute(
         cache_path  = ctx.get_cache_file_full_path_for_current_level(),
         is_allowed  = ctx.use_cache,
-        load_fn     = rlm_generate_load_from_file,
-        store_fn    = rlm_generate_store_to_file,
-        validate_fn = lambda cached_dw: rlm_generate_is_cache_consistent(ctx, cached_dw),
+        load_fn     = hlp_generate_load_from_file,
+        store_fn    = hlp_generate_store_to_file,
+        validate_fn = lambda cached_dw: hlp_generate_is_cache_consistent(ctx, cached_dw),
         compute_fn  = lambda: compute_w_dense(ctx),
         logger_fn   = ctx.log_event
     )

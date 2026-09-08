@@ -3,10 +3,10 @@
 verify_generate.py — scratch probe for the GENERATE bring-in (session 27).
 
 Re-derives and verifies, independently of the test files:
-  A. rlm_generate.py structure (post-campaign: note, version gate, ws)
+  A. hlp_generate.py structure (post-campaign: note, version gate, ws)
   B. lm_worker_generate.py structure (post-campaign: factory gate, the
      D-074 _for_current_level naming, ws)
-  C. test_rlm_generate.py structure (post-campaign: English comment, ws)
+  C. test_hlp_generate.py structure (post-campaign: English comment, ws)
   D. data-object behavior (no DB): init validation, hash, store/load
      round-trip, the sidecar / description / version gates, the
      is_cache_consistent branches, the test-mock fixture goldens
@@ -66,21 +66,21 @@ def ws_lines(p):
 
 
 # ----------------------------------------------------------------------
-# A. rlm_generate.py structure (post-campaign)
+# A. hlp_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
 rlm_src = read("src/reversi/lm/hlp_generate.py")
 check("A1 __all__ lists the 5 public names",
       "'ReversiLogisticModelDenseWeights'," in rlm_src
-      and "'rlm_generate_store_to_file'," in rlm_src
-      and "'rlm_generate_load_from_file'," in rlm_src
+      and "'hlp_generate_store_to_file'," in rlm_src
+      and "'hlp_generate_load_from_file'," in rlm_src
       and "'compute_w_dense'," in rlm_src
-      and "'rlm_generate_is_cache_consistent']" in rlm_src)
+      and "'hlp_generate_is_cache_consistent']" in rlm_src)
 above_compute = rlm_src.split("def compute_w_dense")[0]
 check("A2 the house no-validation note sits directly above compute_w_dense",
       "Here validation is not possible" in "\n".join(above_compute.rsplit("\n", 8)[1:]),
       "last 8 lines above the def: " + repr(above_compute.rsplit("\n", 8)[-6:]))
-check("A3 rlm_generate_is_cache_consistent carries the no-validation note too",
-      "Here validation is not possible" in "\n".join(rlm_src.split("def rlm_generate_is_cache_consistent")[0].rsplit("\n", 8)[1:]))
+check("A3 hlp_generate_is_cache_consistent carries the no-validation note too",
+      "Here validation is not possible" in "\n".join(rlm_src.split("def hlp_generate_is_cache_consistent")[0].rsplit("\n", 8)[1:]))
 check("A4 load gates the file version (the 4 sibling data modules all do — T2)",
       "expected_version" in rlm_src
       and "File version mismatch" in rlm_src)
@@ -105,7 +105,7 @@ check("B3 no non-comment trailing whitespace",
       f"lines {ws_lines('src/twolm/lm_worker_generate.py')}")
 
 # ----------------------------------------------------------------------
-# C. test_rlm_generate.py structure (post-campaign)
+# C. test_hlp_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
 test_src = read("src/reversi/test/test_hlp_generate.py")
 check("C1 the Italian comment is gone (AGENTS.md rule 4 — house fix D-084 T3 class)",
@@ -127,7 +127,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     tmp = Path(tmp)
 
     # (D1 list w_dense rejected / D2 non-str w_checksum rejected
-    #  deleted at D-106 step 3, class c: test_rlm_generate.py::
+    #  deleted at D-106 step 3, class c: test_hlp_generate.py::
     #  TestRLMGenerateInit::test_init_fails_with_list_w_dense /
     #  test_init_fails_with_non_str_w_checksum)
 
@@ -142,7 +142,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     #  'Checksum mismatch.', D6 wrong description -> 'Wrong file
     #  format', D7 version-2 gate, D8 checksum=False load, D9/D10
     #  is_cache_consistent True/False deleted at D-106 step 3, class
-    #  c: test_rlm_generate.py::TestRLMGenerateIO pins all of it —
+    #  c: test_hlp_generate.py::TestRLMGenerateIO pins all of it —
     #  test_store_and_load_cycle (round-trip + the
     #  checksum=False load at L241 + the valid sidecar),
     #  test_load_with_mismatched_sidecar,
@@ -182,7 +182,7 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 
     # (D12 unknown category -> RuntimeError + D13 mobility no-seen
     #  branch (zeros + WARN) deleted at D-106 step 3, class c:
-    #  test_rlm_generate.py::TestRLMGenerateCompute::
+    #  test_hlp_generate.py::TestRLMGenerateCompute::
     #  test_unknown_category_raises /
     #  test_mobility_without_seen_configs_warns_and_zeroes. The
     #  ctx_bad / ctx_m scaffolding was used only by them.)
