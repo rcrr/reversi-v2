@@ -38,7 +38,7 @@
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
 #     VLONG=1 implies LONG, D-130).
 #
-# time python3 -m unittest twolm.test.test_lm_worker_validate
+# time python3 -m unittest reversi.test.test_wrk_validate
 #
 
 import math
@@ -55,7 +55,7 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from twolm.logistic_model import LogisticModel, RLMContext
-from twolm.lm_worker_validate import lm_worker_validate
+from reversi.lm.wrk_validate import lm_worker_validate
 from reversi.lm.hlp_validate import validate_model
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE

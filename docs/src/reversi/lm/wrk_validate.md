@@ -1,4 +1,4 @@
-# twolm/lm_worker_validate.py
+# reversi/lm/wrk_validate.py
 The VALIDATE worker — the 13th active level (the 12th step). The
 THIRD non-cache worker (after FEATURES, ZED, GRADIENT): no
 `cache_manager` wiring at all — no load-or-compute cycle, no

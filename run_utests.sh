@@ -60,7 +60,7 @@ MODULES=(
     reversi.test.test_hlp_generate
     reversi.test.test_wrk_generate
     reversi.test.test_wrk_vld_positions
-    twolm.test.test_lm_worker_validate
+    reversi.test.test_wrk_validate
     twolm.test.test_lm_worker_analytics
     twolm.test.test_lm_worker_full_chain
 )

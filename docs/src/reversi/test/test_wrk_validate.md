@@ -1,4 +1,4 @@
-# twolm/test/test_lm_worker_validate.py
+# reversi/test/test_wrk_validate.py
 The VALIDATE worker integration suite — CREATED in the D-102 T5
 campaign (the bring-in coverage gap closed per Roberto's
 approved proposal: 1 class / 3 tests, all DB-gated, the D-085

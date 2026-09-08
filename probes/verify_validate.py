@@ -69,7 +69,7 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 # A. lm_worker_validate.py + hlp_validate.py structure
 # ----------------------------------------------------------------------
-wk_src = read("src/twolm/lm_worker_validate.py")
+wk_src = read("src/reversi/lm/wrk_validate.py")
 dv_src = read("src/reversi/lm/hlp_validate.py")
 check("A1 Worker named VALIDATE + __all__ + validate_model the single public data name",
       'Worker("VALIDATE", _up, _down)' in wk_src
@@ -95,7 +95,7 @@ check("A5 the `Any` in the `Dict[str, Any]` return annotation is imported "
 check("A6 the hlp_validate header carries its OWN name (the bring-in says "
       "rlm_config_schemas.py — copy-paste)",
       lines("src/reversi/lm/hlp_validate.py")[1] == "# hlp_validate.py")
-_wk_ws = ws_lines("src/twolm/lm_worker_validate.py")
+_wk_ws = ws_lines("src/reversi/lm/wrk_validate.py")
 _dv_ws = ws_lines("src/reversi/lm/hlp_validate.py")
 check("A7a the worker has no code ws lines (pre-campaign: L48/L49/L51 — the 2 "
       "ws-only + the trailing on the validate_model call)",
