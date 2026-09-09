@@ -819,3 +819,170 @@ D-141 | 2026-09-09 | Vectorized EF client:
         | Verification: the default tier 707/0/90 + the
         full suite LONG=1 707/0/21 (live DB, incl. the
         A2030 batch pin) + the verify_save probe green.
+D-142 | 2026-09-09 | CONFIG loses its ad-hoc
+        cache — the fingerprint + the SAVE config
+        record (Roberto: "Ora affrontiamo il tema
+        sospeso della cache del LEVEL CONFIG, come e'
+        fatta non va bene, non serve a nulla. Va
+        ripensata. O la eliminiamo, ed e' finita qui.
+        Oppure teniamo uno storico versionato delle
+        evoluzioni del JSON .... ognuno con il suo
+        checksum ... ed il checksum lo aggiungiamo in
+        tutti i file a valle. Offre una
+        tracciabilita' completa ... ma forse e'
+        eccessivo ... Studia bene la situazione,
+        prepara una analisi, fammi delle proposte di
+        come procedere." — the D-078 R1 / I-011
+        revisit, the trigger met: the pipeline is
+        15/15; rulings on the approved analysis:
+        1 A+C1, 2 dump normalizzato, 3 fingerprint in
+        entrambi i report).
+        | Analysis: the ad-hoc flow (_store_to_file)
+        has four defects: d1 write-only (the file is
+        never read by the pipeline — the config
+        always comes from the JSON5 source; the only
+        "validation" is the file self-validating
+        against its own sidecar); d2 ad-hoc
+        duplicative (re-invents the hashlib + the
+        8192-chunk verify + a bare-hex sidecar where
+        binio/cache_manager guarantee it, D-072 —
+        the D-078 deferment node); d3 unconditional
+        (writes even with use_cache off, against the
+        declared-cache semantics of D-071); d4 the
+        record lives in the wrong place (the
+        ephemeral base_dir — in tests it dies with
+        the tmp dir — instead of next to the ONLY
+        durable artifact: the model file). The key
+        discovery: the downstream invalidation chain
+        is ALREADY config-aware without the file —
+        POSITIONS/VLD_POSITIONS embed the query
+        params (bid/status/ec + the DB connection) in
+        the payload vs the live config; INDEXES
+        checks rds_checksum + feature_set.hash; WMAPS
+        the hlp_indexes_checksum + frequency_cut_off;
+        DESIGN_MTR the wmaps_obj_checksum; OPTIMIZE
+        the design_matrix_checksum + zed_checksum +
+        ridge_regularization (D-096 R1); GENERATE the
+        w_checksum. Any config change that hits the
+        data already invalidates the right caches.
+        | Option B (the versioned history + the
+        config checksum stamped in all 6 downstream
+        files) is REJECTED: (1) it duplicates the
+        VCS — the JSON is a text file under git,
+        which already gives versioned evolution with
+        blob checksums; a history in base_dir would
+        be a second source of truth; (2) it is a
+        cross-cutting format change (a binio sidecar
+        re-format = a full binio-suite re-pin, or a
+        new field on 6 data objects + 6 formats);
+        (3) the benefit lands on EPHEMERAL artifacts
+        (the cache files die with the tmp dir — the
+        only thing that outlives the run is the
+        model); (4) "fare i distinguo crea solo
+        complessita'" (the D-139 spirit).
+        | The chosen path A+C1: A — the CONFIG level
+        becomes a pure load+validate step
+        (Roberto's own 2026-08-30 ruling: "Lo step
+        config non ha bisogno di una cache"); C1 —
+        at SAVE, next to the model file, the
+        provenance record: <output>.config.json
+        (the NORMALIZED dump — ruling 2: the
+        effective configuration of the run, the
+        base_dir override included, pydantic
+        defaults resolved — exactly what
+        _store_to_file was computing) + its
+        .SHA3-256 sidecar via the binio API (the
+        same checksum service as every file). The
+        model stays v1 (C2 — the dump embedded in
+        the model file + a v2 reader — is the
+        parked follow-up, separable, its own
+        decision). Ruling 3: the fingerprint goes in
+        BOTH analytics reports — the "Config
+        SHA3-256" line in the COMMON header block
+        (the 17 → 18 lines), so the console and the
+        file report both carry it.
+        | Code: wrk_config — _store_to_file removed
+        (6 → 5 privates); _up computes
+        ctx.config_checksum = sha3_256(
+        cfg.model_dump_json(indent=4).encode()
+        ).hexdigest() and logs it (the single source
+        of truth for the record and the report);
+        _down resets it to None. logistic_model —
+        LMContext gains config_checksum (the 9th
+        *_checksum field; 40 → 41 fields).
+        wrk_save — _store_config_record: the
+        normalized dump written to
+        output_path.with_suffix(".config.json") +
+        write_sha3_256_sidecar (the binio
+        "hash  basename" format — the D-078 R1
+        read-asymmetry question is moot: the record
+        uses the canonical sidecar, verified by the
+        binio API). hlp_analytics — the Config
+        SHA3-256 line in the common header block
+        (L388).
+        | Tests: test_wrk_config 15 → 13 — the
+        4-test CacheLogic class removed (its facts
+        are gone with the flow); + test_config_
+        fingerprint (the independent re-derivation
+        of the sha3_256 of the dump) + test_no_
+        cache_file_written (NO rlmwf_* file in the
+        base dir after an up); the down-reset pin
+        extended to the fingerprint.
+        test_lm_worker_full_chain: + the A2030
+        test_config_record_sidecar (the record
+        exists next to the model file, its content
+        == the normalized dump, the ctx fingerprint
+        == the sha3_256 of the dump, the sidecar
+        verifies via the binio API); the "Config
+        SHA3-256" pins on the console AND the file
+        report; the _masked_report_hash helper now
+        masks the run-dependent config hex (the
+        fingerprint embeds the tmp base_dir) — the
+        two file-report goldens re-pinned (rlm_04
+        d44557a8... → 674f54e0..., rlm_03
+        57f9766b... → bc4857f1...); the
+        deterministic-test comment re-anchored (6
+        hits = the 6 cache_manager levels — no
+        CONFIG "stored" line anymore).
+        test_wrk_analytics: the masked-hash helper
+        + the two file-report goldens re-pinned
+        (94a4af7e... → 3b4a5beb..., f6b54954... →
+        15c71c7e...).
+        | Probes (8 re-pins): verify_wrk_config
+        overhauled 29 → 15 checks (the B7-B13 file
+        sections + the C1-C7 repeat/mutation
+        sections gone; B6b the fingerprint
+        re-derived independently; B7 no rlmwf_*
+        file; C1 the second up is a pure load with a
+        STABLE fingerprint; C3 the 3-field down
+        reset; E5 no file-write idiom in the module
+        source); verify_wrk_features B10 +
+        verify_hlp_indexes C2 the flat census drops
+        the CONFIG pair; verify_gradient D10 +
+        verify_optimize h1 + verify_zed D11 the
+        file tuples drop the CONFIG entries
+        (verify_zed F1 the LMContext line pins
+        shift L128-131 → L133-136 — the D-142
+        block); verify_analytics C6a the step-13
+        log span 21 → 22 lines, C7b the rlmwf_* set
+        = the 6 cache levels, D3 the console report
+        17 → 18 lines with the Config line (a fixed
+        fake checksum on the hand-built ctx);
+        verify_logistic_model V10 the checksum-
+        typed fields 8 → 9.
+        | The wrk_config R1 / D-078 open item is
+        CLOSED: the ad-hoc flow is removed, the
+        bare-hex-vs-binio asymmetry is gone (the
+        record uses the canonical binio sidecar),
+        and I-011 is REALIZED in its C1 form (the
+        per-model config record at SAVE — the
+        "storicizzazione" need met without the
+        history; the JSON evolution stays in the
+        file's VCS).
+        | Suite: 707 → 706 (wrk_config -2, full
+        chain +1). Default tier: 615 run in ~4 s /
+        91 skipped (71 DB-gated + 20 PERF). LONG=1
+        (live DB): 685 run in ~35 s / 21 skipped
+        (20 PERF + 1 VLONG-gated A2050). Probes:
+        the full 20 verify-probe sweep green
+        (gated and live).

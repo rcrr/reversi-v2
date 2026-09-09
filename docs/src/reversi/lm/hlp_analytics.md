@@ -5,19 +5,21 @@ hlp_validate): 4 public functions + 3 private helpers, NO data class, NO
 store/load, NO cache_manager. Computes the training-side metrics (the
 COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the
 DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
-(17-line console header; complete file report with the per-feature tables).
-> State: D-105 · 8cdf20b · 2026-09-03 · suite 4/0/0 (via test_wrk_analytics, all DB-gated)
+(18-line console header — D-142: + the Config SHA3-256 fingerprint line;
+complete file report with the per-feature tables).
+> State: D-142 · 181cb57 · 2026-09-09 · suite 4/0/0 (via test_wrk_analytics, all DB-gated)
 
 ## API
 | name | contract |
 |---|---|
 | `compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`, D-103 M2); ONE INFO log line |
 | `compute_training_dense_metrics(ctx)` | the DENSE forward pass → the 4-key `train_dense_{mae_y, rmse_y, loss, samples}` dict (D-105/M2); the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
-| `format_console_report(ctx)` | the 17-line header report, no date, no tables |
-| `format_file_report(ctx)` | the complete report: detailed header + FEATURE SET SUMMARY + the MOBILITY / PATTERN FEATURES DETAILS sections |
+| `format_console_report(ctx)` | the 18-line header report, no date, no tables (D-142: + the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
+| `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
 ## Architecture
-522 lines (453 at D-103; D-105/M2 added the dense fn + 3-metric header):
+523 lines (453 at D-103; D-105/M2 added the dense fn + 3-metric header;
+D-142 the fingerprint line):
 - `_format_mobility_feature_table` (L49-167): the per-configuration ASCII
   table for one mobility feature — header: the fallback line
   (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the
@@ -32,15 +34,18 @@ DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
   column (D8 orbit representatives via
   `feature.ref.convert_to_principal_index`), and STATUS CL (collapsed to
   fallback) / C / AB (absent — dense orbit-mean weight per D-098 R2).
-- `_format_header` (L310-401): `MODEL ANALYTICS REPORT: <name>` + Total
+- `_format_header` (L310-402): `MODEL ANALYTICS REPORT: <name>` + Total
   Parameters (W) + Dense Parameters (K) + the Optimization Status (from
-  `ctx.opt_info`), then the 3-metric table (D-105/M2): TRAINING from
-  `ctx.train_metrics` ("Loss (MSE/2)" = `opt_info['f']`), TRAINING-DENSE
-  from `ctx.train_dense_metrics` (pure forward-pass cells), VALIDATION from
-  `ctx.vld_metrics` (N/A triple + gaps 0.0 when None); then the Population
-  (baseline) line, the Generalization Gap (vld_rmse − train_dense_rmse —
-  DENSE vs DENSE post D-105) and the Substitution Delta (train_dense_rmse −
-  train_rmse — 0 at cut=1 up to f32 rounding, "-0.00" on rlm_02/rlm_03).
+  `ctx.opt_info`) + the Config SHA3-256 line (L388, D-142: the
+  `ctx.config_checksum` fingerprint — in the COMMON block, so BOTH the
+  console and the file report carry it), then the 3-metric table
+  (D-105/M2): TRAINING from `ctx.train_metrics` ("Loss (MSE/2)" =
+  `opt_info['f']`), TRAINING-DENSE from `ctx.train_dense_metrics` (pure
+  forward-pass cells), VALIDATION from `ctx.vld_metrics` (N/A triple +
+  gaps 0.0 when None); then the Population (baseline) line, the
+  Generalization Gap (vld_rmse − train_dense_rmse — DENSE vs DENSE post
+  D-105) and the Substitution Delta (train_dense_rmse − train_rmse — 0
+  at cut=1 up to f32 rounding, "-0.00" on rlm_02/rlm_03).
 - `format_file_report` (L410-441): the per-table `print_rows` = the feature
   name is in `ctx.cfg.analytics.detailed_report` (D-103 M3: non-optional
   field with a `default_factory`); `col_offset` accumulates over ALL
@@ -60,7 +65,7 @@ DENSE one over `ctx.w_dense`, D-105/M2) and formats the two report variants
 ## Verified invariants
 Pinned by `probes/verify_analytics.py` (36 checks) + the 4-test worker
 suite (all DB-gated).
-- Structure (probe A1-A13, 14): 522 lines; `__all__` = the 4 public names;
+- Structure (probe A1-A13, 14): 523 lines; `__all__` = the 4 public names;
   0 non-comment trailing-ws lines (D-103 T4); typing line `TYPE_CHECKING,
   Dict` (T2); NO `@validate_call`; `train_dense_metrics` pre-declared
   (A13).
@@ -71,20 +76,23 @@ suite (all DB-gated).
   199952`, `pop_mae_y 21.729816221648974`, `pop_rmse_y 26.40637507956623`,
   `pop_loss 0.020437248051166534` (C10 float64 re-derivation: 0 mismatch);
   the rlm_02 file report byte-deterministic (date-masked sha3_256
-  `94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0` —
-  C5a/C5b, recompute-identical).
+  `3b4a5bebdf8b39add5a942132efdecd65dbeadcd84b4bc78ada464050a662e7b` —
+  C5a/C5b, recompute-identical; D-142 re-pin: + the Config
+  SHA3-256 line, the hex value masked in the golden).
 - The rlm_01 goldens (probe C-tier + the Mobility test class, exact values
   in the test doc): the 10-sample model (bid [7]) converges to
   interpolation (CONVERGED_MIN_GRAD, 16 iters); the dense dict (cut 2 —
   5/10 positions touch IC configs) differs from compressed; the file report
-  mask `f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c`;
+  mask `15c71c7ea1608b14bd45a826c76e18b3193ccc10a3c55e008c491bc3457de5f5`
+  (D-142 re-pin);
   gap dense-vs-dense: 23.87 (was 27.22 pre D-105) + Substitution Delta 3.36
   (the true compressed-vs-dense cost).
 - The unit math (probe D1-D4, no DB): the hand-computed 2-position case
   (predictor 0 → z_pred 0.5 → y_pred 0: mae_y/rmse_y 10.0, train_loss 0.123
   = `opt_info['f']`, samples 2, pop 10.0/10.0, pop_loss 0.0030517578125);
   `opt_info` None → train_loss 0.0; console N/A branch (6 "N/A" cells, gaps
-  0.00, 17 lines); dense-pass case (mae_y/rmse_y 10.0, loss
+  0.00, 18 lines — D-142: + the Config SHA3-256 line); dense-pass case
+  (mae_y/rmse_y 10.0, loss
   0.0030517578125, samples 2).
 
 ## Open issues
@@ -104,7 +112,8 @@ None.
 ## Integration
 - Consumers: ONLY the ANALYTICS worker — the 4 public functions are the
   module's whole API (`__all__`).
-- Inputs: CONFIG (`ctx.cfg`), FEATURES (`ctx.feature_set` + `feature.ref`),
+- Inputs: CONFIG (`ctx.cfg` + `ctx.config_checksum` — D-142), FEATURES
+  (`ctx.feature_set` + `feature.ref`),
   INDEXES (`ctx.hlp_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS
   (`ctx.w` + offsets/ranges/fallback), DESIGN_MTR (`ctx.design_matrix`),
   ZED (`ctx.y2z` / `ctx.z2y`), OPTIMIZE (`ctx.opt_info`), GENERATE

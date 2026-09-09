@@ -73,11 +73,11 @@ positions generated from random gameplay paths.
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
 - Suite status (verified 2026-09-09, live DB, D-130 tiers,
-  D-141): 707 tests / 0 failures. Default tier: 617 run in
-  ~4 s / 90 skipped (70 DB-gated + 20 PERF print-only). LONG=1:
-  686 run in ~32 s / 21 skipped (20 PERF + 1 VLONG-gated
-  A2050). Gated run (SKIP_REGAB_DB=1): 90 skipped = 20 PERF +
-  70 DB (35 regab + 35 worker-level). Per-file suites: the
+  D-142): 706 tests / 0 failures. Default tier: 615 run in
+  ~4 s / 91 skipped (71 DB-gated + 20 PERF print-only). LONG=1:
+  685 run in ~35 s / 21 skipped (20 PERF + 1 VLONG-gated
+  A2050). Gated run (SKIP_REGAB_DB=1): 91 skipped = 20 PERF +
+  71 DB (35 regab + 36 worker-level). Per-file suites: the
   Suite column of the Source files / Test files tables below.
 - Probes: 21 tracked under probes/ (hub:
   verify_logistic_model.py owns the pipeline-wide state;
@@ -145,6 +145,31 @@ at the end of this file.
   over the full 199932-position set + vld[42]). Collateral:
   the runner insertion (D-130) + the verify_save A8 re-pin.
   Suite 707/0/21 (LONG, live DB).
+- CONFIG CACHE REMOVED (D-142, 2026-09-09): the D-078 R1 /
+  I-011 revisit — the trigger met (15/15), Roberto: "…la
+  cache del LEVEL CONFIG, come e' fatta non va bene, non
+  serve a nulla. Va ripensata" → ruling A+C1: the ad-hoc
+  cache flow is GONE
+  (write-only, ad-hoc duplicative, unconditional, parked in
+  the ephemeral base_dir; the downstream invalidation chain
+  is already config-aware without it — the file contributed
+  nothing to correctness); the CONFIG level is now a pure
+  load+validate step computing the fingerprint
+  ctx.config_checksum (the sha3_256 of the normalized dump —
+  the effective config, the base_dir override included); at
+  SAVE the provenance record travels with the model file
+  (<output>.config.json + the binio .SHA3-256 sidecar); the
+  "Config SHA3-256" line in the common analytics header
+  block (18 lines, both reports); the versioned-history
+  option B is dropped (the JSON evolution stays in the
+  file's VCS; stamping the downstream caches would
+  duplicate the lineage on ephemeral artifacts). 8 probe
+  re-pins (verify_wrk_config 29 → 15 checks); wrk_config
+  15 → 13 tests; the 4 file-report goldens re-pinned.
+  Suite 706/0/91 default + 706/0/21 LONG (live DB) + the
+  20 verify-probe sweep green.
+
+
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
@@ -157,12 +182,12 @@ at the end of this file.
 ## Next steps
 
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
-- wrk_config R1 (the ad-hoc cache flow): the D-078
-  ruling — the revisit trigger (the pipeline completion) is
-  now met (15/15); re-evaluate the ad-hoc flow against the
-  completed pipeline and the "storicizzazione" idea (I-011).
-  Confirmed OUT of scope for D-139 (the CACHE campaign) with
-  Roberto — it stays the only open cache oddity.
+- C2 (the D-142 parked follow-up, Roberto's call): embed the
+  normalized config dump INSIDE the model file (format v2 +
+  the backward-compatible v1 reader + config_checksum on
+  ModelWeights) — the model becomes fully self-describing;
+  the A2xxx production models are artifacts that travel, and
+  the self-containment has real value.
 
 
 
@@ -182,7 +207,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/tools/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
-| src/reversi/lm/wrk_config.py | complete: the CONFIG worker (JSON5 → config → base_dir validation + cache persistence); closed (D-077/D-078). DEFERRED: R1 the ad-hoc cache flow (the D-078 ruling, revisit with the pipeline completion; I-011) | 15/0/0 | docs/src/reversi/lm/wrk_config.md |
+| src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (D-142: the ad-hoc cache flow removed, the record is a SAVE artifact); closed (D-077/D-078/D-142; I-011 realized) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/reversi/lm/wrk_features.md |
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE 11th level (dense weights materialization; the R1 for-next-level trap fix); closed (D-097/D-098) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
@@ -190,7 +215,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
 | src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; closed (D-079/D-080) | 9/0/0 | docs/src/reversi/lm/wrk_positions.md |
-| src/reversi/lm/wrk_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
+| src/reversi/lm/wrk_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104); the D-142 config record (the normalized dump + the binio sidecar, next to the model file) | 6/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
 | src/reversi/lm/wrk_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/reversi/lm/wrk_validate.md |
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
@@ -201,7 +226,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139) | 37/0/0 | docs/src/reversi/regab.md |
-| src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
+| src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2; the D-142 Config SHA3-256 line in the common header block — 18 lines, both reports); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (D-141: strict array, bit-exact per position, @validate_call on both factories) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
@@ -225,11 +250,11 @@ One row per test file, alphabetical.
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite (D-141) — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test (PERF=1, measured 5.6M b/s) | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
-| src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
-| src/reversi/test/test_wrk_config.py | complete: 15 tests (D-078) | 15/0/0 | docs/src/reversi/test/test_wrk_config.md |
+| src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105; the D-142 masked-hash helper + the 2 file-report goldens re-pinned) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
+| src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin (A2030) | 5/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (3 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-142 config-record test (A2030) + the Config SHA3-256 report pins | 6/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |

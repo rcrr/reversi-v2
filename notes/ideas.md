@@ -72,7 +72,7 @@ I-010 | follow-up | Redesign of the StateMachine context injection
         and their call patterns are visible: an explicit machine
         reference, or context-owned helpers.
 
-I-011 | idea | "Storicizzazione" of the JSON config used to generate a
+I-011 | done | "Storicizzazione" of the JSON config used to generate a
         model (raised 2026-08-30, session 21, D-077 R1 discussion):
         Roberto questions whether the CONFIG step needs a CACHE at
         all — the cache_manager-style load-or-compute flow does not
@@ -84,6 +84,13 @@ I-011 | idea | "Storicizzazione" of the JSON config used to generate a
         flat files) as-is; to be evaluated WHEN THE FULL PIPELINE IS
         COMPLETE, together with the cache-flow consistency question
         (bare-hex vs binio sidecar, the proven read asymmetry).
+        Executed as D-142 (2026-09-09): the ad-hoc cache is REMOVED
+        and the need is met in its C1 form — at SAVE, next to the
+        model file, the provenance record (<output>.config.json, the
+        normalized dump of the effective config, + the binio
+        .SHA3-256 sidecar) + the config fingerprint in the analytics
+        reports. The versioned-history part (option B) is explicitly
+        dropped: the JSON evolution stays in the file's VCS.
 I-012 | idea | Pipeline level order: evaluate moving FEATURES
         BEFORE POSITIONS (raised 2026-08-31, session 22, D-081
         test-M1 discussion, D-082): Roberto confirms the test

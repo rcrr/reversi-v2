@@ -1,56 +1,66 @@
 # reversi/lm/wrk_save.py
 The SAVE worker — the 15th and LAST active level of the LM pipeline
-(step 14, after ANALYTICS; the pipeline is 15/15 COMPLETE since the
-D-104 bring-in fe506c6, which brought this worker in together with
-model_weights.py, client.py, the full-chain test module, and the
-rlm_03/rlm_04 fixtures). The 6th non-cache worker — no
+(step 14, after ANALYTICS). The 6th non-cache worker — no
 `cache_manager` wiring, no rlmwf_15* file (no cache level ever used a
 "15" slot; the flat-file numbering skips 03/07/08/09/12/13/15). A pure
-SINK on every up-move: it reads context attributes and writes ONE
-binary artifact — `base_dir/<cfg.output>` (the model weights file,
+SINK on every up-move: it reads context attributes and writes TWO
+artifacts — `base_dir/<cfg.output>` (the model weights file,
 lz4-compressed by default, with the `.SHA3-256` sidecar written by
-binio). It adds NO context attributes; `_down` is a no-op (log only) —
-the artifact is never unlinked (the OPTIMIZE-checkpoint /
+binio) and, since D-142, the configuration provenance record
+`base_dir/<cfg.output>.config.json` (the normalized dump + its
+`.SHA3-256` checksum sidecar — the record travels with the shipped
+artifact). It adds NO context attributes; `_down` is a no-op (log
+only) — the artifacts are never unlinked (the OPTIMIZE-checkpoint /
 ANALYTICS-report artifact semantics: build/ files persist across runs).
-> State: D-104 · 7fb070b · 2026-09-03 · suite 5/0/0 (via
-  test_lm_worker_full_chain — 2 ungated read-guard tests; 3 DB-gated,
-  A2050 additionally LONG-gated)
+> State: D-142 · 181cb57 · 2026-09-09 · suite 6/0/0 (via
+  test_lm_worker_full_chain — 2 ungated + 4 DB-gated, A2050
+  additionally VLONG-gated)
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-104 T1 — with it all 14 worker factories are uniform) returning `Worker("SAVE", _up, _down)` |
+| `wrk_save()` | factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("SAVE", _up, _down)` |
 
 ## Architecture
 
-61 lines (post D-104).
+76 lines (post D-142).
 
-- Imports (L28-38): pydantic `validate_call`/`ConfigDict` (L30, T1),
-  `TYPE_CHECKING` (L32), `Worker`/`Relevance` from state_machine (L34),
-  `model_weights_write_file` (L35), `LMContext` under TYPE_CHECKING
-  (L37-38, the hlp_indexes-L166 class, as in every worker). The
-  bring-in's dead `from pathlib import Path` is removed (T2).
+- Imports (L28-39): pydantic `validate_call`/`ConfigDict` (L30),
+  `TYPE_CHECKING` (L32), `Worker`/`Relevance` from state_machine
+  (L34), `write_sha3_256_sidecar` from binio (L35, D-142),
+  `model_weights_write_file` (L36), `LMContext` under TYPE_CHECKING
+  (L39, the hlp_indexes-L166 class, as in every worker).
 - `__all__ = ['wrk_save']` (L42).
-- `_up` (L46-52): INFO "Saving model weights to disk..." (L47) →
-  `output_path = ctx.cfg.base_dir / ctx.cfg.output` (L49) →
-  `model_weights_write_file(ctx, output_path, compressed=True)` (L51)
-  → INFO "Model weights saved to {output_path}" (L52). The SAVE log
-  span is exactly these 2 lines (plus the state-machine's "Starting
-  worker SAVE, UP step" / "Completed UP step" lines).
-- `_down` (L54-56): INFO "Clearing save attributes..." + the comment
+- `_up` (L47-55): INFO "Saving model weights to disk..." (L48) →
+  `output_path = ctx.cfg.base_dir / ctx.cfg.output` (L50) →
+  `model_weights_write_file(ctx, output_path, compressed=True)` (L52)
+  → INFO "Model weights saved to {output_path}" (L53) →
+  `_store_config_record(ctx, output_path)` (L55, D-142). The SAVE log
+  span is these 3 lines (plus the state-machine's "Starting worker
+  SAVE, UP step" / "Completed UP step" lines).
+- `_store_config_record` (L57-68, D-142): the provenance record —
+  `config_json = ctx.cfg.model_dump_json(indent=4)` (the normalized
+  dump: the EFFECTIVE configuration of the run, the base_dir
+  override included — the same bytes whose sha3_256 is
+  `ctx.config_checksum`, computed at CONFIG), written to
+  `output_path.with_suffix(".config.json")` (e.g.
+  `rglm_logistic_model_ec_20_TEST04.config.json`) via
+  `write_text`, then the binio checksum sidecar
+  (`write_sha3_256_sidecar`, the standard `sha3_256sum` format —
+  verifiable with `sha3_256sum -c`), then the INFO log.
+- `_down` (L70-73): INFO "Clearing save attributes..." + the comment
   "Nothing to clear from context, as we just read from it." — SAVE is
   the only worker whose `_down` clears nothing (VALIDATE clears 1,
   ANALYTICS clears 2, ...).
-- `wrk_save()` (L58-61): the factory, `@validate_call` since the
-  D-104 T1 gate.
+- `wrk_save()` (L75-76): the factory.
 
 ## Verified invariants
 
 Pinned by `probes/verify_save.py` (17 checks: A1-A15 static, the C5
-a-portion, the D0 LONG placeholder) + the 5-test
-`test_lm_worker_full_chain` suite (2 ungated + 3 DB-gated, A2050
-additionally LONG-gated).
+a-portion, the D0 LONG placeholder) + the 6-test
+`test_lm_worker_full_chain` suite (2 ungated + 4 DB-gated, A2050
+additionally VLONG-gated).
 
 - Source shape (probe A1-A3, A10-A15): the `@validate_call` factory +
   pydantic import (A1), no pathlib (A2), 0 non-comment trailing-ws
@@ -67,13 +77,19 @@ additionally LONG-gated).
 - The write is DETERMINISTIC (test_second_instance_deterministic): a
   second full instance in the same base dir produces a byte-identical
   file and exactly 6 "Cache successfully loaded and validated" hits
-  (7 cache files: CONFIG re-stores its snapshot on every run — a
-  'stored' line, not a 'hit'; the 6 hits are POSITIONS, INDEXES,
-  WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS), no "Extracted", no
-  "established successfully".
-- `_down` semantics: no attribute cleared, the artifact persists (the
+  (the 6 rlmwf_ cache files all hit — POSITIONS, INDEXES, WMAPS,
+  DESIGN_MTR, GENERATE, VLD_POSITIONS — + the OPTIMIZE checkpoint
+  with its own read-back; the CONFIG level writes no cache file
+  anymore, D-142), no "Extracted", no "established successfully".
+- The config record (D-142, test_config_record_sidecar):
+  `<output>.config.json` exists next to the model file, its content
+  is byte-identical to `ctx.cfg.model_dump_json(indent=4)` (and
+  matches `ctx.config_checksum`), and its `.SHA3-256` sidecar
+  verifies (the binio sidecar API).
+- `_down` semantics: no attribute cleared, the artifacts persist (the
   base-dir listing after a chain shows the model file + its sidecar
-  alongside the caches, the checkpoint and the analytics report).
+  + the config record pair alongside the caches, the checkpoint and
+  the analytics report).
 
 ## Open issues
 
@@ -100,6 +116,12 @@ None.
   after SAVE; the saved file is consumed by `reversi/lm/client.py`
   (`make_evaluation_function`) + `reversi/lm/model_weights.py`
   (`model_weights_read_file`).
+- The config record (D-142): `<output>.config.json` + its
+  `.SHA3-256` sidecar — the normalized config dump (the effective
+  configuration of the run, the base_dir override included) that
+  generated the model; the same fingerprint hex appears on the
+  "Config SHA3-256" line of both analytics reports
+  (hlp_analytics.md).
 - The data it persists is the INFERENCE subset: w_dense +
   iwmap_feature_offset + the full FeatureSet + training-population
   stats + 4/5 opt_info keys + 4/7 vld metrics (model_weights.md).
