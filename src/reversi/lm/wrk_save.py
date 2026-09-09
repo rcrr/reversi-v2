@@ -32,6 +32,7 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
+from reversi.tools.binio import write_sha3_256_sidecar
 from reversi.lm.model_weights import model_weights_write_file
 
 if TYPE_CHECKING:
@@ -50,6 +51,20 @@ def _up(ctx: "LMContext") -> None:
 
     model_weights_write_file(ctx, output_path, compressed=True)
     ctx.log_event(Relevance.INFO, f"Model weights saved to {output_path}")
+
+    _store_config_record(ctx, output_path)
+
+def _store_config_record(ctx: "LMContext", output_path) -> None:
+    # The model's configuration provenance record (D-142): the
+    # normalized dump (the effective configuration of the run, the
+    # base_dir override included) + the sha3_256 checksum sidecar,
+    # written next to the model file so the record travels with the
+    # shipped artifact.
+    config_json = ctx.cfg.model_dump_json(indent=4)
+    config_path = output_path.with_suffix(".config.json")
+    config_path.write_text(config_json, encoding="utf-8")
+    write_sha3_256_sidecar(config_path)
+    ctx.log_event(Relevance.INFO, f"Configuration record saved to {config_path}")
 
 def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing save attributes...")

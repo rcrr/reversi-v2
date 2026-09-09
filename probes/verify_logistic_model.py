@@ -21,7 +21,7 @@
 # uncommented) — 5 active levels (CREATED sentinel, CONFIG, POSITIONS,
 # FEATURES, INDEXES). V10 unchanged: LMContext already declared the
 # rlm_indexes / rlm_indexes_checksum blackboard fields at first import
-# (8 *_checksum fields, no features_checksum).
+# (9 *_checksum fields, no features_checksum; D-142: + config_checksum).
 #
 # Re-pinned in session 27 (D-097) to the post-e31c061 state: GENERATE
 # enabled (the lm_worker_generate() import + worker-list entry
@@ -186,8 +186,8 @@ for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_la
               f"got {type(e).__name__}: {e}; step {m.current_step}")
 
 # --- V10: LMContext artifact inventory (doc support) --------------------
-check("V10 checksum-typed fields: 8, and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
-      sum(1 for n in fields if n.endswith("_checksum")) == 8
+check("V10 checksum-typed fields: 9 (D-142: + config_checksum), and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
+      sum(1 for n in fields if n.endswith("_checksum")) == 9
       and "features_checksum" not in fields,
       str([n for n in fields if n.endswith("_checksum")]))
 

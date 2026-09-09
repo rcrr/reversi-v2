@@ -194,8 +194,7 @@ try:
           np.allclose(z2y(y2z(y)), y.astype(np.float32), rtol=1e-6, atol=1e-7))
     files = sorted(p.name for p in base.iterdir())
     expected_files = sorted(
-        ['rlmwf_01_CONFIG.dat', 'rlmwf_01_CONFIG.dat.SHA3-256',
-         'rlmwf_02_POSITIONS.dat', 'rlmwf_02_POSITIONS.dat.SHA3-256',
+        ['rlmwf_02_POSITIONS.dat', 'rlmwf_02_POSITIONS.dat.SHA3-256',
          'rlmwf_04_INDEXES.dat', 'rlmwf_04_INDEXES.dat.SHA3-256',
          'rlmwf_05_WMAPS.dat', 'rlmwf_05_WMAPS.dat.SHA3-256',
          'rlmwf_06_DESIGN_MTR.dat', 'rlmwf_06_DESIGN_MTR.dat.SHA3-256'])
@@ -211,11 +210,12 @@ finally:
 
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
-check('F1  LMContext zed fields pre-declared (L128-131), untouched by the commit',
-      lm_lines[127] == '    zed_checksum: str | None = None'
-      and lm_lines[128] == '    y2z: Any = None'
-      and lm_lines[129] == '    z2y: Any = None'
-      and lm_lines[130] == '    z: Any = None')
+check('F1  LMContext zed fields pre-declared (L133-136, shifted by the '
+      'D-142 config_checksum block), untouched by the commit',
+      lm_lines[132] == '    zed_checksum: str | None = None'
+      and lm_lines[133] == '    y2z: Any = None'
+      and lm_lines[134] == '    z2y: Any = None'
+      and lm_lines[135] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',

@@ -68,8 +68,11 @@ from reversi.test.tags import db_long_gate
 
 
 def _masked_report_hash(report_text):
-    # The file report embeds datetime.now(); mask the date so the hash is stable.
+    # The file report embeds datetime.now(); mask the date so the hash
+    # is stable. The D-142 config fingerprint embeds the run's base_dir
+    # (a tmp dir); mask the hex the same way.
     text = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE", report_text)
+    text = re.sub(r"(Config SHA3-256\s*:\s*)[0-9a-f]{64}", r"\1HASH", text)
     return hashlib.sha3_256(text.encode()).hexdigest()
 
 
@@ -215,6 +218,9 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Population (baseline)  : RMSE 26.41  MAE 21.73  Loss 2.0438e-02", report)
         self.assertIn("Generalization Gap (RMSE)   : 0.18", report)
         self.assertIn("Substitution Delta (RMSE)   : 0.01", report)
+        # The D-142 config fingerprint (in the common header — both
+        # reports; computed from the live ctx, not a literal).
+        self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", report)
 
         # --- Analytics file report (detailed_report: EDGE + LMC) ---
         report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
@@ -223,8 +229,11 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: EDGE (fid=2)", file_report)
         self.assertIn("MOBILITY FEATURE: LMC (fid=1)", file_report)
+        # The D-142 config fingerprint line (the masked-hash golden
+        # masks the run-dependent hex value).
+        self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         'd44557a8efd007f4634c2949a0cf9eca60d7b38f790c2bbd1e058245a4045a2e')
+                         '674f54e0634679d7f08e94ce353f46f533e12f9bbed730c5280c23b2436aac42')
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned training
         #     positions (rlm_04 has frequency_cut_off=10, so training positions
@@ -261,10 +270,34 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(float(ef_arr(ctx.vld_positions)[42]),
                          11.932792663574219)
 
+    def test_config_record_sidecar(self):
+        """D-142: the model's configuration provenance record — the
+        normalized dump + the checksum sidecar, next to the model
+        file (the record travels with the shipped artifact)."""
+        self.rlm.move_to_last()
+        ctx = self.rlm.context
+        output_path = ctx.cfg.base_dir / ctx.cfg.output
+        config_path = output_path.with_suffix(".config.json")
+
+        self.assertTrue(config_path.exists(),
+                        f"Config record not found at {config_path}")
+        # The record is the normalized dump (the effective config of
+        # the run, the base_dir override included) and matches the
+        # CONFIG-level fingerprint on the context.
+        self.assertEqual(config_path.read_text(encoding="utf-8"),
+                         ctx.cfg.model_dump_json(indent=4))
+        self.assertEqual(ctx.config_checksum,
+                         hashlib.sha3_256(
+                             ctx.cfg.model_dump_json(indent=4).encode()
+                         ).hexdigest())
+        self.assertTrue(verify_sha3_256_sidecar(config_path),
+                        "Checksum verification failed for the config record")
+
     def test_second_instance_deterministic(self):
         """A second full run in the same base dir: byte-identical model file,
-        6 cache hits (7 cache files; CONFIG re-stores its snapshot, so it is a
-        'stored' line, not a 'hit')."""
+        6 cache hits (the 6 rlmwf_ cache files — the CONFIG level no
+        longer writes a cache file, D-142 — all hit; the 7th file, the
+        OPTIMIZE checkpoint, has its own read-back)."""
         self.rlm.move_to_last()
         output_path = self.rlm.context.cfg.base_dir / self.rlm.context.cfg.output
         first_hash = hashlib.sha3_256(output_path.read_bytes()).hexdigest()
@@ -380,7 +413,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: XEDGE", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '57f9766b7e5115903319f3387b192e490c71674eebc2e2c199040579b5fad83a')
+                         'bc4857f1293cb88a3fffe3a2248c02731db4e2ddbb18b622c99da39d9ac5f215')
 
         # --- Saved model file: exists, size, sha3_256, sidecar ---
         output_path = ctx.cfg.base_dir / ctx.cfg.output

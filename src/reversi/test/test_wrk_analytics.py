@@ -62,9 +62,12 @@ def _masked_report_hash(text):
     """sha3_256 of the report text with the Creation Date masked out.
 
     The file report embeds datetime.now() — every other byte is
-    deterministic, so the date-masked hash is a stable golden.
+    deterministic, so the date-masked hash is a stable golden. The
+    D-142 config fingerprint embeds the run's base_dir (a tmp dir);
+    mask the hex the same way.
     """
     masked = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE", text)
+    masked = re.sub(r"(Config SHA3-256\s*:\s*)[0-9a-f]{64}", r"\1HASH", masked)
     return hashlib.sha3_256(masked.encode("utf-8")).hexdigest()
 
 
@@ -178,7 +181,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: DIAG3 (fid=1)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
         self.assertEqual(_masked_report_hash(content),
-                         "94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0")
+                         "3b4a5bebdf8b39add5a942132efdecd65dbeadcd84b4bc78ada464050a662e7b")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Generating model analytics report...", logs)
@@ -329,7 +332,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: CORE (fid=3)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
         self.assertEqual(_masked_report_hash(content),
-                         "f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c")
+                         "15c71c7ea1608b14bd45a826c76e18b3193ccc10a3c55e008c491bc3457de5f5")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Optimization Status         : CONVERGED_MIN_GRAD (16 iters)", logs)

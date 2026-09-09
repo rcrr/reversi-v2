@@ -235,7 +235,7 @@ def d_main():
             files = sorted(p.name for p in Path(tmp).iterdir())
             assert not [n for n in files if n.startswith("rlmwf_07")], files
             assert not [n for n in files if n.startswith("rlmwf_08")], files
-            for n in ("rlmwf_01_CONFIG.dat", "rlmwf_02_POSITIONS.dat",
+            for n in ("rlmwf_02_POSITIONS.dat",
                       "rlmwf_04_INDEXES.dat", "rlmwf_05_WMAPS.dat",
                       "rlmwf_06_DESIGN_MTR.dat"):
                 assert n in files, files

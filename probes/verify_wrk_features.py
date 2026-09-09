@@ -178,11 +178,12 @@ check("B9d independent FeatureSet: identical feature list + hash",
       == [(f.name, int(f.n_configurations), int(f.n_instances)) for f in fs.features]
       and my_fs.hash == fs.hash)
 
-# On-disk effect: only the CONFIG + POSITIONS flat cache files, no FEATURES cache.
+# On-disk effect: only the POSITIONS flat cache file, no FEATURES cache.
+# (D-142: the CONFIG level writes no cache file anymore.)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
-check("B10 flat cache files: CONFIG + POSITIONS only (no rlmwf_03_FEATURES*)",
-      files == ["rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
-                "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256"])
+check("B10 flat cache files: POSITIONS only (no rlmwf_01_CONFIG* — D-142 — "
+      "no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
+      files == ["rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256"])
 
 # (B11a/B11b moved to a test at D-106 step 3, class a §4 conversion:
 #  test_wrk_features.py::TestLMWorkerFeaturesGuards::

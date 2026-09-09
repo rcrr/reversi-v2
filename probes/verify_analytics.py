@@ -266,23 +266,25 @@ else:
         _span = (len(out3.splitlines()[_l0:_l1 + 1])
                  if _l0 is not None else -1)
         check("C6a the step-13 log span from 'Generating model analytics "
-              "report...' to 'Analytics report saved to ...' is exactly 21 "
+              "report...' to 'Analytics report saved to ...' is exactly 22 "
               "lines (1 'Generating' + 1 'Computing metrics' + 1 'Computing "
-              "dense-pass metrics' (D-105/M2) + 17 header lines + 1 'saved "
-              "to') — pinned by the live run",
-              _span == 21, f"span lines: {_span}")
+              "dense-pass metrics' (D-105/M2) + 18 header lines (D-142: + "
+              "the Config SHA3-256 line) + 1 'saved to') — pinned by the "
+              "live run",
+              _span == 22, f"span lines: {_span}")
         # C7 no new cache file (the rlmwf_12 slot stays unused)
         c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_12")]
         check("C7 no rlmwf_12_* cache file in the base dir (ANALYTICS is pure compute)",
               c12 == [], f"files: {c12}")
         check("C7b the rlmwf_* file set is unchanged by ANALYTICS "
-              "(01/02/04/05/06/10/11 + sidecars — the 7 cache levels)",
+              "(02/04/05/06/10/11 + sidecars — the 6 cache levels; D-142: "
+              "no rlmwf_01_CONFIG* anymore)",
               sorted(p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_"))
-              == sorted(["rlmwf_01_CONFIG.dat", "rlmwf_02_POSITIONS.dat",
+              == sorted(["rlmwf_02_POSITIONS.dat",
                          "rlmwf_04_INDEXES.dat", "rlmwf_05_WMAPS.dat",
                          "rlmwf_06_DESIGN_MTR.dat", "rlmwf_10_GENERATE.dat",
                          "rlmwf_11_VLD_POSITIONS.dat",
-                         "rlmwf_01_CONFIG.dat.SHA3-256", "rlmwf_02_POSITIONS.dat.SHA3-256",
+                         "rlmwf_02_POSITIONS.dat.SHA3-256",
                          "rlmwf_04_INDEXES.dat.SHA3-256", "rlmwf_05_WMAPS.dat.SHA3-256",
                          "rlmwf_06_DESIGN_MTR.dat.SHA3-256", "rlmwf_10_GENERATE.dat.SHA3-256",
                          "rlmwf_11_VLD_POSITIONS.dat.SHA3-256"]))
@@ -387,6 +389,7 @@ _d2 = compute_training_metrics(fake_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0]
                                         None))
 check("D2 the opt_info None branch: train_loss falls back to 0.0",
       _d2["train_loss"] == 0.0 and _d2["train_mae_y"] == 10.0)
+_D3_HASH = ("0123456789abcdef" * 4)
 _h = format_console_report(SimpleNamespace(
     cfg=SimpleNamespace(name="HandCase"),
     w=np.zeros(4, dtype=np.float32),
@@ -396,17 +399,19 @@ _h = format_console_report(SimpleNamespace(
                    "train_loss": 3e-3, "train_samples": 100,
                    "pop_mae_y": 4.5, "pop_rmse_y": 5.5, "pop_loss": 6e-3},
     train_dense_metrics=None,
-    vld_metrics=None))
+    vld_metrics=None,
+    config_checksum=_D3_HASH))
 check("D3 the console report (no tables, no date): the N/A TRAINING-DENSE "
       "(D-105/M2) + VALIDATION columns (6 N/A cells), the Population "
       "baseline line, the Generalization Gap 0.00 + Substitution Delta "
-      "0.00 lines, 17 lines total",
+      "0.00 lines, the Config SHA3-256 line (D-142), 18 lines total",
       "MODEL ANALYTICS REPORT: HandCase" in _h
       and "Optimization Status         : done (7 iters)" in _h
+      and f"Config SHA3-256             : {_D3_HASH}" in _h
       and "Population (baseline)  : RMSE 5.50  MAE 4.50  Loss 6.0000e-03" in _h
       and "Generalization Gap (RMSE)   : 0.00" in _h
       and "Substitution Delta (RMSE)   : 0.00" in _h
-      and len(_h.strip().split("\n")) == 17
+      and len(_h.strip().split("\n")) == 18
       and _h.count("N/A") == 6,
       f"lines={len(_h.strip().split(chr(10)))}\n{_h}")
 

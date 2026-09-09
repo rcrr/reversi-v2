@@ -249,9 +249,9 @@ s1 = out1.getvalue()
 #  test_wrk_indexes.py pins step 4 / name INDEXES in three
 #  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
-check("C2 flat cache files: CONFIG + POSITIONS + INDEXES (no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
-      files == ["rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
-                "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
+check("C2 flat cache files: POSITIONS + INDEXES (no rlmwf_01_CONFIG* — "
+      "D-142 — no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
+      files == ["rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
                 "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256"])
 ri = m1.context.hlp_indexes
 check("C3 ctx.hlp_indexes set + the data checksum = sha3_256(indexes.tobytes()) (independent recompute)",

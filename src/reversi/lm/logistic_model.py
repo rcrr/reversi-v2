@@ -97,6 +97,11 @@ class LMContext(Context):
 
     # Configuration attribute:
     cfg: Any = None
+    # The config fingerprint (D-142): the sha3_256 hex of the
+    # normalized dump (cfg.model_dump_json(indent=4)) — computed at
+    # CONFIG, consumed by the SAVE config record and the analytics
+    # report.
+    config_checksum: str | None = None
 
     # Game positions and game values attributes:
     rds_checksum: str | None = None

@@ -59,13 +59,20 @@ def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
     ctx.use_cache = cfg.use_cache
     ctx.cfg = cfg
-    _store_to_file(ctx, cfg)
-    ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} stored to cache file.")
+    # The config fingerprint (D-142): the sha3_256 of the normalized
+    # dump (the effective configuration of the run, the base_dir
+    # override included) — the single source of truth for the SAVE
+    # config record and the analytics report.
+    ctx.config_checksum = hashlib.sha3_256(
+        cfg.model_dump_json(indent=4).encode()).hexdigest()
+    ctx.log_event(Relevance.INFO,
+                  f"Configuration fingerprint (sha3_256): {ctx.config_checksum}")
 
 def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, "Clearing configuration...")
     ctx.cfg = None
     ctx.use_cache = None
+    ctx.config_checksum = None
 
 def _load(ctx: "LMContext") -> LMConfig:
     with ctx.config_file_path.open("r", encoding="utf-8") as f:
@@ -96,56 +103,6 @@ def _validate_base_dir(ctx: "LMContext", cfg: LMConfig) -> None:
         error_message = f"The base dir: '{cfg.base_dir}' is not writable."
         ctx.log_event(Relevance.ERROR, error_message)
         raise PermissionError(error_message)
-
-def _store_to_file(ctx: "LMContext", cfg: LMConfig) -> None:
-    config_json = cfg.model_dump_json(indent=4)
-    current_checksum = hashlib.sha3_256(config_json.encode()).hexdigest()
-    
-    # The injected closure returns the flat per-level cache file
-    # path: cache_files_prefix is a filename prefix per the schema,
-    # and the machine concatenates it onto the level name (D-078),
-    # so the physical file is base_dir/rlmwf_01_CONFIG.dat.
-    cache_file_path = ctx.get_cache_file_full_path_for_current_level()
-    checksum_file_path = cache_file_path.with_name(cache_file_path.name + ".SHA3-256")
-    
-    ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, current_checksum = {current_checksum}")
-    
-    has_to_write = False
-    
-    if not cache_file_path.exists():
-        has_to_write = True
-    else:
-        if not checksum_file_path.exists():
-            msg = f"The checksum file {checksum_file_path} is missing."
-            ctx.log_event(Relevance.ERROR, msg)
-            raise RuntimeError(msg)
-        with open(checksum_file_path, 'r') as checksum_file:
-            stored_checksum = checksum_file.read().strip()
-        ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, stored_checksum = {stored_checksum}")
-
-        on_disk_recomputed_sha3_256_hash = hashlib.sha3_256()    
-        with open(cache_file_path, 'rb') as f:
-            while chunk := f.read(8192):
-                on_disk_recomputed_sha3_256_hash.update(chunk)
-        on_disk_recomputed_checksum = on_disk_recomputed_sha3_256_hash.hexdigest()
-        ctx.log_event(Relevance.DEBUG, f"File: {cache_file_path}, on_disk_recomputed_checksum = {on_disk_recomputed_checksum}")
-        
-        if on_disk_recomputed_checksum != stored_checksum:
-            msg = f"The checksum file on disk {checksum_file_path} is not matching."
-            ctx.log_event(Relevance.ERROR, msg)
-            raise RuntimeError(f"The checksum file on disk {checksum_file_path} is not matching.")    
-
-        if current_checksum != stored_checksum:
-            has_to_write = True
-
-    if has_to_write:
-        cache_file_path.write_text(config_json, encoding="utf-8")
-        with open(checksum_file_path, 'w') as checksum_file:
-            checksum_file.write(current_checksum)
-        ctx.log_event(Relevance.INFO, f"File '{cache_file_path}' and checksum written to disk.")
-    else:
-        ctx.log_event(Relevance.INFO, f"Existing file '{cache_file_path}' and checksum are up to date.")
-
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_config() -> Worker:

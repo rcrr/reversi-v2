@@ -385,6 +385,7 @@ def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
         f"  Total Parameters (W)        : {total_params:,}\n"
         f"  Dense Parameters (K)        : {dense_params:,}\n"
         f"  Optimization Status         : {opt_status} ({opt_iters} iters)\n"
+        f"  Config SHA3-256             : {ctx.config_checksum}\n"
         f"{'-' * 135}\n"
         f"  {'METRIC':<15} | {'TRAINING':<14} | {'TRAINING-DENSE':<14} | {'VALIDATION':<14}\n"
         f"{'-' * 135}\n"

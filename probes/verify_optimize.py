@@ -357,8 +357,7 @@ def h_main():
             assert "Starting OPTIMIZE worker..." in logs1
             assert "Optimization finished." in logs1
             files = sorted(p.name for p in Path(tmp).iterdir())
-            for n in ("rlmwf_01_CONFIG.dat", "rlmwf_01_CONFIG.dat.SHA3-256",
-                      "rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
+            for n in ("rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
                       "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256",
                       "rlmwf_05_WMAPS.dat", "rlmwf_05_WMAPS.dat.SHA3-256",
                       "rlmwf_06_DESIGN_MTR.dat", "rlmwf_06_DESIGN_MTR.dat.SHA3-256",
