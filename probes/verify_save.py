@@ -66,7 +66,8 @@ def tier_a():
     c = SRC / 'reversi' / 'lm' / 'client.py'
     ct = c.read_text()
     check('A7 client: no dead import (T2)', 'model_weights_read_file' not in ct)
-    check('A8 client: __all__ (M1)', "__all__ = ['make_evaluation_function']" in ct)
+    check('A8 client: __all__ 2 (M1, D-141 the array EF factory joins)',
+          "__all__ = ['make_evaluation_function',\n           'make_evaluation_function_array']" in ct)
     check('A9 client: no ws lines (T4)', not ws_lines(c), str(ws_lines(c)))
 
     t = SRC / 'reversi' / 'test' / 'test_lm_worker_full_chain.py'

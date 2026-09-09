@@ -59,7 +59,8 @@ from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
 from reversi.lm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
-from reversi.lm.client import make_evaluation_function
+from reversi.lm.client import (make_evaluation_function,
+                               make_evaluation_function_array)
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
@@ -245,6 +246,20 @@ class TestFullChainA2030(unittest.TestCase):
         # contains EDGE configurations unseen in training, so this pins the
         # w_dense substitution path (orbit weighted mean) end-to-end.
         self.assertEqual(ef(ctx.vld_positions[42]), 11.932792663574219)
+
+        # --- The vectorized EF (D-141): bit-exact on the same 6 pinned
+        #     training positions, one batch call over the full training
+        #     set (the length-1 wrap removed, the same math) + the vld
+        #     pin on the validation batch ---
+        ef_arr = make_evaluation_function_array(mw)
+        y_arr = ef_arr(ctx.positions)
+        self.assertEqual(y_arr.dtype, np.float32)
+        self.assertEqual(y_arr.shape, (len(ctx.positions),))
+        for i, y_expected in expected_ef.items():
+            self.assertEqual(float(y_arr[i]), y_expected,
+                             msg=f"array EF mismatch at training position {i}")
+        self.assertEqual(float(ef_arr(ctx.vld_positions)[42]),
+                         11.932792663574219)
 
     def test_second_instance_deterministic(self):
         """A second full run in the same base dir: byte-identical model file,

@@ -62,6 +62,7 @@ MODULES=(
     reversi.test.test_wrk_vld_positions
     reversi.test.test_wrk_validate
     reversi.test.test_wrk_analytics
+    reversi.test.test_client
     reversi.test.test_lm_worker_full_chain
 )
 
