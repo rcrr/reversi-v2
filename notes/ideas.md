@@ -6,9 +6,11 @@ I-001 | done | Full restructure of the original repo (executed as D-133/D-134: t
        The notes produced here should migrate into the new repo as its
        documentation skeleton.
 
-I-002 | idea | Vectorize `position_flips` / `position_make_move`.
+I-002 | done | Vectorize `position_flips` / `position_make_move`.
        The author's own comment in board.py flags this: `_kogge_stone_mm` is
        currently scalar Python while `legal_moves` is numba-parallel.
+       Executed as D-140 (2026-09-08): the 2 prange kernels + the strict
+       dual API, the same technique as legal_moves (D-111).
 
 I-003 | idea | Named move constants (MOVE_PASS=64, MOVE_NOT_AVAILABLE=65,
        MOVE_UNKNOWN=66) instead of magic numbers. Would also fix the implicit
