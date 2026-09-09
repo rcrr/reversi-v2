@@ -223,7 +223,7 @@ mis-stated — see below)._
 
 - **M1 — abbreviation glossary. DONE (D-036).** LMC / ALMC / DLMC
   were never expanded in the module. Canonical expansions confirmed
-  by Roberto (from the 2008 program) and shipped in the Mobility
+  by Roberto (from the original program) and shipped in the Mobility
   class docstring: LMC = Legal Move Count, ALMC = Anti Legal Move
   Count, DLMC = Difference Legal Move Count.
 - **M2 — Mobility name padding.** `print` uses `{self.name:8s}` —

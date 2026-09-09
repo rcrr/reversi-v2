@@ -121,7 +121,7 @@ at the end of this file.
 - BOARD (D-140, 2026-09-08): position_flips +
   position_make_move are now dual scalar/array, the same
   technique as legal_moves (D-111): the 2 prange kernels +
-  the shared _kogge_stone_mm (njit inline); the 2008 "PASS
+  the shared _kogge_stone_mm (njit inline); the former "PASS
   as a special case" note is resolved per-element in the
   kernel; array illegal moves keep the input position
   (Roberto's ruling). Board suite 221/0/14.

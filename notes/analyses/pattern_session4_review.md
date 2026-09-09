@@ -560,7 +560,7 @@ platform assumption), not a code change._
   `name`/`patterns`/`hash`. **[RESOLVED 2026-08-27 — minor #15 (D-024):
   both converted to @property (attribute-style, derived from patterns);
   the two test call sites updated; KNOWN PENDING: legacy callers in the
-  original 2008 repo (if any) use the old .names()/.masks() syntax —
+  original codebase (if any) use the old .names()/.masks() syntax —
   update at migration, tracked as I-006 in notes/ideas.md.]**
 - `Pattern` has no `__repr__`/`__str__` (only print methods).
   **[RESOLVED 2026-08-27 — minor #16: `__repr__` added (Python falls back

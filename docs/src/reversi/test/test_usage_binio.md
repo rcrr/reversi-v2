@@ -42,7 +42,7 @@ DB, no gate, no artifacts.
 ## Integration
 
 - Independent of the pipeline and the DB: pure verification of the
-  binio public API (the D-051 port of the original 2008 binio
+  binio public API (the D-051 port of the original binio
   module; the lz4 dependency, D-051).
 - Sibling suite: test_binio.py (the full binio test — 45 tests at
   the D-051 close); this file is the usage / documentation layer

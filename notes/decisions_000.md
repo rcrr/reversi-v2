@@ -327,7 +327,7 @@ D-024 | 2026-08-27 | PatternSet.names/masks converted from methods to
        sites exist in this workspace — test_pattern.py
        test_names/test_masks — updated to parenthesis-free access.
        KNOWN PENDING FOLLOW-UP (flagged by the user, to be tracked): the
-       original 2008 repo may have legacy callers using the old
+       original codebase may have legacy callers using the old
        .names()/.masks() method syntax; those call sites must be updated
        to property access when that file is migrated into twolm (tracked
        as I-006 in notes/ideas.md). Suite stays GREEN (50 tests, 3 PERF
@@ -613,7 +613,7 @@ D-036 | 2026-08-28 | mobility minor notes M1-M5 disposition (per
        | M1: glossary shipped in the Mobility class docstring —
        LMC = Legal Move Count, ALMC = Anti Legal Move Count, DLMC
        = Difference Legal Move Count (expansions confirmed by
-       Roberto from the 2008 program). Doc-only.
+       Roberto from the original program). Doc-only.
        M2 (name padding in print): left as-is, cosmetic.
        M3 (empty MobilitySet accepted, diverges from PatternSet
        fail-fast): left as-is ("lasciamo così") — deliberate and

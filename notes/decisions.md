@@ -528,8 +528,8 @@ D-136 | 2026-09-08 | RLM → LM: the final inventory ruling
         analyses/) keep the old names.
         | Out of scope (flagged, D-137): the hlp test
         scaffolding classes TestRLMWmaps* (4) +
-        TestRLMZedCompute — named after the original 2008
-        function names; test_hlp_indexes was renamed to
+        TestRLMZedCompute — named after the function names in
+        the original codebase; test_hlp_indexes was renamed to
         TestHlpIndexes* in phase B, so the siblings are
         inconsistent.
         | Verification: the gated suite 673/0/87 GREEN + the
@@ -550,7 +550,7 @@ D-137 | 2026-09-08 | The ReversiLogisticModel* data
         matrix X + wmaps checksum; 17), LMDenseWeights (the
         dense w vector + checksum; 16), LMZed (the z vector
         + the y2z/z2y closures; 11). All six came from the
-        original 2008 repo as-is: the "ReversiLogisticModel"
+        original codebase as-is: the "ReversiLogisticModel"
         prefix is the domain name in long form (the RLM
         abbreviation) — descriptive, NOT a module prefix,
         which is why phase B left it (the D-133 narrow
@@ -571,7 +571,7 @@ D-137 | 2026-09-08 | The ReversiLogisticModel* data
         (TemporaryDirectory, D-085) — no committed .bin
         artifact carries the old string.
         | Out of scope (flagged, Roberto's call if he wants
-        it): TestRLMWmaps* (4) + TestRLMZedCompute — 2008-era
+        it): TestRLMWmaps* (4) + TestRLMZedCompute — legacy
         function-named scaffolding; test_hlp_indexes was
         already TestHlpIndexes* in phase B, so the siblings
         are inconsistent.
@@ -582,7 +582,7 @@ D-138 | 2026-09-08 | The remaining hlp test scaffolding
         inconsistency flagged in D-136/D-137).
         | The flag turned out bigger than wmaps/zed: 18
         classes across the SIX hlp test files still carried
-        the 2008-era TestRLM* names (TestRLMWmaps* 4,
+        the legacy TestRLM* names (TestRLMWmaps* 4,
         TestRLMZedCompute, TestRLMDesignMatrix* 4,
         TestRLMGenerate* 4, TestRLMGradientCompute,
         TestRLMOptimize* 4), while test_hlp_indexes.py had
@@ -691,8 +691,8 @@ D-140 | 2026-09-08 | Vectorized position_flips +
         BitboardArray, PositionField | PositionArray |
         None); position_make_move(p, move: Move |
         MoveArray) -> PositionField | PositionArray |
-        None. Scalar + scalar -> the 2008 scalar behaviour
-        bit-for-bit (the PA swap, the out-of-range
+        None. Scalar + scalar -> the pre-vectorization scalar
+        behaviour bit-for-bit (the PA swap, the out-of-range
         ValueError, the (0, None) on illegal); array +
         array -> the kernel with the standard 1-D guard +
         the same-shape ValueError; mixed -> TypeError.
@@ -701,7 +701,7 @@ D-140 | 2026-09-08 | Vectorized position_flips +
         UNCHANGED for an illegal move (no per-element None
         in the structured array); in make_move the PA
         (64) swaps the players per element INSIDE the
-        kernel — the 2008 "PASS as a special case" note is
+        kernel — the former "PASS as a special case" note is
         resolved (no filter needed); any value > 64 in the
         array raises ValueError before the kernel.
         | Kernels: _vectorized_flips /
@@ -728,10 +728,11 @@ D-140 | 2026-09-08 | Vectorized position_flips +
         exactly when it flips something (the flip kernel
         and the legal-moves kernel share the geometry); an
         occupied square is never legal and the flip kernel
-        does not check the move square emptiness (the 2008
-        scalar behaviour, the caller's responsibility) —
-        the first draft of the invariant (flips != 0 iff
-        legal) was wrong for mover-occupied squares.
+        does not check the move square emptiness (the
+        pre-vectorization scalar behaviour, the caller's
+        responsibility) — the first draft of the invariant
+        (flips != 0 iff legal) was wrong for mover-occupied
+        squares.
         | Tests: 20 new (board 201 -> 221, 12 -> 14
         skipped): the 42-line bulk dataset re-played in
         array form (a single call), the mixed

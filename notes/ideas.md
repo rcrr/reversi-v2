@@ -33,11 +33,11 @@ I-005 | done | Next session starts a NEW module (Roberto, 2026-08-26).
 
 I-006 | follow-up | Legacy migration debt (raised 2026-08-27, D-024):
        PatternSet.names/masks are now @property (attribute-style). If the
-       original 2008 repo contains callers using the old method syntax
+       original codebase contains callers using the old method syntax
        (.names() / .masks()), those call sites must be updated to
        parenthesis-free property access when that file is migrated into
        reversi. Count of affected sites unknown until that file is
-       analyzed — grep the original repo for ".names()" / ".masks()".
+       analyzed — grep the original codebase for ".names()" / ".masks()".
 
 I-007 | follow-up | FeatureSet column-labelling helper (raised
        2026-08-28, D-041, feature module M3): FeatureSet offers no

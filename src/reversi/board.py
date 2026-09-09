@@ -1131,10 +1131,10 @@ def position_legal_moves_count(p: PositionField) -> int:
 #: N-board batch (_vectorized_flips / _vectorized_make_move), the
 #: per-element _kogge_stone_mm under njit(inline), the standard 1-D /
 #: shape guards, the output re-assembled with make_position (the fresh
-#: interleaved buffer, zero-copy view). The scalar path keeps its 2008
-#: behaviour bit-for-bit; the 2008 note's "PASS as a special case" is
-#: resolved per-element inside the make_move kernel (move == 64 -> the
-#: player swap, no filter needed).
+#: interleaved buffer, zero-copy view). The scalar path keeps its
+#: pre-vectorization behaviour bit-for-bit; the former banner note
+#: ("PASS as a special case") is resolved per-element inside the
+#: make_move kernel (move == 64 -> the player swap, no filter needed).
 
 _mm_mask = np.array([
     _all_squares_except_column_a,
@@ -1322,7 +1322,8 @@ def position_make_move(p: PositionField | PositionArray,
     When an illegal move is passed None is returned.
 
     Dual scalar/array (D-140, as legal_moves): when input is a scalar
-    the output is scalar (the 2008 behaviour, including the PASS swap
+    the output is scalar (the pre-vectorization behaviour, including the
+    PASS swap
     and the out-of-range ValueError); when p is a 1-D PositionArray
     and move a 1-D uint8 MoveArray of the same shape, the output is a
     PositionArray. In the array case PA elements swap the players, a
@@ -1343,7 +1344,7 @@ def position_make_move(p: PositionField | PositionArray,
         _, out_movers, out_opponents = _vectorized_make_move(p['mover'], p['opponent'], move)
         return make_position(out_movers, out_opponents)
     if isinstance(p, np.void) and isinstance(move, np.uint8):
-        # Scalar path: the 2008 behaviour, unchanged.
+        # Scalar path: the pre-vectorization behaviour, unchanged.
         if move == 64: # PASS
             return make_position(p['opponent'], p['mover'])
         if move > 64:

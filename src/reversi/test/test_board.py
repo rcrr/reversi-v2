@@ -2235,8 +2235,8 @@ class TestPositionFlips(unittest.TestCase):
                 else:
                     # An occupied square is never legal; the flip kernel
                     # does not check the move square emptiness (the
-                    # 2008 scalar behaviour, the caller's responsibility)
-                    # so flips may still be non-zero here.
+                    # pre-vectorization scalar behaviour, the caller's
+                    # responsibility) so flips may still be non-zero here.
                     self.assertFalse(legal)
             if sf == 0:
                 self.assertTrue(position_eq(updated[i], positions[i]))

@@ -119,8 +119,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   runs per element inside the `_vectorized_flips` /
   `_vectorized_make_move` `prange` kernels (3-array return,
   re-assembled with `make_position`); the flip kernel does NOT
-  check the move square emptiness (the 2008 scalar behaviour, the
-  caller's responsibility).
+  check the move square emptiness (the pre-vectorization scalar
+  behaviour, the caller's responsibility).
 - **D8 slot order** is fixed (D-014, notes/naming.md) — the anti
   tables swap only slots 1/3.
 - **Platform: little-endian only** (D-022) — no portability work
