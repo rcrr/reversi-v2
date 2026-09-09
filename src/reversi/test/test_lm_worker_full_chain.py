@@ -47,6 +47,7 @@ import tempfile
 import shutil
 import hashlib
 import re
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -58,7 +59,11 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.tools.binio import BinaryWriter, verify_sha3_256_sidecar
-from reversi.lm.model_weights import model_weights_read_file, MODEL_WEIGHTS_FILE_HEADER_STR
+from reversi.lm.model_weights import (model_weights_read_file,
+                                      model_weights_write_file,
+                                      MODEL_WEIGHTS_FILE_HEADER_STR,
+                                      MODEL_WEIGHTS_FILE_HEADER_VER)
+from reversi.feature import FeatureSet
 from reversi.lm.client import (make_evaluation_function,
                                make_evaluation_function_array)
 from reversi.lm.hlp_gradient import sigmoid
@@ -154,20 +159,33 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(ctx.opt_info['reason'], 'CONVERGED_MIN_GRAD')
         self.assertEqual(ctx.opt_info['iters'], 67)
 
-        # --- Saved model file: exists, size, sha3_256, sidecar ---
+        # --- Saved model file: exists, size band, sidecar ---
+        # D-144 (C2): the v2 file EMBEDS the run's configuration —
+        # the normalized dump carries the run's base_dir (the D-142
+        # "effective config" content), and this test's base_dir is a
+        # random mkdtemp path: the file BYTES are legitimately
+        # run-specific now (unlike v1, which carried no config), so
+        # the v1 sha3 literal golden (bcf8d918...) is RETIRED. The
+        # size literal is a BAND now too: the content is
+        # deterministic, but the 8 random base_dir chars change LZ4's
+        # match structure by a few bytes (measured on A2050: the same
+        # raw content compresses to 516459 or 516455 depending on the
+        # random name). The determinism guarantee is
+        # carried by test_second_instance_deterministic (same base
+        # dir → byte-identical file) + the read-back provenance pins
+        # below.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
-        self.assertEqual(output_path.stat().st_size, 21603)
-        self.assertEqual(
-            hashlib.sha3_256(output_path.read_bytes()).hexdigest(),
-            'bcf8d918979aaddba52ed2c9a80571f4fdc939a985ff4f3705510fa4f8010abb')
+        st_size = output_path.stat().st_size
+        self.assertTrue(22700 < st_size < 22800,
+                        f"v2 model file size {st_size} outside the 22700-22800 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
         mw = model_weights_read_file(output_path, compressed=True)
 
         # Metadata
-        self.assertEqual(mw.version, 1)
+        self.assertEqual(mw.version, 2)
         self.assertEqual(mw.name, ctx.cfg.name)
         self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
         self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
@@ -204,6 +222,19 @@ class TestFullChainA2030(unittest.TestCase):
             hashlib.sha3_256(mw.w_dense.tobytes()).hexdigest(),
             '7ecdeba66d9f34b9396e199dd4a5933196131db497ff88fce726bcd75f1f4f37')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
+
+        # D-144 (C2): the configuration provenance EMBEDDED in the v2
+        # file (the leading body section) — the single source of the
+        # run's configuration: the dump is the normalized dump (the
+        # effective config, the base_dir override included) and the
+        # checksum is the CONFIG-level fingerprint.
+        self.assertEqual(mw.config_dump, ctx.cfg.model_dump_json(indent=4))
+        self.assertEqual(mw.config_checksum, ctx.config_checksum)
+        self.assertEqual(
+            mw.config_checksum,
+            hashlib.sha3_256(
+                ctx.cfg.model_dump_json(indent=4).encode()
+            ).hexdigest())
 
         # --- Log lines (captured stdout) ---
         logs = self.mock_stdout.getvalue()
@@ -270,28 +301,38 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(float(ef_arr(ctx.vld_positions)[42]),
                          11.932792663574219)
 
-    def test_config_record_sidecar(self):
-        """D-142: the model's configuration provenance record — the
-        normalized dump + the checksum sidecar, next to the model
-        file (the record travels with the shipped artifact)."""
+    def test_config_provenance_single_source(self):
+        """D-144 (C2): the model file is the SINGLE source of the
+        run's configuration — the D-142 sidecar record
+        (<output>.config.json) is RETIRED (Roberto's ruling: the
+        record is eliminated). The provenance now lives INSIDE the
+        model file (pinned in test_full_worker_chain) and the
+        CONFIG-level fingerprint semantics survive on the embedded
+        fields."""
         self.rlm.move_to_last()
         ctx = self.rlm.context
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         config_path = output_path.with_suffix(".config.json")
 
-        self.assertTrue(config_path.exists(),
-                        f"Config record not found at {config_path}")
-        # The record is the normalized dump (the effective config of
-        # the run, the base_dir override included) and matches the
-        # CONFIG-level fingerprint on the context.
-        self.assertEqual(config_path.read_text(encoding="utf-8"),
-                         ctx.cfg.model_dump_json(indent=4))
+        # The D-142 record is gone: the shipped artifact is the model
+        # file (+ its sidecar) alone.
+        self.assertFalse(config_path.exists(),
+                         f"Config record retired by D-144, found at {config_path}")
+        self.assertFalse(
+            (output_path.parent /
+             (output_path.name + ".config.json.SHA3-256")).exists(),
+            "The record sidecar must be gone with the record (D-144)")
+        # The model file's sidecar still verifies (it now covers the
+        # v2 content, config section included).
+        self.assertTrue(verify_sha3_256_sidecar(output_path),
+                        "Checksum verification failed for saved model")
+        # The fingerprint semantics (D-142): config_checksum ==
+        # sha3_256 of the normalized dump — now on the embedded
+        # provenance, not on a sidecar file.
         self.assertEqual(ctx.config_checksum,
                          hashlib.sha3_256(
                              ctx.cfg.model_dump_json(indent=4).encode()
                          ).hexdigest())
-        self.assertTrue(verify_sha3_256_sidecar(config_path),
-                        "Checksum verification failed for the config record")
 
     def test_second_instance_deterministic(self):
         """A second full run in the same base dir: byte-identical model file,
@@ -415,20 +456,26 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertEqual(_masked_report_hash(file_report),
                          'bc4857f1293cb88a3fffe3a2248c02731db4e2ddbb18b622c99da39d9ac5f215')
 
-        # --- Saved model file: exists, size, sha3_256, sidecar ---
+        # --- Saved model file: exists, size band, sidecar ---
+        # D-144 (C2): as in A2030 — the embedded dump carries the
+        # run's base_dir, so the v1 sha3 literal golden
+        # (3ad18058...) is retired and the size literal is a band
+        # (LZ4 match jitter on the 8 random base_dir chars: measured
+        # 516459 / 516455 for the same content). Determinism is
+        # pinned by the read-back provenance + the same-base-dir byte
+        # identity.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
-        self.assertEqual(output_path.stat().st_size, 515042)
-        self.assertEqual(
-            hashlib.sha3_256(output_path.read_bytes()).hexdigest(),
-            '3ad1805815c536e4506b0804b5be9e8662de53402c37fc3268c8dbbbb6847ff4')
+        st_size = output_path.stat().st_size
+        self.assertTrue(516400 < st_size < 516500,
+                        f"v2 model file size {st_size} outside the 516400-516500 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
         mw = model_weights_read_file(output_path, compressed=True)
 
         # Metadata
-        self.assertEqual(mw.version, 1)
+        self.assertEqual(mw.version, 2)
         self.assertEqual(mw.name, ctx.cfg.name)
         self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
         self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
@@ -467,6 +514,12 @@ class TestFullChainA2050(unittest.TestCase):
             hashlib.sha3_256(mw.w_dense.tobytes()).hexdigest(),
             'a012689f70ef8a492ce0fbf374a49e79e62f758a83fce94540a459bd28b527fc')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
+
+        # D-144 (C2): the embedded configuration provenance (the v2
+        # leading body section) — the single source of the run's
+        # configuration.
+        self.assertEqual(mw.config_dump, ctx.cfg.model_dump_json(indent=4))
+        self.assertEqual(mw.config_checksum, ctx.config_checksum)
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned
         #     training positions (rlm_03 has frequency_cut_off=1, so every
@@ -510,7 +563,121 @@ class TestModelWeightsReadGuards(unittest.TestCase):
             w.write_string('x')
         with self.assertRaisesRegex(
                 ValueError,
-                r"File header version, expected '1', found '99'\."):
+                r"File header version, expected '1' or '2', found '99'\."):
+            model_weights_read_file(path, compressed=False)
+
+
+class TestModelWeightsV2(unittest.TestCase):
+    """D-144 (C2): the v2 model file (the configuration provenance is
+    EMBEDDED — the normalized dump + the fingerprint, the leading body
+    section) + the v1 backward-compat reader + the v2 corruption
+    guard. No DB: the round-trip runs on a synthetic context
+    (the SimpleNamespace idiom), the v1/v2 bodies are hand-crafted
+    with BinaryWriter."""
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    @staticmethod
+    def _v1_body(w):
+        # A minimal v1 body (the D-143-era layout, no config section).
+        w.write_string("V1_NAME")
+        w.write_u32(20)
+        w.write_f32(0.05)
+        w.write_u64(100)
+        w.write_f32(0.5)
+        w.write_f32(1.5)
+        w.write_f32(2.25)
+        w.write_string("CONVERGED_MIN_GRAD")
+        w.write_u32(7)
+        w.write_f32(0.01)
+        w.write_f32(1e-6)
+        w.write_u32(10)
+        w.write_f32(1.0)
+        w.write_f32(0.5)
+        w.write_f32(0.0025)
+        w.write_string("V1_FS")
+        w.write_u8(0)  # no intercept
+        w.write_u8(0)  # no mobility set
+        w.write_u8(0)  # no pattern set
+        w.write_array(np.array([0, 1, 2], dtype=np.uint32))
+        w.write_array(np.array([0.1, 0.2, 0.3], dtype=np.float32))
+
+    def test_v1_file_loads_without_config(self):
+        """The backward-compat reader: a v1 file loads fine and the
+        config provenance fields stay None."""
+        path = Path(self.tmp_dir) / 'v1_model.dat'
+        with BinaryWriter(path, compressed=False) as w:
+            w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=1)
+            self._v1_body(w)
+        mw = model_weights_read_file(path, compressed=False)
+        self.assertEqual(mw.version, 1)
+        self.assertEqual(mw.name, "V1_NAME")
+        self.assertEqual(mw.config_dump, None)
+        self.assertEqual(mw.config_checksum, None)
+
+    def _synthetic_ctx(self):
+        # The writer touches only these attributes (a SimpleNamespace
+        # stand-in for the LMContext; the cfg's model_dump_json is a
+        # fixed string so the test is deterministic).
+        dump = '{"name": "SYNTH_C2", "marker": "D-144"}'
+        cfg = SimpleNamespace(
+            name="SYNTH_C2",
+            regab_data_set=SimpleNamespace(ec=20),
+            stat_model=SimpleNamespace(logit_clipping=0.05),
+            model_dump_json=lambda indent=4: dump,
+        )
+        return SimpleNamespace(
+            cfg=cfg,
+            config_checksum=hashlib.sha3_256(dump.encode()).hexdigest(),
+            training_pop_stats={'count': 100, 'mean': 0.5,
+                                'std_dev': 1.5, 'variance': 2.25},
+            opt_info={'reason': 'CONVERGED_MIN_GRAD', 'iters': 7,
+                      'f': 0.01, 'g_norm': 1e-6},
+            vld_metrics={'vld_samples': 10, 'vld_rmse_y': 1.0,
+                         'vld_mae_y': 0.5, 'vld_loss': 0.0025},
+            feature_set=FeatureSet("SYNTH_FS", None, None, None),
+            iwmap_feature_offset=np.array([0, 1, 2], dtype=np.uint32),
+            w_dense=np.array([0.1, 0.2, 0.3], dtype=np.float32),
+        ), dump
+
+    def test_v2_roundtrip_synthetic_ctx(self):
+        """Write v2 from the synthetic context, read it back: every
+        field matches, the embedded config provenance round-trips."""
+        ctx, dump = self._synthetic_ctx()
+        path = Path(self.tmp_dir) / 'v2_model.dat'
+        model_weights_write_file(ctx, path, compressed=False)
+        mw = model_weights_read_file(path, compressed=False)
+        self.assertEqual(mw.version, MODEL_WEIGHTS_FILE_HEADER_VER)
+        self.assertEqual(mw.version, 2)
+        self.assertEqual(mw.name, "SYNTH_C2")
+        self.assertEqual(mw.ec, 20)
+        self.assertEqual(mw.opt_info['reason'], 'CONVERGED_MIN_GRAD')
+        self.assertEqual(mw.training_pop_stats['count'], 100)
+        self.assertEqual(mw.vld_metrics['vld_samples'], 10)
+        self.assertEqual(mw.feature_set.name, "SYNTH_FS")
+        np.testing.assert_array_equal(mw.iwmap_feature_offset,
+                                      ctx.iwmap_feature_offset)
+        np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
+        # The D-144 single source: the embedded dump + the fingerprint.
+        self.assertEqual(mw.config_dump, dump)
+        self.assertEqual(mw.config_checksum, ctx.config_checksum)
+
+    def test_v2_config_checksum_mismatch_raises(self):
+        """A v2 file whose stored checksum does not cover the embedded
+        dump is corrupted: the sentinel raises (D-144 ruling 4)."""
+        path = Path(self.tmp_dir) / 'v2_bad_checksum.dat'
+        with BinaryWriter(path, compressed=False) as w:
+            w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=2)
+            w.write_string("deadbeef" * 8)  # a sentinel that covers NOTHING
+            w.write_string('{"name": "SYNTH_C2"}')
+        with self.assertRaisesRegex(
+                ValueError,
+                r"Config section checksum mismatch, expected 'deadbeef.*', "
+                r"recomputed '[0-9a-f]{64}'\."):
             model_weights_read_file(path, compressed=False)
 
 

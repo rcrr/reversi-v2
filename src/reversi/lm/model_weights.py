@@ -27,6 +27,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict
 from pathlib import Path
@@ -60,13 +61,21 @@ class ModelWeights:
     feature_set: FeatureSet
     iwmap_feature_offset: np.ndarray
     w_dense: np.ndarray
+    # D-144 (C2): the configuration provenance — the normalized config
+    # dump + its sha3_256 fingerprint, embedded in the model file (the
+    # D-142 sidecar record is RETIRED — the model file is the single
+    # source). Both are None for v1 files. They trail the file-order
+    # fields (the dataclass requires defaulted fields last) although
+    # the file section LEADS the body (Roberto's ruling).
+    config_dump: str | None = None
+    config_checksum: str | None = None
 
 
 #: --- End of class ModelWeights ---
 
 
 MODEL_WEIGHTS_FILE_HEADER_STR = "RGLM_BINARY_WEIGHTS"
-MODEL_WEIGHTS_FILE_HEADER_VER = 1
+MODEL_WEIGHTS_FILE_HEADER_VER = 2
 
 
 def model_weights_write_file(ctx: "LMContext",
@@ -76,39 +85,51 @@ def model_weights_write_file(ctx: "LMContext",
     Writes the model weights and metadata to a binary file using binio.
     """
     with BinaryWriter(path, compressed=compressed) as w:
-        # 1. Header & Metadata
+        # 0. Header
         w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=MODEL_WEIGHTS_FILE_HEADER_VER)
+
+        # 1. Configuration provenance (D-144/C2): the model file is the
+        #    single source of the run's configuration — the normalized
+        #    dump (the effective config, the base_dir override included,
+        #    the same string the D-142 record used to carry) + its
+        #    sha3_256 fingerprint (the CONFIG-level checksum), the
+        #    sentinel first. The section LEADS the body (Roberto's
+        #    ruling: "mettiamola in testa").
+        w.write_string(ctx.config_checksum)
+        w.write_string(ctx.cfg.model_dump_json(indent=4))
+
+        # 2. Metadata
         w.write_string(ctx.cfg.name)
         w.write_u32(ctx.cfg.regab_data_set.ec)
         w.write_f32(ctx.cfg.stat_model.logit_clipping)
 
-        # 2. Training Population Statistics
+        # 3. Training Population Statistics
         training_pop_stats = ctx.training_pop_stats
         w.write_u64(training_pop_stats['count'])
         w.write_f32(training_pop_stats['mean'])
         w.write_f32(training_pop_stats['std_dev'])
         w.write_f32(training_pop_stats['variance'])
 
-        # 3. Optimization Info
+        # 4. Optimization Info
         opt_info = ctx.opt_info
         w.write_string(opt_info['reason'])
         w.write_u32(opt_info['iters'])
         w.write_f32(opt_info['f'])
         w.write_f32(opt_info['g_norm'])
 
-        # 4. Validation Metrics
+        # 5. Validation Metrics
         vld = ctx.vld_metrics
         w.write_u32(vld['vld_samples'])
         w.write_f32(vld['vld_rmse_y'])
         w.write_f32(vld['vld_mae_y'])
         w.write_f32(vld['vld_loss'])
 
-        # 5. FeatureSet
+        # 6. FeatureSet
         fs = ctx.feature_set
         w.write_string(fs.name)
         w.write_u8(1 if fs.intercept else 0)
 
-        # 6. MobilitySet
+        # 7. MobilitySet
         if fs.mset:
             w.write_u8(1)
             w.write_string(fs.mset.name)
@@ -120,7 +141,7 @@ def model_weights_write_file(ctx: "LMContext",
         else:
             w.write_u8(0)
 
-        # 7. PatternSet
+        # 8. PatternSet
         if fs.pset:
             w.write_u8(1)
             w.write_string(fs.pset.name)
@@ -131,7 +152,7 @@ def model_weights_write_file(ctx: "LMContext",
         else:
             w.write_u8(0)
 
-        # 8. Core Inference Data
+        # 9. Core Inference Data
         w.write_array(ctx.iwmap_feature_offset)
         w.write_array(ctx.w_dense)
 
@@ -147,8 +168,24 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
 
         if description != MODEL_WEIGHTS_FILE_HEADER_STR:
             raise ValueError(f"File header mismatch, expected '{MODEL_WEIGHTS_FILE_HEADER_STR}', found '{description}'.")
-        if version != MODEL_WEIGHTS_FILE_HEADER_VER:
-            raise ValueError(f"File header version, expected '{MODEL_WEIGHTS_FILE_HEADER_VER}', found '{version}'.")
+        if version not in (1, 2):
+            raise ValueError(f"File header version, expected '1' or '2', found '{version}'.")
+
+        # Section 1 (v2 only, D-144/C2): the configuration provenance —
+        # the sentinel first, then the dump it covers. v1 files have no
+        # such section (both fields stay None).
+        if version == 2:
+            config_checksum = r.read_string()
+            config_dump = r.read_string()
+            recomputed = hashlib.sha3_256(
+                config_dump.encode()).hexdigest()
+            if recomputed != config_checksum:
+                raise ValueError(
+                    f"Config section checksum mismatch, expected "
+                    f"'{config_checksum}', recomputed '{recomputed}'.")
+        else:
+            config_checksum = None
+            config_dump = None
 
         name = r.read_string()
         ec = r.read_u32()
@@ -233,5 +270,7 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
             vld_metrics=vld_metrics,
             feature_set=feature_set,
             iwmap_feature_offset=iwmap_feature_offset,
-            w_dense=w_dense
+            w_dense=w_dense,
+            config_dump=config_dump,
+            config_checksum=config_checksum
         )

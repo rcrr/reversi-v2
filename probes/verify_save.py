@@ -53,15 +53,22 @@ def tier_a():
     m = SRC / 'reversi' / 'lm' / 'model_weights.py'
     mt = m.read_text()
     check('A4 model_weights: no ws lines (T4)', not ws_lines(m), str(ws_lines(m)))
-    check('A5 model_weights: header str/ver + __all__ 3',
+    check('A5 model_weights: header str/ver 2 (D-144/C2) + __all__ 3',
           'MODEL_WEIGHTS_FILE_HEADER_STR = "RGLM_BINARY_WEIGHTS"' in mt
-          and 'MODEL_WEIGHTS_FILE_HEADER_VER = 1' in mt
+          and 'MODEL_WEIGHTS_FILE_HEADER_VER = 2' in mt
           and "'ModelWeights',\n           'model_weights_read_file',\n           'model_weights_write_file'" in mt)
-    # dataclass field count
+    # dataclass field count (D-144: + the 2 config provenance fields,
+    # trailing with defaults — the dataclass requires defaulted fields
+    # last, although the FILE section leads the body)
     ds = mt.split('class ModelWeights:', 1)[1].split('#: --- End', 1)[0]
-    check('A6 model_weights: ModelWeights 10 fields',
-          len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)]) == 10,
+    check('A6 model_weights: ModelWeights 12 fields (10 + the D-144 config provenance pair)',
+          len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)]) == 12,
           str(len([l for l in ds.splitlines() if re.match(r'^\s{4}\w+: ', l)])))
+    check('A6b model_weights: D-144/C2 — the config section LEADS the body, the reader accepts v1|v2 + the corruption sentinel',
+          "w.write_string(ctx.config_checksum)" in mt
+          and mt.index("w.write_string(ctx.config_checksum)") < mt.index("w.write_string(ctx.cfg.name)")
+          and "if version not in (1, 2):" in mt
+          and "Config section checksum mismatch" in mt)
 
     c = SRC / 'reversi' / 'lm' / 'client.py'
     ct = c.read_text()
@@ -123,8 +130,13 @@ def tier_c():
     #  second-instance determinism deleted at D-106 step 3, class c:
     #  test_lm_worker_full_chain.py::TestFullChainA2030::
     #  test_full_worker_chain pins the same 7+7+4+4 metric values,
-    #  the 21603-byte file + bcf8d918... hash + sidecar verify, the
-    #  read-back values, the 6 ef training positions + vld[42], the
+    #  the v2 file in the 22700-22800 B size band + sidecar verify
+    #  (the v1 sha3 literal + the size literal retired by D-144: the
+    #  embedded dump carries the run's base_dir — the bytes are
+    #  run-specific, and LZ4's match structure shifts a few bytes
+    #  with the 8 random name chars), the read-back values
+    #  (incl. the D-144 embedded config provenance), the 6 ef training
+    #  positions + vld[42], the
     #  5 report substrings + 2 log lines, the d44557a8... masked
     #  report hash, and test_second_instance_deterministic pins the
     #  byte-identical file + 6 cache hits.)
@@ -145,8 +157,10 @@ def tier_d():
     # (D1-D10 deleted at D-106 step 3, class c: the LONG rlm_03 tier
     #  pins the same goldens as tier C — test_lm_worker_full_chain.py::
     #  TestFullChainA2050::test_full_worker_chain pins step 14, the
-    #  vld/train/dense/pop metric sets, the opt info, the 515042-byte
-    #  file + 3ad18058... hash + sidecar, the read-back subset, the
+    #  vld/train/dense/pop metric sets, the opt info, the v2 file in
+    #  the 516400-516500 B size band (D-144: the sha3 literal + the
+    #  size literal retired, as in A2030) + sidecar, the read-back
+    #  subset (incl. the D-144 embedded config provenance), the
     #  5 console report substrings (title + the 4 table rows incl.
     #  Delta -0.00 — the classification's 'a' label for D8 is stale:
     #  the test pins them all at L350-354), the 57f9766b... masked
