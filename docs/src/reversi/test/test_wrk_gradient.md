@@ -6,13 +6,15 @@ D1-D4 / D11 pipeline-state tier) + the `_down` clearing pin
 (D-094 T7). 1 class / 2 tests, both DB-gated (the setUp moves
 through ZED on a fresh base dir, so a live DB is required —
 `test_wrk_gradient` 2/0/2 under the gate).
-> State: D-094 · 34442b2 · 2026-09-01 · suite 2/0/0 (2 DB-gated)
+> State: D-145 · I-013 · 2026-09-09 · suite 4/0/0 (2 DB-gated +
+2 no-DB flag-wiring)
 
 ## Coverage
 
 | class | what it pins |
 |---|---|
-| `TestLMWorkerGradient` (2 tests, DB-gated) | shared setUp: the `SKIP_REGAB_DB` gate FIRST (L65-69, the D-094 T5 fix — the header's live-DB claim is now true) → the stdout patcher → the D-085 idiom (T6: `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST, `tmp_dir = Path(...)`, the `WORKSPACE_ROOT`-anchored `rlm_02.json`) → a fresh `LogisticModel` (LOW) → the move to ZED + the step-7 pin; defensive `getattr` tearDown. `test_generate_gradient`: the pre-state (fg None, X (199952, 8), len(w) 2981); `move_to_step('GRADIENT')` + the step-8 pin; fg not-None + callable; the goldens at w = 0: f 0.02049378 (rtol 1e-6 / atol 1e-7), g[0] 3.558e-4, g[1] −2.395e-4, g[2980] 1.101e-3 (rtol 1e-4 / atol 1e-7). `test_down_clears_gradient` (D-094 T7): move to GRADIENT (step 8, fg not-None), then `move_to_step(7)` — pins step 7 + `current_worker_name == 'ZED'` + `ctx.fg is None` |
+| `TestLMWorkerGradient` (2 tests, DB-gated) | shared setUp: the `SKIP_REGAB_DB` gate FIRST (the D-094 T5 fix — the header's live-DB claim is now true) → the stdout patcher → the D-085 idiom (T6: `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST, `tmp_dir = Path(...)`, the `WORKSPACE_ROOT`-anchored `rlm_02.json`) → a fresh `LogisticModel` (LOW) → the move to ZED + the step-7 pin; defensive `getattr` tearDown. `test_generate_gradient`: the pre-state (fg None, X (199952, 8), len(w) 2981); `move_to_step('GRADIENT')` + the step-8 pin; fg not-None + callable; the goldens at w = 0: f 0.02049378 (rtol 1e-6 / atol 1e-7), g[0] 3.558e-4, g[1] −2.395e-4, g[2980] 1.101e-3 (rtol 1e-4 / atol 1e-7) — rlm_02 has NO `high_performance_fg` → the classic path. `test_down_clears_gradient` (D-094 T7): move to GRADIENT (step 8, fg not-None), then `move_to_step(7)` — pins step 7 + `current_worker_name == 'ZED'` + `ctx.fg is None` |
+| `TestGradientFlagWiring` (2 tests, NO DB — I-013, D-145) | the flag wiring of the worker on a mock context (a `Context` subclass + `SimpleNamespace` cfg + a no-op `log_event`): `test_up_flag_true_builds_hp_variant`: `high_performance_fg=True` → `wrk_gradient().up(ctx)` builds the HP closure (the `ctx.fg.high_performance is True` marker pin) + a float32-contract smoke eval. `test_up_flag_false_builds_classic_variant`: the flag False (the config default) → the classic closure (the marker False) |
 
 ## Goldens pinned
 

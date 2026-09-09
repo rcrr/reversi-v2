@@ -4,7 +4,7 @@ The pydantic config DOMAIN of the LM pipeline: one public entry,
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
-> State: D-143 · 2026-09-09 · suite 13/0/0
+> State: D-145 · 2026-09-09 · suite 14/0/0
 
 ## API
 
@@ -14,7 +14,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 | `LMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
-| `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator |
+| `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the I-013 fg-variant flag) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (default `model_analytics_report.txt`) |
 | `RegabDBConnectionConfig` | `dbname`/`user`/`host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
@@ -40,7 +40,11 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
   the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
   `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`,
   `min_p_fun_decrease=(1e-14, 7)`, `log_every_n`/`save_every_n`
-  ge=0, `checkpoint_file` required) plus
+  ge=0, `checkpoint_file` required, `high_performance_fg`
+  default False — the I-013 fg-variant flag: False keeps the
+  classic vectorized-numpy fg closure, True builds the numba
+  high-performance one (the GRADIENT worker reads it; rlm_03 /
+  rlm_04 opt in, D-145)) plus
   `check_wolfe_constants`, a `model_validator(mode="after")`
   that enforces `c2 > c1` (ValueError → ValidationError, both
   values in the message) — the invariant is code, not
@@ -64,7 +68,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 ## Verified invariants
 
-Pinned by `test_hlp_config_schemas.py` (13 tests,
+Pinned by `test_hlp_config_schemas.py` (14 tests,
 `TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
 E-section).
 
@@ -83,6 +87,8 @@ E-section).
 - `c1=0.9` + `c2=0.1` rejected, `c1=0.1` + `c2=0.9` accepted (the
   cross-field validator) — `test_optimization_c2_lte_c1_rejected`,
   `test_optimization_c2_gt_c1_accepted`.
+- `high_performance_fg` defaults to False and accepts True
+  (I-013) — `test_optimization_high_performance_fg`.
 - `validation_data_set.status` is strict (rejects `'xyz'`,
   accepts valid codes) — `test_validation_dataset_status_strict`.
 - `'properties'` is in the `model_fields` of

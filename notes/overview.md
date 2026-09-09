@@ -245,6 +245,24 @@ at the end of this file.
   A6b new (18 checks).
   Suite 725/0/96 default + 725/0/21 LONG + VLONG
   A2050 9/9 + the 20 verify-probe sweep green.
+- I-013 O1 (the GRADIENT fg performance, executed at
+   Roberto's "Procedi!") = D-145: the fg is THE
+   bottleneck (96-99% of the A2050 OPTIMIZE time; the
+   two M×P 384 MB temporaries per call) — the K3 numba
+   block-parallel single-pass kernel (8 fixed row-
+   blocks, private f64 buffers — race-free + run-
+   deterministic; 46 ms/call vs 735 ms classic, 16.1×)
+   now lives behind the high_performance_fg config flag
+   (default false — the classic path kept verbatim,
+   Roberto's ruling; rlm_03/rlm_04 opt in). The A2050
+   re-baseline: OPTIMIZE 26.9 s (11.9×), chain 52.0 s
+   (6.7×); the A2050 trajectory 356 iters / f
+   1.4453826e-03 (Δrel 0.07% vs the classic); the two-
+   loop is now the second cost center (≈ 8.2 s ≈ 30% —
+   the O2 target). Full re-pin of the A2030/A2050
+   goldens (position-based untouched). Suite 734/0
+   (VLONG) + the re-pinned verify sweep. The analysis
+   stays at notes/analyses/optimize_performance.md.
 
 
 - Sources live in the `reversi` package under src/ (D-008;
@@ -263,10 +281,28 @@ at the end of this file.
   config dump is now INSIDE the model file (v2, the
   backward-compat v1 reader, the D-142 record retired);
   the model is fully self-describing.
-- Next on the backlog (Roberto's call): I-013 the
-  GRADIENT fg performance study, I-012 FEATURES before
-  POSITIONS, I-003 the named move constants, I-009/I-010
-  (notes/ideas.md).
+- I-013 the GRADIENT fg performance study: STUDIED + O1 SHIPPED
+  (D-145, notes/analyses/optimize_performance.md kept as the
+  pipeline documentation reference) — the fg closure was THE
+  bottleneck (96-99% of the A2050 OPTIMIZE time; the two M×P 384
+  MB temporaries per call the waste); the K3 numba block-
+  parallel single-pass kernel (8 fixed row-blocks, private f64
+  buffers — race-free + run-deterministic, numba 0.67 has no CPU
+  atomics) is now behind the high_performance_fg config flag
+  (default false; the classic path kept verbatim per Roberto;
+  rlm_03/rlm_04 opt in). The A2050 re-baseline: OPTIMIZE 26.9 s
+  (11.9× vs 321.3 s), chain 52.0 s (6.7× vs ~350 s); the A2050
+  trajectory 356 iters / f 1.4453826e-03 (Δrel 0.07% vs the
+  classic, same CONVERGED_MIN_GRAD); suite 734/0. Next: O2 (the
+  numba two-loop in opt_lbfgs — now ≈ 8.2 s ≈ 30% of the HP
+  OPTIMIZE — as the second change against this baseline, its own
+  decision D-146, Roberto's ruling "poi miglioriamo anche lbfgs
+  on O2, quindi la tua proposta"). O3 (pure-numpy 1.2×)
+  considered, not chosen; O4 closed (m=93 is load-bearing —
+  m=20/10 do not converge in 500 iters and are slower).
+- Next on the backlog (Roberto's call): the I-013 O2
+  two-loop, I-012 FEATURES before POSITIONS, I-003 the named
+  move constants, I-009/I-010 (notes/ideas.md).
 
 
 
@@ -290,7 +326,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/reversi/lm/wrk_features.md |
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE 11th level (dense weights materialization; the R1 for-next-level trap fix); closed (D-097/D-098) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
-| src/reversi/lm/wrk_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1); closed (D-093/D-094) | 2/0/0 | docs/src/reversi/lm/wrk_gradient.md |
+| src/reversi/lm/wrk_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1; D-145: the high_performance_fg flag wiring); closed (D-093/D-094/D-145) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
 | src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set (D-079/D-080); the D-143 extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
@@ -307,10 +343,10 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139); the D-143 pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2; the D-142 Config SHA3-256 line in the common header block — 18 lines, both reports); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (D-141: strict array, bit-exact per position, @validate_call on both factories) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point; D-079/D-080); the D-143 regab_allow_duplicate field (default True) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
+| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point; D-079/D-080); the D-143 regab_allow_duplicate field (default True); the D-145 high_performance_fg flag (default False) | 14/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098); the LZ4 default (D-139) | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
-| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract); closed (D-093/D-094) | 8/0/0 | docs/src/reversi/lm/hlp_gradient.md |
+| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract; D-145: the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag); closed (D-093/D-094/D-145) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
@@ -333,9 +369,9 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro) + the full saved-model round-trip; the A2050 chain VLONG-gated (~1 min since D-145, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins; D-145: the HP-trajectory re-pin (A2030 71 iters, A2050 356 iters, the w_dense sha3 + EF + report-hash pins, the size bands) | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
-| src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
+| src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094; D-145: the 2 no-DB flag-wiring tests) | 4/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
 | src/reversi/test/test_wrk_optimize.py | complete: the OPTIMIZE worker suite (D-096) | 3/0/0 | docs/src/reversi/test/test_wrk_optimize.md |
 | src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080); the D-143 TestLMWorkerPositionsDuplicates (the duplicate policy + the post-policy cache) | 12/0/0 | docs/src/reversi/test/test_wrk_positions.md |
@@ -349,10 +385,10 @@ One row per test file, alphabetical.
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
 | src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130); the D-143 no-DB micro tier (11 tests: dedup + overlap) | 48/0/0 | docs/src/reversi/test/test_regab.md |
-| src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
+| src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080; D-145: the flag test) | 14/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
 | src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite (D-090, +2 with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |
 | src/reversi/test/test_hlp_generate.py | complete: the GENERATE data suite (D-097/D-098, +2 with D-139) | 16/0/0 | docs/src/reversi/test/test_hlp_generate.md |
-| src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1) | 8/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
+| src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1; D-145: the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers) | 14/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |

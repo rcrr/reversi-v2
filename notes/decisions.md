@@ -1286,3 +1286,158 @@ D-144 | 2026-09-09 | C2 (the parked D-142 follow-up): the
         test_lm_worker_full_chain.md (9 tests, the
         D-144 pins); overview.md + the session-33
         journal extended.
+
+D-145 | 2026-09-09 | I-013 O1 (the first of the fg
+        optimization options): the
+        high_performance_fg flag + the numba K3 fg
+        kernel (Roberto: "Facciamo solo O1 in questo
+        modulo. Fatto finito, fatto checkin ... e poi
+        miglioriamo anche lbfgs on O2, quindi la tua
+        proposta. ... I config rlm_03/rlm_04 a true
+        (gli altri no): OK, perfetto. Procedi!").
+        RULINGS on the analysis
+        (notes/analyses/optimize_performance.md):
+        keep the current hlp_gradient_compute
+        ("perche' per ora e' proven e tutto sommato e'
+        'leggibile'"); add a high_performance flag,
+        default false ("con false la funzione ritorna
+        l'implementazione attuale. Con true, ritorna
+        la nuova versione di fg sviluppata con le
+        tecniche ed idee di O1 e O2. Ben documentata");
+        tests verify the two functions are equivalent
+        ("test breve") and leave a test for classic;
+        the PIPELINE defaults to high_performance
+        true; and a config parameter inside
+        optimization ("high_performance_fg: boolean,
+        default=false").
+        | Design: (1) hlp_config_schemas.py —
+        OptimizationConfig gains high_performance_fg:
+        bool = Field(default=False, ...) (the
+        one-line schema change; the config dump gains
+        the field, the D-144 embedded provenance +
+        the D-142 fingerprint move with it — the
+        re-pin is expected and accepted); (2)
+        hlp_gradient.py (91 → 179 lines) —
+        hlp_gradient_compute(ctx,
+        high_performance=False): False → the classic
+        closure VERBATIM (the D-094 shape kept —
+        Roberto's ruling); True → the K3 kernel:
+        _hp_fg_kernel (@njit(parallel=True,
+        cache=True), the house numba idiom as in
+        board.py / pattern.py) — one streaming pass
+        over X, prange over T = 8 FIXED row-blocks
+        (_HP_BLOCKS), each block accumulates into its
+        PRIVATE f64 g-buffer + f64 partial norm
+        (race-free: numba 0.67 has no CPU atomics,
+        CUDA-only — verified); fg_hp: buffer clear +
+        one kernel call + the fixed-order final
+        numpy reduction (f64) → float32 (the R1
+        (D-093) contract preserved for BOTH
+        variants); the returned closure carries a
+        high_performance bool attribute (the variant
+        marker, pinned by the tests + the probes);
+        (3) wrk_gradient.py (62 → 64 lines) — _up
+        reads ctx.cfg.optimization.high_performance_fg
+        and passes it, the log line names the built
+        variant; (4) rlm_03.json + rlm_04.json gain
+        "high_performance_fg": true (the two full-
+        chain fixtures — Roberto's ruling; rlm_00-02
+        and all production configs keep the default
+        False).
+        | Why K3 (the study's kernel ladder): K0
+        classic 735 ms/call (1.00×); K_np pure-
+        numpy per-column 606 (1.21×); K1 numba fused
+        forward + original tail 448 (1.64×); K1c
+        per-column tail 319 (2.31×); K2s serial
+        single-pass 203 (3.63×); K3 block-parallel
+        single-pass 52.3 ms f32-accum (14.1×) /
+        46.0 ms f64-accum (16.1×) — the production
+        choice: the f64 per-block accumulators track
+        the float64 reference to ~1e-12 rel (the
+        f32-accum showed ~3.2e-06 abs) at +4.3
+        ms/call. Structural win: NO M×P temporary
+        (the classic allocates the gather result +
+        the bincount weight buffer, 384 MB each at
+        A2050 scale); X read once, row-contiguous;
+        w + the T×N f64 buffers L2-resident.
+        | Determinism (the load-bearing argument):
+        the block split is fixed (T = 8 regardless
+        of the thread count) and the final
+        accumulation order is fixed (block order),
+        so the result is bit-identical across runs
+        and machines — the 2nd-instance byte-
+        identity contract holds (the full-chain
+        second-instance test passes on the HP path;
+        test_hp_deterministic pins the bit-identity
+        directly). The f32 ROUNDING ORDER differs
+        from the classic (a few ulps on f and g), so
+        the L-BFGS trajectory shifts slightly:
+        A2050 397 → 356 iters, f 1.4444034e-03 →
+        1.4453826e-03 (Δrel 0.07%), both
+        CONVERGED_MIN_GRAD with g_norm < 1e-05;
+        A2030 67 → 71 iters. The mid-run flag
+        switch is numerically sound (same
+        objective; the resume re-evaluates f fresh)
+        — no new checkpoint-invalidation rule.
+        | Verification: (a) no-DB — the 14-test
+        test_hlp_gradient (the 6 new
+        TestHighPerformanceFg: the exact zero-
+        weights goldens via the kernel at M = 3 < T =
+        8 (the empty blocks), the nonzero full math
+        vs the independent float64 re-derivation at
+        M = 5000, the classic-vs-HP equivalence
+        rtol 1e-5, the f32 contract, the
+        determinism, the markers) + the 2 no-DB
+        TestGradientFlagWiring tests (the worker
+        flag wiring on a Context-subclass mock) +
+        the schema test; (b) the exact re-
+        profiling (the new baseline): the A2050
+        full chain on a fresh base dir, per-level
+        timing — OPTIMIZE 26.9 s (356 iters) vs
+        321.3 s classic (11.9×), the whole chain
+        52.0 s vs ~350 s (6.7×); the two-loop
+        recursion is now the second cost center:
+        0.023 s/iter × 356 ≈ 8.2 s ≈ 30% of the HP
+        OPTIMIZE (the O2 motivation); (c) the full
+        suite: 734 tests, 0 failures (VLONG: the
+        A2030 + A2050 full chains on the HP path,
+        the second-instance determinism, the EF
+        bit-exact pins) + the verify probes
+        re-pinned (verify_gradient A1/A9/A12/A14-
+        A15 + B1/B5 + C1/C5/C11 + G1/G2/G9;
+        verify_optimize E4b; verify_save C5 + the
+        band comments).
+        | Goldens re-pinned (the D-145 set): the
+        full-chain A2030 + A2050 (the metric
+        dicts, the opt iters/f/g_norm, the w_dense
+        sha3 90ca05a3... / 82b329dd..., the EF
+        pins, the two report hashes a9642167... /
+        695c151b..., the console metric rows, the
+        size bands 22800-22900 / 516300-516500, the
+        "Substitution Delta" sign flip -0.00 → 0.00);
+        the position-based goldens did NOT move
+        (pop statistics, feature-set hash, iwmap
+        offsets). The config dump gains one field
+        per model file (the D-144 embedded
+        provenance) — the size bands widened
+        accordingly (the D-144 precedent: the band
+        absorbs the LZ4 match jitter + the content
+        shift).
+        | Notes: the m negative result (m=20/10 do
+        not converge in 500 iters and are slower —
+        m=93 is load-bearing) closed O4; O2 (the
+        numba two-loop in opt_lbfgs, the ~8.2 s)
+        stays the next candidate, its own decision
+        (D-146) after the re-baseline. O3 (the pure-
+        numpy per-column variant, 1.21×) was
+        considered and not chosen (K3 is 34× faster
+        at the same determinism level).
+        | Docs: hlp_gradient.md (the dual-variant
+        architecture + the determinism argument +
+        the perf table + the pointer to the study),
+        wrk_gradient.md (the flag wiring),
+        hlp_config_schemas.md (the field), the four
+        test mirrors; the analysis stays at
+        notes/analyses/optimize_performance.md as
+        the pipeline documentation reference
+        (Roberto: keep it).

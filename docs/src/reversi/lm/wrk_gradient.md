@@ -1,11 +1,13 @@
 # reversi/lm/wrk_gradient.py
 The GRADIENT worker of the LM pipeline: builds the loss/gradient
-closure in `_up` (`ctx.fg = hlp_gradient_compute(ctx)`) and clears
-it in `_down`. The SECOND non-cache level (after ZED): the comment
-at L48 documents the on-the-fly choice — "GRADIENT building is a
-closure generation, very fast. No cache needed." No cache_manager
-wiring, no rlmwf_07* / rlmwf_08* file ever.
-> State: D-094 · 34442b2 · 2026-09-01 · suite 2/0/0 (2 DB-gated)
+closure in `_up` (reading the `high_performance_fg` config flag —
+I-013, D-145 — and passing it to `hlp_gradient_compute`) and
+clears it in `_down`. The SECOND non-cache level (after ZED): the
+comment at L48 documents the on-the-fly choice — "GRADIENT
+building is a closure generation, very fast. No cache needed." No
+cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
+> State: D-145 · I-013 · 2026-09-09 · suite 4/0/0 (2 DB-gated +
+2 no-DB flag-wiring tests)
 
 ## API
 
@@ -23,8 +25,11 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 - `_up`: INFO "Building gradient and loss function (fg)..." →
   the by-design comment (L48: "GRADIENT building is a closure
   generation, very fast. No cache needed.") →
-  `ctx.fg = hlp_gradient_compute(ctx)` → INFO "Gradient function
-  generated."
+  `high_performance = ctx.cfg.optimization.high_performance_fg`
+  → `ctx.fg = hlp_gradient_compute(ctx,
+  high_performance=high_performance)` → INFO "Gradient function
+  generated (high_performance: {True|False})." (the log line
+  names the built variant — I-013).
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg =
   None`.
 - The house-style triple blank lines (before `__all__` and
@@ -36,15 +41,20 @@ wiring, no rlmwf_07* / rlmwf_08* file ever.
 Pinned by the `probes/verify_gradient.py` B + C + D + E + G
 tiers + the 2-test suite.
 
-- Source shape (probe B1-B9): the 62-line file, `__all__ =
+- Source shape (probe B1-B9): the 64-line file, `__all__ =
   ['wrk_gradient']`, the factory WITH `@validate_call` +
   the pydantic import (T2), NO cache_manager import (the L48
-  by-design comment pinned), `_up` sets `ctx.fg`, `_down` clears
-  it, `Worker("GRADIENT", ...)`.
-- The worker-test source shape (probe C1-C10): the 142-line
-  file, the 1 class / 2 tests, the gate (T5), the D-085 idiom
-  (T6), the step pins, the 4 goldens, the _down test (T7), 0
-  non-comment ws lines (T8).
+  by-design comment pinned), `_up` reads the
+  `high_performance_fg` flag, sets `ctx.fg` (passing the flag)
+  and logs the variant, `_down` clears it,
+  `Worker("GRADIENT", ...)`.
+- The worker-test source shape (probe C1-C11): the 182-line
+  file, the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
+  the no-DB TestGradientFlagWiring pair), the gate (T5), the
+  D-085 idiom (T6), the step pins, the 4 goldens, the _down
+  test (T7), the wiring test (C11: the worker + the
+  Context-subclass mock + the marker pin), 0 non-comment ws
+  lines (T8).
 - The full pipeline through GRADIENT (live DB, probe D0 +
   D5-D10 + D12, rlm_02 — 199952 positions): the pipeline
   bootstrap (the move to GRADIENT runs the whole chain); alpha +
@@ -56,12 +66,15 @@ tiers + the 2-test suite.
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg`
   field pre-declared; scipy in pyproject.toml + in the venv; the
   `ridge_regularization` field; the rlm_02 config.
-- The dedicated suite (probe G1-G8): the 169-line file, 2
-  classes / 8 tests, no DB wiring, the goldens pinned.
+- The dedicated suite (probe G1-G9): the 272-line file, 3
+  classes / 14 tests, no DB wiring, the goldens pinned (the
+  TestHighPerformanceFg class: the equivalence, the f32
+  contract, the determinism, the markers).
 - The live goldens (DB-gated): `test_generate_gradient` (the 4
-  pinned values at w=0) + `test_down_clears_gradient` (the
-  step-7 / "ZED" / fg-None pin) — `test_wrk_gradient.py`
-  (2 tests, both DB-gated since D-094 T5).
+  pinned values at w=0, rlm_02 → the classic path) +
+  `test_down_clears_gradient` (the step-7 / "ZED" / fg-None
+  pin) — `test_wrk_gradient.py` (the 2 DB-gated tests since
+  D-094 T5 + the 2 no-DB flag-wiring tests since D-145).
 
 ## Open issues
 

@@ -102,7 +102,7 @@ I-012 | idea | Pipeline level order: evaluate moving FEATURES
         pipeline. The comment is left as-is in the test for now.
         To be evaluated as a line-by-line pipeline change.
 
-I-013 | performance | Study whether the GRADIENT fg closure can be
+I-013 | in-progress | Study whether the GRADIENT fg closure can be
         sped up (raised 2026-09-01, session 25, during the D-094
         R1 discussion): Roberto believes the closure is (or will
         be) the pipeline bottleneck for large models — "Quando
@@ -116,6 +116,34 @@ I-013 | performance | Study whether the GRADIENT fg closure can be
         evaluated only after the pipeline is complete (I-013 is
         the post-pipeline performance study); the float32 return
         contract (D-094 R1) is a constraint on any rewrite.
+        STUDIED (session 34, 2026-09-09/10, pipeline complete):
+        confirmed — fg = 96-99% of the A2050 OPTIMIZE time (418 fg
+        calls × 732 ms in the 318 s production run; cProfile 99.3%).
+        The two M×P temporaries per call (gather result + bincount
+        buffer, 384 MB each) are the waste. A block-parallel
+        numba single-pass kernel (K3: 8 fixed row-blocks, private
+        f64 g-buffers, fixed final order — race-free and
+        run-deterministic, numba 0.67 has no CPU atomics) measured
+        46 ms/call and, run to full A2050 convergence: 321.3 s →
+        25.3 s (12.7×), same CONVERGED_MIN_GRAD, Δf rel 0.07%
+        (goldens re-pin required). Negative result: m=93 is
+        load-bearing (m=20/10 do not converge in 500 iters and are
+        slower). Full report: notes/analyses/optimize_performance.md.
+        O1 SHIPPED (D-145, 2026-09-09, Roberto's ruling: "Facciamo
+        solo O1 in questo modulo. Fatto finito, fatto checkin ...
+        poi miglioriamo anche lbfgs on O2 ... I config rlm_03/rlm_04
+        a true (gli altri no) ... Procedi!"): the
+        high_performance_fg config flag (default false) + the K3
+        numba kernel in hlp_gradient (the classic path kept
+        verbatim) + the wrk_gradient wiring; rlm_03/rlm_04 opt in;
+        the A2050 re-baseline: OPTIMIZE 26.9 s (11.9×), chain
+        52.0 s (6.7×); the A2050 trajectory 356 iters / f
+        1.4453826e-03 (Δrel 0.07% vs the classic). O2 (the numba
+        two-loop in opt_lbfgs — now ≈ 8.2 s ≈ 30% of the HP
+        OPTIMIZE) is the next candidate: a separate change +
+        decision (D-146) against the O1 baseline. O3 (the pure-
+        numpy 1.2× variant) considered, not chosen. O4 closed by
+        the m negative result.
 
 I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE
         level from the checkpoint's warm weights (raised 2026-09-01,

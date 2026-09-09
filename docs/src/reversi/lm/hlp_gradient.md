@@ -5,18 +5,23 @@ init validation, NO hash (unlike every other rlm_* level). Two
 public names: `sigmoid` (the scipy `expit` wrapper) +
 `hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates
-the normalized loss and gradient). The 9th active level (CREATED
+the normalized loss and gradient). TWO fg variants (I-013, D-145):
+the classic vectorized-numpy closure (the default, kept verbatim)
+and the high-performance numba single-pass kernel (K3, selected by
+the `high_performance` flag). The 9th active level (CREATED
 sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
 DESIGN_MTR → ZED → GRADIENT) and the SECOND non-cache level (after
 ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
-> State: D-094 · 34442b2 · 2026-09-01 · suite 8/0/0
+> State: D-145 · I-013 · 2026-09-09 · the fg is 3.6×-16× faster
+(depending on scale) on the high-performance path; the A2050
+full chain drops from ~350 s to ~52 s.
 
 ## API
 
 | name | contract |
 |---|---|
 | `sigmoid(x)` | the scipy `expit` wrapper — NO `@validate_call` (the hot-loop call, left as-is by Roberto) |
-| `hlp_gradient_compute(ctx)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))` |
+| `hlp_gradient_compute(ctx, high_performance=False)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))`. `high_performance=False` (default) → the classic closure; `True` → the numba kernel closure. The returned closure carries a `high_performance` bool attribute identifying the variant. |
 
 ## Architecture
 
@@ -26,80 +31,178 @@ ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
   `1 / (1 + exp(−x))` is what it replaced; expit's stability
   advantage is at extreme x (where the naive `np.exp(−x)`
   overflows).
-- `hlp_gradient_compute`: NO `@validate_call` (the L52
-  no-validation note — the hlp_indexes L166 class, the D-094 T3
-  fix). Captures: `N = len(ctx.w)`, `X = ctx.design_matrix`,
-  `M, P = X.shape` (M = positions), `X_flat = X.ravel()`,
-  `z = ctx.z`, `alpha = ctx.cfg.stat_model.ridge_regularization
-  / M`. Pre-allocated buffers (the D-094 perf shape):
-  `bincount_weights_buffer = np.empty(M*P, float32)` + the
-  `(M, P)` view.
-- The `fg(w)` closure body: `linear_predictor = np.sum(w[X],
-  axis=1)` (the w-INDEX sum — NOT `X @ w`); `zh =
-  sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`;
-  the normalized loss `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)` (MSE +
-  ridge, /M-normalized for dataset-size-independent convergence
-  criteria); the normalized gradient `g = bincount(X_flat,
-  weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
-  `return np.float32(f), g.astype(np.float32, copy=False)` — the
-  R1 (D-093, fixed in D-094) cast: the return type says float32,
-  so both outputs are float32 (the behaviour change Roberto
-  chose).
+- `hlp_gradient_compute`: NO `@validate_call` (the no-validation
+  note — the hlp_indexes L166 class, the D-094 T3 fix). Captures:
+  `N = len(ctx.w)`, `X = ctx.design_matrix`, `M, P = X.shape`
+  (M = positions), `z = ctx.z`, `alpha =
+  ctx.cfg.stat_model.ridge_regularization / M`.
+
+### The classic variant (the default — kept verbatim, I-013)
+
+  - Pre-allocated buffers (the D-094 perf shape):
+    `bincount_weights_buffer = np.empty(M*P, float32)` + the
+    `(M, P)` view.
+  - The `fg(w)` closure body: `linear_predictor = np.sum(w[X],
+    axis=1)` (the w-INDEX sum — NOT `X @ w`); `zh =
+    sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`;
+    the normalized loss `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)` (MSE +
+    ridge, /M-normalized for dataset-size-independent convergence
+    criteria); the normalized gradient `g = bincount(X_flat,
+    weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
+    `return np.float32(f), g.astype(np.float32, copy=False)` — the
+    R1 (D-093, fixed in D-094) cast: the return type says float32,
+    so both outputs are float32 (the behaviour change Roberto
+    chose).
+  - Kept as the default by Roberto's ruling (I-013): "proven e
+    tutto sommato 'leggibile'".
+
+### The high-performance variant (I-013 K3, D-145)
+
+  - `_hp_fg_kernel` (`@njit(parallel=True, cache=True)`, the
+    house numba idiom as in board.py / pattern.py): ONE streaming
+    pass over the design matrix rows, `prange` over `T = 8` FIXED
+    row-blocks (`_HP_BLOCKS`). Per row: the f32 w-INDEX sum `acc`
+    (gather), `zhv = 1/(1+exp(−acc))` (f32, the same sigmoid
+    math), `rn = zhv − z[i]`, `vv = zhv·(1−zhv)·rn`; the row's
+    `vv` is scattered into the block's PRIVATE f64 gradient buffer
+    `g_blocks[b]`, and `rn²` is accumulated in the block's f64
+    partial norm `norm_blocks[b]`.
+  - No M×P temporary is ever materialized (the classic path
+    allocates two ~384 MB temporaries per call at A2050 scale: the
+    gather result + the bincount weight buffer). X is read once,
+    row-contiguous (L2-friendly); w (311 KB at A2050) and the
+    T×N f64 buffers (~2.5 MB at A2050) are L2-resident.
+  - `fg_hp(w)`: clears the two private buffers, one kernel call,
+    then the fixed-order final reduction in numpy: `f =
+    0.5·(Σ_b norm_blocks[b]/M + alpha·w·w)` (f64) → float32;
+    `g = (Σ_b g_blocks[b])/M + alpha·w` (f64) → float32.
+  - RACE-FREE without atomics: numba 0.67 has NO CPU atomics
+    (CUDA-only) — each prange block writes only to its own
+    private buffer; the cross-block reduction happens in numpy
+    after the kernel.
+  - RUN-DETERMINISTIC by construction: the block split is fixed
+    (T = 8 regardless of the thread count) and the final
+    accumulation order is fixed (block order 0..T−1), so the
+    result is bit-identical across runs and machines — the
+    2nd-instance byte-identity contract holds (the
+    `test_hp_deterministic` test + the full-chain determinism
+    tests pin it). The float32 rounding ORDER differs from the
+    classic path (a few ulps on f and g), so a run with the HP
+    variant follows a slightly different — but mathematically
+    equivalent — L-BFGS trajectory (the A2050 trajectory: 356
+    iters / f = 1.4453826e-03 vs the classic 397 iters /
+    f = 1.4444034e-03 — Δrel 0.07%, both converged, both
+    g_norm < 1e-05).
+  - M < T edge: empty blocks (i0 = i1) — exercised by design in
+    the unit tests (M = 3 mock).
+  - First call compiles the kernel (~1-3 s, `cache=True` →
+    `__pycache__`).
 
 ## Verified invariants
 
-Pinned by the 54-call `probes/verify_gradient.py` +
-`test_hlp_gradient.py` (8 tests, no DB) +
-`test_wrk_gradient.py` (2 DB-gated tests).
+Pinned by the `probes/verify_gradient.py` probe +
+`test_hlp_gradient.py` (14 tests, no DB, 3 classes) +
+`test_wrk_gradient.py` (2 DB-gated tests + 2 no-DB flag-wiring
+tests).
 
-- Source shape (probe A1-A13): 91 lines, the 2-name `__all__`,
-  the expit import, the no-validation note (L52), the captures
-  (L60-65), the buffers (L68-69), the fg body (L71-89), the R1
-  return (L89), 0 non-comment trailing-whitespace lines.
-- The worker file shape (probe B1-B9): 62 lines, the factory WITH
+- Source shape (probe A1-A15): 179 lines, the 2-name `__all__`,
+  the expit + numba imports, the no-validation note (L104), the
+  `_HP_BLOCKS = 8` constant, the kernel def (prange + private
+  f64 buffers), the flag + the variant marker attributes, 0
+  non-comment trailing-whitespace lines.
+- The worker file shape (probe B1-B9): 64 lines, the factory WITH
   `@validate_call` + the pydantic import (T2), NO cache_manager
-  import (the L48 by-design comment pinned), `_up` sets `ctx.fg`,
-  `_down` clears it, `Worker("GRADIENT", ...)`.
+  import (the by-design comment pinned), `_up` reads
+  `ctx.cfg.optimization.high_performance_fg` and passes it to
+  `hlp_gradient_compute` (the log line names the variant),
+  `_down` clears `ctx.fg`, `Worker("GRADIENT", ...)`.
 - The live-DB golden re-derivation (probe D0 + D5-D10 + D12,
-  rlm_02 — 199952 positions): the pipeline bootstrap through
-  GRADIENT; alpha + clipping; f(w=0) + g(w=0) re-derived
-  (independent float64, the float32 R1 pin); f+g at w ≠ 0
-  (ridge); the closure stateless (2 calls); NO rlmwf_07*/08*
-  files; the feature set (8 instances).
+  rlm_02 — 199952 positions, the rlm_02 config has NO flag →
+  the classic path): the pipeline bootstrap through GRADIENT;
+  alpha + clipping; f(w=0) + g(w=0) re-derived (independent
+  float64, the float32 R1 pin); f+g at w ≠ 0 (ridge); the
+  closure stateless (2 calls); NO rlmwf_07*/08* files; the
+  feature set (8 instances).
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg` field
   pre-declared; scipy in pyproject.toml (T1) + in the venv
   (1.18.1); the StatModelConfig `ridge_regularization` field
   (`ge=0.00`); the rlm_02 config.
-- The unit suite (8 tests, no DB): the sigmoid goldens/symmetry;
-  the mock compute (the exact zero-weights goldens, the nonzero
-  full math vs the independent float64 re-derivation, the /M
-  scaling, the minlength empty-bucket pin, the R1 dtype pins, the
-  statelessness).
+- The unit suite (14 tests, no DB): the sigmoid goldens/
+  symmetry; the classic mock compute (the exact zero-weights
+  goldens, the nonzero full math vs the independent float64
+  re-derivation, the /M scaling, the minlength empty-bucket
+  pin, the R1 dtype pins, the statelessness); the
+  TestHighPerformanceFg class (6 tests): the same zero-weights
+  goldens via the HP path (M = 3 < T = 8, the empty blocks),
+  the nonzero full math vs the float64 re-derivation (M = 5000,
+  ~1e-9 tracking), the classic-vs-HP equivalence (rtol 1e-5),
+  the R1 dtype contract, the bit-identical determinism, the
+  variant markers.
 - The live goldens (DB-gated, `test_wrk_gradient.py`): the
-  4 pinned values at w=0 on the 199952-position rlm_02 — the
-  single source of truth after the step-3 class c deletions (D1-
-  D4 + D11 to the worker test, E2/E3 to the hub).
+  4 pinned values at w=0 on the 199952-position rlm_02 (the
+  classic path — rlm_02 has no flag); the no-DB
+  TestGradientFlagWiring class (2 tests): the worker reads
+  the flag (a Context-subclass mock) and builds the matching
+  variant (the marker pin).
+- The full-chain goldens (`test_lm_worker_full_chain.py`):
+  A2030 (rlm_04, flag true) + A2050 (rlm_03, flag true)
+  re-pinned to the HP trajectories (the A2050: 356 iters,
+  CONVERGED_MIN_GRAD, f = 1.4453826e-03, g_norm =
+  7.973910e-06, the w_dense sha3 82b329dd..., the EF pins;
+  the A2030: 71 iters, the w_dense sha3 90ca05a3...). The
+  second-instance determinism tests (the in-run byte-identity
+  contract) pass on the HP path.
+
+## Performance (I-013, the A2050 production scale)
+
+Measured on the real A2050 data (M = 1,999,179, P = 48,
+N = 77,943; 8 cores; the study:
+`notes/analyses/optimize_performance.md`):
+
+| kernel | fg/call | × |
+|---|---:|---:|
+| classic (K0, the pre-I-013 fg) | 735 ms | 1.00 |
+| K3 f32 accum | 52.3 ms | 14.1 |
+| **K3 f64 accum (production)** | **46.0 ms** | **16.1** |
+
+End-to-end (A2050 full chain, VLONG): OPTIMIZE 321.3 s →
+26.9 s (11.9×); the whole chain ~350 s → 52.0 s (6.7×).
+The f64 per-block accumulators are the production choice:
+f tracks the float64 reference to ~1e-12 rel (the f32
+accumulation showed ~3.2e-06 abs), at a +4.3 ms/call cost —
+negligible against the 732 ms classic baseline.
 
 ## Open issues
 
-None.
+- The two-loop recursion in `opt_lbfgs.py` is now the second
+  cost center (≈ 8.2 s of the 26.9 s HP OPTIMIZE, ~30%): the
+  I-013 O2 numba two-loop is the next candidate (a separate
+  change + decision, D-146, after the O1 re-baseline).
 
 ## Conventions
 
 - The R1 float32 return contract (D-093 → D-094): the NEXT level
-  (OPTIMIZE) sees both `f` and `g` as float32.
-- The linear predictor is `np.sum(w[X], axis=1)` — the w-INDEX
-  sum (each X cell is a w-index), NOT `X @ w`.
+  (OPTIMIZE) sees both `f` and `g` as float32 — for BOTH variants.
+- The linear predictor is the w-INDEX sum (each X cell is a
+  w-index), NOT `X @ w` — in both variants.
 - The /M normalization: both the MSE and the ridge terms are
   scaled by 1/M — the optimizer's convergence criteria are
   dataset-size independent (pinned directly by the ridge_scaling
   test).
+- The `high_performance_fg` config flag (I-013, D-145): the
+  default is FALSE (the classic path) everywhere; rlm_03.json
+  and rlm_04.json opt in (the two full-chain test configs —
+  Roberto's ruling). The flag is read by the GRADIENT worker
+  only; a mid-run switch is numerically sound (same objective,
+  the resume re-evaluates f fresh).
 - M2 (left as-is): `sigmoid` stays a bare wrapper (no
   `@validate_call`) — hot-loop performance.
 - M4 (left as-is, the worker file): the triple blank lines are
   the canonical pattern of all 8 worker files (house style).
-- The scipy `expit` is the only special-function dependency of
-  the pipeline (scipy in pyproject.toml since D-094 T1).
+- The scipy `expit` is the classic path's only
+  special-function dependency (scipy in pyproject.toml since
+  D-094 T1); the HP path computes the sigmoid inline in f32
+  (the kernel must be self-contained for numba).
 
 ## Integration
 
@@ -108,7 +211,8 @@ None.
   (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32
   weight vector, W = total weights; 2981 on live rlm_02; the
   OPTIMIZE level later overwrites it with the optimized values)
-  + `ctx.cfg.stat_model.ridge_regularization` (CONFIG).
+  + `ctx.cfg.stat_model.ridge_regularization` (CONFIG) +
+  `ctx.cfg.optimization.high_performance_fg` (CONFIG, I-013).
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE
   level. The flat-file numbering stops at rlmwf_06_DESIGN_MTR —
   the next cache level (OPTIMIZE) takes rlmwf_08 (07 is skipped,

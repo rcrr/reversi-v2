@@ -21,36 +21,43 @@ the read-back gains the config provenance pins; the v1 guard
 message "expected '1' or '2'"; `test_config_record_sidecar`
 CONVERTED to `test_config_provenance_single_source` — the D-142
 record retired — and the new no-DB `TestModelWeightsV2` micro
-tier).
-> State: D-144 · 2026-09-09 · suite 9/0/0 (2 ungated read guards +
-  3 ungated D-144 v2 micro + 4 DB-gated (LONG); A2050
-  additionally VLONG-gated, ~10 min, D-130)
+tier); re-pinned at D-145 (I-013: rlm_03 + rlm_04 now opt into
+`high_performance_fg` — the numba fg — so BOTH full chains follow
+the HP L-BFGS trajectories: A2030 71 iters (was 67), A2050 356
+iters (was 397); every model-dependent golden moved by the
+trajectory shift, the position-based goldens (pop statistics,
+feature-set hash, iwmap offsets) are untouched; the A2050 chain
+drops from ~10 min to ~1 min).
+> State: D-145 · I-013 · 2026-09-09 · suite 9/0/0 (2 ungated read
+  guards + 3 ungated D-144 v2 micro + 4 DB-gated (LONG); A2050
+  additionally VLONG-gated, ~1 min since D-145, D-130)
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestFullChainA2030` (rlm_04 = "Short-Long Test 04": EDGE + LMC + intercept, bid [6] train 199932 / bid [5] vld 20000, cut 10, ec 20; setUp: the SKIP_REGAB_DB gate FIRST (T5a), stdout suppressed, `mkdtemp` under `CUSTOM_TMP_BASE`, the WORKSPACE_ROOT-anchored rlm_04.json, the model at `base_dir_override`) | 3 | `test_full_worker_chain`: `move_to_last()` + step/worker pin (14 / SAVE), then the goldens — the f64 metrics via assert_close (D-127), the f32-quantized + hash pins exact — vld 7-key (loss 0.00575742032378912, rmse_y 14.015637397766113, mae_y 11.048789978027344, mse_y 196.43809509277344, mse_z 0.01151484064757824, mae_z 0.0845922976732254, samples 20000), train 7 + the dense 4-key dict (D-105/M2 — cut 10, 1923/199932 positions touch IC: dense rmse 13.831248070093375, dense loss 0.005606927908957004), pop 4, opt (CONVERGED_MIN_GRAD, 67 iters), the v2 model file (the 22700-22800 B size band + sidecar verify — D-144: the v1 sha3 literal retired, the embedded config dump carries the run's base_dir) + version 2 on the read-back, the FULL read-back (the tps f32 truncations pinned as DISTINCT values, opt 4 keys, vld 4 keys — f32 == ctx f64 exactly, `feature_set.hash` `ec4f15374a00b729629d62ee0eb4354cbf163950672b7a9db9f81375e40559ef`, `iwmap_feature_offset` [0,1,66,6627] u32, `w_dense` (6627,) f32 sha3 `7ecdeba66d9f34b9396e199dd4a5933196131db497ff88fce726bcd75f1f4f37` + array equality), the D-144 embedded config provenance (mw.config_dump == the live normalized dump, mw.config_checksum == ctx.config_checksum), the log pins (VALIDATE "Validation completed. Loss (MSE/2): 5.75742032e-03" + the 2 SAVE lines), the console pins (title, "Loss (MSE/2) \| 5.6064e-03 \| 5.6069e-03 \| 5.7574e-03" (D-105/M2 3-metric row), "Population (baseline) : RMSE 26.41 MAE 21.73 Loss 2.0438e-02", "Generalization Gap (RMSE) : 0.18" (D-105/M2 — now dense-vs-dense, was 0.19 mixed), "Substitution Delta (RMSE) : 0.01", the `Config SHA3-256` line (D-142)), the file-report pins (Creation Date, the EDGE/LMC detail sections, masked hash `d44557a8efd007f4634c2949a0cf9eca60d7b38f790c2bbd1e058245a4045a2e` (D-105/M2 re-pin)), and the EF pins (6 training positions bit-exact + `ef(vld_positions[42])` = 11.932792663574219 — the O4 substitution-path pin: cut 10 + bid [5] validation make that position exercise the w_dense substitution end-to-end) + the D-141 array-EF batch pin (the vectorized EF bit-exact on the SAME 6 pinned training positions via one batch call over the full 199932-position set, dtype/shape (199932,) f32, + the vld[42] pin on the validation batch). `test_second_instance_deterministic` (T6): a third chain in the same base dir — byte-identical model file, exactly 6 "Cache successfully loaded and validated" hits (the 6 cache_manager levels — D-142: the CONFIG level writes no cache file anymore; the 7th rlmwf_ file, the OPTIMIZE checkpoint, has its own read-back), no "Extracted", no "established successfully". `test_config_provenance_single_source` (D-144, the D-142 `test_config_record_sidecar` CONVERTED): `move_to_last()` — the D-142 record `<output>.config.json` + its sidecar do NOT exist (retired: the model file is the single source), the model file's `.SHA3-256` sidecar still verifies (it now covers the v2 content), `ctx.config_checksum` == the sha3_256 of the normalized dump (the D-142 fingerprint semantics survive on the embedded fields) |
-| `TestFullChainA2050` (rlm_03 = "Long Test 03": the 11-pattern "A2050" set + LMC + intercept, bid [3] train 1999179 / bid [6] vld 199932, cut 1, ec 20 — the legacy production naming; `@skipUnless(LONG == '1')` + the same DB gate; stdout NOT suppressed — the ~10-min run narrates itself) | 1 | `test_full_worker_chain`: vld 7 EXACT (loss 0.001578879076987505, rmse_y 7.339616775512695, mae_y 5.644496440887451, mse_y 53.86997604370117, mse_z 0.00315775815397501, mae_z 0.04321568086743355, samples 199932), train 7 (loss 0.001444403431378305, samples 1999179), the dense 4-key dict (D-105/M2 — cut 1: the dense values equal the compressed ones up to the f32 `w_dense` rounding, the Substitution Delta renders "-0.00"), pop 4, opt (CONVERGED_MIN_GRAD, 397 iters), the console pins (title, "Loss (MSE/2) \| 1.4444e-03 \| 1.4424e-03 \| 1.5789e-03", "Population (baseline) : RMSE 26.42 MAE 21.76 Loss 2.0453e-02", "Generalization Gap (RMSE) : 0.32" (unchanged — cut 1 makes the gap dense-vs-dense without moving it), "Substitution Delta (RMSE) : -0.00", NOT-in: FEATURE SET SUMMARY / MOBILITY FEATURES DETAILS), the file-report pins (Creation Date, PATTERN FEATURE: XEDGE, masked hash `bc4857f1293cb88a3fffe3a2248c02731db4e2ddbb18b622c99da39d9ac5f215` (D-142 re-pin)), the v2 model file (the 516400-516500 B size band + sidecar — D-144: the v1 sha3 literal retired, as in A2030), the read-back (fs hash `2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d`, the 14-entry boundary array, w_dense (167331,) f32 sha3 `a012689f70ef8a492ce0fbf374a49e79e62f758a83fce94540a459bd28b527fc`), the D-144 embedded config provenance (mw.config_dump == the live normalized dump, mw.config_checksum == ctx.config_checksum), and the EF bit-exact on 6 training positions (cut 1: dense ≡ compressed there). NO second-instance test: it would double the ~10-min cost for the same property (the write path is fixture-independent) |
+| `TestFullChainA2030` (rlm_04 = "Short-Long Test 04": EDGE + LMC + intercept, bid [6] train 199932 / bid [5] vld 20000, cut 10, ec 20, `high_performance_fg: true` (D-145); setUp: the SKIP_REGAB_DB gate FIRST (T5a), stdout suppressed, `mkdtemp` under `CUSTOM_TMP_BASE`, the WORKSPACE_ROOT-anchored rlm_04.json, the model at `base_dir_override`) | 3 | `test_full_worker_chain`: `move_to_last()` + step/worker pin (14 / SAVE), then the goldens — the f64 metrics via assert_close (D-127), the f32-quantized + hash pins exact — vld 7-key (loss 0.005758139304816723, rmse_y 14.01651382446289, mae_y 11.048270225524902, mse_y 196.462646484375, mse_z 0.011516278609633446, mae_z 0.08458831906318665, samples 20000), train 7 + the dense 4-key dict (D-105/M2 — cut 10, 1923/199932 positions touch IC: dense rmse 13.8332856021253, dense loss 0.0056085786782205105), pop 4, opt (CONVERGED_MIN_GRAD, 71 iters), the v2 model file (the 22800-22900 B size band + sidecar verify — D-144: the v1 sha3 literal retired, the embedded config dump carries the run's base_dir; D-145: the band widened by ~42 B for the new config field + the HP w bytes) + version 2 on the read-back, the FULL read-back (the tps f32 truncations pinned as DISTINCT values, opt 4 keys, vld 4 keys — f32 == ctx f64 exactly, `feature_set.hash` `ec4f15374a00b729629d62ee0eb4354cbf163950672b7a9db9f81375e40559ef`, `iwmap_feature_offset` [0,1,66,6627] u32, `w_dense` (6627,) f32 sha3 `90ca05a3625775903d0a6e09c37d0f5827c3815738ddcd1af8d12e113b34ea75` + array equality), the D-144 embedded config provenance (mw.config_dump == the live normalized dump, mw.config_checksum == ctx.config_checksum), the log pins (VALIDATE "Validation completed. Loss (MSE/2): 5.75813930e-03" + the 2 SAVE lines), the console pins (title, "Loss (MSE/2) | 5.6081e-03 | 5.6086e-03 | 5.7581e-03" (D-105/M2 3-metric row), "Population (baseline) : RMSE 26.41 MAE 21.73 Loss 2.0438e-02", "Generalization Gap (RMSE) : 0.18" (D-105/M2 — now dense-vs-dense), "Substitution Delta (RMSE) : 0.01", the `Config SHA3-256` line (D-142)), the file-report pins (Creation Date, the masked hash `a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29` (D-145 re-pin)), the 6 EF training-position pins (bit-exact, the D-145 HP values: 0: −37.28886413574219, 1: −28.242984771728516, 7: 45.49725341796875, 123: 40.28820037841797, 999: 16.244956970214844, last: 23.315696716308594), the vld[42] scalar + array EF pins (11.917137145996094 both — the w_dense substitution path), `test_config_provenance_single_source` (D-144), `test_second_instance_deterministic` (the in-run byte-identity + 6 cache hits — passes on the HP path: the K3 kernel is run-deterministic) |
+| `TestFullChainA2050` (rlm_03 = "Long Test 03": the 11-pattern "A2050" set + LMC + intercept, bid [3] train 1999179 / bid [6] vld 199932, cut 1, ec 20 — the legacy production naming; `@skipUnless(LONG == '1')` + the same DB gate; stdout NOT suppressed — the ~1-min run (D-145) narrates itself) | 1 | `test_full_worker_chain`: vld 7 EXACT (loss 0.0015777380904182792, rmse_y 7.3369646072387695, mae_y 5.6421332359313965, mse_y 53.831050872802734, mse_z 0.0031554761808365583, mae_z 0.04319758340716362, samples 199932), train 7 (loss 0.0014453826006501913, samples 1999179), the dense 4-key dict (D-105/M2 — cut 1: the dense values equal the compressed ones up to the f32 `w_dense` rounding, the Substitution Delta renders "0.00" (D-145: the sign of the f32 residual flipped)), pop 4, opt (CONVERGED_MIN_GRAD, 356 iters), the console pins (title, "Loss (MSE/2) | 1.4454e-03 | 1.4435e-03 | 1.5777e-03", "Population (baseline) : RMSE 26.42 MAE 21.76 Loss 2.0453e-02", "Generalization Gap (RMSE) : 0.32" (unchanged — cut 1 makes the gap dense-vs-dense without moving it), "Substitution Delta (RMSE) : 0.00", NOT-in: FEATURE SET SUMMARY / MOBILITY FEATURES DETAILS), the file-report pins (Creation Date, PATTERN FEATURE: XEDGE, masked hash `695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce` (D-145 re-pin)), the v2 model file (the 516300-516500 B size band + sidecar — D-144: the v1 sha3 literal retired, as in A2030; D-145: the band widened 100 B lower for the HP w bytes), the read-back (fs hash `2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d`, the 14-entry boundary array, w_dense (167331,) f32 sha3 `82b329dd31c5ac0d2b6b5c23a15734e0f4a7f18b6fbc609ef8c445c43035cccc`), the D-144 embedded config provenance (mw.config_dump == the live normalized dump, mw.config_checksum == ctx.config_checksum), and the EF bit-exact on 6 training positions (cut 1: dense ≡ compressed there; the D-145 HP values: 0: 6.911094665527344, 5: −32.91969299316406, 123: 40.503456115722656, 555: 24.345985412597656, 9999: −19.517921447753906, last: 57.769447326660156). NO second-instance test: it would double the chain cost for the same property (the write path is fixture-independent) |
 | `TestModelWeightsReadGuards` (ungated — no DB, no model file needed) | 2 | the two `ValueError` guards of `model_weights_read_file`, built with `BinaryWriter`: wrong description → "File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found 'WRONG_DESC'."; wrong version → "File header version, expected '1' or '2', found '99'." (D-144: the reader accepts v1 AND v2) (the D-106 step-3 class-c home of the probe B1-B2 read guards) |
 
-| `TestModelWeightsV2` (D-144, ungated — no DB, the hand-crafted + SimpleNamespace idiom) | 3 | the v2 format micro tier: (1) the hand-crafted v1 file (the D-143-era layout, no config section) loads with `config_dump`/`config_checksum` None (the backward-compat reader); (2) the synthetic-ctx v2 ROUND-TRIP — `model_weights_write_file` on the SimpleNamespace ctx (the fixed-string `model_dump_json`), read back: every field + the embedded dump + the fingerprint match; (3) the v2 CORRUPTION sentinel — a stored checksum that does not cover the embedded dump → `ValueError` "Config section checksum mismatch, expected '<stored>', recomputed '<sha3>.'" |
+| `TestModelWeightsV2` (D-144, ungated — no DB, the hand-crafted + SimpleNamespace idiom) | 3 | the v2 format micro tier: (1) the hand-crafted v1 file (the D-143-era layout, no config section) loads with `config_dump`/`config_checksum` None (the backward-compat reader); (2) the synthetic-ctx v2 ROUND-TRIP — `model_weights_write_file` on the SimpleNamespace ctx (the fixed-string `model_dump_json`), read back: every field + the embedded dump + the fingerprint match; (3) the v2 CORRUPTION sentinel — a stored checksum that does not cover the embedded dump → `ValueError` "Config section checksum mismatch, expected '<stored>', recomputed '<sha3>'." |
 ## Goldens pinned
 
 - The two file-report masks (the `_masked_report_hash` helper masks the
   embedded `datetime.now()` AND the `Config SHA3-256` hex — the
   fingerprint embeds the run's base_dir, D-142 — before sha3_256, the
   D-103 pattern): rlm_04
-  `674f54e0634679d7f08e94ce353f46f533e12f9bbed730c5280c23b2436aac42`
-  + rlm_03 `bc4857f1293cb88a3fffe3a2248c02731db4e2ddbb18b622c99da39d9ac5f215`
-  (both D-142 re-pins).
-- rlm_04 gap 0.18 = 14.015637397766113 − 13.831248070093375 (dense
-  vld minus dense train; was 0.19 mixed with the compressed train
-  13.822995683195872) + Substitution Delta 0.01 =
-  13.831248070093375 − 13.822995683195872 (the 1923 IC-touching
+  `a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29`
+  + rlm_03 `695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce`
+  (both D-145 re-pins — the HP trajectories changed the report
+  content).
+- rlm_04 gap 0.18 = 14.01651382446289 − 13.8332856021253 (dense
+  vld minus dense train) + Substitution Delta 0.01 =
+  13.8332856021253 − 13.825076853665676 (the 1923 IC-touching
   positions); rlm_03 gap 0.32 (the A2050 production model
-  generalizes well: 1.99M train samples) + Delta -0.00 (cut 1: the
-  residual is the f32 `w_dense` rounding, −1.7e-07).
+  generalizes well: 1.99M train samples) + Delta 0.00 (cut 1: the
+  residual is the f32 `w_dense` rounding — the sign flipped with
+  the D-145 HP weights).
 
 ## Conventions
 
@@ -61,8 +68,9 @@ tier).
   LONG tier) → TestFullChainA2050, B1-B2 → TestModelWeightsReadGuards;
   the probe now keeps A1-A15 static + the C5 a-portion + the D0
   placeholder + the D-144 A6b (the config section leads the body, the v1|v2 guard, the corruption sentinel) (18 checks).
-- LONG gating keeps the ~10-min chain out of normal discover runs
-  (the suite stays ~3 s gated / ~40 s live).
+- LONG gating keeps the A2050 chain out of normal discover runs
+  (the suite stays ~3 s gated; since D-145 the A2050 chain is
+  ~1 min, so the live suite cost is dominated by the A2030 chain).
 - D-127: the float64 metric goldens (the vld / train / dense
   dicts + the pop statistics) are compared with assert_close
   (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
@@ -73,6 +81,12 @@ tier).
   sha3 hashes, and the int counts; the
   second-instance-determinism test stays exact (the in-run
   bit-identity contract).
+- D-145 (I-013): the position-based goldens did NOT move with the
+  HP re-pin (the training_pop_stats f64 values, the f32-truncated
+  tps read-back, the feature-set hash, the iwmap offsets, the pop
+  console row) — only the model-dependent ones (the metric dicts,
+  the opt iters/f/g_norm, the w_dense sha3, the EF values, the
+  report hashes, the console metric rows).
 
 ## Integration
 
