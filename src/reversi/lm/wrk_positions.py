@@ -38,6 +38,7 @@ from reversi.regab import (
     RegabDataSet, 
     RegabDBConnection, 
     regab_extract_data_set_from_db,
+    regab_dedup_mogv,
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file
 )
@@ -48,7 +49,7 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['wrk_positions', 'load_from_db', 'is_cache_consistent']
+__all__ = ['wrk_positions', 'load_from_db', 'extract_and_prepare', 'is_cache_consistent']
 
 
 
@@ -62,9 +63,16 @@ def _up(ctx: "LMContext") -> None:
         load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_rds: is_cache_consistent(ctx, cached_rds),
-        compute_fn  = lambda: load_from_db(ctx),
+        compute_fn  = lambda: extract_and_prepare(ctx),
         logger_fn   = ctx.log_event
     )
+
+    if cache_hit:
+        # The cached file holds the post-policy data set (the dedup is
+        # applied in the compute flow, D-143), so the duplicate count
+        # is reported from the stored content.
+        ctx.log_event(Relevance.INFO,
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {len(rds.df_mogv):,}] — data set loaded from cache (regab_allow_duplicate: {ctx.cfg.regab_allow_duplicate}).")
 
     # Post-processing (unrelated to caching logic).
     positions, game_values = rds.generate_positions_and_game_values()
@@ -174,6 +182,30 @@ def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
     finally:
         rc.close()
         ctx.log_event(Relevance.DEBUG, "Regab Database connection closed successfully.")
+
+
+def extract_and_prepare(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
+    """The compute path: extract from the DB, then apply the
+    regab_allow_duplicate policy (D-143).
+
+    The dedup runs HERE (inside the compute flow) so the cache file
+    stores the post-policy data set: a flag flip changes the stored
+    content and the rds_checksum, which invalidates the downstream
+    cache levels through the existing checksum lineage (no format
+    change). The duplicate count is logged on the compute path; the
+    cache-hit path logs the stored total (see _up).
+    """
+    rds = load_from_db(ctx, bid=bid, status=status)
+    deduped, n_total, n_duplicates = regab_dedup_mogv(rds.df_mogv)
+    pct = 100.0 * n_duplicates / n_total if n_total else 0.0
+    if ctx.cfg.regab_allow_duplicate:
+        ctx.log_event(Relevance.INFO,
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], [FOUND: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — kept (regab_allow_duplicate: True).")
+    else:
+        rds.df_mogv = deduped
+        ctx.log_event(Relevance.INFO,
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], [REMOVED: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — removed (regab_allow_duplicate: False).")
+    return rds
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

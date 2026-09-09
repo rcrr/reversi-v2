@@ -216,5 +216,95 @@ class TestIsCacheConsistent(unittest.TestCase):
         self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
 
 
+class TestLMWorkerPositionsDuplicates(unittest.TestCase):
+    """D-143: the regab_allow_duplicate policy on the live DB.
+
+    Fixture bid 8 (rlm_00): 200 records, 11 duplicate (mover,
+    opponent) keys (the structural CMS/CMR pairs — the same position
+    recorded under two statuses, identical attributes), 189 distinct."""
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
+    def setUp(self):
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+
+        # Patch stdout to keep test output clean and capture logs
+        self.patcher_stdout = patch('sys.stdout', new=StringIO())
+        self.mock_stdout = self.patcher_stdout.start()
+
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir (D-065).
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+
+    def tearDown(self):
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def _model(self, allow_duplicate: bool) -> LogisticModel:
+        """rlm_00 re-dumped with the regab_allow_duplicate flag set."""
+        d = json5.loads((WORKSPACE_ROOT / "src" / "reversi" / "test" /
+                         "data" / "rlm_00.json").read_text())
+        d["regab_allow_duplicate"] = allow_duplicate
+        cfg_path = self.tmp_dir / "rlm_00_dedup.json"
+        with open(cfg_path, "w") as f:
+            json5.dump(d, f, indent=4)
+        return LogisticModel(str(cfg_path), verbosity=Verbosity.HIGH,
+                             base_dir_override=self.tmp_dir)
+
+    def test_dedup_when_flag_false(self):
+        """regab_allow_duplicate: false — the duplicate rows are
+        removed (keep-first) and the count is logged."""
+        rlm = self._model(False)
+        rlm.move_to_step('POSITIONS')
+        ctx = rlm.context
+        self.assertEqual(len(ctx.positions), 189)
+        self.assertEqual(len(ctx.game_values), 189)
+        self.assertEqual(ctx.training_pop_stats['count'], 189)
+        logs = self.mock_stdout.getvalue()
+        self.assertIn("Duplicate game positions (key: mover, opponent): "
+                      "[TOTAL: 200], [REMOVED: 11], [PERCENT: 5.50%] "
+                      "— removed (regab_allow_duplicate: False).", logs)
+
+    def test_kept_when_flag_true(self):
+        """regab_allow_duplicate: true (the default behaviour) — every
+        row is kept and the found count is logged."""
+        rlm = self._model(True)
+        rlm.move_to_step('POSITIONS')
+        ctx = rlm.context
+        self.assertEqual(len(ctx.positions), 200)
+        self.assertEqual(len(ctx.game_values), 200)
+        self.assertEqual(ctx.training_pop_stats['count'], 200)
+        logs = self.mock_stdout.getvalue()
+        self.assertIn("Duplicate game positions (key: mover, opponent): "
+                      "[TOTAL: 200], [FOUND: 11], [PERCENT: 5.50%] "
+                      "— kept (regab_allow_duplicate: True).", logs)
+
+    def test_cache_holds_post_policy_content(self):
+        """The cache file stores the post-policy data set (the dedup
+        runs in the compute flow): a flag-false file holds the 189
+        deduplicated records, and the cache-hit path logs the stored
+        total."""
+        rlm = self._model(False)
+        rlm.move_to_step('POSITIONS')
+
+        rlm2 = self._model(False)
+        self.mock_stdout.seek(0)
+        self.mock_stdout.truncate(0)
+        rlm2.move_to_step('POSITIONS')
+        self.assertEqual(len(rlm2.context.positions), 189)
+        logs = self.mock_stdout.getvalue()
+        self.assertIn("Cache successfully loaded and validated", logs)
+        self.assertNotIn("Extracted", logs,
+                         "DB was queried even though a valid cache existed.")
+        self.assertIn("Duplicate game positions (key: mover, opponent): "
+                      "[TOTAL: 189] — data set loaded from cache "
+                      "(regab_allow_duplicate: False).", logs)
+
+
 if __name__ == '__main__':
     unittest.main()

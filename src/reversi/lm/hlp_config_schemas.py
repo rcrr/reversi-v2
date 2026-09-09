@@ -199,6 +199,16 @@ class LMConfig(LMBaseConfig):
         default="rlmwf_",
         description="Filename prefix for the level specific cache files."
     )
+    regab_allow_duplicate: bool = Field(
+        default=True,
+        description="Duplicate game positions policy (D-143). The same "
+        "(mover, opponent) key can be recorded more than once in the DB; "
+        "True (the default, the pre-existing behaviour) keeps every row, "
+        "False deduplicates keeping the first occurrence (the lowest seq). "
+        "The duplicate count is logged at the POSITIONS and VLD_POSITIONS "
+        "levels, and the validation-vs-training overlap is logged at "
+        "VLD_POSITIONS (log only, no action)."
+    )
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig

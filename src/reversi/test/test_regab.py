@@ -71,7 +71,9 @@ from reversi.regab import (RegabDBConnection,
                          regab_gp_as_df,
                          regab_extract_data_set_from_db,
                          regab_store_data_set_to_file,
-                         regab_load_data_set_from_file)
+                         regab_load_data_set_from_file,
+                         regab_dedup_mogv,
+                         regab_count_position_overlap)
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from reversi.test.tags import db_long_gate
 
@@ -692,3 +694,103 @@ class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
             regab_load_data_set_from_file(self.filename)
             
         self.assertIn("version is not consistent", str(context.exception))
+
+
+class TestRegabDedupMogv(unittest.TestCase):
+    """D-143: regab_dedup_mogv — no-DB micro tests (a few records)."""
+
+    def _df(self, rows):
+        return pd.DataFrame(rows, columns=['mover', 'opponent', 'game_value'])
+
+    def test_dedup_keeps_first_and_counts(self):
+        df = self._df([
+            (1, 10, 5),
+            (2, 20, -3),
+            (1, 10, 7),   # duplicate key (1,10) — the first row (gv 5) is kept
+            (3, 30, 0),
+            (2, 20, -3),  # duplicate key (2,20)
+        ])
+        deduped, total, removed = regab_dedup_mogv(df)
+        self.assertEqual(total, 5)
+        self.assertEqual(removed, 2)
+        self.assertEqual(len(deduped), 3)
+        # Keep-first: (1,10) keeps gv 5, not the 7 of the second row.
+        self.assertEqual(deduped.iloc[0].tolist(), [1, 10, 5])
+        self.assertEqual(deduped[['mover', 'opponent']].values.tolist(),
+                         [[1, 10], [2, 20], [3, 30]])
+
+    def test_no_duplicates_passthrough(self):
+        df = self._df([(1, 1, 1), (2, 2, 2), (3, 3, 3)])
+        deduped, total, removed = regab_dedup_mogv(df)
+        self.assertEqual(total, 3)
+        self.assertEqual(removed, 0)
+        self.assertEqual(len(deduped), 3)
+        nptest.assert_array_equal(deduped.values, df.values)
+
+    def test_all_rows_identical(self):
+        df = self._df([(1, 1, 5), (1, 1, 5), (1, 1, 5)])
+        deduped, total, removed = regab_dedup_mogv(df)
+        self.assertEqual(total, 3)
+        self.assertEqual(removed, 2)
+        self.assertEqual(len(deduped), 1)
+        self.assertEqual(deduped.iloc[0].tolist(), [1, 1, 5])
+
+    def test_same_key_different_game_value_keeps_first(self):
+        # D-143: the pipeline does NOT validate the data (Roberto's
+        # ruling) — a duplicate key with a differing game_value does
+        # not raise; the first occurrence is simply kept.
+        df = self._df([(1, 1, 5), (1, 1, -5)])
+        deduped, total, removed = regab_dedup_mogv(df)
+        self.assertEqual(removed, 1)
+        self.assertEqual(deduped.iloc[0]['game_value'], 5)
+
+    def test_empty_frame(self):
+        df = self._df([])
+        deduped, total, removed = regab_dedup_mogv(df)
+        self.assertEqual(total, 0)
+        self.assertEqual(removed, 0)
+        self.assertEqual(len(deduped), 0)
+
+
+class TestRegabCountPositionOverlap(unittest.TestCase):
+    """D-143: regab_count_position_overlap — no-DB micro tests."""
+
+    def _pos(self, movers, opponents):
+        return make_position(np.array(movers, dtype=np.uint64),
+                             np.array(opponents, dtype=np.uint64))
+
+    def test_disjoint(self):
+        a = self._pos([1, 2], [10, 20])
+        b = self._pos([3, 4], [30, 40])
+        self.assertEqual(regab_count_position_overlap(a, b), 0)
+
+    def test_partial(self):
+        a = self._pos([1, 2, 3], [10, 20, 30])
+        b = self._pos([2, 4], [20, 40])
+        self.assertEqual(regab_count_position_overlap(a, b), 1)  # only (2,20)
+
+    def test_full(self):
+        a = self._pos([1, 2], [10, 20])
+        b = self._pos([1, 2], [10, 20])
+        self.assertEqual(regab_count_position_overlap(a, b), 2)
+
+    def test_duplicate_vld_rows_counted_per_record(self):
+        # A vld key present twice and also in train counts once PER
+        # record (the count is over vld records, not distinct keys).
+        a = self._pos([1, 2], [10, 20])
+        b = self._pos([1, 1, 3], [10, 10, 30])
+        self.assertEqual(regab_count_position_overlap(a, b), 2)  # (1,10) x2
+
+    def test_duplicate_train_rows_not_overcounted(self):
+        # A train key present twice must NOT double-count one vld
+        # record (the train side is drop_duplicates'd inside).
+        a = self._pos([1, 1, 2], [10, 10, 20])
+        b = self._pos([1, 2], [10, 20])
+        self.assertEqual(regab_count_position_overlap(a, b), 2)  # not 3
+
+    def test_u64_top_bit_keys(self):
+        a = self._pos([0xFFFFFFFFFFFFFFFF, 5],
+                      [0x1E1F1E044E060C08, 7])
+        b = self._pos([0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE],
+                      [0x1E1F1E044E060C08, 0xFFFFFFFFFFFFFFFF])
+        self.assertEqual(regab_count_position_overlap(a, b), 1)  # only the FFFF pair

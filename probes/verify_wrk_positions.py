@@ -97,8 +97,8 @@ def cfg_dict_mutate(mutate=None) -> dict:
 print("--- A. structure / source pins (no DB) ---")
 import reversi.lm.wrk_positions as lp
 
-check("A1 __all__ exposes factory + 2 helpers",
-      lp.__all__ == ['wrk_positions', 'load_from_db', 'is_cache_consistent'],
+check("A1 __all__ exposes factory + 3 helpers",
+      lp.__all__ == ['wrk_positions', 'load_from_db', 'extract_and_prepare', 'is_cache_consistent'],
       repr(lp.__all__))
 w = wrk_positions()
 check("A2 factory name POSITIONS", w.name == "POSITIONS", w.name)

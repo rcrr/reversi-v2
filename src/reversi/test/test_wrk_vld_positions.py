@@ -252,5 +252,66 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
         self.assertIs(is_cache_consistent(self._ctx(), self._rds()), False)
 
 
+class TestVldIndependenceCheck(unittest.TestCase):
+    """D-143: the validation independence check (LOG ONLY, no action).
+
+    The VLD_POSITIONS worker counts how many validation records are
+    also present in the training data set and logs the trace.
+    Roberto's ruling: no threshold/quality parameter family — the
+    pipeline keeps the record and takes no action."""
+
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
+    def setUp(self):
+        # The SKIP_REGAB_DB gate — the train chain runs on the live
+        # regab DB (the vld extraction too).
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+
+        self.patcher_stdout = patch('sys.stdout', new=StringIO())
+        self.mock_stdout = self.patcher_stdout.start()
+
+        # TemporaryDirectory created FIRST so a mid-setup failure
+        # still leaves a cleanable temp dir.
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+
+    def _machine(self, fixture: str) -> LogisticModel:
+        rlm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" /
+                                "data" / fixture),
+                            verbosity=Verbosity.HIGH,
+                            base_dir_override=self.tmp_dir)
+        # VLD_POSITIONS sits after GENERATE in the pipeline (step 11):
+        # the whole train chain must have populated ctx.positions.
+        rlm.move_to_step('GENERATE')
+        self.assertEqual(rlm.current_step, 10)
+        return rlm
+
+    def tearDown(self):
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def test_zero_overlap_is_traced(self):
+        """rlm_02: train bid 6,7 / vld bid 8 — the production fixtures
+        are disjoint: 0 of 200, no action (the chain continues)."""
+        rlm = self._machine('rlm_02.json')
+        rlm.move_to_step('VLD_POSITIONS')
+        self.assertEqual(len(rlm.context.vld_positions), 200)
+        logs = self.mock_stdout.getvalue()
+        self.assertIn("Validation independence check: [OVERLAP: 0 of 200 validation records], [PERCENT: 0.00%] — records present in both the validation and the training data sets (log only, no action).", logs)
+
+    def test_full_overlap_is_traced_not_raised(self):
+        """rlm_00: train and vld are the same bid 8 extraction — 100%
+        overlap is TRACED, not raised (the log-only ruling)."""
+        rlm = self._machine('rlm_00.json')
+        rlm.move_to_step('VLD_POSITIONS')
+        self.assertEqual(len(rlm.context.vld_positions), 200)
+        logs = self.mock_stdout.getvalue()
+        self.assertIn("Validation independence check: [OVERLAP: 200 of 200 validation records], [PERCENT: 100.00%] — records present in both the validation and the training data sets (log only, no action).", logs)
+
+
 if __name__ == '__main__':
     unittest.main()

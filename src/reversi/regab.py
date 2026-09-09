@@ -54,6 +54,8 @@ __all__ = ['GameValue', 'GameValueArray',
            'regab_gp_as_df',
            'RegabDataSet',
            'regab_extract_data_set_from_db',
+           'regab_dedup_mogv',
+           'regab_count_position_overlap',
            'regab_load_data_set_from_file',
            'regab_store_data_set_to_file']
 
@@ -463,6 +465,67 @@ def regab_extract_data_set_from_db(rc: RegabDBConnection,
     df['game_value'] = df['game_value'].astype(np.int8)
     rds = RegabDataSet(rc, bid, status, ec, df)
     return rds
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def regab_dedup_mogv(df_mogv: pd.DataFrame) -> Tuple[pd.DataFrame, int, int]:
+    """
+    Remove duplicate game positions from a mogv data frame.
+
+    The key is the (mover, opponent) pair: the same position can be
+    recorded more than once in the database (e.g. under different
+    statuses), and the extraction query returns every occurrence.
+    Deduplication keeps the FIRST occurrence in frame order (the
+    extraction is ORDER BY seq, so the kept row is the lowest seq) —
+    the duplicate rows carry identical attributes, so no aggregation
+    is needed and no data is validated (the pipeline does not validate
+    the data, Roberto's ruling — D-143).
+
+    Parameters
+    ----------
+    df_mogv : pd.DataFrame
+        A data frame with the 'mover', 'opponent', 'game_value' columns.
+
+    Returns
+    -------
+    Tuple[pd.DataFrame, int, int]
+        (the deduplicated frame, the total row count, the removed row count)
+    """
+    total = len(df_mogv)
+    deduped = df_mogv.drop_duplicates(subset=['mover', 'opponent'], keep='first')
+    return deduped, total, total - len(deduped)
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def regab_count_position_overlap(positions: PositionArray,
+                                 vld_positions: PositionArray) -> int:
+    """
+    Count the records present in BOTH position sets (the validation
+    independence metric, D-143).
+
+    A vld record counts when its (mover, opponent) key is also present
+    in the training set — duplicated vld rows count once per record.
+    The result is a plain count: the pipeline takes NO action on it
+    (log only — a threshold/quality parameter family is explicitly out
+    of scope, Roberto's ruling).
+
+    Parameters
+    ----------
+    positions : PositionArray
+        The training positions (structured u64 mover/opponent).
+    vld_positions : PositionArray
+        The validation positions (structured u64 mover/opponent).
+
+    Returns
+    -------
+    int
+        The number of vld records whose key is also in the training set.
+    """
+    train = pd.DataFrame({'mover': positions['mover'],
+                          'opponent': positions['opponent']})
+    vld = pd.DataFrame({'mover': vld_positions['mover'],
+                        'opponent': vld_positions['opponent']})
+    matched = vld.merge(train.drop_duplicates(),
+                        on=['mover', 'opponent'], how='inner')
+    return len(matched)
 
 #: ### ### ###
 

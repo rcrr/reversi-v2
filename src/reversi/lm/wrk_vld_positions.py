@@ -35,11 +35,12 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.regab import (
+    regab_count_position_overlap,
     regab_load_data_set_from_file, 
     regab_store_data_set_to_file
 )
 from reversi.tools.cache_manager import cache_manager_load_or_compute
-from reversi.lm.wrk_positions import load_from_db, is_cache_consistent
+from reversi.lm.wrk_positions import extract_and_prepare, is_cache_consistent
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -67,9 +68,16 @@ def _up(ctx: "LMContext") -> None:
         load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False),
         store_fn    = regab_store_data_set_to_file,
         validate_fn = lambda cached_vld_rds: is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status),
-        compute_fn  = lambda: load_from_db(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
+        compute_fn  = lambda: extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status),
         logger_fn   = ctx.log_event
     )
+
+    if cache_hit:
+        # The cached file holds the post-policy data set (the dedup is
+        # applied in the compute flow, D-143), so the duplicate count
+        # is reported from the stored content.
+        ctx.log_event(Relevance.INFO,
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {len(vld_rds.df_mogv):,}] — data set loaded from cache (regab_allow_duplicate: {ctx.cfg.regab_allow_duplicate}).")
 
     # Post-processing (unrelated to caching logic).
     vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()
@@ -92,6 +100,16 @@ def _up(ctx: "LMContext") -> None:
         'std_dev': std_dev,
         'variance': variance
     }
+
+    # The validation independence check (D-143): how many validation
+    # records are also present in the training data set. LOG ONLY, no
+    # action (Roberto's ruling: a threshold/quality parameter family —
+    # max allowed overlap %, minimum validation size, ... — is
+    # explicitly out of scope; we keep the trace).
+    overlap = regab_count_position_overlap(ctx.positions, ctx.vld_positions)
+    overlap_pct = 100.0 * overlap / count if count else 0.0
+    ctx.log_event(Relevance.INFO,
+                  f"Validation independence check: [OVERLAP: {overlap:,} of {count:,} validation records], [PERCENT: {overlap_pct:.2f}%] — records present in both the validation and the training data sets (log only, no action).")
 
     return
 
