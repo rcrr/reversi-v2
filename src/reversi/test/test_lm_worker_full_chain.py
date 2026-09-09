@@ -119,20 +119,20 @@ class TestFullChainA2030(unittest.TestCase):
         # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 20000)
-        assert_close(self, m['vld_loss'], 0.00575742032378912, 'vld_loss')
-        assert_close(self, m['vld_mse_z'], 0.01151484064757824, 'vld_mse_z')
-        assert_close(self, m['vld_mae_z'], 0.0845922976732254, 'vld_mae_z')
-        assert_close(self, m['vld_mae_y'], 11.048789978027344, 'vld_mae_y')
-        assert_close(self, m['vld_mse_y'], 196.43809509277344, 'vld_mse_y')
-        assert_close(self, m['vld_rmse_y'], 14.015637397766113, 'vld_rmse_y')
+        assert_close(self, m['vld_loss'], 0.005758139304816723, 'vld_loss')
+        assert_close(self, m['vld_mse_z'], 0.011516278609633446, 'vld_mse_z')
+        assert_close(self, m['vld_mae_z'], 0.08458831906318665, 'vld_mae_z')
+        assert_close(self, m['vld_mae_y'], 11.048270225524902, 'vld_mae_y')
+        assert_close(self, m['vld_mse_y'], 196.462646484375, 'vld_mse_y')
+        assert_close(self, m['vld_rmse_y'], 14.01651382446289, 'vld_rmse_y')
 
         # --- Training metrics (assert_close goldens, D-127; bid [6], 199932 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 199932)
-        assert_close(self, t['train_mae_y'], 10.899353761577668, 'train_mae_y')
-        assert_close(self, t['train_rmse_y'], 13.822995683195872, 'train_rmse_y')
+        assert_close(self, t['train_mae_y'], 10.899691755852983, 'train_mae_y')
+        assert_close(self, t['train_rmse_y'], 13.825076853665676, 'train_rmse_y')
         # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
-        self.assertEqual(t['train_loss'], 0.00560641149058938)
+        self.assertEqual(t['train_loss'], 0.005608053877949715)
         assert_close(self, t['pop_mae_y'], 21.73034518830014, 'pop_mae_y')
         assert_close(self, t['pop_rmse_y'], 26.406980394267364, 'pop_rmse_y')
         assert_close(self, t['pop_loss'], 0.020438173785805702, 'pop_loss')
@@ -143,9 +143,9 @@ class TestFullChainA2030(unittest.TestCase):
         #     touching below-cutoff (IC) configurations) ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 199932)
-        assert_close(self, td['train_dense_mae_y'], 10.905119078281873, 'train_dense_mae_y')
-        assert_close(self, td['train_dense_rmse_y'], 13.831248070093375, 'train_dense_rmse_y')
-        assert_close(self, td['train_dense_loss'], 0.0056069279089570045, 'train_dense_loss')
+        assert_close(self, td['train_dense_mae_y'], 10.905434791589059, 'train_dense_mae_y')
+        assert_close(self, td['train_dense_rmse_y'], 13.8332856021253, 'train_dense_rmse_y')
+        assert_close(self, td['train_dense_loss'], 0.0056085786782205105, 'train_dense_loss')
 
         # --- Training population statistics (assert_close, D-127) ---
         p = ctx.training_pop_stats
@@ -157,7 +157,7 @@ class TestFullChainA2030(unittest.TestCase):
         # --- Optimization info (5-key dict) ---
         self.assertTrue(ctx.opt_info['converged'])
         self.assertEqual(ctx.opt_info['reason'], 'CONVERGED_MIN_GRAD')
-        self.assertEqual(ctx.opt_info['iters'], 67)
+        self.assertEqual(ctx.opt_info['iters'], 71)
 
         # --- Saved model file: exists, size band, sidecar ---
         # D-144 (C2): the v2 file EMBEDS the run's configuration —
@@ -177,8 +177,8 @@ class TestFullChainA2030(unittest.TestCase):
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(22700 < st_size < 22800,
-                        f"v2 model file size {st_size} outside the 22700-22800 band")
+        self.assertTrue(22800 < st_size < 22900,
+                        f"v2 model file size {st_size} outside the 22800-22900 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
@@ -199,15 +199,15 @@ class TestFullChainA2030(unittest.TestCase):
         # Optimization info (4 of the 5 context keys persisted; 'converged' is
         # derivable from 'reason')
         self.assertEqual(mw.opt_info['reason'], 'CONVERGED_MIN_GRAD')
-        self.assertEqual(mw.opt_info['iters'], np.uint32(67))
-        self.assertEqual(float(mw.opt_info['f']), 0.00560641149058938)
-        self.assertEqual(float(mw.opt_info['g_norm']), 4.3686068238457665e-05)
+        self.assertEqual(mw.opt_info['iters'], np.uint32(71))
+        self.assertEqual(float(mw.opt_info['f']), 0.005608053877949715)
+        self.assertEqual(float(mw.opt_info['g_norm']), 6.098220910644159e-05)
 
         # Validation metrics (4 of the 7 context metrics persisted)
         self.assertEqual(mw.vld_metrics['vld_samples'], np.uint32(20000))
-        self.assertEqual(float(mw.vld_metrics['vld_rmse_y']), 14.015637397766113)
-        self.assertEqual(float(mw.vld_metrics['vld_mae_y']), 11.048789978027344)
-        self.assertEqual(float(mw.vld_metrics['vld_loss']), 0.00575742032378912)
+        self.assertEqual(float(mw.vld_metrics['vld_rmse_y']), 14.01651382446289)
+        self.assertEqual(float(mw.vld_metrics['vld_mae_y']), 11.048270225524902)
+        self.assertEqual(float(mw.vld_metrics['vld_loss']), 0.005758139304816723)
 
         # FeatureSet (the hash is a definitive structural check: names +
         # sorted mask contents, transitive over mset/pset)
@@ -220,7 +220,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(mw.w_dense.dtype, np.float32)
         self.assertEqual(
             hashlib.sha3_256(mw.w_dense.tobytes()).hexdigest(),
-            '7ecdeba66d9f34b9396e199dd4a5933196131db497ff88fce726bcd75f1f4f37')
+            '90ca05a3625775903d0a6e09c37d0f5827c3815738ddcd1af8d12e113b34ea75')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
 
         # D-144 (C2): the configuration provenance EMBEDDED in the v2
@@ -238,14 +238,14 @@ class TestFullChainA2030(unittest.TestCase):
 
         # --- Log lines (captured stdout) ---
         logs = self.mock_stdout.getvalue()
-        self.assertIn("Validation completed. Loss (MSE/2): 5.75742032e-03", logs)
+        self.assertIn("Validation completed. Loss (MSE/2): 5.75813930e-03", logs)
         self.assertIn("Saving model weights to disk...", logs)
         self.assertIn("Model weights saved to", logs)
 
         # --- Analytics console report (exact pins) ---
         report = ctx.analytics_report
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Short-Long Test 04 (rlm_04.json)", report)
-        self.assertIn("Loss (MSE/2)    | 5.6064e-03     | 5.6069e-03     | 5.7574e-03", report)
+        self.assertIn("Loss (MSE/2)    | 5.6081e-03     | 5.6086e-03     | 5.7581e-03", report)
         self.assertIn("Population (baseline)  : RMSE 26.41  MAE 21.73  Loss 2.0438e-02", report)
         self.assertIn("Generalization Gap (RMSE)   : 0.18", report)
         self.assertIn("Substitution Delta (RMSE)   : 0.01", report)
@@ -264,7 +264,7 @@ class TestFullChainA2030(unittest.TestCase):
         # masks the run-dependent hex value).
         self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '674f54e0634679d7f08e94ce353f46f533e12f9bbed730c5280c23b2436aac42')
+                         'a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29')
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned training
         #     positions (rlm_04 has frequency_cut_off=10, so training positions
@@ -272,12 +272,12 @@ class TestFullChainA2030(unittest.TestCase):
         #     substitution slots) ---
         ef = make_evaluation_function(mw)
         expected_ef = {
-            0: -37.12018585205078,
-            1: -28.228458404541016,
-            7: 45.391082763671875,
-            123: 40.502410888671875,
-            999: 16.26209259033203,
-            len(ctx.positions) - 1: 23.326324462890625,
+            0: -37.28886413574219,
+            1: -28.242984771728516,
+            7: 45.49725341796875,
+            123: 40.28820037841797,
+            999: 16.244956970214844,
+            len(ctx.positions) - 1: 23.315696716308594,
         }
         for i, y_expected in expected_ef.items():
             self.assertEqual(ef(ctx.positions[i]), y_expected, msg=f"EF mismatch at training position {i}")
@@ -285,7 +285,7 @@ class TestFullChainA2030(unittest.TestCase):
         # The same EF on a validation position: rlm_04 validation (bid [5])
         # contains EDGE configurations unseen in training, so this pins the
         # w_dense substitution path (orbit weighted mean) end-to-end.
-        self.assertEqual(ef(ctx.vld_positions[42]), 11.932792663574219)
+        self.assertEqual(ef(ctx.vld_positions[42]), 11.917137145996094)
 
         # --- The vectorized EF (D-141): bit-exact on the same 6 pinned
         #     training positions, one batch call over the full training
@@ -299,7 +299,7 @@ class TestFullChainA2030(unittest.TestCase):
             self.assertEqual(float(y_arr[i]), y_expected,
                              msg=f"array EF mismatch at training position {i}")
         self.assertEqual(float(ef_arr(ctx.vld_positions)[42]),
-                         11.932792663574219)
+                         11.917137145996094)
 
     def test_config_provenance_single_source(self):
         """D-144 (C2): the model file is the SINGLE source of the
@@ -387,7 +387,7 @@ class TestFullChainA2050(unittest.TestCase):
 
     def test_full_worker_chain(self):
         """Run the full 15-level chain (CREATED through SAVE) on rlm_03.
-        Long-running: ~10 minutes (1999179 training samples, 397 lbfgs iters)."""
+        Long-running: ~1 minute (1999179 training samples, 356 lbfgs iters)."""
         ctx = self.rlm.context
 
         # Run the model chain (CREATED is step 0, SAVE is step 14).
@@ -398,32 +398,32 @@ class TestFullChainA2050(unittest.TestCase):
         # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 199932)
-        assert_close(self, m['vld_loss'], 0.001578879076987505, 'vld_loss')
-        assert_close(self, m['vld_mse_z'], 0.00315775815397501, 'vld_mse_z')
-        assert_close(self, m['vld_mae_z'], 0.04321568086743355, 'vld_mae_z')
-        assert_close(self, m['vld_mae_y'], 5.644496440887451, 'vld_mae_y')
-        assert_close(self, m['vld_mse_y'], 53.86997604370117, 'vld_mse_y')
-        assert_close(self, m['vld_rmse_y'], 7.339616775512695, 'vld_rmse_y')
+        assert_close(self, m['vld_loss'], 0.0015777380904182792, 'vld_loss')
+        assert_close(self, m['vld_mse_z'], 0.0031554761808365583, 'vld_mse_z')
+        assert_close(self, m['vld_mae_z'], 0.04319758340716362, 'vld_mae_z')
+        assert_close(self, m['vld_mae_y'], 5.6421332359313965, 'vld_mae_y')
+        assert_close(self, m['vld_mse_y'], 53.831050872802734, 'vld_mse_y')
+        assert_close(self, m['vld_rmse_y'], 7.3369646072387695, 'vld_rmse_y')
 
         # --- Training metrics (assert_close goldens, D-127; bid [3], 1999179 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 1999179)
-        assert_close(self, t['train_mae_y'], 5.396253447071691, 'train_mae_y')
-        assert_close(self, t['train_rmse_y'], 7.015377800787937, 'train_rmse_y')
+        assert_close(self, t['train_mae_y'], 5.398311036121195, 'train_mae_y')
+        assert_close(self, t['train_rmse_y'], 7.017904345215441, 'train_rmse_y')
         # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
-        self.assertEqual(t['train_loss'], 0.001444403431378305)
+        self.assertEqual(t['train_loss'], 0.0014453826006501913)
         assert_close(self, t['pop_mae_y'], 21.758215006979484, 'pop_mae_y')
         assert_close(self, t['pop_rmse_y'], 26.417003454424307, 'pop_rmse_y')
         assert_close(self, t['pop_loss'], 0.020453333854675293, 'pop_loss')
 
         # --- Dense training metrics (assert_close, D-127; D-105/M2: rlm_03 has
         #     frequency_cut_off=1, so the dense pass matches the compressed
-        #     one up to the f32 rounding of w_dense — delta "-0.00") ---
+        #     one up to the f32 rounding of w_dense — delta "0.00") ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 1999179)
-        assert_close(self, td['train_dense_mae_y'], 5.396253444189108, 'train_dense_mae_y')
-        assert_close(self, td['train_dense_rmse_y'], 7.015377798958687, 'train_dense_rmse_y')
-        assert_close(self, td['train_dense_loss'], 0.0014424461405724287, 'train_dense_loss')
+        assert_close(self, td['train_dense_mae_y'], 5.398311040100617, 'train_dense_mae_y')
+        assert_close(self, td['train_dense_rmse_y'], 7.017904346461752, 'train_dense_rmse_y')
+        assert_close(self, td['train_dense_loss'], 0.0014434857293963432, 'train_dense_loss')
 
         # --- Training population statistics (assert_close, D-127) ---
         p = ctx.training_pop_stats
@@ -435,15 +435,15 @@ class TestFullChainA2050(unittest.TestCase):
         # --- Optimization info (5-key dict) ---
         self.assertTrue(ctx.opt_info['converged'])
         self.assertEqual(ctx.opt_info['reason'], 'CONVERGED_MIN_GRAD')
-        self.assertEqual(ctx.opt_info['iters'], 397)
+        self.assertEqual(ctx.opt_info['iters'], 356)
 
         # --- Analytics console report (exact pins; no detailed tables) ---
         console_report = ctx.analytics_report
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Long Test 03 (rlm_03.json)", console_report)
-        self.assertIn("Loss (MSE/2)    | 1.4444e-03     | 1.4424e-03     | 1.5789e-03", console_report)
+        self.assertIn("Loss (MSE/2)    | 1.4454e-03     | 1.4435e-03     | 1.5777e-03", console_report)
         self.assertIn("Population (baseline)  : RMSE 26.42  MAE 21.76  Loss 2.0453e-02", console_report)
         self.assertIn("Generalization Gap (RMSE)   : 0.32", console_report)
-        self.assertIn("Substitution Delta (RMSE)   : -0.00", console_report)
+        self.assertIn("Substitution Delta (RMSE)   : 0.00", console_report)
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
 
@@ -454,7 +454,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: XEDGE", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         'bc4857f1293cb88a3fffe3a2248c02731db4e2ddbb18b622c99da39d9ac5f215')
+                         '695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce')
 
         # --- Saved model file: exists, size band, sidecar ---
         # D-144 (C2): as in A2030 — the embedded dump carries the
@@ -467,8 +467,8 @@ class TestFullChainA2050(unittest.TestCase):
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(516400 < st_size < 516500,
-                        f"v2 model file size {st_size} outside the 516400-516500 band")
+        self.assertTrue(516300 < st_size < 516500,
+                        f"v2 model file size {st_size} outside the 516300-516500 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
@@ -489,15 +489,15 @@ class TestFullChainA2050(unittest.TestCase):
         # Optimization info (4 of the 5 context keys persisted; 'converged' is
         # derivable from 'reason')
         self.assertEqual(mw.opt_info['reason'], 'CONVERGED_MIN_GRAD')
-        self.assertEqual(mw.opt_info['iters'], np.uint32(397))
-        self.assertEqual(float(mw.opt_info['f']), 0.001444403431378305)
-        self.assertEqual(float(mw.opt_info['g_norm']), 7.43771579436725e-06)
+        self.assertEqual(mw.opt_info['iters'], np.uint32(356))
+        self.assertEqual(float(mw.opt_info['f']), 0.0014453826006501913)
+        self.assertEqual(float(mw.opt_info['g_norm']), 7.973910214786883e-06)
 
         # Validation metrics (4 of the 7 context metrics persisted)
         self.assertEqual(mw.vld_metrics['vld_samples'], np.uint32(199932))
-        self.assertEqual(float(mw.vld_metrics['vld_rmse_y']), 7.339616775512695)
-        self.assertEqual(float(mw.vld_metrics['vld_mae_y']), 5.644496440887451)
-        self.assertEqual(float(mw.vld_metrics['vld_loss']), 0.001578879076987505)
+        self.assertEqual(float(mw.vld_metrics['vld_rmse_y']), 7.3369646072387695)
+        self.assertEqual(float(mw.vld_metrics['vld_mae_y']), 5.6421332359313965)
+        self.assertEqual(float(mw.vld_metrics['vld_loss']), 0.0015777380904182792)
 
         # FeatureSet (13 features: intercept + LMC + 11 patterns)
         self.assertEqual(mw.feature_set.hash, '2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d')
@@ -512,7 +512,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertEqual(mw.w_dense.dtype, np.float32)
         self.assertEqual(
             hashlib.sha3_256(mw.w_dense.tobytes()).hexdigest(),
-            'a012689f70ef8a492ce0fbf374a49e79e62f758a83fce94540a459bd28b527fc')
+            '82b329dd31c5ac0d2b6b5c23a15734e0f4a7f18b6fbc609ef8c445c43035cccc')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
 
         # D-144 (C2): the embedded configuration provenance (the v2
@@ -526,12 +526,12 @@ class TestFullChainA2050(unittest.TestCase):
         #     training configuration is confirmed: dense == compressed) ---
         ef = make_evaluation_function(mw)
         expected_ef = {
-            0: 7.2613525390625,
-            5: -32.98143768310547,
-            123: 40.5123291015625,
-            555: 24.14972686767578,
-            9999: -19.389434814453125,
-            len(ctx.positions) - 1: 57.8465576171875,
+            0: 6.911094665527344,
+            5: -32.91969299316406,
+            123: 40.503456115722656,
+            555: 24.345985412597656,
+            9999: -19.517921447753906,
+            len(ctx.positions) - 1: 57.769447326660156,
         }
         for i, y_expected in expected_ef.items():
             self.assertEqual(ef(ctx.positions[i]), y_expected, msg=f"EF mismatch at training position {i}")

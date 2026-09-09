@@ -153,6 +153,15 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(o.c1, 0.1)
         self.assertEqual(o.c2, 0.9)
 
+    def test_optimization_high_performance_fg(self):
+        """I-013: high_performance_fg defaults to False (the classic
+        fg) and accepts True (the numba high-performance fg)."""
+        o = OptimizationConfig(checkpoint_file="c.json")
+        self.assertFalse(o.high_performance_fg)
+        o2 = OptimizationConfig(checkpoint_file="c.json",
+                                high_performance_fg=True)
+        self.assertTrue(o2.high_performance_fg)
+
     # -- E8/E9: validation_data_set + stat_model --------------------------------
 
     def test_validation_dataset_status_strict(self):

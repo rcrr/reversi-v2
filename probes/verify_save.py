@@ -130,7 +130,7 @@ def tier_c():
     #  second-instance determinism deleted at D-106 step 3, class c:
     #  test_lm_worker_full_chain.py::TestFullChainA2030::
     #  test_full_worker_chain pins the same 7+7+4+4 metric values,
-    #  the v2 file in the 22700-22800 B size band + sidecar verify
+    #  the v2 file in the 22800-22900 B size band + sidecar verify
     #  (the v1 sha3 literal + the size literal retired by D-144: the
     #  embedded dump carries the run's base_dir — the bytes are
     #  run-specific, and LZ4's match structure shifts a few bytes
@@ -146,8 +146,8 @@ def tier_c():
     #  ctx (pre-f32-roundtrip) stay as the a portion: the test pins
     #  f/g_norm only on the read-back mw.opt_info (f32).)
     check('C5 opt 5-key (a portion: the live f/g_norm floats)',
-          float(opt['f']) == 0.00560641149058938
-          and float(opt['g_norm']) == 4.3686068238457665e-05, str(opt))
+          float(opt['f']) == 0.005608053877949715
+          and float(opt['g_norm']) == 6.098220910644159e-05, str(opt))
 
 
 def tier_d():
@@ -158,11 +158,11 @@ def tier_d():
     #  pins the same goldens as tier C — test_lm_worker_full_chain.py::
     #  TestFullChainA2050::test_full_worker_chain pins step 14, the
     #  vld/train/dense/pop metric sets, the opt info, the v2 file in
-    #  the 516400-516500 B size band (D-144: the sha3 literal + the
+    #  the 516300-516500 B size band (D-144: the sha3 literal + the
     #  size literal retired, as in A2030) + sidecar, the read-back
     #  subset (incl. the D-144 embedded config provenance), the
     #  5 console report substrings (title + the 4 table rows incl.
-    #  Delta -0.00 — the classification's 'a' label for D8 is stale:
+    #  Delta 0.00 (I-013: the sign of the f32 delta flipped) — the classification's 'a' label for D8 is stale:
     #  the test pins them all at L350-354), the 57f9766b... masked
     #  file-report hash, and the 6 ef training positions. The whole
     #  rlm_03 chain run is retired with the checks.)

@@ -47,9 +47,10 @@ def ws_lines(text):
 print("== tier A: hlp_gradient.py structure (post D-094)")
 a = read("hlp_gradient.py")
 al = a.splitlines()
-check("A1 line count 91", len(al) == 91, f"{len(al)}")
+check("A1 line count 179", len(al) == 179, f"{len(al)}")
 check("A2 __all__", "__all__ = ['hlp_gradient_compute', 'sigmoid']" in a)
 check("A3 scipy import", "from scipy.special import expit" in a)
+check("A3b numba import (I-013)", "from numba import njit, prange" in a)
 check("A4 TYPE_CHECKING LMContext",
       "if TYPE_CHECKING:" in a and
       "from reversi.lm.logistic_model import LMContext" in a)
@@ -60,25 +61,36 @@ check("A7 no ws lines", ws_lines(a) == set(), str(sorted(ws_lines(a))))
 check("A8 sigmoid docstring fixed",
       "The expit function from scipy provides more numerical "
       "stability for extreme values of x." in a)
-check("A9 three defs",
+check("A9 four defs (I-013: the _hp_fg_kernel module def + the 4-space fg_hp; the classic fg is nested 8-space in the branch)",
       re.findall(r"^(?:def |    def ).*$", a, re.M) ==
       ["def sigmoid(x: np.ndarray) -> np.ndarray:",
-       "def hlp_gradient_compute(ctx: \"LMContext\") -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:",
-       "    def fg(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:"])
+       "def _hp_fg_kernel(X, w, z, g_blocks, norm_blocks):",
+       "def hlp_gradient_compute(ctx: \"LMContext\",",
+       "    def fg_hp(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:"])
 check("A10 docstring claims",
       "normalized by the number of positions (M)" in a and
       "Captures X, z, and alpha in a closure" in a)
 check("A11 return expit", "return expit(x)" in a)
-check("A12 T3 no-validation note (L52)",
-      al[51] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.")
+check("A12 T3 no-validation note (L104)",
+      al[103] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.")
 check("A13 R1 float32 cast",
       "return np.float32(f), g.astype(np.float32, copy=False)" in a)
+check("A14 I-013 kernel structure",
+      "@njit(parallel=True, cache=True)" in a and
+      "_HP_BLOCKS = 8" in a and
+      "for b in prange(T_):" in a and
+      "g_blocks = np.zeros((_HP_BLOCKS, N), dtype=np.float64)" in a
+      and "norm_blocks = np.zeros(_HP_BLOCKS, dtype=np.float64)" in a)
+check("A15 I-013 flag + variant marker",
+      "high_performance: bool = False" in a and
+      "fg.high_performance = False" in a and
+      "fg_hp.high_performance = True" in a)
 
 # ---------------------------------------------------------------- B tier
 print("== tier B: wrk_gradient.py structure (post D-094)")
 b = read("wrk_gradient.py")
 bl = b.splitlines()
-check("B1 line count 62", len(bl) == 62, f"{len(bl)}")
+check("B1 line count 64", len(bl) == 64, f"{len(bl)}")
 check("B2 worker name", 'Worker("GRADIENT", _up, _down)' in b)
 check("B3 T2 factory @validate_call + pydantic import",
       "from pydantic import validate_call, ConfigDict" in b and
@@ -86,7 +98,10 @@ check("B3 T2 factory @validate_call + pydantic import",
       "def wrk_gradient() -> Worker:" in b)
 check("B4 non-cache comment",
       "GRADIENT building is a closure generation, very fast. No cache needed." in b)
-check("B5 _up sets fg", "ctx.fg = hlp_gradient_compute(ctx)" in b)
+check("B5 _up sets fg (I-013: the config flag is passed)",
+      "high_performance = ctx.cfg.optimization.high_performance_fg" in b
+      and "ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance)" in b
+      and 'f"Gradient function generated (high_performance: {high_performance})."' in b)
 check("B6 _down clears fg", "ctx.fg = None" in b)
 check("B7 no ws lines", ws_lines(b) == set(), str(sorted(ws_lines(b))))
 check("B8 M4 triple blanks kept (house worker style, L39-41 + L43-45)",
@@ -98,7 +113,7 @@ check("B9 factory docstring",
 print("== tier C: test_wrk_gradient.py structure (post D-094)")
 c = read("test/test_wrk_gradient.py")
 cl = c.splitlines()
-check("C1 line count 143 (D-130: the tier note adds a header line)", len(cl) == 143, f"{len(cl)}")
+check("C1 line count 182 (D-130: the tier note adds a header line)", len(cl) == 182, f"{len(cl)}")
 check("C2 header gate claim (D-130 tier wording)",
       "a live regab DB + LONG=1 is required;" in c and
       "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in c and
@@ -114,10 +129,18 @@ check("C4 T6 D-085 idiom",
       "Path(self._tmp.name)" in c and
       "WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_02.json\"" in c
       and "mkdtemp" not in c and "shutil" not in c)
-check("C5 1 class 2 tests",
-      c.count("class Test") == 1 and
+check("C5 2 classes 4 tests (I-013: the no-DB flag-wiring class)",
+      c.count("class Test") == 2 and
       re.findall(r"    def test_\w+", c) ==
-      ["    def test_generate_gradient", "    def test_down_clears_gradient"])
+      ["    def test_generate_gradient", "    def test_down_clears_gradient",
+       "    def test_up_flag_true_builds_hp_variant",
+       "    def test_up_flag_false_builds_classic_variant"])
+check("C11 I-013 wiring test (the worker + the Context mock)",
+      "from reversi.lm.wrk_gradient import wrk_gradient" in c and
+      "class TestGradientFlagWiring" in c and
+      "ctx = Context()" in c and
+      "wrk_gradient().up(ctx)" in c and
+      "ctx.fg.high_performance" in c)
 check("C6 defensive tearDown",
       "if getattr(self, 'patcher_stdout', None) is not None:" in c and
       "if getattr(self, '_tmp', None) is not None:\n            self._tmp.cleanup()" in c)
@@ -300,13 +323,20 @@ check("E8 rlm_02 trailing comma (JSON5)",
 print("== tier G: dedicated test_hlp_gradient.py (no DB)")
 gd = read("test/test_hlp_gradient.py")
 gdl = gd.splitlines()
-check("G1 line count 169 + no-DB header claim",
-      len(gdl) == 169 and
+check("G1 line count 272 + no-DB header claim",
+      len(gdl) == 272 and
       "no live regab DB required" in gd and
       "as in test_hlp_zed" in gd, f"{len(gdl)}")
-check("G2 2 classes 8 tests",
-      gd.count("class Test") == 2 and
-      len(re.findall(r"    def test_\w+", gd)) == 8)
+check("G2 3 classes 14 tests (I-013: the TestHighPerformanceFg class)",
+      gd.count("class Test") == 3 and
+      len(re.findall(r"    def test_\w+", gd)) == 14)
+check("G9 I-013 HP tests (equivalence, f32 contract, determinism, marker)",
+      "class TestHighPerformanceFg" in gd and
+      "test_hp_matches_classic" in gd and
+      "test_hp_output_dtypes" in gd and
+      "test_hp_deterministic" in gd and
+      "test_hp_variant_markers" in gd and
+      "high_performance=True" in gd)
 check("G3 no DB wiring",
       "from reversi.lm.logistic_model" not in gd and
       "SKIP_REGAB_DB" not in gd and

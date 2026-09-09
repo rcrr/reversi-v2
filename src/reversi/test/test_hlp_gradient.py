@@ -165,5 +165,108 @@ class TestHlpGradientCompute(unittest.TestCase):
         nptest.assert_array_equal(g1, g2)
 
 
+class TestHighPerformanceFg(unittest.TestCase):
+    """The high_performance=True variant (the numba single-pass kernel,
+    I-013) on handcrafted mock contexts (no DB). The kernel uses T=8
+    fixed row-blocks, so M < T (empty blocks) is exercised by design."""
+
+    def _mock_ctx(self, ridge, w, X, z):
+        return SimpleNamespace(
+            cfg=SimpleNamespace(stat_model=SimpleNamespace(ridge_regularization=ridge)),
+            w=np.array(w, dtype=np.float32),
+            design_matrix=np.array(X, dtype=np.uint32),
+            z=np.array(z, dtype=np.float32))
+
+    def _reference(self, ctx, w):
+        # Independent float64 re-derivation (same idiom as the
+        # classic-path tests: hand-rolled sigmoid, per-row w-index
+        # sum, np.add.at).
+        M, P = ctx.design_matrix.shape
+        alpha = ctx.cfg.stat_model.ridge_regularization / M
+        w64 = w.astype(np.float64)
+        lp = np.sum(w64[ctx.design_matrix], axis=1)
+        zh = 1.0 / (1.0 + np.exp(-lp))
+        rn = zh - ctx.z.astype(np.float64)
+        f_ref = 0.5 * (float(np.dot(rn, rn)) / M + alpha * float(np.dot(w64, w64)))
+        dzh_rn = zh * (1.0 - zh) * rn
+        g0 = np.zeros(len(ctx.w), dtype=np.float64)
+        np.add.at(g0, ctx.design_matrix.ravel(), np.repeat(dzh_rn, P))
+        g_ref = g0 / M + alpha * w64
+        return f_ref, g_ref
+
+    def test_hp_zero_weights_golden(self):
+        # Same goldens as the classic test (the variants are
+        # mathematically identical): M=3 < T=8 exercises the empty
+        # blocks. f = 4/75, g = [1/30, 0, -1/30].
+        ctx = self._mock_ctx(0.0, [0.0, 0.0, 0.0],
+                             [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
+        fg = hlp_gradient_compute(ctx, high_performance=True)
+        f, g = fg(ctx.w)
+        nptest.assert_allclose(f, 4 / 75, rtol=1e-6, atol=1e-8)
+        nptest.assert_allclose(g, [1 / 30, 0.0, -1 / 30], rtol=1e-6, atol=1e-8)
+
+    def test_hp_nonzero_weights(self):
+        # A random M=5000 design matrix against the independent
+        # float64 re-derivation (the f64 per-block accumulators make
+        # the variant track the float64 reference to ~1e-9).
+        rng = np.random.default_rng(42)
+        M, P, N = 5000, 12, 300
+        X = rng.integers(0, N, (M, P), dtype=np.uint32)
+        w = (rng.standard_normal(N) * 0.3).astype(np.float32)
+        z = (0.5 + 0.4 * rng.standard_normal(M)).astype(np.float32)
+        ctx = self._mock_ctx(0.01, w, X, z)
+        fg = hlp_gradient_compute(ctx, high_performance=True)
+        f, g = fg(ctx.w)
+        f_ref, g_ref = self._reference(ctx, ctx.w)
+        nptest.assert_allclose(f, f_ref, rtol=1e-5, atol=1e-7)
+        nptest.assert_allclose(g, g_ref, rtol=1e-5, atol=1e-7)
+
+    def test_hp_matches_classic(self):
+        # The two variants agree within a few ulps (the sigmoid
+        # implementation and the f32 sum order differ; measured max
+        # relative delta ~1e-7).
+        rng = np.random.default_rng(7)
+        M, P, N = 2000, 8, 200
+        X = rng.integers(0, N, (M, P), dtype=np.uint32)
+        w = (rng.standard_normal(N) * 0.3).astype(np.float32)
+        z = (0.5 + 0.4 * rng.standard_normal(M)).astype(np.float32)
+        ctx = self._mock_ctx(0.01, w, X, z)
+        f_c, g_c = hlp_gradient_compute(ctx)(ctx.w)
+        f_h, g_h = hlp_gradient_compute(ctx, high_performance=True)(ctx.w)
+        nptest.assert_allclose(f_h, f_c, rtol=1e-5, atol=1e-7)
+        nptest.assert_allclose(g_h, g_c, rtol=1e-5, atol=1e-7)
+
+    def test_hp_output_dtypes(self):
+        # R1 (D-093) float32 contract: (np.float32, (N,) float32),
+        # same as the classic variant.
+        ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
+                             [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
+        fg = hlp_gradient_compute(ctx, high_performance=True)
+        f, g = fg(ctx.w)
+        self.assertEqual(f.dtype, np.float32)
+        self.assertEqual(g.dtype, np.float32)
+        self.assertEqual(g.shape, (3,))
+
+    def test_hp_deterministic(self):
+        # The block split and the final accumulation order are fixed,
+        # so repeated evaluations are bit-identical (this is what
+        # keeps the 2nd-instance byte-identity guarantee).
+        ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
+                             [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
+        fg = hlp_gradient_compute(ctx, high_performance=True)
+        f1, g1 = fg(ctx.w)
+        f2, g2 = fg(ctx.w)
+        self.assertEqual(f1, f2)
+        nptest.assert_array_equal(g1, g2)
+
+    def test_hp_variant_markers(self):
+        # The returned closure carries the variant marker (the
+        # worker-wiring tests and the probes pin on it).
+        ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
+                             [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
+        self.assertFalse(hlp_gradient_compute(ctx).high_performance)
+        self.assertTrue(hlp_gradient_compute(ctx, high_performance=True).high_performance)
+
+
 if __name__ == '__main__':
     unittest.main()

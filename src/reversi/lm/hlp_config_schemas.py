@@ -66,6 +66,10 @@ class OptimizationConfig(LMBaseConfig):
     log_every_n: int = Field(default=0, ge=0, description="Frequency of logging. 0 = no log, 1 = every iteration.")
     save_every_n: int = Field(default=0, ge=0, description="Frequency of saving checkpoints. 0 = no save.")
     checkpoint_file: Path = Field(..., description="Checkpoint file name used to save optimization status.")
+    high_performance_fg: bool = Field(
+        default=False,
+        description="Build the high-performance numba fg closure at the GRADIENT level "
+                    "(I-013). False (the default) keeps the classic vectorized-numpy closure.")
 
     @model_validator(mode="after")
     def check_wolfe_constants(self) -> "OptimizationConfig":

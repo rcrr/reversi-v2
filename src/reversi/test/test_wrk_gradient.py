@@ -45,6 +45,7 @@
 import unittest
 import os
 import tempfile
+from types import SimpleNamespace
 
 import numpy as np
 import numpy.testing as nptest
@@ -55,6 +56,7 @@ from pathlib import Path
 
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
+from reversi.lm.wrk_gradient import wrk_gradient
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from reversi.test.tags import db_long_gate
 
@@ -137,6 +139,43 @@ class TestLMWorkerGradient(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 7)
         self.assertEqual(self.rlm.current_worker_name, 'ZED')
         self.assertIsNone(self.rlm.context.fg)
+
+
+class TestGradientFlagWiring(unittest.TestCase):
+    """The high_performance_fg config flag (I-013) wiring: the
+    GRADIENT worker reads optimization.high_performance_fg and builds
+    the matching fg variant. Mock context (no DB)."""
+
+    def _mock_ctx(self, high_performance):
+        from reversi.tools.state_machine import Context
+        ctx = Context()
+        ctx.cfg = SimpleNamespace(
+            optimization=SimpleNamespace(high_performance_fg=high_performance),
+            stat_model=SimpleNamespace(ridge_regularization=0.01))
+        ctx.w = np.zeros(3, dtype=np.float32)
+        ctx.design_matrix = np.array([[0, 1], [1, 2], [0, 2]], dtype=np.uint32)
+        ctx.z = np.array([0.1, 0.9, 0.5], dtype=np.float32)
+        ctx.log_event = lambda *args: None
+        ctx.fg = None
+        return ctx
+
+    def _up(self, ctx):
+        wrk_gradient().up(ctx)
+
+    def test_up_flag_true_builds_hp_variant(self):
+        ctx = self._mock_ctx(True)
+        self._up(ctx)
+        self.assertIsNotNone(ctx.fg)
+        self.assertTrue(ctx.fg.high_performance)
+        f, g = ctx.fg(ctx.w)
+        self.assertEqual(f.dtype, np.float32)
+        self.assertEqual(g.dtype, np.float32)
+
+    def test_up_flag_false_builds_classic_variant(self):
+        ctx = self._mock_ctx(False)
+        self._up(ctx)
+        self.assertIsNotNone(ctx.fg)
+        self.assertFalse(ctx.fg.high_performance)
 
 
 if __name__ == '__main__':

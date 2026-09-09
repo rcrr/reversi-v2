@@ -266,6 +266,9 @@ sc = read("hlp_config_schemas.py")
 check("E4 OptimizationConfig: min_grad Tuple[float, int] + checkpoint_file Path",
       "min_grad: Tuple[float, int] = Field(default=(1e-5, 3)" in sc
       and "checkpoint_file: Path = Field(..., description=" in sc)
+check("E4b OptimizationConfig: high_performance_fg (I-013, default False)",
+      "high_performance_fg: bool = Field(" in sc
+      and "default=False" in sc)
 obl = (SRC / "tools" / "opt_lbfgs.py").read_text()
 check("E5 lbfgs signature has all 16 kwargs the worker passes",
       all(k in obl for k in ["x0", "c1", "c2", "min_grad", "min_p_fun_decrease",
