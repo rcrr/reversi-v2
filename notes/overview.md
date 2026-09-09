@@ -72,11 +72,11 @@ positions generated from random gameplay paths.
   `SKIP_REGAB_DB=1` to skip the 70 DB tests (2 mocked run). The
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
-- Suite status (verified 2026-09-08, live DB, D-130 tiers,
-  D-140): 700 tests / 0 failures. Default tier: 611 run in
-  ~5 s / 89 skipped (70 DB-gated + 19 PERF print-only). LONG=1:
-  680 run in ~33 s / 20 skipped (19 PERF + 1 VLONG-gated
-  A2050). Gated run (SKIP_REGAB_DB=1): 89 skipped = 19 PERF +
+- Suite status (verified 2026-09-09, live DB, D-130 tiers,
+  D-141): 707 tests / 0 failures. Default tier: 617 run in
+  ~4 s / 90 skipped (70 DB-gated + 20 PERF print-only). LONG=1:
+  686 run in ~32 s / 21 skipped (20 PERF + 1 VLONG-gated
+  A2050). Gated run (SKIP_REGAB_DB=1): 90 skipped = 20 PERF +
   70 DB (35 regab + 35 worker-level). Per-file suites: the
   Suite column of the Source files / Test files tables below.
 - Probes: 21 tracked under probes/ (hub:
@@ -125,6 +125,26 @@ at the end of this file.
   as a special case" note is resolved per-element in the
   kernel; array illegal moves keep the input position
   (Roberto's ruling). Board suite 221/0/14.
+- VECTORIZED EF CLIENT (D-141, 2026-09-09):
+  make_evaluation_function_array sits alongside
+  make_evaluation_function — strict array (PositionArray ->
+  (N,) float32), bit-exact per position vs the scalar EF
+  (Roberto's rulings: strict array, the name, @validate_call
+  on the scalar factory too, the dedicated no-DB test
+  module, the A2030 batch pin). No new numba kernel
+  (compute_indexes is already a batch API; the tail is
+  element-wise NumPy); the closure setup is factored in
+  _prepare_weights; the 1-D guard (D-111 M5) closes the
+  2-D structured gap of the PositionArray validator. New
+  no-DB module test_client.py (7 tests: the bit-exact
+  1000-position parity on a synthetic rlm_04-mirror
+  ModelWeights — iwmap [0,1,66,6627] = the production pin —
+  the u64 coercion, the guards, the N=0 edge + the PERF 1M
+  test, measured 5,640,701 b/s ≈ 1100× the scalar 5,117
+  b/s); the A2030 batch pin (bit-exact on the same 6 pins
+  over the full 199932-position set + vld[42]). Collateral:
+  the runner insertion (D-130) + the verify_save A8 re-pin.
+  Suite 707/0/21 (LONG, live DB).
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
   in src/reversi/test/. Environment: .venv with the pinned deps
@@ -182,7 +202,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139) | 37/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
-| src/reversi/lm/client.py | complete: the inference client (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/client.md |
+| src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (D-141: strict array, bit-exact per position, @validate_call on both factories) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098); the LZ4 default (D-139) | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
@@ -203,12 +223,13 @@ One row per test file, alphabetical.
 | src/reversi/test/test_binio.py | complete: the T4 batch (D-051); the 3 empty-suffix tests (D-095) | 45/0/0 | docs/src/reversi/test/test_binio.md |
 | src/reversi/test/test_board.py | complete: the fix campaign closed (D-026..D-033); the header cleaned up — the "environmeant" typo (D-050) + the grammar sentence (D-121); +20 D-140 tests (array path + 2 PERF) | 221/0/14 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
+| src/reversi/test/test_client.py | complete: the client EF suite (D-141) — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test (PERF=1, measured 5.6M b/s) | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_config.py | complete: 15 tests (D-078) | 15/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins | 5/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (2 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin (A2030) | 5/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |

@@ -746,3 +746,76 @@ D-140 | 2026-09-08 | Vectorized position_flips +
         | Verification: the board suite 221/0/14 + the
         gated suite 700/0/89 + the full suite LONG=1
         700/0/20 (live DB).
+D-141 | 2026-09-09 | Vectorized EF client:
+        make_evaluation_function_array (Roberto: "come
+        fatto per la funzione position_make_move(),
+        dobbiamo sviluppare il client EF vettorizzato nel
+        modulo reversi.lm.client. Alla funzione
+        make_evaluation_function() va affiancata una
+        versione vettorizzata ... che ritorni:
+        Callable[[PositionArray], npt.NDArray[np.float32]]
+        ... Aggiungere un test PERF"; rulings on the
+        approved analysis: 1 strict array, 2 the name
+        make_evaluation_function_array, 3 @validate_call
+        "anche sulla funzione scalare", 4 the dedicated
+        no-DB test module, 5 the A2030 batch pin).
+        | Design (the approved analysis): the heavy part
+        is ALREADY a batch API — compute_indexes(positions
+        : PositionArray) -> (N, I) uint32 (the numba prange
+        kernel over N) — so NO new numba kernel: the array
+        EF is the true batch + the vectorized tail (the
+        broadcast expanded_offsets + indexes, the w_dense
+        gather, the per-row f32 sum, the element-wise
+        expit, the element-wise z2y affine). The closure
+        setup is factored in the shared _prepare_weights
+        helper (offsets, z2y, expanded_offsets — no drift
+        between the two closures).
+        | Strict array (ruling 1): the returned callable
+        accepts a 1-D PositionArray (or a (N, 2) uint64
+        array, coerced by the PositionArray validator) and
+        returns a (N,) float32 array; a scalar Position or
+        bare lists are rejected (the Pydantic ValidationError
+        — verified: a list of tuples does NOT slip through
+        the coercion). Gap found and closed in the
+        analysis (T4): the PositionArray BeforeValidator
+        admits a 2-D structured array (it only checks the
+        non-Position dtype 2-D case — no ndim check) — the
+        standard 1-D guard (D-111 M5) inside the closure
+        keeps a clean ValueError out of the numba kernel.
+        | @validate_call (ruling 3): BOTH factories are
+        validated (arbitrary_types_allowed) — the O5
+        acceptance ("no @validate_call on
+        make_evaluation_function", client.md) is
+        superseded; the array ef closure is validated too
+        (the PositionArray annotation does the coercion).
+        | De-risk (scratch, before touching client.py):
+        parity vs the scalar EF is BIT-EXACT per position
+        (np.array_equal on a seeded batch — the per-row
+        f32 sum is the same 1-D reduction as the scalar
+        np.sum); the (N, 2) u64 coercion equal; the N=0
+        edge returns (0,) f32; the synthetic rlm_04-mirror
+        weights reproduce the production iwmap pin
+        [0, 1, 66, 6627].
+        | Tests: the new no-DB module test_client.py (7
+        tests, default tier): the synthetic rlm_04-mirror
+        ModelWeights (intercept + LMC + EDGE), the
+        1000-position bit-exact parity, the u64 coercion,
+        the 2-D structured guard, the scalar/list
+        rejections, the N=0 edge + the PERF test (PERF=1,
+        1M boards, the house print pattern: 5,640,701 b/s
+        measured — ~1100x the scalar 5,117 b/s). The A2030
+        full-chain test gains the batch pin (ruling 5):
+        the vectorized EF bit-exact on the same 6 pinned
+        training positions (one batch call over the full
+        199932-position set) + the vld[42] pin on the
+        validation batch.
+        | Collateral: run_utests.sh inserts test_client at
+        its logical position (after test_wrk_analytics,
+        before the end-to-end chain — D-130); verify_save
+        A8 re-pinned to the 2-entry __all__; client.md
+        mirror: the stale "indexes int32 -> int64" dtype
+        note corrected (uint32 + uint32 -> uint32 at
+        runtime).
+        | Verification: the default tier 707/0/90 + the
+        full suite LONG=1 707/0/21 (live DB, incl. the
+        A2030 batch pin) + the verify_save probe green.
