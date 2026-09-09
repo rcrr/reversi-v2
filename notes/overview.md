@@ -73,11 +73,11 @@ positions generated from random gameplay paths.
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
 - Suite status (verified 2026-09-09, live DB, D-130 tiers,
-  D-142): 706 tests / 0 failures. Default tier: 615 run in
-  ~4 s / 91 skipped (71 DB-gated + 20 PERF print-only). LONG=1:
-  685 run in ~35 s / 21 skipped (20 PERF + 1 VLONG-gated
-  A2050). Gated run (SKIP_REGAB_DB=1): 91 skipped = 20 PERF +
-  71 DB (35 regab + 36 worker-level). Per-file suites: the
+  D-143): 722 tests / 0 failures. Default tier: 626 run in
+  ~4 s / 96 skipped (76 DB-gated + 20 PERF print-only). LONG=1:
+  701 run in ~36 s / 21 skipped (20 PERF + 1 VLONG-gated
+  A2050). Gated run (SKIP_REGAB_DB=1): 96 skipped = 20 PERF +
+  76 DB (35 regab + 41 worker-level). Per-file suites: the
   Suite column of the Source files / Test files tables below.
 - Probes: 21 tracked under probes/ (hub:
   verify_logistic_model.py owns the pipeline-wide state;
@@ -168,6 +168,49 @@ at the end of this file.
   15 → 13 tests; the 4 file-report goldens re-pinned.
   Suite 706/0/91 default + 706/0/21 LONG (live DB) + the
   20 verify-probe sweep green.
+- DUPLICATE GAME POSITIONS (D-143, 2026-09-09): the
+  post-extraction duplicate policy + the validation
+  independence trace. Roberto: "…i record doppi ci sono, non
+  sono pochi, e sono strutturali. Non altererei la query al
+  db. Farei post una verifica in Python … la chiave e' mover,
+  opponent" — the analysis measured the DB: every duplicate
+  (mover, opponent) key appears exactly twice (one CMS + one
+  CMR row, identical game_value/player — 0 conflicting
+  groups), ~5.1–5.5% of every fixture set; the approved
+  proposal's rulings: (1) `regab_allow_duplicate` top-level
+  LMConfig flag, default True = keep = today's behaviour
+  (zero golden impact), false = remove; both log the absolute
+  count + the percentage; (2) post-extraction pandas
+  `drop_duplicates(subset=['mover','opponent'], keep='first')`
+  — hash-based O(n), order-preserving, NO sort (a global sort
+  would reorder every row and perturb the goldens); "first" =
+  lowest seq (the extraction is ORDER BY seq); the SQL
+  untouched; (3) the dedup lives in the COMPUTE flow — the
+  cache file stores the post-policy data set, so a flag flip
+  changes the rds_checksum and cascades through the existing
+  checksum lineage (no format change); (4) the VLD↔POSITIONS
+  independence check is LOG ONLY, no action — Roberto:
+  "calcoliamo l'overlap, e lo mettiamo come LOG. Nessuna
+  azione di nessun tipo. Rimane scritto. … per ora teniamo
+  traccia e basta" (no raise, no threshold parameter, no
+  quality family); (5) the P6 sentinel (same key, different
+  game_value) is NOT included — "la pipeline NON valida i
+  dati … non aprirei il tema verifiche" (the keep-first
+  behaviour is simply pinned). New: the 2 pure regab helpers
+  (regab_dedup_mogv + regab_count_position_overlap, u64
+  top-bit safe), wrk_positions.extract_and_prepare (the
+  SHARED compute path, reused by VLD with the bid/status
+  overrides) + the cache-hit duplicate line at both levels +
+  the independence INFO trace at VLD. Tests +16: 11 no-DB
+  micro (test_regab) + 3 DB (bid 8: 200/11/189, the post-
+  policy cache content) + 2 DB (rlm_02 0% / rlm_00 100%
+  overlap, traced not raised). 2 probe re-pins (wrk_positions
+  A1 the __all__ 2→3; vld_positions A5/A7/A8 + D8 the reuse
+  identity now includes extract_and_prepare).
+  Suite 722/0/96 default + 722/0/21 LONG (live DB) + VLONG
+  A2050 6/6 (the goldens INTACT — the default flag keeps
+  today's behaviour byte-for-byte) + the 20 verify-probe
+  sweep green.
 
 
 - Sources live in the `reversi` package under src/ (D-008;
@@ -214,10 +257,10 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1); closed (D-093/D-094) | 2/0/0 | docs/src/reversi/lm/wrk_gradient.md |
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
-| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; closed (D-079/D-080) | 9/0/0 | docs/src/reversi/lm/wrk_positions.md |
+| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set (D-079/D-080); the D-143 extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
 | src/reversi/lm/wrk_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104); the D-142 config record (the normalized dump + the binio sidecar, next to the model file) | 6/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
 | src/reversi/lm/wrk_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/reversi/lm/wrk_validate.md |
-| src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set); closed (D-099/D-100) | 9/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
+| src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set, D-099/D-100); the D-143 shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
 | src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
@@ -225,10 +268,10 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139) | 37/0/0 | docs/src/reversi/regab.md |
+| src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139); the D-143 pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2; the D-142 Config SHA3-256 line in the common header block — 18 lines, both reports); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (D-141: strict array, bit-exact per position, @validate_call on both factories) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); closed (D-079/D-080) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
+| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point; D-079/D-080); the D-143 regab_allow_duplicate field (default True) | 13/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098); the LZ4 default (D-139) | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract); closed (D-093/D-094) | 8/0/0 | docs/src/reversi/lm/hlp_gradient.md |
@@ -259,9 +302,9 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
 | src/reversi/test/test_wrk_optimize.py | complete: the OPTIMIZE worker suite (D-096) | 3/0/0 | docs/src/reversi/test/test_wrk_optimize.md |
-| src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080) | 9/0/0 | docs/src/reversi/test/test_wrk_positions.md |
+| src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080); the D-143 TestLMWorkerPositionsDuplicates (the duplicate policy + the post-policy cache) | 12/0/0 | docs/src/reversi/test/test_wrk_positions.md |
 | src/reversi/test/test_wrk_validate.py | complete: the VALIDATE worker suite (D-101/D-102) | 5/0/0 | docs/src/reversi/test/test_wrk_validate.md |
-| src/reversi/test/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100) | 9/0/0 | docs/src/reversi/test/test_wrk_vld_positions.md |
+| src/reversi/test/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100); the D-143 TestVldIndependenceCheck (0% / 100% overlap, traced not raised) | 11/0/0 | docs/src/reversi/test/test_wrk_vld_positions.md |
 | src/reversi/test/test_wrk_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/reversi/test/test_wrk_wmaps.md |
 | src/reversi/test/test_wrk_zed.py | complete: the ZED worker suite (D-091/D-092) | 3/0/0 | docs/src/reversi/test/test_wrk_zed.md |
 | src/reversi/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
@@ -269,7 +312,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
-| src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130) | 37/0/0 | docs/src/reversi/test/test_regab.md |
+| src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130); the D-143 no-DB micro tier (11 tests: dedup + overlap) | 48/0/0 | docs/src/reversi/test/test_regab.md |
 | src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080) | 13/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
 | src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite (D-090, +2 with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |
 | src/reversi/test/test_hlp_generate.py | complete: the GENERATE data suite (D-097/D-098, +2 with D-139) | 16/0/0 | docs/src/reversi/test/test_hlp_generate.md |

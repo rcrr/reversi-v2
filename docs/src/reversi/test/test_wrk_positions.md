@@ -2,9 +2,9 @@
 The test module of the POSITIONS worker (Roberto's file, copied
 from the original repo with the D-080-era pipeline enablement;
 the D-080 T1-T4 campaign re-anchored it, and step 3 of D-106
-moved the D4a-g probe unit checks into it). 2 classes / 9 tests
-(2 DB-gated) / no PERF.
-> State: D-106 · 585b2ad · 2026-09-04 · suite 9/0/0 (2 DB-gated)
+moved the D4a-g probe unit checks into it). 3 classes / 12 tests
+(5 DB-gated) / no PERF.
+> State: D-143 · 2026-09-09 · suite 12/0/0 (5 DB-gated)
 
 ## Coverage
 
@@ -12,6 +12,7 @@ moved the D4a-g probe unit checks into it). 2 classes / 9 tests
 |---|---|
 | `TestLMWorkerPositions` (2, `SKIP_REGAB_DB` gated) | the end-to-end cache round-trip on a real data set: `test_read_db_and_populate_cache` (move to POSITIONS, step 2 pinned — the FLAT `rlmwf_02_POSITIONS.dat` + `.SHA3-256` exist on disk and the logs contain "Extracted … positions from the database.") and `test_read_cache_on_new_instance` (a SECOND instance on the same cache dir: the logs contain "Cache successfully loaded and validated" and NOT "Extracted" / "established successfully") |
 | `TestIsCacheConsistent` (7, in-memory — no DB, no cache file) | the unit semantics of `is_cache_consistent`: same cfg → True; a differing ec / bid / status / dbname → False; the `bid=`/`status=` keyword overrides win; the str-port (regab) vs int-port (schema) compares equal |
+| `TestLMWorkerPositionsDuplicates` (3, `db_long_gate` gated, D-143) | the `regab_allow_duplicate` policy on the live DB (fixture bid 8: 200 records, 11 duplicate keys, 189 distinct): `test_dedup_when_flag_false` (rlm_00 re-dumped with the flag `False` → 189 positions/game_values + pop count 189 + the "[TOTAL: 200], [REMOVED: 11], [PERCENT: 5.50%] — removed" log); `test_kept_when_flag_true` (flag `True` → 200 + the "[FOUND: 11] — kept" log); `test_cache_holds_post_policy_content` (a flag-false cache file reloads 189 records + the cache-hit log line + NO "Extracted") |
 
 The shared setUp (both classes): the `db_long_gate` FIRST (the
 SKIP_REGAB_DB + LONG gates, D-130; where applicable) + stdout patched to a StringIO (logs captured,
@@ -37,6 +38,10 @@ the fixture values instead of warming a real cache file.
 - The fixture metadata the unit class reuses: `bid [8]`,
   `status ["CMS", "CMR"]`, `ec 20`, `tst_regab @ localhost:5432`
   (the port as the STRING `"5432"` on the regab side).
+- The D-143 live-DB counts (fixture bid 8): **200** total records,
+  **11** duplicate (mover, opponent) keys, **189** distinct — the
+  `[TOTAL: 200], [REMOVED: 11], [PERCENT: 5.50%]` / `[FOUND: 11]`
+  log pins + the 189/200 position-array lengths.
 
 ## Conventions
 
@@ -53,5 +58,6 @@ the fixture values instead of warming a real cache file.
 - The end-to-end class exercises the real pipeline (CONFIG →
   POSITIONS) through `LogisticModel` with the `rlm_00.json`
   fixture; the unit class pins `is_cache_consistent` directly.
-- The two DB-gated tests are the pipeline's live-DB witnesses;
-  the 21-check probe re-derives the same behaviour independently.
+- The 5 DB-gated tests are the pipeline's live-DB witnesses (the
+  2 round-trip + the 3 D-143 policy tests); the 21-check probe
+  re-derives the same behaviour independently.

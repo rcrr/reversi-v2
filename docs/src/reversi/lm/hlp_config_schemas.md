@@ -4,7 +4,7 @@ The pydantic config DOMAIN of the LM pipeline: one public entry,
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
-> State: D-080 · cfb55fa · 2026-08-31 · suite 13/0/0
+> State: D-143 · 2026-09-09 · suite 13/0/0
 
 ## API
 
@@ -49,10 +49,15 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
   `output` (required); `use_cache=True`; `cache_files_prefix`
   default `"rlmwf_"` ("Filename prefix for the level specific
   cache files" — the filename-prefix concatenation the
-  state_machine closures implement); the five required domain
-  sections (`regab_data_set`, `feature_set`, `stat_model`,
-  `optimization`, `validation_data_set`); `analytics` by default
-  factory.
+  state_machine closures implement); `regab_allow_duplicate`
+  default `True` (D-143: the duplicate game-positions policy —
+  `True` keeps every extracted row, the pre-existing behaviour;
+  `False` deduplicates by `(mover, opponent)` keeping the first
+  occurrence; consumed by the POSITIONS/VLD `extract_and_prepare`
+  compute path, the count is logged at both levels); the five
+  required domain sections (`regab_data_set`, `feature_set`,
+  `stat_model`, `optimization`, `validation_data_set`); `analytics`
+  by default factory.
 - **Strictness** — the 3-letter uppercase status is enforced in
   BOTH status lists (regab + validation data set); `ec` is
   0..60; `frequency_cut_off` is a PositiveInt.

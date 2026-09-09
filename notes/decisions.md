@@ -986,3 +986,159 @@ D-142 | 2026-09-09 | CONFIG loses its ad-hoc
         (20 PERF + 1 VLONG-gated A2050). Probes:
         the full 20 verify-probe sweep green
         (gated and live).
+
+D-143 | 2026-09-09 | Duplicate game positions: the
+        regab_allow_duplicate policy + the validation
+        independence trace (Roberto: "Individuare i
+        record duplicati estratti dal DB, le game
+        positions, quelli che non sono univoci.
+        Aggiungere un flag nel JSON ... allow-duplicate:
+        boolean. Se false, loggato quanti sono in
+        assoluto ed in percentuale; se true, quanti
+        sono stati rimossi. Stessa cosa nella
+        VALIDATION. Aggiungere un check di verifica se
+        VALIDATION sia indipendente da POSITIONS.
+        Vanno fatti dei test specifici, micro, e presi
+        dal DB. Nel DB i record doppi ci sono, non
+        sono pochi, e sono strutturali. Non altererei
+        la query al db. Farei post una verifica in
+        Python ... la chiave e' mover, opponent ...
+        Sviluppa una analisi dettagliata, e fai una
+        proposta operativa. Me la presenti, ti do
+        feedback ed approvazione." — the
+        post-extraction duplicate policy + the
+        VLD-POSITIONS independence check; the approved
+        analysis, then the rulings).
+        | Analysis: the DB is MEASURED, not assumed —
+        on the fixture sets every duplicate (mover,
+        opponent) key appears EXACTLY twice, always one
+        CMS row + one CMR row, with IDENTICAL
+        game_value and player (0 multi-game_value, 0
+        multi-player duplicate groups; max repeats 2):
+        the same position recorded under two statuses,
+        and the status IN ('CMS','CMR') filter returns
+        both. Structural, as Roberto said. The counts:
+        bid 6 = 10,211 dup rows of 199,932 (5.11%),
+        bid 3 = 103,290 of 1,999,179 (5.17%), bid 8 =
+        11 of 200 (5.50%) — the current goldens
+        (199,932 / 1,999,179) are built WITH the
+        duplicates. The cache subtlety: the dedup must
+        live in the COMPUTE flow so the cache file
+        stores the post-policy data set — a flag flip
+        then changes the stored content and the
+        rds_checksum, which invalidates the downstream
+        levels through the EXISTING checksum lineage
+        (no format change, no new consistency field).
+        Rulings on the presented proposal: P1 OK
+        (regab_allow_duplicate, top-level LMConfig,
+        default True = keep = today's behaviour, the
+        backward-compatible migration; false = remove;
+        both settings log the absolute count + the
+        percentage), P2 OK (post-extraction pandas
+        drop_duplicates on (mover, opponent), keep=
+        first — hash-based O(n), order-preserving, NO
+        sort: a global sort would reorder every row and
+        perturb the goldens far beyond the removed
+        ones; "first" = lowest seq, the extraction is
+        ORDER BY seq; the SQL query untouched), P3 OK
+        (the compute-flow placement), P4 = LOG ONLY
+        ("calcoliamo l'overlap, e lo mettiamo come LOG.
+        Nessuna azione di nessun tipo. Rimane scritto.
+        Se volessimo azioni automatiche bisogna inserire
+        un parametro ... quale e' la percentuale massima
+        ammessa ... ma allora entrerebbero altri
+        parametri di qualita' ... per ora teniamo
+        traccia e basta" — NO raise, no threshold
+        parameter, no quality family), P5 OK (the test
+        plan), P6 = NOT INCLUDED ("la pipeline NON
+        valida i dati. Per calcolare il DB ci sono
+        voluti anni. Verificare i dati e' fuori
+        discussione al momento. Non aprirei il tema
+        verifiche." — the same-key-different-game_value
+        case is NOT a sentinel; keep-first is simply
+        pinned as behaviour). Name: regab_allow_duplicate
+        (the house snake_case, Roberto's choice).
+        | Code: regab.py +2 pure @validate_call
+        helpers — regab_dedup_mogv (L470: the
+        drop_duplicates over the (mover, opponent)
+        key; returns (deduped_df, total, removed); no
+        logging, no validation) + regab_count_position_
+        overlap (L498: the vld records whose key is
+        also in the training set — a pandas inner-merge
+        over the 2 key columns, the train side
+        deduped first so a duplicated train key cannot
+        inflate the count; a duplicated vld row counts
+        once per record; u64 top-bit safe); both
+        __all__-exported. hlp_config_schemas: LMConfig
+        .regab_allow_duplicate (bool, default True,
+        described field — the fixture JSONs gain the
+        key by default, no fixture change).
+        wrk_positions: extract_and_prepare (L187) —
+        the SHARED compute path: load_from_db →
+        regab_dedup_mogv → the flag branch (True: keep
+        + "[TOTAL] [FOUND] [PERCENT] — kept" log;
+        False: swap the deduped frame + "[TOTAL]
+        [REMOVED] [PERCENT] — removed" log) → the
+        post-policy rds; the _up compute_fn is now
+        extract_and_prepare and a cache HIT logs the
+        stored post-policy total ("[TOTAL] — data set
+        loaded from cache (regab_allow_duplicate: …)").
+        wrk_vld_positions: reuses extract_and_prepare
+        with the vld bid/status overrides (the A7/A8
+        pins re-pinned) + the same hit line + the D-143
+        validation-independence check after the pop
+        stats (L104-112): regab_count_position_overlap
+        (ctx.positions, ctx.vld_positions) → ONE INFO
+        log ("Validation independence check: [OVERLAP:
+        X of N validation records], [PERCENT: P%] —
+        records present in both … (log only, no
+        action)") — no raise, no parameter.
+        | Tests: +16 — test_regab +11 no-DB micro
+        (TestRegabDedupMogv 5: keep-first, the
+        passthrough, all-identical, same-key-different-
+        game_value keeps first WITHOUT raising (the
+        P6 behaviour pinned), the empty frame;
+        TestRegabCountPositionOverlap 6: disjoint,
+        partial, full, the duplicated vld row counts
+        per record, the duplicated train row does not
+        inflate, the u64 top-bit keys); test_wrk_
+        positions +3 DB-gated (TestLMWorkerPositions
+        Duplicates, fixture bid 8 = 200/11/189: flag
+        false → 189 + "[REMOVED: 11] [PERCENT: 5.50%]";
+        flag true → 200 + "[FOUND: 11] — kept"; the
+        cache holds the POST-policy content — a
+        flag-false file reloads 189 + the hit line +
+        no "Extracted"); test_wrk_vld_positions +2
+        DB-gated (TestVldIndependenceCheck: rlm_02
+        train bid 6,7 / vld bid 8 → "[OVERLAP: 0 of
+        200], [PERCENT: 0.00%]" + no raise; rlm_00
+        train = vld = bid 8 → "[OVERLAP: 200 of 200],
+        [PERCENT: 100.00%]" + NO raise — the log-only
+        ruling pinned: the 100%-overlapping vld is
+        traced, the worker completes).
+        | Probes (2 re-pins, both the D-143
+        architecture): verify_wrk_positions A1 the
+        __all__ 2 → 3 helpers (extract_and_prepare
+        added); verify_vld_positions A5 (the A5
+        description: the file delegates extraction to
+        wrk_positions.extract_and_prepare) + A7 (the
+        import is now extract_and_prepare,
+        is_cache_consistent) + A8 (the vld bid/status
+        overrides are on extract_and_prepare +
+        is_cache_consistent) + D8 (the reuse-identity
+        pin now includes extract_and_prepare.__module__
+        == wrk_positions).
+        | Suite: 706 → 722 (+11 micro + 5 DB-gated).
+        Default tier: 626 run in ~4 s / 96 skipped
+        (76 DB-gated + 20 PERF). LONG=1 (live DB): 701
+        run in ~36 s / 21 skipped (20 PERF + 1
+        VLONG-gated A2050). VLONG=1: the A2050 full
+        chain 6/6 — the goldens INTACT (the default
+        flag True keeps today's behaviour byte-for-
+        byte: the same 1,999,179 train records, the
+        same file hashes). Probes: the full 20
+        verify-probe sweep green. The new INFO lines
+        (the duplicate count at POSITIONS/VLD + the
+        independence trace) add nothing to the file
+        reports — the console-only witness, the
+        substring pins (assertIn) unaffected.
