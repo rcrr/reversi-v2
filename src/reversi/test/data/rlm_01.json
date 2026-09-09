@@ -31,6 +31,7 @@
     "output": "rglm_logistic_model_ec_20_TEST01.dat",
     "use_cache": true,
     "cache_files_prefix": "rlmwf_",
+    "regab_allow_duplicate": true,
     "stat_model": {
         "frequency_cut_off": 2,
         "logit_clipping": 0.03,

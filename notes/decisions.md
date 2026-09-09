@@ -1142,3 +1142,19 @@ D-143 | 2026-09-09 | Duplicate game positions: the
         independence trace) add nothing to the file
         reports — the console-only witness, the
         substring pins (assertIn) unaffected.
+        | Follow-up (same session, Roberto: "Lo
+        aggiungiamo esplicitamente nei JSON per
+        favore"): the 5 fixture JSONs (rlm_00-04) now
+        carry "regab_allow_duplicate": true explicitly
+        (after cache_files_prefix, the schema field
+        order). Zero impact on the goldens: the field
+        is optional (Field default=True), and the
+        fingerprint is the sha3_256 of the PARSED
+        config's model_dump_json — which includes the
+        defaults — so an explicit key equal to the
+        default produces the IDENTICAL normalized dump
+        and checksum (verified on rlm_00 + rlm_04
+        before/after). The D-143 test class was already
+        writing the key explicitly in its re-dumped
+        tmp JSONs (both values) — it never relied on
+        the default.
