@@ -73,9 +73,9 @@ positions generated from random gameplay paths.
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
 - Suite status (verified 2026-09-09, live DB, D-130 tiers,
-  D-143): 722 tests / 0 failures. Default tier: 626 run in
+  D-144): 725 tests / 0 failures. Default tier: 629 run in
   ~4 s / 96 skipped (76 DB-gated + 20 PERF print-only). LONG=1:
-  701 run in ~36 s / 21 skipped (20 PERF + 1 VLONG-gated
+  704 run in ~36 s / 21 skipped (20 PERF + 1 VLONG-gated
   A2050). Gated run (SKIP_REGAB_DB=1): 96 skipped = 20 PERF +
   76 DB (35 regab + 41 worker-level). Per-file suites: the
   Suite column of the Source files / Test files tables below.
@@ -157,8 +157,9 @@ at the end of this file.
   load+validate step computing the fingerprint
   ctx.config_checksum (the sha3_256 of the normalized dump —
   the effective config, the base_dir override included); at
-  SAVE the provenance record travels with the model file
-  (<output>.config.json + the binio .SHA3-256 sidecar); the
+  SAVE the provenance travels with the model file — D-144:
+  EMBEDDED in the v2 file (the D-142 sidecar record
+  retired); the
   "Config SHA3-256" line in the common analytics header
   block (18 lines, both reports); the versioned-history
   option B is dropped (the JSON evolution stays in the
@@ -211,6 +212,39 @@ at the end of this file.
   A2050 6/6 (the goldens INTACT — the default flag keeps
   today's behaviour byte-for-byte) + the 20 verify-probe
   sweep green.
+- C2 (the D-142 parked follow-up, executed at
+  Roberto's "Parti pure!") = D-144: the configuration
+  provenance EMBEDDED in the model file — format v2
+  (the config section LEADS the body: the checksum
+  sentinel + the normalized dump, the v1 sections
+  renumbered 2-9, the header prefix RGLM_BINARY_
+  WEIGHTS untouched, the version 1 → 2) + the
+  backward-compat reader (v1 loads with the config
+  fields None; v2 recompute + raise on a checksum
+  mismatch) + ModelWeights 10 → 12 fields (the
+  trailing defaulted config_dump/config_checksum).
+  The D-142 sidecar record is ELIMINATED (Roberto's
+  ruling — the model file is the single source; the
+  analytics "Config SHA3-256" report line untouched).
+  The v2 file-level goldens retired by design: the
+  embedded dump carries the run's base_dir → the bytes
+  are legitimately run-specific (the 5 archived v1
+  A2050 files are all exactly 515042 B; the raw v2
+  content is 100% constant apart from the 8 random
+  base_dir chars, which shift LZ4's match structure
+  by a few bytes — the same content compresses to
+  516459 or 516455) → the size literal becomes a band
+  (A2030 22700-22800 B, A2050 516400-516500 B) + the
+  determinism pins move to the same-base-dir byte
+  identity + the read-back provenance (mw.config_dump
+  == the live normalized dump, mw.config_checksum ==
+  the ctx fingerprint). Tests 6 → 9 (+TestModelWeights
+  V2 no-DB: v1 compat, v2 round-trip, the corruption
+  sentinel; the D-142 record test converted to the
+  single-source pin). verify_save A5/A6 re-pinned +
+  A6b new (18 checks).
+  Suite 725/0/96 default + 725/0/21 LONG + VLONG
+  A2050 9/9 + the 20 verify-probe sweep green.
 
 
 - Sources live in the `reversi` package under src/ (D-008;
@@ -225,12 +259,14 @@ at the end of this file.
 ## Next steps
 
 - Feed notes/ideas.md with Roberto's future-evolution ideas.
-- C2 (the D-142 parked follow-up, Roberto's call): embed the
-  normalized config dump INSIDE the model file (format v2 +
-  the backward-compatible v1 reader + config_checksum on
-  ModelWeights) — the model becomes fully self-describing;
-  the A2xxx production models are artifacts that travel, and
-  the self-containment has real value.
+- C2 (the D-142 parked follow-up): DONE (D-144) — the
+  config dump is now INSIDE the model file (v2, the
+  backward-compat v1 reader, the D-142 record retired);
+  the model is fully self-describing.
+- Next on the backlog (Roberto's call): I-013 the
+  GRADIENT fg performance study, I-012 FEATURES before
+  POSITIONS, I-003 the named move constants, I-009/I-010
+  (notes/ideas.md).
 
 
 
@@ -258,14 +294,14 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
 | src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set (D-079/D-080); the D-143 extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
-| src/reversi/lm/wrk_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104); the D-142 config record (the normalized dump + the binio sidecar, next to the model file) | 6/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
+| src/reversi/lm/wrk_save.py | complete: the SAVE 15th and LAST level — the pipeline is 15/15 (D-104); D-144: the SINGLE artifact — the v2 model file embeds the config provenance (the D-142 sidecar record retired) | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
 | src/reversi/lm/wrk_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/reversi/lm/wrk_validate.md |
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set, D-099/D-100); the D-143 shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
 | src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
-| src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104) | 5/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
+| src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104); D-144: the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139); the D-143 pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
@@ -297,7 +333,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (3 A2030 + 2 read guards) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-142 config-record test (A2030) + the Config SHA3-256 report pins | 6/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 15-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro) + the full saved-model round-trip; the A2050 chain VLONG-gated (~10 min, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094) | 2/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |

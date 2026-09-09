@@ -1158,3 +1158,131 @@ D-143 | 2026-09-09 | Duplicate game positions: the
         writing the key explicitly in its re-dumped
         tmp JSONs (both values) — it never relied on
         the default.
+
+D-144 | 2026-09-09 | C2 (the parked D-142 follow-up): the
+        configuration provenance EMBEDDED in the model
+        file — format v2 + the backward-compat v1
+        reader + config_dump/config_checksum on
+        ModelWeights (Roberto: "Ora puoi imbarcarti nei
+        lavori C2. Parti pure!"). RULINGS on the
+        proposal (4 points): (1) ModelWeights carries
+        BOTH the dump and the checksum ("checksum +
+        dump" — the in-memory object mirrors the file);
+        (2) the D-142 sidecar record
+        (<output>.config.json + its sidecar) is
+        ELIMINATED ("eliminiamo" — the model file is
+        the single source of the run's configuration,
+        the A2xxx models are shipped artifacts); (3)
+        the config section goes at the HEAD of the body
+        ("mettiamola in testa. Non cambiamo il
+        prefisso." — the binio header prefix
+        RGLM_BINARY_WEIGHTS is untouched, only the
+        version constant moves 1 → 2; no v1 artifacts
+        exist in the wild yet, the hand-built v1 test
+        files are the only "v1" in existence); (4) a
+        v2 file whose stored checksum does not cover
+        the embedded dump RAISES (the sentinel idiom,
+        as in binio).
+        | Design: the v2 layout is header
+        (RGLM_BINARY_WEIGHTS, version 2) + section 1 =
+        the configuration provenance (the leading body
+        section, the sentinel first: config_checksum
+        — the D-142 CONFIG-level fingerprint — then
+        config_dump — ctx.cfg.model_dump_json(indent=4),
+        the same normalized dump the D-142 record used
+        to carry, the effective config with the
+        base_dir override included) + sections 2-9 =
+        the v1 sections 1-8 VERBATIM. model_weights.py
+        (237 → 276 lines): MODEL_WEIGHTS_FILE_HEADER_VER
+        = 2; the writer gains the leading config
+        section (the section comments renumbered 0-9,
+        the header is section 0); the reader accepts
+        version 1 OR 2 (the guard message is now
+        "File header version, expected '1' or '2',
+        found '<v>'.") — v1 files load with
+        config_dump/config_checksum = None (the
+        backward-compat the C2 spec required), v2
+        recompute sha3_256(dump) and raise
+        "Config section checksum mismatch, expected
+        '<stored>', recomputed '<sha3>'. " on a
+        mismatch; ModelWeights gains the trailing
+        defaulted pair config_dump: str | None = None /
+        config_checksum: str | None = None (10 → 12
+        fields; the dataclass forces defaulted fields
+        last although the FILE section leads the body
+        — the construction sites are kwargs-only,
+        verified). wrk_save.py (76 → 66 lines):
+        _store_config_record + the binio
+        write_sha3_256_sidecar import are GONE (the
+        record is retired); the SAVE log span is now
+        2 lines (the "Configuration record saved to
+        ..." line is gone); the D-142 "Config
+        SHA3-256" line in the analytics reports
+        UNTOUCHED (it is the ctx fingerprint, not the
+        record).
+        | The v2 file-level goldens are RETIRED by
+        DESIGN (discovered the hard way): the embedded
+        dump carries the run's base_dir (the mkdtemp
+        path), so the file BYTES are legitimately
+        run-specific — unlike v1 (no run data inside →
+        byte-stable: the 5 archived A2050 v1 files are
+        all exactly 515042 B). The sha3 literal
+        (bcf8d918… A2030, 3ad18058… A2050) is out;
+        the size literal becomes a BAND: the content
+        is 100% deterministic apart from the 8 random
+        base_dir chars, and those shift LZ4's match
+        structure by a few bytes (reproduced: the
+        identical raw A2050 content, 674425 B,
+        compresses to 516459 or 516455 depending only
+        on the random name — the 516455 case is
+        EXACTLY the failed VLONG run's size, its tmp
+        name recovered from the log). Bands: A2030
+        22700-22800 B, A2050 516400-516500 B. The
+        determinism guarantee is carried by
+        test_second_instance_deterministic (same base
+        dir → byte-identical file) + the read-back
+        provenance pins (mw.config_dump == the live
+        normalized dump, mw.config_checksum == the
+        ctx fingerprint) + the model-file sidecar
+        verify.
+        | Tests (test_lm_worker_full_chain, 6 → 9
+        tests): +TestModelWeightsV2 (ungated, no DB,
+        the hand-crafted/SimpleNamespace idiom): the
+        v1 file loads with the config fields None
+        (backward compat), the synthetic-ctx v2
+        round-trip (write → read, every field + the
+        embedded dump + the fingerprint), the v2
+        corruption sentinel (ValueError); the v1
+        guard's message re-pinned ("expected '1' or
+        '2'"); test_config_record_sidecar (D-142)
+        CONVERTED to test_config_provenance_single_
+        source: the record + its sidecar do NOT exist
+        (retired), the model sidecar still verifies,
+        the fingerprint semantics survive on the
+        embedded fields; A2030/A2050: version 1 → 2,
+        the file pins become the size band + sidecar,
+        + the config provenance read-back pins.
+        | Probes: verify_save A5 (the version
+        constant is 2) + A6 (12 fields) re-pinned,
+        + A6b NEW (the config section LEADS the body,
+        the reader accepts v1|v2, the corruption
+        sentinel) — the census is now 18 checks; the
+        tier C/D comments re-derived. The other 19
+        verify-probes untouched.
+        | Suite: 722 → 725 (+3 no-DB micro). Default
+        tier: 725/0/96 in ~4 s. LONG=1 (live DB):
+        725/0/21 in ~36 s. VLONG=1: the A2050 full
+        chain 6/6. Probes: the full 20 sweep green
+        (gated and live). The A2xxx production models
+        (A2050, A2150, A2250, ...) are the first
+        artifacts written in v2 — no v1 file ever
+        shipped, the backward-compat reader is a
+        format guarantee (the hand-built v1 test
+        files prove it), not a migration path.
+        | Docs: model_weights.md (the v2 spec, the 12
+        fields, the retired goldens + the LZ4-jitter
+        finding), wrk_save.md (the single artifact,
+        the record retired, the 18-check census),
+        test_lm_worker_full_chain.md (9 tests, the
+        D-144 pins); overview.md + the session-33
+        journal extended.

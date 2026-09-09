@@ -18,11 +18,12 @@ fingerprint + no-cache pins). 3 classes / 13 tests / no PERF gates.
 - The fingerprint: `ctx.config_checksum` == `hashlib.sha3_256(
   ctx.cfg.model_dump_json(indent=4).encode()).hexdigest()` — the
   normalized dump (the effective config, the base_dir override
-  included) is the single source of truth for the SAVE config
-  record and the analytics report line (D-142).
+  included) is the single source of truth for the EMBEDDED
+  model-file config provenance (D-144) and the analytics report
+  line (D-142).
 - The no-cache state: the base dir holds NO `rlmwf_*` file after
-  `move_to_step('CONFIG')` (the config record is a SAVE artifact,
-  D-142).
+  `move_to_step('CONFIG')` (the configuration provenance is
+  EMBEDDED in the model file at SAVE, D-142/D-144).
 - The invalid-case payloads (one constraint each over the
   schema-complete payload — `ec=10`, `status ["CMS"]`, the
   `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern):

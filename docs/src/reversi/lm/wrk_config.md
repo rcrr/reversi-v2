@@ -5,8 +5,9 @@ the hlp_config_schemas domain model, computes the config fingerprint
 (`ctx.config_checksum`, the sha3_256 of the normalized dump), and
 publishes the model (and the `use_cache` flag) on the context for the
 workers that follow. It writes NO cache file (D-142: the ad-hoc
-cache flow is gone — the config record is a SAVE artifact, next to
-the model file).
+cache flow is gone — the configuration provenance is EMBEDDED in
+the v2 model file at SAVE, D-144; the D-142 sidecar record is
+retired).
 > State: D-142 · 181cb57 · 2026-09-09 · suite 13/0/0
 
 ## API
@@ -24,8 +25,8 @@ the model file).
   hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()`
   (D-142: the normalized dump is the EFFECTIVE configuration of the
   run — the base_dir override included, pydantic defaults resolved —
-  and this is the single source of truth for the SAVE config record
-  and the analytics report line) → the INFO log of the hex.
+  and this is the single source of truth for the EMBEDDED model-
+  file config provenance (D-144) and the analytics report line) → the INFO log of the hex.
 - `_down`: the ERROR "Clearing configuration..." →
   `ctx.cfg = None`, `ctx.use_cache = None`, `ctx.config_checksum =
   None`.
@@ -86,10 +87,12 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) +
 - Consumes `hlp_config_schemas` (the domain) and
   `state_machine.Worker`; publishes `ctx.cfg` / `ctx.use_cache` /
   `ctx.config_checksum` that the later workers read (the fingerprint
-  is consumed by `wrk_save` — the config record — and by
+  is consumed by `wrk_save` (EMBEDDED in the v2 model file,
+  D-144) and by
   `hlp_analytics` — the report line).
-- The config RECORD (the normalized dump + its checksum sidecar) is
-  written by the SAVE level next to the model file (wrk_save.md) —
+- The configuration PROVENANCE (the normalized dump + the
+  checksum) is EMBEDDED by the SAVE level in the v2 model file
+  (wrk_save.md, D-144 — the D-142 sidecar record is retired;
   D-142 moved the provenance from this level's cache slot to the
-  shipped artifact.
+  shipped artifact, D-144 embedded it in the artifact itself).
 - Test fixture: `src/reversi/test/data/rlm_00.json` (JSON5).
