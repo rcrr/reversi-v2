@@ -130,7 +130,8 @@ def tier_c():
     #  second-instance determinism deleted at D-106 step 3, class c:
     #  test_lm_worker_full_chain.py::TestFullChainA2030::
     #  test_full_worker_chain pins the same 7+7+4+4 metric values,
-    #  the v2 file in the 22800-22900 B size band + sidecar verify
+    #  the v2 file in the 22750-22850 B size band (D-147: re-centered
+    #  on the real test base dir; was 22800-22900) + sidecar verify
     #  (the v1 sha3 literal + the size literal retired by D-144: the
     #  embedded dump carries the run's base_dir — the bytes are
     #  run-specific, and LZ4's match structure shifts a few bytes

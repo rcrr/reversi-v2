@@ -174,11 +174,16 @@ class TestFullChainA2030(unittest.TestCase):
         # carried by test_second_instance_deterministic (same base
         # dir → byte-identical file) + the read-back provenance pins
         # below.
+        # D-147: the band re-centered on the REAL test base dir
+        # (build/tmp): 12 runs measured 22798-22802 B (the 4-byte
+        # LZ4 jitter); the D-145 band (22800-22900) was set from a
+        # single rebase run with a different path prefix (22811 B)
+        # and its lower edge clipped the real distribution.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(22800 < st_size < 22900,
-                        f"v2 model file size {st_size} outside the 22800-22900 band")
+        self.assertTrue(22750 < st_size < 22850,
+                        f"v2 model file size {st_size} outside the 22750-22850 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---

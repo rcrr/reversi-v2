@@ -1490,3 +1490,27 @@ D-146 | 2026-09-09 | I-013 O2 (the second cost center after
         verify_optimize has no two-loop body / opt_lbfgs
         line-count pin — no re-pin. Docs: opt_lbfgs.md
         (the O2b note + the negative result).
+
+D-147 | 2026-09-09 | The A2030 v2 file size band re-centered
+        (22800-22900 -> 22750-22850): Roberto's VLONG run hit
+        the failure "v2 model file size 22798 outside the
+        22800-22900 band". The D-145 band was set from a
+        SINGLE rebase run — 22811 B — whose base_dir path
+        prefix (scratch/opt_study/rebase_a2030) differed from
+        the real test base dir (build/tmp), shifting LZ4's
+        match structure by ~9-13 B and centering the band one
+        edge too high. The real distribution, measured on the
+        real base dir (12 full-chain runs with random mkdtemp
+        names, exactly as the test runs): 22798-22802 B — the
+        same 4-byte jitter D-144 documented for A2050 (the 8
+        random name chars in the embedded config dump). The
+        band is a 100-B sanity band centered on the
+        distribution (22750-22850, margin >= 48 B on each
+        side; the determinism guarantee remains the
+        same-base-dir byte-identity test + the read-back
+        provenance pins, not the size). A2050's band
+        (516300-516500) is untouched: Roberto's run passed it
+        (516399 measured on the rebase, 200 B wide, centered).
+        Change surface: the test assertion + its D-147
+        comment, the verify_save tier-C comment, the
+        test-mirror doc bullet. No golden moved.
