@@ -121,6 +121,50 @@ class TestTwoLoopRecursion(unittest.TestCase):
         self.assertGreater(np.linalg.norm(r), 1e-10,
                            'two-loop result should be non-zero for random input')
 
+    def test_out_equals_original_bit_identical(self):
+        # O2b (D-146): the pre-allocated out= product buffer must
+        # reproduce the original per-op-temporary algorithm
+        # BIT-FOR-BIT (the f64 product + the f32 in-place downcast
+        # are the original's exact dtype semantics) — the L-BFGS
+        # trajectory is therefore unchanged. The reference is the
+        # original algorithm, verbatim.
+        def reference(g, s_list, y_list, rho_list):
+            m = len(s_list)
+            alpha = np.zeros(m)
+            delta = g.copy()
+            for i in reversed(range(m)):
+                alpha[i] = rho_list[i] * np.dot(s_list[i], delta)
+                delta -= alpha[i] * y_list[i]
+            if m > 0:
+                gamma = (np.dot(s_list[-1], y_list[-1])
+                         / np.dot(y_list[-1], y_list[-1]))
+            else:
+                gamma = 1.0
+            r = gamma * delta
+            for i in range(m):
+                beta = rho_list[i] * np.dot(y_list[i], r)
+                r += s_list[i] * (alpha[i] - beta)
+            return r
+
+        for seed, n, m, dt in ((0, 50, 5, np.float32),
+                               (1, 500, 9, np.float32),
+                               (2, 64, 7, np.float64)):
+            with self.subTest(seed=seed, n=n, m=m, dt=dt.__name__):
+                rng = np.random.default_rng(seed)
+                s_list, y_list, rho_list = [], [], []
+                for _ in range(m):
+                    s = (rng.standard_normal(n) * 0.3).astype(dt)
+                    y = (2 * s + 0.1 * (rng.standard_normal(n) * 0.3)).astype(dt)
+                    s_list.append(s)
+                    y_list.append(y)
+                    rho_list.append(1.0 / float(np.dot(y, s)))
+                g = (rng.standard_normal(n) * 0.5).astype(dt)
+                r_new = _two_loop_recursion(g, s_list, y_list, rho_list)
+                r_ref = reference(g, s_list, y_list, rho_list)
+                self.assertTrue(np.array_equal(r_new, r_ref),
+                                'O2b two-loop is not bit-identical '
+                                f'(seed={seed}, dt={dt.__name__})')
+
 
 class TestLBFGSBaseFunction(unittest.TestCase):
     """Tests L-BFGS on a simple quadratic function."""

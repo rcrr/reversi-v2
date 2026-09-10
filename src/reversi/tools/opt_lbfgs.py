@@ -209,10 +209,25 @@ def _two_loop_recursion(g: np.ndarray, s: List[np.ndarray], y: List[np.ndarray],
     m = len(s)
     alpha = np.zeros(m)
 
+    # O2b (D-146, I-013): the per-op product buffer, pre-allocated
+    # once per call. The classic per-op temporaries (the f64 product
+    # of `alpha[i] * y[i]` / `s[i] * (alpha[i] - beta)`, downcast
+    # in place to float32) are the two-loop's measured cost driver
+    # at production scale: 2m fresh ~N-float allocations per call
+    # (A2050: ~58 MB allocated per call). The out= writes on the
+    # pre-allocated f64 buffer replicate the classic dtype
+    # semantics BIT-FOR-BIT (the f64 product, the f32 in-place
+    # downcast) — the L-BFGS trajectory is unchanged — and are
+    # 1.39x faster (A2050, m=93: 23.2 -> 16.9 ms/call, the
+    # I-013 measurement; the numba two-loop variant was measured
+    # 1.00-1.02x and NOT adopted).
+    prod = np.empty(g.shape, dtype=np.float64)
+
     delta = g.copy()
     for i in reversed(range(m)):
         alpha[i] = rho[i] * np.dot(s[i], delta)
-        delta -= alpha[i] * y[i]
+        np.multiply(y[i], alpha[i], out=prod)
+        np.subtract(delta, prod, out=delta)
 
     if m > 0:
         last_s = s[-1]
@@ -225,7 +240,8 @@ def _two_loop_recursion(g: np.ndarray, s: List[np.ndarray], y: List[np.ndarray],
 
     for i in range(m):
         beta = rho[i] * np.dot(y[i], r)
-        r += s[i] * (alpha[i] - beta)
+        np.multiply(s[i], alpha[i] - beta, out=prod)
+        np.add(r, prod, out=r)
 
     return r
 
