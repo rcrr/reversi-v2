@@ -162,6 +162,32 @@ class TestRlmConfigSchemas(unittest.TestCase):
                                 high_performance_fg=True)
         self.assertTrue(o2.high_performance_fg)
 
+    # -- D-148: the client_check_tol field ---------------------------------
+
+    def test_client_check_tol_default(self):
+        """D-148: client_check_tol defaults to 1e-8 (Roberto's
+        ruling) — the fixture does not set it."""
+        cfg = LMConfig(**self._cfg_dict())
+        self.assertEqual(cfg.client_check_tol, 1e-8)
+
+    def test_client_check_tol_override(self):
+        """An explicit value survives the validation (and the dump
+        round-trip: the field travels with the normalized dump)."""
+        d = self._cfg_dict()
+        d["client_check_tol"] = 1e-9
+        cfg = LMConfig(**d)
+        self.assertEqual(cfg.client_check_tol, 1e-9)
+        dumped = json5.loads(cfg.model_dump_json())
+        self.assertEqual(dumped["client_check_tol"], 1e-9)
+
+    def test_client_check_tol_nonpositive_rejected(self):
+        """The gt=0 constraint: a zero or negative tolerance is a
+        ValidationError (a check that never fails is not a check)."""
+        for bad in (0.0, -1e-8):
+            with self.assertRaises(ValidationError):
+                LMConfig(**self._cfg_dict(
+                    lambda d, b=bad: d.update(client_check_tol=b)))
+
     # -- E8/E9: validation_data_set + stat_model --------------------------------
 
     def test_validation_dataset_status_strict(self):

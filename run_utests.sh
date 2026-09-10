@@ -38,9 +38,9 @@ MODULES=(
     reversi.test.test_paths
     # 3 — DB access
     reversi.test.test_regab
-    # 4 — the pipeline, machine order 1-14 (each data module
-    #     immediately before its worker; the 15-level end-to-end
-    #     chain — including SAVE — last)
+    # 4 — the pipeline, machine order 1-15 (each data module
+    #     immediately before its worker; the 16-level end-to-end
+    #     chain — including SAVE + CLIENT_CHECK — last)
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
     reversi.test.test_wrk_positions
@@ -63,6 +63,7 @@ MODULES=(
     reversi.test.test_wrk_validate
     reversi.test.test_wrk_analytics
     reversi.test.test_client
+    reversi.test.test_wrk_client_check
     reversi.test.test_lm_worker_full_chain
 )
 

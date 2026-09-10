@@ -213,6 +213,19 @@ class LMConfig(LMBaseConfig):
         "levels, and the validation-vs-training overlap is logged at "
         "VLD_POSITIONS (log only, no action)."
     )
+    client_check_tol: float = Field(
+        default=1e-8, gt=0,
+        description="CLIENT_CHECK level tolerance (D-148): the "
+        "maximum absolute difference (Y space) admitted between the "
+        "validation residuals recomputed from the SAVED model file "
+        "(the client's Evaluation Function) and the in-memory "
+        "validation residuals (the VALIDATE forward pass). The two "
+        "are expected bit-identical (the same f32 pipeline over the "
+        "bit-exact file round-trip); the tolerance guards against "
+        "pipeline drift and file corruption. Y space, because Y "
+        "values are comparable across models (different "
+        "logit_clipping); Z values are distorted per model."
+    )
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig

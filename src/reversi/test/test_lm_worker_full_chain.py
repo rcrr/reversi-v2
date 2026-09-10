@@ -108,13 +108,15 @@ class TestFullChainA2030(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 15-level chain (CREATED through SAVE) on rlm_04."""
+        """Run the full 16-level chain (CREATED through
+        CLIENT_CHECK) on rlm_04."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, SAVE is step 14).
+        # Run the model chain (CREATED is step 0, CLIENT_CHECK is
+        # step 15).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 14)
-        self.assertEqual(self.rlm.current_worker_name, 'SAVE')
+        self.assertEqual(self.rlm.current_step, 15)
+        self.assertEqual(self.rlm.current_worker_name, 'CLIENT_CHECK')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
@@ -246,6 +248,12 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Validation completed. Loss (MSE/2): 5.75813930e-03", logs)
         self.assertIn("Saving model weights to disk...", logs)
         self.assertIn("Model weights saved to", logs)
+        # D-148: the 16th level re-reads the saved file, rebuilds the
+        # client's EF and reproduces the validation residuals
+        # bit-exactly (max difference 0.0 < the 1e-8 tolerance).
+        self.assertIn(
+            "Client check passed: 20000 validation residuals, "
+            "max difference 0.000e+00 (tolerance 1.0e-08).", logs)
 
         # --- Analytics console report (exact pins) ---
         report = ctx.analytics_report
@@ -391,14 +399,17 @@ class TestFullChainA2050(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 15-level chain (CREATED through SAVE) on rlm_03.
-        Long-running: ~1 minute (1999179 training samples, 356 lbfgs iters)."""
+        """Run the full 16-level chain (CREATED through
+        CLIENT_CHECK) on rlm_03.
+        Long-running: ~1 minute (1999179 training samples, 356 lbfgs
+        iters)."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, SAVE is step 14).
+        # Run the model chain (CREATED is step 0, CLIENT_CHECK is
+        # step 15).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 14)
-        self.assertEqual(self.rlm.current_worker_name, 'SAVE')
+        self.assertEqual(self.rlm.current_step, 15)
+        self.assertEqual(self.rlm.current_worker_name, 'CLIENT_CHECK')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics

@@ -1,0 +1,127 @@
+#
+# wrk_client_check.py
+#
+# This file is part of the reversi program
+# http://github.com/rcrr/reversi
+#
+# Author Roberto Corradini mailto:rob_corradini@yahoo.it
+# Copyright 2026 Roberto Corradini. All rights reserved.
+#
+# License
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation; either version 3, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+# or visit the site <http://www.gnu.org/licenses/>.
+#
+
+from __future__ import annotations
+
+import numpy as np
+
+from pydantic import validate_call, ConfigDict
+
+from typing import TYPE_CHECKING
+
+from reversi.tools.state_machine import Worker, Relevance
+from reversi.lm.client import make_evaluation_function_array
+from reversi.lm.hlp_gradient import sigmoid
+from reversi.lm.model_weights import model_weights_read_file
+
+if TYPE_CHECKING:
+    from reversi.lm.logistic_model import LMContext
+
+
+
+__all__ = ['wrk_client_check']
+
+
+
+def _validation_residuals_y(ctx: "LMContext") -> np.ndarray:
+    """
+    The reference validation residuals in Y space: the exact
+    hlp_validate.validate_model forward pass on the IN-MEMORY context
+    state (the VALIDATE computation, reproduced here — the A1a
+    ruling): the optimized ctx.w_dense over the validation positions.
+    The same f32 pipeline as VALIDATE (the gather + row sum, the
+    scipy-expit sigmoid, the f32 z2y affine); the returned residuals
+    are the rounded-lossless f64 view (the f32 predictions and the
+    int8 game values both upcast exactly), so no f32 rounding noise
+    enters the comparison.
+    """
+    vld_indexes = ctx.feature_set.compute_indexes(ctx.vld_positions)
+    n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
+    col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
+    dense_indices = vld_indexes + col_offsets
+    linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)
+    z_pred = sigmoid(linear_predictor)
+    y_pred = ctx.z2y(z_pred)
+    return y_pred.astype(np.float64) - ctx.vld_game_values.astype(np.float64)
+
+
+def _up(ctx: "LMContext") -> None:
+    ctx.log_event(Relevance.INFO, "Starting client check...")
+
+    # 1. Re-read the saved model file (the SAVE artifact — the single
+    #    source of the run's weights + configuration, D-144). The v2
+    #    reader re-verifies the embedded config checksum on the way.
+    output_path = ctx.cfg.base_dir / ctx.cfg.output
+    mw = model_weights_read_file(output_path, compressed=True)
+
+    # 2. Build the client's vectorized Evaluation Function (D-141) on
+    #    the FILE weights and recompute the validation residuals in
+    #    Y space (the rounded-lossless f64 view, as the reference).
+    ef = make_evaluation_function_array(mw)
+    y_pred_file = ef(ctx.vld_positions)
+    rn_file = (y_pred_file.astype(np.float64)
+               - ctx.vld_game_values.astype(np.float64))
+
+    # 3. The reference: the VALIDATE forward pass on the in-memory
+    #    state (nothing mutates the vld artifacts between the levels
+    #    13 and 16, so this IS the validation's own residual).
+    rn_ref = _validation_residuals_y(ctx)
+
+    diff = np.abs(rn_file - rn_ref)
+    max_diff = float(diff.max())
+    first_bad = int(diff.argmax())
+    tol = ctx.cfg.client_check_tol
+
+    if max_diff >= tol:
+        ctx.log_event(Relevance.ERROR,
+                      f"Client check FAILED: max residual difference "
+                      f"{max_diff:.3e} (first at position {first_bad}) "
+                      f">= tolerance {tol:.1e}.")
+        raise RuntimeError(
+            f"CLIENT_CHECK failed: the validation residuals "
+            f"recomputed from the saved model file differ from the "
+            f"in-memory validation residuals by {max_diff:.3e} "
+            f"(first at position {first_bad}), above the tolerance "
+            f"{tol:.1e}. The model file, the client, or the "
+            f"validation forward pass has diverged.")
+
+    ctx.log_event(Relevance.INFO,
+                  f"Client check passed: {diff.size} validation "
+                  f"residuals, max difference {max_diff:.3e} "
+                  f"(tolerance {tol:.1e}).")
+
+
+def _down(ctx: "LMContext") -> None:
+    ctx.log_event(Relevance.INFO, "Clearing client check attributes...")
+    # Nothing to clear from context: the worker re-reads the file on
+    # every up-move (stateless, as SAVE).
+
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def wrk_client_check() -> Worker:
+    """Factory function that returns the CLIENT_CHECK worker instance."""
+    return Worker("CLIENT_CHECK", _up, _down)

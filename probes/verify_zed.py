@@ -210,12 +210,13 @@ finally:
 
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
-check('F1  LMContext zed fields pre-declared (L133-136, shifted by the '
-      'D-142 config_checksum block), untouched by the commit',
-      lm_lines[132] == '    zed_checksum: str | None = None'
-      and lm_lines[133] == '    y2z: Any = None'
-      and lm_lines[134] == '    z2y: Any = None'
-      and lm_lines[135] == '    z: Any = None')
+check('F1  LMContext zed fields pre-declared (L134-137, shifted by the '
+      'D-142 config_checksum block + the D-148 wrk_client_check import), '
+      'untouched by the commit',
+      lm_lines[133] == '    zed_checksum: str | None = None'
+      and lm_lines[134] == '    y2z: Any = None'
+      and lm_lines[135] == '    z2y: Any = None'
+      and lm_lines[136] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
