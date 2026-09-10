@@ -1730,3 +1730,75 @@ D-149 | 2026-09-10 | PLOT: the 17th pipeline level, the
         probes/verify_plot.py (new) + the matplotlib pyproject
         dependency. 2 commits (the code + tests + probes, then
         docs + notes).
+
+D-150 | 2026-09-10 | PLOT styling v2: the fixed axes, the
+        two-line title, the Reference label up, and the top-20
+        extreme-outlier report (the follow-up to D-149, after
+        Roberto saw the seven A2050 figures). Roberto's
+        per-plot ruling (verbatim, the Italian kept):
+        gv_by_egv_box "i range degli assi devono andare
+        sempre, indipendentemente dai dati da -64 a +64 sia x
+        che y"; parity "come sopra"; resid_mean_by_egv "asse x
+        -64 +64, sempre. le labels asse y piu rade ... 0, 8,
+        16, 24, 32, 40, 48, 64 ... (questo grafico e' stupendo
+        ... ci dice che la sigmoid introduce una distorsione ...
+        che si vede !!!)"; resid_qq "asse y -64 +64.
+        (bellissimo, come sopra la distorsione si vede ...)";
+        residual_density "sono legato a questo grafico, fu il
+        primo che feci. Comunque: lo devi sempre centrare su
+        asse x tra valori ragionevoli. -72 +72. In teoria
+        potremmo avere valori tra -128 e +128. certo che se hai
+        tanti valori che sbagliano di piu' di 100 vuole dire che
+        il modello e' tanto sbagliato. Diciamo che dovremmo
+        avere un qualche report dei 10/20 outlier piu estremi.
+        Sarebbe poi uno spunto capire come mai il modello
+        sbarella cosi. La label grigia reference, va spostata
+        piu in alto cosi si sovrappone alla linea";
+        resid_vs_fitted "anche qui le scale x e y: x vai sempre
+        tra -64 e +64, y sempre simmetrico, teniamo valori
+        ragionevoli"; resid_vs_gv "questo non mi torna, secondo
+        me le labels sono invertite ... Game value(Y) (asse x)
+        va da -100 a +100, e' impossibile, sono i residui che
+        hanno questi range"; tutti "il titolo ha due righe.
+        Nome del grafico, descrizione modello. va benissimo.
+        Spazia le due righe un pochino di piu. Nome del
+        grafico in grassetto. Descrizione modello corsivo ed un
+        font piu piccolo." Diagnosis of the resid_vs_gv "swap":
+        the labels were NOT swapped — the 0.7 "cloud" jitter
+        (±44.8 units) stretched the data-driven x auto-range to
+        ±108; the fix pins x on the [-64, +64] game-value domain
+        (the jittered points beyond the domain are clipped by
+        the axis). Implementation: the fixed-axis constants
+        (_AXIS_GV=64.0, _AXIS_DENSITY=72.0, _TICK_STEP=8.0) +
+        the _sym_limit helper (the max |residual| rounded UP to
+        the tick step, the "valori ragionevoli" symmetric
+        limit); the axes: the box plot BOTH axes + parity +
+        mean-by-EGV x + the two scatter clouds' x on the full
+        [-64, +64], the density on the centered [-72, +72]
+        window (the in-theory ±128 residual is clipped there —
+        the outlier report is where the broken-model cases show
+        up), the QQ y on [-64, +64] (x, the normal theoretical
+        tail ~±3.3, stays data-driven); the step-8 tick grid
+        (0, 8, 16, ...) on the box/mean axes; the two-line
+        title in _fig (the name BOLD fontsize 13, pad=26; the
+        run name ITALIC fontsize 10 just above the axis — the
+        "spazia le due righe un pochino di piu"); the density
+        Reference label moved HIGH (0.98 of max_y, it overlapped
+        its line at the lower position) + the legend REMOVED
+        (the R original had legend.position="None" — the margin
+        labels identify the curves); the D-150 OUTLIER REPORT in
+        wrk_plot._up: the top-20 |validation residual| via the
+        STABLE argsort (deterministic, tie = the lower index
+        first), the header line + 20 lines carrying the
+        position's bitboards (the mover/opponent hex — Roberto
+        can investigate the extreme case), the game value, the
+        fitted, the residual. Verified: the default suite green
+        (the parity rendering golden re-pinned: ff459b8e... →
+        70c3de2b...), the LONG suite green (the A2030 chains
+        exercise the new styling + the outlier pins: the header
+        + the 20-count), the verify_plot probe 0 failures, the
+        preserved A2050 run (build/tmp/a2050) regenerated with
+        the new styling. Suite 768 → 771 (the +1 outlier test,
+        the +2 _sym_limit tests). No config change (the report
+        is log-only, no new field — the size bands stand).
+        2 commits (the code + tests, then docs + notes).

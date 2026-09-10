@@ -6,13 +6,14 @@ the R-semantic jitter, the EGV bins (the R `round_gv` port), and
 the guarded Gaussian-kernel density. No figures, no ctx, no DB —
 the builder/rendering behaviour lives in `test_wrk_plot` (the
 worker tier) and `probes/verify_plot.py` (the 16-check probe).
-> State: D-149 · 2026-09-10 · suite 9/0/0
+> State: D-150 · 2026-09-10 · suite 11/0/0
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
 | `TestHlpPlotVocabulary` | 3 | `test_names_seven_distinct`: seven distinct canonical names. `test_builders_cover_names_exactly`: the `PLOT_BUILDERS` registry covers the names EXACTLY (no stray, no missing — a new name lands in the tuple and the registry together). `test_titles_cover_names_exactly`: the `PLOT_TITLES` map, same lock-step. |
+| `TestHlpPlotAxes` (D-150) | 2 | `test_rounds_up_to_the_step`: the `_sym_limit` symmetric residual-axis limit — the max absolute value rounded UP to the tick step (5.3 → 8.0, 16.0 → 16.0, 16.1 → 24.0). `test_degenerate_inputs`: a zero-variance or NaN input yields the one-step floor (8.0). |
 | `TestHlpPlotJitter` | 2 | `test_bounds_and_spread`: the R jitter semantics — the output stays inside the ±amount·range/2 band AND actually spreads (>100 distinct deltas on a 1000-point axis). `test_zero_range_is_identity`: a constant input comes back untouched (the R degeneration). |
 | `TestHlpPlotEgvBins` | 2 | `test_even_grid_and_coverage`: the bin values are EVEN (the step-2 grid), every point lands in exactly one bin within 1.0 of its fitted value. `test_known_values`: `[-0.4, 0.6, 3.2, -2.9, 64.0] → [0, 0, 4, -2, 64]` (the `2·rint(x/2)` banker's port of the R `round_gv`). |
 | `TestHlpPlotKde` | 2 | `test_zero_variance_is_flat_zero`: the singular-kernel guard — a constant input yields a flat zero curve, no exception. `test_curve_shape_and_peak`: a symmetric cloud yields a finite, non-negative curve peaking within 0.5 of the mean. |

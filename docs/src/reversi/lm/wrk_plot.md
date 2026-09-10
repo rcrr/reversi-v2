@@ -1,6 +1,9 @@
 # reversi/lm/wrk_plot.py
 The PLOT worker — the 17th and LAST active level of the LM pipeline
-(step 16, after CLIENT_CHECK). The 8th non-cache worker — no
+(step 16, after CLIENT_CHECK). D-150: the run also logs the TOP-20
+EXTREME-OUTLIER report (the 20 validation positions with the
+largest |residual|, the position's bitboards included — Roberto's
+"uno spunto capire come mai il modello sbarella cosi"). The 8th non-cache worker — no
 `cache_manager` wiring, no rlmwf_16* file (a derived-artifact step,
 regenerated on every up-move, an idempotent overwrite). It writes
 the run's matplotlib diagnostic figures (the hlp_plot builders) to
@@ -14,7 +17,7 @@ nothing, even with names listed). On an error the worker raises
 (the D-060 failure semantics: the machine logs and re-raises, the
 step stays at PLOT). No context attribute is published; `_down` is a
 no-op (log only).
-> State: D-149 · 2026-09-10 · suite 9/0/0 (test_wrk_plot) + the
+> State: D-150 · 2026-09-10 · suite 10/0/0 (test_wrk_plot) + the
   chain pins via test_lm_worker_full_chain (DB-gated) + the
   probes/verify_plot.py 16-check probe
 
@@ -37,8 +40,14 @@ no-op (log only).
 - `_up` (L63-108): the pilot (L69-78): `plot.enable` false →
   "PLOT skipped: plot.enable is false." (log only, return); empty
   `plot.plots` → "PLOT skipped: no plot names requested." (log only,
-  return) → "Generating {n} plot(s)..." (L80-81) →
-  `collect_plot_data(ctx)` (L84) → the directory (L89-91):
+  return) → "Generating {n} plot(s)..." →
+  `collect_plot_data(ctx)` → the D-150 OUTLIER REPORT: the
+  top-20 `|vld_rn|` via the STABLE argsort (deterministic: tie =
+  the lower index first), the header line "Top 20 extreme
+  validation residuals (outlier report):" + 20 lines ("  {rank}.
+  vld position {i} ({mover:016X}/{opponent:016X}): game value
+  {gv:+.0f}, fitted {yf:+.2f}, residual {rn:+.2f}") →
+  the directory:
   `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live
   outside base_dir — the D-149 ruling), else `base_dir / dir_name`;
   `mkdir(parents=True, exist_ok=True)` (L92) → the per-name loop
@@ -79,6 +88,10 @@ rlm_04-mirror context) + the 16-check `probes/verify_plot.py`
 - The directory: an ABSOLUTE dir_name is used as-is (outside
   base_dir), the relative default does not leak there
   (`test_up_absolute_dir_name`).
+- The D-150 outlier report: the header line + exactly 20
+  "vld position" lines, the |residual| non-increasing down the
+  list (`test_up_outlier_report`); the DB-gated A2030 chain pins
+  the header + the 20-count.
 - The factory name (`test_factory_returns_named_worker`) + the
   no-op `_down` log (`test_down_is_a_noop_log`).
 - The DB-gated A2030 chain (rlm_04.json, all seven names) pins the

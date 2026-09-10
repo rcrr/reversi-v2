@@ -73,12 +73,13 @@ positions generated from random gameplay paths.
   runner is unittest by design (D-124): pytest is not a
   dependency (and not in the venv).
 - Suite status (verified 2026-09-10, live DB, D-130 tiers,
-  D-149): 768 tests / 0 failures. Default tier: 672 run in
+  D-150): 771 tests / 0 failures. Default tier: 675 run in
   ~9 s / 96 skipped (76 DB-gated + 20 PERF print-only; the
   D-149 PLOT modules added the ~5 s of the synthetic renderings).
-  LONG=1: 747 run in ~52 s / 21 skipped (20 PERF + 1 VLONG-gated
-  A2050). VLONG=1: 748 run in ~2 min / 20 skipped (the A2050
-  class alone: 58.8 s, the seven 200k-point plots included).
+  LONG=1: 750 run in ~52 s / 21 skipped (20 PERF + 1 VLONG-gated
+  A2050). VLONG=1: 751 run in ~2 min / 20 skipped (the A2050
+  class alone: ~1 min, the seven 200k-point plots + the
+  top-20 outlier report included).
   Gated run (SKIP_REGAB_DB=1): 96 skipped = 20 PERF + 76 DB
   (35 regab + 41 worker-level). Per-file suites: the Suite
   column of the Source files / Test files tables below.
@@ -337,6 +338,26 @@ at the end of this file.
   22990/22994), A2050 516500-516700 (measured 516551); the
   hub V3c 16 → 17; verify_zed F1 L135-138; the verify_save
   header + band comments.
+- D-150 (2026-09-10): the PLOT styling v2 — Roberto looked at
+  the seven A2050 figures and ruled: the FIXED axes (the
+  game-value axes always [-64, +64] regardless of the data — the
+  box plot both axes, the two clouds' x; the density ALWAYS
+  centered on zero on the [-72, +72] window, "in teoria ±128,
+  chi sbaglia di più di 100 ha un modello tanto sbagliato"; the
+  QQ y on [-64, +64]), the step-8 tick labels ("0, 8, 16, ..."),
+  the two-line title (the name BOLD, the description ITALIC
+  smaller, spaced), the Reference label moved up (it overlapped
+  its line). His verdict on the new diagnostics: the
+  mean-residual-by-EGV "questo grafico è stupendo ... ci dice
+  che la sigmoid introduce una distorsione ... che si vede !!!"
+  and the QQ "bellissimo, come sopra la distorsione si vede".
+  New: the top-20 extreme-outlier report in the PLOT log (the
+  position's bitboards included — "uno spunto capire come mai il
+  modello sbarella cosi"). The resid_vs_gv "swapped labels":
+  they were NOT swapped — the 0.7 jitter smear (±44.8) stretched
+  the data-driven x axis to ±108; the pinned domain fixes it.
+  Suite 768 → 771, the parity golden re-pinned, no config
+  change (log-only report, the size bands stand).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -400,8 +421,8 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK 16th level (PLOT follows as the 17th — D-149) — the saved-model file acceptance test (D-148: the file re-read + the client's array EF + the Y-space residual comparison vs the in-memory VALIDATE forward pass, tolerance = cfg.client_check_tol) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
-| src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders (D-149) — the seven Y-space diagnostics (the three R classics + the four extensions), the PlotData + collect_plot_data (the training w_dense pass + the validation forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; matplotlib/scipy lazy-imported (the schema imports PLOT_NAMES on every run) | 9/0/0 | docs/src/reversi/lm/hlp_plot.md |
-| src/reversi/lm/wrk_plot.py | complete: the PLOT 17th and LAST level (step 16, after CLIENT_CHECK; D-149) — the whitelist pilot (enable + the optional plot names), the directory resolution (absolute as-is / relative under base_dir), the per-name save in every configured format; no cache (the 8th non-cache deviation, the rlmwf_16 slot), stateless down, D-060 failure | 9/0/0 | docs/src/reversi/lm/wrk_plot.md |
+| src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders (D-149; D-150: the fixed axes — game-value axes always [-64,+64], the density centered [-72,+72], the step-8 ticks — + the two-line bold/italic title + the _sym_limit helper) — the seven Y-space diagnostics (the three R classics + the four extensions), the PlotData + collect_plot_data (the training w_dense pass + the validation forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; matplotlib/scipy lazy-imported (the schema imports PLOT_NAMES on every run) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
+| src/reversi/lm/wrk_plot.py | complete: the PLOT 17th and LAST level (step 16, after CLIENT_CHECK; D-149) — the whitelist pilot (enable + the optional plot names), the directory resolution (absolute as-is / relative under base_dir), the per-name save in every configured format; D-150: the top-20 extreme-outlier report (the position's bitboards, the stable argsort); no cache (the 8th non-cache deviation, the rlmwf_16 slot), stateless down, D-060 failure | 10/0/0 | docs/src/reversi/lm/wrk_plot.md |
 | src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (D-142: the ad-hoc cache flow removed, the record is a SAVE artifact); closed (D-077/D-078/D-142; I-011 realized) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/reversi/lm/wrk_features.md |
@@ -447,12 +468,12 @@ One row per test file, alphabetical.
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105; the D-142 masked-hash helper + the 2 file-report goldens re-pinned) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite (D-148) — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden ("max difference 0.000e+00"), the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/src/reversi/test/test_wrk_client_check.md |
-| src/reversi/test/test_hlp_plot.py | complete: the PLOT pure-helper suite (D-149) — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 9/0/0 | docs/src/reversi/test/test_hlp_plot.md |
-| src/reversi/test/test_wrk_plot.py | complete: the PLOT worker suite (D-149) — the synthetic rlm_04-mirror ctx (no DB, the per-instance index contract), the pilot no-ops (enable=false / the empty whitelist), the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the parity rendering golden, the factory, the no-op down | 9/0/0 | docs/src/reversi/test/test_wrk_plot.md |
+| src/reversi/test/test_hlp_plot.py | complete: the PLOT pure-helper suite (D-149; D-150: the _sym_limit tests) — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the symmetric-axis limit (round-up to the step, the degenerate guard), the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 11/0/0 | docs/src/reversi/test/test_hlp_plot.md |
+| src/reversi/test/test_wrk_plot.py | complete: the PLOT worker suite (D-149; D-150: the outlier-report test + the re-pinned parity golden) — the synthetic rlm_04-mirror ctx (no DB, the per-instance index contract), the pilot no-ops (enable=false / the empty whitelist), the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the top-20 outlier report (header + 20 lines, non-increasing |residual|), the parity rendering golden, the factory, the no-op down | 10/0/0 | docs/src/reversi/test/test_wrk_plot.md |
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
-| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 17-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro; D-148: the 14/SAVE → 15/CLIENT_CHECK re-pin + the A2030 client-check log pin; D-149: the 15/CLIENT_CHECK → 16/PLOT re-pin + the seven-PNG + the "Plot ... saved:" / "PLOT done: 7 plot(s)" log pins in BOTH chains + the size bands re-centered 22940-23040 / 516500-516700) + the full saved-model round-trip; the A2050 chain VLONG-gated (~1 min since D-145, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins; D-145: the HP-trajectory re-pin (A2030 71 iters, A2050 356 iters, the w_dense sha3 + EF + report-hash pins, the size bands) | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
+| src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 17-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro; D-148: the 14/SAVE → 15/CLIENT_CHECK re-pin + the A2030 client-check log pin; D-149: the 15/CLIENT_CHECK → 16/PLOT re-pin + the seven-PNG + the "Plot ... saved:" / "PLOT done: 7 plot(s)" log pins in BOTH chains + the size bands re-centered 22940-23040 / 516500-516700; D-150: the A2030 outlier pins — the "Top 20 extreme validation residuals (outlier report):" header + the 20-count) + the full saved-model round-trip; the A2050 chain VLONG-gated (~1 min since D-145, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins; D-145: the HP-trajectory re-pin (A2030 71 iters, A2050 356 iters, the w_dense sha3 + EF + report-hash pins, the size bands) | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094; D-145: the 2 no-DB flag-wiring tests) | 4/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
 | src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
