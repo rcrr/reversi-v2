@@ -1802,3 +1802,29 @@ D-150 | 2026-09-10 | PLOT styling v2: the fixed axes, the
         the +2 _sym_limit tests). No config change (the report
         is log-only, no new field — the size bands stand).
         2 commits (the code + tests, then docs + notes).
+
+D-151 | 2026-09-10 | PLOT mean-by-EGV y-axis refinement
+        (the follow-up to D-150, after Roberto looked at the
+        restyled resid_mean_by_egv.png). Ruling (verbatim):
+        "Riduci la dimensione del font dei valori sugli assi x
+        e y ( gli 0, 8, 16, 24, ... ). asse x perfetto ( -64
+        ... +64 ). asse y usiamo i valori min e max reali del
+        grafico. teniamolo sempre simmetrico, se il valoe e'
+        nel range -16,+16 teniamolo in questo range ...".
+        Implementation: the y limit is now the ACTUAL data
+        extent (the |mean| + sd of the error bars, the full
+        plotted content) rounded UP to the step-8 grid and kept
+        SYMMETRIC (the _sym_limit reuse — his [-16, +16]
+        example: data inside ±16 → the axis is ±16, not the
+        full ±64); the y ticks are the step-8 grid WITHIN the
+        limit (0, 8, 16, ... — the "labels più rade" of D-150
+        still apply, just over the real range); the tick
+        labels on BOTH axes drop to fontsize 8 (the default 10
+        — his "riduci la dimensione del font"). The x axis is
+        unchanged (the full [-64, +64] domain, "perfetto").
+        Only this one builder changed: the parity golden is
+        untouched, the other six renderings byte-identical
+        (verified in the preserved A2050 regeneration:
+        resid_mean_by_egv.png 71550 → 59226 B, the rest
+        unchanged). The test modules + the verify_plot probe
+        green. 2 commits (the code, then docs + notes).

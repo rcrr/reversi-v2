@@ -4,7 +4,9 @@ ruling: the FIXED axis ranges — the game-value axes always the
 full [-64, +64] domain, the residual-density axis the centered
 [-72, +72] window, the step-8 tick grid — and the two-line
 title: the plot name in BOLD, the run description in smaller
-ITALIC, spaced apart). The seven matplotlib
+ITALIC, spaced apart; the D-151 mean-by-EGV refinement: the y
+axis hugs the actual data symmetrically, the smaller tick
+labels). The seven matplotlib
 diagnostics of the logistic-model run. The first three are the port
 of the R rglm workflow's classic plots (the residual-density
 three-liner, the residual-vs-fitted cloud, the residual-vs-game-
@@ -127,9 +129,13 @@ under a fixed matplotlib version.
     region drifts away from zero; Roberto: "questo grafico è
     stupendo ... ci dice che la sigmoid introduce una distorsione
     ... che si vede !!!"); single-point bins get a zero bar (the
-    ddof=1 sd is undefined at n=1); the D-150 axes: x always the
-    full [-64, +64] domain, the y labels on the sparse step-8
-    grid (0, 8, 16, ...).
+    ddof=1 sd is undefined at n=1); the D-150/D-151 axes: x
+    always the full [-64, +64] domain ("asse x perfetto"), y
+    hugs the ACTUAL data (the |mean|+sd extent rounded UP to the
+    step-8 grid, kept symmetric — the D-151 "valori min e max
+    reali del grafico" ruling; the tick grid stays 0, 8, 16, ...
+    within the limit), the tick labels in the smaller font
+    (labelsize 8, D-151).
   - `plot_parity` (plot 6, new): the validation game values vs
     the fitted values, the 45° line, both axes on the full
     [-64, +64] scale (already the D-150 requirement), equal

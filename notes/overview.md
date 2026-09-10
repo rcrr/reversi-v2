@@ -357,7 +357,13 @@ at the end of this file.
   they were NOT swapped — the 0.7 jitter smear (±44.8) stretched
   the data-driven x axis to ±108; the pinned domain fixes it.
   Suite 768 → 771, the parity golden re-pinned, no config
-  change (log-only report, the size bands stand).
+  change (log-only report, the size bands stand). D-151
+  followed the same day (Roberto's look at the restyled
+  figure): the mean-by-EGV y axis now hugs the ACTUAL data
+  (the |mean|+sd extent, symmetric, rounded up to the step-8
+  grid — "se il valore è nel range -16,+16 teniamolo in questo
+  range"), the tick labels drop to fontsize 8, the x axis
+  untouched ("perfetto").
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
