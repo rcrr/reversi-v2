@@ -111,6 +111,16 @@ _JIT_GV_X = 0.7
 #: The KDE evaluation grid size.
 _KDE_GRID = 512
 
+#: The FIXED axis ranges (Roberto's D-150 ruling: the axes do not
+#: follow the data — the game-value axes are always the full
+#: [-64, +64] domain, the residual-density axis the reasonable
+#: centered [-72, +72] window (a residual beyond that is a broken
+#: model — the outlier report is where they show up), the tick
+#: step 8 (the 0, 8, 16, ... labels).
+_AXIS_GV = 64.0
+_AXIS_DENSITY = 72.0
+_TICK_STEP = 8.0
+
 
 def _mpl():
     """The lazy matplotlib import (the Agg backend, headless)."""
@@ -219,13 +229,28 @@ def _kde_curve(values: np.ndarray, grid: np.ndarray) -> np.ndarray:
     return gaussian_kde(v)(grid)
 
 
+def _sym_limit(values: np.ndarray, step: float = _TICK_STEP) -> float:
+    """The symmetric residual-axis limit: the max absolute value
+    rounded UP to the tick step (the "reasonable value" Roberto
+    asks for), at least one step."""
+    m = float(np.abs(values).max())
+    if not np.isfinite(m) or m <= 0.0:
+        return step
+    return float(step * np.ceil(m / step))
+
+
 def _fig(title: str, run_name: str, xlabel: str, ylabel: str):
     """A fresh figure in the light-theme look (the grid on, the
-    R theme_light equivalent)."""
+    R theme_light equivalent). The title is two lines (D-150):
+    the plot name in BOLD, the run description in ITALIC with a
+    smaller font, spaced apart (the name sits high via the pad,
+    the description just above the axis)."""
     plt = _mpl()
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.grid(True, alpha=0.3)
-    ax.set_title(f"{title}\n{run_name}", fontsize=11)
+    ax.set_title(title, fontsize=13, fontweight="bold", pad=26)
+    ax.text(0.5, 1.005, run_name, transform=ax.transAxes, ha="center",
+            va="bottom", style="italic", fontsize=10)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     return fig, ax
@@ -251,10 +276,13 @@ def plot_residual_density(d: PlotData, run_name: str) -> "Figure":
               ("Training", d.trn_rn, "firebrick"),
               ("Validation", d.vld_rn, "black"))
 
-    lo = min(s.min() for _, s, _ in series)
-    hi = max(s.max() for _, s, _ in series)
+    # The FIXED centered window (the D-150 ruling: always centered
+    # on zero, the reasonable [-72, +72] — a residual beyond it
+    # means a broken model, and the outlier report is where those
+    # show up; in theory the residual can reach +/-128).
+    lo, hi = -_AXIS_DENSITY, _AXIS_DENSITY
     span = float(hi - lo)
-    grid = np.linspace(lo - 0.05 * span, hi + 0.05 * span, _KDE_GRID)
+    grid = np.linspace(lo, hi, _KDE_GRID)
 
     fig, ax = _fig(PLOT_TITLES["residual_density"], run_name,
                    "Game value residual (Y)", "Probability density")
@@ -262,22 +290,24 @@ def plot_residual_density(d: PlotData, run_name: str) -> "Figure":
     for label, vals, color in series:
         curve = _kde_curve(vals, grid)
         max_y = max(max_y, float(curve.max()))
-        ax.plot(grid, curve, color=color, lw=1.4, label=label)
+        ax.plot(grid, curve, color=color, lw=1.4)
         ax.text(lo + _TXT_X[label] * span, _TXT_Y[label] * max_y,
                 _series_label(label, vals), ha="left", va="top",
                 fontsize=9, color=color)
     ax.axvline(float(d.trn_rn.mean()), color="black", ls="--", lw=0.8)
-    ax.set_xlim(lo - 0.05 * span, hi + 0.05 * span)
+    ax.set_xlim(lo, hi)
     ax.set_ylim(0.0, max_y * 1.15)
-    ax.legend(loc="upper right", framealpha=0.9)
+    # No legend (the R original had legend.position = "None" —
+    # the margin labels identify the curves).
     return fig
 
 
 #: The annotation placement of plot 1 (data-coordinate fractions:
 #: x as a fraction of the axis span from the left, y as a fraction
-#: of the curve maximum).
-_TXT_X = {"Validation": 0.04, "Training": 0.45, "Reference": 0.62}
-_TXT_Y = {"Validation": 0.72, "Training": 0.90, "Reference": 0.55}
+#: of the curve maximum). The Reference label sits HIGH (D-150:
+#: it overlapped its line at the lower position).
+_TXT_X = {"Validation": 0.04, "Training": 0.40, "Reference": 0.75}
+_TXT_Y = {"Validation": 0.80, "Training": 0.96, "Reference": 0.98}
 
 
 def _series_label(label: str, vals: np.ndarray) -> str:
@@ -301,6 +331,12 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str) -> "Figure":
     fig, ax = _fig(PLOT_TITLES["resid_vs_fitted"], run_name,
                    "Fitted (Y)", "Game value residual (Y)")
     ax.scatter(x, y, s=4, c="black", alpha=0.04)
+    # The D-150 axes: x always the full [-64, +64] domain (the
+    # fitted values live in it by construction), y symmetric on a
+    # reasonable (tick-step-rounded) limit.
+    lim = _sym_limit(y)
+    ax.set_xlim(-_AXIS_GV, _AXIS_GV)
+    ax.set_ylim(-lim, lim)
     return fig
 
 
@@ -317,6 +353,15 @@ def plot_resid_vs_gv(d: PlotData, run_name: str) -> "Figure":
     fig, ax = _fig(PLOT_TITLES["resid_vs_gv"], run_name,
                    "Game value (Y)", "Game value residual (Y)")
     ax.scatter(x, y, s=4, c="black", alpha=0.02)
+    # The D-150 axes: x always the full [-64, +64] game-value
+    # domain — the previous data-driven axis let the 0.7 "cloud"
+    # jitter smear the auto-range to +/-108 (Roberto read it as
+    # swapped labels); the jittered points beyond the domain are
+    # clipped by the axis, the labels are NOT swapped. y as in
+    # resid_vs_fitted.
+    lim = _sym_limit(y)
+    ax.set_xlim(-_AXIS_GV, _AXIS_GV)
+    ax.set_ylim(-lim, lim)
     return fig
 
 
@@ -333,9 +378,12 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str) -> "Figure":
                    "Evaluated game value (Y, step 2)", "Game value (Y)")
     ax.boxplot(groups, positions=unique, widths=0.7,
                flierprops=dict(markersize=1.0, alpha=0.4))
-    ax.set_ylim(-64.0, 64.0)
-    step = max(1, unique.size // 16)
-    ax.set_xticks(unique[::step])
+    # The D-150 axes: BOTH always the full [-64, +64] domain,
+    # regardless of the data; the ticks on the step-8 grid.
+    ticks = np.arange(-_AXIS_GV, _AXIS_GV + 1, _TICK_STEP)
+    ax.set_xlim(-_AXIS_GV, _AXIS_GV)
+    ax.set_ylim(-_AXIS_GV, _AXIS_GV)
+    ax.set_xticks(ticks)
     return fig
 
 
@@ -360,8 +408,14 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str) -> "Figure":
     ax.errorbar(unique, means, yerr=sds, fmt="o", ms=4, color="firebrick",
                 ecolor="firebrick", elinewidth=0.8, capsize=3)
     ax.axhline(0.0, color="black", ls="--", lw=0.8)
-    step = max(1, unique.size // 16)
-    ax.set_xticks(unique[::step])
+    # The D-150 axes: x always the full [-64, +64] domain; the y
+    # labels on the sparse step-8 grid (0, 8, 16, ... — Roberto's
+    # "labels più rade" ruling; this is the plot that SHOWS the
+    # sigmoid distortion).
+    ticks = np.arange(-_AXIS_GV, _AXIS_GV + 1, _TICK_STEP)
+    ax.set_xlim(-_AXIS_GV, _AXIS_GV)
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
     return fig
 
 
@@ -403,6 +457,10 @@ def plot_resid_qq(d: PlotData, run_name: str) -> "Figure":
     ax.scatter(theory, rn, s=4, c="black", alpha=0.05)
     xs = np.array([theory.min(), theory.max()])
     ax.plot(xs, sd_rn * xs, color="firebrick", ls="--", lw=1.0)
+    # The D-150 axis: y (the sample quantiles of the residual)
+    # always the full [-64, +64]; x (the theoretical quantiles)
+    # stays data-driven (the normal tail, about +/-3.3).
+    ax.set_ylim(-_AXIS_GV, _AXIS_GV)
     return fig
 
 

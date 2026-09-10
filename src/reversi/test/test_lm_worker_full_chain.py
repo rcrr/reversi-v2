@@ -270,6 +270,11 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Plot 'residual_density' saved:", logs)
         self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",
                       logs)
+        # D-150: the top-20 extreme-outlier report (the 21 lines).
+        self.assertIn(
+            "Top 20 extreme validation residuals (outlier report):",
+            logs)
+        self.assertEqual(logs.count("vld position"), 20)
 
         # --- Analytics console report (exact pins) ---
         report = ctx.analytics_report

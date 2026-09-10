@@ -108,6 +108,23 @@ class TestHlpPlotEgvBins(unittest.TestCase):
                          [0, 0, 4, -2, 64])
 
 
+class TestHlpPlotAxes(unittest.TestCase):
+    """The D-150 symmetric residual-axis limit: the max absolute
+    value rounded UP to the tick step (the "reasonable value"),
+    at least one step."""
+
+    def test_rounds_up_to_the_step(self):
+        from reversi.lm.hlp_plot import _sym_limit
+        self.assertEqual(_sym_limit(np.array([-5.3, 5.3])), 8.0)
+        self.assertEqual(_sym_limit(np.array([-16.0, 16.0])), 16.0)
+        self.assertEqual(_sym_limit(np.array([-16.1])), 24.0)
+
+    def test_degenerate_inputs(self):
+        from reversi.lm.hlp_plot import _sym_limit
+        self.assertEqual(_sym_limit(np.zeros(10)), 8.0)
+        self.assertEqual(_sym_limit(np.array([np.nan, 3.0])), 8.0)
+
+
 class TestHlpPlotKde(unittest.TestCase):
     """The guarded Gaussian-kernel density helper."""
 
