@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv",
     "json5",
     "scipy",
+    "matplotlib",
 ]
 
 [tool.setuptools.packages.find]

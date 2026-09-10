@@ -5,8 +5,8 @@ verify_save.py — D-104 SAVE bring-in probe (post-campaign goldens).
 Tiers:
   A: static hygiene (worker, model_weights, client, test file, fixtures)
   B: model_weights read guards (no DB)
-  C: live rlm_04 full 15-level chain (DB)
-  D: live rlm_03 full 15-level chain (DB; run only with LONG=1)
+  C: live rlm_04 full 17-level chain (DB)
+  D: live rlm_03 full 17-level chain (DB; run only with LONG=1)
 
 Run: .venv/bin/python scratch/verify_save.py [LONG]
 """
@@ -130,8 +130,10 @@ def tier_c():
     #  second-instance determinism deleted at D-106 step 3, class c:
     #  test_lm_worker_full_chain.py::TestFullChainA2030::
     #  test_full_worker_chain pins the same 7+7+4+4 metric values,
-    #  the v2 file in the 22750-22850 B size band (D-147: re-centered
-    #  on the real test base dir; was 22800-22900) + sidecar verify
+    #  the v2 file in the 22940-23040 B size band (D-149: re-centered
+    #  for the plot config section in the embedded dump — measured
+    #  22990/22994; D-147: was 22750-22850, itself re-centered on
+    #  the real test base dir) + sidecar verify
     #  (the v1 sha3 literal + the size literal retired by D-144: the
     #  embedded dump carries the run's base_dir — the bytes are
     #  run-specific, and LZ4's match structure shifts a few bytes
@@ -157,10 +159,12 @@ def tier_d():
         return
     # (D1-D10 deleted at D-106 step 3, class c: the LONG rlm_03 tier
     #  pins the same goldens as tier C — test_lm_worker_full_chain.py::
-    #  TestFullChainA2050::test_full_worker_chain pins step 14, the
+    #  TestFullChainA2050::test_full_worker_chain pins step 16, the
     #  vld/train/dense/pop metric sets, the opt info, the v2 file in
-    #  the 516300-516500 B size band (D-144: the sha3 literal + the
-    #  size literal retired, as in A2030) + sidecar, the read-back
+    #  the 516500-516700 B size band (D-149: re-centered for the plot
+    #  config section in the embedded dump — measured 516551; D-144:
+    #  the sha3 literal + the size literal retired, as in A2030) +
+    #  sidecar, the read-back
     #  subset (incl. the D-144 embedded config provenance), the
     #  5 console report substrings (title + the 4 table rows incl.
     #  Delta 0.00 (I-013: the sign of the f32 delta flipped) — the classification's 'a' label for D8 is stale:

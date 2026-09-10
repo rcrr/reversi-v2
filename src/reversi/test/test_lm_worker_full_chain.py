@@ -108,15 +108,15 @@ class TestFullChainA2030(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 16-level chain (CREATED through
-        CLIENT_CHECK) on rlm_04."""
+        """Run the full 17-level chain (CREATED through
+        PLOT) on rlm_04."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, CLIENT_CHECK is
-        # step 15).
+        # Run the model chain (CREATED is step 0, PLOT is
+        # step 16).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 15)
-        self.assertEqual(self.rlm.current_worker_name, 'CLIENT_CHECK')
+        self.assertEqual(self.rlm.current_step, 16)
+        self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
@@ -181,11 +181,14 @@ class TestFullChainA2030(unittest.TestCase):
         # LZ4 jitter); the D-145 band (22800-22900) was set from a
         # single rebase run with a different path prefix (22811 B)
         # and its lower edge clipped the real distribution.
+        # D-149: re-centered AGAIN for the plot config section in the
+        # embedded dump (+~200 B LZ4-compressed): 2 runs measured
+        # 22990/22994 B on the real base dir.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(22750 < st_size < 22850,
-                        f"v2 model file size {st_size} outside the 22750-22850 band")
+        self.assertTrue(22940 < st_size < 23040,
+                        f"v2 model file size {st_size} outside the 22940-23040 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
@@ -254,6 +257,19 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn(
             "Client check passed: 20000 validation residuals, "
             "max difference 0.000e+00 (tolerance 1.0e-08).", logs)
+        # D-149: the 17th level writes the seven rlm_04-whitelisted
+        # plots (png, the relative 'plots' dir_name default) to
+        # base_dir/plots.
+        plot_dir = ctx.cfg.base_dir / "plots"
+        for name in ("residual_density", "resid_vs_fitted",
+                     "resid_vs_gv", "gv_by_egv_box",
+                     "resid_mean_by_egv", "parity", "resid_qq"):
+            p = plot_dir / f"{name}.png"
+            self.assertTrue(p.exists(), f"plot missing: {p}")
+            self.assertEqual(p.read_bytes()[:4], b"\x89PNG")
+        self.assertIn("Plot 'residual_density' saved:", logs)
+        self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",
+                      logs)
 
         # --- Analytics console report (exact pins) ---
         report = ctx.analytics_report
@@ -399,17 +415,17 @@ class TestFullChainA2050(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 16-level chain (CREATED through
-        CLIENT_CHECK) on rlm_03.
+        """Run the full 17-level chain (CREATED through
+        PLOT) on rlm_03.
         Long-running: ~1 minute (1999179 training samples, 356 lbfgs
         iters)."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, CLIENT_CHECK is
-        # step 15).
+        # Run the model chain (CREATED is step 0, PLOT is
+        # step 16).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 15)
-        self.assertEqual(self.rlm.current_worker_name, 'CLIENT_CHECK')
+        self.assertEqual(self.rlm.current_step, 16)
+        self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics
@@ -463,6 +479,18 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
 
+        # D-149: the 17th level writes the seven rlm_03-whitelisted
+        # plots (png, the relative 'plots' dir_name default) to
+        # base_dir/plots — the 200k-point scale of the production
+        # model family.
+        plot_dir = ctx.cfg.base_dir / "plots"
+        for name in ("residual_density", "resid_vs_fitted",
+                     "resid_vs_gv", "gv_by_egv_box",
+                     "resid_mean_by_egv", "parity", "resid_qq"):
+            p = plot_dir / f"{name}.png"
+            self.assertTrue(p.exists(), f"plot missing: {p}")
+            self.assertEqual(p.read_bytes()[:4], b"\x89PNG")
+
         # --- Analytics file report (detailed_report: XEDGE) ---
         report_path = ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name
         self.assertTrue(report_path.exists(), f"Analytics report file not found at {report_path}")
@@ -480,11 +508,14 @@ class TestFullChainA2050(unittest.TestCase):
         # 516459 / 516455 for the same content). Determinism is
         # pinned by the read-back provenance + the same-base-dir byte
         # identity.
+        # D-149: the band re-centered for the plot config section in
+        # the embedded dump: 1 run measured 516551 B on the real base
+        # dir (the 4-byte LZ4 jitter of the random name chars stands).
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(516300 < st_size < 516500,
-                        f"v2 model file size {st_size} outside the 516300-516500 band")
+        self.assertTrue(516500 < st_size < 516700,
+                        f"v2 model file size {st_size} outside the 516500-516700 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---

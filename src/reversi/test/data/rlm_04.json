@@ -53,6 +53,15 @@
         "report_file_name": "model_analytics_report.txt",
         "detailed_report": ["EDGE", "LMC"]
     },
+    "plot": {
+        "enable": true,
+        "format": "png",
+        "dpi": 150,
+        "dir_name": "plots",
+        "plots": ["residual_density", "resid_vs_fitted", "resid_vs_gv",
+                  "gv_by_egv_box", "resid_mean_by_egv", "parity",
+                  "resid_qq"]
+    },
     "regab_data_set": {
         "regab_db_connection": {
             "dbname": "tst_regab",

@@ -50,6 +50,10 @@
 # wrk_client_check() import + worker-list entry) — the saved-model
 # file re-read + client EF residual check is now the 16th level.
 # V3c re-pinned 15 -> 16; the other checks are unchanged.
+# D-149 state (2026-09-10): PLOT enabled after CLIENT_CHECK (the
+# wrk_plot() import + worker-list entry) — the matplotlib diagnostic
+# figures are now the 17th level. V3c re-pinned 16 -> 17; the other
+# checks are unchanged.
 #
 import contextlib
 import dataclasses
@@ -135,12 +139,12 @@ ctx = model.context
 # (V3a/V3b deleted at D-106 step 3, class c: the fresh-model state is
 #  pinned at the top of every full-chain test, e.g. test_lm_worker_
 #  indexes.py — and is the hub's V3c pre-state)
-check("V3c 16 active levels (D-148: CLIENT_CHECK enabled after SAVE — complete)",
+check("V3c 17 active levels (D-149: PLOT enabled after CLIENT_CHECK — complete)",
       [w.name for w in model.sm.workers]
       == ["CREATED", "CONFIG", "POSITIONS", "FEATURES", "INDEXES",
           "WMAPS", "DESIGN_MTR", "ZED", "GRADIENT", "OPTIMIZE",
           "GENERATE", "VLD_POSITIONS", "VALIDATE", "ANALYTICS", "SAVE",
-          "CLIENT_CHECK"])
+          "CLIENT_CHECK", "PLOT"])
 # V3d (D-106 hub centralization): the module probes' pipeline-state
 # copies move to the hub — the source-level completeness fact.
 lm_src = (Path(__file__).resolve().parents[1]

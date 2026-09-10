@@ -52,6 +52,7 @@ from reversi.lm.wrk_validate import wrk_validate
 from reversi.lm.wrk_analytics import wrk_analytics
 from reversi.lm.wrk_save import wrk_save
 from reversi.lm.wrk_client_check import wrk_client_check
+from reversi.lm.wrk_plot import wrk_plot
 
 
 __all__ = ['LMContext', 'LogisticModel']
@@ -225,7 +226,8 @@ class LogisticModel(BaseModel):
             wrk_validate(),
             wrk_analytics(),
             wrk_save(),
-            wrk_client_check()
+            wrk_client_check(),
+            wrk_plot()
         ]
 
         # 4. Call the superclass constructor with the assembled parts

@@ -54,6 +54,7 @@ from reversi.lm.hlp_config_schemas import (
     OptimizationConfig,
     ValidationDataSetConfig,
     StatModelConfig,
+    PlotConfig,
 )
 from reversi.test.paths import WORKSPACE_ROOT
 
@@ -187,6 +188,59 @@ class TestRlmConfigSchemas(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 LMConfig(**self._cfg_dict(
                     lambda d, b=bad: d.update(client_check_tol=b)))
+
+    # -- D-149: the PlotConfig section -------------------------------------
+
+    def test_plot_defaults(self):
+        """D-149: the plot section defaults — enable True, format
+        'png' (the png-default ruling), dpi 150, the relative
+        'plots' dir, and an EMPTY whitelist (the PLOT level is a
+        no-op until names are listed)."""
+        cfg = LMConfig(**self._cfg_dict())
+        self.assertTrue(cfg.plot.enable)
+        self.assertEqual(cfg.plot.format, "png")
+        self.assertEqual(cfg.plot.dpi, 150)
+        self.assertEqual(cfg.plot.dir_name, Path("plots"))
+        self.assertEqual(cfg.plot.plots, [])
+
+    def test_plot_format_pair_and_normalization(self):
+        """The format field: a lone token and the comma-separated
+        pair are both accepted; whitespace is normalized away
+        ('png, pdf' -> 'png,pdf'), the order is preserved."""
+        self.assertEqual(PlotConfig(format="pdf").format, "pdf")
+        self.assertEqual(PlotConfig(format="pdf,png").format, "pdf,png")
+        self.assertEqual(PlotConfig(format="png, pdf").format,
+                         "png,pdf")
+
+    def test_plot_format_bad_rejected(self):
+        """Unknown tokens, empty tokens (the trailing comma) and
+        duplicates are all a ValidationError."""
+        for bad in ("jpg", "pdf,", "", "png,png"):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValidationError):
+                    PlotConfig(format=bad)
+
+    def test_plot_unknown_name_rejected(self):
+        """An unknown plot name is rejected at the CONFIG level
+        (the fail-fast typo guard, the PLOT_NAMES vocabulary)."""
+        with self.assertRaises(ValidationError):
+            PlotConfig(plots=["residual_density", "nope"])
+
+    def test_plot_dedup_preserving_order(self):
+        """A repeated name is deduplicated, order preserved (a
+        duplicate would regenerate the same file twice)."""
+        p = PlotConfig(plots=["parity", "resid_qq", "parity"])
+        self.assertEqual(p.plots, ["parity", "resid_qq"])
+
+    def test_plot_dir_absolute_and_relative(self):
+        """The dir_name is a Path: an absolute one stays absolute
+        (the worker will use it as-is, outside base_dir), a
+        relative one stays relative (the worker resolves it under
+        base_dir)."""
+        self.assertTrue(PlotConfig(dir_name="/tmp/elsewhere").dir_name
+                        .is_absolute())
+        self.assertFalse(PlotConfig(dir_name="my-plots").dir_name
+                         .is_absolute())
 
     # -- E8/E9: validation_data_set + stat_model --------------------------------
 

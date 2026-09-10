@@ -37,6 +37,7 @@ from pathlib import Path
 
 from reversi.board import (Bitboard,
                          bitboard_from_hex_str)
+from reversi.lm.hlp_plot import PLOT_NAMES  # the plot vocabulary (D-149)
 
 
 
@@ -94,6 +95,66 @@ class AnalyticsConfig(LMBaseConfig):
         description="Filename for the detailed analytics report."
     )
     
+class PlotConfig(LMBaseConfig):
+    """
+    Configuration for the PLOT level (D-149): the matplotlib
+    diagnostic figures written after CLIENT_CHECK (the 17th level).
+    The plots WHITELIST decides what is generated (a listed name is
+    written, an unlisted name is skipped, an empty list makes the
+    level a no-op); the enable master switch dominates (false = do
+    nothing, even with names listed).
+    """
+    enable: bool = Field(
+        default=True,
+        description="Master switch: false makes the PLOT level a "
+                    "no-op, even when plot names are listed (D-149).")
+    format: str = Field(
+        default="png",
+        description="Output format: 'png', 'pdf', or a "
+                    "comma-separated pair (e.g. 'pdf,png' — both).")
+    dpi: int = Field(
+        default=150, ge=50, le=1200,
+        description="Raster resolution, for the png output.")
+    dir_name: Path = Field(
+        default=Path("plots"),
+        description="Output directory: an ABSOLUTE path is used "
+                    "as-is (it may live outside base_dir); a "
+                    "relative path resolves under base_dir.")
+    plots: List[str] = Field(
+        default_factory=list,
+        description="Whitelist of plot names to generate (D-149); "
+                    "an empty list makes the PLOT level a no-op. "
+                    "Valid names: " + ", ".join(PLOT_NAMES))
+
+    @field_validator("format")
+    @classmethod
+    def check_format(cls, v: str) -> str:
+        """Normalize the format pair: whitespace stripped, every
+        token must be 'png' or 'pdf', no duplicates, at least one."""
+        parts = [p.strip() for p in v.split(",")]
+        bad = [p for p in parts if p not in ("png", "pdf")]
+        if bad:
+            raise ValueError(
+                f"Unknown plot format token {bad}; use 'png', 'pdf' "
+                "or a comma-separated pair (e.g. 'pdf,png').")
+        if len(parts) != len(set(parts)):
+            raise ValueError(f"Duplicate plot format in {v!r}.")
+        return ",".join(parts)
+
+    @field_validator("plots")
+    @classmethod
+    def check_plots(cls, v: List[str]) -> List[str]:
+        """Fail fast (at the CONFIG level) on unknown names and
+        deduplicate preserving order (a repeated name would
+        regenerate the same file twice)."""
+        unknown = [n for n in v if n not in PLOT_NAMES]
+        if unknown:
+            raise ValueError(
+                f"Unknown plot name(s) {unknown}; valid names: "
+                + ", ".join(PLOT_NAMES))
+        return list(dict.fromkeys(v))
+
+
 class RegabDBConnectionConfig(LMBaseConfig):
     """
     Configuration for connecting to the Regab database.
@@ -226,6 +287,7 @@ class LMConfig(LMBaseConfig):
         "values are comparable across models (different "
         "logit_clipping); Z values are distorted per model."
     )
+    plot: PlotConfig = Field(default_factory=PlotConfig)
     regab_data_set: RegabDataSetConfig
     feature_set: FeatureSetConfig
     stat_model: StatModelConfig
