@@ -3,9 +3,9 @@ The first test module of the hlp_config_schemas config domain —
 created at D-106 step 3 as the probe_rules §4 conversion of the
 verify_wrk_positions probe E section (the probe keeps only
 its E7 source-text pin — source inspections stay probes per §4).
-1 class / 17 tests / no PERF gates / no database (the schemas
+1 class / 23 tests / no PERF gates / no database (the schemas
 validate in memory only).
-> State: D-148 · 2026-09-10 · suite 17/0/0
+> State: D-149 · 2026-09-10 · suite 23/0/0
 
 ## Coverage
 
@@ -16,6 +16,7 @@ validate in memory only).
 | E4/E5 — the regab constraints | `test_ec_out_of_range_rejected` (ec 99 and -1 → ValidationError), `test_invalid_status_rejected` (lowercase `'cms'` and the 4-letter `'CMSX'` both rejected — the strict StatusString) |
 | E6 — the cross-field validator + the fg flag | `test_optimization_c2_lte_c1_rejected` (c1=0.9 + c2=0.1) and `test_optimization_c2_gt_c1_accepted` (c1=0.1 + c2=0.9) — the strong-Wolfe `check_wolfe_constants`; `test_optimization_high_performance_fg` (I-013, D-145: the flag defaults False and accepts True) |
 | D-148 — the client_check_tol field | `test_client_check_tol_default` (the fixture does not set it → 1e-8), `test_client_check_tol_override` (1e-9 survives validation AND the `model_dump_json` round-trip — the field travels with the normalized dump, hence the D-148 model-file size-band growth), `test_client_check_tol_nonpositive_rejected` (0.0 and −1e-8 → ValidationError, the `gt=0` constraint) |
+| D-149 — the PlotConfig section | `test_plot_defaults` (the fixture does not set it → enable True, format `"png"` (the PNG-default ruling), dpi 150, the relative `"plots"` dir, the EMPTY whitelist — the no-op pilot), `test_plot_format_pair_and_normalization` (`"pdf"` / `"pdf,png"` accepted; `"png, pdf"` normalizes to `"png,pdf"`, order preserved), `test_plot_format_bad_rejected` (`"jpg"`, `"pdf,"` (empty token), `""`, `"png,png"` (duplicate) all → ValidationError), `test_plot_unknown_name_rejected` (a name outside `PLOT_NAMES` → ValidationError, the fail-fast typo guard), `test_plot_dedup_preserving_order` (`["parity", "resid_qq", "parity"]` → `["parity", "resid_qq"]`), `test_plot_dir_absolute_and_relative` (an absolute dir_name stays absolute, a relative one stays relative — the WORKER resolves it) |
 | E8/E9 — strictness + the bag | `test_validation_dataset_status_strict` (`'xyz'` rejected, `["CMS", "CMR"]` accepted) and `test_properties_field_in_model_fields` (`'properties'` in BOTH `StatModelConfig` and `ValidationDataSetConfig` model_fields) |
 | E10 — the mutable default | `test_pattern_set_mutable_default_not_shared` (two `PatternSetConfig` instances: append to one leaves the other empty) |
 | E11/E12 — required + default | `test_missing_output_rejected` (`output` required) and `test_cache_files_prefix_default` (absent → `'rlmwf_'`) |

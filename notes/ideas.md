@@ -195,3 +195,49 @@ I-015 | done | CLIENT_CHECK: a new pipeline level after SAVE —
         all measure max|diff| = 0.0; the tolerance guards
         against pipeline drift and file corruption (the
         corruption case measures 1.959e-01 — ~10^7 above).
+
+I-016 | done | PLOT: a new pipeline level with matplotlib —
+        the run's diagnostic figures (raised 2026-09-10,
+        Roberto: "Aggiungere un LEVEL per i PLOT con matplotlib.
+        Credo sia corretto posizionarlo dopo SAVE, ma proponi
+        diversamente se ritieni corretto farlo. Come gli 'antichi'
+        di R che trovi nel file: scratch/rglmw.R. Non fare
+        riferimenti al file nella documentazione, in seguito lo
+        cancelleremo. ... Proponimi una strategia su come
+        generare i PLOT, dove archiviarli, in che formato, e se
+        vanno creati sempre oppure pilotati da uno o piu flags
+        nel JSON."). Executed as D-149 (2026-09-10): the 17th
+        and LAST level (after CLIENT_CHECK — Roberto "OK"),
+        seven figures in Y space (the three R classics — the
+        three-line residual density with the sd/mean/min/max
+        margin labels, the residual-vs-fitted cloud, the
+        residual-vs-game-value cloud with the 0.7-range "cloud"
+        jitter — ported from the [0,1] target space to the
+        canonical [-64, +64] scale; the four extensions — the
+        per-EGV box plot, the per-EGV mean-residual error bars,
+        the parity plot, the normal QQ plot — Roberto "falli
+        tutti sono molto curioso!"), the PlotConfig pilot
+        (enable master switch + the format "png"|"pdf"|"pdf,png"
+        PNG-DEFAULT + dpi + the dir_name absolute-as-is /
+        relative-under-base-dir + the plot-name WHITELIST: a
+        listed name is generated, an unlisted one is skipped, an
+        empty list is a no-op, enable=false does nothing even
+        with names — Roberto "se i nomi ci sono ma enable è falso
+        ... non fa nulla"), the seeded jitter (42) + the 100k
+        seeded KDE subsample (43) — the R jitter was unseeded,
+        the Agg PNG output is byte-deterministic (the parity
+        rendering golden ff459b8e...), no cache file (the 8th
+        non-cache deviation, the rlmwf_16 slot), the D-060
+        failure semantics, the matplotlib lazy import (the
+        schema imports PLOT_NAMES on every run — the import must
+        stay cheap), the two fixture plot sections (rlm_03 /
+        rlm_04 whitelist all seven, the chains exercise the
+        generation end-to-end), the size bands re-centered
+        (A2030 22940-23040, A2050 516500-516700 — the plot
+        section in the embedded dump). Suite 744 → 768 (default
+        672 run / 96 skipped; LONG 747 / 21; VLONG 748 / 20 —
+        the A2050 class "Ran 1 test in 58.830s OK"), the probe
+        sweep 20/20 → 21/21 (the new verify_plot.py, 16
+        checks). The R file itself is a scratch artifact:
+        nothing in the documentation references it (Roberto: "in
+        seguito lo cancelleremo").

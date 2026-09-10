@@ -1604,3 +1604,129 @@ D-148 | 2026-09-10 | CLIENT_CHECK: the 16th pipeline level,
         schema tests (default / override+dump / gt=0) + the
         runner insertion (after test_client). 2 commits (the
         code + tests + probes, then docs + notes).
+
+D-149 | 2026-09-10 | PLOT: the 17th pipeline level, the
+        matplotlib diagnostics after CLIENT_CHECK (I-016).
+        Roberto: "iniziamo una nuova task. Aggiungere un LEVEL
+        per i PLOT con matplotlib. Credo sia corretto
+        posizionarlo dopo SAVE, ma proponi diversamente se
+        ritieni corretto farlo. Come gli 'antichi' di R che trovi
+        nel file: scratch/rglmw.R. Non fare riferimenti al file
+        nella documentazione, in seguito lo cancelleremo. Avevo 3
+        plot: 1- Probability Density (y) vs Game Value Residuals
+        [-64..+64] — Three lines: Reference, Training,
+        Validation; 2- Residuals vs Fitted Values (grafico a
+        pallini grigi, nuvola dei dati); 3- Residuals vs Game
+        Values (idem). Nel 2 e nel 3 c'è un jitter per avere
+        l'effetto nuvola. Studia i 3 plot e replichiamoli. Se hai
+        idee di altri plot presentamele, le discutiamo insieme.
+        Proponimi una strategia su come generare i PLOT, dove
+        archiviarli, in che formato, e se vanno creati sempre
+        oppure pilotati da uno o piu flags nel JSON." My
+        analysis: the R script's p0/p1/p2 (three KDE lines —
+        Reference = the centered training target, i.e. the
+        pipeline's "population" series; Training/Validation
+        residuals; sd/mean/min/max margin labels + the
+        training-mean vline; the two gray-dot clouds with the R
+        jitter fractions 0.005/0.005/0.7 as a fraction of the
+        data range) + four extension candidates (the per-EGV box
+        plot — an R helper never shipped in the return list, the
+        per-EGV mean-residual error bars, the parity plot, the
+        normal QQ plot) + the strategy (placement after
+        CLIENT_CHECK, the hlp/wrk split, the config pilot, the
+        output location, the format, the seeded-jitter
+        improvement over R's unseeded jitter, the D-060 failure
+        semantics, no cache). Roberto's rulings: the position
+        "PLOT = livello 17 (dopo CLIENT_CHECK): OK" (overriding
+        his own "dopo SAVE" default — the gate first: the
+        figures are drawn for a VERIFIED model file); A2 OK
+        (hlp_plot.py + wrk_plot.py); B3 OK (the PlotConfig
+        sub-section, the AnalyticsConfig pattern); the location
+        refinement — "se la dir dentro Plot_config ha /... è
+        assoluta e può stare fuori, se invece è 'my-plots' è
+        relativa a base_dir. Default: plots"; the pilot
+        refinement (the whitelist) — "Io prenderei dal file
+        config i nomi dei plot, che sono facoltativi, se ci sono
+        il PLOT è fatto, se manca il plot è saltato. Se i nomi ci
+        sono ma enable è falso ... non fa nulla" (the names are
+        a WHITELIST: a listed name is generated, an unlisted one
+        is skipped, an empty list is a no-op; the enable master
+        switch dominates — false = do nothing even with names);
+        the format — "default pdf, ma può essere pdf | png |
+        pdf,png (intendo and)" CORRECTED by Roberto ("stopped, I
+        did a mistake ... default png is OK. not PDF") → the
+        PNG-DEFAULT ruling; the four extensions — "4: falli
+        tutti sono molto curioso!" (all of them: the box plot,
+        the mean-residual-by-EGV, the parity, the QQ).
+        Implementation: seven figures, all in Y space (the
+        D-148 cross-model comparability ruling — the R plots
+        were in the transformed [0,1] target space, the port
+        moves them to the canonical [-64, +64] scale);
+        hlp_plot.py (PLOT_NAMES the single source of truth the
+        PlotConfig schema validates against — imported, not
+        duplicated; the seven builders; collect_plot_data =
+        the training w_dense forward pass over
+        ctx.hlp_indexes.indexes + the validation forward pass,
+        formula copies of hlp_analytics/hlp_validate, the D-148
+        A1a pattern; the R-semantic jitter; the EGV bins = the
+        R round_gv port, 2·rint(x/2) — banker's vs
+        round-half-away-from-zero is a measure-zero difference
+        on a continuous f64; the guarded KDE: scipy Scott's
+        rule — the R density() uses Silverman's, below plot
+        resolution — the 100k seeded subsample cap, the
+        zero-variance guard); matplotlib/scipy imported
+        LAZILY (the schema imports PLOT_NAMES from hlp_plot on
+        every run, including the client — the import must stay
+        cheap); the seeded generators (jitter 42, KDE subsample
+        43) make the figures reproducible run over run — the
+        R jitter was unseeded — and the Agg PNG output is
+        byte-deterministic (the rendering golden). Level
+        mechanics: Worker("PLOT", up, down) appended after
+        wrk_client_check() (the 17th and LAST level); no cache
+        file (the 8th non-cache deviation — the rlmwf_16 slot
+        stays unused, the figures are derived artifacts,
+        regenerated on every up-move); the worker is stateless
+        (_down logs only, as SAVE / CLIENT_CHECK); the
+        directory resolution is the worker's job (an absolute
+        dir_name is used as-is — outside base_dir — a relative
+        one under base_dir; the schema only carries the Path);
+        failure = the D-060 semantics (the machine logs and
+        re-raises, the step stays at 16). The rlm_03.json /
+        rlm_04.json test fixtures gain the plot section
+        whitelisting all seven names, so the chains exercise
+        the generation end-to-end (the A2050 VLONG chain at the
+        200k-point scale: 7 PNGs 68-429 KB, chain 58.8 s).
+        Verified: the scratch probe (the 200k synthetic: the
+        PNG determinism, the scatter/KDE timings); the suite
+        744 → 768 (default 672 run / 96 skipped, 9.0 s; LONG
+        747 run / 21 skipped, 52 s, live DB; VLONG 748 run /
+        20 skipped — the A2050 class alone re-run: "Ran 1 test
+        in 58.830s OK"); the probe sweep 20/20 → 21/21 (the new
+        verify_plot.py: 16 checks — the vocabulary, the lazy
+        import, the seven-builder rendering, the pair formats,
+        the byte-determinism, the pilot semantics). Re-pins:
+        the full-chain 15/CLIENT_CHECK → 16/PLOT + the A2030
+        plot pins (the seven PNG magics + the "Plot
+        'residual_density' saved:" / "PLOT done: 7 plot(s)
+        written to {dir}." lines) + the A2050 seven-PNG pin;
+        BOTH size bands re-centered (the D-147 procedure,
+        measured on the real base dir — the plot section in
+        the embedded dump grows the file): A2030 22750-22850 →
+        22940-23040 (2 runs: 22990/22994), A2050 516300-516500
+        → 516500-516700 (1 run: 516551); the hub V3c 16 → 17;
+        verify_zed F1 line-pin L134-137 → L135-138 (the new
+        import line shifted the LMContext zed fields); the
+        verify_save header + band comments (17-level chain).
+        Change surface: hlp_plot.py + wrk_plot.py (new) + the
+        PlotConfig schema + the LMConfig.plot field + the 17th
+        worker-list entry + the two fixture plot sections +
+        test_wrk_plot.py (9 no-DB: the pilot no-ops, the
+        seven-PNG happy path + the per-up-move determinism, the
+        pair formats, the absolute dir, the partial whitelist,
+        the parity rendering golden, the factory, the down) +
+        test_hlp_plot.py (9: the vocabulary lock-step, the
+        jitter bounds, the EGV bins, the KDE guard) + 6 schema
+        tests (17 → 23) + the runner insertion +
+        probes/verify_plot.py (new) + the matplotlib pyproject
+        dependency. 2 commits (the code + tests + probes, then
+        docs + notes).

@@ -1,6 +1,7 @@
 # reversi/lm/wrk_client_check.py
-The CLIENT_CHECK worker — the 16th and LAST active level of the LM
-pipeline (step 15, after SAVE). The 7th non-cache worker — no
+The CLIENT_CHECK worker — the 16th active level of the LM pipeline
+(step 15, after SAVE; PLOT follows as the 17th — D-149). The 7th
+non-cache worker — no
 `cache_manager` wiring, no rlmwf_16* file (a pure verification step,
 recomputed on every up-move). The acceptance test of the saved model
 file (D-148): it re-reads the SAVE artifact from disk, builds the
@@ -85,7 +86,7 @@ full-chain suite (DB-gated).
   (`test_tolerance_is_read_from_config`).
 - The factory name (`test_factory_returns_named_worker`) + the
   no-op `_down` log (`test_down_is_a_noop_log`).
-- The pipeline shape (16 active levels, the CLIENT_CHECK last) —
+- The pipeline shape (17 active levels, the PLOT last) —
   `probes/verify_logistic_model.py` V3c.
 
 ## Open issues
@@ -126,6 +127,9 @@ None.
   artifact (the saved file + the client) reproduces the pipeline's
   own validation. The scalar EF stays the test_client.py pin (the
   1100× speed ratio makes the array EF the level's tool).
-- Downstream: nothing — the terminal level. `move_to_last()`
-  reaches it; a breach leaves `current_step` at 15 (the D-060
-  failure semantics).
+- Downstream: PLOT (the 17th level, D-149) — the matplotlib
+  diagnostics, consuming nothing from the check (its result lives in
+  the event log); the gate-first ordering is the point: the figures
+  are drawn for a VERIFIED model file. A breach leaves
+  `current_step` at 15 (the D-060 failure semantics) and the
+  machine never reaches PLOT.

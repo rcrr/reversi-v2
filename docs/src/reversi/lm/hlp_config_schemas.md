@@ -4,7 +4,7 @@ The pydantic config DOMAIN of the LM pipeline: one public entry,
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
-> State: D-148 · 2026-09-10 · suite 17/0/0
+> State: D-149 · 2026-09-10 · suite 23/0/0
 
 ## API
 
@@ -15,6 +15,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the I-013 fg-variant flag) |
+| `PlotConfig` | the PLOT level's pilot (D-149): `enable` (bool, default True), `format` (default `"png"`; `"png"`/`"pdf"`/the pair, the `check_format` validator), `dpi` (int 150, 50..1200), `dir_name` (Path, default `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the whitelist of PLOT_NAMES, default empty = no-op; the `check_plots` fail-fast + dedupe validator) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (default `model_analytics_report.txt`) |
 | `RegabDBConnectionConfig` | `dbname`/`user`/`host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
@@ -63,19 +64,37 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
   level tolerance — the max absolute Y-space difference admitted
   between the validation residuals recomputed from the SAVED model
   file and the in-memory VALIDATE residuals; `gt=0` — a
-  non-positive tolerance is a ValidationError); the five required
-  domain sections (`regab_data_set`, `feature_set`, `stat_model`,
-  `optimization`, `validation_data_set`); `analytics` by default
-  factory.
+  non-positive tolerance is a ValidationError);
+  `plot: PlotConfig` by default factory (D-149: the PLOT level's
+  pilot — see below); the five required domain sections
+  (`regab_data_set`, `feature_set`, `stat_model`, `optimization`,
+  `validation_data_set`); `analytics` by default factory.
+- **PlotConfig (D-149)** — `enable: bool = True` (the master
+  switch: false makes the PLOT level a no-op, even with names
+  listed — Roberto's ruling); `format: str = "png"` (the PNG-
+  DEFAULT ruling — `"png"`, `"pdf"`, or a comma-separated pair
+  (e.g. `"pdf,png"` — both); the `check_format` validator
+  normalizes whitespace, rejects unknown tokens, empty tokens
+  (the trailing comma) and duplicates); `dpi: int = 150`
+  (50..1200, the png raster resolution); `dir_name: Path =
+  "plots"` (an ABSOLUTE path is used as-is — it may live outside
+  base_dir — a relative one resolves under base_dir; the
+  resolution is the WORKER's job, the schema only carries the
+  Path); `plots: List[str] = []` (the WHITELIST of plot names:
+  a listed name is generated, an unlisted one is skipped, an
+  empty list makes the PLOT level a no-op; the `check_plots`
+  validator fails fast on names outside `PLOT_NAMES` (imported
+  from hlp_plot — the single source of truth) and deduplicates
+  preserving order).
 - **Strictness** — the 3-letter uppercase status is enforced in
   BOTH status lists (regab + validation data set); `ec` is
   0..60; `frequency_cut_off` is a PositiveInt.
 
 ## Verified invariants
 
-Pinned by `test_hlp_config_schemas.py` (17 tests,
+Pinned by `test_hlp_config_schemas.py` (23 tests,
 `TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
-E-section).
+E-section + the D-149 PlotConfig section).
 
 - The `model_dump_json` round-trip: the mask serializes back to
   uppercase 16-hex, `cache_files_prefix` preserved —
@@ -105,6 +124,26 @@ E-section).
   `test_missing_output_rejected`.
 - The `cache_files_prefix` default is `'rlmwf_'` —
   `test_cache_files_prefix_default`.
+- The `client_check_tol` default is `1e-8` (D-148), an explicit
+  override survives the dump round-trip, and a non-positive
+  tolerance is a ValidationError —
+  `test_client_check_tol_default/override/nonpositive_rejected`.
+- The PlotConfig defaults: `enable=True`, `format="png"` (the
+  PNG-default ruling), `dpi=150`, the relative `"plots"` dir, the
+  EMPTY whitelist (the no-op pilot) —
+  `test_plot_defaults`.
+- The format field: a lone token and the pair are accepted;
+  whitespace normalizes away ("png, pdf" → "png,pdf"), the order
+  is preserved; `jpg` / `pdf,` / `""` / `png,png` are all
+  rejected — `test_plot_format_pair_and_normalization`,
+  `test_plot_format_bad_rejected`.
+- The whitelist: an unknown name is a fail-fast ValidationError
+  (the PLOT_NAMES vocabulary, D-149); a repeated name is
+  deduplicated, order preserved; an absolute dir_name stays
+  absolute, a relative one stays relative —
+  `test_plot_unknown_name_rejected`,
+  `test_plot_dedup_preserving_order`,
+  `test_plot_dir_absolute_and_relative`.
 
 ## Open issues
 
