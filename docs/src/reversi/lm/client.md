@@ -8,7 +8,7 @@ scalar `ef: Position -> float` and a vectorized
 database, no cache, no pipeline: a saved model file is all the
 client needs — the shape Roberto's endgame-solver production models
 (the `A2xxx` family) plug into.
-> State: D-141 · 8c20bab · 2026-09-09 · suite 6/0/1 (test_client) +
+> State: D-148 · 2026-09-10 · suite 6/0/1 (test_client) +
   the EF pins via test_lm_worker_full_chain (DB-gated)
 
 ## API
@@ -134,6 +134,13 @@ None.
 - `ModelWeights` is the only input; `model_weights_read_file`
   (model_weights.md) is the producer — the test modules compose the
   two.
+- In-pipeline consumer (D-148): the CLIENT_CHECK level (the 16th
+  level, after SAVE) re-reads the saved model file and builds the
+  ARRAY EF on it — it recomputes the validation residuals in Y
+  space and compares them to the in-memory VALIDATE forward pass
+  within `client_check_tol` (the C1 ruling: the array form, the
+  1100× speed ratio; the scalar EF stays pinned by test_client +
+  the full-chain EF pins).
 - Y-space output: both EFs return game values directly (the z2y
   inverse), usable by the engine as evaluation functions; the
   vectorized form is the batch workhorse (analytics over large

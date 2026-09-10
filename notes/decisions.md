@@ -1514,3 +1514,93 @@ D-147 | 2026-09-09 | The A2030 v2 file size band re-centered
         Change surface: the test assertion + its D-147
         comment, the verify_save tier-C comment, the
         test-mirror doc bullet. No golden moved.
+
+D-148 | 2026-09-10 | CLIENT_CHECK: the 16th pipeline level,
+        the saved-model file acceptance test (I-015). Roberto:
+        "iniziamo una nuova task. Aggiungiamo un LEVEL dopo
+        SAVE, lo chiamiamo client_check. Legge il model_weights
+        file, costruisce la evaluation function e ricalcola i
+        residui della validazione. Devono coincidere a meno di
+        1e-9 con quelli della validazione. Svolgi una analisi
+        accurata. Elabora una strategia per le possibili
+        implementazioni. Presentami le opzioni, decidiamo
+        insieme." Analysis: the chain is expected BIT-IDENTICAL
+        — binio preserves dtype (the w_dense f32 round-trips
+        bit-exact), the gather+offset formula is identical in
+        hlp_validate (L116) and the client's _prepare_weights,
+        np.sum(X, axis=1) ≡ X.sum(axis=1) (the same numpy
+        reduction), sigmoid IS scipy expit (f32→f32, elementwise,
+        deterministic), the z2y coefficients are bit-identical
+        across the ctx (f64 intermediates) vs client (f32
+        file-round-trip) construction paths for ALL THREE fixture
+        logit_clipping values (0.05/0.03/0.01 measured), the
+        int8 game values make the subtraction exact. Rulings:
+        (1) A1a — the reference residuals are RECOMPUTED inside
+        CLIENT_CHECK from the in-memory ctx state (the
+        hlp_validate forward pass reproduced — VALIDATE
+        untouched, the D-101/D-102 closure stands; deterministic
+        and identical to what VALIDATE computed: nothing mutates
+        the vld artifacts between levels 13 and 16); (2) B1 —
+        Y-space residuals: Roberto "ho questo dubbio: y e z sono
+        la stessa cosa nella pipeline. Ma fuori dalla pipeline
+        no. Il client è dentro e fuori della pipeline... in
+        futuro useremo queste EF su una posizione di gioco, e
+        magari confronteremo due valori di predicted value
+        espandendo il game tree a minimax a PLY=6 e PLY=8,
+        atterrando su EF diverse perché ognuna avrà il proprio
+        EC. Ora io voglio sempre e soltanto valori
+        CONFRONTABILI. E i valori sono confrontabili solo quelli
+        di Y [-64..+64]: quelli di Z non sono confrontabili
+        perché sono distorti, e la compressione potrebbe essere
+        diversa tra le due stime" — the Y comparison is
+        strength-equivalent to Z (z2y is an invertible affine,
+        the integer subtraction is exact); (3) C1 — the array EF
+        only (D-141: 1100× the scalar; the scalar stays
+        bit-exact-pinned elsewhere); (4) the tolerance — Roberto
+        "se 1e-9 è molto tirata, facciamo 1e-8, ci dà tutte le
+        rassicurazioni del caso allo stesso modo, e non cadiamo
+        dentro problemi di ordine delle somme ed eventuali
+        arrotondamenti e troncamenti, cosa ne dici? OK fare
+        valore del config JSON. Pulito!" → the NEW LMConfig
+        field client_check_tol (default 1e-8, gt=0): a JSON
+        config value, not a module constant (my "scope creep"
+        objection overruled — Roberto's call); (5) E — log only,
+        no new ctx field (ANALYTICS is upstream at level 14: the
+        reports are already written). Level mechanics:
+        Worker("CLIENT_CHECK", up, down) appended after
+        wrk_save() (the machine is domain-agnostic: no machine
+        change); no cache file (the 7th non-cache deviation —
+        the rlmwf_16 slot stays unused); the worker is stateless
+        (re-reads the file on every up-move; _down logs only, as
+        SAVE); the file path is cfg.base_dir / cfg.output (as
+        SAVE); failure = the ERROR line + RuntimeError (the
+        D-060 semantics: the machine logs, re-raises, the step
+        stays at 15). Cost: < 1 s at A2050 scale (the D-141
+        5.6M b/s measurement covers the forward pass). Verified:
+        the scratch probe (the 2000-position synthetic
+        rlm_04-mirror) measures max|diff| = 0.0, y_pred
+        bit-equal; the corruption case (the 1e-3 weight
+        perturbation) gives 1.959e-01 — ~10^7 above the
+        tolerance (the check detects real drift decisively).
+        Suite: 735 → 744 (default 648 run / 96 skipped; LONG
+        723 run / 21 skipped, live DB; VLONG A2050 724 run / 20
+        skipped — the 199932-residual check passes at max
+        difference 0.000e+00) + the 20/20 probe sweep green.
+        Re-pins: the full-chain 14/SAVE → 15/CLIENT_CHECK + the
+        A2030 log pin ("Client check passed: 20000 validation
+        residuals, max difference 0.000e+00 (tolerance 1.0e-08).")
+        — a bit-identity golden; BOTH size bands HOLD (the new
+        config field's ~28 B of dump text stays inside
+        22750-22850 / 516300-516500); the hub V3c 15 → 16;
+        verify_zed F1 line-pin L133-136 → L134-137 (the new
+        import line shifted the LMContext zed fields). Change
+        surface: wrk_client_check.py (new — the A1a
+        _validation_residuals_y reference + the f64-exact view
+        so no rounding noise enters the comparison) + the
+        LMConfig field + the 16th worker-list entry +
+        test_wrk_client_check.py (6 no-DB: the bit-identity
+        golden, the RuntimeError + FileNotFoundError paths, the
+        cfg-tolerance pin, the factory name, the no-op down) + 3
+        schema tests (default / override+dump / gt=0) + the
+        runner insertion (after test_client). 2 commits (the
+        code + tests + probes, then docs + notes).

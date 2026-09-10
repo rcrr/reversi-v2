@@ -171,3 +171,27 @@ I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE
         INCOMPLETE resume path); the open question is whether a warm
         restart under a CHANGED objective is numerically sound /
         worth the extra semantics.
+
+I-015 | done | CLIENT_CHECK: a new pipeline level after SAVE —
+        the saved-model file acceptance test (raised 2026-09-10,
+        Roberto: "iniziamo una nuova task. Aggiungiamo un LEVEL
+        dopo SAVE, lo chiamiamo client_check. Legge il
+        model_weights file, costruisce la evaluation function e
+        ricalcola i residui della validazione. Devono coincidere
+        a meno di 1e-9 con quelli della validazione."). Executed
+        as D-148 (2026-09-10): the 16th level re-reads the model
+        file, builds the client's array Evaluation Function on
+        the FILE weights, and recomputes the validation residuals
+        in Y space — they must coincide with the in-memory
+        VALIDATE forward pass's residuals within
+        client_check_tol (the new LMConfig field, default 1e-8,
+        Roberto's "valore del config JSON. Pulito!" ruling;
+        Roberto's 1e-8 for 1e-9: "non cadiamo dentro problemi di
+        ordine delle somme"). A1a: the reference is recomputed
+        from the in-memory ctx state (VALIDATE untouched). The
+        bit-identity holds at every scale: the synthetic 2000-set
+        (the scratch probe + the no-DB suite golden), A2030
+        (20000, the DB-gated log pin) and A2050 (199932, VLONG)
+        all measure max|diff| = 0.0; the tolerance guards
+        against pipeline drift and file corruption (the
+        corruption case measures 1.959e-01 — ~10^7 above).

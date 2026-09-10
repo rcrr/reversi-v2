@@ -1,6 +1,7 @@
 # reversi/lm/wrk_save.py
-The SAVE worker — the 15th and LAST active level of the LM pipeline
-(step 14, after ANALYTICS). The 6th non-cache worker — no
+The SAVE worker — the 15th active level of the LM pipeline
+(step 14, after ANALYTICS; CLIENT_CHECK runs after it, D-148). The
+6th non-cache worker — no
 `cache_manager` wiring, no rlmwf_15* file (no cache level ever used a
 "15" slot; the flat-file numbering skips 03/07/08/09/12/13/15). A pure
 SINK on every up-move: it reads context attributes and writes ONE
@@ -15,7 +16,7 @@ RETIRED (Roberto's ruling: the record is eliminated). It adds NO
 context attributes; `_down` is a no-op (log only) — the artifact is
 never unlinked (the OPTIMIZE-checkpoint / ANALYTICS-report artifact
 semantics: build/ files persist across runs).
-> State: D-144 · 2026-09-09 · suite 9/0/0 (via
+> State: D-148 · 2026-09-10 · suite 9/0/0 (via
   test_lm_worker_full_chain — 2 ungated read guards + 3 ungated D-144
   v2 micro tests; the rest DB-gated, A2050 additionally VLONG-gated)
 
@@ -121,9 +122,13 @@ None.
 
 ## Integration
 
-- Consumers: the terminal level of the StateMachine — nothing runs
-  after SAVE; the saved file is consumed by `reversi/lm/client.py`
-  (`make_evaluation_function`) + `reversi/lm/model_weights.py`
+- Consumers: the next level is CLIENT_CHECK (D-148: the
+  saved-model file acceptance test — it re-reads THIS level's
+  artifact and rebuilds the client's EF on it); the saved file is
+  also consumed out-of-pipeline by `reversi/lm/client.py`
+  (`make_evaluation_function` /
+  `make_evaluation_function_array`) +
+  `reversi/lm/model_weights.py`
   (`model_weights_read_file`).
 - The configuration provenance (D-144): INSIDE the model file (the
   v2 leading body section — model_weights.md). The same fingerprint

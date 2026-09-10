@@ -4,7 +4,7 @@ The pydantic config DOMAIN of the LM pipeline: one public entry,
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
-> State: D-145 · 2026-09-09 · suite 14/0/0
+> State: D-148 · 2026-09-10 · suite 17/0/0
 
 ## API
 
@@ -58,17 +58,22 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
   `True` keeps every extracted row, the pre-existing behaviour;
   `False` deduplicates by `(mover, opponent)` keeping the first
   occurrence; consumed by the POSITIONS/VLD `extract_and_prepare`
-  compute path, the count is logged at both levels); the five
-  required domain sections (`regab_data_set`, `feature_set`,
-  `stat_model`, `optimization`, `validation_data_set`); `analytics`
-  by default factory.
+  compute path, the count is logged at both levels);
+  `client_check_tol` default `1e-8` (D-148: the CLIENT_CHECK
+  level tolerance — the max absolute Y-space difference admitted
+  between the validation residuals recomputed from the SAVED model
+  file and the in-memory VALIDATE residuals; `gt=0` — a
+  non-positive tolerance is a ValidationError); the five required
+  domain sections (`regab_data_set`, `feature_set`, `stat_model`,
+  `optimization`, `validation_data_set`); `analytics` by default
+  factory.
 - **Strictness** — the 3-letter uppercase status is enforced in
   BOTH status lists (regab + validation data set); `ec` is
   0..60; `frequency_cut_off` is a PositiveInt.
 
 ## Verified invariants
 
-Pinned by `test_hlp_config_schemas.py` (14 tests,
+Pinned by `test_hlp_config_schemas.py` (17 tests,
 `TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
 E-section).
 
