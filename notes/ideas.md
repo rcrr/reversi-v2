@@ -102,7 +102,7 @@ I-012 | idea | Pipeline level order: evaluate moving FEATURES
         pipeline. The comment is left as-is in the test for now.
         To be evaluated as a line-by-line pipeline change.
 
-I-013 | in-progress | Study whether the GRADIENT fg closure can be
+I-013 | done | Study whether the GRADIENT fg closure can be
         sped up (raised 2026-09-01, session 25, during the D-094
         R1 discussion): Roberto believes the closure is (or will
         be) the pipeline bottleneck for large models — "Quando
@@ -138,12 +138,21 @@ I-013 | in-progress | Study whether the GRADIENT fg closure can be
         verbatim) + the wrk_gradient wiring; rlm_03/rlm_04 opt in;
         the A2050 re-baseline: OPTIMIZE 26.9 s (11.9×), chain
         52.0 s (6.7×); the A2050 trajectory 356 iters / f
-        1.4453826e-03 (Δrel 0.07% vs the classic). O2 (the numba
-        two-loop in opt_lbfgs — now ≈ 8.2 s ≈ 30% of the HP
-        OPTIMIZE) is the next candidate: a separate change +
-        decision (D-146) against the O1 baseline. O3 (the pure-
-        numpy 1.2× variant) considered, not chosen. O4 closed by
-        the m negative result.
+        1.4453826e-03 (Δrel 0.07% vs the classic). O2 = D-146
+        (the two-loop, the ≈ 8.2 s / 30% second cost center):
+        the numba two-loop — the original proposal — measured
+        1.00-1.02× (NEGATIVE RESULT: memory-bandwidth bound +
+        the serial two-loop recurrence resists prange), NOT
+        adopted; O2b (Roberto's ruling) shipped instead: the
+        two-loop's 2m per-op product temporaries (~58 MB
+        allocated per call at A2050 scale) replaced by ONE
+        pre-allocated f64 out= buffer — bit-for-bit the same
+        math (no golden re-pin; the VLONG suite green on the
+        exact D-145 goldens) at 1.39× (23.2 -> 16.9 ms/call).
+        I-013 TOTAL (A2050): OPTIMIZE 321.3 s -> 22.8 s (14.1×),
+        chain ~350 s -> 48.5 s (7.2×). O3 (the pure-numpy 1.2×
+        variant) considered, not chosen. O4 closed by the m
+        negative result.
 
 I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE
         level from the checkpoint's warm weights (raised 2026-09-01,

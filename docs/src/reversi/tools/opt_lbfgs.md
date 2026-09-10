@@ -5,7 +5,7 @@ Wolfe line search (cubic interpolation + zoom phase), restart
 logic, dual convergence monitoring, warm-start capability,
 logging and checkpointing via callback hooks. Self-contained: no
 LMContext, no pipeline imports, no DB.
-> State: D-053 · 65f63be · 2026-08-29 · suite 13/0/0
+> State: D-146 · I-013 · 2026-09-09 · suite 14/0/0
 
 ## API
 
@@ -24,7 +24,21 @@ LMContext, no pipeline imports, no DB.
 - Algorithm: (1) input validation (x0 must be an ndarray with
   float32/float64 dtype, fg callable — `TypeError` otherwise);
   (2) two-loop recursion for the search direction with gamma
-  scaling (H = gamma·I); (3) restart — if the direction is not
+  scaling (H = gamma·I) — O2b (D-146, I-013): the per-op
+  product buffer is pre-allocated ONCE per call (f64, `prod`)
+  and the two per-op products are written with
+  `np.multiply(..., out=prod)` + `np.subtract/np.add(...,
+  out=delta/r)` — the classic 2m fresh ~N-float temporaries per
+  call (the f64 product downcast in place to float32) are the
+  two-loop's measured cost driver at production scale (A2050:
+  ~58 MB allocated per call, 23.2 ms → 16.9 ms, 1.39×). The
+  out= form replicates the classic dtype semantics BIT-FOR-BIT
+  (the f64 product, the f32 in-place downcast) — the L-BFGS
+  trajectory is unchanged (the bit-identity test pins it).
+  The numba two-loop variant was MEASURED and NOT adopted
+  (1.00-1.02×: memory-bandwidth bound + the serial
+  two-loop recurrence resists prange); (3) restart — if the
+  direction is not
   a descent direction (pᵀg ≥ 0), the memory is cleared and the
   direction falls back to steepest descent; (4) strong Wolfe
   line search: tries α=1 first, expands with cubic interpolation
@@ -40,13 +54,17 @@ LMContext, no pipeline imports, no DB.
 
 ## Verified invariants
 
-Pinned by `test_opt_lbfgs.py` (13 tests, 7 classes, no DB, no
+Pinned by `test_opt_lbfgs.py` (14 tests, 7 classes, no DB, no
 PERF gate — ~0.040s). No probe file exists for this module (the
 suite is the verification apparatus).
 
 - `_two_loop_recursion` with empty history returns `g` (the
   gamma=1.0 identity); with random pairs (yᵀs > 0) produces a
-  non-zero, shape-consistent result.
+  non-zero, shape-consistent result; the O2b out= form is
+  BIT-IDENTICAL to the original per-op-temporary algorithm
+  (the reference embedded verbatim in the test, three seeded
+  histories: f32 n=50/m=5, f32 n=500/m=9, f64 n=64/m=7 —
+  `test_out_equals_original_bit_identical`).
 - Quadratic `f(x) = 0.5 xᵀHx` converges to x* = 0 (2D, 9 iters,
   f ≈ 4.9e-26); the handcrafted quadratic (known minimum
   [−1.0, 1.5]) converges within 1e-3.

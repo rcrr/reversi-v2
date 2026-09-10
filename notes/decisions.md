@@ -1441,3 +1441,52 @@ D-145 | 2026-09-09 | I-013 O1 (the first of the fg
         notes/analyses/optimize_performance.md as
         the pipeline documentation reference
         (Roberto: keep it).
+
+D-146 | 2026-09-09 | I-013 O2 (the second cost center after
+        D-145): the two-loop recursion of opt_lbfgs.
+        NEGATIVE RESULT on the original proposal (the numba
+        two-loop, the "tua proposta" of the D-145 ruling) +
+        ADOPTION of the data-driven alternative O2b (Roberto's
+        ruling: O2b — "out= senza allocazioni", the
+        recommended option).
+        | Measurement (A2050 real L-BFGS history, m=93,
+        N=77943 f32): numpy classic two-loop 23.2 ms/call;
+        numba scalar fused kernel 22.8 ms (1.02x); numba
+        prange-vector-ops kernel 23.2 ms (1.00x) — the
+        two-loop is memory-bandwidth bound and its
+        recurrence is serial over the m pairs (the alpha
+        chain + the beta/r chain), so prange over the pairs
+        is impossible and prange over the j-vector only
+        buys SIMD against launch overhead. The real cost
+        driver: the 2m fresh per-op product temporaries per
+        call (~58 MB allocated per call at A2050 scale — the
+        f64 product of the f64-scalar-times-f32-array,
+        downcast in place to float32).
+        | O2b (adopted): _two_loop_recursion pre-allocates
+        ONE f64 product buffer per call (prod) and computes
+        the two per-op products with np.multiply(...,
+        out=prod) + np.subtract/np.add(..., out=delta/r).
+        The out= form replicates the classic dtype
+        semantics BIT-FOR-BIT (the f64 product, the f32
+        in-place downcast) — the L-BFGS trajectory is
+        UNCHANGED: no golden re-pin (the A2030/A2050 full-
+        chain pins — the 356-iter trajectory, the w_dense
+        sha3, the EF pins — are untouched; the VLONG suite
+        is green on the exact D-145 goldens). Measured
+        23.2 -> 16.9 ms/call (1.39x): the A2050 two-loop
+        ~8.2 s -> ~5.9 s, the HP OPTIMIZE 26.9 s ->
+        ~24.6 s. The numba variant stays NOT adopted
+        (1.00-1.02x = noise; a flag + buffers + a 2.8 s
+        compile for nothing).
+        | Change surface: opt_lbfgs.py (the two-loop body
+        only — 14 lines), test_opt_lbfgs.py +1 (14 tests:
+        test_out_equals_original_bit_identical — the
+        original algorithm embedded verbatim as the
+        reference, three seeded f32/f64 histories,
+        np.array_equal), no flag (O2b improves the one
+        path in place — there is no "classic two-loop"
+        variant to preserve: the original behavior,
+        bit-for-bit, IS the new behavior). Probes:
+        verify_optimize has no two-loop body / opt_lbfgs
+        line-count pin — no re-pin. Docs: opt_lbfgs.md
+        (the O2b note + the negative result).

@@ -263,6 +263,20 @@ at the end of this file.
    goldens (position-based untouched). Suite 734/0
    (VLONG) + the re-pinned verify sweep. The analysis
    stays at notes/analyses/optimize_performance.md.
+   O2 = D-146 (the two-loop, the second cost center): the
+   numba variant was MEASURED 1.00-1.02x (NEGATIVE result —
+   memory-bandwidth bound + the serial two-loop recurrence
+   resists prange) and NOT adopted; O2b (Roberto's ruling) is
+   in: the two-loop's per-op product temporaries (~58 MB
+   allocated per call at A2050 scale) replaced by ONE
+   pre-allocated f64 out= buffer — BIT-FOR-BIT the same math
+   (no golden re-pin; the VLONG suite is green on the exact
+   D-145 goldens) and 1.39x on the two-loop (23.2 -> 16.9 ms/
+   call). The A2050 re-baseline: OPTIMIZE 22.8 s, chain 48.5 s.
+   I-013 total: OPTIMIZE 321.3 s -> 22.8 s (14.1x), chain
+   ~350 s -> 48.5 s (7.2x) — the fg + two-loop are now the
+   measured optimum of this module family; I-013 closes as
+   done after this campaign.
 
 
 - Sources live in the `reversi` package under src/ (D-008;
@@ -281,28 +295,32 @@ at the end of this file.
   config dump is now INSIDE the model file (v2, the
   backward-compat v1 reader, the D-142 record retired);
   the model is fully self-describing.
-- I-013 the GRADIENT fg performance study: STUDIED + O1 SHIPPED
-  (D-145, notes/analyses/optimize_performance.md kept as the
-  pipeline documentation reference) — the fg closure was THE
-  bottleneck (96-99% of the A2050 OPTIMIZE time; the two M×P 384
-  MB temporaries per call the waste); the K3 numba block-
-  parallel single-pass kernel (8 fixed row-blocks, private f64
-  buffers — race-free + run-deterministic, numba 0.67 has no CPU
-  atomics) is now behind the high_performance_fg config flag
-  (default false; the classic path kept verbatim per Roberto;
-  rlm_03/rlm_04 opt in). The A2050 re-baseline: OPTIMIZE 26.9 s
-  (11.9× vs 321.3 s), chain 52.0 s (6.7× vs ~350 s); the A2050
-  trajectory 356 iters / f 1.4453826e-03 (Δrel 0.07% vs the
-  classic, same CONVERGED_MIN_GRAD); suite 734/0. Next: O2 (the
-  numba two-loop in opt_lbfgs — now ≈ 8.2 s ≈ 30% of the HP
-  OPTIMIZE — as the second change against this baseline, its own
-  decision D-146, Roberto's ruling "poi miglioriamo anche lbfgs
-  on O2, quindi la tua proposta"). O3 (pure-numpy 1.2×)
+- I-013 the GRADIENT fg performance study: DONE — O1 (D-145,
+  2026-09-09) + O2 (D-146, 2026-09-09; notes/
+  analyses/optimize_performance.md kept as the pipeline
+  documentation reference). O1: the fg was THE bottleneck
+  (96-99% of the A2050 OPTIMIZE time; the two M×P 384 MB
+  temporaries per call the waste); the K3 numba block-parallel
+  single-pass kernel (8 fixed row-blocks, private f64 buffers —
+  race-free + run-deterministic, numba 0.67 has no CPU atomics)
+  is behind the high_performance_fg config flag (default false;
+  the classic path kept verbatim per Roberto; rlm_03/rlm_04 opt
+  in) — OPTIMIZE 321.3 -> 26.9 s (11.9×), chain ~350 -> 52.0 s
+  (6.7×); the A2050 trajectory 356 iters / f 1.4453826e-03
+  (Δrel 0.07% vs the classic, same CONVERGED_MIN_GRAD). O2: the
+  numba two-loop MEASURED 1.00-1.02× (negative result — memory-
+  bandwidth bound + the serial recurrence resists prange), NOT
+  adopted; O2b in: the two-loop's 2m per-op product temporaries
+  (~58 MB/call) replaced by ONE pre-allocated f64 out= buffer —
+  bit-for-bit the same math (no golden re-pin) at 1.39× —
+  OPTIMIZE -> 22.8 s, chain -> 48.5 s. I-013 TOTAL: OPTIMIZE
+  321.3 s -> 22.8 s (14.1×), chain ~350 s -> 48.5 s (7.2×);
+  suite 735/0 (VLONG), 20/20 probes. O3 (pure-numpy 1.2×)
   considered, not chosen; O4 closed (m=93 is load-bearing —
   m=20/10 do not converge in 500 iters and are slower).
-- Next on the backlog (Roberto's call): the I-013 O2
-  two-loop, I-012 FEATURES before POSITIONS, I-003 the named
-  move constants, I-009/I-010 (notes/ideas.md).
+- Next on the backlog (Roberto's call): I-012 FEATURES before
+  POSITIONS, I-003 the named move constants, I-009/I-010
+  (notes/ideas.md).
 
 
 
@@ -338,7 +356,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 15-level worker list, activated line by line (D-076..D-104); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104); D-144: the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
-| src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053) | 13/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
+| src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053); D-146: the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×; the numba two-loop measured 1.00-1.02× and not adopted) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit (D-020); minor sweep 19/19 (D-023/024/025); Burnside attributes (D-032); PatternSet.__repr__ (D-112); the PatternSet Raises docstring fixed — @validate_call raises ValidationError, not TypeError (D-121) | 65/0/3 | docs/src/reversi/pattern.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer — T1–T7 batch (D-052); the LZ4 default in the 2 rds file functions (D-139); the D-143 pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics, D-105/M2; the D-142 Config SHA3-256 line in the common header block — 18 lines, both reports); closed (D-103) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
@@ -381,7 +399,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_zed.py | complete: the ZED worker suite (D-091/D-092) | 3/0/0 | docs/src/reversi/test/test_wrk_zed.md |
 | src/reversi/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |
-| src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053) | 13/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
+| src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053); D-146: the O2b bit-identity test (the original two-loop algorithm embedded verbatim as the reference) | 14/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the fix campaign closed (D-026..D-033; T17 the sqa8/sqh1 fixture swap; 21/21 goldens re-derived); T18 retired + M1 fixed in pattern.py (D-121) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
 | src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130); the D-143 no-DB micro tier (11 tests: dedup + overlap) | 48/0/0 | docs/src/reversi/test/test_regab.md |
