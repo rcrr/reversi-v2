@@ -408,14 +408,20 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str) -> "Figure":
     ax.errorbar(unique, means, yerr=sds, fmt="o", ms=4, color="firebrick",
                 ecolor="firebrick", elinewidth=0.8, capsize=3)
     ax.axhline(0.0, color="black", ls="--", lw=0.8)
-    # The D-150 axes: x always the full [-64, +64] domain; the y
-    # labels on the sparse step-8 grid (0, 8, 16, ... — Roberto's
-    # "labels più rade" ruling; this is the plot that SHOWS the
-    # sigmoid distortion).
-    ticks = np.arange(-_AXIS_GV, _AXIS_GV + 1, _TICK_STEP)
+    # The D-150/D-151 axes: x always the full [-64, +64] domain
+    # (Roberto: "asse x perfetto"); y hugs the ACTUAL data — the
+    # full |mean| + sd extent rounded UP to the step-8 grid, kept
+    # SYMMETRIC (the D-151 ruling: "i valori min e max reali del
+    # grafico ... se il valore è nel range -16,+16 teniamolo in
+    # questo range"); the tick labels in the smaller font (D-151:
+    # "riduci la dimensione del font dei valori sugli assi").
+    extent = np.abs(np.array(means)) + np.array(sds)
+    lim = _sym_limit(extent)
     ax.set_xlim(-_AXIS_GV, _AXIS_GV)
-    ax.set_xticks(ticks)
-    ax.set_yticks(ticks)
+    ax.set_ylim(-lim, lim)
+    ax.set_xticks(np.arange(-_AXIS_GV, _AXIS_GV + 1, _TICK_STEP))
+    ax.set_yticks(np.arange(-lim, lim + 1, _TICK_STEP))
+    ax.tick_params(axis="both", labelsize=8)
     return fig
 
 
