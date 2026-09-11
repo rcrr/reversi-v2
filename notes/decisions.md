@@ -62,3 +62,20 @@ D-159 | 2026-09-11 | I-017 T2 executed: the PRNG port — the
         VALIDATE + the records in the context — Roberto's
         2026-09-11 ask, the D-150 report relocation; Nia's
         opinion: agreed on both points).
+D-160 | 2026-09-11 | The PRNG module renamed: reversi/
+        feature_prng.py -> reversi/tools/prng.py (Roberto's
+        call: "non sarebbe meglio chiamarlo reversi.tools.prng?")
+        Rationale: the module is a GENERIC MT library, not a
+        feature-specific component — the name should follow WHAT
+        IT IS, not its first consumer (the feature-analysis
+        tasks T4+ are only the first users), and tools/ is the
+        house subpackage for the cross-domain utilities
+        (D-133: core top-level + tools/ and lm/ subpackages —
+        alongside binio, cache_manager, opt_lbfgs,
+        state_machine). The test follows the house tools
+        naming (test_prng.py, section 0 of the runner, after
+        test_opt_lbfgs — like test_opt_lbfgs); the class
+        MT19937 and the code are untouched (the git mv + the
+        name pins: the header line, the How-to-run block, the
+        class TestPrng, the 2 mirrors' H1, the project doc's 4
+        references). Suite unchanged: 781/0/94 GREEN.

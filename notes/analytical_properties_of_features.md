@@ -163,8 +163,9 @@ first, as FEATURES depends on the configuration loaded there"
 ### 3.2 The PRNG library (new, per Roberto's ruling) + the
     random-play generator
 
-The PRNG (the new core module reversi/feature_prng.py — the
-mirror docs/src/reversi/feature_prng.md):
+The PRNG (the new tools module reversi/tools/prng.py — the
+mirror docs/src/reversi/tools/prng.md; the D-160 rename from
+the feature_prng core name):
 - A line-by-line C → Python port of Roberto's MT19937 library
   (the Matsumoto/Nishimura reference implementation): the 624-
   word state, the init-by-seed (the s[] table), the twist +
@@ -515,10 +516,10 @@ Open: none.
   the stale test comment fix + the run_utests.sh order.
   Verify: LONG=1 + VLONG (the A2050 chain).
 - T2: the PRNG port — the line-by-line C → Python MT19937 in
-  the new core module reversi/feature_prng.py (the s[] seed
+  the new tools module reversi/tools/prng.py (the s[] seed
   init, the twist, the temper, the uint32 output) + the mirror.
   (The C source per ODP-10.)
-- T3: the PRNG verification suite — test_feature_prng.py: the
+- T3: the PRNG verification suite — test_prng.py: the
   EXACT bit-sequence golden vs the C library (same seed), the
   published test vectors / the seed-init contract, the
   properties (the seed determinism, the equi-distribution on
@@ -602,11 +603,11 @@ at T1 (the reordering touches the chain) and T18.
 
 ## 9. Files touched (planned, v2)
 
-New: reversi/feature_prng.py (the core MT19937 port) + the
+New: reversi/tools/prng.py (the MT19937 port) + the
 mirror, hlp_random_play.py (+ the mirror, the generator + the
 accumulators), hlp_feature_analysis.py (+ the mirror, the
 statistics kernels), wrk_feature_analysis.py (+ the mirror),
-wrk_effect_size.py (+ the mirror), test_feature_prng.py (+ the
+wrk_effect_size.py (+ the mirror), test_prng.py (+ the
 mirror), the hlp micro-suites (the test_hlp_random_play.py +
 the test_hlp_feature_analysis.py and their mirrors),
 test_wrk_feature_analysis.py (+ the mirror),
