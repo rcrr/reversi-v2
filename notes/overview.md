@@ -413,8 +413,11 @@ at the end of this file.
    strict-typing ruling: NUMPY, the np.uint64 data path) —
    bit-exact vs the C build, 781/0/94 + LONG 781/0/21). T3 DONE
    (D-161): the C-oracle golden suite (the committed 13003-line
-   golden, 20/0 tests) — 791/0/94 + LONG 791/0/21. Next: T4
-   (the single-game random play).
+   golden, 20/0 tests) — 791/0/94 + LONG 791/0/21. T4 DONE
+   (D-162): the single-game random play (the ODP-9 pick table,
+   the no-PRNG pick, the ec arrest, the 12/0 micro-suite) —
+   803/0/94 + LONG 803/0/21. Next: T5 (the concurrent wave
+   engine — the numba tier).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -461,10 +464,12 @@ at the end of this file.
 - FEATURE ANALYSIS (I-017): T1 DONE (D-157), T2 DONE (D-159:
   the PRNG port — the strict-typing ruling, the C cross-check),
   T3 DONE (D-161: the C-oracle golden suite — the committed
-  13003-line golden, test_prng.py 20/0) — T4 next: the
-  single-game random play (hlp_random_play.py: the game loop,
-  the ec arrest, the no-DB micro-suite with the hand-counted
-  short-game trace), per the plan in
+  13003-line golden, test_prng.py 20/0), T4 DONE (D-162: the
+  single-game random play — the ODP-9 table, the no-PRNG pick,
+  the ec arrest, the 12/0 micro-suite) — T5 next: the
+  concurrent wave engine (the batch of games in parallel, the
+  vectorized advance step, the respawn, the position stream —
+  the numba tier), per the plan in
   notes/analytical_properties_of_features.md §8. I-018 (the
   outlier report in VALIDATE) is parked, Roberto's call.
 
@@ -517,6 +522,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract; D-145: the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag); closed (D-093/D-094/D-145) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
+| src/reversi/lm/hlp_random_play.py | complete: the single-game random play generator (the I-017 T4, D-162; the T12-level data module — the worker pending) — the ODP-9 permutation lookup table (2016 MT19937 draws, lru_cached read-only) + the no-PRNG pick + the ec arrest (the provisional 64 - occupied — T7 pins the EXACT formula) + the pass + the game over + the full trajectory | 12/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module (8th level); closed (D-091/D-092) | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
@@ -563,6 +569,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1; D-145: the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers) | 14/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
+| src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game), the seeded pinned trajectories + the independent replay | 12/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/reversi/test/test_state_machine.md |

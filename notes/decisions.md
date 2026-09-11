@@ -112,3 +112,54 @@ D-161 | 2026-09-11 | I-017 T3 executed: the PRNG golden
         single-game primitive; the T5/T6 hot loop uses the ODP-
         9 permutation table (2016 setup draws, the pick a pure
         lookup — numba-friendly), not the PRNG per move.
+D-162 | 2026-09-11 | I-017 T4 executed: the single-game
+        random play. The new lm data module reversi/lm/
+        hlp_random_play.py (the future FEATURE_ANALYSIS
+        level's generator — the worker lands in T12; the doc
+        assigns the table to T4: "the pick via the lookup
+        table"): (1) the initial position (the D4+E5 / D5+E4
+        2x2 center, the mover the 4-legal-moves diagonal, the
+        symmetric start — the mover convention is a pure label
+        at the start, the T12 alignment with the DB extraction
+        is the only place it can matter); (2) the ODP-9
+        PERMUTATION LOOKUP TABLE (build_pick_table, lru_cached
+        + read-only): the seeded {n -> permutation of 0..n-1}
+        over n = 1..64, Fisher-Yates (the C shuffle algorithm)
+        over the seeded MT19937 — the 2016 total draws; (3)
+        the steady-state pick (pick_move, NO PRNG in the loop):
+        rank = table[k][counter % k], the move = the rank-th
+        set bit; k == 0 -> (PA, counter) — the pass consumes
+        NO counter step; (4) the per-game phase pin
+        (counter0 = the T5 slot id — without a per-game phase
+        every game would share the same rank walk and the 1e6
+        corpus would degenerate: all games make the same first
+        move); (5) the ec ARREST (ec_of: the PROVISIONAL
+        64 - occupied — the moves remaining, the same
+        expression board.position_final_value uses inline; T7
+        pins the EXACT formula against Roberto's DB code — the
+        loop is formula-agnostic), checked before every ply;
+        the corpus keeps every ply (the RandomGame trajectory);
+        (6) the game over (the double pass / the full board,
+        checked at the end of every ply) + the MAX_PLIES
+        defensive guard. The 12-test NO-DB micro-suite (test_
+        hlp_random_play.py): the table properties (all 64 rows
+        valid permutations, the reproducibility), the pick
+        kernel (the (counter % k)-th set bit literals, the no-
+        consume pass), the initial position (the hand-derived
+        {E3, F4, C5, D6}), the HAND-COUNTED games: the
+        identity-table 3-ply trace (the first move E3 hand-
+        derived — rank 0 = the lowest legal square), the pass
+        branch from the synthetic 17-stone corner wall (the
+        A1+C3 mover walled in — the row-1 + column-A + B2/C2/
+        B3 ring; ZERO legal moves verified; after the pass
+        {D3, C4, D4}; the PA then D3, the ec kept by the pass),
+        the full 60-ply game (seed 3 to ec = 0: the board
+        fills 35/29, the game-over fires); the seeded games
+        (the seed-7 / seed-8 pinned trajectories + the
+        INDEPENDENT REPLAY: every ply recomputed from the
+        rules + the table walk without the loop logic; the
+        counter0 phase shift: rank 0 vs 7 % 4 = 3). Suite:
+        803/0/94 default + 803/0/21 LONG (791 + 12 new). The
+        T5 wave engine will replay the SAME per-slot logic
+        (the single-game trace is the cross-validation
+        reference).
