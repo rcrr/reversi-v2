@@ -76,6 +76,12 @@ random_string_az and extract_from_set64.
 - The strict-typing pins: the state mt is a uint64 ndarray
   (shape (312,)); every generator returns np.uint64 /
   np.float64 (the tests assert the dtypes).
+- The T3 golden suite landed (D-161): test_prng.py now pins the
+  C-oracle committed sequences (data/prng_golden.txt — 10k
+  seed-42 + 1k array-init uint64, the two mt init states, the
+  doubles / choice / extract sequences) + the first-100k
+  equi-distribution (the per-bit balance, the top-bit chi-
+  square, the choice-64 uniformity) — ALL MATCH.
 - The k == 1 no-consume contract: random_choice_from_finite_set(1)
   leaves the sequence position untouched (the next draw equals a
   fresh instance's first draw).
@@ -85,9 +91,6 @@ random_string_az and extract_from_set64.
   raises (the C assert *set).
 
 ## Open issues
-- The T3 golden suite (the committed bit-sequence golden vs the
-  C build + the published vectors + the 100k equi-distribution
-  property) — the next task (I-017 T3).
 - The numba era (Roberto: "appena l'algoritmo funziona bisognera
   farlo andare con numba"): the uint64 state is the right
   substrate for the T5 wave engine; no action at T2 (the PRNG
