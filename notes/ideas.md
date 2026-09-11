@@ -91,16 +91,18 @@ I-011 | done | "Storicizzazione" of the JSON config used to generate a
         .SHA3-256 sidecar) + the config fingerprint in the analytics
         reports. The versioned-history part (option B) is explicitly
         dropped: the JSON evolution stays in the file's VCS.
-I-012 | idea | Pipeline level order: evaluate moving FEATURES
-        BEFORE POSITIONS (raised 2026-08-31, session 22, D-081
-        test-M1 discussion, D-082): Roberto confirms the test
-        setUp comment ("Move to POSITIONS first, as FEATURES
-        depends on the configuration loaded there") is inaccurate
-        — FEATURES depends on the config loaded at the CONFIG
-        level (step 1), not on POSITIONS — and wants to EVALUATE
-        moving the FEATURES level before POSITIONS in the
-        pipeline. The comment is left as-is in the test for now.
-        To be evaluated as a line-by-line pipeline change.
+I-012 | done | Pipeline level order: move FEATURES BEFORE
+        POSITIONS (raised 2026-08-31, session 22, D-081 test-M1
+        discussion, D-082): Roberto confirms the test setUp
+        comment ("Move to POSITIONS first, as FEATURES depends on
+        the configuration loaded there") is inaccurate — FEATURES
+        depends on the config loaded at the CONFIG level (step
+        1), not on POSITIONS — and wants to EVALUATE moving the
+        FEATURES level before POSITIONS in the pipeline. DONE at
+        D-157 (2026-09-11, the I-017 T1): the FEATURES level now
+        runs BEFORE POSITIONS (step 2, right after CONFIG) — the
+        inaccurate setUp comment removed with the gate (the
+        test_wrk_features suite is now DB-free).
 
 I-013 | done | Study whether the GRADIENT fg closure can be
         sped up (raised 2026-09-01, session 25, during the D-094

@@ -2061,3 +2061,51 @@ D-156d | 2026-09-11 | I-017 T0c close: the plan v2 is
         The detailed T1 plan is presented for Roberto's
         explicit OK (the standing workflow). No source files
         touched.
+
+D-157 | 2026-09-11 | I-017 T1 executed: the pipeline
+        reordering — FEATURES (step 2) before POSITIONS (step
+        3), realizing I-012. Roberto: "OK. Esegui T1." The
+        adjacent transposition in the worker list (logistic_
+        model.py) — nothing else moves. Consequences
+        (verified, the hub V3c re-pin): only the POSITIONS
+        cache slot shifts (rlmwf_02 → rlmwf_03; the file-less
+        FEATURES takes the old step 2, INDEXES onward keep
+        their slots) → the production one-time cost is ONE DB
+        extraction (the downstream checksum lineage survives);
+        the model file is byte-identical (the config dump
+        unchanged). The test surface: test_wrk_features is now
+        DB-FREE (the setUp no longer moves through POSITIONS —
+        the gate + the stale M1 comment removed, I-012
+        resolved); test_wrk_indexes setUp re-pinned (FEATURES =
+        step 2); test_wrk_positions rlmwf_03 + step 3;
+        test_logistic_model gains the dummy FEATURES worker
+        (the string move to POSITIONS now crosses step 2); the
+        full chain unchanged (PLOT stays step 16). Probes
+        re-pinned: the hub V3c list; verify_wrk_features (B2/
+        B10/B13/C1/C4/C6/C7 — the probe is now DB-free too);
+        verify_wrk_positions (rlmwf_03); verify_hlp_indexes
+        (C2/C7/E3); the file-list pins in verify_gradient D10 /
+        verify_optimize H1 (rlmwf_03 + the no-rlmwf_02
+        negation — the old "no rlmwf_03" pinned the old
+        FEATURES slot) / verify_zed D11. run_utests.sh the
+        machine order. Mirrors updated in the same commit
+        (D-007), including the level chains in the 12
+        downstream-level docs. Verification: default tier
+        771/0/94 GREEN; VLONG 771/0/20 GREEN (the A2050 chain
+        on the new order); the 22-probe sweep green. I-012 →
+        done (ideas.md).
+D-158 | 2026-09-11 | The parity PNG golden re-pinned (the env
+        drift). Found during T1 verification: the D-150 golden
+        (pinned 09-10, after the matplotlib 3.11.1 upgrade at
+        17:25) no longer matches. Ruled out as a T1 effect
+        (fails on the parent commit 753e77c with T1 stashed).
+        The rendering is DETERMINISTIC (the same hash across
+        runs) and VISUALLY IDENTICAL (the exported PNG
+        inspected: the two-line title, the SYNTH_PLOT
+        subtitle, the fixed axes, the grid, the identity line)
+        — only the font rasterization bytes moved (the
+        matplotlib font cache was regenerated 09-10 17:34,
+        after the upgrade). The D-127 version-sensitive golden
+        pattern applies: re-pin on environment drift. Committed
+        (ed518fd) before the D-157 commit (4186e6d) as the
+        green-suite prerequisite.

@@ -403,8 +403,12 @@ at the end of this file.
    + KL + TV) + the JSON target_level parameter (default
    "last"). The (feature, instance) sub-variable is the
    analysis unit (the design-matrix unit). Tasks T1..T19 (the
-   granular split), one per session (T1 = the reordering,
-   first, on its own); no source changes yet.
+   granular split), one per session. T1 DONE (D-157,
+   2026-09-11): the reordering is in (FEATURES step 2 /
+   POSITIONS step 3, the rlmwf_03 slot, I-012 realized; the
+   test_wrk_features suite now DB-free) — 771/0/94 + VLONG
+   771/0/20 + the 22-probe sweep green; D-158 the parity
+   golden re-pin (the env drift). Next: T2 (the PRNG port).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -445,13 +449,13 @@ at the end of this file.
   suite 735/0 (VLONG), 20/20 probes. O3 (pure-numpy 1.2×)
   considered, not chosen; O4 closed (m=93 is load-bearing —
   m=20/10 do not converge in 500 iters and are slower).
-- Next on the backlog (Roberto's call): I-012 FEATURES before
-  POSITIONS, I-003 the named move constants, I-009/I-010
-  (notes/ideas.md).
-- FEATURE ANALYSIS (I-017): the detailed T1 plan (the
-  reordering: FEATURES before POSITIONS, the I-012 realization
-  — the plan in the 2026-09-11 session) awaits Roberto's
-  explicit OK, then execute T1.
+- Next on the backlog (Roberto's call): I-003 the named move
+  constants, I-009/I-010 (notes/ideas.md); I-012 is DONE
+  (D-157, the I-017 T1).
+- FEATURE ANALYSIS (I-017): T1 DONE (D-157) — T2 next: the PRNG
+  port (reversi/feature_prng.py, the 64-bit MT19937 verbatim
+  from Roberto's C; the C build + ut_prng.c the oracles), per
+  the plan in notes/analytical_properties_of_features.md §8.
 
 
 
@@ -476,18 +480,18 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_plot.py | complete: the PLOT 17th and LAST level (step 16, after CLIENT_CHECK; D-149) — the whitelist pilot (enable + the optional plot names), the directory resolution (absolute as-is / relative under base_dir), the per-name save in every configured format; D-150: the top-20 extreme-outlier report (the position's bitboards, the stable argsort); no cache (the 8th non-cache deviation, the rlmwf_16 slot), stateless down, D-060 failure | 10/0/0 | docs/src/reversi/lm/wrk_plot.md |
 | src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (D-142: the ad-hoc cache flow removed, the record is a SAVE artifact); closed (D-077/D-078/D-142; I-011 realized) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
-| src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 | docs/src/reversi/lm/wrk_features.md |
+| src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the 3rd active level (step 2, before POSITIONS — D-157); the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 (DB-free, D-157) | docs/src/reversi/lm/wrk_features.md |
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE 11th level (dense weights materialization; the R1 for-next-level trap fix); closed (D-097/D-098) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1; D-145: the high_performance_fg flag wiring); closed (D-093/D-094/D-145) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring); closed (D-083/D-084) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE 10th level — the only level whose "cache" is a plain checkpoint dict via binio; closed (D-096) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
-| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set (D-079/D-080); the D-143 extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
+| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set (D-079/D-080); the D-143 extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line; D-157: step 3, slot rlmwf_03 (the reordering) | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
 | src/reversi/lm/wrk_save.py | complete: the SAVE 15th level (step 14; CLIENT_CHECK runs after it, D-148); D-144: the SINGLE artifact — the v2 model file embeds the config provenance (the D-142 sidecar record retired) | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
 | src/reversi/lm/wrk_validate.py | complete: the VALIDATE 13th level (the third non-cache worker); closed (D-101/D-102) | 5/0/0 | docs/src/reversi/lm/wrk_validate.md |
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS 12th level (the POSITIONS twin over the validation set, D-099/D-100); the D-143 shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS 6th-level worker; closed (D-086/D-087/D-088) | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED 8th level (the first non-cache level); closed (D-091/D-092) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 16-level worker list, activated line by line (D-076..D-104; D-148: CLIENT_CHECK the 16th level); the stale "Remove comments" line dropped (D-113) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
+| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard (40 fields, 8 *_checksum, 3 injected callables) + the 16-level worker list, activated line by line (D-076..D-104; D-148: CLIENT_CHECK the 16th level); the stale "Remove comments" line dropped (D-113); D-157: the worker list reordering (FEATURES before POSITIONS) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel; closed (D-035/D-036); disposition per D-036 (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass (D-104); D-144: the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver — T1–T7 batch incl. the RuntimeException hard-bug fix (D-053); D-146: the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×; the numba two-loop measured 1.00-1.02× and not adopted) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
@@ -520,21 +524,21 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105; the D-142 masked-hash helper + the 2 file-report goldens re-pinned) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite (D-148) — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden ("max difference 0.000e+00"), the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/src/reversi/test/test_wrk_client_check.md |
 | src/reversi/test/test_hlp_plot.py | complete: the PLOT pure-helper suite (D-149; D-150: the _sym_limit tests) — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the symmetric-axis limit (round-up to the step, the degenerate guard), the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 11/0/0 | docs/src/reversi/test/test_hlp_plot.md |
-| src/reversi/test/test_wrk_plot.py | complete: the PLOT worker suite (D-149; D-150: the outlier-report test + the re-pinned parity golden) — the synthetic rlm_04-mirror ctx (no DB, the per-instance index contract), the pilot no-ops (enable=false / the empty whitelist), the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the top-20 outlier report (header + 20 lines, non-increasing |residual|), the parity rendering golden, the factory, the no-op down | 10/0/0 | docs/src/reversi/test/test_wrk_plot.md |
+| src/reversi/test/test_wrk_plot.py | complete: the PLOT worker suite (D-149; D-150: the outlier-report test + the re-pinned parity golden; D-158: the env-drift golden re-pin) — the synthetic rlm_04-mirror ctx (no DB, the per-instance index contract), the pilot no-ops (enable=false / the empty whitelist), the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the top-20 outlier report (header + 20 lines, non-increasing |residual|), the parity rendering golden, the factory, the no-op down | 10/0/0 | docs/src/reversi/test/test_wrk_plot.md |
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
-| src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082) | 3/0/0 | docs/src/reversi/test/test_wrk_features.md |
+| src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082); D-157: DB-free (the gate + the POSITIONS move removed) | 3/0/0 (DB-free) | docs/src/reversi/test/test_wrk_features.md |
 | src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 17-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro; D-148: the 14/SAVE → 15/CLIENT_CHECK re-pin + the A2030 client-check log pin; D-149: the 15/CLIENT_CHECK → 16/PLOT re-pin + the seven-PNG + the "Plot ... saved:" / "PLOT done: 7 plot(s)" log pins in BOTH chains + the size bands re-centered 22940-23040 / 516500-516700; D-150: the A2030 outlier pins — the "Top 20 extreme validation residuals (outlier report):" header + the 20-count) + the full saved-model round-trip; the A2050 chain VLONG-gated (~1 min since D-145, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins; D-145: the HP-trajectory re-pin (A2030 71 iters, A2050 356 iters, the w_dense sha3 + EF + report-hash pins, the size bands) | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
 | src/reversi/test/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin, D-094; D-145: the 2 no-DB flag-wiring tests) | 4/0/0 | docs/src/reversi/test/test_wrk_gradient.md |
-| src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
+| src/reversi/test/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin (D-084); D-157: the setUp step re-pin (FEATURES = step 2) | 2/0/0 | docs/src/reversi/test/test_wrk_indexes.md |
 | src/reversi/test/test_wrk_optimize.py | complete: the OPTIMIZE worker suite (D-096) | 3/0/0 | docs/src/reversi/test/test_wrk_optimize.md |
-| src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080); the D-143 TestLMWorkerPositionsDuplicates (the duplicate policy + the post-policy cache) | 12/0/0 | docs/src/reversi/test/test_wrk_positions.md |
+| src/reversi/test/test_wrk_positions.py | complete: Roberto's file; the gate + the D-085 idiom applied (D-080); the D-143 TestLMWorkerPositionsDuplicates (the duplicate policy + the post-policy cache); D-157: rlmwf_03 + step 3 | 12/0/0 | docs/src/reversi/test/test_wrk_positions.md |
 | src/reversi/test/test_wrk_validate.py | complete: the VALIDATE worker suite (D-101/D-102) | 5/0/0 | docs/src/reversi/test/test_wrk_validate.md |
 | src/reversi/test/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (D-099/D-100); the D-143 TestVldIndependenceCheck (0% / 100% overlap, traced not raised) | 11/0/0 | docs/src/reversi/test/test_wrk_vld_positions.md |
 | src/reversi/test/test_wrk_wmaps.py | complete: the WMAPS worker suite (D-087) | 3/0/0 | docs/src/reversi/test/test_wrk_wmaps.md |
 | src/reversi/test/test_wrk_zed.py | complete: the ZED worker suite (D-091/D-092) | 3/0/0 | docs/src/reversi/test/test_wrk_zed.md |
-| src/reversi/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
+| src/reversi/test/test_logistic_model.py | complete: all 15 methods active (the last muted test restored, 887880e); the D-075/D-076/D-078 corner pins; D-157: the dummy FEATURES worker (the string move to POSITIONS crosses step 2) | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed (D-037): 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |
 | src/reversi/test/test_opt_lbfgs.py | complete: the T7 batch + 9 new tests (D-053); D-146: the O2b bit-identity test (the original two-loop algorithm embedded verbatim as the reference) | 14/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths (D-085) | 3/0/0 | docs/src/reversi/test/test_paths.md |
