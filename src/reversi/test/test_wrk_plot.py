@@ -290,7 +290,9 @@ class TestWrkPlot(unittest.TestCase):
 
     def test_parity_png_golden(self):
         """The D-149 rendering golden (re-pinned at D-150 for the
-        fixed axes + the two-line title): the parity figure of the
+        fixed axes + the two-line title; re-pinned at D-158 for the
+        env drift — the rendering is visually identical, only the
+        font rasterization bytes moved): the parity figure of the
         synthetic context (SEED 42, N_TRN 1200 / N_VLD 1000, the
         rlm_04 mirror, png at 150 dpi) hashes to the pinned value.
         Version-sensitive like the other f32 goldens (D-127): it
@@ -301,7 +303,7 @@ class TestWrkPlot(unittest.TestCase):
         p = ctx.cfg.base_dir / "plots" / "parity.png"
         self.assertEqual(
             hashlib.sha3_256(p.read_bytes()).hexdigest(),
-            '70c3de2b64678fc5f2f3e50ec3cbb90ddcde16bf6a7e6d621b88e7685c5b9081')
+            'fdb8162d8f1696ee86c3fa86157720f53aaf6d05abfffd70ecc5a58e41e22ab5')
 
     # -- the down step ----------------------------------------------------
 

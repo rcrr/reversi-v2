@@ -74,7 +74,8 @@ rlm_04-mirror context) + the 16-check `probes/verify_plot.py`
   deterministic Agg rendering) (`test_up_all_seven_png`).
 - The rendering golden: the parity figure of the synthetic context
   (SEED 42, N_TRN 1200 / N_VLD 1000, png 150 dpi) hashes to the
-  pinned sha3_256 — version-sensitive like the f32 goldens (D-127)
+  pinned sha3_256 — version-sensitive like the f32 goldens (D-127);
+  D-158: the env-drift re-pin (visually identical rendering)
   (`test_parity_png_golden`).
 - The pilot: `enable=false` with a full whitelist does NOTHING
   (no directory, no files, the single skip line —
