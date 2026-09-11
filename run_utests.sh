@@ -31,6 +31,7 @@ MODULES=(
     reversi.test.test_pattern
     reversi.test.test_mobility
     reversi.test.test_feature
+    reversi.test.test_feature_prng
     # 2 — infrastructure
     reversi.test.test_cache_manager
     reversi.test.test_state_machine
