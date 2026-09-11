@@ -1934,3 +1934,42 @@ D-156 | 2026-09-11 | I-017 kickoff: the project to analyze the
         only, the tasks T0..T4 one per session. Five open points
         (ODP-1..5) await Roberto's confirmation before T1 starts.
         No source files touched.
+
+D-156b | 2026-09-11 | I-017 plan revision v1: Roberto's redesign
+        proposals (his words, the gist) + Nia's comments. (1) The
+        SU analysis must NOT use the DB positions: it depends
+        only on the features → generate a NEW, DB-independent
+        corpus: random games from the initial position (board.py
+        is fully vectorized; the positions are NOT solved — only
+        the configuration frequencies are wanted), a ~1M batch
+        accumulated into the frequency dictionary keyed by the
+        configuration index, ~1000× (1-10e9 positions, "precise a
+        piacere"). (2) Reorder the pipeline: FEATURES first, then
+        the SU analysis, then POSITIONS — enabling the STOP
+        after the SU step to inspect the patterns'
+        never-observed configurations before the full pipeline.
+        (3) OMEGA needs the DB positions + the indexes: its own
+        level BEFORE the expensive OPTIMIZE (his preference)
+        rather than a section in ANALYTICS. (4) A JSON
+        target_level parameter (default "last") for the stop.
+        (5) The SU level needs the CACHE, for sure (it runs
+        once; it stays valid while the features are unchanged).
+        (6) SU is instance-level: a MATRIX between instances
+        (EDGE-DIAG8 → 4×2 = 8 values; the EDGE-EDGE self-pair
+        has the 1-diagonal) — at the A2050 scale (~1,600
+        metrics) the SU pairs are specified EXPLICITLY in the
+        config; the adherence runs for ALL features. Nia's
+        comments (in the document v1): the move_to_step
+        string-name API already exists (target_level is a small
+        facade addition); no tracked random-game generator
+        exists (new component in T2); the slot shift orphans the
+        production caches (one recompute); the reordering
+        realizes I-012; honest cost model (1e8 ≈ 10 min, 1e9 ≈
+        1-3 h — the accumulation dominates); the pair list joins
+        the corpus cache signature (the two-tier cache parked
+        v2); the DB sampling window (the "ec" filter) is the
+        main adherence risk (ODP-2, his knowledge needed); the
+        task split grows to T1..T7 (T1 = the reordering, first,
+        on its own). Document updated to DRAFT v1
+        (notes/analytical_properties_of_features.md); the new
+        ODP list: ODP-1..8. No source files touched.

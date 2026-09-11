@@ -380,22 +380,28 @@ at the end of this file.
   PNG + PDF (the preserved run: 7 of each) — the PLOT campaign
   closes here (D-149 → D-155): Roberto's final verdict "I
   grafici vanno ora tutti bene. Lavoro grafici: finito."
-- FEATURE ANALYSIS (I-017, D-156 kickoff 2026-09-11): the project
-   document notes/analytical_properties_of_features.md (DRAFT v0,
-   awaits Roberto's confirmation on ODP-1..5) — two
-   feature-characterization capabilities into the pipeline: (a)
-   the SU (Symmetrical Uncertainty — unsupervised: the
-   feature-configuration dispersion + the feature↔feature
-   correlation, NO game value) + (b) the eta²/omega² (the ANOVA
-   effect size vs the game value; omega² = the unbiased
-   high-cardinality-safe successor). Proposed design: the 18th
-   level FEATURE_ANALYSIS (step 17, after PLOT — the D-148/D-149
-   tail precedent), the (feature, instance) sub-variable as the
-   analysis unit (the design-matrix unit), the
-   FeatureAnalysisConfig pilot (the PlotConfig pattern), no cache
-   (the file-less rlmwf_17 slot, the 9th non-cache deviation), the
-   TXT+CSV reports, training corpus only. Tasks T0..T4, one per
-   session; no source changes yet.
+- FEATURE ANALYSIS (I-017, D-156 kickoff + D-156b revision
+   2026-09-11): the project document
+   notes/analytical_properties_of_features.md (DRAFT v1, awaits
+   Roberto's confirmation on ODP-1..8). Design v1 (Roberto's
+   redesign): the pipeline REORDERING (FEATURES before POSITIONS
+   — realizes his parked I-012) + the new FEATURE_ANALYSIS level
+   (step 3): a SYNTHETIC random-play corpus (seeded vectorized
+   random games — board.py, no solving), the configuration-
+   frequency accumulation (CACHED, the first cache whose
+   signature is feature-set-based, not rds-based), the SU
+   statistics on the ideal frequencies (the instance×instance
+   matrices over the EXPLICIT su_pairs — P6's EDGE-DIAG8 4×2
+   example) + the never-observed audit (the stop-and-inspect
+   before training) + the new EFFECT_SIZE level (step 6, before
+   OPTIMIZE): the eta²/omega² per feature (the ANOVA effect size
+   vs the game values) + the adherence of the DB set to the ideal
+   population (chi-square + KL + TV) + the JSON target_level
+   parameter (default "last"; the StateMachine already accepts
+   worker names). The (feature, instance) sub-variable is the
+   analysis unit (the design-matrix unit). Tasks T1..T7, one per
+   session (T1 = the reordering, first, on its own); no source
+   changes yet.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -439,9 +445,10 @@ at the end of this file.
 - Next on the backlog (Roberto's call): I-012 FEATURES before
   POSITIONS, I-003 the named move constants, I-009/I-010
   (notes/ideas.md).
-- FEATURE ANALYSIS (I-017): confirm the ODP-1..5 in
-  notes/analytical_properties_of_features.md (DRAFT v0, D-156),
-  then execute T1 (the hlp_feature_analysis data module).
+- FEATURE ANALYSIS (I-017): confirm the ODP-1..8 in
+  notes/analytical_properties_of_features.md (DRAFT v1,
+  D-156b), then execute T1 (the reordering: FEATURES before
+  POSITIONS, the I-012 realization).
 
 
 

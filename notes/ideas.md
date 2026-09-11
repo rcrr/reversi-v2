@@ -256,11 +256,17 @@ I-017 | in-progress | Analytical properties of the FEATURES:
         feature (omega² = the unbiased, df-penalized successor,
         robust to high cardinality). Project document (objective,
         plan, tasks): notes/analytical_properties_of_features.md
-        (DRAFT v0, D-156; awaits Roberto's confirmation on
-        ODP-1..5). Proposed design: the 18th pipeline level
-        FEATURE_ANALYSIS (after PLOT — the D-148/D-149 tail
-        precedent), the (feature, instance) sub-variable as the
-        analysis unit (the design-matrix unit), the
-        FeatureAnalysisConfig pilot (the PlotConfig pattern), no
-        cache file (the rlmwf_17 slot), the TXT+CSV reports. Tasks
-        T0..T4, one per session.
+        (DRAFT v1, D-156 + D-156b; awaits Roberto's
+        confirmation on ODP-1..8). Design v1 (Roberto's
+        redesign, 2026-09-11): the pipeline REORDERING (FEATURES
+        before POSITIONS — realizes I-012) + the new
+        FEATURE_ANALYSIS level (step 3, the SYNTHETIC random-play
+        corpus — seeded vectorized random games, the
+        configuration-frequency accumulation, CACHED — + the SU
+        statistics on the ideal frequencies + the never-observed
+        audit, the instance×instance SU matrices over the
+        EXPLICIT su_pairs) + the new EFFECT_SIZE level (step 6,
+        before OPTIMIZE: the eta²/omega² per feature + the
+        adherence of the DB set to the ideal population) + the
+        JSON target_level parameter (the stop-and-audit
+        workflow). Tasks T1..T7, one per session.
