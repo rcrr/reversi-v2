@@ -79,13 +79,19 @@ PLOT_NAMES = (
 #: The figure titles (the subtitle line carries the run name).
 PLOT_TITLES = {
     "residual_density": "LM Residuals Distribution",
-    "resid_vs_fitted": "LM Residuals vs Fitted Values",
+    "resid_vs_fitted": "LM Residuals vs Evaluated Game Value",
     "resid_vs_gv": "LM Residuals vs Game Values",
     "gv_by_egv_box": "LM Game Values by Evaluated Game Value",
     "resid_mean_by_egv": "LM Mean Residual by Evaluated Game Value",
-    "parity": "LM Parity: Fitted vs Game Value",
+    "parity": "LM Parity: Evaluated vs Game Value",
     "resid_qq": "LM Residuals: Normal QQ Plot",
 }
+
+#: The binned-axis note (the D-155 label ruling): the binning
+#: carries an ITALIC mathtext parenthetical (this matplotlib
+#: build has no mathtext size commands, so it stays at the axis
+#: font size — the ruling's accepted fallback).
+_BINNED_NOTE = r" $(binned\ every\ 2)$"
 
 #: Seeded generators: the jitter and the KDE subsample are
 #: deterministic (the R jitter was not — see the header).
@@ -137,15 +143,15 @@ class PlotData:
     predictions and the int8 game values upcast exactly — no f32
     rounding noise enters the figures):
 
-    trn_y_true: the training game values (Y).
+    trn_y_true: the training game values (the Y scale).
     trn_rn: the TRAINING residuals in Y, the w_dense forward pass
         (the shipped inference rules — the same pass as the
         TRAINING-DENSE analytics column and the CLIENT_CHECK
         reference).
-    vld_y_pred: the validation fitted values (Y, the EF output).
-    vld_rn: the validation residuals (Y) — the VALIDATE /
+    vld_y_pred: the validation fitted values (the Y scale, the EF output).
+    vld_rn: the validation residuals (the Y scale) — the VALIDATE /
         CLIENT_CHECK residuals.
-    vld_gv: the validation game values (Y).
+    vld_gv: the validation game values (the Y scale).
     """
     trn_y_true: np.ndarray
     trn_rn: np.ndarray
@@ -285,7 +291,7 @@ def plot_residual_density(d: PlotData, run_name: str) -> "Figure":
     grid = np.linspace(lo, hi, _KDE_GRID)
 
     fig, ax = _fig(PLOT_TITLES["residual_density"], run_name,
-                   "Game value residual (Y)", "Probability density")
+                   "Game value residual", "Probability density")
     max_y = 0.0
     for label, vals, color in series:
         curve = _kde_curve(vals, grid)
@@ -306,7 +312,11 @@ def plot_residual_density(d: PlotData, run_name: str) -> "Figure":
 #: x as a fraction of the axis span from the left, y as a fraction
 #: of the curve maximum). The Reference label sits HIGH (D-150:
 #: it overlapped its line at the lower position).
-_TXT_X = {"Validation": 0.04, "Training": 0.40, "Reference": 0.75}
+# The D-155 box placement: the Training label sits at ~x = 25 in
+# data units (the span is [-72, +72]: (25 - (-72)) / 144 ~ 0.674),
+# so it clears the residual peak it used to cover; the height
+# (the _TXT_Y fraction of max_y) is unchanged.
+_TXT_X = {"Validation": 0.04, "Training": 0.674, "Reference": 0.75}
 _TXT_Y = {"Validation": 0.80, "Training": 0.96, "Reference": 0.98}
 
 
@@ -329,7 +339,7 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str) -> "Figure":
     x = jitter(rng, d.vld_y_pred, _JIT_FITTED_X)
     y = jitter(rng, d.vld_rn, _JIT_Y)
     fig, ax = _fig(PLOT_TITLES["resid_vs_fitted"], run_name,
-                   "Fitted (Y)", "Game value residual (Y)")
+                   "Evaluated game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.04)
     # The D-150 axes: x always the full [-64, +64] domain (the
     # fitted values live in it by construction), y symmetric on a
@@ -351,7 +361,7 @@ def plot_resid_vs_gv(d: PlotData, run_name: str) -> "Figure":
     x = jitter(rng, d.vld_gv, _JIT_GV_X)
     y = jitter(rng, d.vld_rn, _JIT_Y)
     fig, ax = _fig(PLOT_TITLES["resid_vs_gv"], run_name,
-                   "Game value (Y)", "Game value residual (Y)")
+                   "Game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.02)
     # The D-150 axes: x always the full [-64, +64] game-value
     # domain — the previous data-driven axis let the 0.7 "cloud"
@@ -375,7 +385,7 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str) -> "Figure":
     unique, inv = egv_bins(d.vld_y_pred)
     groups = [d.vld_gv[inv == k] for k in range(unique.size)]
     fig, ax = _fig(PLOT_TITLES["gv_by_egv_box"], run_name,
-                   "Evaluated game value (Y, step 2)", "Game value (Y)")
+                   "Evaluated game value" + _BINNED_NOTE, "Game value")
     ax.boxplot(groups, positions=unique, widths=0.7,
                flierprops=dict(markersize=1.0, alpha=0.4))
     # The D-150 axes: BOTH always the full [-64, +64] domain,
@@ -408,8 +418,8 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str) -> "Figure":
         sds.append(float(g.std(ddof=1)) if g.size > 1 else 0.0)
         counts.append(int(g.size))
     fig, ax = _fig(PLOT_TITLES["resid_mean_by_egv"], run_name,
-                   "Evaluated game value (Y, step 2)",
-                   "Residual (Y), mean +/- sd")
+                   "Evaluated game value" + _BINNED_NOTE,
+                   "Residual, mean +/- sd")
     ax.errorbar(unique, means, yerr=sds, fmt="o", ms=4, color="firebrick",
                 ecolor="firebrick", elinewidth=0.8, capsize=3)
     ax.axhline(0.0, color="black", ls="--", lw=0.8)
@@ -438,7 +448,7 @@ def plot_parity(d: PlotData, run_name: str) -> "Figure":
     glance).
     """
     fig, ax = _fig(PLOT_TITLES["parity"], run_name,
-                   "Fitted (Y)", "Game value (Y)")
+                   "Evaluated game value", "Game value")
     ax.scatter(d.vld_y_pred, d.vld_gv, s=4, c="black", alpha=0.04)
     ax.plot([-64.0, 64.0], [-64.0, 64.0], color="slategray", lw=1.0)
     ax.set_xlim(-64.0, 64.0)
