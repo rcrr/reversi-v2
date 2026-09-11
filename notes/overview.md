@@ -377,7 +377,9 @@ at the end of this file.
   ruling's accepted fallback — this matplotlib has no mathtext
   size commands), the density Training label moved to ~x = +25
   (clearing the peak it covered), and the A2050 config writes
-  PNG + PDF (the preserved run: 7 of each).
+  PNG + PDF (the preserved run: 7 of each) — the PLOT campaign
+  closes here (D-149 → D-155): Roberto's final verdict "I
+  grafici vanno ora tutti bene. Lavoro grafici: finito."
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
