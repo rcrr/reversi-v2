@@ -280,3 +280,31 @@ I-017 | in-progress | Analytical properties of the FEATURES:
         to the ideal same-window population) + the JSON
         target_level parameter (the stop-and-audit workflow).
         Tasks T1..T19 (the granular split), one per session.
+I-018 | idea | The top-20 outlier report belongs in VALIDATE,
+        and the 20 records should be saved in the context
+        (raised 2026-09-11, Roberto: "li salviamo anche nel
+        context questi 20 records? ... sarebbe giusto che questo
+        LOG fosse fatto in VALIDATE ... ma meglio in validate").
+        The D-150 top-20 extreme-outlier report currently lives
+        in PLOT (the level that renders the figures) — but the
+        per-position validation residuals are COMPUTED in
+        VALIDATE (validate_model -> the MSE/MAE/RMSE metrics),
+        and collect_plot_data re-runs the SAME forward pass
+        statelessly to build the plot data. Proposal: (1) VALIDATE
+        selects the top-20 by |residual| from its own
+        per-position residual array (a cheap vectorized argsort
+        — the positions are numpy arrays, not Dataframes, at
+        this level) and LOGS the report there; (2) the 20 records
+        (position bitboards, the true game value, the fitted
+        value, the residual) are persisted in a NEW pre-declared
+        ctx field (the D-099 idiom, e.g. ctx.vld_outliers) —
+        deterministic + testable (the D-150 outlier test moves
+        from test_wrk_plot to test_wrk_validate), consumable by
+        PLOT (no duplicated derivation) and by future levels
+        (the I-017 analysis levels); (3) PLOT becomes a pure
+        rendering level again. Consequences: the chain logs
+        change (the report lines move from step 16 to 12) — the
+        A2050 log pins may need re-pinning; the model file is
+        unaffected. Nia's opinion: agreed on both points
+        (VALIDATE owns the model-quality diagnostics; the saved
+        records are a first-class validation artifact).
