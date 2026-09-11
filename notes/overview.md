@@ -382,8 +382,9 @@ at the end of this file.
   grafici vanno ora tutti bene. Lavoro grafici: finito."
 - FEATURE ANALYSIS (I-017, D-156 + D-156b + D-156c, all
    2026-09-11): the project document
-   notes/analytical_properties_of_features.md (DRAFT v2, awaits
-   Roberto's ODP-9/ODP-10). Design v2 (Roberto's redesign,
+   notes/analytical_properties_of_features.md (CONFIRMED v2,
+   D-156d T0c close — the plan locked; ODP-9 the lookup table
+   adopted, ODP-10 the C source delivered in scratch). Design v2 (Roberto's redesign,
    confirmed): the pipeline REORDERING (FEATURES before
    POSITIONS — realizes his parked I-012) + the new
    FEATURE_ANALYSIS level (step 3): the SYNTHETIC random-play
@@ -447,12 +448,10 @@ at the end of this file.
 - Next on the backlog (Roberto's call): I-012 FEATURES before
   POSITIONS, I-003 the named move constants, I-009/I-010
   (notes/ideas.md).
-- FEATURE ANALYSIS (I-017): confirm the ODP-9/ODP-10 in
-  notes/analytical_properties_of_features.md (DRAFT v2, D-156c)
-  — the move-pick strategy (the permutation lookup table) +
-  the C source pointer for the MT19937 port — then execute T1
-  (the reordering: FEATURES before POSITIONS, the I-012
-  realization).
+- FEATURE ANALYSIS (I-017): the detailed T1 plan (the
+  reordering: FEATURES before POSITIONS, the I-012 realization
+  — the plan in the 2026-09-11 session) awaits Roberto's
+  explicit OK, then execute T1.
 
 
 

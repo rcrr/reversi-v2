@@ -1,15 +1,19 @@
 # analytical_properties_of_features.md — the I-017 project
 
-> Status: DRAFT v2 — 2026-09-11 (D-156 kickoff; D-156b v1
-> revision; D-156c v2 revision). Roberto's redesign proposals
-> (§2) confirmed in full (P1..P6 OK), the ODP list closed
-> (ODP-1..8) except the new ODP-9/ODP-10 (the PRNG port + the
-> move-pick strategy), the corpus default 1e7, the ec window
-> resolved (the DB games are arrested at the model's ec), the
-> MT19937 PRNG library port added to the design, and the task
-> split refined to T1..T19 (one focused commit each). No source
-> files are touched until the confirmation; execution starts
-> with T1.
+> Status: PLAN CONFIRMED (v2, 2026-09-11). D-156 kickoff;
+> D-156b v1; D-156c v2; D-156d the T0c close (Roberto's "Molto
+> bene" — the plan locked; ODP-9/ODP-10 closed: the lookup
+> table adopted, the C source in scratch). V2 ERRATUM (the T1
+> planning reconnaissance): the reordering shifts ONLY the
+> POSITIONS cache slot (rlmwf_02 → rlmwf_03 — the file-less
+> FEATURES takes the old step 2; INDEXES onward keep their slot
+> numbers) → the production one-time cost is ONE DB extraction
+> (the downstream checksum lineage survives); the size-band
+> re-centering and the hub 17 → 18 count are T18 effects (the
+> new config sections + levels), not T1 effects. The rglmw.R
+> scratch reference removed by Roberto (the I-016 ruling
+> executed). Execution starts with T1 (the detailed plan
+> awaits Roberto's explicit OK — the standing workflow).
 
 ## 1. Objective
 
@@ -137,18 +141,24 @@ P6. SU is specific to our model: patterns have INSTANCES (8, 4,
     17    CLIENT_CHECK        —            (was 15)
     18    PLOT                —            (was 16)
 
-Consequences (accepted costs, once): the rlmwf_NN slots of every
-downstream cache level shift → the production caches (the A2050
-base_dir) are orphaned on the next run (one full recompute: the
-DB extraction + the ~50 s chain — cheap); the full-chain goldens
-re-pin (the "N/LEVEL" log lines, the final level 18/PLOT, the
-hub probe 17 → 18 levels — the D-148/D-149 campaign precedent);
-the model file content is unaffected by the reordering itself,
-but the embedded v2 config dump GROWS (the two new config
-sections + target_level) → the size bands re-center (the D-147
-procedure), like D-149 did; the stale test setUp comment ("Move
-to POSITIONS first, as FEATURES depends on the configuration
-loaded there" — I-012) gets fixed as part of T1.
+Consequences (accepted costs, once — the T1 planning
+reconnaissance refined them, the v2 erratum): the reordering
+shifts ONLY the POSITIONS cache slot (rlmwf_02 → rlmwf_03 —
+the file-less FEATURES takes the old step 2; the transposition
+is of the two adjacent steps 2-3, so INDEXES onward keep their
+slot numbers) → on the next production run ONLY the POSITIONS
+cache is orphaned (one DB extraction — the rds_checksum
+lineage is unchanged, so the INDEXES/WMAPS/DESIGN_MTR/
+GENERATE/VLD_POSITIONS caches all still hit); the full-chain
+goldens re-pin (the FEATURES/POSITIONS log lines swap, the
+step pins 2/3, the cache file name in the positions suite; the
+final level STAYS 16/PLOT at T1 — the 17 → 18 hub count and
+the size-band re-centering are T18 effects of the new levels +
+config sections, the D-148/D-149 precedent); the model file is
+BYTE-IDENTICAL at T1 (the config dump is unchanged — no new
+fields yet); the stale test setUp comment ("Move to POSITIONS
+first, as FEATURES depends on the configuration loaded there"
+— I-012) gets fixed as part of T1.
 
 ### 3.2 The PRNG library (new, per Roberto's ruling) + the
     random-play generator
@@ -446,11 +456,20 @@ Closed (the v1 list, resolved in the v2 round, 2026-09-11):
 - ODP-8 code 0 "no match" stays a group; the intercept excluded
   from the pairs, kept in the tables — as designed.
 
-Open (v2):
-| #      | Question | Proposal |
-| ------ | --- | --- |
-| ODP-9  | The move-pick strategy: the PERMUTATION LOOKUP TABLE (the seeded table {n → permutation of 0..n−1}, the pick fully vectorized, 2016 total PRNG draws) vs one PRNG draw per active game per ply (the pure draw; ~1e9 Python calls for the 1e9 corpus → the numba-wrapped twist mandatory) | the lookup table (the PRNG stays the quality anchor, the throughput is NumPy's) |
-| ODP-10 | The C source of the MT19937 library: where does it live (the original repo? a file to bring in?) — it is the line-by-line port source AND the bit-exact verification oracle | Roberto points to it; T2/T3 consume it |
+Closed in the T0c close (2026-09-11, Roberto's "Molto bene" +
+the C source delivery):
+- ODP-9 the move-pick: the PERMUTATION LOOKUP TABLE adopted
+  (the seeded {n → permutation of 0..n−1} over n = 1..64,
+  2016 total PRNG draws, the pick fully vectorized — the
+  PRNG stays the quality anchor, the throughput is NumPy's).
+- ODP-10 the C source: DELIVERED in scratch/ — prng.c/h
+  (the library) + the dependencies bit_works.c/h +
+  time_utils.c/h (present for the build, NOT ported —
+  Roberto: "portiamo solo prng") + Roberto's own C test
+  suites ut_prng.c (977 lines) + ut_bit_works.c (the
+  verification oracles for T2/T3).
+
+Open: none.
 
 ## 7. The cost model (Nia's honest numbers, to be measured at T10)
 
@@ -483,9 +502,12 @@ Open (v2):
 
 - T0 (done): the document v0 (D-156).
 - T0b (done): the document v1 (D-156b).
-- T0c (this session): the document v2 — the ODP closure, the ec
-  window constraint, the MT19937 PRNG design, the granular task
-  split (D-156c).
+- T0c (DONE, confirmed 2026-09-11, D-156d): the document v2 —
+  the ODP closure, the ec window constraint, the MT19937 PRNG
+  design, the granular task split (D-156c) + the T0c close
+  (D-156d): Roberto's plan confirmation, the ODP-9/10 closure,
+  the v2 erratum (the slot shift is POSITIONS-only), the
+  rglmw.R removal.
 - T1: the reordering (I-012 realized) — the worker list
   FEATURES → POSITIONS + the slot shift + the golden re-pin
   (the full-chain A2030/A2050) + the hub probe (the order

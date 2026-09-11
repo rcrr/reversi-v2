@@ -240,7 +240,8 @@ I-016 | done | PLOT: a new pipeline level with matplotlib —
         sweep 20/20 → 21/21 (the new verify_plot.py, 16
         checks). The R file itself is a scratch artifact:
         nothing in the documentation references it (Roberto: "in
-        seguito lo cancelleremo").
+        seguito lo cancelleremo" — removed from scratch
+        2026-09-11, the ruling executed, D-156d).
 
 I-017 | in-progress | Analytical properties of the FEATURES:
         two feature-characterization capabilities introduced into
@@ -256,8 +257,10 @@ I-017 | in-progress | Analytical properties of the FEATURES:
         feature (omega² = the unbiased, df-penalized successor,
         robust to high cardinality). Project document (objective,
         plan, tasks): notes/analytical_properties_of_features.md
-        (DRAFT v2, D-156 + D-156b + D-156c; awaits Roberto's
-        ODP-9/ODP-10). Design v2 (Roberto's redesign, confirmed
+        (CONFIRMED v2, D-156..D-156d — the T0c close 2026-09-11:
+        the plan locked, the ODP-9 lookup table adopted, the
+        C source delivered in scratch; execution starts with
+        T1). Design v2 (Roberto's redesign, confirmed
         2026-09-11): the pipeline REORDERING (FEATURES before
         POSITIONS — realizes I-012) + the new FEATURE_ANALYSIS
         level (step 3, the SYNTHETIC random-play corpus —

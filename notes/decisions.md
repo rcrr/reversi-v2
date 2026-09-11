@@ -2019,3 +2019,45 @@ D-156c | 2026-09-11 | I-017 plan revision v2: Roberto's
         alternative would be ~1e9 Python calls). Document
         updated to DRAFT v2; the ODP register: ODP-1..8 closed,
         ODP-9/ODP-10 open. No source files touched.
+
+D-156d | 2026-09-11 | I-017 T0c close: the plan v2 is
+        CONFIRMED. Roberto (the gist): "Ho visto il documento
+        con le TASKS. Molto bene. Procediamo come sempre
+        apriamo una TASK, tu fai il piano dettagliato di
+        azione, io do OK esplicito. E ci rivediamo a cose
+        fatte. Come fatto fino ad ora. Il codice R l'ho
+        rimosso. Ti ho copiato i sorgenti in C (anche i moduli
+        da cui dipende prng, dovresti avere tutto per farlo
+        funzionare, ma portiamo solo prng). Chiudiamo la task
+        T0c. Siamo pronti per partire." Applied: the ODP
+        register closed in full — ODP-9 the PERMUTATION LOOKUP
+        TABLE adopted (the seeded {n → permutation of
+        0..n−1} over n = 1..64, 2016 total PRNG draws, the
+        pick fully vectorized); ODP-10 the C source DELIVERED
+        in scratch/ (prng.c 731 lines + prng.h the library +
+        the dependencies bit_works.c/h + time_utils.c/h —
+        present for the build, NOT ported, per Roberto
+        "portiamo solo prng" — + Roberto's own C test suites
+        ut_prng.c 977 lines + ut_bit_works.c: the
+        verification oracles for T2/T3). The rglmw.R scratch
+        reference removed by Roberto (the I-016 "in seguito lo
+        cancelleremo" ruling executed — the ideas line
+        annotated). The T1 planning reconnaissance refined the
+        v2 cost claims (the v2 erratum, in the document): the
+        reordering shifts ONLY the POSITIONS cache slot
+        (rlmwf_02 → rlmwf_03; the file-less FEATURES takes the
+        old step 2, INDEXES onward keep their slots) → the
+        production one-time cost is ONE DB extraction (the
+        downstream checksum lineage survives — the
+        INDEXES/WMAPS/DESIGN_MTR/GENERATE/VLD_POSITIONS
+        caches still hit); the size-band re-centering and the
+        hub 17 → 18 count are T18 effects (the new config
+        sections + levels), not T1 effects; the model file is
+        byte-identical at T1 (the config dump unchanged).
+        Scratch cleanup (Roberto's ask, before the C source
+        arrived): 2.9G → 16K (the closed-campaign artifacts
+        removed — the opt_study raw data, the one-off scripts,
+        the logs; nothing live referenced the scratch files).
+        The detailed T1 plan is presented for Roberto's
+        explicit OK (the standing workflow). No source files
+        touched.
