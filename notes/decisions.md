@@ -1869,3 +1869,34 @@ D-154 | 2026-09-11 | The notes' scope is the Reversi portfolio:
         and from the journal (the boxplot bug entry D-153 stands
         on its own). Promoted to rules.md (Language &
         collaboration).
+
+D-155 | 2026-09-11 | The PLOT label standardization + the
+        density-label move + the A2050 PDF output. Roberto's
+        ruling (verbatim, the gist): "A me piace di piu
+        'Evaluated game value' standardizziamo su questo. La Y
+        tra parentesi rimuovila ovunque. Solo quando facciamo il
+        binning, metti tra parentesi (binned every 2), se fosse
+        possibile, le parentesi e il contenuto in corsivo con un
+        font di 2 punti piu piccolo. Se possibile, altrimenti va
+        bene lo stesso. Non diventare matta con scritte
+        aggiuntive, se e' supportato lo facciamo, altrimenti
+        no." + "Nel RUN 2050, nel JSON aggiungi anche PDF, cosi
+        guardiamo anche quelli." Applied: every axis label and
+        title now says "Evaluated game value" (the two "Fitted"
+        titles renamed); the bare "(Y)" removed from every
+        label (the PlotData docstrings reworded to "the Y
+        scale"); the two binned axes (the box + the mean-by-EGV)
+        carry the italic mathtext note "(binned every 2)" (the
+        _BINNED_NOTE constant) at the axis font size — this
+        matplotlib 3.11 build has no mathtext size commands
+        (\small and \itshape both rejected), so the "2 pt
+        smaller" ask is the ruling's accepted fallback. The
+        density Training label moved from ~x = -14 (covering the
+        peak) to ~x = +25 (the _TXT_X fraction 0.40 -> 0.674),
+        height unchanged. The A2050 config (rlm_03.json) plot
+        format "png" -> "png,pdf" (the worker's native
+        comma-split): the preserved run now writes 7 PNG + 7 PDF
+        (the valid PDF 1.4 files); the chain-test assertions
+        (the 7 PNG exist, the name-based "7 plot(s) written" log
+        line) are unaffected. Verified by looking at the
+        regenerated box + density PNGs.

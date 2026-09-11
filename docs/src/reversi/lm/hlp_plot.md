@@ -89,6 +89,15 @@ under a fixed matplotlib version.
   (fontsize 13, `pad=26` lifts it) and the run name in smaller
   ITALIC (fontsize 10, just above the axis) — the "spazia le due
   righe un pochino di più" ruling.
+- The D-155 label standardization: every axis label and title
+  says "Evaluated game value" (the two "Fitted" titles
+  renamed); the bare "(Y)" is gone from every label (the
+  PlotData docstrings say "the Y scale"); the two binned axes
+  carry the italic mathtext note ` $(binned\ every\ 2)$` (the
+  `_BINNED_NOTE` constant) at the axis font size — this
+  matplotlib 3.11 build has no mathtext size commands
+  (\small and \itshape are rejected), so the "2 pt smaller"
+  ask is the ruling's accepted fallback.
 - The builders:
   - `plot_residual_density` (plot 1 / the R p0): three KDE curves
     on a shared axis — Reference (the training game values
@@ -97,7 +106,10 @@ under a fixed matplotlib version.
     (black); the margin labels carry the sd (the validation one
     also mean/min/max — the `_series_label` helper; the placement
     fractions `_TXT_X`/`_TXT_Y` — the Reference label sits HIGH,
-    D-150: it overlapped its line at the lower position); the
+    D-150: it overlapped its line at the lower position;
+    D-155: the Training label sits at ~x = 25 in data units
+    (the fraction 0.674), so it clears the residual peak it
+    used to cover); the
     dashed vline at the TRAINING residual mean; the axis FIXED on
     the centered [-72, +72] window (D-150: "lo devi sempre
     centrare su asse x tra valori ragionevoli"); NO legend (the R
@@ -126,7 +138,8 @@ under a fixed matplotlib version.
     labels (`set_xticks(ticks, labels=...)`): boxplot() leaves
     the 62 categorical bin labels on the axis, and a
     positions-only set_xticks prints the first 17 of them under
-    the step-8 positions (the stale-label bug).
+    the step-8 positions (the stale-label bug); the D-155 x
+    label: "Evaluated game value" + the italic binned note.
   - `plot_resid_mean_by_egv` (plot 5, new): the validation
     residual MEAN ± sd error bars per EGV bin against the zero
     line — the systematic-bias-per-level view (a miscalibrated
@@ -139,7 +152,8 @@ under a fixed matplotlib version.
     step-8 grid, kept symmetric — the D-151 "valori min e max
     reali del grafico" ruling; the tick grid stays 0, 8, 16, ...
     within the limit), the tick labels in the smaller font
-    (labelsize 8, D-151).
+    (labelsize 8, D-151); the D-155 x label: "Evaluated game
+    value" + the same italic binned note.
   - `plot_parity` (plot 6, new): the validation game values vs
     the fitted values, the 45° line, both axes on the full
     [-64, +64] scale (already the D-150 requirement), equal

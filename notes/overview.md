@@ -370,7 +370,14 @@ at the end of this file.
   fixed with explicit labels; the data was always correct, found
   by Roberto). D-154: the notes are the Reversi portfolio only
   (no harness/vLLM infrastructure entries — the GitHub
-  publication target).
+  publication target). D-155: the PLOT label standardization
+  ("Evaluated game value" everywhere — the two "Fitted" titles
+  renamed; the bare "(Y)" removed; the binned axes carry the
+  italic "(binned every 2)" note at the axis font size, the
+  ruling's accepted fallback — this matplotlib has no mathtext
+  size commands), the density Training label moved to ~x = +25
+  (clearing the peak it covered), and the A2050 config writes
+  PNG + PDF (the preserved run: 7 of each).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
