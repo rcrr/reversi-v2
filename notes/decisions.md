@@ -1973,3 +1973,49 @@ D-156b | 2026-09-11 | I-017 plan revision v1: Roberto's redesign
         on its own). Document updated to DRAFT v1
         (notes/analytical_properties_of_features.md); the new
         ODP list: ODP-1..8. No source files touched.
+
+D-156c | 2026-09-11 | I-017 plan revision v2: Roberto's
+        confirmations + the PRNG ruling. (1) P2..P6 OK as
+        designed. (2) The P1 window correction (verbatim, the
+        gist): "Sei un po' fuori strada Nia. se stiamo
+        lavorando su un Modello ec=20, tutte le partite random
+        si arrestano a ec=20. Game over. Misuriamo mele con
+        mele, e pere con pere." — the v1 ODP-2 "risk" is
+        RESOLVED into a spec constraint: the synthetic
+        generator plays the same ec arrest rule as the DB
+        generator (the exact ec formula is pinned at T7
+        against Roberto's DB code). (3) The PRNG (Roberto, the
+        gist): the code that generated the DB uses a library HE
+        WROTE from the published work of two Japanese
+        researchers — the MT19937 of Makoto Matsumoto and
+        Takuji Nishimura (the twisted generalized feedback
+        shift-register "Mersenne Twister", the Mersenne-prime
+        period 2^19937−1, the 623-dim equi-distribution, the
+        DIE-HARD pass): "magari potremmo pensare che sia un
+        overkill, ma ... è difficile dire quanto fatto bene sia
+        il random generator di una libreria generica. E pensa
+        quanto lavoro, enorme, ho fatto e stiamo facendo, per
+        poi scoprire che i game non sono poi così random. ...
+        meglio perdere un poco di tempo e avere una cosa
+        SOLIDA" → the line-by-line C → Python port of his
+        library (the new core module reversi/feature_prng.py),
+        the bit-exact C comparison as the hard verification
+        gate (the C source = ODP-10). (4) ODP-1: the corpus
+        default 1e7 ("che gira veloce ... se viene omesso, non
+        interessa all'utente, teniamolo piccolo"). (5) "Le TASK
+        falle più granulari. Più fai granulare più siamo lucidi
+        sul design e sulle varie implicazioni. Aggiungiamo la
+        costruzione della libreria PRNG ... il generatore di
+        game random" → the task split refined to T1..T19 (one
+        focused commit each: the reordering, the PRNG port +
+        verification, the single-game / wave / pick /
+        accumulators generator steps, the statistics kernels,
+        the config, the two workers, the wiring, the close).
+        Nia's design addition (ODP-9): the PERMUTATION LOOKUP
+        TABLE (the seeded {n → permutation of 0..n−1},
+        n = 1..64, 2016 total PRNG draws) keeps the move pick
+        fully vectorized — the PRNG stays the quality anchor
+        without becoming the bottleneck (the per-move draw
+        alternative would be ~1e9 Python calls). Document
+        updated to DRAFT v2; the ODP register: ODP-1..8 closed,
+        ODP-9/ODP-10 open. No source files touched.

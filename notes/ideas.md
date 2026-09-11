@@ -256,17 +256,22 @@ I-017 | in-progress | Analytical properties of the FEATURES:
         feature (omega² = the unbiased, df-penalized successor,
         robust to high cardinality). Project document (objective,
         plan, tasks): notes/analytical_properties_of_features.md
-        (DRAFT v1, D-156 + D-156b; awaits Roberto's
-        confirmation on ODP-1..8). Design v1 (Roberto's
-        redesign, 2026-09-11): the pipeline REORDERING (FEATURES
-        before POSITIONS — realizes I-012) + the new
-        FEATURE_ANALYSIS level (step 3, the SYNTHETIC random-play
-        corpus — seeded vectorized random games, the
-        configuration-frequency accumulation, CACHED — + the SU
-        statistics on the ideal frequencies + the never-observed
-        audit, the instance×instance SU matrices over the
-        EXPLICIT su_pairs) + the new EFFECT_SIZE level (step 6,
-        before OPTIMIZE: the eta²/omega² per feature + the
-        adherence of the DB set to the ideal population) + the
-        JSON target_level parameter (the stop-and-audit
-        workflow). Tasks T1..T7, one per session.
+        (DRAFT v2, D-156 + D-156b + D-156c; awaits Roberto's
+        ODP-9/ODP-10). Design v2 (Roberto's redesign, confirmed
+        2026-09-11): the pipeline REORDERING (FEATURES before
+        POSITIONS — realizes I-012) + the new FEATURE_ANALYSIS
+        level (step 3, the SYNTHETIC random-play corpus —
+        seeded with the PORTED MT19937 PRNG library (Roberto's
+        C library, the Matsumoto/Nishimura Mersenne Twister),
+        the games ARRESTED at the model's ec (the same window
+        as the DB — "mele con mele"), the configuration-
+        frequency accumulation (CACHED, the first cache whose
+        signature is feature-set-based, not rds-based), the
+        corpus default 1e7) + the SU statistics on the ideal
+        frequencies (the instance×instance SU matrices over the
+        EXPLICIT su_pairs) + the never-observed audit + the new
+        EFFECT_SIZE level (step 6, before OPTIMIZE: the
+        eta²/omega² per feature + the adherence of the DB set
+        to the ideal same-window population) + the JSON
+        target_level parameter (the stop-and-audit workflow).
+        Tasks T1..T19 (the granular split), one per session.

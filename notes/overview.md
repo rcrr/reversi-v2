@@ -380,28 +380,30 @@ at the end of this file.
   PNG + PDF (the preserved run: 7 of each) — the PLOT campaign
   closes here (D-149 → D-155): Roberto's final verdict "I
   grafici vanno ora tutti bene. Lavoro grafici: finito."
-- FEATURE ANALYSIS (I-017, D-156 kickoff + D-156b revision
+- FEATURE ANALYSIS (I-017, D-156 + D-156b + D-156c, all
    2026-09-11): the project document
-   notes/analytical_properties_of_features.md (DRAFT v1, awaits
-   Roberto's confirmation on ODP-1..8). Design v1 (Roberto's
-   redesign): the pipeline REORDERING (FEATURES before POSITIONS
-   — realizes his parked I-012) + the new FEATURE_ANALYSIS level
-   (step 3): a SYNTHETIC random-play corpus (seeded vectorized
-   random games — board.py, no solving), the configuration-
-   frequency accumulation (CACHED, the first cache whose
-   signature is feature-set-based, not rds-based), the SU
-   statistics on the ideal frequencies (the instance×instance
-   matrices over the EXPLICIT su_pairs — P6's EDGE-DIAG8 4×2
-   example) + the never-observed audit (the stop-and-inspect
-   before training) + the new EFFECT_SIZE level (step 6, before
-   OPTIMIZE): the eta²/omega² per feature (the ANOVA effect size
-   vs the game values) + the adherence of the DB set to the ideal
-   population (chi-square + KL + TV) + the JSON target_level
-   parameter (default "last"; the StateMachine already accepts
-   worker names). The (feature, instance) sub-variable is the
-   analysis unit (the design-matrix unit). Tasks T1..T7, one per
-   session (T1 = the reordering, first, on its own); no source
-   changes yet.
+   notes/analytical_properties_of_features.md (DRAFT v2, awaits
+   Roberto's ODP-9/ODP-10). Design v2 (Roberto's redesign,
+   confirmed): the pipeline REORDERING (FEATURES before
+   POSITIONS — realizes his parked I-012) + the new
+   FEATURE_ANALYSIS level (step 3): the SYNTHETIC random-play
+   corpus — seeded with the PORTED MT19937 PRNG (Roberto's C
+   library, the Matsumoto/Nishimura Mersenne Twister — the
+   bit-exact C comparison is the hard verification gate), the
+   games ARRESTED at the model's ec (the same window as the DB —
+   "mele con mele"), the configuration-frequency accumulation
+   (CACHED, the first feature-set-keyed cache, the corpus
+   default 1e7) — + the SU statistics on the ideal frequencies
+   (the instance×instance matrices over the EXPLICIT su_pairs)
+   + the never-observed audit (the stop-and-inspect before
+   training) + the new EFFECT_SIZE level (step 6, before
+   OPTIMIZE): the eta²/omega² per feature + the adherence of
+   the DB set to the ideal same-window population (chi-square
+   + KL + TV) + the JSON target_level parameter (default
+   "last"). The (feature, instance) sub-variable is the
+   analysis unit (the design-matrix unit). Tasks T1..T19 (the
+   granular split), one per session (T1 = the reordering,
+   first, on its own); no source changes yet.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -445,10 +447,12 @@ at the end of this file.
 - Next on the backlog (Roberto's call): I-012 FEATURES before
   POSITIONS, I-003 the named move constants, I-009/I-010
   (notes/ideas.md).
-- FEATURE ANALYSIS (I-017): confirm the ODP-1..8 in
-  notes/analytical_properties_of_features.md (DRAFT v1,
-  D-156b), then execute T1 (the reordering: FEATURES before
-  POSITIONS, the I-012 realization).
+- FEATURE ANALYSIS (I-017): confirm the ODP-9/ODP-10 in
+  notes/analytical_properties_of_features.md (DRAFT v2, D-156c)
+  — the move-pick strategy (the permutation lookup table) +
+  the C source pointer for the MT19937 port — then execute T1
+  (the reordering: FEATURES before POSITIONS, the I-012
+  realization).
 
 
 
