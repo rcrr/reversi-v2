@@ -383,7 +383,12 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str) -> "Figure":
     ticks = np.arange(-_AXIS_GV, _AXIS_GV + 1, _TICK_STEP)
     ax.set_xlim(-_AXIS_GV, _AXIS_GV)
     ax.set_ylim(-_AXIS_GV, _AXIS_GV)
-    ax.set_xticks(ticks)
+    # The EXPLICIT labels are mandatory (the D-153 stale-label bug):
+    # boxplot() leaves the N categorical bin labels on the axis, and
+    # a positions-only set_xticks keeps those stale labels — the
+    # first 17 bins (-62..-30) would be printed under the 17
+    # step-8 positions.
+    ax.set_xticks(ticks, labels=[str(int(t)) for t in ticks])
     return fig
 
 
