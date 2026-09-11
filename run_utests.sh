@@ -42,6 +42,10 @@ MODULES=(
     # 4 — the pipeline, machine order 1-16 (each data module
     #     immediately before its worker; the 17-level end-to-end
     #     chain — including SAVE + CLIENT_CHECK + PLOT — last)
+    # test_hlp_random_play: the T12-level data module (the worker
+    # lands in T12; the ODP-9 pick table + the single-game loop
+    # land here at T4)
+    reversi.test.test_hlp_random_play
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
     reversi.test.test_wrk_features
