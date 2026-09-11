@@ -151,7 +151,7 @@ None.
   extraction machinery (and, D-143, the same duplicate policy),
   different `bid`/`status` (validation bid [8] vs training bid
   [6,7] in rlm_02). The flat files are distinct:
-  `rlmwf_02_POSITIONS.dat` (training) vs
+  `rlmwf_03_POSITIONS.dat` (training) vs
   `rlmwf_11_VLD_POSITIONS.dat` (validation).
 - The D-143 independence check reads `ctx.positions` (the
   training set, level 2) — the SM half-open interval semantics

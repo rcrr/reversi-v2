@@ -35,10 +35,9 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required — the
-#     setUp moves through POSITIONS, which hits the DB on a fresh
-#     base dir; SKIP_REGAB_DB=1 skips the DB-gated tests as in
-#     test_regab; VLONG=1 implies LONG, D-130).
+# -1- Run the tests (DB-free since D-157: the setUp moves to
+#     FEATURES, the 2nd step — CONFIG + FEATURES only, no
+#     POSITIONS, no DB).
 #
 # time python3 -m unittest reversi.test.test_wrk_features
 #
@@ -59,7 +58,6 @@ from reversi.lm.hlp_config_schemas import LMConfig
 from reversi.tools.state_machine import Relevance, Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
-from reversi.test.tags import db_long_gate
 
 
 class TestLMWorkerFeatures(unittest.TestCase):
@@ -70,11 +68,9 @@ class TestLMWorkerFeatures(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # T2 (D-082): the SKIP_REGAB_DB gate, as in test_regab —
-        # the setUp moves through POSITIONS, which needs the live
-        # regab DB (a fresh base dir has no warm cache).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
-
+        # D-157 (I-012): the setUp moves to FEATURES directly —
+        # the level depends only on the CONFIG-loaded cfg (no
+        # POSITIONS, no DB, no gate).
         # Patch stdout to keep test output clean
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
@@ -91,11 +87,6 @@ class TestLMWorkerFeatures(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
-        # Move to POSITIONS first, as FEATURES depends on the configuration loaded there
-        self.rlm.move_to_step('POSITIONS')
-        self.assertEqual(self.rlm.current_step, 2)
-        self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
-
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
             self.patcher_stdout.stop()
@@ -109,7 +100,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
         self.assertIsNone(rlm.context.feature_set)
 
         rlm.move_to_step('FEATURES')
-        self.assertEqual(rlm.current_step, 3)
+        self.assertEqual(rlm.current_step, 2)
         self.assertEqual(rlm.current_worker_name, 'FEATURES')
 
         # After moving, the feature_set should be populated

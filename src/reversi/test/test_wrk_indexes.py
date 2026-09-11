@@ -65,8 +65,8 @@ class TestLMWorkerIndexes(unittest.TestCase):
 
     def setUp(self):
         # T2 (D-084): the SKIP_REGAB_DB gate, as in test_regab —
-        # both tests need the live regab DB (the setUp moves to
-        # FEATURES, which runs POSITIONS on a fresh base dir).
+        # both tests need the live regab DB (the move to INDEXES
+        # runs POSITIONS on a fresh base dir, the D-157 order).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         # Patch stdout to keep test output clean and capture logs
@@ -89,7 +89,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
 
         # Move to FEATURES first, as INDEXES depends on the feature_set loaded there
         self.rlm.move_to_step('FEATURES')
-        self.assertEqual(self.rlm.current_step, 3)
+        self.assertEqual(self.rlm.current_step, 2)
         self.assertEqual(self.rlm.current_worker_name, 'FEATURES')
 
     def tearDown(self):
@@ -128,7 +128,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('FEATURES') # Reach the step before INDEXES
+        rlm2.move_to_step('FEATURES')  # two steps before INDEXES (D-157 order: … -> FEATURES -> POSITIONS -> INDEXES)
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)

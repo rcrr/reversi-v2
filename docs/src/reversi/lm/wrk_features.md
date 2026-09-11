@@ -1,11 +1,12 @@
 # reversi/lm/wrk_features.py
-The FEATURES worker of the LM pipeline — the 4th active level
-(CREATED → CONFIG → POSITIONS → FEATURES), enabled line-by-line
-by Roberto in f051dd3. Unlike POSITIONS this is a PURE-COMPUTE
-level: it builds a FeatureSet from the CONFIG-loaded cfg (no DB,
-no cache_manager, no cache file — the flat rlmwf_03_FEATURES*
-files never materialize) and exposes it as `ctx.feature_set`.
-> State: D-082 · 1a9f045 · 2026-08-31 · suite 3/0/0 (2 DB-gated)
+The FEATURES worker of the LM pipeline — the 3rd active level
+(CREATED → CONFIG → FEATURES), step 2 (D-157: the I-012
+transposition — the level moved BEFORE the DB-touching POSITIONS;
+enabled line-by-line by Roberto in f051dd3). A PURE-COMPUTE level:
+it builds a FeatureSet from the CONFIG-loaded cfg (no DB, no
+cache_manager, no cache file — the flat rlmwf_02_FEATURES* files
+never materialize) and exposes it as `ctx.feature_set`.
+> State: D-157 · 2026-09-11 · suite 3/0/0 (DB-free)
 
 ## API
 
@@ -60,7 +61,7 @@ the 3-test `test_wrk_features.py`.
   factory (D-082 M1), the amask log (D-082 R1), the orphan
   comment gone (D-082 M3), no non-comment trailing whitespace —
   probe A1-A9.
-- The loaded state: step 3 / "FEATURES" after the move; the
+- The loaded state: step 2 / "FEATURES" after the move; the
   feature_set populated; the 'NoNameFeatureSet' default name; the
   intercept; the MobilitySet 'BasicMobilitySet' with the 3 fixture
   members in sorted (mask, amask) order; the PatternSet
@@ -73,21 +74,22 @@ the 3-test `test_wrk_features.py`.
   public-API build from the fixture values; the fs hash =
   sha3_256(b'INTERCEPT' + mset.hash + pset.hash); the independent
   FeatureSet is identical (feature list + hash) — probe B9a-d.
-- The level boundary: only the CONFIG + POSITIONS flat cache
-  files exist (no rlmwf_03_FEATURES* — the pure-compute level
-  writes nothing) — probe B10; down to CONFIG clears
-  feature_set — probe B12; a second run on the same base dir:
-  the POSITIONS cache hit, no DB extraction, the identical
-  feature set — probe B13a-c.
-- The test-file pins: the 206-line file, 2 classes / 3 tests,
-  the D-065 idiom (shared CUSTOM_TMP_BASE), the SKIP_REGAB_DB
-  gate, the load-bearing Path import, the header grammar, the
-  as-is M1 comment, the whitespace, the golden test's 3 hash
-  literals + the feature-order/counts pin — probe C1-C10.
-- The suite: `TestLMWorkerFeatures` (2, DB-gated — setUp moves
-  through POSITIONS, which hits the DB on a fresh base dir):
+- The level boundary: no cache files exist at the FEATURES stop
+  (no rlmwf_02_FEATURES* — the pure-compute level writes nothing;
+  the POSITIONS cache is downstream, rlmwf_03 — probe B10); down
+  to CONFIG clears feature_set — probe B12; a second run on the
+  same base dir: no DB access (POSITIONS is not in the path,
+  D-157), the identical feature set — probe B13a-c.
+- The test-file pins: the 197-line file, 2 classes / 3 tests,
+  the D-065 idiom (shared CUSTOM_TMP_BASE), the DB-free setUp
+  (D-157: the gate + the POSITIONS move removed, the stale M1
+  comment gone), the load-bearing Path import, the header
+  grammar, the whitespace, the golden test's 3 hash literals +
+  the feature-order/counts pin — probe C1-C10.
+- The suite: `TestLMWorkerFeatures` (2, DB-free — D-157: the
+  setUp moves to FEATURES directly, no POSITIONS, no DB):
   `test_build_feature_set` (None before, move to 'FEATURES' =
-  step 3, populated after) and `test_feature_set_content_golden`
+  step 2, populated after) and `test_feature_set_content_golden`
   (the full content pin); `TestLMWorkerFeaturesGuards` (1, DB-free
   — the D-106 step-3 conversion of probe B11): the zero-feature
   payload (intercept off, no sets) driven through
@@ -101,16 +103,16 @@ None.
 ## Conventions
 
 - The pure-compute level: no cache file, no cache_manager, no DB
-  of its own — the flat rlmwf_03_FEATURES* naming never
+  of its own — the flat rlmwf_02_FEATURES* naming never
   materializes; the D-082 R1 fix: the mobility DEBUG log prints
   the true amask (probe B8a-c).
 - Test artifacts: the D-065 idiom + the D-085 WORKSPACE_ROOT /
-  CUSTOM_TMP_BASE anchoring; the DB tests sit behind the
-  `SKIP_REGAB_DB` gate.
+  CUSTOM_TMP_BASE anchoring; the suite is DB-free (D-157: the
+  gate removed with the POSITIONS dependency).
 
 ## Integration
 
-- The 4th LM level; the facade (`logistic_model.py`) instantiates
+- The 3rd LM level (step 2, D-157); the facade (`logistic_model.py`) instantiates
   the machine + `Worker` (the line-by-line enablement f051dd3).
 - Consumes the `feature` module (Feature/FeatureSet) and the
   CONFIG-loaded `ctx.cfg.feature_set`; publishes

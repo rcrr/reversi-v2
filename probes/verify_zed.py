@@ -194,7 +194,7 @@ try:
           np.allclose(z2y(y2z(y)), y.astype(np.float32), rtol=1e-6, atol=1e-7))
     files = sorted(p.name for p in base.iterdir())
     expected_files = sorted(
-        ['rlmwf_02_POSITIONS.dat', 'rlmwf_02_POSITIONS.dat.SHA3-256',
+        ['rlmwf_03_POSITIONS.dat', 'rlmwf_03_POSITIONS.dat.SHA3-256',
          'rlmwf_04_INDEXES.dat', 'rlmwf_04_INDEXES.dat.SHA3-256',
          'rlmwf_05_WMAPS.dat', 'rlmwf_05_WMAPS.dat.SHA3-256',
          'rlmwf_06_DESIGN_MTR.dat', 'rlmwf_06_DESIGN_MTR.dat.SHA3-256'])

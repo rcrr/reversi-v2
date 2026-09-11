@@ -4,7 +4,7 @@ The WMAPS domain module of the LM pipeline: the
 + the 2 metadata scalars) + 4 public functions (store / load /
 compute / is_cache_consistent) + the duck-typed
 `compute_sha3_256_hash` — the 6th active level's data object
-(CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS), the
+(CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS), the
 THIRD cache_manager consumer after POSITIONS and INDEXES.
 > State: D-139 · 9ba523b · 2026-09-08 · suite 15/0/0
 

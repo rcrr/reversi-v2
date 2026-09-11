@@ -11,17 +11,17 @@
 # removed), test T1-T4 + M2 (D-065 idiom, the SKIP_REGAB_DB gate,
 # the dead import now load-bearing, header grammar, whitespace
 # clean) + the new golden content test (its hash literal pinned).
-# Test M1 (the POSITIONS-dependency comment) stays as-is per
-# Roberto's call — recorded at I-012 (evaluate moving FEATURES
-# before POSITIONS).
+# Test M1 resolved at D-157 (I-012 realized, the I-017 T1): the
+# stale POSITIONS-dependency comment is removed and the setUp
+# moves to FEATURES directly.
 #
 # Independent derivation: the expected FeatureSet is built from the
 # fixture values (rlm_00.json) through the public Feature /
 # FeatureSet / Mobility / MobilitySet / Pattern / PatternSet API
 # (not the worker code path) and compared with the worker output.
 #
-# Requires the live regab test DB (the POSITIONS level runs as part
-# of the pipeline; the fixture points at tst_regab on localhost).
+# DB-free since D-157 (the move to FEATURES no longer crosses
+# POSITIONS — CONFIG + FEATURES only).
 #
 # House convention: writes only under build/tmp, self-cleans via
 # atexit; exit code 1 on any mismatch.
@@ -106,7 +106,7 @@ def u(h):
 
 (TMP / "base1").mkdir(parents=True, exist_ok=True)
 
-# --- first instance: CREATED -> CONFIG -> POSITIONS -> FEATURES ---
+# --- first instance: CREATED -> CONFIG -> FEATURES ---
 
 out1 = io.StringIO()
 with contextlib.redirect_stdout(out1):
@@ -118,8 +118,8 @@ with contextlib.redirect_stdout(out1):
     m1.move_to_step("FEATURES")
 s1 = out1.getvalue()
 
-check("B2 step 3 / 'FEATURES' after the move",
-      m1.current_step == 3 and m1.current_worker_name == "FEATURES")
+check("B2 step 2 / 'FEATURES' after the move",
+      m1.current_step == 2 and m1.current_worker_name == "FEATURES")
 
 fs = m1.context.feature_set
 check("B3a feature_set populated", fs is not None)
@@ -178,32 +178,37 @@ check("B9d independent FeatureSet: identical feature list + hash",
       == [(f.name, int(f.n_configurations), int(f.n_instances)) for f in fs.features]
       and my_fs.hash == fs.hash)
 
-# On-disk effect: only the POSITIONS flat cache file, no FEATURES cache.
+# On-disk effect: no cache files at all (D-157: POSITIONS is
+# downstream of FEATURES, so its cache file is not written either).
 # (D-142: the CONFIG level writes no cache file anymore.)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
-check("B10 flat cache files: POSITIONS only (no rlmwf_01_CONFIG* — D-142 — "
-      "no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
-      files == ["rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256"])
+check("B10 flat cache files: none (no rlmwf_01_CONFIG* — D-142 — "
+      "no rlmwf_02_FEATURES* — the pure-compute level writes nothing)",
+      files == [])
 
 # (B11a/B11b moved to a test at D-106 step 3, class a §4 conversion:
 #  test_wrk_features.py::TestLMWorkerFeaturesGuards::
 #  test_zero_features_raises_value_error — the zero-feature fail-fast
 #  guard, ValueError message + ERROR log event)
 
-# Down direction: FEATURES (3) -> CONFIG (1) clears the feature_set.
+# Down direction: FEATURES (2) -> CONFIG (1) clears the feature_set.
 m1.move_to_step("CONFIG")
 check("B12 down to CONFIG: step 1, feature_set cleared",
       m1.current_step == 1 and m1.context.feature_set is None)
 
-# Second instance on the same base dir: POSITIONS served from cache,
-# FEATURES recomputed (no cache) but identical.
+# Second instance on the same base dir: FEATURES recomputed (no
+# cache) and identical; no DB access at all (D-157: POSITIONS is
+# not in the path).
 out2 = io.StringIO()
 with contextlib.redirect_stdout(out2):
     m2 = LogisticModel(CFG, verbosity=Verbosity.HIGH, base_dir_override=str(TMP / "base1"))
     m2.move_to_step("FEATURES")
 s2 = out2.getvalue()
-check("B13a second run: POSITIONS cache hit", "Cache successfully loaded" in s2)
-check("B13b second run: no DB extraction", "Extracted" not in s2)
+check("B13a second run: no DB access (no connection, no extraction — "
+      "POSITIONS is not in the path, D-157)",
+      "established successfully" not in s2 and "Extracted" not in s2)
+check("B13b second run: the FEATURES level ran (the INFO line)",
+      "Loading board features as defined by the model..." in s2)
 check("B13c second run: identical feature set (name + hash)",
       m2.context.feature_set.name == fs.name and m2.context.feature_set.hash == fs.hash)
 
@@ -213,8 +218,8 @@ check("B13c second run: identical feature set (name + hash)",
 
 tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_features.py").read_text()
 
-check("C1 206 lines (post D-106 step 3: the zero-feature guard test class added; pre: 164, post D-085)",
-      len(tsrc.splitlines()) == 206)
+check("C1 197 lines (post D-157: the POSITIONS move + the gate removed from setUp; pre: 206)",
+      len(tsrc.splitlines()) == 197)
 check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-082 golden content test kept)",
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc
@@ -224,16 +229,16 @@ check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared re
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc
       and 'tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))' in tsrc
       and "mkdtemp" not in tsrc)
-check("C4 T2 FIXED (D-082; D-130: the db_long_gate idiom): the SKIP_REGAB_DB gate at the top of setUp",
-      "SKIP_REGAB_DB" in tsrc
-      and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in tsrc)
+check("C4 gate REMOVED (D-157: the setUp is DB-free — no POSITIONS in the path)",
+      "db_long_gate" not in tsrc and "SKIP_REGAB_DB" not in tsrc)
 check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to reversi.test.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
-check("C6 T4 FIXED (D-082): header grammar 'How to run the wrk_features unit tests.' + DB/gate run note",
+check("C6 T4 FIXED (D-082; re-anchored D-157): header grammar 'How to run the wrk_features unit tests.' + the DB-free run note",
       "How to run the wrk_features unit tests." in tsrc
-      and "SKIP_REGAB_DB=1 skips the DB-gated tests" in tsrc)
-check("C7 M1 (D-082, as-is per Roberto — I-012: evaluate moving FEATURES before POSITIONS): the setUp comment stays",
-      "as FEATURES depends on the configuration loaded there" in tsrc)
+      and "DB-free since D-157" in tsrc)
+check("C7 M1 resolved (D-157, I-012 realized): the stale POSITIONS-dependency comment is gone",
+      "as FEATURES depends on the configuration loaded there" not in tsrc
+      and "move_to_step('POSITIONS')" not in tsrc)
 check("C8 M2 FIXED (D-082): no trailing-whitespace lines",
       not any(line != line.rstrip() for line in tsrc.splitlines() if not line.lstrip().startswith("#")))
 check("C9 golden test: the 3 hash literals pinned (fs / mset / pset)",

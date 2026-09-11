@@ -9,7 +9,7 @@ the normalized loss and gradient). TWO fg variants (I-013, D-145):
 the classic vectorized-numpy closure (the default, kept verbatim)
 and the high-performance numba single-pass kernel (K3, selected by
 the `high_performance` flag). The 9th active level (CREATED
-sentinel → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS →
+sentinel → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS →
 DESIGN_MTR → ZED → GRADIENT) and the SECOND non-cache level (after
 ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
 > State: D-145 · I-013 · 2026-09-09 · the fg is 3.6×-16× faster

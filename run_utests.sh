@@ -43,8 +43,8 @@ MODULES=(
     #     chain — including SAVE + CLIENT_CHECK + PLOT — last)
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
-    reversi.test.test_wrk_positions
     reversi.test.test_wrk_features
+    reversi.test.test_wrk_positions
     reversi.test.test_hlp_indexes
     reversi.test.test_wrk_indexes
     reversi.test.test_hlp_wmaps

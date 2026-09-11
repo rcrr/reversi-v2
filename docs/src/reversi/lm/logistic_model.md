@@ -6,7 +6,7 @@ assemble the 17-level worker list, hand the parts to BaseModel →
 StateMachine) — plus the LMContext @dataclass: config state, every
 data artifact produced by the 17 levels, the 9 checksum fields, and
 the 3 infrastructure callables the machine injects at construction.
-> State: D-149 · 2026-09-10 · suite 17/0/0
+> State: D-157 · 2026-09-11 · suite 17/0/0
 
 ## API
 
@@ -56,7 +56,7 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 - **Pipeline shape: 17 levels, all active** —
 
   ```
-  CREATED (0, sentinel) -> CONFIG -> POSITIONS -> FEATURES -> INDEXES
+  CREATED (0, sentinel) -> CONFIG -> FEATURES -> POSITIONS -> INDEXES
   -> WMAPS -> DESIGN_MTR -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE
   -> VLD_POSITIONS -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK
   -> PLOT

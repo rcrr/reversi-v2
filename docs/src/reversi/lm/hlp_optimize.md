@@ -6,7 +6,7 @@ dictionary** serialized with binio (the L56-57 design comment).
 Six public names: the binary round-trip pair, the two gates the
 worker consults, the lbfgs-info projection and the duck-typed
 weight hash. The 10th active level (CREATED sentinel → CONFIG →
-POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED →
+FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED →
 GRADIENT → OPTIMIZE).
 > State: D-139 · 9ba523b · 2026-09-08 · suite 20/0/0
 

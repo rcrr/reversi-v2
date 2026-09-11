@@ -1,6 +1,6 @@
 # reversi/lm/hlp_generate.py
 The GENERATE domain module of the LM pipeline — the 11th active
-level (CREATED sentinel → CONFIG → POSITIONS → FEATURES →
+level (CREATED sentinel → CONFIG → FEATURES → POSITIONS →
 INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE →
 GENERATE) and the 5th cache_manager consumer. It expands the
 OPTIMIZE compressed weights into the DENSE weight vector used

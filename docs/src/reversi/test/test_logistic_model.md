@@ -3,14 +3,14 @@ The logistic-model unit suite — 1 class / 17 tests (15 original + 2
 converted from the verify_wrk_config.py D1/E4b probe checks at
 D-106 step 3), no PERF gates, ~0.15 s, no DB. 311 lines; the D-075
 T-campaign narrative froze in the archive.
-> State: D-106 · 73a72d3 · 2026-09-04 · suite 17/0/0 (no PERF gates,
+> State: D-157 · 2026-09-11 · suite 17/0/0 (no PERF gates,
   no DB)
 
 ## Coverage
 
 | class (line) | tests | what it pins |
 |---|---|---|
-| `TestLogisticModel` (L62) | 17 | the context init (LMContext, `config_file_path` round-trip, `base_dir_override` None, `cfg` None); the SM sentinel start (`current_step == 0`, "CREATED"); the init `ValidationError` on a non-str config path (step 3: the D1 probe conversion, the D-107 guard contract); the injected cache closure requiring `cfg` (AttributeError before CONFIG — step 3, the E4b conversion); the `move_to_step` delegation (int + str name) with the CONFIG level; the invalid config path + base_dir override `FileNotFoundError`s; the facade pass-through pins (`test_facade_delegates_to_state_machine` — per-method `patch.object(self.model.sm, ...)` + `assert_called_once_with`; the T1 replacement of the overpromising smoke test); the views + verbosity round-trip; the injected cache helpers ARE the machine closures (would have caught R1); the pre-injection no-op lambda fallback; the injected helper computing the worker path (dummy `cfg`, `addCleanup` restore); the CREATED sentinel workers raise (D-059); the config/base_dir helper edge branches (str-vs-Path, trailing-slash); the CSV export pass-through (header-only artifact, under `build/tmp`) |
+| `TestLogisticModel` (L62) | 17 | the context init (LMContext, `config_file_path` round-trip, `base_dir_override` None, `cfg` None); the SM sentinel start (`current_step == 0`, "CREATED"); the init `ValidationError` on a non-str config path (step 3: the D1 probe conversion, the D-107 guard contract); the injected cache closure requiring `cfg` (AttributeError before CONFIG — step 3, the E4b conversion); the `move_to_step` delegation (int → step 1 / CONFIG; str 'POSITIONS' → step 3, crossing the dummy CONFIG + FEATURES — D-157); the invalid config path + base_dir override `FileNotFoundError`s; the facade pass-through pins (`test_facade_delegates_to_state_machine` — per-method `patch.object(self.model.sm, ...)` + `assert_called_once_with`; the T1 replacement of the overpromising smoke test); the views + verbosity round-trip; the injected cache helpers ARE the machine closures (would have caught R1); the pre-injection no-op lambda fallback; the injected helper computing the worker path (dummy `cfg`, `addCleanup` restore); the CREATED sentinel workers raise (D-059); the config/base_dir helper edge branches (str-vs-Path, trailing-slash); the CSV export pass-through (header-only artifact, under `build/tmp`) |
 
 ## Testbed design (setUp, L68-104)
 

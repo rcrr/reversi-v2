@@ -3,7 +3,7 @@ The suite of the INDEXES worker (Roberto's file, brought in with
 the a323e0f line-by-line enablement; the D-084 T1-T3 + M1
 campaign + the D-085 re-anchoring). 1 class / 2 tests / no PERF
 — both DB-gated.
-> State: D-085 · aef6188 · 2026-08-31 · suite 2/0/0 (2 DB-gated)
+> State: D-157 · 2026-09-11 · suite 2/0/0 (2 DB-gated)
 
 ## Coverage
 
@@ -12,17 +12,17 @@ campaign + the D-085 re-anchoring). 1 class / 2 tests / no PERF
 | `TestLMWorkerIndexes` (2, `SKIP_REGAB_DB` gated) | `test_compute_and_populate_cache` — move to INDEXES (step 4 pinned): the FLAT `rlmwf_04_INDEXES.dat` + `rlmwf_04_INDEXES.dat.SHA3-256` exist on disk (the D-078 machine-level naming pinned end-to-end), the logs contain "Executing heavy computation", `ctx.hlp_indexes` non-None. `test_read_cache_on_new_instance` — the first instance warms the cache; a SECOND instance on the same cache dir (move to FEATURES, the StringIO cleared, then to INDEXES): the logs contain "Cache successfully loaded and validated" and do NOT contain "Executing heavy computation" (cache hit, nothing recomputed); `ctx.hlp_indexes` non-None |
 
 The shared setUp: the db_long_gate FIRST (the SKIP_REGAB_DB +
-LONG gates, D-130; the setUp moves
-to FEATURES, which runs POSITIONS — a DB hit on a fresh base
-dir) + stdout patched to a StringIO + the D-065
+LONG gates, D-130; the move to INDEXES runs POSITIONS —
+a DB hit on a fresh base dir, the D-157 order) + stdout
+patched to a StringIO + the D-065
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
 `reversi.test.paths`, `setUpClass` mkdir, the temp dir created FIRST
 so a mid-setup failure still leaves a cleanable dir) + a
 `LogisticModel` on the `rlm_00.json` fixture (anchored to
 `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir) +
-`move_to_step('FEATURES')` (step 3 pinned; the comment is
-ACCURATE — "INDEXES depends on the feature_set loaded there" —
-in contrast to the test_wrk_features M1 comment, which
+`move_to_step('FEATURES')` (step 2 pinned, D-157; the comment
+is ACCURATE — "INDEXES depends on the feature_set loaded
+there" — the test_wrk_features M1 comment, removed at D-157,
 pointed at POSITIONS) + a defensive tearDown (getattr guards).
 
 ## Goldens pinned

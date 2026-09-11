@@ -104,12 +104,13 @@ class TestLMWorkerPositions(unittest.TestCase):
     def test_read_db_and_populate_cache(self):
         """First run should hit the DB, extract data, and create the cache file."""
         self.rlm.move_to_step('POSITIONS')
-        self.assertEqual(self.rlm.current_step, 2)
+        self.assertEqual(self.rlm.current_step, 3)
         self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
 
         # Verify cache files were actually created on disk
-        cache_file = self.tmp_dir / 'rlmwf_02_POSITIONS.dat'
-        checksum_file = self.tmp_dir / 'rlmwf_02_POSITIONS.dat.SHA3-256'
+        # (D-157: the slot is 03 — the file-less FEATURES takes 02)
+        cache_file = self.tmp_dir / 'rlmwf_03_POSITIONS.dat'
+        checksum_file = self.tmp_dir / 'rlmwf_03_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
 
@@ -123,13 +124,13 @@ class TestLMWorkerPositions(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('POSITIONS')
-        self.assertEqual(self.rlm.current_step, 2)
+        self.assertEqual(self.rlm.current_step, 3)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('CONFIG')  # Reach the step before POSITIONS
+        rlm2.move_to_step('CONFIG')  # the step before FEATURES (D-157 order: CONFIG -> FEATURES -> POSITIONS)
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
@@ -137,7 +138,7 @@ class TestLMWorkerPositions(unittest.TestCase):
 
         # 3. Move to POSITIONS in the second instance
         rlm2.move_to_step('POSITIONS')
-        self.assertEqual(rlm2.current_step, 2)
+        self.assertEqual(rlm2.current_step, 3)
 
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()

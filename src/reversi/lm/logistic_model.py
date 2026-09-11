@@ -213,8 +213,8 @@ class LogisticModel(BaseModel):
         workers: List[Worker] = [
             Worker("CREATED", _created_up, _created_down),
             wrk_config(),
-            wrk_positions(),
             wrk_features(),
+            wrk_positions(),
             wrk_indexes(),
             wrk_wmaps(),
             wrk_design_matrix(),

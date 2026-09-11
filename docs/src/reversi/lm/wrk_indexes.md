@@ -1,6 +1,6 @@
 # reversi/lm/wrk_indexes.py
 The INDEXES worker of the LM pipeline — the 5th active level
-(CREATED → CONFIG → POSITIONS → FEATURES → INDEXES), enabled
+(CREATED → CONFIG → FEATURES → POSITIONS → INDEXES), enabled
 line-by-line by Roberto in a323e0f. Like POSITIONS it is a
 CACHE-CONSUMING level: the 4-step load-or-compute over the
 hlp_indexes object — the SECOND cache_manager consumer in the

@@ -4,7 +4,7 @@ The DESIGN_MTR domain module of the LM pipeline: the
 X — the w-index of each (position, feature-instance) cell — + the
 `wmaps_obj_checksum` metadata) + 4 public functions + the
 duck-typed `compute_sha3_256_hash` — the 7th active level's data
-object (CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS
+object (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS
 → DESIGN_MTR), the FOURTH cache_manager consumer in the pipeline.
 > State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 

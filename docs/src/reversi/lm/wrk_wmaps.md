@@ -1,6 +1,6 @@
 # reversi/lm/wrk_wmaps.py
 The WMAPS worker of the LM pipeline — the 6th active level
-(CREATED → CONFIG → POSITIONS → FEATURES → INDEXES → WMAPS),
+(CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS),
 enabled line-by-line by Roberto in 73b4342. Like POSITIONS and
 INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
 over the hlp_wmaps object — the THIRD cache_manager consumer in

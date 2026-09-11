@@ -3,7 +3,7 @@ The INDEXES domain module of the LM pipeline: the
 `LMIndexes` data object (the 2-D uint32 index
 matrix + its two metadata hashes) + 4 public functions (store /
 load / compute / is_cache_consistent) — the data object of the
-5th active level (CREATED → CONFIG → POSITIONS → FEATURES →
+5th active level (CREATED → CONFIG → FEATURES → POSITIONS →
 INDEXES), the SECOND cache_manager consumer after POSITIONS.
 > State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 

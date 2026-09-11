@@ -360,13 +360,13 @@ def h_main():
             assert "Starting OPTIMIZE worker..." in logs1
             assert "Optimization finished." in logs1
             files = sorted(p.name for p in Path(tmp).iterdir())
-            for n in ("rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
+            for n in ("rlmwf_03_POSITIONS.dat", "rlmwf_03_POSITIONS.dat.SHA3-256",
                       "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256",
                       "rlmwf_05_WMAPS.dat", "rlmwf_05_WMAPS.dat.SHA3-256",
                       "rlmwf_06_DESIGN_MTR.dat", "rlmwf_06_DESIGN_MTR.dat.SHA3-256",
                       "checkpoint_optimize.dat", "checkpoint_optimize.dat.SHA3-256"):
                 assert n in files, files
-            assert not [n for n in files if n.startswith(("rlmwf_03", "rlmwf_07", "rlmwf_08"))], files
+            assert not [n for n in files if n.startswith(("rlmwf_02", "rlmwf_07", "rlmwf_08"))], files
 
         def h2():
             ctx = rlm.context

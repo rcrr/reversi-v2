@@ -250,8 +250,8 @@ s1 = out1.getvalue()
 #  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
 check("C2 flat cache files: POSITIONS + INDEXES (no rlmwf_01_CONFIG* — "
-      "D-142 — no rlmwf_03_FEATURES* — the pure-compute level writes nothing)",
-      files == ["rlmwf_02_POSITIONS.dat", "rlmwf_02_POSITIONS.dat.SHA3-256",
+      "D-142 — no rlmwf_02_FEATURES* — the pure-compute level writes nothing)",
+      files == ["rlmwf_03_POSITIONS.dat", "rlmwf_03_POSITIONS.dat.SHA3-256",
                 "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256"])
 ri = m1.context.hlp_indexes
 check("C3 ctx.hlp_indexes set + the data checksum = sha3_256(indexes.tobytes()) (independent recompute)",
@@ -283,7 +283,7 @@ check("C6c second run: identical hlp_indexes (checksum + indexes)",
 
 m1.move_to_step("FEATURES")
 check("C7 down to FEATURES: hlp_indexes + hlp_indexes_checksum cleared",
-      m1.current_step == 3 and m1.context.hlp_indexes is None
+      m1.current_step == 2 and m1.context.hlp_indexes is None
       and m1.context.hlp_indexes_checksum is None)
 
 #
@@ -328,7 +328,7 @@ check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom 
       and "setUpClass" in tsrc
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
-check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the setUp moves to FEATURES (step 3), which runs POSITIONS — a DB hit on a fresh base dir)",
+check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — a DB hit on a fresh base dir, D-157 order)",
       "SKIP_REGAB_DB" in tsrc and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",

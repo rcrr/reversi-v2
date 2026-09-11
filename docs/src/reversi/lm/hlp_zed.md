@@ -5,7 +5,7 @@ the affine image of the per-position game values — + the two affine
 transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the
 pure math) + `hlp_zed_compute` + the duck-typed
 `compute_sha3_256_hash`. The data object of the 8th active level
-(CREATED sentinel → CONFIG → POSITIONS → FEATURES → INDEXES →
+(CREATED sentinel → CONFIG → FEATURES → POSITIONS → INDEXES →
 WMAPS → DESIGN_MTR → ZED) and the FIRST non-cache level in the
 pipeline (no store / load / is_cache_consistent, no cache_manager
 wiring, no rlmwf_07* file — see the worker doc).

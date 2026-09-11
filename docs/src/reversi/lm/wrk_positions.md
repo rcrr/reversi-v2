@@ -4,7 +4,7 @@ worker that consumes cache_manager: the training data set comes
 from the regab DB through the standard 4-step load-or-compute
 flow, then positions / game_values arrays + the training
 population stats are derived for the workers that follow.
-> State: D-143 · 2026-09-09 · suite 12/0/0 (5 DB-gated; the D-143
+> State: D-157 · 2026-09-11 · suite 12/0/0 (5 DB-gated; the D-143
   regab_allow_duplicate policy tier)
 
 ## API
@@ -21,7 +21,7 @@ population stats are derived for the workers that follow.
   `cache_path = ctx.get_cache_file_full_path_for_current_level()`
   (the injected machine closure — the verbatim-prefix
   concatenation makes the file FLAT:
-  `base_dir/rlmwf_02_POSITIONS.dat`), `is_allowed = ctx.use_cache`
+  `base_dir/rlmwf_03_POSITIONS.dat`), `is_allowed = ctx.use_cache`
   (the CONFIG worker's switch, consumed here), `load_fn =
   regab_load_data_set_from_file(path, checksum=False)` (the
   sidecar was already verified by cache_manager's step 3 — no
@@ -100,7 +100,8 @@ Pinned by the 21-check probe + the 12-test suite (named per bullet).
   probe E7.
 - The end-to-end round-trip (DB-gated): the first instance hits
   the DB ("Extracted … positions from the database.") and writes
-  the FLAT `rlmwf_02_POSITIONS.dat` + `.SHA3-256`; a second
+  the FLAT `rlmwf_03_POSITIONS.dat` + `.SHA3-256` (D-157: slot
+  03 — the file-less FEATURES takes 02); a second
   instance loads the cache ("Cache successfully loaded and
   validated", no "Extracted", no DB log) —
   `TestLMWorkerPositions` (2 tests, `SKIP_REGAB_DB` gated).
@@ -128,8 +129,8 @@ None.
 - Pipeline ordering is load-bearing: `ctx.cfg` must be set
   before the cache closures are called, and
   `is_cache_consistent` reads `ctx.cfg.regab_data_set` — the
-  machine's half-open interval semantics guarantee CONFIG runs
-  before POSITIONS on every up-move.
+  machine's half-open interval semantics guarantee CONFIG (and
+  FEATURES, D-157) run before POSITIONS on every up-move.
 - The `is_cache_consistent` keyword overrides: unused by the
   POSITIONS `validate_fn` (it calls bare), but load-bearing for the
   VLD level, which passes its own `bid=`/`status=` (the A8 pin).
@@ -138,7 +139,9 @@ None.
 
 ## Integration
 
-- The 3rd LM level (CREATED sentinel → CONFIG → POSITIONS);
+- The 4th active level (CREATED sentinel → CONFIG → FEATURES →
+  POSITIONS), step 3 (D-157: the I-012 transposition — the
+  file-less FEATURES took step 2, this level's slot 02 → 03);
   the facade (`logistic_model.py`) instantiates the machine +
   `Worker`.
 - Consumes `regab` (the extract/store/load trio),
@@ -146,7 +149,8 @@ None.
   `hlp_config_schemas` types (`RegabDBConnection`,
   `RegabDataSet`); publishes `ctx.positions` /
   `ctx.game_values` / `ctx.rds_checksum` /
-  `ctx.training_pop_stats` for the FEATURES level onward.
+  `ctx.training_pop_stats` for the INDEXES level onward (D-157:
+  FEATURES precedes POSITIONS).
 - D-143: `extract_and_prepare` + `is_cache_consistent` are REUSED
   by the VLD level (`wrk_vld_positions`) — the vld compute path is
   this same function called with the vld `bid=`/`status=` overrides

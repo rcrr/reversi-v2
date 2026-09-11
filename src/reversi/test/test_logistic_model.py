@@ -95,9 +95,17 @@ class TestLogisticModel(unittest.TestCase):
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
         self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
+        # D-157: the FEATURES dummy — the string move to POSITIONS now
+        # crosses the (new) step 2, and the real FEATURES worker would
+        # hit the None cfg.
+        self.features_up_mock = MagicMock()
+        self.features_down_mock = MagicMock()
+        self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
+                                      return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
         
         self.mock_config_factory = self.patcher_config.start()
         self.mock_positions_factory = self.patcher_positions.start()
+        self.mock_features_factory = self.patcher_features.start()
 
         # Instantiate the model
         self.model = LogisticModel(
@@ -109,7 +117,7 @@ class TestLogisticModel(unittest.TestCase):
         """Clean up patches and temporary files. T2 (D-075):
         defensive against mid-setup failures — stop only the
         patchers that exist, then remove the temp dir."""
-        for name in ('patcher_stdout', 'patcher_config', 'patcher_positions'):
+        for name in ('patcher_stdout', 'patcher_config', 'patcher_positions', 'patcher_features'):
             patcher = getattr(self, name, None)
             if patcher is not None:
                 patcher.stop()
@@ -163,8 +171,9 @@ class TestLogisticModel(unittest.TestCase):
         """Test moving using the worker name string."""
         self.model.move_to_step("POSITIONS")
         
-        self.assertEqual(self.model.current_step, 2)
+        self.assertEqual(self.model.current_step, 3)
         self.config_up_mock.assert_called_once_with(self.model.context)
+        self.features_up_mock.assert_called_once_with(self.model.context)
         self.positions_up_mock.assert_called_once_with(self.model.context)
 
     def test_invalid_config_path(self):

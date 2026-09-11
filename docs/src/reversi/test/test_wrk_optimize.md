@@ -30,7 +30,7 @@ removed, the T6 vacuous-assertion fix, the new `_down` test).
 ## Conventions
 
 - All 3 tests are DB-gated (T1): the setUp's GRADIENT move runs
-  POSITIONS → FEATURES → INDEXES → WMAPS → DESIGN_MTR → ZED →
+  FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED →
   GRADIENT on a fresh base dir (all cache-miss) against the live
   regab DB.
 - The header keeps the house boilerplate ("-1- Run the tests (a
