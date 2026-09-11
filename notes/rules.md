@@ -74,6 +74,9 @@ theme, with its origin D-number.
   only on explicit user request. (D-004; AGENTS rules 2–3)
 - One D-number per fix campaign; one commit per item + a
   notes-wave commit at the campaign close (the D-111 pattern).
+- The notes are the Reversi portfolio (the GitHub publication
+  material): never record DSH/vLLM/harness infrastructure
+  behavior in decisions.md or the journals. (D-154)
 
 ## Layout & tree
 

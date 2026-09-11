@@ -1829,44 +1829,6 @@ D-151 | 2026-09-10 | PLOT mean-by-EGV y-axis refinement
         unchanged). The test modules + the verify_plot probe
         green. 2 commits (the code, then docs + notes).
 
-D-152 | 2026-09-11 | Multimodal image reading enabled + the
-        image protocol. The DSH read_image gate checks the
-        model's declared inputModalities; the hand-declared
-        barrydeen/Qwen3.8-27B-AWQ-4bit entries in
-        ~/.dsh/settings.yaml declared no `input`, so they fell to
-        the route default [text] and every read_image failed with
-        "does not declare image input". Fix (config-only, no DSH
-        code): `input: [text, image]` on BOTH model entries (the
-        vilya-dockers main route + the qwen-summary route) — the
-        pi-ai adapter hot-reloads the config ("a configuration
-        change reaches the next request without a restart"), so
-        the first read_image after the edit worked live, no new
-        session needed. vLLM side: the per-prompt image cap was
-        2; a 6-image parallel batch breached it and killed the
-        session, and a `continue` could NOT recover (the history
-        replays the over-limit request) — Roberto restarted vLLM
-        (the /dev/shm cleanup was needed) and raised the cap to
-        10. Nia's protocol (she is conscious of the cap): a visual
-        batch is at most ~4-6 images per turn (well under the cap
-        — the cap is a safety net, not a target); the images
-        PERSIST in the conversation history and count on every
-        subsequent request, so a NEW batch requires the old ones
-        to be flushed by a compaction first (the checkpoint
-        condensing drops them); after an image crash, no
-        `continue` — a new session. Memory sizing for the 2x RTX
-        3090 / 393k window: a 1350x900 plot is ~1-2k visual
-        tokens (the token count scales with pixel area, not file
-        size); 10 images ~ 3-5% of the window, a few seconds of
-        extra cold prefill (measured 227 s / 250k tokens), a few
-        hundred MB of fp8 KV; 100 images ~ 25-50% of the window
-        (the 0.8 compaction pressure would fire constantly); 1000
-        is beyond the window itself (~5x). Verdict: keep 10 (enough
-        for a 4-6 batch with margin); 20-50 is a sane ceiling;
-        above that it is only crash headroom with no workflow
-        benefit (a huge cap delays, not prevents, an accidental
-        burst, and the vision-encoder per-prompt batch is the
-        memory spike the cap exists to bound).
-
 D-153 | 2026-09-11 | The boxplot stale-label bug (found by
         Roberto: "i dati sono corretti. Sono le LABELS dell'asse
         x che sono sbagliate. Partono da -62 e vanno con passo 2
@@ -1890,6 +1852,20 @@ D-153 | 2026-09-11 | The boxplot stale-label bug (found by
         set_xticks verified correct in the rendered image). Only
         the boxplot PNG bytes change (110248 → 109169 B); the
         parity golden untouched; the test modules + the
-        verify_plot probe green. Verified BY EYE (the D-152
-        capability): the regenerated plot's labels now read
-        -64, -56, ..., 64, the data diagonal unchanged.
+        verify_plot probe green. Verified by looking at the
+        regenerated figure: the labels now read -64, -56, ..., 64,
+        the data diagonal unchanged.
+
+D-154 | 2026-09-11 | The notes' scope is the Reversi portfolio:
+        never record DSH/vLLM/harness infrastructure behavior in
+        notes/decisions.md or the journals. Roberto's ruling
+        (verbatim): "come regola non scrivere mai nelle decisioni
+        e nel log a proposito del funzionamento di DSH, vllm, non
+        sono rilevanti per reversi, e ricordati che pubblicheremo
+        su github prima o poi". The notes are publication
+        material; the collaboration tooling is not part of the
+        portfolio. Applied retroactively in the same commit: the
+        earlier infrastructure entry was removed from this log
+        and from the journal (the boxplot bug entry D-153 stands
+        on its own). Promoted to rules.md (Language &
+        collaboration).
