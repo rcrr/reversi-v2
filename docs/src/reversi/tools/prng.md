@@ -1,4 +1,4 @@
-# reversi/feature_prng.py
+# reversi/tools/prng.py
 The MT-19937 64-bit PRNG — the line-by-line Python port of
 Roberto's C library (prng.c, 2017 — the 64-bit variant, NOT the
 32-bit reference), the I-017 T2 (D-159). One class, MT19937,
@@ -7,7 +7,7 @@ inits (by seed / by array), get_uint64 (the twist + the 4-op
 temper), the three double generators ([0,1], [0,1), (0,1)),
 random_choice_from_finite_set, the four Fisher-Yates shuffles,
 random_string_az and extract_from_set64.
-> State: D-159 · pending · 2026-09-11 · suite 9/0/0
+> State: D-160 · pending · 2026-09-11 · suite 10/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
@@ -110,5 +110,7 @@ random_string_az and extract_from_set64.
   random play, the concurrent wave engine, the permutation
   lookup table, the marginal frequency accumulator) — the
   seeded corpus generation for the FEATURE_ANALYSIS level (T12).
-- Not a pipeline level: a core module used by the future levels
-  (like pattern.py / mobility.py).
+- Not a pipeline level: a TOOLS module used by the future levels
+  (the D-160 rename from the feature_prng core name — the module
+  is a GENERIC MT library: the name follows what it is, not its
+  first consumer; the tools/ subpackage per D-133).

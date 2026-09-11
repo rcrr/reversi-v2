@@ -1,5 +1,5 @@
 #
-# test_feature_prng.py
+# test_prng.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -26,7 +26,7 @@
 #
 #
 #
-# How to run the feature_prng module unit tests.
+# How to run the prng module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -36,7 +36,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest reversi.test.test_feature_prng
+# time PERF=0 python3 -m unittest reversi.test.test_prng
 #
 
 """
@@ -48,7 +48,7 @@ n <= 1 shuffles), and the extract_from_set64 semantics.
 
 The BIT-EXACT golden suite (the exact bit-sequence vs Roberto's C
 build + the published vectors + the equi-distribution property)
-is the NEXT task (the I-017 T3, test_feature_prng.py extended) —
+is the NEXT task (the I-017 T3, test_prng.py extended) —
 this suite only pins the contract so an accidental refactor
 cannot slip in silently.
 """
@@ -57,10 +57,10 @@ import unittest
 
 import numpy as np
 
-from reversi.feature_prng import MT19937, NN, MM, UM, LM, MAG01
+from reversi.tools.prng import MT19937, NN, MM, UM, LM, MAG01
 
 
-class TestFeaturePrngContract(unittest.TestCase):
+class TestPrng(unittest.TestCase):
     """The port contract: the determinism, the typing, the wraps,
     the no-consume rules, the set extraction."""
 
