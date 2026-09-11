@@ -411,8 +411,10 @@ at the end of this file.
    golden re-pin (the env drift). T2 DONE (D-159): the 64-bit
    MT-19937 ported line-by-line from Roberto's C (the
    strict-typing ruling: NUMPY, the np.uint64 data path) —
-   bit-exact vs the C build, 781/0/94 + LONG 781/0/21. Next:
-   T3 (the PRNG golden suite).
+   bit-exact vs the C build, 781/0/94 + LONG 781/0/21). T3 DONE
+   (D-161): the C-oracle golden suite (the committed 13003-line
+   golden, 20/0 tests) — 791/0/94 + LONG 791/0/21. Next: T4
+   (the single-game random play).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -457,10 +459,12 @@ at the end of this file.
   constants, I-009/I-010 (notes/ideas.md); I-012 is DONE
   (D-157, the I-017 T1).
 - FEATURE ANALYSIS (I-017): T1 DONE (D-157), T2 DONE (D-159:
-  the PRNG port — the strict-typing ruling, the C cross-check)
-  — T3 next: the PRNG golden suite (test_feature_prng.py
-  extended: the bit-sequence golden vs the C build + ut_prng.c
-  the oracles), per the plan in
+  the PRNG port — the strict-typing ruling, the C cross-check),
+  T3 DONE (D-161: the C-oracle golden suite — the committed
+  13003-line golden, test_prng.py 20/0) — T4 next: the
+  single-game random play (hlp_random_play.py: the game loop,
+  the ec arrest, the no-DB micro-suite with the hand-counted
+  short-game trace), per the plan in
   notes/analytical_properties_of_features.md §8. I-018 (the
   outlier report in VALIDATE) is parked, Roberto's call.
 
@@ -529,7 +533,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite (D-141) — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test (PERF=1, measured 5.6M b/s) | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
-| src/reversi/test/test_prng.py | complete: the MT19937 smoke micro-suite (the I-017 T2, D-159 — the determinism, the dtype pins, the no-consume contracts; the bit-exact golden suite is the T3); D-160: the rename with the module | 10/0/0 | docs/src/reversi/test/test_prng.md |
+| src/reversi/test/test_prng.py | complete: the MT19937 suite — the smoke micro-suite (the I-017 T2, D-159: the determinism, the dtype pins, the no-consume contracts) + the C-oracle golden suite (T3, D-161: the committed 13003-line golden + the first-100k equi-distribution); D-160: the rename with the module | 20/0/0 | docs/src/reversi/test/test_prng.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105; the D-142 masked-hash helper + the 2 file-report goldens re-pinned) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite (D-148) — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden ("max difference 0.000e+00"), the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/src/reversi/test/test_wrk_client_check.md |
 | src/reversi/test/test_hlp_plot.py | complete: the PLOT pure-helper suite (D-149; D-150: the _sym_limit tests) — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the symmetric-axis limit (round-up to the step, the degenerate guard), the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 11/0/0 | docs/src/reversi/test/test_hlp_plot.md |
