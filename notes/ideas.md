@@ -241,3 +241,26 @@ I-016 | done | PLOT: a new pipeline level with matplotlib —
         checks). The R file itself is a scratch artifact:
         nothing in the documentation references it (Roberto: "in
         seguito lo cancelleremo").
+
+I-017 | in-progress | Analytical properties of the FEATURES:
+        two feature-characterization capabilities introduced into
+        the RLM pipeline (raised 2026-09-11, Roberto: "Analisi
+        delle caratteristiche delle FEATURES ... due approcci: a)
+        SU (Symmetrical Uncertainty), b) eta_quadro vs
+        omega_quadro"). (a) SU — unsupervised (NO game value):
+        the dispersion (entropy) of each feature's configuration
+        distribution + the feature↔feature correlation (the
+        pairwise symmetrical uncertainty — the cardinality-bias-
+        free mutual information). (b) eta²/omega² — supervised
+        (the game-value target): the one-way-ANOVA effect size per
+        feature (omega² = the unbiased, df-penalized successor,
+        robust to high cardinality). Project document (objective,
+        plan, tasks): notes/analytical_properties_of_features.md
+        (DRAFT v0, D-156; awaits Roberto's confirmation on
+        ODP-1..5). Proposed design: the 18th pipeline level
+        FEATURE_ANALYSIS (after PLOT — the D-148/D-149 tail
+        precedent), the (feature, instance) sub-variable as the
+        analysis unit (the design-matrix unit), the
+        FeatureAnalysisConfig pilot (the PlotConfig pattern), no
+        cache file (the rlmwf_17 slot), the TXT+CSV reports. Tasks
+        T0..T4, one per session.

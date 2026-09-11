@@ -380,6 +380,22 @@ at the end of this file.
   PNG + PDF (the preserved run: 7 of each) — the PLOT campaign
   closes here (D-149 → D-155): Roberto's final verdict "I
   grafici vanno ora tutti bene. Lavoro grafici: finito."
+- FEATURE ANALYSIS (I-017, D-156 kickoff 2026-09-11): the project
+   document notes/analytical_properties_of_features.md (DRAFT v0,
+   awaits Roberto's confirmation on ODP-1..5) — two
+   feature-characterization capabilities into the pipeline: (a)
+   the SU (Symmetrical Uncertainty — unsupervised: the
+   feature-configuration dispersion + the feature↔feature
+   correlation, NO game value) + (b) the eta²/omega² (the ANOVA
+   effect size vs the game value; omega² = the unbiased
+   high-cardinality-safe successor). Proposed design: the 18th
+   level FEATURE_ANALYSIS (step 17, after PLOT — the D-148/D-149
+   tail precedent), the (feature, instance) sub-variable as the
+   analysis unit (the design-matrix unit), the
+   FeatureAnalysisConfig pilot (the PlotConfig pattern), no cache
+   (the file-less rlmwf_17 slot, the 9th non-cache deviation), the
+   TXT+CSV reports, training corpus only. Tasks T0..T4, one per
+   session; no source changes yet.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -423,6 +439,9 @@ at the end of this file.
 - Next on the backlog (Roberto's call): I-012 FEATURES before
   POSITIONS, I-003 the named move constants, I-009/I-010
   (notes/ideas.md).
+- FEATURE ANALYSIS (I-017): confirm the ODP-1..5 in
+  notes/analytical_properties_of_features.md (DRAFT v0, D-156),
+  then execute T1 (the hlp_feature_analysis data module).
 
 
 

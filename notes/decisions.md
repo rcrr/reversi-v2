@@ -1900,3 +1900,37 @@ D-155 | 2026-09-11 | The PLOT label standardization + the
         (the 7 PNG exist, the name-based "7 plot(s) written" log
         line) are unaffected. Verified by looking at the
         regenerated box + density PNGs.
+
+D-156 | 2026-09-11 | I-017 kickoff: the project to analyze the
+        analytical properties of the FEATURES. Roberto (the gist):
+        "Iniziamo una nuova task. ... Analisi delle
+        caratteristiche delle FEATURES. Ho in mente due approcci
+        diversi: a- IMS (Informazione Mutua Simmetrica) o meglio
+        in Inglese SU (Symmetrical Uncertainty) — non impiega
+        l'informazione del game value. Misura solo la dispersione
+        e la correlazione delle configurazioni presenti nelle
+        features. b- eta_quadro e il suo successore piu
+        sofisticato omega_quadro misurano invece l'effetto della
+        feature, e quindi hanno bisogno dei game_value. Proponimi
+        un piano di azione granulare ... Lo vediamo insieme, lo
+        commento, e lo raffiniamo ... Quando il piano e' chiaro,
+        scrivi un file md in notes dedicato a questo progetto,
+        chiamiamolo analytical_properties_of_features.md. Con
+        obiettivi, piano, tasks. Fai un commit. E solo in seguito
+        cominciamo a lavora sulle task una alla volta." The plan
+        document is written DRAFT v0 at
+        notes/analytical_properties_of_features.md: proposed
+        design = the 18th level FEATURE_ANALYSIS (step 17, after
+        PLOT — the D-148/D-149 tail precedent), the (feature,
+        instance) sub-variable as the analysis unit (the
+        design-matrix unit: the intercept constant, the mobility
+        count column, the pattern's D8-orbit ternary columns with
+        code 0 = "no match" as a first-class group), the
+        FeatureAnalysisConfig pilot (the PlotConfig pattern:
+        enable + the methods whitelist {su, eta2, omega2} +
+        top_k_pairs + dir_name/report_file_name/export_csv), no
+        cache file (the rlmwf_17 slot, file-less — the 9th
+        non-cache deviation), the TXT+CSV reports, training corpus
+        only, the tasks T0..T4 one per session. Five open points
+        (ODP-1..5) await Roberto's confirmation before T1 starts.
+        No source files touched.
