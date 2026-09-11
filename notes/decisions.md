@@ -1828,3 +1828,68 @@ D-151 | 2026-09-10 | PLOT mean-by-EGV y-axis refinement
         resid_mean_by_egv.png 71550 → 59226 B, the rest
         unchanged). The test modules + the verify_plot probe
         green. 2 commits (the code, then docs + notes).
+
+D-152 | 2026-09-11 | Multimodal image reading enabled + the
+        image protocol. The DSH read_image gate checks the
+        model's declared inputModalities; the hand-declared
+        barrydeen/Qwen3.8-27B-AWQ-4bit entries in
+        ~/.dsh/settings.yaml declared no `input`, so they fell to
+        the route default [text] and every read_image failed with
+        "does not declare image input". Fix (config-only, no DSH
+        code): `input: [text, image]` on BOTH model entries (the
+        vilya-dockers main route + the qwen-summary route) — the
+        pi-ai adapter hot-reloads the config ("a configuration
+        change reaches the next request without a restart"), so
+        the first read_image after the edit worked live, no new
+        session needed. vLLM side: the per-prompt image cap was
+        2; a 6-image parallel batch breached it and killed the
+        session, and a `continue` could NOT recover (the history
+        replays the over-limit request) — Roberto restarted vLLM
+        (the /dev/shm cleanup was needed) and raised the cap to
+        10. Nia's protocol (she is conscious of the cap): a visual
+        batch is at most ~4-6 images per turn (well under the cap
+        — the cap is a safety net, not a target); the images
+        PERSIST in the conversation history and count on every
+        subsequent request, so a NEW batch requires the old ones
+        to be flushed by a compaction first (the checkpoint
+        condensing drops them); after an image crash, no
+        `continue` — a new session. Memory sizing for the 2x RTX
+        3090 / 393k window: a 1350x900 plot is ~1-2k visual
+        tokens (the token count scales with pixel area, not file
+        size); 10 images ~ 3-5% of the window, a few seconds of
+        extra cold prefill (measured 227 s / 250k tokens), a few
+        hundred MB of fp8 KV; 100 images ~ 25-50% of the window
+        (the 0.8 compaction pressure would fire constantly); 1000
+        is beyond the window itself (~5x). Verdict: keep 10 (enough
+        for a 4-6 batch with margin); 20-50 is a sane ceiling;
+        above that it is only crash headroom with no workflow
+        benefit (a huge cap delays, not prevents, an accidental
+        burst, and the vision-encoder per-prompt batch is the
+        memory spike the cap exists to bound).
+
+D-153 | 2026-09-11 | The boxplot stale-label bug (found by
+        Roberto: "i dati sono corretti. Sono le LABELS dell'asse
+        x che sono sbagliate. Partono da -62 e vanno con passo 2
+        fino a -30"). The diagnosis: ax.boxplot() leaves the N
+        CATEGORICAL tick labels (the bin values) on the x-axis
+        even for numeric positions; a positions-only
+        ax.set_xticks(ticks) switches the locator to the 17 step-8
+        positions but matplotlib keeps the stale 62 labels and
+        prints the FIRST 17 of them (-62..-30, the first 17 bins)
+        under the step-8 positions. The axis LIMITS were always
+        correct (verified: xlim/ylim (-64, 64) pre and post
+        savefig, autoscale off, get_xticks() = the step-8 grid —
+        only the label TEXT was stale; the get_xticklabels() dump
+        was the smoking gun). Fix: ax.set_xticks(ticks,
+        labels=[str(int(t)) for t in ticks]) — the explicit labels
+        clear the stale categorical ones. Reproduced minimally
+        (a boxplot of 62 synthetic positions: 62 labels after
+        boxplot, stale 17 after the positions-only set_xticks,
+        correct 17 with explicit labels). The other six builders
+        are unaffected (no boxplot; the mean-by-EGV explicit
+        set_xticks verified correct in the rendered image). Only
+        the boxplot PNG bytes change (110248 → 109169 B); the
+        parity golden untouched; the test modules + the
+        verify_plot probe green. Verified BY EYE (the D-152
+        capability): the regenerated plot's labels now read
+        -64, -56, ..., 64, the data diagonal unchanged.

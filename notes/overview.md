@@ -364,6 +364,15 @@ at the end of this file.
   grid — "se il valore è nel range -16,+16 teniamolo in questo
   range"), the tick labels drop to fontsize 8, the x axis
   untouched ("perfetto").
+- D-152/D-153 (2026-09-11): multimodal reading is LIVE (the
+  settings.yaml `input: [text, image]` declaration, the vLLM
+  per-prompt cap 10, the batch/compaction protocol — Nia can
+  now SEE the plots; the cap stays at 10, 20-50 ceiling, 100+
+  is only crash headroom) + the boxplot stale-label bug (D-153:
+  boxplot leaves the 62 categorical bin labels, the
+  positions-only set_xticks printed the first 17 under the
+  step-8 positions — fixed with explicit labels; the data was
+  always correct, found by Roberto).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests

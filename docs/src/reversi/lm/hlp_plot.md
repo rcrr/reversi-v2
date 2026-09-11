@@ -122,7 +122,11 @@ under a fixed matplotlib version.
     validation game values as a box plot per EGV bin (the fitted
     Y rounded to the step-2 grid); the D-150 axes: BOTH x and y
     always the full [-64, +64] domain, regardless of the data,
-    the ticks on the step-8 grid.
+    the ticks on the step-8 grid; the D-153 mandatory EXPLICIT
+    labels (`set_xticks(ticks, labels=...)`): boxplot() leaves
+    the 62 categorical bin labels on the axis, and a
+    positions-only set_xticks prints the first 17 of them under
+    the step-8 positions (the stale-label bug).
   - `plot_resid_mean_by_egv` (plot 5, new): the validation
     residual MEAN ± sd error bars per EGV bin against the zero
     line — the systematic-bias-per-level view (a miscalibrated
