@@ -408,7 +408,11 @@ at the end of this file.
    POSITIONS step 3, the rlmwf_03 slot, I-012 realized; the
    test_wrk_features suite now DB-free) — 771/0/94 + VLONG
    771/0/20 + the 22-probe sweep green; D-158 the parity
-   golden re-pin (the env drift). Next: T2 (the PRNG port).
+   golden re-pin (the env drift). T2 DONE (D-159): the 64-bit
+   MT-19937 ported line-by-line from Roberto's C (the
+   strict-typing ruling: NUMPY, the np.uint64 data path) —
+   bit-exact vs the C build, 781/0/94 + LONG 781/0/21. Next:
+   T3 (the PRNG golden suite).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
