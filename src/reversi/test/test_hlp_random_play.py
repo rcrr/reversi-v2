@@ -199,6 +199,31 @@ class TestHandCountedGames(unittest.TestCase):
         self.assertEqual(g.stopped_by, 'ec')
         self.assertEqual(g.plies, 2)
 
+    def test_non_full_double_pass_is_game_over(self):
+        # The constructed non-full deadlock (61 stones, 3 empty
+        # — E4, F4, G4): the 57-stone field walled around the
+        # empty run, the 4-stone block (A2, B2, A3, B3) too far
+        # to matter — verified: NEITHER side has a legal move.
+        # The loop plays ONE pass (the swap), then the game-over
+        # check fires (the other side has no legal move either)
+        # — before the fix this spun passes to the MAX_PLIES
+        # RuntimeError.
+        m = np.uint64(0xffffffff8ffcfcff)  # the 57-stone field
+        o = np.uint64(0x0000000000030300)  # the A2..B3 block
+        p = make_position(m, o)
+        self.assertEqual(int(position_legal_moves(p)), 0)
+        self.assertEqual(int(position_legal_moves(
+            make_position(o, m))), 0)
+        g = _play_from(p, _identity_table(), 0, 0, 0)
+        self.assertEqual([int(x) for x in g.moves], [PA])
+        self.assertEqual(g.ec_trace, [3])
+        self.assertEqual(g.stopped_by, 'game_over')
+        self.assertEqual(g.plies, 1)
+        # The final position is the swapped one (the 4-stone
+        # side would now be the mover).
+        self.assertEqual(int(g.position['mover']), int(o))
+        self.assertEqual(int(g.position['opponent']), int(m))
+
     def test_full_game(self):
         # Seed 3 played to ec = 0: the board fills (60 real moves
         # from the 4 stones, no pass) — the game-over check fires

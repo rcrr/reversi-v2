@@ -279,10 +279,20 @@ def _play_from(p: "PositionField", table: np.ndarray, counter0: int,
         legal = position_legal_moves(p)
         if int(legal) == 0:
             # No legal move: the pass (the player swap; no
-            # counter step).
+            # counter step). The double pass is the game over:
+            # after the swap, if the opponent has no legal move
+            # either (the board is unchanged since their last
+            # check), the game is over — including on a NOT
+            # full board (the non-full double pass; the pre-
+            # fix loop only checked the game over in the
+            # real-move branch and would spin passes to the
+            # MAX_PLIES guard).
             p = position_make_move(p, np.uint8(PA))
             moves.append(np.uint8(PA))
             ec_trace.append(ec_of(p))
+            if position_is_game_over(p):
+                stopped_by = 'game_over'
+                break
             continue
         move, counter = pick_move(legal, table, counter)
         p2 = position_make_move(p, move)

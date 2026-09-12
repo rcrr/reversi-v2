@@ -6,7 +6,7 @@ lookup table, position_make_move (D-140), the pass, the game
 over, and the ec ARREST (the corpus keeps every ply of the
 arrested game). The data module of the future FEATURE_ANALYSIS
 level (the worker lands in T12).
-> State: D-162 · pending · 2026-09-11 · suite 12/0/0
+> State: D-162 (the D-169 double-pass fix) · pending · 2026-09-12 · suite 13/0/0
 
 ## API
 - `RandomGame` — the dataclass outcome: the arrested position,
@@ -51,8 +51,11 @@ level (the worker lands in T12).
   the corpus keeps every ply (the full trajectory).
 - The game over: two consecutive passes (the
   position_is_game_over double-check) or the full board —
-  checked at the end of every ply (the full board fires the
-  game-over before the next ec check).
+  the full board fires in the real-move branch; the
+  non-full double pass in the pass branch (the D-169 fix:
+  the pre-fix loop checked only the real-move branch and
+  would spin passes to the MAX_PLIES guard on the rare
+  non-full deadlock).
 - The pass: the position_make_move PA (the player swap; board.py
   does not verify the pass-only-legal invariant — the loop
   guarantees it: the pass is played iff legal == 0).
@@ -73,7 +76,11 @@ level (the worker lands in T12).
   — ZERO legal moves verified; after the pass {D3, C4, D4};
   the PA then D3, the ec kept by the pass), the full 60-ply
   game (seed 3 to ec = 0: the board fills 35/29, the game-over
-  fires).
+  fires), the NON-FULL double pass (the constructed 61-stone
+  deadlock — E4, F4, G4 empty, the 57-stone field walled
+  around the empty run + the 4-stone A2..B3 block, the
+  pinned literal: ONE pass then the game-over, ec = 3 kept —
+  the D-169 fix's regression guard).
 - The seeded games: the seed-7 trajectory pinned (40 plies, ec
   20, the first 10 moves, the final position) + the
   INDEPENDENT REPLAY (every ply recomputed from the rules +
@@ -87,10 +94,12 @@ level (the worker lands in T12).
 - The EXACT ec formula: T7 pins it against Roberto's DB code
   (the "mele con mele" constraint) — ec_of is the provisional
   64 - occupied.
-- The T5 wave engine (the numba tier): the vectorized advance
-  step, the respawn of the finished slots, the streaming to
-  the accumulators — the same pick semantics (this module's
-  trace is the T5 cross-validation reference).
+- The T5 wave engine (the numba tier) — LANDED (D-170,
+  hlp_wave.py): the lockstep advance step, the boundary
+  harvest + respawn, the streaming to the sink — the same
+  pick semantics (this module's trace is the T5
+  cross-validation reference; LAW-1/2 pin the bit-exact
+  equivalence).
 - The T6 vectorized pick kernel + the distribution test (the
   seeded rows' uniformity on a tiny corpus — the ODP-9
   closing).
