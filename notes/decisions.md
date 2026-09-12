@@ -219,3 +219,64 @@ D-163 | 2026-09-11 | The ODP-9 equivalence document for peer
         discipline). Gating: the T5 wave engine is NOT built
         on G1 until the review confirms the proof and the T6
         gate design is approved.
+D-164 | 2026-09-11 | ODP-9 document revised (v2) after the
+        first peer review (DeepSeek V4 Pro, notes/
+        peer_review_random_permutation_table.md — verdict:
+        THE DESIGN PASSES with corrections). The author's
+        response, recorded in the document's new section 10:
+        (1) AGREED — the v1 Theorem 1 circularity is real
+        (the trajectory prefix conditions the table; the v1
+        proof "the prefix fixes c mod k, P_k uniform, Lemma 1"
+        is invalid as stated). The precise mechanism is now
+        stated: at a width-k ply the TRUE conditional kernel
+        (given the prefix) is "uniform over the row's
+        UNCONSUMED entries, deterministic on reuse" (the
+        entry-consumption effect). (2) DISAGREED with the
+        review's PROPOSED replacement (the unconditional
+        marginal claim) — it is not a valid drop-in fix: at a
+        fixed ply index the legal set L_t is itself a random
+        variable (the claim is not well-defined without
+        conditioning), and the review's own rescue stops at
+        "c is not independent of P_k — this is the core issue"
+        without resolving it (the marginal uniformity of P_k
+        does not imply the uniformity of P_k[c mod k] for a
+        table-dependent c; the k = 2 counterexample: a
+        table-dependent index I = 1{P2 = [1,0]} makes
+        P2[I] identically 0). (3) The valid replacement: the
+        ONE-STEP ORACLE EQUIVALENCE (new Theorem 1 v2): for
+        ANY GIVEN (position, counter) — inputs, not table-
+        generated — the seed-averaged G1 one-step pick is
+        EXACTLY uniform over the legal set (A1; Lemma 1, no
+        conditioning, no circularity) — the true semantic of
+        "the table is the seeded shuffle". (4) AGREED +
+        EXTENDED — the v1 "PROVEN" classification of the
+        corpus-level expectations (marginals AND joints) is
+        reclassified to GATED: the observable codes are
+        functions of the GENERATED positions (table-
+        dependent), so the oracle uniformity does not lift to
+        the trajectory ensemble; the v1 step-3 factorization
+        is superseded (the same gap the review found for the
+        joints also applied to the marginals). (5) The
+        remaining PROVEN core: the oracle Theorem 1, Lemma 1,
+        Lemma 2, the phase combinatorics (the review's
+        sharper m_g-spread bound adopted: the slot-phase
+        imbalance is at most max_g m_g - min_g m_g at most
+        64, hence at most 64/N = 6.4e-5 at N = 1e6), the
+        sampling-error order. (6) The design requirement
+        (new, section 5): the I-017 statistics need the ideal
+        population RANDOM-PLAY-LIKE WITHIN THE MEASUREMENT
+        PRECISION — not an exact expectation equality — which
+        is exactly what the T6 gate verifies at 1e4 against a
+        same-scale G0 reference (any systematic G1-vs-G0
+        difference above G0's own ~1e-2 noise is detected;
+        at 1e7 G0's noise is ~1e-3, so a gate-passing bias is
+        a fortiori subdominant). (7) The T6 gate extended
+        with the review's suggestions: test 4 (the same-
+        width focus — TV/KL with a G0-vs-G0 bootstrap),
+        test 5 (the small-k focus — k at most 4, where TV =
+        1/k is largest), test 6 (the phase-continuity scan —
+        3-5 counter0 offsets within G0 noise). Gating
+        unchanged and strengthened: no T5 build on G1 until
+        the SECOND review confirms the v2 document and the
+        gate design; the gate itself runs at T6 before any
+        1e7 corpus.

@@ -5,9 +5,15 @@
 > written 2026-09-11 by Nia for Roberto's review and for EXTERNAL
 > PEER REVIEW (DeepSeek V4 Pro / GLM 5.3 — the requested
 > second opinion on §6 and §7).
-> **Status: PROPOSED** — the T5 wave engine must NOT be built on
-> this design until the review confirms §6 and the T6 gate
-> (below) is specified.
+> **Status: REVISED (v2, 2026-09-11 — after the first peer
+> review, DeepSeek V4 Pro, at notes/peer_review_random_
+> permutation_table.md; the author's response in §10).**
+> The v1 overclaims (the Theorem 1 conditional-kernel
+> statement; the "PROVEN" classification of the corpus-level
+> expectations) are corrected in this version. The T5 wave
+> engine must NOT be built on this design until the SECOND
+> review confirms the revised §6 and the T6 gate (§7) is
+> approved.
 > Companion documents:
 > `notes/analytical_properties_of_features.md` (the project plan,
 > §3.2 the generator design, ODP-9 the adopted pick),
@@ -187,11 +193,27 @@ below) and let E_seed[·] be the expectation over the seed.
 **G₁ is equivalent to G₀ in the following THREE senses — and
 only in these senses:**
 
-- **(E1) Expectation-level equivalence (PROVEN, §6.1-6.2).**
-  For every observable that is a (position-weighted) sum of
-  per-ply pick indicators — the marginals, and the joints at
-  the level of EXPECTATIONS — E_seed[F^{G₁}] = E₀[F] EXACTLY.
-  No approximation.
+- **(E1) One-step ORACLE equivalence (PROVEN, §6.3).** From
+  ANY GIVEN state — a fixed position with legal set L and a
+  fixed counter value c, both INPUTS, not table-generated —
+  the G₁ one-step pick, in expectation over the seed (A1), is
+  UNIFORM over L: the generator's LOCAL rule has EXACTLY the
+  same semantics as G₀'s draw, no approximation. (v1 claimed
+  the corpus-level expectation equality at this level; that
+  claim is reclassified in v2 — see (E1-corpus) below and
+  §10.)
+- **(E1-corpus) Corpus-level expectation equality (NOT
+  proven exactly — GATED, §6.4, §7).** The seed-averaged G₁
+  corpus frequencies (the marginals AND the joints — the
+  actual statistics of I-017, functions of the GENERATED
+  positions) equal the G₀ expectations only up to the path-
+  coupling deviation (the per-ply decision contexts along a
+  generated trajectory are functions of the table's earlier
+  picks — the oracle uniformity does not lift to the
+  trajectory ensemble). This is verified EMPIRICALLY by the
+  T6 gate (tests 2-6) against a same-scale G₀ reference,
+  BEFORE the expensive build — and it is the direct
+  verification of the design requirement (below).
 - **(E2) Sampling-error equivalence (PROVEN as an order
   statement, §6.2).** The G₁ corpus estimator's sampling error
   is of the SAME ORDER as G₀'s own Monte Carlo error,
@@ -203,14 +225,21 @@ only in these senses:**
   TESTED).** A fixed-seed G₁ corpus can deviate from E₀ by:
   (a) a **phase-discrepancy term**, provably O(k/N) — bounded
   by 64/1e6 = 6.4e-5 for N = 1e6 (§6.2, Lemma 2) — negligible;
-  (b) a **structural-covariance term** coming from the shared-
-  counter coupling of the JOINT picks (§6.3). This term is NOT
-  covered by the expectation proof (it is a second-order
-  coupling effect, O(1/k)-scale at the RANK level, generally
-  second-order at the CODE level because the two picks see
-  different legal sets) — and it is handled NOT by a proof but
-  by a PRE-REGISTERED EMPIRICAL GATE (the T6 test, §7): the G₁
-  micro-corpus (1e4) must be statistically INDISTINGUISHABLE
+  (b) a **path-coupling term** (v2: this is now the MAIN
+  unproven residual, for the marginals AND the joints — the
+  (E1-corpus) gap, §6.4): along a GENERATED trajectory the
+  per-ply decision contexts (L_t, c_t) are functions of the
+  table's earlier picks, so the per-ply pick law deviates
+  from the G₀ uniform law by the ENTRY-CONSUMPTION effect
+  (§6.3: at a width-k ply the pick is uniform over the row's
+  UNCONSUMED entries, or deterministic if the current entry
+  was already consumed by an earlier same-width pick —
+  including the same-width pair-law deviation, TV = 1/k at
+  the rank level, §6.5), and the corpus-level expectation
+  equality is NOT bounded in closed form. It is handled NOT
+  by a proof but by a PRE-REGISTERED EMPIRICAL GATE (the T6
+  tests 2-6, §7): the G₁ micro-corpus (1e4) must be
+  statistically INDISTINGUISHABLE
   from a G₀ micro-corpus (1e4 — cheap to generate: ~5e5 draws),
   at the level of G₀'s own Monte Carlo noise. If the gate
   fails, the FALLBACK is a second independent counter (the two
@@ -218,14 +247,32 @@ only in these senses:**
   residual coupling is only the shared permutation row, which
   the gate re-measures).
 
-**The one honest sentence.** G₁ is not "G₀ with the draws
+**The one honest sentence (v2).** G₁ is not "G₀ with the draws
 replaced". G₀ produces a DISTRIBUTION over corpora; G₁ produces
-ONE deterministic corpus per seed. What is proven is that this
-one corpus is, in expectation over the seed, the G₀ expectation
-itself (E1), with G₀-scale sampling noise (E2) and a provably
-tiny phase term (E3a) — and that the only unproven residual
-(E3b) is measured by a gate with a fallback, BEFORE the
-expensive corpus is built.
+ONE deterministic corpus per seed. What is PROVEN: the one-
+step oracle equivalence (E1 — from any given state, the seed-
+averaged G₁ pick is a uniform pick: the local semantics are
+identical to G₀'s), the lemmas, the phase combinatorics
+(E3a, ≤ 6.4e-5) and the sampling-error order (E2). What is
+EMPIRICALLY VERIFIED (the T6 gate, §7, BEFORE the expensive
+build, with a pre-specified fallback): the corpus-level
+equivalence (E1-corpus — the marginals and joint frequencies
+against a same-scale G₀ reference) and the path-coupling
+residual (E3b).
+
+**The design requirement (what the statistics actually need
+— v2, the criterion that settles the discussion).** The I-017
+statistics (SU, eta²/omega², the adherence) do NOT require
+"G₁'s corpus to be an exact G₀ expectation". They require the
+ideal population to be RANDOM-PLAY-LIKE to within the
+MEASUREMENT PRECISION — a deviation of the ideal population
+that is small compared to the sampling noise of the corpus
+itself. That is exactly what the gate verifies at 1e4 (where
+G₀ is a faithful reference and any systematic G₁-vs-G₀
+difference above ~G₀'s own noise is detected), and it is why
+the reclassification (E1-corpus: proven → gated) does NOT
+weaken the design: the gate is now the PRIMARY defense of the
+corpus-level claims, not a backup for a residual.
 
 ---
 
@@ -268,69 +315,122 @@ rank of P_k exactly once: the INTRA-GAME time-average over the
 window is EXACTLY uniform (1/k per rank) — zero fluctuation,
 where G₀'s average over the same window is 1/k ± O(1/√k).
 
-### 6.3 Theorem 1 — the conditional pick kernel (the core)
-*Statement.* Condition on the game's trajectory prefix up to a
-ply (this fixes the legal set L, the width k, and the counter
-value c). Under A1, the G₁ pick at this ply, in expectation
+### 6.3 Theorem 1 (v2) — the one-step ORACLE equivalence
+*Statement.* Fix ANY position p with legal set L (|L| = k) and
+ANY counter value c — both GIVEN, not generated by the table.
+Under A1, the G₁ one-step pick from (p, c), in expectation
 over the seed, is UNIFORM over L.
-*Proof.* The G₁ pick is P_k[c mod k] (the rank) — a function of
-the row P_k alone at this ply. Under A1, P_k is a uniform
-random permutation, and c mod k is a FIXED residue (the
-trajectory prefix is given). By Lemma 1, P_k[c mod k] is uniform
-on {0..k-1}; through the canonical order (a bijection) the pick
-is uniform over L. This is EXACTLY the G₀ conditional pick
-distribution (a fresh uniform draw over L). ∎
-*Remark (the scope, stated honestly).* Theorem 1 is a statement
-about the ONE-STEP conditional kernel, seed-averaged. It says:
-"at every ply, the G₁ pick has the same conditional law as the
-G₀ pick." It does NOT say the G₁ trajectory is a G₀-sampled
-trajectory (it is a deterministic orbit of the seed) — the
-corpus-level consequence is §6.4.
+*Proof.* The pick is the l_(P_k[c mod k])-th square: c mod k
+is a FIXED residue (c is given), and P_k is a uniform random
+permutation (A1 — only this row is involved; NOTHING is
+generated, so there is nothing to condition on). By Lemma 1,
+P_k[c mod k] is uniform on {0..k-1}; through the canonical
+order (a bijection) the pick is uniform over L — exactly the
+G₀ one-step draw. ∎
+*This is the design's semantic statement.* "The table is the
+seeded shuffle": one step at a time, from any given state, the
+G₁ pick (seed-averaged) is a uniform pick over the legal set.
 
-### 6.4 Theorem 2 — the corpus marginals and joint EXPECTATIONS
-*Statement.* For N = 1e6 (or any N ≫ 64) slots with phases
-c_g(0) = g, the G₁ corpus marginal F_v (seed-averaged) equals
-the G₀ expectation E₀[F_v] EXACTLY up to the O(k/N) phase
-discrepancy; the same holds for the joint F_uv AT THE LEVEL OF
-EXPECTATIONS.
-*Proof sketch (the three steps a reviewer should check).*
-1. **Per-ply exchange.** The corpus frequency is an average of
-   per-ply indicators I((g, t) picks a code in a set S).
-   Averaging the seed expectation OVER the corpus and
-   exchanging the two averages (linearity — no independence
-   needed at this step):
-   E_seed F^{G₁} = (1/|corpus|) Σ_{(g,t)} E_seed[I(g,t)].
-2. **The seed expectation per ply.** E_seed[I(g,t)] =
-   E_seed[I | trajectory prefix of (g,t)] by the tower property
-   — and by Theorem 1 the conditional pick law is uniform over
-   L, so E_seed[I | prefix] = P(uniform pick ∈ S | prefix) =
-   the SAME quantity computed under G₀. The summands are
-   therefore IDENTICAL to the G₀ ones.
-3. **The trajectory ensemble.** Under G₀ the sum Σ_{(g,t)} runs
-   over a RANDOM trajectory ensemble; under G₁ it runs over the
-   N DETERMINISTIC slot orbits. The equality of the per-ply
-   conditional laws (step 2) plus the balanced design of the
-   slot phases (Lemma 2: at any decision the N phases g + m_g
-   (mod k) are balanced up to a discrepancy ≤ k, hence the
-   cross-sectional rank counts are balanced up to ≤ k out of
-   N — the O(k/N) term) gives the equality up to O(k/N).
-   For the JOINT, the same argument applies to the pair
-   (P_k[a], P_{k'}[b]) with a = c mod k, b = c mod k': under A1
-   (independent rows for k ≠ k'; for k = k' the pair of values
-   of ONE uniform permutation at two FIXED distinct indices is
-   a uniform ordered DISTINCT pair) the seed-averaged pair law
-   is a KNOWN explicit distribution — and its expectation over
-   the position-weighted indicators equals the G₀ joint
-   expectation at the level of first moments (the expectation
-   of a product of indicators factorizes through the marginals
-   when the two indicators live on DIFFERENT positions — which
-   they do: a joint pair is two different plies). ∎
-*The O(k/N) bound, concretely.* The worst cross-sectional rank
-imbalance at any decision is ≤ k slots out of N (the phase
-discrepancy of g + m_g (mod k), m_g = the move-ply index of the
-decision) — for N = 1e6, k ≤ 64: ≤ 6.4e-5 of the corpus mass.
-Negligible against the O(√(p/N)) sampling term by ~3 orders of
-magnitude.
+**The circularity of the v1 statement (first review, point
+2.1 — CONFIRMED and resolved).** v1 stated Theorem 1
+CONDITIONED ON THE TRAJECTORY PREFIX, with the proof "the
+prefix fixes c mod k (a number); P_k is uniform; Lemma 1
+applies." The reviewer correctly flagged the circularity: the
+prefix is a deterministic function of the table — conditioning
+on it restricts the admissible realizations of P_k. The
+precise mechanism, stated here for the record: at a width-k
+ply with counter residue m = c mod k, let R be the set of
+residues c_s mod k CONSUMED by earlier same-width picks.
+- If m ∈ R: the current entry P_k[m] was already used — the
+  pick is DETERMINISTIC (the rank played earlier), not
+  uniform.
+- If m ∉ R: the entry is unconsumed; P_k[m] is uniform over
+  the k − |R| unconsumed VALUES (the consumed entries took
+  |R| distinct values — a permutation), not over all k.
+So the TRUE conditional kernel (given the prefix) is "uniform
+over the unconsumed entries, deterministic on reuse" — a
+deviation from the G₀ uniform law that is exactly the
+path-coupling residual. The v1 proof is invalid as stated.
+
+**Why the review's proposed replacement is not a drop-in fix
+(the author's response, §10).** The review proposes the
+UNCONDITIONAL statement: "the marginal distribution of the
+G₁ pick, averaged over the seed WITHOUT conditioning on the
+prefix, is uniform over L." This does not close the gap:
+(i) at a fixed ply INDEX t, the legal set L_t is itself a
+random variable (different seeds generate different
+positions at ply t) — "uniform over L" is not well-defined
+without specifying which L; (ii) the review's own rescue
+(steps 1-6) stops at "BUT c IS NOT INDEPENDENT OF P_k. This
+is the core issue" — without resolving it: c_t = c(0) + (the
+number of non-pass plies before t) is a function of the
+trajectory, hence of the TABLE, and the marginal uniformity
+of P_k does NOT imply the marginal uniformity of
+P_k[c mod k] for a table-DEPENDENT c (counterexample: a
+table-dependent index I(P_k) can make P_k[I] anything — for
+k = 2, I = 1{P₂ = [1,0]} makes P₂[I] identically 0: a point
+mass, not a uniform). The trajectory-generated index is
+table-dependent, so the uniformity of P_k[c mod k] is NOT
+established by the marginal uniformity of P_k — it is the
+gated question. The ORACLE statement above is the valid
+replacement: it keeps the full strength of Lemma 1 (no
+conditioning, no generation) at the cost of taking (p, c) as
+inputs — which is exactly the level at which the generator's
+semantics are defined.
+*Consequence (the v2 reclassification).* Because the per-ply
+decision contexts (L_t, c_t) along a GENERATED trajectory are
+table-dependent, the oracle uniformity does NOT lift to a
+corpus-level expectation equality: Theorem 2 (v2) states what
+remains proven and moves the rest to the gate.
+
+### 6.4 Theorem 2 (v2) — what the corpus-level claims are
+*Statement (v2, after the first review's point 2.2 —
+ACCEPTED).* The v1 claim "the G₁ corpus marginals AND joint
+expectations equal the G₀ expectations exactly up to O(k/N)"
+is RECLASSIFIED. The v1 step-3 argument ("the pair
+factorizes through the marginals because the two indicators
+live on different positions") is SUPERSEDED: the observable
+codes are functions of the GENERATED positions (the position
+at ply t is shaped by the picks at plies < t — values of the
+table), so the seed-averaged corpus frequency is a statement
+about the seed-averaged G₁ POSITION-ENSEMBLE distribution,
+which the oracle Theorem 1 (a local, one-step statement
+about the pick at a GIVEN state) does not establish. The
+review's point 2.2 was stated for the joints; the SAME gap
+applies to the MARGINALS (v1 classified both as PROVEN —
+both are reclassified here).
+- **PROVEN (the phase combinatorics).** The slot-phase
+  cross-section: at any decision, the phases (g + m_g) mod k
+  over the N slots are balanced up to a discrepancy of at
+  most max_g m_g − min_g m_g (the spread of the move-ply
+  indices m_g = the number of real moves played before the
+  decision), which is ≤ 64 (a game plays at most 64 real
+  moves) — hence the phase imbalance is ≤ 64 slots out of N:
+  6.4e-5 of the corpus mass at N = 1e6. (v1 wrote "≤ k"; the
+  review's sharper derivation — the m_g spread, bounded by
+  64 — is adopted. This bound is purely COMBINATORIAL: it
+  concerns the slot phases, not the table.)
+- **NOT proven exactly (the path coupling) → GATED.** The
+  corpus-level equality E_seed[F^{G₁}] = E₀[F] (marginals
+  AND joints) is not bounded in closed form here: the
+  per-ply deviation is the entry-consumption effect (§6.3:
+  "uniform over the unconsumed entries" vs "uniform over all
+  entries", plus the deterministic-reuse plies), accumulated
+  through the trajectory-shaping dependence. Plausibility
+  (NOT a proof — the reviewer should check whether it is
+  sound): the local semantics are identical (oracle
+  Theorem 1), so the AVERAGED path through the position
+  graph follows the same transition weights as G₀ in
+  expectation; the N slot orbits (N = 1e6) are large, so the
+  per-seed corpus statistics concentrate around the seed
+  average; the deviation, if any, is the entry-consumption
+  effect at corpus scale — and it is MEASURED, not argued:
+  the T6 gate (tests 2-6, §7) requires the G₁ micro-corpus
+  (1e4) to be INDISTINGUISHABLE from a same-scale G₀
+  micro-corpus at G₀'s own noise level — a systematic
+  G₁-vs-G₀ difference above ~G₀'s 1e4 noise (~1e-2 per cell)
+  is detected; if the gate passes, the bias at 1e7 (where
+  G₀'s own noise is ~1e-3) is a fortiori subdominant.
 
 ### 6.5 The joint-coupling residual (the honest part, E3b)
 Theorem 2 covers the joint at the level of EXPECTATIONS. What
@@ -342,31 +442,38 @@ uniform ordered DISTINCT pair), whereas G₀'s two independent
 draws CAN coincide (probability 1/k). The total-variation
 distance between the two pair laws is 1/k (large at small k:
 1/2 at k = 2). **Does this bias the observable joint
-frequencies?** Generally NO, and here is why: the two picks act
-on TWO DIFFERENT legal sets (the position changed between the
-two plies) and the joint codes are functions of TWO DIFFERENT
-features — the "rank inequality" constraint couples coordinates
-that the observable does not see as the same coordinate. The
-induced perturbation of F_uv is therefore a SECOND-ORDER
-effect (it redistributes mass within the joint table without
-moving the marginals). **But "generally second-order" is not a
-theorem** — it depends on the specific feature geometry — so
-the design does not rest on it: the T6 gate (§7) MEASURES the
-G₁-vs-G₀ joint discrepancy at 1e4 scale (where G₀ is cheap to
-run) with a threshold calibrated on G₀'s own noise, and the
-fallback (a second independent counter) is pre-specified. This
-is the only part of the equivalence that is TESTED rather than
+frequencies?** The rank-level coupling must propagate through
+the two-step mapping (ranks → legal sets → feature codes) to
+reach the observable. The two picks act on TWO DIFFERENT
+legal sets (the position changed between the two plies) and
+the joint codes are functions of TWO DIFFERENT features —
+typically this ATTENUATES the effect (the "rank inequality"
+constraint couples coordinates the observable does not see as
+the same coordinate). But the degree of attenuation — or, in
+principle, AMPLIFICATION (a feature that collapses distinct
+legal squares to the same configuration code, e.g. an edge
+pattern that does not distinguish the board's quadrants,
+could CONCENTRATE the rank-inequality constraint onto the
+observed codes) — DEPENDS ON THE FEATURE GEOMETRY and is not
+bounded in general (first review, point 2.4 — adopted). Hence
+the empirical gate: the T6 tests (3-5, §7) MEASURE the
+G₁-vs-G₀ joint discrepancy at 1e4 scale (where G₀ is cheap
+to run), including a SAME-WIDTH-specific test (the risky
+case) and a SMALL-K focus (k ≤ 4 — where TV = 1/k is
+largest), with a threshold calibrated on G₀'s own noise; the
+fallback (a second independent counter) is pre-specified.
+This is part of the equivalence that is TESTED rather than
 PROVEN, and the document states that plainly.
 
-### 6.6 Summary of what is proven vs tested
+### 6.6 Summary of what is proven vs tested (v2)
 | claim | status |
 |---|---|
-| one-step conditional pick law = G₀'s (seed-averaged, A1) | **PROVEN** (Theorem 1, Lemma 1) |
-| marginals: E_seed F^{G₁} = E₀ F up to O(k/N) ≤ 6.4e-5 | **PROVEN** (Theorem 2, Lemma 2) |
-| joint EXPECTATIONS: same | **PROVEN** (Theorem 2, step 3) |
+| one-step ORACLE pick law = G₀'s (given (position, counter); seed-averaged, A1) | **PROVEN** (Theorem 1 v2, Lemma 1) |
+| phase combinatorics: slot-phase imbalance ≤ 64/N (≤ 6.4e-5 @ N = 1e6) | **PROVEN** (Lemma 2 + the m_g-spread bound, §6.4) |
+| corpus-level MARGINALS: E_seed F^{G₁} = E₀ F | **NOT proven exactly** (the path coupling — the oracle uniformity does not lift to the generated ensemble; v1 called this PROVEN) — the phase component proven; the rest **measured by the T6 gate** (test 2) + pre-specified fallback (§6.4, §7) |
+| corpus-level joint EXPECTATIONS: same | **NOT proven exactly** (the path coupling + the same-width pair law; v1 called this PROVEN) — **measured by the T6 gate** (tests 3-5, incl. the same-width and small-k focus) + pre-specified fallback (§6.4-§6.5, §7) |
 | sampling error = G₀-scale O(√(p/N)) | **PROVEN as an order statement** (§5-E2, §4.4) |
-| joint VARIANCE structure (the same-width rank coupling, TV = 1/k) | **NOT proven** — measured by the T6 gate + pre-specified fallback (§6.5, §7) |
-| A1 (the table ≈ uniform random permutations) | **assumed** — MT19937 quality + T3 bit-exact golden + T6 empirical re-check |
+| A1 (the table ≈ uniform random permutations) | **assumed** — MT19937 quality + T3 bit-exact golden + T6 empirical re-check (test 1) |
 
 ---
 
@@ -395,7 +502,25 @@ and A1. Design (to be executed at T6, BEFORE any 1e7 corpus):
    1e4 the 1296×1296 table has df ≈ 1.7e6 — the chi-square is
    in the asymptotic regime (critical value ≈ 2√df + a few
    sigma).
-5. **FAIL → the fallback.** A second independent counter
+5. **Test 4 (the same-width focus, E3b — first review
+   suggestion, ADOPTED).** Extract ONLY the joint pairs where
+   the two plies have the SAME width k (the risky case: the
+   shared-row consumption, TV = 1/k at the rank level); apply
+   a TV (total variation) and a KL statistic on the joint
+   table of the two features, with a G₀-vs-G₀ bootstrap
+   threshold. More sensitive than the full-table chi-square
+   for the specific coupling under test.
+6. **Test 5 (the small-k focus — first review suggestion,
+   ADOPTED).** k = 2 has TV = 1/2 — the largest effect:
+   verify specifically that the observable codes at small-k
+   decisions (early game, tight positions) are within G₀
+   noise.
+7. **Test 6 (the phase-continuity scan — optional, first
+   review suggestion).** 3-5 different counter0 phase
+   initializations (e.g. offsets 0, 7, 4000001, ...): the
+   frequency tables must stay within G₀ noise of each other
+   (no phase-locked artifact).
+8. **FAIL → the fallback.** A second independent counter
    (c'_g, a different phase, e.g. c'_g(0) = g + a large
    co-prime offset) for the "second pick stream": the same-
    width pair then draws from two independent rank walks;
@@ -412,45 +537,112 @@ and A1. Design (to be executed at T6, BEFORE any 1e7 corpus):
 | hot loop | PRNG call per (game, ply) — the bottleneck; numba-ification = duplicate the MT implementation | pure integer array ops — the numba tier |
 | measured precedent | Roberto's C generator: hours (5X2COR: days) | target: the memory-bandwidth limit of the position arrays |
 | reproducibility | deterministic PRNG (reproducible) | deterministic table + counters (reproducible, AND the setup does not scale with N) |
-| statistical content | the reference iid semantics | equivalent in E1-E3 (§5-§6), residual gated by §7 |
+| statistical content | the reference iid semantics | the one-step oracle equivalence PROVEN (the local semantics are identical); the corpus-level equivalence (marginals + joints) verified by the T6 gate against a same-scale G₀ reference (§5-§7, v2) |
 
 ---
 
-## 9. What the peer reviewer should check
+## 9. What the (second) peer reviewer should check (v2)
 
-1. **Theorem 1 (§6.3).** Is the "condition on the trajectory
-   prefix; P_k uniform ⟹ the pick uniform" argument valid? (The
-   subtle point: the prefix is a deterministic function of the
-   table — conditioning on it and then averaging over the
-   table: is there a circularity?) The intended answer: the
-   seed-averaged expectation E_seed[· | prefix] is well defined
-   because the prefix fixes c mod k (a number), and the
-   remaining seed dependence enters only through P_k — Lemma 1
-   applies to that residual. Check that this is legitimate.
-2. **Theorem 2 step 3 (§6.4).** The exchange of the seed
-   expectation and the corpus average, and the O(k/N) phase
-   bound — is the discrepancy bound (≤ k out of N) correct for
-   the m_g = move-ply-index offset?
-3. **§6.5.** Is the "the same-width rank coupling is second-
-   order at the CODE level" argument plausible? Is the TV = 1/k
-   computation correct? Is the gate design (§7) the right
-   instrument for it?
+1. **Theorem 1 v2 (§6.3).** Is the ORACLE statement (given
+   (position, counter); seed-averaged; A1) the right semantic
+   level for the design? Is the circularity analysis correct
+   (the prefix conditions the table; the true conditional
+   kernel is "uniform over the unconsumed entries,
+   deterministic on reuse")? And is the author's rejection of
+   the first review's unconditional-marginal replacement
+   correct (L_t is a random variable at a fixed index — the
+   statement is not well-defined without conditioning; c is
+   table-dependent; the marginal uniformity of P_k does not
+   imply the uniformity of P_k[c mod k] for a table-dependent
+   c — the k = 2, I = 1{P₂ = [1,0]} counterexample)?
+2. **The reclassification (§6.4, §6.6).** Is it correct that
+   the corpus-level expectation equality (marginals AND
+   joints) is NOT proven exactly in the generated regime and
+   must be gated? Is the plausibility argument sound (the
+   identical local semantics + the large slot orbits)? Does
+   any argument RE-PROVE it? (The author is explicitly
+   inviting one — it would strengthen the design.)
+3. **The design requirement (§5).** Do the I-017 statistics
+   (SU, eta²/omega², the adherence) tolerate the path-
+   coupling deviation at the level the gate bounds (G₀ noise
+   at 1e4, extrapolated to 1e7)? Is the gate's threshold
+   design (G₀-vs-G₀ bootstraps) the sufficient yardstick?
 4. **A1.** Is "MT19937 permutations ≈ uniform random
-   permutations" an acceptable assumption for this use (a 2016-
-   draw setup, k ≤ 64 rows)?
-5. **The scope discipline.** Does the document ever claim more
-   than E1-E3 (i.e., does it ever pretend G₁'s corpus IS a G₀
-   random corpus, rather than a balanced quadrature of the G₀
-   expectation)?
+   permutations" an acceptable assumption for this use (a
+   2016-draw setup, k ≤ 64 rows)?
+5. **The gate (tests 1-6, §7).** Is the test set adequate
+   (the same-width and small-k focus, the phase-continuity
+   scan) and the fallback (the second independent counter)
+   mechanically correct?
+6. **The scope discipline (v2).** Does the document now claim
+   EXACTLY what is proven (the oracle kernel, the lemmas, the
+   phase combinatorics, the error order) and no more?
 
-> **Bottom line for Roberto.** The design is: the marginals are
-> equivalent EXACTLY (proven), the joint expectations EXACTLY
-> (proven), the sampling noise is G₀'s own noise (the corpus
-> size does the work, §4.4), and the one structural residual
-> (the same-width pair coupling) is small by construction,
-> measured by a gate at 1e4 scale BEFORE the expensive build,
-> with a pre-specified fallback. If the external review
-> confirms §6 and approves §7, the T5 wave engine is built on
-> G₁. If the review finds a hole in Theorem 2 step 3 or the
-> §6.5 argument, we fix the design (the fallbacks are cheap)
-> BEFORE writing the numba.
+> **Bottom line for Roberto (v2, post first review).** The
+> design PASSES the first review with corrections. What is
+> PROVEN: the one-step oracle equivalence (from any given
+> state, the seed-averaged G₁ pick is a uniform pick — the
+> local semantics are exactly G₀'s), the lemmas, the phase
+> combinatorics (≤ 6.4e-5), the sampling-error order. What is
+> VERIFIED (not proven): the corpus-level equivalence
+> (marginals AND joints) against a same-scale G₀ reference at
+> the 1e4 T6 gate, with the same-width and small-k focus
+> tests and the pre-specified fallback. The design
+> requirement of I-017 — the ideal population random-play-
+> like within the measurement precision — is exactly what
+> the gate verifies BEFORE the expensive build. If the second
+> review confirms the v2 §6 (or finds an argument that
+> re-proves the corpus-level equality — invited, §9.2), the
+> T5 wave engine is built on G₁.
+
+---
+
+## 10. Review history and the author's response (v2)
+
+**First review (2026-09-11, DeepSeek V4 Pro — the document at
+notes/peer_review_random_permutation_table.md).** Verdict:
+THE DESIGN PASSES, with one critical correction (the
+Theorem 1 circularity), one material correction (the joint-
+expectation overclaim), and minor fixes.
+
+**The author's response (this v2):**
+- **2.1 (the circularity) — AGREED and fixed, but NOT with
+  the review's proposed replacement.** The circularity is
+  real (the prefix conditions the table); the precise
+  mechanism is now stated in §6.3 (the entry-consumption:
+  "uniform over the unconsumed entries, deterministic on
+  reuse"). The review's replacement statement (the
+  unconditional marginal) is not valid as a drop-in fix: at a
+  fixed ply index the legal set is a random variable (the
+  statement is not well-defined without conditioning), and
+  the review's own rescue stops at "c is not independent of
+  P_k — this is the core issue" without resolving it (the
+  marginal uniformity of P_k does not imply the uniformity of
+  P_k[c mod k] for a table-dependent c; the k = 2
+  counterexample in §6.3). The ORACLE statement (given
+  (position, counter), nothing generated) is the valid
+  replacement: full Lemma 1 strength, no conditioning, at the
+  level where the generator's semantics are defined.
+- **2.2 (the joint overclaim) — AGREED, and EXTENDED.** The
+  step-3 factorization does not hold for the generated
+  positions (the codes are functions of table-dependent
+  positions) — and the SAME applies to the marginals, which
+  v1 also classified as PROVEN. Reclassified: the corpus-
+  level equality (marginals AND joints) is GATED, not
+  proven (§6.4, §6.6).
+- **2.3 (the O(k/N) derivation) — AGREED; the review's
+  sharper form (the m_g spread, ≤ 64) is adopted in §6.4.**
+- **2.4 (the TV = 1/k nuance) — AGREED; the "generally
+  second-order" wording is replaced by the geometry-
+  dependent attenuation/amplification statement in §6.5.**
+- **2.5 (the same-width test) — AGREED; adopted as T6 test
+  4, plus test 5 (small-k) and test 6 (phase continuity),
+  the review's suggestions.**
+- **A1 (review §4) — agreed as assessed.**
+- **The verdict (PASS, build on G₁) — CONFIRMED**, with the
+  understanding that the empirical gate now carries the
+  corpus-level claims (marginals + joints), not only the
+  residual: the design requirement of I-017 is "random-play-
+  like within the measurement precision", and the gate
+  verifies exactly that, at a scale where G₀ is a faithful
+  reference, BEFORE the expensive build.
