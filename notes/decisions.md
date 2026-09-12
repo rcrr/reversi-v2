@@ -482,3 +482,84 @@ D-167 | 2026-09-11 | ODP-9 document v3.1 — the PRE-THIRD-
         is past diminishing returns; the real granite test
         is the T6 gate itself (the 1e6 design gate, then the
         1e7 build gate).
+D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the
+        THIRD peer review (GLM 5.3, notes/peer_review_glm_
+        random_permutation_table.md — verdict: PASS WITH TWO
+        BLOCKING AMENDMENTS + MINORS; author's response:
+        FULL ACCEPTANCE — nothing rejected, no questions).
+        GLM re-derived independently BEFORE reading the
+        prior reviews (anti-capture), confirmed the whole
+        proven core, and ran NUMERICAL verification of the
+        v3.1 quantitative layer — which the two prior
+        reviews could not have seen (v3.1, D-167, landed
+        AFTER them). (1) Amendment A (BLOCKING) ADOPTED —
+        the author's error: the v3.1 D0 noise formula
+        0.4*sqrt(2S/N) illegally substituted sqrt(sum
+        p(1-p)) for sum sqrt(p(1-p)) (subadditivity — the
+        single-effective-cell lower bound), understating
+        the true E[TV0] ~ S_half/sqrt(pi*N) by
+        S_half/sqrt(S): 36x for a uniform 1296-cell table
+        (N = 4e7: true 3.21e-3, v3.1 8.9e-5; GLM's
+        simulation 3.20e-3; the author re-verified with an
+        INDEPENDENT simulation before adopting:
+        3.19e-3..3.31e-3 vs theory 3.21e-3 — confirmed).
+        The v3.1 "verified numerically" figures were the
+        formula EVALUATING ITSELF — the same epistemic sin
+        the v1 process caught in a theorem, recurred in a
+        number. Adopted consequences: the TABLE-AWARE
+        absolute cap (delta*_unit = max(2e-3,
+        q95(D0_unit)) — the v3.1 unconditional cap was
+        UNPASSABLE BY CONSTRUCTION: a perfect G0 twin, D
+        ~ 3.2e-3 at 1e6 pooled, would fail it — "a gate
+        that spuriously fails a perfect replica is worse
+        than no gate"); the PARAMETRIC bootstrap threshold
+        (mean + 1.645*sd — the TV's CV is ~2%, the 20-
+        sample maximum ±30-40%); the PER-POPULATION sqrt(N)
+        rescaling (pooled: games*40, per-ec strata:
+        games); the corrected CERTIFICATION SCHEDULE (1e6:
+        ~3.3e-3 pooled / ~2.1e-2 per-stratum for uniform-
+        like broad tables; the 1e7 BUILD gate: pooled q95
+        ~ 1.1e-3, below delta* — the absolute cap ACTIVE
+        there); the corrected PROPAGATION bound (|dH| ≤
+        h2(TV) + TV*log2(C-1) ~ 0.041 bits at TV = 2e-3,
+        C = 1296 — v3.1 "~2e-2" ~2x low; the 1e6 pooled
+        certification level 3.3e-3 bounds it at ~0.07 bits
+        — ≤ ~7% relative on O(1) information quantities:
+        SUFFICIENT for I-017; the 1e7 build tightens to
+        ~0.025). (2) Amendment B (BLOCKING) ADOPTED: the
+        v2/v3 phase "PROVEN" tag is INVALID — the
+        counterexample m_g = (r-g) mod k (spread ≤ k-1 ≤
+        63) makes ALL slots' phases = r (a point mass,
+        imbalance N(1-1/k) vs the claimed ≤ 64; the author
+        verified: k = 2, m_g = g%2 → one distinct phase
+        across 1e6 slots); deeper: m_g is table/phase-
+        dependent (the pass feedback loop: phase → picks →
+        trajectory → passes → m_g → phase) — the phase
+        term is a PATH-COUPLED channel, and the v2 "purely
+        combinatorial" label re-opened, in miniature, the
+        hole v2 closed. Demoted to GATED + measured by the
+        new per-width PHASE-OCCUPANCY SCAN (gate test 1:
+        the cross-slot histogram of (g + m_g) mod k vs
+        uniform, chi-square k-1 df, Bonferroni over 64
+        widths). (3) MINORS ADOPTED: the section 4.4
+        garbled cell (4.7e-4) + the per-cell vs max-cell
+        clause (the 6-sigma framing is PER-CELL; the max-
+        cell deviation exceeds it); the per-stratum pass-
+        counting pin (a pass contributes two same-ec
+        positions — identical board, sides swapped; the
+        dedup rule must be IDENTICAL for G0 and G1 — the
+        choice is a T6 implementation detail, the identity
+        of the rule is pinned in section 1.5); test 7's
+        blind-band math recomputed on the corrected
+        numbers (the 1e6 detection floor q95 ~ 3.3e-3
+        pooled; the 1e7 pooled floor ~ 1.1e-3; the band
+        between them is closed by the build gate). (4) NO
+        QUESTIONS for the reviewer: both blocking claims
+        were independently re-verified by simulation
+        before adoption. (5) The PRE-DECLARED FINAL ROUND
+        (D-167) applies: the valid amendments are folded
+        in and the document FREEZES at v4 — FINAL. The T5
+        wave engine is built on G1 with the v4 gate as the
+        T6 instrument (the 1e6 design gate before T5; the
+        1e7 build gate at build time; the corpus is
+        accepted only after BOTH pass).

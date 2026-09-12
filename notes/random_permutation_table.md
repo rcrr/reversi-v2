@@ -5,24 +5,28 @@
 > written 2026-09-11 by Nia for Roberto's review and for EXTERNAL
 > PEER REVIEW (DeepSeek V4 Pro / GLM 5.3 — the requested
 > second opinion on §6 and §7).
-> **Status: REVISED (v3.1, 2026-09-11 — after TWO peer
-> reviews: the first, DeepSeek V4 Pro, at notes/
-> peer_review_random_permutation_table.md (v1+v2 pass; the
-> author's response in §10); the second, Kimi K3, at notes/
-> peer_review_kimi_random_permutation_table.md (PASS WITH
-> THREE REQUIRED AMENDMENTS — all three ADOPTED in v3,
-> D-166: the arrest-stratified marginal comparison + the
-> sampling-unit pin, the focused-tests-primary gate
-> re-ordering, and the ABSOLUTE-bias bound that strikes the
-> "a fortiori subdominant" extrapolation). v3.1 (D-167,
-> PRE-THIRD-REVIEW hardening, before the requested GLM
-> review): the delta* clarification (it is on the TV scalar;
-> the quantified D₀ noise — ≈ 1e-4 at 1e6, ≈ 3e-5 at 1e7;
-> the bootstrap is the normally-binding criterion, delta*
-> the outer cap; the a-priori judgment + re-examination
-> clause), the bootstrap design (20 pairs at 1e5, scaled by
-> √10 — ~2.5 h), and the 1e7 BUILD GATE (test 7, the
-> dual-scale certification that closes the 1e6 blind band). The T5 wave engine must NOT be
+> **Status: FINAL (v4, 2026-09-12 — after THREE independent
+> reviews: DeepSeek V4 Pro (notes/peer_review_random_
+> permutation_table.md — v1+v2 pass; the author's response
+> in §10), Kimi K3 (notes/peer_review_kimi_random_
+> permutation_table.md — PASS WITH THREE REQUIRED AMENDMENTS,
+> all ADOPTED in v3, D-166), and GLM 5.3 (notes/
+> peer_review_glm_random_permutation_table.md — PASS WITH
+> TWO BLOCKING AMENDMENTS + MINORS, ALL ADOPTED in v4,
+> D-168). The GLM review caught what the v3.1 hardening
+> (D-167, landed AFTER the two prior reviews) introduced:
+> the D₀ noise formula was wrong (the Σ√x ≥ √Σx error —
+> understated 6-36×, "verified" by the formula evaluating
+> itself) and the §6.4 phase "PROVEN" tag was invalid
+> (explicit counterexample + the m_g feedback loop). v4
+> replaces the calibration with the MEASURED, TABLE-AWARE
+> one (E[TV₀] ≈ S½/√(πN), S½ per comparison unit; the
+> table-aware absolute cap; the parametric bootstrap
+> threshold; the corrected certification schedule), demotes
+> the phase term to the gated residual with its direct
+> measurement (the phase-occupancy scan), and folds the
+> four minor fixes. THE PRE-DECLARED FINAL ROUND APPLIES:
+> the document is FROZEN for T5. The T5 wave engine must NOT be
 > built on this design until the T6 gate (§7, as amended in
 > v3) is approved and executed.
 > Companion documents:
@@ -86,7 +90,17 @@ Requirements that fix the design:
    move), so the mixture weights are determined by the
    per-game pass distribution — which is why the gate
    compares per-ec-level, stratum by stratum, and compares
-   the pass frequencies directly (§7, test 2).
+   the pass frequencies directly (§7, test 2). The per-
+   STRATUM COUNTING RULE is pinned here for the gate
+   implementation (third review, minor 4): a game with a
+   pass contributes two positions at the SAME ec (identical
+   board, sides swapped) — whether these are duplicates or
+   distinct samples depends on whether the sub-variable
+   codes distinguish the sides; the gate must apply the
+   counting rule (dedup or not) IDENTICALLY for G₀ and G₁
+   (the choice itself is a T6 implementation detail — what
+   is pinned is the identity of the rule between the two
+   generators).
 
 The question this document answers: **can we replace "one
 uniform PRNG draw per (game, ply)" with a deterministic,
@@ -203,9 +217,13 @@ CELLS is what buying more samples actually buys:
 | 64 | 7.4e-4 | 7.4e-3 |
 | 1,296 | 1.7e-4 | 1.7e-3 |
 | 4,096 | 9.4e-5 | 9.4e-4 |
-| 16,384 | 4.7e-5 | 4.7e-3·10⁻¹ |
+| 16,384 | 4.7e-5 | 4.7e-4 |
 
-(The 1e6 column was verified numerically; the √p law is exact.)
+(The 1e6 column was verified numerically; the √p law is
+exact. The 6σ framing is PER-CELL: the MAX-cell deviation
+across a C-cell table exceeds the single-cell 6σ — the
+multiple-comparisons inflation of the extreme; this table
+is a per-cell statement, not a max-cell statement.)
 This is precisely why the OPEN pattern set (bigger patterns,
 sparser cells, joint tables) pushes the corpus to 1e7-1e9 —
 and why the generator's per-sample cost must be the integer
@@ -254,8 +272,11 @@ only in these senses:**
   not of the generator.)
 - **(E3) Bias / systematic deviation (PARTLY PROVEN, PARTLY
   TESTED).** A fixed-seed G₁ corpus can deviate from E₀ by:
-  (a) a **phase-discrepancy term**, provably O(k/N) — bounded
-  by 64/1e6 = 6.4e-5 for N = 1e6 (§6.2, Lemma 2) — negligible;
+  (a) a **phase-discrepancy term** — the v2/v3 "provably
+  O(k/N) ≤ 6.4e-5" claim was FALSIFIED by counterexample
+  and by the m_g feedback loop (third review Amendment B):
+  demoted to the GATED residual, measured directly by the
+  gate test 1 phase-occupancy scan (§6.4);
   (b) a **path-coupling term** (v2: this is now the MAIN
   unproven residual, for the marginals AND the joints — the
   (E1-corpus) gap, §6.4): along a GENERATED trajectory the
@@ -301,42 +322,77 @@ bound is on the **TV (total variation) of the frequency
 tables** (the ½·L1 discrepancy over all cells — the scalar
 the downstream information statistics consume), and is
 **delta* = 2e-3, fixed a priori, in ABSOLUTE terms.**
-Quantified (v3.1 — computed, not asserted):
-- the D₀ noise (the TV between two i.i.d. G₀ corpora,
-  E[TV] ≈ 0.4·√(2·S/N), S = Σp(1-p), N ≈ games × 40
-  position-samples): ≈ **1e-4 at 1e6** (8.9e-5 near-uniform,
-  4.9e-5 concentrated) and ≈ **3e-5 at 1e7**.
-- hence delta* = 2e-3 sits ≈ 20× ABOVE the 1e6 D₀ noise (≈
-  70× the 1e7 noise): the ABSOLUTE criterion is the OUTER
-  CAP (it guards against a miscalibrated bootstrap); the
-  BOOTSTRAP-RELATIVE criterion (D below the 95th percentile
-  of D₀, §7 — expected ≈ 1.5e-4 at 1e6) is normally the
-  BINDING one. The gate effectively demands G₁-vs-G₀ be no
-  worse than two random G₀ corpora are to each other, at a
-  scale where that is resolvable.
-- downstream propagation (worst case, C = 1296 cells): a
-  2e-3 TV perturbation bounds the information-quantity
-  perturbation at ≤ ~2e-2 (the TV·(1 + log C) bound),
-  typically a few × 1e-3 — a few-percent relative on O(1)
-  quantities, negligible against the 1e-1-scale effect-size
-  distinctions the campaign draws.
-- delta* is an A PRIORI JUDGMENT (1/5 of the ~1e-2 smallest
-  effect size the campaign will consider meaningful); if
-  T7+ measures the actual effect sizes and they are much
-  smaller, the bound is re-examined — by then the corpus
-  exists and can be re-baselined.
-The bound is ABSOLUTE, not "relative to the gate-scale
-noise": a SYSTEMATIC bias does not average down with N the
-way Monte Carlo noise does. This is why the v3.1 gate runs
-at 1e6 (where both criteria are RESOLVED quantities, not
-hopes) with the G₀-vs-G₀ bootstrap calibration, AND
-re-certifies at the 1e7 BUILD (test 7) — closing the band
-where a systematic bias above the 1e6 detection floor
-(~1.5e-4) yet below delta* could otherwise pass the 1e6
-design gate while being 5-60× the 1e7 noise. It is why the
-reclassification (E1-corpus: proven → gated) does NOT
-weaken the design: the gate, as amended, is a real BOUND on
-the corpus-level claims, not a ritual.
+Quantified (v4 — the v3.1 figures were WRONG and are
+replaced. The v3.1 formula 0.4·√(2S/N) illegally pulled the
+sum INSIDE the square root (Σ√x ≥ √Σx — subadditivity),
+yielding the single-effective-cell LOWER bound; the correct
+first-order formula is **E[TV₀] ≈ S½/√(πN)** with
+**S½ = Σ_cells √(p(1-p))**, measurable from the frequency
+tables per (sub-variable × stratum) — one pass, no extra
+corpus. The v3.1 "verified numerically" figures were the
+formula EVALUATING ITSELF. Third review (GLM 5.3,
+Amendment A); re-verified by independent simulation before
+adoption (uniform C = 1296, N = 4e7: sim
+3.19e-3..3.31e-3, theory 3.21e-3, v3.1 formula 8.9e-5 — a
+36× understatement; per-ec stratum N = 1e6: sim
+1.99e-2..2.08e-2, theory 2.03e-2):
+- the D₀ noise (the TV between two i.i.d. G₀ corpora): for
+  a uniform-like 1296-cell table (S½ ≈ 36): ≈ **3.2e-3 at
+  1e6 POOLED** (N ≈ games×40), ≈ **2.0e-2 per-ec STRATUM**
+  (N ≈ games), ≈ **1.0e-3 at 1e7 pooled**, ≈ **6.4e-3 at
+  1e7 per-stratum**. The noise floor is TABLE-DEPENDENT
+  through S½ (concentrated tables: 5e-4..2e-3 at 1e6
+  pooled — the third review's simulations).
+- the ABSOLUTE cap is TABLE-AWARE (v4): **delta*_unit =
+  max(2e-3, q95(D₀_unit))** per comparison unit. delta* =
+  2e-3 remains the certification TARGET at the scales where
+  the unit's noise floor is below it (1e7 POOLED for
+  uniform-like tables: q95 ≈ 1.1e-3 < 2e-3 — the cap is
+  ACTIVE there); the self-calibrating q95 governs
+  elsewhere. (The v3.1 unconditional 2e-3 cap was UNPASSABLE
+  BY CONSTRUCTION for broad-support tables: a perfect G₀
+  twin of the G₀ reference — D ≈ 3.2e-3 at 1e6 pooled —
+  would fail it. The gate would have tested the table's
+  concentration, not the generator: a gate that spuriously
+  fails a perfect replica is worse than no gate.)
+- the BOOTSTRAP-RELATIVE criterion (D below the q95 of the
+  MEASURED D₀ distribution, §7) is the PRIMARY self-
+  calibrating criterion at every scale — whatever the true
+  table-dependent noise, the percentile is estimated from
+  replicates. The gate's demand is unchanged and remains
+  the right one: G₁-vs-G₀ no worse than two random G₀
+  corpora are to each other, at the scale where that
+  demand is resolvable.
+- the honest certification schedule (v4, on the corrected
+  numbers): at 1e6 the gate certifies, for uniform-like
+  broad tables, equivalence at the ~3.3e-3 level (pooled
+  q95) and ~2.1e-2 level (per-stratum q95); the 2e-3-level
+  certification is carried by the 1e7 BUILD gate (pooled
+  q95 ≈ 1.1e-3, below delta* — the absolute cap active).
+  Whether the 1e6 level suffices for I-017: YES on the
+  (corrected) propagation arithmetic — a 2e-3 TV
+  perturbation bounds |ΔH| ≤ h₂(TV) + TV·log₂(C−1) ≈
+  **0.041 bits** at C = 1296 (the v3.1 "~2e-2" was ~2×
+  low), and the 1e6 pooled certification level (3.3e-3)
+  bounds it at ≈ 0.07 bits — ≤ ~7% relative on O(1)
+  information quantities: a conservative worst-case bound
+  against the ≥1e-1-scale effect-size distinctions the
+  campaign draws (the typical, non-concentrated
+  perturbation is far smaller); the 1e7 build gate tightens
+  the pooled level to ≈ 0.025 bits.
+- delta* = 2e-3 is an A PRIORI JUDGMENT (1/5 of the ~1e-2
+  smallest effect size the campaign will consider
+  meaningful); if T7+ measures the actual effect sizes and
+  they are much smaller, the bound is re-examined — by then
+  the corpus exists and can be re-baselined.
+A SYSTEMATIC bias does not average down with N the way
+Monte Carlo noise does — that is why the bound is absolute
+and rescaled per scale (test 7), and why the two-stage gate
+(1e6 design + 1e7 build) certifies at the scale where each
+tolerance is actually resolvable. The reclassification
+(E1-corpus: proven → gated) stands: the gate, as AMENDED in
+v4, is a real BOUND on the corpus-level claims, not a
+ritual.
 
 ---
 
@@ -469,17 +525,35 @@ about the pick at a GIVEN state) does not establish. The
 review's point 2.2 was stated for the joints; the SAME gap
 applies to the MARGINALS (v1 classified both as PROVEN —
 both are reclassified here).
-- **PROVEN (the phase combinatorics).** The slot-phase
-  cross-section: at any decision, the phases (g + m_g) mod k
-  over the N slots are balanced up to a discrepancy of at
-  most max_g m_g − min_g m_g (the spread of the move-ply
-  indices m_g = the number of real moves played before the
-  decision), which is ≤ 64 (a game plays at most 64 real
-  moves) — hence the phase imbalance is ≤ 64 slots out of N:
-  6.4e-5 of the corpus mass at N = 1e6. (v1 wrote "≤ k"; the
-  review's sharper derivation — the m_g spread, bounded by
-  64 — is adopted. This bound is purely COMBINATORIAL: it
-  concerns the slot phases, not the table.)
+- **GATED (v4 — the v2/v3 "PROVEN" tag was INVALID, third
+  review Amendment B).** The v2/v3 claim ("the phases are
+  balanced up to the m_g spread, ≤ 64 slots") is FALSIFIED
+  by an explicit counterexample: m_g = (r − g) mod k has
+  spread ≤ k−1 ≤ 63, yet EVERY slot's phase (g + m_g) mod k
+  = r — a POINT MASS, imbalance N(1 − 1/k) (verified
+  numerically: k = 2, m_g = g mod 2 → one distinct phase
+  across 1e6 slots — 5e5 slots of imbalance vs the claimed
+  ≤ 64). Deeper: m_g (the pass-adjusted move count) is a
+  function of the trajectory, which is a function of the
+  table AND of the slot's own phase — the feedback loop
+  (phase → picks → trajectory → passes → m_g → phase) makes
+  the phase term a PATH-COUPLED channel, not a purely
+  combinatorial one (the v2 "purely combinatorial: it
+  concerns the slot phases, not the table" label re-opened,
+  in miniature, the exact hole v2 closed — corrected here).
+  The practical risk is probably small (at the FIRST
+  width-k decision m_g = 0 across slots — phases = g mod k,
+  EXACTLY balanced; later m_g variation is pass-driven and
+  quasi-random), but "probably small" is what the gate is
+  for: the per-width PHASE-OCCUPANCY SCAN (gate test 1)
+  measures it directly — the cross-slot histogram of the
+  realized phases (g + m_g) mod k vs uniform, per width k
+  (a chi-square with k−1 df, Bonferroni over the 64
+  widths). E3a's "provably O(k/N)" is STRUCK; the phase
+  term joins the gated residual. (Lemma 2 itself — the
+  WITHIN-GAME residue cover over k consecutive counter
+  steps — remains PROVEN; what was falsified is the
+  CROSS-SLOT generalization built on it.)
 - **NOT proven exactly (the path coupling) → GATED.** The
   corpus-level equality E_seed[F^{G₁}] = E₀[F] (marginals
   AND joints) is not bounded in closed form here: the
@@ -540,7 +614,7 @@ PROVEN, and the document states that plainly.
 | claim | status |
 |---|---|
 | one-step ORACLE pick law = G₀'s (given (position, counter); seed-averaged, A1) | **PROVEN** (Theorem 1 v2, Lemma 1) |
-| phase combinatorics: slot-phase imbalance ≤ 64/N (≤ 6.4e-5 @ N = 1e6) | **PROVEN** (Lemma 2 + the m_g-spread bound, §6.4) |
+| the cross-slot phase balance (the §6.4 phase term) | **GATED (v4)** — the v2/v3 spread bound was FALSIFIED by counterexample (m_g = (r−g) mod k → a point mass) and the m_g feedback loop makes the term a path-coupled channel; measured by the gate test 1 phase-occupancy scan. (Lemma 2, the within-game residue cover, remains PROVEN.) |
 | corpus-level MARGINALS: E_seed F^{G₁} = E₀ F | **NOT proven exactly** (the path coupling — the oracle uniformity does not lift to the generated ensemble; v1 called this PROVEN) — the phase component proven; the rest **measured by the T6 gate** (test 2) + pre-specified fallback (§6.4, §7) |
 | corpus-level joint EXPECTATIONS: same | **NOT proven exactly** (the path coupling + the same-width pair law; v1 called this PROVEN) — **measured by the T6 gate** (tests 3-5, incl. the same-width and small-k focus) + pre-specified fallback (§6.4-§6.5, §7) |
 | sampling error = G₀-scale O(√(p/N)) | **PROVEN as an order statement** (§5-E2, §4.4) |
@@ -569,19 +643,29 @@ percentile, with family-wise error control.
 **Scale: 1e6 games, arrested at the model's ec** (the SAME
 arrest rule for G₀ and G₁ — stated explicitly, second review
 Amendment 1a) — the DESIGN gate, before the T5 build. At
-1e6 the D₀ noise is ≈ 1e-4 (the 95th percentile ≈ 1.5e-4),
-so the dual criterion of §5 is a RESOLVED quantity, and G₀
+1e6 the D₀ noise (v4, the CORRECTED formula
+S½/√(πN) — §5) is ≈ 3.2e-3 pooled / ≈ 2.0e-2 per-ec stratum
+for uniform-like 1296-cell tables (S½ ≈ 36 — table-
+dependent, measured per comparison unit), so the table-
+aware dual criterion of §5 is a RESOLVED quantity, and G₀
 remains a faithful reference (~15-20 min to run per corpus
 in the T4 Python loop; G₁ the same). The 1e7 BUILD gate
 (test 7) re-certifies at full scale, where the D₀ noise
-drops to ≈ 3e-5.
+drops to ≈ 1.0e-3 pooled (q95 ≈ 1.1e-3 — BELOW delta*,
+where the absolute cap becomes active).
 
-1. **Test 1 (the table, A1).** Every row P_k a valid
-   permutation (already in the T4 suite); the pick
-   distribution: for each width k, the histogram of the
-   chosen ranks over the gate corpus vs uniform — chi-square
-   (the coarse A1 re-check; the floor-of-double rank
-   reduction is ≤ k·2⁻⁵³ ≈ 7e-15 — §6.0).
+1. **Test 1 (the table, A1 + the phase-occupancy scan,
+   v4).** Every row P_k a valid permutation (already in the
+   T4 suite); the pick distribution: for each width k, the
+   histogram of the chosen ranks over the gate corpus vs
+   uniform — chi-square (the coarse A1 re-check; the
+   floor-of-double rank reduction is ≤ k·2⁻⁵³ ≈ 7e-15 —
+   §6.0). Plus the per-width PHASE-OCCUPANCY SCAN (v4,
+   Amendment B): the cross-slot histogram of the realized
+   phases (g + m_g) mod k vs uniform, per width k (a
+   chi-square with k−1 df, Bonferroni over the 64 widths)
+   — the direct measurement of the phase term the v2/v3
+   "PROVEN" claim could not carry (§6.4).
 2. **Test 2 (the marginals — v3 STRATIFIED, second review
    Amendment 1).** For every sub-variable, G₁ vs G₀:
    (a) PER-EC-LEVEL: the position distribution at each ec
@@ -593,13 +677,19 @@ drops to ≈ 3e-5.
    full-trajectory marginal — reported as a SECONDARY
    aggregate. Metric: D = the TV (total variation) of the
    per-sub-variable frequency tables, tested against (i) the
-   ABSOLUTE delta* = 2e-3 and (ii) the 95th percentile of
-   the D₀ = TV(G₀, G₀') distribution, estimated from 20
-   G₀-vs-G₀ replicate pairs at 1e5 (≈ 2.5 h total — cheap
-   enough to be worth doing right) SCALED by √10 to the 1e6
-   threshold (the TV between two i.i.d. corpora scales as
-   1/√N — verified: 2.8e-4 at 1e5 → 8.9e-5 at 1e6, ratio
-   exactly √10; expected 95th percentile ≈ 1.5e-4 at 1e6).
+   the TABLE-AWARE delta*_unit = max(2e-3, q95(D₀_unit))
+   (§5 v4) and (ii) the q95 of the MEASURED D₀ = TV(G₀,
+   G₀') distribution, computed PARAMETRICALLY (mean +
+   1.645·sd — the TV's empirical CV is ~2%, so the
+   parametric form is stable where the 20-sample maximum
+   would be ±30-40%) from 20 G₀-vs-G₀ replicate pairs at
+   1e5 (≈ 2.5 h total), rescaled PER POPULATION by the 1/√N
+   law (the pooled marginal scales with games×40, the
+   per-ec strata with games — the PRIMARY stratified
+   comparison's threshold is set from the STRATUM-scale
+   replicates; expected q95 for uniform-like 1296-cell
+   tables: ≈ 3.3e-3 pooled / ≈ 2.1e-2 per-stratum at 1e6 —
+   the v3.1 "1.5e-4" was the flawed formula's artifact).
    Family control:
    Bonferroni over the sub-variable family (the per-cell
    p-values are secondary diagnostics, with BH-FDR — second
@@ -633,34 +723,47 @@ drops to ≈ 3e-5.
    initializations (e.g. offsets 0, 7, 4000001, ...): the
    frequency tables must stay within G₀ noise of each other
    (no phase-locked artifact).
-7. **Test 7 (the 1e7 BUILD gate — v3.1).** At corpus build
-   time (the 1e7 production run), the G₁-vs-G₀ comparison is
-   RE-RUN at full scale: the G₀ reference at 1e7 is
-   affordable (~2-3 h in the T4 Python loop, or the T5
-   cross-check), and the D₀ noise drops to ≈ 3e-5 (95th
-   percentile ≈ 4e-5 — the 1e5 pairs rescaled by 1/√100).
-   The SAME dual criterion applies (delta* = 2e-3 absolute;
-   the rescaled bootstrap percentile). This closes the band
-   where a systematic bias above the 1e6 detection floor
-   (~1.5e-4) yet below delta* could otherwise pass the 1e6
-   design gate while being 5-60× the 1e7 noise — at 1e7
-   such a bias is 5-60σ and the build gate sees it. The
-   corpus is ACCEPTED only after BOTH gates pass (the 1e6
-   design gate before T5; the 1e7 build gate at build time).
+7. **Test 7 (the 1e7 BUILD gate — v3.1, v4 numbers).** At
+   corpus build time (the 1e7 production run), the
+   G₁-vs-G₀ comparison is RE-RUN at full scale: the G₀
+   reference at 1e7 is affordable (~2-3 h in the T4 Python
+   loop, or the T5 cross-check), and the D₀ noise drops
+   (uniform-like 1296-cell tables: ≈ 1.0e-3 pooled, q95 ≈
+   1.1e-3 — BELOW delta*, where the absolute cap becomes
+   ACTIVE; ≈ 6.4e-3 per-stratum). The same table-aware
+   dual criterion applies. This closes the band where a
+   systematic bias above the 1e6 detection floor (q95 ≈
+   3.3e-3 pooled) yet below the resolvable 1e7 pooled floor
+   (≈ 1.1e-3) could otherwise pass the 1e6 design gate
+   while remaining visible at 1e7 (a bias of 1.5-3× the
+   1e7 pooled floor is a clear detection there; the
+   per-stratum comparison at 1e7 certifies at the ~6.7e-3
+   q95 level — coarser, but the POOLED comparison carries
+   the tight bound). The corpus is ACCEPTED only after
+   BOTH gates pass (the 1e6 design gate before T5; the 1e7
+   build gate at build time).
 
-**Pass criterion (v3.1 — ALL FOUR must hold).** (i)
-ABSOLUTE: every per-sub-variable and per-stratum discrepancy
-D (the TV scalar) below delta* = 2e-3 (fixed a priori, §5);
-(ii) RELATIVE: every D below the 95th percentile of the
-G₀-vs-G₀ bootstrap distribution at 1e6 (≈ 1.5e-4 — normally
-the BINDING criterion); (iii) the focused tests (3-4) pass
-under the family control (Bonferroni/BH as above); (iv) the
-1e7 BUILD gate (test 7) passes at corpus build time. A pass
-of (i)+(ii) is what turns the gate from a ritual into a
-BOUND: the systematic G₁-vs-G₀ deviation is certified below
-delta* IN ABSOLUTE TERMS (with the downstream propagation
-bound of §5), and (iv) guarantees the certification at the
-scale where the corpus is actually used.
+**Pass criterion (v4 — ALL FOUR must hold).** (i) ABSOLUTE
+(TABLE-AWARE): every per-unit discrepancy D (the TV scalar)
+below delta*_unit = max(2e-3, q95(D₀_unit)) — the 2e-3
+target is ACTIVE where the unit's noise floor is below it
+(at 1e7 pooled for uniform-like tables; elsewhere the
+self-calibrating q95 governs, so a perfect G₀ replica can
+never fail the gate — the v3.1 unconditional 2e-3 cap,
+which WOULD have failed one, is replaced); (ii) RELATIVE
+(PRIMARY): every D below the parametric q95 (mean +
+1.645·sd) of the measured G₀-vs-G₀ distribution at the
+unit's scale (≈ 3.3e-3 pooled / ≈ 2.1e-2 per-stratum for
+uniform-like tables at 1e6); (iii) the focused tests (3-4)
+pass under the family control (Bonferroni/BH as above),
+plus the test 1 phase-occupancy scan; (iv) the 1e7 BUILD
+gate (test 7) passes at corpus build time. A pass of (i)+
+(ii) is what turns the gate from a ritual into a BOUND:
+the systematic G₁-vs-G₀ deviation is certified at the
+RESOLVED level for each comparison unit (with the
+downstream propagation bound of §5), and (iv) guarantees
+the 2e-3-level certification (pooled) at the scale where
+the corpus is actually used.
 
 **FAIL → attribution, then the fallback (v3 sharpening —
 second review §4.4).** A gate failure is ATTRIBUTED before
@@ -730,32 +833,52 @@ of each point, for the record:
    feature" (Kimi K3 §7); the one v2 overclaim ("a fortiori
    subdominant") is STRUCK in v3.
 
-The document is in its FINAL pre-T5 state. No third review is
-requested: the two independent voices agree on the verdict
-(PASS) and on every load-bearing point; the remaining risk
-is EMPIRICAL (the T6 gate) and is now fully specified.
+**The third review was in fact requested (and was worth
+it).** The v3.1 hardening (D-167) landed AFTER the two
+prior reviews — an unreviewed quantitative layer, and the
+GLM 5.3 review (notes/peer_review_glm_random_
+permutation_table.md — PASS WITH TWO BLOCKING AMENDMENTS +
+MINORS) caught exactly that layer: the D₀ noise formula was
+wrong (the Σ√x ≥ √Σx error — 6-36× understated, "verified"
+by the formula evaluating itself) and the §6.4 phase
+"PROVEN" tag was invalid (an explicit counterexample + the
+m_g feedback loop). ALL amendments ADOPTED in v4 (D-168),
+independently re-verified by simulation before adoption.
+The v3.1 lesson, recorded for the record: the review
+process that caught v1's unproven PROVEN tags let an
+unverified NUMBER through the same door — a claimed
+verification that cannot disagree with the claim it
+verifies is not a verification. The document is now FINAL
+(the pre-declared final round applies): the T5 wave engine
+is built on G₁ with the v4 gate as the T6 instrument.
 
-> **Bottom line for Roberto (v3, post TWO reviews).** The
-> design PASSES two independent reviews (DeepSeek V4 Pro;
-> Kimi K3 — the second "PASS WITH REQUIRED AMENDMENTS", all
-> three ADOPTED). What is PROVEN: the one-step oracle
-> equivalence (from any given state, the seed-averaged G₁
-> pick is a uniform pick — the local semantics are exactly
-> G₀'s), the lemmas, the phase combinatorics (≤ 6.4e-5), the
-> sampling-error order. What is BOUNDED (not proven): the
-> corpus-level equivalence (marginals AND joints) — the T6
-> gate at 1e6 certifies the systematic G₁-vs-G₀ deviation
-> below the ABSOLUTE delta* = 2e-3 (negligible against the
-> I-017 effect sizes), with the arrest-stratified marginal
-> comparison, the focused TV/KL joint tests as primary, the
-> G₀-vs-G₀ bootstrap calibration at the same scale, the
-> family-wise error control, and the sharpened fallback
-> boundary. The honest framing (Kimi K3, adopted): as of
-> this document, "G₁ gives the same results as G₀" is a
-> PRE-REGISTERED EMPIRICAL CLAIM with a fully specified
-> bound — not a theorem; the gate turns it into a certified
-> bound BEFORE the expensive build. When the T6 gate passes,
-> the T5 wave engine is built on G₁.
+> **Bottom line for Roberto (v4, FINAL, post THREE
+> reviews).** The design PASSES three independent reviews
+> (DeepSeek V4 Pro; Kimi K3 — three amendments adopted;
+> GLM 5.3 — two blocking + minors, all adopted). What is
+> PROVEN: the one-step oracle equivalence (the local
+> semantics are exactly G₀'s), Lemma 1, Lemma 2 (the
+> within-game residue cover), the sampling-error order.
+> What is BOUNDED (not proven): the corpus-level equality —
+> and the v4 gate is calibrated on MEASURED, TABLE-AWARE
+> numbers (the v3.1 D₀ formula was wrong — 36× understated
+> for uniform tables — and the v3.1 phase "PROVEN" tag was
+> falsified; both corrected): at 1e6 the gate certifies,
+> for uniform-like broad tables, ~3.3e-3 pooled / ~2.1e-2
+> per-stratum (the noise floors — a perfect G₀ replica
+> passes by construction, because the cap is table-aware);
+> the 2e-3-level certification (pooled) is carried by the
+> 1e7 BUILD gate, where the noise floor (≈ 1.1e-3 q95) is
+> below delta* and the absolute cap is active; the
+> corrected propagation bound (≈ 0.07 bits worst case at
+> the 1e6 level, ≈ 0.025 at 1e7 pooled) says the schedule
+> suffices for I-017. The honest framing (Kimi K3,
+> confirmed by GLM): "G₁ gives the same results as G₀" is
+> a PRE-REGISTERED EMPIRICAL CLAIM with a fully specified,
+> correctly calibrated bound — not a theorem; the v4 gate
+> turns it into a certified bound BEFORE the expensive
+> build. When the T6 gate (1e6, then 1e7) passes, the T5
+> wave engine is built on G₁.
 
 ---
 
@@ -857,7 +980,74 @@ in v3. The author's response:
   EMPIRICAL CLAIM with a fully specified bound — not a
   theorem; the gate turns it into a certified bound before
   the expensive build.
-- **No third review is requested.** The two independent
-  voices agree on the verdict (PASS) and on every
-  load-bearing point; the remaining risk is EMPIRICAL (the
-  T6 gate) and is now fully specified.
+- **No third review was requested at the time — and a
+  third was in fact commissioned (GLM 5.3) and WAS WORTH
+  IT.** It caught the v3.1 unreviewed quantitative layer.
+
+**Third review (2026-09-12, GLM 5.3 — the document at
+notes/peer_review_glm_random_permutation_table.md).**
+Verdict: PASS WITH TWO BLOCKING AMENDMENTS + MINORS. The
+author's response: **FULL ACCEPTANCE — nothing rejected,
+no questions.** GLM re-derived everything independently
+BEFORE reading the prior reviews (anti-capture), re-
+verified the whole proven core (all confirmed — including
+the arrest-exactness claim against the Reversi rules and
+`ec_of`), and ran NUMERICAL verification of the v3.1
+quantitative claims — which the two prior reviews could
+not have seen (v3.1 landed after them):
+- **Amendment A (BLOCKING) — ACCEPTED, and it was MY
+  error.** The v3.1 D₀ formula 0.4·√(2S/N) illegally
+  substituted √(Σp(1-p)) for Σ√(p(1-p)) (subadditivity:
+  Σ√x ≥ √Σx) — the single-effective-cell lower bound,
+  understating the true noise E[TV₀] ≈ S½/√(πN) by
+  S½/√S: 36× for a uniform 1296-cell table (GLM's
+  simulation: 3.20e-3 vs my 8.9e-5 at N = 4e7; I re-
+  ran an independent simulation before adopting:
+  3.19e-3..3.31e-3 vs theory 3.21e-3 — confirmed). And
+  my v3.1 "verified numerically" figures (2.8e-4, 8.9e-5)
+  were the formula EVALUATING ITSELF (0.4·√(2/N) to the
+  digit, S = 1) — a verification that cannot disagree with
+  the claim it verifies is not a verification. The same
+  epistemic sin the v1 process caught in a theorem,
+  recurred in a number I added in v3.1. Consequences
+  adopted: the table-aware absolute cap (delta*_unit =
+  max(2e-3, q95(D₀_unit)) — the v3.1 unconditional cap was
+  UNPASSABLE BY CONSTRUCTION: a perfect G₀ twin, D ≈
+  3.2e-3 at 1e6 pooled, would fail it); the parametric
+  bootstrap threshold (mean + 1.645·sd, TV CV ~2%); the
+  per-population √N rescaling; the corrected certification
+  schedule (1e6: ~3.3e-3 pooled / ~2.1e-2 per-stratum for
+  uniform-like tables; 1e7 build: pooled q95 ≈ 1.1e-3,
+  below delta* — the cap active); the corrected
+  propagation bound (|ΔH| ≤ h₂(TV) + TV·log₂(C−1) ≈ 0.041
+  bits at TV = 2e-3, C = 1296 — my "~2e-2" was ~2× low).
+- **Amendment B (BLOCKING) — ACCEPTED.** The v2/v3 phase
+  "PROVEN" tag is INVALID: m_g = (r−g) mod k (spread ≤
+  k−1) makes ALL phases equal r — a point mass, imbalance
+  N(1−1/k) vs the claimed ≤ 64 (I re-ran it: k = 2,
+  m_g = g mod 2 → one distinct phase across 1e6 slots —
+  confirmed). Deeper and correct: m_g is
+  table/phase-dependent (the pass feedback loop) — the
+  phase term is a path-coupled channel, not "purely
+  combinatorial"; the v2 label re-opened, in miniature,
+  the hole v2 closed. Demoted to GATED + measured by the
+  new test 1 phase-occupancy scan. (The practical risk is
+  probably small — at the first width-k decision m_g = 0
+  and the phases are EXACTLY balanced — but "probably
+  small" is what the gate is for.)
+- **Minors — all ACCEPTED:** the §4.4 garbled cell
+  (4.7e-4), the per-cell vs max-cell clause (the 6σ
+  framing is per-cell; the max-cell deviation exceeds it),
+  the per-stratum pass-counting pin (a pass contributes
+  two same-ec positions; the dedup rule must be IDENTICAL
+  for G₀ and G₁ — T6 implementation detail, the identity
+  of the rule is pinned in §1.5).
+- **No questions for the reviewer.** The math was
+  independently re-verified before adoption (the two
+  simulations above); the fixes are fully specified; the
+  verdict stands.
+- **The pre-declared final round applies (D-167):**
+  whatever the third review returned, the valid
+  amendments are folded in and the document FREEZES. v4
+  is the FINAL version; the T5 wave engine is built on G₁
+  with the v4 gate as the T6 instrument.
