@@ -427,10 +427,13 @@ at the end of this file.
    (the per-stratum marginal comparison + the sampling unit,
    the focused tests 4-5 as the primary joint gate, the
    absolute-bias bound against the 1e7 noise floor with
-   family-wise error control and a stated power). Next: the
-   ODP-9 document to v3 (the amendments folded into the T6
-   gate), then T5 (the concurrent wave engine — the numba
-   tier).
+   family-wise error control and a stated power) — the v3
+   document is DONE (D-166: all three amendments folded into
+   the T6 gate — the 1e6 scale, the absolute delta* = 2e-3
+   bound, the focused TV/KL primary tests, the sampling-unit
+   pin, the family-wise control) and the document is in its
+   FINAL pre-T5 state. Next: T5 (the concurrent wave engine —
+   the numba tier).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -491,11 +494,14 @@ at the end of this file.
   marginal comparison + the pinned sampling unit, (A2) the
   focused tests 4-5 as the primary joint gate, (A3) the
   absolute-bias bound against the 1e7 noise floor with
-  family-wise error control and a stated power) — next: the
-  ODP-9 document to v3 (the amendments folded into the T6
-  gate), then T5: the concurrent wave engine (the batch of
-  games in parallel, the vectorized advance step, the respawn,
-  the position stream — the numba tier), per the plan in
+  family-wise error control and a stated power) — v3 is DONE
+  (D-166: all three amendments folded into the T6 gate — the
+  1e6 scale, the absolute delta* = 2e-3 bound, the focused
+  TV/KL primary tests, the sampling-unit pin) and the document
+  is in its FINAL pre-T5 state — T5 next: the concurrent wave
+  engine (the batch of games in parallel, the vectorized
+  advance step, the respawn, the position stream — the numba
+  tier), per the plan in
   notes/analytical_properties_of_features.md §8. I-018 (the
   outlier report in VALIDATE) is parked, Roberto's call.
 

@@ -10,7 +10,7 @@
 > permutation_table.md (v1+v2 pass; the author's response in
 > §10); the second, Kimi K3, at notes/peer_review_kimi_random_
 > permutation_table.md (PASS WITH THREE REQUIRED AMENDMENTS —
-> all three ADOPTED in this v3: the arrest-stratified
+> all three ADOPTED in this v3, D-166: the arrest-stratified
 > marginal comparison + the sampling-unit pin, the
 > focused-tests-primary gate re-ordering, and the
 > ABSOLUTE-bias bound that strikes the "a fortiori

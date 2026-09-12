@@ -340,7 +340,7 @@ D-165 | 2026-09-11 | The SECOND ODP-9 peer review executed —
         (to be struck or justified). The T5 build on G1 is
         gated on the THREE amendments being folded into the T6
         gate design.
-D-165 | 2026-09-11 | ODP-9 document v3 after the SECOND
+D-166 | 2026-09-11 | ODP-9 document v3 after the SECOND
         peer review (Kimi K3, notes/peer_review_kimi_random_
         permutation_table.md — verdict: PASS WITH THREE
         REQUIRED AMENDMENTS; the author's response: NO
