@@ -437,7 +437,20 @@ at the end of this file.
    table-aware cap delta*_unit, the phase term demoted to
    GATED + the new phase-occupancy scan, the corrected
    certification schedule 1e6 + 1e7 build gate) — FROZEN.
-   Next: T5 (the concurrent wave engine — the numba tier).
+   T4 FIX (D-169, Roberto's OK): the non-full double pass
+   now stops the game (the pre-fix loop spun passes to the
+   MAX_PLIES guard on the rare deadlock — < 0.2% of games)
+   — 13/0. T5 DONE (D-170): the concurrent wave engine —
+   Roberto's option A refined, the LOCKSTEP (step = one
+   real move, the pass folded into the step, the double-
+   pass discard, the boundary harvest + respawn) — 11/0/1,
+   the harvest bit-exact vs the T4 (LAW-1/2, the pinned
+   pass-carrying slot 712), the 1e6 benchmark 5.3 s
+   (188k games/s; the 1e7 extrapolation ~50 s). Open
+   finding flagged to Roberto: the board.py make_move
+   legality test (see the hlp_wave mirror, Open issues).
+   Next: the T6 design gate at 1e6 (the v4 doc section 7),
+   then the 1e7 corpus + the 1e7 build gate.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -506,11 +519,23 @@ at the end of this file.
   v3.1 D0 formula was wrong (36x understated), the table-
   aware cap + the phase term demoted to GATED + the
   corrected certification schedule — the document is
-  FROZEN) — T5 next: the concurrent wave engine (the batch of
-  games in parallel, the vectorized advance step, the
-  respawn, the position stream — the numba tier), per the plan in
-  notes/analytical_properties_of_features.md §8. I-018 (the
-  outlier report in VALIDATE) is parked, Roberto's call.
+  FROZEN) — T4 FIX (D-169: the non-full double pass now
+  stops the game — Roberto's OK) + T5 DONE (D-170): the
+  concurrent wave engine (Roberto's option A refined — the
+  LOCKSTEP: step = one real move per live lane, the pass
+  folded into the step, the double-pass lanes coast on the
+  PA swap, the boundary harvest + respawn; the harvest is
+  bit-exact vs the T4 reference — LAW-1/2; the 1e6
+  benchmark 5.3 s, 188k games/s, target <= 120 s), per the
+  plan in notes/analytical_properties_of_features.md §8 —
+  the board.py make_move legality finding (the occupied
+  square with a flipping ray is applied; the wave routes
+  around it via the PA swap) is flagged to Roberto (his
+  call). NEXT: the T6 design gate at 1e6 (the v4 doc
+  section 7 — G1 vs G0, the D0 bootstrap pairs, the 4-part
+  pass criterion), then the 1e7 corpus + the 1e7 build
+  gate. I-018 (the outlier report in VALIDATE) is parked,
+  Roberto's call.
 
 
 
@@ -561,7 +586,8 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract; D-145: the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag); closed (D-093/D-094/D-145) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
-| src/reversi/lm/hlp_random_play.py | complete: the single-game random play generator (the I-017 T4, D-162; the T12-level data module — the worker pending) — the ODP-9 permutation lookup table (2016 MT19937 draws, lru_cached read-only) + the no-PRNG pick + the ec arrest (the provisional 64 - occupied — T7 pins the EXACT formula) + the pass + the game over + the full trajectory | 12/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
+| src/reversi/lm/hlp_random_play.py | complete: the single-game random play generator (the I-017 T4, D-162; the D-169 non-full double-pass fix; the T12-level data module — the worker pending) — the ODP-9 permutation lookup table (2016 MT19937 draws, lru_cached read-only) + the no-PRNG pick + the ec arrest (the provisional 64 - occupied — T7 pins the EXACT formula) + the pass + the game over + the full trajectory | 13/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
+| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170; the G1 ODP-9 corpus engine — W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn, the bit-exact T4 cross-validation; the numba tier: 1e6 in 5.3 s) | 11/0/1 (via test_hlp_wave; LONG: the 1e6 benchmark) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module (8th level); closed (D-091/D-092) | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
@@ -608,7 +634,8 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1; D-145: the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers) | 14/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
-| src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game), the seeded pinned trajectories + the independent replay | 12/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
+| src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game, the non-full double pass — the D-169 fix), the seeded pinned trajectories + the independent replay | 13/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
+| src/reversi/test/test_hlp_wave.py | complete: the T5 NO-DB micro-suite (D-170) — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the LONG 1e6 benchmark (5.3 s) | 11/0/1 (LONG: the benchmark) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/reversi/test/test_state_machine.md |

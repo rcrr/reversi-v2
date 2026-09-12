@@ -563,3 +563,86 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the
         T6 instrument (the 1e6 design gate before T5; the
         1e7 build gate at build time; the corpus is
         accepted only after BOTH pass).
+
+D-169 | 2026-09-12 | T4 fix: the non-full double pass is
+        the game over (Roberto's OK: "certo che e' da
+        fixare!"). Found while reading the T4 loop for the
+        T5 plan: the game-over check lived only in the
+        real-move branch, so a NON-full double pass (both
+        sides no legal move, the board not full — rare,
+        < 0.2% of random games, measured: 0 in 500 full
+        games) spun passes to the MAX_PLIES=300 guard
+        (RuntimeError instead of stopped_by='game_over').
+        Fix: the pass branch now calls
+        position_is_game_over(p) after the swap (the
+        opponent having no legal move either — the board
+        unchanged since their last check — is the
+        double-pass game over). +1 test: the constructed
+        61-stone deadlock (3 empty — E4, F4, G4 — the
+        57-stone field walled around the empty run + the
+        4-stone A2..B3 block, the pinned literal, verified
+        neither side has a legal move): one pass then the
+        game-over, ec = 3 kept, the swapped final position.
+        Suite 13/0/0. The T5 wave engine implements the
+        CORRECT semantics (the dead lane = the double
+        pass) and cross-validates against the fixed T4.
+
+D-170 | 2026-09-12 | T5: the concurrent WAVE engine (the
+        G1 ODP-9 corpus generator, the numba tier).
+        Roberto's option A, refined to the LOCKSTEP: one
+        wave STEP = one REAL MOVE per live lane — the pass
+        FOLDS INTO the step (the pass lane's move is picked
+        from the swapped side's legal set: the second
+        Kogge-Stone pass of the step, uniform, zero
+        per-lane branching), so a pass adds no step and no
+        counter step; ec = 60 - steps (a real move places
+        exactly one stone) → every live lane is at EXACTLY
+        ec_target at the boundary: the harvest is the
+        whole wave (no ragged exits, no per-step mask, no
+        inline respawn — the "brutish" logic is in the
+        rare per-wave boundary code; Roberto: "a noi qui
+        serve veloce" — the hot step is five full-wave
+        vectorized calls). The double pass (lm == 0 AND lo
+        == 0, the board unchanged → terminal, full or not)
+        kills the lane: it COASTS on the PA swap (the
+        documented kernel behaviour — the only input that
+        cannot corrupt the stale state), the counter
+        freezes, it is not harvested, it respawns at the
+        boundary with the next slot. Parallelism: lanes in
+        parallel (prange, the house pattern — the shared
+        Kogge-Stone kernels are already parallel); the
+        per-lane per-ply work (a u64) is below the thread-
+        split threshold. Repeatability: the trajectory of
+        game g is f(table(seed), slot g) — lanes/threads
+        never enter the semantics (LAW-2 pins it); the
+        single seed from the JSON config (Roberto's pin).
+        Sink v1: the arrested positions only (mover, opp,
+        slot) — "di quello si prendono le statistiche"
+        (Roberto); the file writer = T6. Cross-validation
+        (the T4 docstring promise): the harvest is bit-
+        exact vs random_play(counter0=slot) — LAW-1 (63
+        games, W=7, ec ∈ {55,40,20}), LAW-2 (the phase
+        invariance, slot 1234: W=1 ≡ W=100 lane 34), the
+        W=1 trajectory of the pinned pass-carrying slot 712
+        (42 plies, the PAs at plies 31/33 — passes are
+        ~0.05% of the games) ≡ the T4 move list, LAW-3
+        (the synthetic corner wall: one step = [PA, D3],
+        the counter walks once), LAW-4 (the dead lane: the
+        PA-swap coast, the frozen counter, the boundary
+        respawn). 11/0/1 (LONG: the 1e6 benchmark).
+        PERFORMANCE: 1e6 games (W=1e6, ec=20) in 5.3 s —
+        188k games/s (the target was <= 120 s; the T4
+        Python rate was ~20-60 min): 2 waves, 36195 dead
+        lanes absorbed by the respawn path, exactly 1e6
+        harvested. The 1e7 extrapolation ~50 s (the target
+        was <= 15 min). OPEN FINDING flagged to Roberto
+        (his call — board.py is core, not touched): the
+        make_move legality test (scalar AND array) is "the
+        flips are non-zero" instead of "the square is
+        EMPTY and the flips are non-zero" — an occupied
+        square with a flipping ray is APPLIED (the
+        docstrings promise None / unchanged); it never
+        fires in the pipeline (only legal moves + PA are
+        passed) — the wave routes around it via the PA
+        swap. The 2-line fix (the occupancy check) is
+        ready if Roberto wants it.
