@@ -420,3 +420,65 @@ D-166 | 2026-09-11 | ODP-9 document v3 after the SECOND
         FINAL pre-T5 state; the T5 wave engine is built on
         G1 after the (approved) T6 gate design is executed
         and passes.
+D-167 | 2026-09-11 | ODP-9 document v3.1 — the PRE-THIRD-
+        REVIEW hardening (before the requested GLM review).
+        Two self-found flaws, fixed before the reviewer
+        finds them: (1) the delta* CLARIFICATION (v3 defined
+        delta* = 2e-3 on "the cell frequencies" in section 5
+        but applied it to the TV scalar in section 7 — an
+        ambiguity; v3.1 fixes it: delta* is on the TV scalar
+        (the 1/2 L1 over all cells), and the D0 NOISE IS
+        QUANTIFIED (computed, not asserted): E[TV] ~
+        0.4*sqrt(2*S/N), S = sum p(1-p), N ~ games x 40
+        position-samples: ~1e-4 at 1e6 (8.9e-5 near-uniform,
+        4.9e-5 concentrated) and ~3e-5 at 1e7 — hence delta*
+        = 2e-3 sits ~20x ABOVE the 1e6 D0 noise (the ABSOLUTE
+        criterion is the OUTER CAP guarding a miscalibrated
+        bootstrap; the BOOTSTRAP-RELATIVE criterion — D
+        below the 95th percentile of D0, expected ~1.5e-4 at
+        1e6 — is normally the BINDING one); the downstream
+        propagation is bounded (a 2e-3 TV -> the
+        information-quantity perturbation at most ~2e-2 worst
+        case at C = 1296, typically a few x 1e-3 — negligible
+        against the 1e-1-scale effect-size distinctions);
+        delta* is declared an A PRIORI JUDGMENT (1/5 of the
+        ~1e-2 smallest meaningful effect size) with the
+        re-examination clause (if T7+ measures smaller
+        effect sizes, the bound is revisited — the corpus
+        exists and can be re-baselined). (2) the BOOTSTRAP
+        DESIGN + the 1e7 BUILD GATE: the D0 distribution is
+        estimated from 20 G0-vs-G0 replicate pairs at 1e5
+        (~2.5 h — cheap enough to be worth doing right),
+        SCALED by sqrt(10) to the 1e6 threshold (the TV
+        between two i.i.d. corpora scales as 1/sqrt(N) —
+        verified: 2.8e-4 at 1e5 -> 8.9e-5 at 1e6, ratio
+        exactly sqrt(10)); NEW test 7 (the 1e7 BUILD gate):
+        at corpus build time the G1-vs-G0 comparison is
+        RE-RUN at full scale (the G0 reference at 1e7 is
+        affordable: ~2-3 h in the T4 Python loop; the D0
+        noise drops to ~3e-5, 95th percentile ~4e-5) with
+        the same dual criterion — closing the band where a
+        systematic bias above the 1e6 detection floor
+        (~1.5e-4) yet below delta* could pass the 1e6 design
+        gate while being 5-60x the 1e7 noise; the corpus is
+        ACCEPTED only after BOTH gates pass. Pass criterion
+        now (i) absolute, (ii) bootstrap-relative, (iii)
+        focused tests under family control, (iv) the 1e7
+        build gate. THE THIRD REVIEW (GLM) is REQUESTED with
+        three constraints: (a) SCOPE = the gate spec only
+        (section 1.5 the sampling unit, section 5 the
+        delta*, section 7 the gate) — the proof sections were
+        confirmed by two independent voices and a
+        re-derivation has diminishing returns; (b) the
+        prompt is READ-ONLY + one file (the review document
+        at a given path; nothing else in the workspace may
+        change — the Kimi session followed the AGENTS.md
+        journaling convention and collided on D-165,
+        renumbered to D-166; next external review the prompt
+        says "do not alter anything in the workspace"); (c)
+        it is the FINAL ROUND (declared in advance): whatever
+        comes back, the valid amendments are folded in and
+        the document FREEZES for T5 — a fourth paper review
+        is past diminishing returns; the real granite test
+        is the T6 gate itself (the 1e6 design gate, then the
+        1e7 build gate).

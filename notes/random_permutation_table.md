@@ -5,16 +5,24 @@
 > written 2026-09-11 by Nia for Roberto's review and for EXTERNAL
 > PEER REVIEW (DeepSeek V4 Pro / GLM 5.3 — the requested
 > second opinion on §6 and §7).
-> **Status: REVISED (v3, 2026-09-11 — after TWO peer reviews:
-> the first, DeepSeek V4 Pro, at notes/peer_review_random_
-> permutation_table.md (v1+v2 pass; the author's response in
-> §10); the second, Kimi K3, at notes/peer_review_kimi_random_
-> permutation_table.md (PASS WITH THREE REQUIRED AMENDMENTS —
-> all three ADOPTED in this v3, D-166: the arrest-stratified
-> marginal comparison + the sampling-unit pin, the
-> focused-tests-primary gate re-ordering, and the
-> ABSOLUTE-bias bound that strikes the "a fortiori
-> subdominant" extrapolation). The T5 wave engine must NOT be
+> **Status: REVISED (v3.1, 2026-09-11 — after TWO peer
+> reviews: the first, DeepSeek V4 Pro, at notes/
+> peer_review_random_permutation_table.md (v1+v2 pass; the
+> author's response in §10); the second, Kimi K3, at notes/
+> peer_review_kimi_random_permutation_table.md (PASS WITH
+> THREE REQUIRED AMENDMENTS — all three ADOPTED in v3,
+> D-166: the arrest-stratified marginal comparison + the
+> sampling-unit pin, the focused-tests-primary gate
+> re-ordering, and the ABSOLUTE-bias bound that strikes the
+> "a fortiori subdominant" extrapolation). v3.1 (D-167,
+> PRE-THIRD-REVIEW hardening, before the requested GLM
+> review): the delta* clarification (it is on the TV scalar;
+> the quantified D₀ noise — ≈ 1e-4 at 1e6, ≈ 3e-5 at 1e7;
+> the bootstrap is the normally-binding criterion, delta*
+> the outer cap; the a-priori judgment + re-examination
+> clause), the bootstrap design (20 pairs at 1e5, scaled by
+> √10 — ~2.5 h), and the 1e7 BUILD GATE (test 7, the
+> dual-scale certification that closes the 1e6 blind band). The T5 wave engine must NOT be
 > built on this design until the T6 gate (§7, as amended in
 > v3) is approved and executed.
 > Companion documents:
@@ -284,27 +292,51 @@ against a same-scale G₀ reference) and the path-coupling
 residual (E3b).
 
 **The design requirement (what the statistics actually need
-— v3, QUANTIFIED — second review Amendment 3).** The I-017
-statistics (SU, eta²/omega², the adherence) do NOT require
-"G₁'s corpus to be an exact G₀ expectation". They require
-the ideal population to be RANDOM-PLAY-LIKE to within a
-NOVELTY-BOUNDED tolerance: the systematic deviation of the
-ideal population's cell frequencies must be bounded by
-**delta* = 2e-3 (fixed a priori, in ABSOLUTE terms —
-negligible against the I-017 effect sizes, which live at
-1e-2 and above; a 2e-3 frequency perturbation propagates to
-~2e-3 in H/MI by the delta method, below any practical
-threshold).** The bound is ABSOLUTE, not "relative to the
-gate-scale noise": a SYSTEMATIC bias does not average down
-with N the way Monte Carlo noise does (a 1e-3 systematic
-bias is invisible in a 1e4 gate — noise ~1e-2 — but
-dominant in the 1e7 corpus — noise ~1e-3). This is why the
-v3 gate runs at 1e6 (where G₀'s own noise is ~2e-3, so a
-delta* = 2e-3 bound is a RESOLVED quantity, not a hope),
-with a G₀-vs-G₀ bootstrap calibration at the SAME scale
-(§7). It is why the reclassification (E1-corpus: proven →
-gated) does NOT weaken the design: the gate, as amended, is
-a real BOUND on the corpus-level claims, not a ritual.
+— v3.1, QUANTIFIED — second review Amendment 3 + the v3.1
+clarification).** The I-017 statistics (SU, eta²/omega², the
+adherence) do NOT require "G₁'s corpus to be an exact G₀
+expectation". They require the ideal population to be
+RANDOM-PLAY-LIKE within a NOVELTY-BOUNDED tolerance. The
+bound is on the **TV (total variation) of the frequency
+tables** (the ½·L1 discrepancy over all cells — the scalar
+the downstream information statistics consume), and is
+**delta* = 2e-3, fixed a priori, in ABSOLUTE terms.**
+Quantified (v3.1 — computed, not asserted):
+- the D₀ noise (the TV between two i.i.d. G₀ corpora,
+  E[TV] ≈ 0.4·√(2·S/N), S = Σp(1-p), N ≈ games × 40
+  position-samples): ≈ **1e-4 at 1e6** (8.9e-5 near-uniform,
+  4.9e-5 concentrated) and ≈ **3e-5 at 1e7**.
+- hence delta* = 2e-3 sits ≈ 20× ABOVE the 1e6 D₀ noise (≈
+  70× the 1e7 noise): the ABSOLUTE criterion is the OUTER
+  CAP (it guards against a miscalibrated bootstrap); the
+  BOOTSTRAP-RELATIVE criterion (D below the 95th percentile
+  of D₀, §7 — expected ≈ 1.5e-4 at 1e6) is normally the
+  BINDING one. The gate effectively demands G₁-vs-G₀ be no
+  worse than two random G₀ corpora are to each other, at a
+  scale where that is resolvable.
+- downstream propagation (worst case, C = 1296 cells): a
+  2e-3 TV perturbation bounds the information-quantity
+  perturbation at ≤ ~2e-2 (the TV·(1 + log C) bound),
+  typically a few × 1e-3 — a few-percent relative on O(1)
+  quantities, negligible against the 1e-1-scale effect-size
+  distinctions the campaign draws.
+- delta* is an A PRIORI JUDGMENT (1/5 of the ~1e-2 smallest
+  effect size the campaign will consider meaningful); if
+  T7+ measures the actual effect sizes and they are much
+  smaller, the bound is re-examined — by then the corpus
+  exists and can be re-baselined.
+The bound is ABSOLUTE, not "relative to the gate-scale
+noise": a SYSTEMATIC bias does not average down with N the
+way Monte Carlo noise does. This is why the v3.1 gate runs
+at 1e6 (where both criteria are RESOLVED quantities, not
+hopes) with the G₀-vs-G₀ bootstrap calibration, AND
+re-certifies at the 1e7 BUILD (test 7) — closing the band
+where a systematic bias above the 1e6 detection floor
+(~1.5e-4) yet below delta* could otherwise pass the 1e6
+design gate while being 5-60× the 1e7 noise. It is why the
+reclassification (E1-corpus: proven → gated) does NOT
+weaken the design: the gate, as amended, is a real BOUND on
+the corpus-level claims, not a ritual.
 
 ---
 
@@ -536,10 +568,13 @@ percentile, with family-wise error control.
 
 **Scale: 1e6 games, arrested at the model's ec** (the SAME
 arrest rule for G₀ and G₁ — stated explicitly, second review
-Amendment 1a). At 1e6, G₀'s own per-cell noise is ~2e-3 —
-the scale at which the absolute delta* = 2e-3 bound (the
-design requirement, §5) is a RESOLVED quantity, and G₀
-remains a faithful reference (minutes to run).
+Amendment 1a) — the DESIGN gate, before the T5 build. At
+1e6 the D₀ noise is ≈ 1e-4 (the 95th percentile ≈ 1.5e-4),
+so the dual criterion of §5 is a RESOLVED quantity, and G₀
+remains a faithful reference (~15-20 min to run per corpus
+in the T4 Python loop; G₁ the same). The 1e7 BUILD gate
+(test 7) re-certifies at full scale, where the D₀ noise
+drops to ≈ 3e-5.
 
 1. **Test 1 (the table, A1).** Every row P_k a valid
    permutation (already in the T4 suite); the pick
@@ -559,8 +594,13 @@ remains a faithful reference (minutes to run).
    aggregate. Metric: D = the TV (total variation) of the
    per-sub-variable frequency tables, tested against (i) the
    ABSOLUTE delta* = 2e-3 and (ii) the 95th percentile of
-   the D₀ = TV(G₀, G₀') distribution over 5-10 G₀-vs-G₀
-   bootstrap replicate pairs at 1e6. Family control:
+   the D₀ = TV(G₀, G₀') distribution, estimated from 20
+   G₀-vs-G₀ replicate pairs at 1e5 (≈ 2.5 h total — cheap
+   enough to be worth doing right) SCALED by √10 to the 1e6
+   threshold (the TV between two i.i.d. corpora scales as
+   1/√N — verified: 2.8e-4 at 1e5 → 8.9e-5 at 1e6, ratio
+   exactly √10; expected 95th percentile ≈ 1.5e-4 at 1e6).
+   Family control:
    Bonferroni over the sub-variable family (the per-cell
    p-values are secondary diagnostics, with BH-FDR — second
    review Amendment 3.2).
@@ -593,19 +633,34 @@ remains a faithful reference (minutes to run).
    initializations (e.g. offsets 0, 7, 4000001, ...): the
    frequency tables must stay within G₀ noise of each other
    (no phase-locked artifact).
+7. **Test 7 (the 1e7 BUILD gate — v3.1).** At corpus build
+   time (the 1e7 production run), the G₁-vs-G₀ comparison is
+   RE-RUN at full scale: the G₀ reference at 1e7 is
+   affordable (~2-3 h in the T4 Python loop, or the T5
+   cross-check), and the D₀ noise drops to ≈ 3e-5 (95th
+   percentile ≈ 4e-5 — the 1e5 pairs rescaled by 1/√100).
+   The SAME dual criterion applies (delta* = 2e-3 absolute;
+   the rescaled bootstrap percentile). This closes the band
+   where a systematic bias above the 1e6 detection floor
+   (~1.5e-4) yet below delta* could otherwise pass the 1e6
+   design gate while being 5-60× the 1e7 noise — at 1e7
+   such a bias is 5-60σ and the build gate sees it. The
+   corpus is ACCEPTED only after BOTH gates pass (the 1e6
+   design gate before T5; the 1e7 build gate at build time).
 
-**Pass criterion (v3 — ALL THREE must hold).** (i)
+**Pass criterion (v3.1 — ALL FOUR must hold).** (i)
 ABSOLUTE: every per-sub-variable and per-stratum discrepancy
-D below delta* = 2e-3 (fixed a priori, §5); (ii) RELATIVE:
-every D below the 95th percentile of the G₀-vs-G₀ bootstrap
-distribution at 1e6; (iii) the focused tests (3-4) pass
-under the family control (Bonferroni/BH as above). A pass of
-(i)+(ii) is what turns the gate from a ritual into a BOUND:
-the systematic G₁-vs-G₀ deviation is certified below delta*
-IN ABSOLUTE TERMS — and delta* is negligible against the
-I-017 effect sizes (delta-method propagation: a 2e-3
-frequency perturbation → ~2e-3 in H/MI, below any practical
-threshold).
+D (the TV scalar) below delta* = 2e-3 (fixed a priori, §5);
+(ii) RELATIVE: every D below the 95th percentile of the
+G₀-vs-G₀ bootstrap distribution at 1e6 (≈ 1.5e-4 — normally
+the BINDING criterion); (iii) the focused tests (3-4) pass
+under the family control (Bonferroni/BH as above); (iv) the
+1e7 BUILD gate (test 7) passes at corpus build time. A pass
+of (i)+(ii) is what turns the gate from a ritual into a
+BOUND: the systematic G₁-vs-G₀ deviation is certified below
+delta* IN ABSOLUTE TERMS (with the downstream propagation
+bound of §5), and (iv) guarantees the certification at the
+scale where the corpus is actually used.
 
 **FAIL → attribution, then the fallback (v3 sharpening —
 second review §4.4).** A gate failure is ATTRIBUTED before
