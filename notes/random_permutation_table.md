@@ -5,15 +5,18 @@
 > written 2026-09-11 by Nia for Roberto's review and for EXTERNAL
 > PEER REVIEW (DeepSeek V4 Pro / GLM 5.3 — the requested
 > second opinion on §6 and §7).
-> **Status: REVISED (v2, 2026-09-11 — after the first peer
-> review, DeepSeek V4 Pro, at notes/peer_review_random_
-> permutation_table.md; the author's response in §10).**
-> The v1 overclaims (the Theorem 1 conditional-kernel
-> statement; the "PROVEN" classification of the corpus-level
-> expectations) are corrected in this version. The T5 wave
-> engine must NOT be built on this design until the SECOND
-> review confirms the revised §6 and the T6 gate (§7) is
-> approved.
+> **Status: REVISED (v3, 2026-09-11 — after TWO peer reviews:
+> the first, DeepSeek V4 Pro, at notes/peer_review_random_
+> permutation_table.md (v1+v2 pass; the author's response in
+> §10); the second, Kimi K3, at notes/peer_review_kimi_random_
+> permutation_table.md (PASS WITH THREE REQUIRED AMENDMENTS —
+> all three ADOPTED in this v3: the arrest-stratified
+> marginal comparison + the sampling-unit pin, the
+> focused-tests-primary gate re-ordering, and the
+> ABSOLUTE-bias bound that strikes the "a fortiori
+> subdominant" extrapolation). The T5 wave engine must NOT be
+> built on this design until the T6 gate (§7, as amended in
+> v3) is approved and executed.
 > Companion documents:
 > `notes/analytical_properties_of_features.md` (the project plan,
 > §3.2 the generator design, ODP-9 the adopted pick),
@@ -56,6 +59,26 @@ Requirements that fix the design:
 4. **Speed.** The corpus generation is the expensive phase
    (minutes at 1e7, hours at 1e9) and must run as a vectorized
    numba kernel over 1M-game arrays ("a manetta").
+5. **The sampling unit is pinned here (v3, second review
+   Amendment 1).** The corpus keeps EVERY PLY of every
+   arrested game (the T4 design). TWO derived populations
+   serve the downstream statistics, and each use must name
+   its unit: (a) the ARRESTED-POSITION population — one
+   position per game, AT the arrest ec: the apples-to-apples
+   reference for the DB ADHERENCE statistic (the regab DB is
+   one position per game, at the model's ec); (b) the FULL-
+   TRAJECTORY population — every ply of every arrested game:
+   the reference for the SU / eta² / omega² FREQUENCY
+   characterization (the per-game extra plies are the sample
+   that fills sparse cells, §4.4). Note (second review): the
+   marginal frequency over the full-trajectory population is
+   a MIXTURE over plies — each game contributes 1 + (its
+   pass count) plies, and the ec level of each ply; the
+   arrest ec is reached EXACTLY (ec drops by 1 per real
+   move), so the mixture weights are determined by the
+   per-game pass distribution — which is why the gate
+   compares per-ec-level, stratum by stratum, and compares
+   the pass frequencies directly (§7, test 2).
 
 The question this document answers: **can we replace "one
 uniform PRNG draw per (game, ply)" with a deterministic,
@@ -261,18 +284,27 @@ against a same-scale G₀ reference) and the path-coupling
 residual (E3b).
 
 **The design requirement (what the statistics actually need
-— v2, the criterion that settles the discussion).** The I-017
+— v3, QUANTIFIED — second review Amendment 3).** The I-017
 statistics (SU, eta²/omega², the adherence) do NOT require
-"G₁'s corpus to be an exact G₀ expectation". They require the
-ideal population to be RANDOM-PLAY-LIKE to within the
-MEASUREMENT PRECISION — a deviation of the ideal population
-that is small compared to the sampling noise of the corpus
-itself. That is exactly what the gate verifies at 1e4 (where
-G₀ is a faithful reference and any systematic G₁-vs-G₀
-difference above ~G₀'s own noise is detected), and it is why
-the reclassification (E1-corpus: proven → gated) does NOT
-weaken the design: the gate is now the PRIMARY defense of the
-corpus-level claims, not a backup for a residual.
+"G₁'s corpus to be an exact G₀ expectation". They require
+the ideal population to be RANDOM-PLAY-LIKE to within a
+NOVELTY-BOUNDED tolerance: the systematic deviation of the
+ideal population's cell frequencies must be bounded by
+**delta* = 2e-3 (fixed a priori, in ABSOLUTE terms —
+negligible against the I-017 effect sizes, which live at
+1e-2 and above; a 2e-3 frequency perturbation propagates to
+~2e-3 in H/MI by the delta method, below any practical
+threshold).** The bound is ABSOLUTE, not "relative to the
+gate-scale noise": a SYSTEMATIC bias does not average down
+with N the way Monte Carlo noise does (a 1e-3 systematic
+bias is invisible in a 1e4 gate — noise ~1e-2 — but
+dominant in the 1e7 corpus — noise ~1e-3). This is why the
+v3 gate runs at 1e6 (where G₀'s own noise is ~2e-3, so a
+delta* = 2e-3 bound is a RESOLVED quantity, not a hope),
+with a G₀-vs-G₀ bootstrap calibration at the SAME scale
+(§7). It is why the reclassification (E1-corpus: proven →
+gated) does NOT weaken the design: the gate, as amended, is
+a real BOUND on the corpus-level claims, not a ritual.
 
 ---
 
@@ -290,9 +322,15 @@ corpus-level claims, not a backup for a residual.
   standard MT19937 quality assumption (the 623-dimensionally
   equidistributed generator; the T3 golden suite pins the
   implementation bit-exact against Roberto's C build, which is
-  the operational meaning of "the seeded shuffle"). A1 is
-  ALSO empirically re-verified at the T6 gate (the table
-  properties + the pick distribution on a tiny corpus).
+  the operational meaning of "the seeded shuffle"). One
+  mechanism note (second review, Kimi K3): the Fisher–Yates
+  rank draws go through random_choice_from_finite_set — the
+  FLOOR of a [0,1) double (get_double_in_c0_o1), NOT a
+  bitmask rejection: a modulo-free reduction whose induced
+  non-uniformity is ≤ k·2⁻⁵³ ≈ 7e-15 at k ≤ 64 — negligible,
+  and the SAME construction as the C reference T3 pins. A1
+  is ALSO empirically re-verified at the T6 gate (the table
+  properties + the pick distribution).
 - **Assumption A2 (the scale).** N (the corpus size) ≥ 1e4, so
   that k ≤ 64 is small relative to N (used only in the O(k/N)
   bound).
@@ -417,20 +455,21 @@ both are reclassified here).
   "uniform over the unconsumed entries" vs "uniform over all
   entries", plus the deterministic-reuse plies), accumulated
   through the trajectory-shaping dependence. Plausibility
-  (NOT a proof — the reviewer should check whether it is
-  sound): the local semantics are identical (oracle
+  (NOT a proof — the reviewers checked and found it sound as
+  plausibility; NO cheap re-proof was found by either
+  review): the local semantics are identical (oracle
   Theorem 1), so the AVERAGED path through the position
   graph follows the same transition weights as G₀ in
-  expectation; the N slot orbits (N = 1e6) are large, so the
-  per-seed corpus statistics concentrate around the seed
-  average; the deviation, if any, is the entry-consumption
-  effect at corpus scale — and it is MEASURED, not argued:
-  the T6 gate (tests 2-6, §7) requires the G₁ micro-corpus
-  (1e4) to be INDISTINGUISHABLE from a same-scale G₀
-  micro-corpus at G₀'s own noise level — a systematic
-  G₁-vs-G₀ difference above ~G₀'s 1e4 noise (~1e-2 per cell)
-  is detected; if the gate passes, the bias at 1e7 (where
-  G₀'s own noise is ~1e-3) is a fortiori subdominant.
+  expectation; the N slot orbits are large, so the per-seed
+  corpus statistics concentrate around the seed average; the
+  deviation, if any, is the entry-consumption effect at
+  corpus scale — and it is MEASURED, not argued: the T6 gate
+  (tests 1-6, §7, v3: run at 1e6 with the ABSOLUTE delta* =
+  2e-3 bound and the G₀-vs-G₀ bootstrap calibration at the
+  same scale — a systematic bias is bounded in absolute
+  terms, NOT declared subdominant by extrapolation; the v2
+  "a fortiori subdominant" sentence is STRUCK per the second
+  review).
 
 ### 6.5 The joint-coupling residual (the honest part, E3b)
 Theorem 2 covers the joint at the level of EXPECTATIONS. What
@@ -477,55 +516,118 @@ PROVEN, and the document states that plainly.
 
 ---
 
-## 7. The empirical complement — the T6 gate (pre-registered)
+## 7. The empirical complement — the T6 gate (pre-registered,
+## v3 — the three required amendments ADOPTED)
 
-The proof covers the expectations; the gate covers the residual
-and A1. Design (to be executed at T6, BEFORE any 1e7 corpus):
+The proof covers the oracle kernel, the lemmas, the phase
+combinatorics and the error order; the gate covers everything
+corpus-level (E1-corpus, E3b) and A1. The v3 amendments
+(second review, Kimi K3 — all adopted): the scale is **1e6**
+(a SYSTEMATIC bias must be bounded in ABSOLUTE terms against
+the 1e7 noise floor — a 1e4 gate with ~1e-2 noise cannot
+resolve delta* = 2e-3; G₀ at 1e6 is still cheap: ~5e7 draws,
+minutes in Python); the marginal comparison is
+**ARREST-STRATIFIED** (the marginal is a mixture over plies —
+the mixture weights are the pass distribution, §1.5); the
+**focused TV/KL tests are the PRIMARY** joint instruments (a
+pooled sparse-occupancy chi-square loses local power); the
+pass criterion is the **ABSOLUTE delta*** + the bootstrap
+percentile, with family-wise error control.
 
-1. **Micro-corpus scale: 1e4 games** (arrested at the model's
-   ec). G₀ at 1e4 costs ~5e5 PRNG draws — seconds in Python —
-   so G₀ is a FAITHFUL REFERENCE at this scale, not an
-   approximation.
-2. **Test 1 (the table, A1).** Every row P_k is a valid
+**Scale: 1e6 games, arrested at the model's ec** (the SAME
+arrest rule for G₀ and G₁ — stated explicitly, second review
+Amendment 1a). At 1e6, G₀'s own per-cell noise is ~2e-3 —
+the scale at which the absolute delta* = 2e-3 bound (the
+design requirement, §5) is a RESOLVED quantity, and G₀
+remains a faithful reference (minutes to run).
+
+1. **Test 1 (the table, A1).** Every row P_k a valid
    permutation (already in the T4 suite); the pick
-   distribution: for each width k, the histogram of the chosen
-   ranks over the micro-corpus vs uniform — chi-square.
-3. **Test 2 (the marginals, E1-E2).** For every sub-variable:
-   the G₁ cell frequencies vs the G₀ cell frequencies — a
-   chi-square of the DISCREPANCY, with the critical threshold
-   calibrated on G₀-vs-G₀ bootstraps (G₀'s own 1e4 Monte Carlo
-   noise is the yardstick: G₁ must be no more different from
-   G₀ than G₀ is from another G₀ run).
-4. **Test 3 (the joints, E3b).** For a sample of su pairs
-   (including same-width pairs — the risky case): the G₁-vs-G₀
-   joint discrepancy chi-square, threshold as in Test 2. At
-   1e4 the 1296×1296 table has df ≈ 1.7e6 — the chi-square is
-   in the asymptotic regime (critical value ≈ 2√df + a few
-   sigma).
-5. **Test 4 (the same-width focus, E3b — first review
-   suggestion, ADOPTED).** Extract ONLY the joint pairs where
-   the two plies have the SAME width k (the risky case: the
-   shared-row consumption, TV = 1/k at the rank level); apply
-   a TV (total variation) and a KL statistic on the joint
-   table of the two features, with a G₀-vs-G₀ bootstrap
-   threshold. More sensitive than the full-table chi-square
-   for the specific coupling under test.
-6. **Test 5 (the small-k focus — first review suggestion,
-   ADOPTED).** k = 2 has TV = 1/2 — the largest effect:
-   verify specifically that the observable codes at small-k
-   decisions (early game, tight positions) are within G₀
-   noise.
-7. **Test 6 (the phase-continuity scan — optional, first
+   distribution: for each width k, the histogram of the
+   chosen ranks over the gate corpus vs uniform — chi-square
+   (the coarse A1 re-check; the floor-of-double rank
+   reduction is ≤ k·2⁻⁵³ ≈ 7e-15 — §6.0).
+2. **Test 2 (the marginals — v3 STRATIFIED, second review
+   Amendment 1).** For every sub-variable, G₁ vs G₀:
+   (a) PER-EC-LEVEL: the position distribution at each ec
+   level (from the start 60 down to the arrest ec) — the
+   PRIMARY comparison (a pure pass-frequency difference
+   would show up here, and a per-stratum bias cannot cancel
+   across strata); (b) the pass FREQUENCIES (the per-game
+   ply-count distribution) compared directly; (c) the pooled
+   full-trajectory marginal — reported as a SECONDARY
+   aggregate. Metric: D = the TV (total variation) of the
+   per-sub-variable frequency tables, tested against (i) the
+   ABSOLUTE delta* = 2e-3 and (ii) the 95th percentile of
+   the D₀ = TV(G₀, G₀') distribution over 5-10 G₀-vs-G₀
+   bootstrap replicate pairs at 1e6. Family control:
+   Bonferroni over the sub-variable family (the per-cell
+   p-values are secondary diagnostics, with BH-FDR — second
+   review Amendment 3.2).
+3. **Test 3 (the joints — v3 FOCUSED-PRIMARY, second review
+   Amendment 2).** For each sampled su pair: the joint table
+   F(c_A, c_B) (the two codes at the SAME position — the SU
+   unit), STRATIFIED BY THE PLY WIDTH k (the strata where the
+   entry-consumption risk concentrates — small k first: the
+   TV = 1/k rank coupling is largest there, and the
+   cross-ply pick coupling propagates to the same-position
+   joint through the trajectory ensemble): per-stratum
+   D = TV (and KL) of G₁ vs G₀, with the same dual threshold
+   (delta* + the bootstrap 95th percentile, G₀-vs-G₀ at
+   1e6) and BH-FDR over (sub-variable × stratum). These are
+   the PRIMARY joint instruments.
+4. **Test 4 (the small-k dedicated pass).** The k ≤ 4 plies
+   (early game, tight positions — the largest TV = 1/k): the
+   observable codes there within delta* of G₀. (The first
+   review's suggestion, refined in v3 into a dedicated pass.)
+5. **Test 5 (the pooled joint chi-square — DEMOTED to a
+   coarse sanity check, second review Amendment 2).** The
+   full G₁-vs-G₀ joint chi-square (df ≈ 1.7e6 at the
+   1296×1296 table — the asymptotic regime, critical value ≈
+   2√df + a few sigma): a wide net, not a load-bearing
+   instrument (at sparse occupancy the merged-tail
+   chi-square loses local power — flagged by the first
+   reviewer, made a required re-ordering by the second).
+6. **Test 6 (the phase-continuity scan — optional, first
    review suggestion).** 3-5 different counter0 phase
    initializations (e.g. offsets 0, 7, 4000001, ...): the
    frequency tables must stay within G₀ noise of each other
    (no phase-locked artifact).
-8. **FAIL → the fallback.** A second independent counter
-   (c'_g, a different phase, e.g. c'_g(0) = g + a large
-   co-prime offset) for the "second pick stream": the same-
-   width pair then draws from two independent rank walks;
-   re-run the gate. If even the fallback fails (it should not),
-   the design question re-opens.
+
+**Pass criterion (v3 — ALL THREE must hold).** (i)
+ABSOLUTE: every per-sub-variable and per-stratum discrepancy
+D below delta* = 2e-3 (fixed a priori, §5); (ii) RELATIVE:
+every D below the 95th percentile of the G₀-vs-G₀ bootstrap
+distribution at 1e6; (iii) the focused tests (3-4) pass
+under the family control (Bonferroni/BH as above). A pass of
+(i)+(ii) is what turns the gate from a ritual into a BOUND:
+the systematic G₁-vs-G₀ deviation is certified below delta*
+IN ABSOLUTE TERMS — and delta* is negligible against the
+I-017 effect sizes (delta-method propagation: a 2e-3
+frequency perturbation → ~2e-3 in H/MI, below any practical
+threshold).
+
+**FAIL → attribution, then the fallback (v3 sharpening —
+second review §4.4).** A gate failure is ATTRIBUTED before
+any fix: the counter-mediated coupling and the shared-row
+distinctness are DIFFERENT defects. The pre-specified
+fallback — a second independent counter (c'_g, a different
+phase, e.g. c'_g(0) = g + a large co-prime offset) for the
+"second pick stream" — removes the COUNTER-mediated coupling
+but NOT the permutation distinctness (any two counters still
+read the SAME row P_k: P_k[a] ≠ P_k[b] for a ≠ b — same-
+width pairs remain uniform-DISTINCT, TV = 1/k from G₀'s
+allows-equality law). So: if the cross-width tests pass and
+the SAME-WIDTH / small-k tests (3-4) fail, the fallback will
+NOT rescue the design — the residual is the shared-row
+distinctness, which no number of independent counters fixes.
+The escape hatch for THAT failure mode is a partial retreat
+toward G₀ at exactly the small-k plies: a FRESH per-ply
+PRNG draw for the second same-width pick (the PRNG call
+returns to a MINORITY of the hot loop — the small-k plies —
+the vectorized bulk is untouched). A design decision at that
+time, if it ever comes. If even that fails, the design
+question re-opens.
 
 ---
 
@@ -541,59 +643,64 @@ and A1. Design (to be executed at T6, BEFORE any 1e7 corpus):
 
 ---
 
-## 9. What the (second) peer reviewer should check (v2)
+## 9. Review status (v3 — closed by the two independent reviews)
 
-1. **Theorem 1 v2 (§6.3).** Is the ORACLE statement (given
-   (position, counter); seed-averaged; A1) the right semantic
-   level for the design? Is the circularity analysis correct
-   (the prefix conditions the table; the true conditional
-   kernel is "uniform over the unconsumed entries,
-   deterministic on reuse")? And is the author's rejection of
-   the first review's unconditional-marginal replacement
-   correct (L_t is a random variable at a fixed index — the
-   statement is not well-defined without conditioning; c is
-   table-dependent; the marginal uniformity of P_k does not
-   imply the uniformity of P_k[c mod k] for a table-dependent
-   c — the k = 2, I = 1{P₂ = [1,0]} counterexample)?
-2. **The reclassification (§6.4, §6.6).** Is it correct that
-   the corpus-level expectation equality (marginals AND
-   joints) is NOT proven exactly in the generated regime and
-   must be gated? Is the plausibility argument sound (the
-   identical local semantics + the large slot orbits)? Does
-   any argument RE-PROVE it? (The author is explicitly
-   inviting one — it would strengthen the design.)
-3. **The design requirement (§5).** Do the I-017 statistics
-   (SU, eta²/omega², the adherence) tolerate the path-
-   coupling deviation at the level the gate bounds (G₀ noise
-   at 1e4, extrapolated to 1e7)? Is the gate's threshold
-   design (G₀-vs-G₀ bootstraps) the sufficient yardstick?
-4. **A1.** Is "MT19937 permutations ≈ uniform random
-   permutations" an acceptable assumption for this use (a
-   2016-draw setup, k ≤ 64 rows)?
-5. **The gate (tests 1-6, §7).** Is the test set adequate
-   (the same-width and small-k focus, the phase-continuity
-   scan) and the fallback (the second independent counter)
-   mechanically correct?
-6. **The scope discipline (v2).** Does the document now claim
-   EXACTLY what is proven (the oracle kernel, the lemmas, the
-   phase combinatorics, the error order) and no more?
+The v2 checklist was answered by the two reviews; the status
+of each point, for the record:
+1. **Theorem 1 v2 (the oracle).** CONFIRMED by both reviews
+   (DeepSeek V4 Pro v2 pass; Kimi K3 §1.3, §4.1, §4.2 —
+   independent re-derivation: "the oracle statement is the
+   faithful semantics of that code"; the rejection of the
+   unconditional-marginal fix confirmed as "valid and
+   decisive").
+2. **The reclassification (marginals + joints → gated).**
+   CONFIRMED by both ("the single most important change in
+   v2, and it is correct" — Kimi K3 §2). NO cheap re-proof
+   found by either review (Kimi K3 §8.2: "the counter walk
+   across widths is not a standard (t,m,s)-net and the
+   coupling is genuinely trajectory-shaped. The gate is the
+   right call.").
+3. **The design requirement.** QUANTIFIED in v3 per Kimi K3's
+   Amendment 3 (the absolute delta* = 2e-3, the 1e6 scale,
+   the delta-method propagation bound) — "with that fix,
+   yes" (Kimi K3 §8.3).
+4. **A1.** ACCEPTED by both; the floor-of-double note added
+   in v3 (Kimi K3 §4.3).
+5. **The gate.** ADEQUATE AS AMENDED in v3 (Kimi K3's three
+   required amendments — the arrest-stratified marginal, the
+   focused-tests-primary re-ordering, the absolute-bias
+   bound + multiple-comparison control — all adopted in
+   §7); the fallback boundary sharpened (Kimi K3 §4.4).
+6. **The scope discipline.** "This is the document's best
+   feature" (Kimi K3 §7); the one v2 overclaim ("a fortiori
+   subdominant") is STRUCK in v3.
 
-> **Bottom line for Roberto (v2, post first review).** The
-> design PASSES the first review with corrections. What is
-> PROVEN: the one-step oracle equivalence (from any given
-> state, the seed-averaged G₁ pick is a uniform pick — the
-> local semantics are exactly G₀'s), the lemmas, the phase
-> combinatorics (≤ 6.4e-5), the sampling-error order. What is
-> VERIFIED (not proven): the corpus-level equivalence
-> (marginals AND joints) against a same-scale G₀ reference at
-> the 1e4 T6 gate, with the same-width and small-k focus
-> tests and the pre-specified fallback. The design
-> requirement of I-017 — the ideal population random-play-
-> like within the measurement precision — is exactly what
-> the gate verifies BEFORE the expensive build. If the second
-> review confirms the v2 §6 (or finds an argument that
-> re-proves the corpus-level equality — invited, §9.2), the
-> T5 wave engine is built on G₁.
+The document is in its FINAL pre-T5 state. No third review is
+requested: the two independent voices agree on the verdict
+(PASS) and on every load-bearing point; the remaining risk
+is EMPIRICAL (the T6 gate) and is now fully specified.
+
+> **Bottom line for Roberto (v3, post TWO reviews).** The
+> design PASSES two independent reviews (DeepSeek V4 Pro;
+> Kimi K3 — the second "PASS WITH REQUIRED AMENDMENTS", all
+> three ADOPTED). What is PROVEN: the one-step oracle
+> equivalence (from any given state, the seed-averaged G₁
+> pick is a uniform pick — the local semantics are exactly
+> G₀'s), the lemmas, the phase combinatorics (≤ 6.4e-5), the
+> sampling-error order. What is BOUNDED (not proven): the
+> corpus-level equivalence (marginals AND joints) — the T6
+> gate at 1e6 certifies the systematic G₁-vs-G₀ deviation
+> below the ABSOLUTE delta* = 2e-3 (negligible against the
+> I-017 effect sizes), with the arrest-stratified marginal
+> comparison, the focused TV/KL joint tests as primary, the
+> G₀-vs-G₀ bootstrap calibration at the same scale, the
+> family-wise error control, and the sharpened fallback
+> boundary. The honest framing (Kimi K3, adopted): as of
+> this document, "G₁ gives the same results as G₀" is a
+> PRE-REGISTERED EMPIRICAL CLAIM with a fully specified
+> bound — not a theorem; the gate turns it into a certified
+> bound BEFORE the expensive build. When the T6 gate passes,
+> the T5 wave engine is built on G₁.
 
 ---
 
@@ -646,3 +753,56 @@ expectation overclaim), and minor fixes.
   like within the measurement precision", and the gate
   verifies exactly that, at a scale where G₀ is a faithful
   reference, BEFORE the expensive build.
+
+**Second review (2026-09-11, Kimi K3 — the document at
+notes/peer_review_kimi_random_permutation_table.md).**
+Verdict: PASS WITH THREE REQUIRED AMENDMENTS — all ADOPTED
+in v3. The author's response:
+- **No rebuttal — the three amendments are all correct, and
+  adopted.** (A review that re-derives independently — its
+  §4 matches this document's own analysis — and whose new
+  points are genuine weaknesses of the gate design. Accepted
+  without reservation.)
+- **Amendment 1 (the arrest stratification + the sampling
+  unit) — ADOPTED** (§1.5, §7 test 2). One refinement: the
+  arrest lands EXACTLY at the target ec (ec drops by exactly
+  1 per real move); the trajectory-dependent quantity is the
+  pass count — hence the per-ec-level comparison + the
+  direct pass-frequency comparison. The sampling unit is
+  pinned in §1.5 (the two derived populations: the
+  arrested-positions → the DB adherence reference; the full
+  trajectories → the SU / eta² / omega² reference).
+- **Amendment 2 (the sparse-cell power) — ADOPTED** (§7:
+  tests 3-4 are the PRIMARY TV/KL instruments on the joint
+  table stratified by ply width; test 5 is demoted to a
+  coarse sanity check).
+- **Amendment 3 (the absolute bias bound) — ADOPTED; the
+  strongest point of the review** (§5, §7): a systematic
+  bias does not shrink with N — a 1e4 gate (noise ~1e-2)
+  cannot resolve a 1e-3 systematic bias that would be
+  dominant at 1e7 (noise ~1e-3). Resolution: the gate runs
+  at 1e6 (G₀ still cheap: ~5e7 draws); the absolute delta*
+  = 2e-3 fixed a priori (negligible against the I-017
+  effect sizes; delta-method propagation ~2e-3 in H/MI);
+  the TV per sub-variable + the Bonferroni/BH family
+  control; the G₀-vs-G₀ bootstrap at 1e6 (5-10 pairs). The
+  v2 "a fortiori subdominant" sentence is STRUCK.
+- **The A1 floor-of-double note — ADOPTED** (§6.0: the rank
+  reduction is the floor of a [0,1) double, not a bitmask
+  rejection; the bias is ≤ k·2⁻⁵³ ≈ 7e-15).
+- **The fallback sharpening — ADOPTED** (§7): the second
+  counter removes the counter-mediated coupling but NOT the
+  shared-row distinctness (the TV = 1/k remains); a
+  same-width failure is NOT rescued by the fallback; the
+  escape hatch is the fresh per-ply PRNG draw at the small-
+  k plies (the partial G₀ retreat at a minority of the hot
+  loop).
+- **The honest framing — ADOPTED (bottom line)**: "G₁
+  gives the same results as G₀" is a PRE-REGISTERED
+  EMPIRICAL CLAIM with a fully specified bound — not a
+  theorem; the gate turns it into a certified bound before
+  the expensive build.
+- **No third review is requested.** The two independent
+  voices agree on the verdict (PASS) and on every
+  load-bearing point; the remaining risk is EMPIRICAL (the
+  T6 gate) and is now fully specified.

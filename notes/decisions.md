@@ -280,3 +280,143 @@ D-164 | 2026-09-11 | ODP-9 document revised (v2) after the
         the SECOND review confirms the v2 document and the
         gate design; the gate itself runs at T6 before any
         1e7 corpus.
+
+D-165 | 2026-09-11 | The SECOND ODP-9 peer review executed —
+        the independent voice (Kimi K3), recorded at notes/
+        peer_review_kimi_random_permutation_table.md. Verdict:
+        PASS WITH REQUIRED AMENDMENTS — the design is sound and
+        the v2 scope discipline is exemplary, but the document
+        under-corrects on three load-bearing points for the
+        claim "G1 gives the same results as a G0 population".
+        The reviewer re-derived every claim independently
+        (read the implementation before the first review to
+        avoid capture) and CONFIRMED: the oracle Theorem 1 is
+        the correct semantic level (checked against pick_move);
+        the v1 circularity is real and the entry-consumption
+        mechanism ("uniform over unconsumed entries,
+        deterministic on reuse") is exact; the author's
+        rejection of the unconditional-marginal fix is correct
+        (the k = 2 table-dependent-index counterexample is
+        decisive); A1 is acceptable (with a note: the
+        random_choice_from_finite_set reduction is
+        floor-of-double, bias bounded at k * 2^-53 ~ 7e-15);
+        the fallback does NOT restore the G0 pair law (it
+        removes only the counter-mediated coupling, NOT the
+        shared-row distinctness — if the same-width tests 4-5
+        fail while cross-width pass, no counter count fixes it;
+        the only fix is a per-ply fresh draw at same-width
+        plies). No re-proof of the corpus-level equality found
+        (the Markov-chain closure collapses into the same
+        circularity, confirming the first reviewer's section
+        3.3) — the gate remains the defense. THREE REQUIRED
+        AMENDMENTS (all in the gate design, not the math):
+        (A1) the corpus MARGINAL is not one number — it depends
+        on the ply-arrest distribution; the gate must compare
+        G1 vs G0 PER-STRATUM (per ec / ply-index), not only
+        pooled, and must state the sampling unit (per-ply vs
+        per-game) the I-017 adherence statistic consumes —
+        G1's path coupling could shift the arrested-length
+        distribution and a per-stratum bias could be masked by
+        pooling; (A2) test 3 (the pooled 1296 x 1296 joint
+        chi-square) has near-zero power at 1e4 (mean cell
+        occupancy ~6e-3) — the focused tests 4-5 (TV/KL, no
+        sparsity correction) become the PRIMARY joint gate and
+        test 3 is demoted to a coarse sanity check; (A3 — the
+        amendment that goes BEYOND both the document and the
+        first review) the "random-play-like within precision"
+        criterion needs a NUMBER: the entry-consumption bias is
+        SYSTEMATIC (it does not average down with N like Monte
+        Carlo noise), so the "a fortiori subdominant at 1e7"
+        extrapolation (document section 6.4) is NOT justified —
+        a sub-1e-2-at-1e4 systematic bias can exceed the 1e-3
+        noise floor at 1e7; the gate must bound the bias in
+        ABSOLUTE terms against the 1e7 noise floor (~1e-3),
+        state a metric + percentile (TV vs G0-vs-G0 bootstrap),
+        control the family-wise error across ~1e6 cells
+        (Bonferroni/BH), and state each test's power. Net: the
+        reviewer's endorsement of the first review's "PASS" in
+        substance, with the "a fortiori subdominant" sentence
+        flagged as the single weakest sentence in the document
+        (to be struck or justified). The T5 build on G1 is
+        gated on the THREE amendments being folded into the T6
+        gate design.
+D-165 | 2026-09-11 | ODP-9 document v3 after the SECOND
+        peer review (Kimi K3, notes/peer_review_kimi_random_
+        permutation_table.md — verdict: PASS WITH THREE
+        REQUIRED AMENDMENTS; the author's response: NO
+        REBUTTAL, all three adopted — they are genuine
+        weaknesses of the gate design, not of the math).
+        (1) Amendment 1 (the arrest stratification) ADOPTED:
+        the corpus marginal is a MIXTURE over plies (each
+        game contributes 1 + its pass count plies; the
+        mixture weights are the pass distribution — the
+        arrest lands EXACTLY at the target ec: ec drops by
+        exactly 1 per real move, so the trajectory-dependent
+        quantity is the pass count). T6 test 2 now compares
+        PER-EC-LEVEL (the primary) + the pass frequencies
+        directly, the pooled marginal as a secondary
+        aggregate; the SAME arrest rule for G0 and G1 is
+        stated explicitly. The SAMPLING UNIT is pinned (new
+        section 1.5): two derived populations — the
+        arrested-positions (one per game, at the arrest ec:
+        the apples-to-apples reference for the DB ADHERENCE
+        statistic) and the full trajectories (every ply: the
+        reference for the SU/eta2/omega2 FREQUENCY
+        characterization). (2) Amendment 2 (the sparse-cell
+        power) ADOPTED: the pooled 1296x1296 chi-square at
+        sparse occupancy loses local power (merged-tail
+        collapse; mean cell occupancy ~0.24 at 1e4, ~24 at
+        1e6) — the focused TV/KL tests on the joint table
+        STRATIFIED BY PLY WIDTH (small k first: the TV = 1/k
+        rank coupling is largest there; the cross-ply pick
+        coupling propagates to the same-position SU joint
+        through the trajectory ensemble) are now the
+        PRIMARY joint instruments (tests 3-4); the pooled
+        chi-square is demoted to a coarse sanity check
+        (test 5). (3) Amendment 3 (the absolute bias bound)
+        ADOPTED — the strongest point of the review: a
+        SYSTEMATIC bias does not shrink with N; a 1e4 gate
+        (noise ~1e-2) cannot resolve a 1e-3 systematic bias
+        that would be DOMINANT at 1e7 (noise ~1e-3) — the
+        v2 "a fortiori subdominant" sentence is STRUCK.
+        Resolution: the gate runs at 1e6 (G0 still cheap:
+        ~5e7 draws, minutes; G0's own per-cell noise ~2e-3
+        makes delta* a resolved quantity); the ABSOLUTE
+        delta* = 2e-3 is fixed a priori (negligible against
+        the I-017 effect sizes, which live at 1e-2 and
+        above; delta-method propagation: a 2e-3 frequency
+        perturbation -> ~2e-3 in H/MI); the metric is the
+        TV per sub-variable/stratum tested against (i) the
+        absolute delta* and (ii) the 95th percentile of the
+        G0-vs-G0 bootstrap distribution at 1e6 (5-10
+        replicate pairs); the family control is Bonferroni
+        over the sub-variable family (primary scalars) +
+        BH-FDR on the per-cell p-values (secondary
+        diagnostics). Pass criterion: ALL of (i) absolute,
+        (ii) relative-bootstrap, (iii) focused-tests under
+        family control. (4) Additional adoptions: the A1
+        floor-of-double note (the Fisher-Yates rank draws
+        go through random_choice_from_finite_set — the
+        FLOOR of a [0,1) double, not a bitmask rejection;
+        the induced non-uniformity is at most k*2^-53 ~
+        7e-15 at k <= 64 — the same construction as the C
+        reference T3 pins); the FALLBACK BOUNDARY
+        sharpening (the second independent counter removes
+        the counter-mediated coupling but NOT the shared-
+        row distinctness — P_k[a] != P_k[b] for a != b
+        remains: a same-width gate failure is NOT rescued
+        by the fallback; the escape hatch is the fresh per-
+        ply PRNG draw at the small-k plies — a partial G0
+        retreat at a minority of the hot loop); the honest
+        framing in the bottom line ("G1 gives the same
+        results as G0" is a PRE-REGISTERED EMPIRICAL CLAIM
+        with a fully specified bound, not a theorem — the
+        gate turns it into a certified bound before the
+        expensive build). (5) NO THIRD review is requested:
+        the two independent voices agree on the verdict
+        (PASS) and on every load-bearing point; the
+        remaining risk is empirical (the T6 gate) and is
+        now fully specified. Gating: the document is in its
+        FINAL pre-T5 state; the T5 wave engine is built on
+        G1 after the (approved) T6 gate design is executed
+        and passes.

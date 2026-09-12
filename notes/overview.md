@@ -416,8 +416,21 @@ at the end of this file.
    golden, 20/0 tests) — 791/0/94 + LONG 791/0/21. T4 DONE
    (D-162): the single-game random play (the ODP-9 pick table,
    the no-PRNG pick, the ec arrest, the 12/0 micro-suite) —
-   803/0/94 + LONG 803/0/21. Next: T5 (the concurrent wave
-   engine — the numba tier).
+   803/0/94 + LONG 803/0/21. The ODP-9 equivalence document
+   (D-163) passed the first peer review (DeepSeek V4 Pro) and
+   is revised to v2 (D-164: the oracle Theorem 1, the corpus-
+   level claims reclassified to the T6 gate, the gate
+   extended); the SECOND, INDEPENDENT peer review (Kimi K3,
+   D-165) is in — verdict PASS WITH REQUIRED AMENDMENTS: the
+   design and the v2 scope discipline are confirmed, but three
+   gate-design amendments are required before the T5 build
+   (the per-stratum marginal comparison + the sampling unit,
+   the focused tests 4-5 as the primary joint gate, the
+   absolute-bias bound against the 1e7 noise floor with
+   family-wise error control and a stated power). Next: the
+   ODP-9 document to v3 (the amendments folded into the T6
+   gate), then T5 (the concurrent wave engine — the numba
+   tier).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -466,10 +479,23 @@ at the end of this file.
   T3 DONE (D-161: the C-oracle golden suite — the committed
   13003-line golden, test_prng.py 20/0), T4 DONE (D-162: the
   single-game random play — the ODP-9 table, the no-PRNG pick,
-  the ec arrest, the 12/0 micro-suite) — T5 next: the
-  concurrent wave engine (the batch of games in parallel, the
-  vectorized advance step, the respawn, the position stream —
-  the numba tier), per the plan in
+  the ec arrest, the 12/0 micro-suite) — the ODP-9
+  equivalence document (D-163) passed the first peer review
+  (DeepSeek V4 Pro) and is revised to v2 (D-164: the oracle
+  Theorem 1, the corpus-level claims reclassified to the T6
+  gate, the gate extended with the same-width/small-k/phase
+  tests); the SECOND, INDEPENDENT peer review (Kimi K3, D-165)
+  is DONE — verdict PASS WITH REQUIRED AMENDMENTS (the design
+  and the v2 scope discipline confirmed; three gate-design
+  amendments required before the T5 build: (A1) the per-stratum
+  marginal comparison + the pinned sampling unit, (A2) the
+  focused tests 4-5 as the primary joint gate, (A3) the
+  absolute-bias bound against the 1e7 noise floor with
+  family-wise error control and a stated power) — next: the
+  ODP-9 document to v3 (the amendments folded into the T6
+  gate), then T5: the concurrent wave engine (the batch of
+  games in parallel, the vectorized advance step, the respawn,
+  the position stream — the numba tier), per the plan in
   notes/analytical_properties_of_features.md §8. I-018 (the
   outlier report in VALIDATE) is parked, Roberto's call.
 
