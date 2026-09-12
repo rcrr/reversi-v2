@@ -646,3 +646,99 @@ D-170 | 2026-09-12 | T5: the concurrent WAVE engine (the
         passed) — the wave routes around it via the PA
         swap. The 2-line fix (the occupancy check) is
         ready if Roberto wants it.
+D-171 | 2026-09-12 | board.py: the D-170 OPEN FINDING
+        closed as DOCUMENTED, not fixed (Roberto's
+        ruling). The make_move / position_flips
+        occupied-square behaviour (a move on a square
+        OCCUPIED by the mover or the opponent stones is
+        UNEXPECTED BEHAVIOUR — the flip ray is computed
+        anyway and, when non-zero, APPLIED: own-stone
+        square -> a well-formed but UNREACHABLE position,
+        the count short by one; opponent-stone square ->
+        a CORRUPT position, the square in BOTH bitboards)
+        is the CALLER'S RESPONSIBILITY: the kernel is NOT
+        modified (the condition must never occur — the
+        pipeline passes only legal moves + PA; the T5 wave
+        routes its dead lanes around it via the PA swap).
+        The docstrings (both the vectorized kernel and the
+        public function) now say so, plus the docs/src/
+        reversi/board.md mirror (the API table row + the
+        Open issues bullet). The 2-line occupancy-check
+        fix stays available if the ruling is ever
+        revisited.
+D-172 | 2026-09-12 | T6: the DESIGN GATE (the v4 doc
+        section 7, the pre-registered certification).
+        src/reversi/lm/hlp_gate.py + test_hlp_gate.py
+        (14/0/0; the full gate smoke under GATE_SMOKE=1).
+        ENGINES (both lockstep waves, the T5 semantics):
+        G1 = the ODP-9 table pick (build_pick_table, the
+        slot phase pin counter0 = slot, no PRNG in the
+        loop); G0 = the uniform reference on a SINGLE
+        GLOBAL MT19937 (the project's golden-pinned PRNG,
+        the "one seed for all" pin, the numba batch-draw
+        port of tools/prng.py — bit-exact vs the T3
+        oracle: 2000 draws + the 312-word twist boundary
+        + the mid-stream start): one draw per (lane, step)
+        in lane order, the real-move lanes pick the
+        (draw % k)-th set bit (the modulo bias < k/2^64,
+        12 orders below the noise floor), the pass/dead
+        lanes' draws consumed (unused). The W=1 G0 wave
+        trajectory is bit-exact vs the scalar G0
+        reference (the same stream discipline). TESTS
+        (v4): 1 = the table A1 re-check (the per-width
+        rank histogram) + the per-width PHASE-OCCUPANCY
+        scan (the v4 phase (g + m_g) mod k = counter mod
+        k — the doc L545 "width-k decision m_g = 0 across
+        slots — phases = g mod k"; NOTE: the first
+        implementation used (slot + counter) mod k = the
+        2g + m_g variant, which has a STRUCTURAL parity
+        collapse for even k in the early game — the
+        doc-correct counter mod k is uniform; caught
+        before the 1e6 run); chi-square k-1 df,
+        Bonferroni over the 64 widths. 2 = the
+        ARREST-STRATIFIED marginals (PRIMARY): per
+        sub-variable, per ec level (60 down to the arrest
+        ec) the TV of the G1-vs-G0 position codes + the
+        per-game pass counts + the pooled
+        full-trajectory marginal (SECONDARY). 3-4 = the
+        FOCUSED joints: the sampled SU pairs (the
+        per-instance cell product n_conf_A x n_conf_B
+        <= 1e6 — 18 pairs: LMC x {DIAG4..8, R2, R3, R4},
+        the DIAG4..8 family, R2/R3 x LMC), the joint
+        codes at the SAME position (the SU unit),
+        stratified by the arrest ply width (strata 1..8,
+        9+): the per-stratum TV + KL; test 4 = the
+        k <= 4 strata. 5 = the pooled joint chi-square
+        (DEMOTED, reported only). 6 = the phase
+        continuity (the slot-base offsets 7 / 4000001 vs
+        the MAIN G1 run — the base is not regenerated).
+        D0 BOOTSTRAP: 20 G0-vs-G0 pairs @ 1e5 (the
+        parametric q95 = mean + 1.645 sd per unit,
+        rescaled by the 1/sqrt(N) factor
+        sqrt(pair_scale / n_games) — the pooled and the
+        per-ec units share it). CRITERION (the 1e6
+        design gate): (i) ABSOLUTE TABLE-AWARE: every D
+        < max(2e-3, q95(D0_unit)); (ii) RELATIVE
+        PRIMARY: every D < the parametric q95 of the
+        measured D0; (iii) the focused tests (3-4) under
+        the family control (Bonferroni over the pair x
+        stratum family, the BH-FDR secondary) + the test
+        1 phase scan; (iv) the 1e7 BUILD gate at corpus
+        build time (PENDING). IMPLEMENTATION: the
+        feature codes are STRUCTURED arrays (one field
+        per orbit instance) — the packed-uint64 overflow
+        is real (the 2X5COR code space is 59049^8 >>
+        2^64); the per-ec observation is the start ec 60
+        before the first step, ec 59..21 after each step,
+        the arrest ec ONLY from the boundary harvest (no
+        double count); the gate bypasses the pydantic
+        make_position (the direct structured-array
+        build). The 5k sanity runs (ec=55 and ec=20)
+        FAIL the criterion BY CONSTRUCTION (the sparse
+        regime: the code supports exceed the 5k samples,
+        TV saturates ~1 for both D and D0, the rescale
+        invalid) — the doc's "at the scale where that
+        demand is resolvable": the 1e6 run is the real
+        verdict (in flight, job bash-18; the scratch
+        report is gitignored, the verdict lands in the
+        journal).

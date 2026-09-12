@@ -447,10 +447,17 @@ at the end of this file.
    the harvest bit-exact vs the T4 (LAW-1/2, the pinned
    pass-carrying slot 712), the 1e6 benchmark 5.3 s
    (188k games/s; the 1e7 extrapolation ~50 s). Open
-   finding flagged to Roberto: the board.py make_move
-   legality test (see the hlp_wave mirror, Open issues).
-   Next: the T6 design gate at 1e6 (the v4 doc section 7),
-   then the 1e7 corpus + the 1e7 build gate.
+   finding RULED (D-171, Roberto): documented as the
+   caller's responsibility (the docstrings + the board.md
+   mirror; the kernel untouched, the 2-line fix stays
+   available). T6 GATE BUILT (D-172): hlp_gate.py (the
+   v4 tests 1-6 — the phase scan, the per-ec + pooled
+   marginals, the focused joints on the 18 sampled SU
+   pairs, the demoted chi-square, the phase continuity — +
+   the 20 D0 G0-vs-G0 pairs @ 1e5, the parametric q95
+   criterion; suite 14/0/0) — the 1e6 design gate IN
+   FLIGHT (job bash-18), then the 1e7 corpus + the 1e7
+   build gate.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -530,12 +537,14 @@ at the end of this file.
   plan in notes/analytical_properties_of_features.md §8 —
   the board.py make_move legality finding (the occupied
   square with a flipping ray is applied; the wave routes
-  around it via the PA swap) is flagged to Roberto (his
-  call). NEXT: the T6 design gate at 1e6 (the v4 doc
-  section 7 — G1 vs G0, the D0 bootstrap pairs, the 4-part
-  pass criterion), then the 1e7 corpus + the 1e7 build
-  gate. I-018 (the outlier report in VALIDATE) is parked,
-  Roberto's call.
+  around it via the PA swap) is RULED (D-171: documented
+  as the caller's responsibility, the kernel untouched —
+  Roberto's ruling). T6 GATE BUILT (D-172): hlp_gate.py
+  (the v4 tests 1-6 + the 20 D0 G0-vs-G0 pairs @ 1e5, the
+  parametric q95 criterion, suite 14/0/0) — the 1e6
+  design gate IN FLIGHT (job bash-18), then the 1e7
+  corpus + the 1e7 build gate. I-018 (the outlier report
+  in VALIDATE) is parked, Roberto's call.
 
 
 
@@ -588,6 +597,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_random_play.py | complete: the single-game random play generator (the I-017 T4, D-162; the D-169 non-full double-pass fix; the T12-level data module — the worker pending) — the ODP-9 permutation lookup table (2016 MT19937 draws, lru_cached read-only) + the no-PRNG pick + the ec arrest (the provisional 64 - occupied — T7 pins the EXACT formula) + the pass + the game over + the full trajectory | 13/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
 | src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170; the G1 ODP-9 corpus engine — W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn, the bit-exact T4 cross-validation; the numba tier: 1e6 in 5.3 s) | 11/0/1 (via test_hlp_wave; LONG: the 1e6 benchmark) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/lm/hlp_gate.py | complete: the T6 DESIGN GATE (the I-017 T6, D-172; the v4 doc section 7 pre-registered certification — G1 table pick vs G0 global golden-pinned MT19937 (the bit-exact numba batch-draw port), the 20 D0 G0-vs-G0 pairs @ 1e5 (the parametric q95, the 1/sqrt(N) rescale), the v4 tests 1-6, the structured-array feature codes (the no-overflow exactness); the 1e6 design gate in flight) | 14/0/0 (via test_hlp_gate; the full-pipeline smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module (8th level); closed (D-091/D-092) | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
@@ -636,6 +646,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game, the non-full double pass — the D-169 fix), the seeded pinned trajectories + the independent replay | 13/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
 | src/reversi/test/test_hlp_wave.py | complete: the T5 NO-DB micro-suite (D-170) — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the LONG 1e6 benchmark (5.3 s) | 11/0/1 (LONG: the benchmark) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/test/test_hlp_gate.py | complete: the T6 NO-DB micro-suite (D-172) — the MT19937 batch-draw kernel vs the golden-pinned reference (bit-exact, the twist boundary, the mid-stream start), the W=1 G0 wave ≡ the scalar G0 reference (the stream discipline), the statistics utilities on the hand-computed values, the structured keys (the no-overflow), the full gate smoke (GATE_SMOKE=1) | 14/0/0 (the smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived; the T/R/M pins per the D-057..D-070 campaign | 49/0/0 | docs/src/reversi/test/test_state_machine.md |
