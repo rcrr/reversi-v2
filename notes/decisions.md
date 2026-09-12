@@ -163,3 +163,59 @@ D-162 | 2026-09-11 | I-017 T4 executed: the single-game
         T5 wave engine will replay the SAME per-slot logic
         (the single-game trace is the cross-validation
         reference).
+D-163 | 2026-09-11 | The ODP-9 equivalence document for peer
+        review. Roberto (re-)confirms the adoption of the
+        permutation lookup table (the plan v2, T0c) — after
+        re-reading it with the open pattern set in mind (the
+        joint PATTERN_A-PATTERN_B statistics need more
+        samples) — and asks for a written case BEFORE the T5
+        build: the problem, the brute force (G0), the smart
+        solution (G1), the technical motivations, and the
+        MATHEMATICAL PROOF of statistical equivalence, to be
+        peer-reviewed by an external agent/model (DeepSeek V4
+        Pro / GLM 5.3). The document: notes/
+        random_permutation_table.md (9 sections). Content
+        summary: (1) G0 = one uniform PRNG draw per (game,
+        ply) — the reference semantics; the cost (Roberto's C
+        generator: hours, 5X2COR days; the numba PRNG-in-loop
+        rejection, plan v2 verbatim); (2) G1 = the seeded
+        {P_k} table (2016 draws) + the per-game counter walk +
+        the slot-phase pin — the pure-integer hot loop; (3)
+        the equivalence is defined at THREE levels (E1
+        expectation-level, E2 sampling-error-level, E3 bias)
+        — the honest statement: G1 produces ONE deterministic
+        corpus per seed (a balanced quadrature of the G0
+        expectation), not a G0 random corpus; (4) the proof:
+        Lemma 1 (a permutation of a uniform is uniform),
+        Lemma 2 (the counter covers every residue exactly
+        once per k steps — the balanced-design property),
+        Theorem 1 (the one-step conditional pick law = G0's,
+        seed-averaged, under Assumption A1: the table rows
+        behave as independent uniform random permutations),
+        Theorem 2 (the corpus marginals and joint
+        expectations equal G0's up to the O(k/N) phase
+        discrepancy, bounded 64/1e6 = 6.4e-5); (5) the HONEST
+        residual (E3b): the same-width pair coupling — one
+        permutation row at two indices gives a uniform ordered
+        DISTINCT pair (TV = 1/k vs G0's independent draws) —
+        NOT covered by the expectation proof: generally
+        second-order at the CODE level (different legal sets,
+        different features) but MEASURED, not proven: the T6
+        gate (the 1e4 micro-corpus, G1 vs a G0 reference at
+        the SAME scale — G0 is cheap at 1e4: ~5e5 draws —
+        with the threshold calibrated on G0's own Monte Carlo
+        noise; the chi-square of independence at 1296 cells
+        has df ~ 1.7e6) + the pre-specified fallback (a
+        second independent counter); (6) the quadratic
+        sampling-error argument (the 6-sigma max-cell error
+        ~ sqrt(p/N): 1.7e-4 at N = 1e6 even at 1296 cells —
+        verified numerically) = the reason the open pattern
+        set pushes the corpus to 1e7-1e9 AND why the
+        generator must be the integer kernel; (7) the peer-
+        reviewer checklist (5 points: the Theorem 1
+        circularity question, the Theorem 2 step-3 exchange +
+        the O(k/N) bound, the section 6.5 plausibility + the
+        TV = 1/k computation, A1's acceptability, the scope
+        discipline). Gating: the T5 wave engine is NOT built
+        on G1 until the review confirms the proof and the T6
+        gate design is approved.
