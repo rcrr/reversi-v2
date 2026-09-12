@@ -58,7 +58,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Position | `legal_moves(mover, opponent) -> Bitboard \| BitboardArray` | dual; both args the same kind (mixed → TypeError); strict uint64 in, 1-D guard (D-111 M5: 2-D → ValueError) |
 | Position | `position_legal_moves_count(p) -> int` | popcount of the legal set; scalar |
 | Position | `position_flips(p: PositionField \| PositionArray, move: Bitboard \| BitboardArray) -> (Bitboard \| BitboardArray, PositionField \| PositionArray \| None)` | dual (D-140): scalar — Kogge-Stone flip set + updated position, illegal or non-single-bit move → `(0, None)`; array — per-element, flips[i] = 0 and the input position unchanged for an illegal move (no None in the array); both args the same kind (mixed → TypeError), the standard 1-D guard |
-| Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual (D-140): scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal square → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), the standard 1-D guard |
+| Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual (D-140): scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal EMPTY square (no flipping ray) → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), the standard 1-D guard. A move on an OCCUPIED square is unexpected behavior (the caller's responsibility, D-171): the flip ray is computed and, when non-zero, APPLIED — own-stone square → well-formed but unreachable position (count short by one); opponent-stone square → corrupt position (the square in BOTH bitboards) |
 | Position | `position_count_difference(p) -> int` | `count(mover) - count(opponent)` |
 | Position | `position_final_value(p) -> int` | WOFC end score: the difference, empty squares assigned to the leader |
 | Position | `position_has_to_pass(p) -> bool` | the mover has no legal move |
@@ -181,7 +181,15 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 
 ## Open issues
 
-None.
+- D-171 ruling (2026-09-12, Roberto): the make_move/position_flips
+  occupancy behavior (a move on an occupied square with a
+  flipping ray is APPLIED — unreachable on an own-stone square,
+  corrupt on an opponent-stone square) is documented as the
+  CALLER'S RESPONSIBILITY (the pipeline passes only legal moves +
+  PA; the T5 wave routes its dead lanes around it via the PA
+  swap) — the kernel is NOT modified (the condition must never
+  occur; the 2-line occupancy-check fix stays available if the
+  ruling is ever revisited).
 
 ## Conventions
 

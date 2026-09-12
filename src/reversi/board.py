@@ -1282,6 +1282,16 @@ def _vectorized_make_move(movers: np.ndarray, opponents: np.ndarray, moves: np.n
     as in _vectorized_flips; an illegal square leaves the input
     position unchanged. The flips output mirrors the flip set (0 for
     PA and for illegal squares).
+    A move on a square OCCUPIED by the mover or the opponent stones
+    is UNEXPECTED BEHAVIOR (the caller's responsibility to avoid —
+    pass only legal moves or PA): the flip ray is computed anyway
+    and, when non-zero, is APPLIED — on an own-stone square the
+    result is a well-formed but UNREACHABLE position (the placed
+    stone adds nothing: the total count is short by one), on an
+    opponent-stone square the result is CORRUPT (the square ends up
+    in BOTH bitboards). "Illegal -> unchanged" holds only for EMPTY
+    squares without a flipping ray. (D-171: documented as
+    caller's responsibility; the kernel is not modified.)
     """
     n = movers.shape[0]
     flips = np.empty(n, dtype=Bitboard)
@@ -1319,7 +1329,17 @@ def position_make_move(p: PositionField | PositionArray,
     The move must be in the range A1, ... H8, PA. [0..64].
     When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
     that pass is the only legal move.
-    When an illegal move is passed None is returned.
+    When an illegal move (an EMPTY square without a flipping ray)
+    is passed None is returned.
+    A move on a square OCCUPIED by the mover or the opponent
+    stones is UNEXPECTED BEHAVIOR (the caller's responsibility to
+    avoid — pass only legal moves or PA): the flip ray is
+    computed anyway and, when non-zero, is APPLIED — on an
+    own-stone square the result is a well-formed but UNREACHABLE
+    position (the total stone count is short by one), on an
+    opponent-stone square the result is CORRUPT (the square ends
+    up in BOTH bitboards). (D-171: documented as caller's
+    responsibility; the kernel is not modified.)
 
     Dual scalar/array (D-140, as legal_moves): when input is a scalar
     the output is scalar (the pre-vectorization behaviour, including the
