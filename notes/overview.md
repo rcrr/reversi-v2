@@ -431,9 +431,13 @@ at the end of this file.
    document is DONE (D-166: all three amendments folded into
    the T6 gate — the 1e6 scale, the absolute delta* = 2e-3
    bound, the focused TV/KL primary tests, the sampling-unit
-   pin, the family-wise control) and the document is in its
-   FINAL pre-T5 state. Next: T5 (the concurrent wave engine —
-   the numba tier).
+   pin, the family-wise control; v3.1 D-167) and the
+   document reached v4 FINAL after the THIRD review (GLM
+   5.3, D-168: the v3.1 D0 noise formula was wrong — the
+   table-aware cap delta*_unit, the phase term demoted to
+   GATED + the new phase-occupancy scan, the corrected
+   certification schedule 1e6 + 1e7 build gate) — FROZEN.
+   Next: T5 (the concurrent wave engine — the numba tier).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -497,11 +501,14 @@ at the end of this file.
   family-wise error control and a stated power) — v3 is DONE
   (D-166: all three amendments folded into the T6 gate — the
   1e6 scale, the absolute delta* = 2e-3 bound, the focused
-  TV/KL primary tests, the sampling-unit pin) and the document
-  is in its FINAL pre-T5 state — T5 next: the concurrent wave
-  engine (the batch of games in parallel, the vectorized
-  advance step, the respawn, the position stream — the numba
-  tier), per the plan in
+  TV/KL primary tests, the sampling-unit pin; v3.1 D-167,
+  then v4 FINAL with the THIRD review — GLM 5.3, D-168: the
+  v3.1 D0 formula was wrong (36x understated), the table-
+  aware cap + the phase term demoted to GATED + the
+  corrected certification schedule — the document is
+  FROZEN) — T5 next: the concurrent wave engine (the batch of
+  games in parallel, the vectorized advance step, the
+  respawn, the position stream — the numba tier), per the plan in
   notes/analytical_properties_of_features.md §8. I-018 (the
   outlier report in VALIDATE) is parked, Roberto's call.
 
