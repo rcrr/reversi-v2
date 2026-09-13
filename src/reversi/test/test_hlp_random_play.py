@@ -57,6 +57,7 @@ from reversi.board import (make_position, move_from_str,
                            position_legal_moves, position_make_move)
 from reversi.feature import Feature, FeatureSet
 from reversi.lm.hlp_random_play import (PA, RandomGame, _play_from,
+                                        JointAccumulator,
                                         MarginalAccumulator,
                                         build_pick_table, ec_of,
                                         initial_position, pick_move,
@@ -456,6 +457,105 @@ class TestMarginalAccumulator(unittest.TestCase):
             self.assertEqual(a[1], b[1])
             np.testing.assert_array_equal(a[3], b[3])
             np.testing.assert_array_equal(a[4], b[4])
+
+
+class TestJointAccumulator(unittest.TestCase):
+    """The streaming joint accumulator (T8): the per-requested-pair
+    instance×instance (code_i, code_j) -> count, the cross-feature
+    + the same-feature (the diagonal is the SU = 1 lock, the
+    off-diagonal the anisotropy), the chunk-merge."""
+
+    def _fset(self):
+        return TestMarginalAccumulator._toy_fset()
+
+    def _blocks(self):
+        return TestMarginalAccumulator._toy_blocks(self._fset())
+
+    def _corpus(self, n=200, ec=20, seed=7):
+        return TestMarginalAccumulator._toy_corpus(n, ec, seed)
+
+    @staticmethod
+    def _oracle_joint(fset, M, O, ci_col, cj_col):
+        """The independent per-position joint oracle (the manual
+        dict, the compute_indexes for the codes)."""
+        pa = np.empty(len(M), dtype=np.dtype(
+            [('mover', np.uint64), ('opponent', np.uint64)]))
+        pa['mover'] = M
+        pa['opponent'] = O
+        idx = fset.compute_indexes(pa)
+        od = {}
+        for k in range(len(M)):
+            key = (int(idx[k, ci_col]), int(idx[k, cj_col]))
+            od[key] = od.get(key, 0) + 1
+        return od
+
+    def test_cross_feature_joint(self):
+        # (LMC, R2): the 4 instance-pairs (0, j), the joint
+        # (code_lmc, code_r2_j) -> count vs the independent oracle.
+        fset = self._fset()
+        blocks = self._blocks()
+        M, O = self._corpus()
+        ja = JointAccumulator(fset, blocks, [('LMC', 'R2')])
+        ja.add(M, O)
+        ni, nj, pd = ja.result()[0]
+        self.assertEqual((ni, nj), ('LMC', 'R2'))
+        self.assertEqual(sorted(pd.keys()),
+                         [(0, 0), (0, 1), (0, 2), (0, 3)])
+        bi = [b for b in blocks if b[0] == 'LMC'][0]
+        bj = [b for b in blocks if b[0] == 'R2'][0]
+        for (ii, jj) in pd:
+            od = self._oracle_joint(fset, M, O, bi[1] + ii, bj[1] + jj)
+            codes_i, codes_j, cnt = pd[(ii, jj)]
+            self.assertEqual(int(cnt.sum()), len(M))
+            got = {}
+            for a, b, c in zip(codes_i, codes_j, cnt):
+                got[(int(a), int(b))] = int(c)
+            self.assertEqual(got, od)
+
+    def test_same_feature_diagonal(self):
+        # (R2, R2): the 16 instance-pairs (4 x 4). The diagonal
+        # (ii, ii) is the variable with itself — ZERO off-diagonal
+        # entries (code_i == code_j always); the off-diagonal is the
+        # anisotropy measure.
+        fset = self._fset()
+        blocks = self._blocks()
+        M, O = self._corpus()
+        ja = JointAccumulator(fset, blocks, [('R2', 'R2')])
+        ja.add(M, O)
+        ni, nj, pd = ja.result()[0]
+        self.assertEqual((ni, nj), ('R2', 'R2'))
+        self.assertEqual(len(pd), 16)
+        for (ii, jj) in pd:
+            codes_i, codes_j, cnt = pd[(ii, jj)]
+            self.assertEqual(int(cnt.sum()), len(M))
+            if ii == jj:
+                self.assertEqual(
+                    sum(1 for a, b in zip(codes_i, codes_j)
+                        if a != b), 0)
+
+    def test_chunk_merge(self):
+        # One chunk == two half-chunks (the unique-merge is chunk-
+        # invariant, the marginals and the joints alike).
+        fset = self._fset()
+        blocks = self._blocks()
+        M, O = self._corpus(n=300)
+        pairs = [('LMC', 'R2'), ('R2', 'R2')]
+        ja1 = JointAccumulator(fset, blocks, pairs)
+        ja1.add(M, O)
+        ja2 = JointAccumulator(fset, blocks, pairs)
+        ja2.add(M[:150], O[:150])
+        ja2.add(M[150:], O[150:])
+        r1, r2 = ja1.result(), ja2.result()
+        self.assertEqual(len(r1), len(r2))
+        for (ni1, nj1, pd1), (ni2, nj2, pd2) in zip(r1, r2):
+            self.assertEqual((ni1, nj1), (ni2, nj2))
+            self.assertEqual(set(pd1.keys()), set(pd2.keys()))
+            for key in pd1:
+                ci1, cj1, cn1 = pd1[key]
+                ci2, cj2, cn2 = pd2[key]
+                np.testing.assert_array_equal(ci1, ci2)
+                np.testing.assert_array_equal(cj1, cj2)
+                np.testing.assert_array_equal(cn1, cn2)
 
 
 if __name__ == '__main__':

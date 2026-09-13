@@ -964,3 +964,32 @@ D-177 | 2026-09-13 | T7: the marginal
         (4, 5, 6, 7 stones -> ec 60, 59,
         58, 57). test_hlp_random_play
         13/0/0 -> 18/0/0.
+D-178 | 2026-09-13 | T8: the joint frequency
+        accumulator. JointAccumulator in
+        hlp_random_play (the FEATURE_ANALYSIS
+        phase-1 data plane, the SU pairs): per
+        REQUESTED su pair (F_i, F_j) and per
+        (instance_i, instance_j) in the pair,
+        the (code_i, code_j) -> count over the
+        corpus — the instance×instance level
+        (P6's matrix). The joint is SPARSE (the
+        code_i x code_j space is too large for
+        the dense — the unique-merge split); the
+        key is the packed u64 (code_i * n_conf_j
+        + code_j), safe for the A2050 scale (the
+        max is 59049^2 << 2^64). The same-feature
+        pair (F, F) is allowed: the diagonal (the
+        variable with itself) is the SU = 1 lock
+        (OMITTED per the ODP-4 close); the off-
+        diagonal (the D8 orientations of the same
+        mask) is the anisotropy measure. The no-DB
+        micro-suite (test_hlp_random_play 18 ->
+        21): the (LMC, R2) cross-feature pair (the
+        4 instance-pairs) + the (R2, R2) same-
+        feature pair (the 16 instance-pairs), each
+        joint cross-checked against the
+        INDEPENDENT per-position oracle (the manual
+        dict via compute_indexes), the same-feature
+        diagonal has ZERO off-diagonal entries, the
+        chunk-merge invariance (one chunk == two
+        half-chunks). Every joint's count sum == N.

@@ -86,7 +86,7 @@ if TYPE_CHECKING:
 
 __all__ = ['PA', 'MAX_PLIES', 'RandomGame', 'ec_of',
            'initial_position', 'build_pick_table', 'pick_move',
-           'random_play', 'MarginalAccumulator']
+           'random_play', 'MarginalAccumulator', 'JointAccumulator']
 
 #: The pass move (board.py Move domain: 0..63 squares, 64 = PA).
 PA: int = 64
@@ -456,4 +456,100 @@ class MarginalAccumulator:
                                  dtype=np.uint32)
                 c = np.array([v for _, v in items], dtype=np.int64)
                 out.append((name, i, n_conf, codes, c))
+        return out
+
+
+class JointAccumulator:
+    """
+    The streaming joint frequency accumulator (the I-017 T8):
+    per REQUESTED su pair (F_i, F_j) and per (instance_i,
+    instance_j) in the pair, the (code_i, code_j) -> count over
+    the corpus — the instance×instance level (P6's matrix). The
+    joint is SPARSE (the code_i x code_j space is too large for
+    the dense — the unique-merge split). The key is the packed
+    u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale
+    (the max is 59049^2 << 2^64); the result unpacks the
+    (code_i, code_j).
+
+    The same-feature pair (F, F) is allowed: the diagonal (the
+    variable with itself) is the SU = 1 lock (OMITTED per the
+    ODP-4 close); the off-diagonal (the D8 orientations of the
+    same mask) is the anisotropy measure.
+    """
+
+    def __init__(self, fset, blocks, su_pairs):
+        """
+        Args:
+          fset:     the FeatureSet (the compute_indexes
+                   provider).
+          blocks:   the per-feature (name, col_start, col_end,
+                    n_conf, n_inst) over the non-intercept
+                    features (the load_campaign blocks).
+          su_pairs: the REQUESTED pairs, a list of
+                    (feature_i, feature_j) name tuples (the
+                    canonical form; the same-feature (F, F) is
+                    allowed).
+        """
+        self.fset = fset
+        self.blocks = blocks
+        self._block = {b[0]: b for b in blocks}
+        self.pairs = list(su_pairs)
+        # Per pair: { (inst_i, inst_j): dict[packed_key -> count] }
+        # + the per-pair meta (ni, nj, block_i, block_j).
+        self.joints: list = []
+        self._meta: list = []
+        for (ni, nj) in self.pairs:
+            bi = self._block[ni]
+            bj = self._block[nj]
+            d = {}
+            for ii in range(bi[4]):
+                for jj in range(bj[4]):
+                    d[(ii, jj)] = {}
+            self.joints.append(d)
+            self._meta.append((ni, nj, bi, bj))
+        self.n_positions: int = 0
+
+    def add(self, mover: np.ndarray, opp: np.ndarray) -> None:
+        """
+        Accumulate one chunk of corpus positions (the (mover,
+        opp) u64 arrays, one row per position).
+        """
+        n = int(mover.shape[0])
+        if n == 0:
+            return
+        idx = self.fset.compute_indexes(_to_positions(mover, opp))
+        for pi, (ni, nj, bi, bj) in enumerate(self._meta):
+            ncj = np.uint64(bj[3])
+            for ii in range(bi[4]):
+                for jj in range(bj[4]):
+                    ci = idx[:, bi[1] + ii].astype(np.uint64)
+                    cj = idx[:, bj[1] + jj].astype(np.uint64)
+                    key = ci * ncj + cj
+                    u, cnt = np.unique(key, return_counts=True)
+                    jd = self.joints[pi][(ii, jj)]
+                    for k, c in zip(u.tolist(), cnt):
+                        jd[k] = jd.get(k, 0) + int(c)
+        self.n_positions += n
+
+    def result(self):
+        """
+        The per-pair joint: a list (over pairs, in pair order)
+        of (name_i, name_j, per_instance) — per_instance a dict
+        { (inst_i, inst_j): (codes_i, codes_j, counts) } the
+        OBSERVED joint (the non-zero support), the codes
+        unpacked as uint32, the counts as int64.
+        """
+        out = []
+        for pi, (ni, nj, bi, bj) in enumerate(self._meta):
+            ncj = bj[3]
+            pd = {}
+            for (ii, jj) in self.joints[pi]:
+                items = sorted(self.joints[pi][(ii, jj)].items())
+                codes_i = np.array([k // ncj for k, _ in items],
+                                   dtype=np.uint32)
+                codes_j = np.array([k % ncj for k, _ in items],
+                                   dtype=np.uint32)
+                cnt = np.array([c for _, c in items], dtype=np.int64)
+                pd[(ii, jj)] = (codes_i, codes_j, cnt)
+            out.append((ni, nj, pd))
         return out

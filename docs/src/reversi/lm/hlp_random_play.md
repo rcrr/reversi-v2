@@ -10,7 +10,8 @@ marginal over the corpus (the FEATURE_ANALYSIS phase-1 data
 plane). The data module of the FEATURE_ANALYSIS level (the
 worker lands in T16).
 > State: D-162 (T4) + D-177 (T7: the ec pin + the marginal
-accumulator) · 2026-09-13 · suite 18/0/0
+accumulator) + D-178 (T8: the joint accumulator) · 2026-09-13 ·
+suite 21/0/0
 
 ## API
 - `RandomGame` — the dataclass outcome: the arrested position,
@@ -56,6 +57,19 @@ accumulator) · 2026-09-13 · suite 18/0/0
   n_conf <= _DENSE_THRESHOLD (1e6; the A2050 max is 59049) ->
   the DENSE bincount, else the UNIQUE-MERGE dict. POOLED over
   all fed positions (the single-ec corpus — no per-ec split).
+ - `JointAccumulator(fset, blocks, su_pairs)` — the streaming
+   joint frequency accumulator (T8, D-178): per REQUESTED su
+   pair (F_i, F_j) and per (instance_i, instance_j) in the pair,
+   the (code_i, code_j) -> count — the instance×instance level
+   (P6's matrix). The joint is SPARSE (the code_i x code_j space
+   is too large for the dense — the unique-merge split). The key
+   is the packed u64 (code_i * n_conf_j + code_j) — safe for the
+   A2050 scale (the max is 59049^2 << 2^64). The same-feature
+   pair (F, F) is allowed: the diagonal (the variable with itself)
+   is the SU = 1 lock (OMITTED per the ODP-4 close); the off-
+   diagonal (the D8 orientations of the same mask) is the
+   anisotropy measure. `.result()` returns per pair (name_i,
+   name_j, { (inst_i, inst_j): (codes_i, codes_j, counts) }).
 
 ## Architecture
 - The ODP-9 pick (the doc design, D-162 landing): the random
@@ -130,6 +144,17 @@ accumulator) · 2026-09-13 · suite 18/0/0
   (one chunk == two half-chunks, the dense + the merge are
   chunk-invariant). Every sub-variable's count sum == N, every
   K_obs <= n_conf.
+ - The joint accumulator (T8, D-178; the same toy corpus, a
+   200-game G0 wave at ec 20): the (LMC, R2) cross-feature pair
+   (the 4 instance-pairs (0, j)) + the (R2, R2) same-feature pair
+   (the 16 instance-pairs (4 x 4)), each joint (code_i, code_j)
+   -> count cross-checked against the INDEPENDENT per-position
+   oracle (the manual dict via compute_indexes); the SAME-
+   FEATURE DIAGONAL (ii, ii) has ZERO off-diagonal entries (the
+   variable with itself, code_i == code_j always — the SU = 1
+   lock); the CHUNK-MERGE invariance (one chunk == two half-
+   chunks, the marginals and the joints alike). Every joint's
+   count sum == N.
 
 ## Open issues
 - (RESOLVED, D-177) The EXACT ec formula: PINNED — ec_of = 64 -
