@@ -1,0 +1,53 @@
+# reversi/test/test_wrk_feature_analysis.py
+The NO-DB suite of the FEATURE_ANALYSIS worker (the I-017,
+D-186): the factory (the worker name), the enable no-op (the
+D-175 opt-in), the compute + the publish (the tiny G0 corpus,
+the phase-2 statistics, the TXT report), the cache hit (the
+second run), the signature invalidation (the corpus change),
+the su_pairs joint, the optional CSV, and the down (the D-060
+recovery). 1 class / 8 tests / no database (the mock ctx, the
+tiny corpus).
+> State: D-186 (T16) · 2026-09-13 · suite 8/0/0
+
+## Coverage
+
+| class | tests | what it pins |
+|---|---|---|
+| `TestWrkFeatureAnalysis` | 8 | `test_factory` (the worker factory: the FEATURE_ANALYSIS name); `test_enable_no_op` (the D-175 opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position G0 corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the D-060 recovery: the down clears the tables) |
+
+## Goldens pinned
+
+- The tiny corpus: the rlm_00 fixture's feature set (the LMC /
+  the ALMC / the DLMC + the ELLE / the EDGE), the 2000-4000
+  positions at ec 20, seed 42 (the "uno per tutti").
+- The cache consistency: the feature_set hash + the generation
+  spec (the seed, the total_positions, the ec, the generator
+  version "g0-1", the PRNG version "mt19937-64") + the su_pairs
+  (the canonical sorted form) — the NO rds_checksum (the P5,
+  the new cache lineage).
+- The phase-2 recompute: the statistics run on EVERY run (the
+  cache hit included) — the "loaded from cache" + the report
+  both on the hit run.
+- The D-175 opt-in: the enable false -> the no-op (the tables
+  None, the "disabled" log).
+- The D-060 recovery: the down clears the feature_analysis_
+  tables.
+
+## Conventions
+
+- The house test header (the "How to run" block).
+- The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the
+  feature_set, the cache path, the use_cache, the log buffer,
+  the tables artifact) over the rlm_00 fixture's feature set
+  (the `load_campaign`). The tiny corpus (the 2000-4000
+  positions) keeps the suite fast (no LONG tier).
+- The `tempfile.TemporaryDirectory` per test (the cache + the
+  report + the CSV land in a tmp dir, the tearDown cleans up).
+
+## Integration
+
+- Consumed by `run_utests.sh` (section 4 — the pipeline, at the
+  step 3 worker position: between the hlp_feature_analysis data
+  module and the POSITIONS worker).
+- The worker (wrk_feature_analysis) is registered at step 3 by
+  the T18 wiring (the 18 levels, the rlmwf_03 slot).

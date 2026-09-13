@@ -1191,3 +1191,57 @@ D-185 | 2026-09-13 | T15: the I-017 config.
         tests: the D-175 opt-in defaults, the P6 canonical
         dedupe, the P6 fail-fast, the target_level field).
         Mirrors (D-007), journal, overview. 875 -> 879.
+D-186 | 2026-09-13 | T16: the FEATURE_ANALYSIS
+        worker. New module wrk_feature_analysis (the I-017, the
+        SU level, step 3): the worker factory (wrk_feature_
+        analysis() -> Worker("FEATURE_ANALYSIS", _up, _down),
+        the D-060). (1) Phase 1 — the corpus (the expensive
+        part, CACHED): the G0 generator (the D-174, the PRNG
+        seed, the ec arrest, the wave tier, the wave size 1e6)
+        + the streaming accumulation (the MarginalAccumulator +
+        the JointAccumulator for the requested pairs, the T7-
+        T8); the cache flow (the cache_manager_load_or_compute,
+        the rlmwf_03 slot, the pickle of the tables dict + the
+        .SHA3-256 sidecar, the 8192-chunk verify D-071/D-072);
+        the consistency signature (the feature_set hash — the
+        sha3_256 of the feature_set config's normalized dump,
+        the first 16 hex — + the generation spec (the seed, the
+        total_positions, the ec, the generator version "g0-1",
+        the PRNG version "mt19937-64") + the su_pairs list (the
+        canonical sorted form), the NO rds_checksum — the P5,
+        the FIRST cache level with the feature_set hash instead
+        of the rds_checksum, the corpus INDEPENDENT of the DB,
+        the new cache lineage; a pair-list change invalidates
+        the cache -> a full regeneration, the two-tier cache is
+        the parked v2 refinement). (2) Phase 2 — the statistics
+        (cheap, recomputed on EVERY run, including the cache
+        hit): the per-sub-variable dispersion (the K_obs / H /
+        H_norm / coverage, T12) + the never-observed audit (the
+        n_conf - K_obs + the rarity profile, T12) + the
+        requested SU pairs (the P6: the 2*I / (H_i + H_j) from
+        the joint + the two marginals, the T11 kernels; the
+        same-feature DIAGONAL is OMITTED — the SU = 1 lock, the
+        ODP-4 close, not a measurement; the off-diagonal is the
+        anisotropy measure). (3) The outputs: the console (INFO
+        per sub-variable + the top SU pairs) + the TXT report
+        (dir_name under base_dir, the PlotConfig pattern) + the
+        optional CSV (the export_csv flag). (4) The ctx
+        publication: the LMContext.feature_analysis_tables
+        (the cross-level blackboard, the D-099 pre-declared
+        field — added to logistic_model.py as the worker's
+        prerequisite) carries the tables for the EFFECT_SIZE
+        level (the adherence, step 6). (5) The D-060
+        semantics: the generation error fails the level, the
+        machine re-raises, the _down clears the ctx artifacts.
+        New test module test_wrk_feature_analysis (8 tests, the
+        NO-DB mock-ctx suite: the factory, the enable no-op
+        (the D-175 opt-in), the compute + the publish (the tiny
+        G0 corpus + the phase-2 statistics + the TXT report +
+        the ctx publication), the cache hit (the second run),
+        the signature invalidation (the corpus change), the
+        su_pairs joint, the optional CSV, the down (the D-060
+        recovery)). Registered in run_utests.sh at the step 3
+        worker position (between the hlp_feature_analysis data
+        module and the POSITIONS worker). The T18 wiring
+        registers the worker at step 3 (the rlmwf_03 slot).
+        Mirrors (D-007), journal, overview. 879 -> 887.

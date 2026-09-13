@@ -114,6 +114,13 @@ class LMContext(Context):
     # Features attribute:
     feature_set: Any = None
 
+    # Feature analysis attribute (the I-017, the SU level,
+    # step 3): the corpus frequency tables (the marginal + the
+    # joint) published by the FEATURE_ANALYSIS worker for the
+    # EFFECT_SIZE level (the cross-level blackboard, the D-099
+    # pre-declared fields).
+    feature_analysis_tables: Any = None
+
     # Indexes attribute:
     hlp_indexes_checksum: str | None = None
     hlp_indexes: Any = None

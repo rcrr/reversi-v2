@@ -608,8 +608,12 @@ at the end of this file.
   is complete). T15 LANDED (D-185): the I-017 config (the
   feature_analysis + the effect_size sections, the enable
   default FALSE per the D-175 opt-in, the target_level, the
-  su_pairs P6 fail-fast + the canonical dedupe). NEXT: T16 (the
-  wrk_feature_analysis worker) — the SU analysis
+  su_pairs P6 fail-fast + the canonical dedupe). T16 LANDED
+  (D-186): the wrk_feature_analysis worker (the G0 corpus cache
+  — the feature_set hash + spec + pairs, NO rds_checksum, the
+  P5 new lineage — + the phase-2 recompute + the reports + the
+  ctx publication). NEXT: T17 (the wrk_effect_size worker) —
+  the SU analysis
   FALSE; the profiling
   session (the OPTIMIZE pattern, the
   step-by-step walkthrough + the code reviewed together
@@ -641,6 +645,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/wrk_plot.py | complete: the PLOT 17th and LAST level (step 16, after CLIENT_CHECK; D-149) — the whitelist pilot (enable + the optional plot names), the directory resolution (absolute as-is / relative under base_dir), the per-name save in every configured format; D-150: the top-20 extreme-outlier report (the position's bitboards, the stable argsort); no cache (the 8th non-cache deviation, the rlmwf_16 slot), stateless down, D-060 failure | 10/0/0 | docs/src/reversi/lm/wrk_plot.md |
 | src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (D-142: the ad-hoc cache flow removed, the record is a SAVE artifact); closed (D-077/D-078/D-142; I-011 realized) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR 7th-level worker; closed (D-090) | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
+| src/reversi/lm/wrk_feature_analysis.py | the FEATURE_ANALYSIS worker (the I-017, the SU level, step 3) — T16 LANDED (D-186): the G0 corpus cache (the feature_set hash + spec + pairs, NO rds_checksum — the P5 new lineage) + the phase-2 recompute (the dispersion + the never-observed audit + the SU pairs) + the reports (console + TXT + the optional CSV) + the ctx publication (the feature_analysis_tables for EFFECT_SIZE); the D-060; the T18 wiring registers it at step 3 (the rlmwf_03 slot) | 8/0/0 (via test_wrk_feature_analysis) | docs/src/reversi/lm/wrk_feature_analysis.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker — the 3rd active level (step 2, before POSITIONS — D-157); the first pure-compute level (no cache file ever); closed (D-081/D-082) | 3/0/0 (DB-free, D-157) | docs/src/reversi/lm/wrk_features.md |
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE 11th level (dense weights materialization; the R1 for-next-level trap fix); closed (D-097/D-098) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT 9th level (the second non-cache; the float32 contract, D-094 R1; D-145: the high_performance_fg flag wiring); closed (D-093/D-094/D-145) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
@@ -693,6 +698,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_plot.py | complete: the PLOT worker suite (D-149; D-150: the outlier-report test + the re-pinned parity golden; D-158: the env-drift golden re-pin) — the synthetic rlm_04-mirror ctx (no DB, the per-instance index contract), the pilot no-ops (enable=false / the empty whitelist), the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the top-20 outlier report (header + 20 lines, non-increasing |residual|), the parity rendering golden, the factory, the no-op down | 10/0/0 | docs/src/reversi/test/test_wrk_plot.md |
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (D-078; D-142: the 4-test CacheLogic class removed, the fingerprint + no-cache pins added) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite (D-090) | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
+| src/reversi/test/test_wrk_feature_analysis.py | the FEATURE_ANALYSIS worker NO-DB suite (the I-017) — T16 (D-186): the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op (the D-175 opt-in), the compute + the publish (the tiny G0 corpus + the phase-2 statistics + the TXT report + the ctx publication), the cache hit, the signature invalidation, the su_pairs joint, the optional CSV, the down (the D-060 recovery)) | 8/0/0 | docs/src/reversi/test/test_wrk_feature_analysis.md |
 | src/reversi/test/test_wrk_features.py | complete: Roberto's file; the D-065/D-085 idiom applied (D-082); D-157: DB-free (the gate + the POSITIONS move removed) | 3/0/0 (DB-free) | docs/src/reversi/test/test_wrk_features.md |
 | src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 17-level chain (3 A2030 + 2 read guards + 3 D-144 v2 micro; D-148: the 14/SAVE → 15/CLIENT_CHECK re-pin + the A2030 client-check log pin; D-149: the 15/CLIENT_CHECK → 16/PLOT re-pin + the seven-PNG + the "Plot ... saved:" / "PLOT done: 7 plot(s)" log pins in BOTH chains + the size bands re-centered 22940-23040 / 516500-516700; D-150: the A2030 outlier pins — the "Top 20 extreme validation residuals (outlier report):" header + the 20-count) + the full saved-model round-trip; the A2050 chain VLONG-gated (~1 min since D-145, D-130); the D-104/D-105 pins + the D-141 array-EF batch pin + the D-144 single-source config pin (A2030, the D-142 record test converted) + the v2 read-back provenance pins (A2030 + A2050) + the Config SHA3-256 report pins; D-145: the HP-trajectory re-pin (A2030 71 iters, A2050 356 iters, the w_dense sha3 + EF + report-hash pins, the size bands) | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite (D-097/D-098) | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
