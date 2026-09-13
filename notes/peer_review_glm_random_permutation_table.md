@@ -445,3 +445,454 @@ peer_review_kimi_random_permutation_table.md` — read after my own
 derivations; no finding in this review derives from either, and §2-§3
 above are absent from both (they reviewed v2/v3; the erroneous layer is
 v3.1).
+
+---
+
+# Round 2 — the v4 + §11 audit (2026-09-13): a design failure, not a bug
+
+> **Question put to me** (Roberto, verbatim in substance): the SW was
+> built, the T6 tests ran, they FAIL. G₁ is declared not an alternative
+> to G₀; the 1e7 corpus will be generated with G₀. Review the ENTIRE
+> document again — independently, taking NOTHING for granted, deriving
+> everything needed to check every step and every claim — and answer
+> the question that matters: **is the FAIL a property of the DESIGN
+> (G₁ was an abbaglio — an illusion), or is it an implementation BUG
+> that would throw the baby out with the bathwater?**
+> **Method.** I audited the gate code (`src/reversi/lm/hlp_gate.py`)
+> and the wave engine (`src/reversi/lm/hlp_wave.py`) line by line;
+> verified every §11.1 number against the primary artifacts
+> (`scratch/gate_1e6/`, `gate_1e5_s42/`, `gate_1e5_s123/` — the raw
+> JSON reports and the run log, which I found still on disk);
+> re-derived the calibration; and then did what no artifact can
+> substitute for: **an independent replication through a third code
+> path** — the T4 scalar reference (`random_play`, the design's own
+> single-game implementation) for G₁, against MY OWN hand-written
+> scalar G₀ loop over `tools/prng.py` — plus a 2e4-scale re-run of
+> the gate machinery with raw-corpus forensics (validity checks, the
+> color-swap hypothesis, the locus-size measurement, the per-ec D₀
+> of the sparse units, the joint-cell concentration). Scripts and
+> outputs live in `scratch/glmrv_stage*.py` (the disposable area;
+> nothing outside this file and scratch/ was touched).
+> **Verdict: the FAIL is REAL, SYSTEMATIC, and belongs to the DESIGN.
+> No implementation bug is anywhere in the chain, and I looked hard
+> for one. G₁'s corpus-level equivalence (E1-corpus) is REFUTED at
+> every scale I measured (1e4, 2e4, 1e5, 1e6 — the deviation is
+> scale-INVARIANT, seed-independent, phase-locked, concentrated early
+> by a mechanism I can now derive AND measure). D-174 (G₀ is the
+> corpus generator) is CORRECT and I endorse it without reservation.
+> The record (§11) needs seven corrections before it is treated as
+> final — none of them rescues G₁; one of them (the missing §7
+> fallback disposition) I supply myself, and it CONFIRMS the kill.**
+
+## R2.1 The infrastructure audit — everything the verdict rests on (ALL VERIFIED)
+
+The verdict would be worthless if the gate itself were broken. I
+audited and re-verified every load-bearing piece:
+
+1. **The numba MT19937 kernels** (`_mt19937_init`/`_mt19937_batch`,
+   the gate's G₀ stream): bit-exact vs the golden-pinned
+   `tools/prng.py` port — 624 consecutive draws at seeds 42, 123,
+   5489: **identical to the last bit, all three seeds.**
+2. **The wave G₁ engine vs the T4 design reference**: I drove
+   `step_wave` myself for 40 steps and compared every lane against
+   `random_play(42, 20, counter0=g)`: **12/12 lanes bit-exact — the
+   full move sequence AND the pass counts.** An indexing/counter bug
+   in the wave's G₁ path would break this replay; it does not. The
+   docstring's cross-validation claim is true.
+3. **The G₀ semantics** (the frozen §2): one iid draw per (lane,
+   step) in lane order, consumed-unused for pass/dead lanes — a valid
+   realization of "one fresh draw per ply, independent of everything"
+   (discarded draws cannot bias the law); the `% k` reduction's bias
+   < k/2⁶⁴, negligible as documented.
+4. **The pass-folding equivalence**: the wave folds a pass into the
+   step (the opponent moves with the CURRENT counter — no counter
+   step for the pass) — exactly T4's semantics; the mover-side
+   convention after folded steps matches T4's ply accounting (I
+   checked both branches).
+5. **The observed positions are VALID Reversi positions**: at the
+   arrest (ec 20): exactly 44 stones per position (min=max=44, both
+   engines), zero both-color squares, the mover has legal moves
+   (game-over-before-arrest lanes are dead and unharvested, as
+   designed); the arrest lands EXACTLY (ec −1 per real move — flips
+   recolor, they do not add stones).
+6. **The color-swap hypothesis — tested and excluded**: if the two
+   engines disagreed on the mover/opponent convention, recoding G₀
+   with sides swapped would collapse the TV. It does not: LMC
+   TV(G₁, swap(G₀)) = 0.109 vs TV(G₁, G₀) = 0.017 — the swap makes
+   it WORSE, as it must if the corpora are correctly aligned.
+7. **The D₀ calibration is coherent with the v4 formula**: LMC
+   (65 cells, concentrated) pooled q95 = 5.2e-4 at 1e6 (in the v4
+   "concentrated tables 5e-4..2e-3" band), per-ec 3.7e-3; my 2e4
+   re-runs reproduce the √N scaling of every dense unit.
+
+**Conclusion R2.1: the instrument is sound. The failure it measured
+is in the object, not the instrument.**
+
+## R2.2 The §11.1 evidence vs the primary artifacts — every number verified
+
+I found the gate's raw outputs still in `scratch/` (the 1e6 run log,
+the 1e6 report/JSON, both 1e5 confirmation JSONs, and
+`extract_gate.py` — the tool that produced §11.1's table). Every
+quoted number checks:
+
+| §11.1 claim | artifact | verdict |
+|---|---|---|
+| LMC per-ec max D = 0.174, q95 0.0037, 47× | 1e6 report D=1.743e-01; q95 = 0.01150 (1e5 s42) × √0.1 | ✓ exact |
+| LMC pooled D = 0.019, q95 0.0005, 37× | 1e6: D=1.905e-2, q95=5.203e-4 → 36.6× | ✓ |
+| Passes D = 0.002, q95 0.0001, 15× | 1e6: D=2.021e-3, q95=1.331e-4 → 15.2× | ✓ |
+| Phase scan p ≈ 0, BROAD | 1e6: worst p = 0.0, 25 widths; 1e5 s123: p=0 at widths 3,4,5,6,7,8,9,10,12,14,15,16,18 | ✓ (the doc's list omits 14) |
+| Joints 136/153 @1e6, 0/153 @1e5 | 1e6: bonferroni_significant=136; both 1e5: 0 | ✓ as counts — see R2.5 for what they MEAN |
+| Phase continuity 0.143 (1e6) / 0.306 (1e5 both seeds) | 0.14306; 0.30585 / 0.30645 | ✓ |
+| seed 42: 0.174 (15×); seed 123: 0.206 (19×) | s42: 0.17427/0.01150=15.2; s123: 0.20585/0.01081=19.0 | ✓ |
+| ec 56: 0.206; 57: 0.164; 55: 0.127; 53: 0.094 | s123 per-ec top-4 EXACTLY | ✓ |
+| FAIL on (i),(ii),(iii) | run log: (i)=F (ii)=F (iii)=F | ✓ |
+| 19.6 vs 20.5 min | timing_s: g0=1177.4, g1=1231.0 | ✓ |
+| "18 SU pairs × 9 strata" | the joint list has **17** pairs × 9 = 153 | ✗ (17, not 18) |
+
+The §11.1 text is an honest extract of the artifacts. Its SELECTION
+(the dense units) was the right choice — but it never says why the
+raw report's most dramatic numbers (D = 1.0 on CORNER/XEDGE/R2/…)
+were NOT selected. That gap matters: R2.5.
+
+## R2.3 The independent replication — the third code path (the anti-bug proof)
+
+If the wave, the gate's G₀ engine, or the observation harness had a
+bug, the gate's signature would be an artifact of THAT code. So I
+reproduced the comparison with **no gate code in the path**: G₁ from
+`random_play` (the T4 scalar reference, the design's own
+implementation — proven bit-exact against the wave in R2.1.2), G₀
+from **my own** scalar loop (board.py + `prng.py` MT19937, one draw
+per real move, the frozen §2 semantics verbatim, written from
+scratch by me this session). 1e4 games each, three independent G₀
+seeds for the D₀ noise.
+
+**The signature reproduces exactly** (LMC per-ec TV, T4-G₁ vs
+my-G₀): ec 57: **0.167**, ec 55: **0.169**, ec 56: 0.133, ec 54:
+0.129, ec 50: 0.109 … decaying to ~0.02 at the arrest — the same
+shape, the same magnitudes (0.17 early), the same early
+concentration as the 1e6 gate (0.174) and the 1e5 runs (0.174,
+0.206). The D₀ at 1e4 (two G₀ pairs): per-ec max 0.028-0.034 — so
+**the early-ec deviation is already ~5-6× the noise at 1e4**, and
+the D does NOT shrink with N (0.17 at 1e4, 2e4, 1e5, 1e6) while the
+noise falls 1/√N — the fingerprint of a SYSTEMATIC, i.e. a design
+property. The pass-distribution TV = 0.0038 at 1e4 (~3× the
+expected D₀) — same direction as the gate's 15× at 1e6.
+
+The 2e4-scale re-run of the gate machinery (with raw-corpus
+forensics) agrees everywhere: LMC per-ec max 0.181, pooled 0.0186
+(6.5× the 2e4 D₀), the phase-occupancy scan non-uniform at k=2..22
+(e.g. k=3: χ²=281 on 2 df; k=4: 350 on 3 df — the same widths the
+1e5/1e6 runs flag), the offset-run phase-locking reproduced
+(pooled TV between G₁(base 0) and G₁(base 4000001): CORNER 0.47,
+R2 0.48 at 2e4), and **the arrested corpus is NOT collapsed**
+(19970 distinct positions of 20000 — vs G₀'s 20000/20000): the
+failure is a WEIGHT bias over a rich support, not a degenerate
+support.
+
+**Three code paths — the gate's wave pair, the wave-vs-T4 replay,
+and T4-vs-my-own-G₀ — all measure the same systematic. There is no
+room for an implementation bug to hide. The FAIL is the design's.**
+
+## R2.4 The mechanism, derived and measured — the class-collision cloning (and what §11.3 gets wrong)
+
+The counter walk makes slot g's trajectory a deterministic function
+of g. The trajectory CLASS at ply t is g mod L_t, L_t = lcm of the
+widths encountered so far; within a class, the ply-t phase
+(g + t) mod k_t takes only k_t/gcd(L_t, k_t) distinct values — the
+class branches into **that many** children, not k_t. When k_t | L_t
+the class makes ONE move en bloc: **collision cloning**. The early
+plies are where L_t is small and the cloning is total. I measured
+the prefix diversity directly (2000 games per engine):
+
+| prefix depth | G₁ distinct | G₀ distinct |
+|---|---|---|
+| 2 moves | 12 | 12 |
+| 3 moves | 44 | 56 |
+| 4 moves | 60 | **244** |
+| 5 moves | 156 | **1023** |
+
+At ply 2 there is NO degeneracy at all: the widths (4, 3) are
+coprime, the slot map g ↦ (g mod 4, (g+1) mod 3) is a bijection
+onto all 12 rank pairs, and the G₁ (m1, m2) marginal is EXACTLY
+balanced — 12 pairs at 1/12 each, better than G₀'s multinomial (the
+balanced-design property working as intended; my initial
+"4-of-16 degeneracy" hypothesis was WRONG, and I retract it). The
+collapse starts at ply 3 (44 vs 56) and is drastic at ply 4-5
+(60 vs 244, 156 vs 1023): the G₁ trajectory tree is a throttled,
+deterministic, integer-weighted subtree of G₀'s full branching
+process — the corpus's early-game position distribution is a small
+structured set with exact weights, and the LMC marginal inherits
+the bias (ec 57 = after 3 moves: TV 0.167-0.206 across scales).
+As L_t grows the gcd → 1, full branching resumes, the tree
+diversifies and the bias decays — but the weight structure is
+already baked into the corpus (the residual ~0.012-0.019 at the
+arrest ec, ≈ 6-14× the 1e6-scale single-level noise, and 6-10×
+ABOVE delta* = 2e-3 — **even the ARRESTED-POSITION population alone,
+the DB-adherence reference, fails the v4 criterion**), the
+phase-occupancy histogram stays non-uniform (the selection
+feedback: which slots sit at width k at step t is itself
+phase-correlated), and the corpus revisits code cells G₀ never
+repeats (R2.5.3). This is precisely the §6.4 demoted channel —
+phase → pick → trajectory → width → phase — which my Round-1
+Amendment B flagged and the gate now measures at p ≈ 0.
+
+**This is why §11.3's attribution is wrong.** §11.3 opens with
+"the gate's measured signature is the corpus-level shadow of the
+shared-row distinctness (§6.4, the allows-equality law)" — but
+§11.1's own evidence says the opposite (BROAD mode, no small-k
+spike), and my measurements agree: the same-width pair law
+(TV = 1/k, §6.5) is second-order here; the ply-2 pair marginal is
+PERFECT, so the distinctness channel is not even open at the depth
+where the bias is largest. What §11.3's middle sentences then
+actually describe — "phase → pick → trajectory → phase feedback +
+shared-row cloning" — IS the class-collision cloning, mislabeled.
+Three more precision defects in the same paragraph: (a) "averaged
+over an independent phase distribution the pick is uniform"
+begs the question — the phase distribution is trajectory-dependent,
+that dependence IS the failure; E1 survives only as the oracle
+statement. (b) The MT19937 equidistribution narrative is color, not
+cause: A1 held (the rank histograms pass), the table is fine —
+what dies is the INDEPENDENCE of successive picks, which the
+paragraph does say, but the "destroyed BY DESIGN" framing should
+be attached to the deterministic counter walk, not to the loss of
+MT's serial properties. (c) "twin slots play identical
+continuations" — the cloning condition is a phase COLLISION mod k
+within a trajectory class, not shared-row-ness per se.
+
+## R2.5 What the raw report's dramatic numbers actually mean (the record's most misleading feature)
+
+The gate report contains far more alarming numbers than §11.1
+quotes — and they are the ones a future reader will trip over:
+
+1. **The per-ec pattern "marginals" (CORNER, XEDGE, R2, R3, R4,
+   2X5COR, DIAG5-7) show D = 1.000 — "disjoint supports" — and the
+   joints show D = 1.000 with KL = 50 (the cap). These numbers are
+   VACUOUS.** The gate's per-feature key is the FULL INSTANCE
+   TUPLE (e.g. CORNER = 19683⁴ ≈ 1.5e17 cells); at the gate's
+   scales the tables are singleton-dominated and I measured their
+   own D₀: **G₀-vs-G₀' per-ec CORNER TVs are ALSO 1.0 — saturated
+   even between two G₀ corpora** (at 2e4: all three pairs exactly
+   1.0 at every level ≤ ec 36; the 1e5 pair runs' raw values were
+   1.0 — the rescaled thresholds 0.3162 are 1.0×√0.1, a meaningless
+   rescale). DIAG8 is the demonstrative case: at the 1e5 scale G₁'s
+   D = 0.604 against its own-scale D₀ ≈ 0.90 — **G₁ is CLOSER to
+   G₀ than two G₀ corpora are to each other** on that unit; the
+   gate's "2.1×" is an artifact of the √10 rescale applied to a
+   saturated statistic. A G₀ twin would have "failed" these units
+   identically. **A saturated unit must be reported as
+   UNINFORMATIVE, not as a 3.2× failure.**
+2. **Why the rescale fails there — and this is MY correction.**
+   The v4 D₀ design (my Round-1 Amendment A: 20 pairs at 1e5 +
+   the per-population 1/√N rescale) is valid in the unsaturated
+   regime and I verified it holds there (the dense units: LMC,
+   passes — every rescaled q95 coherent with the direct
+   measurement at the new scale). But TV saturates at 1: the √N
+   law is a small-TV expansion, and rescaling a saturated value is
+   arithmetic without meaning. I did not flag this in Round 1;
+   the gate inherited it. One guard line fixes it forever:
+   **q95(D₀_unit) ≥ 0.9 ⇒ the unit is declared uninformative at
+   that scale** (and the pooled sparse units — CORNER 0.20 at 1e6,
+   rescaled from 0.64 — deserve the same caveat: rescaling from a
+   0.64 baseline already strains the expansion; 2-3 direct 1e6
+   G₀ pairs, ~40 min of compute, would have closed it properly).
+3. **The joint chi-square flip (0/153 at 1e5 → 136/153 at 1e6) is
+   nevertheless a REAL signal** — I verified what it detects: at
+   2e4, G₁'s LMC×R2-tuple cells include 9 REPEATED cells
+   (multiplicities 8, 8, 6, 4, 3, 3, 3, 2, 2) while **G₀ has
+   ZERO repeats in 2×20000** — the phase-locked corpus revisits
+   code combinations random play essentially never repeats. The
+   flip is the power growth of the occupancy test on that
+   concentration. But: it is an UNCONTROLLED test (no G₀-pair
+   chi-square baseline was run at 1e6), and §11.1's "grows with
+   scale" is the test's power, not the bias's growth. The bias's
+   growth is in the DENSE units, where D stays and the noise falls.
+4. **The joints were not the pre-registered unit.** §7 test 3 /
+   §4.4 account cells PER INSTANCE ("the per-instance cell product
+   ≤ 1e6" is the pair filter — LMC×R2 per instance = 4.3e5 cells ✓
+   passes the filter); the implementation concatenated ALL
+   instances (LMC×R2 = 65×6561⁴ ≈ 1.2e17 cells — 11 orders
+   sparser). The "PRIMARY joint instrument" of the v3 reordering
+   never actually ran at its designed granularity; at the designed
+   one (2-3 samples per cell at 1e6) it would have been
+   informative. This is a gate-implementation defect — moot for
+   the verdict, but the record should not cite the vacuous units
+   as evidence (§11.1's Joints row cites the chi-square counts
+   of a unit that was never the designed one).
+5. **The 1e6 run also thresholded 12 per-ec units against a
+   DEFAULTED noise floor** (the older gate version's
+   `d0.get(name, [0.0])` → 2e-3): the per-ec pattern units that
+   run reported at D=1.0 were never bootstrapped at 1e6 at all.
+   The newer version (the 1e5 confirmations) bootstraps them and
+   produces the rescale artifact of point 1 instead. Either way
+   those units never carried calibrated evidence.
+
+**The evidential hierarchy that actually carries the FAIL** (all
+verified by me against the artifacts AND reproduced
+independently): the LMC per-ec marginal (dense, calibrated:
+47×/19×/15× at 1e6/1e5-seeds, ~5-6× already at 1e4 — the scale-
+invariant systematic), the LMC pooled (37×), the pass distribution
+(15×), the phase-occupancy scan (p≈0, broad, reproduced at 2e4),
+the test-6 phase-locking (0.143/0.306; 0.47 at 2e4), the arrest-ec
+deviation vs delta*, and the cell-revisit concentration. Remove
+every sparse unit from the report and the verdict is unchanged:
+that is what "over-determined" means.
+
+## R2.6 The missing §7 fallback disposition — supplied, and it confirms the kill
+
+§7's FAIL protocol pre-specifies TWO remedies and assigns them to
+modes: the **fallback** (a second independent counter, c'_g = g+Δ)
+for the counter-mediated coupling, and the **escape hatch** (fresh
+per-ply PRNG at small-k plies) for the shared-row distinctness.
+The measured mode is the counter-mediated/path-coupled one — yet
+§11.1 mislabels the escape hatch as "the §7 fallback", dismisses
+it as targeting the other mode, and **never disposes of the actual
+§7 fallback for the measured mode** (§5-E3b and §6.5 name it too).
+Skipping it may well be right — but the record must ARGUE it, not
+skip it. Here is the argument, and it closes the door:
+
+With c'_g = g+Δ, the trajectory remains a deterministic
+1-parameter family of the slot id. The ply-2 lattice map becomes
+g ↦ (g mod k₁, (g+Δ+1) mod k₂) — a coset bijection when the widths
+are coprime (still perfectly balanced: nothing changes at ply 2).
+The class structure (g mod L_t) and the class-collision condition
+— slots of one class share the phase (g'+t) mod k_t whenever
+k_t | L_t — persist for EVERY offset Δ, because both counters are
+affine in g. The prefix-diversity collapse (44/56, 60/244,
+156/1023) and the phase-occupancy feedback would reappear with the
+same magnitudes, merely permuted. **The second counter removes the
+two-stream rank coupling, not the one-dimensionality of the walk —
+it could NOT have rescued the corpus-level equivalence.** And the
+escape hatch (fresh PRNG at k ≤ 4) fails on the evidence too: the
+non-uniform widths run 3-18 and the deviation peaks at ec 55-57
+where the widths are 5-10 — outside its patch. Both shelf remedies
+are dead; the only G₀-equivalent generator in sight is G₀. The
+kill decision is not premature: it is forced.
+
+## R2.7 The corrections the record needs (none rescues G₁)
+
+- **A (required).** Mark the sparse per-ec pattern units and the
+  joint D/KL values as SPARSITY-SATURATED / UNINFORMATIVE in the
+  record (R2.5.1-2), with the saturation guard for any future gate
+  run. Say plainly that the verdict never rested on them.
+- **B (required).** Record the joint-unit implementation defect
+  (instance-tuple vs the pre-registered per-instance accounting —
+  R2.5.4) and re-frame §11.1's Joints row as the occupancy/
+  concentration signal it actually is (R2.5.3), ideally with the
+  1e6 G₀-pair chi-square control if the number is ever cited.
+- **C (required).** Insert the §7-fallback disposition (R2.6):
+  the second counter is analytically dead for the measured mode;
+  the escape hatch is out-scoped by the evidence.
+- **D (required).** Fix §11.3's mechanism attribution (R2.4):
+  the corpus-level shadow is of the **class-collision cloning**
+  (the demoted §6.4 phase channel), not of the shared-row
+  distinctness; the ply-2 marginal is exactly balanced, which the
+  record can now state with the 12/12 measurement; E1 survives as
+  the oracle statement only.
+- **E (required, wording).** §11.2: "the lemmas and the phase
+  combinatorics stand" — only Lemma 2's WITHIN-GAME residue cover
+  stands; the cross-slot phase balance was falsified (Round-1
+  Amendment B) and the gate measured it failing. "Empirically
+  bounded by this gate" should read REFUTED at the 1e6-resolved
+  level. The frozen body's stale spots (§5's one-honest-sentence
+  still lists "the phase combinatorics (E3a, ≤ 6.4e-5)" as PROVEN;
+  §5-E3b and §6.5 still say the gate runs at 1e4; §6.6 row 3
+  "the phase component proven" contradicts row 2 of the same
+  table; §7's intro "the proof covers … the phase combinatorics")
+  cannot be edited — the freeze — but §11 should carry a short
+  errata note so no future reader takes them at face value.
+- **F (minor).** 17 SU pairs, not 18; the phase-fail width list
+  omits 14; the perf-parity claim rests on a warmup-tainted 144k
+  single-wave G₀ figure plus the ec=0 steady state (189.6k/s) —
+  one clean steady-state ec=20 G₀ benchmark would close it (the
+  decision does not hinge on it); §11.4's "SU OPTIONAL default
+  FALSE … profiling AFTER the SU level is complete" is clear only
+  with the D-175 context (the level is not in the config schema
+  yet — T12 work) — one clause would fix it.
+- **G (my own corrections, for the record).** My Round-1 judgment
+  that the phase term's "practical risk is probably small" was
+  WRONG in magnitude (the counterexample was right; the magnitude
+  guess was not — the gate measured p ≈ 0, and this round derives
+  why). My Amendment A's √N rescale inherited a blind spot in the
+  saturated regime (R2.5.2). My Round-2 starting hypothesis of a
+  ply-2 rank-pair degeneracy was falsified by my own measurement
+  (the 4-3 coprime lattice is perfectly balanced) — the true
+  mechanism is the ply-3+ class collapse. And my first attempt at
+  the scalar replication burned an hour in an infinite loop on
+  double-pass games — the reviewer's own bathwater, thrown out
+  with due ceremony. The lesson the document already teaches:
+  verify, do not assume — the assumption was mine this time.
+
+## R2.8 The final verdict
+
+**To Roberto's question: G₁ was an abbaglio of the DESIGN, not a
+bug.** The chain is closed at every link: the wave engines are
+bit-exact against their references (R2.1); every quoted number is
+honest (R2.2); the signature reproduces through a third,
+fully-independent code path at one-tenth the scale (R2.3); the
+mechanism is derived and measured, and it is the exact channel the
+review process demoted to gated (R2.4); the failure is systematic
+(D scale-invariant from 1e4 to 1e6), seed-independent, phase-locked,
+present in a quantity I-017 consumes directly, and above the
+absolute tolerance even in the arrested-position population the
+adherence statistic consumes; and the pre-specified remedies are
+analytically dead (R2.6). **I endorse D-174 without reservation:
+G₀ — the reference semantics, the generator that needs no
+equivalence argument — is the corpus generator.** The G₁
+analytical record stands as the document now frames it: Lemma 1,
+Lemma 2, and the oracle Theorem 1 are intact and valuable (the
+wave-vs-T4 replay and the ply-1/ply-2 exact balance are the design
+working AS DESIGNED — the balanced property is real, and it is
+precisely not enough); E1-corpus, E3a and E3b are refuted/gated.
+
+The process note, for the campaign's memory: three reviews caught
+the unproven tags and the miscalibrated numbers BEFORE the build;
+the pre-registered gate then caught the one thing no review could —
+the empirical claim itself. Nothing was thrown out with the
+bathwater: the baby (the proof architecture, the T4/T5 wave
+machinery, the MT kernels, the gate harness — all verified
+bit-exact this round) is alive and now carries the G₀ corpus. What
+died is a design idea, and it died of evidence.
+
+---
+
+## Appendix R2 — the verification log (what I ran, 2026-09-13)
+
+All scripts in `scratch/` (the disposable area); nothing outside
+`scratch/` and this file was written. The venv interpreter,
+`PYTHONDONTWRITEBYTECODE=1`, no other workspace file modified.
+
+- `glmrv_stage1.py` — MT19937 numba kernels vs `prng.py`: 624
+  draws × 3 seeds bit-exact. Wave-G₁ vs T4 `random_play`: 12/12
+  lanes bit-exact (moves + pass counts). T4 speed 4.55 ms/game.
+- `glmrv_stage2.py` / `stage2b.py` — the 2e4 gate-machinery re-run:
+  per-ec TV profiles (LMC early peak 0.181; CORNER/XEDGE/R2/DIAG8
+  full profiles), raw-corpus validity (44 stones, no color overlap,
+  19970/20000 distinct arrested positions), the color-swap test
+  (excluded), the phase-occupancy scan (χ² 281 on k=3 … 104 on
+  k=18), the offset-run phase-locking (CORNER 0.47, R2 0.48,
+  DIAG8 0.147), the per-ec D₀ of the sparse units (CORNER
+  saturated 1.0 even G₀-vs-G₀'; DIAG8 0.82 ≈ G₁'s 0.82), the
+  corrected pooled table (LMC 6.5×, CORNER 1.1× at 2e4), corpora
+  saved to `glmrv_stage2_corpora.npz`.
+- `glmrv_stage3.py` — THE INDEPENDENT REPLICATION: 1e4 G₁ games via
+  T4 `random_play` vs 3×1e4 G₀ games via my own scalar loop on
+  `prng.py`: the per-ec LMC profile (ec 57: 0.167, ec 55: 0.169 …
+  decaying to 0.019), the D₀ at 1e4 (per-ec max 0.028-0.034), the
+  arrest-ec TV 0.0188, the pass TV 0.0038, the first-two-moves
+  locus (12/12 both engines; G₁ exactly 2500±5 per first move).
+  (The first version ran for an hour in an infinite loop — my
+  missing double-pass game-over check — fixed, rerun, 3 minutes:
+  the scalar path is for single calls and 5-step loops, as the
+  document says, and I re-learned why.)
+- `glmrv_stage4b.py` — the joint-cell concentration: G₁ 9 repeated
+  LMC×R2-tuple cells (max multiplicity 8) vs G₀ ZERO repeats in
+  2×20000; all pairwise supports disjoint (the sparsity regime).
+- The prefix-diversity probe (inline) — the class-collapse table:
+  12/12, 44/56, 60/244, 156/1023.
+- Artifacts read: `scratch/gate_1e6/` (report + JSON + run log),
+  `gate_1e5_s42/`, `gate_1e5_s123/` (report + JSON),
+  `extract_gate.py`, `notes/decisions.md` D-172/173/174/175,
+  `notes/log_002.md` §D-175, `notes/overview.md` (the perf
+  claims), `src/reversi/lm/hlp_gate.py` and `hlp_wave.py` in full,
+  `src/reversi/test/data/rlm_03.json` (the campaign config: ec 20,
+  LMC + the A2050 patterns), `tools/prng.py`.
