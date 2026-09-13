@@ -558,5 +558,76 @@ class TestJointAccumulator(unittest.TestCase):
                 np.testing.assert_array_equal(cn1, cn2)
 
 
+class TestPrngIntegration(unittest.TestCase):
+    """The PRNG integration test (T9): the full generator with the
+    MT19937 seed — the corpus reproducibility (same seed -> the
+    same frequency tables, the different seed -> different) + the
+    small end-to-end corpus on a 2-feature set (the LMC + the R2),
+    the marginals hand-checked against the independent oracle."""
+
+    def _fset(self):
+        return TestMarginalAccumulator._toy_fset()
+
+    def _blocks(self):
+        return TestMarginalAccumulator._toy_blocks(self._fset())
+
+    def _gen_and_accum(self, n, ec, seed):
+        fset = self._fset()
+        blocks = self._blocks()
+        acc = MarginalAccumulator(fset, blocks)
+        sink = BufferSink()
+        run_wave_g0(n, ec, seed, n, sink)
+        M, O, _ = sink.flatten()
+        acc.add(M, O)
+        return acc.result()
+
+    def test_corpus_reproducibility(self):
+        # Same seed -> the SAME frequency tables (bit-exact); the
+        # different seed -> different. The G0 wave re-initializes
+        # the golden-pinned MT19937 per call (the seed is the
+        # corpus seed).
+        r1 = self._gen_and_accum(5000, 20, 42)
+        r2 = self._gen_and_accum(5000, 20, 42)
+        r3 = self._gen_and_accum(5000, 20, 43)
+        for a, b in zip(r1, r2):
+            np.testing.assert_array_equal(a[3], b[3])  # the codes
+            np.testing.assert_array_equal(a[4], b[4])  # the counts
+        same_as_43 = all(
+            np.array_equal(a[3], b[3]) and np.array_equal(a[4], b[4])
+            for a, b in zip(r1, r3))
+        self.assertFalse(same_as_43)
+
+    def test_small_end_to_end_marginals(self):
+        # The small end-to-end corpus (the G0 wave -> the
+        # accumulator): every sub-variable's sum == N, K_obs <=
+        # n_conf, and the LMC marginal hand-checked against the
+        # INDEPENDENT oracle (position_legal_moves, NOT
+        # compute_indexes).
+        n, ec, seed = 2000, 20, 42
+        fset = self._fset()
+        blocks = self._blocks()
+        sink = BufferSink()
+        run_wave_g0(n, ec, seed, n, sink)
+        M, O, _ = sink.flatten()
+        acc = MarginalAccumulator(fset, blocks)
+        acc.add(M, O)
+        res = {((nm, i)): (nc, codes, counts)
+               for (nm, i, nc, codes, counts) in acc.result()}
+        for (nm, i), (nc, codes, counts) in res.items():
+            self.assertEqual(int(counts.sum()), n)
+            self.assertLessEqual(len(codes), nc)
+        expected = {}
+        for k in range(n):
+            p = make_position(M[k], O[k])
+            code = int(position_legal_moves(p)).bit_count()
+            expected[code] = expected.get(code, 0) + 1
+        nc, codes, counts = res[('LMC', 0)]
+        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_counts = np.array([expected[c] for c in sorted(expected)],
+                              dtype=np.int64)
+        np.testing.assert_array_equal(codes, exp_codes)
+        np.testing.assert_array_equal(counts, exp_counts)
+
+
 if __name__ == '__main__':
     unittest.main()

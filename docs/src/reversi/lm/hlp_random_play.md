@@ -10,8 +10,8 @@ marginal over the corpus (the FEATURE_ANALYSIS phase-1 data
 plane). The data module of the FEATURE_ANALYSIS level (the
 worker lands in T16).
 > State: D-162 (T4) + D-177 (T7: the ec pin + the marginal
-accumulator) + D-178 (T8: the joint accumulator) · 2026-09-13 ·
-suite 21/0/0
+accumulator) + D-178 (T8: the joint accumulator) + D-179 (T9:
+the PRNG integration) · 2026-09-13 · suite 23/0/0
 
 ## API
 - `RandomGame` — the dataclass outcome: the arrested position,

@@ -993,3 +993,21 @@ D-178 | 2026-09-13 | T8: the joint frequency
         diagonal has ZERO off-diagonal entries, the
         chunk-merge invariance (one chunk == two
         half-chunks). Every joint's count sum == N.
+D-179 | 2026-09-13 | T9: the PRNG integration
+        test. TestPrngIntegration in
+        test_hlp_random_play (the G0 wave -> the
+        accumulator, the 2-feature toy set = the
+        LMC + the R2): (1) the corpus REPRODUCIBILITY
+        — the same seed (42) -> the SAME frequency
+        tables (bit-exact, the G0 wave re-initializes
+        the golden-pinned MT19937 per call, the seed is
+        the corpus seed), the different seed (43) ->
+        different tables; (2) the small END-TO-END
+        corpus (the G0 wave -> the accumulator, 2000
+        games at ec 20) — every sub-variable's sum ==
+        N, K_obs <= n_conf, and the LMC marginal hand-
+        checked against the INDEPENDENT oracle
+        position_legal_moves (NOT compute_indexes).
+        No new library code (the T7-T8 accumulators +
+        the T5 G0 wave, all already landed). test_
+        hlp_random_play 21/0/0 -> 23/0/0.
