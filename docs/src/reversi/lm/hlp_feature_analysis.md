@@ -4,14 +4,15 @@ plane): the kernels over the frequency tables (the marginal /
 the joint counts from the accumulators, the T7-T8 in
 hlp_random_play). The SU / entropy / mutual-information
 kernels (T11, D-181) + the dispersion / the never-observed
-audit (T12, D-182) + the ANOVA kernels (T13, D-183) are
-landed; the adherence kernels (T14) follow. Pure math from the
-frequency
+audit (T12, D-182) + the ANOVA kernels (T13, D-183) + the
+adherence kernels (T14, D-184) are landed — the full kernel
+set is complete. Pure math from the frequency
 tables — NO DB, NO positions. The worker (wrk_feature_analysis,
 T16) calls these on the accumulator output (the phase-2
 recompute, cheap, on every run).
-> State: D-181 (T11) + D-182 (T12) + D-183 (T13: the ANOVA
-kernels) · 2026-09-13 · suite 21/0/0
+> State: D-181 (T11) + D-182 (T12) + D-183 (T13) + D-184 (T14:
+the adherence kernels) — the full kernel set · 2026-09-13 ·
+suite 32/0/0
 
 ## API
 - `entropy(counts) -> float` — the Shannon entropy H in bits,
@@ -51,6 +52,32 @@ kernels) · 2026-09-13 · suite 21/0/0
   ValueError (unreachable); omega² may be slightly negative
   (the null effect) — the raw value is reported. Returns
   {'eta2', 'omega2', 'k', 'n'}.
+- `kl_divergence(p, q) -> float` — the KL divergence KL(p ||
+  q) in nats (T14, D-184), the 0-log-0 convention (the p(i) = 0
+  terms vanish); +inf if p(i) > 0 and q(i) = 0 (the DB has a
+  code the ideal never shows).
+- `total_variation(p, q) -> float` — the total variation
+  distance TV(p, q) = 0.5 * sum |p - q|, in [0, 1] (the robust
+  "how different" number, no log, no 0/0).
+- `chi_square_goodness(observed, expected, min_expected=5)
+  -> dict` — the chi-square goodness-of-fit (T14, D-184): the
+  statistic sum (O - E)^2 / E, the p-value (the scipy chi2.sf,
+  the (k - 1) df), the merged tail (the low-expected cells,
+  E < min_expected, merged into an "other" bin) + the merge
+  count (the standard technique). Returns {'chi2', 'p',
+  'merged'}; the p-value is nan if the merged result has fewer
+  than 2 cells.
+- `adherence(db_counts, ideal_counts) -> dict` — the
+  adherence (c) trio (T14, D-184, the design section 3.5): the
+  DB configuration distribution (the observed codes of the
+  training positions) vs the ideal distribution (the corpus
+  frequencies, normalized), the fixed trio (the ODP-5 close, no
+  config whitelist): the chi-square (the p-value + the merged-
+  tail count), the KL (the 0-log-0), the TV (the robust "how
+  different" number). The two are aligned over the union of the
+  observed codes (the missing side is 0). Returns {'chi2',
+  'p', 'merged', 'kl', 'tv'}; the values are nan if either
+  distribution is empty.
 
 ## Architecture
 - The SU is computed from the IDEAL (synthetic) frequencies: a
@@ -73,7 +100,7 @@ kernels) · 2026-09-13 · suite 21/0/0
 
 ## Verified invariants
 - The hand-computed toy tables (test_hlp_feature_analysis,
-  21 tests): the uniform 4 (H = 2), the degenerate (H = 0),
+  32 tests): the uniform 4 (H = 2), the degenerate (H = 0),
   the binary p = [0.25, 0.75] (H = 0.8112781244591328), the
   empty (H = 0, the n = 0 guard); the perfect-correlation MI
   (u == v: I = 1), the independent MI (I = 0), the non-negative
@@ -88,11 +115,15 @@ kernels) · 2026-09-13 · suite 21/0/0
   the ANOVA hand-computed (the 2-group [1, 3, 2, 4]: eta²
   0.2, omega² -1/7 the null effect; the perfect separation
   [1, 1, 1, 4, 4, 4]: eta² = omega² = 1; the K = 1 degeneracy
-  -> 0 / 0; the K > N + the length-mismatch ValueError).
+  -> 0 / 0; the K > N + the length-mismatch ValueError; the
+  adherence hand-computed (the KL = log 2 = 0.6931471805599453
+  + the 0-term vanishes + the +inf the DB-has-a-code-the-ideal-
+  never-shows; the TV = 0 / 1 / 0.25; the chi-square no-merge
+  2.222222 p 0.527585 + the merged 3 -> chi2 0 p 1.0; the
+  adherence union alignment TV 0.6 KL 0.9336627322538263 chi2
+  47.77777777777778 merged 1 + the +inf KL + the empty nan).
 
 ## Open issues
-- The T14 adherence kernels (the chi-square merged-tail, the
-  KL, the TV 0-log-0) — PENDING.
 - The T16 worker (wrk_feature_analysis) wires these into the
   pipeline (the cache flow + the phase-2 recompute + the
   reports) — PENDING.

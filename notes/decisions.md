@@ -1113,3 +1113,40 @@ D-183 | 2026-09-13 | T13: the ANOVA kernels. Added
         the K = 1 degeneracy -> 0 / 0; the K > N + the length-
         mismatch ValueError). Mirrors (D-007), journal,
         overview. 859 -> 864.
+D-184 | 2026-09-13 | T14: the adherence kernels
+        (the fixed trio, the ODP-5 close, no config
+        whitelist). Added to hlp_feature_analysis (the T11
+        module): (1) `kl_divergence(p, q)` — the KL
+        divergence KL(p || q) in nats, the 0-log-0
+        convention (the p(i) = 0 terms vanish), +inf if p(i)
+        > 0 and q(i) = 0 (the DB has a code the ideal never
+        shows). (2) `total_variation(p, q)` — the total
+        variation distance TV(p, q) = 0.5 * sum |p - q|, in
+        [0, 1] (the robust "how different" number, no log, no
+        0/0). (3) `chi_square_goodness(observed, expected,
+        min_expected = 5)` — the chi-square goodness-of-fit:
+        the statistic sum (O - E)^2 / E, the p-value (the
+        scipy chi2.sf, the (k - 1) df — scipy is already a
+        project dependency, the pyproject), the merged tail
+        (the low-expected cells, E < min_expected, merged
+        into an "other" bin) + the merge count (the standard
+        technique); the p-value is nan if the merged result
+        has fewer than 2 cells. (4) `adherence(db_counts,
+        ideal_counts)` — the adherence (c) trio (the design
+        section 3.5): the DB configuration distribution (the
+        observed codes of the training positions) vs the
+        ideal distribution (the corpus frequencies,
+        normalized), the fixed trio: the chi-square (the p-
+        value + the merged-tail count), the KL (the 0-log-0),
+        the TV (the robust "how different" number); the two
+        are aligned over the union of the observed codes (the
+        missing side is 0); the values are nan if either
+        distribution is empty. The test micro-suite (21 ->
+        32, the hand-computed toy: the KL = log 2 + the 0-
+        term vanishes + the +inf; the TV = 0 / 1 / 0.25; the
+        chi-square no-merge 2.222222 p 0.527585 + the merged
+        3 -> chi2 0 p 1.0; the adherence union alignment TV
+        0.6 KL 0.9336627322538263 chi2 47.77777777777778
+        merged 1 + the +inf KL + the empty nan). The FULL
+        kernel set (T11-T14) is now complete. Mirrors
+        (D-007), journal, overview. 864 -> 875.

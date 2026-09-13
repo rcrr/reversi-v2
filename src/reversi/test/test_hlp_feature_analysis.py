@@ -47,13 +47,17 @@ binary entropies, the perfect-correlation / the independent
 mutual informations, the SU = 1 / 0 / the 0-denominator guard).
 """
 
+import math
 import unittest
 
 import numpy as np
 
+from scipy.stats import chi2 as _chi2
+
 from reversi.lm.hlp_feature_analysis import (
-    anova_eta_omega, dispersion, entropy, mutual_information,
-    never_observed_audit, symmetric_uncertainty)
+    adherence, anova_eta_omega, chi_square_goodness, dispersion,
+    entropy, kl_divergence, mutual_information,
+    never_observed_audit, symmetric_uncertainty, total_variation)
 
 
 class TestEntropy(unittest.TestCase):
@@ -229,6 +233,121 @@ class TestAnovaEtaOmega(unittest.TestCase):
         # ValueError.
         with self.assertRaises(ValueError):
             anova_eta_omega([0, 1], [1, 2, 3])
+
+
+class TestKLDivergence(unittest.TestCase):
+    """The KL divergence (T14, D-184): in nats, the 0-log-0
+    convention, +inf if p(i) > 0 and q(i) = 0."""
+
+    def test_equal(self):
+        # p = q: KL = 0.
+        self.assertAlmostEqual(kl_divergence([0.5, 0.5],
+                                             [0.5, 0.5]), 0.0,
+                               places=12)
+
+    def test_known(self):
+        # p = [1, 0], q = [0.5, 0.5]: KL = log(1 / 0.5) =
+        # log(2) (the 0-term vanishes).
+        self.assertAlmostEqual(kl_divergence([1, 0], [0.5, 0.5]),
+                               0.6931471805599453, places=12)
+
+    def test_infinite(self):
+        # p = [1, 0], q = [0, 1]: p(0) > 0, q(0) = 0 -> +inf
+        # (the DB has a code the ideal never shows).
+        self.assertEqual(kl_divergence([1, 0], [0, 1]), float('inf'))
+
+
+class TestTotalVariation(unittest.TestCase):
+    """The total variation (T14, D-184): 0.5 * sum |p - q|,
+    in [0, 1], the robust "how different" number."""
+
+    def test_equal(self):
+        # p = q: TV = 0.
+        self.assertAlmostEqual(total_variation([0.5, 0.5],
+                                              [0.5, 0.5]), 0.0,
+                               places=12)
+
+    def test_max(self):
+        # p = [1, 0], q = [0, 1]: TV = 0.5 * (1 + 1) = 1.
+        self.assertAlmostEqual(total_variation([1, 0],
+                                              [0, 1]), 1.0,
+                               places=12)
+
+    def test_half(self):
+        # p = [0.75, 0.25], q = [0.5, 0.5]: TV = 0.5 * (0.25 +
+        # 0.25) = 0.25.
+        self.assertAlmostEqual(total_variation([0.75, 0.25],
+                                              [0.5, 0.5]), 0.25,
+                               places=12)
+
+
+class TestChiSquareGoodness(unittest.TestCase):
+    """The chi-square goodness-of-fit (T14, D-184): the
+    statistic sum (O - E)^2 / E, the p-value (the scipy
+    chi2.sf), the merged tail (the E < 5 cells into the "other"
+    bin) + the merge count."""
+
+    def test_no_merge(self):
+        # observed = [10, 20, 30, 40], expected = [15, 18, 27,
+        # 40] (all E >= 5, no merge): chi2 = 25/15 + 4/18 +
+        # 9/27 + 0 = 2.222222, df 3, p = 0.527585, merged 0.
+        g = chi_square_goodness([10, 20, 30, 40],
+                                [15, 18, 27, 40])
+        self.assertEqual(g['merged'], 0)
+        self.assertAlmostEqual(g['chi2'], 2.2222222222222223,
+                               places=12)
+        self.assertAlmostEqual(g['p'],
+                               float(_chi2.sf(2.2222222222222223,
+                                              3)), places=12)
+
+    def test_merged(self):
+        # observed = [1, 2, 3, 40], expected = [1.5, 2, 2.5,
+        # 40]: the 3 cells with E < 5 are merged into the
+        # "other" bin (O 6, E 6); the remaining [40, 6] / [40,
+        # 6]: chi2 = 0, df 1, p = 1.0, merged 3.
+        g = chi_square_goodness([1, 2, 3, 40],
+                                [1.5, 2.0, 2.5, 40])
+        self.assertEqual(g['merged'], 3)
+        self.assertAlmostEqual(g['chi2'], 0.0, places=12)
+        self.assertAlmostEqual(g['p'], 1.0, places=12)
+
+
+class TestAdherence(unittest.TestCase):
+    """The adherence (c) trio (T14, D-184): the chi-square
+    (the p-value + the merged-tail count), the KL (the 0-log-0),
+    the TV (the robust "how different" number)."""
+
+    def test_union_alignment(self):
+        # db = {0: 10, 1: 20}, ideal = {0: 10, 1: 30, 2: 60}
+        # (the union {0, 1, 2}, the DB missing code 2 -> 0):
+        # TV = 0.6, KL = 0.933663 (nats), the chi-square 47.7778
+        # (the merged tail: code 0's E = 3 < 5 -> merged 1), the
+        # p-value the scipy reference.
+        r = adherence({0: 10, 1: 20}, {0: 10, 1: 30, 2: 60})
+        self.assertAlmostEqual(r['tv'], 0.6, places=12)
+        self.assertAlmostEqual(r['kl'], 0.9336627322538263,
+                               places=10)
+        self.assertAlmostEqual(r['chi2'], 47.77777777777778,
+                               places=10)
+        self.assertEqual(r['merged'], 1)
+        self.assertAlmostEqual(r['p'],
+                               float(_chi2.sf(47.77777777777778,
+                                              2)), places=10)
+
+    def test_infinite_kl(self):
+        # The DB has a code the ideal never shows (the ideal
+        # missing that code -> 0): the KL is +inf (the TV / the
+        # chi-square are finite).
+        r = adherence({0: 50, 1: 50}, {0: 50, 2: 50})
+        self.assertEqual(r['kl'], float('inf'))
+        self.assertLess(r['tv'], 1.0)
+
+    def test_empty(self):
+        # The empty DB (or the empty ideal): the nan values.
+        r = adherence({}, {0: 10, 1: 10})
+        self.assertTrue(math.isnan(r['chi2']))
+        self.assertTrue(math.isnan(r['kl']))
+        self.assertTrue(math.isnan(r['tv']))
 
 
 if __name__ == '__main__':

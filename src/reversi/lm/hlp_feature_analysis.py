@@ -19,9 +19,12 @@ free of the DB sample noise (the design section 3.3 phase 2).
 """
 
 import numpy as np
+from scipy.stats import chi2 as _chi2
 
 __all__ = ['entropy', 'mutual_information', 'symmetric_uncertainty',
-           'dispersion', 'never_observed_audit', 'anova_eta_omega']
+           'dispersion', 'never_observed_audit', 'anova_eta_omega',
+           'kl_divergence', 'total_variation', 'chi_square_goodness',
+           'adherence']
 
 
 def entropy(counts) -> float:
@@ -207,3 +210,126 @@ def anova_eta_omega(groups, values) -> dict:
               if denom > 0 else 0.0)
     return {'eta2': float(eta2), 'omega2': float(omega2),
             'k': k, 'n': n}
+
+
+def kl_divergence(p, q) -> float:
+    """
+    The KL divergence KL(p || q) in nats, the 0-log-0
+    convention (the p(i) = 0 terms vanish). +inf if p(i) > 0
+    and q(i) = 0 (the DB has a code the ideal never shows — the
+    infinite divergence).
+
+    Args:
+      p: the DB distribution (the probabilities, sum 1).
+      q: the ideal distribution (the probabilities, sum 1).
+    """
+    p = np.asarray(p, dtype=np.float64).ravel()
+    q = np.asarray(q, dtype=np.float64).ravel()
+    mask = p > 0
+    if bool(np.any(mask & (q <= 0))):
+        return float('inf')
+    return float((p[mask] * np.log(p[mask] / q[mask])).sum())
+
+
+def total_variation(p, q) -> float:
+    """
+    The total variation distance TV(p, q) = 0.5 * sum |p - q|,
+    in [0, 1] (the robust "how different" number, no log, no
+    0/0).
+
+    Args:
+      p: the DB distribution (the probabilities, sum 1).
+      q: the ideal distribution (the probabilities, sum 1).
+    """
+    p = np.asarray(p, dtype=np.float64).ravel()
+    q = np.asarray(q, dtype=np.float64).ravel()
+    return float(0.5 * np.abs(p - q).sum())
+
+
+def chi_square_goodness(observed, expected,
+                        min_expected=5) -> dict:
+    """
+    The chi-square goodness-of-fit: the statistic
+    sum (O - E)^2 / E, the p-value (the scipy chi2.sf, the
+    (k - 1) df), the merged tail (the low-expected cells, E <
+    min_expected, merged into an "other" bin) + the merge count
+    (the standard technique).
+
+    Args:
+      observed: the DB observed counts (the O_i, one per cell).
+      expected: the ideal expected counts (the E_i = the ideal
+        frequency * N_DB, one per cell).
+      min_expected: the threshold for the merged tail (the
+        default 5, the standard).
+
+    Returns:
+      {'chi2', 'p', 'merged'} (the statistic, the p-value, the
+      merge count). The p-value is nan if the merged result has
+      fewer than 2 cells (the degenerate, df < 1).
+    """
+    o = np.asarray(observed, dtype=np.float64).ravel()
+    e = np.asarray(expected, dtype=np.float64).ravel()
+    if o.shape[0] < 2:
+        return {'chi2': 0.0, 'p': float('nan'), 'merged': 0}
+    # The merged tail: the cells with E < min_expected are
+    # merged into the "other" bin (the sum).
+    mask = e < min_expected
+    n_merge = int(mask.sum())
+    if n_merge > 0:
+        other_o = float(o[mask].sum())
+        other_e = float(e[mask].sum())
+        keep = ~mask
+        o = np.concatenate([o[keep], [other_o]])
+        e = np.concatenate([e[keep], [other_e]])
+    k = int(o.shape[0])
+    chi2_stat = float(((o - e) ** 2 / e).sum())
+    df = k - 1
+    if df < 1:
+        p_val = float('nan')
+    else:
+        p_val = float(_chi2.sf(chi2_stat, df))
+    return {'chi2': chi2_stat, 'p': p_val, 'merged': n_merge}
+
+
+def adherence(db_counts, ideal_counts) -> dict:
+    """
+    The adherence (c) (the EFFECT_SIZE level, the design
+    section 3.5): the DB configuration distribution (the
+    observed codes of the training positions) vs the ideal
+    distribution (the corpus frequencies, normalized). The
+    fixed trio (the ODP-5 close, no config whitelist): the
+    chi-square goodness-of-fit (the p-value + the merged-tail
+    count), the KL divergence (the 0-log-0), the total
+    variation distance (the 0..1 "how different" number,
+    robust). The two are aligned over the union of the
+    observed codes (the missing side is 0).
+
+    Args:
+      db_counts: the DB observed code counts, a dict
+        {code: count} (the training positions).
+      ideal_counts: the ideal (corpus) code counts, a dict
+        {code: count} (the corpus frequencies).
+
+    Returns:
+      {'chi2', 'p', 'merged', 'kl', 'tv'}. The values are nan
+      if either distribution is empty.
+    """
+    codes = sorted(set(db_counts) | set(ideal_counts))
+    db = np.array([db_counts.get(c, 0) for c in codes],
+                  dtype=np.float64)
+    ideal = np.array([ideal_counts.get(c, 0) for c in codes],
+                     dtype=np.float64)
+    n_db = float(db.sum())
+    n_ideal = float(ideal.sum())
+    if n_db == 0 or n_ideal == 0:
+        return {'chi2': float('nan'), 'p': float('nan'),
+                'merged': 0, 'kl': float('nan'),
+                'tv': float('nan')}
+    p_db = db / n_db
+    p_ideal = ideal / n_ideal
+    tv = total_variation(p_db, p_ideal)
+    kl = kl_divergence(p_db, p_ideal)
+    expected = p_ideal * n_db
+    g = chi_square_goodness(db, expected)
+    return {'chi2': g['chi2'], 'p': g['p'], 'merged': g['merged'],
+            'kl': kl, 'tv': tv}
