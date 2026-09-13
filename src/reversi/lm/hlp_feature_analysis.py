@@ -21,7 +21,7 @@ free of the DB sample noise (the design section 3.3 phase 2).
 import numpy as np
 
 __all__ = ['entropy', 'mutual_information', 'symmetric_uncertainty',
-           'dispersion', 'never_observed_audit']
+           'dispersion', 'never_observed_audit', 'anova_eta_omega']
 
 
 def entropy(counts) -> float:
@@ -143,3 +143,67 @@ def never_observed_audit(counts, n_configurations,
               for t in rarity_thresholds}
     return {'k_obs': k_obs, 'never_observed': never,
             'rarity': rarity}
+
+
+def anova_eta_omega(groups, values) -> dict:
+    """
+    The one-way ANOVA effect sizes (the EFFECT_SIZE level, the
+    design section 3.5): the observed codes as the groups (K),
+    the target = the continuous training game values (N).
+
+      SS_tot = sum (y - ybar)^2
+      SS_eff = sum_g n_g (y_g - ybar)^2
+      SS_err = SS_tot - SS_eff
+      eta²   = SS_eff / SS_tot
+      omega² = (SS_eff - (K - 1) MS_err) / (SS_tot + MS_err)
+      MS_err = SS_err / (N - K)
+
+    Guards: K = 1 -> eta² = omega² = 0 (degenerate, by
+    convention); K > N -> ValueError (unreachable). omega² may
+    be slightly negative (the null effect): the raw value is
+    reported. eta² is the biased sample share (up with high
+    K); omega² is the unbiased population estimate — the pair
+    is reported together.
+
+    Args:
+      groups: the group assignment per observation (the
+        observed codes; length N). Any hashable values.
+      values: the continuous target values (length N).
+
+    Returns:
+      {'eta2', 'omega2', 'k', 'n'}.
+
+    Raises:
+      ValueError: K > N (unreachable) or the length mismatch.
+    """
+    g = np.asarray(groups)
+    y = np.asarray(values, dtype=np.float64).ravel()
+    n = int(y.shape[0])
+    if g.shape[0] != n:
+        raise ValueError(
+            f"groups ({g.shape[0]}) and values ({n}) "
+            "length mismatch")
+    unique, inv = np.unique(g, return_inverse=True)
+    k = int(unique.shape[0])
+    if k > n:
+        raise ValueError(
+            f"K > N (the {k} groups exceed the {n} "
+            "observations) — unreachable")
+    if k == 1:
+        # The degenerate (the single group): by convention.
+        return {'eta2': 0.0, 'omega2': 0.0, 'k': k, 'n': n}
+    ybar = float(y.mean())
+    ss_tot = float(((y - ybar) ** 2).sum())
+    group_sums = np.bincount(inv, weights=y)
+    group_counts = np.bincount(inv)
+    group_means = group_sums / group_counts
+    ss_eff = float((group_counts
+                    * (group_means - ybar) ** 2).sum())
+    ss_err = ss_tot - ss_eff
+    eta2 = (ss_eff / ss_tot) if ss_tot > 0 else 0.0
+    ms_err = (ss_err / (n - k)) if n > k else 0.0
+    denom = ss_tot + ms_err
+    omega2 = ((ss_eff - (k - 1) * ms_err) / denom
+              if denom > 0 else 0.0)
+    return {'eta2': float(eta2), 'omega2': float(omega2),
+            'k': k, 'n': n}

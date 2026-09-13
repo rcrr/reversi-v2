@@ -1091,3 +1091,25 @@ D-182 | 2026-09-13 | T12: the dispersion + the
         the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the
         all-observed never 0; the empty never = n_conf).
         Mirrors (D-007), journal, overview. 853 -> 859.
+D-183 | 2026-09-13 | T13: the ANOVA kernels. Added
+        to hlp_feature_analysis (the T11 module):
+        `anova_eta_omega(groups, values)` — the one-way ANOVA
+        effect sizes (the EFFECT_SIZE level, the design
+        section 3.5): the observed codes as the groups (K),
+        the target = the continuous training game values
+        (N). SS_tot = sum (y - ybar)^2, SS_eff = sum_g n_g
+        (y_g - ybar)^2, SS_err = SS_tot - SS_eff; eta² =
+        SS_eff / SS_tot; omega² = (SS_eff - (K-1) MS_err) /
+        (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards:
+        K = 1 -> eta² = omega² = 0 (degenerate, by
+        convention); K > N -> ValueError (unreachable); omega²
+        may be slightly negative (the null effect) — the raw
+        value is reported. eta² is the biased sample share;
+        omega² is the unbiased population estimate — the pair
+        is reported together. The test micro-suite (16 -> 21,
+        the hand-computed toy: the 2-group [1, 3, 2, 4] ->
+        eta² 0.2, omega² -1/7 the null effect; the perfect
+        separation [1, 1, 1, 4, 4, 4] -> eta² = omega² = 1;
+        the K = 1 degeneracy -> 0 / 0; the K > N + the length-
+        mismatch ValueError). Mirrors (D-007), journal,
+        overview. 859 -> 864.

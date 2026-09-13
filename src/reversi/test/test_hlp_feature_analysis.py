@@ -52,8 +52,8 @@ import unittest
 import numpy as np
 
 from reversi.lm.hlp_feature_analysis import (
-    dispersion, entropy, mutual_information, never_observed_audit,
-    symmetric_uncertainty)
+    anova_eta_omega, dispersion, entropy, mutual_information,
+    never_observed_audit, symmetric_uncertainty)
 
 
 class TestEntropy(unittest.TestCase):
@@ -184,6 +184,51 @@ class TestNeverObservedAudit(unittest.TestCase):
         self.assertEqual(a['never_observed'], 10)
         self.assertEqual(a['rarity'], {1: 0, 2: 0, 5: 0, 10: 0,
                                        100: 0})
+
+
+class TestAnovaEtaOmega(unittest.TestCase):
+    """The one-way ANOVA effect sizes (T13, D-183): eta² =
+    SS_eff / SS_tot, omega² = (SS_eff - (K-1) MS_err) / (SS_tot
+    + MS_err), the K = 1 degeneracy + the K > N ValueError."""
+
+    def test_two_groups(self):
+        # groups = [0, 0, 1, 1], values = [1, 3, 2, 4]: ybar
+        # 2.5, SS_tot 5.0, SS_eff 1.0, SS_err 4.0. eta² = 0.2,
+        # MS_err 2.0, omega² = (1.0 - 1.0) / 7.0 = -0.142857
+        # (the null effect — the raw value is reported).
+        r = anova_eta_omega([0, 0, 1, 1], [1, 3, 2, 4])
+        self.assertEqual(r['k'], 2)
+        self.assertEqual(r['n'], 4)
+        self.assertAlmostEqual(r['eta2'], 0.2, places=12)
+        self.assertAlmostEqual(r['omega2'], -1.0 / 7.0, places=12)
+
+    def test_perfect_separation(self):
+        # groups = [0, 0, 0, 1, 1, 1], values = [1, 1, 1, 4, 4,
+        # 4]: SS_tot = SS_eff = 13.5, SS_err 0. eta² = 1.0,
+        # omega² = 1.0 (the perfect separation).
+        r = anova_eta_omega([0, 0, 0, 1, 1, 1],
+                           [1, 1, 1, 4, 4, 4])
+        self.assertEqual(r['k'], 2)
+        self.assertAlmostEqual(r['eta2'], 1.0, places=12)
+        self.assertAlmostEqual(r['omega2'], 1.0, places=12)
+
+    def test_single_group(self):
+        # The K = 1 degeneracy: by convention eta² = omega² = 0.
+        r = anova_eta_omega([0, 0, 0], [1, 2, 3])
+        self.assertEqual(r['k'], 1)
+        self.assertEqual(r['eta2'], 0.0)
+        self.assertEqual(r['omega2'], 0.0)
+
+    def test_k_gt_n(self):
+        # The K > N guard: the ValueError (unreachable).
+        with self.assertRaises(ValueError):
+            anova_eta_omega([0, 1, 2], [1, 2])
+
+    def test_length_mismatch(self):
+        # The groups / the values length mismatch: the
+        # ValueError.
+        with self.assertRaises(ValueError):
+            anova_eta_omega([0, 1], [1, 2, 3])
 
 
 if __name__ == '__main__':

@@ -4,14 +4,14 @@ plane): the kernels over the frequency tables (the marginal /
 the joint counts from the accumulators, the T7-T8 in
 hlp_random_play). The SU / entropy / mutual-information
 kernels (T11, D-181) + the dispersion / the never-observed
-audit (T12, D-182) are landed; the ANOVA kernels (T13) and the
-adherence kernels (T14) follow. Pure math from the frequency
+audit (T12, D-182) + the ANOVA kernels (T13, D-183) are
+landed; the adherence kernels (T14) follow. Pure math from the
+frequency
 tables — NO DB, NO positions. The worker (wrk_feature_analysis,
 T16) calls these on the accumulator output (the phase-2
 recompute, cheap, on every run).
-> State: D-181 (T11: the SU/entropy/MI kernels) + D-182 (T12:
-the dispersion + the never-observed audit) · 2026-09-13 ·
-suite 16/0/0
+> State: D-181 (T11) + D-182 (T12) + D-183 (T13: the ANOVA
+kernels) · 2026-09-13 · suite 21/0/0
 
 ## API
 - `entropy(counts) -> float` — the Shannon entropy H in bits,
@@ -42,6 +42,15 @@ suite 16/0/0
   small count threshold — the configurations that random play
   almost never reaches: the weights that can never be learned).
   Returns {'k_obs', 'never_observed', 'rarity'}.
+- `anova_eta_omega(groups, values) -> dict` — the one-way ANOVA
+  effect sizes (T13, D-183): the observed codes as the groups
+  (K), the target = the continuous training game values (N).
+  eta² = SS_eff / SS_tot; omega² = (SS_eff - (K-1) MS_err) /
+  (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards: K = 1
+  -> eta² = omega² = 0 (degenerate, by convention); K > N ->
+  ValueError (unreachable); omega² may be slightly negative
+  (the null effect) — the raw value is reported. Returns
+  {'eta2', 'omega2', 'k', 'n'}.
 
 ## Architecture
 - The SU is computed from the IDEAL (synthetic) frequencies: a
@@ -64,7 +73,7 @@ suite 16/0/0
 
 ## Verified invariants
 - The hand-computed toy tables (test_hlp_feature_analysis,
-  16 tests): the uniform 4 (H = 2), the degenerate (H = 0),
+  21 tests): the uniform 4 (H = 2), the degenerate (H = 0),
   the binary p = [0.25, 0.75] (H = 0.8112781244591328), the
   empty (H = 0, the n = 0 guard); the perfect-correlation MI
   (u == v: I = 1), the independent MI (I = 0), the non-negative
@@ -75,12 +84,13 @@ suite 16/0/0
   degenerate (K_obs 1, H_norm 0 the guard) + the dense-zeros
   filter; the never-observed audit hand-computed (never 4, the
   rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}) + the all-observed
-  (never 0) + the empty (never = n_conf, the rarity all 0).
+  (never 0) + the empty (never = n_conf, the rarity all 0);
+  the ANOVA hand-computed (the 2-group [1, 3, 2, 4]: eta²
+  0.2, omega² -1/7 the null effect; the perfect separation
+  [1, 1, 1, 4, 4, 4]: eta² = omega² = 1; the K = 1 degeneracy
+  -> 0 / 0; the K > N + the length-mismatch ValueError).
 
 ## Open issues
-- The T13 ANOVA kernels (the eta² / the omega² per sub-variable,
-  the K = 1 degeneracy + the K > N ValueError guards) —
-  PENDING.
 - The T14 adherence kernels (the chi-square merged-tail, the
   KL, the TV 0-log-0) — PENDING.
 - The T16 worker (wrk_feature_analysis) wires these into the

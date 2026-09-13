@@ -1,13 +1,16 @@
 # reversi/test/test_hlp_feature_analysis.py
 The NO-DB micro-suite of the FEATURE_ANALYSIS data module (the
 I-017): the T11 SU / entropy / mutual-information kernels (D-181) + the
-T12 dispersion / the never-observed audit (D-182) — the hand-
-computed toy tables (the uniform / the degenerate / the binary
-entropies, the perfect-correlation / the independent mutual
-informations, the SU = 1 / 0 / the 0-denominator guard, the
-dispersion K_obs / H / H_norm / coverage, the never-observed +
-the rarity profile). 5 classes / 16 tests / no DB.
-> State: D-181 (T11) + D-182 (T12) · 2026-09-13 · suite 16/0/0
+T12 dispersion / the never-observed audit (D-182) + the T13
+ANOVA kernels (D-183) — the hand-computed toy tables (the
+uniform / the degenerate / the binary entropies, the perfect-
+correlation / the independent mutual informations, the SU = 1
+/ 0 / the 0-denominator guard, the dispersion K_obs / H /
+H_norm / coverage, the never-observed + the rarity profile, the
+eta² / omega² effect sizes + the guards). 6 classes / 21 tests /
+no DB.
+> State: D-181 (T11) + D-182 (T12) + D-183 (T13) · 2026-09-13 ·
+suite 21/0/0
 
 ## Coverage
 
@@ -18,6 +21,7 @@ the rarity profile). 5 classes / 16 tests / no DB.
 | `TestSymmetricUncertainty` | 3 | `test_perfect` (I = H_u = H_v = 1: SU = 2/2 = 1); `test_independent` (I = 0: SU = 0); `test_zero_denominator` (H_u = H_v = 0: the 0/0 guard -> SU = 0, the ODP-4/ODP-8 close) |
 | `TestDispersion` | 3 | (T12) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: K_obs 4, H 1.75, H_norm 0.875, coverage 0.5); `test_degenerate` (counts [8], n_conf 5: K_obs 1, H 0, H_norm 0 the K_obs <= 1 guard, coverage 0.2); `test_dense_zeros_filtered` (the dense form [0, 1, 0, 3, 0]: K_obs 2, coverage 0.4) |
 | `TestNeverObservedAudit` | 3 | (T12) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: never 4, the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}); `test_all_observed` (the full support: never 0); `test_empty` (the empty: never = n_conf, the rarity all 0) |
+| `TestAnovaEtaOmega` | 5 | (T13) `test_two_groups` (groups [0, 0, 1, 1], values [1, 3, 2, 4]: eta² 0.2, omega² -1/7 the null effect); `test_perfect_separation` (groups [0, 0, 0, 1, 1, 1], values [1, 1, 1, 4, 4, 4]: eta² = omega² = 1); `test_single_group` (the K = 1 degeneracy: eta² = omega² = 0); `test_k_gt_n` (the K > N ValueError); `test_length_mismatch` (the groups/values length ValueError) |
 
 ## Goldens pinned
 
@@ -38,6 +42,12 @@ the rarity profile). 5 classes / 16 tests / no DB.
   [1, 1, 2, 4] (n_conf 8) -> never 4, the rarity {1: 0, 2: 2,
   5: 4, 10: 4, 100: 4}; the all-observed (never 0); the empty
   (never = n_conf, the rarity all 0).
+- The hand-computed ANOVA (T13): the 2-group (groups [0, 0, 1,
+  1], values [1, 3, 2, 4]) -> eta² 0.2, omega² -1/7 (the null
+  effect — the raw value reported); the perfect separation
+  (groups [0, 0, 0, 1, 1, 1], values [1, 1, 1, 4, 4, 4]) ->
+  eta² = omega² = 1; the K = 1 degeneracy -> 0 / 0; the K > N +
+  the length-mismatch ValueError.
 
 ## Conventions
 
