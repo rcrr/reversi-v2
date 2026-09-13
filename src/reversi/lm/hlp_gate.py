@@ -117,67 +117,17 @@ from reversi.lm.hlp_wave import (INITIAL_MOVER, INITIAL_OPP, PA,
 
 __all__ = ['load_campaign', 'run_gate']
 
-#: The MT19937-64 constants (tools/prng.py, the C verbatim).
-_NN = 312
-_MM = 156
-_UM = np.uint64(0xFFFFFFFF80000000)
-_LM = np.uint64(0x000000007FFFFFFF)
-_MAG = np.uint64(0xB5026F5AA96619E9)
+# The MT19937-64 stream + the G0 pick: the hlp_wave import
+# (the D-174 corpus generator owns the kernels — the
+# bit-verified origin; the gate reuses them, no duplicate).
+from reversi.lm.hlp_wave import (_NN, _mt19937_batch,
+                                 _mt19937_init, _pick_g0)
 
 
 # ---------------------------------------------------------------------
-# The MT19937-64 batch-draw kernels (the numba port of the
-# golden-pinned PRNG — the gate's G0 stream).
-# ---------------------------------------------------------------------
-
-@nb.njit(cache=True)
-def _mt19937_init(mt, seed):
-    """C prng_mt19937_init_by_seed, line by line (the verbatim
-    quirk: the loop leaves mti == NN — the first draw twists
-    the just-initialized array). Returns mti."""
-    mt[0] = np.uint64(seed)
-    for i in range(1, _NN):
-        prev = mt[i - 1]
-        mt[i] = np.uint64(6364136223846793005) * (prev ^ (prev >> 62)) \
-            + np.uint64(i)
-    return _NN
-
-
-@nb.njit(cache=True)
-def _mt19937_batch(mt, mti, n):
-    """The n successive u64 draws (the twist + the 4-op temper,
-    prng.c L380-414 line by line). Returns (draws, mti)."""
-    out = np.empty(n, dtype=np.uint64)
-    for j in range(n):
-        if mti >= _NN:
-            i = 0
-            while i < _NN - _MM:
-                x = (mt[i] & _UM) | (mt[i + 1] & _LM)
-                mt[i] = mt[i + _MM] ^ (x >> 1) ^ \
-                    (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-                i += 1
-            while i < _NN - 1:
-                x = (mt[i] & _UM) | (mt[i + 1] & _LM)
-                mt[i] = mt[i + (_MM - _NN)] ^ (x >> 1) ^ \
-                    (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-                i += 1
-            x = (mt[_NN - 1] & _UM) | (mt[0] & _LM)
-            mt[_NN - 1] = mt[_MM - 1] ^ (x >> 1) ^ \
-                (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-            mti = 0
-        x = mt[mti]
-        mti += 1
-        x = x ^ ((x >> 29) & np.uint64(0x5555555555555555))
-        x = x ^ ((x << 17) & np.uint64(0x71D67FFFEDA60000))
-        x = x ^ ((x << 37) & np.uint64(0xFFF7EEE000000000))
-        x = x ^ (x >> 43)
-        out[j] = x
-    return out, mti
-
-
-# ---------------------------------------------------------------------
-# The pick kernels (G1: the ODP-9 table; G0: the uniform draw).
-# The HW popcount (numba has no .bit_count on uint64).
+# The pick kernels (G1: the ODP-9 table; G0: the hlp_wave
+# import). The HW popcount (numba has no .bit_count on
+# uint64).
 # ---------------------------------------------------------------------
 
 @nb.njit(parallel=True, cache=True)
@@ -243,37 +193,9 @@ def _pick_g1(src, counter, table):
     return move, step
 
 
-@nb.njit(parallel=True, cache=True)
-def _pick_g0(draws, src):
-    """The G0 uniform pick: rank = draw % k (the modulo bias
-    < k/2^64, 12 orders below the noise floor); k == 0 ->
-    (PA, no step)."""
-    n = src.shape[0]
-    move = np.empty(n, dtype=np.uint8)
-    step = np.empty(n, dtype=np.bool_)
-    for i in nb.prange(n):
-        x = src[i]
-        c = x - ((x >> 1) & np.uint64(0x5555555555555555))
-        c = (c & np.uint64(0x3333333333333333)) + \
-            ((c >> 2) & np.uint64(0x3333333333333333))
-        c = (c + (c >> 4)) & np.uint64(0x0F0F0F0F0F0F0F0F)
-        k = int((c * np.uint64(0x0101010101010101)) >> 56)
-        if k == 0:
-            move[i] = np.uint8(PA)
-            step[i] = False
-            continue
-        rank = int(draws[i] % np.uint64(k))
-        y = x
-        for _ in range(rank):
-            y &= y - np.uint64(1)
-        lb = y & -y
-        square = 0
-        while lb > np.uint64(1):
-            lb >>= 1
-            square += 1
-        move[i] = np.uint8(square)
-        step[i] = True
-    return move, step
+# The G0 uniform pick (_pick_g0): the hlp_wave import (the
+# D-174 corpus generator owns the kernel — the bit-verified
+# origin; the gate reuses it, no duplicate).
 
 
 # ---------------------------------------------------------------------

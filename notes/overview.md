@@ -459,9 +459,11 @@ at the end of this file.
    VERDICT FAIL (D-173): the E1-corpus finding (the LMC
    marginal 47x the G0-G0 noise, the phase scan p ~= 0,
    the phase-locked corpus, seed-independent; the
-   path-coupling signature — the doc section 6.4) — the
-   G0 corpus generator recommended, Roberto's design
-   call pending.
+   path-coupling signature — the doc section 6.4) — G0
+   APPROVED as the corpus generator (D-174, Roberto's
+   design call): the engine in hlp_wave (14/0/2), next:
+   the 1e7 corpus build + the light build check (G0 is
+   the reference by construction).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -550,12 +552,17 @@ at the end of this file.
   — the LMC marginal 47x the G0-G0 noise, the phase scan
   p ~= 0, the phase-locked corpus, seed-independent at
   1e5 (0.174/0.206), the deviation concentrated early
-  (ec 52-57) — the path-coupling signature) — the G0
-  corpus generator recommended (the engine already built
-  and bit-verified in the gate; as fast as G1 in the
-  wave tier), Roberto's design call pending; then the
-  1e7 corpus + the 1e7 build gate. I-018 (the outlier
-  report in VALIDATE) is parked, Roberto's call.
+  (ec 52-57) — the path-coupling signature) — G0
+  APPROVED as the corpus generator (D-174, Roberto's
+  design call after the D-173 verdict): the engine in
+  hlp_wave (14/0/2; as fast as G1 in the wave tier,
+  identical reproducibility) — next: the 1e7 corpus
+  build (rlm_03, ec 20, the arrested-positions sink) +
+  the light build check (G0 is the reference by
+  construction — the doc's 1e7 build gate loses its
+  object), then the I-017 statistics; ODP-9 stays the
+  analytical record. I-018 (the outlier report in
+  VALIDATE) is parked, Roberto's call.
 
 
 
@@ -607,8 +614,8 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_random_play.py | complete: the single-game random play generator (the I-017 T4, D-162; the D-169 non-full double-pass fix; the T12-level data module — the worker pending) — the ODP-9 permutation lookup table (2016 MT19937 draws, lru_cached read-only) + the no-PRNG pick + the ec arrest (the provisional 64 - occupied — T7 pins the EXACT formula) + the pass + the game over + the full trajectory | 13/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
-| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170; the G1 ODP-9 corpus engine — W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn, the bit-exact T4 cross-validation; the numba tier: 1e6 in 5.3 s) | 11/0/1 (via test_hlp_wave; LONG: the 1e6 benchmark) | docs/src/reversi/lm/hlp_wave.md |
-| src/reversi/lm/hlp_gate.py | complete: the T6 DESIGN GATE (the I-017 T6, D-172; the v4 doc section 7 pre-registered certification — G1 table pick vs G0 global golden-pinned MT19937 (the bit-exact numba batch-draw port), the 20 D0 G0-vs-G0 pairs @ 1e5 (the parametric q95, the 1/sqrt(N) rescale), the v4 tests 1-6, the structured-array feature codes (the no-overflow exactness); the 1e6 design gate in flight) | 14/0/0 (via test_hlp_gate; the full-pipeline smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
+| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170 + the D-174 G0 engine — the G1 ODP-9 engine (W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn, the bit-exact T4 cross-validation; 1e6 in 5.3 s) + the G0 uniform engine (the single global golden-pinned MT19937, one draw per (lane, step), the bit-exact batch-draw port) — the G0 is the I-017 CORPUS GENERATOR (D-174, Roberto's design call after the D-173 gate verdict) | 14/0/2 (via test_hlp_wave; LONG: the 1e6 G1 + G0 benchmarks) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/lm/hlp_gate.py | complete: the T6 DESIGN GATE (the I-017 T6, D-172; the v4 doc section 7 pre-registered certification — G1 table pick vs G0 global golden-pinned MT19937 (the bit-exact numba batch-draw port — now the hlp_wave import, the D-174 corpus generator owns it), the 20 D0 G0-vs-G0 pairs @ 1e5 (the parametric q95, the 1/sqrt(N) rescale), the v4 tests 1-6, the structured-array feature codes (the no-overflow exactness); the 1e6 design gate VERDICT FAIL — D-173, the E1-corpus finding) | 14/0/0 (via test_hlp_gate; the full-pipeline smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module (8th level); closed (D-091/D-092) | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
@@ -656,7 +663,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game, the non-full double pass — the D-169 fix), the seeded pinned trajectories + the independent replay | 13/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
-| src/reversi/test/test_hlp_wave.py | complete: the T5 NO-DB micro-suite (D-170) — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the LONG 1e6 benchmark (5.3 s) | 11/0/1 (LONG: the benchmark) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/test/test_hlp_wave.py | complete: the T5 + D-174 NO-DB micro-suite — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the G0 engine (the batch kernel bit-exact vs the golden oracle, the W=1 trajectory ≡ the scalar reference, the run integrity + the determinism), the LONG 1e6 G1 + G0 benchmarks | 14/0/2 (LONG: the benchmarks) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/test/test_hlp_gate.py | complete: the T6 NO-DB micro-suite (D-172) — the MT19937 batch-draw kernel vs the golden-pinned reference (bit-exact, the twist boundary, the mid-stream start), the W=1 G0 wave ≡ the scalar G0 reference (the stream discipline), the statistics utilities on the hand-computed values, the structured keys (the no-overflow), the full gate smoke (GATE_SMOKE=1) | 14/0/0 (the smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |

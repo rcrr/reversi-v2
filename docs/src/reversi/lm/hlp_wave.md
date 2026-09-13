@@ -4,7 +4,7 @@ The concurrent WAVE generator (the I-017 T5, D-170): the G₁
 = one real move, the pass folds into the step, the double
 pass discards the lane), the boundary harvest + respawn,
 the bit-exact cross-validation against the T4 reference.
-> State: D-170 · pending · 2026-09-12 · suite 11/0/1 (LONG: the 1e6 benchmark)
+> State: D-170 + D-174 · pending · 2026-09-13 · suite 14/0/2 (LONG: the 1e6 G1 + G0 benchmarks) · the G0 engine is the I-017 CORPUS GENERATOR (Roberto's design call after the D-173 gate verdict)
 
 ## API
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays
@@ -25,6 +25,26 @@ the bit-exact cross-validation against the T4 reference.
 - `_pick_wave(src, counter, table) -> (move, step)` — the
   numba-parallel ODP-9 pick (the HW popcount, the rank
   lookup table[k][counter % k], the rank-th set bit).
+- `step_wave_g0(state, mt, mti) -> (move, pass_mask, dead,
+  mti)` — the SAME step logic as `step_wave` with the G0
+  uniform pick from the GLOBAL MT19937 stream (W draws per
+  step, lane order — the updated stream index threaded
+  back).
+- `run_wave_g0(total, ec_target, seed, wave_size, sink,
+  slot_base)` — the G0 corpus run (the I-017 CORPUS
+  GENERATOR, D-174): the same lockstep waves with the G0
+  pick; the stream is GLOBAL across waves (the (wave,
+  step, lane) draw order); deterministic in (seed,
+  slot_base).
+- `_mt19937_init(mt, seed)` / `_mt19937_batch(mt, mti,
+  n) -> (draws, mti)` — the numba batch-draw port of the
+  golden-pinned PRNG (tools/prng.py, the C verbatim
+  constants; bit-exact vs the T3 oracle — the gate's
+  origin, D-172/D-174).
+- `_pick_g0(draws, src) -> (move, step)` — the numba-
+  parallel uniform pick (the HW popcount, the rank = draw
+  % k, the rank-th set bit; the modulo bias < k/2^64, 12
+  orders below the noise floor).
 
 ## Architecture
 - The lockstep invariant (Roberto's option A, refined): one
@@ -57,7 +77,18 @@ the bit-exact cross-validation against the T4 reference.
 - Sink v1: the arrested POSITIONS only (mover, opp, slot) —
   "di quello si prendono le statistiche" (Roberto); the file
   writer / corpus format (the POSITIONS step D-157
-  alignment) is the T6 concern.
+  alignment) is the 1e7 build concern.
+- The G0 stream (D-174): a SINGLE GLOBAL MT19937 (the
+  project's golden-pinned PRNG, the "one seed for all"
+  pin) — one draw per (lane, step) in lane order, W draws
+  per step; the pass/dead lanes' draws are CONSUMED
+  (unused); the stream is global across waves (the run is
+  one stream). Unlike G1 (where the trajectory of game g
+  is f(table, slot g) — lane-independent), the G0
+  trajectory of lane g depends on the (lane, step) draw
+  ORDER (the W=1 trajectory is the scalar reference; the
+  cross-W invariance of G1 — LAW-2 — does NOT apply to
+  G0 by design).
 
 ## Verified invariants
 - K1: `_pick_wave` vs `pick_move` — 2000 random triples +
@@ -89,6 +120,20 @@ the bit-exact cross-validation against the T4 reference.
   unique, every harvested position at EXACTLY ec 20 (the
   boundary invariant); the ec domain [0, 60]; the ec=60
   arrest is the initial position (0 steps per wave).
+- G0 (D-174): the batch-draw kernel vs the golden-pinned
+  reference PRNG — bit-exact (2000 draws + the twist
+  across the 312-word boundary + the continuation).
+- G0 (D-174): the W=1 trajectory vs the scalar G0
+  reference loop (the same stream discipline — one draw
+  per step, the pass folded into the step, the dead
+  lane's draw consumed): the moves + the final position
+  bit-exact (seed 23, ec 50, the pinned literals).
+- G0 (D-174): the run integrity + the determinism — 1000
+  games (W=250, ec=20): the quota, the unique slots, every
+  harvested position at EXACTLY ec 20; the same seed +
+  slot_base replays bit-exactly (the second run identical
+  mover/opp/slot); a different seed changes the harvest
+  (the stream is consumed).
 - The LONG benchmark (2026-09-12): 1e6 games (W=1e6,
   ec=20) in 5.3 s (188k games/s; the target was ≤ 120 s):
   2 waves, 36195 dead lanes absorbed by the respawn path,

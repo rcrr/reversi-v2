@@ -96,11 +96,15 @@ the test 1 phase-occupancy scan.
 - The gate bypasses the pydantic `make_position` in the hot
   path (the direct interleaved structured-array build,
   `_to_positions`).
-- The MT19937-64 constants are the C verbatim
+- The MT19937-64 stream + the G0 pick: the hlp_wave
+  import (the D-174 corpus generator owns the kernels —
+  the bit-exact origin; the gate reuses them, no
+  duplicate). The constants are the C verbatim
   (`NN=312, MM=156, UM=0xFFFFFFFF80000000,
-  LM=0x000000007FFFFFFF, MAG=0xB5026F5AA96619E9`) — the
+  LM=0x000000007FFFFFFF, MAG=0xB5026F5AA96619E9`); the
   batch kernel is bit-exact vs the golden-pinned
-  `reversi.tools.prng.MT19937.get_uint64` (the T3 oracle).
+  `reversi.tools.prng.MT19937.get_uint64` (the T3
+  oracle).
 - The TV is the ½·L1 over the union support (the doc's
   "the scalar the downstream information statistics
   consume"); the chi-square p by the Wilson-Hilferty

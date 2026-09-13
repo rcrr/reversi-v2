@@ -818,3 +818,39 @@ D-173 | 2026-09-13 | T6 1e6 design gate: VERDICT
         lemmas, the phase combinatorics) with the
         corpus-level claim empirically bounded by this
         gate.
+D-174 | 2026-09-13 | I-017 corpus generator: G0
+        (Roberto's design call, after the D-173 gate
+        verdict). The ODP-9 table engine (G1) stays as the
+        analytical record (E1 oracle equivalence proven,
+        the lemmas, the phase combinatorics) — but the 1e7
+        I-017 corpus is generated with G0 (the uniform
+        pick, the single global golden-pinned MT19937, one
+        seed from the campaign JSON). Rationale (the gate
+        data): the corpus-level equivalence (E1-corpus)
+        empirically fails at the 1e6 resolved level (the
+        LMC 47x the noise, the phase scan p ~= 0, the
+        phase-locked corpus, seed-independent) — and the
+        doc's small-k fallback targets the WRONG failure
+        mode (the measured deviation is BROAD: all widths,
+        early-game concentration; the fallback would also
+        re-introduce the PRNG into the hot loop).
+        IMPLEMENTATION: the G0 engine moves to
+        hlp_wave.py (the corpus generator module owns it —
+        step_wave_g0, run_wave_g0, the MT19937 batch
+        kernels, _pick_g0; the gate reuses the kernels via
+        import — no duplicate). The engine is as fast as
+        G1 in the wave tier (G1 20.5 min vs G0 19.6 min
+        at 1e6 in the gate run; ~50 s per 1e7
+        extrapolation) with identical reproducibility (one
+        seed, the fixed (lane, step) draw order, the
+        bit-exact replay). Suite: test_hlp_wave 14/0/2
+        (the batch kernel bit-exact vs the golden oracle,
+        the W=1 trajectory vs the scalar reference, the
+        run integrity + the determinism, the LONG 1e6 G0
+        benchmark). NEXT: the 1e7 corpus build (G0, the
+        rlm_03 config, ec 20, the arrested-positions
+        sink) + the light build check (G0 IS the
+        reference by construction — the doc's 1e7 "build
+        gate", which re-certified G1~=G0, loses its
+        object; the corpus acceptance = the statistics
+        themselves), then the I-017 statistics.
