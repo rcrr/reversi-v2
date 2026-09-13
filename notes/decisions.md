@@ -1011,3 +1011,24 @@ D-179 | 2026-09-13 | T9: the PRNG integration
         No new library code (the T7-T8 accumulators +
         the T5 G0 wave, all already landed). test_
         hlp_random_play 21/0/0 -> 23/0/0.
+D-180 | 2026-09-13 | T10: the throughput probe
+        (the 1e7 G0 corpus on the REAL A2050 feature
+        set, 47 sub-variables): the generation 33.9 s
+        (11 waves, 294,564 games/s — the baseline
+        match); the MARGINAL accumulation 9.2 s =
+        1.08M pos/s — ~100x FASTER than the section 7
+        cost model (1-3 min/wave x 11 waves = 11-33
+        min); the JOINT light (LMC x R2, 4 instance-
+        pairs) 6.7 s = 1.49M pos/s; the JOINT heavy
+        (2X5COR x 2X5COR, 64 instance-pairs) 274 s =
+        36,470 pos/s (the Python dict merge is the
+        bottleneck). DECISION: the default pipeline
+        (the marginal, su_pairs = []) is fast — 43 s
+        total at 1e7 (gen + marginal); the NO numba
+        optimization is needed for the marginal. The
+        heavy-pair joint cost (274 s) is a known cost
+        for the heavy pair requests; the numba dict-
+        pass is DEFERRED to T16 (only if the heavy
+        pairs must fly). A scratch probe (no code
+        change, no commit of code — the finding is
+        recorded here).

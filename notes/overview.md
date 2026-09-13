@@ -593,8 +593,11 @@ at the end of this file.
   core: the coverage ~0.22-0.58, the LMC 21/65, the 42-78%
   never-observed at 2M). T9 LANDED (D-179): the PRNG
   integration (the corpus reproducibility + the end-to-end
-  marginals vs the independent oracle). NEXT: T10 (the
-  throughput probe) — the SU analysis OPTIONAL, default
+  marginals vs the independent oracle). T10 LANDED (D-180):
+  the throughput probe (the marginal 9.2 s at 1e7, ~100x
+  below the section 7 model — NO numba for the default; the
+  heavy joint 274 s the known cost). NEXT: T11 (the SU /
+  entropy / MI kernels) — the SU analysis OPTIONAL, default
   FALSE; the profiling
   session (the OPTIMIZE pattern, the
   step-by-step walkthrough + the code reviewed together
