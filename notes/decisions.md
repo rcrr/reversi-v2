@@ -742,3 +742,79 @@ D-172 | 2026-09-12 | T6: the DESIGN GATE (the v4 doc
         verdict (in flight, job bash-18; the scratch
         report is gitignored, the verdict lands in the
         journal).
+D-173 | 2026-09-13 | T6 1e6 design gate: VERDICT
+        FAIL — the ODP-9 corpus-level equivalence
+        (E1-corpus) does NOT hold at the 1e6 resolved
+        level (the gate's purpose, served: it caught
+        the defect BEFORE the 1e7 build). The v4 doc
+        section 7, as pre-registered (1e6 games, the
+        model's ec 20, seed 42, G1 table vs G0 global
+        golden-pinned MT19937, 20 D0 pairs @ 1e5, the
+        parametric q95 + 1/sqrt(N) rescale, the
+        table-aware delta*): FAIL on (i), (ii), (iii)
+        (G1 20.5 min, G0 19.6 min, total 7.7 h — the
+        D0 pairs + test 6 + the joint statistics
+        dominate). THE EVIDENCE (the dense units — the
+        clean metrics): the LMC (the mobility, 65
+        cells — literally an A2050 sub-variable)
+        marginal D = 0.174 per-ec max / 0.019 pooled
+        vs the D0 q95 0.0037 / 0.0005 = 47x / 37x the
+        G0-G0 noise; the per-game pass distribution
+        15x; the phase-occupancy scan p ~= 0 (most
+        widths 3-10, 12, 15-18 strongly non-uniform —
+        the phase counter mod k is systematically
+        non-uniform across the width spectrum, NOT a
+        small-k phenomenon); the same-position joints
+        136/153 Bonferroni-significant at 1e6 (0/153 at
+        1e5 — the signal grows with scale, as a real
+        deviation must); the phase continuity: the
+        slot-base 4000001 offset moves the corpus by
+        pooled TV 0.143 (1e6) / 0.306 (1e5,
+        reproducible across seeds) vs the G0 noise —
+        the corpus is PHASE-LOCKED (the test 6
+        criterion). SEED-INDEPENDENT (the design
+        property, not the table seed's accident): the
+        1e5 confirmation runs — seed 42: LMC 0.174
+        (15x the 1e5 noise), seed 123: LMC 0.206
+        (19x). PER-EC PROFILE: the LMC deviation
+        concentrates EARLY (ec 56 = 4 moves played:
+        D = 0.206; ec 57: 0.164; ec 55: 0.127; ec 53:
+        0.094 — decaying to the arrest ec 20) — the
+        path-coupling signature: the early plies share
+        the phase structure (phase -> pick ->
+        trajectory -> phase; the doc section 6.4 "a
+        path-coupled channel, not a purely slot term"),
+        the deviation decays as the trajectories
+        diverge. The sparse pattern units (the 43M+
+        cell spaces) show the TV saturated ~1.0 across
+        all width strata with a flat gradient (no
+        small-k spike; the G0-G0 baseline 0.3 — the
+        metric inflated by the sparsity) — the broad
+        counter-mediated coupling dominates over the
+        small-k shared-row distinctness. MECHANISM:
+        the one-step oracle equivalence (E1) is PROVEN
+        and holds; the corpus is ONE realization of a
+        deterministic dynamical system (the phase
+        feedback + the shared-row twin cloning) whose
+        long-horizon statistics deviate from the i.i.d.
+        uniform draws by more than an order of
+        magnitude in the quantities I-017 consumes.
+        The doc's fallback (the second independent
+        counter / the fresh per-ply PRNG at the small-k
+        plies) targets the small-k shared-row mode —
+        the measured mode is BROAD, so the fallback is
+        unlikely to close the 47x gap (and it would
+        re-introduce the PRNG into the hot loop).
+        PENDING (Roberto's design call): the corpus
+        generator. The recommendation is G0 (the engine
+        is already built and bit-verified inside the
+        gate — the W=1 trajectory vs the scalar
+        reference; the wave engine makes G0 as fast as
+        G1: 19.6 vs 20.5 min at 1e6, ~50 s at 1e7; the
+        reproducibility identical — the single global
+        golden-pinned MT19937, one seed from the JSON,
+        the fixed (lane, step) draw order). ODP-9
+        stays as the analytical record (E1 proven, the
+        lemmas, the phase combinatorics) with the
+        corpus-level claim empirically bounded by this
+        gate.

@@ -455,9 +455,13 @@ at the end of this file.
    marginals, the focused joints on the 18 sampled SU
    pairs, the demoted chi-square, the phase continuity — +
    the 20 D0 G0-vs-G0 pairs @ 1e5, the parametric q95
-   criterion; suite 14/0/0) — the 1e6 design gate IN
-   FLIGHT (job bash-18), then the 1e7 corpus + the 1e7
-   build gate.
+   criterion; suite 14/0/0) — the 1e6 design gate
+   VERDICT FAIL (D-173): the E1-corpus finding (the LMC
+   marginal 47x the G0-G0 noise, the phase scan p ~= 0,
+   the phase-locked corpus, seed-independent; the
+   path-coupling signature — the doc section 6.4) — the
+   G0 corpus generator recommended, Roberto's design
+   call pending.
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -542,9 +546,16 @@ at the end of this file.
   Roberto's ruling). T6 GATE BUILT (D-172): hlp_gate.py
   (the v4 tests 1-6 + the 20 D0 G0-vs-G0 pairs @ 1e5, the
   parametric q95 criterion, suite 14/0/0) — the 1e6
-  design gate IN FLIGHT (job bash-18), then the 1e7
-  corpus + the 1e7 build gate. I-018 (the outlier report
-  in VALIDATE) is parked, Roberto's call.
+  design gate VERDICT FAIL (D-173: the E1-corpus finding
+  — the LMC marginal 47x the G0-G0 noise, the phase scan
+  p ~= 0, the phase-locked corpus, seed-independent at
+  1e5 (0.174/0.206), the deviation concentrated early
+  (ec 52-57) — the path-coupling signature) — the G0
+  corpus generator recommended (the engine already built
+  and bit-verified in the gate; as fast as G1 in the
+  wave tier), Roberto's design call pending; then the
+  1e7 corpus + the 1e7 build gate. I-018 (the outlier
+  report in VALIDATE) is parked, Roberto's call.
 
 
 

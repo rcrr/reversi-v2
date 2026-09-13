@@ -1,7 +1,9 @@
 # hlp_gate.py — the T6 design gate
 
 State: BUILT (D-172) · suite 14/0/0 (13 default + 1
-`GATE_SMOKE=1` gate smoke) · 1e6 design gate in flight.
+`GATE_SMOKE=1` gate smoke) · 1e6 design gate VERDICT
+FAIL (D-173 — the E1-corpus finding; the G0 corpus
+generator recommended, Roberto's design call pending).
 
 ## Purpose
 
@@ -136,9 +138,24 @@ the test 1 phase-occupancy scan.
   "at the scale where that demand is resolvable" — 1e6 is
   that scale (N >> the effective support). The 1e6 verdict
   is the real one.
-- The 1e6 run: in flight (job bash-18) — the report at
-  `scratch/gate_1e6/gate_report.txt` (the scratch is
-  gitignored; the verdict is logged in the notes).
+- The 1e6 run: VERDICT FAIL (D-173, 2026-09-13) — the
+  ODP-9 corpus-level equivalence (E1-corpus) does not
+  hold at the 1e6 resolved level: the LMC (mobility)
+  marginal D = 0.174 per-ec max / 0.019 pooled = 47x /
+  37x the G0-G0 noise; the pass distribution 15x; the
+  phase-occupancy scan p ~= 0 (broad — most widths
+  3-10, 12, 15-18); the joints 136/153 Bonferroni (the
+  signal grows with scale: 0/153 at 1e5); the corpus is
+  phase-locked (the slot-base 4000001 offset moves it
+  by pooled TV 0.143/0.306, reproducible).
+  SEED-INDEPENDENT (the 1e5 confirmations: LMC 0.174
+  seed 42 / 0.206 seed 123 = 15x / 19x). PER-EC
+  PROFILE: the deviation concentrates early (ec 52-57,
+  the 3-8-moves plies), decaying to the arrest — the
+  path-coupling signature (the doc section 6.4). The
+  report at `scratch/gate_1e6/gate_report.txt` (the
+  scratch is gitignored; the verdict is logged in the
+  notes, D-173).
 
 ## Integration
 

@@ -686,6 +686,7 @@ def run_gate(config_path: str, n_games: int, ec: int, seed: int,
     # TEST 2 (the PRIMARY stratified marginals) — the per-ec
     # TV per feature + the pooled + the pass frequencies.
     units = {}  # name -> {'D':, 'kappa':, 'd0': [..]}
+    per_ec_detail = {}  # feature -> the per-ec D profile
     for b, blk in enumerate(blocks):
         name = blk[0]
         d_ec, p_ec = [], []
@@ -705,6 +706,9 @@ def run_gate(config_path: str, n_games: int, ec: int, seed: int,
         units[f'{name}:per-ec:max'] = {
             'D': max(d_ec) if d_ec else 0.0,
             'p': min(p_ec) if p_ec else 1.0}
+        per_ec_detail[name] = [
+            {'ec': MAX_EC - e, 'D': float(d)}
+            for e, d in enumerate(d_ec)]
     # the pass frequencies (the per-game ply-count
     # distribution).
     pk = sorted(set(acc_g1.pass_hist) | set(acc_g0.pass_hist))
@@ -945,8 +949,11 @@ def run_gate(config_path: str, n_games: int, ec: int, seed: int,
         'd0_rescale_factor': rescale,
         'test2_units': {k: {'D': v['D'], 'p': v['p']}
                         for k, v in units.items()},
+        'test2_per_ec': per_ec_detail,
         'test3_joint_units': joint_units,
-        'test1': test1_summary,
+        'test1': {'summary': test1_summary,
+                  'per_width': {str(k): v for k, v in
+                                test1.items()}},
         'test5_demoted': test5,
         'test6_phase_continuity': test6,
         'd0_q95_per_unit': {k: v['d0_q95_1e6'] for k, v in crit.items()},
@@ -981,7 +988,7 @@ def _write_report(path: str, r: dict) -> None:
     a(f"D0 rescale factor (1/sqrt(N)): {r['d0_rescale_factor']:.4f}")
     a('')
     a('TEST 1 (the table A1 + the phase-occupancy scan):')
-    t1 = r['test1']
+    t1 = r['test1']['summary']
     a(f"  widths tested: {t1['widths_tested']}  "
       f"Bonferroni alpha: {t1['bonferroni_alpha']:.2e}  "
       f"worst phase p: {t1['worst_phase_p']:.3e}  "
