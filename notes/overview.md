@@ -462,12 +462,12 @@ at the end of this file.
    path-coupling signature — the doc section 6.4) — G0
    APPROVED as the corpus generator (D-174, Roberto's
    design call): the engine in hlp_wave (14/0/2); the
-   doc addendum section 11 written (D-175), the external
-   review pending; the 1e7 build + the light build check
-   (G0 is the reference by construction) wait for
-   Roberto's storage decision (the assistant's
-   proposal: no persistent file — the deterministic
-   ~2-min regeneration + the provenance in the notes).
+   doc addendum section 11 FINALIZED (D-175 + the GLM
+   Round-2 audit — the FAIL is the design's, "it died of
+   evidence"; the corrections A-G folded in); the 1e7
+   corpus build ACCEPTED (D-176: in memory, NO file —
+   35.3 s = 282,911 games/s, integrity + determinism +
+   D0-scale spot check OK).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -476,7 +476,9 @@ at the end of this file.
   Git repo on master (D-003). Collaboration memory: AGENTS.md
   (constitution) + notes/rules.md (active rules) + this file
   (state) + notes/ (the log: decisions.md the open decision log
-  + journal volumes, format rules in log_rules.md).
+  + journal volumes, format rules in log_rules.md) +
+  notes/performance_baseline.md (the wave-tier
+  OPTIMIZATION-phase reference, D-175/D-176).
 
 ## Next steps
 
@@ -565,19 +567,27 @@ at the end of this file.
   the light build check (G0 is the reference by
   construction — the doc's 1e7 build gate loses its
   object), then the I-017 statistics; ODP-9 stays the
-  analytical record. PERFORMANCE (D-175, measured):
-  G0 ec=0 (the full game) = 189,571 games/s (1e7 in
-  52.8 s; 1e9 ~= 9 min) — G0 ~= G1 in the wave tier.
-  The SU analysis: OPTIONAL in the pipeline config,
-  default FALSE (the T12 design constraint — the
-  FEATURE_ANALYSIS level is not in the schema yet); the
-  profiling session (the OPTIMIZE pattern) after the SU
-  level is complete. The doc addendum section 11
-  (the post-freeze results) is written — the external
-  review requested (the assistant's preference: GLM).
-  The 1e7 build: PENDING Roberto's storage decision.
-  I-018 (the outlier report in VALIDATE) is parked,
-  Roberto's call.
+  analytical record. PERFORMANCE (D-175, measured; the
+  reference: notes/performance_baseline.md): G0 ec=0
+  (the full game) = 189,571 games/s (1e7 in 52.8 s; 1e9
+  ~= 9 min); G0 ec=20 steady = 277,470 games/s (1e7 in
+  36.0 s) — ~11M moves/s. The doc addendum section 11
+  FINALIZED per the GLM Round-2 audit (the FAIL is the
+  design's, D-174 endorsed without reservation — "it
+  died of evidence"; the corrections A-G folded in: the
+  sparsity-saturated units, the class-collision cloning
+  mechanism, the fallback disposition, the errata).
+  The 1e7 build: ACCEPTED (in memory, NO file — D-176
+  the build/ guideline now in rules.md): 35.3 s =
+  282,911 games/s, integrity + determinism + D0-scale
+  spot check OK. NEXT: the I-017 statistics task (the
+  T12 level — the SU analysis OPTIONAL, default FALSE;
+  the eta²/omega²/adherence analysis on the 1e7 corpus);
+  the profiling session (the OPTIMIZE pattern, the
+  step-by-step walkthrough + the code reviewed together
+  — Roberto's commitment) AFTER the SU level is
+  complete. I-018 (the outlier report in VALIDATE) is
+  parked, Roberto's call.
 
 
 

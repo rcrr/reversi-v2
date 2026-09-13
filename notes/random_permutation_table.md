@@ -1075,9 +1075,34 @@ The evidence (the dense units — the clean metrics):
 | LMC (mobility) marginal, per-ec max | 0.174 | 0.0037 | 47× |
 | LMC marginal, pooled | 0.019 | 0.0005 | 37× |
 | Pass distribution | 0.002 | 0.0001 | 15× |
-| Phase-occupancy scan | p ≈ 0 | — | BROAD |
-| Joints (18 SU pairs × 9 strata) | 136/153 Bonferroni @ 1e6 | 0/153 @ 1e5 | grows with scale |
+| Phase-occupancy scan | p ≈ 0 (widths 3-10, 12, 14-18) | — | BROAD |
+| Joint-cell concentration (LMC×R2) | 9 repeated cells (multiplicities 8,8,6,4,3,3,3,2,2) vs G₀ ZERO repeats in 2×20000 | — | the real signal (the chi-square flip 136/153 @1e6 vs 0/153 @1e5 is the test's power, UNCONTROLLED — no G₀-pair chi-square baseline) |
 | Phase continuity (slot-base 4000001 offset) | pooled TV 0.143 (1e6) / 0.306 (1e5, both seeds) | — | phase-LOCKED |
+
+SPARSITY NOTE (the GLM Round-2 audit): the raw report's
+most dramatic numbers (the per-ec pattern "marginals"
+CORNER/XEDGE/R2/R3/R4/2X5COR/DIAG5-7 at D = 1.000 "disjoint
+supports"; the joints D = 1.000, KL = 50 cap) are
+SPARSITY-SATURATED / UNINFORMATIVE: the gate's per-feature
+key is the FULL INSTANCE TUPLE (e.g. CORNER = 19683⁴ ≈
+1.5e17 cells), singleton-dominated at the gate's scales —
+and their OWN D₀ is saturated too (G₀-vs-G₀′ per-ec CORNER
+TVs are 1.0 as well; DIAG8 is the demonstrative case: at
+the 1e5 scale G₁'s D = 0.604 sits BELOW its own-scale D₀
+≈ 0.90 — G₁ is CLOSER to G₀ than two G₀ corpora are to
+each other; the "2.1×" is a √10-rescale artifact on a
+saturated statistic — TV saturates at 1, the √N law is a
+small-TV expansion, and rescaling a saturated value is
+arithmetic without meaning). The VERDICT NEVER RESTED on
+those units: remove every sparse unit and the FAIL is
+unchanged (the dense LMC/passes/phase units carry it).
+Guard for any future gate run: q95(D₀_unit) ≥ 0.9 ⇒ the
+unit is declared uninformative at that scale. (Also
+recorded: the joint units ran on the concatenated full
+instance tuple — 11 orders sparser than the pre-registered
+per-instance accounting; the "primary joint instrument"
+never actually ran at its designed granularity — a
+gate-implementation defect, moot for the verdict.)
 
 SEED-INDEPENDENCE (the 1e5 confirmations): seed 42 LMC
 0.174 (15× the noise); seed 123 LMC 0.206 (19×). Same
@@ -1090,12 +1115,13 @@ decaying to the arrest) — the path-coupling signature
 (§6.4, the phase→pick→trajectory→phase feedback).
 
 ATTRIBUTION: the measured mode is BROAD (most widths
-3-10, 12, 15-18 non-uniform in the phase scan; the joint
+3-10, 12, 14-18 non-uniform in the phase scan; the joint
 gradient flat across strata — no small-k spike). The
 counter-mediated path coupling dominates over the
-small-k shared-row distinctness; the §7 fallback (the
-fresh per-ply PRNG at small-k plies) targets the other
-mode, and would re-introduce the PRNG into the hot loop.
+small-k shared-row distinctness (the ply-2 pair marginal
+is EXACTLY balanced — 12 pairs at 1/12 each — so the
+distinctness channel is not even open at the depth where
+the bias is largest; the mechanism: §11.3).
 
 ### 11.2 The design decision (D-174): G₀ is the corpus
 generator
@@ -1105,10 +1131,14 @@ is generated with G₀ (the uniform pick, the single global
 golden-pinned MT19937, ONE seed — pinned 42, documented
 in the corpus provenance; "one seed for all" stands).
 The ODP-9 table engine stays as the ANALYTICAL RECORD:
-E1 (the one-step oracle equivalence) is proven and
-holds; the lemmas and the phase combinatorics stand; the
-corpus-level claim (E1-corpus) is empirically bounded by
-this gate.
+Lemma 1, Lemma 2 (the WITHIN-game residue cover), and
+the oracle Theorem 1 (E1, the one-step equivalence) are
+proven and intact. The cross-slot phase-balance claim
+(E3a, the frozen §6.4 "≤ 6.4e-5") was FALSIFIED by the
+Round-1 counterexample (the m-spread does not bound the
+phase multiset) and the gate measured it failing (p ≈ 0).
+The corpus-level claim (E1-corpus) is REFUTED at the
+1e6-resolved level (not merely "empirically bounded").
 
 Justification: (a) the gate FAIL is at 47× the noise
 floor in a quantity I-017 actually consumes (the
@@ -1117,49 +1147,88 @@ tolerance; (b) in the numba wave tier the table's
 original motivation (no PRNG in the hot loop — the T4
 Python era) no longer exists: G₀ measures as fast as G₁
 (gated 1e6 runs: 19.6 vs 20.5 min, gate observation
-included; the pure wave tier: 144k vs 188k games/s @
-ec=20, steady-state equal); (c) the reproducibility is
-identical (one seed, the fixed (lane, step) draw order,
-the bit-exact replay).
+included; the steady-state wave tier, 1e7 runs: G₀
+277,470 games/s @ ec=20 (36.0 s) and 189,571/s @ ec=0
+(52.8 s) — ~11M moves/s at either ec; the G₁ 5.3 s/1e6
+single-wave figure is warmup-tainted — the clean G₁
+steady-state benchmark is due in the profiling session);
+(c) the reproducibility is identical (one seed, the
+fixed (lane, step) draw order, the bit-exact replay).
 
-### 11.3 The mechanism (the equidistribution loss)
+### 11.3 The mechanism (the class-collision cloning)
 
-The gate's measured signature is the corpus-level shadow
-of the shared-row distinctness (§6.4, the
-"allows-equality law"): MT19937's guarantees (the period
-2^19937 − 1; the k-dimensional EQUIDISTRIBUTION up to
-k = 623 — the Matsumoto-Nishimura properties) mean the
-successive draws fill the k-dimensional space uniformly:
-not only are the numbers random, but the pairs, the
-triplets, and every sequence up to that astronomical
-dimension. The table replaces the draw at a width-k ply
-with P_k[counter mod k] — a fixed permutation read at a
-deterministic phase. Consecutive equal-width picks are
-therefore constrained to the 1-dimensional CURVE
-(P_k[a], P_k[a+1]) of the permutation row instead of the
-full 2-dimensional space (and the higher-dimensional
-tuples to the corresponding curves): the high-order
-equidistribution is destroyed BY DESIGN. Two counters
-that read the same row at related phases pick correlated
-ranks; the twin slots play identical continuuations
-(shared-row cloning). The one-step oracle equivalence
-(E1) survives (a fixed phase maps to a fixed rank;
-averaged over an independent phase distribution the pick
-is uniform) — what dies is the independence of
-SUCCESSIVE picks, the property the corpus-level
-statistics need.
+The GLM Round-2 audit (2026-09-13) corrected the
+attribution: the corpus-level signature is the shadow of
+the CLASS-COLLISION CLONING — the demoted §6.4 phase
+channel (phase → pick → trajectory → width → phase
+feedback) — NOT of the shared-row distinctness. The
+counter walk makes slot g's trajectory a deterministic
+function of g: the trajectory CLASS at ply t is
+g mod L_t (L_t = the lcm of the widths met so far), and
+within a class the ply-t phase (g + t) mod k_t takes
+only k_t/gcd(L_t, k_t) distinct values — the class
+branches into THAT many children, not k_t. When k_t | L_t
+the class makes ONE move en bloc: total cloning. The
+early plies are where L_t is small and the cloning is
+drastic. Measured prefix diversity (2000 games per
+engine, the GLM audit):
 
-Analytical status: the distinctness constraint itself is
-provable (the row is a permutation — phases a ≠ b pick
-distinct ranks; the TV against the allows-equality law
-is 1/k, already in the §6 lemmas). The MAGNITUDE of the
-marginal distortion (the 47×) is a statement about the
-deterministic dynamical system (phase → pick →
-trajectory → phase feedback + shared-row cloning) and
-rests on the empirical measurement — as §5/§6.4
-prescribed: the phase term was demoted from PROVEN to
-GATED precisely because the feedback loop makes it
-path-coupled, and the gate has now quantified it.
+| prefix depth | G₁ distinct | G₀ distinct |
+|---|---|---|
+| 2 moves | 12 | 12 |
+| 3 moves | 44 | 56 |
+| 4 moves | 60 | 244 |
+| 5 moves | 156 | 1023 |
+
+At ply 2 there is NO degeneracy at all: the widths (4, 3)
+are coprime, the slot map g ↦ (g mod 4, (g+1) mod 3) is
+a bijection onto all 12 rank pairs, and the G₁ (m1, m2)
+marginal is EXACTLY balanced (12 pairs at 1/12 each,
+better than G₀'s multinomial) — the balanced-design
+property working AS DESIGNED; the distinctness channel
+is not even open at the depth where the bias is largest.
+The collapse starts at ply 3 (44/56) and is drastic at
+ply 4-5 (60/244, 156/1023): the G₁ trajectory tree is a
+throttled, deterministic, integer-weighted SUBTREE of
+G₀'s full branching process — the corpus's early-game
+position distribution is a small structured set with
+exact weights, and the LMC marginal inherits the bias
+(ec 57 = after 3 moves: TV 0.167-0.206 across scales).
+As L_t grows the gcd → 1, full branching resumes and the
+bias decays — but the weight structure is already baked
+into the corpus: the residual 0.012-0.019 at the arrest
+ec is still 6-10× ABOVE delta* = 2e-3 — even the
+arrested-position population alone (the DB-adherence
+reference) fails the v4 criterion.
+
+The "destroyed BY DESIGN" attaches to the deterministic
+COUNTER WALK (the one-dimensionality of the walk), not
+to MT19937's serial properties: A1 holds (the rank
+histograms pass — the table is a fine permutation); what
+dies is the INDEPENDENCE of successive picks (the
+successive-pick tuples are constrained to the
+permutation-row curves, so the dice's k-dimensional
+equidistribution — the Matsumoto-Nishimura guarantee
+that pairs, triplets, every sequence up to k = 623
+dimensions fill the space uniformly — is not inherited
+by the table's picks). E1 survives ONLY as the oracle
+statement: the phrase "averaged over an independent
+phase distribution the pick is uniform" begs the
+question — the phase distribution is
+trajectory-dependent, and that dependence IS the
+failure.
+
+Analytical status: the distinctness constraint itself
+is provable (the row is a permutation — phases a ≠ b
+pick distinct ranks; the TV against the allows-equality
+law is 1/k, already in the §6 lemmas). The MAGNITUDE of
+the marginal distortion (the 47×) is a statement about
+the deterministic dynamical system (the class-collision
+cloning + the phase-selection feedback) and rests on
+the empirical measurement — as §5/§6.4 prescribed: the
+phase term was demoted from PROVEN to GATED precisely
+because the feedback loop makes it path-coupled, and
+the gate has now quantified it.
 
 ### 11.4 The certification schedule, amended by fact
 
@@ -1177,8 +1246,107 @@ path-coupled, and the gate has now quantified it.
   ordinary Monte-Carlo error of the 1e7 G₀ estimator
   (the O(1/√N) sampling noise), not a generator-bias
   question.
+- The §7 shelf remedies, DISPOSED OF (the GLM Round-2
+  audit supplied the argument the record owed): the
+  FALLBACK (the second independent counter, c'_g = g+Δ)
+  is analytically DEAD for the measured mode — both
+  counters remain AFFINE in g, so the class structure
+  g mod L_t and the collision condition k_t | L_t
+  persist for EVERY offset Δ: the prefix collapse
+  (44/56, 60/244, 156/1023) and the phase-occupancy
+  feedback reappear with the same magnitudes, merely
+  permuted — the second counter removes the two-stream
+  rank coupling, NOT the one-dimensionality of the
+  walk. The ESCAPE HATCH (the fresh per-ply PRNG at
+  small-k plies) is out-scoped by the evidence: the
+  non-uniform widths run 3-18 and the deviation peaks at
+  ec 55-57 where the widths are 5-10 — outside its
+  patch. Both shelf remedies are dead; the G₀ decision
+  is not premature: it is FORCED.
 - The SU analysis (the I-017 dedicated level):
   OPTIONAL in the pipeline config, default FALSE (no
   run) — Roberto's instruction, 2026-09-13; the
-  profiling session (the OPTIMIZE pattern) is scheduled
-  AFTER the SU level is complete.
+  FEATURE_ANALYSIS level is not in the config schema
+  yet (the T12 work — the flag lands in the T12 config
+  design, no premature schema change); the profiling
+  session (the OPTIMIZE pattern) is scheduled AFTER the
+  SU level is complete.
+
+### 11.5 The GLM Round-2 audit (2026-09-13) — "a design
+failure, not a bug"
+
+The fourth review (notes/
+peer_review_glm_random_permutation_table.md, Round 2)
+audited the entire document and the gate — independently,
+from scratch, nothing taken for granted — and answered
+the decisive question: is the FAIL a property of the
+DESIGN (G₁ was an abbaglio), or an implementation BUG?
+Verdict: **the FAIL is REAL, SYSTEMATIC, and belongs to
+the DESIGN. No implementation bug is anywhere in the
+chain, and I looked hard for one.**
+
+- The infrastructure (all verified): the MT19937 numba
+  kernels bit-exact vs the golden-pinned oracle (624
+  draws × 3 seeds); the wave G₁ engine 12/12 lanes
+  bit-exact vs the T4 scalar reference (the full move
+  sequence AND the pass counts); the observed positions
+  VALID Reversi (exactly 44 stones at the arrest, zero
+  color overlap); the color-swap hypothesis tested and
+  EXCLUDED (the swap makes the TV worse, as it must if
+  the corpora are aligned); the D₀ calibration coherent
+  with the v4 formula. "The instrument is sound. The
+  failure it measured is in the object, not the
+  instrument."
+- The evidence (every number verified against the
+  primary artifacts — the 1e6 report/log, both 1e5
+  confirmations): the corrections folded into §11 above
+  (17 SU pairs, not 18; the width list gains 14; the
+  joint flip re-framed as the uncontrolled occupancy
+  signal; the sparse units declared
+  SPARSITY-SATURATED/UNINFORMATIVE with the DIAG8 case;
+  the joint-unit implementation defect recorded).
+- The independent replication (the anti-bug proof): a
+  THIRD code path — the T4 scalar reference for G₁
+  against the reviewer's own hand-written scalar G₀
+  loop (no gate code in the path) at 1e4: the signature
+  reproduces EXACTLY (the early-ec LMC deviation ~5-6×
+  the noise ALREADY at 1e4; the D is scale-INVARIANT
+  from 1e4 to 1e6 — 0.17 everywhere — while the noise
+  falls 1/√N: the fingerprint of a SYSTEMATIC design
+  property). The arrested corpus is NOT collapsed
+  (19,970 distinct positions of 20,000 — a WEIGHT bias
+  over a rich support, not a degenerate support).
+- Endorsement: "I endorse D-174 without reservation: G₀
+  — the reference semantics, the generator that needs
+  no equivalence argument — is the corpus generator. ...
+  Nothing was thrown out with the bathwater: the baby
+  (the proof architecture, the T4/T5 wave machinery, the
+  MT kernels, the gate harness — all verified bit-exact
+  this round) is alive and now carries the G₀ corpus.
+  What died is a design idea, and it died of
+  evidence." The process note: three reviews caught the
+  unproven tags and the miscalibrated numbers BEFORE
+  the build; the pre-registered gate caught the one
+  thing no review could — the empirical claim itself.
+- The audit's self-corrections (for the record): the
+  Round-1 "practical risk is probably small" was wrong
+  in magnitude (the counterexample was right; the
+  magnitude was not — the gate measured p ≈ 0, and this
+  round derives why); the Round-1 Amendment A √N
+  rescale inherited the saturated-regime blind spot
+  (the SPARSITY NOTE above); the Round-2 starting
+  hypothesis of a ply-2 rank-pair degeneracy was
+  falsified by the audit's own measurement (the 4-3
+  coprime lattice is perfectly balanced) — the true
+  mechanism is the ply-3+ class collapse.
+
+ERRATA (the frozen body, unedited by the freeze — do
+not take these stale spots at face value; §11
+supersedes them): §5's one-honest-sentence still lists
+"the phase combinatorics (E3a, ≤ 6.4e-5)" as PROVEN
+(falsified — the Round-1 Amendment B counterexample);
+§5-E3b and §6.5 still say the gate runs at 1e4 (it ran
+at 1e6 + the 1e5 confirmations); §6.6 row 3 "the phase
+component proven" contradicts row 2 of the same table
+(demoted to GATED); §7's intro "the proof covers … the
+phase combinatorics" is stale in the same way.

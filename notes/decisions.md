@@ -906,3 +906,18 @@ D-175 | 2026-09-13 | G0 corpus generator: the
         recorded in the notes/reports; the analysis job
         generates in memory; persistence returns only
         with a concrete T12 pipeline need).
+D-176 | 2026-09-13 | Generated-data placement (Roberto's
+        standing guideline): code-generated data that is
+        expensive to replicate goes in build/ (already
+        gitignored, D-009) — NEVER inside src/, notes/,
+        or any other code folder: a git clone must be
+        self-contained (the cloner recomputes it once);
+        persistent data is a DB/campaign artifact,
+        decided explicitly ("dentro src a me non piace
+        by-design"). The 1e7 G0 corpus therefore leaves
+        NO persistent file (Roberto's call, this
+        session): it is a pure function of (engine, seed,
+        ec, N, W) — deterministic, ~2-min regeneration;
+        the provenance (seed 42, ec 20, N 1e7, W 1e6, git
+        HEAD, the dead count, the final mti) is recorded
+        in the notes at build time.

@@ -93,6 +93,12 @@ theme, with its origin D-number.
   json5 (D-011/D-051/D-052/D-094).
 - docs/ mirrors src/ one file to one file: src/reversi/X.py →
   docs/src/reversi/X.md (D-007).
+- Code-generated data that is expensive to replicate goes in
+  build/ (already gitignored, D-009) — NEVER inside src/,
+  notes/, or any other code folder: a git clone must be
+  self-contained (the cloner recomputes it once); persistent
+  data is a DB/campaign artifact, decided explicitly.
+  (Roberto's standing guideline, 2026-09-13, D-176.)
 
 ## Naming & platform
 
