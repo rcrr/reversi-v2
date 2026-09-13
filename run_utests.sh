@@ -67,6 +67,10 @@ MODULES=(
     reversi.test.test_wrk_positions
     reversi.test.test_hlp_indexes
     reversi.test.test_wrk_indexes
+    # test_wrk_effect_size: the EFFECT_SIZE worker (the I-017
+    # T17; the eta²/omega² + the adherence, the graceful
+    # degradation; the step 6 position, after INDEXES)
+    reversi.test.test_wrk_effect_size
     reversi.test.test_hlp_wmaps
     reversi.test.test_wrk_wmaps
     reversi.test.test_hlp_design_matrix

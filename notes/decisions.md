@@ -1245,3 +1245,44 @@ D-186 | 2026-09-13 | T16: the FEATURE_ANALYSIS
         module and the POSITIONS worker). The T18 wiring
         registers the worker at step 3 (the rlmwf_03 slot).
         Mirrors (D-007), journal, overview. 879 -> 887.
+D-187 | 2026-09-13 | T17: the EFFECT_SIZE worker.
+        New module wrk_effect_size (the I-017, the eta²/omega²
+        + the adherence, step 6): the worker factory (wrk_
+        effect_size() -> Worker("EFFECT_SIZE", _up, _down), the
+        D-060). (1) The ANOVA — the eta²/omega² per sub-
+        variable (the one-way ANOVA, the observed raw codes as
+        the groups, the continuous game values as the target,
+        the T13 kernel — it does NOT need the corpus): the
+        per-sub-variable raw code is ctx.hlp_indexes.indexes[:,
+        c0 + i] (the block layout), the target is
+        ctx.game_values. (2) The adherence (the c metric) —
+        per sub-variable, the DB configuration distribution
+        (the bincount of the training raw codes) vs the ideal
+        distribution (the corpus marginal from the
+        ctx.feature_analysis_tables, the D-186 cross-level
+        blackboard), the fixed trio (the T14 adherence kernel —
+        the chi-square merged-tail p + the KL + the TV, the
+        ODP-5 close, no config whitelist); the top-N (the
+        top_k_adherence, default 20) most deviant features (the
+        TV descending) are reported. (3) The GRACEFUL
+        DEGRADATION: if the ctx.feature_analysis_tables is None
+        (the FEATURE_ANALYSIS level was disabled), the
+        adherence is SKIPPED with a log note; the eta²/omega²
+        runs (it does not need the corpus). (4) The outputs:
+        the console (the ANOVA per sub-variable + the top-N
+        most deviant features) + the TXT report (dir_name under
+        base_dir) + the optional CSV (the export_csv flag). (5)
+        NO cache (a diagnostic; the recompute is seconds); the
+        D-060 semantics (the down is a no-op — the worker
+        publishes nothing on the ctx). New test module
+        test_wrk_effect_size (7 tests, the NO-DB mock-ctx
+        suite: the factory, the enable no-op (the D-175
+        opt-in), the ANOVA (one line per sub-variable), the
+        graceful degradation (the tables None -> the adherence
+        SKIPPED), the adherence computed (the tables set -> the
+        Adherence lines), the report, the down (the D-060 no-
+        op)). Registered in run_utests.sh at the step 6 worker
+        position (between the INDEXES worker and the WMAPS data
+        module). The T18 wiring registers the worker at step 6
+        (NO cache slot). Mirrors (D-007), journal, overview.
+        887 -> 894.
