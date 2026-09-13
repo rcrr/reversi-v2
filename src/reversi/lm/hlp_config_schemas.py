@@ -155,6 +155,114 @@ class PlotConfig(LMBaseConfig):
         return list(dict.fromkeys(v))
 
 
+class CorpusConfig(LMBaseConfig):
+    """
+    Configuration for the FEATURE_ANALYSIS corpus (the I-017,
+    the G0 corpus generator, D-174): the MT19937 seed, the total
+    positions, and the ec arrest rule (the empty_count window
+    constraint, the design section 2.1 — the "mele con mele"
+    window, the same ec the DB extraction uses).
+    """
+    seed: int = Field(
+        default=42,
+        description="The MT19937 corpus seed (the 'uno per tutti', "
+                    "the I-017 D-174).")
+    total_positions: PositiveInt = Field(
+        default=10_000_000,
+        description="The total positions to generate (the ODP-1 "
+                    "default 1e7 — minutes at the wave tier).")
+    ec: NonNegativeInt = Field(
+        default=20, ge=0, le=100,
+        description="The ec arrest rule (the empty_count, the "
+                    "window constraint, the design section 2.1): "
+                    "the corpus is arrested at the SAME ec the DB "
+                    "extraction uses (the 'mele con mele' window).")
+
+
+class FeatureAnalysisConfig(LMBaseConfig):
+    """
+    Configuration for the FEATURE_ANALYSIS level (the I-017, the
+    SU level, step 3): the corpus generator + the SU / the
+    dispersion / the never-observed audit kernels. The enable
+    master switch is FALSE by default (the I-017 D-175 — the SU
+    analysis is OPTIONAL, opt-in; the production configs are
+    untouched, the experiment configs opt in). The su_pairs are
+    the explicit (feature, feature) pairs for the joint analysis
+    (the P6, the canonical sorted form + the dedupe); the fail-
+    fast against the feature set is at the LMConfig level (it
+    needs the feature_set field).
+    """
+    enable: bool = Field(
+        default=False,
+        description="Master switch: false makes the FEATURE_"
+                    "ANALYSIS level a no-op (the I-017 D-175 — "
+                    "the SU analysis is OPTIONAL, opt-in).")
+    corpus: CorpusConfig = Field(
+        default_factory=CorpusConfig,
+        description="The corpus generator spec (the seed, the "
+                    "total positions, the ec arrest rule).")
+    su_pairs: List[Tuple[str, str]] = Field(
+        default_factory=list,
+        description="The explicit (feature, feature) pairs for "
+                    "the joint analysis (the P6); an empty list "
+                    "makes no joint (the default corpus cost). "
+                    "Canonical sorted form + dedupe; the fail-"
+                    "fast against the feature set is at the "
+                    "LMConfig level.")
+    dir_name: Path = Field(
+        default=Path("feature_analysis"),
+        description="Output directory: an ABSOLUTE path is used "
+                    "as-is (it may live outside base_dir); a "
+                    "relative path resolves under base_dir.")
+    report_file_name: str = Field(
+        default="feature_analysis_report.txt",
+        description="The TXT report filename.")
+    export_csv: bool = Field(
+        default=False,
+        description="Whether to export the CSV (the optional; the "
+                    "console + the TXT are always written).")
+
+    @field_validator("su_pairs")
+    @classmethod
+    def check_su_pairs(cls, v: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+        """Canonical order (each pair sorted) + dedupe (the P6).
+        The fail-fast against the feature set is at the LMConfig
+        level (it needs the feature_set field)."""
+        canonical = [tuple(sorted(pair)) for pair in v]
+        return list(dict.fromkeys(canonical))
+
+
+class EffectSizeConfig(LMBaseConfig):
+    """
+    Configuration for the EFFECT_SIZE level (the I-017, the
+    eta²/omega² + the adherence, step 6). The enable master
+    switch is FALSE by default (the I-017 D-175 — opt-in). The
+    top_k_adherence is the number of the most deviant features
+    reported in the console (the TV descending).
+    """
+    enable: bool = Field(
+        default=False,
+        description="Master switch: false makes the EFFECT_SIZE "
+                    "level a no-op (the I-017 D-175 — the effect "
+                    "size is OPTIONAL, opt-in).")
+    top_k_adherence: int = Field(
+        default=20, ge=1,
+        description="The number of the most deviant features "
+                    "reported in the console (the TV descending).")
+    dir_name: Path = Field(
+        default=Path("effect_size"),
+        description="Output directory: an ABSOLUTE path is used "
+                    "as-is (it may live outside base_dir); a "
+                    "relative path resolves under base_dir.")
+    report_file_name: str = Field(
+        default="effect_size_report.txt",
+        description="The TXT report filename.")
+    export_csv: bool = Field(
+        default=False,
+        description="Whether to export the CSV (the optional; the "
+                    "console + the TXT are always written).")
+
+
 class RegabDBConnectionConfig(LMBaseConfig):
     """
     Configuration for connecting to the Regab database.
@@ -294,3 +402,43 @@ class LMConfig(LMBaseConfig):
     optimization: OptimizationConfig
     validation_data_set: ValidationDataSetConfig
     analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)
+    feature_analysis: FeatureAnalysisConfig = Field(
+        default_factory=FeatureAnalysisConfig,
+        description="The FEATURE_ANALYSIS level config (the "
+                    "I-017, the SU level, step 3; the enable "
+                    "default FALSE, the D-175 opt-in).")
+    effect_size: EffectSizeConfig = Field(
+        default_factory=EffectSizeConfig,
+        description="The EFFECT_SIZE level config (the I-017, "
+                    "the eta²/omega² + the adherence, step 6; the "
+                    "enable default FALSE, the D-175 opt-in).")
+    target_level: str = Field(
+        default="last",
+        description="The pipeline stop target (the I-017 P4, the "
+                    "design section 3.6): a level name (case-"
+                    "insensitive, the fail-fast ValueError in the "
+                    "StateMachine) or 'last' (the full pipeline).")
+
+    @model_validator(mode="after")
+    def check_su_pairs_feature_set(self) -> "LMConfig":
+        """The fail-fast against the feature set (the I-017 P6):
+        every name in the feature_analysis.su_pairs must be a
+        feature in the feature_set (the mobility names + the
+        pattern names)."""
+        if self.feature_set is not None:
+            names = set()
+            if self.feature_set.mobility_set is not None:
+                names.update(f.name for f in
+                             self.feature_set.mobility_set
+                             .mobility_features)
+            if self.feature_set.pattern_set is not None:
+                names.update(p.name for p in
+                             self.feature_set.pattern_set.patterns)
+            for pair in self.feature_analysis.su_pairs:
+                for name in pair:
+                    if name not in names:
+                        raise ValueError(
+                            f"su_pairs feature name {name!r} is "
+                            "not in the feature set; valid names: "
+                            + ", ".join(sorted(names)))
+        return self

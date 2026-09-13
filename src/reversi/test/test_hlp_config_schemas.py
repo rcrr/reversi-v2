@@ -285,6 +285,53 @@ class TestRlmConfigSchemas(unittest.TestCase):
         cfg = LMConfig(**self._cfg_dict(_noidx))
         self.assertEqual(cfg.cache_files_prefix, "rlmwf_")
 
+    # -- T15: the I-017 FEATURE_ANALYSIS / EFFECT_SIZE config -------------------
+
+    def test_i017_defaults(self):
+        """The I-017 D-175 opt-in: the feature_analysis / the
+        effect_size enable default FALSE, the target_level
+        default 'last', the corpus defaults (seed 42, 1e7, ec
+        20), the su_pairs empty."""
+        cfg = LMConfig(**self._cfg_dict())
+        self.assertFalse(cfg.feature_analysis.enable)
+        self.assertFalse(cfg.effect_size.enable)
+        self.assertEqual(cfg.target_level, "last")
+        self.assertEqual(cfg.feature_analysis.corpus.seed, 42)
+        self.assertEqual(cfg.feature_analysis.corpus.total_positions,
+                         10_000_000)
+        self.assertEqual(cfg.feature_analysis.corpus.ec, 20)
+        self.assertEqual(cfg.feature_analysis.su_pairs, [])
+        self.assertFalse(cfg.feature_analysis.export_csv)
+        self.assertFalse(cfg.effect_size.export_csv)
+        self.assertEqual(cfg.effect_size.top_k_adherence, 20)
+
+    def test_i017_su_pairs_canonical_dedupe(self):
+        """The P6 canonical order + the dedupe: the repeated pair
+        (any order) collapses to one sorted tuple."""
+        def _pairs(d):
+            d["feature_analysis"] = {"su_pairs": [["EDGE", "LMC"],
+                                                  ["LMC", "EDGE"]]}
+        cfg = LMConfig(**self._cfg_dict(_pairs))
+        self.assertEqual(cfg.feature_analysis.su_pairs,
+                         [("EDGE", "LMC")])
+
+    def test_i017_su_pairs_fail_fast(self):
+        """The fail-fast against the feature set: a name not in
+        the feature set (the mobility + the pattern names) is
+        rejected at the CONFIG level."""
+        def _badpair(d):
+            d["feature_analysis"] = {"su_pairs": [["LMC", "UNKNOWN"]]}
+        with self.assertRaises(ValidationError):
+            LMConfig(**self._cfg_dict(_badpair))
+
+    def test_i017_target_level_field(self):
+        """The target_level field: a level name (the 'FEATURE_'
+        'ANALYSIS' stop) or 'last' (the default)."""
+        def _tlevel(d):
+            d["target_level"] = "FEATURE_ANALYSIS"
+        cfg = LMConfig(**self._cfg_dict(_tlevel))
+        self.assertEqual(cfg.target_level, "FEATURE_ANALYSIS")
+
 
 if __name__ == '__main__':
     unittest.main()

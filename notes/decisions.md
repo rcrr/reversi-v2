@@ -1150,3 +1150,44 @@ D-184 | 2026-09-13 | T14: the adherence kernels
         merged 1 + the +inf KL + the empty nan). The FULL
         kernel set (T11-T14) is now complete. Mirrors
         (D-007), journal, overview. 864 -> 875.
+D-185 | 2026-09-13 | T15: the I-017 config.
+        hlp_config_schemas (the pydantic config domain): (1)
+        `CorpusConfig` — the FEATURE_ANALYSIS corpus (the I-017
+        G0, D-174): `seed` (int, default 42 — the "uno per
+        tutti"), `total_positions` (PositiveInt, default 1e7 —
+        the ODP-1), `ec` (NonNegativeInt 0..100, default 20 —
+        the arrest window, the design section 2.1 "mele con
+        mele"). (2) `FeatureAnalysisConfig` — the
+        FEATURE_ANALYSIS level (the SU level, step 3): `enable`
+        (bool, DEFAULT FALSE — the D-175 opt-in: the production
+        configs are untouched, the experiment configs opt in),
+        `corpus` (a CorpusConfig, default factory), `su_pairs`
+        (List[Tuple[str, str]], default empty; the
+        `check_su_pairs` canonical-sort + dedupe validator — the
+        P6), `dir_name` (Path, default "feature_analysis"),
+        `report_file_name` (default
+        feature_analysis_report.txt), `export_csv` (bool,
+        default False). (3) `EffectSizeConfig` — the EFFECT_SIZE
+        level (the eta²/omega² + the adherence, step 6):
+        `enable` (bool, DEFAULT FALSE — the D-175 opt-in),
+        `top_k_adherence` (int, default 20, ge=1), `dir_name`
+        (Path, default "effect_size"), `report_file_name`
+        (default effect_size_report.txt), `export_csv` (bool,
+        default False). (4) LMConfig: the `feature_analysis` +
+        the `effect_size` fields (default factory, both enable
+        default FALSE) + the `target_level: str` (default
+        "last" — the P4, the design section 3.6: a level name
+        (case-insensitive, the fail-fast ValueError in the
+        StateMachine) or "last") + the `check_su_pairs_feature_
+        set` model_validator(mode="after") (the P6 fail-fast
+        against the feature set: a su_pairs name not in the
+        feature set is rejected at the CONFIG level). The D-175
+        ruling: the SU analysis is OPTIONAL, the enable default
+        FALSE (opt-in) — the production A2050/A2030 configs are
+        untouched (they don't set the fields, so they default to
+        the no-op); the experiment configs rlm_05/rlm_06 + the
+        rlm_00 fixture opt in (the T18 wiring). The test
+        (test_hlp_config_schemas, 23 -> 27, the 4 I-017
+        tests: the D-175 opt-in defaults, the P6 canonical
+        dedupe, the P6 fail-fast, the target_level field).
+        Mirrors (D-007), journal, overview. 875 -> 879.

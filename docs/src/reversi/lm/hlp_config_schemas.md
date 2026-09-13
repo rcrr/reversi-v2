@@ -4,7 +4,9 @@ The pydantic config DOMAIN of the LM pipeline: one public entry,
 JSON5 document that wrk_config loads and validates. Every
 nested config extends `LMBaseConfig`, whose `properties:
 dict[str, Any]` bag (default `{}`) is a free-form extension point.
-> State: D-149 · 2026-09-10 · suite 23/0/0
+> State: D-149 + D-185 (T15: the I-017 FEATURE_ANALYSIS /
+EFFECT_SIZE config + the target_level) · 2026-09-13 ·
+suite 27/0/0
 
 ## API
 
@@ -17,6 +19,9 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the I-013 fg-variant flag) |
 | `PlotConfig` | the PLOT level's pilot (D-149): `enable` (bool, default True), `format` (default `"png"`; `"png"`/`"pdf"`/the pair, the `check_format` validator), `dpi` (int 150, 50..1200), `dir_name` (Path, default `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the whitelist of PLOT_NAMES, default empty = no-op; the `check_plots` fail-fast + dedupe validator) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (default `model_analytics_report.txt`) |
+| `CorpusConfig` | (T15, D-185) the FEATURE_ANALYSIS corpus (the I-017 G0, D-174): `seed` (int, default 42 — the "uno per tutti"), `total_positions` (PositiveInt, default 1e7 — the ODP-1), `ec` (NonNegativeInt 0..100, default 20 — the arrest window, §2.1 "mele con mele") |
+| `FeatureAnalysisConfig` | (T15, D-185) the FEATURE_ANALYSIS level (the SU level, step 3): `enable` (bool, **default FALSE** — the D-175 opt-in), `corpus` (a CorpusConfig, default factory), `su_pairs` (`List[Tuple[str, str]]`, default empty; the `check_su_pairs` canonical-sort + dedupe validator — the P6), `dir_name` (Path, default `"feature_analysis"`), `report_file_name` (default `feature_analysis_report.txt`), `export_csv` (bool, default False) |
+| `EffectSizeConfig` | (T15, D-185) the EFFECT_SIZE level (eta²/omega² + the adherence, step 6): `enable` (bool, **default FALSE** — the D-175 opt-in), `top_k_adherence` (int, default 20, ge=1), `dir_name` (Path, default `"effect_size"`), `report_file_name` (default `effect_size_report.txt`), `export_csv` (bool, default False) |
 | `RegabDBConnectionConfig` | `dbname`/`user`/`host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
 | `PatternConfig` | `name` + `mask: Bitboard` (hex-string in, 16-hex out) |
@@ -69,6 +74,21 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
   pilot — see below); the five required domain sections
   (`regab_data_set`, `feature_set`, `stat_model`, `optimization`,
   `validation_data_set`); `analytics` by default factory.
+- **The I-017 config (T15, D-185)** — `feature_analysis:
+   FeatureAnalysisConfig` + `effect_size: EffectSizeConfig`, both
+   by default factory, both `enable` default **FALSE** (the D-175
+   opt-in: the production configs are untouched — they don't set
+   the fields, so they default to the no-op; the experiment
+   configs rlm_05/rlm_06 + the rlm_00 fixture opt in);
+   `target_level: str` default `"last"` (the P4, the design
+   §3.6: a level name (case-insensitive, the fail-fast ValueError
+   in the StateMachine) or "last" for the full pipeline); and
+   `check_su_pairs_feature_set`, a `model_validator(mode="after")`
+   that fails fast (the P6) when a `feature_analysis.su_pairs`
+   name is not in the `feature_set` (the mobility names + the
+   pattern names). The `FeatureAnalysisConfig.check_su_pairs`
+   field validator does the canonical sort + the dedupe (each pair
+   a sorted tuple, the repeated pair collapsed).
 - **PlotConfig (D-149)** — `enable: bool = True` (the master
   switch: false makes the PLOT level a no-op, even with names
   listed — Roberto's ruling); `format: str = "png"` (the PNG-
@@ -92,7 +112,7 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 ## Verified invariants
 
-Pinned by `test_hlp_config_schemas.py` (23 tests,
+Pinned by `test_hlp_config_schemas.py` (27 tests,
 `TestRlmConfigSchemas` — the step-3 §4 conversion of the probe
 E-section + the D-149 PlotConfig section).
 
@@ -144,6 +164,20 @@ E-section + the D-149 PlotConfig section).
   `test_plot_unknown_name_rejected`,
   `test_plot_dedup_preserving_order`,
   `test_plot_dir_absolute_and_relative`.
+- The I-017 D-175 opt-in defaults (T15, D-185): the
+  `feature_analysis.enable` + the `effect_size.enable` default
+  FALSE, the `target_level` default "last", the corpus defaults
+  (seed 42, 1e7, ec 20), the empty su_pairs, the export_csv
+  default False, the top_k_adherence default 20 —
+  `test_i017_defaults`.
+- The P6 canonical order + the dedupe: the repeated pair (any
+  order) collapses to one sorted tuple —
+  `test_i017_su_pairs_canonical_dedupe`.
+- The P6 fail-fast against the feature set: a name not in the
+  feature set is a ValidationError at the CONFIG level —
+  `test_i017_su_pairs_fail_fast`.
+- The `target_level` field: a level name ("FEATURE_ANALYSIS")
+  survives, the default is "last" — `test_i017_target_level_field`.
 
 ## Open issues
 

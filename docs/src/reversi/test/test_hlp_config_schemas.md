@@ -3,9 +3,10 @@ The first test module of the hlp_config_schemas config domain —
 created at D-106 step 3 as the probe_rules §4 conversion of the
 verify_wrk_positions probe E section (the probe keeps only
 its E7 source-text pin — source inspections stay probes per §4).
-1 class / 23 tests / no PERF gates / no database (the schemas
+1 class / 27 tests / no PERF gates / no database (the schemas
 validate in memory only).
-> State: D-149 · 2026-09-10 · suite 23/0/0
+> State: D-149 + D-185 (T15: the I-017 config) · 2026-09-13 ·
+suite 27/0/0
 
 ## Coverage
 
@@ -20,6 +21,7 @@ validate in memory only).
 | E8/E9 — strictness + the bag | `test_validation_dataset_status_strict` (`'xyz'` rejected, `["CMS", "CMR"]` accepted) and `test_properties_field_in_model_fields` (`'properties'` in BOTH `StatModelConfig` and `ValidationDataSetConfig` model_fields) |
 | E10 — the mutable default | `test_pattern_set_mutable_default_not_shared` (two `PatternSetConfig` instances: append to one leaves the other empty) |
 | E11/E12 — required + default | `test_missing_output_rejected` (`output` required) and `test_cache_files_prefix_default` (absent → `'rlmwf_'`) |
+| T15 — the I-017 config (D-185) | `test_i017_defaults` (the D-175 opt-in: the `feature_analysis.enable` + the `effect_size.enable` default FALSE, the `target_level` default "last", the corpus defaults seed 42 / 1e7 / ec 20, the empty su_pairs, the export_csv default False, the top_k_adherence default 20), `test_i017_su_pairs_canonical_dedupe` (the P6: the repeated pair (any order) → one sorted tuple), `test_i017_su_pairs_fail_fast` (the P6: a name not in the feature set → ValidationError at the CONFIG level), `test_i017_target_level_field` (a level name "FEATURE_ANALYSIS" survives, the default "last") |
 
 ## Goldens pinned
 
