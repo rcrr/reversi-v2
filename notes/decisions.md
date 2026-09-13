@@ -854,3 +854,55 @@ D-174 | 2026-09-13 | I-017 corpus generator: G0
         gate", which re-certified G1~=G0, loses its
         object; the corpus acceptance = the statistics
         themselves), then the I-017 statistics.
+D-175 | 2026-09-13 | G0 corpus generator: the
+        performance estimate, the pipeline constraints,
+        the doc addendum. PERFORMANCE (measured, this
+        machine — 8 cores, 188 GB; W=1e6, seed 42, the
+        harvest throughput — the ~3.4% dead-lane overhead
+        at ec=0 is INCLUDED): G0 ec=0 (the full game,
+        positions = games) 1e7 in 52.8 s = 189,571
+        games/s (the 1e6 run: 86,480/s — the first-wave
+        warmup; the steady state is the 1e7 figure).
+        1e9 full games ~= 9 min. ec=20: 144,188/s
+        (single wave, warmup included; steady-state
+        equal; the G1 reference: 188k/s — G0 ~= G1 in
+        the wave tier, confirming the D-174 "as fast as
+        G1" claim). PIPELINE CONSTRAINT (Roberto,
+        2026-09-13): the SU analysis is OPTIONAL in the
+        pipeline config, default FALSE (no run) — the
+        FEATURE_ANALYSIS level does not exist in the
+        schema yet (the T12 work), so the constraint is
+        recorded here and lands in the T12 config
+        design (no premature schema change). The
+        profiling session (the OPTIMIZE pattern, all
+        hot-spots) is scheduled AFTER the SU level is
+        complete. DOC ADDENDUM: notes/
+        random_permutation_table.md section 11 (the
+        post-freeze empirical results: the D-173 gate
+        verdict + evidence tables, the D-174 decision +
+        justification, the equidistribution-loss
+        mechanism — the table constrains the
+        consecutive equal-width picks to the
+        1-dimensional permutation-row curve (P_k[a],
+        P_k[a+1]) instead of the k-dimensional space,
+        destroying the Matsumoto-Nishimura k-dimensional
+        equidistribution (up to 623 dimensions) by
+        design, while the one-step oracle E1 survives;
+        the certification schedule amended by fact).
+        The v4 frozen body is unmodified (the
+        pre-registration must not be touched). An
+        EXTERNAL review of the addendum is requested
+        (Roberto orchestrates; the assistant's
+        preference: GLM — the review that caught the
+        36x D0 formula error, the deepest technical
+        reading so far; this addendum is
+        statistics/PRNG-theory heavy). CORPUS BUILD
+        (the 1e7): PENDING Roberto's storage call — the
+        assistant proposes NO persistent file (the
+        corpus is a pure function of (engine, seed,
+        ec, N, W) — deterministic, ~2-min regeneration;
+        the provenance — seed 42, N, ec, W, config
+        hash, git HEAD, dead count, final mti — is
+        recorded in the notes/reports; the analysis job
+        generates in memory; persistence returns only
+        with a concrete T12 pipeline need).

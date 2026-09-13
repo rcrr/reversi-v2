@@ -1051,3 +1051,134 @@ not have seen (v3.1 landed after them):
   amendments are folded in and the document FREEZES. v4
   is the FINAL version; the T5 wave engine is built on G₁
   with the v4 gate as the T6 instrument.
+---
+
+## 11. Post-freeze empirical results (D-173/D-174, 2026-09-13)
+
+The v4 body is FROZEN and unmodified (the pre-registration
+stands as written). This section records what the gate
+found when it was run exactly as §7 specifies, and the
+design decision it drove. It is an addendum — it does not
+amend any frozen statement.
+
+### 11.1 The T6 1e6 design gate (D-172): VERDICT FAIL
+
+1e6 games arrested at the model's ec 20, seed 42, G₁ table
+pick vs G₀ global golden-pinned MT19937, 20 D₀ G₀-vs-G₀
+pairs @ 1e5 (parametric q95, the 1/√N rescale), the
+table-aware delta* = 2e-3. **FAIL on (i), (ii), (iii).**
+
+The evidence (the dense units — the clean metrics):
+
+| Quantity | D (G₁ vs G₀) | D₀-q95 | ratio |
+|---|---|---|---|
+| LMC (mobility) marginal, per-ec max | 0.174 | 0.0037 | 47× |
+| LMC marginal, pooled | 0.019 | 0.0005 | 37× |
+| Pass distribution | 0.002 | 0.0001 | 15× |
+| Phase-occupancy scan | p ≈ 0 | — | BROAD |
+| Joints (18 SU pairs × 9 strata) | 136/153 Bonferroni @ 1e6 | 0/153 @ 1e5 | grows with scale |
+| Phase continuity (slot-base 4000001 offset) | pooled TV 0.143 (1e6) / 0.306 (1e5, both seeds) | — | phase-LOCKED |
+
+SEED-INDEPENDENCE (the 1e5 confirmations): seed 42 LMC
+0.174 (15× the noise); seed 123 LMC 0.206 (19×). Same
+magnitude, different seed — a design property, not a seed
+artifact.
+
+PER-EC PROFILE: the LMC deviation concentrates EARLY
+(ec 56: 0.206; ec 57: 0.164; ec 55: 0.127; ec 53: 0.094;
+decaying to the arrest) — the path-coupling signature
+(§6.4, the phase→pick→trajectory→phase feedback).
+
+ATTRIBUTION: the measured mode is BROAD (most widths
+3-10, 12, 15-18 non-uniform in the phase scan; the joint
+gradient flat across strata — no small-k spike). The
+counter-mediated path coupling dominates over the
+small-k shared-row distinctness; the §7 fallback (the
+fresh per-ply PRNG at small-k plies) targets the other
+mode, and would re-introduce the PRNG into the hot loop.
+
+### 11.2 The design decision (D-174): G₀ is the corpus
+generator
+
+Roberto's design call (2026-09-13): the 1e7 I-017 corpus
+is generated with G₀ (the uniform pick, the single global
+golden-pinned MT19937, ONE seed — pinned 42, documented
+in the corpus provenance; "one seed for all" stands).
+The ODP-9 table engine stays as the ANALYTICAL RECORD:
+E1 (the one-step oracle equivalence) is proven and
+holds; the lemmas and the phase combinatorics stand; the
+corpus-level claim (E1-corpus) is empirically bounded by
+this gate.
+
+Justification: (a) the gate FAIL is at 47× the noise
+floor in a quantity I-017 actually consumes (the
+mobility is an A2050 sub-variable) — outside any
+tolerance; (b) in the numba wave tier the table's
+original motivation (no PRNG in the hot loop — the T4
+Python era) no longer exists: G₀ measures as fast as G₁
+(gated 1e6 runs: 19.6 vs 20.5 min, gate observation
+included; the pure wave tier: 144k vs 188k games/s @
+ec=20, steady-state equal); (c) the reproducibility is
+identical (one seed, the fixed (lane, step) draw order,
+the bit-exact replay).
+
+### 11.3 The mechanism (the equidistribution loss)
+
+The gate's measured signature is the corpus-level shadow
+of the shared-row distinctness (§6.4, the
+"allows-equality law"): MT19937's guarantees (the period
+2^19937 − 1; the k-dimensional EQUIDISTRIBUTION up to
+k = 623 — the Matsumoto-Nishimura properties) mean the
+successive draws fill the k-dimensional space uniformly:
+not only are the numbers random, but the pairs, the
+triplets, and every sequence up to that astronomical
+dimension. The table replaces the draw at a width-k ply
+with P_k[counter mod k] — a fixed permutation read at a
+deterministic phase. Consecutive equal-width picks are
+therefore constrained to the 1-dimensional CURVE
+(P_k[a], P_k[a+1]) of the permutation row instead of the
+full 2-dimensional space (and the higher-dimensional
+tuples to the corresponding curves): the high-order
+equidistribution is destroyed BY DESIGN. Two counters
+that read the same row at related phases pick correlated
+ranks; the twin slots play identical continuuations
+(shared-row cloning). The one-step oracle equivalence
+(E1) survives (a fixed phase maps to a fixed rank;
+averaged over an independent phase distribution the pick
+is uniform) — what dies is the independence of
+SUCCESSIVE picks, the property the corpus-level
+statistics need.
+
+Analytical status: the distinctness constraint itself is
+provable (the row is a permutation — phases a ≠ b pick
+distinct ranks; the TV against the allows-equality law
+is 1/k, already in the §6 lemmas). The MAGNITUDE of the
+marginal distortion (the 47×) is a statement about the
+deterministic dynamical system (phase → pick →
+trajectory → phase feedback + shared-row cloning) and
+rests on the empirical measurement — as §5/§6.4
+prescribed: the phase term was demoted from PROVEN to
+GATED precisely because the feedback loop makes it
+path-coupled, and the gate has now quantified it.
+
+### 11.4 The certification schedule, amended by fact
+
+- The 1e6 design gate: FAILED for G₁ (this section) —
+  the corpus is NOT G₁.
+- The 1e7 corpus: G₀ (the reference by construction).
+  The §7 test 7 (the 1e7 build gate, which re-certified
+  G₁ ≈ G₀ at full scale) loses its object; the
+  build-time check reduces to the corpus integrity (the
+  quota, the unique slots, the ec target) + a
+  noise-level spot check (the G₀-vs-G₀' D₀ scale).
+- The 2e-3 delta* target: for a G₀ corpus against the
+  G₀ reference the comparison is the noise floor
+  itself; I-017's tolerance question becomes the
+  ordinary Monte-Carlo error of the 1e7 G₀ estimator
+  (the O(1/√N) sampling noise), not a generator-bias
+  question.
+- The SU analysis (the I-017 dedicated level):
+  OPTIONAL in the pipeline config, default FALSE (no
+  run) — Roberto's instruction, 2026-09-13; the
+  profiling session (the OPTIMIZE pattern) is scheduled
+  AFTER the SU level is complete.

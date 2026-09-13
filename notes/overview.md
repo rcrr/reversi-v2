@@ -461,9 +461,13 @@ at the end of this file.
    the phase-locked corpus, seed-independent; the
    path-coupling signature — the doc section 6.4) — G0
    APPROVED as the corpus generator (D-174, Roberto's
-   design call): the engine in hlp_wave (14/0/2), next:
-   the 1e7 corpus build + the light build check (G0 is
-   the reference by construction).
+   design call): the engine in hlp_wave (14/0/2); the
+   doc addendum section 11 written (D-175), the external
+   review pending; the 1e7 build + the light build check
+   (G0 is the reference by construction) wait for
+   Roberto's storage decision (the assistant's
+   proposal: no persistent file — the deterministic
+   ~2-min regeneration + the provenance in the notes).
 
 - Sources live in the `reversi` package under src/ (D-008;
   D-133: core top-level + tools/ + lm/ subpackages); unit tests
@@ -561,8 +565,19 @@ at the end of this file.
   the light build check (G0 is the reference by
   construction — the doc's 1e7 build gate loses its
   object), then the I-017 statistics; ODP-9 stays the
-  analytical record. I-018 (the outlier report in
-  VALIDATE) is parked, Roberto's call.
+  analytical record. PERFORMANCE (D-175, measured):
+  G0 ec=0 (the full game) = 189,571 games/s (1e7 in
+  52.8 s; 1e9 ~= 9 min) — G0 ~= G1 in the wave tier.
+  The SU analysis: OPTIONAL in the pipeline config,
+  default FALSE (the T12 design constraint — the
+  FEATURE_ANALYSIS level is not in the schema yet); the
+  profiling session (the OPTIMIZE pattern) after the SU
+  level is complete. The doc addendum section 11
+  (the post-freeze results) is written — the external
+  review requested (the assistant's preference: GLM).
+  The 1e7 build: PENDING Roberto's storage decision.
+  I-018 (the outlier report in VALIDATE) is parked,
+  Roberto's call.
 
 
 
