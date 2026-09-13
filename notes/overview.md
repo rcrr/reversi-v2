@@ -596,8 +596,11 @@ at the end of this file.
   marginals vs the independent oracle). T10 LANDED (D-180):
   the throughput probe (the marginal 9.2 s at 1e7, ~100x
   below the section 7 model — NO numba for the default; the
-  heavy joint 274 s the known cost). NEXT: T11 (the SU /
-  entropy / MI kernels) — the SU analysis OPTIONAL, default
+  heavy joint 274 s the known cost). T11 LANDED (D-181): the
+  SU / entropy / MI kernels (the new hlp_feature_analysis
+  module, the from-frequency-tables math). NEXT: T12 (the
+  dispersion + the never-observed audit) — the SU analysis
+  OPTIONAL, default
   FALSE; the profiling
   session (the OPTIMIZE pattern, the
   step-by-step walkthrough + the code reviewed together
@@ -650,6 +653,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (D-141: strict array, bit-exact per position, @validate_call on both factories); D-148: the in-pipeline consumer (the CLIENT_CHECK level) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point; D-079/D-080); the D-143 regab_allow_duplicate field (default True); the D-145 high_performance_fg flag (default False); the D-148 client_check_tol field (default 1e-8, gt=0); the D-149 PlotConfig section (the PLOT pilot: enable, the format png-default + pair, dpi, the dir_name, the plot-name whitelist with the fail-fast + dedupe validators) | 23/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module (7th level); closed (D-090); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
+| src/reversi/lm/hlp_feature_analysis.py | the FEATURE_ANALYSIS step 3 data module (the I-017) — the from-frequency-tables math (NO DB, NO positions); T11 LANDED (D-181): the SU / entropy / MI kernels (the 0-log-0 entropy, the MI identity I = H(u)+H(v)-H(u,v) clamped >= 0, the SU 2I/(H_u+H_v) 0-denom guard) — T12 dispersion/audit + T13 ANOVA + T14 adherence PENDING; the worker lands in T16 | 10/0/0 (via test_hlp_feature_analysis) | docs/src/reversi/lm/hlp_feature_analysis.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module (11th level); closed (D-097/D-098); the LZ4 default (D-139) | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (9th level; the float32 contract; D-145: the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag); closed (D-093/D-094/D-145) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
@@ -699,6 +703,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_regab.py | complete: the T5/T6/T7 batch (D-052) incl. the 4 SQL-injection tests; the db_long_gate (35 DB tests, D-130); the D-143 no-DB micro tier (11 tests: dedup + overlap) | 48/0/0 | docs/src/reversi/test/test_regab.md |
 | src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (D-079/D-080; D-145: the flag test; D-148: the 3 client_check_tol tests — default / override+dump / gt=0; D-149: the 6 PlotConfig tests — the defaults (the png-default ruling + the empty whitelist), the format pair + normalization, the bad-format rejections, the fail-fast unknown name, the dedupe, the dir absolute/relative) | 23/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
 | src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite (D-090, +2 with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |
+| src/reversi/test/test_hlp_feature_analysis.py | the FEATURE_ANALYSIS NO-DB micro-suite (the I-017) — T11 (D-181): the hand-computed toy tables (the uniform 2.0, the degenerate 0.0, the binary 0.8112781244591328, the empty 0.0; the perfect MI 1.0, the independent MI 0.0, the non-negative clamp; the SU 1.0 / 0.0 / the 0-denominator 0.0); T12-T14 extend it as they land | 10/0/0 | docs/src/reversi/test/test_hlp_feature_analysis.md |
 | src/reversi/test/test_hlp_generate.py | complete: the GENERATE data suite (D-097/D-098, +2 with D-139) | 16/0/0 | docs/src/reversi/test/test_hlp_generate.md |
 | src/reversi/test/test_hlp_gradient.py | complete: the GRADIENT data suite (D-094 M1; D-145: the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers) | 14/0/0 | docs/src/reversi/test/test_hlp_gradient.md |
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |

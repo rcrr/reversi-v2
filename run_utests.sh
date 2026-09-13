@@ -56,6 +56,11 @@ MODULES=(
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
     reversi.test.test_wrk_features
+    # test_hlp_feature_analysis: the FEATURE_ANALYSIS step 3 data
+    # module (the I-017; the SU/entropy/MI kernels T11, the
+    # dispersion/audit T12, the ANOVA T13, the adherence T14;
+    # the worker wrk_feature_analysis lands in T16)
+    reversi.test.test_hlp_feature_analysis
     reversi.test.test_wrk_positions
     reversi.test.test_hlp_indexes
     reversi.test.test_wrk_indexes

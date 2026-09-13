@@ -1032,3 +1032,34 @@ D-180 | 2026-09-13 | T10: the throughput probe
         pairs must fly). A scratch probe (no code
         change, no commit of code — the finding is
         recorded here).
+D-181 | 2026-09-13 | T11: the SU / entropy /
+        mutual-information kernels. New module
+        hlp_feature_analysis (the FEATURE_ANALYSIS
+        step 3 data plane, the from-frequency-tables
+        math — NO DB, NO positions; the worker lands in
+        T16): (1) `entropy(counts)` — the Shannon
+        entropy H in bits, the 0-log-0 convention (the
+        zero counts contribute 0), the empty / all-zero
+        -> 0; (2) `mutual_information(joint_counts,
+        marg_u, marg_v)` — I(u; v) in bits, the identity
+        I = H(u) + H(v) - H(u, v) (the ratio form's 0/0
+        avoided; the joint entropy is the entropy of the
+        joint counts), clamped to >= 0 (the floating-
+        point rounding); (3) `symmetric_uncertainty(I,
+        H_u, H_v)` — SU = 2·I / (H(u) + H(v)), in [0, 1],
+        the 0-denominator guard (SU = 0 if H(u) + H(v) =
+        0 — the degenerate variables, the ODP-4/ODP-8
+        close). The SU is computed from the IDEAL
+        (synthetic) frequencies (the design section 3.3
+        phase 2 — the structural property, free of the DB
+        sample noise). New test module
+        test_hlp_feature_analysis (10 tests, the hand-
+        computed toy tables: the uniform 2.0, the
+        degenerate 0.0, the binary 0.8112781244591328,
+        the empty 0.0; the perfect MI 1.0, the
+        independent MI 0.0, the non-negative clamp; the
+        SU 1.0 / 0.0 / the 0-denominator 0.0). Registered
+        in run_utests.sh at the step 3 data-module
+        position (between the FEATURES and the POSITIONS;
+        the worker T16 lands after). Mirrors (D-007),
+        journal, overview.
