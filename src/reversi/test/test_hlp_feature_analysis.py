@@ -52,7 +52,8 @@ import unittest
 import numpy as np
 
 from reversi.lm.hlp_feature_analysis import (
-    entropy, mutual_information, symmetric_uncertainty)
+    dispersion, entropy, mutual_information, never_observed_audit,
+    symmetric_uncertainty)
 
 
 class TestEntropy(unittest.TestCase):
@@ -119,6 +120,70 @@ class TestSymmetricUncertainty(unittest.TestCase):
         # The degenerate variables (H_u = H_v = 0): the 0/0 guard
         # -> SU = 0 (the ODP-4/ODP-8 close).
         self.assertEqual(symmetric_uncertainty(0.0, 0.0, 0.0), 0.0)
+
+
+class TestDispersion(unittest.TestCase):
+    """The per-sub-variable dispersion (T12, D-182): K_obs, H,
+    H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
+    coverage = K_obs / n_configurations."""
+
+    def test_hand_computed(self):
+        # counts = [1, 1, 2, 4] (4 observed, total 8),
+        # n_configurations = 8: K_obs = 4, H = 1.75, H_norm =
+        # 1.75 / log2 4 = 0.875, coverage = 4 / 8 = 0.5.
+        d = dispersion([1, 1, 2, 4], 8)
+        self.assertEqual(d['k_obs'], 4)
+        self.assertAlmostEqual(d['h'], 1.75, places=12)
+        self.assertAlmostEqual(d['h_norm'], 0.875, places=12)
+        self.assertAlmostEqual(d['coverage'], 0.5, places=12)
+
+    def test_degenerate(self):
+        # counts = [8] (1 observed), n_configurations = 5: K_obs
+        # = 1, H = 0, H_norm = 0 (the K_obs <= 1 guard), coverage
+        # = 1 / 5 = 0.2.
+        d = dispersion([8], 5)
+        self.assertEqual(d['k_obs'], 1)
+        self.assertAlmostEqual(d['h'], 0.0, places=12)
+        self.assertAlmostEqual(d['h_norm'], 0.0, places=12)
+        self.assertAlmostEqual(d['coverage'], 0.2, places=12)
+
+    def test_dense_zeros_filtered(self):
+        # The dense form (the zero entries are the never-
+        # observed within the array): the zeros are filtered.
+        d = dispersion([0, 1, 0, 3, 0], 5)
+        self.assertEqual(d['k_obs'], 2)
+        self.assertAlmostEqual(d['coverage'], 0.4, places=12)
+
+
+class TestNeverObservedAudit(unittest.TestCase):
+    """The never-observed audit (T12, D-182, the STOP
+    deliverable P2): the n_configurations - K_obs + the rarity
+    profile (the observed codes below each small threshold)."""
+
+    def test_hand_computed(self):
+        # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations =
+        # 8: never = 4; the rarity (the observed codes below
+        # each threshold): t=1 -> 0, t=2 -> 2 (the two 1s),
+        # t=5 -> 4 (all), t=10 -> 4, t=100 -> 4.
+        a = never_observed_audit([1, 1, 2, 4], 8)
+        self.assertEqual(a['k_obs'], 4)
+        self.assertEqual(a['never_observed'], 4)
+        self.assertEqual(a['rarity'], {1: 0, 2: 2, 5: 4, 10: 4,
+                                       100: 4})
+
+    def test_all_observed(self):
+        # The full support (K_obs = n_configurations): never = 0.
+        a = never_observed_audit([1, 1, 1, 1], 4)
+        self.assertEqual(a['never_observed'], 0)
+
+    def test_empty(self):
+        # The empty (K_obs = 0): never = n_configurations, the
+        # rarity all 0.
+        a = never_observed_audit([], 10)
+        self.assertEqual(a['k_obs'], 0)
+        self.assertEqual(a['never_observed'], 10)
+        self.assertEqual(a['rarity'], {1: 0, 2: 0, 5: 0, 10: 0,
+                                       100: 0})
 
 
 if __name__ == '__main__':

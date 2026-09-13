@@ -1063,3 +1063,31 @@ D-181 | 2026-09-13 | T11: the SU / entropy /
         position (between the FEATURES and the POSITIONS;
         the worker T16 lands after). Mirrors (D-007),
         journal, overview.
+D-182 | 2026-09-13 | T12: the dispersion + the
+        never-observed audit. Added to
+        hlp_feature_analysis (the T11 module): (1)
+        `dispersion(counts, n_configurations)` — the per-
+        sub-variable dispersion (the design section 3.3
+        phase 2): K_obs (the distinct observed codes), H
+        (the entropy in bits), H_norm = H / log2(K_obs)
+        (else 0 — the K_obs <= 1 guard), the coverage =
+        K_obs / n_configurations; returns {'k_obs', 'h',
+        'h_norm', 'coverage'}. (2) `never_observed_audit
+        (counts, n_configurations, rarity_thresholds =
+        (1, 2, 5, 10, 100))` — the never-observed audit (the
+        STOP deliverable, P2): the number of theoretical
+        codes never seen (n_configurations - K_obs) + the
+        rarity profile (the count of the observed codes
+        below each small count threshold — the
+        configurations that random play almost never
+        reaches: the weights that can never be learned);
+        returns {'k_obs', 'never_observed', 'rarity'}.
+        Both filter the zero counts (the dense form is
+        accepted). The test micro-suite (10 -> 16, the hand-
+        computed toy tables: the dispersion [1, 1, 2, 4]
+        n_conf 8 -> K_obs 4, H 1.75, H_norm 0.875,
+        coverage 0.5; the degenerate K_obs 1 H_norm 0; the
+        dense-zeros filter; the never-observed never 4 +
+        the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the
+        all-observed never 0; the empty never = n_conf).
+        Mirrors (D-007), journal, overview. 853 -> 859.

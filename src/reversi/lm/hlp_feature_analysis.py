@@ -20,7 +20,8 @@ free of the DB sample noise (the design section 3.3 phase 2).
 
 import numpy as np
 
-__all__ = ['entropy', 'mutual_information', 'symmetric_uncertainty']
+__all__ = ['entropy', 'mutual_information', 'symmetric_uncertainty',
+           'dispersion', 'never_observed_audit']
 
 
 def entropy(counts) -> float:
@@ -78,3 +79,67 @@ def symmetric_uncertainty(I: float, H_u: float,
     if denom == 0:
         return 0.0
     return float(2.0 * I / denom)
+
+
+def dispersion(counts, n_configurations) -> dict:
+    """
+    The per-sub-variable dispersion (the design section 3.3
+    phase 2): K_obs (the distinct observed codes), H (the
+    entropy in bits), H_norm = H / log2(K_obs) (else 0 — the
+    K_obs <= 1 guard), the coverage = K_obs /
+    n_configurations (the theoretical range).
+
+    Args:
+      counts: the sub-variable's count array (the observed
+        support; the dense form with the zero entries is
+        accepted — the zeros are filtered).
+      n_configurations: the theoretical code range of the sub-
+        variable (the full range, incl. the never-observed).
+
+    Returns:
+      {'k_obs', 'h', 'h_norm', 'coverage'}.
+    """
+    observed = np.asarray(counts, dtype=np.float64).ravel()
+    observed = observed[observed > 0]
+    k_obs = int(observed.shape[0])
+    H = entropy(observed)
+    h_norm = (H / float(np.log2(k_obs))) if k_obs > 1 else 0.0
+    n_conf = int(n_configurations)
+    coverage = (k_obs / n_conf) if n_conf > 0 else 0.0
+    return {'k_obs': k_obs, 'h': H, 'h_norm': h_norm,
+            'coverage': coverage}
+
+
+def never_observed_audit(counts, n_configurations,
+                         rarity_thresholds=(1, 2, 5, 10, 100)
+                         ) -> dict:
+    """
+    The never-observed audit (the STOP deliverable, P2): the
+    number of theoretical codes never seen in the corpus
+    (n_configurations - K_obs) + the rarity profile (the count
+    of the OBSERVED codes below each small count threshold —
+    the configurations that random play almost never reaches:
+    the weights that can never be learned).
+
+    Args:
+      counts: the sub-variable's count array (the observed
+        support; the dense form with the zero entries is
+        accepted — the zeros are filtered).
+      n_configurations: the theoretical code range of the sub-
+        variable (the full range, incl. the never-observed).
+      rarity_thresholds: the small count thresholds (the
+        "almost never reached" profile). For a threshold t,
+        the count of the observed codes with count < t.
+
+    Returns:
+      {'k_obs', 'never_observed', 'rarity'} — rarity a dict
+      {threshold: count}.
+    """
+    observed = np.asarray(counts, dtype=np.float64).ravel()
+    observed = observed[observed > 0]
+    k_obs = int(observed.shape[0])
+    never = int(n_configurations) - k_obs
+    rarity = {int(t): int((observed < int(t)).sum())
+              for t in rarity_thresholds}
+    return {'k_obs': k_obs, 'never_observed': never,
+            'rarity': rarity}
