@@ -921,3 +921,46 @@ D-176 | 2026-09-13 | Generated-data placement (Roberto's
         the provenance (seed 42, ec 20, N 1e7, W 1e6, git
         HEAD, the dead count, the final mti) is recorded
         in the notes at build time.
+D-177 | 2026-09-13 | T7: the marginal
+        frequency accumulator + the ec
+        formula pin. MarginalAccumulator in
+        hlp_random_play (the
+        FEATURE_ANALYSIS phase-1 data
+        plane): the streaming (code ->
+        count) per sub-variable, the
+        analysis unit the (feature,
+        instance) COLUMN (the design-matrix
+        unit the weights live on — each
+        pattern instance is its own
+        categorical variable, the code a
+        single uint32 in [0, n_conf); the
+        2X5COR^8 structured-key concern is
+        the feature-level / the joint
+        statistics, not the per-column
+        marginal). The split: n_conf <=
+        _DENSE_THRESHOLD (1e6; the A2050
+        max is 59049) -> the dense
+        bincount, else the unique-merge
+        dict. POOLED over all fed positions
+        (the single-ec corpus — no per-ec
+        split). The ec formula is PINNED:
+        ec_of = 64 - popcount(mover |
+        opponent) = the DB's `empty_count`
+        (the regab `empty_count = ec`
+        filter, the "mele con mele" window)
+        — the corpus is arrested in the
+        SAME window as the DB extraction.
+        The no-DB micro-suite: the LMC
+        hand-counted against the
+        INDEPENDENT oracle
+        position_legal_moves (the legal-
+        move count per position, NOT
+        compute_indexes), the R2 inst0
+        cross-checked against an
+        independent per-position dict count
+        via compute_indexes, the chunk-
+        merge invariance (one chunk == two
+        half-chunks), the ec hand-count
+        (4, 5, 6, 7 stones -> ec 60, 59,
+        58, 57). test_hlp_random_play
+        13/0/0 -> 18/0/0.

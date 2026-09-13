@@ -55,10 +55,15 @@ import numpy as np
 
 from reversi.board import (make_position, move_from_str,
                            position_legal_moves, position_make_move)
+from reversi.feature import Feature, FeatureSet
 from reversi.lm.hlp_random_play import (PA, RandomGame, _play_from,
+                                        MarginalAccumulator,
                                         build_pick_table, ec_of,
                                         initial_position, pick_move,
                                         random_play)
+from reversi.lm.hlp_wave import BufferSink, run_wave_g0
+from reversi.mobility import Mobility, MobilitySet
+from reversi.pattern import Pattern, PatternSet
 
 
 def _identity_table() -> np.ndarray:
@@ -294,6 +299,163 @@ class TestSeededGames(unittest.TestCase):
         self.assertEqual(g.plies, 0)
         self.assertEqual(g.ec, 60)
         self.assertEqual(g.stopped_by, 'ec')
+
+
+class TestEcPin(unittest.TestCase):
+    """The ec formula pin (T7, D-177): ec_of = 64 - popcount(mover
+    | opponent) = the count of the empty squares = the DB's
+    `empty_count` (the regab extraction filters `empty_count = ec`
+    — the "mele con mele" window constraint)."""
+
+    def test_hand_counted_stone_counts(self):
+        # Each REAL move adds one stone (the flips recolor, they do
+        # not add); the pass adds none. So ec = 64 - (4 + the real
+        # moves played). The identity 3-ply game (no pass) is hand-
+        # derivable: ec 60 -> 59 -> 58 -> 57 (4, 5, 6, 7 stones).
+        g = random_play(seed=0, ec_target=57, counter0=0,
+                        table=_identity_table())
+        self.assertEqual(g.plies, 3)
+        self.assertEqual(g.ec_trace, [59, 58, 57])
+        pos = initial_position()
+        # ec_of = 64 - the occupied squares, hand-counted at each
+        # step.
+        self.assertEqual(ec_of(pos), 60)
+        self.assertEqual((int(pos['mover']) | int(pos['opponent'])).bit_count(), 4)
+        expected_ec = 60
+        for move in g.moves:
+            pos = position_make_move(pos, np.uint8(int(move)))
+            expected_ec -= 1
+            self.assertEqual(ec_of(pos), expected_ec)
+            self.assertEqual(
+                (int(pos['mover']) | int(pos['opponent'])).bit_count(),
+                64 - expected_ec)
+        # The re-derivation matches the game outcome.
+        self.assertEqual(int(pos['mover']), int(g.position['mover']))
+        self.assertEqual(int(pos['opponent']), int(g.position['opponent']))
+
+    def test_empty_count_identity(self):
+        # The pin: ec_of == the empty-square count == 64 - occupied.
+        # A spread of ec values (a longer game, the ec at the arrest).
+        g = random_play(seed=3, ec_target=30, counter0=0)
+        p = g.position
+        occupied = (int(p['mover']) | int(p['opponent'])).bit_count()
+        self.assertEqual(ec_of(p), 64 - occupied)
+        self.assertLessEqual(ec_of(p), 30)  # arrested in the window
+
+
+class TestMarginalAccumulator(unittest.TestCase):
+    """The streaming marginal accumulator (T7): the per-sub-variable
+    (the (feature, instance) column) code -> count over the corpus,
+    the dense-bincount / unique-merge split, the hand-counted LMC,
+    the chunk-merge."""
+
+    @staticmethod
+    def _toy_fset():
+        def u(h):
+            return np.uint64(int(h, 16))
+        return FeatureSet(
+            'toy',
+            Feature.new_intercept(),
+            MobilitySet('mob', [Mobility('LMC',
+                                         u('FFFFFFFFFFFFFFFF'),
+                                         u('0000000000000000'))]),
+            PatternSet('pat', [Pattern('R2', u('000000000000FF00'))]))
+
+    @staticmethod
+    def _toy_blocks(fset):
+        blocks = []
+        col = 1 if (fset.intercept is not None) else 0
+        for f in fset.features:
+            if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
+                continue
+            blocks.append((f.name, col, col + int(f.n_instances),
+                           int(f.n_configurations),
+                           int(f.n_instances)))
+            col += int(f.n_instances)
+        return blocks
+
+    @staticmethod
+    def _toy_corpus(n=300, ec=20, seed=7):
+        sink = BufferSink()
+        run_wave_g0(n, ec, seed, n, sink)
+        M, O, _ = sink.flatten()
+        return M, O
+
+    def test_lmc_hand_counted(self):
+        # The LMC (single-instance, the dense bincount): the code is
+        # the mover's legal-move count — the oracle is
+        # position_legal_moves (INDEPENDENT of compute_indexes).
+        fset = self._toy_fset()
+        blocks = self._toy_blocks(fset)
+        M, O = self._toy_corpus()
+        acc = MarginalAccumulator(fset, blocks)
+        acc.add(M, O)
+        res = {((name, i)): (nc, codes, counts)
+               for (name, i, nc, codes, counts) in acc.result()}
+        expected = {}
+        for k in range(len(M)):
+            p = make_position(M[k], O[k])
+            code = int(position_legal_moves(p)).bit_count()
+            expected[code] = expected.get(code, 0) + 1
+        nc, codes, counts = res[('LMC', 0)]
+        self.assertEqual(nc, 65)
+        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_counts = np.array([expected[c] for c in sorted(expected)],
+                              dtype=np.int64)
+        np.testing.assert_array_equal(codes, exp_codes)
+        np.testing.assert_array_equal(counts, exp_counts)
+        self.assertEqual(int(counts.sum()), len(M))
+
+    def test_pattern_cross_check(self):
+        # The R2 inst0 (multi-instance feature, one column): the
+        # cross-check against an independent per-position dict count
+        # via compute_indexes (the oracle for the code, the manual
+        # dict for the count).
+        fset = self._toy_fset()
+        blocks = self._toy_blocks(fset)
+        M, O = self._toy_corpus()
+        acc = MarginalAccumulator(fset, blocks)
+        acc.add(M, O)
+        pa = np.empty(len(M), dtype=np.dtype(
+            [('mover', np.uint64), ('opponent', np.uint64)]))
+        pa['mover'] = M
+        pa['opponent'] = O
+        idx = fset.compute_indexes(pa)
+        r2_col = 2  # R2 inst0 (after the intercept col 0, LMC col 1)
+        expected = {}
+        for k in range(len(M)):
+            c = int(idx[k, r2_col])
+            expected[c] = expected.get(c, 0) + 1
+        row = [r for r in acc.result() if r[0] == 'R2' and r[1] == 0][0]
+        name, i, nc, codes, counts = row
+        self.assertEqual(nc, 6561)
+        exp_codes = np.array(sorted(expected), dtype=np.uint32)
+        exp_counts = np.array([expected[c] for c in sorted(expected)],
+                              dtype=np.int64)
+        np.testing.assert_array_equal(codes, exp_codes)
+        np.testing.assert_array_equal(counts, exp_counts)
+        self.assertEqual(len(codes), len(expected))  # the K_obs
+        self.assertLessEqual(len(codes), nc)
+
+    def test_chunk_merge(self):
+        # Feeding the corpus in ONE chunk vs TWO chunks: the same
+        # marginal (the unique-merge / the dense accumulation are
+        # chunk-invariant).
+        fset = self._toy_fset()
+        blocks = self._toy_blocks(fset)
+        M, O = self._toy_corpus(n=400)
+        acc1 = MarginalAccumulator(fset, blocks)
+        acc1.add(M, O)
+        acc2 = MarginalAccumulator(fset, blocks)
+        acc2.add(M[:200], O[:200])
+        acc2.add(M[200:], O[200:])
+        r1, r2 = acc1.result(), acc2.result()
+        self.assertEqual(len(r1), len(r2))
+        for a, b in zip(r1, r2):
+            self.assertEqual(a[0], b[0])
+            self.assertEqual(a[1], b[1])
+            np.testing.assert_array_equal(a[3], b[3])
+            np.testing.assert_array_equal(a[4], b[4])
 
 
 if __name__ == '__main__':

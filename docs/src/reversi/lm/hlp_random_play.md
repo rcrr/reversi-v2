@@ -1,23 +1,30 @@
 # reversi/lm/hlp_random_play.py
-The single-game random play generator (the I-017 T4, D-162):
-from the initial position, a seeded loop over plies — the legal
+The single-game random play generator (the I-017 T4, D-162) +
+the marginal frequency accumulator (the I-017 T7, D-177): from
+the initial position, a seeded loop over plies — the legal
 moves (board.py), the move pick via the ODP-9 permutation
 lookup table, position_make_move (D-140), the pass, the game
 over, and the ec ARREST (the corpus keeps every ply of the
-arrested game). The data module of the future FEATURE_ANALYSIS
-level (the worker lands in T12).
-> State: D-162 (the D-169 double-pass fix) · pending · 2026-09-12 · suite 13/0/0
+arrested game); the streaming per-sub-variable (code -> count)
+marginal over the corpus (the FEATURE_ANALYSIS phase-1 data
+plane). The data module of the FEATURE_ANALYSIS level (the
+worker lands in T16).
+> State: D-162 (T4) + D-177 (T7: the ec pin + the marginal
+accumulator) · 2026-09-13 · suite 18/0/0
 
 ## API
 - `RandomGame` — the dataclass outcome: the arrested position,
   the full move list (squares + PA), the ec trace, the ec at
   arrest, `stopped_by` ('ec' | 'game_over'), the table seed,
   the counter0 phase, the `plies` property.
-- `ec_of(p)` — the PROVISIONAL ec formula: 64 - occupied (the
+- `ec_of(p)` — the ec formula: 64 - the occupied squares (the
   moves remaining; the same expression
-  board.position_final_value uses inline). T7 pins the EXACT
-  formula against Roberto's DB code — if it differs, only this
-  function changes (the loop is formula-agnostic).
+  board.position_final_value uses inline). PINNED (T7, D-177):
+  EXACTLY the DB's `empty_count` — the regab extraction
+  filters `empty_count = ec` (regab.py, the "mele con mele"
+  window constraint); `empty_count` = the empty squares =
+  64 - popcount(mover | opponent). The corpus is arrested in
+  the SAME window as the DB extraction.
 - `initial_position()` — the standard start (the D4+E5 / D5+E4
   2x2 center, both sides 4 legal moves, ec = 60).
 - `build_pick_table(seed)` — the ODP-9 table (lru_cached,
@@ -33,6 +40,22 @@ level (the worker lands in T12).
   checked before every ply; the MAX_PLIES=300 defensive guard).
 - `_play_from(p, table, counter0, ec_target, seed)` — the loop
   seam from an arbitrary start (the tests' pass-branch entry).
+- `MarginalAccumulator(fset, blocks)` — the streaming
+  marginal frequency accumulator (T7, D-177): per sub-variable
+  (the (feature, instance) column) the code -> count. The
+  analysis unit is ONE design-index column (the design-matrix
+  unit the weights live on) — each pattern instance is its own
+  categorical variable (the code a single uint32 in [0,
+  n_conf), no packing / no overflow: the 2X5COR^8
+  structured-key concern is the feature-level / the joint
+  statistics, not the per-column marginal). `.add(mover, opp)`
+  feeds a corpus chunk (the wave boundary harvest); `.result()`
+  returns per sub-variable (name, instance, n_conf, codes,
+  counts) — the observed (non-zero support), len(codes) =
+  K_obs, never-observed = n_conf - K_obs. The split:
+  n_conf <= _DENSE_THRESHOLD (1e6; the A2050 max is 59049) ->
+  the DENSE bincount, else the UNIQUE-MERGE dict. POOLED over
+  all fed positions (the single-ec corpus — no per-ec split).
 
 ## Architecture
 - The ODP-9 pick (the doc design, D-162 landing): the random
@@ -89,11 +112,29 @@ level (the worker lands in T12).
   7 % 4 = 3).
 - The ec domain: ec_target out of [0, 60] raises; ec_target
   >= 60 arrests before the first ply (0 plies, ec = 60).
+- The ec pin (T7, D-177): ec_of = 64 - the occupied squares,
+  hand-counted over the identity 3-ply (no pass) game — the
+  stone count 4, 5, 6, 7 -> ec 60, 59, 58, 57 (each real move
+  adds one stone; the flips recolor, they do not add) + the
+  empty-square identity on a longer game (ec at the arrest
+  <= ec_target). This IS the DB's `empty_count` (the regab
+  `empty_count = ec` filter) — the "mele con mele" window.
+- The marginal accumulator (T7, D-177; the toy corpus, a
+  300-game G0 wave at ec 20, the toy FeatureSet = the intercept
+  + the LMC + the R2): the LMC (single-instance, the dense
+  bincount) hand-counted against the INDEPENDENT oracle
+  position_legal_moves (the legal-move count per position —
+  NOT compute_indexes); the R2 inst0 (multi-instance feature,
+  one column) cross-checked against an independent per-position
+  dict count via compute_indexes; the CHUNK-MERGE invariance
+  (one chunk == two half-chunks, the dense + the merge are
+  chunk-invariant). Every sub-variable's count sum == N, every
+  K_obs <= n_conf.
 
 ## Open issues
-- The EXACT ec formula: T7 pins it against Roberto's DB code
-  (the "mele con mele" constraint) — ec_of is the provisional
-  64 - occupied.
+- (RESOLVED, D-177) The EXACT ec formula: PINNED — ec_of = 64 -
+  popcount(mover | opponent) = the DB's `empty_count` (the
+  regab `empty_count = ec` filter, the "mele con mele" window).
 - The T5 wave engine (the numba tier) — LANDED (D-170,
   hlp_wave.py): the lockstep advance step, the boundary
   harvest + respawn, the streaming to the sink — the same
@@ -104,7 +145,7 @@ level (the worker lands in T12).
   seeded rows' uniformity on a tiny corpus — the ODP-9
   closing).
 - The mover-convention alignment with the DB extraction (the
-  T12 detail — the symmetric start makes it a pure label).
+  T16 detail — the symmetric start makes it a pure label).
 
 ## Conventions
 - The house GNU header + the provenance docstring (the doc
@@ -115,15 +156,15 @@ level (the worker lands in T12).
   board.py move_from_str), A1 = top-left = bit 0.
 - The module docstring carries the design rationale (the
   ODP-9 rejection of the PRNG-in-loop, the counter0 pin, the
-  ec provisional status).
+  ec pin — D-177).
 
 ## Integration
 - Consumes `board.py` (the Position, the legal moves, the
   D-140 make_move, the game over) + `tools/prng.py` (the MT19937
   table build, the D-159 port).
-- Future consumer: the FEATURE_ANALYSIS level (T12, the worker
-  wrk_feature_analysis.py) — the seeded corpus generator of
-  the plan §3.2/§3.3 (the wave engine is the T5 extension of
-  this module).
+- Future consumer: the FEATURE_ANALYSIS level (T16, the worker
+  wrk_feature_analysis.py) — the accumulator is the phase-1
+  (corpus -> frequency tables) data plane; the corpus is the
+  G0 wave (hlp_wave.run_wave_g0, D-174) fed chunk-by-chunk.
 - Not a pipeline level itself: the lm data module of the
   future level (like hlp_validate / hlp_plot).
