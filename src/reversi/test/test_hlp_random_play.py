@@ -40,13 +40,11 @@
 #
 
 """
-The single-game random play generator (the I-017 T4, D-162) NO-DB
-micro-suite: the pick table (the ODP-9 properties), the pick
-kernel (the counter walk, the no-consume pass), the initial
-position (the 4-stone start), the HAND-COUNTED games (the
-identity-table 3-ply trace, the pass branch from the synthetic
-corner wall, the full 60-ply game) and the seeded games (the
-pinned trajectories + the independent replay).
+The FEATURE_ANALYSIS frequency data plane (the I-017 T7/T8,
+D-177/D-178) NO-DB micro-suite: the ec formula pin (the D-177
+window constraint), the initial position (the 4-stone start),
+the marginal + the joint accumulators (the streaming frequency
+accumulation over the corpus, the G0 wave fed chunk-by-chunk).
 """
 
 import unittest
@@ -54,94 +52,17 @@ import unittest
 import numpy as np
 
 from reversi.board import (make_position, move_from_str,
-                           position_legal_moves, position_make_move)
+                           position_legal_moves)
 from reversi.feature import Feature, FeatureSet
-from reversi.lm.hlp_random_play import (PA, RandomGame, _play_from,
-                                        JointAccumulator,
-                                        MarginalAccumulator,
-                                        build_pick_table, ec_of,
-                                        initial_position, pick_move,
-                                        random_play)
+from reversi.lm.hlp_random_play import (
+    JointAccumulator, MarginalAccumulator, ec_of, initial_position)
 from reversi.lm.hlp_wave import BufferSink, run_wave_g0
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
 
-def _identity_table() -> np.ndarray:
-    """The hand-made table: table[n] = (0, 1, ..., n-1) — the
-    pick is the (counter % k)-th set bit (the fully hand-
-    computable regime)."""
-    table = np.zeros((65, 64), dtype=np.uint8)
-    for n in range(1, 65):
-        table[n, :n] = np.arange(n, dtype=np.uint8)
-    return table
-
-
 def _sq(name: str) -> int:
     return int(move_from_str(name))
-
-
-def _replay(g: RandomGame, table: np.ndarray) -> None:
-    """The independent replay (the house double-check):
-    recompute every ply from the rules (board.py) + the table
-    walk, without the module's loop logic."""
-    p = initial_position()
-    counter = g.counter0
-    for i, move in enumerate(g.moves):
-        legal = int(position_legal_moves(p))
-        if int(move) == PA:
-            assert legal == 0, f"ply {i}: a pass with legal moves"
-            p = make_position(p['opponent'], p['mover'])
-        else:
-            expected, counter = pick_move(np.uint64(legal), table, counter)
-            assert int(move) == int(expected), (
-                f"ply {i}: the pick deviates from the table walk")
-            p2 = position_make_move(p, move)
-            assert p2 is not None, f"ply {i}: an illegal move"
-            p = p2
-        assert g.ec_trace[i] == ec_of(p), f"ply {i}: the ec deviates"
-    assert int(p['mover']) == int(g.position['mover'])
-    assert int(p['opponent']) == int(g.position['opponent'])
-
-
-class TestPickTable(unittest.TestCase):
-    """The ODP-9 table properties (the T6 distribution test
-    verifies the seeded rows statistically — here the hard
-    properties)."""
-
-    def test_valid_permutations(self):
-        table = build_pick_table(42)
-        self.assertEqual(table.shape, (65, 64))
-        self.assertFalse(table.flags.writeable)
-        for n in range(1, 65):
-            row = table[n, :n]
-            self.assertEqual(sorted(row.tolist()), list(range(n)),
-                             f"row {n} is not a permutation of 0..{n-1}")
-
-    def test_reproducible(self):
-        a = build_pick_table(42)
-        b = build_pick_table(42)
-        self.assertTrue(np.array_equal(a, b))
-        self.assertFalse(np.array_equal(a, build_pick_table(43)))
-
-
-class TestPickMove(unittest.TestCase):
-    """The pick kernel: the counter walk over the permutation,
-    the no-consume pass."""
-
-    def test_kth_set_bit_walk(self):
-        table = _identity_table()
-        legal = np.uint64(0b101)  # the bits 0 and 2
-        # counter 0, 1, 2 -> ranks 0, 1, 0 (the 2 % 2 wrap) -> the
-        # lowest, the highest, the lowest set bit.
-        picks = [int(pick_move(legal, table, c)[0]) for c in (0, 1, 2)]
-        self.assertEqual(picks, [0, 2, 0])
-
-    def test_pass_no_consume(self):
-        table = _identity_table()
-        move, counter = pick_move(np.uint64(0), table, 5)
-        self.assertEqual(int(move), PA)
-        self.assertEqual(counter, 5)  # the pass consumes NO step
 
 
 class TestInitialPosition(unittest.TestCase):
@@ -168,180 +89,30 @@ class TestInitialPosition(unittest.TestCase):
         self.assertEqual(ec_of(p), 60)
 
 
-class TestHandCountedGames(unittest.TestCase):
-    """The hand-counted traces: the identity-table regime (the
-    pick = the (counter % k)-th set bit, fully hand-computable),
-    the pass branch, the full game."""
-
-    def test_identity_short_game(self):
-        # 3 plies, ec 60 -> 57: the first pick is hand-derived
-        # (k = 4, counter 0, identity -> rank 0 -> the lowest legal
-        # square = E3), the rest re-derived by the replay below.
-        g = random_play(seed=0, ec_target=57, counter0=0,
-                        table=_identity_table())
-        self.assertEqual([int(m) for m in g.moves],
-                         [_sq('E3'), _sq('F3'), _sq('C5')])
-        self.assertEqual(g.ec_trace, [59, 58, 57])
-        self.assertEqual(int(g.position['mover']), 0x0000000010200000)
-        self.assertEqual(int(g.position['opponent']), 0x0000001c08100000)
-        self.assertEqual(g.stopped_by, 'ec')
-        self.assertEqual(g.plies, 3)
-        _replay(g, _identity_table())
-
-    def test_pass_from_wall_position(self):
-        # The synthetic corner wall: the mover's two stones (A1,
-        # C3) are fully walled in (the opponent owns row 1, column
-        # A, and the B2/C2/B3 ring — verified: the mover has ZERO
-        # legal moves, the opponent {D3, C4, D4} after the pass).
-        # The loop must play the PA (no counter step), then pick
-        # D3 (k = 3, counter 0, identity -> rank 0 -> the lowest).
-        m = np.uint64(0x0000000000040001)  # A1 + C3
-        o = np.uint64(0x01010101010307fe)  # the 17-stone wall
-        p = make_position(m, o)
-        self.assertEqual(int(position_legal_moves(p)), 0)
-        g = _play_from(p, _identity_table(), 0, 44, 0)
-        self.assertEqual([int(x) for x in g.moves], [PA, _sq('D3')])
-        self.assertEqual(g.ec_trace, [45, 44])  # the pass keeps ec
-        self.assertEqual(g.stopped_by, 'ec')
-        self.assertEqual(g.plies, 2)
-
-    def test_non_full_double_pass_is_game_over(self):
-        # The constructed non-full deadlock (61 stones, 3 empty
-        # — E4, F4, G4): the 57-stone field walled around the
-        # empty run, the 4-stone block (A2, B2, A3, B3) too far
-        # to matter — verified: NEITHER side has a legal move.
-        # The loop plays ONE pass (the swap), then the game-over
-        # check fires (the other side has no legal move either)
-        # — before the fix this spun passes to the MAX_PLIES
-        # RuntimeError.
-        m = np.uint64(0xffffffff8ffcfcff)  # the 57-stone field
-        o = np.uint64(0x0000000000030300)  # the A2..B3 block
-        p = make_position(m, o)
-        self.assertEqual(int(position_legal_moves(p)), 0)
-        self.assertEqual(int(position_legal_moves(
-            make_position(o, m))), 0)
-        g = _play_from(p, _identity_table(), 0, 0, 0)
-        self.assertEqual([int(x) for x in g.moves], [PA])
-        self.assertEqual(g.ec_trace, [3])
-        self.assertEqual(g.stopped_by, 'game_over')
-        self.assertEqual(g.plies, 1)
-        # The final position is the swapped one (the 4-stone
-        # side would now be the mover).
-        self.assertEqual(int(g.position['mover']), int(o))
-        self.assertEqual(int(g.position['opponent']), int(m))
-
-    def test_full_game(self):
-        # Seed 3 played to ec = 0: the board fills (60 real moves
-        # from the 4 stones, no pass) — the game-over check fires
-        # on the full board (is_game_over: no legal move for
-        # either side).
-        g = random_play(seed=3, ec_target=0)
-        self.assertEqual(g.plies, 60)
-        self.assertEqual(g.ec, 0)
-        self.assertEqual(g.stopped_by, 'game_over')
-        occupied = (int(g.position['mover'])
-                    | int(g.position['opponent'])).bit_count()
-        self.assertEqual(occupied, 64)
-        self.assertEqual(int(g.position['mover']).bit_count(), 35)
-        self.assertEqual(int(g.position['opponent']).bit_count(), 29)
-        _replay(g, build_pick_table(3))
-
-
-class TestSeededGames(unittest.TestCase):
-    """The seeded games: the pinned trajectories (the determinism
-    proof), the counter0 phase shift, the ec domain."""
-
-    def test_seed7_pinned(self):
-        g = random_play(seed=7, ec_target=20)
-        self.assertEqual(g.plies, 40)
-        self.assertEqual(g.ec, 20)
-        self.assertEqual(g.stopped_by, 'ec')
-        # 40 plies = 40 stones (60 -> 20, no pass on this seed).
-        self.assertEqual(len([m for m in g.moves if int(m) != PA]), 40)
-        self.assertEqual(int(g.position['mover']), 0x814024f52b158800)
-        self.assertEqual(int(g.position['opponent']), 0x0e864b0a544a540e)
-        # The first 10 moves (the hand-counted anchor of the
-        # trajectory).
-        self.assertEqual([int(m) for m in g.moves[:10]],
-                         [_sq(n) for n in
-                          ('F4', 'D3', 'C2', 'F5', 'D6', 'C5',
-                           'G6', 'G5', 'G4', 'H7')])
-        _replay(g, build_pick_table(7))
-
-    def test_seed8_differs(self):
-        a = random_play(seed=7, ec_target=20)
-        b = random_play(seed=8, ec_target=20)
-        self.assertNotEqual([int(x) for x in a.moves],
-                            [int(x) for x in b.moves])
-        self.assertNotEqual(int(b.position['mover']),
-                            int(a.position['mover']))
-        # The seed-8 pinned tail.
-        self.assertEqual(int(b.position['mover']), 0x0204f9da60dc1800)
-        self.assertEqual(int(b.position['opponent']), 0x019a04241f2244bc)
-
-    def test_counter0_phase_shifts(self):
-        # The T5 slot pin: counter0 is the per-game phase — the
-        # same seed, a different start phase, a different first
-        # move (rank 0 vs rank 7 % 4 = 3 on the seeded row 4 —
-        # distinct permutation values, guaranteed).
-        a = random_play(seed=7, ec_target=59)
-        b = random_play(seed=7, ec_target=59, counter0=7)
-        self.assertEqual([int(x) for x in a.moves],
-                         [_sq('F4')])
-        self.assertNotEqual(int(b.moves[0]), int(a.moves[0]))
-        self.assertEqual(len(b.moves), 1)
-
-    def test_ec_target_domain(self):
-        for bad in (-1, 61):
-            with self.assertRaises(ValueError):
-                random_play(seed=1, ec_target=bad)
-        # ec_target >= 60: arrested before the first ply.
-        g = random_play(seed=1, ec_target=60)
-        self.assertEqual(g.plies, 0)
-        self.assertEqual(g.ec, 60)
-        self.assertEqual(g.stopped_by, 'ec')
-
-
 class TestEcPin(unittest.TestCase):
     """The ec formula pin (T7, D-177): ec_of = 64 - popcount(mover
     | opponent) = the count of the empty squares = the DB's
     `empty_count` (the regab extraction filters `empty_count = ec`
     — the "mele con mele" window constraint)."""
 
-    def test_hand_counted_stone_counts(self):
-        # Each REAL move adds one stone (the flips recolor, they do
-        # not add); the pass adds none. So ec = 64 - (4 + the real
-        # moves played). The identity 3-ply game (no pass) is hand-
-        # derivable: ec 60 -> 59 -> 58 -> 57 (4, 5, 6, 7 stones).
-        g = random_play(seed=0, ec_target=57, counter0=0,
-                        table=_identity_table())
-        self.assertEqual(g.plies, 3)
-        self.assertEqual(g.ec_trace, [59, 58, 57])
-        pos = initial_position()
-        # ec_of = 64 - the occupied squares, hand-counted at each
-        # step.
-        self.assertEqual(ec_of(pos), 60)
-        self.assertEqual((int(pos['mover']) | int(pos['opponent'])).bit_count(), 4)
-        expected_ec = 60
-        for move in g.moves:
-            pos = position_make_move(pos, np.uint8(int(move)))
-            expected_ec -= 1
-            self.assertEqual(ec_of(pos), expected_ec)
-            self.assertEqual(
-                (int(pos['mover']) | int(pos['opponent'])).bit_count(),
-                64 - expected_ec)
-        # The re-derivation matches the game outcome.
-        self.assertEqual(int(pos['mover']), int(g.position['mover']))
-        self.assertEqual(int(pos['opponent']), int(g.position['opponent']))
-
-    def test_empty_count_identity(self):
-        # The pin: ec_of == the empty-square count == 64 - occupied.
-        # A spread of ec values (a longer game, the ec at the arrest).
-        g = random_play(seed=3, ec_target=30, counter0=0)
-        p = g.position
-        occupied = (int(p['mover']) | int(p['opponent'])).bit_count()
-        self.assertEqual(ec_of(p), 64 - occupied)
-        self.assertLessEqual(ec_of(p), 30)  # arrested in the window
+    def test_ec_formula_hand_crafted(self):
+        # The pin: ec_of = 64 - the occupied squares. Hand-crafted
+        # positions (the formula is position-local, no generator
+        # needed).
+        # The initial position: 4 stones, ec 60.
+        p = initial_position()
+        self.assertEqual(ec_of(p), 60)
+        self.assertEqual(
+            (int(p['mover']) | int(p['opponent'])).bit_count(), 4)
+        # A mid-board position (24 stones, ec 40).
+        p2 = make_position(np.uint64(0x0000000000ffff00),
+                           np.uint64(0x00000000ff000000))
+        occ2 = (int(p2['mover']) | int(p2['opponent'])).bit_count()
+        self.assertEqual(ec_of(p2), 64 - occ2)
+        # A full board: 64 stones, ec 0.
+        p3 = make_position(np.uint64(0xffffffff00000000),
+                           np.uint64(0x00000000ffffffff))
+        self.assertEqual(ec_of(p3), 0)
 
 
 class TestMarginalAccumulator(unittest.TestCase):

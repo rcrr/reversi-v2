@@ -26,31 +26,24 @@
 #
 
 """
-The concurrent WAVE generator (the I-017 T5, D-170 + the
-D-174 G0 engine): a batch of W games ("lanes") advanced in
-LOCKSTEP, with TWO pick engines:
-  G1 (the original T5, D-170): the ODP-9 table pick
-  (notes/random_permutation_table.md v4).
-  G0 (D-174, Roberto's design call after the D-173 gate
-  verdict — the E1-corpus finding): the uniform reference
-  pick on a SINGLE GLOBAL MT19937 (the project's
-  golden-pinned PRNG, the "one seed for all" pin, the
-  numba batch-draw port of tools/prng.py — bit-exact vs
-  the T3 oracle). One draw per (lane, step) in lane
-  order, W draws per step: the real-move lanes pick the
-  (draw % k)-th set bit (the modulo bias < k/2^64, 12
-  orders below the noise floor); the pass/dead lanes'
-  draws are CONSUMED (unused). The stream is GLOBAL
-  across waves (the run is one stream, the (wave, step,
-  lane) order). This is the I-017 CORPUS GENERATOR
-  (the 1e7 build).
+The concurrent WAVE generator (the I-017 T5, the D-174
+corpus generator): a batch of W games ("lanes") advanced in
+LOCKSTEP on a SINGLE GLOBAL MT19937 (the project's
+golden-pinned PRNG, the "one seed for all" pin, the numba
+batch-draw port of tools/prng.py — bit-exact vs the T3
+oracle). One draw per (lane, step) in lane order, W draws
+per step: the real-move lanes pick the (draw % k)-th set
+bit (the modulo bias < k/2^64, 12 orders below the noise
+floor); the pass/dead lanes' draws are CONSUMED (unused).
+The stream is GLOBAL across waves (the run is one stream,
+the (wave, step, lane) order). This is the I-017 CORPUS
+GENERATOR (the 1e7 build).
 
 THE LOCKSTEP INVARIANT (Roberto's option A, refined): one
 wave STEP = one REAL MOVE per live lane. A needed pass FOLDS
 INTO the step (the pass lane's real move comes from the
 swapped side's legal set — the second Kogge-Stone pass of
-the step), so a pass adds NO step and NO counter step (the
-ODP-9 pin: only real moves walk the permutation). Every
+the step), so a pass adds NO step. Every
 real move occupies exactly one square (the flips recolor,
 they do not add stones), so after S = 60 - ec_target steps
 every live lane is at EXACTLY ec_target — the harvest is
@@ -82,8 +75,7 @@ THE HOT STEP (all full-wave, uniform):
     lo = legal_moves(O, M)             (the pass lanes' source)
     pass_mask = (lm == 0)
     dead      = pass_mask & (lo == 0)  (the double pass)
-    move      = _pick_wave(where(pass_mask, lo, lm),
-                           counter, table)
+    move      = _pick_g0(draws, where(pass_mask, lo, lm))
     move      = where(dead, PA, move)   (the dead lanes ride
                                          the documented
                                          swap)
@@ -92,17 +84,6 @@ THE HOT STEP (all full-wave, uniform):
     counter   += ~dead                 (the real move walks
                                         the counter; the
                                         pass does not)
-
-CROSS-VALIDATION: lane g of the wave (slot g, counter0 =
-g, the T5 slot pin) replays the EXACT T4 per-slot logic —
-`random_play(seed, ec_target, counter0=g)` (hlp_random_play,
-D-162) is the bit-exact reference (the T4 docstring: "the
-T5 wave engine replays the SAME per-slot logic, so the
-single-game trace is the T5 cross-validation reference").
-Lanes/threads never enter the semantics: the trajectory of
-game g is f(table(seed), slot g) — reproducible by
-construction (the LAW-2 test pins it: same slot, any lane
-index, any W -> the same trajectory).
 
 THE SINK (v1): the arrested POSITIONS only (mover, opp,
 slot) in boundary chunks — "di quello si prendono le
@@ -118,8 +99,8 @@ import numba as nb
 from reversi.board import legal_moves, make_position, position_make_move
 
 __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
-           'WaveState', 'BufferSink', 'make_wave', 'step_wave',
-           'step_wave_g0', 'run_wave', 'run_wave_g0']
+           'WaveState', 'BufferSink', 'make_wave',
+           'step_wave_g0', 'run_wave_g0']
 
 #: The standard start (hlp_random_play.initial_position, the
 #: pinned 4-stone center: the mover D4+E5, the opponent
@@ -158,7 +139,7 @@ class WaveState:
                  harvested; the harvested slots are
                  therefore unique but NOT contiguous).
       mover/opp:  the lane bitboards (u64).
-      counter:    the per-lane ODP-9 counter (i64) — the
+      counter:    the per-lane step counter (i64) — the
                  phase pin: counter0 = the slot id.
       slot:       the per-lane slot id (i64, provenance).
       alive:      the live-lane mask (bool).
@@ -190,46 +171,6 @@ def make_wave(W: int, slot_base: int = 0) -> WaveState:
     slots slot_base..slot_base+W-1, counter = slot (the
     T5 slot pin)."""
     return WaveState(W, slot_base)
-
-
-@nb.njit(parallel=True, cache=True)
-def _pick_wave(src, counter, table):
-    """
-    The vectorized ODP-9 pick (the hot-step core): for each
-    lane, k = popcount(src); k == 0 -> (PA, no step);
-    otherwise rank = table[k][counter % k], move = the
-    rank-th set bit of src (the canonical ascending order),
-    step = True (the real move walks the counter). A
-    faithful port of hlp_random_play.pick_move.
-    """
-    n = src.shape[0]
-    move = np.empty(n, dtype=np.uint8)
-    step = np.empty(n, dtype=np.bool_)
-    for i in nb.prange(n):
-        x = src[i]
-        # The HW popcount (numba has no .bit_count on uint64):
-        # the classic 5-op horizontal reduce.
-        c = x - ((x >> 1) & np.uint64(0x5555555555555555))
-        c = (c & np.uint64(0x3333333333333333)) + \
-            ((c >> 2) & np.uint64(0x3333333333333333))
-        c = (c + (c >> 4)) & np.uint64(0x0F0F0F0F0F0F0F0F)
-        k = int((c * np.uint64(0x0101010101010101)) >> 56)
-        if k == 0:
-            move[i] = np.uint8(64)
-            step[i] = False
-            continue
-        rank = int(table[k, counter[i] % k])
-        y = x
-        for _ in range(rank):
-            y &= y - np.uint64(1)
-        lb = y & -y
-        square = 0
-        while lb > np.uint64(1):
-            lb >>= 1
-            square += 1
-        move[i] = np.uint8(square)
-        step[i] = True
-    return move, step
 
 
 # ---------------------------------------------------------------------
@@ -318,54 +259,12 @@ def _pick_g0(draws, src):
     return move, step
 
 
-def step_wave(state: WaveState, table: np.ndarray
-              ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    One lockstep step: every live lane makes exactly one
-    REAL move (a needed pass folds into the step — the
-    pass lane's move is picked from the swapped side's
-    legal set, the source is the swapped position); the
-    double pass kills the lane (it coasts, the counter
-    freezes). Returns (move, pass_mask, dead) — the arrays
-    the trace tests need (the move is the APPLIED move: the
-    real move for the pass lanes, PA for the dead — the
-    harmless swap in a discarded state).
-    """
-    M, O = state.mover, state.opp
-    lm = legal_moves(M, O)
-    lo = legal_moves(O, M)
-    pass_mask = lm == 0
-    dead = pass_mask & (lo == 0)
-    src = np.where(pass_mask, lo, lm)
-    move, _ = _pick_wave(src, state.counter, table)
-    # The dead lanes ride the PA SWAP (the documented kernel
-    # behaviour): a harmless field flip in a discarded state
-    # (the lane is not harvested and is overwritten at the
-    # boundary). NOT a no-op square: the kernel's legality
-    # test is "flips non-zero", so an occupied square with a
-    # flipping ray would be APPLIED (the board.py latent
-    # finding, flagged to Roberto) — the swap is the only
-    # input that cannot corrupt the state.
-    move = np.where(dead, np.uint8(PA), move)
-    swapped = pass_mask & ~dead
-    out = position_make_move(
-        make_position(np.where(swapped, O, M),
-                      np.where(swapped, M, O)), move)
-    state.mover[:], state.opp[:] = out['mover'], out['opponent']
-    state.counter += (~dead).astype(np.int64)
-    if dead.any():
-        state.alive &= ~dead
-        state.dead_total += int(dead.sum())
-    state.steps += 1
-    return move, pass_mask, dead
-
-
 def step_wave_g0(state: WaveState, mt: np.ndarray,
                  mti: int
                  ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
     """
     One lockstep step, the G0 uniform pick (D-174): the
-    SAME step logic as step_wave (the pass folded, the
+    SAME step logic (the pass folded, the
     double-pass coast, the counter walk) with the pick
     from the GLOBAL MT19937 stream — W draws per step,
     lane order, the pass/dead lanes' draws consumed
@@ -382,7 +281,7 @@ def step_wave_g0(state: WaveState, mt: np.ndarray,
     draws, mti = _mt19937_batch(mt, mti, state.W)
     move, _ = _pick_g0(draws, src)
     # The dead lanes ride the PA SWAP (the documented
-    # kernel behaviour — the same rationale as step_wave).
+    # kernel behaviour — the same rationale as the G0 step).
     move = np.where(dead, np.uint8(PA), move)
     swapped = pass_mask & ~dead
     out = position_make_move(
@@ -456,37 +355,6 @@ class BufferSink:
         return (np.concatenate([c[0] for c in self.chunks]),
                 np.concatenate([c[1] for c in self.chunks]),
                 np.concatenate([c[2] for c in self.chunks]))
-
-
-def run_wave(total: int, ec_target: int, table: np.ndarray,
-             wave_size: int, sink: BufferSink,
-             slot_base: int = 0) -> dict:
-    """
-    Generate `total` arrested positions at ec_target: waves
-    of `wave_size` lanes, each wave S = 60 - ec_target
-    lockstep steps, the boundary harvest + respawn, until
-    the quota is met. Deterministic in (table, slot_base):
-    the trajectory of game g is f(table, slot g) — the
-    lanes/threads never enter the semantics.
-
-    Returns:
-      The run provenance: {'harvested', 'waves', 'next_slot',
-      'dead' (the double-pass lanes, the coasted ones
-      counted once at the kill step)}.
-    """
-    if not (0 <= int(ec_target) <= MAX_EC):
-        raise ValueError(
-            f"ec_target {ec_target} is out of the [0, {MAX_EC}] domain")
-    steps_per_wave = MAX_EC - int(ec_target)
-    state = make_wave(int(wave_size), int(slot_base))
-    waves = 0
-    while state.harvested < total:
-        for _ in range(steps_per_wave):
-            step_wave(state, table)
-        _harvest_and_respawn(state, sink, int(total))
-        waves += 1
-    return {'harvested': state.harvested, 'waves': waves,
-            'next_slot': state.next_slot, 'dead': state.dead_total}
 
 
 def run_wave_g0(total: int, ec_target: int, seed: int,
