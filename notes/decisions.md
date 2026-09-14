@@ -1358,3 +1358,26 @@ D-189 | 2026-09-13 | T19: the I-017 campaign close. The
         Mirrors (D-007), journal, overview. 894 -> 894 (no new
         tests — the campaign close is the notes/docs; the
         A2030/A2050 full-chain re-pin is the verification).
+D-190 | 2026-09-14 | The chi-square disjoint support (the O > 0,
+        E = 0): the +inf / p = 0 semantics. The chi-square
+        goodness-of-fit (the adherence, the T14 kernel) divided
+        by zero when the DB observed a code the ideal never
+        shows (a cell with O > 0 but E = 0, the disjoint
+        support — the DB and the ideal have disjoint support,
+        a legitimate data condition, NOT a bug). The merged
+        tail (the low-expected cells, E < min_expected) hid the
+        root cause: it grouped the E = 0 cells into an "other"
+        bin whose expected was the sum (0), and the statistic
+        then divided by zero (the RuntimeWarning,
+        hlp_feature_analysis.py:285). The fix (at the root,
+        before the merge): detect the disjoint support (a cell
+        with O > 0 but E = 0) and return chi2 = +inf, p = 0 —
+        the total incompatibility, aligned with the KL +inf
+        (the infinite divergence, the kl_divergence L229). It
+        is the statistically correct answer to that condition,
+        not an "if zero then skip" guard. The test_infinite_kl
+        now pins the new semantics (chi2 = +inf, p = 0, was
+        implicit). Verification: the default suite 894/0/97
+        green, the warning gone (the -W error::RuntimeWarning
+        check), the VLONG green (Roberto's confirmation).
+        Mirrors (D-007).
