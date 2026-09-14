@@ -66,7 +66,11 @@ suite 32/0/0
   E < min_expected, merged into an "other" bin) + the merge
   count (the standard technique). Returns {'chi2', 'p',
   'merged'}; the p-value is nan if the merged result has fewer
-  than 2 cells.
+  than 2 cells. The disjoint support (a cell with O > 0 but
+  E = 0, the DB observes a code the ideal never shows) returns
+  chi2 = +inf, p = 0 (the total incompatibility, aligned with
+  the KL +inf — the merged tail would otherwise hide the root
+  cause and divide by zero).
 - `adherence(db_counts, ideal_counts) -> dict` — the
   adherence (c) trio (T14, D-184, the design section 3.5): the
   DB configuration distribution (the observed codes of the

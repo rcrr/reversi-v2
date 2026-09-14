@@ -336,10 +336,15 @@ class TestAdherence(unittest.TestCase):
 
     def test_infinite_kl(self):
         # The DB has a code the ideal never shows (the ideal
-        # missing that code -> 0): the KL is +inf (the TV / the
-        # chi-square are finite).
+        # missing that code -> 0): the disjoint support. The KL
+        # is +inf (the infinite divergence), the chi-square is
+        # +inf (the total incompatibility, the p is 0) — the
+        # three are aligned, the TV is finite (the robust
+        # "how different" number).
         r = adherence({0: 50, 1: 50}, {0: 50, 2: 50})
         self.assertEqual(r['kl'], float('inf'))
+        self.assertEqual(r['chi2'], float('inf'))
+        self.assertEqual(r['p'], 0.0)
         self.assertLess(r['tv'], 1.0)
 
     def test_empty(self):

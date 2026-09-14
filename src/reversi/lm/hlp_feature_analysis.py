@@ -275,6 +275,13 @@ def chi_square_goodness(observed, expected,
     # merged into the "other" bin (the sum).
     mask = e < min_expected
     n_merge = int(mask.sum())
+    # The disjoint support: a cell with O > 0 but E = 0 (the DB
+    # observes a code the ideal never shows — the total
+    # incompatibility, the chi-square is +inf, the p is 0, the
+    # KL is +inf — the three are aligned, the merged tail would
+    # otherwise hide the root cause and divide by zero).
+    if bool(np.any((o > 0) & (e == 0))):
+        return {'chi2': float('inf'), 'p': 0.0, 'merged': n_merge}
     if n_merge > 0:
         other_o = float(o[mask].sum())
         other_e = float(e[mask].sum())
