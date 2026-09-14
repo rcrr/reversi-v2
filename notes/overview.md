@@ -628,7 +628,13 @@ at the end of this file.
   step-by-step walkthrough + the code reviewed together
   — Roberto's commitment) AFTER the SU level is
   complete. I-018 (the outlier report in VALIDATE) is
-  parked, Roberto's call.
+  parked, Roberto's call. G1 BURIED (D-191): the G1 (the
+  ODP-9 table pick) is retired from the live code + the
+  live docs — the code removal (the hlp_random_play
+  accumulators + the hlp_wave G0 engine + the hlp_gate
+  campaign loader), the historical archive in
+  notes/analyses/historical/ODP-9/, the one-line decision
+  record; the G0 is the I-017 corpus generator.
 
 
 
