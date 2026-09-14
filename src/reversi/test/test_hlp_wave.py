@@ -195,8 +195,7 @@ class TestBenchmark(unittest.TestCase):
 
     def test_1e6_g0_wall_clock(self):
         # The G0 corpus engine (D-174) at the gate scale:
-        # the same target (the PRNG batch-draw is the only
-        # difference from the G1 hot step).
+        # the 1e6 target, ec=20, seed 42.
         sink = BufferSink()
         t0 = time.time()
         info = run_wave_g0(1_000_000, 20, 42, 1_000_000, sink)
