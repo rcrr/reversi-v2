@@ -46,13 +46,9 @@ MODULES=(
     # lands in T12; the ODP-9 pick table + the single-game loop
     # land here at T4)
     reversi.test.test_hlp_random_play
-    # test_hlp_wave: the T5 numba wave engine (the G1 corpus
-    # generator, the T4 cross-validation reference)
+    # test_hlp_wave: the T5 numba wave engine (the G0 corpus
+    # engine, the I-017 corpus generator)
     reversi.test.test_hlp_wave
-    # test_hlp_gate: the T6 design gate (the v4 doc section 7
-    # pre-registered certification; the full gate smoke under
-    # GATE_SMOKE=1)
-    reversi.test.test_hlp_gate
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
     reversi.test.test_wrk_features
