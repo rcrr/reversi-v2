@@ -89,7 +89,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
 
         # Move to WMAPS first, as DESIGN_MTR depends on the iwmap and indexes
         self.rlm.move_to_step('WMAPS')
-        self.assertEqual(self.rlm.current_step, 5)
+        self.assertEqual(self.rlm.current_step, 7)
         self.assertEqual(self.rlm.current_worker_name, 'WMAPS')
 
     def tearDown(self):
@@ -101,12 +101,12 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
     def test_compute_and_populate_cache(self):
         """First run should compute the Design Matrix and create the cache file."""
         self.rlm.move_to_step('DESIGN_MTR')
-        self.assertEqual(self.rlm.current_step, 6)
+        self.assertEqual(self.rlm.current_step, 8)
         self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')
 
         # Verify cache files were actually created on disk
-        cache_file = Path(self.tmp_dir) / 'rlmwf_06_DESIGN_MTR.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_06_DESIGN_MTR.dat.SHA3-256'
+        cache_file = Path(self.tmp_dir) / 'rlmwf_08_DESIGN_MTR.dat'
+        checksum_file = Path(self.tmp_dir) / 'rlmwf_08_DESIGN_MTR.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
 
@@ -129,7 +129,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('DESIGN_MTR')
-        self.assertEqual(self.rlm.current_step, 6)
+        self.assertEqual(self.rlm.current_step, 8)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
@@ -143,7 +143,7 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
 
         # 3. Move to DESIGN_MTR in the second instance
         rlm2.move_to_step('DESIGN_MTR')
-        self.assertEqual(rlm2.current_step, 6)
+        self.assertEqual(rlm2.current_step, 8)
 
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()
@@ -184,7 +184,7 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
 
         # Move up to WMAPS to prepare the state for DESIGN_MTR
         self.rlm.move_to_step('WMAPS')
-        self.assertEqual(self.rlm.current_step, 5)
+        self.assertEqual(self.rlm.current_step, 7)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:

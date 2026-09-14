@@ -96,7 +96,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         # Move to GENERATE first, as VLD_POSITIONS sits after it in the
         # pipeline (the 11th level, step 11)
         self.rlm.move_to_step('GENERATE')
-        self.assertEqual(self.rlm.current_step, 10)
+        self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'GENERATE')
 
     def tearDown(self):
@@ -113,13 +113,13 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertIsNone(self.rlm.context.vld_pop_stats)
 
         self.rlm.move_to_step('VLD_POSITIONS')
-        self.assertEqual(self.rlm.current_step, 11)
+        self.assertEqual(self.rlm.current_step, 13)
         self.assertEqual(self.rlm.current_worker_name, 'VLD_POSITIONS')
 
         # Verify the cache files were actually created on disk (the rlmwf_11
         # slot — the flat closure {prefix}{level:02}_{worker_name}.dat)
-        cache_file = Path(self.tmp_dir) / 'rlmwf_11_VLD_POSITIONS.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_11_VLD_POSITIONS.dat.SHA3-256'
+        cache_file = Path(self.tmp_dir) / 'rlmwf_13_VLD_POSITIONS.dat'
+        checksum_file = Path(self.tmp_dir) / 'rlmwf_13_VLD_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
         self.assertTrue(binio.verify_sha3_256_sidecar(cache_file))
@@ -146,7 +146,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('VLD_POSITIONS')
-        self.assertEqual(self.rlm.current_step, 11)
+        self.assertEqual(self.rlm.current_step, 13)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
@@ -160,7 +160,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
 
         # 3. Move to VLD_POSITIONS in the second instance
         rlm2.move_to_step('VLD_POSITIONS')
-        self.assertEqual(rlm2.current_step, 11)
+        self.assertEqual(rlm2.current_step, 13)
 
         # Check logs to confirm the cache was hit successfully
         logs = self.mock_stdout.getvalue()
@@ -185,8 +185,8 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertIsNotNone(self.rlm.context.vld_rds_checksum)
         self.assertIsNotNone(self.rlm.context.vld_pop_stats)
 
-        self.rlm.move_to_step(10)
-        self.assertEqual(self.rlm.current_step, 10)
+        self.rlm.move_to_step(12)
+        self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'GENERATE')
         self.assertIsNone(self.rlm.context.vld_positions)
         self.assertIsNone(self.rlm.context.vld_game_values)
@@ -285,7 +285,7 @@ class TestVldIndependenceCheck(unittest.TestCase):
         # VLD_POSITIONS sits after GENERATE in the pipeline (step 11):
         # the whole train chain must have populated ctx.positions.
         rlm.move_to_step('GENERATE')
-        self.assertEqual(rlm.current_step, 10)
+        self.assertEqual(rlm.current_step, 12)
         return rlm
 
     def tearDown(self):

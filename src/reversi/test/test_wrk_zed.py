@@ -102,7 +102,7 @@ class TestLMWorkerZed(unittest.TestCase):
 
         # Move up to DESIGN_MTR to ensure full pipeline consistency
         self.rlm.move_to_step('DESIGN_MTR')
-        self.assertEqual(self.rlm.current_step, 6)
+        self.assertEqual(self.rlm.current_step, 8)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -125,7 +125,7 @@ class TestLMWorkerZed(unittest.TestCase):
         nptest.assert_array_equal(expected_y, y)
 
         self.rlm.move_to_step('ZED')
-        self.assertEqual(self.rlm.current_step, 7)
+        self.assertEqual(self.rlm.current_step, 9)
 
         self.assertIsNotNone(self.rlm.context.y2z)
         self.assertIsNotNone(self.rlm.context.z)
@@ -152,8 +152,8 @@ class TestLMWorkerZed(unittest.TestCase):
         self.rlm.move_to_step('ZED')
         self.assertIsNotNone(self.rlm.context.z)
 
-        self.rlm.move_to_step(6)
-        self.assertEqual(self.rlm.current_step, 6)
+        self.rlm.move_to_step(8)
+        self.assertEqual(self.rlm.current_step, 8)
         self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')
         self.assertIsNone(self.rlm.context.y2z)
         self.assertIsNone(self.rlm.context.z2y)

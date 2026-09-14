@@ -87,7 +87,7 @@ class TestLMWorkerGradient(unittest.TestCase):
 
         # Move up to ZED to prepare the full state for GRADIENT
         self.rlm.move_to_step('ZED')
-        self.assertEqual(self.rlm.current_step, 7)
+        self.assertEqual(self.rlm.current_step, 9)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -107,7 +107,7 @@ class TestLMWorkerGradient(unittest.TestCase):
 
         # Move to GRADIENT
         self.rlm.move_to_step('GRADIENT')
-        self.assertEqual(self.rlm.current_step, 8)
+        self.assertEqual(self.rlm.current_step, 10)
 
         self.assertIsNotNone(ctx.fg)
         self.assertTrue(callable(ctx.fg), "The attribute fg should be callable")
@@ -132,11 +132,11 @@ class TestLMWorkerGradient(unittest.TestCase):
         # The _down clearing: from GRADIENT (step 8) back to ZED
         # (step 7), the worker must clear ctx.fg.
         self.rlm.move_to_step('GRADIENT')
-        self.assertEqual(self.rlm.current_step, 8)
+        self.assertEqual(self.rlm.current_step, 10)
         self.assertIsNotNone(self.rlm.context.fg)
 
-        self.rlm.move_to_step(7)
-        self.assertEqual(self.rlm.current_step, 7)
+        self.rlm.move_to_step(9)
+        self.assertEqual(self.rlm.current_step, 9)
         self.assertEqual(self.rlm.current_worker_name, 'ZED')
         self.assertIsNone(self.rlm.context.fg)
 

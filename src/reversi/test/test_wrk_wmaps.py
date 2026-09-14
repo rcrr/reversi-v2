@@ -93,7 +93,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
 
         # Move to INDEXES first, as WMAPS depends on the hlp_indexes loaded there
         self.rlm.move_to_step('INDEXES')
-        self.assertEqual(self.rlm.current_step, 4)
+        self.assertEqual(self.rlm.current_step, 5)
         self.assertEqual(self.rlm.current_worker_name, 'INDEXES')
 
     def tearDown(self):
@@ -105,12 +105,12 @@ class TestLMWorkerWmaps(unittest.TestCase):
     def test_compute_and_populate_cache(self):
         """First run should compute WMAPS and create the cache file."""
         self.rlm.move_to_step('WMAPS')
-        self.assertEqual(self.rlm.current_step, 5)
+        self.assertEqual(self.rlm.current_step, 7)
         self.assertEqual(self.rlm.current_worker_name, 'WMAPS')
 
         # Verify cache files were actually created on disk
-        cache_file = Path(self.tmp_dir) / 'rlmwf_05_WMAPS.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_05_WMAPS.dat.SHA3-256'
+        cache_file = Path(self.tmp_dir) / 'rlmwf_07_WMAPS.dat'
+        checksum_file = Path(self.tmp_dir) / 'rlmwf_07_WMAPS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
 
@@ -132,7 +132,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('WMAPS')
-        self.assertEqual(self.rlm.current_step, 5)
+        self.assertEqual(self.rlm.current_step, 7)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
@@ -146,7 +146,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
 
         # 3. Move to WMAPS in the second instance
         rlm2.move_to_step('WMAPS')
-        self.assertEqual(rlm2.current_step, 5)
+        self.assertEqual(rlm2.current_step, 7)
 
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()
@@ -190,7 +190,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
 
         # Move to INDEXES first
         self.rlm.move_to_step('INDEXES')
-        self.assertEqual(self.rlm.current_step, 4)
+        self.assertEqual(self.rlm.current_step, 5)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:

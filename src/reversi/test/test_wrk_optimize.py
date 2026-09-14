@@ -83,7 +83,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
 
         # Move to GRADIENT first
         self.rlm.move_to_step('GRADIENT')
-        self.assertEqual(self.rlm.current_step, 8)
+        self.assertEqual(self.rlm.current_step, 10)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -100,7 +100,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
 
         # Run optimization
         self.rlm.move_to_step('OPTIMIZE')
-        self.assertEqual(self.rlm.current_step, 9)
+        self.assertEqual(self.rlm.current_step, 11)
 
         # Calculate final loss
         final_f, _ = ctx.fg(ctx.w)
@@ -119,7 +119,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
 
         # 1. First run: should run for 10 iterations and stop at MAX_ITERS_REACHED
         self.rlm.move_to_step('OPTIMIZE')
-        self.assertEqual(self.rlm.current_step, 9)
+        self.assertEqual(self.rlm.current_step, 11)
 
         # Weights should be updated and not all zeros
         self.assertFalse(np.all(ctx.w == 0), "Weights should not be all zeros after 10 iterations.")
@@ -157,13 +157,13 @@ class TestLMWorkerOptimize(unittest.TestCase):
         ctx = self.rlm.context
 
         self.rlm.move_to_step('OPTIMIZE')
-        self.assertEqual(self.rlm.current_step, 9)
+        self.assertEqual(self.rlm.current_step, 11)
         self.assertIsNotNone(ctx.fg)
         self.assertIsNotNone(ctx.w_checksum)
         self.assertIsNotNone(ctx.opt_info)
 
         w_before = ctx.w.copy()
-        self.rlm.move_to_step(8)
+        self.rlm.move_to_step(10)
         self.assertEqual(self.rlm.current_worker_name, 'GRADIENT')
         self.assertIsNone(ctx.fg)
         self.assertIsNone(ctx.w_checksum)

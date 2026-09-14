@@ -102,7 +102,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
 
         # Move up to VALIDATE to ensure full pipeline consistency
         self.rlm.move_to_step('VALIDATE')
-        self.assertEqual(self.rlm.current_step, 12)
+        self.assertEqual(self.rlm.current_step, 14)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -124,7 +124,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIsNone(self.rlm.context.train_dense_metrics)
 
         self.rlm.move_to_step('ANALYTICS')
-        self.assertEqual(self.rlm.current_step, 13)
+        self.assertEqual(self.rlm.current_step, 15)
         self.assertEqual(self.rlm.current_worker_name, 'ANALYTICS')
 
         met = self.rlm.context.train_metrics
@@ -209,7 +209,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.mock_stdout.truncate(0)
 
         rlm2.move_to_step('ANALYTICS')
-        self.assertEqual(rlm2.current_step, 13)
+        self.assertEqual(rlm2.current_step, 15)
 
         logs = self.mock_stdout.getvalue()
         # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR,
@@ -237,8 +237,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIsNotNone(self.rlm.context.train_dense_metrics)
         self.assertIsNotNone(self.rlm.context.analytics_report)
 
-        self.rlm.move_to_step(12)
-        self.assertEqual(self.rlm.current_step, 12)
+        self.rlm.move_to_step(14)
+        self.assertEqual(self.rlm.current_step, 14)
         self.assertEqual(self.rlm.current_worker_name, 'VALIDATE')
         self.assertIsNone(self.rlm.context.train_metrics)
         self.assertIsNone(self.rlm.context.train_dense_metrics)
@@ -279,7 +279,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
 
         # Move up to VALIDATE to ensure full pipeline consistency
         self.rlm.move_to_step('VALIDATE')
-        self.assertEqual(self.rlm.current_step, 12)
+        self.assertEqual(self.rlm.current_step, 14)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -298,7 +298,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         independently by the campaign probe (0 mismatches).
         """
         self.rlm.move_to_step('ANALYTICS')
-        self.assertEqual(self.rlm.current_step, 13)
+        self.assertEqual(self.rlm.current_step, 15)
 
         met = self.rlm.context.train_metrics
         self.assertIsNotNone(met)

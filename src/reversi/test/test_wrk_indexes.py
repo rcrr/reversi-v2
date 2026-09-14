@@ -101,12 +101,12 @@ class TestLMWorkerIndexes(unittest.TestCase):
     def test_compute_and_populate_cache(self):
         """First run should compute indexes and create the cache file."""
         self.rlm.move_to_step('INDEXES')
-        self.assertEqual(self.rlm.current_step, 4)
+        self.assertEqual(self.rlm.current_step, 5)
         self.assertEqual(self.rlm.current_worker_name, 'INDEXES')
 
         # Verify cache files were actually created on disk
-        cache_file = Path(self.tmp_dir) / 'rlmwf_04_INDEXES.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_04_INDEXES.dat.SHA3-256'
+        cache_file = Path(self.tmp_dir) / 'rlmwf_05_INDEXES.dat'
+        checksum_file = Path(self.tmp_dir) / 'rlmwf_05_INDEXES.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
 
@@ -122,7 +122,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('INDEXES')
-        self.assertEqual(self.rlm.current_step, 4)
+        self.assertEqual(self.rlm.current_step, 5)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
@@ -136,7 +136,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
 
         # 3. Move to INDEXES in the second instance
         rlm2.move_to_step('INDEXES')
-        self.assertEqual(rlm2.current_step, 4)
+        self.assertEqual(rlm2.current_step, 5)
 
         # Check logs to confirm Cache was hit successfully
         logs = self.mock_stdout.getvalue()

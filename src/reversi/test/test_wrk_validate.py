@@ -93,7 +93,7 @@ class TestLMWorkerValidate(unittest.TestCase):
 
         # Move up to VLD_POSITIONS to ensure full pipeline consistency
         self.rlm.move_to_step('VLD_POSITIONS')
-        self.assertEqual(self.rlm.current_step, 11)
+        self.assertEqual(self.rlm.current_step, 13)
 
     def tearDown(self):
         if getattr(self, 'patcher_stdout', None) is not None:
@@ -111,7 +111,7 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.assertIsNone(self.rlm.context.vld_metrics)
 
         self.rlm.move_to_step('VALIDATE')
-        self.assertEqual(self.rlm.current_step, 12)
+        self.assertEqual(self.rlm.current_step, 14)
         self.assertEqual(self.rlm.current_worker_name, 'VALIDATE')
 
         met = self.rlm.context.vld_metrics
@@ -156,7 +156,7 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.mock_stdout.truncate(0)
 
         rlm2.move_to_step('VALIDATE')
-        self.assertEqual(rlm2.current_step, 12)
+        self.assertEqual(rlm2.current_step, 14)
 
         logs = self.mock_stdout.getvalue()
         # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR,
@@ -177,8 +177,8 @@ class TestLMWorkerValidate(unittest.TestCase):
         self.rlm.move_to_step('VALIDATE')
         self.assertIsNotNone(self.rlm.context.vld_metrics)
 
-        self.rlm.move_to_step(11)
-        self.assertEqual(self.rlm.current_step, 11)
+        self.rlm.move_to_step(13)
+        self.assertEqual(self.rlm.current_step, 13)
         self.assertEqual(self.rlm.current_worker_name, 'VLD_POSITIONS')
         self.assertIsNone(self.rlm.context.vld_metrics)
 

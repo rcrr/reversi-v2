@@ -95,7 +95,7 @@ class TestLMWorkerGenerate(unittest.TestCase):
         # Move to OPTIMIZE first, as GENERATE depends on the optimized
         # weights (w + w_checksum) produced there
         self.rlm.move_to_step('OPTIMIZE')
-        self.assertEqual(self.rlm.current_step, 9)
+        self.assertEqual(self.rlm.current_step, 11)
         self.assertEqual(self.rlm.current_worker_name, 'OPTIMIZE')
 
     def tearDown(self):
@@ -110,12 +110,12 @@ class TestLMWorkerGenerate(unittest.TestCase):
         self.assertIsNone(self.rlm.context.dense_w_checksum)
 
         self.rlm.move_to_step('GENERATE')
-        self.assertEqual(self.rlm.current_step, 10)
+        self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'GENERATE')
 
         # Verify cache files were actually created on disk
-        cache_file = Path(self.tmp_dir) / 'rlmwf_10_GENERATE.dat'
-        checksum_file = Path(self.tmp_dir) / 'rlmwf_10_GENERATE.dat.SHA3-256'
+        cache_file = Path(self.tmp_dir) / 'rlmwf_12_GENERATE.dat'
+        checksum_file = Path(self.tmp_dir) / 'rlmwf_12_GENERATE.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
         self.assertTrue(checksum_file.exists(), "Checksum file was not created.")
         self.assertTrue(binio.verify_sha3_256_sidecar(cache_file))
@@ -141,7 +141,7 @@ class TestLMWorkerGenerate(unittest.TestCase):
 
         # 1. Run the first instance to populate the cache
         self.rlm.move_to_step('GENERATE')
-        self.assertEqual(self.rlm.current_step, 10)
+        self.assertEqual(self.rlm.current_step, 12)
 
         # 2. Create a completely new instance pointing to the same cache directory
         rlm2 = LogisticModel(self.json_config,
@@ -155,7 +155,7 @@ class TestLMWorkerGenerate(unittest.TestCase):
 
         # 3. Move to GENERATE in the second instance
         rlm2.move_to_step('GENERATE')
-        self.assertEqual(rlm2.current_step, 10)
+        self.assertEqual(rlm2.current_step, 12)
 
         # Check logs to confirm the cache was hit successfully
         logs = self.mock_stdout.getvalue()
@@ -175,8 +175,8 @@ class TestLMWorkerGenerate(unittest.TestCase):
         self.assertIsNotNone(self.rlm.context.w_dense)
         self.assertIsNotNone(self.rlm.context.dense_w_checksum)
 
-        self.rlm.move_to_step(9)
-        self.assertEqual(self.rlm.current_step, 9)
+        self.rlm.move_to_step(11)
+        self.assertEqual(self.rlm.current_step, 11)
         self.assertEqual(self.rlm.current_worker_name, 'OPTIMIZE')
         self.assertIsNone(self.rlm.context.w_dense)
         self.assertIsNone(self.rlm.context.dense_w_checksum)
