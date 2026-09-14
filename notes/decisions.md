@@ -1381,3 +1381,21 @@ D-190 | 2026-09-14 | The chi-square disjoint support (the O > 0,
         green, the warning gone (the -W error::RuntimeWarning
         check), the VLONG green (Roberto's confirmation).
         Mirrors (D-007).
+D-191 | 2026-09-14 | Burying the G1 (the ODP-9 table pick). An
+        alternative option for the generation of the random
+        position populations was evaluated, based on a table as
+        described by ODP-9; we refer to this alternative
+        generation technique as G1. The G1 generation was
+        evaluated, studied, implemented and tested; the outcome
+        was negative — the generated population does not have
+        the desired statistical characteristics (the D-173 gate
+        verdict was FAIL: the corpus-level equivalence to the G0
+        reference was refuted at 1e6 — the 47x LMC, the
+        phase-lock, the path-coupling). The G0 (the uniform pick
+        on the single global golden-pinned MT19937, the D-174)
+        is the I-017 corpus generator. The live code and the
+        live docs no longer mention the G1 / the ODP-9 table
+        pick; the historical work (the ODP-9 v4 design doc + the
+        three peer reviews: the original, the GLM, the Kimi) is
+        preserved in the new archive
+        notes/analyses/historical/ODP-9/.
