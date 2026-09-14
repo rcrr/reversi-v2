@@ -291,8 +291,14 @@ class TestRlmConfigSchemas(unittest.TestCase):
         """The I-017 D-175 opt-in: the feature_analysis / the
         effect_size enable default FALSE, the target_level
         default 'last', the corpus defaults (seed 42, 1e7, ec
-        20), the su_pairs empty."""
-        cfg = LMConfig(**self._cfg_dict())
+        20), the su_pairs empty. D-186: the rlm_00 now carries
+        the section (the opt-in) — strip it to check the pure
+        defaults (the absent-section no-op)."""
+        def _strip_i017(d):
+            d.pop("feature_analysis", None)
+            d.pop("effect_size", None)
+            d.pop("target_level", None)
+        cfg = LMConfig(**self._cfg_dict(_strip_i017))
         self.assertFalse(cfg.feature_analysis.enable)
         self.assertFalse(cfg.effect_size.enable)
         self.assertEqual(cfg.target_level, "last")

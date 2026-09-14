@@ -2,11 +2,11 @@
 The first concrete domain facade: it wires the generic StateMachine
 to the LM (Reversi Logistic Model) pipeline — a 4-step construction
 (validate the domain paths, build the shared LMContext blackboard,
-assemble the 17-level worker list, hand the parts to BaseModel →
+assemble the 18-level worker list, hand the parts to BaseModel →
 StateMachine) — plus the LMContext @dataclass: config state, every
-data artifact produced by the 17 levels, the 9 checksum fields, and
+data artifact produced by the 18 levels, the 9 checksum fields, and
 the 3 infrastructure callables the machine injects at construction.
-> State: D-157 · 2026-09-11 · suite 17/0/0
+> State: D-186/D-187/D-188 · 2026-09-13 · suite 17/0/0
 
 ## API
 
@@ -53,14 +53,17 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
   worker before any cache call (the injected closures read
   `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` and raise
   AttributeError otherwise).
-- **Pipeline shape: 17 levels, all active** —
+- **Pipeline shape: 18 levels, all active** —
 
   ```
-  CREATED (0, sentinel) -> CONFIG -> FEATURES -> POSITIONS -> INDEXES
-  -> WMAPS -> DESIGN_MTR -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE
-  -> VLD_POSITIONS -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK
-  -> PLOT
+  CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS
+  -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS -> DESIGN_MTR
+  -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
+  -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
   ```
+  (the D-186/D-187 I-017: FEATURE_ANALYSIS step 3, the rlmwf_03
+  slot; EFFECT_SIZE step 6, NO cache — the PLOT is now step 18,
+  was 16)
 
   No commented factory imports or worker-list entries remain. The
   factories follow `lm_worker_x()` → `Worker`; the tests patch them

@@ -182,6 +182,11 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
             (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_00.json").read_text())
         payload["feature_set"] = {"intercept": False}
+        # D-186: the rlm_00 now carries the su_pairs (["LMC", "EDGE"])
+        # — clear them so the zero-features guard (not the su_pairs
+        # fail-fast) is the one that fires.
+        if "feature_analysis" in payload:
+            payload["feature_analysis"]["su_pairs"] = []
         cfg0 = LMConfig(**payload)
         events = []
         ctx0 = SimpleNamespace(

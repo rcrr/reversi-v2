@@ -89,5 +89,18 @@
                 { "name": "DLMC", "mask": "FFFFFFFFFFFFFFFF", "amask": "FFFFFFFFFFFFFFFF" }
             ]
         }
-    }
+    },
+    "feature_analysis": {
+        "enable": true,
+        "corpus": {
+            "seed": 42,
+            "total_positions": 10000,
+            "ec": 20
+        },
+        "su_pairs": [["LMC", "EDGE"]],
+        "dir_name": "feature_analysis",
+        "report_file_name": "feature_analysis_report.txt",
+        "export_csv": false
+    },
+    "target_level": "last"
 }

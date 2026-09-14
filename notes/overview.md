@@ -614,8 +614,16 @@ at the end of this file.
   P5 new lineage — + the phase-2 recompute + the reports + the
   ctx publication). T17 LANDED (D-187): the wrk_effect_size
   worker (the eta²/omega² + the adherence, the graceful
-  degradation). NEXT: T18 (the full wiring) — the SU analysis
-  FALSE; the profiling
+  degradation). T18 LANDED (D-188): the full wiring — the 18-
+  level pipeline (the FEATURE_ANALYSIS step 3 + the EFFECT_
+  SIZE step 6), the rlm_00 fixture opt-in, the rlm_05/rlm_06
+  experiment configs, the full-chain re-pin (the A2030/A2050
+  bands + the step 18), the hub re-pin (the V3c 19 entries).
+  T19: the I-017 campaign CLOSE (D-189) — the I-017 is DONE
+  (the 18-level pipeline is live; the SU analysis is OPTIONAL,
+  the default FALSE, the D-175 opt-in; the rlm_05/rlm_06 are
+  the experiment configs). The production default is NOT
+  flipped to true (Roberto's call). NEXT: the profiling
   session (the OPTIMIZE pattern, the
   step-by-step walkthrough + the code reviewed together
   — Roberto's commitment) AFTER the SU level is

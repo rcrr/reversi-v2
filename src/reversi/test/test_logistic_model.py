@@ -102,10 +102,24 @@ class TestLogisticModel(unittest.TestCase):
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        
+        # D-186/D-187: the I-017 new workers — the FEATURE_ANALYSIS
+        # (step 3) + the EFFECT_SIZE (step 6) dummies. Without them
+        # the real workers would cross the "POSITIONS" string move
+        # and hit the None cfg (the mock CONFIG never sets it).
+        self.fa_up_mock = MagicMock()
+        self.fa_down_mock = MagicMock()
+        self.patcher_fa = patch('reversi.lm.logistic_model.wrk_feature_analysis',
+                                return_value=Worker("FEATURE_ANALYSIS", self.fa_up_mock, self.fa_down_mock))
+        self.es_up_mock = MagicMock()
+        self.es_down_mock = MagicMock()
+        self.patcher_es = patch('reversi.lm.logistic_model.wrk_effect_size',
+                                return_value=Worker("EFFECT_SIZE", self.es_up_mock, self.es_down_mock))
+
         self.mock_config_factory = self.patcher_config.start()
         self.mock_positions_factory = self.patcher_positions.start()
         self.mock_features_factory = self.patcher_features.start()
+        self.mock_fa_factory = self.patcher_fa.start()
+        self.mock_es_factory = self.patcher_es.start()
 
         # Instantiate the model
         self.model = LogisticModel(
@@ -117,7 +131,8 @@ class TestLogisticModel(unittest.TestCase):
         """Clean up patches and temporary files. T2 (D-075):
         defensive against mid-setup failures — stop only the
         patchers that exist, then remove the temp dir."""
-        for name in ('patcher_stdout', 'patcher_config', 'patcher_positions', 'patcher_features'):
+        for name in ('patcher_stdout', 'patcher_config', 'patcher_positions',
+                     'patcher_features', 'patcher_fa', 'patcher_es'):
             patcher = getattr(self, name, None)
             if patcher is not None:
                 patcher.stop()
@@ -168,12 +183,16 @@ class TestLogisticModel(unittest.TestCase):
         self.config_down_mock.assert_not_called()
 
     def test_move_to_step_by_string(self):
-        """Test moving using the worker name string."""
+        """Test moving using the worker name string. D-186/D-187:
+        the POSITIONS is now step 4 (the FEATURE_ANALYSIS, step 3,
+        sits between FEATURES and POSITIONS) — the string move
+        crosses the new step."""
         self.model.move_to_step("POSITIONS")
-        
-        self.assertEqual(self.model.current_step, 3)
+
+        self.assertEqual(self.model.current_step, 4)
         self.config_up_mock.assert_called_once_with(self.model.context)
         self.features_up_mock.assert_called_once_with(self.model.context)
+        self.fa_up_mock.assert_called_once_with(self.model.context)
         self.positions_up_mock.assert_called_once_with(self.model.context)
 
     def test_invalid_config_path(self):

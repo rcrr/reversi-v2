@@ -1286,3 +1286,75 @@ D-187 | 2026-09-13 | T17: the EFFECT_SIZE worker.
         module). The T18 wiring registers the worker at step 6
         (NO cache slot). Mirrors (D-007), journal, overview.
         887 -> 894.
+D-188 | 2026-09-13 | T18: the I-017 full wiring. The 18-level
+        pipeline (design section 3.1): logistic_model.py registers
+        the two new workers (wrk_feature_analysis() at step 3,
+        between FEATURES and POSITIONS, the rlmwf_03 slot; wrk_
+        effect_size() at step 6, between INDEXES and WMAPS, NO
+        cache slot) — the pipeline is now 18 active levels (the
+        CREATED sentinel + 18 = the 19 entries). The rlm_00
+        fixture (the unit-test fixture) opts in: the
+        feature_analysis section (the enable true, the tiny
+        10000-position G0 corpus ec 20 seed 42, the 1 su_pair
+        ["LMC","EDGE"], the target_level "last") — the hub + the
+        full-chain tests run the 18-level pipeline on the tiny
+        fixture. The experiment configs rlm_05.json (the 2M
+        corpus) + rlm_06.json (the 100M corpus) are created
+        (copies of rlm_03's A2050 feature set, the feature_
+        analysis enable true, the target_level "FEATURE_ANALYSIS"
+        — the stop before the DB levels — the light mobility x
+        pattern su_pairs, the heavy pattern x pattern joints are
+        deferred per the T10 cost model; the DB connection kept
+        for schema validity, unused at this target level). The
+        D-175: the production configs (rlm_03, rlm_04) are
+        UNTOUCHED (no field -> the default FALSE no-op) — the
+        full chain runs the 18 levels with the 2 new levels as
+        no-ops (the PLOT is now step 18, was 16). The full-chain
+        re-pin: test_lm_worker_full_chain.py (the A2030 + the
+        A2050 test_full_worker_chain: the "17-level" -> "18-level",
+        the "PLOT is step 16" -> "step 18", the current_step
+        assertion 16 -> 18, the A2030 file-size band 22940-23040
+        -> 23183-23283 (the +~241 B of the I-017 sections in the
+        embedded config dump, measured 23233), the A2050 band
+        516500-516700 -> 516692-516892 (the ~+241 B estimate, the
+        VLONG re-measures)); verify_save.py (the header "full 17-
+        level chain" -> "18-level", the tier_c "C1 step 14 SAVE"
+        -> "step 16", the tier_d "pins step 16" -> "step 18");
+        verify_logistic_model.py (the V3c list 17 -> 19 entries,
+        the header state D-186/D-187). The 3 unit-test fixes (the
+        rlm_00 opt-in ripple): test_logistic_model.py (the 2 new
+        worker factories mocked — without them the real workers
+        would cross the "POSITIONS" string move and hit the None
+        cfg; the POSITIONS is now step 4); test_wrk_features.py
+        (the su_pairs cleared for the zero-features guard);
+        test_hlp_config_schemas.py (the section stripped for the
+        pure-defaults check). No new per-module probe (the new
+        workers have the NO-DB unit tests, the T16/T17; the probe
+        change is the hub re-pin only). The default suite is
+        GREEN (894/0/97, the 2 new worker suites 8/0/0 + 7/0/0).
+        The A2030 full-chain (the rlm_04, the LONG=1) verifies
+        the 18-level pipeline end-to-end (the PLOT at step 18,
+        the file in the re-pinned band). Mirrors (D-007), journal,
+        overview.
+D-189 | 2026-09-13 | T19: the I-017 campaign close. The
+        FEATURE_ANALYSIS (step 3) + the EFFECT_SIZE (step 6)
+        levels are COMPLETE: the data plane (the T7-T10
+        accumulators + the probes), the kernel set (the T11-T14
+        SU/entropy/MI + the dispersion/audit + the ANOVA + the
+        adherence), the config (the T15, the D-175 opt-in), the
+        workers (the T16/T17), the full wiring (the T18, the
+        18-level pipeline + the rlm_05/rlm_06 experiment configs
+        + the full-chain re-pin + the hub re-pin). The I-017 is
+        DONE (the 18-level pipeline is live; the SU analysis is
+        OPTIONAL, the default FALSE, the D-175 opt-in — the
+        rlm_05/rlm_06 are the experiment configs to run it). The
+        production default is NOT flipped to true (Roberto's
+        call, the D-175: the opt-in stays FALSE until he says
+        so). The next step is the PROFILING session (the
+        OPTIMIZE pattern, the step-by-step algorithm
+        explanation + the joint code review — "questo codice ora
+        deve volare"), AFTER the SU level is complete. The
+        I-018 outlier report is parked (Roberto's call).
+        Mirrors (D-007), journal, overview. 894 -> 894 (no new
+        tests — the campaign close is the notes/docs; the
+        A2030/A2050 full-chain re-pin is the verification).

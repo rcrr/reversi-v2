@@ -40,7 +40,9 @@ from reversi.base_model import BaseModel
 from reversi.lm.wrk_config import wrk_config
 from reversi.lm.wrk_positions import wrk_positions
 from reversi.lm.wrk_features import wrk_features
+from reversi.lm.wrk_feature_analysis import wrk_feature_analysis
 from reversi.lm.wrk_indexes import wrk_indexes
+from reversi.lm.wrk_effect_size import wrk_effect_size
 from reversi.lm.wrk_wmaps import wrk_wmaps
 from reversi.lm.wrk_design_matrix import wrk_design_matrix
 from reversi.lm.wrk_zed import wrk_zed
@@ -221,8 +223,10 @@ class LogisticModel(BaseModel):
             Worker("CREATED", _created_up, _created_down),
             wrk_config(),
             wrk_features(),
+            wrk_feature_analysis(),
             wrk_positions(),
             wrk_indexes(),
+            wrk_effect_size(),
             wrk_wmaps(),
             wrk_design_matrix(),
             wrk_zed(),

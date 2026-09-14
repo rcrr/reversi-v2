@@ -108,14 +108,16 @@ class TestFullChainA2030(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 17-level chain (CREATED through
-        PLOT) on rlm_04."""
+        """Run the full 18-level chain (CREATED through
+        PLOT) on rlm_04. D-186/D-187: the I-017 FEATURE_ANALYSIS
+        (step 3) + the EFFECT_SIZE (step 6) levels — the PLOT is
+        now step 18 (was 16)."""
         ctx = self.rlm.context
 
         # Run the model chain (CREATED is step 0, PLOT is
-        # step 16).
+        # step 18).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 16)
+        self.assertEqual(self.rlm.current_step, 18)
         self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
@@ -184,11 +186,15 @@ class TestFullChainA2030(unittest.TestCase):
         # D-149: re-centered AGAIN for the plot config section in the
         # embedded dump (+~200 B LZ4-compressed): 2 runs measured
         # 22990/22994 B on the real base dir.
+        # D-186/D-187: re-centered AGAIN for the I-017 feature_
+        # analysis + effect_size sections in the embedded config
+        # dump (+~243 B LZ4-compressed, the default no-op): 1 run
+        # measured 23233 B on the real base dir.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(22940 < st_size < 23040,
-                        f"v2 model file size {st_size} outside the 22940-23040 band")
+        self.assertTrue(23183 < st_size < 23283,
+                        f"v2 model file size {st_size} outside the 23183-23283 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
@@ -420,16 +426,18 @@ class TestFullChainA2050(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 17-level chain (CREATED through
+        """Run the full 18-level chain (CREATED through
         PLOT) on rlm_03.
         Long-running: ~1 minute (1999179 training samples, 356 lbfgs
-        iters)."""
+        iters). D-186/D-187: the I-017 FEATURE_ANALYSIS (step 3) +
+        the EFFECT_SIZE (step 6) levels — the PLOT is now step 18
+        (was 16)."""
         ctx = self.rlm.context
 
         # Run the model chain (CREATED is step 0, PLOT is
-        # step 16).
+        # step 18).
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 16)
+        self.assertEqual(self.rlm.current_step, 18)
         self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
         # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
@@ -516,11 +524,18 @@ class TestFullChainA2050(unittest.TestCase):
         # D-149: the band re-centered for the plot config section in
         # the embedded dump: 1 run measured 516551 B on the real base
         # dir (the 4-byte LZ4 jitter of the random name chars stands).
+        # D-186/D-187: the band re-centered AGAIN for the I-017
+        # feature_analysis + effect_size sections in the embedded
+        # config dump (+~241 B LZ4-compressed, the default no-op,
+        # the A2030 measured 23233 vs the 22990 base — the ~+241 B
+        # increment). The VLONG run (the ~10-min rlm_03 100M chain)
+        # re-measures on the real base dir; the band is the
+        # 516551 + ~241 = ~516792 center, the 100 B tolerance.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(516500 < st_size < 516700,
-                        f"v2 model file size {st_size} outside the 516500-516700 band")
+        self.assertTrue(516692 < st_size < 516892,
+                        f"v2 model file size {st_size} outside the 516692-516892 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---

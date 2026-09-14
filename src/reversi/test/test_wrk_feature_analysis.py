@@ -91,8 +91,10 @@ def _make_ctx(tmp, n_positions, enable=True, su_pairs=None,
     cfg.feature_analysis.corpus.total_positions = n_positions
     cfg.feature_analysis.corpus.ec = 20
     cfg.feature_analysis.corpus.seed = 42
-    if su_pairs is not None:
-        cfg.feature_analysis.su_pairs = [tuple(p) for p in su_pairs]
+    # The explicit no-pairs (the default) — independent of the
+    # fixture's su_pairs.
+    cfg.feature_analysis.su_pairs = \
+        [tuple(p) for p in su_pairs] if su_pairs is not None else []
     cache_path = tmp / "rlmwf_03_FEATURE_ANALYSIS.dat"
     return _MockCtx(cfg, fset, cache_path, use_cache=use_cache)
 
