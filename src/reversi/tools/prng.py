@@ -54,8 +54,7 @@ import math
 import numpy as np
 import numba as nb
 
-__all__ = ['MT19937', 'NN', 'MM', 'UM', 'LM', 'MAG01', 'MAG',
-           'mt19937_init', 'mt19937_batch_draw']
+__all__ = ['MT19937']
 
 # The C static constants (prng.c L154-158), verbatim.
 NN: int = 312
@@ -234,6 +233,23 @@ class MT19937:
         x = x ^ (x >> 43)
 
         return x
+
+    def get_uint64_batch(self, n: int) -> np.ndarray:
+        """
+        The n successive values of the sequence as a (n,) u64
+        array — the numba batch-draw kernel (mt19937_batch_draw,
+        the single source, the D-194) run on this state
+        (the _mt working area + the _mti index, mutated in
+        place). Bit-exact vs get_uint64 called n times (the
+        same twist + the same 4-op temper, the T3 C oracle).
+        A BARE state (never init'ed, only possible via the
+        internals) falls back to the C default seed 5489, as
+        get_uint64.
+        """
+        if self._mti == NN + 1:
+            self.init_by_seed(5489)
+        draws, self._mti = mt19937_batch_draw(self._mt, self._mti, n)
+        return draws
 
     def get_double_in_c0_c1(self) -> np.float64:
         """

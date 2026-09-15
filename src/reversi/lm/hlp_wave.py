@@ -98,7 +98,7 @@ import numpy as np
 import numba as nb
 
 from reversi.board import legal_moves, make_position, position_make_move
-from reversi.tools.prng import NN, mt19937_batch_draw, mt19937_init
+from reversi.tools.prng import MT19937
 
 __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
            'WaveState', 'BufferSink', 'make_wave',
@@ -122,8 +122,8 @@ MAX_EC: int = 60
 
 # The G0 stream (the single global golden-pinned MT19937)
 # lives in tools/prng.py — the SINGLE SOURCE (the D-194
-# move): the NN constant + the mt19937_init /
-# mt19937_batch_draw numba kernels, imported below.
+# move): the MT19937 class is the single public interface
+# (the D-195) — its get_uint64_batch drives the wave.
 
 
 class WaveState:
@@ -216,18 +216,18 @@ def _pick_g0(draws, src):
     return move, step
 
 
-def step_wave_g0(state: WaveState, mt: np.ndarray,
-                 mti: int
-                 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+def step_wave_g0(state: WaveState, prng: MT19937
+                 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     One lockstep step, the G0 uniform pick (D-174): the
     SAME step logic (the pass folded, the
     double-pass coast, the counter walk) with the pick
-    from the GLOBAL MT19937 stream — W draws per step,
-    lane order, the pass/dead lanes' draws consumed
-    (unused). Returns (move, pass_mask, dead, mti) — the
-    updated stream index (the caller threads it through
-    the run, the stream is global across waves).
+    from the GLOBAL MT19937 stream — W draws per step
+    (prng.get_uint64_batch), lane order, the pass/dead
+    lanes' draws consumed (unused). The stream state
+    lives in the prng object (the class is the single
+    public interface, the D-195). Returns (move,
+    pass_mask, dead) — the stream is global across waves.
     """
     M, O = state.mover, state.opp
     lm = legal_moves(M, O)
@@ -235,7 +235,7 @@ def step_wave_g0(state: WaveState, mt: np.ndarray,
     pass_mask = lm == 0
     dead = pass_mask & (lo == 0)
     src = np.where(pass_mask, lo, lm)
-    draws, mti = mt19937_batch_draw(mt, mti, state.W)
+    draws = prng.get_uint64_batch(state.W)
     move, _ = _pick_g0(draws, src)
     # The dead lanes ride the PA SWAP (the documented
     # kernel behaviour — the same rationale as the G0 step).
@@ -250,7 +250,7 @@ def step_wave_g0(state: WaveState, mt: np.ndarray,
         state.alive &= ~dead
         state.dead_total += int(dead.sum())
     state.steps += 1
-    return move, pass_mask, dead, mti
+    return move, pass_mask, dead
 
 
 def _harvest_and_respawn(state: WaveState, sink, total: int) -> int:
@@ -335,14 +335,13 @@ def run_wave_g0(total: int, ec_target: int, seed: int,
             f"ec_target {ec_target} is out of the [0, {MAX_EC}] domain")
     steps_per_wave = MAX_EC - int(ec_target)
     state = make_wave(int(wave_size), int(slot_base))
-    mt = np.zeros(NN, dtype=np.uint64)
-    mti = mt19937_init(mt, int(seed))
+    prng = MT19937(int(seed))
     waves = 0
     while state.harvested < total:
         for _ in range(steps_per_wave):
-            _, _, _, mti = step_wave_g0(state, mt, mti)
+            step_wave_g0(state, prng)
         _harvest_and_respawn(state, sink, int(total))
         waves += 1
     return {'harvested': state.harvested, 'waves': waves,
             'next_slot': state.next_slot, 'dead': state.dead_total,
-            'mti': mti}
+            'mti': prng.mti}

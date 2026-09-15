@@ -7,9 +7,11 @@ uniform pick from the single global golden-pinned MT19937
 (the I-017 CORPUS GENERATOR, the D-174 design call).
 > State: D-170 + D-174 + D-192 (the initial-position fix —
 the official Othello setup) + D-194 (the PRNG kernels moved
-out to tools/prng.py — the single source) · 2026-09-15 · the
-G0 engine tests + the LONG 1e6 G0 benchmark · the G0 engine
-is the I-017 CORPUS GENERATOR (Roberto's design call)
+out to tools/prng.py — the single source) + D-195 (the wave
+drives the stream through the class get_uint64_batch) ·
+2026-09-15 · the G0 engine tests + the LONG 1e6 G0 benchmark ·
+the G0 engine is the I-017 CORPUS GENERATOR (Roberto's design
+call)
 
 ## API
 - `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the
@@ -20,14 +22,15 @@ is the I-017 CORPUS GENERATOR (Roberto's design call)
   (mover/opp u64, counter i64 = the step counter, slot i64,
   alive bool) + the run bookkeeping (next_slot, steps,
   harvested, dead_total).
-- `step_wave_g0(state, mt, mti) -> (move, pass_mask, dead,
-  mti)` — the G0 lockstep step (five full-wave vectorized
-  calls, zero per-lane branching): the two Kogge-Stone legal
-  passes (the pass lanes' source is the swapped side's legal
-  set), `_pick_g0` (the uniform pick from the GLOBAL MT19937
-  stream — W draws per step, lane order), the make_move (the
-  swapped source for the pass lanes), the counter walk
-  (`~dead`).
+- `step_wave_g0(state, prng) -> (move, pass_mask, dead)` — the
+  G0 lockstep step (five full-wave vectorized calls, zero
+  per-lane branching): the two Kogge-Stone legal passes (the
+  pass lanes' source is the swapped side's legal set),
+  `_pick_g0` (the uniform pick from the GLOBAL MT19937 stream
+  — W draws per step via prng.get_uint64_batch, lane order),
+  the make_move (the swapped source for the pass lanes), the
+  counter walk (`~dead`). The stream state lives in the prng
+  object (the class is the single public interface, the D-195).
 - `run_wave_g0(total, ec_target, seed, wave_size, sink,
   slot_base)` — the G0 corpus run (the I-017 CORPUS
   GENERATOR, D-174): the S = 60 - ec_target lockstep steps,
@@ -36,11 +39,10 @@ is the I-017 CORPUS GENERATOR (Roberto's design call)
   draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks
   (mover, opp, slot); `flatten()`).
-- The G0 stream (the MT19937 init + the batch draw) is
-  tools/prng.py — the single source (the D-194 move):
-  `mt19937_init(mt, seed)` / `mt19937_batch_draw(mt, mti, n)
-  -> (draws, mti)`; this module imports them (it carries no
-  PRNG code).
+- The G0 stream (the MT19937) is tools/prng.py — the single
+  source (the D-194 move): this module imports the MT19937
+  class and drives the wave through `get_uint64_batch(W)` (the
+  D-195; it carries no PRNG code).
 - `_pick_g0(draws, src) -> (move, step)` — the numba-
   parallel uniform pick (the HW popcount, the rank = draw
   % k, the rank-th set bit; the modulo bias < k/2^64, 12
@@ -75,8 +77,9 @@ is the I-017 CORPUS GENERATOR (Roberto's design call)
   alignment) is the 1e7 build concern.
 - The G0 stream (D-174): a SINGLE GLOBAL MT19937 (the
   project's golden-pinned PRNG, the "one seed for all" pin;
-  the kernels are tools/prng.py — the D-194 single source) —
-  one draw per (lane, step) in lane order, W draws
+  the class + the kernels are tools/prng.py — the D-194
+  single source, driven through get_uint64_batch, the
+  D-195) — one draw per (lane, step) in lane order, W draws
   per step; the pass/dead lanes' draws are CONSUMED
   (unused); the stream is global across waves (the run is
   one stream). The G0 trajectory of lane g depends on the
@@ -86,9 +89,10 @@ is the I-017 CORPUS GENERATOR (Roberto's design call)
   not just the slot).
 
 ## Verified invariants
-- G0 (D-174): the batch-draw kernel vs the golden-pinned
-  reference PRNG — bit-exact (2000 draws + the twist
-  across the 312-word boundary + the continuation).
+- G0 (D-174/D-195): the batch draw (the class
+  get_uint64_batch) vs the golden-pinned reference PRNG —
+  bit-exact (2000 draws + the twist across the 312-word
+  boundary + the continuation).
 - G0 (D-174): the W=1 trajectory vs the scalar G0
   reference loop (the same stream discipline — one draw
   per step, the pass folded into the step, the dead

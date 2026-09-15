@@ -1479,3 +1479,35 @@ D-194 | 2026-09-15 | The PRNG exclusivity move (the single
         36/0/1 GREEN; the full LONG run 858/0/21 GREEN; the
         1e6 G0 benchmark replays the corpus bit-exactly
         (28065 dead lanes, identical to pre-move).
+D-195 | 2026-09-15 | The class is the SOLE PRNG interface
+        (the board-design transformation, step 1 of the
+        passettino sequence). The new MT19937.get_uint64_
+        batch(n) method: the n successive values as a (n,)
+        u64 array — the numba batch-draw kernel
+        (mt19937_batch_draw, the D-194 single source) run on
+        the object state (_mt + _mti, mutated in place);
+        bit-exact vs get_uint64 called n times (the same
+        twist + temper — the Python init_by_seed is
+        bit-identical to the numba mt19937_init, so a class
+        instance is a valid kernel state); a BARE state falls
+        back to the C default seed 5489, as get_uint64.
+        __all__ is now [MT19937] ONLY (the constants
+        NN/MM/UM/LM/MAG01/MAG + the kernels mt19937_init /
+        mt19937_batch_draw are INTERNAL — direct imports
+        still work, import * does not). ALL clients now use
+        the class: hlp_wave.py drives the wave through
+        get_uint64_batch (step_wave_g0(state, prng) — the
+        raw mt/mti threading is gone, the stream state lives
+        in the prng object; run_wave_g0 returns prng.mti as
+        the provenance pin), test_hlp_wave.py routes both
+        kernel usages through the class (test_batch_matches_
+        reference + the W=1 trajectory), and a new test_prng
+        pin (test_get_uint64_batch_matches_scalar, 500
+        draws) guards the method in the class's own suite.
+        ZERO behavior change: the 1e6 G0 benchmark replays
+        the corpus bit-exactly (28065 dead lanes, identical
+        to the D-193/D-194 runs). Verification: the touched
+        modules 37/0/1 GREEN; the full LONG run 858/0/21
+        GREEN. The next passettino (parked): get_uint64 +
+        the inits over the numba kernels (the class hot path
+        to numba).

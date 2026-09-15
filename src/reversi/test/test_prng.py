@@ -146,6 +146,22 @@ class TestPrng(unittest.TestCase):
             v = g.get_uint64()
             self.assertIsInstance(v, np.uint64)
 
+    def test_get_uint64_batch_matches_scalar(self):
+        # The numba batch draw (get_uint64_batch, the D-195 class
+        # interface) is bit-exact vs get_uint64 called n times
+        # (the same twist + the same 4-op temper, the single
+        # source); 500 draws cross the 312-word twist boundary.
+        g = MT19937(1234)
+        ref = MT19937(1234)
+        n = 500
+        batch = g.get_uint64_batch(n)
+        self.assertEqual(batch.dtype, np.uint64)
+        self.assertEqual(batch.shape, (n,))
+        for i in range(n):
+            self.assertEqual(int(batch[i]), int(ref.get_uint64()),
+                             f"batch draw {i} deviates from the "
+                             "scalar reference")
+
     def test_double_ranges_and_typing(self):
         g = MT19937(7)
         for _ in range(1000):

@@ -6,11 +6,13 @@ mirrors the C prng_mt19937_t struct and its 15 functions: the two
 inits (by seed / by array), get_uint64 (the twist + the 4-op
 temper), the three double generators ([0,1], [0,1), (0,1)),
 random_choice_from_finite_set, the four Fisher-Yates shuffles,
-random_string_az, extract_from_set64 and choose_one_from_set64.
-The module is the SINGLE SOURCE of the numba MT19937-64 kernels
-(mt19937_init / mt19937_batch_draw) — the G0 wave stream.
-> State: D-194 (the numba kernels — the single source) + D-193
-+ D-160 · 2026-09-15 · suite 20/0/0
+random_string_az, extract_from_set64, choose_one_from_set64 and
+get_uint64_batch (the numba batch draw). MT19937 is the SOLE
+public interface (the D-195: __all__ is [MT19937]; the numba
+kernels mt19937_init / mt19937_batch_draw are internal — the
+module's single source for the G0 wave stream).
+> State: D-195 (the class is the sole interface) + D-194 + D-193
++ D-160 · 2026-09-15 · suite 21/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
@@ -22,6 +24,12 @@ The module is the SINGLE SOURCE of the numba MT19937-64 kernels
   twist triggers automatically; a BARE state — never init'ed,
   only possible via the internals — falls back to the C default
   seed 5489).
+- get_uint64_batch(n) -> (n,) u64 array — the n successive values
+  of the sequence (the D-195 class interface): the numba batch-
+  draw kernel (mt19937_batch_draw, the single source) run on the
+  object state (_mt + _mti, mutated in place). Bit-exact vs
+  get_uint64 called n times; a BARE state falls back to the C
+  default seed 5489, as get_uint64.
 - get_double_in_c0_c1() / _c0_o1() / _o0_o1() -> np.float64 — [0,1],
   [0,1), (0,1).
 - random_choice_from_finite_set(k) -> np.uint64 — uniform in
@@ -42,15 +50,6 @@ The module is the SINGLE SOURCE of the numba MT19937-64 kernels
   lowest set bits skipped, the next lowest set bit picked —
   returns (1 << p, p). The empty set returns the (0, 64)
   sentinel (64 = PA in the Move domain) WITHOUT consuming a draw.
-- mt19937_init(mt, seed) -> mti — the numba init (the C
-  prng_mt19937_init_by_seed, line by line; the verbatim quirk:
-  the loop leaves mti == NN, the first draw twists). mt is the
-  caller's (NN,) u64 array, filled in place.
-- mt19937_batch_draw(mt, mti, n) -> (draws, mti) — the numba
-  batch draw: n successive u64 draws (the twist + the 4-op
-  temper, prng.c L380-414 line by line), bit-exact vs the
-  golden-pinned MT19937 class above (the T3 C oracle). The
-  state (mt, mti) is the caller's, mutated in place.
 
 ## Architecture
 - The strict-typing ruling (D-159, Roberto: "NUMPY e stiamo
@@ -66,9 +65,13 @@ The module is the SINGLE SOURCE of the numba MT19937-64 kernels
   the numba kernel switches on).
 - The numba kernels (the D-194, the single source): the
   mt19937_init + mt19937_batch_draw @nb.njit(cache=True)
-  section at the end of the file — the G0 wave stream;
-  lm/hlp_wave.py imports them (it carries no PRNG code
-  anymore).
+  section at the end of the file — the G0 wave stream. They
+  are INTERNAL (not in __all__, the D-195): the class's
+  get_uint64_batch is the public face over mt19937_batch_draw
+  (init_by_seed — the Python port — is bit-identical to
+  mt19937_init, so a class instance is a valid kernel state).
+  lm/hlp_wave.py drives the wave through the class (it
+  carries no PRNG code, the D-194/D-195).
 - The init_by_seed multiplier is HIS constant
   6364136223846793005 — it is NOT the 32-bit-reference
   6364136293807784493 (do not "fix" it; the golden is the C
@@ -119,21 +122,23 @@ The module is the SINGLE SOURCE of the numba MT19937-64 kernels
   one-draw-per-pick stream consumption — pinned by the
   test_random_game golden (the exact 1000-draw frequencies at
   seed 93: any stream-consumption drift moves them).
-- The numba batch kernel vs the golden-pinned class (the D-194
-  single source): bit-exact over 2100 draws (the 2000-draw
-  batch + the twist across the 312-word boundary + the 100-
-  draw continuation, seed 7) — pinned by test_hlp_wave::
-  TestG0Engine::test_batch_matches_reference (the W=1
-  trajectory + the run-determinism suites ride on it).
+- get_uint64_batch (the D-195 class interface) vs the
+  golden-pinned class: bit-exact over 2100 draws (the
+  2000-draw batch + the twist across the 312-word boundary +
+  the 100-draw continuation, seed 7) — pinned by
+  test_hlp_wave::TestG0Engine::test_batch_matches_reference
+  (the W=1 trajectory + the run-determinism suites ride on
+  it) + test_prng::TestPrng::test_get_uint64_batch_matches_
+  scalar (500 draws vs get_uint64, the twist boundary).
 
 ## Open issues
 - The numba era (Roberto: "appena l'algoritmo funziona
   bisognera farlo andare con numba"): the batch-draw path is
-  numba (the kernel section, the D-194); the CLASS hot path
+  numba through the class (get_uint64_batch, the D-195, over
+  the kernel section, the D-194); the CLASS scalar path
   (get_uint64 + the inits) is still Python — the board-design
-  transformation (the single numba kernel + the dual public
-  face, the class as a thin state wrapper) is the next pass
-  (parked, Roberto's plan).
+  transformation (get_uint64 + the inits over the numba
+  kernels) is the next pass (parked, Roberto's plan).
 
 ## Conventions
 - The GNU header (the house template) + the provenance docstring
@@ -147,9 +152,10 @@ The module is the SINGLE SOURCE of the numba MT19937-64 kernels
 ## Integration
 - Dependencies: numpy + math + numba (the kernel section, the
   D-194).
-- The kernel consumer: lm/hlp_wave.py (the G0 wave engine —
-  this module is the single source, the D-194 move) + the
-  wave test suite.
+- The consumer: lm/hlp_wave.py (the G0 wave engine) drives the
+  wave through the class's get_uint64_batch (the D-195; this
+  module is the single source, the D-194 move) + the wave test
+  suite.
 - Consumers: the I-017 pipeline (the single-game random play,
   the concurrent wave engine, the marginal frequency
   accumulator) — the seeded corpus generation for the

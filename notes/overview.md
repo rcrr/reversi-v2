@@ -504,8 +504,18 @@ at the end of this file.
   mt19937_batch_draw + the scalar MAG): the PRNG code now
   lives COMPLETELY and EXCLUSIVELY in prng.py (zero behavior
   change — the bit-exact suites + the 1e6 benchmark replay
-  prove it). The board-design transformation (the numba
-  class + the dual face) is the next pass, step-by-step.
+  prove it).
+- D-195 (2026-09-15): the class is the SOLE PRNG interface
+  (the board-design transformation, step 1): the new
+  MT19937.get_uint64_batch(n) (the numba batch draw on the
+  object state, bit-exact vs get_uint64 × n) + __all__ is
+  [MT19937] ONLY (the constants + the kernels are internal);
+  ALL clients route through the class (hlp_wave drives the
+  wave via get_uint64_batch, step_wave_g0(state, prng) —
+  the raw mt/mti threading is gone). Zero behavior change
+  (the 1e6 benchmark replays bit-exactly, 28065 dead lanes).
+  Next passettino (parked): get_uint64 + the inits over the
+  numba kernels.
 
 ## Next steps
 
@@ -669,11 +679,12 @@ at the end of this file.
   I-017 SU / effect-size statistics + the rlm_00/05/06 runs) —
   the regeneration on the official start (the D-192) is the
   first maintenance call; the PRNG board-design intervention:
-  the exclusivity move is IN (D-194 — the numba kernels +
-  constants in tools/prng.py, the single source; hlp_wave
-  carries no PRNG code) — the TRANSFORMATION pass (the numba
-  class + the dual scalar/array face) is next, step-by-step;
-  the PROFILING session (the OPTIMIZE pattern) waits.
+  the exclusivity move (D-194) + the class-as-sole-interface
+  (D-195: get_uint64_batch + __all__ = [MT19937], all clients
+  route through the class) are IN — the remaining
+  TRANSFORMATION passettino (get_uint64 + the inits over the
+  numba kernels) is next, step-by-step; the PROFILING session
+  (the OPTIMIZE pattern) waits.
 
 
 
@@ -692,7 +703,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/tools/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
-| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel); D-194: the numba kernels mt19937_init / mt19937_batch_draw moved in from hlp_wave (the SINGLE source of the G0 stream; + the scalar MAG) | 20/0/0 | docs/src/reversi/tools/prng.md |
+| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel); D-194: the numba kernels mt19937_init / mt19937_batch_draw moved in from hlp_wave (the SINGLE source of the G0 stream; + the scalar MAG); D-195: get_uint64_batch (the numba batch draw on the object state) + __all__ = [MT19937] ONLY (the class is the sole public interface, the kernels + constants internal) | 21/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK 16th level (PLOT follows as the 17th — D-149) — the saved-model file acceptance test (D-148: the file re-read + the client's array EF + the Y-space residual comparison vs the in-memory VALIDATE forward pass, tolerance = cfg.client_check_tol) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
 | src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders (D-149; D-150: the fixed axes — game-value axes always [-64,+64], the density centered [-72,+72], the step-8 ticks — + the two-line bold/italic title + the _sym_limit helper) — the seven Y-space diagnostics (the three R classics + the four extensions), the PlotData + collect_plot_data (the training w_dense pass + the validation forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; matplotlib/scipy lazy-imported (the schema imports PLOT_NAMES on every run) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
@@ -729,7 +740,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_random_play.py | complete: the FEATURE_ANALYSIS frequency data plane (the I-017 T7-T9: the marginal frequency accumulator (D-177, the per-(feature, instance) column code -> count, the dense-bincount / unique-merge split, POOLED over the single-ec corpus) + the joint frequency accumulator (D-178, the per-requested-pair instanceÃinstance (code_i, code_j) -> count, the unique-merge, the packed-u64 key, the same-feature diagonal the SU = 1 lock) + the PRNG integration (D-179) + the ec pin (D-177: 64 - popcount(mover|opponent) = the DB's empty_count, the "mele con mele" window)) — the worker wrk_feature_analysis.py (T16) feeds the G0 wave (hlp_wave.run_wave_g0, D-174) chunk-by-chunk; D-192: the initial-position fix (the official Othello setup — the initial_position swap, random_game the canonical source) | 10/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
-| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170 + D-174): the G0 corpus engine (W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn; the G0 uniform pick from the single global golden-pinned MT19937, one draw per (lane, step), the bit-exact batch-draw port) — the G0 is the I-017 CORPUS GENERATOR (D-174, Roberto's design call); D-192: the initial-position fix (the official Othello setup — the INITIAL_MOVER/INITIAL_OPP swap, random_game the canonical source); D-194: the PRNG kernels moved out to tools/prng.py (no PRNG code in the wave anymore) | 3/0/0 (via test_hlp_wave; LONG: the 1e6 G0 benchmark) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170 + D-174): the G0 corpus engine (W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn; the G0 uniform pick from the single global golden-pinned MT19937, one draw per (lane, step), the bit-exact batch-draw port) — the G0 is the I-017 CORPUS GENERATOR (D-174, Roberto's design call); D-192: the initial-position fix (the official Othello setup — the INITIAL_MOVER/INITIAL_OPP swap, random_game the canonical source); D-194: the PRNG kernels moved out to tools/prng.py (no PRNG code in the wave anymore); D-195: the wave drives the stream through the class get_uint64_batch (step_wave_g0(state, prng)) | 3/0/0 (via test_hlp_wave; LONG: the 1e6 G0 benchmark) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/lm/hlp_gate.py | complete: the campaign config loader (the pipeline's own loader: the campaign JSON5 + the FeatureSet (the wrk_features pure mapping) + the per-feature column blocks (the documented column layout)) — used by the worker tests (test_wrk_feature_analysis, test_wrk_effect_size) | n/a (the gate test is removed) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
@@ -747,7 +758,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_cache_manager.py | complete: 22 tests; the D-085 idiom applied (D-072) | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite (D-141) — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test (PERF=1, measured 5.6M b/s) | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts (D-043); the header typo fixed with D-050 | 20/0/1 | docs/src/reversi/test/test_feature.md |
-| src/reversi/test/test_prng.py | complete: the MT19937 suite — the smoke micro-suite (the I-017 T2, D-159: the determinism, the dtype pins, the no-consume contracts) + the C-oracle golden suite (T3, D-161: the committed 13003-line golden + the first-100k equi-distribution); D-160: the rename with the module | 20/0/0 | docs/src/reversi/test/test_prng.md |
+| src/reversi/test/test_prng.py | complete: the MT19937 suite — the smoke micro-suite (the I-017 T2, D-159: the determinism, the dtype pins, the no-consume contracts) + the C-oracle golden suite (T3, D-161: the committed 13003-line golden + the first-100k equi-distribution); D-160: the rename with the module; D-195: the get_uint64_batch pin (500-draw batch-vs-scalar) | 21/0/0 | docs/src/reversi/test/test_prng.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (D-103 T5, D-105; the D-142 masked-hash helper + the 2 file-report goldens re-pinned) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite (D-148) — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden ("max difference 0.000e+00"), the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/src/reversi/test/test_wrk_client_check.md |
 | src/reversi/test/test_hlp_plot.py | complete: the PLOT pure-helper suite (D-149; D-150: the _sym_limit tests) — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the symmetric-axis limit (round-up to the step, the degenerate guard), the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 11/0/0 | docs/src/reversi/test/test_hlp_plot.md |
@@ -782,7 +793,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (D-084; the compressed mock pins with D-139) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite (D-096, +1 with D-139) | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_random_play.py | complete: the T4 NO-DB micro-suite (D-162) — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game, the non-full double pass — the D-169 fix), the seeded pinned trajectories + the independent replay; + the T7 micro-suite (D-177): the ec pin (the hand-counted stone counts, the empty-count identity) + the marginal accumulator (the LMC hand-counted vs the independent position_legal_moves oracle, the R2 inst0 cross-check via compute_indexes, the chunk-merge invariance); + the T8 micro-suite (D-178): the joint accumulator (the (LMC, R2) cross-feature + the (R2, R2) same-feature, each joint vs the independent per-position oracle, the same-feature diagonal ZERO off-diagonal, the chunk-merge invariance); + the T9 PRNG integration (D-179): the corpus reproducibility (same seed the SAME tables bit-exact, the different seed different) + the small end-to-end corpus (the sum == N, K_obs <= n_conf, the LMC marginal vs the independent position_legal_moves oracle); D-192: the TestInitialPosition pin re-landing (the E4+D5 / D4+E5 hex + the mover legal set {D3, C4, F5, E6}) | 23/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
-| src/reversi/test/test_hlp_wave.py | complete: the T5 + D-174 NO-DB micro-suite — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the G0 engine (the batch kernel bit-exact vs the golden oracle, the W=1 trajectory ≡ the scalar reference, the run integrity + the determinism), the LONG 1e6 G1 + G0 benchmarks | 14/0/2 (LONG: the benchmarks) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/test/test_hlp_wave.py | complete: the T5 + D-174 NO-DB micro-suite — K1 the pick kernel vs the T4 pick, LAW-1/2 the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory (pinned slot 712), LAW-3 the pass fold, LAW-4 the double-pass discard + respawn, the run integrity, the G0 engine (the batch draw bit-exact vs the golden oracle — routed through the class get_uint64_batch, the D-195, the W=1 trajectory ≡ the scalar reference, the run integrity + the determinism), the LONG 1e6 G1 + G0 benchmarks | 14/0/2 (LONG: the benchmarks) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/test/test_hlp_gate.py | complete: the T6 NO-DB micro-suite (D-172) — the MT19937 batch-draw kernel vs the golden-pinned reference (bit-exact, the twist boundary, the mid-stream start), the W=1 G0 wave ≡ the scalar G0 reference (the stream discipline), the statistics utilities on the hand-computed values, the structured keys (the no-overflow), the full gate smoke (GATE_SMOKE=1) | 14/0/0 (the smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite (D-087, +2 with D-139) | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite (D-091/D-092) | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |

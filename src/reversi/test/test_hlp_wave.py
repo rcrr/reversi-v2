@@ -62,26 +62,25 @@ from reversi.board import (make_position, position_legal_moves,
 from reversi.lm.hlp_wave import (BufferSink, INITIAL_MOVER, INITIAL_OPP,
                                   MAX_EC, make_wave,
                                   run_wave_g0, step_wave_g0)
-from reversi.tools.prng import (MT19937, NN, mt19937_batch_draw,
-                                mt19937_init)
+from reversi.tools.prng import MT19937
 
 class TestG0Engine(unittest.TestCase):
     """The G0 uniform engine (D-174 — the I-017 corpus
     generator, the D-173 gate verdict's design call)."""
 
     def test_batch_matches_reference(self):
-        # The numba batch-draw kernel vs the golden-pinned
-        # reference PRNG (bit-exact — 2000 draws + the twist
-        # across the 312-word boundary + the continuation).
-        mt = np.zeros(NN, dtype=np.uint64)
-        mti = mt19937_init(mt, 7)
+        # The numba batch-draw (the class get_uint64_batch,
+        # the single source) vs the golden-pinned reference
+        # PRNG (bit-exact — 2000 draws + the twist across the
+        # 312-word boundary + the continuation).
+        batch_gen = MT19937(7)
         ref = MT19937(7)
-        draws, mti = mt19937_batch_draw(mt, mti, 2000)
+        draws = batch_gen.get_uint64_batch(2000)
         for i in range(2000):
             self.assertEqual(int(draws[i]), int(ref.get_uint64()),
                              f"draw {i} deviates from the "
                              "golden-pinned reference")
-        draws2, _ = mt19937_batch_draw(mt, mti, 100)
+        draws2 = batch_gen.get_uint64_batch(100)
         for i in range(100):
             self.assertEqual(int(draws2[i]), int(ref.get_uint64()))
 
@@ -131,13 +130,13 @@ class TestG0Engine(unittest.TestCase):
                                    np.uint8(pick))
             m, o = int(p['mover']), int(p['opponent'])
             seq.append(pick)
-        # the G0 wave (W=1, the same seed, the same ec).
+        # the G0 wave (W=1, the same seed, the same ec) —
+        # the stream lives in the class (the D-195).
         state = make_wave(1, 0)
-        mt = np.zeros(NN, dtype=np.uint64)
-        mti = mt19937_init(mt, seed)
+        prng = MT19937(seed)
         wave_seq = []
         for _ in range(S):
-            move, _, dead, mti = step_wave_g0(state, mt, mti)
+            move, _, dead = step_wave_g0(state, prng)
             if bool(dead[0]):
                 break
             wave_seq.append(int(move[0]))
