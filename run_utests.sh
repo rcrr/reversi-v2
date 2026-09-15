@@ -29,6 +29,7 @@ MODULES=(
     reversi.test.test_prng
     # 1 — board & pattern concepts
     reversi.test.test_board
+    reversi.test.test_random_game
     reversi.test.test_pattern
     reversi.test.test_mobility
     reversi.test.test_feature
