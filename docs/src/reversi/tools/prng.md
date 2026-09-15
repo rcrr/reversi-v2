@@ -14,28 +14,29 @@ source for the twist + the 4-op temper + the G0 wave stream, and
 get_uint64 delegates to it (the D-196: the mt19937_init kernel
 is removed — the Python inits own the init — and the scalar
 path is numba).
-> State: D-196 (get_uint64 over the numba kernel, the init
-kernel removed) + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
+> State: D-197 (the C legacy bare-state / default-5489 path
+dropped) + D-196 + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
 suite 21/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
-  (fail-fast: exactly one of the two must be given).
+  (fail-fast: exactly one of the two must be given — the object
+  is ALWAYS initialized, the C legacy deferred-init / bare-state
+  path is dropped, the D-197).
 - init_by_seed(seed) / init_by_array(init_key) — the C inits, line
   by line; init_by_array fails fast on an EMPTY key (the C read
   would be an out-of-bounds UB).
 - get_uint64() -> np.uint64 — the next value of the sequence.
   Delegates to get_uint64_batch(1) (the D-196): the twist + the
   4-op temper live in the numba kernel _get_uint64_batch, no
-  duplicated logic. A BARE state — never init'ed, only possible
-  via the internals — falls back to the C default seed 5489.
+  duplicated logic.
 - get_uint64_batch(n) -> (n,) u64 array — the n successive values
   of the sequence (the D-195 class interface): the INTERNAL
   numba batch-draw kernel _get_uint64_batch (the single source)
   run on the object state (_mt + _mti, mutated in place).
   Bit-exact vs get_uint64 called n times (they share the same
-  kernel, the D-196); a BARE state falls back to the C default
-  seed 5489, as get_uint64.
+  kernel, the D-196); the state is always initialized (the
+  D-197).
 - get_double_in_c0_c1() / _c0_o1() / _o0_o1() -> np.float64 — [0,1],
   [0,1), (0,1).
 - random_choice_from_finite_set(k) -> np.uint64 — uniform in

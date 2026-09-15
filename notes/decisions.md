@@ -1541,3 +1541,28 @@ D-196 | 2026-09-15 | The scalar path to numba + the kernel
         init_by_array) remain Python (init_by_array kept
         Python by the approved plan) — the next passettino
         (parked) is the inits over a numba init kernel.
+D-197 | 2026-09-15 | Drop the C legacy bare-state (read-
+        clarity, Roberto's call). In the LEGACY C, `mti ==
+        NN + 1` meant "the generator was never init'ed" (the
+        C allowed new + a deferred init at the first
+        get_uint64, which applied its default seed 5489). In
+        the new Python the object can only be used after
+        construction, and the ctor is FAIL-FAST (exactly one
+        of seed / init_key) — the object is ALWAYS
+        initialized, so the NN + 1 sentinel + the 5489
+        fallback were DEAD CODE. Removed: the `self._mti =
+        NN + 1` assignment in __init__ (the init call below
+        sets _mti; the object is always initialized), the
+        `if self._mti == NN + 1: self.init_by_seed(5489)`
+        check in get_uint64_batch, and the "BARE state /
+        default 5489" mentions in the class + method
+        docstrings. The OTHER verbatim quirk is preserved
+        (init_by_seed leaves mti == NN, so the FIRST
+        get_uint64 twists the just-initialized array — that
+        is the C for-loop quirk, a different thing from the
+        NN + 1 sentinel). Verified: no test depended on the
+        fallback (grep-confirmed; the "5489" hits in the
+        golden are hex digit runs, not the seed). ZERO
+        behavior change: touched modules 37/0/1 GREEN; the
+        full LONG run 859/0/21 GREEN; the 1e6 G0 benchmark
+        replays bit-exactly (28065 dead lanes).

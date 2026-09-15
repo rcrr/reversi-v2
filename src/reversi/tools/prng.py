@@ -79,23 +79,26 @@ class MT19937:
 
     Construction fuses the C `prng_mt19937_new` + one init call
     (fail-fast: exactly one of `seed` / `init_key` must be given —
-    the C allows deferring the init to the first get_uint64, which
-    applies its default seed 5489; the port keeps that fallback for
-    a BARE state, see get_uint64).
+    the object is ALWAYS initialized by the ctor). The C legacy
+    path — deferring the init to the first get_uint64 with its
+    default seed 5489 — is DROPPED (the D-197): the Python
+    interface makes an uninitialized object impossible, so the
+    NN + 1 "not initialized" sentinel is gone.
 
     Attributes (internal — the C struct fields):
       _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
-      _mti: int — the working index; NN + 1 = not initialized.
+      _mti: int — the working index (always valid after the ctor).
     """
 
     def __init__(self, seed: int | None = None, *,
                  init_key: np.ndarray | list | None = None) -> None:
         if (seed is None) == (init_key is None):
             raise ValueError("exactly one of seed / init_key must be given")
-        # prng_mt19937_new: the fresh working area + the sentinel.
+        # prng_mt19937_new: the fresh working area. The init call
+        # below sets _mti — the object is always initialized, the
+        # C legacy NN + 1 "not initialized" sentinel is dropped
+        # (the D-197).
         self._mt = np.zeros(NN, dtype=np.uint64)
-        # mti == NN + 1 means that the mt array is not initialized.
-        self._mti = NN + 1
         if seed is not None:
             self.init_by_seed(seed)
         else:
@@ -211,12 +214,9 @@ class MT19937:
         (the _mt working area + the _mti index, mutated in
         place). Bit-exact vs get_uint64 called n times (the
         same twist + the same 4-op temper, the T3 C oracle).
-        A BARE state (never init'ed, only possible via the
-        internals) falls back to the C default seed 5489, as
-        get_uint64.
+        The state is always initialized (the ctor, the D-197
+        dropped the C legacy bare-state / default-5489 path).
         """
-        if self._mti == NN + 1:
-            self.init_by_seed(5489)
         draws, self._mti = _get_uint64_batch(self._mt, self._mti, n)
         return draws
 
