@@ -8,11 +8,15 @@ temper), the three double generators ([0,1], [0,1), (0,1)),
 random_choice_from_finite_set, the four Fisher-Yates shuffles,
 random_string_az, extract_from_set64, choose_one_from_set64 and
 get_uint64_batch (the numba batch draw). MT19937 is the SOLE
-public interface (the D-195: __all__ is [MT19937]; the numba
-kernels mt19937_init / mt19937_batch_draw are internal — the
-module's single source for the G0 wave stream).
-> State: D-195 (the class is the sole interface) + D-194 + D-193
-+ D-160 · 2026-09-15 · suite 21/0/0
+public interface (the D-195: __all__ is [MT19937]); the single
+INTERNAL numba kernel _get_uint64_batch is the module's single
+source for the twist + the 4-op temper + the G0 wave stream, and
+get_uint64 delegates to it (the D-196: the mt19937_init kernel
+is removed — the Python inits own the init — and the scalar
+path is numba).
+> State: D-196 (get_uint64 over the numba kernel, the init
+kernel removed) + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
+suite 21/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
@@ -20,16 +24,18 @@ module's single source for the G0 wave stream).
 - init_by_seed(seed) / init_by_array(init_key) — the C inits, line
   by line; init_by_array fails fast on an EMPTY key (the C read
   would be an out-of-bounds UB).
-- get_uint64() -> np.uint64 — the next value of the sequence (the
-  twist triggers automatically; a BARE state — never init'ed,
-  only possible via the internals — falls back to the C default
-  seed 5489).
+- get_uint64() -> np.uint64 — the next value of the sequence.
+  Delegates to get_uint64_batch(1) (the D-196): the twist + the
+  4-op temper live in the numba kernel _get_uint64_batch, no
+  duplicated logic. A BARE state — never init'ed, only possible
+  via the internals — falls back to the C default seed 5489.
 - get_uint64_batch(n) -> (n,) u64 array — the n successive values
-  of the sequence (the D-195 class interface): the numba batch-
-  draw kernel (mt19937_batch_draw, the single source) run on the
-  object state (_mt + _mti, mutated in place). Bit-exact vs
-  get_uint64 called n times; a BARE state falls back to the C
-  default seed 5489, as get_uint64.
+  of the sequence (the D-195 class interface): the INTERNAL
+  numba batch-draw kernel _get_uint64_batch (the single source)
+  run on the object state (_mt + _mti, mutated in place).
+  Bit-exact vs get_uint64 called n times (they share the same
+  kernel, the D-196); a BARE state falls back to the C default
+  seed 5489, as get_uint64.
 - get_double_in_c0_c1() / _c0_o1() / _o0_o1() -> np.float64 — [0,1],
   [0,1), (0,1).
 - random_choice_from_finite_set(k) -> np.uint64 — uniform in
@@ -63,14 +69,17 @@ module's single source for the G0 wave stream).
   MM = 156, UM = 0xFFFFFFFF80000000, LM = 0x000000007FFFFFFF,
   MAG01 = {0, 0xB5026F5AA96619E9}; MAG = MAG01[1] (the scalar
   the numba kernel switches on).
-- The numba kernels (the D-194, the single source): the
-  mt19937_init + mt19937_batch_draw @nb.njit(cache=True)
-  section at the end of the file — the G0 wave stream. They
-  are INTERNAL (not in __all__, the D-195): the class's
-  get_uint64_batch is the public face over mt19937_batch_draw
-  (init_by_seed — the Python port — is bit-identical to
-  mt19937_init, so a class instance is a valid kernel state).
-  lm/hlp_wave.py drives the wave through the class (it
+- The numba kernel (the D-194, the single source): the single
+  _get_uint64_batch @nb.njit(cache=True) at the end of the file
+  — the twist + the 4-op temper (prng.c L380-414 line by line),
+  the G0 wave stream. It is INTERNAL (not in __all__, the
+  D-195/D-196): only the class's get_uint64_batch calls it, and
+  get_uint64 delegates to that (n = 1), so the scalar + batch
+  paths share ONE kernel (no duplicated twist/temper, the
+  D-196). The mt19937_init kernel is REMOVED (the D-196): the
+  Python init_by_seed owns the init (it is bit-identical to the
+  removed numba init, so a class instance is a valid kernel
+  state). lm/hlp_wave.py drives the wave through the class (it
   carries no PRNG code, the D-194/D-195).
 - The init_by_seed multiplier is HIS constant
   6364136223846793005 — it is NOT the 32-bit-reference
@@ -122,23 +131,27 @@ module's single source for the G0 wave stream).
   one-draw-per-pick stream consumption — pinned by the
   test_random_game golden (the exact 1000-draw frequencies at
   seed 93: any stream-consumption drift moves them).
-- get_uint64_batch (the D-195 class interface) vs the
-  golden-pinned class: bit-exact over 2100 draws (the
-  2000-draw batch + the twist across the 312-word boundary +
-  the 100-draw continuation, seed 7) — pinned by
-  test_hlp_wave::TestG0Engine::test_batch_matches_reference
+- The numba kernel (the D-196 single source) vs the golden-
+  pinned C: get_uint64 (the D-196 delegation) + get_uint64_
+  batch (the D-195 class interface) share it — bit-exact over
+  2100 draws (the 2000-draw batch + the twist across the 312-
+  word boundary + the 100-draw continuation, seed 7) — pinned
+  by test_hlp_wave::TestG0Engine::test_batch_matches_reference
   (the W=1 trajectory + the run-determinism suites ride on
   it) + test_prng::TestPrng::test_get_uint64_batch_matches_
-  scalar (500 draws vs get_uint64, the twist boundary).
+  scalar (500 draws vs get_uint64, the twist boundary) + the
+  T3 golden 10k seed-42 sequence (now produced through the
+  kernel).
 
 ## Open issues
 - The numba era (Roberto: "appena l'algoritmo funziona
-  bisognera farlo andare con numba"): the batch-draw path is
-  numba through the class (get_uint64_batch, the D-195, over
-  the kernel section, the D-194); the CLASS scalar path
-  (get_uint64 + the inits) is still Python — the board-design
-  transformation (get_uint64 + the inits over the numba
-  kernels) is the next pass (parked, Roberto's plan).
+  bisognera farlo andare con numba"): the draw path is fully
+  numba through the class (get_uint64 + get_uint64_batch, the
+  D-196/D-195, over the single kernel _get_uint64_batch, the
+  D-194). The INITS (init_by_seed + init_by_array) are still
+  Python — the remaining board-design pass (the inits over a
+  numba init kernel) is the next step (parked, Roberto's plan;
+  init_by_array was kept Python by the approved plan).
 
 ## Conventions
 - The GNU header (the house template) + the provenance docstring

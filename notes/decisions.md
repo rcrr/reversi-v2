@@ -1511,3 +1511,33 @@ D-195 | 2026-09-15 | The class is the SOLE PRNG interface
         GREEN. The next passettino (parked): get_uint64 +
         the inits over the numba kernels (the class hot path
         to numba).
+D-196 | 2026-09-15 | The scalar path to numba + the kernel
+        cleanup (the board-design transformation, step 2).
+        Three changes, all zero-behavior: (1) the
+        mt19937_init numba kernel is REMOVED — it was
+        unused (the class inits via the Python init_by_seed,
+        which is bit-identical to it, so the init is owned
+        by the Python port; the numba init had no caller
+        since D-195 routed the wave through the class);
+        (2) the mt19937_batch_draw numba kernel is RENAMED
+        _get_uint64_batch (the class-internal name, the
+        single source for the twist + the 4-op temper);
+        (3) get_uint64 is REWRITTEN to delegate to
+        get_uint64_batch(1) — the duplicated Python
+        twist+temper (312-word loops) is deleted, the
+        scalar + batch paths now share ONE numba kernel.
+        The BARE-state fallback (the C default seed 5489)
+        lives once, in get_uint64_batch, and get_uint64
+        inherits it via the delegation. ZERO behavior
+        change: the numba kernel is bit-exact vs the old
+        Python get_uint64 (verified: the T3 golden 10k
+        seed-42 + 1k array-init sequences, the first-100k
+        equi-distribution, the random_game golden, the W=1
+        trajectory, and the 1e6 G0 benchmark all replay
+        identically — 28065 dead lanes). Verification: the
+        touched modules 37/0/1 GREEN; the full LONG run
+        859/0/21 GREEN. The draw path is now FULLY numba
+        through the class; the INITS (init_by_seed +
+        init_by_array) remain Python (init_by_array kept
+        Python by the approved plan) — the next passettino
+        (parked) is the inits over a numba init kernel.

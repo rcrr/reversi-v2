@@ -514,8 +514,17 @@ at the end of this file.
   wave via get_uint64_batch, step_wave_g0(state, prng) —
   the raw mt/mti threading is gone). Zero behavior change
   (the 1e6 benchmark replays bit-exactly, 28065 dead lanes).
-  Next passettino (parked): get_uint64 + the inits over the
-  numba kernels.
+- D-196 (2026-09-15): the scalar path to numba + the kernel
+  cleanup (the board-design transformation, step 2): the
+  unused mt19937_init numba kernel is REMOVED (the class
+  inits via the Python init_by_seed, bit-identical); the
+  mt19937_batch_draw kernel is RENAMED _get_uint64_batch
+  (class-internal, the single twist+temper source); get_uint64
+  is REWRITTEN to delegate to get_uint64_batch(1) — the
+  duplicated Python twist+temper is deleted, scalar + batch
+  share ONE numba kernel. The draw path is now FULLY numba;
+  the inits stay Python. Zero behavior change (T3 golden +
+  1e6 benchmark replay bit-exactly, 28065 dead lanes).
 
 ## Next steps
 
@@ -680,11 +689,14 @@ at the end of this file.
   the regeneration on the official start (the D-192) is the
   first maintenance call; the PRNG board-design intervention:
   the exclusivity move (D-194) + the class-as-sole-interface
-  (D-195: get_uint64_batch + __all__ = [MT19937], all clients
-  route through the class) are IN — the remaining
-  TRANSFORMATION passettino (get_uint64 + the inits over the
-  numba kernels) is next, step-by-step; the PROFILING session
-  (the OPTIMIZE pattern) waits.
+  (D-195) + the scalar path to numba + kernel cleanup (D-196:
+  get_uint64 delegates to get_uint64_batch(1), the
+  mt19937_init kernel removed, the batch kernel renamed
+  _get_uint64_batch) are IN — the draw path is now FULLY numba
+  through the class; the remaining TRANSFORMATION passettino
+  (the inits over a numba init kernel; init_by_array kept
+  Python) is next, step-by-step; the PROFILING session (the
+  OPTIMIZE pattern) waits.
 
 
 
@@ -703,7 +715,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/tools/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
-| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel); D-194: the numba kernels mt19937_init / mt19937_batch_draw moved in from hlp_wave (the SINGLE source of the G0 stream; + the scalar MAG); D-195: get_uint64_batch (the numba batch draw on the object state) + __all__ = [MT19937] ONLY (the class is the sole public interface, the kernels + constants internal) | 21/0/0 | docs/src/reversi/tools/prng.md |
+| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel); D-194: the numba kernels mt19937_init / mt19937_batch_draw moved in from hlp_wave (the SINGLE source of the G0 stream; + the scalar MAG); D-195: get_uint64_batch (the numba batch draw on the object state) + __all__ = [MT19937] ONLY (the class is the sole public interface); D-196: the scalar path to numba (get_uint64 delegates to get_uint64_batch(1), the duplicated Python twist+temper deleted), the unused mt19937_init kernel removed, the batch kernel renamed the class-internal _get_uint64_batch (the draw path is now fully numba; the inits stay Python) | 21/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK 16th level (PLOT follows as the 17th — D-149) — the saved-model file acceptance test (D-148: the file re-read + the client's array EF + the Y-space residual comparison vs the in-memory VALIDATE forward pass, tolerance = cfg.client_check_tol) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
 | src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders (D-149; D-150: the fixed axes — game-value axes always [-64,+64], the density centered [-72,+72], the step-8 ticks — + the two-line bold/italic title + the _sym_limit helper) — the seven Y-space diagnostics (the three R classics + the four extensions), the PlotData + collect_plot_data (the training w_dense pass + the validation forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; matplotlib/scipy lazy-imported (the schema imports PLOT_NAMES on every run) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |

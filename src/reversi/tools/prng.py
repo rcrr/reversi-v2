@@ -65,8 +65,9 @@ MAG01: np.ndarray = np.array(
     [np.uint64(0), np.uint64(0xB5026F5AA96619E9)], dtype=np.uint64)
 
 #: The scalar MAG (the C MAG01[1] — the odd index), the constant
-#: the numba batch-draw kernel switches on (the single source for
-#: the G0 wave stream, the D-194 move from lm/hlp_wave.py).
+#: the internal numba kernel _get_uint64_batch switches on (the
+#: single source for the G0 wave stream, the D-194 move from
+#: lm/hlp_wave.py; the kernel is class-internal, the D-196).
 MAG: np.uint64 = MAG01[1]
 
 
@@ -193,52 +194,20 @@ class MT19937:
 
     def get_uint64(self) -> np.uint64:
         """
-        C prng_mt19937_get_uint64 (prng.c L380), line by line: the
-        twist (312 words at one time) + the 4-op temper. Returns the
-        next pseudo-random uint64 of the sequence.
+        C prng_mt19937_get_uint64 (prng.c L380): the next
+        pseudo-random uint64 of the sequence. Delegates to
+        get_uint64_batch (n = 1) — the twist (312 words at a
+        time) + the 4-op temper (prng.c L380-414) live in the
+        numba kernel _get_uint64_batch (the single source, the
+        D-196); no duplicated logic here.
         """
-        mt = self._mt
-        if self._mti >= NN:
-            # If init_by_seed has not been called, a default initial
-            # seed is used (the C contract, kept for a bare state).
-            if self._mti == NN + 1:
-                self.init_by_seed(5489)
-
-            i = 0
-            while i < NN - MM:
-                x = (mt[i] & UM) | (mt[i + 1] & LM)
-                mt[i] = mt[i + MM] ^ (x >> 1) ^ MAG01[int(x & 1)]
-                i += 1
-
-            # The C index `i + (mm - nn)` (the unsigned wrap of
-            # mm - nn) is `i - 156` in plain Python.
-            while i < NN - 1:
-                x = (mt[i] & UM) | (mt[i + 1] & LM)
-                mt[i] = mt[i + (MM - NN)] ^ (x >> 1) ^ MAG01[int(x & 1)]
-                i += 1
-
-            x = (mt[NN - 1] & UM) | (mt[0] & LM)
-            mt[NN - 1] = mt[MM - 1] ^ (x >> 1) ^ MAG01[int(x & 1)]
-
-            self._mti = 0
-
-        x = mt[self._mti]
-        self._mti += 1
-
-        # The temper (prng.c L411-414): the & binds tighter than ^,
-        # exactly as in the C; the numpy uint64 shifts wrap at 64 bits.
-        x = x ^ (x >> 29) & np.uint64(0x5555555555555555)
-        x = x ^ (x << 17) & np.uint64(0x71D67FFFEDA60000)
-        x = x ^ (x << 37) & np.uint64(0xFFF7EEE000000000)
-        x = x ^ (x >> 43)
-
-        return x
+        return self.get_uint64_batch(1)[0]
 
     def get_uint64_batch(self, n: int) -> np.ndarray:
         """
         The n successive values of the sequence as a (n,) u64
-        array — the numba batch-draw kernel (mt19937_batch_draw,
-        the single source, the D-194) run on this state
+        array — the numba batch-draw kernel _get_uint64_batch
+        (the single source, the D-194/D-196) run on this state
         (the _mt working area + the _mti index, mutated in
         place). Bit-exact vs get_uint64 called n times (the
         same twist + the same 4-op temper, the T3 C oracle).
@@ -248,7 +217,7 @@ class MT19937:
         """
         if self._mti == NN + 1:
             self.init_by_seed(5489)
-        draws, self._mti = mt19937_batch_draw(self._mt, self._mti, n)
+        draws, self._mti = _get_uint64_batch(self._mt, self._mti, n)
         return draws
 
     def get_double_in_c0_c1(self) -> np.float64:
@@ -431,34 +400,24 @@ class MT19937:
 
 
 # ---------------------------------------------------------------------
-# The numba MT19937-64 kernels — the SINGLE SOURCE of the batch
-# draw (the D-194 move from lm/hlp_wave.py, which now imports
-# them): the twist + the 4-op temper, bit-exact vs the golden-
-# pinned MT19937 class above (the T3 C oracle). The state is the
-# caller's (the `mt` working area + the `mti` index), mutated in
-# place. The G0 wave engine (hlp_wave.run_wave_g0) is the
-# consumer.
+# The numba MT19937-64 batch-draw kernel — the SINGLE SOURCE of
+# the batch draw (the D-194 move from lm/hlp_wave.py, which now
+# drives the wave through the class): the twist + the 4-op
+# temper, bit-exact vs the golden-pinned MT19937 class above
+# (the T3 C oracle). _get_uint64_batch is INTERNAL to the class
+# (the D-196): only MT19937.get_uint64_batch calls it. The state
+# is the caller's (the `mt` working area + the `mti` index),
+# mutated in place.
 # ---------------------------------------------------------------------
 
-@nb.njit(cache=True)
-def mt19937_init(mt, seed):
-    """C prng_mt19937_init_by_seed, line by line (the
-    verbatim quirk: the loop leaves mti == NN — the first
-    draw twists the just-initialized array). Returns mti."""
-    mt[0] = np.uint64(seed)
-    for i in range(1, NN):
-        prev = mt[i - 1]
-        mt[i] = np.uint64(6364136223846793005) * (prev ^ (prev >> 62)) \
-            + np.uint64(i)
-    return NN
-
 
 @nb.njit(cache=True)
-def mt19937_batch_draw(mt, mti, n):
-    """The n successive u64 draws (the twist + the 4-op
-    temper, prng.c L380-414 line by line — bit-exact vs the
-    golden-pinned MT19937 class above, the T3 C oracle).
-    Returns (draws, mti)."""
+def _get_uint64_batch(mt, mti, n):
+    """INTERNAL to the class (the D-196): the n successive
+    u64 draws (the twist + the 4-op temper, prng.c L380-414
+    line by line — bit-exact vs the golden-pinned MT19937
+    class above, the T3 C oracle). Only
+    MT19937.get_uint64_batch calls it. Returns (draws, mti)."""
     out = np.empty(n, dtype=np.uint64)
     for j in range(n):
         if mti >= NN:
