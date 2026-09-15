@@ -1566,3 +1566,33 @@ D-197 | 2026-09-15 | Drop the C legacy bare-state (read-
         behavior change: touched modules 37/0/1 GREEN; the
         full LONG run 859/0/21 GREEN; the 1e6 G0 benchmark
         replays bit-exactly (28065 dead lanes).
+D-198 | 2026-09-15 | Drop init_by_array (seed-only PRNG,
+        Roberto's proposal, my agreement). init_by_array was
+        NEVER used — in the legacy C nor in the Python (grep-
+        confirmed: only the prng ctor hosted it; no pipeline
+        module called it) — so it was a complication whose
+        correctness we could not even be sure of (it ran only
+        in the golden tests, never on a production path).
+        Removed: the init_by_array method (the two mixing
+        loops + the 19650218 / 3935559000370003845 /
+        2862933555777941757 constants), the init_key ctor
+        parameter + the fail-fast "exactly one of seed /
+        init_key" (the ctor is now MT19937(seed), seed
+        REQUIRED), the 3 test_prng tests (test_ctor_fails_
+        fast — its logic is gone, the seed-required is now a
+        signature guarantee —, test_array_init_determinism,
+        test_array_init_state, test_array_init_sequence), +
+        the two golden sections [mt_array1234] (312) +
+        [seq_array1234] (1000) from data/prng_golden.txt
+        (13031 → 11717 lines). The seed path is untouched
+        (the [mt_seed42] / [seq_seed42] golden + the equi-
+        distribution + the wave / random_game goldens all
+        replay identically). Consistent with the prior
+        removals (D-196 the unused numba init kernel, D-197
+        the unused bare-state, and the stdlib wrappers +
+        clock seed skipped from the start). Verification:
+        touched modules 33/0/1 GREEN (37 − the 4 removed
+        tests); the full LONG run 855/0/21 GREEN; the 1e6 G0
+        benchmark replays bit-exactly (28065 dead lanes).
+        The port now keeps ONLY the init_by_seed (still
+        Python — the last board-design passettino, parked).

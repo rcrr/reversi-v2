@@ -2,30 +2,30 @@
 The MT-19937 64-bit PRNG — the line-by-line Python port of
 Roberto's C library (prng.c, 2017 — the 64-bit variant, NOT the
 32-bit reference), the I-017 T2 (D-159). One class, MT19937,
-mirrors the C prng_mt19937_t struct and its 15 functions: the two
-inits (by seed / by array), get_uint64 (the twist + the 4-op
-temper), the three double generators ([0,1], [0,1), (0,1)),
-random_choice_from_finite_set, the four Fisher-Yates shuffles,
-random_string_az, extract_from_set64, choose_one_from_set64 and
-get_uint64_batch (the numba batch draw). MT19937 is the SOLE
+mirrors the C prng_mt19937_t struct: the init_by_seed, get_uint64
+(the twist + the 4-op temper), the three double generators
+([0,1], [0,1), (0,1)), random_choice_from_finite_set, the four
+Fisher-Yates shuffles, random_string_az, extract_from_set64,
+choose_one_from_set64 and get_uint64_batch (the numba batch
+draw). The init_by_array is SKIPPED (the D-198 — never used, in
+the C nor in the Python). MT19937 is the SOLE
 public interface (the D-195: __all__ is [MT19937]); the single
 INTERNAL numba kernel _get_uint64_batch is the module's single
 source for the twist + the 4-op temper + the G0 wave stream, and
 get_uint64 delegates to it (the D-196: the mt19937_init kernel
 is removed — the Python inits own the init — and the scalar
 path is numba).
-> State: D-197 (the C legacy bare-state / default-5489 path
-dropped) + D-196 + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
-suite 21/0/0
+> State: D-198 (the init_by_array removed, the seed-only ctor) +
+D-197 + D-196 + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
+suite 17/0/0
 
 ## API
-- MT19937(seed=… | init_key=…) — the fused C new + one init call
-  (fail-fast: exactly one of the two must be given — the object
-  is ALWAYS initialized, the C legacy deferred-init / bare-state
-  path is dropped, the D-197).
-- init_by_seed(seed) / init_by_array(init_key) — the C inits, line
-  by line; init_by_array fails fast on an EMPTY key (the C read
-  would be an out-of-bounds UB).
+- MT19937(seed) — the fused C new + the init_by_seed call (the
+  seed is REQUIRED; the D-198 removed the init_key / init_by_
+  array — the object is ALWAYS initialized, the C legacy
+  deferred-init / bare-state path dropped, the D-197).
+- init_by_seed(seed) — the C init, line by line (the init_by_
+  array was skipped, the D-198).
 - get_uint64() -> np.uint64 — the next value of the sequence.
   Delegates to get_uint64_batch(1) (the D-196): the twist + the
   4-op temper live in the numba kernel _get_uint64_batch, no
@@ -115,11 +115,12 @@ suite 21/0/0
   (shape (312,)); every generator returns np.uint64 /
   np.float64 (the tests assert the dtypes).
 - The T3 golden suite landed (D-161): test_prng.py now pins the
-  C-oracle committed sequences (data/prng_golden.txt — 10k
-  seed-42 + 1k array-init uint64, the two mt init states, the
-  doubles / choice / extract sequences) + the first-100k
-  equi-distribution (the per-bit balance, the top-bit chi-
-  square, the choice-64 uniformity) — ALL MATCH.
+  C-oracle committed sequences (data/prng_golden.txt — the mt
+  seed-42 state + 10k seed-42 uint64, the doubles / choice /
+  extract sequences) + the first-100k equi-distribution (the
+  per-bit balance, the top-bit chi-square, the choice-64
+  uniformity) — ALL MATCH. (The array-init sections were
+  dropped with the D-198 removal of init_by_array.)
 - The k == 1 no-consume contract: random_choice_from_finite_set(1)
   leaves the sequence position untouched (the next draw equals a
   fresh instance's first draw).
@@ -149,10 +150,10 @@ suite 21/0/0
   bisognera farlo andare con numba"): the draw path is fully
   numba through the class (get_uint64 + get_uint64_batch, the
   D-196/D-195, over the single kernel _get_uint64_batch, the
-  D-194). The INITS (init_by_seed + init_by_array) are still
-  Python — the remaining board-design pass (the inits over a
-  numba init kernel) is the next step (parked, Roberto's plan;
-  init_by_array was kept Python by the approved plan).
+  D-194). The remaining init (init_by_seed — the D-198 removed
+  the init_by_array) is still Python — the last board-design
+  pass (the init over a numba init kernel) is the next step
+  (parked, Roberto's plan).
 
 ## Conventions
 - The GNU header (the house template) + the provenance docstring

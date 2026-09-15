@@ -99,17 +99,6 @@ class TestPrng(unittest.TestCase):
         self.assertEqual(int(LM), 0x000000007FFFFFFF)
         self.assertEqual(int(MAG01[1]), 0xB5026F5AA96619E9)
 
-    def test_ctor_fails_fast(self):
-        # Exactly one of seed / init_key (the fused C new + init).
-        with self.assertRaises(ValueError):
-            MT19937()
-        with self.assertRaises(ValueError):
-            MT19937(42, init_key=[1])
-        # The empty key: the C out-of-bounds read becomes a
-        # fail-fast ValueError (documented deviation).
-        with self.assertRaises(ValueError):
-            MT19937(init_key=[])
-
     def test_seed_determinism_and_typing(self):
         a = MT19937(42)
         b = MT19937(42)
@@ -122,20 +111,6 @@ class TestPrng(unittest.TestCase):
         # The state is the C working area: a uint64 ndarray.
         self.assertEqual(a.mt.dtype, np.uint64)
         self.assertEqual(a.mt.shape, (NN,))
-
-    def test_array_init_determinism(self):
-        key = np.array([1, 2, 3, 4], dtype=np.uint64)
-        a = MT19937(init_key=key)
-        b = MT19937(init_key=[1, 2, 3, 4])
-        for _ in range(50):
-            self.assertEqual(a.get_uint64(), b.get_uint64())
-        c = MT19937(init_key=[1, 2, 3, 5])
-        self.assertNotEqual(c.get_uint64(), a.get_uint64())
-        # The C final touch: the MSB of mt[0] is 1 (the non-zero
-        # initial array assurance) — a FRESH instance (the draws
-        # twist the working area, including mt[0]).
-        m = MT19937(init_key=key)
-        self.assertEqual(int(m.mt[0]) >> 63, 1)
 
     def test_get_uint64_wrap_64bit(self):
         # The full 64-bit domain: the max seed exercises the wrap
@@ -286,16 +261,6 @@ class TestPrngGolden(unittest.TestCase):
         g = MT19937(42)
         seq = [f"{int(g.get_uint64()):016x}" for _ in range(10000)]
         self.assertEqual(seq, self.g["seq_seed42"])
-
-    def test_array_init_state(self):
-        g = MT19937(init_key=[1, 2, 3, 4])
-        state = [f"{int(w):016x}" for w in g.mt]
-        self.assertEqual(state, self.g["mt_array1234"])
-
-    def test_array_init_sequence(self):
-        g = MT19937(init_key=[1, 2, 3, 4])
-        seq = [f"{int(g.get_uint64()):016x}" for _ in range(1000)]
-        self.assertEqual(seq, self.g["seq_array1234"])
 
     def test_doubles(self):
         for name, method in [

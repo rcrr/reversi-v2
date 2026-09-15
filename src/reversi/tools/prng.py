@@ -37,11 +37,13 @@ uint64 addition/multiplication overflows modulo 2^64 exactly like the
 C, no unbounded Python ints, no manual masking). Loop counters are
 plain ints (control flow, not data).
 
-Ported: the full MT family (the 15 prng_mt19937_* functions).
+Ported: the MT family (the prng_mt19937_* functions).
 Skipped: the 4 prng_stdlib_* wrappers (thin over srand/rand — a
-no-sense in Python) and prng_uint64_from_clock_random_seed (the
+no-sense in Python), prng_uint64_from_clock_random_seed (the
 clock-based seed: non-deterministic and unused — the pipeline seed
-comes from the config and is part of the cache signature).
+comes from the config and is part of the cache signature), and
+prng_mt19937_init_by_array (never used, in the C nor in the Python
+— the D-198 removal: only the init_by_seed is kept).
 
 The bit-exact verification oracles (T3): the C build of prng.c +
 bit_works.c + time_utils.c and Roberto's ut_prng.c.
@@ -77,32 +79,22 @@ class MT19937:
     prng_mt19937_t struct (the `uint64_t *mt` working area + the
     `size_t mti` working index).
 
-    Construction fuses the C `prng_mt19937_new` + one init call
-    (fail-fast: exactly one of `seed` / `init_key` must be given —
-    the object is ALWAYS initialized by the ctor). The C legacy
-    path — deferring the init to the first get_uint64 with its
-    default seed 5489 — is DROPPED (the D-197): the Python
-    interface makes an uninitialized object impossible, so the
-    NN + 1 "not initialized" sentinel is gone.
+    Construction fuses the C `prng_mt19937_new` + the init_by_seed
+    call (the seed is REQUIRED). The C legacy paths are DROPPED:
+    the deferred init with the default seed 5489 (the D-197) and
+    the init_by_array (the D-198 — never used, in the C nor in the
+    Python). The object is ALWAYS initialized by the ctor.
 
     Attributes (internal — the C struct fields):
       _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
       _mti: int — the working index (always valid after the ctor).
     """
 
-    def __init__(self, seed: int | None = None, *,
-                 init_key: np.ndarray | list | None = None) -> None:
-        if (seed is None) == (init_key is None):
-            raise ValueError("exactly one of seed / init_key must be given")
+    def __init__(self, seed: int) -> None:
         # prng_mt19937_new: the fresh working area. The init call
-        # below sets _mti — the object is always initialized, the
-        # C legacy NN + 1 "not initialized" sentinel is dropped
-        # (the D-197).
+        # below sets _mti — the object is always initialized.
         self._mt = np.zeros(NN, dtype=np.uint64)
-        if seed is not None:
-            self.init_by_seed(seed)
-        else:
-            self.init_by_array(init_key)
+        self.init_by_seed(seed)
 
     # -- the C accessors (read-only views, for the tests) -------------
 
@@ -139,59 +131,6 @@ class MT19937:
                     np.uint64(6364136223846793005) * (prev ^ (prev >> 62))
                     + np.uint64(mti))
         self._mti = NN  # the C for-loop leaves mti == nn
-
-    def init_by_array(self, init_key: np.ndarray | list) -> None:
-        """
-        C prng_mt19937_init_by_array (prng.c L337), line by line.
-
-        `init_key` is the uint64 array of init values. The C reads
-        `init_key[j]` with j wrapping at key_length — an EMPTY key
-        would be an out-of-bounds read in C (UB); the port fails
-        fast with a ValueError instead.
-        """
-        key = np.asarray(init_key, dtype=np.uint64).ravel()
-        key_length = int(key.size)
-        if key_length == 0:
-            raise ValueError("init_key must not be empty")
-
-        i = 1
-        j = 0
-        k = NN if NN > key_length else key_length
-
-        self.init_by_seed(19650218)
-
-        # The C unsigned arithmetic wraps BY DESIGN (as above).
-        with np.errstate(over="ignore", invalid="ignore"):
-            while k:
-                k -= 1
-                prev = self._mt[i - 1]
-                self._mt[i] = (
-                    (self._mt[i] ^ (prev ^ (prev >> 62))
-                     * np.uint64(3935559000370003845))
-                    + key[j] + np.uint64(j))  # non linear
-                i += 1
-                j += 1
-                if i >= NN:
-                    self._mt[0] = self._mt[NN - 1]
-                    i = 1
-                if j >= key_length:
-                    j = 0
-
-            k = NN - 1
-            while k:
-                k -= 1
-                prev = self._mt[i - 1]
-                self._mt[i] = (
-                    (self._mt[i] ^ (prev ^ (prev >> 62))
-                     * np.uint64(2862933555777941757))
-                    - np.uint64(i))  # non linear (the unsigned wrap)
-                i += 1
-                if i >= NN:
-                    self._mt[0] = self._mt[NN - 1]
-                    i = 1
-
-        # MSB is 1; assuring non-zero initial array.
-        self._mt[0] = np.uint64(1) << 63
 
     # -- the generators -------------------------------------------------
 
