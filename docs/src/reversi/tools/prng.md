@@ -2,30 +2,33 @@
 The MT-19937 64-bit PRNG — the line-by-line Python port of
 Roberto's C library (prng.c, 2017 — the 64-bit variant, NOT the
 32-bit reference), the I-017 T2 (D-159). One class, MT19937,
-mirrors the C prng_mt19937_t struct: the init_by_seed, get_uint64
-(the twist + the 4-op temper), the three double generators
-([0,1], [0,1), (0,1)), random_choice_from_finite_set, the four
-Fisher-Yates shuffles, random_string_az, extract_from_set64,
+mirrors the C prng_mt19937_t struct: the seed-init (the D-199:
+the init_by_seed consolidated into the ctor), get_uint64 (the
+twist + the 4-op temper), the three double generators ([0,1],
+[0,1), (0,1)), random_choice_from_finite_set, the four Fisher-
+Yates shuffles, random_string_az, extract_from_set64,
 choose_one_from_set64 and get_uint64_batch (the numba batch
-draw). The init_by_array is SKIPPED (the D-198 — never used, in
-the C nor in the Python). MT19937 is the SOLE
-public interface (the D-195: __all__ is [MT19937]); the single
-INTERNAL numba kernel _get_uint64_batch is the module's single
-source for the twist + the 4-op temper + the G0 wave stream, and
-get_uint64 delegates to it (the D-196: the mt19937_init kernel
-is removed — the Python inits own the init — and the scalar
-path is numba).
-> State: D-198 (the init_by_array removed, the seed-only ctor) +
-D-197 + D-196 + D-195 + D-194 + D-193 + D-160 · 2026-09-15 ·
-suite 17/0/0
+draw). The init_by_array is SKIPPED (the D-198). MT19937 is the
+SOLE public interface (the D-195: __all__ is [MT19937]); the
+single INTERNAL numba kernel _get_uint64_batch is the module's
+single source for the twist + the 4-op temper + the G0 wave
+stream, and get_uint64 delegates to it (the D-196). The D-199
+rationalized the rest: the state (_mt/_mti) is fully INTERNAL
+(the C accessors mt/mti dropped), and MM/UM/LM/MAG are kernel-
+LOCAL (only NN stays module-level).
+> State: D-199 (the ctor-consolidated init, the props + the
+kernel constants rationalized) + D-198 + D-197 + D-196 + D-195
++ D-194 + D-193 + D-160 · 2026-09-15 · suite 14/0/0
 
 ## API
-- MT19937(seed) — the fused C new + the init_by_seed call (the
-  seed is REQUIRED; the D-198 removed the init_key / init_by_
-  array — the object is ALWAYS initialized, the C legacy
-  deferred-init / bare-state path dropped, the D-197).
-- init_by_seed(seed) — the C init, line by line (the init_by_
-  array was skipped, the D-198).
+- MT19937(seed) — the fused C new + the init_by_seed (the
+  D-199: the init is CONSOLIDATED into the ctor, the init_by_
+  seed method is gone; the seed is REQUIRED; the D-198 removed
+  the init_key / init_by_array — the object is ALWAYS
+  initialized, the C legacy deferred-init / bare-state path
+  dropped, the D-197). The state (_mt / _mti) is INTERNAL — the
+  C accessors mt / mti are dropped (the D-199: we never read
+  the state to save it).
 - get_uint64() -> np.uint64 — the next value of the sequence.
   Delegates to get_uint64_batch(1) (the D-196): the twist + the
   4-op temper live in the numba kernel _get_uint64_batch, no
@@ -66,10 +69,14 @@ suite 17/0/0
   modulo 2^64 exactly like the C, no unbounded Python ints, no
   manual masking). Loop counters are plain ints (control flow,
   not data).
-- The constants are verbatim from prng.c L154-158: NN = 312,
-  MM = 156, UM = 0xFFFFFFFF80000000, LM = 0x000000007FFFFFFF,
-  MAG01 = {0, 0xB5026F5AA96619E9}; MAG = MAG01[1] (the scalar
-  the numba kernel switches on).
+- The constants are verbatim from prng.c L154-158 (the D-199
+  scoped them): NN = 312 is module-level (the ctor's
+  np.zeros(NN, …) + the init loop use it); MM = 156, UM =
+  0xFFFFFFFF80000000, LM = 0x000000007FFFFFFF, MAG =
+  0xB5026F5AA96619E9 are defined INSIDE the kernel
+  _get_uint64_batch (the twist + temper's implementation
+  details, the D-199). The C MAG01 array is dropped — only the
+  odd scalar MAG (MAG01[1]) is used (the D-199).
 - The numba kernel (the D-194, the single source): the single
   _get_uint64_batch @nb.njit(cache=True) at the end of the file
   — the twist + the 4-op temper (prng.c L380-414 line by line),
@@ -78,19 +85,20 @@ suite 17/0/0
   get_uint64 delegates to that (n = 1), so the scalar + batch
   paths share ONE kernel (no duplicated twist/temper, the
   D-196). The mt19937_init kernel is REMOVED (the D-196): the
-  Python init_by_seed owns the init (it is bit-identical to the
-  removed numba init, so a class instance is a valid kernel
-  state). lm/hlp_wave.py drives the wave through the class (it
-  carries no PRNG code, the D-194/D-195).
-- The init_by_seed multiplier is HIS constant
-  6364136223846793005 — it is NOT the 32-bit-reference
-  6364136293807784493 (do not "fix" it; the golden is the C
-  build, not the reference).
-- The C for-loop quirk is preserved: init_by_seed leaves
-  mti == nn, so the FIRST get_uint64 twists the just-initialized
-  array immediately.
+  ctor (the consolidated init_by_seed, the D-199) owns the init
+  (it is bit-identical to the removed numba init, so a class
+  instance is a valid kernel state). lm/hlp_wave.py drives the
+  wave through the class (it carries no PRNG code, the
+  D-194/D-195).
+- The init multiplier (the ctor's consolidated init, the
+  D-199) is HIS constant 6364136223846793005 — it is NOT the
+  32-bit-reference 6364136293807784493 (do not "fix" it; the
+  golden is the C build, not the reference).
+- The C for-loop quirk is preserved: the ctor's init leaves
+  mti == NN, so the FIRST get_uint64 twists the just-
+  initialized array immediately.
 - The numpy overflow warnings on the BY-DESIGN wraps are silenced
-  locally (np.errstate over="ignore") in the two init loops —
+  locally (np.errstate over="ignore") in the ctor's init loop —
   the wrap is the contract, not an error.
 - The three bitw_* C helpers used by extract_from_set64
   (bit_works.c) are inlined: the popcount, (s - 1) & s (clear the
@@ -111,16 +119,19 @@ suite 17/0/0
   random_choice_from_finite_set(5): ALL MATCH, in
   warnings-as-errors mode. The full golden suite lands in T3
   (the C build + ut_prng.c the oracles).
-- The strict-typing pins: the state mt is a uint64 ndarray
-  (shape (312,)); every generator returns np.uint64 /
-  np.float64 (the tests assert the dtypes).
+- The strict-typing pins: every generator returns np.uint64 /
+  np.float64 (the tests assert the dtypes). The state (_mt /
+  _mti) is INTERNAL (the D-199 dropped the mt / mti accessors)
+  — it is no longer observed from outside; the C-oracle golden
+  pins its behavior end-to-end instead.
 - The T3 golden suite landed (D-161): test_prng.py now pins the
-  C-oracle committed sequences (data/prng_golden.txt — the mt
-  seed-42 state + 10k seed-42 uint64, the doubles / choice /
-  extract sequences) + the first-100k equi-distribution (the
-  per-bit balance, the top-bit chi-square, the choice-64
-  uniformity) — ALL MATCH. (The array-init sections were
-  dropped with the D-198 removal of init_by_array.)
+  C-oracle committed sequences (data/prng_golden.txt — 10k seed-
+  42 uint64, the doubles / choice / extract sequences) + the
+  first-100k equi-distribution (the per-bit balance, the top-bit
+  chi-square, the choice-64 uniformity) — ALL MATCH. (The
+  array-init sections dropped with the D-198; the mt seed-42
+  state section dropped with the D-199, the state being internal
+  now.)
 - The k == 1 no-consume contract: random_choice_from_finite_set(1)
   leaves the sequence position untouched (the next draw equals a
   fresh instance's first draw).
@@ -150,10 +161,11 @@ suite 17/0/0
   bisognera farlo andare con numba"): the draw path is fully
   numba through the class (get_uint64 + get_uint64_batch, the
   D-196/D-195, over the single kernel _get_uint64_batch, the
-  D-194). The remaining init (init_by_seed — the D-198 removed
-  the init_by_array) is still Python — the last board-design
-  pass (the init over a numba init kernel) is the next step
-  (parked, Roberto's plan).
+  D-194). The remaining init (in the ctor — the D-199
+  consolidated init_by_seed, the D-198 removed the init_by_
+  array) is still Python — the last board-design pass (the
+  init over a numba init kernel) is the next step (parked,
+  Roberto's plan).
 
 ## Conventions
 - The GNU header (the house template) + the provenance docstring

@@ -1596,3 +1596,33 @@ D-198 | 2026-09-15 | Drop init_by_array (seed-only PRNG,
         benchmark replays bit-exactly (28065 dead lanes).
         The port now keeps ONLY the init_by_seed (still
         Python — the last board-design passettino, parked).
+D-199 | 2026-09-15 | The PRNG rationalization (Roberto's
+        call, my agreement — "non interrompiamo questo
+        percorso"). Four moves, all zero-behavior:
+        (1) init_by_seed is CONSOLIDATED into the ctor (the
+        method is gone — it was only called by __init__ after
+        the D-198 left it as the sole init); (2) the two C
+        accessors (the mt / mti PROPERTIES) are DROPPED —
+        they existed only to read the state to save it, which
+        we never do; the state (_mt / _mti) is now fully
+        INTERNAL; (3) the tests that looked inside the state
+        are removed (test_constants_are_the_c_ones, test_seed_
+        determinism_and_typing — the .mt peek, test_seed42_
+        init_state) — the C-oracle golden pins the constants'
+        behavior end-to-end instead (a typo in any constant
+        breaks the 10k golden); (4) the constants are
+        re-scoped: the C MAG01 array is dropped (only the odd
+        scalar MAG = MAG01[1] was used), and MM / UM / LM /
+        MAG are now defined INSIDE the kernel _get_uint64_
+        batch (they are the twist + temper's implementation
+        details); only NN stays module-level (the ctor's
+        np.zeros(NN, …) + the init loop use it). Consequence
+        in the wave: run_wave_g0's provenance drops the 'mti'
+        key (it read the dropped mti accessor, and NOTHING
+        consumed it — grep-confirmed). The unused [mt_seed42]
+        golden section is dropped too (11717 → 11404 lines).
+        Verification: touched modules 30/0/1 GREEN (33 − 3);
+        the full LONG run 852/0/21 GREEN; the 1e6 G0 benchmark
+        replays bit-exactly (28065 dead lanes). The module is
+        now minimal: one class, a seed ctor, one numba kernel
+        (with its constants local), the state fully internal.

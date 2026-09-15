@@ -61,7 +61,7 @@ import unittest
 import numpy as np
 
 from reversi.test.paths import WORKSPACE_ROOT
-from reversi.tools.prng import MT19937, NN, MM, UM, LM, MAG01
+from reversi.tools.prng import MT19937
 
 
 #: The committed C-oracle golden (the D-161 artifact).
@@ -90,27 +90,6 @@ def _load_golden() -> "dict[str, list[str]]":
 class TestPrng(unittest.TestCase):
     """The port contract: the determinism, the typing, the wraps,
     the no-consume rules, the set extraction."""
-
-    def test_constants_are_the_c_ones(self):
-        # The C static constants (prng.c L154-158), verbatim.
-        self.assertEqual(NN, 312)
-        self.assertEqual(MM, 156)
-        self.assertEqual(int(UM), 0xFFFFFFFF80000000)
-        self.assertEqual(int(LM), 0x000000007FFFFFFF)
-        self.assertEqual(int(MAG01[1]), 0xB5026F5AA96619E9)
-
-    def test_seed_determinism_and_typing(self):
-        a = MT19937(42)
-        b = MT19937(42)
-        for _ in range(50):
-            va, vb = a.get_uint64(), b.get_uint64()
-            self.assertIsInstance(va, np.uint64)
-            self.assertEqual(va, vb)
-        c = MT19937(43)
-        self.assertNotEqual(c.get_uint64(), a.get_uint64())
-        # The state is the C working area: a uint64 ndarray.
-        self.assertEqual(a.mt.dtype, np.uint64)
-        self.assertEqual(a.mt.shape, (NN,))
 
     def test_get_uint64_wrap_64bit(self):
         # The full 64-bit domain: the max seed exercises the wrap
@@ -249,13 +228,6 @@ class TestPrngGolden(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.g = _load_golden()
-
-    def test_seed42_init_state(self):
-        # The seed-init contract: the whole 312-word working area
-        # after init_by_seed(42) — the C state, verbatim.
-        g = MT19937(42)
-        state = [f"{int(w):016x}" for w in g.mt]
-        self.assertEqual(state, self.g["mt_seed42"])
 
     def test_seed42_sequence(self):
         g = MT19937(42)

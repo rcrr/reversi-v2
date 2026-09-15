@@ -1,45 +1,41 @@
 # reversi/test/test_prng.py
 The SMOKE micro-suite of the MT19937 (the 64-bit MT-19937 PRNG
-port, the I-017 T2, D-159): the seed determinism, the strict-
-typing pins (the numpy uint64 / float64 dtypes of the state and
-of every output), the 64-bit wrap contract, the no-consume
-contracts (k == 1, the n <= 1 shuffles), the extract_from_set64
-semantics; the C-ORACLE golden suite (the I-017 T3, D-161: the
-committed bit-sequence vs Roberto's C build + the seed-init
-contract + the first-100k equi-distribution). 3 classes / 17
-tests / no DB. (The D-198 removed the init_by_array: the
-constructor fail-fast + the array-init determinism + the array-
-init golden are gone with it.)
-> State: D-198 (the init_by_array removal) + D-195 + D-161 ·
-2026-09-15 · suite 17/0/0
+port, the I-017 T2, D-159): the strict-typing pins (the numpy
+uint64 / float64 dtypes of every output), the 64-bit wrap
+contract, the no-consume contracts (k == 1, the n <= 1 shuffles),
+the extract_from_set64 semantics; the C-ORACLE golden suite (the
+I-017 T3, D-161: the committed bit-sequence vs Roberto's C build
++ the first-100k equi-distribution). 3 classes / 14 tests / no
+DB. (The D-198 removed the init_by_array tests; the D-199
+removed the tests that looked inside the state — the constants
+pin, the determinism/typing (the .mt peek), the init-state
+golden — with the mt / mti accessors.)
+> State: D-199 (the state-peeking tests removed) + D-198 +
+D-195 + D-161 · 2026-09-15 · suite 14/0/0
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestPrng` | 9 | `test_constants_are_the_c_ones` (NN/MM/UM/LM/MAG01 verbatim); `test_seed_determinism_and_typing` (50-draw equality, the np.uint64 dtype pin, the state dtype/shape (312,)); `test_get_uint64_wrap_64bit` (the max seed, 100 draws, no overflow error); `test_get_uint64_batch_matches_scalar` (the D-195: 500 get_uint64_batch draws == get_uint64 × 500 bit-exact, the u64 dtype + (n,) shape, crossing the 312-word twist boundary); `test_double_ranges_and_typing` (the [0,1] / [0,1) / (0,1) bounds + the float64 dtype, 1000 draws); `test_random_choice_contracts` (k == 0 → ValueError; k == 1 no-consume — the next draw equals a fresh instance's; k == 5 in [0,4]); `test_shuffle_contracts` (the permutation property, the n <= 1 no-consume, the 3 dtype pins, the generic face); `test_random_string_az` (length, the [a..z] charset, the two-fresh-instances determinism, the n == 0 empty); `test_extract_from_set64` (the single-bit set, the empty-set ValueError, the full 64-bit set → 64 distinct bits + empty, the picked-bit-cleared-from-the-ORIGINAL-set pin) |
-| `TestPrngGolden` | 5 | the C-oracle bit-exact golden (D-161, the committed `data/prng_golden.txt` — each section mirrored with a FRESH instance): `test_seed42_init_state` (the whole 312-word mt array after init_by_seed(42), verbatim); `test_seed42_sequence` (10000 uint64, hex); `test_doubles` (100 × 3 kinds, the %.17g strings); `test_choice_sequence` (1000 × random_choice(5)); `test_extract_full_sequence` (64 picks exhaust the full set: the C positions + the permutation + the empty end) |
+| `TestPrng` | 7 | `test_get_uint64_wrap_64bit` (the max seed, 100 draws, no overflow error, the np.uint64 dtype pin); `test_get_uint64_batch_matches_scalar` (the D-195: 500 get_uint64_batch draws == get_uint64 × 500 bit-exact, the u64 dtype + (n,) shape, crossing the 312-word twist boundary); `test_double_ranges_and_typing` (the [0,1] / [0,1) / (0,1) bounds + the float64 dtype, 1000 draws); `test_random_choice_contracts` (k == 0 → ValueError; k == 1 no-consume — the next draw equals a fresh instance's; k == 5 in [0,4]); `test_shuffle_contracts` (the permutation property, the n <= 1 no-consume, the 3 dtype pins, the generic face); `test_random_string_az` (length, the [a..z] charset, the two-fresh-instances determinism, the n == 0 empty); `test_extract_from_set64` (the single-bit set, the empty-set ValueError, the full 64-bit set → 64 distinct bits + empty, the picked-bit-cleared-from-the-ORIGINAL-set pin) |
+| `TestPrngGolden` | 4 | the C-oracle bit-exact golden (D-161, the committed `data/prng_golden.txt` — each section mirrored with a FRESH instance): `test_seed42_sequence` (10000 uint64, hex); `test_doubles` (100 × 3 kinds, the %.17g strings); `test_choice_sequence` (1000 × random_choice(5)); `test_extract_full_sequence` (64 picks exhaust the full set: the C positions + the permutation + the empty end) |
 | `TestPrngEquidistribution` | 3 | the first-100k statistical properties (deterministic, seed 42, Python-side): `test_first_100k_bit_balance` (the 64 bit positions in the 48-52% band — the ~12.6-sigma tolerance); `test_first_100k_top_bits_chi_square` (the top-7-bit 128 bins, the chi2 < 250 conservative threshold); `test_choice_64_uniform` (100k random_choice(64) draws, the 64 bins, the chi2 < 130 threshold) |
 
 ## Goldens pinned
 
 - `src/reversi/test/data/prng_golden.txt` (the D-161 artifact,
-  11717 lines, 7 sections): generated by the C build of
+  11404 lines, 6 sections): generated by the C build of
   Roberto's prng.c (the ONLY valid oracle — his variant, the
   64-bit constants; numpy RandomState is NOT; the file header
-  records the provenance + the D-number). Sections: [mt_seed42]
-  (312), [seq_seed42] (10000), [doubles_c0_c1] /
-  [doubles_c0_o1] / [doubles_o0_o1] (100 each), [choice5]
-  (1000), [extract_full] (64). (The [mt_array1234] +
-  [seq_array1234] sections were dropped with the D-198 removal
-  of init_by_array.)
-- The seed-init contract: the mt state dump (the init_by_seed
-  output, word by word) — the "published vectors" slot of the
-  doc spec (his variant has no official published vectors — the
-  C build is the vector source).
+  records the provenance + the D-number). Sections: [seq_seed42]
+  (10000), [doubles_c0_c1] / [doubles_c0_o1] / [doubles_o0_o1]
+  (100 each), [choice5] (1000), [extract_full] (64). (The
+  [mt_array1234] + [seq_array1234] sections dropped with the
+  D-198 removal of init_by_array; the [mt_seed42] state section
+  dropped with the D-199, the state being internal now.)
 - The contract pins: the dtype pins (np.uint64 / np.float64 —
   the D-159 strict-typing ruling), the no-consume sequences
-  (k == 1, n <= 1), the C constant literals.
+  (k == 1, n <= 1).
 
 ## Conventions
 

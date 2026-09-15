@@ -58,19 +58,13 @@ import numba as nb
 
 __all__ = ['MT19937']
 
-# The C static constants (prng.c L154-158), verbatim.
-NN: int = 312
-MM: int = 156
-UM: np.uint64 = np.uint64(0xFFFFFFFF80000000)  # Most significant 33 bits
-LM: np.uint64 = np.uint64(0x000000007FFFFFFF)  # Least significant 31 bits
-MAG01: np.ndarray = np.array(
-    [np.uint64(0), np.uint64(0xB5026F5AA96619E9)], dtype=np.uint64)
-
-#: The scalar MAG (the C MAG01[1] — the odd index), the constant
-#: the internal numba kernel _get_uint64_batch switches on (the
-#: single source for the G0 wave stream, the D-194 move from
-#: lm/hlp_wave.py; the kernel is class-internal, the D-196).
-MAG: np.uint64 = MAG01[1]
+# The C static constant (prng.c L154-158), verbatim. Only NN is
+# used outside the numba kernel (the ctor's np.zeros(NN, …) + the
+# init loop); MM / UM / LM / MAG are defined INSIDE the kernel
+# _get_uint64_batch (the twist + temper's implementation details,
+# the D-199). The C MAG01 array is dropped — only the odd scalar
+# MAG (MAG01[1]) is used (the D-199).
+NN: int = 312  # the working-area size (312 words, the C NN)
 
 
 class MT19937:
@@ -80,10 +74,13 @@ class MT19937:
     `size_t mti` working index).
 
     Construction fuses the C `prng_mt19937_new` + the init_by_seed
-    call (the seed is REQUIRED). The C legacy paths are DROPPED:
-    the deferred init with the default seed 5489 (the D-197) and
-    the init_by_array (the D-198 — never used, in the C nor in the
-    Python). The object is ALWAYS initialized by the ctor.
+    (the D-199: consolidated into the ctor — the init_by_seed
+    method is gone; the seed is REQUIRED). The C legacy paths are
+    DROPPED: the deferred init with the default seed 5489 (the
+    D-197) and the init_by_array (the D-198). The object is ALWAYS
+    initialized by the ctor. The state (_mt / _mti) is fully
+    INTERNAL — the C accessors (mt / mti) are dropped (the D-199:
+    we never read the state to save it).
 
     Attributes (internal — the C struct fields):
       _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
@@ -91,37 +88,17 @@ class MT19937:
     """
 
     def __init__(self, seed: int) -> None:
-        # prng_mt19937_new: the fresh working area. The init call
-        # below sets _mti — the object is always initialized.
+        # prng_mt19937_new + init_by_seed (the D-199: consolidated
+        # into the ctor, the init_by_seed method is gone).
         self._mt = np.zeros(NN, dtype=np.uint64)
-        self.init_by_seed(seed)
-
-    # -- the C accessors (read-only views, for the tests) -------------
-
-    @property
-    def mt(self) -> np.ndarray:
-        """The C `st->mt` working area (read-only view)."""
-        return self._mt
-
-    @property
-    def mti(self) -> int:
-        """The C `st->mti` working index."""
-        return self._mti
-
-    # -- init ----------------------------------------------------------
-
-    def init_by_seed(self, seed: int) -> None:
-        """
-        C prng_mt19937_init_by_seed (prng.c L309), line by line.
-
-        Note (verbatim quirk, DO NOT "fix"): the C loop leaves
-        `st->mti == nn` — the FIRST get_uint64 therefore twists the
-        just-initialized array immediately.
-        """
-        self._mt[0] = np.uint64(seed)
-        # The C unsigned arithmetic wraps modulo 2^64 BY DESIGN (that
-        # is the contract): the numpy overflow warnings are silenced
+        # C prng_mt19937_init_by_seed (prng.c L309), line by line.
+        # Note (verbatim quirk, DO NOT "fix"): the C loop leaves
+        # mti == NN — the FIRST get_uint64 therefore twists the
+        # just-initialized array immediately. The C unsigned
+        # arithmetic wraps modulo 2^64 BY DESIGN (that is the
+        # contract): the numpy overflow warnings are silenced
         # locally (errstate) — the wrap is not an error.
+        self._mt[0] = np.uint64(seed)
         with np.errstate(over="ignore", invalid="ignore"):
             for mti in range(1, NN):
                 prev = self._mt[mti - 1]
@@ -130,7 +107,7 @@ class MT19937:
                 self._mt[mti] = (
                     np.uint64(6364136223846793005) * (prev ^ (prev >> 62))
                     + np.uint64(mti))
-        self._mti = NN  # the C for-loop leaves mti == nn
+        self._mti = NN  # the C for-loop leaves mti == NN
 
     # -- the generators -------------------------------------------------
 
@@ -356,7 +333,16 @@ def _get_uint64_batch(mt, mti, n):
     u64 draws (the twist + the 4-op temper, prng.c L380-414
     line by line — bit-exact vs the golden-pinned MT19937
     class above, the T3 C oracle). Only
-    MT19937.get_uint64_batch calls it. Returns (draws, mti)."""
+    MT19937.get_uint64_batch calls it. Returns (draws, mti).
+    The twist + temper constants (MM / UM / LM / MAG) are
+    LOCAL to the kernel (the D-199 — the C prng.c L154-158
+    verbatim; NN stays module-level, the ctor uses it)."""
+    # The C static constants (prng.c L154-158), verbatim —
+    # kernel-local (the D-199).
+    MM = 156
+    UM = np.uint64(0xFFFFFFFF80000000)  # Most significant 33 bits
+    LM = np.uint64(0x000000007FFFFFFF)  # Least significant 31 bits
+    MAG = np.uint64(0xB5026F5AA96619E9)  # the C MAG01[1] (odd)
     out = np.empty(n, dtype=np.uint64)
     for j in range(n):
         if mti >= NN:

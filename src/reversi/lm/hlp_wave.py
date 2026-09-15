@@ -327,8 +327,9 @@ def run_wave_g0(total: int, ec_target: int, seed: int,
 
     Returns:
       The run provenance: {'harvested', 'waves',
-      'next_slot', 'dead', 'mti' (the final stream index —
-      the provenance pin)}.
+      'next_slot', 'dead'}. (The D-199 dropped the 'mti'
+      provenance — it read the class's dropped mti accessor,
+      and nothing consumed it.)
     """
     if not (0 <= int(ec_target) <= MAX_EC):
         raise ValueError(
@@ -343,5 +344,4 @@ def run_wave_g0(total: int, ec_target: int, seed: int,
         _harvest_and_respawn(state, sink, int(total))
         waves += 1
     return {'harvested': state.harvested, 'waves': waves,
-            'next_slot': state.next_slot, 'dead': state.dead_total,
-            'mti': prng.mti}
+            'next_slot': state.next_slot, 'dead': state.dead_total}
