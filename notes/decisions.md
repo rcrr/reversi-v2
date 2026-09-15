@@ -1430,3 +1430,24 @@ D-192 | 2026-09-15 | The initial-position fix (the official
         (the wave vs scalar, the determinism, the accumulator
         oracles) stay green; the only re-landed pin is the
         TestInitialPosition one.
+D-193 | 2026-09-15 | The random move pick (the random_game
+        rework building block, Roberto's addition). The new
+        MT19937.choose_one_from_set64 method (tools/prng.py):
+        the uniform pick from the u64 set, NO removal (unlike
+        extract_from_set64: the set is read, never mutated) —
+        k = popcount, ONE get_double_in_c0_o1 draw, the c =
+        floor(r·k) lowest set bits skipped, the next lowest set
+        bit picked — returns (1 << p, p); the empty set the
+        (0, 64) sentinel (64 = PA in the Move domain) WITHOUT
+        consuming a draw. The new random_game.choose_random_
+        move: the @validate_call composition (position_legal_
+        moves + the PRNG pick), the PRNG INJECTED (the caller
+        owns the stream — the "one seed for all" discipline).
+        The test: the TestChooseRandomMove golden (seed 93,
+        1000 draws from the official initial position — the
+        D-192 mover legal set {D3, C4, F5, E6} — the EXACT
+        frequencies [258, 229, 249, 264] pinned). The suite:
+        the touched modules 22/0 GREEN, the full LONG run
+        858/0/21 GREEN (the +1 test). This is the first
+        building block of the random game rework (the
+        maintenance campaign, the D-192 context).

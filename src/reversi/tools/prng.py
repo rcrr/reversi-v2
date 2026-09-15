@@ -392,3 +392,16 @@ class MT19937:
         # ORIGINAL set (the numpy ~ wraps at 64 bits, like the C).
         set_arr[0] = set_arr[0] & ~(np.uint64(1) << p)
         return np.uint8(p)
+
+    def choose_one_from_set64(self, set64: np.uint64) -> (np.uint64, np.uint8):
+        s = set64
+        k = int(s).bit_count()
+        if k == 0:
+            return np.uint64(0x0000000000000000), np.uint8(64)
+        r = self.get_double_in_c0_o1()
+        c = int(math.floor(float(r) * k))
+        for _ in range(c):
+            s = (s - 1) & s
+        low = int(s) & -int(s)
+        p = low.bit_length() - 1
+        return np.uint64(1) << p, np.uint8(p)

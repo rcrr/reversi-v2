@@ -43,13 +43,14 @@
 import unittest
 
 import numpy as np
+import numpy.testing as nptest
 
-
+from reversi.tools.prng import MT19937
 from reversi.board import (square_to_str,
                            Bitboard, Position, PositionField,
                            bitboard_to_square_list)
 
-from reversi.random_game import (initial_game_position)
+from reversi.random_game import (initial_game_position, choose_random_move)
 
 
 
@@ -79,3 +80,37 @@ class TestInitialGame(unittest.TestCase):
 
         self.assertEqual(mover_squares, expected_mover_squares)
         self.assertEqual(opponent_squares, expected_opponent_squares)
+
+
+class TestChooseRandomMove(unittest.TestCase):
+
+    def setUp(self):
+        PRNG_SEED = 93
+        self.prng = MT19937(PRNG_SEED)
+
+    def test_choose_random_move(self):
+
+        I = 1_000
+
+        expected_value_options = [
+            0x0000000000080000, # D3
+            0x0000000004000000, # C4
+            0x0000002000000000, # F5
+            0x0000100000000000, # E6
+        ]
+
+        expected_freqs = np.array([258, 229, 249, 264], dtype=np.uint64)
+
+        igp = initial_game_position()
+
+        freqs = np.zeros(len(expected_value_options), dtype=np.uint64)
+
+        for i in range(I):
+            move = choose_random_move(igp, self.prng)
+            self.assertIsInstance(move, Bitboard)
+            self.assertIn(move, expected_value_options)
+
+            idx = expected_value_options.index(move)
+            freqs[idx] += 1
+
+        nptest.assert_array_equal(freqs, expected_freqs)

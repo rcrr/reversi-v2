@@ -28,11 +28,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from reversi.board import (Bitboard, PositionField, make_position)
+from pydantic import validate_call, ConfigDict
+
+from reversi.tools.prng import MT19937
+from reversi.board import (Bitboard, PositionField, make_position, position_legal_moves)
 
 
 
-__all__ = ['initial_game_position']
+__all__ = ['initial_game_position', 'choose_random_move']
 
 
 
@@ -60,3 +63,13 @@ def initial_game_position() -> PositionField:
     """
     return make_position(Bitboard(0x0000000810000000),
                          Bitboard(0x0000001008000000))
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def choose_random_move(p: PositionField, prng: MT19937) -> Bitboard:
+    """
+    Returns a bitboard having one or zero bits set, chosen at random
+    from the set of legal moves for the position.
+    """
+    moves: Bitboard = position_legal_moves(p)
+    move, _ = prng.choose_one_from_set64(moves)
+    return move

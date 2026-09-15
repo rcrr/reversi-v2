@@ -7,7 +7,8 @@ inits (by seed / by array), get_uint64 (the twist + the 4-op
 temper), the three double generators ([0,1], [0,1), (0,1)),
 random_choice_from_finite_set, the four Fisher-Yates shuffles,
 random_string_az and extract_from_set64.
-> State: D-160 · pending · 2026-09-11 · suite 10/0/0
+> State: D-193 (the choose_one_from_set64 pick) + D-160 ·
+2026-09-15 · suite 20/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
@@ -32,6 +33,13 @@ random_string_az and extract_from_set64.
 - extract_from_set64(set_arr) -> np.uint8 — picks + removes a
   random bit from the uint64 bitmask in set_arr[0] (IN PLACE, the
   C pointer semantics) and returns the 0-based position.
+- choose_one_from_set64(set64) -> (np.uint64, np.uint8) — the
+  uniform pick from the u64 set, NO removal (the D-193, unlike
+  extract_from_set64: the set is read, never mutated): k =
+  popcount, ONE get_double_in_c0_o1 draw, the c = floor(r·k)
+  lowest set bits skipped, the next lowest set bit picked —
+  returns (1 << p, p). The empty set returns the (0, 64)
+  sentinel (64 = PA in the Move domain) WITHOUT consuming a draw.
 
 ## Architecture
 - The strict-typing ruling (D-159, Roberto: "NUMPY e stiamo
@@ -89,6 +97,11 @@ random_string_az and extract_from_set64.
 - extract_from_set64: the C clears the picked bit from the
   ORIGINAL set (the skipped-lowest bits survive); the empty set
   raises (the C assert *set).
+- choose_one_from_set64 (D-193): the NO-removal contract (the
+  set is read, never mutated) + the uniform pick + the
+  one-draw-per-pick stream consumption — pinned by the
+  test_random_game golden (the exact 1000-draw frequencies at
+  seed 93: any stream-consumption drift moves them).
 
 ## Open issues
 - The numba era (Roberto: "appena l'algoritmo funziona bisognera
