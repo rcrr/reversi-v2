@@ -1399,3 +1399,34 @@ D-191 | 2026-09-14 | Burying the G1 (the ODP-9 table pick). An
         three peer reviews: the original, the GLM, the Kimi) is
         preserved in the new archive
         notes/analyses/historical/ODP-9/.
+D-192 | 2026-09-15 | The initial-position fix (the official
+        Othello setup). The G0 corpus generator (hlp_wave,
+        the D-174) + the initial_position utility (hlp_random_
+        play) carried the standard start with the roles SWAPPED
+        (the mover D4+E5, the opponent D5+E4) vs the official
+        Othello International setup (the mover — black, the
+        starting player — E4+D5, the opponent — white — D4+E5;
+        Roberto's explicit check against the Othello
+        International rules; the random_game.initial_game_
+        position module is the canonical source — his new file +
+        test, the runner slot, committed first at 8cbfc1b). The
+        fix: the INITIAL_MOVER/INITIAL_OPP swap in hlp_wave.py
+        + the mover/opponent swap in hlp_random_play.initial_
+        position + the test pin re-landing (test_hlp_random_
+        play: the E4+D5 / D4+E5 hex + the mover legal set
+        {D3, C4, F5, E6} — hand-verified, it matches the
+        test_board bulk-table row #050). Measured impact: the
+        G0 corpora generated from the two starts are GENUINELY
+        DIFFERENT (a 4096-game run, seed 42, ec 20; the two
+        position sets are NOT equivalent under a role swap nor
+        under the D8 rotations) — so EVERY corpus generated
+        before this fix (the 1e7 build, the I-017 SU /
+        effect-size statistics, the rlm_00/05/06 feature-
+        analysis runs) is STALE and must be regenerated
+        (Roberto's call, the maintenance campaign). The A2030 /
+        A2050 production chains are UNAFFECTED (rlm_03/rlm_04
+        do not enable the feature_analysis / effect_size levels
+        — no VLONG re-pin needed). The self-consistent suites
+        (the wave vs scalar, the determinism, the accumulator
+        oracles) stay green; the only re-landed pin is the
+        TestInitialPosition one.

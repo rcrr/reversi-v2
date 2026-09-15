@@ -102,11 +102,13 @@ __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
            'WaveState', 'BufferSink', 'make_wave',
            'step_wave_g0', 'run_wave_g0']
 
-#: The standard start (hlp_random_play.initial_position, the
-#: pinned 4-stone center: the mover D4+E5, the opponent
-#: D5+E4 — A1 = top-left = bit 0).
-INITIAL_MOVER: np.uint64 = np.uint64(0x0000001008000000)
-INITIAL_OPP: np.uint64 = np.uint64(0x0000000810000000)
+#: The standard start (the official Othello setup —
+#: random_game.initial_game_position is the canonical
+#: source): the mover (black, the starting player) holds
+#: E4+D5, the opponent (white) D4+E5 — A1 = top-left =
+#: bit 0.
+INITIAL_MOVER: np.uint64 = np.uint64(0x0000000810000000)
+INITIAL_OPP: np.uint64 = np.uint64(0x0000001008000000)
 
 #: The pass move code (board.py Move domain: 0..63 squares,
 #: 64 = PA). Never APPLIED by the wave (the pass is the

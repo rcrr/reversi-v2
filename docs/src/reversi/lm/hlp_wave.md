@@ -5,11 +5,16 @@ one real move, the pass folds into the step, the double pass
 discards the lane), the boundary harvest + respawn, the G0
 uniform pick from the single global golden-pinned MT19937
 (the I-017 CORPUS GENERATOR, the D-174 design call).
-> State: D-170 + D-174 · 2026-09-14 · the G0 engine tests +
-the LONG 1e6 G0 benchmark · the G0 engine is the I-017
-CORPUS GENERATOR (Roberto's design call)
+> State: D-170 + D-174 + D-192 (the initial-position fix —
+the official Othello setup) · 2026-09-15 · the G0 engine
+tests + the LONG 1e6 G0 benchmark · the G0 engine is the
+I-017 CORPUS GENERATOR (Roberto's design call)
 
 ## API
+- `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the
+  official Othello setup, D-192: the mover (black, the
+  starting player) E4+D5, the opponent (white) D4+E5;
+  random_game.initial_game_position is the canonical source).
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays
   (mover/opp u64, counter i64 = the step counter, slot i64,
   alive bool) + the run bookkeeping (next_slot, steps,

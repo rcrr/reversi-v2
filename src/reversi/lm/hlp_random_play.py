@@ -71,18 +71,20 @@ def ec_of(p: "PositionField") -> int:
 
 def initial_position() -> "PositionField":
     """
-    The standard start: the mover holds the D4+E5 diagonal, the
-    opponent the D5+E4 one (the 2x2 center; A1 = top-left =
-    bit 0, the naming convention bit = 8*(row-1) + (col-1) —
-    both sides have exactly 4 legal moves, the symmetric
-    start). The mover-first convention is a pure label at the
-    symmetric start (the T12 alignment with the DB extraction
-    side is the only place it can matter).
+    The standard start (the official Othello setup, the Othello
+    International rules — random_game.initial_game_position is
+    the canonical source): the mover (black, the starting
+    player) holds the E4+D5 diagonal, the opponent (white) the
+    D4+E5 one (the 2x2 center; A1 = top-left = bit 0, the
+    naming convention bit = 8*(row-1) + (col-1) — both sides
+    have exactly 4 legal moves, the symmetric start). The T12
+    alignment with the DB extraction side is the only place the
+    mover label can matter.
     """
-    mover = (move_as_bitboard(move_from_str('D4'))
-             | move_as_bitboard(move_from_str('E5')))
-    opponent = (move_as_bitboard(move_from_str('D5'))
-                | move_as_bitboard(move_from_str('E4')))
+    mover = (move_as_bitboard(move_from_str('E4'))
+             | move_as_bitboard(move_from_str('D5')))
+    opponent = (move_as_bitboard(move_from_str('D4'))
+                | move_as_bitboard(move_from_str('E5')))
     return make_position(mover, opponent)
 
 

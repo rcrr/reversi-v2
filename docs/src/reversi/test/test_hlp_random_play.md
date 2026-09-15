@@ -9,14 +9,15 @@ merge), the joint accumulator (the cross-feature + the
 same-feature, the diagonal the SU = 1 lock), and the PRNG
 integration (the corpus reproducibility + the end-to-end
 marginals). 5 classes / 10 tests / no DB.
-> State: D-177 (T7) + D-178 (T8) + D-179 (T9) · 2026-09-14 ·
+> State: D-177 (T7) + D-178 (T8) + D-179 (T9) + D-192 (the
+initial-position fix — the official Othello setup) · 2026-09-15 ·
 suite 10/0/0
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestInitialPosition` | 1 | `test_the_start` (the D4+E5 / D5+E4 hex pins, the {E3, F4, C5, D6} legal set — the hand-derived one, the opponent's 4 as well, the ec = 60) |
+| `TestInitialPosition` | 1 | `test_the_start` (the E4+D5 / D4+E5 hex pins — the official Othello setup, D-192, the mover {D3, C4, F5, E6} legal set — the hand-derived one, the opponent's 4 as well, the ec = 60) |
 | `TestEcPin` | 1 | (D-177) `test_ec_formula_hand_crafted` (the initial position ec 60, the hand-crafted 24-stone position ec 40, the full board ec 0 — ec_of = 64 - popcount(mover\|opponent)) |
 | `TestMarginalAccumulator` | 3 | (D-177; the toy corpus, a 300-game G0 wave at ec 20, the toy FeatureSet = the intercept + the LMC + the R2) `test_lmc_hand_counted` (the single-instance dense bincount vs the INDEPENDENT oracle position_legal_moves — NOT compute_indexes); `test_pattern_cross_check` (the R2 inst0 vs an independent per-position dict via compute_indexes); `test_chunk_merge` (one chunk == two half-chunks) |
 | `TestJointAccumulator` | 3 | (D-178; the same toy corpus, a 200-game G0 wave) `test_cross_feature_joint` (the (LMC, R2) 4 instance-pairs, each joint vs the independent per-position oracle); `test_same_feature_diagonal` (the (R2, R2) 16 instance-pairs, the diagonal ZERO off-diagonal — the SU = 1 lock); `test_chunk_merge` (one chunk == two half-chunks) |

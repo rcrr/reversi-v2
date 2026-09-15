@@ -66,19 +66,20 @@ def _sq(name: str) -> int:
 
 
 class TestInitialPosition(unittest.TestCase):
-    """The standard start: the D4+E5 / D5+E4 2x2 center, both
-    sides with the 4 legal moves (the hand-derived set: E3, F4,
-    C5, D6)."""
+    """The standard start (the official Othello setup): the
+    E4+D5 / D4+E5 2x2 center, both sides with the 4 legal moves
+    (the hand-derived sets: the mover D3, C4, F5, E6; the
+    opponent E3, F4, C5, D6)."""
 
     def test_the_start(self):
         p = initial_position()
-        self.assertEqual(int(p['mover']), 0x0000001008000000)   # D4+E5
-        self.assertEqual(int(p['opponent']), 0x0000000810000000)  # D5+E4
+        self.assertEqual(int(p['mover']), 0x0000000810000000)   # E4+D5
+        self.assertEqual(int(p['opponent']), 0x0000001008000000)  # D4+E5
         legal = int(position_legal_moves(p))
-        # The 4 legal squares, by their bit indexes (E3=20, F4=29,
-        # C5=34, D6=43).
+        # The 4 legal squares, by their bit indexes (D3=19, C4=26,
+        # F5=37, E6=44).
         expected = 0
-        for name in ('E3', 'F4', 'C5', 'D6'):
+        for name in ('D3', 'C4', 'F5', 'E6'):
             expected |= 1 << _sq(name)
         self.assertEqual(legal, expected)
         # The opponent side has its 4 as well (the symmetric start).

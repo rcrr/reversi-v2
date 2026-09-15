@@ -43,7 +43,20 @@ def initial_game_position() -> PositionField:
     A Reversi game starts with four discs placed in the center four squares
     of an 8×8 board (D4, E4, D5, and E5), with two black discs and two white
     discs arranged diagonally.
-    Black, the mover, occupies squares E4 and D5. Otherwise White D4 and E5.
+    Black, the starting player (the mover), occupies squares E4 and D5,
+    while White occupies D4 and E5.
+    .
+    .        C   D   E   F
+    .      +---+---+---+---+
+    .    3 |   |   |   |   |
+    .      +---+---+---+---+
+    .    4 |   | W | B |   |  (W = White, B = Black)
+    .      +---+---+---+---+
+    .    5 |   | B | W |   |
+    .      +---+---+---+---+
+    .    6 |   |   |   |   |
+    .      +---+---+---+---+
+    .
     """
     return make_position(Bitboard(0x0000000810000000),
                          Bitboard(0x0000001008000000))

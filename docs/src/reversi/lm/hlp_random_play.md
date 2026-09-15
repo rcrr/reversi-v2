@@ -9,7 +9,8 @@ the `ec_of` / `initial_position` utilities (the ec formula +
 the standard start, the shared board helpers).
 > State: D-177 (T7: the ec pin + the marginal accumulator) +
 D-178 (T8: the joint accumulator) + D-179 (T9: the PRNG
-integration) · 2026-09-14 · suite 10/0/0
+integration) + D-192 (the initial-position fix — the official
+Othello setup) · 2026-09-15 · suite 10/0/0
 
 ## API
 - `ec_of(p)` — the ec formula: 64 - the occupied squares (the
@@ -20,8 +21,11 @@ integration) · 2026-09-14 · suite 10/0/0
   window constraint); `empty_count` = the empty squares =
   64 - popcount(mover | opponent). The corpus is arrested in
   the SAME window as the DB extraction.
-- `initial_position()` — the standard start (the D4+E5 / D5+E4
-  2x2 center, both sides 4 legal moves, ec = 60).
+- `initial_position()` — the standard start (the official
+  Othello setup, D-192: the mover (black, the starting player)
+  E4+D5, the opponent (white) D4+E5 — the 2x2 center, both
+  sides 4 legal moves, ec = 60; random_game.initial_game_position
+  is the canonical source).
 - `MarginalAccumulator(fset, blocks)` — the streaming
   marginal frequency accumulator (T7, D-177): per sub-variable
   (the (feature, instance) column) the code -> count. The
@@ -99,7 +103,10 @@ integration) · 2026-09-14 · suite 10/0/0
   hlp_wave.py): the lockstep advance step, the boundary
   harvest + respawn, the streaming to the sink.
 - The mover-convention alignment with the DB extraction (the
-  T16 detail — the symmetric start makes it a pure label).
+  T16 detail): the mover is FIXED by the official Othello rules
+  (black, E4+D5, the starting player — the D-192 initial-
+  position fix; the "pure label" claim is void, the setup is
+  NOT mover-symmetric).
 
 ## Conventions
 - The house GNU header + the provenance docstring (the doc
