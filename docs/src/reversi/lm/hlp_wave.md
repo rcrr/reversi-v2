@@ -6,9 +6,10 @@ discards the lane), the boundary harvest + respawn, the G0
 uniform pick from the single global golden-pinned MT19937
 (the I-017 CORPUS GENERATOR, the D-174 design call).
 > State: D-170 + D-174 + D-192 (the initial-position fix —
-the official Othello setup) · 2026-09-15 · the G0 engine
-tests + the LONG 1e6 G0 benchmark · the G0 engine is the
-I-017 CORPUS GENERATOR (Roberto's design call)
+the official Othello setup) + D-194 (the PRNG kernels moved
+out to tools/prng.py — the single source) · 2026-09-15 · the
+G0 engine tests + the LONG 1e6 G0 benchmark · the G0 engine
+is the I-017 CORPUS GENERATOR (Roberto's design call)
 
 ## API
 - `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the
@@ -35,10 +36,11 @@ I-017 CORPUS GENERATOR (Roberto's design call)
   draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks
   (mover, opp, slot); `flatten()`).
-- `_mt19937_init(mt, seed)` / `_mt19937_batch(mt, mti,
-  n) -> (draws, mti)` — the numba batch-draw port of the
-  golden-pinned PRNG (tools/prng.py, the C verbatim
-  constants; bit-exact vs the T3 oracle).
+- The G0 stream (the MT19937 init + the batch draw) is
+  tools/prng.py — the single source (the D-194 move):
+  `mt19937_init(mt, seed)` / `mt19937_batch_draw(mt, mti, n)
+  -> (draws, mti)`; this module imports them (it carries no
+  PRNG code).
 - `_pick_g0(draws, src) -> (move, step)` — the numba-
   parallel uniform pick (the HW popcount, the rank = draw
   % k, the rank-th set bit; the modulo bias < k/2^64, 12
@@ -72,8 +74,9 @@ I-017 CORPUS GENERATOR (Roberto's design call)
   writer / corpus format (the POSITIONS step D-157
   alignment) is the 1e7 build concern.
 - The G0 stream (D-174): a SINGLE GLOBAL MT19937 (the
-  project's golden-pinned PRNG, the "one seed for all"
-  pin) — one draw per (lane, step) in lane order, W draws
+  project's golden-pinned PRNG, the "one seed for all" pin;
+  the kernels are tools/prng.py — the D-194 single source) —
+  one draw per (lane, step) in lane order, W draws
   per step; the pass/dead lanes' draws are CONSUMED
   (unused); the stream is global across waves (the run is
   one stream). The G0 trajectory of lane g depends on the

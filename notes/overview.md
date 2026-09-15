@@ -498,6 +498,14 @@ at the end of this file.
   choose_random_move (the @validate_call composition, the
   PRNG injected) + the golden frequency pin (seed 93, 1000
   draws, [258, 229, 249, 264] over {D3, C4, F5, E6}).
+- D-194 (2026-09-15): the PRNG exclusivity move — the MT-
+  19937 numba kernels + constants moved out of hlp_wave.py
+  into tools/prng.py (the public mt19937_init /
+  mt19937_batch_draw + the scalar MAG): the PRNG code now
+  lives COMPLETELY and EXCLUSIVELY in prng.py (zero behavior
+  change — the bit-exact suites + the 1e6 benchmark replay
+  prove it). The board-design transformation (the numba
+  class + the dual face) is the next pass, step-by-step.
 
 ## Next steps
 
@@ -660,11 +668,12 @@ at the end of this file.
   NEXT: the pre-fix G0 corpora are STALE (the 1e7 build + the
   I-017 SU / effect-size statistics + the rlm_00/05/06 runs) —
   the regeneration on the official start (the D-192) is the
-  first maintenance call; the PRNG board-design intervention
-  (the MT-19937 exclusively in tools/prng.py, the single numba
-  kernel + the dual public face) is approved in substance,
-  parked for his word; the PROFILING session (the OPTIMIZE
-  pattern) waits.
+  first maintenance call; the PRNG board-design intervention:
+  the exclusivity move is IN (D-194 — the numba kernels +
+  constants in tools/prng.py, the single source; hlp_wave
+  carries no PRNG code) — the TRANSFORMATION pass (the numba
+  class + the dual scalar/array face) is next, step-by-step;
+  the PROFILING session (the OPTIMIZE pattern) waits.
 
 
 
@@ -683,7 +692,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/tools/binio.py | complete: binary IO layer — T1–T4 batch (D-051); empty-suffix fix (D-095) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify); closed (D-071/D-072) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order); closed (D-038..D-042); the OPEN R1 (unused BeforeValidator import) fixed at D-110 | 20/0/1 | docs/src/reversi/feature.md |
-| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel) | 20/0/0 | docs/src/reversi/tools/prng.md |
+| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG port (the I-017 T2, D-159) — line-by-line from Roberto's C (the strict-typing ruling: np.uint64 the data path); the bit-exact cross-check vs the C build; the T3 golden suite (D-161); D-160: the rename from the feature_prng core name (the generic library in tools/); D-193: the choose_one_from_set64 pick (the uniform pick, NO removal, the (0, 64) empty sentinel); D-194: the numba kernels mt19937_init / mt19937_batch_draw moved in from hlp_wave (the SINGLE source of the G0 stream; + the scalar MAG) | 20/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS 14th level — training metrics + console / file reports (the 3-metric header + dense metrics, D-105/M2); closed (D-103) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK 16th level (PLOT follows as the 17th — D-149) — the saved-model file acceptance test (D-148: the file re-read + the client's array EF + the Y-space residual comparison vs the in-memory VALIDATE forward pass, tolerance = cfg.client_check_tol) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
 | src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders (D-149; D-150: the fixed axes — game-value axes always [-64,+64], the density centered [-72,+72], the step-8 ticks — + the two-line bold/italic title + the _sym_limit helper) — the seven Y-space diagnostics (the three R classics + the four extensions), the PlotData + collect_plot_data (the training w_dense pass + the validation forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; matplotlib/scipy lazy-imported (the schema imports PLOT_NAMES on every run) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
@@ -720,7 +729,7 @@ Suite = the current verified suite (live DB, D-130 tiers,
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module; closed (D-083/D-084); the LZ4 default (D-139) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (10th level); closed (D-096); the LZ4 default (D-139) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_random_play.py | complete: the FEATURE_ANALYSIS frequency data plane (the I-017 T7-T9: the marginal frequency accumulator (D-177, the per-(feature, instance) column code -> count, the dense-bincount / unique-merge split, POOLED over the single-ec corpus) + the joint frequency accumulator (D-178, the per-requested-pair instanceÃinstance (code_i, code_j) -> count, the unique-merge, the packed-u64 key, the same-feature diagonal the SU = 1 lock) + the PRNG integration (D-179) + the ec pin (D-177: 64 - popcount(mover|opponent) = the DB's empty_count, the "mele con mele" window)) — the worker wrk_feature_analysis.py (T16) feeds the G0 wave (hlp_wave.run_wave_g0, D-174) chunk-by-chunk; D-192: the initial-position fix (the official Othello setup — the initial_position swap, random_game the canonical source) | 10/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
-| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170 + D-174): the G0 corpus engine (W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn; the G0 uniform pick from the single global golden-pinned MT19937, one draw per (lane, step), the bit-exact batch-draw port) — the G0 is the I-017 CORPUS GENERATOR (D-174, Roberto's design call); D-192: the initial-position fix (the official Othello setup — the INITIAL_MOVER/INITIAL_OPP swap, random_game the canonical source) | 3/0/0 (via test_hlp_wave; LONG: the 1e6 G0 benchmark) | docs/src/reversi/lm/hlp_wave.md |
+| src/reversi/lm/hlp_wave.py | complete: the concurrent WAVE generator (the I-017 T5, D-170 + D-174): the G0 corpus engine (W lanes in LOCKSTEP, the pass folded into the step, the double-pass discard + boundary harvest/respawn; the G0 uniform pick from the single global golden-pinned MT19937, one draw per (lane, step), the bit-exact batch-draw port) — the G0 is the I-017 CORPUS GENERATOR (D-174, Roberto's design call); D-192: the initial-position fix (the official Othello setup — the INITIAL_MOVER/INITIAL_OPP swap, random_game the canonical source); D-194: the PRNG kernels moved out to tools/prng.py (no PRNG code in the wave anymore) | 3/0/0 (via test_hlp_wave; LONG: the 1e6 G0 benchmark) | docs/src/reversi/lm/hlp_wave.md |
 | src/reversi/lm/hlp_gate.py | complete: the campaign config loader (the pipeline's own loader: the campaign JSON5 + the FeatureSet (the wrk_features pure mapping) + the per-feature column blocks (the documented column layout)) — used by the worker tests (test_wrk_feature_analysis, test_wrk_effect_size) | n/a (the gate test is removed) | docs/src/reversi/lm/hlp_gate.md |
 | src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module (13th level — the first dedicated data module of a non-cache level); closed (D-101/D-102) | 5/0/0 (via test_lm_worker_validate) | docs/src/reversi/lm/hlp_validate.md |
 | src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object (6th level); closed (D-086/D-087/D-088); the LZ4 default (D-139) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |

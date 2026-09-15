@@ -52,8 +52,10 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import numba as nb
 
-__all__ = ['MT19937']
+__all__ = ['MT19937', 'NN', 'MM', 'UM', 'LM', 'MAG01', 'MAG',
+           'mt19937_init', 'mt19937_batch_draw']
 
 # The C static constants (prng.c L154-158), verbatim.
 NN: int = 312
@@ -62,6 +64,11 @@ UM: np.uint64 = np.uint64(0xFFFFFFFF80000000)  # Most significant 33 bits
 LM: np.uint64 = np.uint64(0x000000007FFFFFFF)  # Least significant 31 bits
 MAG01: np.ndarray = np.array(
     [np.uint64(0), np.uint64(0xB5026F5AA96619E9)], dtype=np.uint64)
+
+#: The scalar MAG (the C MAG01[1] — the odd index), the constant
+#: the numba batch-draw kernel switches on (the single source for
+#: the G0 wave stream, the D-194 move from lm/hlp_wave.py).
+MAG: np.uint64 = MAG01[1]
 
 
 class MT19937:
@@ -405,3 +412,60 @@ class MT19937:
         low = int(s) & -int(s)
         p = low.bit_length() - 1
         return np.uint64(1) << p, np.uint8(p)
+
+
+# ---------------------------------------------------------------------
+# The numba MT19937-64 kernels — the SINGLE SOURCE of the batch
+# draw (the D-194 move from lm/hlp_wave.py, which now imports
+# them): the twist + the 4-op temper, bit-exact vs the golden-
+# pinned MT19937 class above (the T3 C oracle). The state is the
+# caller's (the `mt` working area + the `mti` index), mutated in
+# place. The G0 wave engine (hlp_wave.run_wave_g0) is the
+# consumer.
+# ---------------------------------------------------------------------
+
+@nb.njit(cache=True)
+def mt19937_init(mt, seed):
+    """C prng_mt19937_init_by_seed, line by line (the
+    verbatim quirk: the loop leaves mti == NN — the first
+    draw twists the just-initialized array). Returns mti."""
+    mt[0] = np.uint64(seed)
+    for i in range(1, NN):
+        prev = mt[i - 1]
+        mt[i] = np.uint64(6364136223846793005) * (prev ^ (prev >> 62)) \
+            + np.uint64(i)
+    return NN
+
+
+@nb.njit(cache=True)
+def mt19937_batch_draw(mt, mti, n):
+    """The n successive u64 draws (the twist + the 4-op
+    temper, prng.c L380-414 line by line — bit-exact vs the
+    golden-pinned MT19937 class above, the T3 C oracle).
+    Returns (draws, mti)."""
+    out = np.empty(n, dtype=np.uint64)
+    for j in range(n):
+        if mti >= NN:
+            i = 0
+            while i < NN - MM:
+                x = (mt[i] & UM) | (mt[i + 1] & LM)
+                mt[i] = mt[i + MM] ^ (x >> 1) ^ \
+                    (np.uint64(0) if (x & np.uint64(1)) == 0 else MAG)
+                i += 1
+            while i < NN - 1:
+                x = (mt[i] & UM) | (mt[i + 1] & LM)
+                mt[i] = mt[i + (MM - NN)] ^ (x >> 1) ^ \
+                    (np.uint64(0) if (x & np.uint64(1)) == 0 else MAG)
+                i += 1
+            x = (mt[NN - 1] & UM) | (mt[0] & LM)
+            mt[NN - 1] = mt[MM - 1] ^ (x >> 1) ^ \
+                (np.uint64(0) if (x & np.uint64(1)) == 0 else MAG)
+            mti = 0
+        x = mt[mti]
+        mti += 1
+        x = x ^ ((x >> 29) & np.uint64(0x5555555555555555))
+        x = x ^ ((x << 17) & np.uint64(0x71D67FFFEDA60000))
+        x = x ^ ((x << 37) & np.uint64(0xFFF7EEE000000000))
+        x = x ^ (x >> 43)
+        out[j] = x
+    return out, mti

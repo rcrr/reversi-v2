@@ -6,9 +6,11 @@ mirrors the C prng_mt19937_t struct and its 15 functions: the two
 inits (by seed / by array), get_uint64 (the twist + the 4-op
 temper), the three double generators ([0,1], [0,1), (0,1)),
 random_choice_from_finite_set, the four Fisher-Yates shuffles,
-random_string_az and extract_from_set64.
-> State: D-193 (the choose_one_from_set64 pick) + D-160 ·
-2026-09-15 · suite 20/0/0
+random_string_az, extract_from_set64 and choose_one_from_set64.
+The module is the SINGLE SOURCE of the numba MT19937-64 kernels
+(mt19937_init / mt19937_batch_draw) — the G0 wave stream.
+> State: D-194 (the numba kernels — the single source) + D-193
++ D-160 · 2026-09-15 · suite 20/0/0
 
 ## API
 - MT19937(seed=… | init_key=…) — the fused C new + one init call
@@ -40,6 +42,15 @@ random_string_az and extract_from_set64.
   lowest set bits skipped, the next lowest set bit picked —
   returns (1 << p, p). The empty set returns the (0, 64)
   sentinel (64 = PA in the Move domain) WITHOUT consuming a draw.
+- mt19937_init(mt, seed) -> mti — the numba init (the C
+  prng_mt19937_init_by_seed, line by line; the verbatim quirk:
+  the loop leaves mti == NN, the first draw twists). mt is the
+  caller's (NN,) u64 array, filled in place.
+- mt19937_batch_draw(mt, mti, n) -> (draws, mti) — the numba
+  batch draw: n successive u64 draws (the twist + the 4-op
+  temper, prng.c L380-414 line by line), bit-exact vs the
+  golden-pinned MT19937 class above (the T3 C oracle). The
+  state (mt, mti) is the caller's, mutated in place.
 
 ## Architecture
 - The strict-typing ruling (D-159, Roberto: "NUMPY e stiamo
@@ -51,7 +62,13 @@ random_string_az and extract_from_set64.
   not data).
 - The constants are verbatim from prng.c L154-158: NN = 312,
   MM = 156, UM = 0xFFFFFFFF80000000, LM = 0x000000007FFFFFFF,
-  MAG01 = {0, 0xB5026F5AA96619E9}.
+  MAG01 = {0, 0xB5026F5AA96619E9}; MAG = MAG01[1] (the scalar
+  the numba kernel switches on).
+- The numba kernels (the D-194, the single source): the
+  mt19937_init + mt19937_batch_draw @nb.njit(cache=True)
+  section at the end of the file — the G0 wave stream;
+  lm/hlp_wave.py imports them (it carries no PRNG code
+  anymore).
 - The init_by_seed multiplier is HIS constant
   6364136223846793005 — it is NOT the 32-bit-reference
   6364136293807784493 (do not "fix" it; the golden is the C
@@ -102,13 +119,21 @@ random_string_az and extract_from_set64.
   one-draw-per-pick stream consumption — pinned by the
   test_random_game golden (the exact 1000-draw frequencies at
   seed 93: any stream-consumption drift moves them).
+- The numba batch kernel vs the golden-pinned class (the D-194
+  single source): bit-exact over 2100 draws (the 2000-draw
+  batch + the twist across the 312-word boundary + the 100-
+  draw continuation, seed 7) — pinned by test_hlp_wave::
+  TestG0Engine::test_batch_matches_reference (the W=1
+  trajectory + the run-determinism suites ride on it).
 
 ## Open issues
-- The numba era (Roberto: "appena l'algoritmo funziona bisognera
-  farlo andare con numba"): the uint64 state is the right
-  substrate for the T5 wave engine; no action at T2 (the PRNG
-  draws are the RARE path — the 2016 table-build draws per seed;
-  the hot path is the table lookup).
+- The numba era (Roberto: "appena l'algoritmo funziona
+  bisognera farlo andare con numba"): the batch-draw path is
+  numba (the kernel section, the D-194); the CLASS hot path
+  (get_uint64 + the inits) is still Python — the board-design
+  transformation (the single numba kernel + the dual public
+  face, the class as a thin state wrapper) is the next pass
+  (parked, Roberto's plan).
 
 ## Conventions
 - The GNU header (the house template) + the provenance docstring
@@ -120,12 +145,16 @@ random_string_az and extract_from_set64.
   documentation).
 
 ## Integration
-- No dependencies outside numpy + math (the core module is
-  standalone).
-- Future consumers: the I-017 tasks T4-T7 (the single-game
-  random play, the concurrent wave engine, the permutation
-  lookup table, the marginal frequency accumulator) — the
-  seeded corpus generation for the FEATURE_ANALYSIS level (T12).
+- Dependencies: numpy + math + numba (the kernel section, the
+  D-194).
+- The kernel consumer: lm/hlp_wave.py (the G0 wave engine —
+  this module is the single source, the D-194 move) + the
+  wave test suite.
+- Consumers: the I-017 pipeline (the single-game random play,
+  the concurrent wave engine, the marginal frequency
+  accumulator) — the seeded corpus generation for the
+  FEATURE_ANALYSIS level; random_game.py (the choose_random_
+  move pick, the D-193).
 - Not a pipeline level: a TOOLS module used by the future levels
   (the D-160 rename from the feature_prng core name — the module
   is a GENERIC MT library: the name follows what it is, not its

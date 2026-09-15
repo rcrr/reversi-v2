@@ -60,11 +60,10 @@ import numpy as np
 from reversi.board import (make_position, position_legal_moves,
                            position_make_move)
 from reversi.lm.hlp_wave import (BufferSink, INITIAL_MOVER, INITIAL_OPP,
-                                  MAX_EC, _NN, _mt19937_batch,
-                                  _mt19937_init, make_wave,
+                                  MAX_EC, make_wave,
                                   run_wave_g0, step_wave_g0)
-from reversi.lm.hlp_wave import _harvest_and_respawn
-from reversi.tools.prng import MT19937
+from reversi.tools.prng import (MT19937, NN, mt19937_batch_draw,
+                                mt19937_init)
 
 class TestG0Engine(unittest.TestCase):
     """The G0 uniform engine (D-174 — the I-017 corpus
@@ -74,15 +73,15 @@ class TestG0Engine(unittest.TestCase):
         # The numba batch-draw kernel vs the golden-pinned
         # reference PRNG (bit-exact — 2000 draws + the twist
         # across the 312-word boundary + the continuation).
-        mt = np.zeros(_NN, dtype=np.uint64)
-        mti = _mt19937_init(mt, 7)
+        mt = np.zeros(NN, dtype=np.uint64)
+        mti = mt19937_init(mt, 7)
         ref = MT19937(7)
-        draws, mti = _mt19937_batch(mt, mti, 2000)
+        draws, mti = mt19937_batch_draw(mt, mti, 2000)
         for i in range(2000):
             self.assertEqual(int(draws[i]), int(ref.get_uint64()),
                              f"draw {i} deviates from the "
                              "golden-pinned reference")
-        draws2, _ = _mt19937_batch(mt, mti, 100)
+        draws2, _ = mt19937_batch_draw(mt, mti, 100)
         for i in range(100):
             self.assertEqual(int(draws2[i]), int(ref.get_uint64()))
 
@@ -134,8 +133,8 @@ class TestG0Engine(unittest.TestCase):
             seq.append(pick)
         # the G0 wave (W=1, the same seed, the same ec).
         state = make_wave(1, 0)
-        mt = np.zeros(_NN, dtype=np.uint64)
-        mti = _mt19937_init(mt, seed)
+        mt = np.zeros(NN, dtype=np.uint64)
+        mti = mt19937_init(mt, seed)
         wave_seq = []
         for _ in range(S):
             move, _, dead, mti = step_wave_g0(state, mt, mti)

@@ -30,8 +30,9 @@ The concurrent WAVE generator (the I-017 T5, the D-174
 corpus generator): a batch of W games ("lanes") advanced in
 LOCKSTEP on a SINGLE GLOBAL MT19937 (the project's
 golden-pinned PRNG, the "one seed for all" pin, the numba
-batch-draw port of tools/prng.py — bit-exact vs the T3
-oracle). One draw per (lane, step) in lane order, W draws
+batch draw of tools/prng.py — the single source, the D-194
+move; bit-exact vs the T3 oracle). One draw per (lane, step)
+in lane order, W draws
 per step: the real-move lanes pick the (draw % k)-th set
 bit (the modulo bias < k/2^64, 12 orders below the noise
 floor); the pass/dead lanes' draws are CONSUMED (unused).
@@ -97,6 +98,7 @@ import numpy as np
 import numba as nb
 
 from reversi.board import legal_moves, make_position, position_make_move
+from reversi.tools.prng import NN, mt19937_batch_draw, mt19937_init
 
 __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
            'WaveState', 'BufferSink', 'make_wave',
@@ -118,13 +120,10 @@ PA: int = 64
 #: The maximum initial ec (64 squares - 4 start stones).
 MAX_EC: int = 60
 
-# The MT19937-64 constants (tools/prng.py, the C verbatim)
-# — the G0 stream (the golden-pinned PRNG).
-_NN: int = 312
-_MM: int = 156
-_UM: np.uint64 = np.uint64(0xFFFFFFFF80000000)
-_LM: np.uint64 = np.uint64(0x000000007FFFFFFF)
-_MAG: np.uint64 = np.uint64(0xB5026F5AA96619E9)
+# The G0 stream (the single global golden-pinned MT19937)
+# lives in tools/prng.py — the SINGLE SOURCE (the D-194
+# move): the NN constant + the mt19937_init /
+# mt19937_batch_draw numba kernels, imported below.
 
 
 class WaveState:
@@ -176,55 +175,11 @@ def make_wave(W: int, slot_base: int = 0) -> WaveState:
 
 
 # ---------------------------------------------------------------------
-# The G0 stream + pick (D-174 — the corpus generator; the
-# bit-verified kernels, the D-173 gate origin).
+# The G0 pick (D-174 — the corpus generator; the bit-verified
+# kernel, the D-173 gate origin). The G0 stream (the MT19937
+# init + the batch draw) is tools/prng.py — the single source
+# (the D-194 move).
 # ---------------------------------------------------------------------
-
-@nb.njit(cache=True)
-def _mt19937_init(mt, seed):
-    """C prng_mt19937_init_by_seed, line by line (the
-    verbatim quirk: the loop leaves mti == NN — the first
-    draw twists the just-initialized array). Returns mti."""
-    mt[0] = np.uint64(seed)
-    for i in range(1, _NN):
-        prev = mt[i - 1]
-        mt[i] = np.uint64(6364136223846793005) * (prev ^ (prev >> 62)) \
-            + np.uint64(i)
-    return _NN
-
-
-@nb.njit(cache=True)
-def _mt19937_batch(mt, mti, n):
-    """The n successive u64 draws (the twist + the 4-op
-    temper, prng.c L380-414 line by line — bit-exact vs
-    the golden-pinned tools/prng.py reference). Returns
-    (draws, mti)."""
-    out = np.empty(n, dtype=np.uint64)
-    for j in range(n):
-        if mti >= _NN:
-            i = 0
-            while i < _NN - _MM:
-                x = (mt[i] & _UM) | (mt[i + 1] & _LM)
-                mt[i] = mt[i + _MM] ^ (x >> 1) ^ \
-                    (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-                i += 1
-            while i < _NN - 1:
-                x = (mt[i] & _UM) | (mt[i + 1] & _LM)
-                mt[i] = mt[i + (_MM - _NN)] ^ (x >> 1) ^ \
-                    (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-                i += 1
-            x = (mt[_NN - 1] & _UM) | (mt[0] & _LM)
-            mt[_NN - 1] = mt[_MM - 1] ^ (x >> 1) ^ \
-                (np.uint64(0) if (x & np.uint64(1)) == 0 else _MAG)
-            mti = 0
-        x = mt[mti]
-        mti += 1
-        x = x ^ ((x >> 29) & np.uint64(0x5555555555555555))
-        x = x ^ ((x << 17) & np.uint64(0x71D67FFFEDA60000))
-        x = x ^ ((x << 37) & np.uint64(0xFFF7EEE000000000))
-        x = x ^ (x >> 43)
-        out[j] = x
-    return out, mti
 
 
 @nb.njit(parallel=True, cache=True)
@@ -280,7 +235,7 @@ def step_wave_g0(state: WaveState, mt: np.ndarray,
     pass_mask = lm == 0
     dead = pass_mask & (lo == 0)
     src = np.where(pass_mask, lo, lm)
-    draws, mti = _mt19937_batch(mt, mti, state.W)
+    draws, mti = mt19937_batch_draw(mt, mti, state.W)
     move, _ = _pick_g0(draws, src)
     # The dead lanes ride the PA SWAP (the documented
     # kernel behaviour — the same rationale as the G0 step).
@@ -380,8 +335,8 @@ def run_wave_g0(total: int, ec_target: int, seed: int,
             f"ec_target {ec_target} is out of the [0, {MAX_EC}] domain")
     steps_per_wave = MAX_EC - int(ec_target)
     state = make_wave(int(wave_size), int(slot_base))
-    mt = np.zeros(_NN, dtype=np.uint64)
-    mti = _mt19937_init(mt, int(seed))
+    mt = np.zeros(NN, dtype=np.uint64)
+    mti = mt19937_init(mt, int(seed))
     waves = 0
     while state.harvested < total:
         for _ in range(steps_per_wave):

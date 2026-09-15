@@ -1451,3 +1451,31 @@ D-193 | 2026-09-15 | The random move pick (the random_game
         858/0/21 GREEN (the +1 test). This is the first
         building block of the random game rework (the
         maintenance campaign, the D-192 context).
+D-194 | 2026-09-15 | The PRNG exclusivity move (the single
+        source). The MT-19937 numba kernels + constants that
+        lm/hlp_wave.py carried as a partial re-implementation
+        of tools/prng.py (the _NN/_MM/_UM/_LM/_MAG constants
+        + the _mt19937_init / _mt19937_batch njit kernels)
+        MOVE to tools/prng.py — the PRNG code now lives
+        COMPLETELY and EXCLUSIVELY in the prng module (the
+        maintenance-campaign goal; the board-design
+        TRANSFORMATION of prng.py — the numba class + the
+        dual public face — is the next pass, parked,
+        step-by-step). The details: the two kernels land as
+        the public mt19937_init / mt19937_batch_draw (the
+        clean names, my design question 2, Roberto's all-OK
+        approval); the scalar MAG constant (the C MAG01[1])
+        joins the C constants, the kernels reference the
+        public constants (NN/MM/UM/LM); hlp_wave.py imports
+        NN / mt19937_init / mt19937_batch_draw from
+        tools.prng (it carries NO PRNG code anymore); the
+        test imports move to tools.prng (the orphan
+        _harvest_and_respawn import is removed too). ZERO
+        behavior change: a transcription slip (the temper
+        mask 0xFFF7EEE000000000 typed as 0xFFF7EEE0000000 —
+        two zeros dropped) was caught + fixed pre-commit by
+        the bit-exact suite (test_batch_matches_reference:
+        draw-0 deviation). Verification: the touched modules
+        36/0/1 GREEN; the full LONG run 858/0/21 GREEN; the
+        1e6 G0 benchmark replays the corpus bit-exactly
+        (28065 dead lanes, identical to pre-move).
