@@ -577,6 +577,15 @@ at the end of this file.
   LONG; 1e6 bit-exact, 28065 dead lanes). Scope: the prng
   module only (test_prng.py + its mirror doc still carry C-
   port references — a follow-up if asked).
+- D-201 (2026-09-15): FIX random_string_az off-by-one (Roberto:
+  "good catch, fix it"): it generated a..y (25 letters, NEVER
+  the z), not the documented [a..z] — `range_az = z - a` (= 25)
+  → random_choice(25) is [0,24] → 'y'. Fix: `range_az = z - a +
+  1` (= 26) → the full a..z. BEHAVIOR change, but
+  random_string_az is used ONLY by test_prng (no pipeline /
+  corpus) and the test pins only len / charset / determinism.
+  Verified: all 26 letters appear, still deterministic; 852/0/21
+  LONG; 1e6 bit-exact (28065 dead lanes).
 
 ## Next steps
 

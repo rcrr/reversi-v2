@@ -242,7 +242,7 @@ class MT19937:
         n = int(n)
         a = ord('a')
         z = ord('z')
-        range_az = z - a  # 25
+        range_az = z - a + 1  # 26 (the letters a..z)
         return "".join(
             chr(a + int(self.random_choice_from_finite_set(range_az)))
             for _ in range(n))
