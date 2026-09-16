@@ -560,6 +560,23 @@ at the end of this file.
   a seed ctor, one numba kernel (constants local), the state
   fully internal. Zero behavior change (T3 golden + 1e6
   benchmark replay bit-exactly, 28065 dead lanes).
+- D-200 (2026-09-15): the PRNG comments + docs DE-PORTIFIED
+  (Roberto's call): the comments and the mirror doc referenced
+  the LEGACY C port everywhere ("line-by-line port", "prng.c
+  L309", the D-numbers, "I-017 T2/T3", "the C oracle /
+  ut_prng.c", "Skipped from the C", "Roberto: NUMPY e stiamo
+  strict", "DO NOT fix", "the C assert") — and that history
+  "non interessa a nessuno". Rule: the docs explain WHAT the
+  module does (what MT-19937 is, its properties, the API, how
+  the methods work), NO coding history. Rewrote the module
+  docstring + every method/kernel docstring (functional) + the
+  mirror doc (What it is / API / How it works / Invariants /
+  Integration); two code nudges (the two error messages lost
+  their "the C assert" tails — bare assertRaises, nothing
+  pinned). Zero behavior change (852/0/21
+  LONG; 1e6 bit-exact, 28065 dead lanes). Scope: the prng
+  module only (test_prng.py + its mirror doc still carry C-
+  port references — a follow-up if asked).
 
 ## Next steps
 

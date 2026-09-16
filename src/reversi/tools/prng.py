@@ -26,27 +26,35 @@
 #
 
 """
-The MT-19937 64-bit PRNG — the line-by-line Python port of Roberto's
-C library (prng.c, 2017 — the 64-bit variant, NOT the 32-bit
-reference), the I-017 T2 (D-159).
+The MT-19937 64-bit pseudo-random number generator.
 
-The strict-typing ruling (D-159, Roberto: "NUMPY e stiamo strict con
-i tipi"): every 64-bit value in the DATA PATH is a numpy uint64 — the
-type itself applies the C unsigned-wraparound contract (a numpy
-uint64 addition/multiplication overflows modulo 2^64 exactly like the
-C, no unbounded Python ints, no manual masking). Loop counters are
-plain ints (control flow, not data).
+MT-19937 (the 64-bit Mersenne Twister) is a DETERMINISTIC generator:
+seeded once with an integer, it yields a reproducible stream of
+64-bit values. The state is a 312-word (64-bit) array; a draw first
+TWISTS the array (a linear recurrence mixing the 312 words) and then
+TEMPERS the output word with a 4-operation bitwise mix. The period
+is 2^19937 - 1, so a single seed defines the whole stream.
 
-Ported: the MT family (the prng_mt19937_* functions).
-Skipped: the 4 prng_stdlib_* wrappers (thin over srand/rand — a
-no-sense in Python), prng_uint64_from_clock_random_seed (the
-clock-based seed: non-deterministic and unused — the pipeline seed
-comes from the config and is part of the cache signature), and
-prng_mt19937_init_by_array (never used, in the C nor in the Python
-— the D-198 removal: only the init_by_seed is kept).
+Typing: every 64-bit value in the data path is a numpy uint64 — the
+type itself applies the unsigned-wraparound contract (arithmetic
+overflows modulo 2^64; no unbounded Python ints, no manual masking).
+Loop counters are plain ints (control flow, not data).
 
-The bit-exact verification oracles (T3): the C build of prng.c +
-bit_works.c + time_utils.c and Roberto's ut_prng.c.
+API (the MT19937 class, the sole public interface):
+  MT19937(seed)                      construct + seed the state.
+  get_uint64()                       the next 64-bit value.
+  get_uint64_batch(n)                the next n values, a (n,) u64 array.
+  get_double_in_c0_c1 / _c0_o1 / _o0_o1
+                                     random floats in [0,1], [0,1), (0,1).
+  random_choice_from_finite_set(k)   a uniform integer in [0, k-1].
+  shuffle_uint8 / shuffle /
+  shuffle_double / shuffle_int       in-place Fisher-Yates shuffles.
+  random_string_az(n)                n random lowercase letters.
+  extract_from_set64(set_arr)        pick + remove a random bit (in place).
+  choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
+
+The state (_mt / _mti) is INTERNAL: it is never exposed, and a
+generator is neither saved nor re-seeded.
 """
 
 from __future__ import annotations
@@ -58,104 +66,90 @@ import numba as nb
 
 __all__ = ['MT19937']
 
-# The C static constant (prng.c L154-158), verbatim. Only NN is
-# used outside the numba kernel (the ctor's np.zeros(NN, …) + the
-# init loop); MM / UM / LM / MAG are defined INSIDE the kernel
-# _get_uint64_batch (the twist + temper's implementation details,
-# the D-199). The C MAG01 array is dropped — only the odd scalar
-# MAG (MAG01[1]) is used (the D-199).
-NN: int = 312  # the working-area size (312 words, the C NN)
+# The working-area size: 312 words (64-bit each) — the MT-19937
+# state. NN is the only constant at module level (the ctor's
+# np.zeros(NN, …) + the init loop use it); the twist + temper
+# constants (MM / UM / LM / MAG) live inside the _get_uint64_batch
+# kernel (they are its implementation details).
+NN: int = 312
 
 
 class MT19937:
     """
-    The 64-bit MT-19937 generator state — the Python face of the C
-    prng_mt19937_t struct (the `uint64_t *mt` working area + the
-    `size_t mti` working index).
+    The 64-bit MT-19937 generator: a seeded, deterministic stream of
+    64-bit values.
 
-    Construction fuses the C `prng_mt19937_new` + the init_by_seed
-    (the D-199: consolidated into the ctor — the init_by_seed
-    method is gone; the seed is REQUIRED). The C legacy paths are
-    DROPPED: the deferred init with the default seed 5489 (the
-    D-197) and the init_by_array (the D-198). The object is ALWAYS
-    initialized by the ctor. The state (_mt / _mti) is fully
-    INTERNAL — the C accessors (mt / mti) are dropped (the D-199:
-    we never read the state to save it).
+    Construction takes the seed (REQUIRED) and initializes the state;
+    the object is always initialized and cannot be re-seeded. The
+    state (_mt / _mti) is INTERNAL — it is never exposed (a
+    generator is not saved or re-seeded).
 
-    Attributes (internal — the C struct fields):
+    Attributes (internal):
       _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
-      _mti: int — the working index (always valid after the ctor).
+      _mti: int — the position within the working area.
     """
 
     def __init__(self, seed: int) -> None:
-        # prng_mt19937_new + init_by_seed (the D-199: consolidated
-        # into the ctor, the init_by_seed method is gone).
+        # Seed the 312-word working area (the MT-19937 init). The
+        # working index is left at NN, so the FIRST get_uint64
+        # twists the just-initialized array before its first draw.
+        # The arithmetic wraps modulo 2^64 by design (unsigned); the
+        # numpy overflow warnings are silenced locally.
         self._mt = np.zeros(NN, dtype=np.uint64)
-        # C prng_mt19937_init_by_seed (prng.c L309), line by line.
-        # Note (verbatim quirk, DO NOT "fix"): the C loop leaves
-        # mti == NN — the FIRST get_uint64 therefore twists the
-        # just-initialized array immediately. The C unsigned
-        # arithmetic wraps modulo 2^64 BY DESIGN (that is the
-        # contract): the numpy overflow warnings are silenced
-        # locally (errstate) — the wrap is not an error.
         self._mt[0] = np.uint64(seed)
         with np.errstate(over="ignore", invalid="ignore"):
             for mti in range(1, NN):
                 prev = self._mt[mti - 1]
-                # 6364136223846793005 is HIS constant (prng.c) — it is
-                # NOT the 32-bit-reference 6364136293807784493.
+                # 6364136223846793005 — the 64-bit MT init multiplier.
                 self._mt[mti] = (
                     np.uint64(6364136223846793005) * (prev ^ (prev >> 62))
                     + np.uint64(mti))
-        self._mti = NN  # the C for-loop leaves mti == NN
+        self._mti = NN
 
     # -- the generators -------------------------------------------------
 
     def get_uint64(self) -> np.uint64:
         """
-        C prng_mt19937_get_uint64 (prng.c L380): the next
-        pseudo-random uint64 of the sequence. Delegates to
-        get_uint64_batch (n = 1) — the twist (312 words at a
-        time) + the 4-op temper (prng.c L380-414) live in the
-        numba kernel _get_uint64_batch (the single source, the
-        D-196); no duplicated logic here.
+        The next 64-bit value of the sequence. Delegates to
+        get_uint64_batch (n = 1): the twist + the 4-op temper live
+        in the numba kernel _get_uint64_batch (the single source),
+        so the scalar and batch paths share one implementation.
         """
         return self.get_uint64_batch(1)[0]
 
     def get_uint64_batch(self, n: int) -> np.ndarray:
         """
-        The n successive values of the sequence as a (n,) u64
-        array — the numba batch-draw kernel _get_uint64_batch
-        (the single source, the D-194/D-196) run on this state
-        (the _mt working area + the _mti index, mutated in
-        place). Bit-exact vs get_uint64 called n times (the
-        same twist + the same 4-op temper, the T3 C oracle).
-        The state is always initialized (the ctor, the D-197
-        dropped the C legacy bare-state / default-5489 path).
+        The n successive values of the sequence as a (n,) uint64
+        array. Runs the numba kernel _get_uint64_batch on this
+        state (the _mt working area + the _mti index, mutated in
+        place); it is bit-identical to get_uint64 called n times.
         """
         draws, self._mti = _get_uint64_batch(self._mt, self._mti, n)
         return draws
 
     def get_double_in_c0_c1(self) -> np.float64:
         """
-        C prng_mt19937_get_double_in_c0_c1 (prng.c L432): a random
-        number on the [0, 1] real interval (both ends included).
+        A random float in the [0, 1] interval (both ends included).
+        Takes the top 53 bits of a uint64 (53 = the float64 mantissa
+        bits) and scales to the unit interval.
         """
         return np.float64(
             int(self.get_uint64() >> 11) * (1.0 / 9007199254740991.0))
 
     def get_double_in_c0_o1(self) -> np.float64:
         """
-        C prng_mt19937_get_double_in_c0_o1 (prng.c L450): a random
-        number on the [0, 1) real interval.
+        A random float in the [0, 1) interval (0 included, 1
+        excluded). Top 53 bits of a uint64 scaled to the unit
+        interval.
         """
         return np.float64(
             int(self.get_uint64() >> 11) * (1.0 / 9007199254740992.0))
 
     def get_double_in_o0_o1(self) -> np.float64:
         """
-        C prng_mt19937_get_double_in_o0_o1 (prng.c L468): a random
-        number on the (0, 1) real interval (open at both ends).
+        A random float in the (0, 1) interval (open at both ends).
+        Top 52 bits of a uint64, offset by half a step, scaled to
+        the unit interval so neither endpoint is reachable.
         """
         return np.float64(
             (int(self.get_uint64() >> 12) + 0.5)
@@ -163,33 +157,29 @@ class MT19937:
 
     def random_choice_from_finite_set(self, k: int) -> np.uint64:
         """
-        C prng_mt19937_random_choice_from_finite_set (prng.c L495),
-        line by line: a random integer uniformly distributed in the
-        [0, k-1] integer interval (k must not be 0 — the C assert).
+        A random integer uniformly distributed in the [0, k-1]
+        interval (k must not be 0).
 
-        k == 1 returns 0 WITHOUT consuming a value from the prng
-        sequence (the C contract); otherwise the prng status is
-        altered.
+        k == 1 returns 0 WITHOUT consuming a value from the sequence
+        (a single-element choice is deterministic); otherwise one
+        value is consumed.
         """
         k = int(k)
         if k == 0:
-            raise ValueError("k cannot be 0 (the C assert)")
+            raise ValueError("k cannot be 0")
         if k == 1:
             return np.uint64(0)
         r = self.get_double_in_c0_o1()
         c = int(math.floor(float(r) * k))
-        # The numpy cast wraps modulo 2^64, exactly like the C
-        # (uint64_t) cast on the floor result.
         return np.uint64(c)
 
     # -- the shuffles (Fisher-Yates, in place) --------------------------
 
     def shuffle_uint8(self, array: np.ndarray, n: int) -> None:
         """
-        C prng_mt19937_shuffle_array_uint8 (prng.c L532): arranges in
-        place the n elements of the uint8 array in random order.
-        n == 0 or n == 1: no random number is consumed (the C
-        contract).
+        Arranges in place the n first elements of a uint8 array in
+        random order (Fisher-Yates). n == 0 or n == 1 consumes no
+        random value.
         """
         if array.dtype != np.uint8:
             raise ValueError("shuffle_uint8: the array must be uint8")
@@ -202,10 +192,8 @@ class MT19937:
 
     def shuffle(self, array: np.ndarray, n: int) -> None:
         """
-        C prng_mt19937_shuffle_array_p (prng.c L573) — the GENERIC
-        ("pointer") shuffle: any 1-D numpy array (the C void** face),
-        in place. n == 0 or n == 1: no random number is consumed (the
-        C contract).
+        The generic shuffle: any 1-D numpy array, in place
+        (Fisher-Yates). n == 0 or n == 1 consumes no random value.
         """
         if array.ndim != 1:
             raise ValueError("shuffle: the array must be 1-D")
@@ -218,9 +206,8 @@ class MT19937:
 
     def shuffle_double(self, array: np.ndarray, n: int) -> None:
         """
-        C prng_mt19937_shuffle_array_double (prng.c L616): the
-        float64 array face, in place. n == 0 or n == 1: no random
-        number is consumed (the C contract).
+        The float64 array shuffle, in place (Fisher-Yates). n == 0
+        or n == 1 consumes no random value.
         """
         if array.dtype != np.float64:
             raise ValueError("shuffle_double: the array must be float64")
@@ -233,11 +220,9 @@ class MT19937:
 
     def shuffle_int(self, array: np.ndarray, n: int) -> None:
         """
-        C prng_mt19937_shuffle_array_int (prng.c L657): the integer
-        array face, in place (the C type is the 32-bit int; the
-        numpy port accepts any integer dtype — the shuffle semantics
-        are dtype-agnostic slot swaps). n == 0 or n == 1: no random
-        number is consumed (the C contract).
+        The integer array shuffle, in place (Fisher-Yates; accepts
+        any integer dtype — the shuffle is a dtype-agnostic slot
+        swap). n == 0 or n == 1 consumes no random value.
         """
         if not np.issubdtype(array.dtype, np.integer):
             raise ValueError("shuffle_int: the array must be an integer")
@@ -252,56 +237,56 @@ class MT19937:
 
     def random_string_az(self, n: int) -> str:
         """
-        C prng_mt19937_random_string_az (prng.c L693): a sequence of
-        n random characters in the [a..z] range (the C fills a
-        NUL-terminated buffer; the Python face returns the str).
+        A string of n random characters in the [a..z] range.
         """
         n = int(n)
         a = ord('a')
         z = ord('z')
-        range_az = z - a  # 25 (the C: the unsigned range)
+        range_az = z - a  # 25
         return "".join(
             chr(a + int(self.random_choice_from_finite_set(range_az)))
             for _ in range(n))
 
     def extract_from_set64(self, set_arr: np.ndarray) -> np.uint8:
         """
-        C prng_mt19937_extract_from_set64 (prng.c L712), line by
-        line: extracts (picks + removes) a random bit from the
-        64-bit set and returns its 0-based position.
+        Picks + REMOVES a random bit from the 64-bit set and returns
+        its 0-based position.
 
-        `set_arr` is the C `uint64_t *set` face: a uint64 ndarray
-        whose element 0 holds the set bitmask, updated IN PLACE (the
-        C pointer semantics — note the C clears the picked bit from
-        the ORIGINAL set, so the skipped-lowest bits survive).
+        `set_arr` is a uint64 ndarray whose element 0 holds the set
+        bitmask, updated IN PLACE (note: the picked bit is cleared
+        from the ORIGINAL set, so the skipped-lowest bits survive).
 
-        The three bitw_* C helpers (bit_works.c) are inlined here:
-          bitw_bit_count_64(s)           -> popcount(s)
-          bitw_reset_lowest_set_bit_64   -> (s - 1) & s (clears the
-                                             lowest set bit)
-          bitw_bit_scan_forward_64(s)    -> the index of the lowest
-                                             set bit (the C de Bruijn
-                                             table; here
-                                             (s & -s).bit_length() - 1)
+        How it works: k = the popcount of the set; one
+        get_double_in_c0_o1 draw picks the c-th set bit by clearing
+        the lowest set bit c times ((s - 1) & s); the position is the
+        index of the now-lowest set bit ((s & -s).bit_length() - 1).
         """
         if set_arr.dtype != np.uint64:
             raise ValueError("extract_from_set64: the set must be uint64")
         s = set_arr[0]
         k = int(s).bit_count()
         if k == 0:
-            raise ValueError("the set must not be empty (the C assert *set)")
+            raise ValueError("the set must not be empty")
         r = self.get_double_in_c0_o1()
         c = int(math.floor(float(r) * k))
         for _ in range(c):
-            s = (s - 1) & s  # bitw_reset_lowest_set_bit_64
+            s = (s - 1) & s  # clear the lowest set bit
         low = int(s) & -int(s)
-        p = low.bit_length() - 1  # bitw_bit_scan_forward_64
-        # The C: *set = *set &~(1ULL << p) — the mask applies to the
-        # ORIGINAL set (the numpy ~ wraps at 64 bits, like the C).
+        p = low.bit_length() - 1
+        # Clear the picked bit from the ORIGINAL set (the numpy ~
+        # wraps at 64 bits).
         set_arr[0] = set_arr[0] & ~(np.uint64(1) << p)
         return np.uint8(p)
 
     def choose_one_from_set64(self, set64: np.uint64) -> (np.uint64, np.uint8):
+        """
+        Picks a random bit from the 64-bit set WITHOUT removing it
+        (unlike extract_from_set64, the set is read, never mutated):
+        k = the popcount, one get_double_in_c0_o1 draw, the c-th set
+        bit (skipping the c lowest) is picked. Returns (1 << p, p).
+        The empty set returns the (0, 64) sentinel (64 = no bit)
+        WITHOUT consuming a draw.
+        """
         s = set64
         k = int(s).bit_count()
         if k == 0:
@@ -316,33 +301,26 @@ class MT19937:
 
 
 # ---------------------------------------------------------------------
-# The numba MT19937-64 batch-draw kernel — the SINGLE SOURCE of
-# the batch draw (the D-194 move from lm/hlp_wave.py, which now
-# drives the wave through the class): the twist + the 4-op
-# temper, bit-exact vs the golden-pinned MT19937 class above
-# (the T3 C oracle). _get_uint64_batch is INTERNAL to the class
-# (the D-196): only MT19937.get_uint64_batch calls it. The state
-# is the caller's (the `mt` working area + the `mti` index),
-# mutated in place.
+# The numba MT19937-64 batch-draw kernel: the twist + the 4-op
+# temper, the single source of the draw path. _get_uint64_batch
+# is INTERNAL to the class: only MT19937.get_uint64_batch calls
+# it. The state is the caller's (the `mt` working area + the
+# `mti` index), mutated in place.
 # ---------------------------------------------------------------------
 
 
 @nb.njit(cache=True)
 def _get_uint64_batch(mt, mti, n):
-    """INTERNAL to the class (the D-196): the n successive
-    u64 draws (the twist + the 4-op temper, prng.c L380-414
-    line by line — bit-exact vs the golden-pinned MT19937
-    class above, the T3 C oracle). Only
-    MT19937.get_uint64_batch calls it. Returns (draws, mti).
-    The twist + temper constants (MM / UM / LM / MAG) are
-    LOCAL to the kernel (the D-199 — the C prng.c L154-158
-    verbatim; NN stays module-level, the ctor uses it)."""
-    # The C static constants (prng.c L154-158), verbatim —
-    # kernel-local (the D-199).
-    MM = 156
-    UM = np.uint64(0xFFFFFFFF80000000)  # Most significant 33 bits
-    LM = np.uint64(0x000000007FFFFFFF)  # Least significant 31 bits
-    MAG = np.uint64(0xB5026F5AA96619E9)  # the C MAG01[1] (odd)
+    """INTERNAL to the class: the n successive u64 draws (the
+    twist + the 4-op temper). Only MT19937.get_uint64_batch
+    calls it. Returns (draws, mti). The twist + temper
+    constants (MM / UM / LM / MAG) are local to the kernel; NN
+    (the working-area size) is module-level."""
+    # The twist + temper constants (kernel-local).
+    MM = 156  # the half-state offset (NN // 2)
+    UM = np.uint64(0xFFFFFFFF80000000)  # keep the upper 33 bits
+    LM = np.uint64(0x000000007FFFFFFF)  # keep the lower 31 bits
+    MAG = np.uint64(0xB5026F5AA96619E9)  # the odd-parity XOR constant
     out = np.empty(n, dtype=np.uint64)
     for j in range(n):
         if mti >= NN:

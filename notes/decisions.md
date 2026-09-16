@@ -1626,3 +1626,30 @@ D-199 | 2026-09-15 | The PRNG rationalization (Roberto's
         replays bit-exactly (28065 dead lanes). The module is
         now minimal: one class, a seed ctor, one numba kernel
         (with its constants local), the state fully internal.
+D-200 | 2026-09-15 | The PRNG comments + docs DE-PORTIFIED
+        (Roberto's call): the comments and the mirror doc
+        (docs/src/reversi/tools/prng.md) referenced the LEGACY
+        C port all over — "line-by-line port of Roberto's C
+        library", "prng.c L309", the D-numbers (D-159/D-161/
+        D-19x), "I-017 T2/T3", "the C oracle / ut_prng.c /
+        bit_works.c", "Skipped from the C", "Roberto: NUMPY e
+        stiamo strict", "DO NOT fix", "the C assert" — and that
+        history "non interessa a nessuno". The rule now: the
+        docs explain WHAT the module does (what MT-19937 is,
+        its properties, the API, how the methods work), with NO
+        reference to the coding history. Rewrote the module
+        docstring, the class + every method docstring, the
+        kernel banner/docstring/constants (all functional), and
+        the mirror doc (restructured: What it is / API / How it
+        works / Invariants / Integration). Two code nudges came
+        with it: the two error messages lost their "the C assert"
+        tails ("k cannot be 0 (the C assert)" → "k cannot be 0";
+        "the set must not be empty (the C assert *set)" → "the
+        set must not be empty") — the tests use bare
+        assertRaises(ValueError), so nothing is pinned. Zero
+        behavior change.
+        Verification: the touched modules 30/0/1 GREEN; the full
+        LONG run 852/0/21 GREEN; the 1e6 G0 benchmark replays
+        bit-exactly (28065 dead lanes). (Scope: the prng module
+        only — test_prng.py + its mirror doc still carry C-
+        port references; a follow-up if Roberto wants it.)
