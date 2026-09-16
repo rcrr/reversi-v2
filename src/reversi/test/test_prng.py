@@ -167,6 +167,16 @@ class TestPrng(unittest.TestCase):
         arr = np.array([3.0, 1.0, 2.0])
         a.shuffle(arr, 3)
         self.assertEqual(sorted(arr.tolist()), [1.0, 2.0, 3.0])
+        # shuffle_double is a PERMUTATION of a float64 array.
+        d0 = np.arange(16, dtype=np.float64)
+        d = d0.copy()
+        a.shuffle_double(d, 16)
+        self.assertEqual(sorted(d.tolist()), d0.tolist())
+        # shuffle_int is a PERMUTATION of an integer array.
+        i0 = np.arange(16, dtype=np.int64)
+        i = i0.copy()
+        a.shuffle_int(i, 16)
+        self.assertEqual(sorted(i.tolist()), i0.tolist())
 
     def test_random_string_az(self):
         g = MT19937(5)
@@ -305,6 +315,133 @@ class TestPrngEquidistribution(unittest.TestCase):
         expected = self.N / 64
         chi2 = float(np.sum((obs - expected) ** 2 / expected))
         self.assertLess(chi2, 130.0)
+
+
+class TestChooseOneFromSet64(unittest.TestCase):
+    """
+    choose_one_from_set64: the uniform NO-REMOVAL pick from a 64-bit
+    set. It returns (1 << p, p) for a random set bit p; it never
+    mutates the set; the empty set is the (0, 64) sentinel (no draw
+    is consumed).
+    """
+
+    # At least 3 distinct seeds (robust against a seed-specific fluke).
+    SEEDS = [42, 7, 93]
+
+    # The 7 golden cases: (section, seed, set, the set's bit count).
+    # One full set + three distinct 2-bit sets + three distinct
+    # 3-bit sets.
+    CASES = [
+        ("choose_full",   42, 0xFFFFFFFFFFFFFFFF, 64),
+        ("choose_2bit_a", 42, (1 << 0) | (1 << 63),        2),
+        ("choose_2bit_b",  7, (1 << 3) | (1 << 7),         2),
+        ("choose_2bit_c", 93, (1 << 16) | (1 << 48),       2),
+        ("choose_3bit_d", 42, (1 << 0) | (1 << 1) | (1 << 63),   3),
+        ("choose_3bit_e",  7, (1 << 5) | (1 << 10) | (1 << 20),  3),
+        ("choose_3bit_f", 93, (1 << 7) | (1 << 32) | (1 << 55),  3),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.g = _load_golden()
+
+    @staticmethod
+    def _bits(set64):
+        # The sorted positions of the set bits of set64.
+        return sorted(i for i in range(64) if (int(set64) >> i) & 1)
+
+    # -- the empty set: the (0, 64) sentinel, no draw consumed --------
+
+    def test_empty_set_is_the_sentinel_and_consumes_nothing(self):
+        # The empty set returns the (0, 64) sentinel and the stream
+        # position is untouched: the next value equals a fresh
+        # instance's first value. Checked over 3 seeds.
+        for seed in self.SEEDS:
+            g = MT19937(seed)
+            h = MT19937(seed)
+            val, p = g.choose_one_from_set64(np.uint64(0))
+            self.assertEqual(int(val), 0)
+            self.assertEqual(int(p), 64)
+            self.assertEqual(g.get_uint64(), h.get_uint64())
+
+    # -- the return shape: (1 << p, p), p a set bit --------------------
+
+    def test_the_return_is_the_single_bit_at_position_p(self):
+        # For a non-empty set the returned value is exactly the single
+        # bit at the returned position p, and p is a set bit of the
+        # input. 3 seeds x 4 sets x 20 picks.
+        sets = [
+            0xFFFFFFFFFFFFFFFF,
+            (1 << 0) | (1 << 63),
+            (1 << 3) | (1 << 7),
+            (1 << 5) | (1 << 10) | (1 << 20),
+        ]
+        for seed in self.SEEDS:
+            g = MT19937(seed)
+            for s in sets:
+                for _ in range(20):
+                    val, p = g.choose_one_from_set64(np.uint64(s))
+                    self.assertEqual(int(val), 1 << int(p))
+                    self.assertTrue(s & (1 << int(p)))
+
+    # -- the no-removal contract --------------------------------------
+
+    def test_the_set_is_never_mutated(self):
+        # Unlike extract_from_set64, the set is only READ: after many
+        # picks it still holds all its bits (it is never drained) and
+        # every pick is one of them. 3 seeds x 100 picks.
+        s = 0x5555555555555555  # 32 set bits
+        for seed in self.SEEDS:
+            g = MT19937(seed)
+            for _ in range(100):
+                val, p = g.choose_one_from_set64(np.uint64(s))
+                self.assertTrue(s & (1 << int(p)))
+            self.assertEqual(int(s).bit_count(), 32)
+
+    # -- the 1000-pick golden + the expected frequencies --------------
+
+    def test_the_1000_pick_golden_and_expected_frequencies(self):
+        # Each of the 7 cases (the full set + the 3 two-bit + the 3
+        # three-bit sets) is replayed for 1000 picks: the exact
+        # position sequence matches the committed golden, and the
+        # observed frequencies match the golden's expected
+        # frequencies (the uniform spread over the set's bits).
+        for section, seed, set64, nbits in self.CASES:
+            g = MT19937(seed)
+            positions = [
+                int(g.choose_one_from_set64(np.uint64(set64))[1])
+                for _ in range(1000)
+            ]
+            # (a) The exact 1000-pick sequence is the golden.
+            self.assertEqual([str(p) for p in positions], self.g[section])
+            # (b) The observed frequencies are the golden's expected
+            #     ones, and they cover exactly the set's bits.
+            freq = {}
+            for p in positions:
+                freq[p] = freq.get(p, 0) + 1
+            expected = {}
+            for tok in self.g[section + "_freqs"][0].split():
+                pos, cnt = tok.split(":")
+                expected[int(pos)] = int(cnt)
+            self.assertEqual(freq, expected)
+            self.assertEqual(sorted(freq), self._bits(set64))
+
+    # -- the full set: a reasonable equi-distribution ------------------
+
+    def test_the_full_set_is_reasonably_equidistributed(self):
+        # A large sample (200k picks) from the full 64-bit set: the
+        # 64 positions are each hit ~3125 times (200k / 64), and the
+        # chi-square over the 64 bins stays far below the ~3.7-sigma
+        # threshold for df = 63 — the pick is uniform over the set.
+        N = 200000
+        g = MT19937(42)
+        obs = np.zeros(64, dtype=np.int64)
+        for _ in range(N):
+            _, p = g.choose_one_from_set64(np.uint64(0xFFFFFFFFFFFFFFFF))
+            obs[int(p)] += 1
+        expected = N / 64.0
+        chi2 = float(np.sum((obs - expected) ** 2 / expected))
+        self.assertLess(chi2, 150.0)
 
 
 if __name__ == '__main__':

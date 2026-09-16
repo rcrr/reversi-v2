@@ -1691,3 +1691,32 @@ D-202 | 2026-09-15 | The PRNG TEST module + doc DE-PORTIFIED
         unchanged and passing). Verification: test_prng 14/0/0
         GREEN; touched modules 30/0/1 GREEN; full LONG 852/0/21
         GREEN; 1e6 G0 bit-exact (28065 dead lanes).
+D-203 | 2026-09-15 | Filled the 3 MT19937 test-coverage gaps
+        (Roberto's audit + "fissa i 3 gap"). The audit found:
+        (a) shuffle_double + shuffle_int had ONLY the negative
+        dtype pin, no positive test that they are a
+        PERMUTATION; (b) choose_one_from_set64 had NO direct unit
+        test (only the test_random_game integration golden).
+        Fixes in test_prng.py (14 -> 19 tests):
+        (a) test_shuffle_contracts now also asserts shuffle_double
+        (float64) + shuffle_int (int64) are permutations of the
+        input (16 elements);
+        (b) a NEW class TestChooseOneFromSet64 (3 seeds {42,7,93}):
+          - the empty set -> the (0, 64) sentinel + NO draw
+            consumed (the next value equals a fresh instance's);
+          - the return is (1 << p, p) and p is a set bit (3 seeds
+            x 4 sets x 20 picks);
+          - the set is NEVER drained (3 seeds x 100 picks, the
+            32-bit set keeps all 32 bits);
+          - a 1000-pick GOLDEN for 7 cases (the full set + 3
+            distinct 2-bit + 3 distinct 3-bit sets): the exact
+            position sequence + the expected frequencies;
+          - the full set is REASONABLY EQUIDISTRIBUTED (200k
+            picks, 64 bins, chi2 < 150, df=63).
+        New golden: 14 sections appended to prng_golden.txt
+        (7 cases x [the 1000-pick sequence + the _freqs
+        companion]), 11404 -> 18436 lines. The comments state
+        WHAT each test asserts (not the decision history, the
+        D-200/D-202 rule). Verification: test_prng 19/0/0 GREEN;
+        touched modules 35/0/1 GREEN; full LONG 857/0/21 GREEN;
+        1e6 G0 bit-exact (28065 dead lanes).

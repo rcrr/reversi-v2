@@ -597,6 +597,17 @@ at the end of this file.
   D-numbers, no "State" line. Zero behavior change (doc-only;
   the 14 tests unchanged). 852/0/21 LONG; 1e6 bit-exact (28065
   dead lanes).
+- D-203 (2026-09-15): filled the 3 MT19937 test-coverage gaps
+  (Roberto's audit): (a) shuffle_double + shuffle_int now have a
+  POSITIVE permutation test (alongside the negative dtype pin);
+  (b) a NEW TestChooseOneFromSet64 class (3 seeds) with 5 tests:
+  the empty-set (0,64) sentinel + no-consume; the return (1 << p,
+  p); the set never drained; a 1000-pick golden for 7 cases (the
+  full + 3 two-bit + 3 three-bit sets) with the expected
+  frequencies; the full set reasonably equidistributed (200k,
+  chi2 < 150). New golden: 14 sections (11404 -> 18436 lines).
+  test_prng 14 -> 19 tests. 857/0/21 LONG; 1e6 bit-exact (28065
+  dead lanes).
 
 ## Next steps
 
