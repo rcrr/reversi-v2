@@ -40,20 +40,15 @@
 #
 
 """
-The MT19937 (the 64-bit MT-19937 PRNG port, the I-017 T2,
-D-159) suite:
+The MT19937 (the 64-bit MT-19937 PRNG) suite:
 
-- the SMOKE micro-suite (the T2): the determinism, the strict
-  typing (the numpy uint64 / float64 dtypes of the state and of
-  every output), the range / wrap contracts, the no-consume
-  contracts (k == 1, the n <= 1 shuffles), and the
-  extract_from_set64 semantics;
-- the C-ORACLE golden suite (the T3, D-161): the exact
-  bit-sequence vs Roberto's C build (the committed
-  prng_golden.txt — the C library is the ONLY valid oracle: his
-  variant, the 64-bit constants; numpy RandomState is NOT) + the
-  seed-init contract (the whole 312-word mt state, verbatim) +
-  the equi-distribution on the first 100k.
+- the SMOKE micro-suite: the determinism, the strict typing
+  (the numpy uint64 / float64 dtypes of every output), the range /
+  wrap contracts, the no-consume contracts (k == 1, the n <= 1
+  shuffles), and the extract_from_set64 semantics;
+- the bit-exact golden suite: the exact sequence vs the committed
+  reference (data/prng_golden.txt) + the equi-distribution on the
+  first 100k.
 """
 
 import unittest
@@ -64,7 +59,7 @@ from reversi.test.paths import WORKSPACE_ROOT
 from reversi.tools.prng import MT19937
 
 
-#: The committed C-oracle golden (the D-161 artifact).
+#: The committed reference golden.
 GOLDEN_PATH = (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data"
                / "prng_golden.txt")
 
@@ -88,8 +83,8 @@ def _load_golden() -> "dict[str, list[str]]":
 
 
 class TestPrng(unittest.TestCase):
-    """The port contract: the determinism, the typing, the wraps,
-    the no-consume rules, the set extraction."""
+    """The smoke contracts: the determinism, the typing, the
+    wraps, the no-consume rules, the set extraction."""
 
     def test_get_uint64_wrap_64bit(self):
         # The full 64-bit domain: the max seed exercises the wrap
@@ -101,10 +96,10 @@ class TestPrng(unittest.TestCase):
             self.assertIsInstance(v, np.uint64)
 
     def test_get_uint64_batch_matches_scalar(self):
-        # The numba batch draw (get_uint64_batch, the D-195 class
-        # interface) is bit-exact vs get_uint64 called n times
-        # (the same twist + the same 4-op temper, the single
-        # source); 500 draws cross the 312-word twist boundary.
+        # The batch draw (get_uint64_batch) is bit-exact vs
+        # get_uint64 called n times (the same twist + the same
+        # 4-op temper, the single source); 500 draws cross the
+        # 312-word twist boundary.
         g = MT19937(1234)
         ref = MT19937(1234)
         n = 500
@@ -131,11 +126,11 @@ class TestPrng(unittest.TestCase):
             self.assertLess(float(o01), 1.0)
 
     def test_random_choice_contracts(self):
-        # k == 0: the C assert becomes a ValueError.
+        # k == 0: raises.
         g = MT19937(1)
         with self.assertRaises(ValueError):
             g.random_choice_from_finite_set(0)
-        # k == 1: returns 0 WITHOUT consuming (the C contract).
+        # k == 1: returns 0 WITHOUT consuming a value.
         h = MT19937(1)
         self.assertEqual(int(h.random_choice_from_finite_set(1)), 0)
         i = MT19937(1)
@@ -155,20 +150,20 @@ class TestPrng(unittest.TestCase):
         shuffled = base.copy()
         g.shuffle_uint8(shuffled, 16)
         self.assertEqual(sorted(shuffled.tolist()), base.tolist())
-        # n <= 1: no random number is consumed (the C contract).
+        # n <= 1: no random number is consumed.
         a = MT19937(3)
         one = np.array([7], dtype=np.uint8)
         a.shuffle_uint8(one, 1)
         b = MT19937(3)
         self.assertEqual(a.get_uint64(), b.get_uint64())
-        # The dtype pins (the strict-typing ruling).
+        # The dtype pins.
         with self.assertRaises(ValueError):
             a.shuffle_uint8(np.arange(4, dtype=np.int64), 4)
         with self.assertRaises(ValueError):
             a.shuffle_double(np.arange(4, dtype=np.uint8), 4)
         with self.assertRaises(ValueError):
             a.shuffle_int(np.arange(4, dtype=np.float64), 4)
-        # The generic (the C _p face) works on any 1-D array.
+        # The generic shuffle works on any 1-D array.
         arr = np.array([3.0, 1.0, 2.0])
         a.shuffle(arr, 3)
         self.assertEqual(sorted(arr.tolist()), [1.0, 2.0, 3.0])
@@ -191,7 +186,7 @@ class TestPrng(unittest.TestCase):
         s = np.array([np.uint64(1) << 40], dtype=np.uint64)
         self.assertEqual(int(g.extract_from_set64(s)), 40)
         self.assertEqual(int(s[0]), 0)
-        # The empty set: the C assert becomes a ValueError.
+        # The empty set: raises.
         with self.assertRaises(ValueError):
             g.extract_from_set64(np.array([np.uint64(0)], dtype=np.uint64))
         # The full 64-bit set: 64 distinct bits come out, and the
@@ -206,8 +201,8 @@ class TestPrng(unittest.TestCase):
         self.assertEqual(int(full[0]), 0)
         self.assertEqual(len(seen), 64)
         # The returned position was a set bit BEFORE the call, and
-        # the picked bit is cleared from the ORIGINAL set (the C
-        # pointer semantics: the skipped-lowest bits survive).
+        # the picked bit is cleared from the ORIGINAL set (the
+        # skipped-lowest bits survive).
         h = MT19937(11)
         for _ in range(200):
             s2 = np.array([np.uint64(0x5555555555555555)], dtype=np.uint64)
@@ -218,11 +213,9 @@ class TestPrng(unittest.TestCase):
 
 class TestPrngGolden(unittest.TestCase):
     """
-    The C-oracle bit-exact golden (the I-017 T3, D-161): the
-    committed sequences generated by the C build of Roberto's
-    prng.c (the file header records the provenance). Each
-    section is mirrored with a FRESH instance (the golden
-    generator's contract).
+    The bit-exact golden: the committed reference sequences
+    (data/prng_golden.txt). Each section is mirrored with a
+    FRESH instance of MT19937 (seed 42).
     """
 
     @classmethod
@@ -254,9 +247,8 @@ class TestPrngGolden(unittest.TestCase):
 
     def test_extract_full_sequence(self):
         # 64 picks exhaust the full set: a permutation of 0..63,
-        # the set empties exactly at the end (the C in-place
-        # contract: the picked bit is cleared from the ORIGINAL
-        # set).
+        # the set empties exactly at the end (the picked bit is
+        # cleared from the ORIGINAL set).
         g = MT19937(42)
         s = np.array([np.uint64(0xFFFFFFFFFFFFFFFF)], dtype=np.uint64)
         picks = [int(g.extract_from_set64(s)) for _ in range(64)]
@@ -267,11 +259,9 @@ class TestPrngGolden(unittest.TestCase):
 
 class TestPrngEquidistribution(unittest.TestCase):
     """
-    The statistical properties (the doc spec: 'the equi-
-    distribution on the first 100k'): the per-bit balance, the
-    chi-square on the top-bit bins, and the choice-64 uniformity.
-    Python-side (no C golden needed — the property is of the
-    sequence itself) and deterministic (the fixed seed 42).
+    The statistical properties of the sequence itself: the
+    per-bit balance, the chi-square on the top-bit bins, and the
+    choice-64 uniformity (deterministic, the fixed seed 42).
     """
 
     N = 100000

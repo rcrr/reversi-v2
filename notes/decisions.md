@@ -1667,3 +1667,27 @@ D-201 | 2026-09-15 | FIX random_string_az off-by-one (Roberto's
         appear (a 2000-char draw), still deterministic; touched
         modules 30/0/1 GREEN; full LONG 852/0/21 GREEN; 1e6 G0
         bit-exact (28065 dead lanes).
+D-202 | 2026-09-15 | The PRNG TEST module + doc DE-PORTIFIED
+        (Roberto's "ora fissa anche il modulo di test e la
+        documentazione"): test_prng.py and its mirror doc
+        (docs/src/reversi/test/test_prng.md) carried the same
+        C-port references as the prng module did before the
+        D-200 ("the C-oracle golden", "Roberto's C build", the
+        D-numbers, "I-017 T2/T3", "the C assert / C contract /
+        C pointer semantics", "the doc spec", "the strict-typing
+        ruling", "the first two failures of the T2 wave"). The
+        rule (the D-200) now extends to the test: the comments +
+        doc explain WHAT the suite pins (functional contracts),
+        NO coding history. Rewrote the module docstring, the
+        GOLDEN_PATH comment, the 3 class docstrings, and every
+        inline comment (the k == 0 / empty-set "C assert" →
+        "raises", the "C contract" → plain, the "C-oracle
+        golden" → "the committed reference sequences", the
+        provenance / "ONLY valid oracle" framing dropped — the
+        golden file's own header keeps the provenance). The
+        mirror doc is restructured (Coverage / Goldens pinned /
+        Conventions / Integration), no D-numbers, no "State"
+        line. Zero behavior change (doc-only; the 14 tests
+        unchanged and passing). Verification: test_prng 14/0/0
+        GREEN; touched modules 30/0/1 GREEN; full LONG 852/0/21
+        GREEN; 1e6 G0 bit-exact (28065 dead lanes).

@@ -586,6 +586,17 @@ at the end of this file.
   corpus) and the test pins only len / charset / determinism.
   Verified: all 26 letters appear, still deterministic; 852/0/21
   LONG; 1e6 bit-exact (28065 dead lanes).
+- D-202 (2026-09-15): the PRNG TEST module + doc DE-PORTIFIED
+  (Roberto: "ora fissa anche il modulo di test e la
+  documentazione"): test_prng.py + its mirror doc carried the
+  same C-port references as the prng module did before the
+  D-200. Rewrote the module docstring, the GOLDEN_PATH comment,
+  the 3 class docstrings + every inline comment (functional
+  contracts, NO coding history); the mirror doc restructured
+  (Coverage / Goldens pinned / Conventions / Integration), no
+  D-numbers, no "State" line. Zero behavior change (doc-only;
+  the 14 tests unchanged). 852/0/21 LONG; 1e6 bit-exact (28065
+  dead lanes).
 
 ## Next steps
 
