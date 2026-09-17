@@ -1,25 +1,23 @@
 # reversi/lm/wrk_gradient.py
 The GRADIENT worker of the LM pipeline: builds the loss/gradient
-closure in `_up` (reading the `high_performance_fg` config flag —
-I-013, D-145 — and passing it to `hlp_gradient_compute`) and
+closure in `_up` (reading the `high_performance_fg` config flag
+and passing it to `hlp_gradient_compute`) and
 clears it in `_down`. The SECOND non-cache level (after ZED): the
 comment at L48 documents the on-the-fly choice — "GRADIENT
 building is a closure generation, very fast. No cache needed." No
 cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
-> State: D-145 · I-013 · 2026-09-09 · suite 4/0/0 (2 DB-gated +
-2 no-DB flag-wiring tests)
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_gradient()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-094 T2, like all the other worker factories) returning `Worker("GRADIENT", _up, _down)` |
+| `wrk_gradient()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (like all the other worker factories) returning `Worker("GRADIENT", _up, _down)` |
 
 ## Architecture
 
 - Imports: `Worker, Relevance` from state_machine;
   `hlp_gradient_compute` from hlp_gradient; `validate_call,
-  ConfigDict` from pydantic (added in D-094 T2); `LMContext`
+  ConfigDict` from pydantic; `LMContext`
   under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by
   design — pinned by probe B).
 - `_up`: INFO "Building gradient and loss function (fg)..." →
@@ -29,12 +27,11 @@ cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
   → `ctx.fg = hlp_gradient_compute(ctx,
   high_performance=high_performance)` → INFO "Gradient function
   generated (high_performance: {True|False})." (the log line
-  names the built variant — I-013).
+  names the built variant).
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg =
   None`.
 - The house-style triple blank lines (before `__all__` and
-  before `_up`) — left as-is by Roberto (M4, the canonical
-  pattern of all 8 worker files).
+  before `_up`) — the canonical pattern of all 8 worker files.
 
 ## Verified invariants
 
@@ -43,18 +40,17 @@ tiers + the 2-test suite.
 
 - Source shape (probe B1-B9): the 64-line file, `__all__ =
   ['wrk_gradient']`, the factory WITH `@validate_call` +
-  the pydantic import (T2), NO cache_manager import (the L48
+  the pydantic import, NO cache_manager import (the L48
   by-design comment pinned), `_up` reads the
   `high_performance_fg` flag, sets `ctx.fg` (passing the flag)
   and logs the variant, `_down` clears it,
   `Worker("GRADIENT", ...)`.
 - The worker-test source shape (probe C1-C11): the 182-line
   file, the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
-  the no-DB TestGradientFlagWiring pair), the gate (T5), the
-  D-085 idiom (T6), the step pins, the 4 goldens, the _down
-  test (T7), the wiring test (C11: the worker + the
+  the no-DB TestGradientFlagWiring pair), the gate, the idiom, the step pins, the 4 goldens, the _down
+  test, the wiring test (C11: the worker + the
   Context-subclass mock + the marker pin), 0 non-comment ws
-  lines (T8).
+  lines.
 - The full pipeline through GRADIENT (live DB, probe D0 +
   D5-D10 + D12, rlm_02 — 199952 positions): the pipeline
   bootstrap (the move to GRADIENT runs the whole chain); alpha +
@@ -73,8 +69,7 @@ tiers + the 2-test suite.
 - The live goldens (DB-gated): `test_generate_gradient` (the 4
   pinned values at w=0, rlm_02 → the classic path) +
   `test_down_clears_gradient` (the step-7 / "ZED" / fg-None
-  pin) — `test_wrk_gradient.py` (the 2 DB-gated tests since
-  D-094 T5 + the 2 no-DB flag-wiring tests since D-145).
+  pin) — `test_wrk_gradient.py`.
 
 ## Open issues
 

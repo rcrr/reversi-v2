@@ -1,19 +1,16 @@
 # reversi/test/test_hlp_generate.py
-The dedicated data-object suite of the hlp_generate module —
-expanded from the bring-in's 1 class / 1 test to 4 classes /
-14 tests in the D-098 T4 campaign (Roberto: "T4: ok"), +2 with
-D-139. No DB, no gate, no artifacts — the SimpleNamespace
-mock-fixture pattern,
-as in test_hlp_zed / test_hlp_gradient.
-> State: D-139 · 9ba523b · 2026-09-08 · suite 16/0/0
+The dedicated data-object suite of the hlp_generate module — 4
+classes / 16 tests. No DB, no gate, no artifacts — the
+SimpleNamespace mock-fixture pattern, as in test_hlp_zed /
+test_hlp_gradient.
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestHlpGenerateCompute` (a `SimpleNamespace` mock ctx: the 3-feature set — Intercept (1 config), Pattern (3 configs, identity principal reference), Mobility (5 configs); `iwmap` offsets [0,1,4,9] with the unseen → −1 fallback slots; `wmap` 4 rows; `w = [0.5, −0.2, 1.0, 3.0]`; `w_checksum "abc654"`; a no-op logger) | 3 | `test_compute_w_dense`: the bring-in golden, kept — (9,) float32, INT 0.5, PAT [−0.2, −0.2, −0.2] (config 1 seen; configs 0/2 unseen → the weighted mean (−0.2·10)/10 = −0.2 — the R2 semantics), MOB [1, 1, 2, 3, 3] (clamp + linear interpolation over the 2 seen configs). `test_unknown_category_raises`: category 9 → `RuntimeError` with the exact message "The feature category is unknown: 9" (the D-098 M3 wording). `test_mobility_without_seen_configs_warns_and_zeroes`: an empty-wmap mobility feature → zeros (4,) + exactly one WARN event ("no seen configurations") |
+| `TestHlpGenerateCompute` (a `SimpleNamespace` mock ctx: the 3-feature set — Intercept (1 config), Pattern (3 configs, identity principal reference), Mobility (5 configs); `iwmap` offsets [0,1,4,9] with the unseen → −1 fallback slots; `wmap` 4 rows; `w = [0.5, −0.2, 1.0, 3.0]`; `w_checksum "abc654"`; a no-op logger) | 3 | `test_compute_w_dense`: the golden — (9,) float32, INT 0.5, PAT [−0.2, −0.2, −0.2] (config 1 seen; configs 0/2 unseen → the weighted mean (−0.2·10)/10 = −0.2 — the R2 semantics), MOB [1, 1, 2, 3, 3] (clamp + linear interpolation over the 2 seen configs). `test_unknown_category_raises`: category 9 → `RuntimeError` with the exact message "The feature category is unknown: 9". `test_mobility_without_seen_configs_warns_and_zeroes`: an empty-wmap mobility feature → zeros (4,) + exactly one WARN event ("no seen configurations") |
 | `TestHlpGenerateCacheConsistency` (two objects sharing the same dense vector, differing only in the stored checksum) | 2 | `test_consistent_checksum`: True on a matching `w_checksum`. `test_inconsistent_checksum`: False on a stale one (the single-field gate) |
-| `TestHlpGenerateIO` (the D-085 idiom: TemporaryDirectory FIRST under CUSTOM_TMP_BASE, defensive tearDown; object `w_checksum "io_test_checksum"` + `w_dense [0.5, −0.2, 1.0, 3.0]` float32) | 8 | `test_store_and_load_cycle`: the checksum=False round-trip (checksum + dtype + values). `test_compute_sha3_256_hash_golden`: the duck-typed hash pinned (below). `test_load_with_valid_sidecar`: store + `binio.write_sha3_256_sidecar` + checksum=True load. `test_load_with_mismatched_sidecar`: the mid-file byte flip (offset `size // 2`) → `RuntimeError: Checksum mismatch.` (message pinned — the sidecar verify runs before any payload parse). `test_load_rejects_wrong_description`: a hand-written header with the wrong description → `RuntimeError: Wrong file format: ...` (message pinned). `test_load_rejects_version_mismatch`: the proper description with version 2 → `RuntimeError: File version mismatch: found 2, expected 1` (the D-098 T1 gate, message pinned). The 2 D-139 additions — `test_store_compressed_by_default` (store → the first 4 file bytes are the LZ4 frame magic `b"\x04\x22\x4d\x18"` → load round-trips) + `test_load_defaults_reject_uncompressed_file` (a file written `compressed=False` → `binio.BinaryFormatError` at the compressed default); the wrong-description/wrong-version handcrafted writers now pass `compressed=True` to the manual `binio.BinaryWriter` (the D-139 variant: the LZ4 guard passes, the header gate is still reached) |
+| `TestHlpGenerateIO` (TemporaryDirectory FIRST under CUSTOM_TMP_BASE, defensive tearDown; object `w_checksum "io_test_checksum"` + `w_dense [0.5, −0.2, 1.0, 3.0]` float32) | 8 | `test_store_and_load_cycle`: the checksum=False round-trip (checksum + dtype + values). `test_compute_sha3_256_hash_golden`: the duck-typed hash pinned (below). `test_load_with_valid_sidecar`: store + `binio.write_sha3_256_sidecar` + checksum=True load. `test_load_with_mismatched_sidecar`: the mid-file byte flip (offset `size // 2`) → `RuntimeError: Checksum mismatch.` (message pinned — the sidecar verify runs before any payload parse). `test_load_rejects_wrong_description`: a hand-written header with the wrong description → `RuntimeError: Wrong file format: ...` (message pinned). `test_load_rejects_version_mismatch`: the proper description with version 2 → `RuntimeError: File version mismatch: found 2, expected 1` (message pinned). The 2 additions — `test_store_compressed_by_default` (store → the first 4 file bytes are the LZ4 frame magic `b"\x04\x22\x4d\x18"` → load round-trips) + `test_load_defaults_reject_uncompressed_file` (a file written `compressed=False` → `binio.BinaryFormatError` at the compressed default); the wrong-description/wrong-version handcrafted writers pass `compressed=True` to the manual `binio.BinaryWriter` (the LZ4 guard passes, the header gate is still reached) |
 | `TestHlpGenerateInit` | 3 | `test_init_accepts_valid_arrays`: the valid object. `test_init_fails_with_list_w_dense`: a list → ValidationError (the NDArray gate). `test_init_fails_with_non_str_w_checksum`: an int checksum → ValidationError |
 
 ## Goldens pinned
@@ -38,15 +35,14 @@ as in test_hlp_zed / test_hlp_gradient.
 - The mid-file corruption is offset-computed (`size // 2`), not
   a fixed offset: the dense file is small, a fixed 100 could
   fall past EOF.
-- Clean house style post-campaign (the Italian "AGGIUNTO"
-  comment gone, the dead `ctx.z` field gone, no ws lines).
+- Clean house style (no stale comments, no dead `ctx.z` field,
+  no ws lines).
 
 ## Integration
 
-- After the step-3 class c deletions this file owns the probe's
-  former D1/D2 (init), D4-D8 (IO + the 3 header gates), D9/D10
-  (consistency) + D12/D13 (compute error branches) — the
-  branches the live data cannot reach.
+- This file owns the branches the live data cannot reach: init,
+  IO + the 3 header gates, consistency, and the compute error
+  branches.
 - The LIVE goldens (K = 6588, the per-feature weighted means,
   orbit invariance, the hash golden) live in the probe E tier +
   test_wrk_generate.py — the single source of truth.

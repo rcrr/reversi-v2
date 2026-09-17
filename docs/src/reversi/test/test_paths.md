@@ -1,9 +1,6 @@
 # reversi/test/test_paths.py
-Unit tests for the `reversi.test.paths` workspace-root constants
-(D-085): 1 class / 3 tests, no DB, no gate, no artifacts (pure path
-assertions).
-> State: D-085 · aef6188 · 2026-08-31 · suite 3/0/0 (1 class /
-  3 tests, no DB)
+Unit tests for the `reversi.test.paths` workspace-root constants:
+1 class / 3 tests, no DB, no gate, no artifacts (pure path assertions).
 
 ## Coverage
 
@@ -30,4 +27,4 @@ assertions).
 ## Integration
 
 - Module under test: `paths.md` — the shared path-derivation module
-  of the D-065 test suite.
+  of the test suite.

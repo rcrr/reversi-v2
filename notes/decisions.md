@@ -1737,3 +1737,27 @@ D-204 | 2026-09-15 | The EC20 equidistribution test (Roberto
         (12/8/12), far under the threshold — genuinely flat.
         Verification: test_random_game 4/0/0 GREEN; full LONG
         859/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
+D-205 | 2026-09-15 | The doc de-history PASS on all the
+        mirror docs (Roberto: "Fai un passaggio su tutti i DOC").
+        The D-200/D-202 principle (the docs explain WHAT, no
+        reference to the coding/campaign history) is applied to
+        ALL 93 mirror docs, not just prng + test_prng. The 91
+        docs still carrying history refs (D-numbers, the I-0xx
+        task ids, "Roberto's X", the C-port wording, the
+        "> State: D-XXX · date · suite" lines) are rewritten:
+        the history refs are removed, the prose fixed up to read
+        naturally, and the FUNCTIONAL content + structure (the
+        ## sections, the tables, the API / Architecture /
+        Verified invariants / Conventions / Integration, the
+        test pointers, the goldens) are preserved. prng.md +
+        test_prng.md were already clean (the D-200/D-202 pass).
+        Done as a fan-out (one subagent per doc, uniform rules)
+        + a residual sweep (2 straggler D-numbers fixed by
+        hand). The "campaign" in hlp_gate.md is FUNCTIONAL
+        pipeline terminology (the feature-analysis campaign),
+        not history — kept. Verified: 0 D-numbers / I-0xx /
+        State lines / Roberto refs remain across docs/; all 91
+        docs keep their title + sections; spot-checked
+        random_game / hlp_wave / test_random_game read clean
+        and functional. Doc-only: no source touched, no test
+        impact (the 859-test suite is unaffected).

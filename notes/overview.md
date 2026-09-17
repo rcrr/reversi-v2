@@ -619,6 +619,16 @@ at the end of this file.
   chi2 10.1/8.7/10.1 (near df 12/8/12) — genuinely flat.
   test_random_game 4/0/0; 859/0/21 LONG; 1e6 bit-exact (28065
   dead lanes).
+- D-205 (2026-09-15): the doc de-history pass on ALL the
+  mirror docs (Roberto: "Fai un passaggio su tutti i DOC"):
+  the D-200/D-202 principle (docs explain WHAT, no coding/
+  campaign history) applied to all 93 mirror docs — the 91
+  still carrying history refs (D-numbers, I-0xx, "Roberto's",
+  C-port, the "> State:" lines) are rewritten, history removed,
+  prose fixed, FUNCTIONAL content + structure preserved (fan-
+  out, one subagent/doc + a residual sweep). 0 history refs
+  remain across docs/; all docs keep title + sections. Doc-
+  only, no test impact.
 
 ## Next steps
 

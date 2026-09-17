@@ -7,44 +7,39 @@ of its own: the `StateMachine` is the only stateful object, and the
 facade is a pure pass-through layer. `self.context` is the SAME object
 as `self.sm.context` (identity verified — both point at the shared
 LMContext).
-> State: D-075 · afd8f76 · 2026-08-30 · suite 17/0/0 (via
-  test_logistic_model through the LogisticModel subclass, no dedicated
-  suite)
 
 ## API
 
 | name | contract |
 |---|---|
-| `BaseModel.__init__(workers, context, verbosity=STANDARD)` (L50) | Stores `self.context` and builds `self.sm = StateMachine(workers, context, verbosity)`; gated by `@validate_call` (L49, D-074/R1 — decided once with logistic_model R3, applied to both facades); no other own validation |
+| `BaseModel.__init__(workers, context, verbosity=STANDARD)` (L50) | Stores `self.context` and builds `self.sm = StateMachine(workers, context, verbosity)`; gated by `@validate_call` (L49); no other own validation |
 | `current_step` (property, L59) | → `self.sm.current_step` |
 | `current_worker_name` (property, L63) | → `self.sm.current_worker_name` |
 | `verbosity` (property, get L67 + set L70) | → `self.sm.verbosity` both ways |
-| `move_to_step` (L74) | Pass-through to `self.sm.move_to_step` (gated by the SM's @validate_call, D-069 M11) |
+| `move_to_step` (L74) | Pass-through to `self.sm.move_to_step` (gated by the SM's @validate_call) |
 | `move_to_last` (L78), `show_event_log` (L82), `show_history_of_moves` (L85), `export_history_of_moves_as_csv` (L88) | Pass-throughs |
 
-`__all__` (L39) = [BaseModel] (M1, D-075 — before that this was the only
-reversi module without one).
+`__all__` (L39) = [BaseModel].
 
 ## Architecture
 
-89 lines (post D-075).
+89 lines.
 
 - L28 the module header comment; L31-36 imports (pathlib, typing.List,
-  pydantic — the D-074/R1 add —, state_machine).
+  pydantic, state_machine).
 - `class BaseModel` L42 (docstring L43-47 — the DeepNetworkModel
-  forward-reference, M2 informational, kept by design).
+  forward-reference, kept by design).
 - The pass-through surface: every method is a one-line delegation
   (source-verified); type errors on `move_to_step`/`move_to_last`
   surface from the SM's @validate_call gate, not from the facade.
-  Post D-074/R1 the `__init__` boundary itself is facade-gated, so the
-  class is gated at BOTH its own entry and the inner SM boundary.
+  The `__init__` boundary itself is facade-gated, so the class is gated
+  at BOTH its own entry and the inner SM boundary.
 
 ## Verified invariants
 
 Pinned by the `probes/verify_logistic_model.py` (21 checks — the
 base_model + logistic_model family probe) + the `test_logistic_model`
-suite (17 tests) through the LogisticModel subclass. The pre-step-3
-30-check figure froze in the archive.
+suite (17 tests) through the LogisticModel subclass.
 
 - V1: `model.context is model.sm.context` — one shared context object,
   no copy (the suite's `test_context_initialization` + probe).
@@ -65,19 +60,15 @@ None.
 ## Conventions
 
 - `@validate_call` on `__init__` is the house convention for
-  constructors/factories (pydantic, arbitrary_types_allowed) — the
-  approved behaviour change: wrong-typed constructor args now raise a
-  pydantic `ValidationError` at the facade boundary instead of at the
-  inner SM gate; the SM gate still runs behind it (belt-and-braces).
+  constructors/factories (pydantic, arbitrary_types_allowed): wrong-typed
+  constructor args raise a pydantic `ValidationError` at the facade
+  boundary; the SM gate runs behind it (belt-and-braces).
 
 ## Integration
 
-- `LogisticModel` (logistic_model.md) is the first concrete domain
-  facade on this base; the sibling modules
-  wrk_config / wrk_positions / hlp_config_schemas were
-  deliberately NOT analyzed in the session-21 analysis (Roberto: "Lo
-  faremo in seguito") — they were brought in afterwards as the
-  pipeline levels.
+- `LogisticModel` (logistic_model.md) is the concrete domain facade on
+  this base; the sibling modules wrk_config / wrk_positions /
+  hlp_config_schemas are the pipeline levels.
 - `state_machine.md` is the delegated-to core; the facade adds no
   behaviour of its own beyond the delegation + the own `@validate_call`
   gate.

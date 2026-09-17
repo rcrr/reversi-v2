@@ -11,33 +11,31 @@ overwritten every run — the OPTIMIZE-checkpoint artifact
 semantics; `_down` does NOT unlink it). The machine contract:
 `_up` publishes the THREE context attributes
 `ctx.train_metrics` (the 7-key dict),
-`ctx.train_dense_metrics` (the 4-key dense-pass dict, D-105/M2)
+`ctx.train_dense_metrics` (the 4-key dense-pass dict)
 and `ctx.analytics_report` (the console report string);
 `_down` clears all three.
-> State: D-105 · 8cdf20b · 2026-09-03 · suite 4/0/0 (4 DB-gated)
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_analytics()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-103 T1, all 14 sibling worker factories share the pattern) returning `Worker("ANALYTICS", _up, _down)` |
+| `wrk_analytics()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all 14 sibling worker factories share the pattern) returning `Worker("ANALYTICS", _up, _down)` |
 
 ## Architecture
 
-86 lines (80 at D-103).
+86 lines.
 
-- Imports (L28-38): pydantic (L30 — D-103 T1, replacing the
-  dead `from pathlib import Path` line, T2), `Worker,
+- Imports (L28-38): pydantic (L30), `Worker,
   Relevance` (L34), the 4 public data functions from
-  hlp_analytics (L35-37, 3 lines since D-105/M2), `LMContext`
+  hlp_analytics (L35-37), `LMContext`
   under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager`
   import (by design).
 - `_up` (L48-73): `log_event(INFO, "Generating model analytics
   report...")` (L49); `ctx.train_metrics =
   compute_training_metrics(ctx)` (L54 — pre-declared on
-  LMContext L155 since D-103 M1); `ctx.train_dense_metrics =
+  LMContext L155); `ctx.train_dense_metrics =
   compute_training_dense_metrics(ctx)` (L55 — pre-declared on
-  LMContext L156 since D-105/M2); `console_report =
+  LMContext L156); `console_report =
   format_console_report(ctx)` (L58); the 17 header lines logged
   line by line (L61-62); `file_report = format_file_report(ctx)`
   (L65) written
@@ -51,7 +49,7 @@ and `ctx.analytics_report` (the console report string);
   `train_metrics` + `train_dense_metrics` (pinned by probe A8 +
   `test_down_clears_analytics_attributes`).
 - `wrk_analytics()` (L82-85): the factory,
-  `@validate_call`-decorated since D-103 T1.
+  `@validate_call`-decorated.
 
 ## Verified invariants
 
@@ -63,7 +61,7 @@ worker suite (2 classes, all DB-gated).
   the pydantic import, NO pathlib import, NO cache_manager
   import (A9), `_up` sets the 3 ctx attributes, `_down` clears
   all three, `Worker("ANALYTICS", ...)`, 0 non-comment trailing-
-  ws lines (T4 — 6 pre).
+  ws lines.
 - The live rlm_02 flow (probe C-tier + the suite): the full
   pipeline through ANALYTICS (step 13, no crash) with the
   21-line log span (2 data-module INFO lines + 17 header lines
@@ -96,8 +94,8 @@ None.
 ## Conventions
 
 - The no-cache design is the fifth deviation from the uniform
-  7-kwargs `cache_manager` wiring — intentional and confirmed
-  by Roberto (the rlmwf_12 slot stays unused like 03/07/08).
+  7-kwargs `cache_manager` wiring — intentional (the rlmwf_12
+  slot stays unused like 03/07/08).
 - The 2 data-module INFO lines come from hlp_analytics
   (compute_training_metrics + compute_training_dense_metrics) —
   consistent with hlp_validate.
@@ -107,14 +105,14 @@ None.
 
 ## Integration
 
-- Pipeline ordering: ANALYTICS is level 14 of 15 (COMPLETE
-  post D-104); its inputs come from every upstream level (the
+- Pipeline ordering: ANALYTICS is level 14 of 15 (COMPLETE); its
+  inputs come from every upstream level (the
   field list in the hlp_analytics doc) — the SM half-open
   interval semantics guarantee every up-move to step 13 passes
   through all of them. The test setUp moves through VALIDATE
   (step 12) first, so the full 14-level chain is exercised
   end-to-end on the live DB.
-- Downstream: SAVE (level 15, active post D-104) consumes
+- Downstream: SAVE (level 15, active) consumes
   `ctx.vld_metrics` + `ctx.training_pop_stats` + `ctx.opt_info`
   for the model_weights file (the worker's "Store in context if
   needed by the SAVE worker later" comment).

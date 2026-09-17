@@ -5,14 +5,13 @@ matrix + its two metadata hashes) + 4 public functions (store /
 load / compute / is_cache_consistent) — the data object of the
 5th active level (CREATED → CONFIG → FEATURES → POSITIONS →
 INDEXES), the SECOND cache_manager consumer after POSITIONS.
-> State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `LMIndexes` | plain class — 3 fields `rds_checksum: str`, `feature_set_hash: str`, `indexes: IndexArray`, assigned BY REFERENCE (no copy); `compute_sha3_256_hash()` = the duck-typed data checksum; one-line `__repr__` |
-| `hlp_indexes_store_to_file(hlp_indexes, filename, compressed=True)` | binio write: header + the 2 strings + the array; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
+| `hlp_indexes_store_to_file(hlp_indexes, filename, compressed=True)` | binio write: header + the 2 strings + the array; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_indexes_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
 | `hlp_indexes_compute(ctx)` | builds a fresh object from `ctx` (NO `@validate_call` — see Conventions) |
 | `hlp_indexes_is_cache_consistent(ctx, hlp_indexes)` | the pure 2-field metadata compare (NO `@validate_call`) |
@@ -32,7 +31,7 @@ INDEXES), the SECOND cache_manager consumer after POSITIONS.
   ("LMIndexes binary data file", version 1),
   the 2 strings (rds_checksum, feature_set_hash), the array
   (write order pinned, probe A5). The writer runs with
-  `compressed=True` by default (D-139, as in model_weights) —
+  `compressed=True` by default (as in model_weights) —
   the LZ4 whole-file frame; the SHA3-256 sidecar is written by
   the binio writer (the checksum service is on by default), and
   in the pipeline flow cache_manager re-writes the same sidecar
@@ -62,8 +61,7 @@ Pinned by the 53-call `probes/verify_hlp_indexes.py` + the two test files (14 un
 - Source shape (probe A1-A11): 197 lines, the 5-name `__all__`,
   exactly 5 `@validate_call` (NOT on compute / is_cache_consistent
   — the no-validation comment), the store write order, the 3
-  load RuntimeError messages, the 2-field compare, the D-084
-  fixes.
+  load RuntimeError messages, the 2-field compare.
 - The object behaviour (pure, no DB, probe B2-B8): the data
   checksum (independent recompute) and the 3 load error paths
   (corrupted file, wrong description, wrong version); the
@@ -107,7 +105,7 @@ None.
   DATA checksum (sha3_256 over the raw uint32 bytes); the
   `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum`
   format over the serialized `.dat`).
-- The sidecar story (D-139, the stale note corrected): the binio
+- The sidecar story: the binio
   writer writes the `.SHA3-256` over the compressed bytes (the
   checksum service is on by default); in the pipeline flow
   cache_manager re-writes the same sidecar (idempotent).

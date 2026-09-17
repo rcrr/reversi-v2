@@ -2,11 +2,10 @@
 A small, domain-agnostic caching utility: one public function
 orchestrates a 4-step validation pipeline for "load cached result or
 recompute" around injected business-logic callbacks — the load-or-
-compute engine behind every rlmwf cache file, and the first domain
-module to import `reversi.tools.state_machine` (`Relevance`) + `reversi.tools.binio`
+compute engine behind every rlmwf cache file, and the domain module
+importing `reversi.tools.state_machine` (`Relevance`) + `reversi.tools.binio`
 (the sidecar API, no cycle). House `@validate_call` gate:
 `cache_path` coerced `str` → `Path`.
-> State: D-072 · ca8e761 · 2026-08-30 · suite 22/0/0 (no DB)
 
 ## API
 
@@ -21,9 +20,9 @@ module to import `reversi.tools.state_machine` (`Relevance`) + `reversi.tools.bi
 
 ## Architecture
 
-194 lines (post D-072).
+194 lines.
 
-- Imports (L41-46): the binio sidecar API (L41-45, D-072),
+- Imports (L41-46): the binio sidecar API (L41-45),
   `Relevance` from state_machine (L46); `__all__` (L50), `T` (L55),
   the 5 callback aliases (L58-62), `SHA3_256_CHECKSUM_SUFFIX` (L65).
 - `_verify_checksum` (L68; binio call L78, mapping L79-80);
@@ -40,7 +39,7 @@ module to import `reversi.tools.state_machine` (`Relevance`) + `reversi.tools.bi
 Pipeline (steps 0-3, per the docstring):
 
 1. **Step 0 — allowed?** `is_allowed` false → compute tail, which
-   **also stores** — INTENTIONAL (D-071/R1: a cache-disabled run
+   **also stores** — INTENTIONAL (R1: a cache-disabled run
    still transcribes the result — it warms the cache; pinned in
    docstring + test).
 2. **Step 1 — present?** missing → compute tail.
@@ -48,7 +47,7 @@ Pipeline (steps 0-3, per the docstring):
    "Checksum validation failed ... (sidecar missing or mismatched)",
    delete both, compute tail.
 4. **Step 3 — valid?** `load_fn` + the duck-typed data checksum +
-   `validate_fn` in ONE try/except (D-071/R2: a raising validator ≡ a
+   `validate_fn` in ONE try/except (R2: a raising validator ≡ a
    load failure) → ERROR "Failed to load or validate cache file ...",
    delete both, compute tail; `validate_fn` False (no exception) →
    WARN "Application data validation failed ...", same tail.
@@ -57,7 +56,7 @@ Pipeline (steps 0-3, per the docstring):
    always gets fresh, stored, checksummed data.
 
 The two checksums (do not confuse): the FILE checksum (the sidecar —
-binio's `sha3_256sum` format; legacy pre-D-072 bare-hex still
+binio's `sha3_256sum` format; legacy bare-hex still
 verifies via binio's first-token parser) and the DATA checksum (the
 3rd element — the object's content hash via the duck-typed
 `compute_sha3_256_hash()`, `None` when absent).
@@ -65,8 +64,7 @@ verifies via binio's first-token parser) and the DATA checksum (the
 ## Verified invariants
 
 Pinned by the 6-check `probes/verify_cache_manager.py` + the 22-test
-suite (no DB). The 17 analysis facts V1-V17 (zero mismatches) freeze
-in the archive; post step 3 the probe keeps V2 ×3 (sidecar naming),
+suite (no DB). The probe keeps V2 ×3 (sidecar naming),
 V9c (step-3b WARN), V10b (success identity — the SAME object `load_fn`
 returned), V16 (`logger_fn` receives `(Relevance, str)`).
 
@@ -83,16 +81,15 @@ returned), V16 (`logger_fn` receives `(Relevance, str)`).
   (`BinaryFormatError`) / undecodable (`UnicodeDecodeError`) all map
   to `False` never raising, delete removes both files idempotently,
   the sidecar content is exactly binio's `sha3_256sum` line.
-- The duck-typed data checksum (the T2 pins, 6):
+- The duck-typed data checksum (6):
   `compute_sha3_256_hash()` → its digest is the 3rd element on BOTH
   the compute and the load path; missing method → `None`; non-
   callable attribute → `None`; RAISING on the load path → caught by
   the step-3 try/except, delete + recompute, ERROR carries the text.
-- The `@validate_call` gate (TestValidateCallCoercion — the D-106
-  step-3 class-a §4 conversion of V17): a `str` `cache_path` is
-  coerced to `Path` and works (the inner store_fn observes a Path;
-  the flow then dies in the sidecar write with FileNotFoundError —
-  the D-106/D-107 re-pin).
+- The `@validate_call` gate (TestValidateCallCoercion): a `str`
+  `cache_path` is coerced to `Path` and works (the inner store_fn
+  observes a Path; the flow then dies in the sidecar write with
+  FileNotFoundError).
 
 ## Open issues
 
@@ -102,7 +99,7 @@ None.
 
 - `logger_fn` takes `(Relevance, str)` — the natural binding is the
   `log_event` method `StateMachine.__init__` injects into the shared
-  `Context` (M9 left as-is per D-070).
+  `Context`.
 - The R3 trade-off: importing reversi.tools.binio buys the exact-binio
   sidecar naming + content, cross-process sidecars verifying, legacy
   bare-hex keeping valid (zero cache invalidation).
@@ -114,7 +111,7 @@ None.
   pipeline with its own callbacks — the worker docs pin the
   level-specific goldens; this module is the engine.
 - The step-2 checksum call is the single entry into binio's
-  `verify_sha3_256_sidecar` (D-072; the sidecar format of the whole
+  `verify_sha3_256_sidecar` (the sidecar format of the whole
   cache system — binio.md); the `data_checksum` 3rd element feeds
   the `is_cache_consistent` comparisons of the data workers (e.g.
   wrk_positions).

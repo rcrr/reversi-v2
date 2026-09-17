@@ -7,19 +7,18 @@ computation is pure vectorized affine math over `ctx.game_values`,
 so the on-the-fly choice is documented in `_up` (L49). The
 machine contract is unchanged: `_up` publishes the 4 context
 attributes, `_down` clears ALL FOUR.
-> State: D-092 · 17a5f95 · 2026-09-01 · suite 3/0/0 (2 DB-gated)
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_zed()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (the D-092 T2 house-convention fix) returning `Worker("ZED", _up, _down)` |
+| `wrk_zed()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("ZED", _up, _down)` |
 
 ## Architecture
 
 - Imports: `Worker, Relevance` from state_machine; `hlp_zed_compute`
-  from hlp_zed; `validate_call, ConfigDict` from pydantic (added
-  in D-092 T2); `LMContext` under TYPE_CHECKING. NO
+  from hlp_zed; `validate_call, ConfigDict` from pydantic;
+  `LMContext` under TYPE_CHECKING. NO
   `reversi.tools.cache_manager` import (by design — pinned by probe B).
 - `_up`: INFO "Computing Zed array (Z) and transformations..." →
   the by-design comment (L49: "ZED computation is very fast
@@ -30,8 +29,7 @@ attributes, `_down` clears ALL FOUR.
   lines (the shape + the checksum).
 - `_down`: INFO "Clearing Zed attributes..." → ALL FOUR
   attributes to None (the house shape; no gap at bring-in —
-  pinned by `test_down_clears_zed_attributes`, D-092 T5 — the
-  probe D12 live check moved to that test at step 3).
+  pinned by `test_down_clears_zed_attributes`).
 
 ## Verified invariants
 
@@ -40,15 +38,15 @@ the 3-test suite.
 
 - Source shape (probe B1-B8): the 73-line file, `__all__ =
   ['wrk_zed']`, the factory WITH `@validate_call` + the
-  pydantic import (T2), NO cache_manager import (the L49
+  pydantic import, NO cache_manager import (the L49
   by-design comment pinned), `_up` sets the 4 ctx attributes,
   `_down` clears all four, `Worker("ZED", ...)` (L73), 0
-  non-comment trailing-whitespace lines (T8).
+  non-comment trailing-whitespace lines.
 - The worker-test source shape (probe C1-C10): the 164-line
-  file, the 2 classes, the 3 tests, the gate + the now-true
-  header claim (T1), the D-085 idiom (T4), no dead imports
+  file, the 2 classes, the 3 tests, the gate + the header
+  claim, the idiom, no dead imports
   (`Path` load-bearing), the step pins, the goldens, the _down
-  test (T5), 0 non-comment ws lines (T8).
+  test, 0 non-comment ws lines.
 - The full pipeline through ZED (live DB, probe D1/D5-D11,
   rlm_01): the pre-state (all 4 ctx attrs None), step 7 + worker
   name "ZED", the golden y/z content (the hlp_zed doc), the
@@ -57,11 +55,11 @@ the 3-test suite.
   dir (no rlmwf_07*).
 - The dedicated suite (probe F4/F5 + G1-G10): the 157-line file,
   3 classes / 10 tests, no DB wiring, the goldens pinned, the
-  hash golden `3d49fd5d...`, the 4 D-007 mirror docs exist.
+  hash golden `3d49fd5d...`, the 4 mirror docs exist.
 - The end-to-end golden (DB-gated): `test_compute_zed` (the
   (10,) y int8 + z float32 literals, the step-7 pin, the
   pre-state pins) + `test_down_clears_zed_attributes` —
-  `test_wrk_zed.py` (3 tests, 2 DB-gated since D-092 T1).
+  `test_wrk_zed.py` (3 tests, 2 DB-gated).
 
 ## Open issues
 

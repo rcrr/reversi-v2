@@ -1,19 +1,11 @@
 # reversi/test/test_wrk_feature_analysis.py
-The NO-DB suite of the FEATURE_ANALYSIS worker (the I-017,
-D-186): the factory (the worker name), the enable no-op (the
-D-175 opt-in), the compute + the publish (the tiny G0 corpus,
-the phase-2 statistics, the TXT report), the cache hit (the
-second run), the signature invalidation (the corpus change),
-the su_pairs joint, the optional CSV, and the down (the D-060
-recovery). 1 class / 8 tests / no database (the mock ctx, the
-tiny corpus).
-> State: D-186 (T16) · 2026-09-13 · suite 8/0/0
+The NO-DB suite of the FEATURE_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the compute + the publish (the tiny G0 corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 1 class / 8 tests / no database (the mock ctx, the tiny corpus).
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestWrkFeatureAnalysis` | 8 | `test_factory` (the worker factory: the FEATURE_ANALYSIS name); `test_enable_no_op` (the D-175 opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position G0 corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the D-060 recovery: the down clears the tables) |
+| `TestWrkFeatureAnalysis` | 8 | `test_factory` (the worker factory: the FEATURE_ANALYSIS name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position G0 corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the recovery: the down clears the tables) |
 
 ## Goldens pinned
 
@@ -28,9 +20,9 @@ tiny corpus).
 - The phase-2 recompute: the statistics run on EVERY run (the
   cache hit included) — the "loaded from cache" + the report
   both on the hit run.
-- The D-175 opt-in: the enable false -> the no-op (the tables
+- The opt-in: the enable false -> the no-op (the tables
   None, the "disabled" log).
-- The D-060 recovery: the down clears the feature_analysis_
+- The recovery: the down clears the feature_analysis_
   tables.
 
 ## Conventions
@@ -50,4 +42,4 @@ tiny corpus).
   step 3 worker position: between the hlp_feature_analysis data
   module and the POSITIONS worker).
 - The worker (wrk_feature_analysis) is registered at step 3 by
-  the T18 wiring (the 18 levels, the rlmwf_03 slot).
+  the 18-level wiring (the 18 levels, the rlmwf_03 slot).

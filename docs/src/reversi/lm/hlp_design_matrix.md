@@ -6,14 +6,13 @@ X — the w-index of each (position, feature-instance) cell — + the
 duck-typed `compute_sha3_256_hash` — the 7th active level's data
 object (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS
 → DESIGN_MTR), the FOURTH cache_manager consumer in the pipeline.
-> State: D-139 · 9ba523b · 2026-09-08 · suite 14/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
-| `hlp_design_matrix_store_to_file(dm, filename, compressed=True)` | binio write: header + the checksum string + X; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
+| `hlp_design_matrix_store_to_file(dm, filename, compressed=True)` | binio write: header + the checksum string + X; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_design_matrix_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
 | `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
 | `hlp_design_matrix_is_cache_consistent(ctx, dm)` | the pure 1-field metadata compare (NO `@validate_call`) |
@@ -29,7 +28,7 @@ object (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS
   Path` → Path; `binio.BinaryWriter` — `write_header
   ("LMDesignMatrix binary data file", 1)`,
   `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`.
-  The writer runs with `compressed=True` by default (D-139, as
+  The writer runs with `compressed=True` by default (as
   in model_weights) — the LZ4 whole-file frame; the sidecar is
   written by the binio writer (cache_manager re-writes it
   idempotently in the pipeline flow).
@@ -84,9 +83,7 @@ Pinned by the 54-call `probes/verify_design_matrix.py` +
   WMAPS one), the consistency compare, the store/load contract
   (cycle + golden hash + the 3 error paths), the init validation.
   The end-to-end round-trip + the (10,7) golden (DB-gated,
-  `test_wrk_design_matrix.py`) is the single source of truth
-  after the step-3 class c deletions (D0 + the extraction
-  machinery, D1-D4, D9).
+  `test_wrk_design_matrix.py`) is the single source of truth.
 
 ## Open issues
 
@@ -94,15 +91,14 @@ None.
 
 ## Conventions
 
-- The explicit-cast note (L125-128, D-089): `astype(np.uint32)`
+- The explicit-cast note (L125-128): `astype(np.uint32)`
   is REQUIRED — the implicit int64 → uint32 output cast in
   `np.take(..., out=X)` is deprecated in NumPy 2.5 (future hard
   error), FATAL under `-W error` (X keeps the `np.empty` garbage).
-- The single guard (the D-090 R1 merge): the two former guards
-  checked the same invariant (iwmap values are −1 or ≥ 0); the −1
-  guard remains a defensive re-check of the WMAPS R1 contract
-  (pindexes dense, unsigned — a referenced −1 slot is a data bug,
-  hence "It should never happen").
+- The single guard is a defensive re-check of the WMAPS R1
+  contract (pindexes dense, unsigned — a referenced −1 slot is a
+  data bug, hence "It should never happen"); the guarded
+  invariant: iwmap values are −1 or ≥ 0.
 - No `@validate_call` on `hlp_design_matrix_compute` /
   `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
   circular-import constraint (the L113 note).

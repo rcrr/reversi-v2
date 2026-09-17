@@ -1,12 +1,11 @@
 # reversi/lm/wrk_wmaps.py
 The WMAPS worker of the LM pipeline — the 6th active level
-(CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS),
-enabled line-by-line by Roberto in 73b4342. Like POSITIONS and
+(CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS).
+Like POSITIONS and
 INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
 over the hlp_wmaps object — the THIRD cache_manager consumer in
 the pipeline (the flat `rlmwf_05_WMAPS.dat` + binio sidecar DO
 materialize).
-> State: D-087 · ded27eb · 2026-08-31 · suite 3/0/0 (3 DB-gated)
 
 ## API
 
@@ -21,7 +20,7 @@ materialize).
   7-kwargs wiring: `cache_path =
   ctx.get_cache_file_full_path_for_current_level()` (the injected
   machine closure — flat `rlmwf_05_WMAPS.dat`), `is_allowed =
-  ctx.use_cache` (the CONFIG switch, the D-071 R1 semantics),
+  ctx.use_cache` (the CONFIG switch),
   `load_fn = lambda path: hlp_wmaps_load_from_file(path,
   checksum=False)` (the house shape — the sidecar was already
   verified by cache_manager), `store_fn = hlp_wmaps_store_to_file`,
@@ -73,13 +72,13 @@ None.
 
 - The worker carries NO naming code — the flat
   `rlmwf_05_WMAPS.dat` comes from the injected full-path closure
-  (the D-078 machine-level fix for ALL cache-consuming workers).
+  (the machine-level fix for ALL cache-consuming workers).
 - `is_allowed = ctx.use_cache`: with `use_cache=False` the level
-  always recomputes but still warms the cache file (the D-071 R1
+  always recomputes but still warms the cache file (the R1
   semantics).
 - `validate_fn` is the 2-field metadata compare (no DB access, no
-  recompute) — a business mismatch deletes + recomputes (the D-071
-  R2 shape).
+  recompute) — a business mismatch deletes + recomputes (the R2
+  shape).
 - The only worker that spreads ONE data object across separate
   context attributes (6 arrays + the checksum, as in INDEXES:
   object + checksum).

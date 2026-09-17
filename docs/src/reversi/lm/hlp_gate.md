@@ -6,8 +6,6 @@ documented column layout). The worker tests
 (test_wrk_feature_analysis, test_wrk_effect_size) use it to
 build the campaign (the feature set + the column blocks) for
 the accumulator / the effect-size tests.
-> State: 2026-09-14 · the campaign loader (the T6 design
-gate is retired — the D-191 G1 burial)
 
 ## API
 - `load_campaign(config_path) -> (cfg, fset, blocks)` —

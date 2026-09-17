@@ -7,7 +7,6 @@ and the principal configuration index under the induced symmetries.
 PatternSet computes all principal indexes for N positions in one
 fused Numba pipeline; PatternType is the closed table of shapes. No
 search, no PDB storage, no disk I/O except the CSV writer.
-> State: D-112 · 66c3588 · 2026-09-06 · suite 65/0/3
 
 ## API
 
@@ -16,7 +15,7 @@ search, no PDB storage, no disk I/O except the CSV writer.
 | Types | `Index` | type alias `np.uint32` — a base-3 configuration index (safe because S ≤ 18) |
 | Types | `IndexArray` | annotated ndarray; the BeforeValidator requires uint32 for ndarrays, scalars pass through |
 | Pattern | `Pattern(name: str, mask: Bitboard)` | strict constructor (no coercion); ValueError: empty mask, > 18 squares, non-principal mask (the error lists all 8 transformed masks) |
-| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts`/`snames_ts` (per-instance; `_ts` sorted), `fingerprint`, `type`, `powers_3`/`bit_shifts`, `p_masks`/`u_masks`/`p_shifts` (the lazy run-based pack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside, D-032), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
+| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts`/`snames_ts` (per-instance; `_ts` sorted), `fingerprint`, `type`, `powers_3`/`bit_shifts`, `p_masks`/`u_masks`/`p_shifts` (the lazy run-based pack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
 | Pattern | `compute_indexes_on_position(pos) -> NDArray[Index]` | the anti-transform → pack → base-3 pipeline; scalar → (n_instances,), (N,) → (N, n_instances) |
 | Pattern | `compute_principal_index_dict() -> None` | populates the lazy dict {config → min over its stabilizer orbit} + the unique principal indexes and their count |
 | Pattern | `convert_to_principal_index(index) -> IndexArray` | the dict lookup (computes the dict on first use) |
@@ -26,7 +25,7 @@ search, no PDB storage, no disk I/O except the CSV writer.
 | Data | `sample_pattern_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
 | PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | strict; ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
-| PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` (D-112 M1) |
+| PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` |
 | PatternSet | `print_summary(output)` / `print(output)` | text rendering |
 | PatternSet | `compute_principal_indexes(positions) -> IndexArray` | the fused Numba pipeline; (N,) PositionArray → (N, Σ n_instances); precondition: the positions are collision-free (the caller checks, e.g. `board.position_check_collisions`) |
 
@@ -43,7 +42,7 @@ Pattern (one principal mask)
         n_stabilizers = 8 / n_instances
     symmetries: unique_symmetric_instance_indexes + symmetry_fs /
         anti_symmetry_fs; fingerprint (I/S/T) -> PatternType
-    Burnside: n_invariant_configs / n_unique_configs (D-032)
+    Burnside: n_invariant_configs / n_unique_configs
     pack plan: p_masks / u_masks / p_shifts (runs of set bits)
     config indexing: powers_3, bit_shifts; principal_index_dict
     |
@@ -54,11 +53,11 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
     compute_principal_indexes: (N,) PositionArray -> (N, total_cols) IndexArray
 ```
 
-- **Principal mask rule (D-020)** — a mask is principal iff it is the
+- **Principal mask rule** — a mask is principal iff it is the
   numerically lowest mask among its 8 D8 transforms: a mask is a
   64-bit integer, so the orbit minimum is a unique representative.
   The constructor rejects the rest and names the offending slot.
-- **D8 slot order (D-014) is load-bearing** — `tmasks[i]` = T_i(mask)
+- **D8 slot order is load-bearing** — `tmasks[i]` = T_i(mask)
   in the canonical order; the anti-table slots hold inverses; the
   instance order is the first-seen order over slots
   (`dict.fromkeys`), so instance 0 is always the ro000 image (= the
@@ -74,7 +73,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   the min over the configuration's orbit under the permutations the
   stabilizer induces on the pattern squares — a configuration-level
   canonicalization, distinct from the instance-level one of the mask.
-- **Burnside counts (D-032)** — `n_invariant_configs` =
+- **Burnside counts** — `n_invariant_configs` =
   (1/8)·Σ_g |X^g| over the 8 transformations; `n_unique_configs` =
   (n_invariant_configs + (n_stabilizers−1)·3^F)/8, F = the number of
   squares fixed by every symmetry function.
@@ -98,7 +97,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   mask-sorted order; pattern i contributes `n_instances(i)` columns
   in first-seen order. No method exposes the offsets — a caller
   reassociating columns recomputes them from the patterns.
-- **Platform: little-endian only** (D-022) — the D8 bit tricks, the
+- **Platform: little-endian only** — the D8 bit tricks, the
   pack/unpack, and the set hash (native-order `mask.tobytes()`) are
   verified on little-endian only; no portability work is planned.
 
@@ -127,7 +126,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   stabilizer) to the full-stabilizer patterns (CORE, FOURC: 1
   instance / 8) — `test_pattern::TestPatternSymmetries`
   (the invariance test).
-- The Burnside counts (D-032): golden `n_invariant_configs` /
+- The Burnside counts: golden `n_invariant_configs` /
   `n_unique_configs` for all 29 sample patterns (ground truth: full
   3^S enumeration + `principal_index_count`; e.g. EDGE 81 / 3321 =
   (6561+81)/2) and the general invariants (1 ≤ n_invariant ≤
@@ -155,7 +154,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
 - The PatternSet guards (empty list, duplicate names, duplicate
   masks, strict element types), the mask-sorted storage, the
   `names`/`masks` properties, the sha3_256 hash, and the `__repr__`
-  golden (D-112 M1) — `test_pattern::TestPatternSet`.
+  golden — `test_pattern::TestPatternSet`.
 - The MDP output: the `mdp_record` golden lines (ELLE, EDGE, SNAKE,
   CORE, DIAG8), the `mdp_csv_file` type errors, the written content
   and the empty-list case — `test_pattern::TestPatternMdpRecord`,
@@ -173,17 +172,17 @@ None.
 
 ## Conventions
 
-- The D8 slot order (D-014, notes/naming.md) is load-bearing — never
+- The D8 slot order (notes/naming.md) is load-bearing — never
   reorder or rename the slots or the tables.
-- A mask is a 64-bit integer — the principal is the orbit minimum
-  (D-020); keep the check strict and the error informative.
+- A mask is a 64-bit integer — the principal is the orbit minimum; keep
+  the check strict and the error informative.
 - The uint32 base-3 index is safe only while S ≤ 18
   (`MAX_NUMBER_OF_SQUARES_FOR_PATTERN`) — the bound is conservative
   (S = 19 still fits: (3^20−3)/2 < 2^32).
 - `n_squares` is `np.uint8` — cast to `int` before exponentiating
   (the numpy scalar wraps: 3**8 → 161); the production code already
   casts where needed (e.g. `compute_principal_index_dict`).
-- Little-endian only (D-022): the set hash uses native-order
+- Little-endian only: the set hash uses native-order
   `tobytes()`; no endianness portability work.
 - The sample-data masks are python ints — callers wrap with
   `Bitboard(...)`.

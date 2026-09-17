@@ -4,7 +4,6 @@ drives an ordered list of Worker steps over a shared Context, with
 relevance-gated logging, per-step timing history and CSV export of
 the history. It knows nothing about Reversi — the domain modules
 (e.g. the LM facade) subclass Context and feed it domain workers.
-> State: D-078 · d6a850e · 2026-08-30 · suite 49/0/0
 
 ## API
 
@@ -30,33 +29,33 @@ the history. It knows nothing about Reversi — the domain modules
   runs `down()` of workers c..t+1 (target excluded), then
   `current_step = t` is set explicitly (the down loop's last
   iteration leaves it at t+1).
-- **Worker 0 is the intentional sentinel (D-059)** — no public call
+- **Worker 0 is the intentional sentinel** — no public call
   ever invokes `workers[0].up()`/`.down()`; in the LM pipeline the
   level-0 CREATED is a dummy blocker (log ERROR + RuntimeError).
-- **Failure semantics (D-060)** — a failure at step k leaves
+- **Failure semantics** — a failure at step k leaves
   `current_step == k`; a same-target retry re-runs only steps > k
   (the failed worker is skipped). Recovery: `move_to_step(k-1)`
   (runs k's `down()` — the domain rollback), then move up to
   re-execute k. The machine re-raises; handling the failure is the
   domain worker's responsibility.
-- **The move gate is separate from execution (D-069/D-076)** —
+- **The move gate is separate from execution** —
   `move_to_step` dispatches through the strict `@validate_call`
   `_validate_target_step` (int or case-insensitive name → index) and
   `_execute_move` (the up/down walk). Only the gate's ValidationError
   is converted to the pinned public TypeError — a DOMAIN worker's
   pydantic ValidationError raised during the move propagates
-  unchanged (the D-076 gate split). bool is not a valid step;
+  unchanged. bool is not a valid step;
   np.int64 / float rejected with the same TypeError; unknown name
   ValueError; out of bounds IndexError.
-- **Context injection (side effect, D-070 leave-as-is)** —
+- **Context injection (side effect)** —
   `__init__` unconditionally binds onto the passed context:
   `log_event` (this machine's bound method) +
   `get_cache_file_path_for_current_level` +
-  `get_cache_file_full_path_for_current_level` (the D-069 names).
+  `get_cache_file_full_path_for_current_level`.
   A context shared by two machines re-binds to the last machine
-  built on it. The domain workers depend on this injection (I-010
-  parks a future redesign in ideas.md).
-- **Cache path (D-078)** — `{cache_files_prefix}{level:02}_{worker}.dat`
+  built on it. The domain workers depend on this injection (a
+  future redesign is parked in ideas.md).
+- **Cache path** — `{cache_files_prefix}{level:02}_{worker}.dat`
   with `level = current_step`, i.e. the currently executing worker
   (the step is set BEFORE execution). The prefix is CONCATENATED
   verbatim (a bare prefix glues: `cache` → `cache01_CONFIG.dat`; a
@@ -69,7 +68,7 @@ the history. It knows nothing about Reversi — the domain modules
   access, `asdict()` for file/DB dumps); the live line is
   `[ts UTC] [step][name] [REL:VERB] msg` with enum names in
   fixed-width right-justified fields (`{REL:>5}:{VERB:>8}`,
-  16 chars total, D-128);
+  16 chars total);
   `show_event_log` / `show_history_of_moves` render the
   frozen-golden tables.
 
@@ -127,22 +126,22 @@ None.
 
 ## Conventions
 
-- House convention (D-069): `@validate_call`
+- House convention: `@validate_call`
   (arbitrary_types_allowed) on every public entry — including
   `Worker.__init__`/`up`/`down`.
 - The move gate is SEPARATE from the move execution — never wrap a
-  domain worker's call in the gate's try/except (the D-076 split:
-  domain ValidationErrors must propagate).
-- The cache prefix is a filename prefix, concatenated verbatim
-  (D-078) — a directory-like prefix must end with a separator.
-- The context injection is load-bearing (D-070) — the domain workers
-  depend on the bound helpers; any redesign goes through ideas.md
-  (I-010), not ad-hoc.
+  domain worker's call in the gate's try/except (domain
+  ValidationErrors must propagate).
+- The cache prefix is a filename prefix, concatenated verbatim —
+  a directory-like prefix must end with a separator.
+- The context injection is load-bearing — the domain workers
+  depend on the bound helpers; any redesign goes through
+  ideas.md, not ad-hoc.
 - Aware UTC datetimes throughout; ISO-8601 with explicit `+00:00`
   in the CSV.
 - The history records failed attempts (the finally-based timer) —
   deliberate.
-- Test artifacts under `build/tmp` (the D-065 house rule).
+- Test artifacts under `build/tmp` (house rule).
 
 ## Integration
 

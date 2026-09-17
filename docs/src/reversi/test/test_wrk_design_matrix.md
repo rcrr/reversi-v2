@@ -4,14 +4,13 @@ round-trip pin for the 7th active level + the rlm_01 golden-
 content pin (the (10,7) uint32 X literal). 2 classes / 3 tests /
 no PERF — ALL DB-DEPENDENT (the setUp moves through WMAPS on a
 fresh base dir).
-> State: D-090 · 06023cc · 2026-08-31 · suite 3/0/0 (3 DB-gated)
 
 ## Coverage
 
 | class | what it pins |
 |---|---|
-| `TestLMWorkerDesignMatrix` (2, rlm_00.json — the 266-position fixture) | shared setUp: the `SKIP_REGAB_DB` gate FIRST (the D-090 T1 fix — the header's claim is now true) → stdout patch → `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST (the D-085 idiom, T7) → the `WORKSPACE_ROOT`-anchored json_config → a fresh `LogisticModel` (`Verbosity.HIGH`, the house) → step 0 / CREATED pins → `move_to_step('WMAPS')` + step 5 / WMAPS pins; defensive `getattr` tearDown. `test_compute_and_populate_cache`: `move_to_step('DESIGN_MTR')` + step 6 / DESIGN_MTR pins — the FLAT `rlmwf_06_DESIGN_MTR.dat` + `rlmwf_06_DESIGN_MTR.dat.SHA3-256` on disk (the D-078 machine-level naming pinned end-to-end), "Forcing computation" in the logs, `context.design_matrix` not None, the shape == the principal-indexes shape, the dtype == uint32. `test_read_cache_on_new_instance`: first instance to DESIGN_MTR (cache warm) → a second `LogisticModel` on the SAME base_dir to WMAPS → the StringIO buffer cleared → the second instance to DESIGN_MTR: "Cache successfully loaded and validated" in the logs, "Forcing computation" NOT in the logs (the negative pin — no recompute), the cached `design_matrix` not None with the same shape + the uint32 dtype |
-| `TestLMWorkerDesignMatrixExactValues` (1, rlm_01.json — the 10-position golden fixture) | `test_compute_design_matrix_exact_values`: the pre-DESIGN_MTR None-ness pin (the half-open interval guarantee) → `move_to_step('DESIGN_MTR')` → the not-None pin → `X.shape == (10, 7)` + `X.dtype == np.uint32` → the pinned 10×7 literal (the single source of truth — re-derived independently by the probe D5-D10: the recompute identity, the valid-w-index bound, the per-feature iwmap regions, the all-zero intercept column) via `nptest.assert_array_equal` |
+| `TestLMWorkerDesignMatrix` (2, rlm_00.json — the 266-position fixture) | shared setUp: the `SKIP_REGAB_DB` gate FIRST → stdout patch → `TemporaryDirectory` under `CUSTOM_TMP_BASE` created FIRST → the `WORKSPACE_ROOT`-anchored json_config → a fresh `LogisticModel` (`Verbosity.HIGH`, the house) → step 0 / CREATED pins → `move_to_step('WMAPS')` + step 5 / WMAPS pins; defensive `getattr` tearDown. `test_compute_and_populate_cache`: `move_to_step('DESIGN_MTR')` + step 6 / DESIGN_MTR pins — the FLAT `rlmwf_06_DESIGN_MTR.dat` + `rlmwf_06_DESIGN_MTR.dat.SHA3-256` on disk, "Forcing computation" in the logs, `context.design_matrix` not None, the shape == the principal-indexes shape, the dtype == uint32. `test_read_cache_on_new_instance`: first instance to DESIGN_MTR (cache warm) → a second `LogisticModel` on the SAME base_dir to WMAPS → the StringIO buffer cleared → the second instance to DESIGN_MTR: "Cache successfully loaded and validated" in the logs, "Forcing computation" NOT in the logs (the negative pin — no recompute), the cached `design_matrix` not None with the same shape + the uint32 dtype |
+| `TestLMWorkerDesignMatrixExactValues` (1, rlm_01.json — the 10-position golden fixture) | `test_compute_design_matrix_exact_values`: the pre-DESIGN_MTR None-ness pin (the half-open interval guarantee) → `move_to_step('DESIGN_MTR')` → the not-None pin → `X.shape == (10, 7)` + `X.dtype == np.uint32` → the pinned 10×7 literal (the single source of truth — re-derived independently by the probe: the recompute identity, the valid-w-index bound, the per-feature iwmap regions, the all-zero intercept column) via `nptest.assert_array_equal` |
 
 ## Goldens pinned
 
@@ -27,22 +26,18 @@ fresh base dir).
 
 ## Conventions
 
-- The D-065 idiom + the D-085 `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE`
-  anchoring (both classes — the D-090 T7 fix: the CWD
-  `mkdtemp(dir='./build/tmp')` is gone, the dead `shutil` import
-  with it).
-- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates, D-130)
-  at the top of both setUps (the D-090 T1 fix, the D-080 T2 /
-  D-084 T2 / D-087 T1 class — 3/0/3 under the gate).
+- The `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (both
+  classes).
+- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates) at the top
+  of both setUps — 3/0/3 under the gate.
 - The `verbosity=Verbosity.HIGH` house pattern of the worker
   tests.
 
 ## Integration
 
-- The end-to-end cache round-trip pin (both directions, the D-078
-  file names) + the golden content pin (the full (10,7) X), as in
-  the other worker test files.
+- The end-to-end cache round-trip pin (both directions) + the
+  golden content pin (the full (10,7) X), as in the other worker
+  test files.
 - The step pins (5 = WMAPS, 6 = DESIGN_MTR) lock the 7-level
   pipeline ordering — a level insertion/reorder breaks both.
-- The per-feature contiguity + checksum facts are probe-side
-  (D5-D10) — the surviving D tier after step 3.
+- The per-feature contiguity + checksum facts are probe-side.

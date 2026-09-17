@@ -1,12 +1,9 @@
 # reversi/lm/wrk_features.py
 The FEATURES worker of the LM pipeline — the 3rd active level
-(CREATED → CONFIG → FEATURES), step 2 (D-157: the I-012
-transposition — the level moved BEFORE the DB-touching POSITIONS;
-enabled line-by-line by Roberto in f051dd3). A PURE-COMPUTE level:
+(CREATED → CONFIG → FEATURES), step 2. A PURE-COMPUTE level:
 it builds a FeatureSet from the CONFIG-loaded cfg (no DB, no
 cache_manager, no cache file — the flat rlmwf_02_FEATURES* files
 never materialize) and exposes it as `ctx.feature_set`.
-> State: D-157 · 2026-09-11 · suite 3/0/0 (DB-free)
 
 ## API
 
@@ -44,9 +41,8 @@ zero-feature guard test drives `_load_features` directly.)
 - `_load_mobility`: truthy `cfg.feature_set.mobility_set` →
   `Mobility(elt.name, elt.mask, elt.amask)` per element →
   `MobilitySet(name, mobilities)`; DEBUG lines per mobility (name,
-  mask, amask — D-082 R1: the amask is now printed correctly);
-  else None. The `if cfg_x:` truthiness gates: the intercept is a
-  genuine truthiness check, the two sets are pydantic models —
+  mask, amask); else None. The `if cfg_x:` truthiness gates: the
+  intercept is a genuine truthiness check, the two sets are pydantic models —
   present or None.
 
 ## Verified invariants
@@ -58,10 +54,9 @@ the 3-test `test_wrk_features.py`.
   ['wrk_features']`, the factory name "FEATURES", the
   LMContext import under TYPE_CHECKING (circular guard), the
   worker does NOT import cache_manager, the `@validate_call`
-  factory (D-082 M1), the amask log (D-082 R1), the orphan
-  comment gone (D-082 M3), no non-comment trailing whitespace —
+  factory, the amask log, no non-comment trailing whitespace —
   probe A1-A9.
-- The loaded state: step 2 / "FEATURES" after the move; the
+- The loaded state: step 2 / "FEATURES"; the
   feature_set populated; the 'NoNameFeatureSet' default name; the
   intercept; the MobilitySet 'BasicMobilitySet' with the 3 fixture
   members in sorted (mask, amask) order; the PatternSet
@@ -78,21 +73,19 @@ the 3-test `test_wrk_features.py`.
   (no rlmwf_02_FEATURES* — the pure-compute level writes nothing;
   the POSITIONS cache is downstream, rlmwf_03 — probe B10); down
   to CONFIG clears feature_set — probe B12; a second run on the
-  same base dir: no DB access (POSITIONS is not in the path,
-  D-157), the identical feature set — probe B13a-c.
+  same base dir: no DB access (POSITIONS is not in the path),
+  the identical feature set — probe B13a-c.
 - The test-file pins: the 197-line file, 2 classes / 3 tests,
-  the D-065 idiom (shared CUSTOM_TMP_BASE), the DB-free setUp
-  (D-157: the gate + the POSITIONS move removed, the stale M1
-  comment gone), the load-bearing Path import, the header
+  the shared CUSTOM_TMP_BASE idiom, the DB-free setUp,
+  the load-bearing Path import, the header
   grammar, the whitespace, the golden test's 3 hash literals +
   the feature-order/counts pin — probe C1-C10.
-- The suite: `TestLMWorkerFeatures` (2, DB-free — D-157: the
+- The suite: `TestLMWorkerFeatures` (2, DB-free — the
   setUp moves to FEATURES directly, no POSITIONS, no DB):
   `test_build_feature_set` (None before, move to 'FEATURES' =
   step 2, populated after) and `test_feature_set_content_golden`
-  (the full content pin); `TestLMWorkerFeaturesGuards` (1, DB-free
-  — the D-106 step-3 conversion of probe B11): the zero-feature
-  payload (intercept off, no sets) driven through
+  (the full content pin); `TestLMWorkerFeaturesGuards` (1, DB-free):
+  the zero-feature payload (intercept off, no sets) driven through
   `_load_features` with a SimpleNamespace ctx → ValueError
   "The feature count is zero" + a Relevance.ERROR event.
 
@@ -104,16 +97,14 @@ None.
 
 - The pure-compute level: no cache file, no cache_manager, no DB
   of its own — the flat rlmwf_02_FEATURES* naming never
-  materializes; the D-082 R1 fix: the mobility DEBUG log prints
-  the true amask (probe B8a-c).
-- Test artifacts: the D-065 idiom + the D-085 WORKSPACE_ROOT /
-  CUSTOM_TMP_BASE anchoring; the suite is DB-free (D-157: the
-  gate removed with the POSITIONS dependency).
+  materializes; the mobility DEBUG log prints the true amask (probe B8a-c).
+- Test artifacts: the shared CUSTOM_TMP_BASE idiom + the
+  WORKSPACE_ROOT / CUSTOM_TMP_BASE anchoring; the suite is DB-free.
 
 ## Integration
 
-- The 3rd LM level (step 2, D-157); the facade (`logistic_model.py`) instantiates
-  the machine + `Worker` (the line-by-line enablement f051dd3).
+- The 3rd LM level (step 2); the facade (`logistic_model.py`) instantiates
+  the machine + `Worker`.
 - Consumes the `feature` module (Feature/FeatureSet) and the
   CONFIG-loaded `ctx.cfg.feature_set`; publishes
   `ctx.feature_set` for the INDEXES level onward.

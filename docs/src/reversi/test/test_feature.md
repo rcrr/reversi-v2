@@ -6,7 +6,6 @@ n_instances, hash, the intercept category check, print_summary)
 and `FeatureSet.compute_indexes` (the 3×10 golden, the N=0/I=0
 edges, strict typing, the 1M-position PERF). 4 classes / 20 tests
 (19 run + 1 PERF skip) / no DB.
-> State: D-050 · a5db33b · 2026-08-29 · suite 19/0/1
 
 ## Coverage
 

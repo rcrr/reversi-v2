@@ -1,25 +1,20 @@
 # reversi/lm/wrk_plot.py
 The PLOT worker — the 17th and LAST active level of the LM pipeline
-(step 16, after CLIENT_CHECK). D-150: the run also logs the TOP-20
+(step 16, after CLIENT_CHECK). The run also logs the TOP-20
 EXTREME-OUTLIER report (the 20 validation positions with the
-largest |residual|, the position's bitboards included — Roberto's
-"uno spunto capire come mai il modello sbarella cosi"). The 8th non-cache worker — no
+largest |residual|, the position's bitboards included). The 8th non-cache worker — no
 `cache_manager` wiring, no rlmwf_16* file (a derived-artifact step,
 regenerated on every up-move, an idempotent overwrite). It writes
 the run's matplotlib diagnostic figures (the hlp_plot builders) to
-the configured plots directory (D-149). All figures are in Y space
-(the [-64, +64] game-value scale — the D-148 cross-model
-comparability ruling). The pilot is the config's plot section: the
+the configured plots directory. All figures are in Y space
+(the [-64, +64] game-value scale). The pilot is the config's plot section: the
 WHITELIST of plot names decides what is generated (a listed name is
 written, an unlisted one is skipped, an empty list makes the level a
 no-op) and the `plot.enable` master switch dominates (false = do
 nothing, even with names listed). On an error the worker raises
-(the D-060 failure semantics: the machine logs and re-raises, the
+(the failure semantics: the machine logs and re-raises, the
 step stays at PLOT). No context attribute is published; `_down` is a
 no-op (log only).
-> State: D-150 · 2026-09-10 · suite 10/0/0 (test_wrk_plot) + the
-  chain pins via test_lm_worker_full_chain (DB-gated) + the
-  probes/verify_plot.py 16-check probe
 
 ## API
 
@@ -41,7 +36,7 @@ no-op (log only).
   "PLOT skipped: plot.enable is false." (log only, return); empty
   `plot.plots` → "PLOT skipped: no plot names requested." (log only,
   return) → "Generating {n} plot(s)..." →
-  `collect_plot_data(ctx)` → the D-150 OUTLIER REPORT: the
+  `collect_plot_data(ctx)` → the OUTLIER REPORT: the
   top-20 `|vld_rn|` via the STABLE argsort (deterministic: tie =
   the lower index first), the header line "Top 20 extreme
   validation residuals (outlier report):" + 20 lines ("  {rank}.
@@ -49,7 +44,7 @@ no-op (log only).
   {gv:+.0f}, fitted {yf:+.2f}, residual {rn:+.2f}") →
   the directory:
   `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live
-  outside base_dir — the D-149 ruling), else `base_dir / dir_name`;
+  outside base_dir), else `base_dir / dir_name`;
   `mkdir(parents=True, exist_ok=True)` (L92) → the per-name loop
   (L97-104): `PLOT_BUILDERS[name](data, ctx.cfg.name)` → `save_figure`
   in every format of `plot_cfg.format` (the "pdf,png" pair writes
@@ -74,8 +69,8 @@ rlm_04-mirror context) + the 16-check `probes/verify_plot.py`
   deterministic Agg rendering) (`test_up_all_seven_png`).
 - The rendering golden: the parity figure of the synthetic context
   (SEED 42, N_TRN 1200 / N_VLD 1000, png 150 dpi) hashes to the
-  pinned sha3_256 — version-sensitive like the f32 goldens (D-127);
-  D-158: the env-drift re-pin (visually identical rendering)
+  pinned sha3_256 — version-sensitive like the f32 goldens; the
+  env-drift re-pin (visually identical rendering)
   (`test_parity_png_golden`).
 - The pilot: `enable=false` with a full whitelist does NOTHING
   (no directory, no files, the single skip line —
@@ -89,7 +84,7 @@ rlm_04-mirror context) + the 16-check `probes/verify_plot.py`
 - The directory: an ABSOLUTE dir_name is used as-is (outside
   base_dir), the relative default does not leak there
   (`test_up_absolute_dir_name`).
-- The D-150 outlier report: the header line + exactly 20
+- The outlier report: the header line + exactly 20
   "vld position" lines, the |residual| non-increasing down the
   list (`test_up_outlier_report`); the DB-gated A2030 chain pins
   the header + the 20-count.
@@ -110,22 +105,18 @@ None.
 
 ## Conventions
 
-- The D-149 pilot (Roberto's ruling, verbatim in decisions.md): the
-  plot names in the config are OPTIONAL — "se ci sono il PLOT è
-  fatto, se manca il plot è saltato" — and "se i nomi ci sono ma
-  enable è falso ... non fa nulla". The default section (empty
-  whitelist) makes a no-plot config a clean no-op level; the rlm_03
-  / rlm_04 test fixtures list all seven names so the chains
-  exercise the generation end-to-end.
+- The pilot: the plot names in the config are OPTIONAL. The default
+  section (empty whitelist) makes a no-plot config a clean no-op
+  level; the rlm_03 / rlm_04 test fixtures list all seven names so
+  the chains exercise the generation end-to-end.
 - The 8th deviation from the uniform 7-kwargs `cache_manager`
   wiring — the rlmwf_16 slot stays unused, like
   03/07/08/09/12/13/15.
 - The worker is stateless by design: it publishes no context
   attribute (the figures are local; the only durable outputs are
   the files + the event log lines).
-- Y space throughout (the D-148 ruling): the x-axes are on the
-  [-64, +64] scale, the plots comparable across models with
-  different logit_clipping.
+- Y space throughout: the x-axes are on the [-64, +64] scale, the
+  plots comparable across models with different logit_clipping.
 
 ## Integration
 
@@ -146,5 +137,5 @@ None.
   fail-fast name/format validation happens at the CONFIG level,
   before the pipeline reaches PLOT.
 - Downstream: nothing — the terminal level. `move_to_last()`
-  reaches it; a failure leaves `current_step` at 16 (the D-060
-  failure semantics).
+  reaches it; a failure leaves `current_step` at 16 (the failure
+  semantics).

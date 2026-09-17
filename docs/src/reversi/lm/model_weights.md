@@ -7,24 +7,20 @@ hlp_validate/hlp_analytics). It serializes the INFERENCE SUBSET of
 `LMContext` into one lz4-compressed binary file (binio) so that
 `client.make_evaluation_function` can evaluate board positions
 without the database, the cache, or most of the pipeline state.
-> State: D-144 · 2026-09-09 · suite 9/0/0 (via
-  test_lm_worker_full_chain — 2 ungated read guards + 3 ungated
-  D-144 v2 micro tests; the rest DB-gated, A2050 additionally
-  VLONG-gated)
 
 ## API
 
 | name | contract |
 |---|---|
-| `ModelWeights` | Plain mutable `@dataclass` (L53-72), 12 fields: the 10 in file order (`version` — the FILE header version, not a schema version —, `name`, `ec`, `logit_clipping`, `opt_info` (Dict), `training_pop_stats` (Dict), `vld_metrics` (Dict), `feature_set: FeatureSet`, `iwmap_feature_offset` (np.ndarray), `w_dense` (np.ndarray)) + the D-144 pair `config_dump: str | None = None` / `config_checksum: str | None = None` (defaulted, trailing — the dataclass requires defaulted fields last — although the FILE section LEADS the body); both are None for v1 files; the instance is only ever produced by `model_weights_read_file` |
-| `model_weights_write_file(ctx, path, compressed=True)` | Serialize the inference subset, section order 0-9 (below); the file header constants (L77-78): `"RGLM_BINARY_WEIGHTS"` / version 2 (D-144/C2) |
+| `ModelWeights` | Plain mutable `@dataclass` (L53-72), 12 fields: the 10 in file order (`version` — the FILE header version, not a schema version —, `name`, `ec`, `logit_clipping`, `opt_info` (Dict), `training_pop_stats` (Dict), `vld_metrics` (Dict), `feature_set: FeatureSet`, `iwmap_feature_offset` (np.ndarray), `w_dense` (np.ndarray)) + the `config_dump: str | None = None` / `config_checksum: str | None = None` pair (defaulted, trailing — the dataclass requires defaulted fields last — although the FILE section LEADS the body); both are None for v1 files; the instance is only ever produced by `model_weights_read_file` |
+| `model_weights_write_file(ctx, path, compressed=True)` | Serialize the inference subset, section order 0-9 (below); the file header constants (L77-78): `"RGLM_BINARY_WEIGHTS"` / version 2 |
 | `model_weights_read_file(path, compressed=True) -> ModelWeights` | Mirror of the write order; the two GUARDS first (L169-172) — `ValueError` with the exact messages pinned by the test module: `File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found '<desc>'.` and `File header version, expected '1' or '2', found '<v>'.` — then, v2 only (L175-189): the config provenance read + the corruption sentinel `Config section checksum mismatch, expected '<stored>', recomputed '<sha3_256 of the dump>'.` (the stored checksum must cover the embedded dump) |
 
 ## Architecture
 
-276 lines (post D-144).
+276 lines.
 
-- Imports (L28-41): `hashlib` (the D-144 sentinel recompute),
+- Imports (L28-41): `hashlib` (the sentinel recompute),
   dataclass, typing (TYPE_CHECKING, Any, Dict), pathlib.Path,
   numpy, binio `BinaryWriter`/`BinaryReader`,
   `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/
@@ -32,13 +28,12 @@ without the database, the cache, or most of the pipeline state.
   [ModelWeights, model_weights_read_file, model_weights_write_file].
 - `model_weights_write_file` (L81-157) — section order (the numbered
   comments are the spec): 0. header (`"RGLM_BINARY_WEIGHTS"`,
-  version 2); 1. **configuration provenance (D-144/C2 — LEADS the
-  body, Roberto's ruling)**: `ctx.config_checksum` (the D-142
-  CONFIG-level fingerprint, the sentinel first) +
+  version 2); 1. **configuration provenance (LEADS the
+  body)**: `ctx.config_checksum` (the CONFIG-level fingerprint, the
+  sentinel first) +
   `ctx.cfg.model_dump_json(indent=4)` (the normalized dump — the
-  effective config, the base_dir override included, the same string
-  the D-142 record used to carry; the record itself is RETIRED,
-  the model file is the single source); 2. metadata — `name` + `ec`
+  effective config, the base_dir override included; the model file
+  is the single source); 2. metadata — `name` + `ec`
   + `logit_clipping` (f32); 3. training population stats — `count`
   (u64) + `mean`/`std_dev`/`variance` (f32 each — the float64 stats
   are TRUNCATED by the format); 4. optimization info — 4 of the 5
@@ -55,7 +50,7 @@ without the database, the cache, or most of the pipeline state.
   f32).
 - `model_weights_read_file` (L160-276): the guards (L169-172 —
   version `not in (1, 2)` raises, the v1 files stay readable, the
-  backward-compat the C2 spec required), then the v2-only config
+  backward-compat the v2 spec required), then the v2-only config
   provenance read + sentinel (L175-189), then the mirror read —
   reconstructing `Mobility`/`Pattern` objects (the `int(m.mask)` /
   `int(m.amask)` conversions normalize numpy uint64 scalars to
@@ -68,12 +63,10 @@ without the database, the cache, or most of the pipeline state.
 ## Verified invariants
 
 Pinned by the statics of `probes/verify_save.py` (A4 no-ws, A5 the
-header str/ver 2 (D-144) + the 3-`__all__`, A6 the 12 fields, A6b
+header str/ver 2 + the 3-`__all__`, A6 the 12 fields, A6b
 the config section LEADS the body + the `version not in (1, 2)`
 guard + the corruption sentinel; the full 18-check census is in
-wrk_save.md) + the full-chain suite. The
-D-104 probe's live tier (the C/D round-trip goldens, deleted at
-D-106 step 3 → the test pins) froze in the archive.
+wrk_save.md) + the full-chain suite.
 
 - rlm_04 (K=6627) round-trip bit-exact: `feature_set.hash`
   `ec4f15374a00b729629d62ee0eb4354cbf163950672b7a9db9f81375e40559ef`
@@ -96,7 +89,7 @@ D-106 step 3 → the test pins) froze in the archive.
 - The write is byte-deterministic WITHIN a base dir: the
   2nd-instance file hash equals the first (suite
   test_second_instance_deterministic — 6 'Cache successfully
-  loaded' hits, 7 cache files). D-144: the file-level sha3 LITERAL
+  loaded' hits, 7 cache files). The file-level sha3 LITERAL
   goldens (v1: 21603 B / bcf8d918… A2030, 515042 B / 3ad18058…
   A2050) are RETIRED — the embedded dump carries the run's
   base_dir, so the bytes are legitimately run-specific across
@@ -108,7 +101,7 @@ D-106 step 3 → the test pins) froze in the archive.
   raw A2050 content compresses to 516459 or 516455 depending on
   the name); the same-base-dir byte identity + the read-back
   provenance pins carry the determinism guarantee.
-- The D-144 v2 micro tier (suite TestModelWeightsV2, ungated, no
+- The v2 micro tier (suite TestModelWeightsV2, ungated, no
   DB): the hand-crafted v1 file loads with `config_dump` /
   `config_checksum` None (backward compat); the synthetic-ctx v2
   round-trip (every field + the embedded dump + the fingerprint);
@@ -128,7 +121,7 @@ None.
   opt_info, 4/7 vld metrics, tps 4/4 — nothing in the client or the
   tests requires the dropped keys (O2, report-only).
 - No `@validate_call` on the two data functions (consistent with
-  hlp_validate / hlp_analytics — O5, accepted by Roberto).
+  hlp_validate / hlp_analytics — O5).
 - The f32 truncation of the float64 tps stats is a FORMAT property,
   not a bug: the file is the inference artifact, f32 throughout the
   weight-bearing parts.

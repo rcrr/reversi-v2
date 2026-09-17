@@ -5,7 +5,6 @@ sources already in the package — the constant intercept, `Mobility`
 `Feature` (one evaluation feature, factory-only) and `FeatureSet`
 (a named collection that builds the flat feature list and the
 `(N, I)` uint32 index matrix a feature-table evaluation consumes).
-> State: D-110 · de01cf2 · 2026-09-04 · suite 19/0/1
 
 ## API
 
@@ -90,8 +89,7 @@ None.
   name never changes the hash; changing a mask does.
 - The shared test idiom family of the four base-module suites
   (PERF=1 print-only; the goldens independently re-derived from
-  the public API — the W re-derivations are frozen in the
-  archived review).
+  the public API).
 
 ## Integration
 

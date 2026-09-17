@@ -1,6 +1,6 @@
 # reversi/test/test_hlp_random_play.py
 The NO-DB micro-suite of the FEATURE_ANALYSIS frequency data
-plane (the I-017 T7, D-177 + T8, D-178 + T9, D-179): the
+plane: the
 marginal / joint frequency accumulators + the PRNG
 integration. The initial position, the ec pin (the hand-
 counted stone counts), the marginal accumulator (the LMC vs
@@ -9,33 +9,30 @@ merge), the joint accumulator (the cross-feature + the
 same-feature, the diagonal the SU = 1 lock), and the PRNG
 integration (the corpus reproducibility + the end-to-end
 marginals). 5 classes / 10 tests / no DB.
-> State: D-177 (T7) + D-178 (T8) + D-179 (T9) + D-192 (the
-initial-position fix — the official Othello setup) · 2026-09-15 ·
-suite 10/0/0
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestInitialPosition` | 1 | `test_the_start` (the E4+D5 / D4+E5 hex pins — the official Othello setup, D-192, the mover {D3, C4, F5, E6} legal set — the hand-derived one, the opponent's 4 as well, the ec = 60) |
-| `TestEcPin` | 1 | (D-177) `test_ec_formula_hand_crafted` (the initial position ec 60, the hand-crafted 24-stone position ec 40, the full board ec 0 — ec_of = 64 - popcount(mover\|opponent)) |
-| `TestMarginalAccumulator` | 3 | (D-177; the toy corpus, a 300-game G0 wave at ec 20, the toy FeatureSet = the intercept + the LMC + the R2) `test_lmc_hand_counted` (the single-instance dense bincount vs the INDEPENDENT oracle position_legal_moves — NOT compute_indexes); `test_pattern_cross_check` (the R2 inst0 vs an independent per-position dict via compute_indexes); `test_chunk_merge` (one chunk == two half-chunks) |
-| `TestJointAccumulator` | 3 | (D-178; the same toy corpus, a 200-game G0 wave) `test_cross_feature_joint` (the (LMC, R2) 4 instance-pairs, each joint vs the independent per-position oracle); `test_same_feature_diagonal` (the (R2, R2) 16 instance-pairs, the diagonal ZERO off-diagonal — the SU = 1 lock); `test_chunk_merge` (one chunk == two half-chunks) |
-| `TestPrngIntegration` | 2 | (T9; the G0 wave -> the accumulator, the 2-feature toy set) `test_corpus_reproducibility` (same seed -> the SAME frequency tables bit-exact, the different seed -> different); `test_small_end_to_end_marginals` (every sub-variable sum == N, K_obs <= n_conf, the LMC marginal vs the INDEPENDENT oracle position_legal_moves) |
+| `TestInitialPosition` | 1 | `test_the_start` (the E4+D5 / D4+E5 hex pins — the official Othello setup, the mover {D3, C4, F5, E6} legal set — the hand-derived one, the opponent's 4 as well, the ec = 60) |
+| `TestEcPin` | 1 | `test_ec_formula_hand_crafted` (the initial position ec 60, the hand-crafted 24-stone position ec 40, the full board ec 0 — ec_of = 64 - popcount(mover\|opponent)) |
+| `TestMarginalAccumulator` | 3 | (the toy corpus, a 300-game G0 wave at ec 20, the toy FeatureSet = the intercept + the LMC + the R2) `test_lmc_hand_counted` (the single-instance dense bincount vs the INDEPENDENT oracle position_legal_moves — NOT compute_indexes); `test_pattern_cross_check` (the R2 inst0 vs an independent per-position dict via compute_indexes); `test_chunk_merge` (one chunk == two half-chunks) |
+| `TestJointAccumulator` | 3 | (the same toy corpus, a 200-game G0 wave) `test_cross_feature_joint` (the (LMC, R2) 4 instance-pairs, each joint vs the independent per-position oracle); `test_same_feature_diagonal` (the (R2, R2) 16 instance-pairs, the diagonal ZERO off-diagonal — the SU = 1 lock); `test_chunk_merge` (one chunk == two half-chunks) |
+| `TestPrngIntegration` | 2 | (the G0 wave -> the accumulator, the 2-feature toy set) `test_corpus_reproducibility` (same seed -> the SAME frequency tables bit-exact, the different seed -> different); `test_small_end_to_end_marginals` (every sub-variable sum == N, K_obs <= n_conf, the LMC marginal vs the INDEPENDENT oracle position_legal_moves) |
 
 ## Goldens pinned
 
-- The ec pin (D-177): ec_of = 64 - the occupied squares,
+- The ec pin: ec_of = 64 - the occupied squares,
   hand-counted over the initial position (4 stones, ec 60) +
   a hand-crafted 24-stone position (ec 40) + the full board
   (ec 0).
-- The toy FeatureSet (the T7-T9 accumulator infrastructure):
+- The toy FeatureSet (the accumulator infrastructure):
   the `_toy_fset()` = the intercept + the LMC (mask all, amask
   0 — the code the legal-move count) + the R2 (the 8-square
   mask, the 4 D8 instances, n_conf 6561); the `_toy_blocks()`
   mirrors load_campaign's column layout; the `_toy_corpus()`
   the small G0 wave (the seed, the ec, the N).
-- The INDEPENDENT oracles (the house double-check, T7-T9): the
+- The INDEPENDENT oracles (the house double-check): the
   LMC marginal via position_legal_moves (NOT compute_indexes);
   the R2 / the joints via the manual per-position dict over
   compute_indexes.
@@ -54,6 +51,6 @@ suite 10/0/0
 ## Integration
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline).
-- The T7-T9 accumulators are the FEATURE_ANALYSIS phase-1 data
-  plane (the marginals + the joints); the T16 worker wires
+- The accumulators are the FEATURE_ANALYSIS phase-1 data
+  plane (the marginals + the joints); the worker wires
   them into the pipeline (the cache flow + the reports).

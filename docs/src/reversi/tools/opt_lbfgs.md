@@ -5,14 +5,13 @@ Wolfe line search (cubic interpolation + zoom phase), restart
 logic, dual convergence monitoring, warm-start capability,
 logging and checkpointing via callback hooks. Self-contained: no
 LMContext, no pipeline imports, no DB.
-> State: D-146 · I-013 · 2026-09-09 · suite 14/0/0
 
 ## API
 
 | name | contract |
 |---|---|
 | `FG` | `namedtuple('FG', ['fun', 'grad'])` — the function + evaluation tuple |
-| `FixedSizeMaxList(size)` | fixed-size sliding window tracking the maximum pushed value (deque-backed); `max()` raises `RuntimeError` on empty (the T1 hard-bug fix, pinned) |
+| `FixedSizeMaxList(size)` | fixed-size sliding window tracking the maximum pushed value (deque-backed); `max()` raises `RuntimeError` on empty (pinned) |
 | `lbfgs(fg, x0, ...)` | the main optimizer — 16 kwargs (the 5 config scalars, `logger_fn`/`save_fn` hooks, the 4 warm-start kwargs); returns `(x_opt, info_dict)` with the 9 keys w/converged/reason/iters/f/g_norm/sl/yl/rho |
 | `_two_loop_recursion(g, s, y, rho)` | the L-BFGS two-loop H_k·g (private) |
 | `_strong_wolfe_line_search(...)` / `_zoom(...)` | the line search + its zoom phase (private) |
@@ -24,21 +23,19 @@ LMContext, no pipeline imports, no DB.
 - Algorithm: (1) input validation (x0 must be an ndarray with
   float32/float64 dtype, fg callable — `TypeError` otherwise);
   (2) two-loop recursion for the search direction with gamma
-  scaling (H = gamma·I) — O2b (D-146, I-013): the per-op
-  product buffer is pre-allocated ONCE per call (f64, `prod`)
-  and the two per-op products are written with
-  `np.multiply(..., out=prod)` + `np.subtract/np.add(...,
-  out=delta/r)` — the classic 2m fresh ~N-float temporaries per
-  call (the f64 product downcast in place to float32) are the
-  two-loop's measured cost driver at production scale (A2050:
-  ~58 MB allocated per call, 23.2 ms → 16.9 ms, 1.39×). The
-  out= form replicates the classic dtype semantics BIT-FOR-BIT
-  (the f64 product, the f32 in-place downcast) — the L-BFGS
-  trajectory is unchanged (the bit-identity test pins it).
-  The numba two-loop variant was MEASURED and NOT adopted
-  (1.00-1.02×: memory-bandwidth bound + the serial
-  two-loop recurrence resists prange); (3) restart — if the
-  direction is not
+  scaling (H = gamma·I) — the per-op product buffer is
+  pre-allocated ONCE per call (f64, `prod`) and the two per-op
+  products are written with `np.multiply(..., out=prod)` +
+  `np.subtract/np.add(..., out=delta/r)` — the classic 2m fresh
+  ~N-float temporaries per call (the f64 product downcast in
+  place to float32) are the two-loop's measured cost driver at
+  production scale (~58 MB allocated per call, 23.2 ms → 16.9 ms,
+  1.39×). The out= form replicates the classic dtype semantics
+  BIT-FOR-BIT (the f64 product, the f32 in-place downcast) — the
+  L-BFGS trajectory is unchanged (the bit-identity test pins it).
+  The numba two-loop variant brings no speedup (1.00-1.02×:
+  memory-bandwidth bound + the serial two-loop recurrence
+  resists prange); (3) restart — if the direction is not
   a descent direction (pᵀg ≥ 0), the memory is cleared and the
   direction falls back to steepest descent; (4) strong Wolfe
   line search: tries α=1 first, expands with cubic interpolation
@@ -48,7 +45,7 @@ LMContext, no pipeline imports, no DB.
   gradient norm < threshold for N consecutive iterations, (b)
   fractional function decrease < threshold for N consecutive
   iterations; (7) fixed-size history (m pairs, FIFO).
-- `save_fn` signature (7 params, the T5 fix):
+- `save_fn` signature (7 params):
   `save_fn(x, sl, yl, rho, k, f, g_norm)` — the worker's
   intermediate-checkpoint hook.
 
@@ -60,7 +57,7 @@ suite is the verification apparatus).
 
 - `_two_loop_recursion` with empty history returns `g` (the
   gamma=1.0 identity); with random pairs (yᵀs > 0) produces a
-  non-zero, shape-consistent result; the O2b out= form is
+  non-zero, shape-consistent result; the out= form is
   BIT-IDENTICAL to the original per-op-temporary algorithm
   (the reference embedded verbatim in the test, three seeded
   histories: f32 n=50/m=5, f32 n=500/m=9, f64 n=64/m=7 —
@@ -95,8 +92,7 @@ None.
 - `FixedSizeMaxList.max()` is O(n) per call — fine for the
   small `min_grad_count` convergence-history usage (m=10
   default).
-- `min_p_fun_decrease` is a FRACTION, not a percentage (the T6
-  docstring fix).
+- `min_p_fun_decrease` is a FRACTION, not a percentage.
 - Warm-start does NOT preserve the convergence counters
   (`fgv_fun_prev`, `low_progress_count_*` reinitialized) —
   partial state, not a bug.

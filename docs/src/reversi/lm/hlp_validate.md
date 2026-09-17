@@ -13,7 +13,6 @@ validation dict: the Z-space metrics (`vld_loss = 0.5·‖rn_z‖²/M`,
 the Y-space metrics (`vld_mae_y`, `vld_mse_y`, `vld_rmse_y` —
 the predictions mapped back with `ctx.z2y`), plus
 `vld_samples = M`.
-> State: D-102 · b98edaa · 2026-09-02 · suite 5/0/0 (via test_wrk_validate, 3 DB-gated)
 
 ## API
 
@@ -29,7 +28,7 @@ the predictions mapped back with `ctx.z2y`), plus
   the rlm_02 live ratio is 1.27). The body:
   - `vld_indexes = ctx.feature_set.compute_indexes(vld_positions)`
     (L110, the SAME feature_set as training) + `vld_M, _ =
-    vld_indexes.shape` (L111 — the D-102 M2 underscore unpack).
+    vld_indexes.shape` (L111 — the underscore unpack).
   - The dense mapping (L115-119): `col_offsets =
     np.repeat(ctx.iwmap_feature_offset[:-1],
     n_instances_per_feature)` then `dense_indices = vld_indexes +
@@ -45,15 +44,11 @@ the predictions mapped back with `ctx.z2y`), plus
   - The Z metrics (L130-134) + the Y metrics (L138-142,
     `y_pred = ctx.z2y(z_pred)`) + the 7-key return (L144-152) —
     every value `float(...)`-cast except `vld_samples`
-    (`int(M)`); `vld_mse_y` is the 6th metric since D-102 M3
+    (`int(M)`); `vld_mse_y` is the 6th metric
     (between `vld_mae_y` and `vld_rmse_y`).
-- Imports (L28-38): `Any` in the typing line (the D-102 R1
-  fix — the unimported `Any` was a PEP-563-masked latent
-  NameError under `typing.get_type_hints`; NO live crash, nothing
-  calls it), NO regab import (D-102 T2 — the data comes from
-  `ctx.vld_positions` / `ctx.vld_game_values`, never a DB call),
-  the file header carries its OWN name (the D-102 T3 fix — the
-  bring-in said `rlm_config_schemas.py`, copy-paste).
+- Imports (L28-38): `Any` in the typing line, NO regab import
+  (the data comes from `ctx.vld_positions` / `ctx.vld_game_values`,
+  never a DB call), the file header carries its OWN name.
 
 ## Verified invariants
 
@@ -76,8 +71,8 @@ Pinned by the 18-check `probes/verify_validate.py` +
   `vld_mse_y 239.10484313964844`, `vld_rmse_y
   15.46301555633545`, `vld_samples 200`; the validation loss ≈
   the training final loss (7.1250e-03 — no overfitting signal).
-- The unit metric math (TestValidateModelUnit, the D-106 step-3
-  conversion of probe D1/D3, DB-free): the hand-computed 2-
+- The unit metric math (TestValidateModelUnit, the probe D1/D3
+  checks as a DB-free unit test): the hand-computed 2-
   position case (1 feature / 2 instances, `w_dense [0.5, −0.5]`,
   game values [0, 64]) → loss 0.0625, mse_z 0.125, mae_z 0.25,
   mae_y 32.0, mse_y 2048.0, rmse_y sqrt(2048), samples 2; every

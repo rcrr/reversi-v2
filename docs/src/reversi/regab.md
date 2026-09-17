@@ -5,9 +5,6 @@ positions (the `regab_prng_gp` table), wraps the results in a
 `RegabDataSet`, and serializes/deserializes datasets to binary files
 via the `binio` module. It is the data source of the POSITIONS and
 VLD levels.
-> State: D-143 · 2026-09-09 · suite 48/0/0 (35 live-DB tests;
-  SKIP_REGAB_DB=1 → 35 skipped / 13 run, ~1 s — D-143 added the
-  11-test no-DB micro tier)
 
 ## API
 
@@ -15,12 +12,12 @@ VLD levels.
 |---|---|
 | `GameValue = np.int8` (L63) / `GameValueArray` (L72) | The game-value types (-64 to +64); `GameValueArray` is the pydantic-validated `NDArray[np.int8]` |
 | `RegabDBConnection(dbname, user, host, port, password, activate_conn=True)` (L76) | Wraps a `psycopg2` connection; `__init__` (L106), `activate_conn` (L147), `close` (L153 — the `if self.conn` guard prevents most double-close); sets `search_path` to `reversi` |
-| `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` (L271) | Queries `regab_prng_gp`, returns a `pd.DataFrame`; the double-decorated entry point (below); `where` is `WhereArgument`-guarded (T7) |
+| `regab_gp_as_df(rc, bid, status, ec, *, limit, where, fields)` (L271) | Queries `regab_prng_gp`, returns a `pd.DataFrame`; the double-decorated entry point (below); `where` is `WhereArgument`-guarded |
 | `RegabDataSet(rc, bid, status, ec, df_mogv)` (L370) | A dataset: connection params + a 3-column DataFrame (mover int64, opponent int64, game_value int8); `__init__` (L388); `generate_positions_and_game_values` (L417 — reinterprets the int64 columns as `Bitboard` via `.view`, no data loss); `compute_sha3_256_hash` (L425 — over the column `tobytes()` in insertion order mover→opponent→game_value, implicit but deterministic) |
 | `regab_extract_data_set_from_db(rc, bid, status, ec)` (L438) | Extracts a `RegabDataSet` from the database |
-| `regab_dedup_mogv(df_mogv)` (L470) | D-143: removes duplicate (mover, opponent) rows — `drop_duplicates(subset=['mover','opponent'], keep='first')` (hash-based, O(n), order-preserving; "first" = lowest seq, the extraction is `ORDER BY seq`); returns `(deduped_df, total_rows, removed_rows)`. Pure, no logging, no data validation (the pipeline does not validate the data — Roberto's ruling) |
-| `regab_count_position_overlap(positions, vld_positions)` (L498) | D-143: counts the vld records whose (mover, opponent) key is also in the training positions (the validation-independence metric) — a pandas inner-merge over the 2 key columns (the train side is `drop_duplicates`-deduped first, so a duplicated train key cannot inflate the count; a duplicated vld row counts once per record). Returns a plain int: the pipeline takes NO action on it (log only) |
-| `regab_store_data_set_to_file(rds, filename, compressed=True)` (L553) | Serializes to a `binio` framed binary file; LZ4 whole-file frame by default (D-139, as in model_weights); the SHA3-256 sidecar is written by the binio writer (the checksum service is on by default), and in the pipeline flow `cache_manager` re-writes the same sidecar (idempotent) |
+| `regab_dedup_mogv(df_mogv)` (L470) | Removes duplicate (mover, opponent) rows — `drop_duplicates(subset=['mover','opponent'], keep='first')` (hash-based, O(n), order-preserving; "first" = lowest seq, the extraction is `ORDER BY seq`); returns `(deduped_df, total_rows, removed_rows)`. Pure, no logging, no data validation (the pipeline does not validate the data) |
+| `regab_count_position_overlap(positions, vld_positions)` (L498) | Counts the vld records whose (mover, opponent) key is also in the training positions (the validation-independence metric) — a pandas inner-merge over the 2 key columns (the train side is `drop_duplicates`-deduped first, so a duplicated train key cannot inflate the count; a duplicated vld row counts once per record). Returns a plain int: the pipeline takes NO action on it (log only) |
+| `regab_store_data_set_to_file(rds, filename, compressed=True)` (L553) | Serializes to a `binio` framed binary file; LZ4 whole-file frame by default (as in model_weights); the SHA3-256 sidecar is written by the binio writer (the checksum service is on by default), and in the pipeline flow `cache_manager` re-writes the same sidecar (idempotent) |
 | `regab_load_data_set_from_file(filename, checksum=True, compressed=True)` (L470) | Deserializes; verifies the `binio` sidecar checksum by default |
 
 The on-disk format (binio-framed): header `"RegabDataSet binary
@@ -30,7 +27,7 @@ mover (int64), opponent (int64), game_value (int8).
 
 ## Architecture
 
-678 lines (post D-080 + D-139 + D-143).
+678 lines.
 
 - Types (L63-72): `GameValue` + the `GameValueArray`
   BeforeValidator.
@@ -39,13 +36,13 @@ mover (int64), opponent (int64), game_value (int8).
 - The ContextVar bridge (L167-225): `rc_context` (L167);
   `_validate_db_fields` (L170) does the DB-backed column check
   (deferred — the `SELECT ... LIMIT 0` colnames query runs only when
-  `fields_input` is actually a string or list, the T4 fix);
+  `fields_input` is actually a string or list);
   `_validate_with_db_context` (L196) sets the ContextVar before
   `@validate_call` and resets it in `finally`; `_ensure_list` (L227).
 - Argument validators (L233-267): `BidArgument` (int→[int], `ge=0`),
   `StatusArgument` (str→[str], 3 chars each), `EcArgument`
   (`ge=0, le=60`), `_WHERE_FORBIDDEN` (L249) +
-  `_validate_where_clause` (L255) + `WhereArgument` (L264 — the T7
+  `_validate_where_clause` (L255) + `WhereArgument` (L264 — the
   SQL-injection guard: blocks comments `--`/`/* */`, the `;`
   terminator, and the dangerous keywords SELECT/INSERT/UPDATE/
   DELETE/DROP/UNION/ALTER/CREATE/EXEC/EXECUTE/TRUNCATE),
@@ -61,9 +58,9 @@ mover (int64), opponent (int64), game_value (int8).
   `DfMogvArgument`.
 - `RegabDataSet` (L370-435) + the module-level functions
   (L438-677): `regab_extract_data_set_from_db` (L438), the two
-  D-143 pure helpers `regab_dedup_mogv` (L470) +
+  pure helpers `regab_dedup_mogv` (L470) +
   `regab_count_position_overlap` (L498), `regab_load_data_set_from_file`
-  (L533) and `regab_store_data_set_to_file` (L616). The two D-143
+  (L533) and `regab_store_data_set_to_file` (L616). The two
   helpers are @validate_call-decorated but have NO DB access —
   `dedup_mogv` is a `drop_duplicates` over a passed-in frame,
   `count_position_overlap` is a pandas inner-merge over the two key
@@ -88,7 +85,7 @@ module suite.
   game_value → TypeError).
 - V4: `status_str` construction is safe — pydantic enforces len=3 on
   the status strings, so no quotes/special chars can reach the
-  query (the T4/T7-era hardening).
+  query.
 - V5: the ContextVar pattern is correct — set before `@validate_call`,
   reset in `finally` (concurrent-safe by construction; no test can
   exercise the concurrency, the pattern is verified by inspection +
@@ -100,11 +97,11 @@ None.
 
 ## Conventions
 
-- `SKIP_REGAB_DB=1` skips the 35 DB-dependent tests (the T6 gate in
+- `SKIP_REGAB_DB=1` skips the 35 DB-dependent tests (the gate in
   `BaseTestCase.setUp`); the 2 fully-mocked
   `TestRegabDataSetFileLoadExceptions` tests always run.
-- The test data relies on `.env` in the workspace root (D-085:
-  `load_dotenv(WORKSPACE_ROOT / ".env")`): the suite is NOT
+- The test data relies on `.env` in the workspace root
+  (`load_dotenv(WORKSPACE_ROOT / ".env")`): the suite is NOT
   self-contained; `test_extract_data_from_db` reads its optional
   `TEST_RDATA_TEST_EXTRACTION_*` params there.
 - `_validate_db_fields` needs a live DB even for purely structural
@@ -118,13 +115,13 @@ None.
 
 - The POSITIONS level: `wrk_positions` builds the 5-arg
   `RegabDBConnection` from `ctx.cfg.regab_data_set.regab_db_connection`
-  (port + password take effect since the D-080 R1 fix), extracts via
+  (port + password take effect), extracts via
   `regab_extract_data_set_from_db`, and wires
   `regab_load_data_set_from_file(path, checksum=False)` /
   `regab_store_data_set_to_file` as the `cache_manager` data
   functions — the sidecar is written by the binio writer
   (`cache_manager` re-writes it idempotently in the pipeline
-  flow). D-143: the compute path is `wrk_positions.extract_and_prepare`
+  flow). The compute path is `wrk_positions.extract_and_prepare`
   (extract → `regab_dedup_mogv` per the `regab_allow_duplicate` flag →
   log the duplicate count); the cache file stores the POST-policy data
   set, so a flag flip changes the stored content and the
@@ -132,9 +129,9 @@ None.
 - The VLD level: `wrk_vld_positions` reuses the same
   `extract_and_prepare` (with the vld bid/status overrides) + the
   same load/store pair for the validation dataset, and after the
-  population stats runs the D-143 validation-independence check
+  population stats runs the validation-independence check
   (`regab_count_position_overlap` over `ctx.positions` ×
-  `ctx.vld_positions`) — LOG ONLY, no action (Roberto's ruling: a
-  threshold/quality parameter family is explicitly out of scope).
+  `ctx.vld_positions`) — LOG ONLY, no action (a threshold/quality
+  parameter family is explicitly out of scope).
 - `binio.md` is the serialization backend; `cache_manager.md` the
   idempotent sidecar re-writer in the pipeline flow.

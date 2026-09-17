@@ -1,12 +1,11 @@
 # reversi/lm/hlp_plot.py
-The PLOT level's figure builders (D-149; the D-150 styling
-ruling: the FIXED axis ranges — the game-value axes always the
-full [-64, +64] domain, the residual-density axis the centered
-[-72, +72] window, the step-8 tick grid — and the two-line
-title: the plot name in BOLD, the run description in smaller
-ITALIC, spaced apart; the D-151 mean-by-EGV refinement: the y
-axis hugs the actual data symmetrically, the smaller tick
-labels). The seven matplotlib
+The PLOT level's figure builders (the styling ruling: the FIXED
+axis ranges — the game-value axes always the full [-64, +64]
+domain, the residual-density axis the centered [-72, +72] window,
+the step-8 tick grid — and the two-line title: the plot name in
+BOLD, the run description in smaller ITALIC, spaced apart; the
+mean-by-EGV refinement: the y axis hugs the actual data
+symmetrically, the smaller tick labels). The seven matplotlib
 diagnostics of the logistic-model run. The first three are the port
 of the R rglm workflow's classic plots (the residual-density
 three-liner, the residual-vs-fitted cloud, the residual-vs-game-
@@ -14,9 +13,9 @@ value cloud — the R script itself is a scratch artifact and is NOT
 referenced anywhere in the documentation); the last four are
 extensions (the per-EGV box plot, the per-EGV mean-residual error
 bars, the parity plot, the normal QQ plot). All figures are in Y
-space (the [-64, +64] game-value scale — the D-148 cross-model
-comparability ruling: Y values are comparable across models with
-different logit_clipping, Z values are distorted per model).
+space (the [-64, +64] game-value scale — Y values are comparable
+across models with different logit_clipping, Z values are distorted
+per model).
 matplotlib and scipy are imported LAZILY (inside the functions):
 importing this module must stay cheap, because hlp_config_schemas
 imports `PLOT_NAMES` from here and the config is parsed by every
@@ -24,8 +23,6 @@ run (and by the client). All randomness (the jitter, the KDE
 subsample) is SEEDed — the R jitter was unseeded, these figures are
 reproducible run over run, and the PNG output is byte-deterministic
 under a fixed matplotlib version.
-> State: D-150 · 2026-09-10 · suite 11/0/0 (test_hlp_plot) + the
-  16-check probes/verify_plot.py probe
 
 ## API
 
@@ -37,7 +34,7 @@ under a fixed matplotlib version.
 | `collect_plot_data(ctx) -> PlotData` | the training w_dense forward pass over `ctx.hlp_indexes.indexes` (the same gather + row sum as `hlp_analytics.compute_training_dense_metrics`) + the validation forward pass (the same formula as `hlp_validate.validate_model` — the CLIENT_CHECK reference) |
 | `jitter(rng, x, amount) -> (N,) f64` | the R jitter semantics: uniform noise in [-amount·range(x)/2, +amount·range/2], amount a fraction of the data range; a zero-range input comes back untouched |
 | `egv_bins(y_pred) -> (unique, inv)` | the evaluated-game-value bins (the R `round_gv`): y_pred rounded to the even step-2 grid (`2·rint(y_pred/2)` — `np.rint` is banker's rounding against R's round-half-away-from-zero, but y_pred is a continuous f64 so the half-tie is measure-zero) |
-| `_sym_limit(values, step=8) -> float` | private (D-150) — the symmetric residual-axis limit: the max absolute value rounded UP to the tick step (the "reasonable value"), at least one step |
+| `_sym_limit(values, step=8) -> float` | private — the symmetric residual-axis limit: the max absolute value rounded UP to the tick step (the "reasonable value"), at least one step |
 | `plot_<name>(d, run_name) -> Figure` | the seven builders (see Architecture) — each takes the PlotData + the run name (the config name) and returns the matplotlib Figure |
 | `PLOT_BUILDERS` | the name → builder registry (the worker dispatches on it) |
 | `save_figure(fig, path, fmt, dpi=150)` | saves in the given format (png at dpi, pdf vector) — the format is passed EXPLICITLY (the `format=` kwarg; matplotlib otherwise sniffs the file suffix, the "png2" trap) |
@@ -45,7 +42,7 @@ under a fixed matplotlib version.
 
 ## Architecture
 
-- Header block (L28-41): the D-149 note — the lazy-matplotlib
+- Header block (L28-41): the note — the lazy-matplotlib
   rationale, the Y-space ruling, the determinism contract.
 - Imports (L44-55): `dataclass`, typing, numpy (L48),
   `sigmoid` from hlp_gradient (L51 — the SAME scipy-expit the
@@ -57,12 +54,12 @@ under a fixed matplotlib version.
   `_KDE_MAX_POINTS=100_000` (L99 — the O(n·m) cap), the jitter
   amounts `_JIT_FITTED_X=0.005`, `_JIT_Y=0.005`, `_JIT_GV_X=0.7`
   (L107-109 — the R fractions, unit-agnostic), `_KDE_GRID=512`
-  (L112), the D-150 fixed-axis constants `_AXIS_GV=64.0`,
+  (L112), the fixed-axis constants `_AXIS_GV=64.0`,
   `_AXIS_DENSITY=72.0`, `_TICK_STEP=8.0` (the game-value axes
   always the full [-64, +64] domain, the residual-density axis
   the centered [-72, +72] window — a residual beyond it means a
   broken model, the outlier report is where they show up — the
-  step-8 tick grid, Roberto's "labels più rade").
+  step-8 tick grid).
 - `PlotData` (L124-145): the five f64 arrays (the docstring
   documents the provenance of each).
 - `collect_plot_data` (L147-176): the per-instance `col_offsets`
@@ -81,23 +78,22 @@ under a fixed matplotlib version.
   below plot resolution), the seeded 100k subsample cap, the
   zero-variance guard (a flat zero curve — the degenerate kernel
   is singular), evaluated on the caller's grid.
-- `_sym_limit` (the D-150 helper): `step * ceil(max|values| / step)`,
+- `_sym_limit`: `step * ceil(max|values| / step)`,
   the non-finite / zero guard returns one step.
-- `_fig` (the D-150 title layout): the fresh (9,6) figure, the
+- `_fig` (the title layout): the fresh (9,6) figure, the
   light-theme look (grid alpha 0.3, the R `theme_light`
   equivalent); the title is TWO lines — the plot name in BOLD
   (fontsize 13, `pad=26` lifts it) and the run name in smaller
-  ITALIC (fontsize 10, just above the axis) — the "spazia le due
-  righe un pochino di più" ruling.
-- The D-155 label standardization: every axis label and title
+  ITALIC (fontsize 10, just above the axis).
+- The label standardization: every axis label and title
   says "Evaluated game value" (the two "Fitted" titles
   renamed); the bare "(Y)" is gone from every label (the
   PlotData docstrings say "the Y scale"); the two binned axes
   carry the italic mathtext note ` $(binned\ every\ 2)$` (the
   `_BINNED_NOTE` constant) at the axis font size — this
   matplotlib 3.11 build has no mathtext size commands
-  (\small and \itshape are rejected), so the "2 pt smaller"
-  ask is the ruling's accepted fallback.
+  (\small and \itshape are rejected), so the note stays at the
+  axis font size (a smaller note is not renderable).
 - The builders:
   - `plot_residual_density` (plot 1 / the R p0): three KDE curves
     on a shared axis — Reference (the training game values
@@ -105,66 +101,61 @@ under a fixed matplotlib version.
     analytics report, slategray), Training (firebrick), Validation
     (black); the margin labels carry the sd (the validation one
     also mean/min/max — the `_series_label` helper; the placement
-    fractions `_TXT_X`/`_TXT_Y` — the Reference label sits HIGH,
-    D-150: it overlapped its line at the lower position;
-    D-155: the Training label sits at ~x = 25 in data units
-    (the fraction 0.674), so it clears the residual peak it
-    used to cover); the
+    fractions `_TXT_X`/`_TXT_Y` — the Reference label sits HIGH
+    (it overlapped its line at the lower position); the Training
+    label sits at ~x = 25 in data units (the fraction 0.674), so
+    it clears the residual peak it used to cover); the
     dashed vline at the TRAINING residual mean; the axis FIXED on
-    the centered [-72, +72] window (D-150: "lo devi sempre
-    centrare su asse x tra valori ragionevoli"); NO legend (the R
+    the centered [-72, +72] window; NO legend (the R
     original had `legend.position = "None"` — the margin labels
     identify the curves).
   - `plot_resid_vs_fitted` (plot 2 / the R p1): the validation
     residual cloud vs the fitted values, the seeded
     0.005-fraction jitter on both axes, black dots alpha 0.04;
-    the D-150 axes: x always the full [-64, +64] domain, y
+    the axes: x always the full [-64, +64] domain, y
     symmetric on a `_sym_limit` (tick-step-rounded) limit.
   - `plot_resid_vs_gv` (plot 3 / the R p2): the validation
     residual cloud vs the actual game values; the x jitter is the
     large 0.7-range fraction (the horizontal "cloud" smearing
     over the integer grid), the y jitter the fine 0.005 one,
-    alpha 0.02; the D-150 axes: x always the full [-64, +64]
-    game-value domain (the previous data-driven axis let the
-    0.7 jitter smear the auto-range to ±108 — Roberto read it as
-    swapped labels; the labels were NOT swapped, the jittered
-    points beyond the domain are clipped by the axis), y as in
+    alpha 0.02; the axes: x always the full [-64, +64]
+    game-value domain (a data-driven axis would let the
+    0.7 jitter smear the auto-range to ±108 — the labels were
+    NOT swapped, the jittered points beyond the domain are
+    clipped by the axis), y as in
     resid_vs_fitted.
   - `plot_gv_by_egv_box` (plot 4 / the R boxplot helper): the
     validation game values as a box plot per EGV bin (the fitted
-    Y rounded to the step-2 grid); the D-150 axes: BOTH x and y
+    Y rounded to the step-2 grid); the axes: BOTH x and y
     always the full [-64, +64] domain, regardless of the data,
-    the ticks on the step-8 grid; the D-153 mandatory EXPLICIT
+    the ticks on the step-8 grid; the mandatory EXPLICIT
     labels (`set_xticks(ticks, labels=...)`): boxplot() leaves
     the 62 categorical bin labels on the axis, and a
     positions-only set_xticks prints the first 17 of them under
-    the step-8 positions (the stale-label bug); the D-155 x
+    the step-8 positions (the stale-label bug); the x
     label: "Evaluated game value" + the italic binned note.
   - `plot_resid_mean_by_egv` (plot 5, new): the validation
     residual MEAN ± sd error bars per EGV bin against the zero
     line — the systematic-bias-per-level view (a miscalibrated
-    region drifts away from zero; Roberto: "questo grafico è
-    stupendo ... ci dice che la sigmoid introduce una distorsione
-    ... che si vede !!!"); single-point bins get a zero bar (the
-    ddof=1 sd is undefined at n=1); the D-150/D-151 axes: x
-    always the full [-64, +64] domain ("asse x perfetto"), y
+    region drifts away from zero); single-point bins get a zero bar (the
+    ddof=1 sd is undefined at n=1); the axes: x
+    always the full [-64, +64] domain, y
     hugs the ACTUAL data (the |mean|+sd extent rounded UP to the
-    step-8 grid, kept symmetric — the D-151 "valori min e max
-    reali del grafico" ruling; the tick grid stays 0, 8, 16, ...
+    step-8 grid, kept symmetric — the min/max extent of the
+    actual data; the tick grid stays 0, 8, 16, ...
     within the limit), the tick labels in the smaller font
-    (labelsize 8, D-151); the D-155 x label: "Evaluated game
+    (labelsize 8); the x label: "Evaluated game
     value" + the same italic binned note.
   - `plot_parity` (plot 6, new): the validation game values vs
     the fitted values, the 45° line, both axes on the full
-    [-64, +64] scale (already the D-150 requirement), equal
+    [-64, +64] scale, equal
     aspect.
   - `plot_resid_qq` (plot 7, new): the sorted sample quantiles
     of the validation residuals against the standard normal
     theoretical quantiles (the lazy `scipy.special.ndtri`), the
     dashed `y = sd·x` scale line (residuals that are normal with
     mean zero sit ON the line; the R script computed the
-    skewness/kurtosis numerically — this shows them; Roberto:
-    "bellissimo, come sopra la distorsione si vede"); the D-150
+    skewness/kurtosis numerically — this shows them); the
     axis: y (the sample quantiles) always the full [-64, +64], x
     (the theoretical quantiles) stays data-driven (the normal
     tail, about ±3.3).
@@ -218,7 +209,7 @@ None.
   with the R jitter fractions 0.005/0.005/0.7 as a fraction of the
   data range; the per-EGV box plot). The differences are
   documented: Y space instead of the transformed [0,1] target
-  space (the D-148 ruling), Scott's instead of Silverman's KDE
+  space (the cross-model comparability ruling), Scott's instead of Silverman's KDE
   bandwidth (below plot resolution), SEEDed instead of unseeded
   jitter (determinism), and the box-plot helper that the R script
   defined but never returned.
@@ -241,7 +232,7 @@ None.
   builders + titles (the probe A2/A3 pins keep the three in lock-
   step).
 - The training pass is a FORMULA COPY of hlp_analytics' dense
-  metrics and the validation pass of hlp_validate (the D-148 A1a
+  metrics and the validation pass of hlp_validate (the A1a
   pattern): if those formulas change, these copies must follow.
 - The `sigmoid` import ties the figures to the exact model math
   (the scipy-expit, the f32 pipeline) — the plotted fitted values

@@ -9,7 +9,6 @@ configurations of the feature set) + `w_checksum` (the OPTIMIZE
 compressed-w checksum — the consistency anchor). The flat file
 is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 `{prefix}{level:02}_{worker_name}.dat`).
-> State: D-139 · 9ba523b · 2026-09-08 · suite 16/0/0
 
 ## API
 
@@ -17,8 +16,8 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 |---|---|
 | `LMDenseWeights` | the data object — `__init__(w_checksum: str, w_dense: NDArray)` both `@validate_call` (the NDArray gate rejects lists) |
 | `.compute_sha3_256_hash()` | `@validate_call` — `sha3_256(w_dense.tobytes())` ONLY (the duck-typed data-checksum hook, same shape as the 4 siblings) |
-| `hlp_generate_store_to_file(dw, filename, compressed=True)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; LZ4 whole-file frame by default (D-139); the sidecar is written by the binio writer |
-| `hlp_generate_load_from_file(filename, checksum=True, compressed=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the D-098 T1 version gate) → the object |
+| `hlp_generate_store_to_file(dw, filename, compressed=True)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
+| `hlp_generate_load_from_file(filename, checksum=True, compressed=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the version gate) → the object |
 | `hlp_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the L103 note) |
 | `compute_w_dense(ctx)` | `@validate_call`-free (the L108 note) — the compressed → dense expansion over the 3 feature categories |
 
@@ -29,11 +28,11 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 - `hlp_generate_store_to_file` (L68-77) /
   `hlp_generate_load_from_file` (L80-100): the standard binio
   round-trip — the writer/reader run with `compressed=True` by
-  default (D-139), the LZ4 whole-file frame, and the sidecar is
+  default, the LZ4 whole-file frame, and the sidecar is
   written by the binio writer (cache_manager re-writes it
   idempotently in the pipeline flow); the load gates in order:
   the R3-class sidecar verify (L84-86, "Checksum mismatch."),
-  the description gate (L92-94), the D-098 T1 version gate
+  the description gate (L92-94), the version gate
   (L91, L95-96, "File version mismatch: found 2, expected 1") —
   all BEFORE any payload parse.
 - `hlp_generate_is_cache_consistent` (L104-105, the L103
@@ -60,10 +59,10 @@ is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
     (L222); everything else — unseen AND fallback configs —
     inherits the frequency-weighted mean of the seen configs
     (L181-182, L216). The fallback weight is logged for
-    transparency only, never used (L188-201, Roberto's D-098 R2
-    ruling).
+    transparency only, never used (L188-201, the L192-201
+    ruling comment).
   - Unknown category → `RuntimeError("The feature category is
-    unknown: {category}")` (L226-227, the D-098 M3 wording).
+    unknown: {category}")` (L226-227).
 
 ## Verified invariants
 
@@ -92,7 +91,7 @@ Pinned by the 15-check `probes/verify_generate.py` + the
   array (the live re-derivation exercises it).
 - The blackboard fields `w_dense: Any = None` +
   `dense_w_checksum: str | None = None` were pre-declared in
-  LMContext at first import (probe F1 — the D-094 fg pattern).
+  LMContext at first import (probe F1 — the fg pattern).
 
 ## Open issues
 
@@ -100,7 +99,7 @@ None.
 
 ## Conventions
 
-- The sidecar story (D-139, the stale note corrected): the binio
+- The sidecar story: the binio
   writer writes the `.SHA3-256` over the compressed bytes (the
   checksum service is on by default); in the pipeline flow
   cache_manager re-writes the same sidecar (idempotent) — as in

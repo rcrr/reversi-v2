@@ -1,12 +1,8 @@
 # reversi/test/test_hlp_zed.py
-The dedicated data-object suite of the hlp_zed module (created in
-the D-092 fix campaign, T3 — the ZED level arrived with only the
-worker test, this file closes the coverage gap; the D-090 T6
-class). 3 classes / 10 tests / no DB, no gate — the file is fully
-offline: the module has no file I/O and no LMContext beyond the
-two attributes `hlp_zed_compute` reads, so no `tempfile`, no
-`reversi.test.paths`, no `import os`.
-> State: D-092 · 17a5f95 · 2026-09-01 · suite 10/0/0
+The dedicated data-object suite of the hlp_zed module. 3 classes / 10
+tests / no DB, no gate — the file is fully offline: the module has no
+file I/O and no LMContext beyond the two attributes `hlp_zed_compute`
+reads, so no `tempfile`, no `reversi.test.paths`, no `import os`.
 
 ## Coverage
 
@@ -29,8 +25,7 @@ two attributes `hlp_zed_compute` reads, so no `tempfile`, no
 ## Conventions
 
 - DB-free BY CONSTRUCTION (the module has no file I/O) — hence no
-  SKIP_REGAB_DB gate and no `reversi.test.paths` import (the D-065
-  artifact rule has nothing to apply to).
+  SKIP_REGAB_DB gate and no `reversi.test.paths` import.
 - Mirrors the test_hlp_wmaps / test_hlp_design_matrix house
   pattern: the isolated factory math, the handcrafted-mock
   compute pins, the init validation, the hash golden.
@@ -42,6 +37,5 @@ two attributes `hlp_zed_compute` reads, so no `tempfile`, no
   exercises the end-to-end path).
 - The LIVE golden (the rlm_01 (10,) y/z) lives in
   test_wrk_zed.py (`TestLMWorkerZed`) — the single source
-  of truth after the step-3 class c deletions (the former probe
-  A13-A15 + D2-D4 pins); this file's mock values reuse the rlm_01
+  of truth; this file's mock values reuse the rlm_01
   fixture values as a subset.

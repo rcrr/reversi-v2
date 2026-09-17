@@ -7,7 +7,6 @@ hlp_design_matrix object (the flat `rlmwf_06_DESIGN_MTR.dat` +
 binio sidecar + the duck-typed data checksum) — the FOURTH
 cache_manager consumer in the pipeline; the flat files DO
 materialize (probe D-tier).
-> State: D-090 · 06023cc · 2026-08-31 · suite 3/0/0 (3 DB-gated)
 
 ## API
 
@@ -22,7 +21,7 @@ materialize (probe D-tier).
   wiring: `cache_path =
   ctx.get_cache_file_full_path_for_current_level()` (the injected
   machine closure — flat `rlmwf_06_DESIGN_MTR.dat`), `is_allowed =
-  ctx.use_cache` (the CONFIG switch, the D-071 R1 semantics),
+  ctx.use_cache` (the CONFIG switch),
   `load_fn = lambda path: hlp_design_matrix_load_from_file(path,
   checksum=False)` (the house shape — the sidecar was already
   verified by cache_manager), `store_fn =
@@ -38,7 +37,7 @@ materialize (probe D-tier).
 - `_down`: INFO "Clearing Design Matrix attribute..." → BOTH
   attributes to None — `ctx.design_matrix` AND
   `ctx.design_matrix_checksum` (the house shape: object +
-  checksum — already correct at bring-in, no T item).
+  checksum).
 
 ## Verified invariants
 
@@ -53,10 +52,10 @@ tiers + the 3-test suite.
   `ctx.design_matrix_checksum`, `_down` clears both, 0
   whitespace-only lines.
 - The worker-test source shape (probe C1-C14): the gate in BOTH
-  setUps + `import os`, the D-085 idiom (TemporaryDirectory ×2
+  setUps + `import os`, the idiom (TemporaryDirectory ×2
   under CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json ×2, the
   paths import, no `shutil`), all 3 `LogisticModel` constructions
-  `Verbosity.HIGH`, the D-078 cache names pinned, the step pins 5
+  `Verbosity.HIGH`, the cache names pinned, the step pins 5
   (×2) + 6 (×3).
 - The level boundary + golden re-derivation (live DB, probe
   D5-D10 + F tier): after `move_to_step("DESIGN_MTR")` — step 6;
@@ -87,14 +86,11 @@ None.
 
 - The worker carries NO naming code — the flat
   `rlmwf_06_DESIGN_MTR.dat` comes from the injected full-path
-  closure (the D-078 machine-level fix for ALL cache-consuming
-  workers).
+  closure.
 - `is_allowed = ctx.use_cache`: with `use_cache=False` the level
-  always recomputes but still warms the cache file (the D-071 R1
-  semantics).
+  always recomputes but still warms the cache file.
 - `validate_fn` is the 1-field metadata compare (no DB access, no
-  recompute) — a business mismatch deletes + recomputes (the D-071
-  R2 shape).
+  recompute) — a business mismatch deletes + recomputes.
 - The blackboard gets the BARE ndarray (`dm_obj.X`), not the data
   object: the later level (ZED) consumes the array directly, and
   the hash method is duck-typed on the object only inside this

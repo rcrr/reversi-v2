@@ -4,11 +4,8 @@ non-sentinel. It loads the LM JSON5 config file, validates it into
 the hlp_config_schemas domain model, computes the config fingerprint
 (`ctx.config_checksum`, the sha3_256 of the normalized dump), and
 publishes the model (and the `use_cache` flag) on the context for the
-workers that follow. It writes NO cache file (D-142: the ad-hoc
-cache flow is gone — the configuration provenance is EMBEDDED in
-the v2 model file at SAVE, D-144; the D-142 sidecar record is
-retired).
-> State: D-142 · 181cb57 · 2026-09-09 · suite 13/0/0
+workers that follow. It writes NO cache file; the configuration
+provenance is EMBEDDED in the v2 model file at SAVE.
 
 ## API
 
@@ -23,10 +20,10 @@ retired).
   base_dir) → `ctx.use_cache = cfg.use_cache` → `ctx.cfg = cfg` →
   the fingerprint: `ctx.config_checksum =
   hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()`
-  (D-142: the normalized dump is the EFFECTIVE configuration of the
+  (the normalized dump is the EFFECTIVE configuration of the
   run — the base_dir override included, pydantic defaults resolved —
   and this is the single source of truth for the EMBEDDED model-
-  file config provenance (D-144) and the analytics report line) → the INFO log of the hex.
+  file config provenance and the analytics report line) → the INFO log of the hex.
 - `_down`: the ERROR "Clearing configuration..." →
   `ctx.cfg = None`, `ctx.use_cache = None`, `ctx.config_checksum =
   None`.
@@ -44,8 +41,7 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) +
 `test_wrk_config.py` (13 tests, 3 classes).
 
 - Source shape: the `__all__` name, the factory name "CONFIG", the
-  module callables, the 5 privates (the `_store_to_file` is gone,
-  D-142) — probe section A.
+  module callables, the 5 privates — probe section A.
 - The loaded state: `ctx.cfg` a LMConfig, name round-trip,
   `use_cache` True from the config, `ctx.config_checksum` == the
   sha3_256 of `model_dump_json(indent=4)` (probe B3/B4/B6/B6b; the
@@ -67,17 +63,15 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) +
 
 ## Conventions
 
-- The injected machine closures are the naming authority (D-078) —
-  the worker does no path arithmetic of its own. (The injected
-  `get_cache_file_*` closures are simply unused by this level since
-  D-142.)
-- `json5` is a declared dependency (added for this worker, D-076) —
-  the config fixture `rlm_00.json` is JSON5 with comments.
+- The injected machine closures are the naming authority — the
+  worker does no path arithmetic of its own.
+- `json5` is a declared dependency — the config fixture
+  `rlm_00.json` is JSON5 with comments.
 - `hashlib` stays imported (the fingerprint) — but the module writes
   NOTHING (probe E5 pins it).
-- The test artifacts follow the D-065 idiom (`build/tmp`,
+- The test artifacts follow the standard idiom (`build/tmp`,
   `CUSTOM_TMP_BASE` from `reversi.test.paths`).
-- `@validate_call` on the public factory (house convention D-069).
+- `@validate_call` on the public factory (house convention).
 
 ## Integration
 
@@ -87,12 +81,9 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) +
 - Consumes `hlp_config_schemas` (the domain) and
   `state_machine.Worker`; publishes `ctx.cfg` / `ctx.use_cache` /
   `ctx.config_checksum` that the later workers read (the fingerprint
-  is consumed by `wrk_save` (EMBEDDED in the v2 model file,
-  D-144) and by
+  is consumed by `wrk_save` (EMBEDDED in the v2 model file) and by
   `hlp_analytics` — the report line).
 - The configuration PROVENANCE (the normalized dump + the
   checksum) is EMBEDDED by the SAVE level in the v2 model file
-  (wrk_save.md, D-144 — the D-142 sidecar record is retired;
-  D-142 moved the provenance from this level's cache slot to the
-  shipped artifact, D-144 embedded it in the artifact itself).
+  (wrk_save.md).
 - Test fixture: `src/reversi/test/data/rlm_00.json` (JSON5).

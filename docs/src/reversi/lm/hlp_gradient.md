@@ -5,41 +5,37 @@ init validation, NO hash (unlike every other rlm_* level). Two
 public names: `sigmoid` (the scipy `expit` wrapper) +
 `hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates
-the normalized loss and gradient). TWO fg variants (I-013, D-145):
-the classic vectorized-numpy closure (the default, kept verbatim)
+the normalized loss and gradient). TWO fg variants:
+the classic vectorized-numpy closure (the default)
 and the high-performance numba single-pass kernel (K3, selected by
 the `high_performance` flag). The 9th active level (CREATED
 sentinel → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS →
 DESIGN_MTR → ZED → GRADIENT) and the SECOND non-cache level (after
 ZED): no cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
-> State: D-145 · I-013 · 2026-09-09 · the fg is 3.6×-16× faster
-(depending on scale) on the high-performance path; the A2050
-full chain drops from ~350 s to ~52 s.
 
 ## API
 
 | name | contract |
 |---|---|
-| `sigmoid(x)` | the scipy `expit` wrapper — NO `@validate_call` (the hot-loop call, left as-is by Roberto) |
+| `sigmoid(x)` | the scipy `expit` wrapper — NO `@validate_call` (the hot-loop call) |
 | `hlp_gradient_compute(ctx, high_performance=False)` | builds the `fg(w)` closure (NO `@validate_call` — see Conventions); returns a callable `(w float32 (N,)) -> (f float32, g float32 (N,))`. `high_performance=False` (default) → the classic closure; `True` → the numba kernel closure. The returned closure carries a `high_performance` bool attribute identifying the variant. |
 
 ## Architecture
 
 - `sigmoid(x)`: `return expit(x)` (the scipy import). NO
-  `@validate_call` (M2, left as-is by Roberto's call — it is
-  called in the optimization hot loop). Docstring: the naive
-  `1 / (1 + exp(−x))` is what it replaced; expit's stability
-  advantage is at extreme x (where the naive `np.exp(−x)`
-  overflows).
+  `@validate_call` (it is called in the optimization hot loop).
+  Docstring: the naive `1 / (1 + exp(−x))` is what it replaced;
+  expit's stability advantage is at extreme x (where the naive
+  `np.exp(−x)` overflows).
 - `hlp_gradient_compute`: NO `@validate_call` (the no-validation
-  note — the hlp_indexes L166 class, the D-094 T3 fix). Captures:
+  note — the hlp_indexes L166 class). Captures:
   `N = len(ctx.w)`, `X = ctx.design_matrix`, `M, P = X.shape`
   (M = positions), `z = ctx.z`, `alpha =
   ctx.cfg.stat_model.ridge_regularization / M`.
 
-### The classic variant (the default — kept verbatim, I-013)
+### The classic variant (the default)
 
-  - Pre-allocated buffers (the D-094 perf shape):
+  - Pre-allocated buffers (the performance shape):
     `bincount_weights_buffer = np.empty(M*P, float32)` + the
     `(M, P)` view.
   - The `fg(w)` closure body: `linear_predictor = np.sum(w[X],
@@ -50,13 +46,11 @@ full chain drops from ~350 s to ~52 s.
     criteria); the normalized gradient `g = bincount(X_flat,
     weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
     `return np.float32(f), g.astype(np.float32, copy=False)` — the
-    R1 (D-093, fixed in D-094) cast: the return type says float32,
-    so both outputs are float32 (the behaviour change Roberto
-    chose).
-  - Kept as the default by Roberto's ruling (I-013): "proven e
-    tutto sommato 'leggibile'".
+    R1 cast: the return type says float32, so both outputs are
+    float32.
+  - The default variant: proven and readable.
 
-### The high-performance variant (I-013 K3, D-145)
+### The high-performance variant (K3)
 
   - `_hp_fg_kernel` (`@njit(parallel=True, cache=True)`, the
     house numba idiom as in board.py / pattern.py): ONE streaming
@@ -111,7 +105,7 @@ tests).
   f64 buffers), the flag + the variant marker attributes, 0
   non-comment trailing-whitespace lines.
 - The worker file shape (probe B1-B9): 64 lines, the factory WITH
-  `@validate_call` + the pydantic import (T2), NO cache_manager
+  `@validate_call` + the pydantic import, NO cache_manager
   import (the by-design comment pinned), `_up` reads
   `ctx.cfg.optimization.high_performance_fg` and passes it to
   `hlp_gradient_compute` (the log line names the variant),
@@ -124,7 +118,7 @@ tests).
   closure stateless (2 calls); NO rlmwf_07*/08* files; the
   feature set (8 instances).
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg` field
-  pre-declared; scipy in pyproject.toml (T1) + in the venv
+  pre-declared; scipy in pyproject.toml + in the venv
   (1.18.1); the StatModelConfig `ridge_regularization` field
   (`ge=0.00`); the rlm_02 config.
 - The unit suite (14 tests, no DB): the sigmoid goldens/
@@ -153,7 +147,7 @@ tests).
   second-instance determinism tests (the in-run byte-identity
   contract) pass on the HP path.
 
-## Performance (I-013, the A2050 production scale)
+## Performance (the A2050 production scale)
 
 Measured on the real A2050 data (M = 1,999,179, P = 48,
 N = 77,943; 8 cores; the study:
@@ -161,7 +155,7 @@ N = 77,943; 8 cores; the study:
 
 | kernel | fg/call | × |
 |---|---:|---:|
-| classic (K0, the pre-I-013 fg) | 735 ms | 1.00 |
+| classic (K0, the original fg) | 735 ms | 1.00 |
 | K3 f32 accum | 52.3 ms | 14.1 |
 | **K3 f64 accum (production)** | **46.0 ms** | **16.1** |
 
@@ -176,12 +170,11 @@ negligible against the 732 ms classic baseline.
 
 - The two-loop recursion in `opt_lbfgs.py` is now the second
   cost center (≈ 8.2 s of the 26.9 s HP OPTIMIZE, ~30%): the
-  I-013 O2 numba two-loop is the next candidate (a separate
-  change + decision, D-146, after the O1 re-baseline).
+  numba two-loop is the next candidate.
 
 ## Conventions
 
-- The R1 float32 return contract (D-093 → D-094): the NEXT level
+- The R1 float32 return contract: the NEXT level
   (OPTIMIZE) sees both `f` and `g` as float32 — for BOTH variants.
 - The linear predictor is the w-INDEX sum (each X cell is a
   w-index), NOT `X @ w` — in both variants.
@@ -189,19 +182,19 @@ negligible against the 732 ms classic baseline.
   scaled by 1/M — the optimizer's convergence criteria are
   dataset-size independent (pinned directly by the ridge_scaling
   test).
-- The `high_performance_fg` config flag (I-013, D-145): the
+- The `high_performance_fg` config flag: the
   default is FALSE (the classic path) everywhere; rlm_03.json
-  and rlm_04.json opt in (the two full-chain test configs —
-  Roberto's ruling). The flag is read by the GRADIENT worker
+  and rlm_04.json opt in (the two full-chain test configs).
+  The flag is read by the GRADIENT worker
   only; a mid-run switch is numerically sound (same objective,
   the resume re-evaluates f fresh).
-- M2 (left as-is): `sigmoid` stays a bare wrapper (no
+- `sigmoid` stays a bare wrapper (no
   `@validate_call`) — hot-loop performance.
-- M4 (left as-is, the worker file): the triple blank lines are
+- The worker file: the triple blank lines are
   the canonical pattern of all 8 worker files (house style).
 - The scipy `expit` is the classic path's only
-  special-function dependency (scipy in pyproject.toml since
-  D-094 T1); the HP path computes the sigmoid inline in f32
+  special-function dependency (scipy in pyproject.toml); the HP
+  path computes the sigmoid inline in f32
   (the kernel must be self-contained for numba).
 
 ## Integration
@@ -212,7 +205,7 @@ negligible against the 732 ms classic baseline.
   weight vector, W = total weights; 2981 on live rlm_02; the
   OPTIMIZE level later overwrites it with the optimized values)
   + `ctx.cfg.stat_model.ridge_regularization` (CONFIG) +
-  `ctx.cfg.optimization.high_performance_fg` (CONFIG, I-013).
+  `ctx.cfg.optimization.high_performance_fg` (CONFIG).
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE
   level. The flat-file numbering stops at rlmwf_06_DESIGN_MTR —
   the next cache level (OPTIMIZE) takes rlmwf_08 (07 is skipped,

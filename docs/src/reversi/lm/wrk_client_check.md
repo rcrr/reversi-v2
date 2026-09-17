@@ -1,23 +1,21 @@
 # reversi/lm/wrk_client_check.py
 The CLIENT_CHECK worker — the 16th active level of the LM pipeline
-(step 15, after SAVE; PLOT follows as the 17th — D-149). The 7th
+(step 15, after SAVE; PLOT follows as the 17th). The 7th
 non-cache worker — no
 `cache_manager` wiring, no rlmwf_16* file (a pure verification step,
 recomputed on every up-move). The acceptance test of the saved model
-file (D-148): it re-reads the SAVE artifact from disk, builds the
+file: it re-reads the SAVE artifact from disk, builds the
 client's vectorized Evaluation Function on the FILE weights, and
 recomputes the validation residuals in Y space — they must coincide
 with the in-memory VALIDATE forward pass's residuals within
-`ctx.cfg.client_check_tol` (default 1e-8, the D-148 config field).
+`ctx.cfg.client_check_tol` (default 1e-8, the config field).
 Y space, because Y values are comparable across models (different
 logit_clipping); Z values are distorted per model. The two sides are
 expected bit-identical (the same f32 pipeline over the bit-exact
 file round-trip): the tolerance guards against pipeline drift and
 file corruption, not against rounding noise. On a breach the worker
-logs ERROR and raises RuntimeError (the D-060 failure semantics). No
+logs ERROR and raises RuntimeError. No
 context attribute is published; `_down` is a no-op (log only).
-> State: D-148 · 2026-09-10 · suite 6/0/0 (test_wrk_client_check) +
-  the chain pins via test_lm_worker_full_chain (DB-gated)
 
 ## API
 
@@ -30,7 +28,7 @@ context attribute is published; `_down` is a no-op (log only).
 
 - Imports (L28-42): numpy (L30), pydantic (L32), `Worker,
   Relevance` (L36), `make_evaluation_function_array` (L37 — the
-  D-141 client factory: the check IS the client running on the saved
+  client factory: the check IS the client running on the saved
   file), `sigmoid` (L38 — the hlp_gradient scipy-expit, the SAME
   function hlp_validate uses), `model_weights_read_file` (L39 — the
   v2 reader, which re-verifies the embedded config checksum),
@@ -65,7 +63,7 @@ context attribute is published; `_down` is a no-op (log only).
 Pinned by the 6-test `test_wrk_client_check` suite (no DB) + the
 full-chain suite (DB-gated).
 
-- The bit-identity golden (the heart of D-148): on a synthetic
+- The bit-identity golden: on a synthetic
   rlm_04-mirror context (the test_client.py layout, 2000 seeded
   collision-free positions), the file round-trip + the client's
   array EF reproduce the validation residuals BIT-EXACTLY — the
@@ -79,8 +77,8 @@ full-chain suite (DB-gated).
   the full diagnosis message + exactly one ERROR log line
   (`test_up_diverged_weights_raise`); the missing-file case
   propagates the read's `FileNotFoundError` (`test_up_missing_file_
-  raises`, the D-060 semantics).
-- The tolerance is the cfg field (Roberto's ruling: the JSON config
+  raises`).
+- The tolerance is the cfg field (the JSON config
   value, not a module constant): the same divergence is ADMITTED by
   a wide tolerance (1.0) and REJECTED by a tight one (1e-4)
   (`test_tolerance_is_read_from_config`).
@@ -95,9 +93,9 @@ None.
 
 ## Conventions
 
-- The A1a ruling (D-148): the reference residuals are RECOMPUTED
+- The A1a ruling: the reference residuals are RECOMPUTED
   here from the in-memory ctx state (VALIDATE itself is untouched —
-  the D-101/D-102 closure stands). The formula is a copy of
+  the closure stands). The formula is a copy of
   hlp_validate's forward pass: if that formula ever changes, this
   copy must follow (the divergence would be caught by the check
   itself — it would fail the pipeline).
@@ -127,9 +125,9 @@ None.
   artifact (the saved file + the client) reproduces the pipeline's
   own validation. The scalar EF stays the test_client.py pin (the
   1100× speed ratio makes the array EF the level's tool).
-- Downstream: PLOT (the 17th level, D-149) — the matplotlib
+- Downstream: PLOT (the 17th level) — the matplotlib
   diagnostics, consuming nothing from the check (its result lives in
   the event log); the gate-first ordering is the point: the figures
   are drawn for a VERIFIED model file. A breach leaves
-  `current_step` at 15 (the D-060 failure semantics) and the
+  `current_step` at 15 and the
   machine never reaches PLOT.

@@ -6,17 +6,15 @@ Functions in Y space (the game-value space the engine uses) — a
 scalar `ef: Position -> float` and a vectorized
 `ef: PositionArray -> (N,) float32` (bit-exact per position). No
 database, no cache, no pipeline: a saved model file is all the
-client needs — the shape Roberto's endgame-solver production models
+client needs — the shape the endgame-solver production models
 (the `A2xxx` family) plug into.
-> State: D-148 · 2026-09-10 · suite 6/0/1 (test_client) +
-  the EF pins via test_lm_worker_full_chain (DB-gated)
 
 ## API
 
 | name | contract |
 |---|---|
 | `make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]` | The scalar EF factory (`@validate_call`, arbitrary_types_allowed). Closes over `mw` via `_prepare_weights`; the returned `ef` takes a scalar Position and returns a Python float (the f32 z2y output as a float64 view). |
-| `make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray], npt.NDArray[np.float32]]` | The vectorized EF factory (D-141, `@validate_call`). The returned `ef` is STRICT ARRAY: it accepts a 1-D PositionArray (a (N, 2) uint64 array is coerced by the PositionArray validator) and returns a (N,) float32 array, bit-exact vs the scalar EF per position. A 2-D structured array raises `ValueError` (the standard 1-D guard, D-111 M5); a scalar Position or bare lists raise the Pydantic `ValidationError`. |
+| `make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray], npt.NDArray[np.float32]]` | The vectorized EF factory (`@validate_call`). The returned `ef` is STRICT ARRAY: it accepts a 1-D PositionArray (a (N, 2) uint64 array is coerced by the PositionArray validator) and returns a (N,) float32 array, bit-exact vs the scalar EF per position. A 2-D structured array raises `ValueError` (the standard 1-D guard); a scalar Position or bare lists raise the Pydantic `ValidationError`. |
 
 ## Architecture
 
@@ -27,7 +25,7 @@ client needs — the shape Roberto's endgame-solver production models
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray`
   (annotation-only use).
 - `_prepare_weights` (L47-66): the closure setup shared by BOTH
-  factories (D-141): `offsets = mw.iwmap_feature_offset`, `z2y =
+  factories: `offsets = mw.iwmap_feature_offset`, `z2y =
   zed_fun_factory(mw.logit_clipping)` (only the z→y half — the
   client never transforms observations), `expanded_offsets =
   np.repeat(offsets[:-1], n_instances_per_feature)` (the
@@ -45,7 +43,7 @@ client needs — the shape Roberto's endgame-solver production models
   guard (the PositionArray validator admits 2-D structured arrays,
   no ndim check there); 2. `indexes =
   mw.feature_set.compute_indexes(p)` — the SAME batch API the scalar
-  path wraps (the numba prange kernel over N; no new kernel, D-141);
+  path wraps (the numba prange kernel over N; no new kernel);
   3. `weights = mw.w_dense[expanded_offsets + indexes]` (the (I,) u32
   broadcast over the (N, I) u32 batch) and `linear_predictor =
   weights.sum(axis=1)` (the per-row f32 sum — the same 1-D reduction
@@ -92,7 +90,7 @@ A8 the 2-entry `__all__`, A9 no ws lines) + the full-chain suite +
   VLONG): pos 0 → 7.2613525390625, pos 5 → −32.98143768310547, pos
   123 → 40.5123291015625, pos 555 → 24.14972686767578, pos 9999 →
   −19.389434814453125, pos 1999178 → 57.8465576171875.
-- VECTORIZED parity (D-141): the array EF equals the scalar EF
+- VECTORIZED parity: the array EF equals the scalar EF
   bit-exactly per position — (a) on the synthetic rlm_04-mirror
   weights over 1000 seeded collision-free positions
   (test_client::test_parity_bit_exact, no DB); (b) on the TRAINED
@@ -113,11 +111,11 @@ None.
 
 - BOTH factories are `@validate_call` (arbitrary_types_allowed);
   the array ef closure is validated too (the PositionArray
-  annotation does the (N, 2) u64 coercion) — D-141.
-- Strict array (D-141, Roberto's ruling): the array ef takes a
+  annotation does the (N, 2) u64 coercion).
+- Strict array: the array ef takes a
   1-D PositionArray only (the scalar contract is the other
-  factory); the 1-D guard in the closure is the house D-111 M5
-  pattern (the PositionArray validator does NOT check ndim for the
+  factory); the 1-D guard in the closure is the house pattern (the
+  PositionArray validator does NOT check ndim for the
   structured dtype).
 - Precondition (the compute_principal_indexes caller contract):
   the positions are collision-free (mover & opponent == 0); the
@@ -134,7 +132,7 @@ None.
 - `ModelWeights` is the only input; `model_weights_read_file`
   (model_weights.md) is the producer — the test modules compose the
   two.
-- In-pipeline consumer (D-148): the CLIENT_CHECK level (the 16th
+- In-pipeline consumer: the CLIENT_CHECK level (the 16th
   level, after SAVE) re-reads the saved model file and builds the
   ARRAY EF on it — it recomputes the validation residuals in Y
   space and compares them to the in-memory VALIDATE forward pass
@@ -144,8 +142,8 @@ None.
 - Y-space output: both EFs return game values directly (the z2y
   inverse), usable by the engine as evaluation functions; the
   vectorized form is the batch workhorse (analytics over large
-  position sets, the I-013 performance-study territory).
+  position sets, the performance-study territory).
 - Per-position cost: one `compute_indexes` call (the Numba kernels)
   + one f32 gather of `n_instances` values + one sum + sigmoid +
-  z2y. Measured (D-141, this machine): 5,117 b/s scalar vs
+  z2y. Measured (this machine): 5,117 b/s scalar vs
   5,640,701 b/s array (the 1M-board PERF print test).

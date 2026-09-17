@@ -1,9 +1,7 @@
 # reversi/test/test_usage_binio.py
 Linear, copy-pasteable USAGE examples for the binio public API —
-the tests double as documentation (D-051): 3 classes / 3 tests, no
-DB, no gate, no artifacts.
-> State: D-051 · 874e5c6 · 2026-08-29 · suite 3/0/0 (3 classes /
-  3 tests, no DB)
+the tests double as documentation: 3 classes / 3 tests, no DB,
+no gate, no artifacts.
 
 ## Coverage
 
@@ -32,7 +30,7 @@ DB, no gate, no artifacts.
   complete write → verify → read cycle in one `def`.
 - The working dir is `tempfile.mkdtemp(prefix="binio_usage_")` +
   `addCleanup(shutil.rmtree, ...)`: self-contained, nothing touches
-  the workspace (this suite intentionally does NOT use the D-085
+  the workspace (this suite intentionally does NOT use the
   TemporaryDirectory / CUSTOM_TMP_BASE idiom — usage examples stay
   standalone).
 - Run from the workspace root: `time PERF=0 python3 -m unittest
@@ -42,8 +40,6 @@ DB, no gate, no artifacts.
 ## Integration
 
 - Independent of the pipeline and the DB: pure verification of the
-  binio public API (the D-051 port of the original binio
-  module; the lz4 dependency, D-051).
-- Sibling suite: test_binio.py (the full binio test — 45 tests at
-  the D-051 close); this file is the usage / documentation layer
-  on top of it.
+  binio public API (the lz4 dependency).
+- Sibling suite: test_binio.py (the full binio test — 45 tests);
+  this file is the usage / documentation layer on top of it.

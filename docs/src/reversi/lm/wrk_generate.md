@@ -6,15 +6,14 @@ materialize the dense weight vector (`ctx.w_dense` +
 cache_manager consumer: the flat file
 `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
 `{prefix}{level:02}_{worker_name}.dat`); after OPTIMIZE's
-config-driven checkpoint name (D-096 M8), GENERATE is the last
+config-driven checkpoint name, GENERATE is the last
 cache level before the future VLD_POSITIONS (rlmwf_11).
-> State: D-098 · 9d2ae80 · 2026-09-02 · suite 3/0/0 (3 DB-gated)
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_generate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (D-098 T3, all worker factories now share the pattern) returning `Worker("GENERATE", _up, _down)` |
+| `wrk_generate()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all worker factories share the pattern) returning `Worker("GENERATE", _up, _down)` |
 
 ## Architecture
 
@@ -22,9 +21,7 @@ cache level before the future VLD_POSITIONS (rlmwf_11).
   (w_dense) for inference..." (L51) and runs the uniform
   7-kwargs `cache_manager_load_or_compute` (L53-61):
   `cache_path = ctx.get_cache_file_full_path_for_current_level()`
-  (L54 — the D-074 house name; the bring-in called the
-  nonexistent `..._for_next_level()`, the D-074 R1 trap
-  re-introduced, fixed in D-098 R1), `is_allowed = ctx.use_cache`,
+  (L54), `is_allowed = ctx.use_cache`,
   `load_fn = hlp_generate_load_from_file`,
   `store_fn = hlp_generate_store_to_file`, `validate_fn` = the
   is_cache_consistent closure, `compute_fn` = the compute_w_dense
@@ -37,20 +34,19 @@ cache level before the future VLD_POSITIONS (rlmwf_11).
   scope pinned by the worker test
   `test_down_clears_generate_attributes`.
 - `wrk_generate()` (L76-78): the factory,
-  `@validate_call`-decorated since D-098 T3.
+  `@validate_call`-decorated.
 
 ## Verified invariants
 
 Pinned by the `probes/verify_generate.py` B + E + F tiers + the
 3-test suite.
 
-- Worker source shape (probe B1-B3): the D-074
+- Worker source shape (probe B1-B3): the
   `_for_current_level` name (no `_for_next_level` anywhere), the
   factory decorator + pydantic import, no trailing ws.
 - The pre-declared blackboard fields (probe F1): `w_dense:
   Any = None` + `dense_w_checksum: str | None = None` in
-  LMContext (the D-094 fg pattern — the bring-in needed no
-  context change).
+  LMContext — no context change needed.
 - The live rlm_02 flow (probe E tier + the worker suite): the
   full pipeline to GENERATE writes `rlmwf_10_GENERATE.dat` +
   `.SHA3-256` (the sidecar verifies); `ctx.w_dense` is (6588,)
@@ -68,10 +64,10 @@ None.
 ## Conventions
 
 - The flat-file numbering takes rlmwf_10 (informational): the
-  next cache level (VLD_POSITIONS, if brought in) takes
+  next cache level (VLD_POSITIONS, if added) takes
   rlmwf_11 — unlike OPTIMIZE's config-named checkpoint.
 - The triple blank lines after the imports are the canonical
-  pattern of all worker files (house style, D-094 M4).
+  pattern of all worker files (house style).
 
 ## Integration
 
