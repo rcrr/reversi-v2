@@ -275,3 +275,47 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
                 print(f"Selected move: {move_as_str} (integer value: {move:d})")
 
                 raise
+
+    def test_choose_random_move_ec20_equidistributed(self):
+        # Two facts, over N random moves drawn for EACH of the six
+        # positions:
+        #
+        # (1) every drawn move is VALIDATED: a single legal move when
+        #     the position has options, or the pass (an empty move)
+        #     when it has none;
+        #
+        # (2) the frequencies accumulated over the AVAILABLE options
+        #     are REASONABLY FLAT — the choices are well spread and
+        #     equidistributed. For each option-bearing position the
+        #     per-option counts are checked with a chi-square over the
+        #     k options (df = k - 1), kept far below the 4-sigma
+        #     threshold (the expected chi-square is df, its spread
+        #     sqrt(2*df)).
+        N = 1000
+        for i, p in enumerate(self.positions):
+            lms = self.legal_moves_sets[i]
+            if lms == 0:
+                # No option: every draw must be the pass (an empty
+                # move). The condition is validated N times.
+                for _ in range(N):
+                    self.assertEqual(choose_random_move(p, self.prng),
+                                     Bitboard(0))
+                continue
+            # The available options: the positions of the legal move
+            # set's bits.
+            avail = [int(sq) for sq in bitboard_to_square_list(lms)]
+            freq = {o: 0 for o in avail}
+            for _ in range(N):
+                m = choose_random_move(p, self.prng)
+                # (1) the draw is validated: a single legal move.
+                self.assertEqual(int(bitboard_count(m)), 1)
+                self.assertTrue((m & lms) != 0)
+                freq[int(bitboard_bsr(m))] += 1
+            # (2) the per-option counts are reasonably flat.
+            k = len(avail)
+            expected = N / k
+            chi2 = sum((freq[o] - expected) ** 2 for o in avail) / expected
+            df = k - 1
+            self.assertLess(chi2, df + 4 * (2 * df) ** 0.5,
+                            f"position {i}: the per-option distribution "
+                            f"is not reasonably flat (chi2={chi2:.1f})")

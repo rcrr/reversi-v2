@@ -1720,3 +1720,20 @@ D-203 | 2026-09-15 | Filled the 3 MT19937 test-coverage gaps
         D-200/D-202 rule). Verification: test_prng 19/0/0 GREEN;
         touched modules 35/0/1 GREEN; full LONG 857/0/21 GREEN;
         1e6 G0 bit-exact (28065 dead lanes).
+D-204 | 2026-09-15 | The EC20 equidistribution test (Roberto
+        added the TestChooseRandomMoveEC20 VALIDITY test — six
+        20-empty-square positions, 13/0/0/9/0/13 legal options —
+        committed as his checkin; I added the EQUIDISTRIBUTION
+        test to the same class). test_choose_random_move_ec20_
+        equidistributed draws N = 1000 moves for EACH of the six
+        positions and asserts two facts: (1) every drawn move is
+        VALIDATED (a single legal move when the position has
+        options, or the pass when it has none); (2) the
+        frequencies accumulated over the AVAILABLE options are
+        REASONABLY FLAT (well spread, equidistributed) — a
+        chi-square over the k options (df = k - 1) kept below
+        the 4-sigma threshold. The observed chi2 (10.1 / 8.7 /
+        10.1 for the 13/9/13-option positions) sit near df
+        (12/8/12), far under the threshold — genuinely flat.
+        Verification: test_random_game 4/0/0 GREEN; full LONG
+        859/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
