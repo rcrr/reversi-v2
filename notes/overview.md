@@ -629,6 +629,20 @@ at the end of this file.
   out, one subagent/doc + a residual sweep). 0 history refs
   remain across docs/; all docs keep title + sections. Doc-
   only, no test impact.
+- D-206 (2026-09-15): the random move EXECUTION. New method
+  game_position_make_random_move(p, prng) -> (PositionField |
+  None, Move) in random_game (Roberto): asks choose_random_move
+  for the move, applies it via position_flips, returns the
+  resulting position + the move (the pass returns (None, PA));
+  the returned position is the position_flips output (the next
+  player's view, roles swapped). New test class
+  TestGamePositionMakeRandomMove (3 tests) on a 20-empty-square
+  fixture (ec = 20) with two legal moves (G1, G2; the legal-move
+  set 16448): N = 12 draws yield ONLY the two resulting boards
+  (both appear); every returned position is the position_flips
+  output for the drawn move; each is one stone ahead (44 -> 45
+  stones, 20 -> 19 empty). test_random_game 7/0/0; 862/0/21
+  LONG; 1e6 bit-exact (28065 dead lanes).
 
 ## Next steps
 

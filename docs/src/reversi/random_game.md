@@ -2,8 +2,10 @@
 The random game of Reversi, one building block at a time: the
 standard start (`initial_game_position`, the CANONICAL source of
 the standard start — hlp_wave.INITIAL_MOVER / INITIAL_OPP and
-hlp_random_play.initial_position are derived from it) and the
-random move pick (`choose_random_move`).
+hlp_random_play.initial_position are derived from it), the random
+move pick (`choose_random_move`), and the random move execution
+(`game_position_make_random_move` — pick a move, apply it, return
+the resulting position + the move).
 
 ## API
 - `initial_game_position() -> PositionField` — the standard
@@ -20,6 +22,16 @@ random move pick (`choose_random_move`).
   move: returns the empty bitboard 0 (the pick's (0, 64)
   sentinel — 64 = PA in the Move domain — is the caller's
   pass signal).
+- `game_position_make_random_move(p, prng) -> (PositionField |
+  None, Move)` — executes a random legal move: asks
+  choose_random_move for the move, applies it on p via board.
+  position_flips, and returns the resulting position together
+  with the move that was played (a Move: the square position, or
+  64 = PA). The returned position is the position_flips output
+  (the next player's view: the mover / opponent fields are
+  swapped with respect to the input). No legal move: the move is
+  PA and the returned position is None. @validate_call
+  (arbitrary_types_allowed).
 
 ## Architecture
 - Pure functions over board.py: no state of their own, no PRNG
@@ -43,6 +55,12 @@ random move pick (`choose_random_move`).
   test_random_game::TestChooseRandomMove::test_choose_random_
   move (the golden-pinned MT19937 stream makes it bit-stable;
   it also pins the one-draw-per-pick consumption).
+ - The random move execution: from a 20-empty-square position
+  with two legal moves (G1, G2), N = 12 draws (seed 93) yield
+  ONLY the two resulting boards (both appear), each returned
+  position is exactly the position_flips output for the drawn
+  move, and each is one stone ahead of the fixture — pinned by
+  test_random_game::TestGamePositionMakeRandomMove.
 
 ## Open issues
 None.

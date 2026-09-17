@@ -27,15 +27,18 @@
 from __future__ import annotations
 
 import numpy as np
+from typing import Tuple
 
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.prng import MT19937
-from reversi.board import (Bitboard, PositionField, make_position, position_legal_moves)
+from reversi.board import (Bitboard, Move, PositionField, bitboard_bsr,
+                           make_position, position_flips, position_legal_moves)
 
 
 
-__all__ = ['initial_game_position', 'choose_random_move']
+__all__ = ['initial_game_position', 'choose_random_move',
+           'game_position_make_random_move']
 
 
 
@@ -73,3 +76,21 @@ def choose_random_move(p: PositionField, prng: MT19937) -> Bitboard:
     moves: Bitboard = position_legal_moves(p)
     move, _ = prng.choose_one_from_set64(moves)
     return move
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[PositionField | None, Move]:
+    """
+    Executes a random legal move on the position.
+
+    Asks choose_random_move for the move to play, executes it on p via
+    position_flips, and returns the resulting position together with the
+    move that was played. The returned position is the one position_flips
+    produces (the next player's view: the mover / opponent fields are
+    swapped with respect to the input). When the position has no legal
+    move the move is the pass (PA) and the returned position is None.
+    """
+    move_bb: Bitboard = choose_random_move(p, prng)
+    _, new_p = position_flips(p, move_bb)
+    idx: int = bitboard_bsr(move_bb)
+    move: Move = Move(64) if idx == -1 else Move(idx)
+    return new_p, move

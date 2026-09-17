@@ -1761,3 +1761,31 @@ D-205 | 2026-09-15 | The doc de-history PASS on all the
         random_game / hlp_wave / test_random_game read clean
         and functional. Doc-only: no source touched, no test
         impact (the 859-test suite is unaffected).
+D-206 | 2026-09-15 | New method game_position_make_random_move
+        in random_game (Roberto): the random move EXECUTION.
+        game_position_make_random_move(p, prng) -> (PositionField
+        | None, Move) asks choose_random_move for the move to
+        play, executes it on p via board.position_flips, and
+        returns the resulting position together with the move
+        that was played (a Move: the square position, or 64 = PA;
+        the pass returns (None, PA)). The returned position is
+        the position_flips output — the next player's view, the
+        mover / opponent fields swapped with respect to the
+        input (the codebase convention, as position_make_move
+        and the wave). A NEW test class
+        TestGamePositionMakeRandomMove (3 tests) on a 20-empty-
+        square fixture (ec = 20) with exactly two legal moves
+        (G1 bit 6, G2 bit 14; the legal-move set is the bitboard
+        16448): the random generation is already covered by the
+        choose_random_move tests, so this verifies the RETURNED
+        POSITION: (1) N = 12 draws (seed 93) yield ONLY the two
+        resulting boards (both appear — 6 of each); (2) every
+        returned position is exactly the position_flips output
+        for the drawn move (position ↔ move consistent); (3)
+        each returned position is one stone ahead of the fixture
+        (44 -> 45 stones, 20 -> 19 empty). The two resulting
+        boards are the position_flips outputs (the next player's
+        view); Roberto's stated values are the same boards with
+        the mover / opponent roles un-swapped. Verification:
+        test_random_game 7/0/0 GREEN; full LONG 862/0/21 GREEN
+        (859 + 3); 1e6 G0 bit-exact (28065 dead lanes).

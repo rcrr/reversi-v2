@@ -52,9 +52,10 @@ from reversi.board import (Move, square_to_str, move_to_str,
                            bitboard_to_signed_int,
                            bitboard_to_string_list, bitboard_print,
                            bitboard_count, bitboard_bsr,
-                           make_position, position_print)
+                           make_position, position_flips, position_print)
 
-from reversi.random_game import (initial_game_position, choose_random_move)
+from reversi.random_game import (initial_game_position, choose_random_move,
+                                 game_position_make_random_move)
 
 
 
@@ -319,3 +320,90 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
             self.assertLess(chi2, df + 4 * (2 * df) ** 0.5,
                             f"position {i}: the per-option distribution "
                             f"is not reasonably flat (chi2={chi2:.1f})")
+
+
+class TestGamePositionMakeRandomMove(unittest.TestCase):
+    """
+    game_position_make_random_move: it asks choose_random_move for the move
+    to play, executes it on the position via position_flips, and returns the
+    resulting position together with the move that was played. The random
+    generation is covered by the choose_random_move tests; here the returned
+    position is checked for correctness and for consistency with the chosen
+    move.
+
+    The fixture is a 20-empty-square position (ec = 20) with exactly two
+    legal moves, G1 (bit 6) and G2 (bit 14) — the legal-move set is the
+    bitboard 16448; the two resulting boards (the position_flips outputs,
+    the next player's view) are the only possible outcomes.
+    """
+
+    def setUp(self):
+        PRNG_SEED = 93
+        self.prng = MT19937(PRNG_SEED)
+
+        # The fixture position (ec = 20).
+        self.position = make_position(
+            bitboard_from_signed_int(np.int64(4338364875232513536)),
+            bitboard_from_signed_int(np.int64(2260734154649662)))
+        # The two legal moves (single-bit bitboards) and, for each, the
+        # resulting board (the position_flips output).
+        self.legal_moves = {
+            "G1": bitboard_from_signed_int(np.int64(1) << np.int64(6)),
+            "G2": bitboard_from_signed_int(np.int64(1) << np.int64(14)),
+        }
+        self.expected_board = {}
+        for name, bb in self.legal_moves.items():
+            _, updated = position_flips(self.position, bb)
+            self.expected_board[name] = updated
+        # The legal-move set is exactly the two moves (the bitboard 16448).
+        self.assertEqual(int(bitboard_to_signed_int(
+            self.legal_moves["G1"] | self.legal_moves["G2"])), 16448)
+
+    @staticmethod
+    def _board_key(p):
+        # A comparable (mover, opponent) signed-int key for a position.
+        return (int(bitboard_to_signed_int(p['mover'])),
+                int(bitboard_to_signed_int(p['opponent'])))
+
+    def test_n_simulations_give_only_the_two_boards(self):
+        # N = 12 random moves from the fixture (seed 93): both legal moves
+        # — hence both resulting boards — come out, and ONLY these two
+        # boards.
+        N = 12
+        boards = []
+        moves = set()
+        for _ in range(N):
+            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            # The move is one of the two legal moves.
+            self.assertIn(int(mv), (6, 14))
+            moves.add(int(mv))
+            boards.append(new_p)
+        # Both moves appear (with N = 12, seed 93: 6 of each).
+        self.assertEqual(moves, {6, 14})
+        # Only the two resulting boards come out.
+        expected = {self._board_key(b) for b in self.expected_board.values()}
+        self.assertEqual({self._board_key(b) for b in boards}, expected)
+
+    def test_the_returned_position_is_consistent_with_the_move(self):
+        # For every drawn move, the returned position is exactly the board
+        # position_flips produces for that move on the fixture — the
+        # position and the move are consistent.
+        name_of = {6: "G1", 14: "G2"}
+        N = 12
+        for _ in range(N):
+            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            exp = self.expected_board[name_of[int(mv)]]
+            self.assertEqual(self._board_key(new_p), self._board_key(exp))
+
+    def test_the_returned_position_is_one_move_ahead(self):
+        # Each returned position is the fixture with exactly one more stone
+        # placed (the move square): the total stone count grows by one and
+        # the empty count drops from 20 to 19.
+        fixture_stones = int(bitboard_count(
+            self.position['mover'] | self.position['opponent']))
+        N = 12
+        for _ in range(N):
+            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            stones = new_p['mover'] | new_p['opponent']
+            self.assertEqual(int(bitboard_count(stones)), fixture_stones + 1)
+            self.assertEqual(int(bitboard_count(~stones)), 19)
