@@ -64,8 +64,10 @@ reaches the target, or a game-over position).
   by test_random_game::TestRandomGameMakeMove.
 - The random path: plays random moves until the empty count
   reaches the target (or a game-over position) — the final empty
-  count is <= the start and >= the target — pinned by
-  test_random_game::TestRandomGamePlayPath.
+  count is <= the start and >= the target, the double-pass
+  game-over break stops the loop with the input view returned (the
+  pass is PA = 64), and a moveless mover continues via the pass
+  swap — pinned by test_random_game::TestRandomGamePlayPath.
 
 ## Open issues
 None.

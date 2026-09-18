@@ -437,3 +437,33 @@ class TestRandomGamePlayPath(unittest.TestCase):
             self.assertEqual(ec, target_ec)
         set_of_hash = {position_hash(rp) for rp, _ in position_list}
         self.assertEqual(NG, len(set_of_hash), "Duplicate positions found!")
+
+    def test_random_game_play_path_double_pass_game_over(self):
+        # A game-over position (both players moveless, ec = 20 > the
+        # target): the double-pass break must stop the loop. The pass
+        # is PA = 64 since D-208 — the stale pre-D-208 sentinel
+        # (Move(66) = UN) never matched and the loop span forever
+        # (the D-218 fix). The two consecutive passes swap the view
+        # twice: the returned position is the input one, with its own
+        # empty count.
+        p = make_position(bitboard_from_signed_int(np.int64(0x00000FFFFFFFFFFF)),
+                          Bitboard(0))
+        self.assertEqual(int(position_empty_count(p)), 20)
+        self.assertEqual(int(position_legal_moves_count(p)), 0)
+        rp, ec = random_game_play_path(p, 10, self.prng)
+        self.assertEqual(int(ec), 20)
+        self.assertEqual(int(bitboard_to_signed_int(rp['mover'])),
+                         0x00000FFFFFFFFFFF)
+        self.assertEqual(int(bitboard_to_signed_int(rp['opponent'])), 0)
+
+    def test_random_game_play_path_single_pass_continues(self):
+        # The mover has no legal move, the opponent has nine: the
+        # pass swaps the view and the game continues with the
+        # opponent's random moves (the single-pass continuation) —
+        # the path terminates at the target ec (deterministic,
+        # seed 141).
+        p = make_position(bitboard_from_signed_int(np.int64(787631300868060734)),
+                          bitboard_from_signed_int(np.int64(-9223372036837537535)))
+        self.assertEqual(int(position_legal_moves_count(p)), 0)
+        rp, ec = random_game_play_path(p, 10, self.prng)
+        self.assertEqual(int(ec), 10)

@@ -1016,6 +1016,18 @@ D-216 | 2026-09-18 | The `test_random_game_play_path_multi_generation` stub comp
          counts are unchanged (the stub already ran as a vacuous pass): `test_random_game` 9/0/0, full LONG
          887/0/22 GREEN.
 
+D-218 | 2026-09-18 | The `random_game_play_path` double-pass fix (found reviewing the module for the dual-API
+         campaign; Roberto approved the standalone mini-commit): `PASS_MOVE = Move(66)` was the stale pre-D-208
+         sentinel (UN) — `random_game_make_move` returns the pass as PA = 64 since D-208, so the
+         `if move == PASS_MOVE` branches never fired and the double-pass game-over break was DEAD CODE: a random
+         path encountering a game-over position with `ec > target_ec` looped forever (the single-pass
+         continuation worked by accident — the loop re-entry plays the opponent's move; only the both-moveless
+         case hangs). Fix: `PASS_MOVE = Move(64)`. Tests: `test_random_game_play_path_double_pass_game_over`
+         (a both-moveless ec = 20 position, target 10: the loop terminates, the input view returns with its own
+         ec — pre-fix it hangs) + `test_random_game_play_path_single_pass_continues` (a moveless mover + a
+         9-move opponent: the pass swaps the view, the game continues to the target). `test_random_game`
+         11/0/0 (was 9/0/0), full LONG 889/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

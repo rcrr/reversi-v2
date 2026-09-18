@@ -96,7 +96,7 @@ def random_game_play_path(p: PositionField,
         than or equal to target_ec, the position is returned as the result
         along with its own number of empty cells.
     """
-    PASS_MOVE = Move(66)
+    PASS_MOVE = Move(64)
     ec = position_empty_count(p)
 
     while (ec > target_ec):
