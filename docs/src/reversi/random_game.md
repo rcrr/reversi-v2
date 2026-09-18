@@ -18,9 +18,8 @@ results computed on the ONE injected prng stream.
   the caller owns the stream (the "one seed for all" discipline).
   The stream contract: the array call is BIT-IDENTICAL to the
   sequential scalar processing of the same positions with the same
-  stream — one draw per non-empty legal set, no draw for a pass
-  (the needs are computed before any draw; one get_uint64_batch
-  call feeds the kernel). No legal move: the empty bitboard 0 (the
+  stream — one draw per non-empty legal set, no draw for a pass. No
+  legal move: the empty bitboard 0 (the
   pick's (0, 64) sentinel — 64 = PA in the Move domain — is the
   caller's pass signal).
 - `random_game_make_move(p, prng) -> (PositionField | PositionArray,
@@ -33,11 +32,9 @@ results computed on the ONE injected prng stream.
   swapped with respect to the input). No legal move: the move is
   PA and the returned position is the swapped position (the
   players inverted) — never None. Dual scalar/array (D-220): the
-  array path COMPOSES the verified dual functions — the D-219
-  batch pick (the stream contract inherited verbatim) + the D-140
-  position_flips — and the move codes come from popcount(move - 1)
-  (the bit index; the wrap-around of an empty move gives 64 = PA).
-  @validate_call (arbitrary_types_allowed).
+  per-element semantics is the scalar one (a zero move swaps the
+  players, a legal move flips); the choose_move stream contract is
+  inherited. @validate_call (arbitrary_types_allowed).
 - `random_game_play_path(p, target_ec, prng) -> (PositionField |
   PositionArray, np.uint8 | uint8 array)` — plays a sequence of
   random legal moves (via random_game_make_move) until the empty
@@ -45,13 +42,12 @@ results computed on the ONE injected prng stream.
   consecutive passes break the loop). Returns the final position +
   its empty count (an ordinal np.uint8 — D-217). If the starting
   position is already at or below target_ec, it is returned as-is.
-  Dual scalar/array (D-222): the array case is the STEP ENGINE —
-  at every step the ACTIVE lanes draw once, in element order (the
-  hlp_wave step-interleaved stream discipline: one draw per
-  non-terminal lane — the mover plays, or the mover passes and the
-  opponent plays; the game-over lanes consume no draw). The N == 1
-  array call is BIT-IDENTICAL to the scalar call. The target is
-  ONE shared value for the batch. @validate_call
+  Dual scalar/array (D-222): the array stream contract is the
+  step-interleaved discipline of hlp_wave — one draw per active
+  lane per step, in element order (the mover plays, or the mover
+  passes and the opponent plays); the game-over lanes consume no
+  draw. The N == 1 array call is BIT-IDENTICAL to the scalar call.
+  The target is ONE shared value for the batch. @validate_call
   (arbitrary_types_allowed).
 
 ## Architecture

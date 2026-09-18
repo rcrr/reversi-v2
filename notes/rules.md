@@ -204,6 +204,10 @@ theme, with its origin D-number.
 - The "Open issues" section: OPEN R/M/T items with pointers
   only; if none, one line, `None.`; closed items never appear.
   (docs_rules.md §4, D-114)
+- Docstrings explain WHAT (the observable contract: the semantics,
+  the shapes, the stream/consumption promises), never HOW — the
+  mechanism lives in the mirror doc's Architecture section and in
+  the code comments. (D-224)
 
 ## Journal
 

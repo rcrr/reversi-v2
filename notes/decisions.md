@@ -1100,6 +1100,14 @@ D-223 | 2026-09-18 | The play_path engine readability refactor (Roberto: "it is 
          change: the whole suite passes untouched (the single-lane scalar bridge, the determinism, the ec
          contract). `test_random_game` 32/0/0, full LONG 913/0/22 GREEN.
 
+D-224 | 2026-09-18 | The docstring discipline (Roberto, on the random_game dual-campaign docstrings): a docstring
+         explains WHAT — the observable contract (the semantics, the shapes, the stream/consumption promises) —
+         never HOW (the mechanism: the needs computation, the batch feeding, the composition, the encoding
+         formulas, the internal unit names). The mechanism lives in the mirror doc's Architecture section and in
+         the code comments. The three random_game public docstrings + the two engine helpers cleaned (the
+         mechanism sentences dropped, the contracts kept); the mirror API lines aligned. PROMOTED to rules.md
+         (the Docs section).
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

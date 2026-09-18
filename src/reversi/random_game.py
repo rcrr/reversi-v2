@@ -63,10 +63,7 @@ def random_game_choose_move(p: PositionField | PositionArray,
     loop — one draw per element with a non-empty legal-move set, no
     draw for a pass (an empty set). The array call is bit-identical
     to the sequential scalar processing of the same positions with
-    the same stream (the needs are computed before any draw; one
-    get_uint64_batch call feeds the prng batch pick
-    pick_one_from_set64_batch — the single source of the pick
-    technique, D-221).
+    the same stream.
     """
     if isinstance(p, np.ndarray):
         # D-219: the standard 1-D guard (house pattern, as position_flips)
@@ -102,15 +99,11 @@ def random_game_make_move(p: PositionField | PositionArray,
     PositionField gives the (PositionField, Move) pair; a 1-D
     PositionArray gives the (PositionArray, MoveArray) pair of the same
     length (the 2-D (N, 2) uint64 input is coerced by the PositionArray
-    validator). The PRNG stream contract of random_game_choose_move is
-    inherited verbatim: the array call is bit-identical to the
-    sequential scalar processing of the same positions with the same
-    stream (one draw per non-empty legal set, no draw for a pass).
-    The array path composes the verified dual functions — the D-219
-    batch pick + the D-140 position_flips (a zero element swaps the
-    players, a legal element flips) — and the move codes come from
-    popcount(move - 1): the bit index of a single-bit move, and the
-    wrap-around of an empty move gives 64 = PA.
+    validator) — the per-element semantics is the scalar one (a zero
+    move swaps the players, a legal move flips). The PRNG stream
+    contract of random_game_choose_move is inherited: the array call
+    is bit-identical to the sequential scalar processing of the same
+    positions with the same stream.
     """
     if isinstance(p, np.ndarray):
         # D-220: the standard 1-D guard (house pattern, as position_flips)
@@ -179,10 +172,7 @@ def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
         scalar swaps restore the input view).
 
     Every non-terminal lane consumes EXACTLY ONE draw, in element
-    order: one get_uint64_batch call pre-draws for the needing lanes
-    (the prefix slot map) and the prng batch kernel
-    pick_one_from_set64_batch does the picks (the single source of
-    the pick technique, D-221).
+    order (the step-interleaved stream discipline).
     """
     lms_mover = position_legal_moves(cur)
     lms_opponent = position_legal_moves(make_position(cur['opponent'],
@@ -215,14 +205,12 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     """
     The array play-path engine (D-222): the STEP loop over the batch.
 
-    The stream contract is the STEP-INTERLEAVED discipline of hlp_wave
-    (NOT the scalar sequence — the paths are multi-draw, so a lane-
-    sequential consumption would forbid the vectorization): at every
-    step the ACTIVE lanes draw once, in element order. Two facts pin
-    the contract down: the call is DETERMINISTIC given the seed, and
-    with N == 1 the step-interleaved stream IS the lane's sequential
-    stream, so the single-lane array call is bit-identical to the
-    scalar call.
+    The stream contract is the STEP-INTERLEAVED discipline of
+    hlp_wave: at every step the ACTIVE lanes draw once, in element
+    order. Two facts pin the contract down: the call is DETERMINISTIC
+    given the seed, and with N == 1 the step-interleaved stream IS
+    the lane's sequential stream, so the single-lane array call is
+    bit-identical to the scalar call.
 
     The termination is mathematical: every non-terminal step
     decreases a lane's ec by exactly one and the game-over step ends
@@ -269,17 +257,13 @@ def random_game_play_path(p: PositionField | PositionArray,
     PositionArray gives the (PositionArray, uint8-array) pair of the
     same length (the 2-D (N, 2) uint64 input is coerced by the
     PositionArray validator). The PRNG stream contract of the array
-    case is the STEP-INTERLEAVED discipline of the hlp_wave engine
-    (NOT the scalar sequence — the paths are multi-draw, so a lane-
-    sequential consumption would forbid the vectorization): at every
-    step the ACTIVE lanes draw once, in element order — exactly one
-    draw per non-terminal lane, no draw for the game-over lanes. Two
-    facts pin the contract down: the call is DETERMINISTIC given the
-    seed, and with N == 1 the array call is BIT-IDENTICAL to the
-    scalar call. The target is ONE shared value for the whole batch.
-    The engine lives in _play_path_engine (the step loop) +
-    _play_path_step (the lane classification and the advance) +
-    _apply_picked_moves (the masked position_flips).
+    case is the STEP-INTERLEAVED discipline of the hlp_wave engine:
+    at every step the ACTIVE lanes draw once, in element order —
+    exactly one draw per non-terminal lane, no draw for the
+    game-over lanes. Two facts pin the contract down: the call is
+    DETERMINISTIC given the seed, and with N == 1 the array call is
+    BIT-IDENTICAL to the scalar call. The target is ONE shared value
+    for the whole batch.
     """
     if isinstance(p, np.ndarray):
         # D-222: the standard 1-D guard (house pattern, as position_flips)
