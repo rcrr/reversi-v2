@@ -54,11 +54,9 @@ results computed on the ONE injected prng stream.
   (0, 64) sentinel — 64 = PA in the Move domain).
 - The dual array path (D-219): the legal sets are computed before
   any draw (they are draw-independent), one get_uint64_batch call
-  pre-draws for the non-empty elements, and the `prange` kernel
-  (`_vectorized_choose_move`) folds each draw into its element
-  through `_pick_one_from_set64` — the numba transcription of the
-  prng pick math (the SWAR popcount, the r = (d >> 11) · 2⁻⁵³
-  scalarization, the c-th set bit).
+  pre-draws for the non-empty elements, and the prng batch kernel
+  (pick_one_from_set64_batch — the single source of the pick
+  technique, D-221) folds each draw into its element.
 - The dual array make_move (D-220): a pure COMPOSITION of the
   verified dual functions — the D-219 batch pick (the stream
   contract inherited) + the D-140 position_flips — plus one numpy

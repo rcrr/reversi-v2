@@ -1052,6 +1052,24 @@ D-220 | 2026-09-18 | The `random_game_make_move` dual scalar/array (the campaign
          flips, the initial-position code in {D3, C4, F5, E6}, the 2-D coercion, the 1-D guard, the empty array,
          the rejections). `test_random_game` 24/0/0 (was 17/0/0), full LONG 902/0/22 GREEN.
 
+D-221 | 2026-09-18 | The pick-from-set single-source refactor (Roberto: "the PRNG logic and techniques must not be
+         duplicated for the convenience of a numba kernel"): the pick technique moves ONCE into `prng.py` —
+         `pick_one_from_set64(s, d)` (the scalar numba kernel: k = popcount, r = (d >> 11) * 2^-53 — the
+         `get_double_in_c0_o1` scalarization — c = floor(r*k), the c-th set bit; returns (1 << p, p)) +
+         `pick_one_from_set64_batch(sets, draws, slots)` (the vectorized form over an (N,) set array, fed by one
+         `get_uint64_batch` pre-draw; the slots prefix map the caller computes). `choose_one_from_set64` and
+         `extract_from_set64` now DRAW one `get_uint64` value and DELEGATE to the kernel (the single source; the
+         numba scalar-return re-wrap restores the numpy dtypes at the Python boundary). `random_game` drops its
+         transcribed kernels (`_pick_one_from_set64`, `_vectorized_choose_move`) — it is pure orchestration again
+         (the legal sets + the needs/slot bookkeeping + the prng batch pick). THE LESSON, recorded honestly: the
+         duplication had ALREADY produced a latent divergence — the D-219 kernel used the c0_c1 scalarization
+         constant (1/(2^53 - 1)) instead of c0_o1's (1/2^53); the D-219 equivalence tests passed only because
+         those draws did not straddle a floor boundary. The refactor makes that divergence class impossible. The
+         behaviour is unchanged (the goldens hold: the 1000-pick frequencies, the 7-set golden, the extract
+         golden). Tests: `TestPickOneFromSet64` (3: the kernel-method identity draw-for-draw over 7 sets x 100
+         draws, the batch equivalence + the stream alignment, the all-empty no-draw case). `test_prng` 22/0/0
+         (was 19/0/0), full LONG 905/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

@@ -40,7 +40,7 @@ type itself applies the unsigned-wraparound contract (arithmetic
 overflows modulo 2^64; no unbounded Python ints, no manual masking).
 Loop counters are plain ints (control flow, not data).
 
-API (the MT19937 class, the sole public interface):
+API (the MT19937 class, the sole STREAM interface):
   MT19937(seed)                      construct + seed the state.
   get_uint64()                       the next 64-bit value.
   get_uint64_batch(n)                the next n values, a (n,) u64 array.
@@ -53,6 +53,12 @@ API (the MT19937 class, the sole public interface):
   extract_from_set64(set_arr)        pick + remove a random bit (in place).
   choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
 
+The pick-from-set technique (D-221) lives ONCE in this module, shared
+by the class methods and the numba contexts: pick_one_from_set64 (the
+scalar kernel — the methods draw one value and delegate to it) and
+pick_one_from_set64_batch (the vectorized form over an (N,) array of
+sets, fed by one get_uint64_batch pre-draw).
+
 The state (_mt / _mti) is INTERNAL: it is never exposed, and a
 generator is neither saved nor re-seeded.
 """
@@ -64,7 +70,7 @@ import math
 import numpy as np
 import numba as nb
 
-__all__ = ['MT19937']
+__all__ = ['MT19937', 'pick_one_from_set64', 'pick_one_from_set64_batch']
 
 # The working-area size: 312 words (64-bit each) — the MT-19937
 # state. NN is the only constant at module level (the ctor's
@@ -256,48 +262,41 @@ class MT19937:
         bitmask, updated IN PLACE (note: the picked bit is cleared
         from the ORIGINAL set, so the skipped-lowest bits survive).
 
-        How it works: k = the popcount of the set; one
-        get_double_in_c0_o1 draw picks the c-th set bit by clearing
-        the lowest set bit c times ((s - 1) & s); the position is the
-        index of the now-lowest set bit ((s & -s).bit_length() - 1).
+        How it works: one get_uint64 draw; the pick delegated to the
+        numba kernel pick_one_from_set64 (the single source of the
+        pick technique — D-221); the picked bit is then cleared from
+        the ORIGINAL set.
         """
         if set_arr.dtype != np.uint64:
             raise ValueError("extract_from_set64: the set must be uint64")
         s = set_arr[0]
-        k = int(s).bit_count()
-        if k == 0:
+        if s == np.uint64(0):
             raise ValueError("the set must not be empty")
-        r = self.get_double_in_c0_o1()
-        c = int(math.floor(float(r) * k))
-        for _ in range(c):
-            s = (s - 1) & s  # clear the lowest set bit
-        low = int(s) & -int(s)
-        p = low.bit_length() - 1
+        _bb, p = pick_one_from_set64(np.uint64(s), self.get_uint64())
         # Clear the picked bit from the ORIGINAL set (the numpy ~
         # wraps at 64 bits).
-        set_arr[0] = set_arr[0] & ~(np.uint64(1) << p)
+        set_arr[0] = set_arr[0] & ~(np.uint64(1) << np.uint64(p))
         return np.uint8(p)
 
     def choose_one_from_set64(self, set64: np.uint64) -> (np.uint64, np.uint8):
         """
         Picks a random bit from the 64-bit set WITHOUT removing it
         (unlike extract_from_set64, the set is read, never mutated):
-        k = the popcount, one get_double_in_c0_o1 draw, the c-th set
-        bit (skipping the c lowest) is picked. Returns (1 << p, p).
-        The empty set returns the (0, 64) sentinel (64 = no bit)
-        WITHOUT consuming a draw.
+        one get_uint64 draw, the pick delegated to the numba kernel
+        pick_one_from_set64 (the single source of the pick technique
+        — D-221). k = the popcount, the c-th set bit (skipping the c
+        lowest) is picked. Returns (1 << p, p). The empty set
+        returns the (0, 64) sentinel (64 = no bit) WITHOUT consuming
+        a draw.
         """
-        s = set64
-        k = int(s).bit_count()
-        if k == 0:
+        s = np.uint64(set64)
+        if s == np.uint64(0):
             return np.uint64(0x0000000000000000), np.uint8(64)
-        r = self.get_double_in_c0_o1()
-        c = int(math.floor(float(r) * k))
-        for _ in range(c):
-            s = (s - 1) & s
-        low = int(s) & -int(s)
-        p = low.bit_length() - 1
-        return np.uint64(1) << p, np.uint8(p)
+        # The numba scalar-return idiom: the kernel values come back
+        # as Python ints at the Python boundary — re-wrap to the
+        # numpy dtypes (the method's historical contract).
+        bb, p = pick_one_from_set64(s, self.get_uint64())
+        return np.uint64(bb), np.uint8(p)
 
 
 # ---------------------------------------------------------------------
@@ -347,3 +346,67 @@ def _get_uint64_batch(mt, mti, n):
         x = x ^ (x >> 43)
         out[j] = x
     return out, mti
+
+
+# ---------------------------------------------------------------------
+# The pick-from-set technique (D-221): the SINGLE SOURCE shared by
+# MT19937.choose_one_from_set64 / extract_from_set64 (they draw one
+# value and delegate) and by the numba batch callers (e.g.
+# random_game_choose_move). pick_one_from_set64 is the scalar kernel:
+# the pick from a NON-ZERO set given the pre-drawn value.
+# pick_one_from_set64_batch is its vectorized form over an (N,) array
+# of sets.
+# ---------------------------------------------------------------------
+
+
+@nb.njit(cache=True)
+def pick_one_from_set64(s, d):
+    """
+    The uniform pick of one bit from the NON-ZERO 64-bit set s,
+    given the pre-drawn uint64 value d: k = popcount(s),
+    r = (d >> 11) * (1 / 2**53) — the get_double_in_c0_o1
+    scalarization — c = floor(r * k), the c-th set bit of s
+    (skipping the c lowest). Returns (1 << p, p).
+    """
+    v = s - ((s >> np.uint64(1)) & np.uint64(0x5555555555555555))
+    v = (v & np.uint64(0x3333333333333333)) + ((v >> np.uint64(2)) & np.uint64(0x3333333333333333))
+    v = (v + (v >> np.uint64(4))) & np.uint64(0x0F0F0F0F0F0F0F0F)
+    k = (v * np.uint64(0x0101010101010101)) >> np.uint64(56)
+    r = np.float64(d >> np.uint64(11)) * (1.0 / 9007199254740992.0)
+    c = int(math.floor(r * np.float64(k)))
+    t = s
+    for _ in range(c):
+        t = (t - np.uint64(1)) & t
+    low = t & (np.uint64(0) - t)
+    p = 0
+    u = low
+    while (u & np.uint64(1)) == np.uint64(0):
+        u = u >> np.uint64(1)
+        p += 1
+    return low, np.uint8(p)
+
+
+@nb.njit(parallel=True, cache=True)
+def pick_one_from_set64_batch(sets, draws, slots):
+    """
+    The vectorized pick_one_from_set64 over an (N,) uint64 array of
+    sets (D-221): element i with a non-empty set picks from sets[i]
+    using draws[slots[i]] (slots[i] = the number of NON-EMPTY sets
+    before i — the prefix count the caller computes, e.g. the cumsum
+    of sets != 0); draws is the (k,) uint64 array of the pre-drawn
+    values, one per non-empty set in element order. An empty set
+    yields 0 (the caller's pass signal) and consumes no draw. The
+    whole call is the bit-identical counterpart of calling
+    MT19937.choose_one_from_set64 on the elements in order with the
+    same stream.
+    """
+    n = sets.shape[0]
+    out = np.empty(n, dtype=np.uint64)
+    for i in nb.prange(n):
+        s = sets[i]
+        if s == np.uint64(0):
+            out[i] = np.uint64(0)
+        else:
+            bb, _p = pick_one_from_set64(s, draws[slots[i]])
+            out[i] = bb
+    return out

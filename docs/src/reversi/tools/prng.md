@@ -10,9 +10,10 @@ words) and then TEMPERS the output word with a 4-operation bitwise
 mix. The period is 2^19937 - 1, so a single seed defines the whole
 stream.
 
-The module exposes ONE public class, MT19937 (`__all__ =
-['MT19937']`). The state is fully INTERNAL: it is never exposed,
-and a generator is neither saved nor re-seeded.
+The module exposes ONE public class, MT19937, plus the two numba
+pick kernels (`__all__ = ['MT19937', 'pick_one_from_set64',
+'pick_one_from_set64_batch']`). The STREAM state is fully INTERNAL:
+it is never exposed, and a generator is neither saved nor re-seeded.
 
 Typing: every 64-bit value in the data path is a numpy uint64 —
 the type itself applies the unsigned-wraparound contract
@@ -38,8 +39,24 @@ data).
   0-based position.
 - choose_one_from_set64(set64) -> (np.uint64, np.uint8) — pick a
   random bit WITHOUT removing it (the set is read, never mutated);
-  returns (1 << p, p). The empty set returns the (0, 64) sentinel
-  WITHOUT consuming a draw.
+  returns (1 << p, p). One get_uint64 draw, the pick delegated to
+  the numba kernel pick_one_from_set64 (the single source of the
+  technique). The empty set returns the (0, 64) sentinel WITHOUT
+  consuming a draw.
+- pick_one_from_set64(s, d) -> (np.uint64, np.uint8) — the numba
+  kernel (D-221): the uniform pick of one bit from the NON-ZERO set
+  s given the PRE-DRAWN value d (k = popcount, r = (d >> 11) ·
+  2⁻⁵³ — the c0_o1 scalarization — c = floor(r·k), the c-th set
+  bit). The single source shared by choose_one_from_set64 /
+  extract_from_set64 (they draw and delegate) and by the numba
+  batch callers.
+- pick_one_from_set64_batch(sets, draws, slots) -> (N,) u64 array —
+  the vectorized form (D-221): element i with a non-empty set picks
+  from sets[i] using draws[slots[i]] (slots[i] = the number of
+  non-empty sets before i, the caller's prefix count); an empty set
+  yields 0 and consumes no draw. Bit-identical to calling
+  choose_one_from_set64 on the elements in order with the same
+  stream.
 
 ## How it works
 - The seed: the 312-word array is filled by a linear recurrence
@@ -56,9 +73,11 @@ data).
 - The constants: NN = 312 is module-level (the working-area size);
   the twist + temper constants MM / UM / LM / MAG are local to the
   kernel (its implementation details).
-- The bit helpers used by extract_from_set64 are inlined: the
-  popcount, (s - 1) & s (clear the lowest set bit), and
-  (s & -s).bit_length() - 1 (the index of the lowest set bit).
+- The pick-from-set technique (D-221) lives ONCE: the numba kernel
+  pick_one_from_set64 is the single source — choose_one_from_set64
+  and extract_from_set64 draw one value and delegate to it; the
+  batch form (pick_one_from_set64_batch) is the same math over an
+  (N,) set array fed by one get_uint64_batch pre-draw.
 
 ## Invariants
 - get_uint64_batch is bit-identical to get_uint64 called n times
@@ -70,14 +89,22 @@ data).
   (the skipped-lowest bits survive); the empty set raises.
 - choose_one_from_set64 NEVER mutates the set (no removal) and
   consumes exactly one draw per non-empty pick.
+- The pick kernels and the class methods agree draw-for-draw (the
+  identity pin: the same stream, the same (bitboard, index)) —
+  test_prng::TestPickOneFromSet64::test_scalar_kernel_matches_the_method;
+  the batch kernel is bit-identical to the sequential method loop
+  (the stream-alignment probe, the all-empty no-draw case) —
+  test_prng::TestPickOneFromSet64::test_batch_kernel_matches_the_method
+  / test_batch_all_empty_sets.
 
 ## Integration
 - Dependencies: numpy + math + numba (the kernel).
 - lm/hlp_wave.py (the G0 wave engine) drives the wave through the
   class's get_uint64_batch; this module is the single source of the
   draw stream.
-- random_game.py uses choose_one_from_set64 for the random move
-  pick; the seeded random-game corpus generation (feature
-  analysis) rides on the class.
+- random_game.py uses choose_one_from_set64 for the scalar random
+  move pick and pick_one_from_set64_batch for the array one (the
+  D-219 stream contract); the seeded random-game corpus generation
+  (feature analysis) rides on the class.
 - A TOOLS module (tools/ subpackage): a generic MT library, not a
   pipeline level.
