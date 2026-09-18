@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -59,7 +59,7 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_trans_fs', 'bitboard_anti_trans_fs',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionField', 'PositionArray',
-           'position_collisions', 'position_check_collisions',
+           'position_collisions', 'position_check_collisions', 'position_empty_count',
            'make_position', 'position_eq', 'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
            'position_flips', 'position_make_move', 'position_count_difference',
@@ -146,7 +146,7 @@ PositionArray = Annotated[npt.NDArray[any], BeforeValidator(validate_position_ar
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def make_position(mover: Union[Bitboard, np.ndarray, List], 
+def make_position(mover: Union[Bitboard, np.ndarray, List],
                   opponent: Union[Bitboard, np.ndarray, List]
                   ) -> Union[np.void, np.ndarray]:
     """
@@ -161,33 +161,33 @@ def make_position(mover: Union[Bitboard, np.ndarray, List],
         # Convert to arrays to safely inspect shapes and sizes
         m_arr = np.asarray(mover, dtype=Bitboard)
         o_arr = np.asarray(opponent, dtype=Bitboard)
-        
+
         # Enforce identical shape check across all dimensions
         if m_arr.shape != o_arr.shape:
             raise ValueError(
                 f"Shape mismatch: 'mover' has shape {m_arr.shape}, "
                 f"but 'opponent' has shape {o_arr.shape}."
             )
-            
+
         # Capture the original structural shape (works for 1D, 2D, or higher)
         original_shape = m_arr.shape
-        
+
         # Build the shape for the continuous memory block: append an axis of size 2 at the end
         # e.g., if original is (M, N), data_shape becomes (M, N, 2)
         data_shape = original_shape + (2,)
-        
+
         # Allocate a contiguous C-memory block
         data = np.empty(data_shape, dtype=Bitboard)
-        
+
         # Interleave the fields along the newly added trailing axis
         # Using ellipsis (...) dynamically handles any number of dimensions (1D, 2D, etc.)
         data[..., 0] = m_arr
         data[..., 1] = o_arr
-        
+
         # Interpret the memory block as a structured array (Zero-Copy View)
         # The trailing dimension of size 2 collapses into the custom Position dtype
         return data.view(Position).reshape(original_shape)
-        
+
     # SCALAR CASE
     return np.void((mover, opponent), dtype=Position)
 
@@ -284,22 +284,22 @@ def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | 
     For array input the result is a zero-copy view: it shares the input's
     data buffer (mutations on either side are visible on the other).
     """
-    
+
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(i, np.ndarray)
     i_arr = np.atleast_1d(i)
-    
+
     # Check layout constraints (Pydantic validates types, but we handle dimensions)
     if i_arr.ndim != 1:
         raise ValueError(f"When the argument i is an array, it must be 1D, got shape {i_arr.shape}")
-    
+
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return i.view(Bitboard)[()]
-    
+
     if i.dtype != np.int64:
         raise ValueError(f"Array dtype must be int64, got {i.dtype}")
-        
+
     return i.view(Bitboard)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -309,22 +309,22 @@ def bitboard_to_signed_int(bb: Bitboard | BitboardArray) -> np.int64 | npt.NDArr
     It is useful to store and retrieve the value from PostgreSQL databases.
     Works on scalar and 1D array inputs.
     """
-    
+
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
     bb_arr = np.atleast_1d(bb)
-    
+
     # Check layout constraints (Pydantic validates types, but we handle dimensions)
     if bb_arr.ndim != 1:
         raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
-    
+
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return bb.view(np.int64)[()]
-    
+
     if bb_arr.dtype != np.uint64:
         raise ValueError(f"Array dtype must be uint64, got {bb.dtype}")
-        
+
     return bb.view(np.int64)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -336,11 +336,11 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
     Note that the argument string is not prefixed with '0x'.
     Works on scalar and 1D array inputs.
     """
-    
+
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(h, np.ndarray)
     h_arr = np.atleast_1d(h)
-    
+
     # Check layout constraints (Pydantic validates types, but we handle dimensions)
     if h_arr.ndim != 1:
         raise ValueError(f"When the argument h is an array, it must be 1D, got shape {h_arr.shape}")
@@ -365,9 +365,9 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
 
     # 3. Apply the vectorized parser and cast the resulting object array to pure uint64
     result_array: BitboardArray = vectorized_hex_parser(h_arr).astype(np.uint64)
-    
+
     return result_array
-    
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_bsr(bb: Bitboard) -> int:
     """
@@ -379,9 +379,11 @@ def bitboard_bsr(bb: Bitboard) -> int:
     return n.bit_length() - 1
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def bitboard_count(bb: Bitboard) -> np.uint8:
+def bitboard_count(bb: Bitboard | BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]:
     """
     Returns the number of squares in the set.
+    Works on scalar and 1D array inputs; the output keeps the input
+    shape (a scalar uint8 or an array of uint8).
     """
     bit_count = np.bitwise_count(bb)
     return bit_count
@@ -409,7 +411,7 @@ def bitboard_print(bb: Bitboard, output: Union[IO, io.StringIO] = sys.stdout) ->
 def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
     Applies the eight D8 transformations on the input bitboards.
-    
+
      - 0 -> 0 : ro000
      - 0 -> 1 : ro090
      - 0 -> 2 : ro180
@@ -435,12 +437,12 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return ts.flatten().view(Bitboard)
-        
+
     return ts.view(Bitboard)
 
 @nb.njit(parallel=True, cache=True)
 def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
-    
+
     # Allocate memory for output transformations matrix
     n = bb_arr.shape[0]
     ts = np.empty((n, 8), dtype=Bitboard)
@@ -458,14 +460,14 @@ def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:
         ts[i, 5] = _numba_fh1a8_scalar_impl(value)
         ts[i, 6] = fh
         ts[i, 7] = _numba_fa1h8_scalar_impl(value)
-        
+
     return ts
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     """
     Applies the eight D8 anti-transformations on the input bitboards.
-    
+
      - 0 -> 0 : ro000
      - 0 -> 1 : ro270
      - 0 -> 2 : ro180
@@ -477,7 +479,7 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
 
     When input is a scalar Bitboard output is an array of Bitboards having shape (8,).
     When input is an array of Bitboards of length N, the output has shape (N, 8).
-    
+
     Applies the anti-transformations by reversing index 1 and 3 of bitboard_transformations.
     Operates in-place on the generated matrix for maximum efficiency.
     """
@@ -494,12 +496,12 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return ts.flatten().view(Bitboard)
-        
+
     return ts.view(Bitboard)
 
 @nb.njit(parallel=True, cache=True)
 def _numba_bitboard_anti_transformations(bb_arr: BitboardArray) -> BitboardArray:
-    
+
     # Allocate memory for output transformations matrix
     n = bb_arr.shape[0]
     ts = np.empty((n, 8), dtype=Bitboard)
@@ -517,7 +519,7 @@ def _numba_bitboard_anti_transformations(bb_arr: BitboardArray) -> BitboardArray
         ts[i, 5] = _numba_fh1a8_scalar_impl(value)
         ts[i, 6] = fh
         ts[i, 7] = _numba_fa1h8_scalar_impl(value)
-        
+
     return ts
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -556,7 +558,7 @@ def _numba_ol_bitboard_fa1h8(bb):
 def _numba_fa1h8_scalar_impl(s):
     k1 = Bitboard(0x5500550055005500)
     k2 = Bitboard(0x3333000033330000)
-    k4 = Bitboard(0x0f0f0f0f00000000)    
+    k4 = Bitboard(0x0f0f0f0f00000000)
     t =      k4 & (s ^ (s << 28))
     s = s ^       (t ^ (t >> 28))
     t =      k2 & (s ^ (s << 14))
@@ -578,7 +580,7 @@ def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects a bitboard, or an array of bitboards, on the diagonal h1-a8.
     Square a1 is mapped to h8 and vice versa.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -591,7 +593,7 @@ def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    . . . 1 . . . 1
     . 7  . 1 . . 1 . . .    1 1 1 1 1 1 1 1
     . 8  . 1 . . . 1 . .    . . . . . . . .
-    
+
     """
     if isinstance(bb, np.ndarray):
         return _numba_fh1a8_array_impl(bb)
@@ -606,7 +608,7 @@ def _numba_ol_bitboard_fh1a8(bb):
         return lambda bb: _numba_fh1a8_scalar_impl(bb)
 
 @nb.njit(inline='always')
-def _numba_fh1a8_scalar_impl(s):    
+def _numba_fh1a8_scalar_impl(s):
     k1 = Bitboard(0xaa00aa00aa00aa00)
     k2 = Bitboard(0xcccc0000cccc0000)
     k4 = Bitboard(0xf0f0f0f00f0f0f0f)
@@ -631,7 +633,7 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects the bitboard, or the array of bitboards, horizontally (on the horizontal axis).
     Row 1 is mapped to row 8 and vice versa.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -691,7 +693,7 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects the bitboard, or the array of bitboards, vertically (on the vertical axis).
     Column a is mapped to column h and vice versa.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -704,7 +706,7 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    . . . . 1 . 1 .
     . 7  . 1 . . 1 . . .    . . . 1 . . 1 .
     . 8  . 1 . . . 1 . .    . . 1 . . . 1 .
-    
+
     """
     if isinstance(bb, np.ndarray):
         return _numba_fvert_array_impl(bb)
@@ -748,7 +750,7 @@ def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     functions, the result is a fresh copy of the input (no aliasing),
     so the identity contract is the same at the bitboard and the
     position layers (position_ro000).
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -761,7 +763,7 @@ def bitboard_ro000(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    . 1 . 1 . . . .
     . 7  . 1 . . 1 . . .    . 1 . . 1 . . .
     . 8  . 1 . . . 1 . .    . 1 . . . 1 . .
-    
+
     """
     if isinstance(bb, np.ndarray):
         return bb.copy()
@@ -772,7 +774,7 @@ def bitboard_ro090(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Rotates the bitboard, or the array of bitboards, by 90 degrees clockwise.
     Square a1 is mapped to h1, and b1 is mapped to h2.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -785,9 +787,9 @@ def bitboard_ro090(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    1 . . . . 1 1 .
     . 7  . 1 . . 1 . . .    . . . . . . . .
     . 8  . 1 . . . 1 . .    . . . . . . . .
-    
+
     """
-    
+
     return bitboard_fhori(bitboard_fh1a8(bb))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -795,7 +797,7 @@ def bitboard_ro180(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Rotates the bitboard, or the array of bitboards, by 180 degrees.
     Square a1 is mapped to h8, and b1 is mapped to g8.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -808,9 +810,9 @@ def bitboard_ro180(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    . . 1 . . . 1 .
     . 7  . 1 . . 1 . . .    . . 1 . . . 1 .
     . 8  . 1 . . . 1 . .    . . . 1 1 1 1 .
-    
+
     """
-    
+
     return bitboard_fh1a8(bitboard_fa1h8(bb))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -818,7 +820,7 @@ def bitboard_ro270(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Rotates the bitboard, or the array of bitboards, by 270 degrees clockwise.
     Square a1 is mapped to a8, and b1 is mapped to a7.
-        
+
     .    ---- input ----    ---- output ---
     .
     .    a b c d e f g h    a b c d e f g h
@@ -831,9 +833,9 @@ def bitboard_ro270(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     . 6  . 1 . 1 . . . .    1 . . . 1 . . .
     . 7  . 1 . . 1 . . .    1 1 1 1 1 1 1 1
     . 8  . 1 . . . 1 . .    . . . . . . . .
-    
+
     """
-    
+
     return bitboard_fh1a8(bitboard_fhori(bb))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -850,7 +852,7 @@ def bitboard_to_square_list(bb: Bitboard) -> List[Square]:
             sq = bitboard_bsr(bb)
             squares.append(Square(sq))
             bb = Bitboard(bb ^ (Bitboard(1) << sq))
-            
+
     return squares
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -859,7 +861,7 @@ def bitboard_to_square_array(bb: Bitboard) -> SquareArray:
     Returns the square set as a numpy array of squares.
     """
     return np.array(bitboard_to_square_list(bb), dtype=Square)
-        
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def bitboard_to_string_list(bb: Bitboard) -> List[str]:
     """
@@ -959,6 +961,15 @@ def position_empties(p: PositionField | PositionArray) -> Bitboard | BitboardArr
     return ~(p['mover'] | p['opponent'])
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_empty_count(p: PositionField | PositionArray) -> np.uint8 | npt.NDArray[np.uint8]:
+    """
+    Returns the count of empty squares in the game position.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape: a scalar uint8 or an array of uint8).
+    """
+    return bitboard_count(~(p['mover'] | p['opponent']))
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_collisions(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
     """
     Returns the set of overlapping squares between mover and opponent.
@@ -981,12 +992,12 @@ def position_check_collisions(p: PositionField | PositionArray) -> None:
     if np.any(collisions):
         # Convert to 1D safely to support both scalar and array inputs without IndexError
         collisions_1d = np.atleast_1d(collisions)
-        
+
         total_size = collisions_1d.size
         nonzero_indices = np.nonzero(collisions_1d)[0]
         num_collisions = nonzero_indices.size  # Faster than len() on numpy arrays
         first_collision_idx = nonzero_indices[0]
-        
+
         error_message = (
             f"Validation Failed: Detected {num_collisions} collision(s) "
             f"out of {total_size} total elements. "
@@ -1033,9 +1044,9 @@ def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.nda
         mover = Bitboard(movers[i])
         opponent = Bitboard(opponents[i])
         empties = Bitboard(~(mover | opponent))
-        
+
         legal_result = Bitboard(0)
-        
+
         # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
         for d in range(4):
             # --- Directional Forward Shift (Left-style) ---
@@ -1064,9 +1075,9 @@ def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.nda
 
             g_final = empties & _mask_r[d] & ((g & ~mover) >> _slide_1[d])
             legal_result |= g_final
-            
+
         results[i] = legal_result
-        
+
     return results
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -1103,7 +1114,7 @@ def legal_moves(mover: Bitboard | BitboardArray,
         # Ensure the arrays have the same shape
         if mover.shape != opponent.shape:
             raise ValueError("The shapes of mover and opponent arrays must be the same.")
-        
+
         # Call the vectorized function directly
         return _vectorized_legal_moves(mover, opponent)
     else:
@@ -1528,7 +1539,7 @@ def position_ro270(p: PositionField) -> PositionField:
 def position_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
     Applies the eight D8 transformations on the input game positions.
-    
+
      - 0 -> 0 : ro000
      - 0 -> 1 : ro090
      - 0 -> 2 : ro180
@@ -1549,7 +1560,7 @@ def position_transformations(p: PositionField | PositionArray) -> PositionArray:
 def position_anti_transformations(p: PositionField | PositionArray) -> PositionArray:
     """
     Applies the eight D8 anti-transformations on the input game positions.
-    
+
      - 0 -> 0 : ro000
      - 0 -> 1 : ro270
      - 0 -> 2 : ro180

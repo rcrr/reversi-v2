@@ -936,3 +936,15 @@ D-209 | 2026-09-15 | The decisions.md reformat (Roberto, after reviewing the fir
          caught and fixed with a first-line-full flag. Content verified identical to the original modulo the
          76 mid-token rejoins (zero reorders, zero words added / removed). The format is codified in
          `rules.md` (the decisions.md bullet). 1849 -> 923 lines.
+
+D-210 | 2026-09-18 | `position_empty_count` (Roberto) + the `bitboard_count` dual: a dual
+         (scalar + array) count of the empty squares of a position — `~(mover | opponent)`
+         piped through `bitboard_count`. `bitboard_count` was made dual (`bb: Bitboard |
+         BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]`): the array case was blocked by
+         its scalar-only annotation (pydantic enforced it), the logic was already correct
+         (`np.bitwise_count` is a ufunc); the other 5 call sites pass scalars, so the widening
+         is safe. `position_empty_count`'s return type corrected to the count type (was
+         `Bitboard | BitboardArray`). Tests: `test_bitboard_count_array` + the
+         `TestPositionEmptyCount` class (scalar, wrong-type, array, cross-check with
+         `position_empties`, 2D coercion). `test_board` 228/0/14 (was 222/0/14). Building
+         block for `game_play_random_path` (the random_game WIP, a separate commit).

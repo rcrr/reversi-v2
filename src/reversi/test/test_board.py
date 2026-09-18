@@ -511,6 +511,11 @@ class TestBitboardCount(unittest.TestCase):
         self.assertEqual(bitboard_count(full), 64)
         self.assertEqual(bitboard_count(ar), 19)
 
+    def test_bitboard_count_array(self):
+        bbs = np.array([0, 0xFF, 0xFFFFFFFFFFFFFFFF], dtype=np.uint64)
+        np.testing.assert_array_equal(
+            bitboard_count(bbs), np.array([0, 8, 64], dtype=np.uint8))
+
     def test_wrong_type_raises_type_error(self):
         with self.assertRaises(ValidationError):
             bitboard_count('Not the right type')
@@ -1560,6 +1565,70 @@ class TestPositionEmpties(unittest.TestCase):
         # The Pydantic validator should reshape it to a 1D array of length 2
         self.assertEqual(empties.shape, (2,))
         self.assertEqual(empties.dtype, Bitboard)
+
+class TestPositionEmptyCount(unittest.TestCase):
+
+    def test_empty_count_scalar(self):
+        # empty position -> 64 empties
+        p = make_position(Bitboard(0x0000000000000000),
+                          Bitboard(0x0000000000000000))
+        self.assertEqual(position_empty_count(p), 64)
+
+        # full position -> 0 empties
+        p = make_position(Bitboard(0xFFFFFFFFFFFFFFFF),
+                          Bitboard(0x0000000000000000))
+        self.assertEqual(position_empty_count(p), 0)
+
+        # one opponent piece -> 63 empties
+        p = make_position(Bitboard(0x0000000000000000),
+                          Bitboard(0x0000000000000001))
+        self.assertEqual(position_empty_count(p), 63)
+
+        # one mover + one opponent -> 62 empties
+        p = make_position(Bitboard(0x0000000000000001),
+                          Bitboard(0x0000000000000002))
+        self.assertEqual(position_empty_count(p), 62)
+
+        # sixteen pieces (8 + 8) -> 48 empties
+        p = make_position(Bitboard(0x00000000000000FF),
+                          Bitboard(0x0000000000FF00))
+        self.assertEqual(position_empty_count(p), 48)
+
+    def test_position_empty_count_wrong_type(self):
+        with self.assertRaises(ValidationError):
+            position_empty_count(None)
+
+    def test_empty_count_array(self):
+        movers = np.array([0, 0xFFFFFFFFFFFFFFFF, 0b1, 0xFF],
+                          dtype=np.uint64)
+        opponents = np.array([0, 0, 0b10, 0xFF00], dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        expected = np.array([64, 0, 62, 48], dtype=np.uint8)
+        computed = position_empty_count(positions)
+        np.testing.assert_array_equal(computed, expected)
+
+    def test_empty_count_cross_check_empties(self):
+        # the empty count equals the popcount of the empties bitboard
+        movers = np.array([0, 0xFFFFFFFFFFFFFFFF, 0b1, 0xFF],
+                          dtype=np.uint64)
+        opponents = np.array([0, 0, 0b10, 0xFF00], dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        np.testing.assert_array_equal(
+            position_empty_count(positions),
+            bitboard_count(position_empties(positions)),
+        )
+
+    def test_empty_count_2d_coercion(self):
+        """Pydantic coerces a 2D uint64 array into a 1D PositionArray."""
+        mover = Bitboard(0x0000000000000001)
+        opponent = Bitboard(0x0000000000000002)
+        raw_2d = np.array([[mover, opponent],
+                           [mover, opponent]], dtype=np.uint64)
+        computed = position_empty_count(raw_2d)
+        self.assertEqual(computed.shape, (2,))
+        self.assertEqual(computed.dtype, np.uint8)
+        np.testing.assert_array_equal(computed, np.array([62, 62],
+                                                        dtype=np.uint8))
 
 class TestPositionLegalMoves(unittest.TestCase):
 
