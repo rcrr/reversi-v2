@@ -35,9 +35,10 @@ from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
 
 from reversi.tools.prng import MT19937
-from reversi.board import (Bitboard, BitboardArray, Move, PositionField,
-                           PositionArray, bitboard_bsr, position_flips,
-                           position_legal_moves, position_empty_count)
+from reversi.board import (Bitboard, BitboardArray, Move, MoveArray,
+                           PositionField, PositionArray, bitboard_bsr,
+                           position_flips, position_legal_moves,
+                           position_empty_count)
 
 
 
@@ -128,7 +129,9 @@ def random_game_choose_move(p: PositionField | PositionArray,
     raise TypeError("Input must be a Position scalar or a Position array.")
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionField, Move]:
+def random_game_make_move(p: PositionField | PositionArray,
+                          prng: MT19937) -> Tuple[PositionField | PositionArray,
+                                                  Move | MoveArray]:
     """
     Executes a random legal move on the position.
 
@@ -139,12 +142,36 @@ def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionFiel
     swapped with respect to the input). When the position has no legal
     move the move is the pass (PA) and the returned position is the
     swapped position (the players inverted) — never None.
+
+    Dual scalar/array (D-220, the house D-140 pattern): a scalar
+    PositionField gives the (PositionField, Move) pair; a 1-D
+    PositionArray gives the (PositionArray, MoveArray) pair of the same
+    length (the 2-D (N, 2) uint64 input is coerced by the PositionArray
+    validator). The PRNG stream contract of random_game_choose_move is
+    inherited verbatim: the array call is bit-identical to the
+    sequential scalar processing of the same positions with the same
+    stream (one draw per non-empty legal set, no draw for a pass).
+    The array path composes the verified dual functions — the D-219
+    batch pick + the D-140 position_flips (a zero element swaps the
+    players, a legal element flips) — and the move codes come from
+    popcount(move - 1): the bit index of a single-bit move, and the
+    wrap-around of an empty move gives 64 = PA.
     """
-    move_bb: Bitboard = random_game_choose_move(p, prng)
-    _, new_p = position_flips(p, move_bb)
-    idx: int = bitboard_bsr(move_bb)
-    move: Move = Move(64) if idx == -1 else Move(idx)
-    return new_p, move
+    if isinstance(p, np.ndarray):
+        # D-220: the standard 1-D guard (house pattern, as position_flips)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        moves = random_game_choose_move(p, prng)
+        _, new_p = position_flips(p, moves)
+        move_codes = np.bitwise_count(moves - np.uint64(1)).astype(np.uint8)
+        return new_p, move_codes
+    if isinstance(p, np.void):
+        move_bb: Bitboard = random_game_choose_move(p, prng)
+        _, new_p = position_flips(p, move_bb)
+        idx: int = bitboard_bsr(move_bb)
+        move: Move = Move(64) if idx == -1 else Move(idx)
+        return new_p, move
+    raise TypeError("Input must be a Position scalar or a Position array.")
 
 TargetEcInt = Annotated[int, Field(ge=0, le=60)]
 

@@ -23,8 +23,8 @@ results computed on the ONE injected prng stream.
   call feeds the kernel). No legal move: the empty bitboard 0 (the
   pick's (0, 64) sentinel — 64 = PA in the Move domain — is the
   caller's pass signal).
-- `random_game_make_move(p, prng) -> (PositionField,
-  Move)` — executes a random legal move: asks
+- `random_game_make_move(p, prng) -> (PositionField | PositionArray,
+  Move | MoveArray)` — executes a random legal move: asks
   random_game_choose_move for the move, applies it on p via board.
   position_flips, and returns the resulting position together
   with the move that was played (a Move: the square position, or
@@ -32,8 +32,12 @@ results computed on the ONE injected prng stream.
   (the next player's view: the mover / opponent fields are
   swapped with respect to the input). No legal move: the move is
   PA and the returned position is the swapped position (the
-  players inverted) — never None. @validate_call
-  (arbitrary_types_allowed).
+  players inverted) — never None. Dual scalar/array (D-220): the
+  array path COMPOSES the verified dual functions — the D-219
+  batch pick (the stream contract inherited verbatim) + the D-140
+  position_flips — and the move codes come from popcount(move - 1)
+  (the bit index; the wrap-around of an empty move gives 64 = PA).
+  @validate_call (arbitrary_types_allowed).
 - `random_game_play_path(p, target_ec, prng) -> (PositionField,
   int)` — plays a sequence of random legal moves (via
   random_game_make_move) until the empty count reaches
@@ -55,6 +59,12 @@ results computed on the ONE injected prng stream.
   through `_pick_one_from_set64` — the numba transcription of the
   prng pick math (the SWAR popcount, the r = (d >> 11) · 2⁻⁵³
   scalarization, the c-th set bit).
+- The dual array make_move (D-220): a pure COMPOSITION of the
+  verified dual functions — the D-219 batch pick (the stream
+  contract inherited) + the D-140 position_flips — plus one numpy
+  line for the codes (np.bitwise_count(move - 1): the bit index of
+  a single-bit move, and the wrap-around of an empty move gives
+  64 = PA — no kernel of its own).
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
@@ -82,6 +92,14 @@ results computed on the ONE injected prng stream.
   move, and each is one stone ahead of the fixture; a position
   with no legal move returns (the swapped position, PA) — pinned
   by test_random_game::TestRandomGameMakeMove.
+- The array move execution (D-220): the batch (positions + codes)
+  over the mixed EC20 fixtures + the initial position is
+  bit-identical to the sequential scalar processing with the same
+  seed (the streams stay aligned), and every returned position is
+  the scalar position_flips output for its drawn code — pinned by
+  test_random_game::TestRandomGameMakeMoveArray::
+  test_array_matches_sequential_scalar /
+  test_returned_positions_consistent_with_the_codes.
 - The random path: plays random moves until the empty count
   reaches the target (or a game-over position) — the final empty
   count is <= the start and >= the target, the double-pass

@@ -153,6 +153,116 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
             random_game_choose_move([0, 0], MT19937(self.seed))
 
 
+class TestRandomGameMakeMoveArray(unittest.TestCase):
+    """
+    random_game_make_move, the array case (D-220): the batch
+    pick-and-execute over a 1-D PositionArray — the D-219 batch pick
+    (the stream contract) composed with the D-140 position_flips
+    (a zero element swaps the players, a legal element flips), the
+    move codes from popcount(move - 1) (the bit index, and the
+    wrap-around of an empty move gives 64 = PA). The fixtures are
+    the same mixed batch of TestRandomGameChooseMoveArray.
+    """
+
+    def setUp(self):
+        PRNG_SEED = 93
+        self.seed = PRNG_SEED
+        data = np.array([
+            ( 4611717676283199524, -7855295674223658936),
+            (  787631300868060734, -9223372036837537535),
+            (    5646387823048732,  -222663607811309568),
+            (   73548482186484752, -1670215300554932092),
+            (      17592186044415,                    0),
+            (-7305726066363072511,  6944590345852188420),
+        ], dtype=np.int64)
+        self.positions = [make_position(bitboard_from_signed_int(im),
+                                        bitboard_from_signed_int(io))
+                          for im, io in data]
+        self.positions.append(initial_game_position())
+        self.movers = np.array([int(bitboard_to_signed_int(q['mover']))
+                                for q in self.positions], dtype=np.int64)
+        self.opponents = np.array([int(bitboard_to_signed_int(q['opponent']))
+                                   for q in self.positions], dtype=np.int64)
+
+    def _batch(self):
+        return make_position(bitboard_from_signed_int(self.movers),
+                             bitboard_from_signed_int(self.opponents))
+
+    def test_array_matches_sequential_scalar(self):
+        # The regina: the array (positions, codes) on a fresh stream
+        # is bit-identical to the sequential scalar processing with
+        # the same seed — and the streams stay aligned afterwards.
+        prng_seq = MT19937(self.seed)
+        seq = [random_game_make_move(q, prng_seq) for q in self.positions]
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_m = random_game_make_move(self._batch(), prng_arr)
+        self.assertIsInstance(arr_p, np.ndarray)
+        self.assertEqual(arr_p.dtype, Position)
+        self.assertEqual(arr_p.shape, (len(self.positions),))
+        self.assertIsInstance(arr_m, np.ndarray)
+        self.assertEqual(arr_m.dtype, np.uint8)
+        for i in range(len(self.positions)):
+            self.assertEqual(int(arr_m[i]), int(seq[i][1]))
+            self.assertEqual(int(arr_p[i]['mover']),
+                             int(seq[i][0]['mover']))
+            self.assertEqual(int(arr_p[i]['opponent']),
+                             int(seq[i][0]['opponent']))
+        self.assertEqual(int(prng_seq.get_uint64()),
+                         int(prng_arr.get_uint64()))
+
+    def test_returned_positions_consistent_with_the_codes(self):
+        # For every element, the returned position is exactly the
+        # scalar position_flips output for the drawn code (the cross
+        # -check through the scalar path; the pass code 64 swaps the
+        # players).
+        arr_p, arr_m = random_game_make_move(self._batch(),
+                                             MT19937(self.seed))
+        for i, q in enumerate(self.positions):
+            code = int(arr_m[i])
+            mv = Bitboard(0) if code == 64 else Bitboard(1) << np.uint64(code)
+            _, expected = position_flips(q, mv)
+            self.assertEqual(int(arr_p[i]['mover']),
+                             int(expected['mover']))
+            self.assertEqual(int(arr_p[i]['opponent']),
+                             int(expected['opponent']))
+
+    def test_initial_position_code_in_the_legal_set(self):
+        # The initial-position element: the drawn code is one of the
+        # four legal squares {D3, C4, F5, E6} (19, 26, 37, 44).
+        arr_p, arr_m = random_game_make_move(self._batch(),
+                                             MT19937(self.seed))
+        self.assertIn(int(arr_m[-1]), (19, 26, 37, 44))
+
+    def test_2d_coercion(self):
+        raw_2d = np.array([[int(q['mover']), int(q['opponent'])]
+                           for q in self.positions[:2]], dtype=np.uint64)
+        arr_p, arr_m = random_game_make_move(raw_2d, MT19937(self.seed))
+        exp_p, exp_m = random_game_make_move(self._batch()[:2],
+                                             MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (2,))
+        self.assertEqual(arr_m.shape, (2,))
+        nptest.assert_array_equal(arr_p, exp_p)
+        nptest.assert_array_equal(arr_m, exp_m)
+
+    def test_1d_guard(self):
+        arr = self._batch()
+        with self.assertRaises(ValueError):
+            random_game_make_move(arr.reshape(2, 4), MT19937(self.seed))
+
+    def test_empty_array(self):
+        arr_p, arr_m = random_game_make_move(np.zeros(0, dtype=Position),
+                                             MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (0,))
+        self.assertEqual(arr_m.shape, (0,))
+        self.assertEqual(arr_m.dtype, np.uint8)
+
+    def test_wrong_input_rejected(self):
+        with self.assertRaises(ValidationError):
+            random_game_make_move(0, MT19937(self.seed))
+        with self.assertRaises(ValidationError):
+            random_game_make_move([0, 0], MT19937(self.seed))
+
+
 
 class TestRandomGameChooseMove(unittest.TestCase):
 

@@ -1041,6 +1041,17 @@ D-219 | 2026-09-18 | The `random_game_choose_move` dual scalar/array (the campai
          probe, the scalar types, the 2-D coercion, the 1-D guard, the empty array, the rejections).
          `test_random_game` 17/0/0 (was 11/0/0), full LONG 895/0/22 GREEN.
 
+D-220 | 2026-09-18 | The `random_game_make_move` dual scalar/array (the campaign step 2): `-> Tuple[PositionField |
+         PositionArray, Move | MoveArray]`, the D-140 dispatch (the 1-D guard, the 2-D coercion). The array path is
+         a pure COMPOSITION of the verified dual functions — the D-219 batch pick (the stream contract inherited
+         verbatim) + the D-140 `position_flips` (a zero element swaps the players, a legal element flips; the drawn
+         moves are always legal or pass, so the illegal branch never fires) — plus one numpy line for the codes:
+         `np.bitwise_count(move - 1)` gives the bit index of a single-bit move AND, by the wrap-around of an empty
+         move, 64 = PA (no kernel of its own). The scalar path is untouched. Tests: `TestRandomGameMakeMoveArray`
+         (7: the bit-equivalence regina + the stream probe, the per-code position cross-check through the scalar
+         flips, the initial-position code in {D3, C4, F5, E6}, the 2-D coercion, the 1-D guard, the empty array,
+         the rejections). `test_random_game` 24/0/0 (was 17/0/0), full LONG 902/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
