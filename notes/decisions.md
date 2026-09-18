@@ -1088,6 +1088,18 @@ D-222 | 2026-09-18 | The `random_game_play_path` dual scalar/array (the campaign
          contract, the as-is, the 2-D coercion, the 1-D guard, the empty array, the rejections).
          `test_random_game` 32/0/0 (was 24/0/0), full LONG 913/0/22 GREEN.
 
+D-223 | 2026-09-18 | The play_path engine readability refactor (Roberto: "it is not understandable" — the D-222
+         array branch was a ~50-line inline blob inside the dispatch, with cryptic names (plays_a / plays_b /
+         idx_a / idx_b) and the apply logic duplicated for the two groups): the engine is decomposed into three
+         named, documented units — `_play_path_engine` (the step loop + the termination bound),
+         `_play_path_step` (the lane classification with self-explanatory names: mover_plays /
+         mover_passes_opponent_plays / double_pass_game_over — and the advance), `_apply_picked_moves` (the
+         masked `position_flips` on the lane subset, the current or the swapped view; the write-back is direct
+         in both frames because position_flips returns the NEXT player's view). The public function is a thin
+         dispatch again (the house shape: the scalar branch inline, the array branch one line). ZERO behaviour
+         change: the whole suite passes untouched (the single-lane scalar bridge, the determinism, the ec
+         contract). `test_random_game` 32/0/0, full LONG 913/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

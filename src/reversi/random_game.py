@@ -130,6 +130,118 @@ def random_game_make_move(p: PositionField | PositionArray,
 
 TargetEcInt = Annotated[int, Field(ge=0, le=60)]
 
+#: Internal use function.
+def _apply_picked_moves(movers: np.ndarray, opponents: np.ndarray,
+                        lane_mask: np.ndarray, moves: np.ndarray,
+                        swapped_view: bool):
+    """
+    Applies the picked single-bit moves to the masked lanes and
+    returns the updated (movers, opponents) arrays (fresh copies —
+    the input arrays are never mutated).
+
+    The moves are executed by the D-140 position_flips on the lane
+    subset: the CURRENT view (mover first), or the SWAPPED
+    (opponent-first) view for the pass-and-reply lanes.
+    position_flips returns the NEXT player's view, which — after the
+    opponent's move — is the original mover's frame again, so the
+    write-back maps the fields directly in both cases.
+    """
+    idx = np.flatnonzero(lane_mask)
+    if idx.size == 0:
+        return movers, opponents
+    if swapped_view:
+        view = make_position(opponents[idx], movers[idx])
+    else:
+        view = make_position(movers[idx], opponents[idx])
+    _, updated = position_flips(view, moves[idx])
+    movers = movers.copy()
+    opponents = opponents.copy()
+    movers[idx] = updated['mover']
+    opponents[idx] = updated['opponent']
+    return movers, opponents
+
+#: Internal use function.
+def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
+                    prng: MT19937):
+    """
+    Advances ONE step of the engine for every active lane; returns
+    the updated (cur, ec, active).
+
+    The lane classification (all draw-independent — the legal sets
+    are pure computations):
+      - mover_plays: the mover has a legal move — one draw, the disc
+        is placed by the mover (position_flips on the current view);
+      - mover_passes_opponent_plays: the mover is moveless and the
+        opponent is not — the pass consumes no draw, the opponent
+        plays from the SWAPPED view (one draw);
+      - double_pass_game_over: both players are moveless — the lane
+        ends, no draw, the position is left unchanged (the two
+        scalar swaps restore the input view).
+
+    Every non-terminal lane consumes EXACTLY ONE draw, in element
+    order: one get_uint64_batch call pre-draws for the needing lanes
+    (the prefix slot map) and the prng batch kernel
+    pick_one_from_set64_batch does the picks (the single source of
+    the pick technique, D-221).
+    """
+    lms_mover = position_legal_moves(cur)
+    lms_opponent = position_legal_moves(make_position(cur['opponent'],
+                                                      cur['mover']))
+    mover_passes = active & (lms_mover == np.uint64(0))
+    mover_plays = active & (lms_mover != np.uint64(0))
+    double_pass_game_over = mover_passes & (lms_opponent == np.uint64(0))
+    mover_passes_opponent_plays = (mover_passes
+                                   & (lms_opponent != np.uint64(0)))
+    needs_draw = mover_plays | mover_passes_opponent_plays
+    draws = prng.get_uint64_batch(int(np.count_nonzero(needs_draw)))
+    slots = np.cumsum(needs_draw, dtype=np.int64) - needs_draw.astype(np.int64)
+    pick_sets = np.where(mover_plays, lms_mover,
+                         np.where(mover_passes_opponent_plays, lms_opponent,
+                                  np.uint64(0)))
+    moves = pick_one_from_set64_batch(pick_sets, draws, slots)
+    movers, opponents = _apply_picked_moves(cur['mover'], cur['opponent'],
+                                            mover_plays, moves,
+                                            swapped_view=False)
+    movers, opponents = _apply_picked_moves(movers, opponents,
+                                            mover_passes_opponent_plays,
+                                            moves, swapped_view=True)
+    new_cur = make_position(movers, opponents)
+    ec = position_empty_count(new_cur)
+    active = active & ~double_pass_game_over & (ec > target)
+    return new_cur, ec, active
+
+#: Internal use function.
+def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
+    """
+    The array play-path engine (D-222): the STEP loop over the batch.
+
+    The stream contract is the STEP-INTERLEAVED discipline of hlp_wave
+    (NOT the scalar sequence — the paths are multi-draw, so a lane-
+    sequential consumption would forbid the vectorization): at every
+    step the ACTIVE lanes draw once, in element order. Two facts pin
+    the contract down: the call is DETERMINISTIC given the seed, and
+    with N == 1 the step-interleaved stream IS the lane's sequential
+    stream, so the single-lane array call is bit-identical to the
+    scalar call.
+
+    The termination is mathematical: every non-terminal step
+    decreases a lane's ec by exactly one and the game-over step ends
+    the lane — at most ec_start + 1 (<= 65) steps per lane; the
+    defensive bound is 70 (a stall raises RuntimeError, it never
+    hangs).
+    """
+    ec = position_empty_count(cur)
+    active = ec > target
+    for _step in range(70):
+        if not np.any(active):
+            break
+        cur, ec, active = _play_path_step(cur, active, target, prng)
+    if np.any(active):
+        raise RuntimeError("random_game_play_path: the step bound "
+                           "(70) is exceeded — an active lane did "
+                           "not terminate")
+    return cur, ec
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def random_game_play_path(p: PositionField | PositionArray,
                           target_ec: TargetEcInt,
@@ -156,77 +268,24 @@ def random_game_play_path(p: PositionField | PositionArray,
     PositionField gives the (PositionField, np.uint8) pair; a 1-D
     PositionArray gives the (PositionArray, uint8-array) pair of the
     same length (the 2-D (N, 2) uint64 input is coerced by the
-    PositionArray validator).
-
-    The PRNG stream contract of the array case is the STEP-INTERLEAVED
-    discipline of the hlp_wave engine (NOT the scalar sequence — the
-    paths are multi-draw, so a lane-sequential consumption would
-    forbid the vectorization): at every step the ACTIVE lanes draw
-    once, in element order — exactly one draw per non-terminal lane
-    (the mover plays, or the mover passes and the opponent plays), no
-    draw for the game-over lanes (the double pass); one
-    get_uint64_batch call feeds the prng batch pick per step. Two
+    PositionArray validator). The PRNG stream contract of the array
+    case is the STEP-INTERLEAVED discipline of the hlp_wave engine
+    (NOT the scalar sequence — the paths are multi-draw, so a lane-
+    sequential consumption would forbid the vectorization): at every
+    step the ACTIVE lanes draw once, in element order — exactly one
+    draw per non-terminal lane, no draw for the game-over lanes. Two
     facts pin the contract down: the call is DETERMINISTIC given the
-    seed, and with N == 1 the step-interleaved stream IS the lane's
-    sequential stream, so the single-lane array call is bit-identical
-    to the scalar call. The target is ONE shared value for the whole
-    batch.
+    seed, and with N == 1 the array call is BIT-IDENTICAL to the
+    scalar call. The target is ONE shared value for the whole batch.
+    The engine lives in _play_path_engine (the step loop) +
+    _play_path_step (the lane classification and the advance) +
+    _apply_picked_moves (the masked position_flips).
     """
     if isinstance(p, np.ndarray):
         # D-222: the standard 1-D guard (house pattern, as position_flips)
         if p.ndim != 1:
             raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
-        target = np.uint8(target_ec)
-        cur = p
-        ec = position_empty_count(cur)
-        active = ec > target
-        # The mathematical bound: every non-terminal step decreases a
-        # lane's ec by exactly one (the mover plays, or the mover
-        # passes and the opponent plays) and the game-over step ends
-        # the lane — at most ec_start + 1 steps per lane (<= 65).
-        for _step in range(70):
-            if not np.any(active):
-                break
-            lms_a = position_legal_moves(cur)
-            pass_lane = active & (lms_a == np.uint64(0))
-            lms_b = position_legal_moves(make_position(cur['opponent'],
-                                                       cur['mover']))
-            plays_a = active & (lms_a != np.uint64(0))
-            plays_b = pass_lane & (lms_b != np.uint64(0))
-            game_over = pass_lane & (lms_b == np.uint64(0))
-            needs = plays_a | plays_b
-            draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
-            slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
-            pick_sets = np.where(plays_a, lms_a,
-                                 np.where(plays_b, lms_b, np.uint64(0)))
-            moves = pick_one_from_set64_batch(pick_sets, draws, slots)
-            idx_a = np.flatnonzero(plays_a)
-            if idx_a.size:
-                sub = make_position(cur['mover'][idx_a],
-                                    cur['opponent'][idx_a])
-                _, new_p = position_flips(sub, moves[idx_a])
-                movers = cur['mover'].copy()
-                opponents = cur['opponent'].copy()
-                movers[idx_a] = new_p['mover']
-                opponents[idx_a] = new_p['opponent']
-                cur = make_position(movers, opponents)
-            idx_b = np.flatnonzero(plays_b)
-            if idx_b.size:
-                swapped = make_position(cur['opponent'][idx_b],
-                                        cur['mover'][idx_b])
-                _, new_p = position_flips(swapped, moves[idx_b])
-                movers = cur['mover'].copy()
-                opponents = cur['opponent'].copy()
-                movers[idx_b] = new_p['mover']
-                opponents[idx_b] = new_p['opponent']
-                cur = make_position(movers, opponents)
-            ec = position_empty_count(cur)
-            active = active & ~game_over & (ec > target)
-        if np.any(active):
-            raise RuntimeError("random_game_play_path: the step bound "
-                               "(70) is exceeded — an active lane did "
-                               "not terminate")
-        return cur, ec
+        return _play_path_engine(p, np.uint8(target_ec), prng)
     if isinstance(p, np.void):
         PASS_MOVE = Move(64)
         ec = position_empty_count(p)

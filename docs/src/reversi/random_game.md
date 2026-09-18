@@ -70,16 +70,20 @@ results computed on the ONE injected prng stream.
   line for the codes (np.bitwise_count(move - 1): the bit index of
   a single-bit move, and the wrap-around of an empty move gives
   64 = PA — no kernel of its own).
-- The dual array play_path (D-222): the STEP ENGINE — per step,
-  the legal sets of the current and swapped views (both
-  draw-independent) classify the active lanes: plays_a (the mover
-  plays), plays_b (the mover passes, the opponent plays),
-  game_over (the double pass — harvested, no draw, the input view
-  returned); one get_uint64_batch pre-draws for the needing lanes
-  (the prefix slot map) and pick_one_from_set64_batch +
-  position_flips advance them (the plays_b lanes from the swapped
-  view). The termination is mathematical (every non-terminal step
-  decreases a lane's ec by one) with a defensive 70-step bound.
+- The dual array play_path (D-222): the STEP ENGINE, in three named
+  units — `_play_path_engine` (the step loop + the termination
+  bound), `_play_path_step` (the lane classification and the
+  advance), `_apply_picked_moves` (the masked position_flips on the
+  lane subset). Per step the legal sets of the current and swapped
+  views (both draw-independent) classify the active lanes:
+  mover_plays (the disc placed by the mover),
+  mover_passes_opponent_plays (the pass costs no draw, the opponent
+  plays from the swapped view), double_pass_game_over (harvested,
+  no draw, the input view returned); one get_uint64_batch
+  pre-draws for the needing lanes (the prefix slot map) and
+  pick_one_from_set64_batch + position_flips advance them. The
+  termination is mathematical (every non-terminal step decreases a
+  lane's ec by one) with a defensive 70-step bound.
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
