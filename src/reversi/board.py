@@ -60,7 +60,8 @@ __all__ = ['Square', 'SquareArray',
            'bitboard_transformation_labels', 'bitboard_anti_transformation_labels',
            'Position', 'PositionField', 'PositionArray',
            'position_collisions', 'position_check_collisions', 'position_empty_count',
-           'make_position', 'position_eq', 'position_print', 'position_empties',
+           'make_position', 'initial_game_position', 'position_eq',
+           'position_print', 'position_empties',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
            'position_flips', 'position_make_move', 'position_count_difference',
            'position_final_value', 'position_has_to_pass', 'position_is_game_over',
@@ -926,6 +927,31 @@ bitboard_anti_transformation_labels = [
 
 
 #: Position methods.
+
+def initial_game_position() -> PositionField:
+    """
+    Returns the initial game position.
+
+    A Reversi game starts with four discs placed in the center four squares
+    of an 8×8 board (D4, E4, D5, and E5), with two black discs and two white
+    discs arranged diagonally.
+    Black, the starting player (the mover), occupies squares E4 and D5,
+    while White occupies D4 and E5.
+    .
+    .        C   D   E   F
+    .      +---+---+---+---+
+    .    3 |   |   |   |   |
+    .      +---+---+---+---+
+    .    4 |   | W | B |   |  (W = White, B = Black)
+    .      +---+---+---+---+
+    .    5 |   | B | W |   |
+    .      +---+---+---+---+
+    .    6 |   |   |   |   |
+    .      +---+---+---+---+
+    .
+    """
+    return make_position(Bitboard(0x0000000810000000),
+                         Bitboard(0x0000001008000000))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_eq(pos_a: PositionField | PositionArray, pos_b: PositionField | PositionArray) -> bool:

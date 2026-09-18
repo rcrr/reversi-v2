@@ -53,48 +53,22 @@ from reversi.board import (Move, square_to_str, move_to_str,
                            bitboard_to_string_list, bitboard_print,
                            bitboard_count, bitboard_bsr,
                            make_position, position_flips, position_print,
-                           position_legal_moves_count)
+                           position_legal_moves_count, position_empty_count,
+                           initial_game_position)
 
-from reversi.random_game import (initial_game_position, choose_random_move,
-                                 game_position_make_random_move)
-
-
-
-class TestInitialGame(unittest.TestCase):
-
-    def test_initial_game_position(self):
-
-        expected_mover_squares    = ['E4', 'D5']
-        expected_opponent_squares = ['D4', 'E5']
-
-        igp = initial_game_position()
-
-        self.assertIsInstance(igp, np.void)
-        expected_dtype = Position
-        self.assertEqual(igp.dtype, expected_dtype)
-
-        m = igp['mover']
-        o = igp['opponent']
-
-        self.assertIsInstance(m, Bitboard)
-        self.assertIsInstance(o, Bitboard)
-
-        get_squares = lambda x: [square_to_str(sq) for sq in bitboard_to_square_list(x)][::-1]
-
-        mover_squares = get_squares(m)
-        opponent_squares = get_squares(o)
-
-        self.assertEqual(mover_squares, expected_mover_squares)
-        self.assertEqual(opponent_squares, expected_opponent_squares)
+from reversi.random_game import (random_game_chose_move,
+                                 random_game_make_move,
+                                 random_game_play_path)
 
 
-class TestChooseRandomMove(unittest.TestCase):
+
+class TestRandomGameChoseMove(unittest.TestCase):
 
     def setUp(self):
         PRNG_SEED = 93
         self.prng = MT19937(PRNG_SEED)
 
-    def test_choose_random_move(self):
+    def test_random_game_chose_move(self):
 
         I = 1_000
 
@@ -112,7 +86,7 @@ class TestChooseRandomMove(unittest.TestCase):
         freqs = np.zeros(len(expected_value_options), dtype=np.uint64)
 
         for i in range(I):
-            move = choose_random_move(igp, self.prng)
+            move = random_game_chose_move(igp, self.prng)
             self.assertIsInstance(move, Bitboard)
             self.assertIn(move, expected_value_options)
 
@@ -122,7 +96,7 @@ class TestChooseRandomMove(unittest.TestCase):
         nptest.assert_array_equal(freqs, expected_freqs)
 
 
-class TestChooseRandomMoveEC20(unittest.TestCase):
+class TestRandomGameChoseMoveEC20(unittest.TestCase):
     """
     The fixtures are:
      - prng                      : An MT-19937 pseudo random number generator.
@@ -242,13 +216,13 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
 
         self.print_record = _pr
 
-    def test_choose_random_move_ec20(self):
+    def test_random_game_chose_move_ec20(self):
 
         for i, p in enumerate(self.positions):
             expected_move_options = []
 
             try:
-                move_as_bitboard = choose_random_move(p, self.prng)
+                move_as_bitboard = random_game_chose_move(p, self.prng)
                 self.assertIsInstance(move_as_bitboard, Bitboard)
 
                 lms = self.legal_moves_sets[i]
@@ -278,7 +252,7 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
 
                 raise
 
-    def test_choose_random_move_ec20_equidistributed(self):
+    def test_random_game_chose_move_ec20_equidistributed(self):
         # Two facts, over N random moves drawn for EACH of the six
         # positions:
         #
@@ -300,7 +274,7 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
                 # No option: every draw must be the pass (an empty
                 # move). The condition is validated N times.
                 for _ in range(N):
-                    self.assertEqual(choose_random_move(p, self.prng),
+                    self.assertEqual(random_game_chose_move(p, self.prng),
                                      Bitboard(0))
                 continue
             # The available options: the positions of the legal move
@@ -308,7 +282,7 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
             avail = [int(sq) for sq in bitboard_to_square_list(lms)]
             freq = {o: 0 for o in avail}
             for _ in range(N):
-                m = choose_random_move(p, self.prng)
+                m = random_game_chose_move(p, self.prng)
                 # (1) the draw is validated: a single legal move.
                 self.assertEqual(int(bitboard_count(m)), 1)
                 self.assertTrue((m & lms) != 0)
@@ -323,12 +297,12 @@ class TestChooseRandomMoveEC20(unittest.TestCase):
                             f"is not reasonably flat (chi2={chi2:.1f})")
 
 
-class TestGamePositionMakeRandomMove(unittest.TestCase):
+class TestRandomGameMakeMove(unittest.TestCase):
     """
-    game_position_make_random_move: it asks choose_random_move for the move
+    random_game_make_move: it asks random_game_chose_move for the move
     to play, executes it on the position via position_flips, and returns the
     resulting position together with the move that was played. The random
-    generation is covered by the choose_random_move tests; here the returned
+    generation is covered by the random_game_chose_move tests; here the returned
     position is checked for correctness and for consistency with the chosen
     move.
 
@@ -374,7 +348,7 @@ class TestGamePositionMakeRandomMove(unittest.TestCase):
         boards = []
         moves = set()
         for _ in range(N):
-            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            new_p, mv = random_game_make_move(self.position, self.prng)
             # The move is one of the two legal moves.
             self.assertIn(int(mv), (6, 14))
             moves.add(int(mv))
@@ -392,7 +366,7 @@ class TestGamePositionMakeRandomMove(unittest.TestCase):
         name_of = {6: "G1", 14: "G2"}
         N = 12
         for _ in range(N):
-            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            new_p, mv = random_game_make_move(self.position, self.prng)
             exp = self.expected_board[name_of[int(mv)]]
             self.assertEqual(self._board_key(new_p), self._board_key(exp))
 
@@ -404,7 +378,7 @@ class TestGamePositionMakeRandomMove(unittest.TestCase):
             self.position['mover'] | self.position['opponent']))
         N = 12
         for _ in range(N):
-            new_p, mv = game_position_make_random_move(self.position, self.prng)
+            new_p, mv = random_game_make_move(self.position, self.prng)
             stones = new_p['mover'] | new_p['opponent']
             self.assertEqual(int(bitboard_count(stones)), fixture_stones + 1)
             self.assertEqual(int(bitboard_count(~stones)), 19)
@@ -416,9 +390,35 @@ class TestGamePositionMakeRandomMove(unittest.TestCase):
         p = make_position(Bitboard(0x0000000000000001),
                           Bitboard(0x0000000000010000))
         self.assertEqual(int(position_legal_moves_count(p)), 0)
-        new_p, mv = game_position_make_random_move(p, self.prng)
+        new_p, mv = random_game_make_move(p, self.prng)
         self.assertEqual(int(mv), 64)
         self.assertIsNotNone(new_p)
         # The players are inverted.
         self.assertEqual(int(bitboard_to_signed_int(new_p['mover'])), 0x10000)
         self.assertEqual(int(bitboard_to_signed_int(new_p['opponent'])), 0x1)
+
+
+class TestRandomGamePlayPath(unittest.TestCase):
+
+    def setUp(self):
+        PRNG_SEED = 141
+        self.prng = MT19937(PRNG_SEED)
+        self.position = make_position(bitboard_from_signed_int(np.int64(4611717676283199524)),
+                                      bitboard_from_signed_int(np.int64(-7855295674223658936)))
+
+    def test_random_game_play_path(self):
+        target_ec = 10
+        ec0 = position_empty_count(self.position)
+        self.assertEqual(ec0, 20)
+        rp, ec = random_game_play_path(self.position, target_ec, self.prng)
+        self.assertLessEqual(ec, ec0)
+        self.assertGreaterEqual(ec, target_ec)
+
+    def test_random_game_play_path_multi_generation(self):
+        NG = 10
+        target_ec = 14
+        gen = lambda : random_game_play_path(self.position, target_ec, self.prng)
+        position_list = [gen() for i in range(NG)]
+        # To be completed ... we need an hash function for positions.
+        # set_of_hash = {position_hash(pos) for pos in position_list}
+        # self.assertEqual(NG, len(set_of_hash), "Duplicate positions found!")

@@ -72,7 +72,7 @@ def ec_of(p: "PositionField") -> int:
 def initial_position() -> "PositionField":
     """
     The standard start (the official Othello setup, the Othello
-    International rules — random_game.initial_game_position is
+    International rules — board.initial_game_position is
     the canonical source): the mover (black, the starting
     player) holds the E4+D5 diagonal, the opponent (white) the
     D4+E5 one (the 2x2 center; A1 = top-left = bit 0, the

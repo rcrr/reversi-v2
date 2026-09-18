@@ -1,19 +1,13 @@
 # reversi/random_game.py
 The random game of Reversi, one building block at a time: the
-standard start (`initial_game_position`, the CANONICAL source of
-the standard start — hlp_wave.INITIAL_MOVER / INITIAL_OPP and
-hlp_random_play.initial_position are derived from it), the random
-move pick (`choose_random_move`), and the random move execution
-(`game_position_make_random_move` — pick a move, apply it, return
-the resulting position + the move).
+random move pick (`random_game_chose_move`), the random move
+execution (`random_game_make_move` — pick a move, apply it, return
+the resulting position + the move), and the random path
+(`random_game_play_path` — play random moves until the empty count
+reaches the target, or a game-over position).
 
 ## API
-- `initial_game_position() -> PositionField` — the standard
-  start: the mover (black, the starting player) holds E4+D5
-  (0x0000000810000000), the opponent (white) holds D4+E5
-  (0x0000001008000000) — the 2x2 center, both sides with
-  exactly 4 legal moves, ec = 60.
-- `choose_random_move(p, prng) -> Bitboard` — a random legal
+- `random_game_chose_move(p, prng) -> Bitboard` — a random legal
   move: the position's legal moves (board.
   position_legal_moves) + the uniform PRNG pick (prng.
   choose_one_from_set64). @validate_call
@@ -22,9 +16,9 @@ the resulting position + the move).
   move: returns the empty bitboard 0 (the pick's (0, 64)
   sentinel — 64 = PA in the Move domain — is the caller's
   pass signal).
-- `game_position_make_random_move(p, prng) -> (PositionField,
+- `random_game_make_move(p, prng) -> (PositionField,
   Move)` — executes a random legal move: asks
-  choose_random_move for the move, applies it on p via board.
+  random_game_chose_move for the move, applies it on p via board.
   position_flips, and returns the resulting position together
   with the move that was played (a Move: the square position, or
   64 = PA). The returned position is the position_flips output
@@ -33,36 +27,45 @@ the resulting position + the move).
   PA and the returned position is the swapped position (the
   players inverted) — never None. @validate_call
   (arbitrary_types_allowed).
+- `random_game_play_path(p, target_ec, prng) -> (PositionField,
+  int)` — plays a sequence of random legal moves (via
+  random_game_make_move) until the empty count reaches
+  target_ec (or a game-over position is hit: the two consecutive
+  passes break the loop). Returns the final position + its empty
+  count. If the starting position is already at or below
+  target_ec, it is returned as-is. @validate_call
+  (arbitrary_types_allowed).
 
 ## Architecture
 - Pure functions over board.py: no state of their own, no PRNG
   of their own — the MT19937 stream is the caller's (the pick
-  consumes exactly one draw per non-empty pick). The docstring
-  of initial_game_position carries the board diagram (the
-  canonical orientation: row 1 on top, column a on the left).
+  consumes exactly one draw per non-empty pick; the pass is the
+  (0, 64) sentinel — 64 = PA in the Move domain).
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
 ## Verified invariants
-- The mover / opponent square sets: the mover {E4, D5}, the
-  opponent {D4, E5}; the Position dtype + the Bitboard field
-  types — pinned by test_random_game::TestInitialGame::
-  test_initial_game_position (the squares via
-  bitboard_to_square_list + square_to_str).
 - The random pick: every draw is a member of the
   legal set, and the EXACT 1000-draw frequencies
   [258, 229, 249, 264] over the initial-position legal set
   {D3, C4, F5, E6} at seed 93 — pinned by
-  test_random_game::TestChooseRandomMove::test_choose_random_
-  move (the golden-pinned MT19937 stream makes it bit-stable;
-  it also pins the one-draw-per-pick consumption).
- - The random move execution: from a 20-empty-square position
+  test_random_game::TestRandomGameChoseMove::
+  test_random_game_chose_move (the golden-pinned MT19937 stream
+  makes it bit-stable; it also pins the one-draw-per-pick
+  consumption). The EC20 fixtures (six 20-empty-square
+  positions) pin the pick at the low-empty-count end —
+  test_random_game::TestRandomGameChoseMoveEC20.
+- The random move execution: from a 20-empty-square position
   with two legal moves (G1, G2), N = 12 draws (seed 93) yield
   ONLY the two resulting boards (both appear), each returned
   position is exactly the position_flips output for the drawn
   move, and each is one stone ahead of the fixture; a position
   with no legal move returns (the swapped position, PA) — pinned
-  by test_random_game::TestGamePositionMakeRandomMove.
+  by test_random_game::TestRandomGameMakeMove.
+- The random path: plays random moves until the empty count
+  reaches the target (or a game-over position) — the final empty
+  count is <= the start and >= the target — pinned by
+  test_random_game::TestRandomGamePlayPath.
 
 ## Open issues
 None.
@@ -76,10 +79,7 @@ None.
   public functions (the house dual-API contract).
 
 ## Integration
-- board.py (make_position, Bitboard, PositionField,
-  position_legal_moves).
+- board.py (Bitboard, Move, PositionField, bitboard_bsr,
+  position_flips, position_legal_moves, position_empty_count).
 - tools/prng.py (the MT19937 — the injected stream; the
   choose_one_from_set64 pick).
-- Consumers: hlp_wave.INITIAL_MOVER / INITIAL_OPP (the G0
-  corpus engine) + hlp_random_play.
-  initial_position (the FEATURE_ANALYSIS data plane).

@@ -87,11 +87,13 @@ the end of this file.
 - G0 is the corpus generator (hlp_wave, the concurrent WAVE engine);
   the model file is self-describing (format v2, the config
   provenance embedded; the backward-compat v1 reader).
-- random_game (the new module): initial_game_position is the
-  CANONICAL source of the standard start (the official Othello
-  setup); choose_random_move (the uniform PRNG pick) +
-  game_position_make_random_move (pick a move, apply it via
-  position_flips, return the resulting position + the move).
+- random_game (the new module): random_game_chose_move (the
+  uniform PRNG pick) + random_game_make_move (pick a move,
+  apply it via position_flips, return the resulting position +
+  the move) + random_game_play_path (play random moves until
+  the empty count reaches the target). The standard start is
+  board.initial_game_position (the CANONICAL source of the
+  official Othello setup).
 - The PRNG (tools/prng.py) is MINIMAL and fully numba: one class
   (MT19937), a seed ctor, one numba kernel (the constants local, the
   state fully internal); the class is the sole interface
@@ -121,7 +123,7 @@ current verified suite (live DB) of the file's test module.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/base_model.py | complete: thin facade base over StateMachine (pure delegation) | 17/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS (move 0 / PA 64) swaps the players in both position_flips and position_make_move; no game-loop module | 222/0/14 | docs/src/reversi/board.md |
+| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS (move 0 / PA 64) swaps the players in both position_flips and position_make_move; initial_game_position (the CANONICAL standard start); no game-loop module | 229/0/14 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order) | 20/0/1 | docs/src/reversi/feature.md |
@@ -150,7 +152,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): initial_game_position (the CANONICAL source of the standard start, the official Othello setup) + choose_random_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + game_position_make_random_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None) | 8/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/random_game.py | the random game (the new module): random_game_chose_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None) + random_game_play_path (play random moves until the empty count reaches the target) | 9/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
@@ -176,7 +178,7 @@ One row per test file, alphabetical.
 | --- | --- | --- | --- |
 | src/reversi/test/paths.py | the single home for workspace-root-anchored test paths — helper module (0 tests) | — | docs/src/reversi/test/paths.md |
 | src/reversi/test/test_binio.py | complete: the binary IO suite (the batch + the 3 empty-suffix tests) | 45/0/0 | docs/src/reversi/test/test_binio.md |
-| src/reversi/test/test_board.py | complete: the board kernel suite (the fix campaign closed; the header cleaned up; the array path + 2 PERF; the position_flips PASS-swap: scalar + the 2 bulk + the array pass batch + the fuzz parity) | 222/0/14 | docs/src/reversi/test/test_board.md |
+| src/reversi/test/test_board.py | complete: the board kernel suite (the fix campaign closed; the header cleaned up; the array path + 2 PERF; the position_flips PASS-swap: scalar + the 2 bulk + the array pass batch + the fuzz parity; + the moved TestInitialGame + the position_empty_count class) | 229/0/14 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts | 20/0/1 | docs/src/reversi/test/test_feature.md |

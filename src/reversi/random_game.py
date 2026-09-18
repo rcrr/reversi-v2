@@ -27,48 +27,25 @@
 from __future__ import annotations
 
 import numpy as np
-from typing import Tuple
 
-from pydantic import validate_call, ConfigDict
+from typing import Tuple, Annotated
+from pydantic import validate_call, ConfigDict, Field
 
 from reversi.tools.prng import MT19937
 from reversi.board import (Bitboard, Move, PositionField, bitboard_bsr,
-                           make_position, position_flips, position_legal_moves)
+                           position_flips, position_legal_moves,
+                           position_empty_count)
 
 
 
-__all__ = ['initial_game_position', 'choose_random_move',
-           'game_position_make_random_move']
+__all__ = ['random_game_chose_move',
+           'random_game_make_move',
+           'random_game_play_path']
 
 
-
-def initial_game_position() -> PositionField:
-    """
-    Returns the initial game position.
-
-    A Reversi game starts with four discs placed in the center four squares
-    of an 8×8 board (D4, E4, D5, and E5), with two black discs and two white
-    discs arranged diagonally.
-    Black, the starting player (the mover), occupies squares E4 and D5,
-    while White occupies D4 and E5.
-    .
-    .        C   D   E   F
-    .      +---+---+---+---+
-    .    3 |   |   |   |   |
-    .      +---+---+---+---+
-    .    4 |   | W | B |   |  (W = White, B = Black)
-    .      +---+---+---+---+
-    .    5 |   | B | W |   |
-    .      +---+---+---+---+
-    .    6 |   |   |   |   |
-    .      +---+---+---+---+
-    .
-    """
-    return make_position(Bitboard(0x0000000810000000),
-                         Bitboard(0x0000001008000000))
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def choose_random_move(p: PositionField, prng: MT19937) -> Bitboard:
+def random_game_chose_move(p: PositionField, prng: MT19937) -> Bitboard:
     """
     Returns a bitboard having one or zero bits set, chosen at random
     from the set of legal moves for the position.
@@ -78,11 +55,11 @@ def choose_random_move(p: PositionField, prng: MT19937) -> Bitboard:
     return move
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[PositionField, Move]:
+def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionField, Move]:
     """
     Executes a random legal move on the position.
 
-    Asks choose_random_move for the move to play, executes it on p via
+    Asks random_game_chose_move for the move to play, executes it on p via
     position_flips, and returns the resulting position together with the
     move that was played. The returned position is the one position_flips
     produces (the next player's view: the mover / opponent fields are
@@ -90,8 +67,44 @@ def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[Pos
     move the move is the pass (PA) and the returned position is the
     swapped position (the players inverted) — never None.
     """
-    move_bb: Bitboard = choose_random_move(p, prng)
+    move_bb: Bitboard = random_game_chose_move(p, prng)
     _, new_p = position_flips(p, move_bb)
     idx: int = bitboard_bsr(move_bb)
     move: Move = Move(64) if idx == -1 else Move(idx)
     return new_p, move
+
+TargetEcInt = Annotated[int, Field(ge=0, le=60)]
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def random_game_play_path(p: PositionField,
+                          target_ec: TargetEcInt,
+                          prng: MT19937) -> Tuple[PositionField, int]:
+    """
+    Apply a sequence of random legal moves to the game position to transition
+    the game state from the given position to one with a number of empty cells
+    equal to target_ec.
+
+    Returns:
+        tuple: A tuple containing the target position and the number of empty
+        cells of this position.
+
+        If a game-over position is encountered during the random path, it is
+        returned along with its number of empty cells, which in this case will
+        be greater than target_ec.
+
+        If the initial game position already has a number of empty cells less
+        than or equal to target_ec, the position is returned as the result
+        along with its own number of empty cells.
+    """
+    PASS_MOVE = Move(66)
+    ec = position_empty_count(p)
+
+    while (ec > target_ec):
+        p, move = random_game_make_move(p, prng)
+        ec = position_empty_count(p)
+        if move == PASS_MOVE:
+            p, move = random_game_make_move(p, prng)
+            if move == PASS_MOVE:
+                break
+
+    return p, ec

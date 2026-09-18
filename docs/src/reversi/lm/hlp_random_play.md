@@ -18,7 +18,7 @@ the standard start, the shared board helpers).
 - `initial_position()` — the standard start (the official Othello
   setup: the mover (black, the starting player) E4+D5, the
   opponent (white) D4+E5 — the 2x2 center, both sides 4 legal
-  moves, ec = 60; random_game.initial_game_position is the
+  moves, ec = 60; board.initial_game_position is the
   canonical source).
 - `MarginalAccumulator(fset, blocks)` — the streaming marginal
   frequency accumulator: per sub-variable (the (feature, instance)

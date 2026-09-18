@@ -105,7 +105,7 @@ __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
            'step_wave_g0', 'run_wave_g0']
 
 #: The standard start (the official Othello setup —
-#: random_game.initial_game_position is the canonical
+#: board.initial_game_position is the canonical
 #: source): the mover (black, the starting player) holds
 #: E4+D5, the opponent (white) D4+E5 — A1 = top-left =
 #: bit 0.

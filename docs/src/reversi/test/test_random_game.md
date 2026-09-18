@@ -1,21 +1,21 @@
 # reversi/test/test_random_game.py
-The NO-DB micro-suite of the random_game module: the initial
-game position (the official Othello setup — the mover /
-opponent square sets + the types), the random move pick (the
-golden frequencies), the EC20 multi-position check
-(choose_random_move over six 20-empty-square positions — the
-per-position validity + the equidistribution over the available
-options), and the random move execution (game_position_make_
-random_move — the returned position + the move).
+The NO-DB micro-suite of the random_game module: the random
+move pick (the golden frequencies), the EC20 multi-position
+check (random_game_chose_move over six 20-empty-square
+positions — the per-position validity + the equidistribution
+over the available options), the random move execution
+(random_game_make_move — the returned position + the move), and
+the random path (random_game_play_path — play random moves
+until the empty count reaches the target).
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestInitialGame` | 1 | `test_initial_game_position` (the Position dtype, the Bitboard field types, the mover {E4, D5} + the opponent {D4, E5} square sets — the official Othello setup, the canonical source) |
-| `TestChooseRandomMove` | 1 | `test_choose_random_move` (seed 93, 1000 draws from the initial position — every draw a member of the legal set {D3, C4, F5, E6} + the EXACT frequencies [258, 229, 249, 264]) |
-| `TestChooseRandomMoveEC20` | 2 | the six 20-empty-square positions (fixtures inline in the test; 13/0/0/9/0/13 legal options per position): `test_choose_random_move_ec20` (for each position, choose_random_move returns a single legal move when the position has options, or the pass — an empty move — when it has none); `test_choose_random_move_ec20_equidistributed` (N = 1000 draws per position: every draw is validated, and the frequencies accumulated over the AVAILABLE options are reasonably flat — a chi-square over the k options, df = k - 1, kept below the 4-sigma threshold) |
-| `TestGamePositionMakeRandomMove` | 4 | `game_position_make_random_move` (pick a random move, apply it on the position via position_flips, return the resulting position + the move): a 20-empty-square fixture with exactly two legal moves (G1, G2, the legal-move set 16448): `test_n_simulations_give_only_the_two_boards` (N = 12 draws, seed 93 — both legal moves appear and ONLY the two resulting boards come out); `test_the_returned_position_is_consistent_with_the_move` (every returned position is exactly the position_flips output for the drawn move); `test_the_returned_position_is_one_move_ahead` (each returned position is one stone ahead of the fixture: 44→45 stones, 20→19 empty); `test_no_legal_move_is_a_pass_with_the_swapped_position` (a position with no legal move returns (the swapped position, PA) — never None) |
+| `TestRandomGameChoseMove` | 1 | `test_random_game_chose_move` (seed 93, 1000 draws from the initial position — every draw a member of the legal set {D3, C4, F5, E6} + the EXACT frequencies [258, 229, 249, 264]) |
+| `TestRandomGameChoseMoveEC20` | 2 | the six 20-empty-square positions (fixtures inline in the test; 13/0/0/9/0/13 legal options per position): `test_random_game_chose_move_ec20` (for each position, random_game_chose_move returns a single legal move when the position has options, or the pass — an empty move — when it has none); `test_random_game_chose_move_ec20_equidistributed` (N = 1000 draws per position: every draw is validated, and the frequencies accumulated over the AVAILABLE options are reasonably flat — a chi-square over the k options, df = k - 1, kept below the 4-sigma threshold) |
+| `TestRandomGameMakeMove` | 4 | `random_game_make_move` (pick a random move, apply it on the position via position_flips, return the resulting position + the move): a 20-empty-square fixture with exactly two legal moves (G1, G2, the legal-move set 16448): `test_n_simulations_give_only_the_two_boards` (N = 12 draws, seed 93 — both legal moves appear and ONLY the two resulting boards come out); `test_the_returned_position_is_consistent_with_the_move` (every returned position is exactly the position_flips output for the drawn move); `test_the_returned_position_is_one_move_ahead` (each returned position is one stone ahead of the fixture: 44→45 stones, 20→19 empty); `test_no_legal_move_is_a_pass_with_the_swapped_position` (a position with no legal move returns (the swapped position, PA) — never None) |
+| `TestRandomGamePlayPath` | 2 | `random_game_play_path` (play random moves until the empty count reaches the target): `test_random_game_play_path` (the final empty count is <= the start and >= the target); `test_random_game_play_path_multi_generation` (N = 10 independent paths, the generation is stable) |
 
 ## Goldens pinned
 

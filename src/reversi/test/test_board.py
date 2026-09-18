@@ -1242,6 +1242,33 @@ class TestPositionCreation(unittest.TestCase):
         self.assertEqual(positions.shape, (2, 3)) 
         self.assertEqual(positions[1, 2]['mover'], mover)
 
+class TestInitialGame(unittest.TestCase):
+
+    def test_initial_game_position(self):
+
+        expected_mover_squares    = ['E4', 'D5']
+        expected_opponent_squares = ['D4', 'E5']
+
+        igp = initial_game_position()
+
+        self.assertIsInstance(igp, np.void)
+        expected_dtype = Position
+        self.assertEqual(igp.dtype, expected_dtype)
+
+        m = igp['mover']
+        o = igp['opponent']
+
+        self.assertIsInstance(m, Bitboard)
+        self.assertIsInstance(o, Bitboard)
+
+        get_squares = lambda x: [square_to_str(sq) for sq in bitboard_to_square_list(x)][::-1]
+
+        mover_squares = get_squares(m)
+        opponent_squares = get_squares(o)
+
+        self.assertEqual(mover_squares, expected_mover_squares)
+        self.assertEqual(opponent_squares, expected_opponent_squares)
+
 class TestPositionEq(unittest.TestCase):
 
     def test_position_eq_scalar_true(self):

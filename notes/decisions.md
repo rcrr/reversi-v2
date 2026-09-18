@@ -948,3 +948,15 @@ D-210 | 2026-09-18 | `position_empty_count` (Roberto) + the `bitboard_count` dua
          `TestPositionEmptyCount` class (scalar, wrong-type, array, cross-check with
          `position_empties`, 2D coercion). `test_board` 228/0/14 (was 222/0/14). Building
          block for `game_play_random_path` (the random_game WIP, a separate commit).
+
+D-211 | 2026-09-18 | `initial_game_position` moved from `random_game` to `board` (the
+         Position methods section — the CANONICAL standard start; the docstring and
+         the `TestInitialGame` test move to `test_board`). The three `random_game`
+         methods are renamed to the `random_game_*` house pattern:
+         `choose_random_move` -> `random_game_chose_move`,
+         `game_position_make_random_move` -> `random_game_make_move`,
+         `game_play_random_path` -> `random_game_play_path` (the WIP that now has a
+         public name). Imports follow (random_game drops the now-orphan
+         `make_position`; test_random_game imports `initial_game_position` from
+         board); the `hlp_wave` / `hlp_random_play` comments + the 5 mirror docs
+         follow. `test_board` 229/0/14, `test_random_game` 9/0/0, full 872/0/95.

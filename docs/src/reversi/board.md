@@ -48,6 +48,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Position | `PositionField` | `Annotated[np.void, SkipValidation]` — the scalar, validation skipped |
 | Position | `PositionArray` | annotated array; a 2-D uint64 (N,2) is coerced to a Position view by the BeforeValidator |
 | Position | `make_position(mover, opponent) -> np.void \| ndarray` | scalar / 1-D / 2-D; fresh interleaved (shape,2) buffer, inputs copied, output a zero-copy view; shape mismatch → ValueError |
+| Position | `initial_game_position() -> PositionField` | the standard start: mover (black) E4+D5 (0x0000000810000000), opponent (white) D4+E5 (0x0000001008000000) — the 2x2 center, both sides 4 legal moves, ec = 60; scalar only |
 | Position | `position_eq(a, b) -> bool` | `np.array_equal` |
 | Position | `position_print(p, output)` | 2-D text: '@' mover, 'O' opponent, '.' empty |
 | Position | `position_empties(p) -> Bitboard \| BitboardArray` | `~(mover \| opponent)` |
@@ -155,6 +156,10 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
 - `make_position` copy-then-view (inputs never aliased) —
   `test_board::TestPositionCreation`.
+- The standard start (mover {E4, D5}, opponent {D4, E5}; the
+  Position dtype + the Bitboard field types) —
+  `test_board::TestInitialGame::test_initial_game_position`
+  (the squares via bitboard_to_square_list + square_to_str).
 - The signed-int round-trip (PostgreSQL path, incl. the
   shared-buffer view; bare-int rejection) —
   `test_board::TestBitboardFromSignedInt` / `TestBitboardToSignedInt`

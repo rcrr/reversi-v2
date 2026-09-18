@@ -9,7 +9,7 @@ single global golden-pinned MT19937.
 - `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the
   official Othello setup: the mover (black, the starting
   player) E4+D5, the opponent (white) D4+E5;
-  random_game.initial_game_position is the canonical source).
+  board.initial_game_position is the canonical source).
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays
   (mover/opp u64, counter i64 = the step counter, slot i64,
   alive bool) + the run bookkeeping (next_slot, steps,
