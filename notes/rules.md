@@ -51,10 +51,14 @@ theme, with its origin D-number.
   are the Doc column of the tables).
 - notes/decisions.md — the OPEN historical decision log
   (append-only; "the why"; consulted on demand or for
-  historical research). Volume rotation (D-118, same rhythm as
-  the journals): the open volume keeps this name; when it
-  exceeds 2000 lines it closes at a session boundary as
-  decisions_NNN.md and a new decisions.md is opened; the
+  historical research). Format (D-209): ~120 chars/line; a blank
+  line before every entry (after the first); code spans
+  (backticks) for paths (with /) and function / file names (with
+  _), and backslash-escaped asterisks for the math multiplications
+  — so the Markdown renders without stray italics. Volume rotation
+  (D-118, same rhythm as the journals): the open volume keeps this
+  name; when it exceeds 2000 lines it closes at a session boundary
+  as decisions_NNN.md and a new decisions.md is opened; the
   D-numbers stay global and immutable across volumes.
 - notes/log_NNN.md — the session journals (rotating volumes;
   format rules in notes/log_rules.md).
