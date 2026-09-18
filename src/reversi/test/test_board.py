@@ -62,6 +62,8 @@ from reversi.board import *
 # import above skips the underscore names.
 from reversi.board import _zobrist_bitstrings
 
+from reversi.test.paths import WORKSPACE_ROOT
+
 
 
 ar                 = Bitboard(0x22120a0e1222221e)
@@ -3126,3 +3128,68 @@ class TestPositionHash(unittest.TestCase):
         duration = time.perf_counter() - start
         print(f"\n[PERF position_hash] Processed {n:,} positions in "
               f"{duration:.4f}s ({n / duration:,.0f} p/s)")
+
+
+class TestPositionHashLegacyParity(unittest.TestCase):
+    """
+    position_hash vs the LEGACY C engine (D-215): the FFO-12 solve-log
+    sample (the game_tree_logger CSV, 21 columns; HASH/BLACKS/WHITES
+    are signed int64 decimals — the bitboard_from_signed_int
+    representation).
+
+    The FULL log (571_141 rows, 89.7 MB) verified 100% by the
+    session-38 scratch run (scratch/ffo12_parity_check.py, 2.6 s);
+    the committed fixture is the deterministic uniform-stride sample
+    (every 571st row + the root row) — 1002 rows, 154 KB, covering
+    the full DFS span (ec 0..15, both players, leaf + internal
+    nodes; the lean-fixture call).
+
+    The parity rules (the D-213 bridge):
+      PLAYER = 0 (BLACK_PLAYER): position_hash(blacks, whites) == hash
+      PLAYER = 1 (WHITE_PLAYER): hash == ~position_hash(blacks, whites)
+    """
+
+    SAMPLE_CSV = (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data"
+                  / "ffo_12_log_sample.csv")
+    ROW_COUNT = 1002
+    HEADER = ("SUB_RUN_ID;CALL_ID;HASH;PARENT_HASH;BLACKS;WHITES;PLAYER;"
+              "ALPHA;BETA;CALL_LEVEL;EMPTY_COUNT;IS_LEAF;LEGAL_MOVE_COUNT;"
+              "LEGAL_MOVE_COUNT_ADJUSTED;PARENT_MOVE;T_CALL_CNT;T_ALPHA;"
+              "T_BEST_MOVE;T_SEARCHED_MOVE_CNT;LEGAL_MOVE_ARRAY;"
+              "SEARCHED_MOVE_ARRAY\n")
+
+    def _read_rows(self):
+        with open(self.SAMPLE_CSV, "rt") as f:
+            header = f.readline()
+            rows = [line.split(";") for line in f if line.strip()]
+        return header, rows
+
+    def test_fixture_format(self):
+        # The header pin + the row count + the DFS endpoints (the
+        # first data row is a deep leaf, the last is the root with
+        # the UN parent move).
+        header, rows = self._read_rows()
+        self.assertEqual(header, self.HEADER)
+        self.assertEqual(len(rows), self.ROW_COUNT)
+        self.assertEqual(rows[0][1].strip(), "18")
+        self.assertEqual(rows[-1][1].strip(), "1")
+        self.assertEqual(rows[-1][2].strip(), "+4446684109912312884")
+        self.assertEqual(rows[-1][14].strip(), "UN")
+
+    def test_full_sample_parity(self):
+        # Every row of the fixture: the two bridge rules (D-213) +
+        # the EMPTY_COUNT parse cross-check.
+        _, rows = self._read_rows()
+        hash_i64 = np.array([int(r[2]) for r in rows], dtype=np.int64)
+        blacks_i64 = np.array([int(r[4]) for r in rows], dtype=np.int64)
+        whites_i64 = np.array([int(r[5]) for r in rows], dtype=np.int64)
+        player = np.array([int(r[6]) for r in rows], dtype=np.int64)
+        ec = np.array([int(r[10]) for r in rows], dtype=np.uint8)
+        blacks = bitboard_from_signed_int(blacks_i64)
+        whites = bitboard_from_signed_int(whites_i64)
+        expected = bitboard_from_signed_int(hash_i64)
+        computed = position_hash(make_position(blacks, whites))
+        is_black = (player == 0)
+        nptest.assert_array_equal(computed[is_black], expected[is_black])
+        nptest.assert_array_equal(computed[~is_black], ~expected[~is_black])
+        nptest.assert_array_equal(bitboard_count(~(blacks | whites)), ec)

@@ -993,3 +993,15 @@ D-214 | 2026-09-18 | The `position_hash` return annotation corrected to the hous
          `-> Bitboard | BitboardArray` (was `-> Bitboard | npt.NDArray[np.uint64]`) — the Position-family
          pattern (`position_empties`, `position_collisions`, `legal_moves`, ...). Runtime-identical (pydantic
          does not validate returns); the doc follows.
+
+D-215 | 2026-09-18 | The `position_hash` legacy parity fixture (Roberto's FFO-12 solve log): the game_tree_logger CSV
+         of the C engine (21 columns; HASH/BLACKS/WHITES signed int64 decimals — the `bitboard_from_signed_int`
+         representation). The FULL log (571_141 rows, 89.7 MB) verified 100% by the session-38 scratch run (2.6 s):
+         the PLAYER=0 rows (262_285) match `position_hash(blacks, whites)` directly, the PLAYER=1 rows (308_856) the
+         one's complement (the D-213 bridge confirmed end-to-end against the engine), and `EMPTY_COUNT` == the
+         popcount of `~(blacks | whites)` everywhere. The committed fixture is the lean deterministic sample
+         (Roberto's call — the repo pack was 2 MiB, the full .gz was 17 MB): every 571st row + the root row,
+         1002 rows / 154 KB plain CSV (`ffo_12_log_sample.csv`), covering the full DFS span (ec 0..15, both
+         players, leaf + internal nodes; the DFS-head alternative rejected — the first 1000 rows are all deep
+         leaves). Tests: `TestPositionHashLegacyParity` (2 fast-tier tests: the fixture format pin, the
+         full-sample parity). `test_board` 244/0/15 (was 242/0/15), full LONG 887/0/22 GREEN.
