@@ -1005,3 +1005,13 @@ D-215 | 2026-09-18 | The `position_hash` legacy parity fixture (Roberto's FFO-12
          players, leaf + internal nodes; the DFS-head alternative rejected — the first 1000 rows are all deep
          leaves). Tests: `TestPositionHashLegacyParity` (2 fast-tier tests: the fixture format pin, the
          full-sample parity). `test_board` 244/0/15 (was 242/0/15), full LONG 887/0/22 GREEN.
+
+D-216 | 2026-09-18 | The `test_random_game_play_path_multi_generation` stub completed (Roberto's request — it was
+         waiting for a position hash, now the D-213 `position_hash`): N = 10 paths played from the same ec = 20
+         start over ONE advancing prng stream (seed 141, no reseed). Two facts pinned: (1) every path lands
+         EXACTLY on the target (`ec == 14` — 6 real moves; the game-over cut-off is out of reach this early);
+         (2) the 10 final positions are pairwise DISTINCT via the `position_hash` duplicate check (the
+         view-dependent hash: an equal hash means an equal position with the same player to move). The sketch
+         fixed: `random_game_play_path` returns the `(position, ec)` tuple — unpacked before hashing. The suite
+         counts are unchanged (the stub already ran as a vacuous pass): `test_random_game` 9/0/0, full LONG
+         887/0/22 GREEN.

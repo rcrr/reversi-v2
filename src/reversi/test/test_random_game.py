@@ -54,7 +54,7 @@ from reversi.board import (Move, square_to_str, move_to_str,
                            bitboard_count, bitboard_bsr,
                            make_position, position_flips, position_print,
                            position_legal_moves_count, position_empty_count,
-                           initial_game_position)
+                           position_hash, initial_game_position)
 
 from reversi.random_game import (random_game_choose_move,
                                  random_game_make_move,
@@ -415,10 +415,25 @@ class TestRandomGamePlayPath(unittest.TestCase):
         self.assertGreaterEqual(ec, target_ec)
 
     def test_random_game_play_path_multi_generation(self):
+        # N = 10 independent paths played from the same start position
+        # (the prng stream advances across the calls — one MT-19937
+        # stream, no reseed). Two facts:
+        #
+        # (1) every path lands EXACTLY on the target (6 real moves
+        #     from ec = 20; the game-over cut-off is out of reach this
+        #     early — the ec decreases by one per placed disc, the
+        #     pass swaps the players without touching it);
+        #
+        # (2) the N final positions are pairwise DISTINCT — the
+        #     position_hash duplicate check (D-213): the hash is a
+        #     pure function of the (mover, opponent) pair and it is
+        #     view-dependent, so an equal hash means an equal
+        #     position with the same player to move.
         NG = 10
         target_ec = 14
         gen = lambda : random_game_play_path(self.position, target_ec, self.prng)
         position_list = [gen() for i in range(NG)]
-        # To be completed ... we need an hash function for positions.
-        # set_of_hash = {position_hash(pos) for pos in position_list}
-        # self.assertEqual(NG, len(set_of_hash), "Duplicate positions found!")
+        for rp, ec in position_list:
+            self.assertEqual(ec, target_ec)
+        set_of_hash = {position_hash(rp) for rp, _ in position_list}
+        self.assertEqual(NG, len(set_of_hash), "Duplicate positions found!")
