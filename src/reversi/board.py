@@ -1605,7 +1605,7 @@ def _vectorized_position_hash(movers: np.ndarray, opponents: np.ndarray) -> np.n
     return out
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def position_hash(p: PositionField | PositionArray) -> Bitboard | npt.NDArray[np.uint64]:
+def position_hash(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
     """
     Returns the 64-bit Zobrist hash of the game position.
 

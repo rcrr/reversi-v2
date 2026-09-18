@@ -988,3 +988,8 @@ D-213 | 2026-09-18 | `position_hash` (Roberto's request): the 64-bit Zobrist has
          `test_board` 242/0/15 (was 229/0/14). The splitmix64 cascade alternative was considered and set aside:
          Zobrist for the engine continuity + the incremental path (`zobrist_flip_bitstrings`), the cascade for a
          stateless-only future.
+
+D-214 | 2026-09-18 | The `position_hash` return annotation corrected to the house style (Roberto):
+         `-> Bitboard | BitboardArray` (was `-> Bitboard | npt.NDArray[np.uint64]`) — the Position-family
+         pattern (`position_empties`, `position_collisions`, `legal_moves`, ...). Runtime-identical (pydantic
+         does not validate returns); the doc follows.
