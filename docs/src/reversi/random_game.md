@@ -22,15 +22,16 @@ the resulting position + the move).
   move: returns the empty bitboard 0 (the pick's (0, 64)
   sentinel — 64 = PA in the Move domain — is the caller's
   pass signal).
-- `game_position_make_random_move(p, prng) -> (PositionField |
-  None, Move)` — executes a random legal move: asks
+- `game_position_make_random_move(p, prng) -> (PositionField,
+  Move)` — executes a random legal move: asks
   choose_random_move for the move, applies it on p via board.
   position_flips, and returns the resulting position together
   with the move that was played (a Move: the square position, or
   64 = PA). The returned position is the position_flips output
   (the next player's view: the mover / opponent fields are
   swapped with respect to the input). No legal move: the move is
-  PA and the returned position is None. @validate_call
+  PA and the returned position is the swapped position (the
+  players inverted) — never None. @validate_call
   (arbitrary_types_allowed).
 
 ## Architecture
@@ -59,8 +60,9 @@ the resulting position + the move).
   with two legal moves (G1, G2), N = 12 draws (seed 93) yield
   ONLY the two resulting boards (both appear), each returned
   position is exactly the position_flips output for the drawn
-  move, and each is one stone ahead of the fixture — pinned by
-  test_random_game::TestGamePositionMakeRandomMove.
+  move, and each is one stone ahead of the fixture; a position
+  with no legal move returns (the swapped position, PA) — pinned
+  by test_random_game::TestGamePositionMakeRandomMove.
 
 ## Open issues
 None.

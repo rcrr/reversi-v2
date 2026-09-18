@@ -75,11 +75,15 @@ journal volumes (notes/log_NNN.md) and the decision log
 file-by-file state lives in the Source files / Test files tables at
 the end of this file.
 
-- The 18-level pipeline is live and green (862 tests, LONG; the 1e6
+- The 18-level pipeline is live and green (864 tests, LONG; the 1e6
   G0 benchmark replays bit-exact, 28065 dead lanes): the ML chain
   CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL
   FEATURE_ANALYSIS (pipeline step 3) + EFFECT_SIZE (pipeline step
   6) — default FALSE, opt-in.
+- A PASS (move 0 in board.position_flips, PA = 64 in
+  position_make_move) returns the position with the players
+  inverted (the next player's view), never None — the position_flips
+  scalar + array kernels swap on a zero move.
 - G0 is the corpus generator (hlp_wave, the concurrent WAVE engine);
   the model file is self-describing (format v2, the config
   provenance embedded; the backward-compat v1 reader).
@@ -117,7 +121,7 @@ current verified suite (live DB) of the file's test module.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/base_model.py | complete: thin facade base over StateMachine (pure delegation) | 17/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; no game-loop module | 221/0/14 | docs/src/reversi/board.md |
+| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS (move 0 / PA 64) swaps the players in both position_flips and position_make_move; no game-loop module | 222/0/14 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order) | 20/0/1 | docs/src/reversi/feature.md |
@@ -146,7 +150,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): initial_game_position (the CANONICAL source of the standard start, the official Othello setup) + choose_random_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + game_position_make_random_move (pick a move, apply it via position_flips, return the resulting position + the move) | 7/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/random_game.py | the random game (the new module): initial_game_position (the CANONICAL source of the standard start, the official Othello setup) + choose_random_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + game_position_make_random_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None) | 8/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
@@ -172,7 +176,7 @@ One row per test file, alphabetical.
 | --- | --- | --- | --- |
 | src/reversi/test/paths.py | the single home for workspace-root-anchored test paths — helper module (0 tests) | — | docs/src/reversi/test/paths.md |
 | src/reversi/test/test_binio.py | complete: the binary IO suite (the batch + the 3 empty-suffix tests) | 45/0/0 | docs/src/reversi/test/test_binio.md |
-| src/reversi/test/test_board.py | complete: the board kernel suite (the fix campaign closed; the header cleaned up; the array path + 2 PERF) | 221/0/14 | docs/src/reversi/test/test_board.md |
+| src/reversi/test/test_board.py | complete: the board kernel suite (the fix campaign closed; the header cleaned up; the array path + 2 PERF; the position_flips PASS-swap: scalar + the 2 bulk + the array pass batch + the fuzz parity) | 222/0/14 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test | 6/0/1 | docs/src/reversi/test/test_client.md |
 | src/reversi/test/test_feature.py | complete: 9 verified facts | 20/0/1 | docs/src/reversi/test/test_feature.md |
@@ -201,7 +205,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_opt_lbfgs.py | complete: the LBFGS suite (the batch + 9 new tests; the O2b bit-identity test) | 14/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths | 3/0/0 | docs/src/reversi/test/test_paths.md |
 | src/reversi/test/test_pattern.py | complete: the pattern suite (the fix campaign closed; the goldens re-derived) | 65/0/3 | docs/src/reversi/test/test_pattern.md |
-| src/reversi/test/test_random_game.py | complete: the random-game suite — TestInitialGame (the Position dtype + the Bitboard field types + the mover {E4, D5} / opponent {D4, E5} square sets, the official Othello setup); TestChooseRandomMove (the golden: seed 93, 1000 draws, the EXACT frequencies [258, 229, 249, 264] over {D3, C4, F5, E6}); TestChooseRandomMoveEC20 (the per-position validity + the equidistribution over the available options); TestGamePositionMakeRandomMove (only the two resulting boards, the position↔move consistency, one stone ahead) | 7/0/0 | docs/src/reversi/test/test_random_game.md |
+| src/reversi/test/test_random_game.py | complete: the random-game suite — TestInitialGame (the Position dtype + the Bitboard field types + the mover {E4, D5} / opponent {D4, E5} square sets, the official Othello setup); TestChooseRandomMove (the golden: seed 93, 1000 draws, the EXACT frequencies [258, 229, 249, 264] over {D3, C4, F5, E6}); TestChooseRandomMoveEC20 (the per-position validity + the equidistribution over the available options); TestGamePositionMakeRandomMove (only the two resulting boards, the position↔move consistency, one stone ahead, the no-legal-move pass → swapped position + PA) | 8/0/0 | docs/src/reversi/test/test_random_game.md |
 | src/reversi/test/test_regab.py | complete: the regab suite (the batch incl. the 4 SQL-injection tests; the db_long_gate; the no-DB micro tier: dedup + overlap) | 48/0/0 | docs/src/reversi/test/test_regab.md |
 | src/reversi/test/test_hlp_config_schemas.py | complete: the pydantic config domain suite (the flag test; the client_check_tol tests; the 6 PlotConfig tests; the 4 feature_analysis/effect_size tests) | 27/0/0 | docs/src/reversi/test/test_hlp_config_schemas.md |
 | src/reversi/test/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite | 14/0/0 | docs/src/reversi/test/test_hlp_design_matrix.md |

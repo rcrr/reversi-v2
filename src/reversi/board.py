@@ -1193,9 +1193,10 @@ def _kogge_stone_mm(generator: Bitboard,
 def _vectorized_flips(movers: np.ndarray, opponents: np.ndarray, moves: np.ndarray) -> tuple:
     """
     Vectorized flip-set calculation over an N-board batch (D-140).
-    For a non-single-bit (or zero) move the element keeps the input
-    position and gets a 0 flip set; for a legal move the flipped
-    opponent discs change side and the mover places the disc.
+    A zero (PASS) move swaps the players and gets a 0 flip set; for a
+    non-single-bit move the element keeps the input position and gets a
+    0 flip set; for a legal move the flipped opponent discs change side
+    and the mover places the disc.
     """
     n = movers.shape[0]
     flips = np.empty(n, dtype=Bitboard)
@@ -1207,8 +1208,13 @@ def _vectorized_flips(movers: np.ndarray, opponents: np.ndarray, moves: np.ndarr
         mover = Bitboard(movers[i])
         opponent = Bitboard(opponents[i])
         move = Bitboard(moves[i])
-        if move == 0 or (move & (move - 1)) != 0:
-            # Empty or non-single-bit move: no flip, position unchanged.
+        if move == 0:
+            # PASS: the players swap, no flip.
+            flips[i] = Bitboard(0)
+            out_movers[i] = opponent
+            out_opponents[i] = mover
+        elif (move & (move - 1)) != 0:
+            # A non-single-bit move: no flip, position unchanged.
             flips[i] = Bitboard(0)
             out_movers[i] = mover
             out_opponents[i] = opponent
@@ -1231,20 +1237,24 @@ def position_flips(p: PositionField | PositionArray,
     """
     Computes the flip set.
     Return flips as well as the updated game position.
-    The moving player places a disc in the square identified by the move parameter.
-    The flipped squares are returned.
-    When the move is not legal the empy set is returned.
-    When move is 0ULL, 0ULL is returned.
-    The updated board is also returned as second element of the tuple when the move is legal,
-    None otherwise.
+    The moving player places a disc in the square identified by the move
+    parameter. The flipped squares are returned.
+    When the move is 0ULL (PASS) the players are swapped and the updated
+    board is the swapped position (no flip).
+    When the move is not legal (a single bit without a flipping ray, or a
+    non-single-bit bitboard) the empty flip set is returned and the
+    updated board is None (the scalar case).
+    The updated board is returned as the second element of the tuple when
+    the move is legal or a PASS, None otherwise.
 
     Dual scalar/array (D-140, as legal_moves): when input is a scalar
     the output is scalar; when p is a 1-D PositionArray and move a 1-D
     Bitboard array of the same shape, the output is a Bitboard array
-    and a PositionArray. In the array case an illegal (or
-    non-single-bit) move element i gets flips[i] = 0 and updated[i]
-    left as the input position (no per-element None). Bare Python ints
-    and lists are rejected (Pydantic) as for the rest of the dual API.
+    and a PositionArray. In the array case a zero (PASS) element swaps
+    the players, a legal element flips, and an illegal (or non-single-
+    bit) element i gets flips[i] = 0 and updated[i] left as the input
+    position (no per-element None). Bare Python ints and lists are
+    rejected (Pydantic) as for the rest of the dual API.
     """
     if isinstance(p, np.ndarray) and isinstance(move, np.ndarray):
         # D-140: the standard 1-D guard (house pattern, as legal_moves)
@@ -1257,10 +1267,14 @@ def position_flips(p: PositionField | PositionArray,
         flips, out_movers, out_opponents = _vectorized_flips(p['mover'], p['opponent'], move)
         return flips, make_position(out_movers, out_opponents)
     if isinstance(p, np.void) and isinstance(move, Bitboard):
-        if bitboard_count(move) != 1:
-            return Bitboard(0x0000000000000000), None
         m = p['mover']
         o = p['opponent']
+        if move == 0x0000000000000000:
+            # PASS: the players swap, no flip.
+            return Bitboard(0x0000000000000000), make_position(o, m)
+        if bitboard_count(move) != 1:
+            # A non-single-bit move is not a move: no flip, no position.
+            return Bitboard(0x0000000000000000), None
         # The njit primitive returns a Python int at the Python boundary
         # (numba scalar-return idiom) — re-wrap to Bitboard.
         flips = Bitboard(_kogge_stone_mm(move, o, m))
@@ -1327,10 +1341,12 @@ def position_make_move(p: PositionField | PositionArray,
     """
     Executes a game move.
     The move must be in the range A1, ... H8, PA. [0..64].
-    When 64 (PA) is passed the player and opponent bitboard are swapped, it is not verified
-    that pass is the only legal move.
-    When an illegal move (an EMPTY square without a flipping ray)
-    is passed None is returned.
+    When 64 (PA) is passed the player and opponent bitboards are swapped
+    (it is not verified that pass is the only legal move) — PA never
+    returns None.
+    When an illegal move (an EMPTY square without a flipping ray) is
+    passed and the input is a scalar, None is returned — the only case
+    that yields None (the array case keeps the input position).
     A move on a square OCCUPIED by the mover or the opponent
     stones is UNEXPECTED BEHAVIOR (the caller's responsibility to
     avoid — pass only legal moves or PA): the flip ray is

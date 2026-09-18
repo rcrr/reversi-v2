@@ -78,7 +78,7 @@ def choose_random_move(p: PositionField, prng: MT19937) -> Bitboard:
     return move
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[PositionField | None, Move]:
+def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[PositionField, Move]:
     """
     Executes a random legal move on the position.
 
@@ -87,7 +87,8 @@ def game_position_make_random_move(p: PositionField, prng: MT19937) -> Tuple[Pos
     move that was played. The returned position is the one position_flips
     produces (the next player's view: the mover / opponent fields are
     swapped with respect to the input). When the position has no legal
-    move the move is the pass (PA) and the returned position is None.
+    move the move is the pass (PA) and the returned position is the
+    swapped position (the players inverted) — never None.
     """
     move_bb: Bitboard = choose_random_move(p, prng)
     _, new_p = position_flips(p, move_bb)

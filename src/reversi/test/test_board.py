@@ -2007,6 +2007,7 @@ class TestPositionFlips(unittest.TestCase):
         self.assertIsNone(next_position)
 
     def test_position_flips_move_is_empty(self):
+        # A zero (PASS) move: the players swap, no flip.
 
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
@@ -2019,7 +2020,9 @@ class TestPositionFlips(unittest.TestCase):
         expected_flips = Bitboard(0x0000000000000000)
 
         self.assertEqual(flips, expected_flips)
-        self.assertIsNone(next_position)
+        # The pass swaps the players (the next player's view).
+        self.assertTrue(position_eq(next_position,
+                                    make_position(opponent, mover)))
 
     def test_position_flips_move_is_invalid(self):
 
@@ -2110,11 +2113,18 @@ class TestPositionFlips(unittest.TestCase):
                 ef.print()
             self.assertTrue(flips == ef)
 
-            # The updated position: None when nothing flips, otherwise
-            # the mover places the disc and the flipped squares change
-            # side (roles swapped in the returned position).
+            # The updated position: the PASS (move == 0) swaps the
+            # players; a move with no flip (an illegal square) yields
+            # None; otherwise the mover places the disc and the flipped
+            # squares change side (roles swapped in the returned
+            # position).
             if expected_flips == 0:
-                self.assertIsNone(updated)
+                if move == 0:
+                    expected_updated = make_position(
+                        Bitboard(opponent), Bitboard(mover))
+                    self.assertTrue(position_eq(updated, expected_updated))
+                else:
+                    self.assertIsNone(updated)
             else:
                 expected_updated = make_position(
                     Bitboard(opponent & ~expected_flips),
@@ -2180,11 +2190,19 @@ class TestPositionFlips(unittest.TestCase):
         nptest.assert_array_equal(flips, data_array[:, 3])
 
         for i in range(data_array.shape[0]):
-            # The updated position: the input position unchanged when
-            # nothing flips, otherwise the mover places the disc and the
+            # The updated position: the PASS (move == 0) swaps the
+            # players; a move with no flip (an illegal square) keeps the
+            # input position; otherwise the mover places the disc and the
             # flipped squares change side (the scalar rule, elementwise).
             if data_array[i, 3] == 0:
-                self.assertTrue(position_eq(updated[i], positions[i]))
+                if data_array[i, 2] == 0:
+                    expected_updated = make_position(
+                        Bitboard(data_array[i, 1]),
+                        Bitboard(data_array[i, 0]),
+                    )
+                    self.assertTrue(position_eq(updated[i], expected_updated))
+                else:
+                    self.assertTrue(position_eq(updated[i], positions[i]))
             else:
                 expected_updated = make_position(
                     Bitboard(data_array[i, 1] & ~data_array[i, 3]),
@@ -2238,10 +2256,30 @@ class TestPositionFlips(unittest.TestCase):
                     # pre-vectorization scalar behaviour, the caller's
                     # responsibility) so flips may still be non-zero here.
                     self.assertFalse(legal)
-            if sf == 0:
+            if int(moves[i]) == 0:
+                # PASS: the array element swaps the players (the next
+                # player's view), matching the scalar.
+                self.assertTrue(position_eq(updated[i], su))
+            elif sf == 0:
+                # Illegal (or non-single-bit) move: the array element
+                # keeps the input position.
                 self.assertTrue(position_eq(updated[i], positions[i]))
             else:
                 self.assertTrue(position_eq(updated[i], su))
+
+    def test_position_flips_array_pass_batch(self):
+        # A batch of pure PASS (zero) moves: every element swaps the
+        # players (the next player's view) with a 0 flip set.
+        movers = np.array([0x0000000000000001, 0x000428080A2C7C3C], dtype=Bitboard)
+        opponents = np.array([0x0000000000000000, 0x10B8D6F7F5D30100], dtype=Bitboard)
+        positions = make_position(movers, opponents)
+        moves = np.array([0, 0], dtype=Bitboard)
+        flips, updated = position_flips(positions, moves)
+        for i in range(2):
+            self.assertEqual(int(flips[i]), 0)
+            self.assertTrue(position_eq(updated[i],
+                                        make_position(positions[i]['opponent'],
+                                                      positions[i]['mover'])))
 
     def test_position_flips_array_2d_raises_value_error(self):
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),

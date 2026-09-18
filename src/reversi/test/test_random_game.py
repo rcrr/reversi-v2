@@ -52,7 +52,8 @@ from reversi.board import (Move, square_to_str, move_to_str,
                            bitboard_to_signed_int,
                            bitboard_to_string_list, bitboard_print,
                            bitboard_count, bitboard_bsr,
-                           make_position, position_flips, position_print)
+                           make_position, position_flips, position_print,
+                           position_legal_moves_count)
 
 from reversi.random_game import (initial_game_position, choose_random_move,
                                  game_position_make_random_move)
@@ -407,3 +408,17 @@ class TestGamePositionMakeRandomMove(unittest.TestCase):
             stones = new_p['mover'] | new_p['opponent']
             self.assertEqual(int(bitboard_count(stones)), fixture_stones + 1)
             self.assertEqual(int(bitboard_count(~stones)), 19)
+
+    def test_no_legal_move_is_a_pass_with_the_swapped_position(self):
+        # A position with no legal move: the move is the pass (PA) and the
+        # returned position is the swapped position (the players inverted)
+        # — never None.
+        p = make_position(Bitboard(0x0000000000000001),
+                          Bitboard(0x0000000000010000))
+        self.assertEqual(int(position_legal_moves_count(p)), 0)
+        new_p, mv = game_position_make_random_move(p, self.prng)
+        self.assertEqual(int(mv), 64)
+        self.assertIsNotNone(new_p)
+        # The players are inverted.
+        self.assertEqual(int(bitboard_to_signed_int(new_p['mover'])), 0x10000)
+        self.assertEqual(int(bitboard_to_signed_int(new_p['opponent'])), 0x1)

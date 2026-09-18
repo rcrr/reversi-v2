@@ -1817,3 +1817,33 @@ D-207 | 2026-09-15 | The overview.md SIMPLIFICATION (Roberto:
         Conventions / Index sections kept (they are the
         look-forward content). Notes-only: no source / doc / test
         touched.
+D-208 | 2026-09-15 | The PASS-semantics fix (Roberto, approved
+        after the analysis + plan): a PASS must yield the position
+        with the players inverted, not None / unchanged.
+        board.position_flips: the SCALAR path now returns
+        (0, make_position(o, m)) for a zero (PASS) move instead of
+        (0, None); the _vectorized_flips kernel swaps the players
+        for a zero element instead of leaving the input unchanged.
+        An illegal (single-bit, no flip) or non-single-bit move is
+        unchanged (scalar None / array input-unchanged).
+        board.position_make_move: BEHAVIOUR UNCHANGED (PA = 64
+        already swapped the players, scalar and array); only the
+        docstring clarified that the None in the return type is the
+        illegal-scalar-move signal only, never the PA (Roberto's
+        option A: keep the None). random_game.
+        game_position_make_random_move: the pass now returns (the
+        swapped position, PA) instead of (None, PA) — a pure
+        consequence of the position_flips fix (no logic change);
+        the return annotation dropped the "| None". Tests:
+        test_position_flips_move_is_empty (scalar pass -> swap),
+        the 2 bulk tests (the dataset line 000 is a pass -> swap,
+        the illegal lines still None / unchanged), the array fuzz
+        parity (the pass branch swapped), a NEW
+        test_position_flips_array_pass_batch (a pure-pass batch ->
+        every element swapped), and a NEW
+        test_no_legal_move_is_a_pass_with_the_swapped_position in
+        test_random_game. Verified: test_board 222/0/14,
+        test_random_game 8/0/0, full LONG 864/0/21 GREEN (862 +
+        2); 1e6 G0 bit-exact (28065 dead lanes) — the wave (which
+        drives the stream through position_make_move, unchanged)
+        is unaffected.
