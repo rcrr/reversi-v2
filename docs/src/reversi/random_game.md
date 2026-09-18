@@ -1,13 +1,13 @@
 # reversi/random_game.py
 The random game of Reversi, one building block at a time: the
-random move pick (`random_game_chose_move`), the random move
+random move pick (`random_game_choose_move`), the random move
 execution (`random_game_make_move` — pick a move, apply it, return
 the resulting position + the move), and the random path
 (`random_game_play_path` — play random moves until the empty count
 reaches the target, or a game-over position).
 
 ## API
-- `random_game_chose_move(p, prng) -> Bitboard` — a random legal
+- `random_game_choose_move(p, prng) -> Bitboard` — a random legal
   move: the position's legal moves (board.
   position_legal_moves) + the uniform PRNG pick (prng.
   choose_one_from_set64). @validate_call
@@ -18,7 +18,7 @@ reaches the target, or a game-over position).
   pass signal).
 - `random_game_make_move(p, prng) -> (PositionField,
   Move)` — executes a random legal move: asks
-  random_game_chose_move for the move, applies it on p via board.
+  random_game_choose_move for the move, applies it on p via board.
   position_flips, and returns the resulting position together
   with the move that was played (a Move: the square position, or
   64 = PA). The returned position is the position_flips output
@@ -49,12 +49,12 @@ reaches the target, or a game-over position).
   legal set, and the EXACT 1000-draw frequencies
   [258, 229, 249, 264] over the initial-position legal set
   {D3, C4, F5, E6} at seed 93 — pinned by
-  test_random_game::TestRandomGameChoseMove::
-  test_random_game_chose_move (the golden-pinned MT19937 stream
+  test_random_game::TestRandomGameChooseMove::
+  test_random_game_choose_move (the golden-pinned MT19937 stream
   makes it bit-stable; it also pins the one-draw-per-pick
   consumption). The EC20 fixtures (six 20-empty-square
   positions) pin the pick at the low-empty-count end —
-  test_random_game::TestRandomGameChoseMoveEC20.
+  test_random_game::TestRandomGameChooseMoveEC20.
 - The random move execution: from a 20-empty-square position
   with two legal moves (G1, G2), N = 12 draws (seed 93) yield
   ONLY the two resulting boards (both appear), each returned

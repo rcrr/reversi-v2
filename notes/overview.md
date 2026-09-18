@@ -87,7 +87,7 @@ the end of this file.
 - G0 is the corpus generator (hlp_wave, the concurrent WAVE engine);
   the model file is self-describing (format v2, the config
   provenance embedded; the backward-compat v1 reader).
-- random_game (the new module): random_game_chose_move (the
+- random_game (the new module): random_game_choose_move (the
   uniform PRNG pick) + random_game_make_move (pick a move,
   apply it via position_flips, return the resulting position +
   the move) + random_game_play_path (play random moves until
@@ -152,7 +152,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): random_game_chose_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None) + random_game_play_path (play random moves until the empty count reaches the target) | 9/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the injected MT19937 choose_one_from_set64) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None) + random_game_play_path (play random moves until the empty count reaches the target) | 9/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
@@ -244,4 +244,5 @@ here: their paths are the Doc column of the two tables above.
 - notes/probe_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to notes/analyses/, the baseline)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/log_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
-- notes/log_002.md — session journal, volume 002 (sessions 31–..., open)
+- notes/log_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
+- notes/log_003.md — session journal, volume 003 (sessions 38–..., open)

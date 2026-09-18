@@ -56,19 +56,19 @@ from reversi.board import (Move, square_to_str, move_to_str,
                            position_legal_moves_count, position_empty_count,
                            initial_game_position)
 
-from reversi.random_game import (random_game_chose_move,
+from reversi.random_game import (random_game_choose_move,
                                  random_game_make_move,
                                  random_game_play_path)
 
 
 
-class TestRandomGameChoseMove(unittest.TestCase):
+class TestRandomGameChooseMove(unittest.TestCase):
 
     def setUp(self):
         PRNG_SEED = 93
         self.prng = MT19937(PRNG_SEED)
 
-    def test_random_game_chose_move(self):
+    def test_random_game_choose_move(self):
 
         I = 1_000
 
@@ -86,7 +86,7 @@ class TestRandomGameChoseMove(unittest.TestCase):
         freqs = np.zeros(len(expected_value_options), dtype=np.uint64)
 
         for i in range(I):
-            move = random_game_chose_move(igp, self.prng)
+            move = random_game_choose_move(igp, self.prng)
             self.assertIsInstance(move, Bitboard)
             self.assertIn(move, expected_value_options)
 
@@ -96,7 +96,7 @@ class TestRandomGameChoseMove(unittest.TestCase):
         nptest.assert_array_equal(freqs, expected_freqs)
 
 
-class TestRandomGameChoseMoveEC20(unittest.TestCase):
+class TestRandomGameChooseMoveEC20(unittest.TestCase):
     """
     The fixtures are:
      - prng                      : An MT-19937 pseudo random number generator.
@@ -216,13 +216,13 @@ class TestRandomGameChoseMoveEC20(unittest.TestCase):
 
         self.print_record = _pr
 
-    def test_random_game_chose_move_ec20(self):
+    def test_random_game_choose_move_ec20(self):
 
         for i, p in enumerate(self.positions):
             expected_move_options = []
 
             try:
-                move_as_bitboard = random_game_chose_move(p, self.prng)
+                move_as_bitboard = random_game_choose_move(p, self.prng)
                 self.assertIsInstance(move_as_bitboard, Bitboard)
 
                 lms = self.legal_moves_sets[i]
@@ -252,7 +252,7 @@ class TestRandomGameChoseMoveEC20(unittest.TestCase):
 
                 raise
 
-    def test_random_game_chose_move_ec20_equidistributed(self):
+    def test_random_game_choose_move_ec20_equidistributed(self):
         # Two facts, over N random moves drawn for EACH of the six
         # positions:
         #
@@ -274,7 +274,7 @@ class TestRandomGameChoseMoveEC20(unittest.TestCase):
                 # No option: every draw must be the pass (an empty
                 # move). The condition is validated N times.
                 for _ in range(N):
-                    self.assertEqual(random_game_chose_move(p, self.prng),
+                    self.assertEqual(random_game_choose_move(p, self.prng),
                                      Bitboard(0))
                 continue
             # The available options: the positions of the legal move
@@ -282,7 +282,7 @@ class TestRandomGameChoseMoveEC20(unittest.TestCase):
             avail = [int(sq) for sq in bitboard_to_square_list(lms)]
             freq = {o: 0 for o in avail}
             for _ in range(N):
-                m = random_game_chose_move(p, self.prng)
+                m = random_game_choose_move(p, self.prng)
                 # (1) the draw is validated: a single legal move.
                 self.assertEqual(int(bitboard_count(m)), 1)
                 self.assertTrue((m & lms) != 0)
@@ -299,10 +299,10 @@ class TestRandomGameChoseMoveEC20(unittest.TestCase):
 
 class TestRandomGameMakeMove(unittest.TestCase):
     """
-    random_game_make_move: it asks random_game_chose_move for the move
+    random_game_make_move: it asks random_game_choose_move for the move
     to play, executes it on the position via position_flips, and returns the
     resulting position together with the move that was played. The random
-    generation is covered by the random_game_chose_move tests; here the returned
+    generation is covered by the random_game_choose_move tests; here the returned
     position is checked for correctness and for consistency with the chosen
     move.
 

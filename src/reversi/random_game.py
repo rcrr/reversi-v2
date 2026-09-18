@@ -38,14 +38,14 @@ from reversi.board import (Bitboard, Move, PositionField, bitboard_bsr,
 
 
 
-__all__ = ['random_game_chose_move',
+__all__ = ['random_game_choose_move',
            'random_game_make_move',
            'random_game_play_path']
 
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def random_game_chose_move(p: PositionField, prng: MT19937) -> Bitboard:
+def random_game_choose_move(p: PositionField, prng: MT19937) -> Bitboard:
     """
     Returns a bitboard having one or zero bits set, chosen at random
     from the set of legal moves for the position.
@@ -59,7 +59,7 @@ def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionFiel
     """
     Executes a random legal move on the position.
 
-    Asks random_game_chose_move for the move to play, executes it on p via
+    Asks random_game_choose_move for the move to play, executes it on p via
     position_flips, and returns the resulting position together with the
     move that was played. The returned position is the one position_flips
     produces (the next player's view: the mover / opponent fields are
@@ -67,7 +67,7 @@ def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionFiel
     move the move is the pass (PA) and the returned position is the
     swapped position (the players inverted) — never None.
     """
-    move_bb: Bitboard = random_game_chose_move(p, prng)
+    move_bb: Bitboard = random_game_choose_move(p, prng)
     _, new_p = position_flips(p, move_bb)
     idx: int = bitboard_bsr(move_bb)
     move: Move = Move(64) if idx == -1 else Move(idx)

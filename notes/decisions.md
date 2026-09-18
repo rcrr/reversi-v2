@@ -960,3 +960,11 @@ D-211 | 2026-09-18 | `initial_game_position` moved from `random_game` to `board`
          `make_position`; test_random_game imports `initial_game_position` from
          board); the `hlp_wave` / `hlp_random_play` comments + the 5 mirror docs
          follow. `test_board` 229/0/14, `test_random_game` 9/0/0, full 872/0/95.
+
+D-212 | 2026-09-18 | The `random_game` syntactic rename (Roberto): `random_game_chose_move` -> `random_game_choose_move`
+         ("chose", the past tense, -> "choose") inside the D-211 `random_game_*` house pattern. The test classes +
+         methods follow (`TestRandomGameChoseMove` -> `TestRandomGameChooseMove`, `TestRandomGameChoseMoveEC20` ->
+         `TestRandomGameChooseMoveEC20`, the 3 `test_random_game_chose_move*` methods). The 2 mirror docs
+         (`docs/src/reversi/random_game.md`, `docs/src/reversi/test/test_random_game.md`) + `notes/overview.md`
+         follow (the D-211 entry keeps its historical reference verbatim). A pure rename, no behaviour change:
+         `test_random_game` 9/0/0, full LONG 872/0/21 GREEN (the 1e6 G0 benchmark bit-exact, 28065 dead lanes).
