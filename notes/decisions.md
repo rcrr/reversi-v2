@@ -1015,3 +1015,14 @@ D-216 | 2026-09-18 | The `test_random_game_play_path_multi_generation` stub comp
          fixed: `random_game_play_path` returns the `(position, ec)` tuple — unpacked before hashing. The suite
          counts are unchanged (the stub already ran as a vacuous pass): `test_random_game` 9/0/0, full LONG
          887/0/22 GREEN.
+
+D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
+         aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
+         space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
+         DELIBERATE wherever the value is not a domain concept. In particular the counts
+         (`bitboard_count`, `position_empty_count`) return an ORDINAL (0..64), not a square index: typing
+         them `np.uint8 | SquareArray` would be a semantic lie — they stay
+         `np.uint8 | npt.NDArray[np.uint8]`. Likewise the int64 storage forms (`bitboard_from/to_signed_int`)
+         and the generic `make_position` return (`Union[np.void, np.ndarray]` — scalar, 1-D or 2-D). Ruling:
+         ALL the board.py public signatures are correct as they are — nothing to uniform; Nia's group-A
+         proposal withdrawn. The convention recorded in the `board.md` Conventions.

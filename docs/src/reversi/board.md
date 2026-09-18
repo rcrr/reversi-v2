@@ -232,6 +232,15 @@ None.
   legacy comparability and every pinned golden. The hash is
   view-dependent by design (the two views of a board are different
   positions).
+- The type aliases are SEMANTIC domain types, not dtype shortcuts
+  (D-217): `Square` is an index into the 64-square space, `Bitboard`
+  a set of squares, `Position` a game position. The raw numpy forms
+  are deliberate wherever the value is not a domain concept — the
+  ordinal counts (`bitboard_count`, `position_empty_count` →
+  `np.uint8 | npt.NDArray[np.uint8]`, NOT `SquareArray`), the int64
+  storage forms (`bitboard_from/to_signed_int`), the generic
+  `make_position` return (scalar, 1-D or 2-D). Do not "uniform"
+  them toward the aliases.
 - Little-endian only: no endianness portability work.
 
 ## Integration
