@@ -1070,6 +1070,24 @@ D-221 | 2026-09-18 | The pick-from-set single-source refactor (Roberto: "the PRN
          draws, the batch equivalence + the stream alignment, the all-empty no-draw case). `test_prng` 22/0/0
          (was 19/0/0), full LONG 905/0/22 GREEN.
 
+D-222 | 2026-09-18 | The `random_game_play_path` dual scalar/array (the campaign step 3, the last):
+         `-> Tuple[PositionField | PositionArray, np.uint8 | npt.NDArray[np.uint8]]` — the ec annotation is now
+         honest (`position_empty_count` already returned np.uint8 at runtime; the ordinal doctrine D-217). The
+         array case is the STEP ENGINE: per step, the legal sets of the current and swapped views (both
+         draw-independent) classify the active lanes — plays_a (the mover plays), plays_b (the mover passes, the
+         opponent plays), game_over (the double pass: harvested, no draw, the input view returned) — one
+         `get_uint64_batch` pre-draws for the needing lanes and `pick_one_from_set64_batch` + `position_flips`
+         advance them; one shared `target_ec` for the batch; the termination is mathematical (every
+         non-terminal step decreases a lane's ec by one) with a defensive 70-step bound. THE DESIGN FORK,
+         resolved with the wave precedent: a multi-draw path CANNOT be both scalar-sequence bit-identical AND
+         vectorized across lanes (the scalar processes a lane's WHOLE path before the next lane; the vector
+         engine interleaves the lanes per step) — the array contract is the STEP-INTERLEAVED stream discipline
+         of `hlp_wave` ("one draw per (lane, step)"), and the N == 1 array call IS bit-identical to the scalar
+         call (with one lane the interleave collapses into the lane's sequential stream — pinned). Tests:
+         `TestRandomGamePlayPathArray` (8: the scalar bridge over 4 paths, the whole-batch determinism, the ec
+         contract, the as-is, the 2-D coercion, the 1-D guard, the empty array, the rejections).
+         `test_random_game` 32/0/0 (was 24/0/0), full LONG 913/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

@@ -38,13 +38,20 @@ results computed on the ONE injected prng stream.
   position_flips — and the move codes come from popcount(move - 1)
   (the bit index; the wrap-around of an empty move gives 64 = PA).
   @validate_call (arbitrary_types_allowed).
-- `random_game_play_path(p, target_ec, prng) -> (PositionField,
-  int)` — plays a sequence of random legal moves (via
-  random_game_make_move) until the empty count reaches
-  target_ec (or a game-over position is hit: the two consecutive
-  passes break the loop). Returns the final position + its empty
-  count. If the starting position is already at or below
-  target_ec, it is returned as-is. @validate_call
+- `random_game_play_path(p, target_ec, prng) -> (PositionField |
+  PositionArray, np.uint8 | uint8 array)` — plays a sequence of
+  random legal moves (via random_game_make_move) until the empty
+  count reaches target_ec (or a game-over position is hit: the two
+  consecutive passes break the loop). Returns the final position +
+  its empty count (an ordinal np.uint8 — D-217). If the starting
+  position is already at or below target_ec, it is returned as-is.
+  Dual scalar/array (D-222): the array case is the STEP ENGINE —
+  at every step the ACTIVE lanes draw once, in element order (the
+  hlp_wave step-interleaved stream discipline: one draw per
+  non-terminal lane — the mover plays, or the mover passes and the
+  opponent plays; the game-over lanes consume no draw). The N == 1
+  array call is BIT-IDENTICAL to the scalar call. The target is
+  ONE shared value for the batch. @validate_call
   (arbitrary_types_allowed).
 
 ## Architecture
@@ -63,6 +70,16 @@ results computed on the ONE injected prng stream.
   line for the codes (np.bitwise_count(move - 1): the bit index of
   a single-bit move, and the wrap-around of an empty move gives
   64 = PA — no kernel of its own).
+- The dual array play_path (D-222): the STEP ENGINE — per step,
+  the legal sets of the current and swapped views (both
+  draw-independent) classify the active lanes: plays_a (the mover
+  plays), plays_b (the mover passes, the opponent plays),
+  game_over (the double pass — harvested, no draw, the input view
+  returned); one get_uint64_batch pre-draws for the needing lanes
+  (the prefix slot map) and pick_one_from_set64_batch +
+  position_flips advance them (the plays_b lanes from the swapped
+  view). The termination is mathematical (every non-terminal step
+  decreases a lane's ec by one) with a defensive 70-step bound.
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
@@ -104,6 +121,16 @@ results computed on the ONE injected prng stream.
   game-over break stops the loop with the input view returned (the
   pass is PA = 64), and a moveless mover continues via the pass
   swap — pinned by test_random_game::TestRandomGamePlayPath.
+- The array play path (D-222): the N == 1 array call is
+  bit-identical to the scalar call (the scalar bridge: the
+  position, the ec, and the stream alignment — over the standard,
+  the single-pass, the game-over, and the deep 46-move initial
+  paths) — pinned by test_random_game::
+  TestRandomGamePlayPathArray::test_single_lane_array_matches_scalar;
+  the whole-batch determinism, the game-over lane (the input view
+  + its own ec), the target landing, and the ec bounds —
+  test_random_game::TestRandomGamePlayPathArray::test_determinism /
+  test_ec_contract.
 
 ## Open issues
 None.

@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 
 from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
@@ -34,8 +35,8 @@ from pydantic import validate_call, ConfigDict, Field
 from reversi.tools.prng import MT19937, pick_one_from_set64_batch
 from reversi.board import (Bitboard, BitboardArray, Move, MoveArray,
                            PositionField, PositionArray, bitboard_bsr,
-                           position_flips, position_legal_moves,
-                           position_empty_count)
+                           make_position, position_flips,
+                           position_legal_moves, position_empty_count)
 
 
 
@@ -130,9 +131,10 @@ def random_game_make_move(p: PositionField | PositionArray,
 TargetEcInt = Annotated[int, Field(ge=0, le=60)]
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def random_game_play_path(p: PositionField,
+def random_game_play_path(p: PositionField | PositionArray,
                           target_ec: TargetEcInt,
-                          prng: MT19937) -> Tuple[PositionField, int]:
+                          prng: MT19937) -> Tuple[PositionField | PositionArray,
+                                                  np.uint8 | npt.NDArray[np.uint8]]:
     """
     Apply a sequence of random legal moves to the game position to transition
     the game state from the given position to one with a number of empty cells
@@ -140,7 +142,7 @@ def random_game_play_path(p: PositionField,
 
     Returns:
         tuple: A tuple containing the target position and the number of empty
-        cells of this position.
+        cells of this position (an ordinal np.uint8 — D-217).
 
         If a game-over position is encountered during the random path, it is
         returned along with its number of empty cells, which in this case will
@@ -149,16 +151,93 @@ def random_game_play_path(p: PositionField,
         If the initial game position already has a number of empty cells less
         than or equal to target_ec, the position is returned as the result
         along with its own number of empty cells.
+
+    Dual scalar/array (D-222, the house D-140 pattern): a scalar
+    PositionField gives the (PositionField, np.uint8) pair; a 1-D
+    PositionArray gives the (PositionArray, uint8-array) pair of the
+    same length (the 2-D (N, 2) uint64 input is coerced by the
+    PositionArray validator).
+
+    The PRNG stream contract of the array case is the STEP-INTERLEAVED
+    discipline of the hlp_wave engine (NOT the scalar sequence — the
+    paths are multi-draw, so a lane-sequential consumption would
+    forbid the vectorization): at every step the ACTIVE lanes draw
+    once, in element order — exactly one draw per non-terminal lane
+    (the mover plays, or the mover passes and the opponent plays), no
+    draw for the game-over lanes (the double pass); one
+    get_uint64_batch call feeds the prng batch pick per step. Two
+    facts pin the contract down: the call is DETERMINISTIC given the
+    seed, and with N == 1 the step-interleaved stream IS the lane's
+    sequential stream, so the single-lane array call is bit-identical
+    to the scalar call. The target is ONE shared value for the whole
+    batch.
     """
-    PASS_MOVE = Move(64)
-    ec = position_empty_count(p)
-
-    while (ec > target_ec):
-        p, move = random_game_make_move(p, prng)
-        ec = position_empty_count(p)
-        if move == PASS_MOVE:
-            p, move = random_game_make_move(p, prng)
-            if move == PASS_MOVE:
+    if isinstance(p, np.ndarray):
+        # D-222: the standard 1-D guard (house pattern, as position_flips)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        target = np.uint8(target_ec)
+        cur = p
+        ec = position_empty_count(cur)
+        active = ec > target
+        # The mathematical bound: every non-terminal step decreases a
+        # lane's ec by exactly one (the mover plays, or the mover
+        # passes and the opponent plays) and the game-over step ends
+        # the lane — at most ec_start + 1 steps per lane (<= 65).
+        for _step in range(70):
+            if not np.any(active):
                 break
+            lms_a = position_legal_moves(cur)
+            pass_lane = active & (lms_a == np.uint64(0))
+            lms_b = position_legal_moves(make_position(cur['opponent'],
+                                                       cur['mover']))
+            plays_a = active & (lms_a != np.uint64(0))
+            plays_b = pass_lane & (lms_b != np.uint64(0))
+            game_over = pass_lane & (lms_b == np.uint64(0))
+            needs = plays_a | plays_b
+            draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
+            slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
+            pick_sets = np.where(plays_a, lms_a,
+                                 np.where(plays_b, lms_b, np.uint64(0)))
+            moves = pick_one_from_set64_batch(pick_sets, draws, slots)
+            idx_a = np.flatnonzero(plays_a)
+            if idx_a.size:
+                sub = make_position(cur['mover'][idx_a],
+                                    cur['opponent'][idx_a])
+                _, new_p = position_flips(sub, moves[idx_a])
+                movers = cur['mover'].copy()
+                opponents = cur['opponent'].copy()
+                movers[idx_a] = new_p['mover']
+                opponents[idx_a] = new_p['opponent']
+                cur = make_position(movers, opponents)
+            idx_b = np.flatnonzero(plays_b)
+            if idx_b.size:
+                swapped = make_position(cur['opponent'][idx_b],
+                                        cur['mover'][idx_b])
+                _, new_p = position_flips(swapped, moves[idx_b])
+                movers = cur['mover'].copy()
+                opponents = cur['opponent'].copy()
+                movers[idx_b] = new_p['mover']
+                opponents[idx_b] = new_p['opponent']
+                cur = make_position(movers, opponents)
+            ec = position_empty_count(cur)
+            active = active & ~game_over & (ec > target)
+        if np.any(active):
+            raise RuntimeError("random_game_play_path: the step bound "
+                               "(70) is exceeded — an active lane did "
+                               "not terminate")
+        return cur, ec
+    if isinstance(p, np.void):
+        PASS_MOVE = Move(64)
+        ec = position_empty_count(p)
 
-    return p, ec
+        while (ec > target_ec):
+            p, move = random_game_make_move(p, prng)
+            ec = position_empty_count(p)
+            if move == PASS_MOVE:
+                p, move = random_game_make_move(p, prng)
+                if move == PASS_MOVE:
+                    break
+
+        return p, ec
+    raise TypeError("Input must be a Position scalar or a Position array.")

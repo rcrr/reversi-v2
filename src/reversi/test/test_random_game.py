@@ -263,6 +263,136 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
             random_game_make_move([0, 0], MT19937(self.seed))
 
 
+class TestRandomGamePlayPathArray(unittest.TestCase):
+    """
+    random_game_play_path, the array case (D-222): the step engine
+    over a 1-D PositionArray — at every step the ACTIVE lanes draw
+    once, in element order (the hlp_wave step-interleaved stream
+    discipline; one draw per non-terminal lane: the mover plays, or
+    the mover passes and the opponent plays; the game-over lanes
+    consume no draw). The N == 1 array call is BIT-IDENTICAL to the
+    scalar call (the scalar bridge, pinned — with one lane the
+    step-interleaved stream IS the lane's sequential stream). The
+    fixtures are the mixed EC20 batch (three standard, two
+    single-pass, one game over) + the initial position (a 46-move
+    deep path at target 14).
+    """
+
+    def setUp(self):
+        PRNG_SEED = 141
+        self.seed = PRNG_SEED
+        data = np.array([
+            ( 4611717676283199524, -7855295674223658936),
+            (  787631300868060734, -9223372036837537535),
+            (    5646387823048732,  -222663607811309568),
+            (   73548482186484752, -1670215300554932092),
+            (      17592186044415,                    0),
+            (-7305726066363072511,  6944590345852188420),
+        ], dtype=np.int64)
+        self.positions = [make_position(bitboard_from_signed_int(im),
+                                        bitboard_from_signed_int(io))
+                          for im, io in data]
+        self.positions.append(initial_game_position())
+        self.start_ec = np.array([int(position_empty_count(q))
+                                  for q in self.positions], dtype=np.uint8)
+        self.movers = np.array([int(bitboard_to_signed_int(q['mover']))
+                                for q in self.positions], dtype=np.int64)
+        self.opponents = np.array([int(bitboard_to_signed_int(q['opponent']))
+                                   for q in self.positions], dtype=np.int64)
+
+    def _batch(self):
+        return make_position(bitboard_from_signed_int(self.movers),
+                             bitboard_from_signed_int(self.opponents))
+
+    def test_single_lane_array_matches_scalar(self):
+        # The scalar bridge: with ONE lane the step-interleaved
+        # stream IS the lane's sequential stream — the array call is
+        # bit-identical to the scalar call (the position, the ec, and
+        # the stream alignment afterwards).
+        for q in (self.positions[0], self.positions[1],
+                  self.positions[4], self.positions[6]):
+            prng_seq = MT19937(self.seed)
+            seq_p, seq_ec = random_game_play_path(q, 14, prng_seq)
+            single = make_position(
+                np.array([int(q['mover'])], dtype=np.uint64),
+                np.array([int(q['opponent'])], dtype=np.uint64))
+            prng_arr = MT19937(self.seed)
+            arr_p, arr_ec = random_game_play_path(single, 14, prng_arr)
+            self.assertEqual(int(arr_p[0]['mover']), int(seq_p['mover']))
+            self.assertEqual(int(arr_p[0]['opponent']),
+                             int(seq_p['opponent']))
+            self.assertEqual(int(arr_ec[0]), int(seq_ec))
+            self.assertEqual(int(prng_seq.get_uint64()),
+                             int(prng_arr.get_uint64()))
+
+    def test_determinism(self):
+        # Two identical array calls on identical fresh streams give
+        # bit-identical results (the whole batch).
+        a_p, a_ec = random_game_play_path(self._batch(), 14,
+                                          MT19937(self.seed))
+        b_p, b_ec = random_game_play_path(self._batch(), 14,
+                                          MT19937(self.seed))
+        nptest.assert_array_equal(a_p, b_p)
+        nptest.assert_array_equal(a_ec, b_ec)
+
+    def test_ec_contract(self):
+        # The game-over element (both players moveless): the double
+        # pass ends the lane with the input view and its own ec
+        # (20 > the target); every other lane lands exactly on the
+        # target; all the final ecs are <= the starts.
+        arr_p, arr_ec = random_game_play_path(self._batch(), 14,
+                                              MT19937(self.seed))
+        self.assertEqual(int(arr_ec[4]), 20)
+        self.assertEqual(int(arr_p[4]['mover']),
+                         int(self.positions[4]['mover']))
+        self.assertEqual(int(arr_p[4]['opponent']),
+                         int(self.positions[4]['opponent']))
+        for i in (0, 1, 2, 3, 5, 6):
+            self.assertEqual(int(arr_ec[i]), 14)
+        self.assertTrue(np.all(arr_ec <= self.start_ec))
+
+    def test_already_at_target_as_is(self):
+        # A position with ec = 0 <= the target: returned as-is (the
+        # structurally-valid full board; no draw consumed).
+        batch = make_position(
+            np.array([0xFFFFFFFFFFFFFFFF], dtype=np.uint64),
+            np.zeros(1, dtype=np.uint64))
+        rp, ec = random_game_play_path(batch, 14, MT19937(self.seed))
+        self.assertEqual(int(rp[0]['mover']), 0xFFFFFFFFFFFFFFFF)
+        self.assertEqual(int(rp[0]['opponent']), 0)
+        self.assertEqual(int(ec[0]), 0)
+
+    def test_2d_coercion(self):
+        raw_2d = np.array([[int(q['mover']), int(q['opponent'])]
+                           for q in self.positions[:2]], dtype=np.uint64)
+        arr_p, arr_ec = random_game_play_path(raw_2d, 14,
+                                              MT19937(self.seed))
+        exp_p, exp_ec = random_game_play_path(self._batch()[:2], 14,
+                                              MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (2,))
+        self.assertEqual(arr_ec.shape, (2,))
+        nptest.assert_array_equal(arr_p, exp_p)
+        nptest.assert_array_equal(arr_ec, exp_ec)
+
+    def test_1d_guard(self):
+        arr = self._batch()
+        with self.assertRaises(ValueError):
+            random_game_play_path(arr.reshape(2, 4), 14, MT19937(self.seed))
+
+    def test_empty_array(self):
+        arr_p, arr_ec = random_game_play_path(np.zeros(0, dtype=Position),
+                                              14, MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (0,))
+        self.assertEqual(arr_ec.shape, (0,))
+        self.assertEqual(arr_ec.dtype, np.uint8)
+
+    def test_wrong_input_rejected(self):
+        with self.assertRaises(ValidationError):
+            random_game_play_path(0, 14, MT19937(self.seed))
+        with self.assertRaises(ValidationError):
+            random_game_play_path([0, 0], 14, MT19937(self.seed))
+
+
 
 class TestRandomGameChooseMove(unittest.TestCase):
 
