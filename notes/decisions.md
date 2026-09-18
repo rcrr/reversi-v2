@@ -1789,3 +1789,31 @@ D-206 | 2026-09-15 | New method game_position_make_random_move
         the mover / opponent roles un-swapped. Verification:
         test_random_game 7/0/0 GREEN; full LONG 862/0/21 GREEN
         (859 + 3); 1e6 G0 bit-exact (28065 dead lanes).
+D-207 | 2026-09-15 | The overview.md SIMPLIFICATION (Roberto:
+        "completamente un BLOB! ... tieni le cose che ci servono
+        a guardare avanti, non la storia insignificante"). The
+        "Where we are" (~550 lines) and "Next steps" (~175
+        lines) sections had drifted into campaign narrative (the
+        D-192..D-206 story, the whole I-017 T1..T19, the PLOT
+        D-149..D-155, config cache, duplicate positions, the
+        reorganization) — violating the file's own contract
+        ("Current state only — the history lives in the journal
+        volumes + the decision log"). Applied: (1) "Where we are"
+        -> a compact current state (the 18-level pipeline live +
+        green, G0 the corpus generator, the self-describing v2
+        model file, the random_game module, the MINIMAL fully-
+        numba PRNG, the STALE pre-fix corpora); (2) "Next steps"
+        -> the real backlog (regenerate the STALE G0 corpora,
+        the last PRNG passettino, the profiling session, the
+        I-003/I-009/I-010/I-018 backlog); (3) the per-file
+        Source/Test tables' State columns trimmed from the
+        D-pointer narrative to a status word + the open items
+        (the Suite + Doc columns kept verbatim); (4) the stale
+        Environment "Suite status" (771 tests, 2026-09-10)
+        dropped (the suite changes per commit; the per-file
+        Suite column is the live reference). The history was NOT
+        lost: it already lives in decisions.md + the journal
+        (the D-pointers index it). 981 -> 241 lines. The Project /
+        Conventions / Index sections kept (they are the
+        look-forward content). Notes-only: no source / doc / test
+        touched.
