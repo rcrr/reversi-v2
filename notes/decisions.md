@@ -1028,6 +1028,19 @@ D-218 | 2026-09-18 | The `random_game_play_path` double-pass fix (found reviewin
          9-move opponent: the pass swaps the view, the game continues to the target). `test_random_game`
          11/0/0 (was 9/0/0), full LONG 889/0/22 GREEN.
 
+D-219 | 2026-09-18 | The `random_game_choose_move` dual scalar/array (the campaign step 1, the design approved by
+         Roberto): `-> Bitboard | BitboardArray`, the D-140 dispatch (the 1-D guard, the 2-D (N,2) coercion via
+         the PositionArray validator). The PRNG STREAM CONTRACT: the array call is bit-identical to the sequential
+         scalar processing of the same positions with the same stream — one draw per non-empty legal set, no draw
+         for a pass (the `choose_one_from_set64` empty sentinel). The trick: the legal sets are computed BEFORE
+         any draw (they are draw-independent), so one `get_uint64_batch(k)` pre-draws for the non-empty elements
+         and the prefix-sum slot map feeds the `prange` kernel (`_vectorized_choose_move`) whose per-element math
+         (`_pick_one_from_set64`, the numba transcription of the prng pick: the SWAR popcount,
+         r = (d >> 11) * 2^-53, the c-th set bit) is bit-exact. The scalar path is UNTOUCHED (zero golden
+         changes). Tests: `TestRandomGameChooseMoveArray` (6: the bit-equivalence regina + the stream-alignment
+         probe, the scalar types, the 2-D coercion, the 1-D guard, the empty array, the rejections).
+         `test_random_game` 17/0/0 (was 11/0/0), full LONG 895/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

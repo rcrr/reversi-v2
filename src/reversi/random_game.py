@@ -26,15 +26,18 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
+import numba as nb
 
 from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
 
 from reversi.tools.prng import MT19937
-from reversi.board import (Bitboard, Move, PositionField, bitboard_bsr,
-                           position_flips, position_legal_moves,
-                           position_empty_count)
+from reversi.board import (Bitboard, BitboardArray, Move, PositionField,
+                           PositionArray, bitboard_bsr, position_flips,
+                           position_legal_moves, position_empty_count)
 
 
 
@@ -44,15 +47,85 @@ __all__ = ['random_game_choose_move',
 
 
 
+#: Internal use function.
+@nb.njit(cache=True)
+def _pick_one_from_set64(s, d):
+    """
+    The choose_one_from_set64 pick from ONE pre-drawn uint64 value d
+    (D-219): the identical math of the prng method — k = popcount(s),
+    r = (d >> 11) * (1 / (2**53 - 1)), c = floor(r * k), the c-th set
+    bit of s (skipping the c lowest). s is a non-zero uint64
+    bitboard; the return is the single-bit bitboard. The empty-set
+    case never reaches the kernel: the pass is handled by the
+    caller, consuming no draw.
+    """
+    v = s - ((s >> np.uint64(1)) & np.uint64(0x5555555555555555))
+    v = (v & np.uint64(0x3333333333333333)) + ((v >> np.uint64(2)) & np.uint64(0x3333333333333333))
+    v = (v + (v >> np.uint64(4))) & np.uint64(0x0F0F0F0F0F0F0F0F)
+    k = (v * np.uint64(0x0101010101010101)) >> np.uint64(56)
+    r = np.float64(d >> np.uint64(11)) * (1.0 / 9007199254740991.0)
+    c = int(math.floor(r * np.float64(k)))
+    t = s
+    for _ in range(c):
+        t = (t - np.uint64(1)) & t
+    return t & (np.uint64(0) - t)
+
+#: Internal use function.
+@nb.njit(parallel=True, cache=True)
+def _vectorized_choose_move(lms, draws, slots):
+    """
+    Vectorized random_game_choose_move over an N-position batch
+    (D-219). lms is the 1-D legal-move bitboard array; slots[i] is
+    the draw slot of element i (the prefix count of the non-empty
+    lms); draws is the pre-drawn uint64 batch — one draw per
+    NON-EMPTY element, in element order (the bit-identical
+    counterpart of the sequential scalar consumption). The empty-lms
+    elements return 0 (the pass) and consume no draw.
+    """
+    n = lms.shape[0]
+    out = np.empty(n, dtype=np.uint64)
+    for i in nb.prange(n):
+        lm = lms[i]
+        if lm == np.uint64(0):
+            out[i] = np.uint64(0)
+        else:
+            out[i] = _pick_one_from_set64(lm, draws[slots[i]])
+    return out
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def random_game_choose_move(p: PositionField, prng: MT19937) -> Bitboard:
+def random_game_choose_move(p: PositionField | PositionArray,
+                            prng: MT19937) -> Bitboard | BitboardArray:
     """
     Returns a bitboard having one or zero bits set, chosen at random
     from the set of legal moves for the position.
+
+    Dual scalar/array (D-219, the house D-140 pattern): a scalar
+    PositionField gives a scalar Bitboard; a 1-D PositionArray gives
+    a 1-D BitboardArray of the same length (the 2-D (N, 2) uint64
+    input is coerced by the PositionArray validator).
+
+    The PRNG stream contract: the elements consume their draws from
+    the ONE injected stream in element order, exactly like a scalar
+    loop — one draw per element with a non-empty legal-move set, no
+    draw for a pass (an empty set). The array call is bit-identical
+    to the sequential scalar processing of the same positions with
+    the same stream (the needs are computed before any draw; one
+    get_uint64_batch call feeds the kernel).
     """
-    moves: Bitboard = position_legal_moves(p)
-    move, _ = prng.choose_one_from_set64(moves)
-    return move
+    if isinstance(p, np.ndarray):
+        # D-219: the standard 1-D guard (house pattern, as position_flips)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        lms = position_legal_moves(p)
+        needs = (lms != np.uint64(0))
+        draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
+        slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
+        return _vectorized_choose_move(lms, draws, slots)
+    if isinstance(p, np.void):
+        moves: Bitboard = position_legal_moves(p)
+        move, _ = prng.choose_one_from_set64(moves)
+        return move
+    raise TypeError("Input must be a Position scalar or a Position array.")
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def random_game_make_move(p: PositionField, prng: MT19937) -> Tuple[PositionField, Move]:

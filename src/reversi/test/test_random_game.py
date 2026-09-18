@@ -45,6 +45,8 @@ import unittest
 import numpy as np
 import numpy.testing as nptest
 
+from pydantic import ValidationError
+
 from reversi.tools.prng import MT19937
 from reversi.board import (Move, square_to_str, move_to_str,
                            Bitboard, Position, PositionField,
@@ -59,6 +61,96 @@ from reversi.board import (Move, square_to_str, move_to_str,
 from reversi.random_game import (random_game_choose_move,
                                  random_game_make_move,
                                  random_game_play_path)
+
+
+
+class TestRandomGameChooseMoveArray(unittest.TestCase):
+    """
+    random_game_choose_move, the array case (D-219): the batch pick
+    over a 1-D PositionArray with the ONE injected prng stream —
+    bit-identical to the sequential scalar processing (one draw per
+    non-empty legal set, no draw for a pass). The fixtures are the
+    six EC20 positions (three standard, two pass, one game over) +
+    the initial position: a mixed batch with 13/0/0/9/0/13/4 legal
+    options.
+    """
+
+    def setUp(self):
+        PRNG_SEED = 93
+        self.seed = PRNG_SEED
+        data = np.array([
+            ( 4611717676283199524, -7855295674223658936),
+            (  787631300868060734, -9223372036837537535),
+            (    5646387823048732,  -222663607811309568),
+            (   73548482186484752, -1670215300554932092),
+            (      17592186044415,                    0),
+            (-7305726066363072511,  6944590345852188420),
+        ], dtype=np.int64)
+        self.positions = [make_position(bitboard_from_signed_int(im),
+                                        bitboard_from_signed_int(io))
+                          for im, io in data]
+        self.positions.append(initial_game_position())
+        self.movers = np.array([int(bitboard_to_signed_int(q['mover']))
+                                for q in self.positions], dtype=np.int64)
+        self.opponents = np.array([int(bitboard_to_signed_int(q['opponent']))
+                                   for q in self.positions], dtype=np.int64)
+
+    def _batch(self):
+        return make_position(bitboard_from_signed_int(self.movers),
+                             bitboard_from_signed_int(self.opponents))
+
+    def test_array_matches_sequential_scalar(self):
+        # The regina: the array call on a fresh stream (seed 93) is
+        # bit-identical to the sequential scalar processing of the
+        # same positions on a fresh stream with the same seed — and
+        # the two streams stay aligned afterwards (the pass elements
+        # consumed no draw; one get_uint64_batch fed the kernel).
+        prng_seq = MT19937(self.seed)
+        seq = [random_game_choose_move(q, prng_seq) for q in self.positions]
+        prng_arr = MT19937(self.seed)
+        arr = random_game_choose_move(self._batch(), prng_arr)
+        self.assertIsInstance(arr, np.ndarray)
+        self.assertEqual(arr.dtype, np.uint64)
+        self.assertEqual(arr.shape, (len(self.positions),))
+        for i in range(len(self.positions)):
+            self.assertEqual(arr[i], seq[i])
+        self.assertEqual(int(prng_seq.get_uint64()),
+                         int(prng_arr.get_uint64()))
+
+    def test_scalar_types(self):
+        # The scalar path is unchanged: a Bitboard out.
+        h = random_game_choose_move(self.positions[0], MT19937(self.seed))
+        self.assertIsInstance(h, Bitboard)
+
+    def test_2d_coercion(self):
+        # A (n, 2) uint64 array is coerced to a 1D PositionArray.
+        raw_2d = np.array([[int(q['mover']), int(q['opponent'])]
+                           for q in self.positions[:2]], dtype=np.uint64)
+        computed = random_game_choose_move(raw_2d, MT19937(self.seed))
+        expected = random_game_choose_move(self._batch()[:2],
+                                           MT19937(self.seed))
+        self.assertEqual(computed.shape, (2,))
+        self.assertEqual(computed.dtype, np.uint64)
+        nptest.assert_array_equal(computed, expected)
+
+    def test_1d_guard(self):
+        arr = self._batch()
+        with self.assertRaises(ValueError):
+            random_game_choose_move(arr.reshape(2, 4), MT19937(self.seed))
+
+    def test_empty_array(self):
+        out = random_game_choose_move(np.zeros(0, dtype=Position),
+                                      MT19937(self.seed))
+        self.assertEqual(out.shape, (0,))
+        self.assertEqual(out.dtype, np.uint64)
+
+    def test_wrong_input_rejected(self):
+        # Bare Python types are rejected (pydantic, as for the whole
+        # dual API).
+        with self.assertRaises(ValidationError):
+            random_game_choose_move(0, MT19937(self.seed))
+        with self.assertRaises(ValidationError):
+            random_game_choose_move([0, 0], MT19937(self.seed))
 
 
 
