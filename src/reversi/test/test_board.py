@@ -46,6 +46,7 @@ from unittest.mock import patch
 import time
 import os
 import io
+import hashlib
 
 import pydantic
 from pydantic import ValidationError
@@ -56,6 +57,10 @@ import numpy.testing as nptest
 import numba as nb
 
 from reversi.board import *
+
+# The white-box import for the Zobrist table pin (D-213): the star
+# import above skips the underscore names.
+from reversi.board import _zobrist_bitstrings
 
 
 
@@ -2954,3 +2959,170 @@ class TestPydanticVersion(unittest.TestCase):
         # pydantic v2 semantics; a major version change must fail
         # loudly, not pass silently.
         self.assertEqual(int(pydantic.VERSION.split('.')[0]), 2)
+
+
+class TestPositionHash(unittest.TestCase):
+    """
+    position_hash (D-213): the 64-bit Zobrist hash of the game
+    position — the legacy C engine bitstrings (board.c
+    `zobrist_bitstrings[]`), the SWAR byte-fold kernel, the dual
+    scalar/array API.
+
+    The goldens are derived from the legacy C source
+    (game_position_x_hash_plain) by the session-38 scratch script
+    (scratch/zobrist_extract.py), which also verified the transcribed
+    C loop and the SWAR byte-fold bit-identical over 10_000 random
+    pairs.
+    """
+
+    # The SHA-3-256 pin of the packed table (native LE byte order) —
+    # it protects the 128 constants against any corruption.
+    ZOBRIST_TABLE_SHA3_256 = (
+        "3e3dfd40afef05e075e393def68bc13c0e592cc3d838652e330070eaaa0a626c")
+
+    # The goldens: (mover, opponent, expected) — the legacy hash with
+    # player = BLACK_PLAYER (the pure fold, no complement).
+    GOLDENS = [
+        (0x0000000000000000, 0x0000000000000000, 0x0000000000000000),
+        (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x64AB6CEBF8DA2CE1),
+        (0x0000000000000000, 0xFFFFFFFFFFFFFFFF, 0xC4B3FF52E56B7344),
+        (0x1F3D5B7902468ACE, 0x2E4C6A8013579BDF, 0x28923589BCAB4148),
+        (0x00FF00FF00FF00FF, 0xAA0000550000AA55, 0xCE27EC93BF035599),
+    ]
+
+    # The legacy WHITE bridge: legacy_hash(blacks, whites, WHITE) =
+    # ~position_hash(blacks, whites) — the C `if (p) hash = ~hash`
+    # rule (player = WHITE_PLAYER).
+    WHITE_BRIDGE_GOLDENS = [
+        (0x0000000810000000, 0x0000001008000000, 0x3BD6D03D4D9CC5E9),
+        (0x0000000000000000, 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
+        (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x9B5493140725D31E),
+        (0x1F3D5B7902468ACE, 0x2E4C6A8013579BDF, 0xD76DCA764354BEB7),
+    ]
+
+    def test_initial_game_position_golden(self):
+        # The canonical start: mover {E4, D5}, opponent {D4, E5}.
+        igp = initial_game_position()
+        self.assertEqual(position_hash(igp), np.uint64(0xC4292FC2B2633A16))
+
+    def test_scalar_returns_uint64(self):
+        h = position_hash(initial_game_position())
+        self.assertIsInstance(h, np.uint64)
+
+    def test_golden_positions(self):
+        for m, o, expected in self.GOLDENS:
+            p = make_position(Bitboard(m), Bitboard(o))
+            self.assertEqual(position_hash(p), np.uint64(expected))
+
+    def test_array_hash_matches_scalar(self):
+        movers = np.array([m for m, _, _ in self.GOLDENS], dtype=np.uint64)
+        opponents = np.array([o for _, o, _ in self.GOLDENS], dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        computed = position_hash(positions)
+        self.assertEqual(computed.dtype, np.uint64)
+        self.assertEqual(computed.shape, (len(self.GOLDENS),))
+        expected = np.array([e for _, _, e in self.GOLDENS], dtype=np.uint64)
+        nptest.assert_array_equal(computed, expected)
+
+    def test_2d_coercion(self):
+        """A (n, 2) uint64 array is coerced to a 1D PositionArray."""
+        raw_2d = np.array([[0x1F3D5B7902468ACE, 0x2E4C6A8013579BDF],
+                           [0x0000000000000000, 0xFFFFFFFFFFFFFFFF]],
+                          dtype=np.uint64)
+        computed = position_hash(raw_2d)
+        self.assertEqual(computed.shape, (2,))
+        self.assertEqual(computed.dtype, np.uint64)
+        self.assertEqual(computed[0], np.uint64(0x28923589BCAB4148))
+        self.assertEqual(computed[1], np.uint64(0xC4B3FF52E56B7344))
+
+    def test_empty_array(self):
+        positions = np.zeros(0, dtype=Position)
+        computed = position_hash(positions)
+        self.assertEqual(computed.shape, (0,))
+        self.assertEqual(computed.dtype, np.uint64)
+
+    def test_wrong_input_rejected(self):
+        # A (n, 3) uint64 array is not a Position (the validator raises).
+        with self.assertRaises(ValueError):
+            position_hash(np.zeros((2, 3), dtype=np.uint64))
+        # Bare Python types are rejected (pydantic, as for the whole
+        # dual API — the bare-int ValidationError pin).
+        with self.assertRaises(ValidationError):
+            position_hash(0)
+        with self.assertRaises(ValidationError):
+            position_hash([0, 0])
+
+    def test_legacy_white_complement_bridge(self):
+        # The C complement rule: legacy_hash(blacks, whites,
+        # player=WHITE_PLAYER) = ~position_hash(blacks, whites).
+        for m, o, expected in self.WHITE_BRIDGE_GOLDENS:
+            h = position_hash(make_position(Bitboard(m), Bitboard(o)))
+            complement = np.uint64(~h & np.uint64(0xFFFFFFFFFFFFFFFF))
+            self.assertEqual(complement, np.uint64(expected))
+
+    def test_order_sensitivity(self):
+        # The two views of the same board are different positions
+        # (mover / opponent select different table slots).
+        m, o = 0x1F3D5B7902468ACE, 0x2E4C6A8013579BDF
+        self.assertNotEqual(
+            position_hash(make_position(Bitboard(m), Bitboard(o))),
+            position_hash(make_position(Bitboard(o), Bitboard(m))))
+        # Determinism: the same pair hashes identically.
+        p = make_position(Bitboard(m), Bitboard(o))
+        self.assertEqual(position_hash(p), position_hash(p))
+
+    def test_zobrist_table_pin(self):
+        # White-box pin: the SHA-3-256 of the packed 128-entry table.
+        digest = hashlib.sha3_256(_zobrist_bitstrings.tobytes()).hexdigest()
+        self.assertEqual(digest, self.ZOBRIST_TABLE_SHA3_256)
+
+    def test_avalanche_bit_flips(self):
+        # Every single-bit flip of the initial position (128 flips:
+        # 64 mover + 64 opponent) XORs one table entry, so each of
+        # the 64 output bits flips ~half the times. The table is
+        # fixed, hence the counts are deterministic; the band is the
+        # binomial 64 +/- 4*sigma with sigma = sqrt(128 * 0.25).
+        igp = initial_game_position()
+        base = int(position_hash(igp))
+        deltas = np.zeros(128, dtype=np.uint64)
+        for i in range(64):
+            bit = np.uint64(1) << np.uint64(i)
+            h_mov = int(position_hash(make_position(
+                Bitboard(int(igp['mover']) ^ int(bit)),
+                Bitboard(int(igp['opponent'])))))
+            h_opp = int(position_hash(make_position(
+                Bitboard(int(igp['mover'])),
+                Bitboard(int(igp['opponent']) ^ int(bit)))))
+            deltas[2 * i] = base ^ h_mov
+            deltas[2 * i + 1] = base ^ h_opp
+        counts = ((deltas[:, None] >> np.arange(64, dtype=np.uint64))
+                  & np.uint64(1)).sum(axis=0)
+        self.assertTrue(np.all(counts >= 40) and np.all(counts <= 88),
+                        f"avalanche out of band: {counts}")
+
+    def test_no_collisions(self):
+        # Random (mover, opponent) pairs over the full 2^128 space:
+        # zero collisions up to the birthday bound (expected
+        # collisions ~ n^2 / 2^65; 1e6 -> ~3e-8). N escalates under
+        # LONG=1.
+        n = 1_000_000 if os.environ.get('LONG') == '1' else 10_000
+        rng = np.random.default_rng(93)
+        movers = rng.integers(0, 2**64, size=n, dtype=np.uint64)
+        opponents = rng.integers(0, 2**64, size=n, dtype=np.uint64)
+        hs = position_hash(make_position(movers, opponents))
+        self.assertEqual(np.unique(hs).size, n)
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1',
+                         "Skipping performance test (set PERF=1 to run)")
+    def test_perf_throughput(self):
+        n = 1_000_000
+        rng = np.random.default_rng(42)
+        movers = rng.integers(0, 2**64, size=n, dtype=np.uint64)
+        opponents = rng.integers(0, 2**64, size=n, dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        position_hash(positions)  # warm-up (the njit compile)
+        start = time.perf_counter()
+        position_hash(positions)
+        duration = time.perf_counter() - start
+        print(f"\n[PERF position_hash] Processed {n:,} positions in "
+              f"{duration:.4f}s ({n / duration:,.0f} p/s)")

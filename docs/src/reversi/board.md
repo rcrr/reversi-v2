@@ -7,7 +7,7 @@ no UI.
 
 ## API
 
-The 68 `__all__` names. Dual contract throughout: scalar in →
+The 69 `__all__` names. Dual contract throughout: scalar in →
 scalar out, 1-D array in → array out (same shape), unless stated.
 
 | family | name | contract |
@@ -64,6 +64,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Position | `position_has_to_pass(p) -> bool` | the mover has no legal move |
 | Position | `position_is_game_over(p) -> bool` | no legal move for the mover and, after the pass, none for the opponent either |
 | Position | `position_is_move_legal(p, move: Move) -> bool` | a legal square, or the pass only when the legal set is empty; > 64 → False |
+| Position | `position_hash(p) -> Bitboard \| NDArray[np.uint64]` | the 64-bit Zobrist hash: mover discs → the first 64 legacy blacks slots, opponent → the legacy whites slots, no complement — exactly the legacy `game_position_x_hash` of (blacks = mover, whites = opponent, player = BLACK); a legacy WHITE position = the one's complement (the C `if (p) hash = ~hash`); pure function of the pair (no legality validation); scalar + 1-D (+ the (N,2) coercion), empty array OK |
 | Position | `position_fa1h8` / `…ro270 (p) -> PositionField` | the 8 per-field D8 transforms; `position_ro000` returns a copy |
 | Position | `position_transformations(p) -> PositionArray` | all 8, same slot order as the bitboards |
 | Position | `position_anti_transformations(p) -> PositionArray` | all 8 inverses (slots 1/3 swapped) |
@@ -91,9 +92,12 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - **Numba** — `njit(parallel=True, cache=True)` on the hot kernels
   (the two D8 batch transform fns, the 8 scalar transform impls,
   `_vectorized_legal_moves`, `_vectorized_flips`,
-  `_vectorized_make_move`), `prange` on the batch loops;
+  `_vectorized_make_move`, `_vectorized_position_hash`),
+  `prange` on the batch loops;
   `_kogge_stone_mm` is `@njit(inline='always')` (the shared
   per-element flip primitive — the scalar path calls it);
+  `_zobrist_position_fold` is `@njit(cache=True)` (the shared
+  per-element hash primitive — the scalar path calls it);
   `@overload` on the 4 reflection primitives so JIT code can call
   them (registered on the pydantic-wrapped names — verified
   resolvable in a JIT context).
@@ -121,6 +125,15 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   check the move square emptiness (the caller's responsibility).
 - **D8 slot order** is fixed (notes/naming.md) — the anti
   tables swap only slots 1/3.
+- **Zobrist position hash** (`position_hash`) — the 128 legacy
+  URANDOM bitstrings (`_zobrist_bitstrings`: the canon, SHA-3-pinned)
+  + the SWAR byte-fold tables `_zobrist_byte_fold` (2×8×256,
+  generated at import, deterministic, 32 KB L1-resident): 16 lookups
+  per position, no per-bit loop. XOR-incremental by construction (a
+  disc flip at square i contributes `zobrist[i] ^ zobrist[i+64]` —
+  the legacy `zobrist_flip_bitstrings` entry); legacy-comparable
+  under the fixed bridge (blacks = mover, whites = opponent,
+  player = BLACK; a legacy WHITE position = the one's complement).
 - **Platform: little-endian only** — no portability work planned.
 
 ## Verified invariants
@@ -179,6 +192,23 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - The `@overload` of the 4 reflection primitives in a numba JIT
   context — `test_board::TestNumbaReflectionOverloads`
   (scalar + array JIT outputs vs the direct-call goldens).
+- position_hash: the goldens (the initial position 0xC4292FC2B2633A16
+  + 5 fixed pairs, derived from the legacy C `game_position_x_hash_plain`)
+  and the SHA-3-256 pin of the packed table —
+  `test_board::TestPositionHash` (the scratch script that derived them
+  also verified the transcribed C loop and the SWAR fold
+  bit-identical over 10_000 random pairs).
+- The legacy WHITE complement bridge (legacy(blacks, whites, WHITE)
+  = ~position_hash(blacks, whites)) —
+  `test_board::TestPositionHash::test_legacy_white_complement_bridge`.
+- position_hash array/scalar parity, the (N,2) coercion, the empty
+  array, the input rejections, the view (order) sensitivity and the
+  determinism — `test_board::TestPositionHash`.
+- The hash quality: the avalanche band (128 single-bit flips of the
+  start, every output bit flips 40..88 of 128) and zero collisions
+  on random pairs (10k; 1e6 under LONG, the birthday bound) —
+  `test_board::TestPositionHash::test_avalanche_bit_flips` /
+  `test_no_collisions`.
 
 ## Open issues
 
@@ -197,6 +227,11 @@ None.
   contract.
 - The move codes 64/65/66 are magic numbers by design (PA/NA/UN);
   constants parked.
+- The Zobrist table `_zobrist_bitstrings` is canon (the legacy C
+  constants): never regenerate, reorder or edit; a change breaks the
+  legacy comparability and every pinned golden. The hash is
+  view-dependent by design (the two views of a board are different
+  positions).
 - Little-endian only: no endianness portability work.
 
 ## Integration

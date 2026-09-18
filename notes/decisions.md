@@ -968,3 +968,23 @@ D-212 | 2026-09-18 | The `random_game` syntactic rename (Roberto): `random_game_
          (`docs/src/reversi/random_game.md`, `docs/src/reversi/test/test_random_game.md`) + `notes/overview.md`
          follow (the D-211 entry keeps its historical reference verbatim). A pure rename, no behaviour change:
          `test_random_game` 9/0/0, full LONG 872/0/21 GREEN (the 1e6 G0 benchmark bit-exact, 28065 dead lanes).
+
+D-213 | 2026-09-18 | `position_hash` (Roberto's request): the 64-bit Zobrist hash of a game position in `board.py` —
+         dual scalar/array, a pure function of the `(mover, opponent)` pair, no legality validation. The CONSTANTS
+         are the legacy C engine's (`board.c` `zobrist_bitstrings[]`, URANDOM-generated; the read-only reference
+         `/home/rcrr/base/prj/reversi/c/src/board.c`, `game_position_x_hash`) so the hashes are legacy-comparable:
+         the mover discs select the first 64 entries (the legacy blacks slots), the opponent the last 64 (the whites
+         slots), no complement — exactly the legacy hash of `(blacks=mover, whites=opponent, player=BLACK_PLAYER)`;
+         the C complement rule (`if (p) hash = ~hash`, p = WHITE) maps a legacy WHITE position to the one's
+         complement of `position_hash(blacks, whites)` (pinned). The Python `Position` carries no absolute color,
+         so the bridge is this fixed convention (the only well-defined option; Roberto informed). Kernel: the SWAR
+         byte-fold (`_zobrist_byte_fold` 2x8x256, generated at import; 16 lookups/position, no per-bit loop) +
+         a `prange` batch kernel — 214M positions/s measured (PERF: 1e6 in 4.7 ms). The table is canon (the
+         SHA-3-256 pin `3e3dfd40afef05e075e393def68bc13c0e592cc3d838652e330070eaaa0a626c` + the goldens derived
+         from the C source by the session-38 scratch script, which verified the transcribed C loop and the SWAR
+         fold bit-identical over 10_000 random pairs). Tests: `TestPositionHash` (13 tests: the goldens, the
+         WHITE bridge, the array parity + the 2-D coercion + the empty array + the rejections, the order
+         sensitivity, the avalanche band, zero collisions 10k / 1e6-LONG, the table pin, the PERF).
+         `test_board` 242/0/15 (was 229/0/14). The splitmix64 cascade alternative was considered and set aside:
+         Zobrist for the engine continuity + the incremental path (`zobrist_flip_bitstrings`), the cascade for a
+         stateless-only future.

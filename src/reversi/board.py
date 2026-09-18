@@ -65,7 +65,7 @@ __all__ = ['Square', 'SquareArray',
            'position_legal_moves', 'legal_moves', 'position_legal_moves_count',
            'position_flips', 'position_make_move', 'position_count_difference',
            'position_final_value', 'position_has_to_pass', 'position_is_game_over',
-           'position_is_move_legal',
+           'position_is_move_legal', 'position_hash',
            'position_fa1h8', 'position_fh1a8', 'position_fhori', 'position_fvert',
            'position_ro000', 'position_ro090', 'position_ro180', 'position_ro270',
            'position_transformations', 'position_anti_transformations']
@@ -1504,6 +1504,138 @@ def position_is_move_legal(p: PositionField, move: Move) -> bool:
     if (mbb & lms) == mbb:
         return True
     return False
+
+
+#: The Zobrist bitstrings of the legacy C engine (D-213): the 128
+#: URANDOM-generated constants of board.c `zobrist_bitstrings[]` —
+#: entries 0..63 are the legacy blacks slots, 64..127 the legacy whites
+#: ones. The table is canon: the SHA-3-256 test pin + the position
+#: goldens protect it, and it makes the hash values legacy-comparable
+#: (the position_hash docstring).
+_zobrist_bitstrings = np.array([
+           0x4EC764D9D2FC995C, 0x4689879C5E2B6C8D, 0x7B8509672627BDE6, 0x5EC9EED7E83A1070,
+           0x8C61E367C148A670, 0x12BF65D47CB500F3, 0x2D128CD312314B15, 0xEC8FFA579C3FF006,
+           0x1B772E0C17A8637D, 0xFEA5D5093AE4F127, 0x3F6223B7D74731E8, 0x9BF6F10BF080F403,
+           0xCE03618789AACB66, 0x29264F46A5C844E3, 0xD4BD485D4B88FC6E, 0xAAC3C81799DAE8F5,
+           0x46B256D2079DA270, 0x5765CB86D7BE25B4, 0x7754057541AAAF9E, 0xB9E9E765C5214D6D,
+           0x957833AE886E5003, 0x59BEDBE41933BEB6, 0xD5D328EC1AE90B22, 0x26FA194CD5A4CC9A,
+           0x34790BFC50B7571E, 0xE91BC0D61C9FA3C5, 0x8FB89136550EFB06, 0x36701B34D43E30CD,
+           0xAAFD6ACF34BB27C1, 0x401DD1B2B7A72AB4, 0x6F5903B64BBD50D7, 0x9067F2A3CB7EBB34,
+           0x2C7807F6E28CD962, 0x42B2DB1AED17AFD5, 0xF42857186A09F927, 0x258AB4C5E9986E0C,
+           0x8F8BA0BC0571B0F6, 0xCB7AC29208905214, 0x89914660AA38896A, 0x380CAC8536886A07,
+           0x7B7F399C6EC9563D, 0xB9CBFBEEE95F05B1, 0x46AAAFC2159C8F19, 0xDCE680A0882BCCEF,
+           0x347DDA36E42E2D99, 0x48EAF8CB224BCBB6, 0x1EACE389084B2674, 0x261BC842C735974D,
+           0xF334875975FD986B, 0xF6B436CC3615018C, 0x6658B92BCD930893, 0x4B6BF5B88078852E,
+           0x30461B28416207E1, 0xA2EE71D448670786, 0x0C8CD31138E8A683, 0x5FF41A78E0014DD0,
+           0xA57DE5B0A848A8E0, 0x71D68A3A9600F975, 0xEBB35D1E75B69FFB, 0xFCC1D327A771464B,
+           0xB6C1F45DB043CF56, 0x92EF77063313F3CE, 0x5F48E97C72B167E2, 0x5806342E75C7BB6B,
+           0x056C0070CF70F8DD, 0x81AD4662EE05E75A, 0x1C10E0B05C7B3C49, 0xC684C383E396972A,
+           0x35747D859FC1A7E1, 0xFDDCF0169427CEE5, 0x3952CBE313B377E2, 0xDA1B5C1E5BCCB131,
+           0x10B747061AF1559C, 0x8388EDE0F8EDCBFC, 0x4873A84B8ABF0FA8, 0xB30E990FE793A807,
+           0x6B8C5C09C78D0A9F, 0x7A488BC144D344AA, 0xC04C26EC10A73AE9, 0x9278CDFF5EBA539E,
+           0xFF3A1C4370FB8703, 0x70D16AE16E34B5B5, 0x2732FCB913E2E5C3, 0xC59EE008F48EB1FA,
+           0x38C7DB9E584C3680, 0x16F9194953701E88, 0x2E4C5FAC8051C8FD, 0x27DD41B7B5D864FA,
+           0xECA6A65750A55AEA, 0x5EBECF093FF380E7, 0xAA4B94B2F0585B82, 0xC88047DA71E83C4D,
+           0xB55C0550FE29B255, 0x2A1F8CB7ECEB6200, 0x7B841E8CB0945F2D, 0x6E5D5D9ED39B4961,
+           0x67222624CF379C81, 0x0CC24C31A8BA7F90, 0x4B54A89AF4A4DF4C, 0x91A6E548CAC3E417,
+           0x83DEB6121EA84F96, 0x9F951DD98DBB9DF5, 0x25584291FF15CB27, 0x3371E38504F0CB1F,
+           0x0EB9B65B5DE9637D, 0x2D292615860C0AE9, 0x8DAFEA0E2F5DD418, 0x5E30A0DFD3A6BA54,
+           0x5C442D0B47BF7364, 0x7C2EEBB8C8734B16, 0x440AF7B361B686A6, 0xBC6C2CB56CE41EDD,
+           0x2DF7B73E01F1DB6C, 0xD76592C6235F3FFE, 0x2139DC845CE8D2B0, 0x42168DFAFC8BF871,
+           0xB0E6598E3C707763, 0xD7C55A777BF74808, 0x04C0175493D0C6EC, 0x78B2B49BF53DD1A5,
+           0xC6020A48A9F0B2CD, 0x08CA89D2EA10FEB4, 0x07DE9D1304C3B2BD, 0x769EF9C4E120BC5F,
+           0xEEBD5772D344846F, 0x1E972C3F168BBF7F, 0x0C72560FAD1EC422, 0xD85B15F5DBCD19B9
+], dtype=np.uint64)
+
+#: The SWAR byte-fold tables of position_hash (D-213): entry [c, k, v]
+#: is the XOR of the color-c bitstrings of the squares 8k .. 8k+7
+#: selected by the bits of the byte v (the fast path of the legacy
+#: per-bit loop: 16 table lookups per position, no per-bit iteration).
+#: Generated at import time (deterministic, no RNG); 32 KB —
+#: L1-resident.
+_zobrist_byte_fold = np.zeros((2, 8, 256), dtype=np.uint64)
+for _c in range(2):
+    for _k in range(8):
+        for _b in range(8):
+            _z = _zobrist_bitstrings[64 * _c + 8 * _k + _b]
+            for _v in range(256):
+                if (_v >> _b) & 1:
+                    _zobrist_byte_fold[_c, _k, _v] ^= _z
+
+#: Internal use function.
+@nb.njit(cache=True)
+def _zobrist_position_fold(m, o):
+    """
+    The position_hash fold of one (mover, opponent) pair: 16 byte-table
+    lookups, no per-bit loop (the SWAR fast path of the legacy C
+    game_position_x_hash_plain). m and o are uint64 scalars; the
+    return is the uint64 fold.
+    """
+    h = _zobrist_byte_fold[0, 0, int(m & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 1, int((m >> np.uint64(8)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 2, int((m >> np.uint64(16)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 3, int((m >> np.uint64(24)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 4, int((m >> np.uint64(32)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 5, int((m >> np.uint64(40)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 6, int((m >> np.uint64(48)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[0, 7, int((m >> np.uint64(56)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 0, int(o & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 1, int((o >> np.uint64(8)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 2, int((o >> np.uint64(16)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 3, int((o >> np.uint64(24)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 4, int((o >> np.uint64(32)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 5, int((o >> np.uint64(40)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 6, int((o >> np.uint64(48)) & np.uint64(0xFF))]
+    h ^= _zobrist_byte_fold[1, 7, int((o >> np.uint64(56)) & np.uint64(0xFF))]
+    return h
+
+#: Internal use function.
+@nb.njit(parallel=True, cache=True)
+def _vectorized_position_hash(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
+    """
+    Vectorized position_hash over an N-position batch (D-213).
+    movers and opponents are the 1-D uint64 fields of a Position array;
+    the output is the 1-D uint64 array of the per-element Zobrist
+    folds.
+    """
+    n = movers.shape[0]
+    out = np.empty(n, dtype=np.uint64)
+    for i in nb.prange(n):
+        out[i] = _zobrist_position_fold(movers[i], opponents[i])
+    return out
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def position_hash(p: PositionField | PositionArray) -> Bitboard | npt.NDArray[np.uint64]:
+    """
+    Returns the 64-bit Zobrist hash of the game position.
+
+    The hash is the XOR-fold of the legacy C engine zobrist bitstrings
+    (D-213): the mover discs select the first 64 entries (the legacy
+    blacks slots), the opponent discs the last 64 ones (the legacy
+    whites slots), and no complement is applied. It is exactly the
+    legacy game_position_x_hash value of the position with blacks =
+    mover, whites = opponent, player = BLACK_PLAYER; the C complement
+    rule (`if (p) hash = ~hash`, p = WHITE_PLAYER) maps a legacy
+    player = WHITE position to the one's complement:
+    legacy_hash(blacks, whites, WHITE) = ~position_hash(blacks, whites).
+
+    Works on scalar and array inputs of any shape (the output keeps
+    the input kind: a scalar uint64 or an array of uint64). A pure
+    function of the (mover, opponent) pair: no state, bit-stable
+    across runs, and XOR-incremental (a disc flip at square i
+    contributes zobrist[i] ^ zobrist[i + 64], the legacy
+    zobrist_flip_bitstrings entry).
+    """
+    if isinstance(p, np.ndarray):
+        # D-213: the standard 1-D guard (house pattern, as position_flips)
+        if p.ndim != 1:
+            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
+        return _vectorized_position_hash(p['mover'], p['opponent'])
+    if isinstance(p, np.void):
+        # The njit primitive returns a Python int at the Python boundary
+        # (numba scalar-return idiom) — re-wrap to Bitboard.
+        return Bitboard(_zobrist_position_fold(p['mover'], p['opponent']))
+    raise TypeError("Input must be a Position scalar or a Position array.")
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def position_fa1h8(p: PositionField) -> PositionField:

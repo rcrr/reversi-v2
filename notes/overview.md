@@ -123,7 +123,7 @@ current verified suite (live DB) of the file's test module.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/base_model.py | complete: thin facade base over StateMachine (pure delegation) | 17/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS (move 0 / PA 64) swaps the players in both position_flips and position_make_move; initial_game_position (the CANONICAL standard start); no game-loop module | 229/0/14 | docs/src/reversi/board.md |
+| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS (move 0 / PA 64) swaps the players in both position_flips and position_make_move; initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); no game-loop module | 242/0/15 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order) | 20/0/1 | docs/src/reversi/feature.md |
