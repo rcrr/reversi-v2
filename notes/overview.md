@@ -77,8 +77,8 @@ tables at the end of this file.
   engine; the eventual G0 regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-003 the named move constants, I-009/I-010 (notes/ideas.md); I-018 (the outlier report in
-  VALIDATE) parked.
+- Backlog (Roberto's call): I-009/I-010 (the pipeline boilerplate + the StateMachine context injection,
+  notes/ideas.md); I-018 (the outlier report in VALIDATE) parked. I-003 executed (D-242).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
