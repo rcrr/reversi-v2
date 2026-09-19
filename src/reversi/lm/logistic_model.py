@@ -165,6 +165,15 @@ class LMContext(Context):
 
     # Validation attributes:
     vld_metrics: Any = None
+    # The validation forward-pass series (I-018): published by VALIDATE
+    # so PLOT renders them instead of re-running the pass, and so
+    # CLIENT_CHECK compares against the validation's own residuals.
+    vld_y_pred: Any = None
+    vld_rn: Any = None
+    # The top-20 extreme-residual records (I-018): a list of dicts with
+    # the raw values (index, mover, opponent, game_value, fitted,
+    # residual), descending by |residual|.
+    vld_outliers: Any = None
 
     # Analytic attributes:
     train_metrics: Any = None

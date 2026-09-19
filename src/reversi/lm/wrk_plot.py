@@ -47,8 +47,6 @@ from pydantic import validate_call, ConfigDict
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_plot import (PLOT_BUILDERS, collect_plot_data,
                                   save_figure, close_figure)
@@ -83,26 +81,7 @@ def _up(ctx: "LMContext") -> None:
     #    validation forward pass, hlp_plot.collect_plot_data).
     data = collect_plot_data(ctx)
 
-    # 3. The top-20 extreme-outlier report (D-150, Roberto's
-    #    "uno spunto capire come mai il modello sbarella cosi"):
-    #    the 20 validation positions with the largest |residual|,
-    #    the position's bitboards included so the extreme case
-    #    can be investigated. The stable argsort makes the report
-    #    deterministic (tie = the lower index first).
-    order = np.argsort(-np.abs(data.vld_rn), kind="stable")[:20]
-    ctx.log_event(Relevance.INFO,
-                  "Top 20 extreme validation residuals "
-                  "(outlier report):")
-    for rank, i in enumerate(order, 1):
-        pos = ctx.vld_positions[i]
-        ctx.log_event(Relevance.INFO,
-                      f"  {rank:2d}. vld position {int(i):>7d} "
-                      f"({pos['mover']:016X}/{pos['opponent']:016X}): "
-                      f"game value {data.vld_gv[i]:+.0f}, "
-                      f"fitted {data.vld_y_pred[i]:+.2f}, "
-                      f"residual {data.vld_rn[i]:+.2f}")
-
-    # 4. The plots directory: an ABSOLUTE dir_name is used as-is (it
+    # 3. The plots directory: an ABSOLUTE dir_name is used as-is (it
     #    may live outside base_dir), a relative one resolves under
     #    base_dir (the "plots" default).
     dir_name = Path(plot_cfg.dir_name)

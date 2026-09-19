@@ -42,6 +42,7 @@
 #
 
 import math
+import re
 import unittest
 import os
 import tempfile
@@ -56,10 +57,11 @@ from pathlib import Path
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel, LMContext
 from reversi.lm.wrk_validate import wrk_validate
-from reversi.lm.hlp_validate import validate_model
+from reversi.lm.hlp_validate import ValidationResult, top_outliers, validate_model
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 from reversi.test.tags import db_long_gate
+from reversi.board import Position
 
 
 
@@ -220,7 +222,7 @@ class TestValidateModelUnit(unittest.TestCase):
         y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048,
         rmse_y sqrt(2048)."""
         d = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
-                                          [0, 2], [0.5, -0.5]))
+                                          [0, 2], [0.5, -0.5])).metrics
         self.assertEqual(d["vld_loss"], 0.0625)
         self.assertEqual(d["vld_mse_z"], 0.125)
         self.assertEqual(d["vld_mae_z"], 0.25)
@@ -228,6 +230,90 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(d["vld_mse_y"], 2048.0)
         self.assertEqual(d["vld_rmse_y"], math.sqrt(2048.0))
         self.assertEqual(d["vld_samples"], 2)
+
+    def test_validation_result_carries_the_f64_series(self):
+        """I-018: validate_model returns the per-position series it is
+        computed from (the single derivation PLOT and CLIENT_CHECK
+        consume), as f64 views: y_pred [0, 0] and rn_y [0, -64] on the
+        hand-computed 2-position case."""
+        r = validate_model(self._fake_ctx([0, 64], [[0, 1], [1, 0]],
+                                          [0, 2], [0.5, -0.5]))
+        self.assertIsInstance(r, ValidationResult)
+        self.assertEqual(r.y_pred.dtype, np.float64)
+        self.assertEqual(r.rn_y.dtype, np.float64)
+        np.testing.assert_array_equal(r.y_pred, np.array([0.0, 0.0]))
+        np.testing.assert_array_equal(r.rn_y, np.array([0.0, -64.0]))
+        # the metrics are the SAME dict the file contract pins
+        self.assertEqual(r.metrics["vld_samples"], 2)
+
+    def test_top_outliers_ranking_and_ties(self):
+        """I-018: the k largest |residual|, descending, with the
+        STABLE tie-break (the lower index first) — the report's
+        determinism rests on this."""
+        rn = np.array([1.0, -3.0, 2.0, -3.0, 0.5])
+        np.testing.assert_array_equal(top_outliers(rn, k=3),
+                                      np.array([1, 3, 2]))
+        # the tie at |3| keeps the lower index first
+        self.assertEqual(list(top_outliers(rn, k=2)), [1, 3])
+        # k larger than the array: the whole permutation
+        self.assertEqual(len(top_outliers(rn, k=99)), 5)
+
+    def test_top_outliers_default_is_twenty(self):
+        """I-018: the default k is the report's 20."""
+        rn = np.arange(100, dtype=np.float64) - 50.0
+        out = top_outliers(rn)
+        self.assertEqual(len(out), 20)
+        # |-50| first, then the |49| tie: the STABLE argsort keeps the
+        # lower index (1) before 99, then |48| at 2
+        self.assertEqual([int(x) for x in out[:4]], [0, 1, 99, 2])
+
+    def test_up_outlier_report(self):
+        """The D-150 top-20 extreme-outlier report, MOVED to VALIDATE
+        (I-018): the header + exactly 20 "vld position" lines, in
+        descending |residual| order, and the 20 records published in
+        ctx.vld_outliers.
+
+        The hand-computed ctx: 50 positions, w_dense [0] -> z_pred
+        [0.5] -> y_pred [0] -> rn_y = -gv; the game values run
+        -25..24, so the ranking is |25| (index 0) and then the
+        |24|..|16| pairs, each tie resolved by the STABLE argsort
+        toward the LOWER index: [0, 1, 49, 2, 48, ...] up to the 20th
+        (the |15| pair's lower index, 10)."""
+        n = 50
+        ctx = LMContext(config_file_path=Path("dummy.json"))
+        ctx.vld_positions = np.zeros(n, dtype=Position)
+        ctx.vld_game_values = np.arange(-25, 25, dtype=np.int8)
+        ctx.feature_set = SimpleNamespace(
+            compute_indexes=lambda p: np.zeros((n, 1), dtype=np.int64),
+            features=[SimpleNamespace(n_instances=1)])
+        ctx.iwmap_feature_offset = np.asarray([0, 1], dtype=np.int64)
+        ctx.w_dense = np.asarray([0.0], dtype=np.float64)
+        ctx.y2z = lambda y: (np.float32(y) + 64) / 128
+        ctx.z2y = lambda z: 128 * z - 64
+        logs = []
+        ctx.log_event = lambda rel, msg: logs.append(msg)
+
+        wrk_validate().up(ctx)
+
+        self.assertIn(
+            "Top 20 extreme validation residuals (outlier report):", logs)
+        lines = [m for m in logs if "vld position" in m and "residual" in m]
+        self.assertEqual(len(lines), 20)
+        self.assertIn("  1.", lines[0])
+        self.assertIn("  20.", lines[-1])
+        values = [float(re.search(r"residual ([+\-][\d.]+)$", m).group(1))
+                  for m in lines]
+        self.assertTrue(all(abs(a) >= abs(b)
+                            for a, b in zip(values, values[1:])))
+        # the published records: the same order, the raw values
+        self.assertEqual([r['index'] for r in ctx.vld_outliers],
+                         [0, 1, 49, 2, 48, 3, 47, 4, 46, 5,
+                          45, 6, 44, 7, 43, 8, 42, 9, 41, 10])
+        self.assertEqual(ctx.vld_outliers[0]['residual'], 25.0)
+        self.assertEqual(ctx.vld_outliers[0]['game_value'], -25.0)
+        self.assertEqual(ctx.vld_outliers[0]['fitted'], 0.0)
+        self.assertEqual(ctx.vld_outliers[0]['mover'], 0)
+        self.assertEqual(ctx.vld_outliers[0]['opponent'], 0)
 
     def test_rmse_mae_line_is_zero_guarded(self):
         """M1 (D-102): a perfect Y-space fit (mae_y == 0) must take
@@ -240,7 +326,7 @@ class TestValidateModelUnit(unittest.TestCase):
         @validate_call-gated with context: Context,
         state_machine L87-90 — a SimpleNamespace is rejected)"""
         ctx = LMContext(config_file_path=Path("dummy.json"))
-        ctx.vld_positions = np.zeros(2, dtype=np.uint64)
+        ctx.vld_positions = np.zeros(2, dtype=Position)
         ctx.vld_game_values = np.asarray([0, 0], dtype=np.int8)
         ctx.feature_set = SimpleNamespace(
             compute_indexes=lambda p: np.asarray([[0, 1], [1, 0]], dtype=np.int64),

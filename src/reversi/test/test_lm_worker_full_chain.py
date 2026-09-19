@@ -129,6 +129,15 @@ class TestFullChainA2030(unittest.TestCase):
         assert_close(self, m['vld_mae_y'], 11.048270225524902, 'vld_mae_y')
         assert_close(self, m['vld_mse_y'], 196.462646484375, 'vld_mse_y')
         assert_close(self, m['vld_rmse_y'], 14.01651382446289, 'vld_rmse_y')
+        # I-018: the D-150 top-20 extreme-outlier report moved here, to
+        # the level that COMPUTES the residuals (it was PLOT's), and the
+        # 20 records + the two f64 series are published on the context.
+        self.assertEqual(len(ctx.vld_outliers), 20)
+        self.assertEqual(len(ctx.vld_rn), 20000)
+        self.assertEqual(ctx.vld_rn.dtype, np.float64)
+        self.assertEqual([r['index'] for r in ctx.vld_outliers],
+                         sorted((r['index'] for r in ctx.vld_outliers),
+                                key=lambda i: -abs(ctx.vld_rn[i])))
 
         # --- Training metrics (assert_close goldens, D-127; bid [6], 199932 samples) ---
         t = ctx.train_metrics
@@ -276,10 +285,8 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Plot 'residual_density' saved:", logs)
         self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",
                       logs)
-        # D-150: the top-20 extreme-outlier report (the 21 lines).
-        self.assertIn(
-            "Top 20 extreme validation residuals (outlier report):",
-            logs)
+        # I-018: the top-20 report is no longer PLOT's (it moved to
+        # VALIDATE): PLOT renders only.
         self.assertEqual(logs.count("vld position"), 20)
 
         # --- Analytics console report (exact pins) ---

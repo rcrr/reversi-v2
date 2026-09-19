@@ -257,35 +257,6 @@ class TestWrkPlot(unittest.TestCase):
         self.assertIn("PLOT done: 1 plot(s) written to "
                       f"{plot_dir}.", messages)
 
-    # -- the outlier report --------------------------------------------------
-
-    def test_up_outlier_report(self):
-        """The D-150 top-20 extreme-outlier report (Roberto's
-        "uno spunto capire come mai il modello sbarella cosi"):
-        the header line + exactly 20 "vld position" lines (the
-        position's bitboards, the game value, the fitted, the
-        residual), in descending |residual| order (the stable
-        argsort: the report is deterministic)."""
-        ctx = self._ctx
-        ctx.cfg.plot = self._plot_cfg(plots=["parity"])
-        wrk_plot().up(ctx)
-        messages = [m for _, m in self._events]
-        self.assertIn(
-            "Top 20 extreme validation residuals (outlier report):",
-            messages)
-        outlier_lines = [m for m in messages
-                         if "vld position" in m and "residual" in m]
-        self.assertEqual(len(outlier_lines), 20)
-        self.assertIn("  1.", outlier_lines[0])
-        self.assertIn("  20.", outlier_lines[-1])
-        # The order: the |residual| is non-increasing down the
-        # list (the last reported value, parsed from the line).
-        import re
-        values = [float(re.search(r"residual ([+\-][\d.]+)$", m)
-                        .group(1)) for m in outlier_lines]
-        self.assertTrue(all(abs(a) >= abs(b)
-                            for a, b in zip(values, values[1:])))
-
     # -- the golden --------------------------------------------------------
 
     def test_parity_png_golden(self):

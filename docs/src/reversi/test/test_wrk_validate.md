@@ -1,6 +1,7 @@
 # reversi/test/test_wrk_validate.py
-The VALIDATE worker integration suite — 2 classes / 5 tests today: the DB-gated `TestLMWorkerValidate` (3 tests, live
-regab DB) + the DB-free `TestValidateModelUnit` (2 tests, unit metric math).
+The VALIDATE worker integration suite — 2 classes / 9 tests: the DB-gated `TestLMWorkerValidate` (3 tests, live regab
+DB) + the DB-free `TestValidateModelUnit` (6 tests: the unit metric math, the I-018 f64 series, the outlier kernel and
+the outlier report — moved here from `test_wrk_plot`, where the report used to live).
 
 ## Coverage
 

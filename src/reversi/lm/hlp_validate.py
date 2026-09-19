@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict
 
 from reversi.lm.hlp_gradient import sigmoid
@@ -39,11 +40,37 @@ if TYPE_CHECKING:
 
 
 
-__all__ = ['validate_model']
+__all__ = ['ValidationResult', 'validate_model', 'top_outliers']
 
 
 
-def validate_model(ctx: "LMContext") -> Dict[str, Any]:
+@dataclass
+class ValidationResult:
+    """
+    The validation forward pass: the metrics plus the per-position
+    series it is computed from.
+
+    metrics: the 7-key dict (the v2 model-file contract, unchanged).
+    y_pred: the fitted values in Y (the f64 view of the EF output).
+    rn_y: the residuals in Y (the f64 view) — the series PLOT renders
+        and CLIENT_CHECK compares against the saved-model file.
+    """
+    metrics: Dict[str, Any]
+    y_pred: np.ndarray
+    rn_y: np.ndarray
+
+
+def top_outliers(rn: np.ndarray, k: int = 20) -> np.ndarray:
+    """
+    The indices of the k largest |residual| values, in descending
+    order. The STABLE argsort makes the selection deterministic: a
+    tie keeps the lower index first.
+    """
+    return np.argsort(-np.abs(rn), kind='stable')[:k]
+
+
+
+def validate_model(ctx: "LMContext") -> ValidationResult:
     """
     Extracts validation data, computes predictions using w_dense, and calculates metrics.
 
@@ -134,19 +161,33 @@ def validate_model(ctx: "LMContext") -> Dict[str, Any]:
     mae_z = np.mean(np.abs(rn_z))
 
     # Calculate Metrics in Y space (Original game points scale)
-    # Transform predictions back to Y space
+    # Transform predictions back to Y space. The metrics keep the
+    # ORIGINAL arithmetic (the f32 prediction minus the int8 game
+    # value, the sum in f32): their goldens are pinned and embedded in
+    # the v2 model file, so I-018 must not move them.
     y_pred = ctx.z2y(z_pred)
     rn_y = y_pred - vld_game_values
     mae_y = np.mean(np.abs(rn_y))
     mse_y = np.dot(rn_y, rn_y) / vld_M
     rmse_y = np.sqrt(mse_y)
 
-    return {
-        'vld_loss': float(vld_loss),
-        'vld_mse_z': float(mse_z),
-        'vld_mae_z': float(mae_z),
-        'vld_mae_y': float(mae_y),
-        'vld_mse_y': float(mse_y),
-        'vld_rmse_y': float(rmse_y),
-        'vld_samples': int(vld_M)
-    }
+    # The published per-position series in the f64 views (the PlotData /
+    # the CLIENT_CHECK reference contract: the f32 prediction and the
+    # int8 game value upcast exactly — no rounding noise enters). These
+    # are bit-identical to what PLOT and CLIENT_CHECK computed before
+    # I-018, so the published series change nothing downstream.
+    y_pred_f64 = y_pred.astype(np.float64)
+    rn_y_f64 = y_pred_f64 - vld_game_values.astype(np.float64)
+
+    return ValidationResult(
+        metrics={
+            'vld_loss': float(vld_loss),
+            'vld_mse_z': float(mse_z),
+            'vld_mae_z': float(mae_z),
+            'vld_mae_y': float(mae_y),
+            'vld_mse_y': float(mse_y),
+            'vld_rmse_y': float(rmse_y),
+            'vld_samples': int(vld_M)
+        },
+        y_pred=y_pred_f64,
+        rn_y=rn_y_f64)

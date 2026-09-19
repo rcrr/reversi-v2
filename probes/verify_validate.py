@@ -71,10 +71,11 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_validate.py")
 dv_src = read("src/reversi/lm/hlp_validate.py")
-check("A1 Worker named VALIDATE + __all__ + validate_model the single public data name",
+check("A1 Worker named VALIDATE + the public data names (I-018 added "
+      "ValidationResult + top_outliers)",
       'Worker("VALIDATE", _up, _down)' in wk_src
       and "__all__ = ['wrk_validate']" in wk_src
-      and "__all__ = ['validate_model']" in dv_src)
+      and "__all__ = ['ValidationResult', 'validate_model', 'top_outliers']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
       "(all 11 sibling worker factories — the D-100 T1 pattern)",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_validate" in wk_src
@@ -105,20 +106,25 @@ check("A7b hlp_validate has no code ws lines (pre-campaign: 27 lines — the "
       _dv_ws == [], f"lines {_dv_ws}")
 check("A8 a test file exists for the worker (pre-campaign: absent — T5)",
       (WS / "src" / "reversi" / "test" / "test_wrk_validate.py").exists())
-check("A9 the _down scope clears exactly the ONE field _up sets (vld_metrics)",
-      "ctx.vld_metrics = None" in wk_src
-      and wk_src.count("ctx.vld_metrics = None") == 1
-      and "ctx.vld_metrics = metrics" in wk_src)
+check("A9 the _down scope clears exactly the FOUR fields _up sets "
+      "(vld_metrics + the I-018 series and records)",
+      wk_src.count("ctx.vld_metrics = None") == 1
+      and wk_src.count("ctx.vld_y_pred = None") == 1
+      and wk_src.count("ctx.vld_rn = None") == 1
+      and wk_src.count("ctx.vld_outliers = None") == 1
+      and "ctx.vld_metrics = metrics" in wk_src
+      and "ctx.vld_rn = result.rn_y" in wk_src
+      and "ctx.vld_outliers = _outlier_records(" in wk_src)
 check("A10 hlp_validate REUSES sigmoid from hlp_gradient (defined + exported there)",
       "from reversi.lm.hlp_gradient import sigmoid" in dv_src
       and "def sigmoid(x: np.ndarray) -> np.ndarray:" in read("src/reversi/lm/hlp_gradient.py")
       and "'sigmoid'" in read("src/reversi/lm/hlp_gradient.py").split("__all__ = ")[1].split("]")[0])
 check("A11 the worker uses NO cache_manager (VALIDATE is pure compute — like "
-      "FEATURES / ZED / GRADIENT; the rlmwf_12 slot stays unused)",
+      "FEATURES / ZED / GRADIENT; the rlmwf_14 slot stays unused)",
       "cache_manager" not in wk_src and "cache_manager" not in dv_src)
-check("A12 the returned dict has exactly the 7 keys (post D-102 M3: vld_mse_y "
-      "added — mse_y was computed but omitted pre-campaign; the worker consumes all 7)",
-      set(dv_src.split("return {")[1].split("}")[0].split("'")[1::2])
+check("A12 the returned metrics dict has exactly the 7 keys (post D-102 M3: "
+      "vld_mse_y added; I-018 wraps it in ValidationResult)",
+      set(dv_src.split("metrics={")[1].split("}")[0].split("'")[1::2])
       == {"vld_loss", "vld_mse_z", "vld_mae_z", "vld_mae_y", "vld_mse_y",
           "vld_rmse_y", "vld_samples"})
 check("A13 the unused vld_indexes.shape[1] is underscore-unpacked (M2, D-102; "
@@ -131,9 +137,13 @@ check("A13 the unused vld_indexes.shape[1] is underscore-unpacked (M2, D-102; "
 # verify_logistic_model.py V3c/V3d at D-106)
 # ----------------------------------------------------------------------
 lm_src = read("src/reversi/lm/logistic_model.py")
-check("B4 LMContext pre-declared vld_metrics (the future analytics_report)",
+check("B4 LMContext pre-declared vld_metrics (the future analytics_report) "
+      "+ the I-018 vld_y_pred / vld_rn / vld_outliers",
       "    vld_metrics: Any = None" in lm_src
-      and "    analytics_report: Any = None" in lm_src)
+      and "    analytics_report: Any = None" in lm_src
+      and "    vld_y_pred: Any = None" in lm_src
+      and "    vld_rn: Any = None" in lm_src
+      and "    vld_outliers: Any = None" in lm_src)
 
 # ----------------------------------------------------------------------
 # C. GOLDEN re-derivation (live DB) — the rlm_02.json pipeline to VALIDATE
@@ -178,9 +188,11 @@ else:
               and vld_z.min() >= 0.0 and vld_z.max() <= 1.0,
               f"mse_z={met['vld_mse_z']} 2*loss={2 * met['vld_loss']} "
               f"z=({vld_z.min()}, {vld_z.max()})")
-        # C5 the no-cache fact: VALIDATE writes nothing (the rlmwf_12 slot unused)
-        c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_12")]
-        check("C5 no rlmwf_12_* cache file in the base dir (VALIDATE is pure compute)",
+        # C5 the no-cache fact: VALIDATE writes nothing. The slot is the
+        # CURRENT step number (14 = VALIDATE): the stale "rlmwf_12" pin
+        # predated the I-017 reordering, when VALIDATE was step 12.
+        c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_14")]
+        check("C5 no rlmwf_14_* cache file in the base dir (VALIDATE is pure compute)",
               c12 == [], f"files: {c12}")
         # (C6 deleted at D-106 step 3, class c: identical metrics +
         #  no DB re-extraction + the 6 cache_manager hits are pinned
@@ -220,7 +232,7 @@ def fake_ctx(game_values, indexes, offsets, w_dense):
 # y2z(y)=(y+64)/128: game [0,64] -> vld_z [0.5,1.0]
 # rn_z [0,-0.5]: norm 0.25, loss 0.0625, mse_z 0.125, mae_z 0.25
 # z2y(z)=128z-64: y_pred [0,0], rn_y [0,-64]: mae_y 32, mse_y 2048, rmse_y sqrt(2048)
-_d = validate_model(fake_ctx([0, 64], [[0, 1], [1, 0]], [0, 2], [0.5, -0.5]))
+_d = validate_model(fake_ctx([0, 64], [[0, 1], [1, 0]], [0, 2], [0.5, -0.5])).metrics
 # (D1 moved to a test at D-106 step 3, class a §4 conversion:
 #  test_wrk_validate.py::TestValidateModelUnit::
 #  test_full_metric_math_on_hand_computed_case — the same
