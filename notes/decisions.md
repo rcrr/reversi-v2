@@ -1530,3 +1530,17 @@ D-246 | 2026-09-19 | I-018 step 4: PLOT becomes a pure rendering level (no forwa
          forward pass" convention), wrk_analytics, wrk_plot, the two test mirrors (incl. a stale "13-level chain" -> 14)
          and the overview rows. VERIFICATION: the full suite green (920/0/23), the 1e6 G0 bit-exact, `verify_analytics`
          ALL CHECKS PASSED, the full probe sweep green. I-018 step 5 (the docs wave + the idea closure) follows.
+
+D-247 | 2026-09-19 | I-018 closed (the campaign close). The idea is DONE: the top-20 outlier report lives in VALIDATE
+         (the level that computes the residuals) and the 20 records are published in `ctx.vld_outliers`; the duplication
+         chain is gone on both sides — the validation residuals are derived ONCE (VALIDATE, consumed by PLOT and
+         CLIENT_CHECK) and the dense training residuals ONCE (ANALYTICS, consumed by PLOT) — so PLOT is a pure rendering
+         level with no forward pass. The campaign: D-243 (VALIDATE owns the series + the report moves + the D-150 test
+         moves to test_wrk_validate), D-244 (the stale probe re-pin the campaign sweep exposed, 9 probes + the mirror
+         docs), D-245 (CLIENT_CHECK consumes `ctx.vld_rn`; its two divergence tests re-shaped to the new
+         contract), D-246 (the ANALYTICS publication + the PlotData assembly). NO NUMBER MOVED anywhere: the metric
+         goldens, the model-file size band, the PNG byte-determinism golden and the full-chain pins all hold — the
+         published series are bit-identical to the previous local passes. I-018 moves to notes/ideas-closed.md
+         (the D-235 procedure: the statement + the D-pointers + the outcome); the open backlog
+         is I-007, I-009, I-010, I-014. The overview Next-steps and the per-file rows follow in the same commit.
+         VERIFICATION: the full suite green (920/0/23), the full probe sweep green (22/22), the 1e6 G0 bit-exact.

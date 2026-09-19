@@ -34,15 +34,3 @@ I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE level from the ch
          state — w + sl/yl/rho + iters — and `opt_lbfgs` has the warm-start kwargs, consumed on the INCOMPLETE resume
          path); the open question is whether a warm restart under a CHANGED objective is numerically sound / worth the
          extra semantics.
-
-I-018 | idea | The top-20 outlier report belongs in VALIDATE, and the 20 records should be saved in the context (raised
-         2026-09-11, Roberto: "li salviamo anche nel context questi 20 records? ... sarebbe giusto che questo LOG fosse
-         fatto in VALIDATE ... ma meglio in validate"). PARKED (Roberto's call, D-189). The D-150 top-20 extreme-outlier
-         report currently lives in PLOT, but the per-position validation residuals are COMPUTED in VALIDATE and
-         `collect_plot_data` re-runs the SAME forward pass statelessly. Proposal: (1) VALIDATE selects the top-20
-         by |residual| (a cheap vectorized argsort) and LOGS the report there; (2) the 20 records (position bitboards,
-         the true game value, the fitted value, the residual) are persisted in a NEW pre-declared ctx field (the D-099
-         idiom, e.g. `ctx.vld_outliers`) — deterministic + testable (the D-150 outlier test moves from `test_wrk_plot`
-         to `test_wrk_validate`), consumable by PLOT (no duplicated derivation) and by future levels; (3) PLOT becomes a
-         pure rendering level again. Consequences: the chain logs change (the report lines move from step 16 to 12) —
-         the A2050 log pins may need re-pinning; the model file is unaffected. Nia's opinion: agreed on both points.

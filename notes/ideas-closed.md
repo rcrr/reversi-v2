@@ -73,3 +73,15 @@ I-017 | done | Analytical properties of the FEATURES — the SU / eta² / omega�
          the I-017 campaign (T1..T19, D-156..D-189): the MT19937 PRNG port + the G0 wave generator, the OPTIONAL
          FEATURE_ANALYSIS (step 3) and EFFECT_SIZE (step 6) levels — default FALSE (D-175) — and the 18-level pipeline
          live and green. Project doc: notes/analytical_properties_of_features.md.
+
+I-018 | done | The top-20 outlier report in VALIDATE + the 20 records in the context (raised 2026-09-11, parked
+         at D-189). Executed as D-243..D-246 (2026-09-19): VALIDATE now returns a `ValidationResult` (the 7 metrics +
+         the f64 `y_pred` / `rn_y` series) and publishes `ctx.vld_y_pred` / `vld_rn` / `vld_outliers` (the 20 raw
+         records) while LOGGING the D-150 report (the same 21 lines, step 18 -> 14; the D-150 test moved from
+         `test_wrk_plot` to `test_wrk_validate`); `top_outliers` is the stable-argsort kernel. The duplication chain
+         went 3 -> 1 on the validation side (CLIENT_CHECK consumes `ctx.vld_rn`, D-245) and 2 -> 1 on the training side
+         (`ctx.train_dense_rn` published by ANALYTICS, D-246), so PLOT is now a PURE rendering level:
+         `collect_plot_data` assembles the published series and runs no forward pass. Proof that no number moved: the
+         PNG byte-determinism golden and the full-chain pins hold. A dedicated probe re-pin (D-244) cleared the stale
+         step/slot pins the campaign's sweep exposed.
+
