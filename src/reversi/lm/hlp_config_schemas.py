@@ -417,7 +417,9 @@ class LMConfig(LMBaseConfig):
         description="The pipeline stop target (the I-017 P4, the "
                     "design section 3.6): a level name (case-"
                     "insensitive, the fail-fast ValueError in the "
-                    "StateMachine) or 'last' (the full pipeline).")
+                    "StateMachine) or 'last' (the full pipeline). "
+                    "Consumed by the facade's run() when no explicit "
+                    "target is given; a blank value means 'last' too.")
 
     @model_validator(mode="after")
     def check_su_pairs_feature_set(self) -> "LMConfig":

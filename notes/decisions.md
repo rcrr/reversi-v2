@@ -1780,8 +1780,7 @@ D-258 | 2026-09-19 | P2: the worker rename FEATURE_ANALYSIS -> SU_ANALYSIS (the 
          hlp_config_schemas and logistic_model mirrors. (6) VERIFICATION — the LONG tier green, the probe sweep 21/21
          (with one re-pin: verify_hlp_indexes C2 compares a SORTED name list, and "rlmwf_03_SU_ANALYSIS.dat" sorts
          BEFORE "su_analysis" where the old "feature_analysis" sorted after — the expected list was reordered, not the
-         check weakened), the
-         doc audit at 9 pre-existing findings.
+         check weakened), the doc audit at 9 pre-existing findings.
 
 D-259 | 2026-09-19 | P5: the two missing probes — verify_su_analysis.py + verify_effect_size.py (the I-017 T18's last
          item; the P1-P5 list's close). (1) THE GAP — the I-017 project plan (the project doc §9, T18) named two probes
@@ -1801,26 +1800,70 @@ D-259 | 2026-09-19 | P5: the two missing probes — verify_su_analysis.py + veri
          deleting the report before the second run and checking it comes back byte-identical while the cache file is
          untouched), the down, and the opt-in absence of BOTH artifacts. F: the runner, the RENAME-COMPLETENESS sweep
          (no FEATURE_ANALYSIS/feature_analysis left in src/docs/probes/tools once the shared-kernels family is
-         discounted), the mirrors, the EFFECT_SIZE consumer contract. (3) `probes/verify_effect_size.py` (29 checks,
-         30 s) — A: the structure (the factory, the no-cache discipline, the two kernel imports, the degradation
-         branch). B: the independent math — the ANOVA vs the F-identity eta² = (K-1)F/((K-1)F + (N-K)), vs scipy's
-         f_oneway, plus the bias relation eta² >= omega² (algebraically forced) and the negative omega² of a null
-         effect; the adherence trio vs pure-python formulas with the merge rule reimplemented (E = p_ideal * n_db),
-         the Pinsker bound TV <= sqrt(KL/2), the disjoint-support alignment (chi2 +inf, p 0, KL +inf, finite TV). C: the
-         mock-ctx report facts no test carries — the degradation REPORT line, the ANOVA numbers vs the independent
-         recompute, the adherence rows vs the independent trio, and the CSV path (the export_csv flag had NO test). D:
-         the LIVE A2050 tier WITHOUT a DB — the build area's cached corpus + POSITIONS + INDEXES are symlinked under
-         build/tmp and the config is run to EFFECT_SIZE (the report's 47 sub-variables, every ANOVA line recomputed from
-         the cached indexes + game values, scipy's f_oneway on the mobility column over the full 2M positions, every
-         adherence row recomputed from the cached corpus marginal, the eta² >= omega² invariant on the real data, no
-         cache file); the tier SKIPS itself when the gitignored build area is absent. F: the cross-file facts. (4) THE
-         CLASSIFICATION DISCIPLINE (probe_rules §3) — the facts a test already pins through the same path are NOT
-         repeated: the factory names, the enable no-ops, the cache-hit log, the ANOVA line count, the degradation log,
-         the report existence, the mock-ctx down. (5) THE FINDINGS the writing produced: (a) the report prints
-         `chi2 0.00 (p nan, merged N)` when the merged tail collapses to a single cell (df < 1) — a real behavior of
-         `chi_square_goodness` the probe's parser must accept; (b) the report writes the adherence lines for ALL the
-         sub-variables while its own header says "top {top_k_adherence}" — the top-k bound applies to the CONSOLE lines
-         only (`adherence_lines[:top_k]` in the log vs the full list in `_write_report`): a wording defect recorded in
-         the wrk_effect_size mirror's Open issues, NOT fixed (a source change needs Roberto's GO); (c) the cached
-         A2050 1e7 area makes a DB-FREE EFFECT_SIZE run possible (the probe's tier D) — the caches are the inputs.
-         (6) VERIFICATION — the full sweep 23/23 green (the two new probes included), the LONG tier green.
+         discounted), the mirrors, the EFFECT_SIZE consumer contract. (3) `probes/verify_effect_size.py` (29 checks, 30
+         s) — A: the structure (the factory, the no-cache discipline, the two kernel imports, the degradation branch).
+         B: the independent math — the ANOVA vs the F-identity eta² = (K-1)F/((K-1)F + (N-K)), vs scipy's f_oneway, plus
+         the bias relation eta² >= omega² (algebraically forced) and the negative omega² of a null effect; the adherence
+         trio vs pure-python formulas with the merge rule reimplemented (E = p_ideal * n_db), the Pinsker bound TV <=
+         sqrt(KL/2), the disjoint-support alignment (chi2 +inf, p 0, KL +inf, finite TV). C: the mock-ctx report facts
+         no test carries — the degradation REPORT line, the ANOVA numbers vs the independent recompute, the adherence
+         rows vs the independent trio, and the CSV path (the export_csv flag had NO test). D: the LIVE A2050 tier
+         WITHOUT a DB — the build area's cached corpus + POSITIONS + INDEXES are symlinked under build/tmp and the
+         config is run to EFFECT_SIZE (the report's 47 sub-variables, every ANOVA line recomputed from the cached
+         indexes + game values, scipy's f_oneway on the mobility column over the full 2M positions, every adherence row
+         recomputed from the cached corpus marginal, the eta² >= omega² invariant on the real data, no cache file); the
+         tier SKIPS itself when the gitignored build area is absent. F: the cross-file facts. (4) THE CLASSIFICATION
+         DISCIPLINE (probe_rules §3) — the facts a test already pins through the same path are NOT repeated: the factory
+         names, the enable no-ops, the cache-hit log, the ANOVA line count, the degradation log, the report existence,
+         the mock-ctx down. (5) THE FINDINGS the writing produced: (a) the report prints `chi2 0.00 (p nan, merged N)`
+         when the merged tail collapses to a single cell (df < 1) — a real behavior of `chi_square_goodness` the probe's
+         parser must accept; (b) the report writes the adherence lines for ALL the sub-variables while its own header
+         says "top {top_k_adherence}" — the top-k bound applies to the CONSOLE lines only (`adherence_lines[:top_k]` in
+         the log vs the full list in `_write_report`): a wording defect recorded in the wrk_effect_size mirror's Open
+         issues, NOT fixed (a source change needs Roberto's GO); (c) the cached A2050 1e7 area makes a DB-FREE
+         EFFECT_SIZE run possible (the probe's tier D) — the caches are the inputs. (6) VERIFICATION — the full sweep
+         23/23 green (the two new probes included), the LONG tier green.
+
+D-260 | 2026-09-19 | I-019 executed: the target-driven `run()` + the `target_level` it consumes (Roberto: "La I-019 va
+         eseguita fino in fondo, era nata quando abbiamo constatato che lo step SU_ANALYSIS puo essere molto lungo, e
+         non e' detto che poi valga la pena andare avanti. Ma potrebbe essere utile per ogni LEVEL. Quindi va completata
+         la analisi, vedere cosa c'e', cosa manca e fare gli appropriati tests"). (1) THE ANALYSIS — what existed:
+         `LMConfig.target_level` (default "last", the I-017 design section 3.6 / P4) was declared, documented and
+         validated as a plain string, and read by NOTHING; the machine already accepted any worker NAME
+         (case-insensitive, the fail-fast ValueError) or an int index in `move_to_step`, and `move_to_last()` existed.
+         What was missing: the single consumer — the facade entry that turns the field into a move. The design asked for
+         `LogisticModel.run(target_level=None)`. (2) THE IMPLEMENTATION — the driver lives in `BaseModel` (the generic
+         facade base, so EVERY domain facade inherits it: DeepNetworkModel included), and the DOMAIN part is one hook:
+         `_configured_target_level()` returns None in the base and `cfg.target_level` in LogisticModel (via getattr, so
+         an absent field or a context without a loaded config resolves to None). `run()` = (a) `move_to_step(1)` when
+         the machine is still at the sentinel — the CONFIG level must run before the domain can name its target; (b) the
+         target = the explicit argument, else the hook, else the last step; (c) the string "last" (ANY case) and a blank
+         value mean the whole pipeline → `move_to_last()`; anything else → `move_to_step(target)`, which resolves names
+         case-insensitively and accepts an int index — so ANY level is a legal stop, not just SU_ANALYSIS. (3) THE
+         SEMANTICS CHOSEN (and why it deviates from the design's literal "move_to_step('CONFIG') always first"): the
+         unconditional CONFIG move would run the down() of every intermediate level on each call, destroying the
+         published ctx artifacts — exactly what the motivating case forbids ("stop after the long SU_ANALYSIS, inspect,
+         then decide"). The `current_step < 1` guard keeps the design's invariant (the cfg IS loaded before the hook is
+         read) while making a second `run()` with a deeper target a RESUME: the levels already done are not re-run, the
+         ctx artifacts survive, the on-disk caches stay hot. A target BELOW the current step still moves back, running
+         the down() steps (the machine's D-060 contract) — the caller asked for it. (4) NO NEW VALIDATION MACHINERY (the
+         design's ruling): an unknown level name raises the machine's ValueError, a wrong-typed target its pinned
+         TypeError, and the CONFIG level does NOT pre-validate the field. (5) THE CONFIG DESCRIPTION reworded (the field
+         now names its consumer + the blank-means-last rule); it does not enter the config dump, so no fingerprint and
+         no cache signature moves. (6) THE TESTS — `test_logistic_model.py` 17 → 29 (12 new): the mocked resolution
+         cases (the explicit target with the machine history pinned, the config field honored, the
+         "last"/case/blank/absent resolutions, the argument-over-field precedence, the resume with the no-op same-target
+         call, the backward target's down steps, the unknown-name ValueError, the wrong-type TypeError, the generic base
+         default on a bare 2-worker pipeline) + the NEW `TestRunFacadeOnARealConfig` class (the REAL pipeline, no
+         factory mocks, the rlm_00 fixture with target_level set by a config copy: FEATURES from the field, SU_ANALYSIS
+         from the argument with the corpus tables published, and the resume leaving the tables the SAME object). (7) THE
+         VERIFICATION AT SCALE — the 1e7 A2050 build config (`target_level: "SU_ANALYSIS"`) driven by `run()`: 0.80 s to
+         the stop with the corpus cache HIT, the tables published, then `run("EFFECT_SIZE")` resumed with ONE
+         SU_ANALYSIS up and ZERO downs (the corpus never reworked). (8) THE DOCS/RULES — base_model.md (the run() row +
+         the hook + V5 + the Architecture note), logistic_model.md (the two Facade rows + the target-driven invariant;
+         the I-019 Open issue is GONE; a stale "17 active levels" fixed), hlp_config_schemas.md (the field line + Open
+         issues → None), the test mirror (2 classes / 29 tests + the new goldens), the overview (the 4 rows + the "Where
+         we are" bullet + the backlog line: I-019 executed), and a NEW rules.md line in the "Pipeline contracts (RLM)"
+         register: the stop is target-driven through `run()`, the target step IS executed, the resume does not reset.
+         The hub probe gains the V9 `run('POSITIONS')` boundary label (the empty-config failure surfaces through the new
+         entry too).

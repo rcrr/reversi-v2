@@ -255,3 +255,16 @@ class LogisticModel(BaseModel):
 
         # 4. Call the superclass constructor with the assembled parts
         super().__init__(workers=workers, context=context, verbosity=verbosity)
+
+    def _configured_target_level(self) -> int | str | None:
+        """The LMConfig.target_level of the loaded configuration: the
+        pipeline stop the config asks for, honored by run() when no
+        explicit target is given. It is read AFTER the CONFIG level ran
+        (run() moves there first); "last" (the field default) and a
+        blank value mean the whole pipeline. A context without a
+        loaded config (or one that does not carry the field) resolves
+        to None — the same "last" outcome."""
+        cfg = self.context.cfg
+        if cfg is None:
+            return None
+        return getattr(cfg, "target_level", None)

@@ -123,6 +123,11 @@ spans; the tables and the headings stay one physical line.
 - Cache flow: the cache_manager load-or-compute with the .SHA3-256 sidecar and the 8192-chunk verify (D-071/D-072); the
   rlmwf_NN_ names are flat filename-prefix concatenations, not pathlib joins (D-069, D-076).
 - bool is not a valid step (D-069).
+- The stop is TARGET-DRIVEN: the facade's `run(target_level=None)` runs the first real level (CONFIG) first, then stops at
+  the explicit argument, else at the domain's configured target (`LMConfig.target_level`), else at the last step; "last"
+  (any case) and a blank value mean the whole pipeline, and ANY level name (case-insensitive) or int index is a legal
+  stop. The target step IS executed, and a second `run()` with a deeper target RESUMES — the levels already done are not
+  re-run (their ctx artifacts survive, the caches stay hot). (D-260)
 
 ## Docs
 

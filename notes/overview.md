@@ -54,9 +54,12 @@ Current state only — the session-by-session history lives in the journal volum
 (notes/decisions.md); the D-pointers index that history. The file-by-file state lives in the Source files / Test files
 tables at the end of this file.
 
-- The 18-level pipeline is live and green (921 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
+- The 18-level pipeline is live and green (933 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
   bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL SU_ANALYSIS
   (pipeline step 3) + EFFECT_SIZE (pipeline step 6) — default FALSE, opt-in.
+- The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
+  the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
+  is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the
@@ -78,9 +81,8 @@ tables at the end of this file.
   engine; a future corpus regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-007, I-009/I-010 (the pipeline boilerplate + the StateMachine context injection) and I-019
-  (the `run()` facade + the inert `target_level` field — notes/ideas.md). I-003 executed (D-242); I-018 executed
-  (D-243..D-246).
+- Backlog (Roberto's call): I-007, I-009/I-010 (the pipeline boilerplate + the StateMachine context injection —
+  notes/ideas.md). I-003 executed (D-242); I-018 executed (D-243..D-246); I-019 executed (D-260).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
@@ -89,7 +91,7 @@ of the file's test module.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
-| src/reversi/base_model.py | complete: thin facade base over StateMachine (pure delegation) | 17/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
+| src/reversi/base_model.py | complete: the thin facade base over StateMachine — the pure delegation + the generic `run(target_level=None)` driver (CONFIG first, then the argument / the `_configured_target_level` hook / the last step; the resume does not reset) | 29/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
 | src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS swaps the players in both position_flips (move 0, a zero bitboard) and position_make_move (`MOVE_PA` = 64, the named move code); the named non-square move codes `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (I-003); initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); legal_moves_of / flips_of_move (the public njit per-lane primitives — the single sources of the two geometries, D-232); no game-loop module | 246/0/15 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
@@ -114,7 +116,7 @@ of the file's test module.
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS level (the POSITIONS twin over the validation set); the shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS worker | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED level (the first non-cache level) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard + the 18-level worker list (FEATURES before POSITIONS; SU_ANALYSIS step 3 + EFFECT_SIZE step 6) | 17/0/0 | docs/src/reversi/lm/logistic_model.md |
+| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard + the 18-level worker list (FEATURES before POSITIONS; SU_ANALYSIS step 3 + EFFECT_SIZE step 6) + the `_configured_target_level` hook that feeds `run()` from `cfg.target_level` | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
@@ -123,7 +125,7 @@ of the file's test module.
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block); `compute_training_dense_metrics` returns a `TrainingDenseResult` (the metrics + the f64 `rn_y` series, I-018) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + effect_size + target_level + the su_pairs fail-fast | 27/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
+| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + effect_size + the `target_level` stop (consumed by the facade's `run()`) + the su_pairs fail-fast | 27/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_feature_analysis.py | the SHARED analysis-kernels data module (the SU_ANALYSIS + EFFECT_SIZE levels; NO DB, NO positions) — the from-frequency-tables math: the SU / entropy / MI kernels + the dispersion + the never-observed audit + the ANOVA kernels (the eta²/omega²) + the adherence kernels (the chi-square + the KL + the TV) | 32/0/0 (via test_hlp_feature_analysis) | docs/src/reversi/lm/hlp_feature_analysis.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
@@ -170,7 +172,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (the 0% / 100% overlap, traced not raised) | 11/0/0 | docs/src/reversi/test/test_wrk_vld_positions.md |
 | src/reversi/test/test_wrk_wmaps.py | complete: the WMAPS worker suite | 3/0/0 | docs/src/reversi/test/test_wrk_wmaps.md |
 | src/reversi/test/test_wrk_zed.py | complete: the ZED worker suite | 3/0/0 | docs/src/reversi/test/test_wrk_zed.md |
-| src/reversi/test/test_logistic_model.py | complete: all 18 methods active (the dummy FEATURES worker crosses step 2) | 17/0/0 | docs/src/reversi/test/test_logistic_model.md |
+| src/reversi/test/test_logistic_model.py | complete: the facade suite — the pass-through pins, the LMContext/injection pins, the `run()` driver (the mocked resolution cases + the real-config FEATURES/SU_ANALYSIS class) | 29/0/0 | docs/src/reversi/test/test_logistic_model.md |
 | src/reversi/test/test_mobility.py | analyzed: 13 verified facts | 26/0/1 | docs/src/reversi/test/test_mobility.md |
 | src/reversi/test/test_opt_lbfgs.py | complete: the LBFGS suite (the batch + 9 new tests; the O2b bit-identity test) | 14/0/0 | docs/src/reversi/test/test_opt_lbfgs.md |
 | src/reversi/test/test_paths.py | complete: the 3 pin tests for the workspace-root paths | 3/0/0 | docs/src/reversi/test/test_paths.md |

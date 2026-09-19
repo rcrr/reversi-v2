@@ -189,12 +189,17 @@ check("V4d log_event injected (bound method, not the lambda default)",
 # current_step at the failed step (D-060). Fresh model per boundary.
 # (The {} config fails at CONFIG — the later boundaries are
 # unreachable, the 11-worker count is pinned by V3c.)
-for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_last", "move_to_last")]:
+for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_last", "move_to_last"),
+                      ("run", "run('POSITIONS')")]:
     m = LogisticModel(str(cfg_file))
     try:
         with contextlib.redirect_stdout(io.StringIO()):
             if target == "move_to_last":
                 m.move_to_last()
+            elif target == "run":
+                # I-019: the target-driven entry starts at CONFIG too,
+                # so the same failure surfaces through it.
+                m.run("POSITIONS")
             else:
                 m.move_to_step(target)
         check(f"V9 {label} rejects (empty config)", False, "no exception")

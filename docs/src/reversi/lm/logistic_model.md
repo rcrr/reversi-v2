@@ -15,6 +15,8 @@ construction.
 | Context | injected callables | `log_event`, `get_cache_file_path_for_current_level`, `get_cache_file_full_path_for_current_level` (lambda no-op defaults = pre-injection fallback, replaced at init by the machine's closures) |
 | Facade | `LogisticModel(config_file_path, verbosity=STANDARD, base_dir_override=None)` | `@validate_call` (arbitrary_types_allowed) 4-step construction; wrong-typed args raise pydantic ValidationError at the facade boundary |
 | Facade | pass-throughs | `move_to_step(int \| str)`, `move_to_last()`, `show_event_log()`, `show_history_of_moves()`, `export_history_of_moves_as_csv(path)` — pure delegation to the StateMachine |
+| Facade | `run(target_level=None)` | the target-driven driver (inherited from `base_model.md`): the first real level (CONFIG) runs first, then the target resolves as the explicit argument, else `_configured_target_level()`, else the last step; `"last"` / a blank value → `move_to_last()` |
+| Facade | `_configured_target_level() -> int \| str \| None` | the LM override: `cfg.target_level` of the loaded config (`None` when no config is loaded or the field is absent — the base default, i.e. the whole pipeline) |
 | Facade | views | `current_step`, `current_worker_name` (read-only mirrors), `verbosity` (get/set through the SM) |
 | Private | `_check_config_file_path(str \| Path) -> Path` | TypeError (bad type), FileNotFoundError (missing), IsADirectoryError (a directory) |
 | Private | `_check_base_dir_override(str \| Path) -> Path` | TypeError, FileNotFoundError, NotADirectoryError (a file) |
@@ -64,7 +66,7 @@ uniform `@validate_call` gate.
 
 ## Verified invariants
 
-Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (17 tests; the V6f/V4b-class probe
+Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (29 tests; the V6f/V4b-class probe
 checks were converted to tests).
 
 - The LMContext dataclass shape: plain `Context` base, `config_file_path` the only no-default field, `use_cache` default
@@ -75,16 +77,20 @@ checks were converted to tests).
   `test_logistic_model::test_config_path_helper_edge_branches`.
 - The base-dir helper: str/Path → Path, TypeError, NotADirectoryError — probe V7a-V7b +
   `test_logistic_model::test_base_dir_helper_edge_branches`.
-- The complete pipeline: 17 active levels (the 17th, PLOT, is the matplotlib diagnostics — wrk_plot.md; the 16th,
+- The complete pipeline: 18 active levels (the 18th, PLOT, is the matplotlib diagnostics — wrk_plot.md; the 17th,
   CLIENT_CHECK, the saved-model file acceptance test — wrk_client_check.md), 0 commented worker imports/entries — probe
   V3c-V3d.
 - The injection: the live context's `*_for_current_level` attributes ARE the machine's closures (`_get_cache_file_path`
   / `_get_cache_file_full_path`), `log_event` a bound method, no legacy name in the live context — probe V4a/V4d +
   `test_logistic_model::test_injected_cache_helpers_are_the_machine_closures`.
-- The machine boundaries on the `{}` dummy config: `move_to_step(1)` / `move_to_step("POSITIONS")` / `move_to_last()`
-  all hit the CONFIG worker first and raise its pydantic ValidationError (the gate split — no conversion to the gate's
-  TypeError), a failed move leaves `current_step` at the failed step — probe V9 (3 labels) + the `test_move_to_step_*`
-  tests.
+- The machine boundaries on the `{}` dummy config: `move_to_step(1)` / `move_to_step("POSITIONS")` / `move_to_last()` /
+  `run("POSITIONS")` all hit the CONFIG worker first and raise its pydantic ValidationError (the gate split — no
+  conversion to the gate's TypeError), a failed move leaves `current_step` at the failed step — probe V9 (4 labels)
+  + the `test_move_to_step_*` tests.
+- The target-driven stop: `run()` runs CONFIG first, honors the explicit argument over `cfg.target_level`, resolves
+  `"last"` / a blank / an absent config to the last step, RESUMES without re-running the levels already done, moves back
+  (with their down()) for a lower target, and lets the machine's ValueError / TypeError through — the mocked
+  `test_run_*` tests + the real-config `TestRunFacadeOnARealConfig` (FEATURES / SU_ANALYSIS, no DB).
 - The 8 checksum fields, and NO `features_checksum` (FEATURES is a pure in-memory derivation) — probe V10.
 - The per-level cache path: `<prefix><level:02>_<worker>.dat`, the full variant prepending `cfg.base_dir` —
   `test_logistic_model::test_injected_cache_helper_computes_the_worker_path`.
@@ -102,10 +108,7 @@ checks were converted to tests).
 
 ## Open issues
 
-- No `run(target_level=...)` entry: the design (section 3.6, P4) asks the facade to consume `cfg.target_level` (the
-  explicit argument, else the field, else "last") and hand it to `move_to_step`, so a client stops the pipeline from the
-  CONFIG alone. Today the caller chains `move_to_step('CONFIG')` + `move_to_step(name)` / `move_to_last()` by hand, and
-  the `target_level` field is inert (I-019).
+None.
 
 ## Conventions
 

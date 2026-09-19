@@ -48,7 +48,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 - **The analysis levels** — `su_analysis` + `effect_size`, both by default factory and both `enable` default **FALSE**
   (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
   the rlm_00 fixture opt in); `target_level: str` default `"last"` (a level name, case-insensitive, resolved fail-fast
-  by the StateMachine, or "last" for the full pipeline); and `check_su_pairs_feature_set`, a
+  by the StateMachine, or "last" for the full pipeline; consumed by the facade's `run()` when no explicit target is
+  given — a blank value means "last" too); and `check_su_pairs_feature_set`, a
   `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is not in the `feature_set` (the
   mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator does the canonical sort + the
   dedupe (each pair a sorted tuple, a repeated pair collapsed).
@@ -95,15 +96,12 @@ Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
   empty `su_pairs`, `export_csv` False, `top_k_adherence` 20 (`test_i017_defaults`); the canonical order + the dedupe (a
   repeated pair in any order collapses to one sorted tuple) and the fail-fast against the feature set
   (`test_i017_su_pairs_canonical_dedupe`, `test_i017_su_pairs_fail_fast`); a level name ("SU_ANALYSIS") survives in
-  `target_level` (`test_i017_target_level_field`).
+  `target_level` (`test_i017_target_level_field`) and the facade's `run()` honors it
+  (`test_logistic_model::test_run_honors_the_config_target_level` + the real-config class).
 
 ## Open issues
 
-- `target_level` is declared and carried by the config, but no consumer reads it: the design (section 3.6, P4) asks
-  for a facade entry — `LogisticModel.run(target_level=...)` — that resolves the field through the StateMachine's
-  `move_to_step`; that entry does not exist, and a client stops the pipeline with an explicit `move_to_step` /
-  `move_to_last`. A bogus level name therefore passes the CONFIG step unchallenged (the fail-fast ValueError lives in
-  `move_to_step`, which nobody calls with this value). Recorded as I-019.
+None.
 
 ## Conventions
 

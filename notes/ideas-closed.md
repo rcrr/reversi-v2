@@ -85,3 +85,11 @@ I-018 | done | The top-20 outlier report in VALIDATE + the 20 records in the con
          PNG byte-determinism golden and the full-chain pins hold. A dedicated probe re-pin (D-244) cleared the stale
          step/slot pins the campaign's sweep exposed.
 
+I-019 | done | The `run()` facade + the `target_level` consumption (raised 2026-09-19 during the P2 rename sweep,
+         closed the same day). Executed as D-260: `BaseModel.run(target_level=None)` drives the stop — the first real
+         level (CONFIG) runs first, then the explicit argument, else the domain hook `_configured_target_level()`
+         (`LMConfig.target_level` in LogisticModel), else the last step; "last" (any case) and a blank value mean the
+         whole pipeline, and any level name or index is a legal stop. A second `run()` with a deeper target RESUMES
+         without re-running the levels done (verified at the 1e7 scale: one SU_ANALYSIS up, zero downs). Tests 17 -> 29
+         in `test_logistic_model` (the mocked resolution cases + the real-config class); the register line in
+         notes/rules.md; the hub probe's V9 gained the `run()` boundary label.

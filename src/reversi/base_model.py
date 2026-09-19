@@ -79,6 +79,43 @@ class BaseModel:
         """Move the pipeline to the last step."""
         self.sm.move_to_last()
 
+    def run(self, target_level: int | str | None = None) -> None:
+        """Drive the pipeline to a target step.
+
+        The first real level (step 1) runs first, so that the domain
+        config is loaded before it can name its own target. The target
+        resolves as the explicit argument, else the domain's
+        configured target (see _configured_target_level), else the
+        last step; the string "last" (any case) and a blank value mean
+        the last step as well. Any level name is a legal stop (resolved
+        case-insensitively by the machine), and the target step IS
+        executed: the resulting state is "steps 1..target done".
+
+        Failure semantics are the machine's: an unknown name raises its
+        ValueError, a wrong-typed target its TypeError, and a failing
+        worker leaves current_step at the failed step. A second run()
+        with a DEEPER target RESUMES — the levels already done are not
+        re-run, so their context artifacts stay published and the
+        on-disk caches stay hot; a target BELOW the current step moves
+        back instead, running the down() of the levels left behind.
+        """
+        if self.current_step < 1:
+            self.move_to_step(1)
+        target = (target_level if target_level is not None
+                  else self._configured_target_level())
+        if target is None or (isinstance(target, str)
+                              and target.strip().lower() in ('', 'last')):
+            self.move_to_last()
+        else:
+            self.move_to_step(target)
+
+    def _configured_target_level(self) -> int | str | None:
+        """The domain's configured stop target, resolved after the
+        first level ran. The base default is None (the whole
+        pipeline); a concrete facade overrides it to read its own
+        config (LogisticModel reads LMConfig.target_level)."""
+        return None
+
     def show_event_log(self) -> None:
         self.sm.show_event_log()
 
