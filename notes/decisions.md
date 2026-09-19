@@ -1175,6 +1175,23 @@ D-229 | 2026-09-18 | The play_path intervention 2 (Roberto's one-at-a-time plan,
          551,381 games/s (-10.8% wall, +11.7% throughput); the harvest breakdown unchanged on both.
          `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
+D-230 | 2026-09-18 | The play_path intervention 3 (Roberto's one-at-a-time plan, measured): the engine state is
+         the RAW `(movers, opponents)` uint64 pair — copied ONCE from the input (the caller's array is never
+         mutated), advanced in place by the steps (`_apply_picked_moves` writes the state directly: no
+         per-group full copies; the ec via the inline `bitboard_count(~(movers | opponents))`), and assembled
+         into the Position array once at the end. The `~4 make_position calls per step` of the D-227 profile
+         drop to ~2 (the subset assemblies for the flips only), the ndarray.copy 222-calls charge disappears.
+         THE MEASUREMENT IS INCONCLUSIVE ON THE WALL: the machine noise band is +-5-6% (the repeated runs
+         5.50-6.55s) and the structural saving (~5-8% theoretical) is buried in it; the PHASE-STRUCTURE
+         comparison vs the D-227 profile is decisive: legal_moves 0.875 -> 0.215s (the D-228/D-229 wins),
+         make_position 0.519s/231 -> 0.320s/112 calls (-38%), position_empty_count -> the inline
+         `bitboard_count` 0.058s (-65%), the ndarray.copy 222 calls GONE. The remaining hot spots after
+         D-228/229/230: position_flips ~15.7%, pick_one_from_set64_batch ~14.6%, the step glue (the masks +
+         the np.where chains + the fancy indexing) — the fused-step-kernel option is the next plan item.
+         Also: the scratch lms buffers typed `dtype=Bitboard` (the aesthetic, Roberto) and the stale "(70)"
+         RuntimeError message of the D-226 leftover corrected. Zero behaviour change. `test_random_game`
+         33/0/1, full LONG 914/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

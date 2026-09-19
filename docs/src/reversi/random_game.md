@@ -82,7 +82,10 @@ results computed on the ONE injected prng stream.
   plays from the swapped view), double_pass_game_over (harvested,
   no draw, the input view returned); one get_uint64_batch
   pre-draws for the needing lanes (the prefix slot map) and
-  pick_one_from_set64_batch + position_flips advance them. The
+  pick_one_from_set64_batch + position_flips advance them. The state
+  is the RAW (movers, opponents) uint64 pair — copied once, advanced
+  in place by the steps, assembled into the Position array once at
+  the end (the D-230 copies fix). The
   termination is mathematical (every non-terminal step decreases a
   lane's ec by one); the step bound is derived from the input (the
   ec surplus over the target, plus one).
