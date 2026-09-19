@@ -1,6 +1,6 @@
 # reversi/lm/wrk_client_check.py
 The CLIENT_CHECK worker — the 16th active level of the LM pipeline (step 15, after SAVE; PLOT follows as the 17th). The
-7th non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (a pure verification step, recomputed on every
+7th non-cache worker — no `cache_manager` wiring, no rlmwf_17* file (a pure verification step, recomputed on every
 up-move). The acceptance test of the saved model file: it re-reads the SAVE artifact from disk, builds the client's
 vectorized Evaluation Function on the FILE weights, and recomputes the validation residuals in Y space — they must
 coincide with the in-memory VALIDATE forward pass's residuals within `ctx.cfg.client_check_tol` (default 1e-8, the
@@ -64,17 +64,17 @@ None.
   must follow (the divergence would be caught by the check itself — it would fail the pipeline).
 - The comparison runs in the rounded-lossless f64 view on BOTH sides: the quantities compared are the exact residuals,
   and the f32 rounding of hlp_validate's own `rn_y` (f32 minus int8) never enters the tolerance arithmetic.
-- The 7th deviation from the uniform 7-kwargs `cache_manager` wiring — the rlmwf_16 slot stays unused, like
+- The 7th deviation from the uniform 7-kwargs `cache_manager` wiring — the rlmwf_17 slot stays unused, like
   03/07/08/09/12/13/15.
 - The worker is stateless by design: it publishes no context attribute (the ANALYTICS level, upstream at 14, has already
   written its reports; the check result lives in the event log).
 
 ## Integration
 
-- Pipeline ordering: CLIENT_CHECK is the 15th step (16th level); its inputs come from SAVE (the file at
-  `base_dir / cfg.output`), VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`),
-  WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.z2y`) and CONFIG (`ctx.cfg.client_check_tol`)
-  — the SM half-open interval semantics guarantee every up-move to step 15 passes through all of them.
+- Pipeline ordering: CLIENT_CHECK is the 17th step; its inputs come from SAVE (the file at `base_dir / cfg.output`),
+  VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`), WMAPS
+  (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.z2y`) and CONFIG (`ctx.cfg.client_check_tol`) — the
+  SM half-open interval semantics guarantee every up-move to step 15 passes through all of them.
 - Consumes the client: `make_evaluation_function_array` (client.md) — the in-pipeline consumer that proves the
   out-of-pipeline artifact (the saved file + the client) reproduces the pipeline's own validation. The scalar EF stays
   the test_client.py pin (the 1100× speed ratio makes the array EF the level's tool).

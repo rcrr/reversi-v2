@@ -120,18 +120,18 @@ check('C5  T4 DONE: TemporaryDirectory FIRST (L95) under CUSTOM_TMP_BASE + tmp_d
 check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(self._tmp.name))',
       'import shutil' not in '\n'.join(tc) and tc[53] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
-check('C7  step pins: DESIGN_MTR = 6 (L104-105), ZED = 7 (L127-128)',
-      tc[103] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[104] == '        self.assertEqual(self.rlm.current_step, 6)'
-      and tc[126] == "        self.rlm.move_to_step('ZED')" and tc[127] == '        self.assertEqual(self.rlm.current_step, 7)')
+check('C7  step pins (re-pinned: DESIGN_MTR = 8, ZED = 9)',
+      tc[103] == "        self.rlm.move_to_step('DESIGN_MTR')" and tc[104] == '        self.assertEqual(self.rlm.current_step, 8)'
+      and tc[126] == "        self.rlm.move_to_step('ZED')" and tc[127] == '        self.assertEqual(self.rlm.current_step, 9)')
 check('C8  goldens: logit_clipping 0.03 (L117), y (10,) int8 (L121), z (10,) float32 (L137-146)',
       tc[116] == '        expected_logit_clipping = 0.03'
       and tc[120] == '        expected_y = np.array([10, 36, -22, 18, -16, 14, -22, 20, 0, 2], dtype=np.int8)'
       and tc[136] == '        expected_z = np.array([0.5734375,'
       and tc[145] == '                               0.5146875], dtype=np.float32)')
-check('C9  T5 DONE: test_down_clears_zed_attributes (L150) — move(6) (L155), step 6 (L156), DESIGN_MTR name (L157), 4 assertIsNone (L158-161)',
+check('C9  T5 DONE: test_down_clears_zed_attributes — move(8), step 8, DESIGN_MTR name, 4 assertIsNone',
       tc[149] == '    def test_down_clears_zed_attributes(self):'
-      and tc[154] == '        self.rlm.move_to_step(6)'
-      and tc[155] == '        self.assertEqual(self.rlm.current_step, 6)'
+      and tc[154] == '        self.rlm.move_to_step(8)'
+      and tc[155] == '        self.assertEqual(self.rlm.current_step, 8)'
       and tc[156] == "        self.assertEqual(self.rlm.current_worker_name, 'DESIGN_MTR')"
       and tc[157:161] == ['        self.assertIsNone(self.rlm.context.y2z)',
                           '        self.assertIsNone(self.rlm.context.z2y)',
@@ -194,10 +194,10 @@ try:
           np.allclose(z2y(y2z(y)), y.astype(np.float32), rtol=1e-6, atol=1e-7))
     files = sorted(p.name for p in base.iterdir())
     expected_files = sorted(
-        ['rlmwf_03_POSITIONS.dat', 'rlmwf_03_POSITIONS.dat.SHA3-256',
-         'rlmwf_04_INDEXES.dat', 'rlmwf_04_INDEXES.dat.SHA3-256',
-         'rlmwf_05_WMAPS.dat', 'rlmwf_05_WMAPS.dat.SHA3-256',
-         'rlmwf_06_DESIGN_MTR.dat', 'rlmwf_06_DESIGN_MTR.dat.SHA3-256'])
+        ['rlmwf_04_POSITIONS.dat', 'rlmwf_04_POSITIONS.dat.SHA3-256',
+         'rlmwf_05_INDEXES.dat', 'rlmwf_05_INDEXES.dat.SHA3-256',
+         'rlmwf_07_WMAPS.dat', 'rlmwf_07_WMAPS.dat.SHA3-256',
+         'rlmwf_08_DESIGN_MTR.dat', 'rlmwf_08_DESIGN_MTR.dat.SHA3-256'])
     check('D11 NO rlmwf_07_ZED* file: no disk caching for ZED (by design)',
           files == expected_files, str(files))
     with contextlib.redirect_stdout(io.StringIO()):
@@ -210,13 +210,13 @@ finally:
 
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
-check('F1  LMContext zed fields pre-declared (L135-138, shifted by the '
-      'D-142 config_checksum block + the D-148 wrk_client_check import '
-      '+ the D-149 wrk_plot import), untouched by the commit',
-      lm_lines[134] == '    zed_checksum: str | None = None'
-      and lm_lines[135] == '    y2z: Any = None'
-      and lm_lines[136] == '    z2y: Any = None'
-      and lm_lines[137] == '    z: Any = None')
+check('F1  LMContext zed fields pre-declared (the block shifts with every '
+      'insertion above it: the D-142 config_checksum, the D-148/D-149 imports, '
+      'the I-018 vld_y_pred / vld_rn / vld_outliers fields)',
+      lm_lines[143] == '    zed_checksum: str | None = None'
+      and lm_lines[144] == '    y2z: Any = None'
+      and lm_lines[145] == '    z2y: Any = None'
+      and lm_lines[146] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',

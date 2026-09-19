@@ -5,7 +5,7 @@ scipy `expit` wrapper) + `hlp_gradient_compute` (the closure builder: captures X
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates the normalized loss and gradient). TWO fg variants:
 the classic vectorized-numpy closure (the default) and the high-performance numba single-pass kernel (K3, selected by
 the `high_performance` flag). The 9th active level and the SECOND non-cache one (after ZED): no cache_manager wiring, no
-rlmwf_07* / rlmwf_08* file ever.
+rlmwf_09* / rlmwf_10* file ever.
 
 ## API
 
@@ -70,7 +70,7 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tes
   it to `hlp_gradient_compute` (the log line names the variant), `_down` clears `ctx.fg`, `Worker("GRADIENT", ...)`.
 - The live-DB golden re-derivation (probe D0 + D5-D10 + D12, rlm_02 — 199952 positions, the rlm_02 config has NO flag →
   the classic path): the pipeline bootstrap through GRADIENT; alpha + clipping; f(w=0) + g(w=0) re-derived (independent
-  float64, the float32 R1 pin); f+g at w ≠ 0 (ridge); the closure stateless (2 calls); NO rlmwf_07*/08* files; the
+  float64, the float32 R1 pin); f+g at w ≠ 0 (ridge); the closure stateless (2 calls); NO rlmwf_09*/10* files; the
   feature set (8 instances).
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg` field pre-declared; scipy in pyproject.toml + in the venv
   (1.18.1); the StatModelConfig `ridge_regularization` field (`ge=0.00`); the rlm_02 config.
@@ -117,4 +117,4 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tes
   the OPTIMIZE level later overwrites it with the optimized values) + `ctx.cfg.stat_model.ridge_regularization` (CONFIG)
   + `ctx.cfg.optimization.high_performance_fg` (CONFIG).
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE level. The flat-file numbering stops at
-  rlmwf_06_DESIGN_MTR — the next cache level (OPTIMIZE) takes rlmwf_08 (07 is skipped, as 03 was at FEATURES).
+  rlmwf_08_DESIGN_MTR — the next cache level (OPTIMIZE) takes rlmwf_11 (09/10 are skipped: ZED and GRADIENT write nothing).

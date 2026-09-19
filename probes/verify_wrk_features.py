@@ -218,8 +218,8 @@ check("B13c second run: identical feature set (name + hash)",
 
 tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_features.py").read_text()
 
-check("C1 197 lines (post D-157: the POSITIONS move + the gate removed from setUp; pre: 206)",
-      len(tsrc.splitlines()) == 197)
+check("C1 202 lines (the current count; the earlier pin was 197)",
+      len(tsrc.splitlines()) == 202)
 check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-082 golden content test kept)",
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc

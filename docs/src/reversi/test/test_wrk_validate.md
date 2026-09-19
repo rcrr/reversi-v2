@@ -23,7 +23,7 @@ the outlier report — moved here from `test_wrk_plot`, where the report used to
 
 ## Conventions
 
-- The setUp moves to VLD_POSITIONS (step 11) BEFORE the tests, so every worker test exercises the full 13-level chain
+- The setUp moves to VLD_POSITIONS (step 13) BEFORE the tests, so every worker test exercises the full 13-level chain
   end-to-end on the live DB (the test_wrk_zed pattern: setUp at the level before the one under test).
 - The 2nd-instance test is the no-cache twin of the cache round-trip tests (test_wrk_positions et al.): where they pin
   "cache hit + no recompute", this one pins "recompute + identical result + 6 sibling cache hits".
@@ -32,6 +32,6 @@ the outlier report — moved here from `test_wrk_plot`, where the report used to
 
 ## Integration
 
-- This file owns C1 (bootstrap step 12), C2 (the 7-key dict + exact goldens), C3 (the 5 log lines), C6 (2nd-instance
+- This file owns C1 (bootstrap step 14), C2 (the 7-key dict + exact goldens), C3 (the 5 log lines), C6 (2nd-instance
   determinism + the 6 cache hits) + C7 (the _down scope), plus the D1/D3 checks — the probe (probes/verify_validate.py)
-  retains only C4 (the internal consistency invariants) + C5 (no rlmwf_12* file) for the live-DB tier.
+  retains only C4 (the internal consistency invariants) + C5 (no rlmwf_14* file) for the live-DB tier.

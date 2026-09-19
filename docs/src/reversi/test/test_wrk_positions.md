@@ -5,7 +5,7 @@ The test module of the POSITIONS worker. 3 classes / 12 tests (5 DB-gated) / no 
 
 | class | what it pins |
 |---|---|
-| `TestLMWorkerPositions` (2, `SKIP_REGAB_DB` gated) | the end-to-end cache round-trip on a real data set: `test_read_db_and_populate_cache` (the FLAT `rlmwf_03_POSITIONS.dat` + `.SHA3-256` exist on disk and the logs contain "Extracted … positions from the database.") and `test_read_cache_on_new_instance` (a SECOND instance on the same cache dir: the logs contain "Cache successfully loaded and validated" and NOT "Extracted" / "established successfully") |
+| `TestLMWorkerPositions` (2, `SKIP_REGAB_DB` gated) | the end-to-end cache round-trip on a real data set: `test_read_db_and_populate_cache` (the FLAT `rlmwf_04_POSITIONS.dat` + `.SHA3-256` exist on disk and the logs contain "Extracted … positions from the database.") and `test_read_cache_on_new_instance` (a SECOND instance on the same cache dir: the logs contain "Cache successfully loaded and validated" and NOT "Extracted" / "established successfully") |
 | `TestIsCacheConsistent` (7, in-memory — no DB, no cache file) | the unit semantics of `is_cache_consistent`: same cfg → True; a differing ec / bid / status / dbname → False; the `bid=`/`status=` keyword overrides win; the str-port (regab) vs int-port (schema) compares equal |
 | `TestLMWorkerPositionsDuplicates` (3, `db_long_gate` gated) | the `regab_allow_duplicate` policy on the live DB (fixture bid 8: 200 records, 11 duplicate keys, 189 distinct): `test_dedup_when_flag_false` (rlm_00 re-dumped with the flag `False` → 189 positions/game_values + pop count 189 + the "[TOTAL: 200], [REMOVED: 11], [PERCENT: 5.50%] — removed" log); `test_kept_when_flag_true` (flag `True` → 200 + the "[FOUND: 11] — kept" log); `test_cache_holds_post_policy_content` (a flag-false cache file reloads 189 records + the cache-hit log line + NO "Extracted") |
 
@@ -19,7 +19,7 @@ cache file.
 
 ## Goldens pinned
 
-- The flat cache file names: `rlmwf_03_POSITIONS.dat` + `rlmwf_03_POSITIONS.dat.SHA3-256` (slot 03 — the file-less
+- The flat cache file names: `rlmwf_04_POSITIONS.dat` + `rlmwf_04_POSITIONS.dat.SHA3-256` (slot 03 — the file-less
   FEATURES takes 02; the machine-level naming end-to-end — no `rlmwf_/` subdirectory).
 - The witness log lines: "Extracted … positions from the database." (DB hit) and "Cache successfully loaded and
   validated" (cache hit) — with the NEGATIVE pins "Extracted" / "established successfully" absent on the second run.

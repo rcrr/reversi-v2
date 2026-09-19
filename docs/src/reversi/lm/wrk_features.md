@@ -47,7 +47,7 @@ Pinned by the 40-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_fe
   sha3_256(b'INTERCEPT' + mset.hash + pset.hash); the independent FeatureSet is identical (feature list + hash) — probe
   B9a-d.
 - The level boundary: no cache files exist at the FEATURES stop (no rlmwf_02_FEATURES* — the pure-compute level writes
-  nothing; the POSITIONS cache is downstream, rlmwf_03 — probe B10); down to CONFIG clears feature_set — probe B12; a
+  nothing; the POSITIONS cache is downstream, rlmwf_04 — probe B10); down to CONFIG clears feature_set — probe B12; a
   second run on the same base dir: no DB access (POSITIONS is not in the path), the identical feature set — probe
   B13a-c.
 - The test-file pins: the 197-line file, 2 classes / 3 tests, the shared CUSTOM_TMP_BASE idiom, the DB-free setUp, the

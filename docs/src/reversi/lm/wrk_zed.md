@@ -1,6 +1,6 @@
 # reversi/lm/wrk_zed.py
 The ZED worker of the LM pipeline — the 8th active level and the FIRST non-cache worker in the pipeline: no
-`cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch, no rlmwf_07* file). The level is
+`cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch, no rlmwf_09* file). The level is
 recomputed on every up-move: the computation is pure vectorized affine math over `ctx.game_values`, so the on-the-fly
 choice is documented in `_up` (L49). The machine contract is unchanged: `_up` publishes the 4 context attributes,
 `_down` clears ALL FOUR.
@@ -32,9 +32,9 @@ Pinned by the `probes/verify_zed.py` B + C + D + F + G tiers + the 3-test suite.
 - The worker-test source shape (probe C1-C10): the 164-line file, the 2 classes, the 3 tests, the gate + the header
   claim, the idiom, no dead imports (`Path` load-bearing), the step pins, the goldens, the _down test, 0 non-comment ws
   lines.
-- The full pipeline through ZED (live DB, probe D1/D5-D11, rlm_01): the pre-state (all 4 ctx attrs None), step 7 +
+- The full pipeline through ZED (live DB, probe D1/D5-D11, rlm_01): the pre-state (all 4 ctx attrs None), step 9 +
   worker name "ZED", the golden y/z content (the hlp_zed doc), the checksum identity, the endpoints + round-trip of the
-  published closures, EXACTLY the 5 flat files + 5 sidecars in the base dir (no rlmwf_07*).
+  published closures, EXACTLY the 5 flat files + 5 sidecars in the base dir (no rlmwf_09*).
 - The dedicated suite (probe F4/F5 + G1-G10): the 157-line file, 3 classes / 10 tests, no DB wiring, the goldens pinned,
   the hash golden `3d49fd5d...`, the 4 mirror docs exist.
 - The end-to-end golden (DB-gated): `test_compute_zed` (the (10,) y int8 + z float32 literals, the step-7 pin, the

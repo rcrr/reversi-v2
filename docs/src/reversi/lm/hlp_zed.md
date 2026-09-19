@@ -3,7 +3,7 @@ The ZED domain module of the LM pipeline: the `LMZed` data object (the z (N,) fl
 per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the pure math) +
 `hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 8th active level (CREATED sentinel →
 CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED) and the FIRST non-cache level in the pipeline (no
-store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_07* file — see the worker doc).
+store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09* file — see the worker doc).
 
 ## API
 
@@ -25,7 +25,7 @@ store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_07* file �
   `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
   returns the object.
 - NO store / load / is_cache_consistent functions — the first non-cache level by design (vectorized math, "very fast"
-  per the worker comment; no rlmwf_07* file ever materializes).
+  per the worker comment; no rlmwf_09* file ever materializes).
 
 ## Verified invariants
 
@@ -42,7 +42,7 @@ DB-gated).
   recompute `0.5 + y·(1−2c)/128` (EXACT) == the float64 reference (allclose); `zed_checksum == sha3_256(z.tobytes())`;
   both closures callables; live endpoints `y2z(−64) ≈ c`, `y2z(0) == 0.5`, `y2z(64) ≈ 1−c`; live round-trip
   `z2y(y2z(y)) == float32(y)`; the base dir holds EXACTLY the 5 flat files + 5 sidecars of the 5 cache levels (no
-  rlmwf_07*).
+  rlmwf_09*).
 - The cross-module facts (probe F1/F4/F5): LMContext's 4 zed fields pre-declared (L129-132); the dedicated test exists
   (10 tests, no DB wiring); the mirror docs exist.
 - The unit suite (10 tests, no DB): the factory math (both branches + 2-clippling endpoints), the mock compute (the
@@ -58,7 +58,8 @@ None.
 - The duck-typed hash covers `z` ONLY (informational): the closures are pure functions of
   `cfg.stat_model.logit_clipping` (not stored on the object). Same game_values + different clipping → different z →
   different hash, so no collision risk today; a future cache would need the clipping in the checksum.
-- The flat-file numbering skips 07 (FEATURES skipped 03): the next cache level (GRADIENT) takes rlmwf_08.
+- The flat-file numbering skips 09 (FEATURES skips 02): the next cache level (GRADIENT, step 10) writes nothing either —
+  OPTIMIZE takes rlmwf_11.
 - z's dtype contract is float32 (pinned in the worker test + 3× in the dedicated test): the values live in [c, 1−c] ⊂
   (0, 1); the float32 arithmetic is exact for the round-trip within the pinned allclose tolerances (1e-6/1e-7).
 - No `@validate_call` on `hlp_zed_compute` — the TYPE_CHECKING circular-import constraint (the L94 note).
@@ -67,7 +68,7 @@ None.
 
 - Pipeline ordering: `ctx.game_values` (POSITIONS — the (N,) int8 vector, values in [−64, +64]) +
   `ctx.cfg.stat_model. logit_clipping` (CONFIG) must be set before `hlp_zed_compute` runs — the SM half-open interval
-  semantics guarantee every up-move to step 7 passes through both. No other upstream dependency (the
+  semantics guarantee every up-move to step 9 passes through both. No other upstream dependency (the
   FEATURES/INDEXES/WMAPS/DESIGN_MTR outputs are NOT consumed by ZED).
 - The worker recomputes on EVERY up-move (no cache file, no `is_allowed` switch — the uniform 7-kwargs cache_manager
   wiring is absent by design, the first deviation from the house pattern).

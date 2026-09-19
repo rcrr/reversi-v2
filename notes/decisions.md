@@ -1461,3 +1461,31 @@ D-243 | 2026-09-19 | I-018 step 1-2: VALIDATE becomes the owner of the validatio
          verify_wrk_positions, verify_zed (DESIGN_MTR = 6 / ZED = 7, rlmwf_07_ZED). They are INDEPENDENT of I-018 (no
          step moved): the re-pin is the next step of this campaign, required by the sweep rule before the campaign
          close.
+
+D-244 | 2026-09-19 | The stale probe re-pin + the mirror-doc re-pin (the sweep debt found by the D-243 campaign sweep;
+         Roberto: "ripinna i 9 probe adesso"). THE CAUSE: the step and cache-slot pins of 9 module probes — and the same
+         numbers in the mirror docs that cite them — stayed frozen at the pre-I-017 numbering: the reordering (D-157:
+         FEATURES to step 2) and the two new levels (FEATURE_ANALYSIS step 3, EFFECT_SIZE step 6) shifted EVERY
+         subsequent step number and cache slot. THE EMPIRICAL GROUND TRUTH (a full rlm_02 chain run, the files it
+         actually writes): CONFIG 1 (no cache, D-142), FEATURES 2 (pure), FEATURE_ANALYSIS 3, POSITIONS 4, INDEXES 5,
+         EFFECT_SIZE 6, WMAPS 7, DESIGN_MTR 8, ZED 9 (pure), GRADIENT 10 (pure), OPTIMIZE 11, GENERATE 12, VLD_POSITIONS
+         13, VALIDATE 14 (pure), ANALYTICS 15 (pure), SAVE 16, CLIENT_CHECK 17, PLOT 18. THE PROBES (9):
+         verify_analytics (VALIDATE 12 -> 14, ANALYTICS 13 -> 15, the no-cache slot 12 -> 15, the file set, the numeric
+         move_to_step(12) -> (14)), verify_design_matrix (WMAPS 5 -> 7, DESIGN_MTR 6 -> 8, rlmwf_06 -> rlmwf_08),
+         verify_gradient (ZED 7 -> 9, GRADIENT 8 -> 10, the no-cache slots 07/08 -> 09/10), verify_hlp_indexes
+         (POSITIONS 03 -> 04, INDEXES 04 -> 05, plus the rlm_00 FEATURE_ANALYSIS cache file that the D-175 opt-in added
+         and the probe never learned about), verify_optimize (GRADIENT 8 -> 10, OPTIMIZE 9 -> 11, the no-cache slots
+         02/07/08 -> 02/09/10), verify_wmaps (INDEXES 4 -> 5, WMAPS 5 -> 7, rlmwf_05 -> rlmwf_07), verify_wrk_features
+         (the line count 197 -> 202), verify_wrk_positions (POSITIONS 03 -> 04), verify_zed (DESIGN_MTR 6 -> 8, ZED 7 ->
+         9, the no-cache slot 07 -> 09, and the F1 LMContext index pin shifted by the I-018 ctx fields). THE DOCS (the
+         probe_rules §5.4 same-commit rule): the same numbers re-pinned in the mirror docs that cite them — 39 slot
+         substitutions (rlmwf_03_POSITIONS -> 04, 04_INDEXES -> 05, 05_WMAPS -> 07, 06_DESIGN_MTR -> 08, 07_ZED -> 09,
+         08_GRADIENT -> 10, 10_GENERATE -> 12, 11_VLD_POSITIONS -> 13) across 15 files, plus the no-cache slot
+         references (12 -> 14/15, 15 -> 16, 16 -> 17/18) and the stale step prose ("the 13th step", "the 9-level chain",
+         "17-level pipeline shape", the WMAPS=5/DESIGN_MTR=6 pins, the FEATURE* slot 03 -> 02) in ~20 files. TWO
+         STRUCTURAL NOTES: (a) the probes' index-based content pins (tc[i] == '...') are brittle by construction — the
+         re-pin had to re-derive the indices, not only the values; (b) verify_hlp_indexes left a stale base dir under
+         build/tmp when a run crashed, and the next run failed on a file list polluted by the old run (the probe cleans
+         at exit — a crashed run does not). VERIFICATION: the FULL sweep is GREEN again (22/22 probes), LONG 920/0/23
+         GREEN, the 1e6 G0 bit-exact, the mirror-doc audit at 85/94 with the same 9 pre-existing size findings.
+         The I-018 steps 3-4 follow.

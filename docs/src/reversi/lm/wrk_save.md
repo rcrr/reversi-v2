@@ -1,6 +1,6 @@
 # reversi/lm/wrk_save.py
 The SAVE worker — the 15th active level of the LM pipeline (step 14, after ANALYTICS; CLIENT_CHECK runs after it). The
-6th non-cache worker — no `cache_manager` wiring, no rlmwf_15* file (no cache level ever used a "15" slot; the flat-file
+6th non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (no cache level ever used a "15" slot; the flat-file
 numbering skips 03/07/08/09/12/13/15). A pure SINK on every up-move: it reads context attributes and writes ONE artifact
 — `base_dir/<cfg.output>` (the model weights file, lz4-compressed by default, with the `.SHA3-256` sidecar written by
 binio). That single artifact is SELF-DESCRIBING: the v2 file embeds the configuration provenance (the normalized dump +

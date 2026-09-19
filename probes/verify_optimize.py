@@ -229,19 +229,19 @@ check("D4 T4: dead imports removed (skipUnless gone; os/Path now used)",
       and "from pathlib import Path" in d and "Path(" in d)
 check("D5 T3: dead if-False block removed", "if False:" not in d)
 check("D6 T5: stray ':# ###' comment removed", "#: ###" not in d)
-check("D7 1 class / 3 tests, step pins GRADIENT=8 / OPTIMIZE=9",
+check("D7 1 class / 3 tests, step pins GRADIENT=10 / OPTIMIZE=11",
       d.count("class Test") == 1 and len(re.findall(r"    def test_\w+", d)) == 3
       and re.findall(r"    def test_\w+", d) ==
       ["    def test_optimization_runs",
        "    def test_max_iters_treated_as_completed",
        "    def test_down_clears_optimize"]
-      and "assertEqual(self.rlm.current_step, 8)" in d
-      and "assertEqual(self.rlm.current_step, 9)" in d)
+      and "assertEqual(self.rlm.current_step, 10)" in d
+      and "assertEqual(self.rlm.current_step, 11)" in d)
 check("D8 T6: vacuous assertNotIn replaced with the real lbfgs marker",
       'self.assertNotIn("L-BFGS - [", logs)' in d
       and 'self.assertNotIn("Starting L-BFGS optimization"' not in d)
 check("D9 T7: _down test pins R4 (fg + w_checksum + opt_info cleared, w kept)",
-      "self.rlm.move_to_step(8)" in d
+      "self.rlm.move_to_step(10)" in d
       and "self.assertIsNone(ctx.fg)" in d
       and "self.assertIsNone(ctx.w_checksum)" in d
       and "self.assertIsNone(ctx.opt_info)" in d
@@ -351,7 +351,7 @@ def h_main():
         logs1 = out.getvalue()
 
         def h1():
-            assert rlm.current_step == 9, rlm.current_step
+            assert rlm.current_step == 11, rlm.current_step
             assert rlm.current_worker_name == "OPTIMIZE"
             ctx = rlm.context
             assert ctx.w.dtype == np.float32 and len(ctx.w) == 2981
@@ -360,13 +360,15 @@ def h_main():
             assert "Starting OPTIMIZE worker..." in logs1
             assert "Optimization finished." in logs1
             files = sorted(p.name for p in Path(tmp).iterdir())
-            for n in ("rlmwf_03_POSITIONS.dat", "rlmwf_03_POSITIONS.dat.SHA3-256",
-                      "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256",
-                      "rlmwf_05_WMAPS.dat", "rlmwf_05_WMAPS.dat.SHA3-256",
-                      "rlmwf_06_DESIGN_MTR.dat", "rlmwf_06_DESIGN_MTR.dat.SHA3-256",
+            for n in ("rlmwf_04_POSITIONS.dat", "rlmwf_04_POSITIONS.dat.SHA3-256",
+                      "rlmwf_05_INDEXES.dat", "rlmwf_05_INDEXES.dat.SHA3-256",
+                      "rlmwf_07_WMAPS.dat", "rlmwf_07_WMAPS.dat.SHA3-256",
+                      "rlmwf_08_DESIGN_MTR.dat", "rlmwf_08_DESIGN_MTR.dat.SHA3-256",
                       "checkpoint_optimize.dat", "checkpoint_optimize.dat.SHA3-256"):
                 assert n in files, files
-            assert not [n for n in files if n.startswith(("rlmwf_02", "rlmwf_07", "rlmwf_08"))], files
+            # the no-cache slots of the CURRENT numbering: 02 (FEATURES),
+            # 09 (ZED), 10 (GRADIENT) — they were 02/07/08 before the reordering
+            assert not [n for n in files if n.startswith(("rlmwf_02", "rlmwf_09", "rlmwf_10"))], files
 
         def h2():
             ctx = rlm.context
@@ -389,7 +391,7 @@ def h_main():
             assert float(f_opt) < float(f_zero), (float(f_opt), float(f_zero))
             assert not np.all(ctx.w == 0)
 
-        for name, fn in (("H1 full run: state + 12 base-dir files", h1),
+        for name, fn in (("H1 full run: state + the base-dir files", h1),
                          ("H2 checkpoint == ctx (independent fg)", h2),
                          ("H3 loss decreased (independent)", h3)):
             try:

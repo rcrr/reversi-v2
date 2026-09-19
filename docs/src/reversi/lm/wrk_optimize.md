@@ -50,8 +50,8 @@ Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
   still saved (H7), corrupted checkpoint → delete + scratch + valid re-save (H8).
 - The float32 contract flows through: `ctx.w` is float32 after 50 lbfgs iterations; `weights_compute_sha3_256_hash`
   (gated `NDArray[np.float32]`) never rejects.
-- The base dir after a full run holds exactly the 12 expected files (the 5 rlmwf_ cache pairs 01/02/04/05/06 + the
-  checkpoint pair); no rlmwf_03*/07*/08* file (H1).
+- The base dir after a full run holds exactly the 12 expected files (the 5 rlmwf_ cache pairs 01/04/05/07/08 + the
+  checkpoint pair); no rlmwf_02*/09*/10* file (H1).
 
 ## Open issues
 
@@ -73,5 +73,5 @@ None.
   WMAPS compute time) + the `optimization` config block.
 - Produces the model artifact of the pipeline: the optimized `ctx.w` + `ctx.w_checksum` + `ctx.opt_info` — the inputs of
   the GENERATE/VALIDATE/ANALYTICS/SAVE levels.
-- The worker-test setUp moves through GRADIENT (step 8) first, so the full 9-level chain is exercised end-to-end on the
-  live DB before OPTIMIZE.
+- The worker-test setUp moves through GRADIENT (step 10) first, so the full 11-level chain is exercised end-to-end on
+  the live DB before OPTIMIZE.

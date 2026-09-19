@@ -1,9 +1,9 @@
 # reversi/lm/wrk_vld_positions.py
-The VLD_POSITIONS worker — the 12th active level (the 11th step). The POSITIONS TWIN over the validation data set: the
-6th `cache_manager` consumer and the only worker that REUSES another level's data module — `extract_and_prepare` +
-`is_cache_consistent` imported from `wrk_positions` (L43), the keyword `bid`/`status` overrides selecting the validation
-query. After the population stats, the worker runs the validation-independence check — how many validation records are
-ALSO present in the training set — LOG ONLY, no action. The flat file is `rlmwf_11_VLD_POSITIONS.dat` + `.SHA3-256`.
+The VLD_POSITIONS worker — the 13th step. The POSITIONS TWIN over the validation data set: the 6th `cache_manager`
+consumer and the only worker that REUSES another level's data module — `extract_and_prepare` + `is_cache_consistent`
+imported from `wrk_positions` (L43), the keyword `bid`/`status` overrides selecting the validation query. After the
+population stats, the worker runs the validation-independence check — how many validation records are ALSO present in
+the training set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.SHA3-256`.
 
 ## API
 
@@ -87,8 +87,8 @@ None.
 
 - Reuses `wrk_positions.extract_and_prepare` + `is_cache_consistent` — the twin relationship: same extraction machinery
   (and the same duplicate policy), different `bid`/`status` (validation bid [8] vs training bid [6,7] in rlm_02). The
-  flat files are distinct: `rlmwf_03_POSITIONS.dat` (training) vs `rlmwf_11_VLD_POSITIONS.dat` (validation).
+  flat files are distinct: `rlmwf_04_POSITIONS.dat` (training) vs `rlmwf_13_VLD_POSITIONS.dat` (validation).
 - The independence check reads `ctx.positions` (the training set, level 2) — the SM half-open interval semantics
   guarantee POSITIONS ran before VLD_POSITIONS on every up-move.
 - Downstream: VALIDATE consumes `ctx.vld_positions` / `ctx.vld_game_values`; ANALYTICS consumes `ctx.vld_pop_stats`; the
-  SM half-open interval semantics guarantee every up-move past step 11 passes through VLD_POSITIONS.
+  SM half-open interval semantics guarantee every up-move past step 13 passes through VLD_POSITIONS.

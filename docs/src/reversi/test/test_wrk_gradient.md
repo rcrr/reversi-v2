@@ -15,7 +15,7 @@ so a live DB is required — `test_wrk_gradient` 2/0/2 under the gate).
 - The 4 live values at w=0 on the rlm_02 dataset (199952 positions, 8 pattern instances — DIAG3 + EDGE, no intercept, no
   mobilities; 2981 w entries) — all re-derived by the probe (the independent float64 reference).
 - The step pins: 7 (ZED) in setUp + 8 (GRADIENT) in `test_generate_gradient` + 7/ZED again in the _down test — the
-  9-level pipeline ordering locked.
+  10-level pipeline ordering locked.
 
 ## Conventions
 

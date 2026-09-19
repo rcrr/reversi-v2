@@ -174,12 +174,12 @@ check("D7 the D-085 paths import is present (L58)",
       t2[57] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("src/reversi/test/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
-check("D9 the D-078 cache names are pinned (rlmwf_05_WMAPS.dat + .SHA3-256)",
-      "'rlmwf_05_WMAPS.dat'" in read("src/reversi/test/test_wrk_wmaps.py")
-      and "'rlmwf_05_WMAPS.dat.SHA3-256'" in read("src/reversi/test/test_wrk_wmaps.py"))
-check("D10 step pins: INDEXES=4, WMAPS=5 (the 6-level pipeline)",
-      "self.assertEqual(self.rlm.current_step, 4)" in read("src/reversi/test/test_wrk_wmaps.py")
-      and "self.assertEqual(self.rlm.current_step, 5)" in read("src/reversi/test/test_wrk_wmaps.py"))
+check("D9 the D-078 cache names are pinned (rlmwf_07_WMAPS.dat + .SHA3-256)",
+      "'rlmwf_07_WMAPS.dat'" in read("src/reversi/test/test_wrk_wmaps.py")
+      and "'rlmwf_07_WMAPS.dat.SHA3-256'" in read("src/reversi/test/test_wrk_wmaps.py"))
+check("D10 step pins (re-pinned: INDEXES=5, WMAPS=7)",
+      "self.assertEqual(self.rlm.current_step, 5)" in read("src/reversi/test/test_wrk_wmaps.py")
+      and "self.assertEqual(self.rlm.current_step, 7)" in read("src/reversi/test/test_wrk_wmaps.py"))
 ws_t2 = [i + 1 for i, l in enumerate(t2) if l != l.rstrip() and not l.strip().startswith("#")]
 check("D11 0 whitespace-only lines (D-087 T9: 20 stripped)", len(ws_t2) == 0, f"{ws_t2}")
 check("D12 defensive tearDown in both classes (getattr guards, no shutil)",

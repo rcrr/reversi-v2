@@ -1,7 +1,7 @@
 # reversi/lm/wrk_wmaps.py
 The WMAPS worker of the LM pipeline — the 6th active level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS).
 Like POSITIONS and INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_wmaps object — the
-THIRD cache_manager consumer in the pipeline (the flat `rlmwf_05_WMAPS.dat` + binio sidecar DO materialize).
+THIRD cache_manager consumer in the pipeline (the flat `rlmwf_07_WMAPS.dat` + binio sidecar DO materialize).
 
 ## API
 
@@ -13,7 +13,7 @@ THIRD cache_manager consumer in the pipeline (the flat `rlmwf_05_WMAPS.dat` + bi
 
 - `_up`: INFO "Computing weight maps (WMAPS) for the feature set..." → `cache_manager_load_or_compute(...)` with the
   full 7-kwargs wiring: `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the injected machine closure —
-  flat `rlmwf_05_WMAPS.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch),
+  flat `rlmwf_07_WMAPS.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch),
   `load_fn = lambda path: hlp_wmaps_load_from_file(path, checksum=False)` (the house shape — the sidecar was already
   verified by cache_manager), `store_fn = hlp_wmaps_store_to_file`,
   `validate_fn = lambda cached: hlp_wmaps_is_cache_consistent (ctx, cached)` (the 2-field metadata compare),
@@ -33,10 +33,10 @@ Pinned by the `probes/verify_wmaps.py` B tier + the 3-test suite.
   with the `checksum=False` load_fn, `_up` sets the 6 ctx arrays + `wmaps_obj_checksum` (7 attributes), `_down` clears
   all 7, 0 non-comment trailing-whitespace lines — probe B1-B9.
 - The level boundary (live DB, probe C tier): the flat file set is exactly CONFIG + POSITIONS + INDEXES + WMAPS (no
-  `rlmwf_03_FEATURES*`); the cross-run cache hit + identical data; E9 — the per-feature wmap row count ==
+  `rlmwf_02_FEATURES*`); the cross-run cache hit + identical data; E9 — the per-feature wmap row count ==
   `w_max − w_min + 1` (contiguous ranges).
-- The end-to-end round-trip + the golden content (DB-gated): `test_compute_and_populate_cache` (step 5 pinned, the FLAT
-  `rlmwf_05_WMAPS.dat` + `.SHA3-256` on disk, "Forcing computation", the 6 arrays non-None + `len(ctx.w) > 0`),
+- The end-to-end round-trip + the golden content (DB-gated): `test_compute_and_populate_cache` (step 7 pinned, the FLAT
+  `rlmwf_07_WMAPS.dat` + `.SHA3-256` on disk, "Forcing computation", the 6 arrays non-None + `len(ctx.w) > 0`),
   `test_read_cache_on_new_instance` (the second instance moves to INDEXES first, then WMAPS: "Cache successfully loaded
   and validated", no "Forcing computation", the data identical), and `test_compute_wmaps_exact_values` (the rlm_01
   golden — all 6 arrays vs the test literals) — `test_wrk_wmaps.py` (3 tests, `SKIP_REGAB_DB` gated).
@@ -47,7 +47,7 @@ None.
 
 ## Conventions
 
-- The worker carries NO naming code — the flat `rlmwf_05_WMAPS.dat` comes from the injected full-path closure (the
+- The worker carries NO naming code — the flat `rlmwf_07_WMAPS.dat` comes from the injected full-path closure (the
   machine-level fix for ALL cache-consuming workers).
 - `is_allowed = ctx.use_cache`: with `use_cache=False` the level always recomputes but still warms the cache file (the
   R1 semantics).

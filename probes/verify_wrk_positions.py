@@ -148,14 +148,14 @@ check("B3b stats values match independent numpy recompute",
       and abs(pstats["std_dev"] - float(np.std(gv))) < 1e-9
       and abs(pstats["variance"] - float(np.var(gv))) < 1e-9
       and pstats["count"] == 200)
-dat = b_dir / "rlmwf_03_POSITIONS.dat"
-side = b_dir / "rlmwf_03_POSITIONS.dat.SHA3-256"
+dat = b_dir / "rlmwf_04_POSITIONS.dat"
+side = b_dir / "rlmwf_04_POSITIONS.dat.SHA3-256"
 # (B4 deleted at D-106 step 3, class c: both flat files pinned by
 #  test_wrk_positions.py::test_read_db_and_populate_cache —
 #  the 'no rlmwf_ subdir' negative is implied by the flat paths)
 side_text = side.read_text()
 check("B5 sidecar is binio format '<hex>  <basename>'",
-      re.fullmatch(r"[0-9a-f]{64}  rlmwf_03_POSITIONS\.dat\n?", side_text) is not None,
+      re.fullmatch(r"[0-9a-f]{64}  rlmwf_04_POSITIONS\.dat\n?", side_text) is not None,
       repr(side_text[:80]))
 rds_b = regab_load_data_set_from_file(dat)
 check("B6 rds_checksum = the rds data checksum (duck-typed)",
@@ -190,13 +190,13 @@ print("--- D. cache_manager flow behaviours (live) ---")
 # D2: corruption -> checksum step fails -> delete + recompute
 d2_dir = fresh("d2_warm")
 run_model(CONFIG_JSON, d2_dir, ("POSITIONS",))
-(d2_dir / "rlmwf_03_POSITIONS.dat").write_bytes(b"CORRUPTED BY PROBE")
+(d2_dir / "rlmwf_04_POSITIONS.dat").write_bytes(b"CORRUPTED BY PROBE")
 m4, d2_logs = run_model(CONFIG_JSON, d2_dir, ("POSITIONS",))
 check("D2 corrupted .dat -> checksum WARN + delete + recompute",
       "Checksum validation failed" in d2_logs
       and "Deleting cache and recomputing" in d2_logs
       and "Extracted 200 positions from the database." in d2_logs
-      and (d2_dir / "rlmwf_03_POSITIONS.dat").exists())
+      and (d2_dir / "rlmwf_04_POSITIONS.dat").exists())
 
 # D3: business inconsistency (ec 20 -> 10) -> validate_fn False -> recompute
 def _ec10(d):
@@ -206,7 +206,7 @@ ec10_path.write_text(json5.dumps(cfg_dict_mutate(_ec10)))
 d3_dir = fresh("d3_warm")
 run_model(CONFIG_JSON, d3_dir, ("POSITIONS",))  # warms with ec 20
 m5, d3_logs = run_model(ec10_path, d3_dir, ("POSITIONS",))
-rds_d3 = regab_load_data_set_from_file(d3_dir / "rlmwf_03_POSITIONS.dat")
+rds_d3 = regab_load_data_set_from_file(d3_dir / "rlmwf_04_POSITIONS.dat")
 check("D3 inconsistent ec -> 'Application data validation failed' + recompute",
       "Application data validation failed" in d3_logs
       and "Deleting cache and recomputing" in d3_logs

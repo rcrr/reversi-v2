@@ -1,9 +1,9 @@
 # reversi/lm/hlp_analytics.py
-The ANALYTICS data module — the 14th active level (the 13th step), the 2nd function-only data module of a non-cache
-level (like hlp_gradient / hlp_validate): 4 public functions + 3 private helpers, NO data class, NO store/load, NO
-cache_manager. Computes the training-side metrics (the COMPRESSED forward pass over `ctx.w`, what the optimizer trained,
-and the DENSE one over `ctx.w_dense`) and formats the two report variants (18-line console header — with the Config
-SHA3-256 fingerprint line; complete file report with the per-feature tables).
+The ANALYTICS data module — the 15th step, the 2nd function-only data module of a non-cache level (like hlp_gradient /
+hlp_validate): 4 public functions + 3 private helpers, NO data class, NO store/load, NO cache_manager. Computes the
+training-side metrics (the COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the DENSE one over
+`ctx.w_dense`) and formats the two report variants (18-line console header — with the Config SHA3-256 fingerprint line;
+complete file report with the per-feature tables).
 
 ## API
 | name | contract |
@@ -79,4 +79,4 @@ None.
   (`ctx.vld_metrics` — the header's VALIDATION column), plus the worker's same-_up outputs (`ctx.train_metrics` /
   `ctx.train_dense_metrics`, computed in `_up` before the format calls).
 - No cache file: the reports are derived artifacts — the file report is (re)written to `base_dir` on every ANALYTICS
-  up-move; the rlmwf_12 slot stays unused.
+  up-move; the rlmwf_15 slot stays unused.

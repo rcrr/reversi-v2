@@ -16,7 +16,7 @@ training population stats are derived for the workers that follow.
 
 - `_up`: INFO "Loading training game positions..." → `cache_manager_load_or_compute(...)` wired as:
   `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the injected machine closure — the verbatim-prefix
-  concatenation makes the file FLAT: `base_dir/rlmwf_03_POSITIONS.dat`), `is_allowed = ctx.use_cache` (the CONFIG
+  concatenation makes the file FLAT: `base_dir/rlmwf_04_POSITIONS.dat`), `is_allowed = ctx.use_cache` (the CONFIG
   worker's switch, consumed here), `load_fn = regab_load_data_set_from_file(path, checksum=False)` (the sidecar was
   already verified by cache_manager's step 3 — no redundant re-check), `store_fn = regab_store_data_set_to_file`,
   `validate_fn = is_cache_consistent`, `compute_fn = extract_and_prepare` (the shared compute path, see API),
@@ -61,7 +61,7 @@ Pinned by the 21-check probe + the 12-test suite (named per bullet).
 - The cross-module import pin: the `model_validator` import in hlp_config_schemas is load-bearing (the c2>c1 validator)
   — probe E7.
 - The end-to-end round-trip (DB-gated): the first instance hits the DB ("Extracted … positions from the database.") and
-  writes the FLAT `rlmwf_03_POSITIONS.dat` + `.SHA3-256`; a second instance loads the cache ("Cache successfully loaded
+  writes the FLAT `rlmwf_04_POSITIONS.dat` + `.SHA3-256`; a second instance loads the cache ("Cache successfully loaded
   and validated", no "Extracted", no DB log) — `TestLMWorkerPositions` (2 tests, `SKIP_REGAB_DB` gated).
 - The metadata compare unit semantics (in-memory, no DB, no cache file): same cfg → True; a differing ec / bid / status
   / dbname → False; the keyword override wins; the str-port (regab) vs int-port (schema) compares equal —

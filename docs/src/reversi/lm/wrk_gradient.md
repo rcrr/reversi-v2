@@ -2,7 +2,7 @@
 The GRADIENT worker of the LM pipeline: builds the loss/gradient closure in `_up` (reading the `high_performance_fg`
 config flag and passing it to `hlp_gradient_compute`) and clears it in `_down`. The SECOND non-cache level (after ZED):
 the comment at L48 documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache
-needed." No cache_manager wiring, no rlmwf_07* / rlmwf_08* file ever.
+needed." No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## API
 
@@ -34,8 +34,8 @@ Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 2-test s
   test (C11: the worker + the Context-subclass mock + the marker pin), 0 non-comment ws lines.
 - The full pipeline through GRADIENT (live DB, probe D0 + D5-D10 + D12, rlm_02 — 199952 positions): the pipeline
   bootstrap (the move to GRADIENT runs the whole chain); alpha + clipping; f(w=0) + g(w=0) re-derived (the independent
-  float64 reference, the float32 R1 pin); f+g at w ≠ 0 (the ridge); the closure stateless (2 calls); NO rlmwf_07*/08*
-  file in the base dir (the cache files stop at rlmwf_06_DESIGN_MTR); the feature set (8 instances: DIAG3 + EDGE, no
+  float64 reference, the float32 R1 pin); f+g at w ≠ 0 (the ridge); the closure stateless (2 calls); NO rlmwf_09*/10*
+  file in the base dir (the cache files stop at rlmwf_08_DESIGN_MTR); the feature set (8 instances: DIAG3 + EDGE, no
   intercept, no mobilities).
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg` field pre-declared; scipy in pyproject.toml + in the venv; the
   `ridge_regularization` field; the rlm_02 config.
@@ -60,5 +60,5 @@ None.
 - The 9th LM level; the domain module (hlp_gradient.py) carries the closure math, this worker the machine glue.
 - Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`
   (CONFIG) — the SM half-open interval semantics guarantee all are set. The worker-test setUp moves through ZED (step 7)
-  first, so the full 9-level chain is exercised end-to-end on the live DB.
+  first, so the full 10-level chain is exercised end-to-end on the live DB.
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE level onward.

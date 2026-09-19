@@ -1,7 +1,7 @@
 # reversi/lm/wrk_plot.py
 The PLOT worker — the 17th and LAST active level of the LM pipeline (step 16, after CLIENT_CHECK). The run also logs the
 TOP-20 EXTREME-OUTLIER report (the 20 validation positions with the largest |residual|, the position's bitboards
-included). The 8th non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (a derived-artifact step, regenerated
+included). The 8th non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step, regenerated
 on every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures (the hlp_plot builders) to
 the configured plots directory. All figures are in Y space (the [-64, +64] game-value scale). The pilot is the config's
 plot section: the WHITELIST of plot names decides what is generated (a listed name is written, an unlisted one is
@@ -72,7 +72,7 @@ None.
 - The pilot: the plot names in the config are OPTIONAL. The default section (empty whitelist) makes a no-plot config a
   clean no-op level; the rlm_03 / rlm_04 test fixtures list all seven names so the chains exercise the generation
   end-to-end.
-- The 8th deviation from the uniform 7-kwargs `cache_manager` wiring — the rlmwf_16 slot stays unused, like
+- The 8th deviation from the uniform 7-kwargs `cache_manager` wiring — the rlmwf_18 slot stays unused, like
   03/07/08/09/12/13/15.
 - The worker is stateless by design: it publishes no context attribute (the figures are local; the only durable outputs
   are the files + the event log lines).
@@ -81,8 +81,8 @@ None.
 
 ## Integration
 
-- Pipeline ordering: PLOT is the 16th step (17th level); its inputs come from INDEXES (`ctx.hlp_indexes.indexes` — the
-  training design matrix), WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.z2y`), POSITIONS
+- Pipeline ordering: PLOT is the 18th step; its inputs come from INDEXES (`ctx.hlp_indexes.indexes` — the training
+  design matrix), WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.z2y`), POSITIONS
   (`ctx.game_values`), VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`) and
   CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval semantics guarantee every
   up-move to step 16 passes through all of them.

@@ -48,8 +48,8 @@ tests).
   messages, the 2-field compare, 0 non-comment trailing-whitespace lines; worker 91 lines, the factory WITH
   `@validate_call`, the 7-kwargs cache wiring with the `checksum=False` load_fn, `_down` clears all 7 INCLUDING
   `ctx.wmaps_obj_checksum`.
-- The pipeline integration (live DB, probe C1-C15): after `move_to_step("WMAPS")` (step 5) the base dir holds ONLY the
-  flat CONFIG + POSITIONS + INDEXES + WMAPS `.dat` + `.SHA3-256` pairs (no `rlmwf_03_FEATURES*`); the cross-run cache
+- The pipeline integration (live DB, probe C1-C15): after `move_to_step("WMAPS")` (step 7) the base dir holds ONLY the
+  flat CONFIG + POSITIONS + INDEXES + WMAPS `.dat` + `.SHA3-256` pairs (no `rlmwf_02_FEATURES*`); the cross-run cache
   hit + identical data; E9 — the per-feature wmap row count == `w_max − w_min + 1` (contiguous ranges).
 - The unit suite (`test_hlp_wmaps.py`, 15 tests, no DB): the compute semantics (both branches — a handcrafted 4×3 mock
   pindexes: cut_off=2 → the single fallback weight per feature; cut_off=0 → no fallback, the mock-only branch), the 3

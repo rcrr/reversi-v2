@@ -182,10 +182,10 @@ else:
         out = buf.getvalue()
         ctx = m.context
 
-        check("C1 the rlm_02 pipeline reaches VALIDATE (step 12) with no crash",
-              m.current_worker_name == "VALIDATE" and m.current_step == 12,
+        check("C1 the rlm_02 pipeline reaches VALIDATE (step 14) with no crash",
+              m.current_worker_name == "VALIDATE" and m.current_step == 14,
               f"step={m.current_step} name={m.current_worker_name}")
-        check("C2 pre-state at step 12: analytics_report None, train_metrics "
+        check("C2 pre-state at step 14: analytics_report None, train_metrics "
               "+ train_dense_metrics (D-105/M2) not yet set",
               ctx.analytics_report is None
               and getattr(ctx, "train_metrics", None) is None
@@ -198,8 +198,8 @@ else:
         with contextlib.redirect_stdout(buf3):
             m.move_to_step("ANALYTICS")
         out3 = buf3.getvalue()
-        check("C3 the rlm_02 pipeline reaches ANALYTICS (step 13) with no crash",
-              m.current_worker_name == "ANALYTICS" and m.current_step == 13,
+        check("C3 the rlm_02 pipeline reaches ANALYTICS (step 15) with no crash",
+              m.current_worker_name == "ANALYTICS" and m.current_step == 15,
               f"step={m.current_step} name={m.current_worker_name}")
         tm = ctx.train_metrics
         check("C4 the train_metrics goldens (rlm_02 live, bid [6,7] training, "
@@ -272,22 +272,22 @@ else:
               "the Config SHA3-256 line) + 1 'saved to') — pinned by the "
               "live run",
               _span == 22, f"span lines: {_span}")
-        # C7 no new cache file (the rlmwf_12 slot stays unused)
-        c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_12")]
-        check("C7 no rlmwf_12_* cache file in the base dir (ANALYTICS is pure compute)",
+        # C7 no new cache file (the rlmwf_15 slot stays unused: ANALYTICS is step 15)
+        c12 = [p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_15")]
+        check("C7 no rlmwf_15_* cache file in the base dir (ANALYTICS is pure compute)",
               c12 == [], f"files: {c12}")
         check("C7b the rlmwf_* file set is unchanged by ANALYTICS "
-              "(02/04/05/06/10/11 + sidecars — the 6 cache levels; D-142: "
+              "(04/05/07/08/12/13 + sidecars — the 6 cache levels; D-142: "
               "no rlmwf_01_CONFIG* anymore)",
               sorted(p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_"))
-              == sorted(["rlmwf_02_POSITIONS.dat",
-                         "rlmwf_04_INDEXES.dat", "rlmwf_05_WMAPS.dat",
-                         "rlmwf_06_DESIGN_MTR.dat", "rlmwf_10_GENERATE.dat",
-                         "rlmwf_11_VLD_POSITIONS.dat",
-                         "rlmwf_02_POSITIONS.dat.SHA3-256",
-                         "rlmwf_04_INDEXES.dat.SHA3-256", "rlmwf_05_WMAPS.dat.SHA3-256",
-                         "rlmwf_06_DESIGN_MTR.dat.SHA3-256", "rlmwf_10_GENERATE.dat.SHA3-256",
-                         "rlmwf_11_VLD_POSITIONS.dat.SHA3-256"]))
+              == sorted(["rlmwf_04_POSITIONS.dat",
+                         "rlmwf_05_INDEXES.dat", "rlmwf_07_WMAPS.dat",
+                         "rlmwf_08_DESIGN_MTR.dat", "rlmwf_12_GENERATE.dat",
+                         "rlmwf_13_VLD_POSITIONS.dat",
+                         "rlmwf_04_POSITIONS.dat.SHA3-256",
+                         "rlmwf_05_INDEXES.dat.SHA3-256", "rlmwf_07_WMAPS.dat.SHA3-256",
+                         "rlmwf_08_DESIGN_MTR.dat.SHA3-256", "rlmwf_12_GENERATE.dat.SHA3-256",
+                         "rlmwf_13_VLD_POSITIONS.dat.SHA3-256"]))
         # C8 second instance on the same base dir: deterministic recompute
         buf2 = io.StringIO()
         with contextlib.redirect_stdout(buf2):
@@ -305,13 +305,13 @@ else:
               and out2.count("Cache successfully loaded and validated") == 6,
               f"hits={out2.count('Cache successfully loaded and validated')}")
         # C9 the _down scope
-        m2.move_to_step(12)
-        check("C9 _down (back to VALIDATE, step 12) clears train_metrics, "
+        m2.move_to_step(14)
+        check("C9 _down (back to VALIDATE, step 14) clears train_metrics, "
               "train_dense_metrics (D-105/M2) + analytics_report",
               m2.context.train_metrics is None
               and m2.context.train_dense_metrics is None
               and m2.context.analytics_report is None
-              and m2.current_step == 12
+              and m2.current_step == 14
               and m2.current_worker_name == "VALIDATE")
         # C10 independent re-derivation of the training metrics (compressed path)
         X = ctx.design_matrix

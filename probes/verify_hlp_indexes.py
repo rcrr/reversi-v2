@@ -13,7 +13,7 @@
 # path are exercised with a real FeatureSet (fixture constants,
 # public API) and fabricated 2-position arrays. The C tier
 # needs the live regab test DB (the pipeline moves through
-# POSITIONS): the flat rlmwf_04_INDEXES.dat naming, the data
+# POSITIONS): the flat rlmwf_05_INDEXES.dat naming, the data
 # checksum, the sidecar format, the cross-run cache round-trip
 # and the _down clearing.
 #
@@ -249,17 +249,22 @@ s1 = out1.getvalue()
 #  test_wrk_indexes.py pins step 4 / name INDEXES in three
 #  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
-check("C2 flat cache files: POSITIONS + INDEXES (no rlmwf_01_CONFIG* — "
-      "D-142 — no rlmwf_02_FEATURES* — the pure-compute level writes nothing)",
-      files == ["rlmwf_03_POSITIONS.dat", "rlmwf_03_POSITIONS.dat.SHA3-256",
-                "rlmwf_04_INDEXES.dat", "rlmwf_04_INDEXES.dat.SHA3-256"])
+check("C2 flat cache files: FEATURE_ANALYSIS (the rlm_00 opt-in, D-175) + "
+      "POSITIONS + INDEXES — no rlmwf_01_CONFIG* (D-142), no rlmwf_02_FEATURES* "
+      "(the pure-compute level writes nothing)",
+      files == ["feature_analysis",
+                "rlmwf_03_FEATURE_ANALYSIS.dat",
+                "rlmwf_03_FEATURE_ANALYSIS.dat.SHA3-256",
+                "rlmwf_04_POSITIONS.dat", "rlmwf_04_POSITIONS.dat.SHA3-256",
+                "rlmwf_05_INDEXES.dat", "rlmwf_05_INDEXES.dat.SHA3-256"],
+      f"{files}")
 ri = m1.context.hlp_indexes
 check("C3 ctx.hlp_indexes set + the data checksum = sha3_256(indexes.tobytes()) (independent recompute)",
       ri is not None
       and m1.context.hlp_indexes_checksum == hashlib.sha3_256(ri.indexes.tobytes()).hexdigest())
-sc = (TMP / "base1" / "rlmwf_04_INDEXES.dat.SHA3-256").read_text()
+sc = (TMP / "base1" / "rlmwf_05_INDEXES.dat.SHA3-256").read_text()
 check("C4 the sidecar is the flat sha3_256sum line over the .dat file (the FILE checksum — different from the data checksum)",
-      sc == f"{binio.compute_sha3_256(TMP / 'base1' / 'rlmwf_04_INDEXES.dat')}  rlmwf_04_INDEXES.dat\n"
+      sc == f"{binio.compute_sha3_256(TMP / 'base1' / 'rlmwf_05_INDEXES.dat')}  rlmwf_05_INDEXES.dat\n"
       and sc.split()[0] != m1.context.hlp_indexes_checksum)
 n_pos = len(m1.context.positions)
 indep = m1.context.feature_set.compute_indexes(m1.context.positions)
@@ -334,8 +339,8 @@ check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDE
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",
       "How to run the wrk_indexes unit tests." in tsrc
       and "a live regab DB + LONG=1 is required;" in tsrc)
-check("E5 the rlmwf_04_INDEXES.dat + .SHA3-256 pins and the 'Executing heavy computation' pin",
-      "rlmwf_04_INDEXES.dat" in tsrc and "rlmwf_04_INDEXES.dat.SHA3-256" in tsrc
+check("E5 the rlmwf_05_INDEXES.dat + .SHA3-256 pins and the 'Executing heavy computation' pin",
+      "rlmwf_05_INDEXES.dat" in tsrc and "rlmwf_05_INDEXES.dat.SHA3-256" in tsrc
       and '"Executing heavy computation"' in tsrc)
 check("E6 the (accurate) dependency comment: INDEXES depends on the feature_set loaded in FEATURES",
       "Move to FEATURES first, as INDEXES depends on the feature_set loaded there" in tsrc)

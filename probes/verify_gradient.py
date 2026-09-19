@@ -149,10 +149,10 @@ check("C8 goldens",
       "0.02049378" in c and "3.558e-4" in c and
       "-2.395e-4" in c and "1.101e-3" in c)
 check("C9 shape pins", "(199952, 8)" in c and "2981" in c)
-check("C10 step pins + T7 _down test",
-      "move_to_step('ZED')" in c and "assertEqual(self.rlm.current_step, 7)" in c
-      and "move_to_step('GRADIENT')" in c and "assertEqual(self.rlm.current_step, 8)" in c
-      and "self.rlm.move_to_step(7)" in c
+check("C10 step pins + T7 _down test (re-pinned: ZED 9 / GRADIENT 10)",
+      "move_to_step('ZED')" in c and "assertEqual(self.rlm.current_step, 9)" in c
+      and "move_to_step('GRADIENT')" in c and "assertEqual(self.rlm.current_step, 10)" in c
+      and "self.rlm.move_to_step(9)" in c
       and "assertEqual(self.rlm.current_worker_name, 'ZED')" in c
       and "assertIsNone(self.rlm.context.fg)" in c)
 
@@ -256,11 +256,13 @@ def d_main():
 
         def d10():
             files = sorted(p.name for p in Path(tmp).iterdir())
-            assert not [n for n in files if n.startswith("rlmwf_07")], files
-            assert not [n for n in files if n.startswith("rlmwf_08")], files
-            for n in ("rlmwf_03_POSITIONS.dat",
-                      "rlmwf_04_INDEXES.dat", "rlmwf_05_WMAPS.dat",
-                      "rlmwf_06_DESIGN_MTR.dat"):
+            # the no-cache slots of the CURRENT numbering: 09 = ZED,
+            # 10 = GRADIENT (they were 07/08 before the I-017 reordering)
+            assert not [n for n in files if n.startswith("rlmwf_09")], files
+            assert not [n for n in files if n.startswith("rlmwf_10")], files
+            for n in ("rlmwf_04_POSITIONS.dat",
+                      "rlmwf_05_INDEXES.dat", "rlmwf_07_WMAPS.dat",
+                      "rlmwf_08_DESIGN_MTR.dat"):
                 assert n in files, files
 
         # (D11 _down live (fg None) deleted at D-106 step 3, class

@@ -1,8 +1,8 @@
 # reversi/test/test_wrk_optimize.py
 The OPTIMIZE worker integration suite — the house worker-test shape (same as test_wrk_gradient et al.): a live-DB suite
-that moves the machine through the full 9-level chain on a fresh base dir and then exercises the OPTIMIZE level. 1 class
-/ 3 tests, all DB-gated (the db_long_gate — SKIP_REGAB_DB + LONG — the setUp moves through GRADIENT on a fresh base dir
-— `3/0/3` under `SKIP_REGAB_DB=1`).
+that moves the machine through the full 11-level chain on a fresh base dir and then exercises the OPTIMIZE level. 1
+class / 3 tests, all DB-gated (the db_long_gate — SKIP_REGAB_DB + LONG — the setUp moves through GRADIENT on a fresh
+base dir — `3/0/3` under `SKIP_REGAB_DB=1`).
 
 ## Coverage
 
@@ -13,7 +13,7 @@ that moves the machine through the full 9-level chain on a fresh base dir and th
 ## Goldens pinned
 
 - The step pins: 8 (GRADIENT) in setUp + 9 (OPTIMIZE) in `test_optimization_runs` + 8/GRADIENT again in the _down test —
-  the 10-level pipeline ordering locked.
+  the 11-level pipeline ordering locked.
 - The real lbfgs marker `"L-BFGS - ["` (the per-iteration log line).
 - The cfg mutations (`ctx.cfg.optimization.max_iters = 10`, `log_every_n = 0`) work because the LMBaseConfig models are
   not frozen.

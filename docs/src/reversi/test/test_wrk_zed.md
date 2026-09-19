@@ -14,7 +14,7 @@ DB-gated worker tests.
 
 - The rlm_01 (10,) y int8 + (10,) z float32 literals — clipping 0.03, the same (10,) training set as the DESIGN_MTR
   golden (the pipeline grows, the positions don't).
-- The step pins: 6 (DESIGN_MTR) in setUp + 7 (ZED) in `test_compute_zed` — the 8-level pipeline ordering locked.
+- The step pins: 8 (DESIGN_MTR) in setUp + 9 (ZED) in `test_compute_zed` — the 9-level pipeline ordering locked.
 
 ## Conventions
 

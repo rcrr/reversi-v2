@@ -141,13 +141,13 @@ check("C7 T7 FIXED: the (former) shutil import is gone with the rmtree teardowns
       "shutil" not in read("src/reversi/test/test_wrk_design_matrix.py"))
 check("C8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("src/reversi/test/test_wrk_design_matrix.py").count("verbosity=Verbosity.HIGH") == 3)
-check("C9 the D-078 cache names are pinned (rlmwf_06_DESIGN_MTR.dat + .SHA3-256)",
-      "'rlmwf_06_DESIGN_MTR.dat'" in read("src/reversi/test/test_wrk_design_matrix.py")
-      and "'rlmwf_06_DESIGN_MTR.dat.SHA3-256'" in read("src/reversi/test/test_wrk_design_matrix.py"))
-check("C10 step pins: WMAPS=5 (x2 setUps), DESIGN_MTR=6 (x2 self.rlm + x1 rlm2 — the 7-level pipeline)",
-      read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 5)") == 2
-      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 6)") == 2
-      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(rlm2.current_step, 6)") == 1)
+check("C9 the D-078 cache names are pinned (rlmwf_08_DESIGN_MTR.dat + .SHA3-256)",
+      "'rlmwf_08_DESIGN_MTR.dat'" in read("src/reversi/test/test_wrk_design_matrix.py")
+      and "'rlmwf_08_DESIGN_MTR.dat.SHA3-256'" in read("src/reversi/test/test_wrk_design_matrix.py"))
+check("C10 step pins (re-pinned: WMAPS=7 x2 setUps, DESIGN_MTR=8 x2 self.rlm + x1 rlm2)",
+      read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 7)") == 2
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(self.rlm.current_step, 8)") == 2
+      and read("src/reversi/test/test_wrk_design_matrix.py").count("self.assertEqual(rlm2.current_step, 8)") == 1)
 ws_t = [i + 1 for i, l in enumerate(t) if l != l.rstrip() and not l.strip().startswith("#")]
 check("C11 T5 FIXED: zero whitespace-only lines", len(ws_t) == 0, f"{ws_t}")
 check("C12 the golden literal is (10,7) uint32 with the 10 pinned rows",
