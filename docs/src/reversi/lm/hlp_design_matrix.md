@@ -31,8 +31,8 @@ each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) 
   `col_offsets = np.repeat (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)`
   → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, uint32)`
-  filled by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)` — the explicit source cast (the
-  L125-128 note, see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
+  filled by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)` — the explicit source cast (the note,
+  see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm. wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
   fields and INDEXES's 3).
@@ -43,8 +43,8 @@ Pinned by the 54-call `probes/verify_design_matrix.py` + `test_hlp_design_matrix
 `test_wrk_design_matrix.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A15): 139 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
-  is_cache_consistent — the L113 note), the store write order, the 3 load RuntimeError messages, the 1-field compare,
-  the explicit cast + single guard pinned (L125-128 / L122-123).
+  is_cache_consistent — the note), the store write order, the 3 load RuntimeError messages, the 1-field compare, the
+  explicit cast + single guard pinned.
 - Worker file shape (probe B1-B9): 80 lines, the factory WITH `@validate_call`, the 7-kwargs cache wiring (the
   `checksum=False` load_fn), `_down` clears BOTH attributes.
 - The live-DB golden re-derivation (probe D5-D10, rlm_01): X == the independent recompute
@@ -62,13 +62,13 @@ None.
 
 ## Conventions
 
-- The explicit-cast note (L125-128): `astype(np.uint32)` is REQUIRED — the implicit int64 → uint32 output cast in
+- The explicit-cast note: `astype(np.uint32)` is REQUIRED — the implicit int64 → uint32 output cast in
   `np.take(..., out=X)` is deprecated in NumPy 2.5 (future hard error), FATAL under `-W error` (X keeps the `np.empty`
   garbage).
 - The single guard is a defensive re-check of the WMAPS R1 contract (pindexes dense, unsigned — a referenced −1 slot is
   a data bug, hence "It should never happen"); the guarded invariant: iwmap values are −1 or ≥ 0.
 - No `@validate_call` on `hlp_design_matrix_compute` / `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
-  circular-import constraint (the L113 note).
+  circular-import constraint (the note).
 - The two checksums are distinct (as in WMAPS/INDEXES): `design_matrix_checksum` = the DATA checksum (sha3_256 over
   `X.tobytes()`); the `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum` over the `.dat`). X is uint32,
   matching the pindexes/offset dtypes (no upcast on the addition).

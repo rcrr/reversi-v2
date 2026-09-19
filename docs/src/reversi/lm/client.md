@@ -16,19 +16,19 @@ production models (the `A2xxx` family) plug into.
 
 136 lines.
 
-- Imports (L28-40): numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
+- Imports: numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
-- `_prepare_weights` (L47-66): the closure setup shared by BOTH factories: `offsets = mw.iwmap_feature_offset`,
+- `_prepare_weights`: the closure setup shared by BOTH factories: `offsets = mw.iwmap_feature_offset`,
   `z2y = zed_fun_factory(mw.logit_clipping)` (only the z→y half — the client never transforms observations),
   `expanded_offsets = np.repeat(offsets[:-1], n_instances_per_feature)` (the per-INSTANCE w_dense start offsets: each
   feature's start repeated n_instances times — e.g. EDGE's start, 4 times for its 4 instances).
-- `make_evaluation_function` (L69-93): `ef(p)` — 1. `indexes = mw.feature_set.compute_indexes(np.array([p]))[0]` (the
-  length-1 batch wrap, one index per feature INSTANCE); 2. `weights = mw.w_dense[expanded_offsets + indexes]`; 3.
+- `make_evaluation_function`: `ef(p)` — 1. `indexes = mw.feature_set.compute_indexes(np.array([p]))[0]` (the length-1
+  batch wrap, one index per feature INSTANCE); 2. `weights = mw.w_dense[expanded_offsets + indexes]`; 3.
   `z_pred = sigmoid(np.sum(weights))`; 4. `y_pred = z2y(np.array([z_pred], dtype=np.float32))[0]`, returned as a Python
   float.
-- `make_evaluation_function_array` (L96-136): `ef(p)` — 1. the 1-D guard (the PositionArray validator admits 2-D
-  structured arrays, no ndim check there); 2. `indexes = mw.feature_set.compute_indexes(p)` — the SAME batch API the
-  scalar path wraps (the numba prange kernel over N; no new kernel);
+- `make_evaluation_function_array`: `ef(p)` — 1. the 1-D guard (the PositionArray validator admits 2-D structured
+  arrays, no ndim check there); 2. `indexes = mw.feature_set.compute_indexes(p)` — the SAME batch API the scalar path
+  wraps (the numba prange kernel over N; no new kernel);
   3. `weights = mw.w_dense[expanded_offsets + indexes]` (the (I,) u32 broadcast over the (N, I) u32 batch) and
      `linear_predictor = weights.sum(axis=1)` (the per-row f32 sum — the same 1-D reduction as the scalar `np.sum`,
      hence bit-exact per row); 4. `return z2y(sigmoid(linear_predictor))` (element-wise f32 expit + affine). No numba in
@@ -39,10 +39,10 @@ The dense path and the substitution rule (verified): `iwmap_feature_offset` is a
 `w_dense` correctly per design-matrix column (a probe using `offsets` without `[:-1]` would misalign every feature after
 the first). The gathered values are the TRAINED weights for confirmed configurations (frequency ≥
 `stat_model.frequency_cut_off`) and the SUBSTITUTION values (orbit mean for patterns, `np.interp` for mobility —
-hlp_generate L167-196) for every configuration without a dedicated weight (unseen + below-cutoff "IC"). Consequence
-(verified measured): the dense path and the literal compressed model (`ctx.w` over `ctx.design_matrix`) agree on a
-training position iff every configuration it touches is confirmed — rlm_04 (cut 10): 1923/199932 positions differ (373
-EDGE configs in `wmap_fallback`, freq < 10; max |Δy| 31.56, mean 4.98); rlm_01 (cut 2): 5/10. The ef pins are therefore
+hlp_generate) for every configuration without a dedicated weight (unseen + below-cutoff "IC"). Consequence (verified
+measured): the dense path and the literal compressed model (`ctx.w` over `ctx.design_matrix`) agree on a training
+position iff every configuration it touches is confirmed — rlm_04 (cut 10): 1923/199932 positions differ (373 EDGE
+configs in `wmap_fallback`, freq < 10; max |Δy| 31.56, mean 4.98); rlm_01 (cut 2): 5/10. The ef pins are therefore
 pinned against the DENSE values (what the shipped model actually computes); the rlm_03 pins (cut 1) equal the compressed
 values as well.
 

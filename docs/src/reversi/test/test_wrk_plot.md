@@ -29,8 +29,8 @@ figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (c
 
 - The tmp-file idiom: files ONLY under `build/tmp` (`CUSTOM_TMP_BASE`), removed in `tearDown` (the `mkdtemp` +
   `shutil.rmtree` pattern).
-- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine L87-90): a SimpleNamespace context is
-  rejected by the gate — hence the real `LMContext`; only the `cfg` attribute (with its `plot` SimpleNamespace) may be a
+- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine): a SimpleNamespace context is rejected
+  by the gate — hence the real `LMContext`; only the `cfg` attribute (with its `plot` SimpleNamespace) may be a
   stand-in.
 - The synthetic data is SEEDed (42) so the golden is stable; the sizes (N_TRN 1200 / N_VLD 1000) keep the module under
   ~5 s in the default tier.

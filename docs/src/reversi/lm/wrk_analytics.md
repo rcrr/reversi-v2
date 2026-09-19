@@ -17,19 +17,18 @@ context attributes `ctx.train_metrics` (the 7-key dict), `ctx.train_dense_metric
 
 86 lines.
 
-- Imports (L28-38): pydantic (L30), `Worker, Relevance` (L34), the 4 public data functions from hlp_analytics (L35-37),
-  `LMContext` under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager` import (by design).
-- `_up` (L48-73): `log_event(INFO, "Generating model analytics report...")` (L49);
-  `ctx.train_metrics = compute_training_metrics(ctx)` (L54 — pre-declared on LMContext L155);
-  `ctx.train_dense_metrics = compute_training_dense_metrics(ctx)` (L55 — pre-declared on LMContext L156);
-  `console_report = format_console_report(ctx)` (L58); the 17 header lines logged line by line (L61-62);
-  `file_report = format_file_report(ctx)` (L65) written to `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name`
-  (L66-69); `log_event(INFO, "Analytics report saved to ...")` (L71); publishes `ctx.analytics_report = console_report`
-  (L73, "Store in context if needed by the SAVE worker later").
-- `_down` (L75-79): logs "Clearing analytics attributes..." then clears the THREE attributes to None (L77-79) — the
-  scope is complete: `_up` sets exactly `analytics_report` + `train_metrics` + `train_dense_metrics` (pinned by probe A8
-  + `test_down_clears_analytics_attributes`).
-- `wrk_analytics()` (L82-85): the factory, `@validate_call`-decorated.
+- Imports: pydantic, `Worker, Relevance`, the 4 public data functions from hlp_analytics, `LMContext` under
+  TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design).
+- `_up`: `log_event(INFO, "Generating model analytics report...")`; `ctx.train_metrics = compute_training_metrics(ctx)`
+  (pre-declared on LMContext); `ctx.train_dense_metrics = compute_training_dense_metrics(ctx)` (pre-declared on
+  LMContext); `console_report = format_console_report(ctx)`; the 17 header lines logged line by line;
+  `file_report = format_file_report(ctx)` written to `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name`;
+  `log_event(INFO, "Analytics report saved to ...")`; publishes `ctx.analytics_report = console_report` ("Store in
+  context if needed by the SAVE worker later").
+- `_down`: logs "Clearing analytics attributes..." then clears the THREE attributes to None — the scope is complete:
+  `_up` sets exactly `analytics_report` + `train_metrics` + `train_dense_metrics` (pinned by probe A8 +
+  `test_down_clears_analytics_attributes`).
+- `wrk_analytics()`: the factory, `@validate_call`-decorated.
 
 ## Verified invariants
 
@@ -62,8 +61,8 @@ None.
   rlmwf_15 slot stays unused like 02/09/10).
 - The 2 data-module INFO lines come from hlp_analytics (compute_training_metrics + compute_training_dense_metrics) —
   consistent with hlp_validate.
-- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine L87-90): a bare SimpleNamespace is
-  rejected (the D-tier probe fakes use it only for the data functions).
+- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine): a bare SimpleNamespace is rejected (the
+  D-tier probe fakes use it only for the data functions).
 
 ## Integration
 

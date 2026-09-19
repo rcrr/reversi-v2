@@ -15,7 +15,7 @@ level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES), the SECOND ca
 
 ## Architecture
 
-- `LMIndexes.__init__` is `@validate_call(arbitrary_types_allowed)` — `IndexArray` (pattern.py L74:
+- `LMIndexes.__init__` is `@validate_call(arbitrary_types_allowed)` — `IndexArray` (pattern.py:
   `Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]`) is what coerces the array.
   `compute_sha3_256_hash` (validated): `sha3_256(self.indexes.tobytes()).hexdigest()` — the hook cache_manager invokes
   (its 3rd return element); `__repr__` is validated (house style) — a one-line summary.
@@ -27,8 +27,8 @@ level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES), the SECOND ca
 - `hlp_indexes_load_from_file` (validated): `compressed=True` → the LZ4 frame guard + decompress (a non-frame file → the
   binio BinaryFormatError — the self-healing delete+recompute path); `checksum=True` →
   `binio.verify_sha3_256_sidecar(filename)` first (mismatch → RuntimeError); then the header gate — wrong description →
-  RuntimeError "The file is not a proper ...", wrong version → RuntimeError "The file version is not consistent, found
-  ..., expected 1"; then `read_string` ×2 + `read_array` → a fresh object.
+  RuntimeError "The file is not a proper ...", wrong version → RuntimeError "The file version is not consistent, found.
+  .., expected 1"; then `read_string` ×2 + `read_array` → a fresh object.
 - `hlp_indexes_compute`: `rds_checksum = ctx.rds_checksum`, `feature_set_hash = ctx.feature_set.hash`,
   `indexes = ctx.feature_set.compute_indexes(ctx.positions)` (public FeatureSet API) → fresh object.
 - `hlp_indexes_is_cache_consistent`:
@@ -66,7 +66,7 @@ None.
 
 ## Conventions
 
-- M5 (by design, source L166): NO `@validate_call` on `hlp_indexes_compute` / `hlp_indexes_is_cache_consistent` — the
+- M5 (by design, source): NO `@validate_call` on `hlp_indexes_compute` / `hlp_indexes_is_cache_consistent` — the
   `ctx: LMContext` annotation cannot be resolved by pydantic without a real import, so it stays under TYPE_CHECKING (the
   circular-import guard).
 - The two checksums are distinct: `hlp_indexes_checksum` = the DATA checksum (sha3_256 over the raw uint32 bytes); the

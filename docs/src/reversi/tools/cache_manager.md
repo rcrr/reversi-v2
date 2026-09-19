@@ -19,14 +19,13 @@ API, no cycle). House `@validate_call` gate: `cache_path` coerced `str` → `Pat
 
 194 lines.
 
-- Imports (L41-46): the binio sidecar API (L41-45), `Relevance` from state_machine (L46); `__all__` (L50), `T` (L55),
-  the 5 callback aliases (L58-62), `SHA3_256_CHECKSUM_SUFFIX` (L65).
-- `_verify_checksum` (L68; binio call L78, mapping L79-80); `_delete_cache_files` (L83; both unlinks `missing_ok=True`
-  L86-87); `_compute_sha3_256_hash` (L90; getattr L93, callable gate L96, call L97, None L99); `_compute_and_store`
-  (L103; INFO L109, compute L110, data checksum L112, store L115, sidecar L117, return L120).
-- `cache_manager_load_or_compute` (L124 — decorator L123, docstring L132-156 incl. the R1 note L141-144): Step 0
-  (L158-161) → Step 1 (L163-166) → Step 2 (L168-172, M3 L170) → Step 3 (L174-185: try L178-185 wraps load L179 +
-  checksum L180 + validate L181, False branch L187-190) → success (L192-194).
+- Imports: the binio sidecar API, `Relevance` from state_machine; `__all__`, `T`, the 5 callback aliases,
+  `SHA3_256_CHECKSUM_SUFFIX`.
+- `_verify_checksum` (the binio call + the mapping); `_delete_cache_files` (both unlinks with `missing_ok=True`);
+  `_compute_sha3_256_hash` (the getattr duck-typing, the callable gate, the None case); `_compute_and_store` (the INFO
+  log, compute, the data checksum, store, the sidecar, return).
+- `cache_manager_load_or_compute` (the decorator, the docstring incl. the R1 note): Step 0 → Step 1 → Step 2 (the M3
+  gate) → Step 3 (the try wraps load + checksum + validate; the False branch) → success.
 
 Pipeline (steps 0-3, per the docstring):
 

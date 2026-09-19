@@ -9,25 +9,23 @@ indexes.
 
 | name | contract |
 |---|---|
-| `Mobility(name: str, mask: Bitboard, amask: Bitboard)` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + a + 1` (L98) and `n_instances = 1` (L99); `__repr__` (L101); `print()` (L109) the `[Mobility: name = {name:8s}, mask = 0x…, amask = 0x…]` line |
-| `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names (L145) or duplicate (mask, amask) pairs (L151) → `ValueError`; sorted storage (L155); `sha3_256` hash over the 16 LE bytes per element in sorted order (L157-163); `__repr__` (L167); `names` / `masks` are `@property` (L175/L185) |
-| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The (N, L) uint32 index matrix via the Numba kernel (L210); the column contract (L212-229 docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names()` |
-| `popcount64(b)` | Public scalar/vectorized SWAR popcount, `@nb.vectorize(uint32(uint64), cache=True)` (L258); OUT of `__all__` (test/inspection helper; the test file imports it by name) |
+| `Mobility(name: str, mask: Bitboard, amask: Bitboard)` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + a + 1` and `n_instances = 1`; `__repr__`; `print()` the `[Mobility: name = {name:8s}, mask = 0x…, amask = 0x…]` line |
+| `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names or duplicate (mask, amask) pairs → `ValueError`; sorted storage; `sha3_256` hash over the 16 LE bytes per element in sorted order; `__repr__`; `names` / `masks` are `@property` |
+| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The (N, L) uint32 index matrix via the Numba kernel; the column contract ( docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names()` |
+| `popcount64(b)` | Public scalar/vectorized SWAR popcount, `@nb.vectorize(uint32(uint64), cache=True)`; OUT of `__all__` (test/inspection helper; the test file imports it by name) |
 
 ## Architecture
 
 306 lines.
 
-- Imports (L32-44): `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count),
-  `reversi.pattern` (L37 — only the `Index` / `IndexArray` type aliases, deliberate reuse), numpy, numba; `__all__`
-  (L50) = [Mobility, MobilitySet].
-- `Mobility` (L55): the class docstring (L57-77) carries the LMC/ALMC/DLMC glossary + the index formula + the
-  n_configurations semantics; `__init__` (L82); `print` (L109).
-- `MobilitySet` (L119): the docstring (L121-128) states the sorted-order contract; `__init__` (L130 — dup checks
-  L145/L151, sorted storage L155, hash L157-163); `names` (L176), `masks` (L186 — (N, 2) uint64), `print_summary`
-  (L199), `compute_indexes` (L210).
-- Kernels: `popcount64` (L258) over `_numba_popcount64_kernel` (L266, the SWAR UFunc); `_numba_compute_indexes_kernel`
-  (L281, `@nb.njit`, (N, L) output, scalar ops — only the output matrix is allocated).
+- Imports: `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count), `reversi.pattern`
+  (only the `Index` / `IndexArray` type aliases, deliberate reuse), numpy, numba; `__all__` = [Mobility, MobilitySet].
+- `Mobility`: the class docstring carries the LMC/ALMC/DLMC glossary + the index formula + the n_configurations
+  semantics; `__init__`; `print`.
+- `MobilitySet`: the docstring states the sorted-order contract; `__init__` (dup checks, sorted storage, hash); `names`,
+  `masks` ((N, 2) uint64), `print_summary`, `compute_indexes`.
+- Kernels: `popcount64` over `_numba_popcount64_kernel` (the SWAR UFunc); `_numba_compute_indexes_kernel` (`@nb.njit`,
+  (N, L) output, scalar ops — only the output matrix is allocated).
 
 The index formula (verified): `index = popcount(lms & mask) + (popcount(amask) − popcount(alms & amask))`. Range
 `[0, k + a]` with every integer reachable, so **`n_configurations = k + a + 1` is the count of DISTINCT index values**
@@ -78,7 +76,7 @@ None.
 
 ## Integration
 
-- The FEATURES pipeline level: wrk_features (L111) builds the level's `Mobility` objects from the config
+- The FEATURES pipeline level: wrk_features builds the level's `Mobility` objects from the config
   (`cfg_mset.mobility_features`); the feature order there is [INTERCEPT, ALMC, LMC, DLMC, EDGE, ELLE].
 - `test_mobility.md` mirrors the suite; `pattern.md` is the sibling-module reference (hash construction, type-alias
   reuse).

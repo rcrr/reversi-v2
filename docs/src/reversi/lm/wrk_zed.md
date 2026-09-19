@@ -2,8 +2,8 @@
 The ZED worker of the LM pipeline — the 8th active level and the FIRST non-cache worker in the pipeline: no
 `cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch, no rlmwf_09* file). The level is
 recomputed on every up-move: the computation is pure vectorized affine math over `ctx.game_values`, so the on-the-fly
-choice is documented in `_up` (L49). The machine contract is unchanged: `_up` publishes the 4 context attributes,
-`_down` clears ALL FOUR.
+choice is documented in `_up`. The machine contract is unchanged: `_up` publishes the 4 context attributes, `_down`
+clears ALL FOUR.
 
 ## API
 
@@ -15,8 +15,8 @@ choice is documented in `_up` (L49). The machine contract is unchanged: `_up` pu
 
 - Imports: `Worker, Relevance` from state_machine; `hlp_zed_compute` from hlp_zed; `validate_call, ConfigDict` from
   pydantic; `LMContext` under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design — pinned by probe B).
-- `_up`: INFO "Computing Zed array (Z) and transformations..." → the by-design comment (L49: "ZED computation is very
-  fast (vectorized math), so we compute it on the fly without disk caching.") → `zed_obj = hlp_zed_compute(ctx)` →
+- `_up`: INFO "Computing Zed array (Z) and transformations..." → the by-design comment ("ZED computation is very fast
+  (vectorized math), so we compute it on the fly without disk caching.") → `zed_obj = hlp_zed_compute(ctx)` →
   `zed_checksum = zed_obj.compute_sha3_256_hash()` → publishes `ctx.y2z / ctx.z2y / ctx.z / ctx.zed_checksum` → the 2
   INFO lines (the shape + the checksum).
 - `_down`: INFO "Clearing Zed attributes..." → ALL FOUR attributes to None (the house shape; no gap at bring-in — pinned
@@ -27,8 +27,8 @@ choice is documented in `_up` (L49). The machine contract is unchanged: `_up` pu
 Pinned by the `probes/verify_zed.py` B + C + D + F + G tiers + the 3-test suite.
 
 - Source shape (probe B1-B8): the 73-line file, `__all__ = ['wrk_zed']`, the factory WITH `@validate_call` + the
-  pydantic import, NO cache_manager import (the L49 by-design comment pinned), `_up` sets the 4 ctx attributes, `_down`
-  clears all four, `Worker("ZED", ...)` (L73), 0 non-comment trailing-whitespace lines.
+  pydantic import, NO cache_manager import (the by-design comment pinned), `_up` sets the 4 ctx attributes, `_down`
+  clears all four, `Worker("ZED", ...)`, 0 non-comment trailing-whitespace lines.
 - The worker-test source shape (probe C1-C10): the 164-line file, the 2 classes, the 3 tests, the gate + the header
   claim, the idiom, no dead imports (`Path` load-bearing), the step pins, the goldens, the _down test, 0 non-comment ws
   lines.
@@ -47,8 +47,8 @@ None.
 ## Conventions
 
 - The no-cache design is the first deviation from the uniform 7-kwargs `cache_manager` wiring of the 4 cache-consuming
-  levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR) — intentional and documented (the L49 comment); the 4 ctx attributes
-  are still cleared on down (the machine contract holds).
+  levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR) — intentional and documented (the comment); the 4 ctx attributes are
+  still cleared on down (the machine contract holds).
 - No `use_cache` interaction: with `ctx.use_cache=False` (the CONFIG switch) the other levels still warm their cache
   files; ZED has nothing to warm — the behavior is identical either way.
 

@@ -11,23 +11,23 @@ at the shared LMContext).
 
 | name | contract |
 |---|---|
-| `BaseModel.__init__(workers, context, verbosity=STANDARD)` (L50) | Stores `self.context` and builds `self.sm = StateMachine(workers, context, verbosity)`; gated by `@validate_call` (L49); no other own validation |
-| `current_step` (property, L59) | → `self.sm.current_step` |
-| `current_worker_name` (property, L63) | → `self.sm.current_worker_name` |
-| `verbosity` (property, get L67 + set L70) | → `self.sm.verbosity` both ways |
-| `move_to_step` (L74) | Pass-through to `self.sm.move_to_step` (gated by the SM's @validate_call) |
-| `move_to_last` (L78), `show_event_log` (L94), `show_history_of_moves` (L97), `export_history_of_moves_as_csv` (L100) | Pass-throughs |
-| `run(target_level=None)` (L83) | The target-driven driver: `move_to_step(1)` when the machine is still at the sentinel (the domain config must be loaded), then the target = the explicit argument, else `_configured_target_level()`, else the last step; `"last"` (any case) and a blank value → `move_to_last()`, anything else → `move_to_step(target)`. The machine's contracts apply unchanged (the target IS executed, the ValueError / TypeError gate, the down() of a backward move) |
-| `_configured_target_level()` (L112) | The domain hook: `None` in the base (the whole pipeline); a concrete facade overrides it to read its own config |
+| `BaseModel.__init__(workers, context, verbosity=STANDARD)` | Stores `self.context` and builds `self.sm = StateMachine(workers, context, verbosity)`; gated by `@validate_call`; no other own validation |
+| `current_step` (property) | → `self.sm.current_step` |
+| `current_worker_name` (property) | → `self.sm.current_worker_name` |
+| `verbosity` (property, get + set) | → `self.sm.verbosity` both ways |
+| `move_to_step` | Pass-through to `self.sm.move_to_step` (gated by the SM's @validate_call) |
+| `move_to_last`, `show_event_log`, `show_history_of_moves`, `export_history_of_moves_as_csv` | Pass-throughs |
+| `run(target_level=None)` | The target-driven driver: `move_to_step(1)` when the machine is still at the sentinel (the domain config must be loaded), then the target = the explicit argument, else `_configured_target_level()`, else the last step; `"last"` (any case) and a blank value → `move_to_last()`, anything else → `move_to_step(target)`. The machine's contracts apply unchanged (the target IS executed, the ValueError / TypeError gate, the down() of a backward move) |
+| `_configured_target_level()` | The domain hook: `None` in the base (the whole pipeline); a concrete facade overrides it to read its own config |
 
-`__all__` (L39) = [BaseModel].
+`__all__` = [BaseModel].
 
 ## Architecture
 
 128 lines.
 
-- L28 the module header comment; L31-36 imports (pathlib, typing.List, pydantic, state_machine).
-- `class BaseModel` L42 (docstring L43-47 — the DeepNetworkModel forward-reference, kept by design).
+- the module header comment; imports (pathlib, typing.List, pydantic, state_machine).
+- `class BaseModel` (docstring the DeepNetworkModel forward-reference, kept by design).
 - The pass-through surface: every delegation method is a one-line pass-through (source-verified); type errors on
   `move_to_step`/`move_to_last` surface from the SM's @validate_call gate, not from the facade. The `__init__` boundary
   itself is facade-gated, so the class is gated at BOTH its own entry and the inner SM boundary.

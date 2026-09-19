@@ -1867,3 +1867,20 @@ D-260 | 2026-09-19 | I-019 executed: the target-driven `run()` + the `target_lev
          register: the stop is target-driven through `run()`, the target step IS executed, the resume does not reset.
          The hub probe gains the V9 `run('POSITIONS')` boundary label (the empty-config failure surfaces through the new
          entry too).
+
+D-261 | 2026-09-19 | The line-reference retirement in the mirror docs (Roberto: "uno per volta controlla tutti i
+         documenti in docs, e verifica se sono aderenti allo stato del codice ... Se i docs markdown riportano uno stato
+         diverso da quello trovato nel codice, aggiornali"). (1) THE MEASUREMENT — 38 of the 95 mirrors carried 423
+         inline line references ("`factory` (L71)", "the L103 note", "(L216 — ...)"); a mechanical cross-check of 112
+         name/line pairs found 25 already DRIFTED (the cited line no longer holds the named object) — the refs were
+         stale in ~22% of the cases and every code edit re-opened the debt. (2) THE RULE — notes/docs_rules.md §3.7
+         already prescribed the opposite: the line reference is an OPTIONAL appendix, default OFF ("Default: no line
+         numbers in the doc"), and NO mirror had the appendix section. Roberto chose the rule: remove them all. (3) THE
+         SWEEP — the 268 parenthesized-only refs ("(L50)", "(L87-90)", "(L143, L147)") removed by a deterministic pass;
+         the 155 EMBEDDED ones ("the L103 note", "(L216 — the empty-suffix guard)", "(each L31)", the dense line maps of
+         binio.md / cache_manager.md) rewritten by hand, keeping the CONTENT (the descriptors survive: "the
+         no-validation note", "the by-design comment", "the ruling comment") and dropping only the coordinates; the
+         prose re-wrapped to the house width with tools/notes_format.py (CONTENT OK per file: the token sequence is
+         unchanged, so no word was lost). VERIFIED: 0 refs left in docs/, the doc audit back at the 8 pre-existing
+         findings (2 over-120 + 6 size), and a token-level diff against HEAD showing ONLY the ref removals + the 6
+         hand-rewrites.

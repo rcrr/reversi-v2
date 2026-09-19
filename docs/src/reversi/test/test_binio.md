@@ -6,15 +6,15 @@ The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s infrastructure
 
 | class (line) | tests | what it pins |
 |---|---|---|
-| `ScalarRoundTripTest` (L59) | 10 | all 10 scalar types at their bounds, the `_round_trip` BytesIO helper |
-| `StringTest` (L122) | 4 | ASCII, multibyte UTF-8 ("città è caffè ☕ 日本語"), empty string, byte-length-not-char-length ("é" = 2 bytes — the u8(99) after it still reads) |
-| `ArrayTest` (L162) | 8 | all 10 dtypes 1-d (subTest), (2,3,4) float64, empty, 0-d, result-is-writable (mutable copy, not a view), non-contiguous F-order, unsupported-dtype-raises (complex128 → `BinaryFormatError`), unknown-type-code-raises (a crafted type_code=99 record) |
-| `HeaderTest` (L230) | 2 | round-trip, wrong-signature-raises |
-| `FramingTest` (L253) | 3 | MAGIC mismatch, wrong read order (a string read as u64 — the length prefix is not a MAGIC), truncated file (last 2 bytes dropped) |
-| `Sha3_256SidecarTest` (L288) | 7 | write+verify, the `sha3_256sum` format (`"<digest>  <basename>\n"`), corruption detection (one flipped byte), missing-sidecar-raises (`FileNotFoundError`), malformed-sidecar-raises (non-hex → `BinaryFormatError`), write empty-suffix-raises + content byte-identical, verify empty-suffix-raises |
-| `AutoChecksumTest` (L357) | 6 | sidecar-on-close, incremental digest == `compute_sha3_256` re-read, `checksum=False` writes nothing, empty `checksum_suffix` raises in `__init__` BEFORE the file is opened, the digest property on file objects, the digest raises when disabled |
-| `FullDocumentTest` (L415) | 1 | header + mixed scalars + string + 2 arrays, full read-back |
-| `Lz4CompressionTest` (L442) | 4 | round-trip with path, actually compresses (a repetitive 10k-float64 array), the checksum over the compressed bytes, round-trip with file object |
+| `ScalarRoundTripTest` | 10 | all 10 scalar types at their bounds, the `_round_trip` BytesIO helper |
+| `StringTest` | 4 | ASCII, multibyte UTF-8 ("città è caffè ☕ 日本語"), empty string, byte-length-not-char-length ("é" = 2 bytes — the u8(99) after it still reads) |
+| `ArrayTest` | 8 | all 10 dtypes 1-d (subTest), (2,3,4) float64, empty, 0-d, result-is-writable (mutable copy, not a view), non-contiguous F-order, unsupported-dtype-raises (complex128 → `BinaryFormatError`), unknown-type-code-raises (a crafted type_code=99 record) |
+| `HeaderTest` | 2 | round-trip, wrong-signature-raises |
+| `FramingTest` | 3 | MAGIC mismatch, wrong read order (a string read as u64 — the length prefix is not a MAGIC), truncated file (last 2 bytes dropped) |
+| `Sha3_256SidecarTest` | 7 | write+verify, the `sha3_256sum` format (`"<digest>  <basename>\n"`), corruption detection (one flipped byte), missing-sidecar-raises (`FileNotFoundError`), malformed-sidecar-raises (non-hex → `BinaryFormatError`), write empty-suffix-raises + content byte-identical, verify empty-suffix-raises |
+| `AutoChecksumTest` | 6 | sidecar-on-close, incremental digest == `compute_sha3_256` re-read, `checksum=False` writes nothing, empty `checksum_suffix` raises in `__init__` BEFORE the file is opened, the digest property on file objects, the digest raises when disabled |
+| `FullDocumentTest` | 1 | header + mixed scalars + string + 2 arrays, full read-back |
+| `Lz4CompressionTest` | 4 | round-trip with path, actually compresses (a repetitive 10k-float64 array), the checksum over the compressed bytes, round-trip with file object |
 
 ## Goldens pinned
 

@@ -15,29 +15,29 @@ complete file report with the per-feature tables).
 
 ## Architecture
 523 lines:
-- `_format_mobility_feature_table` (L49-167): the per-configuration ASCII table for one mobility feature — header: the
-  fallback line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols
-  + Config Counts (C/IA/IC) lines, the Eta-Squared statistic (SS_between/SS_total via `np.bincount`); rows
-  (`print_rows`-gated) with the per-configuration weights — STATUS: IC (below the cut-off — fallback bucket), C
-  (confirmed — its own trained `ctx.w` weight), IA (absent — the dense interpolated `ctx.w_dense` weight).
-- `_format_pattern_feature_table` (L170-307): the same table for one pattern feature, plus the Max/Min Weight (w) lines,
-  the PRINCIPAL_IDX column (D8 orbit representatives via `feature.ref.convert_to_principal_index`), and STATUS CL
-  (collapsed to fallback) / C / AB (absent — dense orbit-mean weight).
-- `_format_header` (L310-402): `MODEL ANALYTICS REPORT: <name>` + Total Parameters (W) + Dense Parameters (K) + the
-  Optimization Status (from `ctx.opt_info`) + the Config SHA3-256 line (L388: the `ctx.config_checksum` fingerprint — in
-  the COMMON block, so BOTH the console and the file report carry it), then the 3-metric table: TRAINING from
-  `ctx.train_metrics` ("Loss (MSE/2)" = `opt_info['f']`), TRAINING-DENSE from `ctx.train_dense_metrics` (pure
-  forward-pass cells), VALIDATION from `ctx.vld_metrics` (N/A triple + gaps 0.0 when None); then the Population
-  (baseline) line, the Generalization Gap (vld_rmse − train_dense_rmse — DENSE vs DENSE) and the Substitution Delta
-  (train_dense_rmse − train_rmse — 0 at cut=1 up to f32 rounding, "-0.00" on rlm_02/rlm_03).
-- `format_file_report` (L410-441): the per-table `print_rows` = the feature name is in
-  `ctx.cfg.analytics.detailed_report` (non-optional field with a `default_factory`); `col_offset` accumulates over ALL
-  features (intercept included) to line the column slices up with `ctx.hlp_indexes.indexes`.
-- `compute_training_metrics` (L443-481): the compressed forward pass —
+- `_format_mobility_feature_table`: the per-configuration ASCII table for one mobility feature — header: the fallback
+  line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols + Config
+  Counts (C/IA/IC) lines, the Eta-Squared statistic (SS_between/SS_total via `np.bincount`); rows (`print_rows`-gated)
+  with the per-configuration weights — STATUS: IC (below the cut-off — fallback bucket), C (confirmed — its own trained
+  `ctx.w` weight), IA (absent — the dense interpolated `ctx.w_dense` weight).
+- `_format_pattern_feature_table`: the same table for one pattern feature, plus the Max/Min Weight (w) lines, the
+  PRINCIPAL_IDX column (D8 orbit representatives via `feature.ref.convert_to_principal_index`), and STATUS CL (collapsed
+  to fallback) / C / AB (absent — dense orbit-mean weight).
+- `_format_header`: `MODEL ANALYTICS REPORT: <name>` + Total Parameters (W) + Dense Parameters (K) + the Optimization
+  Status (from `ctx.opt_info`) + the Config SHA3-256 line (the `ctx.config_checksum` fingerprint — in the COMMON block,
+  so BOTH the console and the file report carry it), then the 3-metric table: TRAINING from `ctx.train_metrics` ("Loss
+  (MSE/2)" = `opt_info['f']`), TRAINING-DENSE from `ctx.train_dense_metrics` (pure forward-pass cells), VALIDATION from
+  `ctx.vld_metrics` (N/A triple + gaps 0.0 when None); then the Population (baseline) line, the Generalization Gap
+  (vld_rmse − train_dense_rmse — DENSE vs DENSE) and the Substitution Delta (train_dense_rmse − train_rmse — 0 at cut=1
+  up to f32 rounding, "-0.00" on rlm_02/rlm_03).
+- `format_file_report`: the per-table `print_rows` = the feature name is in `ctx.cfg.analytics.detailed_report`
+  (non-optional field with a `default_factory`); `col_offset` accumulates over ALL features (intercept included) to line
+  the column slices up with `ctx.hlp_indexes.indexes`.
+- `compute_training_metrics`: the compressed forward pass —
   `np.sum(ctx.w[ctx.design_matrix].astype(np.float64), axis=1)` → `sigmoid` (reused) → `ctx.z2y`; `y_pred` vs
   `ctx.game_values`: `train_mae_y` / `train_rmse_y`; the population baseline: `pop_mae_y` / `pop_rmse_y` / `pop_loss`
   (0.5·mean squared z residuals via `ctx.y2z`); `train_loss = opt_info['f']` (0.0 when `opt_info` is None).
-- `compute_training_dense_metrics` (L483-521): the DENSE forward pass — the hlp_validate expanded-offsets idiom
+- `compute_training_dense_metrics`: the DENSE forward pass — the hlp_validate expanded-offsets idiom
   (`col_offsets = np.repeat(...)`, `dense_indices = ctx.hlp_indexes.indexes + col_offsets`) → `sigmoid` → `ctx.z2y`.
 
 ## Verified invariants
@@ -65,7 +65,7 @@ None.
 
 ## Conventions
 - NO `@validate_call` on the 4 public data functions and no no-validation note — consistent with hlp_validate.
-- The `sigmoid` is REUSED from hlp_gradient (L36) — no local copy.
+- The `sigmoid` is REUSED from hlp_gradient — no local copy.
 - Report-only: the TRAINING "Loss (MSE/2)" cell is `opt_info['f']` (ridge-inclusive) while the TRAINING-DENSE /
   VALIDATION / Population cells are pure 0.5·mean(rn²) — intentional (the objective the optimizer minimized); the dense
   pass reads the f32 `w_dense` copy, the compressed pass the float64 `w` — even at cut=1 the two columns differ by the

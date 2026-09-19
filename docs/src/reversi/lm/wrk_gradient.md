@@ -1,8 +1,8 @@
 # reversi/lm/wrk_gradient.py
 The GRADIENT worker of the LM pipeline: builds the loss/gradient closure in `_up` (reading the `high_performance_fg`
 config flag and passing it to `hlp_gradient_compute`) and clears it in `_down`. The SECOND non-cache level (after ZED):
-the comment at L48 documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache
-needed." No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
+the comment documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache needed."
+No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## API
 
@@ -15,8 +15,8 @@ needed." No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 - Imports: `Worker, Relevance` from state_machine; `hlp_gradient_compute` from hlp_gradient; `validate_call, ConfigDict`
   from pydantic; `LMContext` under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design — pinned by probe
   B).
-- `_up`: INFO "Building gradient and loss function (fg)..." → the by-design comment (L48: "GRADIENT building is a
-  closure generation, very fast. No cache needed.") → `high_performance = ctx.cfg.optimization.high_performance_fg` →
+- `_up`: INFO "Building gradient and loss function (fg)..." → the by-design comment ("GRADIENT building is a closure
+  generation, very fast. No cache needed.") → `high_performance = ctx.cfg.optimization.high_performance_fg` →
   `ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance)` → INFO "Gradient function generated
   (high_performance: {True|False})." (the log line names the built variant).
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg = None`.
@@ -27,8 +27,8 @@ needed." No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 2-test suite.
 
 - Source shape (probe B1-B9): the 64-line file, `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
-  pydantic import, NO cache_manager import (the L48 by-design comment pinned), `_up` reads the `high_performance_fg`
-  flag, sets `ctx.fg` (passing the flag) and logs the variant, `_down` clears it, `Worker("GRADIENT", ...)`.
+  pydantic import, NO cache_manager import (the by-design comment pinned), `_up` reads the `high_performance_fg` flag,
+  sets `ctx.fg` (passing the flag) and logs the variant, `_down` clears it, `Worker("GRADIENT", ...)`.
 - The worker-test source shape (probe C1-C11): the 182-line file, the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
   the no-DB TestGradientFlagWiring pair), the gate, the idiom, the step pins, the 4 goldens, the _down test, the wiring
   test (C11: the worker + the Context-subclass mock + the marker pin), 0 non-comment ws lines.
@@ -51,7 +51,7 @@ None.
 ## Conventions
 
 - The no-cache design is the second deviation from the uniform 7-kwargs `cache_manager` wiring (ZED first) — intentional
-  and documented (the L48 comment); `ctx.fg` is still cleared on down (the machine contract holds).
+  and documented (the comment); `ctx.fg` is still cleared on down (the machine contract holds).
 - No `use_cache` interaction: with `ctx.use_cache=False` the other levels still warm their cache files; GRADIENT has
   nothing to warm — the behavior is identical either way.
 

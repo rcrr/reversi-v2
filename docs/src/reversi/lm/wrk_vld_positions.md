@@ -1,9 +1,9 @@
 # reversi/lm/wrk_vld_positions.py
 The VLD_POSITIONS worker — the 13th step. The POSITIONS TWIN over the validation data set: the 6th `cache_manager`
 consumer and the only worker that REUSES another level's data module — `extract_and_prepare` + `is_cache_consistent`
-imported from `wrk_positions` (L43), the keyword `bid`/`status` overrides selecting the validation query. After the
-population stats, the worker runs the validation-independence check — how many validation records are ALSO present in
-the training set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.SHA3-256`.
+imported from `wrk_positions`, the keyword `bid`/`status` overrides selecting the validation query. After the population
+stats, the worker runs the validation-independence check — how many validation records are ALSO present in the training
+set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.SHA3-256`.
 
 ## API
 
@@ -13,37 +13,34 @@ the training set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIO
 
 ## Architecture
 
-- `_up` (L54-114):
-  - `vld_cfg = ctx.cfg.validation_data_set` (L57) — `ValidationDataSetConfig` declares ONLY `bid: List[NonNegativeInt]`
-    + `status: List[StatusString]`. The M1 note (L59-62): the query INHERITS `ec` from `ctx.cfg.regab_data_set` (the
-    training block) — the shared `ec` (20 in rlm_02) gates BOTH the extraction (wrk_positions L171) and the cache
-    consistency check (L122 there); the validation block cannot override `ec`.
-  - The uniform 7-kwargs `cache_manager_load_or_compute` (L65-73):
-    `cache_path = ctx.get_cache_file_full_path_for_current_level()` (L66), `is_allowed = ctx.use_cache`,
-    `load_fn = lambda path: regab_load_data_set_from_file(path, checksum=False)` (L68: the `checksum=True` default
+- `_up`:
+  - `vld_cfg = ctx.cfg.validation_data_set` — `ValidationDataSetConfig` declares ONLY `bid: List[NonNegativeInt]` +
+    `status: List[StatusString]`. The M1 note: the query INHERITS `ec` from `ctx.cfg.regab_data_set` (the training
+    block) — the shared `ec` (20 in rlm_02) gates BOTH the extraction (wrk_positions) and the cache consistency check (
+    there); the validation block cannot override `ec`.
+  - The uniform 7-kwargs `cache_manager_load_or_compute`:
+    `cache_path = ctx.get_cache_file_full_path_for_current_level()`, `is_allowed = ctx.use_cache`,
+    `load_fn = lambda path: regab_load_data_set_from_file(path, checksum=False)` (the `checksum=True` default
     re-verified the sidecar cache_manager step 3 already checked), `store_fn = regab_store_data_set_to_file`,
     `validate_fn = lambda cached_vld_rds: is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)`
-    (L70 — the override is LOAD-BEARING: without it the TRAINING cfg params are used and the vld rds would always
-    mismatch), `compute_fn = lambda: extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)` (L71 — the shared
-    wrk_positions compute path, extract → dedup policy → log; the cache file stores the POST-policy data set, so a flag
-    flip changes the stored content + the vld rds_checksum, cascading through the checksum lineage),
-    `logger_fn = ctx.log_event`.
-  - The cache-hit log (L75-80): on a hit the post-policy total is logged from the stored content ("Duplicate game
-    positions (key: mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the
-    compute path the full line is logged inside `extract_and_prepare` before the store.
-  - Post-processing (L82-102): `vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()` (L83 —
-    the board.py `Position` structured dtype, mover/opponent u64); the 3 rds-derived fields set (L84-86 —
-    `vld_rds_checksum` is the duck-typed `RegabDataSet.compute_sha3_256_hash` over `df_mogv`); population stats logged
-    (L91-95) + stored in `ctx.vld_pop_stats` (L97-102: count int + mean/std_dev/ variance np.float64 over the int8 game
-    values).
-  - The validation-independence check (L104-112):
-    `overlap = regab_count_position_overlap(ctx.positions, ctx.vld_positions)` — the number of vld records whose (mover,
-    opponent) key is also in the training set (a pandas inner-merge over the two key columns; the train side is deduped
-    first) — then one INFO log ("Validation independence check: [OVERLAP: X of N validation records], [PERCENT: P%] — …
-    (log only, no action)"). LOG ONLY: NO raise, no threshold parameter, no quality gate (a max-overlap% /
-    min-validation-size family is explicitly out of scope).
-- `_down` (L117-124): clears ALL FOUR fields (L119-122) — the house shape, no gap.
-- The factory (L127-130): `@validate_call`-gated with `arbitrary_types_allowed=True`.
+    (the override is LOAD-BEARING: without it the TRAINING cfg params are used and the vld rds would always mismatch),
+    `compute_fn = lambda: extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)` (the shared wrk_positions
+    compute path, extract → dedup policy → log; the cache file stores the POST-policy data set, so a flag flip changes
+    the stored content + the vld rds_checksum, cascading through the checksum lineage), `logger_fn = ctx.log_event`.
+  - The cache-hit log: on a hit the post-policy total is logged from the stored content ("Duplicate game positions (key:
+    mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the compute path the full
+    line is logged inside `extract_and_prepare` before the store.
+  - Post-processing: `vld_positions, vld_game_values = vld_rds.generate_positions_and_game_values()` ( the board.py
+    `Position` structured dtype, mover/opponent u64); the 3 rds-derived fields set ( `vld_rds_checksum` is the
+    duck-typed `RegabDataSet.compute_sha3_256_hash` over `df_mogv`); population stats logged + stored in
+    `ctx.vld_pop_stats` (count int + mean/std_dev/ variance np.float64 over the int8 game values).
+  - The validation-independence check: `overlap = regab_count_position_overlap(ctx.positions, ctx.vld_positions)` — the
+    number of vld records whose (mover, opponent) key is also in the training set (a pandas inner-merge over the two key
+    columns; the train side is deduped first) — then one INFO log ("Validation independence check: [OVERLAP: X of N
+    validation records], [PERCENT: P%] — … (log only, no action)"). LOG ONLY: NO raise, no threshold parameter, no
+    quality gate (a max-overlap% / min-validation-size family is explicitly out of scope).
+- `_down`: clears ALL FOUR fields — the house shape, no gap.
+- The factory: `@validate_call`-gated with `arbitrary_types_allowed=True`.
 
 ## Verified invariants
 
@@ -78,10 +75,9 @@ None.
 
 ## Conventions
 
-- The unpacked `cache_hit` is now CONSUMED (the cache-hit duplicate line, L75-80) — the wrk_positions twin changed the
-  same way.
+- The unpacked `cache_hit` is now CONSUMED (the cache-hit duplicate line) — the wrk_positions twin changed the same way.
 - The `load_fn` `checksum=False`: the sidecar was verified by cache_manager step 3.
-- The import-block trailing ws (L39) stays, as in wrk_positions.
+- The import-block trailing ws stays, as in wrk_positions.
 
 ## Integration
 

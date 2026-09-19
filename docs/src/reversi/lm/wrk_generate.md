@@ -13,15 +13,15 @@ cache level before the future VLD_POSITIONS (rlmwf_13).
 
 ## Architecture
 
-- `_up` (L50-67): logs "Generating dense weight vector (w_dense) for inference..." (L51) and runs the uniform 7-kwargs
-  `cache_manager_load_or_compute` (L53-61): `cache_path = ctx.get_cache_file_full_path_for_current_level()` (L54),
+- `_up`: logs "Generating dense weight vector (w_dense) for inference..." and runs the uniform 7-kwargs
+  `cache_manager_load_or_compute`: `cache_path = ctx.get_cache_file_full_path_for_current_level()`,
   `is_allowed = ctx.use_cache`, `load_fn = hlp_generate_load_from_file`, `store_fn = hlp_generate_store_to_file`,
   `validate_fn` = the is_cache_consistent closure, `compute_fn` = the compute_w_dense closure,
-  `logger_fn = ctx.log_event`. Then `ctx.w_dense = dense_obj.w_dense` (L63) + the shape log (L64), and
-  `ctx.dense_w_checksum` (L66-67, the duck-typed hash the flow returns).
-- `_down` (L70-73): logs "Clearing dense weight vector..." and sets `ctx.w_dense = None` + `ctx.dense_w_checksum = None`
-  — the scope pinned by the worker test `test_down_clears_generate_attributes`.
-- `wrk_generate()` (L76-78): the factory, `@validate_call`-decorated.
+  `logger_fn = ctx.log_event`. Then `ctx.w_dense = dense_obj.w_dense` + the shape log, and `ctx.dense_w_checksum` (the
+  duck-typed hash the flow returns).
+- `_down`: logs "Clearing dense weight vector..." and sets `ctx.w_dense = None` + `ctx.dense_w_checksum = None` — the
+  scope pinned by the worker test `test_down_clears_generate_attributes`.
+- `wrk_generate()`: the factory, `@validate_call`-decorated.
 
 ## Verified invariants
 

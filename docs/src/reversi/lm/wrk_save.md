@@ -19,18 +19,17 @@ persist across runs).
 
 66 lines.
 
-- Imports (L28-39): pydantic `validate_call`/`ConfigDict` (L30), `TYPE_CHECKING` (L32), `Worker`/`Relevance` from
-  state_machine (L34), `model_weights_write_file` (L35 — the writer embeds the config provenance itself, so no binio
-  `write_sha3_256_sidecar` import is needed), `LMContext` under TYPE_CHECKING (L39, the hlp_indexes-L166 class, as in
-  every worker).
-- `__all__ = ['wrk_save']` (L42).
-- `_up` (L46-57): INFO "Saving model weights to disk..." (L47) → `output_path = ctx.cfg.base_dir / ctx.cfg.output` (L49)
-  → the comment block (the single-source semantics) → `model_weights_write_file(ctx, output_path, compressed=True)`
-  (L56) → INFO "Model weights saved to {output_path}" (L57). The SAVE log span is these 2 lines (plus the
-  state-machine's "Starting worker SAVE, UP step" / "Completed UP step" lines).
-- `_down` (L59-62): INFO "Clearing save attributes..." + the comment "Nothing to clear from context, as we just read
-  from it." — SAVE is the only worker whose `_down` clears nothing (VALIDATE clears 1, ANALYTICS clears 2, ...).
-- `wrk_save()` (L64-66): the factory.
+- Imports: pydantic `validate_call`/`ConfigDict`, `TYPE_CHECKING`, `Worker`/`Relevance` from state_machine,
+  `model_weights_write_file` (the writer embeds the config provenance itself, so no binio `write_sha3_256_sidecar`
+  import is needed), `LMContext` under TYPE_CHECKING (the hlp_indexes- class, as in every worker).
+- `__all__ = ['wrk_save']`.
+- `_up`: INFO "Saving model weights to disk..." → `output_path = ctx.cfg.base_dir / ctx.cfg.output` → the comment block
+  (the single-source semantics) → `model_weights_write_file(ctx, output_path, compressed=True)` → INFO "Model weights
+  saved to {output_path}". The SAVE log span is these 2 lines (plus the state-machine's "Starting worker SAVE, UP step"
+  / "Completed UP step" lines).
+- `_down`: INFO "Clearing save attributes..." + the comment "Nothing to clear from context, as we just read from it." —
+  SAVE is the only worker whose `_down` clears nothing (VALIDATE clears 1, ANALYTICS clears 2, ...).
+- `wrk_save()`: the factory.
 
 ## Verified invariants
 
@@ -88,5 +87,5 @@ None.
   training-population stats + 4/5 opt_info keys + 4/7 vld metrics + the configuration provenance (model_weights.md).
   `ctx.w` (the compressed trained vector) and the zed transforms are deliberately NOT persisted: the client reconstructs
   everything it needs (client.md) — the zed transforms are a pure function of `logit_clipping`.
-- `ctx.cfg.output` is a REQUIRED field of `LMConfig` (hlp_config_schemas L196, `output: Path = Field(...)`) — stored in
-  all four fixtures (each L31) "if needed by the SAVE worker later".
+- `ctx.cfg.output` is a REQUIRED field of `LMConfig` (hlp_config_schemas, `output: Path = Field(...)`) — stored in all
+  four fixtures (each) "if needed by the SAVE worker later".

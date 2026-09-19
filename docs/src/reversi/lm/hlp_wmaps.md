@@ -44,10 +44,9 @@ Pinned by the 54-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, 
 tests).
 
 - Source shape (probe A1-A12 + B1-B9): module 322 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on
-  compute / is_cache_consistent — the L187 no-validation comment), the store write order, the 3 load RuntimeError
-  messages, the 2-field compare, 0 non-comment trailing-whitespace lines; worker 91 lines, the factory WITH
-  `@validate_call`, the 7-kwargs cache wiring with the `checksum=False` load_fn, `_down` clears all 7 INCLUDING
-  `ctx.wmaps_obj_checksum`.
+  compute / is_cache_consistent — the no-validation comment), the store write order, the 3 load RuntimeError messages,
+  the 2-field compare, 0 non-comment trailing-whitespace lines; worker 91 lines, the factory WITH `@validate_call`, the
+  7-kwargs cache wiring with the `checksum=False` load_fn, `_down` clears all 7 INCLUDING `ctx.wmaps_obj_checksum`.
 - The pipeline integration (live DB, probe C1-C15): after `move_to_step("WMAPS")` (step 7) the base dir holds ONLY the
   flat CONFIG + POSITIONS + INDEXES + WMAPS `.dat` + `.SHA3-256` pairs (no `rlmwf_02_FEATURES*`); the cross-run cache
   hit + identical data; E9 — the per-feature wmap row count == `w_max − w_min + 1` (contiguous ranges).
@@ -69,7 +68,7 @@ None.
   configuration index in 0..n_configurations − 1 (the indexes are unsigned, never −1); the −1 'unseen configuration'
   sentinel can only appear in the OUTPUT iwmap. NO input guard is added (resolved as no-guard).
 - No `@validate_call` on `hlp_wmaps_compute` / `hlp_wmaps_is_cache_consistent` — the same TYPE_CHECKING circular-import
-  constraint as hlp_indexes (the L187 note).
+  constraint as hlp_indexes (the note).
 - The two checksums are distinct (as in INDEXES): `wmaps_obj_checksum` = the DATA checksum (sha3_256 over the 6 raw
   array tobytes); the `.SHA3-256` sidecar = the FILE checksum (binio `sha3_256sum` format over the serialized `.dat`).
 

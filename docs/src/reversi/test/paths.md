@@ -6,19 +6,19 @@ ONCE here, keyed on the workspace marker (`pyproject.toml`) instead of a `parent
 
 | name | contract |
 |---|---|
-| `WORKSPACE_ROOT` (L51) | The workspace root: the first ancestor of this file's directory containing `pyproject.toml` (the marker-based derivation; `RuntimeError` if not found, L43) |
-| `CUSTOM_TMP_BASE` (L56) | `WORKSPACE_ROOT / "build" / "tmp"` — the shared test-artifact base of the house rule (unit tests write files ONLY under `<workspace-root>/build/tmp`) |
+| `WORKSPACE_ROOT` | The workspace root: the first ancestor of this file's directory containing `pyproject.toml` (the marker-based derivation; `RuntimeError` if not found) |
+| `CUSTOM_TMP_BASE` | `WORKSPACE_ROOT / "build" / "tmp"` — the shared test-artifact base of the house rule (unit tests write files ONLY under `<workspace-root>/build/tmp`) |
 
-`__all__` (L31) = [WORKSPACE_ROOT, CUSTOM_TMP_BASE]. The derivation helper `_workspace_root()` (L34) is private. No
-public functions, hence no `@validate_call` decorators (house convention: public functions/factories only).
+`__all__` = [WORKSPACE_ROOT, CUSTOM_TMP_BASE]. The derivation helper `_workspace_root()` is private. No public
+functions, hence no `@validate_call` decorators (house convention: public functions/factories only).
 
 ## Architecture
 
 56 lines.
 
-- L34-43 `_workspace_root()`: walks up from this file's own directory (L37-39) until the marker is found (L41); raises
-  `RuntimeError` (L43) otherwise.
-- L47-51 the marker comment + the `WORKSPACE_ROOT` module-level derivation; L53-56 `CUSTOM_TMP_BASE`.
+- `_workspace_root()`: walks up from this file's own directory until the marker is found; raises `RuntimeError`
+  otherwise.
+- the marker comment + the `WORKSPACE_ROOT` module-level derivation; `CUSTOM_TMP_BASE`.
 
 The test files import the constants instead of recomputing them: `test_cache_manager.py`, `test_logistic_model.py`
 (CUSTOM_TMP_BASE); `test_wrk_config/positions/features/indexes.py` (both — the JSON fixture is anchored to the same

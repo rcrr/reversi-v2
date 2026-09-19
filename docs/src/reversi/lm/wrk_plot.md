@@ -19,23 +19,21 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 
 ## Architecture
 
-- Imports (L42-53): `Path` (L44), pydantic (L46), `Worker, Relevance` (L50), the hlp_plot surface (L51-52:
-  `PLOT_BUILDERS`, `collect_plot_data`, `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING (L54-55). NO
-  `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in hlp_plot — see
-  hlp_plot.md).
-- `_up` (L63-108): the pilot (L69-78): `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return);
-  empty `plot.plots` → "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." →
-  `collect_plot_data(ctx)` → the OUTLIER REPORT: the top-20 `|vld_rn|` via the STABLE argsort (deterministic: tie = the
-  lower index first), the header line "Top 20 extreme validation residuals (outlier report):" + 20 lines (" {rank}. vld
-  position {i} ({mover:016X}/{opponent:016X}): game value {gv:+.0f}, fitted {yf:+.2f}, residual {rn:+.2f}") → the
-  directory: `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else
-  `base_dir / dir_name`; `mkdir(parents=True, exist_ok=True)` (L92) → the per-name loop (L97-104):
-  `PLOT_BUILDERS[name](data, ctx.cfg.name)` → `save_figure` in every format of `plot_cfg.format` (the "pdf,png" pair
-  writes both) → `close_figure` → "Plot '{name}' saved: {paths}" → the completion line (L106-108): "PLOT done: {n}
-  plot(s) written to {dir}."
-- `_down` (L111-114): INFO "Clearing plot attributes..." — nothing cleared (the figures are built and closed locally on
-  every up-move).
-- `wrk_plot()` (L117-120): the factory, `@validate_call`-decorated (the uniform worker-factory idiom).
+- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface ( `PLOT_BUILDERS`, `collect_plot_data`,
+  `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design)
+  and NO top-level matplotlib import (it is lazy in hlp_plot — see hlp_plot.md).
+- `_up`: the pilot: `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return); empty `plot.plots` →
+  "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `collect_plot_data(ctx)` →
+  the OUTLIER REPORT: the top-20 `|vld_rn|` via the STABLE argsort (deterministic: tie = the lower index first), the
+  header line "Top 20 extreme validation residuals (outlier report):" + 20 lines (" {rank}. vld position {i}
+  ({mover:016X}/{opponent:016X}): game value {gv:+.0f}, fitted {yf:+.2f}, residual {rn:+.2f}") → the directory:
+  `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else `base_dir / dir_name`;
+  `mkdir(parents=True, exist_ok=True)` → the per-name loop: `PLOT_BUILDERS[name](data, ctx.cfg.name)` → `save_figure` in
+  every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `close_figure` → "Plot '{name}' saved: {paths}" →
+  the completion line: "PLOT done: {n} plot(s) written to {dir}."
+- `_down`: INFO "Clearing plot attributes..." — nothing cleared (the figures are built and closed locally on every
+  up-move).
+- `wrk_plot()`: the factory, `@validate_call`-decorated (the uniform worker-factory idiom).
 
 ## Verified invariants
 

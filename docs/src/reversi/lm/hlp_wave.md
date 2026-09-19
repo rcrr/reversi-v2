@@ -66,8 +66,8 @@ global golden-pinned MT19937.
 - The sink file writer + the corpus format (the POSITIONS-step alignment).
 
 ## Conventions
-- The numba house pattern: @nb.njit(parallel=True, cache=True), prange over lanes; the HW popcount (numba has no
-  .bit_count on uint64); the u64 arithmetic wants explicit np.uint64 constants (u64 - int promotes to float64 in numba).
+- The numba house pattern: @nb.njit(parallel=True, cache=True), prange over lanes; the HW popcount (numba has no.
+  bit_count on uint64); the u64 arithmetic wants explicit np.uint64 constants (u64 - int promotes to float64 in numba).
 - The slots run ONWARD across waves (a dead lane consumes its slot — the harvested slots are unique but NOT contiguous);
   counter = slot (the step counter).
 - The test seam: the tests mutate the wave arrays directly (the lane injection) — no injection API in the engine.

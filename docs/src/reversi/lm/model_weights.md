@@ -9,36 +9,34 @@ positions without the database, the cache, or most of the pipeline state.
 
 | name | contract |
 |---|---|
-| `ModelWeights` | Plain mutable `@dataclass` (L53-72), 12 fields: the 10 in file order (`version` — the FILE header version, not a schema version —, `name`, `ec`, `logit_clipping`, `opt_info` (Dict), `training_pop_stats` (Dict), `vld_metrics` (Dict), `feature_set: FeatureSet`, `iwmap_feature_offset` (np.ndarray), `w_dense` (np.ndarray)) + the `config_dump: str \| None = None` / `config_checksum: str \| None = None` pair (defaulted, trailing — the dataclass requires defaulted fields last — although the FILE section LEADS the body); both are None for v1 files; the instance is only ever produced by `model_weights_read_file` |
-| `model_weights_write_file(ctx, path, compressed=True)` | Serialize the inference subset, section order 0-9 (below); the file header constants (L77-78): `"RGLM_BINARY_WEIGHTS"` / version 2 |
-| `model_weights_read_file(path, compressed=True) -> ModelWeights` | Mirror of the write order; the two GUARDS first (L169-172) — `ValueError` with the exact messages pinned by the test module: `File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found '<desc>'.` and `File header version, expected '1' or '2', found '<v>'.` — then, v2 only (L175-189): the config provenance read + the corruption sentinel `Config section checksum mismatch, expected '<stored>', recomputed '<sha3_256 of the dump>'.` (the stored checksum must cover the embedded dump) |
+| `ModelWeights` | Plain mutable `@dataclass`, 12 fields: the 10 in file order (`version` — the FILE header version, not a schema version —, `name`, `ec`, `logit_clipping`, `opt_info` (Dict), `training_pop_stats` (Dict), `vld_metrics` (Dict), `feature_set: FeatureSet`, `iwmap_feature_offset` (np.ndarray), `w_dense` (np.ndarray)) + the `config_dump: str \| None = None` / `config_checksum: str \| None = None` pair (defaulted, trailing — the dataclass requires defaulted fields last — although the FILE section LEADS the body); both are None for v1 files; the instance is only ever produced by `model_weights_read_file` |
+| `model_weights_write_file(ctx, path, compressed=True)` | Serialize the inference subset, section order 0-9 (below); the file header constants: `"RGLM_BINARY_WEIGHTS"` / version 2 |
+| `model_weights_read_file(path, compressed=True) -> ModelWeights` | Mirror of the write order; the two GUARDS first — `ValueError` with the exact messages pinned by the test module: `File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found '<desc>'.` and `File header version, expected '1' or '2', found '<v>'.` — then, v2 only: the config provenance read + the corruption sentinel `Config section checksum mismatch, expected '<stored>', recomputed '<sha3_256 of the dump>'.` (the stored checksum must cover the embedded dump) |
 
 ## Architecture
 
 276 lines.
 
-- Imports (L28-41): `hashlib` (the sentinel recompute), dataclass, typing (TYPE_CHECKING, Any, Dict), pathlib.Path,
-  numpy, binio `BinaryWriter`/`BinaryReader`, `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/ `PatternSet`;
-  `LMContext` under TYPE_CHECKING. `__all__` (L46-48) = [ModelWeights, model_weights_read_file,
-  model_weights_write_file].
-- `model_weights_write_file` (L81-157) — section order (the numbered comments are the spec): 0. header
-  (`"RGLM_BINARY_WEIGHTS"`, version 2); 1. **configuration provenance (LEADS the body)**: `ctx.config_checksum` (the
-  CONFIG-level fingerprint, the sentinel first) + `ctx.cfg.model_dump_json(indent=4)` (the normalized dump — the
-  effective config, the base_dir override included; the model file is the single source); 2. metadata — `name` + `ec` +
-  `logit_clipping` (f32); 3. training population stats — `count` (u64) + `mean`/`std_dev`/`variance` (f32 each — the
-  float64 stats are TRUNCATED by the format); 4. optimization info — 4 of the 5 context keys: `reason` (string), `iters`
-  (u32), `f` (f32), `g_norm` (f32); `converged` is NOT persisted (derivable from `reason == 'CONVERGED_*'`); 5.
-  validation metrics — 4 of the 7: `vld_samples` (u32), `vld_rmse_y`/`vld_mae_y`/`vld_loss` (f32);
-  `vld_mse_z`/`vld_mae_z`/`vld_mse_y` are NOT persisted; 6. FeatureSet — `name` + `intercept` flag (u8); 7. MobilitySet
-  — presence flag (u8) + `name` + count (u32) + per mobility `name`/`mask` (u64)/`amask` (u64); 8. PatternSet — presence
-  flag (u8) + `name` + count (u32) + per pattern `name`/`mask` (u64); 9. `iwmap_feature_offset` (write_array u32) +
-  `w_dense` (write_array f32).
-- `model_weights_read_file` (L160-276): the guards (L169-172 — version `not in (1, 2)` raises, the v1 files stay
-  readable, the backward-compat the v2 spec required), then the v2-only config provenance read + sentinel (L175-189),
-  then the mirror read — reconstructing `Mobility`/`Pattern` objects (the `int(m.mask)` / `int(m.amask)` conversions
-  normalize numpy uint64 scalars to Python ints), `MobilitySet`/`PatternSet`, the intercept via
-  `Feature.new_intercept()`, the two arrays via `read_array` (dtype preserved: u32 / f32 — the round-trip is bit-exact,
-  verified by tobytes sha3), and the dataclass with `config_dump`/`config_checksum` (None on v1).
+- Imports: `hashlib` (the sentinel recompute), dataclass, typing (TYPE_CHECKING, Any, Dict), pathlib.Path, numpy, binio
+  `BinaryWriter`/`BinaryReader`, `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/ `PatternSet`; `LMContext`
+  under TYPE_CHECKING. `__all__` = [ModelWeights, model_weights_read_file, model_weights_write_file].
+- `model_weights_write_file` — section order (the numbered comments are the spec): 0. header (`"RGLM_BINARY_WEIGHTS"`,
+  version 2); 1. **configuration provenance (LEADS the body)**: `ctx.config_checksum` (the CONFIG-level fingerprint, the
+  sentinel first) + `ctx.cfg.model_dump_json(indent=4)` (the normalized dump — the effective config, the base_dir
+  override included; the model file is the single source); 2. metadata — `name` + `ec` + `logit_clipping` (f32); 3.
+  training population stats — `count` (u64) + `mean`/`std_dev`/`variance` (f32 each — the float64 stats are TRUNCATED by
+  the format); 4. optimization info — 4 of the 5 context keys: `reason` (string), `iters` (u32), `f` (f32), `g_norm`
+  (f32); `converged` is NOT persisted (derivable from `reason == 'CONVERGED_*'`); 5. validation metrics — 4 of the 7:
+  `vld_samples` (u32), `vld_rmse_y`/`vld_mae_y`/`vld_loss` (f32); `vld_mse_z`/`vld_mae_z`/`vld_mse_y` are NOT
+  persisted; 6. FeatureSet — `name` + `intercept` flag (u8); 7. MobilitySet — presence flag (u8) + `name` + count (u32)
+  + per mobility `name`/`mask` (u64)/`amask` (u64); 8. PatternSet — presence flag (u8) + `name` + count (u32) + per
+  pattern `name`/`mask` (u64); 9. `iwmap_feature_offset` (write_array u32) + `w_dense` (write_array f32).
+- `model_weights_read_file`: the guards (version `not in (1, 2)` raises, the v1 files stay readable, the backward-compat
+  the v2 spec required), then the v2-only config provenance read + sentinel, then the mirror read — reconstructing
+  `Mobility`/`Pattern` objects (the `int(m.mask)` / `int(m.amask)` conversions normalize numpy uint64 scalars to Python
+  ints), `MobilitySet`/`PatternSet`, the intercept via `Feature.new_intercept()`, the two arrays via `read_array` (dtype
+  preserved: u32 / f32 — the round-trip is bit-exact, verified by tobytes sha3), and the dataclass with
+  `config_dump`/`config_checksum` (None on v1).
 
 ## Verified invariants
 

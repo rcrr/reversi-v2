@@ -19,8 +19,8 @@ FOURTH cache_manager consumer in the pipeline; the flat files DO materialize (pr
   already verified by cache_manager), `store_fn = hlp_design_matrix_store_to_file`,
   `validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm)` (the 1-field metadata
   compare), `compute_fn = lambda: hlp_design_matrix_compute(ctx)`, `logger_fn = ctx.log_event`. Then
-  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the INFO "Design Matrix computed/loaded. Shape:
-  ..." lines + `ctx. design_matrix_checksum = dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd
+  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the INFO "Design Matrix computed/loaded. Shape:.
+  .." lines + `ctx. design_matrix_checksum = dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd
   return element).
 - `_down`: INFO "Clearing Design Matrix attribute..." → BOTH attributes to None — `ctx.design_matrix` AND
   `ctx.design_matrix_checksum` (the house shape: object + checksum).

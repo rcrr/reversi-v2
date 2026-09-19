@@ -23,7 +23,7 @@ so a live DB is required — `test_wrk_gradient` 2/0/2 under the gate).
   the same gate class as the other worker tests (the db_long_gate: SKIP_REGAB_DB + LONG).
 - The goldens are the canonical values: the R1 float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute
   at these magnitudes) — inside the pinned tolerances.
-- The "How to run" header documents the gate (L38-39).
+- The "How to run" header documents the gate.
 
 ## Integration
 

@@ -20,21 +20,18 @@ weights file are written with `BinaryWriter` and verified through the `.SHA3-256
 
 603 lines.
 
-- Constants (L116-175): `DEFAULT_MAGIC = 0x314E4942` → LE `b'BIN1'` (L116, framing/version check),
-  `DEFAULT_FILE_SIGNATURE = 0x484F4942` → LE `b'BIOH'` (L121, header file-type check), `TYPE_INT8`… `TYPE_FLOAT64`
-  (1-10, L125-134, the stable type-code contract with the C/Rust side), `_CODE_BY_NAME` (L137), `_DTYPE_BY_CODE` (L151),
-  the pre-compiled little-endian `struct.Struct` singletons (L165+).
-- `BinaryFormatError` (L178); `_open_arg` (L186) — returns `(file_object, owns_it)`; the writer/reader close the file
-  only when they own it (opened from a path); in compressed mode an internal `BytesIO` is always owned and closed.
-- `BinaryWriter` (L195): `__init__` (L216 — the empty-suffix guard L226-230, before the file is opened), `close` (L273 —
-  the sidecar write L294), `_write` (L304 — incremental SHA3-256; in compressed mode the hash is deferred to `close()`
-  over the compressed bytes), `_open_frame` (L312), `_scalar` (L318), `write_header` (L325), `write_u8`…`write_f64`
-  (L343-352), `write_string` (L356), `write_array` (L370).
-- `BinaryReader` (L398): `__init__` (L405), `_read_exact` (L447 — chunked loop handling short reads, `BinaryFormatError`
-  on EOF before n bytes), `_expect_magic` (L466), `_scalar` (L474), `read_header` (L482), `read_u8`…`read_f64`
-  (L504-513), `read_string` (L517), `read_array` (L526).
-- Sidecar functions: `compute_sha3_256` (L550), `write_sha3_256_sidecar` (L561, guard L572), `verify_sha3_256_sidecar`
-  (L584, guard L592).
+- Constants: `DEFAULT_MAGIC = 0x314E4942` → LE `b'BIN1'` (framing/version check), `DEFAULT_FILE_SIGNATURE = 0x484F4942`
+  → LE `b'BIOH'` (header file-type check), `TYPE_INT8`… `TYPE_FLOAT64` (1-10, the stable type-code contract with the
+  C/Rust side), `_CODE_BY_NAME`, `_DTYPE_BY_CODE`, the pre-compiled little-endian `struct.Struct` singletons.
+- `BinaryFormatError`; `_open_arg` — returns `(file_object, owns_it)`; the writer/reader close the file only when they
+  own it (opened from a path); in compressed mode an internal `BytesIO` is always owned and closed.
+- `BinaryWriter`: `__init__` (the empty-suffix guard, before the file is opened), `close` (the sidecar write), `_write`
+  (incremental SHA3-256; in compressed mode the hash is deferred to `close()` over the compressed bytes), `_open_frame`,
+  `_scalar`, `write_header`, `write_u8`…`write_f64`, `write_string`, `write_array`.
+- `BinaryReader`: `__init__`, `_read_exact` (chunked loop handling short reads, `BinaryFormatError` on EOF before n
+  bytes), `_expect_magic`, `_scalar`, `read_header`, `read_u8`…`read_f64`, `read_string`, `read_array`.
+- Sidecar functions: `compute_sha3_256`, `write_sha3_256_sidecar` + `verify_sha3_256_sidecar` (both carrying the
+  empty-suffix guard).
 
 On-disk layout (all 4 record types, byte-level verified):
 

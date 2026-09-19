@@ -29,9 +29,9 @@ a capturing lambda.
 - Files ONLY under `build/tmp` (`CUSTOM_TMP_BASE`), removed in `tearDown` (the `mkdtemp` + `shutil.rmtree` pattern).
 - The real `model_weights_write_file` (not a hand-crafted body, as in the `TestModelWeightsV2` micro tier): the point of
   the suite is the LEVEL on the SHIPPED artifact format.
-- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine L87-90): a SimpleNamespace context is
-  rejected by the gate — hence the real `LMContext` (the wrk_validate M1 idiom); only the `cfg` attribute may be a
-  stand-in (the dataclass declares it `Any`).
+- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine): a SimpleNamespace context is rejected
+  by the gate — hence the real `LMContext` (the wrk_validate M1 idiom); only the `cfg` attribute may be a stand-in (the
+  dataclass declares it `Any`).
 
 ## Integration
 

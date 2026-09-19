@@ -14,32 +14,30 @@ anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure
 | `.compute_sha3_256_hash()` | `@validate_call` — `sha3_256(w_dense.tobytes())` ONLY (the duck-typed data-checksum hook, same shape as the 4 siblings) |
 | `hlp_generate_store_to_file(dw, filename, compressed=True)` | `@validate_call` — header "RGLM Dense Weights binary data file" v1 + checksum string + array; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
 | `hlp_generate_load_from_file(filename, checksum=True, compressed=True)` | `@validate_call` — sidecar verify → 2 header gates (description + the version gate) → the object |
-| `hlp_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the L103 note) |
-| `compute_w_dense(ctx)` | `@validate_call`-free (the L108 note) — the compressed → dense expansion over the 3 feature categories |
+| `hlp_generate_is_cache_consistent(ctx, dw)` | the single-field gate `dw.w_checksum == ctx.w_checksum` (NO `@validate_call` — the note) |
+| `compute_w_dense(ctx)` | `@validate_call`-free (the note) — the compressed → dense expansion over the 3 feature categories |
 
 ## Architecture
 
-- `LMDenseWeights` (L53-65): plain class, 2 fields.
-- `hlp_generate_store_to_file` (L68-77) / `hlp_generate_load_from_file` (L80-100): the standard binio round-trip — the
-  writer/reader run with `compressed=True` by default, the LZ4 whole-file frame, and the sidecar is written by the binio
-  writer (cache_manager re-writes it idempotently in the pipeline flow); the load gates in order: the R3-class sidecar
-  verify (L84-86, "Checksum mismatch."), the description gate (L92-94), the version gate (L91, L95-96, "File version
-  mismatch: found 2, expected 1") — all BEFORE any payload parse.
-- `hlp_generate_is_cache_consistent` (L104-105, the L103 no-validation note — `LMContext` is a TYPE_CHECKING import):
-  the single-field gate on `w_checksum` — when the OPTIMIZE weights change, the dense expansion must be recomputed.
-- `compute_w_dense` (L109-229): per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of
-  `w_dense = zeros(K)` (K = `offset[-1]`), with the 3 category branches:
-  - Intercept (L141-143): broadcast the single weight (`w[w_min : w_max+1][0]`) over the whole slice.
-  - Mobility (L145-168): `np.interp` over `arange(n_configurations)` with the seen configs (wmap `config_id >= 0` rows)
-    — internal missing values interpolated, external clamped (the L160-162 note: the ascending precondition is
-    structural, hlp_wmaps allocates via `np.unique`); zero seen configs → zeros + exactly one `Relevance.WARN`
-    (L167-168).
-  - Pattern (L170-224): every config maps to its Principal Index (`ref.convert_to_principal_index`, the uint32 cast at
-    L206 is mandatory for the pydantic reference model); a computed principal (w-index ≥ 0 AND ≠ fallback, L219)
-    propagates its trained weight to all symmetric configs (L222); everything else — unseen AND fallback configs —
-    inherits the frequency-weighted mean of the seen configs (L181-182, L216). The fallback weight is logged for
-    transparency only, never used (L188-201, the L192-201 ruling comment).
-  - Unknown category → `RuntimeError("The feature category is unknown: {category}")` (L226-227).
+- `LMDenseWeights`: plain class, 2 fields.
+- `hlp_generate_store_to_file` / `hlp_generate_load_from_file`: the standard binio round-trip — the writer/reader run
+  with `compressed=True` by default, the LZ4 whole-file frame, and the sidecar is written by the binio writer
+  (cache_manager re-writes it idempotently in the pipeline flow); the load gates in order: the R3-class sidecar verify
+  ("Checksum mismatch."), the description gate, the version gate ("File version mismatch: found 2, expected 1") — all
+  BEFORE any payload parse.
+- `hlp_generate_is_cache_consistent` (the no-validation note — `LMContext` is a TYPE_CHECKING import): the single-field
+  gate on `w_checksum` — when the OPTIMIZE weights change, the dense expansion must be recomputed.
+- `compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of `w_dense = zeros(K)` (K =
+  `offset[-1]`), with the 3 category branches:
+  - Intercept: broadcast the single weight (`w[w_min : w_max+1][0]`) over the whole slice.
+  - Mobility: `np.interp` over `arange(n_configurations)` with the seen configs (wmap `config_id >= 0` rows) — internal
+    missing values interpolated, external clamped (the note: the ascending precondition is structural, hlp_wmaps
+    allocates via `np.unique`); zero seen configs → zeros + exactly one `Relevance.WARN`.
+  - Pattern: every config maps to its Principal Index (`ref.convert_to_principal_index`, the uint32 cast is mandatory
+    for the pydantic reference model); a computed principal (w-index ≥ 0 AND ≠ fallback) propagates its trained weight
+    to all symmetric configs; everything else — unseen AND fallback configs — inherits the frequency-weighted mean of
+    the seen configs. The fallback weight is logged for transparency only, never used (the ruling comment).
+  - Unknown category → `RuntimeError("The feature category is unknown: {category}")`.
 
 ## Verified invariants
 
@@ -51,10 +49,10 @@ Pinned by the 15-check `probes/verify_generate.py` + the 19-test pair (16 no-DB 
 - The live rlm_02 re-derivation (probe E2/E4/E5/E7): K = 6588 (= 1 + 6561 + 27), orbit invariance + seen-config
   exactness on both patterns, the full independent re-derivation == `ctx.w_dense`, the hash golden
   `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15 b4`.
-- The R2 inference semantics (the L192-201 ruling comment): unseen + fallback configs take the weighted mean, NOT the
-  trained fallback weight — pinned by the mock golden (unseen → −0.2) and by the live E4 exactness check.
-- The uint32 pattern-config cast (L206): `np.arange(..., dtype=np.uint32)` is mandatory — `convert_to_principal_index`
-  takes a pydantic-validated uint32 array (the live re-derivation exercises it).
+- The R2 inference semantics (the ruling comment): unseen + fallback configs take the weighted mean, NOT the trained
+  fallback weight — pinned by the mock golden (unseen → −0.2) and by the live E4 exactness check.
+- The uint32 pattern-config cast: `np.arange(..., dtype=np.uint32)` is mandatory — `convert_to_principal_index` takes a
+  pydantic-validated uint32 array (the live re-derivation exercises it).
 - The blackboard fields `w_dense: Any = None` + `dense_w_checksum: str | None = None` were pre-declared in LMContext at
   first import (probe F1 — the fg pattern).
 
@@ -70,7 +68,7 @@ None.
 - The consistency gate is a single field (the OPTIMIZE `w_checksum`): a dense recomputation is only needed when the
   optimized compressed weights change.
 - The np.interp ascending precondition is structural (hlp_wmaps `np.unique` slot allocation), not an assumption — the
-  L160-162 note.
+  code comment states it.
 
 ## Integration
 

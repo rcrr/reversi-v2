@@ -15,26 +15,24 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
 
 ## Architecture
 
-- `_up` (L52-176):
+- `_up`:
   - config + `checkpoint_path = base_dir / optimization. checkpoint_file` (config-named, not rlmwf_-prefixed);
     `w_init = ctx.w`; `min_grad_value, _ = opt_cfg.min_grad` (the count is unused).
-  - step 1 (L64-102): the checkpoint gate `checkpoint_path.exists() and ctx.use_cache` (the context field the CONFIG
-    worker populated — NOT `cfg.use_cache`), with the try/except: a load raising `RuntimeError` (the 2 header gates, the
+  - step 1: the checkpoint gate `checkpoint_path.exists() and ctx.use_cache` (the context field the CONFIG worker
+    populated — NOT `cfg.use_cache`), with the try/except: a load raising `RuntimeError` (the 2 header gates, the
     checksum mismatch), `binio.BinaryFormatError` (corrupted framing, malformed sidecar) or `OSError` (missing
     file/sidecar) → WARN + `unlink(missing_ok=True)` of content + sidecar → scratch. Then the 3-way decision: the 3-gate
     consistency check (incl. the ridge gate) → mismatch: WARN "Starting from scratch"; converged or `iters >= max_iters`
     → completed: load cp['w'] + `w_checksum` + `opt_info`, `return` (skip lbfgs); `iters < max_iters` → warm-resume:
     w_init + the initial sl/yl/rho/iter from the checkpoint (the old trailing else was unreachable — iters is an int).
-  - step 2 (L104-129): `logger_fn` (INFO) + `save_fn` (7 params, matches the lbfgs hint; writes an
-    INCOMPLETE/non-converged checkpoint; `iters=k+1` — completed-count semantics, as the final save).
-  - step 3 (L131-149): the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 5 config scalars, both wrappers, the 4 warm-start
-    kwargs.
-  - step 4 (L151-176): `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
+  - step 2: `logger_fn` (INFO) + `save_fn` (7 params, matches the lbfgs hint; writes an INCOMPLETE/non-converged
+    checkpoint; `iters=k+1` — completed-count semantics, as the final save).
+  - step 3: the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 5 config scalars, both wrappers, the 4 warm-start kwargs.
+  - step 4: `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
     `ctx.w_checksum = weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict
     carries the 9 keys: w/converged/reason/iters/f/g_norm/sl/yl/rho).
-- `_down` (L178-185): clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT (comment
-  L181-183): it is the re-optimized WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that
-  level recomputes.
+- `_down`: clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT (comment ): it is the
+  re-optimized WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that level recomputes.
 
 ## Verified invariants
 
