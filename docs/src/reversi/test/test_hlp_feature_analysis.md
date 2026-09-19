@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_feature_analysis.py
-The NO-DB micro-suite of the FEATURE_ANALYSIS data module: the SU / entropy / mutual-information kernels + the
+The NO-DB micro-suite of the SU_ANALYSIS data module: the SU / entropy / mutual-information kernels + the
 dispersion / the never-observed audit + the ANOVA kernels + the adherence kernels — the hand-computed toy tables (the
 uniform / the degenerate / the binary entropies, the perfect-correlation / the independent mutual informations, the SU =
 1 / 0 / the 0-denominator guard, the dispersion K_obs / H / H_norm / coverage, the never-observed + the rarity profile,
@@ -53,5 +53,5 @@ alignment). 10 classes / 32 tests / no DB.
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 data-module position: between the FEATURES and
   the POSITIONS).
-- The kernels are the SU / the entropy / the MI of the FEATURE_ANALYSIS phase 2 (the statistics, the cheap recompute on
+- The kernels are the SU / the entropy / the MI of the SU_ANALYSIS phase 2 (the statistics, the cheap recompute on
   every run).

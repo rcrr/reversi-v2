@@ -185,8 +185,8 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
         # D-186: the rlm_00 now carries the su_pairs (["LMC", "EDGE"])
         # — clear them so the zero-features guard (not the su_pairs
         # fail-fast) is the one that fires.
-        if "feature_analysis" in payload:
-            payload["feature_analysis"]["su_pairs"] = []
+        if "su_analysis" in payload:
+            payload["su_analysis"]["su_pairs"] = []
         cfg0 = LMConfig(**payload)
         events = []
         ctx0 = SimpleNamespace(

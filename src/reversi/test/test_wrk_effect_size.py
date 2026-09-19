@@ -68,7 +68,7 @@ class _MockIndexes:
 class _MockCtx:
     """The no-DB mock context (the worker's blackboard): the
     cfg, the feature_set, the hlp_indexes (the synthetic raw
-    codes), the game_values, the feature_analysis_tables, the
+    codes), the game_values, the su_analysis_tables, the
     log buffer."""
 
     def __init__(self, cfg, feature_set, indexes, game_values, tables):
@@ -76,7 +76,7 @@ class _MockCtx:
         self.feature_set = feature_set
         self.hlp_indexes = _MockIndexes(indexes)
         self.game_values = game_values
-        self.feature_analysis_tables = tables
+        self.su_analysis_tables = tables
         self.events = []
 
     def log_event(self, relevance, msg):
@@ -137,7 +137,7 @@ class TestWrkEffectSize(unittest.TestCase):
         self.assertEqual(n_lines, n_sub)
 
     def test_adherence_graceful_degradation(self):
-        # The tables None (the FEATURE_ANALYSIS disabled): the
+        # The tables None (the SU_ANALYSIS disabled): the
         # adherence is SKIPPED (the log note), the ANOVA runs.
         ctx, _ = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
@@ -155,7 +155,7 @@ class TestWrkEffectSize(unittest.TestCase):
                 codes = ctx.hlp_indexes.indexes[:, c0 + i]
                 uniq, cnt = np.unique(codes, return_counts=True)
                 marginal.append((name, i, n_conf, uniq, cnt))
-        ctx.feature_analysis_tables = {'marginal': marginal,
+        ctx.su_analysis_tables = {'marginal': marginal,
                                        'joint': None}
         _up(ctx)
         self.assertTrue(any("Adherence" in m

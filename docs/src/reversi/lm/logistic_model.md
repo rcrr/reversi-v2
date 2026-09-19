@@ -11,7 +11,7 @@ construction.
 |---|---|---|
 | Context | `LMContext(Context)` | `@dataclass`, 42 fields; the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
 | Context | config group | `config_file_path: Path`, `base_dir_override: Path \| None`, `use_cache: bool \| None`, `cfg: Any`, `config_checksum: str \| None` (the config fingerprint — the sha3_256 of the normalized dump, computed at CONFIG, consumed by the SAVE record + the analytics report) |
-| Context | data artifacts (34) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`feature_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the EFFECT_SIZE level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`; analytics `train_metrics`/`train_dense_metrics`/`analytics_report` — the 8 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
+| Context | data artifacts (34) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`su_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the EFFECT_SIZE level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`; analytics `train_metrics`/`train_dense_metrics`/`analytics_report` — the 8 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
 | Context | injected callables | `log_event`, `get_cache_file_path_for_current_level`, `get_cache_file_full_path_for_current_level` (lambda no-op defaults = pre-injection fallback, replaced at init by the machine's closures) |
 | Facade | `LogisticModel(config_file_path, verbosity=STANDARD, base_dir_override=None)` | `@validate_call` (arbitrary_types_allowed) 4-step construction; wrong-typed args raise pydantic ValidationError at the facade boundary |
 | Facade | pass-throughs | `move_to_step(int \| str)`, `move_to_last()`, `show_event_log()`, `show_history_of_moves()`, `export_history_of_moves_as_csv(path)` — pure delegation to the StateMachine |
@@ -46,12 +46,12 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 - **Pipeline shape: 18 levels, all active** —
 
   ```
-  CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS
+  CREATED (0, sentinel) -> CONFIG -> FEATURES -> SU_ANALYSIS
   -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS -> DESIGN_MTR
   -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
   -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
   ```
-(FEATURE_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
+(SU_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
 
 No commented factory imports or worker-list entries remain. The factories follow `lm_worker_x()` → `Worker`; the tests
 patch them by name in THIS module's namespace (`reversi.lm.logistic_model.wrk_config`, …). All 16 factories carry the
@@ -102,7 +102,10 @@ checks were converted to tests).
 
 ## Open issues
 
-None.
+- No `run(target_level=...)` entry: the design (section 3.6, P4) asks the facade to consume `cfg.target_level` (the
+  explicit argument, else the field, else "last") and hand it to `move_to_step`, so a client stops the pipeline from the
+  CONFIG alone. Today the caller must chain `move_to_step('CONFIG')` + `move_to_step(name)` / `move_to_last()` by hand, and
+  the `target_level` field is inert (I-019).
 
 ## Conventions
 

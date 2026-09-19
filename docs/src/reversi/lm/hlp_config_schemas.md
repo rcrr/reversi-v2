@@ -14,8 +14,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the fg-variant flag) |
 | `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
-| `CorpusConfig` | the FEATURE_ANALYSIS corpus: `seed` (42 — the single seed), `total_positions` (1e7), `ec` (0..100, 20 — the arrest window) |
-| `FeatureAnalysisConfig` | the FEATURE_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `dir_name` (`feature_analysis`), `report_file_name`, `export_csv` (False) |
+| `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 — the single seed), `total_positions` (1e7), `ec` (0..100, 20 — the arrest window) |
+| `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
 | `EffectSizeConfig` | the EFFECT_SIZE level: `enable` (bool, **FALSE** — opt-in), `top_k_adherence` (20, ge=1), `dir_name` (`effect_size`), `report_file_name`, `export_csv` (False) |
 | `RegabDBConnectionConfig` | `dbname` / `user` / `host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
@@ -45,13 +45,13 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   default `1e-8` (the max absolute Y-space difference admitted between the residuals recomputed from the SAVED model
   file and the in-memory VALIDATE ones; `gt=0`); `plot` and `analytics` by default factory; the five required domain
   sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).
-- **The analysis levels** — `feature_analysis` + `effect_size`, both by default factory and both `enable` default
-  **FALSE** (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 /
-  rlm_06 and the rlm_00 fixture opt in); `target_level: str` default `"last"` (a level name, case-insensitive, resolved
-  fail-fast by the StateMachine, or "last" for the full pipeline); and `check_su_pairs_feature_set`, a
-  `model_validator(mode="after")` that fails fast when a `feature_analysis.su_pairs` name is not in the `feature_set`
-  (the mobility + the pattern names). The `FeatureAnalysisConfig.check_su_pairs` field validator does the canonical sort
-  + the dedupe (each pair a sorted tuple, a repeated pair collapsed).
+- **The analysis levels** — `su_analysis` + `effect_size`, both by default factory and both `enable` default **FALSE**
+  (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
+  the rlm_00 fixture opt in); `target_level: str` default `"last"` (a level name, case-insensitive, resolved fail-fast
+  by the StateMachine, or "last" for the full pipeline); and `check_su_pairs_feature_set`, a
+  `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is not in the `feature_set` (the
+  mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator does the canonical sort + the
+  dedupe (each pair a sorted tuple, a repeated pair collapsed).
 - **PlotConfig** — `enable: bool = True` (false makes the PLOT level a no-op even with names listed);
   `format: str = "png"` (`"png"`, `"pdf"` or a comma-separated pair — both; `check_format` normalizes whitespace,
   rejects unknown tokens, empty tokens and duplicates); `dpi: int = 150` (50..1200); `dir_name: Path = "plots"`
@@ -94,12 +94,16 @@ Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
 - The analysis defaults: both `enable` FALSE, `target_level` "last", the corpus defaults (seed 42, 1e7, ec 20), the
   empty `su_pairs`, `export_csv` False, `top_k_adherence` 20 (`test_i017_defaults`); the canonical order + the dedupe (a
   repeated pair in any order collapses to one sorted tuple) and the fail-fast against the feature set
-  (`test_i017_su_pairs_canonical_dedupe`, `test_i017_su_pairs_fail_fast`); a level name ("FEATURE_ANALYSIS") survives in
+  (`test_i017_su_pairs_canonical_dedupe`, `test_i017_su_pairs_fail_fast`); a level name ("SU_ANALYSIS") survives in
   `target_level` (`test_i017_target_level_field`).
 
 ## Open issues
 
-None.
+- `target_level` is declared and carried by the config, but no consumer reads it: the design (section 3.6, P4) asks for a
+  facade entry — `LogisticModel.run(target_level=...)` — that resolves the field through the StateMachine's
+  `move_to_step`; that entry does not exist, and a client stops the pipeline with an explicit `move_to_step` /
+  `move_to_last`. A bogus level name therefore passes the CONFIG step unchallenged (the fail-fast ValueError lives in
+  `move_to_step`, which nobody calls with this value). Recorded as I-019.
 
 ## Conventions
 

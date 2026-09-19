@@ -90,7 +90,7 @@
             ]
         }
     },
-    "feature_analysis": {
+    "su_analysis": {
         "enable": true,
         "corpus": {
             "seed": 42,
@@ -98,8 +98,8 @@
             "ec": 20
         },
         "su_pairs": [["LMC", "EDGE"]],
-        "dir_name": "feature_analysis",
-        "report_file_name": "feature_analysis_report.txt",
+        "dir_name": "su_analysis",
+        "report_file_name": "su_analysis_report.txt",
         "export_csv": false
     },
     "target_level": "last"

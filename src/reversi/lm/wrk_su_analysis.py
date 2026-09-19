@@ -1,5 +1,5 @@
 #
-# wrk_feature_analysis.py
+# wrk_su_analysis.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -26,7 +26,7 @@
 #
 
 """
-The FEATURE_ANALYSIS worker (the I-017, the SU level, step 3,
+The SU_ANALYSIS worker (the I-017, the SU level, step 3,
 D-186): the corpus generator + the statistics. The D-174 wave
 corpus (the PRNG seed, the ec arrest, the wave tier) is CACHED
 (phase 1, the expensive part) — the first cache level whose
@@ -65,7 +65,7 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-__all__ = ['wrk_feature_analysis']
+__all__ = ['wrk_su_analysis']
 
 # The wave size CEILING (the 1e6 benchmark default) + the
 # generator / the PRNG version pins (the cache consistency
@@ -119,7 +119,7 @@ def _signature(ctx) -> dict:
     the generation spec (the seed, the total_positions, the ec,
     the generator version, the PRNG version) + the su_pairs
     list (the canonical sorted form)."""
-    corpus = ctx.cfg.feature_analysis.corpus
+    corpus = ctx.cfg.su_analysis.corpus
     return {
         'feature_set_hash': _feature_set_hash(ctx.cfg),
         'seed': corpus.seed,
@@ -127,7 +127,7 @@ def _signature(ctx) -> dict:
         'ec': corpus.ec,
         'generator_version': _GENERATOR_VERSION,
         'prng_version': _PRNG_VERSION,
-        'su_pairs': [list(p) for p in ctx.cfg.feature_analysis.su_pairs],
+        'su_pairs': [list(p) for p in ctx.cfg.su_analysis.su_pairs],
     }
 
 
@@ -136,12 +136,12 @@ def _compute_tables(ctx) -> dict:
     generator (the PRNG seed, the ec arrest, the wave
     semantics) + the streaming accumulation (the marginal + the
     joint for the requested pairs)."""
-    cfg_fa = ctx.cfg.feature_analysis
+    cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
     blocks = _feature_blocks(fset)
     corpus = cfg_fa.corpus
     ctx.log_event(Relevance.INFO,
-                  f"Generating the FEATURE_ANALYSIS corpus: "
+                  f"Generating the SU_ANALYSIS corpus: "
                   f"[TOTAL: {corpus.total_positions:,}], [EC: {corpus.ec}], "
                   f"[SEED: {corpus.seed}], the wave tier.")
     sink = BufferSink()
@@ -183,7 +183,7 @@ def _is_consistent(ctx, cached) -> bool:
     live = _signature(ctx)
     consistent = cached.get('signature', {}) == live
     ctx.log_event(Relevance.DEBUG,
-                  f"FEATURE_ANALYSIS cache consistent: {consistent}.")
+                  f"SU_ANALYSIS cache consistent: {consistent}.")
     if not consistent:
         ctx.log_event(Relevance.DEBUG,
                       f"  cached: {cached.get('signature')}\n"
@@ -226,9 +226,9 @@ def _su_values(joint, lookup):
 def _export_csv(ctx, tables, su_summary) -> Path:
     """The optional CSV: the per-sub-variable marginal tables +
     the per-pair SU instance entries."""
-    cfg_fa = ctx.cfg.feature_analysis
+    cfg_fa = ctx.cfg.su_analysis
     csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
-        "feature_analysis.csv"
+        "su_analysis.csv"
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     with open(csv_path, 'w', newline='', encoding="utf-8") as f:
         w = csv.writer(f)
@@ -252,11 +252,11 @@ def _compute_statistics(ctx, tables) -> Path:
     the never-observed audit + the requested SU pairs. The
     console (INFO) + the TXT report (dir_name under base_dir) +
     the optional CSV (the export_csv flag)."""
-    cfg_fa = ctx.cfg.feature_analysis
+    cfg_fa = ctx.cfg.su_analysis
     marginal = tables['marginal']
     joint = tables['joint']
     lookup = _marginal_lookup(marginal)
-    lines = ["FEATURE_ANALYSIS REPORT", "=" * 40,
+    lines = ["SU_ANALYSIS REPORT", "=" * 40,
              f"Sub-variables: {len(marginal)}"]
     for (name, i, nc, _codes, counts) in marginal:
         d = dispersion(counts, nc)
@@ -278,20 +278,20 @@ def _compute_statistics(ctx, tables) -> Path:
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     ctx.log_event(Relevance.INFO,
-                  f"FEATURE_ANALYSIS report written: {report_path}.")
+                  f"SU_ANALYSIS report written: {report_path}.")
     if cfg_fa.export_csv:
         csv_path = _export_csv(ctx, tables, su_summary)
         ctx.log_event(Relevance.INFO,
-                      f"FEATURE_ANALYSIS CSV written: {csv_path}.")
+                      f"SU_ANALYSIS CSV written: {csv_path}.")
     return report_path
 
 
 def _up(ctx: "LMContext") -> None:
-    cfg_fa = ctx.cfg.feature_analysis
+    cfg_fa = ctx.cfg.su_analysis
     if not cfg_fa.enable:
         ctx.log_event(Relevance.INFO,
-                      "FEATURE_ANALYSIS disabled (enable: false) — no-op.")
-        ctx.feature_analysis_tables = None
+                      "SU_ANALYSIS disabled (enable: false) — no-op.")
+        ctx.su_analysis_tables = None
         return
     # Phase 1 — the corpus (the expensive part, CACHED).
     cache_hit, tables, _checksum = cache_manager_load_or_compute(
@@ -304,24 +304,24 @@ def _up(ctx: "LMContext") -> None:
         logger_fn=ctx.log_event,
     )
     ctx.log_event(Relevance.INFO,
-                  f"FEATURE_ANALYSIS corpus: "
+                  f"SU_ANALYSIS corpus: "
                   f"{'loaded from cache' if cache_hit else 'computed'}.")
     # Phase 2 — the statistics (cheap, recomputed on EVERY run).
     _compute_statistics(ctx, tables)
     # Publish the tables on the ctx (for the EFFECT_SIZE level).
-    ctx.feature_analysis_tables = tables
+    ctx.su_analysis_tables = tables
     ctx.log_event(Relevance.INFO,
-                  "feature_analysis_tables published on the ctx.")
+                  "su_analysis_tables published on the ctx.")
 
 
 def _down(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO,
-                  "Clearing the feature_analysis_tables attribute.")
-    ctx.feature_analysis_tables = None
+                  "Clearing the su_analysis_tables attribute.")
+    ctx.su_analysis_tables = None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def wrk_feature_analysis() -> Worker:
-    """Factory function that returns the FEATURE_ANALYSIS worker
+def wrk_su_analysis() -> Worker:
+    """Factory function that returns the SU_ANALYSIS worker
     instance."""
-    return Worker("FEATURE_ANALYSIS", _up, _down)
+    return Worker("SU_ANALYSIS", _up, _down)

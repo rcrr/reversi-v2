@@ -29,7 +29,7 @@
 The campaign config loader (the pipeline's own loader): loads the
 campaign JSON5 + the FeatureSet (the wrk_features pure mapping) +
 the per-feature column blocks (the documented column layout). The
-worker tests (test_wrk_feature_analysis, test_wrk_effect_size)
+worker tests (test_wrk_su_analysis, test_wrk_effect_size)
 use it to build the campaign (the feature set + the column
 blocks) for the accumulator / the effect-size tests.
 """

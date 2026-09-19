@@ -1,6 +1,6 @@
 # reversi/lm/hlp_gate.py
 The campaign config loader (the pipeline's own loader): loads the campaign JSON5 + the FeatureSet (the wrk_features pure
-mapping) + the per-feature column blocks (the documented column layout). The worker tests (test_wrk_feature_analysis,
+mapping) + the per-feature column blocks (the documented column layout). The worker tests (test_wrk_su_analysis,
 test_wrk_effect_size) use it to build the campaign (the feature set + the column blocks) for the accumulator / the
 effect-size tests.
 
@@ -46,5 +46,5 @@ None.
 ## Integration
 - `load_campaign` reuses the pipeline's own loader path (json5 + `LMConfig(**raw)`, the `wrk_features` pure mapping) —
   no DB.
-- Consumer: the worker tests (test_wrk_feature_analysis, test_wrk_effect_size) — they build the campaign (the feature
-  set + the column blocks) for the accumulator / the effect-size tests.
+- Consumer: the worker tests (test_wrk_su_analysis, test_wrk_effect_size) — they build the campaign (the feature set +
+  the column blocks) for the accumulator / the effect-size tests.

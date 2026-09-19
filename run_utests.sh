@@ -49,20 +49,20 @@ MODULES=(
     # lands in T12; the ODP-9 pick table + the single-game loop
     # land here at T4)
     reversi.test.test_hlp_random_play
-    # test_hlp_wave: the T5 numba wave engine (the G0 corpus
-    # engine, the I-017 corpus generator)
+    # test_hlp_wave: the T5 numba wave engine (the corpus
+    # engine, the I-017 SU-analysis generator)
     reversi.test.test_hlp_wave
     reversi.test.test_hlp_config_schemas
     reversi.test.test_wrk_config
     reversi.test.test_wrk_features
-    # test_hlp_feature_analysis: the FEATURE_ANALYSIS step 3 data
-    # module (the I-017; the SU/entropy/MI kernels T11, the
+    # test_hlp_feature_analysis: the SHARED analysis kernels
+    # (the I-017; the SU/entropy/MI kernels T11, the
     # dispersion/audit T12, the ANOVA T13, the adherence T14)
     reversi.test.test_hlp_feature_analysis
-    # test_wrk_feature_analysis: the FEATURE_ANALYSIS worker
-    # (the I-017 T16; the G0 corpus cache + the phase-2
+    # test_wrk_su_analysis: the SU_ANALYSIS worker
+    # (the I-017 T16; the SU-analysis corpus cache + the phase-2
     # statistics + the reports)
-    reversi.test.test_wrk_feature_analysis
+    reversi.test.test_wrk_su_analysis
     reversi.test.test_wrk_positions
     reversi.test.test_hlp_indexes
     reversi.test.test_wrk_indexes

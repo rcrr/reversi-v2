@@ -8,25 +8,25 @@
 > commitment: a step-by-step algorithm walkthrough + the
 > code reviewed together). The goal: beat these.
 
-## The G0 corpus engine (run_wave_g0, W=1e6, seed 42 — the
+## The wave corpus engine (run_wave, W=1e6, seed 42 — the
 harvest throughput, the dead-lane overhead INCLUDED)
 
 | config | N | wall | rate | note |
 |---|---|---|---|---|
-| G0 ec=0 (the full game) | 1e7 | 52.8 s | 189,571 games/s = ~11.4M moves/s (60 moves) | steady state (11 waves) |
-| G0 ec=20 | 1e7 | 36.0 s | 277,470 games/s = ~11.1M moves/s (40 moves) | steady state (11 waves) |
-| G0 ec=20 | 1e6 | 6.9 s | 144,188 games/s | single wave, warmup-tainted |
-| G0 ec=0 | 1e6 | 11.6 s | 86,480 games/s | single wave, warmup-tainted |
+| wave ec=0 (the full game) | 1e7 | 52.8 s | 189,571 games/s = ~11.4M moves/s (60 moves) | steady state (11 waves) |
+| wave ec=20 | 1e7 | 36.0 s | 277,470 games/s = ~11.1M moves/s (40 moves) | steady state (11 waves) |
+| wave ec=20 | 1e6 | 6.9 s | 144,188 games/s | single wave, warmup-tainted |
+| wave ec=0 | 1e6 | 11.6 s | 86,480 games/s | single wave, warmup-tainted |
 | G1 ec=20 (the reference) | 1e6 | 5.3 s | 188,491 games/s | single wave, warmup-tainted (the clean steady-state G1: 5.4 s = 185,415 games/s, the LONG tier — the DUE resolved) |
 
 KEY INVARIANT: the moves/s is ~11M constant (the per-move
 cost dominates; the games/s scales 60/moves-per-game).
 The gated 1e6 runs (gate observation included): G1 20.5
-min, G0 19.6 min. The T4 scalar reference: 4.55 ms/game
+min, the wave 19.6 min. The T4 scalar reference: 4.55 ms/game
 (the GLM audit) — the wave tier is ~150× T4 at ec=20.
 Feature encoding: fset.compute_indexes = 1.7M positions/s.
 
-## The T10 accumulation throughput (the 1e7 G0 corpus on the
+## The T10 accumulation throughput (the 1e7 SU-analysis corpus on the
 real A2050 feature set, 47 sub-variables — D-180)
 
 | stage | wall | rate | note |

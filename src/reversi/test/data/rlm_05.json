@@ -26,7 +26,7 @@
  */
 {
     "name": "RGLM (Logistic) - I-017 Experiment 05 (rlm_05.json, 2M)",
-    "description": "The I-017 SU-analysis experiment: the G0 corpus (2M positions, ec 20) + the feature_analysis, the target_level FEATURE_ANALYSIS (the stop before the DB levels). A copy of rlm_03 (the A2050 feature set, the DB connection kept for schema validity, unused at this target level).",
+    "description": "The I-017 SU-analysis experiment: the SU-analysis corpus (2M positions, ec 20) + the su_analysis, the target_level SU_ANALYSIS (the stop before the DB levels). A copy of rlm_03 (the A2050 feature set, the DB connection kept for schema validity, unused at this target level).",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "output": "rglm_logistic_model_ec_20_TEST05.dat",
     "use_cache": true,
@@ -92,7 +92,7 @@
             ]
         }
     },
-    "feature_analysis": {
+    "su_analysis": {
         "enable": true,
         "corpus": {
             "seed": 42,
@@ -100,9 +100,9 @@
             "ec": 20
         },
         "su_pairs": [["LMC", "XEDGE"], ["LMC", "R2"], ["LMC", "CORNER"]],
-        "dir_name": "feature_analysis",
-        "report_file_name": "feature_analysis_report.txt",
+        "dir_name": "su_analysis",
+        "report_file_name": "su_analysis_report.txt",
         "export_csv": false
     },
-    "target_level": "FEATURE_ANALYSIS"
+    "target_level": "SU_ANALYSIS"
 }

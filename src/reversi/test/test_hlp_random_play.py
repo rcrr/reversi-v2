@@ -40,7 +40,7 @@
 #
 
 """
-The FEATURE_ANALYSIS frequency data plane (the I-017 T7/T8,
+The SU_ANALYSIS frequency data plane (the I-017 T7/T8,
 D-177/D-178) NO-DB micro-suite: the ec formula pin (the D-177
 window constraint), the initial position (the 4-stone start),
 the marginal + the joint accumulators (the streaming frequency

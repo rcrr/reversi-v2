@@ -26,17 +26,18 @@
 #
 
 """
-The FEATURE_ANALYSIS data module (the I-017, the step 3 data
-plane). The kernels over the frequency tables (the marginal /
-the joint counts from the accumulators, the I-017 T7-T8):
+The analysis-kernels data module (the I-017): the SHARED pure-math
+kernels over the frequency tables (the marginal / the joint counts
+from the accumulators, the I-017 T7-T8) — the module name says the
+FAMILY (the analysis of the features), because two levels use it:
 
-  - the SU / entropy / mutual-information kernels (T11, D-181)
+  - the SU / entropy / mutual-information kernels (T11, D-181)   [the SU_ANALYSIS level]
   - the dispersion + the never-observed audit (T12)
-  - the ANOVA kernels (T13)
-  - the adherence kernels (T14)
+  - the ANOVA kernels (T13)                                      [the EFFECT_SIZE level]
+  - the adherence kernels (T14)                                  [the EFFECT_SIZE level]
 
 Pure math from the frequency tables — NO DB, NO positions. The
-worker (wrk_feature_analysis.py, T16) calls these kernels on
+worker (wrk_su_analysis.py, T16) calls these kernels on
 the accumulator output (the phase-2 recompute, cheap, on every
 run).
 

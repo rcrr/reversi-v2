@@ -1747,3 +1747,37 @@ D-257 | 2026-09-19 | P1: the "SU-analysis corpus" naming — G0 is gone (Roberto
          change the corpus bytes, so the cache signature stays `su-corpus-2` (D-254) and nothing regenerates.
          VERIFICATION: the affected modules green, the full LONG tier green, the probe sweep green. The name now carries
          the PURPOSE (the statistical base for the SU analysis) instead of a dead gergal distinction.
+
+D-258 | 2026-09-19 | P2: the worker rename FEATURE_ANALYSIS -> SU_ANALYSIS (the interrupted session's step, resumed; the
+         P1-P5 list). (1) THE IDENTIFIERS — the module `wrk_feature_analysis.py` -> `wrk_su_analysis.py`, the factory
+         `wrk_feature_analysis()` -> `wrk_su_analysis()`, the Worker name "FEATURE_ANALYSIS" -> "SU_ANALYSIS" (so the
+         step-3 cache slot becomes `rlmwf_03_SU_ANALYSIS.dat`), the config class `FeatureAnalysisConfig` ->
+         `SuAnalysisConfig` with the LMConfig field `feature_analysis` -> `su_analysis`, the ctx blackboard field
+         `feature_analysis_tables` -> `su_analysis_tables`, the config defaults `dir_name` "feature_analysis" ->
+         "su_analysis" + `report_file_name` "feature_analysis_report.txt" -> "su_analysis_report.txt", the test module
+         `test_wrk_feature_analysis.py` -> `test_wrk_su_analysis.py` (+ its class `TestWrkFeatureAnalysis` ->
+         `TestWrkSuAnalysis`), the fixtures (rlm_00/rlm_05/rlm_06: the section key, the dir/report names, the
+         `target_level` values), the probes (verify_logistic_model's V3c level list, verify_hlp_indexes' C2 file list),
+         the runner comments. The two mirror docs move with their sources (git mv + the content re-pin). (2) THE KEPT
+         NAME — `hlp_feature_analysis.py` (+ its suite and mirror) KEEPS its name on purpose: it is the SHARED
+         analysis-kernels module (the SU/entropy/MI + the dispersion/audit for the SU_ANALYSIS level, the ANOVA + the
+         adherence for the EFFECT_SIZE level), so its name states the FAMILY, not a level; the module docstring says so
+         explicitly and the overview row follows. (3) THE P1 LEFTOVERS FOUND WHILE SWEEPING — the rlm_05/rlm_06
+         `description` still said "the G0 corpus"; the two mirrors still pinned the generator version "g0-1" (the D-254
+         bump was recorded in the code and the decisions, never in the docs) and the worker mirror still listed "the
+         full wiring" as an open issue (done at T18); the ideas.md I-007 entry still named `wrk_feature_analysis`. All
+         re-pinned. (4) THE ARTIFACT CONSEQUENCE — the cache FILE NAME is derived from the worker name, so the D-254 1e7
+         corpus (build/su_corpus_1e7, gitignored) sat under the old name: the area was migrated (the config keys, the
+         cache file + its rewritten SHA3-256 sidecar, the report dir/file) and VERIFIED end to end at the production
+         scale: the run to SU_ANALYSIS regenerated the corpus once (51.2 s, the 47 sub-variables' statistics included)
+         and the second run HIT the cache (0.7 s, the phase-2 recompute + the report rewritten in
+         `build/su_corpus_1e7/su_analysis/`). The corpus BYTES are untouched by a rename — only the file name moved. (5)
+         THE DISCOVERY (a real gap, recorded not fixed: source changes need Roberto's GO) — `LMConfig.target_level` is
+         declared, documented and validated as a string, and read by NOTHING: the design section 3.6 (P4) asks for a
+         `LogisticModel.run(target_level=...)` facade entry that resolves it through `move_to_step`, and no `run()`
+         exists (the facade exposes move_to_step / move_to_last only), so a bogus level name passes the CONFIG step and
+         every client chains the moves by hand. Recorded as I-019 (ideas.md) + an Open-issues bullet in the
+         hlp_config_schemas and logistic_model mirrors. (6) VERIFICATION — the LONG tier green, the probe sweep 21/21 (with one re-pin:
+         verify_hlp_indexes C2 compares a SORTED name list, and "rlmwf_03_SU_ANALYSIS.dat" sorts BEFORE "su_analysis"
+         where the old "feature_analysis" sorted after — the expected list was reordered, not the check weakened), the
+         doc audit at 9 pre-existing findings.

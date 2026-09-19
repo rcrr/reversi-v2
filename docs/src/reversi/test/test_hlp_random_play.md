@@ -1,5 +1,5 @@
 # reversi/test/test_hlp_random_play.py
-The NO-DB micro-suite of the FEATURE_ANALYSIS frequency data plane: the marginal / joint frequency accumulators + the
+The NO-DB micro-suite of the SU_ANALYSIS frequency data plane: the marginal / joint frequency accumulators + the
 PRNG integration. The initial position, the ec pin (the hand-counted stone counts), the marginal accumulator (the LMC vs
 the independent oracle, the R2 cross-check, the chunk-merge), the joint accumulator (the cross-feature + the
 same-feature, the diagonal the SU = 1 lock), and the PRNG integration (the corpus reproducibility + the end-to-end
@@ -37,5 +37,5 @@ marginals). 5 classes / 10 tests / no DB.
 ## Integration
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline).
-- The accumulators are the FEATURE_ANALYSIS phase-1 data plane (the marginals + the joints); the worker wires them into
+- The accumulators are the SU_ANALYSIS phase-1 data plane (the marginals + the joints); the worker wires them into
   the pipeline (the cache flow + the reports).

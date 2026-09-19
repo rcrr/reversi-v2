@@ -15,8 +15,8 @@ global golden-pinned MT19937.
   object (the class is the single public interface).
 - `run_wave_g0(total, ec_target, seed, wave_size, sink, slot_base)` — the SU-analysis corpus run: the S = 60 - ec_target
   lockstep steps, the boundary harvest + respawn, until the quota is met; `wave_size` is the PARALLELISM — the caller
-  passes `min(the 1e6 ceiling, total)` (wrk_feature_analysis): the lanes beyond the corpus pay allocation + glue for
-  nothing; the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
+  passes `min(the 1e6 ceiling, total)` (wrk_su_analysis): the lanes beyond the corpus pay allocation + glue for nothing;
+  the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks (mover, opp, slot); `flatten()`).
 - `PA` — the pass move code, re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the wave
   (the pass is the source swap), it is the value the trace helpers write for a dead lane.
@@ -74,5 +74,5 @@ global golden-pinned MT19937.
 
 ## Integration
 - run_utests.sh section 4 (next to test_hlp_random_play).
-- The pipeline: the wave is the POSITIONS-level generator (the step 3) at the numba tier; the worker
-  wrk_feature_analysis.py feeds the harvest to the accumulators (hlp_random_play).
+- The pipeline: the wave is the POSITIONS-level generator (the step 3) at the numba tier; the worker wrk_su_analysis.py
+  feeds the harvest to the accumulators (hlp_random_play).

@@ -38,7 +38,7 @@ The four cumulative tiers and how a test declares its own:
   `tier_vlong()` True and `tier_vvlong()` False; `VVLONG=1` → both True.
 - The behavioural pin is the suite's skip counts: the 1e6 benchmark SKIPS under `LONG=1` and RUNS under `VVLONG=1`
   (`test_hlp_wave` reports 4/0/1 in both the default and the LONG tiers), and the 1e7 corpus test skips in the default
-  and LONG tiers (`test_wrk_feature_analysis` 8/0/0, VLONG 9/0/0).
+  and LONG tiers (`test_wrk_su_analysis` 8/0/0, VLONG 9/0/0).
 - The DB gate: the default tier and `SKIP_REGAB_DB=1` skip every DB-gated test (the runner's skipped counts).
 
 ## Open issues

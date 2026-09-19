@@ -40,7 +40,8 @@
 #
 
 """
-The FEATURE_ANALYSIS data module (the I-017) NO-DB micro-suite —
+The analysis-kernels data module (the I-017, the SHARED kernels
+of the SU_ANALYSIS and EFFECT_SIZE levels) NO-DB micro-suite —
 the T11 SU / entropy / mutual-information kernels (D-181): the
 hand-computed toy tables (the uniform / the degenerate / the
 binary entropies, the perfect-correlation / the independent

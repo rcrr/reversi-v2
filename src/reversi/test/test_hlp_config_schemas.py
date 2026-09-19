@@ -285,29 +285,29 @@ class TestRlmConfigSchemas(unittest.TestCase):
         cfg = LMConfig(**self._cfg_dict(_noidx))
         self.assertEqual(cfg.cache_files_prefix, "rlmwf_")
 
-    # -- T15: the I-017 FEATURE_ANALYSIS / EFFECT_SIZE config -------------------
+    # -- T15: the I-017 SU_ANALYSIS / EFFECT_SIZE config -------------------
 
     def test_i017_defaults(self):
-        """The I-017 D-175 opt-in: the feature_analysis / the
+        """The I-017 D-175 opt-in: the su_analysis / the
         effect_size enable default FALSE, the target_level
         default 'last', the corpus defaults (seed 42, 1e7, ec
         20), the su_pairs empty. D-186: the rlm_00 now carries
         the section (the opt-in) — strip it to check the pure
         defaults (the absent-section no-op)."""
         def _strip_i017(d):
-            d.pop("feature_analysis", None)
+            d.pop("su_analysis", None)
             d.pop("effect_size", None)
             d.pop("target_level", None)
         cfg = LMConfig(**self._cfg_dict(_strip_i017))
-        self.assertFalse(cfg.feature_analysis.enable)
+        self.assertFalse(cfg.su_analysis.enable)
         self.assertFalse(cfg.effect_size.enable)
         self.assertEqual(cfg.target_level, "last")
-        self.assertEqual(cfg.feature_analysis.corpus.seed, 42)
-        self.assertEqual(cfg.feature_analysis.corpus.total_positions,
+        self.assertEqual(cfg.su_analysis.corpus.seed, 42)
+        self.assertEqual(cfg.su_analysis.corpus.total_positions,
                          10_000_000)
-        self.assertEqual(cfg.feature_analysis.corpus.ec, 20)
-        self.assertEqual(cfg.feature_analysis.su_pairs, [])
-        self.assertFalse(cfg.feature_analysis.export_csv)
+        self.assertEqual(cfg.su_analysis.corpus.ec, 20)
+        self.assertEqual(cfg.su_analysis.su_pairs, [])
+        self.assertFalse(cfg.su_analysis.export_csv)
         self.assertFalse(cfg.effect_size.export_csv)
         self.assertEqual(cfg.effect_size.top_k_adherence, 20)
 
@@ -315,10 +315,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
         """The P6 canonical order + the dedupe: the repeated pair
         (any order) collapses to one sorted tuple."""
         def _pairs(d):
-            d["feature_analysis"] = {"su_pairs": [["EDGE", "LMC"],
+            d["su_analysis"] = {"su_pairs": [["EDGE", "LMC"],
                                                   ["LMC", "EDGE"]]}
         cfg = LMConfig(**self._cfg_dict(_pairs))
-        self.assertEqual(cfg.feature_analysis.su_pairs,
+        self.assertEqual(cfg.su_analysis.su_pairs,
                          [("EDGE", "LMC")])
 
     def test_i017_su_pairs_fail_fast(self):
@@ -326,7 +326,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         the feature set (the mobility + the pattern names) is
         rejected at the CONFIG level."""
         def _badpair(d):
-            d["feature_analysis"] = {"su_pairs": [["LMC", "UNKNOWN"]]}
+            d["su_analysis"] = {"su_pairs": [["LMC", "UNKNOWN"]]}
         with self.assertRaises(ValidationError):
             LMConfig(**self._cfg_dict(_badpair))
 
@@ -334,9 +334,9 @@ class TestRlmConfigSchemas(unittest.TestCase):
         """The target_level field: a level name (the 'FEATURE_'
         'ANALYSIS' stop) or 'last' (the default)."""
         def _tlevel(d):
-            d["target_level"] = "FEATURE_ANALYSIS"
+            d["target_level"] = "SU_ANALYSIS"
         cfg = LMConfig(**self._cfg_dict(_tlevel))
-        self.assertEqual(cfg.target_level, "FEATURE_ANALYSIS")
+        self.assertEqual(cfg.target_level, "SU_ANALYSIS")
 
 
 if __name__ == '__main__':

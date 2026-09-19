@@ -1,9 +1,10 @@
 # reversi/lm/hlp_feature_analysis.py
-The FEATURE_ANALYSIS data module: the kernels over the frequency tables (the marginal / the joint counts from the
-hlp_random_play accumulators). The SU / entropy / mutual-information kernels + the dispersion / the never-observed audit
-+ the ANOVA kernels + the adherence kernels are in place — the full kernel set is complete. Pure math from the frequency
-tables — NO DB, NO positions. The worker (wrk_feature_analysis) calls these on the accumulator output (the phase-2
-recompute, cheap, on every run).
+The SHARED analysis-kernels data module: the kernels over the frequency tables (the marginal / the joint counts from the
+hlp_random_play accumulators). The name says the FAMILY (the analysis of the features) because TWO levels use it — the
+SU_ANALYSIS level (the SU / entropy / mutual-information + the dispersion / the never-observed audit, the step 3 worker)
+and the EFFECT_SIZE level (the ANOVA + the adherence, the step 6 worker). The full kernel set is complete. Pure math
+from the frequency tables — NO DB, NO positions. The SU_ANALYSIS worker calls the phase-2 kernels on the accumulator
+output (the recompute, cheap, on every run).
 
 ## API
 - `entropy(counts) -> float` — the Shannon entropy H in bits, from the count array (the marginal or the joint). The
@@ -69,8 +70,8 @@ recompute, cheap, on every run).
   KL 0.9336627322538263 chi2 47.77777777777778 merged 1 + the +inf KL + the empty nan).
 
 ## Open issues
-- The worker (wrk_feature_analysis) wires these into the pipeline (the cache flow + the phase-2 recompute + the reports)
-  — PENDING.
+- The module name vs the level names: the file is named for the FAMILY, not for a level, so the two workers
+  (wrk_su_analysis, wrk_effect_size) share it without either owning the name.
 
 ## Conventions
 - The house GNU header + the provenance docstring.
@@ -79,6 +80,8 @@ recompute, cheap, on every run).
 - The 0-log-0 convention (the standard entropy / KL / TV convention) throughout.
 
 ## Integration
-- Consumes the hlp_random_play accumulators' output (the marginal / the joint counts) — the data plane.
-- Future consumer: the FEATURE_ANALYSIS worker (wrk_feature_analysis.py) — the phase-2 recompute (the statistics on
-  every run, including the cache hit) + the reports (the console + the TXT + the optional CSV).
+- Consumes the hlp_random_play accumulators' output (the marginal / the joint counts, the SU_ANALYSIS phase 1) and the
+  tagged data of the EFFECT_SIZE level (the `ctx.hlp_indexes.indexes` raw codes + the `ctx.game_values`).
+- The consumers: the SU_ANALYSIS worker (wrk_su_analysis.py — the phase-2 recompute on every run, the cache hit
+  included, + the reports) and the EFFECT_SIZE worker (wrk_effect_size.py — the ANOVA on the tagged data + the adherence
+  against the published `ctx.su_analysis_tables`).

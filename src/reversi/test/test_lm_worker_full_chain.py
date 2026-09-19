@@ -142,7 +142,7 @@ class TestFullChainA2030(unittest.TestCase):
 
     def test_full_worker_chain(self):
         """Run the full 18-level chain (CREATED through
-        PLOT) on rlm_04. D-186/D-187: the I-017 FEATURE_ANALYSIS
+        PLOT) on rlm_04. D-186/D-187: the I-017 SU_ANALYSIS
         (step 3) + the EFFECT_SIZE (step 6) levels — the PLOT is
         now step 18 (was 16)."""
         ctx = self.rlm.context
@@ -476,7 +476,7 @@ class TestFullChainA2050(unittest.TestCase):
         """Run the full 18-level chain (CREATED through
         PLOT) on rlm_03.
         Long-running: ~1 minute (1999179 training samples, 356 lbfgs
-        iters). D-186/D-187: the I-017 FEATURE_ANALYSIS (step 3) +
+        iters). D-186/D-187: the I-017 SU_ANALYSIS (step 3) +
         the EFFECT_SIZE (step 6) levels — the PLOT is now step 18
         (was 16)."""
         ctx = self.rlm.context
@@ -572,7 +572,7 @@ class TestFullChainA2050(unittest.TestCase):
         # the embedded dump: 1 run measured 516551 B on the real base
         # dir (the 4-byte LZ4 jitter of the random name chars stands).
         # D-186/D-187: the band re-centered AGAIN for the I-017
-        # feature_analysis + effect_size sections in the embedded
+        # su_analysis + effect_size sections in the embedded
         # config dump (+~241 B LZ4-compressed, the default no-op,
         # the A2030 measured 23233 vs the 22990 base — the ~+241 B
         # increment). The VLONG run (the ~10-min rlm_03 100M chain)

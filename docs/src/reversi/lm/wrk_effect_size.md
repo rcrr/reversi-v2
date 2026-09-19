@@ -2,8 +2,8 @@
 The EFFECT_SIZE worker (the eta²/omega² + the adherence, step 6): the one-way ANOVA effect sizes (the eta²/omega² per
 sub-variable) + the adherence (the fixed trio — the chi-square + the KL + the TV — the DB configuration distribution vs
 the ideal corpus frequencies). NO cache (a diagnostic; the recompute is seconds). The GRACEFUL DEGRADATION: if the
-FEATURE_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped with a log note; the eta²/omega²
-runs (it does not need the corpus). The down is a no-op — the worker publishes nothing on the ctx.
+SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped with a log note; the eta²/omega² runs
+(it does not need the corpus). The down is a no-op — the worker publishes nothing on the ctx.
 
 ## API
 - `wrk_effect_size() -> Worker` — the factory: the `Worker("EFFECT_SIZE", _up, _down)` (the house worker pattern).
@@ -11,27 +11,26 @@ runs (it does not need the corpus). The down is a no-op — the worker publishes
   eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the groups, the continuous game values as
   the target — it does NOT need the corpus); (3) the adherence (the c metric) — per sub-variable, the DB configuration
   distribution (the observed raw codes of the training positions, the bincount) vs the ideal distribution (the corpus
-  frequencies from the `ctx.feature_analysis_tables`, normalized), the fixed trio (the `adherence` kernel); the GRACEFUL
-  DEGRADATION: if the `ctx.feature_analysis_tables` is None (the FEATURE_ANALYSIS level was disabled), the adherence is
-  SKIPPED with a log note (the ANOVA runs); (4) the outputs — the console (the ANOVA per sub-variable + the top-N most
-  deviant features, the TV descending) + the TXT report (dir_name under base_dir) + the optional CSV (the export_csv
-  flag).
+  frequencies from the `ctx.su_analysis_tables`, normalized), the fixed trio (the `adherence` kernel); the GRACEFUL
+  DEGRADATION: if the `ctx.su_analysis_tables` is None (the SU_ANALYSIS level was disabled), the adherence is SKIPPED
+  with a log note (the ANOVA runs); (4) the outputs — the console (the ANOVA per sub-variable + the top-N most deviant
+  features, the TV descending) + the TXT report (dir_name under base_dir) + the optional CSV (the export_csv flag).
 - `_down(ctx)`: a no-op (recovery is trivially satisfied — the worker publishes nothing on the ctx).
 
 ## Architecture
 - **The inputs** — the `ctx.hlp_indexes.indexes` (the per-position raw codes, the group assignment — the
   `feature_set.compute_indexes` of the INDEXES level) + the `ctx.game_values` (the continuous training game values, the
-  target) + the `ctx.feature_analysis_tables` (the corpus frequency tables, the cross-level blackboard from the
-  FEATURE_ANALYSIS level).
+  target) + the `ctx.su_analysis_tables` (the corpus frequency tables, the cross-level blackboard from the SU_ANALYSIS
+  level).
 - **The ANOVA** — the `anova_eta_omega(groups, values)`: the one-way ANOVA, the observed raw codes as the groups (K),
   the game values as the target (N). The per-sub-variable raw code is `indexes[:, c0 + i]` (the block layout, the
   `_feature_blocks`). eta² is the biased sample share; omega² is the unbiased population estimate — the pair is reported
   together (omega² may be slightly negative, the null effect — the raw value is reported).
 - **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the bincount of the training raw
-  codes) vs the ideal distribution (the corpus marginal, the feature_analysis_tables). The fixed trio (the chi-square
+  codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the chi-square
   merged-tail p + the KL + the TV) — the ODP-5 close, no config whitelist. The top-N (the `top_k_adherence`, default 20)
   most deviant features (the TV descending) are reported. The GRACEFUL DEGRADATION: the adherence is skipped (the log
-  note) when the corpus is absent (the FEATURE_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
+  note) when the corpus is absent (the SU_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
 - **NO cache** — a diagnostic (the recompute is seconds); the generation error -> the level fails, the machine
   re-raises.
 
@@ -55,5 +54,5 @@ runs (it does not need the corpus). The down is a no-op — the worker publishes
 ## Integration
 - Consumes the `ctx.cfg` (the effect_size config) + the `ctx.feature_set` (the FEATURES level, step 2) + the
   `ctx.hlp_indexes` (the INDEXES level, step 5) + the `ctx.game_values` (the POSITIONS level, step 4) + the
-  `ctx.feature_analysis_tables` (the FEATURE_ANALYSIS level, step 3, the cross-level blackboard).
+  `ctx.su_analysis_tables` (the SU_ANALYSIS level, step 3, the cross-level blackboard).
 - The full wiring registers the worker at step 6 (after INDEXES, before WMAPS).

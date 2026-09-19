@@ -32,7 +32,7 @@ eta²/omega² per sub-variable, the T13 kernel) + the adherence
 (the fixed trio — the chi-square + the KL + the TV, the T14
 kernel — the DB configuration distribution vs the ideal corpus
 frequencies). NO cache (a diagnostic; the recompute is seconds).
-The GRACEFUL DEGRADATION: if the FEATURE_ANALYSIS level was
+The GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
 disabled (no corpus in the ctx), the adherence is skipped with
 a log note; the eta²/omega² runs (it does not need the corpus).
 The D-060 semantics.
@@ -90,7 +90,7 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
         lines.append(f"  ANOVA {name} inst {i}: eta2 {eta2:.4f}, "
                      f"omega2 {omega2:.4f} (K {k}, N {n})")
     if adherence_lines is None:
-        lines.append("Adherence: SKIPPED (the FEATURE_ANALYSIS "
+        lines.append("Adherence: SKIPPED (the SU_ANALYSIS "
                      "level was disabled — no corpus in the ctx).")
     else:
         lines.append(f"Top adherence (the TV descending, "
@@ -149,10 +149,10 @@ def _up(ctx: "LMContext") -> None:
                           f"  ANOVA {name}[{i}]: eta2 {r['eta2']:.4f}, "
                           f"omega2 {r['omega2']:.4f} (K {r['k']})")
     # The adherence (c) per sub-variable (the T14 kernel) — the
-    # GRACEFUL DEGRADATION: if the FEATURE_ANALYSIS level was
+    # GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
     # disabled (no corpus in the ctx), the adherence is skipped
     # with a log note; the eta²/omega² runs.
-    tables = ctx.feature_analysis_tables
+    tables = ctx.su_analysis_tables
     adherence_lines = None
     if tables is not None:
         marginal = tables['marginal']
@@ -177,7 +177,7 @@ def _up(ctx: "LMContext") -> None:
                           f"(p {p:.2e}, merged {merged})")
     else:
         ctx.log_event(Relevance.INFO,
-                      "  Adherence SKIPPED (the FEATURE_ANALYSIS "
+                      "  Adherence SKIPPED (the SU_ANALYSIS "
                       "level was disabled — no corpus in the ctx).")
     _write_report(ctx, anova_lines, adherence_lines)
 

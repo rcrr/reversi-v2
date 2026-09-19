@@ -9,8 +9,9 @@ reused or renumbered (I-008 is dropped: see ideas-closed.md).
 
 I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3): no way to map a
          column of the (N, I) index matrix to the feature name producing it (unlike `MobilitySet.names` /
-         `.masks`, D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — `wrk_feature_analysis`
-         re-derives the mapping locally (the (name, col_start, col_end) blocks built from `feature_set.features`); each
+         `.masks`, D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — the `_feature_blocks`
+         helper is now re-derived locally in BOTH `wrk_su_analysis` and `wrk_effect_size` (the (name, col_start, col_end)
+         blocks built from `feature_set.features`); each
          pattern occupies `n_instances` D8-instance columns, so the helper must be instance-aware.
 
 I-009 | follow-up | Pipeline construction boilerplate (raised 2026-08-29, session 19, R3 discussion): Roberto notes his
@@ -34,3 +35,11 @@ I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE level from the ch
          state — w + sl/yl/rho + iters — and `opt_lbfgs` has the warm-start kwargs, consumed on the INCOMPLETE resume
          path); the open question is whether a warm restart under a CHANGED objective is numerically sound / worth the
          extra semantics.
+
+I-019 | follow-up | The `run()` facade + the `target_level` consumption (found 2026-09-19, during the P2 rename sweep): the
+         I-017 design section 3.6 (P4) asks `LogisticModel.run(target_level=None)` to move the pipeline from the CONFIG
+         alone — the explicit argument, else `cfg.target_level`, else "last" → `move_to_last()`, else
+         `move_to_step(name)` — and to let the StateMachine's existing ValueError be the only validation. VERIFIED: the
+         field is declared in `hlp_config_schemas.LMConfig` and read by NOTHING (no `run()` on the facade either), so a
+         bogus level name passes the CONFIG step unchallenged and every client chains `move_to_step` by hand. Its
+         purpose — generalizing the SU stop to ANY level — is dead weight until the entry exists.

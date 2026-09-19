@@ -59,7 +59,7 @@
 # V3c list is re-pinned (count 17 unchanged); the other checks are
 # unchanged.
 # D-186/D-187 state (2026-09-13): I-017 realized (the I-017 T16/T17
-# workers): the FEATURE_ANALYSIS (step 3, the SU-analysis corpus cache, the
+# workers): the SU_ANALYSIS (step 3, the SU-analysis corpus cache, the
 # rlmwf_03 slot) sits between FEATURES and POSITIONS; the EFFECT_SIZE
 # (step 6, the eta^2/omega^2 + the adherence, NO cache) sits between
 # INDEXES and WMAPS. The V3c list is re-pinned 17 -> 19 (the 18 active
@@ -149,9 +149,9 @@ ctx = model.context
 # (V3a/V3b deleted at D-106 step 3, class c: the fresh-model state is
 #  pinned at the top of every full-chain test, e.g. test_lm_worker_
 #  indexes.py — and is the hub's V3c pre-state)
-check("V3c 18 active levels (D-186/D-187: I-017 FEATURE_ANALYSIS step 3 + EFFECT_SIZE step 6; D-157: FEATURES before POSITIONS; D-149: PLOT last)",
+check("V3c 18 active levels (D-186/D-187: I-017 SU_ANALYSIS step 3 + EFFECT_SIZE step 6; D-157: FEATURES before POSITIONS; D-149: PLOT last)",
       [w.name for w in model.sm.workers]
-      == ["CREATED", "CONFIG", "FEATURES", "FEATURE_ANALYSIS",
+      == ["CREATED", "CONFIG", "FEATURES", "SU_ANALYSIS",
           "POSITIONS", "INDEXES", "EFFECT_SIZE", "WMAPS",
           "DESIGN_MTR", "ZED", "GRADIENT", "OPTIMIZE",
           "GENERATE", "VLD_POSITIONS", "VALIDATE", "ANALYTICS", "SAVE",

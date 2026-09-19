@@ -157,7 +157,7 @@ class PlotConfig(LMBaseConfig):
 
 class CorpusConfig(LMBaseConfig):
     """
-    Configuration for the FEATURE_ANALYSIS corpus (the I-017,
+    Configuration for the SU_ANALYSIS corpus (the I-017,
     the SU-analysis corpus generator, D-174): the MT19937 seed, the total
     positions, and the ec arrest rule (the empty_count window
     constraint, the design section 2.1 — the "mele con mele"
@@ -179,9 +179,9 @@ class CorpusConfig(LMBaseConfig):
                     "extraction uses (the 'mele con mele' window).")
 
 
-class FeatureAnalysisConfig(LMBaseConfig):
+class SuAnalysisConfig(LMBaseConfig):
     """
-    Configuration for the FEATURE_ANALYSIS level (the I-017, the
+    Configuration for the SU_ANALYSIS level (the I-017, the
     SU level, step 3): the corpus generator + the SU / the
     dispersion / the never-observed audit kernels. The enable
     master switch is FALSE by default (the I-017 D-175 — the SU
@@ -210,12 +210,12 @@ class FeatureAnalysisConfig(LMBaseConfig):
                     "fast against the feature set is at the "
                     "LMConfig level.")
     dir_name: Path = Field(
-        default=Path("feature_analysis"),
+        default=Path("su_analysis"),
         description="Output directory: an ABSOLUTE path is used "
                     "as-is (it may live outside base_dir); a "
                     "relative path resolves under base_dir.")
     report_file_name: str = Field(
-        default="feature_analysis_report.txt",
+        default="su_analysis_report.txt",
         description="The TXT report filename.")
     export_csv: bool = Field(
         default=False,
@@ -402,9 +402,9 @@ class LMConfig(LMBaseConfig):
     optimization: OptimizationConfig
     validation_data_set: ValidationDataSetConfig
     analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)
-    feature_analysis: FeatureAnalysisConfig = Field(
-        default_factory=FeatureAnalysisConfig,
-        description="The FEATURE_ANALYSIS level config (the "
+    su_analysis: SuAnalysisConfig = Field(
+        default_factory=SuAnalysisConfig,
+        description="The SU_ANALYSIS level config (the "
                     "I-017, the SU level, step 3; the enable "
                     "default FALSE, the D-175 opt-in).")
     effect_size: EffectSizeConfig = Field(
@@ -422,7 +422,7 @@ class LMConfig(LMBaseConfig):
     @model_validator(mode="after")
     def check_su_pairs_feature_set(self) -> "LMConfig":
         """The fail-fast against the feature set (the I-017 P6):
-        every name in the feature_analysis.su_pairs must be a
+        every name in the su_analysis.su_pairs must be a
         feature in the feature_set (the mobility names + the
         pattern names)."""
         if self.feature_set is not None:
@@ -434,7 +434,7 @@ class LMConfig(LMBaseConfig):
             if self.feature_set.pattern_set is not None:
                 names.update(p.name for p in
                              self.feature_set.pattern_set.patterns)
-            for pair in self.feature_analysis.su_pairs:
+            for pair in self.su_analysis.su_pairs:
                 for name in pair:
                     if name not in names:
                         raise ValueError(

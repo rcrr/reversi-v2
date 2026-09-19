@@ -102,14 +102,14 @@ class TestLogisticModel(unittest.TestCase):
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        # D-186/D-187: the I-017 new workers — the FEATURE_ANALYSIS
+        # D-186/D-187: the I-017 new workers — the SU_ANALYSIS
         # (step 3) + the EFFECT_SIZE (step 6) dummies. Without them
         # the real workers would cross the "POSITIONS" string move
         # and hit the None cfg (the mock CONFIG never sets it).
         self.fa_up_mock = MagicMock()
         self.fa_down_mock = MagicMock()
-        self.patcher_fa = patch('reversi.lm.logistic_model.wrk_feature_analysis',
-                                return_value=Worker("FEATURE_ANALYSIS", self.fa_up_mock, self.fa_down_mock))
+        self.patcher_fa = patch('reversi.lm.logistic_model.wrk_su_analysis',
+                                return_value=Worker("SU_ANALYSIS", self.fa_up_mock, self.fa_down_mock))
         self.es_up_mock = MagicMock()
         self.es_down_mock = MagicMock()
         self.patcher_es = patch('reversi.lm.logistic_model.wrk_effect_size',
@@ -184,7 +184,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_move_to_step_by_string(self):
         """Test moving using the worker name string. D-186/D-187:
-        the POSITIONS is now step 4 (the FEATURE_ANALYSIS, step 3,
+        the POSITIONS is now step 4 (the SU_ANALYSIS, step 3,
         sits between FEATURES and POSITIONS) — the string move
         crosses the new step."""
         self.model.move_to_step("POSITIONS")
