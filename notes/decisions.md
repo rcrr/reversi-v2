@@ -1117,6 +1117,23 @@ D-225 | 2026-09-18 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming req
          test literals (the goldens pin expected values). Zero behaviour change. `test_random_game` 32/0/0,
          full LONG 913/0/22 GREEN.
 
+D-226 | 2026-09-18 | The random_game docstring + engine style refinements (Roberto, four points): (1) NO D-XXX
+         references in docstrings — a docstring explains how a function is used and how it behaves; the
+         provenance lives in decisions.md, and only if fundamental in a `#:` code comment (the D-224 rule line
+         extended); the campaign docstrings cleaned (random_game.py, prng.py, the two test modules). (2) The
+         "- never None" negation style dropped — a docstring states the current contract, not the negation of a
+         past behaviour (the D-208 story lives in the history); the phrasing cleaned in the docstring, the
+         mirror/test docs and the overview row (the assertIsNotNone pin stays in the test). (3) THE STRATEGIC
+         INTENT, recorded: `random_game` is the intended REPLACEMENT for `hlp_wave` — a more readable, reusable,
+         domain-anchored module (Roberto's intent from the beginning) — the docstrings and the mirror docs stop
+         referencing hlp_wave as the authority: the semantics is stated in domain terms (the lanes advance in
+         LOCKSTEP; one draw per active lane per step, in element order). (4) The magic 70 of `_play_path_engine`
+         replaced by the DERIVED bound: `max_steps = int(ec.max(initial=0)) - int(target) + 1` — every
+         non-terminal step decreases a lane's ec by exactly one and the game-over step ends the lane, so a lane
+         needs at most (ec_start - target) steps plus one; the bound is computed from the input (the
+         empty-batch edge handled by the reduction initial), the stall raises RuntimeError and never hangs.
+         Zero behaviour change. `test_random_game` 32/0/0, `test_prng` 22/0/0, full LONG 913/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

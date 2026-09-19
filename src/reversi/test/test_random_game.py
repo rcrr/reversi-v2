@@ -66,7 +66,7 @@ from reversi.random_game import (random_game_choose_move,
 
 class TestRandomGameChooseMoveArray(unittest.TestCase):
     """
-    random_game_choose_move, the array case (D-219): the batch pick
+    random_game_choose_move, the array case: the batch pick
     over a 1-D PositionArray with the ONE injected prng stream —
     bit-identical to the sequential scalar processing (one draw per
     non-empty legal set, no draw for a pass). The fixtures are the
@@ -155,8 +155,8 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
 
 class TestRandomGameMakeMoveArray(unittest.TestCase):
     """
-    random_game_make_move, the array case (D-220): the batch
-    pick-and-execute over a 1-D PositionArray — the D-219 batch pick
+    random_game_make_move, the array case: the batch
+    pick-and-execute over a 1-D PositionArray — the batch pick
     (the stream contract) composed with the D-140 position_flips
     (a zero element swaps the players, a legal element flips), the
     move codes from popcount(move - 1) (the bit index, and the
@@ -265,12 +265,11 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
 
 class TestRandomGamePlayPathArray(unittest.TestCase):
     """
-    random_game_play_path, the array case (D-222): the step engine
-    over a 1-D PositionArray — at every step the ACTIVE lanes draw
-    once, in element order (the hlp_wave step-interleaved stream
-    discipline; one draw per non-terminal lane: the mover plays, or
-    the mover passes and the opponent plays; the game-over lanes
-    consume no draw). The N == 1 array call is BIT-IDENTICAL to the
+    random_game_play_path, the array case: the step engine
+    over a 1-D PositionArray — the lanes advance in LOCKSTEP (at
+    every step the active lanes draw once, in element order; one
+    draw per non-terminal lane: the mover plays, or the mover passes
+    and the opponent plays; the game-over lanes consume no draw). The N == 1 array call is BIT-IDENTICAL to the
     scalar call (the scalar bridge, pinned — with one lane the
     step-interleaved stream IS the lane's sequential stream). The
     fixtures are the mixed EC20 batch (three standard, two
@@ -717,8 +716,7 @@ class TestRandomGameMakeMove(unittest.TestCase):
 
     def test_no_legal_move_is_a_pass_with_the_swapped_position(self):
         # A position with no legal move: the move is the pass (PA) and the
-        # returned position is the swapped position (the players inverted)
-        # — never None.
+        # returned position is the swapped position (the players inverted).
         p = make_position(Bitboard(0x0000000000000001),
                           Bitboard(0x0000000000010000))
         self.assertEqual(int(position_legal_moves_count(p)), 0)

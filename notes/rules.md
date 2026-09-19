@@ -207,7 +207,9 @@ theme, with its origin D-number.
 - Docstrings explain WHAT (the observable contract: the semantics,
   the shapes, the stream/consumption promises), never HOW — the
   mechanism lives in the mirror doc's Architecture section and in
-  the code comments. (D-224)
+  the code comments; and no D-XXX provenance in docstrings
+  (decisions.md is its home; a `#:` code comment only if
+  fundamental). (D-224, D-226)
 
 ## Journal
 

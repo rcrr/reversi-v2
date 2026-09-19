@@ -53,7 +53,7 @@ API (the MT19937 class, the sole STREAM interface):
   extract_from_set64(set_arr)        pick + remove a random bit (in place).
   choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
 
-The pick-from-set technique (D-221) lives ONCE in this module, shared
+The pick-from-set technique lives ONCE in this module, shared
 by the class methods and the numba contexts: pick_one_from_set64 (the
 scalar kernel — the methods draw one value and delegate to it) and
 pick_one_from_set64_batch (the vectorized form over an (N,) array of
@@ -264,7 +264,7 @@ class MT19937:
 
         How it works: one get_uint64 draw; the pick delegated to the
         numba kernel pick_one_from_set64 (the single source of the
-        pick technique — D-221); the picked bit is then cleared from
+        pick technique); the picked bit is then cleared from
         the ORIGINAL set.
         """
         if set_arr.dtype != np.uint64:
@@ -284,7 +284,7 @@ class MT19937:
         (unlike extract_from_set64, the set is read, never mutated):
         one get_uint64 draw, the pick delegated to the numba kernel
         pick_one_from_set64 (the single source of the pick technique
-        — D-221). k = the popcount, the c-th set bit (skipping the c
+        — the single source of the pick technique). k = the popcount, the c-th set bit (skipping the c
         lowest) is picked. Returns (1 << p, p). The empty set
         returns the (0, 64) sentinel (64 = no bit) WITHOUT consuming
         a draw.
@@ -390,7 +390,7 @@ def pick_one_from_set64(s, d):
 def pick_one_from_set64_batch(sets, draws, slots):
     """
     The vectorized pick_one_from_set64 over an (N,) uint64 array of
-    sets (D-221): element i with a non-empty set picks from sets[i]
+    sets: element i with a non-empty set picks from sets[i]
     using draws[slots[i]] (slots[i] = the number of NON-EMPTY sets
     before i — the prefix count the caller computes, e.g. the cumsum
     of sets != 0); draws is the (k,) uint64 array of the pre-drawn

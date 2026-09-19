@@ -446,7 +446,7 @@ class TestChooseOneFromSet64(unittest.TestCase):
 
 class TestPickOneFromSet64(unittest.TestCase):
     """
-    The numba pick kernels (D-221): pick_one_from_set64 (the scalar
+    The numba pick kernels: pick_one_from_set64 (the scalar
     kernel — the single source of the pick technique, shared by
     choose_one_from_set64 / extract_from_set64) and
     pick_one_from_set64_batch (the vectorized form). The identity

@@ -82,7 +82,7 @@ the end of this file.
   6) — default FALSE, opt-in.
 - A PASS (move 0 in board.position_flips, PA = 64 in
   position_make_move) returns the position with the players
-  inverted (the next player's view), never None — the position_flips
+  inverted (the next player's view) — the position_flips
   scalar + array kernels swap on a zero move.
 - G0 is the corpus generator (hlp_wave, the concurrent WAVE engine);
   the model file is self-describing (format v2, the config
@@ -106,6 +106,9 @@ the end of this file.
 
 - Regenerate the STALE G0 corpora on the official start (the first
   maintenance call).
+- The random_game module: the intended hlp_wave REPLACEMENT (D-226)
+  — the more readable, reusable, domain-anchored engine; the
+  eventual G0 regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a
   numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step
@@ -152,7 +155,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the prng pick — choose_one_from_set64 / the pick_one_from_set64_batch kernel, the single source D-221; dual scalar/array with the bit-identical stream contract — D-219) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA, never None; dual scalar/array — D-220) + random_game_play_path (play random moves until the empty count reaches the target; the double-pass game-over break fixed — D-218; dual scalar/array, the step engine — D-222) | 32/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the prng pick — choose_one_from_set64 / the pick_one_from_set64_batch kernel, the single source D-221; dual scalar/array with the bit-identical stream contract — D-219) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA; dual scalar/array — D-220) + random_game_play_path (play random moves until the empty count reaches the target; the double-pass game-over break fixed — D-218; dual scalar/array, the step engine — D-222) | 32/0/0 (via test_random_game) | docs/src/reversi/random_game.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block) | 4/0/0 | docs/src/reversi/lm/hlp_analytics.md |
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 6/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |

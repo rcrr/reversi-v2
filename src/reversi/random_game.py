@@ -59,7 +59,7 @@ def random_game_choose_move(p: PositionField | PositionArray,
     Returns a bitboard having one or zero bits set, chosen at random
     from the set of legal moves for the position.
 
-    Dual scalar/array (D-219, the house D-140 pattern): a scalar
+    Dual scalar/array: a scalar
     PositionField gives a scalar Bitboard; a 1-D PositionArray gives
     a 1-D BitboardArray of the same length (the 2-D (N, 2) uint64
     input is coerced by the PositionArray validator).
@@ -99,9 +99,9 @@ def random_game_make_move(p: PositionField | PositionArray,
     produces (the next player's view: the mover / opponent fields are
     swapped with respect to the input). When the position has no legal
     move the move is the pass (PA) and the returned position is the
-    swapped position (the players inverted) — never None.
+    swapped position (the players inverted).
 
-    Dual scalar/array (D-220, the house D-140 pattern): a scalar
+    Dual scalar/array: a scalar
     PositionField gives the (PositionField, Move) pair; a 1-D
     PositionArray gives the (PositionArray, MoveArray) pair of the same
     length (the 2-D (N, 2) uint64 input is coerced by the PositionArray
@@ -209,24 +209,30 @@ def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
 #: Internal use function.
 def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     """
-    The array play-path engine (D-222): the STEP loop over the batch.
+    The array play-path engine: the step loop over the batch.
 
-    The stream contract is the STEP-INTERLEAVED discipline of
-    hlp_wave: at every step the ACTIVE lanes draw once, in element
-    order. Two facts pin the contract down: the call is DETERMINISTIC
-    given the seed, and with N == 1 the step-interleaved stream IS
-    the lane's sequential stream, so the single-lane array call is
-    bit-identical to the scalar call.
+    The lanes advance in LOCKSTEP: at every step the active lanes
+    draw once, in element order. Two facts pin the stream contract
+    down: the call is DETERMINISTIC given the seed, and with N == 1
+    the lockstep stream IS the lane's sequential stream, so the
+    single-lane array call is bit-identical to the scalar call.
 
     The termination is mathematical: every non-terminal step
     decreases a lane's ec by exactly one and the game-over step ends
-    the lane — at most ec_start + 1 (<= 65) steps per lane; the
-    defensive bound is 70 (a stall raises RuntimeError, it never
-    hangs).
+    the lane — the step bound is derived from the input (a lane
+    needs at most its ec surplus over the target, plus one); a stall
+    would raise, never hang.
     """
     ec = position_empty_count(cur)
     active = ec > target
-    for _step in range(70):
+    # The mathematical step bound: every non-terminal step decreases
+    # a lane's ec by exactly one and the game-over step ends the
+    # lane — a lane needs at most (its start ec - the target) steps
+    # plus one; the bound below is that maximum over the lanes,
+    # computed from the input (a stall is impossible by the math: it
+    # would raise, never hang).
+    max_steps = int(ec.max(initial=0)) - int(target) + 1
+    for _step in range(max_steps):
         if not np.any(active):
             break
         cur, ec, active = _play_path_step(cur, active, target, prng)
@@ -248,7 +254,7 @@ def random_game_play_path(p: PositionField | PositionArray,
 
     Returns:
         tuple: A tuple containing the target position and the number of empty
-        cells of this position (an ordinal np.uint8 — D-217).
+        cells of this position (an ordinal np.uint8).
 
         If a game-over position is encountered during the random path, it is
         returned along with its number of empty cells, which in this case will
@@ -258,18 +264,17 @@ def random_game_play_path(p: PositionField | PositionArray,
         than or equal to target_ec, the position is returned as the result
         along with its own number of empty cells.
 
-    Dual scalar/array (D-222, the house D-140 pattern): a scalar
+    Dual scalar/array: a scalar
     PositionField gives the (PositionField, np.uint8) pair; a 1-D
     PositionArray gives the (PositionArray, uint8-array) pair of the
     same length (the 2-D (N, 2) uint64 input is coerced by the
     PositionArray validator). The PRNG stream contract of the array
-    case is the STEP-INTERLEAVED discipline of the hlp_wave engine:
-    at every step the ACTIVE lanes draw once, in element order —
-    exactly one draw per non-terminal lane, no draw for the
-    game-over lanes. Two facts pin the contract down: the call is
-    DETERMINISTIC given the seed, and with N == 1 the array call is
-    BIT-IDENTICAL to the scalar call. The target is ONE shared value
-    for the whole batch.
+    case: the lanes advance in LOCKSTEP — at every step the ACTIVE
+    lanes draw once, in element order — exactly one draw per
+    non-terminal lane, no draw for the game-over lanes. Two facts
+    pin the contract down: the call is DETERMINISTIC given the seed,
+    and with N == 1 the array call is BIT-IDENTICAL to the scalar
+    call. The target is ONE shared value for the whole batch.
     """
     if isinstance(p, np.ndarray):
         # D-222: the standard 1-D guard (house pattern, as position_flips)

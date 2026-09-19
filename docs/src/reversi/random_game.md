@@ -31,7 +31,7 @@ results computed on the ONE injected prng stream.
   (the next player's view: the mover / opponent fields are
   swapped with respect to the input). No legal move: the move is
   PA and the returned position is the swapped position (the
-  players inverted) — never None. Dual scalar/array (D-220): the
+  players inverted). Dual scalar/array (D-220): the
   per-element semantics is the scalar one (a zero move swaps the
   players, a legal move flips); the choose_move stream contract is
   inherited. @validate_call (arbitrary_types_allowed).
@@ -42,11 +42,10 @@ results computed on the ONE injected prng stream.
   consecutive passes break the loop). Returns the final position +
   its empty count (an ordinal np.uint8 — D-217). If the starting
   position is already at or below target_ec, it is returned as-is.
-  Dual scalar/array (D-222): the array stream contract is the
-  step-interleaved discipline of hlp_wave — one draw per active
-  lane per step, in element order (the mover plays, or the mover
-  passes and the opponent plays); the game-over lanes consume no
-  draw. The N == 1 array call is BIT-IDENTICAL to the scalar call.
+  Dual scalar/array (D-222): the array stream contract — the
+  lanes advance in lockstep, one draw per active lane per step, in
+  element order (the mover plays, or the mover passes and the
+  opponent plays); the game-over lanes consume no draw. The N == 1 array call is BIT-IDENTICAL to the scalar call.
   The target is ONE shared value for the batch. @validate_call
   (arbitrary_types_allowed).
 
@@ -82,7 +81,8 @@ results computed on the ONE injected prng stream.
   pre-draws for the needing lanes (the prefix slot map) and
   pick_one_from_set64_batch + position_flips advance them. The
   termination is mathematical (every non-terminal step decreases a
-  lane's ec by one) with a defensive 70-step bound.
+  lane's ec by one); the step bound is derived from the input (the
+  ec surplus over the target, plus one).
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
