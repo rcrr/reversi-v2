@@ -3193,3 +3193,36 @@ class TestPositionHashLegacyParity(unittest.TestCase):
         nptest.assert_array_equal(computed[is_black], expected[is_black])
         nptest.assert_array_equal(computed[~is_black], ~expected[~is_black])
         nptest.assert_array_equal(bitboard_count(~(blacks | whites)), ec)
+
+
+class TestNumbaPrimitives(unittest.TestCase):
+    """
+    The public njit primitives for the numba compositions (D-232):
+    legal_moves_of (the per-lane legal-move set) and flips_of_move
+    (the flip set of a single-bit move) — the single sources shared
+    by the vectorized kernels of board and by random_game's fused
+    play-path engine.
+    """
+
+    def test_legal_moves_of_matches_the_batch(self):
+        # 256 random (mover, opponent) pairs: the per-lane primitive
+        # equals the public batch result for every lane.
+        rng = np.random.default_rng(93)
+        movers = rng.integers(0, 2 ** 64, size=256, dtype=np.uint64)
+        opponents = rng.integers(0, 2 ** 64, size=256, dtype=np.uint64)
+        expected = legal_moves(movers, opponents)
+        for i in range(256):
+            self.assertEqual(
+                legal_moves_of(Bitboard(movers[i]), Bitboard(opponents[i])),
+                expected[i])
+
+    def test_flips_of_move_matches_position_flips(self):
+        # For every legal move of the canonical start, the flip
+        # primitive equals the scalar position_flips flip set.
+        igp = initial_game_position()
+        lms = position_legal_moves(igp)
+        for sq in bitboard_to_square_list(lms):
+            mv = square_as_bitboard(sq)
+            flips_exp, _ = position_flips(igp, mv)
+            self.assertEqual(flips_of_move(igp['mover'], igp['opponent'], mv),
+                             flips_exp)

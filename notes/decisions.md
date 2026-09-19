@@ -1203,6 +1203,28 @@ D-231 | 2026-09-18 | The play_path intervention 3b — the scratch-buffer reuse 
          slice of the glue). KEPT (harmless, the invariant documented) — revertible in minutes if Roberto
          prefers minimalism. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
+D-232 | 2026-09-18 | The FUSED STEP ENGINE + the board njit primitives (Roberto's approved endgame): (1) BOARD
+         PROMOTES the two per-lane primitives as the PUBLIC njit API — `legal_moves_of(mover, opponent)` (the
+         per-lane legal-move set, EXTRACTED from `_vectorized_legal_moves`'s loop body: the kernel calls it
+         per lane — the single source, zero duplication) and `flips_of_move(mover, opponent, move)` (the
+         domain-order wrapper over `_kogge_stone_mm`, `inline='always'`); both in `__all__`, pinned by
+         `TestNumbaPrimitives` (the equivalence vs the batch/scalar paths). (2) RANDOM_GAME rewrites the step
+         as the FUSED two-pass engine: `_classify_step` (one prange pass: the legal sets via
+         `legal_moves_of`, the classification masks, the pass lanes' opponent set in kernel) + `_advance_step`
+         (one prange pass: the pick via prng's `pick_one_from_set64` on the pre-drawn slot, the flips via
+         `flips_of_move`, the in-place state update) — the per-step numpy bookkeeping collapses to ~5 ops
+         (the needs count, the cumsum/slots, one get_uint64_batch, the ec); `_apply_picked_moves` and the
+         position_flips/make_position per-step assemblies are GONE. The draws remain ONE batch call between
+         the passes (the stream contract unchanged — the classification must precede the draw, so the
+         two-pass structure is forced by the bit-exactness). RESULTS BIT-IDENTICAL (all the pins hold: the
+         N=1 scalar bridge, the determinism, the ec contract). THE MEASUREMENT (the 1M-games benchmark): the
+         D-227 baseline 6.33s -> 2.57s (-59%, 2.46x; 389,546 games/s; ~43ns per position-advance); the
+         mixed-ec bench 2.03s -> 1.08s (-47%, 923,863 games/s); the clean best 2.34s / 427,118 games/s. THE
+         PROFILE (the clean runs): `_advance_step` ~51%, `_classify_step` ~19%, `get_uint64_batch` ~12%, the
+         numpy glue ~0 (the function calls 11,464 -> ~1,450; make_position 1 call = the final). The
+         per-advance ~39ns vs the hlp_wave engine ~122-170ns (4x). `test_board` 246/0/15 (was 244/0/15),
+         `test_random_game` 33/0/1, full LONG 916/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

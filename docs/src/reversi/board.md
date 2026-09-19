@@ -7,7 +7,7 @@ no UI.
 
 ## API
 
-The 69 `__all__` names. Dual contract throughout: scalar in →
+The 71 `__all__` names. Dual contract throughout: scalar in →
 scalar out, 1-D array in → array out (same shape), unless stated.
 
 | family | name | contract |
@@ -31,6 +31,8 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Bitboard | `bitboard_from_hex_str(h) -> Bitboard \| BitboardArray` | 16-char hex, no `0x` prefix, case-insensitive; the array path is `np.frompyfunc` (element-wise Python loop) |
 | Bitboard | `bitboard_bsr(bb) -> int` | index of the most significant set bit (63..0); 0 → -1; scalar only |
 | Bitboard | `bitboard_count(bb) -> np.uint8` | popcount via `np.bitwise_count`; scalar only |
+| Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit primitive (`inline='always'`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
+| Bitboard | `flips_of_move(mover, opponent, move) -> Bitboard` | the flip set of the single-bit move — the njit flip primitive (the Kogge-Stone core) for the numba compositions |
 | Bitboard | `bitboard_print(bb, output)` | 2-D text; row 1 on top, column a on the left |
 | Bitboard | `bitboard_to_square_list(bb) -> List[Square]` | the squares, descending (H8 → A1) |
 | Bitboard | `bitboard_to_square_array(bb) -> SquareArray` | as a uint8 array |
@@ -94,6 +96,12 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `_vectorized_legal_moves`, `_vectorized_flips`,
   `_vectorized_make_move`, `_vectorized_position_hash`),
   `prange` on the batch loops;
+  the PUBLIC per-lane njit primitives (`legal_moves_of`,
+  `flips_of_move`, both `inline='always'`) are the single sources of
+  the two geometries: the vectorized kernels call them per lane and
+  the numba compositions of the other modules (random_game's fused
+  engine) call the same functions — the source is written once, the
+  compiler inlines the machine code at the call sites;
   `_kogge_stone_mm` is `@njit(inline='always')` (the shared
   per-element flip primitive — the scalar path calls it);
   `_zobrist_position_fold` is `@njit(cache=True)` (the shared

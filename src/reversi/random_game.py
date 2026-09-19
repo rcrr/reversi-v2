@@ -28,16 +28,17 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
+import numba as nb
 
 from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
 
-from reversi.tools.prng import MT19937, pick_one_from_set64_batch
+from reversi.tools.prng import MT19937, pick_one_from_set64, pick_one_from_set64_batch
 from reversi.board import (Bitboard, BitboardArray, Move, MoveArray,
                            PositionField, PositionArray, bitboard_bsr,
-                           bitboard_count, legal_moves, make_position,
-                           position_flips, position_legal_moves,
-                           position_empty_count)
+                           bitboard_count, flips_of_move, legal_moves_of,
+                           make_position, position_flips,
+                           position_legal_moves, position_empty_count)
 
 
 
@@ -131,49 +132,96 @@ def random_game_make_move(p: PositionField | PositionArray,
 TargetEcInt = Annotated[int, Field(ge=0, le=60)]
 
 #: Internal use function.
-def _apply_picked_moves(movers: np.ndarray, opponents: np.ndarray,
-                        lane_mask: np.ndarray, moves: np.ndarray,
-                        swapped_view: bool):
+@nb.njit(parallel=True, cache=True)
+def _classify_step(movers: np.ndarray, opponents: np.ndarray,
+                   active: np.ndarray, lms_mover: np.ndarray,
+                   lms_opponent: np.ndarray, plays: np.ndarray,
+                   pass_reply: np.ndarray, game_over: np.ndarray):
     """
-    Applies the picked single-bit moves to the masked lanes, writing
-    the state arrays IN PLACE (the engine owns them — fresh copies
-    were taken once by the caller).
+    The classify pass of the engine (per lane, one prange pass): the
+    mover's legal set via board's per-lane primitive
+    `legal_moves_of`, the classification masks, and — for the pass
+    lanes only (rare mid-game) — the opponent's legal set (in
+    kernel). The inactive lanes' mask entries are written False; the
+    scratch buffers are the engine's (reused across the steps — the
+    classify pass overwrites every lane's entry it classifies, so
+    the stale entries are never read).
+    """
+    n = movers.shape[0]
+    for i in nb.prange(n):
+        if not active[i]:
+            plays[i] = False
+            pass_reply[i] = False
+            game_over[i] = False
+            continue
+        lm = legal_moves_of(movers[i], opponents[i])
+        lms_mover[i] = lm
+        if lm == _EMPTY_MOVE_SET:
+            plays[i] = False
+            lo = legal_moves_of(opponents[i], movers[i])
+            lms_opponent[i] = lo
+            if lo == _EMPTY_MOVE_SET:
+                pass_reply[i] = False
+                game_over[i] = True
+            else:
+                pass_reply[i] = True
+                game_over[i] = False
+        else:
+            plays[i] = True
+            pass_reply[i] = False
+            game_over[i] = False
 
-    The moves are executed by the D-140 position_flips on the lane
-    subset: the CURRENT view (mover first), or the SWAPPED
-    (opponent-first) view for the pass-and-reply lanes.
-    position_flips returns the NEXT player's view, which — after the
-    opponent's move — is the original mover's frame again, so the
-    write-back maps the fields directly in both cases.
+#: Internal use function.
+@nb.njit(parallel=True, cache=True)
+def _advance_step(movers: np.ndarray, opponents: np.ndarray,
+                  needs_draw: np.ndarray, pass_reply: np.ndarray,
+                  lms_mover: np.ndarray, lms_opponent: np.ndarray,
+                  slots: np.ndarray, draws: np.ndarray):
     """
-    idx = np.flatnonzero(lane_mask)
-    if idx.size == 0:
-        return
-    if swapped_view:
-        view = make_position(opponents[idx], movers[idx])
-    else:
-        view = make_position(movers[idx], opponents[idx])
-    _, updated = position_flips(view, moves[idx])
-    movers[idx] = updated['mover']
-    opponents[idx] = updated['opponent']
+    The advance pass of the engine (per lane, one prange pass): the
+    pick via prng's per-lane primitive `pick_one_from_set64` on the
+    pre-drawn value at the lane's slot (the single source of the
+    pick technique, D-221), the flip set via board's per-lane
+    primitive `flips_of_move`, and the in-place state update. The
+    plays lanes play from the mover's legal set; the pass_reply
+    lanes play the opponent's legal set on the swapped view (the
+    write-back maps the fields directly — position_flips' NEXT-view
+    semantics). The non-needing lanes are untouched.
+    """
+    n = movers.shape[0]
+    for i in nb.prange(n):
+        if not needs_draw[i]:
+            continue
+        if pass_reply[i]:
+            bb, _p = pick_one_from_set64(lms_opponent[i], draws[slots[i]])
+            flips = flips_of_move(opponents[i], movers[i], bb)
+            m_new = movers[i] & ~flips
+            o_new = opponents[i] | flips | bb
+        else:
+            bb, _p = pick_one_from_set64(lms_mover[i], draws[slots[i]])
+            flips = flips_of_move(movers[i], opponents[i], bb)
+            m_new = opponents[i] & ~flips
+            o_new = movers[i] | flips | bb
+        movers[i] = m_new
+        opponents[i] = o_new
 
 #: Internal use function.
 def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
                     lms_mover: np.ndarray, lms_opponent: np.ndarray,
-                    active: np.ndarray, target: np.uint8,
-                    prng: MT19937):
+                    plays: np.ndarray, pass_reply: np.ndarray,
+                    game_over: np.ndarray, active: np.ndarray,
+                    target: np.uint8, prng: MT19937):
     """
-    Advances ONE step of the engine in place: mutates the state
-    arrays (movers, opponents) and the scratch legal-set buffers
-    (lms_mover, lms_opponent — allocated once by the engine and
-    reused across the steps: every lane the masks read has been
-    written this very step, so the stale entries are never read) and
-    returns the updated (ec, active).
+    Advances ONE step of the engine in place: the two fused passes
+    (classify + advance) over the batch, then the ec and the
+    activity update; returns the updated (ec, active). The state and
+    the scratch buffers are the engine's (reused across the steps —
+    every lane the masks read has been written this very step).
 
     The lane classification (all draw-independent — the legal sets
     are pure computations):
       - mover_plays: the mover has a legal move — one draw, the disc
-        is placed by the mover (position_flips on the current view);
+        is placed by the mover;
       - mover_passes_opponent_plays: the mover is moveless and the
         opponent is not — the pass consumes no draw, the opponent
         plays from the SWAPPED view (one draw);
@@ -182,43 +230,19 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
         scalar swaps restore the input view).
 
     Every non-terminal lane consumes EXACTLY ONE draw, in element
-    order (the step-interleaved stream discipline).
+    order (the lockstep stream discipline): the draws are ONE
+    get_uint64_batch call between the two passes, mapped to the
+    needing lanes by the prefix slot map.
     """
-    # The mover's legal set is computed ONLY on the active lanes (the
-    # all-active fast path returns a fresh result; the subset path
-    # reuses the scratch buffer — the zero-filled scatter keeps the
-    # same read semantics).
-    active_idx = np.flatnonzero(active)
-    if active_idx.size == movers.shape[0]:
-        lms_mover = legal_moves(movers, opponents)
-    elif active_idx.size:
-        lms_mover[active_idx] = legal_moves(movers[active_idx],
-                                            opponents[active_idx])
-    mover_passes = active & (lms_mover == _EMPTY_MOVE_SET)
-    mover_plays = active & (lms_mover != _EMPTY_MOVE_SET)
-    # The opponent's legal set: ONLY on the pass-lane subset (rare
-    # mid-game) — legal_moves on the raw fields (the swapped view's
-    # mover is the opponent), no Position assembly.
-    pass_idx = np.flatnonzero(mover_passes)
-    if pass_idx.size:
-        lms_opponent[pass_idx] = legal_moves(opponents[pass_idx],
-                                             movers[pass_idx])
-    double_pass_game_over = mover_passes & (lms_opponent == _EMPTY_MOVE_SET)
-    mover_passes_opponent_plays = (mover_passes
-                                   & (lms_opponent != _EMPTY_MOVE_SET))
-    needs_draw = mover_plays | mover_passes_opponent_plays
+    _classify_step(movers, opponents, active, lms_mover, lms_opponent,
+                   plays, pass_reply, game_over)
+    needs_draw = plays | pass_reply
     draws = prng.get_uint64_batch(int(np.count_nonzero(needs_draw)))
     slots = np.cumsum(needs_draw, dtype=np.int64) - needs_draw.astype(np.int64)
-    pick_sets = np.where(mover_plays, lms_mover,
-                         np.where(mover_passes_opponent_plays, lms_opponent,
-                                  _EMPTY_MOVE_SET))
-    moves = pick_one_from_set64_batch(pick_sets, draws, slots)
-    _apply_picked_moves(movers, opponents, mover_plays, moves,
-                        swapped_view=False)
-    _apply_picked_moves(movers, opponents, mover_passes_opponent_plays,
-                        moves, swapped_view=True)
+    _advance_step(movers, opponents, needs_draw, pass_reply, lms_mover,
+                  lms_opponent, slots, draws)
     ec = bitboard_count(~(movers | opponents))
-    active = active & ~double_pass_game_over & (ec > target)
+    active = active & ~game_over & (ec > target)
     return ec, active
 
 #: Internal use function.
@@ -245,10 +269,14 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     """
     movers = cur['mover'].copy()
     opponents = cur['opponent'].copy()
-    # The scratch legal-set buffers: allocated once, reused across
-    # the steps (see _play_path_step).
+    # The scratch buffers: allocated once, reused across the steps
+    # (the legal sets + the classification masks — see
+    # _play_path_step / _classify_step).
     lms_mover_buf = np.zeros(movers.shape[0], dtype=Bitboard)
     lms_opponent_buf = np.zeros(movers.shape[0], dtype=Bitboard)
+    plays_buf = np.zeros(movers.shape[0], dtype=np.bool_)
+    pass_reply_buf = np.zeros(movers.shape[0], dtype=np.bool_)
+    game_over_buf = np.zeros(movers.shape[0], dtype=np.bool_)
     ec = bitboard_count(~(movers | opponents))
     active = ec > target
     # The mathematical step bound: every non-terminal step decreases
@@ -262,8 +290,9 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
         if not np.any(active):
             break
         ec, active = _play_path_step(movers, opponents, lms_mover_buf,
-                                     lms_opponent_buf, active, target,
-                                     prng)
+                                     lms_opponent_buf, plays_buf,
+                                     pass_reply_buf, game_over_buf,
+                                     active, target, prng)
     if np.any(active):
         raise RuntimeError("random_game_play_path: the step bound is "
                            "exceeded — an active lane did not terminate")

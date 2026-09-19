@@ -68,27 +68,19 @@ results computed on the ONE injected prng stream.
   line for the codes (np.bitwise_count(move - 1): the bit index of
   a single-bit move, and the wrap-around of an empty move gives
   64 = PA — no kernel of its own).
-- The dual array play_path (D-222): the STEP ENGINE, in three named
-  units — `_play_path_engine` (the step loop + the termination
-  bound), `_play_path_step` (the lane classification and the
-  advance), `_apply_picked_moves` (the masked position_flips on the
-  lane subset). Per step the mover's legal set is computed ONLY on
-  the active lanes (the all-active fast path computes it in place)
-  and the opponent's ONLY on the pass-lane subset — both on the raw
-  fields via legal_moves, no Position assembly (the D-228/D-229
-  profiling fixes); they classify the active lanes:
-  mover_plays (the disc placed by the mover),
-  mover_passes_opponent_plays (the pass costs no draw, the opponent
-  plays from the swapped view), double_pass_game_over (harvested,
-  no draw, the input view returned); one get_uint64_batch
-  pre-draws for the needing lanes (the prefix slot map) and
-  pick_one_from_set64_batch + position_flips advance them. The state
-  is the RAW (movers, opponents) uint64 pair — copied once, advanced
-  in place by the steps, assembled into the Position array once at
-  the end (the D-230 copies fix). The
-  termination is mathematical (every non-terminal step decreases a
-  lane's ec by one); the step bound is derived from the input (the
-  ec surplus over the target, plus one).
+- The dual array play_path (D-222/D-232): the FUSED STEP ENGINE in
+  two kernels — `_classify_step` (per lane: the legal set via
+  board's `legal_moves_of`, the classification masks, the pass
+  lanes' opponent set in kernel) and `_advance_step` (the pick via
+  prng's `pick_one_from_set64` on the pre-drawn slot, the flip set
+  via board's `flips_of_move`, the in-place state update). Between
+  the passes: one `get_uint64_batch` call (one draw per non-terminal
+  lane, the prefix slot map) — the ONLY numpy bookkeeping left. The
+  state is the raw `(movers, opponents)` pair, assembled into the
+  Position array once at the end. The termination is mathematical
+  (every non-terminal step decreases a lane's ec by one); the step
+  bound is derived from the input (the ec surplus over the target,
+  plus one).
 - The module grows with the random-game machinery (the name is
   the game, not just the start) — the mirror follows.
 
@@ -153,8 +145,11 @@ None.
   public functions (the house dual-API contract).
 
 ## Integration
-- board.py (Bitboard, BitboardArray, Move, PositionField,
-  PositionArray, bitboard_bsr, position_flips, position_legal_moves,
+- board.py (Bitboard, BitboardArray, Move, MoveArray, PositionField,
+  PositionArray, bitboard_bsr, bitboard_count, flips_of_move,
+  legal_moves_of, make_position, position_flips, position_legal_moves,
   position_empty_count).
 - tools/prng.py (the MT19937 — the injected stream; the
-  choose_one_from_set64 pick; the get_uint64_batch pre-draw).
+  choose_one_from_set64 pick; the get_uint64_batch pre-draw;
+  pick_one_from_set64 — the per-lane pick primitive the fused
+  engine calls in kernel).

@@ -52,6 +52,7 @@ __all__ = ['Square', 'SquareArray',
            'Bitboard', 'BitboardArray',
            'bitboard_from_signed_int', 'bitboard_to_signed_int', 'bitboard_from_hex_str',
            'bitboard_bsr', 'bitboard_count',
+           'legal_moves_of', 'flips_of_move',
            'bitboard_transformations', 'bitboard_anti_transformations',  'bitboard_print',
            'bitboard_fa1h8', 'bitboard_fh1a8', 'bitboard_fhori', 'bitboard_fvert',
            'bitboard_ro000', 'bitboard_ro090', 'bitboard_ro180', 'bitboard_ro270',
@@ -1055,6 +1056,56 @@ _slide_1 = np.array([1, 7, 8, 9], dtype=np.uint8)
 _slide_2 = _slide_1 * 2
 _slide_4 = _slide_1 * 4
 
+#: The PUBLIC numba primitives: the per-lane legal-move set and the
+#: flip set of a single-bit move — the single sources of the two
+#: geometries, shared by the vectorized kernels of this module and by
+#: the numba compositions of the other modules (random_game's fused
+#: play-path engine). njit + inline='always': the compiler embeds the
+#: machine code at the call sites; the source exists once.
+@nb.njit(inline='always', cache=True)
+def legal_moves_of(mover: Bitboard, opponent: Bitboard) -> Bitboard:
+    """
+    The legal-move set of ONE position (the per-lane numba
+    primitive): the Kogge-Stone computation over the 4 directions x
+    2 senses. The single source shared by legal_moves /
+    _vectorized_legal_moves (which call it per lane) and by the
+    numba compositions.
+    """
+    empties = Bitboard(~(mover | opponent))
+
+    legal_result = Bitboard(0)
+
+    # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
+    for d in range(4):
+        # --- Directional Forward Shift (Left-style) ---
+        g = mover
+        p = opponent & _mask_l[d]
+
+        g |= p & (g << _slide_1[d])
+        p &= p << _slide_1[d]
+        g |= p & (g << _slide_2[d])
+        p &= p << _slide_2[d]
+        g |= p & (g << _slide_4[d])
+
+        # Resulting moves must be in an empty square and not be the generator itself
+        g_final = empties & _mask_l[d] & ((g & ~mover) << _slide_1[d])
+        legal_result |= g_final
+
+        # --- Directional Backward Shift (Right-style) ---
+        g = mover
+        p = opponent & _mask_r[d]
+
+        g |= p & (g >> _slide_1[d])
+        p &= p >> _slide_1[d]
+        g |= p & (g >> _slide_2[d])
+        p &= p >> _slide_2[d]
+        g |= p & (g >> _slide_4[d])
+
+        g_final = empties & _mask_r[d] & ((g & ~mover) >> _slide_1[d])
+        legal_result |= g_final
+
+    return legal_result
+
 #: Internal use function.
 @nb.njit(parallel=True, cache=True)
 def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.ndarray:
@@ -1067,42 +1118,7 @@ def _vectorized_legal_moves(movers: np.ndarray, opponents: np.ndarray) -> np.nda
 
     # Parallel loop across all board instances
     for i in nb.prange(n):
-        mover = Bitboard(movers[i])
-        opponent = Bitboard(opponents[i])
-        empties = Bitboard(~(mover | opponent))
-
-        legal_result = Bitboard(0)
-
-        # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
-        for d in range(4):
-            # --- Directional Forward Shift (Left-style) ---
-            g = mover
-            p = opponent & _mask_l[d]
-
-            g |= p & (g << _slide_1[d])
-            p &= p << _slide_1[d]
-            g |= p & (g << _slide_2[d])
-            p &= p << _slide_2[d]
-            g |= p & (g << _slide_4[d])
-
-            # Resulting moves must be in an empty square and not be the generator itself
-            g_final = empties & _mask_l[d] & ((g & ~mover) << _slide_1[d])
-            legal_result |= g_final
-
-            # --- Directional Backward Shift (Right-style) ---
-            g = mover
-            p = opponent & _mask_r[d]
-
-            g |= p & (g >> _slide_1[d])
-            p &= p >> _slide_1[d]
-            g |= p & (g >> _slide_2[d])
-            p &= p >> _slide_2[d]
-            g |= p & (g >> _slide_4[d])
-
-            g_final = empties & _mask_r[d] & ((g & ~mover) >> _slide_1[d])
-            legal_result |= g_final
-
-        results[i] = legal_result
+        results[i] = legal_moves_of(Bitboard(movers[i]), Bitboard(opponents[i]))
 
     return results
 
@@ -1224,6 +1240,16 @@ def _kogge_stone_mm(generator: Bitboard,
             accumulator |= g
 
     return Bitboard(accumulator & ~generator)
+
+@nb.njit(inline='always', cache=True)
+def flips_of_move(mover: Bitboard, opponent: Bitboard, move: Bitboard) -> Bitboard:
+    """
+    The flip set when the single-bit `move` is played by `mover`
+    against `opponent`: the Kogge-Stone flip primitive (the single
+    source of the flip geometry for the numba compositions —
+    random_game's fused play-path engine calls it per lane).
+    """
+    return _kogge_stone_mm(move, opponent, mover)
 
 #: Internal use function.
 @nb.njit(parallel=True, cache=True)
