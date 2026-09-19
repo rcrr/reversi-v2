@@ -1693,3 +1693,17 @@ D-254 | 2026-09-19 | The SU-analysis corpus regenerated: the generator version b
          data (`ctx.hlp_indexes.indexes` + `ctx.game_values`), NOT on the corpus — the corpus feeds only its ADHERENCE
          sub-report (and the FEATURE_ANALYSIS statistics); the D-253-era summary that listed EFFECT_SIZE among the
          corpus consumers was imprecise.
+
+D-255 | 2026-09-19 | The A2030 plot override replaces the depth reduction (Roberto's design: "il test che verifica i
+         PLOT, bene che faccia i plot. I due test seguenti che non verificano i PLOT ... mettiamo all'avvio del test un
+         override sulla proprieta' del config plot.enable=False ... cosi non li ricreiamo"). THE CHANGE — D-253 had
+         stopped the two non-PLOT tests at SAVE (16); now every A2030 test runs the FULL 18-level chain: the end-to-end
+         test with the plots ENABLED (it asserts them), the provenance and the determinism tests with
+         `plot.enable = False`. The override is a CONFIG FILE (a copy of rlm_04.json written in the test's temp dir, via
+         the `_config_without_plots` helper + the `_model(plots=...)` factory), NOT a mutation of `ctx.cfg` after the
+         CONFIG step: the provenance test pins `ctx.config_checksum == sha3(ctx.cfg.model_dump_json(indent=4))`, and a
+         post-CONFIG mutation would desync that identity (the checksum is computed once, at step 1). THE MEASUREMENT:
+         the class 25,250 (before any fix) -> 12,893 ms (-49%), AGAINST the 14,023 ms of the D-253 depth reduction — so
+         the override is both FASTER and STRONGER (the full chain is exercised by all three tests; the depth reduction
+         traded coverage for the same saving). The determinism test's two runs share the same config file, so the
+         embedded provenance matches too (the byte-identity assertion holds). The mirror doc follows.

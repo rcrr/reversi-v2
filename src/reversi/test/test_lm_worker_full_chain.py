@@ -46,6 +46,9 @@ import os
 import tempfile
 import shutil
 import hashlib
+import json
+
+import json5
 import re
 from types import SimpleNamespace
 
@@ -84,13 +87,15 @@ def _masked_report_hash(report_text):
 class TestFullChainA2030(unittest.TestCase):
     """Tests the full Reversi Logistic Model chain on the A2030 configuration.
 
-    Each test runs the chain to the DEPTH IT ASSERTS (D-253): the
-    end-to-end test goes to PLOT (step 18), the provenance and the
-    determinism tests stop at SAVE (step 16) — the levels 17/18
-    (CLIENT_CHECK, PLOT: ~5.1 s of matplotlib figures on the A2030
-    validation set) are covered by their own suites
-    (test_wrk_client_check, test_wrk_plot) and by the end-to-end test
-    here, so asserting nothing about them only paid their cost."""
+    Every test runs the FULL 18-level chain (D-255): the end-to-end
+    test with the plots ENABLED (it asserts them), the provenance and
+    the determinism tests with `plot.enable = False` — they assert
+    nothing about the figures, and rendering them costs ~5.1 s of
+    matplotlib on the A2030 validation set. The override lives in a
+    CONFIG FILE (a copy of rlm_04.json written in the test's temp dir):
+    mutating `ctx.cfg` AFTER the CONFIG step would desync
+    `ctx.config_checksum` from the cfg's own dump (the provenance test
+    pins exactly that identity)."""
 
     suppress_stdout_io = True
 
@@ -109,6 +114,26 @@ class TestFullChainA2030(unittest.TestCase):
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
+
+    def _config_without_plots(self):
+        """The rlm_04 config with `plot.enable = False`, written in the
+        test's temp dir (D-255): the chain still runs all 18 levels, the
+        PLOT worker just skips the rendering."""
+        raw = json5.loads(
+            (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
+             "rlm_04.json").read_text())
+        raw.setdefault("plot", {})["enable"] = False
+        path = Path(self.tmp_dir) / "rlm_04_noplot.json"
+        path.write_text(json.dumps(raw))
+        return str(path)
+
+    def _model(self, plots=True):
+        """A fresh LogisticModel on the test's temp dir, with or
+        without the plot rendering (D-255)."""
+        return LogisticModel(self.json_config if plots
+                             else self._config_without_plots(),
+                             verbosity=Verbosity.HIGH,
+                             base_dir_override=self.tmp_dir)
 
     def tearDown(self):
         if self.suppress_stdout_io:
@@ -364,11 +389,12 @@ class TestFullChainA2030(unittest.TestCase):
         model file (pinned in test_full_worker_chain) and the
         CONFIG-level fingerprint semantics survive on the embedded
         fields."""
-        # D-253: to SAVE — this test asserts the FILE's provenance (the
-        # record absence, the sidecar, the fingerprint); the
-        # CLIENT_CHECK / PLOT levels are not part of its contract.
-        self.rlm.move_to_step('SAVE')
-        ctx = self.rlm.context
+        # D-255: the FULL chain with the plots disabled — this test
+        # asserts the FILE's provenance (the record absence, the
+        # sidecar, the fingerprint) and nothing about the figures.
+        rlm = self._model(plots=False)
+        rlm.move_to_last()
+        ctx = rlm.context
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         config_path = output_path.with_suffix(".config.json")
 
@@ -397,18 +423,18 @@ class TestFullChainA2030(unittest.TestCase):
         6 cache hits (the 6 rlmwf_ cache files — the CONFIG level no
         longer writes a cache file, D-142 — all hit; the 7th file, the
         OPTIMIZE checkpoint, has its own read-back)."""
-        # D-253: to SAVE — the model file is written there and the 6
-        # cache hits happen at the cache levels; the CLIENT_CHECK /
-        # PLOT levels are not part of this test's contract.
-        self.rlm.move_to_step('SAVE')
-        output_path = self.rlm.context.cfg.base_dir / self.rlm.context.cfg.output
+        # D-255: the FULL chain with the plots disabled (this test
+        # asserts the model file's byte-identity + the cache hits, not
+        # the figures) — the SAME config file in both runs, so the
+        # embedded provenance matches too.
+        rlm = self._model(plots=False)
+        rlm.move_to_last()
+        output_path = rlm.context.cfg.base_dir / rlm.context.cfg.output
         first_hash = hashlib.sha3_256(output_path.read_bytes()).hexdigest()
 
-        rlm2 = LogisticModel(self.json_config,
-                             verbosity=Verbosity.HIGH,
-                             base_dir_override=self.tmp_dir)
+        rlm2 = self._model(plots=False)
         with patch('sys.stdout', new=StringIO()) as out2:
-            rlm2.move_to_step('SAVE')
+            rlm2.move_to_last()
         logs2 = out2.getvalue()
 
         second_hash = hashlib.sha3_256(output_path.read_bytes()).hexdigest()
