@@ -131,7 +131,7 @@ class TestWrkFeatureAnalysis(unittest.TestCase):
         self.assertTrue(any("disabled" in m for (_r, m) in ctx.events))
 
     def test_compute_and_publish(self):
-        # The tiny G0 corpus (2000, ec 20, seed 42) -> the phase-
+        # The tiny SU-analysis corpus (2000, ec 20, seed 42) -> the phase-
         # 1 tables + the phase-2 statistics + the TXT report +
         # the ctx publication.
         ctx = _make_ctx(self.tmp, 2000, enable=True)

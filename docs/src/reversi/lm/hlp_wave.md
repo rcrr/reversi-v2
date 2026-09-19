@@ -1,6 +1,6 @@
 # reversi/lm/hlp_wave.py
-The concurrent WAVE generator: the G0 corpus engine — W lanes of games in LOCKSTEP (step = one real move, the pass folds
-into the step, the double pass discards the lane), the boundary harvest + respawn, the G0 uniform pick from the single
+The concurrent WAVE generator: the corpus engine — W lanes of games in LOCKSTEP (step = one real move, the pass folds
+into the step, the double pass discards the lane), the boundary harvest + respawn, the uniform pick from the single
 global golden-pinned MT19937.
 
 ## API
@@ -8,20 +8,20 @@ global golden-pinned MT19937.
   player) E4+D5, the opponent (white) D4+E5; board.initial_game_position is the canonical source).
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays (mover/opp u64, counter i64 = the step counter, slot i64,
   alive bool) + the run bookkeeping (next_slot, steps, harvested, dead_total).
-- `step_wave_g0(state, prng) -> (move, pass_mask, dead)` — the G0 lockstep step (five full-wave vectorized calls, zero
+- `step_wave_g0(state, prng) -> (move, pass_mask, dead)` — the lockstep step (five full-wave vectorized calls, zero
   per-lane branching): the two Kogge-Stone legal passes (the pass lanes' source is the swapped side's legal set),
   `_pick_g0` (the uniform pick from the GLOBAL MT19937 stream — W draws per step via prng.get_uint64_batch, lane order),
   the make_move (the swapped source for the pass lanes), the counter walk (`~dead`). The stream state lives in the prng
   object (the class is the single public interface).
-- `run_wave_g0(total, ec_target, seed, wave_size, sink, slot_base)` — the G0 corpus run: the S = 60 - ec_target lockstep
-  steps, the boundary harvest + respawn, until the quota is met; `wave_size` is the PARALLELISM — the caller passes
-  `min(the 1e6 ceiling, total)` (wrk_feature_analysis): the lanes beyond the corpus pay allocation + glue for nothing;
-  the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
+- `run_wave_g0(total, ec_target, seed, wave_size, sink, slot_base)` — the SU-analysis corpus run: the S = 60 - ec_target
+  lockstep steps, the boundary harvest + respawn, until the quota is met; `wave_size` is the PARALLELISM — the caller
+  passes `min(the 1e6 ceiling, total)` (wrk_feature_analysis): the lanes beyond the corpus pay allocation + glue for
+  nothing; the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks (mover, opp, slot); `flatten()`).
 - `PA` — the pass move code, re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the wave
   (the pass is the source swap), it is the value the trace helpers write for a dead lane.
-- The G0 stream (the MT19937) is tools/prng.py — the single source: this module imports the MT19937 class and drives the
-  wave through `get_uint64_batch(W)` (it carries no PRNG code).
+- The wave stream (the MT19937) is tools/prng.py — the single source: this module imports the MT19937 class and drives
+  the wave through `get_uint64_batch(W)` (it carries no PRNG code).
 - `_pick_g0(draws, src) -> (move, step)` — the numba-parallel uniform pick (the HW popcount, the rank = draw % k, the
   rank-th set bit; the modulo bias < k/2^64, 12 orders below the noise floor).
 
@@ -39,22 +39,22 @@ global golden-pinned MT19937.
   @nb.njit(parallel=True, cache=True); the per-lane per-ply work (a u64) is below the thread-split threshold.
 - Sink v1: the arrested POSITIONS only (mover, opp, slot); the file writer / corpus format (the POSITIONS-step
   alignment) is the 1e7 build concern.
-- The G0 stream: a SINGLE GLOBAL MT19937 (the project's golden-pinned PRNG, the "one seed for all" pin; the class + the
-  kernels are tools/prng.py — the single source, driven through get_uint64_batch) — one draw per (lane, step) in lane
-  order, W draws per step; the pass/dead lanes' draws are CONSUMED (unused); the stream is global across waves (the run
-  is one stream). The G0 trajectory of lane g depends on the (lane, step) draw ORDER (the W=1 trajectory is the scalar
-  reference; the cross-W invariance does NOT apply to G0 by design — the trajectory is a function of the draw order, not
-  just the slot).
+- The wave stream: a SINGLE GLOBAL MT19937 (the project's golden-pinned PRNG, the "one seed for all" pin; the class +
+  the kernels are tools/prng.py — the single source, driven through get_uint64_batch) — one draw per (lane, step) in
+  lane order, W draws per step; the pass/dead lanes' draws are CONSUMED (unused); the stream is global across waves (the
+  run is one stream). The wave trajectory of lane g depends on the (lane, step) draw ORDER (the W=1 trajectory is the
+  scalar reference; the cross-W invariance does NOT apply to the wave by design — the trajectory is a function of the
+  draw order, not just the slot).
 
 ## Verified invariants
-- G0: the batch draw (the class get_uint64_batch) vs the golden-pinned reference PRNG — bit-exact (2000 draws + the
-  twist across the 312-word boundary + the continuation).
-- G0: the W=1 trajectory vs the scalar G0 reference loop (the same stream discipline — one draw per step, the pass
-  folded into the step, the dead lane's draw consumed): the moves + the final position bit-exact (seed 23, ec 50, the
-  pinned literals).
-- G0: the run integrity + the determinism — 1000 games (W=250, ec=20): the quota, the unique slots, every harvested
-  position at EXACTLY ec 20; the same seed + slot_base replays bit-exactly (the second run identical mover/opp/slot); a
-  different seed changes the harvest (the stream is consumed).
+- The batch draw (the class get_uint64_batch) vs the golden-pinned reference PRNG — bit-exact (2000 draws + the twist
+  across the 312-word boundary + the continuation).
+- the W=1 trajectory vs the scalar reference loop (the same stream discipline — one draw per step, the pass folded into
+  the step, the dead lane's draw consumed): the moves + the final position bit-exact (seed 23, ec 50, the pinned
+  literals).
+- the run integrity + the determinism — 1000 games (W=250, ec=20): the quota, the unique slots, every harvested position
+  at EXACTLY ec 20; the same seed + slot_base replays bit-exactly (the second run identical mover/opp/slot); a different
+  seed changes the harvest (the stream is consumed).
 - The LONG benchmark: 1e6 games (W=1e6, ec=20) in 5.3 s (188k games/s): 2 waves, 36195 dead lanes absorbed by the
   respawn path, exactly 1e6 harvested. The 1e7 extrapolation ≈ 50 s.
 

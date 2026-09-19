@@ -27,7 +27,7 @@
 
 """
 The FEATURE_ANALYSIS worker (the I-017, the SU level, step 3,
-D-186): the corpus generator + the statistics. The D-174 G0
+D-186): the corpus generator + the statistics. The D-174 wave
 corpus (the PRNG seed, the ec arrest, the wave tier) is CACHED
 (phase 1, the expensive part) — the first cache level whose
 consistency signature carries the feature_set hash INSTEAD of
@@ -56,7 +56,7 @@ from reversi.tools.state_machine import Worker, Relevance
 from reversi.tools.cache_manager import cache_manager_load_or_compute
 from reversi.lm.hlp_random_play import (
     JointAccumulator, MarginalAccumulator)
-from reversi.lm.hlp_wave import BufferSink, run_wave_g0
+from reversi.lm.hlp_wave import BufferSink, run_wave
 from reversi.lm.hlp_feature_analysis import (
     dispersion, entropy, mutual_information, never_observed_audit,
     symmetric_uncertainty)
@@ -67,7 +67,7 @@ if TYPE_CHECKING:
 
 __all__ = ['wrk_feature_analysis']
 
-# The G0 wave size CEILING (the 1e6 benchmark default) + the
+# The wave size CEILING (the 1e6 benchmark default) + the
 # generator / the PRNG version pins (the cache consistency
 # signature, P5). The wave is the PARALLELISM: the actual size is
 # min(this, the corpus size), because the lanes beyond the corpus
@@ -80,8 +80,8 @@ _WAVE_SIZE = 1_000_000
 # initial position (the pre-D-192 roles: the mover D4+E5 instead of
 # the official E4+D5) — every cache written under it is STALE and
 # must be regenerated. "su-corpus-2" is the official start (the D-192
-# fix) + the neutral name (the G0/G1 distinction is dead: G1 was
-# buried at D-191). A version bump invalidates every cached corpus,
+# fix) + the neutral name (the old two-variant naming is dead: the
+# table-pick variant was buried at D-191). A version bump invalidates every cached corpus,
 # which is exactly the point: the signature exists so that a change
 # of the generator's behaviour can never be reused silently.
 _GENERATOR_VERSION = "su-corpus-2"
@@ -132,7 +132,7 @@ def _signature(ctx) -> dict:
 
 
 def _compute_tables(ctx) -> dict:
-    """Phase 1 — the corpus (the expensive part): the G0
+    """Phase 1 — the corpus (the expensive part): the SU-analysis corpus
     generator (the PRNG seed, the ec arrest, the wave
     semantics) + the streaming accumulation (the marginal + the
     joint for the requested pairs)."""
@@ -143,13 +143,13 @@ def _compute_tables(ctx) -> dict:
     ctx.log_event(Relevance.INFO,
                   f"Generating the FEATURE_ANALYSIS corpus: "
                   f"[TOTAL: {corpus.total_positions:,}], [EC: {corpus.ec}], "
-                  f"[SEED: {corpus.seed}], the G0 wave tier.")
+                  f"[SEED: {corpus.seed}], the wave tier.")
     sink = BufferSink()
     # The wave size is capped by the corpus: a smaller corpus needs
     # fewer lanes (every game is its own lane in one wave), and the
     # lanes beyond it only pay allocation + glue.
     wave_size = min(_WAVE_SIZE, corpus.total_positions)
-    info = run_wave_g0(corpus.total_positions, corpus.ec,
+    info = run_wave(corpus.total_positions, corpus.ec,
                        corpus.seed, wave_size, sink)
     mover, opp, _ = sink.flatten()
     marg = MarginalAccumulator(fset, blocks)

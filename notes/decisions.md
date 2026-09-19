@@ -1729,3 +1729,21 @@ D-256 | 2026-09-19 | P3: the VVLONG tier + the 1e7 corpus test (Roberto: "fai en
          two Suite cells (the wave 3/0/1 with VVLONG 4/0/0, the feature-analysis 8/0/0 with VLONG 9/0/0), the runner
          header, the rules.md bullet, the three test mirrors. VERIFICATION: the default tier green, the LONG tier green
          (920/0/23), the VLONG 1e7 test green on its own.
+
+D-257 | 2026-09-19 | P1: the "SU-analysis corpus" naming — G0 is gone (Roberto: "Visto che G0 e' stato coniato per
+         distinguersi gergalmente da g1, che poi e' DECADUTO, oggi G0 non si deve distinguere da NULLA ... Chiamiamolo
+         'corpus per analisi SU' e basta senza G0 per favore"). (1) THE CONCEPT — everywhere in the live code, the docs
+         and the overview the corpus is now "the SU-analysis corpus" (or simply "the corpus" where the context is
+         clear); the wave's internals lose the G0 qualifier too ("the wave stream", "the uniform pick", "the lockstep
+         step", "the wave engine", "the wave trajectory"). (2) THE IDENTIFIERS (23 substitutions, 5 files) —
+         `run_wave_g0` -> `run_wave`, `step_wave_g0` -> `step_wave`, `_pick_g0` -> `_pick_wave`, the test method
+         `test_1e6_g0_wall_clock` -> `test_1e6_wave_wall_clock`, the class `TestG0Engine` -> `TestWaveEngine`. The names
+         `run_wave` / `step_wave` / `_pick_wave` were FREED by the D-191 burial of the table-pick variant, so the
+         surviving engine takes them back: the code now says what it IS. (3) THE PROSE (54 + 17 substitutions, 16 files)
+         — the code comments and docstrings, the mirror docs, the probes (verify_logistic_model's pipeline-state
+         comment), the overview. NOT touched: the historical records (decisions/journal/analyses are append-only: they
+         keep the G0/G1 vocabulary of their time) and the local `g0` variables of hlp_gradient / test_pattern /
+         verify_gradient (a gradient accumulator, a pattern name — unrelated). (4) NO SIGNATURE BUMP — a rename does not
+         change the corpus bytes, so the cache signature stays `su-corpus-2` (D-254) and nothing regenerates.
+         VERIFICATION: the affected modules green, the full LONG tier green, the probe sweep green. The name now carries
+         the PURPOSE (the statistical base for the SU analysis) instead of a dead gergal distinction.

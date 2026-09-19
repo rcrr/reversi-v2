@@ -1,14 +1,14 @@
 # reversi/test/test_wrk_feature_analysis.py
 The NO-DB suite of the FEATURE_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the
-compute + the publish (the tiny G0 corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the
-signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 1 class /
-8 tests / no database (the mock ctx, the tiny corpus).
+compute + the publish (the tiny SU-analysis corpus, the phase-2 statistics, the TXT report), the cache hit (the second
+run), the signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery).
+1 class / 8 tests / no database (the mock ctx, the tiny corpus).
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestWrkFeatureAnalysis` | 8 | `test_factory` (the worker factory: the FEATURE_ANALYSIS name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position G0 corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the recovery: the down clears the tables) |
+| `TestWrkFeatureAnalysis` | 8 | `test_factory` (the worker factory: the FEATURE_ANALYSIS name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position SU-analysis corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the recovery: the down clears the tables) |
 
 ## Goldens pinned
 

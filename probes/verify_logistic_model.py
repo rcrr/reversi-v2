@@ -59,7 +59,7 @@
 # V3c list is re-pinned (count 17 unchanged); the other checks are
 # unchanged.
 # D-186/D-187 state (2026-09-13): I-017 realized (the I-017 T16/T17
-# workers): the FEATURE_ANALYSIS (step 3, the G0 corpus cache, the
+# workers): the FEATURE_ANALYSIS (step 3, the SU-analysis corpus cache, the
 # rlmwf_03 slot) sits between FEATURES and POSITIONS; the EFFECT_SIZE
 # (step 6, the eta^2/omega^2 + the adherence, NO cache) sits between
 # INDEXES and WMAPS. The V3c list is re-pinned 17 -> 19 (the 18 active

@@ -76,7 +76,7 @@ THE HOT STEP (all full-wave, uniform):
     lo = legal_moves(O, M)             (the pass lanes' source)
     pass_mask = (lm == 0)
     dead      = pass_mask & (lo == 0)  (the double pass)
-    move      = _pick_g0(draws, where(pass_mask, lo, lm))
+    move      = _pick_wave(draws, where(pass_mask, lo, lm))
     move      = where(dead, PA, move)   (the dead lanes ride
                                          the documented
                                          swap)
@@ -102,7 +102,7 @@ from reversi.tools.prng import MT19937
 
 __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
            'WaveState', 'BufferSink', 'make_wave',
-           'step_wave_g0', 'run_wave_g0']
+           'step_wave', 'run_wave']
 
 #: The standard start (the official Othello setup —
 #: board.initial_game_position is the canonical
@@ -120,7 +120,7 @@ PA: np.uint8 = MOVE_PA
 #: The maximum initial ec (64 squares - 4 start stones).
 MAX_EC: int = 60
 
-# The G0 stream (the single global golden-pinned MT19937)
+# The wave stream (the single global golden-pinned MT19937)
 # lives in tools/prng.py — the SINGLE SOURCE (the D-194
 # move): the MT19937 class is the single public interface
 # (the D-195) — its get_uint64_batch drives the wave.
@@ -175,16 +175,16 @@ def make_wave(W: int, slot_base: int = 0) -> WaveState:
 
 
 # ---------------------------------------------------------------------
-# The G0 pick (D-174 — the corpus generator; the bit-verified
-# kernel, the D-173 gate origin). The G0 stream (the MT19937
+# The uniform pick (D-174 — the corpus generator; the bit-verified
+# kernel, the D-173 gate origin). The wave stream (the MT19937
 # init + the batch draw) is tools/prng.py — the single source
 # (the D-194 move).
 # ---------------------------------------------------------------------
 
 
 @nb.njit(parallel=True, cache=True)
-def _pick_g0(draws, src):
-    """The G0 uniform pick: rank = draw % k (the modulo
+def _pick_wave(draws, src):
+    """The uniform pick: rank = draw % k (the modulo
     bias < k/2^64, 12 orders below the noise floor);
     k == 0 -> (PA, no step). The HW popcount (numba has no
     .bit_count on uint64)."""
@@ -216,10 +216,10 @@ def _pick_g0(draws, src):
     return move, step
 
 
-def step_wave_g0(state: WaveState, prng: MT19937
+def step_wave(state: WaveState, prng: MT19937
                  ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    One lockstep step, the G0 uniform pick (D-174): the
+    One lockstep step, the uniform pick (D-174): the
     SAME step logic (the pass folded, the
     double-pass coast, the counter walk) with the pick
     from the GLOBAL MT19937 stream — W draws per step
@@ -236,9 +236,9 @@ def step_wave_g0(state: WaveState, prng: MT19937
     dead = pass_mask & (lo == 0)
     src = np.where(pass_mask, lo, lm)
     draws = prng.get_uint64_batch(state.W)
-    move, _ = _pick_g0(draws, src)
+    move, _ = _pick_wave(draws, src)
     # The dead lanes ride the PA SWAP (the documented
-    # kernel behaviour — the same rationale as the G0 step).
+    # kernel behaviour — the same rationale as the wave step).
     move = np.where(dead, np.uint8(PA), move)
     swapped = pass_mask & ~dead
     out = position_make_move(
@@ -314,12 +314,12 @@ class BufferSink:
                 np.concatenate([c[2] for c in self.chunks]))
 
 
-def run_wave_g0(total: int, ec_target: int, seed: int,
+def run_wave(total: int, ec_target: int, seed: int,
                 wave_size: int, sink: BufferSink,
                 slot_base: int = 0) -> dict:
     """
-    The G0 corpus generator (D-174): the same lockstep
-    waves, the G0 uniform pick on the GLOBAL MT19937
+    The SU-analysis corpus generator (D-174): the same lockstep
+    waves, the uniform pick on the GLOBAL MT19937
     stream (one seed, the "one for the JSON" pin — the
     stream is global across waves: the (wave, step, lane)
     draw order). Deterministic in (seed, slot_base): the
@@ -340,7 +340,7 @@ def run_wave_g0(total: int, ec_target: int, seed: int,
     waves = 0
     while state.harvested < total:
         for _ in range(steps_per_wave):
-            step_wave_g0(state, prng)
+            step_wave(state, prng)
         _harvest_and_respawn(state, sink, int(total))
         waves += 1
     return {'harvested': state.harvested, 'waves': waves,

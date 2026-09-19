@@ -44,7 +44,7 @@ The FEATURE_ANALYSIS frequency data plane (the I-017 T7/T8,
 D-177/D-178) NO-DB micro-suite: the ec formula pin (the D-177
 window constraint), the initial position (the 4-stone start),
 the marginal + the joint accumulators (the streaming frequency
-accumulation over the corpus, the G0 wave fed chunk-by-chunk).
+accumulation over the corpus, the wave fed chunk-by-chunk).
 """
 
 import unittest
@@ -56,7 +56,7 @@ from reversi.board import (make_position, move_from_str,
 from reversi.feature import Feature, FeatureSet
 from reversi.lm.hlp_random_play import (
     JointAccumulator, MarginalAccumulator, ec_of, initial_position)
-from reversi.lm.hlp_wave import BufferSink, run_wave_g0
+from reversi.lm.hlp_wave import BufferSink, run_wave
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
 
@@ -150,7 +150,7 @@ class TestMarginalAccumulator(unittest.TestCase):
     @staticmethod
     def _toy_corpus(n=300, ec=20, seed=7):
         sink = BufferSink()
-        run_wave_g0(n, ec, seed, n, sink)
+        run_wave(n, ec, seed, n, sink)
         M, O, _ = sink.flatten()
         return M, O
 
@@ -348,14 +348,14 @@ class TestPrngIntegration(unittest.TestCase):
         blocks = self._blocks()
         acc = MarginalAccumulator(fset, blocks)
         sink = BufferSink()
-        run_wave_g0(n, ec, seed, n, sink)
+        run_wave(n, ec, seed, n, sink)
         M, O, _ = sink.flatten()
         acc.add(M, O)
         return acc.result()
 
     def test_corpus_reproducibility(self):
         # Same seed -> the SAME frequency tables (bit-exact); the
-        # different seed -> different. The G0 wave re-initializes
+        # different seed -> different. The wave re-initializes
         # the golden-pinned MT19937 per call (the seed is the
         # corpus seed).
         r1 = self._gen_and_accum(5000, 20, 42)
@@ -370,7 +370,7 @@ class TestPrngIntegration(unittest.TestCase):
         self.assertFalse(same_as_43)
 
     def test_small_end_to_end_marginals(self):
-        # The small end-to-end corpus (the G0 wave -> the
+        # The small end-to-end corpus (the wave -> the
         # accumulator): every sub-variable's sum == N, K_obs <=
         # n_conf, and the LMC marginal hand-checked against the
         # INDEPENDENT oracle (position_legal_moves, NOT
@@ -379,7 +379,7 @@ class TestPrngIntegration(unittest.TestCase):
         fset = self._fset()
         blocks = self._blocks()
         sink = BufferSink()
-        run_wave_g0(n, ec, seed, n, sink)
+        run_wave(n, ec, seed, n, sink)
         M, O, _ = sink.flatten()
         acc = MarginalAccumulator(fset, blocks)
         acc.add(M, O)

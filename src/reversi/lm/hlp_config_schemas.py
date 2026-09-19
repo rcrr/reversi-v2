@@ -158,7 +158,7 @@ class PlotConfig(LMBaseConfig):
 class CorpusConfig(LMBaseConfig):
     """
     Configuration for the FEATURE_ANALYSIS corpus (the I-017,
-    the G0 corpus generator, D-174): the MT19937 seed, the total
+    the SU-analysis corpus generator, D-174): the MT19937 seed, the total
     positions, and the ec arrest rule (the empty_count window
     constraint, the design section 2.1 — the "mele con mele"
     window, the same ec the DB extraction uses).

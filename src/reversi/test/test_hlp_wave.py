@@ -45,10 +45,10 @@
 
 """
 The concurrent WAVE generator (the I-017 T5, the D-174
-corpus generator) NO-DB micro-suite: the G0 engine (the
+corpus generator) NO-DB micro-suite: the wave engine (the
 MT19937 batch draw vs the T3 reference, the W=1 trajectory
 vs the scalar, the run integrity + determinism) + the
-G0 1e6 benchmark.
+the 1e6 benchmark.
 """
 
 import os
@@ -61,12 +61,12 @@ from reversi.board import (make_position, position_legal_moves,
                            position_make_move)
 from reversi.lm.hlp_wave import (BufferSink, INITIAL_MOVER, INITIAL_OPP,
                                   MAX_EC, make_wave,
-                                  run_wave_g0, step_wave_g0)
+                                  run_wave, step_wave)
 from reversi.tools.prng import MT19937
 from reversi.test.tags import tier_vvlong
 
-class TestG0Engine(unittest.TestCase):
-    """The G0 uniform engine (D-174 — the I-017 corpus
+class TestWaveEngine(unittest.TestCase):
+    """The uniform engine (D-174 — the I-017 corpus
     generator, the D-173 gate verdict's design call)."""
 
     def test_batch_matches_reference(self):
@@ -98,7 +98,7 @@ class TestG0Engine(unittest.TestCase):
         return square
 
     def test_w1_trajectory_vs_scalar(self):
-        # The W=1 G0 wave vs the scalar G0 reference loop
+        # The W=1 wave vs the scalar reference loop
         # (the same stream discipline: one draw per step,
         # the pass folded into the step — the pass lane's
         # move from the swapped side, the dead lane's draw
@@ -131,18 +131,18 @@ class TestG0Engine(unittest.TestCase):
                                    np.uint8(pick))
             m, o = int(p['mover']), int(p['opponent'])
             seq.append(pick)
-        # the G0 wave (W=1, the same seed, the same ec) —
+        # the wave (W=1, the same seed, the same ec) —
         # the stream lives in the class (the D-195).
         state = make_wave(1, 0)
         prng = MT19937(seed)
         wave_seq = []
         for _ in range(S):
-            move, _, dead = step_wave_g0(state, prng)
+            move, _, dead = step_wave(state, prng)
             if bool(dead[0]):
                 break
             wave_seq.append(int(move[0]))
         self.assertEqual(wave_seq, seq,
-                         "the W=1 G0 wave deviates from the "
+                         "the W=1 wave deviates from the "
                          "scalar reference (the stream "
                          "discipline or the pick)")
         self.assertEqual(int(state.mover[0]), int(m))
@@ -155,7 +155,7 @@ class TestG0Engine(unittest.TestCase):
         # determinism (the same seed + slot_base replays
         # bit-exactly).
         sink = BufferSink()
-        info = run_wave_g0(1000, 20, 42, 250, sink)
+        info = run_wave(1000, 20, 42, 250, sink)
         self.assertEqual(info['harvested'], 1000)
         M, O, slot = sink.flatten()
         self.assertEqual(slot.size, 1000)
@@ -169,7 +169,7 @@ class TestG0Engine(unittest.TestCase):
         # the determinism: the second identical run
         # (same seed, same slot_base) replays bit-exactly.
         sink2 = BufferSink()
-        run_wave_g0(1000, 20, 42, 250, sink2)
+        run_wave(1000, 20, 42, 250, sink2)
         M2, O2, slot2 = sink2.flatten()
         np.testing.assert_array_equal(M, M2)
         np.testing.assert_array_equal(O, O2)
@@ -177,7 +177,7 @@ class TestG0Engine(unittest.TestCase):
         # a different seed changes the stream (the harvest
         # differs — the guard against a frozen generator).
         sink3 = BufferSink()
-        run_wave_g0(1000, 20, 43, 250, sink3)
+        run_wave(1000, 20, 43, 250, sink3)
         M3, _, _ = sink3.flatten()
         self.assertFalse(np.array_equal(M, M3),
                          "seed 43 == seed 42 harvest: the "
@@ -193,19 +193,19 @@ class TestBenchmark(unittest.TestCase):
     the printed wall time is the deliverable; the assertion
     is a generous order-of-magnitude guard."""
 
-    def test_1e6_g0_wall_clock(self):
-        # The G0 corpus engine (D-174) at the gate scale:
+    def test_1e6_wave_wall_clock(self):
+        # The corpus engine (D-174) at the gate scale:
         # the 1e6 target, ec=20, seed 42.
         sink = BufferSink()
         t0 = time.time()
-        info = run_wave_g0(1_000_000, 20, 42, 1_000_000, sink)
+        info = run_wave(1_000_000, 20, 42, 1_000_000, sink)
         dt = time.time() - t0
-        print(f"\n[benchmark] 1e6 G0 games (W=1e6, ec=20, "
+        print(f"\n[benchmark] 1e6 wave games (W=1e6, ec=20, "
               f"seed 42): {dt:.1f}s — {1e6 / dt:.0f} games/s"
               f" — waves={info['waves']} dead={info['dead']}"
               f" harvested={info['harvested']}")
         self.assertLess(dt, 600.0,
-                        "the 1e6 G0 run exceeded the 10-min "
+                        "the 1e6 run exceeded the 10-min "
                         "guard")
 
 
