@@ -23,6 +23,8 @@ Run from the workspace root:  .venv/bin/python probes/verify_plot.py
 """
 import hashlib
 import sys
+import atexit
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -75,6 +77,8 @@ d = PlotData(
     vld_gv=(rng.integers(-32, 33, size=n) * 2).astype(np.float64))
 
 tmp = Path(tempfile.mkdtemp(dir=str(WS / "build" / "tmp")))
+# the probe artifacts are removed afterwards (probe_rules §2)
+atexit.register(lambda: shutil.rmtree(tmp, ignore_errors=True))
 ok_render, sizes, hashes = True, {}, {}
 for name in PLOT_NAMES:
     fig = PLOT_BUILDERS[name](d, "VERIFY_PLOT")

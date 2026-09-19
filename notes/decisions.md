@@ -1613,3 +1613,18 @@ D-250 | 2026-09-19 | measure_suite.py moves to tools/ (Roberto: "Metti probes/me
          and (b) the ad-hoc `tempfile.mkdtemp` snippets used for the empirical ground truth (the slot discovery, the
          cache-file listings). No test defect: build/tmp is empty again, and every artifact there is regenerable on
          demand.
+
+D-251 | 2026-09-19 | The build/tmp leak: three probes cleaned (Roberto: "Controlla anche build/tmp dovrebbe essere vuota
+         ma non lo e'"). THE INVESTIGATION, in two rounds: the 23 leftover dirs (70 MB) were attributed FIRST to the
+         interrupted runs (a SIGTERM-killed process never runs its tearDown) and to the ad-hoc `mkdtemp` snippets used
+         for the empirical ground truth — verified, not assumed: the chain suite re-run leaves 23 -> 23 dirs, so the
+         TESTS clean up. But a clean SWEEP left 3 dirs again, and THAT was the real defect: `verify_cache_manager.py`,
+         `verify_plot.py` and `verify_save.py` create their temp dir with `tempfile.mkdtemp` and NEVER remove it — a
+         violation of probe_rules §2 ("probe artifacts go under build/tmp and are removed afterwards, like test
+         artifacts"), invisible until someone looks at the directory. THE FIX: the house idiom of
+         `verify_hlp_indexes.py` — an `atexit.register(lambda: shutil.rmtree(tmp, ignore_errors=True))` right after the
+         mkdtemp (the hook fires on a normal exit AND on a check failure; a SIGKILL remains uncatchable, which is why
+         the interrupted-run leftovers are expected and are cleaned by hand). VERIFICATION: the three probes are green
+         and leave build/tmp EMPTY; the full sweep (21 probes) is green and leaves build/tmp EMPTY. The
+         `measure_suite.py` and `suite_audit.py` artifacts (the tools' deliverables) are regenerable on demand and were
+         removed too. No test defect, no probe count change: a maintenance fix to the apparatus.

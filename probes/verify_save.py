@@ -14,6 +14,8 @@ Run: .venv/bin/python scratch/verify_save.py [LONG]
 import os
 import re
 import sys
+import atexit
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -116,6 +118,7 @@ def _chain(fixture, name_prefix):
     from reversi.lm.logistic_model import LogisticModel
     with patch('sys.stdout', new=StringIO()) as out:
         tmp = tempfile.mkdtemp(dir=str(SRC.parent / 'build' / 'tmp'))
+        atexit.register(lambda: shutil.rmtree(tmp, ignore_errors=True))
         rlm = LogisticModel(str(SRC / 'reversi' / 'test' / 'data' / fixture),
                             verbosity=Verbosity.HIGH, base_dir_override=tmp)
         rlm.move_to_last()

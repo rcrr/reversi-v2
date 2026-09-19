@@ -3,6 +3,8 @@
 # Run: .venv/bin/python scratch/verify_cache_manager.py
 from __future__ import annotations
 
+import atexit
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -17,6 +19,9 @@ from reversi.tools.binio import write_sha3_256_sidecar
 from reversi.tools.state_machine import Relevance
 
 TMP = Path(tempfile.mkdtemp(dir="build/tmp"))
+# the probe artifacts are removed afterwards (probe_rules §2), also when a
+# check fails mid-run: the atexit hook is the house idiom
+atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 FAILS = []
 
 
