@@ -46,7 +46,7 @@ from pydantic import validate_call, ConfigDict, BeforeValidator, SkipValidation
 __all__ = ['Square', 'SquareArray',
            'square_from_str', 'square_to_str', 'square_as_bitboard',
            'square_validate_range',
-           'Move', 'MoveArray',
+           'Move', 'MoveArray', 'MOVE_PA', 'MOVE_NA', 'MOVE_UN',
            'move_from_str', 'move_to_str', 'move_as_bitboard',
            'move_validate_range',
            'Bitboard', 'BitboardArray',
@@ -109,6 +109,13 @@ Move: TypeAlias = np.uint8
 __move_names__ = __square_names__ + ['PA', 'NA', 'UN']
 
 __move_max_value__ = len(__move_names__)
+
+#: The non-square move codes (the domain vocabulary): PA = pass, NA = not
+#: available, UN = unknown. They sit above the square codes, in the order of
+#: `__move_names__`.
+MOVE_PA: Move = Move(64)
+MOVE_NA: Move = Move(65)
+MOVE_UN: Move = Move(66)
 
 # A Pydantic-compatible type hint for Move (np.uint8) arrays.
 MoveArray = Annotated[npt.NDArray[np.uint8], BeforeValidator(validate_square_array)]
@@ -261,7 +268,8 @@ def move_as_bitboard(mo: Move) -> Bitboard:
     """
     # NumPy defines integer shifts by an amount >= the bit width as 0
     # (documented NumPy semantics; verified on NumPy 2.5.2), so the
-    # non-square codes (64 PA, 65 NA, 66 UN) wrap to the empty bitboard.
+    # non-square codes (MOVE_PA / MOVE_NA / MOVE_UN) wrap to the empty
+    # bitboard.
     return Bitboard(Bitboard(1) << mo)
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -1201,7 +1209,7 @@ def position_legal_moves_count(p: PositionField) -> int:
 #: interleaved buffer, zero-copy view). The scalar path keeps its
 #: pre-vectorization behaviour bit-for-bit; the former banner note
 #: ("PASS as a special case") is resolved per-element inside the
-#: make_move kernel (move == 64 -> the player swap, no filter needed).
+#: make_move kernel (move == MOVE_PA -> the player swap, no filter needed).
 
 _mm_mask = np.array([
     _all_squares_except_column_a,
@@ -1394,7 +1402,7 @@ def _vectorized_make_move(movers: np.ndarray, opponents: np.ndarray, moves: np.n
         mover = Bitboard(movers[i])
         opponent = Bitboard(opponents[i])
         move = moves[i]
-        if move == 64:
+        if move == MOVE_PA:
             # PASS: swap the players.
             flips[i] = Bitboard(0)
             out_movers[i] = opponent
@@ -1452,16 +1460,16 @@ def position_make_move(p: PositionField | PositionArray,
             raise ValueError(f"When the argument move is an array, it must be 1D, got shape {move.shape}")
         if p.shape != move.shape:
             raise ValueError("The shapes of p and move arrays must be the same.")
-        if (move > 64).any():
-            raise ValueError("All moves in the array must be in the range [0..64].")
+        if (move > MOVE_PA).any():
+            raise ValueError(f"All moves in the array must be in the range [0..{int(MOVE_PA)}].")
         _, out_movers, out_opponents = _vectorized_make_move(p['mover'], p['opponent'], move)
         return make_position(out_movers, out_opponents)
     if isinstance(p, np.void) and isinstance(move, np.uint8):
         # Scalar path: the pre-vectorization behaviour, unchanged.
-        if move == 64: # PASS
+        if move == MOVE_PA: # PASS
             return make_position(p['opponent'], p['mover'])
-        if move > 64:
-            raise ValueError(f"Argument move {int(move)} is out of range [0..64]")
+        if move > MOVE_PA:
+            raise ValueError(f"Argument move {int(move)} is out of range [0..{int(MOVE_PA)}]")
         m = move_as_bitboard(move)
         _, updated = position_flips(p, m)
         return updated
@@ -1498,7 +1506,7 @@ def position_final_value(p: PositionField) -> int:
     oc = bitboard_count(p['opponent'])
     diff = int(mc) - int(oc)
     if diff == 0: return 0
-    ec = 64 - int(mc + oc)
+    ec = __square_max_value__ - int(mc + oc)
     if diff > 0:
         delta = diff + ec
     else:
@@ -1533,9 +1541,9 @@ def position_is_move_legal(p: PositionField, move: Move) -> bool:
     """
     Returns true if the move is legal.
     """
-    if move > 64: return False
+    if move > MOVE_PA: return False
     lms = position_legal_moves(p)
-    if move == 64: # Pass move
+    if move == MOVE_PA: # Pass move
         if lms == 0x0000000000000000:
             return True
         else:

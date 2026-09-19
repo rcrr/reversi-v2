@@ -50,7 +50,7 @@ import numpy.testing as nptest
 from pydantic import ValidationError
 
 from reversi.tools.prng import MT19937
-from reversi.board import (Move, square_to_str, move_to_str,
+from reversi.board import (MOVE_PA, Move, square_to_str, move_to_str,
                            Bitboard, Position, PositionField,
                            bitboard_to_square_list, bitboard_from_signed_int,
                            bitboard_to_signed_int,
@@ -594,7 +594,7 @@ class TestRandomGameChooseMoveEC20(unittest.TestCase):
 
                 idx: int = bitboard_bsr(move_as_bitboard)
                 if idx == -1:
-                    move = Move(64) # Pass move
+                    move = MOVE_PA # Pass move
                 else:
                     move = Move(idx)
                 move_as_str = move_to_str(move)

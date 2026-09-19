@@ -17,6 +17,8 @@ global golden-pinned MT19937.
   steps, the boundary harvest + respawn, until the quota is met; the stream is GLOBAL across waves (the (wave, step,
   lane) draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks (mover, opp, slot); `flatten()`).
+- `PA` — the pass move code, re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the wave
+  (the pass is the source swap), it is the value the trace helpers write for a dead lane.
 - The G0 stream (the MT19937) is tools/prng.py — the single source: this module imports the MT19937 class and drives the
   wave through `get_uint64_batch(W)` (it carries no PRNG code).
 - `_pick_g0(draws, src) -> (move, step)` — the numba-parallel uniform pick (the HW popcount, the rank = draw % k, the

@@ -34,7 +34,7 @@ from typing import Tuple, Annotated
 from pydantic import validate_call, ConfigDict, Field
 
 from reversi.tools.prng import MT19937, pick_one_from_set64, pick_one_from_set64_batch
-from reversi.board import (Bitboard, BitboardArray, Move, MoveArray,
+from reversi.board import (MOVE_PA, Bitboard, BitboardArray, Move, MoveArray,
                            PositionField, PositionArray, bitboard_bsr,
                            bitboard_count, flips_of_move, legal_moves_of,
                            make_position, position_flips,
@@ -125,7 +125,7 @@ def random_game_make_move(p: PositionField | PositionArray,
         move_bb: Bitboard = random_game_choose_move(p, prng)
         _, new_p = position_flips(p, move_bb)
         idx: int = bitboard_bsr(move_bb)
-        move: Move = Move(64) if idx == -1 else Move(idx)
+        move: Move = MOVE_PA if idx == -1 else Move(idx)
         return new_p, move
     raise TypeError("Input must be a Position scalar or a Position array.")
 
@@ -338,15 +338,14 @@ def random_game_play_path(p: PositionField | PositionArray,
             raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
         return _play_path_engine(p, np.uint8(target_ec), prng)
     if isinstance(p, np.void):
-        PASS_MOVE = Move(64)
         ec = position_empty_count(p)
 
         while (ec > target_ec):
             p, move = random_game_make_move(p, prng)
             ec = position_empty_count(p)
-            if move == PASS_MOVE:
+            if move == MOVE_PA:
                 p, move = random_game_make_move(p, prng)
-                if move == PASS_MOVE:
+                if move == MOVE_PA:
                     break
 
         return p, ec

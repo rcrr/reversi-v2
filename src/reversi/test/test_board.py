@@ -199,6 +199,17 @@ class TestMove(unittest.TestCase):
         with self.assertRaises(OverflowError):
             moves = np.array([0, 1, 256], dtype=Move)
 
+    def test_move_constants(self):
+        # The named constants are the LITERAL pins (the independent anchor:
+        # the rest of the suite uses the names, so a typo in a constant would
+        # otherwise go unnoticed) and the bridge to the string vocabulary.
+        self.assertEqual(MOVE_PA, Move(64))
+        self.assertEqual(MOVE_NA, Move(65))
+        self.assertEqual(MOVE_UN, Move(66))
+        self.assertEqual(MOVE_PA, move_from_str('PA'))
+        self.assertEqual(MOVE_NA, move_from_str('NA'))
+        self.assertEqual(MOVE_UN, move_from_str('UN'))
+
     def test_move_from_string(self):
         self.assertEqual(Move(0), move_from_str('A1'))
         self.assertEqual(Move(1), move_from_str('B1'))
@@ -220,7 +231,7 @@ class TestMove(unittest.TestCase):
             self.assertIn("Invalid name: '{}'".format(name), str(ctx.exception))
 
     def test_move_to_str(self):
-        mo = Move(64)
+        mo = MOVE_PA
         mo_as_str = move_to_str(mo)
         self.assertEqual(mo_as_str, 'PA')
 
@@ -231,10 +242,10 @@ class TestMove(unittest.TestCase):
         mo = Move(63)
         expected = Bitboard(0x8000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
-        # PA/NA/UN (codes 64-66) are not squares: move_as_bitboard computes
-        # Bitboard(1) << mo, and NumPy wraps a uint64 shift by >= 64 to 0.
-        # These assertions pin that wrap as-is; making it explicit in the
-        # code is open decision R3 (docs/src/reversi/board.md, I-003).
+        # The non-square codes (MOVE_PA / MOVE_NA / MOVE_UN) are not squares:
+        # move_as_bitboard computes Bitboard(1) << mo, and NumPy wraps a
+        # uint64 shift by >= 64 to 0. These assertions pin that wrap as-is
+        # (the behaviour is documented in the move_as_bitboard comment).
         mo = move_from_str('PA')
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
@@ -2489,7 +2500,7 @@ class TestPositionMakeMove(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         position = make_position(mover, opponent)
-        move = Move(65)
+        move = MOVE_NA
         with self.assertRaises(ValueError):
             position_make_move(position, move)
 

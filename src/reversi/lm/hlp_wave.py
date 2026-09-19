@@ -97,7 +97,7 @@ from __future__ import annotations
 import numpy as np
 import numba as nb
 
-from reversi.board import legal_moves, make_position, position_make_move
+from reversi.board import MOVE_PA, legal_moves, make_position, position_make_move
 from reversi.tools.prng import MT19937
 
 __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
@@ -112,10 +112,10 @@ __all__ = ['INITIAL_MOVER', 'INITIAL_OPP', 'PA', 'MAX_EC',
 INITIAL_MOVER: np.uint64 = np.uint64(0x0000000810000000)
 INITIAL_OPP: np.uint64 = np.uint64(0x0000001008000000)
 
-#: The pass move code (board.py Move domain: 0..63 squares,
-#: 64 = PA). Never APPLIED by the wave (the pass is the
-#: source swap) — the constant is for the trace helpers.
-PA: int = 64
+#: The pass move code (the board.py Move domain: 0..63 squares, then PA) —
+#: re-exported from board.py, the single source. Never APPLIED by the wave
+#: (the pass is the source swap); the constant is for the trace helpers.
+PA: np.uint8 = MOVE_PA
 
 #: The maximum initial ec (64 squares - 4 start stones).
 MAX_EC: int = 60

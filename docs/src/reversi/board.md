@@ -16,11 +16,12 @@ stated.
 | Square | `square_to_str(sq) -> str` | the inverse mapping |
 | Square | `square_as_bitboard(sq) -> Bitboard` | the single-bit mask `1 << sq` |
 | Square | `square_validate_range(sq) -> None` | ValueError if any value outside [0..63] (scalar or array) |
-| Move | `Move` | type alias `np.uint8`; 0..63 squares + 64 = PA, 65 = NA, 66 = UN |
+| Move | `Move` | type alias `np.uint8`; 0..63 squares, then the non-square codes PA / NA / UN |
 | Move | `MoveArray` | annotated uint8 array (reuses the square validator) |
+| Move | `MOVE_PA` / `MOVE_NA` / `MOVE_UN` | the named non-square move codes (64 / 65 / 66): the single source of the PA / NA / UN values |
 | Move | `move_from_str(name: str) -> Move` | the 67 names; ValueError on invalid or lowercase |
 | Move | `move_to_str(mo) -> str` | the inverse mapping |
-| Move | `move_as_bitboard(mo) -> Bitboard` | `1 << mo`; codes 64-66 wrap to the empty bitboard (documented NumPy shift semantics) |
+| Move | `move_as_bitboard(mo) -> Bitboard` | `1 << mo`; the non-square codes (`MOVE_PA` / `MOVE_NA` / `MOVE_UN`) wrap to the empty bitboard (the documented NumPy shift semantics) |
 | Move | `move_validate_range(mo) -> None` | ValueError if any value outside [0..66] (via `__move_max_value__`) |
 | Bitboard | `Bitboard` | type alias `np.uint64` — a set of squares, bit i = square i |
 | Bitboard | `BitboardArray` | annotated uint64 array, strict dtype |
@@ -175,7 +176,9 @@ None.
 - The D8 slot order is fixed (notes/naming.md): never reorder or rename; the anti tables differ only in slots 1/3.
 - New public functions: `@validate_call` with `arbitrary_types_allowed`, the dual scalar/array signature with the
   standard `atleast_1d`/ndim pattern, a docstring stating the shape contract.
-- The move codes 64/65/66 are magic numbers by design (PA/NA/UN); constants parked.
+- The move codes are the NAMED constants `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (the single source, I-003): the bare 64/65/66
+  never appears in the code. The flips domain is separate: `position_flips` takes a BITBOARD and its pass is the zero
+  bitboard, not `MOVE_PA`.
 - The Zobrist table `_zobrist_bitstrings` is canon (the legacy C constants): never regenerate, reorder or edit; a change
   breaks the legacy comparability and every pinned golden. The hash is view-dependent by design (the two views of a
   board are different positions).
