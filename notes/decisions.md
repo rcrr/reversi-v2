@@ -1016,6 +1016,17 @@ D-216 | 2026-09-18 | The `test_random_game_play_path_multi_generation` stub comp
          counts are unchanged (the stub already ran as a vacuous pass): `test_random_game` 9/0/0, full LONG
          887/0/22 GREEN.
 
+D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
+         aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
+         space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
+         DELIBERATE wherever the value is not a domain concept. In particular the counts
+         (`bitboard_count`, `position_empty_count`) return an ORDINAL (0..64), not a square index: typing
+         them `np.uint8 | SquareArray` would be a semantic lie — they stay
+         `np.uint8 | npt.NDArray[np.uint8]`. Likewise the int64 storage forms (`bitboard_from/to_signed_int`)
+         and the generic `make_position` return (`Union[np.void, np.ndarray]` — scalar, 1-D or 2-D). Ruling:
+         ALL the board.py public signatures are correct as they are — nothing to uniform; Nia's group-A
+         proposal withdrawn. The convention recorded in the `board.md` Conventions.
+
 D-218 | 2026-09-18 | The `random_game_play_path` double-pass fix (found reviewing the module for the dual-API
          campaign; Roberto approved the standalone mini-commit): `PASS_MOVE = Move(66)` was the stale pre-D-208
          sentinel (UN) — `random_game_make_move` returns the pass as PA = 64 since D-208, so the
@@ -1240,13 +1251,14 @@ D-233 | 2026-09-18 | The `_kogge_stone_lms` resurrection — the symmetric encap
          same inlined machine code). `test_board` 246/0/15, the 1M-games benchmark unchanged (2.58s), full
          LONG 916/0/23 GREEN.
 
-D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
-         aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
-         space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
-         DELIBERATE wherever the value is not a domain concept. In particular the counts
-         (`bitboard_count`, `position_empty_count`) return an ORDINAL (0..64), not a square index: typing
-         them `np.uint8 | SquareArray` would be a semantic lie — they stay
-         `np.uint8 | npt.NDArray[np.uint8]`. Likewise the int64 storage forms (`bitboard_from/to_signed_int`)
-         and the generic `make_position` return (`Union[np.void, np.ndarray]` — scalar, 1-D or 2-D). Ruling:
-         ALL the board.py public signatures are correct as they are — nothing to uniform; Nia's group-A
-         proposal withdrawn. The convention recorded in the `board.md` Conventions.
+D-234 | 2026-09-18 | The `random_game.md` mirror rewrite (Roberto: the doc told the campaign instead of the
+         module): rewritten in the board.md style — the incipit states what the module IS (the random-game
+         module: the pick, the execution, the batch path engine; the corpus generator and the intended
+         hlp_wave replacement); the API as the family TABLE (the pick / move / path contracts) with the
+         family-wide stream contract as the paragraph; the Architecture as the layered description (the
+         scalar compositions, the batch single-pick paths, the fused two-kernel step engine); the Verified
+         invariants with the test pins; the Conventions rewritten to the real ones (the stream discipline,
+         the single-source composition, the in-place arrays, the goldens as literals, the dual-API guard);
+         the Integration updated. Only the state, no history: zero D-numbers, zero campaign narrative (141
+         -> 104 lines, net -37). The commit also carried the decisions.md entry-order repair (the D-217
+         entry had been inserted after D-233 by an anchor mistake; moved to its chronological place).
