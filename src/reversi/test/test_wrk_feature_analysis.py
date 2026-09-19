@@ -42,20 +42,25 @@
 """
 The FEATURE_ANALYSIS worker (the I-017, D-186) NO-DB suite: the
 factory (the worker name), the enable no-op (the D-175 opt-in),
-the compute + the publish (the tiny G0 corpus, the phase-2
+the compute + the publish (the tiny corpus, the phase-2
 statistics, the TXT report), the cache hit (the second run),
 the signature invalidation (the corpus change), the su_pairs
-joint, and the down (the D-060 recovery).
+joint, and the down (the D-060 recovery). Plus the VLONG
+scale test (D-256): the same path at the ODP-1 corpus size.
 """
 
 import tempfile
+import time
 import unittest
 from pathlib import Path
+
+from unittest import skipUnless
 
 from reversi.lm.hlp_gate import load_campaign
 from reversi.lm.wrk_feature_analysis import (
     _down, _up, wrk_feature_analysis)
-from reversi.test.paths import WORKSPACE_ROOT
+from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
+from reversi.test.tags import tier_vlong
 
 
 class _MockCtx:
@@ -188,6 +193,69 @@ class TestWrkFeatureAnalysis(unittest.TestCase):
         self.assertIsNotNone(ctx.feature_analysis_tables)
         _down(ctx)
         self.assertIsNone(ctx.feature_analysis_tables)
+
+
+
+@skipUnless(tier_vlong(),
+            "Skipping the 1e7 corpus test (set VLONG=1 or VVLONG=1 "
+            "to run; D-256)")
+class TestSuCorpusAtScale(unittest.TestCase):
+    """The SU-analysis corpus at the ODP-1 scale (1e7 positions, ec 20,
+    seed 42, the rlm_00 feature set): the wave engine at the production
+    size + the SU tables + the cache round-trip. VLONG (D-256) — the
+    cold run is ~50 s.
+
+    It pins what the small-corpus suite cannot: the harvested count at
+    scale, the marginal totals (exactly one count per position, per
+    sub-variable), the cache write + hit on a second run, and the
+    signature identity between them."""
+
+    N = 10_000_000
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp = Path(self._tmp.name)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_the_corpus_at_the_odp1_scale(self):
+        ctx = _make_ctx(self.tmp, self.N, enable=True)
+        t0 = time.perf_counter()
+        _up(ctx)
+        cold = time.perf_counter() - t0
+
+        # 1. The corpus: exactly N harvested positions (the wave engine
+        #    at scale, the ec 20 arrest).
+        self.assertTrue(
+            any(f"[HARVESTED: {self.N:,}]" in m for (_r, m) in ctx.events),
+            f"the harvest line is missing: {[m for (_r, m) in ctx.events if 'HARVESTED' in m]}")
+
+        # 2. The tables: every sub-variable's counts sum to N (one
+        #    count per position) and the signature is published.
+        tables = ctx.feature_analysis_tables
+        self.assertIsNotNone(tables)
+        self.assertIn('signature', tables)
+        marginal = tables['marginal']
+        self.assertGreater(len(marginal), 0)
+        for (name, i, nc, _codes, counts) in marginal:
+            self.assertEqual(int(counts.sum()), self.N,
+                             f"the marginal totals of {name} inst {i} "
+                             f"are {int(counts.sum())}, not {self.N}")
+
+        # 3. The cache: written, then HIT by a second run with the
+        #    same signature (the 1e7 spec is part of it).
+        self.assertTrue(ctx._cache_path.exists(),
+                        "the corpus cache was not written")
+        ctx2 = _make_ctx(self.tmp, self.N, enable=True)
+        _up(ctx2)
+        self.assertTrue(
+            any("Cache successfully loaded and validated" in m
+                for (_r, m) in ctx2.events),
+            "the second run did not hit the cache")
+        self.assertEqual(ctx2.feature_analysis_tables['signature'],
+                         tables['signature'])
+        print(f"\n[VLONG] the 1e7 corpus: {cold:.1f} s cold")
 
 
 if __name__ == '__main__':

@@ -1707,3 +1707,25 @@ D-255 | 2026-09-19 | The A2030 plot override replaces the depth reduction (Rober
          the override is both FASTER and STRONGER (the full chain is exercised by all three tests; the depth reduction
          traded coverage for the same saving). The determinism test's two runs share the same config file, so the
          embedded provenance matches too (the byte-identity assertion holds). The mirror doc follows.
+
+D-256 | 2026-09-19 | P3: the VVLONG tier + the 1e7 corpus test (Roberto: "fai entrambe le cose ... e generiamo una
+         classe VVLONG e mettiamoci (b) ... VVLONG comprende VLONG e LONG naturalmente"). (1) THE TIER — a FOURTH
+         cumulative tier: `VVLONG=1` implies VLONG -> LONG. The single source of the semantics is `reversi.test.tags`:
+         the two new predicates `tier_vlong()` (VLONG or VVLONG) and `tier_vvlong()` (VVLONG only) next to
+         `db_long_gate` (which now accepts VVLONG); the test classes gate on the predicates, never on the env vars. THE
+         CHECKLIST for a new tier is recorded in the tags.md mirror + the rules.md bullet: a predicate in tags.py, the
+         runner header, the rules bullet, the overview. (2) THE MOVE — the 1e6 corpus benchmark
+         (`test_hlp_wave::TestBenchmark`) leaves the LONG tier for VVLONG: it is a measurement instrument (the printed
+         games/s is the deliverable), and LONG is the everyday pre-commit — the benchmark belongs to the tier you run
+         deliberately. Verified: it skips under LONG=1 and runs under VVLONG=1 (the wave module reports 4/0/1 in both
+         the default and the LONG tiers). (3) THE NEW TEST — `test_wrk_feature_analysis::TestSuCorpusAtScale`
+         (VLONG-gated, D-256): the SU-analysis corpus at the ODP-1 scale (1e7 positions, ec 20, seed 42, the rlm_00
+         feature set), pinning what the small-corpus suite cannot — the harvested count at scale, the marginal totals
+         (exactly one count per position per sub-variable), the cache write + the HIT on a second run with the same
+         signature. MEASURED: 47.5 s (46.6 cold). The 1e7 scale also has its production run (D-254: the A2050 feature
+         set, 92.7 s) — the test is the fixture-scale regression guard, the D-254 run the maintenance call. (4) THE DOCS
+         — the MISSING tags.py MIRROR is written (docs/src/reversi/test/tags.md: a D-007 gap — tags.py had no doc and no
+         overview row, invisible to the audit because it excludes the test/ helpers), the overview gains the row + the
+         two Suite cells (the wave 3/0/1 with VVLONG 4/0/0, the feature-analysis 8/0/0 with VLONG 9/0/0), the runner
+         header, the rules.md bullet, the three test mirrors. VERIFICATION: the default tier green, the LONG tier green
+         (920/0/23), the VLONG 1e7 test green on its own.

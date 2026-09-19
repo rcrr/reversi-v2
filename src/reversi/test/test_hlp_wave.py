@@ -63,6 +63,7 @@ from reversi.lm.hlp_wave import (BufferSink, INITIAL_MOVER, INITIAL_OPP,
                                   MAX_EC, make_wave,
                                   run_wave_g0, step_wave_g0)
 from reversi.tools.prng import MT19937
+from reversi.test.tags import tier_vvlong
 
 class TestG0Engine(unittest.TestCase):
     """The G0 uniform engine (D-174 — the I-017 corpus
@@ -183,8 +184,9 @@ class TestG0Engine(unittest.TestCase):
                          "stream is not consumed")
 
 
-@unittest.skipUnless(os.environ.get('LONG') == '1',
-                     "Skipping the 1e6 benchmark (set LONG=1 to run)")
+@unittest.skipUnless(tier_vvlong(),
+                     "Skipping the 1e6 benchmark (set VVLONG=1 to run; "
+                     "D-256: it left the LONG tier)")
 class TestBenchmark(unittest.TestCase):
     """The 1e6 benchmark (the gate scale): the target is
     well under the T4 Python rate (the doc's 20-60 min) —

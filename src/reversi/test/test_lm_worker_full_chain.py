@@ -72,7 +72,7 @@ from reversi.lm.client import (make_evaluation_function,
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.test.closecheck import assert_close
 from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
-from reversi.test.tags import db_long_gate
+from reversi.test.tags import db_long_gate, tier_vlong
 
 
 def _masked_report_hash(report_text):
@@ -444,7 +444,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertNotIn("established successfully", logs2)
 
 
-@skipUnless(os.environ.get('VLONG') == '1', "Skipping very-long test (set VLONG=1 to run; D-130)")
+@skipUnless(tier_vlong(), "Skipping the long A2050 chain (set VLONG=1 or VVLONG=1 to run; D-130/D-256)")
 class TestFullChainA2050(unittest.TestCase):
     """Tests the full Reversi Logistic Model chain on the A2050 configuration
     (the production endgame-solver model family: A2 + ec*10; A2050 = ec 20)."""

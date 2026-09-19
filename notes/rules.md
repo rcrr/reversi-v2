@@ -97,13 +97,16 @@ spans; the tables and the headings stay one physical line.
   multi-threaded OpenBLAS ddot is not bit-portable across thread counts or CPUs. Bit-exact assertEqual stays for the
   int/uint counts, the f32-quantized values (train_loss, g_norm, the tps read-back truncations), the sha3 hashes and the
   in-run determinism tests. (D-127)
-- Suite tiers (D-130): default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline tests; VLONG=1 adds the A2050
-  end-to-end chain and implies LONG; PERF=1 (D-036) and SKIP_REGAB_DB=1 are orthogonal. Before every commit run the FULL
-  pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal environment) — VLONG=1 only when it is useful, and
-  the gated run (SKIP_REGAB_DB=1) is not a substitute. The canonical runner is run_utests.sh: the modules in canonical
-  order — the tools, the board/pattern concepts, the infrastructure, the DB access, then the pipeline in machine order
-  with each data module immediately before its worker, the end-to-end chain last; a new test module is inserted at its
-  logical position, never appended at the end.
+- Suite tiers (D-130; the VVLONG tier at D-256): default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline
+  tests; VLONG=1 adds the long instruments (the A2050 end-to-end chain); VVLONG=1 adds the very-long ones (the 1e6
+  corpus benchmark, the 1e7 corpus test) — the tiers are CUMULATIVE (each implies the previous ones), and the single
+  source of the semantics is `reversi.test.tags` (tier_vlong / tier_vvlong / db_long_gate); PERF=1 (D-036) and
+  SKIP_REGAB_DB=1 are orthogonal. A new tier means: a predicate in tags.py, the runner header, this bullet, the
+  overview. Before every commit run the FULL pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal
+  environment) — VLONG=1 only when it is useful, and the gated run (SKIP_REGAB_DB=1) is not a substitute. The canonical
+  runner is run_utests.sh: the modules in canonical order — the tools, the board/pattern concepts, the infrastructure,
+  the DB access, then the pipeline in machine order with each data module immediately before its worker, the end-to-end
+  chain last; a new test module is inserted at its logical position, never appended at the end.
 
 ## Pipeline contracts (RLM)
 

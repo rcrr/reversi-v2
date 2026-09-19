@@ -54,9 +54,9 @@ Current state only — the session-by-session history lives in the journal volum
 (notes/decisions.md); the D-pointers index that history. The file-by-file state lives in the Source files / Test files
 tables at the end of this file.
 
-- The 18-level pipeline is live and green (864 tests, LONG; the 1e6 G0 benchmark replays bit-exact, 28065 dead lanes):
-  the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL FEATURE_ANALYSIS (pipeline step 3) +
-  EFFECT_SIZE (pipeline step 6) — default FALSE, opt-in.
+- The 18-level pipeline is live and green (921 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
+  bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL FEATURE_ANALYSIS
+  (pipeline step 3) + EFFECT_SIZE (pipeline step 6) — default FALSE, opt-in.
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - G0 is the corpus generator (hlp_wave, the concurrent WAVE engine); the model file is self-describing (format v2, the
@@ -143,6 +143,7 @@ One row per test file, alphabetical.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/test/paths.py | the single home for workspace-root-anchored test paths — helper module (0 tests) | — | docs/src/reversi/test/paths.md |
+| src/reversi/test/tags.py | the suite-tier gates (D-130/D-256) — the predicates + the DB gate, the single source of the tier semantics — helper module (0 tests) | — | docs/src/reversi/test/tags.md |
 | src/reversi/test/test_binio.py | complete: the binary IO suite (the batch + the 3 empty-suffix tests) | 45/0/0 | docs/src/reversi/test/test_binio.md |
 | src/reversi/test/test_board.py | complete: the board kernel suite — the bitboard layer (the 8 D8 transformations + the group law + the numba overloads), the position layer (creation, legal moves + the count, flips / make_move, the PASS-swap on the scalar + the bulk + the array batch + the fuzz parity, empties / empty count, collisions, game over, the Zobrist hash + the legacy parity), TestInitialGame, the two per-lane njit primitives (TestNumbaPrimitives), the named move-code pin, 2 PERF | 247/0/15 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
@@ -156,7 +157,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_wrk_config.py | complete: 13 tests (the fingerprint + no-cache pins) | 13/0/0 | docs/src/reversi/test/test_wrk_config.md |
 | src/reversi/test/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite | 3/0/0 | docs/src/reversi/test/test_wrk_design_matrix.md |
 | src/reversi/test/test_wrk_effect_size.py | the EFFECT_SIZE worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the ANOVA, the graceful degradation, the adherence computed, the report, the down) | 7/0/0 | docs/src/reversi/test/test_wrk_effect_size.md |
-| src/reversi/test/test_wrk_feature_analysis.py | the FEATURE_ANALYSIS worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the compute + the publish, the cache hit, the signature invalidation, the su_pairs joint, the optional CSV, the down) | 8/0/0 | docs/src/reversi/test/test_wrk_feature_analysis.md |
+| src/reversi/test/test_wrk_feature_analysis.py | the FEATURE_ANALYSIS worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the compute + the publish, the cache hit, the signature invalidation, the su_pairs joint, the optional CSV, the down) | 8/0/0 (VLONG: 9/0/0, the 1e7 corpus) | docs/src/reversi/test/test_wrk_feature_analysis.md |
 | src/reversi/test/test_wrk_features.py | complete: the FEATURES worker suite (DB-free) | 3/0/0 (DB-free) | docs/src/reversi/test/test_wrk_features.md |
 | src/reversi/test/test_lm_worker_full_chain.py | the END-TO-END suite: the full 18-level chain (the A2030 + A2050 chains, the read guards, the v2 micro, the client-check + PLOT log pins, the size bands, the outlier pins) + the full saved-model round-trip; the A2050 chain VLONG-gated | 9/0/1 | docs/src/reversi/test/test_lm_worker_full_chain.md |
 | src/reversi/test/test_wrk_generate.py | complete: the GENERATE worker suite | 3/0/0 | docs/src/reversi/test/test_wrk_generate.md |
@@ -183,7 +184,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (the compressed mock pins) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_random_play.py | complete: the NO-DB micro-suite (5 classes / 10 tests) — the initial position (the official Othello setup), the ec pin, the marginal accumulator (the LMC vs the independent oracle, the R2 cross-check, the chunk merge), the joint accumulator (the cross-feature + the same-feature diagonal), the PRNG integration (the corpus reproducibility + the small end-to-end marginals) | 10/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
-| src/reversi/test/test_hlp_wave.py | complete: the NO-DB micro-suite (2 classes / 4 tests) — the batch draw vs the golden-pinned reference PRNG, the W=1 trajectory vs the scalar reference loop, the run integrity + the determinism, the LONG 1e6 G0 benchmark | 3/0/1 (LONG: 4/0/0, the 1e6 benchmark) | docs/src/reversi/test/test_hlp_wave.md |
+| src/reversi/test/test_hlp_wave.py | complete: the NO-DB micro-suite (2 classes / 4 tests) — the batch draw vs the golden-pinned reference PRNG, the W=1 trajectory vs the scalar reference loop, the run integrity + the determinism, the 1e6 wave benchmark | 3/0/1 (VVLONG: 4/0/0, the 1e6 benchmark) | docs/src/reversi/test/test_hlp_wave.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived | 49/0/0 | docs/src/reversi/test/test_state_machine.md |

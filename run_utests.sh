@@ -3,15 +3,17 @@
 # run_utests.sh — the reversi.test suite in canonical order (D-130).
 #
 # Usage:
-#   ./run_utests.sh              fast tier (~4 s, 577 tests, no DB)
+#   ./run_utests.sh              fast tier (no DB)
 #   PERF=1 ./run_utests.sh       + the print-only performance tests
-#   LONG=1 ./run_utests.sh       + the DB-gated pipeline tests (~45 s)
-#   VLONG=1 ./run_utests.sh      + the ~10-min A2050 chain (~6-11 min)
+#   LONG=1 ./run_utests.sh       + the DB-gated pipeline tests
+#   VLONG=1 ./run_utests.sh      + the long instruments (the A2050 chain)
+#   VVLONG=1 ./run_utests.sh     + the very-long ones (the 1e6 benchmark)
 #   SKIP_REGAB_DB=1 ...          no-DB environment: every DB test is
 #                                skipped whatever the tier
 #
-# The PERF / LONG / VLONG / SKIP_REGAB_DB variables are inherited by
-# the test process as-is (VLONG=1 implies LONG). The module order is
+# The tiers are CUMULATIVE (D-256): VVLONG=1 implies VLONG -> LONG.
+# The PERF / LONG / VLONG / VVLONG / SKIP_REGAB_DB variables are
+# inherited by the test process as-is. The module order is
 # the canonical one (D-130): a new test module is inserted here at
 # its logical position — never appended at the end.
 #

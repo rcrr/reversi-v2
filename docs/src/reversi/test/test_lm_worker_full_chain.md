@@ -38,8 +38,8 @@ band rather than a literal.
 - The probe checks split here: the rlm_04 live chain → TestFullChainA2030, the rlm_03 LONG tier → TestFullChainA2050,
   the B1-B2 read guards → TestModelWeightsReadGuards; the probe now keeps A1-A15 static + the C5 a-portion + the D0
   placeholder + the A6b (the config section leads the body, the v1|v2 guard, the corruption sentinel) (18 checks).
-- LONG gating keeps the A2050 chain out of normal discover runs (the suite stays ~3 s gated; the A2050 chain is ~1 min,
-  so the live suite cost is dominated by the A2030 chain).
+- The tier gating keeps the A2050 chain out of normal discover runs (VLONG/VVLONG; the suite stays gated; the A2050
+  chain is ~1 min, so the live suite cost is dominated by the A2030 chain).
 - The float64 metric goldens (the vld / train / dense dicts + the pop statistics) are compared with assert_close
   (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the last ULPs of the OpenBLAS ddot depend on the thread count x
   the CPU kernel. Still bit-exact assertEqual: the f32-quantized values (train_loss = float(opt f32), g_norm, the tps +
