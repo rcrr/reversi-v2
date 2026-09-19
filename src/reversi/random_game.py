@@ -159,12 +159,16 @@ def _apply_picked_moves(movers: np.ndarray, opponents: np.ndarray,
 
 #: Internal use function.
 def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
+                    lms_mover: np.ndarray, lms_opponent: np.ndarray,
                     active: np.ndarray, target: np.uint8,
                     prng: MT19937):
     """
     Advances ONE step of the engine in place: mutates the state
-    arrays (movers, opponents — the engine owns them, fresh copies
-    taken once by the caller) and returns the updated (ec, active).
+    arrays (movers, opponents) and the scratch legal-set buffers
+    (lms_mover, lms_opponent — allocated once by the engine and
+    reused across the steps: every lane the masks read has been
+    written this very step, so the stale entries are never read) and
+    returns the updated (ec, active).
 
     The lane classification (all draw-independent — the legal sets
     are pure computations):
@@ -181,9 +185,9 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
     order (the step-interleaved stream discipline).
     """
     # The mover's legal set is computed ONLY on the active lanes (the
-    # all-active fast path computes it in place; the zero-filled
-    # scatter keeps the same read semantics).
-    lms_mover = np.zeros(movers.shape[0], dtype=Bitboard)
+    # all-active fast path returns a fresh result; the subset path
+    # reuses the scratch buffer — the zero-filled scatter keeps the
+    # same read semantics).
     active_idx = np.flatnonzero(active)
     if active_idx.size == movers.shape[0]:
         lms_mover = legal_moves(movers, opponents)
@@ -195,7 +199,6 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
     # The opponent's legal set: ONLY on the pass-lane subset (rare
     # mid-game) — legal_moves on the raw fields (the swapped view's
     # mover is the opponent), no Position assembly.
-    lms_opponent = np.zeros(movers.shape[0], dtype=Bitboard)
     pass_idx = np.flatnonzero(mover_passes)
     if pass_idx.size:
         lms_opponent[pass_idx] = legal_moves(opponents[pass_idx],
@@ -242,6 +245,10 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     """
     movers = cur['mover'].copy()
     opponents = cur['opponent'].copy()
+    # The scratch legal-set buffers: allocated once, reused across
+    # the steps (see _play_path_step).
+    lms_mover_buf = np.zeros(movers.shape[0], dtype=Bitboard)
+    lms_opponent_buf = np.zeros(movers.shape[0], dtype=Bitboard)
     ec = bitboard_count(~(movers | opponents))
     active = ec > target
     # The mathematical step bound: every non-terminal step decreases
@@ -254,7 +261,9 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     for _step in range(max_steps):
         if not np.any(active):
             break
-        ec, active = _play_path_step(movers, opponents, active, target, prng)
+        ec, active = _play_path_step(movers, opponents, lms_mover_buf,
+                                     lms_opponent_buf, active, target,
+                                     prng)
     if np.any(active):
         raise RuntimeError("random_game_play_path: the step bound is "
                            "exceeded — an active lane did not terminate")

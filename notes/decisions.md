@@ -1192,6 +1192,17 @@ D-230 | 2026-09-18 | The play_path intervention 3 (Roberto's one-at-a-time plan,
          RuntimeError message of the D-226 leftover corrected. Zero behaviour change. `test_random_game`
          33/0/1, full LONG 914/0/23 GREEN.
 
+D-231 | 2026-09-18 | The play_path intervention 3b — the scratch-buffer reuse (Roberto's idea, measured): the two
+         legal-set scratch buffers are allocated ONCE in `_play_path_engine` and reused across the steps (the
+         reads are covered by the same-step writes: every lane the masks read has been scattered this very
+         step — the invariant pinned in the `_play_path_step` docstring). The all-active fast path returns a
+         fresh result (the buffer unused there — forcing it would add a full copy); the subset paths scatter
+         into the buffers. Zero behaviour change. THE MEASUREMENT: WITHIN THE NOISE on both benches (the
+         standard 5.98s in the 5.50-6.55 band; the mixed 1.82s in the 1.71-1.87 band) — the honest verdict: no
+         visible gain (the numpy allocator recycles the same pages; the two per-step np.zeros were a small
+         slice of the glue). KEPT (harmless, the invariant documented) — revertible in minutes if Roberto
+         prefers minimalism. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
