@@ -1570,3 +1570,28 @@ D-248 | 2026-09-19 | The workspace tools/ directory (Roberto: "vale la pena di s
          scratch/ is EMPTY again, as probe_rules §2 requires. VERIFICATION: the three tools run from tools/ (the
          re-wrapper is a no-op on the fixpoint tree, the auditor reports the 85/94, the counter reproduces the
          overview's cells), the full suite green (920/0/23), the full probe sweep green (22/22).
+
+D-249 | 2026-09-19 | The tools/ rules: notes/tools.md (Roberto: "Vorrei vedere un nuovo documento in notes: tools.md con
+         le semplici regole per inserire un nuovo artefatto python in tools, e un inventario ... In pratica deve essere
+         un tool di utilita generale, deve avere una API chiara, deve essere riproducibile e testabile, e non deve fare
+         danni"). THE DOCUMENT — the new domain rule file (rigid, like probe_rules.md), with: §1 what a tool IS and is
+         not (a workspace utility in tools/, NOT the shipped src/reversi/tools/ D-133, NOT a probe — no a/b/c checks,
+         outside the campaign sweep, even when it checks something: the doc auditor —, NOT a test, NOT a home for a
+         one-off); §2 THE FOUR REQUIREMENTS, one section each: GENERAL UTILITY (it solves a class, not an instance — the
+         test: would it still be useful next session on a different file?), A CLEAR API (the documented CLI, the
+         explicit arguments, no prompts, no hidden state, the stated input -> output contract), REPRODUCIBLE AND
+         TESTABLE (deterministic output, a verifiable report — counts, a fingerprint —, the twice-run idempotence), IT
+         DOES NO DAMAGE (the hard safety list: the default is a report and the destructive action needs an explicit
+         flag; a write is fingerprint-verified BEFORE it happens; only the given paths, inside the workspace; the
+         artifacts under build/tmp; never a git write command; never a deletion outside the tool's own build/tmp
+         artifacts; the scope stated in the docstring); §3 the fixed header (WHAT IT IS / USAGE / SAFETY / ORIGIN); §4
+         the naming (snake_case, `_audit`/`_check` allowed, the `verify_` prefix reserved to the probes, no new
+         dependency); §5 the lifecycle (born in scratch/, graduated in one commit with the inventory row + the D-number,
+         maintained in the same commit as what it serves, retired by deletion + a new D-number — never left in scratch/
+         to die); §6 THE INVENTORY (the 3 tools: notes_format / docs_format_audit / suite_audit, each with the category,
+         what it does, what it writes, the origin); §7 the grandfathered case (probes/measure_suite.py, D-132: the
+         pre-existing measurement tool stays where probe_rules §2 names it; a new one lands in tools/ — moving it is an
+         open call). THE WIRING — rules.md (the domain rule files list + the tools/ bullet now points at notes/tools.md)
+         and the overview Index. ALSO: AGENTS.md re-wrapped to the 120-char rule (Roberto's explicit request: the
+         constitution follows the house format like the rest of the notes; content verified identical by the
+         fingerprint, 67 -> 46 lines).

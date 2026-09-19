@@ -213,6 +213,7 @@ tables above.
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /
   2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the current-state contract)
+- notes/tools.md — the workspace-tool rules (the four requirements + the inventory, D-248/D-249)
 - notes/probe_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
   criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to
   notes/analyses/, the baseline)

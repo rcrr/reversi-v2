@@ -35,8 +35,8 @@ spans; the tables and the headings stay one physical line.
   rotation (D-118, the journal rhythm): the open volume keeps this name; past 2000 lines it closes at a session boundary
   as decisions_NNN.md and a new decisions.md is opened — the D-numbers stay global and immutable across the volumes.
 - notes/log_NNN.md — the session journals (rotating volumes; the format is rigid in notes/log_rules.md).
-- notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/probe_rules.md — the domain rule files (rigid; each
-  owns its domain — this register points at them, never duplicates them).
+- notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/probe_rules.md, notes/tools.md — the domain rule files
+  (rigid; each owns its domain — this register points at them, never duplicates them).
 - notes/ideas.md — the OPEN backlog (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done | dropped). Format (D-235):
   `I-NNN | status | idea`, a 9-space continuation indent, a blank line before every entry, code spans for the paths /
   identifiers; the statuses are idea | follow-up | in-progress (closed: done | dropped). A closed idea MOVES to
@@ -64,7 +64,9 @@ spans; the tables and the headings stay one physical line.
 - docs/ mirrors src/ one file to one file: src/reversi/X.py → docs/src/reversi/X.md (D-007).
 - tools/ (workspace root) holds the MAINTENANCE tools — the notes/docs format re-wrapper, the mirror-doc auditor, the
   suite counter (D-248). It is NOT the package's src/reversi/tools/ (that one ships, D-133) and NOT probes/ (the
-  per-module verification apparatus): a tool that makes no a/b/c check belongs here, outside the campaign sweep.
+  per-module verification apparatus): a tool that makes no a/b/c check belongs here, outside the campaign sweep. The
+  rules for creating, documenting and retiring one: notes/tools.md (the four requirements — general utility, a clear
+  API, reproducible + testable, does no damage).
 - Code-generated data that is expensive to replicate goes in build/ (gitignored) — NEVER inside src/, notes/ or any
   other code folder: a git clone must be self-contained (the cloner recomputes it once); the persistent data is a
   DB/campaign artifact, decided explicitly. (D-176)
