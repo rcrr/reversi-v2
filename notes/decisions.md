@@ -8,95 +8,96 @@ active legislation): when a decision establishes an enduring rule, the rule is p
 origin pointer (same commit); a retirement removes the line from rules.md and is logged here with a new D-number.
 D-numbers are sequential and never reused or renumbered (the docs' State lines and the cross-references depend on them).
 Volumes (D-118): the open log keeps this name (`notes/decisions`.md); when it exceeds 2000 lines it closes at a session
-boundary as `notes/decisions_NNN`.md and a new open log is opened — the D-numbers stay global across volumes (volume 000:
-D-001…D-116, closed 2026-09-06; volume 001: D-117…D-158, closed 2026-09-11).
+boundary as `notes/decisions_NNN`.md and a new open log is opened — the D-numbers stay global across volumes (volume
+000: D-001…D-116, closed 2026-09-06; volume 001: D-117…D-158, closed 2026-09-11).
 
 D-159 | 2026-09-11 | I-017 T2 executed: the PRNG port — the 64-bit MT-19937 in the new core module
-         `reversi/feature_prng`.py, line-by-line from Roberto's C (`scratch/prng`.c, 2017). Scoping: the full MT family (the
-         15 `prng_mt19937_*` functions) ported; the 4 `prng_stdlib_*` wrappers + the clock-based seed skipped (the stdlib
-         wrappers are a no-sense in Python; the clock seed is non-deterministic and unused — the pipeline seed comes
-         from the config and is part of the cache signature). DESIGN RULING (Roberto, overriding Nia's pure-Python
+         `reversi/feature_prng`.py, line-by-line from Roberto's C (`scratch/prng`.c, 2017). Scoping: the full MT family
+         (the 15 `prng_mt19937_*` functions) ported; the 4 `prng_stdlib_*` wrappers + the clock-based seed skipped (the
+         stdlib wrappers are a no-sense in Python; the clock seed is non-deterministic and unused — the pipeline seed
+         comes from the config and is part of the cache signature). DESIGN RULING (Roberto, overriding Nia's pure-Python
          proposal): NUMPY, strict types — every 64-bit value in the data path is np.uint64 (the type itself applies the
          C unsigned-wraparound contract: no unbounded Python ints, no manual masking; the machine is 64-bit, the
          bitboard is 64-bit, and the numba era is the substrate argument); the by-design wraps are silenced with a local
-         errstate; loop counters stay plain ints (control flow, not data). The C quirks kept verbatim: the `init_by_seed`
-         multiplier 6364136223846793005 (NOT the 32-bit-reference 6364136293807784493) and the mti == nn after init (the
-         first `get_uint64` twists the just-initialized array). The 3 `bitw_*` helpers inlined in `extract_from_set64` (the
-         popcount, (s-1)&s, the de Bruijn bsf) — no separate `bit_works` module (the port is the prng only). Verification:
-         the T2 bit-exact cross-check vs the C build (prng.c + `bit_works`.c + `time_utils`.c + the disposable harness in
-         `scratch/`): 64 seed-42 + 64 init-by-array uint64, 8 doubles, 16 choices — ALL MATCH in warnings-as-errors mode;
-         the 10-test smoke micro-suite (the determinism, the dtype pins, the no-consume contracts k==1 / n<=1, the
-         extract semantics; the two first failures were test-side mistakes — the state inspected after the draws, the
-         advanced instance — caught and fixed); default 781/0/94 + LONG 781/0/21 GREEN; the hub probe ALL PASS (the
-         pipeline is untouched — the port is purely additive). The bit-exact GOLDEN suite (the committed sequences + the
-         published vectors + the 100k equi-distribution) is the T3 (`test_feature_prng`.py extended). Also in the wave:
-         the I-018 idea recorded (the top-20 outlier report in VALIDATE + the records in the context — Roberto's
-         2026-09-11 ask, the D-150 report relocation; Nia's opinion: agreed on both points).
+         errstate; loop counters stay plain ints (control flow, not data). The C quirks kept verbatim: the
+         `init_by_seed` multiplier 6364136223846793005 (NOT the 32-bit-reference 6364136293807784493) and the mti == nn
+         after init (the first `get_uint64` twists the just-initialized array). The 3 `bitw_*` helpers inlined in
+         `extract_from_set64` (the popcount, (s-1)&s, the de Bruijn bsf) — no separate `bit_works` module (the port is
+         the prng only). Verification: the T2 bit-exact cross-check vs the C build (prng.c + `bit_works`.c +
+         `time_utils`.c + the disposable harness in `scratch/`): 64 seed-42 + 64 init-by-array uint64, 8 doubles, 16
+         choices — ALL MATCH in warnings-as-errors mode; the 10-test smoke micro-suite (the determinism, the dtype pins,
+         the no-consume contracts k==1 / n<=1, the extract semantics; the two first failures were test-side mistakes —
+         the state inspected after the draws, the advanced instance — caught and fixed); default 781/0/94 + LONG
+         781/0/21 GREEN; the hub probe ALL PASS (the pipeline is untouched — the port is purely additive). The bit-exact
+         GOLDEN suite (the committed sequences + the published vectors + the 100k equi-distribution) is the T3
+         (`test_feature_prng`.py extended). Also in the wave: the I-018 idea recorded (the top-20 outlier report in
+         VALIDATE + the records in the context — Roberto's 2026-09-11 ask, the D-150 report relocation; Nia's opinion:
+         agreed on both points).
 
-D-160 | 2026-09-11 | The PRNG module renamed: `reversi/feature_prng`.py -> `reversi/tools/prng`.py
-         (Roberto's call: "non sarebbe meglio chiamarlo reversi.tools.prng?") Rationale: the module is a GENERIC MT
-         library, not a feature-specific component — the name should follow WHAT IT IS, not its first consumer (the
-         feature-analysis tasks T4+ are only the first users), and `tools/` is the house subpackage for the cross-domain
-         utilities (D-133: core top-level + `tools/` and `lm/` subpackages — alongside binio, `cache_manager`, `opt_lbfgs`,
+D-160 | 2026-09-11 | The PRNG module renamed: `reversi/feature_prng`.py -> `reversi/tools/prng`.py (Roberto's call: "non
+         sarebbe meglio chiamarlo reversi.tools.prng?") Rationale: the module is a GENERIC MT library, not a
+         feature-specific component — the name should follow WHAT IT IS, not its first consumer (the feature-analysis
+         tasks T4+ are only the first users), and `tools/` is the house subpackage for the cross-domain utilities
+         (D-133: core top-level + `tools/` and `lm/` subpackages — alongside binio, `cache_manager`, `opt_lbfgs`,
          `state_machine`). The test follows the house tools naming (`test_prng`.py, section 0 of the runner, after
          `test_opt_lbfgs` — like `test_opt_lbfgs`); the class MT19937 and the code are untouched (the git mv + the name
          pins: the header line, the How-to-run block, the class TestPrng, the 2 mirrors' H1, the project doc's 4
          references). Suite unchanged: 781/0/94 GREEN.
 
-D-161 | 2026-09-11 | I-017 T3 executed: the PRNG golden suite. `test_prng`.py extended (10 -> 20
-         tests): (1) TestPrngGolden — the C-oracle bit-exact pins on the COMMITTED golden
-         (`src/reversi/test/data/prng_golden`.txt, 13003 lines, 9 sections) generated by the C build of Roberto's prng.c
-         (the disposable `scratch/prng_golden`.c harness; the file header records the provenance + the D-number): the
-         whole 312-word mt init state for `init_by_seed`(42) AND `init_by_array` {1,2,3,4} (the seed-init contract — the
-         doc's "published vectors" slot: his variant has no official published vectors, the C build is the vector
-         source), 10000 + 1000 uint64 sequences, 100 x 3 doubles (the %.17g strings), 1000 `random_choice`(5), the 64
-         `extract_from_set64` picks (the in-place contract: the picked bit cleared from the ORIGINAL set, the 64 distinct
-         positions exhaust the full set); (2) TestPrngEquidistribution — the first-100k statistical properties
-         (deterministic, seed 42, Python-side): the per-bit balance in the 48-52% band (the ~12.6-sigma tolerance —
-         flake-proof, still catches a stuck bit), the top-7-bit 128-bin chi-square (< 250, the df=127 3.7-sigma critical
-         ~172), the choice-64 uniformity (< 130, the df=63 critical ~108). ALL MATCH — the port is pinned bit-exact
-         forever. Suite: 791/0/94 default + 791/0/21 LONG (781 + 10 new). Also in the session: Roberto's design recall
-         (the 1M-position random-play loop: the vectorized `legal_moves`, the random single-bit pick, the 0 = PASS, the
-         vectorized `make_move`, the ec arrest) — confirmed: `extract_from_set64` is the T4 single-game primitive; the T5/T6
-         hot loop uses the ODP-9 permutation table (2016 setup draws, the pick a pure lookup — numba-friendly), not the
-         PRNG per move.
+D-161 | 2026-09-11 | I-017 T3 executed: the PRNG golden suite. `test_prng`.py extended (10 -> 20 tests): (1)
+         TestPrngGolden — the C-oracle bit-exact pins on the COMMITTED golden (`src/reversi/test/data/prng_golden`.txt,
+         13003 lines, 9 sections) generated by the C build of Roberto's prng.c (the disposable `scratch/prng_golden`.c
+         harness; the file header records the provenance + the D-number): the whole 312-word mt init state for
+         `init_by_seed`(42) AND `init_by_array` {1,2,3,4} (the seed-init contract — the doc's "published vectors" slot:
+         his variant has no official published vectors, the C build is the vector source), 10000 + 1000 uint64
+         sequences, 100 x 3 doubles (the %.17g strings), 1000 `random_choice`(5), the 64 `extract_from_set64` picks (the
+         in-place contract: the picked bit cleared from the ORIGINAL set, the 64 distinct positions exhaust the full
+         set); (2) TestPrngEquidistribution — the first-100k statistical properties (deterministic, seed 42,
+         Python-side): the per-bit balance in the 48-52% band (the ~12.6-sigma tolerance — flake-proof, still catches a
+         stuck bit), the top-7-bit 128-bin chi-square (< 250, the df=127 3.7-sigma critical ~172), the choice-64
+         uniformity (< 130, the df=63 critical ~108). ALL MATCH — the port is pinned bit-exact forever. Suite: 791/0/94
+         default + 791/0/21 LONG (781 + 10 new). Also in the session: Roberto's design recall (the 1M-position
+         random-play loop: the vectorized `legal_moves`, the random single-bit pick, the 0 = PASS, the vectorized
+         `make_move`, the ec arrest) — confirmed: `extract_from_set64` is the T4 single-game primitive; the T5/T6 hot
+         loop uses the ODP-9 permutation table (2016 setup draws, the pick a pure lookup — numba-friendly), not the PRNG
+         per move.
 
-D-162 | 2026-09-11 | I-017 T4 executed: the single-game random play. The new lm data module
-         `reversi/lm/hlp_random_play`.py (the future `FEATURE_ANALYSIS` level's generator — the worker lands in T12; the doc
-         assigns the table to T4: "the pick via the lookup table"): (1) the initial position (the D4+E5 / D5+E4 2x2
-         center, the mover the 4-legal-moves diagonal, the symmetric start — the mover convention is a pure label at the
-         start, the T12 alignment with the DB extraction is the only place it can matter); (2) the ODP-9 PERMUTATION
-         LOOKUP TABLE (`build_pick_table`, `lru_cached` + read-only): the seeded {n -> permutation of 0..n-1} over n =
-         1..64, Fisher-Yates (the C shuffle algorithm) over the seeded MT19937 — the 2016 total draws; (3) the
-         steady-state pick (`pick_move`, NO PRNG in the loop): rank = table[k][counter % k], the move = the rank-th set
-         bit; k == 0 -> (PA, counter) — the pass consumes NO counter step; (4) the per-game phase pin (counter0 = the T5
-         slot id — without a per-game phase every game would share the same rank walk and the 1e6 corpus would
-         degenerate: all games make the same first move); (5) the ec ARREST (`ec_of`: the PROVISIONAL 64 - occupied — the
-         moves remaining, the same expression `board.position_final_value` uses inline; T7 pins the EXACT formula against
+D-162 | 2026-09-11 | I-017 T4 executed: the single-game random play. The new lm data module `reversi/lm/hlp_random_play`.py
+         (the future `FEATURE_ANALYSIS` level's generator — the worker lands in T12; the doc assigns the table to T4:
+         "the pick via the lookup table"): (1) the initial position (the D4+E5 / D5+E4 2x2 center, the mover the
+         4-legal-moves diagonal, the symmetric start — the mover convention is a pure label at the start, the T12
+         alignment with the DB extraction is the only place it can matter); (2) the ODP-9 PERMUTATION LOOKUP TABLE
+         (`build_pick_table`, `lru_cached` + read-only): the seeded {n -> permutation of 0..n-1} over n = 1..64,
+         Fisher-Yates (the C shuffle algorithm) over the seeded MT19937 — the 2016 total draws; (3) the steady-state
+         pick (`pick_move`, NO PRNG in the loop): rank = table[k][counter % k], the move = the rank-th set bit; k ==
+         0 -> (PA, counter) — the pass consumes NO counter step; (4) the per-game phase pin (counter0 = the T5 slot id —
+         without a per-game phase every game would share the same rank walk and the 1e6 corpus would degenerate: all
+         games make the same first move); (5) the ec ARREST (`ec_of`: the PROVISIONAL 64 - occupied — the moves
+         remaining, the same expression `board.position_final_value` uses inline; T7 pins the EXACT formula against
          Roberto's DB code — the loop is formula-agnostic), checked before every ply; the corpus keeps every ply (the
          RandomGame trajectory); (6) the game over (the double pass / the full board, checked at the end of every ply) +
-         the `MAX_PLIES` defensive guard. The 12-test NO-DB micro-suite (`test_hlp_random_play`.py): the table properties
-         (all 64 rows valid permutations, the reproducibility), the pick kernel (the (counter % k)-th set bit literals,
-         the no-consume pass), the initial position (the hand-derived {E3, F4, C5, D6}), the HAND-COUNTED games: the
-         identity-table 3-ply trace (the first move E3 hand-derived — rank 0 = the lowest legal square), the pass branch
-         from the synthetic 17-stone corner wall (the A1+C3 mover walled in — the row-1 + column-A + B2/C2/B3 ring; ZERO
-         legal moves verified; after the pass {D3, C4, D4}; the PA then D3, the ec kept by the pass), the full 60-ply
-         game (seed 3 to ec = 0: the board fills 35/29, the game-over fires); the seeded games (the seed-7 / seed-8
-         pinned trajectories + the INDEPENDENT REPLAY: every ply recomputed from the rules + the table walk without the
-         loop logic; the counter0 phase shift: rank 0 vs 7 % 4 = 3). Suite: 803/0/94 default + 803/0/21 LONG (791 + 12
-         new). The T5 wave engine will replay the SAME per-slot logic (the single-game trace is the cross-validation
-         reference).
+         the `MAX_PLIES` defensive guard. The 12-test NO-DB micro-suite (`test_hlp_random_play`.py): the table
+         properties (all 64 rows valid permutations, the reproducibility), the pick kernel (the (counter % k)-th set bit
+         literals, the no-consume pass), the initial position (the hand-derived {E3, F4, C5, D6}), the HAND-COUNTED
+         games: the identity-table 3-ply trace (the first move E3 hand-derived — rank 0 = the lowest legal square), the
+         pass branch from the synthetic 17-stone corner wall (the A1+C3 mover walled in — the row-1 + column-A +
+         B2/C2/B3 ring; ZERO legal moves verified; after the pass {D3, C4, D4}; the PA then D3, the ec kept by the
+         pass), the full 60-ply game (seed 3 to ec = 0: the board fills 35/29, the game-over fires); the seeded games
+         (the seed-7 / seed-8 pinned trajectories + the INDEPENDENT REPLAY: every ply recomputed from the rules + the
+         table walk without the loop logic; the counter0 phase shift: rank 0 vs 7 % 4 = 3). Suite: 803/0/94 default +
+         803/0/21 LONG (791 + 12 new). The T5 wave engine will replay the SAME per-slot logic (the single-game trace is
+         the cross-validation reference).
 
-D-163 | 2026-09-11 | The ODP-9 equivalence document for peer review. Roberto (re-)confirms the
-         adoption of the permutation lookup table (the plan v2, T0c) — after re-reading it with the open pattern set in
-         mind (the joint `PATTERN_A-PATTERN_B` statistics need more samples) — and asks for a written case BEFORE the T5
-         build: the problem, the brute force (G0), the smart solution (G1), the technical motivations, and the
-         MATHEMATICAL PROOF of statistical equivalence, to be peer-reviewed by an external agent/model (DeepSeek V4 Pro
-         / GLM 5.3). The document: `notes/random_permutation_table`.md (9 sections). Content summary: (1) G0 = one uniform
-         PRNG draw per (game, ply) — the reference semantics; the cost (Roberto's C generator: hours, 5X2COR days; the
-         numba PRNG-in-loop rejection, plan v2 verbatim); (2) G1 = the seeded {P_k} table (2016 draws) + the per-game
-         counter walk + the slot-phase pin — the pure-integer hot loop; (3) the equivalence is defined at THREE levels
-         (E1 expectation-level, E2 sampling-error-level, E3 bias) — the honest statement: G1 produces ONE deterministic
+D-163 | 2026-09-11 | The ODP-9 equivalence document for peer review. Roberto (re-)confirms the adoption of the
+         permutation lookup table (the plan v2, T0c) — after re-reading it with the open pattern set in mind (the joint
+         `PATTERN_A-PATTERN_B` statistics need more samples) — and asks for a written case BEFORE the T5 build: the
+         problem, the brute force (G0), the smart solution (G1), the technical motivations, and the MATHEMATICAL PROOF
+         of statistical equivalence, to be peer-reviewed by an external agent/model (DeepSeek V4 Pro / GLM 5.3). The
+         document: `notes/random_permutation_table`.md (9 sections). Content summary: (1) G0 = one uniform PRNG draw per
+         (game, ply) — the reference semantics; the cost (Roberto's C generator: hours, 5X2COR days; the numba
+         PRNG-in-loop rejection, plan v2 verbatim); (2) G1 = the seeded {P_k} table (2016 draws) + the per-game counter
+         walk + the slot-phase pin — the pure-integer hot loop; (3) the equivalence is defined at THREE levels (E1
+         expectation-level, E2 sampling-error-level, E3 bias) — the honest statement: G1 produces ONE deterministic
          corpus per seed (a balanced quadrature of the G0 expectation), not a G0 random corpus; (4) the proof: Lemma 1
          (a permutation of a uniform is uniform), Lemma 2 (the counter covers every residue exactly once per k steps —
          the balanced-design property), Theorem 1 (the one-step conditional pick law = G0's, seed-averaged, under
@@ -106,8 +107,8 @@ D-163 | 2026-09-11 | The ODP-9 equivalence document for peer review. Roberto (re
          ordered DISTINCT pair (TV = 1/k vs G0's independent draws) — NOT covered by the expectation proof: generally
          second-order at the CODE level (different legal sets, different features) but MEASURED, not proven: the T6 gate
          (the 1e4 micro-corpus, G1 vs a G0 reference at the SAME scale — G0 is cheap at 1e4: ~5e5 draws — with the
-         threshold calibrated on G0's own Monte Carlo noise; the chi-square of independence at 1296 cells has df ~
-         1.7e6) + the pre-specified fallback (a second independent counter); (6) the quadratic sampling-error argument
+         threshold calibrated on G0's own Monte Carlo noise; the chi-square of independence at 1296 cells has df
+         ~ 1.7e6) + the pre-specified fallback (a second independent counter); (6) the quadratic sampling-error argument
          (the 6-sigma max-cell error ~ sqrt(p/N): 1.7e-4 at N = 1e6 even at 1296 cells — verified numerically) = the
          reason the open pattern set pushes the corpus to 1e7-1e9 AND why the generator must be the integer kernel; (7)
          the peer-reviewer checklist (5 points: the Theorem 1 circularity question, the Theorem 2 step-3 exchange + the
@@ -135,8 +136,8 @@ D-164 | 2026-09-11 | ODP-9 document revised (v2) after the first peer review (De
          factorization is superseded (the same gap the review found for the joints also applied to the marginals). (5)
          The remaining PROVEN core: the oracle Theorem 1, Lemma 1, Lemma 2, the phase combinatorics (the review's
          sharper m_g-spread bound adopted: the slot-phase imbalance is at most max_g m_g - min_g m_g at most 64, hence
-         at most 64/N = 6.4e-5 at N = 1e6), the sampling-error order. (6) The design requirement (new, section 5): the
-         I-017 statistics need the ideal population RANDOM-PLAY-LIKE WITHIN THE MEASUREMENT PRECISION — not an exact
+         at most 64/N = 6.4e-5 at N = 1e6), the sampling-error order. (6) The design requirement (new, section 5):
+         the I-017 statistics need the ideal population RANDOM-PLAY-LIKE WITHIN THE MEASUREMENT PRECISION — not an exact
          expectation equality — which is exactly what the T6 gate verifies at 1e4 against a same-scale G0 reference (any
          systematic G1-vs-G0 difference above G0's own ~1e-2 noise is detected; at 1e7 G0's noise is ~1e-3, so a
          gate-passing bias is a fortiori subdominant). (7) The T6 gate extended with the review's suggestions: test 4
@@ -145,29 +146,29 @@ D-164 | 2026-09-11 | ODP-9 document revised (v2) after the first peer review (De
          and strengthened: no T5 build on G1 until the SECOND review confirms the v2 document and the gate design; the
          gate itself runs at T6 before any 1e7 corpus.
 
-D-165 | 2026-09-11 | The SECOND ODP-9 peer review executed — the independent voice (Kimi K3),
-         recorded at `notes/peer_review_kimi_random_permutation_table`.md. Verdict: PASS WITH REQUIRED AMENDMENTS — the
-         design is sound and the v2 scope discipline is exemplary, but the document under-corrects on three load-bearing
-         points for the claim "G1 gives the same results as a G0 population". The reviewer re-derived every claim
-         independently (read the implementation before the first review to avoid capture) and CONFIRMED: the oracle
-         Theorem 1 is the correct semantic level (checked against `pick_move`); the v1 circularity is real and the
-         entry-consumption mechanism ("uniform over unconsumed entries, deterministic on reuse") is exact; the author's
-         rejection of the unconditional-marginal fix is correct (the k = 2 table-dependent-index counterexample is
-         decisive); A1 is acceptable (with a note: the `random_choice_from_finite_set` reduction is floor-of-double, bias
-         bounded at k \* 2^-53 ~ 7e-15); the fallback does NOT restore the G0 pair law (it removes only the
-         counter-mediated coupling, NOT the shared-row distinctness — if the same-width tests 4-5 fail while cross-width
-         pass, no counter count fixes it; the only fix is a per-ply fresh draw at same-width plies). No re-proof of the
-         corpus-level equality found (the Markov-chain closure collapses into the same circularity, confirming the first
-         reviewer's section 3.3) — the gate remains the defense. THREE REQUIRED AMENDMENTS (all in the gate design, not
-         the math): (A1) the corpus MARGINAL is not one number — it depends on the ply-arrest distribution; the gate
-         must compare G1 vs G0 PER-STRATUM (per ec / ply-index), not only pooled, and must state the sampling unit
-         (per-ply vs per-game) the I-017 adherence statistic consumes — G1's path coupling could shift the
-         arrested-length distribution and a per-stratum bias could be masked by pooling; (A2) test 3 (the pooled 1296 x
-         1296 joint chi-square) has near-zero power at 1e4 (mean cell occupancy ~6e-3) — the focused tests 4-5 (TV/KL,
-         no sparsity correction) become the PRIMARY joint gate and test 3 is demoted to a coarse sanity check; (A3 — the
-         amendment that goes BEYOND both the document and the first review) the "random-play-like within precision"
-         criterion needs a NUMBER: the entry-consumption bias is SYSTEMATIC (it does not average down with N like Monte
-         Carlo noise), so the "a fortiori subdominant at 1e7" extrapolation (document section 6.4) is NOT justified — a
+D-165 | 2026-09-11 | The SECOND ODP-9 peer review executed — the independent voice (Kimi K3), recorded at
+         `notes/peer_review_kimi_random_permutation_table`.md. Verdict: PASS WITH REQUIRED AMENDMENTS — the design is
+         sound and the v2 scope discipline is exemplary, but the document under-corrects on three load-bearing points
+         for the claim "G1 gives the same results as a G0 population". The reviewer re-derived every claim independently
+         (read the implementation before the first review to avoid capture) and CONFIRMED: the oracle Theorem 1 is the
+         correct semantic level (checked against `pick_move`); the v1 circularity is real and the entry-consumption
+         mechanism ("uniform over unconsumed entries, deterministic on reuse") is exact; the author's rejection of the
+         unconditional-marginal fix is correct (the k = 2 table-dependent-index counterexample is decisive); A1 is
+         acceptable (with a note: the `random_choice_from_finite_set` reduction is floor-of-double, bias bounded at k \*
+         2^-53 ~ 7e-15); the fallback does NOT restore the G0 pair law (it removes only the counter-mediated coupling,
+         NOT the shared-row distinctness — if the same-width tests 4-5 fail while cross-width pass, no counter count
+         fixes it; the only fix is a per-ply fresh draw at same-width plies). No re-proof of the corpus-level equality
+         found (the Markov-chain closure collapses into the same circularity, confirming the first reviewer's
+         section 3.3) — the gate remains the defense. THREE REQUIRED AMENDMENTS (all in the gate design, not the math):
+         (A1) the corpus MARGINAL is not one number — it depends on the ply-arrest distribution; the gate must compare
+         G1 vs G0 PER-STRATUM (per ec / ply-index), not only pooled, and must state the sampling unit (per-ply vs
+         per-game) the I-017 adherence statistic consumes — G1's path coupling could shift the arrested-length
+         distribution and a per-stratum bias could be masked by pooling; (A2) test 3 (the pooled 1296 x 1296 joint
+         chi-square) has near-zero power at 1e4 (mean cell occupancy ~6e-3) — the focused tests 4-5 (TV/KL, no sparsity
+         correction) become the PRIMARY joint gate and test 3 is demoted to a coarse sanity check; (A3 — the amendment
+         that goes BEYOND both the document and the first review) the "random-play-like within precision" criterion
+         needs a NUMBER: the entry-consumption bias is SYSTEMATIC (it does not average down with N like Monte Carlo
+         noise), so the "a fortiori subdominant at 1e7" extrapolation (document section 6.4) is NOT justified — a
          sub-1e-2-at-1e4 systematic bias can exceed the 1e-3 noise floor at 1e7; the gate must bound the bias in
          ABSOLUTE terms against the 1e7 noise floor (~1e-3), state a metric + percentile (TV vs G0-vs-G0 bootstrap),
          control the family-wise error across ~1e6 cells (Bonferroni/BH), and state each test's power. Net: the
@@ -176,14 +177,14 @@ D-165 | 2026-09-11 | The SECOND ODP-9 peer review executed — the independent v
          on the THREE amendments being folded into the T6 gate design.
 
 D-166 | 2026-09-11 | ODP-9 document v3 after the SECOND peer review (Kimi K3,
-         `notes/peer_review_kimi_random_permutation_table`.md — verdict: PASS WITH THREE REQUIRED AMENDMENTS; the author's
-         response: NO REBUTTAL, all three adopted — they are genuine weaknesses of the gate design, not of the math).
-         (1) Amendment 1 (the arrest stratification) ADOPTED: the corpus marginal is a MIXTURE over plies (each game
-         contributes 1 + its pass count plies; the mixture weights are the pass distribution — the arrest lands EXACTLY
-         at the target ec: ec drops by exactly 1 per real move, so the trajectory-dependent quantity is the pass count).
-         T6 test 2 now compares PER-EC-LEVEL (the primary) + the pass frequencies directly, the pooled marginal as a
-         secondary aggregate; the SAME arrest rule for G0 and G1 is stated explicitly. The SAMPLING UNIT is pinned (new
-         section 1.5): two derived populations — the arrested-positions (one per game, at the arrest ec: the
+         `notes/peer_review_kimi_random_permutation_table`.md — verdict: PASS WITH THREE REQUIRED AMENDMENTS; the
+         author's response: NO REBUTTAL, all three adopted — they are genuine weaknesses of the gate design, not of the
+         math). (1) Amendment 1 (the arrest stratification) ADOPTED: the corpus marginal is a MIXTURE over plies (each
+         game contributes 1 + its pass count plies; the mixture weights are the pass distribution — the arrest lands
+         EXACTLY at the target ec: ec drops by exactly 1 per real move, so the trajectory-dependent quantity is the pass
+         count). T6 test 2 now compares PER-EC-LEVEL (the primary) + the pass frequencies directly, the pooled marginal
+         as a secondary aggregate; the SAME arrest rule for G0 and G1 is stated explicitly. The SAMPLING UNIT is pinned
+         (new section 1.5): two derived populations — the arrested-positions (one per game, at the arrest ec: the
          apples-to-apples reference for the DB ADHERENCE statistic) and the full trajectories (every ply: the reference
          for the SU/eta2/omega2 FREQUENCY characterization). (2) Amendment 2 (the sparse-cell power) ADOPTED: the pooled
          1296x1296 chi-square at sparse occupancy loses local power (merged-tail collapse; mean cell occupancy ~0.24 at
@@ -213,35 +214,35 @@ D-166 | 2026-09-11 | ODP-9 document v3 after the SECOND peer review (Kimi K3,
          specified. Gating: the document is in its FINAL pre-T5 state; the T5 wave engine is built on G1 after the
          (approved) T6 gate design is executed and passes.
 
-D-167 | 2026-09-11 | ODP-9 document v3.1 — the PRE-THIRD-REVIEW hardening (before the requested GLM
-         review). Two self-found flaws, fixed before the reviewer finds them: (1) the delta\* CLARIFICATION (v3 defined
-         delta\* = 2e-3 on "the cell frequencies" in section 5 but applied it to the TV scalar in section 7 — an
-         ambiguity; v3.1 fixes it: delta\* is on the TV scalar (the 1/2 L1 over all cells), and the D0 NOISE IS
-         QUANTIFIED (computed, not asserted): E[TV] ~ 0.4\*sqrt(2\*S/N), S = sum p(1-p), N ~ games x 40 position-samples:
-         ~1e-4 at 1e6 (8.9e-5 near-uniform, 4.9e-5 concentrated) and ~3e-5 at 1e7 — hence delta\* = 2e-3 sits ~20x ABOVE
-         the 1e6 D0 noise (the ABSOLUTE criterion is the OUTER CAP guarding a miscalibrated bootstrap; the
-         BOOTSTRAP-RELATIVE criterion — D below the 95th percentile of D0, expected ~1.5e-4 at 1e6 — is normally the
-         BINDING one); the downstream propagation is bounded (a 2e-3 TV -> the information-quantity perturbation at most
-         ~2e-2 worst case at C = 1296, typically a few x 1e-3 — negligible against the 1e-1-scale effect-size
-         distinctions); delta\* is declared an A PRIORI JUDGMENT (1/5 of the ~1e-2 smallest meaningful effect size) with
-         the re-examination clause (if T7+ measures smaller effect sizes, the bound is revisited — the corpus exists and
-         can be re-baselined). (2) the BOOTSTRAP DESIGN + the 1e7 BUILD GATE: the D0 distribution is estimated from 20
-         G0-vs-G0 replicate pairs at 1e5 (~2.5 h — cheap enough to be worth doing right), SCALED by sqrt(10) to the 1e6
-         threshold (the TV between two i.i.d. corpora scales as 1/sqrt(N) — verified: 2.8e-4 at 1e5 -> 8.9e-5 at 1e6,
-         ratio exactly sqrt(10)); NEW test 7 (the 1e7 BUILD gate): at corpus build time the G1-vs-G0 comparison is
-         RE-RUN at full scale (the G0 reference at 1e7 is affordable: ~2-3 h in the T4 Python loop; the D0 noise drops
-         to ~3e-5, 95th percentile ~4e-5) with the same dual criterion — closing the band where a systematic bias above
-         the 1e6 detection floor (~1.5e-4) yet below delta\* could pass the 1e6 design gate while being 5-60x the 1e7
-         noise; the corpus is ACCEPTED only after BOTH gates pass. Pass criterion now (i) absolute, (ii)
-         bootstrap-relative, (iii) focused tests under family control, (iv) the 1e7 build gate. THE THIRD REVIEW (GLM)
-         is REQUESTED with three constraints: (a) SCOPE = the gate spec only (section 1.5 the sampling unit, section 5
-         the delta\*, section 7 the gate) — the proof sections were confirmed by two independent voices and a
-         re-derivation has diminishing returns; (b) the prompt is READ-ONLY + one file (the review document at a given
-         path; nothing else in the workspace may change — the Kimi session followed the AGENTS.md journaling convention
-         and collided on D-165, renumbered to D-166; next external review the prompt says "do not alter anything in the
-         workspace"); (c) it is the FINAL ROUND (declared in advance): whatever comes back, the valid amendments are
-         folded in and the document FREEZES for T5 — a fourth paper review is past diminishing returns; the real granite
-         test is the T6 gate itself (the 1e6 design gate, then the 1e7 build gate).
+D-167 | 2026-09-11 | ODP-9 document v3.1 — the PRE-THIRD-REVIEW hardening (before the requested GLM review). Two
+         self-found flaws, fixed before the reviewer finds them: (1) the delta\* CLARIFICATION (v3 defined delta\* =
+         2e-3 on "the cell frequencies" in section 5 but applied it to the TV scalar in section 7 — an ambiguity; v3.1
+         fixes it: delta\* is on the TV scalar (the 1/2 L1 over all cells), and the D0 NOISE IS QUANTIFIED (computed,
+         not asserted): E[TV] ~ 0.4\*sqrt(2\*S/N), S = sum p(1-p), N ~ games x 40 position-samples: ~1e-4 at 1e6 (8.9e-5
+         near-uniform, 4.9e-5 concentrated) and ~3e-5 at 1e7 — hence delta\* = 2e-3 sits ~20x ABOVE the 1e6 D0 noise
+         (the ABSOLUTE criterion is the OUTER CAP guarding a miscalibrated bootstrap; the BOOTSTRAP-RELATIVE criterion —
+         D below the 95th percentile of D0, expected ~1.5e-4 at 1e6 — is normally the BINDING one); the downstream
+         propagation is bounded (a 2e-3 TV -> the information-quantity perturbation at most ~2e-2 worst case at C =
+         1296, typically a few x 1e-3 — negligible against the 1e-1-scale effect-size distinctions); delta\* is declared
+         an A PRIORI JUDGMENT (1/5 of the ~1e-2 smallest meaningful effect size) with the re-examination clause (if T7+
+         measures smaller effect sizes, the bound is revisited — the corpus exists and can be re-baselined). (2) the
+         BOOTSTRAP DESIGN + the 1e7 BUILD GATE: the D0 distribution is estimated from 20 G0-vs-G0 replicate pairs at 1e5
+         (~2.5 h — cheap enough to be worth doing right), SCALED by sqrt(10) to the 1e6 threshold (the TV between two
+         i.i.d. corpora scales as 1/sqrt(N) — verified: 2.8e-4 at 1e5 -> 8.9e-5 at 1e6, ratio exactly sqrt(10)); NEW
+         test 7 (the 1e7 BUILD gate): at corpus build time the G1-vs-G0 comparison is RE-RUN at full scale (the G0
+         reference at 1e7 is affordable: ~2-3 h in the T4 Python loop; the D0 noise drops to ~3e-5, 95th percentile
+         ~4e-5) with the same dual criterion — closing the band where a systematic bias above the 1e6 detection floor
+         (~1.5e-4) yet below delta\* could pass the 1e6 design gate while being 5-60x the 1e7 noise; the corpus is
+         ACCEPTED only after BOTH gates pass. Pass criterion now (i) absolute, (ii) bootstrap-relative, (iii) focused
+         tests under family control, (iv) the 1e7 build gate. THE THIRD REVIEW (GLM) is REQUESTED with three
+         constraints: (a) SCOPE = the gate spec only (section 1.5 the sampling unit, section 5 the delta\*, section 7
+         the gate) — the proof sections were confirmed by two independent voices and a re-derivation has diminishing
+         returns; (b) the prompt is READ-ONLY + one file (the review document at a given path; nothing else in the
+         workspace may change — the Kimi session followed the AGENTS.md journaling convention and collided on D-165,
+         renumbered to D-166; next external review the prompt says "do not alter anything in the workspace"); (c) it is
+         the FINAL ROUND (declared in advance): whatever comes back, the valid amendments are folded in and the document
+         FREEZES for T5 — a fourth paper review is past diminishing returns; the real granite test is the T6 gate itself
+         (the 1e6 design gate, then the 1e7 build gate).
 
 D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 5.3,
          `notes/peer_review_glm_random_permutation_table`.md — verdict: PASS WITH TWO BLOCKING AMENDMENTS + MINORS;
@@ -250,8 +251,8 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 
          the v3.1 quantitative layer — which the two prior reviews could not have seen (v3.1, D-167, landed AFTER them).
          (1) Amendment A (BLOCKING) ADOPTED — the author's error: the v3.1 D0 noise formula 0.4\*sqrt(2S/N) illegally
          substituted sqrt(sum p(1-p)) for sum sqrt(p(1-p)) (subadditivity — the single-effective-cell lower bound),
-         understating the true E[TV0] ~ S_half/sqrt(pi\*N) by S_half/sqrt(S): 36x for a uniform 1296-cell table (N = 4e7:
-         true 3.21e-3, v3.1 8.9e-5; GLM's simulation 3.20e-3; the author re-verified with an INDEPENDENT simulation
+         understating the true E[TV0] ~ S_half/sqrt(pi\*N) by S_half/sqrt(S): 36x for a uniform 1296-cell table (N =
+         4e7: true 3.21e-3, v3.1 8.9e-5; GLM's simulation 3.20e-3; the author re-verified with an INDEPENDENT simulation
          before adopting: 3.19e-3..3.31e-3 vs theory 3.21e-3 — confirmed). The v3.1 "verified numerically" figures were
          the formula EVALUATING ITSELF — the same epistemic sin the v1 process caught in a theorem, recurred in a
          number. Adopted consequences: the TABLE-AWARE absolute cap (delta\*_unit = max(2e-3, q95(D0_unit)) — the v3.1
@@ -259,14 +260,14 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 
          "a gate that spuriously fails a perfect replica is worse than no gate"); the PARAMETRIC bootstrap threshold
          (mean + 1.645\*sd — the TV's CV is ~2%, the 20-sample maximum ±30-40%); the PER-POPULATION sqrt(N) rescaling
          (pooled: games\*40, per-ec strata: games); the corrected CERTIFICATION SCHEDULE (1e6: ~3.3e-3 pooled / ~2.1e-2
-         per-stratum for uniform-like broad tables; the 1e7 BUILD gate: pooled q95 ~ 1.1e-3, below delta\* — the absolute
-         cap ACTIVE there); the corrected PROPAGATION bound (|dH| ≤ h2(TV) + TV\*log2(C-1) ~ 0.041 bits at TV = 2e-3, C =
-         1296 — v3.1 "~2e-2" ~2x low; the 1e6 pooled certification level 3.3e-3 bounds it at ~0.07 bits — ≤ ~7% relative
-         on O(1) information quantities: SUFFICIENT for I-017; the 1e7 build tightens to ~0.025). (2) Amendment B
-         (BLOCKING) ADOPTED: the v2/v3 phase "PROVEN" tag is INVALID — the counterexample m_g = (r-g) mod k (spread ≤
-         k-1 ≤ 63) makes ALL slots' phases = r (a point mass, imbalance N(1-1/k) vs the claimed ≤ 64; the author
-         verified: k = 2, m_g = g%2 → one distinct phase across 1e6 slots); deeper: m_g is table/phase-dependent (the
-         pass feedback loop: phase → picks → trajectory → passes → m_g → phase) — the phase term is a PATH-COUPLED
+         per-stratum for uniform-like broad tables; the 1e7 BUILD gate: pooled q95 ~ 1.1e-3, below delta\* — the
+         absolute cap ACTIVE there); the corrected PROPAGATION bound (|dH| ≤ h2(TV) + TV\*log2(C-1) ~ 0.041 bits at TV =
+         2e-3, C = 1296 — v3.1 "~2e-2" ~2x low; the 1e6 pooled certification level 3.3e-3 bounds it at ~0.07 bits — ≤
+         ~7% relative on O(1) information quantities: SUFFICIENT for I-017; the 1e7 build tightens to ~0.025). (2)
+         Amendment B (BLOCKING) ADOPTED: the v2/v3 phase "PROVEN" tag is INVALID — the counterexample m_g = (r-g) mod k
+         (spread ≤ k-1 ≤ 63) makes ALL slots' phases = r (a point mass, imbalance N(1-1/k) vs the claimed ≤ 64; the
+         author verified: k = 2, m_g = g%2 → one distinct phase across 1e6 slots); deeper: m_g is table/phase-dependent
+         (the pass feedback loop: phase → picks → trajectory → passes → m_g → phase) — the phase term is a PATH-COUPLED
          channel, and the v2 "purely combinatorial" label re-opened, in miniature, the hole v2 closed. Demoted to GATED
          + measured by the new per-width PHASE-OCCUPANCY SCAN (gate test 1: the cross-slot histogram of (g + m_g) mod k
          vs uniform, chi-square k-1 df, Bonferroni over 64 widths). (3) MINORS ADOPTED: the section 4.4 garbled cell
@@ -281,48 +282,47 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 
          instrument (the 1e6 design gate before T5; the 1e7 build gate at build time; the corpus is accepted only after
          BOTH pass).
 
-D-169 | 2026-09-12 | T4 fix: the non-full double pass is the game over (Roberto's OK: "certo che e'
-         da fixare!"). Found while reading the T4 loop for the T5 plan: the game-over check lived only in the real-move
-         branch, so a NON-full double pass (both sides no legal move, the board not full — rare, < 0.2% of random games,
-         measured: 0 in 500 full games) spun passes to the `MAX_PLIES`=300 guard (RuntimeError instead of
-         `stopped_by`='`game_over`'). Fix: the pass branch now calls `position_is_game_over`(p) after the swap (the opponent
-         having no legal move either — the board unchanged since their last check — is the double-pass game over). +1
-         test: the constructed 61-stone deadlock (3 empty — E4, F4, G4 — the 57-stone field walled around the empty run
-         + the 4-stone A2..B3 block, the pinned literal, verified neither side has a legal move): one pass then the
-         game-over, ec = 3 kept, the swapped final position. Suite 13/0/0. The T5 wave engine implements the CORRECT
-         semantics (the dead lane = the double pass) and cross-validates against the fixed T4.
+D-169 | 2026-09-12 | T4 fix: the non-full double pass is the game over (Roberto's OK: "certo che e' da fixare!"). Found
+         while reading the T4 loop for the T5 plan: the game-over check lived only in the real-move branch, so a
+         NON-full double pass (both sides no legal move, the board not full — rare, < 0.2% of random games, measured: 0
+         in 500 full games) spun passes to the `MAX_PLIES`=300 guard (RuntimeError instead of `stopped_by`='`game_over`').
+         Fix: the pass branch now calls `position_is_game_over`(p) after the swap (the opponent having no legal move
+         either — the board unchanged since their last check — is the double-pass game over). +1 test: the constructed
+         61-stone deadlock (3 empty — E4, F4, G4 — the 57-stone field walled around the empty run + the 4-stone A2..B3
+         block, the pinned literal, verified neither side has a legal move): one pass then the game-over, ec = 3 kept,
+         the swapped final position. Suite 13/0/0. The T5 wave engine implements the CORRECT semantics (the dead lane =
+         the double pass) and cross-validates against the fixed T4.
 
-D-170 | 2026-09-12 | T5: the concurrent WAVE engine (the G1 ODP-9 corpus generator, the numba
-         tier). Roberto's option A, refined to the LOCKSTEP: one wave STEP = one REAL MOVE per live lane — the pass
-         FOLDS INTO the step (the pass lane's move is picked from the swapped side's legal set: the second Kogge-Stone
-         pass of the step, uniform, zero per-lane branching), so a pass adds no step and no counter step; ec = 60 -
-         steps (a real move places exactly one stone) → every live lane is at EXACTLY `ec_target` at the boundary: the
-         harvest is the whole wave (no ragged exits, no per-step mask, no inline respawn — the "brutish" logic is in the
-         rare per-wave boundary code; Roberto: "a noi qui serve veloce" — the hot step is five full-wave vectorized
-         calls). The double pass (lm == 0 AND lo == 0, the board unchanged → terminal, full or not) kills the lane: it
-         COASTS on the PA swap (the documented kernel behaviour — the only input that cannot corrupt the stale state),
-         the counter freezes, it is not harvested, it respawns at the boundary with the next slot. Parallelism: lanes in
-         parallel (prange, the house pattern — the shared Kogge-Stone kernels are already parallel); the per-lane
-         per-ply work (a u64) is below the thread-split threshold. Repeatability: the trajectory of game g is
-         f(table(seed), slot g) — lanes/threads never enter the semantics (LAW-2 pins it); the single seed from the JSON
-         config (Roberto's pin). Sink v1: the arrested positions only (mover, opp, slot) — "di quello si prendono le
-         statistiche" (Roberto); the file writer = T6. Cross-validation (the T4 docstring promise): the harvest is
-         bit-exact vs `random_play`(counter0=slot) — LAW-1 (63 games, W=7, ec ∈ {55,40,20}), LAW-2 (the phase invariance,
-         slot 1234: W=1 ≡ W=100 lane 34), the W=1 trajectory of the pinned pass-carrying slot 712 (42 plies, the PAs at
-         plies 31/33 — passes are ~0.05% of the games) ≡ the T4 move list, LAW-3 (the synthetic corner wall: one step =
-         [PA, D3], the counter walks once), LAW-4 (the dead lane: the PA-swap coast, the frozen counter, the boundary
-         respawn). 11/0/1 (LONG: the 1e6 benchmark). PERFORMANCE: 1e6 games (W=1e6, ec=20) in 5.3 s — 188k games/s (the
-         target was <= 120 s; the T4 Python rate was ~20-60 min): 2 waves, 36195 dead lanes absorbed by the respawn
-         path, exactly 1e6 harvested. The 1e7 extrapolation ~50 s (the target was <= 15 min). OPEN FINDING flagged to
-         Roberto (his call — board.py is core, not touched): the `make_move` legality test (scalar AND array) is "the
-         flips are non-zero" instead of "the square is EMPTY and the flips are non-zero" — an occupied square with a
-         flipping ray is APPLIED (the docstrings promise None / unchanged); it never fires in the pipeline (only legal
-         moves + PA are passed) — the wave routes around it via the PA swap. The 2-line fix (the occupancy check) is
-         ready if Roberto wants it.
+D-170 | 2026-09-12 | T5: the concurrent WAVE engine (the G1 ODP-9 corpus generator, the numba tier). Roberto's option A,
+         refined to the LOCKSTEP: one wave STEP = one REAL MOVE per live lane — the pass FOLDS INTO the step (the pass
+         lane's move is picked from the swapped side's legal set: the second Kogge-Stone pass of the step, uniform, zero
+         per-lane branching), so a pass adds no step and no counter step; ec = 60 - steps (a real move places exactly
+         one stone) → every live lane is at EXACTLY `ec_target` at the boundary: the harvest is the whole wave (no
+         ragged exits, no per-step mask, no inline respawn — the "brutish" logic is in the rare per-wave boundary code;
+         Roberto: "a noi qui serve veloce" — the hot step is five full-wave vectorized calls). The double pass (lm == 0
+         AND lo == 0, the board unchanged → terminal, full or not) kills the lane: it COASTS on the PA swap (the
+         documented kernel behaviour — the only input that cannot corrupt the stale state), the counter freezes, it is
+         not harvested, it respawns at the boundary with the next slot. Parallelism: lanes in parallel (prange, the
+         house pattern — the shared Kogge-Stone kernels are already parallel); the per-lane per-ply work (a u64) is
+         below the thread-split threshold. Repeatability: the trajectory of game g is f(table(seed), slot g) —
+         lanes/threads never enter the semantics (LAW-2 pins it); the single seed from the JSON config (Roberto's pin).
+         Sink v1: the arrested positions only (mover, opp, slot) — "di quello si prendono le statistiche" (Roberto); the
+         file writer = T6. Cross-validation (the T4 docstring promise): the harvest is bit-exact vs `random_play`(counter0=slot)
+         — LAW-1 (63 games, W=7, ec ∈ {55,40,20}), LAW-2 (the phase invariance, slot 1234: W=1 ≡ W=100 lane 34), the W=1
+         trajectory of the pinned pass-carrying slot 712 (42 plies, the PAs at plies 31/33 — passes are ~0.05% of the
+         games) ≡ the T4 move list, LAW-3 (the synthetic corner wall: one step = [PA, D3], the counter walks once),
+         LAW-4 (the dead lane: the PA-swap coast, the frozen counter, the boundary respawn). 11/0/1 (LONG: the 1e6
+         benchmark). PERFORMANCE: 1e6 games (W=1e6, ec=20) in 5.3 s — 188k games/s (the target was <= 120 s; the T4
+         Python rate was ~20-60 min): 2 waves, 36195 dead lanes absorbed by the respawn path, exactly 1e6 harvested. The
+         1e7 extrapolation ~50 s (the target was <= 15 min). OPEN FINDING flagged to Roberto (his call — board.py is
+         core, not touched): the `make_move` legality test (scalar AND array) is "the flips are non-zero" instead of
+         "the square is EMPTY and the flips are non-zero" — an occupied square with a flipping ray is APPLIED (the
+         docstrings promise None / unchanged); it never fires in the pipeline (only legal moves + PA are passed) — the
+         wave routes around it via the PA swap. The 2-line fix (the occupancy check) is ready if Roberto wants it.
 
-D-171 | 2026-09-12 | board.py: the D-170 OPEN FINDING closed as DOCUMENTED, not fixed (Roberto's
-         ruling). The `make_move` / `position_flips` occupied-square behaviour (a move on a square OCCUPIED by the mover or
-         the opponent stones is UNEXPECTED BEHAVIOUR — the flip ray is computed anyway and, when non-zero, APPLIED:
+D-171 | 2026-09-12 | board.py: the D-170 OPEN FINDING closed as DOCUMENTED, not fixed (Roberto's ruling). The
+         `make_move` / `position_flips` occupied-square behaviour (a move on a square OCCUPIED by the mover or the
+         opponent stones is UNEXPECTED BEHAVIOUR — the flip ray is computed anyway and, when non-zero, APPLIED:
          own-stone square -> a well-formed but UNREACHABLE position, the count short by one; opponent-stone square -> a
          CORRUPT position, the square in BOTH bitboards) is the CALLER'S RESPONSIBILITY: the kernel is NOT modified (the
          condition must never occur — the pipeline passes only legal moves + PA; the T5 wave routes its dead lanes
@@ -331,18 +331,18 @@ D-171 | 2026-09-12 | board.py: the D-170 OPEN FINDING closed as DOCUMENTED, not 
          occupancy-check fix stays available if the ruling is ever revisited.
 
 D-172 | 2026-09-12 | T6: the DESIGN GATE (the v4 doc section 7, the pre-registered certification).
-         `src/reversi/lm/hlp_gate`.py + `test_hlp_gate`.py (14/0/0; the full gate smoke under `GATE_SMOKE`=1). ENGINES (both
-         lockstep waves, the T5 semantics): G1 = the ODP-9 table pick (`build_pick_table`, the slot phase pin counter0 =
-         slot, no PRNG in the loop); G0 = the uniform reference on a SINGLE GLOBAL MT19937 (the project's golden-pinned
-         PRNG, the "one seed for all" pin, the numba batch-draw port of `tools/prng`.py — bit-exact vs the T3 oracle: 2000
-         draws + the 312-word twist boundary + the mid-stream start): one draw per (lane, step) in lane order, the
-         real-move lanes pick the (draw % k)-th set bit (the modulo bias < k/2^64, 12 orders below the noise floor), the
-         pass/dead lanes' draws consumed (unused). The W=1 G0 wave trajectory is bit-exact vs the scalar G0 reference
-         (the same stream discipline). TESTS (v4): 1 = the table A1 re-check (the per-width rank histogram) + the
-         per-width PHASE-OCCUPANCY scan (the v4 phase (g + m_g) mod k = counter mod k — the doc L545 "width-k decision
-         m_g = 0 across slots — phases = g mod k"; NOTE: the first implementation used (slot + counter) mod k = the 2g +
-         m_g variant, which has a STRUCTURAL parity collapse for even k in the early game — the doc-correct counter mod
-         k is uniform; caught before the 1e6 run); chi-square k-1 df, Bonferroni over the 64 widths. 2 = the
+         `src/reversi/lm/hlp_gate`.py + `test_hlp_gate`.py (14/0/0; the full gate smoke under `GATE_SMOKE`=1). ENGINES
+         (both lockstep waves, the T5 semantics): G1 = the ODP-9 table pick (`build_pick_table`, the slot phase pin
+         counter0 = slot, no PRNG in the loop); G0 = the uniform reference on a SINGLE GLOBAL MT19937 (the project's
+         golden-pinned PRNG, the "one seed for all" pin, the numba batch-draw port of `tools/prng`.py — bit-exact vs the
+         T3 oracle: 2000 draws + the 312-word twist boundary + the mid-stream start): one draw per (lane, step) in lane
+         order, the real-move lanes pick the (draw % k)-th set bit (the modulo bias < k/2^64, 12 orders below the noise
+         floor), the pass/dead lanes' draws consumed (unused). The W=1 G0 wave trajectory is bit-exact vs the scalar G0
+         reference (the same stream discipline). TESTS (v4): 1 = the table A1 re-check (the per-width rank histogram) +
+         the per-width PHASE-OCCUPANCY scan (the v4 phase (g + m_g) mod k = counter mod k — the doc L545 "width-k
+         decision m_g = 0 across slots — phases = g mod k"; NOTE: the first implementation used (slot + counter) mod k =
+         the 2g + m_g variant, which has a STRUCTURAL parity collapse for even k in the early game — the doc-correct
+         counter mod k is uniform; caught before the 1e6 run); chi-square k-1 df, Bonferroni over the 64 widths. 2 = the
          ARREST-STRATIFIED marginals (PRIMARY): per sub-variable, per ec level (60 down to the arrest ec) the TV of the
          G1-vs-G0 position codes + the per-game pass counts + the pooled full-trajectory marginal (SECONDARY). 3-4 = the
          FOCUSED joints: the sampled SU pairs (the per-instance cell product n_conf_A x n_conf_B <= 1e6 — 18 pairs: LMC
@@ -363,93 +363,93 @@ D-172 | 2026-09-12 | T6: the DESIGN GATE (the v4 doc section 7, the pre-register
          the rescale invalid) — the doc's "at the scale where that demand is resolvable": the 1e6 run is the real
          verdict (in flight, job bash-18; the scratch report is gitignored, the verdict lands in the journal).
 
-D-173 | 2026-09-13 | T6 1e6 design gate: VERDICT FAIL — the ODP-9 corpus-level equivalence
-         (E1-corpus) does NOT hold at the 1e6 resolved level (the gate's purpose, served: it caught the defect BEFORE
-         the 1e7 build). The v4 doc section 7, as pre-registered (1e6 games, the model's ec 20, seed 42, G1 table vs G0
-         global golden-pinned MT19937, 20 D0 pairs @ 1e5, the parametric q95 + 1/sqrt(N) rescale, the table-aware
-         delta\*): FAIL on (i), (ii), (iii) (G1 20.5 min, G0 19.6 min, total 7.7 h — the D0 pairs + test 6 + the joint
-         statistics dominate). THE EVIDENCE (the dense units — the clean metrics): the LMC (the mobility, 65 cells —
-         literally an A2050 sub-variable) marginal D = 0.174 per-ec max / 0.019 pooled vs the D0 q95 0.0037 / 0.0005 =
-         47x / 37x the G0-G0 noise; the per-game pass distribution 15x; the phase-occupancy scan p ~= 0 (most widths
-         3-10, 12, 15-18 strongly non-uniform — the phase counter mod k is systematically non-uniform across the width
-         spectrum, NOT a small-k phenomenon); the same-position joints 136/153 Bonferroni-significant at 1e6 (0/153 at
-         1e5 — the signal grows with scale, as a real deviation must); the phase continuity: the slot-base 4000001
-         offset moves the corpus by pooled TV 0.143 (1e6) / 0.306 (1e5, reproducible across seeds) vs the G0 noise — the
-         corpus is PHASE-LOCKED (the test 6 criterion). SEED-INDEPENDENT (the design property, not the table seed's
-         accident): the 1e5 confirmation runs — seed 42: LMC 0.174 (15x the 1e5 noise), seed 123: LMC 0.206 (19x).
-         PER-EC PROFILE: the LMC deviation concentrates EARLY (ec 56 = 4 moves played: D = 0.206; ec 57: 0.164; ec 55:
-         0.127; ec 53: 0.094 — decaying to the arrest ec 20) — the path-coupling signature: the early plies share the
-         phase structure (phase -> pick -> trajectory -> phase; the doc section 6.4 "a path-coupled channel, not a
-         purely slot term"), the deviation decays as the trajectories diverge. The sparse pattern units (the 43M+ cell
-         spaces) show the TV saturated ~1.0 across all width strata with a flat gradient (no small-k spike; the G0-G0
-         baseline 0.3 — the metric inflated by the sparsity) — the broad counter-mediated coupling dominates over the
-         small-k shared-row distinctness. MECHANISM: the one-step oracle equivalence (E1) is PROVEN and holds; the
-         corpus is ONE realization of a deterministic dynamical system (the phase feedback + the shared-row twin
-         cloning) whose long-horizon statistics deviate from the i.i.d. uniform draws by more than an order of magnitude
-         in the quantities I-017 consumes. The doc's fallback (the second independent counter / the fresh per-ply PRNG
-         at the small-k plies) targets the small-k shared-row mode — the measured mode is BROAD, so the fallback is
-         unlikely to close the 47x gap (and it would re-introduce the PRNG into the hot loop). PENDING (Roberto's design
-         call): the corpus generator. The recommendation is G0 (the engine is already built and bit-verified inside the
-         gate — the W=1 trajectory vs the scalar reference; the wave engine makes G0 as fast as G1: 19.6 vs 20.5 min at
-         1e6, ~50 s at 1e7; the reproducibility identical — the single global golden-pinned MT19937, one seed from the
-         JSON, the fixed (lane, step) draw order). ODP-9 stays as the analytical record (E1 proven, the lemmas, the
-         phase combinatorics) with the corpus-level claim empirically bounded by this gate.
+D-173 | 2026-09-13 | T6 1e6 design gate: VERDICT FAIL — the ODP-9 corpus-level equivalence (E1-corpus) does NOT hold at
+         the 1e6 resolved level (the gate's purpose, served: it caught the defect BEFORE the 1e7 build). The v4 doc
+         section 7, as pre-registered (1e6 games, the model's ec 20, seed 42, G1 table vs G0 global golden-pinned
+         MT19937, 20 D0 pairs @ 1e5, the parametric q95 + 1/sqrt(N) rescale, the table-aware delta\*): FAIL on (i),
+         (ii), (iii) (G1 20.5 min, G0 19.6 min, total 7.7 h — the D0 pairs + test 6 + the joint statistics dominate).
+         THE EVIDENCE (the dense units — the clean metrics): the LMC (the mobility, 65 cells — literally an A2050
+         sub-variable) marginal D = 0.174 per-ec max / 0.019 pooled vs the D0 q95 0.0037 / 0.0005 = 47x / 37x the G0-G0
+         noise; the per-game pass distribution 15x; the phase-occupancy scan p ~= 0 (most widths 3-10, 12, 15-18
+         strongly non-uniform — the phase counter mod k is systematically non-uniform across the width spectrum, NOT a
+         small-k phenomenon); the same-position joints 136/153 Bonferroni-significant at 1e6 (0/153 at 1e5 — the signal
+         grows with scale, as a real deviation must); the phase continuity: the slot-base 4000001 offset moves the
+         corpus by pooled TV 0.143 (1e6) / 0.306 (1e5, reproducible across seeds) vs the G0 noise — the corpus is
+         PHASE-LOCKED (the test 6 criterion). SEED-INDEPENDENT (the design property, not the table seed's accident): the
+         1e5 confirmation runs — seed 42: LMC 0.174 (15x the 1e5 noise), seed 123: LMC 0.206 (19x). PER-EC PROFILE: the
+         LMC deviation concentrates EARLY (ec 56 = 4 moves played: D = 0.206; ec 57: 0.164; ec 55: 0.127; ec 53: 0.094 —
+         decaying to the arrest ec 20) — the path-coupling signature: the early plies share the phase structure
+         (phase -> pick -> trajectory -> phase; the doc section 6.4 "a path-coupled channel, not a purely slot term"),
+         the deviation decays as the trajectories diverge. The sparse pattern units (the 43M+ cell spaces) show the TV
+         saturated ~1.0 across all width strata with a flat gradient (no small-k spike; the G0-G0 baseline 0.3 — the
+         metric inflated by the sparsity) — the broad counter-mediated coupling dominates over the small-k shared-row
+         distinctness. MECHANISM: the one-step oracle equivalence (E1) is PROVEN and holds; the corpus is ONE
+         realization of a deterministic dynamical system (the phase feedback + the shared-row twin cloning) whose
+         long-horizon statistics deviate from the i.i.d. uniform draws by more than an order of magnitude in the
+         quantities I-017 consumes. The doc's fallback (the second independent counter / the fresh per-ply PRNG at the
+         small-k plies) targets the small-k shared-row mode — the measured mode is BROAD, so the fallback is unlikely to
+         close the 47x gap (and it would re-introduce the PRNG into the hot loop). PENDING (Roberto's design call): the
+         corpus generator. The recommendation is G0 (the engine is already built and bit-verified inside the gate — the
+         W=1 trajectory vs the scalar reference; the wave engine makes G0 as fast as G1: 19.6 vs 20.5 min at 1e6, ~50 s
+         at 1e7; the reproducibility identical — the single global golden-pinned MT19937, one seed from the JSON, the
+         fixed (lane, step) draw order). ODP-9 stays as the analytical record (E1 proven, the lemmas, the phase
+         combinatorics) with the corpus-level claim empirically bounded by this gate.
 
-D-174 | 2026-09-13 | I-017 corpus generator: G0 (Roberto's design call, after the D-173 gate
-         verdict). The ODP-9 table engine (G1) stays as the analytical record (E1 oracle equivalence proven, the lemmas,
-         the phase combinatorics) — but the 1e7 I-017 corpus is generated with G0 (the uniform pick, the single global
-         golden-pinned MT19937, one seed from the campaign JSON). Rationale (the gate data): the corpus-level
-         equivalence (E1-corpus) empirically fails at the 1e6 resolved level (the LMC 47x the noise, the phase scan p ~=
-         0, the phase-locked corpus, seed-independent) — and the doc's small-k fallback targets the WRONG failure mode
-         (the measured deviation is BROAD: all widths, early-game concentration; the fallback would also re-introduce
-         the PRNG into the hot loop). IMPLEMENTATION: the G0 engine moves to `hlp_wave`.py (the corpus generator module
-         owns it — `step_wave_g0`, `run_wave_g0`, the MT19937 batch kernels, `_pick_g0`; the gate reuses the kernels via
-         import — no duplicate). The engine is as fast as G1 in the wave tier (G1 20.5 min vs G0 19.6 min at 1e6 in the
-         gate run; ~50 s per 1e7 extrapolation) with identical reproducibility (one seed, the fixed (lane, step) draw
-         order, the bit-exact replay). Suite: `test_hlp_wave` 14/0/2 (the batch kernel bit-exact vs the golden oracle, the
-         W=1 trajectory vs the scalar reference, the run integrity + the determinism, the LONG 1e6 G0 benchmark). NEXT:
-         the 1e7 corpus build (G0, the `rlm_03` config, ec 20, the arrested-positions sink) + the light build check (G0 IS
-         the reference by construction — the doc's 1e7 "build gate", which re-certified G1~=G0, loses its object; the
-         corpus acceptance = the statistics themselves), then the I-017 statistics.
+D-174 | 2026-09-13 | I-017 corpus generator: G0 (Roberto's design call, after the D-173 gate verdict). The ODP-9 table
+         engine (G1) stays as the analytical record (E1 oracle equivalence proven, the lemmas, the phase combinatorics)
+         — but the 1e7 I-017 corpus is generated with G0 (the uniform pick, the single global golden-pinned MT19937, one
+         seed from the campaign JSON). Rationale (the gate data): the corpus-level equivalence (E1-corpus) empirically
+         fails at the 1e6 resolved level (the LMC 47x the noise, the phase scan p ~= 0, the phase-locked corpus,
+         seed-independent) — and the doc's small-k fallback targets the WRONG failure mode (the measured deviation is
+         BROAD: all widths, early-game concentration; the fallback would also re-introduce the PRNG into the hot loop).
+         IMPLEMENTATION: the G0 engine moves to `hlp_wave`.py (the corpus generator module owns it — `step_wave_g0`,
+         `run_wave_g0`, the MT19937 batch kernels, `_pick_g0`; the gate reuses the kernels via import — no duplicate).
+         The engine is as fast as G1 in the wave tier (G1 20.5 min vs G0 19.6 min at 1e6 in the gate run; ~50 s per 1e7
+         extrapolation) with identical reproducibility (one seed, the fixed (lane, step) draw order, the bit-exact
+         replay). Suite: `test_hlp_wave` 14/0/2 (the batch kernel bit-exact vs the golden oracle, the W=1 trajectory vs
+         the scalar reference, the run integrity + the determinism, the LONG 1e6 G0 benchmark). NEXT: the 1e7 corpus
+         build (G0, the `rlm_03` config, ec 20, the arrested-positions sink) + the light build check (G0 IS the
+         reference by construction — the doc's 1e7 "build gate", which re-certified G1~=G0, loses its object; the corpus
+         acceptance = the statistics themselves), then the I-017 statistics.
 
-D-175 | 2026-09-13 | G0 corpus generator: the performance estimate, the pipeline constraints, the
-         doc addendum. PERFORMANCE (measured, this machine — 8 cores, 188 GB; W=1e6, seed 42, the harvest throughput —
-         the ~3.4% dead-lane overhead at ec=0 is INCLUDED): G0 ec=0 (the full game, positions = games) 1e7 in 52.8 s =
-         189,571 games/s (the 1e6 run: 86,480/s — the first-wave warmup; the steady state is the 1e7 figure). 1e9 full
-         games ~= 9 min. ec=20: 144,188/s (single wave, warmup included; steady-state equal; the G1 reference: 188k/s —
-         G0 ~= G1 in the wave tier, confirming the D-174 "as fast as G1" claim). PIPELINE CONSTRAINT (Roberto,
-         2026-09-13): the SU analysis is OPTIONAL in the pipeline config, default FALSE (no run) — the `FEATURE_ANALYSIS`
-         level does not exist in the schema yet (the T12 work), so the constraint is recorded here and lands in the T12
-         config design (no premature schema change). The profiling session (the OPTIMIZE pattern, all hot-spots) is
-         scheduled AFTER the SU level is complete. DOC ADDENDUM: `notes/random_permutation_table`.md section 11 (the
-         post-freeze empirical results: the D-173 gate verdict + evidence tables, the D-174 decision + justification,
-         the equidistribution-loss mechanism — the table constrains the consecutive equal-width picks to the
-         1-dimensional permutation-row curve (P_k[a], P_k[a+1]) instead of the k-dimensional space, destroying the
-         Matsumoto-Nishimura k-dimensional equidistribution (up to 623 dimensions) by design, while the one-step oracle
-         E1 survives; the certification schedule amended by fact). The v4 frozen body is unmodified (the
-         pre-registration must not be touched). An EXTERNAL review of the addendum is requested (Roberto orchestrates;
-         the assistant's preference: GLM — the review that caught the 36x D0 formula error, the deepest technical
-         reading so far; this addendum is statistics/PRNG-theory heavy). CORPUS BUILD (the 1e7): PENDING Roberto's
-         storage call — the assistant proposes NO persistent file (the corpus is a pure function of (engine, seed, ec,
-         N, W) — deterministic, ~2-min regeneration; the provenance — seed 42, N, ec, W, config hash, git HEAD, dead
-         count, final mti — is recorded in the `notes/reports`; the analysis job generates in memory; persistence returns
-         only with a concrete T12 pipeline need).
+D-175 | 2026-09-13 | G0 corpus generator: the performance estimate, the pipeline constraints, the doc addendum.
+         PERFORMANCE (measured, this machine — 8 cores, 188 GB; W=1e6, seed 42, the harvest throughput — the ~3.4%
+         dead-lane overhead at ec=0 is INCLUDED): G0 ec=0 (the full game, positions = games) 1e7 in 52.8 s = 189,571
+         games/s (the 1e6 run: 86,480/s — the first-wave warmup; the steady state is the 1e7 figure). 1e9 full games ~=
+         9 min. ec=20: 144,188/s (single wave, warmup included; steady-state equal; the G1 reference: 188k/s — G0 ~= G1
+         in the wave tier, confirming the D-174 "as fast as G1" claim). PIPELINE CONSTRAINT (Roberto, 2026-09-13): the
+         SU analysis is OPTIONAL in the pipeline config, default FALSE (no run) — the `FEATURE_ANALYSIS` level does not
+         exist in the schema yet (the T12 work), so the constraint is recorded here and lands in the T12 config design
+         (no premature schema change). The profiling session (the OPTIMIZE pattern, all hot-spots) is scheduled AFTER
+         the SU level is complete. DOC ADDENDUM: `notes/random_permutation_table`.md section 11 (the post-freeze
+         empirical results: the D-173 gate verdict + evidence tables, the D-174 decision + justification, the
+         equidistribution-loss mechanism — the table constrains the consecutive equal-width picks to the 1-dimensional
+         permutation-row curve (P_k[a], P_k[a+1]) instead of the k-dimensional space, destroying the Matsumoto-Nishimura
+         k-dimensional equidistribution (up to 623 dimensions) by design, while the one-step oracle E1 survives; the
+         certification schedule amended by fact). The v4 frozen body is unmodified (the pre-registration must not be
+         touched). An EXTERNAL review of the addendum is requested (Roberto orchestrates; the assistant's preference:
+         GLM — the review that caught the 36x D0 formula error, the deepest technical reading so far; this addendum is
+         statistics/PRNG-theory heavy). CORPUS BUILD (the 1e7): PENDING Roberto's storage call — the assistant proposes
+         NO persistent file (the corpus is a pure function of (engine, seed, ec, N, W) — deterministic, ~2-min
+         regeneration; the provenance — seed 42, N, ec, W, config hash, git HEAD, dead count, final mti — is recorded in
+         the `notes/reports`; the analysis job generates in memory; persistence returns only with a concrete T12
+         pipeline need).
 
-D-176 | 2026-09-13 | Generated-data placement (Roberto's standing guideline): code-generated data
-         that is expensive to replicate goes in `build/` (already gitignored, D-009) — NEVER inside `src/`, `notes/`, or any
-         other code folder: a git clone must be self-contained (the cloner recomputes it once); persistent data is a
-         DB/campaign artifact, decided explicitly ("dentro src a me non piace by-design"). The 1e7 G0 corpus therefore
-         leaves NO persistent file (Roberto's call, this session): it is a pure function of (engine, seed, ec, N, W) —
+D-176 | 2026-09-13 | Generated-data placement (Roberto's standing guideline): code-generated data that is expensive to
+         replicate goes in `build/` (already gitignored, D-009) — NEVER inside `src/`, `notes/`, or any other code
+         folder: a git clone must be self-contained (the cloner recomputes it once); persistent data is a DB/campaign
+         artifact, decided explicitly ("dentro src a me non piace by-design"). The 1e7 G0 corpus therefore leaves NO
+         persistent file (Roberto's call, this session): it is a pure function of (engine, seed, ec, N, W) —
          deterministic, ~2-min regeneration; the provenance (seed 42, ec 20, N 1e7, W 1e6, git HEAD, the dead count, the
          final mti) is recorded in the notes at build time.
 
-D-177 | 2026-09-13 | T7: the marginal frequency accumulator + the ec formula pin.
-         MarginalAccumulator in `hlp_random_play` (the `FEATURE_ANALYSIS` phase-1 data plane): the streaming (code -> count)
-         per sub-variable, the analysis unit the (feature, instance) COLUMN (the design-matrix unit the weights live on
-         — each pattern instance is its own categorical variable, the code a single uint32 in [0, n_conf); the 2X5COR^8
-         structured-key concern is the feature-level / the joint statistics, not the per-column marginal). The split:
-         n_conf <= `_DENSE_THRESHOLD` (1e6; the A2050 max is 59049) -> the dense bincount, else the unique-merge dict.
-         POOLED over all fed positions (the single-ec corpus — no per-ec split). The ec formula is PINNED: `ec_of` = 64 -
+D-177 | 2026-09-13 | T7: the marginal frequency accumulator + the ec formula pin. MarginalAccumulator in
+         `hlp_random_play` (the `FEATURE_ANALYSIS` phase-1 data plane): the streaming (code -> count) per sub-variable,
+         the analysis unit the (feature, instance) COLUMN (the design-matrix unit the weights live on — each pattern
+         instance is its own categorical variable, the code a single uint32 in [0, n_conf); the 2X5COR^8 structured-key
+         concern is the feature-level / the joint statistics, not the per-column marginal). The split: n_conf <=
+         `_DENSE_THRESHOLD` (1e6; the A2050 max is 59049) -> the dense bincount, else the unique-merge dict. POOLED over
+         all fed positions (the single-ec corpus — no per-ec split). The ec formula is PINNED: `ec_of` = 64 -
          popcount(mover | opponent) = the DB's `empty_count` (the regab `empty_count = ec` filter, the "mele con mele"
          window) — the corpus is arrested in the SAME window as the DB extraction. The no-DB micro-suite: the LMC
          hand-counted against the INDEPENDENT oracle `position_legal_moves` (the legal-move count per position, NOT
@@ -457,376 +457,374 @@ D-177 | 2026-09-13 | T7: the marginal frequency accumulator + the ec formula pin
          `compute_indexes`, the chunk-merge invariance (one chunk == two half-chunks), the ec hand-count (4, 5, 6, 7
          stones -> ec 60, 59, 58, 57). `test_hlp_random_play` 13/0/0 -> 18/0/0.
 
-D-178 | 2026-09-13 | T8: the joint frequency accumulator. JointAccumulator in `hlp_random_play` (the
-         `FEATURE_ANALYSIS` phase-1 data plane, the SU pairs): per REQUESTED su pair (F_i, F_j) and per (instance_i,
-         instance_j) in the pair, the (code_i, code_j) -> count over the corpus — the instance×instance level (P6's
-         matrix). The joint is SPARSE (the code_i x code_j space is too large for the dense — the unique-merge split);
-         the key is the packed u64 (code_i \* n_conf_j + code_j), safe for the A2050 scale (the max is 59049^2 << 2^64).
-         The same-feature pair (F, F) is allowed: the diagonal (the variable with itself) is the SU = 1 lock (OMITTED
-         per the ODP-4 close); the off-diagonal (the D8 orientations of the same mask) is the anisotropy measure. The
-         no-DB micro-suite (`test_hlp_random_play` 18 -> 21): the (LMC, R2) cross-feature pair (the 4 instance-pairs) +
-         the (R2, R2) same-feature pair (the 16 instance-pairs), each joint cross-checked against the INDEPENDENT
-         per-position oracle (the manual dict via `compute_indexes`), the same-feature diagonal has ZERO off-diagonal
-         entries, the chunk-merge invariance (one chunk == two half-chunks). Every joint's count sum == N.
+D-178 | 2026-09-13 | T8: the joint frequency accumulator. JointAccumulator in `hlp_random_play` (the `FEATURE_ANALYSIS`
+         phase-1 data plane, the SU pairs): per REQUESTED su pair (F_i, F_j) and per (instance_i, instance_j) in the
+         pair, the (code_i, code_j) -> count over the corpus — the instance×instance level (P6's matrix). The joint is
+         SPARSE (the code_i x code_j space is too large for the dense — the unique-merge split); the key is the packed
+         u64 (code_i \* n_conf_j + code_j), safe for the A2050 scale (the max is 59049^2 << 2^64). The same-feature pair
+         (F, F) is allowed: the diagonal (the variable with itself) is the SU = 1 lock (OMITTED per the ODP-4 close);
+         the off-diagonal (the D8 orientations of the same mask) is the anisotropy measure. The no-DB micro-suite
+         (`test_hlp_random_play` 18 -> 21): the (LMC, R2) cross-feature pair (the 4 instance-pairs) + the (R2, R2)
+         same-feature pair (the 16 instance-pairs), each joint cross-checked against the INDEPENDENT per-position oracle
+         (the manual dict via `compute_indexes`), the same-feature diagonal has ZERO off-diagonal entries, the
+         chunk-merge invariance (one chunk == two half-chunks). Every joint's count sum == N.
 
-D-179 | 2026-09-13 | T9: the PRNG integration test. TestPrngIntegration in `test_hlp_random_play`
-         (the G0 wave -> the accumulator, the 2-feature toy set = the LMC + the R2): (1) the corpus REPRODUCIBILITY —
-         the same seed (42) -> the SAME frequency tables (bit-exact, the G0 wave re-initializes the golden-pinned
-         MT19937 per call, the seed is the corpus seed), the different seed (43) -> different tables; (2) the small
-         END-TO-END corpus (the G0 wave -> the accumulator, 2000 games at ec 20) — every sub-variable's sum == N, K_obs
-         <= n_conf, and the LMC marginal hand-checked against the INDEPENDENT oracle `position_legal_moves` (NOT
-         `compute_indexes`). No new library code (the T7-T8 accumulators + the T5 G0 wave, all already landed).
-         `test_hlp_random_play` 21/0/0 -> 23/0/0.
+D-179 | 2026-09-13 | T9: the PRNG integration test. TestPrngIntegration in `test_hlp_random_play` (the G0 wave -> the
+         accumulator, the 2-feature toy set = the LMC + the R2): (1) the corpus REPRODUCIBILITY — the same seed (42) ->
+         the SAME frequency tables (bit-exact, the G0 wave re-initializes the golden-pinned MT19937 per call, the seed
+         is the corpus seed), the different seed (43) -> different tables; (2) the small END-TO-END corpus (the G0
+         wave -> the accumulator, 2000 games at ec 20) — every sub-variable's sum == N, K_obs <= n_conf, and the LMC
+         marginal hand-checked against the INDEPENDENT oracle `position_legal_moves` (NOT `compute_indexes`). No new
+         library code (the T7-T8 accumulators + the T5 G0 wave, all already landed). `test_hlp_random_play` 21/0/0 ->
+         23/0/0.
 
-D-180 | 2026-09-13 | T10: the throughput probe (the 1e7 G0 corpus on the REAL A2050 feature set, 47
-         sub-variables): the generation 33.9 s (11 waves, 294,564 games/s — the baseline match); the MARGINAL
-         accumulation 9.2 s = 1.08M pos/s — ~100x FASTER than the section 7 cost model (1-3 min/wave x 11 waves = 11-33
-         min); the JOINT light (LMC x R2, 4 instance-pairs) 6.7 s = 1.49M pos/s; the JOINT heavy (2X5COR x 2X5COR, 64
-         instance-pairs) 274 s = 36,470 pos/s (the Python dict merge is the bottleneck). DECISION: the default pipeline
-         (the marginal, `su_pairs` = []) is fast — 43 s total at 1e7 (gen + marginal); the NO numba optimization is needed
-         for the marginal. The heavy-pair joint cost (274 s) is a known cost for the heavy pair requests; the numba
-         dict-pass is DEFERRED to T16 (only if the heavy pairs must fly). A scratch probe (no code change, no commit of
-         code — the finding is recorded here).
+D-180 | 2026-09-13 | T10: the throughput probe (the 1e7 G0 corpus on the REAL A2050 feature set, 47 sub-variables): the
+         generation 33.9 s (11 waves, 294,564 games/s — the baseline match); the MARGINAL accumulation 9.2 s = 1.08M
+         pos/s — ~100x FASTER than the section 7 cost model (1-3 min/wave x 11 waves = 11-33 min); the JOINT light (LMC
+         x R2, 4 instance-pairs) 6.7 s = 1.49M pos/s; the JOINT heavy (2X5COR x 2X5COR, 64 instance-pairs) 274 s =
+         36,470 pos/s (the Python dict merge is the bottleneck). DECISION: the default pipeline (the marginal,
+         `su_pairs` = []) is fast — 43 s total at 1e7 (gen + marginal); the NO numba optimization is needed for the
+         marginal. The heavy-pair joint cost (274 s) is a known cost for the heavy pair requests; the numba dict-pass is
+         DEFERRED to T16 (only if the heavy pairs must fly). A scratch probe (no code change, no commit of code — the
+         finding is recorded here).
 
-D-181 | 2026-09-13 | T11: the SU / entropy / mutual-information kernels. New module
-         `hlp_feature_analysis` (the `FEATURE_ANALYSIS` step 3 data plane, the from-frequency-tables math — NO DB, NO
-         positions; the worker lands in T16): (1) `entropy(counts)` — the Shannon entropy H in bits, the 0-log-0
-         convention (the zero counts contribute 0), the empty / all-zero -> 0; (2)
-         `mutual_information(joint_counts, marg_u, marg_v)` — I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v)
-         (the ratio form's 0/0 avoided; the joint entropy is the entropy of the joint counts), clamped to >= 0 (the
-         floating-point rounding); (3) `symmetric_uncertainty(I, H_u, H_v)` — SU = 2·I / (H(u) + H(v)), in [0, 1], the
-         0-denominator guard (SU = 0 if H(u) + H(v) = 0 — the degenerate variables, the ODP-4/ODP-8 close). The SU is
-         computed from the IDEAL (synthetic) frequencies (the design section 3.3 phase 2 — the structural property, free
-         of the DB sample noise). New test module `test_hlp_feature_analysis` (10 tests, the hand-computed toy tables: the
-         uniform 2.0, the degenerate 0.0, the binary 0.8112781244591328, the empty 0.0; the perfect MI 1.0, the
-         independent MI 0.0, the non-negative clamp; the SU 1.0 / 0.0 / the 0-denominator 0.0). Registered in
-         `run_utests`.sh at the step 3 data-module position (between the FEATURES and the POSITIONS; the worker T16 lands
-         after). Mirrors (D-007), journal, overview.
+D-181 | 2026-09-13 | T11: the SU / entropy / mutual-information kernels. New module `hlp_feature_analysis` (the
+         `FEATURE_ANALYSIS` step 3 data plane, the from-frequency-tables math — NO DB, NO positions; the worker lands in
+         T16): (1) `entropy(counts)` — the Shannon entropy H in bits, the 0-log-0 convention (the zero counts contribute
+         0), the empty / all-zero -> 0; (2) `mutual_information(joint_counts, marg_u, marg_v)` — I(u; v) in bits, the
+         identity I = H(u) + H(v) - H(u, v) (the ratio form's 0/0 avoided; the joint entropy is the entropy of the joint
+         counts), clamped to >= 0 (the floating-point rounding); (3) `symmetric_uncertainty(I, H_u, H_v)` — SU = 2·I /
+         (H(u) + H(v)), in [0, 1], the 0-denominator guard (SU = 0 if H(u) + H(v) = 0 — the degenerate variables, the
+         ODP-4/ODP-8 close). The SU is computed from the IDEAL (synthetic) frequencies (the design section 3.3 phase 2 —
+         the structural property, free of the DB sample noise). New test module `test_hlp_feature_analysis` (10 tests,
+         the hand-computed toy tables: the uniform 2.0, the degenerate 0.0, the binary 0.8112781244591328, the
+         empty 0.0; the perfect MI 1.0, the independent MI 0.0, the non-negative clamp; the SU 1.0 / 0.0 / the
+         0-denominator 0.0). Registered in `run_utests`.sh at the step 3 data-module position (between the FEATURES and
+         the POSITIONS; the worker T16 lands after). Mirrors (D-007), journal, overview.
 
-D-182 | 2026-09-13 | T12: the dispersion + the never-observed audit. Added to `hlp_feature_analysis`
-         (the T11 module): (1) `dispersion(counts, `n_configurations`)` — the per-sub-variable dispersion (the design
-         section 3.3 phase 2): K_obs (the distinct observed codes), H (the entropy in bits), H_norm = H / log2(K_obs)
-         (else 0 — the K_obs <= 1 guard), the coverage = K_obs / `n_configurations`; returns {'k_obs', 'h', 'h_norm',
-         'coverage'}. (2) `never_observed_audit (counts, `n_configurations`, rarity_thresholds = (1, 2, 5, 10, 100))` —
-         the never-observed audit (the STOP deliverable, P2): the number of theoretical codes never seen
+D-182 | 2026-09-13 | T12: the dispersion + the never-observed audit. Added to `hlp_feature_analysis` (the T11 module):
+         (1) `dispersion(counts, `n_configurations`)` — the per-sub-variable dispersion (the design section 3.3 phase
+         2): K_obs (the distinct observed codes), H (the entropy in bits), H_norm = H / log2(K_obs) (else 0 — the K_obs
+         <= 1 guard), the coverage = K_obs / `n_configurations`; returns {'k_obs', 'h', 'h_norm', 'coverage'}. (2)
+         `never_observed_audit (counts, `n_configurations`, rarity_thresholds = (1, 2, 5, 10, 100))` — the
+         never-observed audit (the STOP deliverable, P2): the number of theoretical codes never seen
          (`n_configurations` - K_obs) + the rarity profile (the count of the observed codes below each small count
          threshold — the configurations that random play almost never reaches: the weights that can never be learned);
          returns {'k_obs', '`never_observed`', 'rarity'}. Both filter the zero counts (the dense form is accepted). The
-         test micro-suite (10 -> 16, the hand-computed toy tables: the dispersion [1, 1, 2, 4] n_conf 8 -> K_obs 4, H
-         1.75, H_norm 0.875, coverage 0.5; the degenerate K_obs 1 H_norm 0; the dense-zeros filter; the never-observed
+         test micro-suite (10 -> 16, the hand-computed toy tables: the dispersion [1, 1, 2, 4] n_conf 8 -> K_obs 4,
+         H 1.75, H_norm 0.875, coverage 0.5; the degenerate K_obs 1 H_norm 0; the dense-zeros filter; the never-observed
          never 4 + the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the all-observed never 0; the empty never = n_conf).
          Mirrors (D-007), journal, overview. 853 -> 859.
 
 D-183 | 2026-09-13 | T13: the ANOVA kernels. Added to `hlp_feature_analysis` (the T11 module):
-         `anova_eta_omega(groups, values)` — the one-way ANOVA effect sizes (the `EFFECT_SIZE` level, the design section
-         3.5): the observed codes as the groups (K), the target = the continuous training game values (N). SS_tot = sum
-         (y - ybar)^2, SS_eff = sum_g n_g (y_g - ybar)^2, SS_err = SS_tot - SS_eff; eta² = SS_eff / SS_tot; omega² =
-         (SS_eff - (K-1) MS_err) / (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards: K = 1 -> eta² = omega² = 0
-         (degenerate, by convention); K > N -> ValueError (unreachable); omega² may be slightly negative (the null
+         `anova_eta_omega(groups, values)` — the one-way ANOVA effect sizes (the `EFFECT_SIZE` level, the design
+         section 3.5): the observed codes as the groups (K), the target = the continuous training game values (N).
+         SS_tot = sum (y - ybar)^2, SS_eff = sum_g n_g (y_g - ybar)^2, SS_err = SS_tot - SS_eff; eta² = SS_eff / SS_tot;
+         omega² = (SS_eff - (K-1) MS_err) / (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards: K = 1 -> eta² = omega²
+         = 0 (degenerate, by convention); K > N -> ValueError (unreachable); omega² may be slightly negative (the null
          effect) — the raw value is reported. eta² is the biased sample share; omega² is the unbiased population
          estimate — the pair is reported together. The test micro-suite (16 -> 21, the hand-computed toy: the 2-group
          [1, 3, 2, 4] -> eta² 0.2, omega² -1/7 the null effect; the perfect separation [1, 1, 1, 4, 4, 4] -> eta² =
          omega² = 1; the K = 1 degeneracy -> 0 / 0; the K > N + the length-mismatch ValueError). Mirrors (D-007),
          journal, overview. 859 -> 864.
 
-D-184 | 2026-09-13 | T14: the adherence kernels (the fixed trio, the ODP-5 close, no config
-         whitelist). Added to `hlp_feature_analysis` (the T11 module): (1) `kl_divergence(p, q)` — the KL divergence KL(p
-         || q) in nats, the 0-log-0 convention (the p(i) = 0 terms vanish), +inf if p(i) > 0 and q(i) = 0 (the DB has a
-         code the ideal never shows). (2) `total_variation(p, q)` — the total variation distance TV(p, q) = 0.5 \* sum |p
+D-184 | 2026-09-13 | T14: the adherence kernels (the fixed trio, the ODP-5 close, no config whitelist). Added to
+         `hlp_feature_analysis` (the T11 module): (1) `kl_divergence(p, q)` — the KL divergence KL(p || q) in nats, the
+         0-log-0 convention (the p(i) = 0 terms vanish), +inf if p(i) > 0 and q(i) = 0 (the DB has a code the ideal
+         never shows). (2) `total_variation(p, q)` — the total variation distance TV(p, q) = 0.5 \* sum |p
          - q|, in [0, 1] (the robust "how different" number, no log, no 0/0). (3)
-         `chi_square_goodness(observed, expected, `min_expected` = 5)` — the chi-square goodness-of-fit: the statistic sum
-         (O - E)^2 / E, the p-value (the scipy chi2.sf, the (k - 1) df — scipy is already a project dependency, the
-         pyproject), the merged tail (the low-expected cells, E < `min_expected`, merged into an "other" bin) + the merge
-         count (the standard technique); the p-value is nan if the merged result has fewer than 2 cells. (4)
-         `adherence(`db_counts`, `ideal_counts`)` — the adherence (c) trio (the design section 3.5): the DB configuration
-         distribution (the observed codes of the training positions) vs the ideal distribution (the corpus frequencies,
-         normalized), the fixed trio: the chi-square (the p-value + the merged-tail count), the KL (the 0-log-0), the TV
-         (the robust "how different" number); the two are aligned over the union of the observed codes (the missing side
-         is 0); the values are nan if either distribution is empty. The test micro-suite (21 -> 32, the hand-computed
-         toy: the KL = log 2 + the 0-term vanishes + the +inf; the TV = 0 / 1 / 0.25; the chi-square no-merge 2.222222 p
-         0.527585 + the merged 3 -> chi2 0 p 1.0; the adherence union alignment TV 0.6 KL 0.9336627322538263 chi2
-         47.77777777777778 merged 1 + the +inf KL + the empty nan). The FULL kernel set (T11-T14) is now complete.
-         Mirrors (D-007), journal, overview. 864 -> 875.
+           `chi_square_goodness(observed, expected, `min_expected` = 5)` — the chi-square goodness-of-fit: the statistic
+           sum (O - E)^2 / E, the p-value (the scipy chi2.sf, the (k - 1) df — scipy is already a project dependency,
+           the pyproject), the merged tail (the low-expected cells, E < `min_expected`, merged into an "other" bin) +
+           the merge count (the standard technique); the p-value is nan if the merged result has fewer than 2 cells. (4)
+           `adherence(`db_counts`, `ideal_counts`)` — the adherence (c) trio (the design section 3.5): the DB
+           configuration distribution (the observed codes of the training positions) vs the ideal distribution (the
+           corpus frequencies, normalized), the fixed trio: the chi-square (the p-value + the merged-tail count), the KL
+           (the 0-log-0), the TV (the robust "how different" number); the two are aligned over the union of the observed
+           codes (the missing side is 0); the values are nan if either distribution is empty. The test micro-suite
+           (21 -> 32, the hand-computed toy: the KL = log 2 + the 0-term vanishes + the +inf; the TV = 0 / 1 / 0.25; the
+           chi-square no-merge 2.222222 p 0.527585 + the merged 3 -> chi2 0 p 1.0; the adherence union alignment TV 0.6
+           KL 0.9336627322538263 chi2 47.77777777777778 merged 1 + the +inf KL + the empty nan). The FULL kernel set
+           (T11-T14) is now complete. Mirrors (D-007), journal, overview. 864 -> 875.
 
-D-185 | 2026-09-13 | T15: the I-017 config. `hlp_config_schemas` (the pydantic config domain): (1)
-         `CorpusConfig` — the `FEATURE_ANALYSIS` corpus (the I-017 G0, D-174): `seed` (int, default 42 — the "uno per
-         tutti"), `total_positions` (PositiveInt, default 1e7 — the ODP-1), `ec` (NonNegativeInt 0..100, default 20 —
-         the arrest window, the design section 2.1 "mele con mele"). (2) `FeatureAnalysisConfig` — the `FEATURE_ANALYSIS`
-         level (the SU level, step 3): `enable` (bool, DEFAULT FALSE — the D-175 opt-in: the production configs are
-         untouched, the experiment configs opt in), `corpus` (a CorpusConfig, default factory), `su_pairs`
-         (List[Tuple[str, str]], default empty; the `check_su_pairs` canonical-sort + dedupe validator — the P6),
-         `dir_name` (Path, default "`feature_analysis`"), `report_file_name` (default `feature_analysis_report`.txt),
-         `export_csv` (bool, default False). (3) `EffectSizeConfig` — the `EFFECT_SIZE` level (the eta²/omega² + the
-         adherence, step 6): `enable` (bool, DEFAULT FALSE — the D-175 opt-in), `top_k_adherence` (int, default 20,
-         ge=1), `dir_name` (Path, default "`effect_size`"), `report_file_name` (default `effect_size_report`.txt),
-         `export_csv` (bool, default False). (4) LMConfig: the `feature_analysis` + the `effect_size` fields (default
-         factory, both enable default FALSE) + the `target_level: str` (default "last" — the P4, the design section 3.6:
-         a level name (case-insensitive, the fail-fast ValueError in the StateMachine) or "last") + the
-         `check_su_pairs_feature_set` `model_validator`(mode="after") (the P6 fail-fast against the feature set: a
-         `su_pairs` name not in the feature set is rejected at the CONFIG level). The D-175 ruling: the SU analysis is
-         OPTIONAL, the enable default FALSE (opt-in) — the production A2050/A2030 configs are untouched (they don't set
-         the fields, so they default to the no-op); the experiment configs rlm_05/rlm_06 + the `rlm_00` fixture opt in
-         (the T18 wiring). The test (`test_hlp_config_schemas`, 23 -> 27, the 4 I-017 tests: the D-175 opt-in defaults,
-         the P6 canonical dedupe, the P6 fail-fast, the `target_level` field). Mirrors (D-007), journal, overview. 875 ->
-         879.
+D-185 | 2026-09-13 | T15: the I-017 config. `hlp_config_schemas` (the pydantic config domain): (1) `CorpusConfig` — the
+         `FEATURE_ANALYSIS` corpus (the I-017 G0, D-174): `seed` (int, default 42 — the "uno per tutti"),
+         `total_positions` (PositiveInt, default 1e7 — the ODP-1), `ec` (NonNegativeInt 0..100, default 20 — the arrest
+         window, the design section 2.1 "mele con mele"). (2) `FeatureAnalysisConfig` — the `FEATURE_ANALYSIS` level
+         (the SU level, step 3): `enable` (bool, DEFAULT FALSE — the D-175 opt-in: the production configs are untouched,
+         the experiment configs opt in), `corpus` (a CorpusConfig, default factory), `su_pairs` (List[Tuple[str, str]],
+         default empty; the `check_su_pairs` canonical-sort + dedupe validator — the P6), `dir_name` (Path, default
+         "`feature_analysis`"), `report_file_name` (default `feature_analysis_report`.txt), `export_csv` (bool, default
+         False). (3) `EffectSizeConfig` — the `EFFECT_SIZE` level (the eta²/omega² + the adherence, step 6): `enable`
+         (bool, DEFAULT FALSE — the D-175 opt-in), `top_k_adherence` (int, default 20, ge=1), `dir_name` (Path, default
+         "`effect_size`"), `report_file_name` (default `effect_size_report`.txt), `export_csv` (bool, default False).
+         (4) LMConfig: the `feature_analysis` + the `effect_size` fields (default factory, both enable default FALSE) +
+         the `target_level: str` (default "last" — the P4, the design section 3.6: a level name (case-insensitive, the
+         fail-fast ValueError in the StateMachine) or "last") + the `check_su_pairs_feature_set` `model_validator`(mode="after")
+         (the P6 fail-fast against the feature set: a `su_pairs` name not in the feature set is rejected at the CONFIG
+         level). The D-175 ruling: the SU analysis is OPTIONAL, the enable default FALSE (opt-in) — the production
+         A2050/A2030 configs are untouched (they don't set the fields, so they default to the no-op); the experiment
+         configs rlm_05/rlm_06 + the `rlm_00` fixture opt in (the T18 wiring). The test (`test_hlp_config_schemas`,
+         23 -> 27, the 4 I-017 tests: the D-175 opt-in defaults, the P6 canonical dedupe, the P6 fail-fast, the
+         `target_level` field). Mirrors (D-007), journal, overview. 875 -> 879.
 
-D-186 | 2026-09-13 | T16: the `FEATURE_ANALYSIS` worker. New module `wrk_feature_analysis` (the I-017,
-         the SU level, step 3): the worker factory (`wrk_feature_analysis`() -> Worker("`FEATURE_ANALYSIS`", `_up`, `_down`),
+D-186 | 2026-09-13 | T16: the `FEATURE_ANALYSIS` worker. New module `wrk_feature_analysis` (the I-017, the SU level,
+         step 3): the worker factory (`wrk_feature_analysis`() -> Worker("`FEATURE_ANALYSIS`", `_up`, `_down`),
          the D-060). (1) Phase 1 — the corpus (the expensive part, CACHED): the G0 generator (the D-174, the PRNG seed,
          the ec arrest, the wave tier, the wave size 1e6) + the streaming accumulation (the MarginalAccumulator + the
          JointAccumulator for the requested pairs, the T7-T8); the cache flow (the `cache_manager_load_or_compute`, the
          `rlmwf_03` slot, the pickle of the tables dict + the .SHA3-256 sidecar, the 8192-chunk verify D-071/D-072); the
-         consistency signature (the `feature_set` hash — the `sha3_256` of the `feature_set` config's normalized dump, the
-         first 16 hex — + the generation spec (the seed, the total_positions, the ec, the generator version "g0-1", the
-         PRNG version "mt19937-64") + the `su_pairs` list (the canonical sorted form), the NO `rds_checksum` — the P5, the
-         FIRST cache level with the `feature_set` hash instead of the `rds_checksum`, the corpus INDEPENDENT of the DB, the
-         new cache lineage; a pair-list change invalidates the cache -> a full regeneration, the two-tier cache is the
-         parked v2 refinement). (2) Phase 2 — the statistics (cheap, recomputed on EVERY run, including the cache hit):
-         the per-sub-variable dispersion (the K_obs / H / H_norm / coverage, T12) + the never-observed audit (the n_conf
-         - K_obs + the rarity profile, T12) + the requested SU pairs (the P6: the 2\*I / (H_i + H_j) from the joint + the
-         two marginals, the T11 kernels; the same-feature DIAGONAL is OMITTED — the SU = 1 lock, the ODP-4 close, not a
-         measurement; the off-diagonal is the anisotropy measure). (3) The outputs: the console (INFO per sub-variable +
-         the top SU pairs) + the TXT report (`dir_name` under `base_dir`, the PlotConfig pattern) + the optional CSV (the
-         `export_csv` flag). (4) The ctx publication: the `LMContext.feature_analysis_tables` (the cross-level blackboard,
-         the D-099 pre-declared field — added to `logistic_model`.py as the worker's prerequisite) carries the tables for
-         the `EFFECT_SIZE` level (the adherence, step 6). (5) The D-060 semantics: the generation error fails the level,
-         the machine re-raises, the `_down` clears the ctx artifacts. New test module `test_wrk_feature_analysis` (8 tests,
-         the NO-DB mock-ctx suite: the factory, the enable no-op (the D-175 opt-in), the compute + the publish (the tiny
-         G0 corpus + the phase-2 statistics + the TXT report + the ctx publication), the cache hit (the second run), the
-         signature invalidation (the corpus change), the `su_pairs` joint, the optional CSV, the down (the D-060
-         recovery)). Registered in `run_utests`.sh at the step 3 worker position (between the `hlp_feature_analysis` data
-         module and the POSITIONS worker). The T18 wiring registers the worker at step 3 (the `rlmwf_03` slot). Mirrors
-         (D-007), journal, overview. 879 -> 887.
+         consistency signature (the `feature_set` hash — the `sha3_256` of the `feature_set` config's normalized dump,
+         the first 16 hex — + the generation spec (the seed, the total_positions, the ec, the generator version "g0-1",
+         the PRNG version "mt19937-64") + the `su_pairs` list (the canonical sorted form), the NO `rds_checksum` — the
+         P5, the FIRST cache level with the `feature_set` hash instead of the `rds_checksum`, the corpus INDEPENDENT of
+         the DB, the new cache lineage; a pair-list change invalidates the cache -> a full regeneration, the two-tier
+         cache is the parked v2 refinement). (2) Phase 2 — the statistics (cheap, recomputed on EVERY run, including the
+         cache hit): the per-sub-variable dispersion (the K_obs / H / H_norm / coverage, T12) + the never-observed audit
+         (the n_conf
+         - K_obs + the rarity profile, T12) + the requested SU pairs (the P6: the 2\*I / (H_i + H_j) from the joint +
+           the two marginals, the T11 kernels; the same-feature DIAGONAL is OMITTED — the SU = 1 lock, the ODP-4 close,
+           not a measurement; the off-diagonal is the anisotropy measure). (3) The outputs: the console (INFO per
+           sub-variable + the top SU pairs) + the TXT report (`dir_name` under `base_dir`, the PlotConfig pattern) + the
+           optional CSV (the `export_csv` flag). (4) The ctx publication: the `LMContext.feature_analysis_tables` (the
+           cross-level blackboard, the D-099 pre-declared field — added to `logistic_model`.py as the worker's
+           prerequisite) carries the tables for the `EFFECT_SIZE` level (the adherence, step 6). (5) The D-060
+           semantics: the generation error fails the level, the machine re-raises, the `_down` clears the ctx artifacts.
+           New test module `test_wrk_feature_analysis` (8 tests, the NO-DB mock-ctx suite: the factory, the enable no-op
+           (the D-175 opt-in), the compute + the publish (the tiny G0 corpus + the phase-2 statistics + the TXT report +
+           the ctx publication), the cache hit (the second run), the signature invalidation (the corpus change), the
+           `su_pairs` joint, the optional CSV, the down (the D-060 recovery)). Registered in `run_utests`.sh at the step
+           3 worker position (between the `hlp_feature_analysis` data module and the POSITIONS worker). The T18 wiring
+           registers the worker at step 3 (the `rlmwf_03` slot). Mirrors (D-007), journal, overview. 879 -> 887.
 
-D-187 | 2026-09-13 | T17: the `EFFECT_SIZE` worker. New module `wrk_effect_size` (the I-017, the
-         eta²/omega² + the adherence, step 6): the worker factory (`wrk_effect_size`() -> Worker("`EFFECT_SIZE`", `_up`,
-         `_down`), the D-060). (1) The ANOVA — the eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes
-         as the groups, the continuous game values as the target, the T13 kernel — it does NOT need the corpus): the
+D-187 | 2026-09-13 | T17: the `EFFECT_SIZE` worker. New module `wrk_effect_size` (the I-017, the eta²/omega² + the
+         adherence, step 6): the worker factory (`wrk_effect_size`() -> Worker("`EFFECT_SIZE`", `_up`, `_down`),
+         the D-060). (1) The ANOVA — the eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the
+         groups, the continuous game values as the target, the T13 kernel — it does NOT need the corpus): the
          per-sub-variable raw code is `ctx.hlp_indexes.indexes`[:, c0 + i] (the block layout), the target is
          ctx.game_values. (2) The adherence (the c metric) — per sub-variable, the DB configuration distribution (the
          bincount of the training raw codes) vs the ideal distribution (the corpus marginal from the
-         `ctx.feature_analysis_tables`, the D-186 cross-level blackboard), the fixed trio (the T14 adherence kernel — the
-         chi-square merged-tail p + the KL + the TV, the ODP-5 close, no config whitelist); the top-N (the
+         `ctx.feature_analysis_tables`, the D-186 cross-level blackboard), the fixed trio (the T14 adherence kernel —
+         the chi-square merged-tail p + the KL + the TV, the ODP-5 close, no config whitelist); the top-N (the
          `top_k_adherence`, default 20) most deviant features (the TV descending) are reported. (3) The GRACEFUL
          DEGRADATION: if the `ctx.feature_analysis_tables` is None (the `FEATURE_ANALYSIS` level was disabled), the
          adherence is SKIPPED with a log note; the eta²/omega² runs (it does not need the corpus). (4) The outputs: the
          console (the ANOVA per sub-variable + the top-N most deviant features) + the TXT report (`dir_name` under
-         `base_dir`) + the optional CSV (the `export_csv` flag). (5) NO cache (a diagnostic; the recompute is seconds); the
-         D-060 semantics (the down is a no-op — the worker publishes nothing on the ctx). New test module
-         `test_wrk_effect_size` (7 tests, the NO-DB mock-ctx suite: the factory, the enable no-op (the D-175 opt-in), the
-         ANOVA (one line per sub-variable), the graceful degradation (the tables None -> the adherence SKIPPED), the
+         `base_dir`) + the optional CSV (the `export_csv` flag). (5) NO cache (a diagnostic; the recompute is seconds);
+         the D-060 semantics (the down is a no-op — the worker publishes nothing on the ctx). New test module
+         `test_wrk_effect_size` (7 tests, the NO-DB mock-ctx suite: the factory, the enable no-op (the D-175 opt-in),
+         the ANOVA (one line per sub-variable), the graceful degradation (the tables None -> the adherence SKIPPED), the
          adherence computed (the tables set -> the Adherence lines), the report, the down (the D-060 no-op)). Registered
-         in `run_utests`.sh at the step 6 worker position (between the INDEXES worker and the WMAPS data module). The T18
-         wiring registers the worker at step 6 (NO cache slot). Mirrors (D-007), journal, overview. 887 -> 894.
+         in `run_utests`.sh at the step 6 worker position (between the INDEXES worker and the WMAPS data module). The
+         T18 wiring registers the worker at step 6 (NO cache slot). Mirrors (D-007), journal, overview. 887 -> 894.
 
-D-188 | 2026-09-13 | T18: the I-017 full wiring. The 18-level pipeline (design section 3.1):
-         `logistic_model`.py registers the two new workers (`wrk_feature_analysis`() at step 3, between FEATURES and
-         POSITIONS, the `rlmwf_03` slot; `wrk_effect_size`() at step 6, between INDEXES and WMAPS, NO cache slot) — the
-         pipeline is now 18 active levels (the CREATED sentinel + 18 = the 19 entries). The `rlm_00` fixture (the
-         unit-test fixture) opts in: the `feature_analysis` section (the enable true, the tiny 10000-position G0 corpus ec
-         20 seed 42, the 1 `su_pair` ["LMC","EDGE"], the `target_level` "last") — the hub + the full-chain tests run the
-         18-level pipeline on the tiny fixture. The experiment configs `rlm_05`.json (the 2M corpus) + `rlm_06`.json (the
-         100M corpus) are created (copies of `rlm_03`'s A2050 feature set, the `feature_analysis` enable true, the
-         `target_level` "`FEATURE_ANALYSIS`" — the stop before the DB levels — the light mobility x pattern `su_pairs`, the
-         heavy pattern x pattern joints are deferred per the T10 cost model; the DB connection kept for schema validity,
-         unused at this target level). The D-175: the production configs (`rlm_03`, `rlm_04`) are UNTOUCHED (no field -> the
-         default FALSE no-op) — the full chain runs the 18 levels with the 2 new levels as no-ops (the PLOT is now step
-         18, was 16). The full-chain re-pin: `test_lm_worker_full_chain`.py (the A2030 + the A2050 `test_full_worker_chain`:
-         the "17-level" -> "18-level", the "PLOT is step 16" -> "step 18", the `current_step` assertion 16 -> 18, the
-         A2030 file-size band 22940-23040 -> 23183-23283 (the +~241 B of the I-017 sections in the embedded config dump,
-         measured 23233), the A2050 band 516500-516700 -> 516692-516892 (the ~+241 B estimate, the VLONG re-measures));
-         `verify_save`.py (the header "full 17-level chain" -> "18-level", the `tier_c` "C1 step 14 SAVE" -> "step 16", the
-         `tier_d` "pins step 16" -> "step 18"); `verify_logistic_model`.py (the V3c list 17 -> 19 entries, the header state
-         D-186/D-187). The 3 unit-test fixes (the `rlm_00` opt-in ripple): `test_logistic_model`.py (the 2 new worker
-         factories mocked — without them the real workers would cross the "POSITIONS" string move and hit the None cfg;
-         the POSITIONS is now step 4); `test_wrk_features`.py (the `su_pairs` cleared for the zero-features guard);
-         `test_hlp_config_schemas`.py (the section stripped for the pure-defaults check). No new per-module probe (the new
-         workers have the NO-DB unit tests, the T16/T17; the probe change is the hub re-pin only). The default suite is
-         GREEN (894/0/97, the 2 new worker suites 8/0/0 + 7/0/0). The A2030 full-chain (the `rlm_04`, the LONG=1) verifies
-         the 18-level pipeline end-to-end (the PLOT at step 18, the file in the re-pinned band). Mirrors (D-007),
-         journal, overview.
+D-188 | 2026-09-13 | T18: the I-017 full wiring. The 18-level pipeline (design section 3.1): `logistic_model`.py
+         registers the two new workers (`wrk_feature_analysis`() at step 3, between FEATURES and POSITIONS, the
+         `rlmwf_03` slot; `wrk_effect_size`() at step 6, between INDEXES and WMAPS, NO cache slot) — the pipeline is now
+         18 active levels (the CREATED sentinel + 18 = the 19 entries). The `rlm_00` fixture (the unit-test fixture)
+         opts in: the `feature_analysis` section (the enable true, the tiny 10000-position G0 corpus ec 20 seed 42, the
+         1 `su_pair` ["LMC","EDGE"], the `target_level` "last") — the hub + the full-chain tests run the 18-level
+         pipeline on the tiny fixture. The experiment configs `rlm_05`.json (the 2M corpus) + `rlm_06`.json (the 100M
+         corpus) are created (copies of `rlm_03`'s A2050 feature set, the `feature_analysis` enable true, the
+         `target_level` "`FEATURE_ANALYSIS`" — the stop before the DB levels — the light mobility x pattern `su_pairs`,
+         the heavy pattern x pattern joints are deferred per the T10 cost model; the DB connection kept for schema
+         validity, unused at this target level). The D-175: the production configs (`rlm_03`, `rlm_04`) are UNTOUCHED
+         (no field -> the default FALSE no-op) — the full chain runs the 18 levels with the 2 new levels as no-ops (the
+         PLOT is now step 18, was 16). The full-chain re-pin: `test_lm_worker_full_chain`.py (the A2030 + the A2050
+         `test_full_worker_chain`: the "17-level" -> "18-level", the "PLOT is step 16" -> "step 18", the `current_step`
+         assertion 16 -> 18, the A2030 file-size band 22940-23040 -> 23183-23283 (the +~241 B of the I-017 sections in
+         the embedded config dump, measured 23233), the A2050 band 516500-516700 -> 516692-516892 (the ~+241 B estimate,
+         the VLONG re-measures)); `verify_save`.py (the header "full 17-level chain" -> "18-level", the `tier_c` "C1
+         step 14 SAVE" -> "step 16", the `tier_d` "pins step 16" -> "step 18"); `verify_logistic_model`.py (the V3c list
+         17 -> 19 entries, the header state D-186/D-187). The 3 unit-test fixes (the `rlm_00` opt-in ripple):
+         `test_logistic_model`.py (the 2 new worker factories mocked — without them the real workers would cross the
+         "POSITIONS" string move and hit the None cfg; the POSITIONS is now step 4); `test_wrk_features`.py (the
+         `su_pairs` cleared for the zero-features guard); `test_hlp_config_schemas`.py (the section stripped for the
+         pure-defaults check). No new per-module probe (the new workers have the NO-DB unit tests, the T16/T17; the
+         probe change is the hub re-pin only). The default suite is GREEN (894/0/97, the 2 new worker suites 8/0/0 +
+         7/0/0). The A2030 full-chain (the `rlm_04`, the LONG=1) verifies the 18-level pipeline end-to-end (the PLOT at
+         step 18, the file in the re-pinned band). Mirrors (D-007), journal, overview.
 
-D-189 | 2026-09-13 | T19: the I-017 campaign close. The `FEATURE_ANALYSIS` (step 3) + the `EFFECT_SIZE`
-         (step 6) levels are COMPLETE: the data plane (the T7-T10 accumulators + the probes), the kernel set (the
-         T11-T14 SU/entropy/MI + the dispersion/audit + the ANOVA + the adherence), the config (the T15, the D-175
-         opt-in), the workers (the T16/T17), the full wiring (the T18, the 18-level pipeline + the rlm_05/rlm_06
-         experiment configs + the full-chain re-pin + the hub re-pin). The I-017 is DONE (the 18-level pipeline is live;
-         the SU analysis is OPTIONAL, the default FALSE, the D-175 opt-in — the rlm_05/rlm_06 are the experiment configs
-         to run it). The production default is NOT flipped to true (Roberto's call, the D-175: the opt-in stays FALSE
-         until he says so). The next step is the PROFILING session (the OPTIMIZE pattern, the step-by-step algorithm
-         explanation + the joint code review — "questo codice ora deve volare"), AFTER the SU level is complete. The
-         I-018 outlier report is parked (Roberto's call). Mirrors (D-007), journal, overview. 894 -> 894 (no new tests —
-         the campaign close is the `notes/docs`; the A2030/A2050 full-chain re-pin is the verification).
+D-189 | 2026-09-13 | T19: the I-017 campaign close. The `FEATURE_ANALYSIS` (step 3) + the `EFFECT_SIZE` (step 6) levels
+         are COMPLETE: the data plane (the T7-T10 accumulators + the probes), the kernel set (the T11-T14 SU/entropy/MI
+         + the dispersion/audit + the ANOVA + the adherence), the config (the T15, the D-175 opt-in), the workers (the
+         T16/T17), the full wiring (the T18, the 18-level pipeline + the rlm_05/rlm_06 experiment configs + the
+         full-chain re-pin + the hub re-pin). The I-017 is DONE (the 18-level pipeline is live; the SU analysis is
+         OPTIONAL, the default FALSE, the D-175 opt-in — the rlm_05/rlm_06 are the experiment configs to run it). The
+         production default is NOT flipped to true (Roberto's call, the D-175: the opt-in stays FALSE until he says so).
+         The next step is the PROFILING session (the OPTIMIZE pattern, the step-by-step algorithm explanation + the
+         joint code review — "questo codice ora deve volare"), AFTER the SU level is complete. The I-018 outlier report
+         is parked (Roberto's call). Mirrors (D-007), journal, overview. 894 -> 894 (no new tests — the campaign close
+         is the `notes/docs`; the A2030/A2050 full-chain re-pin is the verification).
 
-D-190 | 2026-09-14 | The chi-square disjoint support (the O > 0, E = 0): the +inf / p = 0
-         semantics. The chi-square goodness-of-fit (the adherence, the T14 kernel) divided by zero when the DB observed
-         a code the ideal never shows (a cell with O > 0 but E = 0, the disjoint support — the DB and the ideal have
-         disjoint support, a legitimate data condition, NOT a bug). The merged tail (the low-expected cells, E <
-         `min_expected`) hid the root cause: it grouped the E = 0 cells into an "other" bin whose expected was the sum
-         (0), and the statistic then divided by zero (the RuntimeWarning, `hlp_feature_analysis`.py:285). The fix (at the
-         root, before the merge): detect the disjoint support (a cell with O > 0 but E = 0) and return chi2 = +inf, p =
-         0 — the total incompatibility, aligned with the KL +inf (the infinite divergence, the `kl_divergence` L229). It
-         is the statistically correct answer to that condition, not an "if zero then skip" guard. The `test_infinite_kl`
-         now pins the new semantics (chi2 = +inf, p = 0, was implicit). Verification: the default suite 894/0/97 green,
-         the warning gone (the -W error::RuntimeWarning check), the VLONG green (Roberto's confirmation). Mirrors
-         (D-007).
+D-190 | 2026-09-14 | The chi-square disjoint support (the O > 0, E = 0): the +inf / p = 0 semantics. The chi-square
+         goodness-of-fit (the adherence, the T14 kernel) divided by zero when the DB observed a code the ideal never
+         shows (a cell with O > 0 but E = 0, the disjoint support — the DB and the ideal have disjoint support, a
+         legitimate data condition, NOT a bug). The merged tail (the low-expected cells, E < `min_expected`) hid the
+         root cause: it grouped the E = 0 cells into an "other" bin whose expected was the sum (0), and the statistic
+         then divided by zero (the RuntimeWarning, `hlp_feature_analysis`.py:285). The fix (at the root, before the
+         merge): detect the disjoint support (a cell with O > 0 but E = 0) and return chi2 = +inf, p = 0 — the total
+         incompatibility, aligned with the KL +inf (the infinite divergence, the `kl_divergence` L229). It is the
+         statistically correct answer to that condition, not an "if zero then skip" guard. The `test_infinite_kl` now
+         pins the new semantics (chi2 = +inf, p = 0, was implicit). Verification: the default suite 894/0/97 green, the
+         warning gone (the -W error::RuntimeWarning check), the VLONG green (Roberto's confirmation). Mirrors (D-007).
 
-D-191 | 2026-09-14 | Burying the G1 (the ODP-9 table pick). An alternative option for the
-         generation of the random position populations was evaluated, based on a table as described by ODP-9; we refer
-         to this alternative generation technique as G1. The G1 generation was evaluated, studied, implemented and
-         tested; the outcome was negative — the generated population does not have the desired statistical
-         characteristics (the D-173 gate verdict was FAIL: the corpus-level equivalence to the G0 reference was refuted
-         at 1e6 — the 47x LMC, the phase-lock, the path-coupling). The G0 (the uniform pick on the single global
-         golden-pinned MT19937, the D-174) is the I-017 corpus generator. The live code and the live docs no longer
-         mention the G1 / the ODP-9 table pick; the historical work (the ODP-9 v4 design doc + the three peer reviews:
-         the original, the GLM, the Kimi) is preserved in the new archive `notes/analyses/historical/ODP-9/`.
+D-191 | 2026-09-14 | Burying the G1 (the ODP-9 table pick). An alternative option for the generation of the random
+         position populations was evaluated, based on a table as described by ODP-9; we refer to this alternative
+         generation technique as G1. The G1 generation was evaluated, studied, implemented and tested; the outcome was
+         negative — the generated population does not have the desired statistical characteristics (the D-173 gate
+         verdict was FAIL: the corpus-level equivalence to the G0 reference was refuted at 1e6 — the 47x LMC, the
+         phase-lock, the path-coupling). The G0 (the uniform pick on the single global golden-pinned MT19937, the D-174)
+         is the I-017 corpus generator. The live code and the live docs no longer mention the G1 / the ODP-9 table pick;
+         the historical work (the ODP-9 v4 design doc + the three peer reviews: the original, the GLM, the Kimi) is
+         preserved in the new archive `notes/analyses/historical/ODP-9/`.
 
-D-192 | 2026-09-15 | The initial-position fix (the official Othello setup). The G0 corpus generator
-         (`hlp_wave`, the D-174) + the `initial_position` utility (`hlp_random_play`) carried the standard start with the
-         roles SWAPPED (the mover D4+E5, the opponent D5+E4) vs the official Othello International setup (the mover —
-         black, the starting player — E4+D5, the opponent — white — D4+E5; Roberto's explicit check against the Othello
+D-192 | 2026-09-15 | The initial-position fix (the official Othello setup). The G0 corpus generator (`hlp_wave`,
+         the D-174) + the `initial_position` utility (`hlp_random_play`) carried the standard start with the roles
+         SWAPPED (the mover D4+E5, the opponent D5+E4) vs the official Othello International setup (the mover — black,
+         the starting player — E4+D5, the opponent — white — D4+E5; Roberto's explicit check against the Othello
          International rules; the `random_game`.initial_game_position module is the canonical source — his new file +
          test, the runner slot, committed first at 8cbfc1b). The fix: the `INITIAL_MOVER/INITIAL_OPP` swap in `hlp_wave`.py
-         + the mover/opponent swap in `hlp_random_play.initial_position` + the test pin re-landing (`test_hlp_random_play`:
-         the E4+D5 / D4+E5 hex + the mover legal set {D3, C4, F5, E6} — hand-verified, it matches the `test_board`
-         bulk-table row #050). Measured impact: the G0 corpora generated from the two starts are GENUINELY DIFFERENT (a
-         4096-game run, seed 42, ec 20; the two position sets are NOT equivalent under a role swap nor under the D8
-         rotations) — so EVERY corpus generated before this fix (the 1e7 build, the I-017 SU / effect-size statistics,
-         the `rlm_00`/05/06 feature-analysis runs) is STALE and must be regenerated (Roberto's call, the maintenance
-         campaign). The A2030 / A2050 production chains are UNAFFECTED (`rlm_03`/rlm_04 do not enable the `feature_analysis`
-         / `effect_size` levels — no VLONG re-pin needed). The self-consistent suites (the wave vs scalar, the
-         determinism, the accumulator oracles) stay green; the only re-landed pin is the TestInitialPosition one.
+         + the mover/opponent swap in `hlp_random_play.initial_position` + the test pin re-landing
+         (`test_hlp_random_play`: the E4+D5 / D4+E5 hex + the mover legal set {D3, C4, F5, E6} — hand-verified, it
+         matches the `test_board` bulk-table row #050). Measured impact: the G0 corpora generated from the two starts
+         are GENUINELY DIFFERENT (a 4096-game run, seed 42, ec 20; the two position sets are NOT equivalent under a role
+         swap nor under the D8 rotations) — so EVERY corpus generated before this fix (the 1e7 build, the I-017 SU /
+         effect-size statistics, the `rlm_00`/05/06 feature-analysis runs) is STALE and must be regenerated (Roberto's
+         call, the maintenance campaign). The A2030 / A2050 production chains are UNAFFECTED (`rlm_03`/rlm_04 do not
+         enable the `feature_analysis` / `effect_size` levels — no VLONG re-pin needed). The self-consistent suites (the
+         wave vs scalar, the determinism, the accumulator oracles) stay green; the only re-landed pin is the
+         TestInitialPosition one.
 
-D-193 | 2026-09-15 | The random move pick (the `random_game` rework building block, Roberto's
-         addition). The new `MT19937.choose_one_from_set64` method (`tools/prng`.py): the uniform pick from the u64 set, NO
-         removal (unlike `extract_from_set64`: the set is read, never mutated) — k = popcount, ONE `get_double_in_c0_o1`
-         draw, the c = floor(r·k) lowest set bits skipped, the next lowest set bit picked — returns (1 << p, p); the
-         empty set the (0, 64) sentinel (64 = PA in the Move domain) WITHOUT consuming a draw. The new
-         `random_game`.choose_random_move: the @`validate_call` composition (`position_legal_moves` + the PRNG pick), the PRNG
-         INJECTED (the caller owns the stream — the "one seed for all" discipline). The test: the TestChooseRandomMove
-         golden (seed 93, 1000 draws from the official initial position — the D-192 mover legal set {D3, C4, F5, E6} —
-         the EXACT frequencies [258, 229, 249, 264] pinned). The suite: the touched modules 22/0 GREEN, the full LONG
-         run 858/0/21 GREEN (the +1 test). This is the first building block of the random game rework (the maintenance
-         campaign, the D-192 context).
+D-193 | 2026-09-15 | The random move pick (the `random_game` rework building block, Roberto's addition). The new
+         `MT19937.choose_one_from_set64` method (`tools/prng`.py): the uniform pick from the u64 set, NO removal (unlike
+         `extract_from_set64`: the set is read, never mutated) — k = popcount, ONE `get_double_in_c0_o1` draw, the c =
+         floor(r·k) lowest set bits skipped, the next lowest set bit picked — returns (1 << p, p); the empty set the (0,
+         64) sentinel (64 = PA in the Move domain) WITHOUT consuming a draw. The new `random_game`.choose_random_move:
+         the @`validate_call` composition (`position_legal_moves` + the PRNG pick), the PRNG INJECTED (the caller owns
+         the stream — the "one seed for all" discipline). The test: the TestChooseRandomMove golden (seed 93, 1000 draws
+         from the official initial position — the D-192 mover legal set {D3, C4, F5, E6} — the EXACT frequencies [258,
+         229, 249, 264] pinned). The suite: the touched modules 22/0 GREEN, the full LONG run 858/0/21 GREEN (the +1
+         test). This is the first building block of the random game rework (the maintenance campaign, the D-192
+         context).
 
-D-194 | 2026-09-15 | The PRNG exclusivity move (the single source). The MT-19937 numba kernels +
-         constants that `lm/hlp_wave`.py carried as a partial re-implementation of `tools/prng`.py (the _NN/_MM/_UM/_LM/_MAG
-         constants + the `_mt19937_init` / `_mt19937_batch` njit kernels) MOVE to `tools/prng`.py — the PRNG code now lives
+D-194 | 2026-09-15 | The PRNG exclusivity move (the single source). The MT-19937 numba kernels + constants that
+         `lm/hlp_wave`.py carried as a partial re-implementation of `tools/prng`.py (the _NN/_MM/_UM/_LM/_MAG constants
+         + the `_mt19937_init` / `_mt19937_batch` njit kernels) MOVE to `tools/prng`.py — the PRNG code now lives
          COMPLETELY and EXCLUSIVELY in the prng module (the maintenance-campaign goal; the board-design TRANSFORMATION
          of prng.py — the numba class + the dual public face — is the next pass, parked, step-by-step). The details: the
          two kernels land as the public `mt19937_init` / `mt19937_batch_draw` (the clean names, my design question 2,
          Roberto's all-OK approval); the scalar MAG constant (the C MAG01[1]) joins the C constants, the kernels
-         reference the public constants (NN/MM/UM/LM); `hlp_wave`.py imports NN / `mt19937_init` / `mt19937_batch_draw` from
-         tools.prng (it carries NO PRNG code anymore); the test imports move to tools.prng (the orphan
+         reference the public constants (NN/MM/UM/LM); `hlp_wave`.py imports NN / `mt19937_init` / `mt19937_batch_draw`
+         from tools.prng (it carries NO PRNG code anymore); the test imports move to tools.prng (the orphan
          `_harvest_and_respawn` import is removed too). ZERO behavior change: a transcription slip (the temper mask
          0xFFF7EEE000000000 typed as 0xFFF7EEE0000000 — two zeros dropped) was caught + fixed pre-commit by the
          bit-exact suite (`test_batch_matches_reference`: draw-0 deviation). Verification: the touched modules 36/0/1
          GREEN; the full LONG run 858/0/21 GREEN; the 1e6 G0 benchmark replays the corpus bit-exactly (28065 dead lanes,
          identical to pre-move).
 
-D-195 | 2026-09-15 | The class is the SOLE PRNG interface (the board-design transformation, step 1
-         of the passettino sequence). The new `MT19937.get_uint64_batch`(n) method: the n successive values as a (n,) u64
-         array — the numba batch-draw kernel (`mt19937_batch_draw`, the D-194 single source) run on the object state (`_mt`
-         + `_mti`, mutated in place); bit-exact vs `get_uint64` called n times (the same twist + temper — the Python
-         `init_by_seed` is bit-identical to the numba `mt19937_init`, so a class instance is a valid kernel state); a BARE
-         state falls back to the C default seed 5489, as `get_uint64`. `__all__` is now [MT19937] ONLY (the constants
-         NN/MM/UM/LM/MAG01/MAG + the kernels `mt19937_init` / `mt19937_batch_draw` are INTERNAL — direct imports still work,
-         import \* does not). ALL clients now use the class: `hlp_wave`.py drives the wave through `get_uint64_batch`
-         (`step_wave_g0`(state, prng) — the raw mt/mti threading is gone, the stream state lives in the prng object;
-         `run_wave_g0` returns prng.mti as the provenance pin), `test_hlp_wave`.py routes both kernel usages through the
-         class (`test_batch_matches_reference` + the W=1 trajectory), and a new `test_prng` pin
+D-195 | 2026-09-15 | The class is the SOLE PRNG interface (the board-design transformation, step 1 of the passettino
+         sequence). The new `MT19937.get_uint64_batch`(n) method: the n successive values as a (n,) u64 array — the
+         numba batch-draw kernel (`mt19937_batch_draw`, the D-194 single source) run on the object state (`_mt` + `_mti`,
+         mutated in place); bit-exact vs `get_uint64` called n times (the same twist + temper — the Python
+         `init_by_seed` is bit-identical to the numba `mt19937_init`, so a class instance is a valid kernel state); a
+         BARE state falls back to the C default seed 5489, as `get_uint64`. `__all__` is now [MT19937] ONLY (the
+         constants NN/MM/UM/LM/MAG01/MAG + the kernels `mt19937_init` / `mt19937_batch_draw` are INTERNAL — direct
+         imports still work, import \* does not). ALL clients now use the class: `hlp_wave`.py drives the wave through
+         `get_uint64_batch` (`step_wave_g0`(state, prng) — the raw mt/mti threading is gone, the stream state lives in
+         the prng object; `run_wave_g0` returns prng.mti as the provenance pin), `test_hlp_wave`.py routes both kernel
+         usages through the class (`test_batch_matches_reference` + the W=1 trajectory), and a new `test_prng` pin
          (`test_get_uint64_batch_matches_scalar`, 500 draws) guards the method in the class's own suite. ZERO behavior
          change: the 1e6 G0 benchmark replays the corpus bit-exactly (28065 dead lanes, identical to the D-193/D-194
          runs). Verification: the touched modules 37/0/1 GREEN; the full LONG run 858/0/21 GREEN. The next passettino
          (parked): `get_uint64` + the inits over the numba kernels (the class hot path to numba).
 
-D-196 | 2026-09-15 | The scalar path to numba + the kernel cleanup (the board-design
-         transformation, step 2). Three changes, all zero-behavior: (1) the `mt19937_init` numba kernel is REMOVED — it
-         was unused (the class inits via the Python `init_by_seed`, which is bit-identical to it, so the init is owned by
-         the Python port; the numba init had no caller since D-195 routed the wave through the class); (2) the
-         `mt19937_batch_draw` numba kernel is RENAMED `_get_uint64_batch` (the class-internal name, the single source for
-         the twist + the 4-op temper); (3) `get_uint64` is REWRITTEN to delegate to `get_uint64_batch`(1) — the duplicated
-         Python twist+temper (312-word loops) is deleted, the scalar + batch paths now share ONE numba kernel. The
-         BARE-state fallback (the C default seed 5489) lives once, in `get_uint64_batch`, and `get_uint64` inherits it via
-         the delegation. ZERO behavior change: the numba kernel is bit-exact vs the old Python `get_uint64` (verified: the
-         T3 golden 10k seed-42 + 1k array-init sequences, the first-100k equi-distribution, the `random_game` golden, the
-         W=1 trajectory, and the 1e6 G0 benchmark all replay identically — 28065 dead lanes). Verification: the touched
-         modules 37/0/1 GREEN; the full LONG run 859/0/21 GREEN. The draw path is now FULLY numba through the class; the
-         INITS (`init_by_seed` + `init_by_array`) remain Python (`init_by_array` kept Python by the approved plan) — the next
-         passettino (parked) is the inits over a numba init kernel.
+D-196 | 2026-09-15 | The scalar path to numba + the kernel cleanup (the board-design transformation, step 2). Three
+         changes, all zero-behavior: (1) the `mt19937_init` numba kernel is REMOVED — it was unused (the class inits via
+         the Python `init_by_seed`, which is bit-identical to it, so the init is owned by the Python port; the numba
+         init had no caller since D-195 routed the wave through the class); (2) the `mt19937_batch_draw` numba kernel is
+         RENAMED `_get_uint64_batch` (the class-internal name, the single source for the twist + the 4-op temper); (3)
+         `get_uint64` is REWRITTEN to delegate to `get_uint64_batch`(1) — the duplicated Python twist+temper (312-word
+         loops) is deleted, the scalar + batch paths now share ONE numba kernel. The BARE-state fallback (the C default
+         seed 5489) lives once, in `get_uint64_batch`, and `get_uint64` inherits it via the delegation. ZERO behavior
+         change: the numba kernel is bit-exact vs the old Python `get_uint64` (verified: the T3 golden 10k seed-42 + 1k
+         array-init sequences, the first-100k equi-distribution, the `random_game` golden, the W=1 trajectory, and the
+         1e6 G0 benchmark all replay identically — 28065 dead lanes). Verification: the touched modules 37/0/1 GREEN;
+         the full LONG run 859/0/21 GREEN. The draw path is now FULLY numba through the class; the INITS (`init_by_seed`
+         + `init_by_array`) remain Python (`init_by_array` kept Python by the approved plan) — the next passettino
+         (parked) is the inits over a numba init kernel.
 
-D-197 | 2026-09-15 | Drop the C legacy bare-state (read-clarity, Roberto's call). In the LEGACY C,
-         `mti == NN + 1` meant "the generator was never init'ed" (the C allowed new + a deferred init at the first
-         `get_uint64`, which applied its default seed 5489). In the new Python the object can only be used after
-         construction, and the ctor is FAIL-FAST (exactly one of seed / `init_key`) — the object is ALWAYS initialized, so
-         the NN + 1 sentinel + the 5489 fallback were DEAD CODE. Removed: the `self._mti = NN + 1` assignment in
-         `__init__` (the init call below sets `_mti`; the object is always initialized), the
-         `if `self._mti` == NN + 1: `self.init_by_seed`(5489)` check in `get_uint64_batch`, and the "BARE state / default
-         5489" mentions in the class + method docstrings. The OTHER verbatim quirk is preserved (`init_by_seed` leaves mti
-         == NN, so the FIRST `get_uint64` twists the just-initialized array — that is the C for-loop quirk, a different
-         thing from the NN + 1 sentinel). Verified: no test depended on the fallback (grep-confirmed; the "5489" hits in
-         the golden are hex digit runs, not the seed). ZERO behavior change: touched modules 37/0/1 GREEN; the full LONG
-         run 859/0/21 GREEN; the 1e6 G0 benchmark replays bit-exactly (28065 dead lanes).
+D-197 | 2026-09-15 | Drop the C legacy bare-state (read-clarity, Roberto's call). In the LEGACY C, `mti == NN + 1` meant
+         "the generator was never init'ed" (the C allowed new + a deferred init at the first `get_uint64`, which applied
+         its default seed 5489). In the new Python the object can only be used after construction, and the ctor is
+         FAIL-FAST (exactly one of seed / `init_key`) — the object is ALWAYS initialized, so the NN + 1 sentinel + the
+         5489 fallback were DEAD CODE. Removed: the `self._mti = NN + 1` assignment in `__init__` (the init call below
+         sets `_mti`; the object is always initialized), the `if `self._mti` == NN + 1: `self.init_by_seed`(5489)` check
+         in `get_uint64_batch`, and the "BARE state / default 5489" mentions in the class + method docstrings. The OTHER
+         verbatim quirk is preserved (`init_by_seed` leaves mti == NN, so the FIRST `get_uint64` twists the
+         just-initialized array — that is the C for-loop quirk, a different thing from the NN + 1 sentinel). Verified:
+         no test depended on the fallback (grep-confirmed; the "5489" hits in the golden are hex digit runs, not the
+         seed). ZERO behavior change: touched modules 37/0/1 GREEN; the full LONG run 859/0/21 GREEN; the 1e6 G0
+         benchmark replays bit-exactly (28065 dead lanes).
 
-D-198 | 2026-09-15 | Drop `init_by_array` (seed-only PRNG, Roberto's proposal, my agreement).
-         `init_by_array` was NEVER used — in the legacy C nor in the Python (grep-confirmed: only the prng ctor hosted it;
-         no pipeline module called it) — so it was a complication whose correctness we could not even be sure of (it ran
-         only in the golden tests, never on a production path). Removed: the `init_by_array` method (the two mixing loops
-         + the 19650218 / 3935559000370003845 / 2862933555777941757 constants), the `init_key` ctor parameter + the
-         fail-fast "exactly one of seed / `init_key`" (the ctor is now MT19937(seed), seed REQUIRED), the 3 `test_prng`
-         tests (`test_ctor_fails_fast` — its logic is gone, the seed-required is now a signature guarantee —,
+D-198 | 2026-09-15 | Drop `init_by_array` (seed-only PRNG, Roberto's proposal, my agreement). `init_by_array` was NEVER
+         used — in the legacy C nor in the Python (grep-confirmed: only the prng ctor hosted it; no pipeline module
+         called it) — so it was a complication whose correctness we could not even be sure of (it ran only in the golden
+         tests, never on a production path). Removed: the `init_by_array` method (the two mixing loops + the 19650218 /
+         3935559000370003845 / 2862933555777941757 constants), the `init_key` ctor parameter + the fail-fast "exactly
+         one of seed / `init_key`" (the ctor is now MT19937(seed), seed REQUIRED), the 3 `test_prng` tests
+         (`test_ctor_fails_fast` — its logic is gone, the seed-required is now a signature guarantee —,
          `test_array_init_determinism`, `test_array_init_state`, `test_array_init_sequence`), + the two golden sections
-         [`mt_array1234`] (312) + [`seq_array1234`] (1000) from `data/prng_golden`.txt (13031 → 11717 lines). The seed path is
-         untouched (the [`mt_seed42`] / [`seq_seed42`] golden + the equi-distribution + the wave / `random_game` goldens all
-         replay identically). Consistent with the prior removals (D-196 the unused numba init kernel, D-197 the unused
-         bare-state, and the stdlib wrappers + clock seed skipped from the start). Verification: touched modules 33/0/1
-         GREEN (37 − the 4 removed tests); the full LONG run 855/0/21 GREEN; the 1e6 G0 benchmark replays bit-exactly
-         (28065 dead lanes). The port now keeps ONLY the `init_by_seed` (still Python — the last board-design passettino,
-         parked).
+         [`mt_array1234`] (312) + [`seq_array1234`] (1000) from `data/prng_golden`.txt (13031 → 11717 lines). The seed
+         path is untouched (the [`mt_seed42`] / [`seq_seed42`] golden + the equi-distribution + the wave / `random_game`
+         goldens all replay identically). Consistent with the prior removals (D-196 the unused numba init kernel, D-197
+         the unused bare-state, and the stdlib wrappers + clock seed skipped from the start). Verification: touched
+         modules 33/0/1 GREEN (37 − the 4 removed tests); the full LONG run 855/0/21 GREEN; the 1e6 G0 benchmark replays
+         bit-exactly (28065 dead lanes). The port now keeps ONLY the `init_by_seed` (still Python — the last
+         board-design passettino, parked).
 
-D-199 | 2026-09-15 | The PRNG rationalization (Roberto's call, my agreement — "non interrompiamo
-         questo percorso"). Four moves, all zero-behavior: (1) `init_by_seed` is CONSOLIDATED into the ctor (the method is
-         gone — it was only called by `__init__` after the D-198 left it as the sole init); (2) the two C accessors (the
-         mt / mti PROPERTIES) are DROPPED — they existed only to read the state to save it, which we never do; the state
-         (`_mt` / `_mti`) is now fully INTERNAL; (3) the tests that looked inside the state are removed
-         (`test_constants_are_the_c_ones`, `test_seed_determinism_and_typing` — the .mt peek, `test_seed42_init_state`) — the
-         C-oracle golden pins the constants' behavior end-to-end instead (a typo in any constant breaks the 10k golden);
-         (4) the constants are re-scoped: the C MAG01 array is dropped (only the odd scalar MAG = MAG01[1] was used),
-         and MM / UM / LM / MAG are now defined INSIDE the kernel `_get_uint64_batch` (they are the twist + temper's
-         implementation details); only NN stays module-level (the ctor's np.zeros(NN, …) + the init loop use it).
-         Consequence in the wave: `run_wave_g0`'s provenance drops the 'mti' key (it read the dropped mti accessor, and
-         NOTHING consumed it — grep-confirmed). The unused [`mt_seed42`] golden section is dropped too (11717 → 11404
-         lines). Verification: touched modules 30/0/1 GREEN (33 − 3); the full LONG run 852/0/21 GREEN; the 1e6 G0
+D-199 | 2026-09-15 | The PRNG rationalization (Roberto's call, my agreement — "non interrompiamo questo percorso"). Four
+         moves, all zero-behavior: (1) `init_by_seed` is CONSOLIDATED into the ctor (the method is gone — it was only
+         called by `__init__` after the D-198 left it as the sole init); (2) the two C accessors (the mt / mti
+         PROPERTIES) are DROPPED — they existed only to read the state to save it, which we never do; the state (`_mt` /
+         `_mti`) is now fully INTERNAL; (3) the tests that looked inside the state are removed
+         (`test_constants_are_the_c_ones`, `test_seed_determinism_and_typing` — the .mt peek, `test_seed42_init_state`)
+         — the C-oracle golden pins the constants' behavior end-to-end instead (a typo in any constant breaks the 10k
+         golden); (4) the constants are re-scoped: the C MAG01 array is dropped (only the odd scalar MAG = MAG01[1] was
+         used), and MM / UM / LM / MAG are now defined INSIDE the kernel `_get_uint64_batch` (they are the twist +
+         temper's implementation details); only NN stays module-level (the ctor's np.zeros(NN, …) + the init loop use
+         it). Consequence in the wave: `run_wave_g0`'s provenance drops the 'mti' key (it read the dropped mti accessor,
+         and NOTHING consumed it — grep-confirmed). The unused [`mt_seed42`] golden section is dropped too (11717 →
+         11404 lines). Verification: touched modules 30/0/1 GREEN (33 − 3); the full LONG run 852/0/21 GREEN; the 1e6 G0
          benchmark replays bit-exactly (28065 dead lanes). The module is now minimal: one class, a seed ctor, one numba
          kernel (with its constants local), the state fully internal.
 
-D-200 | 2026-09-15 | The PRNG comments + docs DE-PORTIFIED (Roberto's call): the comments and the
-         mirror doc (`docs/src/reversi/tools/prng`.md) referenced the LEGACY C port all over — "line-by-line port of
-         Roberto's C library", "prng.c L309", the D-numbers (D-159/D-161/D-19x), "I-017 T2/T3", "the C oracle /
-         `ut_prng`.c / `bit_works`.c", "Skipped from the C", "Roberto: NUMPY e stiamo strict", "DO NOT fix", "the C assert"
-         — and that history "non interessa a nessuno". The rule now: the docs explain WHAT the module does (what
-         MT-19937 is, its properties, the API, how the methods work), with NO reference to the coding history. Rewrote
-         the module docstring, the class + every method docstring, the kernel banner/docstring/constants (all
-         functional), and the mirror doc (restructured: What it is / API / How it works / Invariants / Integration). Two
-         code nudges came with it: the two error messages lost their "the C assert" tails ("k cannot be 0 (the C
-         assert)" → "k cannot be 0"; "the set must not be empty (the C assert \*set)" → "the set must not be empty") —
-         the tests use bare assertRaises(ValueError), so nothing is pinned. Zero behavior change. Verification: the
-         touched modules 30/0/1 GREEN; the full LONG run 852/0/21 GREEN; the 1e6 G0 benchmark replays bit-exactly (28065
-         dead lanes). (Scope: the prng module only — `test_prng`.py + its mirror doc still carry C-port references; a
-         follow-up if Roberto wants it.)
+D-200 | 2026-09-15 | The PRNG comments + docs DE-PORTIFIED (Roberto's call): the comments and the mirror doc
+         (`docs/src/reversi/tools/prng`.md) referenced the LEGACY C port all over — "line-by-line port of Roberto's C
+         library", "prng.c L309", the D-numbers (D-159/D-161/D-19x), "I-017 T2/T3", "the C oracle / `ut_prng`.c /
+         `bit_works`.c", "Skipped from the C", "Roberto: NUMPY e stiamo strict", "DO NOT fix", "the C assert" — and that
+         history "non interessa a nessuno". The rule now: the docs explain WHAT the module does (what MT-19937 is, its
+         properties, the API, how the methods work), with NO reference to the coding history. Rewrote the module
+         docstring, the class + every method docstring, the kernel banner/docstring/constants (all functional), and the
+         mirror doc (restructured: What it is / API / How it works / Invariants / Integration). Two code nudges came
+         with it: the two error messages lost their "the C assert" tails ("k cannot be 0 (the C assert)" → "k cannot be
+         0"; "the set must not be empty (the C assert \*set)" → "the set must not be empty") — the tests use bare
+         assertRaises(ValueError), so nothing is pinned. Zero behavior change. Verification: the touched modules 30/0/1
+         GREEN; the full LONG run 852/0/21 GREEN; the 1e6 G0 benchmark replays bit-exactly (28065 dead lanes). (Scope:
+         the prng module only — `test_prng`.py + its mirror doc still carry C-port references; a follow-up if Roberto
+         wants it.)
 
-D-201 | 2026-09-15 | FIX `random_string_az` off-by-one (Roberto's "good catch, fix it"): it generated
-         a..y (25 letters, NEVER the z), not the documented [a..z] — the range was `range_az = z - a` (= 25), so
-         `random_choice`(25) is [0,24] → chr('a'+24) = 'y'. The fix: `range_az = z - a + 1` (= 26), so the choice is
-         [0,25] → the full a..z. A BEHAVIOR change (the output now includes 'z'), but `random_string_az` is used ONLY by
-         `test_prng` (no pipeline / corpus consumes it — grep-confirmed), and the test pins only len / charset /
-         determinism / n == 0 (nothing exact), so it passes. Verification: all 26 letters now appear (a 2000-char draw),
-         still deterministic; touched modules 30/0/1 GREEN; full LONG 852/0/21 GREEN; 1e6 G0 bit-exact (28065 dead
-         lanes).
+D-201 | 2026-09-15 | FIX `random_string_az` off-by-one (Roberto's "good catch, fix it"): it generated a..y (25 letters,
+         NEVER the z), not the documented [a..z] — the range was `range_az = z - a` (= 25), so `random_choice`(25) is
+         [0,24] → chr('a'+24) = 'y'. The fix: `range_az = z - a + 1` (= 26), so the choice is [0,25] → the full a..z. A
+         BEHAVIOR change (the output now includes 'z'), but `random_string_az` is used ONLY by `test_prng` (no pipeline
+         / corpus consumes it — grep-confirmed), and the test pins only len / charset / determinism / n == 0 (nothing
+         exact), so it passes. Verification: all 26 letters now appear (a 2000-char draw), still deterministic; touched
+         modules 30/0/1 GREEN; full LONG 852/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
 
-D-202 | 2026-09-15 | The PRNG TEST module + doc DE-PORTIFIED (Roberto's "ora fissa anche il modulo
-         di test e la documentazione"): `test_prng`.py and its mirror doc (`docs/src/reversi/test/test_prng`.md) carried the
-         same C-port references as the prng module did before the D-200 ("the C-oracle golden", "Roberto's C build", the
+D-202 | 2026-09-15 | The PRNG TEST module + doc DE-PORTIFIED (Roberto's "ora fissa anche il modulo di test e la
+         documentazione"): `test_prng`.py and its mirror doc (`docs/src/reversi/test/test_prng`.md) carried the same
+         C-port references as the prng module did before the D-200 ("the C-oracle golden", "Roberto's C build", the
          D-numbers, "I-017 T2/T3", "the C assert / C contract / C pointer semantics", "the doc spec", "the strict-typing
          ruling", "the first two failures of the T2 wave"). The rule (the D-200) now extends to the test: the comments +
          doc explain WHAT the suite pins (functional contracts), NO coding history. Rewrote the module docstring, the
@@ -837,67 +835,66 @@ D-202 | 2026-09-15 | The PRNG TEST module + doc DE-PORTIFIED (Roberto's "ora fis
          behavior change (doc-only; the 14 tests unchanged and passing). Verification: `test_prng` 14/0/0 GREEN; touched
          modules 30/0/1 GREEN; full LONG 852/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
 
-D-203 | 2026-09-15 | Filled the 3 MT19937 test-coverage gaps (Roberto's audit + "fissa i 3 gap").
-         The audit found: (a) `shuffle_double` + `shuffle_int` had ONLY the negative dtype pin, no positive test that they
-         are a PERMUTATION; (b) `choose_one_from_set64` had NO direct unit test (only the `test_random_game` integration
-         golden). Fixes in `test_prng`.py (14 -> 19 tests): (a) `test_shuffle_contracts` now also asserts `shuffle_double`
-         (float64) + `shuffle_int` (int64) are permutations of the input (16 elements); (b) a NEW class
-         TestChooseOneFromSet64 (3 seeds {42,7,93}): - the empty set -> the (0, 64) sentinel + NO draw consumed (the
-         next value equals a fresh instance's); - the return is (1 << p, p) and p is a set bit (3 seeds x 4 sets x 20
-         picks); - the set is NEVER drained (3 seeds x 100 picks, the 32-bit set keeps all 32 bits); - a 1000-pick
-         GOLDEN for 7 cases (the full set + 3 distinct 2-bit + 3 distinct 3-bit sets): the exact position sequence + the
-         expected frequencies; - the full set is REASONABLY EQUIDISTRIBUTED (200k picks, 64 bins, chi2 < 150, df=63).
-         New golden: 14 sections appended to `prng_golden`.txt (7 cases x [the 1000-pick sequence + the `_freqs`
-         companion]), 11404 -> 18436 lines. The comments state WHAT each test asserts (not the decision history, the
-         D-200/D-202 rule). Verification: `test_prng` 19/0/0 GREEN; touched modules 35/0/1 GREEN; full LONG 857/0/21
-         GREEN; 1e6 G0 bit-exact (28065 dead lanes).
+D-203 | 2026-09-15 | Filled the 3 MT19937 test-coverage gaps (Roberto's audit + "fissa i 3 gap"). The audit found: (a)
+         `shuffle_double` + `shuffle_int` had ONLY the negative dtype pin, no positive test that they are a PERMUTATION;
+         (b) `choose_one_from_set64` had NO direct unit test (only the `test_random_game` integration golden). Fixes in
+         `test_prng`.py (14 -> 19 tests): (a) `test_shuffle_contracts` now also asserts `shuffle_double` (float64) +
+         `shuffle_int` (int64) are permutations of the input (16 elements); (b) a NEW class TestChooseOneFromSet64 (3
+         seeds {42,7,93}): - the empty set -> the (0, 64) sentinel + NO draw consumed (the next value equals a fresh
+         instance's); - the return is (1 << p, p) and p is a set bit (3 seeds x 4 sets x 20 picks); - the set is NEVER
+         drained (3 seeds x 100 picks, the 32-bit set keeps all 32 bits); - a 1000-pick GOLDEN for 7 cases (the full set
+         + 3 distinct 2-bit + 3 distinct 3-bit sets): the exact position sequence + the expected frequencies; - the full
+         set is REASONABLY EQUIDISTRIBUTED (200k picks, 64 bins, chi2 < 150, df=63). New golden: 14 sections appended to
+         `prng_golden`.txt (7 cases x [the 1000-pick sequence + the `_freqs` companion]), 11404 -> 18436 lines. The
+         comments state WHAT each test asserts (not the decision history, the D-200/D-202 rule). Verification:
+         `test_prng` 19/0/0 GREEN; touched modules 35/0/1 GREEN; full LONG 857/0/21 GREEN; 1e6 G0 bit-exact (28065 dead
+         lanes).
 
-D-204 | 2026-09-15 | The EC20 equidistribution test (Roberto added the TestChooseRandomMoveEC20
-         VALIDITY test — six 20-empty-square positions, 13/0/0/9/0/13 legal options — committed as his checkin; I added
-         the EQUIDISTRIBUTION test to the same class). `test_choose_random_move_ec20_equidistributed` draws N = 1000 moves
-         for EACH of the six positions and asserts two facts: (1) every drawn move is VALIDATED (a single legal move
-         when the position has options, or the pass when it has none); (2) the frequencies accumulated over the
-         AVAILABLE options are REASONABLY FLAT (well spread, equidistributed) — a chi-square over the k options (df = k
+D-204 | 2026-09-15 | The EC20 equidistribution test (Roberto added the TestChooseRandomMoveEC20 VALIDITY test — six
+         20-empty-square positions, 13/0/0/9/0/13 legal options — committed as his checkin; I added the EQUIDISTRIBUTION
+         test to the same class). `test_choose_random_move_ec20_equidistributed` draws N = 1000 moves for EACH of the
+         six positions and asserts two facts: (1) every drawn move is VALIDATED (a single legal move when the position
+         has options, or the pass when it has none); (2) the frequencies accumulated over the AVAILABLE options are
+         REASONABLY FLAT (well spread, equidistributed) — a chi-square over the k options (df = k
          - 1) kept below the 4-sigma threshold. The observed chi2 (10.1 / 8.7 / 10.1 for the 13/9/13-option positions)
-         sit near df (12/8/12), far under the threshold — genuinely flat. Verification: `test_random_game` 4/0/0 GREEN;
-         full LONG 859/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
+           sit near df (12/8/12), far under the threshold — genuinely flat. Verification: `test_random_game` 4/0/0
+           GREEN; full LONG 859/0/21 GREEN; 1e6 G0 bit-exact (28065 dead lanes).
 
-D-205 | 2026-09-15 | The doc de-history PASS on all the mirror docs (Roberto: "Fai un passaggio su
-         tutti i DOC"). The D-200/D-202 principle (the docs explain WHAT, no reference to the coding/campaign history)
-         is applied to ALL 93 mirror docs, not just prng + `test_prng`. The 91 docs still carrying history refs
-         (D-numbers, the I-0xx task ids, "Roberto's X", the C-port wording, the "> State: D-XXX · date · suite" lines)
-         are rewritten: the history refs are removed, the prose fixed up to read naturally, and the FUNCTIONAL content +
-         structure (the ## sections, the tables, the API / Architecture / Verified invariants / Conventions /
-         Integration, the test pointers, the goldens) are preserved. prng.md + `test_prng`.md were already clean (the
-         D-200/D-202 pass). Done as a fan-out (one subagent per doc, uniform rules) + a residual sweep (2 straggler
-         D-numbers fixed by hand). The "campaign" in `hlp_gate`.md is FUNCTIONAL pipeline terminology (the
-         feature-analysis campaign), not history — kept. Verified: 0 D-numbers / I-0xx / State lines / Roberto refs
-         remain across `docs/`; all 91 docs keep their title + sections; spot-checked `random_game` / `hlp_wave` /
-         `test_random_game` read clean and functional. Doc-only: no source touched, no test impact (the 859-test suite is
-         unaffected).
+D-205 | 2026-09-15 | The doc de-history PASS on all the mirror docs (Roberto: "Fai un passaggio su tutti i DOC").
+         The D-200/D-202 principle (the docs explain WHAT, no reference to the coding/campaign history) is applied to
+         ALL 93 mirror docs, not just prng + `test_prng`. The 91 docs still carrying history refs (D-numbers, the I-0xx
+         task ids, "Roberto's X", the C-port wording, the "> State: D-XXX · date · suite" lines) are rewritten: the
+         history refs are removed, the prose fixed up to read naturally, and the FUNCTIONAL content + structure (the ##
+         sections, the tables, the API / Architecture / Verified invariants / Conventions / Integration, the test
+         pointers, the goldens) are preserved. prng.md + `test_prng`.md were already clean (the D-200/D-202 pass). Done
+         as a fan-out (one subagent per doc, uniform rules) + a residual sweep (2 straggler D-numbers fixed by hand).
+         The "campaign" in `hlp_gate`.md is FUNCTIONAL pipeline terminology (the feature-analysis campaign), not history
+         — kept. Verified: 0 D-numbers / I-0xx / State lines / Roberto refs remain across `docs/`; all 91 docs keep
+         their title + sections; spot-checked `random_game` / `hlp_wave` / `test_random_game` read clean and functional.
+         Doc-only: no source touched, no test impact (the 859-test suite is unaffected).
 
-D-206 | 2026-09-15 | New method `game_position_make_random_move` in `random_game` (Roberto): the random
-         move EXECUTION. `game_position_make_random_move`(p, prng) -> (PositionField | None, Move) asks `choose_random_move`
-         for the move to play, executes it on p via `board.position_flips`, and returns the resulting position together
-         with the move that was played (a Move: the square position, or 64 = PA; the pass returns (None, PA)). The
-         returned position is the `position_flips` output — the next player's view, the mover / opponent fields swapped
-         with respect to the input (the codebase convention, as `position_make_move` and the wave). A NEW test class
+D-206 | 2026-09-15 | New method `game_position_make_random_move` in `random_game` (Roberto): the random move EXECUTION.
+         `game_position_make_random_move`(p, prng) -> (PositionField | None, Move) asks `choose_random_move` for the
+         move to play, executes it on p via `board.position_flips`, and returns the resulting position together with the
+         move that was played (a Move: the square position, or 64 = PA; the pass returns (None, PA)). The returned
+         position is the `position_flips` output — the next player's view, the mover / opponent fields swapped with
+         respect to the input (the codebase convention, as `position_make_move` and the wave). A NEW test class
          TestGamePositionMakeRandomMove (3 tests) on a 20-empty-square fixture (ec = 20) with exactly two legal moves
          (G1 bit 6, G2 bit 14; the legal-move set is the bitboard 16448): the random generation is already covered by
-         the `choose_random_move` tests, so this verifies the RETURNED POSITION: (1) N = 12 draws (seed 93) yield ONLY the
-         two resulting boards (both appear — 6 of each); (2) every returned position is exactly the `position_flips`
+         the `choose_random_move` tests, so this verifies the RETURNED POSITION: (1) N = 12 draws (seed 93) yield ONLY
+         the two resulting boards (both appear — 6 of each); (2) every returned position is exactly the `position_flips`
          output for the drawn move (position ↔ move consistent); (3) each returned position is one stone ahead of the
          fixture (44 -> 45 stones, 20 -> 19 empty). The two resulting boards are the `position_flips` outputs (the next
          player's view); Roberto's stated values are the same boards with the mover / opponent roles un-swapped.
          Verification: `test_random_game` 7/0/0 GREEN; full LONG 862/0/21 GREEN (859 + 3); 1e6 G0 bit-exact (28065 dead
          lanes).
 
-D-207 | 2026-09-15 | The overview.md SIMPLIFICATION (Roberto: "completamente un BLOB! ... tieni le
-         cose che ci servono a guardare avanti, non la storia insignificante"). The "Where we are" (~550 lines) and
-         "Next steps" (~175 lines) sections had drifted into campaign narrative (the D-192..D-206 story, the whole I-017
-         T1..T19, the PLOT D-149..D-155, config cache, duplicate positions, the reorganization) — violating the file's
-         own contract ("Current state only — the history lives in the journal volumes + the decision log"). Applied: (1)
-         "Where we are" -> a compact current state (the 18-level pipeline live + green, G0 the corpus generator, the
+D-207 | 2026-09-15 | The overview.md SIMPLIFICATION (Roberto: "completamente un BLOB! ... tieni le cose che ci servono a
+         guardare avanti, non la storia insignificante"). The "Where we are" (~550 lines) and "Next steps" (~175 lines)
+         sections had drifted into campaign narrative (the D-192..D-206 story, the whole I-017 T1..T19, the
+         PLOT D-149..D-155, config cache, duplicate positions, the reorganization) — violating the file's own contract
+         ("Current state only — the history lives in the journal volumes + the decision log"). Applied: (1) "Where we
+         are" -> a compact current state (the 18-level pipeline live + green, G0 the corpus generator, the
          self-describing v2 model file, the `random_game` module, the MINIMAL fully-numba PRNG, the STALE pre-fix
          corpora); (2) "Next steps" -> the real backlog (regenerate the STALE G0 corpora, the last PRNG passettino, the
          profiling session, the I-003/I-009/I-010/I-018 backlog); (3) the per-file Source/Test tables' State columns
@@ -907,161 +904,150 @@ D-207 | 2026-09-15 | The overview.md SIMPLIFICATION (Roberto: "completamente un 
          journal (the D-pointers index it). 981 -> 241 lines. The Project / Conventions / Index sections kept (they are
          the look-forward content). Notes-only: no source / doc / test touched.
 
-D-208 | 2026-09-15 | The PASS-semantics fix (Roberto, approved after the analysis + plan): a PASS
-         must yield the position with the players inverted, not None / unchanged. `board.position_flips`: the SCALAR path
-         now returns (0, `make_position`(o, m)) for a zero (PASS) move instead of (0, None); the `_vectorized_flips` kernel
-         swaps the players for a zero element instead of leaving the input unchanged. An illegal (single-bit, no flip)
-         or non-single-bit move is unchanged (scalar None / array input-unchanged). `board.position_make_move`: BEHAVIOUR
+D-208 | 2026-09-15 | The PASS-semantics fix (Roberto, approved after the analysis + plan): a PASS must yield the
+         position with the players inverted, not None / unchanged. `board.position_flips`: the SCALAR path now returns
+         (0, `make_position`(o, m)) for a zero (PASS) move instead of (0, None); the `_vectorized_flips` kernel swaps
+         the players for a zero element instead of leaving the input unchanged. An illegal (single-bit, no flip) or
+         non-single-bit move is unchanged (scalar None / array input-unchanged). `board.position_make_move`: BEHAVIOUR
          UNCHANGED (PA = 64 already swapped the players, scalar and array); only the docstring clarified that the None
          in the return type is the illegal-scalar-move signal only, never the PA (Roberto's option A: keep the None).
-         `random_game`. `game_position_make_random_move`: the pass now returns (the swapped position, PA) instead of (None,
-         PA) — a pure consequence of the `position_flips` fix (no logic change); the return annotation dropped the "|
-         None". Tests: `test_position_flips_move_is_empty` (scalar pass -> swap), the 2 bulk tests (the dataset line 000
-         is a pass -> swap, the illegal lines still None / unchanged), the array fuzz parity (the pass branch swapped),
-         a NEW `test_position_flips_array_pass_batch` (a pure-pass batch -> every element swapped), and a NEW
-         `test_no_legal_move_is_a_pass_with_the_swapped_position` in `test_random_game`. Verified: `test_board` 222/0/14,
-         `test_random_game` 8/0/0, full LONG 864/0/21 GREEN (862 + 2); 1e6 G0 bit-exact (28065 dead lanes) — the wave
-         (which drives the stream through `position_make_move`, unchanged) is unaffected.
+         `random_game`. `game_position_make_random_move`: the pass now returns (the swapped position, PA) instead of
+         (None, PA) — a pure consequence of the `position_flips` fix (no logic change); the return annotation dropped
+         the "| None". Tests: `test_position_flips_move_is_empty` (scalar pass -> swap), the 2 bulk tests (the dataset
+         line 000 is a pass -> swap, the illegal lines still None / unchanged), the array fuzz parity (the pass branch
+         swapped), a NEW `test_position_flips_array_pass_batch` (a pure-pass batch -> every element swapped), and a NEW
+         `test_no_legal_move_is_a_pass_with_the_swapped_position` in `test_random_game`. Verified: `test_board`
+         222/0/14, `test_random_game` 8/0/0, full LONG 864/0/21 GREEN (862 + 2); 1e6 G0 bit-exact (28065 dead lanes) —
+         the wave (which drives the stream through `position_make_move`, unchanged) is unaffected.
 
-D-209 | 2026-09-15 | The decisions.md reformat (Roberto, after reviewing the first pass): a full
-         re-wrap to ~120 chars/line (was ~68) + the mid-token rejoins (the paths / identifiers the 68-char
-         wrap had broken across lines after /, -, _ — `reversi/feature_prng.py`, `no-consume`,
-         `check_su_pairs_feature_set`) + a blank line before every entry + code spans for all paths (with /)
-         and function / file names (with _), and backslash-escaped asterisks for the math multiplications
-         (`delta*`, `k*2^-53`, ...), so the Markdown renders without the stray italics (the D-159
-         `prng_mt19937_*` / `k==1 / n<=1` case). The re-wrap is code-span-aware: the 39 pre-existing code
-         spans (function signatures, expressions) are unbreakable units, never split across lines. A re-wrap
-         bug (a later short word appended to an already-full first line, skipping the words that moved to
-         the next line and inverting the word order — the D-160 `(Roberto's call: "non ...")` case) was
-         caught and fixed with a first-line-full flag. Content verified identical to the original modulo the
-         76 mid-token rejoins (zero reorders, zero words added / removed). The format is codified in
-         `rules.md` (the decisions.md bullet). 1849 -> 923 lines.
+D-209 | 2026-09-15 | The decisions.md reformat (Roberto, after reviewing the first pass): a full re-wrap to ~120
+         chars/line (was ~68) + the mid-token rejoins (the paths / identifiers the 68-char wrap had broken across lines
+         after /, -, _ — `reversi/feature_prng.py`, `no-consume`, `check_su_pairs_feature_set`) + a blank line before
+         every entry + code spans for all paths (with /) and function / file names (with _), and backslash-escaped
+         asterisks for the math multiplications (`delta*`, `k*2^-53`, ...), so the Markdown renders without the stray
+         italics (the D-159 `prng_mt19937_*` / `k==1 / n<=1` case). The re-wrap is code-span-aware: the 39 pre-existing
+         code spans (function signatures, expressions) are unbreakable units, never split across lines. A re-wrap bug (a
+         later short word appended to an already-full first line, skipping the words that moved to the next line and
+         inverting the word order — the D-160 `(Roberto's call: "non ...")` case) was caught and fixed with a
+         first-line-full flag. Content verified identical to the original modulo the 76 mid-token rejoins (zero
+         reorders, zero words added / removed). The format is codified in `rules.md` (the decisions.md bullet). 1849 ->
+         923 lines.
 
-D-210 | 2026-09-18 | `position_empty_count` (Roberto) + the `bitboard_count` dual: a dual
-         (scalar + array) count of the empty squares of a position — `~(mover | opponent)`
-         piped through `bitboard_count`. `bitboard_count` was made dual (`bb: Bitboard |
-         BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]`): the array case was blocked by
-         its scalar-only annotation (pydantic enforced it), the logic was already correct
-         (`np.bitwise_count` is a ufunc); the other 5 call sites pass scalars, so the widening
-         is safe. `position_empty_count`'s return type corrected to the count type (was
-         `Bitboard | BitboardArray`). Tests: `test_bitboard_count_array` + the
-         `TestPositionEmptyCount` class (scalar, wrong-type, array, cross-check with
-         `position_empties`, 2D coercion). `test_board` 228/0/14 (was 222/0/14). Building
-         block for `game_play_random_path` (the random_game WIP, a separate commit).
+D-210 | 2026-09-18 | `position_empty_count` (Roberto) + the `bitboard_count` dual: a dual (scalar + array) count of the
+         empty squares of a position — `~(mover | opponent)` piped through `bitboard_count`. `bitboard_count` was made
+         dual (`bb: Bitboard | BitboardArray) -> np.uint8 | npt.NDArray[np.uint8]`): the array case was blocked by its
+         scalar-only annotation (pydantic enforced it), the logic was already correct (`np.bitwise_count` is a ufunc);
+         the other 5 call sites pass scalars, so the widening is safe. `position_empty_count`'s return type corrected to
+         the count type (was `Bitboard | BitboardArray`). Tests: `test_bitboard_count_array` + the
+         `TestPositionEmptyCount` class (scalar, wrong-type, array, cross-check with `position_empties`, 2D coercion).
+         `test_board` 228/0/14 (was 222/0/14). Building block for `game_play_random_path` (the random_game WIP, a
+         separate commit).
 
-D-211 | 2026-09-18 | `initial_game_position` moved from `random_game` to `board` (the
-         Position methods section — the CANONICAL standard start; the docstring and
-         the `TestInitialGame` test move to `test_board`). The three `random_game`
-         methods are renamed to the `random_game_*` house pattern:
-         `choose_random_move` -> `random_game_chose_move`,
-         `game_position_make_random_move` -> `random_game_make_move`,
-         `game_play_random_path` -> `random_game_play_path` (the WIP that now has a
-         public name). Imports follow (random_game drops the now-orphan
-         `make_position`; test_random_game imports `initial_game_position` from
-         board); the `hlp_wave` / `hlp_random_play` comments + the 5 mirror docs
-         follow. `test_board` 229/0/14, `test_random_game` 9/0/0, full 872/0/95.
+D-211 | 2026-09-18 | `initial_game_position` moved from `random_game` to `board` (the Position methods section — the
+         CANONICAL standard start; the docstring and the `TestInitialGame` test move to `test_board`). The three
+         `random_game` methods are renamed to the `random_game_*` house pattern: `choose_random_move` ->
+         `random_game_chose_move`, `game_position_make_random_move` -> `random_game_make_move`,
+         `game_play_random_path` -> `random_game_play_path` (the WIP that now has a public name). Imports follow
+         (random_game drops the now-orphan `make_position`; test_random_game imports `initial_game_position` from
+         board); the `hlp_wave` / `hlp_random_play` comments + the 5 mirror docs follow. `test_board` 229/0/14,
+         `test_random_game` 9/0/0, full 872/0/95.
 
 D-212 | 2026-09-18 | The `random_game` syntactic rename (Roberto): `random_game_chose_move` -> `random_game_choose_move`
          ("chose", the past tense, -> "choose") inside the D-211 `random_game_*` house pattern. The test classes +
          methods follow (`TestRandomGameChoseMove` -> `TestRandomGameChooseMove`, `TestRandomGameChoseMoveEC20` ->
          `TestRandomGameChooseMoveEC20`, the 3 `test_random_game_chose_move*` methods). The 2 mirror docs
-         (`docs/src/reversi/random_game.md`, `docs/src/reversi/test/test_random_game.md`) + `notes/overview.md`
-         follow (the D-211 entry keeps its historical reference verbatim). A pure rename, no behaviour change:
+         (`docs/src/reversi/random_game.md`, `docs/src/reversi/test/test_random_game.md`) + `notes/overview.md` follow
+         (the D-211 entry keeps its historical reference verbatim). A pure rename, no behaviour change:
          `test_random_game` 9/0/0, full LONG 872/0/21 GREEN (the 1e6 G0 benchmark bit-exact, 28065 dead lanes).
 
 D-213 | 2026-09-18 | `position_hash` (Roberto's request): the 64-bit Zobrist hash of a game position in `board.py` —
-         dual scalar/array, a pure function of the `(mover, opponent)` pair, no legality validation. The CONSTANTS
-         are the legacy C engine's (`board.c` `zobrist_bitstrings[]`, URANDOM-generated; the read-only reference
-         `/home/rcrr/base/prj/reversi/c/src/board.c`, `game_position_x_hash`) so the hashes are legacy-comparable:
-         the mover discs select the first 64 entries (the legacy blacks slots), the opponent the last 64 (the whites
-         slots), no complement — exactly the legacy hash of `(blacks=mover, whites=opponent, player=BLACK_PLAYER)`;
-         the C complement rule (`if (p) hash = ~hash`, p = WHITE) maps a legacy WHITE position to the one's
-         complement of `position_hash(blacks, whites)` (pinned). The Python `Position` carries no absolute color,
-         so the bridge is this fixed convention (the only well-defined option; Roberto informed). Kernel: the SWAR
-         byte-fold (`_zobrist_byte_fold` 2x8x256, generated at import; 16 lookups/position, no per-bit loop) +
-         a `prange` batch kernel — 214M positions/s measured (PERF: 1e6 in 4.7 ms). The table is canon (the
-         SHA-3-256 pin `3e3dfd40afef05e075e393def68bc13c0e592cc3d838652e330070eaaa0a626c` + the goldens derived
-         from the C source by the session-38 scratch script, which verified the transcribed C loop and the SWAR
-         fold bit-identical over 10_000 random pairs). Tests: `TestPositionHash` (13 tests: the goldens, the
-         WHITE bridge, the array parity + the 2-D coercion + the empty array + the rejections, the order
-         sensitivity, the avalanche band, zero collisions 10k / 1e6-LONG, the table pin, the PERF).
-         `test_board` 242/0/15 (was 229/0/14). The splitmix64 cascade alternative was considered and set aside:
-         Zobrist for the engine continuity + the incremental path (`zobrist_flip_bitstrings`), the cascade for a
-         stateless-only future.
+         dual scalar/array, a pure function of the `(mover, opponent)` pair, no legality validation. The CONSTANTS are
+         the legacy C engine's (`board.c` `zobrist_bitstrings[]`, URANDOM-generated; the read-only reference
+         `/home/rcrr/base/prj/reversi/c/src/board.c`, `game_position_x_hash`) so the hashes are legacy-comparable: the
+         mover discs select the first 64 entries (the legacy blacks slots), the opponent the last 64 (the whites slots),
+         no complement — exactly the legacy hash of `(blacks=mover, whites=opponent, player=BLACK_PLAYER)`; the C
+         complement rule (`if (p) hash = ~hash`, p = WHITE) maps a legacy WHITE position to the one's complement of
+         `position_hash(blacks, whites)` (pinned). The Python `Position` carries no absolute color, so the bridge is
+         this fixed convention (the only well-defined option; Roberto informed). Kernel: the SWAR byte-fold
+         (`_zobrist_byte_fold` 2x8x256, generated at import; 16 lookups/position, no per-bit loop) + a `prange` batch
+         kernel — 214M positions/s measured (PERF: 1e6 in 4.7 ms). The table is canon (the SHA-3-256 pin
+         `3e3dfd40afef05e075e393def68bc13c0e592cc3d838652e330070eaaa0a626c` + the goldens derived from the C source by
+         the session-38 scratch script, which verified the transcribed C loop and the SWAR fold bit-identical over
+         10_000 random pairs). Tests: `TestPositionHash` (13 tests: the goldens, the WHITE bridge, the array parity +
+         the 2-D coercion + the empty array + the rejections, the order sensitivity, the avalanche band, zero collisions
+         10k / 1e6-LONG, the table pin, the PERF). `test_board` 242/0/15 (was 229/0/14). The splitmix64 cascade
+         alternative was considered and set aside: Zobrist for the engine continuity + the incremental path
+         (`zobrist_flip_bitstrings`), the cascade for a stateless-only future.
 
 D-214 | 2026-09-18 | The `position_hash` return annotation corrected to the house style (Roberto):
-         `-> Bitboard | BitboardArray` (was `-> Bitboard | npt.NDArray[np.uint64]`) — the Position-family
-         pattern (`position_empties`, `position_collisions`, `legal_moves`, ...). Runtime-identical (pydantic
-         does not validate returns); the doc follows.
+         `-> Bitboard | BitboardArray` (was `-> Bitboard | npt.NDArray[np.uint64]`) — the Position-family pattern
+         (`position_empties`, `position_collisions`, `legal_moves`, ...). Runtime-identical (pydantic does not validate
+         returns); the doc follows.
 
-D-215 | 2026-09-18 | The `position_hash` legacy parity fixture (Roberto's FFO-12 solve log): the game_tree_logger CSV
-         of the C engine (21 columns; HASH/BLACKS/WHITES signed int64 decimals — the `bitboard_from_signed_int`
-         representation). The FULL log (571_141 rows, 89.7 MB) verified 100% by the session-38 scratch run (2.6 s):
-         the PLAYER=0 rows (262_285) match `position_hash(blacks, whites)` directly, the PLAYER=1 rows (308_856) the
-         one's complement (the D-213 bridge confirmed end-to-end against the engine), and `EMPTY_COUNT` == the
-         popcount of `~(blacks | whites)` everywhere. The committed fixture is the lean deterministic sample
-         (Roberto's call — the repo pack was 2 MiB, the full .gz was 17 MB): every 571st row + the root row,
-         1002 rows / 154 KB plain CSV (`ffo_12_log_sample.csv`), covering the full DFS span (ec 0..15, both
-         players, leaf + internal nodes; the DFS-head alternative rejected — the first 1000 rows are all deep
-         leaves). Tests: `TestPositionHashLegacyParity` (2 fast-tier tests: the fixture format pin, the
-         full-sample parity). `test_board` 244/0/15 (was 242/0/15), full LONG 887/0/22 GREEN.
+D-215 | 2026-09-18 | The `position_hash` legacy parity fixture (Roberto's FFO-12 solve log): the game_tree_logger CSV of
+         the C engine (21 columns; HASH/BLACKS/WHITES signed int64 decimals — the `bitboard_from_signed_int`
+         representation). The FULL log (571_141 rows, 89.7 MB) verified 100% by the session-38 scratch run (2.6 s): the
+         PLAYER=0 rows (262_285) match `position_hash(blacks, whites)` directly, the PLAYER=1 rows (308_856) the one's
+         complement (the D-213 bridge confirmed end-to-end against the engine), and `EMPTY_COUNT` == the popcount of
+         `~(blacks | whites)` everywhere. The committed fixture is the lean deterministic sample (Roberto's call — the
+         repo pack was 2 MiB, the full .gz was 17 MB): every 571st row + the root row, 1002 rows / 154 KB plain CSV
+         (`ffo_12_log_sample.csv`), covering the full DFS span (ec 0..15, both players, leaf + internal nodes; the
+         DFS-head alternative rejected — the first 1000 rows are all deep leaves). Tests: `TestPositionHashLegacyParity`
+         (2 fast-tier tests: the fixture format pin, the full-sample parity). `test_board` 244/0/15 (was 242/0/15), full
+         LONG 887/0/22 GREEN.
 
 D-216 | 2026-09-18 | The `test_random_game_play_path_multi_generation` stub completed (Roberto's request — it was
-         waiting for a position hash, now the D-213 `position_hash`): N = 10 paths played from the same ec = 20
-         start over ONE advancing prng stream (seed 141, no reseed). Two facts pinned: (1) every path lands
-         EXACTLY on the target (`ec == 14` — 6 real moves; the game-over cut-off is out of reach this early);
-         (2) the 10 final positions are pairwise DISTINCT via the `position_hash` duplicate check (the
-         view-dependent hash: an equal hash means an equal position with the same player to move). The sketch
-         fixed: `random_game_play_path` returns the `(position, ec)` tuple — unpacked before hashing. The suite
-         counts are unchanged (the stub already ran as a vacuous pass): `test_random_game` 9/0/0, full LONG
-         887/0/22 GREEN.
+         waiting for a position hash, now the D-213 `position_hash`): N = 10 paths played from the same ec = 20 start
+         over ONE advancing prng stream (seed 141, no reseed). Two facts pinned: (1) every path lands EXACTLY on the
+         target (`ec == 14` — 6 real moves; the game-over cut-off is out of reach this early); (2) the 10 final
+         positions are pairwise DISTINCT via the `position_hash` duplicate check (the view-dependent hash: an equal hash
+         means an equal position with the same player to move). The sketch fixed: `random_game_play_path` returns the
+         `(position, ec)` tuple — unpacked before hashing. The suite counts are unchanged (the stub already ran as a
+         vacuous pass): `test_random_game` 9/0/0, full LONG 887/0/22 GREEN.
 
-D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
-         aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
-         space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
-         DELIBERATE wherever the value is not a domain concept. In particular the counts
-         (`bitboard_count`, `position_empty_count`) return an ORDINAL (0..64), not a square index: typing
-         them `np.uint8 | SquareArray` would be a semantic lie — they stay
-         `np.uint8 | npt.NDArray[np.uint8]`. Likewise the int64 storage forms (`bitboard_from/to_signed_int`)
-         and the generic `make_position` return (`Union[np.void, np.ndarray]` — scalar, 1-D or 2-D). Ruling:
-         ALL the board.py public signatures are correct as they are — nothing to uniform; Nia's group-A
-         proposal withdrawn. The convention recorded in the `board.md` Conventions.
+D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type aliases are
+         SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square space, `Bitboard` a set of
+         squares, `Position` a game position — and the raw numpy forms are DELIBERATE wherever the value is not a domain
+         concept. In particular the counts (`bitboard_count`, `position_empty_count`) return an ORDINAL (0..64), not a
+         square index: typing them `np.uint8 | SquareArray` would be a semantic lie — they stay
+         `np.uint8 | npt.NDArray[np.uint8]`. Likewise the int64 storage forms (`bitboard_from/to_signed_int`) and the
+         generic `make_position` return (`Union[np.void, np.ndarray]` — scalar, 1-D or 2-D). Ruling: ALL the board.py
+         public signatures are correct as they are — nothing to uniform; Nia's group-A proposal withdrawn. The
+         convention recorded in the `board.md` Conventions.
 
-D-218 | 2026-09-18 | The `random_game_play_path` double-pass fix (found reviewing the module for the dual-API
-         campaign; Roberto approved the standalone mini-commit): `PASS_MOVE = Move(66)` was the stale pre-D-208
-         sentinel (UN) — `random_game_make_move` returns the pass as PA = 64 since D-208, so the
-         `if move == PASS_MOVE` branches never fired and the double-pass game-over break was DEAD CODE: a random
-         path encountering a game-over position with `ec > target_ec` looped forever (the single-pass
-         continuation worked by accident — the loop re-entry plays the opponent's move; only the both-moveless
-         case hangs). Fix: `PASS_MOVE = Move(64)`. Tests: `test_random_game_play_path_double_pass_game_over`
-         (a both-moveless ec = 20 position, target 10: the loop terminates, the input view returns with its own
-         ec — pre-fix it hangs) + `test_random_game_play_path_single_pass_continues` (a moveless mover + a
-         9-move opponent: the pass swaps the view, the game continues to the target). `test_random_game`
-         11/0/0 (was 9/0/0), full LONG 889/0/22 GREEN.
+D-218 | 2026-09-18 | The `random_game_play_path` double-pass fix (found reviewing the module for the dual-API campaign;
+         Roberto approved the standalone mini-commit): `PASS_MOVE = Move(66)` was the stale pre-D-208 sentinel (UN) —
+         `random_game_make_move` returns the pass as PA = 64 since D-208, so the `if move == PASS_MOVE` branches never
+         fired and the double-pass game-over break was DEAD CODE: a random path encountering a game-over position with
+         `ec > target_ec` looped forever (the single-pass continuation worked by accident — the loop re-entry plays the
+         opponent's move; only the both-moveless case hangs). Fix: `PASS_MOVE = Move(64)`. Tests:
+         `test_random_game_play_path_double_pass_game_over` (a both-moveless ec = 20 position, target 10: the loop
+         terminates, the input view returns with its own ec — pre-fix it hangs) +
+         `test_random_game_play_path_single_pass_continues` (a moveless mover + a 9-move opponent: the pass swaps the
+         view, the game continues to the target). `test_random_game` 11/0/0 (was 9/0/0), full LONG 889/0/22 GREEN.
 
 D-219 | 2026-09-18 | The `random_game_choose_move` dual scalar/array (the campaign step 1, the design approved by
-         Roberto): `-> Bitboard | BitboardArray`, the D-140 dispatch (the 1-D guard, the 2-D (N,2) coercion via
-         the PositionArray validator). The PRNG STREAM CONTRACT: the array call is bit-identical to the sequential
-         scalar processing of the same positions with the same stream — one draw per non-empty legal set, no draw
-         for a pass (the `choose_one_from_set64` empty sentinel). The trick: the legal sets are computed BEFORE
-         any draw (they are draw-independent), so one `get_uint64_batch(k)` pre-draws for the non-empty elements
-         and the prefix-sum slot map feeds the `prange` kernel (`_vectorized_choose_move`) whose per-element math
-         (`_pick_one_from_set64`, the numba transcription of the prng pick: the SWAR popcount,
-         r = (d >> 11) * 2^-53, the c-th set bit) is bit-exact. The scalar path is UNTOUCHED (zero golden
-         changes). Tests: `TestRandomGameChooseMoveArray` (6: the bit-equivalence regina + the stream-alignment
-         probe, the scalar types, the 2-D coercion, the 1-D guard, the empty array, the rejections).
-         `test_random_game` 17/0/0 (was 11/0/0), full LONG 895/0/22 GREEN.
+         Roberto): `-> Bitboard | BitboardArray`, the D-140 dispatch (the 1-D guard, the 2-D (N,2) coercion via the
+         PositionArray validator). The PRNG STREAM CONTRACT: the array call is bit-identical to the sequential scalar
+         processing of the same positions with the same stream — one draw per non-empty legal set, no draw for a pass
+         (the `choose_one_from_set64` empty sentinel). The trick: the legal sets are computed BEFORE any draw (they are
+         draw-independent), so one `get_uint64_batch(k)` pre-draws for the non-empty elements and the prefix-sum slot
+         map feeds the `prange` kernel (`_vectorized_choose_move`) whose per-element math (`_pick_one_from_set64`, the
+         numba transcription of the prng pick: the SWAR popcount, r = (d >> 11) * 2^-53, the c-th set bit) is bit-exact.
+         The scalar path is UNTOUCHED (zero golden changes). Tests: `TestRandomGameChooseMoveArray` (6: the
+         bit-equivalence regina + the stream-alignment probe, the scalar types, the 2-D coercion, the 1-D guard, the
+         empty array, the rejections). `test_random_game` 17/0/0 (was 11/0/0), full LONG 895/0/22 GREEN.
 
 D-220 | 2026-09-18 | The `random_game_make_move` dual scalar/array (the campaign step 2): `-> Tuple[PositionField |
-         PositionArray, Move | MoveArray]`, the D-140 dispatch (the 1-D guard, the 2-D coercion). The array path is
-         a pure COMPOSITION of the verified dual functions — the D-219 batch pick (the stream contract inherited
-         verbatim) + the D-140 `position_flips` (a zero element swaps the players, a legal element flips; the drawn
-         moves are always legal or pass, so the illegal branch never fires) — plus one numpy line for the codes:
-         `np.bitwise_count(move - 1)` gives the bit index of a single-bit move AND, by the wrap-around of an empty
-         move, 64 = PA (no kernel of its own). The scalar path is untouched. Tests: `TestRandomGameMakeMoveArray`
-         (7: the bit-equivalence regina + the stream probe, the per-code position cross-check through the scalar
-         flips, the initial-position code in {D3, C4, F5, E6}, the 2-D coercion, the 1-D guard, the empty array,
-         the rejections). `test_random_game` 24/0/0 (was 17/0/0), full LONG 902/0/22 GREEN.
+         PositionArray, Move | MoveArray]`, the D-140 dispatch (the 1-D guard, the 2-D coercion). The array path is a
+         pure COMPOSITION of the verified dual functions — the D-219 batch pick (the stream contract inherited verbatim)
+         + the D-140 `position_flips` (a zero element swaps the players, a legal element flips; the drawn moves are
+         always legal or pass, so the illegal branch never fires) — plus one numpy line for the codes:
+         `np.bitwise_count(move - 1)` gives the bit index of a single-bit move AND, by the wrap-around of an empty move,
+         64 = PA (no kernel of its own). The scalar path is untouched. Tests: `TestRandomGameMakeMoveArray` (7: the
+         bit-equivalence regina + the stream probe, the per-code position cross-check through the scalar flips, the
+         initial-position code in {D3, C4, F5, E6}, the 2-D coercion, the 1-D guard, the empty array, the rejections).
+         `test_random_game` 24/0/0 (was 17/0/0), full LONG 902/0/22 GREEN.
 
 D-221 | 2026-09-18 | The pick-from-set single-source refactor (Roberto: "the PRNG logic and techniques must not be
          duplicated for the convenience of a numba kernel"): the pick technique moves ONCE into `prng.py` —
@@ -1069,199 +1055,183 @@ D-221 | 2026-09-18 | The pick-from-set single-source refactor (Roberto: "the PRN
          `get_double_in_c0_o1` scalarization — c = floor(r*k), the c-th set bit; returns (1 << p, p)) +
          `pick_one_from_set64_batch(sets, draws, slots)` (the vectorized form over an (N,) set array, fed by one
          `get_uint64_batch` pre-draw; the slots prefix map the caller computes). `choose_one_from_set64` and
-         `extract_from_set64` now DRAW one `get_uint64` value and DELEGATE to the kernel (the single source; the
-         numba scalar-return re-wrap restores the numpy dtypes at the Python boundary). `random_game` drops its
-         transcribed kernels (`_pick_one_from_set64`, `_vectorized_choose_move`) — it is pure orchestration again
-         (the legal sets + the needs/slot bookkeeping + the prng batch pick). THE LESSON, recorded honestly: the
-         duplication had ALREADY produced a latent divergence — the D-219 kernel used the c0_c1 scalarization
-         constant (1/(2^53 - 1)) instead of c0_o1's (1/2^53); the D-219 equivalence tests passed only because
-         those draws did not straddle a floor boundary. The refactor makes that divergence class impossible. The
-         behaviour is unchanged (the goldens hold: the 1000-pick frequencies, the 7-set golden, the extract
-         golden). Tests: `TestPickOneFromSet64` (3: the kernel-method identity draw-for-draw over 7 sets x 100
-         draws, the batch equivalence + the stream alignment, the all-empty no-draw case). `test_prng` 22/0/0
-         (was 19/0/0), full LONG 905/0/22 GREEN.
+         `extract_from_set64` now DRAW one `get_uint64` value and DELEGATE to the kernel (the single source; the numba
+         scalar-return re-wrap restores the numpy dtypes at the Python boundary). `random_game` drops its transcribed
+         kernels (`_pick_one_from_set64`, `_vectorized_choose_move`) — it is pure orchestration again (the legal sets +
+         the needs/slot bookkeeping + the prng batch pick). THE LESSON, recorded honestly: the duplication had ALREADY
+         produced a latent divergence — the D-219 kernel used the c0_c1 scalarization constant (1/(2^53 - 1)) instead of
+         c0_o1's (1/2^53); the D-219 equivalence tests passed only because those draws did not straddle a floor
+         boundary. The refactor makes that divergence class impossible. The behaviour is unchanged (the goldens hold:
+         the 1000-pick frequencies, the 7-set golden, the extract golden). Tests: `TestPickOneFromSet64` (3: the
+         kernel-method identity draw-for-draw over 7 sets x 100 draws, the batch equivalence + the stream alignment, the
+         all-empty no-draw case). `test_prng` 22/0/0 (was 19/0/0), full LONG 905/0/22 GREEN.
 
 D-222 | 2026-09-18 | The `random_game_play_path` dual scalar/array (the campaign step 3, the last):
-         `-> Tuple[PositionField | PositionArray, np.uint8 | npt.NDArray[np.uint8]]` — the ec annotation is now
-         honest (`position_empty_count` already returned np.uint8 at runtime; the ordinal doctrine D-217). The
-         array case is the STEP ENGINE: per step, the legal sets of the current and swapped views (both
-         draw-independent) classify the active lanes — plays_a (the mover plays), plays_b (the mover passes, the
-         opponent plays), game_over (the double pass: harvested, no draw, the input view returned) — one
-         `get_uint64_batch` pre-draws for the needing lanes and `pick_one_from_set64_batch` + `position_flips`
-         advance them; one shared `target_ec` for the batch; the termination is mathematical (every
-         non-terminal step decreases a lane's ec by one) with a defensive 70-step bound. THE DESIGN FORK,
-         resolved with the wave precedent: a multi-draw path CANNOT be both scalar-sequence bit-identical AND
-         vectorized across lanes (the scalar processes a lane's WHOLE path before the next lane; the vector
-         engine interleaves the lanes per step) — the array contract is the STEP-INTERLEAVED stream discipline
-         of `hlp_wave` ("one draw per (lane, step)"), and the N == 1 array call IS bit-identical to the scalar
-         call (with one lane the interleave collapses into the lane's sequential stream — pinned). Tests:
-         `TestRandomGamePlayPathArray` (8: the scalar bridge over 4 paths, the whole-batch determinism, the ec
-         contract, the as-is, the 2-D coercion, the 1-D guard, the empty array, the rejections).
-         `test_random_game` 32/0/0 (was 24/0/0), full LONG 913/0/22 GREEN.
+         `-> Tuple[PositionField | PositionArray, np.uint8 | npt.NDArray[np.uint8]]` — the ec annotation is now honest
+         (`position_empty_count` already returned np.uint8 at runtime; the ordinal doctrine D-217). The array case is
+         the STEP ENGINE: per step, the legal sets of the current and swapped views (both draw-independent) classify the
+         active lanes — plays_a (the mover plays), plays_b (the mover passes, the opponent plays), game_over (the double
+         pass: harvested, no draw, the input view returned) — one `get_uint64_batch` pre-draws for the needing lanes and
+         `pick_one_from_set64_batch` + `position_flips` advance them; one shared `target_ec` for the batch; the
+         termination is mathematical (every non-terminal step decreases a lane's ec by one) with a defensive 70-step
+         bound. THE DESIGN FORK, resolved with the wave precedent: a multi-draw path CANNOT be both scalar-sequence
+         bit-identical AND vectorized across lanes (the scalar processes a lane's WHOLE path before the next lane; the
+         vector engine interleaves the lanes per step) — the array contract is the STEP-INTERLEAVED stream discipline of
+         `hlp_wave` ("one draw per (lane, step)"), and the N == 1 array call IS bit-identical to the scalar call (with
+         one lane the interleave collapses into the lane's sequential stream — pinned). Tests:
+         `TestRandomGamePlayPathArray` (8: the scalar bridge over 4 paths, the whole-batch determinism, the ec contract,
+         the as-is, the 2-D coercion, the 1-D guard, the empty array, the rejections). `test_random_game` 32/0/0 (was
+         24/0/0), full LONG 913/0/22 GREEN.
 
-D-223 | 2026-09-18 | The play_path engine readability refactor (Roberto: "it is not understandable" — the D-222
-         array branch was a ~50-line inline blob inside the dispatch, with cryptic names (plays_a / plays_b /
-         idx_a / idx_b) and the apply logic duplicated for the two groups): the engine is decomposed into three
-         named, documented units — `_play_path_engine` (the step loop + the termination bound),
-         `_play_path_step` (the lane classification with self-explanatory names: mover_plays /
-         mover_passes_opponent_plays / double_pass_game_over — and the advance), `_apply_picked_moves` (the
-         masked `position_flips` on the lane subset, the current or the swapped view; the write-back is direct
-         in both frames because position_flips returns the NEXT player's view). The public function is a thin
-         dispatch again (the house shape: the scalar branch inline, the array branch one line). ZERO behaviour
-         change: the whole suite passes untouched (the single-lane scalar bridge, the determinism, the ec
-         contract). `test_random_game` 32/0/0, full LONG 913/0/22 GREEN.
+D-223 | 2026-09-18 | The play_path engine readability refactor (Roberto: "it is not understandable" — the D-222 array
+         branch was a ~50-line inline blob inside the dispatch, with cryptic names (plays_a / plays_b / idx_a / idx_b)
+         and the apply logic duplicated for the two groups): the engine is decomposed into three named, documented units
+         — `_play_path_engine` (the step loop + the termination bound), `_play_path_step` (the lane classification with
+         self-explanatory names: mover_plays / mover_passes_opponent_plays / double_pass_game_over — and the advance),
+         `_apply_picked_moves` (the masked `position_flips` on the lane subset, the current or the swapped view; the
+         write-back is direct in both frames because position_flips returns the NEXT player's view). The public function
+         is a thin dispatch again (the house shape: the scalar branch inline, the array branch one line). ZERO behaviour
+         change: the whole suite passes untouched (the single-lane scalar bridge, the determinism, the ec contract).
+         `test_random_game` 32/0/0, full LONG 913/0/22 GREEN.
 
 D-224 | 2026-09-18 | The docstring discipline (Roberto, on the random_game dual-campaign docstrings): a docstring
-         explains WHAT — the observable contract (the semantics, the shapes, the stream/consumption promises) —
-         never HOW (the mechanism: the needs computation, the batch feeding, the composition, the encoding
-         formulas, the internal unit names). The mechanism lives in the mirror doc's Architecture section and in
-         the code comments. The three random_game public docstrings + the two engine helpers cleaned (the
-         mechanism sentences dropped, the contracts kept); the mirror API lines aligned. PROMOTED to rules.md
-         (the Docs section).
+         explains WHAT — the observable contract (the semantics, the shapes, the stream/consumption promises) — never
+         HOW (the mechanism: the needs computation, the batch feeding, the composition, the encoding formulas, the
+         internal unit names). The mechanism lives in the mirror doc's Architecture section and in the code comments.
+         The three random_game public docstrings + the two engine helpers cleaned (the mechanism sentences dropped, the
+         contracts kept); the mirror API lines aligned. PROMOTED to rules.md (the Docs section).
 
-D-225 | 2026-09-19 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming request, the approved proposal): the
-         six `np.uint64(0)` literals of `random_game.py` — all meaning "the empty move set" (the pass signal of
-         the pick domain, the batch kernel's no-pick value) — become the named module constant
-         (`_EMPTY_MOVE_SET: Bitboard = Bitboard(0)`, the internal house style as `_mask_l` in board.py). NOT
-         renamed: the `moves - np.uint64(1)` decrement operand in `make_move` (a different concept — the coding
-         formula), the prng.py internals (the generic empty set of the pick domain, not move-specific), and the
-         test literals (the goldens pin expected values). Zero behaviour change. `test_random_game` 32/0/0,
-         full LONG 913/0/22 GREEN.
+D-225 | 2026-09-19 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming request, the approved proposal): the six
+         `np.uint64(0)` literals of `random_game.py` — all meaning "the empty move set" (the pass signal of the pick
+         domain, the batch kernel's no-pick value) — become the named module constant (`_EMPTY_MOVE_SET: Bitboard =
+         Bitboard(0)`, the internal house style as `_mask_l` in board.py). NOT renamed: the `moves - np.uint64(1)`
+         decrement operand in `make_move` (a different concept — the coding formula), the prng.py internals (the generic
+         empty set of the pick domain, not move-specific), and the test literals (the goldens pin expected values). Zero
+         behaviour change. `test_random_game` 32/0/0, full LONG 913/0/22 GREEN.
 
 D-226 | 2026-09-19 | The random_game docstring + engine style refinements (Roberto, four points): (1) NO D-XXX
-         references in docstrings — a docstring explains how a function is used and how it behaves; the
-         provenance lives in decisions.md, and only if fundamental in a `#:` code comment (the D-224 rule line
-         extended); the campaign docstrings cleaned (random_game.py, prng.py, the two test modules). (2) The
-         "- never None" negation style dropped — a docstring states the current contract, not the negation of a
-         past behaviour (the D-208 story lives in the history); the phrasing cleaned in the docstring, the
-         mirror/test docs and the overview row (the assertIsNotNone pin stays in the test). (3) THE STRATEGIC
-         INTENT, recorded: `random_game` is the intended REPLACEMENT for `hlp_wave` — a more readable, reusable,
-         domain-anchored module (Roberto's intent from the beginning) — the docstrings and the mirror docs stop
-         referencing hlp_wave as the authority: the semantics is stated in domain terms (the lanes advance in
-         LOCKSTEP; one draw per active lane per step, in element order). (4) The magic 70 of `_play_path_engine`
-         replaced by the DERIVED bound: `max_steps = int(ec.max(initial=0)) - int(target) + 1` — every
-         non-terminal step decreases a lane's ec by exactly one and the game-over step ends the lane, so a lane
-         needs at most (ec_start - target) steps plus one; the bound is computed from the input (the
-         empty-batch edge handled by the reduction initial), the stall raises RuntimeError and never hangs.
-         Zero behaviour change. `test_random_game` 32/0/0, `test_prng` 22/0/0, full LONG 913/0/22 GREEN.
+         references in docstrings — a docstring explains how a function is used and how it behaves; the provenance lives
+         in decisions.md, and only if fundamental in a `#:` code comment (the D-224 rule line extended); the campaign
+         docstrings cleaned (random_game.py, prng.py, the two test modules). (2) The "- never None" negation style
+         dropped — a docstring states the current contract, not the negation of a past behaviour (the D-208 story lives
+         in the history); the phrasing cleaned in the docstring, the mirror/test docs and the overview row (the
+         assertIsNotNone pin stays in the test). (3) THE STRATEGIC INTENT, recorded: `random_game` is the intended
+         REPLACEMENT for `hlp_wave` — a more readable, reusable, domain-anchored module (Roberto's intent from the
+         beginning) — the docstrings and the mirror docs stop referencing hlp_wave as the authority: the semantics is
+         stated in domain terms (the lanes advance in LOCKSTEP; one draw per active lane per step, in element order).
+         (4) The magic 70 of `_play_path_engine` replaced by the DERIVED bound:
+         `max_steps = int(ec.max(initial=0)) - int(target) + 1` — every non-terminal step decreases a lane's ec by
+         exactly one and the game-over step ends the lane, so a lane needs at most (ec_start - target) steps plus one;
+         the bound is computed from the input (the empty-batch edge handled by the reduction initial), the stall raises
+         RuntimeError and never hangs. Zero behaviour change. `test_random_game` 32/0/0, `test_prng` 22/0/0, full LONG
+         913/0/22 GREEN.
 
-D-227 | 2026-09-19 | The play_path PERF baseline + the profiling session (Roberto, before the optimization plan):
-         the PERF test `test_perf_play_path_million_games_to_ec0` (print-only, PERF=1 gated) plays 1e6 games
-         from the canonical start to `ec = 0` (the full random game) by the array engine and prints the wall
-         time, the throughput, the draws and the harvest breakdown. THE BASELINE: 6.33s / 157,995 games/s;
-         reached `ec = 0`: 990,413; game-over lanes: 9,587 (0.96%; max stuck ec = 51). THE STUCK-LANE
-         DIAGNOSIS (the scratch session): the outliers are REAL random-game behaviour, NOT an engine bug — the
-         final positions are genuinely moveless (the legal sets = 0 on both views, verified) and the scalar
-         baseline agrees (2,000 lanes: 19 game-over = 0.95%, the same max stuck ec = 51). THE PROFILE (the
-         instrumented phase run over the 60 steps): `position_legal_moves` 0.875s (16.6%; 120 calls = 2 per
-         step over the FULL array — the second, on the swapped view, is needed only for the PASS lanes),
-         `pick_one_from_set64_batch` 0.857s (16.2%), `position_flips` 0.725s (13.7%), `make_position` 0.519s
-         (9.8%; 231 calls, ~4 per step), `get_uint64_batch` 0.261s (4.9%; 60M draws), `position_empty_count`
-         0.167s (3.2%); the unattributed glue ~2.2s (~42%: the np.where chains, the masks, the copies — the
-         ndarray.copy alone 222 calls / 0.283s). The pydantic overhead is negligible (~9ms total). THE
-         OBSERVED WASTE for the plan: (a) the second legal_moves over ALL lanes while only the pass lanes need
-         it, (b) the legal_moves also on the INACTIVE lanes, (c) ~6 full-array copies per step. The
-         intervention plan is the next decision. `test_random_game` 33/0/1 (was 32/0/0).
+D-227 | 2026-09-19 | The play_path PERF baseline + the profiling session (Roberto, before the optimization plan): the
+         PERF test `test_perf_play_path_million_games_to_ec0` (print-only, PERF=1 gated) plays 1e6 games from the
+         canonical start to `ec = 0` (the full random game) by the array engine and prints the wall time, the
+         throughput, the draws and the harvest breakdown. THE BASELINE: 6.33s / 157,995 games/s; reached `ec = 0`:
+         990,413; game-over lanes: 9,587 (0.96%; max stuck ec = 51). THE STUCK-LANE DIAGNOSIS (the scratch session): the
+         outliers are REAL random-game behaviour, NOT an engine bug — the final positions are genuinely moveless (the
+         legal sets = 0 on both views, verified) and the scalar baseline agrees (2,000 lanes: 19 game-over = 0.95%, the
+         same max stuck ec = 51). THE PROFILE (the instrumented phase run over the 60 steps):
+         `position_legal_moves` 0.875s (16.6%; 120 calls = 2 per step over the FULL array — the second, on the swapped
+         view, is needed only for the PASS lanes), `pick_one_from_set64_batch` 0.857s (16.2%), `position_flips` 0.725s
+         (13.7%), `make_position` 0.519s (9.8%; 231 calls, ~4 per step), `get_uint64_batch` 0.261s (4.9%; 60M draws),
+         `position_empty_count` 0.167s (3.2%); the unattributed glue ~2.2s (~42%: the np.where chains, the masks, the
+         copies — the ndarray.copy alone 222 calls / 0.283s). The pydantic overhead is negligible (~9ms total). THE
+         OBSERVED WASTE for the plan: (a) the second legal_moves over ALL lanes while only the pass lanes need it, (b)
+         the legal_moves also on the INACTIVE lanes, (c) ~6 full-array copies per step. The intervention plan is the
+         next decision. `test_random_game` 33/0/1 (was 32/0/0).
 
-D-228 | 2026-09-19 | The play_path intervention 1 (Roberto's one-at-a-time plan, measured): the opponent's legal
-         set in `_play_path_step` is computed ONLY on the pass-lane subset (the `mover_passes` lanes — rare
-         mid-game), not on the whole batch; the D-227 profile showed the second full-array
-         `position_legal_moves` (on the swapped view) as a top hot spot (16.6% of the wall, 2 calls per step).
-         The zero-filled scatter keeps the same read semantics (`lms_opponent` is read only under the
-         `mover_passes` masks). IDENTICAL results. THE MEASUREMENT (the 1M-games benchmark, the same seed):
-         6.33s / 157,995 games/s -> 5.68s / 176,100 games/s (-10.3% wall, +11.5% throughput); the harvest
-         breakdown unchanged (reached ec=0: 990,413; game-over 9,587; the same max stuck ec = 51).
+D-228 | 2026-09-19 | The play_path intervention 1 (Roberto's one-at-a-time plan, measured): the opponent's legal set in
+         `_play_path_step` is computed ONLY on the pass-lane subset (the `mover_passes` lanes — rare mid-game), not on
+         the whole batch; the D-227 profile showed the second full-array `position_legal_moves` (on the swapped view) as
+         a top hot spot (16.6% of the wall, 2 calls per step). The zero-filled scatter keeps the same read semantics
+         (`lms_opponent` is read only under the `mover_passes` masks). IDENTICAL results. THE MEASUREMENT (the 1M-games
+         benchmark, the same seed): 6.33s / 157,995 games/s -> 5.68s / 176,100 games/s (-10.3% wall, +11.5% throughput);
+         the harvest breakdown unchanged (reached ec=0: 990,413; game-over 9,587; the same max stuck ec = 51).
          `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-229 | 2026-09-19 | The play_path intervention 2 (Roberto's one-at-a-time plan, measured): the mover's legal set
-         in `_play_path_step` is computed ONLY on the ACTIVE lanes (the zero-filled scatter + the all-active
-         fast path that computes it in place — with a uniform start all the lanes stay active, so the fast path
-         keeps the same code path), and both classification computes run on the RAW fields via the public
-         `legal_moves(mover, opponent)` — no `make_position` assembly for the classification (the D-228
-         pass-lane subset included: `legal_moves(opponent_field, mover_field)` = the legal set on the swapped
-         view, the values identical). THE MEASUREMENT: the uniform 1M-games benchmark (the target 0) 5.68s ->
-         5.76s (+1.4%, the noise level — as predicted, the active fraction stays ~1 there); THE MIXED-EC
-         BENCHMARK (the new scratch bench: the lanes at the start ecs 60/45/30/20/10/0, the target 20 — the
-         active fraction drops 0.5 -> 0.33 -> 0.17 over the steps) 2.03s / 493,567 games/s -> 1.81s /
-         551,381 games/s (-10.8% wall, +11.7% throughput); the harvest breakdown unchanged on both.
-         `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
+D-229 | 2026-09-19 | The play_path intervention 2 (Roberto's one-at-a-time plan, measured): the mover's legal set in
+         `_play_path_step` is computed ONLY on the ACTIVE lanes (the zero-filled scatter + the all-active fast path that
+         computes it in place — with a uniform start all the lanes stay active, so the fast path keeps the same code
+         path), and both classification computes run on the RAW fields via the public `legal_moves(mover, opponent)` —
+         no `make_position` assembly for the classification (the D-228 pass-lane subset included:
+         `legal_moves(opponent_field, mover_field)` = the legal set on the swapped view, the values identical). THE
+         MEASUREMENT: the uniform 1M-games benchmark (the target 0) 5.68s -> 5.76s (+1.4%, the noise level — as
+         predicted, the active fraction stays ~1 there); THE MIXED-EC BENCHMARK (the new scratch bench: the lanes at the
+         start ecs 60/45/30/20/10/0, the target 20 — the active fraction drops 0.5 -> 0.33 -> 0.17 over the steps) 2.03s
+         / 493,567 games/s -> 1.81s / 551,381 games/s (-10.8% wall, +11.7% throughput); the harvest breakdown unchanged
+         on both. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-230 | 2026-09-19 | The play_path intervention 3 (Roberto's one-at-a-time plan, measured): the engine state is
-         the RAW `(movers, opponents)` uint64 pair — copied ONCE from the input (the caller's array is never
-         mutated), advanced in place by the steps (`_apply_picked_moves` writes the state directly: no
-         per-group full copies; the ec via the inline `bitboard_count(~(movers | opponents))`), and assembled
-         into the Position array once at the end. The `~4 make_position calls per step` of the D-227 profile
-         drop to ~2 (the subset assemblies for the flips only), the ndarray.copy 222-calls charge disappears.
-         THE MEASUREMENT IS INCONCLUSIVE ON THE WALL: the machine noise band is +-5-6% (the repeated runs
-         5.50-6.55s) and the structural saving (~5-8% theoretical) is buried in it; the PHASE-STRUCTURE
-         comparison vs the D-227 profile is decisive: legal_moves 0.875 -> 0.215s (the D-228/D-229 wins),
-         make_position 0.519s/231 -> 0.320s/112 calls (-38%), position_empty_count -> the inline
-         `bitboard_count` 0.058s (-65%), the ndarray.copy 222 calls GONE. The remaining hot spots after
-         D-228/229/230: position_flips ~15.7%, pick_one_from_set64_batch ~14.6%, the step glue (the masks +
-         the np.where chains + the fancy indexing) — the fused-step-kernel option is the next plan item.
-         Also: the scratch lms buffers typed `dtype=Bitboard` (the aesthetic, Roberto) and the stale "(70)"
-         RuntimeError message of the D-226 leftover corrected. Zero behaviour change. `test_random_game`
-         33/0/1, full LONG 914/0/23 GREEN.
+D-230 | 2026-09-19 | The play_path intervention 3 (Roberto's one-at-a-time plan, measured): the engine state is the RAW
+         `(movers, opponents)` uint64 pair — copied ONCE from the input (the caller's array is never mutated), advanced
+         in place by the steps (`_apply_picked_moves` writes the state directly: no per-group full copies; the ec via
+         the inline `bitboard_count(~(movers | opponents))`), and assembled into the Position array once at the end. The
+         `~4 make_position calls per step` of the D-227 profile drop to ~2 (the subset assemblies for the flips only),
+         the ndarray.copy 222-calls charge disappears. THE MEASUREMENT IS INCONCLUSIVE ON THE WALL: the machine noise
+         band is +-5-6% (the repeated runs 5.50-6.55s) and the structural saving (~5-8% theoretical) is buried in it;
+         the PHASE-STRUCTURE comparison vs the D-227 profile is decisive: legal_moves 0.875 -> 0.215s (the D-228/D-229
+         wins), make_position 0.519s/231 -> 0.320s/112 calls (-38%), position_empty_count -> the inline
+         `bitboard_count` 0.058s (-65%), the ndarray.copy 222 calls GONE. The remaining hot spots after D-228/229/230:
+         position_flips ~15.7%, pick_one_from_set64_batch ~14.6%, the step glue (the masks + the np.where chains + the
+         fancy indexing) — the fused-step-kernel option is the next plan item. Also: the scratch lms buffers typed
+         `dtype=Bitboard` (the aesthetic, Roberto) and the stale "(70)" RuntimeError message of the D-226 leftover
+         corrected. Zero behaviour change. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
 D-231 | 2026-09-19 | The play_path intervention 3b — the scratch-buffer reuse (Roberto's idea, measured): the two
-         legal-set scratch buffers are allocated ONCE in `_play_path_engine` and reused across the steps (the
-         reads are covered by the same-step writes: every lane the masks read has been scattered this very
-         step — the invariant pinned in the `_play_path_step` docstring). The all-active fast path returns a
-         fresh result (the buffer unused there — forcing it would add a full copy); the subset paths scatter
-         into the buffers. Zero behaviour change. THE MEASUREMENT: WITHIN THE NOISE on both benches (the
-         standard 5.98s in the 5.50-6.55 band; the mixed 1.82s in the 1.71-1.87 band) — the honest verdict: no
-         visible gain (the numpy allocator recycles the same pages; the two per-step np.zeros were a small
-         slice of the glue). KEPT (harmless, the invariant documented) — revertible in minutes if Roberto
-         prefers minimalism. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
+         legal-set scratch buffers are allocated ONCE in `_play_path_engine` and reused across the steps (the reads are
+         covered by the same-step writes: every lane the masks read has been scattered this very step — the invariant
+         pinned in the `_play_path_step` docstring). The all-active fast path returns a fresh result (the buffer unused
+         there — forcing it would add a full copy); the subset paths scatter into the buffers. Zero behaviour change.
+         THE MEASUREMENT: WITHIN THE NOISE on both benches (the standard 5.98s in the 5.50-6.55 band; the mixed 1.82s in
+         the 1.71-1.87 band) — the honest verdict: no visible gain (the numpy allocator recycles the same pages; the two
+         per-step np.zeros were a small slice of the glue). KEPT (harmless, the invariant documented) — revertible in
+         minutes if Roberto prefers minimalism. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-232 | 2026-09-19 | The FUSED STEP ENGINE + the board njit primitives (Roberto's approved endgame): (1) BOARD
-         PROMOTES the two per-lane primitives as the PUBLIC njit API — `legal_moves_of(mover, opponent)` (the
-         per-lane legal-move set, EXTRACTED from `_vectorized_legal_moves`'s loop body: the kernel calls it
-         per lane — the single source, zero duplication) and `flips_of_move(mover, opponent, move)` (the
-         domain-order wrapper over `_kogge_stone_mm`, `inline='always'`); both in `__all__`, pinned by
-         `TestNumbaPrimitives` (the equivalence vs the batch/scalar paths). (2) RANDOM_GAME rewrites the step
-         as the FUSED two-pass engine: `_classify_step` (one prange pass: the legal sets via
-         `legal_moves_of`, the classification masks, the pass lanes' opponent set in kernel) + `_advance_step`
-         (one prange pass: the pick via prng's `pick_one_from_set64` on the pre-drawn slot, the flips via
-         `flips_of_move`, the in-place state update) — the per-step numpy bookkeeping collapses to ~5 ops
-         (the needs count, the cumsum/slots, one get_uint64_batch, the ec); `_apply_picked_moves` and the
-         position_flips/make_position per-step assemblies are GONE. The draws remain ONE batch call between
-         the passes (the stream contract unchanged — the classification must precede the draw, so the
-         two-pass structure is forced by the bit-exactness). RESULTS BIT-IDENTICAL (all the pins hold: the
-         N=1 scalar bridge, the determinism, the ec contract). THE MEASUREMENT (the 1M-games benchmark): the
-         D-227 baseline 6.33s -> 2.57s (-59%, 2.46x; 389,546 games/s; ~43ns per position-advance); the
-         mixed-ec bench 2.03s -> 1.08s (-47%, 923,863 games/s); the clean best 2.34s / 427,118 games/s. THE
-         PROFILE (the clean runs): `_advance_step` ~51%, `_classify_step` ~19%, `get_uint64_batch` ~12%, the
-         numpy glue ~0 (the function calls 11,464 -> ~1,450; make_position 1 call = the final). The
-         per-advance ~39ns vs the hlp_wave engine ~122-170ns (4x). `test_board` 246/0/15 (was 244/0/15),
+D-232 | 2026-09-19 | The FUSED STEP ENGINE + the board njit primitives (Roberto's approved endgame): (1) BOARD PROMOTES
+         the two per-lane primitives as the PUBLIC njit API — `legal_moves_of(mover, opponent)` (the per-lane legal-move
+         set, EXTRACTED from `_vectorized_legal_moves`'s loop body: the kernel calls it per lane — the single source,
+         zero duplication) and `flips_of_move(mover, opponent, move)` (the domain-order wrapper over `_kogge_stone_mm`,
+         `inline='always'`); both in `__all__`, pinned by `TestNumbaPrimitives` (the equivalence vs the batch/scalar
+         paths). (2) RANDOM_GAME rewrites the step as the FUSED two-pass engine: `_classify_step` (one prange pass: the
+         legal sets via `legal_moves_of`, the classification masks, the pass lanes' opponent set in kernel) +
+         `_advance_step` (one prange pass: the pick via prng's `pick_one_from_set64` on the pre-drawn slot, the flips
+         via `flips_of_move`, the in-place state update) — the per-step numpy bookkeeping collapses to ~5 ops (the needs
+         count, the cumsum/slots, one get_uint64_batch, the ec); `_apply_picked_moves` and the
+         position_flips/make_position per-step assemblies are GONE. The draws remain ONE batch call between the passes
+         (the stream contract unchanged — the classification must precede the draw, so the two-pass structure is forced
+         by the bit-exactness). RESULTS BIT-IDENTICAL (all the pins hold: the N=1 scalar bridge, the determinism, the ec
+         contract). THE MEASUREMENT (the 1M-games benchmark): the D-227 baseline 6.33s -> 2.57s (-59%, 2.46x; 389,546
+         games/s; ~43ns per position-advance); the mixed-ec bench 2.03s -> 1.08s (-47%, 923,863 games/s); the clean
+         best 2.34s / 427,118 games/s. THE PROFILE (the clean runs): `_advance_step` ~51%, `_classify_step` ~19%,
+         `get_uint64_batch` ~12%, the numpy glue ~0 (the function calls 11,464 -> ~1,450; make_position 1 call = the
+         final). The per-advance ~39ns vs the hlp_wave engine ~122-170ns (4x). `test_board` 246/0/15 (was 244/0/15),
          `test_random_game` 33/0/1, full LONG 916/0/23 GREEN.
 
-D-233 | 2026-09-19 | The `_kogge_stone_lms` resurrection — the symmetric encapsulation (Roberto): the two
-         per-lane primitives had two inconsistent strategies — `flips_of_move` wraps the private core
-         `_kogge_stone_mm`, while `legal_moves_of` carried the geometry body directly (the D-232 extraction
-         moved it out of the vectorized kernel's loop without preserving the historical private core; the
-         exact historical body of `_kogge_stone_lms` predates the workspace bootstrap and is not recoverable
-         from our git — only the name survives in the original TODO comment of the staged board.py).
-         RESURRECTED: `_kogge_stone_lms(generator, propagator, blocker)` — the private njit core
-         (`inline='always'`, the same decorator as `_kogge_stone_mm`) with the CURRENT proven body
-         parameterized on the three Kogge-Stone roles (generator = mover, propagator = opponent,
-         blocker = empties); `legal_moves_of` is now the thin domain wrapper
-         (`_kogge_stone_lms(mover, opponent, ~(mover | opponent))`) — the pair
-         legal_moves_of/_kogge_stone_lms mirrors flips_of_move/_kogge_stone_mm. Zero behaviour change (the
-         same inlined machine code). `test_board` 246/0/15, the 1M-games benchmark unchanged (2.58s), full
-         LONG 916/0/23 GREEN.
+D-233 | 2026-09-19 | The `_kogge_stone_lms` resurrection — the symmetric encapsulation (Roberto): the two per-lane
+         primitives had two inconsistent strategies — `flips_of_move` wraps the private core `_kogge_stone_mm`, while
+         `legal_moves_of` carried the geometry body directly (the D-232 extraction moved it out of the vectorized
+         kernel's loop without preserving the historical private core; the exact historical body of `_kogge_stone_lms`
+         predates the workspace bootstrap and is not recoverable from our git — only the name survives in the original
+         TODO comment of the staged board.py). RESURRECTED: `_kogge_stone_lms(generator, propagator, blocker)` — the
+         private njit core (`inline='always'`, the same decorator as `_kogge_stone_mm`) with the CURRENT proven body
+         parameterized on the three Kogge-Stone roles (generator = mover, propagator = opponent, blocker = empties);
+         `legal_moves_of` is now the thin domain wrapper (`_kogge_stone_lms(mover, opponent, ~(mover | opponent))`) —
+         the pair legal_moves_of/_kogge_stone_lms mirrors flips_of_move/_kogge_stone_mm. Zero behaviour change (the same
+         inlined machine code). `test_board` 246/0/15, the 1M-games benchmark unchanged (2.58s), full LONG 916/0/23
+         GREEN.
 
-D-234 | 2026-09-19 | The `random_game.md` mirror rewrite (Roberto: the doc told the campaign instead of the
-         module): rewritten in the board.md style — the incipit states what the module IS (the random-game
-         module: the pick, the execution, the batch path engine; the corpus generator and the intended
-         hlp_wave replacement); the API as the family TABLE (the pick / move / path contracts) with the
-         family-wide stream contract as the paragraph; the Architecture as the layered description (the
-         scalar compositions, the batch single-pick paths, the fused two-kernel step engine); the Verified
-         invariants with the test pins; the Conventions rewritten to the real ones (the stream discipline,
-         the single-source composition, the in-place arrays, the goldens as literals, the dual-API guard);
-         the Integration updated. Only the state, no history: zero D-numbers, zero campaign narrative (141
-         -> 104 lines, net -37). The commit also carried the decisions.md entry-order repair (the D-217
-         entry had been inserted after D-233 by an anchor mistake; moved to its chronological place).
+D-234 | 2026-09-19 | The `random_game.md` mirror rewrite (Roberto: the doc told the campaign instead of the module):
+         rewritten in the board.md style — the incipit states what the module IS (the random-game module: the pick, the
+         execution, the batch path engine; the corpus generator and the intended hlp_wave replacement); the API as the
+         family TABLE (the pick / move / path contracts) with the family-wide stream contract as the paragraph; the
+         Architecture as the layered description (the scalar compositions, the batch single-pick paths, the fused
+         two-kernel step engine); the Verified invariants with the test pins; the Conventions rewritten to the real ones
+         (the stream discipline, the single-source composition, the in-place arrays, the goldens as literals, the
+         dual-API guard); the Integration updated. Only the state, no history: zero D-numbers, zero campaign narrative
+         (141 -> 104 lines, net -37). The commit also carried the decisions.md entry-order repair (the D-217 entry had
+         been inserted after D-233 by an anchor mistake; moved to its chronological place).
 
 D-235 | 2026-09-19 | The ideas review + the house format (Roberto's session): (1) THE FORMAT — notes/ideas.md and
          notes/overview.md adopt the D-209 wrap (~120 chars/line, a 9-space continuation indent, a blank line before
@@ -1287,10 +1257,10 @@ D-235 | 2026-09-19 | The ideas review + the house format (Roberto's session): (1
          the status legend idea | follow-up | in-progress, the format, the closing procedure in the same commit as the
          closing decision) + the overview bullet (the prose width) + the reference-convention line (I-NNN -> ideas.md /
          ideas-closed.md). The overview Index gained the notes/ideas-closed.md line. Notes-only: no source, doc or test
-         touched. OPEN FINDINGS (not fixed here, to be decided):
-         `test_hlp_wave.py` has NO mirror doc (D-007); the `test_hlp_gate.py` table row points at the removed gate test;
-         the `wrk_generate` Doc cell reads `.py` instead of `.md`; the overview Index misses decisions_001.md,
-         analytical_properties_of_features.md and performance_baseline.md.
+         touched. OPEN FINDINGS (not fixed here, to be decided): `test_hlp_wave.py` has NO mirror doc (D-007); the
+         `test_hlp_gate.py` table row points at the removed gate test; the `wrk_generate` Doc cell reads `.py` instead
+         of `.md`; the overview Index misses decisions_001.md, analytical_properties_of_features.md and
+         performance_baseline.md.
 
 D-236 | 2026-09-19 | The overview / mirror repairs (Roberto's "sistemali adesso", the findings of the D-235 review): (1)
          the MISSING MIRROR — the new `docs/src/reversi/test/test_hlp_wave.md` (the D-007 gap: 45 test modules, 44
@@ -1305,8 +1275,41 @@ D-236 | 2026-09-19 | The overview / mirror repairs (Roberto's "sistemali adesso"
          is now `3/0/1 (LONG: 4/0/0, the 1e6 benchmark)` and the Doc cell points at the new test mirror. VERIFIED:
          `.venv/bin/python -m unittest reversi.test.test_hlp_wave` -> Ran 4 tests, OK (skipped=1, the LONG gate), 0.844
          s. (5) The overview Index completed with the three missing files (decisions_001.md,
-         analytical_properties_of_features.md, performance_baseline.md). (6) AGENTS.md: the D-122 guard's pointer I-001
-         -> notes/ideas-closed.md and the Layout line. (7) THE WHOLE TABLES RE-VERIFIED against the tree: 48/48 source
-         rows and 46 test rows (the 45 `test_*.py` modules + the `paths` helper), every row resolving to a real file,
-         every Doc cell a real `.md`, every source and test module carrying its mirror (the D-007 gap count is now
-         zero). Notes + one new mirror doc: no source, test or probe touched.
+         analytical_properties_of_features.md, performance_baseline.md). (6) AGENTS.md: the D-122 guard's
+         pointer I-001 -> notes/ideas-closed.md and the Layout line. (7) THE WHOLE TABLES RE-VERIFIED against the tree:
+         48/48 source rows and 46 test rows (the 45 `test_*.py` modules + the `paths` helper), every row resolving to a
+         real file, every Doc cell a real `.md`, every source and test module carrying its mirror (the D-007 gap count
+         is now zero). Notes + one new mirror doc: no source, test or probe touched.
+
+D-237 | 2026-09-19 | The 120-char format extended to the whole notes/ tree (Roberto: "usiamo il wrapper anche su
+         probe_rules, naming, log_rules, i log_xxx, docs_rules, decisions_000, decisions_001") + the rules.md synthesis
+         + the systematic Suite audit. (1) THE WRAPPER — the scratch tool `rewrap_notes.py`: the house re-wrapper
+         (greedy fill to 120 chars, code-span aware, the per-file block grammar — headings / tables / fences verbatim,
+         bullets and numbered items with their own indent, the decision entries with the 9-space continuation and the
+         `|` rationale fields) with the D-209 mid-token rejoins: 280 across the volumes (paths, identifiers and code
+         spans broken by the old 68-char wrap). The rejoin rule is conservative after the false-positive analysis: `_`
+         and `-` always continue a token (except after a dunder), `/` only when the next fragment is a digit, a filename
+         (a dot), a slash-list or an id — `probes/ (gated...` and `logistello-papers/ stays...` are NEW phrases, not
+         rejoins. The wrapper is IDEMPOTENT and never manufactures the breaks it heals: a line never STARTS with a token
+         the grammar would read as a new block (a bullet, a pipe, a numbered item, a `D-NNN | ` header) and never ENDS
+         with a token the rejoin rule would glue to the next line. VERIFICATION: a content fingerprint per file
+         (backticks stripped, the blocks joined with the rejoin rule, the token lists compared) — 12/12 files CONTENT
+         OK, plus the idempotence; the only lines left over 120 are 3 session headings and 1 unbreakable glued pair
+         (log_000, 122 chars). (2) THE FILES — probe_rules 130 -> 92, naming 72 -> 60, log_rules 53 -> 35 (+ the ~120
+         statement), docs_rules 139 -> 100, log_000 2031 -> 1190, log_001 3051 -> 1780, log_002 2210 -> 1177, log_003
+         353 -> 206, decisions_000 4194 -> 2226, decisions_001 2101 -> 1007. The journals keep their rigid 2/4-space
+         bullet indentation; the 13 decisions_000 header lines carrying a stray leading space are normalized. (3) THE
+         RULES SYNTHESIS — notes/rules.md 232 -> 138 lines (the ~150 budget): the history removed (the NOTES.md rename,
+         the R1-trap D-numbers, the ULP measurement detail), the duplications removed (the dependency list lives in the
+         overview Environment; the pre-commit and the suite tiers merged into one bullet; the journal bullet points at
+         log_rules.md), the STALE numbers dropped (the "586 tests" default tier, "machine order 1-14", "the 15-level
+         chain" — the counts change per commit, the D-207 lesson), and the GLOBAL format rule added (every notes/
+         Markdown is wrapped to ~120 chars/line); every rule in force kept its D-pointer. (4) THE SUITE AUDIT — a
+         per-module run of the runner's modules (LONG=1, live DB) against the overview's Suite cells: 3 modules were
+         stale (test_board 229/0/14 -> 246/0/15, test_client 6/0/1 -> 7/0/1, test_hlp_random_play 23/0/0 -> 10/0/0 — the
+         G1 burial removed tests and the cells were never re-pinned) and 3 more cells were fixed (the hlp_random_play
+         and client source rows, hlp_wave 3/0/0 -> 3/0/1 + LONG 4/0/0); the two stale State cells (test_board,
+         test_hlp_random_play) were rewritten to the current content. (5) The overview also got the escaped
+         `\*_for_current_level` asterisk (the stray-italics fix) and the 121-char Index line fixed. Notes-only: no
+         source, test or probe touched. The docs/ mirrors are the FOLLOW-UP (the second commit: the same wrapper over
+         ~100 files + the docs_rules.md statement).
