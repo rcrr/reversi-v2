@@ -1,8 +1,6 @@
 # reversi/test/test_client.py
-Unit tests for the client Evaluation Functions: 1 class /
-7 tests, no DB, no gate, no artifacts — a synthetic rlm_04-mirror
-`ModelWeights` built in setUp (the client never touches the
-pipeline state).
+Unit tests for the client Evaluation Functions: 1 class / 7 tests, no DB, no gate, no artifacts — a synthetic
+rlm_04-mirror `ModelWeights` built in setUp (the client never touches the pipeline state).
 
 ## Coverage
 
@@ -12,33 +10,24 @@ pipeline state).
 
 ## Goldens pinned
 
-- The rlm_04 iwmap layout `[0, 1, 66, 6627]` (intercept 1 + LMC 65
-  + EDGE 3^8 = 6627): the synthetic weights replicate the PRODUCTION
-  rlm_04 boundary array (asserted in setUp) — the synthetic EF is
-  therefore the same inference shape as the A2xxx test models.
-- The bit-exact parity itself: no float literals (the scalar EF is
-  the reference) — the pin protects the vectorization from any
-  numeric drift (a changed sum order, a dtype promotion, a
-  different gather would break it).
-- No float goldens in the PERF test: it is print-only, with the
-  bit-exact sanity check, not a performance gate.
+- The rlm_04 iwmap layout `[0, 1, 66, 6627]` (intercept 1 + LMC 65 + EDGE 3^8 = 6627): the synthetic weights replicate
+  the PRODUCTION rlm_04 boundary array (asserted in setUp) — the synthetic EF is therefore the same inference shape as
+  the A2xxx test models.
+- The bit-exact parity itself: no float literals (the scalar EF is the reference) — the pin protects the vectorization
+  from any numeric drift (a changed sum order, a dtype promotion, a different gather would break it).
+- No float goldens in the PERF test: it is print-only, with the bit-exact sanity check, not a performance gate.
 
 ## Conventions
 
-- No DB / no artifacts: the `ModelWeights` is constructed directly
-  (no `model_weights_read_file`, no chain, no cache file) — the
-  module runs in the default tier from any CWD.
-- The PERF test follows the house print pattern:
-  `PERF=1` gate, 1M boards, the `[PERF ...]` print, the
-  determinism + head-parity sanity checks.
-- The seeded collision-free generation (the EF caller contract:
-  mover & opponent == 0) mirrors the fuzz idiom (fixed
+- No DB / no artifacts: the `ModelWeights` is constructed directly (no `model_weights_read_file`, no chain, no cache
+  file) — the module runs in the default tier from any CWD.
+- The PERF test follows the house print pattern: `PERF=1` gate, 1M boards, the `[PERF ...]` print, the determinism +
+  head-parity sanity checks.
+- The seeded collision-free generation (the EF caller contract: mover & opponent == 0) mirrors the fuzz idiom (fixed
   seeds, the invariant pinned, no garbage left).
 
 ## Integration
 
-- Modules under test: client.md (both factories; the guards are the
-  array closure's own). The end-to-end TRAINED-model pin (the A2030
-  batch parity over the full 199932-position set + vld[42]) lives
-  in test_lm_worker_full_chain.md — this module keeps the client
-  covered without a live DB.
+- Modules under test: client.md (both factories; the guards are the array closure's own). The end-to-end TRAINED-model
+  pin (the A2030 batch parity over the full 199932-position set + vld[42]) lives in test_lm_worker_full_chain.md — this
+  module keeps the client covered without a live DB.

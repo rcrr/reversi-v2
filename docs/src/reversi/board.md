@@ -1,14 +1,12 @@
 # reversi/board.py
-The board domain model of the Reversi engine: squares, moves,
-bitboards, positions, and everything that operates on them — the
-D8 symmetry group, legal-move and flip-set computation, move
-execution, end-of-game scoring. No game loop, no search, no clock,
-no UI.
+The board domain model of the Reversi engine: squares, moves, bitboards, positions, and everything that operates on them
+— the D8 symmetry group, legal-move and flip-set computation, move execution, end-of-game scoring. No game loop, no
+search, no clock, no UI.
 
 ## API
 
-The 71 `__all__` names. Dual contract throughout: scalar in →
-scalar out, 1-D array in → array out (same shape), unless stated.
+The 71 `__all__` names. Dual contract throughout: scalar in → scalar out, 1-D array in → array out (same shape), unless
+stated.
 
 | family | name | contract |
 |---|---|---|
@@ -76,147 +74,89 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 Layered, low → high:
 
 ```
-Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
-        \        /                    \
- Bitboard (uint64, bit i = square i)  Move utils
-        \
- Position (structured dtype: mover + opponent, u64 each)
-        \
- game ops: legal moves, flips, make_move, WOFC scoring, D8
+Square (uint8) Move (uint8, + 64=PA, 65=NA, 66=UN) \ / \ Bitboard (uint64, bit i = square i) Move utils \ Position
+(structured dtype: mover + opponent, u64 each) \ game ops: legal moves, flips, make_move, WOFC scoring, D8
 ```
 
-- **Dual scalar/array API** — every public function: an
-  `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard, the
-  numba kernel, the output adapted back to the input kind.
-  `legal_moves`, `position_flips` and `position_make_move` are the
-  strict dual: scalar or 1-D ndarray only, the mixed kind →
-  TypeError, the standard 1-D guard + the same-shape check.
-- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels
-  (the two D8 batch transform fns, the 8 scalar transform impls,
-  `_vectorized_legal_moves`, `_vectorized_flips`,
-  `_vectorized_make_move`, `_vectorized_position_hash`),
-  `prange` on the batch loops;
-  the PUBLIC per-lane njit primitives (`legal_moves_of`,
-  `flips_of_move`, both `inline='always'`) are the single sources of
-  the two geometries: the vectorized kernels call them per lane and
-  the numba compositions of the other modules (random_game's fused
-  engine) call the same functions — the source is written once, the
-  compiler inlines the machine code at the call sites;
-  `_kogge_stone_mm` is `@njit(inline='always')` (the shared
-  per-element flip primitive — the scalar path calls it);
-  `_zobrist_position_fold` is `@njit(cache=True)` (the shared
-  per-element hash primitive — the scalar path calls it);
-  `@overload` on the 4 reflection primitives so JIT code can call
-  them (registered on the pydantic-wrapped names — verified
-  resolvable in a JIT context).
-- **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on
-  every public function; `Annotated` + `BeforeValidator` enforce the
-  dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
-- **Zero-copy discipline** — `make_position` allocates a fresh
-  interleaved (…,2) block, copies the inputs in (never aliased),
-  returns a `.view(Position)` of that block; the signed-int
-  converters return views (documented aliasing).
-- **Kogge-Stone legal moves** — 4 directions × 2 senses with
-  precomputed boundary masks (`_mask_l`/`_mask_r`: +1→column a,
-  +7→column h, +8→none, +9→column a, and the mirrors) and 1/2/4
-  slide tables; generator/propagator: `p &= (p << k)` kills
-  propagation at the first non-opponent cell (a run broken by an
-  empty square yields no false move); the final `g & ~mover` and the
-  empties mask exclude occupied squares and the generator itself.
-- **Flip set** (`_kogge_stone_mm`) — the same 1/2/4 slides over 8
-  directions; the blocker `gt` requires a mover disc immediately
-  past the run end; the result is `& ~generator` (move square
-  excluded). The primitive is `@njit(inline='always')` and runs
-  per element inside the `_vectorized_flips` /
-  `_vectorized_make_move` `prange` kernels (3-array return,
-  re-assembled with `make_position`); the flip kernel does NOT
-  check the move square emptiness (the caller's responsibility).
-- **D8 slot order** is fixed (notes/naming.md) — the anti
-  tables swap only slots 1/3.
-- **Zobrist position hash** (`position_hash`) — the 128 legacy
-  URANDOM bitstrings (`_zobrist_bitstrings`: the canon, SHA-3-pinned)
-  + the SWAR byte-fold tables `_zobrist_byte_fold` (2×8×256,
-  generated at import, deterministic, 32 KB L1-resident): 16 lookups
-  per position, no per-bit loop. XOR-incremental by construction (a
-  disc flip at square i contributes `zobrist[i] ^ zobrist[i+64]` —
-  the legacy `zobrist_flip_bitstrings` entry); legacy-comparable
-  under the fixed bridge (blacks = mover, whites = opponent,
-  player = BLACK; a legacy WHITE position = the one's complement).
+- **Dual scalar/array API** — every public function: an `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard,
+  the numba kernel, the output adapted back to the input kind. `legal_moves`, `position_flips` and `position_make_move`
+  are the strict dual: scalar or 1-D ndarray only, the mixed kind → TypeError, the standard 1-D guard + the same-shape
+  check.
+- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the two D8 batch transform fns, the 8 scalar
+  transform impls, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`, `_vectorized_position_hash`),
+  `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`, `flips_of_move`, both
+  `inline='always'`) are the single sources of the two geometries: the vectorized kernels call them per lane and the
+  numba compositions of the other modules (random_game's fused engine) call the same functions — the source is written
+  once, the compiler inlines the machine code at the call sites; `_kogge_stone_mm` is `@njit(inline='always')` (the
+  shared per-element flip primitive — the scalar path calls it); `_zobrist_position_fold` is `@njit(cache=True)` (the
+  shared per-element hash primitive — the scalar path calls it); `@overload` on the 4 reflection primitives so JIT code
+  can call them (registered on the pydantic-wrapped names — verified resolvable in a JIT context).
+- **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on every public function; `Annotated` +
+  `BeforeValidator` enforce the dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
+- **Zero-copy discipline** — `make_position` allocates a fresh interleaved (…,2) block, copies the inputs in (never
+  aliased), returns a `.view(Position)` of that block; the signed-int converters return views (documented aliasing).
+- **Kogge-Stone legal moves** — 4 directions × 2 senses with precomputed boundary masks (`_mask_l`/`_mask_r`: +1→column
+  a, +7→column h, +8→none, +9→column a, and the mirrors) and 1/2/4 slide tables; generator/propagator: `p &= (p << k)`
+  kills propagation at the first non-opponent cell (a run broken by an empty square yields no false move); the final
+  `g & ~mover` and the empties mask exclude occupied squares and the generator itself.
+- **Flip set** (`_kogge_stone_mm`) — the same 1/2/4 slides over 8 directions; the blocker `gt` requires a mover disc
+  immediately past the run end; the result is `& ~generator` (move square excluded). The primitive is
+  `@njit(inline='always')` and runs per element inside the `_vectorized_flips` / `_vectorized_make_move` `prange`
+  kernels (3-array return, re-assembled with `make_position`); the flip kernel does NOT check the move square emptiness
+  (the caller's responsibility).
+- **D8 slot order** is fixed (notes/naming.md) — the anti tables swap only slots 1/3.
+- **Zobrist position hash** (`position_hash`) — the 128 legacy URANDOM bitstrings (`_zobrist_bitstrings`: the canon,
+  SHA-3-pinned) + the SWAR byte-fold tables `_zobrist_byte_fold` (2×8×256, generated at import, deterministic, 32 KB
+  L1-resident): 16 lookups per position, no per-bit loop. XOR-incremental by construction (a disc flip at square i
+  contributes `zobrist[i] ^ zobrist[i+64]` — the legacy `zobrist_flip_bitstrings` entry); legacy-comparable under the
+  fixed bridge (blacks = mover, whites = opponent, player = BLACK; a legacy WHITE position = the one's complement).
 - **Platform: little-endian only** — no portability work planned.
 
 ## Verified invariants
 
-- D8 group law: ro000 identity, ro090² = ro180, ro090∘ro270 = id,
-  the 4 reflections involutive, anti-transform inverts transform —
-  `test_board::TestBitboardD8GroupLaw` (+ `TestBitboardTransformationFa1h8Comp`);
-  the identity copy (no aliasing) at
-  `TestBitboardD8GroupLaw::test_ro000_array_is_a_fresh_copy`.
-- All 8 bitboard transforms vs hand-computed scalar goldens and
-  (N,8) vectorized outputs — per-transform
+- D8 group law: ro000 identity, ro090² = ro180, ro090∘ro270 = id, the 4 reflections involutive, anti-transform inverts
+  transform — `test_board::TestBitboardD8GroupLaw` (+ `TestBitboardTransformationFa1h8Comp`); the identity copy (no
+  aliasing) at `TestBitboardD8GroupLaw::test_ro000_array_is_a_fresh_copy`.
+- All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) vectorized outputs — per-transform
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
-- The function/label tables produce the correct slot order —
-  `test_board::TestBitboardTransformations` /
+- The function/label tables produce the correct slot order — `test_board::TestBitboardTransformations` /
   `TestBitboardAntiTransformations`.
-- Legal-move correctness at all 4 boundaries × both senses, incl.
-  runs broken by empty squares — `test_board::TestPositionLegalMoves`
-  (corner c1/h8 + bulk hand-computed table),
-  `TestPositionLegalMovesCount`; the 1-D guard (2-D → ValueError)
-  at `TestPositionLegalMoves::test_legal_moves_2d_{
-  mover,opponent}_raises_value_error`.
-- The flip set (runs up to 7, blocker past the run end, move square
-  excluded) — `test_board::TestPositionFlips` (base + the PASS swap +
-  bulk + the array bulk/fuzz parity + the array pass batch + guards),
-  `TestPositionMakeMove` (incl. the PA swap, None on illegal, the
-  array batch + fuzz parity + guards).
-- The empty-square equivalence: an empty square is legal
-  exactly when it flips something (the flip kernel and the
-  legal-moves kernel share the geometry); an occupied square is
-  never legal — `test_board::TestPositionFlips::
+- Legal-move correctness at all 4 boundaries × both senses, incl. runs broken by empty squares —
+  `test_board::TestPositionLegalMoves` (corner c1/h8 + bulk hand-computed table), `TestPositionLegalMovesCount`; the 1-D
+  guard (2-D → ValueError) at `TestPositionLegalMoves::test_legal_moves_2d_{ mover,opponent}_raises_value_error`.
+- The flip set (runs up to 7, blocker past the run end, move square excluded) — `test_board::TestPositionFlips` (base +
+  the PASS swap + bulk + the array bulk/fuzz parity + the array pass batch + guards), `TestPositionMakeMove` (incl. the
+  PA swap, None on illegal, the array batch + fuzz parity + guards).
+- The empty-square equivalence: an empty square is legal exactly when it flips something (the flip kernel and the
+  legal-moves kernel share the geometry); an occupied square is never legal — `test_board::TestPositionFlips::
   test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
-- The collision invariant (mover & opponent = 0) —
-  `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
-- `make_position` copy-then-view (inputs never aliased) —
-  `test_board::TestPositionCreation`.
-- The standard start (mover {E4, D5}, opponent {D4, E5}; the
-  Position dtype + the Bitboard field types) —
-  `test_board::TestInitialGame::test_initial_game_position`
-  (the squares via bitboard_to_square_list + square_to_str).
-- The signed-int round-trip (PostgreSQL path, incl. the
-  shared-buffer view; bare-int rejection) —
-  `test_board::TestBitboardFromSignedInt` / `TestBitboardToSignedInt`
-  (+ `TestPydanticVersion`).
-- WOFC end scoring (empty squares to the leader; draw / full-board /
-  all-squares branches) — `test_board::TestPositionFinalValue`.
-- Game-over semantics (no move for the mover and none for the
-  opponent after the pass, incl. the not-full case) —
-  `test_board::TestPositionIsGameOver` / `TestPositionHasToPass` /
+- The collision invariant (mover & opponent = 0) — `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
+- `make_position` copy-then-view (inputs never aliased) — `test_board::TestPositionCreation`.
+- The standard start (mover {E4, D5}, opponent {D4, E5}; the Position dtype + the Bitboard field types) —
+  `test_board::TestInitialGame::test_initial_game_position` (the squares via bitboard_to_square_list + square_to_str).
+- The signed-int round-trip (PostgreSQL path, incl. the shared-buffer view; bare-int rejection) —
+  `test_board::TestBitboardFromSignedInt` / `TestBitboardToSignedInt` (+ `TestPydanticVersion`).
+- WOFC end scoring (empty squares to the leader; draw / full-board / all-squares branches) —
+  `test_board::TestPositionFinalValue`.
+- Game-over semantics (no move for the mover and none for the opponent after the pass, incl. the not-full case) —
+  `test_board::TestPositionIsGameOver` / `TestPositionHasToPass` / `TestPositionIsMoveLegal`.
+- Move-code discipline (64/65/66 → the empty bitboard; the pass legal iff no legal move) — `test_board::TestMove` /
   `TestPositionIsMoveLegal`.
-- Move-code discipline (64/65/66 → the empty bitboard; the pass
-  legal iff no legal move) — `test_board::TestMove` /
-  `TestPositionIsMoveLegal`.
-- Position-level D8 transforms (scalar + array) —
-  `test_board::TestPositionTrFunctions` /
-  `TestPositionTransformations` / `TestPositionAntiTransformations`.
-- The `@overload` of the 4 reflection primitives in a numba JIT
-  context — `test_board::TestNumbaReflectionOverloads`
+- Position-level D8 transforms (scalar + array) — `test_board::TestPositionTrFunctions` / `TestPositionTransformations`
+  / `TestPositionAntiTransformations`.
+- The `@overload` of the 4 reflection primitives in a numba JIT context — `test_board::TestNumbaReflectionOverloads`
   (scalar + array JIT outputs vs the direct-call goldens).
-- position_hash: the goldens (the initial position 0xC4292FC2B2633A16
-  + 5 fixed pairs, derived from the legacy C `game_position_x_hash_plain`)
-  and the SHA-3-256 pin of the packed table —
-  `test_board::TestPositionHash` (the scratch script that derived them
-  also verified the transcribed C loop and the SWAR fold
-  bit-identical over 10_000 random pairs).
-- The legacy WHITE complement bridge (legacy(blacks, whites, WHITE)
-  = ~position_hash(blacks, whites)) —
+- position_hash: the goldens (the initial position 0xC4292FC2B2633A16 + 5 fixed pairs, derived from the legacy C
+  `game_position_x_hash_plain`) and the SHA-3-256 pin of the packed table — `test_board::TestPositionHash` (the scratch
+  script that derived them also verified the transcribed C loop and the SWAR fold bit-identical over 10_000 random
+  pairs).
+- The legacy WHITE complement bridge (legacy(blacks, whites, WHITE) = ~position_hash(blacks, whites)) —
   `test_board::TestPositionHash::test_legacy_white_complement_bridge`.
-- position_hash array/scalar parity, the (N,2) coercion, the empty
-  array, the input rejections, the view (order) sensitivity and the
-  determinism — `test_board::TestPositionHash`.
-- The hash quality: the avalanche band (128 single-bit flips of the
-  start, every output bit flips 40..88 of 128) and zero collisions
-  on random pairs (10k; 1e6 under LONG, the birthday bound) —
-  `test_board::TestPositionHash::test_avalanche_bit_flips` /
-  `test_no_collisions`.
+- position_hash array/scalar parity, the (N,2) coercion, the empty array, the input rejections, the view (order)
+  sensitivity and the determinism — `test_board::TestPositionHash`.
+- The hash quality: the avalanche band (128 single-bit flips of the start, every output bit flips 40..88 of 128) and
+  zero collisions on random pairs (10k; 1e6 under LONG, the birthday bound) —
+  `test_board::TestPositionHash::test_avalanche_bit_flips` / `test_no_collisions`.
 
 ## Open issues
 
@@ -224,37 +164,24 @@ None.
 
 ## Conventions
 
-- Reversi vocabulary: column (a–h, left→right), row (1–8, top→
-  bottom); A1 = top-left = bit 0, H8 = bit 63; diagrams read row 1
-  on top.
-- The D8 slot order is fixed (notes/naming.md): never reorder
-  or rename; the anti tables differ only in slots 1/3.
-- New public functions: `@validate_call` with
-  `arbitrary_types_allowed`, the dual scalar/array signature with the
-  standard `atleast_1d`/ndim pattern, a docstring stating the shape
-  contract.
-- The move codes 64/65/66 are magic numbers by design (PA/NA/UN);
-  constants parked.
-- The Zobrist table `_zobrist_bitstrings` is canon (the legacy C
-  constants): never regenerate, reorder or edit; a change breaks the
-  legacy comparability and every pinned golden. The hash is
-  view-dependent by design (the two views of a board are different
-  positions).
-- The type aliases are SEMANTIC domain types, not dtype shortcuts
-  (D-217): `Square` is an index into the 64-square space, `Bitboard`
-  a set of squares, `Position` a game position. The raw numpy forms
-  are deliberate wherever the value is not a domain concept — the
-  ordinal counts (`bitboard_count`, `position_empty_count` →
-  `np.uint8 | npt.NDArray[np.uint8]`, NOT `SquareArray`), the int64
-  storage forms (`bitboard_from/to_signed_int`), the generic
-  `make_position` return (scalar, 1-D or 2-D). Do not "uniform"
-  them toward the aliases.
+- Reversi vocabulary: column (a–h, left→right), row (1–8, top→ bottom); A1 = top-left = bit 0, H8 = bit 63; diagrams
+  read row 1 on top.
+- The D8 slot order is fixed (notes/naming.md): never reorder or rename; the anti tables differ only in slots 1/3.
+- New public functions: `@validate_call` with `arbitrary_types_allowed`, the dual scalar/array signature with the
+  standard `atleast_1d`/ndim pattern, a docstring stating the shape contract.
+- The move codes 64/65/66 are magic numbers by design (PA/NA/UN); constants parked.
+- The Zobrist table `_zobrist_bitstrings` is canon (the legacy C constants): never regenerate, reorder or edit; a change
+  breaks the legacy comparability and every pinned golden. The hash is view-dependent by design (the two views of a
+  board are different positions).
+- The type aliases are SEMANTIC domain types, not dtype shortcuts (D-217): `Square` is an index into the 64-square
+  space, `Bitboard` a set of squares, `Position` a game position. The raw numpy forms are deliberate wherever the value
+  is not a domain concept — the ordinal counts (`bitboard_count`, `position_empty_count` →
+  `np.uint8 | npt.NDArray[np.uint8]`, NOT `SquareArray`), the int64 storage forms (`bitboard_from/to_signed_int`), the
+  generic `make_position` return (scalar, 1-D or 2-D). Do not "uniform" them toward the aliases.
 - Little-endian only: no endianness portability work.
 
 ## Integration
 
-- Consumed by: `pattern.py` (the D8 orbits, the principal masks),
-  `mobility.py`, `feature.py`, `regab.py` (DB row ↔ position),
-  `client.py`, `hlp_config_schemas.py`.
-- A pure domain module: not a pipeline level, no ctx fields, no
-  cache.
+- Consumed by: `pattern.py` (the D8 orbits, the principal masks), `mobility.py`, `feature.py`, `regab.py` (DB row ↔
+  position), `client.py`, `hlp_config_schemas.py`.
+- A pure domain module: not a pipeline level, no ctx fields, no cache.

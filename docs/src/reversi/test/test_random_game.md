@@ -1,12 +1,8 @@
 # reversi/test/test_random_game.py
-The NO-DB micro-suite of the random_game module: the random
-move pick (the golden frequencies), the EC20 multi-position
-check (random_game_choose_move over six 20-empty-square
-positions — the per-position validity + the equidistribution
-over the available options), the random move execution
-(random_game_make_move — the returned position + the move), and
-the random path (random_game_play_path — play random moves
-until the empty count reaches the target).
+The NO-DB micro-suite of the random_game module: the random move pick (the golden frequencies), the EC20 multi-position
+check (random_game_choose_move over six 20-empty-square positions — the per-position validity + the equidistribution
+over the available options), the random move execution (random_game_make_move — the returned position + the move), and
+the random path (random_game_play_path — play random moves until the empty count reaches the target).
 
 ## Coverage
 
@@ -22,29 +18,20 @@ until the empty count reaches the target).
 
 ## Goldens pinned
 
-- The initial-position square sets: the mover {E4, D5}
-  (0x0000000810000000), the opponent {D4, E5}
-  (0x0000001008000000) — the official Othello International
-  setup.
-- The pick golden: the exact 1000-draw
-  frequencies [258, 229, 249, 264] over the legal squares
-  {D3, C4, F5, E6} at seed 93 — the golden-pinned MT19937
-  stream makes it bit-stable; it protects the pick's
-  distribution AND the one-draw-per-pick stream consumption
-  (the get_double_in_c0_o1 draw per non-empty pick).
+- The initial-position square sets: the mover {E4, D5} (0x0000000810000000), the opponent {D4, E5} (0x0000001008000000)
+  — the official Othello International setup.
+- The pick golden: the exact 1000-draw frequencies [258, 229, 249, 264] over the legal squares {D3, C4, F5, E6} at seed
+  93 — the golden-pinned MT19937 stream makes it bit-stable; it protects the pick's distribution AND the
+  one-draw-per-pick stream consumption (the get_double_in_c0_o1 draw per non-empty pick).
 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The expected square names in the canonical lists (the
-  naming convention: uppercase, A1 = top-left = bit 0); the
-  bitboard → squares via bitboard_to_square_list +
-  square_to_str, reversed to the A1 → H8 order.
-- The golden frequencies as literal arrays (the nptest.
-  assert_array_equal pin) — no tolerance, the stream is
+- The expected square names in the canonical lists (the naming convention: uppercase, A1 = top-left = bit 0); the
+  bitboard → squares via bitboard_to_square_list + square_to_str, reversed to the A1 → H8 order.
+- The golden frequencies as literal arrays (the nptest. assert_array_equal pin) — no tolerance, the stream is
   deterministic.
 
 ## Integration
 
-- Consumed by `run_utests.sh` (section 1 — the board &
-  pattern concepts, after test_board).
+- Consumed by `run_utests.sh` (section 1 — the board & pattern concepts, after test_board).

@@ -1313,3 +1313,13 @@ D-237 | 2026-09-19 | The 120-char format extended to the whole notes/ tree (Robe
          `\*_for_current_level` asterisk (the stray-italics fix) and the 121-char Index line fixed. Notes-only: no
          source, test or probe touched. The docs/ mirrors are the FOLLOW-UP (the second commit: the same wrapper over
          ~100 files + the docs_rules.md statement).
+
+D-238 | 2026-09-19 | The docs/ mirrors to the house format (the second commit of the D-237 reform; Roberto: "Sono da
+         fare anche i docs ... ma li farei in un secondo commit, dopo"): the same wrapper over the 94 mirror docs (the
+         source mirrors + the test mirrors) — ~120 chars/line, the API / Coverage / Goldens tables kept one physical
+         line per row, 60 mid-token rejoins. 8387 -> 5785 lines (e.g. state_machine.md 155 -> 104, binio.md 120 -> 88,
+         prng.md 111 -> 75, board.md 188 -> 188 — it was already wide). docs_rules.md carries the statement (the header:
+         "The prose is wrapped to ~120 chars/line (D-238); the tables stay one physical line per row"). VERIFICATION:
+         94/94 CONTENT OK by the content fingerprint + idempotence. The docs_rules §2 `> State:` header and §8 (the
+         migration state) are untouched: the schema migration is still pending — no mirror carries the State line yet.
+         No source, test or probe touched.

@@ -1,9 +1,7 @@
 # reversi/test/test_wrk_generate.py
-The GENERATE worker integration suite, in the house worker-test
-shape (as in test_wrk_indexes / test_wrk_optimize et al.): a live-DB
-suite that moves the machine through the full 10-level chain on a
-fresh base dir and then exercises the GENERATE level. 1 class / 3
-tests, all DB-gated.
+The GENERATE worker integration suite, in the house worker-test shape (as in test_wrk_indexes / test_wrk_optimize et
+al.): a live-DB suite that moves the machine through the full 10-level chain on a fresh base dir and then exercises the
+GENERATE level. 1 class / 3 tests, all DB-gated.
 
 ## Coverage
 
@@ -13,33 +11,23 @@ tests, all DB-gated.
 
 ## Goldens pinned
 
-- The dense hash golden `ec9d65453bb112bf277c79f96a86edfa9468bb0
-  1f42a2763cd82d69c5b2b15b4` (the probe E7 golden) — matches
-  across the probe, this test, and `ctx.dense_w_checksum`.
-- The shape golden (6588,) = 1 (intercept) + 6561 (EDGE) + 27
-  (DIAG3), float32.
+- The dense hash golden `ec9d65453bb112bf277c79f96a86edfa9468bb0 1f42a2763cd82d69c5b2b15b4` (the probe E7 golden) —
+  matches across the probe, this test, and `ctx.dense_w_checksum`.
+- The shape golden (6588,) = 1 (intercept) + 6561 (EDGE) + 27 (DIAG3), float32.
 
 ## Conventions
 
-- The setUp's OPTIMIZE move is what makes the suite DB-bound AND
-  slow (the lbfgs run, ~10 s per test) — the same cost
-  test_wrk_optimize already carries; the GENERATE level
-  itself is cheap (the vectorized expansion).
-- The 2nd instance re-running through OPTIMIZE exercises the
-  checkpoint-reload path for free (the no-"L-BFGS - [" behavior
-  of test_wrk_optimize's run 2).
-- Follows the house pattern: the db_long_gate first in setUp (the
-  SKIP_REGAB_DB + LONG tier, with the why-comment), the house
-  run-instruction header (the DB-gated claim TRUE — the gate is in
-  setUp), defensive tearDown.
+- The setUp's OPTIMIZE move is what makes the suite DB-bound AND slow (the lbfgs run, ~10 s per test) — the same cost
+  test_wrk_optimize already carries; the GENERATE level itself is cheap (the vectorized expansion).
+- The 2nd instance re-running through OPTIMIZE exercises the checkpoint-reload path for free (the no-"L-BFGS - ["
+  behavior of test_wrk_optimize's run 2).
+- Follows the house pattern: the db_long_gate first in setUp (the SKIP_REGAB_DB + LONG tier, with the why-comment), the
+  house run-instruction header (the DB-gated claim TRUE — the gate is in setUp), defensive tearDown.
 
 ## Integration
 
-- This file owns the probe's E1 (bootstrap to GENERATE), E3
-  (shape/dtype), E8 (the flat files + sidecar), E9 (the
-  second-instance cache hit), E10 (the version gate on the real
-  file — via the hlp_generate load path) + E11 (the `_down`
-  scope).
-- The E2/E4/E5/E7 live re-derivation (K, orbit invariance, the
-  full vector, the hash) remains in the probe — the test pins the
-  same facts in unittest form.
+- This file owns the probe's E1 (bootstrap to GENERATE), E3 (shape/dtype), E8 (the flat files + sidecar), E9 (the
+  second-instance cache hit), E10 (the version gate on the real file — via the hlp_generate load path) + E11 (the
+  `_down` scope).
+- The E2/E4/E5/E7 live re-derivation (K, orbit invariance, the full vector, the hash) remains in the probe — the test
+  pins the same facts in unittest form.

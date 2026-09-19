@@ -1,6 +1,6 @@
 # reversi/test/test_paths.py
-Unit tests for the `reversi.test.paths` workspace-root constants:
-1 class / 3 tests, no DB, no gate, no artifacts (pure path assertions).
+Unit tests for the `reversi.test.paths` workspace-root constants: 1 class / 3 tests, no DB, no gate, no artifacts (pure
+path assertions).
 
 ## Coverage
 
@@ -10,21 +10,16 @@ Unit tests for the `reversi.test.paths` workspace-root constants:
 
 ## Goldens pinned
 
-- No float goldens: the pins are the three path identities above —
-  the marker presence, the `src/reversi/test/paths.py` descendant, and
-  the `<root>/build/tmp` equality.
+- No float goldens: the pins are the three path identities above — the marker presence, the `src/reversi/test/paths.py`
+  descendant, and the `<root>/build/tmp` equality.
 
 ## Conventions
 
-- The module under test is imported as `from reversi.test import paths`
-  and the constants are read as attributes
-  (`paths.WORKSPACE_ROOT`, ...) — a future rename surfaces in exactly
-  one place.
-- No DB involvement, hence no `SKIP_REGAB_DB` gate and no
-  `build/tmp` artifacts: these tests only assert on the computed
+- The module under test is imported as `from reversi.test import paths` and the constants are read as attributes
+  (`paths.WORKSPACE_ROOT`, ...) — a future rename surfaces in exactly one place.
+- No DB involvement, hence no `SKIP_REGAB_DB` gate and no `build/tmp` artifacts: these tests only assert on the computed
   paths.
 
 ## Integration
 
-- Module under test: `paths.md` — the shared path-derivation module
-  of the test suite.
+- Module under test: `paths.md` — the shared path-derivation module of the test suite.

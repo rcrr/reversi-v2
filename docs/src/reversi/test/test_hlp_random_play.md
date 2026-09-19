@@ -1,13 +1,8 @@
 # reversi/test/test_hlp_random_play.py
-The NO-DB micro-suite of the FEATURE_ANALYSIS frequency data
-plane: the
-marginal / joint frequency accumulators + the PRNG
-integration. The initial position, the ec pin (the hand-
-counted stone counts), the marginal accumulator (the LMC vs
-the independent oracle, the R2 cross-check, the chunk-
-merge), the joint accumulator (the cross-feature + the
-same-feature, the diagonal the SU = 1 lock), and the PRNG
-integration (the corpus reproducibility + the end-to-end
+The NO-DB micro-suite of the FEATURE_ANALYSIS frequency data plane: the marginal / joint frequency accumulators + the
+PRNG integration. The initial position, the ec pin (the hand-counted stone counts), the marginal accumulator (the LMC vs
+the independent oracle, the R2 cross-check, the chunk-merge), the joint accumulator (the cross-feature + the
+same-feature, the diagonal the SU = 1 lock), and the PRNG integration (the corpus reproducibility + the end-to-end
 marginals). 5 classes / 10 tests / no DB.
 
 ## Coverage
@@ -22,35 +17,25 @@ marginals). 5 classes / 10 tests / no DB.
 
 ## Goldens pinned
 
-- The ec pin: ec_of = 64 - the occupied squares,
-  hand-counted over the initial position (4 stones, ec 60) +
-  a hand-crafted 24-stone position (ec 40) + the full board
-  (ec 0).
-- The toy FeatureSet (the accumulator infrastructure):
-  the `_toy_fset()` = the intercept + the LMC (mask all, amask
-  0 — the code the legal-move count) + the R2 (the 8-square
-  mask, the 4 D8 instances, n_conf 6561); the `_toy_blocks()`
-  mirrors load_campaign's column layout; the `_toy_corpus()`
-  the small G0 wave (the seed, the ec, the N).
-- The INDEPENDENT oracles (the house double-check): the
-  LMC marginal via position_legal_moves (NOT compute_indexes);
-  the R2 / the joints via the manual per-position dict over
-  compute_indexes.
+- The ec pin: ec_of = 64 - the occupied squares, hand-counted over the initial position (4 stones, ec 60) + a
+  hand-crafted 24-stone position (ec 40) + the full board (ec 0).
+- The toy FeatureSet (the accumulator infrastructure): the `_toy_fset()` = the intercept + the LMC (mask all, amask 0 —
+  the code the legal-move count) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561); the `_toy_blocks()`
+  mirrors load_campaign's column layout; the `_toy_corpus()` the small G0 wave (the seed, the ec, the N).
+- The INDEPENDENT oracles (the house double-check): the LMC marginal via position_legal_moves (NOT compute_indexes); the
+  R2 / the joints via the manual per-position dict over compute_indexes.
 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The synthetic positions by their hex literals + the square
-  names in the comments (the naming convention: uppercase,
-  A1 = top-left = bit 0).
-- The accumulators' micro-suites reuse the toy FeatureSet / the
-  toy blocks / the toy corpus helpers (the TestMarginalAccumulator
-  static methods, shared by the joint + the integration
-  classes) — the small, no-DB, hand-checkable infrastructure.
+- The synthetic positions by their hex literals + the square names in the comments (the naming convention: uppercase, A1
+  = top-left = bit 0).
+- The accumulators' micro-suites reuse the toy FeatureSet / the toy blocks / the toy corpus helpers (the
+  TestMarginalAccumulator static methods, shared by the joint + the integration classes) — the small, no-DB,
+  hand-checkable infrastructure.
 
 ## Integration
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline).
-- The accumulators are the FEATURE_ANALYSIS phase-1 data
-  plane (the marginals + the joints); the worker wires
-  them into the pipeline (the cache flow + the reports).
+- The accumulators are the FEATURE_ANALYSIS phase-1 data plane (the marginals + the joints); the worker wires them into
+  the pipeline (the cache flow + the reports).

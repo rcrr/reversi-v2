@@ -1,8 +1,6 @@
 # reversi/test/test_hlp_design_matrix.py
-The dedicated data-object suite of the hlp_design_matrix module.
-4 classes / 14 tests / no PERF — no DB, no gate: the
-compute tests use a handcrafted mock ctx, the IO tests use a REAL
-temp dir under the shared `CUSTOM_TMP_BASE`.
+The dedicated data-object suite of the hlp_design_matrix module. 4 classes / 14 tests / no PERF — no DB, no gate: the
+compute tests use a handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_TMP_BASE`.
 
 ## Coverage
 
@@ -15,35 +13,23 @@ temp dir under the shared `CUSTOM_TMP_BASE`.
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` golden:
-  `da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea971975
-  7b` — sha3_256 over `X.tobytes()` of the small 2×3 uint32 IO
-  object (a regression in the hash or in the serialized array
-  breaks it).
-- The hand-computed X matrix `[[1,2,2],[1,3,3],[0,2,3],[0,3,2]]`;
-  the 3 RuntimeError message substrings + the precise
+- The `compute_sha3_256_hash` golden: `da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea971975 7b` — sha3_256
+  over `X.tobytes()` of the small 2×3 uint32 IO object (a regression in the hash or in the serialized array breaks it).
+- The hand-computed X matrix `[[1,2,2],[1,3,3],[0,2,3],[0,3,2]]`; the 3 RuntimeError message substrings + the precise
   `ValidationError` + the guard `ValueError`.
 
 ## Conventions
 
-- The paths idiom on the IO tests (real temp dir under the
-  shared `CUSTOM_TMP_BASE` + defensive tearDown) — the same
-  style as test_hlp_wmaps, which it mirrors (the same 2-feature
-  mock layout 1/3 + 2/2, so the X values hand-verify against the
-  iwmap in the comment).
+- The paths idiom on the IO tests (real temp dir under the shared `CUSTOM_TMP_BASE` + defensive tearDown) — the same
+  style as test_hlp_wmaps, which it mirrors (the same 2-feature mock layout 1/3 + 2/2, so the X values hand-verify
+  against the iwmap in the comment).
 - The precise-message pins (no broad `assertRaises(Exception)`).
-- The sidecar/error-path tests reuse the exact binio API and the
-  exact RuntimeError messages the WMAPS IO tests pin — the four
-  cache-manager consumer suites (POSITIONS / INDEXES / WMAPS /
-  DESIGN_MTR) stay mutually consistent.
+- The sidecar/error-path tests reuse the exact binio API and the exact RuntimeError messages the WMAPS IO tests pin —
+  the four cache-manager consumer suites (POSITIONS / INDEXES / WMAPS / DESIGN_MTR) stay mutually consistent.
 
 ## Integration
 
-- Independent of the pipeline: no model, no DB, no cache file —
-  the per-function pin that would catch a future signature change
-  to `hlp_design_matrix_*` (the worker test only exercises the
-  end-to-end path).
-- The LIVE golden (the rlm_01 (10,7) X) lives in
-  test_wrk_design_matrix.py
-  (`TestLMWorkerDesignMatrixExactValues`) — the single source of
-  truth for it.
+- Independent of the pipeline: no model, no DB, no cache file — the per-function pin that would catch a future signature
+  change to `hlp_design_matrix_*` (the worker test only exercises the end-to-end path).
+- The LIVE golden (the rlm_01 (10,7) X) lives in test_wrk_design_matrix.py (`TestLMWorkerDesignMatrixExactValues`) — the
+  single source of truth for it.

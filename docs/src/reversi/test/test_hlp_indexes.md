@@ -1,7 +1,6 @@
 # reversi/test/test_hlp_indexes.py
-The unit suite of the hlp_indexes domain module. 5 classes / 14 tests /
-no PERF — all file I/O MOCKED (`reversi.lm.hlp_indexes.binio` patched):
-no temp dirs, no DB, no gates.
+The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF — all file I/O MOCKED
+(`reversi.lm.hlp_indexes.binio` patched): no temp dirs, no DB, no gates.
 
 ## Coverage
 
@@ -15,30 +14,22 @@ no temp dirs, no DB, no gates.
 
 ## Goldens pinned
 
-- The shared dummy: `DUMMY_INDEXES = np.zeros((2, 2),
-  dtype=np.uint32)` across the whole file.
-- The hash strings: "identical_hash" / "live_hash" /
-  "outdated_cached_hash" / "stored_hash" / "valid_hash".
-- The 3 RuntimeError message substrings (the precise pydantic
-  `ValidationError` for the two init rejections).
+- The shared dummy: `DUMMY_INDEXES = np.zeros((2, 2), dtype=np.uint32)` across the whole file.
+- The hash strings: "identical_hash" / "live_hash" / "outdated_cached_hash" / "stored_hash" / "valid_hash".
+- The 3 RuntimeError message substrings (the precise pydantic `ValidationError` for the two init rejections).
 
 ## Conventions
 
-- The full binio mock: every file I/O is patched — the suite
-  never touches the filesystem, the temp-dir machinery is absent
-  by design.
+- The full binio mock: every file I/O is patched — the suite never touches the filesystem, the temp-dir machinery is
+  absent by design.
 - The precise `ValidationError` pins (no broad `assertRaises(Exception)`).
 - English-only comments (AGENTS.md rule 4).
-- The known gap (the `rds_checksum` value never asserted on the
-  load path — the mock returns the same string twice) stays
-  probe-covered (B4) and is left as-is.
+- The known gap (the `rds_checksum` value never asserted on the load path — the mock returns the same string twice)
+  stays probe-covered (B4) and is left as-is.
 
 ## Integration
 
-- Independent of the pipeline: no model, no DB, no cache file —
-  the per-function pin of the store/load contract + the compute /
-  is_cache_consistent logic.
-- The 52-call probe re-derives the store/load round-trip with
-  REAL files (B3-B8) and the pipeline integration (C2-C7); the
-  step-3 class c deletions (B1, B9-B11, B14, C1, C6a/C6b) all
-  point at tests in this file or in test_wrk_indexes.py.
+- Independent of the pipeline: no model, no DB, no cache file — the per-function pin of the store/load contract + the
+  compute / is_cache_consistent logic.
+- The 52-call probe re-derives the store/load round-trip with REAL files (B3-B8) and the pipeline integration (C2-C7);
+  the step-3 class c deletions (B1, B9-B11, B14, C1, C6a/C6b) all point at tests in this file or in test_wrk_indexes.py.

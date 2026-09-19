@@ -1,18 +1,12 @@
 # reversi/test/test_lm_worker_full_chain.py
-The pipeline's END-TO-END test: it runs the whole 18-level chain
-(CREATED through PLOT) on two fixtures and pins the complete
-saved-model round-trip (file + sidecar + read-back + evaluation
-function). The ONLY test that exercises all 18 levels in one chain —
-every per-level module test stops at its own level (the "move through
-my predecessors" setUp). Both fixtures (rlm_03 and rlm_04) opt into
-`high_performance_fg` (the numba fg), so both full chains follow the
-HP L-BFGS trajectories (A2030 71 iters, A2050 356 iters). The 16th
-level is CLIENT_CHECK and the 17th is PLOT; the rlm_03.json +
-rlm_04.json `plot` sections whitelist all seven plot names, so both
-chains exercise plot generation. The saved model is the v2 file
-format: the embedded config dump carries the run's base_dir, so the
-file bytes are run-specific and the pinned file size is a band
-rather than a literal.
+The pipeline's END-TO-END test: it runs the whole 18-level chain (CREATED through PLOT) on two fixtures and pins the
+complete saved-model round-trip (file + sidecar + read-back + evaluation function). The ONLY test that exercises all 18
+levels in one chain — every per-level module test stops at its own level (the "move through my predecessors" setUp).
+Both fixtures (rlm_03 and rlm_04) opt into `high_performance_fg` (the numba fg), so both full chains follow the HP
+L-BFGS trajectories (A2030 71 iters, A2050 356 iters). The 16th level is CLIENT_CHECK and the 17th is PLOT; the
+rlm_03.json + rlm_04.json `plot` sections whitelist all seven plot names, so both chains exercise plot generation. The
+saved model is the v2 file format: the embedded config dump carries the run's base_dir, so the file bytes are
+run-specific and the pinned file size is a band rather than a literal.
 
 ## Coverage
 
@@ -25,52 +19,35 @@ rather than a literal.
 | `TestModelWeightsV2` (ungated — no DB, the hand-crafted + SimpleNamespace idiom) | 3 | the v2 format micro tier: (1) the hand-crafted v1 file (no config section) loads with `config_dump`/`config_checksum` None (the backward-compat reader); (2) the synthetic-ctx v2 ROUND-TRIP — `model_weights_write_file` on the SimpleNamespace ctx (the fixed-string `model_dump_json`), read back: every field + the embedded dump + the fingerprint match; (3) the v2 CORRUPTION sentinel — a stored checksum that does not cover the embedded dump → `ValueError` "Config section checksum mismatch, expected '<stored>', recomputed '<sha3>'." |
 ## Goldens pinned
 
-- The two file-report masks (the `_masked_report_hash` helper masks the
-  embedded `datetime.now()` AND the `Config SHA3-256` hex — the
-  fingerprint embeds the run's base_dir — before sha3_256): rlm_04
-  `a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29`
-  + rlm_03 `695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce`
-  (the HP trajectories changed the report content).
-- rlm_04 gap 0.18 = 14.01651382446289 − 13.8332856021253 (dense
-  vld minus dense train) + Substitution Delta 0.01 =
-  13.8332856021253 − 13.825076853665676 (the 1923 IC-touching
-  positions); rlm_03 gap 0.32 (the A2050 production model
-  generalizes well: 1.99M train samples) + Delta 0.00 (cut 1: the
-  residual is the f32 `w_dense` rounding — the sign flipped with
-  the HP weights).
+- The two file-report masks (the `_masked_report_hash` helper masks the embedded `datetime.now()` AND the
+  `Config SHA3-256` hex — the fingerprint embeds the run's base_dir — before sha3_256): rlm_04
+  `a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29` + rlm_03
+  `695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce` (the HP trajectories changed the report content).
+- rlm_04 gap 0.18 = 14.01651382446289 − 13.8332856021253 (dense vld minus dense train) + Substitution Delta 0.01
+  = 13.8332856021253 − 13.825076853665676 (the 1923 IC-touching positions); rlm_03 gap 0.32 (the A2050 production model
+  generalizes well: 1.99M train samples) + Delta 0.00 (cut 1: the residual is the f32 `w_dense` rounding — the sign
+  flipped with the HP weights).
 
 ## Conventions
 
-- The A2030 class ↔ rlm_04 mismatch is the legacy production naming
-  above, not a copy-paste defect — no rename.
-- The probe checks split here: the rlm_04 live chain → TestFullChainA2030,
-  the rlm_03 LONG tier → TestFullChainA2050, the B1-B2 read guards →
-  TestModelWeightsReadGuards; the probe now keeps A1-A15 static + the
-  C5 a-portion + the D0 placeholder + the A6b (the config section leads
-  the body, the v1|v2 guard, the corruption sentinel) (18 checks).
-- LONG gating keeps the A2050 chain out of normal discover runs
-  (the suite stays ~3 s gated; the A2050 chain is ~1 min, so the live
-  suite cost is dominated by the A2030 chain).
-- The float64 metric goldens (the vld / train / dense dicts + the pop
-  statistics) are compared with assert_close (reversi/test/closecheck.py,
-  rel 1e-9 / abs 1e-12) — the last ULPs of the OpenBLAS ddot depend on
-  the thread count x the CPU kernel. Still bit-exact assertEqual: the
-  f32-quantized values (train_loss = float(opt f32), g_norm, the tps +
-  vld read-back truncations), the EF pins, the sha3 hashes, and the int
-  counts; the second-instance-determinism test stays exact (the in-run
-  bit-identity contract).
-- The position-based goldens did NOT move when the HP weights changed
-  (the
-  training_pop_stats f64 values, the f32-truncated tps read-back, the
-  feature-set hash, the iwmap offsets, the pop console row) — only the
-  model-dependent ones (the metric dicts, the opt iters/f/g_norm, the
-  w_dense sha3, the EF values, the report hashes, the console metric
+- The A2030 class ↔ rlm_04 mismatch is the legacy production naming above, not a copy-paste defect — no rename.
+- The probe checks split here: the rlm_04 live chain → TestFullChainA2030, the rlm_03 LONG tier → TestFullChainA2050,
+  the B1-B2 read guards → TestModelWeightsReadGuards; the probe now keeps A1-A15 static + the C5 a-portion + the D0
+  placeholder + the A6b (the config section leads the body, the v1|v2 guard, the corruption sentinel) (18 checks).
+- LONG gating keeps the A2050 chain out of normal discover runs (the suite stays ~3 s gated; the A2050 chain is ~1 min,
+  so the live suite cost is dominated by the A2030 chain).
+- The float64 metric goldens (the vld / train / dense dicts + the pop statistics) are compared with assert_close
+  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the last ULPs of the OpenBLAS ddot depend on the thread count x
+  the CPU kernel. Still bit-exact assertEqual: the f32-quantized values (train_loss = float(opt f32), g_norm, the tps +
+  vld read-back truncations), the EF pins, the sha3 hashes, and the int counts; the second-instance-determinism test
+  stays exact (the in-run bit-identity contract).
+- The position-based goldens did NOT move when the HP weights changed (the training_pop_stats f64 values, the
+  f32-truncated tps read-back, the feature-set hash, the iwmap offsets, the pop console row) — only the model-dependent
+  ones (the metric dicts, the opt iters/f/g_norm, the w_dense sha3, the EF values, the report hashes, the console metric
   rows).
 
 ## Integration
 
-- `reversi.test.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the
-  module runnable from any CWD.
-- A2050 has no second-instance test and its goldens are pinned from
-  the same live-run family as A2030 (determinism is a property of the
-  chain, demonstrated on rlm_04).
+- `reversi.test.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the module runnable from any CWD.
+- A2050 has no second-instance test and its goldens are pinned from the same live-run family as A2030 (determinism is a
+  property of the chain, demonstrated on rlm_04).

@@ -1,7 +1,8 @@
 # docs_rules.md — format rules for the mirror docs (docs/)
 
 Prescriptive. Follow when creating, updating, or migrating any doc under docs/ that mirrors a source file (the D-007
-mirror rule, AGENTS.md standing rule 5). Language: English.
+mirror rule, AGENTS.md standing rule 5). Language: English. The prose is wrapped to ~120 chars/line (D-238); the tables
+stay one physical line per row.
 
 Companions: notes/probe_rules.md (the verification apparatus), notes/log_rules.md (the session journal).
 

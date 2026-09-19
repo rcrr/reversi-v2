@@ -1,11 +1,8 @@
 # reversi/test/test_wrk_optimize.py
-The OPTIMIZE worker integration suite — the house worker-test
-shape (same as test_wrk_gradient et al.): a live-DB suite
-that moves the machine through the full 9-level chain on a fresh
-base dir and then exercises the OPTIMIZE level. 1 class / 3
-tests, all DB-gated (the db_long_gate —
-SKIP_REGAB_DB + LONG — the setUp moves through
-GRADIENT on a fresh base dir — `3/0/3` under `SKIP_REGAB_DB=1`).
+The OPTIMIZE worker integration suite — the house worker-test shape (same as test_wrk_gradient et al.): a live-DB suite
+that moves the machine through the full 9-level chain on a fresh base dir and then exercises the OPTIMIZE level. 1 class
+/ 3 tests, all DB-gated (the db_long_gate — SKIP_REGAB_DB + LONG — the setUp moves through GRADIENT on a fresh base dir
+— `3/0/3` under `SKIP_REGAB_DB=1`).
 
 ## Coverage
 
@@ -15,33 +12,25 @@ GRADIENT on a fresh base dir — `3/0/3` under `SKIP_REGAB_DB=1`).
 
 ## Goldens pinned
 
-- The step pins: 8 (GRADIENT) in setUp + 9 (OPTIMIZE) in
-  `test_optimization_runs` + 8/GRADIENT again in the _down test
-  — the 10-level pipeline ordering locked.
-- The real lbfgs marker `"L-BFGS - ["` (the per-iteration
-  log line).
-- The cfg mutations (`ctx.cfg.optimization.max_iters = 10`,
-  `log_every_n = 0`) work because the LMBaseConfig models are
+- The step pins: 8 (GRADIENT) in setUp + 9 (OPTIMIZE) in `test_optimization_runs` + 8/GRADIENT again in the _down test —
+  the 10-level pipeline ordering locked.
+- The real lbfgs marker `"L-BFGS - ["` (the per-iteration log line).
+- The cfg mutations (`ctx.cfg.optimization.max_iters = 10`, `log_every_n = 0`) work because the LMBaseConfig models are
   not frozen.
 
 ## Conventions
 
-- All 3 tests are DB-gated: the setUp's GRADIENT move runs
-  FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED →
-  GRADIENT on a fresh base dir (all cache-miss) against the live
-  regab DB.
-- The header keeps the house boilerplate ("-1- Run the tests (a
-  live regab DB is required; SKIP_REGAB_DB=1 skips the DB-gated
-  tests, as in test_regab)").
-- The two tests that re-enter OPTIMIZE (run 2 of the max-iters
-  test, and the down-move) exercise the checkpoint-reload and
-  the `_down` paths on top of the same warmed base dir.
+- All 3 tests are DB-gated: the setUp's GRADIENT move runs FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED →
+  GRADIENT on a fresh base dir (all cache-miss) against the live regab DB.
+- The header keeps the house boilerplate ("-1- Run the tests (a live regab DB is required; SKIP_REGAB_DB=1 skips the
+  DB-gated tests, as in test_regab)").
+- The two tests that re-enter OPTIMIZE (run 2 of the max-iters test, and the down-move) exercise the checkpoint-reload
+  and the `_down` paths on top of the same warmed base dir.
 
 ## Integration
 
-- The suite + the probe together cover all 6 decision paths of
-  the worker: this file covers the completed path + the `_down`
-  scope; the probe H4-H8 + H6b covers completed / resume /
-  zed-scratch / ridge-scratch / use_cache=False / corrupted.
-- The rlm_02.json fixture (the full 199952-position training
-  set) is reused — the same dataset as the GRADIENT worker test.
+- The suite + the probe together cover all 6 decision paths of the worker: this file covers the completed path + the
+  `_down` scope; the probe H4-H8 + H6b covers completed / resume / zed-scratch / ridge-scratch / use_cache=False /
+  corrupted.
+- The rlm_02.json fixture (the full 199952-position training set) is reused — the same dataset as the GRADIENT worker
+  test.

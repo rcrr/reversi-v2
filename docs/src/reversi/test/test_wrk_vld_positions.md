@@ -1,9 +1,7 @@
 # reversi/test/test_wrk_vld_positions.py
-The VLD_POSITIONS worker integration suite — 3 classes / 11 tests:
-`TestLMWorkerVldPositions`, the DB-free
-`TestIsCacheConsistentOverride` class (the probe's D2-D7 checks,
-probe_rules.md §4), and the DB-gated `TestVldIndependenceCheck`
-class.
+The VLD_POSITIONS worker integration suite — 3 classes / 11 tests: `TestLMWorkerVldPositions`, the DB-free
+`TestIsCacheConsistentOverride` class (the probe's D2-D7 checks, probe_rules.md §4), and the DB-gated
+`TestVldIndependenceCheck` class.
 
 ## Coverage
 
@@ -15,29 +13,20 @@ class.
 
 ## Goldens pinned
 
-- The rlm_02 validation set: 200 positions (the (200,2) u64
-  structured array), the checksum golden
-  `e8087903437d9d42d64499626f5b4426505d3b9538539e19fb8f45dc9c9f
-  4c48` (bid [8], status CMS+CMR, shared ec 20), `vld_pop_stats`
-  count 200 / mean 3.64.
+- The rlm_02 validation set: 200 positions (the (200,2) u64 structured array), the checksum golden
+  `e8087903437d9d42d64499626f5b4426505d3b9538539e19fb8f45dc9c9f 4c48` (bid [8], status CMS+CMR, shared ec 20),
+  `vld_pop_stats` count 200 / mean 3.64.
 
 ## Conventions
 
-- The setUp moves to GENERATE (step 10) BEFORE the tests — the
-  level BEFORE VLD_POSITIONS (step 11), the test_wrk_zed
-  pattern; the full 11-level chain is exercised end-to-end on
-  the live DB.
-- The 2nd-instance test is the cache round-trip pin: "cache hit
-  + no re-extraction + array-equal" — the mirror of the no-
-  cache determinism pin in test_wrk_validate.
-- The TestIsCacheConsistentOverride class keeps the 6 override-
-  semantic branches testable without the live regab DB.
+- The setUp moves to GENERATE (step 10) BEFORE the tests — the level BEFORE VLD_POSITIONS (step 11), the test_wrk_zed
+  pattern; the full 11-level chain is exercised end-to-end on the live DB.
+- The 2nd-instance test is the cache round-trip pin: "cache hit + no re-extraction + array-equal" — the mirror of the
+  no-cache determinism pin in test_wrk_validate.
+- The TestIsCacheConsistentOverride class keeps the 6 override-semantic branches testable without the live regab DB.
 
 ## Integration
 
-- This file owns the probe's C1 (bootstrap), C2 (structural
-  facts), C5 (both flat files), C6 (cache hit + no re-extraction)
-  + C7 (_down scope), plus the D2-D7 — the probe retains only
-  C3a-C3d + C4 for the live-DB tier (the pop-stats re-
-  derivation + the live goldens + the vld-vs-training checksum
-  difference).
+- This file owns the probe's C1 (bootstrap), C2 (structural facts), C5 (both flat files), C6 (cache hit + no
+  re-extraction) + C7 (_down scope), plus the D2-D7 — the probe retains only C3a-C3d + C4 for the live-DB tier (the
+  pop-stats re-derivation + the live goldens + the vld-vs-training checksum difference).

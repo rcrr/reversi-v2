@@ -1,8 +1,6 @@
 # reversi/test/test_hlp_wmaps.py
-The unit suite of the hlp_wmaps domain module. 4 classes / 15 tests /
-no PERF — no DB, no gate: the compute tests use a handcrafted mock
-ctx, the IO tests use a REAL temp dir under the shared
-`CUSTOM_TMP_BASE`.
+The unit suite of the hlp_wmaps domain module. 4 classes / 15 tests / no PERF — no DB, no gate: the compute tests use a
+handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_TMP_BASE`.
 
 ## Coverage
 
@@ -15,32 +13,22 @@ ctx, the IO tests use a REAL temp dir under the shared
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` golden:
-  `12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c86
-  1dfa`.
-- The cut_off literal 42 on the store/load cycle; the handcrafted
-  4×3 pindexes fixture + the expected iwmap `[1,0,0,2,3]`.
-- The 3 RuntimeError message substrings + the precise
-  `ValidationError` for the init rejection.
+- The `compute_sha3_256_hash` golden: `12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c86 1dfa`.
+- The cut_off literal 42 on the store/load cycle; the handcrafted 4×3 pindexes fixture + the expected iwmap
+  `[1,0,0,2,3]`.
+- The 3 RuntimeError message substrings + the precise `ValidationError` for the init rejection.
 
 ## Conventions
 
-- The paths idiom on the IO tests: real temp dir under the shared
-  `CUSTOM_TMP_BASE` + defensive tearDown (the CWD
-  `mkdtemp` is gone) — unlike test_hlp_indexes, the file I/O is
-  REAL here, not mocked.
-- The precise `ValidationError` pins (no broad
-  `assertRaises(Exception)`).
+- The paths idiom on the IO tests: real temp dir under the shared `CUSTOM_TMP_BASE` + defensive tearDown (the CWD
+  `mkdtemp` is gone) — unlike test_hlp_indexes, the file I/O is REAL here, not mocked.
+- The precise `ValidationError` pins (no broad `assertRaises(Exception)`).
 - English-only comments (AGENTS.md rule 4).
 
 ## Integration
 
-- Independent of the pipeline: no model, no DB, no cache file —
-  the per-function pin of the compute semantics (both branches),
-  the consistency (both single-field branches), the store/load
-  contract (cycle + golden + the 3 error paths), the init
-  validation.
-- The LIVE golden content (the rlm_01 pipeline run vs the
-  literals) lives in test_wrk_wmaps.py
-  (`TestLMWorkerWmapsExactValues`) — the single source of truth for
-  the worker-level exact values.
+- Independent of the pipeline: no model, no DB, no cache file — the per-function pin of the compute semantics (both
+  branches), the consistency (both single-field branches), the store/load contract (cycle + golden + the 3 error paths),
+  the init validation.
+- The LIVE golden content (the rlm_01 pipeline run vs the literals) lives in test_wrk_wmaps.py
+  (`TestLMWorkerWmapsExactValues`) — the single source of truth for the worker-level exact values.

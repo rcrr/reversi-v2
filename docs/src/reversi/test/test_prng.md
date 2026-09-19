@@ -1,11 +1,8 @@
 # reversi/test/test_prng.py
-The MT19937 (the 64-bit MT-19937 PRNG) suite: the strict-typing
-pins (the numpy uint64 / float64 dtypes of every output), the
-64-bit wrap contract, the no-consume contracts (k == 1, the n <=
-1 shuffles, the empty set), the extract_from_set64 +
-choose_one_from_set64 semantics; the bit-exact golden (the
-committed reference sequences) + the first-100k equi-
-distribution. 4 classes / 19 tests / no DB.
+The MT19937 (the 64-bit MT-19937 PRNG) suite: the strict-typing pins (the numpy uint64 / float64 dtypes of every
+output), the 64-bit wrap contract, the no-consume contracts (k == 1, the n <= 1 shuffles, the empty set), the
+extract_from_set64 + choose_one_from_set64 semantics; the bit-exact golden (the committed reference sequences) + the
+first-100k equi-distribution. 4 classes / 19 tests / no DB.
 
 ## Coverage
 
@@ -18,28 +15,21 @@ distribution. 4 classes / 19 tests / no DB.
 
 ## Goldens pinned
 
-- `src/reversi/test/data/prng_golden.txt` (18436 lines, 20
-  sections): the committed reference sequences — a known-correct
-  output snapshot the implementation must reproduce bit-for-bit.
-  Sections: [seq_seed42] (10000), [doubles_c0_c1] /
-  [doubles_c0_o1] / [doubles_o0_o1] (100 each), [choice5]
-  (1000), [extract_full] (64); the choose_one_from_set64 cases
-  (each a 1000-pick sequence + a `_freqs` companion of the
-  expected frequencies): [choose_full] (the full set),
-  [choose_2bit_a/b/c] (three distinct 2-bit sets),
-  [choose_3bit_d/e/f] (three distinct 3-bit sets).
-- The contract pins: the dtype pins (np.uint64 / np.float64), the
-  no-consume sequences (k == 1, n <= 1, the empty set).
+- `src/reversi/test/data/prng_golden.txt` (18436 lines, 20 sections): the committed reference sequences — a
+  known-correct output snapshot the implementation must reproduce bit-for-bit. Sections: [seq_seed42] (10000),
+  [doubles_c0_c1] / [doubles_c0_o1] / [doubles_o0_o1] (100 each), [choice5] (1000), [extract_full] (64); the
+  choose_one_from_set64 cases (each a 1000-pick sequence + a `_freqs` companion of the expected frequencies):
+  [choose_full] (the full set), [choose_2bit_a/b/c] (three distinct 2-bit sets), [choose_3bit_d/e/f] (three distinct
+  3-bit sets).
+- The contract pins: the dtype pins (np.uint64 / np.float64), the no-consume sequences (k == 1, n <= 1, the empty set).
 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The two-FRESH-instance idiom for the determinism pins (the
-  draws advance the sequence position).
+- The two-FRESH-instance idiom for the determinism pins (the draws advance the sequence position).
 - No DB, no cache, no pipeline: a pure core-module suite.
 
 ## Integration
 
-- Consumed by `run_utests.sh` (section 0 — tools, after
-  test_opt_lbfgs).
+- Consumed by `run_utests.sh` (section 0 — tools, after test_opt_lbfgs).
 - The golden suite extends THIS file (the same class family).

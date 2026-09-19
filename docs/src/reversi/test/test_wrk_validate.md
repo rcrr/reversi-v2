@@ -1,8 +1,6 @@
 # reversi/test/test_wrk_validate.py
-The VALIDATE worker integration suite — 2 classes / 5 tests
-today: the DB-gated `TestLMWorkerValidate` (3 tests, live regab
-DB) + the DB-free `TestValidateModelUnit` (2 tests, unit metric
-math).
+The VALIDATE worker integration suite — 2 classes / 5 tests today: the DB-gated `TestLMWorkerValidate` (3 tests, live
+regab DB) + the DB-free `TestValidateModelUnit` (2 tests, unit metric math).
 
 ## Coverage
 
@@ -13,41 +11,26 @@ math).
 
 ## Goldens pinned
 
-- The rlm_02 7-metric goldens: `vld_loss
-  0.00700794393196702`, `vld_mse_z 0.01401588786393404`,
-  `vld_mae_z 0.09311295300722122`, `vld_mae_y
-  12.161691665649414`, `vld_mse_y 239.10484313964844`,
-  `vld_rmse_y 15.46301555633545`, `vld_samples 200` (bid [8]
-  validation vs the bid [6,7] training model); the six float
-  metrics are compared with assert_close
-  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the
-  np.dot reductions run through the multi-threaded OpenBLAS
-  ddot, whose last ULPs depend on the thread count x the CPU
-  kernel; vld_samples stays an exact int, and the
-  hand-computed 2-position case (TestValidateModelUnit)
-  keeps its bit-exact pins (2-sample sums, no BLAS).
-- The hand-computed 2-position case (the TestValidateModelUnit
-  derivation, also the probe D1 source).
+- The rlm_02 7-metric goldens: `vld_loss 0.00700794393196702`, `vld_mse_z 0.01401588786393404`,
+  `vld_mae_z 0.09311295300722122`, `vld_mae_y 12.161691665649414`, `vld_mse_y 239.10484313964844`,
+  `vld_rmse_y 15.46301555633545`, `vld_samples 200` (bid [8] validation vs the bid [6,7] training model); the six float
+  metrics are compared with assert_close (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the np.dot reductions run
+  through the multi-threaded OpenBLAS ddot, whose last ULPs depend on the thread count x the CPU kernel; vld_samples
+  stays an exact int, and the hand-computed 2-position case (TestValidateModelUnit) keeps its bit-exact pins (2-sample
+  sums, no BLAS).
+- The hand-computed 2-position case (the TestValidateModelUnit derivation, also the probe D1 source).
 
 ## Conventions
 
-- The setUp moves to VLD_POSITIONS (step 11) BEFORE the tests,
-  so every worker test exercises the full 13-level chain
-  end-to-end on the live DB (the test_wrk_zed pattern:
-  setUp at the level before the one under test).
-- The 2nd-instance test is the no-cache twin of the cache
-  round-trip tests (test_wrk_positions et al.): where they
-  pin "cache hit + no recompute", this one pins "recompute +
-  identical result + 6 sibling cache hits".
-- The TestValidateModelUnit class runs under SKIP_REGAB_DB=1
-  (no DB) — the unit facts stay testable without the live
+- The setUp moves to VLD_POSITIONS (step 11) BEFORE the tests, so every worker test exercises the full 13-level chain
+  end-to-end on the live DB (the test_wrk_zed pattern: setUp at the level before the one under test).
+- The 2nd-instance test is the no-cache twin of the cache round-trip tests (test_wrk_positions et al.): where they pin
+  "cache hit + no recompute", this one pins "recompute + identical result + 6 sibling cache hits".
+- The TestValidateModelUnit class runs under SKIP_REGAB_DB=1 (no DB) — the unit facts stay testable without the live
   regab DB.
 
 ## Integration
 
-- This file owns C1 (bootstrap step 12), C2 (the 7-key dict +
-  exact goldens), C3 (the 5 log lines), C6 (2nd-instance
-  determinism + the 6 cache hits) + C7 (the _down scope), plus
-  the D1/D3 checks — the probe (probes/verify_validate.py)
-  retains only C4 (the internal consistency invariants) + C5
-  (no rlmwf_12* file) for the live-DB tier.
+- This file owns C1 (bootstrap step 12), C2 (the 7-key dict + exact goldens), C3 (the 5 log lines), C6 (2nd-instance
+  determinism + the 6 cache hits) + C7 (the _down scope), plus the D1/D3 checks — the probe (probes/verify_validate.py)
+  retains only C4 (the internal consistency invariants) + C5 (no rlmwf_12* file) for the live-DB tier.

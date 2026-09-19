@@ -11,40 +11,27 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 
 ## Goldens pinned
 
-- The fingerprint: `ctx.config_checksum` == `hashlib.sha3_256(
-  ctx.cfg.model_dump_json(indent=4).encode()).hexdigest()` — the
-  normalized dump (the effective config, the base_dir override
-  included) is the single source of truth for the EMBEDDED
-  model-file config provenance and the analytics report line.
-- The no-cache state: the base dir holds NO `rlmwf_*` file after
-  `move_to_step('CONFIG')` (the configuration provenance is
-  EMBEDDED in the model file at SAVE).
-- The invalid-case payloads (one constraint each over the
-  schema-complete payload — `ec=10`, `status ["CMS"]`, the
-  `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern):
-  `ec=99`, `status=["INVALID"]`, `mask="ZZZZZZZZZZZZZZZZ"`.
-- The gate messages: "not a directory", "not writable",
-  "doesn't exist" (assertIn on the exception text, lower-case
+- The fingerprint: `ctx.config_checksum` == `hashlib.sha3_256( ctx.cfg.model_dump_json(indent=4).encode()).hexdigest()`
+  — the normalized dump (the effective config, the base_dir override included) is the single source of truth for the
+  EMBEDDED model-file config provenance and the analytics report line.
+- The no-cache state: the base dir holds NO `rlmwf_*` file after `move_to_step('CONFIG')` (the configuration provenance
+  is EMBEDDED in the model file at SAVE).
+- The invalid-case payloads (one constraint each over the schema-complete payload — `ec=10`, `status ["CMS"]`, the
+  `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern): `ec=99`, `status=["INVALID"]`, `mask="ZZZZZZZZZZZZZZZZ"`.
+- The gate messages: "not a directory", "not writable", "doesn't exist" (assertIn on the exception text, lower-case
   where noted).
-- The properties-bag values from `rlm_00.json`: `number == 7`,
-  `string == 'A string'`, `is_on is False`, missing key →
-  `None` (the `LMBaseConfig.properties` extension bag,
-  exercised end-to-end through the worker).
-- The `ValueError` type for the invalid-json5 case — pins the
-  json5 0.15.0 behaviour (upgrading json5 must re-check this
+- The properties-bag values from `rlm_00.json`: `number == 7`, `string == 'A string'`, `is_on is False`, missing key →
+  `None` (the `LMBaseConfig.properties` extension bag, exercised end-to-end through the worker).
+- The `ValueError` type for the invalid-json5 case — pins the json5 0.15.0 behaviour (upgrading json5 must re-check this
   golden).
 
 ## Conventions
 
-- The idiom on all 3 classes: the shared `CUSTOM_TMP_BASE`
-  (from `reversi.test.paths`) + `setUpClass` mkdir +
-  `TemporaryDirectory(dir=...)` created FIRST in setUp +
-  defensive tearDown.
-- The json_config paths are `WORKSPACE_ROOT`-anchored,
-  never CWD-relative.
+- The idiom on all 3 classes: the shared `CUSTOM_TMP_BASE` (from `reversi.test.paths`) + `setUpClass` mkdir +
+  `TemporaryDirectory(dir=...)` created FIRST in setUp + defensive tearDown.
+- The json_config paths are `WORKSPACE_ROOT`-anchored, never CWD-relative.
 
 ## Integration
 
-- Exercises `wrk_config.py` through the real StateMachine
-  (the CONFIG level of the LM pipeline) with the
-  `rlm_00.json` fixture.
+- Exercises `wrk_config.py` through the real StateMachine (the CONFIG level of the LM pipeline) with the `rlm_00.json`
+  fixture.

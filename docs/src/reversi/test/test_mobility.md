@@ -1,7 +1,6 @@
 # reversi/test/test_mobility.py
-The mobility unit suite — 2 classes / 26 tests + 1 PERF (print-only),
-no DB (~0.03 s). A faithful sibling of test_pattern.py (same
-conventions, same idiom choices).
+The mobility unit suite — 2 classes / 26 tests + 1 PERF (print-only), no DB (~0.03 s). A faithful sibling of
+test_pattern.py (same conventions, same idiom choices).
 
 ## Coverage
 
@@ -12,25 +11,20 @@ conventions, same idiom choices).
 
 ## Goldens pinned
 
-- No float goldens: the pins are literal strings (print /
-  print_summary / repr), the two `__repr__` one-liners, the hash
-  literal, the `[53, 13, 66]` + `[[53,13,66],[63,0,63]]` index goldens
-  (the columns are the set's SORTED order — ALMC, LMC, DLMC), the
-  31-line popcount table, and the empty-behaviour contract (empty
-  set, empty positions).
-- The underflow comment's board story is verified: mover 0x10 (E1),
-  opponent 0xE0 (F1, G1, H1) → lms = 0, alms = 0x8 (D1) → 0 + (4−1) = 3.
+- No float goldens: the pins are literal strings (print / print_summary / repr), the two `__repr__` one-liners, the hash
+  literal, the `[53, 13, 66]` + `[[53,13,66],[63,0,63]]` index goldens (the columns are the set's SORTED order — ALMC,
+  LMC, DLMC), the 31-line popcount table, and the empty-behaviour contract (empty set, empty positions).
+- The underflow comment's board story is verified: mover 0x10 (E1), opponent 0xE0 (F1, G1, H1) → lms = 0, alms = 0x8
+  (D1) → 0 + (4−1) = 3.
 
 ## Conventions
 
-- `PERF=1` env enables the 1M-position performance test (print-only —
-  no gates in the whole repo).
-- `TestMobilitySet.test_init` carries real assertions (name, length,
-  names); the self-comparison hash pins are literal-pinned.
+- `PERF=1` env enables the 1M-position performance test (print-only — no gates in the whole repo).
+- `TestMobilitySet.test_init` carries real assertions (name, length, names); the self-comparison hash pins are
+  literal-pinned.
 
 ## Integration
 
-- Module under test: `mobility.md` — the suite covers construction,
-  sorting, hashing, the Numba pipeline, and the popcount helper.
-- The hash formula is pinned by the existing hash tests (which pin the
-  literal); the probe keeps sections 1, 2, 3, 4, 6.
+- Module under test: `mobility.md` — the suite covers construction, sorting, hashing, the Numba pipeline, and the
+  popcount helper.
+- The hash formula is pinned by the existing hash tests (which pin the literal); the probe keeps sections 1, 2, 3, 4, 6.

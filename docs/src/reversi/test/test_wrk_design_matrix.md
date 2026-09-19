@@ -1,9 +1,7 @@
 # reversi/test/test_wrk_design_matrix.py
-The suite of the DESIGN_MTR worker — the end-to-end cache
-round-trip pin for the 7th active level + the rlm_01 golden-
-content pin (the (10,7) uint32 X literal). 2 classes / 3 tests /
-no PERF — ALL DB-DEPENDENT (the setUp moves through WMAPS on a
-fresh base dir).
+The suite of the DESIGN_MTR worker — the end-to-end cache round-trip pin for the 7th active level + the rlm_01
+golden-content pin (the (10,7) uint32 X literal). 2 classes / 3 tests / no PERF — ALL DB-DEPENDENT (the setUp moves
+through WMAPS on a fresh base dir).
 
 ## Coverage
 
@@ -14,30 +12,21 @@ fresh base dir).
 
 ## Goldens pinned
 
-- The flat cache file names: `rlmwf_06_DESIGN_MTR.dat` +
-  `rlmwf_06_DESIGN_MTR.dat.SHA3-256`.
-- The witness log lines: "Forcing computation" (compute run) +
-  "Cache successfully loaded and validated" (cache hit) with the
-  NEGATIVE pin.
-- The full rlm_01 golden: the (10,7) uint32 X literal (10 training
-  positions, F=4 — INTERCEPT 1 / LMC 1 / DIAG3 4 / CORE 1
-  instances, cut_off 2, K=174 — the design-matrix view of the same
-  21-weight layout the WMAPS tests pin).
+- The flat cache file names: `rlmwf_06_DESIGN_MTR.dat` + `rlmwf_06_DESIGN_MTR.dat.SHA3-256`.
+- The witness log lines: "Forcing computation" (compute run) + "Cache successfully loaded and validated" (cache hit)
+  with the NEGATIVE pin.
+- The full rlm_01 golden: the (10,7) uint32 X literal (10 training positions, F=4 — INTERCEPT 1 / LMC 1 / DIAG3 4 / CORE
+  1 instances, cut_off 2, K=174 — the design-matrix view of the same 21-weight layout the WMAPS tests pin).
 
 ## Conventions
 
-- The `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (both
-  classes).
-- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates) at the top
-  of both setUps — 3/0/3 under the gate.
-- The `verbosity=Verbosity.HIGH` house pattern of the worker
-  tests.
+- The `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (both classes).
+- The db_long_gate (the SKIP_REGAB_DB + LONG tier gates) at the top of both setUps — 3/0/3 under the gate.
+- The `verbosity=Verbosity.HIGH` house pattern of the worker tests.
 
 ## Integration
 
-- The end-to-end cache round-trip pin (both directions) + the
-  golden content pin (the full (10,7) X), as in the other worker
-  test files.
-- The step pins (5 = WMAPS, 6 = DESIGN_MTR) lock the 7-level
-  pipeline ordering — a level insertion/reorder breaks both.
+- The end-to-end cache round-trip pin (both directions) + the golden content pin (the full (10,7) X), as in the other
+  worker test files.
+- The step pins (5 = WMAPS, 6 = DESIGN_MTR) lock the 7-level pipeline ordering — a level insertion/reorder breaks both.
 - The per-feature contiguity + checksum facts are probe-side.

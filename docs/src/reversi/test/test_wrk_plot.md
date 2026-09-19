@@ -1,15 +1,10 @@
 # reversi/test/test_wrk_plot.py
-The no-DB suite of the PLOT worker (the 17th level): it
-exercises the worker DIRECTLY on a synthetic rlm_04-mirror context
-(the same feature layout and the same production iwmap pin as
-test_wrk_client_check.py) — the training design indexes are built
-with the REAL `compute_indexes` column contract (one column per
-feature INSTANCE, the configuration index within the feature), and
-`wrk_plot().up(ctx)` runs the full level: pilot → `collect_plot_
-data` → directory → the figures → the save. No DB, no pipeline:
-the `Worker.up` @validate_call gate (context: Context) requires a
-REAL `LMContext`; the `cfg` attribute is the SimpleNamespace
-stand-in and `log_event` a capturing lambda.
+The no-DB suite of the PLOT worker (the 17th level): it exercises the worker DIRECTLY on a synthetic rlm_04-mirror
+context (the same feature layout and the same production iwmap pin as test_wrk_client_check.py) — the training design
+indexes are built with the REAL `compute_indexes` column contract (one column per feature INSTANCE, the configuration
+index within the feature), and `wrk_plot().up(ctx)` runs the full level: pilot → `collect_plot_data` → directory → the
+figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (context: Context) requires a REAL
+`LMContext`; the `cfg` attribute is the SimpleNamespace stand-in and `log_event` a capturing lambda.
 
 ## Coverage
 
@@ -19,53 +14,36 @@ stand-in and `log_event` a capturing lambda.
 
 ## Goldens pinned
 
-- The parity PNG sha3_256: `fdb8162d8f1696ee86c3fa86157720f53aaf6d0
-  5abfffd70ecc5a58e41e22ab5` — the rendering golden of the
-  synthetic context (it moves when matplotlib or numpy changes,
-  as the f32 goldens do).
-- The per-up-move determinism: every one of the seven PNGs hashes
-  equal across two up-moves (the seeded jitter, the KDE subsample
-  seed, the Agg backend).
-- The skip-line literals: "PLOT skipped: plot.enable is false." /
-  "PLOT skipped: no plot names requested." — the pilot wording
-  (the no-op paths).
-- The completion-line shape: "PLOT done: {n} plot(s) written to
-  {dir}." (the count + the resolved directory).
-- The `iwmap` pin [0, 1, 66, 6627] (the production rlm_04 layout)
-  + the per-instance index contract (one column per feature
-  instance, the value the configuration index within the feature)
-  — the synthetic context mirrors the real INDEXES level.
+- The parity PNG sha3_256: `fdb8162d8f1696ee86c3fa86157720f53aaf6d0 5abfffd70ecc5a58e41e22ab5` — the rendering golden of
+  the synthetic context (it moves when matplotlib or numpy changes, as the f32 goldens do).
+- The per-up-move determinism: every one of the seven PNGs hashes equal across two up-moves (the seeded jitter, the KDE
+  subsample seed, the Agg backend).
+- The skip-line literals: "PLOT skipped: plot.enable is false." / "PLOT skipped: no plot names requested." — the pilot
+  wording (the no-op paths).
+- The completion-line shape: "PLOT done: {n} plot(s) written to {dir}." (the count + the resolved directory).
+- The `iwmap` pin [0, 1, 66, 6627] (the production rlm_04 layout) + the per-instance index contract (one column per
+  feature instance, the value the configuration index within the feature) — the synthetic context mirrors the real
+  INDEXES level.
 
 ## Conventions
 
-- The tmp-file idiom: files ONLY under `build/tmp`
-  (`CUSTOM_TMP_BASE`), removed in `tearDown` (the `mkdtemp`
-  + `shutil.rmtree` pattern).
-- `Worker.up` is `@validate_call`-gated with `context: Context`
-  (state_machine L87-90): a SimpleNamespace context is rejected by
-  the gate — hence the real `LMContext`; only the `cfg` attribute
-  (with its `plot` SimpleNamespace) may be a stand-in.
-- The synthetic data is SEEDed (42) so the golden is stable; the
-  sizes (N_TRN 1200 / N_VLD 1000) keep the module under ~5 s in
-  the default tier.
+- The tmp-file idiom: files ONLY under `build/tmp` (`CUSTOM_TMP_BASE`), removed in `tearDown` (the `mkdtemp` +
+  `shutil.rmtree` pattern).
+- `Worker.up` is `@validate_call`-gated with `context: Context` (state_machine L87-90): a SimpleNamespace context is
+  rejected by the gate — hence the real `LMContext`; only the `cfg` attribute (with its `plot` SimpleNamespace) may be a
+  stand-in.
+- The synthetic data is SEEDed (42) so the golden is stable; the sizes (N_TRN 1200 / N_VLD 1000) keep the module under
+  ~5 s in the default tier.
 
 ## Integration
 
-- The DB-gated complement: `test_lm_worker_full_chain` (the A2030
-  chain pins the seven PNGs + the "saved:"/"done" log lines at the
-  20k/199932 scale; the A2050 VLONG chain at the 200k scale) +
-  `probes/verify_logistic_model.py` V3c (the 17-level pipeline
-  shape, the PLOT last).
-- The hlp-level complement: `test_hlp_plot` (the pure helpers: the
-  vocabulary, the jitter, the EGV bins, the KDE guard).
-- The schema complement: `test_hlp_config_schemas` (the PlotConfig
-  section — the defaults, the format normalization, the fail-fast
-  name guard, the dedupe).
-- The probe complement: `probes/verify_plot.py` (the 16-check
-  no-DB probe: the vocabulary, the lazy import, the seven-builder
-  rendering, the pair formats, the determinism, the pilot
-  semantics).
-- The level under test: `reversi/lm/wrk_plot.py` (wrk_plot.md);
-  the builders: `reversi/lm/hlp_plot.py` (hlp_plot.md); the
-  schema: `reversi/lm/hlp_config_schemas.py` (the PlotConfig
-  section).
+- The DB-gated complement: `test_lm_worker_full_chain` (the A2030 chain pins the seven PNGs + the "saved:"/"done" log
+  lines at the 20k/199932 scale; the A2050 VLONG chain at the 200k scale) + `probes/verify_logistic_model.py` V3c (the
+  17-level pipeline shape, the PLOT last).
+- The hlp-level complement: `test_hlp_plot` (the pure helpers: the vocabulary, the jitter, the EGV bins, the KDE guard).
+- The schema complement: `test_hlp_config_schemas` (the PlotConfig section — the defaults, the format normalization, the
+  fail-fast name guard, the dedupe).
+- The probe complement: `probes/verify_plot.py` (the 16-check no-DB probe: the vocabulary, the lazy import, the
+  seven-builder rendering, the pair formats, the determinism, the pilot semantics).
+- The level under test: `reversi/lm/wrk_plot.py` (wrk_plot.md); the builders: `reversi/lm/hlp_plot.py` (hlp_plot.md);
+  the schema: `reversi/lm/hlp_config_schemas.py` (the PlotConfig section).

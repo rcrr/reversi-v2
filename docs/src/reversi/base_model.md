@@ -1,12 +1,9 @@
 # reversi/base_model.py
-`BaseModel` is a thin **facade base class** for pipeline domains: it
-encapsulates the generic delegation to `reversi.tools.state_machine.StateMachine`
-so concrete domain facades (LogisticModel today, DeepNetworkModel in the
-planned future) do not repeat the boilerplate. It owns NO pipeline state
-of its own: the `StateMachine` is the only stateful object, and the
-facade is a pure pass-through layer. `self.context` is the SAME object
-as `self.sm.context` (identity verified — both point at the shared
-LMContext).
+`BaseModel` is a thin **facade base class** for pipeline domains: it encapsulates the generic delegation to
+`reversi.tools.state_machine.StateMachine` so concrete domain facades (LogisticModel today, DeepNetworkModel in the
+planned future) do not repeat the boilerplate. It owns NO pipeline state of its own: the `StateMachine` is the only
+stateful object, and the facade is a pure pass-through layer. `self.context` is the SAME object as `self.sm.context`
+(identity verified — both point at the shared LMContext).
 
 ## API
 
@@ -25,32 +22,24 @@ LMContext).
 
 89 lines.
 
-- L28 the module header comment; L31-36 imports (pathlib, typing.List,
-  pydantic, state_machine).
-- `class BaseModel` L42 (docstring L43-47 — the DeepNetworkModel
-  forward-reference, kept by design).
-- The pass-through surface: every method is a one-line delegation
-  (source-verified); type errors on `move_to_step`/`move_to_last`
-  surface from the SM's @validate_call gate, not from the facade.
-  The `__init__` boundary itself is facade-gated, so the class is gated
-  at BOTH its own entry and the inner SM boundary.
+- L28 the module header comment; L31-36 imports (pathlib, typing.List, pydantic, state_machine).
+- `class BaseModel` L42 (docstring L43-47 — the DeepNetworkModel forward-reference, kept by design).
+- The pass-through surface: every method is a one-line delegation (source-verified); type errors on `move_to_step`/`move_to_last`
+  surface from the SM's @validate_call gate, not from the facade. The `__init__` boundary itself is facade-gated, so the
+  class is gated at BOTH its own entry and the inner SM boundary.
 
 ## Verified invariants
 
-Pinned by the `probes/verify_logistic_model.py` (21 checks — the
-base_model + logistic_model family probe) + the `test_logistic_model`
-suite (17 tests) through the LogisticModel subclass.
+Pinned by the `probes/verify_logistic_model.py` (21 checks — the base_model + logistic_model family probe) + the
+`test_logistic_model` suite (17 tests) through the LogisticModel subclass.
 
-- V1: `model.context is model.sm.context` — one shared context object,
-  no copy (the suite's `test_context_initialization` + probe).
-- V2: `model.sm` is a StateMachine; `verbosity` defaults to STANDARD;
-  the setter delegates (set on the facade → visible on the SM) —
-  `test_facade_views_and_verbosity_round_trip`.
-- V3: at construction `current_step == 0`,
-  `current_worker_name == "CREATED"` (the SM starts at the sentinel) —
+- V1: `model.context is model.sm.context` — one shared context object, no copy (the suite's
+  `test_context_initialization` + probe).
+- V2: `model.sm` is a StateMachine; `verbosity` defaults to STANDARD; the setter delegates (set on the facade → visible
+  on the SM) — `test_facade_views_and_verbosity_round_trip`.
+- V3: at construction `current_step == 0`, `current_worker_name == "CREATED"` (the SM starts at the sentinel) —
   `test_state_machine_initialization`.
-- V4: all 7 pass-through methods are one-line delegations —
-  `test_facade_delegates_to_state_machine` (per-method
+- V4: all 7 pass-through methods are one-line delegations — `test_facade_delegates_to_state_machine` (per-method
   `patch.object(self.model.sm, ...)` + `assert_called_once_with`).
 
 ## Open issues
@@ -59,16 +48,13 @@ None.
 
 ## Conventions
 
-- `@validate_call` on `__init__` is the house convention for
-  constructors/factories (pydantic, arbitrary_types_allowed): wrong-typed
-  constructor args raise a pydantic `ValidationError` at the facade
-  boundary; the SM gate runs behind it (belt-and-braces).
+- `@validate_call` on `__init__` is the house convention for constructors/factories (pydantic, arbitrary_types_allowed):
+  wrong-typed constructor args raise a pydantic `ValidationError` at the facade boundary; the SM gate runs behind it
+  (belt-and-braces).
 
 ## Integration
 
-- `LogisticModel` (logistic_model.md) is the concrete domain facade on
-  this base; the sibling modules wrk_config / wrk_positions /
-  hlp_config_schemas are the pipeline levels.
-- `state_machine.md` is the delegated-to core; the facade adds no
-  behaviour of its own beyond the delegation + the own `@validate_call`
-  gate.
+- `LogisticModel` (logistic_model.md) is the concrete domain facade on this base; the sibling modules wrk_config /
+  wrk_positions / hlp_config_schemas are the pipeline levels.
+- `state_machine.md` is the delegated-to core; the facade adds no behaviour of its own beyond the delegation + the own
+  `@validate_call` gate.

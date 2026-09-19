@@ -1,9 +1,7 @@
 # reversi/lm/hlp_config_schemas.py
-The pydantic config DOMAIN of the LM pipeline: one public entry,
-`LMConfig`, over a tree of nested configs — the
-JSON5 document that wrk_config loads and validates. Every
-nested config extends `LMBaseConfig`, whose `properties:
-dict[str, Any]` bag (default `{}`) is a free-form extension point.
+The pydantic config DOMAIN of the LM pipeline: one public entry, `LMConfig`, over a tree of nested configs — the JSON5
+document that wrk_config loads and validates. Every nested config extends `LMBaseConfig`, whose `properties: dict[str,
+Any]` bag (default `{}`) is a free-form extension point.
 
 ## API
 
@@ -30,149 +28,87 @@ dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 ## Architecture
 
-- **The bitboard mask pair** — `PatternConfig.mask` and
-  `MobilityFeatureConfig.mask`/`amask` are `Bitboard` (from
-  board.py) behind a `mode="before"` `field_validator`
-  (`bitboard_from_hex_str`) and a `field_serializer`
-  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix
-  (case-insensitive); out, uppercase 16-hex. The docstrings and
-  the field descriptions say exactly that;
-  `model_config` is `arbitrary_types_allowed`.
-- **The strong-Wolfe invariant** — `OptimizationConfig` carries
-  the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
-  `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`,
-  `min_p_fun_decrease=(1e-14, 7)`, `log_every_n`/`save_every_n`
-  ge=0, `checkpoint_file` required, `high_performance_fg`
-  default False — the fg-variant flag: False keeps the
-  classic vectorized-numpy fg closure, True builds the numba
-  high-performance one (the GRADIENT worker reads it; rlm_03 /
-  rlm_04 opt in)) plus
-  `check_wolfe_constants`, a `model_validator(mode="after")`
-  that enforces `c2 > c1` (ValueError → ValidationError, both
-  values in the message) — the invariant is code, not
-  docstring.
-- **The top level** — `name`, `description`, `base_dir`,
-  `output` (required); `use_cache=True`; `cache_files_prefix`
-  default `"rlmwf_"` ("Filename prefix for the level specific
-  cache files" — the filename-prefix concatenation the
-  state_machine closures implement); `regab_allow_duplicate`
-  default `True` (the duplicate game-positions policy —
-  `True` keeps every extracted row, the pre-existing behaviour;
-  `False` deduplicates by `(mover, opponent)` keeping the first
-  occurrence; consumed by the POSITIONS/VLD `extract_and_prepare`
-  compute path, the count is logged at both levels);
-  `client_check_tol` default `1e-8` (the CLIENT_CHECK
-  level tolerance — the max absolute Y-space difference admitted
-  between the validation residuals recomputed from the SAVED model
-  file and the in-memory VALIDATE residuals; `gt=0` — a
-  non-positive tolerance is a ValidationError);
-  `plot: PlotConfig` by default factory (the PLOT level's
-  pilot — see below); the five required domain sections
-  (`regab_data_set`, `feature_set`, `stat_model`, `optimization`,
+- **The bitboard mask pair** — `PatternConfig.mask` and `MobilityFeatureConfig.mask`/`amask` are `Bitboard` (from
+  board.py) behind a `mode="before"` `field_validator` (`bitboard_from_hex_str`) and a `field_serializer`
+  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex. The
+  docstrings and the field descriptions say exactly that; `model_config` is `arbitrary_types_allowed`.
+- **The strong-Wolfe invariant** — `OptimizationConfig` carries the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
+  `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`, `min_p_fun_decrease=(1e-14, 7)`, `log_every_n`/`save_every_n`
+  ge=0, `checkpoint_file` required, `high_performance_fg` default False — the fg-variant flag: False keeps the classic
+  vectorized-numpy fg closure, True builds the numba high-performance one (the GRADIENT worker reads it; rlm_03 / rlm_04
+  opt in)) plus `check_wolfe_constants`, a `model_validator(mode="after")` that enforces `c2 > c1` (ValueError →
+  ValidationError, both values in the message) — the invariant is code, not docstring.
+- **The top level** — `name`, `description`, `base_dir`, `output` (required); `use_cache=True`; `cache_files_prefix`
+  default `"rlmwf_"` ("Filename prefix for the level specific cache files" — the filename-prefix concatenation the
+  state_machine closures implement); `regab_allow_duplicate` default `True` (the duplicate game-positions policy —
+  `True` keeps every extracted row, the pre-existing behaviour; `False` deduplicates by `(mover, opponent)` keeping the
+  first occurrence; consumed by the POSITIONS/VLD `extract_and_prepare` compute path, the count is logged at both
+  levels); `client_check_tol` default `1e-8` (the CLIENT_CHECK level tolerance — the max absolute Y-space difference
+  admitted between the validation residuals recomputed from the SAVED model file and the in-memory VALIDATE residuals;
+  `gt=0` — a non-positive tolerance is a ValidationError); `plot: PlotConfig` by default factory (the PLOT level's pilot
+  — see below); the five required domain sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`,
   `validation_data_set`); `analytics` by default factory.
-- **The feature analysis + effect size config** — `feature_analysis:
-   FeatureAnalysisConfig` + `effect_size: EffectSizeConfig`, both
-   by default factory, both `enable` default **FALSE** (opt-in:
-   the production configs are untouched — they don't set
-   the fields, so they default to the no-op; the experiment
-   configs rlm_05/rlm_06 + the rlm_00 fixture opt in);
-   `target_level: str` default `"last"` (the P4: a level name
-   (case-insensitive, the fail-fast ValueError
-   in the StateMachine) or "last" for the full pipeline); and
-   `check_su_pairs_feature_set`, a `model_validator(mode="after")`
-   that fails fast (the P6) when a `feature_analysis.su_pairs`
-   name is not in the `feature_set` (the mobility names + the
-   pattern names). The `FeatureAnalysisConfig.check_su_pairs`
-   field validator does the canonical sort + the dedupe (each pair
-   a sorted tuple, the repeated pair collapsed).
-- **PlotConfig** — `enable: bool = True` (the master
-  switch: false makes the PLOT level a no-op, even with names
-  listed); `format: str = "png"` (`"png"`, `"pdf"`, or a comma-
-  separated pair
-  (e.g. `"pdf,png"` — both); the `check_format` validator
-  normalizes whitespace, rejects unknown tokens, empty tokens
-  (the trailing comma) and duplicates); `dpi: int = 150`
-  (50..1200, the png raster resolution); `dir_name: Path =
-  "plots"` (an ABSOLUTE path is used as-is — it may live outside
-  base_dir — a relative one resolves under base_dir; the
-  resolution is the WORKER's job, the schema only carries the
-  Path); `plots: List[str] = []` (the WHITELIST of plot names:
-  a listed name is generated, an unlisted one is skipped, an
-  empty list makes the PLOT level a no-op; the `check_plots`
-  validator fails fast on names outside `PLOT_NAMES` (imported
-  from hlp_plot — the single source of truth) and deduplicates
-  preserving order).
-- **Strictness** — the 3-letter uppercase status is enforced in
-  BOTH status lists (regab + validation data set); `ec` is
-  0..60; `frequency_cut_off` is a PositiveInt.
+- **The feature analysis + effect size config** — `feature_analysis: FeatureAnalysisConfig` +
+  `effect_size: EffectSizeConfig`, both by default factory, both `enable` default **FALSE** (opt-in: the production
+  configs are untouched — they don't set the fields, so they default to the no-op; the experiment configs rlm_05/rlm_06
+  + the rlm_00 fixture opt in); `target_level: str` default `"last"` (the P4: a level name (case-insensitive, the
+  fail-fast ValueError in the StateMachine) or "last" for the full pipeline); and `check_su_pairs_feature_set`, a
+  `model_validator(mode="after")` that fails fast (the P6) when a `feature_analysis.su_pairs` name is not in the
+  `feature_set` (the mobility names + the pattern names). The `FeatureAnalysisConfig.check_su_pairs` field validator
+  does the canonical sort + the dedupe (each pair a sorted tuple, the repeated pair collapsed).
+- **PlotConfig** — `enable: bool = True` (the master switch: false makes the PLOT level a no-op, even with names
+  listed); `format: str = "png"` (`"png"`, `"pdf"`, or a comma-separated pair (e.g. `"pdf,png"` — both); the
+  `check_format` validator normalizes whitespace, rejects unknown tokens, empty tokens (the trailing comma) and
+  duplicates); `dpi: int = 150` (50..1200, the png raster resolution); `dir_name: Path = "plots"` (an ABSOLUTE path is
+  used as-is — it may live outside base_dir — a relative one resolves under base_dir; the resolution is the WORKER's
+  job, the schema only carries the Path); `plots: List[str] = []` (the WHITELIST of plot names: a listed name is
+  generated, an unlisted one is skipped, an empty list makes the PLOT level a no-op; the `check_plots` validator fails
+  fast on names outside `PLOT_NAMES` (imported from hlp_plot — the single source of truth) and deduplicates preserving
+  order).
+- **Strictness** — the 3-letter uppercase status is enforced in BOTH status lists (regab + validation data set); `ec`
+  is 0..60; `frequency_cut_off` is a PositiveInt.
 
 ## Verified invariants
 
-Pinned by `test_hlp_config_schemas.py` (27 tests,
-`TestRlmConfigSchemas`).
+Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
 
-- The `model_dump_json` round-trip: the mask serializes back to
-  uppercase 16-hex, `cache_files_prefix` preserved —
+- The `model_dump_json` round-trip: the mask serializes back to uppercase 16-hex, `cache_files_prefix` preserved —
   `test_model_dump_json_round_trip`.
-- `'0000000000000107'` (16-hex, no 0x) → Bitboard 0x107 →
-  serialized back as the same string —
+- `'0000000000000107'` (16-hex, no 0x) → Bitboard 0x107 → serialized back as the same string —
   `test_pattern_mask_16_hex_parsed_and_serialized`.
-- The 0x-prefixed form is REJECTED; a non-hex mask ("ZZZZ") is
-  rejected — `test_pattern_mask_0x_prefix_rejected`,
+- The 0x-prefixed form is REJECTED; a non-hex mask ("ZZZZ") is rejected — `test_pattern_mask_0x_prefix_rejected`,
   `test_invalid_hex_mask_rejected`.
 - `ec` outside 0..60 rejected — `test_ec_out_of_range_rejected`.
-- Lowercase / wrong-length status codes rejected (StatusString)
-  — `test_invalid_status_rejected`.
-- `c1=0.9` + `c2=0.1` rejected, `c1=0.1` + `c2=0.9` accepted (the
-  cross-field validator) — `test_optimization_c2_lte_c1_rejected`,
-  `test_optimization_c2_gt_c1_accepted`.
-- `high_performance_fg` defaults to False and accepts True —
-  `test_optimization_high_performance_fg`.
-- `validation_data_set.status` is strict (rejects `'xyz'`,
-  accepts valid codes) — `test_validation_dataset_status_strict`.
-- `'properties'` is in the `model_fields` of
-  `ValidationDataSetConfig` AND `StatModelConfig` —
+- Lowercase / wrong-length status codes rejected (StatusString) — `test_invalid_status_rejected`.
+- `c1=0.9` + `c2=0.1` rejected, `c1=0.1` + `c2=0.9` accepted (the cross-field validator) —
+  `test_optimization_c2_lte_c1_rejected`, `test_optimization_c2_gt_c1_accepted`.
+- `high_performance_fg` defaults to False and accepts True — `test_optimization_high_performance_fg`.
+- `validation_data_set.status` is strict (rejects `'xyz'`, accepts valid codes) —
+  `test_validation_dataset_status_strict`.
+- `'properties'` is in the `model_fields` of `ValidationDataSetConfig` AND `StatModelConfig` —
   `test_properties_field_in_model_fields`.
-- The default `patterns` list is NOT shared across instances —
-  `test_pattern_set_mutable_default_not_shared`.
-- Missing `output` rejected (required) —
-  `test_missing_output_rejected`.
-- The `cache_files_prefix` default is `'rlmwf_'` —
-  `test_cache_files_prefix_default`.
-- The `client_check_tol` default is `1e-8`, an explicit
-  override survives the dump round-trip, and a non-positive
-  tolerance is a ValidationError —
-  `test_client_check_tol_default/override/nonpositive_rejected`.
-- The PlotConfig defaults: `enable=True`, `format="png"`,
-  `dpi=150`, the relative `"plots"` dir, the
-  EMPTY whitelist (the no-op pilot) —
-  `test_plot_defaults`.
-- The format field: a lone token and the pair are accepted;
-  whitespace normalizes away ("png, pdf" → "png,pdf"), the order
-  is preserved; `jpg` / `pdf,` / `""` / `png,png` are all
-  rejected — `test_plot_format_pair_and_normalization`,
+- The default `patterns` list is NOT shared across instances — `test_pattern_set_mutable_default_not_shared`.
+- Missing `output` rejected (required) — `test_missing_output_rejected`.
+- The `cache_files_prefix` default is `'rlmwf_'` — `test_cache_files_prefix_default`.
+- The `client_check_tol` default is `1e-8`, an explicit override survives the dump round-trip, and a non-positive
+  tolerance is a ValidationError — `test_client_check_tol_default/override/nonpositive_rejected`.
+- The PlotConfig defaults: `enable=True`, `format="png"`, `dpi=150`, the relative `"plots"` dir, the EMPTY whitelist
+  (the no-op pilot) — `test_plot_defaults`.
+- The format field: a lone token and the pair are accepted; whitespace normalizes away ("png, pdf" → "png,pdf"), the
+  order is preserved; `jpg` / `pdf,` / `""` / `png,png` are all rejected — `test_plot_format_pair_and_normalization`,
   `test_plot_format_bad_rejected`.
-- The whitelist: an unknown name is a fail-fast ValidationError
-  (the PLOT_NAMES vocabulary); a repeated name is
-  deduplicated, order preserved; an absolute dir_name stays
-  absolute, a relative one stays relative —
-  `test_plot_unknown_name_rejected`,
-  `test_plot_dedup_preserving_order`,
-  `test_plot_dir_absolute_and_relative`.
-- The opt-in defaults: the
-  `feature_analysis.enable` + the `effect_size.enable` default
-  FALSE, the `target_level` default "last", the corpus defaults
-  (seed 42, 1e7, ec 20), the empty su_pairs, the export_csv
-  default False, the top_k_adherence default 20 —
-  `test_i017_defaults`.
-- The P6 canonical order + the dedupe: the repeated pair (any
-  order) collapses to one sorted tuple —
+- The whitelist: an unknown name is a fail-fast ValidationError (the PLOT_NAMES vocabulary); a repeated name is
+  deduplicated, order preserved; an absolute dir_name stays absolute, a relative one stays relative —
+  `test_plot_unknown_name_rejected`, `test_plot_dedup_preserving_order`, `test_plot_dir_absolute_and_relative`.
+- The opt-in defaults: the `feature_analysis.enable` + the `effect_size.enable` default FALSE, the `target_level`
+  default "last", the corpus defaults (seed 42, 1e7, ec 20), the empty su_pairs, the export_csv default False, the
+  top_k_adherence default 20 — `test_i017_defaults`.
+- The P6 canonical order + the dedupe: the repeated pair (any order) collapses to one sorted tuple —
   `test_i017_su_pairs_canonical_dedupe`.
-- The P6 fail-fast against the feature set: a name not in the
-  feature set is a ValidationError at the CONFIG level —
+- The P6 fail-fast against the feature set: a name not in the feature set is a ValidationError at the CONFIG level —
   `test_i017_su_pairs_fail_fast`.
-- The `target_level` field: a level name ("FEATURE_ANALYSIS")
-  survives, the default is "last" — `test_i017_target_level_field`.
+- The `target_level` field: a level name ("FEATURE_ANALYSIS") survives, the default is "last" —
+  `test_i017_target_level_field`.
 
 ## Open issues
 
@@ -180,19 +116,13 @@ None.
 
 ## Conventions
 
-- Every nested config extends `LMBaseConfig` — the `properties`
-  bag is present in all of them.
-- Mutable defaults are `Field(default_factory=...)` — never bare
-  literals.
-- A mask is 16 hex digits, no 0x prefix — parser, docstring and
-  field description stay in sync.
-- Cross-field invariants live in a `model_validator`, not only in
-  a description.
+- Every nested config extends `LMBaseConfig` — the `properties` bag is present in all of them.
+- Mutable defaults are `Field(default_factory=...)` — never bare literals.
+- A mask is 16 hex digits, no 0x prefix — parser, docstring and field description stay in sync.
+- Cross-field invariants live in a `model_validator`, not only in a description.
 
 ## Integration
 
-- Consumed by `wrk_config` (`LMConfig
-  (**raw)` after the json5 load).
-- The Bitboard primitive + `bitboard_from_hex_str` come from
-  `board.py`.
+- Consumed by `wrk_config` (`LMConfig (**raw)` after the json5 load).
+- The Bitboard primitive + `bitboard_from_hex_str` come from `board.py`.
 - The JSON5 fixture: `src/reversi/test/data/rlm_00.json`.

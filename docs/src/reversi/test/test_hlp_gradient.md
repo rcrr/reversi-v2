@@ -1,6 +1,5 @@
 # reversi/test/test_hlp_gradient.py
-The dedicated data-object suite of the hlp_gradient module.
-3 classes / 14 tests / no DB, no gate, no artifacts — the
+The dedicated data-object suite of the hlp_gradient module. 3 classes / 14 tests / no DB, no gate, no artifacts — the
 handcrafted-mock pattern, as in test_hlp_zed.
 
 ## Coverage
@@ -13,25 +12,18 @@ handcrafted-mock pattern, as in test_hlp_zed.
 
 ## Goldens pinned
 
-- The exact zero-weights goldens: f = 4/75, g = `[1/30, 0,
-  −1/30]` — by construction (w = 0, ridge 0 → f =
-  0.5·mean((0.5−z)²), g[k] = 0.25·Σ_{m: X[m,*]=k}(0.5−z[m])/M).
+- The exact zero-weights goldens: f = 4/75, g = `[1/30, 0, −1/30]` — by construction (w = 0, ridge 0 → f
+  = 0.5·mean((0.5−z)²), g[k] = 0.25·Σ_{m: X[m,*]=k}(0.5−z[m])/M).
 - The hand-rolled sigmoid reference (independent of scipy).
 
 ## Conventions
 
-- DB-free BY CONSTRUCTION (the module has no file I/O) — hence
-  no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
-- NO init-validation tests: hlp_gradient is a function-only
-  module (no data class to validate) — unlike test_hlp_zed.
-- No ws lines, no dead imports, the no-DB header claim true
-  from the first line.
+- DB-free BY CONSTRUCTION (the module has no file I/O) — hence no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
+- NO init-validation tests: hlp_gradient is a function-only module (no data class to validate) — unlike test_hlp_zed.
+- No ws lines, no dead imports, the no-DB header claim true from the first line.
 
 ## Integration
 
-- Independent of the pipeline: the per-function pin that would
-  catch a signature change to `hlp_gradient` (the worker test
-  only exercises the end-to-end path on the live 199952-
-  position rlm_02 dataset).
-- The LIVE goldens (the 4 pinned values at w=0) live in
-  test_wrk_gradient.py — the single source of truth for them.
+- Independent of the pipeline: the per-function pin that would catch a signature change to `hlp_gradient` (the worker
+  test only exercises the end-to-end path on the live 199952-position rlm_02 dataset).
+- The LIVE goldens (the 4 pinned values at w=0) live in test_wrk_gradient.py — the single source of truth for them.

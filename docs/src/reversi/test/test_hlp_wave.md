@@ -1,9 +1,7 @@
 # reversi/test/test_hlp_wave.py
-The NO-DB micro-suite of the concurrent WAVE generator (the G0
-corpus engine): the batch draw vs the golden-pinned reference
-PRNG, the W=1 trajectory vs the scalar reference loop, the run
-integrity + the determinism, and the LONG 1e6 benchmark. 2
-classes / 4 tests (3 + the LONG-gated benchmark) / no DB.
+The NO-DB micro-suite of the concurrent WAVE generator (the G0 corpus engine): the batch draw vs the golden-pinned
+reference PRNG, the W=1 trajectory vs the scalar reference loop, the run integrity + the determinism, and the LONG 1e6
+benchmark. 2 classes / 4 tests (3 + the LONG-gated benchmark) / no DB.
 
 ## Coverage
 
@@ -14,31 +12,22 @@ classes / 4 tests (3 + the LONG-gated benchmark) / no DB.
 
 ## Goldens pinned
 
-- The reference PRNG: a SECOND `MT19937(7)` instance walked
-  with the scalar `get_uint64` — the batch kernel is pinned
-  against the same class, not against a literal (the literals
-  belong to the prng golden suite).
-- The W=1 scalar reference loop: an in-test re-implementation
-  of the G0 stream discipline (`_kth_bit` = the rank-th set
-  bit, one draw per step, the pass swapped, the double pass
-  breaking the loop) — the independent derivation of the
+- The reference PRNG: a SECOND `MT19937(7)` instance walked with the scalar `get_uint64` — the batch kernel is pinned
+  against the same class, not against a literal (the literals belong to the prng golden suite).
+- The W=1 scalar reference loop: an in-test re-implementation of the G0 stream discipline (`_kth_bit` = the rank-th set
+  bit, one draw per step, the pass swapped, the double pass breaking the loop) — the independent derivation of the
   engine's trajectory (seed 23, ec 50).
-- The run-integrity literals: 1000 harvested, 1000 unique
-  slots, ec 20 on every position (64 - popcount(mover|opp)),
+- The run-integrity literals: 1000 harvested, 1000 unique slots, ec 20 on every position (64 - popcount(mover|opp)),
   seeds 42 / 43.
 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The LONG gate: `@unittest.skipUnless(LONG == '1')` on the
-  benchmark class; the default tier runs the 3 engine tests.
-- The benchmark asserts a wall-clock GUARD only (600 s): the
-  deliverable is the printed games/s line (D-036 — no
+- The LONG gate: `@unittest.skipUnless(LONG == '1')` on the benchmark class; the default tier runs the 3 engine tests.
+- The benchmark asserts a wall-clock GUARD only (600 s): the deliverable is the printed games/s line (D-036 — no
   performance gates).
 
 ## Integration
 
-- Consumed by `run_utests.sh` (section 4 — the pipeline, next
-  to `test_hlp_random_play`).
-- It pins `reversi/lm/hlp_wave.py` (the G0 engine) and, in
-  passing, the `tools/prng.py` batch draw the engine drives.
+- Consumed by `run_utests.sh` (section 4 — the pipeline, next to `test_hlp_random_play`).
+- It pins `reversi/lm/hlp_wave.py` (the G0 engine) and, in passing, the `tools/prng.py` batch draw the engine drives.

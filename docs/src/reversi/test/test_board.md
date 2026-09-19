@@ -1,8 +1,6 @@
 # reversi/test/test_board.py
-The board unit suite — 43 classes / 193 tests (161 defined + 32
-inherited through the 8 D8 blueprint subclasses), 12 PERF-gated
-(`@skipUnless(PERF == '1')`), ~1.3 s. Companion of
-docs/src/reversi/board.md. The file is 2377 lines.
+The board unit suite — 43 classes / 193 tests (161 defined + 32 inherited through the 8 D8 blueprint subclasses), 12
+PERF-gated (`@skipUnless(PERF == '1')`), ~1.3 s. Companion of docs/src/reversi/board.md. The file is 2377 lines.
 
 ## Coverage
 
@@ -16,33 +14,24 @@ docs/src/reversi/board.md. The file is 2377 lines.
 
 ## Goldens pinned
 
-- The `ar` board print 9-line string (mover 17 / opponent 27 /
-  empties 13) + the position print 9-line string.
-- The 112 D8 primitive pairs + the orbit slot order + the 120-row
-  legal-moves bulk (all independently re-derived at analysis time —
-  zero mismatches; the value base of the suite).
+- The `ar` board print 9-line string (mover 17 / opponent 27 / empties 13) + the position print 9-line string.
+- The 112 D8 primitive pairs + the orbit slot order + the 120-row legal-moves bulk (all independently re-derived at
+  analysis time — zero mismatches; the value base of the suite).
 - The `ar_reflection_a1h8`/`ar_reflection_h1a8` header constants.
 - The pydantic v2 major.
 
 ## Conventions
 
-- The header constants (L78-86 area) keep their transposed-looking
-  names (row_1 = file a, ...) — REJECTED as a defect: this
-  is Reversi, not chess; the canonical row/column vocabulary is
-  notes/naming.md. No rename done (or to do).
-- The D8 diagram docstrings were refuted cell-by-cell:
-  all match the code under the canonical convention; only the
+- The header constants (L78-86 area) keep their transposed-looking names (row_1 = file a, ...) — REJECTED as a defect:
+  this is Reversi, not chess; the canonical row/column vocabulary is notes/naming.md. No rename done (or to do).
+- The D8 diagram docstrings were refuted cell-by-cell: all match the code under the canonical convention; only the
   "rotaded" typo stood (fixed in board.py).
-- PERF gates measure (b/s print), never fail on slowness; the 1M
-  populations are uniform (`np.tile`/`np.full`).
-- The shared fixture pair is disjoint (`mover & opponent == 0`), so
-  the Area-C collision checks pass trivially there; the raise path is
-  exercised only in TestPositionCheckCollisions.
+- PERF gates measure (b/s print), never fail on slowness; the 1M populations are uniform (`np.tile`/`np.full`).
+- The shared fixture pair is disjoint (`mover & opponent == 0`), so the Area-C collision checks pass trivially there;
+  the raise path is exercised only in TestPositionCheckCollisions.
 
 ## Integration
 
-- Module under test: `board.md` (the engine core: Square/Move,
-  bitboards, D8, positions, legal moves, WOFC).
-- The same position fixture is shared with the pattern / mobility
-  suites; the naming rulings (notes/naming.md) are the
+- Module under test: `board.md` (the engine core: Square/Move, bitboards, D8, positions, legal moves, WOFC).
+- The same position fixture is shared with the pattern / mobility suites; the naming rulings (notes/naming.md) are the
   canonical reference for every name in this file.

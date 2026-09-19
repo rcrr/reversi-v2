@@ -1,8 +1,6 @@
 # reversi/test/test_binio.py
-The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s
-infrastructure suite). Includes `test_unknown_type_code_raises` and
-the 3 empty-sidecar-suffix guard tests — the 48 total counting the
-usage module.
+The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s infrastructure suite). Includes
+`test_unknown_type_code_raises` and the 3 empty-sidecar-suffix guard tests — the 48 total counting the usage module.
 
 ## Coverage
 
@@ -20,30 +18,22 @@ usage module.
 
 ## Goldens pinned
 
-- No float goldens (the suite is structural): the pins are the
-  byte-level layouts (MAGIC/SIGNATURE framing, the u64 length prefix,
-  the type codes), the exact exception types (`BinaryFormatError` /
-  `ValueError` / `FileNotFoundError`), and the `sha3_256sum` sidecar
-  format.
-- `test_usage_binio.py` (3 "living documentation" tests — `with` /
-  manual open-close / LZ4 cycles, each also verifying the sidecar;
-  `tempfile.mkdtemp` + `addCleanup(shutil.rmtree)`): no doc of its
-  own (pre-existing mirror gap, report-only).
+- No float goldens (the suite is structural): the pins are the byte-level layouts (MAGIC/SIGNATURE framing, the u64
+  length prefix, the type codes), the exact exception types (`BinaryFormatError` / `ValueError` / `FileNotFoundError`),
+  and the `sha3_256sum` sidecar format.
+- `test_usage_binio.py` (3 "living documentation" tests — `with` / manual open-close / LZ4 cycles, each also verifying
+  the sidecar; `tempfile.mkdtemp` + `addCleanup(shutil.rmtree)`): no doc of its own (pre-existing mirror gap,
+  report-only).
 
 ## Conventions
 
 - No PERF gates (~0.02 s), no DB gate (pure I/O).
-- The guard tests are fail-fast: the constructor test asserts no
-  file is created before the raise.
-- Known gaps (noted-only): no NaN/±inf float test (verified manually
-  at analysis); `_read_exact` EOF not directly unit-tested (indirectly
-  via `FramingTest`).
+- The guard tests are fail-fast: the constructor test asserts no file is created before the raise.
+- Known gaps (noted-only): no NaN/±inf float test (verified manually at analysis); `_read_exact` EOF not directly
+  unit-tested (indirectly via `FramingTest`).
 
 ## Integration
 
-- Module under test: `binio.md` — the on-disk foundation of the rlmwf
-  cache system.
-- The guard tests are the pin of the 3 sidecar entry points'
-  `ValueError` behaviour — the same behaviour
-  `test_lm_worker_full_chain` relies on (sidecar verification of the
-  saved model).
+- Module under test: `binio.md` — the on-disk foundation of the rlmwf cache system.
+- The guard tests are the pin of the 3 sidecar entry points' `ValueError` behaviour — the same behaviour
+  `test_lm_worker_full_chain` relies on (sidecar verification of the saved model).

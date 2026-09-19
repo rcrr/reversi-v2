@@ -1,13 +1,9 @@
 # reversi/test/test_regab.py
-The regab unit suite — 8 classes / 48 tests, no PERF gates. 35 tests
-require a live PostgreSQL database + the workspace `.env`; 2
-(`TestRegabDataSetFileLoadExceptions`) are fully mocked; 11
-(`TestRegabDedupMogv` + `TestRegabCountPositionOverlap`)
-are no-DB micro tests.
-`SKIP_REGAB_DB=1` (or the absent LONG tier) skips the
-DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`).
-The `.env` load and the checksum test's `mkdtemp` are anchored to the
-shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
+The regab unit suite — 8 classes / 48 tests, no PERF gates. 35 tests require a live PostgreSQL database + the workspace
+`.env`; 2 (`TestRegabDataSetFileLoadExceptions`) are fully mocked; 11 (`TestRegabDedupMogv` +
+`TestRegabCountPositionOverlap`) are no-DB micro tests. `SKIP_REGAB_DB=1` (or the absent LONG tier) skips the
+DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`). The `.env` load and the checksum test's `mkdtemp` are
+anchored to the shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 
 ## Coverage
 
@@ -24,26 +20,21 @@ shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` literal
-  `b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670`
-  (the V1 golden) — the only hash pin in the suite.
-- The `.env`-driven extraction expectation
-  (`TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT`) — the row-count pin
-  of the live extraction.
+- The `compute_sha3_256_hash` literal `b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670` (the V1 golden)
+  — the only hash pin in the suite.
+- The `.env`-driven extraction expectation (`TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT`) — the row-count pin of the live
+  extraction.
 
 ## Conventions
 
-- The suite is NOT self-contained: it needs the live DB + `.env`
-  (credentials are not committed and should not be).
-- No standalone unit test for `_validate_db_fields` (only through
-  `regab_gp_as_df`); no test for the compressed `binio` store path
-  (default uncompressed only) — both accepted (see regab.md).
-- The injection tests pin the EXACT guard behaviour (comment,
-  SELECT keyword, semicolon) + one accepted valid expression.
+- The suite is NOT self-contained: it needs the live DB + `.env` (credentials are not committed and should not be).
+- No standalone unit test for `_validate_db_fields` (only through `regab_gp_as_df`); no test for the compressed `binio`
+  store path (default uncompressed only) — both accepted (see regab.md).
+- The injection tests pin the EXACT guard behaviour (comment, SELECT keyword, semicolon) + one accepted valid
+  expression.
 
 ## Integration
 
-- Module under test: `regab.md`. The live-DB tests are the only
-  in-repo coverage of the PostgreSQL path (no probe for this module).
-- `test_wrk_positions.md` / `test_wrk_vld_positions.md`
-  cover the pipeline-level consumers (the cache_manager wiring).
+- Module under test: `regab.md`. The live-DB tests are the only in-repo coverage of the PostgreSQL path (no probe for
+  this module).
+- `test_wrk_positions.md` / `test_wrk_vld_positions.md` cover the pipeline-level consumers (the cache_manager wiring).

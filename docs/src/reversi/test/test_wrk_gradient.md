@@ -1,9 +1,7 @@
 # reversi/test/test_wrk_gradient.py
-The worker integration test of the GRADIENT level: the rlm_02
-end-to-end golden (the 4 values at w=0 — the single source of
-truth) + the `_down` clearing pin. 1 class / 2 tests, both DB-gated
-(the setUp moves through ZED on a fresh base dir, so a live DB is
-required — `test_wrk_gradient` 2/0/2 under the gate).
+The worker integration test of the GRADIENT level: the rlm_02 end-to-end golden (the 4 values at w=0 — the single source
+of truth) + the `_down` clearing pin. 1 class / 2 tests, both DB-gated (the setUp moves through ZED on a fresh base dir,
+so a live DB is required — `test_wrk_gradient` 2/0/2 under the gate).
 
 ## Coverage
 
@@ -14,34 +12,24 @@ required — `test_wrk_gradient` 2/0/2 under the gate).
 
 ## Goldens pinned
 
-- The 4 live values at w=0 on the rlm_02 dataset (199952
-  positions, 8 pattern instances — DIAG3 + EDGE, no intercept,
-  no mobilities; 2981 w entries) — all re-derived by the probe
-  (the independent float64 reference).
-- The step pins: 7 (ZED) in setUp + 8 (GRADIENT) in
-  `test_generate_gradient` + 7/ZED again in the _down test — the
+- The 4 live values at w=0 on the rlm_02 dataset (199952 positions, 8 pattern instances — DIAG3 + EDGE, no intercept, no
+  mobilities; 2981 w entries) — all re-derived by the probe (the independent float64 reference).
+- The step pins: 7 (ZED) in setUp + 8 (GRADIENT) in `test_generate_gradient` + 7/ZED again in the _down test — the
   9-level pipeline ordering locked.
 
 ## Conventions
 
-- Both tests are DB-gated: the setUp's move to ZED
-  runs the positions chain (the live regab DB) on a fresh base
-  dir — the same gate class as the other worker tests (the
-  db_long_gate: SKIP_REGAB_DB + LONG).
-- The goldens are the canonical values: the
-  R1 float32 cast of g changes the values by < 1 float32 ulp
-  (≈1e-10 absolute at these magnitudes) — inside the pinned
-  tolerances.
+- Both tests are DB-gated: the setUp's move to ZED runs the positions chain (the live regab DB) on a fresh base dir —
+  the same gate class as the other worker tests (the db_long_gate: SKIP_REGAB_DB + LONG).
+- The goldens are the canonical values: the R1 float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute
+  at these magnitudes) — inside the pinned tolerances.
 - The "How to run" header documents the gate (L38-39).
 
 ## Integration
 
-- No cache round-trip test exists (and none can): GRADIENT has
-  no cache file (the second non-cache level) — the end-to-end
-  coverage is the single compute + the `_down` pin.
-- The rlm_02.json fixture (the full 199952-position training set
-  — the largest fixture in the pipeline; the zero-weights
+- No cache round-trip test exists (and none can): GRADIENT has no cache file (the second non-cache level) — the
+  end-to-end coverage is the single compute + the `_down` pin.
+- The rlm_02.json fixture (the full 199952-position training set — the largest fixture in the pipeline; the zero-weights
   handcrafted-mock goldens live in test_hlp_gradient.py instead).
-- The independent re-derivation of the goldens (float32-exact
-  f, the np.add.at + hand-rolled-sigmoid g) is probe-side
-  + unit-side (`test_hlp_gradient`'s `_reference`).
+- The independent re-derivation of the goldens (float32-exact f, the np.add.at + hand-rolled-sigmoid g) is probe-side +
+  unit-side (`test_hlp_gradient`'s `_reference`).

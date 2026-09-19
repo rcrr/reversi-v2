@@ -1,8 +1,6 @@
 # reversi/test/test_hlp_generate.py
-The dedicated data-object suite of the hlp_generate module — 4
-classes / 16 tests. No DB, no gate, no artifacts — the
-SimpleNamespace mock-fixture pattern, as in test_hlp_zed /
-test_hlp_gradient.
+The dedicated data-object suite of the hlp_generate module — 4 classes / 16 tests. No DB, no gate, no artifacts — the
+SimpleNamespace mock-fixture pattern, as in test_hlp_zed / test_hlp_gradient.
 
 ## Coverage
 
@@ -15,34 +13,25 @@ test_hlp_gradient.
 
 ## Goldens pinned
 
-- The duck-typed hash golden `460c993da80d5ff6fd5581660d71be905
-  c482eadc5520718b56051f6545cd07a` (= sha3_256 of the 4-value
-  float32 fixture).
-- The mock compute golden (the hand re-derivation): INT 0.5; PAT
-  weighted mean (−0.2·10)/10 = −0.2 (only config 1 computed);
-  MOB interp over known configs {1: 1.0, 3: 3.0} clamped →
-  [1.0, 1.0, 2.0, 3.0, 3.0] — the same vector the probe D11
-  re-derives independently.
+- The duck-typed hash golden `460c993da80d5ff6fd5581660d71be905 c482eadc5520718b56051f6545cd07a` (= sha3_256 of the
+  4-value float32 fixture).
+- The mock compute golden (the hand re-derivation): INT 0.5; PAT weighted mean (−0.2·10)/10 = −0.2 (only config 1
+  computed); MOB interp over known configs {1: 1.0, 3: 3.0} clamped → [1.0, 1.0, 2.0, 3.0, 3.0] — the same vector the
+  probe D11 re-derives independently.
 
 ## Conventions
 
-- DB-free BY CONSTRUCTION (no file I/O outside the IO class,
-  which uses TemporaryDirectory) — hence no SKIP_REGAB_DB gate
-  and no `reversi.test.paths` import beyond CUSTOM_TMP_BASE.
-- The empty-array `wmap` in the error-branch tests is
-  `np.zeros((0, 3), dtype=np.int64)` — the (0,3) shape keeps the
+- DB-free BY CONSTRUCTION (no file I/O outside the IO class, which uses TemporaryDirectory) — hence no SKIP_REGAB_DB
+  gate and no `reversi.test.paths` import beyond CUSTOM_TMP_BASE.
+- The empty-array `wmap` in the error-branch tests is `np.zeros((0, 3), dtype=np.int64)` — the (0,3) shape keeps the
   column indexing `wmap[:, 0] == fid` well-defined.
-- The mid-file corruption is offset-computed (`size // 2`), not
-  a fixed offset: the dense file is small, a fixed 100 could
-  fall past EOF.
-- Clean house style (no stale comments, no dead `ctx.z` field,
-  no ws lines).
+- The mid-file corruption is offset-computed (`size // 2`), not a fixed offset: the dense file is small, a fixed 100
+  could fall past EOF.
+- Clean house style (no stale comments, no dead `ctx.z` field, no ws lines).
 
 ## Integration
 
-- This file owns the branches the live data cannot reach: init,
-  IO + the 3 header gates, consistency, and the compute error
-  branches.
-- The LIVE goldens (K = 6588, the per-feature weighted means,
-  orbit invariance, the hash golden) live in the probe E tier +
-  test_wrk_generate.py — the single source of truth.
+- This file owns the branches the live data cannot reach: init, IO + the 3 header gates, consistency, and the compute
+  error branches.
+- The LIVE goldens (K = 6588, the per-feature weighted means, orbit invariance, the hash golden) live in the probe E
+  tier + test_wrk_generate.py — the single source of truth.

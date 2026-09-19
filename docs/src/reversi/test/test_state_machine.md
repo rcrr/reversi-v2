@@ -1,7 +1,6 @@
 # reversi/test/test_state_machine.py
-The state-machine unit suite — 5 classes / 49 tests, no PERF gates,
-~0.3 s, no DB. The E2/E3 probe checks from `verify_wrk_config.py`
-are pinned as full-message `assertEqual` in two existing tests.
+The state-machine unit suite — 5 classes / 49 tests, no PERF gates, ~0.3 s, no DB. The E2/E3 probe checks from
+`verify_wrk_config.py` are pinned as full-message `assertEqual` in two existing tests.
 
 ## Coverage
 
@@ -15,33 +14,25 @@ are pinned as full-message `assertEqual` in two existing tests.
 
 ## Goldens pinned
 
-- The 3 display goldens (exact end-to-end buffers, wall-clock
-  independent — the frozen clock).
+- The 3 display goldens (exact end-to-end buffers, wall-clock independent — the frozen clock).
 - The Worker/StateMachine `__repr__` strings.
 - The CSV header field names + the ISO-8601 `+00:00` round-trip.
 - The E2/E3 FULL exception messages (the probe contract, now test-pinned).
-- The cache-path shapes (`00_CREATED` → `02_POSITIONS` → `01_CONFIG`,
-  `base/cache/01_CONFIG.dat`, the verbatim `cache01_CONFIG.dat`).
+- The cache-path shapes (`00_CREATED` → `02_POSITIONS` → `01_CONFIG`, `base/cache/01_CONFIG.dat`, the verbatim
+  `cache01_CONFIG.dat`).
 - The gating-matrix cells (30) + the enum values.
 
 ## Conventions
 
-- The `setUp` global stdout patch is LOAD-BEARING: the captured
-  stdout is asserted — not noise suppression.
-- Test artifacts are written ONLY under `workspace_root/build/tmp`
-  (the house rule, now via the shared `reversi.test.paths`
-  `CUSTOM_TMP_BASE`) and removed in `finally` — a failing test leaves
-  no garbage.
-- The re-pinned guard contract (E2/E3) lives in the suite — the probe
-  no longer carries those checks.
+- The `setUp` global stdout patch is LOAD-BEARING: the captured stdout is asserted — not noise suppression.
+- Test artifacts are written ONLY under `workspace_root/build/tmp` (the house rule, now via the shared
+  `reversi.test.paths` `CUSTOM_TMP_BASE`) and removed in `finally` — a failing test leaves no garbage.
+- The re-pinned guard contract (E2/E3) lives in the suite — the probe no longer carries those checks.
 
 ## Integration
 
-- Module under test: `state_machine.md` (the generic pipeline
-  state-machine core). The context-injection layer (this suite's
-  `TestContextInjection`) is the module's main integration surface
-  with the domain workers — the `LMContext` injection is
-  load-bearing.
-- The E2/E3 full-message conversions came from
-  `probes/verify_wrk_config.py` (E2/E3 → the two
-  `TestStateMachine` full-message pins).
+- Module under test: `state_machine.md` (the generic pipeline state-machine core). The context-injection layer (this
+  suite's `TestContextInjection`) is the module's main integration surface with the domain workers — the `LMContext`
+  injection is load-bearing.
+- The E2/E3 full-message conversions came from `probes/verify_wrk_config.py` (E2/E3 → the two `TestStateMachine`
+  full-message pins).

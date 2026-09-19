@@ -1,9 +1,7 @@
 # reversi/test/test_hlp_optimize.py
-The dedicated hlp_optimize suite — a NO-DB suite (handcrafted
-checkpoint fixtures + a SimpleNamespace ctx mock) that pins the
-binary round-trip, the error paths, the golden hashes and the two
-gate functions — the level where the worker's decision logic
-lives. 4 classes / 20 tests.
+The dedicated hlp_optimize suite — a NO-DB suite (handcrafted checkpoint fixtures + a SimpleNamespace ctx mock) that
+pins the binary round-trip, the error paths, the golden hashes and the two gate functions — the level where the worker's
+decision logic lives. 4 classes / 20 tests.
 
 ## Coverage
 
@@ -16,33 +14,23 @@ lives. 4 classes / 20 tests.
 
 ## Goldens pinned
 
-- The checkpoint file golden:
-  `2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978
-  633f` (deterministic bytes — fixed header, fixed field order,
-  no timestamps; the LZ4-compressed frame; a format change
-  breaks this).
-- The weights hash golden:
-  `78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7d
-  c060` (w = [0.1, 0.2, 0.3] f32).
+- The checkpoint file golden: `2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978 633f` (deterministic bytes —
+  fixed header, fixed field order, no timestamps; the LZ4-compressed frame; a format change breaks this).
+- The weights hash golden: `78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7d c060` (w = [0.1, 0.2, 0.3]
+  f32).
 
 ## Conventions
 
-- DB-free BY CONSTRUCTION: the whole suite runs under
-  `SKIP_REGAB_DB=1` without skipping anything.
-- The mock ctx records its log events but the tests assert only
-  on the return values — the log-pattern pins (the 3-WARN
-  diagnostics per failed gate) live in the probe, keeping the
-  suite focused.
-- `test_store_and_load_cycle` uses approximate assertions for
-  f/g_norm/ridge/min_grad (`assertAlmostEqual`) while the arrays
-  are pinned exactly (`assert_array_equal`) — the f32 metadata is
-  round-trip stable; the approximate style is harmless.
+- DB-free BY CONSTRUCTION: the whole suite runs under `SKIP_REGAB_DB=1` without skipping anything.
+- The mock ctx records its log events but the tests assert only on the return values — the log-pattern pins (the 3-WARN
+  diagnostics per failed gate) live in the probe, keeping the suite focused.
+- `test_store_and_load_cycle` uses approximate assertions for f/g_norm/ridge/min_grad (`assertAlmostEqual`) while the
+  arrays are pinned exactly (`assert_array_equal`) — the f32 metadata is round-trip stable; the approximate style is
+  harmless.
 
 ## Integration
 
-- This file owns the checkpoint IO + the helper branches — the
-  suite-level mirror of the worker's end-to-end path is
+- This file owns the checkpoint IO + the helper branches — the suite-level mirror of the worker's end-to-end path is
   `test_checksum_mismatch_raises`.
-- The per-function pin that would catch a signature change to
-  any of the 6 hlp_optimize names; the worker test only
+- The per-function pin that would catch a signature change to any of the 6 hlp_optimize names; the worker test only
   exercises the end-to-end paths.

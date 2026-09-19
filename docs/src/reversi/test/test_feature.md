@@ -1,11 +1,8 @@
 # reversi/test/test_feature.py
-The unit suite of the first pipeline-integration module (the
-`feature.py` mirror): the `Feature` factory methods + the blocked
-direct construction, `FeatureSet` construction (ordering,
-n_instances, hash, the intercept category check, print_summary)
-and `FeatureSet.compute_indexes` (the 3×10 golden, the N=0/I=0
-edges, strict typing, the 1M-position PERF). 4 classes / 20 tests
-(19 run + 1 PERF skip) / no DB.
+The unit suite of the first pipeline-integration module (the `feature.py` mirror): the `Feature` factory methods + the
+blocked direct construction, `FeatureSet` construction (ordering, n_instances, hash, the intercept category check,
+print_summary) and `FeatureSet.compute_indexes` (the 3×10 golden, the N=0/I=0 edges, strict typing, the 1M-position
+PERF). 4 classes / 20 tests (19 run + 1 PERF skip) / no DB.
 
 ## Coverage
 
@@ -18,36 +15,26 @@ edges, strict typing, the 1M-position PERF). 4 classes / 20 tests
 
 ## Goldens pinned
 
-- The feature-level hash `f5663932…b74167` (pinned in two tests:
-  test_init + test_print_summary) on top of the child modules'
-  pinned constants — the mset `2e553593…08a94` (the same literal
-  test_mobility pins) and the pset `ff97ce55…040ea`.
-- The 3×10 index matrix (the EDGE 0x00000000000000FF + DIAG4
-  0x0000000001020408 set + LMC + intercept, 3 real positions) —
-  every cell a literal.
-- The per-feature `n_instances` list (17 values, 13 patterns +
-  3 mobilities + intercept, the feature ORDER pinned implicitly)
-  and the name-order golden (the insertion order deliberately
-  differs from the child sets' sorted storage order — the
-  ordering contract exercised for free).
+- The feature-level hash `f5663932…b74167` (pinned in two tests: test_init + test_print_summary) on top of the child
+  modules' pinned constants — the mset `2e553593…08a94` (the same literal test_mobility pins) and the pset
+  `ff97ce55…040ea`.
+- The 3×10 index matrix (the EDGE 0x00000000000000FF + DIAG4 0x0000000001020408 set + LMC + intercept, 3 real positions)
+  — every cell a literal.
+- The per-feature `n_instances` list (17 values, 13 patterns + 3 mobilities + intercept, the feature ORDER pinned
+  implicitly) and the name-order golden (the insertion order deliberately differs from the child sets' sorted storage
+  order — the ordering contract exercised for free).
 - The 51-instance figure of the PERF build.
 
 ## Conventions
 
-- How to run (header): from the workspace root,
-  `time PERF=0 python3 -m unittest reversi.test.test_feature` —
-  `PERF=1` enables the 1M-position test (print-only, no gate —
-  consistent with the whole repo).
-- Strict-typing tests assert `pydantic.ValidationError` (1 in
-  TestFeature, 4 wrong argument types in the subTest loop).
-- No hash self-comparisons: the literals are real goldens,
-  independently re-derived from the public API (the W
+- How to run (header): from the workspace root, `time PERF=0 python3 -m unittest reversi.test.test_feature` — `PERF=1`
+  enables the 1M-position test (print-only, no gate — consistent with the whole repo).
+- Strict-typing tests assert `pydantic.ValidationError` (1 in TestFeature, 4 wrong argument types in the subTest loop).
+- No hash self-comparisons: the literals are real goldens, independently re-derived from the public API (the W
   re-derivations are frozen in the archived review).
 
 ## Integration
 
-- In-memory only: no DB, no files, no pipeline — the child sets
-  are built in setUp from literal mask data.
-- The sibling of the other three base-module suites
-  (test_board / test_mobility / test_pattern) — the same idiom
-  family, the shared pinned constants.
+- In-memory only: no DB, no files, no pipeline — the child sets are built in setUp from literal mask data.
+- The sibling of the other three base-module suites (test_board / test_mobility / test_pattern) — the same idiom family,
+  the shared pinned constants.

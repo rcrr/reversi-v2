@@ -1,7 +1,6 @@
 # reversi/test/test_pattern.py
-The pattern unit suite — 13 classes / 64 tests, 3 PERF-gated (1M-size
-pack, `compute_indexes_on_position`, set `compute_principal_indexes`),
-~1.1 s, no DB.
+The pattern unit suite — 13 classes / 64 tests, 3 PERF-gated (1M-size pack, `compute_indexes_on_position`, set
+`compute_principal_indexes`), ~1.1 s, no DB.
 
 ## Coverage
 
@@ -23,34 +22,25 @@ pack, `compute_indexes_on_position`, set `compute_principal_indexes`),
 
 ## Goldens pinned
 
-- Full-string goldens: the EDGE `print()` 13-line string, the
-  `mdp_record` 24-column strings (ELLE/EDGE).
-- `np.array` goldens: the pack-plan triples, the index vectors, the
-  49 first-row pipeline values, the principal-index dicts (9/27/81).
-- The 29-row `symmetry_fs` table + the Burnside attributes, the
-  `PatternSet.hash` golden literal, the `__repr__` golden.
-- The shared position fixture (the board suite's pair, see
-  test_board.md) is used by the 2 compute-indexes classes.
+- Full-string goldens: the EDGE `print()` 13-line string, the `mdp_record` 24-column strings (ELLE/EDGE).
+- `np.array` goldens: the pack-plan triples, the index vectors, the 49 first-row pipeline values, the principal-index
+  dicts (9/27/81).
+- The 29-row `symmetry_fs` table + the Burnside attributes, the `PatternSet.hash` golden literal, the `__repr__` golden.
+- The shared position fixture (the board suite's pair, see test_board.md) is used by the 2 compute-indexes classes.
 
 ## Conventions
 
 - Dual scalar/array API everywhere; the 1M size is behind `PERF=1`.
-- Error paths: `assertRaises` + message substring
-  (`"not principal"`, `"duplicate names"`, `"duplicate masks"`),
-  EXCEPT `mdp_csv_file` where all three `TypeError` messages are exact
-  `assertEqual`.
-- Star import `from reversi.pattern import *` (the 6 `__all__` names)
-  + explicit board-function imports; the 29-pattern
+- Error paths: `assertRaises` + message substring (`"not principal"`, `"duplicate names"`, `"duplicate masks"`), EXCEPT
+  `mdp_csv_file` where all three `TypeError` messages are exact `assertEqual`.
+- Star import `from reversi.pattern import *` (the 6 `__all__` names) + explicit board-function imports; the 29-pattern
   `sample_pattern_data` is the Cayley-table exercise set.
-- The module-level D8 fixtures (L66-79 area): `ar` + 7 pre-transformed
-  copies — only `ar` is referenced (Cayley tests); the 7 `ar_*` names
-  are dead (left as-is).
+- The module-level D8 fixtures (L66-79 area): `ar` + 7 pre-transformed copies — only `ar` is referenced (Cayley tests);
+  the 7 `ar_*` names are dead (left as-is).
 
 ## Integration
 
-- Module under test: `pattern.md` (the pattern bitboard/packing layer
-  — D8 transforms, pack plans, symmetry functions, base-3
-  configuration indexes, principal indexes, MDP record/CSV output).
-- The mobility.md sibling shares the fixture position and the hash-
-  construction idiom; the D8 naming rulings (notes/naming.md)
-  apply to every D8 name here.
+- Module under test: `pattern.md` (the pattern bitboard/packing layer — D8 transforms, pack plans, symmetry functions,
+  base-3 configuration indexes, principal indexes, MDP record/CSV output).
+- The mobility.md sibling shares the fixture position and the hash-construction idiom; the D8 naming rulings
+  (notes/naming.md) apply to every D8 name here.

@@ -1,7 +1,6 @@
 # reversi/test/test_usage_binio.py
-Linear, copy-pasteable USAGE examples for the binio public API —
-the tests double as documentation: 3 classes / 3 tests, no DB,
-no gate, no artifacts.
+Linear, copy-pasteable USAGE examples for the binio public API — the tests double as documentation: 3 classes / 3 tests,
+no DB, no gate, no artifacts.
 
 ## Coverage
 
@@ -13,33 +12,24 @@ no gate, no artifacts.
 
 ## Goldens pinned
 
-- Round-trip identity: every value read back equals the written
-  value — the 11 scalars, the UTF-8 string, the two arrays
-  (`np.array_equal`). No float tolerance: the binary format
-  round-trips bit-exact.
-- The sidecar: after close — both the context-manager path (the
-  automatic checksum) and the manual-close path —
+- Round-trip identity: every value read back equals the written value — the 11 scalars, the UTF-8 string, the two arrays
+  (`np.array_equal`). No float tolerance: the binary format round-trips bit-exact.
+- The sidecar: after close — both the context-manager path (the automatic checksum) and the manual-close path —
   `verify_sha3_256_sidecar(path)` is True.
-- The example payloads (the description/version strings, −12345,
-  "lz4 payload") are documentation values, not goldens.
+- The example payloads (the description/version strings, −12345, "lz4 payload") are documentation values, not goldens.
 
 ## Conventions
 
-- Each test is a single straight sequence with no helper methods
-  (the module docstring: "copy-pasteable usage examples") — a
-  complete write → verify → read cycle in one `def`.
-- The working dir is `tempfile.mkdtemp(prefix="binio_usage_")` +
-  `addCleanup(shutil.rmtree, ...)`: self-contained, nothing touches
-  the workspace (this suite intentionally does NOT use the
-  TemporaryDirectory / CUSTOM_TMP_BASE idiom — usage examples stay
-  standalone).
-- Run from the workspace root: `time PERF=0 python3 -m unittest
-  reversi.test.test_usage_binio` (the header -1- block); no PERF
-  gate — the suite is a few seconds.
+- Each test is a single straight sequence with no helper methods (the module docstring: "copy-pasteable usage examples")
+  — a complete write → verify → read cycle in one `def`.
+- The working dir is `tempfile.mkdtemp(prefix="binio_usage_")` + `addCleanup(shutil.rmtree, ...)`: self-contained,
+  nothing touches the workspace (this suite intentionally does NOT use the TemporaryDirectory / CUSTOM_TMP_BASE idiom —
+  usage examples stay standalone).
+- Run from the workspace root: `time PERF=0 python3 -m unittest reversi.test.test_usage_binio` (the header -1- block);
+  no PERF gate — the suite is a few seconds.
 
 ## Integration
 
-- Independent of the pipeline and the DB: pure verification of the
-  binio public API (the lz4 dependency).
-- Sibling suite: test_binio.py (the full binio test — 45 tests);
-  this file is the usage / documentation layer on top of it.
+- Independent of the pipeline and the DB: pure verification of the binio public API (the lz4 dependency).
+- Sibling suite: test_binio.py (the full binio test — 45 tests); this file is the usage / documentation layer on top of
+  it.

@@ -1,9 +1,7 @@
 # reversi/test/test_wrk_analytics.py
-The ANALYTICS worker integration suite — the dedicated suite for
-the ANALYTICS level, the first suite to cover TWO non-cache
-levels' downstream data (the 5th non-cache level itself + the
-rlm_01 mobility-table branch of the file report). 2 classes / 4
-tests, all DB-gated.
+The ANALYTICS worker integration suite — the dedicated suite for the ANALYTICS level, the first suite to cover TWO
+non-cache levels' downstream data (the 5th non-cache level itself + the rlm_01 mobility-table branch of the file
+report). 2 classes / 4 tests, all DB-gated.
 
 ## Coverage
 
@@ -14,38 +12,28 @@ tests, all DB-gated.
 
 ## Goldens pinned
 
-- The two file-report masks: rlm_02
-  `94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0`
-  + rlm_01 `f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c`
-  (the `_masked_report_hash` helper: the file embeds `datetime.now()` —
-  the Creation Date line — and a `Config SHA3-256` fingerprint that
-  embeds the run's `base_dir`, so the golden is the sha3_256 of the text
-  with the date regex-masked to "DATE" and the config hex to "HASH";
-  every other byte is deterministic).
-- The rlm_02 7-metric + 4-key dense goldens and the rlm_01 7-
-  metric + 4-key dense goldens (the module doc's live invariants).
+- The two file-report masks: rlm_02 `94a4af7e5ca554e6f8b219cf5ed820e45e102489dacdc25e15d2b263158120b0` + rlm_01
+  `f6b54954a3c54d13a9a3b3e65face75a5bd709899050c0b77b236a8955cf4c8c` (the `_masked_report_hash` helper: the file embeds
+  `datetime.now()` — the Creation Date line — and a `Config SHA3-256` fingerprint that embeds the run's `base_dir`, so
+  the golden is the sha3_256 of the text with the date regex-masked to "DATE" and the config hex to "HASH"; every other
+  byte is deterministic).
+- The rlm_02 7-metric + 4-key dense goldens and the rlm_01 7-metric + 4-key dense goldens (the module doc's live
+  invariants).
 
 ## Conventions
 
-- The db_long_gate idiom (the SKIP_REGAB_DB + LONG tier gates) is
-  FIRST in setUp (before the stdout patch / tmp dir).
-- The float64 metric goldens are compared with assert_close
-  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12): the np.dot
-  reductions over up to ~2M f64 terms run through the multi-threaded
-  OpenBLAS ddot (scipy 0.3.34, DYNAMIC_ARCH NO_AFFINITY) — the last
-  ULPs depend on the thread count x the CPU kernel (the 4 -> 8 vCPU VM
-  move shifted them up to 88 ULP on rlm_02). Still bit-exact
-  (assertEqual): the f32-quantized train_loss (float of the f32
-  OPTIMIZE objective), the int counts, the report hashes, and the
-  second-instance-determinism contract (every upstream artifact stays
-  pinned by the rlmwf checksum + sha3 flows).
-- The 6-hit cache count mirrors the VALIDATE suite's count — the 5th
-  non-cache level adds no cache file (the rlmwf_12 slot stays unused;
-  the flat-file numbering skips 12 like 03/07/08).
+- The db_long_gate idiom (the SKIP_REGAB_DB + LONG tier gates) is FIRST in setUp (before the stdout patch / tmp dir).
+- The float64 metric goldens are compared with assert_close (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12): the
+  np.dot reductions over up to ~2M f64 terms run through the multi-threaded OpenBLAS ddot (scipy 0.3.34, DYNAMIC_ARCH
+  NO_AFFINITY) — the last ULPs depend on the thread count x the CPU kernel (the 4 -> 8 vCPU VM move shifted them up to
+  88 ULP on rlm_02). Still bit-exact (assertEqual): the f32-quantized train_loss (float of the f32 OPTIMIZE objective),
+  the int counts, the report hashes, and the second-instance-determinism contract (every upstream artifact stays pinned
+  by the rlmwf checksum + sha3 flows).
+- The 6-hit cache count mirrors the VALIDATE suite's count — the 5th non-cache level adds no cache file (the rlmwf_12
+  slot stays unused; the flat-file numbering skips 12 like 03/07/08).
 
 ## Integration
 
-- The `detailed_report` fixture (`rlm_01.json` `["DIAG3", "LMC"]`) is
-  consumed by the ANALYTICS level only, so it moves no other golden.
-- The dense-metric goldens and the 17 report header lines are pinned
-  by this file.
+- The `detailed_report` fixture (`rlm_01.json` `["DIAG3", "LMC"]`) is consumed by the ANALYTICS level only, so it moves
+  no other golden.
+- The dense-metric goldens and the 17 report header lines are pinned by this file.

@@ -1,5 +1,8 @@
 # reversi/test/test_wrk_feature_analysis.py
-The NO-DB suite of the FEATURE_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the compute + the publish (the tiny G0 corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 1 class / 8 tests / no database (the mock ctx, the tiny corpus).
+The NO-DB suite of the FEATURE_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the
+compute + the publish (the tiny G0 corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the
+signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 1 class /
+8 tests / no database (the mock ctx, the tiny corpus).
 
 ## Coverage
 
@@ -9,37 +12,27 @@ The NO-DB suite of the FEATURE_ANALYSIS worker: the factory (the worker name), t
 
 ## Goldens pinned
 
-- The tiny corpus: the rlm_00 fixture's feature set (the LMC /
-  the ALMC / the DLMC + the ELLE / the EDGE), the 2000-4000
+- The tiny corpus: the rlm_00 fixture's feature set (the LMC / the ALMC / the DLMC + the ELLE / the EDGE), the 2000-4000
   positions at ec 20, seed 42 (the "uno per tutti").
-- The cache consistency: the feature_set hash + the generation
-  spec (the seed, the total_positions, the ec, the generator
-  version "g0-1", the PRNG version "mt19937-64") + the su_pairs
-  (the canonical sorted form) — the NO rds_checksum (the P5,
-  the new cache lineage).
-- The phase-2 recompute: the statistics run on EVERY run (the
-  cache hit included) — the "loaded from cache" + the report
+- The cache consistency: the feature_set hash + the generation spec (the seed, the total_positions, the ec, the
+  generator version "g0-1", the PRNG version "mt19937-64") + the su_pairs (the canonical sorted form) — the NO
+  rds_checksum (the P5, the new cache lineage).
+- The phase-2 recompute: the statistics run on EVERY run (the cache hit included) — the "loaded from cache" + the report
   both on the hit run.
-- The opt-in: the enable false -> the no-op (the tables
-  None, the "disabled" log).
-- The recovery: the down clears the feature_analysis_
-  tables.
+- The opt-in: the enable false -> the no-op (the tables None, the "disabled" log).
+- The recovery: the down clears the feature_analysis_tables.
 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the
-  feature_set, the cache path, the use_cache, the log buffer,
-  the tables artifact) over the rlm_00 fixture's feature set
-  (the `load_campaign`). The tiny corpus (the 2000-4000
+- The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the feature_set, the cache path, the use_cache, the log buffer, the
+  tables artifact) over the rlm_00 fixture's feature set (the `load_campaign`). The tiny corpus (the 2000-4000
   positions) keeps the suite fast (no LONG tier).
-- The `tempfile.TemporaryDirectory` per test (the cache + the
-  report + the CSV land in a tmp dir, the tearDown cleans up).
+- The `tempfile.TemporaryDirectory` per test (the cache + the report + the CSV land in a tmp dir, the tearDown cleans
+  up).
 
 ## Integration
 
-- Consumed by `run_utests.sh` (section 4 — the pipeline, at the
-  step 3 worker position: between the hlp_feature_analysis data
-  module and the POSITIONS worker).
-- The worker (wrk_feature_analysis) is registered at step 3 by
-  the 18-level wiring (the 18 levels, the rlmwf_03 slot).
+- Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 worker position: between the hlp_feature_analysis
+  data module and the POSITIONS worker).
+- The worker (wrk_feature_analysis) is registered at step 3 by the 18-level wiring (the 18 levels, the rlmwf_03 slot).

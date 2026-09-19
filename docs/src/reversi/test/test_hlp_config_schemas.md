@@ -1,9 +1,7 @@
 # reversi/test/test_hlp_config_schemas.py
-The first test module of the hlp_config_schemas config domain —
-the probe_rules §4 conversion of the verify_wrk_positions probe E
-section (the probe keeps only its E7 source-text pin — source
-inspections stay probes per §4). 1 class / 27 tests / no PERF
-gates / no database (the schemas validate in memory only).
+The first test module of the hlp_config_schemas config domain — the probe_rules §4 conversion of the
+verify_wrk_positions probe E section (the probe keeps only its E7 source-text pin — source inspections stay probes per
+§4). 1 class / 27 tests / no PERF gates / no database (the schemas validate in memory only).
 
 ## Coverage
 
@@ -22,30 +20,22 @@ gates / no database (the schemas validate in memory only).
 
 ## Goldens pinned
 
-- The mask pair: `"0000000000000107"` ↔ Bitboard `0x107` ↔ the
-  uppercase 16-hex serialization — the 16-digits-no-0x contract.
-- `cache_files_prefix == "rlmwf_"` — both the round-trip and the
-  absent-field default pin the same value.
-- The rejection literals: `"0x0000000000000107"`, `"ZZZZ"`,
-  `"cms"`, `"CMSX"`, `"xyz"`, ec 99 and ec -1.
-- The accepted pair `c1=0.1` / `c2=0.9` (the boundary the
-  cross-field validator allows) against the rejected
-  `c1=0.9` / `c2=0.1`.
+- The mask pair: `"0000000000000107"` ↔ Bitboard `0x107` ↔ the uppercase 16-hex serialization — the 16-digits-no-0x
+  contract.
+- `cache_files_prefix == "rlmwf_"` — both the round-trip and the absent-field default pin the same value.
+- The rejection literals: `"0x0000000000000107"`, `"ZZZZ"`, `"cms"`, `"CMSX"`, `"xyz"`, ec 99 and ec -1.
+- The accepted pair `c1=0.1` / `c2=0.9` (the boundary the cross-field validator allows) against the rejected `c1=0.9` /
+  `c2=0.1`.
 
 ## Conventions
 
-- The base payload is the `rlm_00.json` fixture (the same one the
-  probe used), loaded through `json5` and deep-copied per test by
-  the `_cfg_dict(mutate=…)` helper — each test mutates its own
-  copy.
-- `subTest` for the multi-value cases (the two ec values, the
-  two bad statuses).
+- The base payload is the `rlm_00.json` fixture (the same one the probe used), loaded through `json5` and deep-copied
+  per test by the `_cfg_dict(mutate=…)` helper — each test mutates its own copy.
+- `subTest` for the multi-value cases (the two ec values, the two bad statuses).
 
 ## Integration
 
-- Exercises `hlp_config_schemas.py` in memory only — no worker,
-  no machine, no DB (the `SKIP_REGAB_DB` gate is not needed).
-- The worker-level pins of the ec/status/hex-mask constraints
-  (through the CONFIG worker end-to-end) live in
-  `test_wrk_config.py` — the docstring cross-reference is
-  deliberate: schema-level here, worker-level there.
+- Exercises `hlp_config_schemas.py` in memory only — no worker, no machine, no DB (the `SKIP_REGAB_DB` gate is not
+  needed).
+- The worker-level pins of the ec/status/hex-mask constraints (through the CONFIG worker end-to-end) live in
+  `test_wrk_config.py` — the docstring cross-reference is deliberate: schema-level here, worker-level there.

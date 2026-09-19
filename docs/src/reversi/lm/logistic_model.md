@@ -1,11 +1,9 @@
 # reversi/lm/logistic_model.py
-The first concrete domain facade: it wires the generic StateMachine
-to the LM (Reversi Logistic Model) pipeline — a 4-step construction
-(validate the domain paths, build the shared LMContext blackboard,
-assemble the 18-level worker list, hand the parts to BaseModel →
-StateMachine) — plus the LMContext @dataclass: config state, every
-data artifact produced by the 18 levels, the 9 checksum fields, and
-the 3 infrastructure callables the machine injects at construction.
+The first concrete domain facade: it wires the generic StateMachine to the LM (Reversi Logistic Model) pipeline — a
+4-step construction (validate the domain paths, build the shared LMContext blackboard, assemble the 18-level worker
+list, hand the parts to BaseModel → StateMachine) — plus the LMContext @dataclass: config state, every data artifact
+produced by the 18 levels, the 9 checksum fields, and the 3 infrastructure callables the machine injects at
+construction.
 
 ## API
 
@@ -27,116 +25,75 @@ the 3 infrastructure callables the machine injects at construction.
 ```
 LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     1. _check_config_file_path / _check_base_dir_override (plain helpers)
-    2. LMContext(config_file_path, base_dir_override)  — the blackboard
-    3. workers = [ Worker("CREATED", _created_up, _created_down),
-                   wrk_config(), wrk_positions(), ..., wrk_save() ]
-    4. super().__init__(workers, context, verbosity)
-           |
-BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
-    the two cache closures into the context (replacing the lambda defaults),
-    step 0 / "CREATED"
+    2. LMContext(config_file_path, base_dir_override) — the blackboard
+    3. workers = [ Worker("CREATED", _created_up, _created_down), wrk_config(), wrk_positions(), ..., wrk_save() ]
+    4. super().__init__(workers, context, verbosity) | BaseModel -> StateMachine: stores workers/context, INJECTS
+       log_event + the two cache closures into the context (replacing the lambda defaults), step 0 / "CREATED"
 ```
 
-- **4-step construction** — (1) validate the domain paths with the
-  plain helpers, (2) build the shared `LMContext`, (3) assemble the
-  worker list (sentinel + the 15 factory calls), (4)
-  `super().__init__` hands workers + context + verbosity to
-  `BaseModel` → `StateMachine`, which injects `log_event` + the two
-  cache-path closures into the context (replacing the lambda
-  defaults under the same names — the same mechanism as
-  `log_event`).
-- **LMContext is the shared blackboard** — a `@dataclass` extending
-  the plain (non-dataclass) `Context` base; workers publish to the
-  pre-declared fields (an ad-hoc attribute works but breaks the
-  pattern); `cfg` must be populated by the CONFIG worker before any
-  cache call (the injected closures read
-  `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` and raise
-  AttributeError otherwise).
+- **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
+  assemble the worker list (sentinel + the 15 factory calls), (4) `super().__init__` hands workers + context + verbosity
+  to `BaseModel` → `StateMachine`, which injects `log_event` + the two cache-path closures into the context (replacing
+  the lambda defaults under the same names — the same mechanism as `log_event`).
+- **LMContext is the shared blackboard** — a `@dataclass` extending the plain (non-dataclass) `Context` base; workers
+  publish to the pre-declared fields (an ad-hoc attribute works but breaks the pattern); `cfg` must be populated by the
+  CONFIG worker before any cache call (the injected closures read `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` and
+  raise AttributeError otherwise).
 - **Pipeline shape: 18 levels, all active** —
 
   ```
-  CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS
-  -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS -> DESIGN_MTR
-  -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
-  -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
+CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS ->
+DESIGN_MTR -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS -> VALIDATE -> ANALYTICS -> SAVE ->
+CLIENT_CHECK -> PLOT
   ```
-  (FEATURE_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6,
-  NO cache — the PLOT is step 18)
+(FEATURE_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
 
-  No commented factory imports or worker-list entries remain. The
-  factories follow `lm_worker_x()` → `Worker`; the tests patch them
-  by name in THIS module's namespace
-  (`reversi.lm.logistic_model.wrk_config`, …). All 16 factories
-  carry the uniform `@validate_call` gate.
-- **use_cache is per-run** — `wrk_config` sets
-  `ctx.use_cache` from the config (`rlm_config_schemas`
-  `use_cache: bool = True`); the CONFIG down path resets it to None
-  (the cache_switch pattern).
-- **A2xxx naming (legacy production)** — the "A2050" /
-  "A2030" class names in the full-chain tests are the endgame-solver
-  model family: A2 + ec·10 (A2050 = ec 20; production runs A2050,
-  A2150, A2250, …). Intentional, not a typo.
+No commented factory imports or worker-list entries remain. The factories follow `lm_worker_x()` → `Worker`; the tests
+patch them by name in THIS module's namespace (`reversi.lm.logistic_model.wrk_config`, …). All 16 factories carry the
+uniform `@validate_call` gate.
+- **use_cache is per-run** — `wrk_config` sets `ctx.use_cache` from the config (`rlm_config_schemas`
+  `use_cache: bool = True`); the CONFIG down path resets it to None (the cache_switch pattern).
+- **A2xxx naming (legacy production)** — the "A2050" / "A2030" class names in the full-chain tests are the
+  endgame-solver model family: A2 + ec·10 (A2050 = ec 20; production runs A2050, A2150, A2250, …). Intentional, not a
+  typo.
 
 ## Verified invariants
 
-Pinned by `probes/verify_logistic_model.py` (21 checks) +
-`test_logistic_model.py` (17 tests; the V6f/V4b-class probe checks
-were converted to tests).
+Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (17 tests; the V6f/V4b-class probe
+checks were converted to tests).
 
-- The LMContext dataclass shape: plain `Context` base,
-  `config_file_path` the only no-default field, `use_cache` default
-  None, the legacy `_for_next_level` names gone, the
-  `*_for_current_level` fields with lambda defaults, the `log_event`
+- The LMContext dataclass shape: plain `Context` base, `config_file_path` the only no-default field, `use_cache` default
+  None, the legacy `_for_next_level` names gone, the `*_for_current_level` fields with lambda defaults, the `log_event`
   lambda default — probe V1a-V1g.
-- `typing.get_type_hints(LMContext)` succeeds (the `str | None`
-  annotations, no latent Union NameError) — probe V8.
-- The config-path helper: str/Path → Path, TypeError,
-  FileNotFoundError, IsADirectoryError — probe V6a-V6b +
+- `typing.get_type_hints(LMContext)` succeeds (the `str | None` annotations, no latent Union NameError) — probe V8.
+- The config-path helper: str/Path → Path, TypeError, FileNotFoundError, IsADirectoryError — probe V6a-V6b +
   `test_logistic_model::test_config_path_helper_edge_branches`.
-- The base-dir helper: str/Path → Path, TypeError,
-  NotADirectoryError — probe V7a-V7b +
+- The base-dir helper: str/Path → Path, TypeError, NotADirectoryError — probe V7a-V7b +
   `test_logistic_model::test_base_dir_helper_edge_branches`.
-- The complete pipeline: 17 active levels (the 17th, PLOT, is the
-  matplotlib diagnostics — wrk_plot.md; the 16th, CLIENT_CHECK, the
-  saved-model file acceptance test — wrk_client_check.md), 0
-  commented worker imports/entries — probe V3c-V3d.
-- The injection: the live context's `*_for_current_level` attributes
-  ARE the machine's closures (`_get_cache_file_path` /
-  `_get_cache_file_full_path`), `log_event` a bound method, no
-  legacy name in the live context — probe V4a/V4d +
-  `test_logistic_model::test_injected_cache_helpers_are_the_machine_
-  closures`.
-- The machine boundaries on the `{}` dummy config:
-  `move_to_step(1)` / `move_to_step("POSITIONS")` / `move_to_last()`
-  all hit the CONFIG worker first and raise its pydantic
-  ValidationError (the gate split — no conversion to the
-  gate's TypeError), a failed move leaves `current_step` at the
-  failed step — probe V9 (3 labels) + the
-  `test_move_to_step_*` tests.
-- The 8 checksum fields, and NO `features_checksum` (FEATURES is a
-  pure in-memory derivation) — probe V10.
-- The per-level cache path: `<prefix><level:02>_<worker>.dat`, the
-  full variant prepending `cfg.base_dir` —
-  `test_logistic_model::test_injected_cache_helper_computes_the_worker_
-  path`.
-- The pre-injection fallback: a bare (un-injected) `LMContext` keeps
-  the no-op lambda defaults (helpers return None, `log_event`
-  does nothing) — `test_logistic_model::test_pre_injection_fallback_
-  is_no_op_lambda`; a bare call of an injected closure before the
-  CONFIG worker raises AttributeError —
+- The complete pipeline: 17 active levels (the 17th, PLOT, is the matplotlib diagnostics — wrk_plot.md; the 16th,
+  CLIENT_CHECK, the saved-model file acceptance test — wrk_client_check.md), 0 commented worker imports/entries — probe
+  V3c-V3d.
+- The injection: the live context's `*_for_current_level` attributes ARE the machine's closures (`_get_cache_file_path`
+  / `_get_cache_file_full_path`), `log_event` a bound method, no legacy name in the live context — probe V4a/V4d +
+  `test_logistic_model::test_injected_cache_helpers_are_the_machine_closures`.
+- The machine boundaries on the `{}` dummy config: `move_to_step(1)` / `move_to_step("POSITIONS")` / `move_to_last()`
+  all hit the CONFIG worker first and raise its pydantic ValidationError (the gate split — no conversion to the gate's
+  TypeError), a failed move leaves `current_step` at the failed step — probe V9 (3 labels) + the `test_move_to_step_*`
+  tests.
+- The 8 checksum fields, and NO `features_checksum` (FEATURES is a pure in-memory derivation) — probe V10.
+- The per-level cache path: `<prefix><level:02>_<worker>.dat`, the full variant prepending `cfg.base_dir` —
+  `test_logistic_model::test_injected_cache_helper_computes_the_worker_path`.
+- The pre-injection fallback: a bare (un-injected) `LMContext` keeps the no-op lambda defaults (helpers return None,
+  `log_event` does nothing) — `test_logistic_model::test_pre_injection_fallback_is_no_op_lambda`; a bare call of an
+  injected closure before the CONFIG worker raises AttributeError —
   `test_logistic_model::test_injected_cache_closure_requires_cfg`.
-- The CREATED sentinels: a direct call logs ERROR then raises
-  RuntimeError — `test_logistic_model::test_created_sentinel_workers_
-  raise`.
-- The constructor guards: a non-str/Path `config_file_path` →
-  ValidationError (before any factory runs), a missing config →
-  FileNotFoundError, a missing base_dir → FileNotFoundError —
-  `test_logistic_model` (the validation-error, invalid-config-path
-  and base-dir-override tests).
-- The facade is a pure pass-through: every method delegates per
-  method, the read-only views mirror the SM, verbosity round-trips —
-  `test_logistic_model` (the facade-delegation, views/verbosity and
-  CSV-export tests).
+- The CREATED sentinels: a direct call logs ERROR then raises RuntimeError —
+  `test_logistic_model::test_created_sentinel_workers_raise`.
+- The constructor guards: a non-str/Path `config_file_path` → ValidationError (before any factory runs), a missing
+  config → FileNotFoundError, a missing base_dir → FileNotFoundError — `test_logistic_model` (the validation-error,
+  invalid-config-path and base-dir-override tests).
+- The facade is a pure pass-through: every method delegates per method, the read-only views mirror the SM, verbosity
+  round-trips — `test_logistic_model` (the facade-delegation, views/verbosity and CSV-export tests).
 
 ## Open issues
 
@@ -144,24 +101,18 @@ None.
 
 ## Conventions
 
-- The `*_for_current_level` names are the injected-cache-helper
-  contract — a context field renamed back to `_for_next_level`
-  silently returns None to the workers (the R1 trap); keep the names
-  in lockstep with the StateMachine injection.
-- Blackboard fields are pre-declared on LMContext before a worker
-  consumes or publishes them.
-- A2xxx = legacy production model family (A2 + ec·10) — do not
-  "fix" these names.
-- Worker factories: uniform `@validate_call` gate, patched by name in
-  this module's namespace in the tests.
+- The `*_for_current_level` names are the injected-cache-helper contract — a context field renamed back to
+  `_for_next_level` silently returns None to the workers (the R1 trap); keep the names in lockstep with the StateMachine
+  injection.
+- Blackboard fields are pre-declared on LMContext before a worker consumes or publishes them.
+- A2xxx = legacy production model family (A2 + ec·10) — do not "fix" these names.
+- Worker factories: uniform `@validate_call` gate, patched by name in this module's namespace in the tests.
 - Test artifacts live under `build/tmp`, never the system temp dir.
 
 ## Integration
 
-- Consumes `state_machine.py` (StateMachine, Worker, Context,
-  Verbosity, Relevance) + `base_model.py` (BaseModel) + the 15
-  `lm_worker_*` factory modules.
-- Consumed by: the 15 workers and their `rlm_*` data modules
-  (LMContext as the shared blackboard / type reference),
+- Consumes `state_machine.py` (StateMachine, Worker, Context, Verbosity, Relevance) + `base_model.py` (BaseModel) + the
+  15 `lm_worker_*` factory modules.
+- Consumed by: the 15 workers and their `rlm_*` data modules (LMContext as the shared blackboard / type reference),
   `model_weights.py`.
 - Not a pipeline level itself: the facade that RUNS the pipeline.
