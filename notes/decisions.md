@@ -1401,3 +1401,27 @@ D-241 | 2026-09-19 | The size-budget condensation (Roberto: "facciamo un riassun
          (`wrk_vld_positions.md:25`, an unbreakable 111-char code span). A doc BELOW the floor is not a defect (§5: the
          floor catches a doc that OMITS its module), so those stay open as a content call. Notes + docs only: no source,
          test or probe touched.
+
+D-242 | 2026-09-19 | I-003 executed: the NAMED MOVE-CODE CONSTANTS (Roberto's plan approval: "MOVE_PA / MOVE_NA /
+         MOVE_UN"). (1) THE CONSTANTS — board.py gains `MOVE_PA: Move = Move(64)`, `MOVE_NA = Move(65)`,
+         `MOVE_UN = Move(66)` (public, in `__all__`, placed after `__move_max_value__` with the domain comment). The
+         `Move` type (np.uint8) is the domain type (the D-217 doctrine), and the values are pinned by the
+         `move_from_str` vocabulary (PA/NA/UN). (2) THE SITES — the bare literals replaced: board.py
+         `position_make_move` (the scalar PASS branch + the two range guards + the array guard, whose messages are now
+         built from `int(MOVE_PA)` so they cannot drift), the `_vectorized_make_move` kernel branch,
+         `position_is_move_legal` (the pass check + the `> MOVE_PA` guard), the kernel comment; `random_game.py` (the
+         `Move(64) if idx == -1` sentinel + the local `PASS_MOVE` removed, both via the imported `MOVE_PA`);
+         `lm/hlp_wave.py` (`PA: int = 64` -> `PA: np.uint8 = MOVE_PA`, the single source, still public). (3) THE
+         SQUARE-COUNT 64 — `position_final_value`'s `ec = 64 - popcount` now uses the existing `__square_max_value__`: a
+         different domain, and the plan flagged the ambiguity. (4) THE TWO DOMAINS — the flips' pass is a ZERO BITBOARD
+         (not `MOVE_PA`): the `_vectorized_flips` `move == 0` branch is untouched, and board.md's Conventions now states
+         the distinction. (5) THE PINS — the new `TestMove::test_move_constants` pins `MOVE_PA/NA/UN` to 64/65/66 AND to
+         `move_from_str('PA'/'NA'/'UN')`: the literal anchor, because the rest of the suite now uses the names (a typo
+         in a constant would otherwise pass); the stale "open decision R3 (I-003)" comment in `test_move_as_bitboard` is
+         replaced by the documented-wrap note (R3 was already resolved at D-018). (6) THE DOCS — board.md (the API table
+         row + the move_as_bitboard row + the Conventions bullet), hlp_wave.md (`PA` re-exported), test_board.md (the
+         Coverage table rebuilt: the line numbers dropped per docs_rules §3 and the counts corrected — 50 classes / 247
+         tests, the doc claimed 43/193), the overview (the board.py row + the test_board Suite cell 246 -> 247).
+         VERIFICATION: `test_board` 247/0/15 + `test_random_game` 33/0/1, LONG 917/0/23 GREEN, and the 1e6 G0 benchmark
+         BIT-EXACT (28065 dead lanes, 1e6 harvested) — the stream contract is untouched. I-003 -> done
+         (ideas-closed.md).

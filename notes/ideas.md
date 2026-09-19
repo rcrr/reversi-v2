@@ -7,10 +7,6 @@ CLOSED idea (`done` | `dropped`) MOVES to notes/ideas-closed.md — compacted to
 outcome — in the same commit as the decision that closes it; it never stays here. The I-numbers are global and never
 reused or renumbered (I-008 is dropped: see ideas-closed.md).
 
-I-003 | idea | Named move constants (`MOVE_PASS` = 64, `MOVE_NOT_AVAILABLE` = 65, `MOVE_UNKNOWN` = 66) instead of magic
-         numbers. Would also fix the implicit dependency on the NumPy shift-wrap semantics in `position_is_move_legal`
-         (issue R3 in docs/src/reversi/board.md).
-
 I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3): no way to map a
          column of the (N, I) index matrix to the feature name producing it (unlike `MobilitySet.names` /
          `.masks`, D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — `wrk_feature_analysis`

@@ -15,6 +15,13 @@ I-002 | done | Vectorize `position_flips` / `position_make_move` (raised by the 
          `_kogge_stone_mm` scalar Python while `legal_moves` was numba-parallel) — executed as D-140 (2026-09-08): the
          two prange kernels + the strict dual API, the same technique as `legal_moves` (D-111).
 
+I-003 | done | Named move constants instead of magic numbers (raised 2026-08-26). Executed as D-242 (2026-09-19):
+         `MOVE_PA` / `MOVE_NA` / `MOVE_UN` in board.py (`__all__`, the `Move` domain type), the bare 64/65/66 replaced
+         in board.py / random_game.py / hlp_wave.py (`PA` re-exported), the square-count 64 on `__square_max_value__`,
+         the literal anchor pinned in `TestMove::test_move_constants`. The second motivation (the NumPy shift-wrap
+         dependency in `position_is_move_legal`) was ALREADY fixed at D-018; the wrap survives only in
+         `move_as_bitboard`, documented and pinned.
+
 I-004 | dropped | The reserved placeholder slot ("Roberto's future-evolution ideas go here as they come up", 2026-08-26)
          — retired 2026-09-19: the backlog no longer needs a reserved slot (the later ideas, I-014 and I-018, were
          recorded as normal entries).
