@@ -22,18 +22,18 @@ A mirror doc that carries history is a defect (bloat + drift + internal contradi
 its own appendix (the board.md session-1 case: R1 "RESOLVED" in the body, "the most important flaw" in the verbatim
 appendix) is the failure mode these rules exist to prevent.
 
-## 2. Header (fixed, 4 lines)
+## 2. Header (fixed, 2 parts)
 
 ```
 # reversi/<module>.py
-<What it is: 2-4 sentences, present tense, no history.> > State: D-NNN · <short-hash> · YYYY-MM-DD · suite <n>/<f>/<s>
-[gated: <n>/<f>/<s>]
+<What it is: 2-4 sentences, present tense, no history.>
 ```
 
-The `> State:` line is the ONLY time permitted in the file: no "Analysis date", no "brought in by Roberto (commit …)",
-no "post D-xxx". The suite cell is the MODULE'S OWN suite (or its gated form), never the global discover. The cells mark
-the snapshot: D-NNN = the last decision that changed the module; `<short-hash>` = the last commit touching the module's
-source; `YYYY-MM-DD` = that commit's date (established at the board.md migration, D-109).
+The header is the H1 and the what-it-is paragraph, nothing else: no date, no D-number, no commit hash, no suite count,
+no "Analysis date" / "brought in by" / "post D-xxx" line. The D-109 `> State:` line is RETIRED (D-240): the metadata it
+carried already lives where it belongs — the last decision that changed the module in notes/decisions.md, the last
+commit in the git history, the suite counts in notes/overview.md and in the per-file Suite cells — and keeping a copy
+current was a per-file tax that no commit ever paid (94/94 mirrors carried no State line).
 
 ## 3. Sections (fixed order; only the appendix is optional)
 
@@ -91,10 +91,3 @@ The State line uses the test file's own suite counts.
   notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim analyses, retired one-off investigations): they are
   frozen records, never updated — a changed fact gets a NEW analysis, the old one keeps its date and its errors.
-
-## 8. Migration state (session 30 onward)
-
-Pre-migration docs (all 70) are grandfathered: they stay as-is until their file's migration commit. The migration
-itself: lossless extraction of the historical material (to the journal / notes/analyses/), rewrite to this schema, one
-commit per file or per pipeline batch, board.md first (schema validation), then pattern.md, then the C-class hubs, then
-B batches, then A. After the last file, this section is deleted.

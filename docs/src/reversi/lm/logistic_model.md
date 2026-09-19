@@ -25,10 +25,14 @@ construction.
 ```
 LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     1. _check_config_file_path / _check_base_dir_override (plain helpers)
-    2. LMContext(config_file_path, base_dir_override) — the blackboard
-    3. workers = [ Worker("CREATED", _created_up, _created_down), wrk_config(), wrk_positions(), ..., wrk_save() ]
-    4. super().__init__(workers, context, verbosity) | BaseModel -> StateMachine: stores workers/context, INJECTS
-       log_event + the two cache closures into the context (replacing the lambda defaults), step 0 / "CREATED"
+    2. LMContext(config_file_path, base_dir_override)  — the blackboard
+    3. workers = [ Worker("CREATED", _created_up, _created_down),
+                   wrk_config(), wrk_positions(), ..., wrk_save() ]
+    4. super().__init__(workers, context, verbosity)
+           |
+BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
+    the two cache closures into the context (replacing the lambda defaults),
+    step 0 / "CREATED"
 ```
 
 - **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
@@ -42,9 +46,10 @@ LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
 - **Pipeline shape: 18 levels, all active** —
 
   ```
-CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS ->
-DESIGN_MTR -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS -> VALIDATE -> ANALYTICS -> SAVE ->
-CLIENT_CHECK -> PLOT
+  CREATED (0, sentinel) -> CONFIG -> FEATURES -> FEATURE_ANALYSIS
+  -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS -> DESIGN_MTR
+  -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
+  -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
   ```
 (FEATURE_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
 

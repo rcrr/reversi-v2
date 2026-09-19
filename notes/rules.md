@@ -118,8 +118,9 @@ spans; the tables and the headings stay one physical line.
 
 ## Docs
 
-- Mirror rule (D-007) + the rigid mirror format in notes/docs_rules.md (the 4-line header with the `> State:` line, the
-  7 sections, the forbidden-history list, the same-commit lifecycle, the test-doc variant).
+- Mirror rule (D-007) + the rigid mirror format in notes/docs_rules.md (the header — the H1 + the what-it-is paragraph,
+  the D-109 `> State:` line RETIRED at D-240 —, the 7 sections, the forbidden-history list, the same-commit lifecycle,
+  the test-doc variant).
 - The "Open issues" section: OPEN R/M/T items with pointers only; if none, one line, `None.`; closed items never appear
   (docs_rules.md §4, D-114).
 - Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never

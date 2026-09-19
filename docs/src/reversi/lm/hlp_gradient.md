@@ -90,21 +90,6 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tes
   the w_dense sha3 82b329dd..., the EF pins; the A2030: 71 iters, the w_dense sha3 90ca05a3...). The second-instance
   determinism tests (the in-run byte-identity contract) pass on the HP path.
 
-## Performance (the A2050 production scale)
-
-Measured on the real A2050 data (M = 1,999,179, P = 48, N = 77,943; 8 cores; the study:
-`notes/analyses/optimize_performance.md`):
-
-| kernel | fg/call | × |
-|---|---:|---:|
-| classic (K0, the original fg) | 735 ms | 1.00 |
-| K3 f32 accum | 52.3 ms | 14.1 |
-| **K3 f64 accum (production)** | **46.0 ms** | **16.1** |
-
-End-to-end (A2050 full chain, VLONG): OPTIMIZE 321.3 s → 26.9 s (11.9×); the whole chain ~350 s → 52.0 s (6.7×). The f64
-per-block accumulators are the production choice: f tracks the float64 reference to ~1e-12 rel (the f32 accumulation
-showed ~3.2e-06 abs), at a +4.3 ms/call cost — negligible against the 732 ms classic baseline.
-
 ## Open issues
 
 - The two-loop recursion in `opt_lbfgs.py` is now the second cost center (≈ 8.2 s of the 26.9 s HP OPTIMIZE, ~30%): the
@@ -123,6 +108,9 @@ showed ~3.2e-06 abs), at a +4.3 ms/call cost — negligible against the 732 ms c
 - The worker file: the triple blank lines are the canonical pattern of all 8 worker files (house style).
 - The scipy `expit` is the classic path's only special-function dependency (scipy in pyproject.toml); the HP path
   computes the sigmoid inline in f32 (the kernel must be self-contained for numba).
+- The f64 per-block accumulators are the PRODUCTION choice: f tracks the float64 reference to ~1e-12 rel (the f32
+  accumulation showed ~3.2e-06 abs) at a +4.3 ms/call cost — negligible against the classic baseline. The measured
+  numbers and the study: notes/analyses/optimize_performance.md.
 
 ## Integration
 

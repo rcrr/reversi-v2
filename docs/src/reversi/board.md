@@ -74,8 +74,13 @@ stated.
 Layered, low → high:
 
 ```
-Square (uint8) Move (uint8, + 64=PA, 65=NA, 66=UN) \ / \ Bitboard (uint64, bit i = square i) Move utils \ Position
-(structured dtype: mover + opponent, u64 each) \ game ops: legal moves, flips, make_move, WOFC scoring, D8
+Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
+        \        /                    \
+ Bitboard (uint64, bit i = square i)  Move utils
+        \
+ Position (structured dtype: mover + opponent, u64 each)
+        \
+ game ops: legal moves, flips, make_move, WOFC scoring, D8
 ```
 
 - **Dual scalar/array API** — every public function: an `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard,

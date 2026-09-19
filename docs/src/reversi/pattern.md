@@ -29,14 +29,25 @@ No search, no PDB storage, no disk I/O except the CSV writer.
 ## Architecture
 
 ```
-board.py: D8 transforms / anti tables, bitboards, Position | PatternType (Enum, 12 members) fingerprint -> {type,
-sample_mask, sample_name, level, n_instances, n_stabilizers} | Pattern (one principal mask) orbit: tmasks(8) ->
-unique_masks (first-seen order); n_stabilizers = 8 / n_instances symmetries: unique_symmetric_instance_indexes +
-symmetry_fs / anti_symmetry_fs; fingerprint (I/S/T) -> PatternType Burnside: n_invariant_configs / n_unique_configs pack
-plan: p_masks / u_masks / p_shifts (runs of set bits) config indexing: powers_3, bit_shifts; principal_index_dict |
-numba kernels (njit parallel=True, cache=True): pack, unpack, computes_indexes, compute_principal_indexes (fused) |
-PatternSet (name + mask-sorted patterns + sha3_256 hash) compute_principal_indexes: (N,) PositionArray -> (N,
-total_cols) IndexArray
+board.py: D8 transforms / anti tables, bitboards, Position
+    |
+PatternType (Enum, 12 members)
+    fingerprint -> {type, sample_mask, sample_name, level, n_instances, n_stabilizers}
+    |
+Pattern (one principal mask)
+    orbit: tmasks(8) -> unique_masks (first-seen order);
+        n_stabilizers = 8 / n_instances
+    symmetries: unique_symmetric_instance_indexes + symmetry_fs /
+        anti_symmetry_fs; fingerprint (I/S/T) -> PatternType
+    Burnside: n_invariant_configs / n_unique_configs
+    pack plan: p_masks / u_masks / p_shifts (runs of set bits)
+    config indexing: powers_3, bit_shifts; principal_index_dict
+    |
+numba kernels (njit parallel=True, cache=True): pack, unpack,
+    computes_indexes, compute_principal_indexes (fused)
+    |
+PatternSet (name + mask-sorted patterns + sha3_256 hash)
+    compute_principal_indexes: (N,) PositionArray -> (N, total_cols) IndexArray
 ```
 
 - **Principal mask rule** — a mask is principal iff it is the numerically lowest mask among its 8 D8 transforms: a mask

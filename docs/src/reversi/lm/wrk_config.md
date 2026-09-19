@@ -45,6 +45,10 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) + `test_wrk_config.py` (13 t
 - The integration: the bare (un-injected) context keeps the no-op closure lambda (probe E4a), `rlm_00.json` is NOT plain
   JSON (json5 load-bearing, probe E6), the down log line (probe E7).
 
+## Open issues
+
+None.
+
 ## Conventions
 
 - The injected machine closures are the naming authority — the worker does no path arithmetic of its own.

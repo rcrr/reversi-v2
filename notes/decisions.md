@@ -1349,3 +1349,34 @@ D-239 | 2026-09-19 | The mirror-format audit + the tokenizer regression fix (Rob
          `test_lm_worker_full_chain`, `test_wrk_plot`); the size budget is out in 6 files (hlp_plot 150, hlp_gradient
          134, hlp_config_schemas 128 above the 120 cap; state_machine 105, logistic_model 118, pattern 133 below the hub
          floor of 150). The punctual repairs are the D-240. Notes + docs only: no source, test or probe touched.
+
+D-240 | 2026-09-19 | The §2 `> State:` line RETIRED + the punctual mirror repairs (the D-239 audit findings; Roberto:
+         "Ritira la regola: semplifica docs_rules"). (1) THE RETIREMENT — docs_rules §2 is now "Header (fixed, 2
+         parts)": the H1 + the what-it-is paragraph, nothing else (no date, no D-number, no commit hash, no suite count,
+         no "Analysis date" / "brought in by" / "post D-xxx" line). Rationale: the metadata the line carried already
+         lives where it belongs (the last decision in decisions.md, the last commit in git, the suite counts in the
+         overview's cells) and keeping a copy current was a per-file tax that no commit ever paid — 94/94 mirrors
+         carried no State line. The §8 migration-state section is deleted with it (the schema is in force). rules.md's
+         Docs bullet follows in the same commit. (2) THE PUNCTUAL REPAIRS — `lm/wrk_positions.md`: the BROKEN
+         `## Architecture` heading (it had swallowed its first content line) split; `lm/hlp_gate.md`: the 4 missing
+         sections written (Architecture, Verified invariants, Open issues, Conventions — the invariants VERIFIED by
+         running the loader: the rlm_00 intercept present, 6 features / 5 blocks, the first block at column 1, the
+         blocks contiguous, `col_end - col_start == n_inst` for every feature); `lm/wrk_config.md`: the Open issues
+         section (`None.`); `tools/prng.md`: the section names normalized to the schema (What it is folded into the
+         header, How it works -> Architecture, Invariants -> Verified invariants, plus Open issues and Conventions with
+         the uint64 typing contract); `lm/hlp_gradient.md`: the extra `## Performance (the A2050 production scale)`
+         section FOLDED into Conventions (the production choice + the study pointer; the measurement table dropped — §3
+         fixes the section set and the numbers live in notes/analyses/optimize_performance.md; RESTORABLE on request);
+         `test/test_logistic_model.md`: the extra `## Testbed design` section folded into Conventions; the 3 ragged
+         tables fixed by escaping the pipes inside the cells (`model_weights` the `str \| None` unions,
+         `test_lm_worker_full_chain` the quoted `"Loss (MSE/2) \| ... \| ..."` console line, `test_wrk_plot` the
+         `\|residual\|` notation — the GFM rule: `\|` renders as `|` even inside a code span). (3) ALSO FIXED, found
+         while retiring §2: the D-237/D-238 wrapper had re-wrapped the FENCED CODE BLOCKS (the ASCII diagrams of
+         board.md / pattern.md / logistic_model.md and the §2 example were mangled — the lines joined, the indentation
+         stripped). The fence state machine is fixed (a fenced line is a Verbatim block, never wrapped) and the damaged
+         files were restored verbatim from the pre-reform content. (4) THE AUDIT AFTER: 83/94 mirrors with no finding;
+         the 11 left are SIZE only (hlp_plot 150, pattern 144, hlp_config_schemas 128, logistic_model 123, hlp_gradient
+         122 above their cap; state_machine 105 below the hub floor of 150; hlp_gate 50, paths 53, wrk_generate 56,
+         wrk_effect_size 59 just under the 60 floor) plus the single over-120 line (`wrk_vld_positions.md:25`, an
+         unbreakable 111-char code span). The size budget is a §5 target: trimming is a content call, left open. Notes +
+         docs only: no source, test or probe touched.

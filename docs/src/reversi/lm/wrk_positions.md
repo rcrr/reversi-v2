@@ -12,19 +12,20 @@ training population stats are derived for the workers that follow.
 | `extract_and_prepare(ctx, *, bid=None, status=None)` | the SHARED compute path used as `_up`'s `compute_fn` (and reused by VLD_POSITIONS) — `load_from_db` → `regab_dedup_mogv` per `ctx.cfg.regab_allow_duplicate` (True = keep every row and log the FOUND count; False = swap in the deduplicated frame and log the REMOVED count) → the post-policy `RegabDataSet`. The cache file stores the POST-policy data set, so a flag flip changes the stored content + the `rds_checksum`, cascading through the downstream checksum lineage (no format change) |
 | `is_cache_consistent(ctx, rds, *, bid=None, status=None)` | the validate half: a PURE metadata compare (no DB, no file access) between the cached data set and the current config |
 
-## Architecture- `_up`: INFO "Loading training game positions..." →
-`cache_manager_load_or_compute(...)` wired as: `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the
-injected machine closure — the verbatim-prefix concatenation makes the file FLAT: `base_dir/rlmwf_03_POSITIONS.dat`),
-`is_allowed = ctx.use_cache` (the CONFIG worker's switch, consumed here),
-`load_fn = regab_load_data_set_from_file(path, checksum=False)` (the sidecar was already verified by cache_manager's
-step 3 — no redundant re-check), `store_fn = regab_store_data_set_to_file`, `validate_fn = is_cache_consistent`,
-`compute_fn = extract_and_prepare` (the shared compute path, see API), `logger_fn = ctx.log_event`. On a CACHE HIT, the
-post-policy total is logged from the stored content ("Duplicate game positions (key: mover, opponent): [TOTAL: N] — data
-set loaded from cache (regab_allow_duplicate: …)"); on the COMPUTE path the full line ([TOTAL] + [FOUND]/[REMOVED] +
-[PERCENT]) is logged inside `extract_and_prepare` before the store. Then the post-processing (unrelated to caching):
-`rds.generate_positions_and_game_values()` → `ctx.positions` / `ctx.game_values`; `ctx.rds_checksum` = the duck-typed
-DATA checksum (the 3rd return element); INFO logs; the population stats with numpy over `game_values` →
-`ctx.training_pop_stats = {'count', 'mean', 'std_dev', 'variance'}`.
+## Architecture
+
+- `_up`: INFO "Loading training game positions..." → `cache_manager_load_or_compute(...)` wired as:
+  `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the injected machine closure — the verbatim-prefix
+  concatenation makes the file FLAT: `base_dir/rlmwf_03_POSITIONS.dat`), `is_allowed = ctx.use_cache` (the CONFIG
+  worker's switch, consumed here), `load_fn = regab_load_data_set_from_file(path, checksum=False)` (the sidecar was
+  already verified by cache_manager's step 3 — no redundant re-check), `store_fn = regab_store_data_set_to_file`,
+  `validate_fn = is_cache_consistent`, `compute_fn = extract_and_prepare` (the shared compute path, see API),
+  `logger_fn = ctx.log_event`. On a CACHE HIT, the post-policy total is logged from the stored content ("Duplicate game
+  positions (key: mover, opponent): [TOTAL: N] — data set loaded from cache (regab_allow_duplicate: …)"); on the COMPUTE
+  path the full line ([TOTAL] + [FOUND]/[REMOVED] + [PERCENT]) is logged inside `extract_and_prepare` before the store.
+  Then the post-processing (unrelated to caching): `rds.generate_positions_and_game_values()` → `ctx.positions` /
+  `ctx.game_values`; `ctx.rds_checksum` = the duck-typed DATA checksum (the 3rd return element); INFO logs; the
+  population stats with numpy over `game_values` → `ctx.training_pop_stats = {'count', 'mean', 'std_dev', 'variance'}`.
 - `_down`: INFO "Clearing training game positions, game_values and rds_checksum attributes." → the 4 context attributes
   (`positions`, `game_values`, `rds_checksum`, `training_pop_stats`) set to None.
 - `is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
