@@ -27,9 +27,9 @@ A probe is NOT:
   mirror-doc auditor, the suite counter), a finished investigation moves to notes/analyses/. A probe or a tool found in
   scratch/ is a defect (this is how the pre-session-30 set decayed untracked).
 - probe artifacts go under build/tmp (the D-065 base) and are removed afterwards, like test artifacts.
-- measure_suite.py (D-132) is a suite-level MEASUREMENT tool, not a verification probe: it makes no a/b/c checks and no
-  assertions — it records per-test durations in milliseconds (output to scratch/test_durations.txt). It is tracked in
-  probes/ as the timing instrument for the D-130 tiering and, not being a check, is outside the campaign sweep of §5.2.
+- The MEASUREMENT tools live in tools/ (D-250): measure_suite.py (the per-test durations, D-132) and suite_audit.py (the
+  per-module counts, D-243) make no a/b/c checks and no assertions, and their artifacts go under build/tmp. They are
+  outside the campaign sweep of §5.2 — the sweep is the verify_* probes.
 
 ## 3. Classification of every probe check (a / b / c)
 

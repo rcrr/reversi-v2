@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """suite_audit.py — the per-module suite counter (a MEASUREMENT tool).
 
-WHAT IT IS: a MEASUREMENT tool, the sibling of probes/measure_suite.py
-(probe_rules.md §2): it makes no assertions. It runs every test module of
+WHAT IT IS: a MEASUREMENT tool, the sibling of tools/measure_suite.py
+(the timing instrument, tools.md §6): it makes no assertions. It runs every test module of
 run_utests.sh ON ITS OWN, under the same environment as the pre-commit
 (LONG=1, the live DB), and prints `<module> <ran>/<fail>/<skip>` — the
 numbers the overview's Suite cells must carry. It produced the D-243

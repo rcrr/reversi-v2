@@ -87,10 +87,5 @@ One row per tracked tool. Updated in the same commit as the tool it describes.
 |---|---|---|---|---|
 | `notes_format.py` | maintenance | the house re-wrapper: the D-237 block grammar (~120 chars, code-span aware, the mid-token rejoins, the span healing) + the per-file verification (the content fingerprint, the idempotence, the fixpoint) | the files passed on the command line, ONLY with `--write`; nothing by default | D-237/D-238, promoted at D-248 |
 | `docs_format_audit.py` | check | audits every docs/**/*.md against notes/docs_rules.md: the H1 ↔ the source path, the sections and their order, the §4 forbidden patterns, the size budget, the width, the split code spans, the ragged tables | nothing (a report on stdout) | D-239, promoted at D-248 |
+| `measure_suite.py` | measurement | the per-test TIMING instrument (D-132): every test's duration in milliseconds + the per-module aggregate + the skip census, the baseline of the D-130 tiering | `build/tmp/test_durations.txt` | D-132, moved to tools/ at D-250 |
 | `suite_audit.py` | measurement | runs every test module of run_utests.sh on its own (LONG=1, the live DB) and prints `<module> <ran>/<fail>/<skip>` — the numbers the overview's Suite cells must carry | `build/tmp/suite_audit.txt` | D-243, promoted at D-248 |
-
-## 7. Grandfathered
-
-`probes/measure_suite.py` (D-132) is the pre-existing MEASUREMENT tool: probe_rules §2 names it as the timing instrument
-of the D-130 tiering and keeps it in probes/. It predates tools/ (D-248) and stays where it is; a NEW measurement tool
-lands in tools/. Moving it is an open call — it would touch the probe_rules §2 wording.

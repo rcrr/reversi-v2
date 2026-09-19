@@ -1595,3 +1595,21 @@ D-249 | 2026-09-19 | The tools/ rules: notes/tools.md (Roberto: "Vorrei vedere u
          and the overview Index. ALSO: AGENTS.md re-wrapped to the 120-char rule (Roberto's explicit request: the
          constitution follows the house format like the rest of the notes; content verified identical by the
          fingerprint, 67 -> 46 lines).
+
+D-250 | 2026-09-19 | measure_suite.py moves to tools/ (Roberto: "Metti probes/measure_suite.py in tools, YES!"). THE
+         MOVE — `git mv probes/measure_suite.py tools/measure_suite.py`: the per-test TIMING instrument (D-132, the
+         baseline of the D-130 tiering) joins the three maintenance tools, so ALL the non-check workspace utilities live
+         in ONE place. Its header is rewritten to the tools.md §3 shape (WHAT IT IS / USAGE / SAFETY / ORIGIN) and its
+         artifact moves from scratch/test_durations.txt to build/tmp/test_durations.txt (the tools.md §2 safety rule:
+         the artifacts under the D-065 base, never in the tree — scratch/ is for session code, not for a tool's output).
+         The probe_rules §2 bullet is REWRITTEN: it no longer grandfathers a measurement tool inside probes/ — the
+         measurement tools live in tools/ (measure_suite.py + suite_audit.py), make no a/b/c checks and their artifacts
+         go under build/tmp; the sweep stays the verify_* probes (21 files). tools.md loses its §7 (the grandfather case
+         is closed by the move) and gains the measure_suite row in the inventory (4 rows now). The
+         historical D-132/journal references stay as they are (append-only: they record where the file WAS). BUILD/TMP
+         CLEANED: 23 leaked temp dirs (70 MB) + the suite_audit.txt artifact removed. THE CAUSE, verified rather than
+         assumed: the tests and the probes DO clean up (the chain suite re-run leaves 23 -> 23 dirs) — the leaks came
+         from (a) the INTERRUPTED runs (the SIGTERM timeouts of this session: a killed process never runs its tearDown)
+         and (b) the ad-hoc `tempfile.mkdtemp` snippets used for the empirical ground truth (the slot discovery, the
+         cache-file listings). No test defect: build/tmp is empty again, and every artifact there is regenerable on
+         demand.

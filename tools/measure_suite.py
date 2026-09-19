@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""
-measure_suite.py — the suite-level TIMING measurement tool
-(D-132: graduated from scratch/ to probes/ on Roberto's GO).
+"""measure_suite.py — the suite-level TIMING measurement tool.
 
-Not a verification probe in the §1 sense: it makes NO a/b/c
-checks and no assertions — it is a measurement instrument. It
+WHAT IT IS: a MEASUREMENT tool (tools.md §1) — it makes NO a/b/c
+checks and no assertions. It
 runs the whole reversi.test suite (a live regab DB is required
 for the full picture) with a custom TestResult and records
 every test's duration in milliseconds. The builtin
@@ -18,10 +16,17 @@ measurement: 40.6 s of 44.5 s in the 14 DB-dependent files).
 Run it whenever a timing question comes up (a slow-tier
 change, a new heavy test, the <10 s budget check).
 
-Run from the workspace root:  .venv/bin/python probes/measure_suite.py
-Output: scratch/test_durations.txt — per-test ms (sorted
-descending), the per-module aggregate table, and the skip
-census with reasons.
+USAGE (from the workspace root):
+  .venv/bin/python tools/measure_suite.py
+
+SAFETY: writes NOTHING in the tracked tree — the single artifact is
+build/tmp/test_durations.txt (the D-065 base): the per-test ms (sorted
+descending), the per-module aggregate table, and the skip census with
+reasons.
+
+ORIGIN: D-132 (the timing instrument of the D-130 tiering, graduated
+from scratch/ to probes/ on Roberto's GO); moved to tools/ at D-250,
+with the artifact path (scratch/ -> build/tmp).
 """
 
 import sys
@@ -123,7 +128,7 @@ def main():
         out.append(f"{test.id()}  ->  {reason}")
     out.append("")
 
-    dest = ROOT / "scratch" / "test_durations.txt"
+    dest = ROOT / "build" / "tmp" / "test_durations.txt"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text("\n".join(out) + "\n")
     print(f"written: {dest} ({len(rows)} tests, wall {wall:.0f} ms, "
