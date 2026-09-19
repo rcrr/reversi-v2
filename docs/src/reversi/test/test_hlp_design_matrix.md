@@ -13,8 +13,8 @@ compute tests use a handcrafted mock ctx, the IO tests use a REAL temp dir under
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` golden: `da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea971975 7b` — sha3_256
-  over `X.tobytes()` of the small 2×3 uint32 IO object (a regression in the hash or in the serialized array breaks it).
+- The `compute_sha3_256_hash` golden: `da86a916e03c76befa6f5df70e6221b0f9a355173e356ea63fef89ea9719757b` — sha3_256 over
+  `X.tobytes()` of the small 2×3 uint32 IO object (a regression in the hash or in the serialized array breaks it).
 - The hand-computed X matrix `[[1,2,2],[1,3,3],[0,2,3],[0,3,2]]`; the 3 RuntimeError message substrings + the precise
   `ValidationError` + the guard `ValueError`.
 
@@ -25,7 +25,8 @@ compute tests use a handcrafted mock ctx, the IO tests use a REAL temp dir under
   against the iwmap in the comment).
 - The precise-message pins (no broad `assertRaises(Exception)`).
 - The sidecar/error-path tests reuse the exact binio API and the exact RuntimeError messages the WMAPS IO tests pin —
-  the four cache-manager consumer suites (POSITIONS / INDEXES / WMAPS / DESIGN_MTR) stay mutually consistent.
+  the cache-manager consumer suites (SU_ANALYSIS / POSITIONS / INDEXES / WMAPS / DESIGN_MTR / GENERATE / VLD_POSITIONS)
+  stay mutually consistent.
 
 ## Integration
 

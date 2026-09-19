@@ -27,7 +27,7 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
     w_init + the initial sl/yl/rho/iter from the checkpoint (the old trailing else was unreachable — iters is an int).
   - step 2: `logger_fn` (INFO) + `save_fn` (7 params, matches the lbfgs hint; writes an INCOMPLETE/non-converged
     checkpoint; `iters=k+1` — completed-count semantics, as the final save).
-  - step 3: the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 5 config scalars, both wrappers, the 4 warm-start kwargs.
+  - step 3: the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 8 config scalars, both wrappers, the 4 warm-start kwargs.
   - step 4: `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
     `ctx.w_checksum = weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict
     carries the 9 keys: w/converged/reason/iters/f/g_norm/sl/yl/rho).
@@ -41,8 +41,8 @@ Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
 - Source shape (probe B1-B17): the 190-line file, the factory decorator + the pydantic/binio imports, the 16 lbfgs
   kwargs + the warm-start consumption (B4, B13), the try/except, the `_down` scope, the header typo fix, the dead `Path`
   import gone.
-- The worker-test source shape (probe D1-D11): the 174-line file, the gate, the idiom, the 3 step pins (GRADIENT=8,
-  OPTIMIZE=9), the marker, the pins.
+- The worker-test source shape (probe D1-D11): the 175-line file, the gate, the idiom, the 3 step pins (GRADIENT=10,
+  OPTIMIZE=11), the marker, the pins.
 - The 6 live decision paths (probe H4-H8 + H6b): completed (no lbfgs in run 2, byte-identical weights), resume (warm
   start consumed), zed-inconsistent → scratch, ridge-only-inconsistent → scratch, use_cache=False → no load + checkpoint
   still saved (H7), corrupted checkpoint → delete + scratch + valid re-save (H8).

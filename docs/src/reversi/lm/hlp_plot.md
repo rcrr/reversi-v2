@@ -28,8 +28,8 @@ the config is parsed by every run (and by the client).
 
 ## Architecture
 
-- Imports: `dataclass`, typing, numpy, `sigmoid` from `hlp_gradient` (the SAME scipy-expit the VALIDATE / CLIENT_CHECK
-  passes use), `LMContext` + `Figure` under TYPE_CHECKING. NO top-level matplotlib / scipy import.
+- Imports: `dataclass`, typing, numpy, the numpy surface only (the same scipy-expit the VALIDATE / CLIENT_CHECK passes
+  use), `LMContext` + `Figure` under TYPE_CHECKING. NO top-level matplotlib / scipy import.
 - Constants: `PLOT_NAMES`, `PLOT_TITLES`, the seeds `_JITTER_SEED=42` / `_KDE_SEED=43`, `_KDE_MAX_POINTS=100_000` (the
   O(n·m) cap), the jitter amounts `_JIT_FITTED_X=0.005`, `_JIT_Y=0.005`, `_JIT_GV_X=0.7` (the R fractions),
   `_KDE_GRID=512`, and the axis constants `_AXIS_GV=64.0`, `_AXIS_DENSITY=72.0`, `_TICK_STEP=8.0`.

@@ -22,7 +22,7 @@ The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s infrastructure
   length prefix, the type codes), the exact exception types (`BinaryFormatError` / `ValueError` / `FileNotFoundError`),
   and the `sha3_256sum` sidecar format.
 - `test_usage_binio.py` (3 "living documentation" tests — `with` / manual open-close / LZ4 cycles, each also verifying
-  the sidecar; `tempfile.mkdtemp` + `addCleanup(shutil.rmtree)`): no doc of its own (pre-existing mirror gap,
+  the sidecar; `tempfile.mkdtemp` + `addCleanup(shutil.rmtree)`): its own mirror doc exists (test_usage_binio.md);
   report-only).
 
 ## Conventions

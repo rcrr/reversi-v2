@@ -30,10 +30,10 @@ Pinned by the `probes/verify_hlp_indexes.py` D tier + the 2-test suite.
 - Source shape: the 80-line file, `__all__ = ['wrk_indexes']`, the factory name "INDEXES" WITH `@validate_call`, the
   LMContext import under TYPE_CHECKING (the circular-import guard), the full 7-kwargs cache wiring with the
   `checksum=False` load_fn, the double-clear `_down`, 0 non-comment trailing-whitespace lines — probe D1-D6.
-- The level boundary (live DB, probe C tier): the flat file set is exactly CONFIG + POSITIONS + INDEXES (no
-  `rlmwf_02_FEATURES*` — the pure-compute level writes nothing); the data-checksum identity; the sidecar is the flat
-  `sha3_256sum` line (FILE checksum); the `(N, 16)` shape + independent recompute; the cross-run cache hit + identical
-  object; the `_down` clearing of BOTH attributes.
+- The level boundary (live DB, probe C tier): the flat file set is exactly SU_ANALYSIS + POSITIONS + INDEXES (no
+  `rlmwf_01_CONFIG*` — CONFIG writes nothing; no `rlmwf_02_FEATURES*`); the data-checksum identity; the sidecar is the
+  flat `sha3_256sum` line (FILE checksum); the `(N, 16)` shape + independent recompute; the cross-run cache hit +
+  identical object; the `_down` clearing of BOTH attributes.
 - The end-to-end round-trip (DB-gated): `test_compute_and_populate_cache` (move to INDEXES = step 5 pinned, the FLAT
   `rlmwf_05_INDEXES.dat` + `.SHA3-256` on disk, "Executing heavy computation", non-None `hlp_indexes`) and
   `test_read_cache_on_new_instance` (the second instance: the "Cache successfully loaded and validated" + the NEGATIVE

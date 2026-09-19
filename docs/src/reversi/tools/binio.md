@@ -81,5 +81,4 @@ None.
   pins the sidecar verification of the saved model.
 - The C/Rust interop contract: MAGIC, the type codes 1-10, and the little-endian layouts are stable — the module
   docstring documents the byte layout.
-- `test_usage_binio.py` has no doc of its own (pre-existing mirror gap, report-only — its 3 tests are pinned in the
-  test_binio doc).
+- `test_usage_binio.py` has its own mirror doc (its 3 tests are also summarized in the test_binio doc).

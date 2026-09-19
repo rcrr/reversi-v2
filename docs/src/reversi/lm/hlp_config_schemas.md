@@ -47,12 +47,12 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).
 - **The analysis levels** — `su_analysis` + `effect_size`, both by default factory and both `enable` default **FALSE**
   (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
-  the rlm_00 fixture opt in); `target_level: str` default `"last"` (a level name, case-insensitive, resolved fail-fast
-  by the StateMachine, or "last" for the full pipeline; consumed by the facade's `run()` when no explicit target is
-  given — a blank value means "last" too); and `check_su_pairs_feature_set`, a
-  `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is not in the `feature_set` (the
-  mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator does the canonical sort + the
-  dedupe (each pair a sorted tuple, a repeated pair collapsed).
+  the rlm_00 fixture opt in (su_analysis; effect_size is enabled by no shipped fixture)); `target_level: str` default
+  `"last"` (a level name, case-insensitive, resolved fail-fast by the StateMachine, or "last" for the full pipeline;
+  consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too); and
+  `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is
+  not in the `feature_set` (the mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator
+  does the canonical sort + the dedupe (each pair a sorted tuple, a repeated pair collapsed).
 - **PlotConfig** — `enable: bool = True` (false makes the PLOT level a no-op even with names listed);
   `format: str = "png"` (`"png"`, `"pdf"` or a comma-separated pair — both; `check_format` normalizes whitespace,
   rejects unknown tokens, empty tokens and duplicates); `dpi: int = 150` (50..1200); `dir_name: Path = "plots"`

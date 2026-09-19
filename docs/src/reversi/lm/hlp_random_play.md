@@ -24,9 +24,9 @@ chunk-by-chunk; this module accumulates the frequencies, it does not generate th
     F_j) and per (instance_i, instance_j) in the pair, the (code_i, code_j) -> count — the instance×instance level (P6's
     matrix). The joint is SPARSE (the code_i x code_j space is too large for the dense — the unique-merge split). The
     key is the packed u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale (the max is 59049^2 << 2^64). The
-    same-feature pair (F, F) is allowed: the diagonal (the variable with itself) is the SU = 1 lock (OMITTED); the
-    off-diagonal (the D8 orientations of the same mask) is the anisotropy measure. `.result()` returns per pair (name_i,
-    name_j, { (inst_i, inst_j): (codes_i, codes_j, counts) }).
+    same-feature pair (F, F) is allowed: the accumulator BUILDS the diagonal (inst_i == inst_j) too — the SU report
+    omits it downstream (the SU = 1 lock); the off-diagonal (the D8 orientations of the same mask) is the anisotropy
+    measure. `.result()` returns per pair (name_i, name_j, { (inst_i, inst_j): (codes_i, codes_j, counts) }).
 
 ## Architecture
 - The streaming accumulator: the corpus is fed chunk-by-chunk (the wave boundary harvest, the BufferSink); the
@@ -36,6 +36,9 @@ chunk-by-chunk; this module accumulates the frequencies, it does not generate th
   window as the DB extraction.
 
 ## Verified invariants
+Pinned by `test_hlp_random_play.py` (5 classes / 10 tests, no DB): `TestEcPin` (the hand-counted ec), the two
+accumulators (the LMC oracle + the R2 cross-check, the chunk-merge invariance, the cross-feature + the diagonal joints),
+the PRNG integration (the corpus reproducibility + the small end-to-end marginals).
 - The ec pin: ec_of = 64 - the occupied squares, hand-counted over the initial position (4 stones, ec 60) + a
   hand-crafted 24-stone position (ec 40) + the full board (ec 0). This IS the DB's `empty_count` (the regab
   `empty_count = ec` filter) — the "mele con mele" window.
@@ -53,10 +56,6 @@ chunk-by-chunk; this module accumulates the frequencies, it does not generate th
     Every joint's count sum == N.
 
 ## Open issues
-- The ec formula: PINNED — ec_of = 64 - popcount(mover | opponent) = the DB's `empty_count` (the regab
-  `empty_count = ec` filter, the "mele con mele" window).
-- The wave engine (the numba tier, hlp_wave.py) — the lockstep advance step, the boundary harvest + respawn, the
-  streaming to the sink.
 - The mover-convention alignment with the DB extraction: the mover is FIXED by the official Othello rules (black, E4+D5,
   the starting player — the official Othello setup; the "pure label" claim is void, the setup is NOT mover-symmetric).
 
@@ -66,7 +65,8 @@ chunk-by-chunk; this module accumulates the frequencies, it does not generate th
 - The module docstring carries the design rationale (the streaming accumulator, the ec pin).
 
 ## Integration
-- Consumes `board.py` (the Position, the legal moves) + `tools/prng.py` (the MT19937).
+- Consumes `board.py` (the Position, the legal moves); the PRNG (tools/prng.py) is driven by the wave engine (hlp_wave),
+  not here.
 - Consumer: the SU_ANALYSIS level (the worker wrk_su_analysis.py) — the accumulators are the phase-1 (corpus ->
   frequency tables) data plane; the corpus is the wave (hlp_wave.run_wave) fed chunk-by-chunk.
 - Not a pipeline level itself: the lm data module of the SU_ANALYSIS level (like hlp_validate / hlp_plot).
