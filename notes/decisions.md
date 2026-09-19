@@ -1225,6 +1225,21 @@ D-232 | 2026-09-18 | The FUSED STEP ENGINE + the board njit primitives (Roberto'
          per-advance ~39ns vs the hlp_wave engine ~122-170ns (4x). `test_board` 246/0/15 (was 244/0/15),
          `test_random_game` 33/0/1, full LONG 916/0/23 GREEN.
 
+D-233 | 2026-09-18 | The `_kogge_stone_lms` resurrection — the symmetric encapsulation (Roberto): the two
+         per-lane primitives had two inconsistent strategies — `flips_of_move` wraps the private core
+         `_kogge_stone_mm`, while `legal_moves_of` carried the geometry body directly (the D-232 extraction
+         moved it out of the vectorized kernel's loop without preserving the historical private core; the
+         exact historical body of `_kogge_stone_lms` predates the workspace bootstrap and is not recoverable
+         from our git — only the name survives in the original TODO comment of the staged board.py).
+         RESURRECTED: `_kogge_stone_lms(generator, propagator, blocker)` — the private njit core
+         (`inline='always'`, the same decorator as `_kogge_stone_mm`) with the CURRENT proven body
+         parameterized on the three Kogge-Stone roles (generator = mover, propagator = opponent,
+         blocker = empties); `legal_moves_of` is now the thin domain wrapper
+         (`_kogge_stone_lms(mover, opponent, ~(mover | opponent))`) — the pair
+         legal_moves_of/_kogge_stone_lms mirrors flips_of_move/_kogge_stone_mm. Zero behaviour change (the
+         same inlined machine code). `test_board` 246/0/15, the 1M-games benchmark unchanged (2.58s), full
+         LONG 916/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

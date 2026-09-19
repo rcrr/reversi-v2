@@ -1056,6 +1056,51 @@ _slide_1 = np.array([1, 7, 8, 9], dtype=np.uint8)
 _slide_2 = _slide_1 * 2
 _slide_4 = _slide_1 * 4
 
+#: Internal use function.
+@nb.njit(inline='always')
+def _kogge_stone_lms(generator: Bitboard, propagator: Bitboard,
+                     blocker: Bitboard) -> Bitboard:
+    """
+    The Kogge-Stone legal-move-set primitive (the historical name,
+    resurrected): the sliding moves of the generator through the
+    propagator, stopped by the blocker (the empties). The private
+    core, shared by the vectorized kernel and `legal_moves_of` — the
+    same encapsulation pattern as `_kogge_stone_mm` /
+    `flips_of_move`.
+    """
+    legal_result = Bitboard(0)
+
+    # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
+    for d in range(4):
+        # --- Directional Forward Shift (Left-style) ---
+        g = generator
+        p = propagator & _mask_l[d]
+
+        g |= p & (g << _slide_1[d])
+        p &= p << _slide_1[d]
+        g |= p & (g << _slide_2[d])
+        p &= p << _slide_2[d]
+        g |= p & (g << _slide_4[d])
+
+        # Resulting moves must be in an empty square and not be the generator itself
+        g_final = blocker & _mask_l[d] & ((g & ~generator) << _slide_1[d])
+        legal_result |= g_final
+
+        # --- Directional Backward Shift (Right-style) ---
+        g = generator
+        p = propagator & _mask_r[d]
+
+        g |= p & (g >> _slide_1[d])
+        p &= p >> _slide_1[d]
+        g |= p & (g >> _slide_2[d])
+        p &= p >> _slide_2[d]
+        g |= p & (g >> _slide_4[d])
+
+        g_final = blocker & _mask_r[d] & ((g & ~generator) >> _slide_1[d])
+        legal_result |= g_final
+
+    return legal_result
+
 #: The PUBLIC numba primitives: the per-lane legal-move set and the
 #: flip set of a single-bit move — the single sources of the two
 #: geometries, shared by the vectorized kernels of this module and by
@@ -1067,44 +1112,13 @@ def legal_moves_of(mover: Bitboard, opponent: Bitboard) -> Bitboard:
     """
     The legal-move set of ONE position (the per-lane numba
     primitive): the Kogge-Stone computation over the 4 directions x
-    2 senses. The single source shared by legal_moves /
+    2 senses, delegated to the private core `_kogge_stone_lms` (the
+    same encapsulation pattern as `flips_of_move` /
+    `_kogge_stone_mm`). The single source shared by legal_moves /
     _vectorized_legal_moves (which call it per lane) and by the
     numba compositions.
     """
-    empties = Bitboard(~(mover | opponent))
-
-    legal_result = Bitboard(0)
-
-    # Iterate through the 4 main directions (each handles both sides: Left/Right, Up/Down, etc.)
-    for d in range(4):
-        # --- Directional Forward Shift (Left-style) ---
-        g = mover
-        p = opponent & _mask_l[d]
-
-        g |= p & (g << _slide_1[d])
-        p &= p << _slide_1[d]
-        g |= p & (g << _slide_2[d])
-        p &= p << _slide_2[d]
-        g |= p & (g << _slide_4[d])
-
-        # Resulting moves must be in an empty square and not be the generator itself
-        g_final = empties & _mask_l[d] & ((g & ~mover) << _slide_1[d])
-        legal_result |= g_final
-
-        # --- Directional Backward Shift (Right-style) ---
-        g = mover
-        p = opponent & _mask_r[d]
-
-        g |= p & (g >> _slide_1[d])
-        p &= p >> _slide_1[d]
-        g |= p & (g >> _slide_2[d])
-        p &= p >> _slide_2[d]
-        g |= p & (g >> _slide_4[d])
-
-        g_final = empties & _mask_r[d] & ((g & ~mover) >> _slide_1[d])
-        legal_result |= g_final
-
-    return legal_result
+    return _kogge_stone_lms(mover, opponent, Bitboard(~(mover | opponent)))
 
 #: Internal use function.
 @nb.njit(parallel=True, cache=True)

@@ -31,7 +31,7 @@ scalar out, 1-D array in → array out (same shape), unless stated.
 | Bitboard | `bitboard_from_hex_str(h) -> Bitboard \| BitboardArray` | 16-char hex, no `0x` prefix, case-insensitive; the array path is `np.frompyfunc` (element-wise Python loop) |
 | Bitboard | `bitboard_bsr(bb) -> int` | index of the most significant set bit (63..0); 0 → -1; scalar only |
 | Bitboard | `bitboard_count(bb) -> np.uint8` | popcount via `np.bitwise_count`; scalar only |
-| Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit primitive (`inline='always'`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
+| Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit domain wrapper over the private core `_kogge_stone_lms` (the same encapsulation pattern as `flips_of_move` / `_kogge_stone_mm`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
 | Bitboard | `flips_of_move(mover, opponent, move) -> Bitboard` | the flip set of the single-bit move — the njit flip primitive (the Kogge-Stone core) for the numba compositions |
 | Bitboard | `bitboard_print(bb, output)` | 2-D text; row 1 on top, column a on the left |
 | Bitboard | `bitboard_to_square_list(bb) -> List[Square]` | the squares, descending (H8 → A1) |
