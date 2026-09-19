@@ -181,9 +181,17 @@ def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
     order (the step-interleaved stream discipline).
     """
     lms_mover = position_legal_moves(cur)
-    lms_opponent = position_legal_moves(make_position(cur['opponent'],
-                                                      cur['mover']))
     mover_passes = active & (lms_mover == _EMPTY_MOVE_SET)
+    # The opponent's legal set is needed ONLY for the pass lanes
+    # (rare mid-game): computed on the pass-lane subset, not on the
+    # whole batch (the profiling showed the second full-array call as
+    # a top hot spot).
+    lms_opponent = np.zeros(cur.shape[0], dtype=np.uint64)
+    pass_idx = np.flatnonzero(mover_passes)
+    if pass_idx.size:
+        swapped = make_position(cur['opponent'][pass_idx],
+                                cur['mover'][pass_idx])
+        lms_opponent[pass_idx] = position_legal_moves(swapped)
     mover_plays = active & (lms_mover != _EMPTY_MOVE_SET)
     double_pass_game_over = mover_passes & (lms_opponent == _EMPTY_MOVE_SET)
     mover_passes_opponent_plays = (mover_passes

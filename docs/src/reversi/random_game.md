@@ -72,8 +72,10 @@ results computed on the ONE injected prng stream.
   units — `_play_path_engine` (the step loop + the termination
   bound), `_play_path_step` (the lane classification and the
   advance), `_apply_picked_moves` (the masked position_flips on the
-  lane subset). Per step the legal sets of the current and swapped
-  views (both draw-independent) classify the active lanes:
+  lane subset). Per step the mover's legal set is computed on the
+  batch and the opponent's ONLY on the pass-lane subset (rare
+  mid-game — the D-228 profiling fix); both draw-independent; they
+  classify the active lanes:
   mover_plays (the disc placed by the mover),
   mover_passes_opponent_plays (the pass costs no draw, the opponent
   plays from the swapped view), double_pass_game_over (harvested,

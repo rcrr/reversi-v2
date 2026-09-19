@@ -1152,6 +1152,16 @@ D-227 | 2026-09-18 | The play_path PERF baseline + the profiling session (Robert
          it, (b) the legal_moves also on the INACTIVE lanes, (c) ~6 full-array copies per step. The
          intervention plan is the next decision. `test_random_game` 33/0/1 (was 32/0/0).
 
+D-228 | 2026-09-18 | The play_path intervention 1 (Roberto's one-at-a-time plan, measured): the opponent's legal
+         set in `_play_path_step` is computed ONLY on the pass-lane subset (the `mover_passes` lanes — rare
+         mid-game), not on the whole batch; the D-227 profile showed the second full-array
+         `position_legal_moves` (on the swapped view) as a top hot spot (16.6% of the wall, 2 calls per step).
+         The zero-filled scatter keeps the same read semantics (`lms_opponent` is read only under the
+         `mover_passes` masks). IDENTICAL results. THE MEASUREMENT (the 1M-games benchmark, the same seed):
+         6.33s / 157,995 games/s -> 5.68s / 176,100 games/s (-10.3% wall, +11.5% throughput); the harvest
+         breakdown unchanged (reached ec=0: 990,413; game-over 9,587; the same max stuck ec = 51).
+         `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
