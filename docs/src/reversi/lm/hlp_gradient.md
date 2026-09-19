@@ -4,9 +4,8 @@ is_cache_consistent, NO init validation, NO hash (unlike every other rlm_* level
 scipy `expit` wrapper) + `hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates the normalized loss and gradient). TWO fg variants:
 the classic vectorized-numpy closure (the default) and the high-performance numba single-pass kernel (K3, selected by
-the `high_performance` flag). The 9th active level (CREATED sentinel → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS →
-DESIGN_MTR → ZED → GRADIENT) and the SECOND non-cache level (after ZED): no cache_manager wiring, no rlmwf_07* /
-rlmwf_08* file ever.
+the `high_performance` flag). The 9th active level and the SECOND non-cache one (after ZED): no cache_manager wiring, no
+rlmwf_07* / rlmwf_08* file ever.
 
 ## API
 
@@ -18,10 +17,9 @@ rlmwf_08* file ever.
 ## Architecture
 
 - `sigmoid(x)`: `return expit(x)` (the scipy import). NO `@validate_call` (it is called in the optimization hot loop).
-  Docstring: the naive `1 / (1 + exp(−x))` is what it replaced; expit's stability advantage is at extreme x (where the
-  naive `np.exp(−x)` overflows).
-- `hlp_gradient_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes L166 class). Captures:
-  `N = len(ctx.w)`, `X = ctx.design_matrix`, `M, P = X.shape` (M = positions), `z = ctx.z`,
+  Docstring: expit's stability advantage is at extreme x, where the naive `1 / (1 + exp(−x))` overflows.
+- `hlp_gradient_compute`: NO `@validate_call` (the no-validation note, as in hlp_indexes). Captures: `N = len(ctx.w)`,
+  `X = ctx.design_matrix`, `M, P = X.shape` (M = positions), `z = ctx.z`,
   `alpha = ctx.cfg.stat_model.ridge_regularization / M`.
 
 ### The classic variant (the default)
@@ -64,9 +62,9 @@ rlmwf_08* file ever.
 Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tests, no DB, 3 classes) +
 `test_wrk_gradient.py` (2 DB-gated tests + 2 no-DB flag-wiring tests).
 
-- Source shape (probe A1-A15): 179 lines, the 2-name `__all__`, the expit + numba imports, the no-validation note
-  (L104), the `_HP_BLOCKS = 8` constant, the kernel def (prange + private f64 buffers), the flag + the variant marker
-  attributes, 0 non-comment trailing-whitespace lines.
+- Source shape (probe A1-A15): 179 lines, the 2-name `__all__`, the expit + numba imports, the no-validation note, the
+  `_HP_BLOCKS = 8` constant, the kernel def (prange + private f64 buffers), the flag + the variant marker attributes, 0
+  non-comment trailing-whitespace lines.
 - The worker file shape (probe B1-B9): 64 lines, the factory WITH `@validate_call` + the pydantic import, NO
   cache_manager import (the by-design comment pinned), `_up` reads `ctx.cfg.optimization.high_performance_fg` and passes
   it to `hlp_gradient_compute` (the log line names the variant), `_down` clears `ctx.fg`, `Worker("GRADIENT", ...)`.

@@ -1380,3 +1380,24 @@ D-240 | 2026-09-19 | The §2 `> State:` line RETIRED + the punctual mirror repai
          wrk_effect_size 59 just under the 60 floor) plus the single over-120 line (`wrk_vld_positions.md:25`, an
          unbreakable 111-char code span). The size budget is a §5 target: trimming is a content call, left open. Notes +
          docs only: no source, test or probe touched.
+
+D-241 | 2026-09-19 | The size-budget condensation (Roberto: "facciamo un riassunto dei documenti troppo grandi"): the
+         three mirrors over the 120-line cap condensed to the budget — `lm/hlp_plot.md` 150 -> 119,
+         `lm/hlp_config_schemas.md` 128 -> 115, `lm/hlp_gradient.md` 122 -> 120. WHAT WAS CUT (all of it
+         rule-compliant): (a) the LINE-NUMBER references (docs_rules §3: the appendix with line numbers is OPTIONAL and
+         OFF by default — `L28-41`, `L69-112`, `L124-145`, `L410-418`, `the hlp_indexes L166 class`, `(L104)`); (b) the
+         DEFECT and RENAME narrative (§4: "the stale-label bug", "the png2 trap", "the labels were NOT swapped", "the
+         two 'Fitted' titles renamed", "the bare '(Y)' is gone from every label", "it used to cover", "the R script
+         computed the skewness/kurtosis numerically", "is what it replaced"); (c) the CAMPAIGN TAGS in the prose (§4:
+         "the P4", "the P6", "the ODP-1"); (d) the redundant restatements (the axis rulings repeated in the header, in
+         the constants bullet and in every builder; the level-chain enumeration in the hlp_gradient header; the 20
+         one-test-per-bullet invariants of hlp_config_schemas merged into 10 thematic bullets that keep every test
+         name). NOTHING CONTRACTUAL WAS LOST: the API tables are intact, every pinned test/probe name is kept, and 14
+         literals were re-derived against the sources (the defaults `dpi` 150 / `cache_files_prefix` /
+         `client_check_tol` 1e-8 / `total_positions` 1e7 / `seed` 42 / `ec` 20, the plot seeds 42/43, the KDE cap 100k,
+         the axes 64/72/8, `_HP_BLOCKS` 8) — all confirmed. THE AUDIT AFTER: 86/94 mirrors with no finding; the 8 left
+         are UNDER the floor (hlp_gate 50, paths 53, wrk_generate 56, wrk_effect_size 59 against the 60 floor;
+         logistic_model 123, pattern 144, state_machine 105 against the 150 hub floor) plus the single over-120 line
+         (`wrk_vld_positions.md:25`, an unbreakable 111-char code span). A doc BELOW the floor is not a defect (§5: the
+         floor catches a doc that OMITS its module), so those stay open as a content call. Notes + docs only: no source,
+         test or probe touched.
