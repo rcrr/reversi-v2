@@ -45,6 +45,12 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   publication, the no-su_pairs -> the joint None); the cache hit (the second run, the "loaded from cache" log); the
   signature invalidation (the corpus change -> the recompute); the su_pairs joint (the (EDGE, LMC) pair, the canonical
   order); the optional CSV (the export_csv flag -> the CSV file); the down (recovery — the tables cleared).
+- Pinned by the 43-check `probes/verify_su_analysis.py` (the campaign level): the module structure + the no-DB
+  discipline; the independent re-derivations (the marginal vs the FeatureSet's own batch bincount, the joint vs a
+  pure-python Counter, the SU values vs the RATIO-FORM mutual information, the signature vs an independently recomputed
+  feature_set hash); the live rlm_00 run (the step-3 stop, the cache + its sidecar, the report lines vs pure-python
+  math, the phase-2 recompute on the cache hit, the down, the opt-in absence of both artifacts); the rename
+  completeness over src/docs/probes/tools.
 
 ## Open issues
 - The SU / the entropy / the MI math: `hlp_feature_analysis` is a shared-kernels module (also the ANOVA + the adherence

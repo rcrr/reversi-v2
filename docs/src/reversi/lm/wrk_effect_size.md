@@ -40,6 +40,10 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   log has one line per sub-variable); the graceful degradation (the tables None -> the adherence SKIPPED, the ANOVA
   runs); the adherence computed (the tables set -> the log has the Adherence lines, the top-N); the report (the TXT is
   written); the down (a no-op).
+- Pinned by the 29-check `probes/verify_effect_size.py` (the campaign level): the no-cache discipline; the independent
+  math (the ANOVA vs the F identity + scipy's f_oneway + the eta² >= omega² invariant; the adherence trio vs pure-python
+  formulas + the Pinsker bound); the CSV path (no test covers it); a live A2050 tier with NO DB — the cached 1e7 area
+  symlinked under build/tmp, every ANOVA line and every adherence row recomputed from the caches.
 
 ## Open issues
 - The report's adherence section header says "top {top_k_adherence}" while the body lists EVERY sub-variable: the
