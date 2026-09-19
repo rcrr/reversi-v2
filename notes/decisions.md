@@ -1628,3 +1628,25 @@ D-251 | 2026-09-19 | The build/tmp leak: three probes cleaned (Roberto: "Control
          and leave build/tmp EMPTY; the full sweep (21 probes) is green and leaves build/tmp EMPTY. The
          `measure_suite.py` and `suite_audit.py` artifacts (the tools' deliverables) are regenerable on demand and were
          removed too. No test defect, no probe count change: a maintenance fix to the apparatus.
+
+D-252 | 2026-09-19 | The G0 wave-size fix: the corpus lanes capped by the corpus (Roberto's GO, after the timing
+         analysis + the pilot). THE FINDING — the per-test timing of the whole suite (tools/measure_suite.py) showed 41
+         tests (4.5%) taking 91% of the wall; PROFILING the cold chain run of `test_wrk_indexes` revealed that 3.3 s of
+         its 3.4 s were the FEATURE_ANALYSIS G0 corpus — a level that suite does not test — because `rlm_00` (used by 9
+         suites) enables it with a 10k corpus and `wrk_feature_analysis` ran it with `_WAVE_SIZE = 1_000_000`
+         UNCONDITIONALLY: the 1e6-lane arrays (~48 MB) plus the per-step glue cost ~3.4 s for a 10k-position harvest
+         that a 10k-lane wave does in ~0.04 s (measured: W=1e6 3.838 s, W=1e4 0.036 s, 107x). THE FIX — ONE LINE:
+         `wave_size = min(_WAVE_SIZE, corpus.total_positions)` (the wave is the PARALLELISM; the lanes beyond the corpus
+         are pure overhead). THE SEMANTICS: the production corpora (1e7) keep 1e6 lanes, so the production corpus is
+         BIT-IDENTICAL (min(1e6, 1e7) = 1e6); a corpus BELOW 1e6 gets a different corpus — still valid and still
+         deterministic (the wave size is now a pure function of the config), but not the same draw order. The cache
+         signature does not carry W: a cache written BEFORE this change by a small-corpus config would be reused once
+         with the new wave (regenerable; the production path is untouched). VERIFIED: no test golden depends on the
+         small-corpus values — 0 failures, 0 errors, 23 skipped. THE MEASUREMENT (the canonical runner): the default
+         tier 42.6 -> 19.8 s (-54%), LONG ~140 -> 88.0 s (-37%); the measure_suite wall 150.8 -> 87.1 s (-42%);
+         `test_wrk_feature_analysis` 23,677 -> 1,635 ms (14.5x) and `test_wrk_indexes` 7,440 -> 914 ms (8x). THE PILOT
+         THAT FOUND IT: the warm-template pattern (a class-level chain run + a per-test copytree of the 0.5 MB cache
+         dir) WORKED mechanically (the warm test 3,800 -> 146 ms, 26x) but for a 2-test class the net gain was ZERO (the
+         class paid 2 cold runs either way), and after this fix its residual value is ~100 ms while it perturbs the tier
+         accounting (a class-level skip: 920 -> 919 in the default tier) — REVERTED, to be re-approached only if a
+         per-test cold cost stays high. The docs follow (wrk_feature_analysis.md, hlp_wave.md).

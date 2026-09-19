@@ -67,8 +67,13 @@ if TYPE_CHECKING:
 
 __all__ = ['wrk_feature_analysis']
 
-# The G0 wave size (the 1e6 benchmark default) + the generator /
-# the PRNG version pins (the cache consistency signature, P5).
+# The G0 wave size CEILING (the 1e6 benchmark default) + the
+# generator / the PRNG version pins (the cache consistency
+# signature, P5). The wave is the PARALLELISM: the actual size is
+# min(this, the corpus size), because the lanes beyond the corpus
+# are pure overhead — the 1e6-lane arrays (~48 MB) and the per-step
+# glue cost ~3.4 s for a 10k-position harvest that a 10k-lane wave
+# does in ~0.04 s. The production corpora (1e7) keep 1e6 lanes.
 _WAVE_SIZE = 1_000_000
 _GENERATOR_VERSION = "g0-1"
 _PRNG_VERSION = "mt19937-64"
@@ -131,8 +136,12 @@ def _compute_tables(ctx) -> dict:
                   f"[TOTAL: {corpus.total_positions:,}], [EC: {corpus.ec}], "
                   f"[SEED: {corpus.seed}], the G0 wave tier.")
     sink = BufferSink()
+    # The wave size is capped by the corpus: a smaller corpus needs
+    # fewer lanes (every game is its own lane in one wave), and the
+    # lanes beyond it only pay allocation + glue.
+    wave_size = min(_WAVE_SIZE, corpus.total_positions)
     info = run_wave_g0(corpus.total_positions, corpus.ec,
-                       corpus.seed, _WAVE_SIZE, sink)
+                       corpus.seed, wave_size, sink)
     mover, opp, _ = sink.flatten()
     marg = MarginalAccumulator(fset, blocks)
     marg.add(mover, opp)

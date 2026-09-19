@@ -14,8 +14,9 @@ global golden-pinned MT19937.
   the make_move (the swapped source for the pass lanes), the counter walk (`~dead`). The stream state lives in the prng
   object (the class is the single public interface).
 - `run_wave_g0(total, ec_target, seed, wave_size, sink, slot_base)` — the G0 corpus run: the S = 60 - ec_target lockstep
-  steps, the boundary harvest + respawn, until the quota is met; the stream is GLOBAL across waves (the (wave, step,
-  lane) draw order); deterministic in (seed, slot_base).
+  steps, the boundary harvest + respawn, until the quota is met; `wave_size` is the PARALLELISM — the caller passes
+  `min(the 1e6 ceiling, total)` (wrk_feature_analysis): the lanes beyond the corpus pay allocation + glue for nothing;
+  the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks (mover, opp, slot); `flatten()`).
 - `PA` — the pass move code, re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the wave
   (the pass is the source swap), it is the value the trace helpers write for a dead lane.
