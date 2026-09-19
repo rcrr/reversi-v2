@@ -23,7 +23,8 @@ A probe is NOT:
 - probes/ (workspace root) — tracked in git, one file per module: verify_<module>.py. The hub probe
   verify_logistic_model.py additionally owns the pipeline-wide state (see §5).
 - scratch/ — gitignored DISCARD AREA for temporary session code. Nothing permanent ever lives there: a check that proves
-  worth keeping graduates to probes/ (or to a test), a finished investigation moves to notes/analyses/. A probe found in
+  worth keeping graduates to probes/ (or to a test), a MAINTENANCE tool to tools/ (D-248: the format re-wrapper, the
+  mirror-doc auditor, the suite counter), a finished investigation moves to notes/analyses/. A probe or a tool found in
   scratch/ is a defect (this is how the pre-session-30 set decayed untracked).
 - probe artifacts go under build/tmp (the D-065 base) and are removed afterwards, like test artifacts.
 - measure_suite.py (D-132) is a suite-level MEASUREMENT tool, not a verification probe: it makes no a/b/c checks and no

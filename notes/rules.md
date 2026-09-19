@@ -62,6 +62,9 @@ spans; the tables and the headings stay one physical line.
 - .venv at the workspace root (gitignored); pyproject.toml is the minimal editable-install form, with the implicit
   requirements declared as they are hit (D-010, D-011).
 - docs/ mirrors src/ one file to one file: src/reversi/X.py → docs/src/reversi/X.md (D-007).
+- tools/ (workspace root) holds the MAINTENANCE tools — the notes/docs format re-wrapper, the mirror-doc auditor, the
+  suite counter (D-248). It is NOT the package's src/reversi/tools/ (that one ships, D-133) and NOT probes/ (the
+  per-module verification apparatus): a tool that makes no a/b/c check belongs here, outside the campaign sweep.
 - Code-generated data that is expensive to replicate goes in build/ (gitignored) — NEVER inside src/, notes/ or any
   other code folder: a git clone must be self-contained (the cloner recomputes it once); the persistent data is a
   DB/campaign artifact, decided explicitly. (D-176)

@@ -54,6 +54,9 @@ the left.
   src/reversi/board.py, unit tests in src/reversi/test/
 - docs/ — code documentation, mirrors src/ (D-007); docs/src/reversi/board.md
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
+- tools/ — the workspace MAINTENANCE tools (tracked; the notes/docs format
+  re-wrapper, the mirror-doc auditor, the suite counter) — NOT the package's
+  src/reversi/tools/ (D-248)
 - notes/ — collaboration only: rules.md (active legislation) ·
   decisions.md (open historical log; closed volumes
   decisions_NNN.md, e.g. decisions_000.md) · ideas.md (the open

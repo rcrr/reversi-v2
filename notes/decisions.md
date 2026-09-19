@@ -1544,3 +1544,29 @@ D-247 | 2026-09-19 | I-018 closed (the campaign close). The idea is DONE: the to
          (the D-235 procedure: the statement + the D-pointers + the outcome); the open backlog
          is I-007, I-009, I-010, I-014. The overview Next-steps and the per-file rows follow in the same commit.
          VERIFICATION: the full suite green (920/0/23), the full probe sweep green (22/22), the 1e6 G0 bit-exact.
+
+D-248 | 2026-09-19 | The workspace tools/ directory (Roberto: "vale la pena di salvarli in un posto sicuro fuori da
+         scratch? ... un nuovo tools/ al root") + the scratch cleanup. (1) THE TOOLS — this session's three maintenance
+         tools graduate from the gitignored scratch/ to a TRACKED root tools/: `notes_format.py` (the D-237 house
+         re-wrapper: the block grammar, the mid-token rejoins, the span healing, the per-file content fingerprint +
+         idempotence + fixpoint), `docs_format_audit.py` (the D-239 mirror-doc auditor — a CHECK over the docs/ tree),
+         `suite_audit.py` (the D-243 per-module suite counter — a MEASUREMENT tool, the sibling of
+         probes/measure_suite.py; its artifact moved from scratch/ to build/tmp). WHY a new root dir and not probes/:
+         probes/ is the VERIFICATION apparatus (the per-module a/b/c checks, the campaign sweep); a tool that makes no
+         check — or one that REWRITES files — does not belong there, and src/reversi/tools/ is the SHIPPED package
+         subpackage (D-133), so the name collision is documented (rules.md, probe_rules §2, AGENTS.md Layout). (2) THE
+         RULES — rules.md gains the Layout & tree bullet, probe_rules §2 now names tools/ as the graduation target for a
+         maintenance tool, AGENTS.md gains the Layout line. The AGENTS.md re-wrap that `notes_format.py` produced as a
+         side effect was REVERTED: the constitution keeps its own wrap, only the tools/ line was added. (3) THE CLEANUP
+         — the 55 remaining scratch files removed: this session's intermediates (the D-drafts, the journal fragments,
+         the wrapped outputs, the superseded generators `wrap_ideas.py` / `rewrap_overview.py` / `gen_ideas.py` /
+         `wrapfmt.py`), the SUPERSEDED ancestors of the re-wrapper (`rewrap_decisions.py`, `rewrap_cs.py`,
+         `protect_decisions.py` — the D-209 reformat), and the previous campaigns' self-declared "disposable" one-offs
+         (`zobrist_extract.py` D-213, `ffo12_parity_check.py` + `ffo12_make_sample.py` D-215, the `play_path_*`
+         family D-227/D-232, `gen_choose_golden*.py` D-203, `check_initial_swap.py`, `choose_golden_sections.txt`) +
+         the 89.7 MB `ffo-12_log.csv` (regenerable: the legacy repo at /home/rcrr/base/prj/reversi is present; the
+         sample fixture is committed and the 100% parity is recorded at D-215) + `__pycache__/`. Their evidence is
+         already in the committed artifacts (the goldens, the fixtures, the code constants) and in the D-entries.
+         scratch/ is EMPTY again, as probe_rules §2 requires. VERIFICATION: the three tools run from tools/ (the
+         re-wrapper is a no-op on the fixpoint tree, the auditor reports the 85/94, the counter reproduces the
+         overview's cells), the full suite green (920/0/23), the full probe sweep green (22/22).
