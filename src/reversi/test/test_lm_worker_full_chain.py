@@ -82,7 +82,15 @@ def _masked_report_hash(report_text):
 
 
 class TestFullChainA2030(unittest.TestCase):
-    """Tests the full Reversi Logistic Model chain on the A2030 configuration."""
+    """Tests the full Reversi Logistic Model chain on the A2030 configuration.
+
+    Each test runs the chain to the DEPTH IT ASSERTS (D-253): the
+    end-to-end test goes to PLOT (step 18), the provenance and the
+    determinism tests stop at SAVE (step 16) — the levels 17/18
+    (CLIENT_CHECK, PLOT: ~5.1 s of matplotlib figures on the A2030
+    validation set) are covered by their own suites
+    (test_wrk_client_check, test_wrk_plot) and by the end-to-end test
+    here, so asserting nothing about them only paid their cost."""
 
     suppress_stdout_io = True
 
@@ -356,7 +364,10 @@ class TestFullChainA2030(unittest.TestCase):
         model file (pinned in test_full_worker_chain) and the
         CONFIG-level fingerprint semantics survive on the embedded
         fields."""
-        self.rlm.move_to_last()
+        # D-253: to SAVE — this test asserts the FILE's provenance (the
+        # record absence, the sidecar, the fingerprint); the
+        # CLIENT_CHECK / PLOT levels are not part of its contract.
+        self.rlm.move_to_step('SAVE')
         ctx = self.rlm.context
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         config_path = output_path.with_suffix(".config.json")
@@ -386,7 +397,10 @@ class TestFullChainA2030(unittest.TestCase):
         6 cache hits (the 6 rlmwf_ cache files — the CONFIG level no
         longer writes a cache file, D-142 — all hit; the 7th file, the
         OPTIMIZE checkpoint, has its own read-back)."""
-        self.rlm.move_to_last()
+        # D-253: to SAVE — the model file is written there and the 6
+        # cache hits happen at the cache levels; the CLIENT_CHECK /
+        # PLOT levels are not part of this test's contract.
+        self.rlm.move_to_step('SAVE')
         output_path = self.rlm.context.cfg.base_dir / self.rlm.context.cfg.output
         first_hash = hashlib.sha3_256(output_path.read_bytes()).hexdigest()
 
@@ -394,7 +408,7 @@ class TestFullChainA2030(unittest.TestCase):
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
         with patch('sys.stdout', new=StringIO()) as out2:
-            rlm2.move_to_last()
+            rlm2.move_to_step('SAVE')
         logs2 = out2.getvalue()
 
         second_hash = hashlib.sha3_256(output_path.read_bytes()).hexdigest()

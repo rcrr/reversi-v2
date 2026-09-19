@@ -1,12 +1,14 @@
 # reversi/test/test_lm_worker_full_chain.py
 The pipeline's END-TO-END test: it runs the whole 18-level chain (CREATED through PLOT) on two fixtures and pins the
 complete saved-model round-trip (file + sidecar + read-back + evaluation function). The ONLY test that exercises all 18
-levels in one chain — every per-level module test stops at its own level (the "move through my predecessors" setUp).
-Both fixtures (rlm_03 and rlm_04) opt into `high_performance_fg` (the numba fg), so both full chains follow the HP
-L-BFGS trajectories (A2030 71 iters, A2050 356 iters). The 16th level is CLIENT_CHECK and the 17th is PLOT; the
-rlm_03.json + rlm_04.json `plot` sections whitelist all seven plot names, so both chains exercise plot generation. The
-saved model is the v2 file format: the embedded config dump carries the run's base_dir, so the file bytes are
-run-specific and the pinned file size is a band rather than a literal.
+levels in one chain — every per-level module test stops at its own level (the "move through my predecessors" setUp), and
+each A2030 test stops at the DEPTH IT ASSERTS (D-253): the end-to-end test to PLOT, the provenance and the determinism
+tests to SAVE (the levels 17/18 — ~5.1 s of matplotlib figures — are covered by test_wrk_client_check, test_wrk_plot and
+the end-to-end test itself). Both fixtures (rlm_03 and rlm_04) opt into `high_performance_fg` (the numba fg), so both
+full chains follow the HP L-BFGS trajectories (A2030 71 iters, A2050 356 iters). The 16th level is CLIENT_CHECK and the
+17th is PLOT; the rlm_03.json + rlm_04.json `plot` sections whitelist all seven plot names, so both chains exercise plot
+generation. The saved model is the v2 file format: the embedded config dump carries the run's base_dir, so the file
+bytes are run-specific and the pinned file size is a band rather than a literal.
 
 ## Coverage
 

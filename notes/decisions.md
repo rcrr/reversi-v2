@@ -1650,3 +1650,23 @@ D-252 | 2026-09-19 | The G0 wave-size fix: the corpus lanes capped by the corpus
          class paid 2 cold runs either way), and after this fix its residual value is ~100 ms while it perturbs the tier
          accounting (a class-level skip: 920 -> 919 in the default tier) — REVERTED, to be re-approached only if a
          per-test cold cost stays high. The docs follow (wrk_feature_analysis.md, hlp_wave.md).
+
+D-253 | 2026-09-19 | The A2030 chain depth fix: each test stops where it asserts (Roberto: "Proviamo a rigenerare
+         TestFullChainA2030 ... vediamo se il pattern paga in questo caso"). THE PILOT'S VERDICT — the warm-template
+         pattern does NOT pay here, and the measurement says why: the per-test cost of a WARM full chain is 5.49 s
+         against the 9.18 s cold (the non-cache levels re-run: VALIDATE, ANALYTICS, CLIENT_CHECK, PLOT), and the
+         template dir is 11.3 MB (a 10 ms copytree) — so the class would pay 9.2 s of template + 3 warm runs for a
+         saving of ~4 s: not worth the machinery. THE REAL LEVER, found by reading what each test ASSERTS: two of the
+         three tests run the chain deeper than they look. `test_config_provenance_single_source` asserts the FILE's
+         provenance (the record absence, the sidecar, the fingerprint) — all SAVE artifacts — and
+         `test_second_instance_deterministic` asserts the model-file byte-identity + the 6 cache hits, also all at SAVE;
+         only `test_full_worker_chain` asserts the plots. Both now stop at `move_to_step('SAVE')` (16) instead of
+         `move_to_last()` (18): the levels 17/18 (CLIENT_CHECK + PLOT) are ~5.1 s of matplotlib figures on the A2030
+         validation set, covered by test_wrk_client_check, test_wrk_plot and the end-to-end test itself — asserting
+         nothing about them only paid their cost. THE MEASUREMENT: the class 25,250 -> 14,023 ms (-44%; the provenance
+         test 8,596 -> 2,367, the determinism one 11,193 -> 2,453, the end-to-end test unchanged in what it asserts),
+         the LONG suite 88.0 -> 76.5 s, wall 91 -> 79.9 s, 920 tests, 0 failures, 0 errors, 23 skipped. THE PATTERN
+         LEARNED (the two pilots): the win is never the SETUP machinery — it is REMOVING work nobody asserts (the
+         FEATURE_ANALYSIS corpus for 9 suites, D-252; the CLIENT_CHECK/PLOT depth for 2 tests, here). The warm-template
+         idea stays in the drawer, to be re-approached only if a per-test cold cost is both large and unasserted-free.
+         The mirror doc follows (test_lm_worker_full_chain.md).
