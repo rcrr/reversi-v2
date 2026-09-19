@@ -30,7 +30,7 @@ board game also known as Othello.
    disposable, gitignored session area — nothing permanent there
    (rules: notes/probe_rules.md).
 8. Do not propose repo-wide reorganization as an agent
-   initiative: it is planned work (I-001, notes/ideas.md),
+   initiative: it is planned work (I-001, notes/ideas-closed.md),
    executed only on Roberto's explicit decision. (D-122: the
    guard moves here from "What this is"; it outlived the port
    campaign that wrote it, the principle stands.)
@@ -56,7 +56,8 @@ the left.
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
 - notes/ — collaboration only: rules.md (active legislation) ·
   decisions.md (open historical log; closed volumes
-  decisions_NNN.md, e.g. decisions_000.md) · ideas.md ·
+  decisions_NNN.md, e.g. decisions_000.md) · ideas.md (the open
+  backlog) · ideas-closed.md (the closed ideas) ·
   log_rules.md · docs_rules.md · probe_rules.md · naming.md +
   log_000.md, log_001.md, ... (session journal, rotating volumes)
 - scratch/ — disposable session area, gitignored, never tracked

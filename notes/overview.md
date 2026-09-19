@@ -2,126 +2,88 @@
 
 ## Format rules (rigid — follow when editing this file)
 
-The rigid format rules for this file live in notes/rules.md —
-the "Roles of the notes files" section, the notes/overview.md
-bullet. Consult it before editing.
+The rigid format rules for this file live in notes/rules.md — the "Roles of the notes files" section, the
+notes/overview.md bullet. Consult it before editing.
 
 ## Project
 
-This workspace is dedicated to the research and development of
-evaluation functions for Reversi positions. The methods employed
-focus on machine learning techniques that leverage solved
-positions generated from random gameplay paths.
+This workspace is dedicated to the research and development of evaluation functions for Reversi positions. The methods
+employed focus on machine learning techniques that leverage solved positions generated from random gameplay paths.
 
 ## Conventions in the code (respect them in any new work)
 
-- Board vocabulary is canonical: **row** (1–8, top→bottom) and
-  **column** (A–H, left→right) — never file/rank (chess). A1 =
-  top-left (N-W) = bit 0; H8 = bottom-right (S-E) = bit 63.
-  row_1 = [A1..H1]; column_a = [A1..A8]. Full text: notes/naming.md
-  (D-013).
-- Dual scalar/array API: public functions accept scalar OR 1-D array,
-  return the input kind. Same validation pattern everywhere
-  (is_scalar → atleast_1d → ndim check → dispatch → reshape back).
-- `@validate_call` (pydantic, arbitrary_types_allowed) on all public
-  functions.
-- Numba `njit(cache=True)` + `prange` for hot loops; numba overloads
-  for the four D8 primitives (fa1h8, fh1a8, fhori, fvert).
-- Position = numpy structured dtype `[('mover', u64), ('opponent',
-  u64)]`.
+- Board vocabulary is canonical: **row** (1–8, top→bottom) and **column** (A–H, left→right) — never file/rank (chess).
+  A1 = top-left (N-W) = bit 0; H8 = bottom-right (S-E) = bit 63. row_1 = [A1..H1]; column_a = [A1..A8]. Full text:
+  notes/naming.md (D-013).
+- Dual scalar/array API: public functions accept scalar OR 1-D array, return the input kind. Same validation pattern
+  everywhere (is_scalar → atleast_1d → ndim check → dispatch → reshape back).
+- `@validate_call` (pydantic, arbitrary_types_allowed) on all public functions.
+- Numba `njit(cache=True)` + `prange` for hot loops; numba overloads for the four D8 primitives (fa1h8, fh1a8, fhori,
+  fvert).
+- Position = numpy structured dtype `[('mover', u64), ('opponent', u64)]`.
 - Move codes: 0..63 = squares, 64 = PA (pass), 65 = NA, 66 = UN.
-- D8 slot order is fixed and load-bearing (D-014): anti-transform
-  slot s = T_s^{-1}; in pattern.py instance 0 = the ro000 image, and
-  trans_fs/anti_trans_fs are indexed by instance (length =
-  n_instances), not by slot.
-- Pattern config indexes are base-3 uint32 over ≤ 18 squares
-  (S ≤ 18); packed bit k ↔ the k-th square of `Pattern.squares`
-  (ascending board order); principal index = min over the
-  induced-stabilizer orbit.
-- Test artifacts (D-065): unit tests write files ONLY under
-  `workspace_root/build/tmp` and remove them afterwards (a
-  `finally`/cleanup unlink, so a failing test leaves no garbage);
-  no test writes anywhere else (notably: not the CWD). `build/` is
-  gitignored.
+- D8 slot order is fixed and load-bearing (D-014): anti-transform slot s = T_s^{-1}; in pattern.py instance 0 = the
+  ro000 image, and trans_fs/anti_trans_fs are indexed by instance (length = n_instances), not by slot.
+- Pattern config indexes are base-3 uint32 over ≤ 18 squares (S ≤ 18); packed bit k ↔ the k-th square of
+  `Pattern.squares` (ascending board order); principal index = min over the induced-stabilizer orbit.
+- Test artifacts (D-065): unit tests write files ONLY under `workspace_root/build/tmp` and remove them afterwards (a
+  `finally`/cleanup unlink, so a failing test leaves no garbage); no test writes anywhere else (notably: not the CWD).
+  `build/` is gitignored.
 
 
 ## Environment
 
 - Venv: `.venv/` (gitignored, D-010), Python 3.12.3.
-- Packaging: `pyproject.toml` (setuptools, src layout) with the
-  `reversi` package installed editable in .venv — `import reversi`
-  works without PYTHONPATH, resolving to src/.
-- Dependencies (pyproject.toml, minimal set): numpy ≥ 2.0
-  (bitboards / structured dtypes), pydantic ≥ 2 (@validate_call),
-  numba ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4
-  (binio), psycopg2 / pandas / python-dotenv (regab).
-- Test command: `./run_utests.sh` (the canonical runner; tiers:
-  default fast ~5 s, LONG=1, VLONG=1 ~10 min incl. the A2050 chain
-  and implies LONG; PERF=1 adds the print-only perf tests). The
-  standard pre-commit run is `LONG=1 ./run_utests.sh`; VLONG=1 only
-  when useful. A single module: `.venv/bin/python -m unittest
-  reversi.test.<module>`. The DB-gated suites (test_regab + the
-  worker suites) need a live PostgreSQL + .env + LONG=1, or
-  `SKIP_REGAB_DB=1` to skip the DB tests. The runner is unittest by
-  design (pytest is not a dependency).
-- Probes: tracked under probes/ (hub: verify_logistic_model.py owns
-  the pipeline-wide state; rules: notes/probe_rules.md).
+- Packaging: `pyproject.toml` (setuptools, src layout) with the `reversi` package installed editable in .venv —
+  `import reversi` works without PYTHONPATH, resolving to src/.
+- Dependencies (pyproject.toml, minimal set): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2
+  (@validate_call), numba ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas /
+  python-dotenv (regab).
+- Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~5 s, LONG=1, VLONG=1 ~10 min incl. the
+  A2050 chain and implies LONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
+  `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
+  `.venv/bin/python -m unittest reversi.test.<module>`. The DB-gated suites (test_regab + the worker suites) need a live
+  PostgreSQL + .env + LONG=1, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is unittest by design (pytest is not
+  a dependency).
+- Probes: tracked under probes/ (hub: verify_logistic_model.py owns the pipeline-wide state; rules:
+  notes/probe_rules.md).
 
 ## Where we are
 
-Current state only — the session-by-session history lives in the
-journal volumes (notes/log_NNN.md) and the decision log
-(notes/decisions.md); the D-pointers index that history. The
-file-by-file state lives in the Source files / Test files tables at
-the end of this file.
+Current state only — the session-by-session history lives in the journal volumes (notes/log_NNN.md) and the decision log
+(notes/decisions.md); the D-pointers index that history. The file-by-file state lives in the Source files / Test files
+tables at the end of this file.
 
-- The 18-level pipeline is live and green (864 tests, LONG; the 1e6
-  G0 benchmark replays bit-exact, 28065 dead lanes): the ML chain
-  CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL
-  FEATURE_ANALYSIS (pipeline step 3) + EFFECT_SIZE (pipeline step
-  6) — default FALSE, opt-in.
-- A PASS (move 0 in board.position_flips, PA = 64 in
-  position_make_move) returns the position with the players
-  inverted (the next player's view) — the position_flips
-  scalar + array kernels swap on a zero move.
-- G0 is the corpus generator (hlp_wave, the concurrent WAVE engine);
-  the model file is self-describing (format v2, the config
-  provenance embedded; the backward-compat v1 reader).
-- random_game (the new module): random_game_choose_move (the
-  uniform PRNG pick) + random_game_make_move (pick a move,
-  apply it via position_flips, return the resulting position +
-  the move) + random_game_play_path (play random moves until
-  the empty count reaches the target). The standard start is
-  board.initial_game_position (the CANONICAL source of the
-  official Othello setup).
-- The PRNG (tools/prng.py) is MINIMAL and fully numba: one class
-  (MT19937), a seed ctor, one numba kernel (the constants local, the
-  state fully internal); the class is the sole interface
-  (get_uint64 / get_uint64_batch).
-- STALE: every G0 corpus built BEFORE the initial-position fix
-  (the 1e7 build, the I-017 SU / effect-size statistics, the
-  rlm_00/05/06 runs) — regenerate on the official start.
+- The 18-level pipeline is live and green (864 tests, LONG; the 1e6 G0 benchmark replays bit-exact, 28065 dead lanes):
+  the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL FEATURE_ANALYSIS (pipeline step 3) +
+  EFFECT_SIZE (pipeline step 6) — default FALSE, opt-in.
+- A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
+  (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
+- G0 is the corpus generator (hlp_wave, the concurrent WAVE engine); the model file is self-describing (format v2, the
+  config provenance embedded; the backward-compat v1 reader).
+- random_game (the new module): random_game_choose_move (the uniform PRNG pick) + random_game_make_move (pick a move,
+  apply it via position_flips, return the resulting position + the move) + random_game_play_path (play random moves
+  until the empty count reaches the target). The standard start is board.initial_game_position (the CANONICAL source of
+  the official Othello setup).
+- The PRNG (tools/prng.py) is MINIMAL and fully numba: one class (MT19937), a seed ctor, one numba kernel (the constants
+  local, the state fully internal); the class is the sole interface (get_uint64 / get_uint64_batch).
+- STALE: every G0 corpus built BEFORE the initial-position fix (the 1e7 build, the I-017 SU / effect-size statistics,
+  the rlm_00/05/06 runs) — regenerate on the official start.
 
 ## Next steps
 
-- Regenerate the STALE G0 corpora on the official start (the first
-  maintenance call).
-- The random_game module: the intended hlp_wave REPLACEMENT (D-226)
-  — the more readable, reusable, domain-anchored engine; the
-  eventual G0 regeneration may migrate to it.
-- The last PRNG transformation passettino (the ctor's init over a
-  numba init kernel) — parked, step-by-step.
-- The PROFILING session (the OPTIMIZE pattern, the step-by-step
-  walkthrough) — waits.
-- Backlog (Roberto's call): I-003 the named move constants,
-  I-009/I-010 (notes/ideas.md); I-018 (the outlier report in
+- Regenerate the STALE G0 corpora on the official start (the first maintenance call).
+- The random_game module: the intended hlp_wave REPLACEMENT (D-226) — the more readable, reusable, domain-anchored
+  engine; the eventual G0 regeneration may migrate to it.
+- The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
+- The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
+- Backlog (Roberto's call): I-003 the named move constants, I-009/I-010 (notes/ideas.md); I-018 (the outlier report in
   VALIDATE) parked.
 
 ## Source files
-One row per source file, alphabetical (the package path sorts future
-packages first). State = a status word + the open/parked items (if
-any); the campaign history lives in the decision log. Suite = the
-current verified suite (live DB) of the file's test module.
+One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
+open/parked items (if any); the campaign history lives in the decision log. Suite = the current verified suite (live DB)
+of the file's test module.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
@@ -140,7 +102,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/wrk_effect_size.py | the EFFECT_SIZE worker (step 6) — the eta²/omega² per sub-variable + the adherence (the chi-square + the KL + the TV, DB vs the ideal corpus); the graceful degradation; NO cache (a diagnostic); optional (default FALSE) | 7/0/0 (via test_wrk_effect_size) | docs/src/reversi/lm/wrk_effect_size.md |
 | src/reversi/lm/wrk_feature_analysis.py | the FEATURE_ANALYSIS worker (step 3) — the G0 corpus cache (the feature_set hash + spec + pairs) + the phase-2 recompute (the dispersion + the never-observed audit + the SU pairs) + the reports + the ctx publication; optional (default FALSE) | 8/0/0 (via test_wrk_feature_analysis) | docs/src/reversi/lm/wrk_feature_analysis.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker (step 2, before POSITIONS) — the first pure-compute level (no cache file) | 3/0/0 (DB-free) | docs/src/reversi/lm/wrk_features.md |
-| src/reversi/lm/wrk_generate.py | complete: the GENERATE level (dense weights materialization) | 3/0/0 | docs/src/reversi/lm/wrk_generate.py |
+| src/reversi/lm/wrk_generate.py | complete: the GENERATE level (dense weights materialization) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT level (the float32 contract; the high_performance_fg flag wiring) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
 | src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE level — the only level whose "cache" is a plain checkpoint dict via binio | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
@@ -163,7 +125,7 @@ current verified suite (live DB) of the file's test module.
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_feature_analysis.py | the FEATURE_ANALYSIS step 3 data module (NO DB, NO positions) — the from-frequency-tables math: the SU / entropy / MI kernels + the dispersion + the never-observed audit + the ANOVA kernels (the eta²/omega²) + the adherence kernels (the chi-square + the KL + the TV) | 32/0/0 (via test_hlp_feature_analysis) | docs/src/reversi/lm/hlp_feature_analysis.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
-| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.py |
+| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
 | src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
 | src/reversi/lm/hlp_random_play.py | complete: the FEATURE_ANALYSIS frequency data plane — the marginal + the joint frequency accumulators + the PRNG integration + the ec pin (64 - popcount = the DB's empty_count); fed by the G0 wave (hlp_wave.run_wave_g0); the official-start initial_position (random_game the canonical source) | 23/0/0 (via test_hlp_random_play) | docs/src/reversi/lm/hlp_random_play.md |
@@ -220,34 +182,40 @@ One row per test file, alphabetical.
 | src/reversi/test/test_hlp_indexes.py | complete: 14 tests (the compressed mock pins) | 14/0/0 | docs/src/reversi/test/test_hlp_indexes.md |
 | src/reversi/test/test_hlp_optimize.py | complete: the OPTIMIZE data suite | 20/0/0 | docs/src/reversi/test/test_hlp_optimize.md |
 | src/reversi/test/test_hlp_random_play.py | complete: the NO-DB micro-suite — the table properties, the pick kernel, the hand-counted games (the identity trace, the pass branch, the full 60-ply game, the non-full double pass), the seeded pinned trajectories + the independent replay; the marginal + the joint accumulator (vs the independent oracle); the PRNG integration (the corpus reproducibility + the small end-to-end corpus); the ec pin; the TestInitialPosition pin (the official Othello setup) | 23/0/0 | docs/src/reversi/test/test_hlp_random_play.md |
-| src/reversi/test/test_hlp_wave.py | complete: the NO-DB micro-suite — the pick kernel, the bit-exact harvest + the phase invariance, the W=1 pass-carrying trajectory, the pass fold, the double-pass discard + respawn, the run integrity, the G0 engine (the batch draw bit-exact vs the golden oracle, the W=1 trajectory ≡ the scalar reference, the determinism), the LONG 1e6 G0 benchmark | 14/0/2 (LONG: the benchmarks) | docs/src/reversi/lm/hlp_wave.md |
-| src/reversi/test/test_hlp_gate.py | complete: the T6 NO-DB micro-suite — the MT19937 batch-draw kernel vs the golden-pinned reference (bit-exact, the twist boundary, the mid-stream start), the W=1 G0 wave ≡ the scalar G0 reference, the statistics utilities on the hand-computed values, the structured keys, the full gate smoke (GATE_SMOKE=1) | 14/0/0 (the smoke under GATE_SMOKE=1) | docs/src/reversi/lm/hlp_gate.md |
+| src/reversi/test/test_hlp_wave.py | complete: the NO-DB micro-suite (2 classes / 4 tests) — the batch draw vs the golden-pinned reference PRNG, the W=1 trajectory vs the scalar reference loop, the run integrity + the determinism, the LONG 1e6 G0 benchmark | 3/0/1 (LONG: 4/0/0, the 1e6 benchmark) | docs/src/reversi/test/test_hlp_wave.md |
 | src/reversi/test/test_hlp_wmaps.py | complete: the WMAPS data suite | 15/0/0 | docs/src/reversi/test/test_hlp_wmaps.md |
 | src/reversi/test/test_hlp_zed.py | complete: the dedicated 10-test data suite | 10/0/0 | docs/src/reversi/test/test_hlp_zed.md |
 | src/reversi/test/test_state_machine.py | complete: 13 original expectations independently re-derived | 49/0/0 | docs/src/reversi/test/test_state_machine.md |
 | src/reversi/test/test_usage_binio.py | complete: the 3 usage tests | 3/0/0 | docs/src/reversi/test/test_usage_binio.md |
 
-Test data (src/reversi/test/data/): rlm_00.json (the JSON5 config),
-rlm_01.json (the training DB dump), rlm_02.json (the DB dump), rlm_03.json +
-rlm_04.json (the validation sets) — the per-file mirror docs cover them.
-Plus ffo_12_log_sample.csv (the FFO-12 legacy C solve-log sample, the
-`position_hash` parity fixture — D-215: the full 571_141-row log verified
-100%, the committed sample is the deterministic 1002-row stride).
+Test data (src/reversi/test/data/): rlm_00.json (the JSON5 config), rlm_01.json (the training DB dump), rlm_02.json (the
+DB dump), rlm_03.json + rlm_04.json (the validation sets) — the per-file mirror docs cover them. Plus
+ffo_12_log_sample.csv (the FFO-12 legacy C solve-log sample, the `position_hash` parity fixture — D-215: the full
+571_141-row log verified 100%, the committed sample is the deterministic 1002-row stride).
 
 ## Index
-The docs/ mirrors (one per source/test file, D-007) are NOT listed
-here: their paths are the Doc column of the two tables above.
+The docs/ mirrors (one per source/test file, D-007) are NOT listed here: their paths are the Doc column of the two
+tables above.
 
-- notes/naming.md — canonical board naming convention (row/column,
-  D-013; D8 symmetries, D-014)
-- notes/rules.md — active legislation: the register of the rules in force (one line per rule, origin D-number; lifecycle RECORD/PROMOTE/RETIRE)
-- notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md; closed volumes: decisions_NNN.md)
+- notes/naming.md — canonical board naming convention (row/column, D-013; D8 symmetries, D-014)
+- notes/rules.md — active legislation: the register of the rules in force (one line per rule, origin D-number; lifecycle
+  RECORD/PROMOTE/RETIRE)
+- notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md;
+  closed volumes: decisions_NNN.md)
 - notes/decisions_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
+- notes/decisions_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
 - notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews
-- notes/ideas.md — future backlog (I-NNN)
-- notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions / 2000 lines per volume, only at session boundaries)
+- notes/analytical_properties_of_features.md — the I-017 project document (objective, plan, tasks T1..T19)
+- notes/performance_baseline.md — the wave-tier performance baseline (the D-175/D-176 reference numbers for the profiling
+  session)
+- notes/ideas.md — the OPEN backlog (I-NNN, D-235)
+- notes/ideas-closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
+- notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /
+  2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the current-state contract)
-- notes/probe_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to notes/analyses/, the baseline)
+- notes/probe_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
+  criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to
+  notes/analyses/, the baseline)
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/log_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/log_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)

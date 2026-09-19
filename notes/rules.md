@@ -31,7 +31,8 @@ theme, with its origin D-number.
   Where we are · Next steps · Source files · Test files ·
   Index; English; dates YYYY-MM-DD; suite numbers
   `<total>/<failures>/<skipped>` (total = unittest's "Ran N");
-  references D-NNN (decisions.md), I-NNN (ideas.md), session N
+  references D-NNN (decisions.md), I-NNN (ideas.md /
+  ideas-closed.md), session N
   (journal volumes), T-NN (test defect), R# (code issue),
   M# (minor note). Source files / Test files: one table per
   kind, one row per tracked file, alphabetical by full path;
@@ -41,7 +42,9 @@ theme, with its origin D-number.
   Suite cell carries the file's current verified suite (live
   DB); the Doc cell the mirror path. Table cells: one physical
   line per row; a literal `|` inside a cell is escaped `\|`
-  (D-116). Where we are: the non-file state only (the plan, the
+  (D-116); the prose (and every bullet) is wrapped to ~120
+  chars/line (D-235), the tables stay one physical line per row.
+  Where we are: the non-file state only (the plan, the
   collaboration memory) — the per-file state lives in the
   tables (D-117); no session narrative (that lives in the
   journal volumes + the decision log). Next steps: OPEN items
@@ -66,7 +69,17 @@ theme, with its origin D-number.
   notes/probe_rules.md — the domain rule files (rigid; each owns
   its domain — this register points at them, never duplicates
   them).
-- notes/ideas.md — the backlog of future-evolution ideas (I-NNN).
+- notes/ideas.md — the OPEN backlog of future-evolution ideas
+  (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done |
+  dropped). Format (D-235): `I-NNN | status | idea`, ~120
+  chars/line, a 9-space continuation indent, a blank line before
+  every entry, code spans for paths / identifiers; the statuses
+  are idea | follow-up | in-progress (closed: done | dropped). A
+  closed idea MOVES to ideas-closed.md — compacted to the
+  statement + the D-pointer + the outcome — in the same commit as
+  the closing decision; the campaign history stays in
+  decisions.md / the journal. The I-numbers are global, never
+  reused or renumbered.
 
 ## Language & collaboration
 
