@@ -60,6 +60,9 @@ results computed on the ONE injected prng stream.
   pre-draws for the non-empty elements, and the prng batch kernel
   (pick_one_from_set64_batch — the single source of the pick
   technique, D-221) folds each draw into its element.
+- The empty move set: the module constant `_EMPTY_MOVE_SET`
+  (`Bitboard(0)`) — the pass signal of the pick domain, the batch
+  kernel's no-pick value.
 - The dual array make_move (D-220): a pure COMPOSITION of the
   verified dual functions — the D-219 batch pick (the stream
   contract inherited) + the D-140 position_flips — plus one numpy

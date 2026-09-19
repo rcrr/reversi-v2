@@ -46,6 +46,12 @@ __all__ = ['random_game_choose_move',
 
 
 
+#: The empty move set: the pass signal of the pick domain (the
+#: (0, 64) sentinel bitboard).
+_EMPTY_MOVE_SET: Bitboard = Bitboard(0)
+
+
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def random_game_choose_move(p: PositionField | PositionArray,
                             prng: MT19937) -> Bitboard | BitboardArray:
@@ -70,7 +76,7 @@ def random_game_choose_move(p: PositionField | PositionArray,
         if p.ndim != 1:
             raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
         lms = position_legal_moves(p)
-        needs = (lms != np.uint64(0))
+        needs = (lms != _EMPTY_MOVE_SET)
         draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
         slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
         return pick_one_from_set64_batch(lms, draws, slots)
@@ -177,17 +183,17 @@ def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
     lms_mover = position_legal_moves(cur)
     lms_opponent = position_legal_moves(make_position(cur['opponent'],
                                                       cur['mover']))
-    mover_passes = active & (lms_mover == np.uint64(0))
-    mover_plays = active & (lms_mover != np.uint64(0))
-    double_pass_game_over = mover_passes & (lms_opponent == np.uint64(0))
+    mover_passes = active & (lms_mover == _EMPTY_MOVE_SET)
+    mover_plays = active & (lms_mover != _EMPTY_MOVE_SET)
+    double_pass_game_over = mover_passes & (lms_opponent == _EMPTY_MOVE_SET)
     mover_passes_opponent_plays = (mover_passes
-                                   & (lms_opponent != np.uint64(0)))
+                                   & (lms_opponent != _EMPTY_MOVE_SET))
     needs_draw = mover_plays | mover_passes_opponent_plays
     draws = prng.get_uint64_batch(int(np.count_nonzero(needs_draw)))
     slots = np.cumsum(needs_draw, dtype=np.int64) - needs_draw.astype(np.int64)
     pick_sets = np.where(mover_plays, lms_mover,
                          np.where(mover_passes_opponent_plays, lms_opponent,
-                                  np.uint64(0)))
+                                  _EMPTY_MOVE_SET))
     moves = pick_one_from_set64_batch(pick_sets, draws, slots)
     movers, opponents = _apply_picked_moves(cur['mover'], cur['opponent'],
                                             mover_plays, moves,

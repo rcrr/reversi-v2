@@ -1108,6 +1108,15 @@ D-224 | 2026-09-18 | The docstring discipline (Roberto, on the random_game dual-
          mechanism sentences dropped, the contracts kept); the mirror API lines aligned. PROMOTED to rules.md
          (the Docs section).
 
+D-225 | 2026-09-18 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming request, the approved proposal): the
+         six `np.uint64(0)` literals of `random_game.py` — all meaning "the empty move set" (the pass signal of
+         the pick domain, the batch kernel's no-pick value) — become the named module constant
+         (`_EMPTY_MOVE_SET: Bitboard = Bitboard(0)`, the internal house style as `_mask_l` in board.py). NOT
+         renamed: the `moves - np.uint64(1)` decrement operand in `make_move` (a different concept — the coding
+         formula), the prng.py internals (the generic empty set of the pick domain, not move-specific), and the
+         test literals (the goldens pin expected values). Zero behaviour change. `test_random_game` 32/0/0,
+         full LONG 913/0/22 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are
