@@ -59,6 +59,7 @@ from reversi.lm.hlp_zed import zed_fun_factory
 from reversi.lm.model_weights import model_weights_write_file
 from reversi.lm.logistic_model import LMContext
 from reversi.lm.wrk_client_check import wrk_client_check
+from reversi.lm.hlp_validate import validate_model
 from reversi.test.paths import CUSTOM_TMP_BASE
 
 SEED = 42
@@ -140,6 +141,10 @@ class TestWrkClientCheck(unittest.TestCase):
                         "f": 0.01, "g_norm": 1e-6}
         ctx.vld_metrics = {"vld_samples": N_VLD, "vld_rmse_y": 1.0,
                            "vld_mae_y": 0.5, "vld_loss": 0.0025}
+        # I-018: the validation series the check consumes — published
+        # by VALIDATE, here derived with the SAME hlp_validate pass
+        # (the level that owns it) on the synthetic state.
+        ctx.vld_rn = validate_model(ctx).rn_y
         # The log capture (the LMContext default is the no-op lambda).
         ctx.log_event = lambda relevance, message: \
             self._events.append((relevance, message))
@@ -185,12 +190,14 @@ class TestWrkClientCheck(unittest.TestCase):
     # -- the failure path ---------------------------------------------------
 
     def test_up_diverged_weights_raise(self):
-        """The in-memory weights diverge from the file after the save
-        (the corruption / drift case, D-148): the max difference is
-        far above the 1e-8 tolerance — the worker logs the ERROR
-        line and raises RuntimeError."""
-        self._write_model_file()
+        """The FILE diverges from the validation series (the drift
+        case, D-148; re-shaped at I-018): the file is written from a
+        DIVERGED in-memory state, so its residuals differ from the
+        series VALIDATE published — the max difference is far above
+        the 1e-8 tolerance, the worker logs the ERROR line and raises
+        RuntimeError."""
         self._ctx.w_dense = self._ctx.w_dense + np.float32(1e-3)
+        self._write_model_file()
         with self.assertRaisesRegex(
                 RuntimeError,
                 r"CLIENT_CHECK failed: the validation residuals "
@@ -204,11 +211,12 @@ class TestWrkClientCheck(unittest.TestCase):
 
     def test_tolerance_is_read_from_config(self):
         """The tolerance is the cfg field (Roberto's ruling: the JSON
-        config value, not a module constant): the same diverged
-        weights (max difference ~0.2) are ADMITTED by a wide
-        tolerance (1.0) and REJECTED by a tight one (1e-4)."""
-        self._write_model_file()
+        config value, not a module constant): the same diverged FILE
+        (max difference ~0.2, I-018: written from a diverged state) is
+        ADMITTED by a wide tolerance (1.0) and REJECTED by a tight one
+        (1e-4)."""
         self._ctx.w_dense = self._ctx.w_dense + np.float32(1e-3)
+        self._write_model_file()
         self._ctx.cfg.client_check_tol = 1.0
         wrk_client_check().up(self._ctx)  # passes: ~0.2 < 1.0
         self._ctx.cfg.client_check_tol = 1e-4

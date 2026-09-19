@@ -1489,3 +1489,23 @@ D-244 | 2026-09-19 | The stale probe re-pin + the mirror-doc re-pin (the sweep d
          at exit — a crashed run does not). VERIFICATION: the FULL sweep is GREEN again (22/22 probes), LONG 920/0/23
          GREEN, the 1e6 G0 bit-exact, the mirror-doc audit at 85/94 with the same 9 pre-existing size findings.
          The I-018 steps 3-4 follow.
+
+D-245 | 2026-09-19 | I-018 step 3: CLIENT_CHECK consumes the published validation series. THE CHANGE: the worker no
+         longer re-derives the in-memory reference — `_validation_residuals_y` (the A1a re-computation of the
+         hlp_validate forward pass: compute_indexes + the per-instance col_offsets + the gather + the sigmoid + the z2y
+         affine) is GONE, and `rn_ref = ctx.vld_rn` (the series VALIDATE publishes, D-243). The `sigmoid` import goes
+         with it (the worker does no numerics). THE SEMANTIC: the check still validates the SAVE artifact against the
+         pipeline's own validation result — it now compares the FILE residuals against the PUBLISHED series instead of
+         against a local re-derivation of the current in-memory state. The D-148 intent is preserved and sharpened: the
+         module's own comment already said "this IS the validation's own residual", and the single derivation makes it
+         literally true. THE CONSEQUENCE ON THE TESTS (2 re-shaped): `test_up_diverged_weights_raise` and
+         `test_tolerance_is_read_from_config` injected the divergence by perturbing `ctx.w_dense` AFTER writing the file
+         — a scenario the published snapshot cannot see (the reference no longer follows the mutated state). They now
+         perturb FIRST and write the file AFTER, so the FILE diverges from the series: the same magnitude (~1.959e-01),
+         the same assertions, the scenario re-expressed in the new contract's terms. VERIFICATION:
+         `test_wrk_client_check` 6/0/0, the full-chain suite green (the A2030 CLIENT_CHECK pin "max
+         difference 0.000e+00" holds — the published series is bit-identical to the old re-derivation, as D-243 proved),
+         LONG 920/0/23 GREEN, `probes/verify_logistic_model.py` ALL CHECKS PASSED. THE DOCS: `wrk_client_check.md`
+         rewritten to the state (it carried line numbers, "the 16th active level (step 15)", the A1a re-derivation and
+         "17 active levels"), the test mirror (the divergence scenario) and the overview row. Step 4 (the ANALYTICS
+         training publication + the PLOT PlotData assembly) follows.
