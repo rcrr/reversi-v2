@@ -67,14 +67,15 @@ tables at the end of this file.
   the official Othello setup).
 - The PRNG (tools/prng.py) is MINIMAL and fully numba: one class (MT19937), a seed ctor, one numba kernel (the constants
   local, the state fully internal); the class is the sole interface (get_uint64 / get_uint64_batch).
-- STALE: every G0 corpus built BEFORE the initial-position fix (the 1e7 build, the I-017 SU / effect-size statistics,
-  the rlm_00/05/06 runs) — regenerate on the official start.
+- The SU-analysis corpus is REGENERATED (D-254): the generator version bumped (`su-corpus-2`) and the 1e7 corpus on the
+  A2050 feature set re-run on the official start (92.7 s: 67.2 the corpus + the SU statistics, 25.5 the EFFECT_SIZE; the
+  reports in `build/su_corpus_1e7/`). The pre-D-192 corpora (the swapped start) are dead — the cache signature now
+  invalidates them automatically. The 2e6/1e8 experiment configs regenerate on demand.
 
 ## Next steps
 
-- Regenerate the STALE G0 corpora on the official start (the first maintenance call).
 - The random_game module: the intended hlp_wave REPLACEMENT (D-226) — the more readable, reusable, domain-anchored
-  engine; the eventual G0 regeneration may migrate to it.
+  engine; a future corpus regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
 - Backlog (Roberto's call): I-009/I-010 (the pipeline boilerplate + the StateMachine context injection,

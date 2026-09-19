@@ -75,7 +75,16 @@ __all__ = ['wrk_feature_analysis']
 # glue cost ~3.4 s for a 10k-position harvest that a 10k-lane wave
 # does in ~0.04 s. The production corpora (1e7) keep 1e6 lanes.
 _WAVE_SIZE = 1_000_000
-_GENERATOR_VERSION = "g0-1"
+# The corpus-generator version, part of the cache signature. BUMPED
+# at D-254: "g0-1" marked the corpora generated with the SWAPPED
+# initial position (the pre-D-192 roles: the mover D4+E5 instead of
+# the official E4+D5) — every cache written under it is STALE and
+# must be regenerated. "su-corpus-2" is the official start (the D-192
+# fix) + the neutral name (the G0/G1 distinction is dead: G1 was
+# buried at D-191). A version bump invalidates every cached corpus,
+# which is exactly the point: the signature exists so that a change
+# of the generator's behaviour can never be reused silently.
+_GENERATOR_VERSION = "su-corpus-2"
 _PRNG_VERSION = "mt19937-64"
 _RARITY_THRESHOLDS = (1, 2, 5, 10, 100)
 

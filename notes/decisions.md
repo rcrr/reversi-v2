@@ -1670,3 +1670,26 @@ D-253 | 2026-09-19 | The A2030 chain depth fix: each test stops where it asserts
          FEATURE_ANALYSIS corpus for 9 suites, D-252; the CLIENT_CHECK/PLOT depth for 2 tests, here). The warm-template
          idea stays in the drawer, to be re-approached only if a per-test cold cost is both large and unasserted-free.
          The mirror doc follows (test_lm_worker_full_chain.md).
+
+D-254 | 2026-09-19 | The SU-analysis corpus regenerated: the generator version bumped + the official-start 1e7 run
+         (PUNTO 6, Roberto: "Mettiamo a posto questo BUG della posizione iniziale ... PUNTO 6, fai tutto!"). (1) THE BUG
+         — the D-192 initial-position fix swapped the roles (the official start: the mover E4+D5, the opponent D4+E5)
+         but did NOT bump the cache signature's generator version, which stayed "g0-1": a corpus cached under the OLD
+         (swapped) start would have been REUSED SILENTLY, making the fix ineffective for every existing artifact — the
+         signature exists precisely to prevent that. FIXED: `_GENERATOR_VERSION = "su-corpus-2"` (the official start +
+         the neutral name, since the G0/G1 distinction died with G1 at D-191), with the rationale in the code comment: a
+         version bump invalidates every cached corpus, which is the point. (2) THE REGENERATION — the campaign's scale
+         re-run on the official start: the 1e7 corpus with the A2050 feature set (11 patterns + 1 mobility + the
+         intercept, ec 20, seed 42; the rlm_05 feature set at the ODP-1 default size) through FEATURE_ANALYSIS +
+         EFFECT_SIZE, into `build/su_corpus_1e7/` (the gitignored data area: the run is expensive to replicate).
+         MEASURED: 92.7 s total — 67.2 s for the corpus + the SU statistics (47 sub-variables, the marginal + the joint
+         tables) and 25.5 s for the EFFECT_SIZE (the eta2/omega2 + the adherence). The artifacts:
+         `rlmwf_03_FEATURE_ANALYSIS.dat` (30 MB) + the two reports. The 2e6/1e8 experiment configs (rlm_05/rlm_06)
+         regenerate on demand — now automatically, thanks to the version bump. (3) THE OVERVIEW — the STALE bullet is
+         replaced by the regenerated state, and the "first maintenance call" leaves the Next steps. THE COST NOTE: the
+         regeneration is now CHEAP (92.7 s) also because of the D-252 wave-size fix (the small-corpus paths) — the
+         production 1e7 keeps its 1e6 lanes, so this run's corpus is the same as it would have been before D-252. A
+         CORRECTION TO THE RECORD (Roberto's, verified in the code): the EFFECT_SIZE's eta2/omega2 run on the TAGGED
+         data (`ctx.hlp_indexes.indexes` + `ctx.game_values`), NOT on the corpus — the corpus feeds only its ADHERENCE
+         sub-report (and the FEATURE_ANALYSIS statistics); the D-253-era summary that listed EFFECT_SIZE among the
+         corpus consumers was imprecise.
