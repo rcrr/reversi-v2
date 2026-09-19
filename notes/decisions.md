@@ -1119,7 +1119,7 @@ D-224 | 2026-09-18 | The docstring discipline (Roberto, on the random_game dual-
          mechanism sentences dropped, the contracts kept); the mirror API lines aligned. PROMOTED to rules.md
          (the Docs section).
 
-D-225 | 2026-09-18 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming request, the approved proposal): the
+D-225 | 2026-09-19 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming request, the approved proposal): the
          six `np.uint64(0)` literals of `random_game.py` — all meaning "the empty move set" (the pass signal of
          the pick domain, the batch kernel's no-pick value) — become the named module constant
          (`_EMPTY_MOVE_SET: Bitboard = Bitboard(0)`, the internal house style as `_mask_l` in board.py). NOT
@@ -1128,7 +1128,7 @@ D-225 | 2026-09-18 | The `_EMPTY_MOVE_SET` module constant (Roberto's naming req
          test literals (the goldens pin expected values). Zero behaviour change. `test_random_game` 32/0/0,
          full LONG 913/0/22 GREEN.
 
-D-226 | 2026-09-18 | The random_game docstring + engine style refinements (Roberto, four points): (1) NO D-XXX
+D-226 | 2026-09-19 | The random_game docstring + engine style refinements (Roberto, four points): (1) NO D-XXX
          references in docstrings — a docstring explains how a function is used and how it behaves; the
          provenance lives in decisions.md, and only if fundamental in a `#:` code comment (the D-224 rule line
          extended); the campaign docstrings cleaned (random_game.py, prng.py, the two test modules). (2) The
@@ -1145,7 +1145,7 @@ D-226 | 2026-09-18 | The random_game docstring + engine style refinements (Rober
          empty-batch edge handled by the reduction initial), the stall raises RuntimeError and never hangs.
          Zero behaviour change. `test_random_game` 32/0/0, `test_prng` 22/0/0, full LONG 913/0/22 GREEN.
 
-D-227 | 2026-09-18 | The play_path PERF baseline + the profiling session (Roberto, before the optimization plan):
+D-227 | 2026-09-19 | The play_path PERF baseline + the profiling session (Roberto, before the optimization plan):
          the PERF test `test_perf_play_path_million_games_to_ec0` (print-only, PERF=1 gated) plays 1e6 games
          from the canonical start to `ec = 0` (the full random game) by the array engine and prints the wall
          time, the throughput, the draws and the harvest breakdown. THE BASELINE: 6.33s / 157,995 games/s;
@@ -1163,7 +1163,7 @@ D-227 | 2026-09-18 | The play_path PERF baseline + the profiling session (Robert
          it, (b) the legal_moves also on the INACTIVE lanes, (c) ~6 full-array copies per step. The
          intervention plan is the next decision. `test_random_game` 33/0/1 (was 32/0/0).
 
-D-228 | 2026-09-18 | The play_path intervention 1 (Roberto's one-at-a-time plan, measured): the opponent's legal
+D-228 | 2026-09-19 | The play_path intervention 1 (Roberto's one-at-a-time plan, measured): the opponent's legal
          set in `_play_path_step` is computed ONLY on the pass-lane subset (the `mover_passes` lanes — rare
          mid-game), not on the whole batch; the D-227 profile showed the second full-array
          `position_legal_moves` (on the swapped view) as a top hot spot (16.6% of the wall, 2 calls per step).
@@ -1173,7 +1173,7 @@ D-228 | 2026-09-18 | The play_path intervention 1 (Roberto's one-at-a-time plan,
          breakdown unchanged (reached ec=0: 990,413; game-over 9,587; the same max stuck ec = 51).
          `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-229 | 2026-09-18 | The play_path intervention 2 (Roberto's one-at-a-time plan, measured): the mover's legal set
+D-229 | 2026-09-19 | The play_path intervention 2 (Roberto's one-at-a-time plan, measured): the mover's legal set
          in `_play_path_step` is computed ONLY on the ACTIVE lanes (the zero-filled scatter + the all-active
          fast path that computes it in place — with a uniform start all the lanes stay active, so the fast path
          keeps the same code path), and both classification computes run on the RAW fields via the public
@@ -1186,7 +1186,7 @@ D-229 | 2026-09-18 | The play_path intervention 2 (Roberto's one-at-a-time plan,
          551,381 games/s (-10.8% wall, +11.7% throughput); the harvest breakdown unchanged on both.
          `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-230 | 2026-09-18 | The play_path intervention 3 (Roberto's one-at-a-time plan, measured): the engine state is
+D-230 | 2026-09-19 | The play_path intervention 3 (Roberto's one-at-a-time plan, measured): the engine state is
          the RAW `(movers, opponents)` uint64 pair — copied ONCE from the input (the caller's array is never
          mutated), advanced in place by the steps (`_apply_picked_moves` writes the state directly: no
          per-group full copies; the ec via the inline `bitboard_count(~(movers | opponents))`), and assembled
@@ -1203,7 +1203,7 @@ D-230 | 2026-09-18 | The play_path intervention 3 (Roberto's one-at-a-time plan,
          RuntimeError message of the D-226 leftover corrected. Zero behaviour change. `test_random_game`
          33/0/1, full LONG 914/0/23 GREEN.
 
-D-231 | 2026-09-18 | The play_path intervention 3b — the scratch-buffer reuse (Roberto's idea, measured): the two
+D-231 | 2026-09-19 | The play_path intervention 3b — the scratch-buffer reuse (Roberto's idea, measured): the two
          legal-set scratch buffers are allocated ONCE in `_play_path_engine` and reused across the steps (the
          reads are covered by the same-step writes: every lane the masks read has been scattered this very
          step — the invariant pinned in the `_play_path_step` docstring). The all-active fast path returns a
@@ -1214,7 +1214,7 @@ D-231 | 2026-09-18 | The play_path intervention 3b — the scratch-buffer reuse 
          slice of the glue). KEPT (harmless, the invariant documented) — revertible in minutes if Roberto
          prefers minimalism. `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
-D-232 | 2026-09-18 | The FUSED STEP ENGINE + the board njit primitives (Roberto's approved endgame): (1) BOARD
+D-232 | 2026-09-19 | The FUSED STEP ENGINE + the board njit primitives (Roberto's approved endgame): (1) BOARD
          PROMOTES the two per-lane primitives as the PUBLIC njit API — `legal_moves_of(mover, opponent)` (the
          per-lane legal-move set, EXTRACTED from `_vectorized_legal_moves`'s loop body: the kernel calls it
          per lane — the single source, zero duplication) and `flips_of_move(mover, opponent, move)` (the
@@ -1236,7 +1236,7 @@ D-232 | 2026-09-18 | The FUSED STEP ENGINE + the board njit primitives (Roberto'
          per-advance ~39ns vs the hlp_wave engine ~122-170ns (4x). `test_board` 246/0/15 (was 244/0/15),
          `test_random_game` 33/0/1, full LONG 916/0/23 GREEN.
 
-D-233 | 2026-09-18 | The `_kogge_stone_lms` resurrection — the symmetric encapsulation (Roberto): the two
+D-233 | 2026-09-19 | The `_kogge_stone_lms` resurrection — the symmetric encapsulation (Roberto): the two
          per-lane primitives had two inconsistent strategies — `flips_of_move` wraps the private core
          `_kogge_stone_mm`, while `legal_moves_of` carried the geometry body directly (the D-232 extraction
          moved it out of the vectorized kernel's loop without preserving the historical private core; the
@@ -1251,7 +1251,7 @@ D-233 | 2026-09-18 | The `_kogge_stone_lms` resurrection — the symmetric encap
          same inlined machine code). `test_board` 246/0/15, the 1M-games benchmark unchanged (2.58s), full
          LONG 916/0/23 GREEN.
 
-D-234 | 2026-09-18 | The `random_game.md` mirror rewrite (Roberto: the doc told the campaign instead of the
+D-234 | 2026-09-19 | The `random_game.md` mirror rewrite (Roberto: the doc told the campaign instead of the
          module): rewritten in the board.md style — the incipit states what the module IS (the random-game
          module: the pick, the execution, the batch path engine; the corpus generator and the intended
          hlp_wave replacement); the API as the family TABLE (the pick / move / path contracts) with the
