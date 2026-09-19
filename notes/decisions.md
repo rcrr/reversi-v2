@@ -1134,6 +1134,24 @@ D-226 | 2026-09-18 | The random_game docstring + engine style refinements (Rober
          empty-batch edge handled by the reduction initial), the stall raises RuntimeError and never hangs.
          Zero behaviour change. `test_random_game` 32/0/0, `test_prng` 22/0/0, full LONG 913/0/22 GREEN.
 
+D-227 | 2026-09-18 | The play_path PERF baseline + the profiling session (Roberto, before the optimization plan):
+         the PERF test `test_perf_play_path_million_games_to_ec0` (print-only, PERF=1 gated) plays 1e6 games
+         from the canonical start to `ec = 0` (the full random game) by the array engine and prints the wall
+         time, the throughput, the draws and the harvest breakdown. THE BASELINE: 6.33s / 157,995 games/s;
+         reached `ec = 0`: 990,413; game-over lanes: 9,587 (0.96%; max stuck ec = 51). THE STUCK-LANE
+         DIAGNOSIS (the scratch session): the outliers are REAL random-game behaviour, NOT an engine bug — the
+         final positions are genuinely moveless (the legal sets = 0 on both views, verified) and the scalar
+         baseline agrees (2,000 lanes: 19 game-over = 0.95%, the same max stuck ec = 51). THE PROFILE (the
+         instrumented phase run over the 60 steps): `position_legal_moves` 0.875s (16.6%; 120 calls = 2 per
+         step over the FULL array — the second, on the swapped view, is needed only for the PASS lanes),
+         `pick_one_from_set64_batch` 0.857s (16.2%), `position_flips` 0.725s (13.7%), `make_position` 0.519s
+         (9.8%; 231 calls, ~4 per step), `get_uint64_batch` 0.261s (4.9%; 60M draws), `position_empty_count`
+         0.167s (3.2%); the unattributed glue ~2.2s (~42%: the np.where chains, the masks, the copies — the
+         ndarray.copy alone 222 calls / 0.283s). The pydantic overhead is negligible (~9ms total). THE
+         OBSERVED WASTE for the plan: (a) the second legal_moves over ALL lanes while only the pass lanes need
+         it, (b) the legal_moves also on the INACTIVE lanes, (c) ~6 full-array copies per step. The
+         intervention plan is the next decision. `test_random_game` 33/0/1 (was 32/0/0).
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

@@ -40,6 +40,8 @@
 # time PERF=0 python3 -m unittest reversi.test.test_random_game
 #
 
+import os
+import time
 import unittest
 
 import numpy as np
@@ -390,6 +392,35 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
             random_game_play_path(0, 14, MT19937(self.seed))
         with self.assertRaises(ValidationError):
             random_game_play_path([0, 0], 14, MT19937(self.seed))
+
+    @unittest.skipUnless(os.environ.get('PERF') == '1',
+                         "Skipping performance test (set PERF=1 to run)")
+    def test_perf_play_path_million_games_to_ec0(self):
+        # The PERF benchmark: one million games from the canonical
+        # start played to ec = 0 (the full random game) by the array
+        # engine. Print-only, no gate: the wall time, the throughput,
+        # the draws, and the harvest breakdown (the lanes that reach
+        # ec == 0 vs the game-over lanes — the double pass at ec > 0).
+        n = 1_000_000
+        igp = initial_game_position()
+        movers = np.full(n, int(igp['mover']), dtype=np.uint64)
+        opponents = np.full(n, int(igp['opponent']), dtype=np.uint64)
+        batch = make_position(movers, opponents)
+        prng = MT19937(42)
+        start = time.perf_counter()
+        final_p, final_ec = random_game_play_path(batch, 0, prng)
+        duration = time.perf_counter() - start
+        n_full = int(np.count_nonzero(final_ec == 0))
+        n_game_over = n - n_full
+        n_draws = n * 60 - int(np.sum(final_ec, dtype=np.int64))
+        print(f"\n[PERF random_game_play_path] Played {n:,} games "
+              f"(initial position -> ec 0) in {duration:.2f}s "
+              f"({n / duration:,.0f} games/s); "
+              f"reached ec = 0: {n_full:,}; "
+              f"game-over lanes: {n_game_over:,}; "
+              f"draws consumed: {n_draws:,}; "
+              f"max final ec (the game-over lanes): "
+              f"{int(final_ec.max()):d}")
 
 
 
