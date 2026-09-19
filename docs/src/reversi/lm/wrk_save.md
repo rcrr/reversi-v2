@@ -1,8 +1,8 @@
 # reversi/lm/wrk_save.py
-The SAVE worker — the 15th active level of the LM pipeline (step 14, after ANALYTICS; CLIENT_CHECK runs after it). The
-6th non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (no cache level ever used a "15" slot; the flat-file
-numbering skips 03/07/08/09/12/13/15). A pure SINK on every up-move: it reads context attributes and writes ONE artifact
-— `base_dir/<cfg.output>` (the model weights file, lz4-compressed by default, with the `.SHA3-256` sidecar written by
+The SAVE worker — the 16th active level of the LM pipeline (step 16, after ANALYTICS; CLIENT_CHECK runs after it). The
+non-cache worker — no `cache_manager` wiring, no rlmwf_16* file (no cache level ever used a "15" slot; the flat-file
+numbering skips 09/10/15/17/18). A pure SINK on every up-move: it reads context attributes and writes ONE artifact —
+`base_dir/<cfg.output>` (the model weights file, lz4-compressed by default, with the `.SHA3-256` sidecar written by
 binio). That single artifact is SELF-DESCRIBING: the v2 file embeds the configuration provenance (the normalized dump +
 the fingerprint, the leading body section — model_weights.md), so the model file is the single source of the run's
 configuration. No `<output>.config.json` sidecar record is written. It adds NO context attributes; `_down` is a no-op
@@ -28,7 +28,7 @@ persist across runs).
   saved to {output_path}". The SAVE log span is these 2 lines (plus the state-machine's "Starting worker SAVE, UP step"
   / "Completed UP step" lines).
 - `_down`: INFO "Clearing save attributes..." + the comment "Nothing to clear from context, as we just read from it." —
-  SAVE is the only worker whose `_down` clears nothing (VALIDATE clears 1, ANALYTICS clears 2, ...).
+  SAVE's `_down` clears nothing (like EFFECT_SIZE, CLIENT_CHECK and PLOT); VALIDATE and ANALYTICS each clear 4 fields.
 - `wrk_save()`: the factory.
 
 ## Verified invariants
@@ -40,13 +40,13 @@ ungated v2 micro + 4 DB-gated, A2050 additionally VLONG-gated).
 - Source shape (probe A1-A3, A10-A15): the `@validate_call` factory + pydantic import (A1), no pathlib (A2), 0
   non-comment trailing-ws lines (A3), the test's 2 SKIP_REGAB_DB gates + the gated-suite idiom (A10-A11), no dead
   imports (A13), the fixtures' `output` fields + cuts (A15: rlm_03 cut=1, rlm_04 cut=10).
-- The live rlm_04 chain (the A2030 suite + probe C5): the full 15-level chain runs to step 14 / "SAVE"; the v2 artifact
-  `rglm_logistic_model_ec_20_TEST04.dat` is in the 22700-22800 B size band, sidecar valid (the v1 sha3 literal
-  `bcf8d918…` is obsolete — the embedded dump carries the run's base_dir, the bytes are run-specific; the size is a band
-  too: LZ4's match structure shifts by a few bytes with the 8 random base_dir chars — measured on A2050: 516459 / 516455
-  for the identical content; determinism is pinned by the same-base-dir byte identity + the read-back provenance); probe
-  C5 (the a-portion): the LIVE pre-f32 opt `f` 0.00560641149058938 + `g_norm` 4.3686068238457665e-05 — the test pins
-  f/g_norm only on the read-back `mw.opt_info` (f32).
+- The live rlm_04 chain (the A2030 suite + probe C5): the full 16-level chain runs to step 16 / "SAVE"; the v2 artifact
+  `rglm_logistic_model_ec_20_TEST04.dat` is in the 23183-23283 B size band, sidecar valid (the embedded dump carries the
+  run's base_dir, so the bytes are run-specific; the size is a band too: LZ4's match structure shifts by a few bytes
+  with the 8 random base_dir chars — measured on A2050: 516459 / 516455 for the identical content; determinism is pinned
+  by the same-base-dir byte identity + the read-back provenance); probe C5 (the a-portion): the LIVE pre-f32 opt
+  `f` 0.005608053877949715 + `g_norm` 6.098220910644159e-05 — the test pins f/g_norm only on the read-back `mw.opt_info`
+  (f32).
 - The write is DETERMINISTIC within a base dir (test_second_instance_deterministic): a second full instance in the same
   base dir produces a byte-identical file and exactly 6 "Cache successfully loaded and validated" hits (the 6
   rlmwf_ cache files all hit — POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS — + the OPTIMIZE
@@ -66,8 +66,8 @@ None.
 
 ## Conventions
 
-- The no-cache design is the 6th deviation from the uniform 7-kwargs `cache_manager` wiring — intentional (the rlmwf_15
-  slot stays unused like 03/07/08/09/12/13).
+- The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring — intentional (the rlmwf_16 slot
+  stays unused like 03/07/08/09/12/13).
 - `compressed=True` is the only call form in the repo; the `compressed` parameter default is True anyway (the read side
   mirrors it).
 - The A2030/A2050 test class names are the legacy production naming: A2xxx is the endgame-solver production model family

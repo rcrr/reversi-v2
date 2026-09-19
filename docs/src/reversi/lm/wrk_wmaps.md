@@ -1,7 +1,8 @@
 # reversi/lm/wrk_wmaps.py
-The WMAPS worker of the LM pipeline — the 6th active level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS).
-Like POSITIONS and INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_wmaps object — the
-THIRD cache_manager consumer in the pipeline (the flat `rlmwf_07_WMAPS.dat` + binio sidecar DO materialize).
+The WMAPS worker of the LM pipeline — the 7th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
+INDEXES → EFFECT_SIZE → WMAPS). Like POSITIONS and INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
+over the hlp_wmaps object — the 4th cache_manager consumer in the pipeline (the flat `rlmwf_07_WMAPS.dat` + binio
+sidecar DO materialize).
 
 ## API
 
@@ -29,11 +30,11 @@ THIRD cache_manager consumer in the pipeline (the flat `rlmwf_07_WMAPS.dat` + bi
 Pinned by the `probes/verify_wmaps.py` B tier + the 3-test suite.
 
 - Source shape: the 91-line file, `__all__ = ['wrk_wmaps']`, the factory name "WMAPS" WITH `@validate_call` + the
-  pydantic import, the LMContext import under TYPE_CHECKING (the circular-import guard), the full 7-kwargs cache wiring
-  with the `checksum=False` load_fn, `_up` sets the 6 ctx arrays + `wmaps_obj_checksum` (7 attributes), `_down` clears
-  all 7, 0 non-comment trailing-whitespace lines — probe B1-B9.
-- The level boundary (live DB, probe C tier): the flat file set is exactly CONFIG + POSITIONS + INDEXES + WMAPS (no
-  `rlmwf_02_FEATURES*`); the cross-run cache hit + identical data; E9 — the per-feature wmap row count ==
+  pydantic import, the LMContext import under TYPE_CHECKING (the circular-import guard), `__all__ = ['wrk_wmaps']`, the
+  full 7-kwargs cache wiring with the `checksum=False` load_fn, `_up` sets the 6 ctx arrays + `wmaps_obj_checksum` (7
+  attributes), `_down` clears all 7, 0 non-comment trailing-whitespace lines — probe B1-B9.
+- The level boundary (live DB): the flat `rlmwf_07_WMAPS.dat` + its sidecar on disk, the cross-run cache hit
+  (`test_read_cache_on_new_instance`); the probe's surviving E9 check — the per-feature wmap row count ==
   `w_max − w_min + 1` (contiguous ranges).
 - The end-to-end round-trip + the golden content (DB-gated): `test_compute_and_populate_cache` (step 7 pinned, the FLAT
   `rlmwf_07_WMAPS.dat` + `.SHA3-256` on disk, "Forcing computation", the 6 arrays non-None + `len(ctx.w) > 0`),
@@ -50,15 +51,16 @@ None.
 - The worker carries NO naming code — the flat `rlmwf_07_WMAPS.dat` comes from the injected full-path closure (the
   machine-level fix for ALL cache-consuming workers).
 - `is_allowed = ctx.use_cache`: with `use_cache=False` the level always recomputes but still warms the cache file (the
-  R1 semantics).
+  warm-the-cache semantics).
 - `validate_fn` is the 2-field metadata compare (no DB access, no recompute) — a business mismatch deletes + recomputes
-  (the R2 shape).
+  (the delete-and-recompute shape).
 - The only worker that spreads ONE data object across separate context attributes (6 arrays + the checksum, as in
   INDEXES: object + checksum).
 
 ## Integration
 
-- The 6th LM level (the 6-worker list `[CREATED, CONFIG, POSITIONS, FEATURES, INDEXES, WMAPS]`); the facade
-  (`logistic_model.py`) instantiates the machine + `Worker`.
+- The 7th LM level (the 8-worker prefix
+  `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES, EFFECT_SIZE, WMAPS]`); the facade (`logistic_model.py`)
+  instantiates the machine + `Worker`.
 - Consumes the `hlp_wmaps` module (all 5 public names) + `cache_manager`; publishes the 6 ctx arrays +
   `ctx.wmaps_obj_checksum` for the DESIGN_MTR level onward.

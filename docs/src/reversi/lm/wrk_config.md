@@ -19,7 +19,7 @@ follow. It writes NO cache file; the configuration provenance is EMBEDDED in the
   the EFFECTIVE configuration of the run — the base_dir override included, pydantic defaults resolved — and this is the
   single source of truth for the EMBEDDED model-file config provenance and the analytics report line) → the INFO log of
   the hex.
-- `_down`: the ERROR "Clearing configuration..." → `ctx.cfg = None`, `ctx.use_cache = None`,
+- `_down`: the INFO "Clearing configuration..." → `ctx.cfg = None`, `ctx.use_cache = None`,
   `ctx.config_checksum = None`.
 - `_load`: `json5.load` (UTF-8) of `ctx.config_file_path` with the DEBUG log of the path; an optional
   `ctx.base_dir_override` is applied to the raw dict before `LMConfig(**raw)`.

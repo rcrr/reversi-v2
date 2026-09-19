@@ -1,11 +1,11 @@
 # reversi/lm/hlp_gradient.py
 The GRADIENT domain module of the LM pipeline — the function-only module: NO data class, NO store / load /
-is_cache_consistent, NO init validation, NO hash (unlike every other rlm_* level). Two public names: `sigmoid` (the
+is_cache_consistent, NO init validation, NO hash (like hlp_validate and hlp_analytics). Two public names: `sigmoid` (the
 scipy `expit` wrapper) + `hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates the normalized loss and gradient). TWO fg variants:
 the classic vectorized-numpy closure (the default) and the high-performance numba single-pass kernel (K3, selected by
-the `high_performance` flag). The 9th active level and the SECOND non-cache one (after ZED): no cache_manager wiring, no
-rlmwf_09* / rlmwf_10* file ever.
+the `high_performance` flag). The 10th active level, a NON-cache one (like FEATURES, EFFECT_SIZE, ZED): no cache_manager
+wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## API
 
@@ -43,7 +43,7 @@ rlmwf_09* / rlmwf_10* file ever.
     `rn²` is accumulated in the block's f64 partial norm `norm_blocks[b]`.
   - No M×P temporary is ever materialized (the classic path allocates two ~384 MB temporaries per call at A2050 scale:
     the gather result + the bincount weight buffer). X is read once, row-contiguous (L2-friendly); w (311 KB at A2050)
-    and the T×N f64 buffers (~2.5 MB at A2050) are L2-resident.
+    and the T×N f64 buffers (~5 MB at A2050) are L2-resident.
   - `fg_hp(w)`: clears the two private buffers, one kernel call, then the fixed-order final reduction in numpy:
     `f = 0.5·(Σ_b norm_blocks[b]/M + alpha·w·w)` (f64) → float32; `g = (Σ_b g_blocks[b])/M + alpha·w` (f64) → float32.
   - RACE-FREE without atomics: numba 0.67 has NO CPU atomics (CUDA-only) — each prange block writes only to its own
@@ -90,20 +90,19 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tes
 
 ## Open issues
 
-- The two-loop recursion in `opt_lbfgs.py` is now the second cost center (≈ 8.2 s of the 26.9 s HP OPTIMIZE, ~30%): the
-  numba two-loop is the next candidate.
+- The two-loop recursion in `opt_lbfgs.py` is the second cost center of the HP OPTIMIZE (~25%): the `out=` product
+  buffer (O2b) is the adopted optimization; the numba two-loop was measured and rejected (memory-bandwidth bound).
 
 ## Conventions
 
 - The R1 float32 return contract: the NEXT level (OPTIMIZE) sees both `f` and `g` as float32 — for BOTH variants.
-- The linear predictor is the w-INDEX sum (each X cell is a w-index), NOT `X @ w` — in both variants.
-- The /M normalization: both the MSE and the ridge terms are scaled by 1/M — the optimizer's convergence criteria are
-  dataset-size independent (pinned directly by the ridge_scaling test).
-- The `high_performance_fg` config flag: the default is FALSE (the classic path) everywhere; rlm_03.json and rlm_04.json
-  opt in (the two full-chain test configs). The flag is read by the GRADIENT worker only; a mid-run switch is
-  numerically sound (same objective, the resume re-evaluates f fresh).
-- `sigmoid` stays a bare wrapper (no `@validate_call`) — hot-loop performance.
-- The worker file: the triple blank lines are the canonical pattern of all 8 worker files (house style).
+- The linear predictor is the w-INDEX sum (each X cell is a w-index), NOT `X @ w`; the /M normalization scales both the
+  MSE and the ridge term by 1/M — the optimizer's convergence criteria are dataset-size independent (the ridge_scaling
+  test pins it).
+- The `high_performance_fg` config flag: default FALSE (the classic path) everywhere; rlm_03/rlm_04 opt in (the
+  full-chain test configs). Read by the GRADIENT worker only; a mid-run switch is numerically sound (same objective).
+- `sigmoid` stays a bare wrapper (no `@validate_call`) — hot-loop performance; the worker file's triple blank lines are
+  the canonical house pattern.
 - The scipy `expit` is the classic path's only special-function dependency (scipy in pyproject.toml); the HP path
   computes the sigmoid inline in f32 (the kernel must be self-contained for numba).
 - The f64 per-block accumulators are the PRODUCTION choice: f tracks the float64 reference to ~1e-12 rel (the f32
@@ -112,9 +111,10 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (14 tes
 
 ## Integration
 
-- The 9th LM level; the worker (wrk_gradient.py) is the thin glue, this module the math. Consumes `ctx.design_matrix`
-  (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32 weight vector, W = total weights; 2981 on live rlm_02;
-  the OPTIMIZE level later overwrites it with the optimized values) + `ctx.cfg.stat_model.ridge_regularization` (CONFIG)
-  + `ctx.cfg.optimization.high_performance_fg` (CONFIG).
+- The 10th LM level; the worker (wrk_gradient.py) is the thin glue, this module the math. Consumes `ctx.design_matrix`
+  (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS — the (W,) float32 weight vector, 2981 on live rlm_02; OPTIMIZE later
+  overwrites it) + `ctx.cfg.stat_model.ridge_regularization` and `ctx.cfg.optimization.high_performance_fg` (both
+  CONFIG).
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE level. The flat-file numbering stops at
-  rlmwf_08_DESIGN_MTR — the next cache level (OPTIMIZE) takes rlmwf_11 (09/10 are skipped: ZED and GRADIENT write nothing).
+  rlmwf_08_DESIGN_MTR — the next cache level is GENERATE (rlmwf_12; 09/10/11 are skipped: ZED, GRADIENT and OPTIMIZE
+  write nothing).

@@ -1,7 +1,7 @@
 # reversi/lm/wrk_positions.py
-The POSITIONS worker of the LM pipeline — the FIRST domain worker that consumes cache_manager: the training data set
-comes from the regab DB through the standard 4-step load-or-compute flow, then positions / game_values arrays + the
-training population stats are derived for the workers that follow.
+The POSITIONS worker of the LM pipeline — the 2nd cache_manager consumer in the pipeline (after SU_ANALYSIS): the
+training data set comes from the regab DB through the standard 4-step load-or-compute flow, then positions / game_values
+arrays + the training population stats are derived for the workers that follow.
 
 ## API
 
@@ -33,9 +33,9 @@ training population stats are derived for the workers that follow.
   the query tuple `(bid, status, ec)` — the `bid=`/`status=` keyword overrides win over the cfg. The DEBUG log always
   prints the bool; the per-field detail only on inconsistency.
 - `load_from_db`: `RegabDBConnection(dbname, user, host, str(port), password)` — ALL five schema connection params (a
-  configured port is no longer silently ignored, a configured password reaches the connection string) →
-  `regab_extract_data_set_from_db(rc, bid, status, ec)` → DEBUG "Extracted {n:,} positions from the database." (the
-  connection log includes the port, never the password) → `finally: rc.close()`.
+  configured port and password reach the connection string) → `regab_extract_data_set_from_db(rc, bid, status, ec)` →
+  DEBUG "Extracted {n:,} positions from the database." (the connection log includes the port, never the password) →
+  `finally: rc.close()`.
 - `extract_and_prepare`: `load_from_db(ctx, bid=bid, status=status)` (so the VLD call site passes its own bid/status
   overrides) → `regab_dedup_mogv(rds.df_mogv)` → the `regab_allow_duplicate` branch (True: keep + "kept" log; False:
   `rds.df_mogv = deduped` + "removed" log) → returns the post-policy rds. The dedup is a single hash-based
@@ -88,8 +88,8 @@ None.
 
 ## Integration
 
-- The 4th active level (CREATED sentinel → CONFIG → FEATURES → POSITIONS), step 3; the facade (`logistic_model.py`)
-  instantiates the machine + `Worker`.
+- The 4th active level (CREATED sentinel → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS), step 4; the facade
+  (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes `regab` (the extract/store/load trio), `cache_manager` (the 4-step flow) and the `hlp_config_schemas` types
   (`RegabDBConnection`, `RegabDataSet`); publishes `ctx.positions` / `ctx.game_values` / `ctx.rds_checksum` /
   `ctx.training_pop_stats` for the INDEXES level onward.

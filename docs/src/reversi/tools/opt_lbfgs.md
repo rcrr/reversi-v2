@@ -9,7 +9,7 @@ capability, logging and checkpointing via callback hooks. Self-contained: no LMC
 |---|---|
 | `FG` | `namedtuple('FG', ['fun', 'grad'])` — the function + evaluation tuple |
 | `FixedSizeMaxList(size)` | fixed-size sliding window tracking the maximum pushed value (deque-backed); `max()` raises `RuntimeError` on empty (pinned) |
-| `lbfgs(fg, x0, ...)` | the main optimizer — 16 kwargs (the 5 config scalars, `logger_fn`/`save_fn` hooks, the 4 warm-start kwargs); returns `(x_opt, info_dict)` with the 9 keys w/converged/reason/iters/f/g_norm/sl/yl/rho |
+| `lbfgs(fg, x0, ...)` | the main optimizer — 16 kwargs (the 8 config scalars, `logger_fn`/`save_fn` hooks, the 4 warm-start kwargs); returns `(x_opt, info_dict)` with the 9 keys w/converged/reason/iters/f/g_norm/sl/yl/rho |
 | `_two_loop_recursion(g, s, y, rho)` | the L-BFGS two-loop H_k·g (private) |
 | `_strong_wolfe_line_search(...)` / `_zoom(...)` | the line search + its zoom phase (private) |
 | `_hermite_cubic_interp(...)` / `_hermite_cubic_interp_min(...)` | the cubic Hermite interpolant + its interval minimum (private) |
@@ -34,17 +34,17 @@ capability, logging and checkpointing via callback hooks. Self-contained: no LMC
 
 ## Verified invariants
 
-Pinned by `test_opt_lbfgs.py` (14 tests, 7 classes, no DB, no PERF gate — ~0.040s). No probe file exists for this module
-(the suite is the verification apparatus).
+Pinned by `test_opt_lbfgs.py` (14 tests, 7 classes, no DB, no PERF gate) + `probes/verify_optimize.py` (E5-E7 pin this
+module's signature, info dict and x0.copy() contract). No dedicated probe file exists for the module (the suite is the
+verification apparatus).
 
 - `_two_loop_recursion` with empty history returns `g` (the gamma=1.0 identity); with random pairs (yᵀs > 0) produces a
   non-zero, shape-consistent result; the out= form is BIT-IDENTICAL to the original per-op-temporary algorithm (the
   reference embedded verbatim in the test, three seeded histories: f32 n=50/m=5, f32 n=500/m=9, f64 n=64/m=7 —
   `test_out_equals_original_bit_identical`).
-- Quadratic `f(x) = 0.5 xᵀHx` converges to x* = 0 (2D, 9 iters, f ≈ 4.9e-26); the handcrafted quadratic (known minimum
-  [−1.0, 1.5]) converges within 1e-3.
-- Rosenbrock converges from 5 random starts to [1,1] within 1e-4 (multi-trial); the 1000-iteration single-start run
-  matches.
+- The quadratic `TestLBFGSBaseFunction` case (f = x0 − x1 + 2·x0·x1 + 2·x0² + x1²) converges to x_min [−1.0, 1.5] (atol
+  1e-3); the handcrafted quadratic (known minimum [−1.0, 1.5]) converges within 1e-3.
+- Rosenbrock converges from x0 = [−1.0, −1.0] to [1, 1] within 1e-4 (max_iters 1000); the run matches.
 - Zakharov 20D converges to the origin (seed 42, 1000 iters, within 1e-5).
 - Warm-start: 100 continuous iterations vs 50+50 with save/resume — final positions match within 1e-4.
 - Input validation: non-ndarray x0, int32 dtype, non-callable fg all raise `TypeError`.
@@ -57,9 +57,9 @@ None.
 
 - The float32 contract: `x0` float32 stays float32 end-to-end (`x0.copy()`) — what the OPTIMIZE level relies on (the
   `NDArray[np.float32]` gate of `weights_compute_sha3_256_hash` never rejects a live weight vector).
-- `matplotlib` is a soft dependency: imported lazily in `_display_line_search` with try/except, NOT in pyproject.toml
-  (debug-only, acceptable).
-- `FixedSizeMaxList.max()` is O(n) per call — fine for the small `min_grad_count` convergence-history usage (m=10
+- `matplotlib` is imported lazily in `_display_line_search` with try/except — the display helper is optional at call
+  time (matplotlib IS a declared project dependency).
+- `FixedSizeMaxList.max()` is O(n) per call — fine for the small `min_grad_count` convergence-history usage (3 by
   default).
 - `min_p_fun_decrease` is a FRACTION, not a percentage.
 - Warm-start does NOT preserve the convergence counters (`fgv_fun_prev`, `low_progress_count_*` reinitialized) — partial

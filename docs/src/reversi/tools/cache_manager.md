@@ -78,8 +78,9 @@ None.
 
 ## Integration
 
-- Every rlmwf cache level (POSITIONS … VLD_POSITIONS) runs this pipeline with its own callbacks — the worker docs pin
-  the level-specific goldens; this module is the engine.
+- Every rlmwf cache level (SU_ANALYSIS, POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS) runs this
+  pipeline with its own callbacks — the worker docs pin the level-specific goldens; this module is the engine.
 - The step-2 checksum call is the single entry into binio's `verify_sha3_256_sidecar` (the sidecar format of the whole
-  cache system — binio.md); the `data_checksum` 3rd element feeds the `is_cache_consistent` comparisons of the data
-  workers (e.g. wrk_positions).
+  cache system — binio.md); the `data_checksum` 3rd element is published on the ctx by the worker (`ctx.rds_checksum`,
+  `ctx.hlp_indexes_checksum`, …) and reaches the downstream comparisons through that stored metadata, not through the
+  `validate_fn`.

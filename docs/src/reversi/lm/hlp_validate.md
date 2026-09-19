@@ -1,10 +1,10 @@
 # reversi/lm/hlp_validate.py
 The VALIDATE domain module of the LM pipeline — the 14th step. Like hlp_zed and hlp_gradient it is PURE COMPUTE: no
 store / load / is_cache_consistent trio, no checksum, no cache file (the rlmwf_14 slot stays unused). It runs the
-forward pass of the trained model on the validation positions (the same `ctx.feature_set` as training, the dense
-weights `ctx.w_dense` from GENERATE) and returns a `ValidationResult`: the 7-metric validation dict (the v2 model-file
-contract) plus the two per-position series it is computed from — the fitted values and the residuals in Y, the SINGLE
-derivation PLOT renders and CLIENT_CHECK compares against the saved file (I-018).
+forward pass of the trained model on the validation positions (the same `ctx.feature_set` as training, the dense weights
+`ctx.w_dense` from GENERATE) and returns a `ValidationResult`: the 7-metric validation dict (the v2 model-file contract)
+plus the two per-position series it is computed from — the fitted values and the residuals in Y, the SINGLE derivation
+PLOT renders and CLIENT_CHECK compares against the saved file (I-018).
 
 ## API
 
@@ -47,11 +47,12 @@ Pinned by the `probes/verify_validate.py` sweep + `test_wrk_validate.py`.
   rlmwf_14* file in the base dir.
 - The live rlm_02 goldens (the worker suite, the first run to VALIDATE): `vld_loss 0.00700794393196702`,
   `vld_mse_z 0.01401588786393404`, `vld_mae_z 0.09311295300722122`, `vld_mae_y 12.161691665649414`,
-  `vld_mse_y 239.10484313964844`, `vld_rmse_y 15.46301555633545`, `vld_samples 200` — the validation loss ≈ the training
-  final loss (7.1250e-03: no overfitting signal).
-- The unit metric math (`TestValidateModelUnit`, DB-free): the hand-computed 2-position case (1 feature / 2 instances,
-  `w_dense [0.5, −0.5]`, game values [0, 64] → loss 0.0625, mse_z 0.125, mae_z 0.25, mae_y 32.0, mse_y 2048.0, rmse_y
-  sqrt(2048), samples 2), every metric a PYTHON float, `vld_samples` an int, and the M1 zero-guard branch.
+  `vld_mse_y 239.10484313964844`, `vld_rmse_y 15.46301555633545`, `vld_samples 200` — the validation loss stays close to
+  the training final loss (no overfitting signal).
+- The unit metric math (`TestValidateModelUnit`, DB-free; the python-float typing is probe D2): the hand-computed
+  2-position case (1 feature / 2 instances, `w_dense [0.5, −0.5]`, game values [0, 64] → loss 0.0625, mse_z 0.125,
+  mae_z 0.25, mae_y 32.0, mse_y 2048.0, rmse_y sqrt(2048), samples 2), every metric a PYTHON float, `vld_samples` an
+  int, and the M1 zero-guard branch.
 
 ## Open issues
 
@@ -68,8 +69,8 @@ None.
 
 ## Integration
 
-- Upstream inputs: VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`, `ctx.vld_rds_checksum`), FEATURES
-  (`ctx.feature_set`), WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.y2z` / `ctx.z2y`).
-- Downstream: ANALYTICS consumes `ctx.vld_metrics`; SAVE embeds it in the v2 model file; PLOT renders
-  `ctx.vld_y_pred` / `ctx.vld_rn`; CLIENT_CHECK compares the saved-file residuals against `ctx.vld_rn` (I-018).
+- Upstream inputs: VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`), WMAPS
+  (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.y2z` / `ctx.z2y`).
+- Downstream: ANALYTICS consumes `ctx.vld_metrics`; SAVE embeds it in the v2 model file; PLOT renders `ctx.vld_y_pred` /
+  `ctx.vld_rn`; CLIENT_CHECK compares the saved-file residuals against `ctx.vld_rn` (I-018).
 - No `use_cache` interaction: the level writes nothing, so the CONFIG cache switch is irrelevant here.

@@ -1,10 +1,10 @@
 # reversi/test/test_hlp_feature_analysis.py
-The NO-DB micro-suite of the SU_ANALYSIS data module: the SU / entropy / mutual-information kernels + the
-dispersion / the never-observed audit + the ANOVA kernels + the adherence kernels — the hand-computed toy tables (the
-uniform / the degenerate / the binary entropies, the perfect-correlation / the independent mutual informations, the SU =
-1 / 0 / the 0-denominator guard, the dispersion K_obs / H / H_norm / coverage, the never-observed + the rarity profile,
-the eta² / omega² effect sizes + the guards, the KL / the TV / the chi-square merged-tail + the adherence union
-alignment). 10 classes / 32 tests / no DB.
+The NO-DB micro-suite of the SU_ANALYSIS data module: the SU / entropy / mutual-information kernels + the dispersion /
+the never-observed audit + the ANOVA kernels + the adherence kernels — the hand-computed toy tables (the uniform / the
+degenerate / the binary entropies, the perfect-correlation / the independent mutual informations, the SU = 1 / 0 / the
+0-denominator guard, the dispersion K_obs / H / H_norm / coverage, the never-observed + the rarity profile, the eta² /
+omega² effect sizes + the guards, the KL / the TV / the chi-square merged-tail + the adherence union alignment). 10
+classes / 32 tests / no DB.
 
 ## Coverage
 
@@ -19,7 +19,7 @@ alignment). 10 classes / 32 tests / no DB.
 | `TestKLDivergence` | 3 | `test_equal` (p = q: KL = 0); `test_known` (p = [1, 0], q = [0.5, 0.5]: KL = log 2, the 0-term vanishes); `test_infinite` (p = [1, 0], q = [0, 1]: the +inf, the DB has a code the ideal never shows) |
 | `TestTotalVariation` | 3 | `test_equal` (TV = 0); `test_max` (p = [1, 0], q = [0, 1]: TV = 1); `test_half` (p = [0.75, 0.25], q = [0.5, 0.5]: TV = 0.25) |
 | `TestChiSquareGoodness` | 2 | `test_no_merge` (observed [10, 20, 30, 40], expected [15, 18, 27, 40]: chi2 2.222222, p the scipy ref, merged 0); `test_merged` (observed [1, 2, 3, 40], expected [1.5, 2, 2.5, 40]: the 3 E < 5 cells merged, chi2 0, p 1.0, merged 3) |
-| `TestAdherence` | 3 | `test_union_alignment` (db {0: 10, 1: 20}, ideal {0: 10, 1: 30, 2: 60}: the union {0, 1, 2}, TV 0.6, KL 0.9336627322538263, chi2 47.77777777777778, merged 1, p the scipy ref); `test_infinite_kl` (the DB has a code the ideal never shows: the KL +inf, the TV / the chi-square finite); `test_empty` (the empty DB: the nan values) |
+| `TestAdherence` | 3 | `test_union_alignment` (db {0: 10, 1: 20}, ideal {0: 10, 1: 30, 2: 60}: the union {0, 1, 2}, TV 0.6, KL 0.9336627322538263, chi2 47.77777777777778, merged 1, p the scipy ref); `test_infinite_kl` (the DB has a code the ideal never shows: the KL + the chi-square +inf, p 0, the TV finite < 1); `test_empty` (the empty DB: the nan values) |
 
 ## Goldens pinned
 
@@ -53,5 +53,5 @@ alignment). 10 classes / 32 tests / no DB.
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 data-module position: between the FEATURES and
   the POSITIONS).
-- The kernels are the SU / the entropy / the MI of the SU_ANALYSIS phase 2 (the statistics, the cheap recompute on
-  every run).
+- The kernels are the SU / the entropy / the MI of the SU_ANALYSIS phase 2 (the statistics, the cheap recompute on every
+  run).

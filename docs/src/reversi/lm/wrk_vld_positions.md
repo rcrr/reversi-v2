@@ -1,5 +1,5 @@
 # reversi/lm/wrk_vld_positions.py
-The VLD_POSITIONS worker — the 13th step. The POSITIONS TWIN over the validation data set: the 6th `cache_manager`
+The VLD_POSITIONS worker — the 13th step. The POSITIONS TWIN over the validation data set: the 7th `cache_manager`
 consumer and the only worker that REUSES another level's data module — `extract_and_prepare` + `is_cache_consistent`
 imported from `wrk_positions`, the keyword `bid`/`status` overrides selecting the validation query. After the population
 stats, the worker runs the validation-independence check — how many validation records are ALSO present in the training
@@ -22,8 +22,8 @@ set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.S
     `cache_path = ctx.get_cache_file_full_path_for_current_level()`, `is_allowed = ctx.use_cache`,
     `load_fn = lambda path: regab_load_data_set_from_file(path, checksum=False)` (the `checksum=True` default
     re-verified the sidecar cache_manager step 3 already checked), `store_fn = regab_store_data_set_to_file`,
-    `validate_fn = lambda cached_vld_rds: is_cache_consistent(ctx, cached_vld_rds, bid=vld_cfg.bid, status=vld_cfg.status)`
-    (the override is LOAD-BEARING: without it the TRAINING cfg params are used and the vld rds would always mismatch),
+    `validate_fn = lambda cached: is_cache_consistent(ctx, cached, bid=vld_cfg.bid, status=vld_cfg.status)` — the
+    override is LOAD-BEARING (without it the TRAINING cfg params are used and the vld rds would always mismatch),
     `compute_fn = lambda: extract_and_prepare(ctx, bid=vld_cfg.bid, status=vld_cfg.status)` (the shared wrk_positions
     compute path, extract → dedup policy → log; the cache file stores the POST-policy data set, so a flag flip changes
     the stored content + the vld rds_checksum, cascading through the checksum lineage), `logger_fn = ctx.log_event`.
@@ -51,8 +51,10 @@ DB-free).
   (`extract_and_prepare, is_cache_consistent`), A8 pins the vld `bid`/`status` overrides on BOTH the compute
   (`extract_and_prepare`) and the validate fns (D8 with the live-factory check D1, the reuse-identity pin now includes
   `extract_and_prepare.__module__`), the `_for_current_level` name, the `checksum=False` load_fn, the bid/status
-  overrides, the factory gate, no numpy / Path / regab-extract imports, the 4-field `_down`.
-- The context facts (probe B4/B5): the 4 pre-declared `vld_*` blackboard fields + the worker-list entry.
+  overrides, the factory gate, no Path / regab-extract imports (numpy IS imported and load-bearing for the population
+  stats), the 4-field `_down`.
+- The context facts (probe B4/B5): the 4 pre-declared `vld_*` blackboard fields + the `validation_data_set` config
+  section.
 - The live rlm_02 invariants (probe C3a-C3d + C4 + the worker suite): bid [8] / status [CMS, CMR] / shared ec 20 → **200
   positions** (the (200,2) u64 structured array), int8 game values in [−58, 56]; `vld_pop_stats` count 200, mean
   `np.float64(3.64)`, std `np.float64(23.809880302093077)`, variance `np.float64(566.9104)`; `vld_rds_checksum` golden
@@ -75,7 +77,7 @@ None.
 
 ## Conventions
 
-- The unpacked `cache_hit` is now CONSUMED (the cache-hit duplicate line) — the wrk_positions twin changed the same way.
+- The unpacked `cache_hit` is CONSUMED (the cache-hit duplicate line) — the wrk_positions twin does the same.
 - The `load_fn` `checksum=False`: the sidecar was verified by cache_manager step 3.
 - The import-block trailing ws stays, as in wrk_positions.
 

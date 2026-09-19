@@ -5,7 +5,7 @@ search, no clock, no UI.
 
 ## API
 
-The 71 `__all__` names. Dual contract throughout: scalar in → scalar out, 1-D array in → array out (same shape), unless
+The 74 `__all__` names. Dual contract throughout: scalar in → scalar out, 1-D array in → array out (same shape), unless
 stated.
 
 | family | name | contract |
@@ -29,7 +29,7 @@ stated.
 | Bitboard | `bitboard_to_signed_int(bb) -> np.int64 \| NDArray` | the inverse (PostgreSQL storage path); 1-D only |
 | Bitboard | `bitboard_from_hex_str(h) -> Bitboard \| BitboardArray` | 16-char hex, no `0x` prefix, case-insensitive; the array path is `np.frompyfunc` (element-wise Python loop) |
 | Bitboard | `bitboard_bsr(bb) -> int` | index of the most significant set bit (63..0); 0 → -1; scalar only |
-| Bitboard | `bitboard_count(bb) -> np.uint8` | popcount via `np.bitwise_count`; scalar only |
+| Bitboard | `bitboard_count(bb) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount via `np.bitwise_count`; dual scalar/array |
 | Bitboard | `legal_moves_of(mover, opponent) -> Bitboard` | the per-lane legal-move set — the njit domain wrapper over the private core `_kogge_stone_lms` (the same encapsulation pattern as `flips_of_move` / `_kogge_stone_mm`): the single source of the geometry, called per lane by the vectorized kernel and by the numba compositions (random_game's fused engine) |
 | Bitboard | `flips_of_move(mover, opponent, move) -> Bitboard` | the flip set of the single-bit move — the njit flip primitive (the Kogge-Stone core) for the numba compositions |
 | Bitboard | `bitboard_print(bb, output)` | 2-D text; row 1 on top, column a on the left |
@@ -38,13 +38,13 @@ stated.
 | Bitboard | `bitboard_to_string_list(bb) -> List[str]` | as "A1"-style names |
 | D8 | `bitboard_transformations(bb) -> BitboardArray` | all 8: scalar → (8,), (N,) → (N,8); fixed slot order: ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8 |
 | D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090) |
-| D8 | `bitboard_fa1h8` / `fh1a8` / `fhori` / `fvert` | the 4 reflections; dual scalar/array; each has a numba `@overload` for JIT contexts |
+| D8 | `bitboard_fa1h8` / `bitboard_fh1a8` / `bitboard_fhori` / `bitboard_fvert` | the 4 reflections; dual scalar/array; each has a numba `@overload` for JIT contexts |
 | D8 | `bitboard_ro000(bb)` | the identity — a fresh copy of the input (no aliasing, the same contract as the other 7 D8 functions and `position_ro000`) |
-| D8 | `bitboard_ro090` / `ro180` / `ro270 (bb)` | the rotations (clockwise), composed from the reflections |
+| D8 | `bitboard_ro090` / `bitboard_ro180` / `bitboard_ro270` | the rotations (clockwise), composed from the reflections |
 | D8 | `bitboard_trans_fs` | the 8 transform functions, as a plain list |
 | D8 | `bitboard_anti_trans_fs` | the 8 inverse functions, same form |
-| D8 | `bitboard_transformation_labels` | the 8 slot labels, `np.array` of str |
-| D8 | `bitboard_anti_transformation_labels` | the 8 anti slot labels |
+| D8 | `bitboard_transformation_labels` | the 8 slot labels, a plain Python list of str |
+| D8 | `bitboard_anti_transformation_labels` | the 8 anti slot labels, a plain Python list |
 | Position | `Position` | the numpy structured dtype `[('mover', u64), ('opponent', u64)]` |
 | Position | `PositionField` | `Annotated[np.void, SkipValidation]` — the scalar, validation skipped |
 | Position | `PositionArray` | annotated array; a 2-D uint64 (N,2) is coerced to a Position view by the BeforeValidator |
@@ -62,11 +62,12 @@ stated.
 | Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual: scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal EMPTY square (no flipping ray) → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), the standard 1-D guard. A move on an OCCUPIED square is unexpected behavior (the caller's responsibility): the flip ray is computed and, when non-zero, APPLIED — own-stone square → well-formed but unreachable position (count short by one); opponent-stone square → corrupt position (the square in BOTH bitboards) |
 | Position | `position_count_difference(p) -> int` | `count(mover) - count(opponent)` |
 | Position | `position_final_value(p) -> int` | WOFC end score: the difference, empty squares assigned to the leader |
+| Position | `position_empty_count(p) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount of `position_empties`; dual |
 | Position | `position_has_to_pass(p) -> bool` | the mover has no legal move |
 | Position | `position_is_game_over(p) -> bool` | no legal move for the mover and, after the pass, none for the opponent either |
 | Position | `position_is_move_legal(p, move: Move) -> bool` | a legal square, or the pass only when the legal set is empty; > 64 → False |
 | Position | `position_hash(p) -> Bitboard \| BitboardArray` | the 64-bit Zobrist hash: mover discs → the first 64 legacy blacks slots, opponent → the legacy whites slots, no complement — exactly the legacy `game_position_x_hash` of (blacks = mover, whites = opponent, player = BLACK); a legacy WHITE position = the one's complement (the C `if (p) hash = ~hash`); pure function of the pair (no legality validation); scalar + 1-D (+ the (N,2) coercion), empty array OK |
-| Position | `position_fa1h8` / `…ro270 (p) -> PositionField` | the 8 per-field D8 transforms; `position_ro000` returns a copy |
+| Position | `position_ro000` / `position_ro090` / `position_ro180` / `position_ro270` / `position_fvert` / `position_fh1a8` / `position_fhori` / `position_fa1h8` | the 8 per-field D8 transforms; `position_ro000` returns a copy |
 | Position | `position_transformations(p) -> PositionArray` | all 8, same slot order as the bitboards |
 | Position | `position_anti_transformations(p) -> PositionArray` | all 8 inverses (slots 1/3 swapped) |
 
@@ -88,8 +89,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   the numba kernel, the output adapted back to the input kind. `legal_moves`, `position_flips` and `position_make_move`
   are the strict dual: scalar or 1-D ndarray only, the mixed kind → TypeError, the standard 1-D guard + the same-shape
   check.
-- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the two D8 batch transform fns, the 8 scalar
-  transform impls, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`,
+- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the 4 D8 ARRAY transform fns, the 4 scalar impls
+  with `inline='always'`, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`,
   `_vectorized_position_hash`), `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`,
   `flips_of_move`, both `inline='always'`) are the single sources of the two geometries: the vectorized kernels call
   them per lane and the numba compositions of the other modules (random_game's fused engine) call the same functions —
@@ -98,8 +99,9 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   is `@njit(cache=True)` (the shared per-element hash primitive — the scalar path calls it); `@overload` on the 4
   reflection primitives so JIT code can call them (registered on the pydantic-wrapped names — verified resolvable in a
   JIT context).
-- **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on every public function; `Annotated` +
-  `BeforeValidator` enforce the dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
+- **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on the public functions (the njit primitives and
+  `initial_game_position` excepted); `Annotated` + `BeforeValidator` enforce the dtypes; `SkipValidation` on
+  `PositionField` (the np.void scalar).
 - **Zero-copy discipline** — `make_position` allocates a fresh interleaved (…,2) block, copies the inputs in (never
   aliased), returns a `.view(Position)` of that block; the signed-int converters return views (documented aliasing).
 - **Kogge-Stone legal moves** — 4 directions × 2 senses with precomputed boundary masks (`_mask_l`/`_mask_r`: +1→column
@@ -126,8 +128,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   aliasing) at `TestBitboardD8GroupLaw::test_ro000_array_is_a_fresh_copy`.
 - All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) vectorized outputs — per-transform
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
-- The function/label tables produce the correct slot order — `test_board::TestBitboardTransformations` /
-  `TestBitboardAntiTransformations`.
+- The function/label tables produce the correct slot order — `test_board::TestD8FunctionTables`
+  (`test_tables_are_plain_lists_of_8`, `test_slot_order_is_canonized`, `test_function_slots_match_the_labels`).
 - Legal-move correctness at all 4 boundaries × both senses, incl. runs broken by empty squares —
   `test_board::TestPositionLegalMoves` (corner c1/h8 + bulk hand-computed table), `TestPositionLegalMovesCount`; the 1-D
   guard (2-D → ValueError) at `TestPositionLegalMoves::test_legal_moves_2d_{ mover,opponent}_raises_value_error`.
@@ -154,9 +156,7 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - The `@overload` of the 4 reflection primitives in a numba JIT context — `test_board::TestNumbaReflectionOverloads`
   (scalar + array JIT outputs vs the direct-call goldens).
 - position_hash: the goldens (the initial position 0xC4292FC2B2633A16 + 5 fixed pairs, derived from the legacy C
-  `game_position_x_hash_plain`) and the SHA-3-256 pin of the packed table — `test_board::TestPositionHash` (the scratch
-  script that derived them also verified the transcribed C loop and the SWAR fold bit-identical over 10_000 random
-  pairs).
+  `game_position_x_hash_plain`) and the SHA-3-256 pin of the packed table — `test_board::TestPositionHash`.
 - The legacy WHITE complement bridge (legacy(blacks, whites, WHITE) = ~position_hash(blacks, whites)) —
   `test_board::TestPositionHash::test_legacy_white_complement_bridge`.
 - position_hash array/scalar parity, the (N,2) coercion, the empty array, the input rejections, the view (order)
@@ -192,5 +192,5 @@ None.
 ## Integration
 
 - Consumed by: `pattern.py` (the D8 orbits, the principal masks), `mobility.py`, `feature.py`, `regab.py` (DB row ↔
-  position), `client.py`, `hlp_config_schemas.py`.
+  position), `client.py`, `hlp_config_schemas.py`, `hlp_random_play.py`, `hlp_wave.py`, `random_game.py`.
 - A pure domain module: not a pipeline level, no ctx fields, no cache.

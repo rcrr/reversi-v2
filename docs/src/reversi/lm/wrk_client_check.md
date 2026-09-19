@@ -1,13 +1,13 @@
 # reversi/lm/wrk_client_check.py
-The CLIENT_CHECK worker — the 17th step of the LM pipeline (after SAVE; PLOT follows at 18). The 7th non-cache worker:
-no `cache_manager` wiring, no cache file (the level is recomputed on every up-move). The acceptance test of the saved
-model file: it re-reads the SAVE artifact from disk, builds the client's vectorized Evaluation Function on the FILE
-weights, and recomputes the validation residuals in Y space — they must coincide with the validation series VALIDATE
-published on the context (`ctx.vld_rn`, I-018) within `ctx.cfg.client_check_tol` (default 1e-8, the config field). Y
-space, because Y values are comparable across models (different logit_clipping); Z values are distorted per model. The
-two sides are expected bit-identical (the same f32 pipeline over the bit-exact file round-trip): the tolerance guards
-against pipeline drift and file corruption, not against rounding noise. On a breach the worker logs ERROR and raises
-RuntimeError. No context attribute is published; `_down` is a no-op (log only).
+The CLIENT_CHECK worker — the 17th step of the LM pipeline (after SAVE; PLOT follows at 18). a non-cache worker: no
+`cache_manager` wiring, no cache file (the level is recomputed on every up-move). The acceptance test of the saved model
+file: it re-reads the SAVE artifact from disk, builds the client's vectorized Evaluation Function on the FILE weights,
+and recomputes the validation residuals in Y space — they must coincide with the validation series VALIDATE published on
+the context (`ctx.vld_rn`, I-018) within `ctx.cfg.client_check_tol` (default 1e-8, the config field). Y space, because Y
+values are comparable across models (different logit_clipping); Z values are distorted per model. The two sides are
+expected bit-identical (the same f32 pipeline over the bit-exact file round-trip): the tolerance guards against pipeline
+drift and file corruption, not against rounding noise. On a breach the worker logs ERROR and raises RuntimeError. No
+context attribute is published; `_down` is a no-op (log only).
 
 ## API
 
@@ -58,7 +58,7 @@ None.
   level that owns it. Do not reintroduce a local re-derivation — the single source is the point.
 - The comparison runs in the rounded-lossless f64 view on BOTH sides: the quantities compared are the exact residuals,
   and the f32 rounding of the metrics' own `rn_y` (f32 minus int8) never enters the tolerance arithmetic.
-- The 7th deviation from the uniform `cache_manager` wiring — the rlmwf_17 slot stays unused.
+- A deviation from the uniform `cache_manager` wiring — the rlmwf_17 slot stays unused.
 - The worker is stateless by design: it publishes no context attribute (the ANALYTICS level, upstream, has already
   written its reports; the check result lives in the event log).
 

@@ -7,7 +7,7 @@ provenance and the determinism tests with `plot.enable = False` (they assert not
 them costs ~5.1 s of matplotlib on the A2030 validation set) — the override lives in a CONFIG FILE, because mutating
 `ctx.cfg` after the CONFIG step would desync `ctx.config_checksum` from the cfg's own dump. Both fixtures (rlm_03 and
 rlm_04) opt into `high_performance_fg` (the numba fg), so both full chains follow the HP L-BFGS trajectories (A2030 71
-iters, A2050 356 iters). The 16th level is CLIENT_CHECK and the 17th is PLOT; the rlm_03.json + rlm_04.json `plot`
+iters, A2050 356 iters). The 17th level is CLIENT_CHECK and the 18th is PLOT; the rlm_03.json + rlm_04.json `plot`
 sections whitelist all seven plot names, so both chains exercise plot generation. The saved model is the v2 file format:
 the embedded config dump carries the run's base_dir, so the file bytes are run-specific and the pinned file size is a
 band rather than a literal.

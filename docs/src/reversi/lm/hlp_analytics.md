@@ -1,9 +1,9 @@
 # reversi/lm/hlp_analytics.py
-The ANALYTICS data module — the 15th step, the 2nd function-only data module of a non-cache level (like hlp_gradient /
-hlp_validate): 4 public functions + 3 private helpers, NO data class, NO store/load, NO cache_manager. Computes the
-training-side metrics (the COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the DENSE one over
-`ctx.w_dense`) and formats the two report variants (18-line console header — with the Config SHA3-256 fingerprint line;
-complete file report with the per-feature tables).
+The ANALYTICS data module — the 15th step, the 3rd data module of a non-cache level (like hlp_gradient / hlp_validate):
+5 public names (4 functions + the `TrainingDenseResult` dataclass) + 3 private helpers, NO store/load, NO cache_manager.
+Computes the training-side metrics (the COMPRESSED forward pass over `ctx.w`, what the optimizer trained, and the DENSE
+one over `ctx.w_dense`) and formats the two report variants (18-line console header — with the Config SHA3-256
+fingerprint line; complete file report with the per-feature tables).
 
 ## API
 | name | contract |
@@ -14,7 +14,7 @@ complete file report with the per-feature tables).
 | `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
 ## Architecture
-523 lines:
+544 lines:
 - `_format_mobility_feature_table`: the per-configuration ASCII table for one mobility feature — header: the fallback
   line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols + Config
   Counts (C/IA/IC) lines, the Eta-Squared statistic (SS_between/SS_total via `np.bincount`); rows (`print_rows`-gated)
@@ -42,8 +42,9 @@ complete file report with the per-feature tables).
 
 ## Verified invariants
 Pinned by `probes/verify_analytics.py` (36 checks) + the 4-test worker suite (all DB-gated).
-- Structure (probe A1-A13, 14): 523 lines; `__all__` = the 4 public names; 0 non-comment trailing-ws lines; typing line
-  `TYPE_CHECKING, Dict`; NO `@validate_call`; `train_dense_metrics` pre-declared (A13).
+- Structure (probe A1-A13, 14): 544 lines; `__all__` = the 5 public names (the 4 functions + `TrainingDenseResult`); 0
+  non-comment trailing-ws lines; typing line `TYPE_CHECKING, Dict`; NO `@validate_call`; `train_dense_metrics`
+  pre-declared (A13).
 - The live rlm_02 goldens (probe C-tier + the worker suite; the dense 4 values: test doc): the 7-metric training goldens
   (bid [6,7]): `train_mae_y 12.346794566613694`, `train_rmse_y 15.58872172931622`, `train_loss 0.00712497066706419` (=
   `opt_info['f']`), `train_samples 199952`, `pop_mae_y 21.729816221648974`, `pop_rmse_y 26.40637507956623`,
@@ -72,11 +73,14 @@ None.
   f32 rounding (rlm_02: −1.6e-08 in rmse).
 
 ## Integration
-- Consumers: ONLY the ANALYTICS worker — the 4 public functions are the module's whole API (`__all__`).
+- Consumers: the ANALYTICS worker (the 4 functions + `TrainingDenseResult` are the module's whole API, `__all__`);
+  `test_wrk_plot` imports `compute_training_dense_metrics` for its synthetic ctx, and `hlp_plot` consumes the published
+  `ctx.train_dense_rn` series (never this module directly).
 - Inputs: CONFIG (`ctx.cfg` + `ctx.config_checksum`), FEATURES (`ctx.feature_set` + `feature.ref`), INDEXES
   (`ctx.hlp_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS (`ctx.w` + offsets/ranges/fallback), DESIGN_MTR
   (`ctx.design_matrix`), ZED (`ctx.y2z` / `ctx.z2y`), OPTIMIZE (`ctx.opt_info`), GENERATE (`ctx.w_dense`), VALIDATE
   (`ctx.vld_metrics` — the header's VALIDATION column), plus the worker's same-_up outputs (`ctx.train_metrics` /
-  `ctx.train_dense_metrics`, computed in `_up` before the format calls).
+  `ctx.train_dense_metrics` / `ctx.train_dense_rn` — the f64 residual series PLOT consumes, I-018 — computed in `_up`
+  before the format calls).
 - No cache file: the reports are derived artifacts — the file report is (re)written to `base_dir` on every ANALYTICS
   up-move; the rlmwf_15 slot stays unused.

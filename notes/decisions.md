@@ -1884,3 +1884,50 @@ D-261 | 2026-09-19 | The line-reference retirement in the mirror docs (Roberto: 
          unchanged, so no word was lost). VERIFIED: 0 refs left in docs/, the doc audit back at the 8 pre-existing
          findings (2 over-120 + 6 size), and a token-level diff against HEAD showing ONLY the ref removals + the 6
          hand-rewrites.
+
+D-262 | 2026-09-19 | The docs-vs-code consistency sweep (Roberto: "uno per volta controlla tutti i documenti in docs, e
+         verifica se sono aderenti allo stato del codice, credo che ci siano diverse incostistenze ... alla fine di
+         questo check tutto deve essere consistente"). (1) THE METHOD — 95 mirrors audited against the code by 10
+         parallel readers (each doc + its source + its tests + its probe), every claim classified (WRONG-API /
+         WRONG-COUNT / WRONG-STRUCTURE / DEAD-POINTER / STALE-OPEN-ISSUE / MISSING-FACT / FORBIDDEN-HISTORY /
+         MISLEADING) with the evidence; the mechanical layers ran in parallel (the line-reference drift of D-261, the
+         per-class test counts vs the AST, the file/suite counts vs tools/suite_audit.py, the `__all__` coverage of
+         every API section, the "pinned by" pointers vs the real test methods and probe checks, the ctx-field names).
+         (2) THE DOMINANT DEFECT FAMILY: the I-017 insertion (SU_ANALYSIS at step 3 + EFFECT_SIZE at step
+         6, D-186/D-187) and I-018 (the four published series fields) left ~25 docs quoting the PRE-18-LEVEL pipeline —
+         the level ordinals ("the 6th/7th/8th level" for WMAPS/DESIGN_MTR/ZED), the step pins in the test docs (8/9 for
+         GRADIENT/OPTIMIZE, 12/13 for VALIDATE/ANALYTICS, 6/7 for DESIGN_MTR/ZED, 9/10 for OPTIMIZE/GENERATE), the
+         worker lists ("the 7-worker list"), the cache-consumer ordinals (SU_ANALYSIS was never counted: INDEXES
+         "SECOND" -> THIRD, WMAPS "THIRD" -> 4th, DESIGN_MTR "FOURTH" -> 5th, GENERATE "5th" -> 6th, VLD_POSITIONS
+         "6th" -> 7th), the flat-file slot lists ("skips 03/07/08/12/13" — those ARE the cache levels), the factory
+         counts ("the 15/16 factories" -> 18, "lm_worker_*" -> `wrk_*`), the LMContext shape (42 -> 46 fields, 34 -> 38
+         data artifacts, 8 -> 9 checksum fields) and the suite counts (test_opt_lbfgs 13 -> 14, test_pattern 64 -> 65,
+         test_wrk_gradient 2 -> 4, test_prng 19 -> 22 with the whole `TestPickOneFromSet64` class missing,
+         test_wrk_su_analysis 8 -> 9, hlp_analytics 523 -> 544 lines, wrk_analytics 86 -> 89). (3) THE STALE GOLDENS:
+         the six A2030 + six A2050 EF literals and the vld[42] value in client.md (all superseded by the D-243..D-246
+         re-pins), the two `w_dense` sha3 literals and the size bands in model_weights.md, the two file-report masks in
+         test_wrk_analytics.md, the split hash in test_wrk_vld_positions.md, the space-broken hashes in hlp_generate.md
+         / wrk_generate.md / test_hlp_design_matrix.md, the stale `w_checksum` golden in wrk_save.md (probe C5), the
+         size band there, the 17-key -> 15-key checkpoint dict, the 71 -> 74 `__all__` names in board.md, the "the note"
+         pointers left by the D-261 strip, and the dead pins (probe checks deleted at D-106, tests renamed, the
+         archive-only V1-V9 / V3-V4 facts of mobility / opt_lbfgs, the scratch script in board.md, the
+         `verify_wrk_features` B11, the `wrk_plot` outlier report that lives in VALIDATE). (4) THE FORBIDDEN HISTORY
+         removed (docs_rules §4): the campaign tags in the prose (R1/R2/R3/R6/M2-M5, "the campaign level", the "step-3
+         class c deletions"), the pre/post contrasts ("no longer re-derives", "is now the second cost center", "the
+         CWD-relative mkdtemp are gone", "the v1 sha3 literal is obsolete", "checked by hand"), the archived-analysis
+         pointers (binio, test_feature, mobility, test_lm_worker_full_chain's measurement narrative) and the D-numbered
+         H1 of tags.md. (5) THE STRUCTURAL CORRECTIONS beyond the drift: the pattern.md Burnside formulas (n_invariant =
+         3^orbits, n_unique = the Burnside average — not the doc's two formulas), the `pack_plan` attribute (not
+         `p_masks`/`u_masks`/`p_shifts`), the fused kernel's real shape (N, 8) with no transpose and the inlined pack,
+         the PatternType 12 members (no `NONE`), mobility's `ms.names` property (the doc called it a method), the
+         `bitboard_count` dual signature + the list-typed label tables + the `position_empty_count` row in board.md, the
+         `njit` decorator split (4 array impls parallel+cache, 4 scalar `inline='always'`), the cache_manager consumer
+         list, the `data_checksum` flow, the opt_lbfgs kwarg/scalar counts (16 kwargs / 8 config scalars) and the
+         FixedSizeMaxList window (min_grad_count=3, not m), the `np.unique` (not bincount) adherence counts, the
+         wrk_plot inputs (the published series, not the forward-pass ctx fields) and the wrk_vld_positions numpy import.
+         (6) THE REGISTERED RESIDUE (not fixed here, reported to Roberto): the CODE COMMENTS that carry the same stale
+         ordinals (test_wrk_validate.py "the rlmwf_12 slot", wrk_plot.py / verify_plot.py "the 17th level",
+         test_wrk_client_check.py "the 16th level", test_wrk_analytics.py "13-level chain") — a source change, left to
+         his call; the unpinned invariants (prng's four bullets, hlp_wave's four, regab's V4/V5, binio's float32
+         specials, the opt_lbfgs 3-WARN diagnostics) which now SAY they are unpinned instead of pretending a pin; and
+         the size-budget findings (7, all pre-existing).

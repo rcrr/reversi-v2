@@ -24,7 +24,7 @@ at the shared LMContext).
 
 ## Architecture
 
-128 lines.
+126 lines.
 
 - the module header comment; imports (pathlib, typing.List, pydantic, state_machine).
 - `class BaseModel` (docstring the DeepNetworkModel forward-reference, kept by design).
@@ -43,14 +43,17 @@ at the shared LMContext).
 Pinned by the `probes/verify_logistic_model.py` (21 checks — the base_model + logistic_model family probe) + the
 `test_logistic_model` suite (29 tests) through the LogisticModel subclass.
 
-- V1: `model.context is model.sm.context` — one shared context object, no copy (the suite's
-  `test_context_initialization` + probe).
+- V1: `model.context is model.sm.context` — one shared context object, no copy: the facade hands the SAME object to the
+  StateMachine in `__init__` (source-verified); the suite pins the context's own shape
+  (`test_logistic_model::test_context_initialization`).
 - V2: `model.sm` is a StateMachine; `verbosity` defaults to STANDARD; the setter delegates (set on the facade → visible
   on the SM) — `test_facade_views_and_verbosity_round_trip`.
 - V3: at construction `current_step == 0`, `current_worker_name == "CREATED"` (the SM starts at the sentinel) —
   `test_state_machine_initialization`.
-- V4: all 7 pass-through methods are one-line delegations — `test_facade_delegates_to_state_machine` (per-method
-  `patch.object(self.model.sm, ...)` + `assert_called_once_with`).
+- V4: the 5 delegation methods (`move_to_step`, `move_to_last`, `show_event_log`, `show_history_of_moves`,
+  `export_history_of_moves_as_csv`) are one-line pass-throughs —
+  `test_logistic_model::test_facade_delegates_to_state_machine` (per-method `patch.object(self.model.sm, ...)` +
+  `assert_called_once_with`); the properties are covered by `test_facade_views_and_verbosity_round_trip`.
 - V5: `run()` is generic and inherited — the base hook returns None (the last step), a bare `BaseModel` over a 2-worker
   pipeline drives it, and the LogisticModel override reads the config —
   `test_logistic_model::test_run_base_default_is_the_last_step`.

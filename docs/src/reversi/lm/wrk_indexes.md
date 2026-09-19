@@ -1,8 +1,8 @@
 # reversi/lm/wrk_indexes.py
-The INDEXES worker of the LM pipeline — the 5th active level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES). Like
-POSITIONS it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_indexes object — the SECOND
-cache_manager consumer in the pipeline (after POSITIONS), and unlike FEATURES the flat `rlmwf_05_INDEXES.dat` + binio
-sidecar DO materialize.
+The INDEXES worker of the LM pipeline — the 6th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
+INDEXES). Like POSITIONS it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_indexes object — the
+SECOND cache_manager consumer in the pipeline (after POSITIONS), and unlike FEATURES the flat `rlmwf_05_INDEXES.dat` +
+binio sidecar DO materialize.
 
 ## API
 
@@ -54,7 +54,7 @@ None.
 
 ## Integration
 
-- The 5th LM level (the 5-worker list `[CREATED, CONFIG, POSITIONS, FEATURES, INDEXES]`); the facade
+- The 6th LM level (the 6-worker prefix `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_indexes` module (all 5 public names) + `cache_manager`; publishes `ctx.hlp_indexes` /
   `ctx.hlp_indexes_checksum` for the WMAPS level onward.

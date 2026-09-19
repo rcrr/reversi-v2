@@ -22,8 +22,8 @@ decision logic lives. 4 classes / 20 tests.
 ## Conventions
 
 - DB-free BY CONSTRUCTION: the whole suite runs under `SKIP_REGAB_DB=1` without skipping anything.
-- The mock ctx records its log events but the tests assert only on the return values — the log-pattern pins (the 3-WARN
-  diagnostics per failed gate) live in the probe, keeping the suite focused.
+- The mock ctx records its log events but the tests assert only on the return values; the 3-WARN diagnostics per failed
+  gate are asserted by NO test or probe (a known gap, no pin).
 - `test_store_and_load_cycle` uses approximate assertions for f/g_norm/ridge/min_grad (`assertAlmostEqual`) while the
   arrays are pinned exactly (`assert_array_equal`) — the f32 metadata is round-trip stable; the approximate style is
   harmless.

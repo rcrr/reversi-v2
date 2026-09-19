@@ -67,7 +67,7 @@ None.
 
 ## Integration
 
-- The 10th LM level; consumes `ctx.fg` (the GRADIENT-level closure) and the WMAPS-level `ctx.w` (zero-initialized at
+- The 11th LM level; consumes `ctx.fg` (the GRADIENT-level closure) and the WMAPS-level `ctx.w` (zero-initialized at
   WMAPS compute time) + the `optimization` config block.
 - Produces the model artifact of the pipeline: the optimized `ctx.w` + `ctx.w_checksum` + `ctx.opt_info` — the inputs of
   the GENERATE/VALIDATE/ANALYTICS/SAVE levels.

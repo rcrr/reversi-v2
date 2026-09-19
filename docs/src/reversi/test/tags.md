@@ -1,6 +1,6 @@
 # reversi/test/tags.py
-The suite-tier gates (D-130; the VVLONG tier added at D-256): the predicates + the DB gate the test modules use to
-declare which tier they belong to. The tiers are CUMULATIVE — each implies the previous ones.
+The suite-tier gates: the predicates + the DB gate the test modules use to declare which tier they belong to. The tiers
+are CUMULATIVE — each implies the previous ones (default → LONG → VLONG → VVLONG).
 
 ## API
 
@@ -21,8 +21,8 @@ The four cumulative tiers and how a test declares its own:
 |---|---|---|
 | (none) | the fast tier: no DB, no pipeline | — |
 | `LONG=1` | the DB-gated pipeline tests | `db_long_gate(self)` first in `setUp` |
-| `VLONG=1` | the long instruments (the ~10-min A2050 end-to-end chain) | `@skipUnless(tier_vlong(), …)` on the class |
-| `VVLONG=1` | the very-long instruments (the 1e6 corpus benchmark, the 1e7 corpus test) | `@skipUnless(tier_vvlong(), …)` on the class |
+| `VLONG=1` | the long instruments (the ~10-min A2050 end-to-end chain, the 1e7 SU-analysis corpus test) | `@skipUnless(tier_vlong(), …)` on the class |
+| `VVLONG=1` | the very-long instruments (the 1e6 wave benchmark) | `@skipUnless(tier_vvlong(), …)` on the class |
 
 `PERF=1` (the print-only performance tests) and `SKIP_REGAB_DB=1` (a no-DB environment) are ORTHOGONAL to the tiers.
 
@@ -34,11 +34,11 @@ The four cumulative tiers and how a test declares its own:
 
 ## Verified invariants
 
-- The tier matrix (checked by hand at D-256): no env → both predicates False; `LONG=1` → both False; `VLONG=1` →
-  `tier_vlong()` True and `tier_vvlong()` False; `VVLONG=1` → both True.
+- The tier matrix: no env → both predicates False; `LONG=1` → both False; `VLONG=1` → `tier_vlong()` True and
+  `tier_vvlong()` False; `VVLONG=1` → both True.
 - The behavioural pin is the suite's skip counts: the 1e6 benchmark SKIPS under `LONG=1` and RUNS under `VVLONG=1`
   (`test_hlp_wave` reports 4/0/1 in both the default and the LONG tiers), and the 1e7 corpus test skips in the default
-  and LONG tiers (`test_wrk_su_analysis` 8/0/0, VLONG 9/0/0).
+  and LONG tiers (`test_wrk_su_analysis` 9/0/1, VLONG 9/0/0).
 - The DB gate: the default tier and `SKIP_REGAB_DB=1` skip every DB-gated test (the runner's skipped counts).
 
 ## Open issues

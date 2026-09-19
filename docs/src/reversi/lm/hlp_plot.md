@@ -43,8 +43,9 @@ the config is parsed by every run (and by the client).
   seeded 100k subsample cap and the zero-variance guard: a flat zero curve, the degenerate kernel is singular).
 - `_fig` (the shared layout): a fresh (9,6) figure, the light theme (grid alpha 0.3); the title is TWO lines — the plot
   name in bold (fontsize 13, `pad=26` lifts it) and the run name in smaller italic (fontsize 10, just above the axis).
-  Every axis label says "Evaluated game value", and the two binned axes carry the italic mathtext note
-  `$(binned\ every\ 2)$` at the axis font size (this matplotlib build has no mathtext size commands).
+  The axis labels are per-builder ("Evaluated game value", "Game value", "Game value residual", the quantile pair), and
+  the binned axes carry the italic mathtext note `$(binned\ every\ 2)$` at the axis font size (this matplotlib build has
+  no mathtext size commands).
 - The builders:
   - `plot_residual_density` (the R p0): three KDE curves on a shared axis — Reference (the training game values centered
     on their mean: the "population" series of the analytics report, slategray), Training (firebrick), Validation
@@ -74,7 +75,7 @@ the config is parsed by every run (and by the client).
 
 ## Verified invariants
 
-Pinned by the 9-test `test_hlp_plot` suite (no DB) + the 16-check `probes/verify_plot.py` probe (no DB) + the
+Pinned by the 11-test `test_hlp_plot` suite (no DB) + the 17-check `probes/verify_plot.py` probe (no DB) + the
 worker/chain suites.
 
 - The vocabulary: seven distinct names; the builder registry and the titles cover the names EXACTLY (no stray, no
@@ -109,12 +110,12 @@ None.
 
 ## Integration
 
-- Consumed by `wrk_plot` (the 17th level): `collect_plot_data` once per up-move, the `PLOT_BUILDERS` dispatch,
+- Consumed by `wrk_plot` (the 18th level): `collect_plot_data` once per up-move, the `PLOT_BUILDERS` dispatch,
   `save_figure` / `close_figure` per save.
 - `PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
   plot vocabulary: a new plot name lands here first, then in the builders + the titles (the probe pins keep the three in
   lock-step).
 - The series arrive from the levels that own the passes (ANALYTICS and VALIDATE, I-018): do NOT reintroduce a local
   forward pass — the single derivation is the point, and the figures are byte-pinned by the rendering golden.
-- The `sigmoid` import ties the figures to the exact model math (the scipy-expit, the f32 pipeline) — the plotted fitted
+- The figures read the PUBLISHED series (the f64 residuals), so no model math is re-derived here — the plotted fitted
   values are what the saved model computes.

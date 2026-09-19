@@ -12,13 +12,13 @@ No search, no PDB storage, no disk I/O except the CSV writer.
 | Types | `Index` | type alias `np.uint32` — a base-3 configuration index (safe because S ≤ 18) |
 | Types | `IndexArray` | annotated ndarray; the BeforeValidator requires uint32 for ndarrays, scalars pass through |
 | Pattern | `Pattern(name: str, mask: Bitboard)` | strict constructor (no coercion); ValueError: empty mask, > 18 squares, non-principal mask (the error lists all 8 transformed masks) |
-| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts`/`snames_ts` (per-instance; `_ts` sorted), `fingerprint`, `type`, `powers_3`/`bit_shifts`, `p_masks`/`u_masks`/`p_shifts` (the lazy run-based pack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
+| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts`/`snames_ts` (per-instance; `_ts` sorted), `fingerprint`, `type`, `powers_3`/`bit_shifts`, `pack_plan` (the eager run-based pack/unpack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
 | Pattern | `compute_indexes_on_position(pos) -> NDArray[Index]` | the anti-transform → pack → base-3 pipeline; scalar → (n_instances,), (N,) → (N, n_instances) |
 | Pattern | `compute_principal_index_dict() -> None` | populates the lazy dict {config → min over its stabilizer orbit} + the unique principal indexes and their count |
 | Pattern | `convert_to_principal_index(index) -> IndexArray` | the dict lookup (computes the dict on first use) |
 | Pattern | `_pack_bb(bb)` / `_unpack_bb(packed)` | PEXT-style compress / PDEP-style expand; dual scalar/array |
 | Pattern | `print(output)` / `mdp_record() -> str` / `mdp_csv_file(patterns, filename)` | the 2-D diagram; the CSV record line; the classmethod CSV writer |
-| PatternType | the 12 members (`NONE`, `TYPE_0`…`TYPE_9`, `TYPE_3D`, `TYPE_7D`) + `from_fingerprint(fp) -> Optional[PatternType]` | the closed table of (type, sample_mask, sample_name, level, n_instances, n_stabilizers); a pattern whose fingerprint is not in the table raises ValueError at construction; unknown fp → None |
+| PatternType | the 12 members (`TYPE_0`…`TYPE_9`, `TYPE_3D`, `TYPE_7D`) + `from_fingerprint(fp) -> Optional[PatternType]` | the closed table of (type, sample_mask, sample_name, level, n_instances, n_stabilizers); a pattern whose fingerprint is not in the table raises ValueError at construction; unknown fp → None |
 | Data | `sample_pattern_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
 | PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | strict; ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
@@ -40,7 +40,7 @@ Pattern (one principal mask)
     symmetries: unique_symmetric_instance_indexes + symmetry_fs /
         anti_symmetry_fs; fingerprint (I/S/T) -> PatternType
     Burnside: n_invariant_configs / n_unique_configs
-    pack plan: p_masks / u_masks / p_shifts (runs of set bits)
+    pack plan: pack_plan = (p_masks, u_masks, p_shifts)
     config indexing: powers_3, bit_shifts; principal_index_dict
     |
 numba kernels (njit parallel=True, cache=True): pack, unpack,
@@ -62,18 +62,20 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
 - **Base-3 configuration indexing** — digit k ∈ {0 empty, 1 mover, 2 opponent}; index = Σ digit_k·3^k (uint32). The
   principal index = the min over the configuration's orbit under the permutations the stabilizer induces on the pattern
   squares — a configuration-level canonicalization, distinct from the instance-level one of the mask.
-- **Burnside counts** — `n_invariant_configs` = (1/8)·Σ_g |X^g| over the 8 transformations; `n_unique_configs` =
-  (n_invariant_configs + (n_stabilizers−1)·3^F)/8, F = the number of squares fixed by every symmetry function.
+- **Burnside counts** — `n_invariant_configs` = 3^(the orbit count) (the configurations invariant under the induced
+  stabilizer group), and `n_unique_configs` = the Burnside average (1/|G'|)·Σ_g 3^cycles(g) over the transformation
+  permutations (G' = the identity + `symmetry_fs`), i.e. the number of distinct configuration orbits.
 - **Pydantic + Numba layering** — every public method is `@validate_call` (the constructors `strict`); hot paths are
   `njit(parallel=True, cache=True)` (no `fastmath` — meaningless for integer ops); the construction-time (cold) path
   calls the pydantic-wrapped scalar functions directly.
 - **Closed type table** — a pattern whose computed fingerprint is not in the PatternType table raises ValueError at
   construction; the 12 types are the closed set of supported shapes.
-- **The fused PatternSet kernel** — (1) `bitboard_anti_transformations` on both player bitboards (N, 8); (2) transpose
-  to (8, N) for C-contiguous per-slot gathers; (3) per-pattern block: gather the `unique_mask_indexes` rows,
-  `_numba_pack_bb_kernel` → `_numba_computes_indexes_kernel`; (4) per instance, the block min over the
-  `argsort(mask_indexes)` coset slots (= `compute_principal_index_dict`'s quantity) into the output columns. Output (N,
-  total_cols), `total_cols = Σ n_instances(p)`.
+- **The fused PatternSet kernel** — (1) `bitboard_anti_transformations` on both player bitboards, kept (N, 8); (2) the
+  per-pattern setup groups the mask indexes (`n_groups = len(unique(mask_indexes))`, `group_size = 8 // n_groups`, the
+  `argsort` slot order); (3) the fused kernel INLINES the pack logic (the `_numba_pack_bb_kernel` multi-plane
+  simulation) and the base-3 index computation; (4) per instance, the block min over the coset slots (=
+  `compute_principal_index_dict`'s quantity) into the output columns. Output (N, total_cols),
+  `total_cols = Σ n_instances(p)`.
 - **Output column layout (implicit)** — concatenation in the set's mask-sorted order; pattern i contributes
   `n_instances(i)` columns in first-seen order. No method exposes the offsets — a caller reassociating columns
   recomputes them from the patterns.
@@ -116,8 +118,8 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   written content and the empty-list case — `test_pattern::TestPatternMdpRecord`, `test_pattern::TestPatternMdpCsvFile`.
 - The renderings: the 2-D `print` diagram and the set `print`/`print_summary` — `test_pattern::TestPatternPrint`,
   `test_pattern::TestPatternSet`.
-- The D8 group structure on the transformation functions (the Cayley table: identity, associativity, multiple inputs,
-  the sample patterns) — `test_pattern::TestTransformationsCayleyTable`.
+- The D8 group structure on the transformation functions (the Cayley table: identity, multiple inputs, the sample
+  patterns) — `test_pattern::TestTransformationsCayleyTable`.
 
 ## Open issues
 

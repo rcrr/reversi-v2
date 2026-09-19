@@ -1,7 +1,7 @@
 # reversi/test/test_opt_lbfgs.py
 The opt_lbfgs unit suite: integration-level coverage (4 diverse test functions + warm-start) plus unit-level tests for
 the main internal components (input validation, `FixedSizeMaxList` incl. the hard-bug regression, the two-loop
-recursion). 7 classes / 13 tests, no DB, no PERF gate (~0.040s).
+recursion). 7 classes / 14 tests, no DB, no PERF gate (~0.040s).
 
 ## Coverage
 
@@ -9,7 +9,7 @@ recursion). 7 classes / 13 tests, no DB, no PERF gate (~0.040s).
 |---|---|---|
 | `TestLBFGSInputValidation` | 3 | non-ndarray x0 → `TypeError`; int32 dtype → `TypeError`; non-callable fg → `TypeError` (the input-validation paths in `lbfgs`) |
 | `TestFixedSizeMaxList` | 4 | `test_max_on_empty_raises` (pins the `RuntimeError` fix); push 1/3/2 → `max()==3`, `len()==3`; eviction at maxlen=2 (5/1/3 → 5 evicted, `max()==3`); fresh list `len()==0` |
-| `TestTwoLoopRecursion` | 2 | empty history → `g` unchanged (the identity); 3 random s/y pairs (yᵀs > 0) → correct shape, non-zero output |
+| `TestTwoLoopRecursion` | 3 | empty history → `g` unchanged (the identity); 3 random s/y pairs (yᵀs > 0) → correct shape, non-zero output; `test_out_equals_original_bit_identical` — the O2b pre-allocated `out=` product buffer returns bits identical to the allocating path |
 | `TestLBFGSBaseFunction` | 1 | the handcrafted quadratic `x[0] − x[1] + 2·x[0]·x[1] + 2·x[0]² + x[1]²`, known minimum [−1.0, 1.5], within 1e-3 (basic convergence on a convex quadratic) |
 | `TestLBFGSRosenbrockFunction` | 1 | Rosenbrock from [−1, −1], known minimum [1.0, 1.0] (f*=0), 1000 iters, within 1e-4 (non-convex narrow curved valley — the L-BFGS stress test) |
 | `TestLBFGSZakharovFunction` | 1 | 20D Zakharov, minimum at the origin, random start seed(42), 1000 iters, within 1e-5 (moderate-dimensional convex) |

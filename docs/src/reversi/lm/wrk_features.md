@@ -1,5 +1,5 @@
 # reversi/lm/wrk_features.py
-The FEATURES worker of the LM pipeline — the 3rd active level (CREATED → CONFIG → FEATURES), step 2. A PURE-COMPUTE
+The FEATURES worker of the LM pipeline — the 2nd active level (CREATED → CONFIG → FEATURES), step 2. A PURE-COMPUTE
 level: it builds a FeatureSet from the CONFIG-loaded cfg (no DB, no cache_manager, no cache file — the flat
 rlmwf_02_FEATURES* files never materialize) and exposes it as `ctx.feature_set`.
 
@@ -72,6 +72,6 @@ None.
 
 ## Integration
 
-- The 3rd LM level (step 2); the facade (`logistic_model.py`) instantiates the machine + `Worker`.
+- The 2nd LM level (step 2); the facade (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `feature` module (Feature/FeatureSet) and the CONFIG-loaded `ctx.cfg.feature_set`; publishes
   `ctx.feature_set` for the INDEXES level onward.

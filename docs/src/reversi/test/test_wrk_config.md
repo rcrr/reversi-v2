@@ -5,7 +5,7 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 
 | class | what it pins |
 |---|---|
-| `TestLMWorkerConfig` (6) | the moves: up (step 1, name `CONFIG`, `ctx.cfg` set, `use_cache` True), down (back to step 0 `CREATED` + the `cfg`/`use_cache`/`config_checksum` reset), the with-cache round-trip CONFIG → CREATED → CONFIG, the `properties` bag round-trip from the fixture, the fingerprint (`ctx.config_checksum` == sha3_256 of `model_dump_json(indent=4)`), and the no-cache state (NO `rlmwf_*` file in the base dir after an up) |
+| `TestLMWorkerConfig` (6) | the moves: up (step 1, name `CONFIG`, `ctx.cfg` set), down (back to step 0 `CREATED` + the `cfg`/`use_cache`/`config_checksum` reset), the with-cache round-trip CONFIG → CREATED → CONFIG, the `properties` bag round-trip from the fixture, the fingerprint (`ctx.config_checksum` == sha3_256 of `model_dump_json(indent=4)`), and the no-cache state (NO `rlmwf_*` file in the base dir after an up) |
 | `TestLMWorkerConfigValidation` (4) | one constraint per test over a schema-complete payload: invalid json5 → `ValueError` (json5 0.15.0 raises a plain ValueError — this version exposes no JSON5Exception), ec 99 → ValidationError, invalid status list → ValidationError, invalid hex mask → ValidationError |
 | `TestLMWorkerConfigBaseDir` (3) | the three `_validate_base_dir` gates with the precise OS types: the a-file → `NotADirectoryError` (raised in the FACADE `__init__`, not the worker), the not-writable (chmod 0o444, chmod-back in tearDown) → `PermissionError`, the missing → `FileNotFoundError` (the D1 test: the fixture loaded with json5, `base_dir` pointed at a non-existent dir, re-dumped to a temp json, passed WITHOUT an override) |
 
@@ -30,7 +30,8 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 
 - The idiom on all 3 classes: the shared `CUSTOM_TMP_BASE` (from `reversi.test.paths`) + `setUpClass` mkdir +
   `TemporaryDirectory(dir=...)` created FIRST in setUp + defensive tearDown.
-- The json_config paths are `WORKSPACE_ROOT`-anchored, never CWD-relative.
+- The `TestLMWorkerConfig` json_config path is `WORKSPACE_ROOT`-anchored; the `TestLMWorkerConfigBaseDir` cases pass
+  CWD-relative paths on purpose (the resolver resolves them against the CWD).
 
 ## Integration
 

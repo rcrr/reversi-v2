@@ -11,7 +11,7 @@ indexes.
 |---|---|
 | `Mobility(name: str, mask: Bitboard, amask: Bitboard)` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + a + 1` and `n_instances = 1`; `__repr__`; `print()` the `[Mobility: name = {name:8s}, mask = 0x…, amask = 0x…]` line |
 | `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names or duplicate (mask, amask) pairs → `ValueError`; sorted storage; `sha3_256` hash over the 16 LE bytes per element in sorted order; `__repr__`; `names` / `masks` are `@property` |
-| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The (N, L) uint32 index matrix via the Numba kernel; the column contract ( docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names()` |
+| `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The (N, L) uint32 index matrix via the Numba kernel; the column contract (docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names` (a `@property`, not a method) |
 | `popcount64(b)` | Public scalar/vectorized SWAR popcount, `@nb.vectorize(uint32(uint64), cache=True)`; OUT of `__all__` (test/inspection helper; the test file imports it by name) |
 
 ## Architecture
@@ -39,8 +39,7 @@ divergence from PatternSet fail-fast).
 
 ## Verified invariants
 
-Pinned by the 5-section `probes/verify_mobility.py` + the 26-test suite. The V1–V9 (zero mismatches, 200-position
-differential testing) freeze in the archive.
+Pinned by the 5-section `probes/verify_mobility.py` + the 26-test suite (25 run + the PERF skip).
 
 - popcount64 (section 1): scalar + vectorized vs `int.bit_count()` on 200,010 values (edge constants + 200,000 random
   64-bit) — zero mismatches; vectorized shape/dtype (uint32) exact.
@@ -61,14 +60,14 @@ None.
 
 ## Conventions
 
-- M2: `print` uses `{name:8s}` — names longer than 8 chars widen the column (cosmetic, left as-is).
-- M3: the empty list is accepted (tested, harmless no-op) — the deliberate divergence from PatternSet fail-fast.
-- M4: no PERF GATES anywhere — the 1M-position PERF test is print-only like every PERF test in the repo; the ±30% figure
-  is a comparison discipline, not a gate.
-- M5: the kernel calls the vectorized popcount scalarly per (i, j) — a pure-njit scalar popcount would drop the UFunc
-  dispatch; left as-is.
-- R6: `n_instances = 1` is CORRECT for a scalar feature (no symmetry-orbit family as in Pattern) — documented in the
-  class docstring.
+- `print` uses `{name:8s}` — names longer than 8 chars widen the column (cosmetic, deliberate).
+- The empty list is accepted (harmless no-op) — the deliberate divergence from the PatternSet fail-fast.
+- No PERF GATES anywhere — the 1M-position PERF test is print-only like every PERF test in the repo; the ±30% figure is
+  a comparison discipline, not a gate.
+- The kernel calls the vectorized popcount scalarly per (i, j) — a pure-njit scalar popcount would drop the UFunc
+  dispatch; deliberate.
+- `n_instances = 1` is CORRECT for a scalar feature (no symmetry-orbit family as in Pattern) — documented in the class
+  docstring.
 - The `IndexArray` import from pattern.py is deliberate (type-alias reuse: pydantic validates the return array on every
   call, the pattern.py `compute_principal_indexes` convention) — do not "simplify" it away without a decision.
 - Board layout (bit = 8×(row−1)+(col−1)); the caller-checks-collisions contract does not apply (no principal / collision

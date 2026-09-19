@@ -1,8 +1,9 @@
 # reversi/lm/hlp_design_matrix.py
 The DESIGN_MTR domain module of the LM pipeline: the `LMDesignMatrix` data object (the (N,I) uint32 X — the w-index of
 each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) + 4 public functions + the duck-typed
-`compute_sha3_256_hash` — the 7th active level's data object (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS
-→ DESIGN_MTR), the FOURTH cache_manager consumer in the pipeline.
+`compute_sha3_256_hash` — the 8th active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
+INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS,
+POSITIONS, INDEXES and WMAPS).
 
 ## API
 
@@ -35,11 +36,11 @@ each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) 
   see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm. wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
-  fields and INDEXES's 3).
+  fields and INDEXES's 2).
 
 ## Verified invariants
 
-Pinned by the 54-call `probes/verify_design_matrix.py` + `test_hlp_design_matrix.py` (14 tests, no DB) +
+Pinned by the 53-check `probes/verify_design_matrix.py` + `test_hlp_design_matrix.py` (14 tests, no DB) +
 `test_wrk_design_matrix.py` (3 DB-gated tests).
 
 - Source shape (probe A1-A15): 139 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
@@ -47,7 +48,7 @@ Pinned by the 54-call `probes/verify_design_matrix.py` + `test_hlp_design_matrix
   explicit cast + single guard pinned.
 - Worker file shape (probe B1-B9): 80 lines, the factory WITH `@validate_call`, the 7-kwargs cache wiring (the
   `checksum=False` load_fn), `_down` clears BOTH attributes.
-- The live-DB golden re-derivation (probe D5-D10, rlm_01): X == the independent recompute
+- The live-DB golden re-derivation (probe D5-D8 + D10, rlm_01): X == the independent recompute
   `iwmap[pindexes + col_offsets]`, every value a valid w index (< W=21), per-feature columns within their iwmap regions,
   intercept column all 0, the DATA checksum identity.
 - Cross-fixture facts (probe F1/F4/F5): LMContext has both fields; rlm_01 stat_model {cut_off 2, logit 0.03, ridge 0.0},
@@ -75,7 +76,7 @@ None.
 
 ## Integration
 
-- The 7th LM level; the worker (wrk_design_matrix.py) carries the cache wiring, this module the data object + the 4
+- The 8th LM level; the worker (wrk_design_matrix.py) carries the cache wiring, this module the data object + the 4
   functions. Consumes `ctx.hlp_indexes` (INDEXES) + `ctx.iwmap` + `ctx.iwmap_feature_offset` + `ctx.wmaps_obj_checksum`
   (WMAPS) + the per-feature `n_instances` (FEATURES) — the SM half-open interval semantics guarantee all are set before
   `compute` runs.

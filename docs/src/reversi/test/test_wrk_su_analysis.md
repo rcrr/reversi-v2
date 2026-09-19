@@ -1,8 +1,8 @@
 # reversi/test/test_wrk_su_analysis.py
 The NO-DB suite of the SU_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the compute +
 the publish (the tiny SU-analysis corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the
-signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 1 class /
-8 tests / no database (the mock ctx, the tiny corpus).
+signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 2 classes
+/ 9 tests (the 8-test mock-ctx suite + the VLONG 1e7 scale test) / no database.
 
 ## Coverage
 

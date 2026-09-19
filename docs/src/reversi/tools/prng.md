@@ -44,12 +44,15 @@ is never exposed, and a generator is neither saved nor re-seeded.
   (pick_one_from_set64_batch) is the same math over an (N,) set array fed by one get_uint64_batch pre-draw.
 
 ## Verified invariants
-- get_uint64_batch is bit-identical to get_uint64 called n times (they share the one kernel).
+- get_uint64_batch is bit-identical to get_uint64 called n times (they share the one kernel) —
+  test_prng::TestPrng::test_get_uint64_batch_matches_scalar.
 - random_choice_from_finite_set(1) consumes NOTHING (the next draw equals a fresh instance's first draw); the n <= 1
-  shuffles consume nothing too.
-- extract_from_set64 clears the picked bit from the ORIGINAL set (the skipped-lowest bits survive); the empty set
-  raises.
-- choose_one_from_set64 NEVER mutates the set (no removal) and consumes exactly one draw per non-empty pick.
+  shuffles consume nothing too — test_prng::TestPrng::test_random_choice_contracts / test_shuffle_contracts.
+- extract_from_set64 clears the picked bit from the ORIGINAL set (the skipped-lowest bits survive); the empty set raises
+  — test_prng::TestPrng::test_extract_from_set64.
+- choose_one_from_set64 NEVER mutates the set (no removal) and consumes exactly one draw per non-empty pick —
+  test_prng::TestChooseOneFromSet64::test_the_set_is_never_mutated /
+  test_empty_set_is_the_sentinel_and_consumes_nothing.
 - The pick kernels and the class methods agree draw-for-draw (the identity pin: the same stream, the same (bitboard,
   index)) — test_prng::TestPickOneFromSet64::test_scalar_kernel_matches_the_method; the batch kernel is bit-identical to
   the sequential method loop (the stream-alignment probe, the all-empty no-draw case) —

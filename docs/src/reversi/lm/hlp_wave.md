@@ -4,16 +4,18 @@ into the step, the double pass discards the lane), the boundary harvest + respaw
 global golden-pinned MT19937.
 
 ## API
+- `MAX_EC` — the ec ceiling of the domain (60): the wave stops at `ec_target` after `MAX_EC - ec_target` lockstep steps.
+- `PA` — the pass move code (64) the wave's pass lanes carry.
 - `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the official Othello setup: the mover (black, the starting
   player) E4+D5, the opponent (white) D4+E5; board.initial_game_position is the canonical source).
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays (mover/opp u64, counter i64 = the step counter, slot i64,
   alive bool) + the run bookkeeping (next_slot, steps, harvested, dead_total).
-- `step_wave_g0(state, prng) -> (move, pass_mask, dead)` — the lockstep step (five full-wave vectorized calls, zero
+- `step_wave(state, prng) -> (move, pass_mask, dead)` — the lockstep step (five full-wave vectorized calls, zero
   per-lane branching): the two Kogge-Stone legal passes (the pass lanes' source is the swapped side's legal set),
-  `_pick_g0` (the uniform pick from the GLOBAL MT19937 stream — W draws per step via prng.get_uint64_batch, lane order),
-  the make_move (the swapped source for the pass lanes), the counter walk (`~dead`). The stream state lives in the prng
-  object (the class is the single public interface).
-- `run_wave_g0(total, ec_target, seed, wave_size, sink, slot_base)` — the SU-analysis corpus run: the S = 60 - ec_target
+  `_pick_wave` (the uniform pick from the GLOBAL MT19937 stream — W draws per step via prng.get_uint64_batch, lane
+  order), the make_move (the swapped source for the pass lanes), the counter walk (`~dead`). The stream state lives in
+  the prng object (the class is the single public interface).
+- `run_wave(total, ec_target, seed, wave_size, sink, slot_base)` — the SU-analysis corpus run: the S = 60 - ec_target
   lockstep steps, the boundary harvest + respawn, until the quota is met; `wave_size` is the PARALLELISM — the caller
   passes `min(the 1e6 ceiling, total)` (wrk_su_analysis): the lanes beyond the corpus pay allocation + glue for nothing;
   the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
@@ -22,7 +24,7 @@ global golden-pinned MT19937.
   (the pass is the source swap), it is the value the trace helpers write for a dead lane.
 - The wave stream (the MT19937) is tools/prng.py — the single source: this module imports the MT19937 class and drives
   the wave through `get_uint64_batch(W)` (it carries no PRNG code).
-- `_pick_g0(draws, src) -> (move, step)` — the numba-parallel uniform pick (the HW popcount, the rank = draw % k, the
+- `_pick_wave(draws, src) -> (move, step)` — the numba-parallel uniform pick (the HW popcount, the rank = draw % k, the
   rank-th set bit; the modulo bias < k/2^64, 12 orders below the noise floor).
 
 ## Architecture
@@ -55,8 +57,8 @@ global golden-pinned MT19937.
 - the run integrity + the determinism — 1000 games (W=250, ec=20): the quota, the unique slots, every harvested position
   at EXACTLY ec 20; the same seed + slot_base replays bit-exactly (the second run identical mover/opp/slot); a different
   seed changes the harvest (the stream is consumed).
-- The LONG benchmark: 1e6 games (W=1e6, ec=20) in 5.3 s (188k games/s): 2 waves, 36195 dead lanes absorbed by the
-  respawn path, exactly 1e6 harvested. The 1e7 extrapolation ≈ 50 s.
+- The VVLONG benchmark: 1e6 games (W=1e6, ec=20) — the printed wall time (~5.3 s, 188k games/s) is the deliverable: 2
+  waves, 36195 dead lanes absorbed by the respawn path, exactly 1e6 harvested. The 1e7 extrapolation ≈ 50 s.
 
 ## Open issues
 - The board.py make_move legality test (scalar AND array): "the flips are non-zero" instead of "the square is EMPTY and
@@ -74,5 +76,5 @@ global golden-pinned MT19937.
 
 ## Integration
 - run_utests.sh section 4 (next to test_hlp_random_play).
-- The pipeline: the wave is the POSITIONS-level generator (the step 3) at the numba tier; the worker wrk_su_analysis.py
-  feeds the harvest to the accumulators (hlp_random_play).
+- The pipeline: the wave is the SU_ANALYSIS-level corpus generator (step 3) at the numba tier; the worker
+  wrk_su_analysis.py feeds the harvest to the accumulators (hlp_random_play).

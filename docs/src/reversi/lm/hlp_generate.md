@@ -1,9 +1,9 @@
 # reversi/lm/hlp_generate.py
-The GENERATE domain module of the LM pipeline — the 11th active level (CREATED sentinel → CONFIG → FEATURES → POSITIONS
-→ INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE) and the 5th cache_manager consumer. It expands
-the OPTIMIZE compressed weights into the DENSE weight vector used for inference: `w_dense` ((K,) float32 over ALL
-theoretical configurations of the feature set) + `w_checksum` (the OPTIMIZE compressed-w checksum — the consistency
-anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure
+The GENERATE domain module of the LM pipeline — the 12th active level (CREATED sentinel → CONFIG → FEATURES →
+SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE) and the 6th
+cache_manager consumer. It expands the OPTIMIZE compressed weights into the DENSE weight vector used for inference:
+`w_dense` ((K,) float32 over ALL theoretical configurations of the feature set) + `w_checksum` (the OPTIMIZE
+compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure
 `{prefix}{level:02}_{worker_name}.dat`).
 
 ## API
@@ -22,9 +22,9 @@ anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure
 - `LMDenseWeights`: plain class, 2 fields.
 - `hlp_generate_store_to_file` / `hlp_generate_load_from_file`: the standard binio round-trip — the writer/reader run
   with `compressed=True` by default, the LZ4 whole-file frame, and the sidecar is written by the binio writer
-  (cache_manager re-writes it idempotently in the pipeline flow); the load gates in order: the R3-class sidecar verify
-  ("Checksum mismatch."), the description gate, the version gate ("File version mismatch: found 2, expected 1") — all
-  BEFORE any payload parse.
+  (cache_manager re-writes it idempotently in the pipeline flow); the load gates in order: the sidecar verify ("Checksum
+  mismatch."), the description gate, the version gate ("File version mismatch: found 2, expected 1") — all BEFORE any
+  payload parse.
 - `hlp_generate_is_cache_consistent` (the no-validation note — `LMContext` is a TYPE_CHECKING import): the single-field
   gate on `w_checksum` — when the OPTIMIZE weights change, the dense expansion must be recomputed.
 - `compute_w_dense`: per feature, the slice `[iwmap_feature_offset[fid] : offset[fid+1]]` of `w_dense = zeros(K)` (K =
@@ -41,20 +41,20 @@ anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure
 
 ## Verified invariants
 
-Pinned by the 15-check `probes/verify_generate.py` + the 19-test pair (16 no-DB + 3 DB-gated — see the test docs).
+Pinned by the 17-check `probes/verify_generate.py` + the 19-test pair (16 no-DB + 3 DB-gated — see the test docs).
 
 - Module source shape (probe A1-A5): the 5-name `__all__`, the 2 no-validation notes, the version gate, no trailing ws.
 - The data-object behavior (probe D3 + D11): the duck-typed hash == independent `sha3_256(w_dense.tobytes())`; the
   hand-re-derived mock golden (INT 0.5; PAT weighted mean −0.2; MOB interp/clamp [1, 1, 2, 3, 3]).
-- The live rlm_02 re-derivation (probe E2/E4/E5/E7): K = 6588 (= 1 + 6561 + 27), orbit invariance + seen-config
-  exactness on both patterns, the full independent re-derivation == `ctx.w_dense`, the hash golden
-  `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15 b4`.
-- The R2 inference semantics (the ruling comment): unseen + fallback configs take the weighted mean, NOT the trained
-  fallback weight — pinned by the mock golden (unseen → −0.2) and by the live E4 exactness check.
+- The live rlm_02 re-derivation (probe E2/E4/E5/E7): K = 6588 (= 6561 EDGE + 27 DIAG3 — rlm_02 has NO intercept), orbit
+  invariance + seen-config exactness on both patterns, the full independent re-derivation == `ctx.w_dense`, the hash
+  golden `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4`.
+- The inference semantics (the D-098 ruling): unseen + fallback configs take the weighted mean, NOT the trained fallback
+  weight — pinned by the mock golden (unseen → −0.2, probe D11) and by the live E5 re-derivation.
 - The uint32 pattern-config cast: `np.arange(..., dtype=np.uint32)` is mandatory — `convert_to_principal_index` takes a
   pydantic-validated uint32 array (the live re-derivation exercises it).
-- The blackboard fields `w_dense: Any = None` + `dense_w_checksum: str | None = None` were pre-declared in LMContext at
-  first import (probe F1 — the fg pattern).
+- The blackboard fields `w_dense: Any = None` + `dense_w_checksum: str | None = None` are pre-declared on LMContext
+  (probe F1 pins the two declaration lines).
 
 ## Open issues
 
@@ -74,7 +74,7 @@ None.
 
 - The worker (wrk_generate.py) calls all 5 names through the uniform 7-kwargs `cache_manager_load_or_compute` (config
   via `ctx.get_cache_file_full_path_for_current_level()`, `is_allowed = ctx.use_cache`, store/load/validate/compute
-  closures, `logger_fn = ctx.log_event`).
+  callbacks (the two module-level store/load functions + the two lambdas), `logger_fn = ctx.log_event`).
 - Consumes the OPTIMIZE `ctx.w` + `ctx.w_checksum` + the WMAPS / FEATURES blackboard (features, iwmap,
   iwmap_feature_offset, wmap, feature_w_ranges); produces `ctx.w_dense` + `ctx.dense_w_checksum` — the inputs of the
-  future VALIDATE/ANALYTICS levels.
+  VALIDATE (14) and ANALYTICS (15) levels.

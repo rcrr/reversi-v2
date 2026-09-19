@@ -14,7 +14,7 @@ PERF-gated (`@skipUnless(PERF == '1')`). Companion of docs/src/reversi/board.md.
 
 ## Goldens pinned
 
-- The `ar` board print 9-line string (mover 17 / opponent 27 / empties 13) + the position print 9-line string.
+- The Position print 9-line string (mover 17 / opponent 27 / empties 20) + the position print 9-line string.
 - The 112 D8 primitive pairs + the orbit slot order + the 120-row legal-moves bulk (all independently re-derived at
   analysis time — zero mismatches; the value base of the suite).
 - The `ar_reflection_a1h8` / `ar_reflection_h1a8` header constants.
@@ -24,8 +24,8 @@ PERF-gated (`@skipUnless(PERF == '1')`). Companion of docs/src/reversi/board.md.
 
 ## Conventions
 
-- The header constants keep their transposed-looking names (row_1 = file a, ...) — NOT a defect: this is Reversi, not
-  chess; the canonical row/column vocabulary is notes/naming.md.
+- The header constants keep their transposed-looking names (`row_1` is the first ROW, `column_a` the first column, ...)
+  — NOT a defect: this is Reversi, not chess; the canonical row/column vocabulary is notes/naming.md.
 - PERF gates measure (b/s print), never fail on slowness; the 1M populations are uniform (`np.tile` / `np.full`).
 - The shared fixture pair is disjoint (`mover & opponent == 0`), so the Area-C collision checks pass trivially there;
   the raise path is exercised only in TestPositionCheckCollisions.

@@ -9,9 +9,9 @@ construction.
 
 | family | name | contract |
 |---|---|---|
-| Context | `LMContext(Context)` | `@dataclass`, 42 fields; the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
+| Context | `LMContext(Context)` | `@dataclass`, 46 fields (43 data/config + the 3 injected callables); the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
 | Context | config group | `config_file_path: Path`, `base_dir_override: Path \| None`, `use_cache: bool \| None`, `cfg: Any`, `config_checksum: str \| None` (the config fingerprint — the sha3_256 of the normalized dump, computed at CONFIG, consumed by the SAVE record + the analytics report) |
-| Context | data artifacts (34) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`su_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the EFFECT_SIZE level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`; analytics `train_metrics`/`train_dense_metrics`/`analytics_report` — the 8 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
+| Context | data artifacts (38) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`su_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the EFFECT_SIZE level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`/`vld_y_pred`/`vld_rn`/`vld_outliers` (the I-018 published series + the 20 records); analytics `train_metrics`/`train_dense_metrics`/`train_dense_rn`/`analytics_report` — the 9 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
 | Context | injected callables | `log_event`, `get_cache_file_path_for_current_level`, `get_cache_file_full_path_for_current_level` (lambda no-op defaults = pre-injection fallback, replaced at init by the machine's closures) |
 | Facade | `LogisticModel(config_file_path, verbosity=STANDARD, base_dir_override=None)` | `@validate_call` (arbitrary_types_allowed) 4-step construction; wrong-typed args raise pydantic ValidationError at the facade boundary |
 | Facade | pass-throughs | `move_to_step(int \| str)`, `move_to_last()`, `show_event_log()`, `show_history_of_moves()`, `export_history_of_moves_as_csv(path)` — pure delegation to the StateMachine |
@@ -38,7 +38,7 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 ```
 
 - **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
-  assemble the worker list (sentinel + the 15 factory calls), (4) `super().__init__` hands workers + context + verbosity
+  assemble the worker list (sentinel + the 18 factory calls), (4) `super().__init__` hands workers + context + verbosity
   to `BaseModel` → `StateMachine`, which injects `log_event` + the two cache-path closures into the context (replacing
   the lambda defaults under the same names — the same mechanism as `log_event`).
 - **LMContext is the shared blackboard** — a `@dataclass` extending the plain (non-dataclass) `Context` base; workers
@@ -55,19 +55,19 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
   ```
 (SU_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
 
-No commented factory imports or worker-list entries remain. The factories follow `lm_worker_x()` → `Worker`; the tests
-patch them by name in THIS module's namespace (`reversi.lm.logistic_model.wrk_config`, …). All 16 factories carry the
-uniform `@validate_call` gate.
-- **use_cache is per-run** — `wrk_config` sets `ctx.use_cache` from the config (`rlm_config_schemas`
+No commented factory imports or worker-list entries remain. The factories follow `wrk_x()` → `Worker` (18 modules,
+`wrk_config` … `wrk_plot`); the tests patch them by name in THIS module's namespace
+(`reversi.lm.logistic_model.wrk_config`, …). All 18 factories carry the uniform `@validate_call` gate.
+- **use_cache is per-run** — `wrk_config` sets `ctx.use_cache` from the config (`hlp_config_schemas`
   `use_cache: bool = True`); the CONFIG down path resets it to None (the cache_switch pattern).
-- **A2xxx naming (legacy production)** — the "A2050" / "A2030" class names in the full-chain tests are the
-  endgame-solver model family: A2 + ec·10 (A2050 = ec 20; production runs A2050, A2150, A2250, …). Intentional, not a
-  typo.
+- **A2xxx naming (legacy production)** — the "A2050" / "A2030" labels of the full-chain tests are the endgame-solver
+  model family names inherited from the legacy repo (the A2050 = the 11-pattern production set, the A2030 = the small
+  EDGE+LMC one); they are NOT derived from the ec (both fixtures run ec 20). Intentional, not a typo — do not "fix"
+  them.
 
 ## Verified invariants
 
-Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (29 tests; the V6f/V4b-class probe
-checks were converted to tests).
+Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (29 tests).
 
 - The LMContext dataclass shape: plain `Context` base, `config_file_path` the only no-default field, `use_cache` default
   None, the legacy `_for_next_level` names gone, the `*_for_current_level` fields with lambda defaults, the `log_event`
@@ -85,8 +85,8 @@ checks were converted to tests).
   `test_logistic_model::test_injected_cache_helpers_are_the_machine_closures`.
 - The machine boundaries on the `{}` dummy config: `move_to_step(1)` / `move_to_step("POSITIONS")` / `move_to_last()` /
   `run("POSITIONS")` all hit the CONFIG worker first and raise its pydantic ValidationError (the gate split — no
-  conversion to the gate's TypeError), a failed move leaves `current_step` at the failed step — probe V9 (4 labels)
-  + the `test_move_to_step_*` tests.
+  conversion to the gate's TypeError), a failed move leaves `current_step` at the failed step — probe V9 (4 labels) +
+  the `test_move_to_step_*` tests.
 - The target-driven stop: `run()` runs CONFIG first, honors the explicit argument over `cfg.target_level`, resolves
   `"last"` / a blank / an absent config to the last step, RESUMES without re-running the levels already done, moves back
   (with their down()) for a lower target, and lets the machine's ValueError / TypeError through — the mocked

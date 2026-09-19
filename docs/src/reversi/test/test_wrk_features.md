@@ -6,7 +6,7 @@ The suite of the FEATURES worker. 2 classes / 3 tests (all DB-free) / no PERF.
 | class | what it pins |
 |---|---|
 | `TestLMWorkerFeatures` (2, DB-free) | `test_build_feature_set` (feature_set None before, move to 'FEATURES' = step 2 / worker "FEATURES" pinned, populated after) and `test_feature_set_content_golden` (the rlm_00.json fixture must build the EXACT expected FeatureSet — see the goldens below) |
-| `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event — the verify_wrk_features.py B11 probe |
+| `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event — the zero-feature guard |
 
 The shared setUp of the class (DB-free: the level no longer sits after POSITIONS, so the gate + the POSITIONS move are
 gone, and the stale "configuration loaded there" comment with them): stdout patched to a StringIO + the
@@ -38,5 +38,5 @@ created FIRST so a mid-setup failure still leaves a cleanable dir) + a `Logistic
 
 - The class exercises the real pipeline (CONFIG → FEATURES) through `LogisticModel`; the guard class pins the fail-fast
   path in isolation.
-- The 40-check probe re-derives the same FeatureSet independently (public API) and pins the level boundary (no cache
+- The 41-check probe re-derives the same FeatureSet independently (public API) and pins the level boundary (no cache
   files at all at the FEATURES stop — no rlmwf_02_FEATURES* ever materializes).

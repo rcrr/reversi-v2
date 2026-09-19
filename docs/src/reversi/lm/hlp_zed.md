@@ -1,7 +1,7 @@
 # reversi/lm/hlp_zed.py
 The ZED domain module of the LM pipeline: the `LMZed` data object (the z (N,) float32 vector — the affine image of the
 per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the pure math) +
-`hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 8th active level (CREATED sentinel →
+`hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 9th active level (CREATED sentinel →
 CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED) and the FIRST non-cache level in the pipeline (no
 store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09* file — see the worker doc).
 
@@ -32,7 +32,7 @@ store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09* file �
 Pinned by the 51-call `probes/verify_zed.py` + `test_hlp_zed.py` (10 tests, no DB) + `test_wrk_zed.py` (3 tests, 2
 DB-gated).
 
-- Source shape (probe A1-A12): 103 lines, the 3-name `__all__`, exactly 4 `@validate_call` (init, hash, factory — NOT
+- Source shape (probe A1-A12): 103 lines, the 3-name `__all__`, exactly 3 `@validate_call` (init, hash, factory — NOT
   compute, with the no-validation note), the affine constants pinned, the compute body, no cache API, 0 non-header
   trailing-whitespace lines.
 - The worker file shape (probe B1-B8): 73 lines, the factory WITH `@validate_call` + the pydantic import, NO
@@ -41,8 +41,8 @@ DB-gated).
 - The live-DB golden re-derivation (probe D1/D5-D11): the pre-state (all 4 ctx attrs None); z == the independent float32
   recompute `0.5 + y·(1−2c)/128` (EXACT) == the float64 reference (allclose); `zed_checksum == sha3_256(z.tobytes())`;
   both closures callables; live endpoints `y2z(−64) ≈ c`, `y2z(0) == 0.5`, `y2z(64) ≈ 1−c`; live round-trip
-  `z2y(y2z(y)) == float32(y)`; the base dir holds EXACTLY the 5 flat files + 5 sidecars of the 5 cache levels (no
-  rlmwf_09*).
+  `z2y(y2z(y)) == float32(y)`; the base dir holds EXACTLY the 8 flat files (4 `.dat` + 4 sidecars) of the 4 cache levels
+  reached (no rlmwf_09*).
 - The cross-module facts (probe F1/F4/F5): LMContext's 4 zed fields pre-declared; the dedicated test exists (10 tests,
   no DB wiring); the mirror docs exist.
 - The unit suite (10 tests, no DB): the factory math (both branches + 2-clippling endpoints), the mock compute (the
@@ -59,7 +59,7 @@ None.
   `cfg.stat_model.logit_clipping` (not stored on the object). Same game_values + different clipping → different z →
   different hash, so no collision risk today; a future cache would need the clipping in the checksum.
 - The flat-file numbering skips 09 (FEATURES skips 02): the next cache level (GRADIENT, step 10) writes nothing either —
-  OPTIMIZE takes rlmwf_11.
+  OPTIMIZE writes a config-named checkpoint instead.
 - z's dtype contract is float32 (pinned in the worker test + 3× in the dedicated test): the values live in [c, 1−c] ⊂
   (0, 1); the float32 arithmetic is exact for the round-trip within the pinned allclose tolerances (1e-6/1e-7).
 - No `@validate_call` on `hlp_zed_compute` — the TYPE_CHECKING circular-import constraint (the note).

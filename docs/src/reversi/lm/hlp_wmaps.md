@@ -74,7 +74,7 @@ None.
 
 ## Integration
 
-- The 6th LM level; the worker (wrk_wmaps.py) carries the cache wiring, this module the data object + the 4 functions.
+- The 7th LM level; the worker (wrk_wmaps.py) carries the cache wiring, this module the data object + the 4 functions.
 - Consumes `ctx.hlp_indexes_checksum` (INDEXES) + `ctx.cfg.stat_model.frequency_cut_off` (CONFIG) + the pindexes layout
   (POSITIONS/FEATURES) — the SM half-open interval semantics guarantee all are set before `compute` runs.
 - Publishes the 6 ctx arrays + `ctx.wmaps_obj_checksum` for the DESIGN_MTR level onward.

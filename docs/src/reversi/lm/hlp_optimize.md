@@ -2,15 +2,15 @@
 The OPTIMIZE domain module of the LM pipeline. Unlike every other rlm_* level, the "cache" of this level is NOT a data
 class behind a store/load/is_cache_consistent trio: it is a plain **checkpoint dictionary** serialized with binio (the
 design comment). Six public names: the binary round-trip pair, the two gates the worker consults, the lbfgs-info
-projection and the duck-typed weight hash. The 10th active level (CREATED sentinel → CONFIG → FEATURES → POSITIONS →
-INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
+projection and the duck-typed weight hash. The 11th active level (CREATED sentinel → CONFIG → FEATURES → SU_ANALYSIS →
+POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
 
 ## API
 
 | name | contract |
 |---|---|
 | `save_optimization_checkpoint(filepath, ..., compressed=True)` | `@validate_call` — the binary write (header "RGLM Optimization Checkpoint" v1 + checksums + scalars + metadata + the history triples); LZ4 whole-file frame by default |
-| `load_optimization_checkpoint(filepath, compressed=True)` | `@validate_call` — the mirror read (LZ4 guard + decompress by default); returns the 17-key checkpoint dict |
+| `load_optimization_checkpoint(filepath, compressed=True)` | `@validate_call` — the mirror read (LZ4 guard + decompress by default); returns the 15-key checkpoint dict |
 | `is_optimization_cache_consistent(ctx, checkpoint)` | the 3-gate check (NO `@validate_call` — see Conventions) |
 | `is_optimization_status_converged(ctx, checkpoint)` | the g_norm-vs-tolerance judgement (NO `@validate_call` — the note) |
 | `optimization_info_dict(lbfgs_info)` | `@validate_call` — projects the lbfgs 9-key info to the 5 context keys; `KeyError` on a missing key |
@@ -24,7 +24,7 @@ INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
   runs with `compressed=True` by default — the LZ4 whole-file frame; the sidecar is written by the binio writer
   (cache_manager re-writes it idempotently in the pipeline flow).
 - `load_optimization_checkpoint`: the LZ4 guard + decompress (default) → the header gates (description + version, 2
-  `RuntimeError`) → the R3 SHA3-256 sidecar verify BEFORE any payload is trusted → the 17-key dict.
+  `RuntimeError`) → the R3 SHA3-256 sidecar verify BEFORE any payload is trusted → the 15-key dict.
 - `is_optimization_cache_consistent` (the no-validation note — the hlp_indexes class): THREE gates: the design-matrix
   checksum, the zed checksum, `math.isclose(ridge, cp_ridge, rel_tol=1e-5, abs_tol=1e-8)` (the ridge is part of the
   objective — a change invalidates the checkpoint exactly like a zed change). Each failed gate emits its own 3×WARN

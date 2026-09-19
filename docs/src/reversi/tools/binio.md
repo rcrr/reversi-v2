@@ -11,6 +11,7 @@ weights file are written with `BinaryWriter` and verified through the `.SHA3-256
 | `BinaryWriter(file, *, magic, signature, checksum, checksum_suffix, compressed)` | Write framed records. Default `checksum=True` writes a `sha3_256sum`-format sidecar on `close()` (path-based) or exposes the digest via `sha3_256_hexdigest` (file-object-based). `compressed=True` buffers all writes in memory, compresses with LZ4, and writes on `close()`. An empty `checksum_suffix` raises `ValueError` in `__init__` (it would make the sidecar path BE the content file; `checksum=False` is the no-sidecar knob) |
 | `BinaryReader(file, *, magic, signature, compressed)` | Read records in the exact order written. `compressed=True` decompresses the whole file into memory before reading |
 | `FileHeader` | `namedtuple("FileHeader", ["description", "version"])` — return type of `read_header()` |
+| `DEFAULT_MAGIC` / `DEFAULT_FILE_SIGNATURE` | The frame MAGIC (`0x314E4942` → LE `b'BIN1'`) and the header signature (`0x484F4942` → LE `b'BIOH'`); both are overridable per writer/reader |
 | `BinaryFormatError` | Raised on MAGIC mismatch, unexpected EOF, unknown type code, corrupted sidecar, or LZ4 decompression failure |
 | `compute_sha3_256(path, *, chunk_size=1 << 20)` | Return hex digest of a file |
 | `write_sha3_256_sidecar(path, *, suffix=".SHA3-256")` | Write `<path><suffix>` sidecar; returns sidecar path. Empty `suffix` raises `ValueError` |

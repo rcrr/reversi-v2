@@ -24,7 +24,8 @@ No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## Verified invariants
 
-Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 2-test suite.
+Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 4-test suite (2 classes: the DB-gated pair +
+`TestGradientFlagWiring`).
 
 - Source shape (probe B1-B9): the 64-line file, `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
   pydantic import, NO cache_manager import (the by-design comment pinned), `_up` reads the `high_performance_fg` flag,
@@ -42,7 +43,7 @@ Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 2-test s
 - The dedicated suite (probe G1-G9): the 272-line file, 3 classes / 14 tests, no DB wiring, the goldens pinned (the
   TestHighPerformanceFg class: the equivalence, the f32 contract, the determinism, the markers).
 - The live goldens (DB-gated): `test_generate_gradient` (the 4 pinned values at w=0, rlm_02 → the classic path) +
-  `test_down_clears_gradient` (the step-7 / "ZED" / fg-None pin) — `test_wrk_gradient.py`.
+  `test_down_clears_gradient` (the step-9 / "ZED" / fg-None pin) — `test_wrk_gradient.py`.
 
 ## Open issues
 
@@ -50,15 +51,15 @@ None.
 
 ## Conventions
 
-- The no-cache design is the second deviation from the uniform 7-kwargs `cache_manager` wiring (ZED first) — intentional
-  and documented (the comment); `ctx.fg` is still cleared on down (the machine contract holds).
+- The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring — intentional and documented (the
+  comment); `ctx.fg` is still cleared on down (the machine contract holds).
 - No `use_cache` interaction: with `ctx.use_cache=False` the other levels still warm their cache files; GRADIENT has
   nothing to warm — the behavior is identical either way.
 
 ## Integration
 
-- The 9th LM level; the domain module (hlp_gradient.py) carries the closure math, this worker the machine glue.
+- The 10th LM level; the domain module (hlp_gradient.py) carries the closure math, this worker the machine glue.
 - Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`
-  (CONFIG) — the SM half-open interval semantics guarantee all are set. The worker-test setUp moves through ZED (step 7)
+  (CONFIG) — the SM half-open interval semantics guarantee all are set. The worker-test setUp moves through ZED (step 9)
   first, so the full 10-level chain is exercised end-to-end on the live DB.
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE level onward.

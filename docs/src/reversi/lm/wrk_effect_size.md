@@ -10,7 +10,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - `_up(ctx)`: (1) the enable check — `effect_size.enable` false makes the level a no-op (opt-in); (2) the ANOVA — the
   eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the groups, the continuous game values as
   the target — it does NOT need the corpus); (3) the adherence (the c metric) — per sub-variable, the DB configuration
-  distribution (the observed raw codes of the training positions, the bincount) vs the ideal distribution (the corpus
+  distribution (the observed raw codes of the training positions (`np.unique`)) vs the ideal distribution (the corpus
   frequencies from the `ctx.su_analysis_tables`, normalized), the fixed trio (the `adherence` kernel); the GRACEFUL
   DEGRADATION: if the `ctx.su_analysis_tables` is None (the SU_ANALYSIS level was disabled), the adherence is SKIPPED
   with a log note (the ANOVA runs); (4) the outputs — the console (the ANOVA per sub-variable + the top-N most deviant
@@ -26,11 +26,11 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   the game values as the target (N). The per-sub-variable raw code is `indexes[:, c0 + i]` (the block layout, the
   `_feature_blocks`). eta² is the biased sample share; omega² is the unbiased population estimate — the pair is reported
   together (omega² may be slightly negative, the null effect — the raw value is reported).
-- **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the bincount of the training raw
-  codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the chi-square
-  merged-tail p + the KL + the TV) — the ODP-5 close, no config whitelist. The top-N (the `top_k_adherence`, default 20)
-  most deviant features (the TV descending) are reported. The GRACEFUL DEGRADATION: the adherence is skipped (the log
-  note) when the corpus is absent (the SU_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
+- **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the `np.unique` counts of the
+  training raw codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the
+  chi-square merged-tail p + the KL + the TV) — the ODP-5 close, no config whitelist. The top-N (the `top_k_adherence`,
+  default 20) most deviant features (the TV descending) are reported. The GRACEFUL DEGRADATION: the adherence is skipped
+  (the log note) when the corpus is absent (the SU_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
 - **NO cache** — a diagnostic (the recompute is seconds); the generation error -> the level fails, the machine
   re-raises.
 
@@ -40,18 +40,16 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   log has one line per sub-variable); the graceful degradation (the tables None -> the adherence SKIPPED, the ANOVA
   runs); the adherence computed (the tables set -> the log has the Adherence lines, the top-N); the report (the TXT is
   written); the down (a no-op).
-- Pinned by the 29-check `probes/verify_effect_size.py` (the campaign level): the no-cache discipline; the independent
-  math (the ANOVA vs the F identity + scipy's f_oneway + the eta² >= omega² invariant; the adherence trio vs pure-python
-  formulas + the Pinsker bound); the CSV path (no test covers it); a live A2050 tier with NO DB — the cached 1e7 area
-  symlinked under build/tmp, every ANOVA line and every adherence row recomputed from the caches.
+- Pinned by the 41-check `probes/verify_effect_size.py`: the no-cache discipline; the independent math (the ANOVA vs the
+  F identity + scipy's f_oneway + the eta² >= omega² invariant; the adherence trio vs pure-python formulas + the Pinsker
+  bound); the CSV path (no test covers it); a live A2050 tier with NO DB — the cached 1e7 area symlinked under
+  build/tmp, every ANOVA line and every adherence row recomputed from the caches.
 
 ## Open issues
 - The report's adherence section header says "top {top_k_adherence}" while the body lists EVERY sub-variable: the
   `top_k_adherence` bound is applied to the CONSOLE lines only (`adherence_lines[:top_k]` in the log), the report
   receives the full list. A wording defect of the header (the console/report split is deliberate) — pinned by
-  `probes/verify_effect_size.py` (C6/D7), left as-is pending Roberto's call (a source change).
-- The wiring is complete (the 18 levels, EFFECT_SIZE at step 6, NO cache slot); the rlm_05/rlm_06 experiment configs
-  regenerate on demand.
+  `probes/verify_effect_size.py` (C6/D7), left as-is pending Roberto's call (a source change). None.
 
 ## Conventions
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.

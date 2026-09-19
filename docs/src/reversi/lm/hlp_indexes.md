@@ -1,7 +1,7 @@
 # reversi/lm/hlp_indexes.py
 The INDEXES domain module of the LM pipeline: the `LMIndexes` data object (the 2-D uint32 index matrix + its two
-metadata hashes) + 4 public functions (store / load / compute / is_cache_consistent) — the data object of the 5th active
-level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES), the SECOND cache_manager consumer after POSITIONS.
+metadata hashes) + 4 public functions (store / load / compute / is_cache_consistent) — the data object of the 6th active
+level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES), the THIRD cache_manager consumer.
 
 ## API
 
@@ -48,7 +48,7 @@ end-to-end).
   a fabricated 2-position array: the (2, 16) uint32 matrix identical to `FeatureSet.compute_indexes` called directly,
   the checksums from the ctx.
 - The pipeline integration (live DB, probe C2-C7): after `move_to_step("INDEXES")` the base dir holds ONLY the flat
-  CONFIG + POSITIONS + INDEXES `.dat` + `.SHA3-256` pairs (no `rlmwf_02_FEATURES*`); `ctx.hlp_indexes` set,
+  SU_ANALYSIS + POSITIONS + INDEXES `.dat` + `.SHA3-256` pairs (no `rlmwf_01_CONFIG*`); `ctx.hlp_indexes` set,
   `ctx.hlp_indexes_checksum` = the DATA checksum; the sidecar is the flat `sha3_256sum` line (FILE checksum ≠ data
   checksum); the `(N, 16)` shape identical to the independent recompute; the cross-run identical object; `_down` clears
   BOTH.
@@ -76,7 +76,7 @@ None.
 
 ## Integration
 
-- The 5th LM level; the worker (wrk_indexes.py) carries the cache wiring, this module the data object + the 4 functions.
+- The 6th LM level; the worker (wrk_indexes.py) carries the cache wiring, this module the data object + the 4 functions.
   Consumes `ctx.rds_checksum` (POSITIONS) and `ctx.feature_set` (FEATURES) — both must be set before `compute` runs (the
   SM half-open interval semantics guarantee it).
 - Publishes `ctx.hlp_indexes` + `ctx.hlp_indexes_checksum` for the WMAPS level onward.

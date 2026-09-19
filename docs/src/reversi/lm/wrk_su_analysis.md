@@ -18,7 +18,7 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
 
 ## Architecture
 - **The cache flow** — the `rlmwf_03_SU_ANALYSIS.dat` file (the pickle of the tables dict) + the .SHA3-256 sidecar (the
-  8192-chunk verify). The consistency signature (`_signature`): the feature_set hash (the sha3_256 of the feature_set
+  1 MiB-chunk verify). The consistency signature (`_signature`): the feature_set hash (the sha3_256 of the feature_set
   config's normalized dump, the first 16 hex) + the generation spec (the seed, the total_positions, the ec, the
   generator version `su-corpus-2` — an older version string marks a corpus built on the swapped start, never reusable —,
   the PRNG version `mt19937-64`) + the su_pairs list (the canonical sorted form). A pair-list change invalidates the
@@ -39,18 +39,18 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   the tables dict (the marginal + the joint) for the EFFECT_SIZE level (the adherence, step 6).
 
 ## Verified invariants
-- Pinned by `test_wrk_su_analysis.py` (8 tests, the NO-DB mock-ctx suite, the rlm_00 fixture's feature set, the tiny
-  SU-analysis corpus): the factory (the SU_ANALYSIS name); the enable no-op (opt-in — the tables stay None, the
-  "disabled" log); the compute + the publish (the 2000-position corpus -> the tables + the TXT report + the ctx
-  publication, the no-su_pairs -> the joint None); the cache hit (the second run, the "loaded from cache" log); the
-  signature invalidation (the corpus change -> the recompute); the su_pairs joint (the (EDGE, LMC) pair, the canonical
-  order); the optional CSV (the export_csv flag -> the CSV file); the down (recovery — the tables cleared).
-- Pinned by the 43-check `probes/verify_su_analysis.py` (the campaign level): the module structure + the no-DB
-  discipline; the independent re-derivations (the marginal vs the FeatureSet's own batch bincount, the joint vs a
-  pure-python Counter, the SU values vs the RATIO-FORM mutual information, the signature vs an independently recomputed
-  feature_set hash); the live rlm_00 run (the step-3 stop, the cache + its sidecar, the report lines vs pure-python
-  math, the phase-2 recompute on the cache hit, the down, the opt-in absence of both artifacts); the rename
-  completeness over src/docs/probes/tools.
+- Pinned by `test_wrk_su_analysis.py` (9 tests: the 8-test NO-DB mock-ctx suite + the VLONG 1e7 scale test, the rlm_00
+  fixture's feature set, the tiny SU-analysis corpus): the factory (the SU_ANALYSIS name); the enable no-op (opt-in —
+  the tables stay None, the "disabled" log); the compute + the publish (the 2000-position corpus -> the tables + the TXT
+  report + the ctx publication, the no-su_pairs -> the joint None); the cache hit (the second run, the "loaded from
+  cache" log); the signature invalidation (the corpus change -> the recompute); the su_pairs joint (the (EDGE, LMC)
+  pair, the canonical order); the optional CSV (the export_csv flag -> the CSV file); the down (recovery — the tables
+  cleared).
+- Pinned by the 42-check `probes/verify_su_analysis.py`: the module structure + the no-DB discipline; the independent
+  re-derivations (the marginal vs the FeatureSet's own batch bincount, the joint vs a pure-python Counter, the SU values
+  vs the RATIO-FORM mutual information, the signature vs an independently recomputed feature_set hash); the live rlm_00
+  run (the step-3 stop, the cache + its sidecar, the report lines vs pure-python math, the phase-2 recompute on the
+  cache hit, the down, the opt-in absence of both artifacts); the rename completeness over src/docs/probes/tools.
 
 ## Open issues
 - The SU / the entropy / the MI math: `hlp_feature_analysis` is a shared-kernels module (also the ANOVA + the adherence
@@ -68,7 +68,7 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
 ## Integration
 - Consumes the `ctx.cfg` (the su_analysis config) + the `ctx.feature_set` (the FEATURES level, step 2) ONLY (no DB, no
   positions — the design section 3.3).
-- The consumer: the EFFECT_SIZE worker reads the `ctx.su_analysis_tables` for the adherence (the c metric of the
-  design section 3.5), with the graceful degradation when the level is disabled (the tables None).
+- The consumer: the EFFECT_SIZE worker reads the `ctx.su_analysis_tables` for the adherence (the c metric of the design
+  section 3.5), with the graceful degradation when the level is disabled (the tables None).
 - The wiring registers the worker at step 3 (the rlmwf_03 slot) + the EFFECT_SIZE at step 6; the VLONG scale test
   (`test_wrk_su_analysis::TestSuCorpusAtScale`, D-256) runs the corpus at the ODP-1 size.

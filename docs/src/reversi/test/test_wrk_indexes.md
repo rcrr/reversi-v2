@@ -19,12 +19,12 @@ there") + a defensive tearDown (getattr guards).
 - The flat cache file names: `rlmwf_05_INDEXES.dat` + `rlmwf_05_INDEXES.dat.SHA3-256`.
 - The witness log lines: "Executing heavy computation" (compute run) and "Cache successfully loaded and validated"
   (cache hit) — with the NEGATIVE pin "Executing heavy computation" absent on the second run.
-- The step numbering: 0 / `CREATED`, 3 / `FEATURES` (setUp), 4 / `INDEXES` (the compute test) — pinned in three places.
+- The step numbering: 0 / `CREATED`, 2 / `FEATURES` (setUp), 5 / `INDEXES` (the compute test) — pinned in three places.
 
 ## Conventions
 
 - The `TemporaryDirectory` idiom + the `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (shared `reversi.test.paths`) — the
-  CWD-relative `mkdtemp` and the per-file `__file__` derivation are gone.
+  artifacts go under the shared `CUSTOM_TMP_BASE` (the house idiom).
 - The `SKIP_REGAB_DB` gate at the top of setUp (the test_regab pattern).
 - The header run note documents the live-DB requirement and the gate (the established pattern).
 

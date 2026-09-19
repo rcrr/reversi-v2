@@ -41,24 +41,23 @@ the first). The gathered values are the TRAINED weights for confirmed configurat
 `stat_model.frequency_cut_off`) and the SUBSTITUTION values (orbit mean for patterns, `np.interp` for mobility —
 hlp_generate) for every configuration without a dedicated weight (unseen + below-cutoff "IC"). Consequence (verified
 measured): the dense path and the literal compressed model (`ctx.w` over `ctx.design_matrix`) agree on a training
-position iff every configuration it touches is confirmed — rlm_04 (cut 10): 1923/199932 positions differ (373 EDGE
-configs in `wmap_fallback`, freq < 10; max |Δy| 31.56, mean 4.98); rlm_01 (cut 2): 5/10. The ef pins are therefore
-pinned against the DENSE values (what the shipped model actually computes); the rlm_03 pins (cut 1) equal the compressed
-values as well.
+position iff every configuration it touches is confirmed — rlm_04 (cut 10): 1923/199932 positions differ (the EDGE
+configs in `wmap_fallback` with freq < 10); rlm_01 (cut 2): 5/10. The ef pins are therefore pinned against the DENSE
+values (what the shipped model actually computes); the rlm_03 pins (cut 1) equal the compressed values as well.
 
 ## Verified invariants
 
 Pinned by the statics of `probes/verify_save.py` (A7 no dead import, A8 the 2-entry `__all__`, A9 no ws lines) + the
 full-chain suite + `test_client`.
 
-- rlm_04 EF bit-exact on 6 pinned training positions: pos 0 → −37.12018585205078, pos 1 → −28.228458404541016, pos 7
-  → 45.391082763671875, pos 123 → 40.502410888671875, pos 999 → 16.26209259033203, pos 199931 → 23.326324462890625
-  (suite A2030).
-- rlm_04 EF on `vld_positions[42]` → 11.932792663574219: rlm_04 validation (bid [5]) contains EDGE configurations unseen
+- rlm_04 EF bit-exact on 6 pinned training positions: pos 0 → −37.28886413574219, pos 1 → −28.242984771728516, pos 7
+  → 45.49725341796875, pos 123 → 40.28820037841797, pos 999 → 16.244956970214844, the last → 23.315696716308594 (suite
+  A2030).
+- rlm_04 EF on `vld_positions[42]` → 11.917137145996094: rlm_04 validation (bid [5]) contains EDGE configurations unseen
   in training — the substitution path (orbit weighted mean) pinned end-to-end (suite A2030).
-- rlm_03 EF bit-exact on 6 pinned training positions (suite A2050, VLONG): pos 0 → 7.2613525390625, pos 5 →
-  −32.98143768310547, pos 123 → 40.5123291015625, pos 555 → 24.14972686767578, pos 9999 → −19.389434814453125, pos
-  1999178 → 57.8465576171875.
+- rlm_03 EF bit-exact on 6 pinned training positions (suite A2050, VLONG): pos 0 → 6.911094665527344, pos 5 →
+  −32.91969299316406, pos 123 → 40.503456115722656, pos 555 → 24.345985412597656, pos 9999 → −19.517921447753906, the
+  last → 57.769447326660156.
 - VECTORIZED parity: the array EF equals the scalar EF bit-exactly per position — (a) on the synthetic rlm_04-mirror
   weights over 1000 seeded collision-free positions (test_client::test_parity_bit_exact, no DB); (b) on the TRAINED
   rlm_04 model: one batch call over the full 199932-position training set, the same 6 pins + the vld[42] pin (suite
@@ -87,11 +86,11 @@ None.
 
 - `ModelWeights` is the only input; `model_weights_read_file` (model_weights.md) is the producer — the test modules
   compose the two.
-- In-pipeline consumer: the CLIENT_CHECK level (the 16th level, after SAVE) re-reads the saved model file and builds the
+- In-pipeline consumer: the CLIENT_CHECK level (the 17th level, after SAVE) re-reads the saved model file and builds the
   ARRAY EF on it — it recomputes the validation residuals in Y space and compares them to the in-memory VALIDATE forward
   pass within `client_check_tol` (the C1 ruling: the array form, the 1100× speed ratio; the scalar EF stays pinned by
   test_client + the full-chain EF pins).
 - Y-space output: both EFs return game values directly (the z2y inverse), usable by the engine as evaluation functions;
   the vectorized form is the batch workhorse (analytics over large position sets, the performance-study territory).
 - Per-position cost: one `compute_indexes` call (the Numba kernels) + one f32 gather of `n_instances` values + one sum +
-  sigmoid + z2y. Measured (this machine): 5,117 b/s scalar vs 5,640,701 b/s array (the 1M-board PERF print test).
+  sigmoid + z2y. The 1M-board PERF print test times the ARRAY EF (the scalar EF is only parity-checked there).

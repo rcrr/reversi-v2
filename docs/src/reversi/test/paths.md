@@ -20,10 +20,10 @@ functions, hence no `@validate_call` decorators (house convention: public functi
   otherwise.
 - the marker comment + the `WORKSPACE_ROOT` module-level derivation; `CUSTOM_TMP_BASE`.
 
-The test files import the constants instead of recomputing them: `test_cache_manager.py`, `test_logistic_model.py`
-(CUSTOM_TMP_BASE); `test_wrk_config/positions/features/indexes.py` (both — the JSON fixture is anchored to the same
-root: `str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")`); `test_regab.py` (both — the
-CWD-relative `mkdtemp(dir='./build/tmp')` and `load_dotenv(WORKSPACE_ROOT / ".env")`).
+The test files import the constants instead of recomputing them: `test_cache_manager.py`, `test_logistic_model.py` (both
+constants); `test_wrk_config/positions/features/indexes.py` (both — the JSON fixture is anchored to the same root:
+`str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json")`); `test_regab.py`
+(`mkdtemp(dir=CUSTOM_TMP_BASE)` + `load_dotenv(WORKSPACE_ROOT / ".env")`).
 
 ## Verified invariants
 
@@ -49,5 +49,6 @@ None.
 
 ## Integration
 
-- Every test file that writes artifacts or reads fixtures imports from this module — the single point of the path
-  derivation (a rename surfaces in exactly one place).
+- Most test files that write artifacts or read fixtures import from this module — the single point of the path
+  derivation (a rename surfaces in exactly one place). Exceptions: `test_state_machine.py` carries its own `parents[3]`
+  derivation, and the binio usage tests use a bare `mkdtemp`.
