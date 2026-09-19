@@ -1162,6 +1162,19 @@ D-228 | 2026-09-18 | The play_path intervention 1 (Roberto's one-at-a-time plan,
          breakdown unchanged (reached ec=0: 990,413; game-over 9,587; the same max stuck ec = 51).
          `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
 
+D-229 | 2026-09-18 | The play_path intervention 2 (Roberto's one-at-a-time plan, measured): the mover's legal set
+         in `_play_path_step` is computed ONLY on the ACTIVE lanes (the zero-filled scatter + the all-active
+         fast path that computes it in place — with a uniform start all the lanes stay active, so the fast path
+         keeps the same code path), and both classification computes run on the RAW fields via the public
+         `legal_moves(mover, opponent)` — no `make_position` assembly for the classification (the D-228
+         pass-lane subset included: `legal_moves(opponent_field, mover_field)` = the legal set on the swapped
+         view, the values identical). THE MEASUREMENT: the uniform 1M-games benchmark (the target 0) 5.68s ->
+         5.76s (+1.4%, the noise level — as predicted, the active fraction stays ~1 there); THE MIXED-EC
+         BENCHMARK (the new scratch bench: the lanes at the start ecs 60/45/30/20/10/0, the target 20 — the
+         active fraction drops 0.5 -> 0.33 -> 0.17 over the steps) 2.03s / 493,567 games/s -> 1.81s /
+         551,381 games/s (-10.8% wall, +11.7% throughput); the harvest breakdown unchanged on both.
+         `test_random_game` 33/0/1, full LONG 914/0/23 GREEN.
+
 D-217 | 2026-09-18 | The board.py typing doctrine (Roberto, after Nia's signature-audit proposal): the type
          aliases are SEMANTIC domain types, not dtype shortcuts — `Square` is an index into the 64-square
          space, `Bitboard` a set of squares, `Position` a game position — and the raw numpy forms are

@@ -35,7 +35,7 @@ from pydantic import validate_call, ConfigDict, Field
 from reversi.tools.prng import MT19937, pick_one_from_set64_batch
 from reversi.board import (Bitboard, BitboardArray, Move, MoveArray,
                            PositionField, PositionArray, bitboard_bsr,
-                           make_position, position_flips,
+                           legal_moves, make_position, position_flips,
                            position_legal_moves, position_empty_count)
 
 
@@ -180,19 +180,26 @@ def _play_path_step(cur: np.ndarray, active: np.ndarray, target: np.uint8,
     Every non-terminal lane consumes EXACTLY ONE draw, in element
     order (the step-interleaved stream discipline).
     """
-    lms_mover = position_legal_moves(cur)
+    # The mover's legal set is computed ONLY on the active lanes (the
+    # all-active fast path computes it in place; the zero-filled
+    # scatter keeps the same read semantics).
+    lms_mover = np.zeros(cur.shape[0], dtype=np.uint64)
+    active_idx = np.flatnonzero(active)
+    if active_idx.size == cur.shape[0]:
+        lms_mover = position_legal_moves(cur)
+    elif active_idx.size:
+        lms_mover[active_idx] = legal_moves(cur['mover'][active_idx],
+                                            cur['opponent'][active_idx])
     mover_passes = active & (lms_mover == _EMPTY_MOVE_SET)
-    # The opponent's legal set is needed ONLY for the pass lanes
-    # (rare mid-game): computed on the pass-lane subset, not on the
-    # whole batch (the profiling showed the second full-array call as
-    # a top hot spot).
+    mover_plays = active & (lms_mover != _EMPTY_MOVE_SET)
+    # The opponent's legal set: ONLY on the pass-lane subset (rare
+    # mid-game) — legal_moves on the raw fields (the swapped view's
+    # mover is the opponent), no Position assembly.
     lms_opponent = np.zeros(cur.shape[0], dtype=np.uint64)
     pass_idx = np.flatnonzero(mover_passes)
     if pass_idx.size:
-        swapped = make_position(cur['opponent'][pass_idx],
-                                cur['mover'][pass_idx])
-        lms_opponent[pass_idx] = position_legal_moves(swapped)
-    mover_plays = active & (lms_mover != _EMPTY_MOVE_SET)
+        lms_opponent[pass_idx] = legal_moves(cur['opponent'][pass_idx],
+                                             cur['mover'][pass_idx])
     double_pass_game_over = mover_passes & (lms_opponent == _EMPTY_MOVE_SET)
     mover_passes_opponent_plays = (mover_passes
                                    & (lms_opponent != _EMPTY_MOVE_SET))
