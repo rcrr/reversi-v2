@@ -1509,3 +1509,24 @@ D-245 | 2026-09-19 | I-018 step 3: CLIENT_CHECK consumes the published validatio
          rewritten to the state (it carried line numbers, "the 16th active level (step 15)", the A1a re-derivation and
          "17 active levels"), the test mirror (the divergence scenario) and the overview row. Step 4 (the ANALYTICS
          training publication + the PLOT PlotData assembly) follows.
+
+D-246 | 2026-09-19 | I-018 step 4: PLOT becomes a pure rendering level (no forward pass at all). (1) THE TRAINING SIDE —
+         `hlp_analytics.compute_training_dense_metrics` now returns a `TrainingDenseResult` dataclass (the 4-key metrics
+         dict + the f64 `rn_y` series) instead of the bare dict, exactly as `validate_model` does since D-243;
+         `wrk_analytics._up` publishes `ctx.train_dense_rn` (the field pre-declared, the `_down` clears it). The
+         arithmetic is safe by construction here: `rn_y = y_pred - y_true` with `y_true` already f64 promotes the f32
+         prediction exactly, so the series IS the rounded-lossless f64 view PLOT computed before — no split needed
+         (unlike the validation side, where the metrics' f32 path had to be preserved). (2) THE ASSEMBLY —
+         `hlp_plot.collect_plot_data` no longer runs ANY forward pass: it assembles the PlotData from `ctx.game_values`
+         + `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + `ctx.vld_game_values`. The
+         `sigmoid` import leaves hlp_plot (nothing computes there anymore). (3) THE PROOF THAT NOTHING MOVED — the
+         strongest possible: the PNG byte-determinism golden (`test_wrk_plot::test_parity_png_golden`, the sha3 of the
+         rendered figure) still matches with the ASSEMBLED data, so the published series are bit-identical to the old
+         local passes at the pixel level; the full-chain plot pins (the seven files + the "PLOT done" line) hold too.
+         (4) THE TESTS — `test_wrk_plot`'s synthetic ctx publishes the two series with the SAME functions the pipeline
+         uses (`compute_training_dense_metrics` / `validate_model` on the synthetic state); the probe `verify_analytics`
+         re-pinned (A1 the new `__all__`, A8 the `_down` clears FOUR fields, D4 the `.metrics` access). (5) THE DOCS —
+         hlp_analytics (the API row), hlp_plot (the `collect_plot_data` row + the assembly bullet + the "no local
+         forward pass" convention), wrk_analytics, wrk_plot, the two test mirrors (incl. a stale "13-level chain" -> 14)
+         and the overview rows. VERIFICATION: the full suite green (920/0/23), the 1e6 G0 bit-exact, `verify_analytics`
+         ALL CHECKS PASSED, the full probe sweep green. I-018 step 5 (the docs wave + the idea closure) follows.

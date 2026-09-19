@@ -78,12 +78,12 @@ def ws_lines(p):
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_analytics.py")
 dv_src = read("src/reversi/lm/hlp_analytics.py")
-check("A1 Worker named ANALYTICS + __all__ + the 4 public data names "
-      "(function-only module — no data class, no store/load; D-105/M2 "
-      "added compute_training_dense_metrics)",
+check("A1 Worker named ANALYTICS + __all__ + the public data names "
+      "(D-105/M2 added compute_training_dense_metrics; I-018 added the "
+      "TrainingDenseResult dataclass)",
       'Worker("ANALYTICS", _up, _down)' in wk_src
       and "__all__ = ['wrk_analytics']" in wk_src
-      and "__all__ = ['compute_training_metrics', 'compute_training_dense_metrics',\n"
+      and "__all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_dense_metrics',\n"
       "           'format_console_report', 'format_file_report']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
       "(all 12 sibling worker factories — the D-102 T1 pattern; "
@@ -113,12 +113,14 @@ check("A7 the worker writes the report to base_dir/<cfg.analytics."
       "report_file_name> and stores the console report on the context",
       'ctx.cfg.analytics.report_file_name' in wk_src
       and "ctx.analytics_report = console_report" in wk_src)
-check("A8 the _down scope clears exactly the THREE fields _up sets "
-      "(train_metrics, train_dense_metrics (D-105/M2) + analytics_report)",
-      wk_src.count("= None") == 3
+check("A8 the _down scope clears exactly the FOUR fields _up sets "
+      "(train_metrics, train_dense_metrics (D-105/M2) + analytics_report + "
+      "the I-018 train_dense_rn series)",
+      wk_src.count("= None") == 4
       and "ctx.analytics_report = None" in wk_src
       and "ctx.train_metrics = None" in wk_src
-      and "ctx.train_dense_metrics = None" in wk_src)
+      and "ctx.train_dense_metrics = None" in wk_src
+      and "ctx.train_dense_rn = None" in wk_src)
 check("A9 the worker uses NO cache_manager (ANALYTICS is pure compute — like "
       "FEATURES / ZED / GRADIENT / VALIDATE; the rlmwf_12 slot stays unused)",
       "cache_manager" not in wk_src and "cache_manager" not in dv_src)
@@ -435,7 +437,7 @@ def fake_dense_ctx(game_values, indexes, w_dense, offsets, n_instances):
 
 
 _dd = compute_training_dense_metrics(
-    fake_dense_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0], [0, 2], 2))
+    fake_dense_ctx([10, -10], [[0, 1], [1, 0]], [1.0, -1.0], [0, 2], 2)).metrics
 check("D4 the dense-pass metric math on the hand-computed 2-position case "
       "(D-105/M2): mae_y 10.0, rmse_y 10.0, loss 0.0030517578125, samples 2",
       _dd == {"train_dense_mae_y": 10.0, "train_dense_rmse_y": 10.0,

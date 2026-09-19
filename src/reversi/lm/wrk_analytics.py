@@ -52,7 +52,9 @@ def _up(ctx: "LMContext") -> None:
     #    pass — what lbfgs fit — and the dense pass, the shipped
     #    inference rules; D-105/M2)
     ctx.train_metrics = compute_training_metrics(ctx)
-    ctx.train_dense_metrics = compute_training_dense_metrics(ctx)
+    dense = compute_training_dense_metrics(ctx)
+    ctx.train_dense_metrics = dense.metrics
+    ctx.train_dense_rn = dense.rn_y
 
     # 2. Format the console report
     console_report = format_console_report(ctx)
@@ -77,6 +79,7 @@ def _down(ctx: "LMContext") -> None:
     ctx.analytics_report = None
     ctx.train_metrics = None
     ctx.train_dense_metrics = None
+    ctx.train_dense_rn = None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))

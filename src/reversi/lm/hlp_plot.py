@@ -52,7 +52,6 @@ from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
-from reversi.lm.hlp_gradient import sigmoid
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -162,33 +161,20 @@ class PlotData:
 
 def collect_plot_data(ctx: "LMContext") -> PlotData:
     """
-    Builds the PlotData from the pipeline context: the training
-    w_dense forward pass over ctx.hlp_indexes.indexes (the same
-    gather + row sum as hlp_analytics.compute_training_dense_metrics)
-    and the validation forward pass (the same formula as
-    hlp_validate.validate_model — the CLIENT_CHECK reference).
-    Stateless: nothing is stored on the context.
+    Assembles the PlotData from the series the pipeline already
+    computed — the dense training residuals published by ANALYTICS
+    (`ctx.train_dense_rn`) and the validation series published by
+    VALIDATE (`ctx.vld_y_pred` / `ctx.vld_rn`), with the game values
+    from POSITIONS / VLD_POSITIONS. No forward pass runs here (I-018):
+    the figures render what the pipeline measured, they do not
+    re-measure it.
     """
-    n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
-    col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
-
-    # Training: the dense pass (what the saved model actually computes).
-    dense_indices = ctx.hlp_indexes.indexes + col_offsets
-    linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)
-    y_pred_trn = ctx.z2y(sigmoid(linear_predictor))
-    y_true = ctx.game_values.astype(np.float64)
-    trn_rn = y_pred_trn.astype(np.float64) - y_true
-
-    # Validation: the VALIDATE forward pass (the in-memory reference).
-    vld_indexes = ctx.feature_set.compute_indexes(ctx.vld_positions)
-    dense_indices_v = vld_indexes + col_offsets
-    linear_predictor_v = np.sum(ctx.w_dense[dense_indices_v], axis=1)
-    vld_y_pred = ctx.z2y(sigmoid(linear_predictor_v)).astype(np.float64)
-    vld_gv = ctx.vld_game_values.astype(np.float64)
-    vld_rn = vld_y_pred - vld_gv
-
-    return PlotData(trn_y_true=y_true, trn_rn=trn_rn,
-                    vld_y_pred=vld_y_pred, vld_rn=vld_rn, vld_gv=vld_gv)
+    return PlotData(
+        trn_y_true=ctx.game_values.astype(np.float64),
+        trn_rn=ctx.train_dense_rn,
+        vld_y_pred=ctx.vld_y_pred,
+        vld_rn=ctx.vld_rn,
+        vld_gv=ctx.vld_game_values.astype(np.float64))
 
 
 def jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray:

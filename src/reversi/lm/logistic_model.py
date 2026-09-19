@@ -178,6 +178,9 @@ class LMContext(Context):
     # Analytic attributes:
     train_metrics: Any = None
     train_dense_metrics: Any = None
+    # The dense training residuals in Y (I-018): published by ANALYTICS
+    # so PLOT renders them instead of re-running the pass.
+    train_dense_rn: Any = None
     analytics_report: Any = None
     
     # Injected by StateMachine: the lambda defaults are the

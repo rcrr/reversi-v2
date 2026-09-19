@@ -9,7 +9,7 @@ complete file report with the per-feature tables).
 | name | contract |
 |---|---|
 | `compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`); ONE INFO log line |
-| `compute_training_dense_metrics(ctx)` | the DENSE forward pass → the 4-key `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
+| `compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `TrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series, I-018) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
 | `format_console_report(ctx)` | the 18-line header report, no date, no tables (the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
 | `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
