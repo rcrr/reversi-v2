@@ -29,11 +29,11 @@ level (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES), the SECOND ca
   `binio.verify_sha3_256_sidecar(filename)` first (mismatch → RuntimeError); then the header gate — wrong description →
   RuntimeError "The file is not a proper ...", wrong version → RuntimeError "The file version is not consistent, found
   ..., expected 1"; then `read_string` ×2 + `read_array` → a fresh object.
-- `hlp_indexes_compute`: `rds_checksum = ctx.rds_checksum`, `feature_set_hash = ctx.feature_set.hash`, `indexes =
-  ctx.feature_set.compute_indexes(ctx.positions)` (public FeatureSet API) → fresh object.
-- `hlp_indexes_is_cache_consistent`: `cached_feature_set_hash == ctx.feature_set.hash AND cached_rds_checksum ==
-  ctx.rds_checksum` — a PURE compare (no DB params, no recompute); the cache_manager `validate_fn` (a mismatch deletes +
-  recomputes).
+- `hlp_indexes_compute`: `rds_checksum = ctx.rds_checksum`, `feature_set_hash = ctx.feature_set.hash`,
+  `indexes = ctx.feature_set.compute_indexes(ctx.positions)` (public FeatureSet API) → fresh object.
+- `hlp_indexes_is_cache_consistent`:
+  `cached_feature_set_hash == ctx.feature_set.hash AND cached_rds_checksum == ctx.rds_checksum` — a PURE compare (no DB
+  params, no recompute); the cache_manager `validate_fn` (a mismatch deletes + recomputes).
 
 ## Verified invariants
 

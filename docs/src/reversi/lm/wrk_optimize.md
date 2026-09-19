@@ -2,10 +2,10 @@
 The OPTIMIZE worker — the pipeline's optimizer level. `_up` implements a 4-step recipe: (1) consult the existing
 checkpoint (if any) through the two hlp_optimize gates, deciding between completed-load, warm-resume and scratch; (2)
 build the two lbfgs wrappers (`logger_fn` → `ctx.log_event`, `save_fn` → intermediate INCOMPLETE checkpoints); (3) run
-`lbfgs` (opt_lbfgs) with the GRADIENT-level `ctx.fg` closure (float32 contract); (4) update the context (`w`, `opt_info`,
-`w_checksum`) and save the final checkpoint. The checkpoint is written on EVERY run (final save unconditional;
-intermediate only when `save_every_n > 0`) and read only when `checkpoint_path.exists() and ctx.use_cache` (a
-cache-disabled run still warms the checkpoint).
+`lbfgs` (opt_lbfgs) with the GRADIENT-level `ctx.fg` closure (float32 contract); (4) update the context (`w`,
+`opt_info`, `w_checksum`) and save the final checkpoint. The checkpoint is written on EVERY run (final save
+unconditional; intermediate only when `save_every_n > 0`) and read only when
+`checkpoint_path.exists() and ctx.use_cache` (a cache-disabled run still warms the checkpoint).
 
 ## API
 
@@ -29,9 +29,9 @@ cache-disabled run still warms the checkpoint).
     INCOMPLETE/non-converged checkpoint; `iters=k+1` — completed-count semantics, as the final save).
   - step 3 (L131-149): the `lbfgs` call: `fg=ctx.fg`, `x0=w_init`, the 5 config scalars, both wrappers, the 4 warm-start
     kwargs.
-  - step 4 (L151-176): `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`, `ctx.w_checksum =
-    weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict carries the 9 keys:
-    w/converged/reason/iters/f/g_norm/sl/yl/rho).
+  - step 4 (L151-176): `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
+    `ctx.w_checksum = weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict
+    carries the 9 keys: w/converged/reason/iters/f/g_norm/sl/yl/rho).
 - `_down` (L178-185): clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT (comment
   L181-183): it is the re-optimized WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that
   level recomputes.

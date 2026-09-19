@@ -39,8 +39,8 @@ The on-disk format (binio-framed): header `"RegabDataSet binary data file"` / ve
 - `regab_gp_as_df` (L271-355): double-decorated — `@_validate_with_db_context` FIRST (sets the ContextVar) then
   `@validate_call` (pydantic), so the DB-backed validators can read the connection from the ContextVar; builds the
   parametrized query (status strings are safe — pydantic enforces len=3, no quotes possible).
-- The DataFrame guard (L357-368): `_ensure_column_count_and_type` (3 columns, dtypes compared as the strings `'int64'`/`'int8'`)
-  + `DfMogvArgument`.
+- The DataFrame guard (L357-368): `_ensure_column_count_and_type` (3 columns, dtypes compared as the strings
+  `'int64'`/`'int8'`) + `DfMogvArgument`.
 - `RegabDataSet` (L370-435) + the module-level functions (L438-677): `regab_extract_data_set_from_db` (L438), the two
   pure helpers `regab_dedup_mogv` (L470) + `regab_count_position_overlap` (L498), `regab_load_data_set_from_file` (L533)
   and `regab_store_data_set_to_file` (L616). The two helpers are @validate_call-decorated but have NO DB access —

@@ -972,10 +972,10 @@ C source arrived): 2.9G → 16K (the closed-campaign artifacts removed — the o
 logs; nothing live referenced the scratch files). The detailed T1 plan is presented for Roberto's explicit OK (the
 standing workflow). No source files touched.
 
-D-157 | 2026-09-11 | I-017 T1 executed: the pipeline reordering — FEATURES (step 2) before POSITIONS (step 3), realizing
-         I-012. Roberto: "OK. Esegui T1." The adjacent transposition in the worker list (logistic_model.py) — nothing
-         else moves. Consequences (verified, the hub V3c re-pin): only the POSITIONS cache slot shifts (rlmwf_02 →
-         rlmwf_03; the file-less FEATURES takes the old step 2, INDEXES onward keep their slots) → the production
+D-157 | 2026-09-11 | I-017 T1 executed: the pipeline reordering — FEATURES (step 2) before POSITIONS (step 3),
+         realizing I-012. Roberto: "OK. Esegui T1." The adjacent transposition in the worker list (logistic_model.py) —
+         nothing else moves. Consequences (verified, the hub V3c re-pin): only the POSITIONS cache slot shifts (rlmwf_02
+         → rlmwf_03; the file-less FEATURES takes the old step 2, INDEXES onward keep their slots) → the production
          one-time cost is ONE DB extraction (the downstream checksum lineage survives); the model file is byte-identical
          (the config dump unchanged). The test surface: test_wrk_features is now DB-FREE (the setUp no longer moves
          through POSITIONS — the gate + the stale M1 comment removed, I-012 resolved); test_wrk_indexes setUp re-pinned

@@ -83,14 +83,15 @@ Square (uint8) Move (uint8, + 64=PA, 65=NA, 66=UN) \ / \ Bitboard (uint64, bit i
   are the strict dual: scalar or 1-D ndarray only, the mixed kind → TypeError, the standard 1-D guard + the same-shape
   check.
 - **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the two D8 batch transform fns, the 8 scalar
-  transform impls, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`, `_vectorized_position_hash`),
-  `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`, `flips_of_move`, both
-  `inline='always'`) are the single sources of the two geometries: the vectorized kernels call them per lane and the
-  numba compositions of the other modules (random_game's fused engine) call the same functions — the source is written
-  once, the compiler inlines the machine code at the call sites; `_kogge_stone_mm` is `@njit(inline='always')` (the
-  shared per-element flip primitive — the scalar path calls it); `_zobrist_position_fold` is `@njit(cache=True)` (the
-  shared per-element hash primitive — the scalar path calls it); `@overload` on the 4 reflection primitives so JIT code
-  can call them (registered on the pydantic-wrapped names — verified resolvable in a JIT context).
+  transform impls, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`,
+  `_vectorized_position_hash`), `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`,
+  `flips_of_move`, both `inline='always'`) are the single sources of the two geometries: the vectorized kernels call
+  them per lane and the numba compositions of the other modules (random_game's fused engine) call the same functions —
+  the source is written once, the compiler inlines the machine code at the call sites; `_kogge_stone_mm` is
+  `@njit(inline='always')` (the shared per-element flip primitive — the scalar path calls it); `_zobrist_position_fold`
+  is `@njit(cache=True)` (the shared per-element hash primitive — the scalar path calls it); `@overload` on the 4
+  reflection primitives so JIT code can call them (registered on the pydantic-wrapped names — verified resolvable in a
+  JIT context).
 - **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on every public function; `Annotated` +
   `BeforeValidator` enforce the dtypes; `SkipValidation` on `PositionField` (the np.void scalar).
 - **Zero-copy discipline** — `make_position` allocates a fresh interleaved (…,2) block, copies the inputs in (never
@@ -128,8 +129,8 @@ Square (uint8) Move (uint8, + 64=PA, 65=NA, 66=UN) \ / \ Bitboard (uint64, bit i
   the PASS swap + bulk + the array bulk/fuzz parity + the array pass batch + guards), `TestPositionMakeMove` (incl. the
   PA swap, None on illegal, the array batch + fuzz parity + guards).
 - The empty-square equivalence: an empty square is legal exactly when it flips something (the flip kernel and the
-  legal-moves kernel share the geometry); an occupied square is never legal — `test_board::TestPositionFlips::
-  test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
+  legal-moves kernel share the geometry); an occupied square is never legal —
+  `test_board::TestPositionFlips:: test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
 - The collision invariant (mover & opponent = 0) — `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
 - `make_position` copy-then-view (inputs never aliased) — `test_board::TestPositionCreation`.
 - The standard start (mover {E4, D5}, opponent {D4, E5}; the Position dtype + the Bitboard field types) —

@@ -12,10 +12,10 @@ I-003 | idea | Named move constants (`MOVE_PASS` = 64, `MOVE_NOT_AVAILABLE` = 65
          (issue R3 in docs/src/reversi/board.md).
 
 I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3): no way to map a
-         column of the (N, I) index matrix to the feature name producing it (unlike `MobilitySet.names` / `.masks`,
-         D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — `wrk_feature_analysis` re-derives
-         the mapping locally (the (name, col_start, col_end) blocks built from `feature_set.features`); each pattern
-         occupies `n_instances` D8-instance columns, so the helper must be instance-aware.
+         column of the (N, I) index matrix to the feature name producing it (unlike `MobilitySet.names` /
+         `.masks`, D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — `wrk_feature_analysis`
+         re-derives the mapping locally (the (name, col_start, col_end) blocks built from `feature_set.features`); each
+         pattern occupies `n_instances` D8-instance columns, so the helper must be instance-aware.
 
 I-009 | follow-up | Pipeline construction boilerplate (raised 2026-08-29, session 19, R3 discussion): Roberto notes his
          pipeline client carries a bit of boilerplate in the model construction (worker / context / machine wiring).
@@ -43,9 +43,9 @@ I-018 | idea | The top-20 outlier report belongs in VALIDATE, and the 20 records
          2026-09-11, Roberto: "li salviamo anche nel context questi 20 records? ... sarebbe giusto che questo LOG fosse
          fatto in VALIDATE ... ma meglio in validate"). PARKED (Roberto's call, D-189). The D-150 top-20 extreme-outlier
          report currently lives in PLOT, but the per-position validation residuals are COMPUTED in VALIDATE and
-         `collect_plot_data` re-runs the SAME forward pass statelessly. Proposal: (1) VALIDATE selects the top-20 by
-         |residual| (a cheap vectorized argsort) and LOGS the report there; (2) the 20 records (position bitboards, the
-         true game value, the fitted value, the residual) are persisted in a NEW pre-declared ctx field (the D-099
+         `collect_plot_data` re-runs the SAME forward pass statelessly. Proposal: (1) VALIDATE selects the top-20
+         by |residual| (a cheap vectorized argsort) and LOGS the report there; (2) the 20 records (position bitboards,
+         the true game value, the fitted value, the residual) are persisted in a NEW pre-declared ctx field (the D-099
          idiom, e.g. `ctx.vld_outliers`) — deterministic + testable (the D-150 outlier test moves from `test_wrk_plot`
          to `test_wrk_validate`), consumable by PLOT (no duplicated derivation) and by future levels; (3) PLOT becomes a
          pure rendering level again. Consequences: the chain logs change (the report lines move from step 16 to 12) —

@@ -18,8 +18,8 @@ Y-space metrics (`vld_mae_y`, `vld_mse_y`, `vld_rmse_y` — the predictions mapp
 
 - `validate_model` (L46-152): the long docstring (L47-104) explains the Z-space metric semantics (MAE / MSE / RMSE; the
   RMSE/MAE = sqrt(π/2) = 1.253 normal-distribution indicator — the rlm_02 live ratio is 1.27). The body:
-  - `vld_indexes = ctx.feature_set.compute_indexes(vld_positions)` (L110, the SAME feature_set as training) + `vld_M, _
-    = vld_indexes.shape` (L111 — the underscore unpack).
+  - `vld_indexes = ctx.feature_set.compute_indexes(vld_positions)` (L110, the SAME feature_set as training) +
+    `vld_M, _ = vld_indexes.shape` (L111 — the underscore unpack).
   - The dense mapping (L115-119): `col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)` then
     `dense_indices = vld_indexes + col_offsets` (the fancy-index idiom — contrast hlp_generate's per-feature loop, both
     valid) and `linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)` (L123).

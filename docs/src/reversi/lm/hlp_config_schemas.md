@@ -1,7 +1,7 @@
 # reversi/lm/hlp_config_schemas.py
 The pydantic config DOMAIN of the LM pipeline: one public entry, `LMConfig`, over a tree of nested configs — the JSON5
-document that wrk_config loads and validates. Every nested config extends `LMBaseConfig`, whose `properties: dict[str,
-Any]` bag (default `{}`) is a free-form extension point.
+document that wrk_config loads and validates. Every nested config extends `LMBaseConfig`, whose
+`properties: dict[str, Any]` bag (default `{}`) is a free-form extension point.
 
 ## API
 

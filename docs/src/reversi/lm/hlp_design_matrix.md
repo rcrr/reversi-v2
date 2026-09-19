@@ -18,21 +18,21 @@ each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) 
 
 - `LMDesignMatrix.__init__` is `@validate_call(arbitrary_types_allowed)`; `compute_sha3_256_hash` (validated) = sha3_256
   over `X.tobytes()` ONLY (the single data array — the duck-typed data-checksum hook).
-- `hlp_design_matrix_store_to_file` (validated): `filename: str | Path` → Path; `binio.BinaryWriter` — `write_header
-  ("LMDesignMatrix binary data file", 1)`, `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`. The writer runs
-  with `compressed=True` by default (as in model_weights) — the LZ4 whole-file frame; the sidecar is written by the
-  binio writer (cache_manager re-writes it idempotently in the pipeline flow).
+- `hlp_design_matrix_store_to_file` (validated): `filename: str | Path` → Path; `binio.BinaryWriter` —
+  `write_header ("LMDesignMatrix binary data file", 1)`, `write_string(dm.wmaps_obj_checksum)`, `write_array(dm.X)`. The
+  writer runs with `compressed=True` by default (as in model_weights) — the LZ4 whole-file frame; the sidecar is written
+  by the binio writer (cache_manager re-writes it idempotently in the pipeline flow).
 - `hlp_design_matrix_load_from_file` (validated): `compressed=True` → the LZ4 frame guard + decompress (a non-frame file
   → the binio BinaryFormatError — the self-healing delete+recompute path); `checksum=True` →
   `binio.verify_sha3_256_sidecar` first (mismatch → RuntimeError "The checksum file signature doesn't match..."); the
   header gate (wrong description / wrong version → the 2 RuntimeError messages); `read_string` + `read_array` → a fresh
   object.
-- `hlp_design_matrix_compute`: `pindexes = ctx.hlp_indexes.indexes`; `col_offsets = np.repeat
-  (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`; `pindexes_with_offsets = pindexes + col_offsets`; the
-  SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)` → ValueError "It should never happen, pindexes is
-  referring an invalid value."; `X = np.empty(pindexes.shape, uint32)` filled by `np.take(ctx.iwmap.astype(np.uint32),
-  pindexes_with_offsets, out=X)` — the explicit source cast (the L125-128 note, see Conventions). Returns the object
-  with `ctx.wmaps_obj_checksum`.
+- `hlp_design_matrix_compute`: `pindexes = ctx.hlp_indexes.indexes`;
+  `col_offsets = np.repeat (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
+  `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)`
+  → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, uint32)`
+  filled by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)` — the explicit source cast (the
+  L125-128 note, see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
 - `hlp_design_matrix_is_cache_consistent`: `dm. wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
   fields and INDEXES's 3).

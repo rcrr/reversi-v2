@@ -28,10 +28,11 @@ positions without the database, the cache, or most of the pipeline state.
   `logit_clipping` (f32); 3. training population stats — `count` (u64) + `mean`/`std_dev`/`variance` (f32 each — the
   float64 stats are TRUNCATED by the format); 4. optimization info — 4 of the 5 context keys: `reason` (string), `iters`
   (u32), `f` (f32), `g_norm` (f32); `converged` is NOT persisted (derivable from `reason == 'CONVERGED_*'`); 5.
-  validation metrics — 4 of the 7: `vld_samples` (u32), `vld_rmse_y`/`vld_mae_y`/`vld_loss` (f32); `vld_mse_z`/`vld_mae_z`/`vld_mse_y`
-  are NOT persisted; 6. FeatureSet — `name` + `intercept` flag (u8); 7. MobilitySet — presence flag (u8) + `name` +
-  count (u32) + per mobility `name`/`mask` (u64)/`amask` (u64); 8. PatternSet — presence flag (u8) + `name` + count
-  (u32) + per pattern `name`/`mask` (u64); 9. `iwmap_feature_offset` (write_array u32) + `w_dense` (write_array f32).
+  validation metrics — 4 of the 7: `vld_samples` (u32), `vld_rmse_y`/`vld_mae_y`/`vld_loss` (f32);
+  `vld_mse_z`/`vld_mae_z`/`vld_mse_y` are NOT persisted; 6. FeatureSet — `name` + `intercept` flag (u8); 7. MobilitySet
+  — presence flag (u8) + `name` + count (u32) + per mobility `name`/`mask` (u64)/`amask` (u64); 8. PatternSet — presence
+  flag (u8) + `name` + count (u32) + per pattern `name`/`mask` (u64); 9. `iwmap_feature_offset` (write_array u32) +
+  `w_dense` (write_array f32).
 - `model_weights_read_file` (L160-276): the guards (L169-172 — version `not in (1, 2)` raises, the v1 files stay
   readable, the backward-compat the v2 spec required), then the v2-only config provenance read + sentinel (L175-189),
   then the mirror read — reconstructing `Mobility`/`Pattern` objects (the `int(m.mask)` / `int(m.amask)` conversions
@@ -50,9 +51,9 @@ census is in wrk_save.md) + the full-chain suite.
   `[0, 1, 66, 6627]` u32, `w_dense` (6627,) f32 sha3 `7ecdeba66d9f34b9396e199dd4a5933196131db497ff88fce726bcd75f1f4f37`
   (== the live `ctx.w_dense` tobytes hash) — suite A2030.
 - rlm_03 (13 features, K=167331): `feature_set.hash` `2c8bb32b40eff2c1e22b992e56b8d60fb51c17afb81d48f9414aef46c349e43d`,
-  the 14-entry boundary `[0, 1, 66, 59115, 118164, 124725, 144408, 150969, 151050, 157611, 157854, 158583, 160770,
-  167331]`, `w_dense` (167331,) f32 sha3 `a012689f70ef8a492ce0fbf374a49e79e62f758a83fce94540a459bd28b527fc` — suite
-  A2050 (VLONG).
+  the 14-entry boundary
+  `[0, 1, 66, 59115, 118164, 124725, 144408, 150969, 151050, 157611, 157854, 158583, 160770, 167331]`, `w_dense`
+  (167331,) f32 sha3 `a012689f70ef8a492ce0fbf374a49e79e62f758a83fce94540a459bd28b527fc` — suite A2050 (VLONG).
 - The f32-truncated vld metrics round-trip to values whose float64 views EQUAL the original context values (they are
   f32-representable); the tps stats are NOT (true float64 truncations — rlm_04 mean −1.3912930396334753 → f32
   −1.3912930488586426, pinned as DISTINCT values).

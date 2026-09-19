@@ -18,10 +18,10 @@ production models (the `A2xxx` family) plug into.
 
 - Imports (L28-40): numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
-- `_prepare_weights` (L47-66): the closure setup shared by BOTH factories: `offsets = mw.iwmap_feature_offset`, `z2y =
-  zed_fun_factory(mw.logit_clipping)` (only the z→y half — the client never transforms observations), `expanded_offsets
-  = np.repeat(offsets[:-1], n_instances_per_feature)` (the per-INSTANCE w_dense start offsets: each feature's start
-  repeated n_instances times — e.g. EDGE's start, 4 times for its 4 instances).
+- `_prepare_weights` (L47-66): the closure setup shared by BOTH factories: `offsets = mw.iwmap_feature_offset`,
+  `z2y = zed_fun_factory(mw.logit_clipping)` (only the z→y half — the client never transforms observations),
+  `expanded_offsets = np.repeat(offsets[:-1], n_instances_per_feature)` (the per-INSTANCE w_dense start offsets: each
+  feature's start repeated n_instances times — e.g. EDGE's start, 4 times for its 4 instances).
 - `make_evaluation_function` (L69-93): `ef(p)` — 1. `indexes = mw.feature_set.compute_indexes(np.array([p]))[0]` (the
   length-1 batch wrap, one index per feature INSTANCE); 2. `weights = mw.w_dense[expanded_offsets + indexes]`; 3.
   `z_pred = sigmoid(np.sum(weights))`; 4. `y_pred = z2y(np.array([z_pred], dtype=np.float32))[0]`, returned as a Python

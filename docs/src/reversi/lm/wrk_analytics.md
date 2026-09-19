@@ -19,10 +19,10 @@ context attributes `ctx.train_metrics` (the 7-key dict), `ctx.train_dense_metric
 
 - Imports (L28-38): pydantic (L30), `Worker, Relevance` (L34), the 4 public data functions from hlp_analytics (L35-37),
   `LMContext` under TYPE_CHECKING (L37-38). NO `reversi.tools.cache_manager` import (by design).
-- `_up` (L48-73): `log_event(INFO, "Generating model analytics report...")` (L49); `ctx.train_metrics =
-  compute_training_metrics(ctx)` (L54 — pre-declared on LMContext L155); `ctx.train_dense_metrics =
-  compute_training_dense_metrics(ctx)` (L55 — pre-declared on LMContext L156); `console_report =
-  format_console_report(ctx)` (L58); the 17 header lines logged line by line (L61-62);
+- `_up` (L48-73): `log_event(INFO, "Generating model analytics report...")` (L49);
+  `ctx.train_metrics = compute_training_metrics(ctx)` (L54 — pre-declared on LMContext L155);
+  `ctx.train_dense_metrics = compute_training_dense_metrics(ctx)` (L55 — pre-declared on LMContext L156);
+  `console_report = format_console_report(ctx)` (L58); the 17 header lines logged line by line (L61-62);
   `file_report = format_file_report(ctx)` (L65) written to `ctx.cfg.base_dir / ctx.cfg.analytics.report_file_name`
   (L66-69); `log_event(INFO, "Analytics report saved to ...")` (L71); publishes `ctx.analytics_report = console_report`
   (L73, "Store in context if needed by the SAVE worker later").

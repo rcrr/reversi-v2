@@ -876,25 +876,25 @@ D-074 | 2026-08-30 | logistic_model fix campaign batch 1 (session 21, Roberto: "
          IsADirectoryError; no `for_next_level` reference left in src/. Suite 5/0/0 GREEN (test_logistic_model —
          untouched); full discover 473 tests, 52 skipped under the gate, GREEN.
 D-075 | 2026-08-30 | logistic_model fix campaign batch 2 (session 21, Roberto: "M5: rimuovi. base_model M1: aggiungi.
-         T1-T6: procedi"): M5 FIXED — the dead `field` import removed from logistic_model L30 (`from dataclasses import
-         dataclass`); base_model M1 FIXED — `__all__ = ['BaseModel']` added (L39, the D-068 M1 pattern; the module is 89
-         lines). TEST campaign (test_logistic_model.py, 156 -> 294 lines, 5 -> 13 active tests, 2 muted unchanged): T1
-         FIXED — test_facade_methods_exist (the overpromising try/except smoke test) replaced by
-         test_facade_delegates_to_state_machine (per-method patch.object(self.model.sm, ...) + assert_called_once_with
-         pins for show_event_log, show_history_of_moves, move_to_step with BOTH an int and a name string, move_to_last,
-         export_history_of_moves_as_csv) and test_facade_views_and_verbosity_round_trip (the 3 read-only views mirror
-         model.sm; the verbosity property round-trips HIGH -> visible on the SM -> restored STANDARD); T2 FIXED —
-         the D-065 idiom as in test_cache_manager (module-level CUSTOM_TMP_BASE = Path(__file__).resolve().parents[3] /
-         "build" / "tmp" + setUpClass mkdir + tempfile.TemporaryDirectory(dir=...) created FIRST in setUp so a mid-setup
-         failure still leaves a cleanable temp_dir + defensive tearDown that stops only the patchers that exist); T3
-         unchanged (intentional — the 2 muted tests come back "una riga alla volta" with the pipeline; report-only); T4
-         FIXED — 7 corner tests: the injected closures' __name__s (_get_cache_file_path / _get_cache_file_full_path — a
-         pin that would have caught R1) + log_event bound-method identity, the bare-context no-op-lambda fallback
-         (helpers return None), the path computation through a dummy cfg (SimpleNamespace: cache/00_CREATED.dat,
-         base/cache/00_CREATED.dat — the D-069 M8 pathlib join, restored via addCleanup), both sentinel RuntimeError
-         messages (D-059 explicit sentinel), both helpers' edge branches (int -> TypeError, missing ->
-         FileNotFoundError, dir -> IsADirectoryError post M3/D-074, file -> NotADirectoryError), the CSV pass-through
-         (header-only file under the build/tmp artifact dir, header pinned to
+         T1-T6: procedi"): M5 FIXED — the dead `field` import removed from logistic_model L30
+         (`from dataclasses import dataclass`); base_model M1 FIXED — `__all__ = ['BaseModel']` added (L39, the D-068 M1
+         pattern; the module is 89 lines). TEST campaign (test_logistic_model.py, 156 -> 294 lines, 5 -> 13 active
+         tests, 2 muted unchanged): T1 FIXED — test_facade_methods_exist (the overpromising try/except smoke test)
+         replaced by test_facade_delegates_to_state_machine (per-method patch.object(self.model.sm, ...) +
+         assert_called_once_with pins for show_event_log, show_history_of_moves, move_to_step with BOTH an int and a
+         name string, move_to_last, export_history_of_moves_as_csv) and test_facade_views_and_verbosity_round_trip (the
+         3 read-only views mirror model.sm; the verbosity property round-trips HIGH -> visible on the SM -> restored
+         STANDARD); T2 FIXED — the D-065 idiom as in test_cache_manager (module-level CUSTOM_TMP_BASE =
+         Path(__file__).resolve().parents[3] / "build" / "tmp" + setUpClass mkdir + tempfile.TemporaryDirectory(dir=...)
+         created FIRST in setUp so a mid-setup failure still leaves a cleanable temp_dir + defensive tearDown that stops
+         only the patchers that exist); T3 unchanged (intentional — the 2 muted tests come back "una riga alla volta"
+         with the pipeline; report-only); T4 FIXED — 7 corner tests: the injected closures' __name__s
+         (_get_cache_file_path / _get_cache_file_full_path — a pin that would have caught R1) + log_event bound-method
+         identity, the bare-context no-op-lambda fallback (helpers return None), the path computation through a dummy
+         cfg (SimpleNamespace: cache/00_CREATED.dat, base/cache/00_CREATED.dat — the D-069 M8 pathlib join, restored via
+         addCleanup), both sentinel RuntimeError messages (D-059 explicit sentinel), both helpers' edge branches (int ->
+         TypeError, missing -> FileNotFoundError, dir -> IsADirectoryError post M3/D-074, file -> NotADirectoryError),
+         the CSV pass-through (header-only file under the build/tmp artifact dir, header pinned to
          step,worker_name,direction,start_utc,finish_utc,duration_sec); T5 FIXED — the dead Relevance import removed
          (the top-level import now also pulls the 4 private helpers for T4); T6 unchanged (header grammar, report-only).
          Suite 13/0/0 GREEN (test_logistic_model); full discover 473 -> 481 tests, 52 skipped under the gate, GREEN;
@@ -910,13 +910,13 @@ D-076 | 2026-08-30 | RLM pipeline enablement + two root-cause fixes (session 21,
          cache files"), so the physical file is flat `base_dir/rlmwf_01_CONFIG.dat`; the old code path-joined
          `Path(prefix) / level_name`, treating `rlmwf_` as a directory component (base_dir/rlmwf_/01_CONFIG.dat) →
          FileNotFoundError (ENOENT) on first write — Roberto's suspected "problema con i nomi della CACHE" confirmed.
-         Now: `level_name = ctx.get_cache_file_path_for_current_level(). name`, `cache_file_path = cfg.base_dir /
-         f"{prefix} {level_name}"`. (3) state_machine move_to_step: the gate wrapped BOTH the gate and the execution in
-         one try/except ValidationError, so domain pydantic ValidationErrors (invalid config data / base_dir problems
-         raised inside the CONFIG worker) were converted to the gate's pinned TypeError — structurally separated into
-         `_validate_target_step` (strict @validate_call, int | str, name resolution, bounds) +
-         `_execute_move(target_index)`; the gate's pinned behaviour is byte-identical (bool / float / np.int64 →
-         TypeError, unknown name → ValueError "Worker 'X' not found in the pipeline.", out of bounds → IndexError
+         Now: `level_name = ctx.get_cache_file_path_for_current_level(). name`,
+         `cache_file_path = cfg.base_dir / f"{prefix} {level_name}"`. (3) state_machine move_to_step: the gate wrapped
+         BOTH the gate and the execution in one try/except ValidationError, so domain pydantic ValidationErrors (invalid
+         config data / base_dir problems raised inside the CONFIG worker) were converted to the gate's pinned TypeError
+         — structurally separated into `_validate_target_step` (strict @validate_call, int | str, name resolution,
+         bounds) + `_execute_move(target_index)`; the gate's pinned behaviour is byte-identical (bool / float / np.int64
+         → TypeError, unknown name → ValueError "Worker 'X' not found in the pipeline.", out of bounds → IndexError
          "Target step N is out of bounds."), domain errors propagate to the orchestrator (D-060). The first fix attempt
          (loc-based gate discrimination) FAILED: pydantic union errors use positional locs (1.int / 1.str), so loc-based
          discrimination of gate vs. domain errors is impossible. (4) test_lm_worker_config.py (Roberto's new file, D-076
@@ -1160,16 +1160,16 @@ D-084 | 2026-08-31 | INDEXES fix campaign (session 23, Roberto: "Sì fai tutto, 
          BeforeValidator, AfterValidator, Field) — the import block is now hashlib / TYPE_CHECKING / validate_call +
          ConfigDict / Path / binio / IndexArray / the TYPE_CHECKING RLMContext. M2 FIXED: the class docstring typo
          "togheter" → "together". M3 FIXED: the 4 non-comment trailing-whitespace lines stripped (license-header `# `
-         lines stay, D-078 M3 scope). M4 FIXED: the version gate compares the variable — `if version !=
-         expected_version:` (L150). M5 left as-is (by design, documented in the source L166: the RLMContext annotation
-         cannot be resolved by pydantic without a real import; the import is deliberately under TYPE_CHECKING; the house
-         convention already has sanctioned deviations, cf. the D-069 M11 gate functions). M6 FIXED (optional, applied):
-         __repr__ added to ReversiLogisticModelIndexes (L84-91, @validate_call — house style as in pattern.py /
-         mobility.py): ReversiLogisticModelIndexes(rds_checksum='...', feature_set_hash='...', indexes=(N, 16)). File
-         now 190 lines (180 at arrival); 5 @validate_call decorators (the 5th is __repr__). lm_worker_indexes M1-M3
-         FIXED. M1 FIXED: @validate_call(config=ConfigDict (arbitrary_types_allowed=True)) on the factory (L77) + the
-         `from pydantic import validate_call, ConfigDict` import (L32) — the D-080 M1 / D-082 M1 pattern. M2 FIXED: the
-         2 non-comment trailing-whitespace lines stripped. M3 FIXED: load_fn = lambda path:
+         lines stay, D-078 M3 scope). M4 FIXED: the version gate compares the variable —
+         `if version != expected_version:` (L150). M5 left as-is (by design, documented in the source L166: the
+         RLMContext annotation cannot be resolved by pydantic without a real import; the import is deliberately under
+         TYPE_CHECKING; the house convention already has sanctioned deviations, cf. the D-069 M11 gate functions). M6
+         FIXED (optional, applied): __repr__ added to ReversiLogisticModelIndexes (L84-91, @validate_call — house style
+         as in pattern.py / mobility.py): ReversiLogisticModelIndexes(rds_checksum='...', feature_set_hash='...',
+         indexes=(N, 16)). File now 190 lines (180 at arrival); 5 @validate_call decorators (the 5th is __repr__).
+         lm_worker_indexes M1-M3 FIXED. M1 FIXED: @validate_call(config=ConfigDict (arbitrary_types_allowed=True)) on
+         the factory (L77) + the `from pydantic import validate_call, ConfigDict` import (L32) — the D-080 M1 / D-082 M1
+         pattern. M2 FIXED: the 2 non-comment trailing-whitespace lines stripped. M3 FIXED: load_fn = lambda path:
          rlm_indexes_load_from_file(path, checksum=False) (L57) — the redundant sidecar re-verification is gone, the
          same shape as POSITIONS' D-080 M4 fix. File now 80 lines (77 at arrival). test_rlm_indexes T1-T5 + M1-M2 FIXED,
          13 → 14 tests. T1 FIXED: the dead `from twolm. pattern import IndexArray` import removed. T2 FIXED: header

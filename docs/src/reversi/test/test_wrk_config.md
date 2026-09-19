@@ -17,7 +17,8 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 - The no-cache state: the base dir holds NO `rlmwf_*` file after `move_to_step('CONFIG')` (the configuration provenance
   is EMBEDDED in the model file at SAVE).
 - The invalid-case payloads (one constraint each over the schema-complete payload — `ec=10`, `status ["CMS"]`, the
-  `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern): `ec=99`, `status=["INVALID"]`, `mask="ZZZZZZZZZZZZZZZZ"`.
+  `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern): `ec=99`, `status=["INVALID"]`,
+  `mask="ZZZZZZZZZZZZZZZZ"`.
 - The gate messages: "not a directory", "not writable", "doesn't exist" (assertIn on the exception text, lower-case
   where noted).
 - The properties-bag values from `rlm_00.json`: `number == 7`, `string == 'A string'`, `is_on is False`, missing key →

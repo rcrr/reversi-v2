@@ -65,10 +65,10 @@ None.
 
 ## Integration
 
-- Pipeline ordering: `ctx.game_values` (POSITIONS — the (N,) int8 vector, values in [−64, +64]) + `ctx.cfg.stat_model.
-  logit_clipping` (CONFIG) must be set before `hlp_zed_compute` runs — the SM half-open interval semantics guarantee
-  every up-move to step 7 passes through both. No other upstream dependency (the FEATURES/INDEXES/WMAPS/DESIGN_MTR
-  outputs are NOT consumed by ZED).
+- Pipeline ordering: `ctx.game_values` (POSITIONS — the (N,) int8 vector, values in [−64, +64]) +
+  `ctx.cfg.stat_model. logit_clipping` (CONFIG) must be set before `hlp_zed_compute` runs — the SM half-open interval
+  semantics guarantee every up-move to step 7 passes through both. No other upstream dependency (the
+  FEATURES/INDEXES/WMAPS/DESIGN_MTR outputs are NOT consumed by ZED).
 - The worker recomputes on EVERY up-move (no cache file, no `is_allowed` switch — the uniform 7-kwargs cache_manager
   wiring is absent by design, the first deviation from the house pattern).
 - `zed_checksum` is a pure data checksum (sha3_256 over `z.tobytes()`) with no sidecar (nothing to sidecar — no file);

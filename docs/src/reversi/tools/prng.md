@@ -7,9 +7,9 @@ reproducible stream of 64-bit values. The state is a 312-word (64-bit) array; a 
 recurrence mixing the 312 words) and then TEMPERS the output word with a 4-operation bitwise mix. The period is
 2^19937 - 1, so a single seed defines the whole stream.
 
-The module exposes ONE public class, MT19937, plus the two numba pick kernels (`__all__ = ['MT19937',
-'pick_one_from_set64', 'pick_one_from_set64_batch']`). The STREAM state is fully INTERNAL: it is never exposed, and a
-generator is neither saved nor re-seeded.
+The module exposes ONE public class, MT19937, plus the two numba pick kernels
+(`__all__ = ['MT19937', 'pick_one_from_set64', 'pick_one_from_set64_batch']`). The STREAM state is fully INTERNAL: it is
+never exposed, and a generator is neither saved nor re-seeded.
 
 Typing: every 64-bit value in the data path is a numpy uint64 — the type itself applies the unsigned-wraparound contract
 (arithmetic overflows modulo 2^64; no unbounded Python ints, no manual masking). Loop counters are plain ints (control

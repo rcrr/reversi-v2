@@ -14,12 +14,13 @@ follow. It writes NO cache file; the configuration provenance is EMBEDDED in the
 ## Architecture
 
 - `_up`: log → `_load` → `_validate` → INFO (name/description/ base_dir) → `ctx.use_cache = cfg.use_cache` →
-  `ctx.cfg = cfg` → the fingerprint: `ctx.config_checksum =
-  hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()` (the normalized dump is the EFFECTIVE
-  configuration of the run — the base_dir override included, pydantic defaults resolved — and this is the single source
-  of truth for the EMBEDDED model-file config provenance and the analytics report line) → the INFO log of the hex.
-- `_down`: the ERROR "Clearing configuration..." → `ctx.cfg = None`, `ctx.use_cache = None`, `ctx.config_checksum =
-  None`.
+  `ctx.cfg = cfg` → the fingerprint:
+  `ctx.config_checksum = hashlib.sha3_256(cfg.model_dump_json(indent=4).encode()).hexdigest()` (the normalized dump is
+  the EFFECTIVE configuration of the run — the base_dir override included, pydantic defaults resolved — and this is the
+  single source of truth for the EMBEDDED model-file config provenance and the analytics report line) → the INFO log of
+  the hex.
+- `_down`: the ERROR "Clearing configuration..." → `ctx.cfg = None`, `ctx.use_cache = None`,
+  `ctx.config_checksum = None`.
 - `_load`: `json5.load` (UTF-8) of `ctx.config_file_path` with the DEBUG log of the path; an optional
   `ctx.base_dir_override` is applied to the raw dict before `LMConfig(**raw)`.
 - `_validate` → `_validate_base_dir`: three gates with the precise OS exception types, each logged at ERROR before the

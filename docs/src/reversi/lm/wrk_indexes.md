@@ -14,11 +14,12 @@ sidecar DO materialize.
 
 - `_up`: INFO "Computing indexes for the feature set..." → `cache_manager_load_or_compute(...)` with the full 7-kwargs
   wiring: `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the injected machine closure — flat
-  `rlmwf_04_INDEXES.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch), `load_fn = lambda path:
-  hlp_indexes_load_from_file(path, checksum=False)` (the sidecar was already verified by cache_manager, no redundant
-  re-check), `store_fn = hlp_indexes_store_to_file`, `validate_fn = lambda cached: hlp_indexes_is_cache_consistent(ctx,
-  cached)` (the 2-field metadata compare), `compute_fn = lambda: hlp_indexes_compute (ctx)`, `logger_fn = ctx.log_event`.
-  Then the INFO "Model attribute hlp_indexes has been set." + `ctx.hlp_indexes = hlp_indexes` + the INFO checksum line +
+  `rlmwf_04_INDEXES.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch),
+  `load_fn = lambda path: hlp_indexes_load_from_file(path, checksum=False)` (the sidecar was already verified by
+  cache_manager, no redundant re-check), `store_fn = hlp_indexes_store_to_file`,
+  `validate_fn = lambda cached: hlp_indexes_is_cache_consistent(ctx, cached)` (the 2-field metadata compare),
+  `compute_fn = lambda: hlp_indexes_compute (ctx)`, `logger_fn = ctx.log_event`. Then the INFO "Model attribute
+  hlp_indexes has been set." + `ctx.hlp_indexes = hlp_indexes` + the INFO checksum line +
   `ctx.hlp_indexes_checksum = hlp_indexes_checksum` (the cache_manager 3rd return element — the DATA checksum).
 - `_down`: INFO "Clearing hlp_indexes..." → BOTH `ctx.hlp_indexes` and `ctx.hlp_indexes_checksum` set to None.
 

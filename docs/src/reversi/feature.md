@@ -26,8 +26,8 @@ matrix a feature-table evaluation consumes).
   the mset hash hex string (if present) + the pset hash hex string (if present) — the child HASH values (transitively
   their sorted mask contents), not raw masks; the set name is NOT part of the hash.
 - `print_summary` (validated): writes to an IO object (default stdout) — header line (name, length, hash), intercept
-  present/None, per-set name+hash lines, then one line per feature `{i:02d} {category} {name:10s} {n_instances}
-  {n_configurations:10,d}`.
+  present/None, per-set name+hash lines, then one line per feature
+  `{i:02d} {category} {name:10s} {n_instances} {n_configurations:10,d}`.
 - `compute_indexes(positions) -> IndexArray` (validated): the `(N, I)` uint32 matrix, `I` = the summed `n_instances` —
   column 0 = the intercept (constant 0) if present, then the `mset.compute_indexes` block, then the
   `pset.compute_principal_indexes` block (each pattern expanded into its `n_instances` columns in its unique-mask

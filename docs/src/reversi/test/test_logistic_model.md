@@ -16,8 +16,8 @@ The logistic-model unit suite — 1 class / 17 tests, no PERF gates, ~0.15 s, no
   cleanable `temp_dir`).
 - `patch('reversi.lm.logistic_model.wrk_config', ...)` + the same for `wrk_positions`: the factories are replaced in the
   MODULE namespace, so the uncommented worker-list entries pick up the dummy workers.
-- One shared `LogisticModel` built in setUp (the tests are non-mutating; the one mutating test restores via `addCleanup`);
-  `tearDown` (L112) is defensive against mid-setup failures.
+- One shared `LogisticModel` built in setUp (the tests are non-mutating; the one mutating test restores via
+  `addCleanup`); `tearDown` (L112) is defensive against mid-setup failures.
 
 ## Goldens pinned
 

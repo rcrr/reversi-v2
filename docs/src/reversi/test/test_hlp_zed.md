@@ -1,7 +1,7 @@
 # reversi/test/test_hlp_zed.py
 The dedicated data-object suite of the hlp_zed module. 3 classes / 10 tests / no DB, no gate — the file is fully
-offline: the module has no file I/O and no LMContext beyond the two attributes `hlp_zed_compute` reads, so no `tempfile`,
-no `reversi.test.paths`, no `import os`.
+offline: the module has no file I/O and no LMContext beyond the two attributes `hlp_zed_compute` reads, so no
+`tempfile`, no `reversi.test.paths`, no `import os`.
 
 ## Coverage
 

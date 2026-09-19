@@ -66,8 +66,8 @@ total_cols) IndexArray
 - **Output column layout (implicit)** — concatenation in the set's mask-sorted order; pattern i contributes
   `n_instances(i)` columns in first-seen order. No method exposes the offsets — a caller reassociating columns
   recomputes them from the patterns.
-- **Platform: little-endian only** — the D8 bit tricks, the pack/unpack, and the set hash (native-order `mask.tobytes()`)
-  are verified on little-endian only; no portability work is planned.
+- **Platform: little-endian only** — the D8 bit tricks, the pack/unpack, and the set hash (native-order
+  `mask.tobytes()`) are verified on little-endian only; no portability work is planned.
 
 ## Verified invariants
 
@@ -89,10 +89,10 @@ total_cols) IndexArray
   3^S enumeration + `principal_index_count`; e.g. EDGE 81 / 3321 = (6561+81)/2) and the general invariants (1 ≤
   n_invariant ≤ n_unique ≤ 3^S, with equality to 3^S when the symmetry is trivial) —
   `test_pattern::TestPatternSymmetries` (the Burnside golden and invariant tests).
-- The 6561-entry EDGE principal dictionary, pinned with the full non-circular specification (`dict[c] = min(c,
-  flip(c))`, where flip reverses the base-3 digits), its length, the unique count 3321, and hand-derived spot values —
-  `test_pattern::TestPatternComputePrincipalIndexDict` (the edge test); CORE pins its full 81-entry dictionary, the
-  small patterns are spot-checked against hand-derived values.
+- The 6561-entry EDGE principal dictionary, pinned with the full non-circular specification
+  (`dict[c] = min(c, flip(c))`, where flip reverses the base-3 digits), its length, the unique count 3321, and
+  hand-derived spot values — `test_pattern::TestPatternComputePrincipalIndexDict` (the edge test); CORE pins its full
+  81-entry dictionary, the small patterns are spot-checked against hand-derived values.
 - The fused PatternSet pipeline, pinned with exact golden outputs: the 3-pattern set (single record and multiple
   positions), the 13-pattern set (49 hand-derived principal indexes, the column attribution, the mask-sorted pattern
   order), and a 4-distinct-position test that guards row-mixing in the kernel (the EDGE per-column stabilizer-coset min)

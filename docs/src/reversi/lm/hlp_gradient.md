@@ -21,17 +21,17 @@ rlmwf_08* file ever.
   Docstring: the naive `1 / (1 + exp(−x))` is what it replaced; expit's stability advantage is at extreme x (where the
   naive `np.exp(−x)` overflows).
 - `hlp_gradient_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes L166 class). Captures:
-  `N = len(ctx.w)`, `X = ctx.design_matrix`, `M, P = X.shape` (M = positions), `z = ctx.z`, `alpha =
-  ctx.cfg.stat_model.ridge_regularization / M`.
+  `N = len(ctx.w)`, `X = ctx.design_matrix`, `M, P = X.shape` (M = positions), `z = ctx.z`,
+  `alpha = ctx.cfg.stat_model.ridge_regularization / M`.
 
 ### The classic variant (the default)
 
   - Pre-allocated buffers (the performance shape): `bincount_weights_buffer = np.empty(M*P, float32)` + the `(M, P)`
     view.
-  - The `fg(w)` closure body: `linear_predictor = np.sum(w[X], axis=1)` (the w-INDEX sum — NOT `X @ w`); `zh =
-    sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`; the normalized loss `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)`
-    (MSE + ridge, /M-normalized for dataset-size-independent convergence criteria); the normalized gradient `g =
-    bincount(X_flat, weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
+  - The `fg(w)` closure body: `linear_predictor = np.sum(w[X], axis=1)` (the w-INDEX sum — NOT `X @ w`);
+    `zh = sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`; the normalized loss
+    `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)` (MSE + ridge, /M-normalized for dataset-size-independent convergence criteria); the
+    normalized gradient `g = bincount(X_flat, weights = dzh·rn broadcast, minlength=N)/M + alpha·w`;
     `return np.float32(f), g.astype(np.float32, copy=False)` — the R1 cast: the return type says float32, so both
     outputs are float32.
   - The default variant: proven and readable.
@@ -46,8 +46,8 @@ rlmwf_08* file ever.
   - No M×P temporary is ever materialized (the classic path allocates two ~384 MB temporaries per call at A2050 scale:
     the gather result + the bincount weight buffer). X is read once, row-contiguous (L2-friendly); w (311 KB at A2050)
     and the T×N f64 buffers (~2.5 MB at A2050) are L2-resident.
-  - `fg_hp(w)`: clears the two private buffers, one kernel call, then the fixed-order final reduction in numpy: `f
-    = 0.5·(Σ_b norm_blocks[b]/M + alpha·w·w)` (f64) → float32; `g = (Σ_b g_blocks[b])/M + alpha·w` (f64) → float32.
+  - `fg_hp(w)`: clears the two private buffers, one kernel call, then the fixed-order final reduction in numpy:
+    `f = 0.5·(Σ_b norm_blocks[b]/M + alpha·w·w)` (f64) → float32; `g = (Σ_b g_blocks[b])/M + alpha·w` (f64) → float32.
   - RACE-FREE without atomics: numba 0.67 has NO CPU atomics (CUDA-only) — each prange block writes only to its own
     private buffer; the cross-block reduction happens in numpy after the kernel.
   - RUN-DETERMINISTIC by construction: the block split is fixed (T = 8 regardless of the thread count) and the final

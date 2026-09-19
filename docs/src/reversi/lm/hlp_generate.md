@@ -3,7 +3,8 @@ The GENERATE domain module of the LM pipeline — the 11th active level (CREATED
 → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE) and the 5th cache_manager consumer. It expands
 the OPTIMIZE compressed weights into the DENSE weight vector used for inference: `w_dense` ((K,) float32 over ALL
 theoretical configurations of the feature set) + `w_checksum` (the OPTIMIZE compressed-w checksum — the consistency
-anchor). The flat file is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure `{prefix}{level:02}_{worker_name}.dat`).
+anchor). The flat file is `rlmwf_10_GENERATE.dat` + `.SHA3-256` (machine closure
+`{prefix}{level:02}_{worker_name}.dat`).
 
 ## API
 

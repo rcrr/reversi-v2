@@ -19,11 +19,11 @@ after POSITIONS and INDEXES.
 - `LMWMaps.__init__` is `@validate_call(arbitrary_types_allowed)` — plain `np.ndarray` annotations (no IndexArray alias
   here); `compute_sha3_256_hash` (validated): sha3_256 over the tobytes of the 6 ARRAYS in declaration order (NOT the 2
   scalars) — the duck-typed data-checksum hook cache_manager invokes (its 3rd return element).
-- `hlp_wmaps_store_to_file` (validated): `filename: str | Path` → Path; `binio.BinaryWriter` — `write_header ("LMWMaps
-  binary data file", 1)`, `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`, `write_array` ×6 in declaration
-  order (the write order is pinned). The writer runs with `compressed=True` by default — the LZ4 whole-file frame; the
-  SHA3-256 sidecar is written by the binio writer (the checksum service is on by default), and in the pipeline flow
-  cache_manager re-writes the same sidecar (idempotent).
+- `hlp_wmaps_store_to_file` (validated): `filename: str | Path` → Path; `binio.BinaryWriter` —
+  `write_header ("LMWMaps binary data file", 1)`, `write_string(hlp_indexes_checksum)`, `write_i32(cut_off)`,
+  `write_array` ×6 in declaration order (the write order is pinned). The writer runs with `compressed=True` by default —
+  the LZ4 whole-file frame; the SHA3-256 sidecar is written by the binio writer (the checksum service is on by default),
+  and in the pipeline flow cache_manager re-writes the same sidecar (idempotent).
 - `hlp_wmaps_load_from_file` (validated): `compressed=True` → the LZ4 frame guard + decompress (a non-frame file → the
   binio BinaryFormatError — the self-healing delete+recompute path); `checksum=True` →
   `binio.verify_sha3_256_sidecar(filename)` first (mismatch → RuntimeError); then the header gate — wrong description →

@@ -13,13 +13,14 @@ THIRD cache_manager consumer in the pipeline (the flat `rlmwf_05_WMAPS.dat` + bi
 
 - `_up`: INFO "Computing weight maps (WMAPS) for the feature set..." → `cache_manager_load_or_compute(...)` with the
   full 7-kwargs wiring: `cache_path = ctx.get_cache_file_full_path_for_current_level()` (the injected machine closure —
-  flat `rlmwf_05_WMAPS.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch), `load_fn = lambda path:
-  hlp_wmaps_load_from_file(path, checksum=False)` (the house shape — the sidecar was already verified by cache_manager),
-  `store_fn = hlp_wmaps_store_to_file`, `validate_fn = lambda cached: hlp_wmaps_is_cache_consistent (ctx, cached)` (the
-  2-field metadata compare), `compute_fn = lambda: hlp_wmaps_compute(ctx)`, `logger_fn = ctx.log_event`. Then the 6
-  separate context attributes are populated (feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w) +
-  the INFO "Total weights (W)" line + `ctx.wmaps_obj_checksum = wmaps_obj_checksum` (the 7th attribute, the DATA
-  checksum — the cache_manager 3rd return element).
+  flat `rlmwf_05_WMAPS.dat`), `is_allowed = ctx.use_cache` (the CONFIG switch),
+  `load_fn = lambda path: hlp_wmaps_load_from_file(path, checksum=False)` (the house shape — the sidecar was already
+  verified by cache_manager), `store_fn = hlp_wmaps_store_to_file`,
+  `validate_fn = lambda cached: hlp_wmaps_is_cache_consistent (ctx, cached)` (the 2-field metadata compare),
+  `compute_fn = lambda: hlp_wmaps_compute(ctx)`, `logger_fn = ctx.log_event`. Then the 6 separate context attributes are
+  populated (feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w) + the INFO "Total weights (W)" line
+  + `ctx.wmaps_obj_checksum = wmaps_obj_checksum` (the 7th attribute, the DATA checksum — the cache_manager 3rd return
+  element).
 - `_down`: INFO "Clearing WMAPS and W attributes..." → all 7 attributes to None — the 6 arrays AND
   `ctx.wmaps_obj_checksum` (the house shape clears object + checksum).
 

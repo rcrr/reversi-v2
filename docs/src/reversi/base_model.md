@@ -24,9 +24,9 @@ stateful object, and the facade is a pure pass-through layer. `self.context` is 
 
 - L28 the module header comment; L31-36 imports (pathlib, typing.List, pydantic, state_machine).
 - `class BaseModel` L42 (docstring L43-47 — the DeepNetworkModel forward-reference, kept by design).
-- The pass-through surface: every method is a one-line delegation (source-verified); type errors on `move_to_step`/`move_to_last`
-  surface from the SM's @validate_call gate, not from the facade. The `__init__` boundary itself is facade-gated, so the
-  class is gated at BOTH its own entry and the inner SM boundary.
+- The pass-through surface: every method is a one-line delegation (source-verified); type errors on
+  `move_to_step`/`move_to_last` surface from the SM's @validate_call gate, not from the facade. The `__init__` boundary
+  itself is facade-gated, so the class is gated at BOTH its own entry and the inner SM boundary.
 
 ## Verified invariants
 

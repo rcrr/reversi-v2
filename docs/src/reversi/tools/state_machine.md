@@ -66,7 +66,8 @@ Pinned by `test_state_machine.py` (49 tests, 5 classes, no PERF gates).
 - Constructor guards: non-Worker list entry / non-Context → ValidationError — `TestStateMachine` (the constructor
   tests).
 - The Verbosity gate: the 6×5 print matrix + the enum values (NONE silent, VERY_LOW ERROR-only) — `TestVerbosityGating`.
-- LogEntry: a typed record with the field values, frozen (immutability), the `asdict()` 5-key dump form — `TestLogEntry`.
+- LogEntry: a typed record with the field values, frozen (immutability), the `asdict()` 5-key dump form —
+  `TestLogEntry`.
 - Context injection: the bound `log_event`, the cache path tracking `current_step`, the base_dir join, the
   absolute-prefix drop, the verbatim prefix concatenation, missing cfg → AttributeError, the empty-workers degenerate
   paths, the shared-context re-bind — `TestContextInjection`.
@@ -84,7 +85,8 @@ None.
 
 ## Conventions
 
-- House convention: `@validate_call` (arbitrary_types_allowed) on every public entry — including `Worker.__init__`/`up`/`down`.
+- House convention: `@validate_call` (arbitrary_types_allowed) on every public entry — including
+  `Worker.__init__`/`up`/`down`.
 - The move gate is SEPARATE from the move execution — never wrap a domain worker's call in the gate's try/except (domain
   ValidationErrors must propagate).
 - The cache prefix is a filename prefix, concatenated verbatim — a directory-like prefix must end with a separator.
