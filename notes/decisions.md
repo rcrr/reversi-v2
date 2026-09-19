@@ -1425,3 +1425,39 @@ D-242 | 2026-09-19 | I-003 executed: the NAMED MOVE-CODE CONSTANTS (Roberto's pl
          VERIFICATION: `test_board` 247/0/15 + `test_random_game` 33/0/1, LONG 917/0/23 GREEN, and the 1e6 G0 benchmark
          BIT-EXACT (28065 dead lanes, 1e6 harvested) — the stream contract is untouched. I-003 -> done
          (ideas-closed.md).
+
+D-243 | 2026-09-19 | I-018 step 1-2: VALIDATE becomes the owner of the validation residuals (Roberto's plan approval:
+         the complete scope, CLIENT_CHECK consumes the published series, the records as a list of dicts). (1) THE DATA
+         MODULE — `hlp_validate` now returns a `ValidationResult` dataclass (the 7-key `metrics` + the f64 `y_pred` /
+         `rn_y` series) instead of a bare dict, and gains the pure kernel `top_outliers(rn, k=20)` (the stable argsort:
+         a tie keeps the lower index first). The forward pass runs ONCE: before, `validate_model` computed `rn_y` and
+         DISCARDED it. TWO arithmetic paths, deliberately: the metrics keep the original f32 arithmetic (their goldens
+         are pinned AND embedded in the v2 model file — the first attempt unified them and the chain golden `vld_mae_y`
+         moved by 1.2e-08 rel, caught by `test_lm_worker_full_chain`), while the published series are the f64 views,
+         bit-identical to what PLOT and CLIENT_CHECK computed before, so the publication moves NO number. (2) THE WORKER
+         — `wrk_validate._up` publishes `ctx.vld_y_pred` / `ctx.vld_rn` / `ctx.vld_outliers` (the 20 records as raw
+         values: index, mover, opponent, game_value, fitted, residual) next to the unchanged `ctx.vld_metrics`, and LOGS
+         the D-150 top-20 report (the same 21 lines, so the chain pins survive the move); `_down` clears the four
+         fields. The four ctx fields are pre-declared (the D-099 idiom). (3) THE REPORT MOVES — the block leaves
+         `wrk_plot` (which becomes a pure rendering level; its validation pass goes at step 4) and the D-150 test moves
+         from `test_wrk_plot` to `test_wrk_validate` (the idea's own requirement), where a hand-computed 50-position ctx
+         pins the ranking AND the tie-break. (4) THE PROBE — `verify_validate` updated: A1 (the 3-name `__all__`), A9
+         (the `_down` clears FOUR fields, not one), A12 (the 7 keys inside `ValidationResult`), B4 (the new ctx fields),
+         D2. TWO STALE PROBE PINS FOUND AND FIXED (pre-existing, not from this change — verified by re-running the probe
+         on the pre-change tree): C5 pinned "no rlmwf_12 file" when the slot numbering had shifted (12 is GENERATE now,
+         VALIDATE is 14) and A11 repeated the same stale slot in its message. (5) THE DOCS — `hlp_validate.md` and
+         `wrk_validate.md` rewritten to the state (they carried line numbers, the "12th step" and the rlmwf_12 slot: now
+         the 14th step, no line numbers, the I-018 API), `test_wrk_validate.md` (9 tests) + `test_wrk_plot.md` (9, the
+         moved test noted), the overview rows (the Suite cells 5 -> 9, 10 -> 9, the stale `test_lm_worker_validate` name
+         fixed). VERIFICATION: LONG 920/0/23 GREEN (+3 tests), the 1e6 G0 bit-exact (28065 dead lanes), the chain pin
+         moved to the VALIDATE section with the published-series order asserted, `probes/verify_validate.py` ALL CHECKS
+         PASSED. The training-side duplication (ANALYTICS -> PLOT) and the PLOT/CLIENT_CHECK consumption are the next
+         steps. THE FULL PROBE SWEEP (the probe_rules §5.2 campaign rule) reports 9/22 RED — ALL PRE-EXISTING and all of
+         the same family: the step / slot pins went stale when the I-017 reordering (D-157) and the two new levels
+         (FEATURE_ANALYSIS step 3, EFFECT_SIZE step 6) shifted every subsequent step number and cache slot. The
+         failures: verify_analytics (step 12/13, rlmwf_12), verify_design_matrix (rlmwf_06, the 7-level pipeline),
+         verify_gradient (the step pins + rlmwf_07*/08*), verify_hlp_indexes (rlmwf_02_FEATURES), verify_optimize
+         (current_step == 9), verify_wmaps (rlmwf_05, the 6-level pipeline), verify_wrk_features (a line count),
+         verify_wrk_positions, verify_zed (DESIGN_MTR = 6 / ZED = 7, rlmwf_07_ZED). They are INDEPENDENT of I-018 (no
+         step moved): the re-pin is the next step of this campaign, required by the sweep rule before the campaign
+         close.
