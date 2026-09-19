@@ -99,8 +99,8 @@ Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
 
 ## Open issues
 
-- `target_level` is declared and carried by the config, but no consumer reads it: the design (section 3.6, P4) asks for a
-  facade entry — `LogisticModel.run(target_level=...)` — that resolves the field through the StateMachine's
+- `target_level` is declared and carried by the config, but no consumer reads it: the design (section 3.6, P4) asks
+  for a facade entry — `LogisticModel.run(target_level=...)` — that resolves the field through the StateMachine's
   `move_to_step`; that entry does not exist, and a client stops the pipeline with an explicit `move_to_step` /
   `move_to_last`. A bogus level name therefore passes the CONFIG step unchallenged (the fail-fast ValueError lives in
   `move_to_step`, which nobody calls with this value). Recorded as I-019.

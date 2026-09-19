@@ -42,8 +42,12 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   written); the down (a no-op).
 
 ## Open issues
-- The full wiring: the level registration (the 18 levels, the EFFECT_SIZE at step 6, NO cache slot), the rlm_05/rlm_06
-  experiment configs, the full-chain re-pin.
+- The report's adherence section header says "top {top_k_adherence}" while the body lists EVERY sub-variable: the
+  `top_k_adherence` bound is applied to the CONSOLE lines only (`adherence_lines[:top_k]` in the log), the report
+  receives the full list. A wording defect of the header (the console/report split is deliberate) — pinned by
+  `probes/verify_effect_size.py` (C6/D7), left as-is pending Roberto's call (a source change).
+- The wiring is complete (the 18 levels, EFFECT_SIZE at step 6, NO cache slot); the rlm_05/rlm_06 experiment configs
+  regenerate on demand.
 
 ## Conventions
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.

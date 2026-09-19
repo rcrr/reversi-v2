@@ -1777,7 +1777,50 @@ D-258 | 2026-09-19 | P2: the worker rename FEATURE_ANALYSIS -> SU_ANALYSIS (the 
          `LogisticModel.run(target_level=...)` facade entry that resolves it through `move_to_step`, and no `run()`
          exists (the facade exposes move_to_step / move_to_last only), so a bogus level name passes the CONFIG step and
          every client chains the moves by hand. Recorded as I-019 (ideas.md) + an Open-issues bullet in the
-         hlp_config_schemas and logistic_model mirrors. (6) VERIFICATION — the LONG tier green, the probe sweep 21/21 (with one re-pin:
-         verify_hlp_indexes C2 compares a SORTED name list, and "rlmwf_03_SU_ANALYSIS.dat" sorts BEFORE "su_analysis"
-         where the old "feature_analysis" sorted after — the expected list was reordered, not the check weakened), the
+         hlp_config_schemas and logistic_model mirrors. (6) VERIFICATION — the LONG tier green, the probe sweep 21/21
+         (with one re-pin: verify_hlp_indexes C2 compares a SORTED name list, and "rlmwf_03_SU_ANALYSIS.dat" sorts
+         BEFORE "su_analysis" where the old "feature_analysis" sorted after — the expected list was reordered, not the
+         check weakened), the
          doc audit at 9 pre-existing findings.
+
+D-259 | 2026-09-19 | P5: the two missing probes — verify_su_analysis.py + verify_effect_size.py (the I-017 T18's last
+         item; the P1-P5 list's close). (1) THE GAP — the I-017 project plan (the project doc §9, T18) named two probes
+         that were never written (`verify_feature_analysis` + `verify_effect_size`), so the two analysis levels were the
+         only pipeline levels with a worker, a suite and a mirror but NO campaign-level verification. With the D-258
+         rename the first is `verify_su_analysis`. (2) `probes/verify_su_analysis.py` (43 checks, 3.8 s) — A: the module
+         structure (the factory, the no-DB discipline of the design §3.3, the three cache constants read from the
+         module, the D-252 wave-size cap, the whitespace hygiene). B: the INDEPENDENT re-derivations with no worker
+         involved — the corpus harvested count, the ec arrest recomputed as 64 - popcount over the WHOLE corpus, the
+         marginal vs the FeatureSet's own batch bincount (a different route than the streaming accumulator), the joint
+         vs a pure-python Counter, the SU values vs the RATIO-FORM mutual information sum p(u,v) log2(p(u,v)/p(u)p(v))
+         (the DEFINITION — the kernel uses the identity H(u)+H(v)-H(u,v), so the two derivations share no formula) plus
+         pure-python entropies, and the cache signature vs an independently recomputed feature_set hash + its
+         same/different semantics. C: the live rlm_00 run — the step-3 stop, the flat cache file + its binio sidecar,
+         the ctx publication, the cached signature vs the live one, the cached marginal totals, the report's 15
+         sub-variable lines and its SU lines vs pure-python math, the phase-2 recompute on the cache HIT (proved by
+         deleting the report before the second run and checking it comes back byte-identical while the cache file is
+         untouched), the down, and the opt-in absence of BOTH artifacts. F: the runner, the RENAME-COMPLETENESS sweep
+         (no FEATURE_ANALYSIS/feature_analysis left in src/docs/probes/tools once the shared-kernels family is
+         discounted), the mirrors, the EFFECT_SIZE consumer contract. (3) `probes/verify_effect_size.py` (29 checks,
+         30 s) — A: the structure (the factory, the no-cache discipline, the two kernel imports, the degradation
+         branch). B: the independent math — the ANOVA vs the F-identity eta² = (K-1)F/((K-1)F + (N-K)), vs scipy's
+         f_oneway, plus the bias relation eta² >= omega² (algebraically forced) and the negative omega² of a null
+         effect; the adherence trio vs pure-python formulas with the merge rule reimplemented (E = p_ideal * n_db),
+         the Pinsker bound TV <= sqrt(KL/2), the disjoint-support alignment (chi2 +inf, p 0, KL +inf, finite TV). C: the
+         mock-ctx report facts no test carries — the degradation REPORT line, the ANOVA numbers vs the independent
+         recompute, the adherence rows vs the independent trio, and the CSV path (the export_csv flag had NO test). D:
+         the LIVE A2050 tier WITHOUT a DB — the build area's cached corpus + POSITIONS + INDEXES are symlinked under
+         build/tmp and the config is run to EFFECT_SIZE (the report's 47 sub-variables, every ANOVA line recomputed from
+         the cached indexes + game values, scipy's f_oneway on the mobility column over the full 2M positions, every
+         adherence row recomputed from the cached corpus marginal, the eta² >= omega² invariant on the real data, no
+         cache file); the tier SKIPS itself when the gitignored build area is absent. F: the cross-file facts. (4) THE
+         CLASSIFICATION DISCIPLINE (probe_rules §3) — the facts a test already pins through the same path are NOT
+         repeated: the factory names, the enable no-ops, the cache-hit log, the ANOVA line count, the degradation log,
+         the report existence, the mock-ctx down. (5) THE FINDINGS the writing produced: (a) the report prints
+         `chi2 0.00 (p nan, merged N)` when the merged tail collapses to a single cell (df < 1) — a real behavior of
+         `chi_square_goodness` the probe's parser must accept; (b) the report writes the adherence lines for ALL the
+         sub-variables while its own header says "top {top_k_adherence}" — the top-k bound applies to the CONSOLE lines
+         only (`adherence_lines[:top_k]` in the log vs the full list in `_write_report`): a wording defect recorded in
+         the wrk_effect_size mirror's Open issues, NOT fixed (a source change needs Roberto's GO); (c) the cached
+         A2050 1e7 area makes a DB-FREE EFFECT_SIZE run possible (the probe's tier D) — the caches are the inputs.
+         (6) VERIFICATION — the full sweep 23/23 green (the two new probes included), the LONG tier green.

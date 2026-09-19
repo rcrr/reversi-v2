@@ -104,7 +104,7 @@ checks were converted to tests).
 
 - No `run(target_level=...)` entry: the design (section 3.6, P4) asks the facade to consume `cfg.target_level` (the
   explicit argument, else the field, else "last") and hand it to `move_to_step`, so a client stops the pipeline from the
-  CONFIG alone. Today the caller must chain `move_to_step('CONFIG')` + `move_to_step(name)` / `move_to_last()` by hand, and
+  CONFIG alone. Today the caller chains `move_to_step('CONFIG')` + `move_to_step(name)` / `move_to_last()` by hand, and
   the `target_level` field is inert (I-019).
 
 ## Conventions
