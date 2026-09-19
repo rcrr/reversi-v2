@@ -16,8 +16,8 @@ PERF). 4 classes / 20 tests (19 run + 1 PERF skip) / no DB.
 ## Goldens pinned
 
 - The feature-level hash `f5663932…b74167` (pinned in two tests: test_init + test_print_summary) on top of the child
-  modules' pinned constants — the mset `2e553593…08a94` (the same literal test_mobility pins) and the pset
-  `ff97ce55…040ea`.
+  modules' pinned constants — the mset `2e553593…08a94` (the same literal test_mobility pins); the pset literal is this
+  file's own.
 - The 3×10 index matrix (the EDGE 0x00000000000000FF + DIAG4 0x0000000001020408 set + LMC + intercept, 3 real positions)
   — every cell a literal.
 - The per-feature `n_instances` list (17 values, 13 patterns + 3 mobilities + intercept, the feature ORDER pinned
@@ -30,8 +30,7 @@ PERF). 4 classes / 20 tests (19 run + 1 PERF skip) / no DB.
 - How to run (header): from the workspace root, `time PERF=0 python3 -m unittest reversi.test.test_feature` — `PERF=1`
   enables the 1M-position test (print-only, no gate — consistent with the whole repo).
 - Strict-typing tests assert `pydantic.ValidationError` (1 in TestFeature, 4 wrong argument types in the subTest loop).
-- No hash self-comparisons: the literals are real goldens, independently re-derived from the public API (the W
-  re-derivations are frozen in the archived review).
+- No hash self-comparisons: the literals are goldens re-derived from the public API (never from the code under test).
 
 ## Integration
 

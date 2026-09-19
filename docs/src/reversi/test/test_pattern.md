@@ -6,7 +6,7 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
 
 | class (line) | tests | what it pins |
 |---|---|---|
-| `TestPattern` | 9 | constructor strictness (the strict `__init__`: 2 `ValidationError`, >18 squares `ValueError`), the ELLE full-attribute golden (tmasks, cells, mask indexes, uniques, tr/at/sf, transformed + sorted cells, fingerprint, type), non-principal `ValueError` (BAD_ELLE), the R1 regression (FOURC 4-corners, the lowest-orbit-mask principal `0x8100000000000081`, + b1/a2/h2 edges), the `__repr__` golden |
+| `TestPattern` | 9 | constructor strictness (the strict `__init__`: 2 `ValidationError`, >18 squares `ValueError`), the ELLE attribute golden (tmasks, squares/snames, the counts, trans_fs/anti_trans_fs, snames_t), non-principal `ValueError` (BAD_ELLE), the R1 regression (FOURC 4-corners, the lowest-orbit-mask principal `0x8100000000000081`, + b1/a2/h2 edges), the `__repr__` golden |
 | `TestPatternType` | 3 | the `PatternType` classification (strict init) |
 | `TestPatternPack` | 7 | the 18-bitboard setUp (empty, full, rows 1-8, columns 1-8); pack-plan + scalar + vectorized goldens for ELLE, EDGE, R2, CORNER, DIAG8, FOURC (the `run_test_vectorized` helper: pack vs golden + unpack round-trip); PERF 1M over 5 patterns × tiled 18-board array (mixed-row kernels) |
 | `TestPatternSymmetries` | 3 | the 29-row `symmetry_fs` table (the named patterns from ELLE to TWOND — per-row `subTest`) + the Burnside `n_invariant_configs`/`n_unique_configs` pins |
@@ -15,7 +15,7 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
 | `TestPatternPrint` | 1 | the EDGE `print()` full 13-line string golden |
 | `TestPatternMdpCsvFile` | 5 | the `mdp_csv_file` classmethod via `mock_open` + `MagicMock(spec=Pattern)`; the 3 `TypeError` messages asserted with EXACT `assertEqual` |
 | `TestPatternComputeIndexes` | 4 | scalar + 1-D array + multi-position row independence + PERF 1M |
-| `TestPatternSet` | 12 | construction (duplicate names/masks `ValueError`s + the empty pattern list), the `names`/`masks` properties, the `hash` formula with the golden pinned, the 49 first-row values of a 3×49 set pipeline, the `__repr__` / `print_summary` / `print` goldens |
+| `TestPatternSet` | 12 | construction (duplicate names/masks `ValueError`s + the empty pattern list), the `names`/`masks` properties, the `hash` formula with the golden pinned, the `__repr__` / `print_summary` / `print` goldens |
 | `TestPatternPrincipalIndex` | 1 | the single-pattern principal-index dict |
 | `TestPatternComputePrincipalIndexDict` | 7 | the full principal-index dicts (9, 27, 81 entries) as `np.array` goldens |
 | `TestPatternSetComputePrincipalIndexes` | 4 | scalar + 1-D + multi-position + PERF 1M |
@@ -33,10 +33,9 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
 - Dual scalar/array API everywhere; the 1M size is behind `PERF=1`.
 - Error paths: `assertRaises` + message substring (`"not principal"`, `"duplicate names"`, `"duplicate masks"`), EXCEPT
   `mdp_csv_file` where all three `TypeError` messages are exact `assertEqual`.
-- Star import `from reversi.pattern import *` (the 6 `__all__` names) + explicit board-function imports; the 29-pattern
-  `sample_pattern_data` is the Cayley-table exercise set.
-- The module-level D8 fixtures ( area): `ar` + 7 pre-transformed copies — only `ar` is referenced (Cayley tests); the 7
-  `ar_*` names are dead (left as-is).
+- Star import `from reversi.pattern import *` (the 6 `__all__` names) + explicit board-function imports; the Cayley test
+  builds its OWN local 29-row pattern table (it does not use the star-imported `sample_pattern_data`).
+- The module-level D8 fixture `ar` is the Cayley exercise board (no pre-transformed siblings remain).
 
 ## Integration
 

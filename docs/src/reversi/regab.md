@@ -60,9 +60,9 @@ the module suite.
   (float64 game_value → TypeError).
 - V4: `status_str` construction is safe — pydantic enforces len=3 on the status strings, so no quotes/special chars can
   reach the query.
-- V5: the ContextVar pattern is correct — set before `@validate_call`, reset in `finally` (concurrent-safe by
-  construction; no test can exercise the concurrency, the pattern is verified by inspection + the double-decorator order
-  in `regab_gp_as_df`).
+- V5 (UNPINNED — inspection only): the ContextVar pattern is correct — set before `@validate_call`, reset in `finally`
+  (concurrent-safe by construction; no test can exercise the concurrency, the pattern is verified by inspection + the
+  double-decorator order in `regab_gp_as_df`).
 
 ## Open issues
 

@@ -36,7 +36,7 @@ stated.
 | Bitboard | `bitboard_to_square_list(bb) -> List[Square]` | the squares, descending (H8 → A1) |
 | Bitboard | `bitboard_to_square_array(bb) -> SquareArray` | as a uint8 array |
 | Bitboard | `bitboard_to_string_list(bb) -> List[str]` | as "A1"-style names |
-| D8 | `bitboard_transformations(bb) -> BitboardArray` | all 8: scalar → (8,), (N,) → (N,8); fixed slot order: ro000, ro090, ro180, ro270, fvert, fh1a8, fhori, fa1h8 |
+| D8 | `bitboard_transformations(bb) -> BitboardArray` | all 8: scalar → (8,), (N,) → (N,8); the fixed slot order ro000/ro090/ro180/ro270/fvert/fh1a8/fhori/fa1h8 |
 | D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090) |
 | D8 | `bitboard_fa1h8` / `bitboard_fh1a8` / `bitboard_fhori` / `bitboard_fvert` | the 4 reflections; dual scalar/array; each has a numba `@overload` for JIT contexts |
 | D8 | `bitboard_ro000(bb)` | the identity — a fresh copy of the input (no aliasing, the same contract as the other 7 D8 functions and `position_ro000`) |
@@ -124,9 +124,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 ## Verified invariants
 
 - D8 group law: ro000 identity, ro090² = ro180, ro090∘ro270 = id, the 4 reflections involutive, anti-transform inverts
-  transform — `test_board::TestBitboardD8GroupLaw` (+ `TestBitboardTransformationFa1h8Comp`); the identity copy (no
-  aliasing) at `TestBitboardD8GroupLaw::test_ro000_array_is_a_fresh_copy`.
-- All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) vectorized outputs — per-transform
+  transform — `test_board::TestBitboardD8GroupLaw` (+ the identity-copy pin `test_ro000_array_is_a_fresh_copy`).
+- All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) outputs —
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
 - The function/label tables produce the correct slot order — `test_board::TestD8FunctionTables`
   (`test_tables_are_plain_lists_of_8`, `test_slot_order_is_canonized`, `test_function_slots_match_the_labels`).
@@ -139,8 +138,8 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 - The empty-square equivalence: an empty square is legal exactly when it flips something (the flip kernel and the
   legal-moves kernel share the geometry); an occupied square is never legal —
   `test_board::TestPositionFlips:: test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
-- The collision invariant (mover & opponent = 0) — `test_board::TestPositionCollisions` / `TestPositionCheckCollisions`.
-- `make_position` copy-then-view (inputs never aliased) — `test_board::TestPositionCreation`.
+- The collision invariant (mover & opponent = 0) and `make_position` copy-then-view (inputs never aliased) —
+  `test_board::TestPositionCollisions` / `TestPositionCheckCollisions` / `TestPositionCreation`.
 - The standard start (mover {E4, D5}, opponent {D4, E5}; the Position dtype + the Bitboard field types) —
   `test_board::TestInitialGame::test_initial_game_position` (the squares via bitboard_to_square_list + square_to_str).
 - The signed-int round-trip (PostgreSQL path, incl. the shared-buffer view; bare-int rejection) —
@@ -159,11 +158,17 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `game_position_x_hash_plain`) and the SHA-3-256 pin of the packed table — `test_board::TestPositionHash`.
 - The legacy WHITE complement bridge (legacy(blacks, whites, WHITE) = ~position_hash(blacks, whites)) —
   `test_board::TestPositionHash::test_legacy_white_complement_bridge`.
-- position_hash array/scalar parity, the (N,2) coercion, the empty array, the input rejections, the view (order)
-  sensitivity and the determinism — `test_board::TestPositionHash`.
+- position_hash array/scalar parity, the (N,2) coercion, the empty array, the rejections, the determinism —
+  `test_board::TestPositionHash`.
 - The hash quality: the avalanche band (128 single-bit flips of the start, every output bit flips 40..88 of 128) and
   zero collisions on random pairs (10k; 1e6 under LONG, the birthday bound) —
   `test_board::TestPositionHash::test_avalanche_bit_flips` / `test_no_collisions`.
+- The legacy-C parity: the `position_hash` values match the legacy engine row by row over the FFO-12 solve-log sample
+  (the committed 1002-row stride) — `test_board::TestPositionHashLegacyParity`.
+- The per-lane primitives (`legal_moves_of` / `flips_of_move`, the single sources of the two geometries) and the counts
+  (`bitboard_count` / `position_empty_count`) — `test_board::TestNumbaPrimitives` / `TestBitboardCount` /
+  `TestPositionEmptyCount`.
+
 
 ## Open issues
 
@@ -173,9 +178,9 @@ None.
 
 - Reversi vocabulary: column (a–h, left→right), row (1–8, top→ bottom); A1 = top-left = bit 0, H8 = bit 63; diagrams
   read row 1 on top.
-- The D8 slot order is fixed (notes/naming.md): never reorder or rename; the anti tables differ only in slots 1/3.
-- New public functions: `@validate_call` with `arbitrary_types_allowed`, the dual scalar/array signature with the
-  standard `atleast_1d`/ndim pattern, a docstring stating the shape contract.
+- The D8 slot order is fixed (notes/naming.md): never reorder or rename; the anti tables differ only in slots 1/3. New
+  public functions: `@validate_call` with `arbitrary_types_allowed`, the dual scalar/array signature with the standard
+  `atleast_1d`/ndim pattern, a docstring stating the shape contract.
 - The move codes are the NAMED constants `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (the single source, I-003): the bare 64/65/66
   never appears in the code. The flips domain is separate: `position_flips` takes a BITBOARD and its pass is the zero
   bitboard, not `MOVE_PA`.

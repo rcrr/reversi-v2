@@ -39,7 +39,7 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
 Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
 
 - Source shape (probe B1-B17): the 190-line file, the factory decorator + the pydantic/binio imports, the 16 lbfgs
-  kwargs + the warm-start consumption (B4, B13), the try/except, the `_down` scope, the header typo fix, the dead `Path`
+  kwargs + the warm-start consumption (B13), the try/except, the `_down` scope, the header typo fix, the dead `Path`
   import gone.
 - The worker-test source shape (probe D1-D11): the 175-line file, the gate, the idiom, the 3 step pins (GRADIENT=10,
   OPTIMIZE=11), the marker, the pins.
@@ -48,8 +48,8 @@ Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
   still saved (H7), corrupted checkpoint → delete + scratch + valid re-save (H8).
 - The float32 contract flows through: `ctx.w` is float32 after 50 lbfgs iterations; `weights_compute_sha3_256_hash`
   (gated `NDArray[np.float32]`) never rejects.
-- The base dir after a full run holds exactly the 12 expected files (the 5 rlmwf_ cache pairs 01/04/05/07/08 + the
-  checkpoint pair); no rlmwf_02*/09*/10* file (H1).
+- The base dir after a full run holds the 4 rlmwf_ cache pairs (04/05/07/08) + the checkpoint pair; no
+  rlmwf_01*/02*/09*/10*/11* file (H1).
 
 ## Open issues
 

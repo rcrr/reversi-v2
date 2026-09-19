@@ -72,7 +72,8 @@ global golden-pinned MT19937.
   bit_count on uint64); the u64 arithmetic wants explicit np.uint64 constants (u64 - int promotes to float64 in numba).
 - The slots run ONWARD across waves (a dead lane consumes its slot — the harvested slots are unique but NOT contiguous);
   counter = slot (the step counter).
-- The test seam: the tests mutate the wave arrays directly (the lane injection) — no injection API in the engine.
+- The test seam: the tests drive the engine through its public API only (`make_wave` / `step_wave` / `run_wave`) and
+  read the wave arrays — no injection API exists in the engine.
 
 ## Integration
 - run_utests.sh section 4 (next to test_hlp_random_play).

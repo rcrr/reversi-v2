@@ -31,7 +31,8 @@ effect-size tests.
   (`test_wrk_effect_size::_make_ctx` fills `indexes[:, c0 + i]` for every instance) — a wrong layout misaligns the
   tables and the effect-size goldens fail.
 - The intercept is EXCLUDED from the blocks (one column, no configuration space) while `col` still counts it: pinned by
-  the same construction over the `rlm_00` fixture, where the intercept is present (the first block starts at column 1).
+  the `hlp_gate` construction itself (the source contract: the intercept is skipped and the first block starts at column
+  1).
 
 ## Open issues
 

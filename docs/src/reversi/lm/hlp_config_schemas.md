@@ -35,9 +35,9 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 - **The strong-Wolfe invariant** — `OptimizationConfig` carries the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
   `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`, `min_p_fun_decrease=(1e-14, 7)`, `log_every_n` /
   `save_every_n` ge=0, `checkpoint_file` required, `high_performance_fg` default False: False keeps the classic
-  vectorized-numpy fg closure, True builds the numba one — the GRADIENT worker reads it, rlm_03 / rlm_04 opt in) plus
-  `check_wolfe_constants`, a `model_validator(mode="after")` enforcing `c2 > c1` (ValueError → ValidationError, both
-  values in the message): the invariant is code, not docstring.
+  vectorized-numpy fg closure, True builds the numba one — the GRADIENT worker reads it, rlm_03 / rlm_04 / rlm_05 /
+  rlm_06 opt in) plus `check_wolfe_constants`, a `model_validator(mode="after")` enforcing `c2 > c1` (ValueError →
+  ValidationError, both values in the message): the invariant is code, not docstring.
 - **The top level** — `name`, `description`, `base_dir`, `output` (required); `use_cache=True`; `cache_files_prefix`
   default `"rlmwf_"` (the filename-prefix concatenation the state_machine closures implement); `regab_allow_duplicate`
   default `True` (True keeps every extracted row, False deduplicates by `(mover, opponent)` keeping the first occurrence
@@ -67,8 +67,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 
 Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
 
-- The `model_dump_json` round-trip: the mask serializes back to uppercase 16-hex, `cache_files_prefix` preserved
-  (`test_model_dump_json_round_trip`).
+- The `model_dump_json` round-trip: `name` + `cache_files_prefix` are preserved (`test_model_dump_json_round_trip`); the
+  mask's uppercase-16-hex round-trip is pinned by `test_pattern_mask_16_hex_parsed_and_serialized`.
 - The mask parsing: `'0000000000000107'` (16-hex, no 0x) → Bitboard 0x107 → the same string back; the 0x-prefixed form
   and a non-hex mask ("ZZZZ") are REJECTED (`test_pattern_mask_16_hex_parsed_and_serialized`,
   `test_pattern_mask_0x_prefix_rejected`, `test_invalid_hex_mask_rejected`).

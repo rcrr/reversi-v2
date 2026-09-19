@@ -44,8 +44,7 @@ On-disk layout (all 4 record types, byte-level verified):
 ## Verified invariants
 
 Pinned by the 48-test suite (`test_binio` 45 + `test_usage_binio` 3, no DB) — no dedicated probe exists for binio; the
-suite is the pinning instrument. The analysis's V1-V16 byte-level facts (manual byte inspection, zero mismatches) are
-frozen in the archive.
+suite is the pinning instrument. The byte-level layout of the 4 record types is pinned by the suite's round-trips.
 
 - Framing + round-trip: `ScalarRoundTripTest` (10 — all 10 scalar types at their bounds, the `_round_trip` BytesIO
   helper), `StringTest` (4 — multibyte UTF-8, empty, byte-length-not-char-length), `ArrayTest` (8 — all 10 dtypes,
@@ -70,8 +69,8 @@ None.
 
 - The empty-suffix guards are fail-fast: raised before any file is opened (no file created).
 - No PERF gates: the 48-test suite runs in ~0.02 s.
-- Float32 special values (NaN, ±inf) round-trip but are not pinned by a test (manual verification only); `_read_exact`
-  EOF is not directly unit-tested (covered indirectly by `FramingTest`).
+- Float32 special values (NaN, ±inf) round-trip but are NOT pinned by a test (an unpinned behaviour); `_read_exact` EOF
+  is not directly unit-tested (covered indirectly by `FramingTest`).
 - `test_usage_binio.py`'s naming deviates from the house `test_<module>.py` norm (report-only).
 
 ## Integration
