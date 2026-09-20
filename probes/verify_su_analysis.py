@@ -60,7 +60,7 @@ TMP = ROOT / "build" / "tmp" / "verify_su_analysis"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
-CFG = ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json"
+CFG = ROOT / "test" / "reversi" / "data" / "rlm_00.json"
 
 fails = 0
 
@@ -430,7 +430,7 @@ check("C15 the opt-in: with enable false the level is a no-op — no cache "
 # ---------------------------------------------------------------- F tier
 runner = (ROOT / "run_utests.sh").read_text()
 check("F1  the runner registers the renamed suite and no longer the old one",
-      "reversi.test.test_wrk_su_analysis" in runner
+      "test.reversi.lm.test_wrk_su_analysis" in runner
       and "test_wrk_feature_analysis" not in runner)
 
 # The rename completeness: no live file outside the shared-kernels family
@@ -456,7 +456,7 @@ check("F2  the rename is complete: no FEATURE_ANALYSIS / feature_analysis "
       "excluded)", not hits, str(hits))
 
 for rel in ("docs/src/reversi/lm/wrk_su_analysis.md",
-            "docs/src/reversi/test/test_wrk_su_analysis.md"):
+            "docs/test/reversi/lm/test_wrk_su_analysis.md"):
     check(f"F3  the D-007 mirror exists: {rel}", (ROOT / rel).exists())
 
 overview = (ROOT / "notes" / "overview.md").read_text()
@@ -479,7 +479,7 @@ check("F6  the EFFECT_SIZE consumer contract: it reads "
 
 check("F7  the level is OPTIONAL in the shipped configs: no production "
       "fixture (rlm_01..rlm_04) enables it",
-      all('"su_analysis"' not in (ROOT / "src" / "reversi" / "test" / "data"
+      all('"su_analysis"' not in (ROOT / "test" / "reversi" / "data"
                                   / f"rlm_0{i}.json").read_text()
           for i in (1, 2, 3, 4)))
 

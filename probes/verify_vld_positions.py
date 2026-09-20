@@ -29,6 +29,7 @@ from pathlib import Path
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 SRC = WS / "src" / "reversi"
 
 failures = []
@@ -130,12 +131,12 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
 else:
     from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+    from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
-        cfg_path = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
+        cfg_path = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
 
         def make_model(aliased: bool, verbosity=Verbosity.LOW):
             m = LogisticModel(cfg_path, verbosity=verbosity, base_dir_override=tmp)

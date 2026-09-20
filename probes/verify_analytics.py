@@ -42,6 +42,7 @@ from types import SimpleNamespace
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 SRC = WS / "src" / "reversi"
 
 failures = []
@@ -132,7 +133,7 @@ check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       and dv_src.count('def ') == 7
       and "if TYPE_CHECKING:" in dv_src)
 check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "reversi" / "test" / "test_wrk_analytics.py").exists())
+      (WS / "test" / "reversi" / "lm" / "test_wrk_analytics.py").exists())
 check("A12 LMContext pre-declares train_metrics (pre-campaign: it does NOT — "
       "the worker sets an ad-hoc attribute; dataclasses allow it, but every "
       "other blackboard field is declared; Roberto's call)",
@@ -169,13 +170,13 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
 else:
     from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+    from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
     from reversi.lm.hlp_analytics import format_file_report
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
-        cfg_path = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
+        cfg_path = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
 
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):

@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # the root test/ tree (the test.reversi helpers)
 SRC = ROOT / 'src' / 'reversi'
 
 RESULTS = []
@@ -30,7 +31,11 @@ def check(name, cond, detail=''):
     return cond
 
 def lines_of(relpath):
-    path = SRC / relpath if relpath.startswith('test/') else SRC / 'lm' / relpath
+    if relpath.startswith('test/'):
+        # the zone-abbreviated test path: test/test_X.py = the lm zone
+        path = ROOT / 'test' / 'reversi' / 'lm' / relpath[len('test/'):]
+    else:
+        path = SRC / 'lm' / relpath
     return path.read_text().splitlines()
 
 # ---------------------------------------------------------------- A tier
@@ -107,16 +112,16 @@ check('C2  2 classes: TestZedFunFactory (L64, 1 test) + TestLMWorkerZed (L80, 2 
 check('C3  T1 DONE: import os (L46) + the db_long_gate idiom in setUp (L87, D-130) + paths import (L59)',
       tc[45] == 'import os'
       and tc[86] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
-      and tc[58] == 'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
-      and 'from reversi.test.tags import db_long_gate' in '\n'.join(tc))
+      and tc[58] == 'from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
+      and 'from test.reversi.tags import db_long_gate' in '\n'.join(tc))
 check('C4  header CLAIMS the gate (L38-40, D-130 tier wording) — the claim is NOW true (ties to C3)',
       'a live regab DB + LONG=1 is required;' in tc[37]
       and 'SKIP_REGAB_DB=1' in tc[38] and 'skips the DB-gated tests' in tc[38]
-      and 'VLONG=1 implies LONG, see reversi.test.tags' in tc[39])
+      and 'VLONG=1 implies LONG, see test.reversi.tags' in tc[39])
 check('C5  T4 DONE: TemporaryDirectory FIRST (L95) under CUSTOM_TMP_BASE + tmp_dir = Path (L96) + WORKSPACE_ROOT json (L97)',
       tc[94] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
       and tc[95] == '        self.tmp_dir = Path(self._tmp.name)'
-      and tc[96] == '        self.json_config = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json")')
+      and tc[96] == '        self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")')
 check('C6  T4 DONE: no dead imports — no shutil, Path is load-bearing (Path(self._tmp.name))',
       'import shutil' not in '\n'.join(tc) and tc[53] == 'from pathlib import Path'
       and '\n'.join(tc).count('Path(') == 1)
@@ -152,7 +157,7 @@ try:
     base = Path(tmp.name)
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        rlm01 = LogisticModel(str(ROOT / 'src' / 'reversi' / 'test' / 'data' / 'rlm_01.json'),
+        rlm01 = LogisticModel(str(ROOT / 'test' / 'reversi' / 'data' / 'rlm_01.json'),
                               verbosity=Verbosity.HIGH, base_dir_override=base)
         # (D1 c? resolves to a (KEEP): the test pins only the y2z +
         #  z pre-state; z2y / zed_checksum pre-state are probe-unique)
@@ -220,21 +225,21 @@ check('F1  LMContext zed fields pre-declared (the block shifts with every '
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
-      (SRC / 'test' / 'test_hlp_zed.py').exists()
+      (ROOT / 'test' / 'reversi' / 'lm' / 'test_hlp_zed.py').exists()
       and sum(1 for l in lines_of('test/test_hlp_zed.py') if l.startswith('    def test_')) == 10
       and 'from reversi.lm.logistic_model' not in '\n'.join(lines_of('test/test_hlp_zed.py')))
 check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
       (ROOT / 'docs' / 'src' / 'reversi' / 'lm' / 'hlp_zed.md').exists()
       and (ROOT / 'docs' / 'src' / 'reversi' / 'lm' / 'wrk_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'reversi' / 'test' / 'test_wrk_zed.md').exists()
-      and (ROOT / 'docs' / 'src' / 'reversi' / 'test' / 'test_hlp_zed.md').exists())
+      and (ROOT / 'docs' / 'test' / 'reversi' / 'lm' / 'test_wrk_zed.md').exists()
+      and (ROOT / 'docs' / 'test' / 'reversi' / 'lm' / 'test_hlp_zed.md').exists())
 
 # ---------------------------------------------------------------- G tier (dedicated suite)
 gd = lines_of('test/test_hlp_zed.py')
 check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from reversi.lm.logistic_model', 'SKIP_REGAB_DB',
-                                           'reversi.test.paths', 'import os')))
+                                           'test.reversi.paths', 'import os')))
 check('G3  3 classes (L59/90/119): TestZedFunFactory + TestHlpZedCompute + TestLMZed',
       gd[58] == 'class TestZedFunFactory(unittest.TestCase):'
       and gd[89] == 'class TestHlpZedCompute(unittest.TestCase):'

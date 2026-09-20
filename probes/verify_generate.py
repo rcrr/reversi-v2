@@ -34,6 +34,7 @@ from pathlib import Path
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 SRC = WS / "src" / "reversi"
 
 failures = []
@@ -107,12 +108,12 @@ check("B3 no non-comment trailing whitespace",
 # ----------------------------------------------------------------------
 # C. test_hlp_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
-test_src = read("src/reversi/test/test_hlp_generate.py")
+test_src = read("test/reversi/lm/test_hlp_generate.py")
 check("C1 the Italian comment is gone (AGENTS.md rule 4 — house fix D-084 T3 class)",
       "AGGIUNTO" not in test_src)
 check("C2 no non-comment trailing whitespace",
-      not ws_lines("src/reversi/test/test_hlp_generate.py"),
-      f"lines {ws_lines('src/reversi/test/test_hlp_generate.py')}")
+      not ws_lines("test/reversi/lm/test_hlp_generate.py"),
+      f"lines {ws_lines('test/reversi/lm/test_hlp_generate.py')}")
 
 # ----------------------------------------------------------------------
 # D. data-object behavior (no DB)
@@ -120,7 +121,7 @@ check("C2 no non-comment trailing whitespace",
 from reversi.lm.hlp_generate import (LMDenseWeights,
                                 compute_w_dense)
 
-from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
@@ -198,7 +199,7 @@ else:
         tmp = Path(tmp)
         from reversi.lm.logistic_model import LogisticModel
         from reversi.tools.state_machine import Verbosity
-        m = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"),
+        m = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json"),
                           verbosity=Verbosity.LOW, base_dir_override=tmp)
         # (E1 'the pipeline reaches GENERATE' deleted at D-106 step 3,
         #  class c: test_wrk_generate.py::TestLMWorkerGenerate::

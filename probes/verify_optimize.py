@@ -30,6 +30,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # the root test/ tree (the test.reversi helpers)
 SRC = ROOT / "src" / "reversi"
 
 results = []
@@ -40,8 +41,10 @@ def check(name, cond, detail=""):
 
 
 def read(name):
-    base = SRC if name.startswith("test/") else SRC / "lm"
-    return (base / name).read_text()
+    if name.startswith("test/"):
+        # the zone-abbreviated test path: test/test_X.py = the lm zone
+        return (ROOT / "test" / "reversi" / "lm" / name[len("test/"):]).read_text()
+    return (SRC / "lm" / name).read_text()
 
 
 def ws_lines(text):
@@ -173,7 +176,7 @@ check("C3 no SKIP_REGAB_DB gate in code (not needed — no DB)",
       "os.getenv" not in c_code and "skipTest" not in c_code)
 check("C4 D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c
-      and "from reversi.test.paths import CUSTOM_TMP_BASE" in c
+      and "from test.reversi.paths import CUSTOM_TMP_BASE" in c
       and "mkdtemp" not in c and "shutil" not in c)
 check("C5 defensive tearDown",
       "if getattr(self, '_tmp', None) is not None:\n            self._tmp.cleanup()" in c)
@@ -221,7 +224,7 @@ check("D2 T1: SKIP_REGAB_DB gate in setUp (D-130: the db_long_gate idiom)",
 check("D3 T2: D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in d
       and "Path(self._tmp.name)" in d
-      and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json"' in d
+      and 'WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json"' in d
       and "mkdtemp" not in d and "shutil" not in d)
 check("D4 T4: dead imports removed (skipUnless gone; os/Path now used)",
       "skipUnless" not in d
@@ -280,7 +283,7 @@ check("E6 lbfgs info dict: the 9 keys the worker consumes",
       and "'rho': rho" in obl and "'g_norm': np.linalg.norm(fgv.grad)," in obl)
 check("E7 x0.copy() (ctx.w never mutated in place; float32 preserved)",
       "x = x0.copy()" in obl)
-j = (SRC / "test" / "data" / "rlm_02.json").read_text()
+j = (ROOT / "test" / "reversi" / "data" / "rlm_02.json").read_text()
 check("E8 rlm_02 optimization block",
       '"max_iters": 50' in j and '"m": 19' in j and '"c1": 0.0001' in j
       and '"c2": 0.9' in j and '"min_grad": [1e-3, 3]' in j
@@ -342,7 +345,7 @@ def h_main():
         # HIGH (not LOW): at LOW=3 the machine only displays WARN+, so the
         # worker INFO logs (and the lbfgs logger INFO lines) would never be
         # captured — same verbosity choice as the worker test itself.
-        json_config = str(ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
+        json_config = str(ROOT / "test" / "reversi" / "data" / "rlm_02.json")
         rlm = LogisticModel(json_config, verbosity=Verbosity.HIGH,
                             base_dir_override=tmp)
         out = StringIO()

@@ -35,6 +35,7 @@ from types import SimpleNamespace
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 SRC = WS / "src" / "reversi"
 
 failures = []
@@ -105,7 +106,7 @@ check("A7b hlp_validate has no code ws lines (pre-campaign: 27 lines — the "
       "docstring trailing ws + the docstring ws-only lines + L108/L118)",
       _dv_ws == [], f"lines {_dv_ws}")
 check("A8 a test file exists for the worker (pre-campaign: absent — T5)",
-      (WS / "src" / "reversi" / "test" / "test_wrk_validate.py").exists())
+      (WS / "test" / "reversi" / "lm" / "test_wrk_validate.py").exists())
 check("A9 the _down scope clears exactly the FOUR fields _up sets "
       "(vld_metrics + the I-018 series and records)",
       wk_src.count("ctx.vld_metrics = None") == 1
@@ -153,12 +154,12 @@ if os.getenv("SKIP_REGAB_DB", "0") == "1":
 else:
     from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+    from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
     CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
         tmp = Path(tmp)
-        cfg_path = str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
+        cfg_path = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
 
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):

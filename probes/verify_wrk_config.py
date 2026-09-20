@@ -5,7 +5,7 @@ flow is removed — the CONFIG level is a pure load+validate step; the
 config record moved to the SAVE sidecar pair).
 
 Independently re-derives the module's invariants against the real test
-config (src/reversi/test/data/rlm_00.json) with a scratch base dir under
+config (test/reversi/data/rlm_00.json) with a scratch base dir under
 build/tmp (D-065). Prints ok/FAIL per check and a mismatch count.
 """
 import hashlib
@@ -25,7 +25,7 @@ from reversi.tools.state_machine import Verbosity
 import reversi.lm.wrk_config as lwc
 
 TMP_BASE = ROOT / "build" / "tmp" / "vlog_lmwc_d077"
-CONFIG_JSON = ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json"
+CONFIG_JSON = ROOT / "test" / "reversi" / "data" / "rlm_00.json"
 
 mismatches = []
 

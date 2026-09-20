@@ -20,6 +20,8 @@ import tempfile
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / 'src'
+WS = SRC.parent
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 sys.path.insert(0, str(SRC))
 LONG = 'LONG' in sys.argv
 
@@ -80,23 +82,23 @@ def tier_a():
           "__all__ = ['make_evaluation_function',\n           'make_evaluation_function_array']" in ct)
     check('A9 client: no ws lines (T4)', not ws_lines(c), str(ws_lines(c)))
 
-    t = SRC / 'reversi' / 'test' / 'test_lm_worker_full_chain.py'
+    t = WS / 'test' / 'reversi' / 'lm' / 'test_lm_worker_full_chain.py'
     tt = t.read_text()
     check('A10 test: the DB+LONG gate via db_long_gate x2 (T5a, the D-130 tag function replaced the inline getenv idiom — the stale pin re-derived)',
           tt.count("db_long_gate(self)") == 2
-          and "from reversi.test.tags import db_long_gate" in tt)
+          and "from test.reversi.tags import db_long_gate" in tt)
     check('A11 test: D-085 idiom (T5b)',
-          'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE' in tt
+          'from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE' in tt
           and 'mkdtemp(dir=str(CUSTOM_TMP_BASE))' in tt
-          and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_04.json"' in tt
-          and 'WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_03.json"' in tt)
+          and 'WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_04.json"' in tt
+          and 'WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_03.json"' in tt)
     check('A12 test: no stray #: ### (T5c)', '#: ###' not in tt)
     check('A13 test: no dead imports (T2)',
           'numpy.testing as nptest' not in tt and 'nptest.' not in tt)
     check('A14 test: no ws lines (T4)', not ws_lines(t), str(ws_lines(t)))
 
-    f3 = (SRC / 'reversi' / 'test' / 'data' / 'rlm_03.json').read_text()
-    f4 = (SRC / 'reversi' / 'test' / 'data' / 'rlm_04.json').read_text()
+    f3 = (WS / 'test' / 'reversi' / 'data' / 'rlm_03.json').read_text()
+    f4 = (WS / 'test' / 'reversi' / 'data' / 'rlm_04.json').read_text()
     check('A15 fixtures: output field + cuts (rlm_03 cut=1, rlm_04 cut=10)',
           '"output": "rglm_logistic_model_ec_20_TEST03.dat"' in f3
           and '"output": "rglm_logistic_model_ec_20_TEST04.dat"' in f4
@@ -119,7 +121,7 @@ def _chain(fixture, name_prefix):
     with patch('sys.stdout', new=StringIO()) as out:
         tmp = tempfile.mkdtemp(dir=str(SRC.parent / 'build' / 'tmp'))
         atexit.register(lambda: shutil.rmtree(tmp, ignore_errors=True))
-        rlm = LogisticModel(str(SRC / 'reversi' / 'test' / 'data' / fixture),
+        rlm = LogisticModel(str(WS / 'test' / 'reversi' / 'data' / fixture),
                             verbosity=Verbosity.HIGH, base_dir_override=tmp)
         rlm.move_to_last()
     return rlm, out.getvalue()

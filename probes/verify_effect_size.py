@@ -58,7 +58,7 @@ TMP = ROOT / "build" / "tmp" / "verify_effect_size"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
-CFG = ROOT / "src" / "reversi" / "test" / "data" / "rlm_00.json"
+CFG = ROOT / "test" / "reversi" / "data" / "rlm_00.json"
 BUILD = ROOT / "build" / "su_corpus_1e7"
 
 fails = 0
@@ -492,9 +492,9 @@ if have_build:
 # ---------------------------------------------------------------- F tier
 runner = (ROOT / "run_utests.sh").read_text()
 check("F1  the runner registers the effect-size suite",
-      "reversi.test.test_wrk_effect_size" in runner)
+      "test.reversi.lm.test_wrk_effect_size" in runner)
 for rel in ("docs/src/reversi/lm/wrk_effect_size.md",
-            "docs/src/reversi/test/test_wrk_effect_size.md"):
+            "docs/test/reversi/lm/test_wrk_effect_size.md"):
     check(f"F2  the D-007 mirror exists: {rel}", (ROOT / rel).exists())
 overview = (ROOT / "notes" / "overview.md").read_text()
 check("F3  the overview rows name the worker + its suite",
@@ -502,7 +502,7 @@ check("F3  the overview rows name the worker + its suite",
       and "test_wrk_effect_size" in overview)
 check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       "(rlm_01..rlm_04) enables it",
-      all('"effect_size"' not in (ROOT / "src" / "reversi" / "test" / "data"
+      all('"effect_size"' not in (ROOT / "test" / "reversi" / "data"
                                   / f"rlm_0{i}.json").read_text()
           for i in (1, 2, 3, 4)))
 check("F5  the shared-kernels module carries BOTH families (the SU_ANALYSIS "

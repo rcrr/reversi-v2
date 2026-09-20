@@ -23,6 +23,7 @@ from pathlib import Path
 import numpy as np
 
 WS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(WS))  # the root test/ tree (the test.reversi helpers)
 SRC = WS / "src" / "reversi"
 
 failures = []
@@ -106,7 +107,7 @@ check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[
 # ----------------------------------------------------------------------
 # C. test_hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-t1 = lines("src/reversi/test/test_hlp_wmaps.py")
+t1 = lines("test/reversi/lm/test_hlp_wmaps.py")
 check("C1 test_hlp_wmaps.py is 346 lines (post D-139: 325 + the 2 D-139 pins + the compressed kwarg lines)", len(t1) == 346, f"{len(t1)}")
 check("C2 4 classes / 15 tests (the 2 compute + 3 consistency + 8 IO + 2 init since D-139)",
       sum(1 for l in t1 if l.startswith("class ")) == 4 and
@@ -114,45 +115,45 @@ check("C2 4 classes / 15 tests (the 2 compute + 3 consistency + 8 IO + 2 init si
 check("C3 the header is corrected (L38: '-1- Run the tests.' — the file is DB-free, D-087 T2)",
       t1[37] == "# -1- Run the tests.", repr(t1[37]))
 check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no DB)",
-      read("src/reversi/test/test_hlp_wmaps.py").count("SKIP_REGAB_DB") == 0)
-check("C5 no DB import in the file", "from reversi.regab" not in read("src/reversi/test/test_hlp_wmaps.py")
-      and "import regab" not in read("src/reversi/test/test_hlp_wmaps.py"))
+      read("test/reversi/lm/test_hlp_wmaps.py").count("SKIP_REGAB_DB") == 0)
+check("C5 no DB import in the file", "from reversi.regab" not in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "import regab" not in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C6 D-085 idiom applied: setUpClass (L207) + TemporaryDirectory under CUSTOM_TMP_BASE (L213)",
       t1[206] == "    def setUpClass(cls):"
       and t1[212] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
       repr(t1[212]))
 check("C7 defensive tearDown (getattr _tmp guard, no shutil)",
-      "        if getattr(self, '_tmp', None) is not None:" in read("src/reversi/test/test_hlp_wmaps.py")
-      and "shutil" not in read("src/reversi/test/test_hlp_wmaps.py"))
+      "        if getattr(self, '_tmp', None) is not None:" in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "shutil" not in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C8 the D-085 paths import is present (L60)",
-      t1[59] == "from reversi.test.paths import CUSTOM_TMP_BASE", repr(t1[59]))
+      t1[59] == "from test.reversi.paths import CUSTOM_TMP_BASE", repr(t1[59]))
 check("C9 the dead StringIO AND patch imports are gone (D-087 T4)",
-      "StringIO" not in read("src/reversi/test/test_hlp_wmaps.py")
-      and "unittest.mock" not in read("src/reversi/test/test_hlp_wmaps.py")
-      and "patch" not in read("src/reversi/test/test_hlp_wmaps.py"))
+      "StringIO" not in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "unittest.mock" not in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "patch" not in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C10 the leftover generation comment is gone (D-087 T3)",
-      "sostituisci" not in read("src/reversi/test/test_hlp_wmaps.py"))
+      "sostituisci" not in read("test/reversi/lm/test_hlp_wmaps.py"))
 ws_t1 = [i + 1 for i, l in enumerate(t1) if l != l.rstrip() and not l.strip().startswith("#")]
 check("C11 0 whitespace-only lines (D-087 T9: 21 stripped)", len(ws_t1) == 0, f"{ws_t1}")
 check("C12 the store/load cycle still pins checksum=False on both sides",
-      "hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)" in read("src/reversi/test/test_hlp_wmaps.py")
-      and "hlp_wmaps_load_from_file(self.filepath, checksum=False)" in read("src/reversi/test/test_hlp_wmaps.py"))
+      "hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)" in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "hlp_wmaps_load_from_file(self.filepath, checksum=False)" in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C13 the golden-hash test is present with the pinned literal (D-087 T10)",
-      "def test_compute_sha3_256_hash_golden" in read("src/reversi/test/test_hlp_wmaps.py")
-      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read("src/reversi/test/test_hlp_wmaps.py"))
+      "def test_compute_sha3_256_hash_golden" in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa" in read("test/reversi/lm/test_hlp_wmaps.py"))
 check("C14 the 4 new load-path tests are present (D-087 T10: sidecar valid/mismatch, description, version)",
-      all(f"def {n}" in read("src/reversi/test/test_hlp_wmaps.py")
+      all(f"def {n}" in read("test/reversi/lm/test_hlp_wmaps.py")
           for n in ("test_load_with_valid_sidecar", "test_load_with_mismatched_sidecar",
                     "test_load_rejects_wrong_description", "test_load_rejects_version_mismatch")))
 check("C15 the TestHlpWmapsInit class is present with the precise ValidationError (D-087 T10)",
-      "class TestHlpWmapsInit" in read("src/reversi/test/test_hlp_wmaps.py")
-      and "from pydantic import ValidationError" in read("src/reversi/test/test_hlp_wmaps.py")
-      and "assertRaises(ValidationError)" in read("src/reversi/test/test_hlp_wmaps.py"))
+      "class TestHlpWmapsInit" in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "from pydantic import ValidationError" in read("test/reversi/lm/test_hlp_wmaps.py")
+      and "assertRaises(ValidationError)" in read("test/reversi/lm/test_hlp_wmaps.py"))
 
 # ----------------------------------------------------------------------
 # D. test_wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
-t2 = lines("src/reversi/test/test_wrk_wmaps.py")
+t2 = lines("test/reversi/lm/test_wrk_wmaps.py")
 check("D1 test_wrk_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", len(t2) == 315, f"{len(t2)}")
 check("D2 2 classes / 3 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
@@ -167,24 +168,24 @@ check("D5 both setUps use the D-085 TemporaryDirectory idiom (L82, L183)",
       and t2[182] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
       repr(t2[81]))
 check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L84 rlm_00, L185 rlm_01)",
-      t2[83] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_00.json\")"
-      and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_01.json\")",
+      t2[83] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
+      and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
       repr(t2[83]))
 check("D7 the D-085 paths import is present (L58)",
-      t2[57] == "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
+      t2[57] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
-      read("src/reversi/test/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
+      read("test/reversi/lm/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
 check("D9 the D-078 cache names are pinned (rlmwf_07_WMAPS.dat + .SHA3-256)",
-      "'rlmwf_07_WMAPS.dat'" in read("src/reversi/test/test_wrk_wmaps.py")
-      and "'rlmwf_07_WMAPS.dat.SHA3-256'" in read("src/reversi/test/test_wrk_wmaps.py"))
+      "'rlmwf_07_WMAPS.dat'" in read("test/reversi/lm/test_wrk_wmaps.py")
+      and "'rlmwf_07_WMAPS.dat.SHA3-256'" in read("test/reversi/lm/test_wrk_wmaps.py"))
 check("D10 step pins (re-pinned: INDEXES=5, WMAPS=7)",
-      "self.assertEqual(self.rlm.current_step, 5)" in read("src/reversi/test/test_wrk_wmaps.py")
-      and "self.assertEqual(self.rlm.current_step, 7)" in read("src/reversi/test/test_wrk_wmaps.py"))
+      "self.assertEqual(self.rlm.current_step, 5)" in read("test/reversi/lm/test_wrk_wmaps.py")
+      and "self.assertEqual(self.rlm.current_step, 7)" in read("test/reversi/lm/test_wrk_wmaps.py"))
 ws_t2 = [i + 1 for i, l in enumerate(t2) if l != l.rstrip() and not l.strip().startswith("#")]
 check("D11 0 whitespace-only lines (D-087 T9: 20 stripped)", len(ws_t2) == 0, f"{ws_t2}")
 check("D12 defensive tearDown in both classes (getattr guards, no shutil)",
-      read("src/reversi/test/test_wrk_wmaps.py").count("        if getattr(self, '_tmp', None) is not None:") == 2
-      and "shutil" not in read("src/reversi/test/test_wrk_wmaps.py"))
+      read("test/reversi/lm/test_wrk_wmaps.py").count("        if getattr(self, '_tmp', None) is not None:") == 2
+      and "shutil" not in read("test/reversi/lm/test_wrk_wmaps.py"))
 
 # ----------------------------------------------------------------------
 # E. GOLDEN re-derivation (live DB) — rlm_01.json
@@ -199,13 +200,13 @@ import tempfile
 #  by test_wrk_wmaps.py::test_compute_wmaps_exact_values, so
 #  extracting them and comparing was tautological.)
 
-from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
+from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE
 
 CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
     from reversi.lm.logistic_model import LogisticModel
     from reversi.tools.state_machine import Verbosity
-    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" / "rlm_01.json"),
+    rlm_lm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json"),
                            verbosity=Verbosity.LOW, base_dir_override=tmp)
     rlm_lm.move_to_step("WMAPS")
     ctx = rlm_lm.context
@@ -229,11 +230,11 @@ with tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE)) as tmp:
 # ----------------------------------------------------------------------
 # F. Cross-fixture / context facts
 # ----------------------------------------------------------------------
-fix = json5.loads((WS / "src" / "reversi" / "test" / "data" / "rlm_01.json").read_text())
+fix = json5.loads((WS / "test" / "reversi" / "data" / "rlm_01.json").read_text())
 sm = fix["stat_model"]
 check("F1 rlm_01 stat_model == {cut_off 2, logit 0.03, ridge 0.0}",
       sm == {"frequency_cut_off": 2, "logit_clipping": 0.03, "ridge_regularization": 0.0}, repr(sm))
-fix0 = json5.loads((WS / "src" / "reversi" / "test" / "data" / "rlm_00.json").read_text())
+fix0 = json5.loads((WS / "test" / "reversi" / "data" / "rlm_00.json").read_text())
 check("F2 rlm_00 stat_model == {cut_off 1, logit 0.05, ridge 0.0}",
       fix0["stat_model"] == {"frequency_cut_off": 1, "logit_clipping": 0.05, "ridge_regularization": 0.0})
 check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_' (D-078)",

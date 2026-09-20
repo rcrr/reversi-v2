@@ -43,7 +43,7 @@ TMP_BASE = WS / "build" / "tmp"
 TMP_BASE.mkdir(parents=True, exist_ok=True)
 PROBE_TMP = Path(tempfile.mkdtemp(dir=str(TMP_BASE)))
 atexit.register(lambda: shutil.rmtree(PROBE_TMP, ignore_errors=True))
-CONFIG_JSON = WS / "src" / "reversi" / "test" / "data" / "rlm_00.json"
+CONFIG_JSON = WS / "test" / "reversi" / "data" / "rlm_00.json"
 
 RESULTS = []
 

@@ -46,13 +46,14 @@ import types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # the root test/ tree (the test.reversi helpers)
 os.chdir(ROOT)
 
 TMP = ROOT / "build" / "tmp" / "verify_hlp_indexes"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
-CFG = "src/reversi/test/data/rlm_00.json"
+CFG = "test/reversi/data/rlm_00.json"
 
 fails = 0
 
@@ -322,14 +323,14 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 # E — source structure of test_wrk_indexes.py (content pins).
 #
 
-tsrc = (ROOT / "src" / "reversi" / "test" / "test_wrk_indexes.py").read_text()
+tsrc = (ROOT / "test" / "reversi" / "lm" / "test_wrk_indexes.py").read_text()
 
 check("E1 154 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a header line)",
       len(tsrc.splitlines()) == 154
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
-check("E2 D-084 T1 (D-085: re-anchored via reversi.test.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
-      "from reversi.test.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
+check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
+      "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "setUpClass" in tsrc
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
@@ -352,7 +353,7 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
 # F — source structure of test_hlp_indexes.py (content pins).
 #
 
-fsrc = (ROOT / "src" / "reversi" / "test" / "test_hlp_indexes.py").read_text()
+fsrc = (ROOT / "test" / "reversi" / "lm" / "test_hlp_indexes.py").read_text()
 
 check("F1 307 lines, 5 classes / 14 tests (post D-139: the compressed=True mock pins)",
       len(fsrc.splitlines()) == 307

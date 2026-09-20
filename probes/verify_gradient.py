@@ -24,6 +24,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # the root test/ tree (the test.reversi helpers)
 SRC = ROOT / "src" / "reversi"
 
 results = []
@@ -34,8 +35,10 @@ def check(name, cond, detail=""):
 
 
 def read(name):
-    base = SRC if name.startswith("test/") else SRC / "lm"
-    return (base / name).read_text()
+    if name.startswith("test/"):
+        # the zone-abbreviated test path: test/test_X.py = the lm zone
+        return (ROOT / "test" / "reversi" / "lm" / name[len("test/"):]).read_text()
+    return (SRC / "lm" / name).read_text()
 
 
 def ws_lines(text):
@@ -117,17 +120,17 @@ check("C1 line count 182 (D-130: the tier note adds a header line)", len(cl) == 
 check("C2 header gate claim (D-130 tier wording)",
       "a live regab DB + LONG=1 is required;" in c and
       "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in c and
-      "VLONG=1 implies LONG, see reversi.test.tags" in c)
+      "VLONG=1 implies LONG, see test.reversi.tags" in c)
 code_no_header = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
 check("C3 T5 gate in code (D-130: the db_long_gate idiom)",
       "import os" in code_no_header and
       "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in code_no_header and
       "# The SKIP_REGAB_DB gate, as in test_regab" in c)
 check("C4 T6 D-085 idiom",
-      "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
+      "from test.reversi.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c and
       "Path(self._tmp.name)" in c and
-      "WORKSPACE_ROOT / \"src\" / \"reversi\" / \"test\" / \"data\" / \"rlm_02.json\"" in c
+      "WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_02.json\"" in c
       and "mkdtemp" not in c and "shutil" not in c)
 check("C5 2 classes 4 tests (I-013: the no-DB flag-wiring class)",
       c.count("class Test") == 2 and
@@ -172,7 +175,7 @@ def live(name, fn):
 
 def d_main():
     with tempfile.TemporaryDirectory(dir=ROOT / "build" / "tmp") as tmp:
-        json_config = str(ROOT / "src" / "reversi" / "test" / "data" / "rlm_02.json")
+        json_config = str(ROOT / "test" / "reversi" / "data" / "rlm_02.json")
         rlm = LogisticModel(json_config, verbosity=Verbosity.LOW,
                             base_dir_override=tmp)
 
@@ -312,7 +315,7 @@ import scipy
 check("E5 scipy in venv 1.18.1", scipy.__version__ == "1.18.1", scipy.__version__)
 check("E6 StatModelConfig ridge field",
       "ridge_regularization: float = Field(default=0.00, ge=0.00)" in read("hlp_config_schemas.py"))
-j = (SRC / "test" / "data" / "rlm_02.json").read_text()
+j = (ROOT / "test" / "reversi" / "data" / "rlm_02.json").read_text()
 check("E7 rlm_02 config",
       '"logit_clipping": 0.01' in j and '"ridge_regularization": 0.01' in j
       and '"frequency_cut_off": 1' in j and '"intercept": false' in j
@@ -342,7 +345,7 @@ check("G9 I-013 HP tests (equivalence, f32 contract, determinism, marker)",
 check("G3 no DB wiring",
       "from reversi.lm.logistic_model" not in gd and
       "SKIP_REGAB_DB" not in gd and
-      "reversi.test.paths" not in gd and
+      "test.reversi.paths" not in gd and
       "import os" not in gd)
 check("G4 SimpleNamespace mock",
       "from types import SimpleNamespace" in gd and
