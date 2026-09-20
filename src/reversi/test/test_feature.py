@@ -301,6 +301,95 @@ class TestFeatureSet(unittest.TestCase):
             
         self.assertIn("wrong category", str(context.exception))
 
+class TestFeatureSetFeatureBlocks(unittest.TestCase):
+    """The feature_blocks property: the per-feature column blocks over
+    the non-intercept features (the compute_indexes column layout)."""
+
+    def setUp(self):
+        pattern_set_data = [
+            ('R2',     0x000000000000FF00),
+            ('R3',     0x0000000000FF0000),
+            ('R4',     0x00000000FF000000),
+            ('XEDGE',  0x00000000000042FF),
+            ('DIAG4',  0x0000000001020408),
+            ('DIAG5',  0x0000000102040810),
+            ('DIAG6',  0x0000010204081020),
+            ('DIAG7',  0x0001020408102040),
+            ('DIAG8',  0x0102040810204080),
+            ('CORNER', 0x0000000000070707),
+            ('2X5COR', 0x0000000000001F1F),
+            ('RCT2X4', 0x0000003C3C000000),
+            ('CORE',   0x0000001818000000),
+        ]
+        plf = lambda x: [Pattern(n, Bitboard(m)) for n, m in x]
+        mobility_set_data = [
+            ('LMC',  0xFFFFFFFFFFFFFFFF, 0x0000000000000000),
+            ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
+            ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
+        ]
+        mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
+        self.intercept = Feature.new_intercept()
+        self.mset = MobilitySet('TestMobilitySet', mlf(mobility_set_data))
+        self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
+
+    def test_feature_blocks_full_set(self):
+        """With the intercept: the blocks start at column 1 (the
+        intercept owns column 0) and end at n_instances."""
+        feature_set = FeatureSet('TestFeatureSet', self.intercept,
+                                 self.mset, self.pset)
+        self.assertEqual(feature_set.feature_blocks, [
+            ('ALMC',   1,  2,   65,   1),
+            ('LMC',    2,  3,   65,   1),
+            ('DLMC',   3,  4,  129,   1),
+            ('2X5COR', 4, 12, 59049,  8),
+            ('XEDGE', 12, 16, 59049,  4),
+            ('R2',    16, 20,  6561,  4),
+            ('CORNER',20, 24, 19683,  4),
+            ('R3',    24, 28,  6561,  4),
+            ('DIAG4', 28, 32,    81,  4),
+            ('R4',    32, 36,  6561,  4),
+            ('DIAG5', 36, 40,   243,  4),
+            ('CORE',  40, 41,    81,  1),
+            ('RCT2X4',41, 43,  6561,  2),
+            ('DIAG6', 43, 47,   729,  4),
+            ('DIAG7', 47, 51,  2187,  4),
+            ('DIAG8', 51, 53,  6561,  2),
+        ])
+
+    def test_feature_blocks_without_intercept(self):
+        """No intercept: the blocks start at column 0."""
+        feature_set = FeatureSet('NoIntercept', None, self.mset, self.pset)
+        blocks = feature_set.feature_blocks
+        self.assertEqual(len(blocks), 16)
+        self.assertEqual(blocks[0], ('ALMC', 0, 1, 65, 1))
+        self.assertEqual(blocks[-1], ('DIAG8', 50, 52, 6561, 2))
+        self.assertEqual(sum(b[2] - b[1] for b in blocks),
+                         feature_set.n_instances)
+
+    def test_feature_blocks_intercept_only(self):
+        """The intercept is not a block: an intercept-only set has
+        no non-intercept features, so the blocks are empty."""
+        feature_set = FeatureSet('InterceptOnly', self.intercept, None, None)
+        self.assertEqual(feature_set.feature_blocks, [])
+
+    def test_feature_blocks_empty(self):
+        feature_set = FeatureSet('Empty', None, None, None)
+        self.assertEqual(feature_set.feature_blocks, [])
+
+    def test_feature_blocks_instance_aware_contiguous_coverage(self):
+        """Each feature occupies exactly n_instances contiguous
+        columns (the D8 instance columns): the blocks tile the
+        non-intercept columns without gaps, up to n_instances."""
+        feature_set = FeatureSet('TestFeatureSet', self.intercept,
+                                 self.mset, self.pset)
+        col = 1  # the intercept owns column 0
+        for (name, c0, c1, n_conf, n_inst) in feature_set.feature_blocks:
+            self.assertEqual(c0, col)
+            self.assertEqual(c1 - c0, n_inst)
+            col = c1
+        self.assertEqual(col, feature_set.n_instances)
+
+
 class TestFeatureSetComputeIndexes(unittest.TestCase):
 
     def setUp(self):
