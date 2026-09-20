@@ -185,7 +185,7 @@ class TestMobilitySet(unittest.TestCase):
         
         # Recreate bytes manually
         expected_bytes = b''.join(m.mask.tobytes() + m.amask.tobytes() for m in sorted_ml)
-        # Pinned golden: independently re-derived 2026-08-28, not computed
+        # Pinned golden: independently re-derived, not computed
         # from the object under test.
         expected_hash = ('2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94')
         self.assertEqual(hashlib.sha3_256(expected_bytes).hexdigest(), expected_hash)

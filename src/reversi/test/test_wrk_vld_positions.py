@@ -305,7 +305,7 @@ class TestVldIndependenceCheck(unittest.TestCase):
 
     def test_full_overlap_is_traced_not_raised(self):
         """rlm_00: train and vld are the same bid 8 extraction — 100%
-        overlap is TRACED, not raised (the log-only ruling)."""
+        overlap is TRACED, not raised (the check is log-only)."""
         rlm = self._machine('rlm_00.json')
         rlm.move_to_step('VLD_POSITIONS')
         self.assertEqual(len(rlm.context.vld_positions), 200)
