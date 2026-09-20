@@ -72,4 +72,4 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
 - The consumer: the EFFECT_SIZE worker reads the `ctx.su_analysis_tables` for the adherence (the c metric of the design
   section 3.5), with the graceful degradation when the level is disabled (the tables None).
 - The wiring registers the worker at step 3 (the rlmwf_03 slot) + the EFFECT_SIZE at step 6; the VLONG scale test
-  (`test_wrk_su_analysis::TestSuCorpusAtScale`, D-256) runs the corpus at the ODP-1 size.
+  (`test_wrk_su_analysis::TestSuCorpusAtScale`, D-256) runs the corpus at the 1e7 size.

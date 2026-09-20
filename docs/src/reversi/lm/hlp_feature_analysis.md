@@ -13,8 +13,7 @@ output (the recompute, cheap, on every run).
   (the ratio form's 0/0 avoided; the joint entropy is the entropy of the joint counts). Clamped to >= 0 (the
   floating-point rounding of the identity can give a tiny negative).
 - `symmetric_uncertainty(I, H_u, H_v) -> float` — the symmetrical uncertainty SU = 2·I / (H(u) + H(v)), in [0, 1]. The
-  0-denominator guard: SU = 0 if H(u) + H(v) == 0 (the degenerate variables — the code-0 "no match" single-category, the
-  ODP-4/ODP-8 close).
+  0-denominator guard: SU = 0 if H(u) + H(v) == 0 (the degenerate variables — the code-0 "no match" single-category).
 - `dispersion(counts, n_configurations) -> dict` — the per-sub-variable dispersion: K_obs (the distinct observed codes),
   H (the entropy in bits), H_norm = H / log2(K_obs) (else 0 — the K_obs <= 1 guard), the coverage = K_obs /
   n_configurations. Returns {'k_obs', 'h', 'h_norm', 'coverage'}.
@@ -39,8 +38,8 @@ output (the recompute, cheap, on every run).
   DB observes a code the ideal never shows) returns chi2 = +inf, p = 0 (the total incompatibility, aligned with the KL
   +inf — the merged tail would otherwise hide the root cause and divide by zero).
 - `adherence(db_counts, ideal_counts) -> dict` — the adherence (c) trio: the DB configuration distribution (the observed
-  codes of the training positions) vs the ideal distribution (the corpus frequencies, normalized), the fixed trio (the
-  ODP-5 close, no config whitelist): the chi-square (the p-value + the merged-tail count), the KL (the 0-log-0), the TV
+  codes of the training positions) vs the ideal distribution (the corpus frequencies, normalized), the fixed trio (no
+  config whitelist): the chi-square (the p-value + the merged-tail count), the KL (the 0-log-0), the TV
   (the robust "how different" number). The two are aligned over the union of the observed codes (the missing side is 0).
   Returns {'chi2', 'p', 'merged', 'kl', 'tv'}; the values are nan if either distribution is empty.
 
@@ -53,7 +52,7 @@ output (the recompute, cheap, on every run).
   cells). The clamp to >= 0 guards the floating-point rounding.
 - The SU 0-denominator guard (the design: "SU = 0 if the denominator is 0"): the degenerate sub-variable (the single
   observed category — the code-0 "no match" when the pattern never matches) has H = 0; the pair (u, v) with H(u) + H(v)
-  = 0 is the 0/0, guarded to 0 (not a measurement — the ODP-4/ODP-8 close: the 1s and the 0/0 are locks, not signals).
+  = 0 is the 0/0, guarded to 0 (not a measurement: the 1s and the 0/0 are locks, not signals).
 
 ## Verified invariants
 - The hand-computed toy tables (test_hlp_feature_analysis, 32 tests): the uniform 4 (H = 2), the degenerate (H = 0), the

@@ -28,7 +28,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   pair is reported together (omega² may be slightly negative, the null effect — the raw value is reported).
 - **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the `np.unique` counts of the
   training raw codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the
-  chi-square merged-tail p + the KL + the TV) — the ODP-5 close, no config whitelist. The top-N (the `top_k_adherence`,
+  chi-square merged-tail p + the KL + the TV) — no config whitelist. The top-N (the `top_k_adherence`,
   default 20) most deviant features (the TV descending) are reported. The GRACEFUL DEGRADATION: the adherence is skipped
   (the log note) when the corpus is absent (the SU_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
 - **NO cache** — a diagnostic (the recompute is seconds); the generation error -> the level fails, the machine

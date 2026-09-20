@@ -9,7 +9,7 @@ signature invalidation (the corpus change), the su_pairs joint, the optional CSV
 | class | tests | what it pins |
 |---|---|---|
 | `TestWrkSuAnalysis` | 8 | `test_factory` (the worker factory: the SU_ANALYSIS name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the tables stay None, the "disabled" log); `test_compute_and_publish` (the 2000-position SU-analysis corpus -> the phase-1 tables + the phase-2 statistics + the TXT report + the ctx publication, the no-su_pairs -> the joint None); `test_cache_hit` (the second run, the same signature -> the "loaded from cache" log); `test_signature_invalidation` (the corpus change (the total_positions) -> the recompute); `test_su_pairs_joint` (the requested su_pairs: the joint is computed, the (EDGE, LMC) pair, the canonical order); `test_export_csv` (the export_csv flag -> the CSV file is written); `test_down_clears` (the recovery: the down clears the tables) |
-| `TestSuCorpusAtScale` | 1 (VLONG) | the 1e7-position corpus at the ODP-1 scale: the harvested count, the marginal totals (one count per position per sub-variable), the cache write + the HIT on a second run with the same signature |
+| `TestSuCorpusAtScale` | 1 (VLONG) | the 1e7-position corpus: the harvested count, the marginal totals (one count per position per sub-variable), the cache write + the HIT on a second run with the same signature |
 
 ## Goldens pinned
 
@@ -17,7 +17,7 @@ signature invalidation (the corpus change), the su_pairs joint, the optional CSV
   positions at ec 20, seed 42 (the "uno per tutti").
 - The cache consistency: the feature_set hash + the generation spec (the seed, the total_positions, the ec, the
   generator version "su-corpus-2", the PRNG version "mt19937-64") + the su_pairs (the canonical sorted form) — the NO
-  rds_checksum (the P5, the new cache lineage).
+  rds_checksum (the new cache lineage).
 - The phase-2 recompute: the statistics run on EVERY run (the cache hit included) — the "loaded from cache" + the report
   both on the hit run.
 - The opt-in: the enable false -> the no-op (the tables None, the "disabled" log).
