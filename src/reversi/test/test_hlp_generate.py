@@ -284,7 +284,7 @@ class TestHlpGenerateIO(unittest.TestCase):
             "Wrong file format: A description that is not the dense-weights one")
 
     def test_load_rejects_version_mismatch(self):
-        """A file whose header version is not 1 is rejected (the T1 gate)."""
+        """A file whose header version is not 1 is rejected."""
         with binio.BinaryWriter(str(self.filepath), checksum=False,
                                 compressed=True) as w:
             w.write_header("RGLM Dense Weights binary data file", 2)

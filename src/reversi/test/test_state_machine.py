@@ -325,7 +325,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.logs), 1)  # init log only
 
     def test_numpy_int64_rejected(self):
-        """np.int64 is NOT a Python int subclass: TypeError (V7)."""
+        """np.int64 is NOT a Python int subclass: TypeError."""
         import numpy as np
         with self.assertRaises(TypeError) as ctx:
             self.sm.move_to_step(np.int64(1))
@@ -626,7 +626,7 @@ class TestVerbosityGating(unittest.TestCase):
 
 
 class TestContextInjection(unittest.TestCase):
-    """The context injection layer (T2): __init__ binds live
+    """The context injection layer: __init__ binds live
     infrastructure helpers onto the shared Context, which is the
     module's main integration surface with domain workers."""
 
@@ -688,7 +688,7 @@ class TestContextInjection(unittest.TestCase):
 
     def test_absolute_cache_prefix_drops_base_dir(self):
         """An absolute cache_files_prefix silently drops base_dir
-        (pathlib '/' semantics, V9)."""
+        (pathlib '/' semantics)."""
         self.context.cfg = SimpleNamespace(
             cache_files_prefix="/abs/cache/", base_dir=Path("base"))
         self.sm.move_to_step(1)
@@ -726,7 +726,7 @@ class TestContextInjection(unittest.TestCase):
 
     def test_empty_workers_degenerate_paths(self):
         """Empty pipeline: Path() cache path, 'UNDEFINED' worker name,
-        move_to_last no-op (V9)."""
+        move_to_last no-op."""
         bare = Context()
         sm = StateMachine([], bare)
         self.assertEqual(bare.get_cache_file_path_for_current_level(), Path())
@@ -737,7 +737,7 @@ class TestContextInjection(unittest.TestCase):
 
     def test_shared_context_rebinds_to_last_machine(self):
         """A shared context re-binds to the LAST machine built on it:
-        the injection is a side effect (V17)."""
+        the injection is a side effect."""
         shared = Context()
         shared.cfg = SimpleNamespace(
             cache_files_prefix="cache/", base_dir=Path("base"))
@@ -758,7 +758,7 @@ class TestContextInjection(unittest.TestCase):
 
 
 class TestDisplayGoldens(unittest.TestCase):
-    """Display goldens for the print paths (T3): the live
+    """Display goldens for the print paths: the live
     log_event line, show_event_log, show_history_of_moves. The
     module clock is frozen (advancing 1ms per now() call), so the
     goldens are exact — no wall-clock dependence."""

@@ -199,15 +199,15 @@ class TestPattern(unittest.TestCase):
         p = Pattern('FOURC_B1', corners | Bitboard(0x2))
         self.assertEqual(p.n_instances, 8)
         self.assertEqual(p.n_stabilizers, 1)
-        # + a2 (bit 8) and + h2 (bit 15) are the same orbit but larger:
-        # the old BSR-only rule (R1) accepted all of them.
+        # + a2 (bit 8) and + h2 (bit 15) are the same orbit but
+        # larger: a BSR-only principal test would accept them.
         for extra in (0x100, 0x8000):
             with self.assertRaises(ValueError) as context:
                 Pattern('BAD_FOURC', corners | Bitboard(extra))
             self.assertIn("not principal", str(context.exception))
 
 class TestPatternType(unittest.TestCase):
-    """Direct tests of PatternType (T12): from_fingerprint, .data,
+    """Direct tests of PatternType: from_fingerprint, .data,
     and the orbit-stabilizer relation n_instances * n_stabilizers = 8."""
 
     def test_from_fingerprint_roundtrip_all_members(self):

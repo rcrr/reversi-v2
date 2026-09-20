@@ -72,7 +72,7 @@ DUMMY_DATA = {"result": "success", "value": 42}
 
 
 class DataWithChecksum:
-    """Data object WITH the duck-typed compute_sha3_256_hash method (T2)."""
+    """Data object WITH the duck-typed compute_sha3_256_hash method."""
 
     def __init__(self, payload, digest):
         self.payload = payload
@@ -83,7 +83,7 @@ class DataWithChecksum:
 
 
 class DataWithBrokenChecksum(DataWithChecksum):
-    """Data object whose compute_sha3_256_hash raises (T2, V13)."""
+    """Data object whose compute_sha3_256_hash raises."""
 
     def compute_sha3_256_hash(self):
         raise RuntimeError("hash boom")
@@ -300,7 +300,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             f"(sidecar missing or mismatched). Deleting cache and recomputing.",
         )
 
-        # T7: the recompute actually replaced the stale bytes and
+        # The recompute actually replaced the stale bytes and
         # left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
@@ -336,7 +336,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             f"Failed to load or validate cache file '{self.cache_path}': Disk read error. Recomputing."
         )
 
-        # T7: the recompute actually replaced the stale bytes and
+        # The recompute actually replaced the stale bytes and
         # left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
@@ -368,7 +368,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         self.mock_store.assert_called_once()
         self.mock_validate.assert_called_once_with(DUMMY_DATA)
 
-        # T7: the recompute actually replaced the stale bytes and
+        # The recompute actually replaced the stale bytes and
         # left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
@@ -408,13 +408,13 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         )
 
     # ------------------------------------------------------------------
-    # T2 (P0): the duck-typed compute_sha3_256_hash data-checksum path.
+    # The duck-typed compute_sha3_256_hash data-checksum path.
     # ------------------------------------------------------------------
 
     def test_compute_path_returns_data_checksum(self):
         """
-        T2 (V11a): data WITH a compute_sha3_256_hash method -> the
-        method's value is the 3rd return element on the compute path.
+        Data WITH a compute_sha3_256_hash method -> the method's
+        value is the 3rd return element on the compute path.
         """
         digest = "ab" * 32
         data = DataWithChecksum(payload="computed", digest=digest)
@@ -436,8 +436,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_load_path_returns_data_checksum(self):
         """
-        T2 (V11b): valid cache, loaded data WITH the method -> its
-        value is the 3rd return element on the load path.
+        Valid cache, loaded data WITH the method -> its value is
+        the 3rd return element on the load path.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -461,8 +461,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_checksum_method_missing_returns_none(self):
         """
-        T2 + T1 (V12): data WITHOUT the method (plain dict) -> the
-        3rd return element is None on the compute path.
+        Data WITHOUT the method (plain dict) -> the 3rd return
+        element is None on the compute path.
         """
         self.cache_path.write_text("old data")
 
@@ -482,8 +482,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_checksum_attribute_not_callable_returns_none(self):
         """
-        T2 (V12): a compute_sha3_256_hash attribute that is NOT
-        callable -> None, no exception, success path intact.
+        A compute_sha3_256_hash attribute that is NOT callable ->
+        None, no exception, success path intact.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -567,7 +567,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step2_missing_sidecar_forces_recomputation(self):
         """
-        T5: the step-2 branch also fires when the sidecar is merely
+        The step-2 branch also fires when the sidecar is merely
         MISSING (not only on mismatch): WARN, delete, recompute.
         """
         self.cache_path.write_text("valid data")  # data exists, no sidecar
