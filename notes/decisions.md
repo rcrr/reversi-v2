@@ -2107,3 +2107,33 @@ D-269 | 2026-09-20 | The I-017 campaign-tag sweep (the "F" scope, opzione 2) EXE
          residual tag-vocabulary scan of the 14 files clean, the 8 affected modules 121/0/2 GREEN,
          LONG suite 938/0/25 GREEN, the docs format audit 88/95 (the 7 pre-existing size budgets, zero
          new).
+D-270 | 2026-09-20 | The registered-residue campaign (the D-269 follow-up) EXECUTED (Roberto approved
+         the Option-A inventory — the full D-267 test-doc-rule compliance; the 3 sub-decisions: the
+         gate line + header note changed AND the probes re-pinned, the marker -> "SYNTH", the data
+         files left as-is): the campaign-tag family is now OUT of the whole src/ tree. (1) SOURCE:
+         the I-018/I-013 tags out of the 7 lm/tools modules (12 sites: hlp_plot, wrk_client_check,
+         hlp_validate, wrk_validate — the D-150 report pointer kept —, hlp_analytics, hlp_gradient,
+         tools/opt_lbfgs — the D-146 pointer kept —); (2) TESTS: every D-/I- reference out of 38
+         test-dir files (~225 sites) per the D-267 rule — the I-018/I-013/I-003 sites, the ancient
+         T#/R#/M#(D-0xx) check labels, the header tier notes + the db_long_gate gate-line idiom
+         (now "see reversi.test.tags" / the bare comment), the bare design pointers (the D-065 house
+         rule, D-085, D-142, D-143, D-149, D-157, D-105/M2, D-127, D-139, D-144, D-111 M#, D-213,
+         D-215, D-232, D-186/187, D-255, ...), the probe-conversion notes (the probe name kept, the
+         "at D-106 step 3" + the D-107 re-pin history out), the "session 22" out, the two
+         "Roberto's ruling" attributions out (the fact kept), the synthetic marker "D-148" ->
+         "SYNTH" (the D-267 precedent; the checksum is runtime-computed, no golden moves); (3) DOCS:
+         the I-018/I-003 tags out of 12 mirror docs (29 sites) — the design pointers (D-150, D-256,
+         ...) kept per docs_rules; (4) PROBES: the content pins re-pinned to the new idiom (the
+         gate-line + the header note in verify_optimize / verify_gradient / verify_hlp_indexes /
+         verify_wmaps / verify_zed) — the probe's own check names kept (their own item ids, the
+         D-269 precedent). The line counts of the 26 probe-pinned files were kept by in-place
+         rewraps (no line-count re-pins were needed). Comment/docstring-only, zero behaviour
+         change. FINAL RESIDUE (left as-is by the approved ruling): the data files
+         test/data/rlm_05.json + rlm_06.json (the "I-017 Experiment 05/06" name/description + the
+         T10 cost model) and prng_golden.txt (the D-161/D-198/D-203 provenance comments) — data,
+         not docs. VERIFICATION: the 50 changed files py_compile OK; the residual scans clean (the
+         test dir: no D-/I- outside data/; lm + tools: no I-013/I-018/I-003; the docs: no I-tags);
+         the 26 pinned line counts intact; LONG suite 938/0/25 GREEN; the docs format audit 88/95
+         (the 7 pre-existing size budgets, zero new); the 5 re-pinned probes green (0 mismatches,
+         the live tiers included — verify_optimize 77 checks, verify_gradient 59, verify_zed 51,
+         verify_wmaps + verify_hlp_indexes all-pass).
