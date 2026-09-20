@@ -177,6 +177,11 @@ class FeatureSet:
 
     Methods:
     print_summary: Prints a summary of the set including the name, hash, and basic feature information.
+    feature_blocks (property): The per-feature column blocks over the
+        non-intercept features (the (name, col_start, col_end,
+        n_configurations, n_instances) tuples in the compute_indexes
+        column layout; instance-aware: each feature occupies its
+        n_instances D8-instance columns).
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -260,6 +265,30 @@ class FeatureSet:
         prt(f"  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]")
         for i, f in enumerate(self.features):
             prt(f"    {i:02d} {f.category} {f.name:10s} {f.n_instances} {f.n_configurations:10,d}")
+
+    @property
+    def feature_blocks(self) -> list[tuple[str, int, int, int, int]]:
+        """
+        The per-feature column blocks (the column-labelling view over
+        the compute_indexes layout): the (name, col_start, col_end,
+        n_configurations, n_instances) tuples over the non-intercept
+        features, in the fset.features order — the documented column
+        layout: the intercept (column 0, if present), then the
+        mobilities in the MobilitySet's sorted (mask, amask) order,
+        then the patterns in the PatternSet's sorted mask order. Each
+        feature occupies n_instances columns (its D8 instance
+        columns), so the blocks are instance-aware. The intercept is
+        not a block: it is fset.intercept, at column 0 when present.
+        """
+        blocks = []
+        col = 1 if (self.intercept is not None) else 0
+        for f in self.features:
+            if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
+                continue
+            blocks.append((f.name, col, col + int(f.n_instances),
+                           int(f.n_configurations), int(f.n_instances)))
+            col += int(f.n_instances)
+        return blocks
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, positions: PositionArray) -> IndexArray:

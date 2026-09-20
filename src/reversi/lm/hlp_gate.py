@@ -74,12 +74,4 @@ def load_campaign(config_path: str):
                     [Pattern(e.name, e.mask)
                      for e in fsc.pattern_set.patterns])
          if fsc.pattern_set else None))
-    blocks = []
-    col = 1 if (fset.intercept is not None) else 0
-    for f in fset.features:
-        if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
-            continue
-        blocks.append((f.name, col, col + int(f.n_instances),
-                       int(f.n_configurations), int(f.n_instances)))
-        col += int(f.n_instances)
-    return cfg, fset, blocks
+    return cfg, fset, fset.feature_blocks

@@ -60,22 +60,6 @@ if TYPE_CHECKING:
 __all__ = ['wrk_effect_size']
 
 
-def _feature_blocks(fset):
-    """The per-feature column blocks (the fset.features order —
-    the documented column layout: the intercept, then the
-    mobilities, then the patterns): (name, col_start, col_end,
-    n_conf, n_inst) over the non-intercept features."""
-    blocks = []
-    col = 1 if (fset.intercept is not None) else 0
-    for f in fset.features:
-        if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
-            continue
-        blocks.append((f.name, col, col + int(f.n_instances),
-                       int(f.n_configurations), int(f.n_instances)))
-        col += int(f.n_instances)
-    return blocks
-
-
 def _write_report(ctx, anova_lines, adherence_lines) -> Path:
     """The TXT report (dir_name under base_dir, the PlotConfig
     pattern): the per-sub-variable eta²/omega² + the top-N most
@@ -131,7 +115,7 @@ def _up(ctx: "LMContext") -> None:
                       "EFFECT_SIZE disabled (enable: false) — no-op.")
         return
     fset = ctx.feature_set
-    blocks = _feature_blocks(fset)
+    blocks = fset.feature_blocks
     # The DB training set: the per-position raw codes (the groups)
     # + the continuous game values (the target).
     X = ctx.hlp_indexes.indexes

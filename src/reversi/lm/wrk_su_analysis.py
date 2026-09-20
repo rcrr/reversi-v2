@@ -89,22 +89,6 @@ _PRNG_VERSION = "mt19937-64"
 _RARITY_THRESHOLDS = (1, 2, 5, 10, 100)
 
 
-def _feature_blocks(fset):
-    """The per-feature column blocks (the fset.features order —
-    the documented column layout: the intercept, then the
-    mobilities, then the patterns): (name, col_start, col_end,
-    n_conf, n_inst) over the non-intercept features."""
-    blocks = []
-    col = 1 if (fset.intercept is not None) else 0
-    for f in fset.features:
-        if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
-            continue
-        blocks.append((f.name, col, col + int(f.n_instances),
-                       int(f.n_configurations), int(f.n_instances)))
-        col += int(f.n_instances)
-    return blocks
-
-
 def _feature_set_hash(cfg) -> str:
     """The feature set hash (the cache consistency signature,
     the P5 — the first cache level WITHOUT the rds_checksum,
@@ -138,7 +122,7 @@ def _compute_tables(ctx) -> dict:
     joint for the requested pairs)."""
     cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
-    blocks = _feature_blocks(fset)
+    blocks = fset.feature_blocks
     corpus = cfg_fa.corpus
     ctx.log_event(Relevance.INFO,
                   f"Generating the SU_ANALYSIS corpus: "

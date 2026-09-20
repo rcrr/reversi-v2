@@ -151,7 +151,7 @@ class MarginalAccumulator:
                    provider).
           blocks:  the per-feature (name, col_start, col_end,
                    n_conf, n_inst) over the non-intercept
-                   features (the load_campaign blocks). Each
+                   features (the fset.feature_blocks). Each
                    feature expands to n_inst sub-variables (one
                    per instance column).
         """
@@ -246,7 +246,7 @@ class JointAccumulator:
                    provider).
           blocks:   the per-feature (name, col_start, col_end,
                     n_conf, n_inst) over the non-intercept
-                    features (the load_campaign blocks).
+                    features (the fset.feature_blocks).
           su_pairs: the REQUESTED pairs, a list of
                     (feature_i, feature_j) name tuples (the
                     canonical form; the same-feature (F, F) is
