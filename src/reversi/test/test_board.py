@@ -2367,8 +2367,8 @@ class TestPositionFlips(unittest.TestCase):
                 else:
                     # An occupied square is never legal; the flip kernel
                     # does not check the move square emptiness (the
-                    # pre-vectorization scalar behaviour, the caller's
-                    # responsibility) so flips may still be non-zero here.
+                    # caller's responsibility), so flips may still be
+                    # non-zero here.
                     self.assertFalse(legal)
             if int(moves[i]) == 0:
                 # PASS: the array element swaps the players (the next

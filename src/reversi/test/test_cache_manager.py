@@ -121,7 +121,7 @@ class TestChecksumHelpers(BaseCacheTestCase):
 
     def test_binio_sidecar_verifies(self):
         """A sidecar written by binio's own API verifies
-        through the _verify_checksum wrapper — both modules now share
+        through the _verify_checksum wrapper — both modules share
         one sidecar format and one verifier."""
         write_sha3_256_sidecar(self.temp_path)
         self.assertTrue(_verify_checksum(self.temp_path))

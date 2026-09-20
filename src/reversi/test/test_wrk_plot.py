@@ -153,7 +153,7 @@ class TestWrkPlot(unittest.TestCase):
         ctx.vld_positions = positions
         ctx.vld_game_values = vld_game_values
         # The series the pipeline publishes (ANALYTICS + VALIDATE)
-        # and PLOT now ASSEMBLES instead of re-deriving — here computed
+        # and PLOT only assembles, never re-derives — here computed
         # with the same functions, on the synthetic state.
         ctx.train_dense_rn = compute_training_dense_metrics(ctx).rn_y
         _vr = validate_model(ctx)

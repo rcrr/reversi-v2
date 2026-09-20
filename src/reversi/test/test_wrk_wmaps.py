@@ -227,7 +227,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         self.assertEqual(expected_ridge_regularization, ctx.cfg.stat_model.ridge_regularization)
 
         # Checking feature_w_ranges
-        # NOTE: F is now the count of all features (Intercept + Mobility + Patterns)
+        # NOTE: F is the count of all features (Intercept + Mobility + Patterns)
         F = len(ctx.feature_set.features)
         expected_fwr_shape = (F, 3)
         self.assertEqual(expected_fwr_shape, ctx.feature_w_ranges.shape)
