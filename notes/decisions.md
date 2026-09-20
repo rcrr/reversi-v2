@@ -2137,3 +2137,16 @@ D-270 | 2026-09-20 | The registered-residue campaign (the D-269 follow-up) EXECU
          (the 7 pre-existing size budgets, zero new); the 5 re-pinned probes green (0 mismatches,
          the live tiers included — verify_optimize 77 checks, verify_gradient 59, verify_zed 51,
          verify_wmaps + verify_hlp_indexes all-pass).
+D-271 | 2026-09-20 | The docstring/comment PRINCIPLES codified into the legislation (Roberto
+         approved the 2-bullet proposal for notes/rules.md §Docs; the D-267->D-270 campaigns
+         had been applying these distinctions ruling-by-ruling): (1) "Provenance" is DEFINED
+         — the file's own change history is OUT everywhere; the DESIGN POINTERS to other
+         decisions that explain a current choice stay (prescribed in mirror docs per
+         docs_rules.md §3.2, and in source comments when the choice is non-obvious — the
+         D-150 report pointer and the D-146 two-loop note are the canonical kept cases).
+         (2) The D-267 test-doc rule is EXTENDED to the probes/ docstrings and comments, with
+         the single exception: the probe's own check labels and item ids are the probe's
+         vocabulary and stay — only the asserted text and the surrounding comments follow
+         the test-doc rules. Notes-only: rules.md §Docs is now 6 bullets; no source, no
+         probes, no mirror docs touched. VERIFICATION: LONG suite 938/0/25 GREEN (the routine
+         pre-commit sweep, probe_rules.md §5.2).

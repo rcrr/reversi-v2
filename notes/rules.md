@@ -139,9 +139,16 @@ spans; the tables and the headings stay one physical line.
 - Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never
   HOW — the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance
   in the docstrings (decisions.md is its home; a `#:` code comment only if fundamental). (D-224, D-226)
+- Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") —
+  that is OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs
+  (docs_rules.md §3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the
+  D-146 two-loop note). (D-269, D-270)
 - Test docs (the docstrings + the comments in src/reversi/test/): state what is tested, optionally how it is realized
   (the mechanism, the preconditions, the postconditions); no D-xxx / I-xxx references, no evolution history, and no
   level ordinals that drift as levels come and go (name the level: CLIENT_CHECK, PLOT). (D-267)
+- The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and
+  item ids ("C5 … (I-013 …)") are the probe's vocabulary and stay — the text asserted and the surrounding
+  comments follow the test-doc rules. (D-270)
 
 ## Journal
 
