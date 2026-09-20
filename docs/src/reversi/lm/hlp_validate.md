@@ -4,7 +4,7 @@ store / load / is_cache_consistent trio, no checksum, no cache file (the rlmwf_1
 forward pass of the trained model on the validation positions (the same `ctx.feature_set` as training, the dense weights
 `ctx.w_dense` from GENERATE) and returns a `ValidationResult`: the 7-metric validation dict (the v2 model-file contract)
 plus the two per-position series it is computed from — the fitted values and the residuals in Y, the SINGLE derivation
-PLOT renders and CLIENT_CHECK compares against the saved file (I-018).
+PLOT renders and CLIENT_CHECK compares against the saved file.
 
 ## API
 
@@ -23,7 +23,7 @@ PLOT renders and CLIENT_CHECK compares against the saved file (I-018).
   `dense_indices = vld_indexes + col_offsets` and `linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)`), the
   forward pass (`z_pred = sigmoid(linear_predictor)` — the hlp_gradient reuse) and `vld_z = ctx.y2z(vld_game_values)`:
   `y2z` casts to float32 BEFORE the affine, so the int8 game values never overflow.
-- TWO arithmetic paths, deliberately (I-018): the METRICS keep the original f32 arithmetic (`y_pred = ctx.z2y(z_pred)`,
+- TWO arithmetic paths, deliberately: the METRICS keep the original f32 arithmetic (`y_pred = ctx.z2y(z_pred)`,
   `rn_y = y_pred - vld_game_values`), because their goldens are pinned and embedded in the v2 model file; the PUBLISHED
   series are the f64 views (`astype(np.float64)`), bit-identical to what PLOT and CLIENT_CHECK computed before — so the
   publication moves no number.
@@ -39,9 +39,9 @@ Pinned by the `probes/verify_validate.py` sweep + `test_wrk_validate.py`.
 
 - The module shape (probe A1-A13): the 3-name `__all__`, NO regab import, the `sigmoid` reuse, NO cache_manager import,
   the 7-key metrics dict, the underscore unpack, no dead numpy import in the worker.
-- The f64 series (I-018): `ValidationResult.y_pred` / `rn_y` are f64 and carry the hand-computed values of the
+- The f64 series: `ValidationResult.y_pred` / `rn_y` are f64 and carry the hand-computed values of the
   2-position case (y_pred [0, 0], rn_y [0, −64]) — `test_validation_result_carries_the_f64_series`.
-- The outlier kernel (I-018): the ranking, the tie-break (a |49| tie keeps the lower index first) and the default k = 20
+- The outlier kernel: the ranking, the tie-break (a |49| tie keeps the lower index first) and the default k = 20
   — `test_top_outliers_ranking_and_ties`, `test_top_outliers_default_is_twenty`.
 - The live rlm_02 invariants (probe C4/C5): the internal consistency (mse_z == 2·vld_loss, rmse_y² == mse_y) and NO
   rlmwf_14* file in the base dir.
@@ -72,5 +72,5 @@ None.
 - Upstream inputs: VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`), WMAPS
   (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.y2z` / `ctx.z2y`).
 - Downstream: ANALYTICS consumes `ctx.vld_metrics`; SAVE embeds it in the v2 model file; PLOT renders `ctx.vld_y_pred` /
-  `ctx.vld_rn`; CLIENT_CHECK compares the saved-file residuals against `ctx.vld_rn` (I-018).
+  `ctx.vld_rn`; CLIENT_CHECK compares the saved-file residuals against `ctx.vld_rn`.
 - No `use_cache` interaction: the level writes nothing, so the CONFIG cache switch is irrelevant here.

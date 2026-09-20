@@ -181,7 +181,7 @@ None.
 - The D8 slot order is fixed (notes/naming.md): never reorder or rename; the anti tables differ only in slots 1/3. New
   public functions: `@validate_call` with `arbitrary_types_allowed`, the dual scalar/array signature with the standard
   `atleast_1d`/ndim pattern, a docstring stating the shape contract.
-- The move codes are the NAMED constants `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (the single source, I-003): the bare 64/65/66
+- The move codes are the NAMED constants `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (the single source): the bare 64/65/66
   never appears in the code. The flips domain is separate: `position_flips` takes a BITBOARD and its pass is the zero
   bitboard, not `MOVE_PA`.
 - The Zobrist table `_zobrist_bitstrings` is canon (the legacy C constants): never regenerate, reorder or edit; a change

@@ -3,7 +3,7 @@ The CLIENT_CHECK worker — the 17th step of the LM pipeline (after SAVE; PLOT f
 `cache_manager` wiring, no cache file (the level is recomputed on every up-move). The acceptance test of the saved model
 file: it re-reads the SAVE artifact from disk, builds the client's vectorized Evaluation Function on the FILE weights,
 and recomputes the validation residuals in Y space — they must coincide with the validation series VALIDATE published on
-the context (`ctx.vld_rn`, I-018) within `ctx.cfg.client_check_tol` (default 1e-8, the config field). Y space, because Y
+the context (`ctx.vld_rn`) within `ctx.cfg.client_check_tol` (default 1e-8, the config field). Y space, because Y
 values are comparable across models (different logit_clipping); Z values are distorted per model. The two sides are
 expected bit-identical (the same f32 pipeline over the bit-exact file round-trip): the tolerance guards against pipeline
 drift and file corruption, not against rounding noise. On a breach the worker logs ERROR and raises RuntimeError. No
@@ -19,7 +19,7 @@ context attribute is published; `_down` is a no-op (log only).
 
 - `_up`: INFO "Starting client check..." → re-read `base_dir / cfg.output` with the v2 reader (which re-verifies the
   embedded config checksum) → the client's array EF on the FILE weights + the f64-view residual (`rn_file`) → the
-  reference `rn_ref = ctx.vld_rn` (the VALIDATE series, I-018) → `diff = |rn_file − rn_ref|`, `max_diff`, `first_bad`,
+  reference `rn_ref = ctx.vld_rn` (the VALIDATE series) → `diff = |rn_file − rn_ref|`, `max_diff`, `first_bad`,
   `tol = ctx.cfg.client_check_tol` → the breach branch: the ERROR line + `RuntimeError` (the message carries the max
   difference, the first bad position, the tolerance and the divergence diagnosis) → the pass line: "Client check passed:
   {n} validation residuals, max difference {max_diff:.3e} (tolerance {tol:.1e})."
@@ -27,7 +27,7 @@ context attribute is published; `_down` is a no-op (log only).
   up-move, as SAVE).
 - Imports: numpy, pydantic, `Worker` / `Relevance`, `make_evaluation_function_array` (the client factory: the check IS
   the client running on the saved file), `model_weights_read_file` (the v2 reader), `LMContext` under TYPE_CHECKING. NO
-  `reversi.tools.cache_manager` import and NO `sigmoid` import (I-018: the worker no longer re-derives the forward
+  `reversi.tools.cache_manager` import and NO `sigmoid` import (the worker no longer re-derives the forward
   pass).
 
 ## Verified invariants
@@ -54,7 +54,7 @@ None.
 
 ## Conventions
 
-- The reference is the PUBLISHED series (`ctx.vld_rn`, I-018): the validation forward pass runs ONCE, in VALIDATE, the
+- The reference is the PUBLISHED series (`ctx.vld_rn`): the validation forward pass runs ONCE, in VALIDATE, the
   level that owns it. Do not reintroduce a local re-derivation — the single source is the point.
 - The comparison runs in the rounded-lossless f64 view on BOTH sides: the quantities compared are the exact residuals,
   and the f32 rounding of the metrics' own `rn_y` (f32 minus int8) never enters the tolerance arithmetic.
@@ -66,7 +66,7 @@ None.
 
 - Pipeline ordering: CLIENT_CHECK is the 17th step; its inputs come from SAVE (the file at `base_dir / cfg.output`),
   VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), CONFIG (`ctx.cfg.client_check_tol`) and VALIDATE
-  (`ctx.vld_rn`, the published series — I-018).
+  (`ctx.vld_rn`, the published series).
 - Consumes the client: `make_evaluation_function_array` (client.md) — the in-pipeline consumer that proves the
   out-of-pipeline artifact (the saved file + the client) reproduces the pipeline's own validation. The scalar EF stays
   the test_client.py pin; the array EF is the level's tool (the PERF test prints its throughput in b/s — no speed

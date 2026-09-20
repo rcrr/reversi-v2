@@ -5,7 +5,7 @@ dense passes), logs the console report line by line, and writes the complete fil
 `base_dir/<cfg.analytics.report_file_name>` (plain text, overwritten every run — the OPTIMIZE-checkpoint artifact
 semantics; `_down` does NOT unlink it). The machine contract: `_up` publishes the FOUR context attributes
 `ctx.train_metrics` (the 7-key dict), `ctx.train_dense_metrics` (the 4-key dense-pass dict), `ctx.train_dense_rn`
-(the I-018 dense residual series) and `ctx.analytics_report` (the console report string); `_down` clears all four.
+(the dense residual series) and `ctx.analytics_report` (the console report string); `_down` clears all four.
 
 ## API
 

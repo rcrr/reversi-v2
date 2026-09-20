@@ -2,7 +2,7 @@
 The VALIDATE worker — the 14th step. A non-cache worker (like FEATURES, EFFECT_SIZE, ZED, GRADIENT): no `cache_manager`
 wiring at all — no load-or-compute cycle, no `is_allowed` switch, no cache file (the level is recomputed on every
 up-move, so the rlmwf_14 slot stays unused). The machine contract: `_up` publishes the validation outputs — the 7-key
-metrics dict plus the I-018 series and records — and logs the metric block and the top-20 extreme-residual report;
+metrics dict plus the published series and records — and logs the metric block and the top-20 extreme-residual report;
 `_down` clears the four attributes.
 
 ## API
@@ -18,7 +18,7 @@ metrics dict plus the I-018 series and records — and logs the metric block and
   `ctx.vld_outliers = _outlier_records(...)`; then the 6 metric INFO lines (the completion line at .8e, MSE/MAE at .4e,
   MAE(y)/RMSE(y) at .2f, and the RMSE/MAE ratio at .2f — the last one ZERO-GUARDED: a perfect Y-space fit logs "n/a
   (vld_mae_y is 0 — perfect Y-space fit)" instead of dividing by zero).
-- The top-20 extreme-residual report (the I-018 design — it belongs to the level that COMPUTES the residuals): the
+- The top-20 extreme-residual report (it belongs to the level that COMPUTES the residuals): the
   header line + 20 lines carrying the rank, the validation index, the position's bitboards, the game value, the fitted
   value and the residual. The order is `hlp_validate.top_outliers`, so it is deterministic.
 - `_outlier_records`: the 20 records as raw values (index, mover, opponent, game_value, fitted, residual) — the data
@@ -39,7 +39,7 @@ Pinned by the `probes/verify_validate.py` sweep + `test_wrk_validate.py`.
   goldens, the log lines (incl. "RMSE/MAE: 1.27" — the docstring indicator is 1.253), NO rlmwf_14* file (probe C5), and
   the second instance: identical metrics (a deterministic recompute) + no DB re-extraction + exactly 6 "Cache
   successfully loaded and validated" hits (the 6 cache_manager levels).
-- The report (I-018): the header + exactly 20 "vld position" lines, the |residual| non-increasing down the list, and the
+- The report: the header + exactly 20 "vld position" lines, the |residual| non-increasing down the list, and the
   published records in the same order (the stable tie-break: a |24| tie keeps the lower index first) —
   `test_up_outlier_report`.
 - The `_down` scope: back to VLD_POSITIONS clears the four attributes (the test pins `vld_metrics`; the code clears all
@@ -66,6 +66,6 @@ None.
   `ctx.vld_game_values`), FEATURES (`ctx.feature_set`), WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`) and
   ZED (`ctx.y2z` / `ctx.z2y`).
 - Downstream: ANALYTICS consumes `ctx.vld_metrics`; PLOT consumes `ctx.vld_y_pred` / `ctx.vld_rn` (the figures) and
-  CLIENT_CHECK `ctx.vld_rn` (the in-memory reference) — I-018.
+  CLIENT_CHECK `ctx.vld_rn` (the in-memory reference).
 - No `use_cache` interaction: with `ctx.use_cache=False` the other levels still warm their cache files; VALIDATE has
   nothing to warm.

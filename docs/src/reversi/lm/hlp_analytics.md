@@ -9,7 +9,7 @@ fingerprint line; complete file report with the per-feature tables).
 | name | contract |
 |---|---|
 | `compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`); ONE INFO log line |
-| `compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `TrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series, I-018) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
+| `compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `TrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
 | `format_console_report(ctx)` | the 18-line header report, no date, no tables (the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
 | `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
@@ -80,7 +80,7 @@ None.
   (`ctx.hlp_indexes.indexes`), POSITIONS (`ctx.game_values`), WMAPS (`ctx.w` + offsets/ranges/fallback), DESIGN_MTR
   (`ctx.design_matrix`), ZED (`ctx.y2z` / `ctx.z2y`), OPTIMIZE (`ctx.opt_info`), GENERATE (`ctx.w_dense`), VALIDATE
   (`ctx.vld_metrics` — the header's VALIDATION column), plus the worker's same-_up outputs (`ctx.train_metrics` /
-  `ctx.train_dense_metrics` / `ctx.train_dense_rn` — the f64 residual series PLOT consumes, I-018 — computed in `_up`
+  `ctx.train_dense_metrics` / `ctx.train_dense_rn` — the f64 residual series PLOT consumes — computed in `_up`
   before the format calls).
 - No cache file: the reports are derived artifacts — the file report is (re)written to `base_dir` on every ANALYTICS
   up-move; the rlmwf_15 slot stays unused.

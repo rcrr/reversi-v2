@@ -17,7 +17,7 @@ the config is parsed by every run (and by the client).
 | `PLOT_NAMES` | the seven canonical plot names (the whitelist vocabulary the `PlotConfig` schema validates against): `residual_density`, `resid_vs_fitted`, `resid_vs_gv`, `gv_by_egv_box`, `resid_mean_by_egv`, `parity`, `resid_qq` |
 | `PLOT_TITLES` | the name → title map (the figure's second title line carries the run name) |
 | `PlotData` | the dataclass: `trn_y_true`, `trn_rn`, `vld_y_pred`, `vld_rn`, `vld_gv` — all rounded-lossless f64 views |
-| `collect_plot_data(ctx) -> PlotData` | the ASSEMBLY of the published series (I-018): `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + the game values from POSITIONS / VLD_POSITIONS — no forward pass runs here |
+| `collect_plot_data(ctx) -> PlotData` | the ASSEMBLY of the published series: `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + the game values from POSITIONS / VLD_POSITIONS — no forward pass runs here |
 | `jitter(rng, x, amount) -> (N,) f64` | the R jitter semantics: uniform noise in ±amount·range(x)/2; a zero-range input comes back untouched |
 | `egv_bins(y_pred) -> (unique, inv)` | the evaluated-game-value bins: `y_pred` rounded to the even step-2 grid (`2·rint(y_pred/2)`) + `np.unique(..., return_inverse=True)` |
 | `_sym_limit(values, step=8) -> float` | private — the symmetric residual-axis limit: the max absolute value rounded UP to the tick step, at least one step |
@@ -33,7 +33,7 @@ the config is parsed by every run (and by the client).
 - Constants: `PLOT_NAMES`, `PLOT_TITLES`, the seeds `_JITTER_SEED=42` / `_KDE_SEED=43`, `_KDE_MAX_POINTS=100_000` (the
   O(n·m) cap), the jitter amounts `_JIT_FITTED_X=0.005`, `_JIT_Y=0.005`, `_JIT_GV_X=0.7` (the R fractions),
   `_KDE_GRID=512`, and the axis constants `_AXIS_GV=64.0`, `_AXIS_DENSITY=72.0`, `_TICK_STEP=8.0`.
-- `collect_plot_data`: a PURE ASSEMBLY (I-018) — the training game values (`ctx.game_values`) + the dense training
+- `collect_plot_data`: a PURE ASSEMBLY — the training game values (`ctx.game_values`) + the dense training
   residuals (`ctx.train_dense_rn`, published by ANALYTICS) + the validation fitted / residual series (`ctx.vld_y_pred` /
   `ctx.vld_rn`, published by VALIDATE) + the validation game values. NO forward pass runs here: the figures render what
   the pipeline measured.
@@ -115,7 +115,7 @@ None.
 - `PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
   plot vocabulary: a new plot name lands here first, then in the builders + the titles (the probe pins keep the three in
   lock-step).
-- The series arrive from the levels that own the passes (ANALYTICS and VALIDATE, I-018): do NOT reintroduce a local
+- The series arrive from the levels that own the passes (ANALYTICS and VALIDATE): do NOT reintroduce a local
   forward pass — the single derivation is the point, and the figures are byte-pinned by the rendering golden.
 - The figures read the PUBLISHED series (the f64 residuals), so no model math is re-derived here — the plotted fitted
   values are what the saved model computes.

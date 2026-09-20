@@ -18,7 +18,7 @@ a capturing lambda.
   — the `0.000e+00` is the bit-identity claim (a 1-ulp drift breaks the assertIn); the DB-gated A2030 chain pins the
   same line at full scale (20000 residuals, test_lm_worker_full_chain), the A2050 VLONG chain exercises the
   199932-residual form.
-- The divergence magnitude (~1.959e-01 at the seeded 1e-3 weight perturbation, I-018: the FILE is written from the
+- The divergence magnitude (~1.959e-01 at the seeded 1e-3 weight perturbation: the FILE is written from the
   diverged state, so it no longer matches the published series) is pinned by regex (magnitude-agnostic: `[\d.]+e-\d+`),
   so the test survives a re-seed of the synthetic weights.
 - The `iwmap` pin [0, 1, 66, 6627] (the production rlm_04 layout, as in test_client.py) — the synthetic context IS the

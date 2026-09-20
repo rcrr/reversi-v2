@@ -73,7 +73,7 @@ None.
   (`ctx.train_dense_rn` — the dense training residuals), VALIDATE (`ctx.vld_y_pred`, `ctx.vld_rn`), VLD_POSITIONS
   (`ctx.vld_game_values`) and CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval
   semantics guarantee every up-move to step 18 passes through all of them.
-- Consumes hlp_plot: `collect_plot_data` (the ASSEMBLY of the published series — no forward pass, I-018 — the same
+- Consumes hlp_plot: `collect_plot_data` (the ASSEMBLY of the published series — no forward pass — the same
   formulas as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `PLOT_BUILDERS` registry, `save_figure`
   / `close_figure`.
 - Consumes the config: `PlotConfig` (hlp_config_schemas) — the fail-fast name/format validation happens at the CONFIG
