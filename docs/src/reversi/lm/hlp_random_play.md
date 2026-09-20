@@ -22,7 +22,8 @@ chunk-by-chunk; this module accumulates the frequencies, it does not generate th
   UNIQUE-MERGE dict. POOLED over all fed positions (the single-ec corpus — no per-ec split).
   - `JointAccumulator(fset, blocks, su_pairs)` — the streaming joint frequency accumulator: per REQUESTED su pair (F_i,
     F_j) and per (instance_i, instance_j) in the pair, the (code_i, code_j) -> count — the instance×instance level (the
-    joint matrix). The joint is SPARSE (the code_i x code_j space is too large for the dense — the unique-merge split). The
+    joint matrix). The joint is SPARSE (the code_i x code_j space is too large for the dense — the unique-merge
+    split). The
     key is the packed u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale (the max is 59049^2 << 2^64). The
     same-feature pair (F, F) is allowed: the accumulator BUILDS the diagonal (inst_i == inst_j) too — the SU report
     omits it downstream (the SU = 1 lock); the off-diagonal (the D8 orientations of the same mask) is the anisotropy
