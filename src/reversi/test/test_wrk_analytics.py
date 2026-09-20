@@ -74,7 +74,7 @@ def _masked_report_hash(text):
 class TestLMWorkerAnalytics(unittest.TestCase):
     """Tests the ANALYTICS worker integration and exact values using rlm_02.json.
 
-    The ANALYTICS level is pure compute (no cache file — the rlmwf_12 slot
+    The ANALYTICS level is pure compute (no cache file — the rlmwf_15 slot
     stays unused), so the training metrics and the reports are recomputed on
     every run; the second-instance test pins that recomputation as
     deterministic.
@@ -83,7 +83,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
         # the live regab DB (the setUp moves to VALIDATE, which runs the
-        # whole 13-level chain on a fresh base dir).
+        # whole 15-level chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         # Patch stdout to keep test output clean and capture logs
@@ -260,7 +260,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
         # the live regab DB (the setUp moves to VALIDATE, which runs the
-        # whole 13-level chain on a fresh base dir).
+        # whole 15-level chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
 
         # Patch stdout to keep test output clean and capture logs

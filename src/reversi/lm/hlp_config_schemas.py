@@ -98,7 +98,7 @@ class AnalyticsConfig(LMBaseConfig):
 class PlotConfig(LMBaseConfig):
     """
     Configuration for the PLOT level (D-149): the matplotlib
-    diagnostic figures written after CLIENT_CHECK (the 17th level).
+    diagnostic figures written after CLIENT_CHECK (the 18th level).
     The plots WHITELIST decides what is generated (a listed name is
     written, an unlisted name is skipped, an empty list makes the
     level a no-op); the enable master switch dominates (false = do
@@ -194,9 +194,9 @@ class SuAnalysisConfig(LMBaseConfig):
     """
     enable: bool = Field(
         default=False,
-        description="Master switch: false makes the FEATURE_"
-                    "ANALYSIS level a no-op (the I-017 D-175 — "
-                    "the SU analysis is OPTIONAL, opt-in).")
+        description="Master switch: false makes the SU_ANALYSIS "
+                    "level a no-op (the SU analysis is OPTIONAL, "
+                    "opt-in).")
     corpus: CorpusConfig = Field(
         default_factory=CorpusConfig,
         description="The corpus generator spec (the seed, the "

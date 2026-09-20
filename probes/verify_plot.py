@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 verify_plot.py — verification probe for the PLOT level (D-149,
-the 17th level after CLIENT_CHECK): the matplotlib diagnostic
+the 18th level after CLIENT_CHECK): the matplotlib diagnostic
 figures of the logistic-model run.
 
 Checks, independently of the test files (test_hlp_plot.py /

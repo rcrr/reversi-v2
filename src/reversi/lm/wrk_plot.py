@@ -25,7 +25,7 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 #
-# The PLOT level (D-149): the 17th level, after CLIENT_CHECK. It
+# The PLOT level (D-149): the 18th level, after CLIENT_CHECK. It
 # writes the run's matplotlib diagnostic figures (hlp_plot) to the
 # configured plots directory.
 #
@@ -35,8 +35,8 @@
 # the level a no-op. The plot.enable master switch dominates: false
 # means "do nothing" even when names are listed.
 #
-# No cache file (the 8th non-cache level, as CLIENT_CHECK — the
-# rlmwf_16 slot stays unused): the figures are derived artifacts,
+# No cache file (the 10th non-cache level, as CLIENT_CHECK — the
+# rlmwf_18 slot stays unused): the figures are derived artifacts,
 # regenerated on every up-move (an idempotent overwrite).
 
 from __future__ import annotations

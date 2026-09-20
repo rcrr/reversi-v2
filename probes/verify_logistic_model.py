@@ -48,21 +48,21 @@
 # 14 -> 15; the other checks are unchanged.
 # D-148 state (2026-09-10): CLIENT_CHECK enabled after SAVE (the
 # wrk_client_check() import + worker-list entry) — the saved-model
-# file re-read + client EF residual check is now the 16th level.
-# V3c re-pinned 15 -> 16; the other checks are unchanged.
+# file re-read + client EF residual check is now the 17th level.
+# V3c pins the 18 active levels; the other checks are unchanged.
 # D-149 state (2026-09-10): PLOT enabled after CLIENT_CHECK (the
 # wrk_plot() import + worker-list entry) — the matplotlib diagnostic
-# figures are now the 17th level. V3c re-pinned 16 -> 17; the other
-# checks are unchanged.
+# figures are now the 18th level. V3c pins the 18 active levels; the
+# other checks are unchanged.
 # D-157 state (2026-09-11): I-012 realized (the I-017 T1
 # transposition): FEATURES (step 2) before POSITIONS (step 3). The
-# V3c list is re-pinned (count 17 unchanged); the other checks are
+# V3c list pins the 18 active levels; the other checks are
 # unchanged.
 # D-186/D-187 state (2026-09-13): I-017 realized (the I-017 T16/T17
 # workers): the SU_ANALYSIS (step 3, the SU-analysis corpus cache, the
 # rlmwf_03 slot) sits between FEATURES and POSITIONS; the EFFECT_SIZE
 # (step 6, the eta^2/omega^2 + the adherence, NO cache) sits between
-# INDEXES and WMAPS. The V3c list is re-pinned 17 -> 19 (the 18 active
+# INDEXES and WMAPS. The V3c list pins the 19 workers (the 18 active
 # levels + the CREATED sentinel); the other checks are unchanged.
 #
 import contextlib

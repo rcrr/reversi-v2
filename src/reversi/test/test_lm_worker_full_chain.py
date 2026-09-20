@@ -299,13 +299,13 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Validation completed. Loss (MSE/2): 5.75813930e-03", logs)
         self.assertIn("Saving model weights to disk...", logs)
         self.assertIn("Model weights saved to", logs)
-        # D-148: the 16th level re-reads the saved file, rebuilds the
+        # D-148: the 17th level re-reads the saved file, rebuilds the
         # client's EF and reproduces the validation residuals
         # bit-exactly (max difference 0.0 < the 1e-8 tolerance).
         self.assertIn(
             "Client check passed: 20000 validation residuals, "
             "max difference 0.000e+00 (tolerance 1.0e-08).", logs)
-        # D-149: the 17th level writes the seven rlm_04-whitelisted
+        # D-149: the 18th level writes the seven rlm_04-whitelisted
         # plots (png, the relative 'plots' dir_name default) to
         # base_dir/plots.
         plot_dir = ctx.cfg.base_dir / "plots"
@@ -539,7 +539,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
 
-        # D-149: the 17th level writes the seven rlm_03-whitelisted
+        # D-149: the 18th level writes the seven rlm_03-whitelisted
         # plots (png, the relative 'plots' dir_name default) to
         # base_dir/plots — the 200k-point scale of the production
         # model family.

@@ -188,8 +188,7 @@ class TestLMWorkerValidate(unittest.TestCase):
 class TestValidateModelUnit(unittest.TestCase):
     """DB-free unit facts for the VALIDATE metric math.
 
-    D-106 step 3 (probe_rules.md §4): converted from the
-    verify_validate.py D1 + D3 probes — the hand-computed
+    The checks pin the metric math directly: the hand-computed
     2-position case and the M1 (D-102) zero-guard branch. Runs
     under SKIP_REGAB_DB=1 (no DB)."""
 
