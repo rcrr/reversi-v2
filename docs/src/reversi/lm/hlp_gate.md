@@ -1,24 +1,25 @@
 # reversi/lm/hlp_gate.py
 The campaign config loader (the pipeline's own loader): loads the campaign JSON5 + the FeatureSet (the wrk_features pure
-mapping) + the per-feature column blocks (the documented column layout). The worker tests (test_wrk_su_analysis,
-test_wrk_effect_size) use it to build the campaign (the feature set + the column blocks) for the accumulator / the
-effect-size tests.
+mapping) + the per-feature column blocks (the `fset.feature_blocks` property, the documented column layout). The worker
+tests (test_wrk_su_analysis, test_wrk_effect_size) use it to build the campaign (the feature set + the column blocks)
+for the accumulator / the effect-size tests.
 
 ## API
 - `load_campaign(config_path) -> (cfg, fset, blocks)` — loads the campaign config (json5, the pipeline's own loader) +
-  the FeatureSet (the wrk_features pure mapping) + the per-feature column blocks (the documented column layout: the
-  intercept, then the mobilities in the (mask, amask) sorted order, then the patterns in the mask sorted order — the
-  fset.features order). Returns (cfg, fset, blocks) — blocks: the list of (name, col_start, col_end, n_conf, n_inst)
-  over the non-intercept features (the sub-variables).
+  the FeatureSet (the wrk_features pure mapping) + the per-feature column blocks (the `fset.feature_blocks` property,
+  the documented column layout: the intercept, then the mobilities in the (mask, amask) sorted order, then the patterns
+  in the mask sorted order — the fset.features order). Returns (cfg, fset, blocks) — blocks: the list of
+  (name, col_start, col_end, n_conf, n_inst) over the non-intercept features (the sub-variables).
 
 ## Architecture
 
 - A single pure function: `load_campaign` reads the JSON5 file, validates it through the pydantic `LMConfig`, and
   rebuilds the `FeatureSet` with the same factories the pipeline uses (`Feature.new_intercept()`, `Mobility` /
   `MobilitySet`, `Pattern` / `PatternSet`) — the loader is the pipeline's own path, never a parallel re-implementation.
-- The column walk: `col` starts at 1 when the intercept is present (it owns column 0) and every non-intercept feature
-  takes `n_instances` consecutive columns, in `fset.features` order — the FeatureSet's SORTED storage order (the
-  mobilities in the (mask, amask) order, then the patterns in the mask order), not the config file's order.
+- The column blocks are the `fset.feature_blocks` property (the walk lives in feature.py): `col` starts at 1 when the
+  intercept is present (it owns column 0) and every non-intercept feature takes `n_instances` consecutive columns, in
+  `fset.features` order — the FeatureSet's SORTED storage order (the mobilities in the (mask, amask) order, then the
+  patterns in the mask order), not the config file's order.
 - The block tuple `(name, col_start, col_end, n_conf, n_inst)` is the whole contract: the consumer builds its synthetic
   tables from it.
 - No DB, no cache, no state; the heavy imports are function-local (the worker tests import this module and must stay

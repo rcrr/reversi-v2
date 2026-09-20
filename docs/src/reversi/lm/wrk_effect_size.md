@@ -24,8 +24,8 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   level).
 - **The ANOVA** — the `anova_eta_omega(groups, values)`: the one-way ANOVA, the observed raw codes as the groups (K),
   the game values as the target (N). The per-sub-variable raw code is `indexes[:, c0 + i]` (the block layout, the
-  `_feature_blocks`). eta² is the biased sample share; omega² is the unbiased population estimate — the pair is reported
-  together (omega² may be slightly negative, the null effect — the raw value is reported).
+  `fset.feature_blocks` property). eta² is the biased sample share; omega² is the unbiased population estimate — the
+  pair is reported together (omega² may be slightly negative, the null effect — the raw value is reported).
 - **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the `np.unique` counts of the
   training raw codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the
   chi-square merged-tail p + the KL + the TV) — the ODP-5 close, no config whitelist. The top-N (the `top_k_adherence`,

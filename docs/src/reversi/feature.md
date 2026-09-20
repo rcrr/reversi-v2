@@ -9,7 +9,7 @@ matrix a feature-table evaluation consumes).
 | name | contract |
 |---|---|
 | `Feature` | `@dataclass(init=False)`; `Category` IntEnum (INTERCEPT=0, MOBILITY=1, PATTERN=2); fields `category`, `name`, `n_configurations`, `n_instances`, `ref` (the source object, `repr=False`); direct construction BLOCKED; factories: `new_intercept()`, `new_from_pattern(p)`, `new_from_mobility(m)` |
-| `FeatureSet` | `__init__(name, intercept, mset, pset)` (validated); `print_summary(output=sys.stdout)`; `compute_indexes(positions) -> IndexArray` |
+| `FeatureSet` | `__init__(name, intercept, mset, pset)` (validated); `print_summary(output=sys.stdout)`; `feature_blocks` property (the per-feature column blocks); `compute_indexes(positions) -> IndexArray` |
 
 ## Architecture
 
@@ -29,6 +29,12 @@ matrix a feature-table evaluation consumes).
   present/None, per-set name+hash lines, then one line per mobility (name + mask + amask) and one per pattern (mask),
   closed by the "Features: [i, category, ...]" legend line
   `{i:02d} {category} {name:10s} {n_instances} {n_configurations:10,d}`.
+- `feature_blocks` (property): the per-feature column blocks (the column-labelling view over the compute_indexes
+  layout) — the `(name, col_start, col_end, n_configurations, n_instances)` tuples over the NON-intercept features,
+  in the `features` order (the documented layout: the intercept owns column 0 if present, then the mobilities in the
+  MobilitySet's sorted (mask, amask) order, then the patterns in the PatternSet's sorted mask order); each feature
+  occupies its `n_instances` contiguous columns (its D8 instance columns), so the blocks are instance-aware; the
+  intercept is not a block (it is `fset.intercept`).
 - `compute_indexes(positions) -> IndexArray` (validated): the `(N, I)` uint32 matrix, `I` = the summed `n_instances` —
   column 0 = the intercept (constant 0) if present, then the `mset.compute_indexes` block, then the
   `pset.compute_principal_indexes` block (each pattern expanded into its `n_instances` columns in its unique-mask
@@ -38,7 +44,7 @@ matrix a feature-table evaluation consumes).
 
 ## Verified invariants
 
-Pinned by `test_feature.py` (19 tests + 1 PERF, no DB):
+Pinned by `test_feature.py` (24 tests + 1 PERF, no DB):
 
 - Direct construction raises RuntimeError; the three factories assert all 5 fields each (ref equality via dataclass
   `__eq__`); a str argument to a factory → pydantic ValidationError; the `__repr__` golden; the field-wise `__eq__`; the
@@ -48,6 +54,10 @@ Pinned by `test_feature.py` (19 tests + 1 PERF, no DB):
   the name-order golden (the ordering contract exercised for free), the pinned hash; the partial-None trio
   (intercept-only / mobility-only / pattern-only); a MOBILITY-category feature as intercept → ValueError; the full
   print_summary golden — `TestFeatureSet` (6).
+- `feature_blocks`: on the 13-pattern + 3-mobility fixture, the full 16-block list golden (with the intercept the
+  blocks start at column 1 and end at `n_instances` 53; without it they start at 0 and end at 52); the intercept-only
+  and the empty sets → `[]`; the contiguous instance-aware tiling (every block width = its `n_instances`, no gaps,
+  up to `n_instances`) — `TestFeatureSetFeatureBlocks` (5).
 - `compute_indexes`: the 3×10 literal golden (EDGE + DIAG4 + LMC + intercept, 3 real positions); the empty edges (0,10)
   / (3,0) / (0,0) + dtype; None / list / str / int64 ndarray → ValidationError (subTest) —
   `TestFeatureSetComputeIndexes` (5).
@@ -69,4 +79,6 @@ None.
 
 - The composition point of `board` (PositionArray), `pattern` (Pattern/PatternSet/Index/IndexArray) and `mobility`
   (Mobility/MobilitySet) — it owns no board logic of its own.
-- Consumed by the FEATURES worker (wrk_features.py) and, through `ctx.feature_set`, by the INDEXES level onward.
+- Consumed by the FEATURES worker (wrk_features.py) and, through `ctx.feature_set`, by the INDEXES level onward;
+  the `feature_blocks` property feeds the SU_ANALYSIS + EFFECT_SIZE workers (the per-feature column blocks over the
+  index matrix) and the hlp_gate test loader.

@@ -28,8 +28,9 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   `min(1e6, total_positions)`: the wave is the PARALLELISM, and the lanes beyond the corpus are pure overhead — the
   1e6-lane arrays (~48 MB) and the per-step glue cost ~3.4 s for a 10k-position harvest that a 10k-lane wave does in
   ~0.04 s; the production corpora (1e7) keep 1e6 lanes, bit-identical) + the streaming accumulation (the
-  `MarginalAccumulator` + the `JointAccumulator` for the requested pairs). The blocks come from `_feature_blocks(fset)`
-  (the fset.features order, the documented column layout: the intercept, then the mobilities, then the patterns).
+  `MarginalAccumulator` + the `JointAccumulator` for the requested pairs). The blocks come from `fset.feature_blocks`
+  (the FeatureSet property: the fset.features order, the documented column layout: the intercept, then the mobilities,
+  then the patterns).
 - **The statistics (phase 2)** — the per-sub-variable `dispersion` (the K_obs / H / H_norm / coverage) + the
   `never_observed_audit` (the n_conf - K_obs + the rarity profile); the requested SU pairs: for each (name_i, name_j)
   pair and each (inst_i, inst_j), the `symmetric_uncertainty(2·I / (H_i + H_j))` from the joint + the two marginals. The
