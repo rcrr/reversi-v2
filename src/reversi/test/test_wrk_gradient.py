@@ -129,8 +129,8 @@ class TestLMWorkerGradient(unittest.TestCase):
         nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
 
     def test_down_clears_gradient(self):
-        # The _down clearing: from GRADIENT (step 8) back to ZED
-        # (step 7), the worker must clear ctx.fg.
+        # The _down clearing: from GRADIENT back to ZED, the worker
+        # must clear ctx.fg.
         self.rlm.move_to_step('GRADIENT')
         self.assertEqual(self.rlm.current_step, 10)
         self.assertIsNotNone(self.rlm.context.fg)

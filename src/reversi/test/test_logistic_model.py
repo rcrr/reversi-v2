@@ -99,17 +99,17 @@ class TestLogisticModel(unittest.TestCase):
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
         self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
-        # The FEATURES dummy — the string move to POSITIONS now
-        # crosses the (new) step 2, and the real FEATURES worker would
-        # hit the None cfg.
+        # The FEATURES dummy — the string move to POSITIONS
+        # crosses it, and the real FEATURES worker would hit the
+        # None cfg.
         self.features_up_mock = MagicMock()
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        # The SU_ANALYSIS (step 3) + the EFFECT_SIZE (step 6)
-        # worker dummies. Without them
-        # the real workers would cross the "POSITIONS" string move
-        # and hit the None cfg (the mock CONFIG never sets it).
+        # The SU_ANALYSIS + the EFFECT_SIZE worker dummies.
+        # Without them the real workers would cross the
+        # "POSITIONS" string move and hit the None cfg (the mock
+        # CONFIG never sets it).
         self.fa_up_mock = MagicMock()
         self.fa_down_mock = MagicMock()
         self.patcher_fa = patch('reversi.lm.logistic_model.wrk_su_analysis',
@@ -152,7 +152,7 @@ class TestLogisticModel(unittest.TestCase):
         self.assertIsNone(self.model.context.cfg) # Should start empty
 
     def test_state_machine_initialization(self):
-        """Test that the state machine is initialized at step 0 (CREATED)."""
+        """Test that the state machine is initialized at the CREATED sentinel."""
         self.assertEqual(self.model.current_step, 0)
         self.assertEqual(self.model.current_worker_name, "CREATED")
 
@@ -188,9 +188,9 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_move_to_step_by_string(self):
         """Test moving using the worker name string: the POSITIONS
-        is now step 4 (the SU_ANALYSIS, step 3, sits between
-        FEATURES and POSITIONS) — the string move crosses the
-        new step."""
+        sits after the SU_ANALYSIS, which sits between FEATURES
+        and POSITIONS — the string move crosses the SU_ANALYSIS
+        step."""
         self.model.move_to_step("POSITIONS")
 
         self.assertEqual(self.model.current_step, 4)
@@ -244,7 +244,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_run_moves_to_the_explicit_target(self):
         """run(target) drives the pipeline from the sentinel: the
-        first real level (CONFIG, step 1) runs first, then the levels
+        first real level (CONFIG) runs first, then the levels
         up to the target, target included — the machine's own
         contract, no extra machinery."""
         self.model.run("POSITIONS")
@@ -495,7 +495,7 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
                              base_dir_override=self.base)
 
     def test_run_honors_the_config_target_level(self):
-        """No argument: the field drives the stop (FEATURES, step 2)."""
+        """No argument: the field drives the stop (FEATURES)."""
         model = self._model("FEATURES")
         model.run()
         self.assertEqual(model.current_step, 2)
@@ -504,9 +504,9 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
         self.assertIsNone(model.context.su_analysis_tables)
 
     def test_run_explicit_argument_wins_over_the_config(self):
-        """The same config asks FEATURES; run('SU_ANALYSIS') goes to
-        step 3 (the long level the config-target case stops at) and
-        publishes the corpus tables."""
+        """The same config asks FEATURES; run('SU_ANALYSIS') goes
+        to the SU_ANALYSIS level (the long level the config-target
+        case stops at) and publishes the corpus tables."""
         model = self._model("FEATURES")
         model.run("SU_ANALYSIS")
         self.assertEqual(model.current_step, 3)

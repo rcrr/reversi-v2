@@ -68,7 +68,7 @@ ALPHA = 0.01
 
 
 class TestWrkClientCheck(unittest.TestCase):
-    """The CLIENT_CHECK worker (the 17th level) on a synthetic
+    """The CLIENT_CHECK worker on a synthetic
     rlm_04-mirror context: the model file round-trip + the client's
     array EF vs the in-memory VALIDATE forward pass. No DB, no
     pipeline: the worker is exercised directly. The Worker.up

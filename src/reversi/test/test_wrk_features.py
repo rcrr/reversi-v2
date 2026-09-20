@@ -36,8 +36,8 @@
 # $ source .venv/bin/activate
 #
 # -1- Run the tests (DB-free: the setUp moves to
-#     FEATURES, the 2nd step — CONFIG + FEATURES only, no
-#     POSITIONS, no DB).
+#     FEATURES — CONFIG + FEATURES only, no POSITIONS, no
+#     DB).
 #
 # time python3 -m unittest reversi.test.test_wrk_features
 #

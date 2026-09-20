@@ -72,7 +72,7 @@ PDF_MAGIC = b"%PDF"
 
 
 class TestWrkPlot(unittest.TestCase):
-    """The PLOT worker (the 18th level) on a synthetic
+    """The PLOT worker on a synthetic
     rlm_04-mirror context: the whitelist pilot, the directory
     resolution, the seven figures, the formats, the determinism.
     No DB, no pipeline: the worker is exercised directly. The

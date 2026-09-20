@@ -93,8 +93,8 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
-        # Move to GENERATE first, as VLD_POSITIONS sits after it in the
-        # pipeline (the 11th level, step 11)
+        # Move to GENERATE first, as VLD_POSITIONS sits after it in
+        # the pipeline.
         self.rlm.move_to_step('GENERATE')
         self.assertEqual(self.rlm.current_step, 12)
         self.assertEqual(self.rlm.current_worker_name, 'GENERATE')
@@ -282,7 +282,7 @@ class TestVldIndependenceCheck(unittest.TestCase):
                                 "data" / fixture),
                             verbosity=Verbosity.HIGH,
                             base_dir_override=self.tmp_dir)
-        # VLD_POSITIONS sits after GENERATE in the pipeline (step 11):
+        # VLD_POSITIONS sits after GENERATE in the pipeline:
         # the whole train chain must have populated ctx.positions.
         rlm.move_to_step('GENERATE')
         self.assertEqual(rlm.current_step, 12)
