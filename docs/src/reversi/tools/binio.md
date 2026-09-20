@@ -76,7 +76,7 @@ None.
 ## Integration
 
 - The rlmwf cache system: every cache file + the model weights file is a binio stream with a `.SHA3-256` sidecar —
-  `cache_manager`'s step-3 checksum is a thin wrapper over `verify_sha3_256_sidecar` and `test_lm_worker_full_chain`
+  `cache_manager`'s step-2 checksum is a thin wrapper over `verify_sha3_256_sidecar` and `test_lm_worker_full_chain`
   pins the sidecar verification of the saved model.
 - The C/Rust interop contract: MAGIC, the type codes 1-10, and the little-endian layouts are stable — the module
   docstring documents the byte layout.

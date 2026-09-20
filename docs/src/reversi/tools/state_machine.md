@@ -45,7 +45,7 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
   raises AttributeError (the CONFIG worker must populate it first).
 - **Logging** — every event becomes a frozen `LogEntry` (attribute access, `asdict()` for file/DB dumps); the live line
   is `[ts UTC] [step][name] [REL:VERB] msg` with enum names in fixed-width right-justified fields (`{REL:>5}:{VERB:>8}`,
-  16 chars total); `show_event_log` / `show_history_of_moves` render the frozen-golden tables.
+  14 chars total); `show_event_log` / `show_history_of_moves` render the frozen-golden tables.
 
 ## Verified invariants
 

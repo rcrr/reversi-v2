@@ -9,7 +9,7 @@ capability, logging and checkpointing via callback hooks. Self-contained: no LMC
 |---|---|
 | `FG` | `namedtuple('FG', ['fun', 'grad'])` — the function + evaluation tuple |
 | `FixedSizeMaxList(size)` | fixed-size sliding window tracking the maximum pushed value (deque-backed); `max()` raises `RuntimeError` on empty (pinned) |
-| `lbfgs(fg, x0, ...)` | the main optimizer — 16 kwargs (the 8 config scalars, `logger_fn`/`save_fn` hooks, the 4 warm-start kwargs); returns `(x_opt, info_dict)` with the 9 keys w/converged/reason/iters/f/g_norm/sl/yl/rho |
+| `lbfgs(fg, x0, ...)` | the main optimizer — 17 parameters (fg, x0 + 15 defaulted: the 8 config scalars, the `logger`/`save_fn` hooks, the 4 warm-start kwargs initial_sl/initial_yl/initial_rho/initial_iter, `debug_plot`); returns `(x_opt, info_dict)` with the 9 keys w/converged/reason/iters/f/g_norm/sl/yl/rho |
 | `_two_loop_recursion(g, s, y, rho)` | the L-BFGS two-loop H_k·g (private) |
 | `_strong_wolfe_line_search(...)` / `_zoom(...)` | the line search + its zoom phase (private) |
 | `_hermite_cubic_interp(...)` / `_hermite_cubic_interp_min(...)` | the cubic Hermite interpolant + its interval minimum (private) |
@@ -67,7 +67,7 @@ None.
 
 ## Integration
 
-- Consumed ONLY by the OPTIMIZE level (wrk_optimize step 3): the worker passes `fg=ctx.fg`, `x0=w_init`, the 5 config
-  scalars (max_iters, m, min_grad, min_p_fun_decrease, alpha-scaling), the two wrapper hooks and the 4 warm-start kwargs
-  (w_init, initial_sl/yl/rho, initial_iter).
+- Consumed ONLY by the OPTIMIZE level (wrk_optimize step 3): the worker call passes 16 kwargs — fg, x0, the 8 config
+  scalars (c1, c2, min_grad, min_p_fun_decrease, max_iters, m, log_every_n, save_every_n) + logger + save_fn + the 4
+  warm-start kwargs (initial_sl/initial_yl/initial_rho/initial_iter).
 - The `info` dict returned at the end carries the 9 keys `optimization_info_dict` projects to the context.
