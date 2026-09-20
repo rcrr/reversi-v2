@@ -1996,3 +1996,22 @@ D-264 | 2026-09-19 | I-009 (the pipeline construction boilerplate) EVALUATED and
          (DeepNetworkModel), which is speculative: when it arrives the 19 domain workers repeat, not the wiring
          lines, and that case is re-evaluated with concrete data (a new idea, not the completion of this one).
          Verdict: the remaining explicit assembly is design, not debt. I-009 moved to notes/ideas-closed.md.
+D-265 | 2026-09-19 | I-010 (the StateMachine context-injection redesign) EVALUATED and CLOSED as done, no code
+         action (Roberto's approval): the evaluation condition was met (every domain module in the workspace, the
+         call pattern visible) and the evaluation CONFIRMS the D-070/M9 leave-as-is call. THE REAL CALL PATTERN:
+         the 19 domain workers consume the three injected helpers uniformly through the context — 163
+         `ctx.log_event(...)` call sites + 9 `ctx.get_cache_file_*_for_current_level()` call sites (8 files); the
+         worker unit tests build a bare LMContext and assign `ctx.log_event = <test lambda>` by hand (no machine
+         instance). THE HAZARD (V17): a context shared by two machines re-binds to the LAST one built — exercised
+         by exactly one test, NEVER in production: the single StateMachine construction site (BaseModel) gives
+         every facade its own LMContext + machine, and a future second pipeline (DeepNetworkModel) would carry
+         its own context + machine as well. THE OPTIONS: (A) the explicit machine reference (the worker callables
+         take the machine, `sm.log_event` / `sm.get_cache_file_*`) removes the injection at the root (no side
+         effect, no V17, no lambda no-op fallbacks) but rewrites the Worker class + the machine dispatch + all 19
+         worker _up/_down signatures + ~40 test callables + 163 log call sites + 9 cache-helper sites + 3
+         LMContext fields + ~24 mirror docs + TestContextInjection — a large, high-risk refactor of the whole
+         pipeline for a hazard that never manifests; (B) the context-owned helpers do NOT solve V17 (the shared
+         context's machine reference still re-binds to the last machine — one reference instead of three).
+         VERDICT: leave as-is — the uniform `ctx.` blackboard access is exactly what the injection was designed to
+         serve; the D-070/M9 decision ("the injection is fundamental, the domain workers depend on it") stands, now
+         confirmed by the visible call pattern. I-010 moved to notes/ideas-closed.md.

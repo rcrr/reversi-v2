@@ -14,12 +14,6 @@ I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-0
          col_end) blocks built from `feature_set.features`); each pattern occupies `n_instances` D8-instance columns, so
          the helper must be instance-aware.
 
-I-010 | follow-up | Redesign of the StateMachine context injection (parked 2026-08-29, D-070, session 19, M9): the
-         constructor injects `log_event` + the cache helpers as a side effect on the passed-in Context, so a shared
-         context re-binds to the LAST machine built on it (V17). Roberto's call: leave as-is — the injection is
-         fundamental and the domain workers depend on it. The evaluation condition is now MET (every domain module is in
-         the workspace): an explicit machine reference, or context-owned helpers.
-
 I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE level from the checkpoint's warm weights (raised
          2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, the run
          starts FROM SCRATCH (the clipping-equivalent behavior Roberto chose); resuming L-BFGS from the checkpoint's

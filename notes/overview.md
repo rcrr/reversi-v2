@@ -85,8 +85,8 @@ tables at the end of this file.
   engine; a future corpus regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-007, I-010 (the StateMachine context injection — notes/ideas.md). I-003 executed
-  (D-242); I-018 executed (D-243..D-246); I-019 executed (D-260); I-009 evaluated & closed (D-264, no code).
+- Backlog (Roberto's call): I-007, I-014 (notes/ideas.md). I-003 executed (D-242); I-018 executed (D-243..D-246);
+  I-019 executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the

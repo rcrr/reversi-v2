@@ -48,6 +48,15 @@ I-009 | done | Pipeline construction boilerplate in the model client (raised 202
          remaining explicit assembly is design, not debt; a second pipeline (DeepNetworkModel) would re-evaluate
          with concrete data.
 
+I-010 | done | Redesign of the StateMachine context injection (parked 2026-08-29, D-070/M9: the __init__ injects
+         `log_event` + the cache helpers as a side effect; a shared context re-binds to the LAST machine, V17).
+         The evaluation condition was met 2026-09-19 and the evaluation CONFIRMS leave-as-is: the visible call
+         pattern is the uniform `ctx.` blackboard access (163 `log_event` + 9 cache-helper call sites) that the
+         injection serves; V17 is theoretical (no shared context in production — every facade owns its context +
+         machine); option A (the explicit machine reference) is a pipeline-wide high-risk refactor for a hazard
+         that never manifests, option B (the context-owned helpers) does not solve V17. Closed 2026-09-19 as
+         D-265, no code action: the D-070/M9 call stands, now confirmed.
+
 I-011 | done | "Storicizzazione" of the JSON config used to generate a model (raised 2026-08-30, D-077 R1): Roberto
          questioned whether CONFIG needs a CACHE at all — the real need may be keeping, with history, the config that
          generated a given model. Executed as D-142 (2026-09-09) in its C1 form: at SAVE, the provenance record
