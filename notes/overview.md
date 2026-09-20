@@ -74,6 +74,10 @@ tables at the end of this file.
   A2050 feature set re-run on the official start (92.7 s: 67.2 the corpus + the SU statistics, 25.5 the EFFECT_SIZE; the
   reports in `build/su_corpus_1e7/`). The pre-D-192 corpora (the swapped start) are dead — the cache signature now
   invalidates them automatically. The 2e6/1e8 experiment configs regenerate on demand.
+- The mirror docs are fully consistent with the code (D-262 sweep + the D-263 execution of ALL its remaining
+  findings): the independent 95-pair re-audit drove the fix campaign — the critical facts (the regab SQL
+  contract, the pattern API, the FOUR analytics attributes), the 7 space-broken goldens, the tools/ zone, the
+  step/level drift, the test-doc pins, the forbidden history, and the source-side stale comments (comment-only).
 
 ## Next steps
 
