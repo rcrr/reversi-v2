@@ -117,12 +117,12 @@ check("C1 line count 182 (D-130: the tier note adds a header line)", len(cl) == 
 check("C2 header gate claim (D-130 tier wording)",
       "a live regab DB + LONG=1 is required;" in c and
       "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in c and
-      "VLONG=1 implies LONG, D-130" in c)
+      "VLONG=1 implies LONG, see reversi.test.tags" in c)
 code_no_header = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
 check("C3 T5 gate in code (D-130: the db_long_gate idiom)",
       "import os" in code_no_header and
-      "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in code_no_header and
-      "# T5 (D-093): the SKIP_REGAB_DB gate, as in test_regab" in c)
+      "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in code_no_header and
+      "# The SKIP_REGAB_DB gate, as in test_regab" in c)
 check("C4 T6 D-085 idiom",
       "from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE" in c and
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in c and

@@ -158,8 +158,8 @@ check("D2 2 classes / 3 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
       sum(1 for l in t2 if l.strip().startswith("def test_")) == 3)
 check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (D-087 T1; D-130: the db_long_gate idiom)",
-      t2[73] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)"
-      and t2[175] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)",
+      t2[73] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
+      and t2[175] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
       repr(t2[73:75]))
 check("D4 import os is present (L46 — for the gate)", t2[45] == "import os", repr(t2[45]))
 check("D5 both setUps use the D-085 TemporaryDirectory idiom (L82, L183)",

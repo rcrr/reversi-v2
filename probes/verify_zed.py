@@ -106,13 +106,13 @@ check('C2  2 classes: TestZedFunFactory (L64, 1 test) + TestLMWorkerZed (L80, 2 
       and sum(1 for l in tc if l.startswith('    def test_')) == 3)
 check('C3  T1 DONE: import os (L46) + the db_long_gate idiom in setUp (L87, D-130) + paths import (L59)',
       tc[45] == 'import os'
-      and tc[86] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)"
+      and tc[86] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
       and tc[58] == 'from reversi.test.paths import WORKSPACE_ROOT, CUSTOM_TMP_BASE'
       and 'from reversi.test.tags import db_long_gate' in '\n'.join(tc))
 check('C4  header CLAIMS the gate (L38-40, D-130 tier wording) — the claim is NOW true (ties to C3)',
       'a live regab DB + LONG=1 is required;' in tc[37]
       and 'SKIP_REGAB_DB=1' in tc[38] and 'skips the DB-gated tests' in tc[38]
-      and 'VLONG=1 implies LONG, D-130' in tc[39])
+      and 'VLONG=1 implies LONG, see reversi.test.tags' in tc[39])
 check('C5  T4 DONE: TemporaryDirectory FIRST (L95) under CUSTOM_TMP_BASE + tmp_dir = Path (L96) + WORKSPACE_ROOT json (L97)',
       tc[94] == '        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))'
       and tc[95] == '        self.tmp_dir = Path(self._tmp.name)'

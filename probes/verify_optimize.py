@@ -216,8 +216,8 @@ d = read("test/test_wrk_optimize.py")
 dl = d.splitlines()
 check("D1 line count 175 (D-130: the tier note adds a header line)", len(dl) == 175, f"{len(dl)}")
 check("D2 T1: SKIP_REGAB_DB gate in setUp (D-130: the db_long_gate idiom)",
-      "# T1 (D-096):" in d
-      and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)" in d)
+      "# The SKIP_REGAB_DB gate, as in test_regab" in d
+      and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in d)
 check("D3 T2: D-085 idiom applied",
       "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in d
       and "Path(self._tmp.name)" in d
