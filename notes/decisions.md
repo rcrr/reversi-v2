@@ -2182,3 +2182,39 @@ D-272 | 2026-09-20 | The test-doc RESIDUE campaign (the post-D-271 reconnaissanc
          D-270 made it bare): re-anchored to the current idiom (part G, the probes' own
          check names kept). VERIFICATION: the 15 changed files py_compile OK; LONG suite
          938/0/25 GREEN; all 24 probes green (the live tiers included).
+D-273 | 2026-09-20 | The TEST-TREE reorganization (Roberto's call after the PRO/CONS review
+         of the three options — per-zone test/ subdirs inside src (A), a root test/ tree
+         mirroring src (B), or a single test package with zone subdirs (C); B won: the
+         GitHub-readable, standard layout is worth the extra churn): the unit tests leave
+         src/ and move to a ROOT test/ tree mirroring src/ one file to one file, zone by
+         zone (the convention Roberto fixed: test/reversi/test_board.py, no intermediate
+         test/ level): test/reversi/ (the core zone: board, random_game, pattern,
+         mobility, feature, regab, paths-test), test/reversi/lm/ (32: the data modules,
+         the workers, the facade, the client, the end-to-end chain), test/reversi/tools/
+         (6: binio, usage_binio, opt_lbfgs, prng, cache_manager, state_machine); the 3
+         shared helpers (paths/tags/closecheck) + the 9 data/ fixtures land in
+         test/reversi/. git mv throughout (history preserved). The module paths become
+         test.reversi[.zone].<module>: the helper imports, the header run-comments, the
+         WORKSPACE_ROOT-anchored data paths, the 2 CWD-relative rlm_00 refs
+         (test_wrk_config), test_paths' layout pin, test_state_machine's parents[2] and
+         the paths.py marker message all follow. run_utests.sh: the 45 modules in the
+         SAME canonical order (D-130) under the new names; tools/measure_suite.py:
+         discover from the root test/ + the zone-agnostic module extraction. The 47 test
+         mirror docs follow to docs/test/reversi{,/lm,/tools}/ (the H1s + every body
+         reference; the D-007 mirror bullet is extended accordingly, docs_rules.md §6 +
+         the fixtures bullet updated, the auditor's source_of handles both trees).
+         Legislation: rules.md (the unit-tests bullet, the D-007 extension, the D-085 /
+         tags / closecheck / tier idioms, the D-267 test-doc scope now 'in test/'),
+         AGENTS.md layout (src/ and test/ separate entries, docs/ mirrors both),
+         naming.md pointer, overview.md (the single-module command, the 47-row Test
+         files table, the Test data note). The 16 referencing probes re-anchor: the
+         file-path refs + the content pins (the test.reversi.* imports, the data paths,
+         the runner registration, the wmaps L84/L185 lines), the 12 importing probes get
+         the workspace root on sys.path (the test/ tree is not installed), the 3
+         zone-abbreviated local read helpers (gradient / optimize / zed) resolve against
+         the new lm home; the probes' own check labels + item ids stay (the D-269/D-270
+         precedent). Side effect: the tests are OUT of the packaged wheel (the
+         packages.find where=['src'] never saw them). VERIFICATION: test tree + probes
+         py_compile OK; LONG suite 938/0/25 GREEN; all 23 probes green (the live tiers
+         included); the mirror-doc audit 88/95 = the pre-existing baseline (the one
+         transient width finding re-wrapped in place, line counts kept).
