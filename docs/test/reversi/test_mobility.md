@@ -1,4 +1,4 @@
-# reversi/test/test_mobility.py
+# test/reversi/test_mobility.py
 The mobility unit suite — 2 classes / 26 tests (25 run + the PERF skip), no DB. A faithful sibling of test_pattern.py
 (same conventions, same idiom choices).
 

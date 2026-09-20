@@ -1,4 +1,4 @@
-# reversi/test/tags.py
+# test/reversi/tags.py
 The suite-tier gates: the predicates + the DB gate the test modules use to declare which tier they belong to. The tiers
 are CUMULATIVE — each implies the previous ones (default → LONG → VLONG → VVLONG).
 

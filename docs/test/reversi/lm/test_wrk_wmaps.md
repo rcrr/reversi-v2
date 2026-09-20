@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_wmaps.py
+# test/reversi/lm/test_wrk_wmaps.py
 The suite of the WMAPS worker. 2 classes / 3 tests / no PERF — ALL DB-DEPENDENT (the setUp moves through INDEXES on a
 fresh base dir, which runs POSITIONS).
 
@@ -10,7 +10,7 @@ fresh base dir, which runs POSITIONS).
 | `TestLMWorkerWmapsExactValues` (1, rlm_01.json, cut_off=2) | `test_compute_wmaps_exact_values`: the GOLDEN CONTENT pin — before WMAPS: all 6 ctx arrays None (the half-open interval guarantee); after: `expected_fwr` (4,3) = [[−1,0,0],[1,1,4],[5,5,15],[16,16,20]] int64 (per-feature [fallback, w_min, w_max]); `expected_iwmap_feature_offset` = [0,1,66,93,174] uint32 (F+1 cumulative); `expected_iwmap` (174,) int64 (mostly −1 — the unseen configurations); `expected_wmap` (21,3); `expected_wmap_fallback` (10,3) all freq 1 (f1: 6,11,15; f2: 3,5,10,11,20,23; f3: 40); `w` = 21 float32 zeros. The probe's surviving E-tier check (E9) re-derives the per-feature wmap row contiguity |
 
 The shared setUp: the `db_long_gate` FIRST (the SKIP_REGAB_DB + LONG gates) + the paths idiom (the shared
-`CUSTOM_TMP_BASE` from `reversi.test.paths`, `setUpClass` mkdir, `TemporaryDirectory` first in setUp, the
+`CUSTOM_TMP_BASE` from `test.reversi.paths`, `setUpClass` mkdir, `TemporaryDirectory` first in setUp, the
 `WORKSPACE_ROOT`-anchored json_config, defensive tearDowns).
 
 ## Goldens pinned

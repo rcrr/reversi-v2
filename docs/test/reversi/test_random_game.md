@@ -1,4 +1,4 @@
-# reversi/test/test_random_game.py
+# test/reversi/test_random_game.py
 The NO-DB micro-suite of the random_game module: the random move pick (the golden frequencies), the EC20 multi-position
 check (random_game_choose_move over six 20-empty-square positions — the per-position validity + the equidistribution
 over the available options), the random move execution (random_game_make_move — the returned position + the move), and

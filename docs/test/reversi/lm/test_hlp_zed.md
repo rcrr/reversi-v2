@@ -1,7 +1,7 @@
-# reversi/test/test_hlp_zed.py
+# test/reversi/lm/test_hlp_zed.py
 The dedicated data-object suite of the hlp_zed module. 3 classes / 10 tests / no DB, no gate — the file is fully
 offline: the module has no file I/O and no LMContext beyond the two attributes `hlp_zed_compute` reads, so no
-`tempfile`, no `reversi.test.paths`, no `import os`.
+`tempfile`, no `test.reversi.paths`, no `import os`.
 
 ## Coverage
 
@@ -20,7 +20,7 @@ offline: the module has no file I/O and no LMContext beyond the two attributes `
 
 ## Conventions
 
-- DB-free BY CONSTRUCTION (the module has no file I/O) — hence no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
+- DB-free BY CONSTRUCTION (the module has no file I/O) — hence no SKIP_REGAB_DB gate and no `test.reversi.paths` import.
 - Mirrors the test_hlp_wmaps / test_hlp_design_matrix house pattern: the isolated factory math, the handcrafted-mock
   compute pins, the init validation, the hash golden.
 

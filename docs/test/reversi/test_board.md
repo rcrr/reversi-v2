@@ -1,4 +1,4 @@
-# reversi/test/test_board.py
+# test/reversi/test_board.py
 The board unit suite — 50 classes / 247 tests (the 8 D8 blueprint subclasses contribute 32 inherited tests), 8
 PERF-gated (`@skipUnless(PERF == '1')`). Companion of docs/src/reversi/board.md.
 

@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_generate.py
+# test/reversi/lm/test_hlp_generate.py
 The dedicated data-object suite of the hlp_generate module — 4 classes / 16 tests. No DB, no gate, no artifacts — the
 SimpleNamespace mock-fixture pattern, as in test_hlp_zed / test_hlp_gradient.
 
@@ -22,7 +22,7 @@ SimpleNamespace mock-fixture pattern, as in test_hlp_zed / test_hlp_gradient.
 ## Conventions
 
 - DB-free BY CONSTRUCTION (no file I/O outside the IO class, which uses TemporaryDirectory) — hence no SKIP_REGAB_DB
-  gate and no `reversi.test.paths` import beyond CUSTOM_TMP_BASE.
+  gate and no `test.reversi.paths` import beyond CUSTOM_TMP_BASE.
 - The empty-array `wmap` in the error-branch tests is `np.zeros((0, 3), dtype=np.int64)` — the (0,3) shape keeps the
   column indexing `wmap[:, 0] == fid` well-defined.
 - The mid-file corruption is offset-computed (`size // 2`), not a fixed offset: the dense file is small, a fixed 100

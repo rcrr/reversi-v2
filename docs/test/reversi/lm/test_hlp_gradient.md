@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_gradient.py
+# test/reversi/lm/test_hlp_gradient.py
 The dedicated data-object suite of the hlp_gradient module. 3 classes / 14 tests / no DB, no gate, no artifacts — the
 handcrafted-mock pattern, as in test_hlp_zed.
 
@@ -18,7 +18,7 @@ handcrafted-mock pattern, as in test_hlp_zed.
 
 ## Conventions
 
-- DB-free BY CONSTRUCTION (the module has no file I/O) — hence no SKIP_REGAB_DB gate and no `reversi.test.paths` import.
+- DB-free BY CONSTRUCTION (the module has no file I/O) — hence no SKIP_REGAB_DB gate and no `test.reversi.paths` import.
 - NO init-validation tests: hlp_gradient is a function-only module (no data class to validate) — unlike test_hlp_zed.
 - No ws lines, no dead imports, the no-DB header claim true from the first line.
 

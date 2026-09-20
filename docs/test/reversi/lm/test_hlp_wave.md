@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_wave.py
+# test/reversi/lm/test_hlp_wave.py
 The NO-DB micro-suite of the concurrent WAVE generator (the corpus engine): the batch draw vs the golden-pinned
 reference PRNG, the W=1 trajectory vs the scalar reference loop, the run integrity + the determinism, and the VVLONG 1e6
 benchmark. 2 classes / 4 tests (3 + the VVLONG-gated benchmark) / no DB.

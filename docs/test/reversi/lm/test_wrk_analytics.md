@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_analytics.py
+# test/reversi/lm/test_wrk_analytics.py
 The ANALYTICS worker integration suite — the dedicated suite for the ANALYTICS level, the first suite to cover TWO
 non-cache levels' downstream data (the 5th non-cache level itself + the rlm_01 mobility-table branch of the file
 report). 2 classes / 4 tests, all DB-gated.
@@ -23,7 +23,7 @@ report). 2 classes / 4 tests, all DB-gated.
 ## Conventions
 
 - The db_long_gate idiom (the SKIP_REGAB_DB + LONG tier gates) is FIRST in setUp (before the stdout patch / tmp dir).
-- The float64 metric goldens are compared with assert_close (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12): the
+- The float64 metric goldens are compared with assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12): the
   np.dot reductions over up to ~2M f64 terms run through the multi-threaded OpenBLAS ddot (scipy 0.3.34, DYNAMIC_ARCH
   NO_AFFINITY) — the last ULPs depend on the thread count x the CPU kernel (the 4 -> 8 vCPU VM move shifted them up to
   88 ULP on rlm_02). Still bit-exact (assertEqual): the f32-quantized train_loss (float of the f32 OPTIMIZE objective),

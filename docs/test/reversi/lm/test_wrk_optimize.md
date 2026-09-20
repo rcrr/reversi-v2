@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_optimize.py
+# test/reversi/lm/test_wrk_optimize.py
 The OPTIMIZE worker integration suite — the house worker-test shape (same as test_wrk_gradient et al.): a live-DB suite
 that moves the machine through the chain to OPTIMIZE (step 11) on a fresh base dir and then exercises the OPTIMIZE
 level. 1 class / 3 tests, all DB-gated (the db_long_gate — SKIP_REGAB_DB + LONG — the setUp moves through GRADIENT on a

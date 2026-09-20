@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_random_play.py
+# test/reversi/lm/test_hlp_random_play.py
 The NO-DB micro-suite of the SU_ANALYSIS frequency data plane: the marginal / joint frequency accumulators + the
 PRNG integration. The initial position, the ec pin (the hand-counted stone counts), the marginal accumulator (the LMC vs
 the independent oracle, the R2 cross-check, the chunk-merge), the joint accumulator (the cross-feature + the

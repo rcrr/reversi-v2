@@ -1,4 +1,4 @@
-# reversi/test/test_logistic_model.py
+# test/reversi/lm/test_logistic_model.py
 The logistic-model unit suite — 2 classes / 29 tests, no PERF gates, ~1.1 s, no DB. 537 lines.
 
 ## Coverage
@@ -25,7 +25,7 @@ The logistic-model unit suite — 2 classes / 29 tests, no PERF gates, ~1.1 s, n
 - The `build/tmp` artifact rule: CSV export artifacts land under `build/tmp`.
 - The 2 probe-derived tests pin the full guard contract.
 - The testbed (the setUp contract): `setUpClass` — `CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)`, imported from
-  the shared `reversi.test.paths` module.
+  the shared `test.reversi.paths` module.
 - `sys.stdout` patched to a StringIO (keeps the SM display out of the test log); the dummy `dummy_config.json` (`{}`) in
   a `tempfile.TemporaryDirectory(dir=CUSTOM_TMP_BASE)` created FIRST in setUp (mid-setup failures still leave a
   cleanable `temp_dir`).

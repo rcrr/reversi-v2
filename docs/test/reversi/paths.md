@@ -1,4 +1,4 @@
-# reversi/test/paths.py
+# test/reversi/paths.py
 Test-path helpers: the single home of the workspace-root-anchored paths the unit tests use. `WORKSPACE_ROOT` is derived
 ONCE here, keyed on the workspace marker (`pyproject.toml`) instead of a `parents[N]` level count.
 
@@ -31,7 +31,7 @@ Pinned by the `test_paths` suite (3/0/0, see test_paths.md):
 
 - `WORKSPACE_ROOT` is absolute and holds `pyproject.toml` (`test_workspace_root_holds_the_marker`).
 - `WORKSPACE_ROOT / "src" / "reversi" / "test" / "paths.py"` exists — the root is the ancestor of the test package,
-  pinning the `src/reversi/test/` layout (`test_workspace_root_is_ancestor_of_this_file`).
+  pinning the `test/reversi/` layout (`test_workspace_root_is_ancestor_of_this_file`).
 - `CUSTOM_TMP_BASE == WORKSPACE_ROOT / "build" / "tmp"`, absolute (`test_custom_tmp_base_is_under_the_root`).
 
 ## Open issues

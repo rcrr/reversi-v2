@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_feature_analysis.py
+# test/reversi/lm/test_hlp_feature_analysis.py
 The NO-DB micro-suite of the SU_ANALYSIS data module: the SU / entropy / mutual-information kernels + the dispersion /
 the never-observed audit + the ANOVA kernels + the adherence kernels — the hand-computed toy tables (the uniform / the
 degenerate / the binary entropies, the perfect-correlation / the independent mutual informations, the SU = 1 / 0 / the

@@ -1,4 +1,4 @@
-# reversi/test/test_opt_lbfgs.py
+# test/reversi/tools/test_opt_lbfgs.py
 The opt_lbfgs unit suite: integration-level coverage (4 diverse test functions + warm-start) plus unit-level tests for
 the main internal components (input validation, `FixedSizeMaxList` incl. the hard-bug regression, the two-loop
 recursion). 7 classes / 14 tests, no DB, no PERF gate (~0.040s).

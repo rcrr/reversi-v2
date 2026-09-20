@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_wmaps.py
+# test/reversi/lm/test_hlp_wmaps.py
 The unit suite of the hlp_wmaps domain module. 4 classes / 15 tests / no PERF — no DB, no gate: the compute tests use a
 handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_TMP_BASE`.
 

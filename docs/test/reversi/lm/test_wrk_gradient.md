@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_gradient.py
+# test/reversi/lm/test_wrk_gradient.py
 The worker suite of the GRADIENT level: the DB-gated integration pair (`TestLMWorkerGradient`: the rlm_02 end-to-end
 golden — the 4 values at w=0, the single source of truth — + the `_down` clearing pin; its setUp moves through ZED on a
 fresh base dir, so a live DB is required) plus the DB-free `TestGradientFlagWiring` (the `high_performance_fg` flag

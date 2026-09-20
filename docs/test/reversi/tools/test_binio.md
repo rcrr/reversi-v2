@@ -1,4 +1,4 @@
-# reversi/test/test_binio.py
+# test/reversi/tools/test_binio.py
 The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s infrastructure suite). Includes
 `test_unknown_type_code_raises` and the 3 empty-sidecar-suffix guard tests — the 48 total counting the usage module.
 

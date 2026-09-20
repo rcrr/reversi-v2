@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_indexes.py
+# test/reversi/lm/test_wrk_indexes.py
 The suite of the INDEXES worker. 1 class / 2 tests / no PERF — both DB-gated.
 
 ## Coverage
@@ -9,7 +9,7 @@ The suite of the INDEXES worker. 1 class / 2 tests / no PERF — both DB-gated.
 
 The shared setUp: the db_long_gate FIRST (the SKIP_REGAB_DB + LONG gates; the move to INDEXES runs POSITIONS — a DB hit
 on a fresh base dir) + stdout patched to a StringIO + the `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from
-`reversi.test.paths`, `setUpClass` mkdir, the temp dir created FIRST so a mid-setup failure still leaves a cleanable
+`test.reversi.paths`, `setUpClass` mkdir, the temp dir created FIRST so a mid-setup failure still leaves a cleanable
 dir) + a `LogisticModel` on the `rlm_00.json` fixture (anchored to `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir)
 + `move_to_step('FEATURES')` (step 2 pinned; the comment is ACCURATE — "INDEXES depends on the feature_set loaded
 there") + a defensive tearDown (getattr guards).
@@ -23,7 +23,7 @@ there") + a defensive tearDown (getattr guards).
 
 ## Conventions
 
-- The `TemporaryDirectory` idiom + the `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (shared `reversi.test.paths`) — the
+- The `TemporaryDirectory` idiom + the `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (shared `test.reversi.paths`) — the
   artifacts go under the shared `CUSTOM_TMP_BASE` (the house idiom).
 - The `SKIP_REGAB_DB` gate at the top of setUp (the test_regab pattern).
 - The header run note documents the live-DB requirement and the gate (the established pattern).

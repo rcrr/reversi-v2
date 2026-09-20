@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_generate.py
+# test/reversi/lm/test_wrk_generate.py
 The GENERATE worker integration suite, in the house worker-test shape (as in test_wrk_indexes / test_wrk_optimize et
 al.): a live-DB suite that moves the machine through the full 12-level chain on a fresh base dir and then exercises the
 GENERATE level. 1 class / 3 tests, all DB-gated.

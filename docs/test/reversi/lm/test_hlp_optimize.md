@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_optimize.py
+# test/reversi/lm/test_hlp_optimize.py
 The dedicated hlp_optimize suite — a NO-DB suite (handcrafted checkpoint fixtures + a SimpleNamespace ctx mock) that
 pins the binary round-trip, the error paths, the golden hashes and the two gate functions — the level where the worker's
 decision logic lives. 4 classes / 20 tests.

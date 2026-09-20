@@ -1,4 +1,4 @@
-# reversi/test/test_client.py
+# test/reversi/lm/test_client.py
 Unit tests for the client Evaluation Functions: 1 class / 7 tests, no DB, no gate, no artifacts — a synthetic
 rlm_04-mirror `ModelWeights` built in setUp (the client never touches the pipeline state).
 

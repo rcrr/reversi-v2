@@ -74,7 +74,7 @@ current was a per-file tax that no commit ever paid (94/94 mirrors carried no St
 5. Target size: 60-120 lines; the hubs (board, pattern, logistic_model, state_machine) 150-200. A doc that cannot state
    its module in that budget is hiding history or is a hub.
 
-## 6. Test-doc variant (docs/src/reversi/test/test_X.md)
+## 6. Test-doc variant (docs/test/…/test_X.md)
 
 Same skeleton, two substitutions:
 
@@ -87,7 +87,7 @@ The State line uses the test file's own suite counts.
 
 ## 7. Scope exceptions
 
-- src/reversi/test/data/*.json are fixtures, not source: no mirror doc; their doc line is the Test files data note in
+- test/reversi/data/*.json are fixtures, not source: no mirror doc; their doc line is the Test files data note in
   notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim analyses, retired one-off investigations): they are
   frozen records, never updated — a changed fact gets a NEW analysis, the old one keeps its date and its errors.

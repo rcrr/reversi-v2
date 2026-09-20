@@ -1,4 +1,4 @@
-# reversi/test/test_lm_worker_full_chain.py
+# test/reversi/lm/test_lm_worker_full_chain.py
 The pipeline's END-TO-END test: it runs the whole 18-level chain (CREATED through PLOT) on two fixtures and pins the
 complete saved-model round-trip (file + sidecar + read-back + evaluation function). The ONLY test that exercises all 18
 levels in one chain — every per-level module test stops at its own level (the "move through my predecessors" setUp), and
@@ -41,7 +41,7 @@ band rather than a literal.
 - The tier gating keeps the A2050 chain out of normal discover runs (VLONG/VVLONG; the suite stays gated; the A2050
   chain is ~1 min, so the live suite cost is dominated by the A2030 chain).
 - The float64 metric goldens (the vld / train / dense dicts + the pop statistics) are compared with assert_close
-  (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the last ULPs of the OpenBLAS ddot depend on the thread count x
+  (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12) — the last ULPs of the OpenBLAS ddot depend on the thread count x
   the CPU kernel. Still bit-exact assertEqual: the f32-quantized values (train_loss = float(opt f32), g_norm, the tps +
   vld read-back truncations), the EF pins, the sha3 hashes, and the int counts; the second-instance-determinism test
   stays exact (the in-run bit-identity contract).
@@ -51,6 +51,6 @@ band rather than a literal.
 
 ## Integration
 
-- `reversi.test.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the module runnable from any CWD.
+- `test.reversi.paths` (WORKSPACE_ROOT / CUSTOM_TMP_BASE) makes the module runnable from any CWD.
 - A2050 has no second-instance test and its goldens are pinned from the same live-run family as A2030 (determinism is a
   property of the chain, demonstrated on rlm_04).

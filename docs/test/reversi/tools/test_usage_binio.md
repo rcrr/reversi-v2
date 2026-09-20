@@ -1,4 +1,4 @@
-# reversi/test/test_usage_binio.py
+# test/reversi/tools/test_usage_binio.py
 Linear, copy-pasteable USAGE examples for the binio public API — the tests double as documentation: 3 classes / 3 tests,
 no DB, no gate, no artifacts.
 
@@ -25,8 +25,8 @@ no DB, no gate, no artifacts.
 - The working dir is `tempfile.mkdtemp(prefix="binio_usage_")` + `addCleanup(shutil.rmtree, ...)`: self-contained,
   nothing touches the workspace (this suite intentionally does NOT use the TemporaryDirectory / CUSTOM_TMP_BASE idiom —
   usage examples stay standalone).
-- Run from the workspace root: `time PERF=0 python3 -m unittest reversi.test.test_usage_binio` (the header -1- block);
-  no PERF gate — the suite is a few seconds.
+- Run from the workspace root: `time PERF=0 python3 -m unittest test.reversi.tools.test_usage_binio`
+  (the header -1- block); no PERF gate — the suite is a few seconds.
 
 ## Integration
 

@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_su_analysis.py
+# test/reversi/lm/test_wrk_su_analysis.py
 The NO-DB suite of the SU_ANALYSIS worker: the factory (the worker name), the enable no-op (the opt-in), the compute +
 the publish (the tiny SU-analysis corpus, the phase-2 statistics, the TXT report), the cache hit (the second run), the
 signature invalidation (the corpus change), the su_pairs joint, the optional CSV, and the down (the recovery). 2 classes

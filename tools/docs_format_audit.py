@@ -59,9 +59,12 @@ def docs():
 
 
 def source_of(path):
-    """docs/src/reversi/X.md -> reversi/X.py"""
-    rel = path[len('docs/src/'):-3]
-    return rel + '.py'
+    """docs/src/reversi/X.md -> reversi/X.py; docs/test/reversi/X.md -> test/reversi/X.py"""
+    if path.startswith('docs/src/'):
+        rel = path[len('docs/src/'):]
+    else:
+        rel = path[len('docs/'):]
+    return rel[:-3] + '.py'
 
 
 def sections(lines):

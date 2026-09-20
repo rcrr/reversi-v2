@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_indexes.py
+# test/reversi/lm/test_hlp_indexes.py
 The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF — all file I/O MOCKED
 (`reversi.lm.hlp_indexes.binio` patched): no temp dirs, no DB, no gates.
 

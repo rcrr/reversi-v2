@@ -1,4 +1,4 @@
-# reversi/test/test_state_machine.py
+# test/reversi/tools/test_state_machine.py
 The state-machine unit suite — 5 classes / 49 tests, no PERF gates, ~0.3 s, no DB. The guard contract (the invalid
 worker name, the out-of-bounds index) is pinned as full-message `assertEqual` in two `TestStateMachine` tests.
 

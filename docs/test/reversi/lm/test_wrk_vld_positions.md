@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_vld_positions.py
+# test/reversi/lm/test_wrk_vld_positions.py
 The VLD_POSITIONS worker integration suite — 3 classes / 11 tests: `TestLMWorkerVldPositions`, the DB-free
 `TestIsCacheConsistentOverride` class (the probe's D2-D7 checks, probe_rules.md §4), and the DB-gated
 `TestVldIndependenceCheck` class.

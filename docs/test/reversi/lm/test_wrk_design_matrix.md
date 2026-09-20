@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_design_matrix.py
+# test/reversi/lm/test_wrk_design_matrix.py
 The suite of the DESIGN_MTR worker — the end-to-end cache round-trip pin for the 8th active level + the rlm_01
 golden-content pin (the (10,7) uint32 X literal). 2 classes / 3 tests / no PERF — ALL DB-DEPENDENT (the setUp moves
 through WMAPS on a fresh base dir).

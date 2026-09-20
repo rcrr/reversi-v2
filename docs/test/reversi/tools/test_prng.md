@@ -1,4 +1,4 @@
-# reversi/test/test_prng.py
+# test/reversi/tools/test_prng.py
 The MT19937 (the 64-bit MT-19937 PRNG) suite: the strict-typing pins (the numpy uint64 / float64 dtypes of every
 output), the 64-bit wrap contract, the no-consume contracts (k == 1, the n <= 1 shuffles, the empty set), the
 extract_from_set64 + choose_one_from_set64 semantics; the bit-exact golden (the committed reference sequences) + the
@@ -16,7 +16,7 @@ first-100k equi-distribution. 5 classes / 22 tests / no DB.
 
 ## Goldens pinned
 
-- `src/reversi/test/data/prng_golden.txt` (18436 lines, 20 sections): the committed reference sequences — a
+- `test/reversi/data/prng_golden.txt` (18436 lines, 20 sections): the committed reference sequences — a
   known-correct output snapshot the implementation must reproduce bit-for-bit. Sections: [seq_seed42] (10000),
   [doubles_c0_c1] / [doubles_c0_o1] / [doubles_o0_o1] (100 each), [choice5] (1000), [extract_full] (64); the
   choose_one_from_set64 cases (each a 1000-pick sequence + a `_freqs` companion of the expected frequencies):

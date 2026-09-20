@@ -1,9 +1,9 @@
-# reversi/test/test_regab.py
+# test/reversi/test_regab.py
 The regab unit suite — 8 classes / 48 tests, no PERF gates. 35 tests require a live PostgreSQL database + the workspace
 `.env`; 2 (`TestRegabDataSetFileLoadExceptions`) are fully mocked; 11 (`TestRegabDedupMogv` +
 `TestRegabCountPositionOverlap`) are no-DB micro tests. `SKIP_REGAB_DB=1` (or the absent LONG tier) skips the
 DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`). The `.env` load and the checksum test's `mkdtemp` are
-anchored to the shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
+anchored to the shared `test.reversi.paths` constants (`WORKSPACE_ROOT` / `CUSTOM_TMP_BASE`).
 
 ## Coverage
 

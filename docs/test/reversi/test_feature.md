@@ -1,4 +1,4 @@
-# reversi/test/test_feature.py
+# test/reversi/test_feature.py
 The unit suite of the first pipeline-integration module (the `feature.py` mirror): the `Feature` factory methods + the
 blocked direct construction, `FeatureSet` construction (ordering, n_instances, hash, the intercept category check,
 print_summary), the `feature_blocks` property (the per-feature column blocks) and `FeatureSet.compute_indexes` (the
@@ -31,7 +31,7 @@ DB.
 
 ## Conventions
 
-- How to run (header): from the workspace root, `time PERF=0 python3 -m unittest reversi.test.test_feature` — `PERF=1`
+- How to run (header): from the workspace root, `time PERF=0 python3 -m unittest test.reversi.test_feature` — `PERF=1`
   enables the 1M-position test (print-only, no gate — consistent with the whole repo).
 - Strict-typing tests assert `pydantic.ValidationError` (1 in TestFeature, 4 wrong argument types in the subTest loop).
 - No hash self-comparisons: the literals are goldens re-derived from the public API (never from the code under test).

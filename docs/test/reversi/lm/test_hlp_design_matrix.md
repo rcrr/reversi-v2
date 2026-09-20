@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_design_matrix.py
+# test/reversi/lm/test_hlp_design_matrix.py
 The dedicated data-object suite of the hlp_design_matrix module. 4 classes / 14 tests / no PERF — no DB, no gate: the
 compute tests use a handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_TMP_BASE`.
 

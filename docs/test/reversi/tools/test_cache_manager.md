@@ -1,4 +1,4 @@
-# reversi/test/test_cache_manager.py
+# test/reversi/tools/test_cache_manager.py
 The cache_manager unit suite — 3 classes / 22 tests + 1 base + the `DataWithChecksum` / `DataWithBrokenChecksum`
 duck-typed helpers, no DB (~0.05 s).
 
@@ -6,7 +6,7 @@ duck-typed helpers, no DB (~0.05 s).
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestChecksumHelpers` (over `BaseCacheTestCase` the mkdtemp + the `CUSTOM_TMP_BASE`-anchored paths via `reversi.test.paths`) | 8 | a binio-written sidecar verifies through `_verify_checksum`, the legacy bare-hex sidecar still verifies (binio's first-token parser), missing sidecar → False (`FileNotFoundError`), mismatched well-formed digest (`"0" * 64`) → False, malformed (non-hex → `BinaryFormatError`) + undecodable (`UnicodeDecodeError`) → False never raising, `_delete_cache_files` removes both files, double delete no-raise (idempotent), the sidecar content is exactly binio's `sha3_256sum` line `<hex>  <basename>\n` |
+| `TestChecksumHelpers` (over `BaseCacheTestCase` the mkdtemp + the `CUSTOM_TMP_BASE`-anchored paths via `test.reversi.paths`) | 8 | a binio-written sidecar verifies through `_verify_checksum`, the legacy bare-hex sidecar still verifies (binio's first-token parser), missing sidecar → False (`FileNotFoundError`), mismatched well-formed digest (`"0" * 64`) → False, malformed (non-hex → `BinaryFormatError`) + undecodable (`UnicodeDecodeError`) → False never raising, `_delete_cache_files` removes both files, double delete no-raise (idempotent), the sidecar content is exactly binio's `sha3_256sum` line `<hex>  <basename>\n` |
 | `TestCacheManagerPipeline` | 13 | the 4 steps + success, end to end: step 0 (`is_allowed=False` with a pre-existing file) computes + still writes data + valid sidecar (INFO pinned); step 1 (missing file) computes + stores; step 2 (wrong sidecar — and the missing-sidecar variant) deletes both, the WARN "Checksum validation failed ... (sidecar missing or mismatched)" pinned, recomputes + re-stores, new sidecar verifies; step 3a (`load_fn` raises IOError) deletes both, ERROR "Failed to load or validate cache file ... Disk read error. Recomputing." pinned; step 3b (`validate_fn` False, and the raising-validator variant) same; success returns the loaded object (identity), load called once, compute/store NOT called, INFO pinned; all failure paths: `cache_hit=False`, 3rd element `None` (`assertIsNone` on all 6 pipeline tests) |
 | `TestValidateCallCoercion` | 1 | a `str` `cache_path` is coerced to `Path` by `@validate_call` and the inner store_fn observes a Path (the flow then dies in the framework's sidecar write with FileNotFoundError) |
 
@@ -23,7 +23,7 @@ duck-typed helpers, no DB (~0.05 s).
 ## Conventions
 
 - No PERF gates (~0.05 s), no DB gate (pure file I/O in `mkdtemp` dirs).
-- `CUSTOM_TMP_BASE` is imported from `reversi.test.paths` (the per-file `__file__` derivation is gone).
+- `CUSTOM_TMP_BASE` is imported from `test.reversi.paths` (the per-file `__file__` derivation is gone).
 
 ## Integration
 

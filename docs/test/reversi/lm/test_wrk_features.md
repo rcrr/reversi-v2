@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_features.py
+# test/reversi/lm/test_wrk_features.py
 The suite of the FEATURES worker. 2 classes / 3 tests (all DB-free) / no PERF.
 
 ## Coverage
@@ -10,7 +10,7 @@ The suite of the FEATURES worker. 2 classes / 3 tests (all DB-free) / no PERF.
 
 The shared setUp of the class (DB-free — the setUp moves directly to FEATURES: no gate, no POSITIONS move): stdout
 patched to a StringIO + the
-`TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from `reversi.test.paths`, `setUpClass` mkdir, the temp dir
+`TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from `test.reversi.paths`, `setUpClass` mkdir, the temp dir
 created FIRST so a mid-setup failure still leaves a cleanable dir) + a `LogisticModel` on the `rlm_00.json` fixture
 (anchored to `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir, `Verbosity.LOW`) + the pipeline preconditions pinned
 (step 0 `CREATED`) + a defensive tearDown. The tests move to FEATURES (step 2) and pin the feature-set content.
@@ -29,7 +29,7 @@ created FIRST so a mid-setup failure still leaves a cleanable dir) + a `Logistic
 
 ## Conventions
 
-- The `TemporaryDirectory` idiom + the `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (shared `reversi.test.paths`).
+- The `TemporaryDirectory` idiom + the `WORKSPACE_ROOT`/`CUSTOM_TMP_BASE` anchoring (shared `test.reversi.paths`).
 - DB-free: no gate — the setUp moves to FEATURES directly (CONFIG + FEATURES only; no POSITIONS, no DB).
 - The guard class stays DB-free: the guard fires before any data access, so it drives `_load_features` with a minimal
   context.

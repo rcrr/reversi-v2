@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_config_schemas.py
+# test/reversi/lm/test_hlp_config_schemas.py
 The hlp_config_schemas config-domain suite: the deterministic pydantic unit behaviour of the LM config schemas — the
 mask parsing, the ec/status constraints, the cross-field validator, the client_check_tol + the plot sections, the
 su_analysis / effect_size opt-in. 1 class / 27 tests / no PERF gates / no database (the schemas validate in memory

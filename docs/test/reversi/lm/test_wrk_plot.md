@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_plot.py
+# test/reversi/lm/test_wrk_plot.py
 The no-DB suite of the PLOT worker (the 18th level): it exercises the worker DIRECTLY on a synthetic rlm_04-mirror
 context (the same feature layout and the same production iwmap pin as test_wrk_client_check.py) — the training design
 indexes are built with the REAL `compute_indexes` column contract (one column per feature INSTANCE, the configuration

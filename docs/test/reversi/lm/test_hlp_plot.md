@@ -1,4 +1,4 @@
-# reversi/test/test_hlp_plot.py
+# test/reversi/lm/test_hlp_plot.py
 The no-DB unit suite of the PLOT level's pure helpers (`reversi/lm/hlp_plot.py`): the seven-name vocabulary (the single
 source of truth the `PlotConfig` schema validates against), the R-semantic jitter, the EGV bins (the R `round_gv` port),
 and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the builder/rendering behaviour lives in

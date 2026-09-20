@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_effect_size.py
+# test/reversi/lm/test_wrk_effect_size.py
 The NO-DB suite of the EFFECT_SIZE worker: the factory (the worker name), the enable no-op (the opt-in), the ANOVA (the
 eta²/omega² per sub-variable), the graceful degradation (the adherence skipped when the corpus is absent), the adherence
 (the fixed trio, the computed path), the report, and the down (the no-op). 1 class / 7 tests / no database (the mock

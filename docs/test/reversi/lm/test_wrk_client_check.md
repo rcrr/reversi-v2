@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_client_check.py
+# test/reversi/lm/test_wrk_client_check.py
 The no-DB suite of the CLIENT_CHECK worker (the 17th level): it exercises the worker DIRECTLY on a synthetic
 rlm_04-mirror context (the same layout and the same production iwmap pin as test_client.py) — the model file is written
 with the REAL `model_weights_write_file` (the v2 LZ4 artifact + sidecar), then `wrk_client_check().up(ctx)` runs the

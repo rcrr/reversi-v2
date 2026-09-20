@@ -1,4 +1,4 @@
-# reversi/test/test_pattern.py
+# test/reversi/test_pattern.py
 The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `compute_indexes_on_position`, set
 `compute_principal_indexes`), ~1.1 s, no DB.
 

@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_validate.py
+# test/reversi/lm/test_wrk_validate.py
 The VALIDATE worker integration suite — 2 classes / 9 tests: the DB-gated `TestLMWorkerValidate` (3 tests, live regab
 DB) + the DB-free `TestValidateModelUnit` (6 tests: the unit metric math, the f64 series, the outlier kernel and
 the outlier report).
@@ -15,7 +15,7 @@ the outlier report).
 - The rlm_02 7-metric goldens: `vld_loss 0.00700794393196702`, `vld_mse_z 0.01401588786393404`,
   `vld_mae_z 0.09311295300722122`, `vld_mae_y 12.161691665649414`, `vld_mse_y 239.10484313964844`,
   `vld_rmse_y 15.46301555633545`, `vld_samples 200` (bid [8] validation vs the bid [6,7] training model); the six float
-  metrics are compared with assert_close (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12) — the np.dot reductions run
+  metrics are compared with assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12) — the np.dot reductions run
   through the multi-threaded OpenBLAS ddot, whose last ULPs depend on the thread count x the CPU kernel; vld_samples
   stays an exact int, and the hand-computed 2-position case (TestValidateModelUnit) keeps its bit-exact pins (2-sample
   sums, no BLAS).

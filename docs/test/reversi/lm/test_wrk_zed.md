@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_zed.py
+# test/reversi/lm/test_wrk_zed.py
 The worker integration test of the ZED level: the isolated factory math + the rlm_01.json end-to-end golden (the y / z
 literals — the single source of truth) + the `_down` clearing pin. 2 classes / 3 tests — 1 DB-free factory test + 2
 DB-gated worker tests.

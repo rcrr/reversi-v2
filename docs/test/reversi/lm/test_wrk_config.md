@@ -1,4 +1,4 @@
-# reversi/test/test_wrk_config.py
+# test/reversi/lm/test_wrk_config.py
 The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 
 ## Coverage
@@ -28,7 +28,7 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 
 ## Conventions
 
-- The idiom on all 3 classes: the shared `CUSTOM_TMP_BASE` (from `reversi.test.paths`) + `setUpClass` mkdir +
+- The idiom on all 3 classes: the shared `CUSTOM_TMP_BASE` (from `test.reversi.paths`) + `setUpClass` mkdir +
   `TemporaryDirectory(dir=...)` created FIRST in setUp + defensive tearDown.
 - The `TestLMWorkerConfig` json_config path is `WORKSPACE_ROOT`-anchored; the `TestLMWorkerConfigBaseDir` cases pass
   CWD-relative paths on purpose (the resolver resolves them against the CWD).
