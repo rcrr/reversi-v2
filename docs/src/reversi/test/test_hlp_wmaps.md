@@ -13,7 +13,7 @@ handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` golden: `12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c86 1dfa`.
+- The `compute_sha3_256_hash` golden: `12c3344ec23c798d7b35eb6eae01034b29ee5c539bfb2018ca2eabc73c861dfa`.
 - The cut_off literal 42 on the store/load cycle; the handcrafted 4×3 pindexes fixture + the expected iwmap
   `[1,0,0,2,3]`.
 - The 3 RuntimeError message substrings + the precise `ValidationError` for the init rejection.

@@ -11,7 +11,7 @@ GENERATE level. 1 class / 3 tests, all DB-gated.
 
 ## Goldens pinned
 
-- The dense hash golden `ec9d65453bb112bf277c79f96a86edfa9468bb0 1f42a2763cd82d69c5b2b15b4` (the probe E7 golden) —
+- The dense hash golden `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4` (the probe E7 golden) —
   matches across the probe, this test, and `ctx.dense_w_checksum`.
 - The shape golden (6588,) = 1 (intercept) + 6561 (EDGE) + 27 (DIAG3), float32.
 

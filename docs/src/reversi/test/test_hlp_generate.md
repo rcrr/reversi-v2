@@ -13,7 +13,7 @@ SimpleNamespace mock-fixture pattern, as in test_hlp_zed / test_hlp_gradient.
 
 ## Goldens pinned
 
-- The duck-typed hash golden `460c993da80d5ff6fd5581660d71be905 c482eadc5520718b56051f6545cd07a` (= sha3_256 of the
+- The duck-typed hash golden `460c993da80d5ff6fd5581660d71be905c482eadc5520718b56051f6545cd07a` (= sha3_256 of the
   4-value float32 fixture).
 - The mock compute golden (the hand re-derivation): INT 0.5; PAT weighted mean (−0.2·10)/10 = −0.2 (only config 1
   computed); MOB interp over known configs {1: 1.0, 3: 3.0} clamped → [1.0, 1.0, 2.0, 3.0, 3.0] — the same vector the

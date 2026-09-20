@@ -15,7 +15,7 @@ offline: the module has no file I/O and no LMContext beyond the two attributes `
 
 - The factory literal `[0.02, 0.5, 0.545, 0.98]` (alpha 0.02).
 - The (4,) exact compute golden `[0.5734375, 0.764375, 0.3384375, 0.646875]`.
-- The rlm_01 (10,) z hash golden `3d49fd5d56ced2f7bb70e5c24c8100b 3318a7e66e7c990de53ed2f16f365d9b2` — the hash covers z
+- The rlm_01 (10,) z hash golden `3d49fd5d56ced2f7bb70e5c24c8100b3318a7e66e7c990de53ed2f16f365d9b2` — the hash covers z
   ONLY (the closures are a pure function of logit_clipping, not part of the checksum).
 
 ## Conventions

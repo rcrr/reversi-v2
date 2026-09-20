@@ -14,9 +14,9 @@ decision logic lives. 4 classes / 20 tests.
 
 ## Goldens pinned
 
-- The checkpoint file golden: `2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978 633f` (deterministic bytes —
+- The checkpoint file golden: `2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f` (deterministic bytes —
   fixed header, fixed field order, no timestamps; the LZ4-compressed frame; a format change breaks this).
-- The weights hash golden: `78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7d c060` (w = [0.1, 0.2, 0.3]
+- The weights hash golden: `78a7baac51aedf442b3de09a583af1a0704c8aece3b156aaf630780b2d7dc060` (w = [0.1, 0.2, 0.3]
   f32).
 
 ## Conventions
