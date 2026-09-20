@@ -2063,3 +2063,47 @@ D-267 | 2026-09-20 | Test-file documentation cleanup of test_lm_worker_full_chai
          no evolution history, no drifting level ordinals (name the level). VERIFICATION: py_compile OK, the
          residual D-xxx/I-xxx/ordinal scan of the file clean; the docs format audit 88/95 clean (the 7
          pre-existing size budgets, zero new); LONG suite 938/0/25 GREEN (unchanged).
+D-268 | 2026-09-20 | Test-file documentation cleanup of test_hlp_config_schemas.py EXECUTED (Roberto's
+         approval of the A+B+C proposal list): (A) the 15 D-xxx/I-xxx + history sites — the class
+         docstring's probe-conversion narrative ("the first test file… converted from the
+         verify_wrk_positions.py E section"), the D-076/D-079/D-080/D-142/D-148/D-149/D-175 references,
+         the "Roberto's ruling" / "(the png-default ruling)" phrasings, the P6 tag, the stale
+         'FEATURE_ANALYSIS' level name -> 'SU_ANALYSIS' (the D-258 rename). (B) the 7 probe-inherited
+         E1..E12/T15 section labels removed (the descriptions kept; the mirror Coverage rows
+         re-labelled). (C) the 4 test_i017_* methods renamed (test_su_analysis_defaults /
+         test_su_pairs_canonical_dedupe / test_su_pairs_fail_fast / test_target_level_field) + the 2
+         mirror docs (the header what-it-is rewrite, the method citations, the 2 "(the P6: …)" campaign
+         tags). Comment/docstring/identifier-only, zero behaviour change (39/45 source lines); the test
+         count unchanged (27/0/0). VERIFICATION: py_compile + the residual D-xxx/I-xxx/label scan
+         clean; module 27/0/0 GREEN; LONG suite 938/0/25 GREEN; the docs format audit 88/95 (the 7
+         pre-existing size budgets, zero new).
+D-269 | 2026-09-20 | The I-017 campaign-tag sweep (the "F" scope, opzione 2) EXECUTED (Roberto's
+         approval of the inventory + the 5 policy points): the SU-analysis campaign's tag family — the
+         I-017 idea id, the task labels (T3-T16), the P2/P4/P5/P6 + ODP-1/4/5/8 item labels, the STOP
+         deliverable, the campaign-internal D-numbers (D-173/D-174/D-175/D-177/D-178/D-181-D-184/
+         D-186/D-187/D-191/D-192/D-194/D-195/D-199/D-254/D-256) — removed from ~85 sites in 14 source
+         files (the 7 lm modules: hlp_wave, hlp_config_schemas — incl. the 6 user-visible description=
+         strings —, wrk_su_analysis — the corpus-version comment rewritten, the facts kept —,
+         wrk_effect_size, hlp_random_play, hlp_feature_analysis, logistic_model; + the 7 test files:
+         test_wrk_su_analysis, test_wrk_effect_size, test_hlp_feature_analysis, test_hlp_wave,
+         test_hlp_random_play, test_logistic_model — incl. the 12 T#(D-075) check labels the D-267
+         test-doc rule requires out —, test_wrk_features) + 5 mirror docs (the P6/ODP tags out, the
+         joint-matrix + 1e7 rewordings, the D-256 pointer kept). POLICY (approved): (1) the tags out,
+         the facts kept ("the T3 oracle" -> "the scalar W=1 reference", "the T4 loop" -> "the fixed
+         scalar loop", "the ODP-1" -> "the 1e7"); (2) the design pointers to other decisions KEPT
+         (D-059/D-060/D-065/D-068/D-099/D-157); (3) the Roberto attributions out (3 hlp_wave sites);
+         (4) the "T6 concern" -> "outside this module's scope"; (5) the probes NOT touched (their own
+         item ids + the verify_validate I-017 note). The extended scan (vs the presented inventory)
+         added the same-kind sites INSIDE the approved files (I-013 in hlp_config_schemas, I-018 x3 in
+         logistic_model, I-019 in test_logistic_model, D-157 (I-012) in test_wrk_features, the T9/T6/
+         T4-rate sites) — executed under the approved policy. Comment/docstring-only, zero behaviour
+         change (207/208 source lines + 11/12 doc lines). REGISTERED RESIDUE (reported, not changed —
+         the follow-up campaign's scope): the same tag family in the NON-approved files: the I-018
+         family (wrk_validate / hlp_validate / hlp_analytics / wrk_client_check + their test files +
+         6 mirror docs), the I-013 family (hlp_gradient / opt_lbfgs + their tests), the ancient
+         T#(D-0xx) check labels in the pre-campaign test files (test_state_machine, test_cache_manager,
+         test_wrk_zed/gradient/positions/wmaps/optimize/config/indexes/design_matrix/hlp_generate,
+         tags.py), I-003 (test_board + board.md). VERIFICATION: the 14 files py_compile OK, the
+         residual tag-vocabulary scan of the 14 files clean, the 8 affected modules 121/0/2 GREEN,
+         LONG suite 938/0/25 GREEN, the docs format audit 88/95 (the 7 pre-existing size budgets, zero
+         new).
