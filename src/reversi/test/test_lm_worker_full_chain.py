@@ -36,7 +36,7 @@
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests, as in test_regab.
 #     VLONG=1 enables the ~10-min A2050 chain on rlm_03 and
-#     implies LONG, D-130).
+#     implies LONG).
 #
 # time python3 -m unittest reversi.test.test_lm_worker_full_chain
 #
@@ -77,7 +77,7 @@ from reversi.test.tags import db_long_gate, tier_vlong
 
 def _masked_report_hash(report_text):
     # The file report embeds datetime.now(); mask the date so the hash
-    # is stable. The D-142 config fingerprint embeds the run's base_dir
+    # is stable. The config fingerprint embeds the run's base_dir
     # (a tmp dir); mask the hex the same way.
     text = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE", report_text)
     text = re.sub(r"(Config SHA3-256\s*:\s*)[0-9a-f]{64}", r"\1HASH", text)
@@ -87,7 +87,7 @@ def _masked_report_hash(report_text):
 class TestFullChainA2030(unittest.TestCase):
     """Tests the full Reversi Logistic Model chain on the A2030 configuration.
 
-    Every test runs the FULL 18-level chain (D-255): the end-to-end
+    Every test runs the full chain up to the last level: the end-to-end
     test with the plots ENABLED (it asserts them), the provenance and
     the determinism tests with `plot.enable = False` — they assert
     nothing about the figures, and rendering them costs ~5.1 s of
@@ -102,7 +102,7 @@ class TestFullChainA2030(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the full chain reads
         # training and validation positions from the regab database.
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         if self.suppress_stdout_io:
             self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -117,8 +117,8 @@ class TestFullChainA2030(unittest.TestCase):
 
     def _config_without_plots(self):
         """The rlm_04 config with `plot.enable = False`, written in the
-        test's temp dir (D-255): the chain still runs all 18 levels, the
-        PLOT worker just skips the rendering."""
+        test's temp dir: the chain still runs all levels, the PLOT
+        worker just skips the rendering."""
         raw = json5.loads(
             (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_04.json").read_text())
@@ -129,7 +129,7 @@ class TestFullChainA2030(unittest.TestCase):
 
     def _model(self, plots=True):
         """A fresh LogisticModel on the test's temp dir, with or
-        without the plot rendering (D-255)."""
+        without the plot rendering."""
         return LogisticModel(self.json_config if plots
                              else self._config_without_plots(),
                              verbosity=Verbosity.HIGH,
@@ -141,19 +141,15 @@ class TestFullChainA2030(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 18-level chain (CREATED through
-        PLOT) on rlm_04. D-186/D-187: the I-017 SU_ANALYSIS
-        (step 3) + the EFFECT_SIZE (step 6) levels — the PLOT is
-        now step 18 (was 16)."""
+        """Run the full chain up to last level on rlm_04."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, PLOT is
-        # step 18).
+        # Run the model chain.
         self.rlm.move_to_last()
         self.assertEqual(self.rlm.current_step, 18)
         self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
-        # --- Validation metrics (assert_close goldens, D-127; bid [5] vld, 20000 samples) ---
+        # --- Validation metrics (assert_close goldens; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 20000)
         assert_close(self, m['vld_loss'], 0.005758139304816723, 'vld_loss')
@@ -162,9 +158,9 @@ class TestFullChainA2030(unittest.TestCase):
         assert_close(self, m['vld_mae_y'], 11.048270225524902, 'vld_mae_y')
         assert_close(self, m['vld_mse_y'], 196.462646484375, 'vld_mse_y')
         assert_close(self, m['vld_rmse_y'], 14.01651382446289, 'vld_rmse_y')
-        # I-018: the D-150 top-20 extreme-outlier report moved here, to
-        # the level that COMPUTES the residuals (it was PLOT's), and the
-        # 20 records + the two f64 series are published on the context.
+        # The top-20 extreme-outlier report: the 20 records + the two
+        # f64 series published on the context, the records ordered by
+        # absolute residual.
         self.assertEqual(len(ctx.vld_outliers), 20)
         self.assertEqual(len(ctx.vld_rn), 20000)
         self.assertEqual(ctx.vld_rn.dtype, np.float64)
@@ -172,20 +168,20 @@ class TestFullChainA2030(unittest.TestCase):
                          sorted((r['index'] for r in ctx.vld_outliers),
                                 key=lambda i: -abs(ctx.vld_rn[i])))
 
-        # --- Training metrics (assert_close goldens, D-127; bid [6], 199932 samples) ---
+        # --- Training metrics (assert_close goldens; bid [6], 199932 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 199932)
         assert_close(self, t['train_mae_y'], 10.899691755852983, 'train_mae_y')
         assert_close(self, t['train_rmse_y'], 13.825076853665676, 'train_rmse_y')
-        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact
         self.assertEqual(t['train_loss'], 0.005608053877949715)
         assert_close(self, t['pop_mae_y'], 21.73034518830014, 'pop_mae_y')
         assert_close(self, t['pop_rmse_y'], 26.406980394267364, 'pop_rmse_y')
         assert_close(self, t['pop_loss'], 0.020438173785805702, 'pop_loss')
 
-        # --- Dense training metrics (assert_close, D-127; D-105/M2: the w_dense
-        #     forward pass — the shipped inference rules — on the training
-        #     data; differs from the compressed pass on the 1923 positions
+        # --- Dense training metrics (assert_close; the w_dense forward
+        #     pass — the shipped inference rules — on the training data;
+        #     differs from the compressed pass on the 1923 positions
         #     touching below-cutoff (IC) configurations) ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 199932)
@@ -193,7 +189,7 @@ class TestFullChainA2030(unittest.TestCase):
         assert_close(self, td['train_dense_rmse_y'], 13.8332856021253, 'train_dense_rmse_y')
         assert_close(self, td['train_dense_loss'], 0.0056085786782205105, 'train_dense_loss')
 
-        # --- Training population statistics (assert_close, D-127) ---
+        # --- Training population statistics (assert_close) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 199932)
         assert_close(self, p['mean'], -1.3912930396334753, 'pop mean')
@@ -206,32 +202,16 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertEqual(ctx.opt_info['iters'], 71)
 
         # --- Saved model file: exists, size band, sidecar ---
-        # D-144 (C2): the v2 file EMBEDS the run's configuration —
-        # the normalized dump carries the run's base_dir (the D-142
-        # "effective config" content), and this test's base_dir is a
-        # random mkdtemp path: the file BYTES are legitimately
-        # run-specific now (unlike v1, which carried no config), so
-        # the v1 sha3 literal golden (bcf8d918...) is RETIRED. The
-        # size literal is a BAND now too: the content is
-        # deterministic, but the 8 random base_dir chars change LZ4's
-        # match structure by a few bytes (measured on A2050: the same
-        # raw content compresses to 516459 or 516455 depending on the
-        # random name). The determinism guarantee is
-        # carried by test_second_instance_deterministic (same base
-        # dir → byte-identical file) + the read-back provenance pins
-        # below.
-        # D-147: the band re-centered on the REAL test base dir
-        # (build/tmp): 12 runs measured 22798-22802 B (the 4-byte
-        # LZ4 jitter); the D-145 band (22800-22900) was set from a
-        # single rebase run with a different path prefix (22811 B)
-        # and its lower edge clipped the real distribution.
-        # D-149: re-centered AGAIN for the plot config section in the
-        # embedded dump (+~200 B LZ4-compressed): 2 runs measured
-        # 22990/22994 B on the real base dir.
-        # D-186/D-187: re-centered AGAIN for the I-017 feature_
-        # analysis + effect_size sections in the embedded config
-        # dump (+~243 B LZ4-compressed, the default no-op): 1 run
-        # measured 23233 B on the real base dir.
+        # The v2 file EMBEDS the run's configuration: the normalized
+        # dump carries the run's base_dir (a random mkdtemp path in
+        # this test), so the file BYTES are legitimately run-specific
+        # — no sha3 literal golden, and the size literal is a BAND:
+        # the 8 random base_dir chars change LZ4's match structure by
+        # a few bytes (measured: the same raw content compresses to
+        # 516459 or 516455 depending on the random name). The
+        # determinism guarantee is carried by
+        # test_second_instance_deterministic (same base dir →
+        # byte-identical file) + the read-back provenance pins below.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
@@ -281,9 +261,9 @@ class TestFullChainA2030(unittest.TestCase):
             '90ca05a3625775903d0a6e09c37d0f5827c3815738ddcd1af8d12e113b34ea75')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
 
-        # D-144 (C2): the configuration provenance EMBEDDED in the v2
-        # file (the leading body section) — the single source of the
-        # run's configuration: the dump is the normalized dump (the
+        # The configuration provenance EMBEDDED in the v2 file (the
+        # leading body section) — the single source of the run's
+        # configuration: the dump is the normalized dump (the
         # effective config, the base_dir override included) and the
         # checksum is the CONFIG-level fingerprint.
         self.assertEqual(mw.config_dump, ctx.cfg.model_dump_json(indent=4))
@@ -299,14 +279,14 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Validation completed. Loss (MSE/2): 5.75813930e-03", logs)
         self.assertIn("Saving model weights to disk...", logs)
         self.assertIn("Model weights saved to", logs)
-        # D-148: the 17th level re-reads the saved file, rebuilds the
+        # The CLIENT_CHECK level re-reads the saved file, rebuilds the
         # client's EF and reproduces the validation residuals
         # bit-exactly (max difference 0.0 < the 1e-8 tolerance).
         self.assertIn(
             "Client check passed: 20000 validation residuals, "
             "max difference 0.000e+00 (tolerance 1.0e-08).", logs)
-        # D-149: the 18th level writes the seven rlm_04-whitelisted
-        # plots (png, the relative 'plots' dir_name default) to
+        # The PLOT level writes the seven rlm_04-whitelisted plots
+        # (png, the relative 'plots' dir_name default) to
         # base_dir/plots.
         plot_dir = ctx.cfg.base_dir / "plots"
         for name in ("residual_density", "resid_vs_fitted",
@@ -318,8 +298,9 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Plot 'residual_density' saved:", logs)
         self.assertIn(f"PLOT done: 7 plot(s) written to {plot_dir}.",
                       logs)
-        # I-018: the top-20 report is no longer PLOT's (it moved to
-        # VALIDATE): PLOT renders only.
+        # The top-20 report: exactly 20 'vld position' lines in the
+        # log (the VALIDATE level emits them; PLOT renders the
+        # figures only).
         self.assertEqual(logs.count("vld position"), 20)
 
         # --- Analytics console report (exact pins) ---
@@ -329,7 +310,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Population (baseline)  : RMSE 26.41  MAE 21.73  Loss 2.0438e-02", report)
         self.assertIn("Generalization Gap (RMSE)   : 0.18", report)
         self.assertIn("Substitution Delta (RMSE)   : 0.01", report)
-        # The D-142 config fingerprint (in the common header — both
+        # The config fingerprint (in the common header — both
         # reports; computed from the live ctx, not a literal).
         self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", report)
 
@@ -340,8 +321,8 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: EDGE (fid=2)", file_report)
         self.assertIn("MOBILITY FEATURE: LMC (fid=1)", file_report)
-        # The D-142 config fingerprint line (the masked-hash golden
-        # masks the run-dependent hex value).
+        # The config fingerprint line (the masked-hash golden masks
+        # the run-dependent hex value).
         self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", file_report)
         self.assertEqual(_masked_report_hash(file_report),
                          'a9642167344d4247be7821137b1f4352e4d37e8cb23ddd365ba728d6c3430a29')
@@ -367,10 +348,9 @@ class TestFullChainA2030(unittest.TestCase):
         # w_dense substitution path (orbit weighted mean) end-to-end.
         self.assertEqual(ef(ctx.vld_positions[42]), 11.917137145996094)
 
-        # --- The vectorized EF (D-141): bit-exact on the same 6 pinned
+        # --- The vectorized EF: bit-exact on the same 6 pinned
         #     training positions, one batch call over the full training
-        #     set (the length-1 wrap removed, the same math) + the vld
-        #     pin on the validation batch ---
+        #     set + the vld pin on the validation batch ---
         ef_arr = make_evaluation_function_array(mw)
         y_arr = ef_arr(ctx.positions)
         self.assertEqual(y_arr.dtype, np.float32)
@@ -382,37 +362,34 @@ class TestFullChainA2030(unittest.TestCase):
                          11.917137145996094)
 
     def test_config_provenance_single_source(self):
-        """D-144 (C2): the model file is the SINGLE source of the
-        run's configuration — the D-142 sidecar record
-        (<output>.config.json) is RETIRED (Roberto's ruling: the
-        record is eliminated). The provenance now lives INSIDE the
-        model file (pinned in test_full_worker_chain) and the
-        CONFIG-level fingerprint semantics survive on the embedded
-        fields."""
-        # D-255: the FULL chain with the plots disabled — this test
-        # asserts the FILE's provenance (the record absence, the
-        # sidecar, the fingerprint) and nothing about the figures.
+        """The model file is the SINGLE source of the run's
+        configuration: the <output>.config.json sidecar record does
+        not exist — the provenance lives INSIDE the model file
+        (pinned in test_full_worker_chain), with the CONFIG-level
+        fingerprint semantics on the embedded fields."""
+        # The full chain with the plots disabled — this test asserts
+        # the FILE's provenance (the record absence, the sidecar,
+        # the fingerprint) and nothing about the figures.
         rlm = self._model(plots=False)
         rlm.move_to_last()
         ctx = rlm.context
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         config_path = output_path.with_suffix(".config.json")
 
-        # The D-142 record is gone: the shipped artifact is the model
-        # file (+ its sidecar) alone.
+        # No config record: the shipped artifact is the model file
+        # (+ its sidecar) alone.
         self.assertFalse(config_path.exists(),
-                         f"Config record retired by D-144, found at {config_path}")
+                         f"Config record must not exist, found at {config_path}")
         self.assertFalse(
             (output_path.parent /
              (output_path.name + ".config.json.SHA3-256")).exists(),
-            "The record sidecar must be gone with the record (D-144)")
-        # The model file's sidecar still verifies (it now covers the
-        # v2 content, config section included).
+            "The record sidecar must be gone with the record")
+        # The model file's sidecar verifies (it covers the v2
+        # content, config section included).
         self.assertTrue(verify_sha3_256_sidecar(output_path),
                         "Checksum verification failed for saved model")
-        # The fingerprint semantics (D-142): config_checksum ==
-        # sha3_256 of the normalized dump — now on the embedded
-        # provenance, not on a sidecar file.
+        # The fingerprint semantics: config_checksum == sha3_256 of
+        # the normalized dump, on the embedded provenance.
         self.assertEqual(ctx.config_checksum,
                          hashlib.sha3_256(
                              ctx.cfg.model_dump_json(indent=4).encode()
@@ -420,12 +397,11 @@ class TestFullChainA2030(unittest.TestCase):
 
     def test_second_instance_deterministic(self):
         """A second full run in the same base dir: byte-identical model file,
-        6 cache hits (the 6 rlmwf_ cache files — the CONFIG level no
-        longer writes a cache file, D-142 — all hit; the 7th file, the
+        6 cache hits (the 6 rlmwf_ cache files all hit; the 7th file, the
         OPTIMIZE checkpoint, has its own read-back)."""
-        # D-255: the FULL chain with the plots disabled (this test
-        # asserts the model file's byte-identity + the cache hits, not
-        # the figures) — the SAME config file in both runs, so the
+        # The full chain with the plots disabled (this test asserts
+        # the model file's byte-identity + the cache hits, not the
+        # figures) — the same config file in both runs, so the
         # embedded provenance matches too.
         rlm = self._model(plots=False)
         rlm.move_to_last()
@@ -444,7 +420,7 @@ class TestFullChainA2030(unittest.TestCase):
         self.assertNotIn("established successfully", logs2)
 
 
-@skipUnless(tier_vlong(), "Skipping the long A2050 chain (set VLONG=1 or VVLONG=1 to run; D-130/D-256)")
+@skipUnless(tier_vlong(), "Skipping the long A2050 chain (set VLONG=1 or VVLONG=1 to run)")
 class TestFullChainA2050(unittest.TestCase):
     """Tests the full Reversi Logistic Model chain on the A2050 configuration
     (the production endgame-solver model family: A2 + ec*10; A2050 = ec 20)."""
@@ -454,7 +430,7 @@ class TestFullChainA2050(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate, as in test_regab — the full chain reads
         # training and validation positions from the regab database.
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         if self.suppress_stdout_io:
             self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -473,21 +449,17 @@ class TestFullChainA2050(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_full_worker_chain(self):
-        """Run the full 18-level chain (CREATED through
-        PLOT) on rlm_03.
+        """Run the full chain up to last level on rlm_03.
         Long-running: ~1 minute (1999179 training samples, 356 lbfgs
-        iters). D-186/D-187: the I-017 SU_ANALYSIS (step 3) +
-        the EFFECT_SIZE (step 6) levels — the PLOT is now step 18
-        (was 16)."""
+        iters)."""
         ctx = self.rlm.context
 
-        # Run the model chain (CREATED is step 0, PLOT is
-        # step 18).
+        # Run the model chain.
         self.rlm.move_to_last()
         self.assertEqual(self.rlm.current_step, 18)
         self.assertEqual(self.rlm.current_worker_name, 'PLOT')
 
-        # --- Validation metrics (assert_close goldens, D-127; bid [6] vld, 199932 samples) ---
+        # --- Validation metrics (assert_close goldens; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics
         self.assertEqual(m['vld_samples'], 199932)
         assert_close(self, m['vld_loss'], 0.0015777380904182792, 'vld_loss')
@@ -497,27 +469,28 @@ class TestFullChainA2050(unittest.TestCase):
         assert_close(self, m['vld_mse_y'], 53.831050872802734, 'vld_mse_y')
         assert_close(self, m['vld_rmse_y'], 7.3369646072387695, 'vld_rmse_y')
 
-        # --- Training metrics (assert_close goldens, D-127; bid [3], 1999179 samples) ---
+        # --- Training metrics (assert_close goldens; bid [3], 1999179 samples) ---
         t = ctx.train_metrics
         self.assertEqual(t['train_samples'], 1999179)
         assert_close(self, t['train_mae_y'], 5.398311036121195, 'train_mae_y')
         assert_close(self, t['train_rmse_y'], 7.017904345215441, 'train_rmse_y')
-        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact
         self.assertEqual(t['train_loss'], 0.0014453826006501913)
         assert_close(self, t['pop_mae_y'], 21.758215006979484, 'pop_mae_y')
         assert_close(self, t['pop_rmse_y'], 26.417003454424307, 'pop_rmse_y')
         assert_close(self, t['pop_loss'], 0.020453333854675293, 'pop_loss')
 
-        # --- Dense training metrics (assert_close, D-127; D-105/M2: rlm_03 has
-        #     frequency_cut_off=1, so the dense pass matches the compressed
-        #     one up to the f32 rounding of w_dense — delta "0.00") ---
+        # --- Dense training metrics (assert_close; rlm_03 has
+        #     frequency_cut_off=1, so the dense pass matches the
+        #     compressed one up to the f32 rounding of w_dense —
+        #     delta "0.00") ---
         td = ctx.train_dense_metrics
         self.assertEqual(td['train_dense_samples'], 1999179)
         assert_close(self, td['train_dense_mae_y'], 5.398311040100617, 'train_dense_mae_y')
         assert_close(self, td['train_dense_rmse_y'], 7.017904346461752, 'train_dense_rmse_y')
         assert_close(self, td['train_dense_loss'], 0.0014434857293963432, 'train_dense_loss')
 
-        # --- Training population statistics (assert_close, D-127) ---
+        # --- Training population statistics (assert_close) ---
         p = ctx.training_pop_stats
         self.assertEqual(p['count'], 1999179)
         assert_close(self, p['mean'], -1.3259453005458741, 'pop mean')
@@ -539,8 +512,8 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertNotIn("FEATURE SET SUMMARY:", console_report)
         self.assertNotIn("MOBILITY FEATURES DETAILS:", console_report)
 
-        # D-149: the 18th level writes the seven rlm_03-whitelisted
-        # plots (png, the relative 'plots' dir_name default) to
+        # The PLOT level writes the seven rlm_03-whitelisted plots
+        # (png, the relative 'plots' dir_name default) to
         # base_dir/plots — the 200k-point scale of the production
         # model family.
         plot_dir = ctx.cfg.base_dir / "plots"
@@ -561,23 +534,12 @@ class TestFullChainA2050(unittest.TestCase):
                          '695c151bdaf2208e175d9092f9f2a092836d64a4d5029a9dda3eef3de14b9bce')
 
         # --- Saved model file: exists, size band, sidecar ---
-        # D-144 (C2): as in A2030 — the embedded dump carries the
-        # run's base_dir, so the v1 sha3 literal golden
-        # (3ad18058...) is retired and the size literal is a band
-        # (LZ4 match jitter on the 8 random base_dir chars: measured
-        # 516459 / 516455 for the same content). Determinism is
+        # As in A2030 — the embedded dump carries the run's base_dir
+        # (a random mkdtemp path), so no sha3 literal golden and the
+        # size literal is a band (the 8 random base_dir chars change
+        # LZ4's match structure by a few bytes). Determinism is
         # pinned by the read-back provenance + the same-base-dir byte
         # identity.
-        # D-149: the band re-centered for the plot config section in
-        # the embedded dump: 1 run measured 516551 B on the real base
-        # dir (the 4-byte LZ4 jitter of the random name chars stands).
-        # D-186/D-187: the band re-centered AGAIN for the I-017
-        # su_analysis + effect_size sections in the embedded
-        # config dump (+~241 B LZ4-compressed, the default no-op,
-        # the A2030 measured 23233 vs the 22990 base — the ~+241 B
-        # increment). The VLONG run (the ~10-min rlm_03 100M chain)
-        # re-measures on the real base dir; the band is the
-        # 516551 + ~241 = ~516792 center, the 100 B tolerance.
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
@@ -629,9 +591,8 @@ class TestFullChainA2050(unittest.TestCase):
             '82b329dd31c5ac0d2b6b5c23a15734e0f4a7f18b6fbc609ef8c445c43035cccc')
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
 
-        # D-144 (C2): the embedded configuration provenance (the v2
-        # leading body section) — the single source of the run's
-        # configuration.
+        # The embedded configuration provenance (the v2 leading body
+        # section) — the single source of the run's configuration.
         self.assertEqual(mw.config_dump, ctx.cfg.model_dump_json(indent=4))
         self.assertEqual(mw.config_checksum, ctx.config_checksum)
 
@@ -682,7 +643,7 @@ class TestModelWeightsReadGuards(unittest.TestCase):
 
 
 class TestModelWeightsV2(unittest.TestCase):
-    """D-144 (C2): the v2 model file (the configuration provenance is
+    """The v2 model file (the configuration provenance is
     EMBEDDED — the normalized dump + the fingerprint, the leading body
     section) + the v1 backward-compat reader + the v2 corruption
     guard. No DB: the round-trip runs on a synthetic context
@@ -697,7 +658,7 @@ class TestModelWeightsV2(unittest.TestCase):
 
     @staticmethod
     def _v1_body(w):
-        # A minimal v1 body (the D-143-era layout, no config section).
+        # A minimal v1 body (no config section).
         w.write_string("V1_NAME")
         w.write_u32(20)
         w.write_f32(0.05)
@@ -737,7 +698,7 @@ class TestModelWeightsV2(unittest.TestCase):
         # The writer touches only these attributes (a SimpleNamespace
         # stand-in for the LMContext; the cfg's model_dump_json is a
         # fixed string so the test is deterministic).
-        dump = '{"name": "SYNTH_C2", "marker": "D-144"}'
+        dump = '{"name": "SYNTH_C2", "marker": "SYNTH"}'
         cfg = SimpleNamespace(
             name="SYNTH_C2",
             regab_data_set=SimpleNamespace(ec=20),
@@ -776,13 +737,13 @@ class TestModelWeightsV2(unittest.TestCase):
         np.testing.assert_array_equal(mw.iwmap_feature_offset,
                                       ctx.iwmap_feature_offset)
         np.testing.assert_array_equal(mw.w_dense, ctx.w_dense)
-        # The D-144 single source: the embedded dump + the fingerprint.
+        # The single source: the embedded dump + the fingerprint.
         self.assertEqual(mw.config_dump, dump)
         self.assertEqual(mw.config_checksum, ctx.config_checksum)
 
     def test_v2_config_checksum_mismatch_raises(self):
         """A v2 file whose stored checksum does not cover the embedded
-        dump is corrupted: the sentinel raises (D-144 ruling 4)."""
+        dump is corrupted: the sentinel raises."""
         path = Path(self.tmp_dir) / 'v2_bad_checksum.dat'
         with BinaryWriter(path, compressed=False) as w:
             w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=2)
