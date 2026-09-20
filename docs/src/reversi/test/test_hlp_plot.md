@@ -2,7 +2,7 @@
 The no-DB unit suite of the PLOT level's pure helpers (`reversi/lm/hlp_plot.py`): the seven-name vocabulary (the single
 source of truth the `PlotConfig` schema validates against), the R-semantic jitter, the EGV bins (the R `round_gv` port),
 and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the builder/rendering behaviour lives in
-`test_wrk_plot` (the worker tier) and `probes/verify_plot.py` (the 16-check probe).
+`test_wrk_plot` (the worker tier) and `probes/verify_plot.py` (the 18-check probe).
 
 ## Coverage
 

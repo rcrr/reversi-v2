@@ -10,8 +10,7 @@ are CUMULATIVE — each implies the previous ones (default → LONG → VLONG �
 | `tier_vvlong()` | True when `VVLONG=1` only (it implies VLONG → LONG): the very-long instruments gate on it |
 | `db_long_gate(testcase)` | Skip the test when the live regab DB is unavailable or the LONG tier is off: `SKIP_REGAB_DB=1` always skips (the no-DB environment), then the tier check. It calls `testcase.skipTest(...)`, so it goes FIRST in `setUp` (the house setUp shape) |
 
-`__all__` = [db_long_gate, tier_vlong, tier_vvlong] (D-256: the predicates joined the gate). No `@validate_call` — these
-are test helpers, not domain functions.
+`__all__` = [db_long_gate, tier_vlong, tier_vvlong]. No `@validate_call` — these are test helpers, not domain functions.
 
 ## Architecture
 
@@ -48,10 +47,9 @@ None.
 ## Conventions
 
 - A class-level tier goes in the `@skipUnless` decorator, evaluated at decoration time; `db_long_gate` stays in `setUp`.
-- A NEW tier means four edits (the D-256 checklist): a predicate here, the runner header, the rules.md bullet, the
-  overview.
-- `db_long_gate(cls)` is NOT supported: `TestCase.skipTest` needs an instance, so a `setUpClass` that must skip raises
-  `unittest.SkipTest` directly (tried in the D-252 pilot, reverted with it).
+- A NEW tier means four edits: a predicate here, the runner header, the rules.md bullet, the overview.
+- `db_long_gate(cls)` is NOT supported: `TestCase.skipTest` needs an instance, so a `setUpClass` that must skip
+  raises `unittest.SkipTest` directly.
 
 ## Integration
 

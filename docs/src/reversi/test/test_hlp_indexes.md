@@ -32,4 +32,5 @@ The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF 
 - Independent of the pipeline: no model, no DB, no cache file — the per-function pin of the store/load contract + the
   compute / is_cache_consistent logic.
 - The 52-call probe re-derives the store/load round-trip with REAL files (B3-B8) and the pipeline integration (C2-C7);
-  the step-3 class c deletions (B1, B9-B11, B14, C1, C6a/C6b) all point at tests in this file or in test_wrk_indexes.py.
+  the check points the probe leaves to the unit tests (B1, B9-B11, B14, C1, C6a/C6b) are pinned by tests in this file
+  or in test_wrk_indexes.py.

@@ -25,8 +25,8 @@ benchmark. 2 classes / 4 tests (3 + the VVLONG-gated benchmark) / no DB.
 - The house test header (the "How to run" block).
 - The VVLONG gate: `@unittest.skipUnless(tier_vvlong())` on the benchmark class; the default tier runs the 3 engine
   tests.
-- The benchmark asserts a wall-clock GUARD only (600 s): the deliverable is the printed games/s line (D-036 — no
-  performance gates).
+- The benchmark asserts a wall-clock GUARD only (600 s): the deliverable is the printed games/s line (no performance
+  gates).
 
 ## Integration
 

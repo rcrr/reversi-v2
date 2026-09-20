@@ -46,7 +46,7 @@ classes / 32 tests / no DB.
 
 - The house test header (the "How to run" block).
 - The pure-function micro-suite: the hand-computed toy count arrays (the marginal / the joint), the assertAlmostEqual
-  (the 12-place tolerance on the hand-computed values).
+  (the 12-place tolerance on the hand-computed values, 10 places for the adherence KL/chi-square/p-value).
 - The kernels (the dispersion / the ANOVA / the adherence) will extend this suite.
 
 ## Integration

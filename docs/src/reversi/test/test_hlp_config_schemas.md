@@ -1,11 +1,11 @@
 # reversi/test/test_hlp_config_schemas.py
-The first test module of the hlp_config_schemas config domain — the probe_rules §4 conversion of the
-verify_wrk_positions probe E section (the probe keeps only its E7 source-text pin — source inspections stay probes per
-§4). 1 class / 27 tests / no PERF gates / no database (the schemas validate in memory only).
+The first test module of the hlp_config_schemas config domain — the verify_wrk_positions probe E-section checks, as
+tests (the probe keeps only its E7 source-text pin — source inspections stay probes per §4). 1 class / 27 tests / no
+PERF gates / no database (the schemas validate in memory only).
 
 ## Coverage
 
-| group (the former probe E checks) | what it pins |
+| group | what it pins |
 |---|---|
 | E1 — the dump round-trip | `test_model_dump_json_round_trip`: the full config round-trips via `model_dump_json`, the name survives, `cache_files_prefix` keeps `'rlmwf_'` |
 | E2/E2b/E3 — the pattern mask | `test_pattern_mask_16_hex_parsed_and_serialized` (16-hex no 0x → Bitboard 0x107 → back to the uppercase 16-hex string), `test_pattern_mask_0x_prefix_rejected` (the `'0x…'` form → ValidationError), `test_invalid_hex_mask_rejected` ("ZZZZ" in the full config → ValidationError) |
@@ -29,8 +29,8 @@ verify_wrk_positions probe E section (the probe keeps only its E7 source-text pi
 
 ## Conventions
 
-- The base payload is the `rlm_00.json` fixture (the same one the probe used), loaded through `json5` and deep-copied
-  per test by the `_cfg_dict(mutate=…)` helper — each test mutates its own copy.
+- The base payload is the shared `rlm_00.json` fixture, loaded through `json5` and deep-copied per test by the
+  `_cfg_dict(mutate=…)` helper — each test mutates its own copy.
 - `subTest` for the multi-value cases (the two ec values, the two bad statuses).
 
 ## Integration
