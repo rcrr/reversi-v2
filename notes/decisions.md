@@ -2150,3 +2150,35 @@ D-271 | 2026-09-20 | The docstring/comment PRINCIPLES codified into the legislat
          the test-doc rules. Notes-only: rules.md §Docs is now 6 bullets; no source, no
          probes, no mirror docs touched. VERIFICATION: LONG suite 938/0/25 GREEN (the routine
          pre-commit sweep, probe_rules.md §5.2).
+D-272 | 2026-09-20 | The test-doc RESIDUE campaign (the post-D-271 reconnaissance, Roberto
+         approved: all families + the borderline rulings, one commit per group): a full recon
+         of src/reversi/test/ against the D-267 + D-271 rules found 8 families of deviations,
+         none carrying a D-/I- numeric (the D-270 residual scan could not see them): (A) the
+         third "Roberto's ruling" attribution (test_wrk_vld_positions class docstring — the
+         D-270 sweep removed the other two, the fact kept); (B) the level ordinals (D-267) —
+         "the 18th/17th level" (plot, client_check), 2 STALE "step 11" (vld_positions, the
+         level is 13), the STALE "GRADIENT step 8 / ZED step 7" (gradient, they are 10/9),
+         "the 2nd step" (features), the 7 logistic_model sites incl. the "now"/"new" markers
+         + the 5 named-level parenthetical ordinals; (C) 27 ancient T#/V#/R# campaign labels
+         in 4 files (no D-xxx attached — invisible to the D-270 scan): 18 in
+         test_cache_manager, 6 in test_state_machine, 2 in test_pattern, 1 in
+         test_hlp_generate; the probe references with the probe's own check ids stay (the
+         D-270 approved conversion idiom); (D) the re-pin history in the wrk_plot rendering
+         golden + 3 golden notes pointing at scratch/verify_analytics.py +
+         scratch/verify_validate.py (files that do not exist — scratch/ is disposable,
+         probe_rules §2) with the "tier C" / "the campaign probe" framing; (E) 4 before/after
+         contrasts ("the pre-vectorization scalar behaviour", "now ASSEMBLES instead of",
+         "now share", "is now the count"); (F) the borderline rulings: OUT — the "log-only
+         ruling" framing (the fact kept) + the date anchor in the mobility golden note;
+         KEPT — the "re-pinned guard contract" conversion notes (the D-270 approved idiom),
+         the "legacy bare-hexdigest sidecar" (it names the format variant the test exercises
+         — a present contract), the "independent oracle" framing in test_hlp_random_play (a
+         mechanism description — D-267 allows how it is realized). All edits are in-place
+         rewraps (the probe-pinned line counts preserved), comment/docstring-only, zero
+         behaviour change. The wider probe sweep (all 24 probes) then caught 2 stale pins
+         left by D-270, which had run only its 5 re-pinned probes: verify_wrk_features C6
+         (pinned the header note 'DB-free since D-157' — the string D-270 removed) and
+         verify_design_matrix C3 (counted the old gate line with the 'D-130' suffix —
+         D-270 made it bare): re-anchored to the current idiom (part G, the probes' own
+         check names kept). VERIFICATION: the 15 changed files py_compile OK; LONG suite
+         938/0/25 GREEN; all 24 probes green (the live tiers included).
