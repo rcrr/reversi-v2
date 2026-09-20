@@ -164,7 +164,7 @@ def validate_model(ctx: "LMContext") -> ValidationResult:
     # Transform predictions back to Y space. The metrics keep the
     # ORIGINAL arithmetic (the f32 prediction minus the int8 game
     # value, the sum in f32): their goldens are pinned and embedded in
-    # the v2 model file, so I-018 must not move them.
+    # the v2 model file, so this split must not move them.
     y_pred = ctx.z2y(z_pred)
     rn_y = y_pred - vld_game_values
     mae_y = np.mean(np.abs(rn_y))
@@ -174,8 +174,8 @@ def validate_model(ctx: "LMContext") -> ValidationResult:
     # The published per-position series in the f64 views (the PlotData /
     # the CLIENT_CHECK reference contract: the f32 prediction and the
     # int8 game value upcast exactly — no rounding noise enters). These
-    # are bit-identical to what PLOT and CLIENT_CHECK computed before
-    # I-018, so the published series change nothing downstream.
+    # are bit-identical to the series PLOT and CLIENT_CHECK used to
+    # compute, so the published series change nothing downstream.
     y_pred_f64 = y_pred.astype(np.float64)
     rn_y_f64 = y_pred_f64 - vld_game_values.astype(np.float64)
 

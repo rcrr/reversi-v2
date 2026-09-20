@@ -491,7 +491,7 @@ class TrainingDenseResult:
 
     metrics: the 4-key dict (the analytics report contract, unchanged).
     rn_y: the residuals in Y (the f64 view) — the series PLOT renders
-        (I-018: one derivation, published by ANALYTICS).
+        (one derivation, published by ANALYTICS).
     """
     metrics: Dict[str, float | int]
     rn_y: np.ndarray
@@ -522,8 +522,8 @@ def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
     y_pred = ctx.z2y(z_pred)
     y_true = ctx.game_values.astype(np.float64)
     # the f32 prediction minus the f64 game value promotes to f64: this
-    # IS the rounded-lossless series (bit-identical to what PLOT
-    # computed before I-018), and the metrics below run on it.
+    # IS the rounded-lossless series (bit-identical to what PLOT used
+    # to compute), and the metrics below run on it.
     rn_y = y_pred - y_true
     mae_y = np.mean(np.abs(rn_y))
     rmse_y = np.sqrt(np.dot(rn_y, rn_y) / len(rn_y))

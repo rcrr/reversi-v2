@@ -61,7 +61,7 @@ _HP_BLOCKS = 8
 @njit(parallel=True, cache=True)
 def _hp_fg_kernel(X, w, z, g_blocks, norm_blocks):
     """
-    The high-performance single-pass loss/gradient kernel (I-013).
+    The high-performance single-pass loss/gradient kernel.
 
     One streaming pass over the design matrix rows: for every row it
     gathers the linear predictor from w (L2-resident), computes the
@@ -160,7 +160,7 @@ def hlp_gradient_compute(ctx: "LMContext",
         fg.high_performance = False
         return fg
 
-    # The high-performance path (I-013): one kernel call per
+    # The high-performance path: one kernel call per
     # evaluation; the private per-block f64 buffers are pre-allocated
     # once and cleared per call, and the final accumulation (the sum
     # over the T blocks, in fixed block order) is done in numpy.

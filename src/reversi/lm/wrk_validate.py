@@ -48,7 +48,7 @@ def _outlier_records(ctx: "LMContext", rn, y_pred, k: int = 20) -> list:
     The k extreme-residual records, descending by |residual| (the
     stable argsort, hlp_validate.top_outliers): the position's
     bitboards + the game value + the fitted value + the residual, as
-    raw values — the D-150 report's data (I-018).
+    raw values — the D-150 report's data.
 
     rn / y_pred are the f64 validation series of ValidationResult.
     """
@@ -86,9 +86,9 @@ def _up(ctx: "LMContext") -> None:
     else:
         ctx.log_event(Relevance.INFO, "  RMSE/MAE: n/a (vld_mae_y is 0 — perfect Y-space fit)")
 
-    # The top-20 extreme-residual report (the D-150 report, I-018: it
-    # belongs to the level that COMPUTES the residuals; the 20 records
-    # are published for the levels that consume them).
+    # The top-20 extreme-residual report (the D-150 report: it belongs
+    # to the level that COMPUTES the residuals; the 20 records are
+    # published for the levels that consume them).
     ctx.log_event(Relevance.INFO,
                   "Top 20 extreme validation residuals (outlier report):")
     for rank, rec in enumerate(ctx.vld_outliers, 1):

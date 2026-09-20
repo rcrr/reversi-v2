@@ -165,8 +165,8 @@ def collect_plot_data(ctx: "LMContext") -> PlotData:
     computed — the dense training residuals published by ANALYTICS
     (`ctx.train_dense_rn`) and the validation series published by
     VALIDATE (`ctx.vld_y_pred` / `ctx.vld_rn`), with the game values
-    from POSITIONS / VLD_POSITIONS. No forward pass runs here (I-018):
-    the figures render what the pipeline measured, they do not
+    from POSITIONS / VLD_POSITIONS. No forward pass runs here: the
+    figures render what the pipeline measured, they do not
     re-measure it.
     """
     return PlotData(

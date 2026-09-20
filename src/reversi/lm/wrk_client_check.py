@@ -64,7 +64,7 @@ def _up(ctx: "LMContext") -> None:
                - ctx.vld_game_values.astype(np.float64))
 
     # 3. The reference: the VALIDATE residuals published on the
-    #    context (I-018) — the validation's OWN series, computed once
+    #    context — the validation's OWN series, computed once
     #    by the level that owns the forward pass. Nothing mutates the
     #    vld artifacts between the levels 14 and 17, so the published
     #    array IS the in-memory reference the check compares against.
