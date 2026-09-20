@@ -33,7 +33,7 @@ zero-feature guard test drives `_load_features` directly.)
 
 ## Verified invariants
 
-Pinned by the 40-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_features.py`.
+Pinned by the 41-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_features.py`.
 
 - Source shape: the 125-line file, `__all__ = ['wrk_features']`, the factory name "FEATURES", the LMContext import under
   TYPE_CHECKING (circular guard), the worker does NOT import cache_manager, the `@validate_call` factory, the amask log,
@@ -50,7 +50,7 @@ Pinned by the 40-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_fe
   nothing; the POSITIONS cache is downstream, rlmwf_04 — probe B10); down to CONFIG clears feature_set — probe B12; a
   second run on the same base dir: no DB access (POSITIONS is not in the path), the identical feature set — probe
   B13a-c.
-- The test-file pins: the 197-line file, 2 classes / 3 tests, the shared CUSTOM_TMP_BASE idiom, the DB-free setUp, the
+- The test-file pins: the 202-line file, 2 classes / 3 tests, the shared CUSTOM_TMP_BASE idiom, the DB-free setUp, the
   load-bearing Path import, the header grammar, the whitespace, the golden test's 3 hash literals + the
   feature-order/counts pin — probe C1-C10.
 - The suite: `TestLMWorkerFeatures` (2, DB-free — the setUp moves to FEATURES directly, no POSITIONS, no DB):
@@ -74,4 +74,4 @@ None.
 
 - The 2nd LM level (step 2); the facade (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `feature` module (Feature/FeatureSet) and the CONFIG-loaded `ctx.cfg.feature_set`; publishes
-  `ctx.feature_set` for the INDEXES level onward.
+  `ctx.feature_set` for the downstream levels (SU_ANALYSIS, the first consumer at step 3, and INDEXES onward).

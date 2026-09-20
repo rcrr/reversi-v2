@@ -1,8 +1,9 @@
 # reversi/lm/wrk_design_matrix.py
 The DESIGN_MTR worker of the LM pipeline — the 8th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-WMAPS → DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a CACHE-CONSUMING level: the 4-step load-or-compute over
-the hlp_design_matrix object (the flat `rlmwf_08_DESIGN_MTR.dat` + binio sidecar + the duck-typed data checksum) — the
-FIFTH cache_manager consumer in the pipeline; the flat files DO materialize (the DB test pins their existence).
+INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a CACHE-CONSUMING level: the
+4-step load-or-compute over the hlp_design_matrix object (the flat `rlmwf_08_DESIGN_MTR.dat` + binio sidecar +
+the duck-typed data checksum) — the FIFTH cache_manager consumer in the pipeline; the flat files DO materialize (the
+DB test pins their existence).
 
 ## API
 
@@ -37,8 +38,8 @@ Pinned by the `probes/verify_design_matrix.py` B + C + D + F tiers + the 3-test 
   under CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json ×2, the paths import, no `shutil`), all 3 `LogisticModel`
   constructions `Verbosity.HIGH`, the cache names pinned, the step pins 7 (×2) + 8 (×3).
 - The level boundary + golden re-derivation (live DB, probe D5-D10 + F tier): after `move_to_step("DESIGN_MTR")` — step
-  6; the base dir holds ONLY the flat CONFIG + POSITIONS + INDEXES + WMAPS + DESIGN_MTR `.dat` + `.SHA3-256` pairs (no
-  `rlmwf_02_FEATURES*`); the cross-run cache hit + no recompute; X == the independent recompute
+  8; the base dir holds the flat `rlmwf_08_DESIGN_MTR.dat` + `.SHA3-256` pair (the DB test pins both); the cross-run
+  cache hit + no recompute; X == the independent recompute
   `iwmap[pindexes + col_offsets]`, every value a valid w index (< W=21), per-feature columns within their iwmap regions,
   intercept column all 0, the DATA checksum identity.
 - The end-to-end round-trip + the golden content (DB-gated): `test_compute_and_populate_cache` (step 8 pin, the FLAT
@@ -46,7 +47,7 @@ Pinned by the `probes/verify_design_matrix.py` B + C + D + F tiers + the 3-test 
   principal-indexes shape, dtype uint32), `test_read_cache_on_new_instance` (the second instance to WMAPS, then
   DESIGN_MTR: "Cache successfully loaded and validated", no "Forcing computation", same shape + uint32), and
   `test_compute_design_matrix_exact_values` (the rlm_01 (10,7) uint32 X literal) — `test_wrk_design_matrix.py` (3 tests,
-  `SKIP_REGAB_DB` gated).
+  `db_long_gate` gated).
 
 ## Open issues
 

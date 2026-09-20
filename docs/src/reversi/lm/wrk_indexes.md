@@ -1,8 +1,8 @@
 # reversi/lm/wrk_indexes.py
-The INDEXES worker of the LM pipeline — the 6th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
+The INDEXES worker of the LM pipeline — the 5th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
 INDEXES). Like POSITIONS it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_indexes object — the
-SECOND cache_manager consumer in the pipeline (after POSITIONS), and unlike FEATURES the flat `rlmwf_05_INDEXES.dat` +
-binio sidecar DO materialize.
+THIRD cache_manager consumer in the pipeline (after SU_ANALYSIS and POSITIONS), and unlike FEATURES the flat
+`rlmwf_05_INDEXES.dat` + binio sidecar DO materialize.
 
 ## API
 
@@ -37,7 +37,7 @@ Pinned by the `probes/verify_hlp_indexes.py` D tier + the 2-test suite.
 - The end-to-end round-trip (DB-gated): `test_compute_and_populate_cache` (move to INDEXES = step 5 pinned, the FLAT
   `rlmwf_05_INDEXES.dat` + `.SHA3-256` on disk, "Executing heavy computation", non-None `hlp_indexes`) and
   `test_read_cache_on_new_instance` (the second instance: the "Cache successfully loaded and validated" + the NEGATIVE
-  "Executing heavy computation" pin) — `test_wrk_indexes.py` (2 tests, `SKIP_REGAB_DB` gated).
+  "Executing heavy computation" pin) — `test_wrk_indexes.py` (2 tests, `db_long_gate` gated).
 
 ## Open issues
 
@@ -54,7 +54,7 @@ None.
 
 ## Integration
 
-- The 6th LM level (the 6-worker prefix `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES]`); the facade
+- The 5th LM level (the 6-worker prefix `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_indexes` module (all 5 public names) + `cache_manager`; publishes `ctx.hlp_indexes` /
   `ctx.hlp_indexes_checksum` for the WMAPS level onward.

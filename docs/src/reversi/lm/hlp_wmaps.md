@@ -1,8 +1,8 @@
 # reversi/lm/hlp_wmaps.py
 The WMAPS domain module of the LM pipeline: the `LMWMaps` data object (the 6 weight-map arrays + the 2 metadata scalars)
-+ 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed `compute_sha3_256_hash` — the 6th
-active level's data object (CREATED → CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS), the THIRD cache_manager consumer
-after POSITIONS and INDEXES.
++ 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed `compute_sha3_256_hash` — the 7th
+active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS), the
+FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 
 ## API
 
@@ -40,16 +40,17 @@ after POSITIONS and INDEXES.
 
 ## Verified invariants
 
-Pinned by the 54-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated
+Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated
 tests).
 
 - Source shape (probe A1-A12 + B1-B9): module 322 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on
   compute / is_cache_consistent — the no-validation comment), the store write order, the 3 load RuntimeError messages,
   the 2-field compare, 0 non-comment trailing-whitespace lines; worker 91 lines, the factory WITH `@validate_call`, the
   7-kwargs cache wiring with the `checksum=False` load_fn, `_down` clears all 7 INCLUDING `ctx.wmaps_obj_checksum`.
-- The pipeline integration (live DB, probe C1-C15): after `move_to_step("WMAPS")` (step 7) the base dir holds ONLY the
-  flat CONFIG + POSITIONS + INDEXES + WMAPS `.dat` + `.SHA3-256` pairs (no `rlmwf_02_FEATURES*`); the cross-run cache
-  hit + identical data; E9 — the per-feature wmap row count == `w_max − w_min + 1` (contiguous ranges).
+- The test-source shape (probe C1-C15): `test_hlp_wmaps.py` — the 4 classes / 15 tests, the DB-free header + the
+  no-gate / no-DB-import pins, the shared tmp-dir idiom + defensive tearDown, the golden-hash test with the pinned
+  literal, the 4 load-path tests, the init class. E9 (live DB, rlm_01): after `move_to_step("WMAPS")` (step 7) the
+  per-feature wmap row count == `w_max − w_min + 1` (contiguous ranges).
 - The unit suite (`test_hlp_wmaps.py`, 15 tests, no DB): the compute semantics (both branches — a handcrafted 4×3 mock
   pindexes: cut_off=2 → the single fallback weight per feature; cut_off=0 → no fallback, the mock-only branch), the 3
   consistency branches (both single-field diffs), the full store/load contract (the 8-field cycle, the golden hash, the
@@ -64,9 +65,9 @@ None.
 
 ## Conventions
 
-- R1 (documented in the `hlp_wmaps_compute` docstring): the input pindexes matrix is DENSE — every cell holds a valid
-  configuration index in 0..n_configurations − 1 (the indexes are unsigned, never −1); the −1 'unseen configuration'
-  sentinel can only appear in the OUTPUT iwmap. NO input guard is added (resolved as no-guard).
+- The `hlp_wmaps_compute` contract (documented in its docstring): the input pindexes matrix is DENSE — every cell holds
+  a valid configuration index in 0..n_configurations − 1 (the indexes are unsigned, never −1); the −1 'unseen
+  configuration' sentinel can only appear in the OUTPUT iwmap. NO input guard is added (resolved as no-guard).
 - No `@validate_call` on `hlp_wmaps_compute` / `hlp_wmaps_is_cache_consistent` — the same TYPE_CHECKING circular-import
   constraint as hlp_indexes (the note).
 - The two checksums are distinct (as in INDEXES): `wmaps_obj_checksum` = the DATA checksum (sha3_256 over the 6 raw

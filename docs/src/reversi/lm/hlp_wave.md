@@ -5,7 +5,8 @@ global golden-pinned MT19937.
 
 ## API
 - `MAX_EC` — the ec ceiling of the domain (60): the wave stops at `ec_target` after `MAX_EC - ec_target` lockstep steps.
-- `PA` — the pass move code (64) the wave's pass lanes carry.
+- `PA` — the pass move code (64), re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the
+  wave (the pass is the source swap), it is the value the trace helpers write for a dead lane.
 - `INITIAL_MOVER` / `INITIAL_OPP` — the standard start (the official Othello setup: the mover (black, the starting
   player) E4+D5, the opponent (white) D4+E5; board.initial_game_position is the canonical source).
 - `WaveState` / `make_wave(W, slot_base)` — the wave arrays (mover/opp u64, counter i64 = the step counter, slot i64,
@@ -20,8 +21,6 @@ global golden-pinned MT19937.
   passes `min(the 1e6 ceiling, total)` (wrk_su_analysis): the lanes beyond the corpus pay allocation + glue for nothing;
   the stream is GLOBAL across waves (the (wave, step, lane) draw order); deterministic in (seed, slot_base).
 - `BufferSink` — the v1 in-memory sink (the boundary chunks (mover, opp, slot); `flatten()`).
-- `PA` — the pass move code, re-exported from board.py (`PA is MOVE_PA`, the single source): never APPLIED by the wave
-  (the pass is the source swap), it is the value the trace helpers write for a dead lane.
 - The wave stream (the MT19937) is tools/prng.py — the single source: this module imports the MT19937 class and drives
   the wave through `get_uint64_batch(W)` (it carries no PRNG code).
 - `_pick_wave(draws, src) -> (move, step)` — the numba-parallel uniform pick (the HW popcount, the rank = draw % k, the

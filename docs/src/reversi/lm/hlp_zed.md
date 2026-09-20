@@ -2,8 +2,9 @@
 The ZED domain module of the LM pipeline: the `LMZed` data object (the z (N,) float32 vector — the affine image of the
 per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the pure math) +
 `hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 9th active level (CREATED sentinel →
-CONFIG → FEATURES → POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED) and the FIRST non-cache level in the pipeline (no
-store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09* file — see the worker doc).
+CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED) and a non-cache level,
+like CONFIG / FEATURES / EFFECT_SIZE (no store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09*
+file — see the worker doc).
 
 ## API
 
@@ -24,8 +25,8 @@ store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09* file �
 - `hlp_zed_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes class). Body:
   `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
   returns the object.
-- NO store / load / is_cache_consistent functions — the first non-cache level by design (vectorized math, "very fast"
-  per the worker comment; no rlmwf_09* file ever materializes).
+- NO store / load / is_cache_consistent functions — a non-cache level by design, like CONFIG / FEATURES / EFFECT_SIZE
+  (vectorized math, "very fast" per the worker comment; no rlmwf_09* file ever materializes).
 
 ## Verified invariants
 
@@ -58,8 +59,8 @@ None.
 - The duck-typed hash covers `z` ONLY (informational): the closures are pure functions of
   `cfg.stat_model.logit_clipping` (not stored on the object). Same game_values + different clipping → different z →
   different hash, so no collision risk today; a future cache would need the clipping in the checksum.
-- The flat-file numbering skips 09 (FEATURES skips 02): the next cache level (GRADIENT, step 10) writes nothing either —
-  OPTIMIZE writes a config-named checkpoint instead.
+- The flat-file numbering skips 09 (FEATURES skips 02): the 09/10/11 slots stay unused — GRADIENT and OPTIMIZE are
+  non-cache levels (OPTIMIZE writes a config-named checkpoint instead); the next cache level is GENERATE (step 12).
 - z's dtype contract is float32 (pinned in the worker test + 3× in the dedicated test): the values live in [c, 1−c] ⊂
   (0, 1); the float32 arithmetic is exact for the round-trip within the pinned allclose tolerances (1e-6/1e-7).
 - No `@validate_call` on `hlp_zed_compute` — the TYPE_CHECKING circular-import constraint (the note).
@@ -71,6 +72,6 @@ None.
   semantics guarantee every up-move to step 9 passes through both. No other upstream dependency (the
   FEATURES/INDEXES/WMAPS/DESIGN_MTR outputs are NOT consumed by ZED).
 - The worker recomputes on EVERY up-move (no cache file, no `is_allowed` switch — the uniform 7-kwargs cache_manager
-  wiring is absent by design, the first deviation from the house pattern).
+  wiring is absent by design: ZED is a non-cache level, like CONFIG / FEATURES / EFFECT_SIZE).
 - `zed_checksum` is a pure data checksum (sha3_256 over `z.tobytes()`) with no sidecar (nothing to sidecar — no file);
   it is logged by the worker and stored on the context for the next level (GRADIENT) to consume.

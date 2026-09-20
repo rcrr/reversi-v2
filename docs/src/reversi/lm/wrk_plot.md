@@ -24,7 +24,7 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
   and NO top-level matplotlib import (it is lazy in hlp_plot — see hlp_plot.md).
 - `_up`: the pilot: `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return); empty `plot.plots` →
   "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `collect_plot_data(ctx)` →
-  ({mover:016X}/{opponent:016X}): game value {gv:+.0f}, fitted {yf:+.2f}, residual {rn:+.2f}") → the directory:
+  the directory:
   `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else `base_dir / dir_name`;
   `mkdir(parents=True, exist_ok=True)` → the per-name loop: `PLOT_BUILDERS[name](data, ctx.cfg.name)` → `save_figure` in
   every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `close_figure` → "Plot '{name}' saved: {paths}" →
@@ -35,7 +35,7 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 
 ## Verified invariants
 
-Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 16-check
+Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 18-check
 `probes/verify_plot.py` (no DB) + the full-chain suite (DB-gated).
 
 - The full whitelist in png: the seven figures in `base_dir/plots` (the relative dir_name default), the PNG magic + a >5
@@ -69,11 +69,10 @@ None.
 
 ## Integration
 
-- Pipeline ordering: PLOT is the 18th step; its inputs come from INDEXES (`ctx.hlp_indexes.indexes` — the training
-  design matrix), WMAPS (`ctx.iwmap_feature_offset`), GENERATE (`ctx.w_dense`), ZED (`ctx.z2y`), POSITIONS
-  (`ctx.game_values`), VLD_POSITIONS (`ctx.vld_positions`, `ctx.vld_game_values`), FEATURES (`ctx.feature_set`) and
-  CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval semantics guarantee every
-  up-move to step 18 passes through all of them.
+- Pipeline ordering: PLOT is the 18th step; its inputs come from POSITIONS (`ctx.game_values`), ANALYTICS
+  (`ctx.train_dense_rn` — the dense training residuals), VALIDATE (`ctx.vld_y_pred`, `ctx.vld_rn`), VLD_POSITIONS
+  (`ctx.vld_game_values`) and CONFIG (`ctx.cfg.plot`, `ctx.cfg.name`, `ctx.cfg.base_dir`) — the SM half-open interval
+  semantics guarantee every up-move to step 18 passes through all of them.
 - Consumes hlp_plot: `collect_plot_data` (the ASSEMBLY of the published series — no forward pass, I-018 — the same
   formulas as hlp_analytics' dense metrics and the CLIENT_CHECK reference), the `PLOT_BUILDERS` registry, `save_figure`
   / `close_figure`.

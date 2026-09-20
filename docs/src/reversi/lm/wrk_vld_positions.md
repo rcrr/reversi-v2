@@ -44,7 +44,7 @@ set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.S
 
 ## Verified invariants
 
-Pinned by the 17-check `probes/verify_vld_positions.py` + `test_wrk_vld_positions.py` (11 tests: 5 DB-gated + 6
+Pinned by the 18-check `probes/verify_vld_positions.py` + `test_wrk_vld_positions.py` (11 tests: 5 DB-gated + 6
 DB-free).
 
 - Source shape (probe A1-A8): the REUSED wrk_positions pair — A7 pins the import
@@ -67,9 +67,9 @@ DB-free).
   "[OVERLAP: 0 of 200 validation records], [PERCENT: 0.00%]" + the chain continues; rlm_00 (train = vld = bid 8 — the
   deliberate mirror fixture) → "[OVERLAP: 200 of 200 …], [PERCENT: 100.00%]" + NO raise (the 100%-overlapping vld is
   traced, the worker completes).
-- The reused-override semantics (the DB-free TestIsCacheConsistentOverride class, 6 tests — probe D2-D7): full match →
-  True; bid / status / ec / connection mismatch → False; NO override → the TRAINING cfg params are used → False (the
-  worker must pass bid/status explicitly).
+- The reused-override semantics (the DB-free TestIsCacheConsistentOverride class, 6 tests — probe D1 and D8):
+  full match → True; bid / status / ec / connection mismatch → False; NO override → the TRAINING cfg params are used →
+  False (the worker must pass bid/status explicitly).
 
 ## Open issues
 
@@ -86,7 +86,7 @@ None.
 - Reuses `wrk_positions.extract_and_prepare` + `is_cache_consistent` — the twin relationship: same extraction machinery
   (and the same duplicate policy), different `bid`/`status` (validation bid [8] vs training bid [6,7] in rlm_02). The
   flat files are distinct: `rlmwf_04_POSITIONS.dat` (training) vs `rlmwf_13_VLD_POSITIONS.dat` (validation).
-- The independence check reads `ctx.positions` (the training set, level 2) — the SM half-open interval semantics
+- The independence check reads `ctx.positions` (the training set, level 4) — the SM half-open interval semantics
   guarantee POSITIONS ran before VLD_POSITIONS on every up-move.
 - Downstream: VALIDATE consumes `ctx.vld_positions` / `ctx.vld_game_values`; ANALYTICS consumes `ctx.vld_pop_stats`; the
   SM half-open interval semantics guarantee every up-move past step 13 passes through VLD_POSITIONS.

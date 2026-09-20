@@ -60,10 +60,9 @@ No commented factory imports or worker-list entries remain. The factories follow
 (`reversi.lm.logistic_model.wrk_config`, …). All 18 factories carry the uniform `@validate_call` gate.
 - **use_cache is per-run** — `wrk_config` sets `ctx.use_cache` from the config (`hlp_config_schemas`
   `use_cache: bool = True`); the CONFIG down path resets it to None (the cache_switch pattern).
-- **A2xxx naming (legacy production)** — the "A2050" / "A2030" labels of the full-chain tests are the endgame-solver
-  model family names inherited from the legacy repo (the A2050 = the 11-pattern production set, the A2030 = the small
-  EDGE+LMC one); they are NOT derived from the ec (both fixtures run ec 20). Intentional, not a typo — do not "fix"
-  them.
+- **A2xxx naming (legacy production)** — the "A2050" / "A2030" labels of the full-chain tests are the build-config
+  family names (the A2050 = the 11-pattern production set, the A2030 = the small EDGE+LMC one); they are NOT derived
+  from the ec (both fixtures run ec 20). Intentional, not a typo — do not "fix" them.
 
 ## Verified invariants
 
@@ -91,7 +90,7 @@ Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.p
   `"last"` / a blank / an absent config to the last step, RESUMES without re-running the levels already done, moves back
   (with their down()) for a lower target, and lets the machine's ValueError / TypeError through — the mocked
   `test_run_*` tests + the real-config `TestRunFacadeOnARealConfig` (FEATURES / SU_ANALYSIS, no DB).
-- The 8 checksum fields, and NO `features_checksum` (FEATURES is a pure in-memory derivation) — probe V10.
+- The 9 checksum fields, and NO `features_checksum` (FEATURES is a pure in-memory derivation) — probe V10.
 - The per-level cache path: `<prefix><level:02>_<worker>.dat`, the full variant prepending `cfg.base_dir` —
   `test_logistic_model::test_injected_cache_helper_computes_the_worker_path`.
 - The pre-injection fallback: a bare (un-injected) `LMContext` keeps the no-op lambda defaults (helpers return None,
@@ -123,7 +122,7 @@ None.
 ## Integration
 
 - Consumes `state_machine.py` (StateMachine, Worker, Context, Verbosity, Relevance) + `base_model.py` (BaseModel) + the
-  15 `lm_worker_*` factory modules.
-- Consumed by: the 15 workers and their `rlm_*` data modules (LMContext as the shared blackboard / type reference),
+  18 `wrk_*` factory modules.
+- Consumed by: the 18 workers and their `hlp_*` data modules (LMContext as the shared blackboard / type reference),
   `model_weights.py`.
 - Not a pipeline level itself: the facade that RUNS the pipeline.

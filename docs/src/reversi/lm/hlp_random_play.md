@@ -57,7 +57,8 @@ the PRNG integration (the corpus reproducibility + the small end-to-end marginal
 
 ## Open issues
 - The mover-convention alignment with the DB extraction: the mover is FIXED by the official Othello rules (black, E4+D5,
-  the starting player — the official Othello setup; the "pure label" claim is void, the setup is NOT mover-symmetric).
+  the starting player — the official Othello setup); the setup is NOT mover-symmetric — the mover/opponent roles are
+  fixed by that start, not interchangeable labels — so the corpus convention must match the DB extraction.
 
 ## Conventions
 - The house GNU header + the provenance docstring (the doc sections, the design rationale).

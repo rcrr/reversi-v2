@@ -66,8 +66,8 @@ None.
 - The explicit-cast note: `astype(np.uint32)` is REQUIRED — the implicit int64 → uint32 output cast in
   `np.take(..., out=X)` is deprecated in NumPy 2.5 (future hard error), FATAL under `-W error` (X keeps the `np.empty`
   garbage).
-- The single guard is a defensive re-check of the WMAPS R1 contract (pindexes dense, unsigned — a referenced −1 slot is
-  a data bug, hence "It should never happen"); the guarded invariant: iwmap values are −1 or ≥ 0.
+- The single guard is a defensive re-check of the WMAPS contract (the input pindexes matrix is dense, unsigned — a
+  referenced −1 slot is a data bug, hence "It should never happen"); the guarded invariant: iwmap values are −1 or ≥ 0.
 - No `@validate_call` on `hlp_design_matrix_compute` / `hlp_design_matrix_is_cache_consistent` — the TYPE_CHECKING
   circular-import constraint (the note).
 - The two checksums are distinct (as in WMAPS/INDEXES): `design_matrix_checksum` = the DATA checksum (sha3_256 over

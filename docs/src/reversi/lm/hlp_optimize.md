@@ -3,7 +3,7 @@ The OPTIMIZE domain module of the LM pipeline. Unlike every other rlm_* level, t
 class behind a store/load/is_cache_consistent trio: it is a plain **checkpoint dictionary** serialized with binio (the
 design comment). Six public names: the binary round-trip pair, the two gates the worker consults, the lbfgs-info
 projection and the duck-typed weight hash. The 11th active level (CREATED sentinel → CONFIG → FEATURES → SU_ANALYSIS →
-POSITIONS → INDEXES → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
+POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
 
 ## API
 
@@ -65,8 +65,7 @@ None.
 
 - The checkpoint file name is config-driven (`optimization.checkpoint_file`), NOT rlmwf_-prefixed: a user-addressable
   checkpoint.
-- No atomic write (the "Atomically serialize" comment was dropped): no temp-file + rename — the delete+scratch recovery
-  covers the crash-mid-save case.
+- No atomic write: no temp-file + rename — the delete+scratch recovery covers the crash-mid-save case.
 - The 3-WARN diagnostic pattern in the consistency function is a documented deviation from the silent rlm_* shape.
 - The checkpoint is deterministic for a given input (fixed header, fixed field order, no timestamps) — the golden-hash
   pins depend on it; the LZ4 frame keeps the determinism (same input → same frame, the python-lz4 defaults, no

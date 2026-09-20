@@ -1,6 +1,6 @@
 # reversi/lm/hlp_indexes.py
 The INDEXES domain module of the LM pipeline: the `LMIndexes` data object (the 2-D uint32 index matrix + its two
-metadata hashes) + 4 public functions (store / load / compute / is_cache_consistent) — the data object of the 6th active
+metadata hashes) + 4 public functions (store / load / compute / is_cache_consistent) — the data object of the 5th active
 level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES), the THIRD cache_manager consumer.
 
 ## API
@@ -37,7 +37,7 @@ level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_hlp_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated
+Pinned by the 52-call `probes/verify_hlp_indexes.py` + the two test files (14 unit tests, all mocked; 2 DB-gated
 end-to-end).
 
 - Source shape (probe A1-A11): 197 lines, the 5-name `__all__`, exactly 5 `@validate_call` (NOT on compute /
@@ -76,7 +76,8 @@ None.
 
 ## Integration
 
-- The 6th LM level; the worker (wrk_indexes.py) carries the cache wiring, this module the data object + the 4 functions.
+- The 5th LM level; the worker (wrk_indexes.py) carries the cache wiring, this module the data object + the 4 functions.
   Consumes `ctx.rds_checksum` (POSITIONS) and `ctx.feature_set` (FEATURES) — both must be set before `compute` runs (the
   SM half-open interval semantics guarantee it).
-- Publishes `ctx.hlp_indexes` + `ctx.hlp_indexes_checksum` for the WMAPS level onward.
+- Publishes `ctx.hlp_indexes` + `ctx.hlp_indexes_checksum` for the downstream levels (EFFECT_SIZE is the first consumer
+  at step 6, then WMAPS and DESIGN_MTR).

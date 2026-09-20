@@ -11,7 +11,7 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
 
 | name | contract |
 |---|---|
-| `wrk_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all 9 worker factories share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
+| `wrk_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all 18 worker factories share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
 
 ## Architecture
 
@@ -31,8 +31,8 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
   - step 4: `ctx.w = w_opt`, `ctx.opt_info = optimization_info_dict(info)`,
     `ctx.w_checksum = weights_compute_sha3_256_hash(w_opt)`, the final `save_optimization_checkpoint` (the `info` dict
     carries the 9 keys: w/converged/reason/iters/f/g_norm/sl/yl/rho).
-- `_down`: clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT (comment ): it is the
-  re-optimized WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that level recomputes.
+- `_down`: clears `ctx.fg` and `ctx.w_checksum` + `ctx.opt_info`. `ctx.w` is deliberately KEPT: it is the re-optimized
+  WMAPS weight vector; the WMAPS cache restores the zero-initialized value when that level recomputes.
 
 ## Verified invariants
 

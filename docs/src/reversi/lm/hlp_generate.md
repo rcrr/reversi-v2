@@ -41,7 +41,7 @@ compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GE
 
 ## Verified invariants
 
-Pinned by the 17-check `probes/verify_generate.py` + the 19-test pair (16 no-DB + 3 DB-gated — see the test docs).
+Pinned by the 18-check `probes/verify_generate.py` + the 19-test pair (16 no-DB + 3 DB-gated — see the test docs).
 
 - Module source shape (probe A1-A5): the 5-name `__all__`, the 2 no-validation notes, the version gate, no trailing ws.
 - The data-object behavior (probe D3 + D11): the duck-typed hash == independent `sha3_256(w_dense.tobytes())`; the

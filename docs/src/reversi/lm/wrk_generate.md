@@ -49,7 +49,7 @@ None.
 
 ## Integration
 
-- The 12th LM level; the last cache-consuming level after VLD_POSITIONS (the rlmwf_12 slot). Consumes the OPTIMIZE
+- The 12th LM level; the last cache-consuming level before VLD_POSITIONS (the rlmwf_12 slot). Consumes the OPTIMIZE
   `ctx.w` + `ctx.w_checksum` + the WMAPS / FEATURES blackboard (via compute_w_dense); produces `ctx.w_dense` +
   `ctx.dense_w_checksum` — the inputs of the VALIDATE and ANALYTICS levels.
 - The worker-test setUp moves through OPTIMIZE (step 11) first, so the full 12-level chain is exercised end-to-end on

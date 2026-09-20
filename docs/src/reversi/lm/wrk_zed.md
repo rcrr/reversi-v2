@@ -19,8 +19,8 @@ on-the-fly choice is documented in `_up`. The machine contract is unchanged: `_u
   (vectorized math), so we compute it on the fly without disk caching.") → `zed_obj = hlp_zed_compute(ctx)` →
   `zed_checksum = zed_obj.compute_sha3_256_hash()` → publishes `ctx.y2z / ctx.z2y / ctx.z / ctx.zed_checksum` → the 2
   INFO lines (the shape + the checksum).
-- `_down`: INFO "Clearing Zed attributes..." → ALL FOUR attributes to None (the house shape; no gap at bring-in — pinned
-  by `test_down_clears_zed_attributes`).
+- `_down`: INFO "Clearing Zed attributes..." → ALL FOUR attributes to None (the house shape — pinned by
+  `test_down_clears_zed_attributes`).
 
 ## Verified invariants
 
@@ -47,9 +47,9 @@ None.
 
 ## Conventions
 
-- The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring of the 7 cache-consuming levels
-  (POSITIONS, INDEXES, WMAPS, DESIGN_MTR) — intentional and documented (the comment); the 4 ctx attributes are still
-  cleared on down (the machine contract holds).
+- The no-cache design is a deviation from the uniform 7-kwargs `cache_manager` wiring of the 7 cache-consuming levels —
+  (SU_ANALYSIS, POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE, VLD_POSITIONS) — intentional and documented (the
+  comment); the 4 ctx attributes are still cleared on down (the machine contract holds).
 - No `use_cache` interaction: with `ctx.use_cache=False` (the CONFIG switch) the other levels still warm their cache
   files; ZED has nothing to warm — the behavior is identical either way.
 
