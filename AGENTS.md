@@ -34,8 +34,10 @@ read row 1 on top, column a on the left.
 - AGENTS.md — this file; standing instructions only, keep it small
 - notes/overview.md — entry point: state, next steps, index (read first)
 - src/ — all Python sources (D-006), package `reversi` (D-008; D-133: core top-level + tools/ and lm/ subpackages):
-  src/reversi/board.py, unit tests in src/reversi/test/
-- docs/ — code documentation, mirrors src/ (D-007); docs/src/reversi/board.md
+  src/reversi/board.py
+- test/ — the unit tests, mirroring src/ one file to one file (test/reversi/ + the lm/ and tools/ zones; D-273);
+  run_utests.sh is the canonical runner
+- docs/ — code documentation, mirrors src/ (D-007) and test/ (D-273); docs/src/reversi/board.md, docs/test/reversi/…
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
 - tools/ — the workspace MAINTENANCE tools (tracked; the notes/docs format re-wrapper, the mirror-doc auditor, the suite
   counter) — NOT the package's src/reversi/tools/ (D-248)

@@ -58,10 +58,12 @@ spans; the tables and the headings stay one physical line.
 - The workspace is a git repo (D-003); minimal .gitignore: .venv/, build/, scratch/, .obsidian/ (D-009); scratch/ is a
   disposable session area, never tracked (AGENTS rule 7).
 - All Python sources under src/ (D-006); the package is `reversi` under src/reversi/ (D-008; D-133: the core at the top
-  level, the tools/ and lm/ subpackages); the unit tests in src/reversi/test/.
+  level, the tools/ and lm/ subpackages); the unit tests in test/, a root tree mirroring src/ one file to one file
+  (D-273).
 - .venv at the workspace root (gitignored); pyproject.toml is the minimal editable-install form, with the implicit
   requirements declared as they are hit (D-010, D-011).
-- docs/ mirrors src/ one file to one file: src/reversi/X.py → docs/src/reversi/X.md (D-007).
+- docs/ mirrors src/ one file to one file: src/reversi/X.py → docs/src/reversi/X.md (D-007); the test files mirror the
+  same way: test/reversi/X.py → docs/test/reversi/X.md (D-273).
 - tools/ (workspace root) holds the MAINTENANCE tools — the notes/docs format re-wrapper, the mirror-doc auditor, the
   suite counter (D-248). It is NOT the package's src/reversi/tools/ (that one ships, D-133) and NOT probes/ (the
   per-module verification apparatus): a tool that makes no a/b/c check belongs here, outside the campaign sweep. The
@@ -84,23 +86,23 @@ spans; the tables and the headings stay one physical line.
 ## Test discipline
 
 - Tests write files only under workspace_root/build/tmp, and clean up afterwards (D-065).
-- Test-file idiom (D-085): CUSTOM_TMP_BASE derived via __file__ (the shared reversi.test.paths module), setUpClass
+- Test-file idiom (D-085): CUSTOM_TMP_BASE derived via __file__ (the shared test.reversi.paths module), setUpClass
   mkdir, TemporaryDirectory FIRST in setUp, defensive tearDown, WORKSPACE_ROOT-anchored paths.
-- DB-dependent tests: db_long_gate(self) (reversi/test/tags.py) first in setUp (D-080, D-130: the SKIP_REGAB_DB gate
+- DB-dependent tests: db_long_gate(self) (test/reversi/tags.py) first in setUp (D-080, D-130: the SKIP_REGAB_DB gate
   plus the LONG tier); the header must state the gated state.
 - PERF=1 performance tests are print-only — no performance gates in any suite (D-036).
 - Worker factories: a uniform @validate_call gate (the arbitrary_types_allowed config); the tests patch the factory by
   name in the importing module's namespace. (D-100)
 - The test runner is unittest (stdlib), deliberate — pytest is not a dependency; do not propose a migration to pytest or
   another runner. (D-124)
-- Float64 pipeline-metric goldens use assert_close (reversi/test/closecheck.py, rel 1e-9 / abs 1e-12): the
+- Float64 pipeline-metric goldens use assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12): the
   multi-threaded OpenBLAS ddot is not bit-portable across thread counts or CPUs. Bit-exact assertEqual stays for the
   int/uint counts, the f32-quantized values (train_loss, g_norm, the tps read-back truncations), the sha3 hashes and the
   in-run determinism tests. (D-127)
 - Suite tiers (D-130; the VVLONG tier at D-256): default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline
   tests; VLONG=1 adds the long instruments (the A2050 end-to-end chain); VVLONG=1 adds the very-long ones (the 1e6
   corpus benchmark, the 1e7 corpus test) — the tiers are CUMULATIVE (each implies the previous ones), and the single
-  source of the semantics is `reversi.test.tags` (tier_vlong / tier_vvlong / db_long_gate); PERF=1 (D-036) and
+  source of the semantics is `test.reversi.tags` (tier_vlong / tier_vvlong / db_long_gate); PERF=1 (D-036) and
   SKIP_REGAB_DB=1 are orthogonal. A new tier means: a predicate in tags.py, the runner header, this bullet, the
   overview. Before every commit run the FULL pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal
   environment) — VLONG=1 only when it is useful, and the gated run (SKIP_REGAB_DB=1) is not a substitute. The canonical
@@ -143,7 +145,7 @@ spans; the tables and the headings stay one physical line.
   that is OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs
   (docs_rules.md §3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the
   D-146 two-loop note). (D-269, D-270)
-- Test docs (the docstrings + the comments in src/reversi/test/): state what is tested, optionally how it is realized
+- Test docs (the docstrings + the comments in test/): state what is tested, optionally how it is realized
   (the mechanism, the preconditions, the postconditions); no D-xxx / I-xxx references, no evolution history, and no
   level ordinals that drift as levels come and go (name the level: CLIENT_CHECK, PLOT). (D-267)
 - The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and
