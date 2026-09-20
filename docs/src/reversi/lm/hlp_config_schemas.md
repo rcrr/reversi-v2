@@ -93,10 +93,10 @@ Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
   absolute and a relative one stays relative (`test_plot_unknown_name_rejected`, `test_plot_dedup_preserving_order`,
   `test_plot_dir_absolute_and_relative`).
 - The analysis defaults: both `enable` FALSE, `target_level` "last", the corpus defaults (seed 42, 1e7, ec 20), the
-  empty `su_pairs`, `export_csv` False, `top_k_adherence` 20 (`test_i017_defaults`); the canonical order + the dedupe (a
-  repeated pair in any order collapses to one sorted tuple) and the fail-fast against the feature set
-  (`test_i017_su_pairs_canonical_dedupe`, `test_i017_su_pairs_fail_fast`); a level name ("SU_ANALYSIS") survives in
-  `target_level` (`test_i017_target_level_field`) and the facade's `run()` honors it
+  empty `su_pairs`, `export_csv` False, `top_k_adherence` 20 (`test_su_analysis_defaults`); the canonical order + the
+  dedupe (a repeated pair in any order collapses to one sorted tuple) and the fail-fast against the feature set
+  (`test_su_pairs_canonical_dedupe`, `test_su_pairs_fail_fast`); a level name ("SU_ANALYSIS") survives in
+  `target_level` (`test_target_level_field`) and the facade's `run()` honors it
   (`test_logistic_model::test_run_honors_the_config_target_level` + the real-config class).
 
 ## Open issues
