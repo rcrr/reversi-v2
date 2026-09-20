@@ -54,7 +54,7 @@ Current state only — the session-by-session history lives in the journal volum
 (notes/decisions.md); the D-pointers index that history. The file-by-file state lives in the Source files / Test files
 tables at the end of this file.
 
-- The 18-level pipeline is live and green (933 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
+- The 18-level pipeline is live and green (938 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
   bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT, plus the OPTIONAL SU_ANALYSIS
   (pipeline step 3) + EFFECT_SIZE (pipeline step 6) — default FALSE, opt-in.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at

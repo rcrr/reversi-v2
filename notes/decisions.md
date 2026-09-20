@@ -2036,3 +2036,30 @@ D-266 | 2026-09-19 | I-007 (the FeatureSet column-labelling helper) EXECUTED (Ro
          resolution (the JointAccumulator su_pairs lookup, the ANOVA per-instance-column groups) now rides on the
          documented FeatureSet API; the design-matrix side was NOT touched (the WMAPS artifacts feature_w_ranges /
          iwmap_feature_offset already cover the weight-level mapping).
+D-267 | 2026-09-20 | Test-file documentation cleanup of test_lm_worker_full_chain.py EXECUTED (Roberto's
+         approval; the 42-site proposal list): the file's docstrings/comments carried the evolution history —
+         the D-xxx/I-xxx references, the band re-centerings (D-147/D-149/D-186/D-187), the drifting level
+         ordinals ("the full 18-level chain", "the PLOT is now step 18 (was 16)", "the 17th level"), the
+         retired-record narrative ("RETIRED", "Roberto's ruling"). THE CHANGE (comment/docstring-only, zero
+         behaviour change; 217 lines, -128/+89): (1) the 2 full-chain test docstrings -> "Run the full chain
+         up to last level on rlm_04/rlm_03" (+ the Long-running line) — Roberto's template: no drifting
+         ordinals. (2) every D-xxx/I-xxx reference removed (D-105, D-127, D-130, D-141, D-142, D-143, D-144
+         (C2), D-145, D-147, D-148, D-149, D-150, D-186/D-187, D-255, D-256, I-017, I-018) across the header,
+         the class docstrings, the 2 setUp comments, the helper docstrings, the 8 section separators, the 2
+         report-fingerprint comments, the 3 assert messages ("retired by D-144" -> "must not exist" / "gone
+         with the record"), the skipUnless message, the TestModelWeightsV2 class docstring, the v1-body
+         comment, the corruption-sentinel docstring. (3) the 2 band-history blocks (26 lines A2030 + 18 lines
+         A2050) compressed to the CURRENT rationale: the v2 file embeds the run's configuration (the
+         base_dir is a random mkdtemp path) -> no sha3 literal golden, the size pin is a BAND (the LZ4 match
+         jitter on the 8 random base_dir chars); the determinism guarantee = the second-instance
+         byte-identity test + the read-back provenance pins. (4) the drifting level ordinals in comments
+         replaced by the level names (CLIENT_CHECK / PLOT / VALIDATE). (5) the synthetic dump marker
+         "D-144" -> "SYNTH" (a data literal, no golden depends on the value — the checksum is computed from
+         the dump). UNTOUCHED: the test pins (the `current_step == 18` assert, the goldens, the bands), the
+         "as in test_regab" gate cross-reference (a behaviour pointer, not history), the mirror doc (no D
+         references, no verbatim docstring quotes — the paraphrases stay correct). RULE: the test-doc
+         guideline promoted to notes/rules.md (the Docs section): a test docstring/comment states what is
+         tested, optionally how it is realized (mechanism, pre/post conditions); no D-xxx/I-xxx references,
+         no evolution history, no drifting level ordinals (name the level). VERIFICATION: py_compile OK, the
+         residual D-xxx/I-xxx/ordinal scan of the file clean; the docs format audit 88/95 clean (the 7
+         pre-existing size budgets, zero new); LONG suite 938/0/25 GREEN (unchanged).

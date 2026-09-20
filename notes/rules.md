@@ -139,6 +139,9 @@ spans; the tables and the headings stay one physical line.
 - Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never
   HOW — the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance
   in the docstrings (decisions.md is its home; a `#:` code comment only if fundamental). (D-224, D-226)
+- Test docs (the docstrings + the comments in src/reversi/test/): state what is tested, optionally how it is realized
+  (the mechanism, the preconditions, the postconditions); no D-xxx / I-xxx references, no evolution history, and no
+  level ordinals that drift as levels come and go (name the level: CLIENT_CHECK, PLOT). (D-267)
 
 ## Journal
 
