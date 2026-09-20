@@ -2217,4 +2217,11 @@ D-273 | 2026-09-20 | The TEST-TREE reorganization (Roberto's call after the PRO/
          packages.find where=['src'] never saw them). VERIFICATION: test tree + probes
          py_compile OK; LONG suite 938/0/25 GREEN; all 23 probes green (the live tiers
          included); the mirror-doc audit 88/95 = the pre-existing baseline (the one
-         transient width finding re-wrapped in place, line counts kept).
+         transient width finding re-wrapped in place, line counts kept). POST-FIX: the
+         test_state_machine parents[] edit was a no-op misjudged as a move — the file sat
+         3 levels below the root BOTH before (src/reversi/test/) and after
+         (test/reversi/tools/) the move, so parents[3] was correct already; the C1 change
+         to parents[2] redirected the D-065 artifacts into test/build/tmp (a stray,
+         gitignored-looking folder Roberto spotted): reverted to parents[3] + the comment
+         corrected, test/build removed. VERIFICATION: the 49-test module green standalone,
+         LONG suite 938/0/25 GREEN, no test/build after the full run.
