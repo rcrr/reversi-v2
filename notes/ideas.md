@@ -14,13 +14,6 @@ I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-0
          col_end) blocks built from `feature_set.features`); each pattern occupies `n_instances` D8-instance columns, so
          the helper must be instance-aware.
 
-I-009 | follow-up | Pipeline construction boilerplate (raised 2026-08-29, session 19, R3 discussion): Roberto notes his
-         pipeline client carries a bit of boilerplate in the model construction (worker / context / machine wiring).
-         Evaluate a declarative step table / @step-style helper / pipeline base class on top of `StateMachine` to trim
-         it. UNBLOCKED (2026-09-19): the pipeline is in the workspace and complete (18 levels, `logistic_model.py`), so
-         the real boilerplate is now visible — the old blocker ("the pipeline module is not in the workspace yet") is
-         retired.
-
 I-010 | follow-up | Redesign of the StateMachine context injection (parked 2026-08-29, D-070, session 19, M9): the
          constructor injects `log_event` + the cache helpers as a side effect on the passed-in Context, so a shared
          context re-binds to the LAST machine built on it (V17). Roberto's call: leave as-is — the injection is

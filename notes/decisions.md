@@ -1977,3 +1977,22 @@ D-263 | 2026-09-19 | The execution of ALL the remaining fix items from the indep
       clean (the 7 findings are all pre-existing size budgets; the pattern 146 size finding closed by the C1
       edits); the residual scans clean (no FEATURE_ANALYSIS, no D-tags, no "class (line)", no 1100×, no
       snames_ts); the LONG suite 933/0/25 GREEN (unchanged — the source edits are comment-only).
+D-264 | 2026-09-19 | I-009 (the pipeline construction boilerplate) EVALUATED and CLOSED as done, no code action
+         (Roberto: "Siamo d'accordo al 100%. Chiudiamo così senza toccare il codice, opzione A"). The idea's
+         deliverable was the evaluation of the three options on top of `StateMachine`, checked against the real
+         code: (1) THE PIPELINE BASE CLASS was already realized — `BaseModel` (base_model.py) was born in the port
+         campaign to "avoid boilerplate in concrete domain-specific model classes (e.g., LogisticModel,
+         DeepNetworkModel)"; every domain facade inherits it, and `LogisticModel.__init__` is already thin (the
+         domain path validation, the 2-line LMContext construction, the workers list, super()). (2) THE
+         DECLARATIVE STEP TABLE exists in effect — the 19-entry workers list in `logistic_model.py` is one factory
+         call per level in level order: a table, and the pipeline's table of contents (documentary value). (3) THE
+         @STEP HELPER was evaluated and rejected: it would save the 76 factory lines (4 per worker, the
+         `@validate_call` house convention) + the 18 factory imports, at the cost of a new registry/decorator
+         mechanism (its own doc + tests), the imports kept anyway (then for side effects), the 41 factory call
+         sites (6 test files + 13 probes) touched, the 19 mirror docs + the state machine doc updated, a hidden
+         import-order dependency, and zero behaviour benefit. The `LMContext` (~100 lines) is the domain
+         blackboard (the D-099 pre-declared cross-level fields), not boilerplate; the 19 `wrk_*.py` files carry
+         the real domain logic. The only remaining argument for a shared mechanism is a future SECOND pipeline
+         (DeepNetworkModel), which is speculative: when it arrives the 19 domain workers repeat, not the wiring
+         lines, and that case is re-evaluated with concrete data (a new idea, not the completion of this one).
+         Verdict: the remaining explicit assembly is design, not debt. I-009 moved to notes/ideas-closed.md.

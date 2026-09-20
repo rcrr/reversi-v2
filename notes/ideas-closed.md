@@ -39,6 +39,15 @@ I-006 | dropped | Legacy migration debt (raised 2026-08-27, D-024): `PatternSet.
 I-008 | dropped | Extend the papers collection beyond 2002 (dropped at D-125, 2026-09-06): the copyrighted collection
          left the workspace scope — dropped, not moved (Roberto's call).
 
+I-009 | done | Pipeline construction boilerplate in the model client (raised 2026-08-29, session 19, R3 discussion;
+         unblocked 2026-09-19 with the pipeline port). The evaluation was the deliverable: the pipeline base class
+         was already realized by `BaseModel` in the port campaign, the declarative step table exists in effect
+         (the 19-entry workers list in `logistic_model.py`), and the @step helper was rejected (the 76 factory
+         lines + 18 imports saved would cost a registry mechanism, the 41 factory call sites in 6 test files +
+         13 probes, 19 mirror docs, and zero behaviour benefit). Closed 2026-09-19 as D-264, no code action: the
+         remaining explicit assembly is design, not debt; a second pipeline (DeepNetworkModel) would re-evaluate
+         with concrete data.
+
 I-011 | done | "Storicizzazione" of the JSON config used to generate a model (raised 2026-08-30, D-077 R1): Roberto
          questioned whether CONFIG needs a CACHE at all — the real need may be keeping, with history, the config that
          generated a given model. Executed as D-142 (2026-09-09) in its C1 form: at SAVE, the provenance record
