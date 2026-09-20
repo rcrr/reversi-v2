@@ -235,7 +235,7 @@ check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085:
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
 check("C6 T4 FIXED (D-082; re-anchored D-157): header grammar 'How to run the wrk_features unit tests.' + the DB-free run note",
       "How to run the wrk_features unit tests." in tsrc
-      and "DB-free since D-157" in tsrc)
+      and "Run the tests (DB-free: the setUp moves to" in tsrc)
 check("C7 M1 resolved (D-157, I-012 realized): the stale POSITIONS-dependency comment is gone",
       "as FEATURES depends on the configuration loaded there" not in tsrc
       and "move_to_step('POSITIONS')" not in tsrc)
