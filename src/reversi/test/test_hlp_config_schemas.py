@@ -62,12 +62,8 @@ from reversi.test.paths import WORKSPACE_ROOT
 class TestRlmConfigSchemas(unittest.TestCase):
     """Deterministic pydantic unit behaviour of hlp_config_schemas.
 
-    D-106 step 3 (probe_rules.md §4): this is the first test file
-    for the hlp_config_schemas module. The checks were converted
-    from the verify_wrk_positions.py E section (the probe
-    keeps only its E7 source-text pin — source inspections stay
-    probes per §4). The base payload is the rlm_00.json fixture
-    (the same one the probe used)."""
+    The base payload is the rlm_00.json fixture (deep-copied per
+    test); the schemas validate in memory only (no database)."""
 
     def setUp(self):
         self.base = json5.loads(
@@ -81,7 +77,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
             mutate(d)
         return d
 
-    # -- E1: dump round-trip -------------------------------------------------
+    # -- dump round-trip -------------------------------------------------
 
     def test_model_dump_json_round_trip(self):
         """The full config round-trips via model_dump_json: the name
@@ -91,7 +87,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(dumped["name"], self.base["name"])
         self.assertEqual(dumped["cache_files_prefix"], "rlmwf_")
 
-    # -- E2/E2b/E3: pattern mask parsing -------------------------------------
+    # -- pattern mask parsing -------------------------------------
 
     def test_pattern_mask_16_hex_parsed_and_serialized(self):
         """A 16-hex string (no 0x) parses to the Bitboard int and
@@ -103,8 +99,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(dumped["mask"], "0000000000000107")
 
     def test_pattern_mask_0x_prefix_rejected(self):
-        """A '0x'-prefixed mask is rejected (the docstring example
-        mismatches the parser — the M-item of the D-079 analysis)."""
+        """A '0x'-prefixed mask is rejected (the field's docstring
+        example mismatches the parser)."""
         with self.assertRaises(ValidationError):
             PatternConfig(name="p", mask="0x0000000000000107")
 
@@ -117,12 +113,11 @@ class TestRlmConfigSchemas(unittest.TestCase):
         with self.assertRaises(ValidationError):
             LMConfig(**self._cfg_dict(_badmask))
 
-    # -- E4/E5: regab_data_set constraints ------------------------------------
+    # -- regab_data_set constraints ------------------------------------
 
     def test_ec_out_of_range_rejected(self):
-        """ec outside [0, 100] is rejected by the schema (D-076:
-        the domain check stays a schema constraint, not a worker
-        one)."""
+        """ec outside [0, 100] is rejected by the schema (the
+        domain check is a schema constraint, not a worker one)."""
         for bad_ec in (99, -1):
             with self.subTest(ec=bad_ec):
                 def _bdec(d, e=bad_ec):
@@ -140,11 +135,11 @@ class TestRlmConfigSchemas(unittest.TestCase):
                 with self.assertRaises(ValidationError):
                     LMConfig(**self._cfg_dict(_badst))
 
-    # -- E6: optimization cross-field validator --------------------------------
+    # -- optimization cross-field validator --------------------------------
 
     def test_optimization_c2_lte_c1_rejected(self):
-        """The cross-field c2>c1 validator (D-080 R1) rejects
-        c1=0.9 + c2=0.1."""
+        """The cross-field c2>c1 validator rejects c1=0.9 +
+        c2=0.1."""
         with self.assertRaises(ValidationError):
             OptimizationConfig(checkpoint_file="c.json", c1=0.9, c2=0.1)
 
@@ -155,19 +150,19 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(o.c2, 0.9)
 
     def test_optimization_high_performance_fg(self):
-        """I-013: high_performance_fg defaults to False (the classic
-        fg) and accepts True (the numba high-performance fg)."""
+        """high_performance_fg defaults to False (the classic fg)
+        and accepts True (the numba high-performance fg)."""
         o = OptimizationConfig(checkpoint_file="c.json")
         self.assertFalse(o.high_performance_fg)
         o2 = OptimizationConfig(checkpoint_file="c.json",
                                 high_performance_fg=True)
         self.assertTrue(o2.high_performance_fg)
 
-    # -- D-148: the client_check_tol field ---------------------------------
+    # -- The client_check_tol field ---------------------------------
 
     def test_client_check_tol_default(self):
-        """D-148: client_check_tol defaults to 1e-8 (Roberto's
-        ruling) — the fixture does not set it."""
+        """client_check_tol defaults to 1e-8 — the fixture does
+        not set it."""
         cfg = LMConfig(**self._cfg_dict())
         self.assertEqual(cfg.client_check_tol, 1e-8)
 
@@ -189,13 +184,12 @@ class TestRlmConfigSchemas(unittest.TestCase):
                 LMConfig(**self._cfg_dict(
                     lambda d, b=bad: d.update(client_check_tol=b)))
 
-    # -- D-149: the PlotConfig section -------------------------------------
+    # -- The PlotConfig section -------------------------------------
 
     def test_plot_defaults(self):
-        """D-149: the plot section defaults — enable True, format
-        'png' (the png-default ruling), dpi 150, the relative
-        'plots' dir, and an EMPTY whitelist (the PLOT level is a
-        no-op until names are listed)."""
+        """The plot section defaults — enable True, format 'png',
+        dpi 150, the relative 'plots' dir, and an EMPTY whitelist
+        (the PLOT level is a no-op until names are listed)."""
         cfg = LMConfig(**self._cfg_dict())
         self.assertTrue(cfg.plot.enable)
         self.assertEqual(cfg.plot.format, "png")
@@ -242,11 +236,11 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertFalse(PlotConfig(dir_name="my-plots").dir_name
                          .is_absolute())
 
-    # -- E8/E9: validation_data_set + stat_model --------------------------------
+    # -- validation_data_set + stat_model --------------------------------
 
     def test_validation_dataset_status_strict(self):
-        """validation_data_set.status is a STRICT StatusString
-        (D-080 M3): 'xyz' is rejected, valid 3-letter codes pass."""
+        """validation_data_set.status is a STRICT StatusString:
+        'xyz' is rejected, valid 3-letter codes pass."""
         with self.assertRaises(ValidationError):
             ValidationDataSetConfig(bid=[1], status=["xyz"])
         ok = ValidationDataSetConfig(bid=[1], status=["CMS", "CMR"])
@@ -254,11 +248,11 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def test_properties_field_in_model_fields(self):
         """Both LMBaseConfig descendants carry the 'properties'
-        field (D-080 M3)."""
+        field."""
         self.assertIn("properties", StatModelConfig.model_fields)
         self.assertIn("properties", ValidationDataSetConfig.model_fields)
 
-    # -- E10: mutable defaults --------------------------------------------------
+    # -- mutable defaults --------------------------------------------------
 
     def test_pattern_set_mutable_default_not_shared(self):
         """The mutable default [] is NOT shared across instances."""
@@ -269,7 +263,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(len(ps1.patterns), 1)
         self.assertEqual(len(ps2.patterns), 0)
 
-    # -- E11/E12: required fields + defaults -------------------------------------
+    # -- required fields + defaults -------------------------------------
 
     def test_missing_output_rejected(self):
         """The 'output' field is required."""
@@ -285,15 +279,15 @@ class TestRlmConfigSchemas(unittest.TestCase):
         cfg = LMConfig(**self._cfg_dict(_noidx))
         self.assertEqual(cfg.cache_files_prefix, "rlmwf_")
 
-    # -- T15: the I-017 SU_ANALYSIS / EFFECT_SIZE config -------------------
+    # -- The SU_ANALYSIS / EFFECT_SIZE config -------------------------------
 
-    def test_i017_defaults(self):
-        """The I-017 D-175 opt-in: the su_analysis / the
+    def test_su_analysis_defaults(self):
+        """The opt-in sections: the su_analysis / the
         effect_size enable default FALSE, the target_level
         default 'last', the corpus defaults (seed 42, 1e7, ec
-        20), the su_pairs empty. D-186: the rlm_00 now carries
-        the section (the opt-in) — strip it to check the pure
-        defaults (the absent-section no-op)."""
+        20), the su_pairs empty. The rlm_00 fixture carries the
+        sections — strip them to check the pure defaults (the
+        absent-section no-op)."""
         def _strip_i017(d):
             d.pop("su_analysis", None)
             d.pop("effect_size", None)
@@ -311,8 +305,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertFalse(cfg.effect_size.export_csv)
         self.assertEqual(cfg.effect_size.top_k_adherence, 20)
 
-    def test_i017_su_pairs_canonical_dedupe(self):
-        """The P6 canonical order + the dedupe: the repeated pair
+    def test_su_pairs_canonical_dedupe(self):
+        """The canonical order + the dedupe: the repeated pair
         (any order) collapses to one sorted tuple."""
         def _pairs(d):
             d["su_analysis"] = {"su_pairs": [["EDGE", "LMC"],
@@ -321,7 +315,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(cfg.su_analysis.su_pairs,
                          [("EDGE", "LMC")])
 
-    def test_i017_su_pairs_fail_fast(self):
+    def test_su_pairs_fail_fast(self):
         """The fail-fast against the feature set: a name not in
         the feature set (the mobility + the pattern names) is
         rejected at the CONFIG level."""
@@ -330,9 +324,9 @@ class TestRlmConfigSchemas(unittest.TestCase):
         with self.assertRaises(ValidationError):
             LMConfig(**self._cfg_dict(_badpair))
 
-    def test_i017_target_level_field(self):
-        """The target_level field: a level name (the 'FEATURE_'
-        'ANALYSIS' stop) or 'last' (the default)."""
+    def test_target_level_field(self):
+        """The target_level field: a level name (the
+        'SU_ANALYSIS' stop) or 'last' (the default)."""
         def _tlevel(d):
             d["target_level"] = "SU_ANALYSIS"
         cfg = LMConfig(**self._cfg_dict(_tlevel))
