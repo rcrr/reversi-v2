@@ -4,7 +4,7 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
 
 ## Coverage
 
-| class (line) | tests | what it pins |
+| class | tests | what it pins |
 |---|---|---|
 | `TestPattern` | 9 | constructor strictness (the strict `__init__`: 2 `ValidationError`, >18 squares `ValueError`), the ELLE attribute golden (tmasks, squares/snames, the counts, trans_fs/anti_trans_fs, snames_t), non-principal `ValueError` (BAD_ELLE), the R1 regression (FOURC 4-corners, the lowest-orbit-mask principal `0x8100000000000081`, + b1/a2/h2 edges), the `__repr__` golden |
 | `TestPatternType` | 3 | the `PatternType` classification (strict init) |
@@ -35,7 +35,7 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
   `mdp_csv_file` where all three `TypeError` messages are exact `assertEqual`.
 - Star import `from reversi.pattern import *` (the 6 `__all__` names) + explicit board-function imports; the Cayley test
   builds its OWN local 29-row pattern table (it does not use the star-imported `sample_pattern_data`).
-- The module-level D8 fixture `ar` is the Cayley exercise board (no pre-transformed siblings remain).
+- The module-level D8 fixture `ar` is the single Cayley exercise board (no pre-transformed copies).
 
 ## Integration
 

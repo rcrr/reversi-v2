@@ -28,7 +28,7 @@ signature invalidation (the corpus change), the su_pairs joint, the optional CSV
 - The house test header (the "How to run" block).
 - The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the feature_set, the cache path, the use_cache, the log buffer, the
   tables artifact) over the rlm_00 fixture's feature set (the `load_campaign`). The tiny corpus (the 2000-4000
-  positions) keeps the suite fast (no LONG tier); the 1e7 scale test is VLONG (D-256).
+  positions) keeps the suite fast (no LONG tier); the 1e7 scale test is VLONG.
 - The `tempfile.TemporaryDirectory` per test (the cache + the report + the CSV land in a tmp dir, the tearDown cleans
   up).
 

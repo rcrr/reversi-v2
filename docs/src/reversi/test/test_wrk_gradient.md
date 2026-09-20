@@ -9,7 +9,7 @@ wiring on a mock context). 2 classes / 4 tests (2 DB-gated / 2 no-DB).
 | class | what it pins |
 |---|---|
 | `TestLMWorkerGradient` (2 tests, DB-gated) | shared setUp: the `SKIP_REGAB_DB` gate FIRST → the stdout patcher → the `TemporaryDirectory` idiom (under `CUSTOM_TMP_BASE`, created FIRST, `tmp_dir = Path(...)`, the `WORKSPACE_ROOT`-anchored `rlm_02.json`) → a fresh `LogisticModel` (LOW) → the move to ZED + the step-9 pin; defensive `getattr` tearDown. `test_generate_gradient`: the pre-state (fg None, X (199952, 8), len(w) 2981); `move_to_step('GRADIENT')` + the step-10 pin; fg not-None + callable; the goldens at w = 0: f 0.02049378 (rtol 1e-6 / atol 1e-7), g[0] 3.558e-4, g[1] −2.395e-4, g[2980] 1.101e-3 (rtol 1e-4 / atol 1e-7) — rlm_02 has NO `high_performance_fg` → the classic path. `test_down_clears_gradient`: move to GRADIENT (step 10, fg not-None), then `move_to_step(9)` — pins step 9 + `current_worker_name == 'ZED'` + `ctx.fg is None` |
-| `TestGradientFlagWiring` (2 tests, NO DB) | the flag wiring of the worker on a mock context (a `Context` subclass + `SimpleNamespace` cfg + a no-op `log_event`): `test_up_flag_true_builds_hp_variant`: `high_performance_fg=True` → `wrk_gradient().up(ctx)` builds the HP closure (the `ctx.fg.high_performance is True` marker pin) + a float32-contract smoke eval. `test_up_flag_false_builds_classic_variant`: the flag False (the config default) → the classic closure (the marker False) |
+| `TestGradientFlagWiring` (2 tests, NO DB) | the flag wiring of the worker on a mock context (a plain `Context()` instance + `SimpleNamespace` cfg + a no-op `log_event`): `test_up_flag_true_builds_hp_variant`: `high_performance_fg=True` → `wrk_gradient().up(ctx)` builds the HP closure (the `ctx.fg.high_performance is True` marker pin) + a float32-contract smoke eval. `test_up_flag_false_builds_classic_variant`: the flag False (the config default) → the classic closure (the marker False) |
 
 ## Goldens pinned
 
@@ -22,7 +22,7 @@ wiring on a mock context). 2 classes / 4 tests (2 DB-gated / 2 no-DB).
 
 - Both tests are DB-gated: the setUp's move to ZED runs the positions chain (the live regab DB) on a fresh base dir —
   the same gate class as the other worker tests (the db_long_gate: SKIP_REGAB_DB + LONG).
-- The goldens are the canonical values: the R1 float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute
+- The goldens are the canonical values: the float32 cast of g changes the values by < 1 float32 ulp (≈1e-10 absolute
   at these magnitudes) — inside the pinned tolerances.
 - The "How to run" header documents the gate.
 

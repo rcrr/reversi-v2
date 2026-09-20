@@ -4,7 +4,7 @@ The mobility unit suite — 2 classes / 26 tests (25 run + the PERF skip), no DB
 
 ## Coverage
 
-| class (line) | tests | what it pins |
+| class | tests | what it pins |
 |---|---|---|
 | `TestMobility` | 7 | construction (name/mask/amask/`n_configurations`, LMC/ALMC/DLMC cases), 3 wrong-type args → `ValidationError` (the `*_raises_validation_error` tests), the exact `print` golden string (incl. the `{name:8s}` padding), the `__repr__` golden, `n_configurations` k=2, a=3 → 6 (the "+1 zero-state") |
 | `TestMobilitySet` (`setUp` the standard LMC/ALMC/DLMC triple + the `mlf` builder) | 19 | the dup-name + dup-(mask,amask) `ValueError` messages; hash order-insensitivity; the hash formula with the standard-set literal `2e553593…208a94` pinned (double assert: formula AND object); the sorted 3-name ordering; 2 more `ValidationError`s; `names` → `['ALMC', 'LMC', 'DLMC']` + `masks` (3, 2) uint64 goldens; the 4-line `print_summary` golden (hash literal pinned); the `__repr__` golden (also pins the hash literal); the single-position `[53, 13, 66]` golden; the multi-position row-independence test (golden + underflow positions, per-row `[[53,13,66],[63,0,63]]`); the 1M-position PERF (print-only, `PERF=1` env); the 31-line `popcount64` scalar table + vectorized shape/dtype check (native assertEqual with the line number); the underflow boundary (mask = amask = 0xF, lms = 0, alms = 0x8 → 3); the empty set (name/length/`names == []`/`masks().shape == (0, 2)`/`sha3_256(b'')`); the empty positions (shape (0, 3), uint32) |

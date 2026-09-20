@@ -4,7 +4,7 @@ The binio unit suite — 9 classes / 45 tests, no DB (the ~0.02 s infrastructure
 
 ## Coverage
 
-| class (line) | tests | what it pins |
+| class | tests | what it pins |
 |---|---|---|
 | `ScalarRoundTripTest` | 10 | all 10 scalar types at their bounds, the `_round_trip` BytesIO helper |
 | `StringTest` | 4 | ASCII, multibyte UTF-8 ("città è caffè ☕ 日本語"), empty string, byte-length-not-char-length ("é" = 2 bytes — the u8(99) after it still reads) |

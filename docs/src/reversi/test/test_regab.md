@@ -7,7 +7,7 @@ anchored to the shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTO
 
 ## Coverage
 
-| class (line) | tests | what it pins |
+| class | tests | what it pins |
 |---|---|---|
 | `BaseTestCase` (base) | — | `setUp`: the `SKIP_REGAB_DB` gate first, then `load_dotenv(WORKSPACE_ROOT / ".env")`, then the `RegabDBConnection` + open-connection assert; `tearDown` closes and asserts closed. All 35 DB tests in the 4 subclasses exercise the real database |
 | `TestRegabDB` | 2 | the connection is open (`closed == 0`); `SHOW search_path` includes `reversi` |
@@ -20,7 +20,7 @@ anchored to the shared `reversi.test.paths` constants (`WORKSPACE_ROOT` / `CUSTO
 
 ## Goldens pinned
 
-- The `compute_sha3_256_hash` literal `b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670` (the V1 golden)
+- The `compute_sha3_256_hash` literal `b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670` (the golden)
   — the only hash pin in the suite.
 - The `.env`-driven extraction expectation (`TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT`) — the row-count pin of the live
   extraction.

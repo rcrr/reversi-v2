@@ -4,7 +4,7 @@ rlm_04-mirror `ModelWeights` built in setUp (the client never touches the pipeli
 
 ## Coverage
 
-| class (line) | tests | what it pins |
+| class | tests | what it pins |
 |---|---|---|
 | `TestClientEvaluationFunction` (plain `unittest.TestCase`; setUp builds the rlm_04-mirror weights: intercept + LMC (full board, amask 0) + EDGE (row 1), `w_dense` seeded (SEED=42) f32; `_positions` generates seeded collision-free boards) | 7 | `test_parity_bit_exact`: the array EF equals the scalar EF element-by-element (`assert_array_equal`) over 1000 seeded collision-free positions — the vectorization must not move a single f32 bit, and the output dtype/shape is (1000,) float32; `test_u64_coercion`: the raw (N, 2) uint64 form coerces to the same result as the structured form (the PositionArray BeforeValidator); `test_2d_structured_raises_value_error`: a 2-D structured PositionArray is admitted by the validator (no ndim check there) and hits the standard 1-D guard with a `ValueError` naming "1-D PositionArray"; `test_scalar_position_rejected`: a scalar `np.void` raises the Pydantic `ValidationError` (strict array — the scalar contract is `make_evaluation_function`); `test_list_rejected`: bare Python lists (int list + tuple list) raise `ValidationError`, as for the rest of the dual API; `test_empty_batch`: the N=0 edge returns an empty (0,) float32 array; `test_performance_1m` (PERF=1 gate): the house print pattern over a dense 1,000,000-board batch — warmup 10, `perf_counter`, the `[PERF make_evaluation_function_array]` print, the sanity check (the first 100 outputs bit-exact vs the scalar EF + a deterministic re-run) |
 

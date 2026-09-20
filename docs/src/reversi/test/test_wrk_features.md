@@ -8,8 +8,8 @@ The suite of the FEATURES worker. 2 classes / 3 tests (all DB-free) / no PERF.
 | `TestLMWorkerFeatures` (2, DB-free) | `test_build_feature_set` (feature_set None before, move to 'FEATURES' = step 2 / worker "FEATURES" pinned, populated after) and `test_feature_set_content_golden` (the rlm_00.json fixture must build the EXACT expected FeatureSet — see the goldens below) |
 | `TestLMWorkerFeaturesGuards` (1, DB-free — no regab DB, no model, no cache) | `test_zero_features_raises_value_error` — the fail-fast guard: the payload with `feature_set.intercept: False` (no sets) drives `_load_features` directly with a minimal SimpleNamespace context (log_event captured) → ValueError "The feature count is zero" + a Relevance.ERROR event — the zero-feature guard |
 
-The shared setUp of the class (DB-free: the level no longer sits after POSITIONS, so the gate + the POSITIONS move are
-gone, and the stale "configuration loaded there" comment with them): stdout patched to a StringIO + the
+The shared setUp of the class (DB-free — the setUp moves directly to FEATURES: no gate, no POSITIONS move): stdout
+patched to a StringIO + the
 `TemporaryDirectory` idiom (the shared `CUSTOM_TMP_BASE` from `reversi.test.paths`, `setUpClass` mkdir, the temp dir
 created FIRST so a mid-setup failure still leaves a cleanable dir) + a `LogisticModel` on the `rlm_00.json` fixture
 (anchored to `WORKSPACE_ROOT`, `base_dir_override` = the tmp dir, `Verbosity.LOW`) + the pipeline preconditions pinned

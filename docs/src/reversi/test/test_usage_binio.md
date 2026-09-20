@@ -12,7 +12,7 @@ no DB, no gate, no artifacts.
 
 ## Goldens pinned
 
-- Round-trip identity: every value read back equals the written value — the 11 scalars, the UTF-8 string, the two arrays
+- Round-trip identity: every value read back equals the written value — the 10 scalars, the UTF-8 string, the two arrays
   (`np.array_equal`). No float tolerance: the binary format round-trips bit-exact.
 - The sidecar: after close — both the context-manager path (the automatic checksum) and the manual-close path —
   `verify_sha3_256_sidecar(path)` is True.
