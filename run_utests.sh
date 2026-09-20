@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run_utests.sh — the reversi.test suite in canonical order (D-130).
+# run_utests.sh — the unit-test suite (test.reversi) in canonical order (D-130).
 #
 # Usage:
 #   ./run_utests.sh              fast tier (no DB)
@@ -25,71 +25,71 @@ echo "run_utests: PERF=${PERF:-0} LONG=${LONG:-0} VLONG=${VLONG:-0} SKIP_REGAB_D
 
 MODULES=(
     # 0 — tools
-    reversi.test.test_binio
-    reversi.test.test_usage_binio
-    reversi.test.test_opt_lbfgs
-    reversi.test.test_prng
+    test.reversi.tools.test_binio
+    test.reversi.tools.test_usage_binio
+    test.reversi.tools.test_opt_lbfgs
+    test.reversi.tools.test_prng
     # 1 — board & pattern concepts
-    reversi.test.test_board
-    reversi.test.test_random_game
-    reversi.test.test_pattern
-    reversi.test.test_mobility
-    reversi.test.test_feature
+    test.reversi.test_board
+    test.reversi.test_random_game
+    test.reversi.test_pattern
+    test.reversi.test_mobility
+    test.reversi.test_feature
     # 2 — infrastructure
-    reversi.test.test_cache_manager
-    reversi.test.test_state_machine
-    reversi.test.test_logistic_model
-    reversi.test.test_paths
+    test.reversi.tools.test_cache_manager
+    test.reversi.tools.test_state_machine
+    test.reversi.lm.test_logistic_model
+    test.reversi.test_paths
     # 3 — DB access
-    reversi.test.test_regab
+    test.reversi.test_regab
     # 4 — the pipeline, machine order 1-16 (each data module
     #     immediately before its worker; the 17-level end-to-end
     #     chain — including SAVE + CLIENT_CHECK + PLOT — last)
     # test_hlp_random_play: the T12-level data module (the worker
     # lands in T12; the ODP-9 pick table + the single-game loop
     # land here at T4)
-    reversi.test.test_hlp_random_play
+    test.reversi.lm.test_hlp_random_play
     # test_hlp_wave: the T5 numba wave engine (the corpus
     # engine, the I-017 SU-analysis generator)
-    reversi.test.test_hlp_wave
-    reversi.test.test_hlp_config_schemas
-    reversi.test.test_wrk_config
-    reversi.test.test_wrk_features
+    test.reversi.lm.test_hlp_wave
+    test.reversi.lm.test_hlp_config_schemas
+    test.reversi.lm.test_wrk_config
+    test.reversi.lm.test_wrk_features
     # test_hlp_feature_analysis: the SHARED analysis kernels
     # (the I-017; the SU/entropy/MI kernels T11, the
     # dispersion/audit T12, the ANOVA T13, the adherence T14)
-    reversi.test.test_hlp_feature_analysis
+    test.reversi.lm.test_hlp_feature_analysis
     # test_wrk_su_analysis: the SU_ANALYSIS worker
     # (the I-017 T16; the SU-analysis corpus cache + the phase-2
     # statistics + the reports)
-    reversi.test.test_wrk_su_analysis
-    reversi.test.test_wrk_positions
-    reversi.test.test_hlp_indexes
-    reversi.test.test_wrk_indexes
+    test.reversi.lm.test_wrk_su_analysis
+    test.reversi.lm.test_wrk_positions
+    test.reversi.lm.test_hlp_indexes
+    test.reversi.lm.test_wrk_indexes
     # test_wrk_effect_size: the EFFECT_SIZE worker (the I-017
     # T17; the eta²/omega² + the adherence, the graceful
     # degradation; the step 6 position, after INDEXES)
-    reversi.test.test_wrk_effect_size
-    reversi.test.test_hlp_wmaps
-    reversi.test.test_wrk_wmaps
-    reversi.test.test_hlp_design_matrix
-    reversi.test.test_wrk_design_matrix
-    reversi.test.test_hlp_zed
-    reversi.test.test_wrk_zed
-    reversi.test.test_hlp_gradient
-    reversi.test.test_wrk_gradient
-    reversi.test.test_hlp_optimize
-    reversi.test.test_wrk_optimize
-    reversi.test.test_hlp_generate
-    reversi.test.test_wrk_generate
-    reversi.test.test_wrk_vld_positions
-    reversi.test.test_wrk_validate
-    reversi.test.test_wrk_analytics
-    reversi.test.test_client
-    reversi.test.test_wrk_client_check
-    reversi.test.test_hlp_plot
-    reversi.test.test_wrk_plot
-    reversi.test.test_lm_worker_full_chain
+    test.reversi.lm.test_wrk_effect_size
+    test.reversi.lm.test_hlp_wmaps
+    test.reversi.lm.test_wrk_wmaps
+    test.reversi.lm.test_hlp_design_matrix
+    test.reversi.lm.test_wrk_design_matrix
+    test.reversi.lm.test_hlp_zed
+    test.reversi.lm.test_wrk_zed
+    test.reversi.lm.test_hlp_gradient
+    test.reversi.lm.test_wrk_gradient
+    test.reversi.lm.test_hlp_optimize
+    test.reversi.lm.test_wrk_optimize
+    test.reversi.lm.test_hlp_generate
+    test.reversi.lm.test_wrk_generate
+    test.reversi.lm.test_wrk_vld_positions
+    test.reversi.lm.test_wrk_validate
+    test.reversi.lm.test_wrk_analytics
+    test.reversi.lm.test_client
+    test.reversi.lm.test_wrk_client_check
+    test.reversi.lm.test_hlp_plot
+    test.reversi.lm.test_wrk_plot
+    test.reversi.lm.test_lm_worker_full_chain
 )
 
 exec python -m unittest "${MODULES[@]}"

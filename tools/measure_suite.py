@@ -3,7 +3,7 @@
 
 WHAT IT IS: a MEASUREMENT tool (tools.md §1) — it makes NO a/b/c
 checks and no assertions. It
-runs the whole reversi.test suite (a live regab DB is required
+runs the whole unit-test suite (test.reversi, a live regab DB is required
 for the full picture) with a custom TestResult and records
 every test's duration in milliseconds. The builtin
 `unittest --durations` cannot be used for this: it hides
@@ -85,8 +85,7 @@ class TimedResult(unittest.TestResult):
 
 def main():
     loader = unittest.TestLoader()
-    suite = loader.discover(str(ROOT / "src" / "reversi" / "test"),
-                            top_level_dir=str(ROOT / "src"))
+    suite = loader.discover(str(ROOT / "test"), top_level_dir=str(ROOT))
     result = TimedResult()
     t0 = time.perf_counter()
     suite.run(result)
@@ -95,9 +94,9 @@ def main():
     rows = sorted(result.rows, key=lambda r: -r[0])
     modules = {}
     for ms, tid, status in rows:
-        # tid = "reversi.test.test_x.Class.test_y"
+        # tid = "test.reversi[.zone].test_x.Class.test_y"
         parts = tid.split(".")
-        mod = parts[2] if len(parts) > 2 else "?"
+        mod = next((p for p in parts if p.startswith("test_")), "?")
         agg = modules.setdefault(mod, [0.0, 0, 0])
         agg[0] += ms
         agg[1] += 1
@@ -105,7 +104,7 @@ def main():
             agg[2] += 1
 
     out = []
-    out.append("# reversi.test suite — per-test durations")
+    out.append("# test suite (test.reversi) — per-test durations")
     out.append("# Full run (regab DB live when available), "
                "no PERF/LONG env vars")
     out.append(f"# Total: {len(rows)} tests, wall {wall:.0f} ms")
