@@ -40,11 +40,12 @@
 #
 
 """
-The SU_ANALYSIS frequency data plane (the I-017 T7/T8,
-D-177/D-178) NO-DB micro-suite: the ec formula pin (the D-177
-window constraint), the initial position (the 4-stone start),
-the marginal + the joint accumulators (the streaming frequency
-accumulation over the corpus, the wave fed chunk-by-chunk).
+The SU_ANALYSIS frequency data plane (the marginal + the
+joint accumulators) NO-DB micro-suite: the ec formula pin
+(the window constraint), the initial position (the 4-stone
+start), the marginal + the joint accumulators (the streaming
+frequency accumulation over the corpus, the wave fed
+chunk-by-chunk).
 """
 
 import unittest
@@ -91,7 +92,7 @@ class TestInitialPosition(unittest.TestCase):
 
 
 class TestEcPin(unittest.TestCase):
-    """The ec formula pin (T7, D-177): ec_of = 64 - popcount(mover
+    """The ec formula pin: ec_of = 64 - popcount(mover
     | opponent) = the count of the empty squares = the DB's
     `empty_count` (the regab extraction filters `empty_count = ec`
     — the "mele con mele" window constraint)."""
@@ -117,7 +118,7 @@ class TestEcPin(unittest.TestCase):
 
 
 class TestMarginalAccumulator(unittest.TestCase):
-    """The streaming marginal accumulator (T7): the per-sub-variable
+    """The streaming marginal accumulator: the per-sub-variable
     (the (feature, instance) column) code -> count over the corpus,
     the dense-bincount / unique-merge split, the hand-counted LMC,
     the chunk-merge."""
@@ -232,7 +233,7 @@ class TestMarginalAccumulator(unittest.TestCase):
 
 
 class TestJointAccumulator(unittest.TestCase):
-    """The streaming joint accumulator (T8): the per-requested-pair
+    """The streaming joint accumulator: the per-requested-pair
     instance×instance (code_i, code_j) -> count, the cross-feature
     + the same-feature (the diagonal is the SU = 1 lock, the
     off-diagonal the anisotropy), the chunk-merge."""
@@ -331,7 +332,7 @@ class TestJointAccumulator(unittest.TestCase):
 
 
 class TestPrngIntegration(unittest.TestCase):
-    """The PRNG integration test (T9): the full generator with the
+    """The PRNG integration test: the full generator with the
     MT19937 seed — the corpus reproducibility (same seed -> the
     same frequency tables, the different seed -> different) + the
     small end-to-end corpus on a 2-feature set (the LMC + the R2),

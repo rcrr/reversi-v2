@@ -26,12 +26,12 @@
 #
 
 """
-The EFFECT_SIZE worker (the I-017, the eta²/omega² + the
-adherence, step 6, D-187): the one-way ANOVA effect sizes (the
-eta²/omega² per sub-variable, the T13 kernel) + the adherence
-(the fixed trio — the chi-square + the KL + the TV, the T14
-kernel — the DB configuration distribution vs the ideal corpus
-frequencies). NO cache (a diagnostic; the recompute is seconds).
+The EFFECT_SIZE worker (the eta²/omega² + the
+adherence, step 6): the one-way ANOVA effect sizes (the
+eta²/omega² per sub-variable) + the adherence (the fixed trio
+— the chi-square + the KL + the TV — the DB configuration
+distribution vs the ideal corpus frequencies). NO cache (a
+diagnostic; the recompute is seconds).
 The GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
 disabled (no corpus in the ctx), the adherence is skipped with
 a log note; the eta²/omega² runs (it does not need the corpus).
@@ -120,8 +120,8 @@ def _up(ctx: "LMContext") -> None:
     # + the continuous game values (the target).
     X = ctx.hlp_indexes.indexes
     y = ctx.game_values
-    # The eta²/omega² per sub-variable (the one-way ANOVA, the
-    # T13 kernel — it does not need the corpus).
+    # The eta²/omega² per sub-variable (the one-way ANOVA — it
+    # does not need the corpus).
     anova_lines = []
     for (name, c0, c1, n_conf, n_inst) in blocks:
         for i in range(n_inst):
@@ -132,7 +132,7 @@ def _up(ctx: "LMContext") -> None:
             ctx.log_event(Relevance.INFO,
                           f"  ANOVA {name}[{i}]: eta2 {r['eta2']:.4f}, "
                           f"omega2 {r['omega2']:.4f} (K {r['k']})")
-    # The adherence (c) per sub-variable (the T14 kernel) — the
+    # The adherence (c) per sub-variable — the
     # GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
     # disabled (no corpus in the ctx), the adherence is skipped
     # with a log note; the eta²/omega² runs.

@@ -44,11 +44,10 @@
 #
 
 """
-The concurrent WAVE generator (the I-017 T5, the D-174
-corpus generator) NO-DB micro-suite: the wave engine (the
-MT19937 batch draw vs the T3 reference, the W=1 trajectory
-vs the scalar, the run integrity + determinism) + the
-the 1e6 benchmark.
+The concurrent WAVE generator (the corpus generator) NO-DB
+micro-suite: the wave engine (the MT19937 batch draw vs the
+scalar reference, the W=1 trajectory vs the scalar, the run
+integrity + determinism) + the 1e6 benchmark.
 """
 
 import os
@@ -66,8 +65,7 @@ from reversi.tools.prng import MT19937
 from reversi.test.tags import tier_vvlong
 
 class TestWaveEngine(unittest.TestCase):
-    """The uniform engine (D-174 — the I-017 corpus
-    generator, the D-173 gate verdict's design call)."""
+    """The uniform engine (the corpus generator)."""
 
     def test_batch_matches_reference(self):
         # The numba batch-draw (the class get_uint64_batch,
@@ -132,7 +130,7 @@ class TestWaveEngine(unittest.TestCase):
             m, o = int(p['mover']), int(p['opponent'])
             seq.append(pick)
         # the wave (W=1, the same seed, the same ec) —
-        # the stream lives in the class (the D-195).
+        # the stream lives in the class.
         state = make_wave(1, 0)
         prng = MT19937(seed)
         wave_seq = []
@@ -189,12 +187,12 @@ class TestWaveEngine(unittest.TestCase):
                      "D-256: it left the LONG tier)")
 class TestBenchmark(unittest.TestCase):
     """The 1e6 benchmark (the gate scale): the target is
-    well under the T4 Python rate (the doc's 20-60 min) —
+    well under the scalar Python rate (the 20-60 min) —
     the printed wall time is the deliverable; the assertion
     is a generous order-of-magnitude guard."""
 
     def test_1e6_wave_wall_clock(self):
-        # The corpus engine (D-174) at the gate scale:
+        # The corpus engine at the 1e6 scale:
         # the 1e6 target, ec=20, seed 42.
         sink = BufferSink()
         t0 = time.time()

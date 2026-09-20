@@ -68,12 +68,12 @@ class TestLogisticModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Ensure the build/tmp base directory exists (T2, D-075)."""
+        """Ensure the build/tmp base directory exists."""
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
         """Set up a dummy config file and patch stdout and worker factories."""
-        # T2 (D-075): the dummy config lives under
+        # The dummy config lives under
         # <workspace-root>/build/tmp (the D-065 house rule), not the
         # system temp dir. Created first, so a mid-setup failure
         # still leaves a temp_dir that tearDown (or the GC) cleans.
@@ -106,8 +106,8 @@ class TestLogisticModel(unittest.TestCase):
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        # D-186/D-187: the I-017 new workers — the SU_ANALYSIS
-        # (step 3) + the EFFECT_SIZE (step 6) dummies. Without them
+        # The SU_ANALYSIS (step 3) + the EFFECT_SIZE (step 6)
+        # worker dummies. Without them
         # the real workers would cross the "POSITIONS" string move
         # and hit the None cfg (the mock CONFIG never sets it).
         self.fa_up_mock = MagicMock()
@@ -132,9 +132,9 @@ class TestLogisticModel(unittest.TestCase):
         )
 
     def tearDown(self):
-        """Clean up patches and temporary files. T2 (D-075):
-        defensive against mid-setup failures — stop only the
-        patchers that exist, then remove the temp dir."""
+        """Clean up patches and temporary files: defensive
+        against mid-setup failures — stop only the patchers that
+        exist, then remove the temp dir."""
         for name in ('patcher_stdout', 'patcher_config', 'patcher_positions',
                      'patcher_features', 'patcher_fa', 'patcher_es'):
             patcher = getattr(self, name, None)
@@ -213,9 +213,9 @@ class TestLogisticModel(unittest.TestCase):
             )
 
     def test_facade_delegates_to_state_machine(self):
-        """T1 (D-075): every facade method is a pure pass-through —
-        pin the delegation per method on the shared model's
-        StateMachine (replaces the old try/except smoke test)."""
+        """Every facade method is a pure pass-through: the
+        delegation is pinned per method on the shared model's
+        StateMachine."""
         with patch.object(self.model.sm, "show_event_log") as m:
             self.model.show_event_log()
             m.assert_called_once_with()
@@ -262,8 +262,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_run_honors_the_config_target_level(self):
         """With no argument the stop comes from the loaded config —
-        LMConfig.target_level, the I-017 P4 field, read AFTER the
-        CONFIG level ran."""
+        LMConfig.target_level, read AFTER the CONFIG level ran."""
         self.model.context.cfg = SimpleNamespace(target_level="SU_ANALYSIS")
         self.addCleanup(setattr, self.model.context, "cfg", None)
         self.model.run()
@@ -361,8 +360,8 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(bare2.current_step, 1)
 
     def test_facade_views_and_verbosity_round_trip(self):
-        """T1 (D-075): the read-only views mirror the StateMachine
-        and the verbosity property round-trips through it."""
+        """The read-only views mirror the StateMachine and the
+        verbosity property round-trips through it."""
         self.assertEqual(self.model.current_step, self.model.sm.current_step)
         self.assertEqual(self.model.current_worker_name,
                          self.model.sm.current_worker_name)
@@ -375,7 +374,7 @@ class TestLogisticModel(unittest.TestCase):
 
 
     def test_injected_cache_helpers_are_the_machine_closures(self):
-        """T4 (D-075): post-construction, the context's
+        """Post-construction, the context's
         *_for_current_level attributes ARE the closures StateMachine
         injected under the D-069 names (pre-D-074 a regression to
         the old names would have left the no-op lambda defaults and
@@ -389,8 +388,8 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(ctx.log_event.__name__, "log_event")
 
     def test_pre_injection_fallback_is_no_op_lambda(self):
-        """T4 (D-075): a bare (un-injected) LMContext keeps the
-        lambda no-op defaults — the cache helpers return None and
+        """A bare (un-injected) LMContext keeps the lambda no-op
+        defaults — the cache helpers return None and
         log_event does nothing, without crashing."""
         bare = LMContext(config_file_path=Path(self.dummy_config_path))
         self.assertIsNone(bare.get_cache_file_path_for_current_level())
@@ -398,8 +397,8 @@ class TestLogisticModel(unittest.TestCase):
         bare.log_event()
 
     def test_injected_cache_helper_computes_the_worker_path(self):
-        """T4 (D-075, re-pinned D-078): with a dummy cfg, the injected
-        path closures compute the per-level cache path by
+        """With a dummy cfg, the injected path closures compute the
+        per-level cache path by
         filename-prefix concatenation (D-078, replacing the D-069 M8
         pathlib join): <prefix><level:02>_<worker>.dat, and the full
         variant prepends cfg.base_dir."""
@@ -413,8 +412,8 @@ class TestLogisticModel(unittest.TestCase):
                          Path("base/cache00_CREATED.dat"))
 
     def test_created_sentinel_workers_raise(self):
-        """T4 (D-075): the level-0 CREATED sentinels are explicit
-        (D-059) — a direct call logs ERROR then raises RuntimeError."""
+        """The level-0 CREATED sentinels are explicit (D-059) — a
+        direct call logs ERROR then raises RuntimeError."""
         with self.assertRaisesRegex(
                 RuntimeError, "Executing created step should never happen."):
             _created_up(self.model.context)
@@ -423,8 +422,8 @@ class TestLogisticModel(unittest.TestCase):
             _created_down(self.model.context)
 
     def test_config_path_helper_edge_branches(self):
-        """T4 (D-075): _check_config_file_path edge branches —
-        non-str/Path -> TypeError, missing -> FileNotFoundError,
+        """_check_config_file_path edge branches — non-str/Path ->
+        TypeError, missing -> FileNotFoundError,
         a directory -> IsADirectoryError (M3, D-074)."""
         with self.assertRaisesRegex(
                 TypeError,
@@ -438,8 +437,8 @@ class TestLogisticModel(unittest.TestCase):
             _check_config_file_path(self.temp_dir.name)
 
     def test_base_dir_helper_edge_branches(self):
-        """T4 (D-075): _check_base_dir_override edge branches —
-        non-str/Path -> TypeError, a file -> NotADirectoryError."""
+        """_check_base_dir_override edge branches — non-str/Path ->
+        TypeError, a file -> NotADirectoryError."""
         with self.assertRaisesRegex(
                 TypeError,
                 "Argument base_dir_override is not an instance of str or Path"):
@@ -449,8 +448,8 @@ class TestLogisticModel(unittest.TestCase):
             _check_base_dir_override(self.dummy_config_path)
 
     def test_export_history_of_moves_as_csv_pass_through(self):
-        """T4 (D-075): the CSV export pass-through writes a real file
-        (the SM's exporter, parent-dir creation M10/D-068); with an
+        """The CSV export pass-through writes a real file (the SM's
+        exporter, parent-dir creation M10/D-068); with an
         empty history the file is header-only. The artifact stays
         under build/tmp (D-065) and the temp dir is removed in
         tearDown."""
@@ -507,8 +506,8 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
 
     def test_run_explicit_argument_wins_over_the_config(self):
         """The same config asks FEATURES; run('SU_ANALYSIS') goes to
-        step 3 (the long level the I-019 case stops at) and publishes
-        the corpus tables."""
+        step 3 (the long level the config-target case stops at) and
+        publishes the corpus tables."""
         model = self._model("FEATURES")
         model.run("SU_ANALYSIS")
         self.assertEqual(model.current_step, 3)

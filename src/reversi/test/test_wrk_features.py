@@ -68,7 +68,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # D-157 (I-012): the setUp moves to FEATURES directly —
+        # The setUp moves to FEATURES directly —
         # the level depends only on the CONFIG-loaded cfg (no
         # POSITIONS, no DB, no gate).
         # Patch stdout to keep test output clean
@@ -182,7 +182,7 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
             (WORKSPACE_ROOT / "src" / "reversi" / "test" / "data" /
              "rlm_00.json").read_text())
         payload["feature_set"] = {"intercept": False}
-        # D-186: the rlm_00 now carries the su_pairs (["LMC", "EDGE"])
+        # The rlm_00 fixture carries the su_pairs (["LMC", "EDGE"])
         # — clear them so the zero-features guard (not the su_pairs
         # fail-fast) is the one that fires.
         if "su_analysis" in payload:

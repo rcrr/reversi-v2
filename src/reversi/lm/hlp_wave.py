@@ -26,21 +26,21 @@
 #
 
 """
-The concurrent WAVE generator (the I-017 T5, the D-174
-corpus generator): a batch of W games ("lanes") advanced in
+The concurrent WAVE generator (the corpus
+generator): a batch of W games ("lanes") advanced in
 LOCKSTEP on a SINGLE GLOBAL MT19937 (the project's
 golden-pinned PRNG, the "one seed for all" pin, the numba
-batch draw of tools/prng.py — the single source, the D-194
-move; bit-exact vs the T3 oracle). One draw per (lane, step)
+batch draw of tools/prng.py — the single source;
+bit-exact vs the scalar W=1 reference). One draw per (lane, step)
 in lane order, W draws
 per step: the real-move lanes pick the (draw % k)-th set
 bit (the modulo bias < k/2^64, 12 orders below the noise
 floor); the pass/dead lanes' draws are CONSUMED (unused).
 The stream is GLOBAL across waves (the run is one stream,
-the (wave, step, lane) order). This is the I-017 CORPUS
+the (wave, step, lane) order). This is the CORPUS
 GENERATOR (the 1e7 build).
 
-THE LOCKSTEP INVARIANT (Roberto's option A, refined): one
+THE LOCKSTEP INVARIANT: one
 wave STEP = one REAL MOVE per live lane. A needed pass FOLDS
 INTO the step (the pass lane's real move comes from the
 swapped side's legal set — the second Kogge-Stone pass of
@@ -54,7 +54,7 @@ step harvest mask, no inline respawns. The "brutish" logic
 lives in the rare per-wave boundary code; the hot step is
 five full-wave vectorized calls, zero per-lane branching.
 
-THE DOUBLE PASS is the game over (as the fixed T4 loop):
+THE DOUBLE PASS is the game over (as the fixed scalar loop):
 at a step, lm == 0 AND lo == 0 (the mover has no legal
 move and, after the pass, the opponent has none either —
 the board is unchanged, so the state is terminal, full or
@@ -64,7 +64,7 @@ discarded state: the swap is the only input that cannot
 corrupt the stale position, since the kernel's legality
 test is "flips non-zero" and an occupied square with a
 flipping ray would be APPLIED — the board.py latent
-finding, flagged to Roberto), its counter freezes, it is
+finding), its counter freezes, it is
 NOT harvested at the boundary,
 and it respawns there with the next slot. Dead lanes are
 rare (a non-full double pass is < 0.2% of random games) —
@@ -88,8 +88,9 @@ THE HOT STEP (all full-wave, uniform):
 
 THE SINK (v1): the arrested POSITIONS only (mover, opp,
 slot) in boundary chunks — "di quello si prendono le
-statistiche" (Roberto). The file writer (the corpus format,
-the POSITIONS step D-157 alignment) is the T6 concern.
+statistiche". The file writer (the corpus format, the
+POSITIONS step D-157 alignment) is outside this module's
+scope.
 """
 
 from __future__ import annotations
@@ -121,9 +122,9 @@ PA: np.uint8 = MOVE_PA
 MAX_EC: int = 60
 
 # The wave stream (the single global golden-pinned MT19937)
-# lives in tools/prng.py — the SINGLE SOURCE (the D-194
-# move): the MT19937 class is the single public interface
-# (the D-195) — its get_uint64_batch drives the wave.
+# lives in tools/prng.py — the SINGLE SOURCE: the MT19937
+# class is the single public interface — its
+# get_uint64_batch drives the wave.
 
 
 class WaveState:
@@ -169,16 +170,14 @@ class WaveState:
 
 def make_wave(W: int, slot_base: int = 0) -> WaveState:
     """A fresh wave of W lanes at the initial position,
-    slots slot_base..slot_base+W-1, counter = slot (the
-    T5 slot pin)."""
+    slots slot_base..slot_base+W-1, counter = slot."""
     return WaveState(W, slot_base)
 
 
 # ---------------------------------------------------------------------
-# The uniform pick (D-174 — the corpus generator; the bit-verified
-# kernel, the D-173 gate origin). The wave stream (the MT19937
-# init + the batch draw) is tools/prng.py — the single source
-# (the D-194 move).
+# The uniform pick (the corpus generator; the bit-verified
+# kernel). The wave stream (the MT19937 init + the batch
+# draw) is tools/prng.py — the single source.
 # ---------------------------------------------------------------------
 
 
@@ -219,14 +218,14 @@ def _pick_wave(draws, src):
 def step_wave(state: WaveState, prng: MT19937
                  ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    One lockstep step, the uniform pick (D-174): the
+    One lockstep step, the uniform pick: the
     SAME step logic (the pass folded, the
     double-pass coast, the counter walk) with the pick
     from the GLOBAL MT19937 stream — W draws per step
     (prng.get_uint64_batch), lane order, the pass/dead
     lanes' draws consumed (unused). The stream state
     lives in the prng object (the class is the single
-    public interface, the D-195). Returns (move,
+    public interface). Returns (move,
     pass_mask, dead) — the stream is global across waves.
     """
     M, O = state.mover, state.opp
@@ -288,7 +287,8 @@ class BufferSink:
     The in-memory sink (v1): the boundary chunks
     (mover, opp, slot) kept in RAM. The 1e6 benchmark
     holds ~24 MB. The file writer (the corpus format, the
-    POSITIONS step D-157 alignment) is the T6 concern.
+    POSITIONS step D-157 alignment) is outside this
+    module's scope.
     """
 
     def __init__(self):
@@ -318,7 +318,7 @@ def run_wave(total: int, ec_target: int, seed: int,
                 wave_size: int, sink: BufferSink,
                 slot_base: int = 0) -> dict:
     """
-    The SU-analysis corpus generator (D-174): the same lockstep
+    The SU-analysis corpus generator: the same lockstep
     waves, the uniform pick on the GLOBAL MT19937
     stream (one seed, the "one for the JSON" pin — the
     stream is global across waves: the (wave, step, lane)
@@ -327,9 +327,8 @@ def run_wave(total: int, ec_target: int, seed: int,
 
     Returns:
       The run provenance: {'harvested', 'waves',
-      'next_slot', 'dead'}. (The D-199 dropped the 'mti'
-      provenance — it read the class's dropped mti accessor,
-      and nothing consumed it.)
+      'next_slot', 'dead'}. (No 'mti' provenance: the
+      class's mti accessor is gone, and nothing consumed it.)
     """
     if not (0 <= int(ec_target) <= MAX_EC):
         raise ValueError(

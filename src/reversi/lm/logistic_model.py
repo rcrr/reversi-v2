@@ -116,10 +116,10 @@ class LMContext(Context):
     # Features attribute:
     feature_set: Any = None
 
-    # Feature analysis attribute (the I-017, the SU level,
-    # step 3): the corpus frequency tables (the marginal + the
-    # joint) published by the SU_ANALYSIS worker for the
-    # EFFECT_SIZE level (the cross-level blackboard, the D-099
+    # Feature analysis attribute (the SU level, step 3): the
+    # corpus frequency tables (the marginal + the joint)
+    # published by the SU_ANALYSIS worker for the EFFECT_SIZE
+    # level (the cross-level blackboard, the D-099
     # pre-declared fields).
     su_analysis_tables: Any = None
 
@@ -165,12 +165,12 @@ class LMContext(Context):
 
     # Validation attributes:
     vld_metrics: Any = None
-    # The validation forward-pass series (I-018): published by VALIDATE
+    # The validation forward-pass series: published by VALIDATE
     # so PLOT renders them instead of re-running the pass, and so
     # CLIENT_CHECK compares against the validation's own residuals.
     vld_y_pred: Any = None
     vld_rn: Any = None
-    # The top-20 extreme-residual records (I-018): a list of dicts with
+    # The top-20 extreme-residual records: a list of dicts with
     # the raw values (index, mover, opponent, game_value, fitted,
     # residual), descending by |residual|.
     vld_outliers: Any = None
@@ -178,7 +178,7 @@ class LMContext(Context):
     # Analytic attributes:
     train_metrics: Any = None
     train_dense_metrics: Any = None
-    # The dense training residuals in Y (I-018): published by ANALYTICS
+    # The dense training residuals in Y: published by ANALYTICS
     # so PLOT renders them instead of re-running the pass.
     train_dense_rn: Any = None
     analytics_report: Any = None

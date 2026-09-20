@@ -26,18 +26,18 @@
 #
 
 """
-The analysis-kernels data module (the I-017): the SHARED pure-math
-kernels over the frequency tables (the marginal / the joint counts
-from the accumulators, the I-017 T7-T8) — the module name says the
+The analysis-kernels data module: the SHARED pure-math
+kernels over the frequency tables (the marginal / the joint
+counts from the accumulators) — the module name says the
 FAMILY (the analysis of the features), because two levels use it:
 
-  - the SU / entropy / mutual-information kernels (T11, D-181)   [the SU_ANALYSIS level]
-  - the dispersion + the never-observed audit (T12)
-  - the ANOVA kernels (T13)                                      [the EFFECT_SIZE level]
-  - the adherence kernels (T14)                                  [the EFFECT_SIZE level]
+  - the SU / entropy / mutual-information kernels                [the SU_ANALYSIS level]
+  - the dispersion + the never-observed audit
+  - the ANOVA kernels                                            [the EFFECT_SIZE level]
+  - the adherence kernels                                        [the EFFECT_SIZE level]
 
 Pure math from the frequency tables — NO DB, NO positions. The
-worker (wrk_su_analysis.py, T16) calls these kernels on
+worker (wrk_su_analysis.py) calls these kernels on
 the accumulator output (the phase-2 recompute, cheap, on every
 run).
 
@@ -99,7 +99,7 @@ def symmetric_uncertainty(I: float, H_u: float,
     The symmetrical uncertainty SU(u, v) = 2·I / (H(u) +
     H(v)), in [0, 1]. The 0-denominator guard: SU = 0 if
     H(u) + H(v) == 0 (the degenerate variables — the code-0
-    "no match" single-category, the ODP-4/ODP-8 close).
+    "no match" single-category).
 
     Args:
       I:    the mutual information I(u; v) (bits).
@@ -145,7 +145,7 @@ def never_observed_audit(counts, n_configurations,
                          rarity_thresholds=(1, 2, 5, 10, 100)
                          ) -> dict:
     """
-    The never-observed audit (the STOP deliverable, P2): the
+    The never-observed audit: the
     number of theoretical codes never seen in the corpus
     (n_configurations - K_obs) + the rarity profile (the count
     of the OBSERVED codes below each small count threshold —
@@ -332,7 +332,7 @@ def adherence(db_counts, ideal_counts) -> dict:
     section 3.5): the DB configuration distribution (the
     observed codes of the training positions) vs the ideal
     distribution (the corpus frequencies, normalized). The
-    fixed trio (the ODP-5 close, no config whitelist): the
+    fixed trio (no config whitelist): the
     chi-square goodness-of-fit (the p-value + the merged-tail
     count), the KL divergence (the 0-log-0), the total
     variation distance (the 0..1 "how different" number,

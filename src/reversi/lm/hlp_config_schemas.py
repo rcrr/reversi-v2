@@ -69,8 +69,9 @@ class OptimizationConfig(LMBaseConfig):
     checkpoint_file: Path = Field(..., description="Checkpoint file name used to save optimization status.")
     high_performance_fg: bool = Field(
         default=False,
-        description="Build the high-performance numba fg closure at the GRADIENT level "
-                    "(I-013). False (the default) keeps the classic vectorized-numpy closure.")
+        description="Build the high-performance numba fg closure at the "
+                    "GRADIENT level. False (the default) keeps the classic "
+                    "vectorized-numpy closure.")
 
     @model_validator(mode="after")
     def check_wolfe_constants(self) -> "OptimizationConfig":
@@ -157,19 +158,18 @@ class PlotConfig(LMBaseConfig):
 
 class CorpusConfig(LMBaseConfig):
     """
-    Configuration for the SU_ANALYSIS corpus (the I-017,
-    the SU-analysis corpus generator, D-174): the MT19937 seed, the total
+    Configuration for the SU_ANALYSIS corpus (the
+    SU-analysis corpus generator): the MT19937 seed, the total
     positions, and the ec arrest rule (the empty_count window
     constraint, the design section 2.1 — the "mele con mele"
     window, the same ec the DB extraction uses).
     """
     seed: int = Field(
         default=42,
-        description="The MT19937 corpus seed (the 'uno per tutti', "
-                    "the I-017 D-174).")
+        description="The MT19937 corpus seed (the 'uno per tutti').")
     total_positions: PositiveInt = Field(
         default=10_000_000,
-        description="The total positions to generate (the ODP-1 "
+        description="The total positions to generate (the "
                     "default 1e7 — minutes at the wave tier).")
     ec: NonNegativeInt = Field(
         default=20, ge=0, le=100,
@@ -181,16 +181,15 @@ class CorpusConfig(LMBaseConfig):
 
 class SuAnalysisConfig(LMBaseConfig):
     """
-    Configuration for the SU_ANALYSIS level (the I-017, the
-    SU level, step 3): the corpus generator + the SU / the
-    dispersion / the never-observed audit kernels. The enable
-    master switch is FALSE by default (the I-017 D-175 — the SU
-    analysis is OPTIONAL, opt-in; the production configs are
-    untouched, the experiment configs opt in). The su_pairs are
-    the explicit (feature, feature) pairs for the joint analysis
-    (the P6, the canonical sorted form + the dedupe); the fail-
-    fast against the feature set is at the LMConfig level (it
-    needs the feature_set field).
+    Configuration for the SU_ANALYSIS level (pipeline step
+    3): the corpus generator + the SU / the dispersion / the
+    never-observed audit kernels. The enable master switch is
+    FALSE by default (the SU analysis is OPTIONAL, opt-in; the
+    production configs are untouched, the experiment configs
+    opt in). The su_pairs are the explicit (feature, feature)
+    pairs for the joint analysis (the canonical sorted form +
+    the dedupe); the fail-fast against the feature set is at
+    the LMConfig level (it needs the feature_set field).
     """
     enable: bool = Field(
         default=False,
@@ -204,7 +203,7 @@ class SuAnalysisConfig(LMBaseConfig):
     su_pairs: List[Tuple[str, str]] = Field(
         default_factory=list,
         description="The explicit (feature, feature) pairs for "
-                    "the joint analysis (the P6); an empty list "
+                    "the joint analysis; an empty list "
                     "makes no joint (the default corpus cost). "
                     "Canonical sorted form + dedupe; the fail-"
                     "fast against the feature set is at the "
@@ -225,7 +224,7 @@ class SuAnalysisConfig(LMBaseConfig):
     @field_validator("su_pairs")
     @classmethod
     def check_su_pairs(cls, v: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-        """Canonical order (each pair sorted) + dedupe (the P6).
+        """Canonical order (each pair sorted) + dedupe.
         The fail-fast against the feature set is at the LMConfig
         level (it needs the feature_set field)."""
         canonical = [tuple(sorted(pair)) for pair in v]
@@ -234,17 +233,17 @@ class SuAnalysisConfig(LMBaseConfig):
 
 class EffectSizeConfig(LMBaseConfig):
     """
-    Configuration for the EFFECT_SIZE level (the I-017, the
+    Configuration for the EFFECT_SIZE level (the
     eta²/omega² + the adherence, step 6). The enable master
-    switch is FALSE by default (the I-017 D-175 — opt-in). The
+    switch is FALSE by default (opt-in). The
     top_k_adherence is the number of the most deviant features
     reported in the console (the TV descending).
     """
     enable: bool = Field(
         default=False,
         description="Master switch: false makes the EFFECT_SIZE "
-                    "level a no-op (the I-017 D-175 — the effect "
-                    "size is OPTIONAL, opt-in).")
+                    "level a no-op (the effect size is "
+                    "OPTIONAL, opt-in).")
     top_k_adherence: int = Field(
         default=20, ge=1,
         description="The number of the most deviant features "
@@ -404,18 +403,18 @@ class LMConfig(LMBaseConfig):
     analytics: AnalyticsConfig = Field(default_factory=AnalyticsConfig)
     su_analysis: SuAnalysisConfig = Field(
         default_factory=SuAnalysisConfig,
-        description="The SU_ANALYSIS level config (the "
-                    "I-017, the SU level, step 3; the enable "
-                    "default FALSE, the D-175 opt-in).")
+        description="The SU_ANALYSIS level config (the SU "
+                    "level, step 3; the enable default FALSE, "
+                    "opt-in).")
     effect_size: EffectSizeConfig = Field(
         default_factory=EffectSizeConfig,
-        description="The EFFECT_SIZE level config (the I-017, "
-                    "the eta²/omega² + the adherence, step 6; the "
-                    "enable default FALSE, the D-175 opt-in).")
+        description="The EFFECT_SIZE level config (the "
+                    "eta²/omega² + the adherence, step 6; the "
+                    "enable default FALSE, opt-in).")
     target_level: str = Field(
         default="last",
-        description="The pipeline stop target (the I-017 P4, the "
-                    "design section 3.6): a level name (case-"
+        description="The pipeline stop target (the design "
+                    "section 3.6): a level name (case-"
                     "insensitive, the fail-fast ValueError in the "
                     "StateMachine) or 'last' (the full pipeline). "
                     "Consumed by the facade's run() when no explicit "
@@ -423,7 +422,7 @@ class LMConfig(LMBaseConfig):
 
     @model_validator(mode="after")
     def check_su_pairs_feature_set(self) -> "LMConfig":
-        """The fail-fast against the feature set (the I-017 P6):
+        """The fail-fast against the feature set:
         every name in the su_analysis.su_pairs must be a
         feature in the feature_set (the mobility names + the
         pattern names)."""

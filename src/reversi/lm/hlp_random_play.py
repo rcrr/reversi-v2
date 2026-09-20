@@ -26,8 +26,8 @@
 #
 
 """
-The SU_ANALYSIS frequency data plane (the I-017, the
-step 3 data plane): the streaming frequency accumulators over
+The SU_ANALYSIS frequency data plane (the step
+3 data plane): the streaming frequency accumulators over
 the corpus (the per-sub-variable marginal + the joint, the
 phase-1 data plane the worker wrk_su_analysis.py
 consumes) + the position utilities (the ec, the standard
@@ -58,7 +58,7 @@ def ec_of(p: "PositionField") -> int:
     The ec measure of a position: 64 - the occupied squares
     (the moves remaining).
 
-    PINNED (T7, D-177): EXACTLY the DB's `empty_count` — the
+    PINNED: EXACTLY the DB's `empty_count` — the
     regab extraction filters `empty_count = ec` (regab.py, the
     "mele con mele" window constraint), and `empty_count` is
     the count of the empty squares = 64 - popcount(mover |
@@ -77,8 +77,9 @@ def initial_position() -> "PositionField":
     player) holds the E4+D5 diagonal, the opponent (white) the
     D4+E5 one (the 2x2 center; A1 = top-left = bit 0, the
     naming convention bit = 8*(row-1) + (col-1) — both sides
-    have exactly 4 legal moves, the symmetric start). The T12
-    alignment with the DB extraction side is the only place the
+    have exactly 4 legal moves, the symmetric start). The
+    label alignment with the DB extraction side is the only
+    place the
     mover label can matter.
     """
     mover = (move_as_bitboard(move_from_str('E4'))
@@ -89,7 +90,7 @@ def initial_position() -> "PositionField":
 
 
 # ---------------------------------------------------------------------
-# The frequency accumulators (the I-017 T7/T8, D-177/D-178): the
+# The frequency accumulators: the
 # streaming per-sub-variable (code -> count) marginal + the joint
 # accumulation over the corpus. The analysis unit is the
 # (feature, instance) sub-variable = ONE design-index column (the
@@ -122,8 +123,8 @@ _DENSE_THRESHOLD = 1_000_000
 
 class MarginalAccumulator:
     """
-    The streaming marginal frequency accumulator (the I-017
-    T7): per sub-variable (the (feature, instance) column), the
+    The streaming marginal frequency accumulator: per
+    sub-variable (the (feature, instance) column), the
     code -> count over the corpus positions. Feed it the corpus
     in chunks (the wave boundary harvests: the (mover, opp)
     arrays).
@@ -223,10 +224,11 @@ class MarginalAccumulator:
 
 class JointAccumulator:
     """
-    The streaming joint frequency accumulator (the I-017 T8):
+    The streaming joint frequency accumulator:
     per REQUESTED su pair (F_i, F_j) and per (instance_i,
     instance_j) in the pair, the (code_i, code_j) -> count over
-    the corpus — the instance×instance level (P6's matrix). The
+    the corpus — the instance×instance level (the joint
+    matrix). The
     joint is SPARSE (the code_i x code_j space is too large for
     the dense — the unique-merge split). The key is the packed
     u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale
@@ -234,8 +236,8 @@ class JointAccumulator:
     (code_i, code_j).
 
     The same-feature pair (F, F) is allowed: the diagonal (the
-    variable with itself) is the SU = 1 lock (OMITTED per the
-    ODP-4 close); the off-diagonal (the D8 orientations of the
+    variable with itself) is the SU = 1 lock (OMITTED); the
+    off-diagonal (the D8 orientations of the
     same mask) is the anisotropy measure.
     """
 

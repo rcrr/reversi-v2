@@ -40,13 +40,13 @@
 #
 
 """
-The SU_ANALYSIS worker (the I-017, D-186) NO-DB suite: the
-factory (the worker name), the enable no-op (the D-175 opt-in),
-the compute + the publish (the tiny corpus, the phase-2
-statistics, the TXT report), the cache hit (the second run),
-the signature invalidation (the corpus change), the su_pairs
-joint, and the down (the D-060 recovery). Plus the VLONG
-scale test (D-256): the same path at the ODP-1 corpus size.
+The SU_ANALYSIS worker NO-DB suite: the factory (the worker
+name), the enable no-op (the opt-in), the compute + the
+publish (the tiny corpus, the phase-2 statistics, the TXT
+report), the cache hit (the second run), the signature
+invalidation (the corpus change), the su_pairs joint, and the
+down (the D-060 recovery). Plus the VLONG scale test: the same
+path at the 1e7 corpus size.
 """
 
 import tempfile
@@ -105,10 +105,10 @@ def _make_ctx(tmp, n_positions, enable=True, su_pairs=None,
 
 
 class TestWrkSuAnalysis(unittest.TestCase):
-    """The SU_ANALYSIS worker (the I-017 D-186) NO-DB
-    suite: the factory, the enable no-op, the compute + the
-    publish, the cache hit, the signature invalidation, the
-    su_pairs joint, the down (the D-060 recovery)."""
+    """The SU_ANALYSIS worker NO-DB suite: the factory, the
+    enable no-op, the compute + the publish, the cache hit,
+    the signature invalidation, the su_pairs joint, the down
+    (the D-060 recovery)."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -123,7 +123,7 @@ class TestWrkSuAnalysis(unittest.TestCase):
         self.assertEqual(w.name, "SU_ANALYSIS")
 
     def test_enable_no_op(self):
-        # The D-175 opt-in: the enable false makes the level a
+        # The opt-in: the enable false makes the level a
         # no-op (the tables stay None, the "disabled" log).
         ctx = _make_ctx(self.tmp, 1000, enable=False)
         _up(ctx)
@@ -198,11 +198,11 @@ class TestWrkSuAnalysis(unittest.TestCase):
 
 @skipUnless(tier_vlong(),
             "Skipping the 1e7 corpus test (set VLONG=1 or VVLONG=1 "
-            "to run; D-256)")
+            "to run)")
 class TestSuCorpusAtScale(unittest.TestCase):
-    """The SU-analysis corpus at the ODP-1 scale (1e7 positions, ec 20,
+    """The SU-analysis corpus at the 1e7 scale (ec 20,
     seed 42, the rlm_00 feature set): the wave engine at the production
-    size + the SU tables + the cache round-trip. VLONG (D-256) — the
+    size + the SU tables + the cache round-trip. VLONG — the
     cold run is ~50 s.
 
     It pins what the small-corpus suite cannot: the harvested count at

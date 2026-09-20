@@ -26,12 +26,12 @@
 #
 
 """
-The SU_ANALYSIS worker (the I-017, the SU level, step 3,
-D-186): the corpus generator + the statistics. The D-174 wave
-corpus (the PRNG seed, the ec arrest, the wave tier) is CACHED
+The SU_ANALYSIS worker (the SU level, step 3): the corpus
+generator + the statistics. The wave corpus (the PRNG seed,
+the ec arrest, the wave tier) is CACHED
 (phase 1, the expensive part) — the first cache level whose
 consistency signature carries the feature_set hash INSTEAD of
-the rds_checksum (the P5, the new cache lineage). The
+the rds_checksum (the new cache lineage). The
 statistics (phase 2: the dispersion + the never-observed audit
 + the SU pairs) are cheap and recomputed on EVERY run, including
 the cache hit. The level publishes the corpus frequency tables
@@ -69,30 +69,31 @@ __all__ = ['wrk_su_analysis']
 
 # The wave size CEILING (the 1e6 benchmark default) + the
 # generator / the PRNG version pins (the cache consistency
-# signature, P5). The wave is the PARALLELISM: the actual size is
+# signature). The wave is the PARALLELISM: the actual size is
 # min(this, the corpus size), because the lanes beyond the corpus
 # are pure overhead — the 1e6-lane arrays (~48 MB) and the per-step
 # glue cost ~3.4 s for a 10k-position harvest that a 10k-lane wave
 # does in ~0.04 s. The production corpora (1e7) keep 1e6 lanes.
 _WAVE_SIZE = 1_000_000
-# The corpus-generator version, part of the cache signature. BUMPED
-# at D-254: "g0-1" marked the corpora generated with the SWAPPED
-# initial position (the pre-D-192 roles: the mover D4+E5 instead of
-# the official E4+D5) — every cache written under it is STALE and
-# must be regenerated. "su-corpus-2" is the official start (the D-192
-# fix) + the neutral name (the old two-variant naming is dead: the
-# table-pick variant was buried at D-191). A version bump invalidates every cached corpus,
-# which is exactly the point: the signature exists so that a change
-# of the generator's behaviour can never be reused silently.
+# The corpus-generator version, part of the cache signature.
+# "su-corpus-2" is the official start (the E4+D5 stones) + the
+# neutral name (the old two-variant naming is dead). The
+# superseded version "g0-1" marked the corpora generated with
+# the SWAPPED initial position (the mover D4+E5 instead of the
+# official E4+D5) — every cache written under it is STALE and
+# must be regenerated. A version bump invalidates every cached
+# corpus, which is exactly the point: the signature exists so
+# that a change of the generator's behaviour can never be
+# reused silently.
 _GENERATOR_VERSION = "su-corpus-2"
 _PRNG_VERSION = "mt19937-64"
 _RARITY_THRESHOLDS = (1, 2, 5, 10, 100)
 
 
 def _feature_set_hash(cfg) -> str:
-    """The feature set hash (the cache consistency signature,
-    the P5 — the first cache level WITHOUT the rds_checksum,
-    the feature_set hash instead): the sha3_256 of the
+    """The feature set hash (the cache consistency signature —
+    the first cache level WITHOUT the rds_checksum, the
+    feature_set hash instead): the sha3_256 of the
     feature_set config's normalized dump (the first 16 hex)."""
     dump = cfg.feature_set.model_dump_json(indent=2)
     return hashlib.sha3_256(dump.encode()).hexdigest()[:16]
@@ -183,17 +184,17 @@ def _marginal_lookup(marginal) -> dict:
 
 
 def _su_values(joint, lookup):
-    """The requested SU pairs (the P6): for each configured
+    """The requested SU pairs: for each configured
     (name_i, name_j) pair and each (inst_i, inst_j), the SU =
     2*I / (H_i + H_j) from the joint + the two marginals. The
     same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the
-    SU = 1 lock, the ODP-4 close — not a measurement)."""
+    SU = 1 lock — not a measurement)."""
     su = []
     for (name_i, name_j, per_instance) in joint:
         same_feature = (name_i == name_j)
         for (ii, jj) in per_instance:
             if same_feature and ii == jj:
-                continue  # The diagonal: the ODP-4 lock, omitted.
+                continue  # The diagonal: the SU = 1 lock, omitted.
             codes_i, codes_j, counts = per_instance[(ii, jj)]
             mi = lookup.get((name_i, ii))
             mj = lookup.get((name_j, jj))

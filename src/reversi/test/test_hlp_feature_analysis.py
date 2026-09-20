@@ -40,12 +40,12 @@
 #
 
 """
-The analysis-kernels data module (the I-017, the SHARED kernels
-of the SU_ANALYSIS and EFFECT_SIZE levels) NO-DB micro-suite —
-the T11 SU / entropy / mutual-information kernels (D-181): the
-hand-computed toy tables (the uniform / the degenerate / the
-binary entropies, the perfect-correlation / the independent
-mutual informations, the SU = 1 / 0 / the 0-denominator guard).
+The analysis-kernels data module (the SHARED kernels of the
+SU_ANALYSIS and EFFECT_SIZE levels) NO-DB micro-suite — the
+SU / entropy / mutual-information kernels: the hand-computed
+toy tables (the uniform / the degenerate / the binary
+entropies, the perfect-correlation / the independent mutual
+informations, the SU = 1 / 0 / the 0-denominator guard).
 """
 
 import math
@@ -122,13 +122,13 @@ class TestSymmetricUncertainty(unittest.TestCase):
             symmetric_uncertainty(0.0, 1.0, 1.0), 0.0, places=12)
 
     def test_zero_denominator(self):
-        # The degenerate variables (H_u = H_v = 0): the 0/0 guard
-        # -> SU = 0 (the ODP-4/ODP-8 close).
+        # The degenerate variables (H_u = H_v = 0): the 0/0
+        # guard -> SU = 0.
         self.assertEqual(symmetric_uncertainty(0.0, 0.0, 0.0), 0.0)
 
 
 class TestDispersion(unittest.TestCase):
-    """The per-sub-variable dispersion (T12, D-182): K_obs, H,
+    """The per-sub-variable dispersion: K_obs, H,
     H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
     coverage = K_obs / n_configurations."""
 
@@ -161,8 +161,8 @@ class TestDispersion(unittest.TestCase):
 
 
 class TestNeverObservedAudit(unittest.TestCase):
-    """The never-observed audit (T12, D-182, the STOP
-    deliverable P2): the n_configurations - K_obs + the rarity
+    """The never-observed audit: the n_configurations - K_obs
+    + the rarity
     profile (the observed codes below each small threshold)."""
 
     def test_hand_computed(self):
@@ -192,7 +192,7 @@ class TestNeverObservedAudit(unittest.TestCase):
 
 
 class TestAnovaEtaOmega(unittest.TestCase):
-    """The one-way ANOVA effect sizes (T13, D-183): eta² =
+    """The one-way ANOVA effect sizes: eta² =
     SS_eff / SS_tot, omega² = (SS_eff - (K-1) MS_err) / (SS_tot
     + MS_err), the K = 1 degeneracy + the K > N ValueError."""
 
@@ -237,7 +237,7 @@ class TestAnovaEtaOmega(unittest.TestCase):
 
 
 class TestKLDivergence(unittest.TestCase):
-    """The KL divergence (T14, D-184): in nats, the 0-log-0
+    """The KL divergence: in nats, the 0-log-0
     convention, +inf if p(i) > 0 and q(i) = 0."""
 
     def test_equal(self):
@@ -259,7 +259,7 @@ class TestKLDivergence(unittest.TestCase):
 
 
 class TestTotalVariation(unittest.TestCase):
-    """The total variation (T14, D-184): 0.5 * sum |p - q|,
+    """The total variation: 0.5 * sum |p - q|,
     in [0, 1], the robust "how different" number."""
 
     def test_equal(self):
@@ -283,7 +283,7 @@ class TestTotalVariation(unittest.TestCase):
 
 
 class TestChiSquareGoodness(unittest.TestCase):
-    """The chi-square goodness-of-fit (T14, D-184): the
+    """The chi-square goodness-of-fit: the
     statistic sum (O - E)^2 / E, the p-value (the scipy
     chi2.sf), the merged tail (the E < 5 cells into the "other"
     bin) + the merge count."""
@@ -314,7 +314,7 @@ class TestChiSquareGoodness(unittest.TestCase):
 
 
 class TestAdherence(unittest.TestCase):
-    """The adherence (c) trio (T14, D-184): the chi-square
+    """The adherence (c) trio: the chi-square
     (the p-value + the merged-tail count), the KL (the 0-log-0),
     the TV (the robust "how different" number)."""
 
