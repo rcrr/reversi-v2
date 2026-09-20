@@ -257,8 +257,8 @@ class TestVldIndependenceCheck(unittest.TestCase):
 
     The VLD_POSITIONS worker counts how many validation records are
     also present in the training data set and logs the trace.
-    Roberto's ruling: no threshold/quality parameter family — the
-    pipeline keeps the record and takes no action."""
+    There is no threshold/quality parameter family — the pipeline
+    keeps the record and takes no action."""
 
     @classmethod
     def setUpClass(cls):
