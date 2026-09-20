@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_gradient
 #
@@ -66,10 +66,10 @@ class TestLMWorkerGradient(unittest.TestCase):
     """Tests the GRADIENT worker integration and exact values using rlm_02.json."""
 
     def setUp(self):
-        # T5 (D-093): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # the worker test needs the live regab DB (the setUp moves to
         # ZED, which runs the positions chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean, especially for large datasets
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -142,7 +142,7 @@ class TestLMWorkerGradient(unittest.TestCase):
 
 
 class TestGradientFlagWiring(unittest.TestCase):
-    """The high_performance_fg config flag (I-013) wiring: the
+    """The high_performance_fg config flag wiring: the
     GRADIENT worker reads optimization.high_performance_fg and builds
     the matching fg variant. Mock context (no DB)."""
 

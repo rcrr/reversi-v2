@@ -34,7 +34,7 @@
 # $ source .venv/bin/activate
 #
 # -1- Run the tests (no DB needed; PERF=1 adds the print-only
-#     performance test, D-130).
+#     performance test; see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_client
 #
@@ -59,7 +59,7 @@ SEED = 42
 
 
 class TestClientEvaluationFunction(unittest.TestCase):
-    """The scalar and the array Evaluation Functions (D-141) over a
+    """The scalar and the array Evaluation Functions over a
     synthetic rlm_04-mirror ModelWeights: intercept + LMC + EDGE, the
     same feature layout (and the same iwmap pin) as the rlm_04 training
     configuration — no DB, no cache, no pipeline."""
@@ -101,8 +101,8 @@ class TestClientEvaluationFunction(unittest.TestCase):
         return make_position(m, o)
 
     def test_parity_bit_exact(self):
-        """The array EF equals the scalar EF bit-exactly, per position
-        (D-141): the length-1 wrap removed, the same math."""
+        """The array EF equals the scalar EF bit-exactly, per
+        position: the length-1 wrap removed, the same math."""
         positions = self._positions(1000)
         y_array = self.ef_array(positions)
         self.assertEqual(y_array.dtype, np.float32)
@@ -121,7 +121,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
                                       self.ef_array(positions))
 
     def test_2d_structured_raises_value_error(self):
-        """The standard 1-D guard (D-111 M5): a 2-D structured
+        """The standard 1-D guard: a 2-D structured
         PositionArray is admitted by the PositionArray validator (no
         ndim check there) and must not reach the numba kernel."""
         positions = self._positions(4).reshape(2, 2)
@@ -129,7 +129,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
             self.ef_array(positions)
 
     def test_scalar_position_rejected(self):
-        """Strict array (D-141): a scalar Position is rejected — the
+        """Strict array: a scalar Position is rejected — the
         scalar contract is make_evaluation_function."""
         positions = self._positions(1)
         with self.assertRaises(ValidationError):
@@ -153,7 +153,7 @@ class TestClientEvaluationFunction(unittest.TestCase):
                          "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         """Measure the vectorized EF over a dense 1,000,000-board batch
-        (the house print pattern, D-140)."""
+        (the house print pattern)."""
         size = 1_000_000
         positions = self._positions(size)
 

@@ -159,7 +159,7 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
     """
     random_game_make_move, the array case: the batch
     pick-and-execute over a 1-D PositionArray — the batch pick
-    (the stream contract) composed with the D-140 position_flips
+    (the stream contract) composed with the position_flips
     (a zero element swaps the players, a legal element flips), the
     move codes from popcount(move - 1) (the bit index, and the
     wrap-around of an empty move gives 64 = PA). The fixtures are
@@ -786,7 +786,7 @@ class TestRandomGamePlayPath(unittest.TestCase):
         #     pass swaps the players without touching it);
         #
         # (2) the N final positions are pairwise DISTINCT — the
-        #     position_hash duplicate check (D-213): the hash is a
+        #     position_hash duplicate check: the hash is a
         #     pure function of the (mover, opponent) pair and it is
         #     view-dependent, so an equal hash means an equal
         #     position with the same player to move.
@@ -802,9 +802,9 @@ class TestRandomGamePlayPath(unittest.TestCase):
     def test_random_game_play_path_double_pass_game_over(self):
         # A game-over position (both players moveless, ec = 20 > the
         # target): the double-pass break must stop the loop. The pass
-        # is PA = 64 since D-208 — the stale pre-D-208 sentinel
-        # (Move(66) = UN) never matched and the loop span forever
-        # (the D-218 fix). The two consecutive passes swap the view
+        # is PA = 64 — the stale pre-fix sentinel (Move(66) = UN)
+        # never matched and the loop span forever (the fix this
+        # test guards). The two consecutive passes swap the view
         # twice: the returned position is the input one, with its own
         # empty count.
         p = make_position(bitboard_from_signed_int(np.int64(0x00000FFFFFFFFFFF)),

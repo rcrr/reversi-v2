@@ -58,7 +58,7 @@ import numba as nb
 
 from reversi.board import *
 
-# The white-box import for the Zobrist table pin (D-213): the star
+# The white-box import for the Zobrist table pin: the star
 # import above skips the underscore names.
 from reversi.board import _zobrist_bitstrings
 
@@ -143,7 +143,7 @@ class TestSquare(unittest.TestCase):
         # Code 64 is out of the square range: square_as_bitboard computes
         # Bitboard(1) << sq, and NumPy wraps a uint64 shift by >= 64 to 0.
         # This assertion pins that wrap as-is; making it explicit in the
-        # code is open decision R3 (docs/src/reversi/board.md, I-003).
+        # code is an open decision (docs/src/reversi/board.md).
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
 
@@ -165,7 +165,7 @@ class TestSquare(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             sq = Square(64)
             square_validate_range(sq)
-        # D-111 M2: the message is built from the __square_max_value__
+        # The message is built from the __square_max_value__
         # constant (mirrors move_validate_range).
         self.assertEqual(str(cm.exception), "Value must be in the range [0..63].")
 
@@ -906,9 +906,9 @@ class TestBitboardAntiTransformations(unittest.TestCase):
 
 class TestD8FunctionTables(unittest.TestCase):
     """
-    D-111 M3: the 4 D8 function/label tables are plain Python lists
+    The 4 D8 function/label tables are plain Python lists
     (not np.object arrays), with the canonized D8 slot order
-    (notes/naming.md, D-014).
+    (notes/naming.md).
     """
 
     def test_tables_are_plain_lists_of_8(self):
@@ -936,7 +936,7 @@ class TestD8FunctionTables(unittest.TestCase):
 
 @nb.njit
 def _jit_reflections_scalar(x):
-    # D-111 M7: the JIT-side entry points for the @overload-registered
+    # The JIT-side entry points for the @overload-registered
     # reflection primitives (the overloads are resolved through the
     # @validate_call wrapper globals).
     return (bitboard_fa1h8(x), bitboard_fh1a8(x),
@@ -950,7 +950,7 @@ def _jit_reflections_array(x):
 
 class TestNumbaReflectionOverloads(unittest.TestCase):
     """
-    D-111 M7: the @overload of the 4 reflection primitives is
+    The @overload of the 4 reflection primitives is
     exercised in a numba (JIT) context — before this test nothing
     called them from JIT code.
     """
@@ -999,7 +999,7 @@ class TestBitboardD8GroupLaw(unittest.TestCase):
             self.assertEqual(bitboard_ro000(bb), bb)
 
     def test_ro000_array_is_a_fresh_copy(self):
-        # D-111 M1: the identity is a copy, not an alias — the same
+        # The identity is a copy, not an alias — the same
         # contract as the other 7 D8 functions and as position_ro000.
         arr = np.array([Bitboard(0x1234567890ABCDEF),
                         Bitboard(0x8000000000000003)], dtype=Bitboard)
@@ -1930,7 +1930,7 @@ class TestPositionLegalMoves(unittest.TestCase):
         self.assertEqual(str(ctx.exception), "The shapes of mover and opponent arrays must be the same.")
 
     def test_legal_moves_2d_mover_raises_value_error(self):
-        # D-111 M5: the standard 1-D guard — before it, a 2-D array
+        # The standard 1-D guard — before it, a 2-D array
         # crashed deep in the numba kernel with a TypingError.
         movers = np.array([[0x0000000000000001, 0x0000000000000002]], dtype=Bitboard)
         opponents = np.array([[0x0040201008040200, 0x0080402010080402]], dtype=Bitboard)
@@ -2246,7 +2246,7 @@ class TestPositionFlips(unittest.TestCase):
                 )
                 self.assertTrue(position_eq(updated, expected_updated))
 
-    # D-140: the array path of the dual API.
+    # The array path of the dual API.
 
     def test_position_flips_array_bulk(self):
         # The same 42-line dataset as test_position_flips_bulk, played
@@ -2325,7 +2325,7 @@ class TestPositionFlips(unittest.TestCase):
                 self.assertTrue(position_eq(updated[i], expected_updated))
 
     def test_position_flips_array_matches_scalar(self):
-        # D-140: elementwise parity with the scalar path on random data
+        # Elementwise parity with the scalar path on random data
         # (fixed seed), including zero and multi-bit moves; for the
         # single-bit moves the flip set is non-empty exactly when the
         # move is in the legal-move set.
@@ -2526,11 +2526,11 @@ class TestPositionMakeMove(unittest.TestCase):
         
         self.assertIsNone(result)
 
-    # D-140: the array path of the dual API.
+    # The array path of the dual API.
 
     def test_position_make_move_array_mixed_batch(self):
         # One batch with a legal move, an illegal move, a PA and a
-        # second legal move: the elementwise semantics (D-140).
+        # second legal move: the elementwise semantics.
         movers = np.array([
             0x0000000000000001,
             0x0000000000000001,
@@ -2569,7 +2569,7 @@ class TestPositionMakeMove(unittest.TestCase):
             self.assertTrue(position_eq(updated[i], make_position(positions[i]['opponent'], positions[i]['mover'])))
 
     def test_position_make_move_array_matches_scalar(self):
-        # D-140: elementwise parity with the scalar path on random data
+        # Elementwise parity with the scalar path on random data
         # (fixed seed), with PA interleaved; an illegal square (scalar
         # None) keeps the input position.
         rng = np.random.default_rng(20260909)
@@ -2976,7 +2976,7 @@ class TestPydanticVersion(unittest.TestCase):
 
 class TestPositionHash(unittest.TestCase):
     """
-    position_hash (D-213): the 64-bit Zobrist hash of the game
+    position_hash: the 64-bit Zobrist hash of the game
     position — the legacy C engine bitstrings (board.c
     `zobrist_bitstrings[]`), the SWAR byte-fold kernel, the dual
     scalar/array API.
@@ -3143,7 +3143,7 @@ class TestPositionHash(unittest.TestCase):
 
 class TestPositionHashLegacyParity(unittest.TestCase):
     """
-    position_hash vs the LEGACY C engine (D-215): the FFO-12 solve-log
+    position_hash vs the LEGACY C engine: the FFO-12 solve-log
     sample (the game_tree_logger CSV, 21 columns; HASH/BLACKS/WHITES
     are signed int64 decimals — the bitboard_from_signed_int
     representation).
@@ -3155,7 +3155,7 @@ class TestPositionHashLegacyParity(unittest.TestCase):
     the full DFS span (ec 0..15, both players, leaf + internal
     nodes; the lean-fixture call).
 
-    The parity rules (the D-213 bridge):
+    The parity rules (the C-engine bridge):
       PLAYER = 0 (BLACK_PLAYER): position_hash(blacks, whites) == hash
       PLAYER = 1 (WHITE_PLAYER): hash == ~position_hash(blacks, whites)
     """
@@ -3188,7 +3188,7 @@ class TestPositionHashLegacyParity(unittest.TestCase):
         self.assertEqual(rows[-1][14].strip(), "UN")
 
     def test_full_sample_parity(self):
-        # Every row of the fixture: the two bridge rules (D-213) +
+        # Every row of the fixture: the two bridge rules +
         # the EMPTY_COUNT parse cross-check.
         _, rows = self._read_rows()
         hash_i64 = np.array([int(r[2]) for r in rows], dtype=np.int64)
@@ -3208,7 +3208,7 @@ class TestPositionHashLegacyParity(unittest.TestCase):
 
 class TestNumbaPrimitives(unittest.TestCase):
     """
-    The public njit primitives for the numba compositions (D-232):
+    The public njit primitives for the numba compositions:
     legal_moves_of (the per-lane legal-move set) and flips_of_move
     (the flip set of a single-bit move) — the single sources shared
     by the vectorized kernels of board and by random_game's fused

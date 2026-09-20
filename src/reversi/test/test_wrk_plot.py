@@ -78,7 +78,7 @@ class TestWrkPlot(unittest.TestCase):
     No DB, no pipeline: the worker is exercised directly. The
     Worker.up @validate_call gate (context: Context) requires a REAL
     LMContext; the cfg attribute is the SimpleNamespace stand-in
-    (the D-144 v2 micro-test idiom), the log_event a capturing
+    (the v2 micro-test idiom), the log_event a capturing
     lambda."""
 
     def setUp(self):
@@ -152,7 +152,7 @@ class TestWrkPlot(unittest.TestCase):
         ctx.y2z, ctx.z2y = y2z, z2y
         ctx.vld_positions = positions
         ctx.vld_game_values = vld_game_values
-        # I-018: the series the pipeline publishes (ANALYTICS + VALIDATE)
+        # The series the pipeline publishes (ANALYTICS + VALIDATE)
         # and PLOT now ASSEMBLES instead of re-deriving — here computed
         # with the same functions, on the synthetic state.
         ctx.train_dense_rn = compute_training_dense_metrics(ctx).rn_y
@@ -170,7 +170,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(wrk_plot().name, "PLOT")
 
     def test_up_disabled_is_a_noop(self):
-        """The master switch (the D-149 ruling): enable=false does
+        """The master switch: enable=false does
         NOTHING, even with the full whitelist — log only, no
         directory, no files."""
         self._ctx.cfg.plot = self._plot_cfg(enable=False)
@@ -180,7 +180,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(messages, ["PLOT skipped: plot.enable is false."])
 
     def test_up_empty_whitelist_is_a_noop(self):
-        """An empty whitelist (names are OPTIONAL, D-149): the level
+        """An empty whitelist (names are OPTIONAL): the level
         does nothing — log only."""
         self._ctx.cfg.plot = self._plot_cfg(plots=[])
         wrk_plot().up(self._ctx)
@@ -222,7 +222,7 @@ class TestWrkPlot(unittest.TestCase):
                       messages)
 
     def test_up_format_pair_writes_both(self):
-        """The 'pdf,png' pair (D-149): each whitelisted name is
+        """The 'pdf,png' pair: each whitelisted name is
         written in BOTH formats (the pdf is the vector one, no
         dpi)."""
         ctx = self._ctx
@@ -239,7 +239,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(len(list(plot_dir.iterdir())), 4)
 
     def test_up_absolute_dir_name(self):
-        """An ABSOLUTE dir_name (the D-149 ruling) is used as-is —
+        """An ABSOLUTE dir_name is used as-is —
         the plots may live outside base_dir; the relative default
         does not leak there."""
         ctx = self._ctx
@@ -253,7 +253,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertFalse((ctx.cfg.base_dir / "plots").exists())
 
     def test_up_partial_whitelist(self):
-        """Only the LISTED names are generated (the D-149 ruling: a
+        """Only the LISTED names are generated: a
         listed name is written, an unlisted one is skipped)."""
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["resid_vs_fitted"])
@@ -268,13 +268,13 @@ class TestWrkPlot(unittest.TestCase):
     # -- the golden --------------------------------------------------------
 
     def test_parity_png_golden(self):
-        """The D-149 rendering golden (re-pinned at D-150 for the
-        fixed axes + the two-line title; re-pinned at D-158 for the
-        env drift — the rendering is visually identical, only the
-        font rasterization bytes moved): the parity figure of the
+        """The rendering golden (re-pinned for the fixed axes + the
+        two-line title; re-pinned again for the env drift — the
+        rendering is visually identical, only the font rasterization
+        bytes moved): the parity figure of the
         synthetic context (SEED 42, N_TRN 1200 / N_VLD 1000, the
         rlm_04 mirror, png at 150 dpi) hashes to the pinned value.
-        Version-sensitive like the other f32 goldens (D-127): it
+        Version-sensitive like the other f32 goldens: it
         moves when matplotlib or numpy changes."""
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["parity"])

@@ -73,7 +73,7 @@ class TestWrkClientCheck(unittest.TestCase):
     array EF vs the in-memory VALIDATE forward pass. No DB, no
     pipeline: the worker is exercised directly. The Worker.up
     @validate_call gate (context: Context) requires a REAL LMContext;
-    the cfg attribute is the SimpleNamespace stand-in (the D-144 v2
+    the cfg attribute is the SimpleNamespace stand-in (the v2
     micro-test idiom), the log_event a capturing lambda."""
 
     def setUp(self):
@@ -118,7 +118,7 @@ class TestWrkClientCheck(unittest.TestCase):
 
         ctx = LMContext(
             config_file_path=Path(self.tmp_dir) / "config.json")
-        dump = '{"name": "SYNTH_CC", "marker": "D-148"}'
+        dump = '{"name": "SYNTH_CC", "marker": "SYNTH"}'
         ctx.cfg = SimpleNamespace(
             name="SYNTH_CC",
             base_dir=Path(self.tmp_dir),
@@ -141,7 +141,7 @@ class TestWrkClientCheck(unittest.TestCase):
                         "f": 0.01, "g_norm": 1e-6}
         ctx.vld_metrics = {"vld_samples": N_VLD, "vld_rmse_y": 1.0,
                            "vld_mae_y": 0.5, "vld_loss": 0.0025}
-        # I-018: the validation series the check consumes — published
+        # The validation series the check consumes — published
         # by VALIDATE, here derived with the SAME hlp_validate pass
         # (the level that owns it) on the synthetic state.
         ctx.vld_rn = validate_model(ctx).rn_y
@@ -169,7 +169,7 @@ class TestWrkClientCheck(unittest.TestCase):
         validation residuals BIT-EXACTLY (max difference 0.0 < the
         1e-8 tolerance — the same f32 pipeline over the bit-exact
         round-trip): the check passes and logs the completion line
-        (the D-148 bit-identity golden)."""
+        (the bit-identity golden)."""
         self._write_model_file()
         wrk_client_check().up(self._ctx)
         messages = [m for _, m in self._events]
@@ -181,7 +181,7 @@ class TestWrkClientCheck(unittest.TestCase):
 
     def test_up_missing_file_raises(self):
         """No SAVE artifact (the file was never written): the read
-        raises, the exception propagates (the D-060 failure
+        raises, the exception propagates (the failure
         semantics: the machine logs and re-raises, the step stays at
         CLIENT_CHECK)."""
         with self.assertRaises(FileNotFoundError):
@@ -191,7 +191,7 @@ class TestWrkClientCheck(unittest.TestCase):
 
     def test_up_diverged_weights_raise(self):
         """The FILE diverges from the validation series (the drift
-        case, D-148; re-shaped at I-018): the file is written from a
+        case): the file is written from a
         DIVERGED in-memory state, so its residuals differ from the
         series VALIDATE published — the max difference is far above
         the 1e-8 tolerance, the worker logs the ERROR line and raises
@@ -210,11 +210,10 @@ class TestWrkClientCheck(unittest.TestCase):
         self.assertEqual(len(failed), 1)
 
     def test_tolerance_is_read_from_config(self):
-        """The tolerance is the cfg field (Roberto's ruling: the JSON
-        config value, not a module constant): the same diverged FILE
-        (max difference ~0.2, I-018: written from a diverged state) is
-        ADMITTED by a wide tolerance (1.0) and REJECTED by a tight one
-        (1e-4)."""
+        """The tolerance is the cfg field (the JSON config value, not
+        a module constant): the same diverged FILE (max difference
+        ~0.2, written from a diverged state) is ADMITTED by a wide
+        tolerance (1.0) and REJECTED by a tight one (1e-4)."""
         self._ctx.w_dense = self._ctx.w_dense + np.float32(1e-3)
         self._write_model_file()
         self._ctx.cfg.client_check_tol = 1.0

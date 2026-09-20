@@ -98,8 +98,8 @@ class TestLMWorkerConfig(unittest.TestCase):
         rlm.move_to_step('CREATED')
         self.assertEqual(rlm.current_step, 0)
         self.assertEqual(rlm.current_worker_name, 'CREATED')
-        # T3 (D-078): the _down reset is pinned — both context
-        # artifacts are cleared (D-142: the fingerprint too).
+        # The _down reset is pinned — both context
+        # artifacts are cleared (the fingerprint too).
         self.assertIsNone(rlm.context.cfg)
         self.assertIsNone(rlm.context.use_cache)
         self.assertIsNone(rlm.context.config_checksum)
@@ -139,7 +139,7 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.assertEqual(value, expected_value)
 
     def test_config_fingerprint(self):
-        """D-142: the config fingerprint is the sha3_256 of the
+        """The config fingerprint is the sha3_256 of the
         normalized dump (the effective configuration, the base_dir
         override included) — the single source of truth for the SAVE
         config record and the analytics report."""
@@ -150,7 +150,7 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.assertEqual(ctx.config_checksum, expected)
 
     def test_no_cache_file_written(self):
-        """D-142: the CONFIG level writes NOTHING to the base dir —
+        """The CONFIG level writes NOTHING to the base dir —
         the ad-hoc cache flow is gone (the config record is a SAVE
         artifact, next to the model file)."""
         self.rlm.move_to_step('CONFIG')
@@ -218,7 +218,7 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
         file_path.write_text("{ this is not valid json }")
         
         rlm = LogisticModel(file_path, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
-        # T2 (D-078): pin the actual exception — json5 0.15.0 raises
+        # Pin the actual exception — json5 0.15.0 raises
         # a plain ValueError on a syntax error (no JSON5Exception in
         # this version), before pydantic ever sees the payload.
         with self.assertRaises(ValueError):
@@ -298,7 +298,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         valid_json = Path('src/reversi/test/data/rlm_00.json')
         rlm = LogisticModel(valid_json, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
 
-        # R3 (D-078): the precise OS exception type, not RuntimeError.
+        # The precise OS exception type, not RuntimeError.
         with self.assertRaises(PermissionError) as context:
             rlm.move_to_step('CONFIG')
         self.assertIn("not writable", str(context.exception))
@@ -307,7 +307,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         """Test that a base_dir that doesn't exist (from the json, no
         override) raises FileNotFoundError from the CONFIG worker.
 
-        D-106 step 3 (probe_rules.md §4): the third base_dir guard
+        probe_rules.md §4: the third base_dir guard
         branch, converted from the verify_wrk_config.py D1 probe.
         The file (NotADirectoryError) and not-writable (PermissionError)
         branches are pinned above."""

@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_zed
 #
@@ -81,10 +81,10 @@ class TestLMWorkerZed(unittest.TestCase):
     """Tests the ZED worker integration and exact values using rlm_01.json."""
 
     def setUp(self):
-        # T1 (D-091): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # the worker tests need the live regab DB (the setUp moves to
         # DESIGN_MTR, which runs the positions chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -148,7 +148,7 @@ class TestLMWorkerZed(unittest.TestCase):
         nptest.assert_array_equal(expected_z, self.rlm.context.z)
 
     def test_down_clears_zed_attributes(self):
-        # T5 (D-091): pin the _down clearing (live-verified, probe D12).
+        # Pin the _down clearing (live-verified, probe D12).
         self.rlm.move_to_step('ZED')
         self.assertIsNotNone(self.rlm.context.z)
 

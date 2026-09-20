@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_optimize
 #
@@ -62,16 +62,16 @@ class TestLMWorkerOptimize(unittest.TestCase):
     """Tests the OPTIMIZE worker integration."""
 
     def setUp(self):
-        # T1 (D-096): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # the worker test needs the live regab DB (the setUp moves to
         # GRADIENT, which runs the positions chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean, especially for large datasets
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # T2 (D-096): D-085 idiom — TemporaryDirectory created FIRST
+        # The shared temp-dir idiom: TemporaryDirectory created FIRST
         # under the shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored config.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
@@ -145,7 +145,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
         self.assertIn("Iterations", logs)
 
         # And confirm L-BFGS did NOT run (no per-iteration optimizer logs).
-        # T6 (D-096): "L-BFGS - [" is the actual lbfgs marker — the old
+        # "L-BFGS - [" is the actual lbfgs marker — the old
         # "Starting L-BFGS optimization" string was never logged (vacuous).
         self.assertNotIn("L-BFGS - [", logs)
 
@@ -153,7 +153,7 @@ class TestLMWorkerOptimize(unittest.TestCase):
         nptest.assert_array_equal(rlm2.context.w, weights_from_first_run)
 
     def test_down_clears_optimize(self):
-        """T7 (D-096): _down clears fg, w_checksum and opt_info (R4); ctx.w is kept."""
+        """_down clears fg, w_checksum and opt_info; ctx.w is kept."""
         ctx = self.rlm.context
 
         self.rlm.move_to_step('OPTIMIZE')

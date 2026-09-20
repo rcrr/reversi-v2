@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (the whole suite here is DB-gated: a live
 #     regab DB + LONG=1 are required; SKIP_REGAB_DB=1 skips them,
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_regab
 #
@@ -96,7 +96,7 @@ class BaseTestCase(unittest.TestCase):
         Runs before each individual test. 
         Loads credentials and initializes the database connection.
         """
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
         load_dotenv(WORKSPACE_ROOT / ".env")
         self.dbname = os.getenv('DB_NAME')
         self.user = os.getenv('DB_USER')
@@ -697,7 +697,7 @@ class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
 
 
 class TestRegabDedupMogv(unittest.TestCase):
-    """D-143: regab_dedup_mogv — no-DB micro tests (a few records)."""
+    """regab_dedup_mogv — no-DB micro tests (a few records)."""
 
     def _df(self, rows):
         return pd.DataFrame(rows, columns=['mover', 'opponent', 'game_value'])
@@ -736,9 +736,9 @@ class TestRegabDedupMogv(unittest.TestCase):
         self.assertEqual(deduped.iloc[0].tolist(), [1, 1, 5])
 
     def test_same_key_different_game_value_keeps_first(self):
-        # D-143: the pipeline does NOT validate the data (Roberto's
-        # ruling) — a duplicate key with a differing game_value does
-        # not raise; the first occurrence is simply kept.
+        # The pipeline does NOT validate the data — a duplicate key
+        # with a differing game_value does not raise; the first
+        # occurrence is simply kept.
         df = self._df([(1, 1, 5), (1, 1, -5)])
         deduped, total, removed = regab_dedup_mogv(df)
         self.assertEqual(removed, 1)
@@ -753,7 +753,7 @@ class TestRegabDedupMogv(unittest.TestCase):
 
 
 class TestRegabCountPositionOverlap(unittest.TestCase):
-    """D-143: regab_count_position_overlap — no-DB micro tests."""
+    """regab_count_position_overlap — no-DB micro tests."""
 
     def _pos(self, movers, opponents):
         return make_position(np.array(movers, dtype=np.uint64),

@@ -174,7 +174,7 @@ class TestHlpOptimizeIO(unittest.TestCase):
         nptest.assert_array_equal(cp['w'], self.w)
 
     def test_history_length_mismatch_raises(self):
-        """M6 (D-096): the three history lists must have equal length."""
+        """The three history lists must have equal length."""
         p = Path(self._tmp.name) / "bad_history.dat"
         with self.assertRaises(ValueError):
             save_optimization_checkpoint(
@@ -216,10 +216,10 @@ class TestHlpOptimizeIO(unittest.TestCase):
         self.assertIn("Checkpoint version mismatch: found 2, expected 1", str(cm.exception))
 
     def test_checksum_mismatch_raises(self):
-        """R3 (D-096): load verifies the SHA3-256 sidecar; a mismatched
-        sidecar is rejected. (D-139: a corrupted CONTENT file now trips
-        the LZ4 frame guard first — a different guard, caught by the
-        worker per D-096 R2.)"""
+        """Load verifies the SHA3-256 sidecar; a mismatched sidecar is
+        rejected. A corrupted CONTENT file trips the LZ4 frame guard
+        first — a different guard, caught by the worker rather than
+        propagated."""
         sidecar = self.filepath.parent / (self.filepath.name + ".SHA3-256")
         sidecar.write_text("deadbeef" * 8 + "\n", encoding="ascii")
         with self.assertRaises(RuntimeError) as cm:
@@ -228,12 +228,12 @@ class TestHlpOptimizeIO(unittest.TestCase):
 
     def test_file_golden_hash(self):
         """The deterministic checkpoint bytes have a pinned SHA3-256
-        (the D-139 LZ4-compressed frame; re-derived at D-139)."""
+        (the LZ4-compressed frame)."""
         h = hashlib.sha3_256(self.filepath.read_bytes()).hexdigest()
         self.assertEqual(h, "2a2f96dfcd6224bb799ecba92011cafafa36564ac770865cfc6d04e1e978633f")
 
     def test_store_compressed_by_default(self):
-        """D-139: the checkpoint is an LZ4 frame by default."""
+        """The checkpoint is an LZ4 frame by default."""
         with open(self.filepath, "rb") as f:
             self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
 
@@ -308,7 +308,7 @@ class TestHlpOptimizeCacheConsistency(unittest.TestCase):
         self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_changed_zed_checksum))
 
     def test_inconsistent_ridge(self):
-        """R1 (D-096): a ridge change invalidates the checkpoint (like a zed change)."""
+        """A ridge change invalidates the checkpoint (like a zed change)."""
         self.assertFalse(is_optimization_cache_consistent(self.ctx, self.cp_changed_ridge))
 
 
@@ -337,7 +337,7 @@ class TestHlpOptimizeStatusConverged(unittest.TestCase):
         self.assertTrue(is_optimization_status_converged(self.ctx, cp))
 
     def test_judged_against_new_tolerance(self):
-        """M3 (D-096): the stored g_norm is judged against the CURRENT min_grad
+        """The stored g_norm is judged against the CURRENT min_grad
         (a looser tolerance accepts a checkpoint that was not converged before)."""
         self.ctx = _mock_ctx(ridge=0.01, min_grad=(1e-2, 3))
         self.assertTrue(is_optimization_status_converged(self.ctx, self._cp(5e-3)))

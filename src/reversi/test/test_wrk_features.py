@@ -35,7 +35,7 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (DB-free since D-157: the setUp moves to
+# -1- Run the tests (DB-free: the setUp moves to
 #     FEATURES, the 2nd step — CONFIG + FEATURES only, no
 #     POSITIONS, no DB).
 #
@@ -115,7 +115,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # The fixture has no name key: the schema default applies.
         self.assertEqual(fs.name, 'NoNameFeatureSet')
 
-        # Golden hashes (independently re-derived, session 22, D-082):
+        # Golden hashes (independently re-derived):
         # the FeatureSet hash is sha3_256 over b'INTERCEPT' + the
         # mset hash hex string + the pset hash hex string.
         self.assertEqual(fs.hash,
@@ -163,7 +163,7 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
     _load_features directly with a minimal context — no regab DB,
     no model, no cache.
 
-    D-106 step 3 (probe_rules.md §4): converted from the
+    probe_rules.md §4: converted from the
     verify_wrk_features.py B11 probe."""
 
     def setUp(self):

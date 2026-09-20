@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_positions
 #
@@ -71,9 +71,9 @@ class TestLMWorkerPositions(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # T2 (D-080): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # both tests need the live regab DB.
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -108,7 +108,7 @@ class TestLMWorkerPositions(unittest.TestCase):
         self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
 
         # Verify cache files were actually created on disk
-        # (D-157: the slot is 03 — the file-less FEATURES takes 02)
+        # (the slot is 03 — the file-less FEATURES takes 02)
         cache_file = self.tmp_dir / 'rlmwf_04_POSITIONS.dat'
         checksum_file = self.tmp_dir / 'rlmwf_04_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
@@ -130,7 +130,7 @@ class TestLMWorkerPositions(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('CONFIG')  # the step before FEATURES (D-157 order: CONFIG -> FEATURES -> POSITIONS)
+        rlm2.move_to_step('CONFIG')  # the step before FEATURES (CONFIG -> FEATURES -> POSITIONS)
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
@@ -152,7 +152,7 @@ class TestLMWorkerPositions(unittest.TestCase):
 class TestIsCacheConsistent(unittest.TestCase):
     """Unit semantics of wrk_positions.is_cache_consistent.
 
-    D-106 step 3 (probe_rules.md §4): converted from the
+    probe_rules.md §4: converted from the
     verify_wrk_positions.py D4a-g probe. The probe warmed a
     real cache file through the live pipeline and compared against
     it; the test builds the same rds metadata in memory (fixture
@@ -218,7 +218,7 @@ class TestIsCacheConsistent(unittest.TestCase):
 
 
 class TestLMWorkerPositionsDuplicates(unittest.TestCase):
-    """D-143: the regab_allow_duplicate policy on the live DB.
+    """The regab_allow_duplicate policy on the live DB.
 
     Fixture bid 8 (rlm_00): 200 records, 11 duplicate (mover,
     opponent) keys (the structural CMS/CMR pairs — the same position
@@ -229,14 +229,14 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
         # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir (D-065).
+        # still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
 

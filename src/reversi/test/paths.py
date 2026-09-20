@@ -45,12 +45,11 @@ def _workspace_root() -> Path:
 
 #: The workspace root: the first ancestor of this file holding the
 #: workspace marker (pyproject.toml) — keyed on the marker, not a
-#: level count, so it survives file moves (D-085: the D-065 idiom
-#: used to recompute it per test file via
-#: Path(__file__).resolve().parents[N]).
+#: level count, so it survives file moves (the old idiom recomputed
+#: it per test file via Path(__file__).resolve().parents[N]).
 WORKSPACE_ROOT = _workspace_root()
 
-#: The shared test-artifact base directory (the D-065 house rule:
+#: The shared test-artifact base directory (the house rule:
 #: unit tests write files ONLY under <workspace-root>/build/tmp and
 #: clean them up afterwards).
 CUSTOM_TMP_BASE = WORKSPACE_ROOT / "build" / "tmp"

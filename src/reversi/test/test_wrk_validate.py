@@ -36,7 +36,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_validate
 #
@@ -77,7 +77,7 @@ class TestLMWorkerValidate(unittest.TestCase):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
         # the live regab DB (the setUp moves to VLD_POSITIONS, which runs
         # the whole training chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -189,7 +189,7 @@ class TestValidateModelUnit(unittest.TestCase):
     """DB-free unit facts for the VALIDATE metric math.
 
     The checks pin the metric math directly: the hand-computed
-    2-position case and the M1 (D-102) zero-guard branch. Runs
+    2-position case and the zero-guard branch. Runs
     under SKIP_REGAB_DB=1 (no DB)."""
 
     def _fake_ctx(self, game_values, indexes, offsets, w_dense):
@@ -231,7 +231,7 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(d["vld_samples"], 2)
 
     def test_validation_result_carries_the_f64_series(self):
-        """I-018: validate_model returns the per-position series it is
+        """validate_model returns the per-position series it is
         computed from (the single derivation PLOT and CLIENT_CHECK
         consume), as f64 views: y_pred [0, 0] and rn_y [0, -64] on the
         hand-computed 2-position case."""
@@ -246,7 +246,7 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(r.metrics["vld_samples"], 2)
 
     def test_top_outliers_ranking_and_ties(self):
-        """I-018: the k largest |residual|, descending, with the
+        """The k largest |residual|, descending, with the
         STABLE tie-break (the lower index first) — the report's
         determinism rests on this."""
         rn = np.array([1.0, -3.0, 2.0, -3.0, 0.5])
@@ -258,7 +258,7 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(len(top_outliers(rn, k=99)), 5)
 
     def test_top_outliers_default_is_twenty(self):
-        """I-018: the default k is the report's 20."""
+        """The default k is the report's 20."""
         rn = np.arange(100, dtype=np.float64) - 50.0
         out = top_outliers(rn)
         self.assertEqual(len(out), 20)
@@ -267,8 +267,8 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual([int(x) for x in out[:4]], [0, 1, 99, 2])
 
     def test_up_outlier_report(self):
-        """The D-150 top-20 extreme-outlier report, MOVED to VALIDATE
-        (I-018): the header + exactly 20 "vld position" lines, in
+        """The top-20 extreme-outlier report, MOVED to VALIDATE:
+        the header + exactly 20 "vld position" lines, in
         descending |residual| order, and the 20 records published in
         ctx.vld_outliers.
 
@@ -315,7 +315,7 @@ class TestValidateModelUnit(unittest.TestCase):
         self.assertEqual(ctx.vld_outliers[0]['opponent'], 0)
 
     def test_rmse_mae_line_is_zero_guarded(self):
-        """M1 (D-102): a perfect Y-space fit (mae_y == 0) must take
+        """A perfect Y-space fit (mae_y == 0) must take
         the worker's zero-guard branch — the n/a ratio line, no
         ZeroDivisionError.
 

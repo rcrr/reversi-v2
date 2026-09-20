@@ -45,7 +45,7 @@ name), the enable no-op (the opt-in), the compute + the
 publish (the tiny corpus, the phase-2 statistics, the TXT
 report), the cache hit (the second run), the signature
 invalidation (the corpus change), the su_pairs joint, and the
-down (the D-060 recovery). Plus the VLONG scale test: the same
+down (the recovery). Plus the VLONG scale test: the same
 path at the 1e7 corpus size.
 """
 
@@ -108,7 +108,7 @@ class TestWrkSuAnalysis(unittest.TestCase):
     """The SU_ANALYSIS worker NO-DB suite: the factory, the
     enable no-op, the compute + the publish, the cache hit,
     the signature invalidation, the su_pairs joint, the down
-    (the D-060 recovery)."""
+    (the recovery)."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -187,7 +187,7 @@ class TestWrkSuAnalysis(unittest.TestCase):
         self.assertTrue(csv_path.exists())
 
     def test_down_clears(self):
-        # The D-060 recovery: the down clears the tables.
+        # The recovery: the down clears the tables.
         ctx = _make_ctx(self.tmp, 2000, enable=True)
         _up(ctx)
         self.assertIsNotNone(ctx.su_analysis_tables)

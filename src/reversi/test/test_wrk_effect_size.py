@@ -45,7 +45,7 @@ The EFFECT_SIZE worker NO-DB suite: the factory (the worker
 name), the enable no-op, the ANOVA (the eta²/omega² per
 sub-variable), the graceful degradation (the adherence
 skipped when the corpus is absent), the adherence (the fixed
-trio, the computed path), the report, and the down (the D-060
+trio, the computed path), the report, and the down (the
 no-op).
 """
 
@@ -107,7 +107,7 @@ def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
 class TestWrkEffectSize(unittest.TestCase):
     """The EFFECT_SIZE worker NO-DB suite: the factory, the
     enable no-op, the ANOVA, the graceful degradation, the
-    adherence, the report, the down (the D-060)."""
+    adherence, the report, the down (the no-op)."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -169,7 +169,7 @@ class TestWrkEffectSize(unittest.TestCase):
         self.assertTrue(report.exists())
 
     def test_down_no_op(self):
-        # The D-060 no-op: the down is a no-op (the log note).
+        # The down is a no-op (the log note).
         ctx, _ = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
         _down(ctx)

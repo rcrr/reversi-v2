@@ -49,7 +49,7 @@ from reversi.test import paths
 
 
 class TestPaths(unittest.TestCase):
-    """Tests for the reversi.test.paths workspace-root constants (D-085)."""
+    """Tests for the reversi.test.paths workspace-root constants."""
 
     def test_workspace_root_holds_the_marker(self):
         """WORKSPACE_ROOT is absolute and holds the pyproject.toml marker."""

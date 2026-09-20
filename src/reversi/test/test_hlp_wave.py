@@ -184,7 +184,7 @@ class TestWaveEngine(unittest.TestCase):
 
 @unittest.skipUnless(tier_vvlong(),
                      "Skipping the 1e6 benchmark (set VVLONG=1 to run; "
-                     "D-256: it left the LONG tier)")
+                     "it left the LONG tier)")
 class TestBenchmark(unittest.TestCase):
     """The 1e6 benchmark (the gate scale): the target is
     well under the scalar Python rate (the 20-60 min) —

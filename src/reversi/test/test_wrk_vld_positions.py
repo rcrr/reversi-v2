@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_vld_positions
 #
@@ -73,7 +73,7 @@ class TestLMWorkerVldPositions(unittest.TestCase):
         # The SKIP_REGAB_DB gate, as in test_regab — all the tests need the
         # live regab DB (the setUp moves to GENERATE, which runs the whole
         # positions chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -204,7 +204,7 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
     context and the cached rds — no DB, so this class runs under
     SKIP_REGAB_DB=1 too.
 
-    D-106 step 3 (probe_rules.md §4): converted from the
+    probe_rules.md §4: converted from the
     verify_vld_positions.py D2-D7 probe."""
 
     def _ctx(self):
@@ -253,7 +253,7 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
 
 
 class TestVldIndependenceCheck(unittest.TestCase):
-    """D-143: the validation independence check (LOG ONLY, no action).
+    """The validation independence check (LOG ONLY, no action).
 
     The VLD_POSITIONS worker counts how many validation records are
     also present in the training data set and logs the trace.
@@ -267,7 +267,7 @@ class TestVldIndependenceCheck(unittest.TestCase):
     def setUp(self):
         # The SKIP_REGAB_DB gate — the train chain runs on the live
         # regab DB (the vld extraction too).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()

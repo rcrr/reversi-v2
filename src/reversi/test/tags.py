@@ -27,7 +27,7 @@
 #
 #
 #
-# Suite tier gates (D-130; the VVLONG tier added at D-256). The
+# Suite tier gates. The
 # suite runs in four tiers, each implying the previous ones:
 #
 #   default    the fast tier (no DB)
@@ -37,12 +37,12 @@
 #   VVLONG=1   + the very-long instruments (the 1e6 corpus benchmark;
 #                implies VLONG -> LONG)
 #
-# PERF=1 is orthogonal (the print-only performance tests, D-036)
+# PERF=1 is orthogonal (the print-only performance tests)
 # and SKIP_REGAB_DB=1 is orthogonal too (a no-DB environment skips
 # every DB test whatever the tier).
 #
-# Usage (called on the test case, FIRST in setUp, as the D-080
-# T2 gate shape):
+# Usage (called on the test case, FIRST in setUp, as the
+# standard gate shape):
 #
 #     from reversi.test.tags import db_long_gate
 #     ...

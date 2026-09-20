@@ -52,7 +52,7 @@ from datetime import datetime, timezone, timedelta
 
 from reversi.tools.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
-# House rule (D-065): test artifacts are written ONLY under
+# House rule: test artifacts are written ONLY under
 # workspace_root/build/tmp and removed afterwards. The workspace
 # root is 3 levels up from this file (src/reversi/test/).
 TMP_DIR = Path(__file__).resolve().parents[3] / "build" / "tmp"
@@ -153,8 +153,8 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.history), 0)
 
     def test_move_to_last_happy_path(self):
-        """move_to_last dispatches by the last worker's name
-        (unambiguous since D-061) and runs the up chain."""
+        """move_to_last dispatches by the last worker's name and
+        runs the up chain."""
         self.sm.move_to_last()
 
         self.assertEqual(self.sm.current_step, 2)
@@ -180,7 +180,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_move_to_last_single_worker_noop(self):
         """A single-worker machine: the only worker is the sentinel
-        at step 0, so move_to_last is a no-op (D-059 + D-061)."""
+        at step 0, so move_to_last is a no-op."""
         up = MagicMock()
         down = MagicMock()
         sm = StateMachine([Worker("ONLY", up, down)], Context())
@@ -191,7 +191,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(sm.history, [])
 
     def test_duplicate_worker_names_raise(self):
-        """Duplicate names are rejected at construction (R5, D-061)."""
+        """Duplicate names are rejected at construction."""
         with self.assertRaises(ValueError) as ctx:
             StateMachine([
                 Worker("A", MagicMock(), MagicMock()),
@@ -201,7 +201,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertIn("Duplicate worker name", str(ctx.exception))
 
     def test_duplicate_worker_names_case_insensitive(self):
-        """'CONFIG' and 'config' are the same name for moves (D-061)."""
+        """'CONFIG' and 'config' are the same name for moves."""
         with self.assertRaises(ValueError):
             StateMachine([
                 Worker("CONFIG", MagicMock(), MagicMock()),
@@ -210,7 +210,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_retry_after_failure_skips_failed_step(self):
         """A retry of a higher target does NOT re-execute the
-        failed step; recovery is down-then-up (R4, D-060)."""
+        failed step; recovery is down-then-up."""
         self.up_callables[1].side_effect = RuntimeError("boom")
         with self.assertRaises(RuntimeError):
             self.sm.move_to_step(2)
@@ -237,7 +237,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_worker_zero_is_sentinel_never_executed(self):
         """Worker 0 is the sentinel initial state: its up()/down()
-        are never invoked by the machine (R3, D-059)."""
+        are never invoked by the machine."""
         self.sm.move_to_step(2)
         self.up_callables[0].assert_not_called()
         self.down_callables[0].assert_not_called()
@@ -258,9 +258,9 @@ class TestStateMachine(unittest.TestCase):
     def test_move_to_step_by_invalid_string(self):
         """Test that providing an invalid string name raises ValueError.
 
-        D-106 step 3 (probe_rules.md §4): pins the FULL message,
-        converted from the verify_wrk_config.py E2 probe (the
-        D-107 re-pin of the guard contract)."""
+        probe_rules.md §4: pins the FULL message, converted from
+        the verify_wrk_config.py E2 probe (the re-pinned guard
+        contract)."""
         with self.assertRaises(ValueError) as context:
             self.sm.move_to_step("NON_EXISTENT_WORKER")
 
@@ -270,9 +270,9 @@ class TestStateMachine(unittest.TestCase):
     def test_move_to_step_out_of_bounds_high(self):
         """Test that providing an index >= len(workers) raises IndexError.
 
-        D-106 step 3 (probe_rules.md §4): pins the FULL message,
-        converted from the verify_wrk_config.py E3 probe (the
-        D-107 re-pin of the guard contract)."""
+        probe_rules.md §4: pins the FULL message, converted from
+        the verify_wrk_config.py E3 probe (the re-pinned guard
+        contract)."""
         with self.assertRaises(IndexError) as context:
             self.sm.move_to_step(3)
 
@@ -299,7 +299,7 @@ class TestStateMachine(unittest.TestCase):
         # The state machine should still be at step 1 because step 1 failed during execution
         self.assertEqual(self.sm.current_step, 1)
         
-        # Check that an error log was generated (typed record, D-058)
+        # Check that an error log was generated (the typed record)
         error_logs = [log for log in self.sm.logs if log.relevance == Relevance.ERROR]
         self.assertEqual(len(error_logs), 1)
         self.assertIn("Simulated computation failure", error_logs[0].message)
@@ -311,7 +311,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
 
     def test_bool_rejected_as_int_step(self):
-        """bool is NOT a valid step (M3, D-069): True/False raise
+        """bool is NOT a valid step: True/False raise
         TypeError (the strict gate rejects bool, which a bare
         isinstance(..., int) would have accepted) and the machine
         stays untouched."""
@@ -333,7 +333,7 @@ class TestStateMachine(unittest.TestCase):
                       str(ctx.exception))
 
     def test_constructor_rejects_non_worker_entry(self):
-        """__init__ is @validate_call (M11, D-069): a non-Worker
+        """__init__ is @validate_call: a non-Worker
         list entry raises pydantic ValidationError instead of a raw
         AttributeError deep in the name check."""
         from pydantic import ValidationError
@@ -341,7 +341,7 @@ class TestStateMachine(unittest.TestCase):
             StateMachine([42], Context())
 
     def test_constructor_rejects_non_context(self):
-        """__init__ is @validate_call (M11, D-069): a non-Context
+        """__init__ is @validate_call: a non-Context
         object raises ValidationError; Context subclasses still
         pass."""
         from pydantic import ValidationError
@@ -356,7 +356,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_current_worker_name_tracks_current_step(self):
         """current_worker_name is a live view of (workers,
-        current_step) (T8, D-067)."""
+        current_step)."""
         self.assertEqual(self.sm.current_worker_name, "CREATED")
         self.sm.move_to_step(1)
         self.assertEqual(self.sm.current_worker_name, "CONFIG")
@@ -366,12 +366,12 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(self.sm.current_worker_name, "CREATED")
 
     def test_current_worker_name_empty_workers_undefined(self):
-        """With no workers the name is 'UNDEFINED' (T8, V9f)."""
+        """With no workers the name is 'UNDEFINED'."""
         sm = StateMachine([], Context())
         self.assertEqual(sm.current_worker_name, "UNDEFINED")
 
     def test_step_move_fields_up(self):
-        """StepMove field content for up moves (T9, D-067):
+        """StepMove field content for up moves:
         aware-UTC start/finish and duration == finish - start."""
         self.sm.move_to_step(2)
         expected = [(1, "CONFIG", "up"), (2, "POSITIONS", "up")]
@@ -391,8 +391,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_step_move_fields_down(self):
         """StepMove field content for down moves: the target is
-        excluded, so the last entry is the step above it (T9,
-        D-067)."""
+        excluded, so the last entry is the step above it."""
         self.sm.move_to_step(2)
         self.sm.move_to_step(0)
         tail = self.sm.history[2:]
@@ -403,8 +402,8 @@ class TestStateMachine(unittest.TestCase):
             self.assertEqual(e.duration, e.finish - e.start)
 
     def test_step_move_recorded_on_failure(self):
-        """A failed step is still recorded (the timer's finally,
-        T9, D-067) — pinning the field content, not just the len."""
+        """A failed step is still recorded (the timer's finally) —
+        pinning the field content, not just the len."""
         self.up_callables[1].side_effect = RuntimeError("boom")
         with self.assertRaises(RuntimeError):
             self.sm.move_to_step(2)
@@ -417,7 +416,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(e.duration, e.finish - e.start)
 
     def test_history_export_csv(self):
-        """Test exporting history to a CSV file (T5, D-065): header
+        """Test exporting history to a CSV file: header
         names, ISO-8601 +00:00 timestamps, duration identity, and the
         artifact under workspace_root/build/tmp, removed afterwards."""
         import csv
@@ -471,7 +470,7 @@ class TestStateMachine(unittest.TestCase):
     def test_run_step_rejects_unknown_direction(self):
         """The direction dispatch is explicit: only 'up' and 'down'
         are valid; anything else raises ValueError without executing
-        the worker (M4, D-068)."""
+        the worker."""
         with self.assertRaises(ValueError) as ctx:
             self.sm._run_step(self.workers[1], "sideways")
         self.assertIn("sideways", str(ctx.exception))
@@ -479,12 +478,12 @@ class TestStateMachine(unittest.TestCase):
         self.down_callables[1].assert_not_called()
 
     def test_worker_repr(self):
-        """Worker's repr shows the name (M7, D-068)."""
+        """Worker's repr shows the name."""
         self.assertEqual(repr(self.workers[1]), "Worker('CONFIG')")
 
     def test_state_machine_repr_tracks_state(self):
         """StateMachine's repr is lightweight (no context, no logs,
-        no history) and tracks the current step (M7, D-068)."""
+        no history) and tracks the current step."""
         self.assertEqual(
             repr(self.sm),
             "StateMachine(workers=3, current_step=0, "
@@ -503,9 +502,9 @@ class TestStateMachine(unittest.TestCase):
             "StateMachine(workers=1, current_step=0, verbosity=NONE)")
 
     def test_csv_export_creates_missing_parent_dirs(self):
-        """Missing parent directories are created (M10, D-068); the
+        """Missing parent directories are created; the
         artifact stays under workspace_root/build/tmp and is removed
-        afterwards (house rule, D-065)."""
+        afterwards (house rule)."""
         self.sm.move_to_step(1)
 
         TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -530,7 +529,7 @@ class TestStateMachine(unittest.TestCase):
 
 
 class TestLogEntry(unittest.TestCase):
-    """Log records are typed frozen dataclasses (R2, D-058)."""
+    """Log records are typed frozen dataclasses."""
 
     def setUp(self):
         """Fresh machine (3 workers); the init log is logs[0]."""
@@ -575,7 +574,7 @@ class TestLogEntry(unittest.TestCase):
 
 
 class TestVerbosityGating(unittest.TestCase):
-    """Pins the `relevance >= verbosity` print gate (T1, D-057)."""
+    """Pins the `relevance >= verbosity` print gate."""
 
     EXPECTED_PRINTING = {
         Verbosity.HIGH: {
@@ -617,7 +616,7 @@ class TestVerbosityGating(unittest.TestCase):
                 self.assertEqual(len(machine.logs), 2)
 
     def test_enum_values(self):
-        """Level values, incl. the D-057 split: VERY_LOW = 4, NONE = 5."""
+        """Level values, incl. the two lowest: VERY_LOW = 4, NONE = 5."""
         self.assertEqual(Verbosity.HIGH, 0)
         self.assertEqual(Verbosity.MODERATE, 1)
         self.assertEqual(Verbosity.STANDARD, 2)
@@ -698,8 +697,8 @@ class TestContextInjection(unittest.TestCase):
             Path("/abs/cache/01_CONFIG.dat"))
 
     def test_cache_prefix_is_concatenated_verbatim(self):
-        """D-078 (replaces the D-069 M8 pathlib-join pin): the prefix
-        is a *filename* prefix, concatenated verbatim onto the level
+        """The prefix is a *filename* prefix, concatenated verbatim
+        onto the level
         name — a bare prefix 'cache' glues to 'cache01_CONFIG.dat';
         a directory-like prefix must end with a separator (as in the
         other tests of this class, 'cache/')."""
@@ -793,7 +792,7 @@ class TestDisplayGoldens(unittest.TestCase):
     def test_log_event_live_print_format(self):
         """[ts UTC] [step][name       ] [rel:verb] message — full
         golden line per event (the enum-name rendering and the UTC
-        marker are pinned too, M6, D-070)."""
+        marker are pinned too)."""
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -815,8 +814,7 @@ class TestDisplayGoldens(unittest.TestCase):
     def test_show_event_log_golden(self):
         """End-to-end golden: the move's live lines, then the table —
         banner, 66-underscore separator, header (UTC timestamp,
-        2-digit step, relevance name), one row per log entry
-        (M6, D-070)."""
+        2-digit step, relevance name), one row per log entry."""
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -846,7 +844,7 @@ class TestDisplayGoldens(unittest.TestCase):
 
     def test_show_history_of_moves_golden(self):
         """End-to-end golden: the move's live lines, then the table —
-        header (Dur (s) right-aligned over its values, D-070),
+        header (Dur (s) right-aligned over its values),
         80-dash rule, one row per executed step (start at
         microsecond precision; duration = finish - start, pinned at
         0.003000 by the frozen clock)."""

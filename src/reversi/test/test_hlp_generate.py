@@ -251,7 +251,7 @@ class TestHlpGenerateIO(unittest.TestCase):
             "460c993da80d5ff6fd5581660d71be905c482eadc5520718b56051f6545cd07a")
 
     def test_load_with_valid_sidecar(self):
-        """The checksum=True path accepts a matching sidecar (the D-072 machine)."""
+        """The checksum=True path accepts a matching sidecar (the binio sidecar format)."""
         hlp_generate_store_to_file(self.dw_original, self.filepath)
         binio.write_sha3_256_sidecar(self.filepath)
         dw_loaded = hlp_generate_load_from_file(self.filepath, checksum=True)
@@ -295,7 +295,7 @@ class TestHlpGenerateIO(unittest.TestCase):
             "File version mismatch: found 2, expected 1")
 
     def test_store_compressed_by_default(self):
-        """D-139: store writes an LZ4 frame by default and load (the
+        """Store writes an LZ4 frame by default and load (the
         compressed default) round-trips it."""
         hlp_generate_store_to_file(self.dw_original, self.filepath)
         with open(self.filepath, "rb") as f:
@@ -305,7 +305,7 @@ class TestHlpGenerateIO(unittest.TestCase):
         nptest.assert_array_equal(dw_loaded.w_dense, self.dw_original.w_dense)
 
     def test_load_defaults_reject_uncompressed_file(self):
-        """D-139: the compressed default fails loud on a legacy
+        """The compressed default fails loud on a legacy
         uncompressed file (cache invalidation, not a silent misread)."""
         with binio.BinaryWriter(str(self.filepath), checksum=False,
                                 compressed=False) as w:

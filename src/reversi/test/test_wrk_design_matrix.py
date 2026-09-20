@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_design_matrix
 #
@@ -64,10 +64,10 @@ class TestLMWorkerDesignMatrix(unittest.TestCase):
     """Tests for the DESIGN_MTR worker basic movements and cache interactions."""
 
     def setUp(self):
-        # T1 (D-089): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # all three tests need the live regab DB (the setUp moves to
         # WMAPS, which runs the WMAPS chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -163,11 +163,11 @@ class TestLMWorkerDesignMatrixExactValues(unittest.TestCase):
     """Tests the exact values of the Design Matrix using rlm_01.json."""
 
     def setUp(self):
-        # T1 (D-089): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # the golden-content test needs the live regab DB (the
         # setUp moves to WMAPS, which runs the WMAPS chain on a fresh
         # base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()

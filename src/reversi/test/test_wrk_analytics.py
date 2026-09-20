@@ -36,7 +36,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_analytics
 #
@@ -63,8 +63,8 @@ def _masked_report_hash(text):
 
     The file report embeds datetime.now() — every other byte is
     deterministic, so the date-masked hash is a stable golden. The
-    D-142 config fingerprint embeds the run's base_dir (a tmp dir);
-    mask the hex the same way.
+    config fingerprint embeds the run's base_dir (a tmp dir); mask
+    the hex the same way.
     """
     masked = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE", text)
     masked = re.sub(r"(Config SHA3-256\s*:\s*)[0-9a-f]{64}", r"\1HASH", masked)
@@ -84,7 +84,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
         # the live regab DB (the setUp moves to VALIDATE, which runs the
         # whole 15-level chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -111,8 +111,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_analytics_report_goldens(self):
-        """First run to ANALYTICS: the 7-metric dict, the 4-key dense dict
-        (D-105/M2), the console report, the report file and the INFO log lines.
+        """First run to ANALYTICS: the 7-metric dict, the 4-key dense dict,
+        the console report, the report file and the INFO log lines.
 
         Goldens: rlm_02 live (the bid [6,7] training model, 199952
         samples), re-derived independently by scratch/verify_analytics.py
@@ -134,14 +134,14 @@ class TestLMWorkerAnalytics(unittest.TestCase):
                                     'pop_loss'})
         assert_close(self, met['train_mae_y'], 12.346794566613694, 'train_mae_y')
         assert_close(self, met['train_rmse_y'], 15.58872172931622, 'train_rmse_y')
-        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact
         self.assertEqual(met['train_loss'], 0.00712497066706419)
         self.assertEqual(met['train_samples'], 199952)
         assert_close(self, met['pop_mae_y'], 21.729816221648974, 'pop_mae_y')
         assert_close(self, met['pop_rmse_y'], 26.40637507956623, 'pop_rmse_y')
         assert_close(self, met['pop_loss'], 0.020437248051166534, 'pop_loss')
 
-        # The D-105/M2 dense-pass dict: the shipped inference rules (w_dense)
+        # The dense-pass dict: the shipped inference rules (w_dense)
         # on the training data. rlm_02 has frequency_cut_off=1, so the dense
         # values match the compressed ones up to the f32 rounding of w_dense.
         dmet = self.rlm.context.train_dense_metrics
@@ -261,7 +261,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
         # the live regab DB (the setUp moves to VALIDATE, which runs the
         # whole 15-level chain on a fresh base dir).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -291,7 +291,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         """First run to ANALYTICS on rlm_01: the training metrics golden,
         the dense-pass golden (rlm_01 has frequency_cut_off=2, so 5 of its
         10 training positions touch IC slots — the substitution delta is
-        3.36, the clearest demonstration of the D-105/M2 table), the
+        3.36, the clearest demonstration of the substitution table), the
         mobility + pattern table structure and the file-report hash.
 
         Goldens: rlm_01 live (bid [7] training, 10 samples), re-derived
@@ -304,7 +304,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertIsNotNone(met)
         assert_close(self, met['train_mae_y'], 9.874833279184258e-05, 'train_mae_y')
         assert_close(self, met['train_rmse_y'], 0.00013206900478667877, 'train_rmse_y')
-        # f32-quantized (the OPTIMIZE objective f) — bit-exact (D-127)
+        # f32-quantized (the OPTIMIZE objective f) — bit-exact
         self.assertEqual(met['train_loss'], 4.704681197571781e-13)
         self.assertEqual(met['train_samples'], 10)
         assert_close(self, met['pop_mae_y'], 15.6, 'pop_mae_y')

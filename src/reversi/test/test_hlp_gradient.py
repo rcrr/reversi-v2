@@ -144,7 +144,7 @@ class TestHlpGradientCompute(unittest.TestCase):
         nptest.assert_allclose(g[2], 0.015 * 0.3, rtol=1e-6, atol=1e-9)
 
     def test_output_dtypes(self):
-        # R1 (D-093): the closure returns (np.float32, NDArray[float32]).
+        # The closure returns (np.float32, NDArray[float32]).
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         fg = hlp_gradient_compute(ctx)
@@ -166,8 +166,8 @@ class TestHlpGradientCompute(unittest.TestCase):
 
 
 class TestHighPerformanceFg(unittest.TestCase):
-    """The high_performance=True variant (the numba single-pass kernel,
-    I-013) on handcrafted mock contexts (no DB). The kernel uses T=8
+    """The high_performance=True variant (the numba single-pass kernel)
+    on handcrafted mock contexts (no DB). The kernel uses T=8
     fixed row-blocks, so M < T (empty blocks) is exercised by design."""
 
     def _mock_ctx(self, ridge, w, X, z):
@@ -237,7 +237,7 @@ class TestHighPerformanceFg(unittest.TestCase):
         nptest.assert_allclose(g_h, g_c, rtol=1e-5, atol=1e-7)
 
     def test_hp_output_dtypes(self):
-        # R1 (D-093) float32 contract: (np.float32, (N,) float32),
+        # float32 contract: (np.float32, (N,) float32),
         # same as the classic variant.
         ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])

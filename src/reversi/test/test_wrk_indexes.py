@@ -37,7 +37,7 @@
 #
 # -1- Run the tests (a live regab DB + LONG=1 is required;
 #     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, D-130).
+#     VLONG=1 implies LONG, see reversi.test.tags).
 #
 # time python3 -m unittest reversi.test.test_wrk_indexes
 #
@@ -64,10 +64,10 @@ class TestLMWorkerIndexes(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # T2 (D-084): the SKIP_REGAB_DB gate, as in test_regab —
+        # The SKIP_REGAB_DB gate, as in test_regab —
         # both tests need the live regab DB (the move to INDEXES
-        # runs POSITIONS on a fresh base dir, the D-157 order).
-        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates (D-130)
+        # runs POSITIONS on a fresh base dir).
+        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -128,7 +128,7 @@ class TestLMWorkerIndexes(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('FEATURES')  # two steps before INDEXES (D-157 order: … -> FEATURES -> POSITIONS -> INDEXES)
+        rlm2.move_to_step('FEATURES')  # two steps before INDEXES (… -> FEATURES -> POSITIONS -> INDEXES)
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)

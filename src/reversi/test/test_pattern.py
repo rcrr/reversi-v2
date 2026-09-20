@@ -189,7 +189,7 @@ class TestPattern(unittest.TestCase):
         self.assertIn("not principal", str(context.exception))
 
     def test_init_rejects_non_minimum_orbit_masks(self):
-        """R1 (D-020): masks containing all 4 corners tie for minimal BSR in
+        """Masks containing all 4 corners tie for minimal BSR in
         the whole orbit (all 8 transforms have BSR 63). Only the numerically
         lowest orbit member is the unique principal: a mask is a 64-bit
         integer, a bijection with 0..2^64-1, so the orbit minimum is
@@ -801,7 +801,7 @@ class TestPatternSymmetries(unittest.TestCase):
 
     def test_burnside_counts_golden(self):
         """
-        Pins n_invariant_configs / n_unique_configs (Burnside, D-032) for all
+        Pins n_invariant_configs / n_unique_configs (Burnside) for all
         29 sample patterns. Ground truth: n_invariant by full enumeration of
         the 3^S configurations; n_unique via principal_index_count.
         """
@@ -819,7 +819,7 @@ class TestPatternSymmetries(unittest.TestCase):
 
     def test_burnside_counts_invariants(self):
         """
-        General invariants of the Burnside counts (D-032):
+        General invariants of the Burnside counts:
         1 <= n_invariant_configs <= n_unique_configs <= n_configurations,
         with equality to n_configurations (3^S) when symmetry_fs is empty
         (trivial action on the squares).
@@ -1322,7 +1322,7 @@ class TestPatternSet(unittest.TestCase):
 
     def test_repr(self):
         """
-        D-112 M1: PatternSet has a __repr__ (name, the set hash, the
+        PatternSet has a __repr__ (name, the set hash, the
         patterns in the mask-sorted order via Pattern.__repr__).
         """
         self.assertEqual(repr(self.pattern_set),

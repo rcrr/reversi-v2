@@ -115,7 +115,7 @@ class TestHlpIndexesStoreToFile(unittest.TestCase):
 
         hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename)
 
-        # 1. Verify the writer was instantiated correctly (D-139: the
+        # 1. Verify the writer was instantiated correctly (the
         #    compressed default is passed through)
         mock_binio.BinaryWriter.assert_called_once_with(Path(filename), compressed=True)
 
@@ -168,7 +168,7 @@ class TestHlpIndexesLoadFromFile(unittest.TestCase):
         result = hlp_indexes.hlp_indexes_load_from_file("test.bin", checksum=True)
 
         mock_binio.verify_sha3_256_sidecar.assert_called_once_with("test.bin")
-        # D-139: the reader is opened with the compressed default
+        # The reader is opened with the compressed default
         mock_binio.BinaryReader.assert_called_once_with("test.bin", compressed=True)
 
         self.assertIsInstance(result, hlp_indexes.LMIndexes)

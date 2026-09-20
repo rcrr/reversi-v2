@@ -120,16 +120,16 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.temp_path.write_text("Hello, Cache World!")
 
     def test_binio_sidecar_verifies(self):
-        """R3 (D-072): a sidecar written by binio's own API verifies
+        """A sidecar written by binio's own API verifies
         through the _verify_checksum wrapper — both modules now share
         one sidecar format and one verifier."""
         write_sha3_256_sidecar(self.temp_path)
         self.assertTrue(_verify_checksum(self.temp_path))
 
     def test_legacy_bare_hex_sidecar_still_verifies(self):
-        """D-072 compat: a legacy bare-hexdigest sidecar (pre-D-072
-        format, no filename, no newline) still verifies, because binio's
-        parser takes the first whitespace-separated token — no cache
+        """A legacy bare-hexdigest sidecar (the old format: no
+        filename, no newline) still verifies, because binio's parser
+        takes the first whitespace-separated token — no cache
         invalidation for existing on-disk caches."""
         checksum_path_for(self.temp_path).write_text(
             compute_sha3_256(self.temp_path)
@@ -179,9 +179,9 @@ class TestChecksumHelpers(BaseCacheTestCase):
         _delete_cache_files(self.temp_path)
 
     def test_sidecar_content_is_binio_format(self):
-        """T3 (D-072, restated): the sidecar holds binio's
-        sha3_256sum-style line "<hexdigest>  <basename>\n" — cache_manager
-        no longer keeps its own bare-hexdigest format (see R3, module doc)."""
+        """The sidecar holds binio's sha3_256sum-style line
+        "<hexdigest>  <basename>\n" — cache_manager no longer keeps
+        its own bare-hexdigest format (see the module doc)."""
         write_sha3_256_sidecar(self.temp_path)
         digest = compute_sha3_256(self.temp_path)
         content = checksum_path_for(self.temp_path).read_text()
@@ -237,7 +237,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             Relevance.INFO, "Cache not allowed by configuration. Forcing computation."
         )
 
-        # T4 (R1 ruling, D-071): even when caching is not allowed the
+        # Even when caching is not allowed the
         # result is transcribed to the cache file — warm the cache.
         self.assertTrue(self.cache_path.exists())
         self.assertTrue(checksum_path_for(self.cache_path).exists())
@@ -507,7 +507,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_load_path_checksum_method_raises_recomputes(self):
         """
-        T2 (V13) + R2 (D-071): the data checksum method RAISING on
+        The data checksum method RAISING on
         the load path is caught by the step-3 try/except -> delete +
         recompute; the ERROR log carries the exception text.
         """
@@ -536,7 +536,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_validate_exception_forces_recomputation(self):
         """
-        R2 (D-071): a validate_fn that RAISES is now caught by the
+        A validate_fn that RAISES is caught by the
         step-3 try/except (same treatment as a load failure) ->
         delete + recompute; the ERROR log carries the exception text.
         """
@@ -596,9 +596,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
 
 class TestValidateCallCoercion(unittest.TestCase):
-    """The @validate_call on cache_manager_load_or_compute (the
-    D-076-era gate idiom) type-coerces the arguments in pydantic
-    lax mode."""
+    """The @validate_call on cache_manager_load_or_compute
+    type-coerces the arguments in pydantic lax mode."""
 
     def test_str_cache_path_is_coerced_to_path(self):
         """A str cache_path is coerced to a Path: the inner store_fn
@@ -606,11 +605,9 @@ class TestValidateCallCoercion(unittest.TestCase):
         the framework's sidecar write (FileNotFoundError — the no-op
         store_fn never created the file).
 
-        D-106 step 3 (probe_rules.md §4): converted from the
-        verify_cache_manager.py V17 probe (the D-106/D-107 re-pin —
-        the original 'no @validate_call, raw str reaches .exists()'
-        premise is stale; the coercion is unique, no other test
-        covered it)."""
+        probe_rules.md §4: converted from the
+        verify_cache_manager.py V17 probe (the coercion is unique,
+        no other test covered it)."""
         seen = []
         with self.assertRaises(FileNotFoundError):
             cache_manager_load_or_compute(

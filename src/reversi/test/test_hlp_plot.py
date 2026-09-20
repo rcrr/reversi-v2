@@ -50,7 +50,7 @@ from reversi.lm.hlp_plot import (PLOT_NAMES, PLOT_BUILDERS, PLOT_TITLES,
 
 
 class TestHlpPlotVocabulary(unittest.TestCase):
-    """The D-149 plot vocabulary: the seven canonical names, the
+    """The plot vocabulary: the seven canonical names, the
     titles, and the name -> builder registry (the single source of
     truth the PlotConfig schema validates against)."""
 
@@ -109,7 +109,7 @@ class TestHlpPlotEgvBins(unittest.TestCase):
 
 
 class TestHlpPlotAxes(unittest.TestCase):
-    """The D-150 symmetric residual-axis limit: the max absolute
+    """The symmetric residual-axis limit: the max absolute
     value rounded UP to the tick step (the "reasonable value"),
     at least one step."""
 

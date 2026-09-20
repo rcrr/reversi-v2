@@ -28,14 +28,14 @@
 #
 #
 # Tolerant float comparison for the float64 pipeline-metric goldens
-# (D-127).
+# (the thread-count ULP study).
 #
 # The train/vld/pop metric reductions (np.dot over up to ~2M f64 terms —
 # hlp_analytics.py L459/L509, hlp_validate.py) run through the
 # multi-threaded OpenBLAS ddot: the last ULPs depend on the thread
 # count and the DYNAMIC_ARCH CPU kernel of the machine running the
 # tests. A 4 -> 8 vCPU move shifts the goldens by up to ~4e-14
-# relative (the D-127 investigation: 2-301 ULP across the three
+# relative (the ULP investigation: 2-301 ULP across the three
 # A20xx/rlm chains), while every bit-exact contract of the pipeline
 # held (the f32 model file sha3, the w_dense sha3, the EF pins, the
 # report hashes, the f32-quantized train_loss/g_norm).

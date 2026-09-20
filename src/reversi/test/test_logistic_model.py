@@ -74,7 +74,7 @@ class TestLogisticModel(unittest.TestCase):
     def setUp(self):
         """Set up a dummy config file and patch stdout and worker factories."""
         # The dummy config lives under
-        # <workspace-root>/build/tmp (the D-065 house rule), not the
+        # <workspace-root>/build/tmp (house rule), not the
         # system temp dir. Created first, so a mid-setup failure
         # still leaves a temp_dir that tearDown (or the GC) cleans.
         self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
@@ -99,7 +99,7 @@ class TestLogisticModel(unittest.TestCase):
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
         self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
-        # D-157: the FEATURES dummy — the string move to POSITIONS now
+        # The FEATURES dummy — the string move to POSITIONS now
         # crosses the (new) step 2, and the real FEATURES worker would
         # hit the None cfg.
         self.features_up_mock = MagicMock()
@@ -157,12 +157,12 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(self.model.current_worker_name, "CREATED")
 
     def test_init_non_str_config_path_raises_validation_error(self):
-        """The @validate_call on __init__ (D-074 R3) rejects a non-str/Path
+        """The @validate_call on __init__ rejects a non-str/Path
         config_file_path with a pydantic ValidationError before any worker
         factory runs (fail-fast guard).
 
-        Converted from the verify_logistic_model.py V6f probe at D-106
-        step 3 (probe_rules.md §4: cheap deterministic unit behavior of
+        Converted from the verify_logistic_model.py V6f probe
+        (probe_rules.md §4: cheap deterministic unit behavior of
         one module belongs in the tests, not the probes)."""
         with self.assertRaises(ValidationError):
             LogisticModel(123)
@@ -171,10 +171,10 @@ class TestLogisticModel(unittest.TestCase):
         """The injected _for_current_level closure dereferences ctx.cfg;
         before the CONFIG worker runs, cfg is None and the call must
         fail with AttributeError (the injection-order fact; a bare
-        LMContext instead keeps the no-op lambda default, D-074 R1).
+        LMContext instead keeps the no-op lambda default).
 
-        Converted from the verify_wrk_config.py E4b probe at D-106
-        step 3 (probe_rules.md §4)."""
+        Converted from the verify_wrk_config.py E4b probe
+        (probe_rules.md §4)."""
         with self.assertRaises(AttributeError):
             self.model.context.get_cache_file_path_for_current_level()
 
@@ -187,10 +187,10 @@ class TestLogisticModel(unittest.TestCase):
         self.config_down_mock.assert_not_called()
 
     def test_move_to_step_by_string(self):
-        """Test moving using the worker name string. D-186/D-187:
-        the POSITIONS is now step 4 (the SU_ANALYSIS, step 3,
-        sits between FEATURES and POSITIONS) — the string move
-        crosses the new step."""
+        """Test moving using the worker name string: the POSITIONS
+        is now step 4 (the SU_ANALYSIS, step 3, sits between
+        FEATURES and POSITIONS) — the string move crosses the
+        new step."""
         self.model.move_to_step("POSITIONS")
 
         self.assertEqual(self.model.current_step, 4)
@@ -313,7 +313,7 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_run_backward_target_runs_the_down_steps(self):
         """A target BELOW the current step moves back, running the
-        down() of the levels left behind (the D-060 rollback)."""
+        down() of the levels left behind (the rollback)."""
         self.model.run("POSITIONS")
         self.model.run("FEATURES")
         self.assertEqual(self.model.current_step, 2)
@@ -376,9 +376,9 @@ class TestLogisticModel(unittest.TestCase):
     def test_injected_cache_helpers_are_the_machine_closures(self):
         """Post-construction, the context's
         *_for_current_level attributes ARE the closures StateMachine
-        injected under the D-069 names (pre-D-074 a regression to
-        the old names would have left the no-op lambda defaults and
-        returned None — this pin would have caught R1)."""
+        injected under those names (a regression to the old names
+        would have left the no-op lambda defaults and returned None —
+        this pin would have caught it)."""
         ctx = self.model.context
         self.assertEqual(ctx.get_cache_file_path_for_current_level.__name__,
                          "_get_cache_file_path")
@@ -398,10 +398,9 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_injected_cache_helper_computes_the_worker_path(self):
         """With a dummy cfg, the injected path closures compute the
-        per-level cache path by
-        filename-prefix concatenation (D-078, replacing the D-069 M8
-        pathlib join): <prefix><level:02>_<worker>.dat, and the full
-        variant prepends cfg.base_dir."""
+        per-level cache path by filename-prefix concatenation:
+        <prefix><level:02>_<worker>.dat, and the full variant
+        prepends cfg.base_dir."""
         ctx = self.model.context
         ctx.cfg = SimpleNamespace(cache_files_prefix="cache",
                                   base_dir=Path("base"))
@@ -412,7 +411,7 @@ class TestLogisticModel(unittest.TestCase):
                          Path("base/cache00_CREATED.dat"))
 
     def test_created_sentinel_workers_raise(self):
-        """The level-0 CREATED sentinels are explicit (D-059) — a
+        """The level-0 CREATED sentinels are explicit — a
         direct call logs ERROR then raises RuntimeError."""
         with self.assertRaisesRegex(
                 RuntimeError, "Executing created step should never happen."):
@@ -424,7 +423,7 @@ class TestLogisticModel(unittest.TestCase):
     def test_config_path_helper_edge_branches(self):
         """_check_config_file_path edge branches — non-str/Path ->
         TypeError, missing -> FileNotFoundError,
-        a directory -> IsADirectoryError (M3, D-074)."""
+        a directory -> IsADirectoryError."""
         with self.assertRaisesRegex(
                 TypeError,
                 "Argument config_file_path is not an instance of str or Path"):
@@ -449,9 +448,9 @@ class TestLogisticModel(unittest.TestCase):
 
     def test_export_history_of_moves_as_csv_pass_through(self):
         """The CSV export pass-through writes a real file (the SM's
-        exporter, parent-dir creation M10/D-068); with an
+        exporter, parent-dir creation); with an
         empty history the file is header-only. The artifact stays
-        under build/tmp (D-065) and the temp dir is removed in
+        under build/tmp and the temp dir is removed in
         tearDown."""
         csv_path = Path(self.temp_dir.name) / "history.csv"
         self.model.export_history_of_moves_as_csv(csv_path)
@@ -467,7 +466,7 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
     LMConfig.target_level resolution + the explicit-argument precedence
     + the resume, exercised to FEATURES / SU_ANALYSIS — the levels that
     need no database. The config copies and the artifacts stay under
-    build/tmp (D-065)."""
+    build/tmp."""
 
     @classmethod
     def setUpClass(cls):
@@ -485,7 +484,7 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
 
     def _model(self, target_level):
         """A real model on the rlm_00 fixture with target_level set
-        (the D-255 config-copy idiom: the override is a CONFIG FILE,
+        (the config-copy idiom: the override is a CONFIG FILE,
         so the config provenance stays coherent)."""
         raw = json5.loads((WORKSPACE_ROOT / "src" / "reversi" / "test" /
                            "data" / "rlm_00.json").read_text())
