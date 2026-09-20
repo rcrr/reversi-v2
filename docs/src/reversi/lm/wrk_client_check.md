@@ -69,7 +69,8 @@ None.
   (`ctx.vld_rn`, the published series — I-018).
 - Consumes the client: `make_evaluation_function_array` (client.md) — the in-pipeline consumer that proves the
   out-of-pipeline artifact (the saved file + the client) reproduces the pipeline's own validation. The scalar EF stays
-  the test_client.py pin (the 1100× speed ratio makes the array EF the level's tool).
+  the test_client.py pin; the array EF is the level's tool (the PERF test prints its throughput in b/s — no speed
+  ratio is pinned).
 - Downstream: PLOT (step 18) — the matplotlib diagnostics, consuming nothing from the check (its result lives in the
   event log); the gate-first ordering is the point: the figures are drawn for a VERIFIED model file. A breach leaves
   `current_step` at 17 and the machine never reaches PLOT.

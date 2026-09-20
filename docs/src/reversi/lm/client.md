@@ -88,8 +88,8 @@ None.
   compose the two.
 - In-pipeline consumer: the CLIENT_CHECK level (the 17th level, after SAVE) re-reads the saved model file and builds the
   ARRAY EF on it — it recomputes the validation residuals in Y space and compares them to the in-memory VALIDATE forward
-  pass within `client_check_tol` (the C1 ruling: the array form, the 1100× speed ratio; the scalar EF stays pinned by
-  test_client + the full-chain EF pins).
+  pass within `client_check_tol` (the array form is the in-pipeline tool; the scalar EF stays pinned by test_client +
+  the full-chain EF pins — no speed ratio is pinned).
 - Y-space output: both EFs return game values directly (the z2y inverse), usable by the engine as evaluation functions;
   the vectorized form is the batch workhorse (analytics over large position sets, the performance-study territory).
 - Per-position cost: one `compute_indexes` call (the Numba kernels) + one f32 gather of `n_instances` values + one sum +

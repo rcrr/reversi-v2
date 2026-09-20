@@ -36,8 +36,9 @@ The on-disk format (binio-framed): header `"RegabDataSet binary data file"` / ve
   comments `--`/`/* */`, the `;` terminator, and the dangerous keywords
   SELECT/INSERT/UPDATE/DELETE/DROP/UNION/ALTER/CREATE/EXEC/EXECUTE/TRUNCATE), `FieldsArgument`.
 - `regab_gp_as_df`: double-decorated — `@_validate_with_db_context` FIRST (sets the ContextVar) then `@validate_call`
-  (pydantic), so the DB-backed validators can read the connection from the ContextVar; builds the parametrized query
-  (status strings are safe — pydantic enforces len=3, no quotes possible).
+  (pydantic), so the DB-backed validators can read the connection from the ContextVar; builds the SQL by str.format()
+  interpolation (a single-string `curs.execute(q)`, no parameter binding); the status validator enforces length 3 only,
+  so a quote inside a 3-char status passes validation and is interpolated as-is.
 - The DataFrame guard: `_ensure_column_count_and_type` (3 columns, dtypes compared as the strings `'int64'`/`'int8'`) +
   `DfMogvArgument`.
 - `RegabDataSet` + the module-level functions: `regab_extract_data_set_from_db`, the two pure helpers `regab_dedup_mogv`
@@ -58,8 +59,9 @@ the module suite.
   loss) — pinned by `TestRegabDataSet.test_generate_positions_and_game_values`.
 - V3: the dtype guard compares the STRING `'int64'` (pandas dtypes) — pinned by `test_invalid_df_mogv_column_types`
   (float64 game_value → TypeError).
-- V4: `status_str` construction is safe — pydantic enforces len=3 on the status strings, so no quotes/special chars can
-  reach the query.
+- V4: the interpolated values come from the validated typed arguments (bid/ec are ints, the status is a length-3 string)
+  — but the StatusArgument validator enforces length ONLY (min_length=3/max_length=3), quoting is NOT enforced, and the
+  single-string execute has no parameter binding, so a quote inside a 3-char status reaches the SQL as-is.
 - V5 (UNPINNED — inspection only): the ContextVar pattern is correct — set before `@validate_call`, reset in `finally`
   (concurrent-safe by construction; no test can exercise the concurrency, the pattern is verified by inspection + the
   double-decorator order in `regab_gp_as_df`).

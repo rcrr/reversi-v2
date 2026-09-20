@@ -12,15 +12,15 @@ No search, no PDB storage, no disk I/O except the CSV writer.
 | Types | `Index` | type alias `np.uint32` — a base-3 configuration index (safe because S ≤ 18) |
 | Types | `IndexArray` | annotated ndarray; the BeforeValidator requires uint32 for ndarrays, scalars pass through |
 | Pattern | `Pattern(name: str, mask: Bitboard)` | strict constructor (no coercion); ValueError: empty mask, > 18 squares, non-principal mask (the error lists all 8 transformed masks) |
-| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts`/`snames_ts` (per-instance; `_ts` sorted), `fingerprint`, `type`, `powers_3`/`bit_shifts`, `pack_plan` (the eager run-based pack/unpack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
+| Pattern | construction attributes | `n_squares`, `n_configurations = 3^S`, `tmasks` (8, canonical slot order), `squares`/`snames` (ascending board order), `unique_masks`, `mask_to_index` (first-seen slot), `mask_indexes`, `unique_mask_indexes`, `n_instances = \|Orb\|`, `n_stabilizers = 8/\|Orb\|`, `trans_fs`/`anti_trans_fs` (length n_instances, first-seen slots), `squares_t`/`snames_t`/`squares_ts` (per-instance; `_ts` sorted), `fingerprint`, `type_info`, `powers_3`/`bit_shifts`, `pack_plan` (the eager run-based pack/unpack plan), `principal_index_dict` / `principal_index_count` (lazy), `n_invariant_configs`/`n_unique_configs` (Burnside), `symmetry_fs`/`anti_symmetry_fs`, `unique_symmetric_instance_indexes` |
 | Pattern | `compute_indexes_on_position(pos) -> NDArray[Index]` | the anti-transform → pack → base-3 pipeline; scalar → (n_instances,), (N,) → (N, n_instances) |
 | Pattern | `compute_principal_index_dict() -> None` | populates the lazy dict {config → min over its stabilizer orbit} + the unique principal indexes and their count |
 | Pattern | `convert_to_principal_index(index) -> IndexArray` | the dict lookup (computes the dict on first use) |
 | Pattern | `_pack_bb(bb)` / `_unpack_bb(packed)` | PEXT-style compress / PDEP-style expand; dual scalar/array |
-| Pattern | `print(output)` / `mdp_record() -> str` / `mdp_csv_file(patterns, filename)` | the 2-D diagram; the CSV record line; the classmethod CSV writer |
+| Pattern | `print(output)` / `mdp_record() -> str` / `mdp_csv_file(patterns, filename)` | the flat one-line text rendering; the CSV record line; the classmethod CSV writer |
 | PatternType | the 12 members (`TYPE_0`…`TYPE_9`, `TYPE_3D`, `TYPE_7D`) + `from_fingerprint(fp) -> Optional[PatternType]` | the closed table of (type, sample_mask, sample_name, level, n_instances, n_stabilizers); a pattern whose fingerprint is not in the table raises ValueError at construction; unknown fp → None |
 | Data | `sample_pattern_data` | 29 (name, python-int mask) tuples (the masks are python ints — callers wrap with `Bitboard(...)`); used to generate the mdp.csv for the LaTeX document |
-| PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | strict; ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
+| PatternSet | `PatternSet(name: str, patterns: List[Pattern])` | `@validate_call` (NOT strict); ValueError: empty list, duplicate names, duplicate masks; stored sorted by mask; `hash` = sha3_256 of the concatenated mask bytes (little-endian) |
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
 | PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` |
 | PatternSet | `print_summary(output)` / `print(output)` | text rendering |
@@ -65,7 +65,11 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
 - **Burnside counts** — `n_invariant_configs` = 3^(the orbit count) (the configurations invariant under the induced
   stabilizer group), and `n_unique_configs` = the Burnside average (1/|G'|)·Σ_g 3^cycles(g) over the transformation
   permutations (G' = the identity + `symmetry_fs`), i.e. the number of distinct configuration orbits.
-- **Pydantic + Numba layering** — every public method is `@validate_call` (the constructors `strict`); hot paths are
+- **Pydantic + Numba layering** — the decoration set: `Pattern.__init__` is `@validate_call` `strict`; the other
+  decorated methods (`Pattern.__repr__`, `_pack_bb`/`_unpack_bb`, `compute_indexes_on_position`,
+  `convert_to_principal_index`, `PatternSet.__init__` — NOT strict —, `print`/`print_summary`/
+  `compute_principal_indexes`) are plain `@validate_call`; undecorated: `Pattern.print`, `mdp_record`,
+  `mdp_csv_file` (manual `isinstance` checks), `compute_principal_index_dict` and `PatternSet.__repr__`. Hot paths are
   `njit(parallel=True, cache=True)` (no `fastmath` — meaningless for integer ops); the construction-time (cold) path
   calls the pydantic-wrapped scalar functions directly.
 - **Closed type table** — a pattern whose computed fingerprint is not in the PatternType table raises ValueError at
@@ -116,7 +120,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   the `names`/`masks` properties, the sha3_256 hash, and the `__repr__` golden — `test_pattern::TestPatternSet`.
 - The MDP output: the `mdp_record` golden lines (ELLE, EDGE, SNAKE, CORE, DIAG8), the `mdp_csv_file` type errors, the
   written content and the empty-list case — `test_pattern::TestPatternMdpRecord`, `test_pattern::TestPatternMdpCsvFile`.
-- The renderings: the 2-D `print` diagram and the set `print`/`print_summary` — `test_pattern::TestPatternPrint`,
+- The renderings: the flat one-line `print` text and the set `print`/`print_summary` — `test_pattern::TestPatternPrint`,
   `test_pattern::TestPatternSet`.
 - The D8 group structure on the transformation functions (the Cayley table: identity, multiple inputs, the sample
   patterns) — `test_pattern::TestTransformationsCayleyTable`.
@@ -142,5 +146,5 @@ None.
 
 - Consumes `board.py` (the D8 transforms + anti tables, the bitboard utils, `Position`).
 - Consumed by: `feature.py`, `wrk_features.py` (the FEATURES pipeline level), `mobility.py`, `model_weights.py`,
-  `hlp_indexes.py`.
+  `hlp_indexes.py`, `lm/hlp_gate.py`.
 - Not a pipeline level itself: a domain module used BY the workers.
