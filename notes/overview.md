@@ -85,8 +85,9 @@ tables at the end of this file.
   engine; a future corpus regeneration may migrate to it.
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-007, I-014 (notes/ideas.md). I-003 executed (D-242); I-018 executed (D-243..D-246);
-  I-019 executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code).
+- Backlog (Roberto's call): I-014 (notes/ideas.md). I-003 executed (D-242); I-018 executed (D-243..D-246); I-019
+  executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code); I-007
+  executed (D-266, the feature_blocks property + the dedup).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
@@ -99,7 +100,7 @@ of the file's test module.
 | src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS swaps the players in both position_flips (move 0, a zero bitboard) and position_make_move (`MOVE_PA` = 64, the named move code); the named non-square move codes `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (I-003); initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); legal_moves_of / flips_of_move (the public njit per-lane primitives — the single sources of the two geometries, D-232); no game-loop module | 246/0/15 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
-| src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order) | 20/0/1 | docs/src/reversi/feature.md |
+| src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order, the feature_blocks column blocks) | 25/0/1 | docs/src/reversi/feature.md |
 | src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG — MINIMAL (one class, a seed ctor, one numba kernel with local constants, the state fully internal); choose_one_from_set64 (the uniform no-removal pick, the (0, 64) empty sentinel) + extract_from_set64 — both delegating to the pick kernels; pick_one_from_set64 / pick_one_from_set64_batch (the single source of the pick technique, D-221); get_uint64_batch | 22/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS level — training metrics + console / file reports; it publishes the dense training residuals `ctx.train_dense_rn` for PLOT (I-018) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK level — the saved-model file acceptance test (re-read the file, the client's array EF, the Y-space residual comparison vs the PUBLISHED `ctx.vld_rn` series, I-018: no local re-derivation) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
@@ -155,7 +156,7 @@ One row per test file, alphabetical.
 | src/reversi/test/test_board.py | complete: the board kernel suite — the bitboard layer (the 8 D8 transformations + the group law + the numba overloads), the position layer (creation, legal moves + the count, flips / make_move, the PASS-swap on the scalar + the bulk + the array batch + the fuzz parity, empties / empty count, collisions, game over, the Zobrist hash + the legacy parity), TestInitialGame, the two per-lane njit primitives (TestNumbaPrimitives), the named move-code pin, 2 PERF | 247/0/15 | docs/src/reversi/test/test_board.md |
 | src/reversi/test/test_cache_manager.py | complete: 22 tests | 22/0/0 | docs/src/reversi/test/test_cache_manager.md |
 | src/reversi/test/test_client.py | complete: the client EF suite — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test | 7/0/1 | docs/src/reversi/test/test_client.md |
-| src/reversi/test/test_feature.py | complete: 9 verified facts | 20/0/1 | docs/src/reversi/test/test_feature.md |
+| src/reversi/test/test_feature.py | complete: the factory + construction + feature_blocks + compute_indexes suite | 25/0/1 | docs/src/reversi/test/test_feature.md |
 | src/reversi/test/test_prng.py | complete: the MT19937 suite — the smoke micro-suite (the determinism, the dtype pins, the no-consume contracts) + the golden suite (the committed 18436-line golden, 20 sections) + TestChooseOneFromSet64 (the empty sentinel, the (1 << p, p) return, the no-drain, the 1000-pick golden for 7 sets, the full-set equidistribution); TestPickOneFromSet64 (the D-221 kernel-method identity draw-for-draw + the batch equivalence + the all-empty no-draw case); the get_uint64_batch pin | 22/0/0 | docs/src/reversi/test/test_prng.md |
 | src/reversi/test/test_wrk_analytics.py | complete: the ANALYTICS worker suite (the masked-hash helper + the 2 file-report goldens) | 4/0/0 | docs/src/reversi/test/test_wrk_analytics.md |
 | src/reversi/test/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden, the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/src/reversi/test/test_wrk_client_check.md |

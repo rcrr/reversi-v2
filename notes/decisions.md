@@ -2015,3 +2015,24 @@ D-265 | 2026-09-19 | I-010 (the StateMachine context-injection redesign) EVALUAT
          VERDICT: leave as-is — the uniform `ctx.` blackboard access is exactly what the injection was designed to
          serve; the D-070/M9 decision ("the injection is fundamental, the domain workers depend on it") stands, now
          confirmed by the visible call pattern. I-010 moved to notes/ideas-closed.md.
+D-266 | 2026-09-19 | I-007 (the FeatureSet column-labelling helper) EXECUTED (Roberto's approval; the property
+         name feature_blocks): the D-041 deferral condition was met — the pipeline module that labels columns
+         arrived (SU_ANALYSIS + EFFECT_SIZE) and had re-derived the same 14-line helper locally TWICE
+         (wrk_su_analysis / wrk_effect_size), plus a THIRD copy inline in the hlp_gate test loader. THE CHANGE (zero
+         behaviour change, the logic byte-identical): (1) feature.py — the new FeatureSet.feature_blocks property:
+         the (name, col_start, col_end, n_configurations, n_instances) tuples over the non-intercept features, in
+         the fset.features order (the compute_indexes column layout: the intercept owns column 0 if present, then
+         the mobilities, then the patterns), instance-aware (each feature occupies its n_instances D8-instance
+         columns); the intercept is not a block (it is fset.intercept). (2) wrk_su_analysis / wrk_effect_size — the
+         duplicated _feature_blocks helpers removed, the call sites use fset.feature_blocks. (3)
+         hlp_gate.load_campaign — the inline column walk replaced by fset.feature_blocks (the (cfg, fset, blocks)
+         return signature unchanged — zero test change). (4) hlp_random_play — the two accumulator docstring
+         phrasings "(the load_campaign blocks)" reworded to "(the fset.feature_blocks)". TESTS: test_feature 20 -> 25
+         (the new TestFeatureSetFeatureBlocks class: the 16-block list golden with the intercept — columns 1-53 — and
+         without it — 0-52 —, the intercept-only + empty sets -> [], the contiguous instance-aware tiling: every
+         block width = its n_instances, up to n_instances). DOCS: the 5 mirror docs (feature, test_feature,
+         wrk_su_analysis, wrk_effect_size, hlp_gate). VERIFICATION: LONG suite 933 -> 938/0/25 GREEN; the docs format
+         audit 88/95 clean (the 7 findings are the pre-existing size budgets — zero new). The semantic name->column
+         resolution (the JointAccumulator su_pairs lookup, the ANOVA per-instance-column groups) now rides on the
+         documented FeatureSet API; the design-matrix side was NOT touched (the WMAPS artifacts feature_w_ranges /
+         iwmap_feature_offset already cover the weight-level mapping).

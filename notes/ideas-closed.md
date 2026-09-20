@@ -36,6 +36,16 @@ I-006 | dropped | Legacy migration debt (raised 2026-08-27, D-024): `PatternSet.
          campaign is complete (D-119: the pipeline is 15/15, D-104/D-113) and no legacy call site survived the migration
          — the only `.names()` occurrence is prose in `docs/src/reversi/mobility.md`.
 
+I-007 | done | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3: no way to map a
+         column of the (N, I) index matrix to the feature name producing it; the D-041 deferral: "until the pipeline
+         module that labels columns arrives"). Executed as D-266 (2026-09-19, Roberto's approval): the
+         `FeatureSet.feature_blocks` property (the (name, col_start, col_end, n_configurations, n_instances) tuples
+         over the non-intercept features, the compute_indexes column layout, instance-aware) — the deferral condition
+         was met: the SU_ANALYSIS + EFFECT_SIZE workers had arrived carrying TWO identical local `_feature_blocks`
+         copies, plus a THIRD inline in the hlp_gate test loader; all three call sites now use the property (zero
+         behaviour change, the logic byte-identical). test_feature 20 -> 25 (the new TestFeatureSetFeatureBlocks
+         class); the 5 mirror docs (feature, test_feature, wrk_su_analysis, wrk_effect_size, hlp_gate).
+
 I-008 | dropped | Extend the papers collection beyond 2002 (dropped at D-125, 2026-09-06): the copyrighted collection
          left the workspace scope — dropped, not moved (Roberto's call).
 

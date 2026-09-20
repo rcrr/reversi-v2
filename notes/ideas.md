@@ -7,13 +7,6 @@ CLOSED idea (`done` | `dropped`) MOVES to notes/ideas-closed.md — compacted to
 outcome — in the same commit as the decision that closes it; it never stays here. The I-numbers are global and never
 reused or renumbered (I-008 is dropped: see ideas-closed.md).
 
-I-007 | follow-up | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3): no way to map a
-         column of the (N, I) index matrix to the feature name producing it (unlike `MobilitySet.names` /
-         `.masks`, D-024). VERIFIED STILL OPEN (2026-09-19): the pipeline landed without it — the `_feature_blocks`
-         helper is now re-derived locally in BOTH `wrk_su_analysis` and `wrk_effect_size` (the (name, col_start,
-         col_end) blocks built from `feature_set.features`); each pattern occupies `n_instances` D8-instance columns, so
-         the helper must be instance-aware.
-
 I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE level from the checkpoint's warm weights (raised
          2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, the run
          starts FROM SCRATCH (the clipping-equivalent behavior Roberto chose); resuming L-BFGS from the checkpoint's
