@@ -268,14 +268,14 @@ class TestWrkPlot(unittest.TestCase):
     # -- the golden --------------------------------------------------------
 
     def test_parity_png_golden(self):
-        """The rendering golden (re-pinned for the fixed axes + the
-        two-line title; re-pinned again for the env drift — the
-        rendering is visually identical, only the font rasterization
-        bytes moved): the parity figure of the
+        """The rendering golden: the parity figure of the
         synthetic context (SEED 42, N_TRN 1200 / N_VLD 1000, the
-        rlm_04 mirror, png at 150 dpi) hashes to the pinned value.
-        Version-sensitive like the other f32 goldens: it
-        moves when matplotlib or numpy changes."""
+        rlm_04 mirror, png at 150 dpi, the fixed axes + the
+        two-line title) hashes to the pinned value. Version-
+        sensitive like the other f32 goldens: it moves when
+        matplotlib or numpy changes, and the font rasterization
+        bytes follow the environment's fonts (the rendering
+        stays visually identical)."""
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["parity"])
         wrk_plot().up(ctx)

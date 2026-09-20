@@ -115,8 +115,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         the console report, the report file and the INFO log lines.
 
         Goldens: rlm_02 live (the bid [6,7] training model, 199952
-        samples), re-derived independently by scratch/verify_analytics.py
-        (tier C, 0 mismatches).
+        samples), derived independently, not read back from the
+        worker output.
         """
         # Pre-state: the ANALYTICS blackboard fields are not set yet.
         self.assertIsNone(self.rlm.context.analytics_report)
@@ -294,8 +294,8 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         3.36, the clearest demonstration of the substitution table), the
         mobility + pattern table structure and the file-report hash.
 
-        Goldens: rlm_01 live (bid [7] training, 10 samples), re-derived
-        independently by the campaign probe (0 mismatches).
+        Goldens: rlm_01 live (bid [7] training, 10 samples),
+        derived independently, not read back from the worker output.
         """
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 15)

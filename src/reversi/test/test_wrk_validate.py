@@ -106,9 +106,9 @@ class TestLMWorkerValidate(unittest.TestCase):
     def test_validate_model_goldens(self):
         """First run to VALIDATE: the 7-metric dict + the INFO log lines.
 
-        Goldens: rlm_02 live (bid [8] validation vs the bid [6,7] training
-        model), re-derived independently by scratch/verify_validate.py
-        (tier C, 0 mismatches).
+        Goldens: rlm_02 live (bid [8] validation vs the bid [6,7]
+        training model), derived independently, not read back from
+        the worker output.
         """
         self.assertIsNone(self.rlm.context.vld_metrics)
 
