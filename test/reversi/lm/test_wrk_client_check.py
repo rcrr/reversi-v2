@@ -124,7 +124,7 @@ class TestWrkClientCheck(unittest.TestCase):
             base_dir=Path(self.tmp_dir),
             output=Path("synth_client_check.dat"),
             client_check_tol=1e-8,
-            regab_data_set=SimpleNamespace(ec=20),
+            empty_count=20,
             stat_model=SimpleNamespace(logit_clipping=ALPHA),
             model_dump_json=lambda indent=4: dump,
         )

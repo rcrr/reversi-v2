@@ -274,7 +274,6 @@ class RegabDataSetConfig(LMBaseConfig):
     regab_db_connection: RegabDBConnectionConfig
     bid: List[NonNegativeInt]
     status: List[StatusString]
-    ec: int = Field(..., ge=0, le=60)
 
 class PatternConfig(LMBaseConfig):
     """

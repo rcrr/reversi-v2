@@ -60,9 +60,7 @@
             "host": "localhost"
         },
         "bid": [6, 7],
-        "status": ["CMR", "CMS"],
-        "ec": 20
-    },
+        "status": ["CMR", "CMS"]    },
     "feature_set": {
         "intercept": false,
         "pattern_set": {

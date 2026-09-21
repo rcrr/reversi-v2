@@ -319,7 +319,7 @@ j = (ROOT / "test" / "reversi" / "data" / "rlm_02.json").read_text()
 check("E7 rlm_02 config",
       '"logit_clipping": 0.01' in j and '"ridge_regularization": 0.01' in j
       and '"frequency_cut_off": 1' in j and '"intercept": false' in j
-      and '"ec": 20' in j and '"bid": [6, 7]' in j
+      and '"empty_count": 20' in j and '"bid": [6, 7]' in j
       and j.count('"name": "') >= 2)
 check("E8 rlm_02 trailing comma (JSON5)",
       re.search(r'"ridge_regularization": 0\.01,\s*\n\s*\}', j) is not None)

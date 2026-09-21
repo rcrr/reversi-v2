@@ -71,6 +71,10 @@ tables at the end of this file.
   D-279; a compact KPI legend above the list) + Section B (the SU groups — each pair DEDUPLICATED, the SU being
   symmetric so the (i, j) / (j, i) directions are shown once, the groups in the canonical endpoint order (the
   lexicographic instance order)).
+- The ec (empty_count) is consolidated in ONE required root field (D-280..D-283): `empty_count` (int, 0..60) between
+  name and description — the single source for the SU corpus generation, the DB extraction (training + validation),
+  and the saved model. The redundant `su_analysis.corpus.ec` + `regab_data_set.ec` are gone; the migration was
+  value-preserving (the caches, the corpus signature, and the model file keep the ec value — nothing regenerated).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the

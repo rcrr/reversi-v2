@@ -66,9 +66,7 @@
             "host": "localhost"
         },
         "bid": [8],
-        "status": ["CMS", "CMR"],
-        "ec": 20
-    },
+        "status": ["CMS", "CMR"]    },
     "validation_data_set": {
         "bid": [8],
         "status": ["CMS", "CMR"]

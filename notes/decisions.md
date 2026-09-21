@@ -2351,3 +2351,19 @@ D-282 | 2026-09-21 | The extraction (training + validation) uses the root empty_
          empty_count (not regab_data_set.ec). The wrk_vld_positions M1 note + the wrk_positions doc
          follow. VERIFICATION: the positions cache-consistency tests (12, 5 DB-gated skipped) green,
          including test_different_ec_is_inconsistent; the doc mirror.
+D-283 | 2026-09-21 | The regab_data_set.ec is REMOVED; the saved model uses the root empty_count
+         (the empty_count consolidation, step 4 of 4; Roberto — the migration completes). The
+         RegabDataSetConfig.ec field (required, 0..60) is REMOVED — the regab_data_set now carries
+         only regab_db_connection + bid + status. The saved-model write (model_weights, the u32
+         metadata) reads the ROOT empty_count (the value is 20, so the model file is byte-identical
+         — no re-training). The 9 configs (the 7 test fixtures + the 2 production) drop the
+         regab_data_set.ec. test_hlp_config_schemas test_ec_out_of_range_rejected is REMOVED (the
+         root empty_count bounds are pinned by the D-280 test); test_wrk_config's synthetic payload
+         drops the ec + its bounds test now mutates the root empty_count. The SimpleNamespace mock
+         configs (full_chain, client_check, the vld is_cache_consistent suite) + the two probes
+         (verify_gradient E7, verify_wrk_positions D3) now use the root empty_count. After this step
+         the ec has
+         ONE home (the root empty_count) — the redundancy is gone. VERIFICATION: the config tests
+         (40) + the FULL suite (938, 25 DB-gated skipped) + the 23-probe sweep green; rlm_su_1e7
+         loads (empty_count=20; test_su_00 still has the pre-existing DIAG7 su_pairs issue, unchanged);
+         the doc mirror.

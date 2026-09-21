@@ -60,9 +60,7 @@
             "host": "localhost"
         },
         "bid": [7],
-        "status": ["CMS"],
-        "ec": 20
-    },
+        "status": ["CMS"]    },
     "feature_set": {
         "intercept": true,
         "pattern_set": {

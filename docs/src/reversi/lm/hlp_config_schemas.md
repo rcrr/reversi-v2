@@ -14,11 +14,11 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the fg-variant flag) |
 | `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
-| `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 — the single seed), `total_positions` (1e7), `ec` (0..100, 20 — the arrest window) |
+| `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 - the single seed), `total_positions` (1e7); the ec arrest is the root `empty_count` (D-281) |
 | `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
 | `EffectSizeConfig` | the EFFECT_SIZE level: `enable` (bool, **FALSE** — opt-in), `top_k_adherence` (20, ge=1), `dir_name` (`effect_size`), `report_file_name`, `export_csv` (False) |
 | `RegabDBConnectionConfig` | `dbname` / `user` / `host` required, `port=5432`, `password=None` |
-| `RegabDataSetConfig` | the connection + `bid` + strict `status` + `ec` (required, 0..60) |
+| `RegabDataSetConfig` | the connection + `bid` + strict `status` (the ec is the root `empty_count`, D-283) |
 | `PatternConfig` | `name` + `mask: Bitboard` (hex-string in, 16-hex out) |
 | `PatternSetConfig` | `name` + `patterns: List[PatternConfig]` (default empty) |
 | `MobilityFeatureConfig` | `name` + `mask` + `amask`, both Bitboard |
@@ -94,7 +94,7 @@ Pinned by `test_hlp_config_schemas.py` (27 tests, `TestRlmConfigSchemas`).
   fail-fast ValidationError, a repeated name is deduplicated with the order preserved, an absolute `dir_name` stays
   absolute and a relative one stays relative (`test_plot_unknown_name_rejected`, `test_plot_dedup_preserving_order`,
   `test_plot_dir_absolute_and_relative`).
-- The analysis defaults: both `enable` FALSE, `target_level` "last", the corpus defaults (seed 42, 1e7, ec 20), the
+- The analysis defaults: both `enable` FALSE, `target_level` "last", the corpus defaults (seed 42, 1e7), the
   empty `su_pairs`, `export_csv` False, `top_k_adherence` 20 (`test_su_analysis_defaults`); the canonical order + the
   dedupe (a repeated pair in any order collapses to one sorted tuple) and the fail-fast against the feature set
   (`test_su_pairs_canonical_dedupe`, `test_su_pairs_fail_fast`); a level name ("SU_ANALYSIS") survives in

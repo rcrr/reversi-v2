@@ -183,7 +183,7 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
             "use_cache": True,
             "regab_data_set": {
                 "regab_db_connection": {"dbname": "t", "user": "t", "host": "l"},
-                "bid": [1], "status": ["CMS"], "ec": 10
+                "bid": [1], "status": ["CMS"]
             },
             "stat_model": {"frequency_cut_off": 1},
             "optimization": {"checkpoint_file": "opt_checkpoint.json"},
@@ -226,9 +226,9 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
             rlm.move_to_step('CONFIG')
 
     def test_invalid_ec_out_of_range(self):
-        """Test that ec > 60 is rejected by Pydantic."""
+        """Test that empty_count > 60 is rejected by Pydantic."""
         payload = self.valid_json_content.copy()
-        payload['regab_data_set']['ec'] = 99 # Invalid!
+        payload['empty_count'] = 99 # Invalid!
         
         rlm = LogisticModel(self._write_json(payload), verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
         with self.assertRaises(ValidationError):

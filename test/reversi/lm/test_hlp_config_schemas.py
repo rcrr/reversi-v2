@@ -133,16 +133,6 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     # -- regab_data_set constraints ------------------------------------
 
-    def test_ec_out_of_range_rejected(self):
-        """ec outside [0, 100] is rejected by the schema (the
-        domain check is a schema constraint, not a worker one)."""
-        for bad_ec in (99, -1):
-            with self.subTest(ec=bad_ec):
-                def _bdec(d, e=bad_ec):
-                    d["regab_data_set"]["ec"] = e
-                with self.assertRaises(ValidationError):
-                    LMConfig(**self._cfg_dict(_bdec))
-
     def test_invalid_status_rejected(self):
         """status must be exactly 3 uppercase letters: lowercase
         'cms' and the 4-letter 'CMSX' are both rejected."""

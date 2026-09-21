@@ -216,7 +216,8 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
         vld = SimpleNamespace(bid=[8], status=["CMS", "CMR"])
         regab = SimpleNamespace(regab_db_connection=conn, bid=[6, 7],
                                 status=["CMR", "CMS"], ec=20)
-        cfg = SimpleNamespace(regab_data_set=regab, validation_data_set=vld)
+        cfg = SimpleNamespace(regab_data_set=regab, validation_data_set=vld,
+                              empty_count=20)
         return SimpleNamespace(cfg=cfg, log_event=lambda rel, msg: None)
 
     def _rds(self, bid=[8], status=["CMS", "CMR"], ec=20, host="localhost"):
@@ -237,7 +238,7 @@ class TestIsCacheConsistentOverride(unittest.TestCase):
                                           bid=[8], status=["CMS"]), False)
 
     def test_ec_mismatch_is_inconsistent(self):
-        """The shared regab_data_set.ec is the gate."""
+        """The shared ec (the root empty_count) is the gate."""
         self.assertIs(is_cache_consistent(self._ctx(), self._rds(ec=22),
                                           bid=[8], status=["CMS", "CMR"]), False)
 

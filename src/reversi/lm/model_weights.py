@@ -100,7 +100,7 @@ def model_weights_write_file(ctx: "LMContext",
 
         # 2. Metadata
         w.write_string(ctx.cfg.name)
-        w.write_u32(ctx.cfg.regab_data_set.ec)
+        w.write_u32(ctx.cfg.empty_count)
         w.write_f32(ctx.cfg.stat_model.logit_clipping)
 
         # 3. Training Population Statistics

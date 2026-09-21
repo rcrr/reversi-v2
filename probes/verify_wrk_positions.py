@@ -200,7 +200,7 @@ check("D2 corrupted .dat -> checksum WARN + delete + recompute",
 
 # D3: business inconsistency (ec 20 -> 10) -> validate_fn False -> recompute
 def _ec10(d):
-    d["regab_data_set"]["ec"] = 10
+    d["empty_count"] = 10
 ec10_path = PROBE_TMP / "rlm_00_ec10.json"
 ec10_path.write_text(json5.dumps(cfg_dict_mutate(_ec10)))
 d3_dir = fresh("d3_warm")

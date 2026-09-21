@@ -225,7 +225,7 @@ class TestFullChainA2030(unittest.TestCase):
         # Metadata
         self.assertEqual(mw.version, 2)
         self.assertEqual(mw.name, ctx.cfg.name)
-        self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
+        self.assertEqual(mw.ec, ctx.cfg.empty_count)
         self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
 
         # Training population statistics (float32 truncation by the file format)
@@ -553,7 +553,7 @@ class TestFullChainA2050(unittest.TestCase):
         # Metadata
         self.assertEqual(mw.version, 2)
         self.assertEqual(mw.name, ctx.cfg.name)
-        self.assertEqual(mw.ec, ctx.cfg.regab_data_set.ec)
+        self.assertEqual(mw.ec, ctx.cfg.empty_count)
         self.assertAlmostEqual(mw.logit_clipping, ctx.cfg.stat_model.logit_clipping, places=5)
 
         # Training population statistics (float32 truncation by the file format)
@@ -701,7 +701,7 @@ class TestModelWeightsV2(unittest.TestCase):
         dump = '{"name": "SYNTH_C2", "marker": "SYNTH"}'
         cfg = SimpleNamespace(
             name="SYNTH_C2",
-            regab_data_set=SimpleNamespace(ec=20),
+            empty_count=20,
             stat_model=SimpleNamespace(logit_clipping=0.05),
             model_dump_json=lambda indent=4: dump,
         )
