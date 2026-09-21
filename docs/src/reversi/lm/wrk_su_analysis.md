@@ -19,9 +19,10 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
 ## Architecture
 - **The cache flow** — the `rlmwf_03_SU_ANALYSIS.dat` file (the pickle of the tables dict) + the .SHA3-256 sidecar (the
   1 MiB-chunk verify). The consistency signature (`_signature`): the feature_set hash (the sha3_256 of the feature_set
-  config's normalized dump, the first 16 hex) + the generation spec (the seed, the total_positions, the ec, the
-  generator version `su-corpus-2` — an older version string marks a corpus built on the swapped start, never reusable —,
-  the PRNG version `mt19937-64`) + the su_pairs list (the canonical sorted form). A pair-list change invalidates the
+   config's normalized dump, the first 16 hex) + the generation spec (the seed, the total_positions, the ec, the
+   root empty_count (D-281), the generator version `su-corpus-2` - an older version string marks a corpus built
+   on the swapped start, never reusable -, the PRNG version `mt19937-64`) + the su_pairs list (the canonical
+   sorted form). A pair-list change invalidates the
   corpus cache → a full regeneration; the two-tier cache (the marginals keyed on (features, spec) + the joints keyed on
   (+ pairs)) is the parked v2 refinement.
 - **The compute path (phase 1)** — the SU-analysis corpus generator (the `run_wave`, the wave size

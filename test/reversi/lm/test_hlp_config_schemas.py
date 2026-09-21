@@ -302,8 +302,8 @@ class TestRlmConfigSchemas(unittest.TestCase):
     def test_su_analysis_defaults(self):
         """The opt-in sections: the su_analysis / the
         effect_size enable default FALSE, the target_level
-        default 'last', the corpus defaults (seed 42, 1e7, ec
-        20), the su_pairs empty. The rlm_00 fixture carries the
+        default 'last', the corpus defaults (seed 42, 1e7), the
+        su_pairs empty. The rlm_00 fixture carries the
         sections — strip them to check the pure defaults (the
         absent-section no-op)."""
         def _strip_i017(d):
@@ -317,7 +317,6 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(cfg.su_analysis.corpus.seed, 42)
         self.assertEqual(cfg.su_analysis.corpus.total_positions,
                          10_000_000)
-        self.assertEqual(cfg.su_analysis.corpus.ec, 20)
         self.assertEqual(cfg.su_analysis.su_pairs, [])
         self.assertFalse(cfg.su_analysis.export_csv)
         self.assertFalse(cfg.effect_size.export_csv)

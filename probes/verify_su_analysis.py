@@ -300,7 +300,7 @@ check("B10 the signature spec values: the config's seed / total / ec + the "
       "two version pins",
       sig["seed"] == sig_cfg.su_analysis.corpus.seed
       and sig["total_positions"] == sig_cfg.su_analysis.corpus.total_positions
-      and sig["ec"] == sig_cfg.su_analysis.corpus.ec
+      and sig["ec"] == sig_cfg.empty_count
       and sig["generator_version"] == "su-corpus-2"
       and sig["prng_version"] == "mt19937-64")
 

@@ -135,7 +135,7 @@ def _signature(ctx) -> dict:
         'feature_set_hash': _feature_set_hash(ctx.cfg),
         'seed': corpus.seed,
         'total_positions': corpus.total_positions,
-        'ec': corpus.ec,
+        'ec': ctx.cfg.empty_count,
         'generator_version': _GENERATOR_VERSION,
         'prng_version': _PRNG_VERSION,
         'su_pairs': [list(p) for p in ctx.cfg.su_analysis.su_pairs],
@@ -153,14 +153,14 @@ def _compute_tables(ctx) -> dict:
     corpus = cfg_fa.corpus
     ctx.log_event(Relevance.INFO,
                   f"Generating the SU_ANALYSIS corpus: "
-                  f"[TOTAL: {corpus.total_positions:,}], [EC: {corpus.ec}], "
+                  f"[TOTAL: {corpus.total_positions:,}], [EC: {ctx.cfg.empty_count}], "
                   f"[SEED: {corpus.seed}], the wave tier.")
     sink = BufferSink()
     # The wave size is capped by the corpus: a smaller corpus needs
     # fewer lanes (every game is its own lane in one wave), and the
     # lanes beyond it only pay allocation + glue.
     wave_size = min(_WAVE_SIZE, corpus.total_positions)
-    info = run_wave(corpus.total_positions, corpus.ec,
+    info = run_wave(corpus.total_positions, ctx.cfg.empty_count,
                        corpus.seed, wave_size, sink)
     mover, opp, _ = sink.flatten()
     marg = MarginalAccumulator(fset, blocks)

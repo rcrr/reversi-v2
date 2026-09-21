@@ -87,14 +87,14 @@ def _make_ctx(tmp, n_positions, enable=True, su_pairs=None,
               use_cache=True):
     """A mock ctx over the rlm_00 fixture's feature set, with
     the su_analysis enabled + a tiny corpus (the n_positions
-    at ec 20, seed 42) + the optional su_pairs."""
+    at the root empty_count 20, seed 42) + the optional su_pairs."""
     cfg, fset, _blocks = load_campaign(
         str(WORKSPACE_ROOT / "test" / "reversi" / "data" /
             "rlm_00.json"))
     cfg.base_dir = tmp
     cfg.su_analysis.enable = enable
     cfg.su_analysis.corpus.total_positions = n_positions
-    cfg.su_analysis.corpus.ec = 20
+    cfg.empty_count = 20
     cfg.su_analysis.corpus.seed = 42
     # The explicit no-pairs (the default) — independent of the
     # fixture's su_pairs.

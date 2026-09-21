@@ -97,9 +97,7 @@
         "enable": true,
         "corpus": {
             "seed": 42,
-            "total_positions": 2000000,
-            "ec": 20
-        },
+            "total_positions": 2000000        },
         "su_pairs": [["LMC", "XEDGE"], ["LMC", "R2"], ["LMC", "CORNER"]],
         "dir_name": "su_analysis",
         "report_file_name": "su_analysis_report.txt",

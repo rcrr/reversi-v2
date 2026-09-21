@@ -2329,3 +2329,14 @@ D-280 | 2026-09-21 | Consolidating the ec (empty_count) into ONE required root f
          value — nothing is regenerated). VERIFICATION: the config tests (41) + the fixture-based
          LMConfig tests (24, 6 DB-gated skipped) green; rlm_su_1e7 loads (empty_count=20); the doc
          mirror.
+D-281 | 2026-09-21 | The SU corpus uses the root empty_count (the empty_count consolidation, step 2
+         of 4; Roberto). The CorpusConfig.ec field (default 20, 0..100) is REMOVED — the SU corpus
+         generation (the seed, the total_positions) stays, but the ec arrest now reads the ROOT
+         empty_count (the single ec source). wrk_su_analysis: the _signature 'ec' entry now reads
+         ctx.cfg.empty_count (the value is 20 in the fixtures, so the cache signature is
+         byte-identical — the 5e7/1e7 corpus caches are NOT invalidated); the generation log + the
+         run_wave call read the root empty_count. The 5 configs that had su_analysis.corpus.ec
+         (rlm_00 / 05 / 06 + the 2 production) drop it. The test_wrk_su_analysis _make_ctx sets
+         cfg.empty_count (not corpus.ec); the config defaults test drops the corpus.ec assertion;
+         the verify_su_analysis B10 signature check reads sig_cfg.empty_count. VERIFICATION: the
+         SU test + the config tests (37) green; the verify_su_analysis probe (44) green.

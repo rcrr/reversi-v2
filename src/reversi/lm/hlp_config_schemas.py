@@ -160,9 +160,10 @@ class CorpusConfig(LMBaseConfig):
     """
     Configuration for the SU_ANALYSIS corpus (the
     SU-analysis corpus generator): the MT19937 seed, the total
-    positions, and the ec arrest rule (the empty_count window
-    constraint, the design section 2.1 — the "mele con mele"
-    window, the same ec the DB extraction uses).
+    positions. The ec arrest rule (the empty_count window, the
+    design section 2.1 "mele con mele" window) is the ROOT
+    `empty_count` (D-281) — the corpus is arrested at the SAME ec
+    the DB extraction uses (the value lives at the config root).
     """
     seed: int = Field(
         default=42,
@@ -171,12 +172,6 @@ class CorpusConfig(LMBaseConfig):
         default=10_000_000,
         description="The total positions to generate (the "
                     "default 1e7 — minutes at the wave tier).")
-    ec: NonNegativeInt = Field(
-        default=20, ge=0, le=100,
-        description="The ec arrest rule (the empty_count, the "
-                    "window constraint, the design section 2.1): "
-                    "the corpus is arrested at the SAME ec the DB "
-                    "extraction uses (the 'mele con mele' window).")
 
 
 class SuAnalysisConfig(LMBaseConfig):

@@ -95,9 +95,7 @@
         "enable": true,
         "corpus": {
             "seed": 42,
-            "total_positions": 10000,
-            "ec": 20
-        },
+            "total_positions": 10000        },
         "su_pairs": [["LMC", "EDGE"]],
         "dir_name": "su_analysis",
         "report_file_name": "su_analysis_report.txt",
