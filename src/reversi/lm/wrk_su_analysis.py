@@ -88,6 +88,17 @@ _WAVE_SIZE = 1_000_000
 _GENERATOR_VERSION = "su-corpus-2"
 _PRNG_VERSION = "mt19937-64"
 _RARITY_THRESHOLDS = (1, 2, 5, 10, 100)
+# The SU range legend (the report's interpretation key): the SU value
+# bands + their meaning. The SU = 2·I / (H_u + H_v) in [0, 1] is the
+# normalized shared information — the bias-compensated correlation.
+_SU_LEGEND = (
+    "SU        : Meaning",
+    "0.0       : Perfect orthogonality",
+    "0.0 - 0.1 : Excellent independence",
+    "0.1 - 0.3 : Moderate correlation",
+    "0.3 - 0.5 : Strong correlation",
+    "over 0.5  : Very strong correlation",
+)
 
 
 def _feature_set_hash(cfg) -> str:
@@ -208,9 +219,69 @@ def _su_values(joint, lookup):
     return su
 
 
-def _export_csv(ctx, tables, su_summary) -> Path:
+def _feature_instances(marginal) -> list:
+    """The distinct feature names, first-seen order (the model's
+    features — the sub-variable names: LMC, EDGE, ...)."""
+    seen = []
+    for (name, _i, _nc, _codes, _counts) in marginal:
+        if name not in seen:
+            seen.append(name)
+    return seen
+
+
+def _su_canon(name_i, inst_i, name_j, inst_j) -> tuple:
+    """The canonical endpoint order of a SU pair: the two
+    (name, inst) tuples sorted. The (i, j) and the (j, i) directions
+    of the SAME measurement map to the same canonical form."""
+    a = (name_i, inst_i)
+    b = (name_j, inst_j)
+    return (a, b) if a <= b else (b, a)
+
+
+def _su_groups(su_summary, su_pairs) -> list:
+    """The deduplicated + sorted SU groups (the report's Section B).
+    The SU is SYMMETRIC (2·I / (H_u + H_v)), so the (i, j) and the
+    (j, i) directions of a pair are the SAME measurement — each is
+    shown ONCE, in the canonical endpoint order. The groups are the
+    feature-pairs (the header), in the configured order; within a
+    group the entries are sorted by the SU value descending (the
+    strongest correlation first) + the canonical order (the
+    determinism tie-break)."""
+    # 1. The dedup: the (i, j) and the (j, i) of a pair are one
+    #    measurement — keep the first, in the canonical endpoint order.
+    seen = set()
+    deduped = []
+    for (ni, ii, nj, jj, s) in su_summary:
+        (an, ai), (bn, bi) = _su_canon(ni, ii, nj, jj)
+        key = (an, ai, bn, bi)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append((an, ai, bn, bi, s))
+    # 2. The group order: the configured feature-pairs (the canonical
+    #    name order) first, then any not in the config (defensive).
+    order = []
+    for pair in su_pairs:
+        gk = tuple(sorted(pair))
+        if gk not in order:
+            order.append(gk)
+    for (an, _ai, bn, _bi, _s) in deduped:
+        gk = tuple(sorted((an, bn)))
+        if gk not in order:
+            order.append(gk)
+    # 3. The group + the sort (the SU descending + the canonical order).
+    groups = {gk: [] for gk in order}
+    for (an, ai, bn, bi, s) in deduped:
+        groups[tuple(sorted((an, bn)))].append((an, ai, bn, bi, s))
+    return [(gk, sorted(groups[gk],
+                        key=lambda t: (-t[4], (t[0], t[1]), (t[2], t[3]))))
+            for gk in order]
+
+
+def _export_csv(ctx, tables, su_groups) -> Path:
     """The optional CSV: the per-sub-variable marginal tables +
-    the per-pair SU instance entries."""
+    the per-pair SU instance entries (the deduplicated + sorted
+    groups, the report's Section B)."""
     cfg_fa = ctx.cfg.su_analysis
     csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
         "su_analysis.csv"
@@ -225,9 +296,10 @@ def _export_csv(ctx, tables, su_summary) -> Path:
             w.writerow(['marginal', name, i, nc, d['k_obs'],
                         f"{d['h']:.6f}", f"{d['h_norm']:.6f}",
                         f"{d['coverage']:.6f}", a['never_observed'], ''])
-        for (ni, ii, nj, jj, s) in su_summary:
-            w.writerow(['su', f"{ni} x {nj}", f"{ii}x{jj}", '', '',
-                        '', '', '', '', f"{s:.6f}"])
+        for gk, grp in su_groups:
+            for (an, ai, bn, bi, s) in grp:
+                w.writerow(['su', f"{an} - {bn}", f"{ai}x{bi}", '', '',
+                            '', '', '', '', f"{s:.6f}"])
     return csv_path
 
 
@@ -241,8 +313,24 @@ def _compute_statistics(ctx, tables) -> Path:
     marginal = tables['marginal']
     joint = tables['joint']
     lookup = _marginal_lookup(marginal)
-    lines = ["SU_ANALYSIS REPORT", "=" * 40,
-             f"Sub-variables: {len(marginal)}"]
+    su_summary = _su_values(joint, lookup) if joint is not None else []
+    su_groups = _su_groups(su_summary, cfg_fa.su_pairs)
+    pairs_str = ", ".join(" - ".join(tuple(sorted(pair)))
+                          for pair in cfg_fa.su_pairs) \
+        if cfg_fa.su_pairs else "(none)"
+    lines = ["Symmetrical Uncertainity Analysis Report", "=" * 40,
+             "It evaluates the normalized relationship, dependency, "
+             "or shared variance between variables,",
+             "compensating for the inherent mathematical bias found "
+             "in raw information gain."]
+    lines += list(_SU_LEGEND)
+    lines.append("")
+    lines.append(f"Corpus: {cfg_fa.corpus.total_positions:,} positions")
+    lines.append(f"Features: {', '.join(_feature_instances(marginal))}")
+    lines.append(f"SU pairs: {pairs_str}")
+    lines.append("")
+    lines.append("Section A: Properties of features selected by "
+                 "the logistic model")
     for (name, i, nc, _codes, counts) in marginal:
         d = dispersion(counts, nc)
         a = never_observed_audit(counts, nc, _RARITY_THRESHOLDS)
@@ -252,12 +340,20 @@ def _compute_statistics(ctx, tables) -> Path:
                 f"never-obs {a['never_observed']}")
         lines.append(line)
         ctx.log_event(Relevance.INFO, line)
-    su_summary = _su_values(joint, lookup) if joint is not None else []
-    su_summary.sort(key=lambda x: x[4], reverse=True)
-    for (ni, ii, nj, jj, s) in su_summary[:20]:
-        line = f"  SU {ni}[{ii}] x {nj}[{jj}] = {s:.4f}"
-        lines.append(line)
-        ctx.log_event(Relevance.INFO, line)
+    lines.append("")
+    lines.append("Section B: Symmetrical uncertainity")
+    if not su_groups:
+        lines.append("  (no SU pairs configured)")
+    for gk, grp in su_groups:
+        header = " - ".join(gk)
+        lines.append(header)
+        ctx.log_event(Relevance.INFO, header)
+        for (an, ai, bn, bi, s) in grp[:20]:
+            line = f"  SU {an}[{ai}] - {bn}[{bi}] = {s:.4f}"
+            lines.append(line)
+            ctx.log_event(Relevance.INFO, line)
+        if not grp:
+            lines.append("  (none)")
     report_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
         cfg_fa.report_file_name
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -265,7 +361,7 @@ def _compute_statistics(ctx, tables) -> Path:
     ctx.log_event(Relevance.INFO,
                   f"SU_ANALYSIS report written: {report_path}.")
     if cfg_fa.export_csv:
-        csv_path = _export_csv(ctx, tables, su_summary)
+        csv_path = _export_csv(ctx, tables, su_groups)
         ctx.log_event(Relevance.INFO,
                       f"SU_ANALYSIS CSV written: {csv_path}.")
     return report_path

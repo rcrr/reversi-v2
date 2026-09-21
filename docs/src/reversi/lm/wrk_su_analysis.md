@@ -11,8 +11,8 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
 - `_up(ctx)`: (1) the enable check — `su_analysis.enable` false makes the level a no-op (opt-in), the tables stay None;
   (2) phase 1 — the cache flow (the `cache_manager_load_or_compute`, the rlmwf_03 slot, the feature_set hash + spec +
   pairs signature, NO rds_checksum); (3) phase 2 — the statistics (the per-sub-variable dispersion + the never-observed
-  audit + the requested SU pairs); (4) the outputs — the console (INFO per sub-variable + the top SU pairs) + the TXT
-  report (dir_name under base_dir, the PlotConfig pattern) + the optional CSV (the export_csv flag); (5) the ctx
+  audit + the requested SU pairs); (4) the outputs — the console (INFO per sub-variable + the deduped SU groups) + the
+  TXT report (dir_name under base_dir, the PlotConfig pattern) + the optional CSV (the export_csv flag); (5) the ctx
   publication — the `ctx.su_analysis_tables` (the marginal + the joint, for the EFFECT_SIZE level).
 - `_down(ctx)`: clears the `ctx.su_analysis_tables` (recovery).
 
@@ -35,7 +35,9 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   `never_observed_audit` (the n_conf - K_obs + the rarity profile); the requested SU pairs: for each (name_i, name_j)
   pair and each (inst_i, inst_j), the `symmetric_uncertainty(2·I / (H_i + H_j))` from the joint + the two marginals. The
   same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the SU = 1 lock — not a measurement; the off-diagonal is the
-  anisotropy measure).
+  anisotropy measure). The report's Section B shows each pair ONCE — the SU is SYMMETRIC, so the (i, j) / (j, i)
+  directions are the SAME measurement (the dedup) — in the canonical endpoint order, the groups (the feature-pair
+  header) sorted by the SU value descending (the strongest correlation first).
 - **The ctx field** — the `LMContext.su_analysis_tables` (the cross-level blackboard, the pre-declared field) carries
   the tables dict (the marginal + the joint) for the EFFECT_SIZE level (the adherence, step 6).
 
@@ -47,11 +49,12 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   cache" log); the signature invalidation (the corpus change -> the recompute); the su_pairs joint (the (EDGE, LMC)
   pair, the canonical order); the optional CSV (the export_csv flag -> the CSV file); the down (recovery — the tables
   cleared).
-- Pinned by the 42-check `probes/verify_su_analysis.py`: the module structure + the no-DB discipline; the independent
+- Pinned by the 44-check `probes/verify_su_analysis.py`: the module structure + the no-DB discipline; the independent
   re-derivations (the marginal vs the FeatureSet's own batch bincount, the joint vs a pure-python Counter, the SU values
-  vs the RATIO-FORM mutual information, the signature vs an independently recomputed feature_set hash); the live rlm_00
-  run (the step-3 stop, the cache + its sidecar, the report lines vs pure-python math, the phase-2 recompute on the
-  cache hit, the down, the opt-in absence of both artifacts); the rename completeness over src/docs/probes/tools.
+  vs the RATIO-FORM mutual information, the dedup + the sort (the symmetric pairs shown once, the value descending),
+  the signature vs an independently recomputed feature_set hash); the live rlm_00 run (the step-3 stop, the cache + its
+  sidecar, the report lines vs pure-python math, the phase-2 recompute on the cache hit, the down, the opt-in absence
+  of both artifacts); the rename completeness over src/docs/probes/tools.
 
 ## Open issues
 - The SU / the entropy / the MI math: `hlp_feature_analysis` is a shared-kernels module (also the ANOVA + the adherence

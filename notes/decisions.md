@@ -2240,3 +2240,26 @@ D-274 | 2026-09-21 | The logistic_model facade gains a SCRIPT ENTRY (Roberto's c
          already-tested surface. VERIFICATION: the hub probe verify_logistic_model.py all green (21
          checks; the V3d source scan still passes — no commented wrk_ import/entry introduced); LONG
          suite 938/0/25 GREEN (Roberto's run, re-confirmed); the mirror-doc audit 88/95 = the baseline.
+D-275 | 2026-09-21 | The SU_ANALYSIS report is restructured (Roberto's request, after a full pipeline
+         run on base_dir build/test_su_00 to validate the su level). The new format: the title
+         "Symmetrical Uncertainity Analysis Report" (Roberto's spelling) + the 2-line subtitle (it
+         evaluates the normalized relationship / dependency / shared variance, compensating for the
+         bias in raw information gain) + the 6-line SU-range legend (0.0 perfect orthogonality;
+         0.0-0.1 excellent independence; 0.1-0.3 moderate correlation; 0.3-0.5 strong correlation;
+         over 0.5 very strong correlation — English, per the "in inglese" ask) + a one-line summary
+         (the corpus size, the model's features, the requested SU pairs) + "Section A: Properties of
+         features selected by the logistic model" (the feature-instances: the per-sub-variable
+         dispersion + the never-observed audit) + "Section B: Symmetrical uncertainity" (the SU
+         groups). The pairs are DEDUPLICATED + sorted: the SU is symmetric (2·I/(H_u+H_v)), so the
+         (i, j) and the (j, i) directions are the SAME measurement — each shown ONCE in the canonical
+         endpoint order (the smaller (name, inst) first); the groups (the feature-pair header, e.g.
+         "EDGE - EDGE") are sorted by the SU value descending (the strongest correlation first; a
+         deterministic canonical tie-break). The pair separator is now "-" (was "x"); the CSV export
+         is aligned to the same deduped+sorted groups. New wrk_su_analysis helpers: _SU_LEGEND,
+         _feature_instances (the distinct feature names, first-seen order), _su_canon (the canonical
+         endpoint order), _su_groups (the dedup + group + sort). VERIFICATION: the wrk_su_analysis +
+         wrk_effect_size unit tests green (16, the VLONG skipped); verify_su_analysis.py is now 44
+         checks (the su_rx regex x->-, + B12 the dedup [12 ordered -> 6 unordered, each once] + B13
+         the value-descending sort, on a self-pair) all green; the user's test_su_00 report (the 5e7
+         corpus, cache hit) regenerated: 12 -> 6 pairs, the Section A values unchanged; the
+         mirror-doc audit 88/95 = the baseline; the full 23-probe sweep green.

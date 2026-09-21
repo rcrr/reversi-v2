@@ -64,6 +64,10 @@ tables at the end of this file.
 - The LM facade is the pipeline's script entry (D-274): `python -m reversi.lm.logistic_model <config.json>
   [--verbosity {high,moderate,standard,low,very_low,none}]` (default `standard`), from the workspace root — runs the
   whole chain to the last level.
+- The SU_ANALYSIS report (D-275) is the two-section "Symmetrical Uncertainity Analysis Report": a header (the title +
+  the subtitle + the SU-range legend + the corpus / features / SU-pairs summary), Section A (the feature-instances —
+  the per-sub-variable dispersion + the never-observed audit) + Section B (the SU groups — each pair DEDUPLICATED, the
+  SU being symmetric so the (i, j) / (j, i) directions are shown once, the groups sorted by the SU value descending).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the
@@ -113,7 +117,7 @@ of the file's test module.
 | src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (the ad-hoc cache flow removed, the record is a SAVE artifact) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR worker | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
 | src/reversi/lm/wrk_effect_size.py | the EFFECT_SIZE worker (step 6) — the eta²/omega² per sub-variable + the adherence (the chi-square + the KL + the TV, DB vs the ideal corpus); the graceful degradation; NO cache (a diagnostic); optional (default FALSE) | 7/0/0 (via test_wrk_effect_size) | docs/src/reversi/lm/wrk_effect_size.md |
-| src/reversi/lm/wrk_su_analysis.py | the SU_ANALYSIS worker (step 3) — the SU-analysis corpus cache (the feature_set hash + spec + pairs) + the phase-2 recompute (the dispersion + the never-observed audit + the SU pairs) + the reports + the ctx publication; optional (default FALSE) | 9/0/1 (via test_wrk_su_analysis; VLONG: 9/0/0, the 1e7 corpus) | docs/src/reversi/lm/wrk_su_analysis.md |
+| src/reversi/lm/wrk_su_analysis.py | the SU_ANALYSIS worker (step 3) — the SU-analysis corpus cache (the feature_set hash + spec + pairs) + the phase-2 recompute (the dispersion + the never-observed audit + the SU pairs) + the two-section report (the feature-instances + the deduped+sorted SU groups — the symmetric pairs shown once, the value descending) + the ctx publication; optional (default FALSE) | 9/0/1 (via test_wrk_su_analysis; VLONG: 9/0/0, the 1e7 corpus) | docs/src/reversi/lm/wrk_su_analysis.md |
 | src/reversi/lm/wrk_features.py | complete: the FEATURES worker (step 2, before POSITIONS) — the first pure-compute level (no cache file) | 3/0/0 (DB-free) | docs/src/reversi/lm/wrk_features.md |
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE level (dense weights materialization) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT level (the float32 contract; the high_performance_fg flag wiring) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |

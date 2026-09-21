@@ -250,6 +250,33 @@ check("B7  the SU values == the ratio-form MI + the pure-python "
       and all(abs(su_mod[k] - su_indep[k]) < 1e-12 for k in su_indep),
       str({k: (su_mod.get(k), su_indep[k]) for k in su_indep}))
 
+# The dedup + the sort (the report's Section B): the SU is SYMMETRIC
+# (2·I / (H_u + H_v)), so the (i, j) and the (j, i) directions of a
+# pair are the SAME measurement. A self-pair (EDGE x EDGE) yields every
+# ordered pair twice; _su_groups shows each ONCE, in the canonical
+# endpoint order, sorted by the SU value descending (the strongest
+# correlation first).
+SELF = ("EDGE", "EDGE")
+selfj = JointAccumulator(fset, blocks, [SELF])
+selfj.add(mover, opp)
+selfres = selfj.result()
+selfsu = wsu._su_values(selfres, marg_lookup)
+selfgroups = wsu._su_groups(selfsu, [SELF])
+n_edge = blocks_by_name["EDGE"][4]
+n_unordered = n_edge * (n_edge - 1) // 2
+check("B12 the dedup: the self-pair's ordered pairs collapse to the "
+      "unordered pairs (n instances -> n*(n-1)/2, each once)",
+      len(selfgroups) == 1 and selfgroups[0][0] == ("EDGE", "EDGE")
+      and len(selfgroups[0][1]) == n_unordered
+      and len({((an, ai), (bn, bi))
+               for (an, ai, bn, bi, _s) in selfgroups[0][1]})
+      == n_unordered,
+      f"{len(selfsu)} ordered -> {len(selfgroups[0][1])} canonical")
+vals = [s for (an, ai, bn, bi, s) in selfgroups[0][1]]
+check("B13 the sort: the group is ordered by the SU value descending "
+      "(the strongest correlation first)",
+      vals == sorted(vals, reverse=True), str(vals))
+
 # The cache signature: the feature_set hash recomputed from the config
 # dump (the first 16 hex), plus the spec keys.
 base_c = TMP / "b_sig"
@@ -348,7 +375,7 @@ line_rx = re.compile(
     r"^  (?P<name>\w+) inst (?P<i>\d+): K_obs (?P<k>\d+)/(?P<nc>\d+), "
     r"H (?P<h>[\d.]+), H_norm (?P<hn>[\d.]+), "
     r"coverage (?P<cov>[\d.]+), never-obs (?P<never>\d+)$")
-su_rx = re.compile(r"^  SU (?P<ni>\w+)\[(?P<ii>\d+)\] x (?P<nj>\w+)\[(?P<jj>\d+)\] = (?P<s>[\d.]+)$")
+su_rx = re.compile(r"^  SU (?P<ni>\w+)\[(?P<ii>\d+)\] - (?P<nj>\w+)\[(?P<jj>\d+)\] = (?P<s>[\d.]+)$")
 by_key = {(nm, ii): (nc, cd, ct)
           for (nm, ii, nc, cd, ct) in cached["marginal"]}
 sub_ok = True
