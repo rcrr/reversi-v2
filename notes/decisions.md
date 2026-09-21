@@ -2282,3 +2282,21 @@ D-277 | 2026-09-21 | Refinement of D-275 (Roberto): the Section B SU groups are 
          order, not the value descent); the doc mirror + the overview sort wording updated. VERIFICATION:
          the user's test_su_00 report regenerated in the canonical order (12 -> 6 pairs, the same values);
          the 44-check probe green; the full 23-probe sweep 23/23 green.
+D-278 | 2026-09-21 | CORRECTION + the Section A KPI legend (Roberto). (1) The coverage / the
+         never-observed denominator was n_configurations (the raw 3^n) — WRONG for patterns. The
+         pattern's observed codes are the PRINCIPAL indices (compute_principal_indexes, the orbit
+         representatives), a scattered subset of [0, 3^n) of size n_unique_configs (the equivalence
+         classes under the pattern's symmetry = principal_index_count), not the full raw range; the
+         correct denominator is n_unique_configs (the reachable space), and n_configurations was
+         counting the (3^n - n_unique_configs) non-principal raw configs as "never observed". A
+         MOBILITY's codes are the raw values (no reduction), so its n_configurations was already
+         correct. Fix: wrk_su_analysis computes the per-sub-variable REACHABLE space (n_unique_configs
+         for patterns, n_configurations for mobilities) and uses it for the coverage / the
+         never-observed audit (report + CSV). Effect on the test_su_00 EDGE (the 8-square row, 4
+         instances): 6561 -> 3321, coverage 0.458 -> 0.905, never-obs 3556 -> 316 (the 5e7 corpus).
+         (2) The report's Section A now carries a compact English KPI legend (the _KPI_LEGEND) above
+         the feature-instances. VERIFICATION: exhaustive — EDGE n_unique_configs = principal_index_
+         count = 3321, ALL observed codes are valid principal indices (scattered, max 6560), the
+         mobility (LMC, 65) unchanged; the test_su_00 report regenerated corrected; the probe C10
+         re-anchored (the reachable space) + the 44-check probe green; the full 23-probe sweep 23/23
+         green.

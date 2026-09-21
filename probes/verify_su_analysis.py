@@ -379,6 +379,17 @@ line_rx = re.compile(
 su_rx = re.compile(r"^  SU (?P<ni>\w+)\[(?P<ii>\d+)\] - (?P<nj>\w+)\[(?P<jj>\d+)\] = (?P<s>[\d.]+)$")
 by_key = {(nm, ii): (nc, cd, ct)
           for (nm, ii, nc, cd, ct) in cached["marginal"]}
+# The reachable space per sub-variable (D-278): n_unique_configs for a
+# pattern (the principal-index space), n_configurations for a mobility —
+# the coverage / the never-observed denominator.
+reachable = {}
+for _f in fset.features:
+    if _f.name == 'INTERCEPT':
+        continue
+    _nu = getattr(_f.ref, 'n_unique_configs', None)
+    _eff = _nu if _nu is not None else _f.n_configurations
+    for _i in range(_f.n_instances):
+        reachable[(_f.name, _i)] = _eff
 sub_ok = True
 sub_seen = 0
 su_lines = {}
@@ -387,15 +398,16 @@ for line in text.splitlines():
     if m:
         sub_seen += 1
         nc, cd, ct = by_key[(m["name"], int(m["i"]))]
+        eff = reachable.get((m["name"], int(m["i"])), nc)
         k_obs = len(cd)
         h = py_entropy(ct.tolist())
         h_norm = h / math.log2(k_obs) if k_obs > 1 else 0.0
-        cov = k_obs / nc
-        if not (k_obs == int(m["k"]) and nc == int(m["nc"])
+        cov = k_obs / eff
+        if not (k_obs == int(m["k"]) and eff == int(m["nc"])
                 and abs(h - float(m["h"])) < 5e-4
                 and abs(h_norm - float(m["hn"])) < 5e-4
                 and abs(cov - float(m["cov"])) < 5e-4
-                and nc - k_obs == int(m["never"])):
+                and eff - k_obs == int(m["never"])):
             sub_ok = False
     m2 = su_rx.match(line)
     if m2:

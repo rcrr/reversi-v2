@@ -99,6 +99,17 @@ _SU_LEGEND = (
     "0.3 - 0.5 : Strong correlation",
     "over 0.5  : Very strong correlation",
 )
+# The Section A KPI legend (the per-sub-variable statistics key, the
+# "reachable space" = n_unique_configs for a pattern / the value range
+# for a mobility — the denominator of the coverage / the never-observed
+# audit; D-278).
+_KPI_LEGEND = (
+    "K_obs    : distinct configurations observed (of the reachable space)",
+    "H        : Shannon entropy of the observed distribution (bits)",
+    "H_norm   : H / log2(K_obs) in [0,1] — 1.0 = uniform over the observed",
+    "coverage : observed / reachable (the fraction of the space covered)",
+    "never-obs: reachable − observed (reachable configurations never seen)",
+)
 
 
 def _feature_set_hash(cfg) -> str:
@@ -229,6 +240,26 @@ def _feature_instances(marginal) -> list:
     return seen
 
 
+def _reachable_space(fset) -> dict:
+    """The (name, instance) -> REACHABLE configuration space (D-278):
+    the denominator of the coverage + the never-observed audit. A
+    PATTERN's observed codes are the PRINCIPAL indices (the orbit
+    representatives), so its reachable space is n_unique_configs (the
+    number of equivalence classes under the pattern's symmetry — the
+    distinct principal indices), NOT n_configurations (the raw 3^n). A
+    MOBILITY's codes are the raw values (no symmetry reduction), so its
+    space is n_configurations."""
+    space = {}
+    for f in fset.features:
+        if f.name == 'INTERCEPT':
+            continue
+        n_unique = getattr(f.ref, 'n_unique_configs', None)
+        eff = n_unique if n_unique is not None else f.n_configurations
+        for i in range(f.n_instances):
+            space[(f.name, i)] = eff
+    return space
+
+
 def _su_canon(name_i, inst_i, name_j, inst_j) -> tuple:
     """The canonical endpoint order of a SU pair: the two
     (name, inst) tuples sorted. The (i, j) and the (j, i) directions
@@ -286,14 +317,16 @@ def _export_csv(ctx, tables, su_groups) -> Path:
     csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
         "su_analysis.csv"
     csv_path.parent.mkdir(parents=True, exist_ok=True)
+    reachable = _reachable_space(ctx.feature_set)
     with open(csv_path, 'w', newline='', encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(['type', 'feature', 'inst', 'n_conf', 'k_obs',
                     'h', 'h_norm', 'coverage', 'never_observed', 'su'])
         for (name, i, nc, _codes, counts) in tables['marginal']:
-            d = dispersion(counts, nc)
-            a = never_observed_audit(counts, nc, _RARITY_THRESHOLDS)
-            w.writerow(['marginal', name, i, nc, d['k_obs'],
+            eff = reachable.get((name, i), nc)
+            d = dispersion(counts, eff)
+            a = never_observed_audit(counts, eff, _RARITY_THRESHOLDS)
+            w.writerow(['marginal', name, i, eff, d['k_obs'],
                         f"{d['h']:.6f}", f"{d['h_norm']:.6f}",
                         f"{d['coverage']:.6f}", a['never_observed'], ''])
         for gk, grp in su_groups:
@@ -329,12 +362,15 @@ def _compute_statistics(ctx, tables) -> Path:
     lines.append(f"Features: {', '.join(_feature_instances(marginal))}")
     lines.append(f"SU pairs: {pairs_str}")
     lines.append("")
+    reachable = _reachable_space(ctx.feature_set)
     lines.append("Section A: Properties of features selected by "
                  "the logistic model")
+    lines.extend(_KPI_LEGEND)
     for (name, i, nc, _codes, counts) in marginal:
-        d = dispersion(counts, nc)
-        a = never_observed_audit(counts, nc, _RARITY_THRESHOLDS)
-        line = (f"  {name} inst {i}: K_obs {d['k_obs']}/{nc}, "
+        eff = reachable.get((name, i), nc)
+        d = dispersion(counts, eff)
+        a = never_observed_audit(counts, eff, _RARITY_THRESHOLDS)
+        line = (f"  {name} inst {i}: K_obs {d['k_obs']}/{eff}, "
                 f"H {d['h']:.3f}, H_norm {d['h_norm']:.3f}, "
                 f"coverage {d['coverage']:.3f}, "
                 f"never-obs {a['never_observed']}")
