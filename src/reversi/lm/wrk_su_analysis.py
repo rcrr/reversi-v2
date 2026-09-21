@@ -100,15 +100,19 @@ _SU_LEGEND = (
     "over 0.5  : Very strong correlation",
 )
 # The Section A KPI legend (the per-sub-variable statistics key, the
-# "reachable space" = n_unique_configs for a pattern / the value range
-# for a mobility — the denominator of the coverage / the never-observed
-# audit; D-278).
+# theoretical configuration space = n_unique_configs for a pattern /
+# the value range for a mobility — the denominator of the coverage /
+# the never-observed audit; D-278, the "theoretical" naming D-279).
 _KPI_LEGEND = (
-    "K_obs    : distinct configurations observed (of the reachable space)",
+    "K_obs    : distinct configurations observed (of the theoretical "
+    "space)",
     "H        : Shannon entropy of the observed distribution (bits)",
     "H_norm   : H / log2(K_obs) in [0,1] — 1.0 = uniform over the observed",
-    "coverage : observed / reachable (the fraction of the space covered)",
-    "never-obs: reachable − observed (reachable configurations never seen)",
+    "coverage : observed / theoretical — the ratio of observed to "
+    "total theoretical configurations (some are unreachable by the "
+    "game's rules)",
+    "never-obs: theoretical − observed (theoretical configurations "
+    "never seen)",
 )
 
 
@@ -240,15 +244,17 @@ def _feature_instances(marginal) -> list:
     return seen
 
 
-def _reachable_space(fset) -> dict:
-    """The (name, instance) -> REACHABLE configuration space (D-278):
-    the denominator of the coverage + the never-observed audit. A
-    PATTERN's observed codes are the PRINCIPAL indices (the orbit
-    representatives), so its reachable space is n_unique_configs (the
-    number of equivalence classes under the pattern's symmetry — the
-    distinct principal indices), NOT n_configurations (the raw 3^n). A
-    MOBILITY's codes are the raw values (no symmetry reduction), so its
-    space is n_configurations."""
+def _theoretical_configs(fset) -> dict:
+    """The (name, instance) -> THEORETICAL configuration count (D-278,
+    the "theoretical" naming D-279): the denominator of the coverage +
+    the never-observed audit. A PATTERN's observed codes are the
+    PRINCIPAL indices (the orbit representatives), so its theoretical
+    space is n_unique_configs (the number of equivalence classes under
+    the pattern's symmetry — the distinct principal indices), NOT
+    n_configurations (the raw 3^n); some of those are unreachable by
+    the game's rules (the never-observed audit does not try to count
+    them). A MOBILITY's codes are the raw values (no symmetry
+    reduction), so its theoretical space is n_configurations."""
     space = {}
     for f in fset.features:
         if f.name == 'INTERCEPT':
@@ -317,13 +323,13 @@ def _export_csv(ctx, tables, su_groups) -> Path:
     csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
         "su_analysis.csv"
     csv_path.parent.mkdir(parents=True, exist_ok=True)
-    reachable = _reachable_space(ctx.feature_set)
+    theoretical = _theoretical_configs(ctx.feature_set)
     with open(csv_path, 'w', newline='', encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(['type', 'feature', 'inst', 'n_conf', 'k_obs',
                     'h', 'h_norm', 'coverage', 'never_observed', 'su'])
         for (name, i, nc, _codes, counts) in tables['marginal']:
-            eff = reachable.get((name, i), nc)
+            eff = theoretical.get((name, i), nc)
             d = dispersion(counts, eff)
             a = never_observed_audit(counts, eff, _RARITY_THRESHOLDS)
             w.writerow(['marginal', name, i, eff, d['k_obs'],
@@ -362,12 +368,12 @@ def _compute_statistics(ctx, tables) -> Path:
     lines.append(f"Features: {', '.join(_feature_instances(marginal))}")
     lines.append(f"SU pairs: {pairs_str}")
     lines.append("")
-    reachable = _reachable_space(ctx.feature_set)
+    theoretical = _theoretical_configs(ctx.feature_set)
     lines.append("Section A: Properties of features selected by "
                  "the logistic model")
     lines.extend(_KPI_LEGEND)
     for (name, i, nc, _codes, counts) in marginal:
-        eff = reachable.get((name, i), nc)
+        eff = theoretical.get((name, i), nc)
         d = dispersion(counts, eff)
         a = never_observed_audit(counts, eff, _RARITY_THRESHOLDS)
         line = (f"  {name} inst {i}: K_obs {d['k_obs']}/{eff}, "

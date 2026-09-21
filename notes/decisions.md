@@ -2300,3 +2300,15 @@ D-278 | 2026-09-21 | CORRECTION + the Section A KPI legend (Roberto). (1) The co
          mobility (LMC, 65) unchanged; the test_su_00 report regenerated corrected; the probe C10
          re-anchored (the reachable space) + the 44-check probe green; the full 23-probe sweep 23/23
          green.
+D-279 | 2026-09-21 | Naming refinement of D-278 (Roberto): the report term "reachable space" is
+         imprecise — the n_unique_configs configurations are the THEORETICAL space (the pattern's
+         principal-index orbit classes); with a large corpus (50M, the 4 EDGE instances identical)
+         the reachable ones are all captured, and the residual never-observed are ~99% IMPOSSIBLE by
+         the game dynamics (counting the impossible ones is infeasible — not attempted). So the
+         denominator is the total THEORETICAL configurations, some of which are unreachable by the
+         game's rules. Renamed: the report KPI legend (the _KPI_LEGEND) now says "theoretical" (the
+         coverage line: "the ratio of observed to total theoretical configurations (some are
+         unreachable by the game's rules)"); the wrk_su_analysis helper _reachable_space is renamed
+         _theoretical_configs; the probe C10 + the doc mirror + the overview follow. The numbers are
+         unchanged (only the naming). VERIFICATION: the report regenerated (the legend now
+         "theoretical"); the 44-check probe green; the full 23-probe sweep 23/23 green.

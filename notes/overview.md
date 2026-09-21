@@ -64,12 +64,13 @@ tables at the end of this file.
 - The LM facade is the pipeline's script entry (D-274): `python -m reversi.lm.logistic_model <config.json>
   [--verbosity {high,moderate,standard,low,very_low,none}]` (default `standard`), from the workspace root — runs the
   whole chain to the last level.
-- The SU_ANALYSIS report (D-275/D-278) is the two-section "Symmetrical Uncertainity Analysis Report": a header (the
-  title + the subtitle + the SU-range legend + the corpus / features / SU-pairs summary), Section A (the
-  feature-instances — the per-sub-variable dispersion + the never-observed audit, over the REACHABLE space:
-  n_unique_configs for a pattern / the value range for a mobility, D-278; a compact KPI legend above the list) +
-  Section B (the SU groups — each pair DEDUPLICATED, the SU being symmetric so the (i, j) / (j, i) directions are
-  shown once, the groups in the canonical endpoint order (the lexicographic instance order)).
+- The SU_ANALYSIS report (D-275/D-278/D-279) is the two-section "Symmetrical Uncertainity Analysis Report": a header
+  (the title + the subtitle + the SU-range legend + the corpus / features / SU-pairs summary), Section A (the
+  feature-instances — the per-sub-variable dispersion + the never-observed audit, over the THEORETICAL configuration
+  space: n_unique_configs for a pattern / the value range for a mobility, D-278; some are unreachable by the game,
+  D-279; a compact KPI legend above the list) + Section B (the SU groups — each pair DEDUPLICATED, the SU being
+  symmetric so the (i, j) / (j, i) directions are shown once, the groups in the canonical endpoint order (the
+  lexicographic instance order)).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the

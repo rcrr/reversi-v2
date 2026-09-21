@@ -379,17 +379,18 @@ line_rx = re.compile(
 su_rx = re.compile(r"^  SU (?P<ni>\w+)\[(?P<ii>\d+)\] - (?P<nj>\w+)\[(?P<jj>\d+)\] = (?P<s>[\d.]+)$")
 by_key = {(nm, ii): (nc, cd, ct)
           for (nm, ii, nc, cd, ct) in cached["marginal"]}
-# The reachable space per sub-variable (D-278): n_unique_configs for a
-# pattern (the principal-index space), n_configurations for a mobility —
-# the coverage / the never-observed denominator.
-reachable = {}
+# The theoretical configuration space per sub-variable (D-278/D-279):
+# n_unique_configs for a pattern (the principal-index space),
+# n_configurations for a mobility — the coverage / the never-observed
+# denominator.
+theoretical = {}
 for _f in fset.features:
     if _f.name == 'INTERCEPT':
         continue
     _nu = getattr(_f.ref, 'n_unique_configs', None)
     _eff = _nu if _nu is not None else _f.n_configurations
     for _i in range(_f.n_instances):
-        reachable[(_f.name, _i)] = _eff
+        theoretical[(_f.name, _i)] = _eff
 sub_ok = True
 sub_seen = 0
 su_lines = {}
@@ -398,7 +399,7 @@ for line in text.splitlines():
     if m:
         sub_seen += 1
         nc, cd, ct = by_key[(m["name"], int(m["i"]))]
-        eff = reachable.get((m["name"], int(m["i"])), nc)
+        eff = theoretical.get((m["name"], int(m["i"])), nc)
         k_obs = len(cd)
         h = py_entropy(ct.tolist())
         h_norm = h / math.log2(k_obs) if k_obs > 1 else 0.0

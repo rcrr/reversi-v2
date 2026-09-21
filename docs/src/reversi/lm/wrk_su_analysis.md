@@ -32,11 +32,12 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   (the FeatureSet property: the fset.features order, the documented column layout: the intercept, then the mobilities,
   then the patterns).
 - **The statistics (phase 2)** — the per-sub-variable `dispersion` (the K_obs / H / H_norm / coverage) + the
-  `never_observed_audit` (the reachable − K_obs + the rarity profile). The coverage / the never-observed
-  denominator is the REACHABLE space (D-278): a pattern's observed codes are the principal indices, so the
-  space is `n_unique_configs` (the orbit classes, NOT the raw `n_configurations` = 3^n); a mobility's is its
-  `n_configurations` (no reduction). The report's Section A carries a KPI legend (the `_KPI_LEGEND`) above the
-  feature-instances. The requested SU pairs: for each (name_i, name_j) pair and each (inst_i, inst_j), the
+  `never_observed_audit` (the theoretical − K_obs + the rarity profile). The coverage / the never-observed
+  denominator is the THEORETICAL configuration space (D-278, the "theoretical" naming D-279): a pattern's
+  observed codes are the principal indices, so the space is `n_unique_configs` (the orbit classes, NOT the raw
+  `n_configurations` = 3^n; some are unreachable by the game's rules); a mobility's is its `n_configurations`
+  (no reduction). The report's Section A carries a KPI legend (the `_KPI_LEGEND`) above the feature-instances.
+  The requested SU pairs: for each (name_i, name_j) pair and each (inst_i, inst_j), the
   `symmetric_uncertainty(2·I / (H_i + H_j))` from the joint + the two marginals. The same-feature DIAGONAL
   (inst_i == inst_j) is OMITTED (the SU = 1 lock — not a measurement; the off-diagonal is the anisotropy
   measure). The report's Section B shows each pair ONCE — the SU is SYMMETRIC, so the (i, j) / (j, i)
