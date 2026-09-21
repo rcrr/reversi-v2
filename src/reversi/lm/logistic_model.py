@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -26,6 +26,8 @@
 #
 
 from __future__ import annotations
+
+import argparse
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -55,6 +57,7 @@ from reversi.lm.wrk_analytics import wrk_analytics
 from reversi.lm.wrk_save import wrk_save
 from reversi.lm.wrk_client_check import wrk_client_check
 from reversi.lm.wrk_plot import wrk_plot
+
 
 
 __all__ = ['LMContext', 'LogisticModel']
@@ -96,7 +99,7 @@ class LMContext(Context):
     config_file_path: Path
     base_dir_override: Path | None = None
     use_cache: bool | None = None
-    
+
     # Data artifacts populated by the workers
 
     # Configuration attribute:
@@ -139,7 +142,7 @@ class LMContext(Context):
     # Design Matrix attribute:
     design_matrix_checksum: str | None = None
     design_matrix: Any = None
-    
+
     # ZED attributes:
     zed_checksum: str | None = None
     y2z: Any = None
@@ -182,7 +185,7 @@ class LMContext(Context):
     # so PLOT renders them instead of re-running the pass.
     train_dense_rn: Any = None
     analytics_report: Any = None
-    
+
     # Injected by StateMachine: the lambda defaults are the
     # pre-injection fallback, under the same D-069
     # *_for_current_level names the machine injects (D-074/R1).
@@ -196,7 +199,7 @@ class LMContext(Context):
 def _created_up(ctx: LMContext) -> None:
     ctx.log_event(Relevance.ERROR, "Executing CREATED up worker should never happen.")
     raise RuntimeError("Executing created step should never happen.")
-        
+
 def _created_down(ctx: LMContext) -> None:
     ctx.log_event(Relevance.ERROR, "Executing CREATED down worker should never happen.")
     raise RuntimeError("Cleaning created step should never happen.")
@@ -268,3 +271,59 @@ class LogisticModel(BaseModel):
         if cfg is None:
             return None
         return getattr(cfg, "target_level", None)
+
+
+# ---
+
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def build_model(json_config: Path, verbosity: Verbosity) -> None:
+    rlm = LogisticModel(json_config, verbosity=verbosity)
+    rlm.move_to_last()
+
+    return
+
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+#
+#
+# How to run the logistic_model pipeline.
+#
+# Run from the workspace root (the directory containing .venv and src).
+#
+# -0- Activate the environment.
+#
+# $ source .venv/bin/activate
+#
+# -1- Run the pipeline.
+#
+# $ time python3 -m reversi.lm.logistic_model <your_rlm_config_file.json>
+#
+
+if __name__ == '__main__':
+
+    # Initialize the parser and describe the script
+    parser = argparse.ArgumentParser(description="Script to run model optimization.")
+
+    # 1. Direct conversion to Path object
+    parser.add_argument('config', type=Path, help='Json configuration file.')
+
+    # Dictionary mapping lowercase strings to their corresponding Enum members
+    verbosity_map = {e.name.lower(): e for e in Verbosity}
+
+    # 2. Use string choices for clean CLI help/error messages, then convert via lambda
+    parser.add_argument(
+        '--verbosity',
+        type=str,
+        choices=list(verbosity_map.keys()),
+        default='standard',
+        help="Logging verbosity level"
+    )
+
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # 3. Resolve the string choice back to the actual Verbosity Enum object
+    verbosity_enum = verbosity_map[args.verbosity.lower()]
+
+    # Build the model using validated types
+    build_model(args.config, verbosity_enum)

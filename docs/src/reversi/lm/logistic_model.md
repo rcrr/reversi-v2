@@ -3,7 +3,7 @@ The first concrete domain facade: it wires the generic StateMachine to the LM (R
 4-step construction (validate the domain paths, build the shared LMContext blackboard, assemble the 18-level worker
 list, hand the parts to BaseModel → StateMachine) — plus the LMContext @dataclass: config state, every data artifact
 produced by the 18 levels, the 9 checksum fields, and the 3 infrastructure callables the machine injects at
-construction.
+construction. It is also the pipeline's script entry (the `build_model` entry, the `__main__` block).
 
 ## API
 
@@ -18,6 +18,7 @@ construction.
 | Facade | `run(target_level=None)` | the target-driven driver (inherited from `base_model.md`): the first real level (CONFIG) runs first, then the target resolves as the explicit argument, else `_configured_target_level()`, else the last step; `"last"` / a blank value → `move_to_last()` |
 | Facade | `_configured_target_level() -> int \| str \| None` | the LM override: `cfg.target_level` of the loaded config (`None` when no config is loaded or the field is absent — the base default, i.e. the whole pipeline) |
 | Facade | views | `current_step`, `current_worker_name` (read-only mirrors), `verbosity` (get/set through the SM) |
+| CLI | `build_model(json_config: Path, verbosity: Verbosity) -> None` | `@validate_call` (arbitrary_types_allowed); build the `LogisticModel` and run it to the last level (`move_to_last()`) — the `__main__` script entry, not in `__all__` |
 | Private | `_check_config_file_path(str \| Path) -> Path` | TypeError (bad type), FileNotFoundError (missing), IsADirectoryError (a directory) |
 | Private | `_check_base_dir_override(str \| Path) -> Path` | TypeError, FileNotFoundError, NotADirectoryError (a file) |
 | Private | `_created_up` / `_created_down(ctx)` | the level-0 CREATED sentinels: log ERROR + raise RuntimeError |
@@ -63,6 +64,10 @@ No commented factory imports or worker-list entries remain. The factories follow
 - **A2xxx naming (legacy production)** — the "A2050" / "A2030" labels of the full-chain tests are the build-config
   family names (the A2050 = the 11-pattern production set, the A2030 = the small EDGE+LMC one); they are NOT derived
   from the ec (both fixtures run ec 20). Intentional, not a typo — do not "fix" them.
+- **Script entry (runnable as a command)** — from the workspace root:
+  `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]`
+  (default `standard`). The `__main__` block parses the `--verbosity` choice (lowercase `Verbosity` names) and
+  calls `build_model` — build the facade, run it to the last level.
 
 ## Verified invariants
 

@@ -2225,3 +2225,18 @@ D-273 | 2026-09-20 | The TEST-TREE reorganization (Roberto's call after the PRO/
          gitignored-looking folder Roberto spotted): reverted to parents[3] + the comment
          corrected, test/build removed. VERIFICATION: the 49-test module green standalone,
          LONG suite 938/0/25 GREEN, no test/build after the full run.
+D-274 | 2026-09-21 | The logistic_model facade gains a SCRIPT ENTRY (Roberto's change, taken in as-is — no
+         pipeline-behaviour change; the module is now also runnable as a command): python -m
+         reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}] (default
+         standard), from the workspace root. New surface: import argparse; the module-level
+         build_model(json_config: Path, verbosity: Verbosity) — a @validate_call (arbitrary_types_allowed,
+         consistent with the facade ctor gate) that builds the LogisticModel and drives it to the last
+         level (move_to_last); the if __name__ == '__main__': block that parses the config path (argparse
+         type=Path) + the --verbosity choice (the lowercase Verbosity names, resolved through the
+         {name.lower(): member} map) and calls build_model. A "How to run" comment block documents the
+         two steps (activate the venv, run the pipeline). build_model is NOT in __all__ (the CLI entry
+         helper; the facade API is unchanged: __all__ stays ['LMContext', 'LogisticModel']). The argparse
+         glue has no dedicated test — its building blocks (the facade ctor + move_to_last) are the
+         already-tested surface. VERIFICATION: the hub probe verify_logistic_model.py all green (21
+         checks; the V3d source scan still passes — no commented wrk_ import/entry introduced); LONG
+         suite 938/0/25 GREEN (Roberto's run, re-confirmed); the mirror-doc audit 88/95 = the baseline.

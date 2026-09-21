@@ -61,6 +61,9 @@ tables at the end of this file.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
+- The LM facade is the pipeline's script entry (D-274): `python -m reversi.lm.logistic_model <config.json>
+  [--verbosity {high,moderate,standard,low,very_low,none}]` (default `standard`), from the workspace root — runs the
+  whole chain to the last level.
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the
@@ -122,7 +125,7 @@ of the file's test module.
 | src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS level (the POSITIONS twin over the validation set); the shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
 | src/reversi/lm/wrk_wmaps.py | complete: the WMAPS worker | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
 | src/reversi/lm/wrk_zed.py | complete: the ZED level (the first non-cache level) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard + the 18-level worker list (FEATURES before POSITIONS; SU_ANALYSIS step 3 + EFFECT_SIZE step 6) + the `_configured_target_level` hook that feeds `run()` from `cfg.target_level` | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
+| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard + the 18-level worker list (FEATURES before POSITIONS; SU_ANALYSIS step 3 + EFFECT_SIZE step 6) + the `_configured_target_level` hook that feeds `run()` from `cfg.target_level` + the `build_model` script entry (the facade runs as `python -m reversi.lm.logistic_model <config.json>`) | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
