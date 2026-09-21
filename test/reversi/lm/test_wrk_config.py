@@ -176,6 +176,7 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
         # breaks, so the assertions pin the constraint under test.
         self.valid_json_content = {
             "name": "Test Model",
+            "empty_count": 20,
             "description": "Test",
             "base_dir": "will/be/overwritten",
             "output": "rglm_logistic_model_TEST.dat",

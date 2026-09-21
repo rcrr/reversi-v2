@@ -26,6 +26,7 @@
  */
 {
     "name": "RGLM (Logistic) - I-017 Experiment 06 (rlm_06.json, 100M)",
+    "empty_count": 20,
     "description": "The I-017 SU-analysis experiment (the 100M tier): the SU-analysis corpus (100M positions, ec 20) + the su_analysis, the target_level SU_ANALYSIS (the stop before the DB levels). A copy of rlm_03 (the A2050 feature set, the DB connection kept for schema validity, unused at this target level). The su_pairs are the LIGHT mobility x pattern pairs (the heavy pattern x pattern joints are deferred, the T10 cost model).",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "output": "rglm_logistic_model_ec_20_TEST06.dat",

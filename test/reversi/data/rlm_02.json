@@ -26,6 +26,7 @@
  */
 {
     "name": "RGLM (Logistic) - Unit Test 02 (rlm_02.json)",
+    "empty_count": 20,
     "description": "Used for unit testing the gradient worker.",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "output": "rglm_logistic_model_ec_20_TEST02.dat",

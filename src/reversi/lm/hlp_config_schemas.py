@@ -363,6 +363,15 @@ class LMConfig(LMBaseConfig):
     data set configuration.
     """
     name: str
+    empty_count: int = Field(
+        ..., ge=0, le=60,
+        description="The empty_count (the ec, the game phase window, "
+                    "the 'mele con mele' constraint) — the single "
+                    "source for the SU corpus generation, the DB "
+                    "extraction (training + validation), and the "
+                    "saved model. D-280: the consolidated field, "
+                    "replacing the redundant su_analysis.corpus.ec + "
+                    "regab_data_set.ec.")
     description: str
     base_dir: Path
     output: Path = Field(..., description="Output filename for the saved binary model weights.")

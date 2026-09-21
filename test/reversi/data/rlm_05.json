@@ -26,6 +26,7 @@
  */
 {
     "name": "RGLM (Logistic) - I-017 Experiment 05 (rlm_05.json, 2M)",
+    "empty_count": 20,
     "description": "The I-017 SU-analysis experiment: the SU-analysis corpus (2M positions, ec 20) + the su_analysis, the target_level SU_ANALYSIS (the stop before the DB levels). A copy of rlm_03 (the A2050 feature set, the DB connection kept for schema validity, unused at this target level).",
     "base_dir": "will/be/overwritten/by/python/during/unittesting",
     "output": "rglm_logistic_model_ec_20_TEST05.dat",

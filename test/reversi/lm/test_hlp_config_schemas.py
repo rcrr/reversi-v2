@@ -87,6 +87,24 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(dumped["name"], self.base["name"])
         self.assertEqual(dumped["cache_files_prefix"], "rlmwf_")
 
+    # -- root fields -------------------------------------------------
+
+    def test_empty_count_required_and_bounded(self):
+        """The root empty_count (D-280): required, integer, 0..60.
+        Missing is rejected; 61 and -1 (out of range) are rejected;
+        the fixture value (20) is accepted."""
+        def _drop(d):
+            del d["empty_count"]
+        with self.assertRaises(ValidationError):
+            LMConfig(**self._cfg_dict(_drop))
+        for bad in (61, -1):
+            with self.subTest(ec=bad):
+                def _bdec(d, e=bad):
+                    d["empty_count"] = e
+                with self.assertRaises(ValidationError):
+                    LMConfig(**self._cfg_dict(_bdec))
+        self.assertEqual(LMConfig(**self._cfg_dict()).empty_count, 20)
+
     # -- pattern mask parsing -------------------------------------
 
     def test_pattern_mask_16_hex_parsed_and_serialized(self):

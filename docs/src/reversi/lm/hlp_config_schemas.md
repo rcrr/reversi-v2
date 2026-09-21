@@ -38,7 +38,9 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   vectorized-numpy fg closure, True builds the numba one — the GRADIENT worker reads it, rlm_03 / rlm_04 / rlm_05 /
   rlm_06 opt in) plus `check_wolfe_constants`, a `model_validator(mode="after")` enforcing `c2 > c1` (ValueError →
   ValidationError, both values in the message): the invariant is code, not docstring.
-- **The top level** — `name`, `description`, `base_dir`, `output` (required); `use_cache=True`; `cache_files_prefix`
+- **The top level** — `name`, `empty_count` (int, required, 0..60 — the single ec source for the SU corpus, the DB
+   extraction (training + validation), and the saved model; D-280, replacing `su_analysis.corpus.ec` +
+   `regab_data_set.ec`), `description`, `base_dir`, `output` (required); `use_cache=True`; `cache_files_prefix`
   default `"rlmwf_"` (the filename-prefix concatenation the state_machine closures implement); `regab_allow_duplicate`
   default `True` (True keeps every extracted row, False deduplicates by `(mover, opponent)` keeping the first occurrence
   — consumed by the POSITIONS / VLD `extract_and_prepare` path, the count is logged at both levels); `client_check_tol`

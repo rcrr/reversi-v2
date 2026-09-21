@@ -2312,3 +2312,20 @@ D-279 | 2026-09-21 | Naming refinement of D-278 (Roberto): the report term "reac
          _theoretical_configs; the probe C10 + the doc mirror + the overview follow. The numbers are
          unchanged (only the naming). VERIFICATION: the report regenerated (the legend now
          "theoretical"); the 44-check probe green; the full 23-probe sweep 23/23 green.
+D-280 | 2026-09-21 | Consolidating the ec (empty_count) into ONE required root field (the start of
+         the four-step migration D-280..D-283; Roberto). The ec (the "game phase" window, the "mele
+         con mele" constraint) was defined twice — su_analysis.corpus.ec (the CorpusConfig, default
+         20, 0..100) for the SU corpus, and regab_data_set.ec (the RegabDataSetConfig, required,
+         0..60) for the DB extraction (training + the validation, which inherits it, D-100 M1) and
+         the saved model (model_weights). In the fixtures both are 20 (the redundancy is
+         meaningless; they must be equal). D-280 adds the required root field empty_count (int,
+         0..60 — the stricter of the two existing bounds, tightening the corpus's 0..100; 20 is in
+         both) between name and description; added to the 7 test fixtures + the 2 production
+         configs (build/test_su_00, build/su_corpus_1e7, value-preserving 20) + the test_wrk_config
+         synthetic payload. A new test pins it (required: missing -> ValidationError; the 0..60
+         bounds: 61 / -1 -> ValidationError; the fixture value 20 accepted). The two old ec's are
+         untouched this step (D-281 removes the corpus one, D-283 the regab one); the migration is
+         value-preserving (the caches, the corpus signature, and the model file keep the same ec
+         value — nothing is regenerated). VERIFICATION: the config tests (41) + the fixture-based
+         LMConfig tests (24, 6 DB-gated skipped) green; rlm_su_1e7 loads (empty_count=20); the doc
+         mirror.
