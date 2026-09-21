@@ -36,8 +36,8 @@ error fails the level, the machine re-raises, the _down clears the ctx artifacts
   pair and each (inst_i, inst_j), the `symmetric_uncertainty(2·I / (H_i + H_j))` from the joint + the two marginals. The
   same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the SU = 1 lock — not a measurement; the off-diagonal is the
   anisotropy measure). The report's Section B shows each pair ONCE — the SU is SYMMETRIC, so the (i, j) / (j, i)
-  directions are the SAME measurement (the dedup) — in the canonical endpoint order, the groups (the feature-pair
-  header) sorted by the SU value descending (the strongest correlation first).
+  directions are the SAME measurement (the dedup); within each group (the feature-pair header) the entries are in
+  the canonical endpoint order (the lexicographic (feature, instance) order: EDGE[0]-EDGE[1], EDGE[0]-EDGE[2], ...).
 - **The ctx field** — the `LMContext.su_analysis_tables` (the cross-level blackboard, the pre-declared field) carries
   the tables dict (the marginal + the joint) for the EFFECT_SIZE level (the adherence, step 6).
 

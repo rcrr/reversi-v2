@@ -272,10 +272,11 @@ check("B12 the dedup: the self-pair's ordered pairs collapse to the "
                for (an, ai, bn, bi, _s) in selfgroups[0][1]})
       == n_unordered,
       f"{len(selfsu)} ordered -> {len(selfgroups[0][1])} canonical")
-vals = [s for (an, ai, bn, bi, s) in selfgroups[0][1]]
-check("B13 the sort: the group is ordered by the SU value descending "
-      "(the strongest correlation first)",
-      vals == sorted(vals, reverse=True), str(vals))
+endpoints = [((an, ai), (bn, bi))
+             for (an, ai, bn, bi, _s) in selfgroups[0][1]]
+check("B13 the sort: the group is in the canonical endpoint order "
+      "(the lexicographic (feature, instance) order)",
+      endpoints == sorted(endpoints), str(endpoints))
 
 # The cache signature: the feature_set hash recomputed from the config
 # dump (the first 16 hex), plus the spec keys.

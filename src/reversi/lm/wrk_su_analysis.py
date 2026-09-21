@@ -244,9 +244,9 @@ def _su_groups(su_summary, su_pairs) -> list:
     (j, i) directions of a pair are the SAME measurement — each is
     shown ONCE, in the canonical endpoint order. The groups are the
     feature-pairs (the header), in the configured order; within a
-    group the entries are sorted by the SU value descending (the
-    strongest correlation first) + the canonical order (the
-    determinism tie-break)."""
+    group the entries are sorted by the CANONICAL ENDPOINT ORDER (the
+    lexicographic (feature, instance) order: EDGE[0]-EDGE[1],
+    EDGE[0]-EDGE[2], EDGE[1]-EDGE[2], ...)."""
     # 1. The dedup: the (i, j) and the (j, i) of a pair are one
     #    measurement — keep the first, in the canonical endpoint order.
     seen = set()
@@ -274,7 +274,7 @@ def _su_groups(su_summary, su_pairs) -> list:
     for (an, ai, bn, bi, s) in deduped:
         groups[tuple(sorted((an, bn)))].append((an, ai, bn, bi, s))
     return [(gk, sorted(groups[gk],
-                        key=lambda t: (-t[4], (t[0], t[1]), (t[2], t[3]))))
+                        key=lambda t: ((t[0], t[1]), (t[2], t[3]))))
             for gk in order]
 
 

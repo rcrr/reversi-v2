@@ -67,7 +67,8 @@ tables at the end of this file.
 - The SU_ANALYSIS report (D-275) is the two-section "Symmetrical Uncertainity Analysis Report": a header (the title +
   the subtitle + the SU-range legend + the corpus / features / SU-pairs summary), Section A (the feature-instances —
   the per-sub-variable dispersion + the never-observed audit) + Section B (the SU groups — each pair DEDUPLICATED, the
-  SU being symmetric so the (i, j) / (j, i) directions are shown once, the groups sorted by the SU value descending).
+  SU being symmetric so the (i, j) / (j, i) directions are shown once, the groups in the canonical endpoint
+  order (the lexicographic instance order)).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
 - the corpus generator is hlp_wave (the concurrent WAVE engine); the model file is self-describing (format v2, the

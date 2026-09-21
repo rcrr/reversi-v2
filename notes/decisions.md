@@ -2274,3 +2274,11 @@ D-276 | 2026-09-21 | MAINTENANCE (POST-FIX): the verify_zed.py F1 check went red
          (the field content is unchanged, only relocated); the label's historical insertion list is left as-is
          (the kept-by-ruling probe label). VERIFICATION: verify_zed.py 51 checks, 0 mismatches; the full
          23-probe sweep (LONG=1) 23/23 green (the baseline restored).
+D-277 | 2026-09-21 | Refinement of D-275 (Roberto): the Section B SU groups are sorted by the CANONICAL
+         ENDPOINT ORDER (the lexicographic (feature, instance) order: EDGE[0]-EDGE[1], EDGE[0]-EDGE[2],
+         EDGE[0]-EDGE[3], EDGE[1]-EDGE[2], ...), NOT by the SU value descending (the D-275 default, the
+         strongest correlation first). The _su_groups sort key is now ((name_i, inst_i), (name_j, inst_j))
+         (was (-value, ...)); the dedup is unchanged. The probe B13 is re-anchored (the canonical endpoint
+         order, not the value descent); the doc mirror + the overview sort wording updated. VERIFICATION:
+         the user's test_su_00 report regenerated in the canonical order (12 -> 6 pairs, the same values);
+         the 44-check probe green; the full 23-probe sweep 23/23 green.
