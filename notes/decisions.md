@@ -2263,3 +2263,14 @@ D-275 | 2026-09-21 | The SU_ANALYSIS report is restructured (Roberto's request, 
          the value-descending sort, on a self-pair) all green; the user's test_su_00 report (the 5e7
          corpus, cache hit) regenerated: 12 -> 6 pairs, the Section A values unchanged; the
          mirror-doc audit 88/95 = the baseline; the full 23-probe sweep green.
+D-276 | 2026-09-21 | MAINTENANCE (POST-FIX): the verify_zed.py F1 check went red — a PRE-EXISTING
+         regression from D-274 (the logistic_model script entry), NOT from D-275. D-274 added lines above
+         the LMContext zed fields in logistic_model.py (import argparse + the script-entry block), shifting
+         the four fields (zed_checksum / y2z / z2y / z) from lines 144-147 to 147-150. The F1 check is a
+         line-shift maintenance pin (its own comment: "the block shifts with every insertion above it") that
+         hardcodes the old positions, so it went red. The previous span (D-274) ran only the hub probe
+         verify_logistic_model.py, not the full 23-probe sweep, so the red was not caught then (the "23
+         probes all green" baseline was quietly broken). The fix: update the four indices 143-146 -> 146-149
+         (the field content is unchanged, only relocated); the label's historical insertion list is left as-is
+         (the kept-by-ruling probe label). VERIFICATION: verify_zed.py 51 checks, 0 mismatches; the full
+         23-probe sweep (LONG=1) 23/23 green (the baseline restored).

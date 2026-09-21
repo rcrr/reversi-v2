@@ -218,10 +218,10 @@ lm_lines = lines_of('logistic_model.py')
 check('F1  LMContext zed fields pre-declared (the block shifts with every '
       'insertion above it: the D-142 config_checksum, the D-148/D-149 imports, '
       'the I-018 vld_y_pred / vld_rn / vld_outliers fields)',
-      lm_lines[143] == '    zed_checksum: str | None = None'
-      and lm_lines[144] == '    y2z: Any = None'
-      and lm_lines[145] == '    z2y: Any = None'
-      and lm_lines[146] == '    z: Any = None')
+      lm_lines[146] == '    zed_checksum: str | None = None'
+      and lm_lines[147] == '    y2z: Any = None'
+      and lm_lines[148] == '    z2y: Any = None'
+      and lm_lines[149] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
