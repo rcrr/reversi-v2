@@ -127,7 +127,7 @@ def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status
         bid = cfg_query.bid
     if status is None:
         status = cfg_query.status
-    ec = cfg_query.ec
+    ec = ctx.cfg.empty_count
     cache_query = rds
     
     cfg_query_data = (bid, status, ec)
@@ -176,7 +176,8 @@ def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
         status = query_params.status
 
     try:
-        rds = regab_extract_data_set_from_db(rc, bid, status, query_params.ec)
+        rds = regab_extract_data_set_from_db(rc, bid, status,
+                                             ctx.cfg.empty_count)
         ctx.log_event(Relevance.DEBUG, f"Extracted {len(rds.df_mogv):,} positions from the database.")
         return rds
     finally:

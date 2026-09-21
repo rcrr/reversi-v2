@@ -31,7 +31,7 @@ arrays + the training population stats are derived for the workers that follow.
 - `is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
   `int(cache_conn.port)` (regab stores the port as str, the schema as int; the normalization is load-bearing) and (2)
   the query tuple `(bid, status, ec)` — the `bid=`/`status=` keyword overrides win over the cfg. The DEBUG log always
-  prints the bool; the per-field detail only on inconsistency.
+  prints the bool; the per-field detail only on inconsistency (the `ec` is the root `empty_count`, D-282).
 - `load_from_db`: `RegabDBConnection(dbname, user, host, str(port), password)` — ALL five schema connection params (a
   configured port and password reach the connection string) → `regab_extract_data_set_from_db(rc, bid, status, ec)` →
   DEBUG "Extracted {n:,} positions from the database." (the connection log includes the port, never the password) →

@@ -15,8 +15,9 @@ set — LOG ONLY, no action. The flat file is `rlmwf_13_VLD_POSITIONS.dat` + `.S
 
 - `_up`:
   - `vld_cfg = ctx.cfg.validation_data_set` — `ValidationDataSetConfig` declares ONLY `bid: List[NonNegativeInt]` +
-    `status: List[StatusString]`. The M1 note: the query INHERITS `ec` from `ctx.cfg.regab_data_set` (the training
-    block) — the shared `ec` (20 in rlm_02) gates BOTH the extraction (wrk_positions) and the cache consistency check (
+    `status: List[StatusString]`. The M1 note (D-282): the query's `ec` is the ROOT
+    `empty_count` (no longer inherited from `regab_data_set`); the shared `ec` (20
+    in rlm_02) gates BOTH the extraction (wrk_positions) and the cache consistency check (
     there); the validation block cannot override `ec`.
   - The uniform 7-kwargs `cache_manager_load_or_compute`:
     `cache_path = ctx.get_cache_file_full_path_for_current_level()`, `is_allowed = ctx.use_cache`,

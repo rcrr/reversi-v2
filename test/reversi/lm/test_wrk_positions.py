@@ -184,7 +184,7 @@ class TestIsCacheConsistent(unittest.TestCase):
 
     def test_different_ec_is_inconsistent(self):
         def _ec19(d):
-            d["regab_data_set"]["ec"] = 19
+            d["empty_count"] = 19
         self.assertIs(is_cache_consistent(self._ctx(_ec19), self.rds), False)
 
     def test_different_bid_is_inconsistent(self):

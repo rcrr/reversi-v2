@@ -56,10 +56,10 @@ def _up(ctx: "LMContext") -> None:
 
     vld_cfg = ctx.cfg.validation_data_set
 
-    # Note: the vld query inherits ec from ctx.cfg.regab_data_set (the
-    # training block) — ValidationDataSetConfig declares only bid and
-    # status; the shared ec gates both the extraction and the cache
-    # consistency check (D-100 M1).
+    # Note: the vld query's ec is the ROOT empty_count (D-282) — it no
+    # longer inherits from regab_data_set. The ValidationDataSetConfig
+    # declares only bid and status; the shared ec gates both the
+    # extraction and the cache consistency check (D-100 M1).
 
     # Execute the abstracted pipeline.
     cache_hit, vld_rds, vld_rds_checksum = cache_manager_load_or_compute(

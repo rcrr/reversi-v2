@@ -2340,3 +2340,14 @@ D-281 | 2026-09-21 | The SU corpus uses the root empty_count (the empty_count co
          cfg.empty_count (not corpus.ec); the config defaults test drops the corpus.ec assertion;
          the verify_su_analysis B10 signature check reads sig_cfg.empty_count. VERIFICATION: the
          SU test + the config tests (37) green; the verify_su_analysis probe (44) green.
+D-282 | 2026-09-21 | The extraction (training + validation) uses the root empty_count (the empty_count
+         consolidation, step 3 of 4; Roberto). The DB extraction (load_from_db) + the cache
+         consistency check (is_cache_consistent) now read the ec from the ROOT empty_count (the single
+         ec source), not from regab_data_set — so the validation extraction, which shares the same
+         extract_and_prepare -> load_from_db path, no longer INHERITS the ec from the training block
+         (the D-100 M1 inheritance is retired). regab_data_set keeps bid + status (its ec field is
+         removed in D-283); only the saved-model write (model_weights) still reads regab_data_set.ec
+         until D-283. test_wrk_positions test_different_ec_is_inconsistent now mutates the root
+         empty_count (not regab_data_set.ec). The wrk_vld_positions M1 note + the wrk_positions doc
+         follow. VERIFICATION: the positions cache-consistency tests (12, 5 DB-gated skipped) green,
+         including test_different_ec_is_inconsistent; the doc mirror.
