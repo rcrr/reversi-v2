@@ -38,11 +38,12 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   is_cache_consistent — it is NOT part of the module API (the `__all__` policy, D-290: only the
   cross-module functions are exposed; the test / the probe reach the name directly).
 - The frequency accumulators are PRIVATE as well (the D-295 hlp_random_play migration, the
-  D-290 policy): `_MarginalAccumulator(fset, blocks)` (the streaming marginal: per sub-variable
+  D-290 policy): `_MarginalAccumulator(fset)` (the streaming marginal: per sub-variable
   the code -> count; the DENSE bincount when n_conf <= _DENSE_THRESHOLD (1e6), else the
   UNIQUE-MERGE dict; `.add(pos)` feeds a PositionArray corpus chunk, the position language
   D-296, `.result()` the observed (name, instance, n_conf, codes, counts)),
-  `_JointAccumulator(fset, blocks, su_pairs)` (per requested pair and per (instance_i,
+  `_JointAccumulator(fset, su_pairs)` (the per-feature blocks come from the fset's own
+  feature_blocks property, D-297; per requested pair and per (instance_i,
   instance_j) the (code_i, code_j) -> count, the SPARSE packed-u64 key code_i * n_conf_j +
   code_j; the same-feature diagonal is built and OMITTED downstream — the SU = 1 lock). The
   module speaks the position language end-to-end (D-296): the corpus batch is the np.full of

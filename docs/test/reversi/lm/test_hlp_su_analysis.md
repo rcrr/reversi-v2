@@ -34,11 +34,11 @@ language (the PositionArray feeding). 4 classes / 21 tests / no database.
   n_configurations.
 - The SU semantics: the symmetric dedup, the canonical endpoint order, the diagonal omission.
 - The accumulators (the D-295 migration): the toy FeatureSet (the `_toy_fset()` = the intercept + the LMC (the
-  legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561)); the
-  `_toy_blocks()` mirrors the pipeline's column layout; the `_corpus()` the small play-path corpus (the
-  random_game engine, D-285 — a PositionArray, the D-296 position language); the INDEPENDENT oracles (the LMC
-  via position_legal_moves, NOT compute_indexes; the R2 / the joints via the manual per-position dict over
-  compute_indexes).
+  legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561) — the accumulators
+  take only the fset, the per-feature blocks come from its feature_blocks property, D-297); the `_corpus()` the
+  small play-path corpus (the random_game engine, D-285 — a PositionArray, the D-296 position language); the
+  INDEPENDENT oracles (the LMC via position_legal_moves, NOT compute_indexes; the R2 / the joints via the manual
+  per-position dict over compute_indexes).
 
 ## Conventions
 

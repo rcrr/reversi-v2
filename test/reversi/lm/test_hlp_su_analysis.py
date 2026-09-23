@@ -407,19 +407,6 @@ class TestMarginalAccumulator(unittest.TestCase):
             PatternSet('pat', [Pattern('R2', u('000000000000FF00'))]))
 
     @staticmethod
-    def _toy_blocks(fset):
-        blocks = []
-        col = 1 if (fset.intercept is not None) else 0
-        for f in fset.features:
-            if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
-                continue
-            blocks.append((f.name, col, col + int(f.n_instances),
-                           int(f.n_configurations),
-                           int(f.n_instances)))
-            col += int(f.n_instances)
-        return blocks
-
-    @staticmethod
     def _toy_corpus(n=300, ec=20, seed=7):
         return _corpus(n, ec, seed)
 
@@ -428,9 +415,8 @@ class TestMarginalAccumulator(unittest.TestCase):
         # the mover's legal-move count — the oracle is
         # position_legal_moves (INDEPENDENT of compute_indexes).
         fset = self._toy_fset()
-        blocks = self._toy_blocks(fset)
         P = self._toy_corpus()
-        acc = hlp._MarginalAccumulator(fset, blocks)
+        acc = hlp._MarginalAccumulator(fset)
         acc.add(P)
         res = {((name, i)): (nc, codes, counts)
                for (name, i, nc, codes, counts) in acc.result()}
@@ -453,9 +439,8 @@ class TestMarginalAccumulator(unittest.TestCase):
         # via compute_indexes (the oracle for the code, the manual
         # dict for the count).
         fset = self._toy_fset()
-        blocks = self._toy_blocks(fset)
         P = self._toy_corpus()
-        acc = hlp._MarginalAccumulator(fset, blocks)
+        acc = hlp._MarginalAccumulator(fset)
         acc.add(P)
         idx = fset.compute_indexes(P)
         r2_col = 2  # R2 inst0 (after the intercept col 0, LMC col 1)
@@ -479,11 +464,10 @@ class TestMarginalAccumulator(unittest.TestCase):
         # marginal (the unique-merge / the dense accumulation are
         # chunk-invariant).
         fset = self._toy_fset()
-        blocks = self._toy_blocks(fset)
         P = self._toy_corpus(n=400)
-        acc1 = hlp._MarginalAccumulator(fset, blocks)
+        acc1 = hlp._MarginalAccumulator(fset)
         acc1.add(P)
-        acc2 = hlp._MarginalAccumulator(fset, blocks)
+        acc2 = hlp._MarginalAccumulator(fset)
         acc2.add(P[:200])
         acc2.add(P[200:])
         r1, r2 = acc1.result(), acc2.result()
@@ -505,9 +489,6 @@ class TestJointAccumulator(unittest.TestCase):
     def _fset(self):
         return TestMarginalAccumulator._toy_fset()
 
-    def _blocks(self):
-        return TestMarginalAccumulator._toy_blocks(self._fset())
-
     def _corpus(self, n=200, ec=20, seed=7):
         return TestMarginalAccumulator._toy_corpus(n, ec, seed)
 
@@ -526,16 +507,15 @@ class TestJointAccumulator(unittest.TestCase):
         # (LMC, R2): the 4 instance-pairs (0, j), the joint
         # (code_lmc, code_r2_j) -> count vs the independent oracle.
         fset = self._fset()
-        blocks = self._blocks()
         P = self._corpus()
-        ja = hlp._JointAccumulator(fset, blocks, [('LMC', 'R2')])
+        ja = hlp._JointAccumulator(fset, [('LMC', 'R2')])
         ja.add(P)
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('LMC', 'R2'))
         self.assertEqual(sorted(pd.keys()),
                          [(0, 0), (0, 1), (0, 2), (0, 3)])
-        bi = [b for b in blocks if b[0] == 'LMC'][0]
-        bj = [b for b in blocks if b[0] == 'R2'][0]
+        bi = [b for b in fset.feature_blocks if b[0] == 'LMC'][0]
+        bj = [b for b in fset.feature_blocks if b[0] == 'R2'][0]
         for (ii, jj) in pd:
             od = self._oracle_joint(fset, P, bi[1] + ii, bj[1] + jj)
             codes_i, codes_j, cnt = pd[(ii, jj)]
@@ -551,9 +531,8 @@ class TestJointAccumulator(unittest.TestCase):
         # entries (code_i == code_j always); the off-diagonal is the
         # anisotropy measure.
         fset = self._fset()
-        blocks = self._blocks()
         P = self._corpus()
-        ja = hlp._JointAccumulator(fset, blocks, [('R2', 'R2')])
+        ja = hlp._JointAccumulator(fset, [('R2', 'R2')])
         ja.add(P)
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('R2', 'R2'))
@@ -570,12 +549,11 @@ class TestJointAccumulator(unittest.TestCase):
         # One chunk == two half-chunks (the unique-merge is chunk-
         # invariant, the marginals and the joints alike).
         fset = self._fset()
-        blocks = self._blocks()
         P = self._corpus(n=300)
         pairs = [('LMC', 'R2'), ('R2', 'R2')]
-        ja1 = hlp._JointAccumulator(fset, blocks, pairs)
+        ja1 = hlp._JointAccumulator(fset, pairs)
         ja1.add(P)
-        ja2 = hlp._JointAccumulator(fset, blocks, pairs)
+        ja2 = hlp._JointAccumulator(fset, pairs)
         ja2.add(P[:150])
         ja2.add(P[150:])
         r1, r2 = ja1.result(), ja2.result()
@@ -602,13 +580,9 @@ class TestPrngIntegration(unittest.TestCase):
     def _fset(self):
         return TestMarginalAccumulator._toy_fset()
 
-    def _blocks(self):
-        return TestMarginalAccumulator._toy_blocks(self._fset())
-
     def _gen_and_accum(self, n, ec, seed):
         fset = self._fset()
-        blocks = self._blocks()
-        acc = hlp._MarginalAccumulator(fset, blocks)
+        acc = hlp._MarginalAccumulator(fset)
         P = _corpus(n, ec, seed)
         acc.add(P)
         return acc.result()
@@ -637,9 +611,8 @@ class TestPrngIntegration(unittest.TestCase):
         # compute_indexes).
         n, ec, seed = 2000, 20, 42
         fset = self._fset()
-        blocks = self._blocks()
         P = _corpus(n, ec, seed)
-        acc = hlp._MarginalAccumulator(fset, blocks)
+        acc = hlp._MarginalAccumulator(fset)
         acc.add(P)
         res = {((nm, i)): (nc, codes, counts)
                for (nm, i, nc, codes, counts) in acc.result()}

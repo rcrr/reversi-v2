@@ -222,7 +222,7 @@ check("B2  every harvested position has ec 20 (the arrest rule, the "
 
 # The marginal: the streaming accumulator vs the FeatureSet's OWN batch
 # index path (one shot, no chunking, no dense/sparse split).
-marg = hlp._MarginalAccumulator(fset, blocks)
+marg = hlp._MarginalAccumulator(fset)
 marg.add(pos)
 marginal = marg.result()
 idx = fset.compute_indexes(pos)
@@ -246,7 +246,7 @@ check("B4  one count per position per sub-variable (every total is N)",
 # The joint: the packed-u64 numpy unique-merge vs a pure-python Counter
 # over the same codes (a different construction of the same table).
 PAIR = ("LMC", "EDGE")
-joints = hlp._JointAccumulator(fset, blocks, [PAIR])
+joints = hlp._JointAccumulator(fset, [PAIR])
 joints.add(pos)
 jres = joints.result()
 check("B5  the joint result shape: one entry per requested pair",
@@ -297,7 +297,7 @@ check("B7  the SU values == the ratio-form MI + the pure-python "
 # endpoint order, sorted by the SU value descending (the strongest
 # correlation first).
 SELF = ("EDGE", "EDGE")
-selfj = hlp._JointAccumulator(fset, blocks, [SELF])
+selfj = hlp._JointAccumulator(fset, [SELF])
 selfj.add(pos)
 selfres = selfj.result()
 selfsu = hlp._su_values(selfres, marg_lookup)

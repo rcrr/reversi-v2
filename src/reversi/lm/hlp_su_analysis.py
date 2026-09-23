@@ -192,23 +192,21 @@ class _MarginalAccumulator:
     there is no per-ec split here).
     """
 
-    def __init__(self, fset, blocks):
+    def __init__(self, fset):
         """
         Args:
-          fset:    the FeatureSet (the compute_indexes
-                    provider).
-          blocks:  the per-feature (name, col_start, col_end,
-                    n_conf, n_inst) over the non-intercept
-                    features (the fset.feature_blocks). Each
-                    feature expands to n_inst sub-variables (one
-                    per instance column).
+          fset: the FeatureSet (the compute_indexes provider;
+                the per-feature blocks come from its
+                feature_blocks property — the (name, col_start,
+                col_end, n_conf, n_inst) over the non-intercept
+                features, each expanding to n_inst sub-variables,
+                one per instance column).
         """
         self.fset = fset
-        self.blocks = blocks
         # Expand the feature blocks into the per-instance sub-
         # variables: (name, instance_idx, col, n_conf).
         self.subvars: list = []
-        for (name, c0, c1, n_conf, n_inst) in blocks:
+        for (name, c0, c1, n_conf, n_inst) in fset.feature_blocks:
             for i in range(n_inst):
                 self.subvars.append((name, i, c0 + i, n_conf))
         self._dense: list = []
@@ -288,22 +286,19 @@ class _JointAccumulator:
     same mask) is the anisotropy measure.
     """
 
-    def __init__(self, fset, blocks, su_pairs):
+    def __init__(self, fset, su_pairs):
         """
         Args:
-          fset:     the FeatureSet (the compute_indexes
-                    provider).
-          blocks:   the per-feature (name, col_start, col_end,
-                    n_conf, n_inst) over the non-intercept
-                    features (the fset.feature_blocks).
+          fset:     the FeatureSet (the compute_indexes provider;
+                    the per-feature blocks come from its
+                    feature_blocks property).
           su_pairs: the REQUESTED pairs, a list of
                     (feature_i, feature_j) name tuples (the
                     canonical form; the same-feature (F, F) is
                     allowed).
         """
         self.fset = fset
-        self.blocks = blocks
-        self._block = {b[0]: b for b in blocks}
+        self._block = {b[0]: b for b in fset.feature_blocks}
         self.pairs = list(su_pairs)
         # Per pair: { (inst_i, inst_j): dict[packed_key -> count] }
         # + the per-pair meta (ni, nj, block_i, block_j).
@@ -400,7 +395,6 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     the positions, D-296)."""
     cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
-    blocks = fset.feature_blocks
     corpus = cfg_fa.corpus
     ctx.log_event(Relevance.INFO,
                   f"Generating the SU_ANALYSIS corpus: "
@@ -410,8 +404,8 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     ec = ctx.cfg.empty_count
     prng = MT19937(corpus.seed)
     igp = initial_game_position()
-    marg = _MarginalAccumulator(fset, blocks)
-    joint = _JointAccumulator(fset, blocks, cfg_fa.su_pairs) \
+    marg = _MarginalAccumulator(fset)
+    joint = _JointAccumulator(fset, cfg_fa.su_pairs) \
         if cfg_fa.su_pairs else None
     harvested = waves = dead = 0
     while harvested < total:

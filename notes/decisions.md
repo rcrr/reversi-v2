@@ -2630,3 +2630,41 @@ D-296 | 2026-09-22 | hlp_su_analysis SPEAKS THE POSITION LANGUAGE (Roberto,
           1e7 corpus), the verify_su_analysis probe (45 checks) green, the
           verify_effect_size probe 29 / 0, the docs audit 92 mirrors with
           the 6 pre-existing findings only.
+D-297 | 2026-09-22 | the frequency accumulators take ONLY the fset
+          (Roberto, the wrk_su_analysis restructure continues): the
+          blocks argument was a DERIVED attribute of the fset, and
+          passing it separately was misleading. (1) Module:
+          _MarginalAccumulator.__init__(fset) + _JointAccumulator
+          .__init__(fset, su_pairs) — the per-feature blocks are
+          derived internally from the documented
+          FeatureSet.feature_blocks property (the (name, col_start,
+          col_end, n_configurations, n_instances) tuples over the
+          non-intercept features, the fset.features order — exactly
+          the value hlp_su_analysis_compute already passed); the
+          self.blocks storage is DROPPED (nothing external reads
+          it); the joint keeps its name -> block dict (the
+          su_pairs resolution). hlp_su_analysis_compute drops the
+          orphaned blocks local. (2) Tests: the _toy_blocks helper
+          DROPPED (a VERBATIM copy of the feature_blocks property
+          body — a runtime identity check confirmed it on the toy
+          fset; it pinned nothing independent); the
+          TestJointAccumulator._blocks / TestPrngIntegration._blocks
+          delegations dropped with it; all 12 accumulator
+          constructions take the fset only; the joint cross-feature
+          test resolves its block columns via fset.feature_blocks
+          (the test's own derivation for the manual dict oracle).
+          21/0/0. (3) Probe: the 3 accumulator call sites take the
+          fset only; the probe's OWN blocks local (from the
+          campaign) is KEPT for its A9 sub-variable expansion
+          check + the blocks_by_name oracle. (4) Docs: the hlp
+          mirror API bullet + the test mirror goldens bullet.
+          NO behavior change (the same tuple values, the property
+          computed once per accumulator construction, never in the
+          hot path); no cache signature / binio layout / report
+          change (the rlmwf_03 caches stay valid). VERIFICATION:
+          the full suite (fast tier) 947/0/97 GREEN,
+          test_hlp_su_analysis 21/0/0, the worker suite VLONG
+          10/0/0 (the 1e7 corpus), the verify_su_analysis probe
+          (45 checks) green, the verify_effect_size probe 29 / 0,
+          the docs audit 92 mirrors with the 6 pre-existing
+          findings only.
