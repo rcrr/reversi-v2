@@ -2715,3 +2715,44 @@ D-298 | 2026-09-22 | hlp_feature_analysis is SPLIT (Roberto, the
           (45 checks) green, the verify_effect_size probe (29
           checks, the new F5 boundary) green, the docs audit 92
           mirrors with the 6 pre-existing findings only.
+
+D-299 | 2026-09-23 | the COLD compute of hlp_su_analysis is OPTIMIZED
+          (Roberto, after the SU_ANALYSIS profiling): the 1e7 cold
+          compute spends ~70% of its time in the _JointAccumulator
+          — the per-wave DICT-MERGE of the np.unique output (~8.5M
+          dict.get per 1e6-lane wave on the 28 cells of the
+          rlm_test_su_00 fixture, the 24 off-diagonal cells
+          carrying ~330k-465k observed keys each) + the 28 sorted()
+          over the ~465k-key dicts in result(); the statistics
+          phase re-runs _entropy ~110 times over 7 sub-variables.
+          (1) The _JointAccumulator storage becomes, per cell, the
+          OBSERVED keys K (u64, SORTED) + the counts C (int64): each
+          wave's np.unique output is folded in with searchsorted +
+          np.add.at + a re-sort of the appended new keys (the
+          sorted-K invariant keeps the next wave's searchsorted
+          valid) — NO Python dict, NO per-key loop; result()
+          unpacks K // ncj, K % ncj, C directly (no sorted()).
+          (2) _mutual_information takes the PRE-COMPUTED marginal
+          entropies (joint_counts, H_u, H_v) instead of the marginal
+          count arrays; _su_values computes each sub-variable's
+          entropy ONCE (the h_cache). DEFERRED (Roberto, "magari lo
+          vediamo dopo"): the double fset.compute_indexes per wave
+          (the marginal + the joint each recompute the same index
+          matrix) — I-020. The MI tests pass the entropies (the
+          hlp._entropy calls, the D-299 signature). EQUIVALENCE (the
+          acceptance criterion): the new compute vs the dict-merge's
+          CACHED output on the 1e7 corpus — the signature identical,
+          the 7 sub-variables + the 28 joint cells bit-identical,
+          the statistics report + CSV byte-identical (so the rlmwf_03
+          caches stay valid). PERF (the per-wave micro-benchmark,
+          1e6-lane waves, the rlm_test_su_00 fixture): joint.add
+          5.9 -> ~2.0 s/wave (the 4.9 s/wave dict loop is gone; the
+          wave's unique 0.9 s + the re-sort remain), the whole wave
+          8.5 -> ~4.9 s; the full 1e7 cold compute ~95 s -> ~37 s on
+          the same (loaded) machine. VERIFICATION: the full suite
+          (fast tier) 947/0/97 GREEN, test_hlp_su_analysis 37/0/0,
+          the worker suite VLONG 10/0/0 (the 1e7 corpus — its
+          fixture is the 4-cell EDGE-LMC pair, where the old dict
+          loop was already cheap), the verify_su_analysis probe 45 /
+          0, the verify_effect_size probe 29 / 0, the docs audit 92
+          mirrors with the 6 pre-existing findings only.

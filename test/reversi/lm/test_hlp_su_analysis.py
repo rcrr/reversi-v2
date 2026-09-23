@@ -666,26 +666,35 @@ class TestEntropy(unittest.TestCase):
 
 
 class TestMutualInformation(unittest.TestCase):
-    """I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v)."""
+    """I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v),
+    from the joint counts + the PRE-COMPUTED marginal entropies
+    (the D-299 signature: the H are passed in, the caller
+    computes each marginal's entropy once)."""
 
     def test_perfect_correlation(self):
         # u == v, 4 positions (u = [0, 0, 1, 1]): the marginals
         # [2, 2] (H = 1 each), the joint (the 2 x 2 grid)
         # [2, 0, 0, 2] (H(u, v) = 1). I = 1 + 1 - 1 = 1.
-        I = hlp._mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
+        I = hlp._mutual_information([2, 0, 0, 2],
+                                    hlp._entropy([2, 2]),
+                                    hlp._entropy([2, 2]))
         self.assertAlmostEqual(I, 1.0, places=12)
 
     def test_independent(self):
         # u = [0, 0, 1, 1], v = [0, 1, 0, 1] (independent): the
         # marginals [2, 2] (H = 1 each), the joint [1, 1, 1, 1]
         # (H(u, v) = 2). I = 1 + 1 - 2 = 0.
-        I = hlp._mutual_information([1, 1, 1, 1], [2, 2], [2, 2])
+        I = hlp._mutual_information([1, 1, 1, 1],
+                                    hlp._entropy([2, 2]),
+                                    hlp._entropy([2, 2]))
         self.assertAlmostEqual(I, 0.0, places=12)
 
     def test_non_negative(self):
         # The floating-point rounding of the identity can give a
         # tiny negative — the clamp keeps I >= 0.
-        I = hlp._mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
+        I = hlp._mutual_information([2, 0, 0, 2],
+                                    hlp._entropy([2, 2]),
+                                    hlp._entropy([2, 2]))
         self.assertGreaterEqual(I, 0.0)
 
 

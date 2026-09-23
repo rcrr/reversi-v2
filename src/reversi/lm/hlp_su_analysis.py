@@ -277,6 +277,13 @@ class _JointAccumulator:
     (the max is 59049^2 << 2^64); the result unpacks the
     (code_i, code_j).
 
+    The D-299 storage: per cell the OBSERVED keys K (u64,
+    SORTED) + the counts C (int64) — the VECTORIZED merge: each
+    wave's np.unique output is folded in with searchsorted +
+    np.add.at + a re-sort of the appended new keys (NO Python
+    dict, NO per-key loop — the old dict-merge was the cold
+    compute hotspot: ~8.5M dict.get per 1e6-lane wave).
+
     The same-feature pair (F, F) is allowed: the diagonal (the
     variable with itself) is the SU = 1 lock (OMITTED); the
     off-diagonal (the D8 orientations of the
@@ -307,7 +314,11 @@ class _JointAccumulator:
             d = {}
             for ii in range(bi[4]):
                 for jj in range(bj[4]):
-                    d[(ii, jj)] = {}
+                    # The D-299 per-cell storage: the OBSERVED
+                    # keys (u64, sorted) + the counts (int64) —
+                    # empty until the first wave.
+                    d[(ii, jj)] = (np.zeros(0, dtype=np.uint64),
+                                   np.zeros(0, dtype=np.int64))
             self.joints.append(d)
             self._meta.append((ni, nj, bi, bj))
         self.n_positions: int = 0
@@ -316,6 +327,14 @@ class _JointAccumulator:
         """
         Accumulate one chunk of corpus positions (the
         PositionArray, one structured row per position).
+
+        The D-299 VECTORIZED merge: the wave's np.unique output
+        (u, cnt) is folded into the cell's (K, C) without a
+        per-key Python loop — the searchsorted match (the keys
+        ALREADY observed) accumulates via np.add.at, the new keys
+        are appended and the (K, C) re-sorted (the sorted-K
+        invariant is what makes the next wave's searchsorted
+        valid).
         """
         n = int(pos.shape[0])
         if n == 0:
@@ -329,9 +348,29 @@ class _JointAccumulator:
                     cj = idx[:, bj[1] + jj].astype(np.uint64)
                     key = ci * ncj + cj
                     u, cnt = np.unique(key, return_counts=True)
-                    jd = self.joints[pi][(ii, jj)]
-                    for k, c in zip(u.tolist(), cnt):
-                        jd[k] = jd.get(k, 0) + int(c)
+                    K, C = self.joints[pi][(ii, jj)]
+                    if K.size == 0:
+                        # The first wave: the unique output IS
+                        # the (sorted) support.
+                        K = u
+                        C = cnt.astype(np.int64)
+                    else:
+                        i = np.searchsorted(K, u)
+                        # The clip makes the compare safe for the
+                        # insert-past-the-end tail (those keys can
+                        # only be NEW: a key larger than K[-1]
+                        # never matches).
+                        i = np.clip(i, 0, K.size - 1)
+                        m = K[i] == u
+                        if m.any():
+                            np.add.at(C, i[m], cnt[m])
+                        nu = u[~m]
+                        if nu.size:
+                            K = np.concatenate([K, nu])
+                            C = np.concatenate([C, cnt[~m]])
+                            o = np.argsort(K, kind='stable')
+                            K, C = K[o], C[o]
+                    self.joints[pi][(ii, jj)] = (K, C)
         self.n_positions += n
 
     def result(self):
@@ -344,15 +383,18 @@ class _JointAccumulator:
         """
         out = []
         for pi, (ni, nj, bi, bj) in enumerate(self._meta):
-            ncj = bj[3]
+            ncj = np.uint64(bj[3])
             pd = {}
             for (ii, jj) in self.joints[pi]:
-                items = sorted(self.joints[pi][(ii, jj)].items())
-                codes_i = np.array([k // ncj for k, _ in items],
-                                   dtype=np.uint32)
-                codes_j = np.array([k % ncj for k, _ in items],
-                                   dtype=np.uint32)
-                cnt = np.array([c for _, c in items], dtype=np.int64)
+                # The D-299 unpack: the (K, C) ARE the observed
+                # joint (the sorted keys + the counts) — no sort,
+                # no dict (the old sorted(dict.items()) over the
+                # ~465k-key off-diagonal cells was the result()
+                # hotspot).
+                K, C = self.joints[pi][(ii, jj)]
+                codes_i = (K // ncj).astype(np.uint32)
+                codes_j = (K % ncj).astype(np.uint32)
+                cnt = C
                 pd[(ii, jj)] = (codes_i, codes_j, cnt)
             out.append((ni, nj, pd))
         return out
@@ -598,22 +640,24 @@ def _entropy(counts) -> float:
     return float(-(p * np.log2(p)).sum())
 
 
-def _mutual_information(joint_counts, marg_u, marg_v) -> float:
+def _mutual_information(joint_counts, H_u, H_v) -> float:
     """
     The mutual information I(u; v) in bits, from the joint
-    counts + the two marginal counts. The identity
-    I = H(u) + H(v) - H(u, v) (the ratio form's 0/0 is
-    avoided; the joint entropy is the entropy of the joint
-    counts). Clamped to >= 0 (the floating-point rounding of
-    the identity can give a tiny negative).
+    counts + the PRE-COMPUTED marginal entropies (the D-299
+    memoization: the caller computes each sub-variable's
+    entropy ONCE, instead of the old per-cell recompute).
+    The identity I = H(u) + H(v) - H(u, v) (the ratio form's
+    0/0 is avoided; the joint entropy is the entropy of the
+    joint counts). Clamped to >= 0 (the floating-point
+    rounding of the identity can give a tiny negative).
 
     Args:
       joint_counts: the (u, v) joint counts (the observed
         cells).
-      marg_u:       the marginal counts of u.
-      marg_v:       the marginal counts of v.
+      H_u:          the entropy of u (bits, pre-computed).
+      H_v:          the entropy of v (bits, pre-computed).
     """
-    I = _entropy(marg_u) + _entropy(marg_v) - _entropy(joint_counts)
+    I = H_u + H_v - _entropy(joint_counts)
     return float(max(0.0, I))
 
 
@@ -712,8 +756,12 @@ def _su_values(joint, lookup):
     (name_i, name_j) pair and each (inst_i, inst_j), the SU =
     2*I / (H_i + H_j) from the joint + the two marginals. The
     same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the
-    SU = 1 lock — not a measurement)."""
+    SU = 1 lock — not a measurement). The D-299 memoization:
+    each sub-variable's marginal entropy is computed ONCE
+    (the h_cache), not per cell (the old code recomputed
+    _entropy(mi) / _entropy(mj) for every requested cell)."""
     su = []
+    h_cache: dict = {}
     for (name_i, name_j, per_instance) in joint:
         same_feature = (name_i == name_j)
         for (ii, jj) in per_instance:
@@ -724,9 +772,15 @@ def _su_values(joint, lookup):
             mj = lookup.get((name_j, jj))
             if mi is None or mj is None:
                 continue
-            h_i = _entropy(mi)
-            h_j = _entropy(mj)
-            I = _mutual_information(counts, mi, mj)
+            ki = (name_i, ii)
+            h_i = h_cache.get(ki)
+            if h_i is None:
+                h_i = h_cache[ki] = _entropy(mi)
+            kj = (name_j, jj)
+            h_j = h_cache.get(kj)
+            if h_j is None:
+                h_j = h_cache[kj] = _entropy(mj)
+            I = _mutual_information(counts, h_i, h_j)
             su.append((name_i, ii, name_j, jj,
                        _symmetric_uncertainty(I, h_i, h_j)))
     return su

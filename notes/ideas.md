@@ -15,3 +15,11 @@ I-014 | idea | Hot-restart ("restart a caldo") of the OPTIMIZE level from the ch
          state — w + sl/yl/rho + iters — and `opt_lbfgs` has the warm-start kwargs, consumed on the INCOMPLETE resume
          path); the open question is whether a warm restart under a CHANGED objective is numerically sound / worth the
          extra semantics.
+
+I-020 | follow-up | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, session 58, deferred by
+         Roberto in D-299, "magari lo vediamo dopo"): `_MarginalAccumulator.add` and `_JointAccumulator.add`
+         each recompute the SAME index matrix over the wave's positions (two `fset.compute_indexes(pos)` calls
+         per wave in `hlp_su_analysis_compute`). Sharing one computation (compute it once in the compute loop
+         and feed both accumulators) would cut the per-wave index cost — both adds start from it. Parked
+         because the D-299 vectorized joint merge already removed the dominant cost, and the change touches the
+         accumulators' `add(pos)` contract (the position language, D-296) or the compute loop's feeding idiom.

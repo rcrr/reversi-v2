@@ -5,7 +5,10 @@ migration, the position language D-296), the corpus generator (phase 1, the expe
 the random_game play-path engine), the binio cache I/O (the D-288 layout), the
 consistency signature, the SU statistics kernels (the entropy / the MI / the SU / the
 dispersion / the never-observed audit — the D-298 move from hlp_feature_analysis), and the
-statistics (phase 2: the SU pairs, the TXT report + the optional CSV). NO DB (the design
+statistics (phase 2: the SU pairs, the TXT report + the optional CSV; the D-299 cold-compute
+optimization: the VECTORIZED joint merge — the sorted-key-array (K, C) storage + the
+searchsorted / np.add.at fold, no per-key Python loop — + the marginal-entropy memoization
+in _su_values). NO DB (the design
 section 3.3): the corpus is the level's own.
 The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_matrix minimalism).
 
@@ -47,7 +50,10 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   `_JointAccumulator(fset, su_pairs)` (the per-feature blocks come from the fset's own
   feature_blocks property, D-297; per requested pair and per (instance_i,
   instance_j) the (code_i, code_j) -> count, the SPARSE packed-u64 key code_i * n_conf_j +
-  code_j; the same-feature diagonal is built and OMITTED downstream — the SU = 1 lock). The
+  code_j; the D-299 storage: per cell the OBSERVED keys K (u64, sorted) + the counts C
+  (int64), the wave's np.unique output folded in with searchsorted + np.add.at + a
+  re-sort of the appended new keys — NO Python dict; the same-feature diagonal is built
+  and OMITTED downstream — the SU = 1 lock). The
   module speaks the position language end-to-end (D-296): the corpus batch is the np.full of
   the initial_game_position scalar, the accumulators are fed the final[keep] slices, and the
   parallel (mover, opponent) arrays never cross a module boundary. The test / the probe reach
@@ -83,6 +89,12 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   TestJointAccumulator / TestPrngIntegration — the LMC vs the INDEPENDENT position_legal_moves
   oracle, the R2 / the joints vs the per-position dict, the chunk-merge invariance, the
   reproducibility) + the verify_su_analysis B3-B7.
+- The D-299 vectorized joint merge is OUTPUT-IDENTICAL to the superseded dict-merge:
+  verified on the 1e7 corpus (3 pairs / 28 cells — the tables bit-identical against the
+  dict-merge's cached output, the statistics report + CSV byte-identical, the signature
+  unchanged — so the rlmwf_03 caches stay valid). The sorted-(K, C) invariant: K is kept
+  sorted at every wave (the re-sort of the appended new keys) so the next wave's
+  searchsorted stays valid.
 
 ## Open issues
 
