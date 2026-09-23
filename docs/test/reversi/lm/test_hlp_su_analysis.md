@@ -6,7 +6,8 @@ sidecar / the description / the version), the compute determinism (the seed pin)
 space (D-278/279), the SU groups (the dedup + the canonical sort), the diagonal omission, the report + the
 optional CSV, the rarity bins (the config-driven Section B, D-292), and the cache consistency. D-295: the
 streaming frequency accumulators (the marginal / the joint micro-suite + the PRNG integration) moved here
-from the retired test_hlp_random_play. 4 classes / 21 tests / no database.
+from the retired test_hlp_random_play; D-296: the corpus helper + the accumulators speak the position
+language (the PositionArray feeding). 4 classes / 21 tests / no database.
 
 ## Coverage
 
@@ -35,8 +36,9 @@ from the retired test_hlp_random_play. 4 classes / 21 tests / no database.
 - The accumulators (the D-295 migration): the toy FeatureSet (the `_toy_fset()` = the intercept + the LMC (the
   legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561)); the
   `_toy_blocks()` mirrors the pipeline's column layout; the `_corpus()` the small play-path corpus (the
-  random_game engine, D-285); the INDEPENDENT oracles (the LMC via position_legal_moves, NOT
-  compute_indexes; the R2 / the joints via the manual per-position dict over compute_indexes).
+  random_game engine, D-285 — a PositionArray, the D-296 position language); the INDEPENDENT oracles (the LMC
+  via position_legal_moves, NOT compute_indexes; the R2 / the joints via the manual per-position dict over
+  compute_indexes).
 
 ## Conventions
 

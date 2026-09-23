@@ -2594,3 +2594,39 @@ D-295 | 2026-09-22 | hlp_random_play is RETIRED (Roberto, the wrk_su_analysis
           (the 1e7 corpus), the verify_su_analysis probe (44 checks)
           green, the docs audit 92 mirrors with the 6 pre-existing
           findings only.
+D-296 | 2026-09-22 | hlp_su_analysis SPEAKS THE POSITION LANGUAGE (Roberto,
+          the wrk_su_analysis restructure continues): the parallel
+          (mover, opponent) arrays no longer cross a module boundary.
+          (1) Module: _to_positions DELETED (it only re-merged what
+          random_game_play_path already returns); _MarginalAccumulator.add
+          / _JointAccumulator.add take the PositionArray (add(pos), one
+          structured row per position); hlp_su_analysis_compute builds the
+          batch as the np.full of the initial_game_position structured
+          scalar (no more field unpack + column_stack round-trip) and feeds
+          the accumulators the final[keep] slices directly — one masked
+          copy per chunk instead of two (the 16n-byte rebuild is gone from
+          the accumulation hot path). (2) Tests: the _corpus helper returns
+          a single concatenated PositionArray; the 12 add() call sites
+          migrated; the 2 manual layout builds DROPPED (they pinned
+          _to_positions's layout, which no longer exists — the layout is
+          pinned by test_board / test_feature, the compute_indexes calls
+          now take the corpus array); the unused make_position import
+          retired. 21/0/0. (3) Probe: the CLEAN version (Roberto's choice):
+          the B tier harvests the final[keep] position slices directly; the
+          positions_of helper DROPPED (the module has no layout build of
+          its own anymore, the probe independence lives in the VALUE
+          re-derivations); the field extraction pos['mover'] /
+          pos['opponent'] only for the probe's own invariants; B2 the
+          position_empty_count array cross-check; the NEW A10 structural
+          check (no _to_positions / column_stack / field-split feeding in
+          the hlp) — 44 -> 45 checks. (4) Docs: the hlp mirror (the
+          add(pos) + the position-language bullets + the A10 pin) + the
+          test mirror reworded. CORPUS DETERMINISM UNCHANGED: the batch bytes
+          are identical (the np.full structured scalar vs the
+          column_stack view), the PRNG stream contract untouched, the
+          cache signature unchanged (the rlmwf_03 caches stay valid).
+          VERIFICATION: the full suite (fast tier) 947/0/97 GREEN,
+          test_hlp_su_analysis 21/0/0, the worker suite VLONG 10/0/0 (the
+          1e7 corpus), the verify_su_analysis probe (45 checks) green, the
+          verify_effect_size probe 29 / 0, the docs audit 92 mirrors with
+          the 6 pre-existing findings only.

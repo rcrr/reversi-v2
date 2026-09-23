@@ -14,7 +14,8 @@
 #
 # Tiers:
 #   A  the module structure: the factory, the no-DB discipline, the
-#      cache constants, the wave-size cap, the whitespace hygiene
+#      cache constants, the wave-size cap, the whitespace hygiene,
+#      the position language (D-296)
 #   B  the independent re-derivations (no worker): the corpus at the
 #      config's ec, the marginal vs the FeatureSet batch path, the
 #      joint vs a pure-python Counter, the SU vs the ratio-form MI,
@@ -81,16 +82,6 @@ def ws_lines(path):
     body = Path(path).read_text().splitlines()[26:]
     return [i for i, line in enumerate(body, 27)
             if re.match(r'^[ \t]+$', line) or re.search(r'[ \t]$', line)]
-
-
-def positions_of(mover, opp):
-    """The PositionArray (the structured dtype) from the raw arrays —
-    the probe's own build, not hlp_su_analysis._to_positions."""
-    pa = np.empty(mover.shape[0], dtype=np.dtype([('mover', np.uint64),
-                                                  ('opponent', np.uint64)]))
-    pa['mover'] = mover
-    pa['opponent'] = opp
-    return pa
 
 
 def py_entropy(counts):
@@ -188,6 +179,11 @@ cfg, fset, blocks = _campaign()
 check("A9  the rlm_00 sub-variable expansion: 15 columns "
       "(3 mobilities + the EDGE 4 + the ELLE 8)",
       sum(b[4] for b in blocks) == 15, str(blocks))
+check("A10 the position language (D-296): no parallel (mover, opponent) "
+      "arrays cross a module boundary — no _to_positions rebuild, no "
+      "column_stack, no field-split feeding in the hlp",
+      "_to_positions" not in wh and "column_stack" not in wh
+      and "['mover']" not in wh)
 
 # ---------------------------------------------------------------- B tier
 # The corpus: a small deterministic play-path run (3000 positions,
@@ -198,41 +194,38 @@ EC = 20
 SEED = 42
 prng = MT19937(SEED)
 igp = initial_game_position()
-_m0, _o0 = int(igp['mover']), int(igp['opponent'])
 _harvested = 0
-_ms, _os = [], []
+_ps = []
 while _harvested < N:
     _k = N - _harvested
-    _batch = np.column_stack((np.full(_k, _m0, dtype=np.uint64),
-                              np.full(_k, _o0, dtype=np.uint64)))
+    _batch = np.full(_k, igp)
     _final, _ec_arr = random_game_play_path(_batch, EC, prng)
     _keep = _ec_arr == EC
-    _ms.append(_final[_keep]['mover'])
-    _os.append(_final[_keep]['opponent'])
+    _ps.append(_final[_keep])
     _harvested += int(_keep.sum())
-mover = np.concatenate(_ms)
-opp = np.concatenate(_os)
+pos = np.concatenate(_ps)
+mover = pos['mover']
+opp = pos['opponent']
 check("B1  the corpus: the harvested count is the requested total",
-      _harvested == N and mover.shape[0] == N, str(mover.shape))
+      _harvested == N and pos.shape[0] == N, str(pos.shape))
 
 # The ec arrest: every harvested position sits at the config's ec,
 # recomputed from the bitboards (64 - the occupied popcount) — the
 # corpus-level form of the ec pin (board.position_empty_count is the
-# per-position cross-check, the D-295 replacement of ec_of).
+# array cross-check, the D-295 replacement of ec_of).
 occupied = np.bitwise_or(mover, opp)
 ec_indep = 64 - np.array([int(x).bit_count() for x in occupied])
 check("B2  every harvested position has ec 20 (the arrest rule, the "
       "independent 64 - popcount)",
       bool((ec_indep == EC).all())
-      and all(position_empty_count(p) == EC
-              for p in positions_of(mover, opp)))
+      and bool((position_empty_count(pos) == EC).all()))
 
 # The marginal: the streaming accumulator vs the FeatureSet's OWN batch
 # index path (one shot, no chunking, no dense/sparse split).
 marg = hlp._MarginalAccumulator(fset, blocks)
-marg.add(mover, opp)
+marg.add(pos)
 marginal = marg.result()
-idx = fset.compute_indexes(positions_of(mover, opp))
+idx = fset.compute_indexes(pos)
 blocks_by_name = {b[0]: b for b in blocks}
 marg_ok = True
 totals_ok = True
@@ -254,7 +247,7 @@ check("B4  one count per position per sub-variable (every total is N)",
 # over the same codes (a different construction of the same table).
 PAIR = ("LMC", "EDGE")
 joints = hlp._JointAccumulator(fset, blocks, [PAIR])
-joints.add(mover, opp)
+joints.add(pos)
 jres = joints.result()
 check("B5  the joint result shape: one entry per requested pair",
       len(jres) == 1 and jres[0][0] == PAIR[0] and jres[0][1] == PAIR[1])
@@ -305,7 +298,7 @@ check("B7  the SU values == the ratio-form MI + the pure-python "
 # correlation first).
 SELF = ("EDGE", "EDGE")
 selfj = hlp._JointAccumulator(fset, blocks, [SELF])
-selfj.add(mover, opp)
+selfj.add(pos)
 selfres = selfj.result()
 selfsu = hlp._su_values(selfres, marg_lookup)
 selfgroups = hlp._su_groups(selfsu, [SELF])

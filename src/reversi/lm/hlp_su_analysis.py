@@ -161,18 +161,6 @@ _KPI_LEGEND = (
 # column.
 # ---------------------------------------------------------------------
 
-def _to_positions(mover: np.ndarray, opp: np.ndarray) -> np.ndarray:
-    """The direct PositionArray build (the interleaved
-    structured array — the make_position layout, no pydantic in
-    the accumulation hot path)."""
-    n = mover.shape[0]
-    pa = np.empty(n, dtype=np.dtype([('mover', np.uint64),
-                                     ('opponent', np.uint64)]))
-    pa['mover'] = mover
-    pa['opponent'] = opp
-    return pa
-
-
 #: The dense-bincount threshold: a sub-variable with
 #: n_conf <= this uses the DENSE histogram (the A2050 max is
 #: 59049 — all dense); above it, the UNIQUE-MERGE dict (the
@@ -185,8 +173,8 @@ class _MarginalAccumulator:
     The streaming marginal frequency accumulator: per
     sub-variable (the (feature, instance) column), the
     code -> count over the corpus positions. Feed it the corpus
-    in chunks (the play-path batch harvests: the (mover, opp)
-    arrays).
+    in chunks (the play-path batch harvests: the PositionArray
+    slices, the position language, D-296).
 
     Each sub-variable is ONE design-index column: the code is a
     single uint32 in [0, n_conf) (no packing, no overflow — the
@@ -234,15 +222,15 @@ class _MarginalAccumulator:
                 self._sparse.append({})
         self.n_positions: int = 0
 
-    def add(self, mover: np.ndarray, opp: np.ndarray) -> None:
+    def add(self, pos) -> None:
         """
-        Accumulate one chunk of corpus positions (the (mover,
-        opp) u64 arrays, one row per position).
+        Accumulate one chunk of corpus positions (the
+        PositionArray, one structured row per position).
         """
-        n = int(mover.shape[0])
+        n = int(pos.shape[0])
         if n == 0:
             return
-        idx = self.fset.compute_indexes(_to_positions(mover, opp))
+        idx = self.fset.compute_indexes(pos)
         for sidx, (name, i, col, n_conf) in enumerate(self.subvars):
             codes = idx[:, col]
             if self._dense[sidx] is not None:
@@ -332,15 +320,15 @@ class _JointAccumulator:
             self._meta.append((ni, nj, bi, bj))
         self.n_positions: int = 0
 
-    def add(self, mover: np.ndarray, opp: np.ndarray) -> None:
+    def add(self, pos) -> None:
         """
-        Accumulate one chunk of corpus positions (the (mover,
-        opp) u64 arrays, one row per position).
+        Accumulate one chunk of corpus positions (the
+        PositionArray, one structured row per position).
         """
-        n = int(mover.shape[0])
+        n = int(pos.shape[0])
         if n == 0:
             return
-        idx = self.fset.compute_indexes(_to_positions(mover, opp))
+        idx = self.fset.compute_indexes(pos)
         for pi, (ni, nj, bi, bj) in enumerate(self._meta):
             ncj = np.uint64(bj[3])
             for ii in range(bi[4]):
@@ -409,7 +397,7 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     lanes at EXACTLY the target ec (the double-pass game-over
     lanes are dropped, the quota filled by the next batch); the
     slots provenance is not carried (the accumulators need only
-    the mover/opp)."""
+    the positions, D-296)."""
     cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
     blocks = fset.feature_blocks
@@ -422,7 +410,6 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     ec = ctx.cfg.empty_count
     prng = MT19937(corpus.seed)
     igp = initial_game_position()
-    m0, o0 = int(igp['mover']), int(igp['opponent'])
     marg = _MarginalAccumulator(fset, blocks)
     joint = _JointAccumulator(fset, blocks, cfg_fa.su_pairs) \
         if cfg_fa.su_pairs else None
@@ -430,16 +417,17 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     while harvested < total:
         # The batch size is capped by the remaining quota: a
         # smaller corpus needs fewer lanes, and the lanes beyond
-        # it only pay allocation + glue.
+        # it only pay allocation + glue. The batch is the n
+        # copies of the canonical start (the np.full of the
+        # structured scalar, the position language, D-296).
         n = min(_WAVE_SIZE, total - harvested)
-        batch = np.column_stack((np.full(n, m0, dtype=np.uint64),
-                                 np.full(n, o0, dtype=np.uint64)))
+        batch = np.full(n, igp)
         final, ec_arr = random_game_play_path(batch, ec, prng)
         keep = ec_arr == ec
         dead += int((~keep).sum())
-        marg.add(final[keep]['mover'], final[keep]['opponent'])
+        marg.add(final[keep])
         if joint is not None:
-            joint.add(final[keep]['mover'], final[keep]['opponent'])
+            joint.add(final[keep])
         harvested += int(keep.sum())
         waves += 1
     ctx.log_event(Relevance.INFO,

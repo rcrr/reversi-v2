@@ -67,8 +67,7 @@ from reversi.lm.hlp_su_analysis import (
     hlp_su_analysis_statistics,
     hlp_su_analysis_store_to_file,
     hlp_su_analysis_is_cache_consistent)
-from reversi.board import (initial_game_position, make_position,
-                           position_legal_moves)
+from reversi.board import initial_game_position, position_legal_moves
 from reversi.feature import Feature, FeatureSet
 from reversi.lm.logistic_model import LogisticModel
 from reversi.mobility import Mobility, MobilitySet
@@ -84,23 +83,20 @@ def _corpus(n, ec, seed):
     """The random_game play-path corpus (the hlp_wave
     replacement, D-285): n positions at exactly ec (the
     double-pass game-over lanes are dropped, the quota filled
-    by the next batch), seed-deterministic — the (mover, opp)
-    arrays."""
+    by the next batch), seed-deterministic — the PositionArray
+    (the position language, D-296)."""
     prng = MT19937(seed)
     igp = initial_game_position()
-    m0, o0 = int(igp['mover']), int(igp['opponent'])
     harvested = 0
-    ms, os_ = [], []
+    ps = []
     while harvested < n:
         k = n - harvested
-        batch = np.column_stack((np.full(k, m0, dtype=np.uint64),
-                                 np.full(k, o0, dtype=np.uint64)))
+        batch = np.full(k, igp)
         final, ec_arr = random_game_play_path(batch, ec, prng)
         keep = ec_arr == ec
-        ms.append(final[keep]['mover'])
-        os_.append(final[keep]['opponent'])
+        ps.append(final[keep])
         harvested += int(keep.sum())
-    return np.concatenate(ms), np.concatenate(os_)
+    return np.concatenate(ps)
 
 
 class TestHlpSuAnalysis(unittest.TestCase):
@@ -433,15 +429,14 @@ class TestMarginalAccumulator(unittest.TestCase):
         # position_legal_moves (INDEPENDENT of compute_indexes).
         fset = self._toy_fset()
         blocks = self._toy_blocks(fset)
-        M, O = self._toy_corpus()
+        P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset, blocks)
-        acc.add(M, O)
+        acc.add(P)
         res = {((name, i)): (nc, codes, counts)
                for (name, i, nc, codes, counts) in acc.result()}
         expected = {}
-        for k in range(len(M)):
-            p = make_position(M[k], O[k])
-            code = int(position_legal_moves(p)).bit_count()
+        for k in range(len(P)):
+            code = int(position_legal_moves(P[k])).bit_count()
             expected[code] = expected.get(code, 0) + 1
         nc, codes, counts = res[('LMC', 0)]
         self.assertEqual(nc, 65)
@@ -450,7 +445,7 @@ class TestMarginalAccumulator(unittest.TestCase):
                               dtype=np.int64)
         np.testing.assert_array_equal(codes, exp_codes)
         np.testing.assert_array_equal(counts, exp_counts)
-        self.assertEqual(int(counts.sum()), len(M))
+        self.assertEqual(int(counts.sum()), len(P))
 
     def test_pattern_cross_check(self):
         # The R2 inst0 (multi-instance feature, one column): the
@@ -459,17 +454,13 @@ class TestMarginalAccumulator(unittest.TestCase):
         # dict for the count).
         fset = self._toy_fset()
         blocks = self._toy_blocks(fset)
-        M, O = self._toy_corpus()
+        P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset, blocks)
-        acc.add(M, O)
-        pa = np.empty(len(M), dtype=np.dtype(
-            [('mover', np.uint64), ('opponent', np.uint64)]))
-        pa['mover'] = M
-        pa['opponent'] = O
-        idx = fset.compute_indexes(pa)
+        acc.add(P)
+        idx = fset.compute_indexes(P)
         r2_col = 2  # R2 inst0 (after the intercept col 0, LMC col 1)
         expected = {}
-        for k in range(len(M)):
+        for k in range(len(P)):
             c = int(idx[k, r2_col])
             expected[c] = expected.get(c, 0) + 1
         row = [r for r in acc.result() if r[0] == 'R2' and r[1] == 0][0]
@@ -489,12 +480,12 @@ class TestMarginalAccumulator(unittest.TestCase):
         # chunk-invariant).
         fset = self._toy_fset()
         blocks = self._toy_blocks(fset)
-        M, O = self._toy_corpus(n=400)
+        P = self._toy_corpus(n=400)
         acc1 = hlp._MarginalAccumulator(fset, blocks)
-        acc1.add(M, O)
+        acc1.add(P)
         acc2 = hlp._MarginalAccumulator(fset, blocks)
-        acc2.add(M[:200], O[:200])
-        acc2.add(M[200:], O[200:])
+        acc2.add(P[:200])
+        acc2.add(P[200:])
         r1, r2 = acc1.result(), acc2.result()
         self.assertEqual(len(r1), len(r2))
         for a, b in zip(r1, r2):
@@ -521,16 +512,12 @@ class TestJointAccumulator(unittest.TestCase):
         return TestMarginalAccumulator._toy_corpus(n, ec, seed)
 
     @staticmethod
-    def _oracle_joint(fset, M, O, ci_col, cj_col):
+    def _oracle_joint(fset, P, ci_col, cj_col):
         """The independent per-position joint oracle (the manual
         dict, the compute_indexes for the codes)."""
-        pa = np.empty(len(M), dtype=np.dtype(
-            [('mover', np.uint64), ('opponent', np.uint64)]))
-        pa['mover'] = M
-        pa['opponent'] = O
-        idx = fset.compute_indexes(pa)
+        idx = fset.compute_indexes(P)
         od = {}
-        for k in range(len(M)):
+        for k in range(len(P)):
             key = (int(idx[k, ci_col]), int(idx[k, cj_col]))
             od[key] = od.get(key, 0) + 1
         return od
@@ -540,9 +527,9 @@ class TestJointAccumulator(unittest.TestCase):
         # (code_lmc, code_r2_j) -> count vs the independent oracle.
         fset = self._fset()
         blocks = self._blocks()
-        M, O = self._corpus()
+        P = self._corpus()
         ja = hlp._JointAccumulator(fset, blocks, [('LMC', 'R2')])
-        ja.add(M, O)
+        ja.add(P)
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('LMC', 'R2'))
         self.assertEqual(sorted(pd.keys()),
@@ -550,9 +537,9 @@ class TestJointAccumulator(unittest.TestCase):
         bi = [b for b in blocks if b[0] == 'LMC'][0]
         bj = [b for b in blocks if b[0] == 'R2'][0]
         for (ii, jj) in pd:
-            od = self._oracle_joint(fset, M, O, bi[1] + ii, bj[1] + jj)
+            od = self._oracle_joint(fset, P, bi[1] + ii, bj[1] + jj)
             codes_i, codes_j, cnt = pd[(ii, jj)]
-            self.assertEqual(int(cnt.sum()), len(M))
+            self.assertEqual(int(cnt.sum()), len(P))
             got = {}
             for a, b, c in zip(codes_i, codes_j, cnt):
                 got[(int(a), int(b))] = int(c)
@@ -565,15 +552,15 @@ class TestJointAccumulator(unittest.TestCase):
         # anisotropy measure.
         fset = self._fset()
         blocks = self._blocks()
-        M, O = self._corpus()
+        P = self._corpus()
         ja = hlp._JointAccumulator(fset, blocks, [('R2', 'R2')])
-        ja.add(M, O)
+        ja.add(P)
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('R2', 'R2'))
         self.assertEqual(len(pd), 16)
         for (ii, jj) in pd:
             codes_i, codes_j, cnt = pd[(ii, jj)]
-            self.assertEqual(int(cnt.sum()), len(M))
+            self.assertEqual(int(cnt.sum()), len(P))
             if ii == jj:
                 self.assertEqual(
                     sum(1 for a, b in zip(codes_i, codes_j)
@@ -584,13 +571,13 @@ class TestJointAccumulator(unittest.TestCase):
         # invariant, the marginals and the joints alike).
         fset = self._fset()
         blocks = self._blocks()
-        M, O = self._corpus(n=300)
+        P = self._corpus(n=300)
         pairs = [('LMC', 'R2'), ('R2', 'R2')]
         ja1 = hlp._JointAccumulator(fset, blocks, pairs)
-        ja1.add(M, O)
+        ja1.add(P)
         ja2 = hlp._JointAccumulator(fset, blocks, pairs)
-        ja2.add(M[:150], O[:150])
-        ja2.add(M[150:], O[150:])
+        ja2.add(P[:150])
+        ja2.add(P[150:])
         r1, r2 = ja1.result(), ja2.result()
         self.assertEqual(len(r1), len(r2))
         for (ni1, nj1, pd1), (ni2, nj2, pd2) in zip(r1, r2):
@@ -622,8 +609,8 @@ class TestPrngIntegration(unittest.TestCase):
         fset = self._fset()
         blocks = self._blocks()
         acc = hlp._MarginalAccumulator(fset, blocks)
-        M, O = _corpus(n, ec, seed)
-        acc.add(M, O)
+        P = _corpus(n, ec, seed)
+        acc.add(P)
         return acc.result()
 
     def test_corpus_reproducibility(self):
@@ -651,9 +638,9 @@ class TestPrngIntegration(unittest.TestCase):
         n, ec, seed = 2000, 20, 42
         fset = self._fset()
         blocks = self._blocks()
-        M, O = _corpus(n, ec, seed)
+        P = _corpus(n, ec, seed)
         acc = hlp._MarginalAccumulator(fset, blocks)
-        acc.add(M, O)
+        acc.add(P)
         res = {((nm, i)): (nc, codes, counts)
                for (nm, i, nc, codes, counts) in acc.result()}
         for (nm, i), (nc, codes, counts) in res.items():
@@ -661,8 +648,7 @@ class TestPrngIntegration(unittest.TestCase):
             self.assertLessEqual(len(codes), nc)
         expected = {}
         for k in range(n):
-            p = make_position(M[k], O[k])
-            code = int(position_legal_moves(p)).bit_count()
+            code = int(position_legal_moves(P[k])).bit_count()
             expected[code] = expected.get(code, 0) + 1
         nc, codes, counts = res[('LMC', 0)]
         exp_codes = np.array(sorted(expected), dtype=np.uint32)
