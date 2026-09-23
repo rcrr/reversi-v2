@@ -223,10 +223,10 @@ check("B2  every harvested position has ec 20 (the arrest rule, the "
 
 # The marginal: the streaming accumulator vs the FeatureSet's OWN batch
 # index path (one shot, no chunking, no dense/sparse split).
-marg = hlp._MarginalAccumulator(fset)
-marg.add(pos)
-marginal = marg.result()
 idx = fset.compute_indexes(pos)
+marg = hlp._MarginalAccumulator(fset)
+marg.add(idx)
+marginal = marg.result()
 blocks_by_name = {b[0]: b for b in blocks}
 marg_ok = True
 totals_ok = True
@@ -248,7 +248,7 @@ check("B4  one count per position per sub-variable (every total is N)",
 # over the same codes (a different construction of the same table).
 PAIR = ("LMC", "EDGE")
 joints = hlp._JointAccumulator(fset, [PAIR])
-joints.add(pos)
+joints.add(idx)
 jres = joints.result()
 check("B5  the joint result shape: one entry per requested pair",
       len(jres) == 1 and jres[0][0] == PAIR[0] and jres[0][1] == PAIR[1])
@@ -299,7 +299,7 @@ check("B7  the SU values == the ratio-form MI + the pure-python "
 # correlation first).
 SELF = ("EDGE", "EDGE")
 selfj = hlp._JointAccumulator(fset, [SELF])
-selfj.add(pos)
+selfj.add(idx)
 selfres = selfj.result()
 selfsu = hlp._su_values(selfres, marg_lookup)
 selfgroups = hlp._su_groups(selfsu, [SELF])

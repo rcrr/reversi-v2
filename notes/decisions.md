@@ -2756,3 +2756,39 @@ D-299 | 2026-09-23 | the COLD compute of hlp_su_analysis is OPTIMIZED
           loop was already cheap), the verify_su_analysis probe 45 /
           0, the verify_effect_size probe 29 / 0, the docs audit 92
           mirrors with the 6 pre-existing findings only.
+
+D-300 | 2026-09-23 | the per-wave index matrix is computed ONCE in the compute
+          loop (Roberto, the I-020, raised after D-299): the D-299 cold
+          compute was ~37 s but the _MarginalAccumulator.add and the
+          _JointAccumulator.add EACH recomputed fset.compute_indexes(pos)
+          over the wave's harvested lanes (~173 ms/wave each on the
+          8-column uint32 index matrix, ~346 ms/wave, ~3.8 s per 1e7).
+          (1) The compute loop now computes idx = fset.compute_indexes(
+          final[keep]) ONCE per wave and feeds the SAME matrix to both
+          add(idx) — the old add(pos) computed it internally. (2) BOTH
+          add() take the index matrix (the uint32 (N, I) array), NOT a
+          PositionArray; n = idx.shape[0] (the empty guard unchanged);
+          fset is kept ONLY for the feature_blocks layout (D-297). The
+          D-296 position language stops at the loop boundary: the
+          harvested final[keep] lanes feed compute_indexes in the loop,
+          and the accumulators speak the derived index matrix (the
+          parallel (mover, opponent) arrays still never cross a module
+          boundary — the A10 invariant intact). The 12 test add call
+          sites + the 3 probe add call sites now feed
+          fset.compute_indexes(pos) (the probe's marginal site reuses
+          the oracle's own idx, the two joint sites the in-scope idx).
+          EQUIVALENCE: the index matrix is a PURE FUNCTION of the
+          harvested lanes, so computing it once or twice yields the
+          same values — the new compute vs the D-299 cached output on
+          the 1e7 corpus is the signature identical, the 7 sub-variables
+          + the 28 joint cells bit-identical, the statistics report +
+          CSV byte-identical (the rlmwf_03 caches stay valid). PERF:
+          ~173 ms/wave removed per 1e7 run (~1.9 s, ~5% of the D-299
+          ~37 s) + one 32 MB index allocation per wave; the main win is
+          clarity (the loop owns the index computation, the accumulators
+          are pure index->count machines). I-020 CLOSED (moved to
+          ideas-closed.md). VERIFICATION: the full suite (fast tier)
+          947/0/97 GREEN, test_hlp_su_analysis 37/0/0, the worker suite
+          VLONG 10/0/0 (the 1e7 corpus), the verify_su_analysis probe 45
+          / 0, the verify_effect_size probe 29 / 0, the docs audit 92
+          mirrors with the 6 pre-existing findings only.

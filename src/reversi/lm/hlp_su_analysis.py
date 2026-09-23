@@ -192,12 +192,14 @@ class _MarginalAccumulator:
     def __init__(self, fset):
         """
         Args:
-          fset: the FeatureSet (the compute_indexes provider;
-                the per-feature blocks come from its
-                feature_blocks property — the (name, col_start,
-                col_end, n_conf, n_inst) over the non-intercept
-                features, each expanding to n_inst sub-variables,
-                one per instance column).
+          fset: the FeatureSet (the feature_blocks provider — the
+                per-feature blocks come from its feature_blocks
+                property, the (name, col_start, col_end, n_conf,
+                n_inst) over the non-intercept features, each
+                expanding to n_inst sub-variables, one per
+                instance column; the D-300: the index matrix is
+                computed ONCE per wave by the compute loop and
+                fed to add, NOT recomputed inside it).
         """
         self.fset = fset
         # Expand the feature blocks into the per-instance sub-
@@ -217,15 +219,17 @@ class _MarginalAccumulator:
                 self._sparse.append({})
         self.n_positions: int = 0
 
-    def add(self, pos) -> None:
+    def add(self, idx) -> None:
         """
-        Accumulate one chunk of corpus positions (the
-        PositionArray, one structured row per position).
+        Accumulate one chunk of corpus INDEXES (the uint32
+        (N, I) index matrix from fset.compute_indexes — the
+        I-020 / D-300: the compute loop computes the indexes
+        ONCE per wave and feeds the SAME matrix to the marginal
+        and the joint, instead of each add recomputing it).
         """
-        n = int(pos.shape[0])
+        n = int(idx.shape[0])
         if n == 0:
             return
-        idx = self.fset.compute_indexes(pos)
         for sidx, (name, i, col, n_conf) in enumerate(self.subvars):
             codes = idx[:, col]
             if self._dense[sidx] is not None:
@@ -293,9 +297,11 @@ class _JointAccumulator:
     def __init__(self, fset, su_pairs):
         """
         Args:
-          fset:     the FeatureSet (the compute_indexes provider;
+          fset:     the FeatureSet (the feature_blocks provider,
                     the per-feature blocks come from its
-                    feature_blocks property).
+                    feature_blocks property; the D-300: the index
+                    matrix is computed ONCE per wave by the
+                    compute loop and fed to add).
           su_pairs: the REQUESTED pairs, a list of
                     (feature_i, feature_j) name tuples (the
                     canonical form; the same-feature (F, F) is
@@ -323,10 +329,13 @@ class _JointAccumulator:
             self._meta.append((ni, nj, bi, bj))
         self.n_positions: int = 0
 
-    def add(self, pos) -> None:
+    def add(self, idx) -> None:
         """
-        Accumulate one chunk of corpus positions (the
-        PositionArray, one structured row per position).
+        Accumulate one chunk of corpus INDEXES (the uint32
+        (N, I) index matrix from fset.compute_indexes — the
+        I-020 / D-300: the compute loop computes the indexes
+        ONCE per wave and feeds the SAME matrix to the marginal
+        and the joint, instead of each add recomputing it).
 
         The D-299 VECTORIZED merge: the wave's np.unique output
         (u, cnt) is folded into the cell's (K, C) without a
@@ -336,10 +345,9 @@ class _JointAccumulator:
         invariant is what makes the next wave's searchsorted
         valid).
         """
-        n = int(pos.shape[0])
+        n = int(idx.shape[0])
         if n == 0:
             return
-        idx = self.fset.compute_indexes(pos)
         for pi, (ni, nj, bi, bj) in enumerate(self._meta):
             ncj = np.uint64(bj[3])
             for ii in range(bi[4]):
@@ -430,8 +438,11 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     never materializes in RAM). The harvested lanes are the batch
     lanes at EXACTLY the target ec (the double-pass game-over
     lanes are dropped, the quota filled by the next batch); the
-    slots provenance is not carried (the accumulators need only
-    the positions, D-296)."""
+    slots provenance is not carried. The I-020 / D-300: each
+    wave's index matrix (fset.compute_indexes over the harvested
+    lanes) is computed ONCE in the loop and fed to BOTH
+    accumulators (the position language, D-296, stops at the
+    loop boundary — the accumulators speak the index matrix)."""
     cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
     corpus = cfg_fa.corpus
@@ -458,9 +469,13 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
         final, ec_arr = random_game_play_path(batch, ec, prng)
         keep = ec_arr == ec
         dead += int((~keep).sum())
-        marg.add(final[keep])
+        # The I-020 / D-300: the wave's index matrix is computed
+        # ONCE here and fed to BOTH accumulators (the old code
+        # recomputed it inside each add — ~173 ms/wave twice).
+        idx = fset.compute_indexes(final[keep])
+        marg.add(idx)
         if joint is not None:
-            joint.add(final[keep])
+            joint.add(idx)
         harvested += int(keep.sum())
         waves += 1
     ctx.log_event(Relevance.INFO,

@@ -421,7 +421,7 @@ class TestMarginalAccumulator(unittest.TestCase):
         fset = self._toy_fset()
         P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset)
-        acc.add(P)
+        acc.add(fset.compute_indexes(P))
         res = {((name, i)): (nc, codes, counts)
                for (name, i, nc, codes, counts) in acc.result()}
         expected = {}
@@ -445,7 +445,7 @@ class TestMarginalAccumulator(unittest.TestCase):
         fset = self._toy_fset()
         P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset)
-        acc.add(P)
+        acc.add(fset.compute_indexes(P))
         idx = fset.compute_indexes(P)
         r2_col = 2  # R2 inst0 (after the intercept col 0, LMC col 1)
         expected = {}
@@ -470,10 +470,10 @@ class TestMarginalAccumulator(unittest.TestCase):
         fset = self._toy_fset()
         P = self._toy_corpus(n=400)
         acc1 = hlp._MarginalAccumulator(fset)
-        acc1.add(P)
+        acc1.add(fset.compute_indexes(P))
         acc2 = hlp._MarginalAccumulator(fset)
-        acc2.add(P[:200])
-        acc2.add(P[200:])
+        acc2.add(fset.compute_indexes(P[:200]))
+        acc2.add(fset.compute_indexes(P[200:]))
         r1, r2 = acc1.result(), acc2.result()
         self.assertEqual(len(r1), len(r2))
         for a, b in zip(r1, r2):
@@ -513,7 +513,7 @@ class TestJointAccumulator(unittest.TestCase):
         fset = self._fset()
         P = self._corpus()
         ja = hlp._JointAccumulator(fset, [('LMC', 'R2')])
-        ja.add(P)
+        ja.add(fset.compute_indexes(P))
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('LMC', 'R2'))
         self.assertEqual(sorted(pd.keys()),
@@ -537,7 +537,7 @@ class TestJointAccumulator(unittest.TestCase):
         fset = self._fset()
         P = self._corpus()
         ja = hlp._JointAccumulator(fset, [('R2', 'R2')])
-        ja.add(P)
+        ja.add(fset.compute_indexes(P))
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('R2', 'R2'))
         self.assertEqual(len(pd), 16)
@@ -556,10 +556,10 @@ class TestJointAccumulator(unittest.TestCase):
         P = self._corpus(n=300)
         pairs = [('LMC', 'R2'), ('R2', 'R2')]
         ja1 = hlp._JointAccumulator(fset, pairs)
-        ja1.add(P)
+        ja1.add(fset.compute_indexes(P))
         ja2 = hlp._JointAccumulator(fset, pairs)
-        ja2.add(P[:150])
-        ja2.add(P[150:])
+        ja2.add(fset.compute_indexes(P[:150]))
+        ja2.add(fset.compute_indexes(P[150:]))
         r1, r2 = ja1.result(), ja2.result()
         self.assertEqual(len(r1), len(r2))
         for (ni1, nj1, pd1), (ni2, nj2, pd2) in zip(r1, r2):
@@ -588,7 +588,7 @@ class TestPrngIntegration(unittest.TestCase):
         fset = self._fset()
         acc = hlp._MarginalAccumulator(fset)
         P = _corpus(n, ec, seed)
-        acc.add(P)
+        acc.add(fset.compute_indexes(P))
         return acc.result()
 
     def test_corpus_reproducibility(self):
@@ -617,7 +617,7 @@ class TestPrngIntegration(unittest.TestCase):
         fset = self._fset()
         P = _corpus(n, ec, seed)
         acc = hlp._MarginalAccumulator(fset)
-        acc.add(P)
+        acc.add(fset.compute_indexes(P))
         res = {((nm, i)): (nc, codes, counts)
                for (nm, i, nc, codes, counts) in acc.result()}
         for (nm, i), (nc, codes, counts) in res.items():

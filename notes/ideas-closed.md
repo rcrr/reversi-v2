@@ -121,3 +121,12 @@ I-019 | done | The `run()` facade + the `target_level` consumption (raised 2026-
          without re-running the levels done (verified at the 1e7 scale: one SU_ANALYSIS up, zero downs). Tests 17 -> 29
          in `test_logistic_model` (the mocked resolution cases + the real-config class); the register line in
          notes/rules.md; the hub probe's V9 gained the `run()` boundary label.
+
+I-020 | done | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, session 58, deferred by Roberto
+         in D-299, "magari lo vediamo dopo"). Executed as D-300 (2026-09-23): the compute loop computes
+         `idx = fset.compute_indexes(final[keep])` ONCE per wave and feeds the SAME matrix to both
+         accumulators' `add(idx)` (the old `add(pos)` recomputed it internally — ~173 ms/wave twice). The 12
+         test + 3 probe call sites feed `fset.compute_indexes(pos)`; the D-296 position language stops at the
+         loop boundary (the accumulators speak the derived index matrix, the A10 invariant intact). The 1e7
+         tables stay bit-identical + the statistics byte-identical (the index matrix is a pure function of the
+         harvested lanes; the rlmwf_03 caches stay valid).

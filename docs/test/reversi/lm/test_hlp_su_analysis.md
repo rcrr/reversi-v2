@@ -6,12 +6,15 @@ sidecar / the description / the version), the compute determinism (the seed pin)
 space (D-278/279), the SU groups (the dedup + the canonical sort), the diagonal omission, the report + the
 optional CSV, the rarity bins (the config-driven Section B, D-292), and the cache consistency. D-295: the
 streaming frequency accumulators (the marginal / the joint micro-suite + the PRNG integration) moved here
-from the retired test_hlp_random_play; D-296: the corpus helper + the accumulators speak the position
-language (the PositionArray feeding); D-298: the SU kernel micro-suite (the entropy / the MI / the SU /
+from the retired test_hlp_random_play; D-296: the corpus helper speaks the position language (the
+PositionArray corpus); D-298: the SU kernel micro-suite (the entropy / the MI / the SU /
 the dispersion / the never-observed audit — the 5 hand-computed toy-table classes) moved here from
 test_hlp_feature_analysis (the split of the shared data plane); D-299: the TestJointAccumulator pins the
 VECTORIZED joint merge (the sorted-(K, C) storage, the chunk-merge invariance over it) and the
-TestMutualInformation calls pass the PRE-COMPUTED marginal entropies (the new kernel signature).
+TestMutualInformation calls pass the PRE-COMPUTED marginal entropies (the new kernel signature);
+D-300 (the I-020): the accumulator micro-suite feeds `add(fset.compute_indexes(P))` — the wave
+index matrix is computed by the test (standing in for the compute loop) and passed to the
+accumulator, NOT a PositionArray (the accumulators speak the derived index matrix).
 9 classes / 37 tests / no database.
 
 ## Coverage
@@ -54,7 +57,9 @@ TestMutualInformation calls pass the PRE-COMPUTED marginal entropies (the new ke
   take only the fset, the per-feature blocks come from its feature_blocks property, D-297); the `_corpus()` the
   small play-path corpus (the random_game engine, D-285 — a PositionArray, the D-296 position language); the
   INDEPENDENT oracles (the LMC via position_legal_moves, NOT compute_indexes; the R2 / the joints via the manual
-  per-position dict over compute_indexes).
+  per-position dict over compute_indexes); the D-300: `add(fset.compute_indexes(P))` — the
+  test computes the wave index matrix and feeds it (standing in for the compute loop), NOT a
+  PositionArray (the accumulators speak the derived index matrix).
 
 ## Conventions
 
