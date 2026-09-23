@@ -537,12 +537,18 @@ check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       all('"effect_size"' not in (ROOT / "test" / "reversi" / "data"
                                   / f"rlm_0{i}.json").read_text()
           for i in (1, 2, 3, 4)))
-check("F5  the shared-kernels module carries BOTH families (the SU_ANALYSIS "
-      "and the EFFECT_SIZE levels)",
+check("F5  the D-298 split boundary: hlp_feature_analysis carries the "
+      "EFFECT_SIZE family (the ANOVA + the adherence), the SU kernels "
+      "live in hlp_su_analysis (the private _symmetric_uncertainty)",
       all(k in (ROOT / "src" / "reversi" / "lm"
                 / "hlp_feature_analysis.py").read_text()
-          for k in ("def anova_eta_omega", "def adherence",
-                    "def symmetric_uncertainty")))
+          for k in ("def anova_eta_omega", "def adherence"))
+      and "def _symmetric_uncertainty" in
+      (ROOT / "src" / "reversi" / "lm"
+       / "hlp_su_analysis.py").read_text()
+      and "def symmetric_uncertainty" not in
+      (ROOT / "src" / "reversi" / "lm"
+       / "hlp_feature_analysis.py").read_text())
 check("F6  the report format: the title + the two section headers",
       (TMP / "c_mock" / "effect_size" / "effect_size_report.txt").read_text()
       .splitlines()[1] == "=" * 40

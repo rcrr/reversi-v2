@@ -34,13 +34,14 @@ phase 1 — the expensive part), the binio cache I/O (the D-288
 layout: the header + the signature block + the marginal + the
 joint) + the
 consistency signature (the feature_set hash + the spec + the pairs
-— the first cache lineage WITHOUT the rds_checksum) + the
-statistics (phase 2: the dispersion + the never-observed audit +
-the SU pairs, the TXT report + the optional CSV). NO DB (the design
-section 3.3): the corpus is the level's own, the random_game
-play-path engine. The worker (wrk_su_analysis.py) is the
-orchestration skeleton: the enable no-op, the cache_manager flow,
-the ctx publication.
+— the first cache lineage WITHOUT the rds_checksum) + the SU
+statistics kernels (the entropy / the MI / the SU / the dispersion
+/ the never-observed audit — the D-298 move from
+hlp_feature_analysis) + the statistics (phase 2: the SU pairs, the
+TXT report + the optional CSV). NO DB (the design section 3.3): the
+corpus is the level's own, the random_game play-path engine. The
+worker (wrk_su_analysis.py) is the orchestration skeleton: the
+enable no-op, the cache_manager flow, the ctx publication.
 """
 
 from __future__ import annotations
@@ -58,10 +59,6 @@ from reversi.random_game import random_game_play_path
 from reversi.tools import binio
 from reversi.tools.prng import MT19937
 from reversi.tools.state_machine import Relevance
-from reversi.lm.hlp_feature_analysis import (
-    dispersion, entropy, mutual_information, never_observed_audit,
-    symmetric_uncertainty)
-
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
@@ -574,6 +571,135 @@ def hlp_su_analysis_is_cache_consistent(ctx, cached) -> bool:
     return consistent
 
 
+# ---------------------------------------------------------------------
+# The SU statistics kernels (the phase-2 pure math over the
+# frequency tables, moved here from hlp_feature_analysis, the
+# D-298 split — the SU_ANALYSIS family; the EFFECT_SIZE family
+# stays there): the entropy / the mutual information / the SU /
+# the dispersion / the never-observed audit.
+# ---------------------------------------------------------------------
+
+def _entropy(counts) -> float:
+    """
+    The Shannon entropy H in bits, from the count array (the
+    marginal or the joint). The 0-log-0 convention: the zero
+    counts contribute 0. The empty / the all-zero counts -> 0.
+
+    Args:
+      counts: the count array (any shape; the non-zero entries
+        are the observed support).
+    """
+    c = np.asarray(counts, dtype=np.float64).ravel()
+    c = c[c > 0]
+    n = c.sum()
+    if n == 0:
+        return 0.0
+    p = c / n
+    return float(-(p * np.log2(p)).sum())
+
+
+def _mutual_information(joint_counts, marg_u, marg_v) -> float:
+    """
+    The mutual information I(u; v) in bits, from the joint
+    counts + the two marginal counts. The identity
+    I = H(u) + H(v) - H(u, v) (the ratio form's 0/0 is
+    avoided; the joint entropy is the entropy of the joint
+    counts). Clamped to >= 0 (the floating-point rounding of
+    the identity can give a tiny negative).
+
+    Args:
+      joint_counts: the (u, v) joint counts (the observed
+        cells).
+      marg_u:       the marginal counts of u.
+      marg_v:       the marginal counts of v.
+    """
+    I = _entropy(marg_u) + _entropy(marg_v) - _entropy(joint_counts)
+    return float(max(0.0, I))
+
+
+def _symmetric_uncertainty(I: float, H_u: float,
+                          H_v: float) -> float:
+    """
+    The symmetrical uncertainty SU(u, v) = 2·I / (H(u) +
+    H(v)), in [0, 1]. The 0-denominator guard: SU = 0 if
+    H(u) + H(v) == 0 (the degenerate variables — the code-0
+    "no match" single-category).
+
+    Args:
+      I:    the mutual information I(u; v) (bits).
+      H_u:  the entropy of u (bits).
+      H_v:  the entropy of v (bits).
+    """
+    denom = H_u + H_v
+    if denom == 0:
+        return 0.0
+    return float(2.0 * I / denom)
+
+
+def _dispersion(counts, n_configurations) -> dict:
+    """
+    The per-sub-variable dispersion (the design section 3.3
+    phase 2): K_obs (the distinct observed codes), H (the
+    entropy in bits), H_norm = H / log2(K_obs) (else 0 — the
+    K_obs <= 1 guard), the coverage = K_obs /
+    n_configurations (the theoretical range).
+
+    Args:
+      counts: the sub-variable's count array (the observed
+        support; the dense form with the zero entries is
+        accepted — the zeros are filtered).
+      n_configurations: the theoretical code range of the sub-
+        variable (the full range, incl. the never-observed).
+
+    Returns:
+      {'k_obs', 'h', 'h_norm', 'coverage'}.
+    """
+    observed = np.asarray(counts, dtype=np.float64).ravel()
+    observed = observed[observed > 0]
+    k_obs = int(observed.shape[0])
+    H = _entropy(observed)
+    h_norm = (H / float(np.log2(k_obs))) if k_obs > 1 else 0.0
+    n_conf = int(n_configurations)
+    coverage = (k_obs / n_conf) if n_conf > 0 else 0.0
+    return {'k_obs': k_obs, 'h': H, 'h_norm': h_norm,
+            'coverage': coverage}
+
+
+def _never_observed_audit(counts, n_configurations,
+                         rarity_thresholds=(1, 2, 5, 10, 100)
+                         ) -> dict:
+    """
+    The never-observed audit: the
+    number of theoretical codes never seen in the corpus
+    (n_configurations - K_obs) + the rarity profile (the count
+    of the OBSERVED codes below each small count threshold —
+    the configurations that random play almost never reaches:
+    the weights that can never be learned).
+
+    Args:
+      counts: the sub-variable's count array (the observed
+        support; the dense form with the zero entries is
+        accepted — the zeros are filtered).
+      n_configurations: the theoretical code range of the sub-
+        variable (the full range, incl. the never-observed).
+      rarity_thresholds: the small count thresholds (the
+        "almost never reached" profile). For a threshold t,
+        the count of the observed codes with count < t.
+
+    Returns:
+      {'k_obs', 'never_observed', 'rarity'} — rarity a dict
+      {threshold: count}.
+    """
+    observed = np.asarray(counts, dtype=np.float64).ravel()
+    observed = observed[observed > 0]
+    k_obs = int(observed.shape[0])
+    never = int(n_configurations) - k_obs
+    rarity = {int(t): int((observed < int(t)).sum())
+              for t in rarity_thresholds}
+    return {'k_obs': k_obs, 'never_observed': never,
+            'rarity': rarity}
+
+
 def _marginal_lookup(marginal) -> dict:
     """The (name, instance_idx) -> counts lookup (the sub-
     variables' marginal counts, for the SU marginals)."""
@@ -598,11 +724,11 @@ def _su_values(joint, lookup):
             mj = lookup.get((name_j, jj))
             if mi is None or mj is None:
                 continue
-            h_i = entropy(mi)
-            h_j = entropy(mj)
-            I = mutual_information(counts, mi, mj)
+            h_i = _entropy(mi)
+            h_j = _entropy(mj)
+            I = _mutual_information(counts, mi, mj)
             su.append((name_i, ii, name_j, jj,
-                       symmetric_uncertainty(I, h_i, h_j)))
+                       _symmetric_uncertainty(I, h_i, h_j)))
     return su
 
 
@@ -718,8 +844,8 @@ def _export_csv(ctx, tables, su_groups) -> Path:
                     'h', 'h_norm', 'coverage', 'never_observed', 'su'])
         for (name, i, nc, _codes, counts) in tables['marginal']:
             eff = theoretical.get((name, i), nc)
-            d = dispersion(counts, eff)
-            a = never_observed_audit(counts, eff)
+            d = _dispersion(counts, eff)
+            a = _never_observed_audit(counts, eff)
             w.writerow(['marginal', name, i, eff, d['k_obs'],
                         f"{d['h']:.6f}", f"{d['h_norm']:.6f}",
                         f"{d['coverage']:.6f}", a['never_observed'], ''])
@@ -758,8 +884,8 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables) -> Path:
     a_rows = []
     for (name, i, nc, _codes, counts) in marginal:
         eff = theoretical.get((name, i), nc)
-        d = dispersion(counts, eff)
-        a = never_observed_audit(counts, eff)
+        d = _dispersion(counts, eff)
+        a = _never_observed_audit(counts, eff)
         a_rows.append((name, i, f"{d['k_obs']}/{eff}",
                        f"{d['h']:.3f}", f"{d['h_norm']:.3f}",
                        f"{d['coverage']:.3f}", str(a['never_observed'])))

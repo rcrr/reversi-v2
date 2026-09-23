@@ -3,8 +3,10 @@ The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker, D-289): the streaming 
 accumulators (the marginal + the joint, the phase-1 data plane — the D-295 hlp_random_play
 migration, the position language D-296), the corpus generator (phase 1, the expensive part —
 the random_game play-path engine), the binio cache I/O (the D-288 layout), the
-consistency signature, and the statistics (phase 2: the dispersion + the never-observed audit + the SU
-pairs, the TXT report + the optional CSV). NO DB (the design section 3.3): the corpus is the level's own.
+consistency signature, the SU statistics kernels (the entropy / the MI / the SU / the
+dispersion / the never-observed audit — the D-298 move from hlp_feature_analysis), and the
+statistics (phase 2: the SU pairs, the TXT report + the optional CSV). NO DB (the design
+section 3.3): the corpus is the level's own.
 The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_matrix minimalism).
 
 ## API
@@ -62,7 +64,9 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   hlp_design_matrix_compute(ctx)).
 - The private kernels: the signature (_signature), the 4 binio block readers/writers, the
   frequency accumulators (_MarginalAccumulator, _JointAccumulator, _DENSE_THRESHOLD), the SU
-  kernels (_su_values, _su_groups, _su_canon, _theoretical_configs, _feature_instances,
+  statistics kernels (_entropy, _mutual_information, _symmetric_uncertainty, _dispersion,
+  _never_observed_audit — the D-298 move from hlp_feature_analysis), the SU kernels
+  (_su_values, _su_groups, _su_canon, _theoretical_configs, _feature_instances,
   _marginal_lookup, _rarity_bins, _export_csv).
 
 ## Verified invariants
@@ -92,7 +96,7 @@ None.
 ## Integration
 - Consumed by wrk_su_analysis (the 5 flow functions: compute / store / load / consistency / statistics —
   the cache_manager_load_or_compute wiring).
-- Reuses: hlp_feature_analysis (the dispersion / entropy / MI / SU kernels), random_game (the
-  play-path engine), binio (the cache I/O), the board (initial_game_position),
-  prng (MT19937). The accumulators are LOCAL (the D-295 migration).
+- Reuses: random_game (the play-path engine), binio (the cache I/O), the board
+  (initial_game_position), prng (MT19937). The accumulators are LOCAL (the D-295 migration),
+  the SU statistics kernels LOCAL too (the D-298 move from hlp_feature_analysis).
 - The EFFECT_SIZE level consumes the published tables (the ctx.su_analysis_tables — the worker's job).

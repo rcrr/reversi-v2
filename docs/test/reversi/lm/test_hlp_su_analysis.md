@@ -7,7 +7,9 @@ space (D-278/279), the SU groups (the dedup + the canonical sort), the diagonal 
 optional CSV, the rarity bins (the config-driven Section B, D-292), and the cache consistency. D-295: the
 streaming frequency accumulators (the marginal / the joint micro-suite + the PRNG integration) moved here
 from the retired test_hlp_random_play; D-296: the corpus helper + the accumulators speak the position
-language (the PositionArray feeding). 4 classes / 21 tests / no database.
+language (the PositionArray feeding); D-298: the SU kernel micro-suite (the entropy / the MI / the SU /
+the dispersion / the never-observed audit — the 5 hand-computed toy-table classes) moved here from
+test_hlp_feature_analysis (the split of the shared data plane). 9 classes / 37 tests / no database.
 
 ## Coverage
 
@@ -17,6 +19,11 @@ language (the PositionArray feeding). 4 classes / 21 tests / no database.
 | `TestMarginalAccumulator` | 3 | (the D-295 migration; the toy corpus, a 300-game play-path corpus at ec 20, the toy FeatureSet = the intercept + the LMC + the R2) `test_lmc_hand_counted` (the single-instance dense bincount vs the INDEPENDENT oracle position_legal_moves — NOT compute_indexes); `test_pattern_cross_check` (the R2 inst0 vs an independent per-position dict via compute_indexes); `test_chunk_merge` (one chunk == two half-chunks) |
 | `TestJointAccumulator` | 3 | (the D-295 migration; the same toy corpus, a 200-game play-path corpus) `test_cross_feature_joint` (the (LMC, R2) 4 instance-pairs, each joint vs the independent per-position oracle); `test_same_feature_diagonal` (the (R2, R2) 16 instance-pairs, the diagonal ZERO off-diagonal — the SU = 1 lock); `test_chunk_merge` (one chunk == two half-chunks) |
 | `TestPrngIntegration` | 2 | (the D-295 migration; the play-path corpus -> the accumulator, the 2-feature toy set) `test_corpus_reproducibility` (same seed -> the SAME frequency tables bit-exact, the different seed -> different); `test_small_end_to_end_marginals` (every sub-variable sum == N, K_obs <= n_conf, the LMC marginal vs the INDEPENDENT oracle position_legal_moves) |
+| `TestEntropy` | 4 | (the D-298 migration) `test_uniform` (the uniform 4: H = log2 4 = 2); `test_degenerate` (the single-category: H = 0); `test_binary` (p = [0.25, 0.75]: H = 0.8112781244591328); `test_empty` (the all-zero / the empty: H = 0, the n = 0 guard) |
+| `TestMutualInformation` | 3 | (the D-298 migration) `test_perfect_correlation` (u == v: the marginals [2, 2], the joint [2, 0, 0, 2], I = 1 + 1 - 1 = 1); `test_independent` (the marginals [2, 2], the joint [1, 1, 1, 1], I = 1 + 1 - 2 = 0); `test_non_negative` (the floating-point clamp: I >= 0) |
+| `TestSymmetricUncertainty` | 3 | (the D-298 migration) `test_perfect` (I = H_u = H_v = 1: SU = 2/2 = 1); `test_independent` (I = 0: SU = 0); `test_zero_denominator` (H_u = H_v = 0: the 0/0 guard -> SU = 0) |
+| `TestDispersion` | 3 | (the D-298 migration) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: K_obs 4, H 1.75, H_norm 0.875, coverage 0.5); `test_degenerate` (counts [8], n_conf 5: K_obs 1, H 0, H_norm 0 the K_obs <= 1 guard, coverage 0.2); `test_dense_zeros_filtered` (the dense form [0, 1, 0, 3, 0]: K_obs 2, coverage 0.4) |
+| `TestNeverObservedAudit` | 3 | (the D-298 migration) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: never 4, the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}); `test_all_observed` (the full support: never 0); `test_empty` (the empty: never = n_conf, the rarity all 0) |
 
 ## Goldens pinned
 
@@ -33,6 +40,12 @@ language (the PositionArray feeding). 4 classes / 21 tests / no database.
 - The theoretical space (D-278/279): the PATTERN's n_unique_configs (the orbit representatives), the MOBILITY's
   n_configurations.
 - The SU semantics: the symmetric dedup, the canonical endpoint order, the diagonal omission.
+- The SU kernel micro-suite (the D-298 migration): the hand-computed entropy values (the uniform 2.0, the binary
+  0.8112781244591328, the degenerate / the empty 0.0); the MI (the perfect 1.0, the independent 0.0, the
+  non-negative clamp); the SU guards (the perfect 1.0, the independent 0.0, the 0-denominator 0.0); the dispersion
+  (counts [1, 1, 2, 4], n_conf 8: K_obs 4, H 1.75, H_norm 0.875, coverage 0.5; the degenerate K_obs 1, H_norm 0;
+  the dense-zeros filter); the never-observed audit (never 4, the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the
+  all-observed 0; the empty never = n_conf).
 - The accumulators (the D-295 migration): the toy FeatureSet (the `_toy_fset()` = the intercept + the LMC (the
   legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561) — the accumulators
   take only the fset, the per-feature blocks come from its feature_blocks property, D-297); the `_corpus()` the
@@ -52,6 +65,8 @@ language (the PositionArray feeding). 4 classes / 21 tests / no database.
 - The migrated micro-suites reuse the toy FeatureSet / the toy blocks / the toy corpus helpers (the
   TestMarginalAccumulator static methods, shared by the joint + the integration classes) — the small, no-DB,
   hand-checkable infrastructure (the D-295 migration).
+- The SU kernel micro-suite (the D-298 migration) reuses nothing from the toy infrastructure — the pure
+  hand-computed count arrays over the hlp's OWN private kernels (the hlp._* calls, the D-290 style).
 
 ## Integration
 

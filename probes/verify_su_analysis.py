@@ -5,8 +5,9 @@
 # Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-186/D-258):
 # the worker (src/reversi/lm/wrk_su_analysis.py) + its frequency data
 # plane (hlp_su_analysis, the accumulators — the D-295 hlp_random_play
-# retirement) + the shared kernels it calls
-# (hlp_feature_analysis). The worker's corpus engine is the
+# retirement) + the shared kernels it calls (the local SU
+# kernels — the D-298 hlp_feature_analysis move). The worker's
+# corpus engine is the
 # random_game play-path (the su-corpus-3 lineage); the tier-B corpus
 # is the same engine (D-285 — the hlp_wave wave engine is retired).
 # The level is the workspace's ONLY no-DB corpus consumer: it reads

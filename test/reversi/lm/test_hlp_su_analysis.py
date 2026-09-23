@@ -49,6 +49,10 @@ the theoretical configuration space (D-278/D-279), the SU groups
 the optional CSV, and the cache consistency. D-295: the streaming
 frequency accumulators (the marginal / the joint micro-suite + the
 PRNG integration) moved here from the retired test_hlp_random_play.
+D-298: the SU kernel micro-suite (the entropy / the MI / the SU /
+the dispersion / the never-observed audit — the 5 hand-computed
+toy-table classes) moved here from test_hlp_feature_analysis (the
+split of the shared data plane).
 """
 
 import hashlib
@@ -629,3 +633,140 @@ class TestPrngIntegration(unittest.TestCase):
                               dtype=np.int64)
         np.testing.assert_array_equal(codes, exp_codes)
         np.testing.assert_array_equal(counts, exp_counts)
+
+
+# ---------------------------------------------------------------------
+# The SU kernel micro-suite (the D-298 hlp_feature_analysis
+# migration): the hand-computed toy tables for the entropy / the
+# MI / the SU / the dispersion / the never-observed audit, now
+# the hlp's OWN private kernels (the hlp._* calls).
+# ---------------------------------------------------------------------
+
+class TestEntropy(unittest.TestCase):
+    """The Shannon entropy H in bits, the 0-log-0 convention."""
+
+    def test_uniform(self):
+        # The uniform 4: H = log2(4) = 2.
+        self.assertAlmostEqual(hlp._entropy([1, 1, 1, 1]), 2.0, places=12)
+
+    def test_degenerate(self):
+        # The single-category (the rest zero): H = 0.
+        self.assertAlmostEqual(hlp._entropy([4, 0, 0, 0]), 0.0, places=12)
+
+    def test_binary(self):
+        # p = [0.25, 0.75]: H = -(0.25 log2 0.25 + 0.75 log2
+        # 0.75) = 0.8112781244591328.
+        self.assertAlmostEqual(hlp._entropy([1, 3]),
+                               0.8112781244591328, places=12)
+
+    def test_empty(self):
+        # The all-zero / the empty: H = 0 (the n = 0 guard).
+        self.assertEqual(hlp._entropy([0, 0, 0]), 0.0)
+        self.assertEqual(hlp._entropy([]), 0.0)
+
+
+class TestMutualInformation(unittest.TestCase):
+    """I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v)."""
+
+    def test_perfect_correlation(self):
+        # u == v, 4 positions (u = [0, 0, 1, 1]): the marginals
+        # [2, 2] (H = 1 each), the joint (the 2 x 2 grid)
+        # [2, 0, 0, 2] (H(u, v) = 1). I = 1 + 1 - 1 = 1.
+        I = hlp._mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
+        self.assertAlmostEqual(I, 1.0, places=12)
+
+    def test_independent(self):
+        # u = [0, 0, 1, 1], v = [0, 1, 0, 1] (independent): the
+        # marginals [2, 2] (H = 1 each), the joint [1, 1, 1, 1]
+        # (H(u, v) = 2). I = 1 + 1 - 2 = 0.
+        I = hlp._mutual_information([1, 1, 1, 1], [2, 2], [2, 2])
+        self.assertAlmostEqual(I, 0.0, places=12)
+
+    def test_non_negative(self):
+        # The floating-point rounding of the identity can give a
+        # tiny negative — the clamp keeps I >= 0.
+        I = hlp._mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
+        self.assertGreaterEqual(I, 0.0)
+
+
+class TestSymmetricUncertainty(unittest.TestCase):
+    """SU = 2I / (H_u + H_v), in [0, 1], the 0-denominator guard."""
+
+    def test_perfect(self):
+        # I = H_u = H_v = 1 (the perfect correlation): SU = 2/2 = 1.
+        self.assertAlmostEqual(
+            hlp._symmetric_uncertainty(1.0, 1.0, 1.0), 1.0, places=12)
+
+    def test_independent(self):
+        # I = 0 (the independent): SU = 0.
+        self.assertAlmostEqual(
+            hlp._symmetric_uncertainty(0.0, 1.0, 1.0), 0.0, places=12)
+
+    def test_zero_denominator(self):
+        # The degenerate variables (H_u = H_v = 0): the 0/0
+        # guard -> SU = 0.
+        self.assertEqual(hlp._symmetric_uncertainty(0.0, 0.0, 0.0), 0.0)
+
+
+class TestDispersion(unittest.TestCase):
+    """The per-sub-variable dispersion: K_obs, H,
+    H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
+    coverage = K_obs / n_configurations."""
+
+    def test_hand_computed(self):
+        # counts = [1, 1, 2, 4] (4 observed, total 8),
+        # n_configurations = 8: K_obs = 4, H = 1.75, H_norm =
+        # 1.75 / log2 4 = 0.875, coverage = 4 / 8 = 0.5.
+        d = hlp._dispersion([1, 1, 2, 4], 8)
+        self.assertEqual(d['k_obs'], 4)
+        self.assertAlmostEqual(d['h'], 1.75, places=12)
+        self.assertAlmostEqual(d['h_norm'], 0.875, places=12)
+        self.assertAlmostEqual(d['coverage'], 0.5, places=12)
+
+    def test_degenerate(self):
+        # counts = [8] (1 observed), n_configurations = 5: K_obs
+        # = 1, H = 0, H_norm = 0 (the K_obs <= 1 guard), coverage
+        # = 1 / 5 = 0.2.
+        d = hlp._dispersion([8], 5)
+        self.assertEqual(d['k_obs'], 1)
+        self.assertAlmostEqual(d['h'], 0.0, places=12)
+        self.assertAlmostEqual(d['h_norm'], 0.0, places=12)
+        self.assertAlmostEqual(d['coverage'], 0.2, places=12)
+
+    def test_dense_zeros_filtered(self):
+        # The dense form (the zero entries are the never-
+        # observed within the array): the zeros are filtered.
+        d = hlp._dispersion([0, 1, 0, 3, 0], 5)
+        self.assertEqual(d['k_obs'], 2)
+        self.assertAlmostEqual(d['coverage'], 0.4, places=12)
+
+
+class TestNeverObservedAudit(unittest.TestCase):
+    """The never-observed audit: the n_configurations - K_obs
+    + the rarity
+    profile (the observed codes below each small threshold)."""
+
+    def test_hand_computed(self):
+        # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations =
+        # 8: never = 4; the rarity (the observed codes below
+        # each threshold): t=1 -> 0, t=2 -> 2 (the two 1s),
+        # t=5 -> 4 (all), t=10 -> 4, t=100 -> 4.
+        a = hlp._never_observed_audit([1, 1, 2, 4], 8)
+        self.assertEqual(a['k_obs'], 4)
+        self.assertEqual(a['never_observed'], 4)
+        self.assertEqual(a['rarity'], {1: 0, 2: 2, 5: 4, 10: 4,
+                                       100: 4})
+
+    def test_all_observed(self):
+        # The full support (K_obs = n_configurations): never = 0.
+        a = hlp._never_observed_audit([1, 1, 1, 1], 4)
+        self.assertEqual(a['never_observed'], 0)
+
+    def test_empty(self):
+        # The empty (K_obs = 0): never = n_configurations, the
+        # rarity all 0.
+        a = hlp._never_observed_audit([], 10)
+        self.assertEqual(a['k_obs'], 0)
+        self.assertEqual(a['never_observed'], 10)
+        self.assertEqual(a['rarity'], {1: 0, 2: 0, 5: 0, 10: 0,
+                                       100: 0})

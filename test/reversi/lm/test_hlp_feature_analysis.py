@@ -40,12 +40,15 @@
 #
 
 """
-The analysis-kernels data module (the SHARED kernels of the
-SU_ANALYSIS and EFFECT_SIZE levels) NO-DB micro-suite — the
-SU / entropy / mutual-information kernels: the hand-computed
-toy tables (the uniform / the degenerate / the binary
-entropies, the perfect-correlation / the independent mutual
-informations, the SU = 1 / 0 / the 0-denominator guard).
+The EFFECT_SIZE analysis-kernels data module (the D-298 split:
+the SU / entropy / MI / dispersion / never-observed micro-suite
+moved to test_hlp_su_analysis) NO-DB micro-suite — the hand-
+computed toy tables for the ANOVA effect sizes (the two-groups
+eta²/omega², the perfect separation, the K = 1 degeneracy, the
+guards) + the adherence trio (the chi-square goodness-of-fit
+with the merged tail, the KL 0-log-0 + the +inf disjoint
+support, the total variation — the three PRIVATE helpers
+called via the module import, the D-290 policy).
 """
 
 import math
@@ -55,140 +58,8 @@ import numpy as np
 
 from scipy.stats import chi2 as _chi2
 
-from reversi.lm.hlp_feature_analysis import (
-    adherence, anova_eta_omega, chi_square_goodness, dispersion,
-    entropy, kl_divergence, mutual_information,
-    never_observed_audit, symmetric_uncertainty, total_variation)
-
-
-class TestEntropy(unittest.TestCase):
-    """The Shannon entropy H in bits, the 0-log-0 convention."""
-
-    def test_uniform(self):
-        # The uniform 4: H = log2(4) = 2.
-        self.assertAlmostEqual(entropy([1, 1, 1, 1]), 2.0, places=12)
-
-    def test_degenerate(self):
-        # The single-category (the rest zero): H = 0.
-        self.assertAlmostEqual(entropy([4, 0, 0, 0]), 0.0, places=12)
-
-    def test_binary(self):
-        # p = [0.25, 0.75]: H = -(0.25 log2 0.25 + 0.75 log2
-        # 0.75) = 0.8112781244591328.
-        self.assertAlmostEqual(entropy([1, 3]),
-                               0.8112781244591328, places=12)
-
-    def test_empty(self):
-        # The all-zero / the empty: H = 0 (the n = 0 guard).
-        self.assertEqual(entropy([0, 0, 0]), 0.0)
-        self.assertEqual(entropy([]), 0.0)
-
-
-class TestMutualInformation(unittest.TestCase):
-    """I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v)."""
-
-    def test_perfect_correlation(self):
-        # u == v, 4 positions (u = [0, 0, 1, 1]): the marginals
-        # [2, 2] (H = 1 each), the joint (the 2 x 2 grid)
-        # [2, 0, 0, 2] (H(u, v) = 1). I = 1 + 1 - 1 = 1.
-        I = mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
-        self.assertAlmostEqual(I, 1.0, places=12)
-
-    def test_independent(self):
-        # u = [0, 0, 1, 1], v = [0, 1, 0, 1] (independent): the
-        # marginals [2, 2] (H = 1 each), the joint [1, 1, 1, 1]
-        # (H(u, v) = 2). I = 1 + 1 - 2 = 0.
-        I = mutual_information([1, 1, 1, 1], [2, 2], [2, 2])
-        self.assertAlmostEqual(I, 0.0, places=12)
-
-    def test_non_negative(self):
-        # The floating-point rounding of the identity can give a
-        # tiny negative — the clamp keeps I >= 0.
-        I = mutual_information([2, 0, 0, 2], [2, 2], [2, 2])
-        self.assertGreaterEqual(I, 0.0)
-
-
-class TestSymmetricUncertainty(unittest.TestCase):
-    """SU = 2I / (H_u + H_v), in [0, 1], the 0-denominator guard."""
-
-    def test_perfect(self):
-        # I = H_u = H_v = 1 (the perfect correlation): SU = 2/2 = 1.
-        self.assertAlmostEqual(
-            symmetric_uncertainty(1.0, 1.0, 1.0), 1.0, places=12)
-
-    def test_independent(self):
-        # I = 0 (the independent): SU = 0.
-        self.assertAlmostEqual(
-            symmetric_uncertainty(0.0, 1.0, 1.0), 0.0, places=12)
-
-    def test_zero_denominator(self):
-        # The degenerate variables (H_u = H_v = 0): the 0/0
-        # guard -> SU = 0.
-        self.assertEqual(symmetric_uncertainty(0.0, 0.0, 0.0), 0.0)
-
-
-class TestDispersion(unittest.TestCase):
-    """The per-sub-variable dispersion: K_obs, H,
-    H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
-    coverage = K_obs / n_configurations."""
-
-    def test_hand_computed(self):
-        # counts = [1, 1, 2, 4] (4 observed, total 8),
-        # n_configurations = 8: K_obs = 4, H = 1.75, H_norm =
-        # 1.75 / log2 4 = 0.875, coverage = 4 / 8 = 0.5.
-        d = dispersion([1, 1, 2, 4], 8)
-        self.assertEqual(d['k_obs'], 4)
-        self.assertAlmostEqual(d['h'], 1.75, places=12)
-        self.assertAlmostEqual(d['h_norm'], 0.875, places=12)
-        self.assertAlmostEqual(d['coverage'], 0.5, places=12)
-
-    def test_degenerate(self):
-        # counts = [8] (1 observed), n_configurations = 5: K_obs
-        # = 1, H = 0, H_norm = 0 (the K_obs <= 1 guard), coverage
-        # = 1 / 5 = 0.2.
-        d = dispersion([8], 5)
-        self.assertEqual(d['k_obs'], 1)
-        self.assertAlmostEqual(d['h'], 0.0, places=12)
-        self.assertAlmostEqual(d['h_norm'], 0.0, places=12)
-        self.assertAlmostEqual(d['coverage'], 0.2, places=12)
-
-    def test_dense_zeros_filtered(self):
-        # The dense form (the zero entries are the never-
-        # observed within the array): the zeros are filtered.
-        d = dispersion([0, 1, 0, 3, 0], 5)
-        self.assertEqual(d['k_obs'], 2)
-        self.assertAlmostEqual(d['coverage'], 0.4, places=12)
-
-
-class TestNeverObservedAudit(unittest.TestCase):
-    """The never-observed audit: the n_configurations - K_obs
-    + the rarity
-    profile (the observed codes below each small threshold)."""
-
-    def test_hand_computed(self):
-        # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations =
-        # 8: never = 4; the rarity (the observed codes below
-        # each threshold): t=1 -> 0, t=2 -> 2 (the two 1s),
-        # t=5 -> 4 (all), t=10 -> 4, t=100 -> 4.
-        a = never_observed_audit([1, 1, 2, 4], 8)
-        self.assertEqual(a['k_obs'], 4)
-        self.assertEqual(a['never_observed'], 4)
-        self.assertEqual(a['rarity'], {1: 0, 2: 2, 5: 4, 10: 4,
-                                       100: 4})
-
-    def test_all_observed(self):
-        # The full support (K_obs = n_configurations): never = 0.
-        a = never_observed_audit([1, 1, 1, 1], 4)
-        self.assertEqual(a['never_observed'], 0)
-
-    def test_empty(self):
-        # The empty (K_obs = 0): never = n_configurations, the
-        # rarity all 0.
-        a = never_observed_audit([], 10)
-        self.assertEqual(a['k_obs'], 0)
-        self.assertEqual(a['never_observed'], 10)
-        self.assertEqual(a['rarity'], {1: 0, 2: 0, 5: 0, 10: 0,
-                                       100: 0})
+from reversi.lm import hlp_feature_analysis as hlp_fa
+from reversi.lm.hlp_feature_analysis import adherence, anova_eta_omega
 
 
 class TestAnovaEtaOmega(unittest.TestCase):
@@ -242,20 +113,20 @@ class TestKLDivergence(unittest.TestCase):
 
     def test_equal(self):
         # p = q: KL = 0.
-        self.assertAlmostEqual(kl_divergence([0.5, 0.5],
+        self.assertAlmostEqual(hlp_fa._kl_divergence([0.5, 0.5],
                                              [0.5, 0.5]), 0.0,
                                places=12)
 
     def test_known(self):
         # p = [1, 0], q = [0.5, 0.5]: KL = log(1 / 0.5) =
         # log(2) (the 0-term vanishes).
-        self.assertAlmostEqual(kl_divergence([1, 0], [0.5, 0.5]),
+        self.assertAlmostEqual(hlp_fa._kl_divergence([1, 0], [0.5, 0.5]),
                                0.6931471805599453, places=12)
 
     def test_infinite(self):
         # p = [1, 0], q = [0, 1]: p(0) > 0, q(0) = 0 -> +inf
         # (the DB has a code the ideal never shows).
-        self.assertEqual(kl_divergence([1, 0], [0, 1]), float('inf'))
+        self.assertEqual(hlp_fa._kl_divergence([1, 0], [0, 1]), float('inf'))
 
 
 class TestTotalVariation(unittest.TestCase):
@@ -264,20 +135,20 @@ class TestTotalVariation(unittest.TestCase):
 
     def test_equal(self):
         # p = q: TV = 0.
-        self.assertAlmostEqual(total_variation([0.5, 0.5],
+        self.assertAlmostEqual(hlp_fa._total_variation([0.5, 0.5],
                                               [0.5, 0.5]), 0.0,
                                places=12)
 
     def test_max(self):
         # p = [1, 0], q = [0, 1]: TV = 0.5 * (1 + 1) = 1.
-        self.assertAlmostEqual(total_variation([1, 0],
+        self.assertAlmostEqual(hlp_fa._total_variation([1, 0],
                                               [0, 1]), 1.0,
                                places=12)
 
     def test_half(self):
         # p = [0.75, 0.25], q = [0.5, 0.5]: TV = 0.5 * (0.25 +
         # 0.25) = 0.25.
-        self.assertAlmostEqual(total_variation([0.75, 0.25],
+        self.assertAlmostEqual(hlp_fa._total_variation([0.75, 0.25],
                                               [0.5, 0.5]), 0.25,
                                places=12)
 
@@ -292,7 +163,7 @@ class TestChiSquareGoodness(unittest.TestCase):
         # observed = [10, 20, 30, 40], expected = [15, 18, 27,
         # 40] (all E >= 5, no merge): chi2 = 25/15 + 4/18 +
         # 9/27 + 0 = 2.222222, df 3, p = 0.527585, merged 0.
-        g = chi_square_goodness([10, 20, 30, 40],
+        g = hlp_fa._chi_square_goodness([10, 20, 30, 40],
                                 [15, 18, 27, 40])
         self.assertEqual(g['merged'], 0)
         self.assertAlmostEqual(g['chi2'], 2.2222222222222223,
@@ -306,7 +177,7 @@ class TestChiSquareGoodness(unittest.TestCase):
         # 40]: the 3 cells with E < 5 are merged into the
         # "other" bin (O 6, E 6); the remaining [40, 6] / [40,
         # 6]: chi2 = 0, df 1, p = 1.0, merged 3.
-        g = chi_square_goodness([1, 2, 3, 40],
+        g = hlp_fa._chi_square_goodness([1, 2, 3, 40],
                                 [1.5, 2.0, 2.5, 40])
         self.assertEqual(g['merged'], 3)
         self.assertAlmostEqual(g['chi2'], 0.0, places=12)

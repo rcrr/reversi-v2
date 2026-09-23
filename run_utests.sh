@@ -49,15 +49,17 @@ MODULES=(
     test.reversi.lm.test_hlp_config_schemas
     test.reversi.lm.test_wrk_config
     test.reversi.lm.test_wrk_features
-    # test_hlp_feature_analysis: the SHARED analysis kernels
-    # (the I-017; the SU/entropy/MI kernels T11, the
-    # dispersion/audit T12, the ANOVA T13, the adherence T14)
+    # test_hlp_feature_analysis: the EFFECT_SIZE analysis kernels
+    # (the I-017; the D-298 split — the ANOVA T13, the adherence
+    # T14 + its private kl / TV / chi-square helpers)
     test.reversi.lm.test_hlp_feature_analysis
     # test_hlp_su_analysis: the SU analysis LOGIC (D-289: the
     # signature, the binio I/O D-288, the compute determinism, the
     # theoretical space D-278/279, the SU groups, the report/CSV) +
     # the frequency accumulators (the D-295 test_hlp_random_play
-    # migration: the marginal / the joint + the PRNG integration)
+    # migration: the marginal / the joint + the PRNG integration) +
+    # the SU kernel micro-suite (the D-298 hlp_feature_analysis
+    # migration: the T11 / T12 entropy-MI-SU / dispersion-audit)
     test.reversi.lm.test_hlp_su_analysis
     # test_wrk_su_analysis: the SU_ANALYSIS worker
     # (the I-017 T16; the SU-analysis corpus cache + the phase-2

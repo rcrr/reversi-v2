@@ -2668,3 +2668,50 @@ D-297 | 2026-09-22 | the frequency accumulators take ONLY the fset
           (45 checks) green, the verify_effect_size probe 29 / 0,
           the docs audit 92 mirrors with the 6 pre-existing
           findings only.
+D-298 | 2026-09-22 | hlp_feature_analysis is SPLIT (Roberto, the
+          wrk_su_analysis restructure continues): the module was the
+          SHARED data plane of two levels whose kernel families
+          proved DISJOINT (hlp_su_analysis consumed the 5 SU
+          kernels, wrk_effect_size the 2 ES kernels, no shared
+          edge), and 3 adherence helpers (kl_divergence,
+          total_variation, chi_square_goodness) were exported in
+          __all__ though used ONLY internally. (1) hlp_su_analysis
+          ABSORBS the 5 SU kernels as PRIVATE _entropy /
+          _mutual_information / _symmetric_uncertainty /
+          _dispersion / _never_observed_audit (the D-290 policy:
+          test/probe-called names never in __all__, the
+          _signature precedent), the 8 internal call sites
+          renamed, the hlp_feature_analysis import block dropped.
+          (2) hlp_feature_analysis becomes the EFFECT_SIZE
+          kernels module: __all__ = ['anova_eta_omega',
+          'adherence'], the 3 adherence helpers PRIVATE
+          (_kl_divergence, _total_variation,
+          _chi_square_goodness — Roberto's "exported but only
+          used internally"), both docstrings rewritten.
+          (3) Tests (D-273): the 5 SU kernel classes (16 tests)
+          MIGRATED to test_hlp_su_analysis (4 -> 9 classes, 21 ->
+          37 tests, the hlp._* private-name calls); the 5 ES
+          classes stay (32 -> 16), the 3 privatized helpers are
+          called via the module import hlp_fa._* (the D-290
+          style). (4) Probes: the verify_effect_size F5 rewritten
+          on the NEW split boundary (the ES family in
+          hlp_feature_analysis, the SU kernels in hlp_su_analysis,
+          the private _symmetric_uncertainty); the
+          verify_su_analysis header comment reworded.
+          (5) Runner: the two suite comments reworded (the T11 /
+          T12 labels travel to test_hlp_su_analysis). (6) Docs:
+          the 2 mirrors rewritten (hlp_feature_analysis src +
+          test), the hlp_su_analysis src mirror (the kernels
+          LOCAL) + the test mirror (the 5 migrated rows / the
+          goldens / the conventions) reworded. NO behavior change
+          (the kernel bodies are verbatim, pure relocation +
+          rename); no cache signature / binio / report change
+          (the rlmwf_03 caches stay valid); wrk_effect_size is
+          UNTOUCHED (its import stays valid byte-identical).
+          VERIFICATION: the full suite (fast tier) 947/0/97
+          GREEN, test_hlp_feature_analysis 16/0/0,
+          test_hlp_su_analysis 37/0/0, the worker suite VLONG
+          10/0/0 (the 1e7 corpus), the verify_su_analysis probe
+          (45 checks) green, the verify_effect_size probe (29
+          checks, the new F5 boundary) green, the docs audit 92
+          mirrors with the 6 pre-existing findings only.
