@@ -46,7 +46,7 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - The frequency accumulators are PRIVATE as well (the D-295 hlp_random_play migration, the
   D-290 policy): `_MarginalAccumulator(fset)` (the streaming marginal: per sub-variable
   the code -> count; the DENSE bincount when n_conf <= _DENSE_THRESHOLD (1e6), else the
-  UNIQUE-MERGE dict; `.add(idx)` feeds the wave's index matrix, the D-300, `.result()` the
+  UNIQUE-MERGE dict; `.add(idx: IndexArray)` feeds the wave's index matrix, the D-300, `.result()` the
   observed (name, instance, n_conf, codes, counts)),
   `_JointAccumulator(fset, su_pairs)` (the per-feature blocks come from the fset's own
   feature_blocks property, D-297; per requested pair and per (instance_i,
@@ -54,7 +54,7 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   code_j; the D-299 storage: per cell the OBSERVED keys K (u64, sorted) + the counts C
   (int64), the wave's np.unique output folded in with searchsorted + np.add.at + a
   re-sort of the appended new keys — NO Python dict; the same-feature diagonal is built
-  and OMITTED downstream — the SU = 1 lock). The D-300 (the I-020): BOTH `.add(idx)` take
+  and OMITTED downstream — the SU = 1 lock). The D-300 (the I-020): BOTH `.add(idx: IndexArray)` take
   the wave's index matrix — the compute loop computes it ONCE (fset.compute_indexes over
   the harvested final[keep] lanes) and feeds it to both, the old code recomputed it in
   each add. The module speaks the position language up to the loop boundary (D-296): the
@@ -70,15 +70,13 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - The binio layout (D-288): the 4 blocks — the signature (the hash + the 5 spec fields + the pairs), the
   marginal (the (name, instance, n_conf) + the codes u32 / counts i64 arrays), the joint (the presence
   flag + the pairs, the per-instance sorted).
-- The ctx idiom: the compute / statistics / consistency take the ctx (the house idiom,
-  hlp_design_matrix_compute(ctx)).
+- The ctx idiom: the compute / statistics / consistency take the ctx (the house idiom, hlp_design_matrix_compute(ctx)).
 - The private kernels: the signature (_signature), the 4 binio block readers/writers, the
   frequency accumulators (_MarginalAccumulator, _JointAccumulator, _DENSE_THRESHOLD), the SU
   statistics kernels (_entropy, _mutual_information, _symmetric_uncertainty, _dispersion,
    _never_observed_audit — the D-298 move from hlp_feature_analysis; the D-301 removed the
    audit's rarity profile, the Section B rarity is _rarity_bins), the SU kernels (_su_values,
-   _su_groups, _su_canon, _theoretical_configs, _feature_instances, _marginal_lookup,
-   _export_csv).
+   _su_groups, _su_canon, _theoretical_configs, _feature_instances, _marginal_lookup, _export_csv).
 
 ## Verified invariants
 - The signature is a pure function of (feature_set, spec, pairs): pinned by test_hlp_su_analysis (the
@@ -110,6 +108,8 @@ None.
 - A FORMAT change bumps `_CACHE_VERSION` (the header rejects the old file) — orthogonal to the DATA
   signature (a generator change bumps `_GENERATOR_VERSION` instead, the corpus lineage).
 - The per-instance joint entries are written in the SORTED (ii, jj) order (the deterministic layout).
+- All signatures are COMPLETE (D-302, inert at runtime): the 46 parameter + the 4 return annotations;
+  the structured shapes the private aliases (_MarginalTable / _JointTable / _SuSummary / _SuGroups), idx the IndexArray.
 
 ## Integration
 - Consumed by wrk_su_analysis (the 5 flow functions: compute / store / load / consistency / statistics —

@@ -53,10 +53,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+import numpy.typing as npt
 
 from reversi.board import initial_game_position
+from reversi.feature import FeatureSet
+from reversi.pattern import IndexArray
 from reversi.random_game import random_game_play_path
 from reversi.tools import binio
+from reversi.tools.binio import BinaryReader, BinaryWriter
 from reversi.tools.prng import MT19937
 from reversi.tools.state_machine import Relevance
 if TYPE_CHECKING:
@@ -165,6 +169,30 @@ _KPI_LEGEND = (
 _DENSE_THRESHOLD = 1_000_000
 
 
+#: The marginal table shape (the _MarginalAccumulator.result()
+#: output, the binio marginal block, the statistics input): the
+#: per-sub-variable list (the expanded block order) of
+#: (name, instance_idx, n_conf, codes, counts) — the observed
+#: support, the codes uint32, the counts int64.
+_MarginalTable = list[tuple[str, int, int,
+                            npt.NDArray[np.uint32],
+                            npt.NDArray[np.int64]]]
+
+
+#: The joint table shape (the _JointAccumulator.result() output,
+#: the binio joint block, the _su_values input): the per-pair list
+#: of (name_i, name_j, per_instance) — per_instance the
+#: { (inst_i, inst_j): (codes_i, codes_j, counts) } observed joint,
+#: the codes uint32, the counts int64. (None at the tables level
+#: when no pairs are configured — the _JointAccumulator is not
+#: built; the binio joint block carries the presence flag.)
+_JointTable = list[tuple[str, str,
+                         dict[tuple[int, int],
+                              tuple[npt.NDArray[np.uint32],
+                                    npt.NDArray[np.uint32],
+                                    npt.NDArray[np.int64]]]]]
+
+
 class _MarginalAccumulator:
     """
     The streaming marginal frequency accumulator: per
@@ -189,7 +217,7 @@ class _MarginalAccumulator:
     there is no per-ec split here).
     """
 
-    def __init__(self, fset):
+    def __init__(self, fset: FeatureSet) -> None:
         """
         Args:
           fset: the FeatureSet (the feature_blocks provider — the
@@ -219,7 +247,7 @@ class _MarginalAccumulator:
                 self._sparse.append({})
         self.n_positions: int = 0
 
-    def add(self, idx) -> None:
+    def add(self, idx: IndexArray) -> None:
         """
         Accumulate one chunk of corpus INDEXES (the uint32
         (N, I) index matrix from fset.compute_indexes — the
@@ -242,7 +270,7 @@ class _MarginalAccumulator:
                     d[k] = d.get(k, 0) + int(c)
         self.n_positions += n
 
-    def result(self):
+    def result(self) -> _MarginalTable:
         """
         The per-sub-variable marginal: a list (over sub-
         variables, in the expanded block order) of
@@ -294,7 +322,8 @@ class _JointAccumulator:
     same mask) is the anisotropy measure.
     """
 
-    def __init__(self, fset, su_pairs):
+    def __init__(self, fset: FeatureSet,
+                 su_pairs: list[tuple[str, str]]) -> None:
         """
         Args:
           fset:     the FeatureSet (the feature_blocks provider,
@@ -329,7 +358,7 @@ class _JointAccumulator:
             self._meta.append((ni, nj, bi, bj))
         self.n_positions: int = 0
 
-    def add(self, idx) -> None:
+    def add(self, idx: IndexArray) -> None:
         """
         Accumulate one chunk of corpus INDEXES (the uint32
         (N, I) index matrix from fset.compute_indexes — the
@@ -381,7 +410,7 @@ class _JointAccumulator:
                     self.joints[pi][(ii, jj)] = (K, C)
         self.n_positions += n
 
-    def result(self):
+    def result(self) -> _JointTable:
         """
         The per-pair joint: a list (over pairs, in pair order)
         of (name_i, name_j, per_instance) — per_instance a dict
@@ -408,7 +437,7 @@ class _JointAccumulator:
         return out
 
 
-def _signature(ctx) -> dict:
+def _signature(ctx: "LMContext") -> dict:
     """The cache consistency signature (INTERNAL — it feeds the
     compute + the is_cache_consistent, D-290): the feature_set
     hash (the FeatureSet DOMAIN hash — the set's unique identifier
@@ -486,7 +515,7 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
             'joint': joint.result() if joint is not None else None}
 
 
-def hlp_su_analysis_store_to_file(data, filename) -> None:
+def hlp_su_analysis_store_to_file(data: dict, filename: str | Path) -> None:
     """The binio store (D-288, the house data-file idiom — the LZ4
     compression D-139, the sidecar owned by the cache_manager D-072):
     the header + the signature block + the marginal + the joint."""
@@ -498,7 +527,8 @@ def hlp_su_analysis_store_to_file(data, filename) -> None:
         _write_joint(w, data['joint'])
 
 
-def hlp_su_analysis_load_from_file(filename, checksum: bool = True) -> dict:
+def hlp_su_analysis_load_from_file(filename: str | Path,
+                                   checksum: bool = True) -> dict:
     """The binio load (D-288): the sidecar check (when checksum) + the
     header description / version guard (the hlp_generate idiom) + the
     ordered block reads. The cache_manager ALREADY verifies the
@@ -519,7 +549,7 @@ def hlp_su_analysis_load_from_file(filename, checksum: bool = True) -> dict:
     return {'signature': signature, 'marginal': marginal, 'joint': joint}
 
 
-def _write_signature(w, sig) -> None:
+def _write_signature(w: BinaryWriter, sig: dict) -> None:
     """The signature block: the feature_set hash + the 5 spec fields +
     the su_pairs (the configured order, the 2-tuples)."""
     w.write_string(sig['feature_set_hash'])
@@ -534,7 +564,7 @@ def _write_signature(w, sig) -> None:
         w.write_string(pair[1])
 
 
-def _read_signature(r) -> dict:
+def _read_signature(r: BinaryReader) -> dict:
     """The signature block read-back (the plain ints, the [str, str]
     pairs — the live signature shape)."""
     signature = {
@@ -551,7 +581,7 @@ def _read_signature(r) -> dict:
     return signature
 
 
-def _write_marginal(w, marginal) -> None:
+def _write_marginal(w: BinaryWriter, marginal: _MarginalTable) -> None:
     """The marginal block: the (name, instance, n_conf) + the codes +
     the counts arrays (the observed support)."""
     w.write_u32(len(marginal))
@@ -563,7 +593,7 @@ def _write_marginal(w, marginal) -> None:
         w.write_array(counts)
 
 
-def _read_marginal(r) -> list:
+def _read_marginal(r: BinaryReader) -> _MarginalTable:
     n = int(r.read_u32())
     marginal = []
     for _ in range(n):
@@ -572,7 +602,7 @@ def _read_marginal(r) -> list:
     return marginal
 
 
-def _write_joint(w, joint) -> None:
+def _write_joint(w: BinaryWriter, joint: _JointTable | None) -> None:
     """The joint block: the presence flag + the pairs; the
     per-instance entries in the SORTED (ii, jj) order (the
     deterministic layout)."""
@@ -594,7 +624,7 @@ def _write_joint(w, joint) -> None:
             w.write_array(counts)
 
 
-def _read_joint(r):
+def _read_joint(r: BinaryReader) -> _JointTable | None:
     """The joint block read-back (None when the flag is 0)."""
     if int(r.read_u8()) == 0:
         return None
@@ -614,7 +644,8 @@ def _read_joint(r):
     return out
 
 
-def hlp_su_analysis_is_cache_consistent(ctx, cached) -> bool:
+def hlp_su_analysis_is_cache_consistent(ctx: "LMContext",
+                                        cached: dict) -> bool:
     """The cache consistency: the cached signature vs the live
     signature (the feature_set hash + the spec + the pairs)."""
     live = _signature(ctx)
@@ -636,7 +667,7 @@ def hlp_su_analysis_is_cache_consistent(ctx, cached) -> bool:
 # the dispersion / the never-observed audit.
 # ---------------------------------------------------------------------
 
-def _entropy(counts) -> float:
+def _entropy(counts: np.ndarray) -> float:
     """
     The Shannon entropy H in bits, from the count array (the
     marginal or the joint). The 0-log-0 convention: the zero
@@ -655,7 +686,8 @@ def _entropy(counts) -> float:
     return float(-(p * np.log2(p)).sum())
 
 
-def _mutual_information(joint_counts, H_u, H_v) -> float:
+def _mutual_information(joint_counts: np.ndarray, H_u: float,
+                        H_v: float) -> float:
     """
     The mutual information I(u; v) in bits, from the joint
     counts + the PRE-COMPUTED marginal entropies (the D-299
@@ -695,7 +727,7 @@ def _symmetric_uncertainty(I: float, H_u: float,
     return float(2.0 * I / denom)
 
 
-def _dispersion(counts, n_configurations) -> dict:
+def _dispersion(counts: np.ndarray, n_configurations: int) -> dict:
     """
     The per-sub-variable dispersion (the design section 3.3
     phase 2): K_obs (the distinct observed codes), H (the
@@ -724,7 +756,8 @@ def _dispersion(counts, n_configurations) -> dict:
             'coverage': coverage}
 
 
-def _never_observed_audit(counts, n_configurations) -> dict:
+def _never_observed_audit(counts: np.ndarray,
+                          n_configurations: int) -> dict:
     """
     The never-observed audit: the number of theoretical codes
     never seen in the corpus (n_configurations - K_obs). The
@@ -752,14 +785,26 @@ def _never_observed_audit(counts, n_configurations) -> dict:
     return {'k_obs': k_obs, 'never_observed': never}
 
 
-def _marginal_lookup(marginal) -> dict:
+def _marginal_lookup(marginal: _MarginalTable) -> dict:
     """The (name, instance_idx) -> counts lookup (the sub-
     variables' marginal counts, for the SU marginals)."""
     return {(name, i): counts
             for (name, i, _nc, _codes, counts) in marginal}
 
 
-def _su_values(joint, lookup):
+#: The SU summary shape (the _su_values output, the _su_groups
+#: input): the list of (name_i, inst_i, name_j, inst_j, su) — one
+#: per computed off-diagonal cell.
+_SuSummary = list[tuple[str, int, str, int, float]]
+
+
+#: The SU groups shape (the _su_groups output, the _export_csv
+#: input): the list of ((feature_i, feature_j), the group's
+#: _SuSummary entries).
+_SuGroups = list[tuple[tuple[str, str], _SuSummary]]
+
+
+def _su_values(joint: _JointTable, lookup: dict) -> _SuSummary:
     """The requested SU pairs: for each configured
     (name_i, name_j) pair and each (inst_i, inst_j), the SU =
     2*I / (H_i + H_j) from the joint + the two marginals. The
@@ -794,7 +839,7 @@ def _su_values(joint, lookup):
     return su
 
 
-def _feature_instances(marginal) -> list:
+def _feature_instances(marginal: _MarginalTable) -> list:
     """The distinct feature names, first-seen order (the model's
     features — the sub-variable names: LMC, EDGE, ...)."""
     seen = []
@@ -804,7 +849,7 @@ def _feature_instances(marginal) -> list:
     return seen
 
 
-def _theoretical_configs(fset) -> dict:
+def _theoretical_configs(fset: FeatureSet) -> dict:
     """The (name, instance) -> THEORETICAL configuration count (D-278,
     the "theoretical" naming D-279): the denominator of the coverage +
     the never-observed audit. A PATTERN's observed codes are the
@@ -826,7 +871,8 @@ def _theoretical_configs(fset) -> dict:
     return space
 
 
-def _su_canon(name_i, inst_i, name_j, inst_j) -> tuple:
+def _su_canon(name_i: str, inst_i: int,
+              name_j: str, inst_j: int) -> tuple:
     """The canonical endpoint order of a SU pair: the two
     (name, inst) tuples sorted. The (i, j) and the (j, i) directions
     of the SAME measurement map to the same canonical form."""
@@ -835,7 +881,8 @@ def _su_canon(name_i, inst_i, name_j, inst_j) -> tuple:
     return (a, b) if a <= b else (b, a)
 
 
-def _su_groups(su_summary, su_pairs) -> list:
+def _su_groups(su_summary: _SuSummary,
+               su_pairs: list[tuple[str, str]]) -> _SuGroups:
     """The deduplicated + sorted SU groups (the report's Section B).
     The SU is SYMMETRIC (2·I / (H_u + H_v)), so the (i, j) and the
     (j, i) directions of a pair are the SAME measurement — each is
@@ -875,7 +922,8 @@ def _su_groups(su_summary, su_pairs) -> list:
             for gk in order]
 
 
-def _rarity_bins(counts, n_configurations, thresholds) -> list:
+def _rarity_bins(counts: np.ndarray, n_configurations: int,
+                 thresholds: list[int]) -> list:
     """The per-bin frequency histogram (the report's optional
     'Section B: Rarity report', D-292): the half-open bins
     [0, t1), [t1, t2), ..., [tk, inf) — the FIRST bin the
@@ -891,7 +939,8 @@ def _rarity_bins(counts, n_configurations, thresholds) -> list:
     return [int(b) for b in bins]
 
 
-def _export_csv(ctx, tables, su_groups) -> Path:
+def _export_csv(ctx: "LMContext", tables: dict,
+                su_groups: _SuGroups) -> Path:
     """The optional CSV: the per-sub-variable marginal tables +
     the per-pair SU instance entries (the deduplicated + sorted
     groups, the report's Section C)."""
@@ -918,7 +967,7 @@ def _export_csv(ctx, tables, su_groups) -> Path:
     return csv_path
 
 
-def hlp_su_analysis_statistics(ctx: "LMContext", tables) -> Path:
+def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     """Phase 2 — the statistics (cheap, recomputed on EVERY run,
     including the cache hit): the per-sub-variable dispersion +
     the never-observed audit + the requested SU pairs. The

@@ -2829,3 +2829,40 @@ D-301 | 2026-09-23 | the never-observed audit's RARITY profile is REMOVED
           10/0/0 (the 1e7 corpus), the verify_su_analysis probe 45
           / 0, the verify_effect_size probe 29 / 0, the docs audit
           92 mirrors with the 6 pre-existing findings only.
+D-302 | 2026-09-23 | the INCOMPLETE signatures are COMPLETED
+          (Roberto: many methods of hlp_su_analysis were missing the
+          argument types — the (b) option over the minimal (a): concrete
+          types + the private TypeAliases, over the (c) TypedDict,
+          skipped): the module had 31 def, 29 incomplete — 46 missing
+          parameter annotations + 4 missing return annotations (the
+          accumulators' 2 result(), _read_joint, _su_values). (1)
+          IMPORTS: FeatureSet (reversi.feature — no cycle, wrk_features /
+          model_weights already import it), IndexArray (reversi.pattern),
+          BinaryReader / BinaryWriter (reversi.tools.binio), numpy.typing
+          (the client.py idiom). (2) THE 4 PRIVATE ALIASES for the
+          recurring structured shapes: _MarginalTable (the result() /
+          binio / statistics marginal — the per-sub-variable (name, inst,
+          n_conf, codes u32, counts i64)), _JointTable (the per-pair (ni,
+          nj, {(ii, jj): (codes_i, codes_j, counts)})), _SuSummary (the
+          (ni, ii, nj, jj, su) list), _SuGroups (the (gk, entries) list)
+          — underscore-private, the __all__ policy (D-290) intact. (3)
+          THE 46 + 4 ANNOTATED: fset the FeatureSet, idx the IndexArray
+          (the EXACT fset.compute_indexes return — the D-300 index matrix
+          becomes readable in the signature), w / r the binio classes,
+          filename str | Path (the hlp_generate idiom), ctx the
+          "LMContext", data / tables / cached / sig / lookup dict, counts
+          / joint_counts np.ndarray, n_configurations int, thresholds
+          list[int], H_u / H_v / I float, su_pairs list[tuple[str, str]]
+          (the schema's List[Tuple[str, str]]), the _su_canon str / int
+          pairs, the _write_joint / _read_joint _JointTable | None (the
+          binio presence flag). (4) INERT AT RUNTIME: the from __future__
+          import annotations is already in head — every annotation is a
+          lazy string; NO @validate_call on the 31 functions (only the
+          worker factory, untouched) — zero behaviour change: the tables
+          / report / CSV untouched, the rlmwf_03 caches stay valid.
+          VERIFICATION: the full suite (fast tier) 947/0/97 GREEN, the
+          verify_su_analysis probe 45 / 0, the verify_effect_size probe
+          29 / 0, the docs audit 92 mirrors with the 6 pre-existing
+          findings only (the mirror net-zero at the 120 ceiling: the 2
+          line-merges + the 2-line Conventions bullet, the .add(idx:
+          IndexArray) weave).
