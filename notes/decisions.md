@@ -2792,3 +2792,40 @@ D-300 | 2026-09-23 | the per-wave index matrix is computed ONCE in the compute
           VLONG 10/0/0 (the 1e7 corpus), the verify_su_analysis probe 45
           / 0, the verify_effect_size probe 29 / 0, the docs audit 92
           mirrors with the 6 pre-existing findings only.
+
+D-301 | 2026-09-23 | the never-observed audit's RARITY profile is REMOVED
+          (Roberto, the deep cleanup — option (ii) over the
+          make-it-required (i)): the audit
+          `_never_observed_audit(counts, n_configurations,
+          rarity_thresholds=(1, 2, 5, 10, 100))` carried a
+          HARDCODED default that was a phantom second source of
+          truth — the config's rarity_thresholds defaults to None
+          (the rarity section OFF), yet the function's default was
+          (1, 2, 5, 10, 100), and the two were unconnected.
+          ANALYSIS: the rarity sub-dict was DEAD in production —
+          the report's config-driven 'Section B: Rarity report'
+          (D-292) is built by the SEPARATE _rarity_bins kernel fed
+          with cfg_fa.rarity_thresholds or []; the 2 src audit call
+          sites (_export_csv + the statistics) consume ONLY
+          never_observed (n_configurations - K_obs, threshold-
+          independent); the rarity dict was consumed only by the
+          test micro-suite. (1) The kernel is now
+          _never_observed_audit(counts, n_configurations) ->
+          {'k_obs', 'never_observed'} — the rarity_thresholds
+          argument and the rarity sub-dict are GONE (the default
+          is removed at the root, not made required). (2) The 2 src
+          call sites are UNCHANGED (they never passed thresholds,
+          they read only never_observed). (3) The 3 test rows drop
+          the rarity goldens (the class docstring + the hand-
+          computed / empty rows keep the k_obs / never_observed
+          checks). The config-driven Section B rarity is UNTOUCHED
+          (still _rarity_bins + the config thresholds, D-292).
+          EQUIVALENCE: never_observed is threshold-independent and
+          the tables (compute phase) are untouched, so the 1e7
+          tables stay bit-identical + the statistics report + CSV
+          byte-identical (the rlmwf_03 caches stay valid).
+          VERIFICATION: the full suite (fast tier) 947/0/97 GREEN,
+          test_hlp_su_analysis 37/0/0, the worker suite VLONG
+          10/0/0 (the 1e7 corpus), the verify_su_analysis probe 45
+          / 0, the verify_effect_size probe 29 / 0, the docs audit
+          92 mirrors with the 6 pre-existing findings only.

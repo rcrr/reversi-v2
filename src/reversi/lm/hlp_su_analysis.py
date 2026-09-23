@@ -724,16 +724,16 @@ def _dispersion(counts, n_configurations) -> dict:
             'coverage': coverage}
 
 
-def _never_observed_audit(counts, n_configurations,
-                         rarity_thresholds=(1, 2, 5, 10, 100)
-                         ) -> dict:
+def _never_observed_audit(counts, n_configurations) -> dict:
     """
-    The never-observed audit: the
-    number of theoretical codes never seen in the corpus
-    (n_configurations - K_obs) + the rarity profile (the count
-    of the OBSERVED codes below each small count threshold —
-    the configurations that random play almost never reaches:
-    the weights that can never be learned).
+    The never-observed audit: the number of theoretical codes
+    never seen in the corpus (n_configurations - K_obs). The
+    D-301: the RARITY profile (the count of the observed codes
+    below each small count threshold) is REMOVED — it was DEAD
+    in production (the report's config-driven 'Section B: Rarity
+    report' is the _rarity_bins kernel's job, D-292) and its
+    hardcoded default thresholds were a phantom second source of
+    truth next to the config's rarity_thresholds (None = off).
 
     Args:
       counts: the sub-variable's count array (the observed
@@ -741,22 +741,15 @@ def _never_observed_audit(counts, n_configurations,
         accepted — the zeros are filtered).
       n_configurations: the theoretical code range of the sub-
         variable (the full range, incl. the never-observed).
-      rarity_thresholds: the small count thresholds (the
-        "almost never reached" profile). For a threshold t,
-        the count of the observed codes with count < t.
 
     Returns:
-      {'k_obs', 'never_observed', 'rarity'} — rarity a dict
-      {threshold: count}.
+      {'k_obs', 'never_observed'}.
     """
     observed = np.asarray(counts, dtype=np.float64).ravel()
     observed = observed[observed > 0]
     k_obs = int(observed.shape[0])
     never = int(n_configurations) - k_obs
-    rarity = {int(t): int((observed < int(t)).sum())
-              for t in rarity_thresholds}
-    return {'k_obs': k_obs, 'never_observed': never,
-            'rarity': rarity}
+    return {'k_obs': k_obs, 'never_observed': never}
 
 
 def _marginal_lookup(marginal) -> dict:

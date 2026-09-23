@@ -29,7 +29,7 @@ accumulator, NOT a PositionArray (the accumulators speak the derived index matri
 | `TestMutualInformation` | 3 | (the D-298 migration, the D-299 signature) `test_perfect_correlation` (u == v: the marginals [2, 2] (H = 1 each), the joint [2, 0, 0, 2], I = 1 + 1 - 1 = 1); `test_independent` (the marginals [2, 2], the joint [1, 1, 1, 1], I = 1 + 1 - 2 = 0); `test_non_negative` (the floating-point clamp: I >= 0) — the H are PASSED IN pre-computed (the hlp._entropy calls) |
 | `TestSymmetricUncertainty` | 3 | (the D-298 migration) `test_perfect` (I = H_u = H_v = 1: SU = 2/2 = 1); `test_independent` (I = 0: SU = 0); `test_zero_denominator` (H_u = H_v = 0: the 0/0 guard -> SU = 0) |
 | `TestDispersion` | 3 | (the D-298 migration) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: K_obs 4, H 1.75, H_norm 0.875, coverage 0.5); `test_degenerate` (counts [8], n_conf 5: K_obs 1, H 0, H_norm 0 the K_obs <= 1 guard, coverage 0.2); `test_dense_zeros_filtered` (the dense form [0, 1, 0, 3, 0]: K_obs 2, coverage 0.4) |
-| `TestNeverObservedAudit` | 3 | (the D-298 migration) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: never 4, the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}); `test_all_observed` (the full support: never 0); `test_empty` (the empty: never = n_conf, the rarity all 0) |
+| `TestNeverObservedAudit` | 3 | (the D-298 migration; the D-301: the rarity profile REMOVED — dead in production, the config-driven Section B is the `_rarity_bins` kernel, D-292) `test_hand_computed` (counts [1, 1, 2, 4], n_conf 8: never 4); `test_all_observed` (the full support: never 0); `test_empty` (the empty: never = n_conf) |
 
 ## Goldens pinned
 
@@ -50,8 +50,9 @@ accumulator, NOT a PositionArray (the accumulators speak the derived index matri
   0.8112781244591328, the degenerate / the empty 0.0); the MI (the perfect 1.0, the independent 0.0, the
   non-negative clamp); the SU guards (the perfect 1.0, the independent 0.0, the 0-denominator 0.0); the dispersion
   (counts [1, 1, 2, 4], n_conf 8: K_obs 4, H 1.75, H_norm 0.875, coverage 0.5; the degenerate K_obs 1, H_norm 0;
-  the dense-zeros filter); the never-observed audit (never 4, the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the
-  all-observed 0; the empty never = n_conf).
+  the dense-zeros filter); the never-observed audit (never 4; the
+  all-observed 0; the empty never = n_conf — the D-301 removed the rarity
+  profile, the config-driven Section B is the `_rarity_bins` kernel, D-292).
 - The accumulators (the D-295 migration): the toy FeatureSet (the `_toy_fset()` = the intercept + the LMC (the
   legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561) — the accumulators
   take only the fset, the per-feature blocks come from its feature_blocks property, D-297); the `_corpus()` the

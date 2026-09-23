@@ -75,9 +75,10 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - The private kernels: the signature (_signature), the 4 binio block readers/writers, the
   frequency accumulators (_MarginalAccumulator, _JointAccumulator, _DENSE_THRESHOLD), the SU
   statistics kernels (_entropy, _mutual_information, _symmetric_uncertainty, _dispersion,
-  _never_observed_audit — the D-298 move from hlp_feature_analysis), the SU kernels
-  (_su_values, _su_groups, _su_canon, _theoretical_configs, _feature_instances,
-  _marginal_lookup, _rarity_bins, _export_csv).
+   _never_observed_audit — the D-298 move from hlp_feature_analysis; the D-301 removed the
+   audit's rarity profile, the Section B rarity is _rarity_bins), the SU kernels (_su_values,
+   _su_groups, _su_canon, _theoretical_configs, _feature_instances, _marginal_lookup,
+   _export_csv).
 
 ## Verified invariants
 - The signature is a pure function of (feature_set, spec, pairs): pinned by test_hlp_su_analysis (the

@@ -751,20 +751,20 @@ class TestDispersion(unittest.TestCase):
 
 
 class TestNeverObservedAudit(unittest.TestCase):
-    """The never-observed audit: the n_configurations - K_obs
-    + the rarity
-    profile (the observed codes below each small threshold)."""
+    """The never-observed audit: the n_configurations - K_obs.
+    The D-301: the rarity profile (the observed codes below each
+    small threshold) is REMOVED — it was dead in production (the
+    report's config-driven 'Section B: Rarity report' is the
+    _rarity_bins kernel, D-292); its hardcoded default thresholds
+    were a phantom second source of truth next to the config's
+    rarity_thresholds (None = off)."""
 
     def test_hand_computed(self):
         # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations =
-        # 8: never = 4; the rarity (the observed codes below
-        # each threshold): t=1 -> 0, t=2 -> 2 (the two 1s),
-        # t=5 -> 4 (all), t=10 -> 4, t=100 -> 4.
+        # 8: never = 4.
         a = hlp._never_observed_audit([1, 1, 2, 4], 8)
         self.assertEqual(a['k_obs'], 4)
         self.assertEqual(a['never_observed'], 4)
-        self.assertEqual(a['rarity'], {1: 0, 2: 2, 5: 4, 10: 4,
-                                       100: 4})
 
     def test_all_observed(self):
         # The full support (K_obs = n_configurations): never = 0.
@@ -772,10 +772,7 @@ class TestNeverObservedAudit(unittest.TestCase):
         self.assertEqual(a['never_observed'], 0)
 
     def test_empty(self):
-        # The empty (K_obs = 0): never = n_configurations, the
-        # rarity all 0.
+        # The empty (K_obs = 0): never = n_configurations.
         a = hlp._never_observed_audit([], 10)
         self.assertEqual(a['k_obs'], 0)
         self.assertEqual(a['never_observed'], 10)
-        self.assertEqual(a['rarity'], {1: 0, 2: 0, 5: 0, 10: 0,
-                                       100: 0})
