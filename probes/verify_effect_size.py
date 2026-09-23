@@ -185,7 +185,20 @@ check("A8  no trailing whitespace outside the license header", not ws_lines(W),
 
 from reversi.lm.hlp_feature_analysis import (  # noqa: E402
     adherence, anova_eta_omega)
-from reversi.lm.hlp_gate import load_campaign  # noqa: E402
+from reversi.lm.logistic_model import LogisticModel  # noqa: E402
+from reversi.tools.state_machine import Verbosity  # noqa: E402
+
+
+def _campaign(cfg_path):
+    """The real-pipeline campaign (the hlp_gate replacement,
+    D-287): the facade runs CREATED -> CONFIG -> FEATURES on
+    cfg_path (the target_level stop, the probe tmp base_dir) —
+    the cfg + the feature_set come from the real context."""
+    rlm = LogisticModel(str(cfg_path), verbosity=Verbosity.NONE,
+                        base_dir_override=TMP)
+    rlm.run("FEATURES")
+    ctx = rlm.context
+    return ctx.cfg, ctx.feature_set, ctx.feature_set.feature_blocks
 
 # ---------------------------------------------------------------- B tier
 # The ANOVA: a deterministic pseudo-random 3-group case (no test carries
@@ -279,7 +292,7 @@ class _MockCtx:
         self.events.append((relevance, msg))
 
 
-cfg, fset, blocks = load_campaign(str(CFG))
+cfg, fset, blocks = _campaign(CFG)
 cfg.base_dir = TMP / "c_mock"
 cfg.effect_size.enable = True
 cfg.effect_size.export_csv = True
@@ -339,7 +352,7 @@ for (name, c0, c1, n_conf, n_inst) in blocks:
         codes = np.arange(n_conf, dtype=np.uint32)
         counts = (n_conf - codes).astype(np.int64)
         tables["marginal"].append((name, i, n_conf, codes, counts))
-cfg2, fset2, blocks2 = load_campaign(str(CFG))
+cfg2, fset2, blocks2 = _campaign(CFG)
 cfg2.base_dir = TMP / "c_mock2"
 cfg2.effect_size.enable = True
 ctx2 = _MockCtx(cfg2, fset2, idx, gv, tables)
@@ -406,7 +419,7 @@ if have_build:
         model.move_to_step("EFFECT_SIZE")
     drep = D / "effect_size" / "effect_size_report.txt"
     dtxt = drep.read_text()
-    dcfg, dfset, dblocks = load_campaign(str(BUILD / "rlm_su_1e7.json"))
+    dcfg, dfset, dblocks = _campaign(BUILD / "rlm_su_1e7.json")
     n_sub = sum(b[4] for b in dblocks)
     check("D1  the A2050 sub-variable expansion: the report's ANOVA rows == "
           "sum(n_instances) over the feature set",
@@ -460,9 +473,28 @@ if have_build:
     # The adherence: every report row vs the probe's own trio over the DB
     # counts (the cached indexes) and the ideal (the cached corpus
     # marginal, the SU_ANALYSIS publication).
-    import pickle  # noqa: E402
-    with open(D / "rlmwf_03_SU_ANALYSIS.dat", "rb") as f:
-        corpus = pickle.load(f)
+    from reversi.tools.binio import BinaryReader  # noqa: E402
+    # The probe's own binio read of the SU cache (D-288 layout): the
+    # header + the signature block (skipped — the D tier needs only
+    # the marginal) + the marginal; the joint block is left unread.
+    with BinaryReader(D / "rlmwf_03_SU_ANALYSIS.dat",
+                      compressed=True) as r:
+        r.read_header()
+        r.read_string()
+        r.read_u64()
+        r.read_u64()
+        r.read_u64()
+        r.read_string()
+        r.read_string()
+        n_pairs = int(r.read_u32())
+        for _ in range(n_pairs):
+            r.read_string()
+            r.read_string()
+        n_marg = int(r.read_u32())
+        marginal = [(r.read_string(), int(r.read_u32()),
+                     int(r.read_u64()), r.read_array(), r.read_array())
+                    for _ in range(n_marg)]
+    corpus = {"marginal": marginal}
     ideal_lookup = {(nm, ii): dict(zip(cd.tolist(), ct.tolist()))
                     for (nm, ii, _nc, cd, ct) in corpus["marginal"]}
     mine = {}

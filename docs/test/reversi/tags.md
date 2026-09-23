@@ -21,7 +21,7 @@ The four cumulative tiers and how a test declares its own:
 | (none) | the fast tier: no DB, no pipeline | — |
 | `LONG=1` | the DB-gated pipeline tests | `db_long_gate(self)` first in `setUp` |
 | `VLONG=1` | the long instruments (the ~10-min A2050 end-to-end chain, the 1e7 SU-analysis corpus test) | `@skipUnless(tier_vlong(), …)` on the class |
-| `VVLONG=1` | the very-long instruments (the 1e6 wave benchmark) | `@skipUnless(tier_vvlong(), …)` on the class |
+| `VVLONG=1` | the very-long instruments (currently uninstrumented — the 1e6 wave benchmark retired with hlp_wave, D-285) | `@skipUnless(tier_vvlong(), …)` on the class |
 
 `PERF=1` (the print-only performance tests) and `SKIP_REGAB_DB=1` (a no-DB environment) are ORTHOGONAL to the tiers.
 
@@ -35,9 +35,9 @@ The four cumulative tiers and how a test declares its own:
 
 - The tier matrix: no env → both predicates False; `LONG=1` → both False; `VLONG=1` → `tier_vlong()` True and
   `tier_vvlong()` False; `VVLONG=1` → both True.
-- The behavioural pin is the suite's skip counts: the 1e6 benchmark SKIPS under `LONG=1` and RUNS under `VVLONG=1`
-  (`test_hlp_wave` reports 4/0/1 in both the default and the LONG tiers), and the 1e7 corpus test skips in the default
-  and LONG tiers (`test_wrk_su_analysis` 9/0/1, VLONG 9/0/0).
+- The behavioural pin is the suite's skip counts: the 1e7 corpus test skips in the default and LONG tiers
+  (`test_wrk_su_analysis` 10/0/1, VLONG 10/0/0) and RUNS under `VLONG=1`. The VVLONG tier is currently uninstrumented
+  (the 1e6 wave benchmark retired with hlp_wave, D-285) — the predicate stays for a future instrument.
 - The DB gate: the default tier and `SKIP_REGAB_DB=1` skip every DB-gated test (the runner's skipped counts).
 
 ## Open issues
@@ -55,6 +55,6 @@ None.
 
 - Imported by every DB-gated and long-running test module — the single source of the tier semantics. The DB-gated
   modules call `db_long_gate(self)` first in `setUp` (the pipeline worker suites, `test_regab`, the full-chain suite);
-  the long ones gate their class on `tier_vlong()` (the A2050 chain, the 1e7 corpus test) or `tier_vvlong()` (the 1e6
-  benchmark).
+  the long ones gate their class on `tier_vlong()` (the A2050 chain, the 1e7 corpus test) or `tier_vvlong()`
+  (currently uninstrumented).
 - The canonical runner `run_utests.sh` documents the same tiers in its header.

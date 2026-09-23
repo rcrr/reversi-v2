@@ -184,7 +184,12 @@ class SuAnalysisConfig(LMBaseConfig):
     opt in). The su_pairs are the explicit (feature, feature)
     pairs for the joint analysis (the canonical sorted form +
     the dedupe); the fail-fast against the feature set is at
-    the LMConfig level (it needs the feature_set field).
+    the LMConfig level (it needs the feature_set field). The
+    rarity_thresholds are the optional per-bin frequency
+    thresholds for the report's 'Section B: Rarity report'
+    (the half-open bins [0, t1), [t1, t2), ..., [tk, inf) —
+    the first bin the zero-frequency codes); None or an empty
+    list leaves the section off (the default).
     """
     enable: bool = Field(
         default=False,
@@ -203,6 +208,15 @@ class SuAnalysisConfig(LMBaseConfig):
                     "Canonical sorted form + dedupe; the fail-"
                     "fast against the feature set is at the "
                     "LMConfig level.")
+    rarity_thresholds: Optional[List[int]] = Field(
+        default=None,
+        description="The per-bin frequency thresholds for the "
+                    "optional report 'Section B: Rarity report' "
+                    "(the half-open bins [0, t1), [t1, t2), ... "
+                    "[tk, inf) — the first bin the zero-"
+                    "frequency codes). None or an empty list "
+                    "leaves the section off (the default). "
+                    "Positive strictly-increasing integers.")
     dir_name: Path = Field(
         default=Path("su_analysis"),
         description="Output directory: an ABSOLUTE path is used "
@@ -224,6 +238,22 @@ class SuAnalysisConfig(LMBaseConfig):
         level (it needs the feature_set field)."""
         canonical = [tuple(sorted(pair)) for pair in v]
         return list(dict.fromkeys(canonical))
+
+    @field_validator("rarity_thresholds")
+    @classmethod
+    def check_rarity_thresholds(cls, v: Optional[List[int]]
+                                ) -> Optional[List[int]]:
+        """None or empty = the rarity section off (the default).
+        Otherwise: positive strictly-increasing integers."""
+        if not v:
+            return v
+        if any(t <= 0 for t in v):
+            raise ValueError("the rarity thresholds must be "
+                             "positive integers")
+        if any(a >= b for a, b in zip(v, v[1:])):
+            raise ValueError("the rarity thresholds must be "
+                             "strictly increasing")
+        return v
 
 
 class EffectSizeConfig(LMBaseConfig):

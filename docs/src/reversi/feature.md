@@ -81,4 +81,4 @@ None.
   (Mobility/MobilitySet) — it owns no board logic of its own.
 - Consumed by the FEATURES worker (wrk_features.py) and, through `ctx.feature_set`, by the INDEXES level onward;
   the `feature_blocks` property feeds the SU_ANALYSIS + EFFECT_SIZE workers (the per-feature column blocks over the
-  index matrix) and the hlp_gate test loader.
+  index matrix).

@@ -44,26 +44,50 @@ The SU_ANALYSIS frequency data plane (the marginal + the
 joint accumulators) NO-DB micro-suite: the ec formula pin
 (the window constraint), the initial position (the 4-stone
 start), the marginal + the joint accumulators (the streaming
-frequency accumulation over the corpus, the wave fed
-chunk-by-chunk).
+frequency accumulation over the corpus, the play-path
+corpus fed chunk-by-chunk).
 """
 
 import unittest
 
 import numpy as np
 
-from reversi.board import (make_position, move_from_str,
-                           position_legal_moves)
+from reversi.board import (initial_game_position, make_position,
+                           move_from_str, position_legal_moves)
 from reversi.feature import Feature, FeatureSet
 from reversi.lm.hlp_random_play import (
     JointAccumulator, MarginalAccumulator, ec_of, initial_position)
-from reversi.lm.hlp_wave import BufferSink, run_wave
 from reversi.mobility import Mobility, MobilitySet
 from reversi.pattern import Pattern, PatternSet
+from reversi.random_game import random_game_play_path
+from reversi.tools.prng import MT19937
 
 
 def _sq(name: str) -> int:
     return int(move_from_str(name))
+
+
+def _corpus(n, ec, seed):
+    """The random_game play-path corpus (the hlp_wave
+    replacement, D-285): n positions at exactly ec (the
+    double-pass game-over lanes are dropped, the quota filled
+    by the next batch), seed-deterministic — the (mover, opp)
+    arrays."""
+    prng = MT19937(seed)
+    igp = initial_game_position()
+    m0, o0 = int(igp['mover']), int(igp['opponent'])
+    harvested = 0
+    ms, os_ = [], []
+    while harvested < n:
+        k = n - harvested
+        batch = np.column_stack((np.full(k, m0, dtype=np.uint64),
+                                 np.full(k, o0, dtype=np.uint64)))
+        final, ec_arr = random_game_play_path(batch, ec, prng)
+        keep = ec_arr == ec
+        ms.append(final[keep]['mover'])
+        os_.append(final[keep]['opponent'])
+        harvested += int(keep.sum())
+    return np.concatenate(ms), np.concatenate(os_)
 
 
 class TestInitialPosition(unittest.TestCase):
@@ -150,10 +174,7 @@ class TestMarginalAccumulator(unittest.TestCase):
 
     @staticmethod
     def _toy_corpus(n=300, ec=20, seed=7):
-        sink = BufferSink()
-        run_wave(n, ec, seed, n, sink)
-        M, O, _ = sink.flatten()
-        return M, O
+        return _corpus(n, ec, seed)
 
     def test_lmc_hand_counted(self):
         # The LMC (single-instance, the dense bincount): the code is
@@ -348,17 +369,15 @@ class TestPrngIntegration(unittest.TestCase):
         fset = self._fset()
         blocks = self._blocks()
         acc = MarginalAccumulator(fset, blocks)
-        sink = BufferSink()
-        run_wave(n, ec, seed, n, sink)
-        M, O, _ = sink.flatten()
+        M, O = _corpus(n, ec, seed)
         acc.add(M, O)
         return acc.result()
 
     def test_corpus_reproducibility(self):
         # Same seed -> the SAME frequency tables (bit-exact); the
-        # different seed -> different. The wave re-initializes
-        # the golden-pinned MT19937 per call (the seed is the
-        # corpus seed).
+        # different seed -> different. The play-path generator
+        # re-initializes the golden-pinned MT19937 per call (the
+        # seed is the corpus seed).
         r1 = self._gen_and_accum(5000, 20, 42)
         r2 = self._gen_and_accum(5000, 20, 42)
         r3 = self._gen_and_accum(5000, 20, 43)
@@ -371,17 +390,15 @@ class TestPrngIntegration(unittest.TestCase):
         self.assertFalse(same_as_43)
 
     def test_small_end_to_end_marginals(self):
-        # The small end-to-end corpus (the wave -> the
-        # accumulator): every sub-variable's sum == N, K_obs <=
+        # The small end-to-end corpus (the play-path corpus ->
+        # the accumulator): every sub-variable's sum == N, K_obs <=
         # n_conf, and the LMC marginal hand-checked against the
         # INDEPENDENT oracle (position_legal_moves, NOT
         # compute_indexes).
         n, ec, seed = 2000, 20, 42
         fset = self._fset()
         blocks = self._blocks()
-        sink = BufferSink()
-        run_wave(n, ec, seed, n, sink)
-        M, O, _ = sink.flatten()
+        M, O = _corpus(n, ec, seed)
         acc = MarginalAccumulator(fset, blocks)
         acc.add(M, O)
         res = {((nm, i)): (nc, codes, counts)

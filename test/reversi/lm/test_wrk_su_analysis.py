@@ -44,9 +44,10 @@ The SU_ANALYSIS worker NO-DB suite: the factory (the worker
 name), the enable no-op (the opt-in), the compute + the
 publish (the tiny corpus, the phase-2 statistics, the TXT
 report), the cache hit (the second run), the signature
-invalidation (the corpus change), the su_pairs joint, and the
-down (the recovery). Plus the VLONG scale test: the same
-path at the 1e7 corpus size.
+invalidation (the corpus change), the corpus determinism (the
+random_game generator's stream on the seed), the su_pairs
+joint, and the down (the recovery). Plus the VLONG scale test:
+the same path at the 1e7 corpus size.
 """
 
 import tempfile
@@ -56,9 +57,12 @@ from pathlib import Path
 
 from unittest import skipUnless
 
-from reversi.lm.hlp_gate import load_campaign
+import numpy as np
+
+from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_su_analysis import (
     _down, _up, wrk_su_analysis)
+from reversi.tools.state_machine import Verbosity
 from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT
 from test.reversi.tags import tier_vlong
 
@@ -85,13 +89,20 @@ class _MockCtx:
 
 def _make_ctx(tmp, n_positions, enable=True, su_pairs=None,
               use_cache=True):
-    """A mock ctx over the rlm_00 fixture's feature set, with
-    the su_analysis enabled + a tiny corpus (the n_positions
-    at the root empty_count 20, seed 42) + the optional su_pairs."""
-    cfg, fset, _blocks = load_campaign(
-        str(WORKSPACE_ROOT / "test" / "reversi" / "data" /
-            "rlm_00.json"))
-    cfg.base_dir = tmp
+    """A mock ctx over the REAL pipeline's campaign: the facade
+    runs CREATED -> CONFIG -> FEATURES on the rlm_00 fixture (the
+    target_level stop + the base_dir override, D-287) and the cfg +
+    the feature_set come from the real context — no parallel
+    loader. The su_analysis knobs are mutated on the loaded cfg
+    (the tiny corpus at the root empty_count 20, seed 42) + the
+    optional su_pairs."""
+    rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
+                            "data" / "rlm_00.json"),
+                        verbosity=Verbosity.NONE,
+                        base_dir_override=tmp)
+    rlm.run("FEATURES")
+    cfg = rlm.context.cfg
+    fset = rlm.context.feature_set
     cfg.su_analysis.enable = enable
     cfg.su_analysis.corpus.total_positions = n_positions
     cfg.empty_count = 20
@@ -164,6 +175,34 @@ class TestWrkSuAnalysis(unittest.TestCase):
         _up(ctx2)
         self.assertTrue(any("corpus: computed" in m
                             for (_r, m) in ctx2.events))
+
+    def test_corpus_determinism(self):
+        # The random_game play-path generator (su-corpus-3): two
+        # fresh computes with the same spec are the IDENTICAL
+        # marginal tables (the stream is deterministic on the
+        # seed), a different seed changes them (the stream is
+        # consumed). use_cache False still WARMS the cache (D-071)
+        # — the per-run dirs must exist.
+        for sub in ("a", "b", "c"):
+            (self.tmp / sub).mkdir(parents=True)
+        ctx_a = _make_ctx(self.tmp / "a", 2000, use_cache=False)
+        ctx_b = _make_ctx(self.tmp / "b", 2000, use_cache=False)
+        _up(ctx_a)
+        _up(ctx_b)
+        ta = ctx_a.su_analysis_tables['marginal']
+        tb = ctx_b.su_analysis_tables['marginal']
+        self.assertEqual(len(ta), len(tb))
+        for (na, ia, nca, ca, ka), (nb, ib, ncb, cb, kb) in zip(ta, tb):
+            self.assertEqual((na, ia, nca), (nb, ib, ncb))
+            self.assertTrue(np.array_equal(ca, cb))
+            self.assertTrue(np.array_equal(ka, kb))
+        ctx_c = _make_ctx(self.tmp / "c", 2000, use_cache=False)
+        ctx_c.cfg.su_analysis.corpus.seed = 43
+        _up(ctx_c)
+        tc = ctx_c.su_analysis_tables['marginal']
+        self.assertTrue(any(not np.array_equal(ka, kc)
+                            for (_na, _ia, _nca, _ca, ka),
+                            (_nb, _ib, _ncb, _cb, kc) in zip(ta, tc)))
 
     def test_su_pairs_joint(self):
         # The requested su_pairs: the joint is computed (the

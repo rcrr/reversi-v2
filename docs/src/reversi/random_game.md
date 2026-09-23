@@ -1,7 +1,8 @@
 # reversi/random_game.py
 The random-game module of the Reversi engine: the random move pick, the random move execution, and the random path —
 including the batch array engine that plays a whole corpus of positions in lockstep. It is the corpus generator for the
-random-play statistics and the intended replacement of the lm/hlp_wave wave engine.
+random-play statistics: the SU_ANALYSIS level's production corpus engine (the play-path batches feed the hlp_random_play
+accumulators; the hlp_wave wave engine is retired — D-285).
 
 ## API
 
@@ -81,4 +82,6 @@ None.
 
 - board.py (the geometry + the positions + the per-lane njit primitives `legal_moves_of` / `flips_of_move`).
 - tools/prng.py (the MT19937 stream, the pick primitives, the batch pre-draw).
-- The intended replacement of the lm/hlp_wave wave engine: the corpus generation may migrate here.
+- The SU_ANALYSIS corpus engine (the su-corpus-3 lineage): wrk_su_analysis.py (step 3) feeds its play-path batches —
+  the harvested lanes at the model's ec — to the hlp_random_play accumulators. The hlp_wave wave engine is RETIRED
+  (D-285).

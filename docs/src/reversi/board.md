@@ -197,5 +197,5 @@ None.
 ## Integration
 
 - Consumed by: `pattern.py` (the D8 orbits, the principal masks), `mobility.py`, `feature.py`, `regab.py` (DB row ↔
-  position), `client.py`, `hlp_config_schemas.py`, `hlp_random_play.py`, `hlp_wave.py`, `random_game.py`.
+  position), `client.py`, `hlp_config_schemas.py`, `hlp_random_play.py`, `random_game.py`.
 - A pure domain module: not a pipeline level, no ctx fields, no cache.

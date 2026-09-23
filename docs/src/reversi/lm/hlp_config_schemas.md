@@ -15,7 +15,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
 | `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 - the single seed), `total_positions` (1e7); the ec arrest is the root `empty_count` (D-281) |
-| `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
+| `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `rarity_thresholds` (`Optional[List[int]]`, None; the `check_rarity_thresholds` positive strictly-increasing, None / empty = the report's Section B off, D-292), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
 | `EffectSizeConfig` | the EFFECT_SIZE level: `enable` (bool, **FALSE** — opt-in), `top_k_adherence` (20, ge=1), `dir_name` (`effect_size`), `report_file_name`, `export_csv` (False) |
 | `RegabDBConnectionConfig` | `dbname` / `user` / `host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` (the ec is the root `empty_count`, D-283) |
@@ -54,7 +54,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too); and
   `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is
   not in the `feature_set` (the mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator
-  does the canonical sort + the dedupe (each pair a sorted tuple, a repeated pair collapsed).
+  does the canonical sort + the dedupe (each pair a sorted tuple, a repeated pair collapsed); the
+  `check_rarity_thresholds` validator requires the positive strictly-increasing integers (None / empty = section off).
 - **PlotConfig** — `enable: bool = True` (false makes the PLOT level a no-op even with names listed);
   `format: str = "png"` (`"png"`, `"pdf"` or a comma-separated pair — both; `check_format` normalizes whitespace,
   rejects unknown tokens, empty tokens and duplicates); `dpi: int = 150` (50..1200); `dir_name: Path = "plots"`

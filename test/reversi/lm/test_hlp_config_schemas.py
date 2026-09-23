@@ -322,6 +322,30 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(cfg.su_analysis.su_pairs,
                          [("EDGE", "LMC")])
 
+    def test_rarity_thresholds(self):
+        """The optional rarity thresholds (the report's
+        'Section B: Rarity report', D-292): absent = None
+        (the section off), the fixture's [1, 2, 5, 10, 100]
+        validates, the empty list is legal (off), and the
+        list must be positive strictly-increasing integers."""
+        def _strip(d):
+            d.pop("su_analysis", None)
+        self.assertIsNone(
+            LMConfig(**self._cfg_dict(_strip)).su_analysis
+            .rarity_thresholds)
+        cfg = LMConfig(**self._cfg_dict())
+        self.assertEqual(cfg.su_analysis.rarity_thresholds,
+                         [1, 2, 5, 10, 100])
+        cfg = LMConfig(**self._cfg_dict(
+            lambda d: d["su_analysis"].update(
+                {"rarity_thresholds": []})))
+        self.assertEqual(cfg.su_analysis.rarity_thresholds, [])
+        for bad in ([2, 1], [5, 5], [0, 1], [-1], [1.5]):
+            with self.assertRaises(ValidationError):
+                LMConfig(**self._cfg_dict(
+                    lambda d: d["su_analysis"].update(
+                        {"rarity_thresholds": bad})))
+
     def test_su_pairs_fail_fast(self):
         """The fail-fast against the feature set: a name not in
         the feature set (the mobility + the pattern names) is

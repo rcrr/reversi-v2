@@ -95,6 +95,7 @@
             "seed": 42,
             "total_positions": 10000        },
         "su_pairs": [["LMC", "EDGE"]],
+        "rarity_thresholds": [1, 2, 5, 10, 100],
         "dir_name": "su_analysis",
         "report_file_name": "su_analysis_report.txt",
         "export_csv": false

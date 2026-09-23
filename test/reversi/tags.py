@@ -34,7 +34,7 @@
 #   LONG=1     + the DB-gated pipeline tests
 #   VLONG=1    + the long instruments (the ~10-min A2050 end-to-end
 #                chain; implies LONG)
-#   VVLONG=1   + the very-long instruments (the 1e6 corpus benchmark;
+#   VVLONG=1   + the very-long instruments (currently uninstrumented;
 #                implies VLONG -> LONG)
 #
 # PERF=1 is orthogonal (the print-only performance tests)

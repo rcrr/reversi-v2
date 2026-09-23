@@ -55,8 +55,9 @@ from pathlib import Path
 
 import numpy as np
 
-from reversi.lm.hlp_gate import load_campaign
+from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_effect_size import _down, _up, wrk_effect_size
+from reversi.tools.state_machine import Verbosity
 from test.reversi.paths import WORKSPACE_ROOT
 
 
@@ -84,14 +85,20 @@ class _MockCtx:
 
 
 def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
-    """A mock ctx over the rlm_00 fixture's feature set, with
-    the effect_size enabled + the SYNTHETIC raw codes (the N
-    positions x the n_columns, the block layout) + the synthetic
-    game values."""
-    cfg, fset, blocks = load_campaign(
-        str(WORKSPACE_ROOT / "test" / "reversi" / "data" /
-            "rlm_00.json"))
-    cfg.base_dir = tmp
+    """A mock ctx over the REAL pipeline's campaign: the facade
+    runs CREATED -> CONFIG -> FEATURES on the rlm_00 fixture (the
+    target_level stop + the base_dir override, D-287) and the cfg +
+    the feature_set come from the real context — no parallel
+    loader. The raw codes + the game values stay SYNTHETIC (the
+    DB data, not generatable no-DB)."""
+    rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
+                            "data" / "rlm_00.json"),
+                        verbosity=Verbosity.NONE,
+                        base_dir_override=tmp)
+    rlm.run("FEATURES")
+    cfg = rlm.context.cfg
+    fset = rlm.context.feature_set
+    blocks = fset.feature_blocks
     cfg.effect_size.enable = enable
     max_col = max(c1 for (_n, c0, c1, _nc, _ni) in blocks)
     rng = np.random.default_rng(seed)

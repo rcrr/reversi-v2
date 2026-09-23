@@ -72,8 +72,8 @@ None.
 
 ## Integration
 - Dependencies: numpy + math + numba (the kernel).
-- lm/hlp_wave.py (the wave engine) drives the wave through the class's get_uint64_batch; this module is the single
-  source of the draw stream.
+- random_game.py (the play-path engine) drives the batch draws through the class's get_uint64_batch; this module is
+  the single source of the draw stream.
 - random_game.py uses choose_one_from_set64 for the scalar random move pick and pick_one_from_set64_batch for the array
   one (the D-219 stream contract); the seeded random-game corpus generation (the SU_ANALYSIS level) rides on the class.
 - A TOOLS module (tools/ subpackage): a generic MT library, not a pipeline level.

@@ -7,7 +7,8 @@
 #   PERF=1 ./run_utests.sh       + the print-only performance tests
 #   LONG=1 ./run_utests.sh       + the DB-gated pipeline tests
 #   VLONG=1 ./run_utests.sh      + the long instruments (the A2050 chain)
-#   VVLONG=1 ./run_utests.sh     + the very-long ones (the 1e6 benchmark)
+#   VVLONG=1 ./run_utests.sh     + the very-long ones (currently
+#                                  uninstrumented — D-285)
 #   SKIP_REGAB_DB=1 ...          no-DB environment: every DB test is
 #                                skipped whatever the tier
 #
@@ -49,9 +50,6 @@ MODULES=(
     # lands in T12; the ODP-9 pick table + the single-game loop
     # land here at T4)
     test.reversi.lm.test_hlp_random_play
-    # test_hlp_wave: the T5 numba wave engine (the corpus
-    # engine, the I-017 SU-analysis generator)
-    test.reversi.lm.test_hlp_wave
     test.reversi.lm.test_hlp_config_schemas
     test.reversi.lm.test_wrk_config
     test.reversi.lm.test_wrk_features
@@ -59,6 +57,10 @@ MODULES=(
     # (the I-017; the SU/entropy/MI kernels T11, the
     # dispersion/audit T12, the ANOVA T13, the adherence T14)
     test.reversi.lm.test_hlp_feature_analysis
+    # test_hlp_su_analysis: the SU analysis LOGIC (D-289: the
+    # signature, the binio I/O D-288, the compute determinism, the
+    # theoretical space D-278/279, the SU groups, the report/CSV)
+    test.reversi.lm.test_hlp_su_analysis
     # test_wrk_su_analysis: the SU_ANALYSIS worker
     # (the I-017 T16; the SU-analysis corpus cache + the phase-2
     # statistics + the reports)

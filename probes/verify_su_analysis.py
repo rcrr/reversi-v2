@@ -5,9 +5,11 @@
 # Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-186/D-258):
 # the worker (src/reversi/lm/wrk_su_analysis.py) + its frequency data
 # plane (hlp_random_play) + the shared kernels it calls
-# (hlp_feature_analysis) + the corpus engine (hlp_wave). The level is
-# the workspace's ONLY no-DB corpus consumer: it reads the cfg + the
-# feature_set and generates its own population.
+# (hlp_feature_analysis). The worker's corpus engine is the
+# random_game play-path (the su-corpus-3 lineage); the tier-B corpus
+# is the same engine (D-285 — the hlp_wave wave engine is retired).
+# The level is the workspace's ONLY no-DB corpus consumer: it reads
+# the cfg + the feature_set and generates its own population.
 #
 # Tiers:
 #   A  the module structure: the factory, the no-DB discipline, the
@@ -42,7 +44,6 @@ import io
 import json
 import math
 import os
-import pickle
 import re
 import shutil
 import sys
@@ -122,53 +123,97 @@ def py_mi_ratio(counter, marg_u, marg_v):
 # ---------------------------------------------------------------- A tier
 W = (ROOT / "src" / "reversi" / "lm" / "wrk_su_analysis.py")
 wt = W.read_text()
+H = (ROOT / "src" / "reversi" / "lm" / "hlp_su_analysis.py")
+wh = H.read_text()
 check("A1  the factory: @validate_call + wrk_su_analysis() -> Worker",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in wt
       and "def wrk_su_analysis() -> Worker:" in wt)
 check("A2  the Worker name is SU_ANALYSIS (the cache slot prefix follows it)",
       'return Worker("SU_ANALYSIS", _up, _down)' in wt)
 check("A3  the no-DB discipline (the design section 3.3): no regab / "
-      "positions / hlp_indexes import — the corpus is the level's own",
+      "positions / hlp_indexes import — the corpus is the level's own "
+      "(the worker skeleton + the hlp)",
       all(k not in wt for k in ("regab", "wrk_positions", "hlp_indexes",
-                                "game_values")))
-check("A4  the wave-size cap: min(_WAVE_SIZE, corpus.total_positions) "
-      "(the D-252 fix)",
-      "wave_size = min(_WAVE_SIZE, corpus.total_positions)" in wt)
+                                "game_values"))
+      and all(k not in wh for k in ("regab", "wrk_positions",
+                                    "hlp_indexes", "game_values")))
+check("A4  the batch-size cap: min(_WAVE_SIZE, total - harvested) "
+      "(the D-252 cap, the random_game batch form, in the hlp compute)",
+      "n = min(_WAVE_SIZE, total - harvested)" in wh)
 check("A5  __all__ = ['wrk_su_analysis']", "__all__ = ['wrk_su_analysis']" in wt)
-check("A6  no trailing whitespace outside the license header", not ws_lines(W),
-      str(ws_lines(W)))
+check("A6  no trailing whitespace outside the license header "
+      "(the worker skeleton + the hlp)",
+      not ws_lines(W) and not ws_lines(H),
+      str(ws_lines(W)) + str(ws_lines(H)))
 
-from reversi.lm import wrk_su_analysis as wsu  # noqa: E402
+from reversi.lm import hlp_su_analysis as hlp  # noqa: E402
 
-check("A7  the cache constants (read from the module): the generator "
-      "version su-corpus-2, the PRNG pin, the 1e6 wave ceiling",
-      wsu._GENERATOR_VERSION == "su-corpus-2"
-      and wsu._PRNG_VERSION == "mt19937-64"
-      and wsu._WAVE_SIZE == 1_000_000)
-check("A8  the rarity thresholds (the never-observed audit profile)",
-      wsu._RARITY_THRESHOLDS == (1, 2, 5, 10, 100))
+check("A7  the cache constants (read from the hlp module): the generator "
+      "version su-corpus-3, the PRNG pin, the 1e6 batch ceiling",
+      hlp._GENERATOR_VERSION == "su-corpus-3"
+      and hlp._PRNG_VERSION == "mt19937-64"
+      and hlp._WAVE_SIZE == 1_000_000)
+_FIX_JSON = json5.loads(
+    (ROOT / "test" / "reversi" / "data" / "rlm_00.json").read_text(
+        encoding="utf-8"))
+check("A8  the rarity thresholds (the rlm_00 fixture JSON, the "
+      "report's Section B, D-292): [1, 2, 5, 10, 100]",
+      _FIX_JSON["su_analysis"]["rarity_thresholds"]
+      == [1, 2, 5, 10, 100])
 
-from reversi.lm.hlp_gate import load_campaign  # noqa: E402
+from reversi.lm.logistic_model import LogisticModel  # noqa: E402
 from reversi.lm.hlp_random_play import (JointAccumulator,  # noqa: E402
                                         MarginalAccumulator, ec_of)
-from reversi.lm.hlp_wave import BufferSink, run_wave  # noqa: E402
+from reversi.board import initial_game_position  # noqa: E402
+from reversi.random_game import random_game_play_path  # noqa: E402
+from reversi.tools.prng import MT19937  # noqa: E402
+from reversi.tools.state_machine import Verbosity  # noqa: E402
 
-cfg, fset, blocks = load_campaign(str(CFG))
+
+def _campaign():
+    """The real-pipeline campaign (the hlp_gate replacement,
+    D-287): the facade runs CREATED -> CONFIG -> FEATURES on the
+    rlm_00 fixture (the target_level stop, the probe tmp
+    base_dir) — the cfg + the feature_set come from the real
+    context."""
+    rlm = LogisticModel(str(CFG), verbosity=Verbosity.NONE,
+                        base_dir_override=TMP)
+    rlm.run("FEATURES")
+    ctx = rlm.context
+    return ctx.cfg, ctx.feature_set, ctx.feature_set.feature_blocks
+
+
+cfg, fset, blocks = _campaign()
 
 check("A9  the rlm_00 sub-variable expansion: 15 columns "
       "(3 mobilities + the EDGE 4 + the ELLE 8)",
       sum(b[4] for b in blocks) == 15, str(blocks))
 
 # ---------------------------------------------------------------- B tier
-# The corpus: a small deterministic wave (3000 positions, ec 20, seed 42).
+# The corpus: a small deterministic play-path run (3000 positions,
+# ec 20, seed 42 — the random_game engine, the worker's own
+# generator; D-284/D-285).
 N = 3000
 EC = 20
 SEED = 42
-sink = BufferSink()
-info = run_wave(N, EC, SEED, N, sink)
-mover, opp, _slot = sink.flatten()
+prng = MT19937(SEED)
+igp = initial_game_position()
+_m0, _o0 = int(igp['mover']), int(igp['opponent'])
+_harvested = 0
+_ms, _os = [], []
+while _harvested < N:
+    _k = N - _harvested
+    _batch = np.column_stack((np.full(_k, _m0, dtype=np.uint64),
+                              np.full(_k, _o0, dtype=np.uint64)))
+    _final, _ec_arr = random_game_play_path(_batch, EC, prng)
+    _keep = _ec_arr == EC
+    _ms.append(_final[_keep]['mover'])
+    _os.append(_final[_keep]['opponent'])
+    _harvested += int(_keep.sum())
+mover = np.concatenate(_ms)
+opp = np.concatenate(_os)
 check("B1  the corpus: the harvested count is the requested total",
-      info["harvested"] == N and mover.shape[0] == N, str(info))
+      _harvested == N and mover.shape[0] == N, str(mover.shape))
 
 # The ec arrest: every harvested position sits at the config's ec,
 # recomputed from the bitboards (64 - the occupied popcount) — the
@@ -232,7 +277,7 @@ check("B6  the joint == a pure-python Counter (the 4 LMC x EDGE "
 marg_lookup = {(nm, ii): ct
                for (nm, ii, _nc, _cd, ct) in marginal}
 su_mod = {(ni, ii, nj, jj): s for (ni, ii, nj, jj, s)
-          in wsu._su_values(jres, marg_lookup)}
+          in hlp._su_values(jres, marg_lookup)}
 su_indep = {}
 for ii in range(bi[4]):
     for jj in range(bj[4]):
@@ -260,8 +305,8 @@ SELF = ("EDGE", "EDGE")
 selfj = JointAccumulator(fset, blocks, [SELF])
 selfj.add(mover, opp)
 selfres = selfj.result()
-selfsu = wsu._su_values(selfres, marg_lookup)
-selfgroups = wsu._su_groups(selfsu, [SELF])
+selfsu = hlp._su_values(selfres, marg_lookup)
+selfgroups = hlp._su_groups(selfsu, [SELF])
 n_edge = blocks_by_name["EDGE"][4]
 n_unordered = n_edge * (n_edge - 1) // 2
 check("B12 the dedup: the self-pair's ordered pairs collapse to the "
@@ -282,14 +327,24 @@ check("B13 the sort: the group is in the canonical endpoint order "
 # dump (the first 16 hex), plus the spec keys.
 base_c = TMP / "b_sig"
 base_c.mkdir(parents=True, exist_ok=True)
-sig_cfg = load_campaign(str(CFG))[0]
+sig_cfg = _campaign()[0]
 sig_cfg.base_dir = base_c
-sig = wsu._signature(type("C", (), {"cfg": sig_cfg, "feature_set": fset})())
-ref_hash = hashlib.sha3_256(
-    sig_cfg.feature_set.model_dump_json(indent=2).encode()).hexdigest()[:16]
-check("B8  the signature: the feature_set hash == the independent sha3_256 "
-      "of the feature_set dump (the first 16 hex)",
-      sig["feature_set_hash"] == ref_hash, f"{sig['feature_set_hash']} vs {ref_hash}")
+sig = hlp._signature(type("C", (), {"cfg": sig_cfg, "feature_set": fset})())
+# The independent oracle (D-291): the FeatureSet DOMAIN hash
+# recomposed from its children (the INTERCEPT marker + the mset /
+# the pset hash hex strings, the sorted mask contents transitively).
+chunks = []
+if fset.intercept:
+    chunks.append(b'INTERCEPT')
+if fset.mset:
+    chunks.append(fset.mset.hash.encode('utf-8'))
+if fset.pset:
+    chunks.append(fset.pset.hash.encode('utf-8'))
+ref_hash = hashlib.sha3_256(b''.join(chunks)).hexdigest()
+check("B8  the signature: the feature_set hash == the FeatureSet DOMAIN hash "
+      "(independently recomposed from the child-set hashes, D-291)",
+      sig["feature_set_hash"] == ref_hash == fset.hash,
+      f"{sig['feature_set_hash']} vs {ref_hash}")
 check("B9  the signature keys (the feature_set hash + the 5 spec fields + "
       "the pairs) and NO rds_checksum (the corpus is DB-independent)",
       sorted(sig) == sorted(["feature_set_hash", "seed", "total_positions",
@@ -301,26 +356,72 @@ check("B10 the signature spec values: the config's seed / total / ec + the "
       sig["seed"] == sig_cfg.su_analysis.corpus.seed
       and sig["total_positions"] == sig_cfg.su_analysis.corpus.total_positions
       and sig["ec"] == sig_cfg.empty_count
-      and sig["generator_version"] == "su-corpus-2"
+      and sig["generator_version"] == "su-corpus-3"
       and sig["prng_version"] == "mt19937-64")
 
 # The signature is a pure function of (feature_set, spec, pairs): the
 # same config -> the same dict; a seed / a pair change -> a different one.
-sig_same = wsu._signature(type("C", (), {"cfg": sig_cfg, "feature_set": fset})())
-sig_seed = load_campaign(str(CFG))[0]
+sig_same = hlp._signature(type("C", (), {"cfg": sig_cfg, "feature_set": fset})())
+sig_seed = _campaign()[0]
 sig_seed.su_analysis.corpus.seed = SEED + 1
-sig_seed_v = wsu._signature(type("C", (), {"cfg": sig_seed, "feature_set": fset})())
-sig_pair = load_campaign(str(CFG))[0]
+sig_seed_v = hlp._signature(type("C", (), {"cfg": sig_seed, "feature_set": fset})())
+sig_pair = _campaign()[0]
 sig_pair.su_analysis.su_pairs = [("LMC", "ELLE")]
-sig_pair_v = wsu._signature(type("C", (), {"cfg": sig_pair, "feature_set": fset})())
+sig_pair_v = hlp._signature(type("C", (), {"cfg": sig_pair, "feature_set": fset})())
 check("B11 the signature semantics: identical on a re-derivation, "
       "different on a seed change and on a pair change",
       sig_same == sig and sig_seed_v != sig and sig_pair_v != sig)
 
 # ---------------------------------------------------------------- C tier
 from reversi.lm.logistic_model import LogisticModel  # noqa: E402
-from reversi.tools.binio import verify_sha3_256_sidecar  # noqa: E402
+from reversi.tools.binio import BinaryReader, verify_sha3_256_sidecar  # noqa: E402
 from reversi.tools.state_machine import Verbosity  # noqa: E402
+
+
+def _read_cache(path):
+    """The probe's OWN binio re-derivation of the cache layout
+    (D-288, NOT hlp.hlp_su_analysis_load_from_file — the independent
+    read): the header + the signature block + the marginal + the
+    joint (the per-instance in the sorted (ii, jj) order)."""
+    if not verify_sha3_256_sidecar(path):
+        raise RuntimeError("sidecar mismatch")
+    with BinaryReader(path, compressed=True) as r:
+        _d, _v = r.read_header()
+        signature = {
+            'feature_set_hash': r.read_string(),
+            'seed': int(r.read_u64()),
+            'total_positions': int(r.read_u64()),
+            'ec': int(r.read_u64()),
+            'generator_version': r.read_string(),
+            'prng_version': r.read_string(),
+        }
+        n_pairs = int(r.read_u32())
+        signature['su_pairs'] = [[r.read_string(), r.read_string()]
+                                 for _ in range(n_pairs)]
+        nm = int(r.read_u32())
+        marginal = []
+        for _ in range(nm):
+            marginal.append((r.read_string(), int(r.read_u32()),
+                             int(r.read_u64()), r.read_array(),
+                             r.read_array()))
+        if int(r.read_u8()) == 0:
+            joint = None
+        else:
+            nj = int(r.read_u32())
+            joint = []
+            for _ in range(nj):
+                ni = r.read_string()
+                nj2 = r.read_string()
+                k = int(r.read_u32())
+                pd = {}
+                for _ in range(k):
+                    ii = int(r.read_u32())
+                    jj = int(r.read_u32())
+                    pd[(ii, jj)] = (r.read_array(), r.read_array(),
+                                    r.read_array())
+                joint.append((ni, nj2, pd))
+    return {'signature': signature, 'marginal': marginal, 'joint': joint}
+
 
 base = TMP / "c_live"
 base.mkdir(parents=True, exist_ok=True)
@@ -345,12 +446,11 @@ check("C4  the ctx publication: the tables dict with the marginal + the "
       model.context.su_analysis_tables is not None
       and sorted(model.context.su_analysis_tables)
       == ["joint", "marginal", "signature"])
-with open(cache, "rb") as f:
-    cached = pickle.load(f)
+cached = _read_cache(cache)
 cache_bytes = cache.read_bytes()
 check("C5  the cached signature == the live _signature(ctx) "
       "(the file vs the ctx)",
-      cached["signature"] == wsu._signature(model.context))
+      cached["signature"] == hlp._signature(model.context))
 check("C6  the cached marginal: 15 sub-variables, each total == the "
       "fixture's 10000 positions",
       len(cached["marginal"]) == 15
@@ -372,10 +472,13 @@ check("C9  the log carries the corpus line + the report line",
 # recomputed from the cached counts (the report numbers are pinned by
 # no test), and the SU lines are the top-20 of the recomputed list.
 text = report.read_text()
+# The D-293 aligned rows: the name / the inst left-justified to the
+# max width, the numeric values right-justified to the computed max
+# width (one or more spaces between the label and the value).
 line_rx = re.compile(
-    r"^  (?P<name>\w+) inst (?P<i>\d+): K_obs (?P<k>\d+)/(?P<nc>\d+), "
-    r"H (?P<h>[\d.]+), H_norm (?P<hn>[\d.]+), "
-    r"coverage (?P<cov>[\d.]+), never-obs (?P<never>\d+)$")
+    r"^  (?P<name>\w+)\s+inst (?P<i>\d+): K_obs\s+(?P<k>\d+)/(?P<nc>\d+), "
+    r"H\s+(?P<h>[\d.]+), H_norm\s+(?P<hn>[\d.]+), "
+    r"coverage\s+(?P<cov>[\d.]+), never-obs\s+(?P<never>\d+)$")
 su_rx = re.compile(r"^  SU (?P<ni>\w+)\[(?P<ii>\d+)\] - (?P<nj>\w+)\[(?P<jj>\d+)\] = (?P<s>[\d.]+)$")
 by_key = {(nm, ii): (nc, cd, ct)
           for (nm, ii, nc, cd, ct) in cached["marginal"]}
@@ -416,7 +519,7 @@ for line in text.splitlines():
 check("C10 every report sub-variable line == the pure-python recompute "
       "from the cached counts (15 lines, 5e-4)",
       sub_seen == 15 and sub_ok, f"{sub_seen} lines")
-su_all = wsu._su_values(cached["joint"],
+su_all = hlp._su_values(cached["joint"],
                         {(nm, ii): ct
                          for (nm, ii, _nc, _cd, ct) in cached["marginal"]})
 su_sorted = sorted(su_all, key=lambda x: x[4], reverse=True)
@@ -508,7 +611,7 @@ check("F4  the overview rows name the renamed module + its suite",
 mirror = (ROOT / "docs" / "src" / "reversi" / "lm" / "wrk_su_analysis.md").read_text()
 check("F5  the mirror's generator version == the module's constant "
       "(the stale g0-1 pin re-derived)",
-      "su-corpus-2" in mirror and "g0-1" not in mirror)
+      "su-corpus-3" in mirror and "g0-1" not in mirror)
 
 eff = (ROOT / "src" / "reversi" / "lm" / "wrk_effect_size.py").read_text()
 check("F6  the EFFECT_SIZE consumer contract: it reads "

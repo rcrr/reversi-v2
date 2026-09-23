@@ -24,7 +24,9 @@ ctx, the synthetic indexes + the game values).
 
 - The house test header (the "How to run" block).
 - The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the feature_set, the hlp_indexes (the synthetic raw codes), the
-  game_values, the su_analysis_tables, the log buffer) over the rlm_00 fixture's feature set (the `load_campaign`). The
+  game_values, the su_analysis_tables, the log buffer) over the REAL pipeline's campaign: the facade runs CREATED ->
+  CONFIG -> FEATURES on the rlm_00 fixture (the target_level stop + the base_dir override, D-287 — no parallel
+  loader). The
   synthetic raw codes (the `np.random.default_rng`) keep the suite fast + deterministic (no LONG tier).
 - The `tempfile.TemporaryDirectory` per test (the report lands in a tmp dir, the tearDown cleans up).
 

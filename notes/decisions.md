@@ -2367,3 +2367,193 @@ D-283 | 2026-09-21 | The regab_data_set.ec is REMOVED; the saved model uses the 
          (40) + the FULL suite (938, 25 DB-gated skipped) + the 23-probe sweep green; rlm_su_1e7
          loads (empty_count=20; test_su_00 still has the pre-existing DIAG7 su_pairs issue, unchanged);
          the doc mirror.
+D-284 | 2026-09-22 | The SU corpus generator migrates from the hlp_wave wave engine to the random_game
+          play-path engine (the D-226 replacement, PHASE 1; Roberto). wrk_su_analysis: the _compute_tables
+          now generates the corpus with random_game_play_path — the batch of fresh lanes from the canonical
+          start (board.initial_game_position) played to the root empty_count, the batch size min(_WAVE_SIZE,
+          total - harvested), the harvested lanes are the batch lanes at EXACTLY the target ec (the
+          double-pass game-over lanes are dropped, the quota filled by the next batch), the uniform pick on
+          the injected MT19937 (one stream for the whole run); the accumulators (hlp_random_play) are fed
+          PER BATCH (the corpus never materializes in RAM — the BufferSink + the flatten are gone from the
+          worker); the hlp_wave import is REMOVED (the worker is now independent of the wave). The draw
+          consumption differs from the wave (the pass / the game-over lanes consume no draw), so the
+          corpora are NOT bit-compatible: the generator version bumps su-corpus-2 -> su-corpus-3 — every
+          cached corpus (the rlmwf_03 caches) is invalidated and regenerated on the next run (the 1e7 tier
+          ~67 s, the engine ~4x faster per advance, D-232). The slots provenance is dropped (the worker
+          discarded it — the accumulators need only the mover/opp). hlp_wave SURVIVES (the phase-2
+          retirement is Roberto's call): its remaining consumers are test_hlp_wave (the suite), the
+          test_hlp_random_play corpus fixtures (3 call sites) and the verify_su_analysis tier-B corpus
+          (an independent code path). The verify_su_analysis pins follow (A4 the batch-size cap; A7 + B10
+          + F5 the su-corpus-3 version). test_wrk_su_analysis: the NEW test_corpus_determinism (the two
+          fresh same-spec computes are the identical marginal tables, a different seed changes them — the
+          new generator's stream is pinned). VERIFICATION: the SU suite 10/0/1 green (VLONG 10/0/0), the
+          verify_su_analysis probe (44 checks) green, the full suite green; the mirrors follow
+          (wrk_su_analysis, random_game, hlp_wave, hlp_random_play, the two test docs).
+D-285 | 2026-09-22 | The hlp_wave wave engine is RETIRED (the D-226 replacement, PHASE 2; Roberto). The
+          module hlp_wave.py + the suite test_hlp_wave.py + their two mirrors are REMOVED (after D-284 the
+          worker is the random_game play-path engine — the wave was test-only, no production consumer). The
+          remaining consumers migrate to the random_game engine: the test_hlp_random_play corpus fixtures (3
+          call sites — the module-local _corpus helper over random_game_play_path, the harvested lanes at the
+          target ec) and the verify_su_analysis tier-B corpus (the same construction, 3000 positions at ec 20
+          seed 42; B1 re-pinned on the shape). The hlp_random_play module docstring + the mirrors follow (the
+          corpus is the worker's random_game play-path batches). run_utests.sh drops the test_hlp_wave line.
+          The VVLONG tier LOSES its only instrument (the 1e6 wave benchmark): the tier_vvlong predicate + the
+          runner header are KEPT (the machinery survives; a future very-long instrument may gate on it) — the
+          tier removal is a separate call. VERIFICATION: the full suite (fast tier) green (939 - 4 = 935, the
+          wave suite removed) + the verify_su_analysis probe (44) green; the mirrors + the overview rows
+          follow.
+D-286 | 2026-09-22 | The VVLONG tier is KEPT (Roberto, after the wave retirement D-285 left it
+          uninstrumented): the tier_vvlong predicate (test/reversi/tags.py) + the runner header stay in
+          place — the very-long tier machinery survives for a future instrument, the removal option is
+          retired. Zero code change (the D-285 state already documents the tier as uninstrumented).
+D-287 | 2026-09-22 | The hlp_gate campaign loader is RETIRED, its consumers now run the REAL pipeline
+          (Roberto — the "elegant" solution, no parallel loader): load_campaign's only value (reuse an existing
+          JSON + stop the pipeline before the level under test) is natively provided by the facade —
+          LogisticModel(cfg, base_dir_override=...).run("FEATURES") (the D-260 target_level stop, silent
+          Verbosity.NONE) publishes context.cfg + context.feature_set, and the feature_blocks property (D-266) is
+          literally what the loader used to return as the third element. Migrated consumers: the _make_ctx of the
+          two worker suites (test_wrk_su_analysis, test_wrk_effect_size — the mock ctx is KEPT as the test seam
+          (the log capture + the use_cache), the cfg/fset now come from the real context) and the two probes
+          (verify_su_analysis 4 call sites, verify_effect_size 3 — a local ~5-line _campaign() helper each, the
+          verify_effect_size one also serving the build/rlm_su_1e7.json config; the FEATURES level is cheap, the
+          corpus size irrelevant). The module hlp_gate.py + its mirror are REMOVED (the test-infra no longer ships
+          in the package); the feature.md + pattern.md consumer lists, the two test mirrors + the overview row
+          follow. The verification posts are INTACT: same suites, same pins. VERIFICATION: the SU suite 10/0/1 +
+          the ES suite 7/0/0 green (17 tests in 1.7 s — the facade runs are cheap) + the two probes green (44 + 29
+          checks, 0 mismatches).
+D-288 | 2026-09-22 | The SU_ANALYSIS corpus cache moves from PICKLE to BINIO (the pipeline has no pickle; the
+          house data-file idiom). The _load_tables / _store_tables are rewritten on the binio layout: the file
+          header (the "SU_ANALYSIS corpus cache" description + the format VERSION 1 — a format change bumps the
+          version, orthogonal to the data signature) + the signature block (the feature_set hash + the 5 spec
+          fields + the su_pairs in the configured order) + the marginal block (the (name, instance, n_conf) +
+          the codes u32 / counts i64 arrays) + the joint block (the presence flag + the pairs, the per-instance
+          entries in the SORTED (ii, jj) order for a deterministic layout). The write is LZ4-compressed (the
+          D-139 data-file pattern, model_weights / hlp_generate) with checksum=False (the .SHA3-256 sidecar
+          stays owned by the cache_manager, D-072); the load does the sidecar check + the header
+          description/version guard (the hlp_generate idiom) + the ordered block reads. OLD PICKLE CACHES
+          SELF-INVALIDATE: their sidecar is still valid (the manager step 2 passes) but the binio reader fails
+          loudly on the first MAGIC (a pickle never starts with the BIN1 framing), the manager's R2 (D-071)
+          deletes the file and recomputes — no manual cleanup, no _GENERATOR_VERSION bump (the data semantics
+          are unchanged; the format is orthogonal). The verify_su_analysis C5-C7 pins migrate to the probe's
+          OWN binio re-derivation of the layout (the independent read, NOT wsu._load_tables — the a/b/c line);
+          C2 is unchanged (already the binio sidecar). The verify_effect_size TIER D (the 1e7 real data) also
+          loaded the SU cache (the ideal adherence marginals) — migrated to the same probe-own binio read (the
+          header + the signature skip + the marginal, the joint left unread); the old BUILD pickle SELF-HEALS
+          on the next tier-D run (the R2 recompute in the probe dir; the BUILD file stays untouched — the
+          unlink semantics of _delete_cache_files) and is regenerated as binio by the next production 1e7 run.
+          The mock-ctx suite is format-agnostic (it runs through the cache flow) — unchanged. VERIFICATION:
+          the SU suite 10/0/1 green (VLONG 10/0/0, the 1e7 corpus), the verify_su_analysis probe (44 checks)
+          green, the verify_effect_size probe (29 checks, incl. tier D on the 1e7 build area) green, the full
+          suite (fast tier) 935/0/97 GREEN.
+D-289 | 2026-09-22 | The SU_ANALYSIS worker is split into the wrk/hlp pair (Roberto, the wrk_design_matrix
+          minimalism): the NEW hlp_su_analysis.py carries ALL the analysis logic — the corpus generator
+          (phase 1, the random_game play-path engine), the binio cache I/O (the D-288 layout + the 6 block
+          readers/writers), the consistency signature (+ the feature_set hash), and the statistics (phase 2:
+          the dispersion + the never-observed audit + the SU pairs + the report + the CSV) — together with
+          the 9 module constants. The 6 public functions (hlp_su_analysis_compute / _store_to_file /
+          _load_from_file / _is_cache_consistent / _signature / _statistics) follow the house idiom: the
+          compute / statistics / consistency / signature take the ctx (as hlp_design_matrix_compute(ctx)).
+          wrk_su_analysis.py becomes the ORCHESTRATION SKELETON (~100 lines, the wrk_design_matrix shape):
+          the enable no-op, the cache_manager_load_or_compute wiring over the hlp (the load with
+          checksum=False — the manager already verifies the sidecar at its step 2, no double hash), the
+          phase-2 recompute, the ctx publication, the D-060 recovery. NEW test_hlp_su_analysis suite (11
+          NO-DB tests: the signature vs the independent sha3_256, the binio round-trip with / without the
+          joint, the load guards, the compute determinism, the theoretical space D-278/279, the SU groups
+          dedup + canonical sort, the diagonal omission, the report + the CSV, the cache consistency) — the
+          ctx is the real pipeline stopped at FEATURES (the D-287 idiom). test_wrk_su_analysis is UNCHANGED
+          (it imports only _down/_up/wrk_su_analysis — the level-flow tests, the 1e7 VLONG stays there).
+          The verify_su_analysis probe re-targets: A3 / A6 cover the worker + the hlp files, A4 / A7 / A8
+          read the hlp text / constants, the B / C signature + kernel calls move to the hlp (44 checks
+          unchanged). VERIFICATION: the new hlp suite 11/0/0 green, the worker suite 10/0/1 green (VLONG
+          10/0/0, the 1e7 corpus), the verify_su_analysis probe (44 checks) green, the full suite (fast
+          tier) 946/0/97 GREEN (935 + 11).
+D-290 | 2026-09-22 | The __all__ POLICY (Roberto, standing rule): ONLY the functions used by OTHER
+          modules are exposed in __all__ (or a designed tool-library surface, e.g. binio /
+          state_machine); a function called only by tests or probes NEVER goes in __all__ — the test /
+          probe apparatus imports the module and reaches the name directly (no explicit from-import of a
+          test-only name). Applied to the D-289 split: hlp_su_analysis_signature was the INTERNAL
+          signature (it feeds the hlp compute + the is_cache_consistent, no production consumer outside
+          the module) — renamed _signature (private, beside _feature_set_hash), the __all__ is the 5
+          FLOW functions (compute / store / load / is_cache_consistent / statistics). The consumers
+          follow: test_hlp_su_analysis (2 tests) + the verify_su_analysis probe (5 call sites, the B8-B11
+          + the C5) call hlp._signature directly (the probe already reaches the private kernels
+          hlp._su_values / hlp._su_groups — the a/b/c independence lives in the math path, not the name
+          visibility). Zero behaviour change. VERIFICATION: the hlp suite 11/0/0 green, the
+          verify_su_analysis probe (44 checks) green, the full suite (fast tier) 946/0/97 GREEN.
+D-291 | 2026-09-22 | The SU signature's feature_set hash moves from the CONFIG DUMP hash to the
+          FeatureSet DOMAIN hash (Roberto: hashing the JSON is a conceptual error — the FeatureSet
+          already carries its domain hash, "a unique identifier for the set", built over the semantic
+          content: the INTERCEPT marker + the child-set hashes, transitively the sorted mask contents).
+          The dump hash coupled the cache signature to the pydantic SERIALIZATION (the key order, the
+          indentation, the pydantic version) of the FeatureSetConfig spec instead of to the constructed
+          domain object — and the cached tables are laid out by the constructed FeatureSet's columns
+          (the feature_blocks, D-266), so the signature should hash that same object. _feature_set_hash
+          is DELETED; _signature stores ctx.feature_set.hash (the full 64-char hexdigest). The only
+          behaviour difference: a pure feature RENAME (same masks, new name) no longer invalidates the
+          cache (the domain hash excludes names by design) — a rare deliberate change; a rename that
+          breaks a su_pairs reference fails fast at CONFIG anyway, and if name-sensitivity were ever
+          wanted the fix is an explicit name field in the signature, not a dump hash. ALL existing
+          rlmwf_03 caches (incl. the 1e7 production) are invalidated once (the embedded old-style hash
+          vs the new live signature -> mismatch -> recompute) — self-healing, no format change (the
+          signature block still stores a string), no _GENERATOR_VERSION bump. The oracles follow: the
+          probe B8 recomposes the domain hash INDEPENDENTLY from the child sets (the INTERCEPT marker +
+          the mset / pset hash hex strings); test_hlp_su_analysis test_signature recomposes it the same
+          way. VERIFICATION: the hlp suite 11/0/0 green, the verify_su_analysis probe (44 checks)
+          green, the full suite (fast tier) 946/0/97 GREEN, the SU VLONG 10/0/0 (the 1e7 cache
+          regenerated with the new signature).
+D-292 | 2026-09-22 | The rarity thresholds become a CONFIG input + the report gets the
+          optional 'Section B: Rarity report' (Roberto): the new
+          SuAnalysisConfig.rarity_thresholds (Optional[List[int]], default None; the
+          check_rarity_thresholds validator: None / empty = the section OFF — the empty
+          list is LEGAL, the absent equivalent; otherwise the positive strictly-increasing
+          integers). The section is the per-feature-instance frequency histogram over the
+          half-open bins [0, t1), [t1, t2), ..., [tk, inf) — the FIRST bin the
+          zero-frequency codes (the never-observed: the theoretical space minus the
+          observed support — Roberto's correction to the initial [1, t1) proposal: the
+          zero-frequency bin is the informative one) — the 'weights that can never be
+          learned'. The private _rarity_bins (the np.searchsorted binning) replaces the
+          module constant _RARITY_THRESHOLDS (DELETED — the values now live in the rlm_00
+          fixture JSON: [1, 2, 5, 10, 100]); section A's audit call drops the argument
+          (the kernel default). The SU-pairs section is ALWAYS 'Section C' now (the letter
+          shift is permanent, Roberto's explicit rule). Phase-2-only: NO corpus / cache /
+          signature impact (the thresholds are not in the signature — the cache stores the
+          raw counts); the CSV is unchanged. VERIFICATION: the new config test
+          (test_rarity_thresholds) + the hlp tests (test_statistics_report updated to
+          A+B+C, the new test_rarity_bins (the independent recompute, the verbatim lines)
+          + the test_rarity_empty_off) green, the verify_su_analysis probe (44 checks, the
+          A8 retargeted to the fixture JSON) green, the full suite (fast tier) 949/0/97
+          GREEN (946 + 3).
+D-293 | 2026-09-22 | The SU report cosmetic pass (Roberto, the
+          build/test_su_00 report as the reference): (1) the header
+          DESCRIPTION (the "It evaluates the normalized relationship..."
+          text) moves to the SECTION C preamble (after the section title,
+          before the data — the header keeps only the title + the SU
+          legend + the corpus/features/pairs summary; the text is now the
+          _SU_DESCRIPTION constant); (2) the Section B description is
+          rewritten at COLUMN 0 (no indentation, no parentheses, the
+          capitalized "The", two lines: the bins definition / the
+          zero-frequency meaning); (3) the Section A data rows are
+          COLUMN-ALIGNED: the name / the inst LEFT-justified to the max
+          width, the numeric values RIGHT-justified to the computed max
+          width over the section (the K_obs "obs/eff" field + the
+          never-obs field carry the +1 separator margin, the H / H_norm /
+          coverage fields a 1-space separator); (4) the Section B data
+          rows the same: the same name / inst prefix, the bin LABELS at
+          natural width, each bin VALUE right-justified to its own
+          per-bin max width (+1 margin) — the columns of a bin align down
+          the section regardless of the value length. The two-pass
+          compute (the rows are collected first, the widths computed,
+          then the lines formatted) is the implementation. VERIFICATION:
+          the hlp suite 13/0/0 green (the test_rarity_bins recomposes the
+          aligned lines verbatim), the worker suite green, the full suite
+          (fast tier) 949/0/97 GREEN, the verify_su_analysis probe (44
+          checks, no report-text pins) green.
+D-294 | 2026-09-22 | The report cosmetic pass FOLLOW-UP (Roberto):
+          the _SU_LEGEND (the SU-range legend: the value bands + their
+          meaning) moves from the header to the SECTION C preamble —
+          right after the _SU_DESCRIPTION, before the data. The header
+          keeps now only the title + the corpus / features / SU-pairs
+          summary. No test / probe pins the legend (verified by grep
+          before the move). VERIFICATION: the hlp suite 13/0/0 green,
+          the full suite (fast tier) 949/0/97 GREEN, the
+          verify_su_analysis probe (44 checks) green.
