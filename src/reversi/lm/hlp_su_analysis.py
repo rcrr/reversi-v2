@@ -27,9 +27,12 @@
 
 """
 The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker, D-289):
-the corpus generator (the random_game play-path engine, phase 1 —
-the expensive part), the binio cache I/O (the D-288 layout: the
-header + the signature block + the marginal + the joint) + the
+the streaming frequency accumulators (the marginal + the joint, the
+phase-1 data plane — moved here from the retired hlp_random_play,
+D-295), the corpus generator (the random_game play-path engine,
+phase 1 — the expensive part), the binio cache I/O (the D-288
+layout: the header + the signature block + the marginal + the
+joint) + the
 consistency signature (the feature_set hash + the spec + the pairs
 — the first cache lineage WITHOUT the rds_checksum) + the
 statistics (phase 2: the dispersion + the never-observed audit +
@@ -55,8 +58,6 @@ from reversi.random_game import random_game_play_path
 from reversi.tools import binio
 from reversi.tools.prng import MT19937
 from reversi.tools.state_machine import Relevance
-from reversi.lm.hlp_random_play import (
-    JointAccumulator, MarginalAccumulator)
 from reversi.lm.hlp_feature_analysis import (
     dispersion, entropy, mutual_information, never_observed_audit,
     symmetric_uncertainty)
@@ -146,6 +147,237 @@ _KPI_LEGEND = (
 )
 
 
+# ---------------------------------------------------------------------
+# The frequency accumulators (the phase-1 data plane, moved here
+# from the retired hlp_random_play, D-295): the streaming
+# per-sub-variable (code -> count) marginal + the joint
+# accumulation over the corpus. The analysis unit is the
+# (feature, instance) sub-variable = ONE design-index column (the
+# design-matrix unit, the unit the weights live on): each pattern
+# instance is its own categorical variable (the code a single
+# uint32 in [0, n_conf) — no packing, no overflow: the 2X5COR^8
+# structured-key concern is the feature-level / the joint
+# statistics, not the per-column marginal), the mobility a single
+# column.
+# ---------------------------------------------------------------------
+
+def _to_positions(mover: np.ndarray, opp: np.ndarray) -> np.ndarray:
+    """The direct PositionArray build (the interleaved
+    structured array — the make_position layout, no pydantic in
+    the accumulation hot path)."""
+    n = mover.shape[0]
+    pa = np.empty(n, dtype=np.dtype([('mover', np.uint64),
+                                     ('opponent', np.uint64)]))
+    pa['mover'] = mover
+    pa['opponent'] = opp
+    return pa
+
+
+#: The dense-bincount threshold: a sub-variable with
+#: n_conf <= this uses the DENSE histogram (the A2050 max is
+#: 59049 — all dense); above it, the UNIQUE-MERGE dict (the
+#: hypothetical wider code spaces).
+_DENSE_THRESHOLD = 1_000_000
+
+
+class _MarginalAccumulator:
+    """
+    The streaming marginal frequency accumulator: per
+    sub-variable (the (feature, instance) column), the
+    code -> count over the corpus positions. Feed it the corpus
+    in chunks (the play-path batch harvests: the (mover, opp)
+    arrays).
+
+    Each sub-variable is ONE design-index column: the code is a
+    single uint32 in [0, n_conf) (no packing, no overflow — the
+    2X5COR^8 structured-key concern is the feature-level / the
+    joint statistics, not the per-column marginal).
+
+    The split (the design's "bincount / unique-merge"):
+      - n_conf <= _DENSE_THRESHOLD: the DENSE bincount over
+        [0, n_conf) (all the A2050 sub-variables, max 59049).
+      - n_conf > _DENSE_THRESHOLD: the UNIQUE-MERGE split
+        (np.unique per chunk + the dict merge).
+
+    The accumulator is POOLED over all fed positions (the corpus
+    is a single-ec population — arrested at the model's ec — so
+    there is no per-ec split here).
+    """
+
+    def __init__(self, fset, blocks):
+        """
+        Args:
+          fset:    the FeatureSet (the compute_indexes
+                    provider).
+          blocks:  the per-feature (name, col_start, col_end,
+                    n_conf, n_inst) over the non-intercept
+                    features (the fset.feature_blocks). Each
+                    feature expands to n_inst sub-variables (one
+                    per instance column).
+        """
+        self.fset = fset
+        self.blocks = blocks
+        # Expand the feature blocks into the per-instance sub-
+        # variables: (name, instance_idx, col, n_conf).
+        self.subvars: list = []
+        for (name, c0, c1, n_conf, n_inst) in blocks:
+            for i in range(n_inst):
+                self.subvars.append((name, i, c0 + i, n_conf))
+        self._dense: list = []
+        self._sparse: list = []
+        for (name, i, col, n_conf) in self.subvars:
+            if n_conf <= _DENSE_THRESHOLD:
+                self._dense.append(np.zeros(n_conf, dtype=np.int64))
+                self._sparse.append(None)
+            else:
+                self._dense.append(None)
+                self._sparse.append({})
+        self.n_positions: int = 0
+
+    def add(self, mover: np.ndarray, opp: np.ndarray) -> None:
+        """
+        Accumulate one chunk of corpus positions (the (mover,
+        opp) u64 arrays, one row per position).
+        """
+        n = int(mover.shape[0])
+        if n == 0:
+            return
+        idx = self.fset.compute_indexes(_to_positions(mover, opp))
+        for sidx, (name, i, col, n_conf) in enumerate(self.subvars):
+            codes = idx[:, col]
+            if self._dense[sidx] is not None:
+                self._dense[sidx] += np.bincount(
+                    codes.astype(np.intp), minlength=n_conf)
+            else:
+                u, cnt = np.unique(codes, return_counts=True)
+                d = self._sparse[sidx]
+                for k, c in zip(u.tolist(), cnt):
+                    d[k] = d.get(k, 0) + int(c)
+        self.n_positions += n
+
+    def result(self):
+        """
+        The per-sub-variable marginal: a list (over sub-
+        variables, in the expanded block order) of
+        (name, instance_idx, n_conf, codes, counts) — the
+        OBSERVED codes (the non-zero support) as uint32, the
+        counts as int64. len(codes) is the K_obs of the sub-
+        variable; the never-observed count is n_conf - K_obs.
+        """
+        out = []
+        for sidx, (name, i, col, n_conf) in enumerate(self.subvars):
+            if self._dense[sidx] is not None:
+                cnt = self._dense[sidx]
+                nz = cnt > 0
+                codes = np.nonzero(nz)[0].astype(np.uint32)
+                out.append((name, i, n_conf, codes,
+                            cnt[nz].astype(np.int64)))
+            else:
+                items = sorted(self._sparse[sidx].items())
+                codes = np.array([k for k, _ in items],
+                                 dtype=np.uint32)
+                c = np.array([v for _, v in items], dtype=np.int64)
+                out.append((name, i, n_conf, codes, c))
+        return out
+
+
+class _JointAccumulator:
+    """
+    The streaming joint frequency accumulator:
+    per REQUESTED su pair (F_i, F_j) and per (instance_i,
+    instance_j) in the pair, the (code_i, code_j) -> count over
+    the corpus — the instance×instance level (the joint
+    matrix). The
+    joint is SPARSE (the code_i x code_j space is too large for
+    the dense — the unique-merge split). The key is the packed
+    u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale
+    (the max is 59049^2 << 2^64); the result unpacks the
+    (code_i, code_j).
+
+    The same-feature pair (F, F) is allowed: the diagonal (the
+    variable with itself) is the SU = 1 lock (OMITTED); the
+    off-diagonal (the D8 orientations of the
+    same mask) is the anisotropy measure.
+    """
+
+    def __init__(self, fset, blocks, su_pairs):
+        """
+        Args:
+          fset:     the FeatureSet (the compute_indexes
+                    provider).
+          blocks:   the per-feature (name, col_start, col_end,
+                    n_conf, n_inst) over the non-intercept
+                    features (the fset.feature_blocks).
+          su_pairs: the REQUESTED pairs, a list of
+                    (feature_i, feature_j) name tuples (the
+                    canonical form; the same-feature (F, F) is
+                    allowed).
+        """
+        self.fset = fset
+        self.blocks = blocks
+        self._block = {b[0]: b for b in blocks}
+        self.pairs = list(su_pairs)
+        # Per pair: { (inst_i, inst_j): dict[packed_key -> count] }
+        # + the per-pair meta (ni, nj, block_i, block_j).
+        self.joints: list = []
+        self._meta: list = []
+        for (ni, nj) in self.pairs:
+            bi = self._block[ni]
+            bj = self._block[nj]
+            d = {}
+            for ii in range(bi[4]):
+                for jj in range(bj[4]):
+                    d[(ii, jj)] = {}
+            self.joints.append(d)
+            self._meta.append((ni, nj, bi, bj))
+        self.n_positions: int = 0
+
+    def add(self, mover: np.ndarray, opp: np.ndarray) -> None:
+        """
+        Accumulate one chunk of corpus positions (the (mover,
+        opp) u64 arrays, one row per position).
+        """
+        n = int(mover.shape[0])
+        if n == 0:
+            return
+        idx = self.fset.compute_indexes(_to_positions(mover, opp))
+        for pi, (ni, nj, bi, bj) in enumerate(self._meta):
+            ncj = np.uint64(bj[3])
+            for ii in range(bi[4]):
+                for jj in range(bj[4]):
+                    ci = idx[:, bi[1] + ii].astype(np.uint64)
+                    cj = idx[:, bj[1] + jj].astype(np.uint64)
+                    key = ci * ncj + cj
+                    u, cnt = np.unique(key, return_counts=True)
+                    jd = self.joints[pi][(ii, jj)]
+                    for k, c in zip(u.tolist(), cnt):
+                        jd[k] = jd.get(k, 0) + int(c)
+        self.n_positions += n
+
+    def result(self):
+        """
+        The per-pair joint: a list (over pairs, in pair order)
+        of (name_i, name_j, per_instance) — per_instance a dict
+        { (inst_i, inst_j): (codes_i, codes_j, counts) } the
+        OBSERVED joint (the non-zero support), the codes
+        unpacked as uint32, the counts as int64.
+        """
+        out = []
+        for pi, (ni, nj, bi, bj) in enumerate(self._meta):
+            ncj = bj[3]
+            pd = {}
+            for (ii, jj) in self.joints[pi]:
+                items = sorted(self.joints[pi][(ii, jj)].items())
+                codes_i = np.array([k // ncj for k, _ in items],
+                                   dtype=np.uint32)
+                codes_j = np.array([k % ncj for k, _ in items],
+                                   dtype=np.uint32)
+                cnt = np.array([c for _, c in items], dtype=np.int64)
+                pd[(ii, jj)] = (codes_i, codes_j, cnt)
+            out.append((ni, nj, pd))
+        return out
+
+
 def _signature(ctx) -> dict:
     """The cache consistency signature (INTERNAL — it feeds the
     compute + the is_cache_consistent, D-290): the feature_set
@@ -191,8 +423,8 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     prng = MT19937(corpus.seed)
     igp = initial_game_position()
     m0, o0 = int(igp['mover']), int(igp['opponent'])
-    marg = MarginalAccumulator(fset, blocks)
-    joint = JointAccumulator(fset, blocks, cfg_fa.su_pairs) \
+    marg = _MarginalAccumulator(fset, blocks)
+    joint = _JointAccumulator(fset, blocks, cfg_fa.su_pairs) \
         if cfg_fa.su_pairs else None
     harvested = waves = dead = 0
     while harvested < total:

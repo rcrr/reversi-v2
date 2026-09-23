@@ -46,10 +46,6 @@ MODULES=(
     # 4 — the pipeline, machine order 1-16 (each data module
     #     immediately before its worker; the 17-level end-to-end
     #     chain — including SAVE + CLIENT_CHECK + PLOT — last)
-    # test_hlp_random_play: the T12-level data module (the worker
-    # lands in T12; the ODP-9 pick table + the single-game loop
-    # land here at T4)
-    test.reversi.lm.test_hlp_random_play
     test.reversi.lm.test_hlp_config_schemas
     test.reversi.lm.test_wrk_config
     test.reversi.lm.test_wrk_features
@@ -59,7 +55,9 @@ MODULES=(
     test.reversi.lm.test_hlp_feature_analysis
     # test_hlp_su_analysis: the SU analysis LOGIC (D-289: the
     # signature, the binio I/O D-288, the compute determinism, the
-    # theoretical space D-278/279, the SU groups, the report/CSV)
+    # theoretical space D-278/279, the SU groups, the report/CSV) +
+    # the frequency accumulators (the D-295 test_hlp_random_play
+    # migration: the marginal / the joint + the PRNG integration)
     test.reversi.lm.test_hlp_su_analysis
     # test_wrk_su_analysis: the SU_ANALYSIS worker
     # (the I-017 T16; the SU-analysis corpus cache + the phase-2

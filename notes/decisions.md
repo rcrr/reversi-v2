@@ -2557,3 +2557,40 @@ D-294 | 2026-09-22 | The report cosmetic pass FOLLOW-UP (Roberto):
           before the move). VERIFICATION: the hlp suite 13/0/0 green,
           the full suite (fast tier) 949/0/97 GREEN, the
           verify_su_analysis probe (44 checks) green.
+D-295 | 2026-09-22 | hlp_random_play is RETIRED (Roberto, the wrk_su_analysis
+          restructure continues): the two accumulators move to
+          hlp_su_analysis, the two position utilities are dropped as
+          board duplicates. (1) Accumulators: MarginalAccumulator +
+          JointAccumulator (with the _to_positions + _DENSE_THRESHOLD
+          privates) move into hlp_su_analysis, renamed PRIVATE
+          _MarginalAccumulator / _JointAccumulator (the D-290 __all__
+          policy: the only src consumer is hlp_su_analysis itself —
+          the tests / the probe reach the names directly, the
+          _signature precedent). hlp_su_analysis is now the sole home
+          of the phase-1 frequency data plane. (2) Utilities: ec_of
+          and initial_position had NO src consumer (only the test
+          suite + the verify_su_analysis probe) and are BYTE-IDENTICAL
+          to board.position_empty_count (64 - popcount(mover|opponent)
+          = the empty-square count) and board.initial_game_position
+          (the same E4+D5 / D4+E5 hex — the D-211 canonical source);
+          both are dropped, the probe's B2 cross-check now uses
+          position_empty_count. (3) Tests: test_hlp_random_play
+          DELETED; TestMarginalAccumulator (3) + TestJointAccumulator
+          (3) + TestPrngIntegration (2) MIGRATED to test_hlp_su_analysis
+          (13 -> 21 tests, the _corpus helper travels); TestInitialPosition
+          + TestEcPin DROPPED (not migrated) — they pin BOARD functions,
+          already pinned by test_board (the initial position + its
+          golden, the position_empty_count scalar / array / cross-check);
+          the 60 / 40 values on the hand-crafted positions are accepted
+          lost (the formula is covered on both sides; test_board
+          untouched). (4) Probe: verify_su_analysis migrated (the
+          accumulators via hlp._*, position_empty_count for the B2
+          cross-check; the check count stays 44). (5) Docs: the 2
+          mirrors deleted; the hlp_su_analysis / test mirrors gain the
+          accumulators; hlp_feature_analysis + random_game + the board
+          consumer list reworded. VERIFICATION: the full suite (fast
+          tier) 947/0/97 GREEN (949 - 10 deleted + 8 migrated),
+          test_hlp_su_analysis 21/0/0, the worker suite VLONG 10/0/0
+          (the 1e7 corpus), the verify_su_analysis probe (44 checks)
+          green, the docs audit 92 mirrors with the 6 pre-existing
+          findings only.

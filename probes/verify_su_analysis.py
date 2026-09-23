@@ -4,7 +4,8 @@
 #
 # Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-186/D-258):
 # the worker (src/reversi/lm/wrk_su_analysis.py) + its frequency data
-# plane (hlp_random_play) + the shared kernels it calls
+# plane (hlp_su_analysis, the accumulators — the D-295 hlp_random_play
+# retirement) + the shared kernels it calls
 # (hlp_feature_analysis). The worker's corpus engine is the
 # random_game play-path (the su-corpus-3 lineage); the tier-B corpus
 # is the same engine (D-285 — the hlp_wave wave engine is retired).
@@ -84,7 +85,7 @@ def ws_lines(path):
 
 def positions_of(mover, opp):
     """The PositionArray (the structured dtype) from the raw arrays —
-    the probe's own build, not hlp_random_play._to_positions."""
+    the probe's own build, not hlp_su_analysis._to_positions."""
     pa = np.empty(mover.shape[0], dtype=np.dtype([('mover', np.uint64),
                                                   ('opponent', np.uint64)]))
     pa['mover'] = mover
@@ -162,9 +163,8 @@ check("A8  the rarity thresholds (the rlm_00 fixture JSON, the "
       == [1, 2, 5, 10, 100])
 
 from reversi.lm.logistic_model import LogisticModel  # noqa: E402
-from reversi.lm.hlp_random_play import (JointAccumulator,  # noqa: E402
-                                        MarginalAccumulator, ec_of)
-from reversi.board import initial_game_position  # noqa: E402
+from reversi.board import (initial_game_position,  # noqa: E402
+                           position_empty_count)
 from reversi.random_game import random_game_play_path  # noqa: E402
 from reversi.tools.prng import MT19937  # noqa: E402
 from reversi.tools.state_machine import Verbosity  # noqa: E402
@@ -217,17 +217,19 @@ check("B1  the corpus: the harvested count is the requested total",
 
 # The ec arrest: every harvested position sits at the config's ec,
 # recomputed from the bitboards (64 - the occupied popcount) — the
-# corpus-level form of the ec pin (the test pins ec_of on one position).
+# corpus-level form of the ec pin (board.position_empty_count is the
+# per-position cross-check, the D-295 replacement of ec_of).
 occupied = np.bitwise_or(mover, opp)
 ec_indep = 64 - np.array([int(x).bit_count() for x in occupied])
 check("B2  every harvested position has ec 20 (the arrest rule, the "
       "independent 64 - popcount)",
       bool((ec_indep == EC).all())
-      and all(ec_of(p) == EC for p in positions_of(mover, opp)))
+      and all(position_empty_count(p) == EC
+              for p in positions_of(mover, opp)))
 
 # The marginal: the streaming accumulator vs the FeatureSet's OWN batch
 # index path (one shot, no chunking, no dense/sparse split).
-marg = MarginalAccumulator(fset, blocks)
+marg = hlp._MarginalAccumulator(fset, blocks)
 marg.add(mover, opp)
 marginal = marg.result()
 idx = fset.compute_indexes(positions_of(mover, opp))
@@ -251,7 +253,7 @@ check("B4  one count per position per sub-variable (every total is N)",
 # The joint: the packed-u64 numpy unique-merge vs a pure-python Counter
 # over the same codes (a different construction of the same table).
 PAIR = ("LMC", "EDGE")
-joints = JointAccumulator(fset, blocks, [PAIR])
+joints = hlp._JointAccumulator(fset, blocks, [PAIR])
 joints.add(mover, opp)
 jres = joints.result()
 check("B5  the joint result shape: one entry per requested pair",
@@ -302,7 +304,7 @@ check("B7  the SU values == the ratio-form MI + the pure-python "
 # endpoint order, sorted by the SU value descending (the strongest
 # correlation first).
 SELF = ("EDGE", "EDGE")
-selfj = JointAccumulator(fset, blocks, [SELF])
+selfj = hlp._JointAccumulator(fset, blocks, [SELF])
 selfj.add(mover, opp)
 selfres = selfj.result()
 selfsu = hlp._su_values(selfres, marg_lookup)

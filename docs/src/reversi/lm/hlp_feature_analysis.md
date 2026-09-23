@@ -1,6 +1,6 @@
 # reversi/lm/hlp_feature_analysis.py
 The SHARED analysis-kernels data module: the kernels over the frequency tables (the marginal / the joint counts from the
-hlp_random_play accumulators). The name says the FAMILY (the analysis of the features) because TWO levels use it — the
+hlp_su_analysis accumulators). The name says the FAMILY (the analysis of the features) because TWO levels use it — the
 SU_ANALYSIS level (the SU / entropy / mutual-information + the dispersion / the never-observed audit, the step 3 worker)
 and the EFFECT_SIZE level (the ANOVA + the adherence, the step 6 worker). The full kernel set is complete. Pure math
 from the frequency tables — NO DB, NO positions. The SU_ANALYSIS worker calls the phase-2 kernels on the accumulator
@@ -46,7 +46,7 @@ output (the recompute, cheap, on every run).
 ## Architecture
 - The SU is computed from the IDEAL (synthetic) frequencies: a structural property of the game geometry + the feature
   set, free of the DB sample noise (the design section 3.3 phase 2). The marginal / the joint come from the
-  hlp_random_play accumulators; this module is the from-frequency-tables math only.
+  hlp_su_analysis accumulators; this module is the from-frequency-tables math only.
 - The MI identity I = H(u) + H(v) - H(u, v) (vs the ratio form p(u,v) log(p(u,v)/(p(u)p(v)))): the 0/0 of the ratio (the
   cell with p(u,v) = 0, or p(u) = 0) is avoided; the joint entropy is the entropy of the joint counts (the observed
   cells). The clamp to >= 0 guards the floating-point rounding.
@@ -79,7 +79,7 @@ output (the recompute, cheap, on every run).
 - The 0-log-0 convention (the standard entropy / KL / TV convention) throughout.
 
 ## Integration
-- Consumes the hlp_random_play accumulators' output (the marginal / the joint counts, the SU_ANALYSIS phase 1) and the
+- Consumes the hlp_su_analysis accumulators' output (the marginal / the joint counts, the SU_ANALYSIS phase 1) and the
   tagged data of the EFFECT_SIZE level (the `ctx.hlp_indexes.indexes` raw codes + the `ctx.game_values`).
 - The consumers: the SU_ANALYSIS worker (wrk_su_analysis.py — the phase-2 recompute on every run, the cache hit
   included, + the reports) and the EFFECT_SIZE worker (wrk_effect_size.py — the ANOVA on the tagged data + the adherence

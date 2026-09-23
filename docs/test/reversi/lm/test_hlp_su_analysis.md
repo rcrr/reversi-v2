@@ -4,14 +4,18 @@ recomposed FeatureSet DOMAIN hash, D-291, the spec + the canonical pairs), the b
 joint), the load guards (the
 sidecar / the description / the version), the compute determinism (the seed pin), the theoretical configuration
 space (D-278/279), the SU groups (the dedup + the canonical sort), the diagonal omission, the report + the
-optional CSV, the rarity bins (the config-driven Section B, D-292), and the cache consistency. 1 class / 13 tests
-/ no database.
+optional CSV, the rarity bins (the config-driven Section B, D-292), and the cache consistency. D-295: the
+streaming frequency accumulators (the marginal / the joint micro-suite + the PRNG integration) moved here
+from the retired test_hlp_random_play. 4 classes / 21 tests / no database.
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
 | `TestHlpSuAnalysis` | 13 | `test_signature` (the feature_set hash == the FeatureSet domain hash, independently recomposed from the child-set hashes (the INTERCEPT marker + the mset / pset hashes, D-291) + the spec fields + the pairs in the config's canonical sorted order); `test_binio_round_trip_joint` (the store -> load identity: the signature, the marginal arrays, the joint per-instance dict); `test_binio_round_trip_no_joint` (the joint None -> the presence flag -> None); `test_load_guards` (the corrupted sidecar / the wrong description / the wrong version -> RuntimeError, the manager's R2 path); `test_compute_determinism` (the same seed -> the identical marginal; a different seed -> a different one); `test_theoretical_configs` (the independent re-derivation over the fset's own attributes + the PATTERN -> n_unique_configs / the MOBILITY -> n_configurations + the INTERCEPT excluded); `test_su_groups_dedup_sort` (the (i, j) / (j, i) dedup, the canonical endpoint order, the groups in the configured order); `test_su_values_diagonal_omitted` (the same-feature diagonal (ii == jj) is omitted, the SU = 1 lock); `test_statistics_report` (the Section A + the Section B rarity (the fixture carries the thresholds) + the Section C, the header lines, the CSV OFF by default); `test_rarity_bins` (the half-open bins [0, t1), ..., [tk, inf) — the first bin the zero-frequency codes — independently recomputed, the report lines asserted verbatim, the D-293 alignment included); `test_rarity_empty_off` (the empty list -> no Section B, the SU pairs always Section C); `test_export_csv` (the export_csv flag -> the marginal + the su rows); `test_is_cache_consistent` (the same spec -> True; the seed change -> False) |
+| `TestMarginalAccumulator` | 3 | (the D-295 migration; the toy corpus, a 300-game play-path corpus at ec 20, the toy FeatureSet = the intercept + the LMC + the R2) `test_lmc_hand_counted` (the single-instance dense bincount vs the INDEPENDENT oracle position_legal_moves — NOT compute_indexes); `test_pattern_cross_check` (the R2 inst0 vs an independent per-position dict via compute_indexes); `test_chunk_merge` (one chunk == two half-chunks) |
+| `TestJointAccumulator` | 3 | (the D-295 migration; the same toy corpus, a 200-game play-path corpus) `test_cross_feature_joint` (the (LMC, R2) 4 instance-pairs, each joint vs the independent per-position oracle); `test_same_feature_diagonal` (the (R2, R2) 16 instance-pairs, the diagonal ZERO off-diagonal — the SU = 1 lock); `test_chunk_merge` (one chunk == two half-chunks) |
+| `TestPrngIntegration` | 2 | (the D-295 migration; the play-path corpus -> the accumulator, the 2-feature toy set) `test_corpus_reproducibility` (same seed -> the SAME frequency tables bit-exact, the different seed -> different); `test_small_end_to_end_marginals` (every sub-variable sum == N, K_obs <= n_conf, the LMC marginal vs the INDEPENDENT oracle position_legal_moves) |
 
 ## Goldens pinned
 
@@ -28,6 +32,11 @@ optional CSV, the rarity bins (the config-driven Section B, D-292), and the cach
 - The theoretical space (D-278/279): the PATTERN's n_unique_configs (the orbit representatives), the MOBILITY's
   n_configurations.
 - The SU semantics: the symmetric dedup, the canonical endpoint order, the diagonal omission.
+- The accumulators (the D-295 migration): the toy FeatureSet (the `_toy_fset()` = the intercept + the LMC (the
+  legal-move count as the code) + the R2 (the 8-square mask, the 4 D8 instances, n_conf 6561)); the
+  `_toy_blocks()` mirrors the pipeline's column layout; the `_corpus()` the small play-path corpus (the
+  random_game engine, D-285); the INDEPENDENT oracles (the LMC via position_legal_moves, NOT
+  compute_indexes; the R2 / the joints via the manual per-position dict over compute_indexes).
 
 ## Conventions
 
@@ -38,10 +47,14 @@ optional CSV, the rarity bins (the config-driven Section B, D-292), and the cach
   LONG tier).
 - The `tempfile.TemporaryDirectory` per test (the cache files + the report + the CSV land in a tmp dir, the
   tearDown cleans up).
+- The migrated micro-suites reuse the toy FeatureSet / the toy blocks / the toy corpus helpers (the
+  TestMarginalAccumulator static methods, shared by the joint + the integration classes) — the small, no-DB,
+  hand-checkable infrastructure (the D-295 migration).
 
 ## Integration
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 hlp position: right before the
   test_wrk_su_analysis worker suite).
-- The hlp under test: reversi.lm.hlp_su_analysis (the 6 public functions + the private kernels); the companion is
-  test_wrk_su_analysis (the worker orchestration, the 1e7 VLONG).
+- The hlp under test: reversi.lm.hlp_su_analysis (the 5 flow functions + the private kernels — the signature,
+  the binio readers/writers, the D-295 accumulators, the SU kernels); the companion is test_wrk_su_analysis
+  (the worker orchestration, the 1e7 VLONG).
