@@ -128,9 +128,11 @@ check("A9 the worker uses NO cache_manager (ANALYTICS is pure compute — like "
 check("A10 the 4 public data fns take ctx under TYPE_CHECKING and carry NO "
       "@validate_call (the rlm_indexes-L166 class — consistent with "
       "hlp_validate.validate_model; report-only pin; D-105/M2 added "
-      "compute_training_dense_metrics)",
+      "compute_training_dense_metrics; the SU sample columns added the "
+      "3 private helpers (10 defs) + the INTERCEPT section helper "
+      "(11 defs)",
       dv_src.count("@validate_call") == 0
-      and dv_src.count('def ') == 7
+      and dv_src.count('def ') == 11
       and "if TYPE_CHECKING:" in dv_src)
 check("A11 a test file exists for the worker (pre-campaign: absent — T5)",
       (WS / "test" / "reversi" / "lm" / "test_wrk_analytics.py").exists())

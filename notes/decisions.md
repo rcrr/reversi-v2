@@ -3054,4 +3054,135 @@ D-306 | 2026-09-23 | the de-history docstrings: the WHAT contract only (no D-XXX
           order only — corrected). Runtime-inert (the docstrings):
           the fast suite 948/0/97 + the probes 0 mismatch confirm
           the structure; the mirror docs untouched (the D-pointers
-          are the mirror's job, the docs_rules §3.2).
+          are the mirror's job, the docs_rules §3.2).D-307 | 2026-09-24 | the ANALYTICS report: the PROBABILITY / SU_PROBABILITY columns + the "SU Sample Consistency" verdict line
+                    Roberto's request: in the per-feature tables of
+          the           model_analytics_report.txt — (a) the
+          configuration FREQUENCY as a % (the PROBABILITY), (b)
+          the FREQUENCY % as observed in the SU_ANALYSIS corpus,
+          (c) below the Eta-Squared line an OBJECTIVE measure
+          (his: "chi_2 ???") saying whether the training sample is
+          a consistent population vs the SU-observed one. Rules:
+          SU_ANALYSIS skipped -> neither the columns nor the line;
+          SU corpus too small -> a header note (the threshold:
+          Roberto's call). THE DESIGN: (1) THE COLUMNS — both are
+          (position, instance) OBSERVATION shares (Roberto's
+          confirmation: the instances are summed, exactly what the
+          logistic model does): PROBABILITY = the row frequency /
+          the table's total frequency; SU_PROBABILITY = the pooled
+          corpus count of the configuration / the corpus
+          observation total — the marginal of
+          ctx.su_analysis_tables SUMMED over the feature's
+          instance columns (the marginal is per sub-variable, the
+          table row is per feature configuration: the pooling is
+          the only mapping that keeps the two columns directly
+          comparable). Inserted after FREQUENCY; the separator
+          widens only when present (the pattern table 135 -> 146);
+          SU disabled -> the table is BYTE-IDENTICAL to the
+          pre-D-307 layout (the rlm_01 / rlm_02 report goldens
+          survived untouched). (2) THE CONSISTENCY LINE — the
+          pooled adherence (the hlp_feature_analysis kernel, the
+          single source, the D-298 split) of the pooled training
+          distribution (the hlp_indexes over the feature's
+          columns) vs the pooled corpus distribution: the line
+          shows the TV (the robust "how different" number) + the
+          chi-square (the statistic, the p, the merged-tail
+          count) + the VERDICT over the TV bands: TV <= 0.01
+          CONSISTENT, TV <= 0.05 MARGINAL, above DEVIATING. WHY
+          TV CARRIES THE VERDICT AND NOT THE CHI-SQUARE P: with
+          k up to 6561 categories and N in the hundreds of
+          thousands the chi-square p is HYPER-SENSITIVE (any
+          0.1% deviation drives p to 0 — statistically correct,
+          pragmatically always "inconsistent"); the TV is bounded
+          0..1, no log, no 0/0. The chi-square stays in the line
+          as the reference (and the inf case is INFORMATION: the
+          DB observes a code the corpus never shows — the
+          kernel's disjoint-support rule). The two TV bands are
+          UNCALIBRATED by design — the first production run
+          (A2050, the 1e7 corpus vs the real DB) shows where
+          reality sits; they are module constants, tunable
+          without a format change. (3) THE TOO-SMALL RULE
+          (Roberto's choice, supplanting the proposed absolute
+          1e5 floor): the corpus total_positions < 2x the
+          training size -> no columns + the header line "N/A (SU
+          corpus too small: N < 2x training M)". Rationale: the
+          corpus must hold at least twice the training to be a
+          meaningful reference distribution for it (a corpus
+          smaller than the sample it is being compared against
+          cannot serve as the "ideal"). (4) THE DEPENDENCY
+          CHOICE: ANALYTICS computes the statistics ITSELF from
+          ctx.su_analysis_tables + the indexes (one bincount +
+          one adherence() call per feature — negligible) instead
+          of reusing the EFFECT_SIZE output: EFFECT_SIZE is
+          OPTIONAL (default FALSE) and the columns are tied to
+          SU_ANALYSIS, not to EFFECT_SIZE; the granularity
+          differs (the pooled per-feature vs the per-sub-variable
+          adherence); the kernel is shared, so the math is the
+          single source. VERIFICATION: the NO-DB mock-ctx suite
+          (6 tests over the real rlm_00 campaign stopped at
+          FEATURES, the D-287 idiom, the synthetic 2-code
+          concentrated 100-position data — the hand-computed
+          goldens: the TV 0.0 / 0.03 / 0.5 trio, the chi2
+          0.0 / 0.3613 / inf, the p 1.0 / 5.48e-01 / 0.0, the
+          verdict counts, the too-small note, the PROBABILITY
+          column summing to 100% within the 3-decimal rounding
+          band); the DB-gated end-to-end on rlm_00 (the REAL
+          10,000-position corpus vs the 200 training positions:
+          the 5 consistency lines re-derived in the test from
+          the ctx and asserted in the report — the live LMC line
+          "TV 0.0827 chi2 14.5 (p 1.53e-01, merged 11) ->
+          DEVIATING", the EDGE line "TV 0.5226 chi2 inf (p
+          0.00e+00, merged 2347) -> DEVIATING": the 200-position
+          training deviates from the random-play baseline, as
+          expected — the verdict measures the training's
+          polarization toward real play, not a model defect);
+          the fast suite 955/0 + the LONG=1 suite 955/0 (24
+          skipped); verify_analytics 0 mismatch (the A10 def
+          count pin 7 -> 10, the 3 new private helpers); the
+          rlm_01 / rlm_02 date-masked report goldens UNCHANGED
+          (the SU-off byte-identity, the design property).
+D-308 | 2026-09-24 | the ANALYTICS report: the INTERCEPT section (the single trained bias weight)
+          Roberto's request: the model_analytics_report.txt never
+          prints the INTERCEPT value. If present, a section for it,
+          before the MOBILITY FEATURES DETAILS. Detailed analysis to
+          evaluate together; then his decisions: (1) the compact
+          key-value block (option A), (2) a SINGLE Weight line only
+          — the Dense Weight / Status / Frequency / AVERAGE_GV are
+          pleonastic, (3) 4 decimals, (4) the plain title
+          "INTERCEPT" (not "INTERCEPT DETAILS").
+          Analysis: the intercept is a category-0 feature
+          (fset.intercept, Feature | None) skipped by the MOBILITY
+          (category 1) / PATTERN (category 2) table loops, so its
+          trained weight appeared nowhere in the report (it was
+          counted in the header's Total Parameters (W) / Dense
+          Parameters (K) but never shown). The value is
+          ctx.w[iwmap[iwmap_feature_offset[fid]]] (the single
+          trained bias). A separate dense line is redundant (it
+          matches the compressed weight except where f32
+          quantization bites — already the header's Substitution
+          Delta); Status is always C and Frequency = the total
+          sample count (the header's train_samples); the
+          AVERAGE_GV is the global y-mean (the header's population
+          baseline). Hence the single-line call. The SU columns are
+          degenerate for the intercept (one configuration, always
+          100%) and are omitted. The section is emitted only when
+          fset.intercept is not None (the existing feature.py API —
+          no new surface), placed between the FEATURE SET SUMMARY
+          and the MOBILITY details.
+          VERIFICATION: 2 new NO-DB branch tests (the mock rlm_00
+          ctx — the "INTERCEPT:" section before the MOBILITY
+          details + the single Weight line re-derived from the ctx;
+          and fset.intercept set to None — no section) + the rlm_00
+          end-to-end INTERCEPT pin + the rlm_02 no-intercept pin.
+          The affected report goldens (date + config hex masked):
+          rlm_01 15c71c7e... -> 384d8327... (rlm_01 HAS an
+          intercept); the full-chain A2030 rlm_04 a9642167... ->
+          c3522d10... (rlm_04 HAS an intercept); the full-chain
+          A2050 rlm_03 (the VLONG-gated ~90-s production run)
+          695c151b... -> 8b2ed520... (rlm_03 HAS an intercept).
+          rlm_02 (no intercept) UNCHANGED at 3b4a5beb...
+          (byte-identical, the design property) and the
+          verify_analytics probe (rlm_02-based) UNCHANGED. The
+          fast suite 957/0 + the LONG=1 suite 957/0 (24 skipped,
+          A2050 VLONG-gated); verify_analytics 0 mismatch (the A10
+          def count pin 10 -> 11, the new
+          _format_intercept_section helper).

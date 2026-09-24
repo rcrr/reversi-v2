@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import io
+import math
 import numpy as np
 
 from dataclasses import dataclass
@@ -35,6 +36,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
+from reversi.lm.hlp_feature_analysis import adherence
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
@@ -47,10 +49,100 @@ __all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_
            'format_console_report', 'format_file_report']
 
 
+#: The SU sample consistency verdict bands (the TV thresholds):
+#: TV <= _SU_TV_CONSISTENT is CONSISTENT, TV <= _SU_TV_MARGINAL is
+#: MARGINAL, above is DEVIATING.
+_SU_TV_CONSISTENT = 0.01
+_SU_TV_MARGINAL = 0.05
+
+#: The "too small" rule: the SU corpus (total_positions) must hold
+#: at least this multiple of the training size, else the
+#: PROBABILITY / SU_PROBABILITY columns are skipped and the
+#: header carries the note.
+_SU_CORPUS_TRAIN_RATIO = 2
+
+
+def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
+    """
+    The SU sample statistics for one feature's table: None when the
+    SU_ANALYSIS level was disabled (the ctx.su_analysis_tables None);
+    a mode-'too_small' record when the corpus holds fewer than
+    2x the training positions; otherwise the pooled corpus counts
+    (the marginal summed over the feature's instance columns), the
+    corpus observation total, and the adherence of the pooled
+    training distribution vs the pooled corpus distribution (the
+    chi-square goodness-of-fit + the TV / KL, the
+    hlp_feature_analysis kernel).
+    """
+    tables = ctx.su_analysis_tables
+    if tables is None:
+        return None
+    n_train = int(len(ctx.game_values))
+    total = int(tables['signature']['total_positions'])
+    if total < _SU_CORPUS_TRAIN_RATIO * n_train:
+        return {'mode': 'too_small', 'corpus': total, 'train': n_train}
+    pooled: Dict[int, int] = {}
+    for (name, _i, _nc, codes, counts) in tables['marginal']:
+        if name != feature.name:
+            continue
+        for code, cnt in zip(codes.tolist(), counts.tolist()):
+            pooled[int(code)] = pooled.get(int(code), 0) + int(cnt)
+    cols = slice(indexes_col_offset, indexes_col_offset + feature.n_instances)
+    flat = ctx.hlp_indexes.indexes[:, cols].ravel()
+    uniq, cnt = np.unique(flat, return_counts=True)
+    db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
+    return {'mode': 'ok', 'pooled': pooled,
+            'corpus_total': int(sum(pooled.values())),
+            'adh': adherence(db_counts, pooled)}
+
+
+def _su_verdict(tv: float) -> str:
+    """
+    The SU sample consistency verdict over the TV bands:
+    CONSISTENT (TV <= 0.01), MARGINAL (TV <= 0.05), DEVIATING
+    (above).
+    """
+    if tv <= _SU_TV_CONSISTENT:
+        return 'CONSISTENT'
+    if tv <= _SU_TV_MARGINAL:
+        return 'MARGINAL'
+    return 'DEVIATING'
+
+
+def _su_header_line(stats) -> str | None:
+    """
+    The 'SU Sample Consistency' header line for one feature table:
+    None when the SU_ANALYSIS level was disabled; the N/A (too
+    small) note when the corpus is under 2x the training size;
+    otherwise the TV + the chi-square (the p-value + the
+    merged-tail count) + the verdict.
+    """
+    if stats is None:
+        return None
+    if stats['mode'] == 'too_small':
+        return (f"  SU Sample Consistency       : N/A (SU corpus too small: "
+                f"{stats['corpus']:,} < 2x training {stats['train']:,})\n")
+    a = stats['adh']
+    tv = a['tv']
+    if math.isnan(tv):
+        return "  SU Sample Consistency       : N/A (degenerate)\n"
+    chi2 = a['chi2']
+    chi2_str = "inf" if math.isinf(chi2) else f"{chi2:.1f}"
+    p = a['p']
+    p_str = "nan" if math.isnan(p) else f"{p:.2e}"
+    return (f"  SU Sample Consistency       : TV {tv:.4f}  chi2 {chi2_str} "
+            f"(p {p_str}, merged {a['merged']})  ->  {_su_verdict(tv)}\n")
+
 
 def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
     Generates a detailed ASCII table for a specific mobility feature.
+    When the SU_ANALYSIS level ran with a corpus of at least 2x the
+    training size, the table gains the PROBABILITY / SU_PROBABILITY
+    columns (after FREQUENCY) and the header gains the 'SU Sample
+    Consistency' line (under the Eta-Squared line); when the level
+    was disabled the table is unchanged, and an under-sized corpus
+    swaps the columns for the N/A header note.
     """
     feature = ctx.feature_set.features[fid]
     n_configurations = feature.n_configurations
@@ -113,19 +205,38 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         else:
             count_ia += 1
 
+    # The SU sample statistics (None when the SU_ANALYSIS level was
+    # disabled): the per-configuration corpus shares + the pooled
+    # adherence of the training vs the corpus distribution.
+    su_stats = _su_sample_stats(ctx, feature, indexes_col_offset)
+    su_line = _su_header_line(su_stats)
+    su_on = bool(su_stats is not None and su_stats['mode'] == 'ok')
+    total_freq = int(true_freqs.sum()) + fallback_total_freq
+    pooled = su_stats['pooled'] if su_on else {}
+    corpus_total = su_stats['corpus_total'] if su_on else 0
+
     header = (
         f"\nMOBILITY FEATURE: {feature.name} (fid={fid}) {fallback_str}\n"
         f"  Weighted Mean (w)           : {weighted_mean:+.4f}\n"
         f"  Instances / Cols            : {n_instances} {cols}\n"
         f"  Config Counts (C/IA/IC)     : {count_c} / {count_ia} / {count_ic}\n"
         f"  Eta-Squared (Discrimination): {eta_squared:.4f}\n"
-        f"{'-' * 135}\n"
-        f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | {'CONF_IDX':<8} | {'FREQUENCY':>10} | {'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}\n"
-        f"{'-' * 135}\n"
+    )
+    if su_line is not None:
+        header += su_line
+    su_cols_hdr = f" | {'PROBABILITY':>11} | {'SU_PROBABILITY':>14}" if su_on else ""
+    col_header = (f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | "
+                  f"{'CONF_IDX':<8} | {'FREQUENCY':>10}{su_cols_hdr} | "
+                  f"{'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}")
+    sep_w = max(135, len(col_header) + 1) if su_on else 135
+    header += (
+        f"{'-' * sep_w}\n"
+        f"{col_header}\n"
+        f"{'-' * sep_w}\n"
     )
 
     if not print_rows:
-        return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * 135}\n"
+        return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * sep_w}\n"
 
     rows = []
     for conf_id in range(n_configurations):
@@ -162,16 +273,30 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         rmse_gv_str = f"{rmse_gv:>8.2f}" if freq > 0 else f"{'N/A':>8}"
         freq_str = f"{freq:>10,}"
 
+        if su_on:
+            prob = (freq / total_freq) if total_freq > 0 else 0.0
+            su_p = (pooled.get(conf_id, 0) / corpus_total) if corpus_total > 0 else 0.0
+            su_cols = (f" | {f'{100.0 * prob:.3f}%':>11} | "
+                       f"{f'{100.0 * su_p:.3f}%':>14}")
+        else:
+            su_cols = ""
+
         rows.append(
-            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {freq_str} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
+            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
 
-    return header + "".join(rows) + f"{'-' * 135}\n"
+    return header + "".join(rows) + f"{'-' * sep_w}\n"
 
 
 def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
     Generates a detailed ASCII table for a specific pattern feature.
+    When the SU_ANALYSIS level ran with a corpus of at least 2x the
+    training size, the table gains the PROBABILITY / SU_PROBABILITY
+    columns (after FREQUENCY) and the header gains the 'SU Sample
+    Consistency' line (under the Eta-Squared line); when the level
+    was disabled the table is unchanged, and an under-sized corpus
+    swaps the columns for the N/A header note.
     """
     feature = ctx.feature_set.features[fid]
     n_configurations = feature.n_configurations
@@ -250,6 +375,16 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         else:
             count_ab += 1
 
+    # The SU sample statistics (None when the SU_ANALYSIS level was
+    # disabled): the per-configuration corpus shares + the pooled
+    # adherence of the training vs the corpus distribution.
+    su_stats = _su_sample_stats(ctx, feature, indexes_col_offset)
+    su_line = _su_header_line(su_stats)
+    su_on = bool(su_stats is not None and su_stats['mode'] == 'ok')
+    total_freq = int(true_freqs.sum()) + fallback_total_freq
+    pooled = su_stats['pooled'] if su_on else {}
+    corpus_total = su_stats['corpus_total'] if su_on else 0
+
     header = (
         f"\nPATTERN FEATURE: {feature.name} (fid={fid}) {fallback_str}\n"
         f"  Weighted Mean (w)           : {weighted_mean:+.4f}\n"
@@ -258,13 +393,22 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         f"  Instances / Cols            : {n_instances} {cols}\n"
         f"  Config Counts (C/AB/CL)     : {count_c} / {count_ab} / {count_cl}\n"
         f"  Eta-Squared (Discrimination): {eta_squared:.4f}\n"
-        f"{'-' * 135}\n"
-        f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | {'CONF_IDX':<8} | {'PRINCIPAL_IDX':<14} | {'FREQUENCY':>10} | {'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}\n"
-        f"{'-' * 135}\n"
+    )
+    if su_line is not None:
+        header += su_line
+    su_cols_hdr = f" | {'PROBABILITY':>11} | {'SU_PROBABILITY':>14}" if su_on else ""
+    col_header = (f"  {'W_DENSE_IDX':<12} | {'STATUS':<8} | {'W_IDX':<8} | "
+                  f"{'CONF_IDX':<8} | {'PRINCIPAL_IDX':<14} | {'FREQUENCY':>10}"
+                  f"{su_cols_hdr} | {'AVERAGE_GV':>10} | {'RMSE_GV':>8} | {'WEIGHT':>10}")
+    sep_w = max(135, len(col_header) + 1) if su_on else 135
+    header += (
+        f"{'-' * sep_w}\n"
+        f"{col_header}\n"
+        f"{'-' * sep_w}\n"
     )
 
     if not print_rows:
-        return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * 135}\n"
+        return header + f"  (Table rows omitted: feature not in config 'analytics.detailed_report')\n{'-' * sep_w}\n"
 
     rows = []
     for conf_id in range(n_configurations):
@@ -302,11 +446,19 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         rmse_gv_str = f"{rmse_gv:>8.2f}" if freq > 0 else f"{'N/A':>8}"
         freq_str = f"{freq:>10,}"
 
+        if su_on:
+            prob = (freq / total_freq) if total_freq > 0 else 0.0
+            su_p = (pooled.get(conf_id, 0) / corpus_total) if corpus_total > 0 else 0.0
+            su_cols = (f" | {f'{100.0 * prob:.3f}%':>11} | "
+                       f"{f'{100.0 * su_p:.3f}%':>14}")
+        else:
+            su_cols = ""
+
         rows.append(
-            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {principal_idx_str:<14} | {freq_str} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
+            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {principal_idx_str:<14} | {freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
 
-    return header + "".join(rows) + f"{'-' * 135}\n"
+    return header + "".join(rows) + f"{'-' * sep_w}\n"
 
 
 def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
@@ -410,6 +562,30 @@ def format_console_report(ctx: "LMContext") -> str:
     return _format_header(ctx, detailed=False)
 
 
+def _format_intercept_section(ctx: "LMContext") -> str:
+    """
+    Formats the INTERCEPT section: the single trained bias weight,
+    emitted only when the feature set has an intercept
+    (fset.intercept is not None) and placed before the MOBILITY
+    details. One Weight line (4 decimals, the report's weight
+    convention); the intercept is category 0, skipped by the
+    mobility / pattern table loops, so without this section its
+    value would appear nowhere in the report.
+    """
+    intercept = ctx.feature_set.intercept
+    if intercept is None:
+        return ""
+    fid = ctx.feature_set.features.index(intercept)
+    w_idx = int(ctx.iwmap[int(ctx.iwmap_feature_offset[fid])])
+    weight_str = "N/A" if w_idx < 0 else f"{float(ctx.w[w_idx]):+.4f}"
+    return (
+        "INTERCEPT:\n"
+        f"{'-' * 135}\n"
+        f"  {'Weight (w)':<28}: {weight_str}\n"
+        f"{'-' * 135}\n\n"
+    )
+
+
 def format_file_report(ctx: "LMContext") -> str:
     """
     Formats the complete detailed report for TXT file output.
@@ -420,6 +596,10 @@ def format_file_report(ctx: "LMContext") -> str:
     ctx.feature_set.print_summary(output=buffer)
     feature_summary = buffer.getvalue()
     report += f"\nFEATURE SET SUMMARY:\n{'-' * 135}\n{feature_summary}\n"
+
+    # The INTERCEPT section (the trained bias weight) — only when the
+    # feature set has an intercept; it precedes the MOBILITY details.
+    report += _format_intercept_section(ctx)
 
     # ctx.cfg.analytics always exists (the schema's default factory)
     detailed_report_list = ctx.cfg.analytics.detailed_report
