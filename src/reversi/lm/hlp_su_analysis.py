@@ -91,33 +91,35 @@ __all__ = ['SuTables',
 # (the cache consistency signature). The batch is the
 # PARALLELISM: the actual size is min(this, the corpus size),
 # because the lanes beyond the corpus are pure overhead. The
-# D-304: the 2e6-lane wave — the measured cold compute at 1e7
+# D-305: the 3e6-lane wave — the measured cold compute at 1e7
 # (the 28-cell rlm_test_su_00 fixture): 36.3 s at 1e6, 32.7 s at
-# 2e6 (-10%), 31.2 s at 4e6 (-14%: the diminishing returns + the
-# extra ~280 MB peak RAM) — 2e6 is the sweet spot. NOTE: the wave
-# size is part of the generator BEHAVIOUR (the per-step draw batch
-# size shifts the MT19937 stream — the corpora are NOT identical
-# across wave sizes, 100% of the positions differ), so the 1e6 ->
-# 2e6 bump came with the _GENERATOR_VERSION "su-corpus-4".
-_WAVE_SIZE = 2_000_000
+# 2e6, 19.1 s at 3e6 (the 5/5 interleaved pair wins, the medians,
+# the tight 3e6 distribution), 31.2 s at 4e6 (the diminishing
+# returns + the extra ~280 MB peak RAM) — 3e6 is the sweet spot.
+# NOTE: the wave size is part of the generator BEHAVIOUR (the
+# per-step draw batch size shifts the MT19937 stream — the
+# corpora are NOT identical across wave sizes, 100% of the
+# positions differ), so a wave-size bump always comes with the
+# _GENERATOR_VERSION bump (the 2e6 -> 3e6 bump: "su-corpus-5").
+_WAVE_SIZE = 3_000_000
 # The corpus-generator version, part of the cache signature.
-# "su-corpus-4" (the D-304) is the random_game play-path corpus
+# "su-corpus-5" (the D-305) is the random_game play-path corpus
 # (the batch of fresh lanes from the official start, the uniform
-# pick on the injected MT19937) with the 2e6-lane waves — the
+# pick on the injected MT19937) with the 3e6-lane waves — the
 # wave size is part of the generator BEHAVIOUR (the per-step draw
 # batch size shifts the stream: the corpora are NOT identical
-# across wave sizes), so the 1e6 -> 2e6 bump invalidated the
-# "su-corpus-3" lineage. The superseded versions mark the earlier
+# across wave sizes), so the 2e6 -> 3e6 bump invalidated the
+# "su-corpus-4" lineage. The superseded versions mark the earlier
 # engines: the one before "su-corpus-2" marked the corpora
 # generated with the SWAPPED initial position (the mover D4+E5
 # instead of the official E4+D5), "su-corpus-2" the wave-engine
-# corpora, and "su-corpus-3" the 1e6-lane waves — every cache
-# written under a superseded version is STALE and must be
-# regenerated. A version bump invalidates every cached corpus,
-# which is exactly the point: the signature exists so that a
-# change of the generator's behaviour can never be reused
-# silently.
-_GENERATOR_VERSION = "su-corpus-4"
+# corpora, "su-corpus-3" the 1e6-lane waves, and "su-corpus-4"
+# the 2e6-lane waves — every cache written under a superseded
+# version is STALE and must be regenerated. A version bump
+# invalidates every cached corpus, which is exactly the point:
+# the signature exists so that a change of the generator's
+# behaviour can never be reused silently.
+_GENERATOR_VERSION = "su-corpus-5"
 _PRNG_VERSION = "mt19937-64"
 # The cache file format (the binio layout, D-288): the file
 # description + the format VERSION. A format change bumps the version

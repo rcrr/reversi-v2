@@ -37,7 +37,7 @@ test_store_deep_validation: a structurally malformed tables dict is rejected at 
 
 - The signature: the feature_set hash (the FeatureSet DOMAIN hash — the set's unique identifier, recomposed from
   the INTERCEPT marker + the mset / pset hash hex strings, D-291) + the seed 42 / the total_positions / the
-  ec 20 / the generator version "su-corpus-4" / the PRNG version "mt19937-64" + the su_pairs (the config's
+  ec 20 / the generator version "su-corpus-5" / the PRNG version "mt19937-64" + the su_pairs (the config's
   canonical sorted order).
 - The rarity bins (D-292): the half-open [0, t1), [t1, t2), ..., [tk, inf) — the first bin the zero-frequency
   codes (the theoretical space minus the observed support); the fixture's thresholds [1, 2, 5, 10, 100].

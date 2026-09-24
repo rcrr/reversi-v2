@@ -2974,3 +2974,40 @@ D-304 | 2026-09-23 | SU_ANALYSIS throughput: the 2e6-lane wave + the threaded jo
           parallel gen, the expected cold compute ~17-18 s; the
           complexity: the threading + the 2x wave RAM + the determinism
           argument,           parked for a dedicated campaign).
+D-305 | 2026-09-23 | the 3e6-lane wave ("su-corpus-5") + the double-buffer overlap (option C) measured NULL on the 8-core box, REVERTED
+                    TWO decisions out of the C campaign. (1) THE 3e6-LANE
+          WAVE: the           interleaved A/B (the 28-cell 1e7 fixture,
+          the 5 pairs, the           medians) - 2e6: 20.70 s, 3e6: 19.08
+          s (the 5/5 pair wins, the           tight 3e6 distribution
+          18.92-19.92 vs the 2e6 20.27-21.19 +           one 30.72 load
+          spike) - so _WAVE_SIZE 2e6 -> 3e6 + the
+          _GENERATOR_VERSION "su-corpus-4" -> "su-corpus-5" (the wave
+          size is a generator BEHAVIOUR, the D-304 rule: the lineage
+          invalidates, the D-071 R2 delete + recompute on the next 1e7
+          run). 4e6 stays rejected (the diminishing returns + the
+          extra ~280 MB peak RAM). (2) THE DOUBLE-BUFFER OVERLAP (the
+          option C) IS REVERTED: implemented (the _corpus_producer
+          thread + the maxsize-1 handoff queue, the producer owns the
+          PRNG - the single-threaded stream discipline, the corpus
+          bit-identical to the serial loop: verified A/B against the
+          D-304 pickle, the suite 948/0/97, the probes 0 mismatch, the
+          VLONG 18.1 s) but MEASURED NULL on the 8-core box: 20.89 s
+          (serial) -> 20.99 s (overlapped), the noise level. The
+          STRUCTURAL reason: the serial schedule already SATURATES the
+          8 cores (the gen 8-thread numba prange, the idx 8-thread
+          numba prange in pattern.py, the 8-thread joint pool, the
+          1-thread marginal) - the ~10% idle window (the per-step glue
+          + the marg) cannot hold the overlap work (the idx + the
+          joint = 16 threads): it contends the numba workqueue workers
+          with the gen prange windows, the gen stretches by what the
+          idle fills, the core-seconds are conserved -> zero by
+          construction. The overlap would pay on a 16+ core machine
+          (the gen 8 + the idx 8 + the joint 8 coexist) - not this
+          one. The design is RECORDED here (the producer owns the
+          PRNG, the backpressure, the exception propagation) for a
+          future re-implementation if the box grows. The house rules
+          applied: the measured null result is a decision, the
+          complexity is removed (the YAGNI, the house minimalism).
+          The final state: the D-304 serial compute + the 3e6-lane
+          wave + the "su-corpus-5" lineage - the 28-cell cold compute
+          36.3 s -> ~19.1 s since the campaign start (-47%).

@@ -8,7 +8,7 @@
 # retirement) + the shared kernels it calls (the local SU
 # kernels — the D-298 hlp_feature_analysis move). The worker's
 # corpus engine is the
-# random_game play-path (the su-corpus-4 lineage); the tier-B corpus
+# random_game play-path (the su-corpus-5 lineage); the tier-B corpus
 # is the same engine (D-285 — the hlp_wave wave engine is retired).
 # The level is the workspace's ONLY no-DB corpus consumer: it reads
 # the cfg + the feature_set and generates its own population.
@@ -142,10 +142,10 @@ check("A6  no trailing whitespace outside the license header "
 from reversi.lm import hlp_su_analysis as hlp  # noqa: E402
 
 check("A7  the cache constants (read from the hlp module): the generator "
-      "version su-corpus-4, the PRNG pin, the 2e6 batch ceiling",
-      hlp._GENERATOR_VERSION == "su-corpus-4"
+      "version su-corpus-5, the PRNG pin, the 3e6 batch ceiling",
+      hlp._GENERATOR_VERSION == "su-corpus-5"
       and hlp._PRNG_VERSION == "mt19937-64"
-      and hlp._WAVE_SIZE == 2_000_000)
+      and hlp._WAVE_SIZE == 3_000_000)
 _FIX_JSON = json5.loads(
     (ROOT / "test" / "reversi" / "data" / "rlm_00.json").read_text(
         encoding="utf-8"))
@@ -352,7 +352,7 @@ check("B10 the signature spec values: the config's seed / total / ec + the "
       sig["seed"] == sig_cfg.su_analysis.corpus.seed
       and sig["total_positions"] == sig_cfg.su_analysis.corpus.total_positions
       and sig["ec"] == sig_cfg.empty_count
-      and sig["generator_version"] == "su-corpus-4"
+      and sig["generator_version"] == "su-corpus-5"
       and sig["prng_version"] == "mt19937-64")
 
 # The signature is a pure function of (feature_set, spec, pairs): the
@@ -607,7 +607,7 @@ check("F4  the overview rows name the renamed module + its suite",
 mirror = (ROOT / "docs" / "src" / "reversi" / "lm" / "wrk_su_analysis.md").read_text()
 check("F5  the mirror's generator version == the module's constant "
       "(the stale g0-1 pin re-derived)",
-      "su-corpus-4" in mirror and "g0-1" not in mirror)
+      "su-corpus-5" in mirror and "g0-1" not in mirror)
 
 eff = (ROOT / "src" / "reversi" / "lm" / "wrk_effect_size.py").read_text()
 check("F6  the EFFECT_SIZE consumer contract: it reads "

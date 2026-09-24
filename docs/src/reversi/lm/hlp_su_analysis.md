@@ -65,7 +65,7 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 ## Architecture
 - The corpus engine: the random_game play-path batches (the fresh lanes from the canonical start, the
   uniform pick on the injected MT19937), the harvested lanes at EXACTLY the target ec (the double-pass
-  game-over lanes dropped), the accumulators fed per batch; the D-304: the 2e6-lane wave, the "su-corpus-4" lineage.
+  game-over lanes dropped), the accumulators fed per batch; the D-305: the 3e6-lane wave, the "su-corpus-5" lineage.
 - The binio layout (D-288): the 4 blocks — the signature (the hash + the 5 spec fields + the pairs), the
   marginal (the (name, instance, n_conf) + the codes u32 / counts i64 arrays), the joint (the presence
   flag + the pairs, the per-instance sorted).
@@ -102,8 +102,8 @@ None.
 
 ## Conventions
 - A FORMAT change bumps `_CACHE_VERSION` (the header rejects the old file) — orthogonal to the DATA
-  signature (a generator change bumps `_GENERATOR_VERSION` instead, the corpus lineage — the D-304:
-  the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so a wave-size change is versioned).
+  signature (a generator change bumps `_GENERATOR_VERSION` instead, the corpus lineage — the D-304 /
+  D-305: the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so a wave-size change is versioned).
 - The per-instance joint entries are written in the SORTED (ii, jj) order (the deterministic layout).
 - All signatures are COMPLETE (D-302, inert at runtime): the 46 parameter + the 4 return annotations;
   the structured shapes the private aliases (_MarginalTable / _JointTable / _SuSummary / _SuGroups), idx the IndexArray.

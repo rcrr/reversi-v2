@@ -17,7 +17,7 @@ VLONG 1e7 scale test) / no database.
 - The tiny corpus: the rlm_00 fixture's feature set (the LMC / the ALMC / the DLMC + the ELLE / the EDGE), the 2000-4000
   positions at ec 20, seed 42 (the "uno per tutti").
 - The cache consistency: the feature_set hash + the generation spec (the seed, the total_positions, the ec, the
-  generator version "su-corpus-4", the PRNG version "mt19937-64") + the su_pairs (the canonical sorted form) — the NO
+  generator version "su-corpus-5", the PRNG version "mt19937-64") + the su_pairs (the canonical sorted form) — the NO
   rds_checksum (the new cache lineage).
 - The phase-2 recompute: the statistics run on EVERY run (the cache hit included) — the "loaded from cache" + the report
   both on the hit run.

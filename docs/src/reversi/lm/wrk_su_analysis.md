@@ -28,7 +28,7 @@ corpus engine, the binio layout, the signature, the statistics kernels).
   marginal + the joint, the LZ4) + the .SHA3-256 sidecar (the cache_manager, D-072, the 1 MiB-chunk verify).
 - The consistency signature (the hlp): the FeatureSet domain hash (the set's unique identifier, D-291) +
   the generation spec (the seed, the total_positions,
-  the ec, the generator version su-corpus-4, the PRNG version mt19937-64) + the su_pairs. A pair-list change
+  the ec, the generator version su-corpus-5, the PRNG version mt19937-64) + the su_pairs. A pair-list change
   invalidates the corpus cache → a full regeneration. The old pickle caches self-invalidate (the D-288 R2 path).
 
 ## Verified invariants

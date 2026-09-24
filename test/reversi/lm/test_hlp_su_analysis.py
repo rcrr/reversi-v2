@@ -161,7 +161,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self.assertEqual(sig["seed"], 42)
         self.assertEqual(sig["total_positions"], 2000)
         self.assertEqual(sig["ec"], 20)
-        self.assertEqual(sig["generator_version"], "su-corpus-4")
+        self.assertEqual(sig["generator_version"], "su-corpus-5")
         self.assertEqual(sig["prng_version"], "mt19937-64")
         # The fixture's pair, in the config's canonical (sorted) order.
         self.assertEqual(sig["su_pairs"], [["EDGE", "LMC"]])

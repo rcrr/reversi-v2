@@ -82,7 +82,7 @@ None.
 
 - board.py (the geometry + the positions + the per-lane njit primitives `legal_moves_of` / `flips_of_move`).
 - tools/prng.py (the MT19937 stream, the pick primitives, the batch pre-draw).
-- The SU_ANALYSIS corpus engine (the su-corpus-4 lineage): wrk_su_analysis.py (step 3) feeds its play-path batches —
+- The SU_ANALYSIS corpus engine (the su-corpus-5 lineage): wrk_su_analysis.py (step 3) feeds its play-path batches —
   the harvested lanes at the model's ec — to the hlp_su_analysis accumulators. The hlp_wave wave engine is
   RETIRED
   (D-285).
