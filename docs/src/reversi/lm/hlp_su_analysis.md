@@ -33,11 +33,10 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   D-278/279), the SU pairs (2·I / (H_u + H_v), the same-feature diagonal omitted), the TXT report (the
   Section A + the optional Section B rarity — the config's rarity_thresholds, the half-open bins
   [0, t1), ..., [tk, inf), D-292 — + the Section C (the preambles after its title: the
-  _SU_DESCRIPTION + the _SU_LEGEND, the D-293 follow-up), dir_name under base_dir) — the data
-   rows are COLUMN-ALIGNED (D-293: the name / the inst
-  LEFT-justified to the max width, the numeric values RIGHT-justified to the computed max width —
-  the K_obs / never-obs / per-bin fields carry the +1 margin; the Section B preamble runs at
-  column 0, no parentheses) — + the optional CSV (the export_csv flag).
+  _SU_DESCRIPTION + the _SU_LEGEND, the D-293 follow-up), dir_name under base_dir) — the data rows
+  are COLUMN-ALIGNED (D-293: the name / the instance LEFT-justified to the max width, the numeric
+  values RIGHT-justified to the computed max width — the K_obs / never-obs / per-bin fields carry
+  the +1 margin; the Section B preamble runs at column 0, no parentheses) — + the optional CSV (the export_csv flag).
 - The consistency signature (the FeatureSet DOMAIN hash — the set's unique identifier over its semantic
   content, D-291 — + the spec + the pairs) is INTERNAL: the `_signature` private feeds the compute + the
   is_cache_consistent — it is NOT part of the module API (the `__all__` policy, D-290: only the
@@ -52,20 +51,21 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   instance_j) the (code_i, code_j) -> count, the SPARSE packed-u64 key code_i * n_conf_j +
   code_j; the D-299 storage: per cell the OBSERVED keys K (u64, sorted) + the counts C
   (int64), the wave's np.unique output folded in with searchsorted + np.add.at + a
-  re-sort of the appended new keys — NO Python dict; the same-feature diagonal is built
-  and OMITTED downstream — the SU = 1 lock). The D-300 (the I-020): BOTH `.add(idx: IndexArray)` take
-  the wave's index matrix — the compute loop computes it ONCE (fset.compute_indexes over
-  the harvested final[keep] lanes) and feeds it to both, the old code recomputed it in
-  each add. The module speaks the position language up to the loop boundary (D-296): the
-  batch is the np.full of the initial_game_position scalar, the loop feeds final[keep] to
-  compute_indexes, and the parallel (mover, opponent) arrays never cross a module
-  boundary (the accumulators speak the derived index matrix, the A10 invariant intact).
-  The test / the probe reach the names directly.
+  re-sort of the appended new keys — NO Python dict; the D-304: the same-feature diagonal
+  cells are NOT BUILT (the (u, u) joint is the marginal itself), the per-cell merges run
+  THREAD-parallel on a ThreadPoolExecutor (independent cells, the numpy sort releases the
+  GIL). The D-300 (the I-020): BOTH `.add(idx: IndexArray)` take the wave's index matrix —
+  the compute loop computes it ONCE (fset.compute_indexes over
+  the harvested final[keep] lanes) and feeds it to both. The module speaks the position
+  language up to the loop boundary (D-296): the batch is the np.full of the
+  initial_game_position scalar, the loop feeds final[keep] to compute_indexes, and the
+  parallel (mover, opponent) arrays never cross a module boundary (the accumulators speak
+  the derived index matrix, the A10 invariant intact). The test / the probe reach the names directly.
 
 ## Architecture
 - The corpus engine: the random_game play-path batches (the fresh lanes from the canonical start, the
   uniform pick on the injected MT19937), the harvested lanes at EXACTLY the target ec (the double-pass
-  game-over lanes dropped), the accumulators fed per batch.
+  game-over lanes dropped), the accumulators fed per batch; the D-304: the 2e6-lane wave, the "su-corpus-4" lineage.
 - The binio layout (D-288): the 4 blocks — the signature (the hash + the 5 spec fields + the pairs), the
   marginal (the (name, instance, n_conf) + the codes u32 / counts i64 arrays), the joint (the presence
   flag + the pairs, the per-instance sorted).
@@ -91,11 +91,10 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
   reproducibility) + the verify_su_analysis B3-B7.
 - The D-299 vectorized merge + the D-300 single-index computation (the I-020) are both
   OUTPUT-IDENTICAL: verified on the 1e7 corpus — the tables bit-identical against the
-  superseded dict-merge's cached output, the statistics report + CSV byte-identical, the
-  signature unchanged (so the rlmwf_03 caches stay valid). The sorted-(K, C) invariant: K
-  is kept sorted at every wave (the re-sort of the appended new keys) so the next wave's
-  searchsorted stays valid; the index matrix is a pure function of the harvested lanes, so
-  computing it once or twice yields the same values.
+  superseded dict-merge's cached output, the report + CSV byte-identical, the signature
+  unchanged (the rlmwf_03 caches stay valid). The sorted-(K, C) invariant: K is kept sorted
+  at every wave (the re-sort of the appended new keys) so the next wave's searchsorted
+  stays valid; the index matrix is a pure function of the harvested lanes.
 
 ## Open issues
 
@@ -103,7 +102,8 @@ None.
 
 ## Conventions
 - A FORMAT change bumps `_CACHE_VERSION` (the header rejects the old file) — orthogonal to the DATA
-  signature (a generator change bumps `_GENERATOR_VERSION` instead, the corpus lineage).
+  signature (a generator change bumps `_GENERATOR_VERSION` instead, the corpus lineage — the D-304:
+  the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so a wave-size change is versioned).
 - The per-instance joint entries are written in the SORTED (ii, jj) order (the deterministic layout).
 - All signatures are COMPLETE (D-302, inert at runtime): the 46 parameter + the 4 return annotations;
   the structured shapes the private aliases (_MarginalTable / _JointTable / _SuSummary / _SuGroups), idx the IndexArray.

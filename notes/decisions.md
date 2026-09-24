@@ -2915,3 +2915,62 @@ D-303 | 2026-09-23 | the Pydantic boundary: the store / the load are @validate_c
           findings only (the mirror net-zero at the 120 ceiling: the 2
           line-merges + the 3-line Conventions bullet + the 3 inline
           weaves).
+D-304 | 2026-09-23 | SU_ANALYSIS throughput: the 2e6-lane wave + the threaded joint merge + the diagonal skip
+                    The COLD profiling campaign (the scratch/bench_su
+          instrumented replica + the           public wall runs, the
+          rlm_test_su_00 1e7 / 28-cell fixture) measured the
+          SU_ANALYSIS level: gen ~56% (the 8-thread numba prange, the
+          serial MT19937           batch inside), the joint ~37% (the
+          single-thread np.unique fold), the idx           ~7%, the marg
+          ~1%. THE WAVE SIZE: 36.3 s at 1e6, 32.7 s at 2e6 (-10%), 31.2 s
+          at 4e6 (-14%, the diminishing returns + the ~280 MB extra peak
+          RAM) - 2e6 is           the sweet spot. THREE changes: (1) THE
+          2e6-LANE WAVE, with the           _GENERATOR_VERSION bump "su-
+          corpus-3" -> "su-corpus-4": the measured finding           that
+          drove it - the wave size is a generator BEHAVIOUR. The per-step
+          draw           batch size depends on the wave's lane count, so
+          a different wave size shifts           the whole MT19937
+          stream: the corpora are NOT identical across wave sizes
+          (100% of the positions differ, lane 0 included - verified on a
+          5k toy           corpus), and the cache signature does NOT
+          carry the wave size, so without           the bump the old
+          lineage would have been silently reused; the bump fires
+          the designed D-071 R2 delete + recompute on the next 1e7 run.
+          (2) THE           THREAD-JOINT: the per-cell merges (the D-299
+          vectorized fold, the           _joint_cell_merge) are
+          INDEPENDENT (each touches only its own registry
+          entry) - the add feeds them to a ThreadPoolExecutor (min(cells,
+          cpu_count)           workers, the numpy sort releases the GIL);
+          the single-cell case stays           inline. Deterministic: a
+          cell's result is a pure function of its own (K, C)
+          history + the wave's column pair (the scratch smoke test: the
+          2-wave           threaded accumulation == the independent per-
+          position oracle, bit-identical           across runs). (3) THE
+          DIAGONAL SKIP: the same-feature (ii, ii) cells are
+          NOT BUILT - the (u, u) joint IS the marginal of u (pure
+          redundancy: 6 of           the fixture's 28 cells); _su_values
+          already omitted them (the SU = 1           lock), the report /
+          the CSV / the EFFECT_SIZE level never consume them (it
+          reads the marginal only); an old cache carrying them still
+          reads fine (the           defensive _su_values check stays).
+          RESULT (measured, the 28-cell fixture,           the public
+          wall runs): 36.3 s (1e6, pre) -> 32.7 s (2e6 only) -> 20.4 s
+          (2e6 + thread + skip) = -44%; the joint phase ~15.8 s ->
+          ~3.6-4.6 s (the           instrumented runs, the machine load
+          swings); the 4-cell VLONG worker: 18.1           s cold (the
+          18.5 s baseline - the 4-cell joint is small, the win shows on
+          the multi-cell fixtures). Peak RAM at 2e6: ~2.2 GB (the +~0.9
+          GB is the 8           concurrent cell temporary buffers, the
+          machine has 103 GB free).           test_same_feature_diagonal
+          now pins the 12 off-diagonal cells vs the           independent
+          per-position oracle + the (0,0)/(3,3) absence; the probe + the
+          test worker + the 4 mirrors updated to su-corpus-4 / 2e6; the
+          src mirror           net-zero at the 120 ceiling. THE PARKED
+          NEXT STEP (the C, Roberto's + the           profiling's
+          convergence): the gen/accumulation OVERLAP (the double-buffer
+          producer/consumer: the 8-core wave generation in flight while
+          the 1-core           accumulation folds the previous wave - it
+          hides the ~3 s of serial work           under the ~3.5 s of
+          parallel gen, the expected cold compute ~17-18 s; the
+          complexity: the threading + the 2x wave RAM + the determinism
+          argument,           parked for a dedicated campaign).

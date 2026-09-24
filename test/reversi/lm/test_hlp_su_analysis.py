@@ -161,7 +161,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self.assertEqual(sig["seed"], 42)
         self.assertEqual(sig["total_positions"], 2000)
         self.assertEqual(sig["ec"], 20)
-        self.assertEqual(sig["generator_version"], "su-corpus-3")
+        self.assertEqual(sig["generator_version"], "su-corpus-4")
         self.assertEqual(sig["prng_version"], "mt19937-64")
         # The fixture's pair, in the config's canonical (sorted) order.
         self.assertEqual(sig["su_pairs"], [["EDGE", "LMC"]])
@@ -506,8 +506,12 @@ class TestJointAccumulator(unittest.TestCase):
     """The streaming joint accumulator (the test_hlp_random_play
     migration, D-295): the per-requested-pair instance×instance
     (code_i, code_j) -> count, the cross-feature + the
-    same-feature (the diagonal is the SU = 1 lock, the off-diagonal
-    the anisotropy), the chunk-merge."""
+    same-feature (the D-304: the diagonal cells are NOT BUILT —
+    they are the marginal itself, the SU = 1 lock; the
+    off-diagonal is the anisotropy), the chunk-merge. The D-304
+    threading: the per-cell merges run on a thread pool — the
+    chunk-merge + the oracle pins cover it (the per-cell result
+    is a pure function of its own history)."""
 
     def _fset(self):
         return TestMarginalAccumulator._toy_fset()
@@ -549,24 +553,29 @@ class TestJointAccumulator(unittest.TestCase):
             self.assertEqual(got, od)
 
     def test_same_feature_diagonal(self):
-        # (R2, R2): the 16 instance-pairs (4 x 4). The diagonal
-        # (ii, ii) is the variable with itself — ZERO off-diagonal
-        # entries (code_i == code_j always); the off-diagonal is the
-        # anisotropy measure.
+        # (R2, R2): the 16 instance-pairs (4 x 4). The D-304: the
+        # 4 DIAGONAL cells (ii, ii) are NOT BUILT — the (u, u)
+        # joint is the marginal of u (pure redundancy), so the
+        # registry holds the 12 off-diagonal only; each off-
+        # diagonal cell vs the independent per-position oracle.
         fset = self._fset()
         P = self._corpus()
         ja = hlp._JointAccumulator(fset, [('R2', 'R2')])
         ja.add(fset.compute_indexes(P))
         ni, nj, pd = ja.result()[0]
         self.assertEqual((ni, nj), ('R2', 'R2'))
-        self.assertEqual(len(pd), 16)
+        self.assertEqual(len(pd), 12)
+        self.assertNotIn((0, 0), pd)
+        self.assertNotIn((3, 3), pd)
+        bj = [b for b in fset.feature_blocks if b[0] == 'R2'][0]
         for (ii, jj) in pd:
+            self.assertNotEqual(ii, jj)
             codes_i, codes_j, cnt = pd[(ii, jj)]
             self.assertEqual(int(cnt.sum()), len(P))
-            if ii == jj:
-                self.assertEqual(
-                    sum(1 for a, b in zip(codes_i, codes_j)
-                        if a != b), 0)
+            od = self._oracle_joint(fset, P, bj[1] + ii, bj[1] + jj)
+            got = {(int(a), int(b)): int(c)
+                   for a, b, c in zip(codes_i, codes_j, cnt)}
+            self.assertEqual(got, od)
 
     def test_chunk_merge(self):
         # One chunk == two half-chunks (the unique-merge is chunk-

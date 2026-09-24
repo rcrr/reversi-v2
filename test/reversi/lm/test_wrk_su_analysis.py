@@ -177,7 +177,7 @@ class TestWrkSuAnalysis(unittest.TestCase):
                             for (_r, m) in ctx2.events))
 
     def test_corpus_determinism(self):
-        # The random_game play-path generator (su-corpus-3): two
+        # The random_game play-path generator (su-corpus-4): two
         # fresh computes with the same spec are the IDENTICAL
         # marginal tables (the stream is deterministic on the
         # seed), a different seed changes them (the stream is
