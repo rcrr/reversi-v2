@@ -3011,3 +3011,47 @@ D-305 | 2026-09-23 | the 3e6-lane wave ("su-corpus-5") + the double-buffer overl
           The final state: the D-304 serial compute + the 3e6-lane
           wave + the "su-corpus-5" lineage - the 28-cell cold compute
           36.3 s -> ~19.1 s since the campaign start (-47%).
+D-306 | 2026-09-23 | the de-history docstrings: the WHAT contract only (no D-XXX, no change history)
+                    Roberto's directive: the hlp_su_analysis docstrings
+          (the           module header, the constant comments, the 5 flow
+          functions, the accumulators, the binio blocks, the SU
+          kernels) carried the change history (the D-XXX
+          provenance, the "the old code..." clauses, the version
+          lineage, the benchmark numbers) — the rules.md house
+          style (the docstrings explain WHAT, the observable
+          contract; never HOW; no D-XXX provenance in the
+          docstrings) + his spec: what it does, the arguments,
+          the outputs, the state mutation, the preconditions. The
+          rewrite (method by method, ~34 docstrings / comments):
+          the module header (the D-289 / D-295 / D-304 / D-298 /
+          D-288 clauses gone), the __all__ policy comment (the
+          stale _feature_set_hash reference dropped), the
+          _WAVE_SIZE comment (the 14-line benchmark history -> 7
+          lines) + the _GENERATOR_VERSION (the 17-line lineage ->
+          5 lines) + the _CACHE_* / the _SU_DESCRIPTION / the
+          _SU_LEGEND / the _KPI_LEGEND pointers, the 3 `#:`
+          validation comments (the circular-import reason, the
+          D-303 pointer dropped), the SuTables, the marginal +
+          the joint accumulators (class / __init__ / add /
+          result, the Args / State sections), the
+          _joint_cell_merge (the Args / the State), the
+          _signature (the INSTEAD-OF history gone), the store /
+          the load (the Args / Returns / Raises), the statistics
+          kernels (the D-301 rationale paragraph gone from
+          _never_observed_audit; the D-299 memoization clause
+          from _mutual_information; the D-278 pointers from
+          _theoretical_configs), the _su_values / the _rarity_bins
+          / the _export_csv / the statistics (the Returns / the
+          State sections added). The HOW clauses moved to the
+          code comments (the rule's home); the design pointers to
+          source comments stay (the D-296 position language, the
+          D-293 column alignment — the non-obvious choices, the
+          rules.md allowance). TWO factual fixes found in the
+          pass: the _su_groups docstring said the report's
+          "Section B" (the SU groups are the Section C —
+          corrected); the _su_groups code comment claimed the "SU
+          descending" sort (the sort is the canonical endpoint
+          order only — corrected). Runtime-inert (the docstrings):
+          the fast suite 948/0/97 + the probes 0 mismatch confirm
+          the structure; the mirror docs untouched (the D-pointers
+          are the mirror's job, the docs_rules §3.2).

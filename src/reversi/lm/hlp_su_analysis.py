@@ -26,24 +26,17 @@
 #
 
 """
-The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker, D-289):
-the streaming frequency accumulators (the marginal + the joint, the
-phase-1 data plane — moved here from the retired hlp_random_play,
-D-295 — the D-304: the 2e6-lane waves, the per-cell joint merge
-threaded on a ThreadPoolExecutor, the same-feature diagonal cells
-NOT BUILT, the generator version "su-corpus-4"), the corpus
-generator (the random_game play-path engine, phase 1 — the
-expensive part), the binio cache I/O (the D-288
-layout: the header + the signature block + the marginal + the
-joint) + the
-consistency signature (the feature_set hash + the spec + the pairs
-— the first cache lineage WITHOUT the rds_checksum) + the SU
-statistics kernels (the entropy / the MI / the SU / the dispersion
-/ the never-observed audit — the D-298 move from
-hlp_feature_analysis) + the statistics (phase 2: the SU pairs, the
-TXT report + the optional CSV). NO DB (the design section 3.3): the
-corpus is the level's own, the random_game play-path engine. The
-worker (wrk_su_analysis.py) is the orchestration skeleton: the
+The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker): the
+streaming frequency accumulators (the marginal + the joint, the
+phase-1 data plane), the corpus generator (the random_game
+play-path engine, phase 1 — the expensive part), the binio cache
+I/O (the header + the signature block + the marginal + the joint)
++ the consistency signature (the feature_set hash + the spec + the
+pairs) + the SU statistics kernels (the entropy / the MI / the SU /
+the dispersion / the never-observed audit) + the statistics
+(phase 2: the SU pairs, the TXT report + the optional CSV). NO DB:
+the corpus is the level's own, the random_game play-path engine.
+The worker (wrk_su_analysis.py) is the orchestration skeleton: the
 enable no-op, the cache_manager flow, the ctx publication.
 """
 
@@ -74,12 +67,11 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-# The 5 FLOW functions (the wrk/hlp boundary, D-289) + the SuTables
-# tables type (the D-303). The consistency signature is INTERNAL (the
-# _signature private, beside _feature_set_hash): it feeds the compute
-# + the is_cache_consistent, it is not part of the module API (the
-# __all__ policy, D-290: only the cross-module names are exposed —
-# the test / the probe reach the private names directly).
+# The 5 FLOW functions (the wrk/hlp boundary) + the SuTables
+# tables type. The consistency signature is INTERNAL (the
+# _signature private): it feeds the compute + the is_cache_consistent,
+# it is not part of the module API (only the cross-module names are
+# exposed — the test / the probe reach the private names directly).
 __all__ = ['SuTables',
            'hlp_su_analysis_compute',
            'hlp_su_analysis_store_to_file',
@@ -87,51 +79,30 @@ __all__ = ['SuTables',
            'hlp_su_analysis_is_cache_consistent',
            'hlp_su_analysis_statistics']
 
-# The batch size CEILING + the generator / the PRNG version pins
-# (the cache consistency signature). The batch is the
-# PARALLELISM: the actual size is min(this, the corpus size),
-# because the lanes beyond the corpus are pure overhead. The
-# D-305: the 3e6-lane wave — the measured cold compute at 1e7
-# (the 28-cell rlm_test_su_00 fixture): 36.3 s at 1e6, 32.7 s at
-# 2e6, 19.1 s at 3e6 (the 5/5 interleaved pair wins, the medians,
-# the tight 3e6 distribution), 31.2 s at 4e6 (the diminishing
-# returns + the extra ~280 MB peak RAM) — 3e6 is the sweet spot.
-# NOTE: the wave size is part of the generator BEHAVIOUR (the
-# per-step draw batch size shifts the MT19937 stream — the
-# corpora are NOT identical across wave sizes, 100% of the
-# positions differ), so a wave-size bump always comes with the
-# _GENERATOR_VERSION bump (the 2e6 -> 3e6 bump: "su-corpus-5").
+# The batch size CEILING (the cache signature carries the generator
+# version, not this value). The actual size is min(this, the corpus
+# size), because the lanes beyond the corpus are pure overhead; the
+# value is the measured sweet spot. NOTE: the wave size is part of
+# the generator BEHAVIOUR (the per-step draw batch size shifts the
+# MT19937 stream — the corpora are NOT identical across wave
+# sizes), so a wave-size bump always comes with the
+# _GENERATOR_VERSION bump.
 _WAVE_SIZE = 3_000_000
-# The corpus-generator version, part of the cache signature.
-# "su-corpus-5" (the D-305) is the random_game play-path corpus
-# (the batch of fresh lanes from the official start, the uniform
-# pick on the injected MT19937) with the 3e6-lane waves — the
-# wave size is part of the generator BEHAVIOUR (the per-step draw
-# batch size shifts the stream: the corpora are NOT identical
-# across wave sizes), so the 2e6 -> 3e6 bump invalidated the
-# "su-corpus-4" lineage. The superseded versions mark the earlier
-# engines: the one before "su-corpus-2" marked the corpora
-# generated with the SWAPPED initial position (the mover D4+E5
-# instead of the official E4+D5), "su-corpus-2" the wave-engine
-# corpora, "su-corpus-3" the 1e6-lane waves, and "su-corpus-4"
-# the 2e6-lane waves — every cache written under a superseded
-# version is STALE and must be regenerated. A version bump
-# invalidates every cached corpus, which is exactly the point:
-# the signature exists so that a change of the generator's
+# The corpus-generator version, part of the cache signature (the
+# random_game play-path corpus, the 3e6-lane waves). A version
+# bump invalidates every cached corpus, which is exactly the
+# point: the signature exists so that a change of the generator's
 # behaviour can never be reused silently.
 _GENERATOR_VERSION = "su-corpus-5"
 _PRNG_VERSION = "mt19937-64"
-# The cache file format (the binio layout, D-288): the file
-# description + the format VERSION. A format change bumps the version
-# (the header rejects the old file) — orthogonal to the DATA signature
-# (the feature_set hash + the spec + the pairs), which governs
-# consistency, not format.
+# The cache file format: the file description + the format VERSION.
+# A format change bumps the version (the header rejects the old
+# file) — orthogonal to the DATA signature (the feature_set hash +
+# the spec + the pairs), which governs consistency, not format.
 _CACHE_DESCRIPTION = "SU_ANALYSIS corpus cache"
 _CACHE_VERSION = 1
-# The SU description (the report's Section C preamble, D-293 — it
-# moved from the header, where it described the WHOLE report, to
-# the section it actually explains): the normalized shared
-# information — the bias-compensated correlation.
+# The SU description (the report's Section C preamble): the
+# normalized shared information — the bias-compensated correlation.
 _SU_DESCRIPTION = (
     "It evaluates the normalized relationship, dependency, "
     "or shared variance between variables,",
@@ -139,9 +110,9 @@ _SU_DESCRIPTION = (
     "in raw information gain.",
 )
 # The SU range legend (the report's interpretation key, the Section C
-# preamble after the description — the D-293 follow-up): the SU value
-# bands + their meaning. The SU = 2·I / (H_u + H_v) in [0, 1] is the
-# normalized shared information — the bias-compensated correlation.
+# preamble after the description): the SU value bands + their
+# meaning. The SU = 2·I / (H_u + H_v) in [0, 1] is the normalized
+# shared information — the bias-compensated correlation.
 _SU_LEGEND = (
     "SU        : Meaning",
     "0.0       : Perfect orthogonality",
@@ -150,10 +121,10 @@ _SU_LEGEND = (
     "0.3 - 0.5 : Strong correlation",
     "over 0.5  : Very strong correlation",
 )
-# The Section A KPI legend (the per-sub-variable statistics key, the
+# The Section A KPI legend (the per-sub-variable statistics key; the
 # theoretical configuration space = n_unique_configs for a pattern /
 # the value range for a mobility — the denominator of the coverage /
-# the never-observed audit; D-278, the "theoretical" naming D-279).
+# the never-observed audit).
 _KPI_LEGEND = (
     "K_obs    : distinct configurations observed (of the theoretical "
     "space)",
@@ -168,23 +139,20 @@ _KPI_LEGEND = (
 
 
 # ---------------------------------------------------------------------
-# The frequency accumulators (the phase-1 data plane, moved here
-# from the retired hlp_random_play, D-295): the streaming
-# per-sub-variable (code -> count) marginal + the joint
+# The frequency accumulators (the phase-1 data plane): the
+# streaming per-sub-variable (code -> count) marginal + the joint
 # accumulation over the corpus. The analysis unit is the
 # (feature, instance) sub-variable = ONE design-index column (the
 # design-matrix unit, the unit the weights live on): each pattern
 # instance is its own categorical variable (the code a single
-# uint32 in [0, n_conf) — no packing, no overflow: the 2X5COR^8
-# structured-key concern is the feature-level / the joint
-# statistics, not the per-column marginal), the mobility a single
-# column.
+# uint32 in [0, n_conf) — no packing, no overflow), the mobility a
+# single column.
 # ---------------------------------------------------------------------
 
 #: The dense-bincount threshold: a sub-variable with
-#: n_conf <= this uses the DENSE histogram (the A2050 max is
-#: 59049 — all dense); above it, the UNIQUE-MERGE dict (the
-#: hypothetical wider code spaces).
+#: n_conf <= this uses the DENSE histogram (all the current
+#: sub-variables, the max is 59049); above it, the UNIQUE-MERGE
+#: dict (the wider code spaces).
 _DENSE_THRESHOLD = 1_000_000
 
 
@@ -214,7 +182,7 @@ _JointTable = list[tuple[str, str,
 
 class SuTables(TypedDict):
     """
-    The tables dict (the PUBLIC type, the D-303): the output of
+    The tables dict (the PUBLIC type): the output of
     hlp_su_analysis_compute, the input of hlp_su_analysis_store_to_file
     (the @validate_call deep-validates it: the structure + the array
     dtypes), the output of hlp_su_analysis_load_from_file.
@@ -231,20 +199,12 @@ class _MarginalAccumulator:
     """
     The streaming marginal frequency accumulator: per
     sub-variable (the (feature, instance) column), the
-    code -> count over the corpus positions. Feed it the corpus
-    in chunks (the play-path batch harvests: the PositionArray
-    slices, the position language, D-296).
+    code -> count over the fed positions. Feed it the corpus in
+    chunks via add (the index-matrix slices from
+    fset.compute_indexes); read the result with result.
 
     Each sub-variable is ONE design-index column: the code is a
-    single uint32 in [0, n_conf) (no packing, no overflow — the
-    2X5COR^8 structured-key concern is the feature-level / the
-    joint statistics, not the per-column marginal).
-
-    The split (the design's "bincount / unique-merge"):
-      - n_conf <= _DENSE_THRESHOLD: the DENSE bincount over
-        [0, n_conf) (all the A2050 sub-variables, max 59049).
-      - n_conf > _DENSE_THRESHOLD: the UNIQUE-MERGE split
-        (np.unique per chunk + the dict merge).
+    single uint32 in [0, n_conf) (no packing, no overflow).
 
     The accumulator is POOLED over all fed positions (the corpus
     is a single-ec population — arrested at the model's ec — so
@@ -259,9 +219,11 @@ class _MarginalAccumulator:
                 property, the (name, col_start, col_end, n_conf,
                 n_inst) over the non-intercept features, each
                 expanding to n_inst sub-variables, one per
-                instance column; the D-300: the index matrix is
-                computed ONCE per wave by the compute loop and
-                fed to add, NOT recomputed inside it).
+                instance column).
+
+        State: the per-sub-variable storage (the dense histogram
+        or the unique-merge dict, per _DENSE_THRESHOLD) + the
+        n_positions counter (0).
         """
         self.fset = fset
         # Expand the feature blocks into the per-instance sub-
@@ -284,10 +246,11 @@ class _MarginalAccumulator:
     def add(self, idx: IndexArray) -> None:
         """
         Accumulate one chunk of corpus INDEXES (the uint32
-        (N, I) index matrix from fset.compute_indexes — the
-        I-020 / D-300: the compute loop computes the indexes
-        ONCE per wave and feeds the SAME matrix to the marginal
-        and the joint, instead of each add recomputing it).
+        (N, I) index matrix from fset.compute_indexes — the same
+        matrix the joint accumulator is fed, the compute loop
+        computes it once per wave). An empty chunk is a no-op.
+
+        State: the per-sub-variable counts + n_positions.
         """
         n = int(idx.shape[0])
         if n == 0:
@@ -332,15 +295,26 @@ class _MarginalAccumulator:
 
 def _joint_cell_merge(joints, pi, ii, jj, bi, bj, idx) -> None:
     """
-    The D-304 per-cell merge worker (the D-299 algorithm,
-    THREADABLE): the wave's np.unique output folded into the
-    cell's (K, C) WITHOUT a per-key Python loop — the
-    searchsorted match (the keys ALREADY observed) accumulates
-    via np.add.at, the new keys are appended and the (K, C)
-    re-sorted (the sorted-K invariant is what makes the next
-    wave's searchsorted valid). ONE cell per call: the cells are
-    independent (their registry entries never cross), which is
-    what makes the add's thread pool safe.
+    Fold one chunk of corpus INDEXES into ONE joint cell's
+    (K, C) storage: the chunk's unique output is merged into the
+    already-observed keys (the matched counts accumulate, the new
+    keys are appended and the (K, C) re-sorted — the sorted-K
+    invariant keeps the next chunk's searchsorted valid). ONE
+    cell per call: the cells are independent (their registry
+    entries never cross), which is what makes the add's thread
+    pool safe.
+
+    Args:
+      joints: the per-pair cell registries (the
+        _JointAccumulator.joints list).
+      pi:     the pair index into joints.
+      ii/jj:  the instance pair = the cell key (ii, jj).
+      bi/bj:  the two feature blocks, the (name, col_start,
+        col_end, n_conf, n_inst) tuples.
+      idx:    the chunk's index matrix (read-only).
+
+    State: joints[pi][(ii, jj)] is replaced by the merged
+    (K, C); nothing else is touched.
     """
     ncj = np.uint64(bj[3])
     ci = idx[:, bi[1] + ii].astype(np.uint64)
@@ -376,64 +350,49 @@ class _JointAccumulator:
     The streaming joint frequency accumulator:
     per REQUESTED su pair (F_i, F_j) and per (instance_i,
     instance_j) in the pair, the (code_i, code_j) -> count over
-    the corpus — the instance×instance level (the joint
-    matrix). The
-    joint is SPARSE (the code_i x code_j space is too large for
-    the dense — the unique-merge split). The key is the packed
-    u64 (code_i * n_conf_j + code_j) — safe for the A2050 scale
-    (the max is 59049^2 << 2^64); the result unpacks the
+    the fed positions — the instance×instance level (the joint
+    matrix). The joint is SPARSE (the code_i x code_j space is
+    too large for the dense). The key is the packed u64
+    (code_i * n_conf_j + code_j); result unpacks the
     (code_i, code_j).
 
-    The D-299 storage: per cell the OBSERVED keys K (u64,
-    SORTED) + the counts C (int64) — the VECTORIZED merge: each
-    wave's np.unique output is folded in with searchsorted +
-    np.add.at + a re-sort of the appended new keys (NO Python
-    dict, NO per-key loop — the old dict-merge was the cold
-    compute hotspot: ~8.5M dict.get per 1e6-lane wave).
+    The same-feature pair (F, F) is allowed: the diagonal cell
+    (the variable with itself) is NOT BUILT — it is the marginal
+    itself (the redundant (u, u) joint); the registry holds the
+    off-diagonal only (the D8 orientations of the same mask, the
+    anisotropy measure).
 
-    The same-feature pair (F, F) is allowed: the diagonal (the
-    variable with itself) is the SU = 1 lock — the D-304: it is
-    NOT BUILT at all (it is the marginal itself, the redundant
-    (u, u) joint; the registry holds the off-diagonal only); the
-    off-diagonal (the D8 orientations of the same mask) is the
-    anisotropy measure.
-
-    The D-304 THREADING: the per-cell merges are INDEPENDENT
-    (each touches only its own registry entry) and the add feeds
-    them to a ThreadPoolExecutor — the numpy sort releases the
-    GIL, so the cells fold in parallel (the joint phase is the
-    single-thread hotspot of the cold compute: ~16 s of the
-    measured 43 s 1e7 total at 2e6 waves before the D-304).
-    Deterministic: a cell's result is a pure function of its own
-    (K, C) history + the wave's column pair.
+    The per-cell merges are independent (each touches only its
+    own registry entry) and the add runs them on a thread pool;
+    a cell's result is a pure function of its own (K, C) history
+    + the chunk's column pair (deterministic).
     """
 
     def __init__(self, fset: FeatureSet,
                  su_pairs: list[tuple[str, str]]) -> None:
         """
         Args:
-          fset:     the FeatureSet (the feature_blocks provider,
-                    the per-feature blocks come from its
-                    feature_blocks property; the D-300: the index
-                    matrix is computed ONCE per wave by the
-                    compute loop and fed to add).
+          fset:     the FeatureSet (the feature_blocks provider).
           su_pairs: the REQUESTED pairs, a list of
                     (feature_i, feature_j) name tuples (the
                     canonical form; the same-feature (F, F) is
                     allowed).
+
+        State: the per-pair cell registry (the (K, C) per
+        off-diagonal cell — the same-feature diagonal cells are
+        absent) + the per-pair meta + n_positions (0).
         """
         self.fset = fset
         self._block = {b[0]: b for b in fset.feature_blocks}
         self.pairs = list(su_pairs)
         # Per pair: the { (inst_i, inst_j): (K, C) } cell registry
         # + the per-pair meta (ni, nj, block_i, block_j). The
-        # D-304: the same-feature DIAGONAL cell (ii == jj) is NOT
-        # BUILT — it is the marginal itself (the (u, u) joint IS
-        # the marginal of u), _su_values omits it (the SU = 1
-        # lock), the report / the CSV / the EFFECT_SIZE level
-        # never consume it (pure redundancy: 6 of the fixture's 28
-        # cells). The registry is the single source of truth: the
-        # add iterates its keys.
+        # same-feature DIAGONAL cell (ii == jj) is NOT BUILT — it
+        # is the marginal itself (the (u, u) joint IS the
+        # marginal of u), the _su_values omits it (the SU = 1
+        # lock) and nothing downstream consumes it. The registry
+        # is the single source of truth: the add iterates its
+        # keys.
         self.joints: list = []
         self._meta: list = []
         for (ni, nj) in self.pairs:
@@ -443,10 +402,10 @@ class _JointAccumulator:
             for ii in range(bi[4]):
                 for jj in range(bj[4]):
                     if ni == nj and ii == jj:
-                        continue  # The D-304 diagonal skip.
-                    # The D-299 per-cell storage: the OBSERVED
-                    # keys (u64, sorted) + the counts (int64) —
-                    # empty until the first wave.
+                        continue  # The diagonal cell: not built.
+                    # The per-cell storage: the OBSERVED keys
+                    # (u64, sorted) + the counts (int64) — empty
+                    # until the first chunk.
                     d[(ii, jj)] = (np.zeros(0, dtype=np.uint64),
                                    np.zeros(0, dtype=np.int64))
             self.joints.append(d)
@@ -456,24 +415,20 @@ class _JointAccumulator:
     def add(self, idx: IndexArray) -> None:
         """
         Accumulate one chunk of corpus INDEXES (the uint32
-        (N, I) index matrix from fset.compute_indexes — the
-        I-020 / D-300: the compute loop computes the indexes
-        ONCE per wave and feeds the SAME matrix to the marginal
-        and the joint, instead of each add recomputing it).
+        (N, I) index matrix from fset.compute_indexes — the same
+        matrix the marginal accumulator is fed, the compute loop
+        computes it once per wave). The per-cell merges run on a
+        thread pool (the single-cell case stays inline); the idx
+        is read-only during the call. An empty chunk is a no-op.
 
-        The D-304: the per-cell merges (the _joint_cell_merge,
-        the D-299 vectorized fold) are INDEPENDENT and run on a
-        ThreadPoolExecutor (the numpy sort releases the GIL, the
-        cells fold in parallel on the machine's cores). The
-        single-cell case stays inline (the pool overhead is not
-        worth it).
+        State: the cell registry (per cell, the merged (K, C)) +
+        n_positions.
         """
         n = int(idx.shape[0])
         if n == 0:
             return
-        # The cell work list, from the registry (the D-304: the
-        # diagonal cells are absent, so the old range loops are
-        # gone).
+        # The cell work list, from the registry (the diagonal
+        # cells are absent).
         cells = [(pi, ii, jj, bi, bj)
                  for pi, (_ni, _nj, bi, bj) in enumerate(self._meta)
                  for (ii, jj) in self.joints[pi]]
@@ -496,22 +451,17 @@ class _JointAccumulator:
         of (name_i, name_j, per_instance) — per_instance a dict
         { (inst_i, inst_j): (codes_i, codes_j, counts) } the
         OBSERVED joint (the non-zero support), the codes
-        unpacked as uint32, the counts as int64. The D-304: the
-        same-feature DIAGONAL cells are ABSENT (not built — they
-        are the marginal itself); an old "su-corpus-3" cache may
-        still carry them and the _su_values skips them either
-        way (the defensive check stays).
+        unpacked as uint32, the counts as int64. The same-feature
+        DIAGONAL cells are ABSENT (not built — they are the
+        marginal itself).
         """
         out = []
         for pi, (ni, nj, bi, bj) in enumerate(self._meta):
             ncj = np.uint64(bj[3])
             pd = {}
             for (ii, jj) in self.joints[pi]:
-                # The D-299 unpack: the (K, C) ARE the observed
-                # joint (the sorted keys + the counts) — no sort,
-                # no dict (the old sorted(dict.items()) over the
-                # ~465k-key off-diagonal cells was the result()
-                # hotspot).
+                # The (K, C) ARE the observed joint (the sorted
+                # keys + the counts) — no sort, no dict.
                 K, C = self.joints[pi][(ii, jj)]
                 codes_i = (K // ncj).astype(np.uint32)
                 codes_j = (K % ncj).astype(np.uint32)
@@ -523,13 +473,11 @@ class _JointAccumulator:
 
 def _signature(ctx: "LMContext") -> dict:
     """The cache consistency signature (INTERNAL — it feeds the
-    compute + the is_cache_consistent, D-290): the feature_set
-    hash (the FeatureSet DOMAIN hash — the set's unique identifier
-    over its semantic content, D-291, INSTEAD of the rds_checksum
-    and INSTEAD of the config dump hash) + the generation spec
-    (the seed, the total_positions, the ec, the generator version,
-    the PRNG version) + the su_pairs list (the canonical sorted
-    form)."""
+    compute + the is_cache_consistent): the feature_set hash (the
+    FeatureSet DOMAIN hash — the set's unique identifier over its
+    semantic content) + the generation spec (the seed, the
+    total_positions, the ec, the generator version, the PRNG
+    version) + the su_pairs list (the configured order)."""
     corpus = ctx.cfg.su_analysis.corpus
     return {
         'feature_set_hash': ctx.feature_set.hash,
@@ -542,23 +490,32 @@ def _signature(ctx: "LMContext") -> dict:
     }
 
 
-#: Here validation is not possible, it brings in a convoluted issue
-#: with circular imports (the LMContext facade, the D-303, the
-#: hlp_design_matrix idiom).
+#: Here validation is not possible: it would bring in a circular
+#: import (the LMContext facade, the hlp_design_matrix idiom).
 def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
-    """Phase 1 — the corpus (the expensive part): the SU-analysis corpus
-    generator (the random_game play-path engine: the batches of
-    fresh lanes from the canonical start, the PRNG seed, the ec
-    arrest) + the streaming accumulation (the marginal + the
-    joint for the requested pairs, fed per batch — the corpus
-    never materializes in RAM). The harvested lanes are the batch
-    lanes at EXACTLY the target ec (the double-pass game-over
-    lanes are dropped, the quota filled by the next batch); the
-    slots provenance is not carried. The I-020 / D-300: each
-    wave's index matrix (fset.compute_indexes over the harvested
-    lanes) is computed ONCE in the loop and fed to BOTH
-    accumulators (the position language, D-296, stops at the
-    loop boundary — the accumulators speak the index matrix)."""
+    """Phase 1 — the corpus (the expensive part): generates the
+    SU-analysis corpus with the random_game play-path engine (the
+    batches of fresh lanes from the canonical start, the PRNG
+    seed, the ec arrest) and streams it to the accumulators (the
+    marginal + the joint for the requested pairs, fed per batch —
+    the corpus never materializes in RAM). The harvested lanes
+    are the batch lanes at EXACTLY the target ec (the double-pass
+    game-over lanes are dropped, the quota filled by the next
+    batch); the slots provenance is not carried. Each wave's
+    index matrix (fset.compute_indexes over the harvested lanes)
+    is computed once in the loop and fed to BOTH accumulators.
+
+    Args:
+      ctx: the LMContext (the cfg.su_analysis corpus spec + the
+        feature_set — the FEATURES phase done).
+
+    Returns:
+      the tables dict: the signature + the marginal + the joint
+      (None when no pairs are configured).
+
+    State: none persistent (the accumulators are local); the PRNG
+    is fresh (the corpus seed).
+    """
     cfg_fa = ctx.cfg.su_analysis
     fset = ctx.feature_set
     corpus = cfg_fa.corpus
@@ -585,9 +542,8 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
         final, ec_arr = random_game_play_path(batch, ec, prng)
         keep = ec_arr == ec
         dead += int((~keep).sum())
-        # The I-020 / D-300: the wave's index matrix is computed
-        # ONCE here and fed to BOTH accumulators (the old code
-        # recomputed it inside each add — ~173 ms/wave twice).
+        # The wave's index matrix is computed ONCE here and fed to
+        # BOTH accumulators.
         idx = fset.compute_indexes(final[keep])
         marg.add(idx)
         if joint is not None:
@@ -605,9 +561,20 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_su_analysis_store_to_file(data: SuTables,
                                   filename: str | Path) -> None:
-    """The binio store (D-288, the house data-file idiom — the LZ4
-    compression D-139, the sidecar owned by the cache_manager D-072):
-    the header + the signature block + the marginal + the joint."""
+    """Write the tables dict to the binio cache file (the header +
+    the signature block + the marginal + the joint, LZ4-
+    compressed; the .SHA3-256 sidecar is owned by the
+    cache_manager, not written here).
+
+    Args:
+      data:     the SuTables (the @validate_call deep-validates it
+                before the body runs: the structure + the array
+                dtypes).
+      filename: the target file (str or Path; created /
+                overwritten).
+
+    State: writes the file.
+    """
     with binio.BinaryWriter(filename, compressed=True,
                             checksum=False) as w:
         w.write_header(_CACHE_DESCRIPTION, _CACHE_VERSION)
@@ -619,12 +586,26 @@ def hlp_su_analysis_store_to_file(data: SuTables,
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_su_analysis_load_from_file(filename: str | Path,
                                    checksum: bool = True) -> dict:
-    """The binio load (D-288): the sidecar check (when checksum) + the
-    header description / version guard (the hlp_generate idiom) + the
-    ordered block reads. The cache_manager ALREADY verifies the
-    sidecar (its step 2), so the worker passes checksum=False (no
-    double hash). A foreign or truncated file fails loudly (the
-    manager's R2 then deletes the cache and recomputes, D-071)."""
+    """Read the tables dict from the binio cache file: the sidecar
+    check (when checksum) + the header description / version guard
+    + the ordered block reads. The cache_manager ALREADY verifies
+    the sidecar (its step 2), so the worker passes checksum=False
+    (no double hash).
+
+    Args:
+      filename: the cache file (str or Path).
+      checksum: verify the .SHA3-256 sidecar first (default True;
+                the worker passes False).
+
+    Returns:
+      the tables dict {'signature', 'marginal', 'joint'}.
+
+    Raises:
+      RuntimeError: the checksum mismatch, the foreign header
+      description, the foreign format version, or a truncated
+      file (the manager's R2 path then deletes the cache and
+      recomputes).
+    """
     if checksum and not binio.verify_sha3_256_sidecar(filename):
         raise RuntimeError("Checksum mismatch.")
     with binio.BinaryReader(filename, compressed=True) as r:
@@ -734,9 +715,8 @@ def _read_joint(r: BinaryReader) -> _JointTable | None:
     return out
 
 
-#: Here validation is not possible, it brings in a convoluted issue
-#: with circular imports (the LMContext facade, the D-303, the
-#: hlp_design_matrix idiom).
+#: Here validation is not possible: it would bring in a circular
+#: import (the LMContext facade, the hlp_design_matrix idiom).
 def hlp_su_analysis_is_cache_consistent(ctx: "LMContext",
                                         cached: dict) -> bool:
     """The cache consistency: the cached signature vs the live
@@ -754,10 +734,8 @@ def hlp_su_analysis_is_cache_consistent(ctx: "LMContext",
 
 # ---------------------------------------------------------------------
 # The SU statistics kernels (the phase-2 pure math over the
-# frequency tables, moved here from hlp_feature_analysis, the
-# D-298 split — the SU_ANALYSIS family; the EFFECT_SIZE family
-# stays there): the entropy / the mutual information / the SU /
-# the dispersion / the never-observed audit.
+# frequency tables): the entropy / the mutual information / the
+# SU / the dispersion / the never-observed audit.
 # ---------------------------------------------------------------------
 
 def _entropy(counts: np.ndarray) -> float:
@@ -783,13 +761,12 @@ def _mutual_information(joint_counts: np.ndarray, H_u: float,
                         H_v: float) -> float:
     """
     The mutual information I(u; v) in bits, from the joint
-    counts + the PRE-COMPUTED marginal entropies (the D-299
-    memoization: the caller computes each sub-variable's
-    entropy ONCE, instead of the old per-cell recompute).
-    The identity I = H(u) + H(v) - H(u, v) (the ratio form's
-    0/0 is avoided; the joint entropy is the entropy of the
-    joint counts). Clamped to >= 0 (the floating-point
-    rounding of the identity can give a tiny negative).
+    counts + the PRE-COMPUTED marginal entropies (the caller
+    computes each sub-variable's entropy once and passes it).
+    The identity I = H(u) + H(v) - H(u, v) (the joint entropy
+    is the entropy of the joint counts); clamped to >= 0 (the
+    floating-point rounding of the identity can give a tiny
+    negative).
 
     Args:
       joint_counts: the (u, v) joint counts (the observed
@@ -822,11 +799,10 @@ def _symmetric_uncertainty(I: float, H_u: float,
 
 def _dispersion(counts: np.ndarray, n_configurations: int) -> dict:
     """
-    The per-sub-variable dispersion (the design section 3.3
-    phase 2): K_obs (the distinct observed codes), H (the
-    entropy in bits), H_norm = H / log2(K_obs) (else 0 — the
-    K_obs <= 1 guard), the coverage = K_obs /
-    n_configurations (the theoretical range).
+    The per-sub-variable dispersion: K_obs (the distinct
+    observed codes), H (the entropy in bits), H_norm = H /
+    log2(K_obs) (else 0 — the K_obs <= 1 guard), the coverage =
+    K_obs / n_configurations (the theoretical range).
 
     Args:
       counts: the sub-variable's count array (the observed
@@ -853,13 +829,7 @@ def _never_observed_audit(counts: np.ndarray,
                           n_configurations: int) -> dict:
     """
     The never-observed audit: the number of theoretical codes
-    never seen in the corpus (n_configurations - K_obs). The
-    D-301: the RARITY profile (the count of the observed codes
-    below each small count threshold) is REMOVED — it was DEAD
-    in production (the report's config-driven 'Section B: Rarity
-    report' is the _rarity_bins kernel's job, D-292) and its
-    hardcoded default thresholds were a phantom second source of
-    truth next to the config's rarity_thresholds (None = off).
+    never seen in the corpus (n_configurations - K_obs).
 
     Args:
       counts: the sub-variable's count array (the observed
@@ -898,14 +868,22 @@ _SuGroups = list[tuple[tuple[str, str], _SuSummary]]
 
 
 def _su_values(joint: _JointTable, lookup: dict) -> _SuSummary:
-    """The requested SU pairs: for each configured
-    (name_i, name_j) pair and each (inst_i, inst_j), the SU =
-    2*I / (H_i + H_j) from the joint + the two marginals. The
-    same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the
-    SU = 1 lock — not a measurement). The D-299 memoization:
-    each sub-variable's marginal entropy is computed ONCE
-    (the h_cache), not per cell (the old code recomputed
-    _entropy(mi) / _entropy(mj) for every requested cell)."""
+    """The requested SU values: for each configured
+    (name_i, name_j) pair and each (inst_i, inst_j) cell, the SU
+    = 2*I / (H_i + H_j) from the joint + the two marginals. The
+    same-feature DIAGONAL (inst_i == inst_j) is OMITTED (the SU
+    = 1 lock — not a measurement); a diagonal entry present in an
+    older joint table is skipped the same way.
+
+    Args:
+      joint:  the _JointTable (the per-pair observed joints).
+      lookup: the (name, instance) -> counts marginal lookup
+              (the _marginal_lookup output).
+
+    Returns:
+      the list of (name_i, inst_i, name_j, inst_j, su) entries
+      (the _SuSummary).
+    """
     su = []
     h_cache: dict = {}
     for (name_i, name_j, per_instance) in joint:
@@ -943,16 +921,17 @@ def _feature_instances(marginal: _MarginalTable) -> list:
 
 
 def _theoretical_configs(fset: FeatureSet) -> dict:
-    """The (name, instance) -> THEORETICAL configuration count (D-278,
-    the "theoretical" naming D-279): the denominator of the coverage +
-    the never-observed audit. A PATTERN's observed codes are the
-    PRINCIPAL indices (the orbit representatives), so its theoretical
-    space is n_unique_configs (the number of equivalence classes under
-    the pattern's symmetry — the distinct principal indices), NOT
-    n_configurations (the raw 3^n); some of those are unreachable by
-    the game's rules (the never-observed audit does not try to count
-    them). A MOBILITY's codes are the raw values (no symmetry
-    reduction), so its theoretical space is n_configurations."""
+    """The (name, instance) -> THEORETICAL configuration count
+    (the denominator of the coverage + the never-observed audit).
+    A PATTERN's observed codes are the PRINCIPAL indices (the
+    orbit representatives), so its theoretical space is
+    n_unique_configs (the number of equivalence classes under the
+    pattern's symmetry — the distinct principal indices), NOT
+    n_configurations (the raw 3^n); some of those are unreachable
+    by the game's rules (the never-observed audit does not try to
+    count them). A MOBILITY's codes are the raw values (no
+    symmetry reduction), so its theoretical space is
+    n_configurations."""
     space = {}
     for f in fset.features:
         if f.name == 'INTERCEPT':
@@ -976,7 +955,7 @@ def _su_canon(name_i: str, inst_i: int,
 
 def _su_groups(su_summary: _SuSummary,
                su_pairs: list[tuple[str, str]]) -> _SuGroups:
-    """The deduplicated + sorted SU groups (the report's Section B).
+    """The deduplicated + sorted SU groups (the report's Section C).
     The SU is SYMMETRIC (2·I / (H_u + H_v)), so the (i, j) and the
     (j, i) directions of a pair are the SAME measurement — each is
     shown ONCE, in the canonical endpoint order. The groups are the
@@ -1006,7 +985,7 @@ def _su_groups(su_summary: _SuSummary,
         gk = tuple(sorted((an, bn)))
         if gk not in order:
             order.append(gk)
-    # 3. The group + the sort (the SU descending + the canonical order).
+    # 3. The group + the sort (the canonical endpoint order).
     groups = {gk: [] for gk in order}
     for (an, ai, bn, bi, s) in deduped:
         groups[tuple(sorted((an, bn)))].append((an, ai, bn, bi, s))
@@ -1018,11 +997,25 @@ def _su_groups(su_summary: _SuSummary,
 def _rarity_bins(counts: np.ndarray, n_configurations: int,
                  thresholds: list[int]) -> list:
     """The per-bin frequency histogram (the report's optional
-    'Section B: Rarity report', D-292): the half-open bins
+    'Section B: Rarity report'): the half-open bins
     [0, t1), [t1, t2), ..., [tk, inf) — the FIRST bin the
     zero-frequency codes (the never-observed ones) — over the
-    sub-variable's count array. Returns the list of k+1 bin
-    counts (int)."""
+    sub-variable's count array.
+
+    Args:
+      counts:           the sub-variable's count array (the
+                        observed support; the dense form with the
+                        zero entries is accepted — the zeros are
+                        filtered).
+      n_configurations: the theoretical code range of the sub-
+                        variable (the full range, incl. the never-
+                        observed).
+      thresholds:       the bin edges (the config's
+                        rarity_thresholds).
+
+    Returns:
+      the list of k+1 bin counts (int).
+    """
     observed = np.asarray(counts, dtype=np.int64).ravel()
     observed = observed[observed > 0]
     t = np.asarray(thresholds, dtype=np.int64)
@@ -1036,7 +1029,18 @@ def _export_csv(ctx: "LMContext", tables: dict,
                 su_groups: _SuGroups) -> Path:
     """The optional CSV: the per-sub-variable marginal tables +
     the per-pair SU instance entries (the deduplicated + sorted
-    groups, the report's Section C)."""
+    groups). Written to base_dir / dir_name / 'su_analysis.csv'
+    (the parent dirs are created).
+
+    Args:
+      ctx:       the LMContext (the base_dir + the dir_name + the
+                 feature_set for the theoretical spaces).
+      tables:    the tables dict (the marginal).
+      su_groups: the _SuGroups (the deduplicated + sorted groups).
+
+    Returns:
+      the CSV path.
+    """
     cfg_fa = ctx.cfg.su_analysis
     csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
         "su_analysis.csv"
@@ -1060,15 +1064,26 @@ def _export_csv(ctx: "LMContext", tables: dict,
     return csv_path
 
 
-#: Here validation is not possible, it brings in a convoluted issue
-#: with circular imports (the LMContext facade, the D-303, the
-#: hlp_design_matrix idiom).
+#: Here validation is not possible: it would bring in a circular
+#: import (the LMContext facade, the hlp_design_matrix idiom).
 def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     """Phase 2 — the statistics (cheap, recomputed on EVERY run,
     including the cache hit): the per-sub-variable dispersion +
     the never-observed audit + the requested SU pairs. The
     console (INFO) + the TXT report (dir_name under base_dir) +
-    the optional CSV (the export_csv flag)."""
+    the optional CSV (the export_csv flag).
+
+    Args:
+      ctx:    the LMContext (the cfg.su_analysis report options +
+              the base_dir + the feature_set).
+      tables: the tables dict (the marginal + the joint).
+
+    Returns:
+      the TXT report path.
+
+    State: writes the TXT report (always) + the CSV (when the
+    export_csv flag); the report rows are logged at INFO.
+    """
     cfg_fa = ctx.cfg.su_analysis
     marginal = tables['marginal']
     joint = tables['joint']
