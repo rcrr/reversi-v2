@@ -9,8 +9,7 @@ statistics (phase 2: the SU pairs, the TXT report + the optional CSV; the D-299 
 optimization: the VECTORIZED joint merge — the sorted-key-array (K, C) storage + the
 searchsorted / np.add.at fold, no per-key Python loop — + the marginal-entropy memoization
 in _su_values; the D-300: the per-wave index matrix is computed ONCE in the compute loop
-and fed to both accumulators, the I-020). NO DB (the design
-section 3.3): the corpus is the level's own.
+and fed to both accumulators, the I-020). NO DB (the design section 3.3): the corpus is the level's own.
 The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_matrix minimalism).
 
 ## API
@@ -22,11 +21,11 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - `hlp_su_analysis_store_to_file(data, filename)` — the binio store (D-288): the header (the "SU_ANALYSIS
   corpus cache" description + the format version 1) + the signature block + the marginal + the joint (the
   per-instance in the sorted (ii, jj) order). The LZ4 compression (D-139), the sidecar owned by the
-  cache_manager (D-072).
+  cache_manager (D-072); the D-303 @validate_call, the SuTables deep validation.
 - `hlp_su_analysis_load_from_file(filename, checksum=True) -> dict` — the binio load: the sidecar check
   (when checksum — the worker passes False, the manager verifies at its step 2), the header
   description/version guard (the hlp_generate idiom), the ordered block reads. A foreign or truncated
-  file raises RuntimeError (the manager's R2 then deletes + recomputes, D-071).
+  file raises RuntimeError (the manager's R2 then deletes + recomputes, D-071); the D-303 @validate_call.
 - `hlp_su_analysis_is_cache_consistent(ctx, cached) -> bool` — the cached signature vs the live one (the
   FeatureSet domain hash + the spec + the pairs), the DEBUG log.
 - `hlp_su_analysis_statistics(ctx, tables) -> Path` — phase 2 (cheap, recomputed on EVERY run): the
@@ -42,7 +41,7 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - The consistency signature (the FeatureSet DOMAIN hash — the set's unique identifier over its semantic
   content, D-291 — + the spec + the pairs) is INTERNAL: the `_signature` private feeds the compute + the
   is_cache_consistent — it is NOT part of the module API (the `__all__` policy, D-290: only the
-  cross-module functions are exposed; the test / the probe reach the name directly).
+  cross-module names are exposed, the 5 functions + the SuTables type; the test / the probe reach the names directly).
 - The frequency accumulators are PRIVATE as well (the D-295 hlp_random_play migration, the
   D-290 policy): `_MarginalAccumulator(fset)` (the streaming marginal: per sub-variable
   the code -> count; the DENSE bincount when n_conf <= _DENSE_THRESHOLD (1e6), else the
@@ -79,10 +78,8 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
    _su_groups, _su_canon, _theoretical_configs, _feature_instances, _marginal_lookup, _export_csv).
 
 ## Verified invariants
-- The signature is a pure function of (feature_set, spec, pairs): pinned by test_hlp_su_analysis (the
-  independent sha3_256) + the verify_su_analysis B8-B11 (the seed / pair change).
-- The binio round-trip: pinned by test_hlp_su_analysis (with / without the joint) + the verify_su_analysis
-  C5-C7 (the probe's OWN re-derivation, the a/b/c line).
+- The signature + the binio round-trip: pinned by test_hlp_su_analysis (the independent sha3_256) + the
+  verify_su_analysis B8-B11 (the seed / pair change) + C5-C7 (the probe's OWN re-derivation, the a/b/c line).
 - The SU dedup + the canonical sort + the diagonal omission: pinned by test_hlp_su_analysis + the
   verify_su_analysis B13.
 - The corpus determinism (the seed pin): pinned by test_hlp_su_analysis + the worker suite (the 1e7 VLONG).
@@ -110,6 +107,9 @@ None.
 - The per-instance joint entries are written in the SORTED (ii, jj) order (the deterministic layout).
 - All signatures are COMPLETE (D-302, inert at runtime): the 46 parameter + the 4 return annotations;
   the structured shapes the private aliases (_MarginalTable / _JointTable / _SuSummary / _SuGroups), idx the IndexArray.
+- The D-303 (the Pydantic boundary): the store / the load are @validate_call-ed — the store DEEP-validates
+  the SuTables (a structurally malformed tables dict is rejected at the boundary); the ctx functions are
+  NOT (the hlp_design_matrix idiom: the LMContext circular import).
 
 ## Integration
 - Consumed by wrk_su_analysis (the 5 flow functions: compute / store / load / consistency / statistics —

@@ -61,6 +61,7 @@ import unittest
 from pathlib import Path
 
 import numpy as np
+from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.tools.state_machine import Verbosity
@@ -196,6 +197,24 @@ class TestHlpSuAnalysis(unittest.TestCase):
         back = hlp_su_analysis_load_from_file(path, checksum=False)
         self.assertIsNone(back["joint"])
         self._same_marginal(back["marginal"], tables["marginal"])
+
+    def test_store_deep_validation(self):
+        # D-303: store_to_file is @validate_call-ed with the SuTables
+        # DEEP validation — a structurally malformed tables dict (a
+        # 4-tuple marginal entry instead of the 5-tuple, a missing
+        # key) is REJECTED at the boundary (the ValidationError,
+        # before any binio write); the real compute output passes.
+        ctx = self._ctx()
+        tables = hlp_su_analysis_compute(ctx)
+        hlp_su_analysis_store_to_file(tables, self.tmp / "v.dat")
+        bad = dict(tables)
+        bad["marginal"] = [tuple(e[:4]) for e in tables["marginal"]]
+        with self.assertRaises(ValidationError):
+            hlp_su_analysis_store_to_file(bad, self.tmp / "b.dat")
+        missing = {"signature": tables["signature"],
+                   "marginal": tables["marginal"]}
+        with self.assertRaises(ValidationError):
+            hlp_su_analysis_store_to_file(missing, self.tmp / "m.dat")
 
     def test_load_guards(self):
         # The load guards: the sidecar mismatch (the corrupted

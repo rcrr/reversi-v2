@@ -50,10 +50,12 @@ import csv
 import hashlib
 from pathlib import Path
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
 import numpy.typing as npt
+
+from pydantic import ConfigDict, validate_call
 
 from reversi.board import initial_game_position
 from reversi.feature import FeatureSet
@@ -67,13 +69,14 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-# The 5 FLOW functions (the wrk/hlp boundary, D-289). The consistency
-# signature is INTERNAL (the _signature private, beside
-# _feature_set_hash): it feeds the compute + the is_cache_consistent,
-# it is not part of the module API (the __all__ policy, D-290: only
-# the cross-module functions are exposed — the test / the probe reach
-# the name directly).
-__all__ = ['hlp_su_analysis_compute',
+# The 5 FLOW functions (the wrk/hlp boundary, D-289) + the SuTables
+# tables type (the D-303). The consistency signature is INTERNAL (the
+# _signature private, beside _feature_set_hash): it feeds the compute
+# + the is_cache_consistent, it is not part of the module API (the
+# __all__ policy, D-290: only the cross-module names are exposed —
+# the test / the probe reach the private names directly).
+__all__ = ['SuTables',
+           'hlp_su_analysis_compute',
            'hlp_su_analysis_store_to_file',
            'hlp_su_analysis_load_from_file',
            'hlp_su_analysis_is_cache_consistent',
@@ -191,6 +194,21 @@ _JointTable = list[tuple[str, str,
                               tuple[npt.NDArray[np.uint32],
                                     npt.NDArray[np.uint32],
                                     npt.NDArray[np.int64]]]]]
+
+
+class SuTables(TypedDict):
+    """
+    The tables dict (the PUBLIC type, the D-303): the output of
+    hlp_su_analysis_compute, the input of hlp_su_analysis_store_to_file
+    (the @validate_call deep-validates it: the structure + the array
+    dtypes), the output of hlp_su_analysis_load_from_file.
+    'signature': the consistency signature block (the plain dict),
+    'marginal':  the _MarginalTable,
+    'joint':     the _JointTable, or None (no pairs configured).
+    """
+    signature: dict
+    marginal: _MarginalTable
+    joint: _JointTable | None
 
 
 class _MarginalAccumulator:
@@ -458,6 +476,9 @@ def _signature(ctx: "LMContext") -> dict:
     }
 
 
+#: Here validation is not possible, it brings in a convoluted issue
+#: with circular imports (the LMContext facade, the D-303, the
+#: hlp_design_matrix idiom).
 def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     """Phase 1 — the corpus (the expensive part): the SU-analysis corpus
     generator (the random_game play-path engine: the batches of
@@ -515,7 +536,9 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
             'joint': joint.result() if joint is not None else None}
 
 
-def hlp_su_analysis_store_to_file(data: dict, filename: str | Path) -> None:
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def hlp_su_analysis_store_to_file(data: SuTables,
+                                  filename: str | Path) -> None:
     """The binio store (D-288, the house data-file idiom — the LZ4
     compression D-139, the sidecar owned by the cache_manager D-072):
     the header + the signature block + the marginal + the joint."""
@@ -527,6 +550,7 @@ def hlp_su_analysis_store_to_file(data: dict, filename: str | Path) -> None:
         _write_joint(w, data['joint'])
 
 
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_su_analysis_load_from_file(filename: str | Path,
                                    checksum: bool = True) -> dict:
     """The binio load (D-288): the sidecar check (when checksum) + the
@@ -644,6 +668,9 @@ def _read_joint(r: BinaryReader) -> _JointTable | None:
     return out
 
 
+#: Here validation is not possible, it brings in a convoluted issue
+#: with circular imports (the LMContext facade, the D-303, the
+#: hlp_design_matrix idiom).
 def hlp_su_analysis_is_cache_consistent(ctx: "LMContext",
                                         cached: dict) -> bool:
     """The cache consistency: the cached signature vs the live
@@ -967,6 +994,9 @@ def _export_csv(ctx: "LMContext", tables: dict,
     return csv_path
 
 
+#: Here validation is not possible, it brings in a convoluted issue
+#: with circular imports (the LMContext facade, the D-303, the
+#: hlp_design_matrix idiom).
 def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     """Phase 2 — the statistics (cheap, recomputed on EVERY run,
     including the cache hit): the per-sub-variable dispersion +

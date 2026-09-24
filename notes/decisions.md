@@ -2866,3 +2866,52 @@ D-302 | 2026-09-23 | the INCOMPLETE signatures are COMPLETED
           findings only (the mirror net-zero at the 120 ceiling: the 2
           line-merges + the 2-line Conventions bullet, the .add(idx:
           IndexArray) weave).
+D-303 | 2026-09-23 | the Pydantic boundary: the store / the load are @validate_call-ed (the SuTables DEEP validation)
+          (Roberto: the 5 __all__ flow functions are called ONCE by the
+          pipeline — can they carry the Pydantic signatures? 'un
+          approccio rigoroso' — the (B) option, the full rigor, with
+          SuTables PUBLIC in __all__): the house precedent already
+          decided this exact question for the package (hlp_design_matrix
+          / hlp_generate / hlp_indexes / hlp_wmaps / hlp_zed: the store /
+          load ARE decorated, the ctx functions are NOT — the documented
+          comment 'Here validation is not possible, it brings in a
+          convoluted issue with circular imports'). ANALYSIS: (1) the
+          circular chain is REAL — the logistic_model facade imports
+          wrk_su_analysis (line 45) BEFORE the LMContext class is
+          defined, so a runtime import of LMContext in hlp_su_analysis
+          would fail at import time; EXPERIMENT: a @validate_call
+          signature with a TYPE_CHECKING-only forward reference FAILS at
+          decoration time (NameError, pydantic 2.13.4). (2) The 2 I/O
+          functions ARE decorated: hlp_su_analysis_store_to_file(data:
+          SuTables, filename: str | Path) +
+          hlp_su_analysis_load_from_file (filename: str | Path, checksum:
+          bool = True), the house
+          ConfigDict(arbitrary_types_allowed=True). (3) The 3 ctx
+          functions (compute / is_cache_consistent / statistics) stay
+          UNDECORATED with the house precedent comment (the
+          hlp_design_matrix idiom, the D-303 pointer). (4) THE SuTables
+          PUBLIC TypedDict (the D-302 option (c), resurrected — the
+          deferred precision now has a purpose): signature dict +
+          marginal _MarginalTable + joint _JointTable | None. The store
+          DEEP-validates it: the structure + the array dtypes (uint32 /
+          int64) — MEASURED on the 1e7-shaped tables (28 cells, ~465k
+          keys/cell): ~19 us (the shallow dict would be 2 us) — invisible
+          against the binio write / read (seconds); the array leaves are
+          passed through (no copy, verified), the containers are rebuilt
+          (the store is read-only, no behaviour change). Lax-mode caveat:
+          a wrong array DTYPE is converted (int64 -> uint32), a
+          structurally malformed table (the 4-tuple marginal entry, a
+          missing key) is REJECTED with a ValidationError — pinned by the
+          new test. (5) The cache_manager synergy: a raising load_fn /
+          validate_fn falls into the R2 path (the delete + recompute,
+          D-071) — the validation joins the recovery flow for free.
+          VERIFICATION: the full suite (fast tier) 948/0/97 GREEN (+1:
+          test_store_deep_validation — the real compute output passes,
+          the 4-tuple marginal + the missing key are rejected), the
+          worker suite VLONG 10/0/0 (the 1e7 corpus 18.5 s cold, the
+          baseline 18.7 s — the decorator costs zero on the real path),
+          the verify_su_analysis probe 45 / 0, the verify_effect_size
+          probe 29 / 0, the docs audit 92 mirrors with the 6 pre-existing
+          findings only (the mirror net-zero at the 120 ceiling: the 2
+          line-merges + the 3-line Conventions bullet + the 3 inline
+          weaves).
