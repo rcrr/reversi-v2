@@ -1,5 +1,5 @@
 #
-# wrk_effect_size.py
+# wrk_anova.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -26,7 +26,7 @@
 #
 
 """
-The EFFECT_SIZE worker (the eta²/omega² + the
+The ANOVA worker (the eta²/omega² + the
 adherence, step 6): the one-way ANOVA effect sizes (the
 eta²/omega² per sub-variable) + the adherence (the fixed trio
 — the chi-square + the KL + the TV — the DB configuration
@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
 
 
-__all__ = ['wrk_effect_size']
+__all__ = ['wrk_anova']
 
 
 def _write_report(ctx, anova_lines, adherence_lines) -> Path:
@@ -66,8 +66,8 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
     deviant features (the adherence, the TV descending) + the
     graceful-degradation note (when the adherence is skipped).
     The optional CSV (the export_csv flag)."""
-    cfg_es = ctx.cfg.effect_size
-    lines = ["EFFECT_SIZE REPORT", "=" * 40]
+    cfg_es = ctx.cfg.anova
+    lines = ["ANOVA REPORT", "=" * 40]
     lines.append(f"Sub-variables (the eta-squared / omega-squared): "
                  f"{len(anova_lines)}")
     for (name, i, k, n, eta2, omega2) in anova_lines:
@@ -88,9 +88,9 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     ctx.log_event(Relevance.INFO,
-                  f"EFFECT_SIZE report written: {report_path}.")
+                  f"ANOVA report written: {report_path}.")
     if cfg_es.export_csv:
-        csv_path = report_path.parent / "effect_size.csv"
+        csv_path = report_path.parent / "anova.csv"
         with open(csv_path, 'w', newline='', encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(['type', 'feature', 'inst', 'eta2', 'omega2',
@@ -104,15 +104,15 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
                                 f"{tv:.6f}", f"{kl:.6f}",
                                 f"{chi2:.6f}", f"{p:.6e}", merged])
         ctx.log_event(Relevance.INFO,
-                      f"EFFECT_SIZE CSV written: {csv_path}.")
+                      f"ANOVA CSV written: {csv_path}.")
     return report_path
 
 
 def _up(ctx: "LMContext") -> None:
-    cfg_es = ctx.cfg.effect_size
+    cfg_es = ctx.cfg.anova
     if not cfg_es.enable:
         ctx.log_event(Relevance.INFO,
-                      "EFFECT_SIZE disabled (enable: false) — no-op.")
+                      "ANOVA disabled (enable: false) — no-op.")
         return
     fset = ctx.feature_set
     blocks = fset.feature_blocks
@@ -167,14 +167,14 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
-    # The EFFECT_SIZE worker publishes nothing on the ctx (a
+    # The ANOVA worker publishes nothing on the ctx (a
     # diagnostic); the down is a no-op (the D-060 recovery is
     # trivially satisfied).
-    ctx.log_event(Relevance.INFO, "EFFECT_SIZE down (no-op).")
+    ctx.log_event(Relevance.INFO, "ANOVA down (no-op).")
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
-def wrk_effect_size() -> Worker:
-    """Factory function that returns the EFFECT_SIZE worker
+def wrk_anova() -> Worker:
+    """Factory function that returns the ANOVA worker
     instance."""
-    return Worker("EFFECT_SIZE", _up, _down)
+    return Worker("ANOVA", _up, _down)

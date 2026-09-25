@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 #
-# verify_effect_size.py
+# verify_anova.py
 #
-# Probe pinning the EFFECT_SIZE level (the I-017 step 6, D-187): the
-# worker (src/reversi/lm/wrk_effect_size.py) + the two kernel families
+# Probe pinning the ANOVA level (the I-017 step 6, D-187): the
+# worker (src/reversi/lm/wrk_anova.py) + the two kernel families
 # it consumes (the ANOVA + the adherence, both in the SHARED
 # hlp_feature_analysis module) + its cross-level input
 # (ctx.su_analysis_tables, published by the SU_ANALYSIS level).
@@ -28,7 +28,7 @@
 # The a/b/c rule (probe_rules §3): the factory name, the enable no-op,
 # the ANOVA line count, the degradation log, the adherence-computed log,
 # the report existence and the down no-op all live in
-# test_wrk_effect_size.py — they are NOT repeated here. What stays: the
+# test_wrk_anova.py — they are NOT repeated here. What stays: the
 # independent formulas (the F identity, the ratio-free trio in pure
 # python, the Pinsker bound), the CSV, the report's own numbers and the
 # real-data tier.
@@ -54,7 +54,7 @@ ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "src"))
 
-TMP = ROOT / "build" / "tmp" / "verify_effect_size"
+TMP = ROOT / "build" / "tmp" / "verify_anova"
 TMP.mkdir(parents=True, exist_ok=True)
 atexit.register(lambda: shutil.rmtree(TMP, ignore_errors=True))
 
@@ -160,13 +160,13 @@ def py_adherence(db_counts, ideal_counts, min_expected=5.0):
 
 
 # ---------------------------------------------------------------- A tier
-W = ROOT / "src" / "reversi" / "lm" / "wrk_effect_size.py"
+W = ROOT / "src" / "reversi" / "lm" / "wrk_anova.py"
 wt = W.read_text()
-check("A1  the factory: @validate_call + wrk_effect_size() -> Worker",
+check("A1  the factory: @validate_call + wrk_anova() -> Worker",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in wt
-      and "def wrk_effect_size() -> Worker:" in wt)
-check("A2  the Worker name is EFFECT_SIZE",
-      'return Worker("EFFECT_SIZE", _up, _down)' in wt)
+      and "def wrk_anova() -> Worker:" in wt)
+check("A2  the Worker name is ANOVA",
+      'return Worker("ANOVA", _up, _down)' in wt)
 check("A3  the no-cache discipline (a diagnostic): no cache_manager import, "
       "no store/load of its own",
       "cache_manager" not in wt and "binio" not in wt)
@@ -178,8 +178,8 @@ check("A5  the graceful-degradation branch: the adherence skipped when "
       "tables = ctx.su_analysis_tables" in wt
       and "Adherence SKIPPED" in wt and "tables is not None" in wt)
 check("A6  the down is a no-op (nothing published on the ctx)",
-      "EFFECT_SIZE down (no-op)" in wt)
-check("A7  __all__ = ['wrk_effect_size']", "__all__ = ['wrk_effect_size']" in wt)
+      "ANOVA down (no-op)" in wt)
+check("A7  __all__ = ['wrk_anova']", "__all__ = ['wrk_anova']" in wt)
 check("A8  no trailing whitespace outside the license header", not ws_lines(W),
       str(ws_lines(W)))
 
@@ -271,7 +271,7 @@ check("B11 the disjoint support: chi2 = +inf, p = 0, KL = +inf and a finite "
 # ---------------------------------------------------------------- C tier
 # The worker on the rlm_00 fixture (the mock ctx): the CSV path (which no
 # test covers), the degradation REPORT line and the top-N report rows.
-from reversi.lm.wrk_effect_size import _down, _up  # noqa: E402
+from reversi.lm.wrk_anova import _down, _up  # noqa: E402
 
 
 class _MockIndexes:
@@ -294,8 +294,8 @@ class _MockCtx:
 
 cfg, fset, blocks = _campaign(CFG)
 cfg.base_dir = TMP / "c_mock"
-cfg.effect_size.enable = True
-cfg.effect_size.export_csv = True
+cfg.anova.enable = True
+cfg.anova.export_csv = True
 max_col = max(b[2] for b in blocks)
 n_pos = 500
 idx = np.zeros((n_pos, max_col), dtype=np.uint32)
@@ -307,14 +307,14 @@ gv = rng.standard_normal(n_pos)
 # (C1) the degradation: the report line (the test pins the LOG only).
 ctx = _MockCtx(cfg, fset, idx, gv, None)
 _up(ctx)
-rep = cfg.base_dir / "effect_size" / "effect_size_report.txt"
+rep = cfg.base_dir / "anova" / "anova_report.txt"
 txt = rep.read_text()
 check("C1  the degradation REPORT line (the test pins the log, the report "
       "was never checked)",
       "Adherence: SKIPPED (the SU_ANALYSIS level was disabled" in txt)
 check("C2  the report header + the ANOVA section count == the rlm_00 "
       "sub-variables (15)",
-      txt.startswith("EFFECT_SIZE REPORT\n")
+      txt.startswith("ANOVA REPORT\n")
       and "Sub-variables (the eta-squared / omega-squared): 15" in txt
       and len(re.findall(r"^  ANOVA ", txt, re.M)) == 15,
       str(txt.splitlines()[:3]))
@@ -327,7 +327,7 @@ check("C3  the report's ANOVA numbers == the independent recompute "
           for i in range(n_inst)))
 # (C4) the CSV: the header + one row per ANOVA sub-variable + the
 # adherence rows (the flag path has NO test).
-csv_path = cfg.base_dir / "effect_size" / "effect_size.csv"
+csv_path = cfg.base_dir / "anova" / "anova.csv"
 rows = csv_path.read_text().splitlines()
 check("C4  the CSV: the documented header, 15 anova rows, and no adherence "
       "rows while the corpus is absent",
@@ -354,10 +354,10 @@ for (name, c0, c1, n_conf, n_inst) in blocks:
         tables["marginal"].append((name, i, n_conf, codes, counts))
 cfg2, fset2, blocks2 = _campaign(CFG)
 cfg2.base_dir = TMP / "c_mock2"
-cfg2.effect_size.enable = True
+cfg2.anova.enable = True
 ctx2 = _MockCtx(cfg2, fset2, idx, gv, tables)
 _up(ctx2)
-txt2 = (cfg2.base_dir / "effect_size" / "effect_size_report.txt").read_text()
+txt2 = (cfg2.base_dir / "anova" / "anova_report.txt").read_text()
 ADH_RX = (r"^  Adherence (\w+) inst (\d+): TV ([\d.]+), KL ([\d.]+|inf), "
           r"chi2 ([\d.]+|inf) \(p ([\d.e+-]+|nan), merged (\d+)\)$")
 adh = re.findall(ADH_RX, txt2, re.M)
@@ -388,7 +388,7 @@ check("C7  the report's adherence rows == the independently recomputed ones "
 # ---------------------------------------------------------------- D tier
 # The live A2050 run without a DB: the build area's cached corpus +
 # POSITIONS + INDEXES are symlinked under build/tmp and the config is run
-# to EFFECT_SIZE. Skipped when the area is absent (gitignored data).
+# to ANOVA. Skipped when the area is absent (gitignored data).
 D = TMP / "d_live"
 caches = ["rlmwf_03_SU_ANALYSIS.dat", "rlmwf_04_POSITIONS.dat",
           "rlmwf_05_INDEXES.dat"]
@@ -416,8 +416,13 @@ if have_build:
                               verbosity=Verbosity.HIGH,
                               base_dir_override=str(D))
         model.move_to_step("CONFIG")
-        model.move_to_step("EFFECT_SIZE")
-    drep = D / "effect_size" / "effect_size_report.txt"
+        # The build area's config may predate the effect_size -> anova
+        # key rename (D-309): force the level on so the tier verifies
+        # the ANOVA output regardless of the (regenerable, gitignored)
+        # build config's key naming.
+        model.context.cfg.anova.enable = True
+        model.move_to_step("ANOVA")
+    drep = D / "anova" / "anova_report.txt"
     dtxt = drep.read_text()
     dcfg, dfset, dblocks = _campaign(BUILD / "rlm_su_1e7.json")
     n_sub = sum(b[4] for b in dblocks)
@@ -425,7 +430,7 @@ if have_build:
           "sum(n_instances) over the feature set",
           len(re.findall(r"^  ANOVA ", dtxt, re.M)) == n_sub, f"{n_sub}")
     check("D2  NO cache file for the level (a diagnostic, no rlmwf_06_*)",
-          not (D / "rlmwf_06_EFFECT_SIZE.dat").exists()
+          not (D / "rlmwf_06_ANOVA.dat").exists()
           and not list(D.glob("rlmwf_06_*")))
     dindexes = hlp_indexes_load_from_file(str(D / "rlmwf_05_INDEXES.dat"),
                                           checksum=False).indexes
@@ -523,22 +528,22 @@ if have_build:
 
 # ---------------------------------------------------------------- F tier
 runner = (ROOT / "run_utests.sh").read_text()
-check("F1  the runner registers the effect-size suite",
-      "test.reversi.lm.test_wrk_effect_size" in runner)
-for rel in ("docs/src/reversi/lm/wrk_effect_size.md",
-            "docs/test/reversi/lm/test_wrk_effect_size.md"):
+check("F1  the runner registers the anova suite",
+      "test.reversi.lm.test_wrk_anova" in runner)
+for rel in ("docs/src/reversi/lm/wrk_anova.md",
+            "docs/test/reversi/lm/test_wrk_anova.md"):
     check(f"F2  the D-007 mirror exists: {rel}", (ROOT / rel).exists())
 overview = (ROOT / "notes" / "overview.md").read_text()
 check("F3  the overview rows name the worker + its suite",
-      "src/reversi/lm/wrk_effect_size.py" in overview
-      and "test_wrk_effect_size" in overview)
+      "src/reversi/lm/wrk_anova.py" in overview
+      and "test_wrk_anova" in overview)
 check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       "(rlm_01..rlm_04) enables it",
-      all('"effect_size"' not in (ROOT / "test" / "reversi" / "data"
+      all('"anova"' not in (ROOT / "test" / "reversi" / "data"
                                   / f"rlm_0{i}.json").read_text()
           for i in (1, 2, 3, 4)))
 check("F5  the D-298 split boundary: hlp_feature_analysis carries the "
-      "EFFECT_SIZE family (the ANOVA + the adherence), the SU kernels "
+      "ANOVA family (the ANOVA + the adherence), the SU kernels "
       "live in hlp_su_analysis (the private _symmetric_uncertainty)",
       all(k in (ROOT / "src" / "reversi" / "lm"
                 / "hlp_feature_analysis.py").read_text()
@@ -550,10 +555,10 @@ check("F5  the D-298 split boundary: hlp_feature_analysis carries the "
       (ROOT / "src" / "reversi" / "lm"
        / "hlp_feature_analysis.py").read_text())
 check("F6  the report format: the title + the two section headers",
-      (TMP / "c_mock" / "effect_size" / "effect_size_report.txt").read_text()
+      (TMP / "c_mock" / "anova" / "anova_report.txt").read_text()
       .splitlines()[1] == "=" * 40
       and "Sub-variables (the eta-squared / omega-squared):" in
-      (TMP / "c_mock" / "effect_size" / "effect_size_report.txt").read_text())
+      (TMP / "c_mock" / "anova" / "anova_report.txt").read_text())
 
 # ---------------------------------------------------------------- report
 print(f"\n{fails} mismatch(es)", file=sys.stderr)

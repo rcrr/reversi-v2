@@ -2,8 +2,8 @@
 The ZED domain module of the LM pipeline: the `LMZed` data object (the z (N,) float32 vector — the affine image of the
 per-position game values — + the two affine transformation closures `y2z` / `z2y`) + `zed_fun_factory` (the pure math) +
 `hlp_zed_compute` + the duck-typed `compute_sha3_256_hash`. The data object of the 9th active level (CREATED sentinel →
-CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED) and a non-cache level,
-like CONFIG / FEATURES / EFFECT_SIZE (no store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09*
+CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED) and a non-cache level,
+like CONFIG / FEATURES / ANOVA (no store / load / is_cache_consistent, no cache_manager wiring, no rlmwf_09*
 file — see the worker doc).
 
 ## API
@@ -25,7 +25,7 @@ file — see the worker doc).
 - `hlp_zed_compute`: NO `@validate_call` (the no-validation note — the hlp_indexes class). Body:
   `alpha = ctx.cfg.stat_model.logit_clipping`; `y2z, z2y = zed_fun_factory(alpha)`; `y = ctx.game_values`; `z = y2z(y)`;
   returns the object.
-- NO store / load / is_cache_consistent functions — a non-cache level by design, like CONFIG / FEATURES / EFFECT_SIZE
+- NO store / load / is_cache_consistent functions — a non-cache level by design, like CONFIG / FEATURES / ANOVA
   (vectorized math, "very fast" per the worker comment; no rlmwf_09* file ever materializes).
 
 ## Verified invariants
@@ -72,6 +72,6 @@ None.
   semantics guarantee every up-move to step 9 passes through both. No other upstream dependency (the
   FEATURES/INDEXES/WMAPS/DESIGN_MTR outputs are NOT consumed by ZED).
 - The worker recomputes on EVERY up-move (no cache file, no `is_allowed` switch — the uniform 7-kwargs cache_manager
-  wiring is absent by design: ZED is a non-cache level, like CONFIG / FEATURES / EFFECT_SIZE).
+  wiring is absent by design: ZED is a non-cache level, like CONFIG / FEATURES / ANOVA).
 - `zed_checksum` is a pure data checksum (sha3_256 over `z.tobytes()`) with no sidecar (nothing to sidecar — no file);
   it is logged by the worker and stored on the context for the next level (GRADIENT) to consume.

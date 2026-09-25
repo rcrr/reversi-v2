@@ -106,7 +106,7 @@ class TestLogisticModel(unittest.TestCase):
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        # The SU_ANALYSIS + the EFFECT_SIZE worker dummies.
+        # The SU_ANALYSIS + the ANOVA worker dummies.
         # Without them the real workers would cross the
         # "POSITIONS" string move and hit the None cfg (the mock
         # CONFIG never sets it).
@@ -116,8 +116,8 @@ class TestLogisticModel(unittest.TestCase):
                                 return_value=Worker("SU_ANALYSIS", self.fa_up_mock, self.fa_down_mock))
         self.es_up_mock = MagicMock()
         self.es_down_mock = MagicMock()
-        self.patcher_es = patch('reversi.lm.logistic_model.wrk_effect_size',
-                                return_value=Worker("EFFECT_SIZE", self.es_up_mock, self.es_down_mock))
+        self.patcher_es = patch('reversi.lm.logistic_model.wrk_anova',
+                                return_value=Worker("ANOVA", self.es_up_mock, self.es_down_mock))
 
         self.mock_config_factory = self.patcher_config.start()
         self.mock_positions_factory = self.patcher_positions.start()

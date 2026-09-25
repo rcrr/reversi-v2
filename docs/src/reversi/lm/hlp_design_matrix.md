@@ -2,7 +2,7 @@
 The DESIGN_MTR domain module of the LM pipeline: the `LMDesignMatrix` data object (the (N,I) uint32 X — the w-index of
 each (position, feature-instance) cell — + the `wmaps_obj_checksum` metadata) + 4 public functions + the duck-typed
 `compute_sha3_256_hash` — the 8th active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS,
+INDEXES → ANOVA → WMAPS → DESIGN_MTR), the 5th cache_manager consumer in the pipeline (after SU_ANALYSIS,
 POSITIONS, INDEXES and WMAPS).
 
 ## API

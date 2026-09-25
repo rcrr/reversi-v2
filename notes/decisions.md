@@ -3186,3 +3186,44 @@ D-308 | 2026-09-24 | the ANALYTICS report: the INTERCEPT section (the single tra
           A2050 VLONG-gated); verify_analytics 0 mismatch (the A10
           def count pin 10 -> 11, the new
           _format_intercept_section helper).
+D-309 | 2026-09-24 | the EFFECT_SIZE level is RENAMED ANOVA (the worker, the config, the files)
+          Roberto's request: evaluate renaming the EFFECT_SIZE
+          pipeline step (6) to ANOVA. Analysis: the level's primary
+          (always-run) computation is literally the one-way ANOVA
+          effect sizes — the kernel is already anova_eta_omega, the
+          report already prints "ANOVA ..." lines — so ANOVA is more
+          specific and truthful than the generic EFFECT_SIZE. Two
+          caveats accepted: (a) the level also computes the
+          adherence (the chi-square + KL + TV distribution
+          comparison), which is NOT ANOVA — it becomes the "unnamed"
+          secondary part of the ANOVA step (acceptable, it is the
+          graceful-degradation, opt-in diagnostic); (b) strictly the
+          level computes the effect sizes (eta²/omega²), not the
+          F-statistic/p-value — "ANOVA" in common usage covers this.
+          Scope: the worker (wrk_effect_size.py -> wrk_anova.py,
+          Worker("EFFECT_SIZE") -> Worker("ANOVA")), the config
+          (EffectSizeConfig -> AnovaConfig, the field effect_size ->
+          anova, the dir / report defaults), the test
+          (test_wrk_effect_size.py -> test_wrk_anova.py), the probe
+          (verify_effect_size.py -> verify_anova.py), the 2 mirror
+          docs, + the ~150 identifier references across src / test /
+          docs / probes / run_utests.sh. The historical notes
+          (decisions / journal / the I-017 plan) are left as-is.
+          The BREAKING change: the config key effect_size -> anova.
+          Pydantic IGNORES the old key (verified: a config with
+          effect_size: {enable: true} loads fine but cfg.anova.enable
+          stays False) — so a pre-rename config SILENTLY disables the
+          level. No repo fixture sets the key (all opt-in FALSE), so
+          the repo is unaffected; any external / production config
+          using effect_size: must be updated to anova: (or the schema
+          gains an alias — Roberto's call).
+          VERIFICATION: the fast suite 957/0 + the LONG=1 suite
+          957/0 (24 skipped); the 5 touched / related probes (anova,
+          su_analysis, save, logistic_model, analytics) all 0
+          mismatch. Two rename-induced fixes: (1) test_wrk_anova's
+          per-sub-variable count now keys on "eta2" (the "ANOVA
+          report written" log line also says ANOVA now — the level
+          name); (2) the verify_anova D tier (the live A2050 build
+          area) now force-enables cfg.anova (the build area's config
+          predates the key rename — it still says effect_size).
+          docs audit clean for the 2 renamed mirrors; notes_format 0.

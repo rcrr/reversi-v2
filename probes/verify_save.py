@@ -6,7 +6,7 @@ Tiers:
   A: static hygiene (worker, model_weights, client, test file, fixtures)
   B: model_weights read guards (no DB)
   C: live rlm_04 full 18-level chain (DB; D-186/D-187: + the I-017
-     SU_ANALYSIS step 3 + the EFFECT_SIZE step 6)
+     SU_ANALYSIS step 3 + the ANOVA step 6)
   D: live rlm_03 full 18-level chain (DB; run only with LONG=1)
 
 Run: .venv/bin/python scratch/verify_save.py [LONG]

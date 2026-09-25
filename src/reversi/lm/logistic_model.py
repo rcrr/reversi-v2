@@ -44,7 +44,7 @@ from reversi.lm.wrk_positions import wrk_positions
 from reversi.lm.wrk_features import wrk_features
 from reversi.lm.wrk_su_analysis import wrk_su_analysis
 from reversi.lm.wrk_indexes import wrk_indexes
-from reversi.lm.wrk_effect_size import wrk_effect_size
+from reversi.lm.wrk_anova import wrk_anova
 from reversi.lm.wrk_wmaps import wrk_wmaps
 from reversi.lm.wrk_design_matrix import wrk_design_matrix
 from reversi.lm.wrk_zed import wrk_zed
@@ -121,7 +121,7 @@ class LMContext(Context):
 
     # Feature analysis attribute (the SU level, step 3): the
     # corpus frequency tables (the marginal + the joint)
-    # published by the SU_ANALYSIS worker for the EFFECT_SIZE
+    # published by the SU_ANALYSIS worker for the ANOVA
     # level (the cross-level blackboard, the D-099
     # pre-declared fields).
     su_analysis_tables: Any = None
@@ -241,7 +241,7 @@ class LogisticModel(BaseModel):
             wrk_su_analysis(),
             wrk_positions(),
             wrk_indexes(),
-            wrk_effect_size(),
+            wrk_anova(),
             wrk_wmaps(),
             wrk_design_matrix(),
             wrk_zed(),

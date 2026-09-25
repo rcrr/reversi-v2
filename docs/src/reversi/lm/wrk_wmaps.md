@@ -1,6 +1,6 @@
 # reversi/lm/wrk_wmaps.py
 The WMAPS worker of the LM pipeline — the 7th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES → EFFECT_SIZE → WMAPS). Like POSITIONS and INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
+INDEXES → ANOVA → WMAPS). Like POSITIONS and INDEXES it is a CACHE-CONSUMING level: the 4-step load-or-compute
 over the hlp_wmaps object — the 4th cache_manager consumer in the pipeline (the flat `rlmwf_07_WMAPS.dat` + binio
 sidecar DO materialize).
 
@@ -60,7 +60,7 @@ None.
 ## Integration
 
 - The 7th LM level (the 8-worker prefix
-  `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES, EFFECT_SIZE, WMAPS]`); the facade (`logistic_model.py`)
+  `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES, ANOVA, WMAPS]`); the facade (`logistic_model.py`)
   instantiates the machine + `Worker`.
 - Consumes the `hlp_wmaps` module (all 5 public names) + `cache_manager`; publishes the 6 ctx arrays +
   `ctx.wmaps_obj_checksum` for the DESIGN_MTR level onward.

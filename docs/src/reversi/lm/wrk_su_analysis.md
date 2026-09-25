@@ -5,7 +5,7 @@ flow D-288, the consistency signature with the FeatureSet DOMAIN hash INSTEAD of
 the new cache
 lineage), the statistics (phase 2: the dispersion + the never-observed audit + the SU pairs, cheap, recomputed on
 EVERY run including the cache hit — the hlp), and the ctx publication (the corpus frequency tables for the
-EFFECT_SIZE level, the adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror: the
+ANOVA level, the adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror: the
 corpus engine, the binio layout, the signature, the statistics kernels).
 
 ## API
@@ -58,5 +58,5 @@ None.
 ## Integration
 
 - The cache flow: cache_manager_load_or_compute (the hlp load / store / consistency / compute).
-- The publication consumer: the EFFECT_SIZE level (step 6, the adherence over ctx.su_analysis_tables).
+- The publication consumer: the ANOVA level (step 6, the adherence over ctx.su_analysis_tables).
 - The report: the su_analysis directory under base_dir (the report_file_name + the optional su_analysis.csv).

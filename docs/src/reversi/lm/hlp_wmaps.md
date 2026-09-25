@@ -1,7 +1,7 @@
 # reversi/lm/hlp_wmaps.py
 The WMAPS domain module of the LM pipeline: the `LMWMaps` data object (the 6 weight-map arrays + the 2 metadata scalars)
 + 4 public functions (store / load / compute / is_cache_consistent) + the duck-typed `compute_sha3_256_hash` — the 7th
-active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS), the
+active level's data object (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS → INDEXES → ANOVA → WMAPS), the
 FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 
 ## API

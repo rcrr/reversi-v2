@@ -1,6 +1,6 @@
 # reversi/lm/wrk_design_matrix.py
 The DESIGN_MTR worker of the LM pipeline — the 8th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a CACHE-CONSUMING level: the
+INDEXES → ANOVA → WMAPS → DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a CACHE-CONSUMING level: the
 4-step load-or-compute over the hlp_design_matrix object (the flat `rlmwf_08_DESIGN_MTR.dat` + binio sidecar +
 the duck-typed data checksum) — the FIFTH cache_manager consumer in the pipeline; the flat files DO materialize (the
 DB test pins their existence).
@@ -64,7 +64,7 @@ None.
 ## Integration
 
 - The 8th LM level (the 9-worker prefix
-  `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES, EFFECT_SIZE, WMAPS, DESIGN_MTR]`); the facade
+  `[CREATED, CONFIG, FEATURES, SU_ANALYSIS, POSITIONS, INDEXES, ANOVA, WMAPS, DESIGN_MTR]`); the facade
   (`logistic_model.py`) instantiates the machine + `Worker`.
 - Consumes the `hlp_design_matrix` module (all 5 public names) + `cache_manager`; publishes `ctx.design_matrix` (the
   (N,I) uint32 X) + `ctx.design_matrix_checksum` for the ZED level onward.

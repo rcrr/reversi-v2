@@ -1,6 +1,6 @@
 # reversi/lm/hlp_generate.py
 The GENERATE domain module of the LM pipeline — the 12th active level (CREATED sentinel → CONFIG → FEATURES →
-SU_ANALYSIS → POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE) and the 6th
+SU_ANALYSIS → POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE → GENERATE) and the 6th
 cache_manager consumer. It expands the OPTIMIZE compressed weights into the DENSE weight vector used for inference:
 `w_dense` ((K,) float32 over ALL theoretical configurations of the feature set) + `w_checksum` (the OPTIMIZE
 compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine closure

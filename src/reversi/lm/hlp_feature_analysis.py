@@ -26,7 +26,7 @@
 #
 
 """
-The EFFECT_SIZE analysis-kernels data module (the D-298 split:
+The ANOVA analysis-kernels data module (the D-298 split:
 the module was the SHARED data plane of the two levels, the
 families proved disjoint — the SU / entropy / MI / dispersion /
 never-observed kernels now live in hlp_su_analysis): the
@@ -41,7 +41,7 @@ pure-math kernels over the frequency tables, NO DB, NO positions.
     chi-square goodness-of-fit + the KL divergence + the total
     variation (the three PRIVATE helpers of the trio, D-298)
 
-The worker (wrk_effect_size.py) calls these kernels on
+The worker (wrk_anova.py) calls these kernels on
 the accumulator output (the phase-2 recompute, cheap, on every
 run).
 """
@@ -54,7 +54,7 @@ __all__ = ['anova_eta_omega', 'adherence']
 
 def anova_eta_omega(groups, values) -> dict:
     """
-    The one-way ANOVA effect sizes (the EFFECT_SIZE level, the
+    The one-way ANOVA effect sizes (the ANOVA level, the
     design section 3.5): the observed codes as the groups (K),
     the target = the continuous training game values (N).
 
@@ -204,7 +204,7 @@ def _chi_square_goodness(observed, expected,
 
 def adherence(db_counts, ideal_counts) -> dict:
     """
-    The adherence (c) (the EFFECT_SIZE level, the design
+    The adherence (c) (the ANOVA level, the design
     section 3.5): the DB configuration distribution (the
     observed codes of the training positions) vs the ideal
     distribution (the corpus frequencies, normalized). The

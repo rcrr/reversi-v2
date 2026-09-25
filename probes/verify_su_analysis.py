@@ -26,7 +26,7 @@
 #      on the cache hit, the report vs pure-python math, the down, the
 #      opt-in absence of both artifacts
 #   F  the cross-file facts: the runner, the rename completeness, the
-#      mirrors, the EFFECT_SIZE consumer contract
+#      mirrors, the ANOVA consumer contract
 #
 # The a/b/c rule (probe_rules §3): the checks that a test already pins
 # through the same path are NOT here — the factory name, the enable
@@ -609,8 +609,8 @@ check("F5  the mirror's generator version == the module's constant "
       "(the stale g0-1 pin re-derived)",
       "su-corpus-5" in mirror and "g0-1" not in mirror)
 
-eff = (ROOT / "src" / "reversi" / "lm" / "wrk_effect_size.py").read_text()
-check("F6  the EFFECT_SIZE consumer contract: it reads "
+eff = (ROOT / "src" / "reversi" / "lm" / "wrk_anova.py").read_text()
+check("F6  the ANOVA consumer contract: it reads "
       "ctx.su_analysis_tables + imports the adherence / ANOVA kernels "
       "from hlp_feature_analysis",
       "ctx.su_analysis_tables" in eff

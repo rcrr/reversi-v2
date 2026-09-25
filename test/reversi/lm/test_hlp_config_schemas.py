@@ -287,30 +287,30 @@ class TestRlmConfigSchemas(unittest.TestCase):
         cfg = LMConfig(**self._cfg_dict(_noidx))
         self.assertEqual(cfg.cache_files_prefix, "rlmwf_")
 
-    # -- The SU_ANALYSIS / EFFECT_SIZE config -------------------------------
+    # -- The SU_ANALYSIS / ANOVA config -------------------------------
 
     def test_su_analysis_defaults(self):
         """The opt-in sections: the su_analysis / the
-        effect_size enable default FALSE, the target_level
+        anova enable default FALSE, the target_level
         default 'last', the corpus defaults (seed 42, 1e7), the
         su_pairs empty. The rlm_00 fixture carries the
         sections — strip them to check the pure defaults (the
         absent-section no-op)."""
         def _strip_i017(d):
             d.pop("su_analysis", None)
-            d.pop("effect_size", None)
+            d.pop("anova", None)
             d.pop("target_level", None)
         cfg = LMConfig(**self._cfg_dict(_strip_i017))
         self.assertFalse(cfg.su_analysis.enable)
-        self.assertFalse(cfg.effect_size.enable)
+        self.assertFalse(cfg.anova.enable)
         self.assertEqual(cfg.target_level, "last")
         self.assertEqual(cfg.su_analysis.corpus.seed, 42)
         self.assertEqual(cfg.su_analysis.corpus.total_positions,
                          10_000_000)
         self.assertEqual(cfg.su_analysis.su_pairs, [])
         self.assertFalse(cfg.su_analysis.export_csv)
-        self.assertFalse(cfg.effect_size.export_csv)
-        self.assertEqual(cfg.effect_size.top_k_adherence, 20)
+        self.assertFalse(cfg.anova.export_csv)
+        self.assertEqual(cfg.anova.top_k_adherence, 20)
 
     def test_su_pairs_canonical_dedupe(self):
         """The canonical order + the dedupe: the repeated pair

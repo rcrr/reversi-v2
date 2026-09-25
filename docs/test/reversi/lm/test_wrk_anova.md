@@ -1,5 +1,5 @@
-# test/reversi/lm/test_wrk_effect_size.py
-The NO-DB suite of the EFFECT_SIZE worker: the factory (the worker name), the enable no-op (the opt-in), the ANOVA (the
+# test/reversi/lm/test_wrk_anova.py
+The NO-DB suite of the ANOVA worker: the factory (the worker name), the enable no-op (the opt-in), the ANOVA (the
 eta²/omega² per sub-variable), the graceful degradation (the adherence skipped when the corpus is absent), the adherence
 (the fixed trio, the computed path), the report, and the down (the no-op). 1 class / 7 tests / no database (the mock
 ctx, the synthetic indexes + the game values).
@@ -8,7 +8,7 @@ ctx, the synthetic indexes + the game values).
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestWrkEffectSize` | 7 | `test_factory` (the worker factory: the EFFECT_SIZE name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the "disabled" log); `test_anova` (the eta²/omega² per sub-variable: the log has one ANOVA line per sub-variable (the instance count)); `test_adherence_graceful_degradation` (the tables None (the SU_ANALYSIS disabled) -> the adherence SKIPPED (the log note), the ANOVA runs); `test_adherence_computed` (the tables set (the ideal = the synthetic distribution) -> the adherence is computed, the log has the Adherence lines; the top-N bound is probe-side); `test_report_written` (the TXT report, the dir_name under base_dir); `test_down_no_op` (the no-op: the down is a no-op, the log note) |
+| `TestWrkAnova` | 7 | `test_factory` (the worker factory: the ANOVA name); `test_enable_no_op` (the opt-in: the enable false -> the no-op, the "disabled" log); `test_anova` (the eta²/omega² per sub-variable: the log has one ANOVA line per sub-variable (the instance count)); `test_adherence_graceful_degradation` (the tables None (the SU_ANALYSIS disabled) -> the adherence SKIPPED (the log note), the ANOVA runs); `test_adherence_computed` (the tables set (the ideal = the synthetic distribution) -> the adherence is computed, the log has the Adherence lines; the top-N bound is probe-side); `test_report_written` (the TXT report, the dir_name under base_dir); `test_down_no_op` (the no-op: the down is a no-op, the log note) |
 
 ## Goldens pinned
 
@@ -34,4 +34,4 @@ ctx, the synthetic indexes + the game values).
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 6 worker position: between the INDEXES worker and
   the WMAPS data module).
-- The worker (wrk_effect_size) is registered at step 6 by the wiring (the 18 levels, NO cache slot).
+- The worker (wrk_anova) is registered at step 6 by the wiring (the 18 levels, NO cache slot).

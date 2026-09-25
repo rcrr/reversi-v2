@@ -256,9 +256,9 @@ class SuAnalysisConfig(LMBaseConfig):
         return v
 
 
-class EffectSizeConfig(LMBaseConfig):
+class AnovaConfig(LMBaseConfig):
     """
-    Configuration for the EFFECT_SIZE level (the
+    Configuration for the ANOVA level (the
     eta²/omega² + the adherence, step 6). The enable master
     switch is FALSE by default (opt-in). The
     top_k_adherence is the number of the most deviant features
@@ -266,20 +266,20 @@ class EffectSizeConfig(LMBaseConfig):
     """
     enable: bool = Field(
         default=False,
-        description="Master switch: false makes the EFFECT_SIZE "
-                    "level a no-op (the effect size is "
+        description="Master switch: false makes the ANOVA "
+                    "level a no-op (the ANOVA is "
                     "OPTIONAL, opt-in).")
     top_k_adherence: int = Field(
         default=20, ge=1,
         description="The number of the most deviant features "
                     "reported in the console (the TV descending).")
     dir_name: Path = Field(
-        default=Path("effect_size"),
+        default=Path("anova"),
         description="Output directory: an ABSOLUTE path is used "
                     "as-is (it may live outside base_dir); a "
                     "relative path resolves under base_dir.")
     report_file_name: str = Field(
-        default="effect_size_report.txt",
+        default="anova_report.txt",
         description="The TXT report filename.")
     export_csv: bool = Field(
         default=False,
@@ -439,9 +439,9 @@ class LMConfig(LMBaseConfig):
         description="The SU_ANALYSIS level config (the SU "
                     "level, step 3; the enable default FALSE, "
                     "opt-in).")
-    effect_size: EffectSizeConfig = Field(
-        default_factory=EffectSizeConfig,
-        description="The EFFECT_SIZE level config (the "
+    anova: AnovaConfig = Field(
+        default_factory=AnovaConfig,
+        description="The ANOVA level config (the "
                     "eta²/omega² + the adherence, step 6; the "
                     "enable default FALSE, opt-in).")
     target_level: str = Field(

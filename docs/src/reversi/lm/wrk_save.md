@@ -28,7 +28,7 @@ persist across runs).
   saved to {output_path}". The SAVE log span is these 2 lines (plus the state-machine's "Starting worker SAVE, UP step"
   / "Completed UP step" lines).
 - `_down`: INFO "Clearing save attributes..." + the comment "Nothing to clear from context, as we just read from it." —
-  SAVE's `_down` clears nothing (like EFFECT_SIZE, CLIENT_CHECK and PLOT); VALIDATE and ANALYTICS each clear 4 fields.
+  SAVE's `_down` clears nothing (like ANOVA, CLIENT_CHECK and PLOT); VALIDATE and ANALYTICS each clear 4 fields.
 - `wrk_save()`: the factory.
 
 ## Verified invariants

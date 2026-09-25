@@ -1,5 +1,5 @@
 # reversi/lm/wrk_validate.py
-The VALIDATE worker — the 14th step. A non-cache worker (like FEATURES, EFFECT_SIZE, ZED, GRADIENT): no `cache_manager`
+The VALIDATE worker — the 14th step. A non-cache worker (like FEATURES, ANOVA, ZED, GRADIENT): no `cache_manager`
 wiring at all — no load-or-compute cycle, no `is_allowed` switch, no cache file (the level is recomputed on every
 up-move, so the rlmwf_14 slot stays unused). The machine contract: `_up` publishes the validation outputs — the 7-key
 metrics dict plus the published series and records — and logs the metric block and the top-20 extreme-residual report;

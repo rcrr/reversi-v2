@@ -34,7 +34,7 @@ consistency signature with the feature_set hash INSTEAD of the
 rds_checksum), the statistics (phase 2: the dispersion + the
 never-observed audit + the SU pairs, cheap, recomputed on EVERY run
 including the cache hit — the hlp), and the ctx publication (the
-corpus frequency tables for the EFFECT_SIZE level, the adherence,
+corpus frequency tables for the ANOVA level, the adherence,
 step 6). ALL the analysis logic lives in
 reversi.lm.hlp_su_analysis. The D-060 semantics: the generation
 error fails the level, the machine re-raises, the _down clears the
@@ -87,7 +87,7 @@ def _up(ctx: "LMContext") -> None:
                   f"{'loaded from cache' if cache_hit else 'computed'}.")
     # Phase 2 — the statistics (cheap, recomputed on EVERY run).
     hlp_su_analysis_statistics(ctx, tables)
-    # Publish the tables on the ctx (for the EFFECT_SIZE level).
+    # Publish the tables on the ctx (for the ANOVA level).
     ctx.su_analysis_tables = tables
     ctx.log_event(Relevance.INFO,
                   "su_analysis_tables published on the ctx.")

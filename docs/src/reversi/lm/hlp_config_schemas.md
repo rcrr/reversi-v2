@@ -16,7 +16,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
 | `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 - the single seed), `total_positions` (1e7); the ec arrest is the root `empty_count` (D-281) |
 | `SuAnalysisConfig` | the SU_ANALYSIS level: `enable` (bool, **FALSE** — opt-in), `corpus`, `su_pairs` (`List[Tuple[str, str]]`, empty; the `check_su_pairs` canonical-sort + dedupe), `rarity_thresholds` (`Optional[List[int]]`, None; the `check_rarity_thresholds` positive strictly-increasing, None / empty = the report's Section B off, D-292), `dir_name` (`su_analysis`), `report_file_name`, `export_csv` (False) |
-| `EffectSizeConfig` | the EFFECT_SIZE level: `enable` (bool, **FALSE** — opt-in), `top_k_adherence` (20, ge=1), `dir_name` (`effect_size`), `report_file_name`, `export_csv` (False) |
+| `AnovaConfig` | the ANOVA level: `enable` (bool, **FALSE** — opt-in), `top_k_adherence` (20, ge=1), `dir_name` (`anova`), `report_file_name`, `export_csv` (False) |
 | `RegabDBConnectionConfig` | `dbname` / `user` / `host` required, `port=5432`, `password=None` |
 | `RegabDataSetConfig` | the connection + `bid` + strict `status` (the ec is the root `empty_count`, D-283) |
 | `PatternConfig` | `name` + `mask: Bitboard` (hex-string in, 16-hex out) |
@@ -47,9 +47,9 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   default `1e-8` (the max absolute Y-space difference admitted between the residuals recomputed from the SAVED model
   file and the in-memory VALIDATE ones; `gt=0`); `plot` and `analytics` by default factory; the five required domain
   sections (`regab_data_set`, `feature_set`, `stat_model`, `optimization`, `validation_data_set`).
-- **The analysis levels** — `su_analysis` + `effect_size`, both by default factory and both `enable` default **FALSE**
+- **The analysis levels** — `su_analysis` + `anova`, both by default factory and both `enable` default **FALSE**
   (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
-  the rlm_00 fixture opt in (su_analysis; effect_size is enabled by no shipped fixture)); `target_level: str` default
+  the rlm_00 fixture opt in (su_analysis; anova is enabled by no shipped fixture)); `target_level: str` default
   `"last"` (a level name, case-insensitive, resolved fail-fast by the StateMachine, or "last" for the full pipeline;
   consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too); and
   `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is

@@ -61,5 +61,5 @@ section branches).
   no MOBILITY FEATURE:; rlm_02 logs: no PATTERN FEATURE) + the 4 D-307 SU-off assertNotIn pins (rlm_02 + rlm_01 file:
   no "PROBABILITY", no "SU Sample Consistency").
 - The SU sample columns consume the `ctx.su_analysis_tables` publication (the SU_ANALYSIS level, the D-289 split) —
-  this suite is the second consumer after EFFECT_SIZE (the `adherence` kernel is the shared single source, the
+  this suite is the second consumer after ANOVA (the `adherence` kernel is the shared single source, the
   D-298 split).

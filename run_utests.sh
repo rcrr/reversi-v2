@@ -49,7 +49,7 @@ MODULES=(
     test.reversi.lm.test_hlp_config_schemas
     test.reversi.lm.test_wrk_config
     test.reversi.lm.test_wrk_features
-    # test_hlp_feature_analysis: the EFFECT_SIZE analysis kernels
+    # test_hlp_feature_analysis: the ANOVA analysis kernels
     # (the I-017; the D-298 split — the ANOVA T13, the adherence
     # T14 + its private kl / TV / chi-square helpers)
     test.reversi.lm.test_hlp_feature_analysis
@@ -68,10 +68,10 @@ MODULES=(
     test.reversi.lm.test_wrk_positions
     test.reversi.lm.test_hlp_indexes
     test.reversi.lm.test_wrk_indexes
-    # test_wrk_effect_size: the EFFECT_SIZE worker (the I-017
+    # test_wrk_anova: the ANOVA worker (the I-017
     # T17; the eta²/omega² + the adherence, the graceful
     # degradation; the step 6 position, after INDEXES)
-    test.reversi.lm.test_wrk_effect_size
+    test.reversi.lm.test_wrk_anova
     test.reversi.lm.test_hlp_wmaps
     test.reversi.lm.test_wrk_wmaps
     test.reversi.lm.test_hlp_design_matrix

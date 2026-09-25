@@ -1,5 +1,5 @@
 # reversi/lm/wrk_zed.py
-The ZED worker of the LM pipeline — the 9th active level, a NON-cache one (like CONFIG, FEATURES, EFFECT_SIZE,
+The ZED worker of the LM pipeline — the 9th active level, a NON-cache one (like CONFIG, FEATURES, ANOVA,
 GRADIENT): no `cache_manager` wiring at all (no load-or-compute cycle, no `is_allowed` switch, no rlmwf_09* file). The
 level is recomputed on every up-move: the computation is pure vectorized affine math over `ctx.game_values`, so the
 on-the-fly choice is documented in `_up`. The machine contract is unchanged: `_up` publishes the 4 context attributes,

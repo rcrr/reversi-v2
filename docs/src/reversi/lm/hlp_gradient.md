@@ -4,7 +4,7 @@ is_cache_consistent, NO init validation, NO hash (like hlp_validate and hlp_anal
 scipy `expit` wrapper) + `hlp_gradient_compute` (the closure builder: captures X, z and
 `alpha = ridge_regularization / M`; the returned `fg(w)` evaluates the normalized loss and gradient). TWO fg variants:
 the classic vectorized-numpy closure (the default) and the high-performance numba single-pass kernel (K3, selected by
-the `high_performance` flag). The 10th active level, a NON-cache one (like FEATURES, EFFECT_SIZE, ZED): no cache_manager
+the `high_performance` flag). The 10th active level, a NON-cache one (like FEATURES, ANOVA, ZED): no cache_manager
 wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## API

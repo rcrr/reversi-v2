@@ -1,5 +1,5 @@
 #
-# test_wrk_effect_size.py
+# test_wrk_anova.py
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
@@ -26,7 +26,7 @@
 #
 #
 #
-# How to run the wrk_effect_size module unit tests.
+# How to run the wrk_anova module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -37,11 +37,11 @@
 # -1- Run the tests (no database — the mock ctx, the synthetic
 #     indexes + the game values).
 #
-# time PERF=0 python3 -m unittest test.reversi.lm.test_wrk_effect_size
+# time PERF=0 python3 -m unittest test.reversi.lm.test_wrk_anova
 #
 
 """
-The EFFECT_SIZE worker NO-DB suite: the factory (the worker
+The ANOVA worker NO-DB suite: the factory (the worker
 name), the enable no-op, the ANOVA (the eta²/omega² per
 sub-variable), the graceful degradation (the adherence
 skipped when the corpus is absent), the adherence (the fixed
@@ -56,7 +56,7 @@ from pathlib import Path
 import numpy as np
 
 from reversi.lm.logistic_model import LogisticModel
-from reversi.lm.wrk_effect_size import _down, _up, wrk_effect_size
+from reversi.lm.wrk_anova import _down, _up, wrk_anova
 from reversi.tools.state_machine import Verbosity
 from test.reversi.paths import WORKSPACE_ROOT
 
@@ -99,7 +99,7 @@ def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
     cfg = rlm.context.cfg
     fset = rlm.context.feature_set
     blocks = fset.feature_blocks
-    cfg.effect_size.enable = enable
+    cfg.anova.enable = enable
     max_col = max(c1 for (_n, c0, c1, _nc, _ni) in blocks)
     rng = np.random.default_rng(seed)
     indexes = np.zeros((n_positions, max_col), dtype=np.uint32)
@@ -111,8 +111,8 @@ def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
     return _MockCtx(cfg, fset, indexes, game_values, tables), blocks
 
 
-class TestWrkEffectSize(unittest.TestCase):
-    """The EFFECT_SIZE worker NO-DB suite: the factory, the
+class TestWrkAnova(unittest.TestCase):
+    """The ANOVA worker NO-DB suite: the factory, the
     enable no-op, the ANOVA, the graceful degradation, the
     adherence, the report, the down (the no-op)."""
 
@@ -124,8 +124,8 @@ class TestWrkEffectSize(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_factory(self):
-        w = wrk_effect_size()
-        self.assertEqual(w.name, "EFFECT_SIZE")
+        w = wrk_anova()
+        self.assertEqual(w.name, "ANOVA")
 
     def test_enable_no_op(self):
         # The opt-in: the enable false makes the level a
@@ -136,11 +136,13 @@ class TestWrkEffectSize(unittest.TestCase):
 
     def test_anova(self):
         # The eta²/omega² per sub-variable: the log has one
-        # ANOVA line per sub-variable (the instance count).
+        # ANOVA line per sub-variable (the instance count). Counted
+        # by the "eta2" marker (the "ANOVA report written" line
+        # also says ANOVA now — the level name).
         ctx, blocks = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
         n_sub = sum(ni for (_n, c0, c1, _nc, ni) in blocks)
-        n_lines = sum(1 for (_r, m) in ctx.events if "ANOVA" in m)
+        n_lines = sum(1 for (_r, m) in ctx.events if "eta2" in m)
         self.assertEqual(n_lines, n_sub)
 
     def test_adherence_graceful_degradation(self):
@@ -172,7 +174,7 @@ class TestWrkEffectSize(unittest.TestCase):
         # The TXT report (the dir_name under base_dir).
         ctx, _ = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
-        report = self.tmp / "effect_size" / "effect_size_report.txt"
+        report = self.tmp / "anova" / "anova_report.txt"
         self.assertTrue(report.exists())
 
     def test_down_no_op(self):

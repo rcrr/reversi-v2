@@ -117,4 +117,4 @@ None.
 - Reuses: random_game (the play-path engine), binio (the cache I/O), the board
   (initial_game_position), prng (MT19937). The accumulators are LOCAL (the D-295 migration),
   the SU statistics kernels LOCAL too (the D-298 move from hlp_feature_analysis).
-- The EFFECT_SIZE level consumes the published tables (the ctx.su_analysis_tables — the worker's job).
+- The ANOVA level consumes the published tables (the ctx.su_analysis_tables — the worker's job).

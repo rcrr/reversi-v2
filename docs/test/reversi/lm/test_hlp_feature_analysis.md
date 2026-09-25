@@ -1,5 +1,5 @@
 # test/reversi/lm/test_hlp_feature_analysis.py
-The NO-DB micro-suite of the EFFECT_SIZE analysis-kernels data module (the D-298 split: the SU / entropy / MI /
+The NO-DB micro-suite of the ANOVA analysis-kernels data module (the D-298 split: the SU / entropy / MI /
 dispersion / never-observed micro-suite moved to test_hlp_su_analysis): the hand-computed toy tables for the ANOVA
 kernels + the adherence kernels (the eta² / omega² effect sizes + the guards, the KL / the TV / the chi-square
 merged-tail + the adherence union alignment — the three private helpers called via the module import, the D-290
@@ -39,4 +39,4 @@ policy). 5 classes / 16 tests / no DB.
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 3 data-module position: between the FEATURES and
   the POSITIONS).
 - The companion suites: test_hlp_su_analysis (the D-298 SU kernel micro-suite + the accumulators) and
-  test_wrk_effect_size (the worker orchestration).
+  test_wrk_anova (the worker orchestration).

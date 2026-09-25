@@ -1,7 +1,7 @@
 # reversi/lm/hlp_feature_analysis.py
-The EFFECT_SIZE analysis-kernels data module (the D-298 split: the module was the SHARED data plane of the two
+The ANOVA analysis-kernels data module (the D-298 split: the module was the SHARED data plane of the two
 levels, the families proved disjoint — the SU / entropy / MI / dispersion / never-observed kernels now live in
-hlp_su_analysis): the pure-math kernels over the frequency tables for the EFFECT_SIZE level (the step 6 worker).
+hlp_su_analysis): the pure-math kernels over the frequency tables for the ANOVA level (the step 6 worker).
 The full kernel set: the ANOVA + the adherence. Pure math from the frequency tables — NO DB, NO positions.
 
 ## API
@@ -36,7 +36,7 @@ The full kernel set: the ANOVA + the adherence. Pure math from the frequency tab
   = 0.6931471805599453 + the 0-term vanishes + the +inf the DB-has-a-code-the-ideal-never-shows; the TV = 0 / 1 /
   0.25; the chi-square no-merge 2.222222 p 0.527585 + the merged 3 -> chi2 0 p 1.0; the adherence union alignment
   TV 0.6 KL 0.9336627322538263 chi2 47.77777777777778 merged 1 + the +inf KL + the empty nan).
-- The D-298 split boundary: pinned by the verify_effect_size F5 (the EFFECT_SIZE family here, the SU kernels in
+- The D-298 split boundary: pinned by the verify_anova F5 (the ANOVA family here, the SU kernels in
   hlp_su_analysis).
 
 ## Open issues
@@ -49,6 +49,6 @@ None.
 - The 0-log-0 convention (the standard KL / TV convention) throughout.
 
 ## Integration
-- Consumed by the EFFECT_SIZE worker (wrk_effect_size.py — the ANOVA on the tagged data + the adherence against the
+- Consumed by the ANOVA worker (wrk_anova.py — the ANOVA on the tagged data + the adherence against the
   published `ctx.su_analysis_tables` of the hlp_su_analysis accumulators).
 - Reuses: scipy.stats.chi2 (the p-values).

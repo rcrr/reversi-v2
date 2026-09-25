@@ -79,5 +79,5 @@ None.
 - The 5th LM level; the worker (wrk_indexes.py) carries the cache wiring, this module the data object + the 4 functions.
   Consumes `ctx.rds_checksum` (POSITIONS) and `ctx.feature_set` (FEATURES) — both must be set before `compute` runs (the
   SM half-open interval semantics guarantee it).
-- Publishes `ctx.hlp_indexes` + `ctx.hlp_indexes_checksum` for the downstream levels (EFFECT_SIZE is the first consumer
+- Publishes `ctx.hlp_indexes` + `ctx.hlp_indexes_checksum` for the downstream levels (ANOVA is the first consumer
   at step 6, then WMAPS and DESIGN_MTR).

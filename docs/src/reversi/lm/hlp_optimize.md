@@ -3,7 +3,7 @@ The OPTIMIZE domain module of the LM pipeline. Unlike every other rlm_* level, t
 class behind a store/load/is_cache_consistent trio: it is a plain **checkpoint dictionary** serialized with binio (the
 design comment). Six public names: the binary round-trip pair, the two gates the worker consults, the lbfgs-info
 projection and the duck-typed weight hash. The 11th active level (CREATED sentinel → CONFIG → FEATURES → SU_ANALYSIS →
-POSITIONS → INDEXES → EFFECT_SIZE → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
+POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
 
 ## API
 

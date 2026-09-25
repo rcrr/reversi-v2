@@ -11,7 +11,7 @@ construction. It is also the pipeline's script entry (the `build_model` entry, t
 |---|---|---|
 | Context | `LMContext(Context)` | `@dataclass`, 46 fields (43 data/config + the 3 injected callables); the only no-default field is `config_file_path`; the 3 injected callables carry lambda no-op defaults (the pre-injection fallback) |
 | Context | config group | `config_file_path: Path`, `base_dir_override: Path \| None`, `use_cache: bool \| None`, `cfg: Any`, `config_checksum: str \| None` (the config fingerprint — the sha3_256 of the normalized dump, computed at CONFIG, consumed by the SAVE record + the analytics report) |
-| Context | data artifacts (38) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`su_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the EFFECT_SIZE level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`/`vld_y_pred`/`vld_rn`/`vld_outliers` (the published series + the 20 records); analytics `train_metrics`/`train_dense_metrics`/`train_dense_rn`/`analytics_report` — the 9 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
+| Context | data artifacts (38) | by stage: positions `rds_checksum`/`positions`/`game_values`/`training_pop_stats`; features `feature_set`/`su_analysis_tables` (the corpus frequency tables, the cross-level blackboard for the ANOVA level); indexes `hlp_indexes_checksum`/`hlp_indexes`; wmaps `wmaps_obj_checksum`/`feature_w_ranges`/`iwmap_feature_offset`/`iwmap`/`wmap`/`wmap_fallback`/`w`; design `design_matrix_checksum`/`design_matrix`; zed `zed_checksum`/`y2z`/`z2y`/`z`; gradient `fg`; optimize `w_checksum`/`opt_info`; dense `dense_w_checksum`/`w_dense`; vld `vld_rds_checksum`/`vld_positions`/`vld_game_values`/`vld_pop_stats`; validation `vld_metrics`/`vld_y_pred`/`vld_rn`/`vld_outliers` (the published series + the 20 records); analytics `train_metrics`/`train_dense_metrics`/`train_dense_rn`/`analytics_report` — the 9 `*_checksum` fields pair with cache_manager's duck-typed compute flow |
 | Context | injected callables | `log_event`, `get_cache_file_path_for_current_level`, `get_cache_file_full_path_for_current_level` (lambda no-op defaults = pre-injection fallback, replaced at init by the machine's closures) |
 | Facade | `LogisticModel(config_file_path, verbosity=STANDARD, base_dir_override=None)` | `@validate_call` (arbitrary_types_allowed) 4-step construction; wrong-typed args raise pydantic ValidationError at the facade boundary |
 | Facade | pass-throughs | `move_to_step(int \| str)`, `move_to_last()`, `show_event_log()`, `show_history_of_moves()`, `export_history_of_moves_as_csv(path)` — pure delegation to the StateMachine |
@@ -50,11 +50,11 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
 
   ```
   CREATED (0, sentinel) -> CONFIG -> FEATURES -> SU_ANALYSIS
-  -> POSITIONS -> INDEXES -> EFFECT_SIZE -> WMAPS -> DESIGN_MTR
+  -> POSITIONS -> INDEXES -> ANOVA -> WMAPS -> DESIGN_MTR
   -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
   -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
   ```
-(SU_ANALYSIS step 3, the rlmwf_03 slot; EFFECT_SIZE step 6, NO cache — the PLOT is step 18)
+(SU_ANALYSIS step 3, the rlmwf_03 slot; ANOVA step 6, NO cache — the PLOT is step 18)
 
 No commented factory imports or worker-list entries remain. The factories follow `wrk_x()` → `Worker` (18 modules,
 `wrk_config` … `wrk_plot`); the tests patch them by name in THIS module's namespace

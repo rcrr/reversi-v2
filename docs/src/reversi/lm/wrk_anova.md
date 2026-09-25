@@ -1,13 +1,13 @@
-# reversi/lm/wrk_effect_size.py
-The EFFECT_SIZE worker (the eta²/omega² + the adherence, step 6): the one-way ANOVA effect sizes (the eta²/omega² per
+# reversi/lm/wrk_anova.py
+The ANOVA worker (the eta²/omega² + the adherence, step 6): the one-way ANOVA effect sizes (the eta²/omega² per
 sub-variable) + the adherence (the fixed trio — the chi-square + the KL + the TV — the DB configuration distribution vs
 the ideal corpus frequencies). NO cache (a diagnostic; the recompute is seconds). The GRACEFUL DEGRADATION: if the
 SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped with a log note; the eta²/omega² runs
 (it does not need the corpus). The down is a no-op — the worker publishes nothing on the ctx.
 
 ## API
-- `wrk_effect_size() -> Worker` — the factory: the `Worker("EFFECT_SIZE", _up, _down)` (the house worker pattern).
-- `_up(ctx)`: (1) the enable check — `effect_size.enable` false makes the level a no-op (opt-in); (2) the ANOVA — the
+- `wrk_anova() -> Worker` — the factory: the `Worker("ANOVA", _up, _down)` (the house worker pattern).
+- `_up(ctx)`: (1) the enable check — `anova.enable` false makes the level a no-op (opt-in); (2) the ANOVA — the
   eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the groups, the continuous game values as
   the target — it does NOT need the corpus); (3) the adherence (the c metric) — per sub-variable, the DB configuration
   distribution (the observed raw codes of the training positions (`np.unique`)) vs the ideal distribution (the corpus
@@ -35,12 +35,12 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   re-raises.
 
 ## Verified invariants
-- Pinned by `test_wrk_effect_size.py` (7 tests, the NO-DB mock-ctx suite, the rlm_00 fixture's feature set, the
-  synthetic raw codes + the game values): the factory (the EFFECT_SIZE name); the enable no-op (opt-in); the ANOVA (the
+- Pinned by `test_wrk_anova.py` (7 tests, the NO-DB mock-ctx suite, the rlm_00 fixture's feature set, the
+  synthetic raw codes + the game values): the factory (the ANOVA name); the enable no-op (opt-in); the ANOVA (the
   log has one line per sub-variable); the graceful degradation (the tables None -> the adherence SKIPPED, the ANOVA
   runs); the adherence computed (the tables set -> the log has the Adherence lines, the top-N); the report (the TXT is
   written); the down (a no-op).
-- Pinned by the 41-check `probes/verify_effect_size.py`: the no-cache discipline; the independent math (the ANOVA vs the
+- Pinned by the 41-check `probes/verify_anova.py`: the no-cache discipline; the independent math (the ANOVA vs the
   F identity + scipy's f_oneway + the eta² >= omega² invariant; the adherence trio vs pure-python formulas + the Pinsker
   bound); the CSV path (no test covers it); a live A2050 tier with NO DB — the cached 1e7 area symlinked under
   build/tmp, every ANOVA line and every adherence row recomputed from the caches.
@@ -49,7 +49,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - The report's adherence section header says "top {top_k_adherence}" while the body lists EVERY sub-variable: the
   `top_k_adherence` bound is applied to the CONSOLE lines only (`adherence_lines[:top_k]` in the log), the report
   receives the full list. A wording defect of the header (the console/report split is deliberate) — pinned by
-  `probes/verify_effect_size.py` (C6/D7), left as-is pending Roberto's call (a source change). None.
+  `probes/verify_anova.py` (C6/D7), left as-is pending Roberto's call (a source change). None.
 
 ## Conventions
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.
@@ -58,7 +58,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - The ANOVA / the adherence are the hlp_feature_analysis kernels — the from-frequency-tables math.
 
 ## Integration
-- Consumes the `ctx.cfg` (the effect_size config) + the `ctx.feature_set` (the FEATURES level, step 2) + the
+- Consumes the `ctx.cfg` (the anova config) + the `ctx.feature_set` (the FEATURES level, step 2) + the
   `ctx.hlp_indexes` (the INDEXES level, step 5) + the `ctx.game_values` (the POSITIONS level, step 4) + the
   `ctx.su_analysis_tables` (the SU_ANALYSIS level, step 3, the cross-level blackboard).
 - The full wiring registers the worker at step 6 (after INDEXES, before WMAPS).

@@ -40,7 +40,7 @@
 #
 
 """
-The EFFECT_SIZE analysis-kernels data module (the D-298 split:
+The ANOVA analysis-kernels data module (the D-298 split:
 the SU / entropy / MI / dispersion / never-observed micro-suite
 moved to test_hlp_su_analysis) NO-DB micro-suite — the hand-
 computed toy tables for the ANOVA effect sizes (the two-groups
