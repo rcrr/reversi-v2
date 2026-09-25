@@ -7,14 +7,18 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 
 ## API
 - `wrk_anova() -> Worker` — the factory: the `Worker("ANOVA", _up, _down)` (the house worker pattern).
-- `_up(ctx)`: (1) the enable check — `anova.enable` false makes the level a no-op (opt-in); (2) the ANOVA — the
-  eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the groups, the continuous game values as
-  the target — it does NOT need the corpus); (3) the adherence (the c metric) — per sub-variable, the DB configuration
-  distribution (the observed raw codes of the training positions (`np.unique`)) vs the ideal distribution (the corpus
-  frequencies from the `ctx.su_analysis_tables`, normalized), the fixed trio (the `adherence` kernel); the GRACEFUL
-  DEGRADATION: if the `ctx.su_analysis_tables` is None (the SU_ANALYSIS level was disabled), the adherence is SKIPPED
-  with a log note (the ANOVA runs); (4) the outputs — the console (the ANOVA per sub-variable + the top-N most deviant
-  features, the TV descending) + the TXT report (dir_name under base_dir) + the optional CSV (the export_csv flag).
+- `_up(ctx)`: the thin orchestrator (the D-310 split) — (1) the enable check — `anova.enable` false makes the level a
+  no-op (opt-in); (2) `anova_lines = _compute_anova_lines(ctx)`; (3) `adherence_lines = _compute_adherence_lines(ctx)`;
+  (4) `_write_report(ctx, anova_lines, adherence_lines)`.
+- `_compute_anova_lines(ctx) -> list`: the eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as
+  the groups, the continuous game values as the target — it does NOT need the corpus); one log line per sub-variable.
+- `_compute_adherence_lines(ctx) -> list | None`: the adherence per sub-variable — the DB configuration distribution
+  (the observed raw codes of the training positions (`np.unique`)) vs the ideal distribution (the corpus frequencies
+  from the `ctx.su_analysis_tables`), the fixed trio (the `adherence` kernel), the TV descending; the top-N
+  (the `top_k_adherence`) are logged. The GRACEFUL DEGRADATION: if the `ctx.su_analysis_tables` is None (the
+  SU_ANALYSIS level was disabled), None is returned with a log note (the ANOVA runs).
+- `_write_report(ctx, anova_lines, adherence_lines) -> Path`: the outputs — the console (the ANOVA per sub-variable +
+  the most deviant features) + the TXT report (dir_name under base_dir) + the optional CSV (the export_csv flag).
 - `_down(ctx)`: a no-op (recovery is trivially satisfied — the worker publishes nothing on the ctx).
 
 ## Architecture
@@ -55,7 +59,10 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.
 - The raw codes (the group assignment) come from the `ctx.hlp_indexes.indexes` (the per-position, per-column code index,
   the `feature_set.compute_indexes`).
-- The ANOVA / the adherence are the hlp_feature_analysis kernels — the from-frequency-tables math.
+- The ANOVA / the adherence are the hlp_feature_analysis kernels — the from-frequency-tables math. `anova_eta_omega`
+  is SHARED (the D-311): the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables)
+  calls the same kernel — the single-instance features' ANALYTICS value == this level's value (pinned by
+  `TestEtaSquaredCrossLevel` in test_wrk_analytics).
 
 ## Integration
 - Consumes the `ctx.cfg` (the anova config) + the `ctx.feature_set` (the FEATURES level, step 2) + the

@@ -697,5 +697,89 @@ class TestSuSampleEndToEnd(unittest.TestCase):
             f"  {'Weight (w)':<28}: {float(ctx.w[w_idx]):+.4f}", content)
 
 
+class TestEtaSquaredCrossLevel(unittest.TestCase):
+    """The D-311 cross-level invariant, end-to-end on the REAL rlm_00
+    pipeline (the 200 training positions): for the single-instance
+    features (n_inst == 1 — ALMC, LMC, DLMC) the ANALYTICS pooled
+    grouping (ALL the instances of the feature) coincides with the
+    ANOVA level's per-sub-variable grouping — the same computation —
+    so the 'Eta-Squared (Discrimination)' line and the 'ANOVA <name>
+    inst 0: eta2 ...' line must agree. DB-gated (the rlm_00 DB
+    extraction)."""
+
+    def setUp(self):
+        db_long_gate(self)
+        self.patcher_stdout = patch('sys.stdout', new=StringIO())
+        self.mock_stdout = self.patcher_stdout.start()
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = Path(self._tmp.name)
+        self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" /
+                               "data" / "rlm_00.json")
+        self.rlm = LogisticModel(self.json_config,
+                                 verbosity=Verbosity.HIGH,
+                                 base_dir_override=self.tmp_dir)
+        # Force-enable the ANOVA level after CONFIG (the rlm_00
+        # fixture keeps it opt-in FALSE) so the chain to ANALYTICS
+        # produces BOTH reports.
+        self.rlm.move_to_step("CONFIG")
+        self.rlm.context.cfg.anova.enable = True
+        self.rlm.move_to_step("ANALYTICS")
+        self.assertEqual(self.rlm.current_step, 15)
+
+    def tearDown(self):
+        if getattr(self, 'patcher_stdout', None) is not None:
+            self.patcher_stdout.stop()
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
+
+    def test_single_instance_eta2_agreement(self):
+        """The two reports, both re-parsed line by line: the 3
+        single-instance features carry the same eta² in the ANALYTICS
+        details table and in the ANOVA report (the printed 4
+        decimals)."""
+        ctx = self.rlm.context
+        single = [name for (name, _c0, _c1, _nc, n_inst)
+                  in ctx.feature_set.feature_blocks
+                  if n_inst == 1]
+        self.assertTrue(single,
+                        "no single-instance feature in the fixture")
+
+        content = (self.tmp_dir / "model_analytics_report.txt").read_text(
+            encoding="utf-8")
+        hdr_rx = re.compile(r"^(?:MOBILITY|PATTERN) FEATURE: (\w+) ")
+        eta_rx = re.compile(
+            r"^  Eta-Squared \(Discrimination\): ([0-9.]+)")
+        analytics_eta = {}
+        current = None
+        for line in content.splitlines():
+            m = hdr_rx.match(line)
+            if m:
+                current = m.group(1)
+                continue
+            m = eta_rx.match(line)
+            if m and current is not None:
+                analytics_eta[current] = float(m.group(1))
+                current = None
+        self.assertEqual(len(analytics_eta),
+                         len(ctx.feature_set.feature_blocks))
+
+        anova_content = (self.tmp_dir / "anova" /
+                         "anova_report.txt").read_text(encoding="utf-8")
+        anova_rx = re.compile(
+            r"^  ANOVA (\w+) inst (\d+): eta2 ([0-9.]+), ")
+        anova_eta = {}
+        for line in anova_content.splitlines():
+            m = anova_rx.match(line)
+            if m:
+                anova_eta[(m.group(1), int(m.group(2)))] = float(m.group(3))
+
+        for name in single:
+            self.assertIn(name, analytics_eta)
+            self.assertIn((name, 0), anova_eta)
+            self.assertAlmostEqual(anova_eta[(name, 0)],
+                                   analytics_eta[name], places=4,
+                                   msg=name)
+
+
 if __name__ == '__main__':
     unittest.main()

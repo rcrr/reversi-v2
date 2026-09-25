@@ -66,7 +66,7 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
     deviant features (the adherence, the TV descending) + the
     graceful-degradation note (when the adherence is skipped).
     The optional CSV (the export_csv flag)."""
-    cfg_es = ctx.cfg.anova
+    cfg_anova = ctx.cfg.anova
     lines = ["ANOVA REPORT", "=" * 40]
     lines.append(f"Sub-variables (the eta-squared / omega-squared): "
                  f"{len(anova_lines)}")
@@ -78,18 +78,18 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
                      "level was disabled — no corpus in the ctx).")
     else:
         lines.append(f"Top adherence (the TV descending, "
-                     f"top {cfg_es.top_k_adherence}):")
+                     f"top {cfg_anova.top_k_adherence}):")
         for (name, i, chi2, p, merged, kl, tv) in adherence_lines:
             lines.append(f"  Adherence {name} inst {i}: TV {tv:.4f}, "
                          f"KL {kl:.4f}, chi2 {chi2:.2f} "
                          f"(p {p:.2e}, merged {merged})")
-    report_path = Path(ctx.cfg.base_dir) / cfg_es.dir_name / \
-        cfg_es.report_file_name
+    report_path = Path(ctx.cfg.base_dir) / cfg_anova.dir_name / \
+        cfg_anova.report_file_name
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     ctx.log_event(Relevance.INFO,
                   f"ANOVA report written: {report_path}.")
-    if cfg_es.export_csv:
+    if cfg_anova.export_csv:
         csv_path = report_path.parent / "anova.csv"
         with open(csv_path, 'w', newline='', encoding="utf-8") as f:
             w = csv.writer(f)
@@ -108,44 +108,42 @@ def _write_report(ctx, anova_lines, adherence_lines) -> Path:
     return report_path
 
 
-def _up(ctx: "LMContext") -> None:
-    cfg_es = ctx.cfg.anova
-    if not cfg_es.enable:
-        ctx.log_event(Relevance.INFO,
-                      "ANOVA disabled (enable: false) — no-op.")
-        return
-    fset = ctx.feature_set
-    blocks = fset.feature_blocks
-    # The DB training set: the per-position raw codes (the groups)
-    # + the continuous game values (the target).
-    X = ctx.hlp_indexes.indexes
-    y = ctx.game_values
-    # The eta²/omega² per sub-variable (the one-way ANOVA — it
-    # does not need the corpus).
+def _compute_anova_lines(ctx) -> list:
+    """The eta²/omega² per sub-variable (the one-way ANOVA — it
+    does not need the corpus): the DB training set is the
+    per-position raw codes (the groups) + the continuous game
+    values (the target)."""
     anova_lines = []
-    for (name, c0, c1, n_conf, n_inst) in blocks:
+    for (name, c0, c1, n_conf, n_inst) in ctx.feature_set.feature_blocks:
         for i in range(n_inst):
-            groups = X[:, c0 + i]
-            r = anova_eta_omega(groups, y)
+            groups = ctx.hlp_indexes.indexes[:, c0 + i]
+            r = anova_eta_omega(groups, ctx.game_values)
             anova_lines.append((name, i, r['k'], r['n'],
                                 r['eta2'], r['omega2']))
             ctx.log_event(Relevance.INFO,
                           f"  ANOVA {name}[{i}]: eta2 {r['eta2']:.4f}, "
                           f"omega2 {r['omega2']:.4f} (K {r['k']})")
-    # The adherence (c) per sub-variable — the
-    # GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
-    # disabled (no corpus in the ctx), the adherence is skipped
-    # with a log note; the eta²/omega² runs.
+    return anova_lines
+
+
+def _compute_adherence_lines(ctx) -> list | None:
+    """The adherence per sub-variable (the DB configuration
+    distribution vs the ideal corpus frequencies, the TV
+    descending). The GRACEFUL DEGRADATION: if the SU_ANALYSIS
+    level was disabled (no corpus in the ctx), the adherence is
+    skipped with a log note (None is returned); the eta²/omega²
+    runs (it does not need the corpus)."""
     tables = ctx.su_analysis_tables
-    adherence_lines = None
     if tables is not None:
+        cfg_anova = ctx.cfg.anova
         marginal = tables['marginal']
         ideal_lookup = {(nm, ii): dict(zip(cd.tolist(), ct.tolist()))
                         for (nm, ii, _nc, cd, ct) in marginal}
         adherence_lines = []
-        for (name, c0, c1, n_conf, n_inst) in blocks:
+        for (name, c0, c1, n_conf, n_inst) in \
+                ctx.feature_set.feature_blocks:
             for i in range(n_inst):
-                groups = X[:, c0 + i]
+                groups = ctx.hlp_indexes.indexes[:, c0 + i]
                 uniq, cnt = np.unique(groups, return_counts=True)
                 db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
                 ideal_counts = ideal_lookup.get((name, i), {})
@@ -154,15 +152,25 @@ def _up(ctx: "LMContext") -> None:
                                         a['merged'], a['kl'], a['tv']))
         adherence_lines.sort(key=lambda x: x[6], reverse=True)
         for (name, i, chi2, p, merged, kl, tv) in \
-                adherence_lines[:cfg_es.top_k_adherence]:
+                adherence_lines[:cfg_anova.top_k_adherence]:
             ctx.log_event(Relevance.INFO,
                           f"  Adherence {name}[{i}]: TV {tv:.4f}, "
                           f"KL {kl:.4f}, chi2 {chi2:.2f} "
                           f"(p {p:.2e}, merged {merged})")
-    else:
+        return adherence_lines
+    ctx.log_event(Relevance.INFO,
+                  "  Adherence SKIPPED (the SU_ANALYSIS "
+                  "level was disabled — no corpus in the ctx).")
+    return None
+
+
+def _up(ctx: "LMContext") -> None:
+    if not ctx.cfg.anova.enable:
         ctx.log_event(Relevance.INFO,
-                      "  Adherence SKIPPED (the SU_ANALYSIS "
-                      "level was disabled — no corpus in the ctx).")
+                      "ANOVA disabled (enable: false) — no-op.")
+        return
+    anova_lines = _compute_anova_lines(ctx)
+    adherence_lines = _compute_adherence_lines(ctx)
     _write_report(ctx, anova_lines, adherence_lines)
 
 

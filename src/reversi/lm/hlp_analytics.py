@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
-from reversi.lm.hlp_feature_analysis import adherence
+from reversi.lm.hlp_feature_analysis import adherence, anova_eta_omega
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
@@ -182,17 +182,16 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
 
+    # The per-configuration table columns (the rows' FREQUENCY /
+    # AVERAGE_GV / RMSE_GV).
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    total_y_mean = np.mean(y_repeated)
-    ss_total = np.sum((y_repeated - total_y_mean)**2)
-    valid_mask = counts > 0
-    group_means = np.zeros(n_configurations, dtype=np.float64)
-    group_means[valid_mask] = sum_y[valid_mask] / counts[valid_mask]
-    ss_between = np.sum(counts[valid_mask] * (group_means[valid_mask] - total_y_mean)**2)
-    eta_squared = ss_between / ss_total if ss_total > 0 else 0.0
+    # The pooled eta-squared (the D-311 unification): the shared ANOVA
+    # kernel over the pooled codes + the repeated values — the inline
+    # SS computation it replaces.
+    eta_squared = anova_eta_omega(train_flat, y_repeated)['eta2']
 
     count_c, count_ia, count_ic = 0, 0, 0
     for conf_id in range(n_configurations):
@@ -352,17 +351,16 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
 
+    # The per-configuration table columns (the rows' FREQUENCY /
+    # AVERAGE_GV / RMSE_GV).
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    total_y_mean = np.mean(y_repeated)
-    ss_total = np.sum((y_repeated - total_y_mean)**2)
-    valid_mask = counts > 0
-    group_means = np.zeros(n_configurations, dtype=np.float64)
-    group_means[valid_mask] = sum_y[valid_mask] / counts[valid_mask]
-    ss_between = np.sum(counts[valid_mask] * (group_means[valid_mask] - total_y_mean)**2)
-    eta_squared = ss_between / ss_total if ss_total > 0 else 0.0
+    # The pooled eta-squared (the D-311 unification): the shared ANOVA
+    # kernel over the pooled codes + the repeated values — the inline
+    # SS computation it replaces.
+    eta_squared = anova_eta_omega(train_flat, y_repeated)['eta2']
 
     count_c, count_ab, count_cl = 0, 0, 0
     for conf_id in range(n_configurations):

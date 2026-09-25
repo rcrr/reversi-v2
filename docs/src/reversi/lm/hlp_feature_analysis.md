@@ -1,8 +1,10 @@
 # reversi/lm/hlp_feature_analysis.py
 The ANOVA analysis-kernels data module (the D-298 split: the module was the SHARED data plane of the two
 levels, the families proved disjoint — the SU / entropy / MI / dispersion / never-observed kernels now live in
-hlp_su_analysis): the pure-math kernels over the frequency tables for the ANOVA level (the step 6 worker).
-The full kernel set: the ANOVA + the adherence. Pure math from the frequency tables — NO DB, NO positions.
+hlp_su_analysis): the pure-math kernels over the frequency tables for the ANOVA level (the step 6 worker). The full
+kernel set: the ANOVA + the adherence. Pure math from the frequency tables — NO DB, NO positions. Since the D-311 the
+ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables) is the SAME `anova_eta_omega`
+call, so the kernel now serves TWO consumers (the ANOVA level + the ANALYTICS tables).
 
 ## API
 - `anova_eta_omega(groups, values) -> dict` — the one-way ANOVA effect sizes: the observed codes as the groups (K), the

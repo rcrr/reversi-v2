@@ -3215,8 +3215,10 @@ D-309 | 2026-09-24 | the EFFECT_SIZE level is RENAMED ANOVA (the worker, the con
           stays False) — so a pre-rename config SILENTLY disables the
           level. No repo fixture sets the key (all opt-in FALSE), so
           the repo is unaffected; any external / production config
-          using effect_size: must be updated to anova: (or the schema
-          gains an alias — Roberto's call).
+          using effect_size: must be updated to anova: (RESOLVED:
+          the backward-compat alias was REJECTED — the clean break,
+          no alias; Roberto's decision: "Nessun ALIAS — cose
+          semplici ed univoche").
           VERIFICATION: the fast suite 957/0 + the LONG=1 suite
           957/0 (24 skipped); the 5 touched / related probes (anova,
           su_analysis, save, logistic_model, analytics) all 0
@@ -3227,3 +3229,83 @@ D-309 | 2026-09-24 | the EFFECT_SIZE level is RENAMED ANOVA (the worker, the con
           area) now force-enables cfg.anova (the build area's config
           predates the key rename — it still says effect_size).
           docs audit clean for the 2 renamed mirrors; notes_format 0.
+D-310 | 2026-09-25 | the ANOVA worker: the cfg_es -> cfg_anova local rename + the _up split (version B)
+          Roberto's request, after reading _up: (1) the cfg_es
+          local renamed cfg_anova — a D-309 leftover (the
+          pre-rename file already named it cfg_es; the D-309 sed
+          touched only the attribute access, ctx.cfg.effect_size
+          -> ctx.cfg.anova); 8 occurrences, all in wrk_anova.py,
+          no pin anywhere (tests / probes / docs); (2) extract
+          ALL the logic out of _up, leaving it extremely simple
+          like the other workers. Analysis: the ANOVA worker was
+          the only worker whose _up carried the whole computation
+          inline (55 lines); its siblings are thin orchestrators
+          (8-35 lines) delegating to named helpers. Two variants
+          proposed — A (a single _run) / B (the granular split,
+          the wrk_positions precedent); Roberto chose B.
+          Implementation: the two computation helpers
+          (_compute_anova_lines — the eta²/omega² per
+          sub-variable; _compute_adherence_lines — the adherence
+          trio, the graceful-degradation None branch) + the
+          existing _write_report, all private, taking ctx (the
+          house style); _up is now the 8-line guard + delegate
+          (the enable no-op stays in _up, the house pattern).
+          Zero behavioral change: the log sequence is identical;
+          the probe A5 pins survive VERBATIM ("tables =
+          ctx.su_analysis_tables", "Adherence SKIPPED", "tables
+          is not None" — the branch is kept as `if tables is not
+          None:` with the SKIPPED tail); the tests + the probe
+          import only _up / _down / wrk_anova (unchanged).
+          VERIFICATION: the 7/7 anova suite; the fast suite
+          957/0 + the LONG=1 suite 957/0; verify_anova 0
+          mismatch (A5, the C and the D tiers); verify_analytics
+          0 mismatch (the canary); the mirror doc updated (the
+          API section now lists the private helpers); docs audit
+          clean.
+D-311 | 2026-09-25 | the ANALYTICS eta² unification + the cross-level agreement test
+          Roberto's question after the D-310 review: is the eta²
+          ALSO computed in the ANALYTICS module — two
+          computations by different programs, but analogous?
+          Analysis: in fact 3 code paths: the shared
+          anova_eta_omega kernel (hlp_feature_analysis, the ANOVA
+          level) + two hand-rolled copies in hlp_analytics (the
+          mobility + the pattern table formatters). ANALOGOUS
+          but NOT the same computation: (a) the grouping — the
+          ANALYTICS pools ALL the instances of a feature into ONE
+          classification (one number per feature), the ANOVA
+          level computes per sub-variable (feature × instance);
+          (b) the metric — the ANALYTICS reports eta² only (the
+          biased sample share), the ANOVA the eta² + omega² pair.
+          EXCEPTION: the single-instance features (n_inst == 1)
+          have COINCIDENT groupings — the two values must agree.
+          Verified on rlm_00: ALMC / LMC / DLMC are n_inst == 1
+          (EDGE 4, ELLIE 8). My take: not a bug (the two answer
+          different questions); the only smell is the formula
+          hand-written three times. Three options proposed:
+          (a) leave-as-is / (b) the cross-invariant test /
+          (c) the unification onto the kernel. Roberto: "(b) +
+          (c)".
+          IMPLEMENTATION (c): the two hand-rolled SS blocks
+          (verified byte-identical — the replace_all) become the
+          shared anova_eta_omega(train_flat, y_repeated)['eta2']
+          call; the bincount pass is KEPT (the table's FREQUENCY
+          / AVERAGE_GV / RMSE_GV columns need counts / sum_y /
+          sum_y2). The kernel's guards match the hand-rolled
+          semantics (ss_tot == 0 -> 0.0; k == 1 -> 0.0).
+          IMPLEMENTATION (b): the new DB-gated
+          TestEtaSquaredCrossLevel (test_wrk_analytics, rlm_00):
+          force-enables cfg.anova after CONFIG, runs the chain to
+          ANALYTICS (BOTH reports produced), re-parses both line
+          by line, asserts assertAlmostEqual (places=4) on the 3
+          single-instance features — DERIVED from
+          feature_set.feature_blocks, not hardcoded (the sanity
+          pin: at least one exists).
+          VERIFICATION: the analytics suite 14/14 — the rlm_02 +
+          rlm_01 report goldens SURVIVED UNCHANGED (the kernel's
+          bincount-based SS is bit-identical to the inline one);
+          the fast suite 958/0 (99 skipped) + the LONG=1 suite
+          958/0 (24 skipped); verify_anova 0 mismatch;
+          verify_analytics 0 mismatch; the 4 mirror docs updated
+          (hlp_analytics, test_wrk_analytics, wrk_anova,
+          hlp_feature_analysis); docs audit only the 7
+          pre-existing size findings; notes_format 0.
