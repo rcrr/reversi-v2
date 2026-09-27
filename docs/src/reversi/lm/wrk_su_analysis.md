@@ -1,12 +1,12 @@
 # reversi/lm/wrk_su_analysis.py
 The SU_ANALYSIS worker (the SU level, step 3) — the level ORCHESTRATION SKELETON (D-289, the wrk_design_matrix
-minimalism): the enable no-op, the CACHED corpus (phase 1, the expensive part — the hlp compute, the binio cache
-flow D-288, the consistency signature with the FeatureSet DOMAIN hash INSTEAD of the rds_checksum (D-291) —
-the new cache
-lineage), the statistics (phase 2: the dispersion + the never-observed audit + the SU pairs, cheap, recomputed on
-EVERY run including the cache hit — the hlp), and the ctx publication (the corpus frequency tables for the
-ANOVA level, the adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror: the
-corpus engine, the binio layout, the signature, the statistics kernels).
+minimalism): the enable guard (the disabled path logs and publishes None on the ctx — the ANOVA level's graceful
+degradation input), the CACHED corpus (phase 1, the expensive part — the cache_manager load-or-compute flow
+over the hlp callbacks, the ctx.use_cache gate; the hlp owns the binio I/O (D-288) + the consistency signature
+over the FeatureSet domain hash (D-291)), the statistics (phase 2 — the hlp, cheap, recomputed on EVERY run
+including the cache hit), and the ctx publication (the corpus frequency tables for the ANOVA level, the
+adherence, step 6). ALL the analysis logic lives in hlp_su_analysis.py (its mirror: the corpus engine, the
+binio layout, the signature, the statistics kernels).
 
 ## API
 

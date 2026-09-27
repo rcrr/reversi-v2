@@ -3309,3 +3309,45 @@ D-311 | 2026-09-25 | the ANALYTICS eta² unification + the cross-level agreement
           (hlp_analytics, test_wrk_analytics, wrk_anova,
           hlp_feature_analysis); docs audit only the 7
           pre-existing size findings; notes_format 0.
+D-312 | 2026-09-25 | the wrk_su_analysis module docstring REMOVED (the house de-history style, the D-306 precedent)
+          Roberto's review of the module docstring: "Non e'
+          accurata, ci sta cose che non sono nel modulo, cita le
+          decisioni." Clause-by-clause audit against the module
+          body: 3 D-XXX citations (D-289 / D-288 / D-060 — the
+          rules.md docstring rule, D-224/D-226: WHAT only, no
+          D-XXX provenance in the docstrings, decisions.md is
+          its home); 2 hlp internals (the binio cache flow, the
+          consistency signature with the feature_set hash — both
+          live in hlp_su_analysis; the worker only passes the
+          cache_manager callbacks); 1 state-machine clause (the
+          "the machine re-raises" — the module has NO error
+          handling; D-060 is a state_machine decision); 1
+          change-history clause ("INSTEAD of the rds_checksum" —
+          the exact phrasing D-306 removed from the hlp's
+          _signature docstring); 2 soft inaccuracies ("the
+          enable no-op" — the disabled path PUBLISHES None on
+          the ctx, the ANOVA level's graceful-degradation
+          input; "the adherence, step 6" — consumer knowledge,
+          not the module's). Context: 7 of the 10 sibling
+          workers have NO module docstring (the
+          wrk_design_matrix majority). Two options proposed:
+          (1) the thin WHAT-only rewrite / (2) the removal.
+          Roberto's ruling: "Opzione 2 va bene. Procedi!" — the
+          docstring REMOVED (the module goes straight from the
+          license header to the imports, the house majority
+          style). The mirror doc intro re-synced:
+          module-accurate (the enable guard + the None
+          publication, the cache_manager load-or-compute flow
+          over the hlp callbacks, the ctx.use_cache gate; the
+          binio I/O + the signature attributed to the hlp with
+          the D-288 / D-291 pointers) — the D-pointers stay in
+          the mirror (their home, the docs_rules §3.2).
+          VERIFICATION: no probe / test pinned the docstring
+          text (the grep sweep — the probe hits are the
+          probes' own comments); the fast suite 958/0 (99
+          skipped); verify_su_analysis 0 mismatch; the docs
+          audit only the 7 pre-existing size findings;
+          notes_format 0 rejoins. NOTE (open, flagged to
+          Roberto): the wrk_anova docstring still ends with
+          "The D-060 semantics." (the same violation; a
+          separate sweep is his call).

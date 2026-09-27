@@ -78,6 +78,10 @@ tables at the end of this file.
   both feature tables is the `anova_eta_omega` call (the 2 hand-rolled SS blocks removed — the bincount pass stays
   for the table columns), and `TestEtaSquaredCrossLevel` (DB-gated, rlm_00) pins the cross-level invariant: on the
   single-instance features (ALMC / LMC / DLMC) the ANALYTICS eta² == the ANOVA level's eta² (the groupings coincide).
+- The wrk_su_analysis module docstring is REMOVED (D-312, the house de-history style, the D-306 precedent): it cited
+  decisions (D-289 / D-288 / D-060), described hlp internals (the binio flow, the consistency signature) and the
+  state-machine re-raise — none of it is in the worker (7 of the 10 sibling workers have no module docstring). The
+  mirror doc intro is re-synced (module-accurate; the D-pointers stay in the mirror, their home).
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).

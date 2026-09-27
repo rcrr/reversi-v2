@@ -25,22 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-"""
-The SU_ANALYSIS worker (the SU level, step 3) — the level
-ORCHESTRATION skeleton (D-289, the wrk_design_matrix minimalism):
-the enable no-op, the CACHED corpus (phase 1, the expensive part —
-the hlp_su_analysis compute, the binio cache flow D-288, the
-consistency signature with the feature_set hash INSTEAD of the
-rds_checksum), the statistics (phase 2: the dispersion + the
-never-observed audit + the SU pairs, cheap, recomputed on EVERY run
-including the cache hit — the hlp), and the ctx publication (the
-corpus frequency tables for the ANOVA level, the adherence,
-step 6). ALL the analysis logic lives in
-reversi.lm.hlp_su_analysis. The D-060 semantics: the generation
-error fails the level, the machine re-raises, the _down clears the
-ctx artifacts.
-"""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
