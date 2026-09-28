@@ -3830,3 +3830,95 @@ D-323 | 2026-09-28 | the new code-format rules applied to the
           verify_save statics + the hub verify_logistic_model
           clean; the mirror updated (the 136 -> 156 lines + the
           Conventions bullet); the docs/notes audit clean.
+D-324 | 2026-09-28 | the new code-format rules applied to
+          hlp_config_schemas.py: the D-314 120-char reflow + the
+          D-318 docstrings + the "keep it simple" description
+          sweep (the 9 D-XXX provenance refs + the drifting
+          ordinals out) + the 2 D-267 test-docstring refs removed
+          Roberto: "Applica le nuove regole di formattazione del
+          codice a hlp_config_schemas. Controlla in particolare le
+          description, sono piene di storia, keep it simple." ->
+          "Procedi, e rimuovi anche i due D-267." — the D-323
+          pair (the D-314 reflow + the D-318 descriptive
+          docstrings) plus the description-specific sweep this
+          request called out:
+          DESCRIPTIONS (the "piene di storia" cleanup): the 9
+          D-XXX provenance references removed — the D-149 x4 (the
+          PLOT_NAMES import comment, the PlotConfig docstring,
+          the enable + plots descriptions), the D-281 (the
+          CorpusConfig docstring), the D-280 (the empty_count
+          description — the whole migration story, including the
+          redundant fields' names), the D-143 (the
+          regab_allow_duplicate description + "the pre-existing
+          behaviour"), the D-148 (the client_check_tol
+          description), the D-321 (the log_file_name
+          description); the drifting ordinals out ("the 18th
+          level", "step 3" x2, "step 6" x2, "the 19th level" —
+          the levels are NAMED, not numbered); the narrative bits
+          out (the "uno per tutti" seed flavour, the "minutes at
+          the wave tier" — the wave engine is RETIRED, the "mele
+          con mele" constraint, the "design section 3.6" external
+          pointer). What STAYS: the observable contracts (the
+          Y-space rationale of client_check_tol, the log-only
+          note of regab_allow_duplicate, the bin detail of
+          rarity_thresholds, the "eta²/omega² + the adherence" of
+          anova).
+          DOCSTRINGS: the 4 verbose class docstrings compressed
+          to the essential contract (PlotConfig — D-149 + the
+          ordinal out; CorpusConfig — the design section + the
+          D-281 + the flavour out; SuAnalysisConfig 15 -> 4
+          lines — the ordinal + the production/experiment
+          narrative out, the bin detail stays in the field
+          description; AnovaConfig — "step 6" out); the class
+          docstring style stays the file's "Configuration for
+          X." noun form (the D-318 formally binds the
+          FUNCTIONS); the 2 "Converts" indicative validator
+          docstrings -> imperative "Convert"; the noun-phrase
+          check_su_pairs_feature_set -> imperative "Enforce that
+          ..."; the other 5 validators were already imperative +
+          WHAT (unchanged).
+          REFLOW + HYGIENE: the 2 over-120 lines (the min_grad /
+          min_p_fun_decrease one-liners, 138/143) to the 3-line
+          form; the multi-line Field(...) blocks re-wrapped at
+          120 (the seed / total_positions / dpi /
+          cache_files_prefix / report_file_name fields collapse
+          to one line); the GNU header trailing spaces cleaned;
+          the 4 whitespace-only lines + the 2 trailing-space
+          lines removed; the 3 blank lines before LMBaseConfig
+          normalized to 2; the board import merged to one line.
+          D-267 (the 2 test-docstring refs, the side observation
+          Roberto approved): test_hlp_config_schemas.py — the
+          "(D-280)" in the empty_count test docstring + the
+          "D-292" in the rarity test docstring removed (the test
+          docs carry no D-xxx references).
+          PIN STATUS (verified before the change): zero test
+          edits needed for the description sweep — the 27 schema
+          tests are bare assertRaises(ValidationError) (no
+          message-text pins, no assertRaisesRegex, no .errors()
+          content), nothing reads the .description attribute of
+          these fields (the grep hits are the binio header + the
+          regab cursor), the wrk_config checksum is over
+          model_dump() (descriptions not included); the probe
+          D-XXX mentions are the probe check-label vocabulary
+          (D-270, untouched).
+          MIRROR: the "D-280, replacing su_analysis.corpus.ec +
+          regab_data_set.ec" migration clause out (the D-280
+          pointer stays — the mirror is the pointers' home); the
+          2 pre-existing audit findings on this mirror addressed
+          in the sync: the unbalanced code span fixed (the
+          `log_file_name: str | None` atomic) + the line count
+          re-tightened (123 -> 122, the size finding stays at
+          the pre-existing baseline level — reaching 120 would
+          require cutting 2 pinned fact lines, left to Roberto).
+          VERIFICATION: the model_fields comparison old (HEAD)
+          vs new — every class, every field: required / default
+          / default_factory / annotation / constraints
+          IDENTICAL, descriptions excluded (the
+          zero-behavior-change proof; the D-323 AST trick does
+          not apply — the descriptions are data in the AST);
+          test_hlp_config_schemas + test_wrk_config 41/0/0; the
+          full pre-commit LONG=1 965 OK (24 skipped — the
+          fixtures parse through the cleaned schemas, the
+          checksums + the goldens untouched); verify_wrk_config
+          + the hub verify_logistic_model ALL CHECKS PASSED; the
+          docs/notes audit at the baseline.

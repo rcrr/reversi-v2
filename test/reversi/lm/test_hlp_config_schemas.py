@@ -90,7 +90,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- root fields -------------------------------------------------
 
     def test_empty_count_required_and_bounded(self):
-        """The root empty_count (D-280): required, integer, 0..60.
+        """The root empty_count: required, integer, 0..60.
         Missing is rejected; 61 and -1 (out of range) are rejected;
         the fixture value (20) is accepted."""
         def _drop(d):
@@ -324,7 +324,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
 
     def test_rarity_thresholds(self):
         """The optional rarity thresholds (the report's
-        'Section B: Rarity report', D-292): absent = None
+        'Section B: Rarity report'): absent = None
         (the section off), the fixture's [1, 2, 5, 10, 100]
         validates, the empty list is legal (off), and the
         list must be positive strictly-increasing integers."""

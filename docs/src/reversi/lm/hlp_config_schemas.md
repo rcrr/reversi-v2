@@ -30,8 +30,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 
 - **The bitboard mask pair** — `PatternConfig.mask` and `MobilityFeatureConfig.mask` / `amask` are `Bitboard` (from
   board.py) behind a `mode="before"` `field_validator` (`bitboard_from_hex_str`) and a `field_serializer`
-  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex. The
-  docstrings and the field descriptions say exactly that; `model_config` is `arbitrary_types_allowed`.
+  (`f"{mask:016X}"`): in, a 16-digit hex string with NO 0x prefix (case-insensitive); out, uppercase 16-hex.
+  `model_config` is `arbitrary_types_allowed`.
 - **The strong-Wolfe invariant** — `OptimizationConfig` carries the L-BFGS defaults (`max_iters=500` ge=1, `m=50` ge=1,
   `c1=1e-4` 0<c1<1, `c2=0.9` 0<c2<1, `min_grad=(1e-5, 3)`, `min_p_fun_decrease=(1e-14, 7)`, `log_every_n` /
   `save_every_n` ge=0, `checkpoint_file` required, `high_performance_fg` default False: False keeps the classic
@@ -39,8 +39,8 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   rlm_06 opt in) plus `check_wolfe_constants`, a `model_validator(mode="after")` enforcing `c2 > c1` (ValueError →
   ValidationError, both values in the message): the invariant is code, not docstring.
 - **The top level** — `name`, `empty_count` (int, required, 0..60 — the single ec source for the SU corpus, the DB
-   extraction (training + validation), and the saved model; D-280, replacing `su_analysis.corpus.ec` +
-   `regab_data_set.ec`), `description`, `base_dir`, `output` (required); `use_cache=True`; `cache_files_prefix`
+   extraction (training + validation), and the saved model; D-280), `description`, `base_dir`, `output` (required);
+   `use_cache=True`; `cache_files_prefix`
   default `"rlmwf_"` (the filename-prefix concatenation the state_machine closures implement); `regab_allow_duplicate`
   default `True` (True keeps every extracted row, False deduplicates by `(mover, opponent)` keeping the first occurrence
   — consumed by the POSITIONS / VLD `extract_and_prepare` path, the count is logged at both levels); `client_check_tol`
@@ -51,9 +51,9 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   (opt-in: the production configs leave the fields unset and get the no-op; the experiment configs rlm_05 / rlm_06 and
   the rlm_00 fixture opt in (su_analysis; anova is enabled by no shipped fixture)); `target_level: str` default
   `"last"` (a level name, case-insensitive, resolved fail-fast by the StateMachine, or "last" for the full pipeline;
-  consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too); `log_file_name:
-  str | None` default `None` (the D-321 FINAL_LOG_PRINT output file name — relative to base_dir, the full run log at
-  the maximum relevance; the absent entry keeps the level a no-op, the file NOT generated); and
+  consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too);
+  `log_file_name: str | None` default `None` (the D-321 FINAL_LOG_PRINT output file name — relative to base_dir,
+  the full run log at the maximum relevance; the absent entry keeps the level a no-op, the file NOT generated); and
   `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is
   not in the `feature_set` (the mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator
   does the canonical sort + the dedupe (each pair a sorted tuple, a repeated pair collapsed); the
