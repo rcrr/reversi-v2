@@ -4091,3 +4091,77 @@ D-326 | 2026-09-28 | the new code-format rules on hlp_indexes
           verify_hlp_indexes 0 mismatches (the B tier pure +
           the C tier live-DB pipeline) + the full pre-commit
           LONG=1 suite + the docs/notes audit.
+D-327 | 2026-09-28 | the new code-format rules on hlp_optimize
+          (the D-314 reflow + the D-318 docstrings) + option
+          (c): wrk_optimize.py (header + the 2 >120 lines + the
+          4 D-096 comment tags) + both test-file headers
+          Roberto: "Applica le nuove regole di formattazione
+          del codice a hlp_optimize. Per favore sviluppa una
+          analisi dettagliata, la valutiamo insieme, ti dico
+          poi come procedere." -> "Procedi con opzione (c),
+          grazie!"
+          FORMAT: the D-323/D-324/D-325/D-326 pattern. The
+          header GNU trailing spaces cleaned; the 2 >120 lines
+          (L210/L214, both log_event — the RUNTIME STRINGS
+          verbatim, only the call reflowed); the 5 D-XXX refs
+          out (the 2x "LZ4 ... (D-139, as in model_weights)"
+          docstring sentences, the "(D-096 R3)", the "(D-096
+          R1: ...)" — the design fact kept, the tag out — and
+          the code comment "# M6 (D-096): the file stores a
+          single length prefix plus one" de-tagged, the fact
+          kept).
+          DOCSTRINGS (D-318, 6 functions): save_optimization_
+          checkpoint "Saves ..." -> imperative + the LZ4 line +
+          the 17-arg Args block (the largest docstring growth
+          of the campaign — the function has the most
+          parameters of the pipeline); load "Loads ..." ->
+          imperative + the body (the header + sidecar facts,
+          "for this (D-096 R3)" -> "for this") + Args +
+          Returns (the 15 keys); is_optimization_cache_
+          consistent (already imperative) — the 3-gate body
+          kept, the D-096 R1 tag out of the ridge gate, +
+          Args + Returns; optimization_info_dict "Filters" ->
+          "Filter" + Args + Returns (the 5 context keys);
+          is_optimization_status_converged — the body KEPT
+          VERBATIM (the probe-A16 phrase "judgement criterion,
+          not part of the objective" rides on it) + Args +
+          Returns; weights_compute_sha3_256_hash documented
+          (it was the only undocumented function).
+          SIDE FILES (option c, user-directed): wrk_optimize.
+          py — the header + the 2 >120 log_event lines
+          (L73/L84, the strings verbatim) + the 4 D-096
+          comment tags (R2/M2/M5/R4 — the facts kept, the
+          probe-B10 "unreachable: iters is an int" phrase
+          untouched); test_hlp_optimize.py + test_wrk_
+          optimize.py headers (the 8 "# " lines; 0 D-xxx, 0
+          >120 in the test files — nothing else to do there).
+          ZERO BEHAVIORAL CHANGE: the docstring-stripped AST
+          equality proof on BOTH files (pre from git vs the
+          new, structural dump) = identical. No config / no
+          checkpoint format / no log string touched (the
+          golden cascade stays zero, as in D-325/D-326).
+          PROBES (verify_optimize.py, 78 checks): the re-pin
+          — A1 (271 -> 327), A14 (the two no-validation
+          comment line indices al[176]/al[233] -> al[203]/
+          al[276], the D-318 growth above them), B1 (190 ->
+          192, the 2 reflows). Everything else stayed green
+          BY CONSTRUCTION: the rewrite was written around the
+          pinned substrings (A6 the module comment at
+          al[55]/al[56] — the triple-blank house spacing had
+          to be restored, the first probe run caught it; A9
+          the "Serialize the L-BFGS history vectors
+          chronologically:" comment; A10 the fail-fast check
+          + the ValueError message; A16 the phrase; A19 the
+          kept "# Read header properly!"). 78/0 incl. the H
+          tier (the live pipeline through OPTIMIZE, the real
+          L-BFGS runs).
+          MIRRORS: hlp_optimize.md (327 lines, the "11th
+          active level (CREATED sentinel -> ...)" ordinal ->
+          "the OPTIMIZE level (after GRADIENT)"; FOUND: the
+          "83-check probe" claim was STALE since the D-106
+          class-c probe slimming — corrected to 78);
+          wrk_optimize.md (192-line file).
+          VERIFICATION: test_hlp_optimize 20/0/0 (no DB) +
+          verify_optimize 78/0 + the full pre-commit LONG=1
+          967 OK (24 skipped) + the docs/notes audit at
+          baseline.

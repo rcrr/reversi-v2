@@ -38,7 +38,7 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
 
 Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
 
-- Source shape (probe B1-B17): the 190-line file, the factory decorator + the pydantic/binio imports, the 16 lbfgs
+- Source shape (probe B1-B17): the 192-line file, the factory decorator + the pydantic/binio imports, the 16 lbfgs
   kwargs + the warm-start consumption (B13), the try/except, the `_down` scope, the header typo fix, the dead `Path`
   import gone.
 - The worker-test source shape (probe D1-D11): the 175-line file, the gate, the idiom, the 3 step pins (GRADIENT=10,

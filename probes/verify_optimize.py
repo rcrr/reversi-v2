@@ -56,7 +56,7 @@ def ws_lines(text):
 print("== tier A: hlp_optimize.py structure (post D-096)")
 a = read("hlp_optimize.py")
 al = a.splitlines()
-check("A1 line count 271 (post D-139: 267 + the compressed kwarg + the docstring lines)", len(al) == 271, f"{len(al)}")
+check("A1 line count 327 (D-327: the D-318 docstrings — the 17-arg save Args block — + the header cleanup + the 2 log reflows)", len(al) == 327, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
       al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)
@@ -91,10 +91,10 @@ check("A12 R3: load verifies the SHA3-256 sidecar",
       and "Checkpoint checksum mismatch: {filepath} does not match its SHA3-256 sidecar" in a)
 check("A13 exactly 4 @validate_call decorators", a.count("@validate_call") == 4,
       f"{a.count('@validate_call')}")
-check("A14 T11: two no-validation notes (L177 + L234, post D-139 line shift)",
+check("A14 T11: two no-validation notes (L204 + L277, post D-327 line shift)",
       a.count("#: Here validation is not possible, it brings in a convoluted issue with circular imports.") == 2
-      and al[176].startswith("#: Here validation is not possible")
-      and al[233].startswith("#: Here validation is not possible"))
+      and al[203].startswith("#: Here validation is not possible")
+      and al[276].startswith("#: Here validation is not possible"))
 check("A15 R1: ridge gate in is_optimization_cache_consistent (3rd gate)",
       "The ridge regularization parameter has changed." in a
       and "math.isclose(ctx.cfg.stat_model.ridge_regularization," in a
@@ -115,7 +115,7 @@ check("A20 'checpoint' typo fixed in the docstring", "checpoint" not in a)
 print("== tier B: wrk_optimize.py structure (post D-096)")
 b = read("wrk_optimize.py")
 bl = b.splitlines()
-check("B1 line count 190", len(bl) == 190, f"{len(bl)}")
+check("B1 line count 192 (D-327: the 2 log_event reflows)", len(bl) == 192, f"{len(bl)}")
 check("B2 T8: 'Aauthor' typo fixed",
       bl[6] == "# Author Roberto Corradini mailto:rob_corradini@yahoo.it"
       and "Aauthor" not in b)

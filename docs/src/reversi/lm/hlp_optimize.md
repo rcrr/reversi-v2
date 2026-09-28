@@ -2,8 +2,7 @@
 The OPTIMIZE domain module of the LM pipeline. Unlike every other rlm_* level, the "cache" of this level is NOT a data
 class behind a store/load/is_cache_consistent trio: it is a plain **checkpoint dictionary** serialized with binio (the
 design comment). Six public names: the binary round-trip pair, the two gates the worker consults, the lbfgs-info
-projection and the duck-typed weight hash. The 11th active level (CREATED sentinel → CONFIG → FEATURES → SU_ANALYSIS →
-POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED → GRADIENT → OPTIMIZE).
+projection and the duck-typed weight hash. The OPTIMIZE level (after GRADIENT).
 
 ## API
 
@@ -37,12 +36,12 @@ POSITIONS → INDEXES → ANOVA → WMAPS → DESIGN_MTR → ZED → GRADIENT �
 
 ## Verified invariants
 
-Pinned by the 83-check `probes/verify_optimize.py` + `test_hlp_optimize.py` (20 tests, no DB) + `test_wrk_optimize.py`
+Pinned by the 78-check `probes/verify_optimize.py` + `test_hlp_optimize.py` (20 tests, no DB) + `test_wrk_optimize.py`
 (3 DB-gated tests).
 
-- Module source shape (probe A1-A20): 271 lines, the 6-name `__all__`, the design comment, the M6 check, the 3 gates,
+- Module source shape (probe A1-A20): 327 lines, the 6-name `__all__`, the design comment, the M6 check, the 3 gates,
   the R3 verify, the 2 no-validation notes.
-- Worker source shape (probe B1-B17): the 190-line file, the decorator + pydantic/binio imports, the 16 lbfgs kwargs,
+- Worker source shape (probe B1-B17): the 192-line file, the decorator + pydantic/binio imports, the 16 lbfgs kwargs,
   the warm-start consumption, the try/except, the `_down` scope.
 - The live-DB decision paths (probe H4-H8 + H6b, rlm_02): completed (2nd instance: "already completed", zero lbfgs
   calls, byte-identical weights); resume (crafted INCOMPLETE checkpoint → "Resuming optimization from iteration 5", warm
