@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
-from reversi.lm.hlp_feature_analysis import adherence, anova_eta_omega
+from reversi.lm.hlp_anova import adherence, anova_eta_omega
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
@@ -72,7 +72,7 @@ def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
     corpus observation total, and the adherence of the pooled
     training distribution vs the pooled corpus distribution (the
     chi-square goodness-of-fit + the TV / KL, the
-    hlp_feature_analysis kernel).
+    hlp_anova kernel).
     """
     tables = ctx.su_analysis_tables
     if tables is None:

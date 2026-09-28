@@ -91,6 +91,12 @@ tables at the end of this file.
   convention-less file defaults to <= 79 (PEP8); a full-file reflow to 120 is a deliberate user-directed act —
   the precedent: the wrk_anova.py reflow (175 -> 144 lines, max line 118, the A-tier pins verbatim, the goldens
   intact).
+- The hlp_feature_analysis module is RENAMED hlp_anova (D-315): the D-298 split left exactly the ANOVA family, the
+  name was stale. The worker's _write_report + the two compute helpers moved to hlp_anova (the public
+  hlp_anova_compute_analysis / hlp_anova_generate_report, the privates kept), the worker is now the pure skeleton
+  (the guard + the two calls), the module is reflowed to the 120-char width (D-314), and its module docstring is
+  REMOVED (the D-312/D-313 precedent). The verify_anova A4/A5/F5 + the verify_su_analysis F6 pins are re-pinned to
+  the new architecture; the goldens + the log sequence are unchanged.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
@@ -196,7 +202,7 @@ of the file's test module.
 | src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
 | src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + anova + the `target_level` stop (consumed by the facade's `run()`) + the su_pairs fail-fast | 27/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
-| src/reversi/lm/hlp_feature_analysis.py | the ANOVA analysis-kernels data module (the D-298 split from the SHARED data plane — the SU family moved to hlp_su_analysis; NO DB, NO positions) — the from-frequency-tables math: the ANOVA kernels (the eta²/omega²) + the adherence kernels (the chi-square + the KL + the TV — the private trio) | 16/0/0 (via test_hlp_feature_analysis) | docs/src/reversi/lm/hlp_feature_analysis.md |
+| src/reversi/lm/hlp_anova.py | the ANOVA family module (renamed from hlp_feature_analysis, D-315 — the D-298 split from the SHARED data plane left exactly this family; NO DB, NO positions) — the from-frequency-tables math: the ANOVA kernels (the eta²/omega²) + the adherence kernels (the chi-square + the KL + the TV — the private trio) + the two FLOW functions (hlp_anova_compute_analysis + hlp_anova_generate_report, the D-315 move from wrk_anova — the worker is now the pure skeleton) | 16/0/0 (via test_hlp_anova) | docs/src/reversi/lm/hlp_anova.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
 | src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag) | 14/0/0 | docs/src/reversi/lm/hlp_gradient.md |
 | src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
@@ -249,7 +255,7 @@ One row per test file, alphabetical.
 | test/reversi/test_regab.py | complete: the regab suite (the batch incl. the 4 SQL-injection tests; the db_long_gate; the no-DB micro tier: dedup + overlap) | 48/0/0 | docs/test/reversi/test_regab.md |
 | test/reversi/lm/test_hlp_config_schemas.py | complete: the pydantic config domain suite (the flag test; the client_check_tol tests; the 6 PlotConfig tests; the 4 su_analysis/anova tests) | 27/0/0 | docs/test/reversi/lm/test_hlp_config_schemas.md |
 | test/reversi/lm/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite | 14/0/0 | docs/test/reversi/lm/test_hlp_design_matrix.md |
-| test/reversi/lm/test_hlp_feature_analysis.py | the ANOVA NO-DB micro-suite (the D-298 split — the SU kernel micro-suite moved to test_hlp_su_analysis) — the hand-computed toy tables for the ANOVA + the adherence kernels (+ the private kl / TV / chi-square helpers, the module-import calls) | 16/0/0 | docs/test/reversi/lm/test_hlp_feature_analysis.md |
+| test/reversi/lm/test_hlp_anova.py | the ANOVA NO-DB micro-suite (renamed with the D-315 module rename; the D-298 split — the SU kernel micro-suite moved to test_hlp_su_analysis) — the hand-computed toy tables for the ANOVA + the adherence kernels (+ the private kl / TV / chi-square helpers, the module-import calls) | 16/0/0 | docs/test/reversi/lm/test_hlp_anova.md |
 | test/reversi/lm/test_hlp_generate.py | complete: the GENERATE data suite | 16/0/0 | docs/test/reversi/lm/test_hlp_generate.md |
 | test/reversi/lm/test_hlp_gradient.py | complete: the GRADIENT data suite (the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers) | 14/0/0 | docs/test/reversi/lm/test_hlp_gradient.md |
 | test/reversi/lm/test_hlp_indexes.py | complete: 14 tests (the compressed mock pins) | 14/0/0 | docs/test/reversi/lm/test_hlp_indexes.md |

@@ -49,10 +49,10 @@ MODULES=(
     test.reversi.lm.test_hlp_config_schemas
     test.reversi.lm.test_wrk_config
     test.reversi.lm.test_wrk_features
-    # test_hlp_feature_analysis: the ANOVA analysis kernels
+    # test_hlp_anova: the ANOVA analysis kernels
     # (the I-017; the D-298 split — the ANOVA T13, the adherence
     # T14 + its private kl / TV / chi-square helpers)
-    test.reversi.lm.test_hlp_feature_analysis
+    test.reversi.lm.test_hlp_anova
     # test_hlp_su_analysis: the SU analysis LOGIC (D-289: the
     # signature, the binio I/O D-288, the compute determinism, the
     # theoretical space D-278/279, the SU groups, the report/CSV) +

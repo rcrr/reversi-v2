@@ -3420,3 +3420,53 @@ D-314 | 2026-09-25 | the wrk_anova.py reflow to the 120-char line width + the so
           never a re-wrap of untouched lines; the docs/notes
           stay at ~120 (D-237). Context (measured): 95.1% of
           the src/reversi lines are <= 80 chars.
+D-315 | 2026-09-25 | hlp_feature_analysis renamed hlp_anova + the compute/report methods moved in (the worker is the pure skeleton) + the D-314 reflow
+          Roberto: the module "Vorrei rinominarlo hlp_anova. Poi
+          vorrei applicare la nuova regola sulla formattazione.
+          Vorrei poi spostare _write_report da wrk_anova a
+          hlp_anova ... lasciano solo ctx. I due argomenti li
+          calcoliamo nel codice di _write_report chiamando
+          _compute_anova_lines e _compute_adherence_lines. Anche
+          questi due metodi vanno nel modulo hlp_anova. hlp_anova
+          esporta _write_report che rinominerei in
+          write_anova_report." Analysis: the name was stale by
+          construction (the D-298 split left exactly the ANOVA
+          family — the verify_anova F5 pin said so); the impact
+          map: 7 code references + 7 docs + the runner + 5 probe
+          pins (the verify_anova A4/A5/F5 + the verify_su_analysis
+          F6 cross-probe + the F2 family exclusion). My P1 flag
+          (the write_anova_report name covered compute + write,
+          diverging from the house pattern where the worker
+          orchestrates separate hlp calls): Roberto took it —
+          "prendo la tua proposta, teniamo i due metodi" — the
+          two PUBLIC methods, the worker orchestrates. His
+          naming lean (the hlp_anova_ prefix, "piu consoni ed in
+          linea con lo standard" — the prefix is the cache-flow
+          family standard, hlp_anova is user-directed): the
+          final names hlp_anova_compute_analysis (the two
+          passes, returns (anova_lines, adherence_lines)) +
+          hlp_anova_generate_report (the TXT + the CSV). P2: the
+          two compute helpers stay PRIVATE (_compute_anova_lines /
+          _compute_adherence_lines) — the boundary is the 2 FLOW
+          functions + the 2 kernels. P3: the module docstring
+          REMOVED (the D-312/D-313 disease: the D-298 history +
+          the stale "accumulator output" phrase). IMPLEMENTATION:
+          the git mv (module + test_hlp_anova + the 2 mirrors),
+          wrk_anova is now ~50 lines (the guard + the 2 calls;
+          the csv / Path / numpy imports gone), hlp_anova.py
+          reflowed to the D-314 width (the kernel docstrings
+          text-identical), the consumers updated (hlp_analytics
+          import + comment, test_wrk_analytics import, the test
+          alias hlp_fa -> hlp_an, the runner line), the re-pins:
+          verify_anova A4 (the two methods import), A5 (the
+          degradation branch now read from hlp_anova), F5 (the
+          family + the 2 new defs), the probe import + header;
+          verify_su_analysis F6 (the worker imports the methods,
+          hlp_anova reads ctx.su_analysis_tables) + the F2 label
+          (the historical references, the family is gone).
+          VERIFICATION: the fast suite 958/0 (99 skipped);
+          verify_anova 0 mismatch (the D tier live A2050 — the
+          report goldens intact); verify_su_analysis 0 mismatch;
+          the log sequence + every report value unchanged (the
+          strings moved, not touched); the docs audit + the
+          notes_format clean.

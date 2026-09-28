@@ -1,4 +1,4 @@
-# test/reversi/lm/test_hlp_feature_analysis.py
+# test/reversi/lm/test_hlp_anova.py
 The NO-DB micro-suite of the ANOVA analysis-kernels data module (the D-298 split: the SU / entropy / MI /
 dispersion / never-observed micro-suite moved to test_hlp_su_analysis): the hand-computed toy tables for the ANOVA
 kernels + the adherence kernels (the eta² / omega² effect sizes + the guards, the KL / the TV / the chi-square
@@ -31,7 +31,7 @@ policy). 5 classes / 16 tests / no DB.
 - The house test header (the "How to run" block).
 - The pure-function micro-suite: the hand-computed toy count arrays (the marginal / the joint), the assertAlmostEqual
   (the 12-place tolerance on the hand-computed values, 10 places for the adherence KL/chi-square/p-value).
-- The three private helpers (the kl / the TV / the chi-square) are called via the module import `hlp_fa._*` (the
+- The three private helpers (the kl / the TV / the chi-square) are called via the module import `hlp_an._*` (the
   D-290 / D-298).
 
 ## Integration

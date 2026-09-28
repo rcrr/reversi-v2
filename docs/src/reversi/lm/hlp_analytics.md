@@ -28,7 +28,7 @@ section when the feature set has an intercept).
   per feature: the pooled corpus counts (the `ctx.su_analysis_tables['marginal']` summed over the feature's instance
   columns), the corpus observation total, and the `adherence` of the pooled training distribution (the
   `ctx.hlp_indexes.indexes` over the feature's columns) vs the pooled corpus distribution — the chi-square
-  goodness-of-fit + the TV / KL, the hlp_feature_analysis kernel (the single source, the D-298 split). `_su_verdict`
+  goodness-of-fit + the TV / KL, the hlp_anova kernel (the single source, the D-298 split). `_su_verdict`
   maps the TV to the verdict over the bands `_SU_TV_CONSISTENT = 0.01` / `_SU_TV_MARGINAL = 0.05`: CONSISTENT /
   MARGINAL / DEVIATING. `_su_header_line` renders the line: the TV (4 decimals) + the chi2 (1 decimal) + the p
   (2-exponent) + the merged-tail count + the verdict (the `inf` chi2 when the DB observes a code the corpus never

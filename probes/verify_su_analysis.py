@@ -573,11 +573,11 @@ check("F1  the runner registers the renamed suite and no longer the old one",
       "test.reversi.lm.test_wrk_su_analysis" in runner
       and "test_wrk_feature_analysis" not in runner)
 
-# The rename completeness: no live file outside the shared-kernels family
-# still carries the old level name (the append-only history is excluded).
-# The family references ("hlp_feature_analysis", the shared-kernels module
-# that KEEPS its name by design) are stripped before the search, and so is
-# this probe, which necessarily spells the old name in its search terms.
+# The rename completeness: no live file carries the old level name
+# (the append-only history is excluded). The historical references
+# ("hlp_feature_analysis", the D-298 shared-kernels module, renamed
+# hlp_anova at D-315) are stripped before the search, and so is this
+# probe, which necessarily spells the old name in its search terms.
 SELF = Path(__file__).resolve()
 hits = []
 for sub in ("src", "docs", "probes", "tools"):
@@ -592,8 +592,8 @@ for sub in ("src", "docs", "probes", "tools"):
         if "FEATURE_ANALYSIS" in t or "feature_analysis" in t:
             hits.append(str(p.relative_to(ROOT)))
 check("F2  the rename is complete: no FEATURE_ANALYSIS / feature_analysis "
-      "left in src/ docs/ probes/ tools/ (the hlp_feature_analysis family "
-      "excluded)", not hits, str(hits))
+      "left in src/ docs/ probes/ tools/ (the historical "
+      "hlp_feature_analysis references excluded)", not hits, str(hits))
 
 for rel in ("docs/src/reversi/lm/wrk_su_analysis.md",
             "docs/test/reversi/lm/test_wrk_su_analysis.md"):
@@ -610,12 +610,14 @@ check("F5  the mirror's generator version == the module's constant "
       "su-corpus-5" in mirror and "g0-1" not in mirror)
 
 eff = (ROOT / "src" / "reversi" / "lm" / "wrk_anova.py").read_text()
-check("F6  the ANOVA consumer contract: it reads "
-      "ctx.su_analysis_tables + imports the adherence / ANOVA kernels "
-      "from hlp_feature_analysis",
-      "ctx.su_analysis_tables" in eff
-      and "from reversi.lm.hlp_feature_analysis import (" in eff
-      and "adherence, anova_eta_omega" in eff)
+hlp = (ROOT / "src" / "reversi" / "lm" / "hlp_anova.py").read_text()
+check("F6  the ANOVA consumer contract: the worker imports the compute "
+      "/ report methods from hlp_anova, which reads "
+      "ctx.su_analysis_tables",
+      "from reversi.lm.hlp_anova import" in eff
+      and "hlp_anova_compute_analysis" in eff
+      and "hlp_anova_generate_report" in eff
+      and "ctx.su_analysis_tables" in hlp)
 
 check("F7  the level is OPTIONAL in the shipped configs: no production "
       "fixture (rlm_01..rlm_04) enables it",

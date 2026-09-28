@@ -55,7 +55,7 @@ from pathlib import Path
 import numpy as np
 
 from reversi.lm.hlp_analytics import format_file_report
-from reversi.lm.hlp_feature_analysis import adherence
+from reversi.lm.hlp_anova import adherence
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.closecheck import assert_close

@@ -26,7 +26,7 @@
 #
 #
 #
-# How to run the hlp_feature_analysis module unit tests.
+# How to run the hlp_anova module unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -36,7 +36,7 @@
 #
 # -1- Run the tests.
 #
-# time PERF=0 python3 -m unittest test.reversi.lm.test_hlp_feature_analysis
+# time PERF=0 python3 -m unittest test.reversi.lm.test_hlp_anova
 #
 
 """
@@ -58,8 +58,8 @@ import numpy as np
 
 from scipy.stats import chi2 as _chi2
 
-from reversi.lm import hlp_feature_analysis as hlp_fa
-from reversi.lm.hlp_feature_analysis import adherence, anova_eta_omega
+from reversi.lm import hlp_anova as hlp_an
+from reversi.lm.hlp_anova import adherence, anova_eta_omega
 
 
 class TestAnovaEtaOmega(unittest.TestCase):
@@ -113,20 +113,20 @@ class TestKLDivergence(unittest.TestCase):
 
     def test_equal(self):
         # p = q: KL = 0.
-        self.assertAlmostEqual(hlp_fa._kl_divergence([0.5, 0.5],
+        self.assertAlmostEqual(hlp_an._kl_divergence([0.5, 0.5],
                                              [0.5, 0.5]), 0.0,
                                places=12)
 
     def test_known(self):
         # p = [1, 0], q = [0.5, 0.5]: KL = log(1 / 0.5) =
         # log(2) (the 0-term vanishes).
-        self.assertAlmostEqual(hlp_fa._kl_divergence([1, 0], [0.5, 0.5]),
+        self.assertAlmostEqual(hlp_an._kl_divergence([1, 0], [0.5, 0.5]),
                                0.6931471805599453, places=12)
 
     def test_infinite(self):
         # p = [1, 0], q = [0, 1]: p(0) > 0, q(0) = 0 -> +inf
         # (the DB has a code the ideal never shows).
-        self.assertEqual(hlp_fa._kl_divergence([1, 0], [0, 1]), float('inf'))
+        self.assertEqual(hlp_an._kl_divergence([1, 0], [0, 1]), float('inf'))
 
 
 class TestTotalVariation(unittest.TestCase):
@@ -135,20 +135,20 @@ class TestTotalVariation(unittest.TestCase):
 
     def test_equal(self):
         # p = q: TV = 0.
-        self.assertAlmostEqual(hlp_fa._total_variation([0.5, 0.5],
+        self.assertAlmostEqual(hlp_an._total_variation([0.5, 0.5],
                                               [0.5, 0.5]), 0.0,
                                places=12)
 
     def test_max(self):
         # p = [1, 0], q = [0, 1]: TV = 0.5 * (1 + 1) = 1.
-        self.assertAlmostEqual(hlp_fa._total_variation([1, 0],
+        self.assertAlmostEqual(hlp_an._total_variation([1, 0],
                                               [0, 1]), 1.0,
                                places=12)
 
     def test_half(self):
         # p = [0.75, 0.25], q = [0.5, 0.5]: TV = 0.5 * (0.25 +
         # 0.25) = 0.25.
-        self.assertAlmostEqual(hlp_fa._total_variation([0.75, 0.25],
+        self.assertAlmostEqual(hlp_an._total_variation([0.75, 0.25],
                                               [0.5, 0.5]), 0.25,
                                places=12)
 
@@ -163,7 +163,7 @@ class TestChiSquareGoodness(unittest.TestCase):
         # observed = [10, 20, 30, 40], expected = [15, 18, 27,
         # 40] (all E >= 5, no merge): chi2 = 25/15 + 4/18 +
         # 9/27 + 0 = 2.222222, df 3, p = 0.527585, merged 0.
-        g = hlp_fa._chi_square_goodness([10, 20, 30, 40],
+        g = hlp_an._chi_square_goodness([10, 20, 30, 40],
                                 [15, 18, 27, 40])
         self.assertEqual(g['merged'], 0)
         self.assertAlmostEqual(g['chi2'], 2.2222222222222223,
@@ -177,7 +177,7 @@ class TestChiSquareGoodness(unittest.TestCase):
         # 40]: the 3 cells with E < 5 are merged into the
         # "other" bin (O 6, E 6); the remaining [40, 6] / [40,
         # 6]: chi2 = 0, df 1, p = 1.0, merged 3.
-        g = hlp_fa._chi_square_goodness([1, 2, 3, 40],
+        g = hlp_an._chi_square_goodness([1, 2, 3, 40],
                                 [1.5, 2.0, 2.5, 40])
         self.assertEqual(g['merged'], 3)
         self.assertAlmostEqual(g['chi2'], 0.0, places=12)

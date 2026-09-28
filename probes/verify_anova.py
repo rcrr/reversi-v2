@@ -3,10 +3,10 @@
 # verify_anova.py
 #
 # Probe pinning the ANOVA level (the I-017 step 6, D-187): the
-# worker (src/reversi/lm/wrk_anova.py) + the two kernel families
-# it consumes (the ANOVA + the adherence, both in the SHARED
-# hlp_feature_analysis module) + its cross-level input
-# (ctx.su_analysis_tables, published by the SU_ANALYSIS level).
+# worker (src/reversi/lm/wrk_anova.py) + the ANOVA family it
+# consumes (the two kernels + the compute / report methods, in the
+# hlp_anova module) + its cross-level input (ctx.su_analysis_tables,
+# published by the SU_ANALYSIS level, read by hlp_anova).
 #
 # Tiers:
 #   A  the module structure: the factory, the no-cache discipline, the
@@ -162,6 +162,8 @@ def py_adherence(db_counts, ideal_counts, min_expected=5.0):
 # ---------------------------------------------------------------- A tier
 W = ROOT / "src" / "reversi" / "lm" / "wrk_anova.py"
 wt = W.read_text()
+HA = ROOT / "src" / "reversi" / "lm" / "hlp_anova.py"
+hat = HA.read_text()
 check("A1  the factory: @validate_call + wrk_anova() -> Worker",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in wt
       and "def wrk_anova() -> Worker:" in wt)
@@ -170,20 +172,21 @@ check("A2  the Worker name is ANOVA",
 check("A3  the no-cache discipline (a diagnostic): no cache_manager import, "
       "no store/load of its own",
       "cache_manager" not in wt and "binio" not in wt)
-check("A4  the two kernel families come from the SHARED module",
-      "from reversi.lm.hlp_feature_analysis import (" in wt
-      and "adherence, anova_eta_omega" in wt)
+check("A4  the two analysis methods come from hlp_anova",
+      "from reversi.lm.hlp_anova import" in wt
+      and "hlp_anova_compute_analysis" in wt
+      and "hlp_anova_generate_report" in wt)
 check("A5  the graceful-degradation branch: the adherence skipped when "
       "ctx.su_analysis_tables is None (the ANOVA still runs)",
-      "tables = ctx.su_analysis_tables" in wt
-      and "Adherence SKIPPED" in wt and "tables is not None" in wt)
+      "tables = ctx.su_analysis_tables" in hat
+      and "Adherence SKIPPED" in hat and "tables is not None" in hat)
 check("A6  the down is a no-op (nothing published on the ctx)",
       "ANOVA down (no-op)" in wt)
 check("A7  __all__ = ['wrk_anova']", "__all__ = ['wrk_anova']" in wt)
 check("A8  no trailing whitespace outside the license header", not ws_lines(W),
       str(ws_lines(W)))
 
-from reversi.lm.hlp_feature_analysis import (  # noqa: E402
+from reversi.lm.hlp_anova import (  # noqa: E402
     adherence, anova_eta_omega)
 from reversi.lm.logistic_model import LogisticModel  # noqa: E402
 from reversi.tools.state_machine import Verbosity  # noqa: E402
@@ -542,18 +545,17 @@ check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       all('"anova"' not in (ROOT / "test" / "reversi" / "data"
                                   / f"rlm_0{i}.json").read_text()
           for i in (1, 2, 3, 4)))
-check("F5  the D-298 split boundary: hlp_feature_analysis carries the "
-      "ANOVA family (the ANOVA + the adherence), the SU kernels "
-      "live in hlp_su_analysis (the private _symmetric_uncertainty)",
-      all(k in (ROOT / "src" / "reversi" / "lm"
-                / "hlp_feature_analysis.py").read_text()
-          for k in ("def anova_eta_omega", "def adherence"))
+check("F5  the D-298 split boundary: hlp_anova carries the ANOVA "
+      "family (the ANOVA + the adherence + the compute / report "
+      "methods), the SU kernels live in hlp_su_analysis (the "
+      "private _symmetric_uncertainty)",
+      all(k in hat for k in ("def anova_eta_omega", "def adherence",
+                             "def hlp_anova_compute_analysis",
+                             "def hlp_anova_generate_report"))
       and "def _symmetric_uncertainty" in
       (ROOT / "src" / "reversi" / "lm"
        / "hlp_su_analysis.py").read_text()
-      and "def symmetric_uncertainty" not in
-      (ROOT / "src" / "reversi" / "lm"
-       / "hlp_feature_analysis.py").read_text())
+      and "def symmetric_uncertainty" not in hat)
 check("F6  the report format: the title + the two section headers",
       (TMP / "c_mock" / "anova" / "anova_report.txt").read_text()
       .splitlines()[1] == "=" * 40
