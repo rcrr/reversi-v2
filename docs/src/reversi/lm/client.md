@@ -14,7 +14,7 @@ production models (the `A2xxx` family) plug into.
 
 ## Architecture
 
-136 lines.
+156 lines.
 
 - Imports: numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
@@ -71,6 +71,10 @@ None.
 
 ## Conventions
 
+- The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation);
+  the descriptive docstring style (the D-317, the house rule since D-318: the imperative first line, the body
+  paragraph, the typed Google-style Args / Returns) applied to the 3 functions in D-323 (the D-141 / the D-111 M5
+  provenance references removed); the line width is the D-314 reflow (the 120-char, no hard limit).
 - BOTH factories are `@validate_call` (arbitrary_types_allowed); the array ef closure is validated too (the
   PositionArray annotation does the (N, 2) u64 coercion).
 - Strict array: the array ef takes a 1-D PositionArray only (the scalar contract is the other factory); the 1-D guard in

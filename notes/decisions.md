@@ -3783,3 +3783,50 @@ D-322 | 2026-09-28 | the D-321 e2e test fix: the log_file_name must be present i
           verification (run it at LONG=1 before the commit) — the
           D-319 recurrence (the pins missed by the fast-tier-only
           verification), same class of error.
+D-323 | 2026-09-28 | the new code-format rules applied to the
+          inference client: the D-314 120-char reflow + the D-318
+          descriptive docstrings on client.py (the D-141 / the
+          D-111 M5 provenance out, zero behavioral change)
+          Roberto: "Applica le nuove regole di formattazione del
+          codice a client.py. Per favore sviluppa una analisi
+          dettagliata" -> "Procedi." — the two recently
+          codified rules, applied as a pair (the hlp_anova
+          precedent — D-315 the reflow, D-317 the docstrings):
+          (1) the D-314 full-file reflow to the 120-char width
+          (the deliberate, user-directed act — this request): the
+          code was already 120-ish (max line 107, the array
+          factory signature) — the reflow's visible code effect
+          is only the GNU header (the 4 empty comment lines'
+          trailing spaces cleaned to the reflowed files' clean
+          form); (2) the D-318 descriptive docstring conversion
+          (the user-directed, one-module-at-a-time retroactive
+          pass): the 3 docstrings rewritten to the hlp_anova
+          exemplar (the imperative first line, the body
+          paragraph, the typed Google-style Args / Returns); the
+          scalar factory carried only a one-line docstring, now
+          the full form; _prepare_weights' two return values
+          move from free-text to the Returns: key-by-key.
+          PROVENANCE OUT (the D-224/D-226 + the D-269 split): the
+          3 D-XXX references removed — the 2 D-141 (the
+          vectorized-client origin, in the _prepare_weights +
+          the array-factory docstrings) + the D-111 M5 (the
+          guard comment's review pointer); the guard's WHY stays
+          (the PositionArray validator admits a 2-D structured
+          array — no ndim check — the guard keeps a clean
+          ValueError out of the numba kernel).
+          NOT TOUCHED (precedent): the numbered 1-4 step
+          comments (the HOW in the code comments, the D-224
+          norm); the 2 nested ef closures stay docstring-less
+          (no lm closure carries a docstring — the _up/_down
+          family; the factory's Returns: section is the returned
+          callable's contract); no module docstring (the D-312 /
+          D-313 precedent, hlp_anova).
+          VERIFICATION: the AST equality of the old and the new
+          file with the docstrings nullified (the zero-code
+          change proof) + the compile; test_client 7/0/1 (the
+          bit-exact 1000-position parity, the u64 coercion, the
+          N=0 edge); the full pre-commit LONG=1 965 OK (24
+          skipped — the in-chain EF pins re-verified); the
+          verify_save statics + the hub verify_logistic_model
+          clean; the mirror updated (the 136 -> 156 lines + the
+          Conventions bullet); the docs/notes audit clean.
