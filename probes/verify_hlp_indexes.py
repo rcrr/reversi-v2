@@ -72,8 +72,8 @@ def check(label, cond, detail=""):
 
 src = (ROOT / "src" / "reversi" / "lm" / "hlp_indexes.py").read_text()
 
-check("A1 197 lines (post D-139: 190 + the 2x compressed kwarg + docstring lines)",
-      len(src.splitlines()) == 197
+check("A1 228 lines (D-326: the D-318 docstrings + the header cleanup)",
+      len(src.splitlines()) == 228
       and "from enum import IntEnum" not in src
       and "Protocol" not in src
       and "BeforeValidator" not in src
@@ -107,8 +107,8 @@ check("A7 is_cache_consistent: the 2-field metadata compare (feature_set_hash + 
       "cached_feature_set_hash == expected_feature_set_hash" in src
       and "cached_rds_checksum == expected_rds_checksum" in src
       and "dbname" not in src and "bid" not in src)
-check("A8 D-139: the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note corrected: the binio writer writes it, cache_manager re-writes it idempotently)",
-      "LZ4 whole-file compression by default (D-139, as in model_weights)." in src
+check("A8 the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note corrected: the binio writer writes it, cache_manager re-writes it idempotently; D-326: the D-139 ref out)",
+      "LZ4 whole-file compression by default (as in model_weights)." in src
       and "the SHA3-256 sidecar is written by the binio writer" in src
       and "no SHA3-256 sidecar is written by this function" not in src
       and "write_sha3_256_sidecar" not in src)
@@ -325,8 +325,8 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 
 tsrc = (ROOT / "test" / "reversi" / "lm" / "test_wrk_indexes.py").read_text()
 
-check("E1 154 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a header line)",
-      len(tsrc.splitlines()) == 154
+check("E1 155 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a header line; D-326: the 123-char assertNotIn reflow)",
+      len(tsrc.splitlines()) == 155
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
 check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",

@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -51,8 +51,7 @@ __all__ = ['LMIndexes',
 
 class LMIndexes:
     """
-    Represents the 2D index matrix together with the hash signature of the feature set
-    used to compute them.
+    Holds the 2D index matrix together with the hash signature of the feature set used to compute it.
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
@@ -60,15 +59,12 @@ class LMIndexes:
                  feature_set_hash: str,
                  indexes: IndexArray):
         """
-        Initializes a LMIndexes instance.
+        Initialize the LMIndexes instance.
 
-        Parameters
-        ----------
-        rds_checksum : str
-            The hash taken from the rds data set.
-        feature_set_hash : str
-            The hash code taken from the feature_set used to compute indexes.
-        indexes : IndexArray
+        Args:
+            rds_checksum (str): the hash taken from the rds data set.
+            feature_set_hash (str): the hash code of the feature set used to compute the indexes.
+            indexes (IndexArray): the 2D (M, P) uint32 design-matrix index array (each cell is a weight index).
         """
         self.rds_checksum = rds_checksum
         self.feature_set_hash = feature_set_hash
@@ -76,6 +72,12 @@ class LMIndexes:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_sha3_256_hash(self) -> str:
+        """
+        Compute the SHA3-256 hash of the raw bytes of the indexes matrix.
+
+        Returns:
+            str: the 64-char hex digest.
+        """
         hasher = hashlib.sha3_256()
         hasher.update(self.indexes.tobytes())
         sha3_256_hash = hasher.hexdigest()
@@ -84,7 +86,7 @@ class LMIndexes:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __repr__(self) -> str:
         """
-        A concise one-line summary.
+        Summarize the instance in a concise one-line repr (the two hashes + the indexes shape).
         """
         return (f"LMIndexes(rds_checksum={self.rds_checksum!r}, "
                 f"feature_set_hash={self.feature_set_hash!r}, "
@@ -98,13 +100,16 @@ def hlp_indexes_store_to_file(
         compressed: bool = True
 ) -> None:
     """
-    Saves the LMIndexes instance to a binary file.
+    Save the LMIndexes instance to a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights).
+    LZ4 whole-file compression by default (as in model_weights).
+    Note: the SHA3-256 sidecar is written by the binio writer (the checksum service is on by default); in the
+    pipeline flow cache_manager re-writes the same sidecar (idempotent).
 
-    Note: the SHA3-256 sidecar is written by the binio writer (the
-    checksum service is on by default); in the pipeline flow
-    cache_manager re-writes the same sidecar (idempotent).
+    Args:
+        hlp_indexes (LMIndexes): the instance to persist.
+        filename (str | Path): the destination path.
+        compressed (bool): True (the default) — the LZ4 whole-file compression.
     """
     filename = Path(filename)
 
@@ -135,9 +140,17 @@ def hlp_indexes_load_from_file(
         compressed: bool = True
 ) -> LMIndexes:
     """
-    Loads a LMIndexes instance from a binary file.
+    Load the LMIndexes instance from a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights).
+    LZ4 whole-file compression by default (as in model_weights).
+
+    Args:
+        filename (str | Path): the source path.
+        checksum (bool): True (the default) — verify the SHA3-256 sidecar before reading the file.
+        compressed (bool): True (the default) — the file is LZ4-compressed.
+
+    Returns:
+        LMIndexes: the loaded instance.
     """
 
     if checksum:
@@ -174,7 +187,15 @@ def hlp_indexes_load_from_file(
 def hlp_indexes_compute(
         ctx: LMContext
 ) -> LMIndexes:
-    """Computes model indexes."""
+    """
+    Compute the model indexes from the live context.
+
+    Args:
+        ctx ("LMContext"): the live context: the rds_checksum + the feature set (its hash, its indexes).
+
+    Returns:
+        LMIndexes: the freshly computed instance (the cache layer stores it).
+    """
     rds_checksum = ctx.rds_checksum
     feature_set_hash = ctx.feature_set.hash
     indexes = ctx.feature_set.compute_indexes(ctx.positions)
@@ -186,12 +207,22 @@ def hlp_indexes_is_cache_consistent(
         ctx: LMContext,
         hlp_indexes: LMIndexes
 ) -> bool:
-    """Compare live configuration with cached dataset metadata."""
+    """
+    Compare the live configuration with the cached dataset metadata.
+
+    Args:
+        ctx ("LMContext"): the live context (the rds_checksum + the feature-set hash).
+        hlp_indexes (LMIndexes): the cached instance.
+
+    Returns:
+        bool: True when both the rds checksum and the feature-set hash match.
+    """
 
     cached_rds_checksum = hlp_indexes.rds_checksum
     cached_feature_set_hash = hlp_indexes.feature_set_hash
     expected_rds_checksum = ctx.rds_checksum
     expected_feature_set_hash = ctx.feature_set.hash
-    is_cache_consistent = (cached_feature_set_hash == expected_feature_set_hash) and (cached_rds_checksum == expected_rds_checksum)
+    is_cache_consistent = (cached_feature_set_hash == expected_feature_set_hash and
+                           cached_rds_checksum == expected_rds_checksum)
 
     return is_cache_consistent

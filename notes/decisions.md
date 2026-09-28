@@ -4021,3 +4021,73 @@ D-325 | 2026-09-28 | the new code-format rules on hlp_gradient
           bands); the VLONG full-chain (A2050) OK;
           verify_gradient 59/0 + verify_optimize 78/0; the
           docs/notes audit clean.
+D-326 | 2026-09-28 | the new code-format rules on hlp_indexes
+          (the D-314 reflow + the D-318 docstrings) + the side
+          files the user opted into (option c): the header
+          cleanups on wrk_indexes / both test files + the
+          single 123-char test line
+          Roberto: "Applica le nuove regole di formattazione
+          del codice a hlp_indexes. Per favore sviluppa una
+          analisi dettagliata, la valutiamo insieme, ti dico
+          poi come procedere." -> (the analysis, with the two
+          optional items flagged) -> "Procedi con (c), grazie!"
+          FORMAT: the D-323/D-324/D-325 pattern. The header
+          GNU trailing spaces (4 lines) cleaned; the single
+          131-char line (the is_cache_consistent compare,
+          L195) reflowed to the aligned-paren form; the 2
+          "LZ4 whole-file compression by default (D-139, as in
+          model_weights)" docstring refs lost their provenance
+          (the fact kept, the D-ref out).
+          DOCSTRINGS (D-318, 7 functions): the class
+          "Represents ..." -> "Holds the 2D index matrix
+          together with the hash signature ..." (the phrase
+          kept verbatim — the probe A9 pin rides on it);
+          __init__ "Initializes a LMIndexes" + the numpydoc
+          Parameters (the indexes description was EMPTY) ->
+          Google Args (the description written: "the 2D
+          (M, P) uint32 design-matrix index array (each cell
+          is a weight index)"); compute_sha3_256_hash gained
+          its docstring (it was the only undocumented public
+          function); __repr__ "A concise one-line summary."
+          -> imperative; store/load "Saves/Loads a LMIndexes"
+          -> imperative "Save/Load the LMIndexes instance" +
+          Args + Returns (the sidecar note kept, reflowed so
+          the probe A8 phrase "the SHA3-256 sidecar is
+          written by the binio writer" stays on one line);
+          hlp_indexes_compute "Computes model indexes."
+          one-liner -> full form (Args + Returns);
+          is_cache_consistent (already imperative) + Args +
+          Returns. The "a LMIndexes" grammar fixed x2.
+          SIDE FILES (option c, user-directed): the GNU
+          header trailing spaces on wrk_indexes.py (4) +
+          test_hlp_indexes.py (4) + test_wrk_indexes.py (4);
+          the test_wrk_indexes.py L146 assertNotIn (123
+          chars) reflowed — the only >120 line in the whole
+          zone. No test docstrings, no worker docstrings
+          touched (the files' behaviour + content otherwise
+          verbatim).
+          ZERO BEHAVIORAL CHANGE: the docstring-stripped AST
+          equality proof (pre from git HEAD vs the new
+          file, structural dump) = identical. No config /
+          no cache-format / no golden impact (the docstrings
+          do not serialize; the rlmwf_05_INDEXES.dat bytes
+          are unchanged).
+          PROBES (verify_hlp_indexes.py, 52 checks): the
+          minimal re-pin — A1 (197 -> 228 lines, the label),
+          A8 (the pinned D-139 sentence -> the plain one),
+          E1 (154 -> 155 test lines). Everything else stayed
+          green BY CONSTRUCTION: the rewrite was written
+          around the pinned substrings (A4 the no-validation
+          comment adjacency, A5 the write order, A6 the 3
+          RuntimeError messages, A7 the 2 compare fragments,
+          A9 the "together with the hash signature" phrase,
+          A10 the 0 trailing ws, the 5 @validate_call).
+          MIRROR: hlp_indexes.md (228 lines, the drifting
+          ordinals out as in D-325 — "5th active level /
+          the THIRD cache_manager consumer / 5th LM level /
+          at step 6" -> the level name); the 3 test mirrors
+          needed no sync (no count refs).
+          VERIFICATION: test_hlp_indexes 14/0/0 (no DB) +
+          verify_hlp_indexes 0 mismatches (the B tier pure +
+          the C tier live-DB pipeline) + the full pre-commit
+          LONG=1 suite + the docs/notes audit.
