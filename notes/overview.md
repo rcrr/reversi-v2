@@ -86,6 +86,11 @@ tables at the end of this file.
   "D-060 semantics" pointer) + the two kernels misattributed to the module (they live in hlp_feature_analysis, shared
   since D-311). The mirror doc needed no change (its intro is already module-accurate and states the down fact — the
   no-op, nothing published).
+- The source line-length rule is codified (D-314, the new Code style section of rules.md): no linter gate / no hard
+  limit; new or edited lines match the local file's wrap convention (the lm zone's historical ~72–76); a
+  convention-less file defaults to <= 79 (PEP8); a full-file reflow to 120 is a deliberate user-directed act —
+  the precedent: the wrk_anova.py reflow (175 -> 144 lines, max line 118, the A-tier pins verbatim, the goldens
+  intact).
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).

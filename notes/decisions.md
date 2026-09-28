@@ -3388,3 +3388,35 @@ D-313 | 2026-09-25 | the wrk_anova module docstring REMOVED (the D-312 precedent
           (Roberto, post-commit): the wrk_anova.py reflow to
           the 120-char line width — a separate step, his
           call on the commit.
+D-314 | 2026-09-25 | the wrk_anova.py reflow to the 120-char line width + the source line-length rule
+          Roberto, after the D-313 commit: "Riorganizza solo
+          il file wrk_anova.py con lunghezza riga fino a 120
+          caratteri, nessun hard limit, in casi eccezionali le
+          righe possono anche sorpassare il limite. Vediamo
+          come esce esteticamente. Fatto ti do indicazione se
+          procedere al commit." The reflow (purely formatting —
+          every string value byte-identical, the verify_anova
+          A1–A8 source-text pins preserved verbatim): 175 ->
+          144 lines, NO line > 120 (max 118 — the allowed
+          exception was never needed); the multi-line string
+          concatenations joined (the report lines, the CSV
+          rows, the short logs single-lined), only the 3 long
+          log calls stay 2-line (the message alone is 80–95
+          chars); the backslash continuations gone; the
+          function docstrings re-wrapped to 120 (text
+          unchanged). VERIFICATION: the fast suite 958/0 (99
+          skipped) + verify_anova 0 mismatch (the D tier live
+          A2050 run — the report lines recomputed, the goldens
+          intact). Roberto: "Va molto bene! Mi piace molto. A
+          questo punto aggiungi la rule in rules.md e facciamo
+          il commit." The rule (rules.md, the new Code style
+          section, D-314): NO linter gate / no hard limit
+          (pyproject carries no flake8/ruff); new or edited
+          lines match the local file's wrap convention (the lm
+          zone's historical ~72–76); a convention-less file
+          defaults to <= 79 (PEP8); a full-file reflow to 120
+          is a deliberate user-directed act (this reflow is
+          the precedent) — never an agent side-effect, and
+          never a re-wrap of untouched lines; the docs/notes
+          stay at ~120 (D-237). Context (measured): 95.1% of
+          the src/reversi lines are <= 80 chars.
