@@ -188,10 +188,12 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    # The pooled eta-squared (the D-311 unification): the shared ANOVA
-    # kernel over the pooled codes + the repeated values — the inline
-    # SS computation it replaces.
-    eta_squared = anova_eta_omega(train_flat, y_repeated)['eta2']
+    # The pooled eta-squared / omega-squared (the D-311 unification):
+    # the shared ANOVA kernel over the pooled codes + the repeated
+    # values — the inline SS computation it replaces.
+    anova_res = anova_eta_omega(train_flat, y_repeated)
+    eta_squared = anova_res['eta2']
+    omega_squared = anova_res['omega2']
 
     count_c, count_ia, count_ic = 0, 0, 0
     for conf_id in range(n_configurations):
@@ -220,6 +222,7 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         f"  Instances / Cols            : {n_instances} {cols}\n"
         f"  Config Counts (C/IA/IC)     : {count_c} / {count_ia} / {count_ic}\n"
         f"  Eta-Squared (Discrimination): {eta_squared:.4f}\n"
+        f"  Omega-Squared (Discrimination): {omega_squared:.4f}\n"
     )
     if su_line is not None:
         header += su_line
@@ -357,10 +360,12 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    # The pooled eta-squared (the D-311 unification): the shared ANOVA
-    # kernel over the pooled codes + the repeated values — the inline
-    # SS computation it replaces.
-    eta_squared = anova_eta_omega(train_flat, y_repeated)['eta2']
+    # The pooled eta-squared / omega-squared (the D-311 unification):
+    # the shared ANOVA kernel over the pooled codes + the repeated
+    # values — the inline SS computation it replaces.
+    anova_res = anova_eta_omega(train_flat, y_repeated)
+    eta_squared = anova_res['eta2']
+    omega_squared = anova_res['omega2']
 
     count_c, count_ab, count_cl = 0, 0, 0
     for conf_id in range(n_configurations):
@@ -391,6 +396,7 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         f"  Instances / Cols            : {n_instances} {cols}\n"
         f"  Config Counts (C/AB/CL)     : {count_c} / {count_ab} / {count_cl}\n"
         f"  Eta-Squared (Discrimination): {eta_squared:.4f}\n"
+        f"  Omega-Squared (Discrimination): {omega_squared:.4f}\n"
     )
     if su_line is not None:
         header += su_line

@@ -3470,3 +3470,29 @@ D-315 | 2026-09-25 | hlp_feature_analysis renamed hlp_anova + the compute/report
           the log sequence + every report value unchanged (the
           strings moved, not touched); the docs audit + the
           notes_format clean.
+D-316 | 2026-09-25 | the ANALYTICS report: the Omega-Squared line after the Eta-Squared line (both feature tables)
+          Roberto: anova_eta_omega is also called from
+          hlp_analytics — only the eta2 value is used, in the
+          "Eta-Squared (Discrimination)" line written for BOTH
+          the mobility + the pattern feature tables; add a
+          line after it that prints omega2 in the report as
+          well. IMPLEMENTATION: the two formatters (the
+          byte-identical blocks, the D-311 replace_all) now
+          take the full kernel dict (anova_res =
+          anova_eta_omega(train_flat, y_repeated);
+          eta_squared = anova_res['eta2']; omega_squared =
+          anova_res['omega2']) and the header carries the
+          "Omega-Squared (Discrimination): {omega_squared:.4f}"
+          line right after the Eta-Squared line (the same raw
+          value convention as the ANOVA report — omega² may be
+          slightly negative, the null effect). VERIFICATION:
+          the two date-masked report goldens RE-DERIVED
+          (rlm_02 3b4a5beb… -> e0d3d22a…, rlm_01 384d8327… ->
+          176a80b5…) — only the hash line failed, every other
+          pin green; the analytics suite 14/14 (LONG=1, the DB
+          goldens + the D-311 cross-level test, whose regex
+          parse is unaffected — the omega line sits AFTER the
+          first eta match); the fast suite 958/0;
+          verify_analytics 0 mismatch (the probe recomputes its
+          masked hash at runtime — no pinned golden); the 2
+          mirrors updated (hlp_analytics, test_wrk_analytics).

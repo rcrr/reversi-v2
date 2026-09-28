@@ -192,7 +192,7 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         # rlm_02 has NO intercept (EDGE is fid 0): no INTERCEPT section.
         self.assertNotIn("INTERCEPT:", content)
         self.assertEqual(_masked_report_hash(content),
-                         "3b4a5bebdf8b39add5a942132efdecd65dbeadcd84b4bc78ada464050a662e7b")
+                         "e0d3d22ab116b3381e79802bafdfdb418da84e72bd14cb3e79550d2a25b4a6f6")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Generating model analytics report...", logs)
@@ -347,7 +347,7 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         self.assertNotIn("PROBABILITY", content)
         self.assertNotIn("SU Sample Consistency", content)
         self.assertEqual(_masked_report_hash(content),
-                         "384d83273abcf31091717bd5fd1cde80bb282a182c337d91442c1886bb24a7d3")
+                         "176a80b5d3d70549c62c12be127982ac7baaed60281ebc542bd457c1d3670162")
 
         logs = self.mock_stdout.getvalue()
         self.assertIn("Optimization Status         : CONVERGED_MIN_GRAD (16 iters)", logs)

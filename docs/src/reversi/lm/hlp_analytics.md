@@ -42,8 +42,9 @@ section when the feature set has an intercept).
   comparable).
 - `_format_mobility_feature_table`: the per-configuration ASCII table for one mobility feature — header: the fallback
   line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols + Config
-  Counts (C/IA/IC) lines, the Eta-Squared statistic (the shared `anova_eta_omega` kernel over the pooled codes + the
-  repeated values — the D-311 unification, replacing the inline SS_between/SS_total), the optional SU Sample
+  Counts (C/IA/IC) lines, the Eta-Squared + Omega-Squared statistics (the shared `anova_eta_omega` kernel over the
+  pooled codes + the repeated values — the D-311 unification, replacing the inline SS_between/SS_total; the D-316
+  omega line follows the eta line), the optional SU Sample
   Consistency line; rows (`print_rows`-gated) with the per-configuration weights — STATUS: IC (below the cut-off —
   fallback bucket), C (confirmed — its own trained `ctx.w` weight), IA (absent — the dense
   interpolated `ctx.w_dense` weight); the optional PROBABILITY / SU_PROBABILITY columns after FREQUENCY.

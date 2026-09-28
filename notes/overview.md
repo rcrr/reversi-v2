@@ -97,6 +97,9 @@ tables at the end of this file.
   (the guard + the two calls), the module is reflowed to the 120-char width (D-314), and its module docstring is
   REMOVED (the D-312/D-313 precedent). The verify_anova A4/A5/F5 + the verify_su_analysis F6 pins are re-pinned to
   the new architecture; the goldens + the log sequence are unchanged.
+- The ANALYTICS report carries the Omega-Squared line (D-316): right after the Eta-Squared (Discrimination) line of
+  both feature tables — the shared anova_eta_omega kernel already returned the pair, only the eta² was printed. The
+  two date-masked report goldens re-derived (rlm_02 e0d3d22a…, rlm_01 176a80b5…).
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
