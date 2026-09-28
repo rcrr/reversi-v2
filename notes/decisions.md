@@ -4259,3 +4259,16 @@ D-328 | 2026-09-28 | the new code-format rules on hlp_plot (the header +
           golden) + verify_save ALL PASS + the full pre-commit LONG=1
           968 OK (24 skipped) + VLONG A2050 on the new band + the
           docs/notes audit at baseline.
+          CLEANUP (Roberto's second catch, follow-up commit): a blank line
+          after the license (the '#'-'#' pair out); the header's "ported from
+          the R rglm workflow" block REMOVED (history); the A2050 scale
+          reference out of the PlotStyle docstring (the subsample rationale
+          kept, now "at the full training-set scale"); the '# --- The seven
+          figure builders' banner REMOVED (the builders' docstrings already
+          say it); the redundant FIXED-axes inline comments (plots 1-4) + the
+          no-legend comment REMOVED (the PlotStyle docstring carries the
+          ruling) — the two UNIQUE ones kept (plot 4 the stale-boxplot-label
+          API quirk, plot 5/7 the data-driven-axis rationale). hlp_plot.py
+          556 -> 537 lines, wrk_plot.py the license blank line; AST code diff:
+          NONE (comments/docstrings only), the parity golden byte-identical,
+          968 OK again.

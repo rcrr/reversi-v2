@@ -24,10 +24,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
-# The PLOT level's figure builders: the seven matplotlib diagnostics of the logistic-model run
-# (the three classic plots ported from the R rglm workflow plus four extensions).
-#
+
 # matplotlib and scipy are imported LAZILY (inside the functions): importing this module must
 # stay cheap, because hlp_config_schemas imports PLOT_NAMES from here and the config is parsed
 # by every pipeline — and by the client — run.
@@ -82,13 +79,13 @@ class PlotStyle:
     no mathtext size commands, so it stays at the axis font size — the accepted fallback); an empty
     string disables the note.
 
-    The seeds: the jitter and the KDE subsample are driven by SEEDed generators (the R jitter was not —
-    see the header). The jitter amounts are a FRACTION of the data range (the R jitter semantics:
-    uniform noise in [-amount*range/2, +amount*range/2]): the fitted-values and residual axes get a
-    fine scatter spread, the game-value axis the full horizontal "cloud" smearing over the integer
-    grid. The KDE is evaluated on a capped subsample: scipy's gaussian_kde density evaluation is
-    O(n*m), so at full A2050 scale the cap keeps the figure time flat without changing the curve
-    (100k of ~2M points is statistically indistinguishable), on the fixed evaluation grid.
+    The seeds: the jitter and the KDE subsample are driven by SEEDed generators. The jitter amounts
+    are a FRACTION of the data range (uniform noise in [-amount*range/2, +amount*range/2]): the
+    fitted-values and residual axes get a fine scatter spread, the game-value axis the full horizontal
+    "cloud" smearing over the integer grid. The KDE is evaluated on a capped subsample: scipy's
+    gaussian_kde density evaluation is O(n*m), so at the full training-set scale the cap keeps the
+    figure time flat without changing the curve (100k of ~2M points is statistically indistinguishable),
+    on the fixed evaluation grid.
 
     The axis domains: the FIXED axis ranges (the axes do not follow the data — the game-value axes are
     always the full [-64, +64] domain, the residual-density axis the reasonable centered [-72, +72]
@@ -270,11 +267,6 @@ def _fig(title: str, run_name: str, xlabel: str, ylabel: str):
     return fig, ax
 
 
-# --- The seven figure builders ------------------------------------------
-# Each takes the PlotData + the run name (the config name, the title's second line) + the
-# PlotStyle, and returns the matplotlib Figure (the worker saves it in every configured
-# format, then closes it).
-
 def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
     Build the plot-1 figure: probability density vs game value residual, three curves — Reference
@@ -294,9 +286,6 @@ def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figu
     ref = d.trn_y_true - d.trn_y_true.mean()
     series = (("Reference", ref, "slategray"), ("Training", d.trn_rn, "firebrick"),
               ("Validation", d.vld_rn, "black"))
-    # The FIXED centered window (always centered on zero, the reasonable [-72, +72] — a residual
-    # beyond it means a broken model, and the outlier report is where those show up; in theory
-    # the residual can reach +/-128).
     lo, hi = -style.axis_density, style.axis_density
     span = float(hi - lo)
     grid = np.linspace(lo, hi, style.kde_grid)
@@ -312,7 +301,6 @@ def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figu
     ax.axvline(float(d.trn_rn.mean()), color="black", ls="--", lw=0.8)
     ax.set_xlim(lo, hi)
     ax.set_ylim(0.0, max_y * 1.15)
-    # No legend: the margin labels identify the curves.
     return fig
 
 
@@ -353,8 +341,6 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figur
     y = jitter(rng, d.vld_rn, style.jitter_y)
     fig, ax = _fig(PLOT_TITLES["resid_vs_fitted"], run_name, "Evaluated game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.04)
-    # The FIXED axes: x always the full domain (the fitted values live in it by construction), y
-    # symmetric on a reasonable (tick-step-rounded) limit.
     lim = _sym_limit(y, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
     ax.set_ylim(-lim, lim)
@@ -380,9 +366,6 @@ def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     y = jitter(rng, d.vld_rn, style.jitter_y)
     fig, ax = _fig(PLOT_TITLES["resid_vs_gv"], run_name, "Game value", "Game value residual")
     ax.scatter(x, y, s=4, c="black", alpha=0.02)
-    # The FIXED axes: x always the full game-value domain — the previous data-driven axis let the
-    # 0.7 "cloud" jitter smear the auto-range to +/-108; the jittered points beyond the domain
-    # are clipped by the axis, the labels are NOT swapped. y as in resid_vs_fitted.
     lim = _sym_limit(y, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
     ax.set_ylim(-lim, lim)
@@ -407,8 +390,6 @@ def plot_gv_by_egv_box(d: PlotData, run_name: str, style: PlotStyle) -> "Figure"
     fig, ax = _fig(PLOT_TITLES["gv_by_egv_box"], run_name,
                    "Evaluated game value" + style.binned_note, "Game value")
     ax.boxplot(groups, positions=unique, widths=0.7, flierprops=dict(markersize=1.0, alpha=0.4))
-    # The FIXED axes: BOTH always the full domain, regardless of the data; the ticks on the
-    # tick-step grid.
     ticks = np.arange(-style.axis_gv, style.axis_gv + 1, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
     ax.set_ylim(-style.axis_gv, style.axis_gv)

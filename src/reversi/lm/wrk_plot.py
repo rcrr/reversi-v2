@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
+
 # The PLOT level: the level after CLIENT_CHECK (the last active one). It writes the run's
 # matplotlib diagnostic figures (hlp_plot) to the configured plots directory.
 #
