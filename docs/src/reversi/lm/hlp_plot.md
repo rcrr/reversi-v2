@@ -17,22 +17,23 @@ the config is parsed by every run (and by the client).
 | `PLOT_NAMES` | the seven canonical plot names (the whitelist vocabulary the `PlotConfig` schema validates against): `residual_density`, `resid_vs_fitted`, `resid_vs_gv`, `gv_by_egv_box`, `resid_mean_by_egv`, `parity`, `resid_qq` |
 | `PLOT_TITLES` | the name → title map (the figure's second title line carries the run name) |
 | `PlotData` | the dataclass: `trn_y_true`, `trn_rn`, `vld_y_pred`, `vld_rn`, `vld_gv` — all rounded-lossless f64 views |
+| `PlotStyle` | the 13 style knobs the builders draw with (the config's plot section carries the same values): the binned note, the 42/43 seeds, the 0.005/0.005/0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64/72 axis domains, the 8 tick step, the series-label placement |
 | `collect_plot_data(ctx) -> PlotData` | the ASSEMBLY of the published series: `ctx.train_dense_rn` (ANALYTICS) + `ctx.vld_y_pred` / `ctx.vld_rn` (VALIDATE) + the game values from POSITIONS / VLD_POSITIONS — no forward pass runs here |
 | `jitter(rng, x, amount) -> (N,) f64` | the R jitter semantics: uniform noise in ±amount·range(x)/2; a zero-range input comes back untouched |
 | `egv_bins(y_pred) -> (unique, inv)` | the evaluated-game-value bins: `y_pred` rounded to the even step-2 grid (`2·rint(y_pred/2)`) + `np.unique(..., return_inverse=True)` |
 | `_sym_limit(values, step=8) -> float` | private — the symmetric residual-axis limit: the max absolute value rounded UP to the tick step, at least one step |
-| `plot_<name>(d, run_name) -> Figure` | the seven builders (see Architecture); each takes the PlotData + the run name and returns the Figure |
+| `plot_<name>(d, run_name, style) -> Figure` | the seven builders (see Architecture); the PlotData + the run name + the PlotStyle in, the Figure out |
 | `PLOT_BUILDERS` | the name → builder registry (the worker dispatches on it) |
 | `save_figure(fig, path, fmt, dpi=150)` | saves in the given format (png at dpi, pdf vector); the format is passed EXPLICITLY (matplotlib otherwise sniffs the file suffix) and an unknown format raises `ValueError` |
 | `close_figure(fig)` | releases the figure (the worker calls it after every save round) |
 
 ## Architecture
 
-- Imports: `dataclass`, typing, numpy (the numpy surface only); scipy is LAZY (the `stats.gaussian_kde` + the
-  `special.ndtri`); `LMContext` + `Figure` under TYPE_CHECKING. NO top-level matplotlib / scipy import.
-- Constants: `PLOT_NAMES`, `PLOT_TITLES`, the seeds `_JITTER_SEED=42` / `_KDE_SEED=43`, `_KDE_MAX_POINTS=100_000` (the
-  O(n·m) cap), the jitter amounts `_JIT_FITTED_X=0.005`, `_JIT_Y=0.005`, `_JIT_GV_X=0.7` (the R fractions),
-  `_KDE_GRID=512`, and the axis constants `_AXIS_GV=64.0`, `_AXIS_DENSITY=72.0`, `_TICK_STEP=8.0`.
+- Imports: `dataclass` + `field`, typing, numpy (the numpy surface only); scipy is LAZY (the `stats.gaussian_kde` +
+  the `special.ndtri`); `LMContext` + `Figure` under TYPE_CHECKING. NO top-level matplotlib / scipy import.
+- Style knobs: the `PlotStyle` dataclass carries the 13 knobs (the config's plot section defaults) — the binned note,
+  the 42/43 seeds, the 0.005/0.005/0.7 jitter fractions, the 512 KDE grid + 100k cap, the fixed 64.0/72.0 axis
+  domains, the 8.0 tick step, the plot-1 series-label placement.
 - `collect_plot_data`: a PURE ASSEMBLY — the training game values (`ctx.game_values`) + the dense training
   residuals (`ctx.train_dense_rn`, published by ANALYTICS) + the validation fitted / residual series (`ctx.vld_y_pred` /
   `ctx.vld_rn`, published by VALIDATE) + the validation game values. NO forward pass runs here: the figures render what
@@ -44,8 +45,7 @@ the config is parsed by every run (and by the client).
 - `_fig` (the shared layout): a fresh (9,6) figure, the light theme (grid alpha 0.3); the title is TWO lines — the plot
   name in bold (fontsize 13, `pad=26` lifts it) and the run name in smaller italic (fontsize 10, just above the axis).
   The axis labels are per-builder ("Evaluated game value", "Game value", "Game value residual", the quantile pair), and
-  the binned axes carry the italic mathtext note `$(binned\ every\ 2)$` at the axis font size (this matplotlib build has
-  no mathtext size commands).
+  the binned axes carry the italic mathtext note `$(binned\ every\ 2)$` at the axis font size.
 - The builders:
   - `plot_residual_density` (the R p0): three KDE curves on a shared axis — Reference (the training game values centered
     on their mean: the "population" series of the analytics report, slategray), Training (firebrick), Validation
@@ -75,7 +75,7 @@ the config is parsed by every run (and by the client).
 
 ## Verified invariants
 
-Pinned by the 11-test `test_hlp_plot` suite (no DB) + the 18-check `probes/verify_plot.py` probe (no DB) + the
+Pinned by the 11-test `test_hlp_plot` suite (no DB) + the 19-check `probes/verify_plot.py` probe (no DB) + the
 worker/chain suites.
 
 - The vocabulary: seven distinct names; the builder registry and the titles cover the names EXACTLY (no stray, no
@@ -104,14 +104,14 @@ None.
   labels + the training-mean vline; the two gray-cloud scatters with the R jitter fractions; the per-EGV box plot), with
   the documented differences: Y space instead of the [0,1] target space, Scott's instead of Silverman's KDE bandwidth,
   SEEDed instead of unseeded jitter (determinism). The 100k KDE cap keeps the figure time flat at the A2050 scale.
-- The builders are PURE: they take the PlotData + the run name and return the Figure; all ctx access is in
-  `collect_plot_data` (the worker boundary), and the worker closes every figure after the save round (no Figure leaks
-  across levels).
+- The builders are PURE: they take the PlotData, the run name, and the PlotStyle, and return the Figure; all
+  ctx access is in `collect_plot_data` (the worker boundary), and the worker closes every figure after the save
+  round (no Figure leaks across levels).
 
 ## Integration
 
-- Consumed by `wrk_plot` (the 18th level): `collect_plot_data` once per up-move, the `PLOT_BUILDERS` dispatch,
-  `save_figure` / `close_figure` per save.
+- Consumed by `wrk_plot` (the level after CLIENT_CHECK): `collect_plot_data` once per up-move, the
+  `PLOT_BUILDERS` dispatch, `save_figure` / `close_figure` per save.
 - `PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
   plot vocabulary: a new plot name lands here first, then in the builders + the titles (the probe pins keep the three in
   lock-step).

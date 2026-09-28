@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; or the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -46,7 +46,7 @@ import unittest
 import numpy as np
 
 from reversi.lm.hlp_plot import (PLOT_NAMES, PLOT_BUILDERS, PLOT_TITLES,
-                                  jitter, egv_bins, _kde_curve)
+                                  jitter, egv_bins, _kde_curve, PlotStyle)
 
 
 class TestHlpPlotVocabulary(unittest.TestCase):
@@ -130,14 +130,14 @@ class TestHlpPlotKde(unittest.TestCase):
 
     def test_zero_variance_is_flat_zero(self):
         grid = np.linspace(-1.0, 1.0, 64)
-        curve = _kde_curve(np.full(100, 3.0), grid)
+        curve = _kde_curve(np.full(100, 3.0), grid, PlotStyle())
         np.testing.assert_array_equal(curve, 0.0)
 
     def test_curve_shape_and_peak(self):
         rng = np.random.default_rng(42)
         x = rng.standard_normal(2000) * 2
         grid = np.linspace(x.min(), x.max(), 256)
-        curve = _kde_curve(x, grid)
+        curve = _kde_curve(x, grid, PlotStyle())
         self.assertEqual(curve.shape, grid.shape)
         self.assertTrue(np.all(np.isfinite(curve)))
         self.assertTrue(np.all(curve >= 0.0))

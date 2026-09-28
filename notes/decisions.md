@@ -4165,3 +4165,92 @@ D-327 | 2026-09-28 | the new code-format rules on hlp_optimize
           verify_optimize 78/0 + the full pre-commit LONG=1
           967 OK (24 skipped) + the docs/notes audit at
           baseline.
+
+D-328 | 2026-09-28 | the new code-format rules on hlp_plot (the header +
+          the ~20 D-XXX comment tags + the full D-318 docstrings on all
+          15 defs) + the FEATURE: the 11 hardcoded rendering constants
+          AND the _TXT_X/_TXT_Y label dicts move into the config as the
+          13 PlotStyle knobs
+          Roberto: "Applica le nuove regole di formattazione del codice a
+          hlp_plot." + "Verifichiamo anche la opzione di portare nel
+          config i parametri HARDCODED: _BINNED_NOTE, _JITTER_SEED=42,
+          _KDE_SEED=43, _KDE_MAX_POINTS=100_000, _JIT_FITTED_X=0.005,
+          _JIT_Y=0.005, _JIT_GV_X=0.7, _KDE_GRID=512, _AXIS_GV=64.0,
+          _AXIS_DENSITY=72.0, _TICK_STEP=8.0 — Magari tenendo questi
+          come default ... cosa ne pensi ?" -> "Facciamo b, e mettiamo
+          anche _TXT_X e _TXT_Y nel config, con il nome corretto, di cosa
+          siano. Procedi!"
+          FORMAT: the D-323..D-327 pattern. hlp_plot.py 504 -> 655 lines
+          (docstring growth only — the file was already 120-clean, no
+          reflows); the 4 header trailing spaces cleaned; the D-XXX tags
+          out of the header block (D-149/D-148 + the "R script is a
+          scratch artifact slated for deletion" aside) and of the ~20
+          per-plot comments (D-150 x8, D-151 x2, D-153, D-155) with the
+          design facts KEPT (the fixed-axes ruling, the stale-boxplot-
+          label bug, the box-placement fractions); the 2 Italian quotes
+          in the plot-5 comment paraphrased in English (rule 4); the
+          "(the R p0/p1/p2 ...)" docstring provenance out; _series_label
+          got a docstring; the full D-318 form (imperative first line +
+          typed Args/Returns) on all 15 defs. wrk_plot.py 121 -> 140
+          (header + the 3 D-149 tags + the "18th/10th" ordinals + the
+          style-construction comment). The 2 test-file headers cleaned.
+          FEATURE: PlotConfig +13 fields (the keep-it-simple descriptions,
+          D-324): binned_note (the _BINNED_NOTE str), jitter_seed 42 ge=0,
+          kde_seed 43 ge=0, kde_max_points 100_000 ge=1,
+          jitter_fitted_x 0.005 ge=0, jitter_y 0.005 ge=0, jitter_gv_x
+          0.7 ge=0, kde_grid 512 ge=2, axis_gv 64.0 gt=0, axis_density
+          72.0 gt=0, tick_step 8.0 gt=0, series_label_x / series_label_y
+          (Dict[str, float] — the _TXT_X/_TXT_Y RENAMED to what they are:
+          the plot-1 series-label placement, x a fraction of the axis span
+          from the left, y a fraction of the curve maximum). The PlotStyle
+          dataclass lives in hlp_plot (the schema CANNOT import back:
+          hlp_config_schemas imports PLOT_NAMES from hlp_plot — the
+          circular direction); the 11 module constants + the 2 label dicts
+          are gone (the PlotStyle defaults carry them, field(default_factory)
+          for the two dicts); the builders take (d, run_name, style);
+          _kde_curve takes the style (the subsample seed + cap);
+          wrk_plot assembles the PlotStyle from ctx.cfg.plot (the label
+          dicts COPIED, so the schema's instances stay owned by it) at the
+          single dispatch point; PLOT_BUILDERS retyped
+          Callable[[PlotData, str, PlotStyle], Figure]. plot_parity now
+          consumes axis_gv (it hardcoded the 64.0 literal — the one
+          consistency fix; at the default the rendering is unchanged).
+          Fixtures UNTOUCHED (the 13 defaults travel in the dump; 11 fields
+          x 4 fixtures was noise — unlike the single D-325 hi_perf_blocks,
+          Roberto let the defaults stand).
+          ZERO BEHAVIORAL CHANGE (at the defaults): the AST code-equivalence
+          proof (the function bodies docstring-stripped, the 13 constant ->
+          style.X renames applied, git HEAD pre-version vs the new one):
+          IDENTICAL except the intended style plumbing (the _kde_curve
+          third arg, the 3 explicit style.tick_step calls, the 6 parity
+          literals -> axis_gv). The test_wrk_plot parity PNG golden (the
+          pinned sha3) passes byte-identical.
+          CASCADE: the config checksum -> the report "Config SHA3-256" line
+          is MASKED (the D-325 lesson) -> no report-golden re-derivation;
+          the plot PNGs have NO hash pins (existence + magic + log only) ->
+          byte-identical at the defaults; the v2 model file GROWS with the
+          13 dump fields: A2030 measured 23562 B (band 23183-23283 ->
+          23512-23612), A2050 measured 517041 B (band 516692-516892 ->
+          516991-517091) — re-centered in test_lm_worker_full_chain + the
+          verify_save explanatory comments (the D-149 band precedent).
+          TESTS: test_hlp_config_schemas +1 (the 13 defaults + 6 degenerate
+          rejections; 29 -> 30); test_hlp_plot the 2 _kde_curve call sites
+          + PlotStyle() (the 11 tests otherwise untouched); test_wrk_plot
+          the 13 stand-in attributes on the SimpleNamespace plot section.
+          Suite 967 -> 968.
+          PROBES: verify_plot 17 -> 19 checks (the 3 builder + 1
+          _kde_curve call sites + PlotStyle; the new C7 pins the 13
+          defaults); no line-count pins to re-align (this probe never had
+          any).
+          MIRRORS: hlp_plot.md kept at 121 (the pre-existing size finding —
+          +1 the PlotStyle API row, -1 the _fig mathtext clause, the
+          "18th level" ordinal named, the "18-check" probe count -> 19);
+          wrk_plot.md (the flow: the PlotStyle step + the 3-arg dispatch,
+          the import surface, the ordinal); hlp_config_schemas.md API row
+          (the 13 knobs, at 122 = the pre-existing size finding kept);
+          test_hlp_config_schemas.md (29 -> 30 + the new test row).
+          VERIFICATION: verify_plot 19/0 + test_hlp_plot 11/0 +
+          test_hlp_config_schemas 30/0 + test_wrk_plot 9/0 (the parity
+          golden) + verify_save ALL PASS + the full pre-commit LONG=1
+          968 OK (24 skipped) + VLONG A2050 on the new band + the
+          docs/notes audit at baseline.

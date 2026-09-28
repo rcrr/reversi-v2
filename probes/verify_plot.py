@@ -49,7 +49,8 @@ def read(p):
 
 # ---------------------------------------------------------------- A: the vocabulary
 from reversi.lm.hlp_plot import (PLOT_NAMES, PLOT_TITLES, PLOT_BUILDERS,
-                                  PlotData, jitter, egv_bins, _kde_curve)
+                                  PlotData, PlotStyle, jitter, egv_bins,
+                                  _kde_curve)
 from reversi.lm import hlp_plot
 
 src = read("src/reversi/lm/hlp_plot.py")
@@ -81,7 +82,7 @@ tmp = Path(tempfile.mkdtemp(dir=str(WS / "build" / "tmp")))
 atexit.register(lambda: shutil.rmtree(tmp, ignore_errors=True))
 ok_render, sizes, hashes = True, {}, {}
 for name in PLOT_NAMES:
-    fig = PLOT_BUILDERS[name](d, "VERIFY_PLOT")
+    fig = PLOT_BUILDERS[name](d, "VERIFY_PLOT", PlotStyle())
     p = tmp / f"{name}.png"
     hlp_plot.save_figure(fig, p, "png", 150)
     hlp_plot.close_figure(fig)
@@ -92,7 +93,7 @@ check("B1 every builder renders a non-trivial PNG", ok_render,
       f"sizes: {sizes}")
 
 # the 'pdf,png' pair: both files for one name
-fig = PLOT_BUILDERS["parity"](d, "VERIFY_PLOT")
+fig = PLOT_BUILDERS["parity"](d, "VERIFY_PLOT", PlotStyle())
 hlp_plot.save_figure(fig, tmp / "parity.pdf", "pdf")
 hlp_plot.save_figure(fig, tmp / "parity.png2", "png", 150)
 hlp_plot.close_figure(fig)
@@ -103,7 +104,7 @@ check("B2 the pdf/png pair: both outputs written, distinct magic",
 # determinism: a second render of the whole set hashes equal
 hashes2 = {}
 for name in PLOT_NAMES:
-    fig = PLOT_BUILDERS[name](d, "VERIFY_PLOT")
+    fig = PLOT_BUILDERS[name](d, "VERIFY_PLOT", PlotStyle())
     p = tmp / f"{name}.png2"
     hlp_plot.save_figure(fig, p, "png", 150)
     hlp_plot.close_figure(fig)
@@ -117,7 +118,8 @@ check("B4 the jitter bound (R semantics: +/-amount*range/2)",
                                  np.linspace(-10, 10, 500), 0.5)
                    - np.linspace(-10, 10, 500)))) <= 5.0)
 check("B5 the KDE guard: zero variance -> flat zero",
-      np.all(_kde_curve(np.full(50, 3.0), np.linspace(-1, 1, 16)) == 0.0))
+      np.all(_kde_curve(np.full(50, 3.0), np.linspace(-1, 1, 16),
+                        PlotStyle()) == 0.0))
 check("B6 the EGV bins: the even step-2 grid",
       np.all(egv_bins(np.array([0.6, 3.2, -2.9]))[0] % 2 == 0))
 
@@ -150,6 +152,17 @@ check("C5 the whitelist dedupes, order preserved",
       == ["parity", "resid_qq"])
 check("C6 the absolute dir_name stays absolute (the D-149 ruling)",
       PlotConfig(dir_name="/tmp/elsewhere").dir_name.is_absolute())
+check("C7 the 13 style knobs default to the historical rendering values",
+      pc.binned_note == r" $(binned\ every\ 2)$"
+      and (pc.jitter_seed, pc.kde_seed) == (42, 43)
+      and pc.kde_max_points == 100_000
+      and (pc.jitter_fitted_x, pc.jitter_y, pc.jitter_gv_x) == (0.005, 0.005, 0.7)
+      and pc.kde_grid == 512
+      and (pc.axis_gv, pc.axis_density, pc.tick_step) == (64.0, 72.0, 8.0)
+      and pc.series_label_x == {"Validation": 0.04, "Training": 0.674,
+                                "Reference": 0.75}
+      and pc.series_label_y == {"Validation": 0.80, "Training": 0.96,
+                                "Reference": 0.98})
 
 print(f"\n{len(failures)} failure(s)")
 sys.exit(1 if failures else 0)

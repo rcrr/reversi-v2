@@ -3,39 +3,39 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; or the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 #
-# The PLOT level (D-149): the 18th level, after CLIENT_CHECK. It
-# writes the run's matplotlib diagnostic figures (hlp_plot) to the
+# The PLOT level: the level after CLIENT_CHECK (the last active one).
+# It writes the run's matplotlib diagnostic figures (hlp_plot) to the
 # configured plots directory.
 #
-# Pilot (Roberto's ruling, D-149): the WHITELIST of plot names in
+# Pilot: the WHITELIST of plot names in
 # the config's plot section decides what is generated — a listed
 # name is written, an unlisted name is skipped, an empty list makes
 # the level a no-op. The plot.enable master switch dominates: false
 # means "do nothing" even when names are listed.
 #
-# No cache file (the 10th non-cache level, as CLIENT_CHECK — the
+# No cache file (a non-cache level, as CLIENT_CHECK — the
 # rlmwf_18 slot stays unused): the figures are derived artifacts,
 # regenerated on every up-move (an idempotent overwrite).
 
@@ -48,8 +48,8 @@ from pydantic import validate_call, ConfigDict
 from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_plot import (PLOT_BUILDERS, collect_plot_data,
-                                  save_figure, close_figure)
+from reversi.lm.hlp_plot import (PLOT_BUILDERS, PlotStyle, collect_plot_data,
+                                 save_figure, close_figure)
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -63,7 +63,7 @@ __all__ = ['wrk_plot']
 def _up(ctx: "LMContext") -> None:
     plot_cfg = ctx.cfg.plot
 
-    # 1. The pilot (D-149): the master switch first, then the
+    # 1. The pilot: the master switch first, then the
     #    whitelist. Either empty path is a clean no-op (log only).
     if not plot_cfg.enable:
         ctx.log_event(Relevance.INFO,
@@ -90,10 +90,29 @@ def _up(ctx: "LMContext") -> None:
 
     formats = tuple(f.strip() for f in plot_cfg.format.split(","))
 
+    # 4. The style: the 13 appearance/determinism knobs of the
+    #    config's plot section (the PlotStyle the builders draw with;
+    #    the dicts are COPIED, so the config's instances stay owned
+    #    by the schema).
+    style = PlotStyle(
+        binned_note=plot_cfg.binned_note,
+        jitter_seed=plot_cfg.jitter_seed,
+        kde_seed=plot_cfg.kde_seed,
+        kde_max_points=plot_cfg.kde_max_points,
+        jitter_fitted_x=plot_cfg.jitter_fitted_x,
+        jitter_y=plot_cfg.jitter_y,
+        jitter_gv_x=plot_cfg.jitter_gv_x,
+        kde_grid=plot_cfg.kde_grid,
+        axis_gv=plot_cfg.axis_gv,
+        axis_density=plot_cfg.axis_density,
+        tick_step=plot_cfg.tick_step,
+        series_label_x=dict(plot_cfg.series_label_x),
+        series_label_y=dict(plot_cfg.series_label_y))
+
     # 5. One figure per whitelisted name, saved in every configured
     #    format (the "pdf,png" pair writes both).
     for name in plot_cfg.plots:
-        fig = PLOT_BUILDERS[name](data, ctx.cfg.name)
+        fig = PLOT_BUILDERS[name](data, ctx.cfg.name, style)
         paths = []
         for fmt in formats:
             p = plot_dir / f"{name}.{fmt}"

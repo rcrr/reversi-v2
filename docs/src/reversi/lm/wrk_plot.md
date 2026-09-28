@@ -1,5 +1,5 @@
 # reversi/lm/wrk_plot.py
-The PLOT worker — the 18th and LAST active level of the LM pipeline (step 18, after CLIENT_CHECK). The run also logs the
+The PLOT worker — the LAST active level of the LM pipeline (the level after CLIENT_CHECK). The run also logs the
 TOP-20 EXTREME-OUTLIER report (the 20 validation positions with the largest |residual|, the position's bitboards
 included). A non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step, regenerated on
 every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures (the hlp_plot builders) to
@@ -14,28 +14,30 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 | name | contract |
 |---|---|
 | `wrk_plot()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` returning `Worker("PLOT", _up, _down)` |
-| `_up(ctx) -> None` | the pilot check (enable, then the whitelist) → `collect_plot_data` (hlp_plot) → the directory resolution (absolute as-is / relative under `base_dir`) → one figure per whitelisted name, saved in every configured format |
+| `_up(ctx) -> None` | the pilot check (enable, then the whitelist) → `collect_plot_data` (hlp_plot) → the directory resolution (absolute as-is / relative under `base_dir`) → the `PlotStyle` (the 13 knobs from the plot section, the label dicts copied) → one figure per whitelisted name, saved in every configured format |
 | `_down(ctx) -> None` | the no-op: log only (stateless, as SAVE and CLIENT_CHECK) |
 
 ## Architecture
 
-- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface ( `PLOT_BUILDERS`, `collect_plot_data`,
-  `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING. NO `reversi.tools.cache_manager` import (by design)
-  and NO top-level matplotlib import (it is lazy in hlp_plot — see hlp_plot.md).
+- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface ( `PLOT_BUILDERS`, `PlotStyle`,
+  `collect_plot_data`, `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING.
+  NO `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in
+  hlp_plot — see hlp_plot.md).
 - `_up`: the pilot: `plot.enable` false → "PLOT skipped: plot.enable is false." (log only, return); empty `plot.plots` →
   "PLOT skipped: no plot names requested." (log only, return) → "Generating {n} plot(s)..." → `collect_plot_data(ctx)` →
   the directory:
   `Path(plot_cfg.dir_name)`, used as-is when ABSOLUTE (it may live outside base_dir), else `base_dir / dir_name`;
-  `mkdir(parents=True, exist_ok=True)` → the per-name loop: `PLOT_BUILDERS[name](data, ctx.cfg.name)` → `save_figure` in
-  every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `close_figure` → "Plot '{name}' saved: {paths}" →
-  the completion line: "PLOT done: {n} plot(s) written to {dir}."
+  `mkdir(parents=True, exist_ok=True)` → the `PlotStyle` (the 13 knobs of the plot section, the label dicts copied so
+  the schema's instances stay owned by it) → the per-name loop: `PLOT_BUILDERS[name](data, ctx.cfg.name, style)` →
+  `save_figure` in every format of `plot_cfg.format` (the "pdf,png" pair writes both) → `close_figure` →
+  "Plot '{name}' saved: {paths}" → the completion line: "PLOT done: {n} plot(s) written to {dir}."
 - `_down`: INFO "Clearing plot attributes..." — nothing cleared (the figures are built and closed locally on every
   up-move).
 - `wrk_plot()`: the factory, `@validate_call`-decorated (the uniform worker-factory idiom).
 
 ## Verified invariants
 
-Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 18-check
+Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 19-check
 `probes/verify_plot.py` (no DB) + the full-chain suite (DB-gated).
 
 - The full whitelist in png: the seven figures in `base_dir/plots` (the relative dir_name default), the PNG magic + a >5

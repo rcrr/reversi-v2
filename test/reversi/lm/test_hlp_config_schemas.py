@@ -256,6 +256,36 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertFalse(PlotConfig(dir_name="my-plots").dir_name
                          .is_absolute())
 
+    def test_plot_style_defaults_and_constraints(self):
+        """The 13 appearance/determinism knobs: the defaults are the
+        historical rendering values (the seeds 42/43, the 0.005 /
+        0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64 /
+        72 axis domains, the 8 tick step, the binned note, and the
+        series-label placement), and the numeric constraints reject
+        the degenerate values (a negative seed, a non-positive
+        axis / grid / cap / step)."""
+        p = PlotConfig()
+        self.assertEqual(p.binned_note, r" $(binned\ every\ 2)$")
+        self.assertEqual((p.jitter_seed, p.kde_seed), (42, 43))
+        self.assertEqual(p.kde_max_points, 100_000)
+        self.assertEqual((p.jitter_fitted_x, p.jitter_y, p.jitter_gv_x),
+                         (0.005, 0.005, 0.7))
+        self.assertEqual(p.kde_grid, 512)
+        self.assertEqual((p.axis_gv, p.axis_density, p.tick_step),
+                         (64.0, 72.0, 8.0))
+        self.assertEqual(p.series_label_x,
+                         {"Validation": 0.04, "Training": 0.674,
+                          "Reference": 0.75})
+        self.assertEqual(p.series_label_y,
+                         {"Validation": 0.80, "Training": 0.96,
+                          "Reference": 0.98})
+        for bad in (dict(jitter_seed=-1), dict(kde_max_points=0),
+                    dict(kde_grid=1), dict(axis_gv=0.0),
+                    dict(axis_density=-72.0), dict(tick_step=0.0)):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValidationError):
+                    PlotConfig(**bad)
+
     # -- validation_data_set + stat_model --------------------------------
 
     def test_validation_dataset_status_strict(self):

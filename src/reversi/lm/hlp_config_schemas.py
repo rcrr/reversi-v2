@@ -31,7 +31,7 @@ from pydantic import (BaseModel, Field, PositiveInt, NonNegativeInt,
                       field_validator, field_serializer,
                       ConfigDict, model_validator)
 
-from typing import List, Annotated, Optional, Any, Tuple
+from typing import List, Dict, Annotated, Optional, Any, Tuple
 
 from pathlib import Path
 
@@ -120,6 +120,33 @@ class PlotConfig(LMBaseConfig):
         default_factory=list,
         description="Whitelist of plot names to generate; an empty list makes the PLOT level a no-op. "
                     "Valid names: " + ", ".join(PLOT_NAMES))
+    binned_note: str = Field(
+        default=r" $(binned\ every\ 2)$",
+        description="The binned-axis parenthetical note (the box / mean-residual plots); empty disables it.")
+    jitter_seed: int = Field(default=42, ge=0, description="Seed of the jitter generator (the two scatter plots).")
+    kde_seed: int = Field(default=43, ge=0, description="Seed of the KDE subsample (the density plot).")
+    kde_max_points: int = Field(default=100_000, ge=1, description="The KDE subsample cap (the density plot).")
+    jitter_fitted_x: float = Field(
+        default=0.005, ge=0,
+        description="The residual-vs-fitted x-jitter, a fraction of the data range.")
+    jitter_y: float = Field(
+        default=0.005, ge=0,
+        description="The residual-y jitter, a fraction of the data range.")
+    jitter_gv_x: float = Field(
+        default=0.7, ge=0,
+        description="The residual-vs-game-value x-jitter, a fraction of the data range.")
+    kde_grid: int = Field(default=512, ge=2, description="The KDE evaluation grid size (the density plot).")
+    axis_gv: float = Field(default=64.0, gt=0, description="The fixed game-value axis domain (half-span).")
+    axis_density: float = Field(default=72.0, gt=0, description="The fixed residual-density axis window (half-span).")
+    tick_step: float = Field(default=8.0, gt=0, description="The tick step (the axis tick grid + rounding).")
+    series_label_x: Dict[str, float] = Field(
+        default_factory=lambda: {"Validation": 0.04, "Training": 0.674, "Reference": 0.75},
+        description="The plot-1 series-label x placement, a fraction of the axis span from the left, "
+                    "keyed by series name (Validation / Training / Reference).")
+    series_label_y: Dict[str, float] = Field(
+        default_factory=lambda: {"Validation": 0.80, "Training": 0.96, "Reference": 0.98},
+        description="The plot-1 series-label y placement, a fraction of the curve maximum, "
+                    "keyed by series name (Validation / Training / Reference).")
 
     @field_validator("format")
     @classmethod

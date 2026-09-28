@@ -137,10 +137,11 @@ def tier_c():
     #  second-instance determinism deleted at D-106 step 3, class c:
     #  test_lm_worker_full_chain.py::TestFullChainA2030::
     #  test_full_worker_chain pins the same 7+7+4+4 metric values,
-    #  the v2 file in the 22940-23040 B size band (D-149: re-centered
-    #  for the plot config section in the embedded dump — measured
-    #  22990/22994; D-147: was 22750-22850, itself re-centered on
-    #  the real test base dir) + sidecar verify
+    #  the v2 file in the 23512-23612 B size band (D-328: re-centered
+    #  for the 13 plot-style fields in the embedded dump — measured
+    #  23562; D-149: was 22940-23040, re-centered for the plot config
+    #  section, measured 22990/22994; D-147: was 22750-22850, itself
+    #  re-centered on the real test base dir) + sidecar verify
     #  (the v1 sha3 literal + the size literal retired by D-144: the
     #  embedded dump carries the run's base_dir — the bytes are
     #  run-specific, and LZ4's match structure shifts a few bytes
@@ -169,9 +170,11 @@ def tier_d():
     #  TestFullChainA2050::test_full_worker_chain pins step 18
     #  (D-186/D-187: +2 levels before PLOT), the
     #  vld/train/dense/pop metric sets, the opt info, the v2 file in
-    #  the 516500-516700 B size band (D-149: re-centered for the plot
-    #  config section in the embedded dump — measured 516551; D-144:
-    #  the sha3 literal + the size literal retired, as in A2030) +
+    #  the 516991-517091 B size band (D-328: re-centered for the 13
+    #  plot-style fields in the embedded dump — measured 517041;
+    #  D-149: was 516500-516700, re-centered for the plot config
+    #  section, measured 516551; D-144: the sha3 literal + the size
+    #  literal retired, as in A2030) +
     #  sidecar, the read-back
     #  subset (incl. the D-144 embedded config provenance), the
     #  5 console report substrings (title + the 4 table rows incl.

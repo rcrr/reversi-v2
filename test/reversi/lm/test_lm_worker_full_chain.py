@@ -215,8 +215,8 @@ class TestFullChainA2030(unittest.TestCase):
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(23183 < st_size < 23283,
-                        f"v2 model file size {st_size} outside the 23183-23283 band")
+        self.assertTrue(23512 < st_size < 23612,
+                        f"v2 model file size {st_size} outside the 23512-23612 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
@@ -543,8 +543,8 @@ class TestFullChainA2050(unittest.TestCase):
         output_path = ctx.cfg.base_dir / ctx.cfg.output
         self.assertTrue(output_path.exists(), f"Output file not found at {output_path}")
         st_size = output_path.stat().st_size
-        self.assertTrue(516692 < st_size < 516892,
-                        f"v2 model file size {st_size} outside the 516692-516892 band")
+        self.assertTrue(516991 < st_size < 517091,
+                        f"v2 model file size {st_size} outside the 516991-517091 band")
         self.assertTrue(verify_sha3_256_sidecar(output_path), "Checksum verification failed for saved model")
 
         # --- Read the file back using the client's read function ---
