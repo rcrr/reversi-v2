@@ -167,8 +167,8 @@ class TestHlpGradientCompute(unittest.TestCase):
 
 class TestHighPerformanceFg(unittest.TestCase):
     """The high_performance=True variant (the numba single-pass kernel)
-    on handcrafted mock contexts (no DB). The kernel uses T=8
-    fixed row-blocks, so M < T (empty blocks) is exercised by design."""
+    on handcrafted mock contexts (no DB). The default hi_perf_blocks
+    is 8, so M < T (empty blocks) is exercised by design."""
 
     def _mock_ctx(self, ridge, w, X, z):
         return SimpleNamespace(
@@ -266,6 +266,18 @@ class TestHighPerformanceFg(unittest.TestCase):
                              [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
         self.assertFalse(hlp_gradient_compute(ctx).high_performance)
         self.assertTrue(hlp_gradient_compute(ctx, high_performance=True).high_performance)
+
+    def test_hp_block_count(self):
+        # An explicit hi_perf_blocks value flows to the kernel (T=2
+        # row-blocks over M=3 rows): the result still tracks the
+        # independent float64 re-derivation.
+        ctx = self._mock_ctx(0.03, [0.1, -0.2, 0.05],
+                             [[0, 1], [1, 2], [0, 2]], [0.1, 0.9, 0.5])
+        fg = hlp_gradient_compute(ctx, high_performance=True, hi_perf_blocks=2)
+        f, g = fg(ctx.w)
+        f_ref, g_ref = self._reference(ctx, ctx.w)
+        nptest.assert_allclose(f, f_ref, rtol=1e-5, atol=1e-7)
+        nptest.assert_allclose(g, g_ref, rtol=1e-5, atol=1e-7)
 
 
 if __name__ == '__main__':

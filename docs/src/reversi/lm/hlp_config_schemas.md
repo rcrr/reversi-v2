@@ -11,7 +11,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
 | `LMBaseConfig` | `BaseModel` + the `properties` bag; base of every nested config |
 | `StatusString` | `Annotated[str, Field(pattern="^[A-Z]{3}$")]` — exactly 3 uppercase letters |
 | `ValidationDataSetConfig` | `bid: List[NonNegativeInt]` + `status: List[StatusString]` (strict) |
-| `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the fg-variant flag) |
+| `OptimizationConfig` | the L-BFGS knobs + the `check_wolfe_constants` cross-field validator + `high_performance_fg` (bool, default False — the fg-variant flag) + `hi_perf_blocks` (PositiveInt, default 8 — the high-performance fg kernel row-block count) |
 | `PlotConfig` | the PLOT pilot: `enable` (bool, True), `format` (`"png"`; `"png"` / `"pdf"` / the pair, the `check_format` validator), `dpi` (150, 50..1200), `dir_name` (Path, `"plots"`; absolute = as-is, relative = under base_dir), `plots` (the PLOT_NAMES whitelist, default empty = no-op; the `check_plots` fail-fast + dedupe) |
 | `AnalyticsConfig` | `detailed_report` list (default empty) + `report_file_name` (`model_analytics_report.txt`) |
 | `CorpusConfig` | the SU_ANALYSIS corpus: `seed` (42 - the single seed), `total_positions` (1e7); the ec arrest is the root `empty_count` (D-281) |

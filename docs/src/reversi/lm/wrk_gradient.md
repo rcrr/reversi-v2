@@ -1,6 +1,7 @@
 # reversi/lm/wrk_gradient.py
 The GRADIENT worker of the LM pipeline: builds the loss/gradient closure in `_up` (reading the `high_performance_fg`
-config flag and passing it to `hlp_gradient_compute`) and clears it in `_down`. The SECOND non-cache level (after ZED):
+flag + the `hi_perf_blocks` block count from `ctx.cfg.optimization` and passing both to `hlp_gradient_compute`) and
+clears it in `_down`. The SECOND non-cache level (after ZED):
 the comment documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache needed."
 No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 
@@ -17,8 +18,9 @@ No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
   B).
 - `_up`: INFO "Building gradient and loss function (fg)..." → the by-design comment ("GRADIENT building is a closure
   generation, very fast. No cache needed.") → `high_performance = ctx.cfg.optimization.high_performance_fg` →
-  `ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance)` → INFO "Gradient function generated
-  (high_performance: {True|False})." (the log line names the built variant).
+  `hi_perf_blocks = ctx.cfg.optimization.hi_perf_blocks` →
+  `ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)` → INFO
+  "Gradient function generated (high_performance: {True|False})." (the log line names the built variant).
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg = None`.
 - The house-style triple blank lines (before `__all__` and before `_up`) — the canonical pattern of all 8 worker files.
 
@@ -27,9 +29,9 @@ No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 4-test suite (2 classes: the DB-gated pair +
 `TestGradientFlagWiring`).
 
-- Source shape (probe B1-B9): the 64-line file, `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
-  pydantic import, NO cache_manager import (the by-design comment pinned), `_up` reads the `high_performance_fg` flag,
-  sets `ctx.fg` (passing the flag) and logs the variant, `_down` clears it, `Worker("GRADIENT", ...)`.
+- Source shape (probe B1-B9): the 65-line file, `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
+  pydantic import, NO cache_manager import (the by-design comment pinned), `_up` reads the `high_performance_fg` flag
+  + `hi_perf_blocks`, sets `ctx.fg` (passing both) and logs the variant, `_down` clears it, `Worker("GRADIENT", ...)`.
 - The worker-test source shape (probe C1-C11): the 182-line file, the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
   the no-DB TestGradientFlagWiring pair), the gate, the idiom, the step pins, the 4 goldens, the _down test, the wiring
   test (C11: the worker + the Context-subclass mock + the marker pin), 0 non-comment ws lines.
@@ -60,6 +62,7 @@ None.
 
 - The 10th LM level; the domain module (hlp_gradient.py) carries the closure math, this worker the machine glue.
 - Consumes `ctx.design_matrix` (DESIGN_MTR), `ctx.z` (ZED), `ctx.w` (WMAPS) + `ctx.cfg.stat_model.ridge_regularization`
-  (CONFIG) — the SM half-open interval semantics guarantee all are set. The worker-test setUp moves through ZED (step 9)
+  + `ctx.cfg.optimization.high_performance_fg` / `hi_perf_blocks` (all CONFIG) — the SM half-open interval semantics
+  guarantee all are set. The worker-test setUp moves through ZED (step 9)
   first, so the full 10-level chain is exercised end-to-end on the live DB.
 - Publishes `ctx.fg` (the loss/gradient closure) for the OPTIMIZE level onward.

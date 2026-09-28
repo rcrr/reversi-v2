@@ -166,6 +166,18 @@ class TestRlmConfigSchemas(unittest.TestCase):
                                 high_performance_fg=True)
         self.assertTrue(o2.high_performance_fg)
 
+    def test_optimization_hi_perf_blocks(self):
+        """hi_perf_blocks defaults to 8 (the production block
+        count), accepts other positive integers, rejects 0."""
+        o = OptimizationConfig(checkpoint_file="c.json")
+        self.assertEqual(o.hi_perf_blocks, 8)
+        o2 = OptimizationConfig(checkpoint_file="c.json",
+                                hi_perf_blocks=1)
+        self.assertEqual(o2.hi_perf_blocks, 1)
+        with self.assertRaises(ValidationError):
+            OptimizationConfig(checkpoint_file="c.json",
+                               hi_perf_blocks=0)
+
     # -- The client_check_tol field ---------------------------------
 
     def test_client_check_tol_default(self):

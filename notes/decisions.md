@@ -3922,3 +3922,102 @@ D-324 | 2026-09-28 | the new code-format rules applied to
           checksums + the goldens untouched); verify_wrk_config
           + the hub verify_logistic_model ALL CHECKS PASSED; the
           docs/notes audit at the baseline.
+D-325 | 2026-09-28 | the new code-format rules on hlp_gradient
+          (the D-314 reflow + the D-318 docstrings) + the
+          hardcoded _HP_BLOCKS moved to the config as the
+          hi_perf_blocks field (PositiveInt, default 8),
+          explicit in the rlm_00 fixture
+          Roberto: "Applica le nuove regole di formattazione
+          del codice a hlp_gradient. Vorrei valutare di
+          eliminare il valore hard coded _HP_BLOCKS e portarlo
+          nel config, nel ramo optimization. Chiamiamolo
+          hi_perf_blocks, intero maggiore di zero, default 1.
+          Valore consigliato 8." -> "Ok, mettiamo default=8,
+          procedi. Ma in almeno un JSON mettiamo il campo
+          rlm_00 o un altro."
+          FORMAT (part A): the D-323/D-324 pattern: the header
+          trailing spaces cleaned; the sigmoid docstring
+          imperative + the "It was computed as: return
+          1./(1+np.exp(-x))" line out (the old
+          implementation — history, the D-224 rule); the
+          _hp_fg_kernel docstring from the free-form "X : (M,
+          P) uint32 —" block to the Google Args style (no
+          parenthesized types — the kernel parameters carry no
+          annotations, the shapes/dtypes are in the
+          description); the hlp_gradient_compute docstring to
+          the full D-318 form (imperative + body + Args with
+          the new hi_perf_blocks parameter + Returns); the
+          _HP_BLOCKS comment block (5 lines) removed — the
+          observable facts (the race-free design, the
+          thread-count-independent determinism) moved to the
+          compute docstring.
+          FEATURE (part B): the _HP_BLOCKS = 8 constant
+          removed; hlp_gradient_compute(ctx,
+          high_performance=False, hi_perf_blocks=8); the
+          buffers np.zeros((T, N)) from the parameter; the
+          kernel unchanged (already T-parametric via
+          g_blocks.shape[0]); wrk_gradient reads
+          ctx.cfg.optimization.hi_perf_blocks and passes it —
+          the GRADIENT log line UNCHANGED (the full-chain log
+          pins safe); OptimizationConfig.hi_perf_blocks:
+          PositiveInt (default 8, the "intero maggiore di
+          zero"); the rlm_00.json fixture carries
+          "hi_perf_blocks": 8 explicitly (Roberto's request).
+          DEFAULT = 8 (Roberto's ruling, over the proposed 1):
+          the shipped fixtures rlm_03 / rlm_04 / rlm_05 /
+          rlm_06 enable high_performance_fg (the full-chain
+          A2030 / A2050 run the HP kernel) — default 8 = the
+          current hardcoded value = bit-identical behavior (the
+          HP trajectory goldens intact: A2050 356 iters / f =
+          1.4453826e-03 / the w_dense sha3; A2030 71 iters).
+          T = 1 would additionally have lost the prange
+          parallelism (the kernel parallelizes ACROSS the
+          blocks) — flagged in the analysis.
+          GOLDEN CASCADE (planned, turned out ZERO): the new
+          config field changes the config checksum (the sha3
+          of the model_dump_json, wrk_config) — but the
+          _masked_report_hash of the two test modules MASKS
+          the "Config SHA3-256: <hex>" line itself (the mask
+          exists because the fingerprint embeds the tmp
+          base_dir) → the 4 report pins (test_wrk_analytics
+          x2 + the full-chain x2) are insensitive → NO
+          re-derivation. Verified before the change:
+          test_wrk_config / verify_wrk_config pin no literal
+          checksum; the old model files stay readable (the
+          reader hashes the STORED dump text against the
+          stored checksum — self-consistent, model_weights
+          L176-183; no D-322 desync — a pydantic default, not
+          a post-CONFIG mutation); the external A2030 / A2050
+          configs need no migration (default 8 = non-breaking).
+          TESTS: +1 test_optimization_hi_perf_blocks (default
+          8, accepts 1, rejects 0 — the schemas suite 28 ->
+          29; the overview's "27" was stale, corrected in
+          place); the test_wrk_gradient mock (the
+          SimpleNamespace) gained hi_perf_blocks (an
+          AttributeError without it); +1 test_hp_block_count
+          (hi_perf_blocks=2 over M=3 vs the float64
+          reference — hlp_gradient 14 -> 15).
+          PROBES: verify_gradient re-pinned (A1 180, A8 the
+          new sigmoid docstring, A12 L95, A14 the
+          hi_perf_blocks parameter + the "_HP_BLOCKS not in
+          a" pin, B1 65, B5 the new wiring, C1 184, G1 284 /
+          15 tests, G9 the new test) — 59/0 incl. the live-DB
+          tier D (the rlm_02 classic-path values unchanged);
+          verify_optimize +E4c. FOUND IN THIS CAMPAIGN: the
+          verify_optimize E4 pin had been broken since D-324
+          (it pinned min_grad on ONE line; the D-324 reflow
+          made it 3 — that probe was not in the D-324
+          verification list) — fixed in this commit.
+          MIRRORS: hlp_gradient.md (the API row, the
+          Architecture T-refs, 15 tests, the "10th active
+          level" ordinals -> the level name; back to exactly
+          120 lines), wrk_gradient.md (the wiring),
+          hlp_config_schemas.md (the API row — the 122-line
+          size finding stays at the baseline), + the 3 test
+          mirrors (15 / 29 tests + the new tests).
+          VERIFICATION: the 3 fast modules (15 + 29 + 13 all
+          OK); the full pre-commit LONG=1 967 OK (24 skipped —
+          the A2030 HP chain, the report pins, the size
+          bands); the VLONG full-chain (A2050) OK;
+          verify_gradient 59/0 + verify_optimize 78/0; the
+          docs/notes audit clean.

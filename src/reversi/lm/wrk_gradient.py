@@ -48,7 +48,8 @@ def _up(ctx: "LMContext") -> None:
 
     # GRADIENT building is a closure generation, very fast. No cache needed.
     high_performance = ctx.cfg.optimization.high_performance_fg
-    ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance)
+    hi_perf_blocks = ctx.cfg.optimization.hi_perf_blocks
+    ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)
 
     ctx.log_event(Relevance.INFO,
                   f"Gradient function generated (high_performance: {high_performance}).")

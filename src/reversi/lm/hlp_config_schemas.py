@@ -72,6 +72,11 @@ class OptimizationConfig(LMBaseConfig):
         default=False,
         description="Build the high-performance numba fg closure at the GRADIENT level. "
                     "False (the default) keeps the classic vectorized-numpy closure.")
+    hi_perf_blocks: PositiveInt = Field(
+        default=8,
+        description="The row-block count (T) of the high-performance fg kernel (used only when "
+                    "high_performance_fg is true): the T blocks run in parallel, each with a private "
+                    "f64 gradient buffer.")
 
     @model_validator(mode="after")
     def check_wolfe_constants(self) -> "OptimizationConfig":

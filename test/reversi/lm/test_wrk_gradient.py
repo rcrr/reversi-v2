@@ -143,14 +143,16 @@ class TestLMWorkerGradient(unittest.TestCase):
 
 class TestGradientFlagWiring(unittest.TestCase):
     """The high_performance_fg config flag wiring: the
-    GRADIENT worker reads optimization.high_performance_fg and builds
-    the matching fg variant. Mock context (no DB)."""
+    GRADIENT worker reads optimization.high_performance_fg +
+    hi_perf_blocks and builds the matching fg variant.
+    Mock context (no DB)."""
 
     def _mock_ctx(self, high_performance):
         from reversi.tools.state_machine import Context
         ctx = Context()
         ctx.cfg = SimpleNamespace(
-            optimization=SimpleNamespace(high_performance_fg=high_performance),
+            optimization=SimpleNamespace(high_performance_fg=high_performance,
+                                         hi_perf_blocks=8),
             stat_model=SimpleNamespace(ridge_regularization=0.01))
         ctx.w = np.zeros(3, dtype=np.float32)
         ctx.design_matrix = np.array([[0, 1], [1, 2], [0, 2]], dtype=np.uint32)

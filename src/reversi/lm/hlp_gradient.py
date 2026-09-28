@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -42,40 +42,31 @@ __all__ = ['hlp_gradient_compute', 'sigmoid']
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
     """
-    Computes the sigmoid (logistic) function on the given array of float values.
-    It was computed as:
-      return 1. / (1. + np.exp(-x))
-    The expit function from scipy provides more numerical stability for extreme values of x.
+    Compute the sigmoid (logistic) function element-wise on the given array of float values.
+
+    The scipy expit form is numerically stable for extreme values of x, where the naive
+    1 / (1 + exp(-x)) overflows.
     """
     return expit(x)
-
-
-#: The fixed block count (T) of the high-performance kernel: each
-#: prange block owns a contiguous row range and accumulates into its
-#: own private f64 gradient buffer, so the pass is race-free (numba
-#: has no CPU atomics) and run-deterministic (the block split and the
-#: final accumulation order are independent of the thread count).
-_HP_BLOCKS = 8
 
 
 @njit(parallel=True, cache=True)
 def _hp_fg_kernel(X, w, z, g_blocks, norm_blocks):
     """
-    The high-performance single-pass loss/gradient kernel.
+    Run the high-performance single-pass loss/gradient kernel.
 
-    One streaming pass over the design matrix rows: for every row it
-    gathers the linear predictor from w (L2-resident), computes the
-    sigmoid, the residual, the per-row gradient weight and the
-    squared-residual partial norm, and scatters the per-row weight
-    into the block's private f64 gradient buffer. No M*P temporary is
-    ever materialized: X is read once (row-contiguous) and all the
-    working state (w, the per-block buffers) stays in L2.
+    One streaming pass over the design matrix rows: for every row it gathers the linear predictor
+    from w (L2-resident), computes the sigmoid, the residual, the per-row gradient weight and the
+    squared-residual partial norm, and scatters the per-row weight into the block's private f64
+    gradient buffer. No M*P temporary is ever materialized: X is read once (row-contiguous) and all
+    the working state (w, the per-block buffers) stays in L2.
 
-    X : (M, P) uint32 — the design matrix (weight indices).
-    w : (N,) float32  — the current weights.
-    z : (M,) float32  — the target values.
-    g_blocks : (T, N) float64 — one private gradient buffer per block.
-    norm_blocks : (T,) float64 — one squared-residual partial sum per block.
+    Args:
+        X: (M, P) uint32 — the design matrix (weight indices).
+        w: (N,) float32 — the current weights.
+        z: (M,) float32 — the target values.
+        g_blocks: (T, N) float64 — one private gradient buffer per block.
+        norm_blocks: (T,) float64 — one squared-residual partial sum per block.
     """
     M_ = X.shape[0]
     P_ = X.shape[1]
@@ -103,26 +94,36 @@ def _hp_fg_kernel(X, w, z, g_blocks, norm_blocks):
 
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def hlp_gradient_compute(ctx: "LMContext",
-                         high_performance: bool = False
+                         high_performance: bool = False,
+                         hi_perf_blocks: int = 8
                          ) -> Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]:
     """
-    Builds the function returning loss and gradient.
-    Captures X, z, and alpha in a closure for fast repeated evaluations during optimization.
-    The loss and gradient are normalized by the number of positions (M) to ensure
-    dataset-size independent convergence criteria.
+    Build the function returning the normalized loss and gradient (the fg closure of the GRADIENT level).
 
-    high_performance: False (the default) returns the classic
-    vectorized-numpy closure (proven, readable). True returns the
-    high-performance closure: a single numba kernel (see
-    _hp_fg_kernel) that computes loss and gradient in one streaming
-    pass over the design matrix with no M*P temporaries. The two
-    variants are mathematically identical; they differ only in the
-    f32 rounding order (a few ulps on f and g), so a run with one
-    variant follows a slightly different — but equivalent — L-BFGS
-    trajectory than a run with the other. The returned closure
-    carries a ``high_performance`` bool attribute identifying the
-    variant. The float32 return contract is the same for both:
-    (np.float32 f, (N,) float32 g).
+    Captures X, z, and alpha in a closure for fast repeated evaluations during optimization. The loss
+    and gradient are normalized by the number of positions (M) to ensure dataset-size independent
+    convergence criteria. The high-performance variant splits the rows into hi_perf_blocks contiguous
+    blocks (T): each prange block owns its row range and accumulates into its own private f64 gradient
+    buffer, so the pass is race-free (numba has no CPU atomics) and run-deterministic (the block split
+    and the final accumulation order are independent of the thread count).
+
+    Args:
+        ctx ("LMContext"): the LM context: the closure captures ctx.design_matrix, ctx.w (N) and ctx.z,
+            and reads ctx.cfg.stat_model.ridge_regularization for alpha.
+        high_performance (bool): False (the default) returns the classic vectorized-numpy closure
+            (proven, readable). True returns the high-performance closure: a single numba kernel (see
+            _hp_fg_kernel) that computes loss and gradient in one streaming pass over the design matrix
+            with no M*P temporaries. The two variants are mathematically identical; they differ only in
+            the f32 rounding order (a few ulps on f and g), so a run with one variant follows a slightly
+            different — but equivalent — L-BFGS trajectory than a run with the other.
+        hi_perf_blocks (int): the block count (T) of the high-performance kernel, from the config
+            optimization section; used only when high_performance is True. 8 (the default) is the
+            production value.
+
+    Returns:
+        Callable[[npt.NDArray[np.float32]], Tuple[np.float32, npt.NDArray[np.float32]]]: the fg
+            closure — (w float32 (N,)) in, (f np.float32, g float32 (N,)) out. The returned closure
+            carries a high_performance bool attribute identifying the variant.
     """
     N = len(ctx.w)
     X = ctx.design_matrix
@@ -164,8 +165,8 @@ def hlp_gradient_compute(ctx: "LMContext",
     # evaluation; the private per-block f64 buffers are pre-allocated
     # once and cleared per call, and the final accumulation (the sum
     # over the T blocks, in fixed block order) is done in numpy.
-    g_blocks = np.zeros((_HP_BLOCKS, N), dtype=np.float64)
-    norm_blocks = np.zeros(_HP_BLOCKS, dtype=np.float64)
+    g_blocks = np.zeros((hi_perf_blocks, N), dtype=np.float64)
+    norm_blocks = np.zeros(hi_perf_blocks, dtype=np.float64)
 
     def fg_hp(w: npt.NDArray[np.float32]) -> Tuple[np.float32, npt.NDArray[np.float32]]:
         g_blocks.fill(0.0)
