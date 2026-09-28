@@ -3555,3 +3555,28 @@ D-317 | 2026-09-25 | hlp_anova: the kernels renamed hlp_anova_eta_omega / hlp_an
           verify_analytics + the verify_su_analysis F2/F6
           green; the docs audit + the notes_format clean; the
           5 mirrors updated.
+D-318 | 2026-09-25 | the descriptive docstring style codified as the house rule (the D-317 hlp_anova style)
+          Roberto: "Codifichiamo questo stile come RULE. Yes,
+          e' un notevole miglioramento. Procedi per favore." —
+          after seeing the D-317 result (the 9 hlp_anova
+          docstrings in the new style). PROMOTION (the
+          standing rule pattern: the rule that must outlive
+          the campaign goes to rules.md in the same commit
+          with its D-number): the new bullet in the rules.md
+          Docs section, right after the WHAT-only rule it
+          completes — the descriptive format (the imperative
+          first line, the body paragraph, the Google 8-space
+          typed Args, the key-by-key Returns; the formulas
+          that define the output values stay in the
+          docstring — they are the WHAT). The division of
+          labor: the D-224/D-226 rule constrains the CONTENT
+          (no HOW, no D-XXX), this one the FORMAT. Scope:
+          public + private functions in src/ (the test / the
+          probe docs keep their own rules, D-267/D-270); it
+          binds the NEW docstrings + any REWRITTEN one; the
+          retroactive conversion of the existing modules is
+          USER-DIRECTED, one module at a time (the D-314
+          reflow precedent — never an agent initiative, the
+          D-122 guard). The hlp_anova module is the exemplar
+          (D-317); its mirror Conventions bullet now points
+          at the rule (D-318) + its introducing decision.

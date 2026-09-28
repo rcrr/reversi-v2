@@ -63,8 +63,8 @@ None.
 
 ## Conventions
 - The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation); the
-  descriptive docstring style (the D-317: the imperative first line, the body paragraph, the typed Google-style Args /
-  Returns).
+  descriptive docstring style (the D-317, the house rule since D-318: the imperative first line, the body paragraph,
+  the typed Google-style Args / Returns).
 - The 2 PURE-MATH kernels are the @validate_call Pydantic boundary (the typed ArrayLike / dict parameters, the
   ConfigDict arbitrary_types_allowed); the 2 FLOW functions stay undecorated (the ctx idiom — the hlp_design_matrix /
   D-303 precedent).

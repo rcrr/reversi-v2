@@ -103,8 +103,12 @@ tables at the end of this file.
 - The hlp_anova kernels are RENAMED hlp_anova_eta_omega / hlp_anova_adherence (D-317, the hlp_X_ prefix family
   standard, like the D-315 FLOW names) + the @validate_call Pydantic boundary (the typed ArrayLike / dict
   parameters; the 2 FLOW functions stay undecorated — the ctx idiom, hlp_design_matrix) + all 9 docstrings in the
-  descriptive style (the imperative first line, the body, the typed Google-style Args/Returns — the rule
-  codification is still to be decided); the boundary comment above __all__ is gone.
+  descriptive style (the imperative first line, the body, the typed Google-style Args/Returns); the boundary comment
+  above __all__ is gone.
+- The descriptive docstring style is now the house RULE (D-318, the rules.md Docs section — it completes the
+  WHAT-only rule D-224/D-226: that constrains the content, this one the format): public + private src/ functions,
+  the new + the rewritten docstrings; the retroactive conversion of the existing modules stays user-directed, one
+  module at a time (the D-314 reflow precedent, the D-122 guard). The exemplar: hlp_anova (D-317).
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).

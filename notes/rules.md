@@ -141,6 +141,16 @@ spans; the tables and the headings stay one physical line.
 - Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never
   HOW — the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance
   in the docstrings (decisions.md is its home; a `#:` code comment only if fundamental). (D-224, D-226)
+- The src/ docstring style (the descriptive format): (1) the imperative first line (one sentence, a verb: Calculate /
+  Compute / Run / Generate); (2) the body paragraph — what is measured or computed and why (the observable contract;
+  the formulas defining the output values stay in the docstring, they ARE the WHAT); (3) the Args: section, the Google
+  8-space indent, each argument typed in parentheses + described (the types mirror the real annotations); (4) the
+  Returns: section, the key-by-key detail (the dict keys, the degenerate behaviors — the nan / None / 0 conventions,
+  the exceptions). It completes the WHAT-only rule above: that rule constrains the CONTENT (no HOW, no D-XXX), this
+  one the FORMAT. Scope: public + private functions in src/ (the test / the probe docs keep their own rules,
+  D-267/D-270); it binds the NEW docstrings and any REWRITTEN one; the retroactive conversion of the existing modules
+  is user-directed, one module at a time (like the D-314 reflow), never an agent initiative. The exemplar: hlp_anova
+  (D-317). (D-318)
 - Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") —
   that is OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs
   (docs_rules.md §3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the
