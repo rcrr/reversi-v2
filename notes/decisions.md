@@ -3748,3 +3748,38 @@ D-321 | 2026-09-28 | the FINAL_LOG_PRINT level (the 19th, the pipeline's last): 
           goldens safe); the "maximum relevance" is structural (the
           buffer fills on every log_event, independent of the
           display gate) — no logging change was needed.
+D-322 | 2026-09-28 | the D-321 e2e test fix: the log_file_name must be present in the config BEFORE the CONFIG level (the checksum desync) + the "skipped" pin narrowed to the FINAL_LOG_PRINT line
+          Roberto: "Vedo questo errore: ... ValueError: Config
+          section checksum mismatch, expected 'ca11b76f...',
+          recomputed '78a58cef...' ... FAILED (errors=1)" — the
+          D-321 LONG-tier e2e failed in his environment. Root
+          cause (two defects, both mine, both latent — the e2e
+          never ran at the LONG tier in the D-321 verification; it
+          sat in the fast-tier skip list): (1) the e2e mutated
+          ctx.cfg.log_file_name AFTER the CONFIG level — the
+          config checksum is fingerprinted at CONFIG (the
+          sha3_256 of the normalized dump), while SAVE embeds the
+          LIVE normalized dump; the post-CONFIG mutation put
+          log_file_name in the embedded dump but not in the
+          fingerprint -> the file's config section
+          self-inconsistent -> the CLIENT_CHECK read
+          verification raised. Fix: the entry is now present in
+          the config FROM THE START — the test writes a tmp copy
+          of the rlm_00 fixture with the log_file_name entry
+          added (the same json5 loader the pipeline uses) and
+          builds the model from it; no post-CONFIG mutation (the
+          D-311 cross-level idiom is only safe for chains that
+          STOP before SAVE — TestEtaSquaredCrossLevel stops at
+          ANALYTICS). (2) the e2e pin "no 'skipped' in the file"
+          was too broad — the max-relevance log legitimately
+          carries the other levels' no-op notes (the rlm_00
+          "PLOT skipped"); the pin narrowed to the exact
+          "FINAL_LOG_PRINT skipped" line.
+          VERIFICATION: the module at LONG=1 6/6 OK (the e2e
+          actually runs this time); the fast suite re-verified;
+          the mirror + the overview updated (the "set post-CONFIG"
+          wording).
+          LESSON: a new DB-gated e2e is part of the campaign
+          verification (run it at LONG=1 before the commit) — the
+          D-319 recurrence (the pins missed by the fast-tier-only
+          verification), same class of error.

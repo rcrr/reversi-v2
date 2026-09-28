@@ -47,12 +47,15 @@ log_file_name, the file NOT generated), the full-log write
 (the max-relevance replay on the machine's event buffer), the
 base_dir subdir path, the down (the no-op) — and the
 LONG-tier end-to-end (the rlm_00 full chain, the log_file_name
-set after CONFIG, the write-asymmetry pins).
+entry in the config from the start — the D-322 tmp fixture copy,
+the write-asymmetry pins).
 """
 
 import tempfile
 import unittest
 from pathlib import Path
+
+import json5
 
 from reversi.lm.logistic_model import LogisticModel
 from reversi.lm.wrk_final_log_print import _down, _up, wrk_final_log_print
@@ -145,23 +148,31 @@ class TestWrkFinalLogPrint(unittest.TestCase):
 
 class TestFinalLogPrintEndToEnd(unittest.TestCase):
     """The LONG-tier end-to-end: the rlm_00 full chain with the
-    log_file_name set after CONFIG (the cross-level idiom, the
-    D-311 precedent) — the 19th level writes the full run log at
-    the maximum relevance (the verbosity is NONE — nothing prints,
-    the buffer captures everything); the write-asymmetry pins (the
-    file carries its own "Starting" line, not the "Completed"
-    line)."""
+    log_file_name entry present in the config FROM THE START (the
+    tmp fixture copy — the D-322 fix: the config checksum is
+    fingerprinted at CONFIG, so a post-CONFIG cfg mutation desyncs
+    the SAVE-embedded live dump from the fingerprint and the
+    CLIENT_CHECK section check raises) — the 19th level writes the
+    full run log at the maximum relevance (the verbosity is NONE —
+    nothing prints, the buffer captures everything); the
+    write-asymmetry pins (the file carries its own "Starting" line,
+    not the "Completed" line)."""
 
     def setUp(self):
         db_long_gate(self)
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        self.rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
-                                     "data" / "rlm_00.json"),
+        # The D-321 config: the rlm_00 fixture + the log_file_name
+        # entry, written to a tmp copy BEFORE the CONFIG level (the
+        # same json5 loader the pipeline uses).
+        fixture = WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json"
+        cfg = json5.loads(fixture.read_text(encoding="utf-8"))
+        cfg["log_file_name"] = "full_run.log"
+        self.cfg_file = self.tmp_dir / "rlm_00_final_log.json"
+        self.cfg_file.write_text(json5.dumps(cfg), encoding="utf-8")
+        self.rlm = LogisticModel(str(self.cfg_file),
                                  verbosity=Verbosity.NONE,
                                  base_dir_override=self.tmp_dir)
-        self.rlm.move_to_step("CONFIG")
-        self.rlm.context.cfg.log_file_name = "full_run.log"
 
     def tearDown(self):
         if getattr(self, '_tmp', None) is not None:
@@ -183,10 +194,12 @@ class TestFinalLogPrintEndToEnd(unittest.TestCase):
                              in ln for ln in lines))
         self.assertTrue(any("Completed UP step for PLOT" in ln for ln in lines))
         self.assertIn("StateMachine initialized.", lines[0])
-        # No "skipped" (the enabled path) — and neither the
-        # "full log written" confirmation nor the "Completed" line
-        # (both logged AFTER the write).
-        self.assertFalse(any("skipped" in ln for ln in lines))
+        # No FINAL_LOG_PRINT no-op line (the enabled path) — and
+        # neither the "full log written" confirmation nor the
+        # "Completed" line (both logged AFTER the write). Other
+        # levels' no-op notes (e.g. "PLOT skipped") are expected
+        # content of the full log.
+        self.assertFalse(any("FINAL_LOG_PRINT skipped" in ln for ln in lines))
         self.assertFalse(any("full log written" in ln for ln in lines))
         # The line count == the buffer at the write (the final
         # buffer minus the two trailing post-write lines).
