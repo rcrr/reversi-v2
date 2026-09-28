@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
 from datetime import datetime
 
-from reversi.lm.hlp_anova import adherence, anova_eta_omega
+from reversi.lm.hlp_anova import hlp_anova_adherence, hlp_anova_eta_omega
 from reversi.lm.hlp_gradient import sigmoid
 from reversi.tools.state_machine import Relevance
 
@@ -93,7 +93,7 @@ def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
     db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
     return {'mode': 'ok', 'pooled': pooled,
             'corpus_total': int(sum(pooled.values())),
-            'adh': adherence(db_counts, pooled)}
+            'adh': hlp_anova_adherence(db_counts, pooled)}
 
 
 def _su_verdict(tv: float) -> str:
@@ -191,7 +191,7 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
     # The pooled eta-squared / omega-squared (the D-311 unification):
     # the shared ANOVA kernel over the pooled codes + the repeated
     # values — the inline SS computation it replaces.
-    anova_res = anova_eta_omega(train_flat, y_repeated)
+    anova_res = hlp_anova_eta_omega(train_flat, y_repeated)
     eta_squared = anova_res['eta2']
     omega_squared = anova_res['omega2']
 
@@ -363,7 +363,7 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     # The pooled eta-squared / omega-squared (the D-311 unification):
     # the shared ANOVA kernel over the pooled codes + the repeated
     # values — the inline SS computation it replaces.
-    anova_res = anova_eta_omega(train_flat, y_repeated)
+    anova_res = hlp_anova_eta_omega(train_flat, y_repeated)
     eta_squared = anova_res['eta2']
     omega_squared = anova_res['omega2']
 

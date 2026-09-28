@@ -29,45 +29,53 @@ import csv
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
+from pydantic import validate_call, ConfigDict
 from scipy.stats import chi2 as _chi2
 
 from reversi.tools.state_machine import Relevance
 
-# The ANOVA family (the D-298 split from the shared data plane — the SU
-# kernels moved to hlp_su_analysis): the 2 PURE-MATH kernels (the ANOVA
-# effect sizes + the adherence trio, NO DB, NO positions) + the 2 FLOW
-# functions (the wrk/hlp boundary, the D-315 move from wrk_anova: the
-# compute + the report) + the private helpers (the 3 trio kernels + the
-# 2 per-sub-variable line builders).
-__all__ = ['anova_eta_omega', 'adherence',
+__all__ = ['hlp_anova_eta_omega', 'hlp_anova_adherence',
            'hlp_anova_compute_analysis', 'hlp_anova_generate_report']
 
 
-def anova_eta_omega(groups, values) -> dict:
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def hlp_anova_eta_omega(groups: npt.ArrayLike, values: npt.ArrayLike) -> dict:
     """
-    The one-way ANOVA effect sizes (the ANOVA level, the design section 3.5): the observed codes as the groups (K), the
-    target = the continuous training game values (N).
+    Calculate the one-way ANOVA effect sizes (the eta-squared and the omega-squared) for the observations grouped
+    by their observed codes.
 
-      SS_tot = sum (y - ybar)^2
-      SS_eff = sum_g n_g (y_g - ybar)^2
-      SS_err = SS_tot - SS_eff
-      eta²   = SS_eff / SS_tot
-      omega² = (SS_eff - (K - 1) MS_err) / (SS_tot + MS_err)
-      MS_err = SS_err / (N - K)
+    This function partitions the observations into groups by their observed codes and measures how much of the
+    total variance of the target values is explained by the group membership. It returns the eta-squared (the
+    biased sample share of the explained variance, growing with high K) together with the omega-squared (the
+    unbiased population estimate): the pair is reported as the discrimination metrics of the group assignment.
 
-    Guards: K = 1 -> eta² = omega² = 0 (degenerate, by convention); K > N -> ValueError (unreachable). omega² may be
-    slightly negative (the null effect): the raw value is reported. eta² is the biased sample share (up with high K);
-    omega² is the unbiased population estimate — the pair is reported together.
+        SS_tot = sum (y - ybar)^2
+        SS_eff = sum_g n_g (y_g - ybar)^2
+        SS_err = SS_tot - SS_eff
+        eta²   = SS_eff / SS_tot
+        omega² = (SS_eff - (K - 1) MS_err) / (SS_tot + MS_err)
+        MS_err = SS_err / (N - K)
 
     Args:
-      groups: the group assignment per observation (the observed codes; length N). Any hashable values.
-      values: the continuous target values (length N).
+        groups (npt.ArrayLike): The group assignment of the observations, one element per observation (the observed
+            codes). Any hashable values are accepted.
+        values (npt.ArrayLike): The continuous target values, one element per observation, aligned with `groups`
+            (the continuous game values).
 
     Returns:
-      {'eta2', 'omega2', 'k', 'n'}.
+        dict[str, float | int]: A dictionary containing the following keys:
+            - 'eta2': The eta-squared effect size, in the 0.0 to 1.0 range.
+            - 'omega2': The omega-squared effect size. It may be slightly negative for the null effect; the raw
+                value is reported.
+            - 'k': The number of observed groups (the distinct codes).
+            - 'n': The number of observations.
+
+        The degenerate inputs (the single group, K = 1; the zero variance) return 0.0 for both effect sizes.
 
     Raises:
-      ValueError: K > N (unreachable) or the length mismatch.
+        ValueError: When the number of groups exceeds the number of observations (the K > N case, unreachable) or
+            when `groups` and `values` have different lengths.
     """
     g = np.asarray(groups)
     y = np.asarray(values, dtype=np.float64).ravel()
@@ -97,12 +105,18 @@ def anova_eta_omega(groups, values) -> dict:
 
 def _kl_divergence(p, q) -> float:
     """
-    The KL divergence KL(p || q) in nats, the 0-log-0 convention (the p(i) = 0 terms vanish). +inf if p(i) > 0 and
-    q(i) = 0 (the DB has a code the ideal never shows — the infinite divergence).
+    Calculate the Kullback-Leibler divergence KL(p || q) between two categorical distributions.
+
+    This function measures how much information is lost when the ideal distribution approximates the DB
+    distribution, in nats. The 0-log-0 convention applies: the terms where p(i) = 0 vanish.
 
     Args:
-      p: the DB distribution (the probabilities, sum 1).
-      q: the ideal distribution (the probabilities, sum 1).
+        p (npt.ArrayLike): The DB distribution (the probabilities, summing to 1), one element per category.
+        q (npt.ArrayLike): The ideal distribution (the probabilities, summing to 1), one element per category.
+
+    Returns:
+        float: The divergence in nats. It is 0.0 when the two distributions are equal, and float('inf') when `p`
+            has support where `q` is zero (the DB has a code the ideal never shows — the infinite divergence).
     """
     p = np.asarray(p, dtype=np.float64).ravel()
     q = np.asarray(q, dtype=np.float64).ravel()
@@ -114,12 +128,17 @@ def _kl_divergence(p, q) -> float:
 
 def _total_variation(p, q) -> float:
     """
-    The total variation distance TV(p, q) = 0.5 * sum |p - q|, in [0, 1] (the robust "how different" number, no log,
-    no 0/0).
+    Calculate the total variation distance TV(p, q) between two categorical distributions.
+
+    This function measures how different the two distributions are on the robust 0.0 to 1.0 scale: no logarithm,
+    no 0/0 degenerate term.
 
     Args:
-      p: the DB distribution (the probabilities, sum 1).
-      q: the ideal distribution (the probabilities, sum 1).
+        p (npt.ArrayLike): The DB distribution (the probabilities, summing to 1), one element per category.
+        q (npt.ArrayLike): The ideal distribution (the probabilities, summing to 1), one element per category.
+
+    Returns:
+        float: The total variation distance (0.5 * the sum of the absolute differences), in the 0.0 to 1.0 range.
     """
     p = np.asarray(p, dtype=np.float64).ravel()
     q = np.asarray(q, dtype=np.float64).ravel()
@@ -128,18 +147,27 @@ def _total_variation(p, q) -> float:
 
 def _chi_square_goodness(observed, expected, min_expected=5) -> dict:
     """
-    The chi-square goodness-of-fit: the statistic sum (O - E)^2 / E, the p-value (the scipy chi2.sf, the (k - 1) df),
-    the merged tail (the low-expected cells, E < min_expected, merged into an "other" bin) + the merge count (the
-    standard technique).
+    Run the chi-square goodness-of-fit test between the observed and the expected category counts.
+
+    This function computes the chi-square statistic, its p-value, and the merged-tail count: the cells whose
+    expected count falls below the `min_expected` threshold are merged into a single "other" bin before the test
+    (the standard technique for the low-expected cells).
 
     Args:
-      observed: the DB observed counts (the O_i, one per cell).
-      expected: the ideal expected counts (the E_i = the ideal frequency * N_DB, one per cell).
-      min_expected: the threshold for the merged tail (the default 5, the standard).
+        observed (npt.ArrayLike): The DB observed counts (the O_i), one element per cell.
+        expected (npt.ArrayLike): The ideal expected counts (the E_i = the ideal frequency * N_DB), one element
+            per cell.
+        min_expected (float): The threshold for the merged tail (the default 5, the standard).
 
     Returns:
-      {'chi2', 'p', 'merged'} (the statistic, the p-value, the merge count). The p-value is nan if the merged result
-      has fewer than 2 cells (the degenerate, df < 1).
+        dict[str, float | int]: A dictionary containing the following keys:
+            - 'chi2': The chi-square test statistic.
+            - 'p': The p-value (the scipy chi2.sf over the k - 1 degrees of freedom).
+            - 'merged': The count of the cells merged into the "other" bin.
+
+        The p-value is nan when the merged result has fewer than 2 cells (the degenerate, df < 1). When a cell
+        shows O > 0 with E = 0 (the DB observes a code the ideal never shows), the statistic is +inf and the
+        p-value is 0.0 — the total incompatibility, the merged tail would otherwise hide the root cause.
     """
     o = np.asarray(observed, dtype=np.float64).ravel()
     e = np.asarray(expected, dtype=np.float64).ravel()
@@ -169,20 +197,33 @@ def _chi_square_goodness(observed, expected, min_expected=5) -> dict:
     return {'chi2': chi2_stat, 'p': p_val, 'merged': n_merge}
 
 
-def adherence(db_counts, ideal_counts) -> dict:
+@validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+def hlp_anova_adherence(db_counts: dict[str | int, int | float],
+                        ideal_counts: dict[str | int, int | float]) -> dict:
     """
-    The adherence (c) (the ANOVA level, the design section 3.5): the DB configuration distribution (the observed
-    codes of the training positions) vs the ideal distribution (the corpus frequencies, normalized). The fixed trio
-    (no config whitelist): the chi-square goodness-of-fit (the p-value + the merged-tail count), the KL divergence
-    (the 0-log-0), the total variation distance (the 0..1 "how different" number, robust). The two are aligned over
-    the union of the observed codes (the missing side is 0).
+    Calculate statistical adherence between the observed DB distribution and an ideal distribution.
+
+    This function measures how closely the empirical data configuration aligns with a theoretical baseline by
+    aligning both distributions over the union of their observed categories. It computes a fixed trio of
+    statistical distances and goodness-of-fit metrics: Chi-square, Kullback-Leibler (KL) divergence, and Total
+    Variation (TV) distance.
 
     Args:
-      db_counts: the DB observed code counts, a dict {code: count} (the training positions).
-      ideal_counts: the ideal (corpus) code counts, a dict {code: count} (the corpus frequencies).
+        db_counts (dict[str | int, int | float]): The observed configuration counts from the database (e.g.,
+            training positions), mapping codes to frequencies.
+        ideal_counts (dict[str | int, int | float]): The target or corpus ideal distribution counts, mapping
+            codes to standard frequencies.
 
     Returns:
-      {'chi2', 'p', 'merged', 'kl', 'tv'}. The values are nan if either distribution is empty.
+        dict[str, float]: A dictionary containing the following keys:
+            - 'chi2': The Chi-square goodness-of-fit test statistic.
+            - 'p': The p-value resulting from the Chi-square test.
+            - 'merged': The count of tail categories merged during the test.
+            - 'kl': The Kullback-Leibler divergence (0-log-0 handled).
+            - 'tv': The Total Variation distance (robust scale from 0.0 to 1.0).
+
+            All values return float('nan') (except 'merged' which returns 0) if either input distribution is
+            empty.
     """
     codes = sorted(set(db_counts) | set(ideal_counts))
     db = np.array([db_counts.get(c, 0) for c in codes], dtype=np.float64)
@@ -201,13 +242,25 @@ def adherence(db_counts, ideal_counts) -> dict:
 
 
 def _compute_anova_lines(ctx) -> list:
-    """The eta²/omega² per sub-variable (the one-way ANOVA — it does not need the corpus): the DB training set is the
-    per-position raw codes (the groups) + the continuous game values (the target)."""
+    """
+    Compute the per-sub-variable ANOVA report lines (the eta-squared / omega-squared section of the ANOVA report).
+
+    This function runs the one-way ANOVA over every sub-variable of the feature set (the feature x instance
+    pairs): the DB training set provides the per-position raw codes (the groups) and the continuous game values
+    (the target) — the corpus is not needed. One INFO log line is emitted per sub-variable.
+
+    Args:
+        ctx (LMContext): The pipeline context (the feature set, the indexes, the game values, the event log).
+
+    Returns:
+        list: One row per sub-variable: (name, i, k, n, eta2, omega2), where name is the feature name, i the
+            instance index, k the observed groups, n the observations, eta2 / omega2 the effect sizes.
+    """
     anova_lines = []
     for (name, c0, c1, n_conf, n_inst) in ctx.feature_set.feature_blocks:
         for i in range(n_inst):
             groups = ctx.hlp_indexes.indexes[:, c0 + i]
-            r = anova_eta_omega(groups, ctx.game_values)
+            r = hlp_anova_eta_omega(groups, ctx.game_values)
             anova_lines.append((name, i, r['k'], r['n'], r['eta2'], r['omega2']))
             ctx.log_event(Relevance.INFO,
                           f"  ANOVA {name}[{i}]: eta2 {r['eta2']:.4f}, omega2 {r['omega2']:.4f} (K {r['k']})")
@@ -215,9 +268,25 @@ def _compute_anova_lines(ctx) -> list:
 
 
 def _compute_adherence_lines(ctx) -> list | None:
-    """The adherence per sub-variable (the DB configuration distribution vs the ideal corpus frequencies, the TV
-    descending). The GRACEFUL DEGRADATION: if the SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence
-    is skipped with a log note (None is returned); the eta²/omega² runs (it does not need the corpus)."""
+    """
+    Compute the per-sub-variable adherence report lines (the TV-descending adherence section of the ANOVA report).
+
+    This function measures the adherence of every sub-variable: the DB configuration distribution (the observed
+    codes of the training positions) vs the ideal corpus frequencies (the SU_ANALYSIS tables), sorted by the
+    total variation distance descending, the top-N logged.
+
+    The GRACEFUL DEGRADATION: when the SU_ANALYSIS level was disabled (no corpus in the context), the adherence
+    is skipped with a log note and None is returned — the eta-squared / omega-squared runs (it does not need the
+    corpus).
+
+    Args:
+        ctx (LMContext): The pipeline context (the feature set, the indexes, the su_analysis tables, the anova
+            config, the event log).
+
+    Returns:
+        list | None: One row per sub-variable: (name, i, chi2, p, merged, kl, tv), sorted by the TV descending.
+            None when the SU_ANALYSIS level was disabled (the graceful degradation).
+    """
     tables = ctx.su_analysis_tables
     if tables is not None:
         cfg_anova = ctx.cfg.anova
@@ -230,7 +299,7 @@ def _compute_adherence_lines(ctx) -> list | None:
                 uniq, cnt = np.unique(groups, return_counts=True)
                 db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
                 ideal_counts = ideal_lookup.get((name, i), {})
-                a = adherence(db_counts, ideal_counts)
+                a = hlp_anova_adherence(db_counts, ideal_counts)
                 adherence_lines.append((name, i, a['chi2'], a['p'], a['merged'], a['kl'], a['tv']))
         adherence_lines.sort(key=lambda x: x[6], reverse=True)
         for (name, i, chi2, p, merged, kl, tv) in adherence_lines[:cfg_anova.top_k_adherence]:
@@ -243,12 +312,22 @@ def _compute_adherence_lines(ctx) -> list | None:
 
 
 def hlp_anova_compute_analysis(ctx) -> tuple:
-    """The ANOVA analysis (the two passes over the training set): the eta²/omega² per sub-variable + the adherence
-    per sub-variable (the GRACEFUL DEGRADATION: None when the corpus is absent, the SU_ANALYSIS level disabled).
+    """
+    Run the ANOVA analysis over the training set and return the per-sub-variable results.
+
+    This function executes the two analysis passes: the eta-squared / omega-squared per sub-variable and the
+    adherence per sub-variable.
+
+    The GRACEFUL DEGRADATION: the adherence lines are None when the corpus is absent (the SU_ANALYSIS level
+    disabled) — the eta-squared / omega-squared runs.
+
+    Args:
+        ctx (LMContext): The pipeline context (the feature set, the indexes, the game values, the su_analysis
+            tables, the event log).
 
     Returns:
-      (anova_lines, adherence_lines): the per-sub-variable (name, i, k, n, eta2, omega2) rows, and the
-      per-sub-variable adherence rows sorted by the TV descending (or None).
+        tuple: The (anova_lines, adherence_lines) pair: the per-sub-variable (name, i, k, n, eta2, omega2) rows,
+            and the per-sub-variable adherence rows sorted by the TV descending (or None).
     """
     anova_lines = _compute_anova_lines(ctx)
     adherence_lines = _compute_adherence_lines(ctx)
@@ -256,9 +335,23 @@ def hlp_anova_compute_analysis(ctx) -> tuple:
 
 
 def hlp_anova_generate_report(ctx, anova_lines, adherence_lines) -> Path:
-    """The TXT report (dir_name under base_dir, the PlotConfig pattern): the per-sub-variable eta²/omega² + the top-N
-    most deviant features (the adherence, the TV descending) + the graceful-degradation note (when the adherence is
-    skipped). The optional CSV (the export_csv flag)."""
+    """
+    Generate the ANOVA report (the TXT file, the optional CSV) and return the report path.
+
+    This function writes the per-sub-variable eta-squared / omega-squared section, the top-N most deviant
+    features (the adherence, the TV descending), and the graceful-degradation note (when the adherence is
+    skipped). The report is written to the anova dir_name under the context base_dir.
+
+    Args:
+        ctx (LMContext): The pipeline context (the base_dir, the anova config, the event log).
+        anova_lines (list): The per-sub-variable (name, i, k, n, eta2, omega2) rows (the compute pass output).
+        adherence_lines (list | None): The per-sub-variable adherence rows sorted by the TV descending, or None
+            (the graceful degradation).
+
+    Returns:
+        Path: The path of the written TXT report. When the anova export_csv flag is set, the CSV (the anova.csv
+            with the eta / omega + the adherence columns) is written beside it.
+    """
     cfg_anova = ctx.cfg.anova
     lines = ["ANOVA REPORT", "=" * 40]
     lines.append(f"Sub-variables (the eta-squared / omega-squared): {len(anova_lines)}")

@@ -59,7 +59,7 @@ import numpy as np
 from scipy.stats import chi2 as _chi2
 
 from reversi.lm import hlp_anova as hlp_an
-from reversi.lm.hlp_anova import adherence, anova_eta_omega
+from reversi.lm.hlp_anova import hlp_anova_adherence, hlp_anova_eta_omega
 
 
 class TestAnovaEtaOmega(unittest.TestCase):
@@ -72,7 +72,7 @@ class TestAnovaEtaOmega(unittest.TestCase):
         # 2.5, SS_tot 5.0, SS_eff 1.0, SS_err 4.0. eta² = 0.2,
         # MS_err 2.0, omega² = (1.0 - 1.0) / 7.0 = -0.142857
         # (the null effect — the raw value is reported).
-        r = anova_eta_omega([0, 0, 1, 1], [1, 3, 2, 4])
+        r = hlp_anova_eta_omega([0, 0, 1, 1], [1, 3, 2, 4])
         self.assertEqual(r['k'], 2)
         self.assertEqual(r['n'], 4)
         self.assertAlmostEqual(r['eta2'], 0.2, places=12)
@@ -82,7 +82,7 @@ class TestAnovaEtaOmega(unittest.TestCase):
         # groups = [0, 0, 0, 1, 1, 1], values = [1, 1, 1, 4, 4,
         # 4]: SS_tot = SS_eff = 13.5, SS_err 0. eta² = 1.0,
         # omega² = 1.0 (the perfect separation).
-        r = anova_eta_omega([0, 0, 0, 1, 1, 1],
+        r = hlp_anova_eta_omega([0, 0, 0, 1, 1, 1],
                            [1, 1, 1, 4, 4, 4])
         self.assertEqual(r['k'], 2)
         self.assertAlmostEqual(r['eta2'], 1.0, places=12)
@@ -90,7 +90,7 @@ class TestAnovaEtaOmega(unittest.TestCase):
 
     def test_single_group(self):
         # The K = 1 degeneracy: by convention eta² = omega² = 0.
-        r = anova_eta_omega([0, 0, 0], [1, 2, 3])
+        r = hlp_anova_eta_omega([0, 0, 0], [1, 2, 3])
         self.assertEqual(r['k'], 1)
         self.assertEqual(r['eta2'], 0.0)
         self.assertEqual(r['omega2'], 0.0)
@@ -98,13 +98,13 @@ class TestAnovaEtaOmega(unittest.TestCase):
     def test_k_gt_n(self):
         # The K > N guard: the ValueError (unreachable).
         with self.assertRaises(ValueError):
-            anova_eta_omega([0, 1, 2], [1, 2])
+            hlp_anova_eta_omega([0, 1, 2], [1, 2])
 
     def test_length_mismatch(self):
         # The groups / the values length mismatch: the
         # ValueError.
         with self.assertRaises(ValueError):
-            anova_eta_omega([0, 1], [1, 2, 3])
+            hlp_anova_eta_omega([0, 1], [1, 2, 3])
 
 
 class TestKLDivergence(unittest.TestCase):
@@ -195,7 +195,7 @@ class TestAdherence(unittest.TestCase):
         # TV = 0.6, KL = 0.933663 (nats), the chi-square 47.7778
         # (the merged tail: code 0's E = 3 < 5 -> merged 1), the
         # p-value the scipy reference.
-        r = adherence({0: 10, 1: 20}, {0: 10, 1: 30, 2: 60})
+        r = hlp_anova_adherence({0: 10, 1: 20}, {0: 10, 1: 30, 2: 60})
         self.assertAlmostEqual(r['tv'], 0.6, places=12)
         self.assertAlmostEqual(r['kl'], 0.9336627322538263,
                                places=10)
@@ -213,7 +213,7 @@ class TestAdherence(unittest.TestCase):
         # +inf (the total incompatibility, the p is 0) — the
         # three are aligned, the TV is finite (the robust
         # "how different" number).
-        r = adherence({0: 50, 1: 50}, {0: 50, 2: 50})
+        r = hlp_anova_adherence({0: 50, 1: 50}, {0: 50, 2: 50})
         self.assertEqual(r['kl'], float('inf'))
         self.assertEqual(r['chi2'], float('inf'))
         self.assertEqual(r['p'], 0.0)
@@ -221,7 +221,7 @@ class TestAdherence(unittest.TestCase):
 
     def test_empty(self):
         # The empty DB (or the empty ideal): the nan values.
-        r = adherence({}, {0: 10, 1: 10})
+        r = hlp_anova_adherence({}, {0: 10, 1: 10})
         self.assertTrue(math.isnan(r['chi2']))
         self.assertTrue(math.isnan(r['kl']))
         self.assertTrue(math.isnan(r['tv']))

@@ -55,7 +55,7 @@ from pathlib import Path
 import numpy as np
 
 from reversi.lm.hlp_analytics import format_file_report
-from reversi.lm.hlp_anova import adherence
+from reversi.lm.hlp_anova import hlp_anova_adherence
 from reversi.tools.state_machine import Verbosity
 from reversi.lm.logistic_model import LogisticModel
 from test.reversi.closecheck import assert_close
@@ -468,7 +468,7 @@ def _pooled_adherence(ctx, name, blocks):
             continue
         for code, cc in zip(codes.tolist(), counts.tolist()):
             pool[code] = pool.get(code, 0) + cc
-    return adherence(db, pool)
+    return hlp_anova_adherence(db, pool)
 
 
 def _expected_su_line(ctx, name, blocks):
@@ -673,7 +673,7 @@ class TestSuSampleEndToEnd(unittest.TestCase):
                     continue
                 for code, cc in zip(codes.tolist(), counts.tolist()):
                     pool[code] = pool.get(code, 0) + cc
-            a = adherence(db, pool)
+            a = hlp_anova_adherence(db, pool)
             tv = a['tv']
             chi2 = "inf" if math.isinf(a['chi2']) else f"{a['chi2']:.1f}"
             p = "nan" if math.isnan(a['p']) else f"{a['p']:.2e}"

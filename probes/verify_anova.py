@@ -187,7 +187,7 @@ check("A8  no trailing whitespace outside the license header", not ws_lines(W),
       str(ws_lines(W)))
 
 from reversi.lm.hlp_anova import (  # noqa: E402
-    adherence, anova_eta_omega)
+    hlp_anova_adherence, hlp_anova_eta_omega)
 from reversi.lm.logistic_model import LogisticModel  # noqa: E402
 from reversi.tools.state_machine import Verbosity  # noqa: E402
 
@@ -209,7 +209,7 @@ def _campaign(cfg_path):
 rng = np.random.default_rng(20260919)
 groups = np.repeat(np.array([0, 1, 2]), 40)
 values = rng.normal(loc=np.array([0.0, 0.5, 1.5])[groups], scale=1.0)
-res = anova_eta_omega(groups, values)
+res = hlp_anova_eta_omega(groups, values)
 ref = py_anova(groups, values)
 check("B1  the ANOVA eta2 == the F-identity route (1e-12)",
       abs(res["eta2"] - ref["eta2"]) < 1e-12,
@@ -229,7 +229,7 @@ check("B4  the reported K / N are the distinct groups / the observations",
 # and omega2 may go negative on a null effect.
 null_groups = np.repeat(np.array([0, 1]), 50)
 null_values = rng.normal(size=100)          # the same distribution, no effect
-null_res = anova_eta_omega(null_groups, null_values)
+null_res = hlp_anova_eta_omega(null_groups, null_values)
 check("B5  eta2 >= omega2 on a real-effect case (the bias relation) and "
       "omega2 < 0 on the null case (the raw value, no clamp)",
       res["eta2"] >= res["omega2"] and null_res["omega2"] < 0.0,
@@ -239,7 +239,7 @@ check("B5  eta2 >= omega2 on a real-effect case (the bias relation) and "
 # both sides, a different shape), the kernel vs the pure-python formulas.
 db = {0: 120, 1: 95, 2: 40, 3: 12, 4: 3, 9: 7}
 ideal = {0: 900, 1: 700, 2: 400, 3: 100, 4: 20, 9: 5}
-a = adherence(db, ideal)
+a = hlp_anova_adherence(db, ideal)
 b = py_adherence(db, ideal)
 check("B6  the chi-square statistic == the independently merged pure-python "
       "one (1e-9)", abs(a["chi2"] - b["chi2"]) < 1e-9,
@@ -261,7 +261,7 @@ check("B10 the p-value == scipy's chi2.sf on the independently merged (k-1) "
 
 # The disjoint support: the DB shows a code the ideal never has — the
 # three measures stay ALIGNED (chi2 +inf, p 0, KL +inf, TV finite).
-a_dis = adherence({0: 10, 1: 5, 7: 3}, {0: 100, 1: 50, 2: 25})
+a_dis = hlp_anova_adherence({0: 10, 1: 5, 7: 3}, {0: 100, 1: 50, 2: 25})
 b_dis = py_adherence({0: 10, 1: 5, 7: 3}, {0: 100, 1: 50, 2: 25})
 check("B11 the disjoint support: chi2 = +inf, p = 0, KL = +inf and a finite "
       "TV — the alignment documented in the mirror",
@@ -549,7 +549,7 @@ check("F5  the D-298 split boundary: hlp_anova carries the ANOVA "
       "family (the ANOVA + the adherence + the compute / report "
       "methods), the SU kernels live in hlp_su_analysis (the "
       "private _symmetric_uncertainty)",
-      all(k in hat for k in ("def anova_eta_omega", "def adherence",
+      all(k in hat for k in ("def hlp_anova_eta_omega", "def hlp_anova_adherence",
                              "def hlp_anova_compute_analysis",
                              "def hlp_anova_generate_report"))
       and "def _symmetric_uncertainty" in

@@ -3,19 +3,20 @@ The ANOVA family module (renamed from hlp_feature_analysis, D-315 — at the D-2
 hlp_su_analysis, and what remained was exactly the ANOVA family): the pure-math kernels over the frequency tables +
 the two FLOW functions (the wrk/hlp boundary, moved here from wrk_anova at D-315). NO DB, NO positions. Since the
 D-311 the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables) is the SAME
-`anova_eta_omega` call, so the kernel serves TWO consumers (the ANOVA level + the ANALYTICS tables).
+`hlp_anova_eta_omega` call, so the kernel serves TWO consumers (the ANOVA level + the ANALYTICS tables).
 
 ## API
-- `anova_eta_omega(groups, values) -> dict` — the one-way ANOVA effect sizes: the observed codes as the groups (K), the
-  target = the continuous training game values (N). eta² = SS_eff / SS_tot; omega² = (SS_eff - (K-1) MS_err) / (SS_tot +
-  MS_err), MS_err = SS_err / (N - K). Guards: K = 1 -> eta² = omega² = 0 (degenerate, by convention); K > N ->
-  ValueError (unreachable); omega² may be slightly negative (the null effect) — the raw value is reported. Returns
-  {'eta2', 'omega2', 'k', 'n'}.
-- `adherence(db_counts, ideal_counts) -> dict` — the adherence (c) trio: the DB configuration distribution (the observed
-  codes of the training positions) vs the ideal distribution (the corpus frequencies, normalized), the fixed trio (no
-  config whitelist): the chi-square (the p-value + the merged-tail count), the KL (the 0-log-0), the TV
-  (the robust "how different" number). The two are aligned over the union of the observed codes (the missing side is 0).
-  Returns {'chi2', 'p', 'merged', 'kl', 'tv'}; the values are nan if either distribution is empty.
+- `hlp_anova_eta_omega(groups: npt.ArrayLike, values: npt.ArrayLike) -> dict` — the one-way ANOVA effect sizes: the
+  observed codes as the groups (K), the target = the continuous training game values (N). eta² = SS_eff / SS_tot;
+  omega² = (SS_eff - (K-1) MS_err) / (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards: K = 1 -> eta² = omega² = 0
+  (degenerate, by convention); K > N -> ValueError (unreachable); omega² may be slightly negative (the null effect) —
+  the raw value is reported. Returns {'eta2', 'omega2', 'k', 'n'}.
+- `hlp_anova_adherence(db_counts: dict[str | int, int | float], ideal_counts: dict[str | int, int | float]) -> dict` —
+  the adherence (c) trio: the DB configuration distribution (the observed codes of the training positions) vs the ideal
+  distribution (the corpus frequencies, normalized), the fixed trio (no config whitelist): the chi-square (the p-value
+  + the merged-tail count), the KL (the 0-log-0), the TV (the robust "how different" number). The two are aligned over
+  the union of the observed codes (the missing side is 0). Returns {'chi2', 'p', 'merged', 'kl', 'tv'}; the values are
+  nan if either distribution is empty.
 - `hlp_anova_compute_analysis(ctx) -> tuple` — the ANOVA analysis (the two passes over the training set): the
   eta²/omega² per sub-variable + the adherence per sub-variable (None when the corpus is absent — the graceful
   degradation, the SU_ANALYSIS level disabled). Returns (anova_lines, adherence_lines).
@@ -61,7 +62,12 @@ D-311 the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of bot
 None.
 
 ## Conventions
-- The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation).
+- The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation); the
+  descriptive docstring style (the D-317: the imperative first line, the body paragraph, the typed Google-style Args /
+  Returns).
+- The 2 PURE-MATH kernels are the @validate_call Pydantic boundary (the typed ArrayLike / dict parameters, the
+  ConfigDict arbitrary_types_allowed); the 2 FLOW functions stay undecorated (the ctx idiom — the hlp_design_matrix /
+  D-303 precedent).
 - The pure functions over the numpy count arrays; no state, no DB, no positions.
 - The 0-log-0 convention (the standard KL / TV convention) throughout.
 - The line width is the D-314 reflow (the 120-char, no hard limit).

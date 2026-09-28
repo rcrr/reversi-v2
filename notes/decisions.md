@@ -3496,3 +3496,62 @@ D-316 | 2026-09-25 | the ANALYTICS report: the Omega-Squared line after the Eta-
           verify_analytics 0 mismatch (the probe recomputes its
           masked hash at runtime — no pinned golden); the 2
           mirrors updated (hlp_analytics, test_wrk_analytics).
+D-317 | 2026-09-25 | hlp_anova: the kernels renamed hlp_anova_eta_omega / hlp_anova_adherence + the @validate_call boundary + the descriptive docstring style (all 9) + the boundary comment removed
+          Roberto: (1) the boundary comment above __all__ is
+          inutile — remove it (I agreed: it duplicates the
+          mirror + carries D-298/D-315 history that belongs in
+          decisions.md, and it is "obvious" — outside the
+          design-pointer comment exception, D-269/D-270); (2)
+          he PROPOSED a docstring style for adherence (the
+          imperative first line, the explanatory body, the
+          typed Google-style Args / the key-by-key Returns) —
+          "uno stile che trovo piu' chiaro ed appropriato"; (3)
+          Pydantic validation on the public calls. Analysis:
+          the style is fully compatible with the house
+          WHAT-only rule (the shape becomes explicit, no
+          D-XXX, no HOW) — the "design section 3.5" pointer
+          drops from the kernel docstrings (the mirror keeps
+          it, the designated home); the lm idiom (verified on
+          every hlp) = every public function
+          @validate_call(config=ConfigDict(
+          arbitrary_types_allowed=True)) EXCEPT the ctx
+          functions (the LMContext is a TYPE_CHECKING import —
+          decorating would NameError at decoration time; the
+          hlp_design_matrix circular-import idiom, documented
+          in D-303). All call sites checked: the kernels
+          receive only Python lists / numpy arrays /
+          Python-int dicts (the tolist() / int() conversions
+          verified in _compute_adherence_lines +
+          _su_sample_stats) — zero coercion risk; ~70 calls
+          per run max (not a hot loop — the numba / numpy
+          loops are). Roberto's rulings: (b) ALL 9 docstrings
+          in the new style (the module is the unit, it becomes
+          the exemplar); the rule codification "lo
+          verifichiamo dopo"; the decorators ONLY where no ctx
+          in the args (the 2 kernels — the 2 FLOW stay
+          undecorated); the kernels RENAMED hlp_anova_eta_omega
+          / hlp_anova_adherence (the hlp_X_ prefix family
+          standard, like the D-315 FLOW names).
+          IMPLEMENTATION: the comment gone (imports ->
+          __all__ -> functions, the wrk_anova post-D-313
+          shape); the 4 public names all share the hlp_anova_
+          prefix; the 2 kernels decorated + annotated (npt.
+          ArrayLike; dict[str | int, int | float] — the
+          docstring types became the real annotations); all 9
+          docstrings rewritten (the formula block of the ANOVA
+          kernel kept — it IS the WHAT contract); the
+          consumers updated (hlp_analytics import + 3 calls,
+          test_hlp_anova import + 8 calls, test_wrk_analytics
+          import + 2 calls, the verify_anova probe import + 4
+          calls + the F5 pin re-pinned to the new def names);
+          wrk_anova untouched (it imports only the FLOW
+          functions). VERIFICATION: the fast suite 958/0
+          (99 skipped); the hand-computed goldens intact (eta2
+          0.2 / omega2 -1/7, the adherence trio TV 0.6 KL
+          0.9336627322538263 chi2 47.77777777777778 — the
+          smoke test + the suite); the guard ValueErrors
+          survive (they raise AFTER the validation, inside the
+          function); the verify_anova F5/A4/A5 + the
+          verify_analytics + the verify_su_analysis F2/F6
+          green; the docs audit + the notes_format clean; the
+          5 mirrors updated.

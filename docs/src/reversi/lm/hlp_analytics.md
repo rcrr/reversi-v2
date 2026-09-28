@@ -26,7 +26,7 @@ section when the feature set has an intercept).
   training size (`_SU_CORPUS_TRAIN_RATIO`), each per-feature table gains the `PROBABILITY` / `SU_PROBABILITY` columns
   (after FREQUENCY) + the `SU Sample Consistency` header line (under the Eta-Squared line). `_su_sample_stats` builds
   per feature: the pooled corpus counts (the `ctx.su_analysis_tables['marginal']` summed over the feature's instance
-  columns), the corpus observation total, and the `adherence` of the pooled training distribution (the
+  columns), the corpus observation total, and the `hlp_anova_adherence` of the pooled training distribution (the
   `ctx.hlp_indexes.indexes` over the feature's columns) vs the pooled corpus distribution — the chi-square
   goodness-of-fit + the TV / KL, the hlp_anova kernel (the single source, the D-298 split). `_su_verdict`
   maps the TV to the verdict over the bands `_SU_TV_CONSISTENT = 0.01` / `_SU_TV_MARGINAL = 0.05`: CONSISTENT /
@@ -42,7 +42,7 @@ section when the feature set has an intercept).
   comparable).
 - `_format_mobility_feature_table`: the per-configuration ASCII table for one mobility feature — header: the fallback
   line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols + Config
-  Counts (C/IA/IC) lines, the Eta-Squared + Omega-Squared statistics (the shared `anova_eta_omega` kernel over the
+  Counts (C/IA/IC) lines, the Eta-Squared + Omega-Squared statistics (the shared `hlp_anova_eta_omega` kernel over the
   pooled codes + the repeated values — the D-311 unification, replacing the inline SS_between/SS_total; the D-316
   omega line follows the eta line), the optional SU Sample
   Consistency line; rows (`print_rows`-gated) with the per-configuration weights — STATUS: IC (below the cut-off —

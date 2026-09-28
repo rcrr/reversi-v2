@@ -20,7 +20,8 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   group assignment — the `feature_set.compute_indexes` of the INDEXES level) + the `ctx.game_values` (the continuous
   training game values, the target) + the `ctx.su_analysis_tables` (the corpus frequency tables, the cross-level
   blackboard from the SU_ANALYSIS level).
-- **The ANOVA** — the `anova_eta_omega(groups, values)`: the one-way ANOVA, the observed raw codes as the groups (K),
+- **The ANOVA** — the `hlp_anova_eta_omega(groups, values)`: the one-way ANOVA, the observed raw codes as the groups
+  (K),
   the game values as the target (N). The per-sub-variable raw code is `indexes[:, c0 + i]` (the block layout, the
   `fset.feature_blocks` property). eta² is the biased sample share; omega² is the unbiased population estimate — the
   pair is reported together (omega² may be slightly negative, the null effect — the raw value is reported).
@@ -53,7 +54,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.
 - The raw codes (the group assignment) come from the `ctx.hlp_indexes.indexes` (the per-position, per-column code index,
   the `feature_set.compute_indexes`).
-- The ANOVA / the adherence are the hlp_anova kernels — the from-frequency-tables math. `anova_eta_omega`
+- The ANOVA / the adherence are the hlp_anova kernels — the from-frequency-tables math. `hlp_anova_eta_omega`
   is SHARED (the D-311): the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables)
   calls the same kernel — the single-instance features' ANALYTICS value == this level's value (pinned by
   `TestEtaSquaredCrossLevel` in test_wrk_analytics).
