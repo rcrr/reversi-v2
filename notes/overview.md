@@ -82,6 +82,10 @@ tables at the end of this file.
   decisions (D-289 / D-288 / D-060), described hlp internals (the binio flow, the consistency signature) and the
   state-machine re-raise — none of it is in the worker (7 of the 10 sibling workers have no module docstring). The
   mirror doc intro is re-synced (module-accurate; the D-pointers stay in the mirror, their home).
+- The wrk_anova module docstring is REMOVED (D-313, the D-312 precedent): the same disease, milder — one D-XXX (the
+  "D-060 semantics" pointer) + the two kernels misattributed to the module (they live in hlp_feature_analysis, shared
+  since D-311). The mirror doc needed no change (its intro is already module-accurate and states the down fact — the
+  no-op, nothing published).
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).

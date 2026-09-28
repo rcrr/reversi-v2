@@ -25,19 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-"""
-The ANOVA worker (the eta²/omega² + the
-adherence, step 6): the one-way ANOVA effect sizes (the
-eta²/omega² per sub-variable) + the adherence (the fixed trio
-— the chi-square + the KL + the TV — the DB configuration
-distribution vs the ideal corpus frequencies). NO cache (a
-diagnostic; the recompute is seconds).
-The GRACEFUL DEGRADATION: if the SU_ANALYSIS level was
-disabled (no corpus in the ctx), the adherence is skipped with
-a log note; the eta²/omega² runs (it does not need the corpus).
-The D-060 semantics.
-"""
-
 from __future__ import annotations
 
 import csv

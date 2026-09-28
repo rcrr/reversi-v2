@@ -3351,3 +3351,40 @@ D-312 | 2026-09-25 | the wrk_su_analysis module docstring REMOVED (the house de-
           Roberto): the wrk_anova docstring still ends with
           "The D-060 semantics." (the same violation; a
           separate sweep is his call).
+D-313 | 2026-09-25 | the wrk_anova module docstring REMOVED (the D-312 precedent — the house de-history style)
+          Roberto: "La docstring del modulo wrk_anova ha lo
+          stesso problema — non e' accurata, ci sta cose che
+          non sono nel modulo, cita le decisioni. Leggi il
+          modulo e riformula. Eventualmente rimuoviamola come
+          per wrk_su_analysis." Clause-by-clause audit: the
+          docstring is CLEANER than the su_analysis one —
+          only 1 D-XXX ("The D-060 semantics." — a pure
+          pointer with no content: the module has NO error
+          handling; the observable fact, the down is a no-op
+          that publishes nothing, is already in the _down
+          comment + the mirror); 2 soft kernel
+          misattributions (the eta²/omega² math lives in the
+          shared anova_eta_omega kernel, the adherence trio in
+          the shared adherence kernel — both
+          hlp_feature_analysis, the module only CALLS them);
+          everything else is in-module WHAT (the
+          graceful-degradation branch, the NO-cache level
+          fact). Two options: (1) the thin rewrite / (2) the
+          removal. Roberto: "Procedi con l'opzione 2." The
+          docstring REMOVED (the module goes straight from the
+          license header to the imports; now 8 of the 10
+          workers have no module docstring). The mirror doc
+          needed NO change: its intro is already
+          module-accurate, carries no D-XXX in the intro, and
+          already says "The down is a no-op — the worker
+          publishes nothing on the ctx" (it had replaced the
+          D-060 pointer with the fact long ago). The _down
+          code comment ("the D-060 recovery is trivially
+          satisfied") stays — a source comment, where design
+          pointers are allowed (D-269/D-270). VERIFICATION:
+          the fast suite 958/0 (99 skipped); verify_anova 0
+          mismatch; the docs audit only the 7 pre-existing
+          size findings; notes_format 0 rejoins. FOLLOW-UP
+          (Roberto, post-commit): the wrk_anova.py reflow to
+          the 120-char line width — a separate step, his
+          call on the commit.
