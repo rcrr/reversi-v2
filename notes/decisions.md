@@ -4180,9 +4180,13 @@ D-328 | 2026-09-28 | the new code-format rules on hlp_plot (the header +
           come default ... cosa ne pensi ?" -> "Facciamo b, e mettiamo
           anche _TXT_X e _TXT_Y nel config, con il nome corretto, di cosa
           siano. Procedi!"
-          FORMAT: the D-323..D-327 pattern. hlp_plot.py 504 -> 655 lines
-          (docstring growth only — the file was already 120-clean, no
-          reflows); the 4 header trailing spaces cleaned; the D-XXX tags
+          FORMAT: the D-323..D-327 pattern. hlp_plot.py 504 -> 556 lines (the
+          D-314 reflow to the 120-char width on the code + the docstrings +
+          the comments — applied on Roberto's catch, the first commit had
+          shipped the old line-wrapping — and the orphaned `#:` constants
+          comment block REMOVED, the 11 values now config fields, the design
+          facts consolidated in the PlotStyle docstring); the 4 header
+          trailing spaces cleaned; the D-XXX tags
           out of the header block (D-149/D-148 + the "R script is a
           scratch artifact slated for deletion" aside) and of the ~20
           per-plot comments (D-150 x8, D-151 x2, D-153, D-155) with the
@@ -4191,9 +4195,10 @@ D-328 | 2026-09-28 | the new code-format rules on hlp_plot (the header +
           in the plot-5 comment paraphrased in English (rule 4); the
           "(the R p0/p1/p2 ...)" docstring provenance out; _series_label
           got a docstring; the full D-318 form (imperative first line +
-          typed Args/Returns) on all 15 defs. wrk_plot.py 121 -> 140
-          (header + the 3 D-149 tags + the "18th/10th" ordinals + the
-          style-construction comment). The 2 test-file headers cleaned.
+          typed Args/Returns) on all 15 defs. wrk_plot.py 121 -> 130 (header
+          + the 3 D-149 tags + the "18th/10th" ordinals + the
+          style-construction comment, packed to the 120 width). The 2
+          test-file headers cleaned.
           FEATURE: PlotConfig +13 fields (the keep-it-simple descriptions,
           D-324): binned_note (the _BINNED_NOTE str), jitter_seed 42 ge=0,
           kde_seed 43 ge=0, kde_max_points 100_000 ge=1,

@@ -148,9 +148,10 @@ tables at the end of this file.
   same pass on wrk_optimize.py (the 2 >120 log lines, the 4 D-096 comment tags) + both test-file headers; zero
   behavioral change (the docstring-stripped AST proof on both files), probe re-pinned (A1/A14 line indices/B1) and
   found the stale "83-check" mirror claim (the probe is 78 since the D-106 slimming).
-- The new code-format rules land on the PLOT domain (D-328, option b + the label dicts): hlp_plot.py 504 -> 655
-  (the D-318 docstrings on all 15 defs — the largest growth of the series — + the ~20 D-XXX comment tags out + the
-  2 Italian quotes paraphrased; the file was already 120-clean, so no reflows), and the FEATURE: the 11 hardcoded
+- The new code-format rules land on the PLOT domain (D-328, option b + the label dicts): hlp_plot.py 504 -> 556
+  (the D-314 reflow to the 120-char width + the D-318 docstrings on all 15 defs + the orphaned constants comment
+  block out — the design facts in the PlotStyle docstring — + the ~20 D-XXX comment tags out + the 2 Italian quotes
+  paraphrased), and the FEATURE: the 11 hardcoded
   rendering constants AND the _TXT_X/_TXT_Y label dicts become the 13 PlotConfig knobs (the PlotStyle dataclass in
   hlp_plot — the schema cannot import back; the builders take (d, run_name, style); the parity plot now consumes
   axis_gv, it was the 64.0 literal); zero behavioral change at the defaults (the AST code-equivalence proof + the
