@@ -36,6 +36,7 @@ a capturing lambda.
 ## Integration
 
 - The DB-gated complement: `test_lm_worker_full_chain` (the A2030/A2050 chains run the level end-to-end; the A2030 log
-  pin) + `probes/verify_logistic_model.py` V3c (the 18-level pipeline shape, CLIENT_CHECK 17th and PLOT last).
+  pin) + `probes/verify_logistic_model.py` V3c (the 19-level pipeline shape, CLIENT_CHECK 17th, PLOT 18th and
+  FINAL_LOG_PRINT last — the D-321 re-pin).
 - The level under test: `reversi/lm/wrk_client_check.py` (wrk_client_check.md); the client factories:
   `reversi/lm/client.py` (client.md); the v2 file format: `reversi/lm/model_weights.py` (model_weights.md).

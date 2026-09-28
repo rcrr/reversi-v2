@@ -452,6 +452,13 @@ class LMConfig(LMBaseConfig):
                     "StateMachine) or 'last' (the full pipeline). "
                     "Consumed by the facade's run() when no explicit "
                     "target is given; a blank value means 'last' too.")
+    log_file_name: str | None = Field(
+        default=None,
+        description="The FINAL_LOG_PRINT output file name (relative "
+                    "to base_dir, the 19th level, D-321): the full "
+                    "run log (all levels, the maximum relevance, "
+                    "the live-line format). None (the entry absent, "
+                    "the default) -> no file, the level is a no-op.")
 
     @model_validator(mode="after")
     def check_su_pairs_feature_set(self) -> "LMConfig":

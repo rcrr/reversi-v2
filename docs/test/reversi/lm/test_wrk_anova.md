@@ -34,4 +34,4 @@ ctx, the synthetic indexes + the game values).
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the step 6 worker position: between the INDEXES worker and
   the WMAPS data module).
-- The worker (wrk_anova) is registered at step 6 by the wiring (the 18 levels, NO cache slot).
+- The worker (wrk_anova) is registered at step 6 by the wiring (the 19 levels, NO cache slot).

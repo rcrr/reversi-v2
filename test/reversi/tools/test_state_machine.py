@@ -811,6 +811,41 @@ class TestDisplayGoldens(unittest.TestCase):
             "[2026-08-29 12:34:56 UTC] [01][CONFIG         ] "
             "[ INFO:    HIGH] Completed UP step for CONFIG")
 
+    def test_format_event_log_full_replay(self):
+        """The D-321 render (the FINAL_LOG_PRINT file source): all
+        buffered entries — every relevance, independent of the
+        verbosity gate — as live-line text. The machine runs
+        verbosity VERY_LOW (nothing but ERROR prints): the
+        TRACE / DEBUG / INFO / WARN buffer entries still all
+        appear in the render, in the live line format."""
+        with patch('reversi.tools.state_machine.datetime',
+                   self._frozen_datetime()):
+            buf = StringIO()
+            with redirect_stdout(buf):
+                context = Context()
+                workers = [
+                    Worker("CREATED", MagicMock(), MagicMock()),
+                    Worker("CONFIG", MagicMock(), MagicMock())
+                ]
+                sm = StateMachine(workers, context, Verbosity.VERY_LOW)
+                sm.log_event(Relevance.TRACE, "t")
+                sm.log_event(Relevance.DEBUG, "d")
+                sm.log_event(Relevance.INFO, "i")
+                sm.log_event(Relevance.WARN, "w")
+            text = sm.format_event_log()
+        self.assertEqual(buf.getvalue(), "")  # nothing printed
+        lines = text.splitlines()
+        self.assertEqual(len(lines), 5)  # init + 4
+        self.assertEqual(lines[0],
+            "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
+            "[DEBUG:VERY_LOW] StateMachine initialized.")
+        self.assertEqual(lines[-1],
+            "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
+            "[ WARN:VERY_LOW] w")
+        # The injection pin: the context carries the bound
+        # renderer (the D-321 worker accessor).
+        self.assertEqual(context.format_event_log, sm.format_event_log)
+
     def test_show_event_log_golden(self):
         """End-to-end golden: the move's live lines, then the table —
         banner, 66-underscore separator, header (UTC timestamp,

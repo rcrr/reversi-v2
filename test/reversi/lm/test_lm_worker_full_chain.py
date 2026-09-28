@@ -146,8 +146,8 @@ class TestFullChainA2030(unittest.TestCase):
 
         # Run the model chain.
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 18)
-        self.assertEqual(self.rlm.current_worker_name, 'PLOT')
+        self.assertEqual(self.rlm.current_step, 19)
+        self.assertEqual(self.rlm.current_worker_name, 'FINAL_LOG_PRINT')
 
         # --- Validation metrics (assert_close goldens; bid [5] vld, 20000 samples) ---
         m = ctx.vld_metrics
@@ -456,8 +456,8 @@ class TestFullChainA2050(unittest.TestCase):
 
         # Run the model chain.
         self.rlm.move_to_last()
-        self.assertEqual(self.rlm.current_step, 18)
-        self.assertEqual(self.rlm.current_worker_name, 'PLOT')
+        self.assertEqual(self.rlm.current_step, 19)
+        self.assertEqual(self.rlm.current_worker_name, 'FINAL_LOG_PRINT')
 
         # --- Validation metrics (assert_close goldens; bid [6] vld, 199932 samples) ---
         m = ctx.vld_metrics

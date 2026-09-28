@@ -11,9 +11,10 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
 | Types | `Relevance` | `IntEnum` TRACE=0, DEBUG=1, INFO=2, WARN=3, ERROR=4 |
 | Context | `Context` | empty base class for pipeline contexts — the shared state passed between workers |
 | Worker | `Worker(name, up_callable, down_callable)` | one pipeline step; `@validate_call` on `__init__`/`up`/`down`; `__repr__` = `Worker('NAME')` |
-| StateMachine | `StateMachine(workers, context, verbosity=STANDARD)` | `@validate_call` (arbitrary_types_allowed): non-Worker list entries / non-Context → ValidationError; duplicate worker names rejected case-insensitively (fail-fast); injects `log_event` + the two cache closures onto the context; emits the init DEBUG log |
+| StateMachine | `StateMachine(workers, context, verbosity=STANDARD)` | `@validate_call` (arbitrary_types_allowed): non-Worker list entries / non-Context → ValidationError; duplicate worker names rejected case-insensitively (fail-fast); injects `log_event` + `format_event_log` (D-321) + the two cache closures onto the context; emits the init DEBUG log |
 | StateMachine | `StepMove` / `LogEntry` | `@dataclass` records: one executed step (step, worker_name, direction, start, finish, duration) / the frozen 5-field typed log record (`asdict()` for dumps) |
 | StateMachine | `log_event(relevance, message)` | always appends a LogEntry; prints iff gated; `@validate_call` |
+| StateMachine | `format_event_log()` | the D-321 render: the full buffer (all relevances — the max-relevance replay, independent of the verbosity gate) as live-line text; the shared `_format_event_line` static is the single source of truth (the live print + this render + the injected context accessor, the FINAL_LOG_PRINT file source) |
 | StateMachine | `show_event_log()` / `show_history_of_moves()` | the terminal pretty-printers (frozen display goldens) |
 | StateMachine | `export_history_of_moves_as_csv(filename)` | ISO-8601 UTC timestamps, float durations; creates missing parent dirs; `@validate_call` |
 | StateMachine | `move_to_step(int \| str)` / `move_to_last()` | the public move API (the gate below); `move_to_last` = name-based dispatch to the last worker, no-op when empty |
@@ -34,8 +35,9 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
   ValidationError is converted to the pinned public TypeError — a DOMAIN worker's pydantic ValidationError raised during
   the move propagates unchanged. bool is not a valid step; np.int64 / float rejected with the same TypeError; unknown
   name ValueError; out of bounds IndexError.
-- **Context injection (side effect)** — `__init__` unconditionally binds onto the passed context: `log_event` (this
-  machine's bound method) + `get_cache_file_path_for_current_level` + `get_cache_file_full_path_for_current_level`. A
+- **Context injection (side effect)** — `__init__` unconditionally binds onto the passed context: `log_event` +
+  `format_event_log` (the D-321 FINAL_LOG_PRINT accessor, the bound render) (this machine's bound methods) +
+  `get_cache_file_path_for_current_level` + `get_cache_file_full_path_for_current_level`. A
   context shared by two machines re-binds to the last machine built on it. The domain workers depend on this injection
   (a future redesign is parked in ideas.md).
 - **Cache path** — `{cache_files_prefix}{level:02}_{worker}.dat` with `level = current_step`, i.e. the currently
@@ -45,7 +47,9 @@ Reversi — the domain modules (e.g. the LM facade) subclass Context and feed it
   raises AttributeError (the CONFIG worker must populate it first).
 - **Logging** — every event becomes a frozen `LogEntry` (attribute access, `asdict()` for file/DB dumps); the live line
   is `[ts UTC] [step][name] [REL:VERB] msg` with enum names in fixed-width right-justified fields (`{REL:>5}:{VERB:>8}`,
-  14 chars total); `show_event_log` / `show_history_of_moves` render the frozen-golden tables.
+  14 chars total); `show_event_log` / `show_history_of_moves` render the frozen-golden tables. The live print and the
+  buffered replay (`format_event_log`, D-321 — the FINAL_LOG_PRINT file source) share the `_format_event_line` static
+  (the single source of truth for the line format).
 
 ## Verified invariants
 

@@ -91,6 +91,7 @@ MODULES=(
     test.reversi.lm.test_wrk_client_check
     test.reversi.lm.test_hlp_plot
     test.reversi.lm.test_wrk_plot
+    test.reversi.lm.test_wrk_final_log_print
     test.reversi.lm.test_lm_worker_full_chain
 )
 

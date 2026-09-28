@@ -28,5 +28,5 @@ through WMAPS on a fresh base dir).
 
 - The end-to-end cache round-trip pin (both directions) + the golden content pin (the full (10,7) X), as in the other
   worker test files.
-- The step pins (7 = WMAPS, 8 = DESIGN_MTR) lock the 18-level pipeline ordering — a level insertion/reorder breaks both.
+- The step pins (7 = WMAPS, 8 = DESIGN_MTR) lock the 19-level pipeline ordering — a level insertion/reorder breaks both.
 - The per-feature contiguity + checksum facts are probe-side.

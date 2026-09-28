@@ -1,8 +1,8 @@
 # reversi/lm/logistic_model.py
 The first concrete domain facade: it wires the generic StateMachine to the LM (Reversi Logistic Model) pipeline — a
-4-step construction (validate the domain paths, build the shared LMContext blackboard, assemble the 18-level worker
+4-step construction (validate the domain paths, build the shared LMContext blackboard, assemble the 19-level worker
 list, hand the parts to BaseModel → StateMachine) — plus the LMContext @dataclass: config state, every data artifact
-produced by the 18 levels, the 9 checksum fields, and the 3 infrastructure callables the machine injects at
+produced by the 19 levels, the 9 checksum fields, and the 3 infrastructure callables the machine injects at
 construction. It is also the pipeline's script entry (the `build_model` entry, the `__main__` block).
 
 ## API
@@ -34,31 +34,34 @@ LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     4. super().__init__(workers, context, verbosity)
            |
 BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
-    the two cache closures into the context (replacing the lambda defaults),
+    format_event_log (D-321) + the two cache closures into the context
+    (replacing the lambda defaults),
     step 0 / "CREATED"
 ```
 
 - **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
-  assemble the worker list (sentinel + the 18 factory calls), (4) `super().__init__` hands workers + context + verbosity
-  to `BaseModel` → `StateMachine`, which injects `log_event` + the two cache-path closures into the context (replacing
-  the lambda defaults under the same names — the same mechanism as `log_event`).
+  assemble the worker list (sentinel + the 19 factory calls), (4) `super().__init__` hands workers + context + verbosity
+  to `BaseModel` → `StateMachine`, which injects `log_event` + `format_event_log` (D-321) + the two cache-path
+  closures into the context (replacing the lambda defaults under the same names — the same mechanism as `log_event`).
 - **LMContext is the shared blackboard** — a `@dataclass` extending the plain (non-dataclass) `Context` base; workers
   publish to the pre-declared fields (an ad-hoc attribute works but breaks the pattern); `cfg` must be populated by the
   CONFIG worker before any cache call (the injected closures read `ctx.cfg.cache_files_prefix` / `ctx.cfg.base_dir` and
   raise AttributeError otherwise).
-- **Pipeline shape: 18 levels, all active** —
+- **Pipeline shape: 19 levels, all active** —
 
   ```
   CREATED (0, sentinel) -> CONFIG -> FEATURES -> SU_ANALYSIS
   -> POSITIONS -> INDEXES -> ANOVA -> WMAPS -> DESIGN_MTR
   -> ZED -> GRADIENT -> OPTIMIZE -> GENERATE -> VLD_POSITIONS
   -> VALIDATE -> ANALYTICS -> SAVE -> CLIENT_CHECK -> PLOT
+  -> FINAL_LOG_PRINT
   ```
-(SU_ANALYSIS step 3, the rlmwf_03 slot; ANOVA step 6, NO cache — the PLOT is step 18)
+(SU_ANALYSIS step 3, the rlmwf_03 slot; ANOVA step 6, NO cache; PLOT step 18; FINAL_LOG_PRINT step 19, NO cache, the
+optional `log_file_name` gate — D-321)
 
-No commented factory imports or worker-list entries remain. The factories follow `wrk_x()` → `Worker` (18 modules,
-`wrk_config` … `wrk_plot`); the tests patch them by name in THIS module's namespace
-(`reversi.lm.logistic_model.wrk_config`, …). All 18 factories carry the uniform `@validate_call` gate.
+No commented factory imports or worker-list entries remain. The factories follow `wrk_x()` → `Worker` (19 modules,
+`wrk_config` … `wrk_final_log_print`); the tests patch them by name in THIS module's namespace
+(`reversi.lm.logistic_model.wrk_config`, …). All 19 factories carry the uniform `@validate_call` gate.
 - **use_cache is per-run** — `wrk_config` sets `ctx.use_cache` from the config (`hlp_config_schemas`
   `use_cache: bool = True`); the CONFIG down path resets it to None (the cache_switch pattern).
 - **A2xxx naming (legacy production)** — the "A2050" / "A2030" labels of the full-chain tests are the build-config

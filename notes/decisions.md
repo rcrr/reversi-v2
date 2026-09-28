@@ -3663,3 +3663,88 @@ D-320 | 2026-09-25 | the two stale notes docs archived to notes/analyses/histori
           historical record). VERIFICATION: the residual grep
           shows only the historical pointers; the
           notes_format clean; no code / docs-mirror impact.
+D-321 | 2026-09-28 | the FINAL_LOG_PRINT level (the 19th, the pipeline's last): the full run log on file, the optional log_file_name config gate
+          Roberto: "Vorrei valutare di aggiungere un nuovo livello.
+          Posizionato ultimo, dopo PLOT. Lo chiamiamo
+          FINAL_LOG_PRINT. Come attivita' scrive su file il LOG
+          FULL di tutti i livelli alla massima rilevanza.
+          Aggiungiamo il worker: wrk_final_log_print. Legge un
+          parametro di configurazione dal JSON log_file_name,
+          facoltativo senza valore di default (default None). Se
+          la entry manca, il file NON viene generato. Per favore
+          sviluppa una analisi dettagliata, la valutiamo insieme,
+          ti dico poi come procedere." The analysis: the machine
+          already buffers EVERY event (the LogEntry list, filled
+          independent of the display verbosity gate — the "full
+          log at maximum relevance" already exists in memory; the
+          LogEntry docstring anticipated the file/DB dumps); the
+          design follows the house pattern (the guard in the
+          worker, the logic in the hlp, the PLOT idiom). Roberto:
+          "Perfetto! Procedi." (P1 the live-line replay format,
+          P2 the no-op log line, P3 base_dir-relative — my
+          recommendations, accepted as-is.)
+          IMPLEMENTATION: (1) the generic-zone addition —
+          state_machine.py: the _format_event_line static (the
+          live-line single source of truth, the log_event print
+          refactored onto it) + format_event_log() (the full
+          buffer render, all relevances, the live-line text) +
+          the context injection (self.context.format_event_log =
+          self.format_event_log, the established injection
+          pattern); (2) the config — LMConfig.log_file_name:
+          str | None = None (the top-level field, the D-321 gate;
+          the absent entry -> no file); (3) hlp_final_log_print.
+          py — the single function
+          hlp_final_log_print_write_log(ctx) -> Path (undecorated,
+          the ctx idiom D-317; the D-318 docstring style; base_dir
+          / log_file_name, the parents created, UTF-8); (4)
+          wrk_final_log_print.py — the factory
+          Worker("FINAL_LOG_PRINT", _up, _down); the _up gate (the
+          None -> the "skipped" no-op log) + the hlp call; the
+          _down no-op (the file is a base_dir artifact); (5) the
+          registration in logistic_model (the 19th level, after
+          PLOT — 20 workers with the sentinel); (6) the tests —
+          the new test_wrk_final_log_print (5 NO-DB mock-ctx + 1
+          LONG-tier e2e: the rlm_00 chain, the log_file_name set
+          post-CONFIG, verbosity NONE — nothing prints, the buffer
+          captures everything; the write-asymmetry pins: the file
+          carries its own "Starting" line, NOT the "Completed" nor
+          the "full log written" lines — both post-write; the line
+          count == the buffer at the write) + the
+          test_state_machine TestDisplayGoldens
+          test_format_event_log_full_replay (the frozen-clock
+          full-replay golden, the VERY_LOW verbosity, the
+          injection pin); the full-chain step pins 18/PLOT ->
+          19/FINAL_LOG_PRINT (both classes); run_utests.sh + the
+          new module; (7) the probes — the new
+          verify_final_log_print (12 checks, no DB: the module
+          structure A1-A6 + the synthetic-machine behavior B1-B4,
+          the write-asymmetry invariant, the independent
+          live-line re-derivation, the max-relevance replay) +
+          the hub verify_logistic_model V3c re-pin 18 -> 19 (the
+          precedent: 10->11->...->18 at each level enablement).
+          THE WRITE ASYMMETRY (documented, not a defect): the file
+          is the buffer at the moment of the write — it carries
+          the "Starting worker FINAL_LOG_PRINT, UP step" line (the
+          machine logs it BEFORE the worker call) but not the
+          post-write lines (the hlp confirmation + the "Completed
+          UP step").
+          VERIFICATION: the fast suite 965 tests OK (100 skipped;
+          +7: the 5 NO-DB + the 1 e2e + the 1 render golden); the
+          LONG full-chain (A2030) + the VLONG (A2050) 9/9 OK (the
+          new 19/FINAL_LOG_PRINT pins, the no-op path — the
+          fixtures carry no log_file_name, the report hashes
+          untouched); verify_final_log_print 12/12 +
+          verify_logistic_model ALL CHECKS PASSED; the mirrors: 3
+          new (wrk/hlp/test final_log_print) + the updates
+          (logistic_model 18->19 everywhere, hlp_config_schemas
+          the field, state_machine the method + the injection,
+          the 7 "18-level" refs, the test_state_machine golden
+          count); the overview: 3 new table rows + the
+          19-level/965-test state line + the D-321 recent bullet;
+          the docs/notes audit clean.
+          DESIGN NOTE: zero impact on the existing runs — the gate
+          is the optional entry (the fixtures + the external
+          A2030/A2050 configs untouched, the no-op path, the
+          goldens safe); the "maximum relevance" is structural (the
+          buffer fills on every log_event, independent of the
+          display gate) — no logging change was needed.

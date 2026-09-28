@@ -160,6 +160,7 @@ class StateMachine:
         
         # Inject infrastructure helpers into the Context so workers can use them transparently
         self.context.log_event = self.log_event
+        self.context.format_event_log = self.format_event_log
         
         def _get_cache_file_path() -> Path:
             """Returns the cache file path for the currently executing worker."""
@@ -237,6 +238,34 @@ class StateMachine:
             return "UNDEFINED"
         return self.workers[self.current_step].name
 
+    @staticmethod
+    def _format_event_line(entry: "StateMachine.LogEntry", verbosity_name: str) -> str:
+        """
+        Format one buffered log event as the live console line.
+
+        This function renders the single LogEntry in the exact line
+        format the console print uses: the [timestamp UTC] [step]
+        [worker] [relevance:verbosity] message shape, the enum names
+        (not numeric values) + the explicit UTC marker (M6, D-070),
+        the fixed-width 5/8 right-justified fields for the
+        variable-length names (D-128). It is the single source of
+        truth for the live line and the buffered replay (the D-321
+        FINAL_LOG_PRINT file).
+
+        Args:
+            entry (StateMachine.LogEntry): The buffered event record.
+            verbosity_name (str): The verbosity enum name to embed in
+                the line (the machine's verbosity — constant over a run).
+
+        Returns:
+            str: The formatted line (no trailing newline).
+        """
+        timestamp = entry.time.strftime("%Y-%m-%d %H:%M:%S")
+        return (f"[{timestamp} UTC] [{entry.step:02}]"
+                f"[{entry.worker_name:15}] "
+                f"[{entry.relevance.name:>5}:{verbosity_name:>8}] "
+                f"{entry.message}")
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def log_event(self, relevance: Relevance, message: str) -> None:
         """Logs an event using the current state step and worker."""
@@ -250,14 +279,24 @@ class StateMachine:
         )
         self.logs.append(event)
         if relevance >= self.verbosity:
-            timestamp = evt_time.strftime("%Y-%m-%d %H:%M:%S")
-            # Enum names (not numeric values) and an explicit UTC
-            # marker (M6, D-070); fixed-width 5/8 right-justified
-            # fields for the variable-length names (D-128)
-            print(f"[{timestamp} UTC] [{self.current_step:02}]"
-                  f"[{self.current_worker_name:15}] "
-                  f"[{relevance.name:>5}:{self.verbosity.name:>8}] "
-                  f"{message}")
+            print(self._format_event_line(event, self.verbosity.name))
+
+    def format_event_log(self) -> str:
+        """
+        Render the full buffered event log as live-line formatted text.
+
+        This function formats every buffered LogEntry — all relevances,
+        the maximum-relevance replay, independent of the display
+        verbosity gate — in the live console line format (the shared
+        formatter) and joins them with newlines: the content of the
+        D-321 FINAL_LOG_PRINT file.
+
+        Returns:
+            str: The newline-joined full log (the empty string when no
+                event was logged yet).
+        """
+        return "\n".join(self._format_event_line(entry, self.verbosity.name)
+                         for entry in self.logs)
 
     def show_event_log(self) -> None:
         # M6 (D-070): UTC header, 2-digit step (same as the live
