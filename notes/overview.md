@@ -113,6 +113,10 @@ tables at the end of this file.
   bytes — the two test_wrk_analytics goldens were re-derived at D-316, but the ANALYTICS report is pinned in FOUR
   places and the two full-chain goldens (LONG tier) were missed (the D-316 verification ran only the fast tier);
   the mirror hashes were also stale since D-307 — all in sync now.
+- The two stale notes docs are archived (D-320): the I-017 project plan (analytical_properties_of_features.md — the
+  project is done, ideas-closed) + the wave-tier performance baseline (performance_baseline.md — the profiling
+  session it referenced never ran) moved to notes/analyses/historical/ (the ODP-9 precedent); the overview index
+  folds them into the analyses/ line.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
@@ -298,10 +302,9 @@ tables above.
   closed volumes: decisions_NNN.md)
 - notes/decisions_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
 - notes/decisions_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
-- notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews
-- notes/analytical_properties_of_features.md — the I-017 project document (objective, plan, tasks T1..T19)
-- notes/performance_baseline.md — the wave-tier performance baseline (the D-175/D-176 reference numbers for the
-  profiling session)
+- notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews + the
+  historical project docs (the historical/ subdir: the I-017 project plan — analytical_properties_of_features.md,
+  the wave-tier performance baseline — performance_baseline.md, the ODP-9 material)
 - notes/ideas.md — the OPEN backlog (I-NNN, D-235)
 - notes/ideas-closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /

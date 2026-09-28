@@ -3617,3 +3617,49 @@ D-319 | 2026-09-25 | the A2030 / A2050 full-chain report goldens re-derived (the
           re-run used only LONG=1 and skipped it); the fast
           suite 958/0 (the goldens are DB-tier, the fast tier
           skips them).
+D-320 | 2026-09-25 | the two stale notes docs archived to notes/analyses/historical/ (the I-017 project plan + the wave-tier performance baseline)
+          Roberto: "I documenti: performance_baseline e
+          analytical_properties_of_features possono essere
+          rimossi o spostati nei documenti storici. Non sono
+          piu' di attualita'." Analysis: (1)
+          analytical_properties_of_features.md (647 lines) is
+          the I-017 project document — I-017 is done in
+          ideas-closed (T1..T19, D-156..D-189: the MT19937
+          PRNG port + the G0 wave generator, the SU level,
+          the design matrix, the indexes — the whole
+          feature-analysis build); the plan exhausted its
+          function. (2) performance_baseline.md (55 lines,
+          the D-175/D-176 snapshot of 2026-09-13) was the
+          reference numbers for the profiling session
+          scheduled AFTER the SU level — the SU level has
+          been complete for a while (D-288..D-311) and the
+          session never ran; the immediate purpose lapsed.
+          REPOSITORY REFERENCE MAP (the grep): the only LIVE
+          references are the 2 overview index lines; the
+          rest are historical pointers (decisions.md x3,
+          decisions_001 x1, log_002 x1, log_003 x2 —
+          append-only, never touched); ZERO code / probe /
+          tool / rule references — pure collaboration docs.
+          ARCHIVE PATTERN: the house pattern is archive, not
+          delete (the closed decision volumes, ideas-closed,
+          the analyses/historical/ with the ODP-9 material —
+          I-017-era docs ALREADY archived there: the
+          random-permutation-table analysis + 3 peer
+          reviews). My recommendation: MOVE (the git mv with
+          the names kept, so the historical pointers stay
+          resolvable by name; the small files cost nothing;
+          the I-017 plan is the single full source of the SU
+          level WHYs; the baseline keeps the "beat these"
+          numbers if the profiling session ever resumes).
+          Roberto: "Prosegui con Piano A." IMPLEMENTATION:
+          the git mv of both files to
+          notes/analyses/historical/ (the names unchanged);
+          the overview index: the 2 root lines removed, the
+          content folded into the notes/analyses/ line (which
+          now cites the historical/ subdir: the I-017 plan,
+          the baseline, the ODP-9 material). The baseline's
+          `> State:` line is untouched (the archive is a
+          move, not a rewrite — the content stays as the
+          historical record). VERIFICATION: the residual grep
+          shows only the historical pointers; the
+          notes_format clean; no code / docs-mirror impact.
