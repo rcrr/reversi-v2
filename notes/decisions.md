@@ -3580,3 +3580,40 @@ D-318 | 2026-09-25 | the descriptive docstring style codified as the house rule 
           D-122 guard). The hlp_anova module is the exemplar
           (D-317); its mirror Conventions bullet now points
           at the rule (D-318) + its introducing decision.
+D-319 | 2026-09-25 | the A2030 / A2050 full-chain report goldens re-derived (the D-316 Omega-Squared line missed them) + the mirror hash desync since D-307 fixed
+          Roberto: "Trovo questi due test che falliscono" —
+          the TestFullChainA2030 (rlm_04) + the
+          TestFullChainA2050 (rlm_03) test_full_worker_chain
+          hash assertions (his full LONG run: 958 tests, 2
+          failures). ROOT CAUSE (mine): at D-316 I re-derived
+          the two report goldens in test_wrk_analytics
+          (rlm_02 / rlm_01) but the ANALYTICS file report is
+          pinned in FOUR places — the two full-chain
+          goldens (c3522d10… / 8b2ed520…) were never
+          re-derived, and my D-316 verification ran only the
+          FAST tier + the analytics module (the full-chain
+          tests are LONG-tier — the 99 vs 24 skipped
+          difference), so they never ran. LESSON: after a
+          report FORMAT change, grep _masked_report_hash
+          across test/ + probes/ for EVERY pin, not just the
+          known ones. VERIFICATION (the causal check): the
+          scratch run of both chains to ANALYTICS recomputed
+          the masked hashes — byte-identical to Roberto's
+          run actuals (A2030 fae8fe75…, A2050 309d1dcb…) —
+          and showed the report's only new content is the
+          Omega-Squared line (2/2 features on rlm_04, 12/12
+          on rlm_03; SU-off in both fixtures, the omega line
+          is the sole delta). GENEALOGY (git -S): the test
+          goldens were last set at D-307 + D-308 (4a9c6dd) —
+          D-311..D-317 were all behavior-preserving; the
+          mirror hashes (a9642167… / 695c151b…) date from
+          the D-273 move (572b02c) — the mirror had been
+          STALE since D-307 (that re-derivation never touched
+          it). FIX: the 2 test constants + the 4 mirror
+          occurrences -> the new values; the mirror Goldens
+          note updated. VERIFICATION: A2030 re-run LONG=1
+          green; A2050 re-run VLONG=1 green (the class carries
+          @skipUnless(tier_vlong()), L423 — the D-319 first
+          re-run used only LONG=1 and skipped it); the fast
+          suite 958/0 (the goldens are DB-tier, the fast tier
+          skips them).

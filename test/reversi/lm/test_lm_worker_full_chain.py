@@ -325,7 +325,7 @@ class TestFullChainA2030(unittest.TestCase):
         # the run-dependent hex value).
         self.assertIn(f"Config SHA3-256             : {ctx.config_checksum}", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         'c3522d10267d1e81abff276a1d21e4c9d35745531ab53d88d7638808d98d7a35')
+                         'fae8fe750a178b4bc17f1e9721c0e505e4a3773cbe2c2ce224f30aba95fead7b')
 
         # --- The client's Evaluation Function: bit-exact on 6 pinned training
         #     positions (rlm_04 has frequency_cut_off=10, so training positions
@@ -531,7 +531,7 @@ class TestFullChainA2050(unittest.TestCase):
         self.assertIn("Creation Date               :", file_report)
         self.assertIn("PATTERN FEATURE: XEDGE", file_report)
         self.assertEqual(_masked_report_hash(file_report),
-                         '8b2ed520852a5850985cb0b37670369ca9ccaee4cf41e6d21df62315344683db')
+                         '309d1dcb627d46e59877d689b131ef72739c93617ba93d81443c5fc3f4eaffe0')
 
         # --- Saved model file: exists, size band, sidecar ---
         # As in A2030 — the embedded dump carries the run's base_dir

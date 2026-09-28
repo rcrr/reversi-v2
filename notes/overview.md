@@ -109,6 +109,10 @@ tables at the end of this file.
   WHAT-only rule D-224/D-226: that constrains the content, this one the format): public + private src/ functions,
   the new + the rewritten docstrings; the retroactive conversion of the existing modules stays user-directed, one
   module at a time (the D-314 reflow precedent, the D-122 guard). The exemplar: hlp_anova (D-317).
+- The A2030 / A2050 full-chain report goldens re-derived (D-319): the D-316 Omega-Squared line changed the report
+  bytes — the two test_wrk_analytics goldens were re-derived at D-316, but the ANALYTICS report is pinned in FOUR
+  places and the two full-chain goldens (LONG tier) were missed (the D-316 verification ran only the fast tier);
+  the mirror hashes were also stale since D-307 — all in sync now.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
