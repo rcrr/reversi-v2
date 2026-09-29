@@ -336,7 +336,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
                           "su_analysis.csv").exists())
 
     def test_rarity_bins(self):
-        # The Section B bins (D-292): the half-open [0, t1),
+        # The Section B bins: the half-open [0, t1),
         # ..., [tk, inf) — the first bin the zero-frequency
         # codes. The bins are recomputed INDEPENDENTLY (the pure
         # python count) and the report lines asserted verbatim.
@@ -376,7 +376,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
                 + " | ".join(parts), txt)
 
     def test_rarity_empty_off(self):
-        # The empty list = the section off (the D-292 rule): no
+        # The empty list = the section off: no
         # Section B, and the SU pairs are ALWAYS Section C.
         ctx = self._ctx()
         ctx.cfg.su_analysis.rarity_thresholds = []
@@ -783,7 +783,7 @@ class TestNeverObservedAudit(unittest.TestCase):
     The D-301: the rarity profile (the observed codes below each
     small threshold) is REMOVED — it was dead in production (the
     report's config-driven 'Section B: Rarity report' is the
-    _rarity_bins kernel, D-292); its hardcoded default thresholds
+    _rarity_bins kernel); its hardcoded default thresholds
     were a phantom second source of truth next to the config's
     rarity_thresholds (None = off)."""
 

@@ -25,17 +25,6 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-"""
-The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker): the streaming frequency accumulators (the
-marginal + the joint, the phase-1 data plane), the corpus generator (the random_game play-path engine,
-phase 1 — the expensive part), the binio cache I/O (the header + the signature block + the marginal +
-the joint) + the consistency signature (the feature_set hash + the spec + the pairs) + the SU statistics
-kernels (the entropy / the MI / the SU / the dispersion / the never-observed audit) + the statistics
-(phase 2: the SU pairs, the TXT report + the optional CSV). NO DB: the corpus is the level's own, the
-random_game play-path engine. The worker (wrk_su_analysis.py) is the orchestration skeleton: the
-enable no-op, the cache_manager flow, the ctx publication.
-"""
-
 from __future__ import annotations
 
 import csv
@@ -138,9 +127,8 @@ _MarginalTable = list[tuple[str, int, int, npt.NDArray[np.uint32], npt.NDArray[n
 #: int64. (None at the tables level when no pairs are configured — the _JointAccumulator is not
 #: built; the binio joint block carries the presence flag.)
 _JointTable = list[tuple[str, str,
-                         dict[tuple[int, int],
-                              tuple[npt.NDArray[np.uint32], npt.NDArray[np.uint32],
-                                    npt.NDArray[np.int64]]]]]
+                         dict[tuple[int, int], tuple[npt.NDArray[np.uint32], npt.NDArray[np.uint32],
+                                               npt.NDArray[np.int64]]]]]
 
 
 class SuTables(TypedDict):
@@ -352,8 +340,7 @@ class _JointAccumulator:
                         continue  # The diagonal cell: not built.
                     # The per-cell storage: the OBSERVED keys (u64, sorted) + the counts (int64) —
                     # empty until the first chunk.
-                    d[(ii, jj)] = (np.zeros(0, dtype=np.uint64),
-                                   np.zeros(0, dtype=np.int64))
+                    d[(ii, jj)] = (np.zeros(0, dtype=np.uint64), np.zeros(0, dtype=np.int64))
             self.joints.append(d)
             self._meta.append((ni, nj, bi, bj))
         self.n_positions: int = 0
@@ -374,14 +361,12 @@ class _JointAccumulator:
         if n == 0:
             return
         # The cell work list, from the registry (the diagonal cells are absent).
-        cells = [(pi, ii, jj, bi, bj)
-                 for pi, (_ni, _nj, bi, bj) in enumerate(self._meta)
+        cells = [(pi, ii, jj, bi, bj) for pi, (_ni, _nj, bi, bj) in enumerate(self._meta)
                  for (ii, jj) in self.joints[pi]]
         if len(cells) > 1:
             with ThreadPoolExecutor(max_workers=min(len(cells), os.cpu_count() or 4)) as pool:
                 list(pool.map(lambda t: _joint_cell_merge(self.joints, t[0], t[1], t[2], t[3],
-                                                          t[4], idx),
-                              cells))
+                                                          t[4], idx), cells))
         else:
             for (pi, ii, jj, bi, bj) in cells:
                 _joint_cell_merge(self.joints, pi, ii, jj, bi, bj, idx)
@@ -478,8 +463,7 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
     prng = MT19937(corpus.seed)
     igp = initial_game_position()
     marg = _MarginalAccumulator(fset)
-    joint = _JointAccumulator(fset, cfg_fa.su_pairs) \
-        if cfg_fa.su_pairs else None
+    joint = _JointAccumulator(fset, cfg_fa.su_pairs) if cfg_fa.su_pairs else None
     harvested = waves = dead = 0
     while harvested < total:
         # The batch size is capped by the remaining quota: a smaller corpus needs fewer lanes, and
@@ -497,11 +481,8 @@ def hlp_su_analysis_compute(ctx: "LMContext") -> dict:
             joint.add(idx)
         harvested += int(keep.sum())
         waves += 1
-    ctx.log_event(Relevance.INFO,
-                  f"Corpus generated: [HARVESTED: {harvested:,}], "
-                  f"[WAVES: {waves}], [DEAD: {dead:,}].")
-    return {'signature': _signature(ctx),
-            'marginal': marg.result(),
+    ctx.log_event(Relevance.INFO, f"Corpus generated: [HARVESTED: {harvested:,}], [WAVES: {waves}], [DEAD: {dead:,}].")
+    return {'signature': _signature(ctx), 'marginal': marg.result(),
             'joint': joint.result() if joint is not None else None}
 
 
@@ -517,8 +498,7 @@ def hlp_su_analysis_store_to_file(data: SuTables, filename: str | Path) -> None:
             the structure + the array dtypes).
         filename (str | Path): the target file (created / overwritten).
     """
-    with binio.BinaryWriter(filename, compressed=True,
-                            checksum=False) as w:
+    with binio.BinaryWriter(filename, compressed=True, checksum=False) as w:
         w.write_header(_CACHE_DESCRIPTION, _CACHE_VERSION)
         _write_signature(w, data['signature'])
         _write_marginal(w, data['marginal'])
@@ -636,8 +616,8 @@ def _read_marginal(r: BinaryReader) -> _MarginalTable:
     n = int(r.read_u32())
     marginal = []
     for _ in range(n):
-        marginal.append((r.read_string(), int(r.read_u32()),
-                         int(r.read_u64()), r.read_array(), r.read_array()))
+        marginal.append((r.read_string(), int(r.read_u32()), int(r.read_u64()), r.read_array(),
+                         r.read_array()))
     return marginal
 
 
@@ -690,8 +670,7 @@ def _read_joint(r: BinaryReader) -> _JointTable | None:
         for _ in range(k):
             ii = int(r.read_u32())
             jj = int(r.read_u32())
-            per_instance[(ii, jj)] = (r.read_array(), r.read_array(),
-                                      r.read_array())
+            per_instance[(ii, jj)] = (r.read_array(), r.read_array(), r.read_array())
         out.append((name_i, name_j, per_instance))
     return out
 
@@ -713,12 +692,9 @@ def hlp_su_analysis_is_cache_consistent(ctx: "LMContext", cached: dict) -> bool:
     """
     live = _signature(ctx)
     consistent = cached.get('signature', {}) == live
-    ctx.log_event(Relevance.DEBUG,
-                  f"SU_ANALYSIS cache consistent: {consistent}.")
+    ctx.log_event(Relevance.DEBUG, f"SU_ANALYSIS cache consistent: {consistent}.")
     if not consistent:
-        ctx.log_event(Relevance.DEBUG,
-                      f"  cached: {cached.get('signature')}\n"
-                      f"  live:   {live}")
+        ctx.log_event(Relevance.DEBUG, f"  cached: {cached.get('signature')}\n" f"  live:   {live}")
     return consistent
 
 
@@ -808,8 +784,7 @@ def _dispersion(counts: np.ndarray, n_configurations: int) -> dict:
     h_norm = (H / float(np.log2(k_obs))) if k_obs > 1 else 0.0
     n_conf = int(n_configurations)
     coverage = (k_obs / n_conf) if n_conf > 0 else 0.0
-    return {'k_obs': k_obs, 'h': H, 'h_norm': h_norm,
-            'coverage': coverage}
+    return {'k_obs': k_obs, 'h': H, 'h_norm': h_norm, 'coverage': coverage}
 
 
 def _never_observed_audit(counts: np.ndarray,
@@ -845,8 +820,7 @@ def _marginal_lookup(marginal: _MarginalTable) -> dict:
     Returns:
         dict: the (name, instance_idx) -> counts mapping.
     """
-    return {(name, i): counts
-            for (name, i, _nc, _codes, counts) in marginal}
+    return {(name, i): counts for (name, i, _nc, _codes, counts) in marginal}
 
 
 #: The SU summary shape (the _su_values output, the _su_groups input): the list of
@@ -896,8 +870,7 @@ def _su_values(joint: _JointTable, lookup: dict) -> _SuSummary:
             if h_j is None:
                 h_j = h_cache[kj] = _entropy(mj)
             I = _mutual_information(counts, h_i, h_j)
-            su.append((name_i, ii, name_j, jj,
-                       _symmetric_uncertainty(I, h_i, h_j)))
+            su.append((name_i, ii, name_j, jj, _symmetric_uncertainty(I, h_i, h_j)))
     return su
 
 
@@ -1011,9 +984,7 @@ def _su_groups(su_summary: _SuSummary, su_pairs: list[tuple[str, str]]) -> _SuGr
     groups = {gk: [] for gk in order}
     for (an, ai, bn, bi, s) in deduped:
         groups[tuple(sorted((an, bn)))].append((an, ai, bn, bi, s))
-    return [(gk, sorted(groups[gk],
-                        key=lambda t: ((t[0], t[1]), (t[2], t[3]))))
-            for gk in order]
+    return [(gk, sorted(groups[gk], key=lambda t: ((t[0], t[1]), (t[2], t[3])))) for gk in order]
 
 
 def _rarity_bins(counts: np.ndarray, n_configurations: int,
@@ -1058,25 +1029,23 @@ def _export_csv(ctx: "LMContext", tables: dict, su_groups: _SuGroups) -> Path:
         Path: the CSV path.
     """
     cfg_fa = ctx.cfg.su_analysis
-    csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
-        "su_analysis.csv"
+    csv_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / "su_analysis.csv"
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     theoretical = _theoretical_configs(ctx.feature_set)
     with open(csv_path, 'w', newline='', encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(['type', 'feature', 'inst', 'n_conf', 'k_obs',
-                    'h', 'h_norm', 'coverage', 'never_observed', 'su'])
+        w.writerow(['type', 'feature', 'inst', 'n_conf', 'k_obs', 'h', 'h_norm', 'coverage',
+                    'never_observed', 'su'])
         for (name, i, nc, _codes, counts) in tables['marginal']:
             eff = theoretical.get((name, i), nc)
             d = _dispersion(counts, eff)
             a = _never_observed_audit(counts, eff)
             w.writerow(['marginal', name, i, eff, d['k_obs'],
-                        f"{d['h']:.6f}", f"{d['h_norm']:.6f}",
-                        f"{d['coverage']:.6f}", a['never_observed'], ''])
+                        f"{d['h']:.6f}", f"{d['h_norm']:.6f}", f"{d['coverage']:.6f}",
+                        a['never_observed'], ''])
         for gk, grp in su_groups:
             for (an, ai, bn, bi, s) in grp:
-                w.writerow(['su', f"{an} - {bn}", f"{ai}x{bi}", '', '',
-                            '', '', '', '', f"{s:.6f}"])
+                w.writerow(['su', f"{an} - {bn}", f"{ai}x{bi}", '', '', '', '', '', '', f"{s:.6f}"])
     return csv_path
 
 
@@ -1114,8 +1083,7 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     lines.append(f"SU pairs: {pairs_str}")
     lines.append("")
     theoretical = _theoretical_configs(ctx.feature_set)
-    lines.append("Section A: Properties of features selected by "
-                 "the logistic model")
+    lines.append("Section A: Properties of features selected by the logistic model")
     lines.extend(_KPI_LEGEND)
     a_rows = []
     for (name, i, nc, _codes, counts) in marginal:
@@ -1123,8 +1091,8 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
         d = _dispersion(counts, eff)
         a = _never_observed_audit(counts, eff)
         a_rows.append((name, i, f"{d['k_obs']}/{eff}",
-                       f"{d['h']:.3f}", f"{d['h_norm']:.3f}",
-                       f"{d['coverage']:.3f}", str(a['never_observed'])))
+                       f"{d['h']:.3f}", f"{d['h_norm']:.3f}", f"{d['coverage']:.3f}",
+                       str(a['never_observed'])))
     # The column alignment (D-293): the name / the inst LEFT-justified to the max width; the
     # numeric values RIGHT-justified to the computed max width (the K_obs / the never-obs fields
     # carry the +1 separator margin — the shortest value keeps a 1-space gap).
@@ -1137,8 +1105,7 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     nw = max(len(r[6]) for r in a_rows) + 1
     for (name, i, kobs, h, hn, cov, never) in a_rows:
         line = (f"  {name:<{name_w}} inst {i:>{inst_w}}: "
-                f"K_obs{kobs:>{kw}}, H {h:>{hw}}, "
-                f"H_norm {hn:>{hnw}}, coverage {cov:>{covw}}, "
+                f"K_obs{kobs:>{kw}}, H {h:>{hw}}, H_norm {hn:>{hnw}}, coverage {cov:>{covw}}, "
                 f"never-obs{never:>{nw}}")
         lines.append(line)
         ctx.log_event(Relevance.INFO, line)
@@ -1146,16 +1113,13 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
     thresholds = cfg_fa.rarity_thresholds or []
     if thresholds:
         lines.append("Section B: Rarity report")
-        lines.append("The per-bin frequencies of the codes: the "
-                     "half-open bins [0, t1), [t1, t2), ..., [tk, inf)")
-        lines.append("The first bin the zero-frequency codes, the "
-                     "configurations random play almost never reaches: "
-                     "the weights that can never be learned.")
+        lines.append("The per-bin frequencies of the codes: the half-open bins [0, t1), [t1, t2), ..., [tk, inf)")
+        lines.append("The first bin the zero-frequency codes, the configurations random play "
+                     "almost never reaches: the weights that can never be learned.")
         b_rows = []
         for (name, i, nc, _codes, counts) in marginal:
             eff = theoretical.get((name, i), nc)
-            b_rows.append((name, i,
-                           _rarity_bins(counts, eff, thresholds)))
+            b_rows.append((name, i, _rarity_bins(counts, eff, thresholds)))
         labels, lo = [], 0
         for t in thresholds:
             labels.append(f"[{lo},{t})")
@@ -1164,13 +1128,10 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
         # The per-bin column alignment (D-293): each bin value RIGHT-justified to its own max
         # width (+1 margin), the labels at natural width, the same name / inst prefix as the
         # Section A.
-        bwidths = [max(len(str(r[2][j])) for r in b_rows) + 1
-                   for j in range(len(labels))]
+        bwidths = [max(len(str(r[2][j])) for r in b_rows) + 1 for j in range(len(labels))]
         for (name, i, bins) in b_rows:
-            parts = [f"{labels[j]}{bins[j]:>{bwidths[j]}}"
-                     for j in range(len(labels))]
-            line = f"  {name:<{name_w}} inst {i:>{inst_w}}: " \
-                + " | ".join(parts)
+            parts = [f"{labels[j]}{bins[j]:>{bwidths[j]}}" for j in range(len(labels))]
+            line = f"  {name:<{name_w}} inst {i:>{inst_w}}: " + " | ".join(parts)
             lines.append(line)
             ctx.log_event(Relevance.INFO, line)
         lines.append("")
@@ -1189,14 +1150,11 @@ def hlp_su_analysis_statistics(ctx: "LMContext", tables: dict) -> Path:
             ctx.log_event(Relevance.INFO, line)
         if not grp:
             lines.append("  (none)")
-    report_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / \
-        cfg_fa.report_file_name
+    report_path = Path(ctx.cfg.base_dir) / cfg_fa.dir_name / cfg_fa.report_file_name
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    ctx.log_event(Relevance.INFO,
-                  f"SU_ANALYSIS report written: {report_path}.")
+    ctx.log_event(Relevance.INFO, f"SU_ANALYSIS report written: {report_path}.")
     if cfg_fa.export_csv:
         csv_path = _export_csv(ctx, tables, su_groups)
-        ctx.log_event(Relevance.INFO,
-                      f"SU_ANALYSIS CSV written: {csv_path}.")
+        ctx.log_event(Relevance.INFO, f"SU_ANALYSIS CSV written: {csv_path}.")
     return report_path

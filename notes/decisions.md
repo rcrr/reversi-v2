@@ -4325,3 +4325,16 @@ D-329 | 2026-09-28 | the new code-format rules on hlp_su_analysis (the D-314
           still carries a D-292 comment reference (the Section B bins,
           ~line 339) against D-267 (no D-xxx in test docs) — pre-existing,
           left as-is (the approved scope (c) covered the 3 strings only).
+          FIX (Roberto's catch, follow-up commit): the 3 D-292 references
+          REMOVED from test_hlp_su_analysis.py (the Section B bins comment,
+          the section-off comment, the TestNeverObservedAudit docstring —
+          the other D-refs stay: only the D-292 ones were asked); the
+          module docstring REMOVED (the campaign modules carry none — the
+          purpose lives in the mirror doc); the premature code line-breaks
+          packed (the ~30 multi-line statements that fit in 120 collapsed
+          to one line — the with binio.BinaryWriter, the writerow, the
+          log_event, the dict returns, the comprehensions — the too-long
+          ones re-balanced to 2-3 lines): 1203 -> 1161 lines, max width
+          119. AST code diff vs the D-329 commit: IDENTICAL
+          (docstring-stripped — pure formatting), the 38 tests + the probe
+          + the LONG=1 968 OK again.
