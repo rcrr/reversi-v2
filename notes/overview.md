@@ -207,8 +207,8 @@ The docs/ mirrors (one per source/test file, D-007) are NOT listed here: their p
 tables above.
 
 - notes/naming.md — canonical board naming convention (row/column, D-013; D8 symmetries, D-014)
-- notes/rules.md — active legislation: the register of the rules in force (one line per rule, origin D-number; lifecycle
-  RECORD/PROMOTE/RETIRE)
+- notes/rules.md — active legislation ("legislative body"): the register of the rules in force, R-NNN-numbered (a bold
+  title + a 1–3 line description, origin D-number; added/amended/retired only on Roberto's explicit approval)
 - notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md;
   closed volumes: decisions_NNN.md)
 - notes/decisions_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)

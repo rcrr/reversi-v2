@@ -158,3 +158,35 @@ D-339 | 2026-09-29 | the overview tables' Suite-count SIMPLIFICATION (Roberto: "
          cells are markdown links to the mirrors ([path](path) — verified the notes_format re-wrapper keeps the links
          atomic). (5) THE LEGISLATION (rules.md, D-117 amended): the Suite count lives ONLY in the Test files table,
          under the standard pre-commit run, with the (+N VLONG) marker; the Doc cell is a markdown link to the mirror.
+D-340 | 2026-09-29 | rules.md RESTRUCTURE — R-numbering, bold titles, blank-line spacing (Roberto: "affrontiamo la
+         ristrutturazione di rules.md. Prima di tutto il titolo: ... ('corpo legislativo'). Toliamo l'Italiano. Si usa
+         solo l'Inglese quindi 'legislative body'. Poi introdurrei la NUMERAZIONE. R-000, R001, R002 .... E spazierei
+         i bullet con una riga vuota. R-001 e il titolo li fare BOLD. Partirei maiuscolo ... Poi ho altre idee ... ma
+         prima voglio sentire il tuo parere." — and, on the options: "Quindi facciamo SENZA DASH ... 1: R-001 : OK /
+         2: OK / 3: OK / 4: ordine attuale / 5: (a) / 6: (a) / 7: (la tua raccomandazione) / 8: eliminiamo il BUDGET.
+         Le RULE possono essere aggiunte solo su esplicita approvazione. Lunghezza target 1-3 linee, solo se
+         necessario superiore. / 9: OK / 10: BRAVA hai capito perche' le voglio numerare, poi il reference lo mettiamo
+         nel LOG, e togliamo le D dalle rules. ma per ora NON ci pensare, poi le guardiamo una per una. Procedi!").
+         (1) TITLE: "corpo legislativo" out -> "legislative body" (the only other occurrence is a quote in the closed
+         decisions_000.md — frozen history, untouched). (2) NUMBERING: the 46 rules of the 9 sections get R-001..R-046
+         in reading order (dash + 3 digits, consistent with D/I); the 3 Lifecycle bullets stay unnumbered (prose, not
+         rules); the numbers are never reused. (3) FORMAT — the dash-less variant (verified in scratch: the literal
+         dash-bullet spec is NOT stable under notes_format.py, which rejoins the description onto the title line): a
+         bold title line (**R-NNN — the topic**), a blank line, a 1–3 line description (longer only when it must be);
+         a rule that fits becomes one bold line; 46 rules, the sequence verified intact. (4) TITLES: heuristic
+         (first " — " / ": ") + hand polish on the long ones (R-006 the domain rule files, R-038 Mirror rule + the
+         rigid mirror format, R-040 Docstrings: WHAT, never HOW, R-042 Provenance vs design pointers, R-043 Test
+         docs, R-044 Probe docs); description initial letter capitalized. (5) BUDGET GONE (Roberto): the "~150 lines"
+         paragraph is replaced by a Governance paragraph — a rule is added, amended or retired only on Roberto's
+         explicit approval; the R-numbers are sequential, global and NEVER reused (an amendment keeps its number, a
+         retirement leaves the gap); a rule is a bold title line + a 1–3 line description (or one bold line when it
+         fits); Lifecycle PROMOTE now says "its numbered line". (6) R# COLLISION: R# (no dash) stays the code-issue
+         id of the mirrors; R-003's reference list now reads "R-NNN (a rule of this register) ... R# (a code issue,
+         never an R-NNN)" — the clarification lives where the reference families are defined (R-003, the overview
+         format spec), not in the overview's Conventions. (7) DEFERRED (Roberto): the R-references in the journal +
+         the D-pointers removal from the rules — reviewed rule by rule, later. (8) HYGIENE: the 5 trailing blank
+         lines are gone (single final newline); the overview Index bullet updated to the new format. VERIFICATION:
+         notes_format --write idempotent + --check clean (290 lines, 9 sections, 46 rules R-001..R-046 in order);
+         the normalized token diff against the pre-restructure file shows ONLY the intended changes (title,
+         Budget -> Governance, "numbered" in PROMOTE, the polished titles, the R-NNN/R# clarification) — no content
+         lost.
