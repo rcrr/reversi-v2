@@ -4440,3 +4440,14 @@ D-331 | 2026-09-28 | the new code-format rules on hlp_wmaps (the D-314
           hlp_wmaps_compute — N = pindexes.shape[0] (L225-era, never used)
           + stats_filtered_above = stats[~mask] (never used) — left
           as-is (the approved (c) scope did not include code removal).
+          FIX (Roberto's approval, follow-up commit): the 2 dead
+          assignments REMOVED from hlp_wmaps_compute (N =
+          pindexes.shape[0], the stats_filtered_above = stats[~mask] —
+          the stats_filtered_below twin kept, it is used) — 340 -> 338
+          lines; the probe re-pinned again (A1 338, A10/A11/A12 the
+          shifted line numbers — A5 unchanged, the note is before the
+          deletions); the mirror's pin line -> 338 (+ the catch of the
+          "341" I wrote instead of 340 in the first mirror update). The
+          AST diff of the fix: exactly the 2 Assign removals in
+          hlp_wmaps_compute, nothing else. test_hlp_wmaps 15/0/0 +
+          verify_wmaps 53/53 + the LONG=1 968 OK again.

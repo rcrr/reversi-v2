@@ -47,7 +47,7 @@ def lines(p):
 # A. hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_wmaps.py")
-check("A1 hlp_wmaps.py is 340 lines (post D-331 format pass: the D-314 reflow + the D-318 docstrings)", len(rlm) == 340, f"{len(rlm)}")
+check("A1 hlp_wmaps.py is 338 lines (post D-331 format pass + the 2 dead assignments out)", len(rlm) == 338, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -70,12 +70,12 @@ check("A8 store docstring: the LZ4 compression line, no sidecar promise",
       and "LZ4 whole-file compression by default" in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
-check("A10 the above_mask code line is clean (L298, no trailing space)",
-      rlm[297] == "        above_mask = ~mask", repr(rlm[297]))
-check("A11 the fallback_details_table code line is clean (L311, no trailing spaces)",
-      rlm[310] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[310]))
-check("A12 the -1 input sentinel is unguarded at L275 — correct by the R1 dense contract (no guard added)",
-      rlm[274] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[274]))
+check("A10 the above_mask code line is clean (L296, no trailing space)",
+      rlm[295] == "        above_mask = ~mask", repr(rlm[295]))
+check("A11 the fallback_details_table code line is clean (L309, no trailing spaces)",
+      rlm[308] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[308]))
+check("A12 the -1 input sentinel is unguarded at L273 — correct by the R1 dense contract (no guard added)",
+      rlm[272] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[272]))
 
 # ----------------------------------------------------------------------
 # B. wrk_wmaps.py structure (post D-087)

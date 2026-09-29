@@ -235,7 +235,6 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
 
     iwmap = np.full(K, -1, dtype=np.int64)
     pindexes = ctx.hlp_indexes.indexes
-    N = pindexes.shape[0]
     next_w = 0
     f_w_ranges = []
     wmap_blocks = []
@@ -252,7 +251,6 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
 
         mask = stats[:, 1] < cut_off
         stats_filtered_below = stats[mask]
-        stats_filtered_above = stats[~mask]
 
         w_indices = np.empty(len(stats), dtype=np.int64)
         if len(stats_filtered_below) > 0:
