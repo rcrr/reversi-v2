@@ -42,10 +42,9 @@ employed focus on machine learning techniques that leverage solved positions gen
 - Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~5 s, LONG=1, VLONG=1 ~10 min incl. the
   A2050 chain and implies LONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
   `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
-  `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites
-(test_regab + the worker suites) need a live
-  PostgreSQL + .env + LONG=1, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is unittest by design (pytest is not
-  a dependency).
+  `.venv/bin/python -m unittest test.reversi[.zone].<module>` (the zones: lm, tools). The DB-gated suites (test_regab +
+  the worker suites) need a live PostgreSQL + .env + LONG=1, or `SKIP_REGAB_DB=1` to skip the DB tests. The runner is
+  unittest by design (pytest is not a dependency).
 - Probes: tracked under probes/ (hub: verify_logistic_model.py owns the pipeline-wide state; rules:
   notes/probe_rules.md).
 
@@ -56,28 +55,28 @@ Current state only — the session-by-session history lives in the journal volum
 tables at the end of this file.
 
 - The 19-level pipeline is live and green (965 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
-  bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT → FINAL_LOG_PRINT (the
-  optional full run log on file, the D-321 `log_file_name` gate), plus the OPTIONAL SU_ANALYSIS (pipeline step 3)
-  + ANOVA (pipeline step 6) — default FALSE, opt-in.
+  bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT → FINAL_LOG_PRINT (the optional
+  full run log on file, the D-321 `log_file_name` gate), plus the OPTIONAL SU_ANALYSIS (pipeline step 3) + ANOVA
+  (pipeline step 6) — default FALSE, opt-in.
 - The ANALYTICS file report carries the D-307 SU sample columns: the PROBABILITY / SU_PROBABILITY observation shares
   (after FREQUENCY, the pooled marginal over the feature's instance columns) + the "SU Sample Consistency" line under
   Eta-Squared (the pooled adherence — the TV verdict bands 0.01/0.05 + the chi-square / p / merged; the 2x-training
   too-small note). SU off → byte-identical tables (the rlm_01/rlm_02 goldens survived).
-- The ANALYTICS file report carries the D-308 INTERCEPT section: the single trained bias weight (one Weight line,
-  4 decimals), emitted only when the feature set has an intercept, between the FEATURE SET SUMMARY and the MOBILITY
+- The ANALYTICS file report carries the D-308 INTERCEPT section: the single trained bias weight (one Weight line, 4
+  decimals), emitted only when the feature set has an intercept, between the FEATURE SET SUMMARY and the MOBILITY
   details. No-intercept fixtures (rlm_02) stay byte-identical; the intercept fixtures' goldens (rlm_01 / rlm_04 /
   rlm_03) were re-derived.
-- The EFFECT_SIZE level is renamed ANOVA (D-309): the worker (wrk_anova.py), the config (AnovaConfig, the `anova`
-  key), the test, the probe, the 2 mirrors. BREAKING: the config key `effect_size` → `anova` — a pre-rename config
-  with `effect_size:` is ignored by pydantic (the level silently disables); external configs must migrate to `anova:`
-  (the backward-compat alias: REJECTED — the clean break, no alias).
-- The ANOVA worker is a thin orchestrator (D-310): the enable no-op stays in `_up`, the computation lives in two
-  private helpers (`_compute_anova_lines` — the eta²/omega² per sub-variable; `_compute_adherence_lines` — the
-  adherence trio, the graceful-degradation None branch) + the existing `_write_report`; the D-309 leftover local
-  `cfg_es` is renamed `cfg_anova`. Zero behavioral change (the log sequence + the probe pins are verbatim).
-- The ANALYTICS eta² is now the shared ANOVA kernel (D-311): the pooled "Eta-Squared (Discrimination)" statistic of
-  both feature tables is the `anova_eta_omega` call (the 2 hand-rolled SS blocks removed — the bincount pass stays
-  for the table columns), and `TestEtaSquaredCrossLevel` (DB-gated, rlm_00) pins the cross-level invariant: on the
+- The EFFECT_SIZE level is renamed ANOVA (D-309): the worker (wrk_anova.py), the config (AnovaConfig, the `anova` key),
+  the test, the probe, the 2 mirrors. BREAKING: the config key `effect_size` → `anova` — a pre-rename config with
+  `effect_size:` is ignored by pydantic (the level silently disables); external configs must migrate to `anova:` (the
+  backward-compat alias: REJECTED — the clean break, no alias).
+- The ANOVA worker is a thin orchestrator (D-310): the enable no-op stays in `_up`, the computation lives in two private
+  helpers (`_compute_anova_lines` — the eta²/omega² per sub-variable; `_compute_adherence_lines` — the adherence trio,
+  the graceful-degradation None branch) + the existing `_write_report`; the D-309 leftover local `cfg_es` is renamed
+  `cfg_anova`. Zero behavioral change (the log sequence + the probe pins are verbatim).
+- The ANALYTICS eta² is now the shared ANOVA kernel (D-311): the pooled "Eta-Squared (Discrimination)" statistic of both
+  feature tables is the `anova_eta_omega` call (the 2 hand-rolled SS blocks removed — the bincount pass stays for the
+  table columns), and `TestEtaSquaredCrossLevel` (DB-gated, rlm_00) pins the cross-level invariant: on the
   single-instance features (ALMC / LMC / DLMC) the ANALYTICS eta² == the ANOVA level's eta² (the groupings coincide).
 - The wrk_su_analysis module docstring is REMOVED (D-312, the house de-history style, the D-306 precedent): it cited
   decisions (D-289 / D-288 / D-060), described hlp internals (the binio flow, the consistency signature) and the
@@ -88,127 +87,121 @@ tables at the end of this file.
   since D-311). The mirror doc needed no change (its intro is already module-accurate and states the down fact — the
   no-op, nothing published).
 - The source line-length rule is codified (D-314, the new Code style section of rules.md): no linter gate / no hard
-  limit; new or edited lines match the local file's wrap convention (the lm zone's historical ~72–76); a
-  convention-less file defaults to <= 79 (PEP8); a full-file reflow to 120 is a deliberate user-directed act —
-  the precedent: the wrk_anova.py reflow (175 -> 144 lines, max line 118, the A-tier pins verbatim, the goldens
-  intact).
-- The hlp_feature_analysis module is RENAMED hlp_anova (D-315): the D-298 split left exactly the ANOVA family, the
-  name was stale. The worker's _write_report + the two compute helpers moved to hlp_anova (the public
-  hlp_anova_compute_analysis / hlp_anova_generate_report, the privates kept), the worker is now the pure skeleton
-  (the guard + the two calls), the module is reflowed to the 120-char width (D-314), and its module docstring is
-  REMOVED (the D-312/D-313 precedent). The verify_anova A4/A5/F5 + the verify_su_analysis F6 pins are re-pinned to
-  the new architecture; the goldens + the log sequence are unchanged.
-- The ANALYTICS report carries the Omega-Squared line (D-316): right after the Eta-Squared (Discrimination) line of
-  both feature tables — the shared anova_eta_omega kernel already returned the pair, only the eta² was printed. The
-  two date-masked report goldens re-derived (rlm_02 e0d3d22a…, rlm_01 176a80b5…).
-- The hlp_anova kernels are RENAMED hlp_anova_eta_omega / hlp_anova_adherence (D-317, the hlp_X_ prefix family
-  standard, like the D-315 FLOW names) + the @validate_call Pydantic boundary (the typed ArrayLike / dict
-  parameters; the 2 FLOW functions stay undecorated — the ctx idiom, hlp_design_matrix) + all 9 docstrings in the
-  descriptive style (the imperative first line, the body, the typed Google-style Args/Returns); the boundary comment
-  above __all__ is gone.
-- The descriptive docstring style is now the house RULE (D-318, the rules.md Docs section — it completes the
-  WHAT-only rule D-224/D-226: that constrains the content, this one the format): public + private src/ functions,
-  the new + the rewritten docstrings; the retroactive conversion of the existing modules stays user-directed, one
-  module at a time (the D-314 reflow precedent, the D-122 guard). The exemplar: hlp_anova (D-317).
-- The A2030 / A2050 full-chain report goldens re-derived (D-319): the D-316 Omega-Squared line changed the report
-  bytes — the two test_wrk_analytics goldens were re-derived at D-316, but the ANALYTICS report is pinned in FOUR
-  places and the two full-chain goldens (LONG tier) were missed (the D-316 verification ran only the fast tier);
-  the mirror hashes were also stale since D-307 — all in sync now.
+  limit; new or edited lines match the local file's wrap convention (the lm zone's historical ~72–76); a convention-less
+  file defaults to <= 79 (PEP8); a full-file reflow to 120 is a deliberate user-directed act — the precedent: the
+  wrk_anova.py reflow (175 -> 144 lines, max line 118, the A-tier pins verbatim, the goldens intact).
+- The hlp_feature_analysis module is RENAMED hlp_anova (D-315): the D-298 split left exactly the ANOVA family, the name
+  was stale. The worker's _write_report + the two compute helpers moved to hlp_anova (the public
+  hlp_anova_compute_analysis / hlp_anova_generate_report, the privates kept), the worker is now the pure skeleton (the
+  guard + the two calls), the module is reflowed to the 120-char width (D-314), and its module docstring is REMOVED
+  (the D-312/D-313 precedent). The verify_anova A4/A5/F5 + the verify_su_analysis F6 pins are re-pinned to the new
+  architecture; the goldens + the log sequence are unchanged.
+- The ANALYTICS report carries the Omega-Squared line (D-316): right after the Eta-Squared (Discrimination) line of both
+  feature tables — the shared anova_eta_omega kernel already returned the pair, only the eta² was printed. The two
+  date-masked report goldens re-derived (rlm_02 e0d3d22a…, rlm_01 176a80b5…).
+- The hlp_anova kernels are RENAMED hlp_anova_eta_omega / hlp_anova_adherence (D-317, the hlp_X_ prefix family standard,
+  like the D-315 FLOW names) + the @validate_call Pydantic boundary (the typed ArrayLike / dict parameters; the 2 FLOW
+  functions stay undecorated — the ctx idiom, hlp_design_matrix) + all 9 docstrings in the descriptive style (the
+  imperative first line, the body, the typed Google-style Args/Returns); the boundary comment above __all__ is gone.
+- The descriptive docstring style is now the house RULE (D-318, the rules.md Docs section — it completes the WHAT-only
+  rule D-224/D-226: that constrains the content, this one the format): public + private src/ functions, the new + the
+  rewritten docstrings; the retroactive conversion of the existing modules stays user-directed, one module at a time
+  (the D-314 reflow precedent, the D-122 guard). The exemplar: hlp_anova (D-317).
+- The A2030 / A2050 full-chain report goldens re-derived (D-319): the D-316 Omega-Squared line changed the report bytes
+  — the two test_wrk_analytics goldens were re-derived at D-316, but the ANALYTICS report is pinned in FOUR places and
+  the two full-chain goldens (LONG tier) were missed (the D-316 verification ran only the fast tier); the mirror hashes
+  were also stale since D-307 — all in sync now.
 - The two stale notes docs are archived (D-320): the I-017 project plan (analytical_properties_of_features.md — the
-  project is done, ideas-closed) + the wave-tier performance baseline (performance_baseline.md — the profiling
-  session it referenced never ran) moved to notes/analyses/historical/ (the ODP-9 precedent); the overview index
-  folds them into the analyses/ line.
-- The FINAL_LOG_PRINT level (D-321): the 19th, the pipeline's last (after PLOT) — it writes the FULL run log
-  (every buffered event, every level, the maximum relevance — the machine's event buffer, captured independent of
-  the display verbosity) to `base_dir / log_file_name` in the live console line format. The gate is the optional
-  config entry `log_file_name` (default None — the absent entry is a no-op, the file NOT generated: zero impact on
-  the existing runs). The generic-zone addition: the StateMachine's `format_event_log` render (the shared
-  `_format_event_line` formatter, the live-line single source of truth) + the context injection; the hub V3c
-  re-pinned 18 -> 19; the full-chain step pins updated (19 / FINAL_LOG_PRINT).
-- The new code-format rules land on the inference client (D-323): client.py is reflowed to the 120-char width
-  (the D-314 user-directed act — the code was already 120-ish, the visible effect is the GNU-header cleanup) and its
-  3 docstrings converted to the D-318 descriptive style (the D-141 / the D-111 M5 provenance out); zero behavioral
-  change (the AST-equality proof, the bit-exact EF pins re-verified at LONG=1).
+  project is done, ideas-closed) + the wave-tier performance baseline (performance_baseline.md — the profiling session
+  it referenced never ran) moved to notes/analyses/historical/ (the ODP-9 precedent); the overview index folds them into
+  the analyses/ line.
+- The FINAL_LOG_PRINT level (D-321): the 19th, the pipeline's last (after PLOT) — it writes the FULL run log (every
+  buffered event, every level, the maximum relevance — the machine's event buffer, captured independent of the display
+  verbosity) to `base_dir / log_file_name` in the live console line format. The gate is the optional config entry
+  `log_file_name` (default None — the absent entry is a no-op, the file NOT generated: zero impact on the existing
+  runs). The generic-zone addition: the StateMachine's `format_event_log` render (the shared `_format_event_line`
+  formatter, the live-line single source of truth) + the context injection; the hub V3c re-pinned 18 -> 19; the
+  full-chain step pins updated (19 / FINAL_LOG_PRINT).
+- The new code-format rules land on the inference client (D-323): client.py is reflowed to the 120-char width (the D-314
+  user-directed act — the code was already 120-ish, the visible effect is the GNU-header cleanup) and its 3 docstrings
+  converted to the D-318 descriptive style (the D-141 / the D-111 M5 provenance out); zero behavioral change (the
+  AST-equality proof, the bit-exact EF pins re-verified at LONG=1).
 - The new code-format rules land on the config domain (D-324): hlp_config_schemas.py is reflowed to the 120-char width +
   the 4 verbose class docstrings compressed + the 9 D-XXX provenance refs + the drifting ordinals + the narrative
-  descriptions cleaned (Roberto's "keep it simple" — the wave-tier / "uno per tutti" / the D-280-migration bits out,
-  the observable contracts stay); the 2 D-267 test-docstring refs removed; zero behavioral change (the model_fields
-  equality proof, the fixtures re-parsed at LONG=1).
-- The new code-format rules land on the GRADIENT domain (D-325): hlp_gradient.py is reflowed + the D-318 docstrings
-  (the "It was computed as" history line out), and the hardcoded _HP_BLOCKS becomes the `hi_perf_blocks` config field
-  (PositiveInt, default 8 = the current hardcoded value → the HP full-chain trajectories stay bit-identical; explicit
-  in the rlm_00 fixture); zero golden re-derivations (the masked report hashes mask the config-checksum line itself).
-- The new code-format rules land on the INDEXES domain (D-326): hlp_indexes.py reflowed + the D-318 docstrings
-  (7 functions — the compute_sha3_256_hash was the only undocumented one; the 2 D-139 provenance refs out; the
-  131-char compare reflowed), the header cleanups also on wrk_indexes.py + both test files, and the single 123-char
-  test line in test_wrk_indexes.py; zero behavioral change (the docstring-stripped AST equality proof), probe
-  re-pinned minimally (A1 lines, A8 the D-139 text).
+  descriptions cleaned (Roberto's "keep it simple" — the wave-tier / "uno per tutti" / the D-280-migration bits out, the
+  observable contracts stay); the 2 D-267 test-docstring refs removed; zero behavioral change (the model_fields equality
+  proof, the fixtures re-parsed at LONG=1).
+- The new code-format rules land on the GRADIENT domain (D-325): hlp_gradient.py is reflowed + the D-318 docstrings (the
+  "It was computed as" history line out), and the hardcoded _HP_BLOCKS becomes the `hi_perf_blocks` config field
+  (PositiveInt, default 8 = the current hardcoded value → the HP full-chain trajectories stay bit-identical; explicit in
+  the rlm_00 fixture); zero golden re-derivations (the masked report hashes mask the config-checksum line itself).
+- The new code-format rules land on the INDEXES domain (D-326): hlp_indexes.py reflowed + the D-318 docstrings (7
+  functions — the compute_sha3_256_hash was the only undocumented one; the 2 D-139 provenance refs out; the 131-char
+  compare reflowed), the header cleanups also on wrk_indexes.py + both test files, and the single 123-char test line in
+  test_wrk_indexes.py; zero behavioral change (the docstring-stripped AST equality proof), probe re-pinned minimally (A1
+  lines, A8 the D-139 text).
 - The new code-format rules land on the OPTIMIZE domain (D-327, option c): hlp_optimize.py reflowed + the D-318
   docstrings (6 functions — the 17-arg save Args block is the largest of the campaign; the 5 D-XXX refs out), and the
   same pass on wrk_optimize.py (the 2 >120 log lines, the 4 D-096 comment tags) + both test-file headers; zero
-  behavioral change (the docstring-stripped AST proof on both files), probe re-pinned (A1/A14 line indices/B1) and
-  found the stale "83-check" mirror claim (the probe is 78 since the D-106 slimming).
+  behavioral change (the docstring-stripped AST proof on both files), probe re-pinned (A1/A14 line indices/B1) and found
+  the stale "83-check" mirror claim (the probe is 78 since the D-106 slimming).
 - The new code-format rules land on the PLOT domain (D-328, option b + the label dicts): hlp_plot.py 504 -> 556
-  (the D-314 reflow to the 120-char width + the D-318 docstrings on all 15 defs + the orphaned constants comment
-  block out — the design facts in the PlotStyle docstring — + the ~20 D-XXX comment tags out + the 2 Italian quotes
-  paraphrased), and the FEATURE: the 11 hardcoded
-  rendering constants AND the _TXT_X/_TXT_Y label dicts become the 13 PlotConfig knobs (the PlotStyle dataclass in
-  hlp_plot — the schema cannot import back; the builders take (d, run_name, style); the parity plot now consumes
-  axis_gv, it was the 64.0 literal); zero behavioral change at the defaults (the AST code-equivalence proof + the
-  parity PNG golden byte-identical); the v2 model size bands re-centered for the 13 dump fields (A2030 23512-23612
-  measured 23562, A2050 516991-517091 measured 517041, the D-149 precedent); suite 967 -> 968.
+  (the D-314 reflow to the 120-char width + the D-318 docstrings on all 15 defs + the orphaned constants comment block
+  out — the design facts in the PlotStyle docstring — + the ~20 D-XXX comment tags out + the 2 Italian quotes
+  paraphrased), and the FEATURE: the 11 hardcoded rendering constants AND the _TXT_X/_TXT_Y label dicts become the 13
+  PlotConfig knobs (the PlotStyle dataclass in hlp_plot — the schema cannot import back; the builders take (d, run_name,
+  style); the parity plot now consumes axis_gv, it was the 64.0 literal); zero behavioral change at the defaults (the
+  AST code-equivalence proof + the parity PNG golden byte-identical); the v2 model size bands re-centered for the 13
+  dump fields (A2030 23512-23612 measured 23562, A2050 516991-517091 measured 517041, the D-149 precedent); suite
+  967 -> 968.
 - The new code-format rules land on the SU_ANALYSIS domain (D-329, option c): hlp_su_analysis.py reflowed to the
-  120-char width (1190 -> 1203 lines — the D-318 typed-Args docstrings cost +83, the code itself shrinks
-  587 -> 560) + the D-318 docstrings on all 32 functions (the 8 'State:' sections dissolved, _read_marginal
-  gained its first docstring) + the 2 section banners out + the dead `import hashlib` out; the report's
-  "Uncertainity" typo fixed (2 TXT strings + 3 test pins); zero behavioral change (the AST code-equivalence
-  proof: identical except the import + the 2 typo strings, all 10 constants byte-identical); the stale
-  21/0/0 overview count corrected to 38/0/0; suite 968 OK.
- - The new code-format rules land on the VALIDATE domain (D-330, option c): hlp_validate.py reflowed
-   (193 -> 158 lines) + the D-318 docstrings — the campaign's worst offender: validate_model's 55-line
-   interpretive essay condensed to the WHAT (the 3 formulas + the RMSE/MAE normal indicator stay, the
-   "Physical Interpretation / Mathematical Weight / alarm" essay moves to the mirror doc's Architecture),
-   top_outliers imperative + Args, ValidationResult the PlotData inline-comment pattern; the header
-   cleaned (the 4 license trailing spaces, the 3 triple-blanks) + the extras (Dict -> dict inert, the
-   "We need" comment out); zero behavioral change (the AST diff = exactly the 2 intended changes);
-   suite 968 OK.
- - The new code-format rules land on the WMAPS domain (D-331, option c): hlp_wmaps.py reflowed (322 ->
-   340 lines) + the D-318 docstrings (the 6 functions imperative, the 12-step HOW list condensed to the
-   WHAT — the mirror's Architecture already carries the mechanism —, the 2 missing docstrings added, the
-   41-line numpy Attributes block flattened + packed) + the 3 decision refs out (the 2x D-139 store/load
-   lines + the D-086 R1 compute tag — the facts stay, the tags go) + the header cleaned; the
-   verify_wmaps probe re-pinned minimally (A1 the line count, A5/A10/A11/A12 the 4 line numbers, A7/A8
-   the 2 substrings minus the tags); zero behavioral change (the AST diff: IDENTICAL); suite 968 OK.
+  120-char width (1190 -> 1203 lines — the D-318 typed-Args docstrings cost +83, the code itself shrinks 587 -> 560) +
+  the D-318 docstrings on all 32 functions (the 8 'State:' sections dissolved, _read_marginal gained its first
+  docstring) + the 2 section banners out + the dead `import hashlib` out; the report's "Uncertainity" typo fixed (2 TXT
+  strings + 3 test pins); zero behavioral change (the AST code-equivalence proof: identical except the import + the 2
+  typo strings, all 10 constants byte-identical); the stale 21/0/0 overview count corrected to 38/0/0; suite 968 OK.
+ - The new code-format rules land on the VALIDATE domain (D-330, option c): hlp_validate.py reflowed (193 -> 158 lines)
+   + the D-318 docstrings — the campaign's worst offender: validate_model's 55-line interpretive essay condensed to the
+   WHAT (the 3 formulas + the RMSE/MAE normal indicator stay, the "Physical Interpretation / Mathematical Weight /
+   alarm" essay moves to the mirror doc's Architecture), top_outliers imperative + Args, ValidationResult the PlotData
+   inline-comment pattern; the header cleaned (the 4 license trailing spaces, the 3 triple-blanks) + the extras (Dict ->
+   dict inert, the "We need" comment out); zero behavioral change (the AST diff = exactly the 2 intended changes); suite
+   968 OK.
+ - The new code-format rules land on the WMAPS domain (D-331, option c): hlp_wmaps.py reflowed (322 -> 340 lines) +
+   the D-318 docstrings (the 6 functions imperative, the 12-step HOW list condensed to the WHAT — the mirror's
+   Architecture already carries the mechanism —, the 2 missing docstrings added, the 41-line numpy Attributes block
+   flattened + packed) + the 3 decision refs out (the 2x D-139 store/load lines + the D-086 R1 compute tag — the facts
+   stay, the tags go) + the header cleaned; the verify_wmaps probe re-pinned minimally (A1 the line count,
+   A5/A10/A11/A12 the 4 line numbers, A7/A8 the 2 substrings minus the tags); zero behavioral change (the AST diff:
+   IDENTICAL); suite 968 OK.
 - The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
   the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
   is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
-- The SU/ANOVA verification posts run the REAL pipeline (D-287): the worker suites + the two probes take the
-  campaign (cfg + feature_set + the `feature_blocks` layout) from the facade's `run("FEATURES")` (the target_level
-  stop + the `base_dir_override`, silent) — the hlp_gate parallel loader is RETIRED (the test-infra no longer ships
-  in the package).
-- The wrk/hlp split (D-289): the SU_ANALYSIS worker is the ORCHESTRATION SKELETON (the wrk_design_matrix
-  minimalism) — all the analysis logic (the corpus engine, the binio cache D-288, the signature, the
-  statistics) lives in hlp_su_analysis, with a dedicated test_hlp_su_analysis suite (38 tests —
-  the D-295 accumulator migration).
-- The LM facade is the pipeline's script entry (D-274): `python -m reversi.lm.logistic_model <config.json>
-  [--verbosity {high,moderate,standard,low,very_low,none}]` (default `standard`), from the workspace root — runs the
-  whole chain to the last level.
+- The SU/ANOVA verification posts run the REAL pipeline (D-287): the worker suites + the two probes take the campaign
+  (cfg + feature_set + the `feature_blocks` layout) from the facade's `run("FEATURES")` (the target_level stop + the
+  `base_dir_override`, silent) — the hlp_gate parallel loader is RETIRED (the test-infra no longer ships in the
+  package).
+- The wrk/hlp split (D-289): the SU_ANALYSIS worker is the ORCHESTRATION SKELETON (the wrk_design_matrix minimalism) —
+  all the analysis logic (the corpus engine, the binio cache D-288, the signature, the statistics) lives in
+  hlp_su_analysis, with a dedicated test_hlp_su_analysis suite (38 tests — the D-295 accumulator migration).
+- The LM facade is the pipeline's script entry (D-274):
+  `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
+  `standard`), from the workspace root — runs the whole chain to the last level.
 - The SU_ANALYSIS report (D-275/D-278/D-279, D-292) is the up-to-three-section "Symmetrical Uncertainity Analysis
-  Report": a header (the title + the corpus / features / SU-pairs summary),
-  Section A (the feature-instances — the per-sub-variable dispersion + the never-observed audit, over the THEORETICAL
-  configuration space: n_unique_configs for a pattern / the value range for a mobility, D-278; some are unreachable
-  by the game, D-279; a compact KPI legend above the list) + the optional Section B (the Rarity report — the
-  per-bin frequencies over the half-open bins [0, t1), [t1, t2), ..., [tk, inf), the first bin the zero-frequency
-  codes; the config's optional rarity_thresholds, D-292) + Section C (the SU groups — each pair DEDUPLICATED, the
-  SU being symmetric so the (i, j) / (j, i) directions are shown once, the groups in the canonical endpoint order
-  (the lexicographic instance order); the preamble is the report description + the SU-range legend,
-  the D-293 follow-up) — the data rows are COLUMN-ALIGNED (D-293: the name / the inst left-justified
-  to the max width, the numeric values right-justified to the computed max width; the Section C preamble is the
-  header description + the SU-range legend, moved after its title; the Section B preamble runs at column 0, no
+  Report": a header (the title + the corpus / features / SU-pairs summary), Section A (the feature-instances — the
+  per-sub-variable dispersion + the never-observed audit, over the THEORETICAL configuration space: n_unique_configs for
+  a pattern / the value range for a mobility, D-278; some are unreachable by the game, D-279; a compact KPI legend above
+  the list) + the optional Section B (the Rarity report — the per-bin frequencies over the half-open bins [0, t1), [t1,
+  t2), ..., [tk, inf), the first bin the zero-frequency codes; the config's optional rarity_thresholds, D-292) + Section
+  C (the SU groups — each pair DEDUPLICATED, the SU being symmetric so the (i, j) / (j, i) directions are shown once,
+  the groups in the canonical endpoint order (the lexicographic instance order); the preamble is the report description
+  + the SU-range legend, the D-293 follow-up) — the data rows are COLUMN-ALIGNED (D-293: the name / the inst
+  left-justified to the max width, the numeric values right-justified to the computed max width; the Section C preamble
+  is the header description + the SU-range legend, moved after its title; the Section B preamble runs at column 0, no
   parentheses).
 - The ec (empty_count) is consolidated in ONE required root field (D-280..D-283): `empty_count` (int, 0..60) between
-  name and description — the single source for the SU corpus generation, the DB extraction (training + validation),
-  and the saved model. The redundant `su_analysis.corpus.ec` + `regab_data_set.ec` are gone; the migration was
+  name and description — the single source for the SU corpus generation, the DB extraction (training + validation), and
+  the saved model. The redundant `su_analysis.corpus.ec` + `regab_data_set.ec` are gone; the migration was
   value-preserving (the caches, the corpus signature, and the model file keep the ec value — nothing regenerated).
 - A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
   (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
@@ -226,10 +219,10 @@ tables at the end of this file.
   A2050 feature set re-run on the official start (92.7 s: 67.2 the corpus + the SU statistics, 25.5 the ANOVA; the
   reports in `build/su_corpus_1e7/`). The pre-D-192 corpora (the swapped start) are dead — the cache signature now
   invalidates them automatically. The 2e6/1e8 experiment configs regenerate on demand.
-- The mirror docs are fully consistent with the code (D-262 sweep + the D-263 execution of ALL its remaining
-  findings): the independent 95-pair re-audit drove the fix campaign — the critical facts (the regab SQL
-  contract, the pattern API, the FOUR analytics attributes), the 7 space-broken goldens, the tools/ zone, the
-  step/level drift, the test-doc pins, the forbidden history, and the source-side stale comments (comment-only).
+- The mirror docs are fully consistent with the code (D-262 sweep + the D-263 execution of ALL its remaining findings):
+  the independent 95-pair re-audit drove the fix campaign — the critical facts (the regab SQL contract, the pattern API,
+  the FOUR analytics attributes), the 7 space-broken goldens, the tools/ zone, the step/level drift, the test-doc pins,
+  the forbidden history, and the source-side stale comments (comment-only).
 
 ## Next steps
 
@@ -237,9 +230,9 @@ tables at the end of this file.
   the runner header stay in place (the machinery survives for a future very-long instrument).
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-014 dropped (D-332, no code). I-003 executed (D-242); I-018 executed
-  (D-243..D-246); I-019 executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed
-  (D-265, no code); I-007 executed (D-266, the feature_blocks property + the dedup).
+- Backlog (Roberto's call): I-014 dropped (D-332, no code). I-003 executed (D-242); I-018 executed (D-243..D-246); I-019
+  executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code); I-007 executed
+  (D-266, the feature_blocks property + the dedup).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
@@ -351,10 +344,10 @@ One row per test file, alphabetical.
 | test/reversi/tools/test_state_machine.py | complete: 13 original expectations independently re-derived | 49/0/0 | docs/test/reversi/tools/test_state_machine.md |
 | test/reversi/tools/test_usage_binio.py | complete: the 3 usage tests | 3/0/0 | docs/test/reversi/tools/test_usage_binio.md |
 
-Test data (test/reversi/data/): rlm_00.json (the JSON5 config), rlm_01.json (the training DB dump), rlm_02.json (the
-DB dump), rlm_03.json + rlm_04.json (the validation sets) — the per-file mirror docs cover them. Plus
-ffo_12_log_sample.csv (the FFO-12 legacy C solve-log sample, the `position_hash` parity fixture — D-215: the full
-571_141-row log verified 100%, the committed sample is the deterministic 1002-row stride).
+Test data (test/reversi/data/): rlm_00.json (the JSON5 config), rlm_01.json (the training DB dump), rlm_02.json (the DB
+dump), rlm_03.json + rlm_04.json (the validation sets) — the per-file mirror docs cover them. Plus ffo_12_log_sample.csv
+(the FFO-12 legacy C solve-log sample, the `position_hash` parity fixture — D-215: the full 571_141-row log verified
+100%, the committed sample is the deterministic 1002-row stride).
 
 ## Index
 The docs/ mirrors (one per source/test file, D-007) are NOT listed here: their paths are the Doc column of the two
@@ -367,9 +360,13 @@ tables above.
   closed volumes: decisions_NNN.md)
 - notes/decisions_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
 - notes/decisions_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
+- notes/decisions_002.md — closed decision volume 002 (D-159…D-206, 2026-09-11 → 2026-09-15, the D-333 rotation)
+- notes/decisions_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19, the D-333 rotation)
+- notes/decisions_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23, the D-333 rotation)
+- notes/decisions_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29, the D-333 rotation)
 - notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews + the
-  historical project docs (the historical/ subdir: the I-017 project plan — analytical_properties_of_features.md,
-  the wave-tier performance baseline — performance_baseline.md, the ODP-9 material)
+  historical project docs (the historical/ subdir: the I-017 project plan — analytical_properties_of_features.md, the
+  wave-tier performance baseline — performance_baseline.md, the ODP-9 material)
 - notes/ideas.md — the OPEN backlog (I-NNN, D-235)
 - notes/ideas-closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /

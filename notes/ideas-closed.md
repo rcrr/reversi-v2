@@ -36,36 +36,35 @@ I-006 | dropped | Legacy migration debt (raised 2026-08-27, D-024): `PatternSet.
          campaign is complete (D-119: the pipeline is 15/15, D-104/D-113) and no legacy call site survived the migration
          — the only `.names()` occurrence is prose in `docs/src/reversi/mobility.md`.
 
-I-007 | done | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3: no way to map a
-         column of the (N, I) index matrix to the feature name producing it; the D-041 deferral: "until the pipeline
-         module that labels columns arrives"). Executed as D-266 (2026-09-19, Roberto's approval): the
-         `FeatureSet.feature_blocks` property (the (name, col_start, col_end, n_configurations, n_instances) tuples
-         over the non-intercept features, the compute_indexes column layout, instance-aware) — the deferral condition
-         was met: the SU_ANALYSIS + EFFECT_SIZE workers had arrived carrying TWO identical local `_feature_blocks`
-         copies, plus a THIRD inline in the hlp_gate test loader; all three call sites now use the property (zero
-         behaviour change, the logic byte-identical). test_feature 20 -> 25 (the new TestFeatureSetFeatureBlocks
-         class); the 5 mirror docs (feature, test_feature, wrk_su_analysis, wrk_effect_size, hlp_gate).
+I-007 | done | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3: no way to map a column
+         of the (N, I) index matrix to the feature name producing it; the D-041 deferral: "until the pipeline module
+         that labels columns arrives"). Executed as D-266 (2026-09-19, Roberto's approval): the
+         `FeatureSet.feature_blocks` property (the (name, col_start, col_end, n_configurations, n_instances) tuples over
+         the non-intercept features, the compute_indexes column layout, instance-aware) — the deferral condition was
+         met: the SU_ANALYSIS + EFFECT_SIZE workers had arrived carrying TWO identical local `_feature_blocks` copies,
+         plus a THIRD inline in the hlp_gate test loader; all three call sites now use the property (zero behaviour
+         change, the logic byte-identical). test_feature 20 -> 25 (the new TestFeatureSetFeatureBlocks class); the 5
+         mirror docs (feature, test_feature, wrk_su_analysis, wrk_effect_size, hlp_gate).
 
 I-008 | dropped | Extend the papers collection beyond 2002 (dropped at D-125, 2026-09-06): the copyrighted collection
          left the workspace scope — dropped, not moved (Roberto's call).
 
 I-009 | done | Pipeline construction boilerplate in the model client (raised 2026-08-29, session 19, R3 discussion;
-         unblocked 2026-09-19 with the pipeline port). The evaluation was the deliverable: the pipeline base class
-         was already realized by `BaseModel` in the port campaign, the declarative step table exists in effect
-         (the 19-entry workers list in `logistic_model.py`), and the @step helper was rejected (the 76 factory
-         lines + 18 imports saved would cost a registry mechanism, the 41 factory call sites in 6 test files +
-         13 probes, 19 mirror docs, and zero behaviour benefit). Closed 2026-09-19 as D-264, no code action: the
-         remaining explicit assembly is design, not debt; a second pipeline (DeepNetworkModel) would re-evaluate
-         with concrete data.
+         unblocked 2026-09-19 with the pipeline port). The evaluation was the deliverable: the pipeline base class was
+         already realized by `BaseModel` in the port campaign, the declarative step table exists in effect (the 19-entry
+         workers list in `logistic_model.py`), and the @step helper was rejected (the 76 factory lines + 18 imports
+         saved would cost a registry mechanism, the 41 factory call sites in 6 test files + 13 probes, 19 mirror docs,
+         and zero behaviour benefit). Closed 2026-09-19 as D-264, no code action: the remaining explicit assembly is
+         design, not debt; a second pipeline (DeepNetworkModel) would re-evaluate with concrete data.
 
 I-010 | done | Redesign of the StateMachine context injection (parked 2026-08-29, D-070/M9: the __init__ injects
-         `log_event` + the cache helpers as a side effect; a shared context re-binds to the LAST machine, V17).
-         The evaluation condition was met 2026-09-19 and the evaluation CONFIRMS leave-as-is: the visible call
-         pattern is the uniform `ctx.` blackboard access (163 `log_event` + 9 cache-helper call sites) that the
-         injection serves; V17 is theoretical (no shared context in production — every facade owns its context +
-         machine); option A (the explicit machine reference) is a pipeline-wide high-risk refactor for a hazard
-         that never manifests, option B (the context-owned helpers) does not solve V17. Closed 2026-09-19 as
-         D-265, no code action: the D-070/M9 call stands, now confirmed.
+         `log_event` + the cache helpers as a side effect; a shared context re-binds to the LAST machine, V17). The
+         evaluation condition was met 2026-09-19 and the evaluation CONFIRMS leave-as-is: the visible call pattern is
+         the uniform `ctx.` blackboard access (163 `log_event` + 9 cache-helper call sites) that the injection serves;
+         V17 is theoretical (no shared context in production — every facade owns its context + machine); option A (the
+         explicit machine reference) is a pipeline-wide high-risk refactor for a hazard that never manifests, option B
+         (the context-owned helpers) does not solve V17. Closed 2026-09-19 as D-265, no code action: the D-070/M9 call
+         stands, now confirmed.
 
 I-011 | done | "Storicizzazione" of the JSON config used to generate a model (raised 2026-08-30, D-077 R1): Roberto
          questioned whether CONFIG needs a CACHE at all — the real need may be keeping, with history, the config that
@@ -86,11 +85,11 @@ I-013 | done | Study whether the GRADIENT fg closure can be sped up (raised 2026
          notes/analyses/optimize_performance.md.
 
 I-014 | dropped | Hot-restart ("restart a caldo") of the OPTIMIZE level from the checkpoint's warm weights (raised
-          2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, resuming
-          L-BFGS from the checkpoint's warm state under the new objective was explicitly parked ("un'ottimizzazione che
-          svilupperei solo in seguito, se capiamo che ha un valore pratico"). Dropped 2026-09-29 (session 90, D-332),
-          Roberto's call — no code action: the warm-start plumbing (the checkpoint's full L-BFGS state — w + sl/yl/rho +
-          iters — + the `opt_lbfgs` warm-start kwargs) stays as the INCOMPLETE-resume path's contract.
+         2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, resuming
+         L-BFGS from the checkpoint's warm state under the new objective was explicitly parked ("un'ottimizzazione che
+         svilupperei solo in seguito, se capiamo che ha un valore pratico"). Dropped 2026-09-29 (session 90, D-332),
+         Roberto's call — no code action: the warm-start plumbing (the checkpoint's full L-BFGS state — w + sl/yl/rho +
+         iters — + the `opt_lbfgs` warm-start kwargs) stays as the INCOMPLETE-resume path's contract.
 
 I-015 | done | CLIENT_CHECK: a new pipeline level after SAVE — the saved-model file acceptance test (raised 2026-09-10).
          Executed as D-148 (2026-09-10): the level re-reads the model file, builds the client's array EF on the FILE
@@ -120,20 +119,19 @@ I-018 | done | The top-20 outlier report in VALIDATE + the 20 records in the con
          PNG byte-determinism golden and the full-chain pins hold. A dedicated probe re-pin (D-244) cleared the stale
          step/slot pins the campaign's sweep exposed.
 
-I-019 | done | The `run()` facade + the `target_level` consumption (raised 2026-09-19 during the P2 rename sweep,
-         closed the same day). Executed as D-260: `BaseModel.run(target_level=None)` drives the stop — the first real
-         level (CONFIG) runs first, then the explicit argument, else the domain hook `_configured_target_level()`
+I-019 | done | The `run()` facade + the `target_level` consumption (raised 2026-09-19 during the P2 rename sweep, closed
+         the same day). Executed as D-260: `BaseModel.run(target_level=None)` drives the stop — the first real level
+         (CONFIG) runs first, then the explicit argument, else the domain hook `_configured_target_level()`
          (`LMConfig.target_level` in LogisticModel), else the last step; "last" (any case) and a blank value mean the
          whole pipeline, and any level name or index is a legal stop. A second `run()` with a deeper target RESUMES
          without re-running the levels done (verified at the 1e7 scale: one SU_ANALYSIS up, zero downs). Tests 17 -> 29
          in `test_logistic_model` (the mocked resolution cases + the real-config class); the register line in
          notes/rules.md; the hub probe's V9 gained the `run()` boundary label.
 
-I-020 | done | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, session 58, deferred by Roberto
-         in D-299, "magari lo vediamo dopo"). Executed as D-300 (2026-09-23): the compute loop computes
-         `idx = fset.compute_indexes(final[keep])` ONCE per wave and feeds the SAME matrix to both
-         accumulators' `add(idx)` (the old `add(pos)` recomputed it internally — ~173 ms/wave twice). The 12
-         test + 3 probe call sites feed `fset.compute_indexes(pos)`; the D-296 position language stops at the
-         loop boundary (the accumulators speak the derived index matrix, the A10 invariant intact). The 1e7
-         tables stay bit-identical + the statistics byte-identical (the index matrix is a pure function of the
-         harvested lanes; the rlmwf_03 caches stay valid).
+I-020 | done | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, session 58, deferred by Roberto in D-299,
+         "magari lo vediamo dopo"). Executed as D-300 (2026-09-23): the compute loop computes
+         `idx = fset.compute_indexes(final[keep])` ONCE per wave and feeds the SAME matrix to both accumulators'
+         `add(idx)` (the old `add(pos)` recomputed it internally — ~173 ms/wave twice). The 12 test + 3 probe call sites
+         feed `fset.compute_indexes(pos)`; the D-296 position language stops at the loop boundary (the accumulators
+         speak the derived index matrix, the A10 invariant intact). The 1e7 tables stay bit-identical + the statistics
+         byte-identical (the index matrix is a pure function of the harvested lanes; the rlmwf_03 caches stay valid).

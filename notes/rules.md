@@ -32,8 +32,9 @@ spans; the tables and the headings stay one physical line.
 - notes/decisions.md — the OPEN historical decision log (append-only; "the why"; consulted on demand). Format (D-209):
   ~120 chars/line; a blank line before every entry; code spans for the paths and the function / file names;
   backslash-escaped asterisks for the math multiplications, so the Markdown renders without stray italics. Volume
-  rotation (D-118, the journal rhythm): the open volume keeps this name; past 2000 lines it closes at a session boundary
-  as decisions_NNN.md and a new decisions.md is opened — the D-numbers stay global and immutable across the volumes.
+  rotation (D-118, the cap amended to 1000 lines at D-333): the open volume keeps this name; past 1000 lines it closes
+  at a session boundary as decisions_NNN.md and a new decisions.md is opened — the D-numbers stay global and immutable
+  across the volumes.
 - notes/log_NNN.md — the session journals (rotating volumes; the format is rigid in notes/log_rules.md).
 - notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/probe_rules.md, notes/tools.md — the domain rule files
   (rigid; each owns its domain — this register points at them, never duplicates them).
@@ -125,11 +126,11 @@ spans; the tables and the headings stay one physical line.
 - Cache flow: the cache_manager load-or-compute with the .SHA3-256 sidecar and the 8192-chunk verify (D-071/D-072); the
   rlmwf_NN_ names are flat filename-prefix concatenations, not pathlib joins (D-069, D-076).
 - bool is not a valid step (D-069).
-- The stop is TARGET-DRIVEN: the facade's `run(target_level=None)` runs the first real level (CONFIG) first, then stops at
-  the explicit argument, else at the domain's configured target (`LMConfig.target_level`), else at the last step; "last"
-  (any case) and a blank value mean the whole pipeline, and ANY level name (case-insensitive) or int index is a legal
-  stop. The target step IS executed, and a second `run()` with a deeper target RESUMES — the levels already done are not
-  re-run (their ctx artifacts survive, the caches stay hot). (D-260)
+- The stop is TARGET-DRIVEN: the facade's `run(target_level=None)` runs the first real level (CONFIG) first, then stops
+  at the explicit argument, else at the domain's configured target (`LMConfig.target_level`), else at the last step;
+  "last" (any case) and a blank value mean the whole pipeline, and ANY level name (case-insensitive) or int index is a
+  legal stop. The target step IS executed, and a second `run()` with a deeper target RESUMES — the levels already done
+  are not re-run (their ctx artifacts survive, the caches stay hot). (D-260)
 
 ## Docs
 
@@ -142,33 +143,32 @@ spans; the tables and the headings stay one physical line.
   HOW — the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance
   in the docstrings (decisions.md is its home; a `#:` code comment only if fundamental). (D-224, D-226)
 - The src/ docstring style (the descriptive format): (1) the imperative first line (one sentence, a verb: Calculate /
-  Compute / Run / Generate); (2) the body paragraph — what is measured or computed and why (the observable contract;
-  the formulas defining the output values stay in the docstring, they ARE the WHAT); (3) the Args: section, the Google
+  Compute / Run / Generate); (2) the body paragraph — what is measured or computed and why (the observable contract; the
+  formulas defining the output values stay in the docstring, they ARE the WHAT); (3) the Args: section, the Google
   8-space indent, each argument typed in parentheses + described (the types mirror the real annotations); (4) the
-  Returns: section, the key-by-key detail (the dict keys, the degenerate behaviors — the nan / None / 0 conventions,
-  the exceptions). It completes the WHAT-only rule above: that rule constrains the CONTENT (no HOW, no D-XXX), this
-  one the FORMAT. Scope: public + private functions in src/ (the test / the probe docs keep their own rules,
-  D-267/D-270); it binds the NEW docstrings and any REWRITTEN one; the retroactive conversion of the existing modules
-  is user-directed, one module at a time (like the D-314 reflow), never an agent initiative. The exemplar: hlp_anova
-  (D-317). (D-318)
-- Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") —
-  that is OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs
-  (docs_rules.md §3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the
-  D-146 two-loop note). (D-269, D-270)
-- Test docs (the docstrings + the comments in test/): state what is tested, optionally how it is realized
-  (the mechanism, the preconditions, the postconditions); no D-xxx / I-xxx references, no evolution history, and no
-  level ordinals that drift as levels come and go (name the level: CLIENT_CHECK, PLOT). (D-267)
-- The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and
-  item ids ("C5 … (I-013 …)") are the probe's vocabulary and stay — the text asserted and the surrounding
-  comments follow the test-doc rules. (D-270)
+  Returns: section, the key-by-key detail (the dict keys, the degenerate behaviors — the nan / None / 0 conventions, the
+  exceptions). It completes the WHAT-only rule above: that rule constrains the CONTENT (no HOW, no D-XXX), this one the
+  FORMAT. Scope: public + private functions in src/ (the test / the probe docs keep their own rules, D-267/D-270); it
+  binds the NEW docstrings and any REWRITTEN one; the retroactive conversion of the existing modules is user-directed,
+  one module at a time (like the D-314 reflow), never an agent initiative. The exemplar: hlp_anova (D-317). (D-318)
+- Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") — that is
+  OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs (docs_rules.md
+  §3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the D-146 two-loop note).
+  (D-269, D-270)
+- Test docs (the docstrings + the comments in test/): state what is tested, optionally how it is realized (the
+  mechanism, the preconditions, the postconditions); no D-xxx / I-xxx references, no evolution history, and no level
+  ordinals that drift as levels come and go (name the level: CLIENT_CHECK, PLOT). (D-267)
+- The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and item ids
+  ("C5 … (I-013 …)") are the probe's vocabulary and stay — the text asserted and the surrounding comments follow the
+  test-doc rules. (D-270)
 
 ## Code style
 
-- Source line length: no linter gate, no hard limit (pyproject carries no flake8/ruff config). New or EDITED lines
-  match the local file's wrap convention (the lm zone historically wraps at ~72–76); a convention-less file defaults
-  to <= 79 (PEP8). A full-file reflow to 120 is a deliberate, user-directed act (the wrk_anova.py reflow is its
-  precedent — D-314), never an agent side-effect, and untouched lines are never re-wrapped. The docs/notes stay at
-  ~120 (D-237). (D-314)
+- Source line length: no linter gate, no hard limit (pyproject carries no flake8/ruff config). New or EDITED lines match
+  the local file's wrap convention (the lm zone historically wraps at ~72–76); a convention-less file defaults to <= 79
+  (PEP8). A full-file reflow to 120 is a deliberate, user-directed act (the wrk_anova.py reflow is its precedent
+  — D-314), never an agent side-effect, and untouched lines are never re-wrapped. The docs/notes stay at ~120 (D-237).
+  (D-314)
 
 ## Journal
 
