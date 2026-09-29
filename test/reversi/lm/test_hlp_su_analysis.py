@@ -326,11 +326,11 @@ class TestHlpSuAnalysis(unittest.TestCase):
         report = hlp_su_analysis_statistics(ctx, tables)
         self.assertTrue(report.exists())
         txt = report.read_text()
-        self.assertIn("Symmetrical Uncertainity Analysis Report", txt)
+        self.assertIn("Symmetrical Uncertainty Analysis Report", txt)
         self.assertIn("Section A: Properties of features selected by",
                       txt)
         self.assertIn("Section B: Rarity report", txt)
-        self.assertIn("Section C: Symmetrical uncertainity", txt)
+        self.assertIn("Section C: Symmetrical uncertainty", txt)
         self.assertIn("SU pairs: EDGE - LMC", txt)
         self.assertFalse((self.tmp / "su_analysis" /
                           "su_analysis.csv").exists())
@@ -384,7 +384,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
         report = hlp_su_analysis_statistics(ctx, tables)
         txt = report.read_text()
         self.assertNotIn("Section B: Rarity report", txt)
-        self.assertIn("Section C: Symmetrical uncertainity", txt)
+        self.assertIn("Section C: Symmetrical uncertainty", txt)
 
     def test_export_csv(self):
         # The optional CSV: the marginal rows + the su rows (the

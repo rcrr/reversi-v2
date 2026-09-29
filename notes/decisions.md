@@ -4272,3 +4272,56 @@ D-328 | 2026-09-28 | the new code-format rules on hlp_plot (the header +
           556 -> 537 lines, wrk_plot.py the license blank line; AST code diff:
           NONE (comments/docstrings only), the parity golden byte-identical,
           968 OK again.
+
+D-329 | 2026-09-28 | the new code-format rules on hlp_su_analysis (the D-314
+          reflow + the full D-318 docstrings on all 32 functions + the 2
+          section banners out) + the approved extras: the dead import out +
+          the report typo fixed
+          Roberto: "Modulo hlp_su_analysis, verifica la lunghezza delle
+          righe, non sono conformi alle regole, sono troppo corte. Fai una
+          verifica dettagliata, proponi le opzioni, poi ti do indicazione su
+          come procedere." -> the detailed analysis (max width 87, the
+          ~72-76 wrap, 1190 lines; all 32 function docstrings pre-D-318
+          style — the descriptive first lines, the 2-space untyped Args,
+          the 8 'State:' sections — plus _read_marginal WITHOUT a
+          docstring; the 2 redundant section banners; the 13 '#:'
+          rationale blocks NOT orphaned (the constants stay in the file —
+          unlike D-328) so kept; the 3 allowed design pointers (D-293 x2,
+          D-296); the dead `import hashlib`; the 'Uncertainity' typo in 2
+          report strings + 3 test pins) -> "Ok con (c). Procedi per favore!"
+          (the full pass + the extras).
+          FORMAT PASS: the D-314 reflow to ~115 (the code 587 -> 560 lines,
+          the comment blocks 143 -> 97: the 2 banners out, the redundant
+          inline parts merged into the docstrings, packed) + the D-318
+          conversion of all 32 functions (the imperative first line, the
+          body, the Google typed Args/Returns; the 8 'State:' sections
+          dissolved into the body; _read_marginal gained its first
+          docstring) — the docstring lines 374 -> 457 (the typed-Args
+          cost), the file 1190 -> 1203 lines. The 13 '#:' blocks KEPT
+          (packed only).
+          EXTRAS (option c): `import hashlib` REMOVED (imported, never
+          used); the report's "Symmetrical Uncertainity Analysis Report" ->
+          "Symmetrical Uncertainty Analysis Report" + "Section C:
+          Symmetrical uncertainity" -> "...uncertainty" (the user-visible
+          TXT report strings) + the 3 test_hlp_su_analysis assertIn pins
+          updated. Every other report string byte-identical.
+          ZERO BEHAVIORAL CHANGE (beyond the typo strings): the AST
+          code-equivalence proof (docstring-stripped, git HEAD pre-version
+          vs the new one): IDENTICAL except the removed hashlib import +
+          the 2 typo strings; all 10 module constants byte-identical (the
+          _SU_DESCRIPTION / _SU_LEGEND / _KPI_LEGEND report strings
+          verified via literal_eval).
+          VERIFICATION: test_hlp_su_analysis 38/0/0 (1.9 s) +
+          verify_su_analysis 0 mismatch + the full pre-commit LONG=1 968 OK
+          (24 skipped) + the docs/notes audit at baseline.
+          MIRRORS: hlp_su_analysis.md UNTOUCHED (no API / architecture /
+          convention change — the format pass is a decisions/journal
+          matter, the doc stays accurate at its 121 pre-existing baseline)
+          — the test mirror likewise (the 3 pinned strings are not quoted
+          there).
+          OVERVIEW: the hlp_su_analysis row's stale 21/0/0 count corrected
+          to 38/0/0 (the D-295 migration era).
+          OBSERVATION (out of scope, for Roberto): test_hlp_su_analysis.py
+          still carries a D-292 comment reference (the Section B bins,
+          ~line 339) against D-267 (no D-xxx in test docs) — pre-existing,
+          left as-is (the approved scope (c) covered the 3 strings only).
