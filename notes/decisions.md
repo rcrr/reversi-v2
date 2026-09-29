@@ -37,3 +37,34 @@ D-333 | 2026-09-29 | the decisions.md REPAIR + the split into 4 closed volumes +
          empty, D-333 as its first entry. OBSERVATION (for Roberto, no action): the closed volumes 000/001 carry 53/99
          stray `|` continuation lines + 27/52 bare `*` (the pre-D-237 table-format and math-escape remnants the D-237
          re-wrap kept as content) — the closed volumes stay verbatim; a cleanup pass is his call.
+
+D-334 | 2026-09-29 | the overview.md RESTRUCTURE (Roberto: "La sezione Where we are cresce continuamente e non ha un
+         senso: è un'altra storia del progetto. Non dobbiamo disseminare la storia ovunque, dobbiamo solo tenere quanto
+         è utile a gestire il progetto" + the 4 calls: rename "Current state", the e2e bullet out, the table
+         re-gymnastic now, the MAX 10 bullet rule). (1) THE FINDINGS: the section grew 18 -> 431 lines (09-15), was
+         condensed back to 18 at D-235/D-236 (09-19) — the same disease cured once WITHOUT a legislative guard — and
+         re-bloated to 172 lines / 35 bullets in 10 days; the bullet audit: 22 campaign-history (incl. the 9 "format
+         rules land on X" D-323..D-331 + the hlp_anova cluster D-309..D-317 + the 2 docstring removals), 9 table/mirror
+         duplicates, 4 genuine state, 2+ stale (the su-corpus-2 / su-corpus-3 / su-corpus-5 contradiction, the
+         965-vs-968 suite counts); the Next-steps backlog line carried the closed-ideas record (the "OPEN items only"
+         rule violation); 11 table State cells carried "(the D-NNN format pass: ...)" campaign clauses (the D-117
+         grammar violation) + the board.py src-row suite 246/0/15 stale vs the measured 247/0/15. (2) THE LEGISLATION
+         (rules.md): the section RENAMED "Where we are" -> "Current state" (the eight-section order unchanged); new
+         definition — CURRENT STATE only, MAX 10 bullets, each a present fact NOT in the tables and NOT in the mirrors
+         (the pipeline-wide state, the in-flight campaigns with their horizon, the cross-file contracts); NO
+         bullet-per-campaign: the campaign lives in the journal + the decisions log, and its state leaves the section
+         when the campaign ends; the D-pointer names a rule in force, never a campaign provenance. (3) THE REWRITE:
+         Where we are 172 lines / 35 bullets -> Current state 4 bullets (the 19-level pipeline live and green; the D-318
+         docstring rule + the user-directed retroactive conversion; the LM facade script entry + the target-driven stop;
+         the ec consolidation in ONE required root field — the e2e real-pipeline bullet DROPPED per Roberto); the
+         Next-steps closed-ideas record out (it lives in ideas-closed.md); the 11-cell table re-gymnastic (hlp_plot,
+         wrk_optimize, client, hlp_config_schemas, hlp_gradient, hlp_indexes, hlp_optimize, hlp_su_analysis,
+         hlp_validate, hlp_wmaps + the test_hlp_su_analysis row) keeping the contract facts (the 13 PlotStyle knobs, the
+         hi_perf_blocks field, the su-corpus lineage); the 2 stale su-corpus versions corrected (the random_game row
+         su-corpus-3 -> 5, the test-row pin su-corpus-4 -> 5 — verified in the code: _GENERATOR_VERSION = "su-corpus-5",
+         the test pins it); the board.py suite fixed 246 -> 247 (measured: Ran 247, skipped 15). The deeper narrative
+         clauses of the hlp_su_analysis State cell (the D-295..D-305 framing) stay — the approved scope was the format
+         clauses; a full condensation is a separate call. Nothing is LOST: every stripped clause exists verbatim in the
+         decision log (D-306..D-331) and the mirrors — only de-duplicated. (4) VERIFICATION: notes_format --check clean
+         (0 pending rejoins), the source-vs-test suite cross-check 0 mismatches, Current state 4 bullets <= 10. NOTE:
+         rules.md grew ~2 lines past its ~150 budget (pre-existing overage) — the consolidation call is Roberto's.

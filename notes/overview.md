@@ -48,181 +48,24 @@ employed focus on machine learning techniques that leverage solved positions gen
 - Probes: tracked under probes/ (hub: verify_logistic_model.py owns the pipeline-wide state; rules:
   notes/probe_rules.md).
 
-## Where we are
+## Current state
 
 Current state only — the session-by-session history lives in the journal volumes (notes/log_NNN.md) and the decision log
-(notes/decisions.md); the D-pointers index that history. The file-by-file state lives in the Source files / Test files
-tables at the end of this file.
+(notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below. MAX 10 bullets, no
+bullet-per-campaign (D-334).
 
-- The 19-level pipeline is live and green (965 tests, LONG; the 1e6 wave benchmark — VVLONG since D-256 — replays
-  bit-exact, 28065 dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT → FINAL_LOG_PRINT (the optional
-  full run log on file, the D-321 `log_file_name` gate), plus the OPTIONAL SU_ANALYSIS (pipeline step 3) + ANOVA
-  (pipeline step 6) — default FALSE, opt-in.
-- The ANALYTICS file report carries the D-307 SU sample columns: the PROBABILITY / SU_PROBABILITY observation shares
-  (after FREQUENCY, the pooled marginal over the feature's instance columns) + the "SU Sample Consistency" line under
-  Eta-Squared (the pooled adherence — the TV verdict bands 0.01/0.05 + the chi-square / p / merged; the 2x-training
-  too-small note). SU off → byte-identical tables (the rlm_01/rlm_02 goldens survived).
-- The ANALYTICS file report carries the D-308 INTERCEPT section: the single trained bias weight (one Weight line, 4
-  decimals), emitted only when the feature set has an intercept, between the FEATURE SET SUMMARY and the MOBILITY
-  details. No-intercept fixtures (rlm_02) stay byte-identical; the intercept fixtures' goldens (rlm_01 / rlm_04 /
-  rlm_03) were re-derived.
-- The EFFECT_SIZE level is renamed ANOVA (D-309): the worker (wrk_anova.py), the config (AnovaConfig, the `anova` key),
-  the test, the probe, the 2 mirrors. BREAKING: the config key `effect_size` → `anova` — a pre-rename config with
-  `effect_size:` is ignored by pydantic (the level silently disables); external configs must migrate to `anova:` (the
-  backward-compat alias: REJECTED — the clean break, no alias).
-- The ANOVA worker is a thin orchestrator (D-310): the enable no-op stays in `_up`, the computation lives in two private
-  helpers (`_compute_anova_lines` — the eta²/omega² per sub-variable; `_compute_adherence_lines` — the adherence trio,
-  the graceful-degradation None branch) + the existing `_write_report`; the D-309 leftover local `cfg_es` is renamed
-  `cfg_anova`. Zero behavioral change (the log sequence + the probe pins are verbatim).
-- The ANALYTICS eta² is now the shared ANOVA kernel (D-311): the pooled "Eta-Squared (Discrimination)" statistic of both
-  feature tables is the `anova_eta_omega` call (the 2 hand-rolled SS blocks removed — the bincount pass stays for the
-  table columns), and `TestEtaSquaredCrossLevel` (DB-gated, rlm_00) pins the cross-level invariant: on the
-  single-instance features (ALMC / LMC / DLMC) the ANALYTICS eta² == the ANOVA level's eta² (the groupings coincide).
-- The wrk_su_analysis module docstring is REMOVED (D-312, the house de-history style, the D-306 precedent): it cited
-  decisions (D-289 / D-288 / D-060), described hlp internals (the binio flow, the consistency signature) and the
-  state-machine re-raise — none of it is in the worker (7 of the 10 sibling workers have no module docstring). The
-  mirror doc intro is re-synced (module-accurate; the D-pointers stay in the mirror, their home).
-- The wrk_anova module docstring is REMOVED (D-313, the D-312 precedent): the same disease, milder — one D-XXX (the
-  "D-060 semantics" pointer) + the two kernels misattributed to the module (they live in hlp_feature_analysis, shared
-  since D-311). The mirror doc needed no change (its intro is already module-accurate and states the down fact — the
-  no-op, nothing published).
-- The source line-length rule is codified (D-314, the new Code style section of rules.md): no linter gate / no hard
-  limit; new or edited lines match the local file's wrap convention (the lm zone's historical ~72–76); a convention-less
-  file defaults to <= 79 (PEP8); a full-file reflow to 120 is a deliberate user-directed act — the precedent: the
-  wrk_anova.py reflow (175 -> 144 lines, max line 118, the A-tier pins verbatim, the goldens intact).
-- The hlp_feature_analysis module is RENAMED hlp_anova (D-315): the D-298 split left exactly the ANOVA family, the name
-  was stale. The worker's _write_report + the two compute helpers moved to hlp_anova (the public
-  hlp_anova_compute_analysis / hlp_anova_generate_report, the privates kept), the worker is now the pure skeleton (the
-  guard + the two calls), the module is reflowed to the 120-char width (D-314), and its module docstring is REMOVED
-  (the D-312/D-313 precedent). The verify_anova A4/A5/F5 + the verify_su_analysis F6 pins are re-pinned to the new
-  architecture; the goldens + the log sequence are unchanged.
-- The ANALYTICS report carries the Omega-Squared line (D-316): right after the Eta-Squared (Discrimination) line of both
-  feature tables — the shared anova_eta_omega kernel already returned the pair, only the eta² was printed. The two
-  date-masked report goldens re-derived (rlm_02 e0d3d22a…, rlm_01 176a80b5…).
-- The hlp_anova kernels are RENAMED hlp_anova_eta_omega / hlp_anova_adherence (D-317, the hlp_X_ prefix family standard,
-  like the D-315 FLOW names) + the @validate_call Pydantic boundary (the typed ArrayLike / dict parameters; the 2 FLOW
-  functions stay undecorated — the ctx idiom, hlp_design_matrix) + all 9 docstrings in the descriptive style (the
-  imperative first line, the body, the typed Google-style Args/Returns); the boundary comment above __all__ is gone.
-- The descriptive docstring style is now the house RULE (D-318, the rules.md Docs section — it completes the WHAT-only
-  rule D-224/D-226: that constrains the content, this one the format): public + private src/ functions, the new + the
-  rewritten docstrings; the retroactive conversion of the existing modules stays user-directed, one module at a time
-  (the D-314 reflow precedent, the D-122 guard). The exemplar: hlp_anova (D-317).
-- The A2030 / A2050 full-chain report goldens re-derived (D-319): the D-316 Omega-Squared line changed the report bytes
-  — the two test_wrk_analytics goldens were re-derived at D-316, but the ANALYTICS report is pinned in FOUR places and
-  the two full-chain goldens (LONG tier) were missed (the D-316 verification ran only the fast tier); the mirror hashes
-  were also stale since D-307 — all in sync now.
-- The two stale notes docs are archived (D-320): the I-017 project plan (analytical_properties_of_features.md — the
-  project is done, ideas-closed) + the wave-tier performance baseline (performance_baseline.md — the profiling session
-  it referenced never ran) moved to notes/analyses/historical/ (the ODP-9 precedent); the overview index folds them into
-  the analyses/ line.
-- The FINAL_LOG_PRINT level (D-321): the 19th, the pipeline's last (after PLOT) — it writes the FULL run log (every
-  buffered event, every level, the maximum relevance — the machine's event buffer, captured independent of the display
-  verbosity) to `base_dir / log_file_name` in the live console line format. The gate is the optional config entry
-  `log_file_name` (default None — the absent entry is a no-op, the file NOT generated: zero impact on the existing
-  runs). The generic-zone addition: the StateMachine's `format_event_log` render (the shared `_format_event_line`
-  formatter, the live-line single source of truth) + the context injection; the hub V3c re-pinned 18 -> 19; the
-  full-chain step pins updated (19 / FINAL_LOG_PRINT).
-- The new code-format rules land on the inference client (D-323): client.py is reflowed to the 120-char width (the D-314
-  user-directed act — the code was already 120-ish, the visible effect is the GNU-header cleanup) and its 3 docstrings
-  converted to the D-318 descriptive style (the D-141 / the D-111 M5 provenance out); zero behavioral change (the
-  AST-equality proof, the bit-exact EF pins re-verified at LONG=1).
-- The new code-format rules land on the config domain (D-324): hlp_config_schemas.py is reflowed to the 120-char width +
-  the 4 verbose class docstrings compressed + the 9 D-XXX provenance refs + the drifting ordinals + the narrative
-  descriptions cleaned (Roberto's "keep it simple" — the wave-tier / "uno per tutti" / the D-280-migration bits out, the
-  observable contracts stay); the 2 D-267 test-docstring refs removed; zero behavioral change (the model_fields equality
-  proof, the fixtures re-parsed at LONG=1).
-- The new code-format rules land on the GRADIENT domain (D-325): hlp_gradient.py is reflowed + the D-318 docstrings (the
-  "It was computed as" history line out), and the hardcoded _HP_BLOCKS becomes the `hi_perf_blocks` config field
-  (PositiveInt, default 8 = the current hardcoded value → the HP full-chain trajectories stay bit-identical; explicit in
-  the rlm_00 fixture); zero golden re-derivations (the masked report hashes mask the config-checksum line itself).
-- The new code-format rules land on the INDEXES domain (D-326): hlp_indexes.py reflowed + the D-318 docstrings (7
-  functions — the compute_sha3_256_hash was the only undocumented one; the 2 D-139 provenance refs out; the 131-char
-  compare reflowed), the header cleanups also on wrk_indexes.py + both test files, and the single 123-char test line in
-  test_wrk_indexes.py; zero behavioral change (the docstring-stripped AST equality proof), probe re-pinned minimally (A1
-  lines, A8 the D-139 text).
-- The new code-format rules land on the OPTIMIZE domain (D-327, option c): hlp_optimize.py reflowed + the D-318
-  docstrings (6 functions — the 17-arg save Args block is the largest of the campaign; the 5 D-XXX refs out), and the
-  same pass on wrk_optimize.py (the 2 >120 log lines, the 4 D-096 comment tags) + both test-file headers; zero
-  behavioral change (the docstring-stripped AST proof on both files), probe re-pinned (A1/A14 line indices/B1) and found
-  the stale "83-check" mirror claim (the probe is 78 since the D-106 slimming).
-- The new code-format rules land on the PLOT domain (D-328, option b + the label dicts): hlp_plot.py 504 -> 556
-  (the D-314 reflow to the 120-char width + the D-318 docstrings on all 15 defs + the orphaned constants comment block
-  out — the design facts in the PlotStyle docstring — + the ~20 D-XXX comment tags out + the 2 Italian quotes
-  paraphrased), and the FEATURE: the 11 hardcoded rendering constants AND the _TXT_X/_TXT_Y label dicts become the 13
-  PlotConfig knobs (the PlotStyle dataclass in hlp_plot — the schema cannot import back; the builders take (d, run_name,
-  style); the parity plot now consumes axis_gv, it was the 64.0 literal); zero behavioral change at the defaults (the
-  AST code-equivalence proof + the parity PNG golden byte-identical); the v2 model size bands re-centered for the 13
-  dump fields (A2030 23512-23612 measured 23562, A2050 516991-517091 measured 517041, the D-149 precedent); suite
-  967 -> 968.
-- The new code-format rules land on the SU_ANALYSIS domain (D-329, option c): hlp_su_analysis.py reflowed to the
-  120-char width (1190 -> 1203 lines — the D-318 typed-Args docstrings cost +83, the code itself shrinks 587 -> 560) +
-  the D-318 docstrings on all 32 functions (the 8 'State:' sections dissolved, _read_marginal gained its first
-  docstring) + the 2 section banners out + the dead `import hashlib` out; the report's "Uncertainity" typo fixed (2 TXT
-  strings + 3 test pins); zero behavioral change (the AST code-equivalence proof: identical except the import + the 2
-  typo strings, all 10 constants byte-identical); the stale 21/0/0 overview count corrected to 38/0/0; suite 968 OK.
- - The new code-format rules land on the VALIDATE domain (D-330, option c): hlp_validate.py reflowed (193 -> 158 lines)
-   + the D-318 docstrings — the campaign's worst offender: validate_model's 55-line interpretive essay condensed to the
-   WHAT (the 3 formulas + the RMSE/MAE normal indicator stay, the "Physical Interpretation / Mathematical Weight /
-   alarm" essay moves to the mirror doc's Architecture), top_outliers imperative + Args, ValidationResult the PlotData
-   inline-comment pattern; the header cleaned (the 4 license trailing spaces, the 3 triple-blanks) + the extras (Dict ->
-   dict inert, the "We need" comment out); zero behavioral change (the AST diff = exactly the 2 intended changes); suite
-   968 OK.
- - The new code-format rules land on the WMAPS domain (D-331, option c): hlp_wmaps.py reflowed (322 -> 340 lines) +
-   the D-318 docstrings (the 6 functions imperative, the 12-step HOW list condensed to the WHAT — the mirror's
-   Architecture already carries the mechanism —, the 2 missing docstrings added, the 41-line numpy Attributes block
-   flattened + packed) + the 3 decision refs out (the 2x D-139 store/load lines + the D-086 R1 compute tag — the facts
-   stay, the tags go) + the header cleaned; the verify_wmaps probe re-pinned minimally (A1 the line count,
-   A5/A10/A11/A12 the 4 line numbers, A7/A8 the 2 substrings minus the tags); zero behavioral change (the AST diff:
-   IDENTICAL); suite 968 OK.
-- The pipeline STOP is target-driven (D-260): the facade's `run(target_level=None)` runs CONFIG first and then stops at
-  the explicit argument, else at `cfg.target_level`, else at the last step — any level name (case-insensitive) or index
-  is a legal stop; a second `run()` with a deeper target RESUMES (no reset, the caches hot).
-- The SU/ANOVA verification posts run the REAL pipeline (D-287): the worker suites + the two probes take the campaign
-  (cfg + feature_set + the `feature_blocks` layout) from the facade's `run("FEATURES")` (the target_level stop + the
-  `base_dir_override`, silent) — the hlp_gate parallel loader is RETIRED (the test-infra no longer ships in the
-  package).
-- The wrk/hlp split (D-289): the SU_ANALYSIS worker is the ORCHESTRATION SKELETON (the wrk_design_matrix minimalism) —
-  all the analysis logic (the corpus engine, the binio cache D-288, the signature, the statistics) lives in
-  hlp_su_analysis, with a dedicated test_hlp_su_analysis suite (38 tests — the D-295 accumulator migration).
-- The LM facade is the pipeline's script entry (D-274):
+- The 19-level pipeline is live and green (968 tests, LONG; the 1e6 wave benchmark — VVLONG — replays bit-exact, 28065
+  dead lanes): the ML chain CONFIG → … → SAVE → CLIENT_CHECK → PLOT → FINAL_LOG_PRINT (the optional full run log on
+  file, the `log_file_name` gate), plus the OPTIONAL SU_ANALYSIS (step 3) + ANOVA (step 6) — default FALSE, opt-in.
+- The descriptive docstring style is the house rule (rules.md, D-318); the retroactive conversion stays user-directed,
+  one module at a time.
+- The LM facade is the pipeline's script entry:
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
-  `standard`), from the workspace root — runs the whole chain to the last level.
-- The SU_ANALYSIS report (D-275/D-278/D-279, D-292) is the up-to-three-section "Symmetrical Uncertainity Analysis
-  Report": a header (the title + the corpus / features / SU-pairs summary), Section A (the feature-instances — the
-  per-sub-variable dispersion + the never-observed audit, over the THEORETICAL configuration space: n_unique_configs for
-  a pattern / the value range for a mobility, D-278; some are unreachable by the game, D-279; a compact KPI legend above
-  the list) + the optional Section B (the Rarity report — the per-bin frequencies over the half-open bins [0, t1), [t1,
-  t2), ..., [tk, inf), the first bin the zero-frequency codes; the config's optional rarity_thresholds, D-292) + Section
-  C (the SU groups — each pair DEDUPLICATED, the SU being symmetric so the (i, j) / (j, i) directions are shown once,
-  the groups in the canonical endpoint order (the lexicographic instance order); the preamble is the report description
-  + the SU-range legend, the D-293 follow-up) — the data rows are COLUMN-ALIGNED (D-293: the name / the inst
-  left-justified to the max width, the numeric values right-justified to the computed max width; the Section C preamble
-  is the header description + the SU-range legend, moved after its title; the Section B preamble runs at column 0, no
-  parentheses).
-- The ec (empty_count) is consolidated in ONE required root field (D-280..D-283): `empty_count` (int, 0..60) between
-  name and description — the single source for the SU corpus generation, the DB extraction (training + validation), and
-  the saved model. The redundant `su_analysis.corpus.ec` + `regab_data_set.ec` are gone; the migration was
-  value-preserving (the caches, the corpus signature, and the model file keep the ec value — nothing regenerated).
-- A PASS (move 0 in board.position_flips, PA = 64 in position_make_move) returns the position with the players inverted
-  (the next player's view) — the position_flips scalar + array kernels swap on a zero move.
-- the SU_ANALYSIS corpus generator is the random_game play-path engine (the su-corpus-3 lineage, D-284) — the hlp_wave
-  wave engine is RETIRED (module + suite + mirrors removed, D-285); the model file is self-describing (format v2, the
-  config provenance embedded; the backward-compat v1 reader).
-- random_game (the new module): random_game_choose_move (the uniform PRNG pick) + random_game_make_move (pick a move,
-  apply it via position_flips, return the resulting position + the move) + random_game_play_path (play random moves
-  until the empty count reaches the target; the batch engine is the SU_ANALYSIS production corpus engine, the
-  su-corpus-3 lineage, D-284). The standard start is board.initial_game_position (the CANONICAL source of the official
-  Othello setup).
-- The PRNG (tools/prng.py) is MINIMAL and fully numba: one class (MT19937), a seed ctor, one numba kernel (the constants
-  local, the state fully internal); the class is the sole interface (get_uint64 / get_uint64_batch).
-- The SU-analysis corpus is REGENERATED (D-254): the generator version bumped (`su-corpus-2`) and the 1e7 corpus on the
-  A2050 feature set re-run on the official start (92.7 s: 67.2 the corpus + the SU statistics, 25.5 the ANOVA; the
-  reports in `build/su_corpus_1e7/`). The pre-D-192 corpora (the swapped start) are dead — the cache signature now
-  invalidates them automatically. The 2e6/1e8 experiment configs regenerate on demand.
-- The mirror docs are fully consistent with the code (D-262 sweep + the D-263 execution of ALL its remaining findings):
-  the independent 95-pair re-audit drove the fix campaign — the critical facts (the regab SQL contract, the pattern API,
-  the FOUR analytics attributes), the 7 space-broken goldens, the tools/ zone, the step/level drift, the test-doc pins,
-  the forbidden history, and the source-side stale comments (comment-only).
+  `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
+  at the argument / `cfg.target_level` / the last step.
+- The ec (empty_count) is consolidated in ONE required root field (int, 0..60, between name and description): the single
+  source for the SU corpus generation, the DB extraction (training + validation), and the saved model.
+
 
 ## Next steps
 
@@ -230,9 +73,6 @@ tables at the end of this file.
   the runner header stay in place (the machinery survives for a future very-long instrument).
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-014 dropped (D-332, no code). I-003 executed (D-242); I-018 executed (D-243..D-246); I-019
-  executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code); I-007 executed
-  (D-266, the feature_blocks property + the dedup).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
@@ -242,14 +82,14 @@ of the file's test module.
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
 | src/reversi/base_model.py | complete: the thin facade base over StateMachine — the pure delegation + the generic `run(target_level=None)` driver (CONFIG first, then the argument / the `_configured_target_level` hook / the last step; the resume does not reset) | 29/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS swaps the players in both position_flips (move 0, a zero bitboard) and position_make_move (`MOVE_PA` = 64, the named move code); the named non-square move codes `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (I-003); initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); legal_moves_of / flips_of_move (the public njit per-lane primitives — the single sources of the two geometries, D-232); no game-loop module | 246/0/15 | docs/src/reversi/board.md |
+| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS swaps the players in both position_flips (move 0, a zero bitboard) and position_make_move (`MOVE_PA` = 64, the named move code); the named non-square move codes `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (I-003); initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); legal_moves_of / flips_of_move (the public njit per-lane primitives — the single sources of the two geometries, D-232); no game-loop module | 247/0/15 | docs/src/reversi/board.md |
 | src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order, the feature_blocks column blocks) | 25/0/1 | docs/src/reversi/feature.md |
 | src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG — MINIMAL (one class, a seed ctor, one numba kernel with local constants, the state fully internal); choose_one_from_set64 (the uniform no-removal pick, the (0, 64) empty sentinel) + extract_from_set64 — both delegating to the pick kernels; pick_one_from_set64 / pick_one_from_set64_batch (the single source of the pick technique, D-221); get_uint64_batch | 22/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS level — training metrics + console / file reports; it publishes the dense training residuals `ctx.train_dense_rn` for PLOT (I-018) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
 | src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK level — the saved-model file acceptance test (re-read the file, the client's array EF, the Y-space residual comparison vs the PUBLISHED `ctx.vld_rn` series, I-018: no local re-derivation) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
-| src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders — the seven Y-space diagnostics (the three R classics + the four extensions), PlotData + `collect_plot_data` (the pure ASSEMBLY of the published series, I-018: no forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; the fixed axes + the step-8 ticks + the two-line title; matplotlib/scipy lazy-imported; the D-328 format pass (the D-318 docstrings + the ~20 D-XXX tags out) + the 13 PlotStyle knobs (the former 11 hardcoded constants + the _TXT_X/_TXT_Y label dicts, now config-driven) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
+| src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders — the seven Y-space diagnostics (the three R classics + the four extensions), PlotData + `collect_plot_data` (the pure ASSEMBLY of the published series, I-018: no forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; the fixed axes + the step-8 ticks + the two-line title; matplotlib/scipy lazy-imported; the 13 PlotStyle knobs (the former 11 hardcoded constants + the _TXT_X/_TXT_Y label dicts, now config-driven) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
 | src/reversi/lm/wrk_plot.py | complete: the PLOT level (after CLIENT_CHECK) — the whitelist pilot (enable + the optional plot names), the directory resolution, the PlotStyle assembly (the 13 plot-section knobs) + the 3-arg dispatch, the per-name save; a PURE rendering level since I-018 (the outlier report to VALIDATE, the forward passes to the owners) | 9/0/0 | docs/src/reversi/lm/wrk_plot.md |
 | src/reversi/lm/wrk_final_log_print.py | complete: the FINAL_LOG_PRINT level (the 19th, the pipeline's last — D-321): the optional `log_file_name` config gate (the absent entry -> the no-op, the file NOT generated) + the hlp call; the down is a no-op (the file is a base_dir artifact) | 6/0/1 (the e2e LONG-gated) | docs/src/reversi/lm/wrk_final_log_print.md |
 | src/reversi/lm/hlp_final_log_print.py | complete: the FINAL_LOG_PRINT writer (D-321): the full event buffer (the maximum relevance, the live-line format via the machine's `format_event_log`) to `base_dir / log_file_name` (the parents created); the write asymmetry (the file is the buffer at the write moment) | 6/0/1 (the shared test_wrk_final_log_print suite) | docs/src/reversi/lm/hlp_final_log_print.md |
@@ -261,7 +101,7 @@ of the file's test module.
 | src/reversi/lm/wrk_generate.py | complete: the GENERATE level (dense weights materialization) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
 | src/reversi/lm/wrk_gradient.py | complete: the GRADIENT level (the float32 contract; the high_performance_fg flag + the D-325 hi_perf_blocks wiring) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
 | src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
-| src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE level — the only level whose "cache" is a plain checkpoint dict via binio (the D-327 format pass: the 2 log_event reflows + the 4 D-096 comment tags out + the header) | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
+| src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE level — the only level whose "cache" is a plain checkpoint dict via binio | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
 | src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; the extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
 | src/reversi/lm/wrk_save.py | complete: the SAVE level — the SINGLE artifact: the v2 model file embeds the config provenance | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
 | src/reversi/lm/wrk_validate.py | complete: the VALIDATE level (the third non-cache worker) — it publishes `vld_metrics` + the `vld_y_pred` / `vld_rn` series + the 20 `vld_outliers` records and logs the top-20 report (I-018, moved from PLOT) | 9/0/0 | docs/src/reversi/lm/wrk_validate.md |
@@ -273,20 +113,20 @@ of the file's test module.
 | src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
 | src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the prng pick — choose_one_from_set64 / the pick_one_from_set64_batch kernel, the single source D-221; dual scalar/array with the bit-identical stream contract — D-219) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA; dual scalar/array — D-220) + random_game_play_path (play random moves until the empty count reaches the target; the double-pass game-over break fixed — D-218; dual scalar/array, the FUSED two-kernel step engine on the board/prng per-lane primitives — D-232; the SU_ANALYSIS production corpus engine, the su-corpus-3 lineage — D-284) | 33/0/1 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the prng pick — choose_one_from_set64 / the pick_one_from_set64_batch kernel, the single source D-221; dual scalar/array with the bit-identical stream contract — D-219) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA; dual scalar/array — D-220) + random_game_play_path (play random moves until the empty count reaches the target; the double-pass game-over break fixed — D-218; dual scalar/array, the FUSED two-kernel step engine on the board/prng per-lane primitives — D-232; the SU_ANALYSIS production corpus engine, the su-corpus-5 lineage — D-284) | 33/0/1 (via test_random_game) | docs/src/reversi/random_game.md |
 | src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
 | src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block); `compute_training_dense_metrics` returns a `TrainingDenseResult` (the metrics + the f64 `rn_y` series, I-018); the D-307 SU sample columns in the per-feature tables (the PROBABILITY / SU_PROBABILITY observation shares after FREQUENCY, the pooled marginal over the feature's instance columns) + the "SU Sample Consistency" header line under Eta-Squared (the pooled adherence — the TV verdict bands 0.01/0.05 + the chi-square / p / merged; the 2x-training too-small note; SU off = byte-identical tables) + the D-308 INTERCEPT section (the single trained bias weight, one Weight line 4 decimals, only when the feature set has an intercept, before the MOBILITY details) + the D-311 eta² unification (the pooled Eta-Squared statistic is the shared hlp_anova_eta_omega kernel call) | 14/0/0 | docs/src/reversi/lm/hlp_analytics.md |
-| src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK); the D-323 formatting pass (the D-314 120-char reflow + the D-318 descriptive docstrings, the D-141 / D-111 M5 provenance out — zero behavioral change) | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + anova + the `target_level` stop (consumed by the facade's `run()`) + the su_pairs fail-fast; the D-324 formatting pass (the D-314 reflow + the D-318 docstrings + the 9 D-XXX / drifting ordinals / narrative descriptions out — zero behavioral change) + the D-325 hi_perf_blocks field (default 8) + the D-328 13 plot-style knobs (the PlotConfig → PlotStyle plumbing, the defaults = the historical rendering values) | 30/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
+| src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
+| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + anova + the `target_level` stop (consumed by the facade's `run()`) + the su_pairs fail-fast; the D-325 hi_perf_blocks field (default 8) + the D-328 13 plot-style knobs (the PlotConfig → PlotStyle plumbing, the defaults = the historical rendering values) | 30/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
 | src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
 | src/reversi/lm/hlp_anova.py | the ANOVA family module (renamed from hlp_feature_analysis, D-315 — the D-298 split from the SHARED data plane left exactly this family; NO DB, NO positions) — the from-frequency-tables math: the 2 PURE-MATH kernels (hlp_anova_eta_omega + hlp_anova_adherence — the @validate_call Pydantic boundary, the D-317 rename) + the private trio (the chi-square + the KL + the TV) + the 2 FLOW functions (hlp_anova_compute_analysis + hlp_anova_generate_report, the D-315 move from wrk_anova — the worker is the pure skeleton) | 16/0/0 (via test_hlp_anova) | docs/src/reversi/lm/hlp_anova.md |
 | src/reversi/lm/hlp_generate.py | complete: the GENERATE data module | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
-| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag; the D-325 hi_perf_blocks block count (the config field, default 8) replaces _HP_BLOCKS + the D-318 docstrings) | 15/0/0 | docs/src/reversi/lm/hlp_gradient.md |
-| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module (the D-326 format pass: the D-318 docstrings — 7 functions, the 2 D-139 provenance refs out — + the header cleanup + the 131-char reflow) | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
-| src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module (the D-327 format pass: the D-318 docstrings — 6 functions incl. the 17-arg save Args block, the 5 D-XXX refs out — + the 2 log_event reflows + the header cleanup) | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
-| src/reversi/lm/hlp_su_analysis.py | the SU analysis LOGIC (D-289, the hlp of the SU worker): the frequency accumulators (the marginal + the joint — the D-295 hlp_random_play retirement, now the private _MarginalAccumulator / _JointAccumulator; the D-296 position language: add(idx) over the wave's index matrix at the D-300 loop boundary, no parallel (mover, opponent) at any module boundary; the D-298: the SU statistics kernels (the entropy / MI / SU / dispersion / never-observed audit) moved here as private from hlp_feature_analysis; the D-299 cold-compute optimization: the VECTORIZED joint merge (the per-cell sorted key arrays K/C, the searchsorted + np.add.at fold — no Python dict) + the marginal-entropy memoization in _su_values; the D-300 / I-020: the per-wave index matrix computed ONCE in the compute loop, fed to both accumulators' add(idx); the D-301: the never-observed audit's rarity profile removed (dead in production — the Section B rarity is the _rarity_bins kernel, D-292)) + the corpus generator (the random_game play-path engine, phase 1) + the binio cache I/O (the D-288 layout, the LZ4) + the consistency signature (the feature_set hash, the new cache lineage) + the statistics (phase 2: the dispersion + the never-observed audit + the SU pairs, the up-to-three-section report (the optional Section B rarity, the config's rarity_thresholds, D-292) + the CSV) — NO DB (the corpus is the level's own); the D-302: the COMPLETE signatures (the 46 parameter + the 4 return annotations, the 4 private shape aliases, the idx the IndexArray; inert at runtime); the D-303: the Pydantic boundary — the store / the load are @validate_call-ed, the store DEEP-validates the PUBLIC SuTables TypedDict (the D-292-style tables dict: signature + marginal + joint | None), the 3 ctx functions undecorated (the hlp_design_matrix circular-import idiom); the D-304/D-305 throughput: the 3e6-lane wave (the "su-corpus-5" lineage — the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so it is versioned; the D-305 5/5 interleaved A/B medians: 19.08 s at 3e6 vs 20.70 s at 2e6, the 4e6 rejected: the diminishing returns + the RAM; the D-305 double-buffer overlap measured NULL on the 8-core box — the serial schedule already saturates the cores — and is REVERTED, the design recorded in the decision), the per-cell joint merges THREAD-parallel on a ThreadPoolExecutor (the independent cells, the numpy sort releases the GIL), the same-feature diagonal cells NOT BUILT (the (u, u) joint is the marginal itself — 6 of the 28 fixture cells, never consumed downstream); the D-306 docstring de-history: the WHAT contract only — no D-XXX, no change history, the _su_groups Section B -> C fix; the D-329 format pass (the D-314 reflow to ~115 + the D-318 docstrings on all 32 functions — the 8 'State:' sections dissolved, _read_marginal gained its first docstring — + the 2 section banners + the dead `import hashlib` out; the 'Uncertainity' report typo fixed, the 3 test pins follow) | 38/0/0 (via test_hlp_su_analysis) | docs/src/reversi/lm/hlp_su_analysis.md |
-| src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module — the single forward pass returning `ValidationResult` (the 7 metrics + the f64 series) + the `top_outliers` kernel (I-018); the D-330 format pass (the D-314 reflow + the D-318 docstrings — the 55-line essay condensed to the WHAT, the interpretive content in the mirror doc, the ValidationResult PlotData pattern — + the Dict -> dict inert modernization + the header cleanup) | 9/0/0 (via test_wrk_validate) | docs/src/reversi/lm/hlp_validate.md |
-| src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object; the D-331 format pass (the D-314 reflow + the D-318 docstrings — the 12-step HOW list condensed, the 2 missing docstrings, the Attributes block flattened — + the 3 decision refs out + the header cleanup; the verify_wmaps probe re-pinned minimally) | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
+| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag; the D-325 hi_perf_blocks block count (the config field, default 8) replaces _HP_BLOCKS) | 15/0/0 | docs/src/reversi/lm/hlp_gradient.md |
+| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
+| src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
+| src/reversi/lm/hlp_su_analysis.py | the SU analysis LOGIC (D-289, the hlp of the SU worker): the frequency accumulators (the marginal + the joint — the D-295 hlp_random_play retirement, now the private _MarginalAccumulator / _JointAccumulator; the D-296 position language: add(idx) over the wave's index matrix at the D-300 loop boundary, no parallel (mover, opponent) at any module boundary; the D-298: the SU statistics kernels (the entropy / MI / SU / dispersion / never-observed audit) moved here as private from hlp_feature_analysis; the D-299 cold-compute optimization: the VECTORIZED joint merge (the per-cell sorted key arrays K/C, the searchsorted + np.add.at fold — no Python dict) + the marginal-entropy memoization in _su_values; the D-300 / I-020: the per-wave index matrix computed ONCE in the compute loop, fed to both accumulators' add(idx); the D-301: the never-observed audit's rarity profile removed (dead in production — the Section B rarity is the _rarity_bins kernel, D-292)) + the corpus generator (the random_game play-path engine, phase 1) + the binio cache I/O (the D-288 layout, the LZ4) + the consistency signature (the feature_set hash, the new cache lineage) + the statistics (phase 2: the dispersion + the never-observed audit + the SU pairs, the up-to-three-section report (the optional Section B rarity, the config's rarity_thresholds, D-292) + the CSV) — NO DB (the corpus is the level's own); the D-302: the COMPLETE signatures (the 46 parameter + the 4 return annotations, the 4 private shape aliases, the idx the IndexArray; inert at runtime); the D-303: the Pydantic boundary — the store / the load are @validate_call-ed, the store DEEP-validates the PUBLIC SuTables TypedDict (the D-292-style tables dict: signature + marginal + joint | None), the 3 ctx functions undecorated (the hlp_design_matrix circular-import idiom); the D-304/D-305 throughput: the 3e6-lane wave (the "su-corpus-5" lineage — the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so it is versioned; the D-305 5/5 interleaved A/B medians: 19.08 s at 3e6 vs 20.70 s at 2e6, the 4e6 rejected: the diminishing returns + the RAM; the D-305 double-buffer overlap measured NULL on the 8-core box — the serial schedule already saturates the cores — and is REVERTED, the design recorded in the decision), the per-cell joint merges THREAD-parallel on a ThreadPoolExecutor (the independent cells, the numpy sort releases the GIL), the same-feature diagonal cells NOT BUILT (the (u, u) joint is the marginal itself — 6 of the 28 fixture cells, never consumed downstream) | 38/0/0 (via test_hlp_su_analysis) | docs/src/reversi/lm/hlp_su_analysis.md |
+| src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module — the single forward pass returning `ValidationResult` (the 7 metrics + the f64 series) + the `top_outliers` kernel (I-018) | 9/0/0 (via test_wrk_validate) | docs/src/reversi/lm/hlp_validate.md |
+| src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
 | src/reversi/lm/hlp_zed.py | complete: the ZED data module | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
 | src/reversi/tools/state_machine.py | complete: the generic pipeline orchestrator (Workers up/down + Context + logging / history / CSV); standing contracts: sentinel worker 0, failure semantics, unique names, \*_for_current_level naming | 49/0/0 | docs/src/reversi/tools/state_machine.md |
 
@@ -311,7 +151,7 @@ One row per test file, alphabetical.
 | test/reversi/lm/test_wrk_config.py | complete: 13 tests (the fingerprint + no-cache pins) | 13/0/0 | docs/test/reversi/lm/test_wrk_config.md |
 | test/reversi/lm/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_design_matrix.md |
 | test/reversi/lm/test_wrk_anova.py | the ANOVA worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the ANOVA, the graceful degradation, the adherence computed, the report, the down) | 7/0/0 | docs/test/reversi/lm/test_wrk_anova.md |
-| test/reversi/lm/test_hlp_su_analysis.py | the SU analysis LOGIC NO-DB suite (D-289) — the signature (the independent sha3_256), the binio round-trip (with / without the joint), the load guards, the compute determinism, the theoretical space (D-278/279), the SU groups + the diagonal, the report + the CSV, the cache consistency (the real-pipeline ctx stopped at FEATURES, the D-287 idiom) + the D-295 accumulator migration (the marginal / the joint micro-suite + the PRNG integration, the toy corpus, the independent oracles; D-296: the _corpus helper + the accumulators take the PositionArray; D-298: the SU kernel micro-suite — the 5 hand-computed toy-table classes from test_hlp_feature_analysis; D-299: the joint micro-suite pins the vectorized merge, the MI calls pass the pre-computed entropies; D-301: the never-observed audit rows drop the rarity goldens; D-303: the new test_store_deep_validation pins the SuTables deep validation — the structurally malformed tables dict is rejected at the boundary); D-304: test_same_feature_diagonal now pins the 12 off-diagonal cells (the 4 diagonals NOT BUILT) vs the independent per-position oracle, the signature pins "su-corpus-4"; the D-329: the 3 report-string pins follow the 'Uncertainity' -> 'Uncertainty' typo fix | 38/0/0 | docs/test/reversi/lm/test_hlp_su_analysis.md |
+| test/reversi/lm/test_hlp_su_analysis.py | the SU analysis LOGIC NO-DB suite (D-289) — the signature (the independent sha3_256), the binio round-trip (with / without the joint), the load guards, the compute determinism, the theoretical space (D-278/279), the SU groups + the diagonal, the report + the CSV, the cache consistency (the real-pipeline ctx stopped at FEATURES, the D-287 idiom) + the D-295 accumulator migration (the marginal / the joint micro-suite + the PRNG integration, the toy corpus, the independent oracles; D-296: the _corpus helper + the accumulators take the PositionArray; D-298: the SU kernel micro-suite — the 5 hand-computed toy-table classes from test_hlp_feature_analysis; D-299: the joint micro-suite pins the vectorized merge, the MI calls pass the pre-computed entropies; D-301: the never-observed audit rows drop the rarity goldens; D-303: the new test_store_deep_validation pins the SuTables deep validation — the structurally malformed tables dict is rejected at the boundary); D-304: test_same_feature_diagonal now pins the 12 off-diagonal cells (the 4 diagonals NOT BUILT) vs the independent per-position oracle, the signature pins "su-corpus-5" | 38/0/0 | docs/test/reversi/lm/test_hlp_su_analysis.md |
 | test/reversi/lm/test_wrk_su_analysis.py | the SU_ANALYSIS worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the compute + the publish, the cache hit, the signature invalidation, the corpus determinism, the su_pairs joint, the optional CSV, the down) | 10/0/1 (VLONG: 10/0/0, the 1e7 corpus) | docs/test/reversi/lm/test_wrk_su_analysis.md |
 | test/reversi/lm/test_wrk_features.py | complete: the FEATURES worker suite (DB-free) | 3/0/0 (DB-free) | docs/test/reversi/lm/test_wrk_features.md |
 | test/reversi/lm/test_lm_worker_full_chain.py | the END-TO-END suite: the full 19-level chain (the A2030 + A2050 chains, the read guards, the v2 micro, the client-check + PLOT log pins, the size bands, the outlier pins) + the full saved-model round-trip; the A2050 chain VLONG-gated | 9/0/1 | docs/test/reversi/lm/test_lm_worker_full_chain.md |
