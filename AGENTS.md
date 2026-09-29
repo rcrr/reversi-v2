@@ -43,6 +43,6 @@ read row 1 on top, column a on the left.
   counter) — NOT the package's src/reversi/tools/ (D-248)
 - notes/ — collaboration only: rules.md (active legislation) · decisions.md (open historical log; closed volumes
   decisions_NNN.md, e.g. decisions_000.md) · ideas.md (the open backlog) · ideas-closed.md (the closed ideas) ·
-  log_rules.md · docs_rules.md · probe_rules.md · naming.md + log_000.md, log_001.md, ... (session journal, rotating
-  volumes)
+  log_rules.md · docs_rules.md · overview_rules.md · probe_rules.md · naming.md + log_000.md, log_001.md, ... (session
+  journal, rotating volumes)
 - scratch/ — disposable session area, gitignored, never tracked

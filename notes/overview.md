@@ -2,8 +2,7 @@
 
 ## Format rules (rigid — follow when editing this file)
 
-The rigid format rules for this file live in notes/rules.md — the "Roles of the notes files" section, the
-notes/overview.md bullet. Consult it before editing.
+The rigid format rules for this file live in notes/overview_rules.md. Consult it before editing.
 
 ## Project
 
@@ -225,6 +224,8 @@ tables above.
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /
   2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the current-state contract)
+- notes/overview_rules.md — the rigid format of notes/overview.md (the eight sections, the table grammar, the cell
+  rules, the reference families)
 - notes/tools.md — the workspace-tool rules (the four requirements + the inventory, D-248/D-249)
 - notes/probe_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
   criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to

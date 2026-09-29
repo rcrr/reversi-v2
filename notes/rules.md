@@ -31,22 +31,8 @@ decisions. Departure from the rules is possible only with explicit consent from 
 **R-003 — notes/overview.md**
 
 The entry point (read first; updated after each milestone and at the end of each work session): the current state, the
-next steps, the index. Rigid format: exactly the eight sections in this order — Project · Conventions in the code ·
-Environment · Current state · Next steps · Source files · Test files · Index. English; dates YYYY-MM-DD; suite numbers
-`<total>/<failures>/<skipped>` (total = unittest's "Ran N"); references D-NNN (the decisions), I-NNN (the ideas),
-session N (the journals), R-NNN (a rule of this register), T-NN (a test defect), R# (a code issue, never an R-NNN), M#
-(a minor note). Source files / Test files: one table per kind, one row per tracked file, alphabetical by full path; the
-State cell is ONE line — a status word + the open/parked items (each with its governing D-pointer if any); the
-description is the mirror's job, the campaign history the decision log's (D-117, clarified D-335); the Suite count lives
-ONLY in the Test files table — the module's count under the standard pre-commit run (LONG=1, the live DB), a (+N VLONG)
-marker for the tier-gated tests that skip in it; the Doc cell is a markdown link to the mirror (D-117, amended D-339).
-One physical line per row; a literal `|` inside a cell is escaped `\|` (D-116). Current state: CURRENT STATE only, MAX
-10 bullets — each a present fact NOT in the tables and NOT in the mirrors (the pipeline-wide state, the in-flight
-campaigns with their horizon, the cross-file contracts); NO bullet-per-campaign: the campaign lives in the journal + the
-decisions log, and its state leaves this section when the campaign ends (D-334). Next steps: OPEN items only, no "Done"
-bullets; the list is NON-prioritized (Roberto picks the next item on demand) (D-117, amended D-337). Index: one bullet
-per notes/ file, a one-line description; the docs/ mirrors are not listed (their paths are the Doc column of the
-tables).
+next steps, the index. The format is RIGID in notes/overview_rules.md (the eight sections in fixed order, the table
+grammar, the cell rules, the reference families).
 
 
 **R-004 — notes/decisions.md**
@@ -65,8 +51,8 @@ The session journals (rotating volumes; the format is rigid in notes/log_rules.m
 
 **R-006 — The domain rule files**
 
-notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/probe_rules.md, notes/tools.md (rigid; each owns its
-domain — this register points at them, never duplicates them).
+notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/overview_rules.md, notes/probe_rules.md, notes/tools.md
+(rigid; each owns its domain — this register points at them, never duplicates them).
 
 
 **R-007 — notes/ideas.md**

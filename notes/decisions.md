@@ -222,3 +222,20 @@ D-342 | 2026-09-29 | R-002 AMENDED — the register's PRECEDENCE (Roberto: "R-00
          persists is recorded as a decision and amended into the rule (the same R-number, a new D-number).
          VERIFICATION: notes_format --write idempotent + --check clean; R-002's description is 3 lines (at the
          1-3 target).
+D-343 | 2026-09-29 | R-003 CONDENSED — the missing DOMAIN FILE (Roberto: "Ora vediamo R-003 ... Non ti sembra un po'
+         lunga, prolissa ??? quale e' la REGOLA ... il resto VIA! Dai fammi una proposta!!!" — and, on the proposal:
+         "OK! Via! Vai Nia!"). (1) NEW notes/overview_rules.md — the domain rule file the overview lacked (the only
+         rigid-format file without one — the reason R-003 grew to 15 of the 46 lines, one clause per format campaign:
+         D-116, D-117, D-334, D-335, D-337, D-339): the eight sections in fixed order, English + dates, the reference
+         families (D-NNN / I-NNN / R-NNN / T-NN / R# / M#, with the "never an R-NNN" disambiguation), the two-table
+         grammar (alphabetical by full path, one physical line per row, the \| escape, D-116), the State cell (D-117,
+         clarified D-335), the Suite count in the Test table only (the standard pre-commit run + the (+N VLONG)
+         marker, D-117, amended D-339), the Doc cell as a markdown link (D-339), the Current-state constraints (MAX 10
+         bullets, NO bullet-per-campaign, D-334), the Next-steps constraints (open, non-prioritized, D-337), the Index
+         rule (one bullet per notes/ file). (2) R-003 -> the 3-line pointer: the entry-point rule + "The format is
+         RIGID in notes/overview_rules.md" — the pattern R-005 / R-038 already use for log_rules.md / docs_rules.md.
+         (3) CONSISTENCY (one line each): R-006's domain list + notes/overview_rules.md; the overview's own header
+         pointer (was "notes/rules.md — the overview bullet") -> notes/overview_rules.md; the overview Index + the
+         file's bullet; the AGENTS.md Layout enumeration + overview_rules.md. VERIFICATION: notes_format --write
+         idempotent + --check clean (rules.md 314 lines, R-003 = 3 lines at the 1-3 target; overview_rules.md 42
+         lines; every D-pointer moved with its text).
