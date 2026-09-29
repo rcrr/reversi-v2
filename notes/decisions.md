@@ -210,3 +210,15 @@ D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: 
          between R-012 and R-013), so the register never renumbers. (4) The overview Index bullet aligned to "explicit
          user approval". VERIFICATION: notes_format --write idempotent + --check clean (327 lines, 9 sections,
          R-001..R-046 intact).
+D-342 | 2026-09-29 | R-002 AMENDED — the register's PRECEDENCE (Roberto: "R-002: This file: the active legislation.
+         Every rules stated in this file has precedence on other notes, documents or decisions. Departure from the
+         rules is possible only with explicit consent from the user. Cosa ne pensi?"). Applied from Roberto's text
+         with two grammar fixes ("Every rules stated" -> "Every rule stated"; "precedence on" -> "precedence over").
+         The clause deliberately scopes the precedence to "other notes, documents or decisions": the constitution
+         (AGENTS.md, R-001) and the user's direct instructions stay above the register — the resulting hierarchy is
+         user > AGENTS.md > rules.md > other notes / docs / decisions (a historical decision can no longer
+         overrule an in-force rule). The second sentence COMPLEMENTS the Governance (which governs amending the
+         register): a departure from an in-force rule also needs explicit user consent — an approved departure that
+         persists is recorded as a decision and amended into the rule (the same R-number, a new D-number).
+         VERIFICATION: notes_format --write idempotent + --check clean; R-002's description is 3 lines (at the
+         1-3 target).

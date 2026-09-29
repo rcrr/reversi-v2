@@ -24,7 +24,8 @@ The constitution: the standing instructions, auto-injected, kept small.
 
 **R-002 — notes/rules.md**
 
-This file: the active legislation.
+This file: the active legislation. Every rule stated in this file has precedence over other notes, documents or
+decisions. Departure from the rules is possible only with explicit consent from the user.
 
 
 **R-003 — notes/overview.md**
