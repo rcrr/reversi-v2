@@ -81,111 +81,113 @@ bullet-per-campaign (D-334).
 
 ## Source files
 One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign
-history lives in the decision log. Suite = the current verified suite (live DB) of the file's test module.
+history lives in the decision log.
 
-| File | State | Suite (live DB) | Doc |
-| --- | --- | --- | --- |
-| src/reversi/base_model.py | complete | 29/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete | 247/0/15 | docs/src/reversi/board.md |
-| src/reversi/feature.py | complete | 25/0/1 | docs/src/reversi/feature.md |
-| src/reversi/lm/client.py | complete | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_analytics.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_analytics.md |
-| src/reversi/lm/hlp_anova.py | complete | 16/0/0 (via test_hlp_anova) | docs/src/reversi/lm/hlp_anova.md |
-| src/reversi/lm/hlp_config_schemas.py | complete | 30/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
-| src/reversi/lm/hlp_design_matrix.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
-| src/reversi/lm/hlp_final_log_print.py | complete | 6/0/1 (the shared test_wrk_final_log_print suite) | docs/src/reversi/lm/hlp_final_log_print.md |
-| src/reversi/lm/hlp_generate.py | complete | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
-| src/reversi/lm/hlp_gradient.py | complete | 15/0/0 | docs/src/reversi/lm/hlp_gradient.md |
-| src/reversi/lm/hlp_indexes.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
-| src/reversi/lm/hlp_optimize.py | complete | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
-| src/reversi/lm/hlp_plot.py | complete | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
-| src/reversi/lm/hlp_su_analysis.py | complete | 38/0/0 (via test_hlp_su_analysis) | docs/src/reversi/lm/hlp_su_analysis.md |
-| src/reversi/lm/hlp_validate.py | complete | 9/0/0 (via test_wrk_validate) | docs/src/reversi/lm/hlp_validate.md |
-| src/reversi/lm/hlp_wmaps.py | complete | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
-| src/reversi/lm/hlp_zed.py | complete | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
-| src/reversi/lm/logistic_model.py | complete | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
-| src/reversi/lm/model_weights.py | complete | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
-| src/reversi/lm/wrk_analytics.py | complete | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
-| src/reversi/lm/wrk_anova.py | complete | 7/0/0 (via test_wrk_anova) | docs/src/reversi/lm/wrk_anova.md |
-| src/reversi/lm/wrk_client_check.py | complete | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
-| src/reversi/lm/wrk_config.py | complete | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
-| src/reversi/lm/wrk_design_matrix.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
-| src/reversi/lm/wrk_features.py | complete | 3/0/0 (DB-free) | docs/src/reversi/lm/wrk_features.md |
-| src/reversi/lm/wrk_final_log_print.py | complete | 6/0/1 (the e2e LONG-gated) | docs/src/reversi/lm/wrk_final_log_print.md |
-| src/reversi/lm/wrk_generate.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
-| src/reversi/lm/wrk_gradient.py | complete | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
-| src/reversi/lm/wrk_indexes.py | complete | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
-| src/reversi/lm/wrk_optimize.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
-| src/reversi/lm/wrk_plot.py | complete | 9/0/0 | docs/src/reversi/lm/wrk_plot.md |
-| src/reversi/lm/wrk_positions.py | complete | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
-| src/reversi/lm/wrk_save.py | complete | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
-| src/reversi/lm/wrk_su_analysis.py | complete | 10/0/1 (via test_wrk_su_analysis; VLONG: 10/0/0, the 1e7 corpus) | docs/src/reversi/lm/wrk_su_analysis.md |
-| src/reversi/lm/wrk_validate.py | complete | 9/0/0 | docs/src/reversi/lm/wrk_validate.md |
-| src/reversi/lm/wrk_vld_positions.py | complete | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
-| src/reversi/lm/wrk_wmaps.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
-| src/reversi/lm/wrk_zed.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/mobility.py | complete | 26/0/1 | docs/src/reversi/mobility.md |
-| src/reversi/pattern.py | complete | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | complete | 33/0/1 (via test_random_game) | docs/src/reversi/random_game.md |
-| src/reversi/regab.py | complete | 48/0/0 | docs/src/reversi/regab.md |
-| src/reversi/tools/binio.py | complete | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
-| src/reversi/tools/cache_manager.py | complete | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
-| src/reversi/tools/opt_lbfgs.py | complete | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
-| src/reversi/tools/prng.py | complete | 22/0/0 | docs/src/reversi/tools/prng.md |
-| src/reversi/tools/state_machine.py | complete | 49/0/0 | docs/src/reversi/tools/state_machine.md |
+| File | State | Doc |
+| --- | --- | --- |
+| src/reversi/base_model.py | complete | [docs/src/reversi/base_model.md](docs/src/reversi/base_model.md) |
+| src/reversi/board.py | complete | [docs/src/reversi/board.md](docs/src/reversi/board.md) |
+| src/reversi/feature.py | complete | [docs/src/reversi/feature.md](docs/src/reversi/feature.md) |
+| src/reversi/lm/client.py | complete | [docs/src/reversi/lm/client.md](docs/src/reversi/lm/client.md) |
+| src/reversi/lm/hlp_analytics.py | complete | [docs/src/reversi/lm/hlp_analytics.md](docs/src/reversi/lm/hlp_analytics.md) |
+| src/reversi/lm/hlp_anova.py | complete | [docs/src/reversi/lm/hlp_anova.md](docs/src/reversi/lm/hlp_anova.md) |
+| src/reversi/lm/hlp_config_schemas.py | complete | [docs/src/reversi/lm/hlp_config_schemas.md](docs/src/reversi/lm/hlp_config_schemas.md) |
+| src/reversi/lm/hlp_design_matrix.py | complete | [docs/src/reversi/lm/hlp_design_matrix.md](docs/src/reversi/lm/hlp_design_matrix.md) |
+| src/reversi/lm/hlp_final_log_print.py | complete | [docs/src/reversi/lm/hlp_final_log_print.md](docs/src/reversi/lm/hlp_final_log_print.md) |
+| src/reversi/lm/hlp_generate.py | complete | [docs/src/reversi/lm/hlp_generate.md](docs/src/reversi/lm/hlp_generate.md) |
+| src/reversi/lm/hlp_gradient.py | complete | [docs/src/reversi/lm/hlp_gradient.md](docs/src/reversi/lm/hlp_gradient.md) |
+| src/reversi/lm/hlp_indexes.py | complete | [docs/src/reversi/lm/hlp_indexes.md](docs/src/reversi/lm/hlp_indexes.md) |
+| src/reversi/lm/hlp_optimize.py | complete | [docs/src/reversi/lm/hlp_optimize.md](docs/src/reversi/lm/hlp_optimize.md) |
+| src/reversi/lm/hlp_plot.py | complete | [docs/src/reversi/lm/hlp_plot.md](docs/src/reversi/lm/hlp_plot.md) |
+| src/reversi/lm/hlp_su_analysis.py | complete | [docs/src/reversi/lm/hlp_su_analysis.md](docs/src/reversi/lm/hlp_su_analysis.md) |
+| src/reversi/lm/hlp_validate.py | complete | [docs/src/reversi/lm/hlp_validate.md](docs/src/reversi/lm/hlp_validate.md) |
+| src/reversi/lm/hlp_wmaps.py | complete | [docs/src/reversi/lm/hlp_wmaps.md](docs/src/reversi/lm/hlp_wmaps.md) |
+| src/reversi/lm/hlp_zed.py | complete | [docs/src/reversi/lm/hlp_zed.md](docs/src/reversi/lm/hlp_zed.md) |
+| src/reversi/lm/logistic_model.py | complete | [docs/src/reversi/lm/logistic_model.md](docs/src/reversi/lm/logistic_model.md) |
+| src/reversi/lm/model_weights.py | complete | [docs/src/reversi/lm/model_weights.md](docs/src/reversi/lm/model_weights.md) |
+| src/reversi/lm/wrk_analytics.py | complete | [docs/src/reversi/lm/wrk_analytics.md](docs/src/reversi/lm/wrk_analytics.md) |
+| src/reversi/lm/wrk_anova.py | complete | [docs/src/reversi/lm/wrk_anova.md](docs/src/reversi/lm/wrk_anova.md) |
+| src/reversi/lm/wrk_client_check.py | complete | [docs/src/reversi/lm/wrk_client_check.md](docs/src/reversi/lm/wrk_client_check.md) |
+| src/reversi/lm/wrk_config.py | complete | [docs/src/reversi/lm/wrk_config.md](docs/src/reversi/lm/wrk_config.md) |
+| src/reversi/lm/wrk_design_matrix.py | complete | [docs/src/reversi/lm/wrk_design_matrix.md](docs/src/reversi/lm/wrk_design_matrix.md) |
+| src/reversi/lm/wrk_features.py | complete | [docs/src/reversi/lm/wrk_features.md](docs/src/reversi/lm/wrk_features.md) |
+| src/reversi/lm/wrk_final_log_print.py | complete | [docs/src/reversi/lm/wrk_final_log_print.md](docs/src/reversi/lm/wrk_final_log_print.md) |
+| src/reversi/lm/wrk_generate.py | complete | [docs/src/reversi/lm/wrk_generate.md](docs/src/reversi/lm/wrk_generate.md) |
+| src/reversi/lm/wrk_gradient.py | complete | [docs/src/reversi/lm/wrk_gradient.md](docs/src/reversi/lm/wrk_gradient.md) |
+| src/reversi/lm/wrk_indexes.py | complete | [docs/src/reversi/lm/wrk_indexes.md](docs/src/reversi/lm/wrk_indexes.md) |
+| src/reversi/lm/wrk_optimize.py | complete | [docs/src/reversi/lm/wrk_optimize.md](docs/src/reversi/lm/wrk_optimize.md) |
+| src/reversi/lm/wrk_plot.py | complete | [docs/src/reversi/lm/wrk_plot.md](docs/src/reversi/lm/wrk_plot.md) |
+| src/reversi/lm/wrk_positions.py | complete | [docs/src/reversi/lm/wrk_positions.md](docs/src/reversi/lm/wrk_positions.md) |
+| src/reversi/lm/wrk_save.py | complete | [docs/src/reversi/lm/wrk_save.md](docs/src/reversi/lm/wrk_save.md) |
+| src/reversi/lm/wrk_su_analysis.py | complete | [docs/src/reversi/lm/wrk_su_analysis.md](docs/src/reversi/lm/wrk_su_analysis.md) |
+| src/reversi/lm/wrk_validate.py | complete | [docs/src/reversi/lm/wrk_validate.md](docs/src/reversi/lm/wrk_validate.md) |
+| src/reversi/lm/wrk_vld_positions.py | complete | [docs/src/reversi/lm/wrk_vld_positions.md](docs/src/reversi/lm/wrk_vld_positions.md) |
+| src/reversi/lm/wrk_wmaps.py | complete | [docs/src/reversi/lm/wrk_wmaps.md](docs/src/reversi/lm/wrk_wmaps.md) |
+| src/reversi/lm/wrk_zed.py | complete | [docs/src/reversi/lm/wrk_zed.md](docs/src/reversi/lm/wrk_zed.md) |
+| src/reversi/mobility.py | complete | [docs/src/reversi/mobility.md](docs/src/reversi/mobility.md) |
+| src/reversi/pattern.py | complete | [docs/src/reversi/pattern.md](docs/src/reversi/pattern.md) |
+| src/reversi/random_game.py | complete | [docs/src/reversi/random_game.md](docs/src/reversi/random_game.md) |
+| src/reversi/regab.py | complete | [docs/src/reversi/regab.md](docs/src/reversi/regab.md) |
+| src/reversi/tools/binio.py | complete | [docs/src/reversi/tools/binio.md](docs/src/reversi/tools/binio.md) |
+| src/reversi/tools/cache_manager.py | complete | [docs/src/reversi/tools/cache_manager.md](docs/src/reversi/tools/cache_manager.md) |
+| src/reversi/tools/opt_lbfgs.py | complete | [docs/src/reversi/tools/opt_lbfgs.md](docs/src/reversi/tools/opt_lbfgs.md) |
+| src/reversi/tools/prng.py | complete | [docs/src/reversi/tools/prng.md](docs/src/reversi/tools/prng.md) |
+| src/reversi/tools/state_machine.py | complete | [docs/src/reversi/tools/state_machine.md](docs/src/reversi/tools/state_machine.md) |
 
 ## Test files
-One row per test file, alphabetical by full path.
+One row per test file, alphabetical by full path. Suite (standard run) = the module's count under the standard
+pre-commit run (LONG=1, the live DB) as `<total>/<failures>/<skipped>`; a (+N VLONG) marks the tier-gated tests that
+skip in it.
 
-| File | State | Suite (live DB) | Doc |
+| File | State | Suite (standard run) | Doc |
 | --- | --- | --- | --- |
-| test/reversi/lm/test_client.py | complete | 7/0/1 | docs/test/reversi/lm/test_client.md |
-| test/reversi/lm/test_hlp_anova.py | complete | 16/0/0 | docs/test/reversi/lm/test_hlp_anova.md |
-| test/reversi/lm/test_hlp_config_schemas.py | complete | 30/0/0 | docs/test/reversi/lm/test_hlp_config_schemas.md |
-| test/reversi/lm/test_hlp_design_matrix.py | complete | 14/0/0 | docs/test/reversi/lm/test_hlp_design_matrix.md |
-| test/reversi/lm/test_hlp_generate.py | complete | 16/0/0 | docs/test/reversi/lm/test_hlp_generate.md |
-| test/reversi/lm/test_hlp_gradient.py | complete | 15/0/0 | docs/test/reversi/lm/test_hlp_gradient.md |
-| test/reversi/lm/test_hlp_indexes.py | complete | 14/0/0 | docs/test/reversi/lm/test_hlp_indexes.md |
-| test/reversi/lm/test_hlp_optimize.py | complete | 20/0/0 | docs/test/reversi/lm/test_hlp_optimize.md |
-| test/reversi/lm/test_hlp_plot.py | complete | 11/0/0 | docs/test/reversi/lm/test_hlp_plot.md |
-| test/reversi/lm/test_hlp_su_analysis.py | complete | 38/0/0 | docs/test/reversi/lm/test_hlp_su_analysis.md |
-| test/reversi/lm/test_hlp_wmaps.py | complete | 15/0/0 | docs/test/reversi/lm/test_hlp_wmaps.md |
-| test/reversi/lm/test_hlp_zed.py | complete | 10/0/0 | docs/test/reversi/lm/test_hlp_zed.md |
-| test/reversi/lm/test_lm_worker_full_chain.py | complete | 9/0/1 | docs/test/reversi/lm/test_lm_worker_full_chain.md |
-| test/reversi/lm/test_logistic_model.py | complete | 29/0/0 | docs/test/reversi/lm/test_logistic_model.md |
-| test/reversi/lm/test_wrk_analytics.py | complete | 14/0/0 | docs/test/reversi/lm/test_wrk_analytics.md |
-| test/reversi/lm/test_wrk_anova.py | complete | 7/0/0 | docs/test/reversi/lm/test_wrk_anova.md |
-| test/reversi/lm/test_wrk_client_check.py | complete | 6/0/0 | docs/test/reversi/lm/test_wrk_client_check.md |
-| test/reversi/lm/test_wrk_config.py | complete | 13/0/0 | docs/test/reversi/lm/test_wrk_config.md |
-| test/reversi/lm/test_wrk_design_matrix.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_design_matrix.md |
-| test/reversi/lm/test_wrk_features.py | complete | 3/0/0 (DB-free) | docs/test/reversi/lm/test_wrk_features.md |
-| test/reversi/lm/test_wrk_final_log_print.py | complete | 5/0/1 (LONG: 6/0/0) | docs/test/reversi/lm/test_wrk_final_log_print.md |
-| test/reversi/lm/test_wrk_generate.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_generate.md |
-| test/reversi/lm/test_wrk_gradient.py | complete | 4/0/0 | docs/test/reversi/lm/test_wrk_gradient.md |
-| test/reversi/lm/test_wrk_indexes.py | complete | 2/0/0 | docs/test/reversi/lm/test_wrk_indexes.md |
-| test/reversi/lm/test_wrk_optimize.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_optimize.md |
-| test/reversi/lm/test_wrk_plot.py | complete | 9/0/0 | docs/test/reversi/lm/test_wrk_plot.md |
-| test/reversi/lm/test_wrk_positions.py | complete | 12/0/0 | docs/test/reversi/lm/test_wrk_positions.md |
-| test/reversi/lm/test_wrk_su_analysis.py | complete | 10/0/1 (VLONG: 10/0/0, the 1e7 corpus) | docs/test/reversi/lm/test_wrk_su_analysis.md |
-| test/reversi/lm/test_wrk_validate.py | complete | 9/0/0 | docs/test/reversi/lm/test_wrk_validate.md |
-| test/reversi/lm/test_wrk_vld_positions.py | complete | 11/0/0 | docs/test/reversi/lm/test_wrk_vld_positions.md |
-| test/reversi/lm/test_wrk_wmaps.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_wmaps.md |
-| test/reversi/lm/test_wrk_zed.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_zed.md |
-| test/reversi/paths.py | complete (helper module, 0 tests) | — | docs/test/reversi/paths.md |
-| test/reversi/tags.py | complete (helper module, 0 tests) | — | docs/test/reversi/tags.md |
-| test/reversi/test_board.py | complete | 247/0/15 | docs/test/reversi/test_board.md |
-| test/reversi/test_feature.py | complete | 25/0/1 | docs/test/reversi/test_feature.md |
-| test/reversi/test_mobility.py | complete | 26/0/1 | docs/test/reversi/test_mobility.md |
-| test/reversi/test_paths.py | complete | 3/0/0 | docs/test/reversi/test_paths.md |
-| test/reversi/test_pattern.py | complete | 65/0/3 | docs/test/reversi/test_pattern.md |
-| test/reversi/test_random_game.py | complete | 33/0/1 | docs/test/reversi/test_random_game.md |
-| test/reversi/test_regab.py | complete | 48/0/0 | docs/test/reversi/test_regab.md |
-| test/reversi/tools/test_binio.py | complete | 45/0/0 | docs/test/reversi/tools/test_binio.md |
-| test/reversi/tools/test_cache_manager.py | complete | 22/0/0 | docs/test/reversi/tools/test_cache_manager.md |
-| test/reversi/tools/test_opt_lbfgs.py | complete | 14/0/0 | docs/test/reversi/tools/test_opt_lbfgs.md |
-| test/reversi/tools/test_prng.py | complete | 22/0/0 | docs/test/reversi/tools/test_prng.md |
-| test/reversi/tools/test_state_machine.py | complete | 49/0/0 | docs/test/reversi/tools/test_state_machine.md |
-| test/reversi/tools/test_usage_binio.py | complete | 3/0/0 | docs/test/reversi/tools/test_usage_binio.md |
+| test/reversi/lm/test_client.py | complete | 7/0/1 | [docs/test/reversi/lm/test_client.md](docs/test/reversi/lm/test_client.md) |
+| test/reversi/lm/test_hlp_anova.py | complete | 16/0/0 | [docs/test/reversi/lm/test_hlp_anova.md](docs/test/reversi/lm/test_hlp_anova.md) |
+| test/reversi/lm/test_hlp_config_schemas.py | complete | 30/0/0 | [docs/test/reversi/lm/test_hlp_config_schemas.md](docs/test/reversi/lm/test_hlp_config_schemas.md) |
+| test/reversi/lm/test_hlp_design_matrix.py | complete | 14/0/0 | [docs/test/reversi/lm/test_hlp_design_matrix.md](docs/test/reversi/lm/test_hlp_design_matrix.md) |
+| test/reversi/lm/test_hlp_generate.py | complete | 16/0/0 | [docs/test/reversi/lm/test_hlp_generate.md](docs/test/reversi/lm/test_hlp_generate.md) |
+| test/reversi/lm/test_hlp_gradient.py | complete | 15/0/0 | [docs/test/reversi/lm/test_hlp_gradient.md](docs/test/reversi/lm/test_hlp_gradient.md) |
+| test/reversi/lm/test_hlp_indexes.py | complete | 14/0/0 | [docs/test/reversi/lm/test_hlp_indexes.md](docs/test/reversi/lm/test_hlp_indexes.md) |
+| test/reversi/lm/test_hlp_optimize.py | complete | 20/0/0 | [docs/test/reversi/lm/test_hlp_optimize.md](docs/test/reversi/lm/test_hlp_optimize.md) |
+| test/reversi/lm/test_hlp_plot.py | complete | 11/0/0 | [docs/test/reversi/lm/test_hlp_plot.md](docs/test/reversi/lm/test_hlp_plot.md) |
+| test/reversi/lm/test_hlp_su_analysis.py | complete | 38/0/0 | [docs/test/reversi/lm/test_hlp_su_analysis.md](docs/test/reversi/lm/test_hlp_su_analysis.md) |
+| test/reversi/lm/test_hlp_wmaps.py | complete | 15/0/0 | [docs/test/reversi/lm/test_hlp_wmaps.md](docs/test/reversi/lm/test_hlp_wmaps.md) |
+| test/reversi/lm/test_hlp_zed.py | complete | 10/0/0 | [docs/test/reversi/lm/test_hlp_zed.md](docs/test/reversi/lm/test_hlp_zed.md) |
+| test/reversi/lm/test_lm_worker_full_chain.py | complete | 9/0/1 (+1 VLONG) | [docs/test/reversi/lm/test_lm_worker_full_chain.md](docs/test/reversi/lm/test_lm_worker_full_chain.md) |
+| test/reversi/lm/test_logistic_model.py | complete | 29/0/0 | [docs/test/reversi/lm/test_logistic_model.md](docs/test/reversi/lm/test_logistic_model.md) |
+| test/reversi/lm/test_wrk_analytics.py | complete | 14/0/0 | [docs/test/reversi/lm/test_wrk_analytics.md](docs/test/reversi/lm/test_wrk_analytics.md) |
+| test/reversi/lm/test_wrk_anova.py | complete | 7/0/0 | [docs/test/reversi/lm/test_wrk_anova.md](docs/test/reversi/lm/test_wrk_anova.md) |
+| test/reversi/lm/test_wrk_client_check.py | complete | 6/0/0 | [docs/test/reversi/lm/test_wrk_client_check.md](docs/test/reversi/lm/test_wrk_client_check.md) |
+| test/reversi/lm/test_wrk_config.py | complete | 13/0/0 | [docs/test/reversi/lm/test_wrk_config.md](docs/test/reversi/lm/test_wrk_config.md) |
+| test/reversi/lm/test_wrk_design_matrix.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_design_matrix.md](docs/test/reversi/lm/test_wrk_design_matrix.md) |
+| test/reversi/lm/test_wrk_features.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_features.md](docs/test/reversi/lm/test_wrk_features.md) |
+| test/reversi/lm/test_wrk_final_log_print.py | complete | 6/0/0 | [docs/test/reversi/lm/test_wrk_final_log_print.md](docs/test/reversi/lm/test_wrk_final_log_print.md) |
+| test/reversi/lm/test_wrk_generate.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_generate.md](docs/test/reversi/lm/test_wrk_generate.md) |
+| test/reversi/lm/test_wrk_gradient.py | complete | 4/0/0 | [docs/test/reversi/lm/test_wrk_gradient.md](docs/test/reversi/lm/test_wrk_gradient.md) |
+| test/reversi/lm/test_wrk_indexes.py | complete | 2/0/0 | [docs/test/reversi/lm/test_wrk_indexes.md](docs/test/reversi/lm/test_wrk_indexes.md) |
+| test/reversi/lm/test_wrk_optimize.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_optimize.md](docs/test/reversi/lm/test_wrk_optimize.md) |
+| test/reversi/lm/test_wrk_plot.py | complete | 9/0/0 | [docs/test/reversi/lm/test_wrk_plot.md](docs/test/reversi/lm/test_wrk_plot.md) |
+| test/reversi/lm/test_wrk_positions.py | complete | 12/0/0 | [docs/test/reversi/lm/test_wrk_positions.md](docs/test/reversi/lm/test_wrk_positions.md) |
+| test/reversi/lm/test_wrk_su_analysis.py | complete | 10/0/1 (+1 VLONG) | [docs/test/reversi/lm/test_wrk_su_analysis.md](docs/test/reversi/lm/test_wrk_su_analysis.md) |
+| test/reversi/lm/test_wrk_validate.py | complete | 9/0/0 | [docs/test/reversi/lm/test_wrk_validate.md](docs/test/reversi/lm/test_wrk_validate.md) |
+| test/reversi/lm/test_wrk_vld_positions.py | complete | 11/0/0 | [docs/test/reversi/lm/test_wrk_vld_positions.md](docs/test/reversi/lm/test_wrk_vld_positions.md) |
+| test/reversi/lm/test_wrk_wmaps.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_wmaps.md](docs/test/reversi/lm/test_wrk_wmaps.md) |
+| test/reversi/lm/test_wrk_zed.py | complete | 3/0/0 | [docs/test/reversi/lm/test_wrk_zed.md](docs/test/reversi/lm/test_wrk_zed.md) |
+| test/reversi/paths.py | complete (helper module, 0 tests) | — | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
+| test/reversi/tags.py | complete (helper module, 0 tests) | — | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
+| test/reversi/test_board.py | complete | 247/0/15 | [docs/test/reversi/test_board.md](docs/test/reversi/test_board.md) |
+| test/reversi/test_feature.py | complete | 25/0/1 | [docs/test/reversi/test_feature.md](docs/test/reversi/test_feature.md) |
+| test/reversi/test_mobility.py | complete | 26/0/1 | [docs/test/reversi/test_mobility.md](docs/test/reversi/test_mobility.md) |
+| test/reversi/test_paths.py | complete | 3/0/0 | [docs/test/reversi/test_paths.md](docs/test/reversi/test_paths.md) |
+| test/reversi/test_pattern.py | complete | 65/0/3 | [docs/test/reversi/test_pattern.md](docs/test/reversi/test_pattern.md) |
+| test/reversi/test_random_game.py | complete | 33/0/1 | [docs/test/reversi/test_random_game.md](docs/test/reversi/test_random_game.md) |
+| test/reversi/test_regab.py | complete | 48/0/0 | [docs/test/reversi/test_regab.md](docs/test/reversi/test_regab.md) |
+| test/reversi/tools/test_binio.py | complete | 45/0/0 | [docs/test/reversi/tools/test_binio.md](docs/test/reversi/tools/test_binio.md) |
+| test/reversi/tools/test_cache_manager.py | complete | 22/0/0 | [docs/test/reversi/tools/test_cache_manager.md](docs/test/reversi/tools/test_cache_manager.md) |
+| test/reversi/tools/test_opt_lbfgs.py | complete | 14/0/0 | [docs/test/reversi/tools/test_opt_lbfgs.md](docs/test/reversi/tools/test_opt_lbfgs.md) |
+| test/reversi/tools/test_prng.py | complete | 22/0/0 | [docs/test/reversi/tools/test_prng.md](docs/test/reversi/tools/test_prng.md) |
+| test/reversi/tools/test_state_machine.py | complete | 50/0/0 | [docs/test/reversi/tools/test_state_machine.md](docs/test/reversi/tools/test_state_machine.md) |
+| test/reversi/tools/test_usage_binio.py | complete | 3/0/0 | [docs/test/reversi/tools/test_usage_binio.md](docs/test/reversi/tools/test_usage_binio.md) |
 
 Test data (test/reversi/data/):
 

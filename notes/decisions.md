@@ -138,3 +138,23 @@ D-338 | 2026-09-29 | the two remaining non-"complete" State cells OUT (Roberto, 
          deliberate quirk) — the finding's record itself lives in D-259 (5)(b). VERIFICATION: all 95 State cells are now
          "complete" (the 2 helper rows "complete (helper module, 0 tests)"), notes_format --check clean on the touched
          files.
+D-339 | 2026-09-29 | the overview tables' Suite-count SIMPLIFICATION (Roberto: "la tabella Source files ha la colonna
+         Suite (live DB), mentre Test files ha la stessa colonna. Non credo ci sia valore in questa duplicazione ...
+         Teniamo la conta dei TESTS solo sui tests? ... Tolgo commenti inutili? ... Mi piacerebbe che il nome del DOC
+         fosse un hlink al file md. Pensaci e fammi tu una proposta." — and, on the proposal: "1: approvo. 2: Totale no,
+         sarebbe da modificare in continuo. 3: OK. Procedi!"). (1) SOURCE TABLE: the Suite column is GONE (File |
+         State | Doc) — 46 of the 48 rows duplicated their 1:1 test row's number, and the only 2 "via" notes
+         (base_model -> test_logistic_model, model_weights -> test_lm_worker_full_chain) live in the mirrors (the
+         Verified invariants); the header's "Suite = ..." sentence is out. (2) TEST TABLE: the single home of the
+         counts, with a STRICT semantics — "Suite (standard run)" = the module's count under the standard pre-commit run
+         (LONG=1, the live DB) — fixing the old column's ambiguity (some rows were default-tier runs, some DB-tier runs:
+         test_regab 48/0/0 was a DB run, test_wrk_final_log_print "5/0/1 (LONG: 6/0/0)" a default run); the only
+         micro-marker kept is (+N VLONG) — exactly 2 modules (test_lm_worker_full_chain 9/0/1, the A2050 chain;
+         test_wrk_su_analysis 10/0/1, the 1e7 corpus); NO total (Roberto: it would need constant updating); no PERF
+         parenthetical (PERF tests skip in the standard run and sit in the skip count; the mirrors carry the detail).
+         (3) THE RE-MEASURE: all 45 runner modules individually + the full standard run — all green: 968 tests, 0
+         failures, 24 skipped (75 s); the only count that moved vs the old table: test_state_machine 49 -> 50 (a test
+         added since the last verification); test_wrk_final_log_print is now simply 6/0/0. (4) DOC AS HLINK: all 95 Doc
+         cells are markdown links to the mirrors ([path](path) — verified the notes_format re-wrapper keeps the links
+         atomic). (5) THE LEGISLATION (rules.md, D-117 amended): the Suite count lives ONLY in the Test files table,
+         under the standard pre-commit run, with the (+N VLONG) marker; the Doc cell is a markdown link to the mirror.

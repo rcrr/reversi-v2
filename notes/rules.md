@@ -24,8 +24,10 @@ spans; the tables and the headings stay one physical line.
   decisions), I-NNN (the ideas), session N (the journals), T-NN (a test defect), R# (a code issue), M# (a minor note).
   Source files / Test files: one table per kind, one row per tracked file, alphabetical by full path; the State cell is
   ONE line — a status word + the open/parked items (each with its governing D-pointer if any); the description is the
-  mirror's job, the campaign history the decision log's (D-117, clarified D-335); the Suite cell carries the file's
-  current verified suite (live DB); the Doc cell the mirror path. One physical line per row; a literal `|` inside a cell
+  mirror's job, the campaign history the decision log's (D-117, clarified D-335); the Suite count lives ONLY in the
+  Test files table — the module's count under the standard pre-commit run (LONG=1, the live DB), a (+N VLONG) marker
+  for the tier-gated tests that skip in it; the Doc cell is a markdown link to the mirror (D-117, amended D-339). One
+  physical line per row; a literal `|` inside a cell
   is escaped `\|` (D-116). Current state: CURRENT STATE only, MAX 10 bullets — each a present fact NOT in the tables and
   NOT in the mirrors (the pipeline-wide state, the in-flight campaigns with their horizon, the cross-file contracts); NO
   bullet-per-campaign: the campaign lives in the journal + the decisions log, and its state leaves this section when the
