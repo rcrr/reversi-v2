@@ -47,7 +47,7 @@ def lines(p):
 # A. hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_wmaps.py")
-check("A1 hlp_wmaps.py is 322 lines (post D-139: 316 + the 2x compressed kwarg + docstring lines)", len(rlm) == 322, f"{len(rlm)}")
+check("A1 hlp_wmaps.py is 340 lines (post D-331 format pass: the D-314 reflow + the D-318 docstrings)", len(rlm) == 340, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -56,26 +56,26 @@ check("A3 __all__ lists the 5 public names",
       and "'hlp_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))
-check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L187, the rlm_indexes style — D-087 T5)",
+check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L208, the rlm_indexes style — D-087 T5)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read("src/reversi/lm/hlp_wmaps.py")
-      and rlm[186] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
-      repr(rlm[186]))
+      and rlm[207] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
+      repr(rlm[207]))
 check("A6 hlp_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_is_cache_consistent" not in read("src/reversi/lm/hlp_wmaps.py"))
 check("A7 the R1 contract is documented in the compute docstring (D-087 R1 — dense by contract, no guard)",
       "The input pindexes matrix is dense by contract: every cell holds a" in read("src/reversi/lm/hlp_wmaps.py")
-      and "are unsigned and never -1 — D-086 R1" in read("src/reversi/lm/hlp_wmaps.py"))
-check("A8 store docstring: the D-139 compression line, no sidecar promise",
-      '"""Saves the WMaps instance to a binary file.' in read("src/reversi/lm/hlp_wmaps.py")
-      and "LZ4 whole-file compression by default (D-139, as in model_weights)." in read("src/reversi/lm/hlp_wmaps.py"))
+      and "are unsigned and never -1" in read("src/reversi/lm/hlp_wmaps.py"))
+check("A8 store docstring: the LZ4 compression line, no sidecar promise",
+      '    Save the WMaps instance to a binary file: the header' in read("src/reversi/lm/hlp_wmaps.py")
+      and "LZ4 whole-file compression by default" in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
-check("A10 the above_mask code line is clean (L286, no trailing space)",
-      rlm[285] == "        above_mask = ~mask", repr(rlm[285]))
-check("A11 the fallback_details_table code line is clean (L299, no trailing spaces)",
-      rlm[298] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[298]))
-check("A12 the -1 input sentinel is unguarded at L263 — correct by the R1 dense contract (no guard added)",
-      rlm[262] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[262]))
+check("A10 the above_mask code line is clean (L298, no trailing space)",
+      rlm[297] == "        above_mask = ~mask", repr(rlm[297]))
+check("A11 the fallback_details_table code line is clean (L311, no trailing spaces)",
+      rlm[310] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[310]))
+check("A12 the -1 input sentinel is unguarded at L275 — correct by the R1 dense contract (no guard added)",
+      rlm[274] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[274]))
 
 # ----------------------------------------------------------------------
 # B. wrk_wmaps.py structure (post D-087)

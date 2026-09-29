@@ -4386,3 +4386,57 @@ D-330 | 2026-09-28 | the new code-format rules on hlp_validate (the D-314
           MIRRORS: hlp_validate.md (76 -> 83 lines, in budget) — the
           Architecture bullet now carries the condensed interpretive
           content.
+
+D-331 | 2026-09-28 | the new code-format rules on hlp_wmaps (the D-314
+          reflow + the full D-318 docstrings + the 3 decision refs out) +
+          the verify_wmaps probe re-pin (the campaign's most fragile probe:
+          the line-count + line-number + docstring-substring pins)
+          Roberto: "Modulo hlp_wmaps, verifica la lunghezza delle righe,
+          che siano conformi alle regole, non siano troppo corte. Verifica
+          che le docstring ed i commenti siano conformi alle regole, e non
+          abbiano riferimenti alla storia o alle decisioni." -> the
+          detailed analysis (max width 130, 322 lines; 3 decision refs:
+          the 2x "LZ4 whole-file compression by default (D-139, as in
+          model_weights)" docstring lines + the "never -1 — D-086 R1"
+          compute-docstring tag; the compute docstring = the 12-step HOW
+          list (the mirror's Architecture bullet already carries the
+          mechanism); the 3rd-person first lines on the 4 public
+          functions; __init__ + compute_sha3_256_hash WITHOUT docstrings;
+          the 41-line numpy-style Attributes block; the 3 narrative
+          comments; the 4 license trailing-space lines; the probe pins the
+          line count (A1), 4 line numbers (A5/A10/A11/A12) and 2
+          docstring substrings that CONTAIN the decision refs (A7/A8)) ->
+          "Prosegui con (c), grazie!" (the full pass + the extras).
+          FORMAT PASS: the D-314 reflow to ~115 (322 -> 340 lines — the
+          code shrinks, the 8 D-318 docstrings — the 2 NEW ones included —
+          grow) + the D-318 conversion: the 6 function docstrings
+          imperative (Save / Load / Compute / Check / Initialize /
+          Compute), the 12-step HOW list CONDENSED to the WHAT (the dense
+          contract + the cut-off/fallback semantics + the zero-init — the
+          step mechanism stays in the mirror's Architecture bullet), the
+          Args/Returns (+ Raises on load); the LMWMaps Attributes numpy
+          section flattened to the plain field list + packed; the 3
+          narrative comments out; the 4 license trailing-space lines
+          cleaned; the __all__ packed (the A3 substrings intact); the 3
+          decision refs REMOVED (the facts stay: "LZ4 whole-file
+          compression by default", "the indexes are unsigned and never
+          -1" — the mirror's Conventions bullet already states both
+          WITHOUT the tags).
+          PROBE RE-PIN (minimal, the D-327 precedent): A1 322 -> 340; A5 /
+          A10 / A11 / A12 the 4 line numbers (L208 / L298 / L311 / L275);
+          A7 the substring without "— D-086 R1"; A8 the new imperative
+          first line + the compression line without "(D-139, as in
+          model_weights)". C1 (the test at 346) + B9 untouched (the test
+          file is NOT modified — zero behavioral change).
+          ZERO BEHAVIORAL CHANGE: the AST code diff (docstring-stripped)
+          IDENTICAL — docstrings / comments / reflow only.
+          VERIFICATION: test_hlp_wmaps 15/0/0 + verify_wmaps 53/53 (the
+          re-pinned A1-A12 + the B / C / D sections) + the full
+          pre-commit LONG=1 968 OK (24 skipped) + the docs/notes audit at
+          baseline.
+          MIRRORS: hlp_wmaps.md (82 lines, in budget) — the "module 322
+          lines" pin line -> 340 + the format-pass note.
+          OBSERVATION (out of scope, for Roberto): 2 dead assignments in
+          hlp_wmaps_compute — N = pindexes.shape[0] (L225-era, never used)
+          + stats_filtered_above = stats[~mask] (never used) — left
+          as-is (the approved (c) scope did not include code removal).
