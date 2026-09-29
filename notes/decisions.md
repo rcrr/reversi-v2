@@ -68,3 +68,26 @@ D-334 | 2026-09-29 | the overview.md RESTRUCTURE (Roberto: "La sezione Where we 
          decision log (D-306..D-331) and the mirrors — only de-duplicated. (4) VERIFICATION: notes_format --check clean
          (0 pending rejoins), the source-vs-test suite cross-check 0 mismatches, Current state 4 bullets <= 10. NOTE:
          rules.md grew ~2 lines past its ~150 budget (pre-existing overage) — the consolidation call is Roberto's.
+D-335 | 2026-09-29 | the State-column NORMALIZATION of the overview tables (Roberto: "la colonna State e' da
+         revisionare: non c'e' coerenza sulla lunghezza dello stato, ci sono continui riferimenti alla storia. Se una
+         cosa e' complete e' complete" + the Test files table broken after the test_hlp_optimize row). (1) THE BREAK: a
+         pre-existing blank line — the D-295 test_hlp_random_play row deletion (commit eb59a3d) left the blank behind —
+         split the Markdown table, the 4 following rows rendered outside it; removed. (2) THE NORMALIZATION: every State
+         cell reduced to the D-117 grammar — the status word + the open/parked items ONLY; the descriptive prose is the
+         mirror's job (the Doc column points to it), the D-NNN / I-NNN campaign references and the "moved from / renamed
+         from / fix / N new tests / replaces X" clauses are the decision log's. A sweep of all 95 mirrors' Open issues
+         sections found exactly ONE open file-level item in the whole codebase — the wrk_anova adherence-header wording
+         defect (pinned by the probe; a source change awaits Roberto's call) — now in the State cell; the parked PRNG
+         passettino (the Next-steps item) is in the prng.py cell; the two helper test rows say "complete (helper module,
+         0 tests)"; test_mobility's stale "analyzed" becomes "complete" (the mirror: 26 tests, all pinned, no open
+         issues — the word is a remnant of the suite's birth, flagged to Roberto). (3) THE ORDER: both tables were in
+         historical addition order, violating the header + the rule ("alphabetical by full path") — re-sorted (48 src +
+         47 test rows); the stale header parenthetical ("the package path sorts future packages first") is out. (4) THE
+         HIDDEN BUG: the hlp_su_analysis cell (2682 chars) carried a RAW inner pipe — the "joint | None" type-union,
+         a D-116 escape violation the re-wrappers never saw (the row never matched the 5-pipe row shape) — gone with the
+         cell; the reduction is what surfaced it. (5) THE LEGISLATION (rules.md, D-117 clarified): the State cell = a
+         status word + the open/parked items (each with its governing D-pointer if any); the description is the mirror's
+         job, the campaign history the decision log's — the old "the D-pointer range" phrase, which had fed the D-NNN
+         bloat, is retired. Nothing LOST: every stripped clause exists verbatim in the decision log and the mirrors.
+         VERIFICATION: both tables contiguous (0 blank lines inside, 5 unescaped pipes per row, full-path alphabetical
+         order verified), notes_format --check clean.

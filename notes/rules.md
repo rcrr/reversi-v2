@@ -23,14 +23,15 @@ spans; the tables and the headings stay one physical line.
   YYYY-MM-DD; suite numbers `<total>/<failures>/<skipped>` (total = unittest's "Ran N"); references D-NNN (the
   decisions), I-NNN (the ideas), session N (the journals), T-NN (a test defect), R# (a code issue), M# (a minor note).
   Source files / Test files: one table per kind, one row per tracked file, alphabetical by full path; the State cell is
-  ONE line — a status word + the open/parked items + the D-pointer range, never the campaign history (D-117); the Suite
-  cell carries the file's current verified suite (live DB); the Doc cell the mirror path. One physical line per row; a
-  literal `|` inside a cell is escaped `\|` (D-116). Current state: CURRENT STATE only, MAX 10 bullets — each a present
-  fact NOT in the tables and NOT in the mirrors (the pipeline-wide state, the in-flight campaigns with their horizon,
-  the cross-file contracts); NO bullet-per-campaign: the campaign lives in the journal + the decisions log, and its
-  state leaves this section when the campaign ends (D-334). Next steps: OPEN items only, no "Done" bullets; the LAST
-  bullet is the next concrete action. Index: one bullet per notes/ file, a one-line description; the docs/ mirrors are
-  not listed (their paths are the Doc column of the tables).
+  ONE line — a status word + the open/parked items (each with its governing D-pointer if any); the description is the
+  mirror's job, the campaign history the decision log's (D-117, clarified D-335); the Suite cell carries the file's
+  current verified suite (live DB); the Doc cell the mirror path. One physical line per row; a literal `|` inside a cell
+  is escaped `\|` (D-116). Current state: CURRENT STATE only, MAX 10 bullets — each a present fact NOT in the tables and
+  NOT in the mirrors (the pipeline-wide state, the in-flight campaigns with their horizon, the cross-file contracts); NO
+  bullet-per-campaign: the campaign lives in the journal + the decisions log, and its state leaves this section when the
+  campaign ends (D-334). Next steps: OPEN items only, no "Done" bullets; the LAST bullet is the next concrete action.
+  Index: one bullet per notes/ file, a one-line description; the docs/ mirrors are not listed (their paths are the Doc
+  column of the tables).
 - notes/decisions.md — the OPEN historical decision log (append-only; "the why"; consulted on demand). Format (D-209):
   ~120 chars/line; a blank line before every entry; code spans for the paths and the function / file names;
   backslash-escaped asterisks for the math multiplications, so the Markdown renders without stray italics. Volume

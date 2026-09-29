@@ -75,114 +75,112 @@ bullet-per-campaign (D-334).
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
 
 ## Source files
-One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
-open/parked items (if any); the campaign history lives in the decision log. Suite = the current verified suite (live DB)
-of the file's test module.
+One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign
+history lives in the decision log. Suite = the current verified suite (live DB) of the file's test module.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
-| src/reversi/base_model.py | complete: the thin facade base over StateMachine — the pure delegation + the generic `run(target_level=None)` driver (CONFIG first, then the argument / the `_configured_target_level` hook / the last step; the resume does not reset) | 29/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
-| src/reversi/board.py | complete: the Reversi game kernel (200 random full games verified on the public API); flips / make_move dual scalar/array; a PASS swaps the players in both position_flips (move 0, a zero bitboard) and position_make_move (`MOVE_PA` = 64, the named move code); the named non-square move codes `MOVE_PA` / `MOVE_NA` / `MOVE_UN` (I-003); initial_game_position (the CANONICAL standard start); position_hash (the legacy-comparable Zobrist hash, D-213); legal_moves_of / flips_of_move (the public njit per-lane primitives — the single sources of the two geometries, D-232); no game-loop module | 247/0/15 | docs/src/reversi/board.md |
-| src/reversi/tools/binio.py | complete: the binary IO layer (batch + the empty-suffix fix) | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
-| src/reversi/tools/cache_manager.py | complete: the generic load-or-compute cache pipeline (.SHA3-256 sidecar, 8192-chunk verify) | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
-| src/reversi/feature.py | complete: Feature / FeatureSet (blocked __new__, 3 factories, composition, sorted order, the feature_blocks column blocks) | 25/0/1 | docs/src/reversi/feature.md |
-| src/reversi/tools/prng.py | complete: the MT-19937 64-bit PRNG — MINIMAL (one class, a seed ctor, one numba kernel with local constants, the state fully internal); choose_one_from_set64 (the uniform no-removal pick, the (0, 64) empty sentinel) + extract_from_set64 — both delegating to the pick kernels; pick_one_from_set64 / pick_one_from_set64_batch (the single source of the pick technique, D-221); get_uint64_batch | 22/0/0 | docs/src/reversi/tools/prng.md |
-| src/reversi/lm/wrk_analytics.py | complete: the ANALYTICS level — training metrics + console / file reports; it publishes the dense training residuals `ctx.train_dense_rn` for PLOT (I-018) | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
-| src/reversi/lm/wrk_client_check.py | complete: the CLIENT_CHECK level — the saved-model file acceptance test (re-read the file, the client's array EF, the Y-space residual comparison vs the PUBLISHED `ctx.vld_rn` series, I-018: no local re-derivation) | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
-| src/reversi/lm/hlp_plot.py | complete: the PLOT figure builders — the seven Y-space diagnostics (the three R classics + the four extensions), PlotData + `collect_plot_data` (the pure ASSEMBLY of the published series, I-018: no forward pass), the R-semantic jitter, the EGV bins, the guarded KDE; the fixed axes + the step-8 ticks + the two-line title; matplotlib/scipy lazy-imported; the 13 PlotStyle knobs (the former 11 hardcoded constants + the _TXT_X/_TXT_Y label dicts, now config-driven) | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
-| src/reversi/lm/wrk_plot.py | complete: the PLOT level (after CLIENT_CHECK) — the whitelist pilot (enable + the optional plot names), the directory resolution, the PlotStyle assembly (the 13 plot-section knobs) + the 3-arg dispatch, the per-name save; a PURE rendering level since I-018 (the outlier report to VALIDATE, the forward passes to the owners) | 9/0/0 | docs/src/reversi/lm/wrk_plot.md |
-| src/reversi/lm/wrk_final_log_print.py | complete: the FINAL_LOG_PRINT level (the 19th, the pipeline's last — D-321): the optional `log_file_name` config gate (the absent entry -> the no-op, the file NOT generated) + the hlp call; the down is a no-op (the file is a base_dir artifact) | 6/0/1 (the e2e LONG-gated) | docs/src/reversi/lm/wrk_final_log_print.md |
-| src/reversi/lm/hlp_final_log_print.py | complete: the FINAL_LOG_PRINT writer (D-321): the full event buffer (the maximum relevance, the live-line format via the machine's `format_event_log`) to `base_dir / log_file_name` (the parents created); the write asymmetry (the file is the buffer at the write moment) | 6/0/1 (the shared test_wrk_final_log_print suite) | docs/src/reversi/lm/hlp_final_log_print.md |
-| src/reversi/lm/wrk_config.py | complete: the CONFIG worker — a pure load+validate step (JSON5 → config → base_dir validation) + the config fingerprint (the ad-hoc cache flow removed, the record is a SAVE artifact) | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
-| src/reversi/lm/wrk_design_matrix.py | complete: the DESIGN_MTR worker | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
-| src/reversi/lm/wrk_anova.py | the ANOVA worker (step 6) — the eta²/omega² per sub-variable + the adherence (the chi-square + the KL + the TV, DB vs the ideal corpus); the graceful degradation; NO cache (a diagnostic); optional (default FALSE) | 7/0/0 (via test_wrk_anova) | docs/src/reversi/lm/wrk_anova.md |
-| src/reversi/lm/wrk_su_analysis.py | the SU_ANALYSIS worker (step 3) — the level ORCHESTRATION SKELETON (D-289, the wrk_design_matrix minimalism): the enable no-op, the cache_manager flow over the hlp binio cache (D-288), the phase-2 statistics recompute (EVERY run), the ctx publication for the ANOVA level; ALL the logic in hlp_su_analysis (the corpus engine su-corpus-5, the signature, the up-to-three-section report (the optional rarity, D-292)); optional (default FALSE) | 10/0/1 (via test_wrk_su_analysis; VLONG: 10/0/0, the 1e7 corpus) | docs/src/reversi/lm/wrk_su_analysis.md |
-| src/reversi/lm/wrk_features.py | complete: the FEATURES worker (step 2, before POSITIONS) — the first pure-compute level (no cache file) | 3/0/0 (DB-free) | docs/src/reversi/lm/wrk_features.md |
-| src/reversi/lm/wrk_generate.py | complete: the GENERATE level (dense weights materialization) | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
-| src/reversi/lm/wrk_gradient.py | complete: the GRADIENT level (the float32 contract; the high_performance_fg flag + the D-325 hi_perf_blocks wiring) | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
-| src/reversi/lm/wrk_indexes.py | complete: the INDEXES worker (uniform 7-kwargs cache wiring) | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
-| src/reversi/lm/wrk_optimize.py | complete: the OPTIMIZE level — the only level whose "cache" is a plain checkpoint dict via binio | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
-| src/reversi/lm/wrk_positions.py | complete: the POSITIONS worker — the first cache_manager consumer over the regab data set; the extract_and_prepare shared compute path (the duplicate policy) + the cache-hit duplicate line | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
-| src/reversi/lm/wrk_save.py | complete: the SAVE level — the SINGLE artifact: the v2 model file embeds the config provenance | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
-| src/reversi/lm/wrk_validate.py | complete: the VALIDATE level (the third non-cache worker) — it publishes `vld_metrics` + the `vld_y_pred` / `vld_rn` series + the 20 `vld_outliers` records and logs the top-20 report (I-018, moved from PLOT) | 9/0/0 | docs/src/reversi/lm/wrk_validate.md |
-| src/reversi/lm/wrk_vld_positions.py | complete: the VLD_POSITIONS level (the POSITIONS twin over the validation set); the shared extract_and_prepare reuse + the LOG-ONLY independence trace | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
-| src/reversi/lm/wrk_wmaps.py | complete: the WMAPS worker | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
-| src/reversi/lm/wrk_zed.py | complete: the ZED level (the first non-cache level) | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
-| src/reversi/lm/logistic_model.py | complete: the LM facade — LMContext blackboard + the 19-level worker list (FEATURES before POSITIONS; SU_ANALYSIS step 3 + ANOVA step 6; FINAL_LOG_PRINT last, the D-321 optional full-log gate) + the `_configured_target_level` hook that feeds `run()` from `cfg.target_level` + the `build_model` script entry (the facade runs as `python -m reversi.lm.logistic_model <config.json>`) | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
-| src/reversi/mobility.py | complete: mobility / MobilitySet + popcount64 SWAR kernel (PERF tests print-only, no perf gate) | 26/0/1 | docs/src/reversi/mobility.md |
-| src/reversi/lm/model_weights.py | complete: the model_weights @dataclass — the v2 format (the config provenance leads the body) + the backward-compat v1 reader + the 12-field dataclass | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
-| src/reversi/tools/opt_lbfgs.py | complete: the LBFGS solver (incl. the RuntimeException hard-bug fix); the two-loop O2b (the pre-allocated f64 out= product buffer, bit-identical, 1.39×) | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
-| src/reversi/pattern.py | complete: principal mask = numerically lowest orbit; the Burnside attributes; PatternSet.__repr__; the PatternSet Raises docstring | 65/0/3 | docs/src/reversi/pattern.md |
-| src/reversi/random_game.py | the random game (the new module): random_game_choose_move (the @validate_call pick: position_legal_moves + the prng pick — choose_one_from_set64 / the pick_one_from_set64_batch kernel, the single source D-221; dual scalar/array with the bit-identical stream contract — D-219) + random_game_make_move (pick a move, apply it via position_flips, return the resulting position + the move; a no-legal-move pass returns the swapped position + PA; dual scalar/array — D-220) + random_game_play_path (play random moves until the empty count reaches the target; the double-pass game-over break fixed — D-218; dual scalar/array, the FUSED two-kernel step engine on the board/prng per-lane primitives — D-232; the SU_ANALYSIS production corpus engine, the su-corpus-5 lineage — D-284) | 33/0/1 (via test_random_game) | docs/src/reversi/random_game.md |
-| src/reversi/regab.py | complete: the PostgreSQL regab access layer; the LZ4 default in the 2 rds file functions; the pure helpers regab_dedup_mogv + regab_count_position_overlap | 48/0/0 | docs/src/reversi/regab.md |
-| src/reversi/lm/hlp_analytics.py | complete: the ANALYTICS data module (the 3-metric header + Population baseline + dense metrics; the Config SHA3-256 line in the common header block); `compute_training_dense_metrics` returns a `TrainingDenseResult` (the metrics + the f64 `rn_y` series, I-018); the D-307 SU sample columns in the per-feature tables (the PROBABILITY / SU_PROBABILITY observation shares after FREQUENCY, the pooled marginal over the feature's instance columns) + the "SU Sample Consistency" header line under Eta-Squared (the pooled adherence — the TV verdict bands 0.01/0.05 + the chi-square / p / merged; the 2x-training too-small note; SU off = byte-identical tables) + the D-308 INTERCEPT section (the single trained bias weight, one Weight line 4 decimals, only when the feature set has an intercept, before the MOBILITY details) + the D-311 eta² unification (the pooled Eta-Squared statistic is the shared hlp_anova_eta_omega kernel call) | 14/0/0 | docs/src/reversi/lm/hlp_analytics.md |
-| src/reversi/lm/client.py | complete: the inference client — the scalar EF + the vectorized make_evaluation_function_array (strict array, bit-exact per position, @validate_call on both factories); the in-pipeline consumer (CLIENT_CHECK) | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
-| src/reversi/lm/hlp_config_schemas.py | complete: the pydantic config domain (the LMConfig JSON5 entry point); the regab_allow_duplicate field (default True); the high_performance_fg flag (default False); the client_check_tol field (default 1e-8, gt=0); the PlotConfig section; the su_analysis + anova + the `target_level` stop (consumed by the facade's `run()`) + the su_pairs fail-fast; the D-325 hi_perf_blocks field (default 8) + the D-328 13 plot-style knobs (the PlotConfig → PlotStyle plumbing, the defaults = the historical rendering values) | 30/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
-| src/reversi/lm/hlp_design_matrix.py | complete: the DESIGN_MTR data module | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
-| src/reversi/lm/hlp_anova.py | the ANOVA family module (renamed from hlp_feature_analysis, D-315 — the D-298 split from the SHARED data plane left exactly this family; NO DB, NO positions) — the from-frequency-tables math: the 2 PURE-MATH kernels (hlp_anova_eta_omega + hlp_anova_adherence — the @validate_call Pydantic boundary, the D-317 rename) + the private trio (the chi-square + the KL + the TV) + the 2 FLOW functions (hlp_anova_compute_analysis + hlp_anova_generate_report, the D-315 move from wrk_anova — the worker is the pure skeleton) | 16/0/0 (via test_hlp_anova) | docs/src/reversi/lm/hlp_anova.md |
-| src/reversi/lm/hlp_generate.py | complete: the GENERATE data module | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
-| src/reversi/lm/hlp_gradient.py | complete: the GRADIENT data module (the float32 contract; the dual fg — classic verbatim + the K3 numba kernel behind the high_performance flag; the D-325 hi_perf_blocks block count (the config field, default 8) replaces _HP_BLOCKS) | 15/0/0 | docs/src/reversi/lm/hlp_gradient.md |
-| src/reversi/lm/hlp_indexes.py | complete: the INDEXES data module | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
-| src/reversi/lm/hlp_optimize.py | complete: the OPTIMIZE data module | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
-| src/reversi/lm/hlp_su_analysis.py | the SU analysis LOGIC (D-289, the hlp of the SU worker): the frequency accumulators (the marginal + the joint — the D-295 hlp_random_play retirement, now the private _MarginalAccumulator / _JointAccumulator; the D-296 position language: add(idx) over the wave's index matrix at the D-300 loop boundary, no parallel (mover, opponent) at any module boundary; the D-298: the SU statistics kernels (the entropy / MI / SU / dispersion / never-observed audit) moved here as private from hlp_feature_analysis; the D-299 cold-compute optimization: the VECTORIZED joint merge (the per-cell sorted key arrays K/C, the searchsorted + np.add.at fold — no Python dict) + the marginal-entropy memoization in _su_values; the D-300 / I-020: the per-wave index matrix computed ONCE in the compute loop, fed to both accumulators' add(idx); the D-301: the never-observed audit's rarity profile removed (dead in production — the Section B rarity is the _rarity_bins kernel, D-292)) + the corpus generator (the random_game play-path engine, phase 1) + the binio cache I/O (the D-288 layout, the LZ4) + the consistency signature (the feature_set hash, the new cache lineage) + the statistics (phase 2: the dispersion + the never-observed audit + the SU pairs, the up-to-three-section report (the optional Section B rarity, the config's rarity_thresholds, D-292) + the CSV) — NO DB (the corpus is the level's own); the D-302: the COMPLETE signatures (the 46 parameter + the 4 return annotations, the 4 private shape aliases, the idx the IndexArray; inert at runtime); the D-303: the Pydantic boundary — the store / the load are @validate_call-ed, the store DEEP-validates the PUBLIC SuTables TypedDict (the D-292-style tables dict: signature + marginal + joint | None), the 3 ctx functions undecorated (the hlp_design_matrix circular-import idiom); the D-304/D-305 throughput: the 3e6-lane wave (the "su-corpus-5" lineage — the wave size is a generator BEHAVIOUR, it shifts the PRNG stream, so it is versioned; the D-305 5/5 interleaved A/B medians: 19.08 s at 3e6 vs 20.70 s at 2e6, the 4e6 rejected: the diminishing returns + the RAM; the D-305 double-buffer overlap measured NULL on the 8-core box — the serial schedule already saturates the cores — and is REVERTED, the design recorded in the decision), the per-cell joint merges THREAD-parallel on a ThreadPoolExecutor (the independent cells, the numpy sort releases the GIL), the same-feature diagonal cells NOT BUILT (the (u, u) joint is the marginal itself — 6 of the 28 fixture cells, never consumed downstream) | 38/0/0 (via test_hlp_su_analysis) | docs/src/reversi/lm/hlp_su_analysis.md |
-| src/reversi/lm/hlp_validate.py | complete: the VALIDATE data module — the single forward pass returning `ValidationResult` (the 7 metrics + the f64 series) + the `top_outliers` kernel (I-018) | 9/0/0 (via test_wrk_validate) | docs/src/reversi/lm/hlp_validate.md |
-| src/reversi/lm/hlp_wmaps.py | complete: the WMAPS data object | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
-| src/reversi/lm/hlp_zed.py | complete: the ZED data module | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
-| src/reversi/tools/state_machine.py | complete: the generic pipeline orchestrator (Workers up/down + Context + logging / history / CSV); standing contracts: sentinel worker 0, failure semantics, unique names, \*_for_current_level naming | 49/0/0 | docs/src/reversi/tools/state_machine.md |
+| src/reversi/base_model.py | complete | 29/0/0 (via test_logistic_model) | docs/src/reversi/base_model.md |
+| src/reversi/board.py | complete | 247/0/15 | docs/src/reversi/board.md |
+| src/reversi/feature.py | complete | 25/0/1 | docs/src/reversi/feature.md |
+| src/reversi/lm/client.py | complete | 7/0/1 (test_client) + the EF pins via test_lm_worker_full_chain | docs/src/reversi/lm/client.md |
+| src/reversi/lm/hlp_analytics.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_analytics.md |
+| src/reversi/lm/hlp_anova.py | complete | 16/0/0 (via test_hlp_anova) | docs/src/reversi/lm/hlp_anova.md |
+| src/reversi/lm/hlp_config_schemas.py | complete | 30/0/0 | docs/src/reversi/lm/hlp_config_schemas.md |
+| src/reversi/lm/hlp_design_matrix.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_design_matrix.md |
+| src/reversi/lm/hlp_final_log_print.py | complete | 6/0/1 (the shared test_wrk_final_log_print suite) | docs/src/reversi/lm/hlp_final_log_print.md |
+| src/reversi/lm/hlp_generate.py | complete | 16/0/0 | docs/src/reversi/lm/hlp_generate.md |
+| src/reversi/lm/hlp_gradient.py | complete | 15/0/0 | docs/src/reversi/lm/hlp_gradient.md |
+| src/reversi/lm/hlp_indexes.py | complete | 14/0/0 | docs/src/reversi/lm/hlp_indexes.md |
+| src/reversi/lm/hlp_optimize.py | complete | 20/0/0 | docs/src/reversi/lm/hlp_optimize.md |
+| src/reversi/lm/hlp_plot.py | complete | 11/0/0 | docs/src/reversi/lm/hlp_plot.md |
+| src/reversi/lm/hlp_su_analysis.py | complete | 38/0/0 (via test_hlp_su_analysis) | docs/src/reversi/lm/hlp_su_analysis.md |
+| src/reversi/lm/hlp_validate.py | complete | 9/0/0 (via test_wrk_validate) | docs/src/reversi/lm/hlp_validate.md |
+| src/reversi/lm/hlp_wmaps.py | complete | 15/0/0 | docs/src/reversi/lm/hlp_wmaps.md |
+| src/reversi/lm/hlp_zed.py | complete | 10/0/0 | docs/src/reversi/lm/hlp_zed.md |
+| src/reversi/lm/logistic_model.py | complete | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
+| src/reversi/lm/model_weights.py | complete | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
+| src/reversi/lm/wrk_analytics.py | complete | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
+| src/reversi/lm/wrk_anova.py | complete; open: the adherence header promises top-k while the report lists every sub-variable (pinned; a source change awaits Roberto's call) | 7/0/0 (via test_wrk_anova) | docs/src/reversi/lm/wrk_anova.md |
+| src/reversi/lm/wrk_client_check.py | complete | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
+| src/reversi/lm/wrk_config.py | complete | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
+| src/reversi/lm/wrk_design_matrix.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
+| src/reversi/lm/wrk_features.py | complete | 3/0/0 (DB-free) | docs/src/reversi/lm/wrk_features.md |
+| src/reversi/lm/wrk_final_log_print.py | complete | 6/0/1 (the e2e LONG-gated) | docs/src/reversi/lm/wrk_final_log_print.md |
+| src/reversi/lm/wrk_generate.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_generate.md |
+| src/reversi/lm/wrk_gradient.py | complete | 4/0/0 | docs/src/reversi/lm/wrk_gradient.md |
+| src/reversi/lm/wrk_indexes.py | complete | 2/0/0 | docs/src/reversi/lm/wrk_indexes.md |
+| src/reversi/lm/wrk_optimize.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_optimize.md |
+| src/reversi/lm/wrk_plot.py | complete | 9/0/0 | docs/src/reversi/lm/wrk_plot.md |
+| src/reversi/lm/wrk_positions.py | complete | 12/0/0 | docs/src/reversi/lm/wrk_positions.md |
+| src/reversi/lm/wrk_save.py | complete | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/wrk_save.md |
+| src/reversi/lm/wrk_su_analysis.py | complete | 10/0/1 (via test_wrk_su_analysis; VLONG: 10/0/0, the 1e7 corpus) | docs/src/reversi/lm/wrk_su_analysis.md |
+| src/reversi/lm/wrk_validate.py | complete | 9/0/0 | docs/src/reversi/lm/wrk_validate.md |
+| src/reversi/lm/wrk_vld_positions.py | complete | 11/0/0 | docs/src/reversi/lm/wrk_vld_positions.md |
+| src/reversi/lm/wrk_wmaps.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_wmaps.md |
+| src/reversi/lm/wrk_zed.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_zed.md |
+| src/reversi/mobility.py | complete | 26/0/1 | docs/src/reversi/mobility.md |
+| src/reversi/pattern.py | complete | 65/0/3 | docs/src/reversi/pattern.md |
+| src/reversi/random_game.py | complete | 33/0/1 (via test_random_game) | docs/src/reversi/random_game.md |
+| src/reversi/regab.py | complete | 48/0/0 | docs/src/reversi/regab.md |
+| src/reversi/tools/binio.py | complete | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
+| src/reversi/tools/cache_manager.py | complete | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
+| src/reversi/tools/opt_lbfgs.py | complete | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
+| src/reversi/tools/prng.py | complete; parked: the last PRNG passettino (the ctor's init over a numba init kernel) | 22/0/0 | docs/src/reversi/tools/prng.md |
+| src/reversi/tools/state_machine.py | complete | 49/0/0 | docs/src/reversi/tools/state_machine.md |
 
 ## Test files
-One row per test file, alphabetical.
+One row per test file, alphabetical by full path.
 
 | File | State | Suite (live DB) | Doc |
 | --- | --- | --- | --- |
-| test/reversi/paths.py | the single home for workspace-root-anchored test paths — helper module (0 tests) | — | docs/test/reversi/paths.md |
-| test/reversi/tags.py | the suite-tier gates (D-130/D-256) — the predicates + the DB gate, the single source of the tier semantics — helper module (0 tests) | — | docs/test/reversi/tags.md |
-| test/reversi/tools/test_binio.py | complete: the binary IO suite (the batch + the 3 empty-suffix tests) | 45/0/0 | docs/test/reversi/tools/test_binio.md |
-| test/reversi/test_board.py | complete: the board kernel suite — the bitboard layer (the 8 D8 transformations + the group law + the numba overloads), the position layer (creation, legal moves + the count, flips / make_move, the PASS-swap on the scalar + the bulk + the array batch + the fuzz parity, empties / empty count, collisions, game over, the Zobrist hash + the legacy parity), TestInitialGame, the two per-lane njit primitives (TestNumbaPrimitives), the named move-code pin, 2 PERF | 247/0/15 | docs/test/reversi/test_board.md |
-| test/reversi/tools/test_cache_manager.py | complete: 22 tests | 22/0/0 | docs/test/reversi/tools/test_cache_manager.md |
-| test/reversi/lm/test_client.py | complete: the client EF suite — the synthetic rlm_04-mirror weights (no DB), the 1000-position bit-exact parity, the u64 coercion, the 2-D guard, the scalar/list rejections, the N=0 edge + the PERF 1M test | 7/0/1 | docs/test/reversi/lm/test_client.md |
-| test/reversi/test_feature.py | complete: the factory + construction + feature_blocks + compute_indexes suite | 25/0/1 | docs/test/reversi/test_feature.md |
-| test/reversi/tools/test_prng.py | complete: the MT19937 suite — the smoke micro-suite (the determinism, the dtype pins, the no-consume contracts) + the golden suite (the committed 18436-line golden, 20 sections) + TestChooseOneFromSet64 (the empty sentinel, the (1 << p, p) return, the no-drain, the 1000-pick golden for 7 sets, the full-set equidistribution); TestPickOneFromSet64 (the D-221 kernel-method identity draw-for-draw + the batch equivalence + the all-empty no-draw case); the get_uint64_batch pin | 22/0/0 | docs/test/reversi/tools/test_prng.md |
-| test/reversi/lm/test_wrk_analytics.py | complete: the ANALYTICS worker suite (the masked-hash helper + the 2 file-report goldens + the 4 SU-off pins) + the D-307 SU sample columns: the NO-DB mock-ctx suite (8 tests, the hand-computed TV/chi2/p/verdict goldens + the 2 INTERCEPT branch tests) + the DB-gated rlm_00 end-to-end (the 10k corpus vs the 200 training, the 5 re-derived consistency lines + the INTERCEPT pin) + the D-308 INTERCEPT pins (rlm_00 present, rlm_02 absent) + the D-311 cross-level eta² agreement (the DB-gated rlm_00 single-instance pin) | 14/0/0 | docs/test/reversi/lm/test_wrk_analytics.md |
-| test/reversi/lm/test_wrk_client_check.py | complete: the CLIENT_CHECK worker suite — the synthetic rlm_04-mirror ctx (no DB, the real v2 SAVE write), the bit-identity golden, the RuntimeError + FileNotFoundError paths, the cfg-tolerance pin, the factory name, the no-op down | 6/0/0 | docs/test/reversi/lm/test_wrk_client_check.md |
-| test/reversi/lm/test_hlp_plot.py | complete: the PLOT pure-helper suite — the seven-name vocabulary lock-step (names ⇄ builders ⇄ titles), the symmetric-axis limit, the R-semantic jitter bounds + the zero-range identity, the EGV even-grid bins + the known-values vector, the KDE zero-variance guard + the curve shape/peak | 11/0/0 | docs/test/reversi/lm/test_hlp_plot.md |
-| test/reversi/lm/test_wrk_plot.py | complete: the PLOT worker suite — the synthetic rlm_04-mirror ctx (no DB), the pilot no-ops, the seven-PNG happy path + the per-up-move byte determinism, the pdf/png pair, the absolute dir, the partial whitelist, the parity rendering golden, the factory, the no-op down (the outlier report test moved to test_wrk_validate, I-018) | 9/0/0 | docs/test/reversi/lm/test_wrk_plot.md |
-| test/reversi/lm/test_wrk_final_log_print.py | the FINAL_LOG_PRINT worker suite (D-321) — the NO-DB mock-ctx suite (the factory, the config-gate no-op, the full-log write, the subdir path, the down) + the LONG-tier e2e (the rlm_00 chain, the log_file_name entry in the config from the start — the D-322 tmp fixture copy, verbosity NONE — nothing prints, the buffer captures everything — the write-asymmetry pins) | 5/0/1 (LONG: 6/0/0) | docs/test/reversi/lm/test_wrk_final_log_print.md |
-| test/reversi/lm/test_wrk_config.py | complete: 13 tests (the fingerprint + no-cache pins) | 13/0/0 | docs/test/reversi/lm/test_wrk_config.md |
-| test/reversi/lm/test_wrk_design_matrix.py | complete: the DESIGN_MTR worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_design_matrix.md |
-| test/reversi/lm/test_wrk_anova.py | the ANOVA worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the ANOVA, the graceful degradation, the adherence computed, the report, the down) | 7/0/0 | docs/test/reversi/lm/test_wrk_anova.md |
-| test/reversi/lm/test_hlp_su_analysis.py | the SU analysis LOGIC NO-DB suite (D-289) — the signature (the independent sha3_256), the binio round-trip (with / without the joint), the load guards, the compute determinism, the theoretical space (D-278/279), the SU groups + the diagonal, the report + the CSV, the cache consistency (the real-pipeline ctx stopped at FEATURES, the D-287 idiom) + the D-295 accumulator migration (the marginal / the joint micro-suite + the PRNG integration, the toy corpus, the independent oracles; D-296: the _corpus helper + the accumulators take the PositionArray; D-298: the SU kernel micro-suite — the 5 hand-computed toy-table classes from test_hlp_feature_analysis; D-299: the joint micro-suite pins the vectorized merge, the MI calls pass the pre-computed entropies; D-301: the never-observed audit rows drop the rarity goldens; D-303: the new test_store_deep_validation pins the SuTables deep validation — the structurally malformed tables dict is rejected at the boundary); D-304: test_same_feature_diagonal now pins the 12 off-diagonal cells (the 4 diagonals NOT BUILT) vs the independent per-position oracle, the signature pins "su-corpus-5" | 38/0/0 | docs/test/reversi/lm/test_hlp_su_analysis.md |
-| test/reversi/lm/test_wrk_su_analysis.py | the SU_ANALYSIS worker NO-DB suite — the mock-ctx suite over the rlm_00 fixture (the factory, the enable no-op, the compute + the publish, the cache hit, the signature invalidation, the corpus determinism, the su_pairs joint, the optional CSV, the down) | 10/0/1 (VLONG: 10/0/0, the 1e7 corpus) | docs/test/reversi/lm/test_wrk_su_analysis.md |
-| test/reversi/lm/test_wrk_features.py | complete: the FEATURES worker suite (DB-free) | 3/0/0 (DB-free) | docs/test/reversi/lm/test_wrk_features.md |
-| test/reversi/lm/test_lm_worker_full_chain.py | the END-TO-END suite: the full 19-level chain (the A2030 + A2050 chains, the read guards, the v2 micro, the client-check + PLOT log pins, the size bands, the outlier pins) + the full saved-model round-trip; the A2050 chain VLONG-gated | 9/0/1 | docs/test/reversi/lm/test_lm_worker_full_chain.md |
-| test/reversi/lm/test_wrk_generate.py | complete: the GENERATE worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_generate.md |
-| test/reversi/lm/test_wrk_gradient.py | complete: the GRADIENT worker suite (the float32 contract pin; the 2 no-DB flag-wiring tests) | 4/0/0 | docs/test/reversi/lm/test_wrk_gradient.md |
-| test/reversi/lm/test_wrk_indexes.py | complete: the end-to-end cache round-trip pin | 2/0/0 | docs/test/reversi/lm/test_wrk_indexes.md |
-| test/reversi/lm/test_wrk_optimize.py | complete: the OPTIMIZE worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_optimize.md |
-| test/reversi/lm/test_wrk_positions.py | complete: the POSITIONS worker suite (the gate + the duplicate policy + the post-policy cache) | 12/0/0 | docs/test/reversi/lm/test_wrk_positions.md |
-| test/reversi/lm/test_wrk_validate.py | complete: the VALIDATE worker suite — the metric goldens + the f64 series + the outlier kernel + the outlier report (moved from test_wrk_plot, I-018) | 9/0/0 | docs/test/reversi/lm/test_wrk_validate.md |
-| test/reversi/lm/test_wrk_vld_positions.py | complete: the VLD_POSITIONS worker suite (the 0% / 100% overlap, traced not raised) | 11/0/0 | docs/test/reversi/lm/test_wrk_vld_positions.md |
-| test/reversi/lm/test_wrk_wmaps.py | complete: the WMAPS worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_wmaps.md |
-| test/reversi/lm/test_wrk_zed.py | complete: the ZED worker suite | 3/0/0 | docs/test/reversi/lm/test_wrk_zed.md |
-| test/reversi/lm/test_logistic_model.py | complete: the facade suite — the pass-through pins, the LMContext/injection pins, the `run()` driver (the mocked resolution cases + the real-config FEATURES/SU_ANALYSIS class) | 29/0/0 | docs/test/reversi/lm/test_logistic_model.md |
-| test/reversi/test_mobility.py | analyzed: 13 verified facts | 26/0/1 | docs/test/reversi/test_mobility.md |
-| test/reversi/tools/test_opt_lbfgs.py | complete: the LBFGS suite (the batch + 9 new tests; the O2b bit-identity test) | 14/0/0 | docs/test/reversi/tools/test_opt_lbfgs.md |
-| test/reversi/test_paths.py | complete: the 3 pin tests for the workspace-root paths | 3/0/0 | docs/test/reversi/test_paths.md |
-| test/reversi/test_pattern.py | complete: the pattern suite (the fix campaign closed; the goldens re-derived) | 65/0/3 | docs/test/reversi/test_pattern.md |
-| test/reversi/test_random_game.py | complete: the random-game suite — TestInitialGame (the Position dtype + the Bitboard field types + the mover {E4, D5} / opponent {D4, E5} square sets, the official Othello setup); TestRandomGameChooseMove (the golden: seed 93, 1000 draws, the EXACT frequencies [258, 229, 249, 264] over {D3, C4, F5, E6}); TestRandomGameChooseMoveEC20 (the per-position validity + the equidistribution over the available options); TestRandomGameChooseMoveArray (the D-219 array case: the batch bit-identical to the sequential scalar processing + the guards); TestRandomGameMakeMove (only the two resulting boards, the position↔move consistency, one stone ahead, the no-legal-move pass → swapped position + PA); TestRandomGameMakeMoveArray (the D-220 array case: the batch bit-identical to the sequential scalar processing + the per-code cross-check + the guards); TestRandomGamePlayPath (the target-ec landing + the multi-generation distinctness via position_hash — D-216; the double-pass game-over break + the single-pass continuation — D-218); TestRandomGamePlayPathArray (the D-222 array case: the N=1 scalar bridge, the determinism, the ec contract, the as-is, the guards; the PERF 1M-games benchmark) | 33/0/1 | docs/test/reversi/test_random_game.md |
-| test/reversi/test_regab.py | complete: the regab suite (the batch incl. the 4 SQL-injection tests; the db_long_gate; the no-DB micro tier: dedup + overlap) | 48/0/0 | docs/test/reversi/test_regab.md |
-| test/reversi/lm/test_hlp_config_schemas.py | complete: the pydantic config domain suite (the flag test; the client_check_tol tests; the 7 PlotConfig tests — the 13 style-knob defaults + the degenerate rejections; the 4 su_analysis/anova tests) | 30/0/0 | docs/test/reversi/lm/test_hlp_config_schemas.md |
-| test/reversi/lm/test_hlp_design_matrix.py | complete: the dedicated 14-test data suite | 14/0/0 | docs/test/reversi/lm/test_hlp_design_matrix.md |
-| test/reversi/lm/test_hlp_anova.py | the ANOVA NO-DB micro-suite (renamed with the D-315 module rename; the D-298 split — the SU kernel micro-suite moved to test_hlp_su_analysis) — the hand-computed toy tables for the ANOVA + the adherence kernels (+ the private kl / TV / chi-square helpers, the module-import calls) | 16/0/0 | docs/test/reversi/lm/test_hlp_anova.md |
-| test/reversi/lm/test_hlp_generate.py | complete: the GENERATE data suite | 16/0/0 | docs/test/reversi/lm/test_hlp_generate.md |
-| test/reversi/lm/test_hlp_gradient.py | complete: the GRADIENT data suite (the TestHighPerformanceFg class — equivalence, f32 contract, determinism, markers + the D-325 block-count test) | 15/0/0 | docs/test/reversi/lm/test_hlp_gradient.md |
-| test/reversi/lm/test_hlp_indexes.py | complete: 14 tests (the compressed mock pins) | 14/0/0 | docs/test/reversi/lm/test_hlp_indexes.md |
-| test/reversi/lm/test_hlp_optimize.py | complete: the OPTIMIZE data suite | 20/0/0 | docs/test/reversi/lm/test_hlp_optimize.md |
-
-| test/reversi/lm/test_hlp_wmaps.py | complete: the WMAPS data suite | 15/0/0 | docs/test/reversi/lm/test_hlp_wmaps.md |
-| test/reversi/lm/test_hlp_zed.py | complete: the dedicated 10-test data suite | 10/0/0 | docs/test/reversi/lm/test_hlp_zed.md |
-| test/reversi/tools/test_state_machine.py | complete: 13 original expectations independently re-derived | 49/0/0 | docs/test/reversi/tools/test_state_machine.md |
-| test/reversi/tools/test_usage_binio.py | complete: the 3 usage tests | 3/0/0 | docs/test/reversi/tools/test_usage_binio.md |
+| test/reversi/lm/test_client.py | complete | 7/0/1 | docs/test/reversi/lm/test_client.md |
+| test/reversi/lm/test_hlp_anova.py | complete | 16/0/0 | docs/test/reversi/lm/test_hlp_anova.md |
+| test/reversi/lm/test_hlp_config_schemas.py | complete | 30/0/0 | docs/test/reversi/lm/test_hlp_config_schemas.md |
+| test/reversi/lm/test_hlp_design_matrix.py | complete | 14/0/0 | docs/test/reversi/lm/test_hlp_design_matrix.md |
+| test/reversi/lm/test_hlp_generate.py | complete | 16/0/0 | docs/test/reversi/lm/test_hlp_generate.md |
+| test/reversi/lm/test_hlp_gradient.py | complete | 15/0/0 | docs/test/reversi/lm/test_hlp_gradient.md |
+| test/reversi/lm/test_hlp_indexes.py | complete | 14/0/0 | docs/test/reversi/lm/test_hlp_indexes.md |
+| test/reversi/lm/test_hlp_optimize.py | complete | 20/0/0 | docs/test/reversi/lm/test_hlp_optimize.md |
+| test/reversi/lm/test_hlp_plot.py | complete | 11/0/0 | docs/test/reversi/lm/test_hlp_plot.md |
+| test/reversi/lm/test_hlp_su_analysis.py | complete | 38/0/0 | docs/test/reversi/lm/test_hlp_su_analysis.md |
+| test/reversi/lm/test_hlp_wmaps.py | complete | 15/0/0 | docs/test/reversi/lm/test_hlp_wmaps.md |
+| test/reversi/lm/test_hlp_zed.py | complete | 10/0/0 | docs/test/reversi/lm/test_hlp_zed.md |
+| test/reversi/lm/test_lm_worker_full_chain.py | complete | 9/0/1 | docs/test/reversi/lm/test_lm_worker_full_chain.md |
+| test/reversi/lm/test_logistic_model.py | complete | 29/0/0 | docs/test/reversi/lm/test_logistic_model.md |
+| test/reversi/lm/test_wrk_analytics.py | complete | 14/0/0 | docs/test/reversi/lm/test_wrk_analytics.md |
+| test/reversi/lm/test_wrk_anova.py | complete | 7/0/0 | docs/test/reversi/lm/test_wrk_anova.md |
+| test/reversi/lm/test_wrk_client_check.py | complete | 6/0/0 | docs/test/reversi/lm/test_wrk_client_check.md |
+| test/reversi/lm/test_wrk_config.py | complete | 13/0/0 | docs/test/reversi/lm/test_wrk_config.md |
+| test/reversi/lm/test_wrk_design_matrix.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_design_matrix.md |
+| test/reversi/lm/test_wrk_features.py | complete | 3/0/0 (DB-free) | docs/test/reversi/lm/test_wrk_features.md |
+| test/reversi/lm/test_wrk_final_log_print.py | complete | 5/0/1 (LONG: 6/0/0) | docs/test/reversi/lm/test_wrk_final_log_print.md |
+| test/reversi/lm/test_wrk_generate.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_generate.md |
+| test/reversi/lm/test_wrk_gradient.py | complete | 4/0/0 | docs/test/reversi/lm/test_wrk_gradient.md |
+| test/reversi/lm/test_wrk_indexes.py | complete | 2/0/0 | docs/test/reversi/lm/test_wrk_indexes.md |
+| test/reversi/lm/test_wrk_optimize.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_optimize.md |
+| test/reversi/lm/test_wrk_plot.py | complete | 9/0/0 | docs/test/reversi/lm/test_wrk_plot.md |
+| test/reversi/lm/test_wrk_positions.py | complete | 12/0/0 | docs/test/reversi/lm/test_wrk_positions.md |
+| test/reversi/lm/test_wrk_su_analysis.py | complete | 10/0/1 (VLONG: 10/0/0, the 1e7 corpus) | docs/test/reversi/lm/test_wrk_su_analysis.md |
+| test/reversi/lm/test_wrk_validate.py | complete | 9/0/0 | docs/test/reversi/lm/test_wrk_validate.md |
+| test/reversi/lm/test_wrk_vld_positions.py | complete | 11/0/0 | docs/test/reversi/lm/test_wrk_vld_positions.md |
+| test/reversi/lm/test_wrk_wmaps.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_wmaps.md |
+| test/reversi/lm/test_wrk_zed.py | complete | 3/0/0 | docs/test/reversi/lm/test_wrk_zed.md |
+| test/reversi/paths.py | complete (helper module, 0 tests) | — | docs/test/reversi/paths.md |
+| test/reversi/tags.py | complete (helper module, 0 tests) | — | docs/test/reversi/tags.md |
+| test/reversi/test_board.py | complete | 247/0/15 | docs/test/reversi/test_board.md |
+| test/reversi/test_feature.py | complete | 25/0/1 | docs/test/reversi/test_feature.md |
+| test/reversi/test_mobility.py | complete | 26/0/1 | docs/test/reversi/test_mobility.md |
+| test/reversi/test_paths.py | complete | 3/0/0 | docs/test/reversi/test_paths.md |
+| test/reversi/test_pattern.py | complete | 65/0/3 | docs/test/reversi/test_pattern.md |
+| test/reversi/test_random_game.py | complete | 33/0/1 | docs/test/reversi/test_random_game.md |
+| test/reversi/test_regab.py | complete | 48/0/0 | docs/test/reversi/test_regab.md |
+| test/reversi/tools/test_binio.py | complete | 45/0/0 | docs/test/reversi/tools/test_binio.md |
+| test/reversi/tools/test_cache_manager.py | complete | 22/0/0 | docs/test/reversi/tools/test_cache_manager.md |
+| test/reversi/tools/test_opt_lbfgs.py | complete | 14/0/0 | docs/test/reversi/tools/test_opt_lbfgs.md |
+| test/reversi/tools/test_prng.py | complete | 22/0/0 | docs/test/reversi/tools/test_prng.md |
+| test/reversi/tools/test_state_machine.py | complete | 49/0/0 | docs/test/reversi/tools/test_state_machine.md |
+| test/reversi/tools/test_usage_binio.py | complete | 3/0/0 | docs/test/reversi/tools/test_usage_binio.md |
 
 Test data (test/reversi/data/): rlm_00.json (the JSON5 config), rlm_01.json (the training DB dump), rlm_02.json (the DB
 dump), rlm_03.json + rlm_04.json (the validation sets) — the per-file mirror docs cover them. Plus ffo_12_log_sample.csv
