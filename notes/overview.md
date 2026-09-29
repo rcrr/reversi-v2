@@ -182,10 +182,18 @@ One row per test file, alphabetical by full path.
 | test/reversi/tools/test_state_machine.py | complete | 49/0/0 | docs/test/reversi/tools/test_state_machine.md |
 | test/reversi/tools/test_usage_binio.py | complete | 3/0/0 | docs/test/reversi/tools/test_usage_binio.md |
 
-Test data (test/reversi/data/): rlm_00.json (the JSON5 config), rlm_01.json (the training DB dump), rlm_02.json (the DB
-dump), rlm_03.json + rlm_04.json (the validation sets) — the per-file mirror docs cover them. Plus ffo_12_log_sample.csv
-(the FFO-12 legacy C solve-log sample, the `position_hash` parity fixture — D-215: the full 571_141-row log verified
-100%, the committed sample is the deterministic 1002-row stride).
+Test data (test/reversi/data/):
+
+- `ffo_12_log_sample.csv` — the FFO-12 legacy C solve-log sample (the `position_hash` parity fixture, the deterministic
+  1002-row stride — 1003 lines incl. the header)
+- `prng_golden.txt` — the committed PRNG golden (the 18436 lines, the 20 sections)
+- `rlm_00.json` — the JSON5 unit-test config (the base rlm_00 fixture of the NO-DB mock-ctx suites)
+- `rlm_01.json` — the unit-test config (the Design Matrix data structure)
+- `rlm_02.json` — the unit-test config (the gradient worker)
+- `rlm_03.json` — the LONG-tier full-worker-chain config (the A2050 feature set)
+- `rlm_04.json` — the shorter full-worker-chain config (EDGE + MOBILITY)
+- `rlm_05.json` — the SU-analysis experiment config (the 2M corpus, ec 20, stops at SU_ANALYSIS)
+- `rlm_06.json` — the SU-analysis experiment config (the 100M tier, ec 20)
 
 ## Index
 The docs/ mirrors (one per source/test file, D-007) are NOT listed here: their paths are the Doc column of the two

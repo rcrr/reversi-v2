@@ -91,3 +91,15 @@ D-335 | 2026-09-29 | the State-column NORMALIZATION of the overview tables (Robe
          bloat, is retired. Nothing LOST: every stripped clause exists verbatim in the decision log and the mirrors.
          VERIFICATION: both tables contiguous (0 blank lines inside, 5 unescaped pipes per row, full-path alphabetical
          order verified), notes_format --check clean.
+D-336 | 2026-09-29 | the Test-data note of overview.md became a VERIFIED bullet list (Roberto: "Via D-215, teniamo una
+         lista a bullet con un commento di cosa sono. Breve. verifica la lista."). The verification found the note STALE
+         on three counts: (1) the rlm_01 / rlm_02 "DB dump" descriptions — the files were regenerated 2026-09-21 and are
+         now unit-test configs (rlm_01: the Design Matrix data structure, rlm_02: the gradient worker — each file's own
+         description field); (2) the note omitted three of the eight directory files: prng_golden.txt (the committed
+         18436-line PRNG golden, 20 sections — measured), rlm_05.json + rlm_06.json (the SU-analysis experiment configs,
+         the 2M / 100M tiers, ec 20, stopping at SU_ANALYSIS — the names + descriptions read from the files); (3) "the
+         per-file mirror docs cover them" — docs/test/reversi/data/ does not exist (no mirror docs for the data files) —
+         the claim is out. The D-215 pointer + the "571_141-row log verified 100%" campaign verification are out; the
+         committed sample stays pinned by its present fact (the 1002-row stride — measured: 1003 lines incl. the
+         header). VERIFICATION: every bullet checked against the file on disk (the names, the description fields, the
+         line counts), notes_format --check clean.
