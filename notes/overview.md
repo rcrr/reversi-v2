@@ -69,10 +69,15 @@ bullet-per-campaign (D-334).
 
 ## Next steps
 
-- The VVLONG tier is UNINSTRUMENTED since the wave retirement (D-285) and KEPT (D-286): the `tier_vvlong` predicate +
-  the runner header stay in place (the machinery survives for a future very-long instrument).
-- The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
-- The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
+- Select the tests by DURATION with the 5 tags (VVLONG, VLONG, LONG, PERF, DB); re-verify the tag-assignment technique;
+  analyze every LONG / VLONG / VVLONG test for a possible shorter equivalent.
+- Verify all the TEST sources: the code + docstring format, the documentation criteria (D-267); remove the documentation
+  that describes the history.
+- Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
+- Add the project README (English, like everything else).
+- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the 120-char reflow,
+  the D-318 docstring conversion).
+- Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
 
 ## Source files
 One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign

@@ -103,3 +103,21 @@ D-336 | 2026-09-29 | the Test-data note of overview.md became a VERIFIED bullet 
          committed sample stays pinned by its present fact (the 1002-row stride — measured: 1003 lines incl. the
          header). VERIFICATION: every bullet checked against the file on disk (the names, the description fields, the
          line counts), notes_format --check clean.
+D-337 | 2026-09-29 | the Next-steps REWRITE as the NON-prioritized TO-DO list (Roberto: "La lista NON ha priorita',
+         decido io l'ordine. Tu scrivi solo le cose da fare in Inglese in maniera sintetica. Quindi Opzione A" — and, on
+         my over-analysis: "Nia, stiamo scrivendo una TO-DO List, non stiamo facendo tutto della TO-DO List"). (1) THE
+         OLD BULLETS OUT: the VVLONG "uninstrumented/KEPT" bullet (a frozen state, not an open item — the D-285/D-286
+         record lives in the decision log + the tags.py header; the work is absorbed by the new tag item); the PRNG
+         passettino bullet — DROPPED (Roberto: "non serve" — the ctor's MT init is a one-shot 312-iteration Python loop,
+         negligible vs the batch kernels, the numba payoff is zero); the PROFILING bullet — CLOSED (done at session 58
+         / D-299: the SU_ANALYSIS cold compute profiled + optimized, bit-identical). (2) THE LIST (his 6 items, English,
+         synthetic, NO priority — he picks the next item on demand, in his enumeration order): the duration tags (the 5
+         tags VVLONG/VLONG/LONG/PERF/DB + the tag-assignment technique re-verified + the LONG/VLONG/VVLONG
+         shorter-equivalent analysis), the test sources (the code + docstring format, the D-267 criteria, the history
+         documentation removed), the MOBILITY rework (the difference concept out — a MASK + the mover/opponent binary
+         flag), the project README (English, like everything else), the worker sources (the format verified — ALL the
+         sub-works: the history out of the docstrings, the 120-char reflow, the D-318 docstring conversion — when
+         directed), the core + tools sources (board, pattern, feature, mobility, tools — the same sub-works). (3) THE
+         LEGISLATION (rules.md, D-117 amended): the Next-steps "the LAST bullet is the next concrete action" clause is
+         replaced by "the list is NON-prioritized (Roberto picks the next item on demand)." NOTHING is started: the list
+         is written, every item waits his direction.

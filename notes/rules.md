@@ -29,9 +29,9 @@ spans; the tables and the headings stay one physical line.
   is escaped `\|` (D-116). Current state: CURRENT STATE only, MAX 10 bullets — each a present fact NOT in the tables and
   NOT in the mirrors (the pipeline-wide state, the in-flight campaigns with their horizon, the cross-file contracts); NO
   bullet-per-campaign: the campaign lives in the journal + the decisions log, and its state leaves this section when the
-  campaign ends (D-334). Next steps: OPEN items only, no "Done" bullets; the LAST bullet is the next concrete action.
-  Index: one bullet per notes/ file, a one-line description; the docs/ mirrors are not listed (their paths are the Doc
-  column of the tables).
+  campaign ends (D-334). Next steps: OPEN items only, no "Done" bullets; the list is NON-prioritized (Roberto picks the
+  next item on demand) (D-117, amended D-337). Index: one bullet per notes/ file, a one-line description; the docs/
+  mirrors are not listed (their paths are the Doc column of the tables).
 - notes/decisions.md — the OPEN historical decision log (append-only; "the why"; consulted on demand). Format (D-209):
   ~120 chars/line; a blank line before every entry; code spans for the paths and the function / file names;
   backslash-escaped asterisks for the math multiplications, so the Markdown renders without stray italics. Volume
