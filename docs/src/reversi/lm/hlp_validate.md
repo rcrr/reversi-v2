@@ -16,8 +16,15 @@ PLOT renders and CLIENT_CHECK compares against the saved file.
 
 ## Architecture
 
-- The metric semantics (the long docstring): the Z-space MAE / MSE / RMSE over the affine-mapped targets, and the
-  RMSE/MAE = sqrt(π/2) = 1.253 normal-distribution indicator.
+- The metric semantics (the docstring, the D-330 condensed form): the Z-space MAE / MSE / RMSE over the
+  affine-mapped targets + the three formulas + the RMSE/MAE = sqrt(π/2) = 1.253 normal-distribution
+  indicator. MAE is the mean absolute deviation — on the bounded [0, 1] scale an MAE of 0.04 reads as
+  a 4% average deviation — and it weighs every error linearly (the "typical" accuracy baseline). MSE
+  is the residual variance (the sqrt brings it back to Z units as the RMSE, the prediction-error
+  standard deviation) and it penalizes large deviations aggressively (a 0.1 miss costs 0.01, a 0.5
+  miss 0.25): the alarm for the logistic shape — the curve flattens to horizontal asymptotes at 0 / 1
+  around a steep central inflection, and if the data does not flatten at the same rate the boundary
+  errors blow up, so a rising MSE flags a fundamentally bad fit in those regions.
 - The body: `vld_indexes = ctx.feature_set.compute_indexes(vld_positions)` (the SAME feature_set as training), the dense
   mapping (`col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`, then
   `dense_indices = vld_indexes + col_offsets` and `linear_predictor = np.sum(ctx.w_dense[dense_indices], axis=1)`), the

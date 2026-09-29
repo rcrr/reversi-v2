@@ -4338,3 +4338,51 @@ D-329 | 2026-09-28 | the new code-format rules on hlp_su_analysis (the D-314
           119. AST code diff vs the D-329 commit: IDENTICAL
           (docstring-stripped — pure formatting), the 38 tests + the probe
           + the LONG=1 968 OK again.
+
+D-330 | 2026-09-28 | the new code-format rules on hlp_validate (the D-314
+          reflow + the D-318 docstrings — the campaign's worst offender:
+          the 55-line essay docstring condensed to the WHAT + the
+          interpretive essay moved to the mirror doc) + the extras: the
+          Dict -> dict modernization + the header cleanup
+          Roberto: "Modulo hlp_validate, verifica la lunghezza delle righe,
+          non sono conformi alle regole, sono troppo corte. Fai una
+          verifica dettagliata, proponi le opzioni, poi ti do indicazione
+          su come procedere." -> the detailed analysis (max width 94, the
+          ~72-90 wrap, 193 lines; validate_model's docstring = the 55-line
+          "Validation Metrics for Logistic Curve Fitting" essay with the
+          "Physical Interpretation" / "Mathematical Weight" / "Why it
+          matters" bullets — the conversational register, the 3rd-person
+          first line, no Args/Returns; top_outliers descriptive, no Args;
+          ValidationResult the bare field lines instead of the PlotData
+          inline-comment pattern; the 4 license trailing-space lines; the
+          3 triple-blank runs; the "We need the column offsets" narrative
+          comment; the old-style Dict[str, Any]) -> "prosegui con (c).
+          Grazie!" (the full pass + the extras).
+          FORMAT PASS: the D-314 reflow to ~115 (193 -> 158 lines) + the
+          D-318 conversion: validate_model the imperative first line + the
+          WHAT-only body (the Z-space context + the 3 formulas + the
+          RMSE/MAE = sqrt(pi/2) normal indicator — the 55-line
+          interpretive essay CONDENSED out, its essence — the 4% scale
+          reading, the linear-error baseline, the 0.1/0.01 vs 0.5/0.25
+          penalty, the logistic-tails alarm — MOVED to the mirror doc's
+          Architecture bullet, its legitimate home) + the Args/Returns;
+          top_outliers imperative + Args; ValidationResult the short
+          docstring + the 3 inline field comments (the PlotData pattern).
+          The 4 license trailing-space lines cleaned, the 3 triple-blank
+          runs -> 2, the "We need" comment out, the 2 contract comments
+          (the f32 goldens / the f64 bit-identical series) kept packed.
+          EXTRAS: Dict -> dict on the ValidationResult.metrics annotation
+          (inert at runtime under the future-annotations import; the probe
+          A5 is a disjunction and passes either way) + the Dict import
+          out.
+          ZERO BEHAVIORAL CHANGE: the AST code diff (docstring-stripped)
+          is exactly the 2 intended changes (the typing import, the
+          annotation) — nothing else.
+          VERIFICATION: test_wrk_validate 9/0/0 (the 3 DB-gated skipped at
+          the fast tier) + verify_validate 18/18 (the A pins — the exact
+          __all__ line, the underscore unpack, the 7 keys — all intact;
+          no docstring pins) + the full pre-commit LONG=1 968 OK (24
+          skipped) + the docs/notes audit at baseline.
+          MIRRORS: hlp_validate.md (76 -> 83 lines, in budget) — the
+          Architecture bullet now carries the condensed interpretive
+          content.
