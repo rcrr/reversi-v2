@@ -190,3 +190,23 @@ D-340 | 2026-09-29 | rules.md RESTRUCTURE — R-numbering, bold titles, blank-li
          the normalized token diff against the pre-restructure file shows ONLY the intended changes (title,
          Budget -> Governance, "numbered" in PROMOTE, the polished titles, the R-NNN/R# clarification) — no content
          lost.
+D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: "Io aggiungerei uno spazio tra la
+         fine di una RULE e la seguente. Sono un po' attaccate, facciamo 2 linee vuote. ... Semplifichiamo Nia: cosa
+         serve questa frase: Every notes/ Markdown file is wrapped to ~120 chars/line (D-237)...? Io la rimuoverei, a
+         meno che tu mi spieghi la ragione di tenerla." — and, on my explanation, his own proposal: "Cosa ne pensi di
+         una cosa di questo genere? Governance: a rule is added, amended or retired only on explicit user approval. ...
+         Lines are ~120 chars. When a new rules is best placed in a specific order a notation (**R-NNN.N — the topic**)
+         can be used."). (1) DOUBLE SPACING: two blank lines between one rule and the next — the 37 intra-section
+         rule boundaries (the rule -> heading spacing stays one blank line); the format is now legislated in the
+         Governance itself ("two blank lines between one rule and the next"). (2) THE GOVERNANCE (Roberto's text,
+         applied with my two fixes — the "a new rules" typo -> "a new rule", and the title templates kept as code
+         spans for consistency with the first one): "explicit user approval" (generalized from "Roberto's"); the ~120
+         wrap kept minimal as "Lines are ~120 chars." — the D-237 origin pointer is out of the active register (the
+         rule lives in the historical log + the tool's WIDTH=120 + the per-domain declarations: log_rules.md,
+         docs_rules.md, the ideas headers, R-004); the "atomic code spans; the tables and the headings stay one
+         physical line" clause out (the tool enforces the verbatim grammar; R-003 states it for the overview tables).
+         (3) NEW: the R-NNN.N SUB-NUMBERING notation — a rule best placed in a specific position takes a dot-suffixed
+         number of its parent; the zero-padded parents make it sort right after the parent in text order (R-012.1
+         between R-012 and R-013), so the register never renumbers. (4) The overview Index bullet aligned to "explicit
+         user approval". VERIFICATION: notes_format --write idempotent + --check clean (327 lines, 9 sections,
+         R-001..R-046 intact).
