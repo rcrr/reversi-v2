@@ -121,3 +121,20 @@ D-337 | 2026-09-29 | the Next-steps REWRITE as the NON-prioritized TO-DO list (R
          LEGISLATION (rules.md, D-117 amended): the Next-steps "the LAST bullet is the next concrete action" clause is
          replaced by "the list is NON-prioritized (Roberto picks the next item on demand)." NOTHING is started: the list
          is written, every item waits his direction.
+D-338 | 2026-09-29 | the two remaining non-"complete" State cells OUT (Roberto, on the two D-335 leftovers: "Rileggili
+         bene, a me NON risultano" — and, after the explanation: "1: DROP il costruttore non e' mai critico nelle
+         prestazioni. DROP FOREVER ... non lo voglio piu' vedere. 2: DROP ... pulisci wrk_anova.md. Procedi!"). (1)
+         prng.py — the "parked: the last PRNG passettino" cell -> "complete": the item was already DROPPED at D-337
+         (removed from Next steps) but the table cell was left behind (a bookkeeping inconsistency of mine); the ctor's
+         MT init (the 312-iteration Python loop) is never performance-critical — the DROP is FOREVER (the item is not
+         re-raisable without a new rationale). (2) wrk_anova.py — the "open: the adherence header" cell -> "complete":
+         my D-335 over-reading — the item was the D-259 finding (5)(b) (the report header says "top {top_k_adherence}"
+         while the report body lists every sub-variable; the bound applies to the CONSOLE lines only) — a PINNED,
+         accepted wording quirk (verify_anova C6/D7, the D-259 ruling "left as-is"), NOT an open item; the mirror's own
+         Open issues section ended with "None." (no open issues). (3) THE MIRROR CLEANUP
+         (docs/src/reversi/lm/wrk_anova.md, per Roberto): the Open issues section now reads "None." alone (docs_rules
+         §4: closed items never appear there); the console/report split moves to the Architecture adherence bullet as a
+         PRESENT contract (the CONSOLE lines are top-N, the REPORT the full list, the header wording the pinned
+         deliberate quirk) — the finding's record itself lives in D-259 (5)(b). VERIFICATION: all 95 State cells are now
+         "complete" (the 2 helper rows "complete (helper module, 0 tests)"), notes_format --check clean on the touched
+         files.

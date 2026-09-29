@@ -28,7 +28,9 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 - **The adherence** — the `adherence(db_counts, ideal_counts)`: the DB distribution (the `np.unique` counts of the
   training raw codes) vs the ideal distribution (the corpus marginal, the su_analysis_tables). The fixed trio (the
   chi-square merged-tail p + the KL + the TV) — no config whitelist. The top-N (the `top_k_adherence`,
-  default 20) most deviant features (the TV descending) are reported. The GRACEFUL DEGRADATION: the adherence is skipped
+  default 20) most deviant features (the TV descending): the CONSOLE lines are top-N (`adherence_lines[:top_k]`),
+  the REPORT the full list (its header still says "top {top_k_adherence}" — the wording quirk, deliberate, pinned by
+  `probes/verify_anova.py` (C6/D7)). The GRACEFUL DEGRADATION: the adherence is skipped
   (the log note) when the corpus is absent (the SU_ANALYSIS disabled); the ANOVA runs (it does not need the corpus).
 - **NO cache** — a diagnostic (the recompute is seconds); the generation error -> the level fails, the machine
   re-raises.
@@ -45,10 +47,8 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   build/tmp, every ANOVA line and every adherence row recomputed from the caches.
 
 ## Open issues
-- The report's adherence section header says "top {top_k_adherence}" while the body lists EVERY sub-variable: the
-  `top_k_adherence` bound is applied to the CONSOLE lines only (`adherence_lines[:top_k]` in the log), the report
-  receives the full list. A wording defect of the header (the console/report split is deliberate) — pinned by
-  `probes/verify_anova.py` (C6/D7), left as-is pending Roberto's call (a source change). None.
+
+None.
 
 ## Conventions
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`.

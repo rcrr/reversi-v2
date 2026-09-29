@@ -106,7 +106,7 @@ history lives in the decision log. Suite = the current verified suite (live DB) 
 | src/reversi/lm/logistic_model.py | complete | 29/0/0 | docs/src/reversi/lm/logistic_model.md |
 | src/reversi/lm/model_weights.py | complete | 9/0/1 (via test_lm_worker_full_chain) | docs/src/reversi/lm/model_weights.md |
 | src/reversi/lm/wrk_analytics.py | complete | 4/0/0 | docs/src/reversi/lm/wrk_analytics.md |
-| src/reversi/lm/wrk_anova.py | complete; open: the adherence header promises top-k while the report lists every sub-variable (pinned; a source change awaits Roberto's call) | 7/0/0 (via test_wrk_anova) | docs/src/reversi/lm/wrk_anova.md |
+| src/reversi/lm/wrk_anova.py | complete | 7/0/0 (via test_wrk_anova) | docs/src/reversi/lm/wrk_anova.md |
 | src/reversi/lm/wrk_client_check.py | complete | 6/0/0 | docs/src/reversi/lm/wrk_client_check.md |
 | src/reversi/lm/wrk_config.py | complete | 13/0/0 | docs/src/reversi/lm/wrk_config.md |
 | src/reversi/lm/wrk_design_matrix.py | complete | 3/0/0 | docs/src/reversi/lm/wrk_design_matrix.md |
@@ -131,7 +131,7 @@ history lives in the decision log. Suite = the current verified suite (live DB) 
 | src/reversi/tools/binio.py | complete | 48/0/0 (45 + 3 usage) | docs/src/reversi/tools/binio.md |
 | src/reversi/tools/cache_manager.py | complete | 22/0/0 | docs/src/reversi/tools/cache_manager.md |
 | src/reversi/tools/opt_lbfgs.py | complete | 14/0/0 | docs/src/reversi/tools/opt_lbfgs.md |
-| src/reversi/tools/prng.py | complete; parked: the last PRNG passettino (the ctor's init over a numba init kernel) | 22/0/0 | docs/src/reversi/tools/prng.md |
+| src/reversi/tools/prng.py | complete | 22/0/0 | docs/src/reversi/tools/prng.md |
 | src/reversi/tools/state_machine.py | complete | 49/0/0 | docs/src/reversi/tools/state_machine.md |
 
 ## Test files
