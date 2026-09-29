@@ -237,9 +237,9 @@ tables at the end of this file.
   the runner header stay in place (the machinery survives for a future very-long instrument).
 - The last PRNG transformation passettino (the ctor's init over a numba init kernel) — parked, step-by-step.
 - The PROFILING session (the OPTIMIZE pattern, the step-by-step walkthrough) — waits.
-- Backlog (Roberto's call): I-014 (notes/ideas.md). I-003 executed (D-242); I-018 executed (D-243..D-246); I-019
-  executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed (D-265, no code); I-007
-  executed (D-266, the feature_blocks property + the dedup).
+- Backlog (Roberto's call): I-014 dropped (D-332, no code). I-003 executed (D-242); I-018 executed
+  (D-243..D-246); I-019 executed (D-260); I-009 evaluated & closed (D-264, no code); I-010 evaluated & closed
+  (D-265, no code); I-007 executed (D-266, the feature_blocks property + the dedup).
 
 ## Source files
 One row per source file, alphabetical (the package path sorts future packages first). State = a status word + the
@@ -382,4 +382,5 @@ tables above.
 - notes/log_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/log_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/log_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
-- notes/log_003.md — session journal, volume 003 (sessions 38–..., open)
+- notes/log_003.md — session journal, volume 003 (sessions 38–89, closed 2026-09-29)
+- notes/log_004.md — session journal, volume 004 (sessions 90–..., open)

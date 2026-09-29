@@ -85,6 +85,13 @@ I-013 | done | Study whether the GRADIENT fg closure can be sped up (raised 2026
          memory-bandwidth bound) not adopted; O3 not chosen; O4 closed by the m = 93 load-bearing finding. Full report:
          notes/analyses/optimize_performance.md.
 
+I-014 | dropped | Hot-restart ("restart a caldo") of the OPTIMIZE level from the checkpoint's warm weights (raised
+          2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, resuming
+          L-BFGS from the checkpoint's warm state under the new objective was explicitly parked ("un'ottimizzazione che
+          svilupperei solo in seguito, se capiamo che ha un valore pratico"). Dropped 2026-09-29 (session 90, D-332),
+          Roberto's call — no code action: the warm-start plumbing (the checkpoint's full L-BFGS state — w + sl/yl/rho +
+          iters — + the `opt_lbfgs` warm-start kwargs) stays as the INCOMPLETE-resume path's contract.
+
 I-015 | done | CLIENT_CHECK: a new pipeline level after SAVE — the saved-model file acceptance test (raised 2026-09-10).
          Executed as D-148 (2026-09-10): the level re-reads the model file, builds the client's array EF on the FILE
          weights and recomputes the validation residuals in Y space; they must coincide with the in-memory VALIDATE

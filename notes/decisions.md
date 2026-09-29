@@ -4451,3 +4451,10 @@ D-331 | 2026-09-28 | the new code-format rules on hlp_wmaps (the D-314
           AST diff of the fix: exactly the 2 Assign removals in
           hlp_wmaps_compute, nothing else. test_hlp_wmaps 15/0/0 +
           verify_wmaps 53/53 + the LONG=1 968 OK again.
+
+D-332 | 2026-09-29 | I-014 closed as DROPPED (the OPTIMIZE hot-restart from the checkpoint's warm weights under a
+          changed `ridge_regularization` objective): Roberto has no intention of pursuing it. No code action: the entry
+          moves from notes/ideas.md to notes/ideas-closed.md, compacted to statement + this pointer (the D-235 format),
+          and the overview Next-steps backlog line updated in the same commit. The warm-start plumbing (the checkpoint's
+          full L-BFGS state — w + sl/yl/rho + iters — + the `opt_lbfgs` warm-start kwargs, consumed on the INCOMPLETE
+          resume path) is untouched and stays as the checkpoint contract.
