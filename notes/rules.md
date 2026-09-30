@@ -60,13 +60,13 @@ closure lifecycle and the I-numbering are in each file's preamble.
 
 ## Language & collaboration
 
-**R-008 — Notes and workspace comments: English. Replies to the user: his own language (e.g. Italian). (D-002)**
+**R-008 — Notes and workspace comments: English. Replies to the user: his own language (e.g. Italian).**
 
 
 **R-009 — Notes are autonomous**
 
 After each milestone and at the end of a work session, update notes/overview.md and the relevant notes/ files without
-being asked; the source files are modified only on explicit user request. (D-004; AGENTS rules 2–3)
+being asked; the source files are modified only on explicit user request.
 
 
 **R-010 — One D-number per fix campaign**
@@ -76,7 +76,7 @@ One commit per item + a notes-wave commit at the campaign close.
 
 **R-011 — The notes are the Reversi portfolio (the GitHub publication material)**
 
-Never record DSH/vLLM/harness infrastructure behavior in decisions.md or the journals. (D-154)
+Never record DSH/vLLM/harness infrastructure behavior in decisions.md or the journals.
 
 ## Layout & tree
 

@@ -286,3 +286,11 @@ D-347 | 2026-09-29 | the LANGUAGE & COLLABORATION section, per Roberto's text (a
          provenance (the same principle as D-346: no D-XXX references in the rules; explain inline only when the rule
          is not self-contained — here it is). (3) R-009 / R-011: untouched, exactly as proposed. VERIFICATION:
          notes_format --write idempotent + --check clean (rules.md 309 lines).
+D-348 | 2026-09-29 | R-008 / R-009 / R-011 — the last D-pointers of the LANGUAGE & COLLABORATION section (Roberto:
+         "Non hai rimosso (D-002), (D-004; AGENTS rules 2–3), (D-154). Vanno rimossi!"): my D-347 oversight — I removed
+         only the D-111 we had discussed explicitly and left the three that were already in his proposed text. Removed:
+         (D-002) from R-008, (D-004; AGENTS rules 2–3) from R-009 (the AGENTS pointer with it), (D-154) from R-011 —
+         the three rules are now pure: the principle, no references. Counted after this commit: 46 D-XXX references
+         remain in the register (Layout & tree, Naming & platform, Test discipline, Pipeline contracts, Docs, Code
+         style) — awaiting Roberto's ruling on the full sweep (the D-340-deferred "poi le guardiamo una per una").
+         VERIFICATION: notes_format --write idempotent + --check clean (rules.md 309 lines).
