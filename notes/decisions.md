@@ -599,3 +599,26 @@ D-366 | 2026-09-29 | the standing guard RULE (Roberto: "Prima di tutto OTTIMO! b
          reference families) + the domain rule files — in this same tool, never N tools; his call on when. VERIFICATION:
          notes\_lint green on the whole default set (exit 0) after the R-047 addition; the register now 37 rules, 8
          sections, 246 lines.
+
+D-367 | 2026-09-29 | the guard extended to EVERY notes format (Roberto: "Lo hai messo in rules, e' il posto giusto. In
+         fondo: non mi convince ... La rule e' troppo complicata. SBAGLIATISSIMO. Devi dire lancia la guardia. FINE. La
+         REGOLA e': 'LANCIA LA GUARDIA. Se fail no checkin.' Ma di tutto questo NON fare NULLA. Ci sto pensando a cosa
+         fare. (a) OK (b) costruisci ora i controlli grammaticali stringenti per tutti i files in notes. TUTTI. Procedi
+         per favore."): NOTHING was touched of the R-047 rule, its placement, the RSEQ invariant or the tool name —
+         frozen pending his decision, exactly as ordered. (a) = the name stays notes\_lint.py. (b) EXECUTED: the guard
+         now implements the grammatical checks of EVERY notes format, one tool, per-format linters. The NEW linters:
+         overview (the OV- codes: the H1, the Format rules pointer section, the EIGHT sections in exactly the canonical
+         order, the two tables with one physical line per row + alphabetical by full path, Current state MAX 10 bullets,
+         Next steps no Done bullets), rulefile (the RF-codes for the seven domain rule files: the H1, the sections, the
+         bullet grammar with the numbered 'N. ' continuations at 2+len(digits), the fenced blocks verbatim), ideas (the
+         IA- codes: the D-235 entries I-NNN | status | text, the status legend, the 9-space continuation, the blank line
+         before every entry, the monotone I-numbers). First-run grammar refinements: table rows exempt from the WIDTH
+         limit (one physical line per row IS the table grammar), fenced code blocks verbatim (no checks inside), the H1
+         exempt from the ESC check (it carries the file name: docs\_rules.md). FIRST-RUN REPAIRS on the current files
+         (same commit): 553 bare underscores + 6 asterisks escaped (overview.md 475, ideas-closed.md 33, probe\_rules.md
+         16, tools.md 14, docs\_rules.md 7, naming.md 3, log\_rules.md 3, decisions\_rules.md 2) + the canonical re-wrap
+         of the four files that crossed 120 with the escapes (overview.md, ideas-closed.md, docs\_rules.md,
+         probe\_rules.md — content-neutral, token-identical). VERIFICATION: the guard green on all 13 current notes
+         files (exit 0); the fixture regression still fires on every planted code (14 violations). The closed volumes
+         (decisions\_000..005, log\_000..003) stay out of the default set — the closed history; the parked escape
+         cleanup remains his call; they are linted on explicit request.

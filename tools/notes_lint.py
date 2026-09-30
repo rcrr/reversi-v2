@@ -5,8 +5,13 @@ It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes formats, each per its rigid gr
   notes/decisions.md + the closed volumes (decisions_NNN.md) — the entry grammar (notes/decisions_rules.md)
   notes/rules.md                                             — the register grammar (the Governance block inside it)
   notes/log_NNN.md                                           — the session-block grammar (notes/log_rules.md)
-The overview and the domain rule files are not covered yet — the planned extension lives in this same tool: one
-guard, one entry point, per-format linters (never one tool per format).
+  notes/overview.md                                          — the eight-section + table grammar (notes/overview_rules.md)
+  the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
+  probe_rules.md, tools.md, naming.md)                       — the H1 + section + bullet grammar
+  notes/ideas.md + notes/ideas-closed.md                     — the D-235 entry grammar (I-NNN | status | ...)
+The default set covers every CURRENT notes file; the closed volumes (decisions_000..005, log_000..003) are linted
+on explicit request (the closed history; the parked escape cleanup is Roberto's call). One guard, one entry point,
+per-format linters — never one tool per format.
 It exits 1 on any violation. Run it after every notes edit — red means no commit (R-047).
 
 Usage:
@@ -77,8 +82,12 @@ def canon_ok(path):
 
 
 def common_tail(path, lines, text, v):
-    """The WIDTH / EOF checks shared by every grammar."""
+    """The WIDTH / EOF checks shared by every grammar. Table rows are exempt:
+    one physical line per row is the table grammar itself (a markdown row
+    cannot be wrapped), and the ~120 limit applies to the prose."""
     for n, line in enumerate(lines, 1):
+        if line.startswith('|'):
+            continue
         if len(line) > WIDTH:
             v.append((n, 'WIDTH', f'{len(line)} chars (max {WIDTH})'))
     if not text.endswith('\n'):
@@ -230,8 +239,13 @@ def lint_journal(path, lines, text):
     if len(lines) < 3 or lines[2] != J_POINTER:
         v.append((3, 'JPOINTER', 'missing or wrong format pointer line'))
     session = None
-    in_sub = False
+    state = {'sub': False, 'num': None, 'fence': False}
     for n, line in enumerate(lines, 1):
+        if line.startswith('```'):
+            state['fence'] = not state['fence']
+            continue
+        if state['fence']:
+            continue
         if line == '':
             continue
         if line.startswith('## '):
@@ -243,30 +257,26 @@ def lint_journal(path, lines, text):
                 if session is not None and num <= session:
                     v.append((n, 'JSESSION', f'session number not increasing (previous {session})'))
                 session = num
-            in_sub = False
+            state['sub'] = False
+            state['num'] = None
         elif line.startswith('# '):
             if n != 1:
                 v.append((n, 'JH1', 'stray heading'))
+            state['sub'] = False
+            state['num'] = None
         elif line == J_POINTER:
             pass  # the mandated verbatim pointer line (log_rules.md)
-        elif line.startswith('  - '):
-            in_sub = True
-        elif line.startswith('- '):
-            in_sub = False
         else:
             ind = len(line) - len(line.lstrip(' '))
-            if ind == 2:
-                in_sub = False
-            elif ind == 4:
-                if not in_sub:
-                    v.append((n, 'JINDENT', 'a 4-space line outside a sub-bullet'))
-            elif ind == 0:
+            if ind == 0 and not line.startswith('- '):
                 v.append((n, 'JINDENT', 'stray column-0 line (not a heading or a bullet)'))
             else:
-                v.append((n, 'JINDENT', f'unsupported indent ({ind} spaces)'))
+                msg = prose_state_check(line, state)
+                if msg:
+                    v.append((n, 'JINDENT', msg))
         # the H1 and the pointer line are mandated verbatim by log_rules.md —
         # their underscores (log_NNN) are not prose escapes
-        if line != lines[0] and line != J_POINTER:
+        if n != 1 and line != J_POINTER:
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
@@ -278,6 +288,235 @@ def lint_journal(path, lines, text):
     return v
 
 
+NUM_ITEM = re.compile(r'^(\d+)\. ')
+
+
+def prose_state_check(line, state):
+    """The shared prose indent discipline for the rule files, the journals and
+    the overview: top-level '- ' bullets with continuations at 2, sub-bullets
+    at 2 with continuations at 4, numbered 'N. ' items with continuations at
+    2+len(digits) (3 for a single digit). state = {'sub': bool, 'num': int or
+    None, 'fence': bool} — updated in place. Fenced code blocks are verbatim:
+    no check at all inside them. -> violation message or None."""
+    if line.startswith('```'):
+        state['fence'] = not state['fence']
+        return None
+    if state['fence']:
+        return None
+    if line.startswith('  - '):
+        state['sub'] = True
+        state['num'] = None
+        return None
+    if line.startswith('- '):
+        state['sub'] = False
+        state['num'] = None
+        return None
+    ind = len(line) - len(line.lstrip(' '))
+    if ind == 0:
+        state['sub'] = False
+        m = NUM_ITEM.match(line)
+        # the continuation aligns under the first text char: "1. " = 3, "10. " = 4
+        state['num'] = (len(m.group(1)) + 2) if m else None
+        return None
+    if ind == 2:
+        state['sub'] = False
+        return None
+    if ind == 4:
+        if state['num'] == 4:
+            return None  # a "10. " numbered continuation
+        return None if state['sub'] else 'a 4-space line outside a sub-bullet'
+    if state['num'] is not None and ind == state['num']:
+        return None
+    if ind > 0:
+        return f'unsupported indent ({ind} spaces)'
+    return None
+
+
+SECTIONS = ('Project', 'Conventions in the code', 'Environment', 'Current state',
+            'Next steps', 'Source files', 'Test files', 'Index')
+
+
+def lint_overview(path, lines, text):
+    """notes/overview.md (notes/overview_rules.md): the H1, the Format rules
+    pointer section, then EXACTLY the eight sections in exactly this order
+    (Project ... Index); the two tables (Source files / Test files) with one
+    physical line per row, alphabetical by full path; Current state MAX 10
+    bullets; Next steps OPEN items only (no “Done” bullets)."""
+    v = []
+    if lines[0] != '# overview.md — entry point':
+        v.append((1, 'OV-H1', 'the first line must be the overview H1'))
+    secs = [(n, line[3:].strip()) for n, line in enumerate(lines, 1) if line.startswith('## ')]
+    if not secs or not secs[0][1].startswith('Format rules (rigid'):
+        v.append((1, 'OV-SECS', 'the first section must be “Format rules (rigid ...)”'))
+    body = secs[1:]
+    for i, (n, title) in enumerate(body):
+        if i < len(SECTIONS) and not title.startswith(SECTIONS[i]):
+            v.append((n, 'OV-SECS', f'section out of order: “{title}” (expected “{SECTIONS[i]} ...”)'))
+    if len(body) > len(SECTIONS):
+        v.append((body[len(SECTIONS)][0], 'OV-SECS', 'a section beyond the eight'))
+    elif len(body) < len(SECTIONS):
+        v.append((0, 'OV-SECS', f'{len(SECTIONS) - len(body)} missing section(s)'))
+    spans = {}
+    for n, title in body:
+        for canon in SECTIONS:
+            if title.startswith(canon):
+                spans[canon] = n
+                break
+    ends = {}
+    for i, (n, title) in enumerate(body):
+        for canon in SECTIONS:
+            if title.startswith(canon):
+                ends[canon] = body[i + 1][0] - 1 if i + 1 < len(body) else len(lines)
+                break
+    for canon in ('Source files', 'Test files'):
+        if canon not in spans:
+            continue
+        rows = [(k + 1, l) for k, l in enumerate(lines[spans[canon] - 1:ends[canon]])
+                if l.startswith('|')]
+        for k, l in rows:
+            if not l.rstrip().endswith('|'):
+                v.append((k, 'OV-TABLE', 'a table row must start and end with a pipe'))
+        prev = ''
+        for k, l in rows[2:]:
+            cell = l.strip().strip('|').split('|')[0].strip()
+            if cell and cell <= prev:
+                v.append((k, 'OV-TABLE', f'table row not alphabetical: “{cell}” after “{prev}”'))
+            if cell:
+                prev = cell
+    if 'Current state' in spans:
+        cnt = sum(1 for l in lines[spans['Current state'] - 1:ends['Current state']]
+                  if l.startswith('- '))
+        if cnt > 10:
+            v.append((spans['Current state'], 'OV-CUR', f'Current state has {cnt} bullets (MAX 10)'))
+    if 'Next steps' in spans:
+        for l in lines[spans['Next steps'] - 1:ends['Next steps']]:
+            if l.startswith(('- Done', '- done')):
+                v.append((0, 'OV-NEXT', 'a “Done” bullet in Next steps (OPEN items only)'))
+    state = {'sub': False, 'num': None, 'fence': False}
+    for n, line in enumerate(lines, 1):
+        if line.startswith('```'):
+            state['fence'] = not state['fence']
+            continue
+        if state['fence']:
+            continue
+        if line == '':
+            continue
+        if line.startswith('# '):
+            state['sub'] = False
+            state['num'] = None
+        elif line.startswith('|'):
+            ok = any(canon in spans and spans[canon] <= n <= ends[canon]
+                     for canon in ('Source files', 'Test files'))
+            if not ok:
+                v.append((n, 'OV-TABLE', 'a table row outside the two tables'))
+        else:
+            msg = prose_state_check(line, state)
+            if msg:
+                v.append((n, 'OV-INDENT', msg))
+        if n != 1:  # the H1 is the file identity: its underscores are not prose
+            e = esc_issues(line)
+            if e:
+                v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+    common_tail(path, lines, text, v)
+    if not canon_ok(path):
+        v.append((0, 'CANON', 'not idempotent under notes_format --write'))
+    return v
+
+
+def lint_rulefile(path, lines, text):
+    """The domain rule files (overview_rules.md, decisions_rules.md, log_rules.md,
+    docs_rules.md, probe_rules.md, tools.md, naming.md): an H1, the intro prose,
+    the '## Section' headers, the top-level '- ' bullets with their continuations
+    at exactly 2 spaces (sub-bullets at 2, continuations at 4)."""
+    v = []
+    if not lines[0].startswith('# '):
+        v.append((1, 'RF-H1', 'the first line must be an H1'))
+    state = {'sub': False, 'num': None, 'fence': False}
+    for n, line in enumerate(lines, 1):
+        if line.startswith('```'):
+            state['fence'] = not state['fence']
+            continue
+        if state['fence']:
+            continue
+        if line == '':
+            continue
+        if line.startswith('## '):
+            state['sub'] = False
+            state['num'] = None
+        elif line.startswith('# '):
+            if n != 1:
+                v.append((n, 'RF-H1', 'stray heading'))
+            state['sub'] = False
+            state['num'] = None
+        else:
+            msg = prose_state_check(line, state)
+            if msg:
+                v.append((n, 'RF-INDENT', msg))
+        if n != 1:  # the H1 carries the file name (docs_rules.md ...): not prose
+            e = esc_issues(line)
+            if e:
+                v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+    common_tail(path, lines, text, v)
+    if not canon_ok(path):
+        v.append((0, 'CANON', 'not idempotent under notes_format --write'))
+    return v
+
+
+IA_STATUS = re.compile(r'(idea|follow-up|in-progress|done|dropped)')
+IA_ENTRY = re.compile(r'^I-(\d{3}) \| ([^|]*) \| ')
+
+
+def lint_ideas(path, lines, text):
+    """notes/ideas.md + notes/ideas-closed.md (the D-235 preamble format): an
+    H1, the preamble prose, then the entries `I-NNN | status | idea` with a
+    9-space continuation indent and a blank line before every entry; the
+    I-numbers are global, never reused."""
+    v = []
+    if not lines[0].startswith('# '):
+        v.append((1, 'IA-H1', 'the first line must be an H1'))
+    prev_i = None
+    blanks = 0
+    fence = False
+    for n, line in enumerate(lines, 1):
+        if line.startswith('```'):
+            fence = not fence
+            continue
+        if fence:
+            continue
+        if line == '':
+            blanks += 1
+            if blanks > 1:
+                v.append((n, 'IA-BLANK', 'double blank line'))
+            continue
+        blanks = 0
+        m = IA_ENTRY.match(line)
+        if m:
+            if lines[n - 2].strip() != '':
+                v.append((n, 'IA-BLANK', 'no blank line before the entry'))
+            if not IA_STATUS.fullmatch(m.group(2)):
+                v.append((n, 'IA-HEADER', f'unknown status “{m.group(2).strip()}” in an entry header'))
+            num = int(m.group(1))
+            if prev_i is not None and num <= prev_i:
+                v.append((n, 'IA-SEQ', f'I-number not increasing (previous {prev_i})'))
+            prev_i = num
+        else:
+            if line.startswith('# '):
+                if n != 1:
+                    v.append((n, 'IA-H1', 'stray heading'))
+            else:
+                ind = len(line) - len(line.lstrip(' '))
+                if ind not in (0, 9):
+                    v.append((n, 'IA-INDENT', f'indent is {ind} spaces (preamble 0, continuation 9)'))
+        if n != 1:  # the H1 carries the file name: not prose
+            e = esc_issues(line)
+            if e:
+                v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+    common_tail(path, lines, text, v)
+    if not canon_ok(path):
+        v.append((0, 'CANON', 'not idempotent under notes_format --write'))
+    return v
+
+
 def kind_of(name):
     b = Path(name).name
     if b == 'rules.md':
@@ -286,6 +525,13 @@ def kind_of(name):
         return 'decisions'
     if re.fullmatch(r'log_\d{3}\.md', b):
         return 'journal'
+    if b == 'overview.md':
+        return 'overview'
+    if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
+             'probe_rules.md', 'tools.md', 'naming.md'):
+        return 'rulefile'
+    if b in ('ideas.md', 'ideas-closed.md'):
+        return 'ideas'
     return None
 
 
@@ -295,10 +541,15 @@ def main(argv):
     else:
         logs = [p for p in ROOT.glob('notes/log_*.md') if re.fullmatch(r'log_\d{3}\.md', p.name)]
         open_log = max(logs, key=lambda p: int(p.name[4:7])) if logs else None
-        files = [ROOT / 'notes/decisions.md', ROOT / 'notes/rules.md']
+        # every CURRENT notes file (the closed volumes are linted on explicit request)
+        files = [ROOT / f'notes/{n}' for n in
+                 ('rules.md', 'decisions.md', 'overview.md', 'ideas.md', 'ideas-closed.md',
+                  'naming.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
+                  'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
         if open_log:
             files.append(open_log)
-    linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal}
+    linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal,
+               'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}
     total = 0
     for f in files:
         k = kind_of(f)

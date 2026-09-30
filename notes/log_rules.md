@@ -6,12 +6,12 @@ indentation.
 
 ## Volumes and rotation
 
-- Volumes are named log_000.md, log_001.md, ... (zero-padded).
+- Volumes are named log\_000.md, log\_001.md, ... (zero-padded).
 - A volume holds at most 25 sessions or 2000 lines, whichever comes first.
 - Rotation happens ONLY at a session boundary: when starting a NEW session, if the current volume has reached its cap,
   close it (set the final session number in its H1 range) and start the next volume. A volume jump never cuts a session.
 - Every volume starts with its H1 `# Session journal — volume 00N (sessions X–Y)` (Y = "..." while the volume is open,
-  filled in at close) and the pointer line "Format rules: notes/log_rules.md (rigid — follow when editing this file)."
+  filled in at close) and the pointer line "Format rules: notes/log\_rules.md (rigid — follow when editing this file)."
 - The most recent volume is the one to append to; closed volumes are read-only except factual corrections.
 
 ## Session entries

@@ -17,7 +17,7 @@ I-002 | done | Vectorize `position_flips` / `position_make_move` (raised by the 
 
 I-003 | done | Named move constants instead of magic numbers (raised 2026-08-26). Executed as D-242 (2026-09-19):
          `MOVE_PA` / `MOVE_NA` / `MOVE_UN` in board.py (`__all__`, the `Move` domain type), the bare 64/65/66 replaced
-         in board.py / random_game.py / hlp_wave.py (`PA` re-exported), the square-count 64 on `__square_max_value__`,
+         in board.py / random\_game.py / hlp\_wave.py (`PA` re-exported), the square-count 64 on `__square_max_value__`,
          the literal anchor pinned in `TestMove::test_move_constants`. The second motivation (the NumPy shift-wrap
          dependency in `position_is_move_legal`) was ALREADY fixed at D-018; the wrap survives only in
          `move_as_bitboard`, documented and pinned.
@@ -39,12 +39,12 @@ I-006 | dropped | Legacy migration debt (raised 2026-08-27, D-024): `PatternSet.
 I-007 | done | `FeatureSet` column-labelling helper (raised 2026-08-28, D-041, feature module M3: no way to map a column
          of the (N, I) index matrix to the feature name producing it; the D-041 deferral: "until the pipeline module
          that labels columns arrives"). Executed as D-266 (2026-09-19, Roberto's approval): the
-         `FeatureSet.feature_blocks` property (the (name, col_start, col_end, n_configurations, n_instances) tuples over
-         the non-intercept features, the compute_indexes column layout, instance-aware) — the deferral condition was
-         met: the SU_ANALYSIS + EFFECT_SIZE workers had arrived carrying TWO identical local `_feature_blocks` copies,
-         plus a THIRD inline in the hlp_gate test loader; all three call sites now use the property (zero behaviour
-         change, the logic byte-identical). test_feature 20 -> 25 (the new TestFeatureSetFeatureBlocks class); the 5
-         mirror docs (feature, test_feature, wrk_su_analysis, wrk_effect_size, hlp_gate).
+         `FeatureSet.feature_blocks` property (the (name, col\_start, col\_end, n\_configurations, n\_instances) tuples
+         over the non-intercept features, the compute\_indexes column layout, instance-aware) — the deferral condition
+         was met: the SU\_ANALYSIS + EFFECT\_SIZE workers had arrived carrying TWO identical local `_feature_blocks`
+         copies, plus a THIRD inline in the hlp\_gate test loader; all three call sites now use the property (zero
+         behaviour change, the logic byte-identical). test\_feature 20 -> 25 (the new TestFeatureSetFeatureBlocks
+         class); the 5 mirror docs (feature, test\_feature, wrk\_su\_analysis, wrk\_effect\_size, hlp\_gate).
 
 I-008 | dropped | Extend the papers collection beyond 2002 (dropped at D-125, 2026-09-06): the copyrighted collection
          left the workspace scope — dropped, not moved (Roberto's call).
@@ -57,7 +57,7 @@ I-009 | done | Pipeline construction boilerplate in the model client (raised 202
          and zero behaviour benefit). Closed 2026-09-19 as D-264, no code action: the remaining explicit assembly is
          design, not debt; a second pipeline (DeepNetworkModel) would re-evaluate with concrete data.
 
-I-010 | done | Redesign of the StateMachine context injection (parked 2026-08-29, D-070/M9: the __init__ injects
+I-010 | done | Redesign of the StateMachine context injection (parked 2026-08-29, D-070/M9: the \_\_init\_\_ injects
          `log_event` + the cache helpers as a side effect; a shared context re-binds to the LAST machine, V17). The
          evaluation condition was met 2026-09-19 and the evaluation CONFIRMS leave-as-is: the visible call pattern is
          the uniform `ctx.` blackboard access (163 `log_event` + 9 cache-helper call sites) that the injection serves;
@@ -82,7 +82,7 @@ I-013 | done | Study whether the GRADIENT fg closure can be sped up (raised 2026
          behind the `high_performance_fg` flag (O1) + the pre-allocated f64 `out=` two-loop buffer (O2b). TOTAL (A2050):
          OPTIMIZE 321.3 s -> 22.8 s (14.1×), chain ~350 s -> 48.5 s (7.2×). Negative results: O2 (the numba two-loop,
          memory-bandwidth bound) not adopted; O3 not chosen; O4 closed by the m = 93 load-bearing finding. Full report:
-         notes/analyses/optimize_performance.md.
+         notes/analyses/optimize\_performance.md.
 
 I-014 | dropped | Hot-restart ("restart a caldo") of the OPTIMIZE level from the checkpoint's warm weights (raised
          2026-09-01, session 26, D-096 R1): when a `ridge_regularization` change invalidates the checkpoint, resuming
@@ -91,29 +91,29 @@ I-014 | dropped | Hot-restart ("restart a caldo") of the OPTIMIZE level from the
          Roberto's call — no code action: the warm-start plumbing (the checkpoint's full L-BFGS state — w + sl/yl/rho +
          iters — + the `opt_lbfgs` warm-start kwargs) stays as the INCOMPLETE-resume path's contract.
 
-I-015 | done | CLIENT_CHECK: a new pipeline level after SAVE — the saved-model file acceptance test (raised 2026-09-10).
-         Executed as D-148 (2026-09-10): the level re-reads the model file, builds the client's array EF on the FILE
-         weights and recomputes the validation residuals in Y space; they must coincide with the in-memory VALIDATE
-         residuals within `client_check_tol` (default 1e-8). Bit-identity at every scale (max|diff| = 0.0: the synthetic
-         2000-set, A2030, A2050); the file-corruption case measures 1.959e-01.
+I-015 | done | CLIENT\_CHECK: a new pipeline level after SAVE — the saved-model file acceptance test (raised
+         2026-09-10). Executed as D-148 (2026-09-10): the level re-reads the model file, builds the client's array EF on
+         the FILE weights and recomputes the validation residuals in Y space; they must coincide with the in-memory
+         VALIDATE residuals within `client_check_tol` (default 1e-8). Bit-identity at every scale (max|diff| = 0.0: the
+         synthetic 2000-set, A2030, A2050); the file-corruption case measures 1.959e-01.
 
 I-016 | done | PLOT: a new pipeline level with matplotlib — the run's diagnostic figures (raised 2026-09-10). Executed
-         as D-149 (2026-09-10): the 17th and LAST level (after CLIENT_CHECK), seven Y-space figures (the three R
-         classics + four extensions), the PlotConfig pilot (enable + format + dpi + dir_name + the plot-name whitelist),
-         the seeded jitter / KDE. Campaign: D-149..D-155; the R reference file was a scratch artifact, removed
-         2026-09-11 (D-156d) — no live doc references it.
+         as D-149 (2026-09-10): the 17th and LAST level (after CLIENT\_CHECK), seven Y-space figures (the three R
+         classics + four extensions), the PlotConfig pilot (enable + format + dpi + dir\_name + the plot-name
+         whitelist), the seeded jitter / KDE. Campaign: D-149..D-155; the R reference file was a scratch artifact,
+         removed 2026-09-11 (D-156d) — no live doc references it.
 
 I-017 | done | Analytical properties of the FEATURES — the SU / eta² / omega² analysis (raised 2026-09-11). Executed as
          the I-017 campaign (T1..T19, D-156..D-189): the MT19937 PRNG port + the G0 wave generator, the OPTIONAL
-         FEATURE_ANALYSIS (step 3) and EFFECT_SIZE (step 6) levels — default FALSE (D-175) — and the 18-level pipeline
-         live and green. Project doc: notes/analytical_properties_of_features.md.
+         FEATURE\_ANALYSIS (step 3) and EFFECT\_SIZE (step 6) levels — default FALSE (D-175) — and the 18-level pipeline
+         live and green. Project doc: notes/analytical\_properties\_of\_features.md.
 
 I-018 | done | The top-20 outlier report in VALIDATE + the 20 records in the context (raised 2026-09-11, parked
          at D-189). Executed as D-243..D-246 (2026-09-19): VALIDATE now returns a `ValidationResult` (the 7 metrics +
          the f64 `y_pred` / `rn_y` series) and publishes `ctx.vld_y_pred` / `vld_rn` / `vld_outliers` (the 20 raw
          records) while LOGGING the D-150 report (the same 21 lines, step 18 -> 14; the D-150 test moved from
          `test_wrk_plot` to `test_wrk_validate`); `top_outliers` is the stable-argsort kernel. The duplication chain
-         went 3 -> 1 on the validation side (CLIENT_CHECK consumes `ctx.vld_rn`, D-245) and 2 -> 1 on the training side
+         went 3 -> 1 on the validation side (CLIENT\_CHECK consumes `ctx.vld_rn`, D-245) and 2 -> 1 on the training side
          (`ctx.train_dense_rn` published by ANALYTICS, D-246), so PLOT is now a PURE rendering level:
          `collect_plot_data` assembles the published series and runs no forward pass. Proof that no number moved: the
          PNG byte-determinism golden and the full-chain pins hold. A dedicated probe re-pin (D-244) cleared the stale
@@ -124,7 +124,7 @@ I-019 | done | The `run()` facade + the `target_level` consumption (raised 2026-
          (CONFIG) runs first, then the explicit argument, else the domain hook `_configured_target_level()`
          (`LMConfig.target_level` in LogisticModel), else the last step; "last" (any case) and a blank value mean the
          whole pipeline, and any level name or index is a legal stop. A second `run()` with a deeper target RESUMES
-         without re-running the levels done (verified at the 1e7 scale: one SU_ANALYSIS up, zero downs). Tests 17 -> 29
+         without re-running the levels done (verified at the 1e7 scale: one SU\_ANALYSIS up, zero downs). Tests 17 -> 29
          in `test_logistic_model` (the mocked resolution cases + the real-config class); the register line in
          notes/rules.md; the hub probe's V9 gained the `run()` boundary label.
 
@@ -134,4 +134,4 @@ I-020 | done | The DOUBLE `fset.compute_indexes` per wave (raised 2026-09-23, se
          `add(idx)` (the old `add(pos)` recomputed it internally — ~173 ms/wave twice). The 12 test + 3 probe call sites
          feed `fset.compute_indexes(pos)`; the D-296 position language stops at the loop boundary (the accumulators
          speak the derived index matrix, the A10 invariant intact). The 1e7 tables stay bit-identical + the statistics
-         byte-identical (the index matrix is a pure function of the harvested lanes; the rlmwf_03 caches stay valid).
+         byte-identical (the index matrix is a pure function of the harvested lanes; the rlmwf\_03 caches stay valid).

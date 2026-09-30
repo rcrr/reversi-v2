@@ -4,7 +4,7 @@ Prescriptive. Follow when creating, updating, or migrating any doc under docs/ t
 mirror rule, AGENTS.md standing rule 5). Language: English. The prose is wrapped to ~120 chars/line (D-238); the tables
 stay one physical line per row.
 
-Companions: notes/probe_rules.md (the verification apparatus), notes/log_rules.md (the session journal).
+Companions: notes/probe\_rules.md (the verification apparatus), notes/log\_rules.md (the session journal).
 
 ## 1. What a mirror doc IS (and is not)
 
@@ -14,7 +14,7 @@ rewritten to state; it is never appended to.
 The history of how the module got here lives elsewhere, each in its canonical home:
 
 - what/when a change happened (granular): git log
-- session narrative: the journal (notes/log_NNN.md)
+- session narrative: the journal (notes/log\_NNN.md)
 - why a decision was taken: decisions.md (D-NNN)
 - parked ideas: ideas.md
 
@@ -65,16 +65,16 @@ current was a per-file tax that no commit ever paid (94/94 mirrors carried no St
 ## 5. Lifecycle (how a mirror doc stays true)
 
 1. The doc is part of the module: every commit that changes X.py updates X.md in the SAME commit (code + doc + probe
-   together — see probe_rules.md §5).
+   together — see probe\_rules.md §5).
 2. The State line is updated in that same commit; the doc body is rewritten to the new state, never appended.
 3. When an issue is closed: its line leaves the doc in the closing commit. The closure narrative belongs to journal /
    commit message / decisions.md.
 4. Every "pinned by" must point at a tracked, currently-passing test or probe. A pointer into the void (untracked,
    deleted, or stale) is a defect in the same commit.
-5. Target size: 60-120 lines; the hubs (board, pattern, logistic_model, state_machine) 150-200. A doc that cannot state
-   its module in that budget is hiding history or is a hub.
+5. Target size: 60-120 lines; the hubs (board, pattern, logistic\_model, state\_machine) 150-200. A doc that cannot
+   state its module in that budget is hiding history or is a hub.
 
-## 6. Test-doc variant (docs/test/…/test_X.md)
+## 6. Test-doc variant (docs/test/…/test\_X.md)
 
 Same skeleton, two substitutions:
 
@@ -87,7 +87,7 @@ The State line uses the test file's own suite counts.
 
 ## 7. Scope exceptions
 
-- test/reversi/data/*.json are fixtures, not source: no mirror doc; their doc line is the Test files data note in
+- test/reversi/data/\*.json are fixtures, not source: no mirror doc; their doc line is the Test files data note in
   notes/overview.md.
 - notes/analyses/ holds moved-out historical artifacts (verbatim analyses, retired one-off investigations): they are
   frozen records, never updated — a changed fact gets a NEW analysis, the old one keeps its date and its errors.

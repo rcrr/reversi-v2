@@ -16,8 +16,8 @@ and replies all follow it.
 ## Bitboard
 - The least significant bit (bit 0) is square A1.
 - The most significant bit (bit 63) is square H8.
-- row_1 = [A1 ... H1]
-- column_a = [A1 ... A8]
+- row\_1 = [A1 ... H1]
+- column\_a = [A1 ... A8]
 
 ## D8 — the eight board symmetries (canonical, fixed 2026-08-26)
 
@@ -50,7 +50,7 @@ returns the input board unchanged — transformation ∘ anti-transformation = i
 ro270, ro180⁻¹ = ro180); every reflection is its own inverse.
 
 The slot order above is exactly the output order of `bitboard_transformations` / `bitboard_anti_transformations` in
-src/reversi/board.py and of the orbit test classes in test/reversi/test_board.py. Code, tests, and the docstring
+src/reversi/board.py and of the orbit test classes in test/reversi/test\_board.py. Code, tests, and the docstring
 diagrams were re-verified cell-by-cell on 2026-08-26 (T16, D-014): they agree.
 
 Reading rule for every board diagram in this workspace: row 1 on top, column a on the left. Under any other reading
