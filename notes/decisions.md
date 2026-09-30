@@ -69,6 +69,7 @@ D-334 | 2026-09-29 | the overview.md RESTRUCTURE (Roberto: "La sezione Where we 
          (4) VERIFICATION: notes\_format --check clean (0 pending rejoins), the source-vs-test suite cross-check 0
          mismatches, Current state 4 bullets <= 10. NOTE: rules.md grew ~2 lines past its ~150 budget (pre-existing
          overage) — the consolidation call is Roberto's.
+
 D-335 | 2026-09-29 | the State-column NORMALIZATION of the overview tables (Roberto: "la colonna State e' da
          revisionare: non c'e' coerenza sulla lunghezza dello stato, ci sono continui riferimenti alla storia. Se una
          cosa e' complete e' complete" + the Test files table broken after the test\_hlp\_optimize row). (1) THE BREAK:
@@ -92,6 +93,7 @@ D-335 | 2026-09-29 | the State-column NORMALIZATION of the overview tables (Robe
          phrase, which had fed the D-NNN bloat, is retired. Nothing LOST: every stripped clause exists verbatim in the
          decision log and the mirrors. VERIFICATION: both tables contiguous (0 blank lines inside, 5 unescaped pipes per
          row, full-path alphabetical order verified), notes\_format --check clean.
+
 D-336 | 2026-09-29 | the Test-data note of overview.md became a VERIFIED bullet list (Roberto: "Via D-215, teniamo una
          lista a bullet con un commento di cosa sono. Breve. verifica la lista."). The verification found the note STALE
          on three counts: (1) the rlm\_01 / rlm\_02 "DB dump" descriptions — the files were regenerated 2026-09-21 and
@@ -104,6 +106,7 @@ D-336 | 2026-09-29 | the Test-data note of overview.md became a VERIFIED bullet 
          verification are out; the committed sample stays pinned by its present fact (the 1002-row stride — measured:
          1003 lines incl. the header). VERIFICATION: every bullet checked against the file on disk (the names, the
          description fields, the line counts), notes\_format --check clean.
+
 D-337 | 2026-09-29 | the Next-steps REWRITE as the NON-prioritized TO-DO list (Roberto: "La lista NON ha priorita',
          decido io l'ordine. Tu scrivi solo le cose da fare in Inglese in maniera sintetica. Quindi Opzione A" — and, on
          my over-analysis: "Nia, stiamo scrivendo una TO-DO List, non stiamo facendo tutto della TO-DO List"). (1) THE
@@ -122,6 +125,7 @@ D-337 | 2026-09-29 | the Next-steps REWRITE as the NON-prioritized TO-DO list (R
          LEGISLATION (rules.md, D-117 amended): the Next-steps "the LAST bullet is the next concrete action" clause is
          replaced by "the list is NON-prioritized (Roberto picks the next item on demand)." NOTHING is started: the list
          is written, every item waits his direction.
+
 D-338 | 2026-09-29 | the two remaining non-"complete" State cells OUT (Roberto, on the two D-335 leftovers: "Rileggili
          bene, a me NON risultano" — and, after the explanation: "1: DROP il costruttore non e' mai critico nelle
          prestazioni. DROP FOREVER ... non lo voglio piu' vedere. 2: DROP ... pulisci wrk\_anova.md. Procedi!"). (1)
@@ -139,6 +143,7 @@ D-338 | 2026-09-29 | the two remaining non-"complete" State cells OUT (Roberto, 
          deliberate quirk) — the finding's record itself lives in D-259 (5)(b). VERIFICATION: all 95 State cells are now
          "complete" (the 2 helper rows "complete (helper module, 0 tests)"), notes\_format --check clean on the touched
          files.
+
 D-339 | 2026-09-29 | the overview tables' Suite-count SIMPLIFICATION (Roberto: "la tabella Source files ha la colonna
          Suite (live DB), mentre Test files ha la stessa colonna. Non credo ci sia valore in questa duplicazione ...
          Teniamo la conta dei TESTS solo sui tests? ... Tolgo commenti inutili? ... Mi piacerebbe che il nome del DOC
@@ -160,6 +165,7 @@ D-339 | 2026-09-29 | the overview tables' Suite-count SIMPLIFICATION (Roberto: "
          links atomic). (5) THE LEGISLATION (rules.md, D-117 amended): the Suite count lives ONLY in the Test files
          table, under the standard pre-commit run, with the (+N VLONG) marker; the Doc cell is a markdown link to the
          mirror.
+
 D-340 | 2026-09-29 | rules.md RESTRUCTURE — R-numbering, bold titles, blank-line spacing (Roberto: "affrontiamo la
          ristrutturazione di rules.md. Prima di tutto il titolo: ... ('corpo legislativo'). Toliamo l'Italiano. Si usa
          solo l'Inglese quindi 'legislative body'. Poi introdurrei la NUMERAZIONE. R-000, R001, R002 .... E spazierei i
@@ -191,6 +197,7 @@ D-340 | 2026-09-29 | rules.md RESTRUCTURE — R-numbering, bold titles, blank-li
          + --check clean (290 lines, 9 sections, 46 rules R-001..R-046 in order); the normalized token diff against the
          pre-restructure file shows ONLY the intended changes (title, Budget -> Governance, "numbered" in PROMOTE, the
          polished titles, the R-NNN/R# clarification) — no content lost.
+
 D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: "Io aggiungerei uno spazio tra la fine
          di una RULE e la seguente. Sono un po' attaccate, facciamo 2 linee vuote. ... Semplifichiamo Nia: cosa serve
          questa frase: Every notes/ Markdown file is wrapped to ~120 chars/line (D-237)...? Io la rimuoverei, a meno che
@@ -210,6 +217,7 @@ D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: 
          the zero-padded parents make it sort right after the parent in text order (R-012.1 between R-012 and R-013), so
          the register never renumbers. (4) The overview Index bullet aligned to "explicit user approval". VERIFICATION:
          notes\_format --write idempotent + --check clean (327 lines, 9 sections, R-001..R-046 intact).
+
 D-342 | 2026-09-29 | R-002 AMENDED — the register's PRECEDENCE (Roberto: "R-002: This file: the active legislation.
          Every rules stated in this file has precedence on other notes, documents or decisions. Departure from the rules
          is possible only with explicit consent from the user. Cosa ne pensi?"). Applied from Roberto's text with two
@@ -221,6 +229,7 @@ D-342 | 2026-09-29 | R-002 AMENDED — the register's PRECEDENCE (Roberto: "R-00
          in-force rule also needs explicit user consent — an approved departure that persists is recorded as a decision
          and amended into the rule (the same R-number, a new D-number). VERIFICATION: notes\_format --write idempotent
          + --check clean; R-002's description is 3 lines (at the 1-3 target).
+
 D-343 | 2026-09-29 | R-003 CONDENSED — the missing DOMAIN FILE (Roberto: "Ora vediamo R-003 ... Non ti sembra un po'
          lunga, prolissa ??? quale e' la REGOLA ... il resto VIA! Dai fammi una proposta!!!" — and, on the proposal:
          "OK! Via! Vai Nia!"). (1) NEW notes/overview\_rules.md — the domain rule file the overview lacked (the only
@@ -238,6 +247,7 @@ D-343 | 2026-09-29 | R-003 CONDENSED — the missing DOMAIN FILE (Roberto: "Ora 
          bullet; the AGENTS.md Layout enumeration + overview\_rules.md. VERIFICATION: notes\_format --write idempotent
          + --check clean (rules.md 314 lines, R-003 = 3 lines at the 1-3 target; overview\_rules.md 42 lines; every
          D-pointer moved with its text).
+
 D-344 | 2026-09-29 | R-004 CONDENSED — the DECISIONS DOMAIN FILE (Roberto: "R-004 — notes/decisions.md Riusciamo a
          semplificare ?" — on the proposal: "procedi!"). (1) NEW notes/decisions\_rules.md (21 lines) — the domain rule
          file the decisions log lacked (the last rigid-format collaboration file without one): the entry grammar (one
@@ -257,6 +267,7 @@ D-344 | 2026-09-29 | R-004 CONDENSED — the DECISIONS DOMAIN FILE (Roberto: "R-
          token fingerprint identical, idempotent) — the post-D-333 hand-wrap drift is healed. VERIFICATION:
          notes\_format --write idempotent + --check clean (rules.md 312 lines, R-004 = 2 lines; decisions\_rules.md 21
          lines).
+
 D-345 | 2026-09-29 | R-007 CONDENSED — the IDEAS PREAMBLES (Roberto: "R-007 le regole sono duplicate nel preambolo di
          ideas.md. Propongo di rimuoverle da rules, e scrivere solo che sono nel preambolo del file. Cosa ne pensi?").
          Verified first: the two preambles (notes/ideas.md + notes/ideas-closed.md, both "Format (D-235)") are the
@@ -271,11 +282,13 @@ D-345 | 2026-09-29 | R-007 CONDENSED — the IDEAS PREAMBLES (Roberto: "R-007 le
          closure lifecycle and the I-numbering are in each file's preamble." No new file needed — the preambles ARE the
          domain files (self-contained, D-235, in both files). VERIFICATION: notes\_format --write idempotent + --check
          clean (rules.md 309 lines, R-007 = 2 description lines).
+
 D-346 | 2026-09-29 | R-007 MICRO-AMENDMENT (Roberto: the pointer without the D-235 reference — "The format (D-235), the
          status legend, ..." -> "The format, the status legend, ..."). The origin pointer is redundant in the register:
          the preambles themselves carry it ("Format (D-235)" in both files) — the reference lives where it belongs.
          Amendment keeps the R-007 number (per the Governance). VERIFICATION: notes\_format --write idempotent + --check
          clean (rules.md 309 lines, R-007 = 2 description lines).
+
 D-347 | 2026-09-29 | the LANGUAGE & COLLABORATION section, per Roberto's text (and: "Nel caso volessi spiegare il D-111
          pattern, spieghiamolo qui. ma no a REFERENCES to D-XXX."). (1) R-008 generalized: "Replies to the user:
          Italian." -> "Replies to the user: his own language (e.g. Italian)." — the register states the principle; the
@@ -288,6 +301,7 @@ D-347 | 2026-09-29 | the LANGUAGE & COLLABORATION section, per Roberto's text (a
          (the same principle as D-346: no D-XXX references in the rules; explain inline only when the rule is not
          self-contained — here it is). (3) R-009 / R-011: untouched, exactly as proposed. VERIFICATION:
          notes\_format --write idempotent + --check clean (rules.md 309 lines).
+
 D-348 | 2026-09-29 | R-008 / R-009 / R-011 — the last D-pointers of the LANGUAGE & COLLABORATION section (Roberto: "Non
          hai rimosso (D-002), (D-004; AGENTS rules 2–3), (D-154). Vanno rimossi!"): my D-347 oversight — I removed only
          the D-111 we had discussed explicitly and left the three that were already in his proposed text. Removed:
@@ -296,6 +310,7 @@ D-348 | 2026-09-29 | R-008 / R-009 / R-011 — the last D-pointers of the LANGUA
          in the register (Layout & tree, Naming & platform, Test discipline, Pipeline contracts, Docs, Code style) —
          awaiting Roberto's ruling on the full sweep (the D-340-deferred "poi le guardiamo una per una"). VERIFICATION:
          notes\_format --write idempotent + --check clean (rules.md 309 lines).
+
 D-349 | 2026-09-29 | the JOURNAL section RETIRED — R-046 removed (Roberto: "La sezione 'Journal' contiene solo la R-046.
          ... Che e' ridondante con la R-005. Rimuoviamo completamente la sezione 'Journal'. Grazie!"). Verified before
          removing: 3 of R-046's 4 facts are in log\_rules.md (the global session numbering — Session entries item 1; one
@@ -307,6 +322,7 @@ D-349 | 2026-09-29 | the JOURNAL section RETIRED — R-046 removed (Roberto: "La
          gap (no renumbering); the register is now 45 rules in 8 sections (rules.md 302 lines; R-045 is the last rule).
          VERIFICATION: notes\_format --write idempotent + --check clean; no live R-046 reference outside the historical
          decision entries (which record the state at their time).
+
 D-350 | 2026-09-29 | the PER-RULE D-POINTER REVIEW starts — item 1, R-012 (Roberto: "Proseguiamo con la review per
          regola. R-012 ... Diventa: [the rule without (D-003), (D-009), (AGENTS rule 7)]. Grazie!"): his text applied —
          the title loses (D-003), the description loses (D-009) and the AGENTS rule 7 pointer; the rule is now pure (the
@@ -314,6 +330,7 @@ D-350 | 2026-09-29 | the PER-RULE D-POINTER REVIEW starts — item 1, R-012 (Rob
          were pure provenance — the AGENTS.md standing rules 1/7 and the .gitignore itself carry the operative facts.
          D-XXX references in the register: 44 (was 46 at D-348). VERIFICATION: notes\_format --write idempotent
          + --check clean (rules.md 301 lines).
+
 D-351 | 2026-09-29 | the per-rule D-pointer review — item 2, R-013 (Roberto: "Proseguiamo con la review per regola.
          R-013 ... Diventa: [the rule without (D-006), (D-008; D-133: ...), (D-273)]. Grazie!"): his text applied with
          ONE declared fix — a stray closing parenthesis left over from the "(D-008; D-133: ...)" removal (the line reads
@@ -322,6 +339,7 @@ D-351 | 2026-09-29 | the per-rule D-pointer review — item 2, R-013 (Roberto: "
          level, the tools/ and lm/ subpackages; the unit tests in test/, a root tree mirroring src/ one file to one
          file. D-XXX references in the register: 41 (was 44 at D-350). VERIFICATION: notes\_format --write idempotent
          + --check clean (rules.md 301 lines).
+
 D-352 | 2026-09-29 | the per-rule D-pointer review — items 3+4, R-014 + R-015 (Roberto: "Proseguiamo con R-014 e R-015.
          ... Diventano: [R-014 without (gitignored) in the title and without (D-010, D-011); R-015 without (D-007) and
          (D-273)]. Grazie!"): both rules applied from his text. R-014 is now: the .venv at the workspace root;
@@ -331,6 +349,7 @@ D-352 | 2026-09-29 | the per-rule D-pointer review — items 3+4, R-014 + R-015 
          same way (the (D-007) / (D-273) origin pointers out — the mirror rule lives in AGENTS.md rule 5 and in the
          docs/ tree itself). D-XXX references in the register: 38 (was 41 at D-351). VERIFICATION: notes\_format --write
          idempotent + --check clean (rules.md 300 lines).
+
 D-353 | 2026-09-29 | the per-rule D-pointer review — item 5, R-016 (Roberto: "Proseguiamo con R-016. ... Diventa:
          [tools/ holds the maintenance tools — the three tools, the NOT-package-tools / NOT-probes distinction, the
          a/b/c test, the pointer to notes/tools.md — without (D-248), (D-133) and the four-requirements parenthetical].
@@ -340,6 +359,7 @@ D-353 | 2026-09-29 | the per-rule D-pointer review — item 5, R-016 (Roberto: "
          notes/tools.md — the domain file carries its own four requirements, the register points (the R-003/R-004/R-007
          pattern). D-XXX references in the register: 36 (was 38 at D-352). VERIFICATION: notes\_format --write
          idempotent + --check clean (rules.md 299 lines).
+
 D-354 | 2026-09-29 | the per-rule D-pointer review — item 6, R-017 (Roberto: "Proseguiamo con R-017. ... Diventa: [the
          rule without the trailing (D-176)]. Grazie!"): his text applied — the only change is the (D-176) origin pointer
          out of the description's end; the title keeps "(gitignored)" (unlike R-014's title, the gitignored-ness of
@@ -347,6 +367,7 @@ D-354 | 2026-09-29 | the per-rule D-pointer review — item 6, R-017 (Roberto: "
          self-contained-clone contract). The Layout & tree section is now fully pure: R-012..R-017 carry no D-pointers.
          D-XXX references in the register: 35 (was 36 at D-353). VERIFICATION: notes\_format --write idempotent
          + --check clean (rules.md 299 lines).
+
 D-355 | 2026-09-29 | the per-rule D-pointer review — R-020 and R-021 RETIRED (Roberto: "Proseguiamo con R-020 and R-021.
          I le eliminerei. Non mi sembrano piu' attuali. Grazie!"): both rules removed from the register; the R-020 and
          R-021 gaps are permanent (R-numbers are never reused). VERIFIED before acting: the two TOPICS are still in
@@ -359,6 +380,7 @@ D-355 | 2026-09-29 | the per-rule D-pointer review — R-020 and R-021 RETIRED (
          pointer: "the session-21 review" (a one-shot campaign session) and (D-069). Rules in force: 45 -> 43. D-XXX
          references in the register: 34 (was 35 at D-354). VERIFICATION: notes\_format --write idempotent + --check
          clean (rules.md 290 lines).
+
 D-356 | 2026-09-29 | the per-rule D-pointer review — R-018 and R-019, closing the Naming & platform section (Roberto:
          "Proseguiamo con la sezione 'Naming & platform'. [the current R-018/R-019 text]. Diventa: [R-018 as 'Reversi
          (othello), NOT chess' with the column (A-H)/row (1-8) vocabulary, A1 = bit 0, H8 = bit 63, without
@@ -369,6 +391,7 @@ D-356 | 2026-09-29 | the per-rule D-pointer review — R-018 and R-019, closing 
          "row(1-8)" became "row (1-8)" (consistent with "column (A-H)"). The Naming & platform section is now fully pure
          (R-018/R-019; R-020/R-021 retired at D-355). D-XXX references in the register: 32 (was 34 at D-355).
          VERIFICATION: notes\_format --write idempotent + --check clean (rules.md 290 lines).
+
 D-357 | 2026-09-29 | the per-rule D-pointer review — R-029 SPLIT into three rules (Roberto: "FAmmi una prosta lean and
          clean per R-029 per favore. Poi la valuto e ti dico come procedere. Grazie!" — after my 7-line lean proposal:
          "E se facessimo tre RULES ??? [R-029 Suite tiers / R-029.1 Canonical order / R-029.2 Before git commit, full
@@ -382,6 +405,7 @@ D-357 | 2026-09-29 | the per-rule D-pointer review — R-029 SPLIT into three ru
          adjacent to the parent (the zero-padded parent sorts textually before R-030, so the placement at the end of the
          Test discipline section is correct). Rules in force: 43 -> 45. D-XXX references in the register: 30 (was 32
          at D-356). VERIFICATION: notes\_format --write idempotent + --check clean (rules.md 296 lines).
+
 D-358 | 2026-09-29 | the per-rule D-pointer review — Test discipline R-022..R-027 (Roberto: "Proseguiamo con la sezione
          'Test discipline'. Mi fai una proposta di semplificazione, pulizia, revisione per R-022..R-028. La valuto e ti
          do indicazioni poi su come procedere." — after my 7-rule proposal: "R-022, R-023, R-024, R-025: OK. ... R-026:
@@ -400,6 +424,7 @@ D-358 | 2026-09-29 | the per-rule D-pointer review — Test discipline R-022..R-
          module's namespace (patch('reversi.lm.logistic\_model.wrk\_config', ...), wrk\_positions, wrk\_features, ...).
          D-XXX references in the register: 24 (was 30 at D-357). VERIFICATION: notes\_format --write idempotent
          + --check clean (rules.md 294 lines).
+
 D-359 | 2026-09-29 | the per-rule D-pointer review — R-028, closing the Test discipline section (Roberto, after my
          improved proposal: "Ho capito Nia, quindi R-025 va benissimo come e'. OK. R-026: ho capito, benissimo. OK!
          R-028: OK la tua proposta. Ottimo!"): R-028 applied verbatim from the approved proposal — title: "Float64
@@ -416,6 +441,7 @@ D-359 | 2026-09-29 | the per-rule D-pointer review — R-028, closing the Test d
          @validate\_call applications in src/reversi/lm/wrk\_\*.py). The Test discipline section is now FULLY PURE:
          R-022..R-029.2 carry no D-pointers. D-XXX references in the register: 23 (was 24 at D-358). VERIFICATION:
          notes\_format --write idempotent + --check clean (rules.md 294 lines).
+
 D-360 | 2026-09-29 | the per-rule D-pointer review — the whole Pipeline contracts (RLM) section RETIRED, R-030..R-037
          (Roberto: "Ora affrontiamo la sezione 'Pipeline contracts (RLM)'. Ho una idea radicale, secondo me nulla di
          questa sezione deve rimanere nel file rules.md. Ogni regola e' documentazione che deve essere specificata in
@@ -444,6 +470,7 @@ D-360 | 2026-09-29 | the per-rule D-pointer review — the whole Pipeline contra
          empty section leaves, like the Journal section at D-349); the R-030..R-037 gaps are permanent. Rules in force:
          45 -> 37. D-XXX references in the register: 14 (was 23 at D-359). VERIFICATION: notes\_format --write
          idempotent + --check clean (rules.md 248 lines).
+
 D-361 | 2026-09-29 | the per-rule D-pointer review — R-045, closing the Code style section (Roberto: "Proseguiamo con la
          sezione 'Code style'. Una sola regola, la R-045. Sono del parere che vada mantenuta, ma semplificata. Diciamo
          come devono essere le linee di codice. fine. Mi fai una proposta di semplificazione, pulizia, revisione." —
@@ -462,6 +489,7 @@ D-361 | 2026-09-29 | the per-rule D-pointer review — R-045, closing the Code s
          down to its LAST section, Docs (R-038..R-044). Rules in force: 37 (unchanged — an amendment). D-XXX references
          in the register: 12 (was 14 at D-360) — all remaining refs now sit in the Docs section. VERIFICATION:
          notes\_format --write idempotent + --check clean (rules.md 243 lines).
+
 D-362 | 2026-09-29 | the per-rule D-pointer review — the Docs section, CLOSING the review (Roberto: "Proseguiamo con la
          sezione 'Docs'. R-038 to R-044. Servono ? Non sono un duplicazione di quanto scritto in docs\_rules ? Non
          sarebbe meglio avere una sola entry che prescrive di applicare i docs\_rules ai docs ? Mi fai una proposta di
@@ -486,6 +514,7 @@ D-362 | 2026-09-29 | the per-rule D-pointer review — the Docs section, CLOSING
          the R-042 quoted example — the register carries NO real provenance pointer anymore: the per-rule review (D-340)
          is COMPLETE. Roberto: not necessarily final — he will re-review the whole register and direct the follow-up.
          VERIFICATION: notes\_format --write idempotent + --check clean (rules.md 236 lines).
+
 D-363 | 2026-09-29 | the escape REPAIR of decisions.md (Roberto: "per favore sistema intanto che decido come procedere
          il file decision. Nel testo di D-334 | 2026-09-29 ... si perde la formattazione e tutto diventa corsivo dalla
          parola hlp\_anova, mancano gli escape. Ma non lo abbiamo messo nelle regole di editing che devi usare gli
@@ -505,3 +534,24 @@ D-363 | 2026-09-29 | the escape REPAIR of decisions.md (Roberto: "per favore sis
          decisions\_rules.md escape bullet covers asterisks only; extending it to the snake\_case underscores awaits
          Roberto's call. The closed volumes (decisions\_000..005) and the journals carry the same bare-underscore
          disease — untouched (a parked call).
+
+D-364 | 2026-09-29 | the missing-BLANK-LINE REPAIR (Roberto: "Mancano le spaziature ora. Ogni Decision e' preceduta da
+         una riga vuota. mancano ... Sono stanco Nia di fare il 'cane da guardia', come facciamo a essere sicuri che fai
+         le cose bene? Possiamo scrivere un PROGRAMMA in Python che testa i formati. Dopo ogni editing lo lanci per
+         controllo. Proponi tu qualcosa di definitivo. Perdiamo ore su queste stupidaggini."): the open volume was
+         missing the mandatory blank line before 29 entry headers (D-335..D-363) — a SYSTEMATIC append bug of this
+         session: every entry I appended (D-335..D-362 pre-checkpoint included, and D-363 today) was joined to the
+         previous entry with a single newline instead of a blank line (verified in git: the D-362 commit already carried
+         28 of the 29); notes\_format --check does NOT test the blank-line structure, so it passed green every time —
+         that is the gap. FIX: one blank line re-inserted before each of the 29 headers; VERIFIED: 0 headers without a
+         preceding blank line, 0 double blank lines, canonical re-wrap + --check clean (537 lines). PROPOSAL ON THE
+         TABLE (awaiting his call — it is code, AGENTS rule 3): a read-only format-TEST program tools/notes\_lint.py,
+         the definitive guard — the session's three bug classes become lint codes: (1) BLANK-LINE structure (a blank
+         line before every D-NNN header, no doubles) [the D-364 class]; (2) ESCAPE discipline (no bare \_ and no
+         unpaired \* outside code spans — the D-209 rule, extended to the snake\_case underscores) [the D-363 class];
+         (3) BULLET traps (no continuation line starting with digit+dot, pipe, hash, or dash-space — the 13-space
+         mis-parse class); plus the entry grammar (the header regex, the 9-space continuation, the monotonous
+         D-numbers), the line width <= 120, and the idempotence against notes\_format --write; the same checks, tuned,
+         for rules.md (the R-NNN headers, the 2-blank rule spacing, the real D-pointers flagged) and the journals (the
+         session-block grammar, the 2-space continuation, the escapes). Run after every notes edit — red means no
+         commit.
