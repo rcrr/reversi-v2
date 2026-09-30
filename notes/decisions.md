@@ -357,3 +357,14 @@ D-355 | 2026-09-29 | the per-rule D-pointer review — R-020 and R-021 RETIRED (
          mirror doc owns. What was actually stale was the pointer: "the session-21 review" (a one-shot campaign
          session) and (D-069). Rules in force: 45 -> 43. D-XXX references in the register: 34 (was 35 at D-354).
          VERIFICATION: notes_format --write idempotent + --check clean (rules.md 290 lines).
+D-356 | 2026-09-29 | the per-rule D-pointer review — R-018 and R-019, closing the Naming & platform section
+         (Roberto: "Proseguiamo con la sezione 'Naming & platform'. [the current R-018/R-019 text]. Diventa: [R-018
+         as 'Reversi (othello), NOT chess' with the column (A-H)/row (1-8) vocabulary, A1 = bit 0, H8 = bit 63,
+         without (D-013, D-014) and without 'do not reorder or rename'; R-019 without (D-022)]. Grazie!"): his text
+         applied. R-018: the title gains "(othello)"; the description gains the A-H/1-8 ranges and the H8 =
+         bottom-right = bit 63 clause, and loses the (D-013, D-014) pointer and the "do not reorder or rename"
+         imperative (that convention is owned by notes/naming.md, which the rule points at). R-019: (D-022) out. One
+         declared spacing fix: his "row(1-8)" became "row (1-8)" (consistent with "column (A-H)"). The Naming &
+         platform section is now fully pure (R-018/R-019; R-020/R-021 retired at D-355). D-XXX references in the
+         register: 32 (was 34 at D-355). VERIFICATION: notes_format --write idempotent + --check clean (rules.md
+         290 lines).

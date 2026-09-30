@@ -116,13 +116,13 @@ the persistent data is a DB/campaign artifact, decided explicitly.
 
 ## Naming & platform
 
-**R-018 — Reversi, NOT chess**
+**R-018 — Reversi (othello), NOT chess**
 
-The column/row vocabulary; A1 = top-left = bit 0; the D8 symmetries are canonized in notes/naming.md — the order is
-arbitrary but fixed: do not reorder or rename. (D-013, D-014)
+The column (A-H)/row (1-8) vocabulary; A1 = top-left = bit 0, H8 = bottom-right = bit 63; the D8 symmetries are
+canonized in notes/naming.md — the order is arbitrary but fixed.
 
 
-**R-019 — The platform is little-endian only: the hashes use native tobytes, no portability work. (D-022)**
+**R-019 — The platform is little-endian only: the hashes use native tobytes, no portability work.**
 
 
 ## Test discipline
