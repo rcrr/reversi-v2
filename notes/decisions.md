@@ -345,3 +345,15 @@ D-354 | 2026-09-29 | the per-rule D-pointer review — item 6, R-017 (Roberto: "
          gitignored — the self-contained-clone contract). The Layout & tree section is now fully pure: R-012..R-017
          carry no D-pointers. D-XXX references in the register: 35 (was 36 at D-353). VERIFICATION: notes_format
          --write idempotent + --check clean (rules.md 299 lines).
+D-355 | 2026-09-29 | the per-rule D-pointer review — R-020 and R-021 RETIRED (Roberto: "Proseguiamo con R-020 and
+         R-021. I le eliminerei. Non mi sembrano piu' attuali. Grazie!"): both rules removed from the register; the
+         R-020 and R-021 gaps are permanent (R-numbers are never reused). VERIFIED before acting: the two TOPICS are
+         still in force in the code — A2030/A2050 are live test-class labels (TestFullChainA2030 /
+         TestFullChainA2050 in test/reversi/lm/test_lm_worker_full_chain.py) and the `*_for_current_level` helpers
+         are injected by the StateMachine and consumed by 7 workers — but both conventions are already canonized in
+         their canonical home, the Conventions section of docs/src/reversi/lm/logistic_model.md (the A2xxx
+         "intentional, not a typo — do not 'fix'" clause; the injected-cache-helper contract with the R1-trap
+         note), so the retirement loses nothing: the register was duplicating code-level conventions that the
+         mirror doc owns. What was actually stale was the pointer: "the session-21 review" (a one-shot campaign
+         session) and (D-069). Rules in force: 45 -> 43. D-XXX references in the register: 34 (was 35 at D-354).
+         VERIFICATION: notes_format --write idempotent + --check clean (rules.md 290 lines).

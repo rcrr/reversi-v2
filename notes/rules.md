@@ -125,15 +125,6 @@ arbitrary but fixed: do not reorder or rename. (D-013, D-014)
 **R-019 — The platform is little-endian only: the hashes use native tobytes, no portability work. (D-022)**
 
 
-**R-020 — A2xxx = the legacy production model family**
-
-Do NOT "fix" these names (the session-21 review; the conventions in docs/src/reversi/lm/logistic_model.md).
-
-
-**R-021 — The injected cache helpers are named `*_for_current_level`**
-
-The workers must use them in lockstep with the StateMachine injection; never reintroduce the legacy names (D-069).
-
 ## Test discipline
 
 **R-022 — Tests write files only under workspace_root/build/tmp, and clean up afterwards (D-065)**
