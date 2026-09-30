@@ -734,3 +734,21 @@ D-375 | 2026-09-30 | R-041 retired, its format core reborn as R-045.3 (Roberto: 
          (joins R-040, retired by division at D-373); no other live reference to it exists (verified tree-wide: only the
          rule title itself). VERIFICATION: the guard green on the default set, the register canonical (267 lines, 35
          rules + 5 sub-rules).
+
+D-376 | 2026-09-30 | R-042 (Provenance vs design pointers) retired as redundant (Roberto: "R-042, secondo il mio
+         giudizio e' ridondante con le altre regole. Io la ritirerei." — approved after my 70% analysis, then
+         reformulated the surviving clause himself; "Procedi!"). Coverage map verified item by item: provenance OUT in
+         the mirror docs is docs\_rules.md §4 (forbidden by name, with its examples), design pointers in the mirror docs
+         are §3.2 (prescribed, with its example), provenance OUT in docstrings is R-045.2 (verbatim), tests and probes
+         are R-043/R-044 — and R-042 mirror-docs clause was a pointer to a domain file the register must not duplicate
+         (R-006), the same R-049 class staleness D-372 removed from R-038. The two non-redundant residues move into
+         R-045.2 on the tighter text of Roberto: the definition ("the file's own change history") and the source-comment
+         clause — his tightening ("as a summary, not a reference") is stricter than my "design pointer" formulation,
+         which would have left a D-NNN reference legal in comments; now: no D-XXX, mai, the two in-text exceptions being
+         the `#:` fundamental-provenance valve and the non-obvious summary, numberless. Resulting asymmetry with the
+         mirror docs: the reference lives in the document (§3.2 prescribes it), the summary lives in the code. No live
+         reference to R-042 (verified tree-wide: only the title; R-045.2 had already lost its R-042 pointer at D-373).
+         Docs is now R-038 + R-043 + R-044 (the three doc zones); R-042 leaves a permanent gap (third after R-040 and
+         R-041); the frozen block loses its last open item (the R-042 emigration) — only the text, placement and
+         ordering invariants remain. VERIFICATION: the guard green on the default set, the register canonical (262
+         lines, 34 rules + 5 sub-rules).

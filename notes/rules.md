@@ -189,13 +189,6 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
 
-**R-042 — Provenance vs design pointers**
-
-Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") — that is
-OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs (docs\_rules.md
-§3.2), and in source comments when the choice is non-obvious.
-
-
 **R-043 — Test docs (the docstrings + the comments in test/)**
 
 State what is tested, optionally how it is realized (the mechanism, the preconditions, the postconditions); no D-xxx /
@@ -225,7 +218,9 @@ Docstrings explain WHAT (the observable contract: the semantics, the shapes, the
 
 **R-045.2 — Docstrings: no D-XXX (no reference to the decisions)**
 
-No D-XXX provenance in the docstrings (decisions.md is its home); a `#:` code comment carries it only if fundamental.
+No D-XXX provenance (the file's own change history) in the docstrings (decisions.md is its home); a `#:` code comment
+carries it only if fundamental. A design decision explaining a current choice (not history) may stay in a source comment
+when the choice is non-obvious, as a summary, not a reference.
 
 
 **R-045.3 — Docstrings: FORMAT**
