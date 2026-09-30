@@ -622,3 +622,26 @@ D-367 | 2026-09-29 | the guard extended to EVERY notes format (Roberto: "Lo hai 
          files (exit 0); the fixture regression still fires on every planted code (14 violations). The closed volumes
          (decisions\_000..005, log\_000..003) stay out of the default set — the closed history; the parked escape
          cleanup remains his call; they are linted on explicit request.
+
+D-368 | 2026-09-29 | the closed volumes linted and repaired to GREEN — no exceptions (Roberto: "Linta tutti i file
+         chiusi, e correggili. Devono TUTTI passere. senza eccezioni. vai!!!"). The guard was first extended to the
+         structures the closed history uses (the current strict grammar would have flagged them as bugs): the decisions
+         linter now accepts the D-237 FIELD blocks (the 9sp pipe line + the 11sp continuations) and the inline 9sp
+         bullets with their 11sp continuations (the tool's own canonical form — the last TRAP false positives); the TRAP
+         code is narrowed to the real mis-parse tokens (a numbered start, a "# " heading, a D/I-NNN | header lookalike);
+         the historical D-152 gap (a lost number) is legal — the SEQ check is now strictly increasing (a reuse or a
+         reorder still fires). The journal linter accepts the historical "### " sub-sections with their column-0 prose,
+         the 1-space " - " sub-bullets with their 3-space continuations, and the nested 2-space numbered items with
+         their 5-space continuations. The tool itself: the ENTRY regex of notes\_format.py gains the letter suffix — the
+         three D-156b/c/d sub-entries of decisions\_001.md, which the tool otherwise parses as prose and flattens (a
+         one-character-class change, backward compatible, the only way to make the volumes canonical without destroying
+         the entries). THE REPAIRS (same commit): decisions\_000.md — the old FIELD blocks normalized to the 9/11
+         grammar (376 lines, bases 6/7/8/10) + 24 missing blank lines before headers; decisions\_001.md — the 8/10-space
+         field region shifted to 9/11 (560 lines), 10 missing blanks, the D-156b/c/d column-0 prose block (58 lines)
+         indented to 9, two raw math stars escaped by hand (the escaper pairs a raw \*\* with an already-escaped one);
+         13208 bare underscores + 161 asterisks escaped across all ten volumes (the parked escape disease — executed and
+         closed); log\_001.md — the historical "Steps 1+2" column-0 marker bulletized; every volume re-canonicalized
+         with notes\_format --write (content-neutral, token-identical on all ten). VERIFICATION: the guard green on all
+         10 closed volumes + all 13 current files (exit 0); the fixture suite still fires on every planted code (the gap
+         case is now legal by design; a reuse case plants the SEQ). The closed volumes stay out of the default set
+         (append-frozen history, explicit request).

@@ -10,7 +10,7 @@ It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes formats, each per its rigid gr
   probe_rules.md, tools.md, naming.md)                       — the H1 + section + bullet grammar
   notes/ideas.md + notes/ideas-closed.md                     — the D-235 entry grammar (I-NNN | status | ...)
 The default set covers every CURRENT notes file; the closed volumes (decisions_000..005, log_000..003) are linted
-on explicit request (the closed history; the parked escape cleanup is Roberto's call). One guard, one entry point,
+on explicit request (the append-frozen closed history, cleaned and green at D-368). One guard, one entry point,
 per-format linters — never one tool per format.
 It exits 1 on any violation. Run it after every notes edit — red means no commit (R-047).
 
@@ -37,13 +37,13 @@ WIDTH = 120
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
-DEC_ID = re.compile(r'^D-(\d{3}) \| ')
-DEC_HEADER = re.compile(r'^D-\d{3} \| \d{4}-\d{2}-\d{2} \| \S')
+DEC_ID = re.compile(r'^D-(\d{3})([a-z]?) \| ')
+DEC_HEADER = re.compile(r'^D-\d{3}[a-z]? \| \d{4}-\d{2}-\d{2} \| \S')
 R_TITLE = re.compile(r'^\*\*R-(\d{3})(?:\.(\d+))? — .+\*\*$')
 J_H1 = re.compile(r'^# Session journal — volume \d{3} \(sessions .+\)$')
 J_POINTER = 'Format rules: notes/log_rules.md (rigid — follow when editing this file).'
 J_SESSION = re.compile(r'^## \d{4}-\d{2}-\d{2} — session (\d+) \(.+\)$')
-TRAP = re.compile(r'(?:\d+\.\s|[-|#]\s|\|\s|[DI]-\d{3}\s+\|)')
+TRAP = re.compile(r'(?:\d+\.\s|#\s|[DI]-\d{3}\s+\|)')
 D_REF = re.compile(r'D-\d{3}')
 
 
@@ -101,35 +101,52 @@ def lint_decisions(path, lines, text):
     D-NNN | YYYY-MM-DD | the rationale; the continuation lines indented exactly
     9 spaces; a blank line before every entry; the D-numbers sequential."""
     v = []
-    prev_num = None
+    prev_key = None
     blanks = 0
+    in_block = False
     for n, line in enumerate(lines, 1):
         if line == '':
             blanks += 1
+            in_block = False
             if blanks > 1:
                 v.append((n, 'BLANK', 'double blank line'))
             continue
         blanks = 0
         if DEC_ID.match(line):
+            in_block = False
             if lines[n - 2].strip() != '':
                 v.append((n, 'BLANK', 'no blank line before the entry header'))
             if not DEC_HEADER.match(line):
                 v.append((n, 'HEADER', 'malformed entry header'))
-            num = int(DEC_ID.match(line).group(1))
-            if prev_num is not None and num != prev_num + 1:
-                v.append((n, 'SEQ', f'D-number not sequential (previous {prev_num})'))
-            prev_num = num
+            m = DEC_ID.match(line)
+            key = (int(m.group(1)), m.group(2))  # D-156 < D-156b < D-157
+            # strictly increasing: a historical gap (a D-number lost, D-152) is
+            # allowed, a reuse or an out-of-order entry is not
+            if prev_key is not None and key <= prev_key:
+                v.append((n, 'SEQ', f'D-number not increasing (previous {prev_key[0]}{prev_key[1] or ""})'))
+            prev_key = key
         else:
             ind = len(line) - len(line.lstrip(' '))
-            if prev_num is None:  # the file intro: column 0 only
+            if prev_key is None:  # the file intro: column 0 only
                 if ind > 0:
                     v.append((n, 'INDENT', f'indented line in the file intro ({ind} spaces)'))
             elif ind == 9:
-                if TRAP.match(line[9:]):
-                    v.append((n, 'TRAP', 'continuation starts with a block-start token'))
+                if line.startswith('         | '):
+                    in_block = True  # the D-237 FIELD line: the pipe is the marker
+                elif line.startswith('         - '):
+                    in_block = True  # an inline bullet: the tool's canonical form
+                    # keeps its continuations at 11, so it is not a trap
+                else:
+                    in_block = False
+                    if TRAP.match(line[9:]):
+                        v.append((n, 'TRAP', 'continuation starts with a block-start token'))
+            elif ind == 11:
+                if not in_block:
+                    v.append((n, 'INDENT', 'an 11-space line outside a block'))
             elif ind != 0:
                 v.append((n, 'INDENT', f'continuation indent is {ind} spaces (must be 9)'))
             else:
+                in_block = False
                 v.append((n, 'INDENT', 'stray column-0 line inside an entry'))
         e = esc_issues(line)
         if e:
@@ -240,6 +257,7 @@ def lint_journal(path, lines, text):
         v.append((3, 'JPOINTER', 'missing or wrong format pointer line'))
     session = None
     state = {'sub': False, 'num': None, 'fence': False}
+    free = False  # a historical "### " sub-section: column-0 prose is legal there
     for n, line in enumerate(lines, 1):
         if line.startswith('```'):
             state['fence'] = not state['fence']
@@ -248,7 +266,12 @@ def lint_journal(path, lines, text):
             continue
         if line == '':
             continue
-        if line.startswith('## '):
+        if line.startswith('### '):
+            free = True  # the old journals used "### Step N" / "### I-NNN" sections
+            state['sub'] = False
+            state['num'] = None
+        elif line.startswith('## '):
+            free = False
             m = J_SESSION.match(line)
             if not m:
                 v.append((n, 'JSESSION', 'malformed session header'))
@@ -260,6 +283,7 @@ def lint_journal(path, lines, text):
             state['sub'] = False
             state['num'] = None
         elif line.startswith('# '):
+            free = False
             if n != 1:
                 v.append((n, 'JH1', 'stray heading'))
             state['sub'] = False
@@ -268,8 +292,9 @@ def lint_journal(path, lines, text):
             pass  # the mandated verbatim pointer line (log_rules.md)
         else:
             ind = len(line) - len(line.lstrip(' '))
-            if ind == 0 and not line.startswith('- '):
-                v.append((n, 'JINDENT', 'stray column-0 line (not a heading or a bullet)'))
+            if ind == 0 and not (line.startswith('- ') or line.startswith(' - ')):
+                if not free:
+                    v.append((n, 'JINDENT', 'stray column-0 line (not a heading or a bullet)'))
             else:
                 msg = prose_state_check(line, state)
                 if msg:
@@ -307,6 +332,11 @@ def prose_state_check(line, state):
         state['sub'] = True
         state['num'] = None
         return None
+    if line.startswith(' - '):
+        # a historical 1-space sub-bullet: its continuations sit at 3
+        state['sub'] = True
+        state['num'] = 3
+        return None
     if line.startswith('- '):
         state['sub'] = False
         state['num'] = None
@@ -320,6 +350,8 @@ def prose_state_check(line, state):
         return None
     if ind == 2:
         state['sub'] = False
+        m = re.match(r'^  (\d+)\. ', line)  # a nested numbered item: "  1. " -> 5
+        state['num'] = (4 + len(m.group(1))) if m else None
         return None
     if ind == 4:
         if state['num'] == 4:

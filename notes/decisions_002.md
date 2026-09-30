@@ -89,7 +89,7 @@ D-163 | 2026-09-11 | The ODP-9 equivalence document for peer review. Roberto (re
          of statistical equivalence, to be peer-reviewed by an external agent/model (DeepSeek V4 Pro / GLM 5.3). The
          document: `notes/random_permutation_table`.md (9 sections). Content summary: (1) G0 = one uniform PRNG draw per
          (game, ply) — the reference semantics; the cost (Roberto's C generator: hours, 5X2COR days; the numba
-         PRNG-in-loop rejection, plan v2 verbatim); (2) G1 = the seeded {P_k} table (2016 draws) + the per-game counter
+         PRNG-in-loop rejection, plan v2 verbatim); (2) G1 = the seeded {P\_k} table (2016 draws) + the per-game counter
          walk + the slot-phase pin — the pure-integer hot loop; (3) the equivalence is defined at THREE levels (E1
          expectation-level, E2 sampling-error-level, E3 bias) — the honest statement: G1 produces ONE deterministic
          corpus per seed (a balanced quadrature of the G0 expectation), not a G0 random corpus; (4) the proof: Lemma 1
@@ -113,24 +113,24 @@ D-163 | 2026-09-11 | The ODP-9 equivalence document for peer review. Roberto (re
 D-164 | 2026-09-11 | ODP-9 document revised (v2) after the first peer review (DeepSeek V4 Pro,
          `notes/peer_review_random_permutation_table`.md — verdict: THE DESIGN PASSES with corrections). The author's
          response, recorded in the document's new section 10: (1) AGREED — the v1 Theorem 1 circularity is real (the
-         trajectory prefix conditions the table; the v1 proof "the prefix fixes c mod k, P_k uniform, Lemma 1" is
+         trajectory prefix conditions the table; the v1 proof "the prefix fixes c mod k, P\_k uniform, Lemma 1" is
          invalid as stated). The precise mechanism is now stated: at a width-k ply the TRUE conditional kernel (given
          the prefix) is "uniform over the row's UNCONSUMED entries, deterministic on reuse" (the entry-consumption
          effect). (2) DISAGREED with the review's PROPOSED replacement (the unconditional marginal claim) — it is not a
-         valid drop-in fix: at a fixed ply index the legal set L_t is itself a random variable (the claim is not
-         well-defined without conditioning), and the review's own rescue stops at "c is not independent of P_k — this is
-         the core issue" without resolving it (the marginal uniformity of P_k does not imply the uniformity of P_k[c mod
-         k] for a table-dependent c; the k = 2 counterexample: a table-dependent index I = 1{P2 = [1,0]} makes P2[I]
-         identically 0). (3) The valid replacement: the ONE-STEP ORACLE EQUIVALENCE (new Theorem 1 v2): for ANY GIVEN
-         (position, counter) — inputs, not table-generated — the seed-averaged G1 one-step pick is EXACTLY uniform over
-         the legal set (A1; Lemma 1, no conditioning, no circularity) — the true semantic of "the table is the seeded
-         shuffle". (4) AGREED + EXTENDED — the v1 "PROVEN" classification of the corpus-level expectations (marginals
-         AND joints) is reclassified to GATED: the observable codes are functions of the GENERATED positions
+         valid drop-in fix: at a fixed ply index the legal set L\_t is itself a random variable (the claim is not
+         well-defined without conditioning), and the review's own rescue stops at "c is not independent of P\_k — this
+         is the core issue" without resolving it (the marginal uniformity of P\_k does not imply the uniformity of
+         P\_k[c mod k] for a table-dependent c; the k = 2 counterexample: a table-dependent index I = 1{P2 = [1,0]}
+         makes P2[I] identically 0). (3) The valid replacement: the ONE-STEP ORACLE EQUIVALENCE (new Theorem 1 v2): for
+         ANY GIVEN (position, counter) — inputs, not table-generated — the seed-averaged G1 one-step pick is EXACTLY
+         uniform over the legal set (A1; Lemma 1, no conditioning, no circularity) — the true semantic of "the table is
+         the seeded shuffle". (4) AGREED + EXTENDED — the v1 "PROVEN" classification of the corpus-level expectations
+         (marginals AND joints) is reclassified to GATED: the observable codes are functions of the GENERATED positions
          (table-dependent), so the oracle uniformity does not lift to the trajectory ensemble; the v1 step-3
          factorization is superseded (the same gap the review found for the joints also applied to the marginals). (5)
          The remaining PROVEN core: the oracle Theorem 1, Lemma 1, Lemma 2, the phase combinatorics (the review's
-         sharper m_g-spread bound adopted: the slot-phase imbalance is at most max_g m_g - min_g m_g at most 64, hence
-         at most 64/N = 6.4e-5 at N = 1e6), the sampling-error order. (6) The design requirement (new, section 5):
+         sharper m\_g-spread bound adopted: the slot-phase imbalance is at most max\_g m\_g - min\_g m\_g at most 64,
+         hence at most 64/N = 6.4e-5 at N = 1e6), the sampling-error order. (6) The design requirement (new, section 5):
          the I-017 statistics need the ideal population RANDOM-PLAY-LIKE WITHIN THE MEASUREMENT PRECISION — not an exact
          expectation equality — which is exactly what the T6 gate verifies at 1e4 against a same-scale G0 reference (any
          systematic G1-vs-G0 difference above G0's own ~1e-2 noise is detected; at 1e7 G0's noise is ~1e-3, so a
@@ -199,8 +199,8 @@ D-166 | 2026-09-11 | ODP-9 document v3 after the SECOND peer review (Kimi K3,
          `random_choice_from_finite_set` — the FLOOR of a [0,1) double, not a bitmask rejection; the induced
          non-uniformity is at most k\*2^-53 ~ 7e-15 at k <= 64 — the same construction as the C reference T3 pins); the
          FALLBACK BOUNDARY sharpening (the second independent counter removes the counter-mediated coupling but NOT the
-         shared-row distinctness — P_k[a] != P_k[b] for a != b remains: a same-width gate failure is NOT rescued by the
-         fallback; the escape hatch is the fresh per-ply PRNG draw at the small-k plies — a partial G0 retreat at a
+         shared-row distinctness — P\_k[a] != P\_k[b] for a != b remains: a same-width gate failure is NOT rescued by
+         the fallback; the escape hatch is the fresh per-ply PRNG draw at the small-k plies — a partial G0 retreat at a
          minority of the hot loop); the honest framing in the bottom line ("G1 gives the same results as G0" is a
          PRE-REGISTERED EMPIRICAL CLAIM with a fully specified bound, not a theorem — the gate turns it into a certified
          bound before the expensive build). (5) NO THIRD review is requested: the two independent voices agree on the
@@ -245,11 +245,11 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 
          the v3.1 quantitative layer — which the two prior reviews could not have seen (v3.1, D-167, landed AFTER them).
          (1) Amendment A (BLOCKING) ADOPTED — the author's error: the v3.1 D0 noise formula 0.4\*sqrt(2S/N) illegally
          substituted sqrt(sum p(1-p)) for sum sqrt(p(1-p)) (subadditivity — the single-effective-cell lower bound),
-         understating the true E[TV0] ~ S_half/sqrt(pi\*N) by S_half/sqrt(S): 36x for a uniform 1296-cell table (N =
+         understating the true E[TV0] ~ S\_half/sqrt(pi\*N) by S\_half/sqrt(S): 36x for a uniform 1296-cell table (N =
          4e7: true 3.21e-3, v3.1 8.9e-5; GLM's simulation 3.20e-3; the author re-verified with an INDEPENDENT simulation
          before adopting: 3.19e-3..3.31e-3 vs theory 3.21e-3 — confirmed). The v3.1 "verified numerically" figures were
          the formula EVALUATING ITSELF — the same epistemic sin the v1 process caught in a theorem, recurred in a
-         number. Adopted consequences: the TABLE-AWARE absolute cap (delta\*_unit = max(2e-3, q95(D0_unit)) — the v3.1
+         number. Adopted consequences: the TABLE-AWARE absolute cap (delta\*\_unit = max(2e-3, q95(D0\_unit)) — the v3.1
          unconditional cap was UNPASSABLE BY CONSTRUCTION: a perfect G0 twin, D ~ 3.2e-3 at 1e6 pooled, would fail it —
          "a gate that spuriously fails a perfect replica is worse than no gate"); the PARAMETRIC bootstrap threshold
          (mean + 1.645\*sd — the TV's CV is ~2%, the 20-sample maximum ±30-40%); the PER-POPULATION sqrt(N) rescaling
@@ -258,23 +258,23 @@ D-168 | 2026-09-12 | ODP-9 document v4 (FINAL) after the THIRD peer review (GLM 
          absolute cap ACTIVE there); the corrected PROPAGATION bound (|dH| ≤ h2(TV) + TV\*log2(C-1) ~ 0.041 bits at TV =
          2e-3, C = 1296 — v3.1 "~2e-2" ~2x low; the 1e6 pooled certification level 3.3e-3 bounds it at ~0.07 bits — ≤
          ~7% relative on O(1) information quantities: SUFFICIENT for I-017; the 1e7 build tightens to ~0.025). (2)
-         Amendment B (BLOCKING) ADOPTED: the v2/v3 phase "PROVEN" tag is INVALID — the counterexample m_g = (r-g) mod k
+         Amendment B (BLOCKING) ADOPTED: the v2/v3 phase "PROVEN" tag is INVALID — the counterexample m\_g = (r-g) mod k
          (spread ≤ k-1 ≤ 63) makes ALL slots' phases = r (a point mass, imbalance N(1-1/k) vs the claimed ≤ 64; the
-         author verified: k = 2, m_g = g%2 → one distinct phase across 1e6 slots); deeper: m_g is table/phase-dependent
-         (the pass feedback loop: phase → picks → trajectory → passes → m_g → phase) — the phase term is a PATH-COUPLED
-         channel, and the v2 "purely combinatorial" label re-opened, in miniature, the hole v2 closed. Demoted to GATED
-         + measured by the new per-width PHASE-OCCUPANCY SCAN (gate test 1: the cross-slot histogram of (g + m_g) mod k
-         vs uniform, chi-square k-1 df, Bonferroni over 64 widths). (3) MINORS ADOPTED: the section 4.4 garbled cell
-         (4.7e-4) + the per-cell vs max-cell clause (the 6-sigma framing is PER-CELL; the max-cell deviation exceeds
-         it); the per-stratum pass-counting pin (a pass contributes two same-ec positions — identical board, sides
-         swapped; the dedup rule must be IDENTICAL for G0 and G1 — the choice is a T6 implementation detail, the
-         identity of the rule is pinned in section 1.5); test 7's blind-band math recomputed on the corrected numbers
-         (the 1e6 detection floor q95 ~ 3.3e-3 pooled; the 1e7 pooled floor ~ 1.1e-3; the band between them is closed by
-         the build gate). (4) NO QUESTIONS for the reviewer: both blocking claims were independently re-verified by
-         simulation before adoption. (5) The PRE-DECLARED FINAL ROUND (D-167) applies: the valid amendments are folded
-         in and the document FREEZES at v4 — FINAL. The T5 wave engine is built on G1 with the v4 gate as the T6
-         instrument (the 1e6 design gate before T5; the 1e7 build gate at build time; the corpus is accepted only after
-         BOTH pass).
+         author verified: k = 2, m\_g = g%2 → one distinct phase across 1e6 slots); deeper: m\_g is
+         table/phase-dependent (the pass feedback loop: phase → picks → trajectory → passes → m\_g → phase) — the phase
+         term is a PATH-COUPLED channel, and the v2 "purely combinatorial" label re-opened, in miniature, the hole v2
+         closed. Demoted to GATED + measured by the new per-width PHASE-OCCUPANCY SCAN (gate test 1: the cross-slot
+         histogram of (g + m\_g) mod k vs uniform, chi-square k-1 df, Bonferroni over 64 widths). (3) MINORS ADOPTED:
+         the section 4.4 garbled cell (4.7e-4) + the per-cell vs max-cell clause (the 6-sigma framing is PER-CELL; the
+         max-cell deviation exceeds it); the per-stratum pass-counting pin (a pass contributes two same-ec positions —
+         identical board, sides swapped; the dedup rule must be IDENTICAL for G0 and G1 — the choice is a T6
+         implementation detail, the identity of the rule is pinned in section 1.5); test 7's blind-band math recomputed
+         on the corrected numbers (the 1e6 detection floor q95 ~ 3.3e-3 pooled; the 1e7 pooled floor ~ 1.1e-3; the band
+         between them is closed by the build gate). (4) NO QUESTIONS for the reviewer: both blocking claims were
+         independently re-verified by simulation before adoption. (5) The PRE-DECLARED FINAL ROUND (D-167) applies: the
+         valid amendments are folded in and the document FREEZES at v4 — FINAL. The T5 wave engine is built on G1 with
+         the v4 gate as the T6 instrument (the 1e6 design gate before T5; the 1e7 build gate at build time; the corpus
+         is accepted only after BOTH pass).
 
 D-169 | 2026-09-12 | T4 fix: the non-full double pass is the game over (Roberto's OK: "certo che e' da fixare!"). Found
          while reading the T4 loop for the T5 plan: the game-over check lived only in the real-move branch, so a
@@ -334,20 +334,20 @@ D-172 | 2026-09-12 | T6: the DESIGN GATE (the v4 doc section 7, the pre-register
          order, the real-move lanes pick the (draw % k)-th set bit (the modulo bias < k/2^64, 12 orders below the noise
          floor), the pass/dead lanes' draws consumed (unused). The W=1 G0 wave trajectory is bit-exact vs the scalar G0
          reference (the same stream discipline). TESTS (v4): 1 = the table A1 re-check (the per-width rank histogram) +
-         the per-width PHASE-OCCUPANCY scan (the v4 phase (g + m_g) mod k = counter mod k — the doc L545 "width-k
-         decision m_g = 0 across slots — phases = g mod k"; NOTE: the first implementation used (slot + counter) mod k =
-         the 2g + m_g variant, which has a STRUCTURAL parity collapse for even k in the early game — the doc-correct
+         the per-width PHASE-OCCUPANCY scan (the v4 phase (g + m\_g) mod k = counter mod k — the doc L545 "width-k
+         decision m\_g = 0 across slots — phases = g mod k"; NOTE: the first implementation used (slot + counter) mod k
+         = the 2g + m\_g variant, which has a STRUCTURAL parity collapse for even k in the early game — the doc-correct
          counter mod k is uniform; caught before the 1e6 run); chi-square k-1 df, Bonferroni over the 64 widths. 2 = the
          ARREST-STRATIFIED marginals (PRIMARY): per sub-variable, per ec level (60 down to the arrest ec) the TV of the
          G1-vs-G0 position codes + the per-game pass counts + the pooled full-trajectory marginal (SECONDARY). 3-4 = the
-         FOCUSED joints: the sampled SU pairs (the per-instance cell product n_conf_A x n_conf_B <= 1e6 — 18 pairs: LMC
-         x {DIAG4..8, R2, R3, R4}, the DIAG4..8 family, R2/R3 x LMC), the joint codes at the SAME position (the SU
+         FOCUSED joints: the sampled SU pairs (the per-instance cell product n\_conf\_A x n\_conf\_B <= 1e6 — 18 pairs:
+         LMC x {DIAG4..8, R2, R3, R4}, the DIAG4..8 family, R2/R3 x LMC), the joint codes at the SAME position (the SU
          unit), stratified by the arrest ply width (strata 1..8, 9+): the per-stratum TV + KL; test 4 = the k <= 4
          strata. 5 = the pooled joint chi-square (DEMOTED, reported only). 6 = the phase continuity (the slot-base
          offsets 7 / 4000001 vs the MAIN G1 run — the base is not regenerated). D0 BOOTSTRAP: 20 G0-vs-G0 pairs @ 1e5
-         (the parametric q95 = mean + 1.645 sd per unit, rescaled by the 1/sqrt(N) factor sqrt(pair_scale / `n_games`) —
-         the pooled and the per-ec units share it). CRITERION (the 1e6 design gate): (i) ABSOLUTE TABLE-AWARE: every D <
-         max(2e-3, q95(D0_unit)); (ii) RELATIVE PRIMARY: every D < the parametric q95 of the measured D0; (iii) the
+         (the parametric q95 = mean + 1.645 sd per unit, rescaled by the 1/sqrt(N) factor sqrt(pair\_scale / `n_games`)
+         — the pooled and the per-ec units share it). CRITERION (the 1e6 design gate): (i) ABSOLUTE TABLE-AWARE: every D
+         < max(2e-3, q95(D0\_unit)); (ii) RELATIVE PRIMARY: every D < the parametric q95 of the measured D0; (iii) the
          focused tests (3-4) under the family control (Bonferroni over the pair x stratum family, the BH-FDR secondary)
          + the test 1 phase scan; (iv) the 1e7 BUILD gate at corpus build time (PENDING). IMPLEMENTATION: the feature
          codes are STRUCTURED arrays (one field per orbit instance) — the packed-uint64 overflow is real (the 2X5COR
@@ -419,16 +419,16 @@ D-175 | 2026-09-13 | G0 corpus generator: the performance estimate, the pipeline
          the SU level is complete. DOC ADDENDUM: `notes/random_permutation_table`.md section 11 (the post-freeze
          empirical results: the D-173 gate verdict + evidence tables, the D-174 decision + justification, the
          equidistribution-loss mechanism — the table constrains the consecutive equal-width picks to the 1-dimensional
-         permutation-row curve (P_k[a], P_k[a+1]) instead of the k-dimensional space, destroying the Matsumoto-Nishimura
-         k-dimensional equidistribution (up to 623 dimensions) by design, while the one-step oracle E1 survives; the
-         certification schedule amended by fact). The v4 frozen body is unmodified (the pre-registration must not be
-         touched). An EXTERNAL review of the addendum is requested (Roberto orchestrates; the assistant's preference:
-         GLM — the review that caught the 36x D0 formula error, the deepest technical reading so far; this addendum is
-         statistics/PRNG-theory heavy). CORPUS BUILD (the 1e7): PENDING Roberto's storage call — the assistant proposes
-         NO persistent file (the corpus is a pure function of (engine, seed, ec, N, W) — deterministic, ~2-min
-         regeneration; the provenance — seed 42, N, ec, W, config hash, git HEAD, dead count, final mti — is recorded in
-         the `notes/reports`; the analysis job generates in memory; persistence returns only with a concrete T12
-         pipeline need).
+         permutation-row curve (P\_k[a], P\_k[a+1]) instead of the k-dimensional space, destroying the
+         Matsumoto-Nishimura k-dimensional equidistribution (up to 623 dimensions) by design, while the one-step oracle
+         E1 survives; the certification schedule amended by fact). The v4 frozen body is unmodified (the
+         pre-registration must not be touched). An EXTERNAL review of the addendum is requested (Roberto orchestrates;
+         the assistant's preference: GLM — the review that caught the 36x D0 formula error, the deepest technical
+         reading so far; this addendum is statistics/PRNG-theory heavy). CORPUS BUILD (the 1e7): PENDING Roberto's
+         storage call — the assistant proposes NO persistent file (the corpus is a pure function of (engine, seed, ec,
+         N, W) — deterministic, ~2-min regeneration; the provenance — seed 42, N, ec, W, config hash, git HEAD, dead
+         count, final mti — is recorded in the `notes/reports`; the analysis job generates in memory; persistence
+         returns only with a concrete T12 pipeline need).
 
 D-176 | 2026-09-13 | Generated-data placement (Roberto's standing guideline): code-generated data that is expensive to
          replicate goes in `build/` (already gitignored, D-009) — NEVER inside `src/`, `notes/`, or any other code
@@ -441,8 +441,8 @@ D-176 | 2026-09-13 | Generated-data placement (Roberto's standing guideline): co
 D-177 | 2026-09-13 | T7: the marginal frequency accumulator + the ec formula pin. MarginalAccumulator in
          `hlp_random_play` (the `FEATURE_ANALYSIS` phase-1 data plane): the streaming (code -> count) per sub-variable,
          the analysis unit the (feature, instance) COLUMN (the design-matrix unit the weights live on — each pattern
-         instance is its own categorical variable, the code a single uint32 in [0, n_conf); the 2X5COR^8 structured-key
-         concern is the feature-level / the joint statistics, not the per-column marginal). The split: n_conf <=
+         instance is its own categorical variable, the code a single uint32 in [0, n\_conf); the 2X5COR^8 structured-key
+         concern is the feature-level / the joint statistics, not the per-column marginal). The split: n\_conf <=
          `_DENSE_THRESHOLD` (1e6; the A2050 max is 59049) -> the dense bincount, else the unique-merge dict. POOLED over
          all fed positions (the single-ec corpus — no per-ec split). The ec formula is PINNED: `ec_of` = 64 -
          popcount(mover | opponent) = the DB's `empty_count` (the regab `empty_count = ec` filter, the "mele con mele"
@@ -453,22 +453,22 @@ D-177 | 2026-09-13 | T7: the marginal frequency accumulator + the ec formula pin
          stones -> ec 60, 59, 58, 57). `test_hlp_random_play` 13/0/0 -> 18/0/0.
 
 D-178 | 2026-09-13 | T8: the joint frequency accumulator. JointAccumulator in `hlp_random_play` (the `FEATURE_ANALYSIS`
-         phase-1 data plane, the SU pairs): per REQUESTED su pair (F_i, F_j) and per (instance_i, instance_j) in the
-         pair, the (code_i, code_j) -> count over the corpus — the instance×instance level (P6's matrix). The joint is
-         SPARSE (the code_i x code_j space is too large for the dense — the unique-merge split); the key is the packed
-         u64 (code_i \* n_conf_j + code_j), safe for the A2050 scale (the max is 59049^2 << 2^64). The same-feature pair
-         (F, F) is allowed: the diagonal (the variable with itself) is the SU = 1 lock (OMITTED per the ODP-4 close);
-         the off-diagonal (the D8 orientations of the same mask) is the anisotropy measure. The no-DB micro-suite
-         (`test_hlp_random_play` 18 -> 21): the (LMC, R2) cross-feature pair (the 4 instance-pairs) + the (R2, R2)
-         same-feature pair (the 16 instance-pairs), each joint cross-checked against the INDEPENDENT per-position oracle
-         (the manual dict via `compute_indexes`), the same-feature diagonal has ZERO off-diagonal entries, the
-         chunk-merge invariance (one chunk == two half-chunks). Every joint's count sum == N.
+         phase-1 data plane, the SU pairs): per REQUESTED su pair (F\_i, F\_j) and per (instance\_i, instance\_j) in the
+         pair, the (code\_i, code\_j) -> count over the corpus — the instance×instance level (P6's matrix). The joint is
+         SPARSE (the code\_i x code\_j space is too large for the dense — the unique-merge split); the key is the packed
+         u64 (code\_i \* n\_conf\_j + code\_j), safe for the A2050 scale (the max is 59049^2 << 2^64). The same-feature
+         pair (F, F) is allowed: the diagonal (the variable with itself) is the SU = 1 lock (OMITTED per the ODP-4
+         close); the off-diagonal (the D8 orientations of the same mask) is the anisotropy measure. The no-DB
+         micro-suite (`test_hlp_random_play` 18 -> 21): the (LMC, R2) cross-feature pair (the 4 instance-pairs) + the
+         (R2, R2) same-feature pair (the 16 instance-pairs), each joint cross-checked against the INDEPENDENT
+         per-position oracle (the manual dict via `compute_indexes`), the same-feature diagonal has ZERO off-diagonal
+         entries, the chunk-merge invariance (one chunk == two half-chunks). Every joint's count sum == N.
 
 D-179 | 2026-09-13 | T9: the PRNG integration test. TestPrngIntegration in `test_hlp_random_play` (the G0 wave -> the
          accumulator, the 2-feature toy set = the LMC + the R2): (1) the corpus REPRODUCIBILITY — the same seed (42) ->
          the SAME frequency tables (bit-exact, the G0 wave re-initializes the golden-pinned MT19937 per call, the seed
          is the corpus seed), the different seed (43) -> different tables; (2) the small END-TO-END corpus (the G0
-         wave -> the accumulator, 2000 games at ec 20) — every sub-variable's sum == N, K_obs <= n_conf, and the LMC
+         wave -> the accumulator, 2000 games at ec 20) — every sub-variable's sum == N, K\_obs <= n\_conf, and the LMC
          marginal hand-checked against the INDEPENDENT oracle `position_legal_moves` (NOT `compute_indexes`). No new
          library code (the T7-T8 accumulators + the T5 G0 wave, all already landed). `test_hlp_random_play` 21/0/0 ->
          23/0/0.
@@ -498,29 +498,29 @@ D-181 | 2026-09-13 | T11: the SU / entropy / mutual-information kernels. New mod
          the POSITIONS; the worker T16 lands after). Mirrors (D-007), journal, overview.
 
 D-182 | 2026-09-13 | T12: the dispersion + the never-observed audit. Added to `hlp_feature_analysis` (the T11 module):
-         (1) `dispersion(counts, `n_configurations`)` — the per-sub-variable dispersion (the design section 3.3 phase
-         2): K_obs (the distinct observed codes), H (the entropy in bits), H_norm = H / log2(K_obs) (else 0 — the K_obs
-         <= 1 guard), the coverage = K_obs / `n_configurations`; returns {'k_obs', 'h', 'h_norm', 'coverage'}. (2)
-         `never_observed_audit (counts, `n_configurations`, rarity_thresholds = (1, 2, 5, 10, 100))` — the
+         (1) `dispersion(counts, `n\_configurations`)` — the per-sub-variable dispersion (the design section 3.3 phase
+         2): K\_obs (the distinct observed codes), H (the entropy in bits), H\_norm = H / log2(K\_obs) (else 0 — the
+         K\_obs <= 1 guard), the coverage = K\_obs / `n_configurations`; returns {'k\_obs', 'h', 'h\_norm', 'coverage'}.
+         (2) `never_observed_audit (counts, `n\_configurations`, rarity_thresholds = (1, 2, 5, 10, 100))` — the
          never-observed audit (the STOP deliverable, P2): the number of theoretical codes never seen (`n_configurations`
-         - K_obs) + the rarity profile (the count of the observed codes below each small count threshold — the
+         - K\_obs) + the rarity profile (the count of the observed codes below each small count threshold — the
            configurations that random play almost never reaches: the weights that can never be learned); returns
-           {'k_obs', '`never_observed`', 'rarity'}. Both filter the zero counts (the dense form is accepted). The test
-           micro-suite (10 -> 16, the hand-computed toy tables: the dispersion [1, 1, 2, 4] n_conf 8 -> K_obs 4, H 1.75,
-           H_norm 0.875, coverage 0.5; the degenerate K_obs 1 H_norm 0; the dense-zeros filter; the never-observed never
-           4 + the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the all-observed never 0; the empty never = n_conf).
-           Mirrors (D-007), journal, overview. 853 -> 859.
+           {'k\_obs', '`never_observed`', 'rarity'}. Both filter the zero counts (the dense form is accepted). The test
+           micro-suite (10 -> 16, the hand-computed toy tables: the dispersion [1, 1, 2, 4] n\_conf 8 -> K\_obs 4,
+           H 1.75, H\_norm 0.875, coverage 0.5; the degenerate K\_obs 1 H\_norm 0; the dense-zeros filter; the
+           never-observed never 4 + the rarity {1: 0, 2: 2, 5: 4, 10: 4, 100: 4}; the all-observed never 0; the empty
+           never = n\_conf). Mirrors (D-007), journal, overview. 853 -> 859.
 
 D-183 | 2026-09-13 | T13: the ANOVA kernels. Added to `hlp_feature_analysis` (the T11 module):
          `anova_eta_omega(groups, values)` — the one-way ANOVA effect sizes (the `EFFECT_SIZE` level, the design
          section 3.5): the observed codes as the groups (K), the target = the continuous training game values (N).
-         SS_tot = sum (y - ybar)^2, SS_eff = sum_g n_g (y_g - ybar)^2, SS_err = SS_tot - SS_eff; eta² = SS_eff / SS_tot;
-         omega² = (SS_eff - (K-1) MS_err) / (SS_tot + MS_err), MS_err = SS_err / (N - K). Guards: K = 1 -> eta² = omega²
-         = 0 (degenerate, by convention); K > N -> ValueError (unreachable); omega² may be slightly negative (the null
-         effect) — the raw value is reported. eta² is the biased sample share; omega² is the unbiased population
-         estimate — the pair is reported together. The test micro-suite (16 -> 21, the hand-computed toy: the 2-group
-         [1, 3, 2, 4] -> eta² 0.2, omega² -1/7 the null effect; the perfect separation [1, 1, 1, 4, 4, 4] -> eta² =
-         omega² = 1; the K = 1 degeneracy -> 0 / 0; the K > N + the length-mismatch ValueError). Mirrors (D-007),
+         SS\_tot = sum (y - ybar)^2, SS\_eff = sum\_g n\_g (y\_g - ybar)^2, SS\_err = SS\_tot - SS\_eff; eta² = SS\_eff
+         / SS\_tot; omega² = (SS\_eff - (K-1) MS\_err) / (SS\_tot + MS\_err), MS\_err = SS\_err / (N - K). Guards: K =
+         1 -> eta² = omega² = 0 (degenerate, by convention); K > N -> ValueError (unreachable); omega² may be slightly
+         negative (the null effect) — the raw value is reported. eta² is the biased sample share; omega² is the unbiased
+         population estimate — the pair is reported together. The test micro-suite (16 -> 21, the hand-computed toy: the
+         2-group [1, 3, 2, 4] -> eta² 0.2, omega² -1/7 the null effect; the perfect separation [1, 1, 1, 4, 4, 4] ->
+         eta² = omega² = 1; the K = 1 degeneracy -> 0 / 0; the K > N + the length-mismatch ValueError). Mirrors (D-007),
          journal, overview. 859 -> 864.
 
 D-184 | 2026-09-13 | T14: the adherence kernels (the fixed trio, the ODP-5 close, no config whitelist). Added to
@@ -528,11 +528,11 @@ D-184 | 2026-09-13 | T14: the adherence kernels (the fixed trio, the ODP-5 close
          0-log-0 convention (the p(i) = 0 terms vanish), +inf if p(i) > 0 and q(i) = 0 (the DB has a code the ideal
          never shows). (2) `total_variation(p, q)` — the total variation distance TV(p, q) = 0.5 \* sum |p - q|, in [0,
          1] (the robust "how different" number, no log, no 0/0). (3)
-         `chi_square_goodness(observed, expected, `min_expected` = 5)` — the chi-square goodness-of-fit: the statistic
+         `chi_square_goodness(observed, expected, `min\_expected` = 5)` — the chi-square goodness-of-fit: the statistic
          sum (O - E)^2 / E, the p-value (the scipy chi2.sf, the (k - 1) df — scipy is already a project dependency, the
          pyproject), the merged tail (the low-expected cells, E < `min_expected`, merged into an "other" bin) + the
          merge count (the standard technique); the p-value is nan if the merged result has fewer than 2 cells. (4)
-         `adherence(`db_counts`, `ideal_counts`)` — the adherence (c) trio (the design section 3.5): the DB
+         `adherence(`db\_counts`, `ideal\_counts`)` — the adherence (c) trio (the design section 3.5): the DB
          configuration distribution (the observed codes of the training positions) vs the ideal distribution (the corpus
          frequencies, normalized), the fixed trio: the chi-square (the p-value + the merged-tail count), the KL (the
          0-log-0), the TV (the robust "how different" number); the two are aligned over the union of the observed codes
@@ -559,7 +559,7 @@ D-185 | 2026-09-13 | T15: the I-017 config. `hlp_config_schemas` (the pydantic c
          `model_validator`(mode="after") (the P6 fail-fast against the feature set: a `su_pairs` name not in the feature
          set is rejected at the CONFIG level). The D-175 ruling: the SU analysis is OPTIONAL, the enable default FALSE
          (opt-in) — the production A2050/A2030 configs are untouched (they don't set the fields, so they default to the
-         no-op); the experiment configs rlm_05/rlm_06 + the `rlm_00` fixture opt in (the T18 wiring). The test
+         no-op); the experiment configs rlm\_05/rlm\_06 + the `rlm_00` fixture opt in (the T18 wiring). The test
          (`test_hlp_config_schemas`, 23 -> 27, the 4 I-017 tests: the D-175 opt-in defaults, the P6 canonical dedupe,
          the P6 fail-fast, the `target_level` field). Mirrors (D-007), journal, overview. 875 -> 879.
 
@@ -570,33 +570,34 @@ D-186 | 2026-09-13 | T16: the `FEATURE_ANALYSIS` worker. New module `wrk_feature
          JointAccumulator for the requested pairs, the T7-T8); the cache flow (the `cache_manager_load_or_compute`, the
          `rlmwf_03` slot, the pickle of the tables dict + the .SHA3-256 sidecar, the 8192-chunk verify D-071/D-072); the
          consistency signature (the `feature_set` hash — the `sha3_256` of the `feature_set` config's normalized dump,
-         the first 16 hex — + the generation spec (the seed, the total_positions, the ec, the generator version "g0-1",
+         the first 16 hex — + the generation spec (the seed, the total\_positions, the ec, the generator version "g0-1",
          the PRNG version "mt19937-64") + the `su_pairs` list (the canonical sorted form), the NO `rds_checksum` — the
          P5, the FIRST cache level with the `feature_set` hash instead of the `rds_checksum`, the corpus INDEPENDENT of
          the DB, the new cache lineage; a pair-list change invalidates the cache -> a full regeneration, the two-tier
          cache is the parked v2 refinement). (2) Phase 2 — the statistics (cheap, recomputed on EVERY run, including the
-         cache hit): the per-sub-variable dispersion (the K_obs / H / H_norm / coverage, T12) + the never-observed audit
-         (the n_conf - K_obs + the rarity profile, T12) + the requested SU pairs (the P6: the 2\*I / (H_i + H_j) from
-         the joint + the two marginals, the T11 kernels; the same-feature DIAGONAL is OMITTED — the SU = 1 lock, the
-         ODP-4 close, not a measurement; the off-diagonal is the anisotropy measure). (3) The outputs: the console (INFO
-         per sub-variable + the top SU pairs) + the TXT report (`dir_name` under `base_dir`, the PlotConfig pattern) +
-         the optional CSV (the `export_csv` flag). (4) The ctx publication: the `LMContext.feature_analysis_tables` (the
-         cross-level blackboard, the D-099 pre-declared field — added to `logistic_model`.py as the worker's
-         prerequisite) carries the tables for the `EFFECT_SIZE` level (the adherence, step 6). (5) The D-060 semantics:
-         the generation error fails the level, the machine re-raises, the `_down` clears the ctx artifacts. New test
-         module `test_wrk_feature_analysis` (8 tests, the NO-DB mock-ctx suite: the factory, the enable no-op (the D-175
-         opt-in), the compute + the publish (the tiny G0 corpus + the phase-2 statistics + the TXT report + the ctx
-         publication), the cache hit (the second run), the signature invalidation (the corpus change), the `su_pairs`
-         joint, the optional CSV, the down (the D-060 recovery)). Registered in `run_utests`.sh at the step 3 worker
-         position (between the `hlp_feature_analysis` data module and the POSITIONS worker). The T18 wiring registers
-         the worker at step 3 (the `rlmwf_03` slot). Mirrors (D-007), journal, overview. 879 -> 887.
+         cache hit): the per-sub-variable dispersion (the K\_obs / H / H\_norm / coverage, T12) + the never-observed
+         audit (the n\_conf - K\_obs + the rarity profile, T12) + the requested SU pairs (the P6: the 2\*I / (H\_i +
+         H\_j) from the joint + the two marginals, the T11 kernels; the same-feature DIAGONAL is OMITTED — the SU = 1
+         lock, the ODP-4 close, not a measurement; the off-diagonal is the anisotropy measure). (3) The outputs: the
+         console (INFO per sub-variable + the top SU pairs) + the TXT report (`dir_name` under `base_dir`, the
+         PlotConfig pattern) + the optional CSV (the `export_csv` flag). (4) The ctx publication: the
+         `LMContext.feature_analysis_tables` (the cross-level blackboard, the D-099 pre-declared field — added to
+         `logistic_model`.py as the worker's prerequisite) carries the tables for the `EFFECT_SIZE` level (the
+         adherence, step 6). (5) The D-060 semantics: the generation error fails the level, the machine re-raises, the
+         `_down` clears the ctx artifacts. New test module `test_wrk_feature_analysis` (8 tests, the NO-DB mock-ctx
+         suite: the factory, the enable no-op (the D-175 opt-in), the compute + the publish (the tiny G0 corpus + the
+         phase-2 statistics + the TXT report + the ctx publication), the cache hit (the second run), the signature
+         invalidation (the corpus change), the `su_pairs` joint, the optional CSV, the down (the D-060 recovery)).
+         Registered in `run_utests`.sh at the step 3 worker position (between the `hlp_feature_analysis` data module and
+         the POSITIONS worker). The T18 wiring registers the worker at step 3 (the `rlmwf_03` slot). Mirrors (D-007),
+         journal, overview. 879 -> 887.
 
 D-187 | 2026-09-13 | T17: the `EFFECT_SIZE` worker. New module `wrk_effect_size` (the I-017, the eta²/omega² + the
          adherence, step 6): the worker factory (`wrk_effect_size`() -> Worker("`EFFECT_SIZE`", `_up`, `_down`),
          the D-060). (1) The ANOVA — the eta²/omega² per sub-variable (the one-way ANOVA, the observed raw codes as the
          groups, the continuous game values as the target, the T13 kernel — it does NOT need the corpus): the
          per-sub-variable raw code is `ctx.hlp_indexes.indexes`[:, c0 + i] (the block layout), the target is
-         ctx.game_values. (2) The adherence (the c metric) — per sub-variable, the DB configuration distribution (the
+         ctx.game\_values. (2) The adherence (the c metric) — per sub-variable, the DB configuration distribution (the
          bincount of the training raw codes) vs the ideal distribution (the corpus marginal from the
          `ctx.feature_analysis_tables`, the D-186 cross-level blackboard), the fixed trio (the T14 adherence kernel —
          the chi-square merged-tail p + the KL + the TV, the ODP-5 close, no config whitelist); the top-N (the
@@ -642,9 +643,9 @@ D-188 | 2026-09-13 | T18: the I-017 full wiring. The 18-level pipeline (design s
 D-189 | 2026-09-13 | T19: the I-017 campaign close. The `FEATURE_ANALYSIS` (step 3) + the `EFFECT_SIZE` (step 6) levels
          are COMPLETE: the data plane (the T7-T10 accumulators + the probes), the kernel set (the T11-T14 SU/entropy/MI
          + the dispersion/audit + the ANOVA + the adherence), the config (the T15, the D-175 opt-in), the workers (the
-         T16/T17), the full wiring (the T18, the 18-level pipeline + the rlm_05/rlm_06 experiment configs + the
+         T16/T17), the full wiring (the T18, the 18-level pipeline + the rlm\_05/rlm\_06 experiment configs + the
          full-chain re-pin + the hub re-pin). The I-017 is DONE (the 18-level pipeline is live; the SU analysis is
-         OPTIONAL, the default FALSE, the D-175 opt-in — the rlm_05/rlm_06 are the experiment configs to run it). The
+         OPTIONAL, the default FALSE, the D-175 opt-in — the rlm\_05/rlm\_06 are the experiment configs to run it). The
          production default is NOT flipped to true (Roberto's call, the D-175: the opt-in stays FALSE until he says so).
          The next step is the PROFILING session (the OPTIMIZE pattern, the step-by-step algorithm explanation + the
          joint code review — "questo codice ora deve volare"), AFTER the SU level is complete. The I-018 outlier report
@@ -677,7 +678,7 @@ D-192 | 2026-09-15 | The initial-position fix (the official Othello setup). The 
          the D-174) + the `initial_position` utility (`hlp_random_play`) carried the standard start with the roles
          SWAPPED (the mover D4+E5, the opponent D5+E4) vs the official Othello International setup (the mover — black,
          the starting player — E4+D5, the opponent — white — D4+E5; Roberto's explicit check against the Othello
-         International rules; the `random_game`.initial_game_position module is the canonical source — his new file +
+         International rules; the `random_game`.initial\_game\_position module is the canonical source — his new file +
          test, the runner slot, committed first at 8cbfc1b). The fix: the `INITIAL_MOVER/INITIAL_OPP` swap in
          `hlp_wave`.py + the mover/opponent swap in `hlp_random_play.initial_position` + the test pin re-landing
          (`test_hlp_random_play`: the E4+D5 / D4+E5 hex + the mover legal set {D3, C4, F5, E6} — hand-verified, it
@@ -685,7 +686,7 @@ D-192 | 2026-09-15 | The initial-position fix (the official Othello setup). The 
          are GENUINELY DIFFERENT (a 4096-game run, seed 42, ec 20; the two position sets are NOT equivalent under a role
          swap nor under the D8 rotations) — so EVERY corpus generated before this fix (the 1e7 build, the I-017 SU /
          effect-size statistics, the `rlm_00`/05/06 feature-analysis runs) is STALE and must be regenerated (Roberto's
-         call, the maintenance campaign). The A2030 / A2050 production chains are UNAFFECTED (`rlm_03`/rlm_04 do not
+         call, the maintenance campaign). The A2030 / A2050 production chains are UNAFFECTED (`rlm_03`/rlm\_04 do not
          enable the `feature_analysis` / `effect_size` levels — no VLONG re-pin needed). The self-consistent suites (the
          wave vs scalar, the determinism, the accumulator oracles) stay green; the only re-landed pin is the
          TestInitialPosition one.
@@ -694,7 +695,7 @@ D-193 | 2026-09-15 | The random move pick (the `random_game` rework building blo
          `MT19937.choose_one_from_set64` method (`tools/prng`.py): the uniform pick from the u64 set, NO removal (unlike
          `extract_from_set64`: the set is read, never mutated) — k = popcount, ONE `get_double_in_c0_o1` draw, the c =
          floor(r·k) lowest set bits skipped, the next lowest set bit picked — returns (1 << p, p); the empty set the (0,
-         64) sentinel (64 = PA in the Move domain) WITHOUT consuming a draw. The new `random_game`.choose_random_move:
+         64) sentinel (64 = PA in the Move domain) WITHOUT consuming a draw. The new `random_game`.choose\_random\_move:
          the @`validate_call` composition (`position_legal_moves` + the PRNG pick), the PRNG INJECTED (the caller owns
          the stream — the "one seed for all" discipline). The test: the TestChooseRandomMove golden (seed 93, 1000 draws
          from the official initial position — the D-192 mover legal set {D3, C4, F5, E6} — the EXACT frequencies [258,
@@ -703,19 +704,19 @@ D-193 | 2026-09-15 | The random move pick (the `random_game` rework building blo
          context).
 
 D-194 | 2026-09-15 | The PRNG exclusivity move (the single source). The MT-19937 numba kernels + constants that
-         `lm/hlp_wave`.py carried as a partial re-implementation of `tools/prng`.py (the _NN/_MM/_UM/_LM/_MAG constants
-         + the `_mt19937_init` / `_mt19937_batch` njit kernels) MOVE to `tools/prng`.py — the PRNG code now lives
-         COMPLETELY and EXCLUSIVELY in the prng module (the maintenance-campaign goal; the board-design TRANSFORMATION
-         of prng.py — the numba class + the dual public face — is the next pass, parked, step-by-step). The details: the
-         two kernels land as the public `mt19937_init` / `mt19937_batch_draw` (the clean names, my design question 2,
-         Roberto's all-OK approval); the scalar MAG constant (the C MAG01[1]) joins the C constants, the kernels
-         reference the public constants (NN/MM/UM/LM); `hlp_wave`.py imports NN / `mt19937_init` / `mt19937_batch_draw`
-         from tools.prng (it carries NO PRNG code anymore); the test imports move to tools.prng (the orphan
-         `_harvest_and_respawn` import is removed too). ZERO behavior change: a transcription slip (the temper mask
-         0xFFF7EEE000000000 typed as 0xFFF7EEE0000000 — two zeros dropped) was caught + fixed pre-commit by the
-         bit-exact suite (`test_batch_matches_reference`: draw-0 deviation). Verification: the touched modules 36/0/1
-         GREEN; the full LONG run 858/0/21 GREEN; the 1e6 G0 benchmark replays the corpus bit-exactly (28065 dead lanes,
-         identical to pre-move).
+         `lm/hlp_wave`.py carried as a partial re-implementation of `tools/prng`.py (the \_NN/\_MM/\_UM/\_LM/\_MAG
+         constants + the `_mt19937_init` / `_mt19937_batch` njit kernels) MOVE to `tools/prng`.py — the PRNG code now
+         lives COMPLETELY and EXCLUSIVELY in the prng module (the maintenance-campaign goal; the board-design
+         TRANSFORMATION of prng.py — the numba class + the dual public face — is the next pass, parked, step-by-step).
+         The details: the two kernels land as the public `mt19937_init` / `mt19937_batch_draw` (the clean names, my
+         design question 2, Roberto's all-OK approval); the scalar MAG constant (the C MAG01[1]) joins the C constants,
+         the kernels reference the public constants (NN/MM/UM/LM); `hlp_wave`.py imports NN / `mt19937_init` /
+         `mt19937_batch_draw` from tools.prng (it carries NO PRNG code anymore); the test imports move to tools.prng
+         (the orphan `_harvest_and_respawn` import is removed too). ZERO behavior change: a transcription slip (the
+         temper mask 0xFFF7EEE000000000 typed as 0xFFF7EEE0000000 — two zeros dropped) was caught + fixed pre-commit by
+         the bit-exact suite (`test_batch_matches_reference`: draw-0 deviation). Verification: the touched modules
+         36/0/1 GREEN; the full LONG run 858/0/21 GREEN; the 1e6 G0 benchmark replays the corpus bit-exactly (28065 dead
+         lanes, identical to pre-move).
 
 D-195 | 2026-09-15 | The class is the SOLE PRNG interface (the board-design transformation, step 1 of the passettino
          sequence). The new `MT19937.get_uint64_batch`(n) method: the n successive values as a (n,) u64 array — the
@@ -753,9 +754,9 @@ D-197 | 2026-09-15 | Drop the C legacy bare-state (read-clarity, Roberto's call)
          its default seed 5489). In the new Python the object can only be used after construction, and the ctor is
          FAIL-FAST (exactly one of seed / `init_key`) — the object is ALWAYS initialized, so the NN + 1 sentinel + the
          5489 fallback were DEAD CODE. Removed: the `self._mti = NN + 1` assignment in `__init__` (the init call below
-         sets `_mti`; the object is always initialized), the `if `self._mti` == NN + 1: `self.init_by_seed`(5489)` check
-         in `get_uint64_batch`, and the "BARE state / default 5489" mentions in the class + method docstrings. The OTHER
-         verbatim quirk is preserved (`init_by_seed` leaves mti == NN, so the FIRST `get_uint64` twists the
+         sets `_mti`; the object is always initialized), the `if `self.\_mti` == NN + 1: `self.init\_by\_seed`(5489)`
+         check in `get_uint64_batch`, and the "BARE state / default 5489" mentions in the class + method docstrings. The
+         OTHER verbatim quirk is preserved (`init_by_seed` leaves mti == NN, so the FIRST `get_uint64` twists the
          just-initialized array — that is the C for-loop quirk, a different thing from the NN + 1 sentinel). Verified:
          no test depended on the fallback (grep-confirmed; the "5489" hits in the golden are hex digit runs, not the
          seed). ZERO behavior change: touched modules 37/0/1 GREEN; the full LONG run 859/0/21 GREEN; the 1e6 G0
