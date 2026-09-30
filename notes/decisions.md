@@ -312,3 +312,11 @@ D-350 | 2026-09-29 | the PER-RULE D-POINTER REVIEW starts — item 1, R-012 (Rob
          pointers were pure provenance — the AGENTS.md standing rules 1/7 and the .gitignore itself carry the
          operative facts. D-XXX references in the register: 44 (was 46 at D-348). VERIFICATION: notes_format --write
          idempotent + --check clean (rules.md 301 lines).
+D-351 | 2026-09-29 | the per-rule D-pointer review — item 2, R-013 (Roberto: "Proseguiamo con la review per regola.
+         R-013 ... Diventa: [the rule without (D-006), (D-008; D-133: ...), (D-273)]. Grazie!"): his text applied with
+         ONE declared fix — a stray closing parenthesis left over from the "(D-008; D-133: ...)" removal (the line
+         reads "the tools/ and lm/ subpackages; the unit tests ..."), and `reversi` kept as a code span (the file's
+         form). The rule is now pure: all Python sources under src/; the package `reversi` under src/reversi/, the
+         core at the top level, the tools/ and lm/ subpackages; the unit tests in test/, a root tree mirroring src/
+         one file to one file. D-XXX references in the register: 41 (was 44 at D-350). VERIFICATION: notes_format
+         --write idempotent + --check clean (rules.md 301 lines).

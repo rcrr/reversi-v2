@@ -85,10 +85,10 @@ Never record DSH/vLLM/harness infrastructure behavior in decisions.md or the jou
 Minimal .gitignore: .venv/, build/, scratch/, .obsidian/; scratch/ is a disposable session area, never tracked.
 
 
-**R-013 — All Python sources under src/ (D-006)**
+**R-013 — All Python sources under src/**
 
-The package is `reversi` under src/reversi/ (D-008; D-133: the core at the top level, the tools/ and lm/ subpackages);
-the unit tests in test/, a root tree mirroring src/ one file to one file (D-273).
+The package is `reversi` under src/reversi/; the core at the top level, the tools/ and lm/ subpackages; the unit tests
+in test/, a root tree mirroring src/ one file to one file.
 
 
 **R-014 — .venv at the workspace root (gitignored)**
