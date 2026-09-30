@@ -186,8 +186,7 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 **R-038 — The mirror docs (docs/)**
 
-One doc per source file, mirroring the source tree (AGENTS.md rule 5); the rigid format is in notes/docs\_rules.md (the
-header, the 7 fixed sections, the forbidden-history list, the same-commit lifecycle, the test-doc variant).
+One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
 
 **R-040 — Docstrings: WHAT, never HOW**

@@ -687,3 +687,13 @@ D-371 | 2026-09-29 | the docstring of tools/notes\_lint.py aligned to the tools.
          now: writes nothing, a read-only report on stdout, exit 0/1), ORIGIN (D-365 born directly in tools/, D-367 the
          full-format extension, D-368 the closed volumes). Behavior unchanged (docstring only). VERIFICATION:
          py\_compile clean, the guard green on the default set.
+
+D-372 | 2026-09-29 | the R-038 reformulation (Roberto proposed the text, and the approval was given before the commit,
+         with two observations on the record): "One doc per source file, mirroring the source tree and the test tree;
+         the rigid format is in notes/docs\_rules.md." (1) "and the test tree" lifts the test mirror to the rule level —
+         before it was implicit only inside the format pointer; (2) the dropped parenthesis was a self-description of
+         docs\_rules.md (a staleness hazard of the R-049 class — a document enumerating another document), and nothing
+         normative is lost: the same-commit lifecycle it cited lives, and stays binding, in docs\_rules.md. The
+         AGENTS.md reference goes with it, consistent with the standing decision that the rules do not reference
+         AGENTS.md. The rule now states the scope (the 1:1 mirror of src/ and test/) and delegates the rigidity to the
+         format file.
