@@ -697,3 +697,15 @@ D-372 | 2026-09-29 | the R-038 reformulation (Roberto proposed the text, and the
          AGENTS.md reference goes with it, consistent with the standing decision that the rules do not reference
          AGENTS.md. The rule now states the scope (the 1:1 mirror of src/ and test/) and delegates the rigidity to the
          format file.
+
+D-373 | 2026-09-29 | R-040 divided and moved, on Roberto's text: the two new rules land in the Code style section as
+         R-045.1 (Docstrings: WHAT, never HOW — the content rule) and R-045.2 (Docstrings: no D-XXX, no reference to the
+         decisions — the provenance rule; a #: code comment carries it only if fundamental — his text, without the R-042
+         pointer). The renumbering under R-045 is what makes the move legal under the RSEQ invariant (file order ==
+         number order): R-045, R-045.1, R-045.2 sit in the right section, strictly increasing — the collision I had
+         flagged (a move as R-040 would have been red) is solved by his numbering. The R-040 number is retired by the
+         division (a permanent gap, never reused) — consistent with the D-361 classification, which had already called
+         R-040..R-044 "pure code-style rules" kept in place only for the number order. R-041's positional pointer ("the
+         WHAT-only rule above") is now an explicit cross-reference (R-045.1 / R-045.2). R-041..R-044 stay in the Docs
+         section (their migration is Roberto's call, in the pending reorganization). VERIFICATION: the guard green, the
+         register canonical (268 lines, 39 rules + 2 sub-rules).

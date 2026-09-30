@@ -189,24 +189,17 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
 
-**R-040 — Docstrings: WHAT, never HOW**
-
-Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never HOW
-— the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance in the
-docstrings (decisions.md is its home; a `#:` code comment only if fundamental).
-
-
 **R-041 — The src/ docstring style (the descriptive format)**
 
 (1) the imperative first line (one sentence, a verb: Calculate / Compute / Run / Generate); (2) the body paragraph —
 what is measured or computed and why (the observable contract; the formulas defining the output values stay in the
 docstring, they ARE the WHAT); (3) the Args: section, the Google 8-space indent, each argument typed in parentheses +
 described (the types mirror the real annotations); (4) the Returns: section, the key-by-key detail (the dict keys, the
-degenerate behaviors — the nan / None / 0 conventions, the exceptions). It completes the WHAT-only rule above: that rule
-constrains the CONTENT (no HOW, no D-XXX), this one the FORMAT. Scope: public + private functions in src/ (the test and
-probe docstrings keep their own rules, below); it binds the NEW docstrings and any REWRITTEN one; the retroactive
-conversion of the existing modules is user-directed, one module at a time, never an agent initiative. The exemplar:
-hlp\_anova.
+degenerate behaviors — the nan / None / 0 conventions, the exceptions). It completes the WHAT-only rule (R-045.1) and
+its provenance rule (R-045.2): they constrain the CONTENT (no HOW, no D-XXX), this one the FORMAT. Scope: public +
+private functions in src/ (the test and probe docstrings keep their own rules, below); it binds the NEW docstrings and
+any REWRITTEN one; the retroactive conversion of the existing modules is user-directed, one module at a time, never an
+agent initiative. The exemplar: hlp\_anova.
 
 
 **R-042 — Provenance vs design pointers**
@@ -233,6 +226,16 @@ test-doc rules.
 
 **R-045 — Code lines have a width of about 120 characters**
 
+
+**R-045.1 — Docstrings: WHAT, never HOW**
+
+Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never HOW
+— the mechanism lives in the mirror doc's Architecture section and in the code comments.
+
+
+**R-045.2 — Docstrings: no D-XXX (no reference to the decisions)**
+
+No D-XXX provenance in the docstrings (decisions.md is its home); a `#:` code comment carries it only if fundamental.
 
 ## Notes format guard
 
