@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """tools/notes_lint.py — the format guard for the notes files (read-only, D-365).
 
-Lints the workspace notes files against their rigid grammars:
-  notes/decisions.md + the closed volumes (decisions_NNN.md) -> notes/decisions_rules.md
-  notes/rules.md                                             -> the Governance block inside it
-  notes/log_NNN.md                                           -> notes/log_rules.md
-It exits 1 on any violation. Run it after every notes edit — red means no commit.
+It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes formats, each per its rigid grammar:
+  notes/decisions.md + the closed volumes (decisions_NNN.md) — the entry grammar (notes/decisions_rules.md)
+  notes/rules.md                                             — the register grammar (the Governance block inside it)
+  notes/log_NNN.md                                           — the session-block grammar (notes/log_rules.md)
+The overview and the domain rule files are not covered yet — the planned extension lives in this same tool: one
+guard, one entry point, per-format linters (never one tool per format).
+It exits 1 on any violation. Run it after every notes edit — red means no commit (R-047).
 
 Usage:
     python tools/notes_lint.py              # decisions.md + rules.md + the open journal

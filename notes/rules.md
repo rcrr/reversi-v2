@@ -233,3 +233,13 @@ test-doc rules.
 ## Code style
 
 **R-045 — Code lines have a width of about 120 characters**
+
+
+## Notes format guard
+
+**R-047 — The notes format guard**
+
+After every edit of a notes file, the notes format guard must pass GREEN before the commit (red = no commit):
+tools/notes\_lint.py, read-only, exit 0/1, default set the open decisions log + the register + the open journal (the
+closed volumes on explicit request). It implements the grammatical checks of the notes formats (the decisions log per
+notes/decisions\_rules.md, the register per its Governance block, the journals per notes/log\_rules.md).

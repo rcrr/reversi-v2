@@ -576,3 +576,26 @@ D-365 | 2026-09-29 | the FORMAT GUARD (Roberto: "Ok, PROCEDI." to the D-364 prop
          green on the default set (exit 0), the fixture red on every planted code, notes\_format --write idempotent on
          the touched files. OPEN CALL: codify "notes\_lint green before commit" as a standing rule in AGENTS.md, and add
          the linter to the AGENTS.md tools/ layout bullet — both his territory.
+
+D-366 | 2026-09-29 | the standing guard RULE (Roberto: "Prima di tutto OTTIMO! ben FATTO. Ora a me pare che dovrebbe
+         andare in rules.md piuttosto che in AGENTS.md ... ma la regola VA MESSA. Poi ti chiedo ... tools/notes\_lint
+         ... serve solo per decisions ... corretto ? Non per logs o per overview ... o rules .... Corretto ? Non sarebbe
+         meglio dargli un NOME APPROPRIATO pre\_checkin\_guard\_decisions.py ??? E scrivere nella sua documentazione che
+         IMPLEMENTA I CONTROLLI GRAMMATICALI per decisions .... E poi non dovremmo farne uno equivalente per ogni altro
+         FORMATO (overview, rules, ...) ... cosa ne pensi ?"): R-047 "The notes format guard" PROMOTED to rules.md (his
+         placement: rules.md, not AGENTS.md — his standing-instruction file stays his territory). Placement: a new final
+         section, "Notes format guard" (one rule, its own section — the Code style precedent, R-045), NOT the Roles
+         section: the guard is a process rule, not a file's role, and the end placement preserves the register's
+         file-order == number-order invariant (the RSEQ check). The tool's docstring now says it explicitly: it
+         IMPLEMENTS THE GRAMMATICAL CHECKS of the three notes formats (the decisions log per notes/decisions\_rules.md,
+         the register per its Governance block, the journals per notes/log\_rules.md). CLARIFICATION of his three
+         questions: (1) SCOPE — the guard is NOT decisions-only: the default set already covers the open decisions log +
+         the register + the open journal (the closed volumes on explicit request); what it does NOT cover yet: the
+         overview and the domain rule files. (2) NAME — a decisions-only name (pre\_checkin\_guard\_decisions.py) would
+         bake in the wrong scope; Nia's recommendation: keep notes\_lint.py (short, accurate, the notes\_format.py
+         family) — his call. (3) PER-FORMAT GUARDS — one guard, per-format linters inside (the lint\_decisions /
+         lint\_rules / lint\_journal functions are the modular unit, not the file): the planned extension is the
+         overview linter (the rigid grammar in notes/overview\_rules.md: the eight sections, the table grammar, the
+         reference families) + the domain rule files — in this same tool, never N tools; his call on when. VERIFICATION:
+         notes\_lint green on the whole default set (exit 0) after the R-047 addition; the register now 37 rules, 8
+         sections, 246 lines.
