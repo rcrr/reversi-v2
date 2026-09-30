@@ -156,11 +156,11 @@ module's namespace.
 pytest is not a dependency; do not propose a migration to pytest or another runner.
 
 
-**R-028 — Float64 pipeline-metric goldens use assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12)**
+**R-028 — Float goldens use assert_close (test/reversi/closecheck.py)**
 
-The multi-threaded OpenBLAS ddot is not bit-portable across thread counts or CPUs. Bit-exact assertEqual stays for the
-int/uint counts, the f32-quantized values (train_loss, g_norm, the tps read-back truncations), the sha3 hashes and the
-in-run determinism tests. (D-127)
+Float golden tests must use assert_close to be robust: float results are not bit-reproducible across machines. The
+rel/abs tolerances live in closecheck.py; bit-exact assertEqual stays for the int/uint counts, the f32-quantized values,
+the sha3 hashes and the in-run determinism tests.
 
 
 **R-029 — Suite tiers**

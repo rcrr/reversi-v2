@@ -401,3 +401,19 @@ D-358 | 2026-09-29 | the per-rule D-pointer review — Test discipline R-022..R-
          (patch('reversi.lm.logistic_model.wrk_config', ...), wrk_positions, wrk_features, ...). D-XXX references in
          the register: 24 (was 30 at D-357). VERIFICATION: notes_format --write idempotent + --check clean
          (rules.md 294 lines).
+D-359 | 2026-09-29 | the per-rule D-pointer review — R-028, closing the Test discipline section (Roberto, after my
+         improved proposal: "Ho capito Nia, quindi R-025 va benissimo come e'. OK. R-026: ho capito, benissimo.
+         OK! R-028: OK la tua proposta. Ottimo!"): R-028 applied verbatim from the approved proposal — title:
+         "Float64 pipeline-metric goldens" becomes "Float goldens" (his point: all floats have the problem, not
+         just float64); the tolerances (rel 1e-9 / abs 1e-12) out of the title (they are the REL_TOL/ABS_TOL
+         constants in closecheck.py — the code owns them); (D-127) out. Description: the OpenBLAS ddot sentence out
+         (the mechanism is not the rule — the full rationale, the thread-count ULP study, the <=4e-14 drift, the
+         enumeration of the pins that stay exact, already lives in the closecheck.py module header) and the example
+         enumeration "(train_loss, g_norm, the tps read-back truncations)" out (the classes stay). Kept: the WHAT
+         (float goldens must use assert_close to be robust; the tolerances live in closecheck.py) and the boundary
+         (what stays bit-exact assertEqual — without it, someone could "fix" the int/sha3 goldens to tolerant
+         comparison). R-025 and R-026 confirmed after the explanations (gate = a boolean condition deciding whether
+         a test runs/fails; no performance gate = no test fails on a timing measurement, PERF is print-only; R-026
+         verified in the code at 38 @validate_call applications in src/reversi/lm/wrk_*.py). The Test discipline
+         section is now FULLY PURE: R-022..R-029.2 carry no D-pointers. D-XXX references in the register: 23 (was
+         24 at D-358). VERIFICATION: notes_format --write idempotent + --check clean (rules.md 294 lines).
