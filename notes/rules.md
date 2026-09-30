@@ -31,25 +31,25 @@ decisions. Departure from the rules is possible only with explicit consent from 
 **R-003 — notes/overview.md**
 
 The entry point (read first; updated after each milestone and at the end of each work session): the current state, the
-next steps, the index. The format is RIGID in notes/overview_rules.md (the eight sections in fixed order, the table
+next steps, the index. The format is RIGID in notes/overview\_rules.md (the eight sections in fixed order, the table
 grammar, the cell rules, the reference families).
 
 
 **R-004 — notes/decisions.md**
 
 The OPEN historical decision log (append-only; the "why"; consulted on demand). The format is RIGID in
-notes/decisions_rules.md (the entry grammar, the volumes and rotation).
+notes/decisions\_rules.md (the entry grammar, the volumes and rotation).
 
 
-**R-005 — notes/log_NNN.md**
+**R-005 — notes/log\_NNN.md**
 
-The session journals (rotating volumes; the format is rigid in notes/log_rules.md).
+The session journals (rotating volumes; the format is rigid in notes/log\_rules.md).
 
 
 **R-006 — The domain rule files**
 
-notes/naming.md, notes/decisions_rules.md, notes/docs_rules.md, notes/log_rules.md, notes/overview_rules.md,
-notes/probe_rules.md, notes/tools.md (rigid; each owns its domain — this register points at them, never duplicates
+notes/naming.md, notes/decisions\_rules.md, notes/docs\_rules.md, notes/log\_rules.md, notes/overview\_rules.md,
+notes/probe\_rules.md, notes/tools.md (rigid; each owns its domain — this register points at them, never duplicates
 them).
 
 
@@ -127,19 +127,19 @@ canonized in notes/naming.md — the order is arbitrary but fixed.
 
 ## Test discipline
 
-**R-022 — Tests write files only under workspace_root/build/tmp, and clean up afterwards**
+**R-022 — Tests write files only under workspace\_root/build/tmp, and clean up afterwards**
 
 
 **R-023 — Test-file idiom**
 
-CUSTOM_TMP_BASE derived via __file__ (the shared test.reversi.paths module), setUpClass mkdir, TemporaryDirectory FIRST
-in setUp, defensive tearDown, WORKSPACE_ROOT-anchored paths.
+CUSTOM\_TMP\_BASE derived via \_\_file\_\_ (the shared test.reversi.paths module), setUpClass mkdir, TemporaryDirectory
+FIRST in setUp, defensive tearDown, WORKSPACE\_ROOT-anchored paths.
 
 
 **R-024 — DB-dependent tests**
 
-db_long_gate(self) (test/reversi/tags.py — the SKIP_REGAB_DB + LONG-tier check) first in setUp; the module header must
-state the gated state.
+db\_long\_gate(self) (test/reversi/tags.py — the SKIP\_REGAB\_DB + LONG-tier check) first in setUp; the module header
+must state the gated state.
 
 
 **R-025 — PERF=1 performance tests are print-only: no performance gates in any suite**
@@ -147,8 +147,8 @@ state the gated state.
 
 **R-026 — Worker factories**
 
-A uniform @validate_call gate (the arbitrary_types_allowed config); the tests patch the factory by name in the importing
-module's namespace.
+A uniform @validate\_call gate (the arbitrary\_types\_allowed config); the tests patch the factory by name in the
+importing module's namespace.
 
 
 **R-027 — The test runner is unittest (stdlib), deliberate**
@@ -156,9 +156,9 @@ module's namespace.
 pytest is not a dependency; do not propose a migration to pytest or another runner.
 
 
-**R-028 — Float goldens use assert_close (test/reversi/closecheck.py)**
+**R-028 — Float goldens use assert\_close (test/reversi/closecheck.py)**
 
-Float golden tests must use assert_close to be robust: float results are not bit-reproducible across machines. The
+Float golden tests must use assert\_close to be robust: float results are not bit-reproducible across machines. The
 rel/abs tolerances live in closecheck.py; bit-exact assertEqual stays for the int/uint counts, the f32-quantized values,
 the sha3 hashes and the in-run determinism tests.
 
@@ -166,27 +166,27 @@ the sha3 hashes and the in-run determinism tests.
 **R-029 — Suite tiers**
 
 Default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline tests; VLONG=1 adds the long instruments; VVLONG=1
-adds the very-long ones — the tiers are CUMULATIVE (each implies the previous ones); PERF=1 and SKIP_REGAB_DB=1 are
+adds the very-long ones — the tiers are CUMULATIVE (each implies the previous ones); PERF=1 and SKIP\_REGAB\_DB=1 are
 orthogonal. The single source of the tier semantics is test.reversi.tags — a new tier means: a predicate there, the
 runner header, this bullet, the overview.
 
 
 **R-029.1 — Canonical order**
 
-The canonical runner is run_utests.sh: the modules in canonical order, a new test module inserted at its logical
+The canonical runner is run\_utests.sh: the modules in canonical order, a new test module inserted at its logical
 position, never appended at the end.
 
 
 **R-029.2 — Before git commit**
 
-Before every commit run the FULL pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal environment) —
+Before every commit run the FULL pre-commit: LONG=1 ./run\_utests.sh (the live regab DB is the normal environment) —
 VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 ## Docs
 
 **R-038 — The mirror docs (docs/)**
 
-One doc per source file, mirroring the source tree (AGENTS.md rule 5); the rigid format is in notes/docs_rules.md (the
+One doc per source file, mirroring the source tree (AGENTS.md rule 5); the rigid format is in notes/docs\_rules.md (the
 header, the 7 fixed sections, the forbidden-history list, the same-commit lifecycle, the test-doc variant).
 
 
@@ -207,13 +207,13 @@ degenerate behaviors — the nan / None / 0 conventions, the exceptions). It com
 constrains the CONTENT (no HOW, no D-XXX), this one the FORMAT. Scope: public + private functions in src/ (the test and
 probe docstrings keep their own rules, below); it binds the NEW docstrings and any REWRITTEN one; the retroactive
 conversion of the existing modules is user-directed, one module at a time, never an agent initiative. The exemplar:
-hlp_anova.
+hlp\_anova.
 
 
 **R-042 — Provenance vs design pointers**
 
 Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") — that is
-OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs (docs_rules.md
+OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs (docs\_rules.md
 §3.2), and in source comments when the choice is non-obvious.
 
 
@@ -221,7 +221,7 @@ OUT. Design POINTERS to other decisions explaining a current choice stay: prescr
 
 State what is tested, optionally how it is realized (the mechanism, the preconditions, the postconditions); no D-xxx /
 I-xxx references, no evolution history, and no level ordinals that drift as levels come and go (name the level:
-CLIENT_CHECK, PLOT).
+CLIENT\_CHECK, PLOT).
 
 
 **R-044 — Probe docs**

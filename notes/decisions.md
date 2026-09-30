@@ -555,3 +555,24 @@ D-364 | 2026-09-29 | the missing-BLANK-LINE REPAIR (Roberto: "Mancano le spaziat
          for rules.md (the R-NNN headers, the 2-blank rule spacing, the real D-pointers flagged) and the journals (the
          session-block grammar, the 2-space continuation, the escapes). Run after every notes edit — red means no
          commit.
+
+D-365 | 2026-09-29 | the FORMAT GUARD (Roberto: "Ok, PROCEDI." to the D-364 proposal): tools/notes\_lint.py — the
+         read-only format test for the notes files, to run after every notes edit (red means no commit). The session's
+         three bug classes are the permanent codes: BLANK (one blank line before every D-NNN header, no doubles —
+         the D-364 class), ESC (no bare underscore and no unpaired asterisk outside code spans — the D-209 rule extended
+         to the snake\_case identifiers, the D-363 class), TRAP (no continuation starting with digit+dot, dash, hash,
+         pipe, or D-NNN-pipe — the 13-space mis-parse class); plus HEADER/INDENT/SEQ (decisions),
+         RHEAD/RTITLE/RSPACE/DPOINTER/RSEQ (rules; the R-NNN.N sub-numbers sort inside their parent),
+         JH1/JPOINTER/JSESSION/JINDENT/JBLANK (journals), WIDTH, EOF and CANON (the file must be its own
+         notes\_format --write rendering — the tool's --check alone cannot serve: it passes even on non-canonical files,
+         discovered during the build). DOGFOOD (scratch/lint\_fixtures, disposable): the fixture reproduces the
+         session's bugs and every planted code fires; the real files pass. FIRST CATCHES ON THE REAL FILES (repaired in
+         this same commit): rules.md 34 bare underscores escaped (the domain-files pointers, the code identifiers); the
+         open journal 196 underscores + 2 asterisks escaped (the known disease — the open volume is now clean) + one
+         1-space continuation line fixed to 2 (the D-362 turn hand-wrap slip, line 516). The closed volumes
+         (decisions\_000..005) and the closed journals are out of the default lint set — they keep the same disease, a
+         parked call. RULE: the decisions\_rules.md escape bullet extended (backslash-escaped asterisks AND
+         underscores; D-209 extended at D-365) — the rule and its enforcer born together. VERIFICATION: notes\_lint
+         green on the default set (exit 0), the fixture red on every planted code, notes\_format --write idempotent on
+         the touched files. OPEN CALL: codify "notes\_lint green before commit" as a standing rule in AGENTS.md, and add
+         the linter to the AGENTS.md tools/ layout bullet — both his territory.

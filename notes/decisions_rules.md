@@ -10,8 +10,9 @@ is wrapped to ~120 chars/line.
   spaces; no other indentation.
 - The D-numbers are global, monotonically increasing, never reused or renumbered — across the open log and every closed
   volume.
-- Code spans for the paths and the function / file names; backslash-escaped asterisks for the math multiplications, so
-  the Markdown renders without stray italics (D-209).
+- Code spans for the paths and the function / file names; backslash-escaped asterisks and underscores (the math
+  multiplications, the snake\_case identifiers), so the Markdown renders without stray italics (D-209, extended
+  at D-365).
 
 ## Volumes and rotation
 
