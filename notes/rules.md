@@ -112,7 +112,7 @@ outside the campaign sweep. The rules for creating, documenting and retiring one
 **R-017 — Code-generated data that is expensive to replicate goes in build/ (gitignored)**
 
 NEVER inside src/, notes/ or any other code folder: a git clone must be self-contained (the cloner recomputes it once);
-the persistent data is a DB/campaign artifact, decided explicitly. (D-176)
+the persistent data is a DB/campaign artifact, decided explicitly.
 
 ## Naming & platform
 

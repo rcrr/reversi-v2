@@ -338,3 +338,10 @@ D-353 | 2026-09-29 | the per-rule D-pointer review — item 5, R-016 (Roberto: "
          "(the four requirements — ...)" summary of notes/tools.md — the domain file carries its own four
          requirements, the register points (the R-003/R-004/R-007 pattern). D-XXX references in the register: 36
          (was 38 at D-352). VERIFICATION: notes_format --write idempotent + --check clean (rules.md 299 lines).
+D-354 | 2026-09-29 | the per-rule D-pointer review — item 6, R-017 (Roberto: "Proseguiamo con R-017. ... Diventa:
+         [the rule without the trailing (D-176)]. Grazie!"): his text applied — the only change is the (D-176)
+         origin pointer out of the description's end; the title keeps "(gitignored)" (unlike R-014's title, the
+         gitignored-ness of build/ is part of the rule's reasoning: the data lives there BECAUSE the folder is
+         gitignored — the self-contained-clone contract). The Layout & tree section is now fully pure: R-012..R-017
+         carry no D-pointers. D-XXX references in the register: 35 (was 36 at D-353). VERIFICATION: notes_format
+         --write idempotent + --check clean (rules.md 299 lines).
