@@ -226,6 +226,9 @@ test-doc rules.
 
 **R-045 — Code lines have a width of about 120 characters**
 
+The limit applies to every physical line of a source file — code, comments, and docstring lines alike; docstrings are
+wrapped, not exempt.
+
 
 **R-045.1 — Docstrings: WHAT, never HOW**
 

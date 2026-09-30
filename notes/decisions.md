@@ -709,3 +709,11 @@ D-373 | 2026-09-29 | R-040 divided and moved, on Roberto's text: the two new rul
          WHAT-only rule above") is now an explicit cross-reference (R-045.1 / R-045.2). R-041..R-044 stay in the Docs
          section (their migration is Roberto's call, in the pending reorganization). VERIFICATION: the guard green, the
          register canonical (268 lines, 39 rules + 2 sub-rules).
+
+D-374 | 2026-09-29 | R-045 made its scope explicit (Roberto: "Bene Nia! Secondo te la R-045 comprende le docstring o
+         dobbiamo renderlo esplicito ?" — and then: "Va bene Nia, aggiorna la R-045. Procedi!"). The title "Code lines
+         have a width of about 120 characters" was readable as excluding the docstrings (code vs documentation); the
+         house practice has always wrapped them at ~120, and now that R-045.1/R-045.2 (the docstring rules) sit directly
+         below, the scope question would arise anyway. One-line description added, the title untouched: the limit
+         applies to every physical line of a source file — code, comments, and docstring lines alike; docstrings are
+         wrapped, not exempt.
