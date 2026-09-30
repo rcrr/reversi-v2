@@ -717,3 +717,20 @@ D-374 | 2026-09-29 | R-045 made its scope explicit (Roberto: "Bene Nia! Secondo 
          below, the scope question would arise anyway. One-line description added, the title untouched: the limit
          applies to every physical line of a source file — code, comments, and docstring lines alike; docstrings are
          wrapped, not exempt.
+
+D-375 | 2026-09-30 | R-041 retired, its format core reborn as R-045.3 (Roberto: "Procedi come lo ho scritto io. Le
+         regole sulle docstring sono valide anche per i tests." — approving the retirement + the rule text he proposed
+         the turn before, after my split proposal R-041 + R-041.1). The four-part descriptive format moves to the Code
+         style cluster as R-045.3 (Docstrings: FORMAT), a sibling of R-045.1 (WHAT, never HOW) and R-045.2 (no D-XXX):
+         the cluster is now complete and self-evident (width, content, provenance, format), and the Docs section no
+         longer carries any docstring rule — the frozen emigration question shrinks from R-041..R-044 to R-042/043/044,
+         of which R-043/R-044 (test, probe) fit Docs and only R-042 is open. Rulings on the record: (1) scope — the
+         docstring rules are valid for the tests too, hence the unscoped title (no "(src/)"); R-043/R-044 remain the
+         zone content rules, in the R-044 exception pattern. (2) The exemplar (hlp\_anova) drops with the rule: a
+         pointer to a live file (it is on the format-pass to-do); the four parts are self-contained. (3) The
+         past-management clause (retroactive conversion user-directed, one module at a time, never an agent initiative)
+         is deliberately NOT legislated: it is campaign-execution state, and the "never an agent initiative" protection
+         already lives in R-009 (source files are modified only on explicit request). (4) R-041 leaves a permanent gap
+         (joins R-040, retired by division at D-373); no other live reference to it exists (verified tree-wide: only the
+         rule title itself). VERIFICATION: the guard green on the default set, the register canonical (267 lines, 35
+         rules + 5 sub-rules).
