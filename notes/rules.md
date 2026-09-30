@@ -239,9 +239,4 @@ test-doc rules. (D-270)
 
 ## Code style
 
-**R-045 — Source line length**
-
-No linter gate, no hard limit (pyproject carries no flake8/ruff config). New or EDITED lines match the local file's wrap
-convention (the lm zone historically wraps at ~72–76); a convention-less file defaults to <= 79 (PEP8). A full-file
-reflow to 120 is a deliberate, user-directed act (the wrk_anova.py reflow is its precedent — D-314), never an agent
-side-effect, and untouched lines are never re-wrapped. The docs/notes stay at ~120 (D-237). (D-314)
+**R-045 — Code lines have a width of about 120 characters**

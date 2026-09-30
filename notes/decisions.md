@@ -446,3 +446,22 @@ D-360 | 2026-09-29 | the per-rule D-pointer review — the whole Pipeline contra
          section leaves, like the Journal section at D-349); the R-030..R-037 gaps are permanent. Rules in force:
          45 -> 37. D-XXX references in the register: 14 (was 23 at D-359). VERIFICATION: notes_format --write
          idempotent + --check clean (rules.md 248 lines).
+D-361 | 2026-09-29 | the per-rule D-pointer review — R-045, closing the Code style section (Roberto: "Proseguiamo
+         con la sezione 'Code style'. Una sola regola, la R-045. Sono del parere che vada mantenuta, ma
+         semplificata. Diciamo come devono essere le linee di codice. fine. Mi fai una proposta di
+         semplificazione, pulizia, revisione." — after my proposal that KEPT the local 72–76 convention: "credo ci
+         sia un fraintendimento. Io voglio le righe a circa 120 caratteri... non circa 72-76. Scriviamo
+         semplicemnte questo. Le righe hanno una larghezza di circa 120 caratteri. Semplice no? Riformula la
+         proposta per favore." — then "Proposta accettata. la regola va bene come da te proposta."): R-045 AMENDED
+         (a content change, not a pointer removal) to the one-line rule "Code lines have a width of about 120
+         characters." The target wrap width for code is now ~120 (a workspace-wide single width: code = docs =
+         notes, consistent with the Governance paragraph "Lines are ~120 chars." and notes_format's WIDTH=120),
+         REPLACING "match the local file's wrap convention (the lm zone ~72–76) / default <=79 (PEP8) when
+         convention-less". Out: the linter-context sentence, the (D-314) precedent, the docs/notes ~120 (D-237)
+         sentence (out of scope — the Governance paragraph + notes_format carry it), and the reflow guard (the
+         protection already lives in AGENTS.md rule 3: sources are modified only on explicit request, so an
+         unrequested reflow stays prohibited; a full-file reflow of the still 72–76-wrapped files to ~120 remains a
+         user-directed, deliberate act, the D-314 pattern). Code style is now a single one-line rule; the per-rule
+         review (D-340) is down to its LAST section, Docs (R-038..R-044). Rules in force: 37 (unchanged — an
+         amendment). D-XXX references in the register: 12 (was 14 at D-360) — all remaining refs now sit in the
+         Docs section. VERIFICATION: notes_format --write idempotent + --check clean (rules.md 243 lines).
