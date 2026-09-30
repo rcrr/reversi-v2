@@ -305,3 +305,10 @@ D-349 | 2026-09-29 | the JOURNAL section RETIRED — R-046 removed (Roberto: "La
          Governance: R-046's number leaves a gap (no renumbering); the register is now 45 rules in 8 sections
          (rules.md 302 lines; R-045 is the last rule). VERIFICATION: notes_format --write idempotent + --check clean;
          no live R-046 reference outside the historical decision entries (which record the state at their time).
+D-350 | 2026-09-29 | the PER-RULE D-POINTER REVIEW starts — item 1, R-012 (Roberto: "Proseguiamo con la review per
+         regola. R-012 ... Diventa: [the rule without (D-003), (D-009), (AGENTS rule 7)]. Grazie!"): his text applied —
+         the title loses (D-003), the description loses (D-009) and the AGENTS rule 7 pointer; the rule is now pure
+         (the workspace is a git repo; the minimal .gitignore list; scratch/ disposable, never tracked). The three
+         pointers were pure provenance — the AGENTS.md standing rules 1/7 and the .gitignore itself carry the
+         operative facts. D-XXX references in the register: 44 (was 46 at D-348). VERIFICATION: notes_format --write
+         idempotent + --check clean (rules.md 301 lines).

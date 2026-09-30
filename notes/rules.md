@@ -80,10 +80,9 @@ Never record DSH/vLLM/harness infrastructure behavior in decisions.md or the jou
 
 ## Layout & tree
 
-**R-012 — The workspace is a git repo (D-003)**
+**R-012 — The workspace is a git repo**
 
-Minimal .gitignore: .venv/, build/, scratch/, .obsidian/ (D-009); scratch/ is a disposable session area, never tracked
-(AGENTS rule 7).
+Minimal .gitignore: .venv/, build/, scratch/, .obsidian/; scratch/ is a disposable session area, never tracked.
 
 
 **R-013 — All Python sources under src/ (D-006)**
