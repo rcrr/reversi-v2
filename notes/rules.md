@@ -165,18 +165,24 @@ int/uint counts, the f32-quantized values (train_loss, g_norm, the tps read-back
 in-run determinism tests. (D-127)
 
 
-**R-029 — Suite tiers (D-130; the VVLONG tier at D-256)**
+**R-029 — Suite tiers**
 
-Default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline tests; VLONG=1 adds the long instruments (the A2050
-end-to-end chain); VVLONG=1 adds the very-long ones (the 1e6 corpus benchmark, the 1e7 corpus test) — the tiers are
-CUMULATIVE (each implies the previous ones), and the single source of the semantics is `test.reversi.tags` (tier_vlong /
-tier_vvlong / db_long_gate); PERF=1 (D-036) and SKIP_REGAB_DB=1 are orthogonal. A new tier means: a predicate in
-tags.py, the runner header, this bullet, the overview. Before every commit run the FULL pre-commit: LONG=1
-./run_utests.sh (the live regab DB is the normal environment) — VLONG=1 only when it is useful, and the gated run
-(SKIP_REGAB_DB=1) is not a substitute. The canonical runner is run_utests.sh: the modules in canonical order — the
-tools, the board/pattern concepts, the infrastructure, the DB access, then the pipeline in machine order with each data
-module immediately before its worker, the end-to-end chain last; a new test module is inserted at its logical position,
-never appended at the end.
+Default = the fast tier (no DB); LONG=1 adds the DB-gated pipeline tests; VLONG=1 adds the long instruments; VVLONG=1
+adds the very-long ones — the tiers are CUMULATIVE (each implies the previous ones); PERF=1 and SKIP_REGAB_DB=1 are
+orthogonal. The single source of the tier semantics is test.reversi.tags — a new tier means: a predicate there, the
+runner header, this bullet, the overview.
+
+
+**R-029.1 — Canonical order**
+
+The canonical runner is run_utests.sh: the modules in canonical order, a new test module inserted at its logical
+position, never appended at the end.
+
+
+**R-029.2 — Before git commit**
+
+Before every commit run the FULL pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal environment) —
+VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 ## Pipeline contracts (RLM)
 

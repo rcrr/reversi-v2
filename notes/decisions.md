@@ -368,3 +368,17 @@ D-356 | 2026-09-29 | the per-rule D-pointer review — R-018 and R-019, closing 
          platform section is now fully pure (R-018/R-019; R-020/R-021 retired at D-355). D-XXX references in the
          register: 32 (was 34 at D-355). VERIFICATION: notes_format --write idempotent + --check clean (rules.md
          290 lines).
+D-357 | 2026-09-29 | the per-rule D-pointer review — R-029 SPLIT into three rules (Roberto: "FAmmi una prosta lean
+         and clean per R-029 per favore. Poi la valuto e ti dico come procedere. Grazie!" — after my 7-line lean
+         proposal: "E se facessimo tre RULES ??? [R-029 Suite tiers / R-029.1 Canonical order / R-029.2 Before git
+         commit, full text]. Cosa ne pendi ?" — after my endorsement: "Procedi!"): the monster was three independent
+         contracts fused in one rule (the tier semantics; the canonical module order of the runner; the pre-commit
+         obligation) — each can be violated and checked independently, so it is three rules. His text applied
+         verbatim, zero declared fixes: R-029 keeps its number and the tier contract (out: the A2050/1e6/1e7
+         examples, the predicate names, the order enumeration, and the (D-130; D-256)/(D-036) pointers — the tier
+         content and the canonical order are carried by the run_utests.sh header + the MODULES array, and the tier
+         semantics by test.reversi.tags, both named in the rule); R-029.1 and R-029.2 are NEW rules using the
+         R-NNN.N sub-numbering created at D-341, placed adjacent to the parent (the zero-padded parent sorts
+         textually before R-030, so the placement at the end of the Test discipline section is correct). Rules in
+         force: 43 -> 45. D-XXX references in the register: 30 (was 32 at D-356). VERIFICATION: notes_format
+         --write idempotent + --check clean (rules.md 296 lines).
