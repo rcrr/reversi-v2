@@ -417,3 +417,32 @@ D-359 | 2026-09-29 | the per-rule D-pointer review — R-028, closing the Test d
          verified in the code at 38 @validate_call applications in src/reversi/lm/wrk_*.py). The Test discipline
          section is now FULLY PURE: R-022..R-029.2 carry no D-pointers. D-XXX references in the register: 23 (was
          24 at D-358). VERIFICATION: notes_format --write idempotent + --check clean (rules.md 294 lines).
+D-360 | 2026-09-29 | the per-rule D-pointer review — the whole Pipeline contracts (RLM) section RETIRED,
+         R-030..R-037 (Roberto: "Ora affrontiamo la sezione 'Pipeline contracts (RLM)'. Ho una idea radicale,
+         secondo me nulla di questa sezione deve rimanere nel file rules.md. Ogni regola e' documentazione che deve
+         essere specificata in uno dei tre moduli: state_machine, base_model, logistic_module. Fai una analisi
+         accurata, dettagliata. dammi il tuo parere in merito. E se sei d'accordo, fammi una proposta delle
+         modifiche alla documentazione dei sorgenti python o dei mirror docs. Procedi per favore." — after my
+         per-rule verification + endorsement: "Via, procedi! Ottimo."): my radical idea was ENDORSED, and the
+         analysis showed something stronger — ALL EIGHT invariants are ALREADY canonized in the mirror docs, so no
+         source or doc change is needed: R-030 sentinel (state_machine.md Architecture + Verified invariants +
+         logistic_model.md "The CREATED sentinels"); R-031 failure semantics (state_machine.md Architecture +
+         invariants); R-032 unique names (state_machine.md API table + invariants); R-033 gate split (state_machine.
+         md "The move gate is separate from execution" + the state_machine.py:373 comment + logistic_model.md
+         "the gate split"); R-034 blackboard pre-declaration (logistic_model.md Architecture "LMContext is the
+         shared blackboard" + Conventions "Blackboard fields are pre-declared on LMContext..."); R-035 cache flow
+         (cache_manager.md load-or-compute + .SHA3-256 sidecar "a bad sidecar invalidates, never crashes" +
+         state_machine.md "Cache path" prefix-CONCATENATED verbatim + the state_machine.py:178 comment); R-036 bool
+         not a valid step (state_machine.md Architecture + invariants); R-037 target-driven stop (base_model.md
+         "run(), the target-driven driver... a deeper target is a RESUME" + logistic_model.md the CONFIG-first
+         half). Three grounds: (1) the house pattern — R-006 "the register points at them, never duplicates them",
+         the D-355 precedent (R-020/R-021) applied to all eight; (2) the invariants are module-specific, they do not
+         bind outside state_machine/base_model/logistic_model/cache_manager; (3) the register copy was already
+         DRIFTING — "the 8192-chunk verify" in R-035 is stale (8192 appears nowhere in the code; binio.
+         compute_sha3_256 uses chunk_size = 1 << 20, documented in binio.md), while the docs stay current per the
+         docs_rules.md current-state contract. Correction to Roberto's framing: the invariants are owned by FIVE
+         docs (state_machine.md x5, base_model.md, logistic_model.md x2, cache_manager.md, binio.md), not three
+         modules. Action: R-030..R-037 RETIRED and the "## Pipeline contracts (RLM)" heading removed (the empty
+         section leaves, like the Journal section at D-349); the R-030..R-037 gaps are permanent. Rules in force:
+         45 -> 37. D-XXX references in the register: 14 (was 23 at D-359). VERIFICATION: notes_format --write
+         idempotent + --check clean (rules.md 248 lines).

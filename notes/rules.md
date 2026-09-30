@@ -182,52 +182,6 @@ position, never appended at the end.
 Before every commit run the FULL pre-commit: LONG=1 ./run_utests.sh (the live regab DB is the normal environment) —
 VLONG=1 only when it is useful, and the gated run is not a substitute.
 
-## Pipeline contracts (RLM)
-
-**R-030 — Worker 0 (CREATED) is an intentional sentinel**
-
-The machine never invokes its up()/down() — the domain's first worker runs outside the machine. (D-059)
-
-
-**R-031 — Failure semantics**
-
-After a failure at step k, current_step stays at k (the failed step); a same-target retry executes only the steps above
-k; the machine re-raises and is domain-agnostic — the recovery (move_to_step(k-1), then up) and any failure handling is
-the domain worker's responsibility. (D-060)
-
-
-**R-032 — Worker names are UNIQUE**
-
-Enforced fail-fast in StateMachine.__init__ (a case-insensitive duplicate check → ValueError before any state is
-touched). (D-061)
-
-
-**R-033 — Gate split**
-
-The domain pydantic ValidationErrors are NOT converted to the gate's TypeError — the gate passes the domain errors
-through. (D-076)
-
-
-**R-034 — Blackboard: the LMContext fields are pre-declared before a worker consumes or publishes them. (D-099)**
-
-
-**R-035 — Cache flow**
-
-The cache_manager load-or-compute with the .SHA3-256 sidecar and the 8192-chunk verify (D-071/D-072); the
-rlmwf_NN_ names are flat filename-prefix concatenations, not pathlib joins (D-069, D-076).
-
-
-**R-036 — bool is not a valid step (D-069).**
-
-
-**R-037 — The stop is TARGET-DRIVEN**
-
-The facade's `run(target_level=None)` runs the first real level (CONFIG) first, then stops at the explicit argument,
-else at the domain's configured target (`LMConfig.target_level`), else at the last step; "last" (any case) and a blank
-value mean the whole pipeline, and ANY level name (case-insensitive) or int index is a legal stop. The target step IS
-executed, and a second `run()` with a deeper target RESUMES — the levels already done are not re-run (their ctx
-artifacts survive, the caches stay hot). (D-260)
-
 ## Docs
 
 **R-038 — Mirror rule + the rigid mirror format**
