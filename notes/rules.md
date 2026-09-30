@@ -91,16 +91,15 @@ The package is `reversi` under src/reversi/; the core at the top level, the tool
 in test/, a root tree mirroring src/ one file to one file.
 
 
-**R-014 — .venv at the workspace root (gitignored)**
+**R-014 — .venv at the workspace root**
 
-pyproject.toml is the minimal editable-install form, with the implicit requirements declared as they are hit
-(D-010, D-011).
+pyproject.toml is the minimal editable-install form, with the implicit requirements declared as they are hit.
 
 
 **R-015 — docs/ mirrors src/ one file to one file**
 
-src/reversi/X.py → docs/src/reversi/X.md (D-007); the test files mirror the same way: test/reversi/X.py →
-docs/test/reversi/X.md (D-273).
+src/reversi/X.py → docs/src/reversi/X.md; the test files mirror the same way: test/reversi/X.py →
+docs/test/reversi/X.md.
 
 
 **R-016 — tools/ (workspace root) holds the MAINTENANCE tools**

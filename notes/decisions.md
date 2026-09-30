@@ -320,3 +320,12 @@ D-351 | 2026-09-29 | the per-rule D-pointer review — item 2, R-013 (Roberto: "
          core at the top level, the tools/ and lm/ subpackages; the unit tests in test/, a root tree mirroring src/
          one file to one file. D-XXX references in the register: 41 (was 44 at D-350). VERIFICATION: notes_format
          --write idempotent + --check clean (rules.md 301 lines).
+D-352 | 2026-09-29 | the per-rule D-pointer review — items 3+4, R-014 + R-015 (Roberto: "Proseguiamo con R-014 e
+         R-015. ... Diventano: [R-014 without (gitignored) in the title and without (D-010, D-011); R-015 without
+         (D-007) and (D-273)]. Grazie!"): both rules applied from his text. R-014 is now: the .venv at the workspace
+         root; pyproject.toml the minimal editable-install form, implicit requirements declared as they are hit —
+         the "(gitignored)" note out of the title too (the .gitignore itself carries the fact, same logic as
+         R-012); R-015 is now the mirror rule in its purest form: src/reversi/X.py -> docs/src/reversi/X.md, the
+         test files mirror the same way (the (D-007) / (D-273) origin pointers out — the mirror rule lives in
+         AGENTS.md rule 5 and in the docs/ tree itself). D-XXX references in the register: 38 (was 41 at D-351).
+         VERIFICATION: notes_format --write idempotent + --check clean (rules.md 300 lines).
