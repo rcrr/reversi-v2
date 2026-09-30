@@ -329,3 +329,12 @@ D-352 | 2026-09-29 | the per-rule D-pointer review — items 3+4, R-014 + R-015 
          test files mirror the same way (the (D-007) / (D-273) origin pointers out — the mirror rule lives in
          AGENTS.md rule 5 and in the docs/ tree itself). D-XXX references in the register: 38 (was 41 at D-351).
          VERIFICATION: notes_format --write idempotent + --check clean (rules.md 300 lines).
+D-353 | 2026-09-29 | the per-rule D-pointer review — item 5, R-016 (Roberto: "Proseguiamo con R-016. ... Diventa:
+         [tools/ holds the maintenance tools — the three tools, the NOT-package-tools / NOT-probes distinction, the
+         a/b/c test, the pointer to notes/tools.md — without (D-248), (D-133) and the four-requirements
+         parenthetical]. Grazie!"): his text applied. The title loses "(workspace root)" (the fact is carried by
+         AGENTS.md's Layout line and by the rule's own "It is NOT the package's src/reversi/tools/" clause) and
+         "MAINTENANCE" is lowercased; the description drops the (D-248) and (D-133) origin pointers and the
+         "(the four requirements — ...)" summary of notes/tools.md — the domain file carries its own four
+         requirements, the register points (the R-003/R-004/R-007 pattern). D-XXX references in the register: 36
+         (was 38 at D-352). VERIFICATION: notes_format --write idempotent + --check clean (rules.md 299 lines).

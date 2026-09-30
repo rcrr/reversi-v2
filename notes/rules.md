@@ -102,12 +102,11 @@ src/reversi/X.py → docs/src/reversi/X.md; the test files mirror the same way: 
 docs/test/reversi/X.md.
 
 
-**R-016 — tools/ (workspace root) holds the MAINTENANCE tools**
+**R-016 — tools/ holds the maintenance tools**
 
-The notes/docs format re-wrapper, the mirror-doc auditor, the suite counter (D-248). It is NOT the package's
-src/reversi/tools/ (that one ships, D-133) and NOT probes/ (the per-module verification apparatus): a tool that makes no
-a/b/c check belongs here, outside the campaign sweep. The rules for creating, documenting and retiring one:
-notes/tools.md (the four requirements — general utility, a clear API, reproducible + testable, does no damage).
+The notes/docs format re-wrapper, the mirror-doc auditor, the suite counter. It is NOT the package's src/reversi/tools/
+(that one ships) and NOT probes/ (the per-module verification apparatus): a tool that makes no a/b/c check belongs here,
+outside the campaign sweep. The rules for creating, documenting and retiring one: notes/tools.md.
 
 
 **R-017 — Code-generated data that is expensive to replicate goes in build/ (gitignored)**
