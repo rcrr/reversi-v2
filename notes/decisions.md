@@ -274,3 +274,15 @@ D-346 | 2026-09-29 | R-007 MICRO-AMENDMENT (Roberto: the pointer without the D-2
          register: the preambles themselves carry it ("Format (D-235)" in both files) — the reference lives where it
          belongs. Amendment keeps the R-007 number (per the Governance). VERIFICATION: notes_format --write idempotent
          + --check clean (rules.md 309 lines, R-007 = 2 description lines).
+D-347 | 2026-09-29 | the LANGUAGE & COLLABORATION section, per Roberto's text (and: "Nel caso volessi spiegare il
+         D-111 pattern, spieghiamolo qui. ma no a REFERENCES to D-XXX."). (1) R-008 generalized: "Replies to the user:
+         Italian." -> "Replies to the user: his own language (e.g. Italian)." — the register states the principle; the
+         constitution (AGENTS.md rule 4) still pins the current instance ("Italian") — coherent, and per R-002's
+         hierarchy the constitution sits above the register, so nothing is overridden; if the language ever changes,
+         the constitution line changes with it. (2) R-010: the D-111 reference out — "One commit per item + a
+         notes-wave commit at the campaign close." Nia's call on the offered inline explanation: NOT needed — the
+         rule is self-contained (one D-number per fix campaign; one commit per fix item; the notes-wave commit = the
+         batched notes updates — decisions / journal / overview — that closes the campaign); the D-pointer was pure
+         provenance (the same principle as D-346: no D-XXX references in the rules; explain inline only when the rule
+         is not self-contained — here it is). (3) R-009 / R-011: untouched, exactly as proposed. VERIFICATION:
+         notes_format --write idempotent + --check clean (rules.md 309 lines).

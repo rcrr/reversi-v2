@@ -60,7 +60,7 @@ closure lifecycle and the I-numbering are in each file's preamble.
 
 ## Language & collaboration
 
-**R-008 — Notes and workspace comments: English. Replies to the user: Italian. (D-002)**
+**R-008 — Notes and workspace comments: English. Replies to the user: his own language (e.g. Italian). (D-002)**
 
 
 **R-009 — Notes are autonomous**
@@ -71,7 +71,7 @@ being asked; the source files are modified only on explicit user request. (D-004
 
 **R-010 — One D-number per fix campaign**
 
-One commit per item + a notes-wave commit at the campaign close (the D-111 pattern).
+One commit per item + a notes-wave commit at the campaign close.
 
 
 **R-011 — The notes are the Reversi portfolio (the GitHub publication material)**
