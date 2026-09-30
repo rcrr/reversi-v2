@@ -255,3 +255,17 @@ D-344 | 2026-09-29 | R-004 CONDENSED — the DECISIONS DOMAIN FILE (Roberto: "R-
          tool's canonical ~120 wrap (content-neutral: the token fingerprint identical, idempotent) — the post-D-333
          hand-wrap drift is healed. VERIFICATION: notes_format --write idempotent + --check clean (rules.md 312
          lines, R-004 = 2 lines; decisions_rules.md 21 lines).
+D-345 | 2026-09-29 | R-007 CONDENSED — the IDEAS PREAMBLES (Roberto: "R-007 le regole sono duplicate nel preambolo
+         di ideas.md. Propongo di rimuoverle da rules, e scrivere solo che sono nel preambolo del file. Cosa ne
+         pensi?"). Verified first: the two preambles (notes/ideas.md + notes/ideas-closed.md, both "Format (D-235)")
+         are the SUPERSET of the R-007 clauses — the format grammar (the `I-NNN | status | idea` header, the 9-space
+         continuation, the blank line before every entry, the code spans), the status legend (idea / follow-up /
+         in-progress, WITH definitions — the register never had those), the closure lifecycle (a closed idea MOVES to
+         ideas-closed.md, compacted to the statement + the D-pointer + the outcome, in the same commit as the closing
+         decision, "it never stays here"; the campaign history stays in decisions.md / the journal, the closed file
+         is "the I-NNN index into it, never a narrative"), and the I-numbers (global, never reused or renumbered) —
+         all of it in the preambles; the register carried the weaker copy. R-007 -> the 2-line pointer: the identity
+         (the OPEN backlog I-NNN; ideas-closed.md the CLOSED ideas, done | dropped) + "The format (D-235), the status
+         legend, the closure lifecycle and the I-numbering are in each file's preamble." No new file needed — the
+         preambles ARE the domain files (self-contained, D-235, in both files). VERIFICATION: notes_format --write
+         idempotent + --check clean (rules.md 309 lines, R-007 = 2 description lines).

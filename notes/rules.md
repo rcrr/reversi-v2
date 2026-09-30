@@ -55,11 +55,8 @@ them).
 
 **R-007 — notes/ideas.md**
 
-The OPEN backlog (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done | dropped). Format (D-235):
-`I-NNN | status | idea`, a 9-space continuation indent, a blank line before every entry, code spans for the paths /
-identifiers; the statuses are idea | follow-up | in-progress (closed: done | dropped). A closed idea MOVES to
-ideas-closed.md, compacted to the statement + the D-pointer + the outcome, in the same commit as the closing decision;
-the campaign history stays in decisions.md / the journal. The I-numbers are global, never reused or renumbered.
+The OPEN backlog (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done | dropped). The format (D-235), the status
+legend, the closure lifecycle and the I-numbering are in each file's preamble.
 
 ## Language & collaboration
 
