@@ -269,3 +269,8 @@ D-345 | 2026-09-29 | R-007 CONDENSED — the IDEAS PREAMBLES (Roberto: "R-007 le
          legend, the closure lifecycle and the I-numbering are in each file's preamble." No new file needed — the
          preambles ARE the domain files (self-contained, D-235, in both files). VERIFICATION: notes_format --write
          idempotent + --check clean (rules.md 309 lines, R-007 = 2 description lines).
+D-346 | 2026-09-29 | R-007 MICRO-AMENDMENT (Roberto: the pointer without the D-235 reference — "The format (D-235),
+         the status legend, ..." -> "The format, the status legend, ..."). The origin pointer is redundant in the
+         register: the preambles themselves carry it ("Format (D-235)" in both files) — the reference lives where it
+         belongs. Amendment keeps the R-007 number (per the Governance). VERIFICATION: notes_format --write idempotent
+         + --check clean (rules.md 309 lines, R-007 = 2 description lines).

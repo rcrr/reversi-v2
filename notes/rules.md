@@ -55,8 +55,8 @@ them).
 
 **R-007 — notes/ideas.md**
 
-The OPEN backlog (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done | dropped). The format (D-235), the status
-legend, the closure lifecycle and the I-numbering are in each file's preamble.
+The OPEN backlog (I-NNN); notes/ideas-closed.md — the CLOSED ideas (done | dropped). The format, the status legend, the
+closure lifecycle and the I-numbering are in each file's preamble.
 
 ## Language & collaboration
 
