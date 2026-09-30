@@ -37,11 +37,8 @@ grammar, the cell rules, the reference families).
 
 **R-004 — notes/decisions.md**
 
-The OPEN historical decision log (append-only; the "why"; consulted on demand). Format (D-209): ~120 chars/line; a blank
-line before every entry; code spans for the paths and the function / file names; backslash-escaped asterisks for the
-math multiplications, so the Markdown renders without stray italics. Volume rotation (D-118, the cap amended to 1000
-lines at D-333): the open volume keeps this name; past 1000 lines it closes at a session boundary as decisions_NNN.md
-and a new decisions.md is opened — the D-numbers stay global and immutable across the volumes.
+The OPEN historical decision log (append-only; the "why"; consulted on demand). The format is RIGID in
+notes/decisions_rules.md (the entry grammar, the volumes and rotation).
 
 
 **R-005 — notes/log_NNN.md**
@@ -51,8 +48,9 @@ The session journals (rotating volumes; the format is rigid in notes/log_rules.m
 
 **R-006 — The domain rule files**
 
-notes/naming.md, notes/docs_rules.md, notes/log_rules.md, notes/overview_rules.md, notes/probe_rules.md, notes/tools.md
-(rigid; each owns its domain — this register points at them, never duplicates them).
+notes/naming.md, notes/decisions_rules.md, notes/docs_rules.md, notes/log_rules.md, notes/overview_rules.md,
+notes/probe_rules.md, notes/tools.md (rigid; each owns its domain — this register points at them, never duplicates
+them).
 
 
 **R-007 — notes/ideas.md**

@@ -221,6 +221,8 @@ tables above.
   wave-tier performance baseline — performance_baseline.md, the ODP-9 material)
 - notes/ideas.md — the OPEN backlog (I-NNN, D-235)
 - notes/ideas-closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
+- notes/decisions_rules.md — the decisions-log format rules (rigid; the entry grammar — header + 9-space continuation —
+  the volumes and rotation: the 1000-line cap, only at session boundaries)
 - notes/log_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /
   2000 lines per volume, only at session boundaries)
 - notes/docs_rules.md — mirror-doc format rules (rigid; the current-state contract)

@@ -1,6 +1,6 @@
 # Decisions log — historical record
 
-Format: D-NNN | date | decision | rationale
+Format rules: notes/decisions_rules.md (rigid — follow when appending to this file).
 
 This is the append-only HISTORICAL LOG: the "why" of every action and commit in this workspace. It grows without bound
 and is consulted only when needed or for historical research. The rules in force right now live in notes/rules.md (the
@@ -160,82 +160,98 @@ D-339 | 2026-09-29 | the overview tables' Suite-count SIMPLIFICATION (Roberto: "
          under the standard pre-commit run, with the (+N VLONG) marker; the Doc cell is a markdown link to the mirror.
 D-340 | 2026-09-29 | rules.md RESTRUCTURE — R-numbering, bold titles, blank-line spacing (Roberto: "affrontiamo la
          ristrutturazione di rules.md. Prima di tutto il titolo: ... ('corpo legislativo'). Toliamo l'Italiano. Si usa
-         solo l'Inglese quindi 'legislative body'. Poi introdurrei la NUMERAZIONE. R-000, R001, R002 .... E spazierei
-         i bullet con una riga vuota. R-001 e il titolo li fare BOLD. Partirei maiuscolo ... Poi ho altre idee ... ma
-         prima voglio sentire il tuo parere." — and, on the options: "Quindi facciamo SENZA DASH ... 1: R-001 : OK /
-         2: OK / 3: OK / 4: ordine attuale / 5: (a) / 6: (a) / 7: (la tua raccomandazione) / 8: eliminiamo il BUDGET.
-         Le RULE possono essere aggiunte solo su esplicita approvazione. Lunghezza target 1-3 linee, solo se
-         necessario superiore. / 9: OK / 10: BRAVA hai capito perche' le voglio numerare, poi il reference lo mettiamo
-         nel LOG, e togliamo le D dalle rules. ma per ora NON ci pensare, poi le guardiamo una per una. Procedi!").
-         (1) TITLE: "corpo legislativo" out -> "legislative body" (the only other occurrence is a quote in the closed
+         solo l'Inglese quindi 'legislative body'. Poi introdurrei la NUMERAZIONE. R-000, R001, R002 .... E spazierei i
+         bullet con una riga vuota. R-001 e il titolo li fare BOLD. Partirei maiuscolo ... Poi ho altre idee ... ma
+         prima voglio sentire il tuo parere." — and, on the options: "Quindi facciamo SENZA DASH ... 1: R-001 : OK / 2:
+         OK / 3: OK / 4: ordine attuale / 5: (a) / 6: (a) / 7: (la tua raccomandazione) / 8: eliminiamo il BUDGET. Le
+         RULE possono essere aggiunte solo su esplicita approvazione. Lunghezza target 1-3 linee, solo se necessario
+         superiore. / 9: OK / 10: BRAVA hai capito perche' le voglio numerare, poi il reference lo mettiamo nel LOG, e
+         togliamo le D dalle rules. ma per ora NON ci pensare, poi le guardiamo una per una. Procedi!"). (1) TITLE:
+         "corpo legislativo" out -> "legislative body" (the only other occurrence is a quote in the closed
          decisions_000.md — frozen history, untouched). (2) NUMBERING: the 46 rules of the 9 sections get R-001..R-046
          in reading order (dash + 3 digits, consistent with D/I); the 3 Lifecycle bullets stay unnumbered (prose, not
          rules); the numbers are never reused. (3) FORMAT — the dash-less variant (verified in scratch: the literal
          dash-bullet spec is NOT stable under notes_format.py, which rejoins the description onto the title line): a
-         bold title line (**R-NNN — the topic**), a blank line, a 1–3 line description (longer only when it must be);
-         a rule that fits becomes one bold line; 46 rules, the sequence verified intact. (4) TITLES: heuristic
-         (first " — " / ": ") + hand polish on the long ones (R-006 the domain rule files, R-038 Mirror rule + the
-         rigid mirror format, R-040 Docstrings: WHAT, never HOW, R-042 Provenance vs design pointers, R-043 Test
-         docs, R-044 Probe docs); description initial letter capitalized. (5) BUDGET GONE (Roberto): the "~150 lines"
-         paragraph is replaced by a Governance paragraph — a rule is added, amended or retired only on Roberto's
-         explicit approval; the R-numbers are sequential, global and NEVER reused (an amendment keeps its number, a
-         retirement leaves the gap); a rule is a bold title line + a 1–3 line description (or one bold line when it
-         fits); Lifecycle PROMOTE now says "its numbered line". (6) R# COLLISION: R# (no dash) stays the code-issue
-         id of the mirrors; R-003's reference list now reads "R-NNN (a rule of this register) ... R# (a code issue,
-         never an R-NNN)" — the clarification lives where the reference families are defined (R-003, the overview
-         format spec), not in the overview's Conventions. (7) DEFERRED (Roberto): the R-references in the journal +
-         the D-pointers removal from the rules — reviewed rule by rule, later. (8) HYGIENE: the 5 trailing blank
-         lines are gone (single final newline); the overview Index bullet updated to the new format. VERIFICATION:
-         notes_format --write idempotent + --check clean (290 lines, 9 sections, 46 rules R-001..R-046 in order);
-         the normalized token diff against the pre-restructure file shows ONLY the intended changes (title,
-         Budget -> Governance, "numbered" in PROMOTE, the polished titles, the R-NNN/R# clarification) — no content
-         lost.
-D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: "Io aggiungerei uno spazio tra la
-         fine di una RULE e la seguente. Sono un po' attaccate, facciamo 2 linee vuote. ... Semplifichiamo Nia: cosa
-         serve questa frase: Every notes/ Markdown file is wrapped to ~120 chars/line (D-237)...? Io la rimuoverei, a
-         meno che tu mi spieghi la ragione di tenerla." — and, on my explanation, his own proposal: "Cosa ne pensi di
-         una cosa di questo genere? Governance: a rule is added, amended or retired only on explicit user approval. ...
-         Lines are ~120 chars. When a new rules is best placed in a specific order a notation (**R-NNN.N — the topic**)
-         can be used."). (1) DOUBLE SPACING: two blank lines between one rule and the next — the 37 intra-section
-         rule boundaries (the rule -> heading spacing stays one blank line); the format is now legislated in the
-         Governance itself ("two blank lines between one rule and the next"). (2) THE GOVERNANCE (Roberto's text,
-         applied with my two fixes — the "a new rules" typo -> "a new rule", and the title templates kept as code
-         spans for consistency with the first one): "explicit user approval" (generalized from "Roberto's"); the ~120
-         wrap kept minimal as "Lines are ~120 chars." — the D-237 origin pointer is out of the active register (the
-         rule lives in the historical log + the tool's WIDTH=120 + the per-domain declarations: log_rules.md,
-         docs_rules.md, the ideas headers, R-004); the "atomic code spans; the tables and the headings stay one
-         physical line" clause out (the tool enforces the verbatim grammar; R-003 states it for the overview tables).
-         (3) NEW: the R-NNN.N SUB-NUMBERING notation — a rule best placed in a specific position takes a dot-suffixed
-         number of its parent; the zero-padded parents make it sort right after the parent in text order (R-012.1
-         between R-012 and R-013), so the register never renumbers. (4) The overview Index bullet aligned to "explicit
-         user approval". VERIFICATION: notes_format --write idempotent + --check clean (327 lines, 9 sections,
-         R-001..R-046 intact).
+         bold title line (**R-NNN — the topic**), a blank line, a 1–3 line description (longer only when it must be); a
+         rule that fits becomes one bold line; 46 rules, the sequence verified intact. (4) TITLES: heuristic (first " —
+         " / ": ") + hand polish on the long ones (R-006 the domain rule files, R-038 Mirror rule + the rigid mirror
+         format, R-040 Docstrings: WHAT, never HOW, R-042 Provenance vs design pointers, R-043 Test docs, R-044 Probe
+         docs); description initial letter capitalized. (5) BUDGET GONE (Roberto): the "~150 lines" paragraph is
+         replaced by a Governance paragraph — a rule is added, amended or retired only on Roberto's explicit approval;
+         the R-numbers are sequential, global and NEVER reused (an amendment keeps its number, a retirement leaves the
+         gap); a rule is a bold title line + a 1–3 line description (or one bold line when it fits); Lifecycle PROMOTE
+         now says "its numbered line". (6) R# COLLISION: R# (no dash) stays the code-issue id of the mirrors; R-003's
+         reference list now reads "R-NNN (a rule of this register) ... R# (a code issue, never an R-NNN)" — the
+         clarification lives where the reference families are defined (R-003, the overview format spec), not in the
+         overview's Conventions. (7) DEFERRED (Roberto): the R-references in the journal + the D-pointers removal from
+         the rules — reviewed rule by rule, later. (8) HYGIENE: the 5 trailing blank lines are gone (single final
+         newline); the overview Index bullet updated to the new format. VERIFICATION: notes_format --write idempotent
+         + --check clean (290 lines, 9 sections, 46 rules R-001..R-046 in order); the normalized token diff against the
+         pre-restructure file shows ONLY the intended changes (title, Budget -> Governance, "numbered" in PROMOTE, the
+         polished titles, the R-NNN/R# clarification) — no content lost.
+D-341 | 2026-09-29 | rules.md DOUBLE SPACING + the GOVERNANCE rewrite (Roberto: "Io aggiungerei uno spazio tra la fine
+         di una RULE e la seguente. Sono un po' attaccate, facciamo 2 linee vuote. ... Semplifichiamo Nia: cosa serve
+         questa frase: Every notes/ Markdown file is wrapped to ~120 chars/line (D-237)...? Io la rimuoverei, a meno che
+         tu mi spieghi la ragione di tenerla." — and, on my explanation, his own proposal: "Cosa ne pensi di una cosa di
+         questo genere? Governance: a rule is added, amended or retired only on explicit user approval. ... Lines are
+         ~120 chars. When a new rules is best placed in a specific order a notation (**R-NNN.N — the topic**) can be
+         used."). (1) DOUBLE SPACING: two blank lines between one rule and the next — the 37 intra-section rule
+         boundaries (the rule -> heading spacing stays one blank line); the format is now legislated in the Governance
+         itself ("two blank lines between one rule and the next"). (2) THE GOVERNANCE (Roberto's text, applied with my
+         two fixes — the "a new rules" typo -> "a new rule", and the title templates kept as code spans for consistency
+         with the first one): "explicit user approval" (generalized from "Roberto's"); the ~120 wrap kept minimal as
+         "Lines are ~120 chars." — the D-237 origin pointer is out of the active register (the rule lives in the
+         historical log + the tool's WIDTH=120 + the per-domain declarations: log_rules.md, docs_rules.md, the ideas
+         headers, R-004); the "atomic code spans; the tables and the headings stay one physical line" clause out (the
+         tool enforces the verbatim grammar; R-003 states it for the overview tables). (3) NEW: the R-NNN.N
+         SUB-NUMBERING notation — a rule best placed in a specific position takes a dot-suffixed number of its parent;
+         the zero-padded parents make it sort right after the parent in text order (R-012.1 between R-012 and R-013), so
+         the register never renumbers. (4) The overview Index bullet aligned to "explicit user approval". VERIFICATION:
+         notes_format --write idempotent + --check clean (327 lines, 9 sections, R-001..R-046 intact).
 D-342 | 2026-09-29 | R-002 AMENDED — the register's PRECEDENCE (Roberto: "R-002: This file: the active legislation.
-         Every rules stated in this file has precedence on other notes, documents or decisions. Departure from the
-         rules is possible only with explicit consent from the user. Cosa ne pensi?"). Applied from Roberto's text
-         with two grammar fixes ("Every rules stated" -> "Every rule stated"; "precedence on" -> "precedence over").
-         The clause deliberately scopes the precedence to "other notes, documents or decisions": the constitution
-         (AGENTS.md, R-001) and the user's direct instructions stay above the register — the resulting hierarchy is
-         user > AGENTS.md > rules.md > other notes / docs / decisions (a historical decision can no longer
-         overrule an in-force rule). The second sentence COMPLEMENTS the Governance (which governs amending the
-         register): a departure from an in-force rule also needs explicit user consent — an approved departure that
-         persists is recorded as a decision and amended into the rule (the same R-number, a new D-number).
-         VERIFICATION: notes_format --write idempotent + --check clean; R-002's description is 3 lines (at the
-         1-3 target).
+         Every rules stated in this file has precedence on other notes, documents or decisions. Departure from the rules
+         is possible only with explicit consent from the user. Cosa ne pensi?"). Applied from Roberto's text with two
+         grammar fixes ("Every rules stated" -> "Every rule stated"; "precedence on" -> "precedence over"). The clause
+         deliberately scopes the precedence to "other notes, documents or decisions": the constitution (AGENTS.md,
+         R-001) and the user's direct instructions stay above the register — the resulting hierarchy is user > AGENTS.md
+         > rules.md > other notes / docs / decisions (a historical decision can no longer overrule an in-force rule).
+         The second sentence COMPLEMENTS the Governance (which governs amending the register): a departure from an
+         in-force rule also needs explicit user consent — an approved departure that persists is recorded as a decision
+         and amended into the rule (the same R-number, a new D-number). VERIFICATION: notes_format --write idempotent
+         + --check clean; R-002's description is 3 lines (at the 1-3 target).
 D-343 | 2026-09-29 | R-003 CONDENSED — the missing DOMAIN FILE (Roberto: "Ora vediamo R-003 ... Non ti sembra un po'
          lunga, prolissa ??? quale e' la REGOLA ... il resto VIA! Dai fammi una proposta!!!" — and, on the proposal:
          "OK! Via! Vai Nia!"). (1) NEW notes/overview_rules.md — the domain rule file the overview lacked (the only
-         rigid-format file without one — the reason R-003 grew to 15 of the 46 lines, one clause per format campaign:
-         D-116, D-117, D-334, D-335, D-337, D-339): the eight sections in fixed order, English + dates, the reference
-         families (D-NNN / I-NNN / R-NNN / T-NN / R# / M#, with the "never an R-NNN" disambiguation), the two-table
-         grammar (alphabetical by full path, one physical line per row, the \| escape, D-116), the State cell (D-117,
-         clarified D-335), the Suite count in the Test table only (the standard pre-commit run + the (+N VLONG)
+         rigid-format file without one — the reason R-003 grew to 15 of the 46 lines, one clause per format
+         campaign: D-116, D-117, D-334, D-335, D-337, D-339): the eight sections in fixed order, English + dates, the
+         reference families (D-NNN / I-NNN / R-NNN / T-NN / R# / M#, with the "never an R-NNN" disambiguation), the
+         two-table grammar (alphabetical by full path, one physical line per row, the \| escape, D-116), the State cell
+         (D-117, clarified D-335), the Suite count in the Test table only (the standard pre-commit run + the (+N VLONG)
          marker, D-117, amended D-339), the Doc cell as a markdown link (D-339), the Current-state constraints (MAX 10
          bullets, NO bullet-per-campaign, D-334), the Next-steps constraints (open, non-prioritized, D-337), the Index
-         rule (one bullet per notes/ file). (2) R-003 -> the 3-line pointer: the entry-point rule + "The format is
-         RIGID in notes/overview_rules.md" — the pattern R-005 / R-038 already use for log_rules.md / docs_rules.md.
-         (3) CONSISTENCY (one line each): R-006's domain list + notes/overview_rules.md; the overview's own header
-         pointer (was "notes/rules.md — the overview bullet") -> notes/overview_rules.md; the overview Index + the
-         file's bullet; the AGENTS.md Layout enumeration + overview_rules.md. VERIFICATION: notes_format --write
-         idempotent + --check clean (rules.md 314 lines, R-003 = 3 lines at the 1-3 target; overview_rules.md 42
-         lines; every D-pointer moved with its text).
+         rule (one bullet per notes/ file). (2) R-003 -> the 3-line pointer: the entry-point rule + "The format is RIGID
+         in notes/overview_rules.md" — the pattern R-005 / R-038 already use for log_rules.md / docs_rules.md. (3)
+         CONSISTENCY (one line each): R-006's domain list + notes/overview_rules.md; the overview's own header pointer
+         (was "notes/rules.md — the overview bullet") -> notes/overview_rules.md; the overview Index + the file's
+         bullet; the AGENTS.md Layout enumeration + overview_rules.md. VERIFICATION: notes_format --write idempotent
+         + --check clean (rules.md 314 lines, R-003 = 3 lines at the 1-3 target; overview_rules.md 42 lines; every
+         D-pointer moved with its text).
+D-344 | 2026-09-29 | R-004 CONDENSED — the DECISIONS DOMAIN FILE (Roberto: "R-004 — notes/decisions.md Riusciamo a
+         semplificare ?" — on the proposal: "procedi!"). (1) NEW notes/decisions_rules.md (21 lines) — the domain
+         rule file the decisions log lacked (the last rigid-format collaboration file without one): the entry grammar
+         (one entry per decision including "leave as-is for now", append-only, a blank line before every entry, the
+         `D-NNN | YYYY-MM-DD | the rationale` header on one line, the continuation lines indented EXACTLY 9 spaces —
+         now written down for the first time: the grammar was practiced on every entry but legislated nowhere), the
+         global/monotonic/never-reused D-numbers across open log + closed volumes, the D-209 style clauses (code
+         spans for paths / names, escaped asterisks for the math multiplications), and the volumes & rotation (the
+         open volume keeps its name; past 1000 lines — the D-118 cap, amended at D-333 — it closes at a session
+         boundary as decisions_NNN.md, zero-padded; a volume jump never cuts an entry). (2) R-004 -> the 2-line
+         pointer: the identity (the OPEN historical decision log, append-only, the "why", consulted on demand) +
+         "The format is RIGID in notes/decisions_rules.md (the entry grammar, the volumes and rotation)" — R-004 is
+         now the slimmest rule of the register (with R-005). (3) CONSISTENCY (one line each): R-006's domain list +
+         the file; the decisions.md header ("Format: D-NNN | date | decision | rationale") -> the domain-file
+         pointer; the overview Index + the file's bullet; the AGENTS.md Layout enumeration + the file. (4) SIDE
+         EFFECT: the header edit required a --write on decisions.md, which normalized the whole open volume to the
+         tool's canonical ~120 wrap (content-neutral: the token fingerprint identical, idempotent) — the post-D-333
+         hand-wrap drift is healed. VERIFICATION: notes_format --write idempotent + --check clean (rules.md 312
+         lines, R-004 = 2 lines; decisions_rules.md 21 lines).
