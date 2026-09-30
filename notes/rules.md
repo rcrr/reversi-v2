@@ -127,10 +127,10 @@ canonized in notes/naming.md — the order is arbitrary but fixed.
 
 ## Test discipline
 
-**R-022 — Tests write files only under workspace_root/build/tmp, and clean up afterwards (D-065)**
+**R-022 — Tests write files only under workspace_root/build/tmp, and clean up afterwards**
 
 
-**R-023 — Test-file idiom (D-085)**
+**R-023 — Test-file idiom**
 
 CUSTOM_TMP_BASE derived via __file__ (the shared test.reversi.paths module), setUpClass mkdir, TemporaryDirectory FIRST
 in setUp, defensive tearDown, WORKSPACE_ROOT-anchored paths.
@@ -138,24 +138,22 @@ in setUp, defensive tearDown, WORKSPACE_ROOT-anchored paths.
 
 **R-024 — DB-dependent tests**
 
-db_long_gate(self) (test/reversi/tags.py) first in setUp (D-080, D-130: the SKIP_REGAB_DB gate plus the LONG tier); the
-header must state the gated state.
+db_long_gate(self) (test/reversi/tags.py — the SKIP_REGAB_DB + LONG-tier check) first in setUp; the module header must
+state the gated state.
 
 
-**R-025 — PERF=1 performance tests are print-only**
-
-No performance gates in any suite (D-036).
+**R-025 — PERF=1 performance tests are print-only: no performance gates in any suite**
 
 
 **R-026 — Worker factories**
 
 A uniform @validate_call gate (the arbitrary_types_allowed config); the tests patch the factory by name in the importing
-module's namespace. (D-100)
+module's namespace.
 
 
 **R-027 — The test runner is unittest (stdlib), deliberate**
 
-pytest is not a dependency; do not propose a migration to pytest or another runner. (D-124)
+pytest is not a dependency; do not propose a migration to pytest or another runner.
 
 
 **R-028 — Float64 pipeline-metric goldens use assert_close (test/reversi/closecheck.py, rel 1e-9 / abs 1e-12)**

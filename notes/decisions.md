@@ -382,3 +382,22 @@ D-357 | 2026-09-29 | the per-rule D-pointer review — R-029 SPLIT into three ru
          textually before R-030, so the placement at the end of the Test discipline section is correct). Rules in
          force: 43 -> 45. D-XXX references in the register: 30 (was 32 at D-356). VERIFICATION: notes_format
          --write idempotent + --check clean (rules.md 296 lines).
+D-358 | 2026-09-29 | the per-rule D-pointer review — Test discipline R-022..R-027 (Roberto: "Proseguiamo con la
+         sezione 'Test discipline'. Mi fai una proposta di semplificazione, pulizia, revisione per R-022..R-028. La
+         valuto e ti do indicazioni poi su come procedere." — after my 7-rule proposal: "R-022, R-023, R-024, R-025:
+         OK. ... R-026: Ok, ma e' davvero applicata? ... R-027: OK. R-028: Ma perche' dobbiamo dire 'The
+         multi-threaded OpenBLAS ddot is not bit-portable...'? tutti i float hanno il problema — scriviamo che i
+         golden sui float per essere robusti devono usare assert_close. Procedi con gli OK, e fammi una proposta
+         migliore per la R-028."): applied the OK'd six verbatim — R-022 title-only ((D-065) out); R-023 title
+         ((D-085) out), description untouched (already lean); R-024 (D-080, D-130: ...) out but the semantic hint
+         kept — "the SKIP_REGAB_DB + LONG-tier check" is the contract, not provenance (verified against the
+         db_long_gate body in test/reversi/tags.py); R-025 merged into one bold line (title + description said the
+         same thing); R-026 (D-100) out; R-027 (D-124) out. R-028 UNTOUCHED, awaiting his verdict on the improved
+         proposal (all floats, assert_close for robustness, no OpenBLAS sentence — the full rationale already lives
+         in the closecheck.py module header). His R-026 question verified in the code: the uniform
+         @validate_call(config=ConfigDict(arbitrary_types_allowed=True)) gate IS applied — 38 gate applications
+         across src/reversi/lm/wrk_*.py (plus arbitrary_types_allowed in base_model.py and pattern.py), and
+         test/reversi/lm/test_logistic_model.py patches the factories by name in the importing module's namespace
+         (patch('reversi.lm.logistic_model.wrk_config', ...), wrk_positions, wrk_features, ...). D-XXX references in
+         the register: 24 (was 30 at D-357). VERIFICATION: notes_format --write idempotent + --check clean
+         (rules.md 294 lines).
