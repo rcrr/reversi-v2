@@ -294,3 +294,14 @@ D-348 | 2026-09-29 | R-008 / R-009 / R-011 — the last D-pointers of the LANGUA
          remain in the register (Layout & tree, Naming & platform, Test discipline, Pipeline contracts, Docs, Code
          style) — awaiting Roberto's ruling on the full sweep (the D-340-deferred "poi le guardiamo una per una").
          VERIFICATION: notes_format --write idempotent + --check clean (rules.md 309 lines).
+D-349 | 2026-09-29 | the JOURNAL section RETIRED — R-046 removed (Roberto: "La sezione 'Journal' contiene solo la
+         R-046. ... Che e' ridondante con la R-005. Rimuoviamo completamente la sezione 'Journal'. Grazie!"). Verified
+         before removing: 3 of R-046's 4 facts are in log_rules.md (the global session numbering — Session entries
+         item 1; one volume per 25 sessions or 2000 lines, whichever first, and rotation ONLY at a session boundary —
+         the Volumes and rotation section); the 4th ("the step-N entries") is an ABANDONED practice — measured: 48
+         occurrences in log_001 only, 0 in log_000/002/003/004 (the current volume), and not legislated in
+         log_rules.md — the current journal practice is the flat bullet. R-005 already carries the pointer ("The
+         session journals (rotating volumes; the format is rigid in notes/log_rules.md)."). Retirement per the
+         Governance: R-046's number leaves a gap (no renumbering); the register is now 45 rules in 8 sections
+         (rules.md 302 lines; R-045 is the last rule). VERIFICATION: notes_format --write idempotent + --check clean;
+         no live R-046 reference outside the historical decision entries (which record the state at their time).

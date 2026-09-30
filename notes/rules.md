@@ -299,10 +299,3 @@ No linter gate, no hard limit (pyproject carries no flake8/ruff config). New or 
 convention (the lm zone historically wraps at ~72–76); a convention-less file defaults to <= 79 (PEP8). A full-file
 reflow to 120 is a deliberate, user-directed act (the wrk_anova.py reflow is its precedent — D-314), never an agent
 side-effect, and untouched lines are never re-wrapped. The docs/notes stay at ~120 (D-237). (D-314)
-
-## Journal
-
-**R-046 — The journal format is rigid in notes/log_rules.md**
-
-The global session numbering across the volumes, the step-N entries, one volume per 25 sessions or 2000 lines (whichever
-first), the rotation only at a session boundary.
