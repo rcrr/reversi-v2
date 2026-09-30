@@ -645,3 +645,20 @@ D-368 | 2026-09-29 | the closed volumes linted and repaired to GREEN — no exce
          10 closed volumes + all 13 current files (exit 0); the fixture suite still fires on every planted code (the gap
          case is now legal by design; a reuse case plants the SEQ). The closed volumes stay out of the default set
          (append-frozen history, explicit request).
+
+D-369 | 2026-09-29 | the change-closure rules enter the register (Roberto: "Si procedi. Grazie." — approving the
+         reformulated P2+P3 after the diagnostic of the tools.md gap, which this session exposed: the guard's own D-365
+         commit had left notes/tools.md AND the overview Source table stale — notes\_lint.py appears in neither). New
+         section "Change discipline", parallel to "Test discipline". R-049 the impact set (documents per change class):
+         a closed table — a new tool in tools/ -> notes/tools.md (the requirements + the inventory) and the overview
+         Source table (it tracks src/, tools/, probes/); a new probe -> the Source table; a new file in notes/ or
+         docs/ -> the overview Index + the docs mirror; a notes-format grammar change -> the matching rules file + the
+         format tool; a rule promoted or retired -> the register; any milestone -> the decision log + the journal; a
+         multi-class change carries the union, a modification of an existing artifact carries the set of its class (the
+         two soft points Roberto's "si o no" question exposed, now closed in the text). R-050 the pre-commit consistency
+         check: before the final commit of a milestone, which class, which documents, are they all updated in the same
+         commit; a deliberately untouched document is named in the entry with its reason. Roberto's rulings baked in: no
+         D-pointers or AGENTS references inside the rule texts, the commit semantics live only in R-050, the section
+         name is his to keep. The first milestone to run R-050 is this one: its impact set (a rule promoted) = the
+         register + the decision entry + the journal — all updated. The stale tools.md/overview registration of
+         notes\_lint.py stays open until Roberto orders the repair (his explicit call: not now).

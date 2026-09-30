@@ -243,3 +243,23 @@ After every edit of a notes file, the notes format guard must pass GREEN before 
 tools/notes\_lint.py, read-only, exit 0/1, default set the open decisions log + the register + the open journal (the
 closed volumes on explicit request). It implements the grammatical checks of the notes formats (the decisions log per
 notes/decisions\_rules.md, the register per its Governance block, the journals per notes/log\_rules.md).
+
+## Change discipline
+
+**R-049 — the impact set (documents per change class)**
+
+Every change touches a class of artifacts, and a closed set of notes documents enumerates or constrains that class: a
+new tool in tools/ -> notes/tools.md (the requirements + the inventory) and the overview Source table (it tracks src/,
+tools/, probes/); a new probe in probes/ -> the overview Source table (plus probe\_rules.md, if a rule changed); a new
+file in notes/ or docs/ -> the overview Index (plus the docs mirror, for source and test files); a notes-format grammar
+change -> the matching notes/\*\_rules.md (plus tools/notes\_format.py, if the tool implements that grammar); a rule
+promoted or retired -> the register; any milestone -> the decision log and the session journal. A change touching
+several classes carries the union of their document sets; a modification of an existing artifact carries the set of its
+class.
+
+
+**R-050 — the pre-commit consistency check**
+
+Before the final commit of a milestone, the agent checks the impact set: (1) which class of artifacts did this change
+touch; (2) which documents does the impact set name for that class; (3) are all of them updated in the same commit. A
+document of the impact set deliberately left untouched is named in the decision entry, with its reason.
