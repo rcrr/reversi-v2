@@ -465,3 +465,30 @@ D-361 | 2026-09-29 | the per-rule D-pointer review — R-045, closing the Code s
          review (D-340) is down to its LAST section, Docs (R-038..R-044). Rules in force: 37 (unchanged — an
          amendment). D-XXX references in the register: 12 (was 14 at D-360) — all remaining refs now sit in the
          Docs section. VERIFICATION: notes_format --write idempotent + --check clean (rules.md 243 lines).
+D-362 | 2026-09-29 | the per-rule D-pointer review — the Docs section, CLOSING the review (Roberto:
+         "Proseguiamo con la sezione 'Docs'. R-038 to R-044. Servono ? Non sono un duplicazione di quanto
+         scritto in docs_rules ? Non sarebbe meglio avere una sola entry che prescrive di applicare i
+         docs_rules ai docs ? Mi fai una proposta di semplificazione, pulizia, revisione." — after my
+         per-rule mapping + proposal: "Applica la tua proposta. E' un ottimo passo in avanti. Non sono
+         sicuro sia definitivo. Poi rivedo tutto e ti dico. Intanto applicala per favore."): the mapping was
+         verified against docs_rules.md (read in full — "format rules for the mirror docs (docs/)") and
+         probe_rules.md: R-038/R-039 are the mirror-doc-format side (duplicated by docs_rules.md), while
+         R-040..R-044 are NOT — they govern the docstrings/comments INSIDE the .py files (src/, test/,
+         probes/), which docs_rules.md does not cover, and probe_rules.md carries no docstring rules
+         (verified). Applied: R-038 becomes the single identity + pointer "The mirror docs (docs/)" — one
+         doc per source file, mirroring the source tree (AGENTS.md rule 5; the mapping is already carried by
+         R-015) + the R-003-pattern pointer to notes/docs_rules.md (the header, the 7 fixed sections, the
+         forbidden-history list, the same-commit lifecycle, the test-doc variant); R-039 RETIRED — 100%
+         duplication of docs_rules.md §3.4 word for word ("OPEN R/M/T items only, with their pointers. If
+         none: one line, None. Closed items never appear.") and its "(docs_rules.md §4, D-114)" pointer was
+         STALE anyway (current file: §3.4; §4 = "Forbidden in a mirror doc"); the R-039 gap is permanent.
+         R-040..R-044 KEPT as pure code-style rules (the same genre as the R-045 just amended at D-361),
+         D-refs removed: R-040 (D-224, D-226); R-041 (D-267/D-270 becomes "the test and probe docstrings keep
+         their own rules, below", the "like the D-314 reflow" and D-317/D-318 out); R-042 (the D-150/D-146
+         examples + D-269/D-270 out — the quoted "the D-106 re-pin" stays, it is the rule's example of what
+         provenance IS, not a pointer of the rule itself); R-043 (D-267); R-044 (D-270). R-043/R-044 stay
+         separate (R-044 carries its own exception and refers to "the test-doc rules"). Rules in force: 37 ->
+         36. D-XXX lines in the register: 12 -> 1, and that one is the R-042 quoted example — the register
+         carries NO real provenance pointer anymore: the per-rule review (D-340) is COMPLETE. Roberto: not
+         necessarily final — he will re-review the whole register and direct the follow-up. VERIFICATION:
+         notes_format --write idempotent + --check clean (rules.md 236 lines).

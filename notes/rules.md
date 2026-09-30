@@ -184,23 +184,17 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 ## Docs
 
-**R-038 — Mirror rule + the rigid mirror format**
+**R-038 — The mirror docs (docs/)**
 
-Mirror rule (D-007) + the rigid mirror format in notes/docs_rules.md (the header — the H1 + the what-it-is paragraph,
-the D-109 `> State:` line RETIRED at D-240 —, the 7 sections, the forbidden-history list, the same-commit lifecycle, the
-test-doc variant).
-
-
-**R-039 — The "Open issues" section**
-
-OPEN R/M/T items with pointers only; if none, one line, `None.`; closed items never appear (docs_rules.md §4, D-114).
+One doc per source file, mirroring the source tree (AGENTS.md rule 5); the rigid format is in notes/docs_rules.md (the
+header, the 7 fixed sections, the forbidden-history list, the same-commit lifecycle, the test-doc variant).
 
 
 **R-040 — Docstrings: WHAT, never HOW**
 
 Docstrings explain WHAT (the observable contract: the semantics, the shapes, the stream/consumption promises), never HOW
 — the mechanism lives in the mirror doc's Architecture section and in the code comments; and no D-XXX provenance in the
-docstrings (decisions.md is its home; a `#:` code comment only if fundamental). (D-224, D-226)
+docstrings (decisions.md is its home; a `#:` code comment only if fundamental).
 
 
 **R-041 — The src/ docstring style (the descriptive format)**
@@ -210,32 +204,31 @@ what is measured or computed and why (the observable contract; the formulas defi
 docstring, they ARE the WHAT); (3) the Args: section, the Google 8-space indent, each argument typed in parentheses +
 described (the types mirror the real annotations); (4) the Returns: section, the key-by-key detail (the dict keys, the
 degenerate behaviors — the nan / None / 0 conventions, the exceptions). It completes the WHAT-only rule above: that rule
-constrains the CONTENT (no HOW, no D-XXX), this one the FORMAT. Scope: public + private functions in src/ (the test /
-the probe docs keep their own rules, D-267/D-270); it binds the NEW docstrings and any REWRITTEN one; the retroactive
-conversion of the existing modules is user-directed, one module at a time (like the D-314 reflow), never an agent
-initiative. The exemplar: hlp_anova (D-317). (D-318)
+constrains the CONTENT (no HOW, no D-XXX), this one the FORMAT. Scope: public + private functions in src/ (the test and
+probe docstrings keep their own rules, below); it binds the NEW docstrings and any REWRITTEN one; the retroactive
+conversion of the existing modules is user-directed, one module at a time, never an agent initiative. The exemplar:
+hlp_anova.
 
 
 **R-042 — Provenance vs design pointers**
 
 Provenance means the file's OWN change history ("before I-018", "the D-106 re-pin", "fix campaign CLOSED") — that is
 OUT. Design POINTERS to other decisions explaining a current choice stay: prescribed in mirror docs (docs_rules.md
-§3.2), and in source comments when the choice is non-obvious (the D-150 report pointer, the D-146 two-loop note).
-(D-269, D-270)
+§3.2), and in source comments when the choice is non-obvious.
 
 
 **R-043 — Test docs (the docstrings + the comments in test/)**
 
 State what is tested, optionally how it is realized (the mechanism, the preconditions, the postconditions); no D-xxx /
 I-xxx references, no evolution history, and no level ordinals that drift as levels come and go (name the level:
-CLIENT_CHECK, PLOT). (D-267)
+CLIENT_CHECK, PLOT).
 
 
 **R-044 — Probe docs**
 
 The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and item ids
 ("C5 … (I-013 …)") are the probe's vocabulary and stay — the text asserted and the surrounding comments follow the
-test-doc rules. (D-270)
+test-doc rules.
 
 ## Code style
 
