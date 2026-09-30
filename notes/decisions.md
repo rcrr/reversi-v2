@@ -662,3 +662,19 @@ D-369 | 2026-09-29 | the change-closure rules enter the register (Roberto: "Si p
          name is his to keep. The first milestone to run R-050 is this one: its impact set (a rule promoted) = the
          register + the decision entry + the journal — all updated. The stale tools.md/overview registration of
          notes\_lint.py stays open until Roberto orders the repair (his explicit call: not now).
+
+D-370 | 2026-09-29 | the first exercise of R-050, executed (Roberto: "Hai aggiunto un nuovo tool: tools/notes\_lint.py.
+         Ora aggiorniamo tutti i documenti in notes, consistentemente con le rules."): the impact set of "a tool in
+         tools/" verified document by document. notes/tools.md — the inventory row for notes\_lint.py was MISSING
+         (the D-365 commit carried the tool without its row, the tools.md GRADUATION gap): added now (category check;
+         the per-format codes; read-only, exit 0/1; origin D-365/D-367/D-368). The overview Source table — verified to
+         track src/ ONLY (all 48 rows are src/, the package src/reversi/tools/ subpackage being a different zone); no
+         row to add: the Doc cell links the docs/ mirror, which exists only for src/ and test/, and the overview carries
+         no guard mention to refresh. The Index bullet for tools.md ("the four requirements + the inventory") stays
+         accurate. The verification found a FACTUAL ERROR in the R-049 text itself, corrected in the same commit: the
+         tool line (the Source table tracks src/ only, not tools/probes) and the probe line (probe\_rules.md, if a rule
+         changed — the probes carry no inventory; there is no overview table for them). The error had a known cause: the
+         table zone census was misread (the 48-row count was all src/). The tool's own docstring deviates from the
+         tools.md header grammar in two cosmetic points (the Usage line says python instead of .venv/bin/python; the
+         SAFETY statement is implicit) — a source-file matter, left for Roberto's call. VERIFICATION: the guard green on
+         the default set + tools.md + rules.md individually; the inventory now lists all five tracked tools of tools/.

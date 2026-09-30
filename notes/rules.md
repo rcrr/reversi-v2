@@ -249,13 +249,13 @@ notes/decisions\_rules.md, the register per its Governance block, the journals p
 **R-049 — the impact set (documents per change class)**
 
 Every change touches a class of artifacts, and a closed set of notes documents enumerates or constrains that class: a
-new tool in tools/ -> notes/tools.md (the requirements + the inventory) and the overview Source table (it tracks src/,
-tools/, probes/); a new probe in probes/ -> the overview Source table (plus probe\_rules.md, if a rule changed); a new
-file in notes/ or docs/ -> the overview Index (plus the docs mirror, for source and test files); a notes-format grammar
-change -> the matching notes/\*\_rules.md (plus tools/notes\_format.py, if the tool implements that grammar); a rule
-promoted or retired -> the register; any milestone -> the decision log and the session journal. A change touching
-several classes carries the union of their document sets; a modification of an existing artifact carries the set of its
-class.
+new tool in tools/ -> notes/tools.md (the requirements + the inventory; the overview Source table tracks src/ only, the
+package src/reversi/tools/ subpackage being a different zone); a new probe in probes/ -> probe\_rules.md, if a rule
+changed (the probes carry no inventory); a new file in notes/ or docs/ -> the overview Index (plus the docs mirror, for
+source and test files); a notes-format grammar change -> the matching notes/\*\_rules.md (plus tools/notes\_format.py,
+if the tool implements that grammar); a rule promoted or retired -> the register; any milestone -> the decision log and
+the session journal. A change touching several classes carries the union of their document sets; a modification of an
+existing artifact carries the set of its class.
 
 
 **R-050 — the pre-commit consistency check**
