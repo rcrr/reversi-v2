@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""tools/notes_lint.py — the format guard for the notes files (read-only, D-365).
+"""tools/notes_lint.py — the format guard for the notes files (a CHECK tool, read-only).
 
-It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes formats, each per its rigid grammar:
+WHAT IT IS: a CHECK tool — the notes format guard (R-047). It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes
+formats, each per its rigid grammar:
   notes/decisions.md + the closed volumes (decisions_NNN.md) — the entry grammar (notes/decisions_rules.md)
   notes/rules.md                                             — the register grammar (the Governance block inside it)
   notes/log_NNN.md                                           — the session-block grammar (notes/log_rules.md)
@@ -9,14 +10,10 @@ It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes formats, each per its rigid gr
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
   probe_rules.md, tools.md, naming.md)                       — the H1 + section + bullet grammar
   notes/ideas.md + notes/ideas-closed.md                     — the D-235 entry grammar (I-NNN | status | ...)
-The default set covers every CURRENT notes file; the closed volumes (decisions_000..005, log_000..003) are linted
-on explicit request (the append-frozen closed history, cleaned and green at D-368). One guard, one entry point,
-per-format linters — never one tool per format.
-It exits 1 on any violation. Run it after every notes edit — red means no commit (R-047).
-
-Usage:
-    python tools/notes_lint.py              # decisions.md + rules.md + the open journal
-    python tools/notes_lint.py FILES...     # any notes files (the closed volumes included)
+One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
+notes file; the closed volumes (decisions_000..005, log_000..003) are linted on explicit request (the
+append-frozen closed history, cleaned and green at D-368). Run it after every notes edit — red means no commit
+(R-047).
 
 The session's three bug classes are permanent codes:
     BLANK   one blank line before every D-NNN header, no double blank lines     [the D-364 class]
@@ -27,6 +24,16 @@ The session's three bug classes are permanent codes:
 Plus: HEADER / INDENT / SEQ (decisions), RHEAD / RTITLE / RSPACE / DPOINTER /
 RSEQ (rules), JH1 / JPOINTER / JSESSION / JINDENT / JBLANK (journals), WIDTH,
 CANON (idempotence under notes_format --write) and EOF.
+
+USAGE (from the workspace root):
+  .venv/bin/python tools/notes_lint.py               # the default set: every current notes file
+  .venv/bin/python tools/notes_lint.py FILES...      # any notes files (the closed volumes included)
+
+SAFETY: writes nothing. A read-only per-file report on stdout; exit 0 (green) / 1 (red).
+
+Origin: D-365 (born directly in tools/ — the decisions, register and journal linters); D-367 (the full-format
+extension: the overview, the domain rule files, the ideas); D-368 (the closed volumes green, the historical
+linter extensions).
 """
 import re
 import subprocess

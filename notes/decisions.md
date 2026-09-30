@@ -678,3 +678,12 @@ D-370 | 2026-09-29 | the first exercise of R-050, executed (Roberto: "Hai aggiun
          tools.md header grammar in two cosmetic points (the Usage line says python instead of .venv/bin/python; the
          SAFETY statement is implicit) — a source-file matter, left for Roberto's call. VERIFICATION: the guard green on
          the default set + tools.md + rules.md individually; the inventory now lists all five tracked tools of tools/.
+
+D-371 | 2026-09-29 | the docstring of tools/notes\_lint.py aligned to the tools.md header grammar (Roberto: "Metti a
+         posto il file sorgente. Approvato." — the explicit call for the two cosmetic points flagged at D-370): the four
+         parts in the fixed order, in the idiom of the sibling tools (notes\_format, suite\_audit): WHAT IT IS (the
+         check + the per-format mapping), USAGE (the .venv/bin/python command lines, from the workspace root, with the
+         true default-set comment — the old one still said "decisions + rules + the open journal"), SAFETY (explicit
+         now: writes nothing, a read-only report on stdout, exit 0/1), ORIGIN (D-365 born directly in tools/, D-367 the
+         full-format extension, D-368 the closed volumes). Behavior unchanged (docstring only). VERIFICATION:
+         py\_compile clean, the guard green on the default set.
