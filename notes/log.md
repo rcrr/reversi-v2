@@ -942,3 +942,37 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Next: il blocco regola: ordine e numeri fatti (D-380); resta congelato solo il testo della guard (R-200) — la
   sua semplificazione e' ancora a ripensamento; poi: la riveduta completa del registro (Roberto), i 6 item della
   to-do list (D-337).
+
+## 2026-10-01 — session 91 (il meccanismo hist: files correnti a path fissa + folder per gli archivi — D-382)
+
+- Session 91 (Roberto): "Prossimo lavoro di pulizia della governance. Decisions and log: sono due artefatti che
+  memorizzano la storia. Decisions ha un file corrente a path fissa (notes/decisions.md) e all'archiviazione viene
+  archiviato in notes/decisions\_NNN.md con numero progressivo; log non ha path fissa, il corrente e' l'ultimo, e al
+  raggiungimento della soglia non si copia, si apre un nuovo file. Creare notes/hist\_log e notes/hist\_decisions, i
+  files correnti notes/log.md e notes/decisions.md (applicare a log la policy di decisions), spostare i files chiusi
+  nei folder, aggiornare tutti i documenti che descrivono il meccanismo. Sviluppa una analisi approfondita, la
+  presenti, poi ti do istruzioni su come continuare. Grazie!"
+- ANALISI (no D): censito il meccanismo (decisions: path fissa + numero alla chiusura, soglia 1000 righe; journal: no
+  path fissa, il corrente e' il max di N, numero alla nascita, soglia 25 sessioni / 2000 righe; il guard trova il
+  journal corrente con glob + max(N)); il target formalizzato con le 4 domande aperte e le raccomandazioni ((a)
+  numero alla nascita, (i) H1 invariato, tenere l'asimmetria, un solo D un solo commit). Impact set per documento:
+  11 git mv, il tool (default set, kind\_of, docstring), il registro (R-040, R-050), le due rule files (scope +
+  Volumes and rotation), AGENTS, overview (preamble + Index), il journal stesso. Disciplina della storia: nessun
+  back-rewrite (i volumi chiusi citano i path del loro tempo), git mv preserva il history. Trovati 4 ref obsoleti
+  residui della D-380 (overview\_rules R-003, tools.md R-047, decisions\_rules R-004, il docstring del tool R-047) —
+  chiusi in questa campagna. Curiosita' a verbale: il journal partiva come log.md a path fissa (la D-055 lo ruoto in
+  log\_000.md): la path fissa torna, gli archivi entrano nei folder.
+- Session 91 (Roberto, seconda richiesta): "1: (a) 2: (i) 3: si 4: OK 5: me lo proponi dopo il commit, ti do quindi
+  indicazioni su come procedere."
+- IMPLEMENTATION (D-382): 11 git mv (log\_004 -> log.md; log\_000..003 -> hist\_log/; decisions\_000..005 ->
+  hist\_decisions/); il guard: default set fisso su notes/log.md (lista esplicita, il glob + max(N) fuori), kind\_of
+  accetta log.md, docstring ai path hist + ref R-047 -> R-200 e commento R-042 fuori; il registro: R-040 (i volumi
+  chiusi in hist\_decisions) + R-050 (titolo notes/log.md, gli archivi in hist\_log); decisions\_rules + log\_rules:
+  riga scope + sezioni Volumes and rotation; i 4 ref obsoleti chiusi; overview: preamble Current state + 10 bullet
+  volumi dell'Index ai path hist + bullet aperto a notes/log.md.
+- DOCUMENTO TATTAMENTE INTATTO (ruling di Roberto, point 5): AGENTS.md — il bullet Layout resta sul meccanismo
+  vecchio; la riformulazione viene proposta dopo il commit, poi le sue indicazioni.
+- VERIFICATION: guard VERDE sul set default (13 file, incluso notes/log.md), registro canonico (298 righe, 46 rules).
+- COMMIT: un solo commit (D-382).
+- Next: il bullet AGENTS (la proposta dopo il commit + le indicazioni di Roberto); il meccanismo hist e' operativo da
+  questa sessione; poi la riveduta completa del registro (Roberto), i 6 item della to-do list (D-337).
