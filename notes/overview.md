@@ -49,9 +49,9 @@ employed focus on machine learning techniques that leverage solved positions gen
 
 ## Current state
 
-Current state only — the session-by-session history lives in the journal volumes (notes/log\_NNN.md) and the decision
-log (notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below. MAX 10 bullets, no
-bullet-per-campaign (D-334).
+Current state only — the session-by-session history lives in the journal volumes (notes/log.md + notes/hist\_log/) and
+the decision log (notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below. MAX
+10 bullets, no bullet-per-campaign (D-334).
 
 - The 19-level pipeline is live and green (968 tests, LONG; the 1e6 wave benchmark — VVLONG — replays bit-exact, 28065
   dead lanes): the ML chain CONFIG → … → SAVE → CLIENT\_CHECK → PLOT → FINAL\_LOG\_PRINT (the optional full run log on
@@ -210,13 +210,17 @@ tables above.
 - notes/rules.md — active legislation ("legislative body"): the register of the rules in force, R-NNN-numbered (a bold
   title + a 1–3 line description; added/amended/retired only on explicit user approval)
 - notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md;
-  closed volumes: decisions\_NNN.md)
-- notes/decisions\_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
-- notes/decisions\_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
-- notes/decisions\_002.md — closed decision volume 002 (D-159…D-206, 2026-09-11 → 2026-09-15, the D-333 rotation)
-- notes/decisions\_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19, the D-333 rotation)
-- notes/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23, the D-333 rotation)
-- notes/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29, the D-333 rotation)
+  closed volumes: notes/hist\_decisions/decisions\_NNN.md)
+- notes/hist\_decisions/decisions\_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
+- notes/hist\_decisions/decisions\_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
+- notes/hist\_decisions/decisions\_002.md — closed decision volume 002 (D-159…D-206, 2026-09-11 → 2026-09-15, the D-333
+  rotation)
+- notes/hist\_decisions/decisions\_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19, the D-333
+  rotation)
+- notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23, the D-333
+  rotation)
+- notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29, the D-333
+  rotation)
 - notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews + the
   historical project docs (the historical/ subdir: the I-017 project plan — analytical\_properties\_of\_features.md, the
   wave-tier performance baseline — performance\_baseline.md, the ODP-9 material)
@@ -233,8 +237,8 @@ tables above.
 - notes/probe\_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
   criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to
   notes/analyses/, the baseline)
-- notes/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
-- notes/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
-- notes/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
-- notes/log\_003.md — session journal, volume 003 (sessions 38–89, closed 2026-09-29)
-- notes/log\_004.md — session journal, volume 004 (sessions 90–..., open)
+- notes/hist\_log/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
+- notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
+- notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)
+- notes/hist\_log/log\_003.md — session journal, volume 003 (sessions 38–89, closed 2026-09-29)
+- notes/log.md — the session journal (volume 004, sessions 90–..., open)

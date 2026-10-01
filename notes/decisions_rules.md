@@ -1,7 +1,7 @@
 # notes/decisions.md — format rules (rigid)
 
-Applies to the open log notes/decisions.md and the closed volumes decisions\_NNN.md (R-004 in notes/rules.md). The prose
-is wrapped to ~120 chars/line.
+Applies to the open log notes/decisions.md and the closed volumes notes/hist\_decisions/decisions\_NNN.md (R-040 in
+notes/rules.md). The prose is wrapped to ~120 chars/line.
 
 ## Entries
 
@@ -17,5 +17,6 @@ is wrapped to ~120 chars/line.
 ## Volumes and rotation
 
 - The open volume keeps the name decisions.md; past 1000 lines (the D-118 cap, amended at D-333) it closes at a session
-  boundary as decisions\_NNN.md (zero-padded) and a new decisions.md is opened.
+  boundary as notes/hist\_decisions/decisions\_NNN.md (zero-padded, the next progressive number) and a new decisions.md
+  is opened.
 - A volume jump never cuts an entry; the closed volumes are the closed history.

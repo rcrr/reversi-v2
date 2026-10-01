@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """tools/notes_lint.py — the format guard for the notes files (a CHECK tool, read-only).
 
-WHAT IT IS: a CHECK tool — the notes format guard (R-047). It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes
+WHAT IT IS: a CHECK tool — the notes format guard (R-200). It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes
 formats, each per its rigid grammar:
-  notes/decisions.md + the closed volumes (decisions_NNN.md) — the entry grammar (notes/decisions_rules.md)
-  notes/rules.md                                             — the register grammar (the Governance block inside it)
-  notes/log_NNN.md                                           — the session-block grammar (notes/log_rules.md)
-  notes/overview.md                                          — the eight-section + table grammar (notes/overview_rules.md)
+  notes/decisions.md + notes/hist_decisions/decisions_NNN.md — the entry grammar (notes/decisions_rules.md)
+  notes/rules.md — the register grammar (the Governance block inside it)
+  notes/log.md + notes/hist_log/log_NNN.md — the session-block grammar (notes/log_rules.md)
+  notes/overview.md — the eight-section + table grammar (notes/overview_rules.md)
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
-  probe_rules.md, tools.md, naming.md)                       — the H1 + section + bullet grammar
-  notes/ideas.md + notes/ideas-closed.md                     — the D-235 entry grammar (I-NNN | status | ...)
+  probe_rules.md, tools.md, naming.md) — the H1 + section + bullet grammar
+  notes/ideas.md + notes/ideas-closed.md — the D-235 entry grammar (I-NNN | status | ...)
 One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
-notes file; the closed volumes (decisions_000..005, log_000..003) are linted on explicit request (the
-append-frozen closed history, cleaned and green at D-368). Run it after every notes edit — red means no commit
-(R-047).
+notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/hist_log/log_000..003) are linted
+on explicit request (the append-frozen closed history, cleaned and green at D-368). Run it after every notes edit —
+red means no commit (R-200).
 
 The session's three bug classes are permanent codes:
     BLANK   one blank line before every D-NNN header, no double blank lines     [the D-364 class]
@@ -236,7 +236,7 @@ def lint_rules(path, lines, text):
         if e:
             v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
     # the DPOINTER pass: a D-number in prose is a provenance leak — allowed only
-    # inside a quoted example (the R-042 family) or a code span.
+    # inside a quoted example or a code span.
     for n, line in enumerate(lines, 1):
         s = re.sub(r'"[^"]*"', '', re.sub(r"'[^']*'", '', plain_of(line)))
         if D_REF.search(s):
@@ -562,7 +562,7 @@ def kind_of(name):
         return 'rules'
     if re.fullmatch(r'decisions(_\d{3})?\.md', b):
         return 'decisions'
-    if re.fullmatch(r'log_\d{3}\.md', b):
+    if b == 'log.md' or re.fullmatch(r'log_\d{3}\.md', b):
         return 'journal'
     if b == 'overview.md':
         return 'overview'
@@ -578,15 +578,11 @@ def main(argv):
     if len(argv) > 1:
         files = [Path(a) for a in argv[1:]]
     else:
-        logs = [p for p in ROOT.glob('notes/log_*.md') if re.fullmatch(r'log_\d{3}\.md', p.name)]
-        open_log = max(logs, key=lambda p: int(p.name[4:7])) if logs else None
         # every CURRENT notes file (the closed volumes are linted on explicit request)
         files = [ROOT / f'notes/{n}' for n in
-                 ('rules.md', 'decisions.md', 'overview.md', 'ideas.md', 'ideas-closed.md',
+                 ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas-closed.md',
                   'naming.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
                   'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
-        if open_log:
-            files.append(open_log)
     linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal,
                'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}
     total = 0

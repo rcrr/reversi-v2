@@ -1,18 +1,20 @@
 # Session journal — format rules (rigid)
 
-Applies to all journal volumes `notes/log_000.md`, `log_001.md`, ... One volume = one file; the session counter never
-restarts across volumes. The prose is wrapped to ~120 chars/line (D-237); the bullets keep their exact 2/4-space
-indentation.
+Applies to the current journal `notes/log.md` and the archived volumes `notes/hist_log/log_NNN.md`. One volume = one
+file; the session counter never restarts across volumes. The prose is wrapped to ~120 chars/line (D-237); the bullets
+keep their exact 2/4-space indentation.
 
 ## Volumes and rotation
 
-- Volumes are named log\_000.md, log\_001.md, ... (zero-padded).
+- The current journal is notes/log.md; the archived volumes are notes/hist\_log/log\_NNN.md (zero-padded; the number is
+  the volume's, assigned at its birth).
 - A volume holds at most 25 sessions or 2000 lines, whichever comes first.
 - Rotation happens ONLY at a session boundary: when starting a NEW session, if the current volume has reached its cap,
-  close it (set the final session number in its H1 range) and start the next volume. A volume jump never cuts a session.
+  close it (set the final session number in its H1 range, move it to notes/hist\_log/ as log\_NNN.md) and start the next
+  volume at notes/log.md. A volume jump never cuts a session.
 - Every volume starts with its H1 `# Session journal — volume 00N (sessions X–Y)` (Y = "..." while the volume is open,
   filled in at close) and the pointer line "Format rules: notes/log\_rules.md (rigid — follow when editing this file)."
-- The most recent volume is the one to append to; closed volumes are read-only except factual corrections.
+- The current journal is notes/log.md; the archived volumes are read-only except factual corrections.
 
 ## Session entries
 

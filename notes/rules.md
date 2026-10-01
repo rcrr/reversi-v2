@@ -38,13 +38,14 @@ grammar, the cell rules, the reference families).
 
 **R-040 — notes/decisions.md**
 
-The OPEN historical decision log (append-only; the "why"; consulted on demand). The format is RIGID in
-notes/decisions\_rules.md (the entry grammar, the volumes and rotation).
+The OPEN historical decision log (append-only; the "why"; consulted on demand); the closed volumes live in
+notes/hist\_decisions/. The format is RIGID in notes/decisions\_rules.md (the entry grammar, the volumes and rotation).
 
 
-**R-050 — notes/log\_NNN.md**
+**R-050 — notes/log.md**
 
-The session journals (rotating volumes; the format is rigid in notes/log\_rules.md).
+The session journal (the current one is notes/log.md, the archived volumes are notes/hist\_log/log\_NNN.md; the format
+is rigid in notes/log\_rules.md).
 
 
 **R-060 — The domain rule files**

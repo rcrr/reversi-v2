@@ -1,6 +1,6 @@
 # notes/overview.md — format rules (rigid)
 
-Applies to notes/overview.md (R-003 in notes/rules.md — the entry-point rule: read first, updated after each milestone
+Applies to notes/overview.md (R-030 in notes/rules.md — the entry-point rule: read first, updated after each milestone
 and at the end of each work session). This file is rigid: follow it when editing the overview; a format change amends
 this file in the same commit as its decision. The prose is wrapped to ~120 chars/line.
 
