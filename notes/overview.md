@@ -77,6 +77,7 @@ bullet-per-campaign (D-334).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the 120-char reflow,
   the D-318 docstring conversion).
 - Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
+- The register re-review (Roberto, after the D-380 renumbering); the guard rule text (R-200) awaits his call.
 
 ## Source files
 One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign
@@ -207,7 +208,7 @@ tables above.
 
 - notes/naming.md — canonical board naming convention (row/column, D-013; D8 symmetries, D-014)
 - notes/rules.md — active legislation ("legislative body"): the register of the rules in force, R-NNN-numbered (a bold
-  title + a 1–3 line description, origin D-number; added/amended/retired only on explicit user approval)
+  title + a 1–3 line description; added/amended/retired only on explicit user approval)
 - notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md;
   closed volumes: decisions\_NNN.md)
 - notes/decisions\_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
