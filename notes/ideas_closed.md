@@ -1,4 +1,4 @@
-# ideas-closed.md — the closed ideas (the record)
+# ideas_closed.md — the closed ideas (the record)
 
 Role: the closed counterpart of notes/ideas.md — the ideas whose status is `done` or `dropped`. The campaign history
 stays in notes/decisions.md and the journal volumes: this file is the I-NNN index into it, never a narrative. Format:

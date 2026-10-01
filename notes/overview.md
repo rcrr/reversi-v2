@@ -225,7 +225,7 @@ tables above.
   historical project docs (the historical/ subdir: the I-017 project plan — analytical\_properties\_of\_features.md, the
   wave-tier performance baseline — performance\_baseline.md, the ODP-9 material)
 - notes/ideas.md — the OPEN backlog (I-NNN, D-235)
-- notes/ideas-closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
+- notes/ideas\_closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
 - notes/decisions\_rules.md — the decisions-log format rules (rigid; the entry grammar — header + 9-space continuation —
   the volumes and rotation: the 1000-line cap, only at session boundaries)
 - notes/log\_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /

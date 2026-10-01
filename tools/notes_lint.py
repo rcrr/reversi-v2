@@ -9,7 +9,7 @@ formats, each per its rigid grammar:
   notes/overview.md — the eight-section + table grammar (notes/overview_rules.md)
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
   probe_rules.md, tools.md, naming.md) — the H1 + section + bullet grammar
-  notes/ideas.md + notes/ideas-closed.md — the D-235 entry grammar (I-NNN | status | ...)
+  notes/ideas.md + notes/ideas_closed.md — the D-235 entry grammar (I-NNN | status | ...)
 One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
 notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/hist_log/log_000..003) are linted
 on explicit request (the append-frozen closed history, cleaned and green at D-368). Run it after every notes edit —
@@ -506,7 +506,7 @@ IA_ENTRY = re.compile(r'^I-(\d{3}) \| ([^|]*) \| ')
 
 
 def lint_ideas(path, lines, text):
-    """notes/ideas.md + notes/ideas-closed.md (the D-235 preamble format): an
+    """notes/ideas.md + notes/ideas_closed.md (the D-235 preamble format): an
     H1, the preamble prose, then the entries `I-NNN | status | idea` with a
     9-space continuation indent and a blank line before every entry; the
     I-numbers are global, never reused."""
@@ -569,7 +569,7 @@ def kind_of(name):
     if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
              'probe_rules.md', 'tools.md', 'naming.md'):
         return 'rulefile'
-    if b in ('ideas.md', 'ideas-closed.md'):
+    if b in ('ideas.md', 'ideas_closed.md'):
         return 'ideas'
     return None
 
@@ -580,7 +580,7 @@ def main(argv):
     else:
         # every CURRENT notes file (the closed volumes are linted on explicit request)
         files = [ROOT / f'notes/{n}' for n in
-                 ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas-closed.md',
+                 ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas_closed.md',
                   'naming.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
                   'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
     linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal,

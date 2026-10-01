@@ -1046,3 +1046,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - COMMIT: un solo commit (D-387).
 - PUNTINA PENDENTE (in attesa della call di Roberto): il rename ideas-closed.md -> ideas\_closed.md — l'analisi e'
   presentata in sessione, attendo le sue indicazioni.
+- Session 91 (Roberto, nona richiesta): "Brava Nia! Procedi!" (il rename ideas-closed.md -> ideas\_closed.md,
+  approvato dopo la mia analisi: dash = incidente, mixed spelling = classe d'errore non visibile alla guard).
+- IMPLEMENTATION (D-388): git mv (history preservata, come D-382) + le 10 modifiche vive nello stesso commit:
+  l'H1, ideas.md (frase MOVES), Index, R-070, AGENTS (rule 8 + Layout), notes\_lint.py (docstring x2, kind\_of,
+  default set); notes\_format.py senza ref. Congelati per progetto: i 47 ref storici (11 log aperto, 13 journal,
+  12 volumi chiusi, 11 log\_003) + i 4 file ODP-9 (archivio, restano con il dash).
+- VERIFICATION: guard VERDE sul set default (13 file, ora con notes/ideas\_closed.md); censimento ref ripulito
+  post-commit.
+- COMMIT: un solo commit (D-388).

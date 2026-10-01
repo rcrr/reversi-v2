@@ -931,3 +931,17 @@ D-387 | 2026-10-01 | the ideas-closed.md HEADER trim — the last functioning se
          its D-pointer too (I-008: dropped at D-125). R-070 stays true without amendment ("the format, the status
          legend, the closure lifecycle and the I-numbering are in each file's preamble" — each preamble carries its own
          share). VERIFICATION: notes\_format --write applied (idempotent), the guard green on the default set.
+
+D-388 | 2026-10-01 | the ideas-closed.md -> ideas\_closed.md RENAME (Roberto: "e' l'unico file con un dash nel nome
+         invece che un underscore ... l'estetica inspira ordine, che va perseguito" — my analysis: the dash is an
+         accident (no naming rationale recorded at D-235), and a mixed spelling leaves a class of wrong-ref errors the
+         guard cannot see (the lint checks format, not path existence); ruling: "Procedi!"). git mv with rename history
+         preserved (the D-382 pattern) + the 10 live refs in the SAME commit — the R-250 impact set, mandatory: the
+         guard's default set carries the name literally, so a separate-commit tool update would kill the guard. The 10:
+         the H1, ideas.md (the MOVES sentence), the overview Index, the register R-070, AGENTS.md (standing rule 8 + the
+         Layout bullet), notes\_lint.py (module docstring, lint\_ideas docstring, kind\_of, default set);
+         notes\_format.py has zero refs (path-agnostic). No collision: "ideas\_closed" existed nowhere before
+         (verified). Frozen by design: the 47 historical refs (11 open decisions log, 13 journal, 12 closed decision
+         volumes, 11 log\_003) cite the name of their time, and the 4 ODP-9 archive files stay hyphenated (frozen
+         history, outside the living convention). VERIFICATION: the guard green on the default set (13 files, now incl.
+         notes/ideas\_closed.md); the live-ref census re-verified after the commit.

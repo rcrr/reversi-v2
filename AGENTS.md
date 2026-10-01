@@ -19,7 +19,7 @@ of software tools in the domain of Reversi, the board game also known as Othello
    to the current session journal (notes/log.md; format rules: notes/log_rules.md).
 7. The verification apparatus lives in probes/ (tracked; the hub probe verify_logistic_model.py owns the pipeline-wide
    state); scratch/ is a disposable, gitignored session area — nothing permanent there (rules: notes/probe_rules.md).
-8. Do not propose repo-wide reorganization as an agent initiative: it is planned work (I-001, notes/ideas-closed.md),
+8. Do not propose repo-wide reorganization as an agent initiative: it is planned work (I-001, notes/ideas_closed.md),
    executed only on Roberto's explicit decision. (D-122: the guard moves here from "What this is"; it outlived the port
    campaign that wrote it, the principle stands.)
 
@@ -43,6 +43,6 @@ read row 1 on top, column a on the left.
   counter) — NOT the package's src/reversi/tools/ (D-248)
 - notes/ — collaboration only: rules.md (active legislation) · decisions.md (the open decision log; the closed volumes
   in hist_decisions/) · log.md (the open session journal; the archived volumes in hist_log/) · ideas.md (the open
-  backlog) · ideas-closed.md (the closed ideas) · log_rules.md · decisions_rules.md · docs_rules.md ·
+  backlog) · ideas_closed.md (the closed ideas) · log_rules.md · decisions_rules.md · docs_rules.md ·
   overview_rules.md · probe_rules.md · naming.md
 - scratch/ — disposable session area, gitignored, never tracked
