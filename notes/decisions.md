@@ -775,3 +775,22 @@ D-377 | 2026-09-30 | R-043 (Test docs) retired, the test zone absorbed into the 
          R-040, R-041, R-042); no live reference to it (verified tree-wide: none outside the append-only history). Docs
          is now R-038 + R-044 (the two doc zones). VERIFICATION: the guard green on the default set, the register
          canonical (267 lines, 33 rules + 7 sub-rules).
+
+D-378 | 2026-09-30 | R-044 (Probe docs) retired, the probe zone absorbed into the docstring cluster (Roberto proposed
+         R-045.6 as the mirror of R-045.4 — "La farei diventare: R-045.6 — Probe docstrings: DEVIATIONS" — and:
+         "Procedi!" after my comments). R-045.6 (Probe docstrings: DEVIATIONS) — his text, with my one fix: "with one
+         deviation: one exception:" was a duplication (the deviation IS the exception, one phrase suffices): probe
+         docstrings are bound by the same docstring rules applied to the code, with one deviation: the probe's own check
+         labels and item ids ("C5 … (I-013 …)") are the probe's vocabulary and stay. Rulings on the record: (1) the
+         exception is deliberately unqualified by place — it saves the labels wherever they appear (docstrings,
+         separator comments, asserted text) from the I-XXX ban of R-045.5; the boundary registered at D-377 now lives in
+         R-045.6. (2) The one semantic loss, accepted: R-044's third sentence ("the text asserted and the surrounding
+         comments follow the test-doc rules") is gone — the asserted text (assert messages) is now pure data, no longer
+         bound by the no-D/I-refs duty; data is not documentation, consistent with R-045.5's "docstring or comment"
+         scope. (3) Probe comments need no rule of their own: the general code-comment rules (the D-ref policy, the
+         I-XXX ban) plus the label exception — symmetric with the test comments after D-377. The dangling "follow the
+         test-doc rules" pointer (R-043 is gone) dies with R-044; no other live reference (verified tree-wide: only the
+         title). The cluster is now complete and symmetric: the general rules (.1 WHAT, .2 no D-XXX, .3 FORMAT, .5 no
+         I-XXX) plus the two zone rules (.4 test, .6 probe); Docs is left with R-038 alone (the docs/ territory); R-044
+         leaves the fifth permanent gap (after R-040, R-041, R-042, R-043). VERIFICATION: the guard green on the default
+         set, the register canonical (266 lines, 32 rules + 8 sub-rules).

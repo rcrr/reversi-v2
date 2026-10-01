@@ -188,13 +188,6 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
-
-**R-044 — Probe docs**
-
-The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and item ids
-("C5 … (I-013 …)") are the probe's vocabulary and stay — the text asserted and the surrounding comments follow the
-test-doc rules.
-
 ## Code style
 
 **R-045 — Code lines have a width of about 120 characters**
@@ -235,6 +228,12 @@ stating what is tested; the four-part descriptive format is for functions with a
 **R-045.5 — No I-XXX in the code (no reference to the ideas)**
 
 No I-XXX reference in any docstring or comment of the Python code — src, test, or probe; ideas.md is their home.
+
+
+**R-045.6 — Probe docstrings: DEVIATIONS**
+
+Probe docstrings are bound by the same docstring rules applied to the code, with one deviation: the probe's own check
+labels and item ids ("C5 … (I-013 …)") are the probe's vocabulary and stay.
 
 ## Notes format guard
 
