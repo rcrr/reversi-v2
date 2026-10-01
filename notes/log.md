@@ -1031,3 +1031,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   "Format (D-235)" dall'header gemello (ruling 2); il next I resta derivato, status quo (ruling (i)).
 - VERIFICATION: notes\_format --write applicato (idempotente), guard VERDE sul set default.
 - COMMIT: un solo commit (D-386).
+- Session 91 (Roberto, settima richiesta): "Prossimo lavoro di pulizia della governance: ideas-closed.md ... Mi
+  pare che vada tutto bene. Tuo parere?"
+- ANALISI (no D): 4 su 5 frasi restano (identita' + appartenenza, contratto di scope "I-NNN index, never a
+  narrative", formato proprio, invariante cross-file); la sola "funzionamento" e' la frase MOVES — duplicato
+  (direzione opposta) della regola gia' nell'header di ideas.md, la casa del canon; la sfumatura "execution (or
+  drop) pointer" vs "D-pointer" non e' portante (un'idea dropped ha il suo D-pointer: I-008, D-125).
+- Session 91 (Roberto, ottava richiesta): "La togliamo!" + tema estetico: ideas-closed.md e' l'unico file del
+  sistema notes con il dash nel nome — si passa a ideas\_closed.md? ("Lo so che bisogna cambiare tutti i
+  riferimenti ... l'estetica inspira ordine").
+- IMPLEMENTATION (D-387): la frase MOVES via dall'header; le altre 4 restano. R-070 resta vera senza emendamento
+  (ogni preamble porta la sua quota del contratto).
+- VERIFICATION: notes\_format --write applicato (idempotente), guard VERDE sul set default.
+- COMMIT: un solo commit (D-387).
+- PUNTINA PENDENTE (in attesa della call di Roberto): il rename ideas-closed.md -> ideas\_closed.md — l'analisi e'
+  presentata in sessione, attendo le sue indicazioni.

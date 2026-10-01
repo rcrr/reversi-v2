@@ -919,3 +919,15 @@ D-386 | 2026-10-01 | the ideas.md + ideas-closed.md HEADER trim (Roberto, on my 
          over ideas.md + ideas-closed.md plus one (today: I-021) — the same regime as the D-numbers; the guard keeps its
          per-file IA-SEQ, the cross-file collision check stays out of scope. VERIFICATION: notes\_format --write applied
          (idempotent), the guard green on the default set.
+
+D-387 | 2026-10-01 | the ideas-closed.md HEADER trim — the last functioning sentence out (Roberto, on my analysis: "La
+         togliamo!"). The move-mechanics sentence ("An idea MOVES here from notes/ideas.md, compacted to its statement +
+         the execution (or drop) pointer + the outcome, in the same commit as the decision that closes it") is removed:
+         the same rule already lives in the ideas.md header (the canon home — the file where the close action happens),
+         and it was the only functioning in this header. The four remaining sentences are identity (Role + the done |
+         dropped membership), the scope contract (the I-NNN index into the campaign history, never a narrative), the
+         file's own format, and the cross-file invariant that licenses the next-I derivation. The wording nuance ("the
+         execution (or drop) pointer" vs the open header's "the D-pointer") is not load-bearing: a dropped idea carries
+         its D-pointer too (I-008: dropped at D-125). R-070 stays true without amendment ("the format, the status
+         legend, the closure lifecycle and the I-numbering are in each file's preamble" — each preamble carries its own
+         share). VERIFICATION: notes\_format --write applied (idempotent), the guard green on the default set.
