@@ -820,3 +820,21 @@ D-379 | 2026-09-30 | six new rules enter the register (Roberto: "Le accetto tutt
          intermediate reordered state will be RSEQ-red by design (no commit exists between the reorder and the final
          numbering, R-047 untouched). VERIFICATION: the guard green on the default set, the register canonical (296
          lines, 38 rules + 8 sub-rules).
+
+D-380 | 2026-10-01 | the register is reordered and renumbered (Roberto's scheme: "Procederei secondo questo schema ...
+         per il resto OK. Procedi con il commit!"). The sections stand in the natural order — the notes system (Roles,
+         Language & collaboration, Notes format guard, Change discipline), then the artifact (Layout & tree, Naming &
+         platform, Code style, Docs, Test discipline) — with the two moves settled in his review: the no I-XXX rule sits
+         right after the no D-XXX one (the two no-reference rules side by side), and the pre-commit gate question closed
+         with his table: the thematic sections stay, no "Before the commit" section, R-010 stays in Language. The
+         renumbering: 46 title lines retitled, zero bodies (the no-internal-references ruling of D-377 pays off). The
+         allocation is his: the numbers are ordered by value, within a section they step by ten, with wider margins at
+         the section boundaries, the gaps reserve room for the section's future rules, the register starts at R-010
+         (room for rules before the current first) and ends at R-860; the dot notation leaves the daily use (the
+         docstring cluster is now the consecutive 520-590) and is reserved for the extreme cases. The Governance is
+         amended on his lean text: "ordered from the smallest to the largest" replaces "sequential", with his by-value
+         sequence as the explanation (R-510 < R-511 < R-511.1 < R-511.3 < R-511.17 < R-512 < R-600 < R-999); my step-10
+         sentence and the R-010 rationale were cut by his "stiamo asciutti" (the R-010 rationale would go stale: a
+         future first rule takes R-005 or R-008) — they live here, in the entry, not in the Governance. The old-to-new
+         conversion table is recorded in the journal only (his ruling). VERIFICATION: the guard green on the default
+         set, the register canonical (297 lines, 46 rules, no sub-rules).
