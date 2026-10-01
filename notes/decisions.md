@@ -752,3 +752,26 @@ D-376 | 2026-09-30 | R-042 (Provenance vs design pointers) retired as redundant 
          R-041); the frozen block loses its last open item (the R-042 emigration) — only the text, placement and
          ordering invariants remain. VERIFICATION: the guard green on the default set, the register canonical (262
          lines, 34 rules + 5 sub-rules).
+
+D-377 | 2026-09-30 | R-043 (Test docs) retired, the test zone absorbed into the docstring cluster (Roberto: "Capisco la
+         obiezione e la accolgo, in parte. Io ritirerei la R-043, e introdurrei al suo posto una R-045.4 — Test
+         docstrings: DEVIATIONS" — after my analysis showed R-043 was a zone-deviation rule, not a R-042 class
+         duplication: verified on the tree, the test docstrings are light 1-2 lines carrying the mechanism (the
+         "optionally how it is realized" vs the cluster never-HOW), the I-xxx ban lived only there (the cluster says D
+         only), the light format was the only shield from the four-part format, and R-044 anchors on it). R-045.4 (Test
+         docstrings: DEVIATIONS) — his skeleton, my fill, his approval of the full text: the same docstring rules bind
+         the test docstrings (the D-375 ruling made explicit text), one deviation (the docstring may state how the check
+         is realized: the mechanism, the preconditions, the postconditions), one specifica (the format is light, one or
+         two lines — the four-part descriptive format is for functions with a contract). R-045.5 (No I-XXX in the code)
+         — his text: no I-XXX reference in any docstring or comment of the Python code (src, test, or probe); it closes
+         a real hole — the I-xxx ban never bound src, it lived only in R-043 (tests); the probe check-labels boundary is
+         carried by the R-044 exception itself (the general rule stays clean). Rulings on the record: (1) the
+         level-ordinal clause ("name the level, no drifting ordinals") is NOT re-enacted — Roberto:
+         code-structure-specific, not legislation (the D-267 template is campaign material, the executed instance); the
+         test format-pass to-do loses that one criterion, the rest (no D/I refs, no history) stays covered. (2) No
+         internal rule references in the rule texts: R-045.4 is self-contained, "the four-part descriptive format"
+         described by shape, no R-NNN / D-XXX anywhere in the two new texts. R-044 is left as-is this turn (Roberto:
+         "come e' scritta non va tanto bene" — its rework is next turn). R-043 leaves the fourth permanent gap (after
+         R-040, R-041, R-042); no live reference to it (verified tree-wide: none outside the append-only history). Docs
+         is now R-038 + R-044 (the two doc zones). VERIFICATION: the guard green on the default set, the register
+         canonical (267 lines, 33 rules + 7 sub-rules).

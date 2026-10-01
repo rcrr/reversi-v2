@@ -189,13 +189,6 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
 
-**R-043 — Test docs (the docstrings + the comments in test/)**
-
-State what is tested, optionally how it is realized (the mechanism, the preconditions, the postconditions); no D-xxx /
-I-xxx references, no evolution history, and no level ordinals that drift as levels come and go (name the level:
-CLIENT\_CHECK, PLOT).
-
-
 **R-044 — Probe docs**
 
 The same rules apply to the probes/ docstrings and comments; one exception: the probe's own check labels and item ids
@@ -230,6 +223,18 @@ what is measured or computed and why (the observable contract; the formulas defi
 docstring, they ARE the WHAT); (3) the Args: section, the Google 8-space indent, each argument typed in parentheses +
 described (the types mirror the real annotations); (4) the Returns: section, the key-by-key detail (the dict keys, the
 degenerate behaviors — the nan / None / 0 conventions, the exceptions).
+
+
+**R-045.4 — Test docstrings: DEVIATIONS**
+
+Test docstrings are bound by the same docstring rules applied to the code, with one deviation: the docstring may state
+how the check is realized (the mechanism, the preconditions, the postconditions). The format is light: one or two lines
+stating what is tested; the four-part descriptive format is for functions with a contract.
+
+
+**R-045.5 — No I-XXX in the code (no reference to the ideas)**
+
+No I-XXX reference in any docstring or comment of the Python code — src, test, or probe; ideas.md is their home.
 
 ## Notes format guard
 
