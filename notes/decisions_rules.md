@@ -11,12 +11,10 @@ notes/rules.md). The prose is wrapped to ~120 chars/line.
 - The D-numbers are global, monotonically increasing, never reused or renumbered — across the open log and every closed
   volume.
 - Code spans for the paths and the function / file names; backslash-escaped asterisks and underscores (the math
-  multiplications, the snake\_case identifiers), so the Markdown renders without stray italics (D-209, extended
-  at D-365).
+  multiplications, the snake\_case identifiers), so the Markdown renders without stray italics.
 
 ## Volumes and rotation
 
-- The open volume keeps the name decisions.md; past 1000 lines (the D-118 cap, amended at D-333) it closes at a session
-  boundary as notes/hist\_decisions/decisions\_NNN.md (zero-padded, the next progressive number) and a new decisions.md
-  is opened.
+- The open volume keeps the name decisions.md; past 1000 lines it closes at a session boundary as
+  notes/hist\_decisions/decisions\_NNN.md (zero-padded, the next progressive number) and a new decisions.md is opened.
 - A volume jump never cuts an entry; the closed volumes are the closed history.

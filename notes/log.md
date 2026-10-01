@@ -984,5 +984,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - VERIFICATION: il bullet come il testo approvato, coerente con R-040/R-050 e con le due rule files; guard VERDE sul
   set default.
 - COMMIT: un solo commit (D-383).
-- Next: l'impact set del meccanismo hist e' completo (D-382 + D-383); poi la riveduta completa del registro
-  (Roberto), i 6 item della to-do list (D-337).
+- Session 91 (Roberto, quarta richiesta): "1: OK 2: (a) 3: (B) 4: NO solo D-NNN ha il problema, le rules sono
+  stabili. Le Idee ... quando saremo a 1000 vedremo :) !!! siamo lontanissimi. 5: OK solo una. Procedi!"
+- IMPLEMENTATION (D-384): decisions\_rules.md: i due ultimi D-ref di provenance rimossi (l'escape bullet, il
+  rotation bullet) — il file e' a zero D-ref; le frasi restano auto-spieganti. Scope: solo decisions\_rules, il
+  resto della classe 1 (log\_rules, overview\_rules, docs\_rules, ideas, il preamble di tools.md) aspetta la sua
+  volta; la classe 2 (esempi funzionali) e la 3 (data di registro) restano per progetto. Pre-empt del D-1000: i 6
+  pattern D dei due tool estesi da tre cifre a tre-o-quattro (DEC\_ID, DEC\_HEADER, TRAP, D\_REF nel guard;
+  ENTRY, DANGEROUS nel re-wrapper) — zero cambio sul contenuto esistente; verificato con una fixture a 4 cifre:
+  lint pulito, il re-wrapper preserva la struttura a 9 spazi (idempotente). Pattern R/I intatti (ruling di
+  Roberto: le rules sono stabili, le idee sono lontanissime).
+- VERIFICATION: guard VERDE sul set default; fixture D-1000 ok su lint e --write; py\_compile pulito sui due tool.
+- COMMIT: un solo commit (D-384).
+- Next: la pulizia D-ref della famiglia (classe 1: log\_rules, overview\_rules, docs\_rules, ideas, tools.md)
+  aspetta le indicazioni di Roberto, file per file; poi la riveduta completa del registro (Roberto), i 6 item
+  della to-do list (D-337).

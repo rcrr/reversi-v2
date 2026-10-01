@@ -55,13 +55,13 @@ BULLET = re.compile(r'^(\s*)(?:-|\d+\.)\s')
 # the optional letter suffix covers the historical sub-entries (D-156b/c/d in
 # the closed volumes): without it the tool parses them as prose paragraphs and
 # flattens their 9-space continuation blocks
-ENTRY = re.compile(r'^\s*([DI]-\d{3}[a-z]?) \| ([^|]+) \| ')
+ENTRY = re.compile(r'^\s*([DI]-\d{3,4}[a-z]?) \| ([^|]+) \| ')
 FIELD = re.compile(r'^(\s*)\| ')
 SKIP_WRAP = re.compile(r'^\s*$')
 # a token that must NEVER start a continuation line (the next pass would read
 # it as a new block: a bullet, a field/table pipe, a heading, a numbered item,
 # a decision header)
-DANGEROUS = re.compile(r'^(?:[-|#]|\d+\.|[DI]-\d{3}\b)')
+DANGEROUS = re.compile(r'^(?:[-|#]|\d+\.|[DI]-\d{3,4}\b)')
 
 
 class Verbatim(list):

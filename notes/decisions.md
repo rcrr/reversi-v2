@@ -881,3 +881,20 @@ D-383 | 2026-10-01 | AGENTS.md aligned to the hist mechanism (Roberto: "Procedi 
          preamble fix; the number lives in the decision entry) — its rewording is his. VERIFICATION: the bullet per the
          approved text, consistent with the register (R-040/R-050) and the two rule files; the guard green on the
          default set.
+
+D-384 | 2026-10-01 | the D-number cleanup of decisions\_rules.md + the four-digit pre-emption (Roberto, on my analysis:
+         "1: OK 2: (a) 3: (B) 4: NO solo D-NNN ha il problema, le rules sono stabili ... 5: OK solo una. Procedi!").
+         decisions\_rules.md: the last two D-provenance pointers removed — the escape bullet (D-209, extended at D-365)
+         and the rotation bullet (the D-118 cap, amended at D-333); both texts stay self-contained (the why and the
+         threshold are in the sentence), and the file now carries zero D-refs. Scope ruling: decisions\_rules only for
+         this pass; the class-1 refs of the family (log\_rules, overview\_rules, docs\_rules, ideas, the tools.md
+         preamble) wait for their own walk-through turn, and class 2 (functional examples) and class 3 (registry data)
+         stay by design. The four-digit pre-emption: the D-number grows to four digits at D-1000, so the six D patterns
+         of the two tools are widened from three to three-or-four digits (DEC\_ID, DEC\_HEADER, TRAP, D\_REF in
+         notes\_lint.py; ENTRY, DANGEROUS in notes\_format.py) — zero behavior change on existing content (every
+         D-number is three-digit today), and it removes the only hard deadline of the notes format: without it,
+         at D-1000 the guard would go false-red (the header unparseable, an INDENT violation) and the re-wrapper would
+         flatten the 9-space entry as prose. The R and I patterns are deliberately untouched (his ruling: the rules are
+         stable, the ideas are far away). VERIFICATION: the guard green on the default set; a scratch fixture with a
+         long D-1000 entry lints clean and survives notes\_format --write with the 9-space structure intact
+         (idempotent); py\_compile clean on both tools.

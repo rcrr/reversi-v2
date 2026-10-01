@@ -44,14 +44,14 @@ WIDTH = 120
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
-DEC_ID = re.compile(r'^D-(\d{3})([a-z]?) \| ')
-DEC_HEADER = re.compile(r'^D-\d{3}[a-z]? \| \d{4}-\d{2}-\d{2} \| \S')
+DEC_ID = re.compile(r'^D-(\d{3,4})([a-z]?) \| ')
+DEC_HEADER = re.compile(r'^D-\d{3,4}[a-z]? \| \d{4}-\d{2}-\d{2} \| \S')
 R_TITLE = re.compile(r'^\*\*R-(\d{3})(?:\.(\d+))? — .+\*\*$')
 J_H1 = re.compile(r'^# Session journal — volume \d{3} \(sessions .+\)$')
 J_POINTER = 'Format rules: notes/log_rules.md (rigid — follow when editing this file).'
 J_SESSION = re.compile(r'^## \d{4}-\d{2}-\d{2} — session (\d+) \(.+\)$')
-TRAP = re.compile(r'(?:\d+\.\s|#\s|[DI]-\d{3}\s+\|)')
-D_REF = re.compile(r'D-\d{3}')
+TRAP = re.compile(r'(?:\d+\.\s|#\s|[DI]-\d{3,4}\s+\|)')
+D_REF = re.compile(r'D-\d{3,4}')
 
 
 def plain_of(line):
