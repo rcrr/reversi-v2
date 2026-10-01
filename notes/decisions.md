@@ -849,3 +849,35 @@ D-381 | 2026-10-01 | the preamble of the register is corrected (Roberto: "Non mi
          every decision entry that adds or retires a rule is its origin record) — the pointer runs decisions to
          register, not the other way. One clause cut, three self-standing sentences. VERIFICATION: the guard green on
          the default set, the register canonical (297 lines, 46 rules).
+
+D-382 | 2026-10-01 | the hist mechanism (Roberto: "vorrei cambiare entrambi i meccanismi ... Sviluppa una analisi
+         approfondita, la presenti, poi ti do istruzioni su come continuare" — then the rulings: "1: (a) 2: (i) 3: si 4:
+         OK 5: me lo proponi dopo il commit"). notes/decisions.md and notes/log.md are the two fixed current files; the
+         closed volumes live in notes/hist\_decisions/ (decisions\_000…005) and notes/hist\_log/ (log\_000…003). Eleven
+         git mvs, content-free: the current journal log\_004.md became log.md — the fixed path returns (its ancestor was
+         the original log.md, rotated at D-055; the archives move to the folders). Rulings on the record: (1) the
+         journal volume number is assigned at BIRTH (the H1 carries it; the unnumbered name is the address, the number
+         is the identity of the session range); (2) the H1 is unchanged while the journal is current (content-free
+         rename, the linters untouched); (3) the decisions-at-close / journals-at-birth asymmetry kept; (4) one D, one
+         commit, the full impact set. Impact set: the 11 git mvs; tools/notes\_lint.py (the default set is now the fixed
+         notes/log.md in the explicit list, kind\_of accepts log.md, the docstring paths to the hist folders; the stale
+         R-047 docstring ref and the stale R-042 comment ref closed — behavior unchanged); the register R-040 (the
+         closed volumes in hist\_decisions) + R-050 (title notes/log.md, the archived volumes in hist\_log);
+         decisions\_rules.md + log\_rules.md (the scope lines + the Volumes-and-rotation sections); the three
+         renumbering leftovers closed (overview\_rules.md R-003 to R-030, tools.md R-047 to R-200, decisions\_rules.md
+         R-004 to R-040); the overview (the Current-state preamble + the Index volume bullets to the hist paths).
+         Deliberately untouched, named per the pre-commit check: AGENTS.md — its layout bullet stays on the old
+         mechanism; its rewording is proposed after this commit, his call. No history back-rewrite: the closed volumes
+         and the old journals cite the paths of their time. VERIFICATION: the guard green on the default set (13 files,
+         incl. notes/log.md), the register canonical (298 lines, 46 rules).
+
+D-383 | 2026-10-01 | AGENTS.md aligned to the hist mechanism (Roberto: "Procedi con change di AGENTS come proposto. OK"
+         — the approved symmetric proposal from D-382). The Layout bullet now pairs the two history artifacts —
+         decisions.md (the open decision log; the closed volumes in hist\_decisions/) and log.md (the open session
+         journal; the archived volumes in hist\_log/) — and it is shorter than the old one. The D-382 impact set had
+         missed a second old-mechanism reference in the same file: standing rule 6 sent the session summary to
+         notes/log\_NNN.md — now notes/log.md (same change, same commit). Named and left pending his call: rule 6's
+         "promoted ... with its D-number" is a D-381 residue (the rule lines carry no D-number any more after the
+         preamble fix; the number lives in the decision entry) — its rewording is his. VERIFICATION: the bullet per the
+         approved text, consistent with the register (R-040/R-050) and the two rule files; the guard green on the
+         default set.

@@ -16,7 +16,7 @@ of software tools in the domain of Reversi, the board game also known as Othello
 6. Every decision (including "leave as-is for now") goes to notes/decisions.md (the historical log) with date and
    rationale. A rule that must outlive the campaign is promoted to notes/rules.md (the active legislation) with its
    D-number, in the same commit; a retirement removes the line and is logged with a new D-number. Session summary goes
-   to the current session-journal volume (notes/log_NNN.md; format rules: notes/log_rules.md).
+   to the current session journal (notes/log.md; format rules: notes/log_rules.md).
 7. The verification apparatus lives in probes/ (tracked; the hub probe verify_logistic_model.py owns the pipeline-wide
    state); scratch/ is a disposable, gitignored session area — nothing permanent there (rules: notes/probe_rules.md).
 8. Do not propose repo-wide reorganization as an agent initiative: it is planned work (I-001, notes/ideas-closed.md),
@@ -41,8 +41,8 @@ read row 1 on top, column a on the left.
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
 - tools/ — the workspace MAINTENANCE tools (tracked; the notes/docs format re-wrapper, the mirror-doc auditor, the suite
   counter) — NOT the package's src/reversi/tools/ (D-248)
-- notes/ — collaboration only: rules.md (active legislation) · decisions.md (open historical log; closed volumes
-  decisions_NNN.md, e.g. decisions_000.md) · ideas.md (the open backlog) · ideas-closed.md (the closed ideas) ·
-  log_rules.md · decisions_rules.md · docs_rules.md · overview_rules.md · probe_rules.md · naming.md + log_000.md,
-  log_001.md, ... (session journal, rotating volumes)
+- notes/ — collaboration only: rules.md (active legislation) · decisions.md (the open decision log; the closed volumes
+  in hist_decisions/) · log.md (the open session journal; the archived volumes in hist_log/) · ideas.md (the open
+  backlog) · ideas-closed.md (the closed ideas) · log_rules.md · decisions_rules.md · docs_rules.md ·
+  overview_rules.md · probe_rules.md · naming.md
 - scratch/ — disposable session area, gitignored, never tracked

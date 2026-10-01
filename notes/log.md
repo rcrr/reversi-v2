@@ -974,5 +974,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   vecchio; la riformulazione viene proposta dopo il commit, poi le sue indicazioni.
 - VERIFICATION: guard VERDE sul set default (13 file, incluso notes/log.md), registro canonico (298 righe, 46 rules).
 - COMMIT: un solo commit (D-382).
-- Next: il bullet AGENTS (la proposta dopo il commit + le indicazioni di Roberto); il meccanismo hist e' operativo da
-  questa sessione; poi la riveduta completa del registro (Roberto), i 6 item della to-do list (D-337).
+- Session 91 (Roberto, terza richiesta): "Procedi con change di AGENTS come proposto. OK"
+- IMPLEMENTATION (D-383): il bullet Layout di AGENTS.md alla proposta approvata (i due artefatti di storia speculari:
+  decisions.md + hist\_decisions/ ‖ log.md + hist\_log/, il bullet piu' corto del vecchio); trovato durante il lavoro:
+  la standing rule 6 citava il vecchio meccanismo (il session summary in "notes/log\_NNN.md") — lo sfuggito
+  all'analisi della D-382 — ora "notes/log.md" (stessa change, stesso commit).
+- PUNTINA PENDENTE (in attesa della call di Roberto): la "with its D-number" della rule 6 — residuo della D-381 (le
+  righe regola non portano piu' D-number; il numero vive nell'entry decisionale): la riformulazione e' sua.
+- VERIFICATION: il bullet come il testo approvato, coerente con R-040/R-050 e con le due rule files; guard VERDE sul
+  set default.
+- COMMIT: un solo commit (D-383).
+- Next: l'impact set del meccanismo hist e' completo (D-382 + D-383); poi la riveduta completa del registro
+  (Roberto), i 6 item della to-do list (D-337).
