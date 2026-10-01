@@ -3,9 +3,9 @@
 Role: the closed counterpart of notes/ideas.md — the ideas whose status is `done` or `dropped`. An idea MOVES here from
 notes/ideas.md, compacted to its statement + the execution (or drop) pointer + the outcome, in the same commit as the
 decision that closes it. The campaign history stays in notes/decisions.md and the journal volumes: this file is the
-I-NNN index into it, never a narrative. Format (D-235): `I-NNN | status | ...`, ~120 chars/line, a 9-space continuation
-indent, a blank line before every entry; code spans for paths / identifiers. The I-numbers are global and immutable
-across the two files.
+I-NNN index into it, never a narrative. Format: `I-NNN | status | ...`, ~120 chars/line, a 9-space continuation indent,
+a blank line before every entry; code spans for paths / identifiers. The I-numbers are global and immutable across the
+two files.
 
 I-001 | done | Full restructure of the original repo — executed as D-133/D-134 (2026-09-08, Roberto's explicit
          decision): the twolm → reversi reorganization; the notes produced here are the new repo's documentation

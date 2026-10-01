@@ -1016,3 +1016,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   congelata) e la citazione dei path vecchi nell'entry D-333 (congelata, corretta all'epoca).
 - VERIFICATION: notes\_format --write applicato, guard VERDE sul set default.
 - COMMIT: un solo commit (D-385).
+- Session 91 (Roberto, sesta richiesta): "Prossimo lavoro di pulizia della governance: ideas.md. ... Mi pare che
+  vada tutto bene. Rimuoverei (D-235). Non sono sicuro del significato di: (I-008 is dropped: see ideas-closed.md).
+  ... Non mi e' chiaro dove teniamo traccia del NEXT CODE TO USE I-NNN. ... Sviluppa una analisi approfondita, la
+  presenti, poi ti do istruzioni. Grazie!"
+- ANALISI (no D): il backlog e' vuoto (solo l'header, 8 righe); la clausola I-008 e' una nota one-off su un numero
+  specifico (droppata al D-125, il record sta in ideas-closed.md): la regola generale gia' nell'header la rende
+  ridondante. Il next I non e' tracciato da nessuna parte — quantita' derivata (max dei due file + 1 = I-021),
+  stesso regime dei D-number; la frase invariante nell'header la rende univoca. Il censimento classe 1 aveva perso
+  ideas-closed.md:6 (stesso "Format (D-235)") — lista walk-through che cresce di una voce. Ruling: "1: OK! 2: OK!
+  2: (i) Procedi!"
+- IMPLEMENTATION (D-386): ideas.md: via "(D-235)" e "(I-008 is dropped: see ideas-closed.md)", code span intatti
+  (il suo paste li aveva persi — artefatto di rendering, confermato dal ruling 1); ideas-closed.md: via lo stesso
+  "Format (D-235)" dall'header gemello (ruling 2); il next I resta derivato, status quo (ruling (i)).
+- VERIFICATION: notes\_format --write applicato (idempotente), guard VERDE sul set default.
+- COMMIT: un solo commit (D-386).

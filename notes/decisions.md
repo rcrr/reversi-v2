@@ -906,3 +906,16 @@ D-385 | 2026-10-01 | the decisions.md PREAMBLE trim (Roberto, on my analysis: "1
          closed volumes (volume 000 still carries its old preamble — frozen history), the D-333 entry's quote of the old
          paths (a frozen quote, correct at the time). VERIFICATION: the new entry is canonical under
          notes\_format --write (re-wrapped, idempotent), the guard green on the default set.
+
+D-386 | 2026-10-01 | the ideas.md + ideas-closed.md HEADER trim (Roberto, on my analysis: "1: OK! 2: OK! 2: (i)
+         Procedi!" — the (i) is the next-I ruling). ideas.md header: two annotations out — "Format (D-235)" (provenance,
+         the same pattern as D-384/D-385) and "(I-008 is dropped: see ideas-closed.md)" (a one-off footnote on a
+         specific number — I-008, the papers-collection extension, dropped at D-125; the record lives in
+         ideas-closed.md, and the header's general closed-idea rule already answers the case, so the annotation was
+         redundant). His proposed text applied with the code spans kept (his paste stripped the backticks — rendering
+         artifact, confirmed in the ruling). ideas-closed.md header: the same "Format (D-235)" out (his ruling: in this
+         commit; my class-1 census had missed it — the walk-through list grows by one). The next-I-number question
+         (his): NOT tracked explicitly anywhere, and it stays that way (ruling (i)): the next code is derived — the max
+         over ideas.md + ideas-closed.md plus one (today: I-021) — the same regime as the D-numbers; the guard keeps its
+         per-file IA-SEQ, the cross-file collision check stays out of scope. VERIFICATION: notes\_format --write applied
+         (idempotent), the guard green on the default set.
