@@ -2,16 +2,6 @@
 
 Format rules: notes/decisions\_rules.md (rigid — follow when appending to this file).
 
-This is the append-only HISTORICAL LOG: the "why" of every action and commit in this workspace. It grows without bound
-and is consulted only when needed or for historical research. The rules in force right now live in notes/rules.md (the
-active legislation): when a decision establishes an enduring rule, the rule is promoted there with this D-number as the
-origin pointer (same commit); a retirement removes the line from rules.md and is logged here with a new D-number.
-D-numbers are sequential and never reused or renumbered (the docs' State lines and the cross-references depend on them).
-Volumes (D-118, the cap amended at D-333): the open log keeps this name (notes/decisions.md); when it exceeds 1000 lines
-it closes at a session boundary as notes/decisions\_NNN.md and a new open log is opened — the D-numbers stay global
-across volumes (volume 000: D-001…D-116, closed 2026-09-06; volume 001: D-117…D-158, closed 2026-09-11; volumes
-002-005: D-159…D-332, closed 2026-09-29 at the D-333 rotation).
-
 D-333 | 2026-09-29 | the decisions.md REPAIR + the split into 4 closed volumes + the 1000-line cap (Roberto: "Da D-237
          la formattazione si ROMPE. Avendo allargato i caratteri per riga dire di emendare la regola a 1000 righe.
          Spezza il file in 4: notes/decisions\_002.md ... notes/decisions\_005.md, sistema la formattazione con gli
@@ -898,3 +888,21 @@ D-384 | 2026-10-01 | the D-number cleanup of decisions\_rules.md + the four-digi
          stable, the ideas are far away). VERIFICATION: the guard green on the default set; a scratch fixture with a
          long D-1000 entry lints clean and survives notes\_format --write with the 9-space structure intact
          (idempotent); py\_compile clean on both tools.
+
+D-385 | 2026-10-01 | the decisions.md PREAMBLE trim (Roberto, on my analysis: "1:OK 2:rimuovere 3:Procedi!" — the 3-item
+         ruling on the header analysis). The 9-line functioning paragraph (the historical-log charter, the
+         promotion/retirement mechanics, the D-number invariants, the volumes paragraph with the closed-volume history)
+         is REMOVED: the header is now the H1 + the format pointer line, symmetric to notes/log.md. The analysis found
+         the paragraph (a) STALE in two facts — the closed-volume path notes/decisions\_NNN.md is pre-D-382 (the D-382
+         impact set updated every document but this file's own preamble) and "it grows without bound" contradicts the
+         1000-line close — and (b) a pure duplication of canon that lives elsewhere: the charter in R-040, the
+         promotion/retirement mechanics in AGENTS.md rule 6, the D-number invariants in decisions\_rules.md (the
+         stronger global-across-volumes form), the volumes mechanics in the same file's rotation section. NOTHING moves
+         to decisions\_rules.md: it is already self-sufficient (zero D-refs since D-384), and a growing volume registry
+         would not belong in a stable format file. The volume history data (000: D-001…D-116, 001: D-117…D-158,
+         002-005: D-159…D-332) is duplicated in the overview Index (each volume individually) and in each closed
+         volume's own header — removed here, nothing lost (ruling 2: rimuovere). The two D-118/D-333 provenance refs
+         disappear with the paragraph; the provenance stays in the entries themselves. Deliberately untouched: the
+         closed volumes (volume 000 still carries its old preamble — frozen history), the D-333 entry's quote of the old
+         paths (a frozen quote, correct at the time). VERIFICATION: the new entry is canonical under
+         notes\_format --write (re-wrapped, idempotent), the guard green on the default set.

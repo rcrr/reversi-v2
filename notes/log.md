@@ -999,3 +999,20 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Next: la pulizia D-ref della famiglia (classe 1: log\_rules, overview\_rules, docs\_rules, ideas, tools.md)
   aspetta le indicazioni di Roberto, file per file; poi la riveduta completa del registro (Roberto), i 6 item
   della to-do list (D-337).
+- Session 91 (Roberto, quinta richiesta): "Prossimo lavoro di pulizia della governance: decisions.md —
+  focalizziamoci solo sull'header ... A me sembra che non dovremmo avere il funzionamento qui. Dovrebbe
+  andare tutto in decision\_rules.md. Quindi o sono cose non corrette (rimuovere), o sono non necessarie
+  (rimuovere), o sono corrette e necessarie (vanno spostate in decision\_rules). Sviluppa una analisi
+  approfondita, la presenti, poi ti do istruzioni. Grazie!"
+- ANALISI (no D): il paragrafo di funzionamento (9 righe) e' in parte SCADUTO — il path dei volumi chiusi
+  notes/decisions\_NNN.md e' pre-D-382 (l'impact set della D-382 non ha toccato il preamble del file stesso) e
+  "grows without bound" contraddice la chiusura a 1000 righe — e in parte pura duplicazione del canon gia'
+  altrove: la charter in R-040, la promotion/retirement in AGENTS rule 6, gli invarianti D in decisions\_rules,
+  i volumi nella sua sezione rotation. Nulla da spostare in decisions\_rules (gia' auto-sufficiente, zero D-ref
+  dal D-384). I dati dei volumi (classe 3) sono duplicati nell'Index di overview (ogni volume a se') +
+  nell'header di ogni volume chiuso. Ruling: "1:OK 2:rimuovere 3:Procedi!"
+- IMPLEMENTATION (D-385): il paragrafo rimosso, l'header e' H1 + pointer (speculare a log.md); nulla spostato in
+  decisions\_rules; intatti per progetto: i volumi chiusi (volume 000 col suo vecchio preamble — storia
+  congelata) e la citazione dei path vecchi nell'entry D-333 (congelata, corretta all'epoca).
+- VERIFICATION: notes\_format --write applicato, guard VERDE sul set default.
+- COMMIT: un solo commit (D-385).
