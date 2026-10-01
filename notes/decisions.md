@@ -794,3 +794,29 @@ D-378 | 2026-09-30 | R-044 (Probe docs) retired, the probe zone absorbed into th
          I-XXX) plus the two zone rules (.4 test, .6 probe); Docs is left with R-038 alone (the docs/ territory); R-044
          leaves the fifth permanent gap (after R-040, R-041, R-042, R-043). VERIFICATION: the guard green on the default
          set, the register canonical (266 lines, 32 rules + 8 sub-rules).
+
+D-379 | 2026-09-30 | six new rules enter the register (Roberto: "Le accetto tutte. Inseriscile per favore. Poi commit!"
+         — accepting the six proposed on the sessantasettesima richiesta, after his summary of the code-writing and
+         test-coverage discussion: "100% d'accordo ... queste regole le hai embedded" for the generic part, his four
+         items for the rest). Code style (4): R-039 (PEP 8 is the base style; the code is readable — one-line rule);
+         R-040 (the desirable size of a function is 20-30 lines — his number, framed "auspicabile", a norm not a
+         sentence); R-046 (a new external dependency needs the user's explicit permission; the declaration in
+         pyproject.toml follows the approval, never precedes it — R-014's "declared as they are hit" governs the timing
+         of the declaration, this rule the decision, no conflict); R-051 (a new function is checked for duplication
+         before it is introduced — the package, the test helpers, the standard library). Test discipline (2, my judgment
+         on his delegation "mi rimetto al tuo giudizio"): R-030 (the documented contract is the specification of the
+         tests — every documented behavior has a pinning test: return keys, the nan/None/0 conventions, exception types;
+         a documented behavior without a pin is an Open issue — the docstring promises, the test pins, and the mirror
+         pin principle extended from the docs to the docstring contract); R-031 (the three shapes of a test set — happy
+         path, error cases (each documented error type raises), boundary and degenerate inputs; coverage by cases, not
+         by percentages: no coverage tool in the house). PROVISIONAL NUMBERING (the agreed workflow: the rules are
+         committed now, then the physical reorder WITHOUT commit on the current names, then Roberto's final numbers,
+         then the final commit): placed in the existing gaps to keep RSEQ green — R-030/R-031 at the end of Test
+         discipline, R-039/R-040 at the start of Code style, R-046 at its end, R-051 at the end of the register; the
+         reordering settles the sections. Rulings on the record: (1) the dot notation is POSITIONAL, not a structural
+         parent-child (Roberto's correction of my abbaglio: R-NNN.N sits after R-NNN and before the next top-level rule,
+         at its most appropriate place — no hierarchy); (2) history is WISDOM, not a CONSTRAINT — no old-to-new number
+         map will be recorded with the renumbering, the historical entries describe the world of their time. The
+         intermediate reordered state will be RSEQ-red by design (no commit exists between the reorder and the final
+         numbering, R-047 untouched). VERIFICATION: the guard green on the default set, the register canonical (296
+         lines, 38 rules + 8 sub-rules).

@@ -182,6 +182,18 @@ position, never appended at the end.
 Before every commit run the FULL pre-commit: LONG=1 ./run\_utests.sh (the live regab DB is the normal environment) —
 VLONG=1 only when it is useful, and the gated run is not a substitute.
 
+
+**R-030 — The documented contract is the specification of the tests**
+
+Every documented behavior of a public API has a pinning test: each documented return key, each documented convention
+(the nan/None/0), each documented exception type. A documented behavior without a pin is an Open issue.
+
+
+**R-031 — The three shapes of a test set**
+
+The tests of a function cover the three shapes of its contract: the happy path, the error cases (each documented error
+type raises), and the boundary and degenerate inputs (the documented conventions: empty, extreme, nan/None/0).
+
 ## Docs
 
 **R-038 — The mirror docs (docs/)**
@@ -189,6 +201,12 @@ VLONG=1 only when it is useful, and the gated run is not a substitute.
 One doc per source file, mirroring the source tree and the test tree; the rigid format is in notes/docs\_rules.md.
 
 ## Code style
+
+**R-039 — PEP 8 is the base style; the code is readable.**
+
+
+**R-040 — The desirable size of a function is 20-30 lines.**
+
 
 **R-045 — Code lines have a width of about 120 characters**
 
@@ -235,6 +253,12 @@ No I-XXX reference in any docstring or comment of the Python code — src, test,
 Probe docstrings are bound by the same docstring rules applied to the code, with one deviation: the probe's own check
 labels and item ids ("C5 … (I-013 …)") are the probe's vocabulary and stay.
 
+
+**R-046 — A new external dependency needs explicit permission**
+
+Every new external library dependency needs the user's explicit permission before it is added; the declaration in
+pyproject.toml follows the approval, it does not precede it.
+
 ## Notes format guard
 
 **R-047 — The notes format guard**
@@ -263,3 +287,9 @@ existing artifact carries the set of its class.
 Before the final commit of a milestone, the agent checks the impact set: (1) which class of artifacts did this change
 touch; (2) which documents does the impact set name for that class; (3) are all of them updated in the same commit. A
 document of the impact set deliberately left untouched is named in the decision entry, with its reason.
+
+
+**R-051 — A new function is checked for duplication before it is introduced**
+
+Before introducing a new function, the agent verifies it is not a duplicate of an existing one — in the package, in the
+test helpers, or in the standard library.
