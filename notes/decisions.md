@@ -838,3 +838,14 @@ D-380 | 2026-10-01 | the register is reordered and renumbered (Roberto's scheme:
          future first rule takes R-005 or R-008) — they live here, in the entry, not in the Governance. The old-to-new
          conversion table is recorded in the journal only (his ruling). VERIFICATION: the guard green on the default
          set, the register canonical (297 lines, 46 rules, no sub-rules).
+
+D-381 | 2026-10-01 | the preamble of the register is corrected (Roberto: "Non mi pare sia corretta vista la campagna di
+         changes" — he proposed the trimmed text; "Ok! Procedi."): the final clause "; the D-number on each line is the
+         origin pointer into it" is removed. It is stale in two independent ways: (1) the rule lines carry no D-numbers
+         at all any more — verified: zero occurrences in the register; the no-D-pointers and no-internal-references
+         rulings of this campaign removed them; (2) after the D-380 renumbering the R-number itself no longer points at
+         the origin — it encodes position (step-10 by value), and the number-to-decision pointer died with the scheme.
+         The origin traceability now lives in the Lifecycle block below (PROMOTE and RETIRE happen in the same commit:
+         every decision entry that adds or retires a rule is its origin record) — the pointer runs decisions to
+         register, not the other way. One clause cut, three self-standing sentences. VERIFICATION: the guard green on
+         the default set, the register canonical (297 lines, 46 rules).

@@ -2,7 +2,7 @@
 
 The register of every RULE in force right now — the contracts that must outlive the campaign that created them.
 Consulted whenever a standing rule is in question. This is NOT a place for narrative: the history and the rationale live
-in notes/decisions.md (the append-only historical log); the D-number on each line is the origin pointer into it.
+in notes/decisions.md (the append-only historical log).
 
 Lifecycle (same commit as the decision it records):
 - RECORD — every decision (including "leave as-is for now") goes to notes/decisions.md with date and rationale.
