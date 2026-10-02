@@ -1226,3 +1226,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   riscritta (approvata come proposta, fissa l'intestazione e le due relazioni di contenimento).
 - VERIFICATION: guard VERDE sul set default; 47/47 celle 5 parti; totali = 968.
 - COMMIT: un solo commit (D-398).
+- Session 91 (Roberto, ventesima richiesta): "Molto bene la analisi. E sono in parte d'accordo con il tuo lean. Ma ho
+  una obiezione: se ci pensi bene anche naming.md e' una eccezione, tutto quanto descritto in naming dovrebbe essere
+  la descrizione tecnica del doc mirror di board. Qui aggiungiamo le position, le moves ... e pattern .... Poi ci
+  sono cose un po' piu generali come pydantic e numba. Io credo che nulla debba rimaner qui. Ma cedo anche che si
+  debba organizzare questi concetti in maniera che siano poi fruibili dall'Agente in nuove sessioni di lavoro. Cosa
+  ne pensi? Per ora procedi a rimuovere i duplicati. Poi decidiamo per il resto."
+- OPINIONE (no D, alla sua domanda): concordo sulla struttura — le tabelle D8 sono materialmente la descrizione
+  dell'output di board.py (naming.md lo dice testualmente) e position/moves/pattern sono gia' nei mirror (audit
+  verificato). Avvertimento per "poi": il vocabolario + la reading rule dei diagrammi sono cross-cutting (governano
+  anche note e reply) — se naming.md si scioglie, quella fetta va a vivere in AGENTS.md (che ne porta gia' il
+  sunto). Pydantic/numba non hanno casa in notes/ (solo nei mirror): renderli fruibili a livello Agente = nuovo
+  canone o sunto in AGENTS.md — tua call.
+- IMPLEMENTATION (D-399, perimetro: i soli duplicati in naming.md): via il bullet vocabolario/bitboard (100%
+  duplicato; naming.md e' la casa ed e' piu' completo); nel bullet D8 via la meta' naming (slot order + anti
+  transform), resta solo la meta' pattern (concept pattern, gia' in pattern.md — nella lista "poi"). I 7 bullet
+  rimasti, il titolo e il destino della sezione: differiti al suo prossimo ruling.
+- RIPARAZIONE (auto-inflitta, disclosure): l'inserzione di D-398 aveva lasciato dangling l'ultima riga wrap di
+  D-397 ("on the default set."), assorbita dal rewrap nell'ultima riga di D-398 — ripristinati entrambi i finali
+  (D-397 come al commit 40c097f, D-398 che termina a "to 968.").
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-399).

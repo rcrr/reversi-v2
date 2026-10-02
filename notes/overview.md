@@ -11,9 +11,6 @@ employed focus on machine learning techniques that leverage solved positions gen
 
 ## Conventions in the code (respect them in any new work)
 
-- Board vocabulary is canonical: **row** (1–8, top→bottom) and **column** (A–H, left→right) — never file/rank (chess).
-  A1 = top-left (N-W) = bit 0; H8 = bottom-right (S-E) = bit 63. row\_1 = [A1..H1]; column\_a = [A1..A8]. Full text:
-  notes/naming.md.
 - Dual scalar/array API: public functions accept scalar OR 1-D array, return the input kind. Same validation pattern
   everywhere (is\_scalar → atleast\_1d → ndim check → dispatch → reshape back).
 - `@validate_call` (pydantic, arbitrary\_types\_allowed) on all public functions.
@@ -21,8 +18,8 @@ employed focus on machine learning techniques that leverage solved positions gen
   fvert).
 - Position = numpy structured dtype `[('mover', u64), ('opponent', u64)]`.
 - Move codes: 0..63 = squares, 64 = PA (pass), 65 = NA, 66 = UN.
-- D8 slot order is fixed and load-bearing: anti-transform slot s = T\_s^{-1}; in pattern.py instance 0 = the ro000
-  image, and trans\_fs/anti\_trans\_fs are indexed by instance (length = n\_instances), not by slot.
+- In pattern.py instance 0 = the ro000 image, and trans\_fs/anti\_trans\_fs are indexed by instance (length =
+  n\_instances), not by slot.
 - Pattern config indexes are base-3 uint32 over ≤ 18 squares (S ≤ 18); packed bit k ↔ the k-th square of
   `Pattern.squares` (ascending board order); principal index = min over the induced-stabilizer orbit.
 - Test artifacts: unit tests write files ONLY under `workspace_root/build/tmp` and remove them afterwards (a

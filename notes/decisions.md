@@ -1131,7 +1131,8 @@ D-397 | 2026-10-01 | the overview.md INDEX MINIMALIZATION + the overview\_rules.
          file's identity — no D pointers, no grammar details, no cross-references: those live in the files themselves."
          — codifies the principle so the next Index update does not re-fatten the bullets. Verified: no live file
          depends on the cut strings (only frozen entries + the rules.md H1 itself); the guard has no Index-content check
-         (the OV- codes: H1/SECS/TABLE/CUR/NEXT/INDENT), so no guard change. VERIFICATION: the guard green
+         (the OV- codes: H1/SECS/TABLE/CUR/NEXT/INDENT), so no guard change. VERIFICATION: the guard green on the
+         default set.
 
 D-398 | 2026-10-01 | the overview.md TEST FILES + SOURCE FILES sections (Roberto: the intros are rules, they live in
          overview\_rules.md; the state-cell parenthetical is a justification, not a state; the Suite column becomes the
@@ -1159,4 +1160,29 @@ D-398 | 2026-10-01 | the overview.md TEST FILES + SOURCE FILES sections (Roberto
          VVLONG-gated counts." — it fixes the header, defines the five slots, and states the two containment relations
          (total includes the skips; vlong/vvlong are shares OF the skips). The (+N VLONG) marker convention dies with
          the column. VERIFICATION: the guard green on the default set; the 47/47 cells are 5-part; the totals still sum
-         to 968. on the default set.
+         to 968.
+
+D-399 | 2026-10-01 | the overview.md CONVENTIONS section, round 1 — the naming.md duplicates out (Roberto: naming.md is
+         itself a misplacement — "tutto quanto descritto in naming dovrebbe essere la descrizione tecnica del doc mirror
+         di board. Qui aggiungiamo le position, le moves ... e pattern .... Poi ci sono cose un po' piu generali come
+         pydantic e numba. Io credo che nulla debba rimaner qui. Ma cedo anche che si debba organizzare questi concetti
+         in maniera che siano poi fruibili dall'Agente in nuove sessioni di lavoro. Per ora procedi a rimuovere i
+         duplicati. Poi decidiamo per il resto."). Scope: exactly what is duplicated in notes/naming.md (the subject of
+         his objection) — (1) the vocabulary/bitboard bullet out in full: 100% duplicated (naming.md declares itself
+         "single source of truth for board vocabulary" and is more complete — the square-name order, the corner labels,
+         the scope statement "code, docs, notes, and replies all follow it"); (2) in the D8 bullet, the "slot order is
+         fixed and load-bearing: anti-transform slot s = T\_s^{-1}" half out (duplicated: naming.md's full slot + anti
+         tables, "arbitrary but fixed — do not reorder, rename, or alter it", the defining property, the
+         golden-constants pinning); the bullet keeps only the pattern.py half — "In pattern.py instance 0 = the ro000
+         image, and trans\_fs/anti\_trans\_fs are indexed by instance (length = n\_instances), not by slot." — a pattern
+         concept (documented in pattern.md), on his "poi" list, not a naming duplicate. The other seven bullets (the
+         dual scalar/array API, @validate\_call, the numba rules, the Position dtype, the move codes, the pattern base-3
+         indexes, the test artifacts) stay for now: each has a verified home (the module mirrors; the register's R-750
+         for the test artifacts), but their destination is the deferred organizational question — as are the title, the
+         section's fate, and the naming.md dissolution into the board mirror. Advisory note (journal): the vocabulary +
+         the diagram-reading rule are cross-cutting (they govern notes and replies too, not only board.py) — if
+         naming.md is dissolved, that slice must survive in AGENTS.md (which already carries its summary). REPAIR
+         (self-inflicted, disclosed): the D-398 insertion left D-397's final wrap line dangling — the rewrap absorbed
+         "on the default set." into D-398's last line and truncated D-397's final sentence; both restored to their
+         intended text (D-397 as in commit 40c097f; D-398 ending at "to 968."). VERIFICATION: the guard green on the
+         default set.
