@@ -960,3 +960,14 @@ D-389 | 2026-10-01 | the log\_rules.md WALK-THROUGH pass (the first class-1 file
          interpretive data, the data-stays discipline. The file is otherwise clean: the D-382 update is correct (hist
          paths, birth-assigned numbers, verbatim H1 + pointer), nothing stale. VERIFICATION: the guard green on the
          default set.
+
+D-390 | 2026-10-01 | the log\_rules.md bullet-4 DEPERSONALIZATION (Roberto, on my analysis: "Procedi, usa la variante
+         lowercase."). The close-session rule no longer carries a personal name: "A session Roberto closed ends with a
+         'Session closed (Roberto).' bullet" becomes "A session closed by the user ends with a 'Session closed by the
+         user.' bullet" — the legislation's "the user" (lowercase, the 4 normative places: the register preamble, R-100,
+         the dependency rule, AGENTS rule 4) instead of the last personal name in normative text. Mapped impact,
+         verified: the guard enforces no such text (neither tool references "Session closed" — unlike the JPOINTER
+         pointer line and the J\_H1 volume header, the close bullet is not a verbatim-forced element), so no tool
+         change; the 8 historical close bullets (log\_000: 3, log\_001: 1, log\_003: 3, log.md session 90: 1; log\_002:
+         0) keep their text — frozen history, the D-382/D-388 discipline; the next close writes the new text.
+         VERIFICATION: the guard green on the default set.

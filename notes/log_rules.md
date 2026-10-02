@@ -28,7 +28,7 @@ exact 2/4-space indentation.
    name, or "Next:" / "Session closed". Suite results: `<total>/<failures>/<skipped> GREEN` where total = unittest's
    "Ran N" (e.g. 193/0/12); when the suite grew: `<old> → <new>, GREEN <total>/<f>/<s>`. Placeholder tokens are always
    inline code (backticks): bare `<word>` looks like an HTML tag to Markdown renderers.
-4. A session Roberto closed ends with a "Session closed (Roberto)." bullet; a "Next:" bullet may be last.
+4. A session closed by the user ends with a "Session closed by the user." bullet; a "Next:" bullet may be last.
 5. Completed sessions are immutable except factual corrections. One-off 2026-08-29 renumbering: the historical per-day
    labels (08-26 "session 1" → 3; 08-27 "sessions 1-5" → 4-8) were folded into the global scheme, and the "Session
    11-14" bullets nested in the 08-29 feature section are now their own sections 14-17. The feature-module entries of

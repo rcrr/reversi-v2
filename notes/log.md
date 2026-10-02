@@ -1067,3 +1067,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - IMPLEMENTATION (D-389): le due modifiche chirurgiche applicate.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-389).
+- Session 91 (Roberto, undecima richiesta): "leggendo ancora log\_rules, la entry numero 4: ... io la
+  cambierei in: A session closed by the User ends with a 'Session closed by User.' bullet ... Cosa ne pensi?" —
+  poi: "Procedi, usa la variante lowercase."
+- ANALISI (no D): depersonalizzazione del bullet 4 — il nome proprio esce dal testo normativo (il registro e
+  AGENTS usano "the user" in 4 posti). Impatto mappato: il guard non forza quel testo (nessun tool cita
+  "Session closed" — a differenza di JPOINTER e J\_H1, il bullet di chiusura non e' verbatim-forzato); gli 8
+  bullet storici restano col testo vecchio (log\_000: 3, log\_001: 1, log\_003: 3, log.md session 90: 1) — storia
+  congelata; la prossima chiusura scrive il nuovo testo.
+- IMPLEMENTATION (D-390): il bullet 4 alla variante lowercase approvata: "A session closed by the user ends
+  with a 'Session closed by the user.' bullet; a 'Next:' bullet may be last".
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-390).
