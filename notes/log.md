@@ -1272,3 +1272,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   via i sample patterns, PatternSet ridotto a "named collection, stored sorted by mask".
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-401).
+- Session 91 (Roberto, ventitreesima richiesta): "La sezione 'Feature' la riformuliamo cosi: [testo esatto].
+  Grazie!"
+- IMPLEMENTATION (D-402): sezione Features di naming.md riformulata verbatim: la definizione di dominio ("an
+  observable characteristic of a game position"), i 3 bullet senza valori enum e con i suoi glossi (the constant
+  term / a measure of the options to move / a selection of squares on the board), la FeatureSet "chosen at will
+  among the intercept, mobilities and patterns". Normalizzazione: separatori in em-dash come nei bullet sibling.
+- RIPARAZIONE (secondo wrap-split, auto-inflitta): l'inserzione di D-401 aveva usato un anchor a meta' riga sul
+  finale di D-400 e ne aveva lasciato dangling il resto del wrap, assorbito nell'ultima riga di D-401 ("default
+  set. default set."); rimosso. Il finale di D-400 verificato intatto.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-402).

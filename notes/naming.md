@@ -63,13 +63,14 @@ left-right mirrored, etc.).
 
 ## Features
 
-A Feature wraps one of the three feature sources, with its category:
+A Feature is an observable characteristic of a game position. It wraps one of the three feature sources, with its
+category:
 
-- INTERCEPT (0) — the constant term, always 0.
-- MOBILITY (1) — a Mobility (the section below).
-- PATTERN (2) — a Pattern (the section below).
+- INTERCEPT — the constant term
+- MOBILITY — a measure of the options to move
+- PATTERN — a selection of squares on the board
 
-A FeatureSet is a named collection of features: an optional intercept + the mobilities + the patterns.
+A FeatureSet is a named collection of features chosen at will among the intercept, mobilities and patterns.
 
 ## Mobility
 

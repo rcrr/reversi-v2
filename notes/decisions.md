@@ -1221,4 +1221,15 @@ D-401 | 2026-10-01 | naming.md — three new sections appended at the end, in hi
          index formula + n\_configurations = k + a + 1 + n\_instances = 1 from the class docstring; the DLMC formula
          popcount(lms) + 64 − popcount(alms) verified against the mirror's golden (13 + 53 = 66); the principal-mask
          rule, the instances/stabilizers, the base-3 configurations and the principal index from the pattern.md
-         architecture bullets (domain facts, not API). VERIFICATION: the guard green on the default set. default set.
+         architecture bullets (domain facts, not API). VERIFICATION: the guard green on the default set.
+
+D-402 | 2026-10-01 | the naming.md Features section reformulated, verbatim per Roberto ("La sezione 'Feature' la
+         riformuliamo cosi: [his exact text]"): the opening gains the domain definition "A Feature is an observable
+         characteristic of a game position."; the category bullets lose their enum values (0/1/2) and the
+         cross-references, taking his one-line glosses — INTERCEPT: the constant term; MOBILITY: a measure of the
+         options to move; PATTERN: a selection of squares on the board; the FeatureSet line becomes "a named collection
+         of features chosen at will among the intercept, mobilities and patterns." Formatting normalization (disclosed):
+         his chat hyphen separators became the em-dash separators used by the sibling Mobility/Pattern bullets. REPAIR
+         (second wrap-split, self-inflicted, disclosed): the D-401 insertion used a mid-line anchor at D-400's end and
+         left its wrap remainder dangling — absorbed by the rewrap into D-401's last line ("…on the default set. default
+         set."); removed. D-400's end verified intact. VERIFICATION: the guard green on the default set.
