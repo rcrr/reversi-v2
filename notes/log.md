@@ -1149,3 +1149,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (sezione-puntatore prima, poi le otto in ordine), i 6 ref via (10 D-ref -> 0), L36 depersonalizzata a "the user".
 - VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
 - COMMIT: un solo commit (D-394).
+- Session 91 (Roberto, sedicesima richiesta): "Controlla overview.md. Fai un primo passaggio sul file, ci sono
+  piccole referenze alla storia qui e la' ... Sviluppa una analisi approfondita, la presenti, poi ti do istruzioni."
+  — poi: "Procedi con il tuo lean. Poi vediamo altre cose ... Procedi!"
+- ANALISI (no D): questo file e' diverso dai file di regole: e' il punto d'ingresso e per design porta i registri di
+  classe 3 (Index, tabelle Source/Test, test data — gia' da tenere per il ruling del D-391). Il primo passaggio tocca
+  solo le 4 sezioni in prosa: 9 D-ref (8 distinti) + 1 nome proprio + 1 frase duplicata. Verificato: "19-level
+  pipeline" e' corrente (la hub pinna "V3c 19 active levels", L157; le righe "18 active levels" del docstring sono
+  storia di re-pin), 968 tests corrente, la guard OV-CUR conta solo i bullet (MAX 10, oggi 4) quindi l'introduzione
+  di Current state si puo' trimmare senza toccarla. La terza frase dell'introduzione ("MAX 10 bullets,
+  no-bullet-per-campaign (D-334)") duplica overview\_rules.md — via. Le due sfumature regolate col lean: (D-267) via
+  (l'item e' una label di work, i criteria stanno nel decision log); "the D-333 rotation" x4 nell'Index resta (classe
+  3).
+- IMPLEMENTATION (D-395): 9 modifiche in prosa — via (D-013) [resta il puntatore naming.md], (D-014), (D-065),
+  D-010 [resta "gitignored"], la terza frase dell'introduzione di Current state, (D-318) [resta "rules.md"], (D-267),
+  "D-318 docstring conversion" -> "docstring conversion", e l'item register: via "after the D-380 renumbering" +
+  depersonalizzazione Roberto/his -> the user (classe D-390), resta (R-200). Le 4 sezioni in prosa: 9 D-ref + 1 nome
+  proprio -> 0; il registro di classe 3 e' intatto.
+- VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
+- COMMIT: un solo commit (D-395).

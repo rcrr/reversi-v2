@@ -1060,3 +1060,27 @@ D-394 | 2026-10-01 | the overview\_rules.md DEPROVENANCE + de-personalization + 
          the bullet's list; the overview Index bullet for this file stays accurate ("the eight sections, the table
          grammar, the cell rules, the reference families"), no change needed. The file's D-ref count 10 -> 0, personal
          names 1 -> 0. VERIFICATION: the guard green on the default set.
+
+D-395 | 2026-10-01 | the overview.md FIRST-PASS DEPROVENANCE (Roberto: "Controlla overview.md ... ci sono piccole
+         referenze alla storia qui e la'" — on my analysis: "Procedi con il tuo lean. Poi vediamo altre cose ...
+         Procedi!"). This file is not a rules file: it is the entry point, and by design it CARRIES the class-3
+         registries (the Index with its D-pointers, the Source/Test tables, the test data) — the D-391 ruling
+         ("the D-013/D-014 Index pointers in the overview stay (class 3)") keeps all of it untouched. The pass touches
+         only the four prose sections (Conventions, Environment, Current state, Next steps): nine edits — (1) the
+         Conventions naming bullet: (D-013) out, the live pointer "Full text: notes/naming.md" stays; (2) the D8
+         slot-order convention: (D-014) out — the technical fact stays (a code convention, not just vocabulary); (3) the
+         test-artifacts bullet: (D-065) out; (4) the Environment venv bullet: D-010 out, "(gitignored)" stays; (5) the
+         Current state intro loses its third sentence, "MAX 10 bullets, no bullet-per-campaign (D-334)." — a format
+         reminder whose canon home is overview\_rules.md (and the guard's OV-CUR); the first two sentences stay — the
+         reading key (where the session-by-session history and the file-by-file state live); verified: the guard counts
+         only the "- " bullets (4 today, MAX 10), so trimming the intro cannot affect it; (6) the docstring-style
+         bullet: (D-318) out, the live pointer "(rules.md)" stays; (7) the TEST-sources item: (D-267) out — ruling on
+         the flagged nuance: the item is a work label, the criteria live in the decision log; (8) the WORKER-sources
+         item: "the D-318 docstring conversion" -> "the docstring conversion"; (9) the register item: "after the D-380
+         renumbering" out (provenance) and de-personalized per D-390 — "The register re-review (the user); the guard
+         rule text (R-200) awaits the user's call." (R-200) kept: a register cross-ref. Ruling on the second nuance:
+         "the D-333 rotation" x4 in the Index STAYS (class-3 registry annotation, the D-391 discipline). VERIFIED: the
+         "19-level pipeline" fact is current — the hub pins "V3c 19 active levels" (the "18 active levels" lines in its
+         docstring are re-pin history); 968 tests matches the canonical LONG run. The four prose sections: 9 D-refs + 1
+         personal name -> 0; the class-3 registries (Index, tables, test data) untouched. VERIFICATION: the guard green
+         on the default set.

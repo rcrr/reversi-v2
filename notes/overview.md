@@ -13,7 +13,7 @@ employed focus on machine learning techniques that leverage solved positions gen
 
 - Board vocabulary is canonical: **row** (1–8, top→bottom) and **column** (A–H, left→right) — never file/rank (chess).
   A1 = top-left (N-W) = bit 0; H8 = bottom-right (S-E) = bit 63. row\_1 = [A1..H1]; column\_a = [A1..A8]. Full text:
-  notes/naming.md (D-013).
+  notes/naming.md.
 - Dual scalar/array API: public functions accept scalar OR 1-D array, return the input kind. Same validation pattern
   everywhere (is\_scalar → atleast\_1d → ndim check → dispatch → reshape back).
 - `@validate_call` (pydantic, arbitrary\_types\_allowed) on all public functions.
@@ -21,18 +21,18 @@ employed focus on machine learning techniques that leverage solved positions gen
   fvert).
 - Position = numpy structured dtype `[('mover', u64), ('opponent', u64)]`.
 - Move codes: 0..63 = squares, 64 = PA (pass), 65 = NA, 66 = UN.
-- D8 slot order is fixed and load-bearing (D-014): anti-transform slot s = T\_s^{-1}; in pattern.py instance 0 = the
-  ro000 image, and trans\_fs/anti\_trans\_fs are indexed by instance (length = n\_instances), not by slot.
+- D8 slot order is fixed and load-bearing: anti-transform slot s = T\_s^{-1}; in pattern.py instance 0 = the ro000
+  image, and trans\_fs/anti\_trans\_fs are indexed by instance (length = n\_instances), not by slot.
 - Pattern config indexes are base-3 uint32 over ≤ 18 squares (S ≤ 18); packed bit k ↔ the k-th square of
   `Pattern.squares` (ascending board order); principal index = min over the induced-stabilizer orbit.
-- Test artifacts (D-065): unit tests write files ONLY under `workspace_root/build/tmp` and remove them afterwards (a
+- Test artifacts: unit tests write files ONLY under `workspace_root/build/tmp` and remove them afterwards (a
   `finally`/cleanup unlink, so a failing test leaves no garbage); no test writes anywhere else (notably: not the CWD).
   `build/` is gitignored.
 
 
 ## Environment
 
-- Venv: `.venv/` (gitignored, D-010), Python 3.12.3.
+- Venv: `.venv/` (gitignored), Python 3.12.3.
 - Packaging: `pyproject.toml` (setuptools, src layout) with the `reversi` package installed editable in .venv —
   `import reversi` works without PYTHONPATH, resolving to src/.
 - Dependencies (pyproject.toml, minimal set): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2
@@ -50,14 +50,13 @@ employed focus on machine learning techniques that leverage solved positions gen
 ## Current state
 
 Current state only — the session-by-session history lives in the journal volumes (notes/log.md + notes/hist\_log/) and
-the decision log (notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below. MAX
-10 bullets, no bullet-per-campaign (D-334).
+the decision log (notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below.
 
 - The 19-level pipeline is live and green (968 tests, LONG; the 1e6 wave benchmark — VVLONG — replays bit-exact, 28065
   dead lanes): the ML chain CONFIG → … → SAVE → CLIENT\_CHECK → PLOT → FINAL\_LOG\_PRINT (the optional full run log on
   file, the `log_file_name` gate), plus the OPTIONAL SU\_ANALYSIS (step 3) + ANOVA (step 6) — default FALSE, opt-in.
-- The descriptive docstring style is the house rule (rules.md, D-318); the retroactive conversion stays user-directed,
-  one module at a time.
+- The descriptive docstring style is the house rule (rules.md); the retroactive conversion stays user-directed, one
+  module at a time.
 - The LM facade is the pipeline's script entry:
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
@@ -70,14 +69,14 @@ the decision log (notes/decisions.md); the file-by-file state lives in the Sourc
 
 - Select the tests by DURATION with the 5 tags (VVLONG, VLONG, LONG, PERF, DB); re-verify the tag-assignment technique;
   analyze every LONG / VLONG / VVLONG test for a possible shorter equivalent.
-- Verify all the TEST sources: the code + docstring format, the documentation criteria (D-267); remove the documentation
-  that describes the history.
+- Verify all the TEST sources: the code + docstring format, the documentation criteria; remove the documentation that
+  describes the history.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the 120-char reflow,
-  the D-318 docstring conversion).
+  the docstring conversion).
 - Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
-- The register re-review (Roberto, after the D-380 renumbering); the guard rule text (R-200) awaits his call.
+- The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
 One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign
