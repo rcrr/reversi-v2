@@ -10,12 +10,18 @@ follow it.
 - Square name: column letter first, then row number (A1, C4, H8).
 - A1 = top-left corner (N-W).
 - H8 = bottom-right corner (S-E).
+- Move codes: 0..63 = squares, 64 = PA (pass), 65 = NA, 66 = UN.
 
 ## Bitboard
+- `Bitboard` is an alias of `numpy.uint64`.
 - The least significant bit (bit 0) is square A1.
 - The most significant bit (bit 63) is square H8.
 - row\_1 = [A1 ... H1]
 - column\_a = [A1 ... A8]
+
+## Position
+- `Position` = a numpy structured dtype `[('mover', Bitboard), ('opponent', Bitboard)]` — each field a `Bitboard` (the
+  numpy.uint64 alias above).
 
 ## D8 — the eight board symmetries
 

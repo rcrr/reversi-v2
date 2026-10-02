@@ -16,8 +16,6 @@ employed focus on machine learning techniques that leverage solved positions gen
 - `@validate_call` (pydantic, arbitrary\_types\_allowed) on all public functions.
 - Numba `njit(cache=True)` + `prange` for hot loops; numba overloads for the four D8 primitives (fa1h8, fh1a8, fhori,
   fvert).
-- Position = numpy structured dtype `[('mover', u64), ('opponent', u64)]`.
-- Move codes: 0..63 = squares, 64 = PA (pass), 65 = NA, 66 = UN.
 - In pattern.py instance 0 = the ro000 image, and trans\_fs/anti\_trans\_fs are indexed by instance (length =
   n\_instances), not by slot.
 - Pattern config indexes are base-3 uint32 over ≤ 18 squares (S ≤ 18); packed bit k ↔ the k-th square of

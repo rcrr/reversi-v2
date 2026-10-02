@@ -1186,3 +1186,20 @@ D-399 | 2026-10-01 | the overview.md CONVENTIONS section, round 1 — the naming
          "on the default set." into D-398's last line and truncated D-397's final sentence; both restored to their
          intended text (D-397 as in commit 40c097f; D-398 ending at "to 968."). VERIFICATION: the guard green on the
          default set.
+
+D-400 | 2026-10-01 | naming.md grows the Position / Bitboard / move-codes canon; the overview Conventions section sheds
+         two more bullets (Roberto's direct instruction: the move codes go to the end of the naming.md Board vocabulary
+         section; a new "Position" section after "Bitboard" carrying the structured-dtype definition; the Bitboard alias
+         of numpy.uint64 as the first line of the Bitboard section — and his question: "nella definizione di Position e'
+         giusto usare u64, o meglio usare uint64?"). Source-verified answer: NEITHER — the code (src/reversi/board.py)
+         defines Position as np.dtype([('mover', Bitboard), ('opponent', Bitboard)]) (line 142) over "Bitboard:
+         TypeAlias = np.uint64" (line 127); u64 is no code symbol anywhere in src/ (verified: only descriptive docstring
+         phrases in regab.py / prng.py and the unrelated binio write\_u64 / \_U64 binary-I-O names) — it is a
+         documentation shorthand in the overview bullet and the board.md mirror. The definition therefore uses Bitboard,
+         the actual field type, with the alias spelled out. Changes: (1) naming.md Bitboard section, first line:
+         "Bitboard is an alias of numpy.uint64."; (2) naming.md new "Position" section after Bitboard: the
+         structured-dtype definition, each field a Bitboard (the numpy.uint64 alias above); (3) naming.md Board
+         vocabulary: the move-codes line appended at the end (verbatim from the overview bullet: "Move codes: 0..63 =
+         squares, 64 = PA (pass), 65 = NA, 66 = UN."); (4) overview.md Conventions: the Position and the move-codes
+         bullets out (moved, not lost) — the section now has 6 bullets. VERIFICATION: the guard green on the default
+         set.

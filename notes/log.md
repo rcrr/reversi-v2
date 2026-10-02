@@ -1247,3 +1247,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (D-397 come al commit 40c097f, D-398 che termina a "to 968.").
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-399).
+- Session 91 (Roberto, ventunesima richiesta): [istruzioni dirette] "Move codes: ... Va spostato in naming.md,
+  nella sezione Board vocabulary, in fondo. In naming aggiungiamo una sezione che chiamiamo 'Position', dopo
+  'Bitboard'. In naming, nella sezione 'Bitboard', come prima righa inseriamo la definizione di Bitboard che e' un
+  alias a numpy.uint64. Domanda per te, nella definizione di Position e' giusto usare u64, o meglio usare uint64?"
+- RISPOSTA (no D, alla sua domanda): verbatim dal codice — board.py: "Bitboard: TypeAlias = np.uint64" (riga 127)
+  e "Position = np.dtype([('mover', Bitboard), ('opponent', Bitboard)])" (riga 142). u64 non esiste come simbolo in
+  src/ (verificato: solo frasi descrittive nei docstring di regab/prng e write\_u64/\_U64 di binio, che sono I/O
+  binario) — e' uno shorthand dei mirror. Nella definizione uso Bitboard (il tipo reale dei campi), alias
+  specificato; tra i due proposti, uint64 sarebbe stato il giusto.
+- IMPLEMENTATION (D-400): naming.md — prima riga della sezione Bitboard: "Bitboard is an alias of numpy.uint64";
+  nuova sezione Position (def dtype, campi Bitboard); move codes in fondo a Board vocabulary (verbatim dall'
+  overview). overview.md — i due bullet via (spostati, non persi): la sezione Conventions e' a 6 bullet.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-400).
