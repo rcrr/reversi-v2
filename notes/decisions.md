@@ -971,3 +971,24 @@ D-390 | 2026-10-01 | the log\_rules.md bullet-4 DEPERSONALIZATION (Roberto, on m
          change; the 8 historical close bullets (log\_000: 3, log\_001: 1, log\_003: 3, log.md session 90: 1; log\_002:
          0) keep their text — frozen history, the D-382/D-388 discipline; the next close writes the new text.
          VERIFICATION: the guard green on the default set.
+
+D-391 | 2026-10-01 | the naming.md DEPROVENANCE pass (Roberto, on my analysis; rulings: the title = his first option,
+         the header keeps "and replies" per my lean, the new verification sentence as proposed, AGENTS.md deferred). Six
+         edits, one file: (1) the H1 — "Naming convention (canonical, read once, apply always)" (tone, not content:
+         "canonical" is already the header's single-source-of-truth clause) becomes "Reversi domain naming convention";
+         the guard does not force rule-file H1s verbatim (RF-H1 only asks for "# "), so the title is free. (2) The
+         header paragraph — "Recorded 2026-08-26 on Roberto's explicit instruction, after rejecting T08 (report §5.8):
+         ..." (date, personal name, T08, report reference: all of it lives in D-013, volume 000) is reduced to the
+         charter: "This file is the single source of truth for board vocabulary in this workspace — code, docs, notes,
+         and replies all follow it." — the four-media form kept on purpose: the failure mode that created this file was
+         an agent analysis importing chess vocabulary, so "replies" is the medium where the problem happened. (3) The D8
+         section header loses "(canonical, fixed 2026-08-26)". (4) The D8 body loses "by Roberto's decision (D-014)" and
+         the third occurrence of the A1/H8 facts — verified that nothing is lost: the bit mapping stays in the
+         Board-vocabulary and Bitboard sections. (5) The verification paragraph: the "(T16, D-014)" provenance out, and
+         — a correction to his proposal, verified — there is NO probe of the independent derivation (probes/ carries no
+         board/D8 probe): the independent anchor is in the tests — the literal golden constants `ar_*` of
+         test/reversi/test\_board.py pin `bitboard_transformations` / `bitboard_anti_transformations` cell-by-cell
+         against values independent of the implementation under test; the sentence now names that anchor. (6) The
+         reading-rule paragraph loses the "report §6 item T16" tail. The D-013/D-014 Index pointers in the overview stay
+         (class 3); the two class-1 refs in the AGENTS.md Naming section are named and deferred (his file, alongside the
+         rule-6 pending item). VERIFICATION: the guard green on the default set.

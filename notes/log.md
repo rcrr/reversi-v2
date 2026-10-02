@@ -1079,3 +1079,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   with a 'Session closed by the user.' bullet; a 'Next:' bullet may be last".
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-390).
+- Session 91 (Roberto, dodicesima richiesta): "Prossimo lavoro di pulizia della governance: naming.md. Non mi e'
+  chiaro come entra nel contesto tuo (dell'Agente). Lo nomina rules.md, lo nomina overview.md? ... Tuo parere?" —
+  poi: "1:OK 2: il tuo lean 3: OK 4: AGENTS non facciamo nulla ora, facciamo tutto piu' avanti. Procedi!"
+- ANALISI (no D): tre porte nel contesto — la sezione Naming di AGENTS.md (summary in-context a ogni sessione +
+  puntatore), R-060 del registro (solo puntatore, zero contenuto), l'Index (classe 3): coerente. Sei modifiche
+  de-provenance: il titolo (via la parentesi di tono), l'header "Recorded 2026-08-26 ... T08 (report §5.8)" ridotto
+  alla frase charter (i 4 media tenuti: il failure mode che ha generato il file era un'analisi dell'agente),
+  l'header della sezione D8, il corpo D8 (via "Roberto's decision (D-014)" e la terza occorrenza A1/H8 — il bit
+  mapping resta nella sezione Bitboard), il paragrafo di verifica: la "probe di derivazione indipendente" NON
+  esiste (probes/ non ha una board probe) — l'ancora indipendente e' nei TEST, le costanti dorate letterali
+  `ar_*` di test\_board.py, indipendenti dall'implementation; via la coda "report §6 item T16" della reading rule.
+  AGENTS.md (2 ref classe 1 nella sezione Naming) in coda, con la rule 6.
+- IMPLEMENTATION (D-391): le sei modifiche applicate a naming.md, un solo file.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-391).

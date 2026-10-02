@@ -1,9 +1,7 @@
-# notes/naming.md — Naming convention (canonical, read once, apply always)
+# notes/naming.md — Reversi domain naming convention
 
-Recorded 2026-08-26 on Roberto's explicit instruction, after rejecting T08 (report §5.8): the analysis had imported
-chess vocabulary (file/rank) into a Reversi project that speaks row/column. The code was correct; the analysis
-vocabulary was not. This file is the single source of truth for board vocabulary in this workspace — code, docs, notes,
-and replies all follow it.
+This file is the single source of truth for board vocabulary in this workspace — code, docs, notes, and replies all
+follow it.
 
 ## Board vocabulary — this is Reversi, not chess
 - Never use "file" or "rank". The project vocabulary is **column** and **row**.
@@ -19,11 +17,10 @@ and replies all follow it.
 - row\_1 = [A1 ... H1]
 - column\_a = [A1 ... A8]
 
-## D8 — the eight board symmetries (canonical, fixed 2026-08-26)
+## D8 — the eight board symmetries
 
-The eight D8 symmetries are a geometric/algebraic property of the BOARD itself. The order below is arbitrary but FIXED
-by Roberto's decision (D-014) — do not reorder, rename, or "fix" it. Square names follow the row/column convention
-above; A1 = top-left (bit 0), H8 = bottom-right (bit 63).
+The eight D8 symmetries are a geometric/algebraic property of the board itself. The order below is arbitrary but fixed —
+do not reorder, rename, or alter it.
 
 Corner tracking uses the four corners in fixed order [A1, H1, A8, H8] = [N-W, N-E, S-W, S-E]:
 
@@ -50,10 +47,10 @@ returns the input board unchanged — transformation ∘ anti-transformation = i
 ro270, ro180⁻¹ = ro180); every reflection is its own inverse.
 
 The slot order above is exactly the output order of `bitboard_transformations` / `bitboard_anti_transformations` in
-src/reversi/board.py and of the orbit test classes in test/reversi/test\_board.py. Code, tests, and the docstring
-diagrams were re-verified cell-by-cell on 2026-08-26 (T16, D-014): they agree.
+src/reversi/board.py and of the orbit test classes in test/reversi/test\_board.py. The slot order and the table values
+are pinned cell-by-cell by the literal golden constants in test/reversi/test\_board.py (the `ar_*` anchors), independent
+of the implementation under test — a self-referential agreement is impossible.
 
 Reading rule for every board diagram in this workspace: row 1 on top, column a on the left. Under any other reading
 (e.g. row 1 at the bottom) the same bit pattern appears as the wrong symmetry (clockwise becomes counter-clockwise,
-left-right mirrored, etc.) — that convention slip is what produced the false "diagram is wrong" verdicts of report §6
-item T16.
+left-right mirrored, etc.).
