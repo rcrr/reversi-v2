@@ -1233,3 +1233,11 @@ D-402 | 2026-10-01 | the naming.md Features section reformulated, verbatim per R
          (second wrap-split, self-inflicted, disclosed): the D-401 insertion used a mid-line anchor at D-400's end and
          left its wrap remainder dangling — absorbed by the rewrap into D-401's last line ("…on the default set. default
          set."); removed. D-400's end verified intact. VERIFICATION: the guard green on the default set.
+
+D-403 | 2026-10-01 | the naming.md Pattern section — the mask definition tightened, verbatim per Roberto ("A mask is a
+         64-bit integer / cambiamolo in: A mask is Bitboard"): the first bullet now reads "A mask is `Bitboard`; the
+         principal mask is the numerically LOWEST of its 8 D8 transforms…" — the mask is now defined by its actual type
+         (the Bitboard alias defined in the section above: numpy.uint64), completing the definitional chain mask ->
+         Bitboard -> numpy.uint64 instead of restating "64-bit integer". Formatting normalization (disclosed):
+         `Bitboard` in a code span, as in the Bitboard and Position sections. VERIFICATION: the guard green on the
+         default set.

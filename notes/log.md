@@ -1283,3 +1283,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   set. default set."); rimosso. Il finale di D-400 verificato intatto.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-402).
+- Session 91 (Roberto, ventiquattresima richiesta): "Va benissimo. Ultima change: 'A mask is a 64-bit integer'
+  cambiamolo in: 'A mask is Bitboard'. Grazie!"
+- IMPLEMENTATION (D-403): primo bullet della sezione Pattern: "A mask is `Bitboard`; the principal mask is the
+  numerically LOWEST of its 8 D8 transforms…" — la mask ora e' definita dal suo tipo reale (l'alias Bitboard
+  definito nella sezione sopra), catena definitoria mask -> Bitboard -> numpy.uint64. Normalizzazione: Bitboard in
+  code span come nelle sezioni Bitboard/Position.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-403).
