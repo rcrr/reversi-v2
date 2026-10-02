@@ -1084,3 +1084,22 @@ D-395 | 2026-10-01 | the overview.md FIRST-PASS DEPROVENANCE (Roberto: "Controll
          docstring are re-pin history); 968 tests matches the canonical LONG run. The four prose sections: 9 D-refs + 1
          personal name -> 0; the class-3 registries (Index, tables, test data) untouched. VERIFICATION: the guard green
          on the default set.
+
+D-396 | 2026-10-01 | the overview/overview\_rules ROLE-SPLIT, first section (Roberto: the two files have two natures —
+         "uno dovrebbe avere i fatti dello stato, l'altro le regole"; "ogni regola espressa in overview debba essere
+         rimossa, con l'unica eccezione di: [the pointer sentence]"; on the title: "secondo me e' incorretto e
+         ridondante con la rule. Io starei semplice con: 'Format rules'" — "Ok, procedi!"). The first section loses its
+         prescriptive title: "Format rules (rigid — follow when editing this file)" -> "Format rules" — the title was a
+         rule in disguise ("follow when editing this file") and redundant with the body, which is already exactly the
+         sole surviving sentence: "The rigid format rules for this file live in notes/overview\_rules.md. Consult it
+         before editing." The ruling is a three-file, one-commit change — the critical finding: OV-SECS had the old
+         title HARD-CODED (prefix "Format rules (rigid"), so title without guard = red = no commit: (1) the overview.md
+         title; (2) tools/notes\_lint.py — source, on his explicit direction via the title ruling (the only source file
+         touched in the whole deprovenance arc): the check is now an EXACT match (secs[0][1] != 'Format rules'), not a
+         prefix — a prefix would still accept the old title (the point of the change), and OV-H1 in the same function is
+         already exact; error message updated to 'the first section must be "Format rules"'; (3) overview\_rules.md:
+         the D-394 bullet that quoted the title verbatim in a code span follows. Verified: the guard checks only the
+         pointer section's TITLE, never its body (the sentence is not verbatim-forced — unlike the journal J\_POINTER);
+         no other live file references the old title (the frozen D-394 decision/journal entries quote it — frozen
+         history, untouched). VERIFICATION: the guard green on the default set; a negative test in scratch/ (old
+         title -> red OV-SECS with the new message, new title -> green); the standard pre-commit run.

@@ -1,6 +1,6 @@
 # overview.md — entry point
 
-## Format rules (rigid — follow when editing this file)
+## Format rules
 
 The rigid format rules for this file live in notes/overview\_rules.md. Consult it before editing.
 

@@ -1168,3 +1168,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   proprio -> 0; il registro di classe 3 e' intatto.
 - VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
 - COMMIT: un solo commit (D-395).
+- Session 91 (Roberto, diciassettesima richiesta): "I due files overview.md e overview\_rules.md, uno dovrebbe
+  avere i fatti dello stato, l'altro le regole ... ogni regola espressa in overview debba essere rimossa, con
+  l'unica eccezione di: [la frase puntatore] ... Il titolo della sezione: 'Format rules (rigid — follow when
+  editing this file)' secondo me e' incorretto e ridondante con la rule. Io starei semplice con: 'Format rules'.
+  Sviluppa una analisi approfondita, la presenti, poi ti do istruzioni." — poi: "Ok, procedi!"
+- ANALISI (no D): trovato il vincolo critico: il titolo vecchio e' CODIFICATO nella guard (OV-SECS,
+  notes\_lint.py:388, prefix "Format rules (rigid") — cambiarlo senza la guard = rosso = no commit. La chiamata e'
+  quindi a 3 file: overview.md (titolo), notes\_lint.py (sorgente — l'unica toccata in tutto l'arc, su indicazione
+  esplicita via la chiamata sul titolo), overview\_rules.md (il bullet D-394 cita il titolo verbatim). Lean
+  accettato: match ESATTO nella guard (un prefix accetterebbe ancora il titolo vecchio — il contrario dello scopo;
+  OV-H1 nello stesso punto e' gia' esatto). Verificato: la guard non tocca il corpo della sezione (la frase non e'
+  verbatim-forzata, a differenza della J\_POINTER dei journal), nessun altro file live cita il titolo vecchio (le
+  entry D-394 congelate restano).
+- IMPLEMENTATION (D-396): titolo "Format rules"; OV-SECS esatto + message aggiornato; bullet di overview\_rules
+  aggiornato.
+- VERIFICATION: guard VERDE sul set default; test negativo in scratch/ (vecchio titolo -> rosso OV-SECS col nuovo
+  message, nuovo titolo -> verde); run pre-commit standard.
+- COMMIT: un solo commit (D-396).

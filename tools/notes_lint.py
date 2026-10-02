@@ -385,8 +385,8 @@ def lint_overview(path, lines, text):
     if lines[0] != '# overview.md — entry point':
         v.append((1, 'OV-H1', 'the first line must be the overview H1'))
     secs = [(n, line[3:].strip()) for n, line in enumerate(lines, 1) if line.startswith('## ')]
-    if not secs or not secs[0][1].startswith('Format rules (rigid'):
-        v.append((1, 'OV-SECS', 'the first section must be “Format rules (rigid ...)”'))
+    if not secs or secs[0][1] != 'Format rules':
+        v.append((1, 'OV-SECS', 'the first section must be “Format rules”'))
     body = secs[1:]
     for i, (n, title) in enumerate(body):
         if i < len(SECTIONS) and not title.startswith(SECTIONS[i]):
