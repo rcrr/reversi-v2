@@ -1261,3 +1261,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   overview). overview.md — i due bullet via (spostati, non persi): la sezione Conventions e' a 6 bullet.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-400).
+- Session 91 (Roberto, ventiduesima richiesta): [verdict sulla proposta delle 3 sezioni] "Va molto bene in generale,
+  i riferimenti alle colonne li toglierei, non sono costitutivi e sono solo in relazione alla Design\_Matrix,
+  Indexes, che qui non introduciamo realmente. Se non parliamo di colonne, feature diventa brevissimo (come deve
+  essere, e' il wrapper dei 3 tipi). Rimuoverei anche i sample patterns. Prova questa formulazione e vediamo se va
+  bene."
+- IMPLEMENTATION (D-401): tre sezioni in fondo a naming.md, sequenza Features/Mobility/Pattern. Features: senza
+  colonne (wrapper + 3 categorie + FeatureSet — brevissimo come chiesto); Mobility: invariato rispetto alla
+  proposta (formula dell'index, n\_configurations = k+a+1, n\_instances = 1, i 3 standard LMC/ALMC/DLMC); Pattern:
+  via i sample patterns, PatternSet ridotto a "named collection, stored sorted by mask".
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-401).

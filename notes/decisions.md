@@ -1203,3 +1203,22 @@ D-400 | 2026-10-01 | naming.md grows the Position / Bitboard / move-codes canon;
          squares, 64 = PA (pass), 65 = NA, 66 = UN."); (4) overview.md Conventions: the Position and the move-codes
          bullets out (moved, not lost) — the section now has 6 bullets. VERIFICATION: the guard green on the default
          set.
+
+D-401 | 2026-10-01 | naming.md — three new sections appended at the end, in his order: Features, Mobility, Pattern (the
+         "oculata sintesi" of the three domain modules, for agent use in new sessions — his preamble: all of this could
+         live in the board.md mirror, but a careful synthesis in a notes file, later exploited by AGENTS, is very
+         useful; that will be the last step of the governance review). Studied: the three modules (feature.py 334,
+         mobility.py 306, pattern.py 1331 lines), the three mirrors in full, the class docstrings (the LMC/ALMC/DLMC
+         glossary is verbatim in the Mobility docstring), the PatternType table (12 members) and the 29 sample pattern
+         names. His ruling on my proposal: "Va molto bene in generale, i riferimenti alle colonne li toglierei, non sono
+         costitutivi e sono solo in relazione alla Design\_Matrix, Indexes, che qui non introduciamo realmente. Se non
+         parliamo di colonne, feature diventa brevissimo (come deve essere, e' il wrapper dei 3 tipi). Rimuoverei anche
+         i sample patterns." Applied cuts: (1) Features — no index-matrix / column-layout bullets at all (the
+         sorted-order contract, the (N, I) shape, the per-feature column blocks): the section is now the wrapper
+         statement + the 3 categories + the FeatureSet line; (2) Pattern — the PatternSet bullet reduced to "a named
+         collection of patterns, stored sorted by mask" (the fused-pass / output-shape detail is architecture, mirror
+         territory) and the sample-pattern name family removed from the PatternType bullet. Content sources: Mobility's
+         index formula + n\_configurations = k + a + 1 + n\_instances = 1 from the class docstring; the DLMC formula
+         popcount(lms) + 64 − popcount(alms) verified against the mirror's golden (13 + 53 = 66); the principal-mask
+         rule, the instances/stabilizers, the base-3 configurations and the principal index from the pattern.md
+         architecture bullets (domain facts, not API). VERIFICATION: the guard green on the default set. default set.

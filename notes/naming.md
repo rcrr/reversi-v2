@@ -60,3 +60,43 @@ of the implementation under test — a self-referential agreement is impossible.
 Reading rule for every board diagram in this workspace: row 1 on top, column a on the left. Under any other reading
 (e.g. row 1 at the bottom) the same bit pattern appears as the wrong symmetry (clockwise becomes counter-clockwise,
 left-right mirrored, etc.).
+
+## Features
+
+A Feature wraps one of the three feature sources, with its category:
+
+- INTERCEPT (0) — the constant term, always 0.
+- MOBILITY (1) — a Mobility (the section below).
+- PATTERN (2) — a Pattern (the section below).
+
+A FeatureSet is a named collection of features: an optional intercept + the mobilities + the patterns.
+
+## Mobility
+
+A Mobility is a scalar table-lookup feature: the mover's legal moves counted over a set of squares (the mask),
+optionally combined with the opponent's pseudo-legal moves counted over a second set (the amask).
+
+- On a position with the mover's legal moves lms and the opponent's moves alms: index = popcount(lms & mask) +
+  (popcount(amask) − popcount(alms & amask)).
+- With popcount(mask) = k and popcount(amask) = a, the index runs over 0..k+a with every value reachable, so
+  n\_configurations = k + a + 1 is the count of DISTINCT index values (the feature-table size) — not the count of (lms,
+  alms) pairs.
+- A mobility has no symmetry instances: n\_instances = 1 — the mask/amask pair defines the feature directly (unlike a
+  Pattern).
+- The three standard mobilities (full-board masks): LMC — Legal Move Count, popcount(lms); ALMC — Anti Legal Move Count,
+  64 − popcount(alms); DLMC — Difference Legal Move Count, popcount(lms) + 64 − popcount(alms).
+
+## Pattern
+
+A Pattern is the D8 orbit of a mask of S squares (S ≤ 18), addressed by its principal representative.
+
+- A mask is a 64-bit integer; the principal mask is the numerically LOWEST of its 8 D8 transforms — the unique
+  representative of the orbit; a non-principal mask is rejected at construction.
+- The orbit members are the instances: n\_instances = |Orb|, with n\_stabilizers = 8 / |Orb|; instance 0 is always the
+  ro000 image — the principal mask itself (the instance order is first-seen over the D8 slots, above).
+- A configuration is a base-3 assignment of the S squares (0 empty, 1 mover, 2 opponent): 3^S of them, packed into S
+  contiguous bits (packed bit k ↔ the k-th square in board order) and indexed base-3 into a uint32 (safe while S ≤ 18).
+- The principal index is the min of a configuration's orbit under the permutations the stabilizer induces on the pattern
+  squares — a configuration-level canonicalization, distinct from the mask-level one (the principal mask).
+- A PatternSet is a named collection of patterns, stored sorted by mask.
+- The 12 shape types (PatternType) form a closed table keyed by fingerprint: TYPE\_0…TYPE\_9, TYPE\_3D, TYPE\_7D.
