@@ -945,3 +945,18 @@ D-388 | 2026-10-01 | the ideas-closed.md -> ideas\_closed.md RENAME (Roberto: "e
          volumes, 11 log\_003) cite the name of their time, and the 4 ODP-9 archive files stay hyphenated (frozen
          history, outside the living convention). VERIFICATION: the guard green on the default set (13 files, now incl.
          notes/ideas\_closed.md); the live-ref census re-verified after the commit.
+
+D-389 | 2026-10-01 | the log\_rules.md WALK-THROUGH pass (the first class-1 file of the D-ref walk-through; Roberto: "Mi
+         pare che vada tutto bene. Tuo parere?" — then: "Procedi come da tua raccomandazione."). Two surgical edits: (1)
+         the "(D-237)" provenance pointer out of the scope line — "the prose is wrapped to ~120 chars/line" stands
+         alone, the why lives in D-237 in the log; (2) the rotation bullet 5 clause "The current journal is
+         notes/log.md" trimmed — the third occurrence of the same fact in the file (scope line + rotation bullet 1) —
+         leaving the bullet as its own rule: "The archived volumes are read-only except factual corrections."
+         Deliberately KEPT (named in the analysis, his ruling confirms): the "One-off 2026-08-29 renumbering" bullet of
+         the Session-entries section — it is not a provenance pointer but the reading key for the
+         frozen-but-inconsistent history: the old commit messages keep their original labels (08-29 "session 11") while
+         the volumes were rewritten with the global numbers (sections 14-17), and the 08-28/29 entries count RUN tests
+         in the first slot, a real deviation from the bullet-3 grammar (D-054 records the action, not the key); class-3
+         interpretive data, the data-stays discipline. The file is otherwise clean: the D-382 update is correct (hist
+         paths, birth-assigned numbers, verbatim H1 + pointer), nothing stale. VERIFICATION: the guard green on the
+         default set.

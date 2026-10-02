@@ -1055,3 +1055,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - VERIFICATION: guard VERDE sul set default (13 file, ora con notes/ideas\_closed.md); censimento ref ripulito
   post-commit.
 - COMMIT: un solo commit (D-388).
+- Session 91 (Roberto, decima richiesta): "Prossimo lavoro di pulizia della governance: log\_rules.md ... Mi pare
+  che vada tutto bene. Tuo parere?" — poi: "Procedi come da tua raccomandazione."
+- ANALISI (no D): il file e' in buona salute (il D-382 l'ha aggiornato a posto, niente di scaduto). Due modifiche:
+  via "(D-237)" dalla scope line (provenance, classe 1) e via la clausola duplicata dal bullet 5 della sezione
+  rotation ("The current journal is notes/log.md" = terza occorrenza; il bullet resta come regola propria
+  read-only). Il bullet "One-off 2026-08-29 renumbering" RESTA: non e' una pointer di provenance ma la reading
+  key della storia congelata (vecchi commit messages con etichette originali vs volumi riscritti; gli entry
+  08-28/29 contano i RUN nel primo slot, deviazione dalla grammatica del bullet 3) — D-054 registra l'azione,
+  non la chiave; dato di interpretazione di classe 3.
+- IMPLEMENTATION (D-389): le due modifiche chirurgiche applicate.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-389).

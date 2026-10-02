@@ -1,8 +1,8 @@
 # Session journal — format rules (rigid)
 
 Applies to the current journal `notes/log.md` and the archived volumes `notes/hist_log/log_NNN.md`. One volume = one
-file; the session counter never restarts across volumes. The prose is wrapped to ~120 chars/line (D-237); the bullets
-keep their exact 2/4-space indentation.
+file; the session counter never restarts across volumes. The prose is wrapped to ~120 chars/line; the bullets keep their
+exact 2/4-space indentation.
 
 ## Volumes and rotation
 
@@ -14,7 +14,7 @@ keep their exact 2/4-space indentation.
   volume at notes/log.md. A volume jump never cuts a session.
 - Every volume starts with its H1 `# Session journal — volume 00N (sessions X–Y)` (Y = "..." while the volume is open,
   filled in at close) and the pointer line "Format rules: notes/log\_rules.md (rigid — follow when editing this file)."
-- The current journal is notes/log.md; the archived volumes are read-only except factual corrections.
+- The archived volumes are read-only except factual corrections.
 
 ## Session entries
 
