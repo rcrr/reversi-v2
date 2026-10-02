@@ -1016,3 +1016,25 @@ D-392 | 2026-10-01 | the probe\_rules.md DEPROVENANCE + cleanup pass (Roberto, o
          this file was not on the 3-file remaining class-1 list (that list was zone-scoped, not whole-file); a
          whole-file census of the live notes now reads: overview 25 (class 3), overview\_rules 6, docs\_rules 6,
          tools.md 13, probe\_rules 7 (0 after this pass). VERIFICATION: the guard green on the default set.
+
+D-393 | 2026-10-01 | the tools.md DEPROVENANCE pass (Roberto, on my analysis; he singled out the table — "La tabella,
+         colonna origin. Serve?" — and approved the lean: "Procedi con il tuo lean"). The origin column deleted (5
+         columns -> 4): it is 100% provenance (10 of the file's 13 D-refs), its data has two canon homes (the mandatory
+         docstring Origin item of §3 — verified present in all five tools — and the graduation decision+journal entry of
+         §5.2), and it serves no function of the table, which is the at-a-glance spec (what it does, what it writes —
+         the safety data of §2.4 and the R-250 impact set). The asymmetry is deliberate: the what-it-does /
+         what-it-writes columns stay because they are spec, not history. Nine edits total: (1) the origin column out;
+         (2) (D-248) out of §1; (3) (D-133) out of §1 — the five subpackage names stay, verified exact against
+         src/reversi/tools/; (4) §2.4: "the D-237 wrapper" -> "the re-wrapper"; (5) §2.4: (the D-065 base) out; (6)
+         §5.3: "(the docs\_rules §5.1 same-commit spirit)" -> "(the docs\_rules.md §5 same-commit rule)" — the same
+         notation bug fixed in probe\_rules at D-392 (that file's §5 is a numbered list, no 5.1); (7) the table:
+         "the D-237 block grammar" -> "the block grammar"; (8) the table: "(D-132)" and "the baseline of the D-130
+         tiering" -> "the baseline of the tiering"; (9) the table: the notes\_lint row's per-format code enumeration out
+         — verified stale against the code: RTITLE no longer exists (the register codes are RHEAD/RSEQ/RSPACE/DPOINTER)
+         and the journals are missing JH1/JBLANK (the code carries five journal codes); the functional description stays
+         (the six format families + WIDTH/EOF/CANON; the R-200 pointer kept — a register cross-ref, not provenance). The
+         §3 ORIGIN header item stays: it is the rule that gives the origin data its home in the docstrings — the rule
+         stays, the table's copy goes. VERIFIED: five rows = five tracked tools, the what-it-writes cells match every
+         docstring; the file's D-ref count 13 -> 0. ADJACENT, named and not touched (source files, Roberto's territory):
+         measure\_suite.py's docstring carries "on Roberto's GO", docs\_format\_audit.py's the "D-239 campaign"
+         narrative, notes\_lint.py's the stale RTITLE. VERIFICATION: the guard green on the default set.

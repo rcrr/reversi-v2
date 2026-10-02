@@ -1114,3 +1114,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   rimosso) e la sezione 7 per intero.
 - VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
 - COMMIT: un solo commit (D-392).
+- Session 91 (Roberto, quattordicesima richiesta): "Prossimo lavoro di pulizia della governance: tools.md ... Mi
+  pare che in generale sia corretto, ma ci sono diverse correzioni da fare, e frasi da rimuovere. La tabella,
+  colonna origin. Serve ? Tuo parere?" — poi: "Procedi con il tuo lean."
+- ANALISI (no D): il nucleo e' sano (la boundary §1, i 4 requisiti §2, la header rule §3, il lifecycle §5); i
+  problemi: tredici D-ref, la colonna origin (100% provenance, 10 dei 13 ref; i dati hanno gia' due case canoniche
+  vive — l'item Origin del docstring, obbligatorio per §3 e presente in tutti e 5 i tool, verificato, e l'entry di
+  graduation §5.2 — e funzione zero per la spec a colpo d'occhio), il ref "docs\_rules §5.1" (stesso bug del
+  D-392) e, verificato sul codice, la riga notes\_lint GIA' marcita: RTITLE non esiste piu' (i codici register sono
+  RHEAD/RSEQ/RSPACE/DPOINTER), i journals mancano di JH1/JBLANK (5 codici reali); il marciume e' doppio (il
+  docstring del tool cita pure RTITLE). Le enumerazioni di codici sono volatili per natura: ogni codice nuovo della
+  guard forzava l'edit in due posti.
+- IMPLEMENTATION (D-393): 9 modifiche a tools.md — la colonna origin via (5 -> 4 colonne), i 4 D-ref del §1/§2 via
+  (i 5 nomi del subpackage restano, verificati), "D-237 wrapper" -> "re-wrapper", il ref §5.1 corretto a
+  "docs\_rules.md §5", i 3 D-ref della colonna what-it-does via, l'enumerazione dei codici della riga notes\_lint
+  sostituita con la descrizione funzionale (i 6 formati + WIDTH/EOF/CANON; il ref R-200 resta: cross-ref al
+  register, non provenance). L'item ORIGIN di §3 resta: e' la regola che da' casa ai dati nel docstring — la regola
+  resta, la copia nella tabella va.
+- VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
+- COMMIT: un solo commit (D-393).
