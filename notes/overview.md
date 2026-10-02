@@ -236,7 +236,7 @@ tables above.
 - notes/tools.md — the workspace-tool rules (the four requirements + the inventory, D-248/D-249)
 - notes/probe\_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
   criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to
-  notes/analyses/, the baseline)
+  notes/analyses/)
 - notes/hist\_log/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)

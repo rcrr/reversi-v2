@@ -1094,3 +1094,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - IMPLEMENTATION (D-391): le sei modifiche applicate a naming.md, un solo file.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-391).
+- Session 91 (Roberto, tredicesima richiesta): "Prossimo lavoro di pulizia della governance: probe\_rules.md ... Mi
+  pare che in generale sia corretto, ma ci sono diverse correzioni da fare, e frasi da rimuovere. Tuo parere?" — poi:
+  "Procedi con pulizia come da tua proposta lean."
+- ANALISI (no D): il nucleo e' il migliore dei file di regole (la tassonomia a/b/c e' intatta e senza provenance); i
+  problemi: 8 posti di provenance (7 D-ref + il §7 "Baseline (session 30)" per intero), un ref fossilizzato (la
+  famiglia o1\* non esiste piu' da nessuna parte, solo classification.md ne parla), un giargone irrisolto ("the D
+  tiers" — il concetto di casa e' "suite tiers", R-820), l'inventario dei tool duplicato (canon: tools.md + R-340), i
+  ref "docs\_rules.md §5.1/§5.4" formalmente sbagliati (il §5 e' una lista numerata, niente sottosezioni) e la
+  clausola "awaiting ruling" di E2/E3 stantia. Verificato contro la realta': la hub pinna ancora active-level count /
+  commented imports / worker-list shape (docstring "PIPELINE COMPLETE"), 24 probe tutte verify\_<module>.py, i test
+  scrivono in build/tmp, nessun cross-ref esterno punta al §7. Disclosure: il file non era nella lista dei 3 rimasti
+  (lista scoped per zona, non per file); censimento a file intero dei live: 25 in overview (classe 3), 6 in
+  overview\_rules, 6 in docs\_rules, 13 in tools.md, 7 in probe\_rules.
+- IMPLEMENTATION (D-392): 11 modifiche a probe\_rules.md (92 -> 80 righe) + il bullet Index di overview (via "the
+  baseline" — ref nel vuoto dopo il taglio del §7): via l'aneddoto D-104 e i sei D-ref, gli aneddoti pre-session-30
+  x2, il bullet dei MEASUREMENT tools compresso al fatto di dominio (la sweep e' solo verify\_\*, i loro artifacts in
+  build/tmp), "the D tiers", la famiglia o1\*, i ref §5.1/§5.4 (il primo corretto a "docs\_rules.md", il secondo
+  rimosso) e la sezione 7 per intero.
+- VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
+- COMMIT: un solo commit (D-392).

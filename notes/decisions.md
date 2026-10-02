@@ -992,3 +992,27 @@ D-391 | 2026-10-01 | the naming.md DEPROVENANCE pass (Roberto, on my analysis; r
          reading-rule paragraph loses the "report §6 item T16" tail. The D-013/D-014 Index pointers in the overview stay
          (class 3); the two class-1 refs in the AGENTS.md Naming section are named and deferred (his file, alongside the
          rule-6 pending item). VERIFICATION: the guard green on the default set.
+
+D-392 | 2026-10-01 | the probe\_rules.md DEPROVENANCE + cleanup pass (Roberto, on my analysis: "Procedi con pulizia come
+         da tua proposta lean"). Eleven edits to probe\_rules.md (92 -> 80 lines): (1) the D-104 O1 anecdote out of §1 —
+         "It exists because tests can be tautological" stands alone, the story lives in D-104; (2) (D-006) out of the
+         NOT-list; (3) the scratch/ bullet: the tools/ inventory list out (canon: tools.md + R-340) and the
+         pre-session-30 decay anecdote out; (4) (the D-065 base) out of the artifacts bullet; (5) the MEASUREMENT-tools
+         bullet compressed to the probe-domain fact (the §5.2 sweep is the verify\_\* probes only; their artifacts under
+         build/tmp) — names, the durations/counts descriptions and D-250/D-132/D-243 out (inventory canon: tools.md; the
+         a/b/c boundary: R-340); (6) "(the D tiers)" out of the §4 table — unexplained jargon, the house concept is
+         "suite tiers" (R-820); (7) §5 item 1: "docs\_rules.md §5.1" -> "docs\_rules.md" (that file has numbered items,
+         no 5.1 — the pointer stays, the notation is fixed); (8) §5 item 4: the "(docs\_rules.md §5.4)" ref out — the
+         sentence is complete alone; (9) the §5 pre-session-30 nine-probes anecdote out — the hub-centralization rule
+         stands; (10) "(the o1\* family)" out of §6 — the files no longer exist anywhere (only
+         notes/analyses/classification.md mentions them); (11) section 7 "Baseline (session 30)" deleted whole: a
+         historical snapshot with no normative force, canon home the frozen session-30 journal, no cross-ref points at
+         it, and its "awaiting ruling" item (verify\_lm\_worker\_config E2/E3) was stale. Plus the overview Index
+         bullet: "the baseline" out (a pointer into the void after (11)). VERIFIED before the cut: the hub probe still
+         pins the active-level count / commented imports / worker-list shape (docstring: "PIPELINE COMPLETE"); 24
+         probes, all verify\_<module>.py; the tests write build/tmp; no external ref to §7 (AGENTS x3, tools.md,
+         R-060/R-250 and docs\_rules.md §5 point at §1/§5/§6 only). ADJACENT, named and not touched: R-340's enumeration
+         names 3 of the 5 live tools (measure\_suite.py, notes\_lint.py unnamed) — for the register re-review. CENSUS:
+         this file was not on the 3-file remaining class-1 list (that list was zone-scoped, not whole-file); a
+         whole-file census of the live notes now reads: overview 25 (class 3), overview\_rules 6, docs\_rules 6,
+         tools.md 13, probe\_rules 7 (0 after this pass). VERIFICATION: the guard green on the default set.
