@@ -39,3 +39,5 @@ this file in the same commit as its decision. The prose is wrapped to ~120 chars
 
 - One bullet per notes/ file, a one-line description.
 - The docs/ mirrors are not listed (their paths are the Doc column of the two tables).
+- The description is the file's identity — no D pointers, no grammar details, no cross-references: those live in the
+  files themselves.

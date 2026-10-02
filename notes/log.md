@@ -1186,3 +1186,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - VERIFICATION: guard VERDE sul set default; test negativo in scratch/ (vecchio titolo -> rosso OV-SECS col nuovo
   message, nuovo titolo -> verde); run pre-commit standard.
 - COMMIT: un solo commit (D-396).
+- Session 91 (Roberto, diciottesima richiesta): "I due files overview.md e overview\_rules.md, uno dovrebbe avere i
+  fatti dello stato, l'altro le regole ... Analizziamo la sezione Index. La frase [intro]: Io la eliminerei. Deve
+  essere scritto in overview\_rules cosa va in Index. Le entries: [6 esempi di semplificazione] ... E avanti cosi ...
+  Sviluppa una analisi approfondita, la presenti, poi ti do istruzioni." — poi: "Procedi! Va bene la tua proposta di
+  emendamento della overview\_rules!"
+- ANALISI (no D): principio estratto: l'Index e' un registro di identita' — si tengono la descrizione e i dati di
+  contenuto reali (range e date dei volumi), via D-pointer, pattern di famiglia, dettagli di grammatica/governance,
+  cross-ref, annotazioni di campagna. Verificato: l'intro e' il duplicato verbatim del secondo bullet della sezione
+  Index di overview\_rules.md (casa canonica gia' al posto); la guard non ha alcun check sul contenuto dell'Index
+  (i codici OV-: H1/SECS/TABLE/CUR/NEXT/INDENT) — zero modifiche alla guard; ogni dettaglio tagliato ha casa
+  canonica verificata (la grammatica bold-title + la clausola di approvazione esplicita sono testuali nel blocco
+  Governance di rules.md; "rigid" vive nell'H1 di ogni file di regole; I-017 in ideas\_closed.md + la directory;
+  "legislative body" nell'H1 di rules.md; ODP-9 nella directory historical/). La chiamata SOSTITUISCE il ruling del
+  D-391 (i D-pointer dell'Index "restano classe 3"): l'Index resta registro, le entry da oggi sono minimali.
+- IMPLEMENTATION (D-397): 14 modifiche all'Index (intro via; naming, rules, decisions; le 4 annotazioni di
+  rotazione; analyses, ideas, ideas\_closed, i 5 bullet dei file di regole, tools, probe\_rules alla forma minima
+  uniforme) + il terzo bullet in overview\_rules.md (il principio codificato). Micro-scelta: "performances
+  baseline" -> "performance baseline" (coerente col nome reale del file).
+- VERIFICATION: guard VERDE sul set default; overview.md a zero D-pointer (restano solo le 6 range+date dei volumi
+  chiusi, tenute per ruling).
+- COMMIT: un solo commit (D-397).

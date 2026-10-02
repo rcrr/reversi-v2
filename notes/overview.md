@@ -202,40 +202,25 @@ Test data (test/reversi/data/):
 - `rlm_06.json` — the SU-analysis experiment config (the 100M tier, ec 20)
 
 ## Index
-The docs/ mirrors (one per source/test file, D-007) are NOT listed here: their paths are the Doc column of the two
-tables above.
 
-- notes/naming.md — canonical board naming convention (row/column, D-013; D8 symmetries, D-014)
-- notes/rules.md — active legislation ("legislative body"): the register of the rules in force, R-NNN-numbered (a bold
-  title + a 1–3 line description; added/amended/retired only on explicit user approval)
-- notes/decisions.md — open historical decision log (append-only, D-NNN; the rules in force live in notes/rules.md;
-  closed volumes: notes/hist\_decisions/decisions\_NNN.md)
+- notes/naming.md — canonical board naming convention (row/column, D8 symmetries)
+- notes/rules.md — active legislation: the register of the rules in force.
+- notes/decisions.md — open historical decision log (append-only)
 - notes/hist\_decisions/decisions\_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)
 - notes/hist\_decisions/decisions\_001.md — closed decision volume 001 (D-117…D-158, 2026-09-06 → 2026-09-11)
-- notes/hist\_decisions/decisions\_002.md — closed decision volume 002 (D-159…D-206, 2026-09-11 → 2026-09-15, the D-333
-  rotation)
-- notes/hist\_decisions/decisions\_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19, the D-333
-  rotation)
-- notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23, the D-333
-  rotation)
-- notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29, the D-333
-  rotation)
-- notes/analyses/ — archived one-off investigations + the classification + the extracted verbatim reviews + the
-  historical project docs (the historical/ subdir: the I-017 project plan — analytical\_properties\_of\_features.md, the
-  wave-tier performance baseline — performance\_baseline.md, the ODP-9 material)
-- notes/ideas.md — the OPEN backlog (I-NNN, D-235)
-- notes/ideas\_closed.md — the CLOSED ideas (done | dropped): the compacted I-NNN record (D-235)
-- notes/decisions\_rules.md — the decisions-log format rules (rigid; the entry grammar — header + 9-space continuation —
-  the volumes and rotation: the 1000-line cap, only at session boundaries)
-- notes/log\_rules.md — session-journal format rules (rigid; global session numbering; volume rotation: 25 sessions /
-  2000 lines per volume, only at session boundaries)
-- notes/docs\_rules.md — mirror-doc format rules (rigid; the current-state contract)
-- notes/overview\_rules.md — the rigid format of notes/overview.md (the eight sections, the table grammar, the cell
-  rules, the reference families)
-- notes/tools.md — the workspace-tool rules (the four requirements + the inventory, D-248/D-249)
-- notes/probe\_rules.md — verification-apparatus rules (rigid; the a/b/c classification + the independent-derivation
-  criterion, the test/probe line, the pipeline-state centralization in the hub, the campaign sweep rule, the archive to
-  notes/analyses/)
+- notes/hist\_decisions/decisions\_002.md — closed decision volume 002 (D-159…D-206, 2026-09-11 → 2026-09-15)
+- notes/hist\_decisions/decisions\_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19)
+- notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23)
+- notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29)
+- notes/analyses/ — archived one-off documentation (investigations, reviews, performance baseline, and more).
+- notes/ideas.md — the OPEN backlog
+- notes/ideas\_closed.md — the CLOSED ideas (done | dropped)
+- notes/decisions\_rules.md — the decisions-log format rules
+- notes/log\_rules.md — session-journal format rules
+- notes/docs\_rules.md — mirror-doc format rules
+- notes/overview\_rules.md — the format rules of notes/overview.md
+- notes/tools.md — the workspace-tool rules
+- notes/probe\_rules.md — verification-apparatus rules
 - notes/hist\_log/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
 - notes/hist\_log/log\_002.md — session journal, volume 002 (sessions 31–37, closed 2026-09-18)

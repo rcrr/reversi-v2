@@ -1103,3 +1103,33 @@ D-396 | 2026-10-01 | the overview/overview\_rules ROLE-SPLIT, first section (Rob
          no other live file references the old title (the frozen D-394 decision/journal entries quote it — frozen
          history, untouched). VERIFICATION: the guard green on the default set; a negative test in scratch/ (old
          title -> red OV-SECS with the new message, new title -> green); the standard pre-commit run.
+
+D-397 | 2026-10-01 | the overview.md INDEX MINIMALIZATION + the overview\_rules.md amendment (Roberto: the Index bullets
+         carry the file's identity and nothing else — six worked examples + "E avanti cosi" — and on the amendment: "Va
+         bene la tua proposta di emendamento della overview\_rules!"). Fourteen edits to the Index: (1) the intro
+         sentence deleted — "The docs/ mirrors (one per source/test file, D-007) are NOT listed here…" is the verbatim
+         duplicate of the second bullet of the overview\_rules.md Index section, whose canon home it already has; (2)
+         the naming bullet: the D-013/D-014 pointers out, "row/column, D8 symmetries" kept; (3) the rules bullet:
+         "active legislation: the register of the rules in force." — the "legislative body" label, the R-NNN pattern,
+         the bold-title grammar and the explicit-user-approval clause all out — verified verbatim in the rules.md
+         Governance block, their canon home; (4) the decisions bullet: "open historical decision log (append-only)" —
+         the D-NNN pattern, the rules.md cross-ref and the closed-volumes pointer out (the five volume bullets are right
+         below); (5) the four "the D-333 rotation" annotations out of the decisions\_002-005 bullets — the open question
+         from the D-395 analysis, now ruled: range + dates (the identifying data) stay, the campaign annotation goes;
+         (6) the analyses bullet: "archived one-off documentation (investigations, reviews, performance baseline, and
+         more)." — the I-017, the file names and the ODP-9 material out (canon homes: ideas\_closed.md + the historical/
+         directory); micro-call: his "performances baseline" -> "performance baseline" (the real file is
+         performance\_baseline.md). (7)-(14) The eight remaining bullets (ideas, ideas\_closed, the five rule files,
+         tools, probe\_rules) reduced to the uniform minimal form — the content/grammar parentheticals out, "rigid" out
+         (it lives in every rule file's H1), and with them the last Index D-pointers (D-235 x2, D-248/D-249, I-NNN).
+         Net: the Index loses the intro + 11 D-pointers (D-007, D-013, D-014, D-333 x4, D-235 x2, D-248/D-249) + the
+         family patterns (D-NNN, I-NNN, R-NNN) + I-017 + all the grammar/governance detail; overview.md now carries ZERO
+         D-pointer refs — the only D-figures left are the six closed-volume range+date data, which this ruling
+         explicitly keeps. This ruling SUPERSEDES the D-391 ruling ("the D-013/D-014 Index pointers in the overview stay
+         (class 3)"): the Index remains a registry (class 3), but its entries are minimal identity descriptions from now
+         on. The overview\_rules.md amendment (approved): a third bullet in its Index section — "The description is the
+         file's identity — no D pointers, no grammar details, no cross-references: those live in the files themselves."
+         — codifies the principle so the next Index update does not re-fatten the bullets. Verified: no live file
+         depends on the cut strings (only frozen entries + the rules.md H1 itself); the guard has no Index-content check
+         (the OV- codes: H1/SECS/TABLE/CUR/NEXT/INDENT), so no guard change. VERIFICATION: the guard green on the
+         default set.
