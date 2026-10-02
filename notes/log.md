@@ -1133,3 +1133,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   resta, la copia nella tabella va.
 - VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
 - COMMIT: un solo commit (D-393).
+- Session 91 (Roberto, quindicesima richiesta): "Prossimo lavoro di pulizia della governance: overview\_rules.md —
+  Fai un primo passaggio sul file ... Sviluppa una analisi approfondita, la presenti, poi ti do istruzioni." — poi:
+  "Procedi con il tuo lean!"
+- ANALISI (no D): il file e' il piu' sano della walk-through (grammatica rigida, zero narrazione); i problemi: 10
+  D-ref (6 distinti) come provenance nelle frasi di regola (tutte autosufficienti senza il ref; i ref amended-D-NNN
+  sono genealogia, casa nel decision log — non una reading key come il renumbering di log\_rules), 1 nome proprio
+  (L36, classe D-390) e una DRIFT di contenuto: il file dice "Exactly the eight sections" ma l'overview reale ha 9
+  sezioni H2 e la guard (OV-SECS) forza gia' la prima = "Format rules (rigid ...)" — la sezione-puntatore non e' mai
+  documentata nel file di regole (docstring della guard: "the Format rules pointer section, then EXACTLY the eight
+  sections"). La correzione e' additiva: niente tocca overview.md né la guard. Tenuti: R-030 (cross-ref alla
+  legislazione viva) e la riga reference-families (reading key di classe 3: definisce il vocabolario di id —
+  T-NN/M#/session N dormienti oggi, ma la definizione di famiglia vive indipendentemente dall'uso).
+- IMPLEMENTATION (D-394): 7 modifiche a overview\_rules.md — il bullet "eight sections" ora dichiara i due fatti
+  (sezione-puntatore prima, poi le otto in ordine), i 6 ref via (10 D-ref -> 0), L36 depersonalizzata a "the user".
+- VERIFICATION: notes\_format --write idempotente (0 rejoins), guard VERDE sul set default.
+- COMMIT: un solo commit (D-394).

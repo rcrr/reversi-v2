@@ -1038,3 +1038,25 @@ D-393 | 2026-10-01 | the tools.md DEPROVENANCE pass (Roberto, on my analysis; he
          docstring; the file's D-ref count 13 -> 0. ADJACENT, named and not touched (source files, Roberto's territory):
          measure\_suite.py's docstring carries "on Roberto's GO", docs\_format\_audit.py's the "D-239 campaign"
          narrative, notes\_lint.py's the stale RTITLE. VERIFICATION: the guard green on the default set.
+
+D-394 | 2026-10-01 | the overview\_rules.md DEPROVENANCE + de-personalization + grammar-completeness pass (Roberto, on
+         my analysis: "Procedi con il tuo lean!"). Seven edits: (1) the "eight sections" bullet corrected — the file
+         said "Exactly the eight sections, in exactly this order", but the overview carries NINE H2s and the guard
+         (OV-SECS) forces the FIRST to be the pointer section "Format rules (rigid ...)" before the eight; the rules
+         file had never documented it — the guard's own docstring says "the Format rules pointer section, then EXACTLY
+         the eight sections"; the bullet now states both facts (pointer section first, then the eight in order) —
+         additive: nothing changes in overview.md or in the guard, the rules file aligns to the grammar the guard
+         already enforces; (2) (D-116) out of the table-escape rule; (3) (D-117, clarified D-335) out of the State cell;
+         (4) the Suite-count (D-117, amended D-339) out; (5) the Doc-cell (D-117, amended D-339) out; (6) (D-334) out of
+         the no-bullet-per-campaign rule; (7) the Next-steps (D-117, amended D-337) out AND de-personalized per D-390:
+         "(Roberto picks the next item on demand)" -> "(the user picks the next item on demand)" (the register and
+         AGENTS use "the user" in the normative places). All the rule sentences are self-sufficient without the refs:
+         the "amended D-NNN" forms are genealogy, and genealogy has its home in the decision log — unlike the log\_rules
+         renumbering bullet, which is a reading key explaining a deviant form actually met in the frozen volumes. KEPT:
+         the R-030 pointer (a live legislation cross-ref, the class kept in tools.md) and the reference-families line
+         (class-3 reading key: it defines the permitted id vocabulary — T-NN, M# and session N are dormant in the
+         current overview, verified, but a family definition lives independently of current use). VERIFIED: the actual
+         overview.md carries the nine H2s in the exact order (pointer + the eight); the guard's SECTIONS tuple matches
+         the bullet's list; the overview Index bullet for this file stays accurate ("the eight sections, the table
+         grammar, the cell rules, the reference families"), no change needed. The file's D-ref count 10 -> 0, personal
+         names 1 -> 0. VERIFICATION: the guard green on the default set.
