@@ -1207,3 +1207,22 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - VERIFICATION: guard VERDE sul set default; overview.md a zero D-pointer (restano solo le 6 range+date dei volumi
   chiusi, tenute per ruling).
 - COMMIT: un solo commit (D-397).
+- Session 91 (Roberto, diciannovesima richiesta): "Analizziamo la sezione Test files ora. Non e' una regola questa:
+  [intro] ... Non sarebbe meglio in overview\_rules? ... due entry hanno la dicitura 'complete (helper module, 0
+  tests)', ma non e' uno stato quello tra parentesi ... Io rimuoverei le parentesi e lascerei 'complete'. La
+  intestazione la cambiamo in 'Suite/std\_run'. Poi cambiamo la regola in overview\_rules, e applichiamo il
+  formato: <total>/<failures>/<skipped>/<vlong>/<vvlong> ... 14/0/0/0/0. Sviluppa una analisi approfondita, la
+  presenti, poi ti do istruzioni." — poi: "1: OK. 2: va bene come proposto. Elimina anche la intro di 'Source
+  files', e' l'unica modifica da fare per la sezione. Procedi!"
+- ANALISI (no D): i fatti dalle fonti di test: i totali sommano 968 (tabella in sync); gate VLONG reali = 2
+  (class-level skipUnless in test\_lm\_worker\_full\_chain e test\_wrk\_su\_analysis, 1 test ciascuno — gli altri
+  11 moduli menzionano VLONG solo in docstring); VVLONG non strumentato (tags.py testuale, grep zero) — la quinta
+  slot e' future-proofing; i gate PERF (test\_board, test\_feature) restano nella slot skipped, non vlong.
+  Verificato: la guard OV-TABLE salta la riga header (rinome guard-safe) ma la ESC copre ogni riga di
+  overview.md — l'intestazione va scritta "Suite/std\_run".
+- IMPLEMENTATION (D-398): intro di Test files e di Source files via; header "Suite/std\_run"; 47/47 righe in
+  formato 5 parti (2 righe con vlong=1, 2 helper "0/0/0/0/0", il resto +/0/0); 2 state cell ridotte a "complete"
+  (la regola esistente gia' vietava il parentetico — la tabella ora e' conforme); regola di overview\_rules
+  riscritta (approvata come proposta, fissa l'intestazione e le due relazioni di contenimento).
+- VERIFICATION: guard VERDE sul set default; 47/47 celle 5 parti; totali = 968.
+- COMMIT: un solo commit (D-398).

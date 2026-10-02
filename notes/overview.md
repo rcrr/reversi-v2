@@ -79,8 +79,6 @@ the decision log (notes/decisions.md); the file-by-file state lives in the Sourc
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
-One row per source file, alphabetical by full path. State = a status word + the open/parked items (if any); the campaign
-history lives in the decision log.
 
 | File | State | Doc |
 | --- | --- | --- |
@@ -134,59 +132,56 @@ history lives in the decision log.
 | src/reversi/tools/state\_machine.py | complete | [docs/src/reversi/tools/state\_machine.md](docs/src/reversi/tools/state\_machine.md) |
 
 ## Test files
-One row per test file, alphabetical by full path. Suite (standard run) = the module's count under the standard
-pre-commit run (LONG=1, the live DB) as `<total>/<failures>/<skipped>`; a (+N VLONG) marks the tier-gated tests that
-skip in it.
 
-| File | State | Suite (standard run) | Doc |
+| File | State | Suite/std\_run | Doc |
 | --- | --- | --- | --- |
-| test/reversi/lm/test\_client.py | complete | 7/0/1 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
-| test/reversi/lm/test\_hlp\_anova.py | complete | 16/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
-| test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 30/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
-| test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 14/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
-| test/reversi/lm/test\_hlp\_generate.py | complete | 16/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
-| test/reversi/lm/test\_hlp\_gradient.py | complete | 15/0/0 | [docs/test/reversi/lm/test\_hlp\_gradient.md](docs/test/reversi/lm/test\_hlp\_gradient.md) |
-| test/reversi/lm/test\_hlp\_indexes.py | complete | 14/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |
-| test/reversi/lm/test\_hlp\_optimize.py | complete | 20/0/0 | [docs/test/reversi/lm/test\_hlp\_optimize.md](docs/test/reversi/lm/test\_hlp\_optimize.md) |
-| test/reversi/lm/test\_hlp\_plot.py | complete | 11/0/0 | [docs/test/reversi/lm/test\_hlp\_plot.md](docs/test/reversi/lm/test\_hlp\_plot.md) |
-| test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 38/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
-| test/reversi/lm/test\_hlp\_wmaps.py | complete | 15/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
-| test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |
-| test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 9/0/1 (+1 VLONG) | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
-| test/reversi/lm/test\_logistic\_model.py | complete | 29/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
-| test/reversi/lm/test\_wrk\_analytics.py | complete | 14/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
-| test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
-| test/reversi/lm/test\_wrk\_client\_check.py | complete | 6/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |
-| test/reversi/lm/test\_wrk\_config.py | complete | 13/0/0 | [docs/test/reversi/lm/test\_wrk\_config.md](docs/test/reversi/lm/test\_wrk\_config.md) |
-| test/reversi/lm/test\_wrk\_design\_matrix.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_design\_matrix.md](docs/test/reversi/lm/test\_wrk\_design\_matrix.md) |
-| test/reversi/lm/test\_wrk\_features.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_features.md](docs/test/reversi/lm/test\_wrk\_features.md) |
-| test/reversi/lm/test\_wrk\_final\_log\_print.py | complete | 6/0/0 | [docs/test/reversi/lm/test\_wrk\_final\_log\_print.md](docs/test/reversi/lm/test\_wrk\_final\_log\_print.md) |
-| test/reversi/lm/test\_wrk\_generate.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_generate.md](docs/test/reversi/lm/test\_wrk\_generate.md) |
-| test/reversi/lm/test\_wrk\_gradient.py | complete | 4/0/0 | [docs/test/reversi/lm/test\_wrk\_gradient.md](docs/test/reversi/lm/test\_wrk\_gradient.md) |
-| test/reversi/lm/test\_wrk\_indexes.py | complete | 2/0/0 | [docs/test/reversi/lm/test\_wrk\_indexes.md](docs/test/reversi/lm/test\_wrk\_indexes.md) |
-| test/reversi/lm/test\_wrk\_optimize.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_optimize.md](docs/test/reversi/lm/test\_wrk\_optimize.md) |
-| test/reversi/lm/test\_wrk\_plot.py | complete | 9/0/0 | [docs/test/reversi/lm/test\_wrk\_plot.md](docs/test/reversi/lm/test\_wrk\_plot.md) |
-| test/reversi/lm/test\_wrk\_positions.py | complete | 12/0/0 | [docs/test/reversi/lm/test\_wrk\_positions.md](docs/test/reversi/lm/test\_wrk\_positions.md) |
-| test/reversi/lm/test\_wrk\_su\_analysis.py | complete | 10/0/1 (+1 VLONG) | [docs/test/reversi/lm/test\_wrk\_su\_analysis.md](docs/test/reversi/lm/test\_wrk\_su\_analysis.md) |
-| test/reversi/lm/test\_wrk\_validate.py | complete | 9/0/0 | [docs/test/reversi/lm/test\_wrk\_validate.md](docs/test/reversi/lm/test\_wrk\_validate.md) |
-| test/reversi/lm/test\_wrk\_vld\_positions.py | complete | 11/0/0 | [docs/test/reversi/lm/test\_wrk\_vld\_positions.md](docs/test/reversi/lm/test\_wrk\_vld\_positions.md) |
-| test/reversi/lm/test\_wrk\_wmaps.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_wmaps.md](docs/test/reversi/lm/test\_wrk\_wmaps.md) |
-| test/reversi/lm/test\_wrk\_zed.py | complete | 3/0/0 | [docs/test/reversi/lm/test\_wrk\_zed.md](docs/test/reversi/lm/test\_wrk\_zed.md) |
-| test/reversi/paths.py | complete (helper module, 0 tests) | — | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
-| test/reversi/tags.py | complete (helper module, 0 tests) | — | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
-| test/reversi/test\_board.py | complete | 247/0/15 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_feature.py | complete | 25/0/1 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
-| test/reversi/test\_mobility.py | complete | 26/0/1 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
-| test/reversi/test\_paths.py | complete | 3/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
-| test/reversi/test\_pattern.py | complete | 65/0/3 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
-| test/reversi/test\_random\_game.py | complete | 33/0/1 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |
-| test/reversi/test\_regab.py | complete | 48/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
-| test/reversi/tools/test\_binio.py | complete | 45/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
-| test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
-| test/reversi/tools/test\_opt\_lbfgs.py | complete | 14/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
-| test/reversi/tools/test\_prng.py | complete | 22/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |
-| test/reversi/tools/test\_state\_machine.py | complete | 50/0/0 | [docs/test/reversi/tools/test\_state\_machine.md](docs/test/reversi/tools/test\_state\_machine.md) |
-| test/reversi/tools/test\_usage\_binio.py | complete | 3/0/0 | [docs/test/reversi/tools/test\_usage\_binio.md](docs/test/reversi/tools/test\_usage\_binio.md) |
+| test/reversi/lm/test\_client.py | complete | 7/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
+| test/reversi/lm/test\_hlp\_anova.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
+| test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 30/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
+| test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
+| test/reversi/lm/test\_hlp\_generate.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
+| test/reversi/lm/test\_hlp\_gradient.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_gradient.md](docs/test/reversi/lm/test\_hlp\_gradient.md) |
+| test/reversi/lm/test\_hlp\_indexes.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |
+| test/reversi/lm/test\_hlp\_optimize.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_optimize.md](docs/test/reversi/lm/test\_hlp\_optimize.md) |
+| test/reversi/lm/test\_hlp\_plot.py | complete | 11/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_plot.md](docs/test/reversi/lm/test\_hlp\_plot.md) |
+| test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 38/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
+| test/reversi/lm/test\_hlp\_wmaps.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
+| test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |
+| test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 9/0/1/1/0 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
+| test/reversi/lm/test\_logistic\_model.py | complete | 29/0/0/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
+| test/reversi/lm/test\_wrk\_analytics.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
+| test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
+| test/reversi/lm/test\_wrk\_client\_check.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |
+| test/reversi/lm/test\_wrk\_config.py | complete | 13/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_config.md](docs/test/reversi/lm/test\_wrk\_config.md) |
+| test/reversi/lm/test\_wrk\_design\_matrix.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_design\_matrix.md](docs/test/reversi/lm/test\_wrk\_design\_matrix.md) |
+| test/reversi/lm/test\_wrk\_features.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_features.md](docs/test/reversi/lm/test\_wrk\_features.md) |
+| test/reversi/lm/test\_wrk\_final\_log\_print.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_final\_log\_print.md](docs/test/reversi/lm/test\_wrk\_final\_log\_print.md) |
+| test/reversi/lm/test\_wrk\_generate.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_generate.md](docs/test/reversi/lm/test\_wrk\_generate.md) |
+| test/reversi/lm/test\_wrk\_gradient.py | complete | 4/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_gradient.md](docs/test/reversi/lm/test\_wrk\_gradient.md) |
+| test/reversi/lm/test\_wrk\_indexes.py | complete | 2/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_indexes.md](docs/test/reversi/lm/test\_wrk\_indexes.md) |
+| test/reversi/lm/test\_wrk\_optimize.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_optimize.md](docs/test/reversi/lm/test\_wrk\_optimize.md) |
+| test/reversi/lm/test\_wrk\_plot.py | complete | 9/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_plot.md](docs/test/reversi/lm/test\_wrk\_plot.md) |
+| test/reversi/lm/test\_wrk\_positions.py | complete | 12/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_positions.md](docs/test/reversi/lm/test\_wrk\_positions.md) |
+| test/reversi/lm/test\_wrk\_su\_analysis.py | complete | 10/0/1/1/0 | [docs/test/reversi/lm/test\_wrk\_su\_analysis.md](docs/test/reversi/lm/test\_wrk\_su\_analysis.md) |
+| test/reversi/lm/test\_wrk\_validate.py | complete | 9/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_validate.md](docs/test/reversi/lm/test\_wrk\_validate.md) |
+| test/reversi/lm/test\_wrk\_vld\_positions.py | complete | 11/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_vld\_positions.md](docs/test/reversi/lm/test\_wrk\_vld\_positions.md) |
+| test/reversi/lm/test\_wrk\_wmaps.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_wmaps.md](docs/test/reversi/lm/test\_wrk\_wmaps.md) |
+| test/reversi/lm/test\_wrk\_zed.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_zed.md](docs/test/reversi/lm/test\_wrk\_zed.md) |
+| test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
+| test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
+| test/reversi/test\_board.py | complete | 247/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
+| test/reversi/test\_feature.py | complete | 25/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
+| test/reversi/test\_mobility.py | complete | 26/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
+| test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
+| test/reversi/test\_pattern.py | complete | 65/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
+| test/reversi/test\_random\_game.py | complete | 33/0/1/0/0 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |
+| test/reversi/test\_regab.py | complete | 48/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
+| test/reversi/tools/test\_binio.py | complete | 45/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
+| test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
+| test/reversi/tools/test\_opt\_lbfgs.py | complete | 14/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
+| test/reversi/tools/test\_prng.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |
+| test/reversi/tools/test\_state\_machine.py | complete | 50/0/0/0/0 | [docs/test/reversi/tools/test\_state\_machine.md](docs/test/reversi/tools/test\_state\_machine.md) |
+| test/reversi/tools/test\_usage\_binio.py | complete | 3/0/0/0/0 | [docs/test/reversi/tools/test\_usage\_binio.md](docs/test/reversi/tools/test\_usage\_binio.md) |
 
 Test data (test/reversi/data/):
 

@@ -19,8 +19,9 @@ this file in the same commit as its decision. The prose is wrapped to ~120 chars
   inside a cell is escaped `\|`.
 - State cell: ONE line — a status word + the open/parked items (each with its governing D-pointer if any); the
   description is the mirror's job, the campaign history the decision log's.
-- Suite count (Test files table ONLY): `<total>/<failures>/<skipped>` under the standard pre-commit run (LONG=1, the
-  live DB; total = unittest's "Ran N"); a (+N VLONG) marker for the tier-gated tests that skip in it.
+- Suite/std\_run (Test files table ONLY): `<total>/<failures>/<skipped>/<vlong>/<vvlong>` under the standard pre-commit
+  run (LONG=1, the live DB): total = unittest's "Ran N" (the skips included); the failures, the skips, and — of those —
+  the VLONG- and VVLONG-gated counts.
 - Doc cell: a markdown link to the mirror.
 
 ## Current state

@@ -1131,5 +1131,32 @@ D-397 | 2026-10-01 | the overview.md INDEX MINIMALIZATION + the overview\_rules.
          file's identity — no D pointers, no grammar details, no cross-references: those live in the files themselves."
          — codifies the principle so the next Index update does not re-fatten the bullets. Verified: no live file
          depends on the cut strings (only frozen entries + the rules.md H1 itself); the guard has no Index-content check
-         (the OV- codes: H1/SECS/TABLE/CUR/NEXT/INDENT), so no guard change. VERIFICATION: the guard green on the
-         default set.
+         (the OV- codes: H1/SECS/TABLE/CUR/NEXT/INDENT), so no guard change. VERIFICATION: the guard green
+
+D-398 | 2026-10-01 | the overview.md TEST FILES + SOURCE FILES sections (Roberto: the intros are rules, they live in
+         overview\_rules.md; the state-cell parenthetical is a justification, not a state; the Suite column becomes the
+         compact 5-part "Suite/std\_run" — "1: OK. 2: va bene come proposto. Elimina anche la intro di 'Source files',
+         e' l'unica modifica da fare per la sezione. Procedi!"). Three moves: (1) both section intros deleted — the Test
+         files intro ("One row per test file, alphabetical by full path. Suite (standard run) = … a (+N VLONG) marks …")
+         and the Source files intro ("One row per source file, … the campaign history lives in the decision log.") are
+         duplicates of the overview\_rules.md "Source files / Test files (the two tables)" section, whose canon home
+         they already have — zero loss; (2) the two state cells "complete (helper module, 0 tests)" -> "complete" — the
+         parenthetical is a description, and the EXISTING state-cell rule ("a status word + the open/parked items; the
+         description is the mirror's job") already forbids it: the table now conforms to the rule, no rule change
+         needed; the "0 tests" fact is carried by the suite cell; (3) the Suite column: header "Suite (standard run)" ->
+         "Suite/std\_run" (the underscore escaped — the overview linter runs esc\_issues on every line but the H1), and
+         all 47 data rows reformatted to `<total>/<failures>/<skipped>/<vlong>/<vvlong>`. Content truth (derived from
+         the test sources, not guessed): the totals sum to 968 (in sync with the last green pre-commit run); exactly TWO
+         real VLONG gates exist in the code — the class-level @skipUnless(tier\_vlong()) in
+         test\_lm\_worker\_full\_chain.py (the A2050 chain, 1 test) and test\_wrk\_su\_analysis.py (the 1e7 corpus, 1
+         test) — hence 9/0/1/1/0 and 10/0/1/1/0; the other 11 modules that MENTION "VLONG" do so only in docstrings;
+         VVLONG is "currently uninstrumented" (the tags.py docstring, verified: no tier\_vvlong usage in any test) — the
+         fifth slot is future-proofing, all zero; the PERF-gated skips (1 in test\_board, 1 in test\_feature) stay
+         inside the skipped slot, not vlong. The two helper rows (paths.py, tags.py): the dash -> "0/0/0/0/0" (uniform,
+         per his approval). The overview\_rules.md rule (approved as drafted): "Suite/std\_run (Test files table ONLY):
+         `<total>/<failures>/<skipped>/<vlong>/<vvlong>` under the standard pre-commit run (LONG=1, the live DB): total
+         = unittest's 'Ran N' (the skips included); the failures, the skips, and — of those — the VLONG- and
+         VVLONG-gated counts." — it fixes the header, defines the five slots, and states the two containment relations
+         (total includes the skips; vlong/vvlong are shares OF the skips). The (+N VLONG) marker convention dies with
+         the column. VERIFICATION: the guard green on the default set; the 47/47 cells are 5-part; the totals still sum
+         to 968. on the default set.
