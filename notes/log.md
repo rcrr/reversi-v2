@@ -1454,3 +1454,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   scartati rimossi.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-412).
+- Session 91 (Roberto, trentacinquesima richiesta): "Ultimo file da verificare in notes e' docs\_rules.md. E'
+  aggiornato a tutte le modifiche di governance apportate in rules, overview, naming, ...? Ci sono duplicaziani? E'
+  consistente? E' completo? E' chiaro? Fai una analisi completa e dammi la tua view, poi decidiamo come procedere.
+  Grazie!"
+- ANALISI (mia): file ben fatto, quasi aggiornato, nessuna duplicazione sostanziale — ma 3 problemi veri: (1)
+  contraddizione interna sulla State line (s2 dice RETIRED, s5.2 e s6 la prescrivono ancora — residui pre-D-240);
+  (2) puntatore stale in s4: il suite status globale e' ora in Current state + tabella Test files, non Environment
+  (post-D-411/412); (3) le 4 fughe di provenance class-1 (D-007, D-238, D-109, D-240 — i D-096/D-103 citati restano:
+  pattern del register, esempi permessi). Due micro-lacune: Companions senza wsutils.md (l'auditor che implementa
+  le regole); la regola non dichiarava no-trailing-whitespace e no-split-spans (che l'auditor controlla gia').
+- Roberto: "Procedi come hai proposto!"
+- IMPLEMENTATION (D-413): i 5 interventi su docs\_rules.md (State line x2, puntatore suite, 4 leak, Companions +
+  clausola whitespace/spans).
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-413).

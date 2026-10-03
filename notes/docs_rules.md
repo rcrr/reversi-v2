@@ -1,10 +1,11 @@
 # docs_rules.md — format rules for the mirror docs (docs/)
 
-Prescriptive. Follow when creating, updating, or migrating any doc under docs/ that mirrors a source file (the D-007
-mirror rule, AGENTS.md standing rule 5). Language: English. The prose is wrapped to ~120 chars/line (D-238); the tables
-stay one physical line per row.
+Prescriptive. Follow when creating, updating, or migrating any doc under docs/ that mirrors a source file (the mirror
+rule, AGENTS.md standing rule 5). Language: English. The prose is wrapped to ~120 chars/line; the tables stay one
+physical line per row; code spans are never split across lines, and lines carry no trailing whitespace.
 
-Companions: notes/probe\_rules.md (the verification apparatus), notes/log\_rules.md (the session journal).
+Companions: notes/probe\_rules.md (the verification apparatus), notes/log\_rules.md (the session journal),
+notes/wsutils.md (the doc auditor that checks these rules).
 
 ## 1. What a mirror doc IS (and is not)
 
@@ -30,10 +31,10 @@ appendix) is the failure mode these rules exist to prevent.
 ```
 
 The header is the H1 and the what-it-is paragraph, nothing else: no date, no D-number, no commit hash, no suite count,
-no "Analysis date" / "brought in by" / "post D-xxx" line. The D-109 `> State:` line is RETIRED (D-240): the metadata it
-carried already lives where it belongs — the last decision that changed the module in notes/decisions.md, the last
-commit in the git history, the suite counts in notes/overview.md and in the per-file Suite cells — and keeping a copy
-current was a per-file tax that no commit ever paid (94/94 mirrors carried no State line).
+no "Analysis date" / "brought in by" / "post D-xxx" line. The `> State:` line is RETIRED: the metadata it carried
+already lives where it belongs — the last decision that changed the module in notes/decisions.md, the last commit in the
+git history, the suite counts in notes/overview.md and in the per-file Suite cells — and keeping a copy current was a
+per-file tax that no commit ever paid (94/94 mirrors carried no State line).
 
 ## 3. Sections (fixed order; only the appendix is optional)
 
@@ -59,14 +60,15 @@ current was a per-file tax that no commit ever paid (94/94 mirrors carried no St
 - FIXED / RESOLVED lists, "pre/post D-xxx" contrasts, line-count deltas ("453 → 522 lines")
 - verbatim appendices of original analyses: they move losslessly to notes/analyses/ (one file per artifact, original
   language kept), with a pointer recorded in the journal
-- the GLOBAL suite status: it lives exactly once, in notes/overview.md → Environment
+- the GLOBAL suite status: the pipeline health lives in notes/overview.md → Current state, the per-file counts in the
+  Test files table (exactly once, nowhere else)
 - report tenses ("Status: analyzed in depth, untouched") — the doc describes a present, it does not report a past
 
 ## 5. Lifecycle (how a mirror doc stays true)
 
 1. The doc is part of the module: every commit that changes X.py updates X.md in the SAME commit (code + doc + probe
    together — see probe\_rules.md §5).
-2. The State line is updated in that same commit; the doc body is rewritten to the new state, never appended.
+2. The doc body is rewritten to the new state in that same commit, never appended.
 3. When an issue is closed: its line leaves the doc in the closing commit. The closure narrative belongs to journal /
    commit message / decisions.md.
 4. Every "pinned by" must point at a tracked, currently-passing test or probe. A pointer into the void (untracked,
@@ -82,8 +84,6 @@ Same skeleton, two substitutions:
   method list already exists in the .py file).
 - section 3 = **Goldens pinned**: the pinned literals (hashes, exact values) and what each protects; the re-pin history
   of a golden (which D-NNN moved it) does NOT go here — the commit that moved it already says so.
-
-The State line uses the test file's own suite counts.
 
 ## 7. Scope exceptions
 

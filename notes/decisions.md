@@ -1362,3 +1362,18 @@ D-412 | 2026-10-01 | overview.md — Current state slimmed from 4 bullets to 2, 
          Next-steps campaign, and the ec consolidation in the hlp\_config\_schemas.md mirror (line 41: "empty\_count
          (int, required, 0..60 — the single ec source…)"). Current state now holds exactly the two pipeline-wide facts:
          the pipeline's health and how it is driven. VERIFICATION: the guard green on the default set.
+
+D-413 | 2026-10-01 | notes/docs\_rules.md — the last class-1 file walked through (the analysis: mostly up-to-date, no
+         real duplication, one internal contradiction, two completeness gaps): (1) the State-line contradiction fixed —
+         §2 says the line is RETIRED, yet §5.2 still prescribed updating it ("The State line is updated in that same
+         commit") and §6 prescribed the test-doc variant ("The State line uses the test file's own suite counts"); both
+         residue lines corrected/removed (the doc body is rewritten to the new state in the same commit; the test suite
+         counts live in the Test files table, per §4); (2) the stale §4 pointer corrected — the global suite status now
+         lives in overview Current state (the pipeline health) + the Test files table (the per-file counts), not
+         "Environment"; (3) the four class-1 provenance leaks removed (D-007, D-238, D-109, D-240 — the D-096 / D-103
+         quoted examples stay: the register pattern allows D-numbers inside quoted examples, and §3.2 prescribes the
+         narrow design-rationale pointer channel); (4) the Companions line gains notes/wsutils.md (the doc auditor that
+         checks these rules); (5) the wrapping line now declares what the auditor already enforces (code spans never
+         split across lines, no trailing whitespace). Kept, deliberately: the board.md session-1 failure-mode anecdote
+         (an illustration, not a provenance) and the §3.2 D-pointer channel (mirrors, not notes). VERIFICATION: the
+         guard green on the default set.
