@@ -120,13 +120,38 @@ class TestClientEvaluationFunction(unittest.TestCase):
         np.testing.assert_array_equal(self.ef_array(raw),
                                       self.ef_array(positions))
 
-    def test_2d_structured_raises_value_error(self):
-        """The standard 1-D guard: a 2-D structured
-        PositionArray is admitted by the PositionArray validator (no
-        ndim check there) and must not reach the numba kernel."""
-        positions = self._positions(4).reshape(2, 2)
-        with self.assertRaisesRegex(ValueError, "1-D PositionArray"):
-            self.ef_array(positions)
+    def test_2d_structured_corder_parity(self):
+        """D-422: a 2-D structured PositionArray is evaluated in
+        C-order element order: the (K, N) result ravels to the 1-D
+        ravel result bit-exactly, and the output keeps the input
+        shape."""
+        base = self._positions(100).reshape(25, 4)
+        y_2d = self.ef_array(base)
+        self.assertEqual(y_2d.shape, (25, 4))
+        self.assertEqual(y_2d.dtype, np.float32)
+        y_1d = self.ef_array(base.ravel())
+        np.testing.assert_array_equal(y_2d.ravel(), y_1d)
+        # A strided 2-D view: the C-order parity holds through the
+        # compute_indexes ravel.
+        view = base[::2, ::2]
+        y_view = self.ef_array(view)
+        self.assertEqual(y_view.shape, view.shape)
+        np.testing.assert_array_equal(y_view.ravel(),
+                                      self.ef_array(view.ravel()))
+        # The N-D empty edges: (0, N) and (K, 0) keep their shapes.
+        self.assertEqual(self.ef_array(self._positions(0).reshape(0, 4)).shape,
+                         (0, 4))
+        self.assertEqual(self.ef_array(self._positions(0).reshape(2, 0)).shape,
+                         (2, 0))
+
+    def test_3d_structured_corder_parity(self):
+        """D-422: the C-order parity extends to any shape (3-D)."""
+        positions = self._positions(24).reshape(2, 3, 4)
+        y_3d = self.ef_array(positions)
+        self.assertEqual(y_3d.shape, (2, 3, 4))
+        self.assertEqual(y_3d.dtype, np.float32)
+        y_1d = self.ef_array(positions.ravel())
+        np.testing.assert_array_equal(y_3d.ravel(), y_1d)
 
     def test_scalar_position_rejected(self):
         """Strict array: a scalar Position is rejected — the

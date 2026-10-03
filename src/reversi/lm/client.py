@@ -116,40 +116,41 @@ def make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray]
     Create a vectorized Evaluation Function (EF) in Y space over a PositionArray batch.
 
     The returned EF evaluates a whole batch in one call with the same inference as the scalar EF,
-    bit-exact per position, without the length-1 wrap (the compute_indexes call is already a batch
-    API; the tail is element-wise NumPy).
+    bit-exact per position, for any input shape: it accepts a structured PositionArray of any shape
+    and returns a same-shape float32 array (the positions evaluated in C-order element order),
+    without the length-1 wrap (the compute_indexes call is already a batch API, N-D since D-417;
+    the tail is element-wise NumPy).
 
-    Strict array: the EF accepts a 1-D PositionArray (or a (N, 2) uint64 array, coerced by the
-    PositionArray validator) and returns a (N,) float32 array; a 2-D structured array raises
-    ValueError. Precondition (the compute_principal_indexes caller contract): the positions are
-    collision-free (mover & opponent == 0); the client does not re-check.
+    Strict array: the EF accepts a structured PositionArray of any shape (a (N, 2) uint64 array is
+    coerced to 1-D by the PositionArray validator); a scalar Position or bare lists raise the
+    Pydantic ValidationError. Precondition (the compute_principal_indexes caller contract): the
+    positions are collision-free (mover & opponent == 0); the client does not re-check.
 
     Args:
         mw (ModelWeights): the trained model the EF evaluates against.
 
     Returns:
         Callable[[PositionArray], npt.NDArray[np.float32]]: the vectorized EF — one batch in, the
-        (N,) float32 Y-space game values out (an empty (0,) array for N = 0).
+        same-shape float32 Y-space game values out (C-order element order; empty arrays keep their
+        shape).
     """
     expanded_offsets, z2y = _prepare_weights(mw)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def ef(p: PositionArray) -> npt.NDArray[np.float32]:
-        # The PositionArray validator coerces (N, 2) uint64 but admits a 2-D structured array (no ndim
-        # check there): the 1-D guard keeps a clean ValueError out of the numba kernel.
-        if p.ndim != 1:
-            raise ValueError(f"p must be a 1-D PositionArray, got ndim {p.ndim} (shape {p.shape})")
-
-        # 1. Compute the Principal Indexes for the whole batch (N, I)
+        # 1. Compute the Principal Indexes for the whole batch (p.shape + (I,))
         indexes = mw.feature_set.compute_indexes(p)
 
         # 2. Map to w_dense (the per-instance start offsets broadcast
-        #    over the batch) and gather the row sums (the linear
-        #    predictor, f32)
+        #    over the batch) and gather the per-position sums over the
+        #    LAST axis — the feature instances (the sum axis is
+        #    shape-agnostic: for a 1-D batch, axis -1 IS axis 1) — the
+        #    linear predictor, f32
         weights = mw.w_dense[expanded_offsets + indexes]
-        linear_predictor = weights.sum(axis=1)
+        linear_predictor = weights.sum(axis=-1)
 
-        # 3. Sigmoid (Z space) and 4. back to Y space (element-wise, f32)
+        # 3. Sigmoid (Z space) and 4. back to Y space (element-wise, f32;
+        #    the output has the input shape)
         z_pred = sigmoid(linear_predictor)
         return z2y(z_pred)
 

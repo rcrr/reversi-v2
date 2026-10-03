@@ -1609,7 +1609,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (non aggiunta). Restano i candidati follow-up di D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle
   in tools/prng.py).
 
-## 2026-10-03 — session 94 (D-421 — la famiglia shuffle va N-D: C-order element order)
+## 2026-10-03 — session 94 (D-421/D-422 — la chiusura dei due follow-up di D-417: shuffle N-D, EF N-D)
 
 - Session 94 (Roberto): l'ultimo candidato follow-up di D-417 — il contratto 1-D dello shuffle in tools/prng.py.
   Analisi presentata: il guard esplicito c'è solo sul generico, i tre typed fanno un row-shuffle silenzioso su
@@ -1624,7 +1624,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   pinned, senza nuovi numeri magici. Il row-shuffle silenzioso dei tre typed è sostituito dalla semantica C-order
   documentata; il golden resta intatto per costruzione (le 20 sezioni sono sequenze di stream, il path 1-D è
   byte-identico al codice pre-cambio).
-- VERIFICATION: i test nuovi (parity C-order 2-D/3-D/F-order per i 4 metodi, permutazione, n-in-elementi, il
-  no-consumo per n <= 1, i pin no-copy delle strided view) verdi — test\_prng 22 → 26; suite via wrapper
-  1046/0/24 GREEN; notes\_lint verde; il gate verde al checkin.
-- Next: l'ultimo candidato follow-up di D-417 — l'EF N-D in lm/client.py (il suo sum axis).
+- D-422: lm/client.py — l'ultimo candidato di D-417: l'array EF accetta una PositionArray strutturata di OGNI forma
+  e restituisce float32 della stessa forma (C-order element order), bit-exact per posizione. Il guard 1-D esce:
+  esisteva solo perché compute\_indexes era 1-D al tempo; da D-417 è N-D (restituisce positions.shape + (I,)),
+  quindi bastava cambiare il sum axis — weights.sum(axis=-1) invece di axis=1: l'asse delle istanze è l'ultimo, e
+  per il batch 1-D l'asse -1 è proprio l'asse 1 (bit-identico). Il pin di rejection 2-D diventa l'happy path della
+  parity C-order (2-D/3-D, strided view, edge vuoti (0,N) e (K,0)); i pin EF a 6 posizioni (rlm\_04/rlm\_03) restano
+  intatti.
+- VERIFICATION: test\_prng 22 → 26 e test\_client 7 → 8; suite via wrapper 1047/0/24 GREEN; notes\_lint verde; i due
+  gate verdi ai due checkin.
+- Next: i due candidati follow-up di D-417 (lo shuffle 1-D in tools/prng.py, l'EF N-D in lm/client.py) sono
+  entrambi chiusi (D-421, D-422).

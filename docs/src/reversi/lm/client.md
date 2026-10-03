@@ -1,8 +1,8 @@
 # reversi/lm/client.py
 The INFERENCE API of the reversi package — a pure CONSUMER of the pipeline output: given a `ModelWeights` (loaded from
 the saved file), the two factories close over it and return Evaluation Functions in Y space (the game-value space the
-engine uses) — a scalar `ef: Position -> float` and a vectorized `ef: PositionArray -> (N,) float32` (bit-exact per
-position). No database, no cache, no pipeline: a saved model file is all the client needs — the shape the endgame-solver
+engine uses) — a scalar `ef: Position -> float` and a vectorized `ef: PositionArray -> same-shape float32`
+(bit-exact per position, C-order element order). No database, no cache, no pipeline: a saved model file is all the client needs — the shape the endgame-solver
 production models (the `A2xxx` family) plug into.
 
 ## API
@@ -10,11 +10,11 @@ production models (the `A2xxx` family) plug into.
 | name | contract |
 |---|---|
 | `make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]` | The scalar EF factory (`@validate_call`, arbitrary_types_allowed). Closes over `mw` via `_prepare_weights`; the returned `ef` takes a scalar Position and returns a Python float (the f32 z2y output as a float64 view). |
-| `make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray], npt.NDArray[np.float32]]` | The vectorized EF factory (`@validate_call`). The returned `ef` is STRICT ARRAY: it accepts a 1-D PositionArray (a (N, 2) uint64 array is coerced by the PositionArray validator) and returns a (N,) float32 array, bit-exact vs the scalar EF per position. A 2-D structured array raises `ValueError` (the standard 1-D guard); a scalar Position or bare lists raise the Pydantic `ValidationError`. |
+| `make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray], npt.NDArray[np.float32]]` | The vectorized EF factory (`@validate_call`). The returned `ef` is STRICT ARRAY: it accepts a structured PositionArray of any shape (a (N, 2) uint64 array is coerced to 1-D by the PositionArray validator) and returns a same-shape float32 array (C-order element order), bit-exact vs the scalar EF per position. A scalar Position or bare lists raise the Pydantic `ValidationError`. |
 
 ## Architecture
 
-156 lines.
+157 lines.
 
 - Imports: numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
@@ -26,13 +26,14 @@ production models (the `A2xxx` family) plug into.
   batch wrap, one index per feature INSTANCE); 2. `weights = mw.w_dense[expanded_offsets + indexes]`; 3.
   `z_pred = sigmoid(np.sum(weights))`; 4. `y_pred = z2y(np.array([z_pred], dtype=np.float32))[0]`, returned as a Python
   float.
-- `make_evaluation_function_array`: `ef(p)` — 1. the 1-D guard (the PositionArray validator admits 2-D structured
-  arrays, no ndim check there); 2. `indexes = mw.feature_set.compute_indexes(p)` — the SAME batch API the scalar path
-  wraps (the numba prange kernel over N; no new kernel);
-  3. `weights = mw.w_dense[expanded_offsets + indexes]` (the (I,) u32 broadcast over the (N, I) u32 batch) and
-     `linear_predictor = weights.sum(axis=1)` (the per-row f32 sum — the same 1-D reduction as the scalar `np.sum`,
-     hence bit-exact per row); 4. `return z2y(sigmoid(linear_predictor))` (element-wise f32 expit + affine). No numba in
-     the client: the cost is dominated by `compute_indexes`, exactly as in the DESIGN_MTR level.
+- `make_evaluation_function_array`: `ef(p)` — 1. `indexes = mw.feature_set.compute_indexes(p)` — the SAME batch API
+  the scalar path wraps (N-D since D-417: it returns p.shape + (I,); the numba prange kernel over the C-order element
+  sequence; no new kernel); 2. `weights = mw.w_dense[expanded_offsets + indexes]` (the (I,) u32 broadcast over the
+  p.shape + (I,) u32 batch) and `linear_predictor = weights.sum(axis=-1)` (the per-position f32 sum over the LAST axis
+  — the feature instances; the sum axis is shape-agnostic, axis 1 for a 1-D batch — hence bit-exact per position for
+  any input shape); 3. `return z2y(sigmoid(linear_predictor))` (element-wise f32 expit + affine; the output has the
+  input shape). No numba in the client: the cost is dominated by `compute_indexes`, exactly as in the DESIGN_MTR
+  level.
 
 The dense path and the substitution rule (verified): `iwmap_feature_offset` is a BOUNDARY array of shape (F+1,) —
 `offsets[fid]` is the first w_dense slot of feature `fid` (`offsets[F]` = K), so `expanded_offsets + indexes` indexes
@@ -64,6 +65,9 @@ full-chain suite + `test_client`.
   A2030). The vectorization removes the length-1 wrap and nothing else — the same math, the same bits.
 - (N, 2) uint64 coercion: the array EF on the raw (N, 2) form equals the structured-form result (test_client::
   test_u64_coercion); the N=0 edge returns an empty (0,) f32 (test_client::test_empty_batch).
+- N-D C-order parity (D-422): an N-D structured batch (2-D and 3-D, including a strided 2-D view) ravels bit-exactly
+  to the 1-D ravel result, and the output keeps the input shape (the (0, N) and (K, 0) empty edges keep their
+  shapes) — test_client::test_2d_structured_corder_parity / test_3d_structured_corder_parity.
 
 ## Open issues
 
@@ -77,8 +81,9 @@ None.
   provenance references removed); the line width is the D-314 reflow (the 120-char, no hard limit).
 - BOTH factories are `@validate_call` (arbitrary_types_allowed); the array ef closure is validated too (the
   PositionArray annotation does the (N, 2) u64 coercion).
-- Strict array: the array ef takes a 1-D PositionArray only (the scalar contract is the other factory); the 1-D guard in
-  the closure is the house pattern (the PositionArray validator does NOT check ndim for the structured dtype).
+- Strict array: the array ef takes a structured PositionArray of ANY shape (the scalar contract is the other
+  factory); C-order element order + the same-shape output is the D-422 N-D contract — no guard needed, since D-417
+  compute_indexes is N-D itself (it returns positions.shape + (I,)).
 - Precondition (the compute_principal_indexes caller contract): the positions are collision-free (mover & opponent ==
   0); the client does not re-check.
 - The sigmoid/z2y calls reuse the pipeline's own functions (hlp_gradient / hlp_zed) — the client cannot drift from the

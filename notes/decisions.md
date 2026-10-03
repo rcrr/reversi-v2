@@ -1509,3 +1509,17 @@ D-421 | 2026-10-03 | tools/prng.py — the shuffle family (shuffle\_uint8 / shuf
          VERIFICATION: the new tests (2-D/3-D/F-order C-order parity for all four methods, the permutation +
          n-in-elements + no-consume contracts, the strided-view no-copy pins) green — test\_prng 22 -> 26; the suite via
          the wrapper 1046/0/24; the overview cell + the gate green at the checkin.
+
+D-422 | 2026-10-03 | lm/client.py — the array Evaluation Function goes N-D (the D-417 follow-up candidate, the last
+         one): make\_evaluation\_function\_array now accepts a structured PositionArray of ANY shape and returns a
+         same-shape float32 array (the positions evaluated in C-order element order), bit-exact per position. The 1-D
+         guard is out — it existed only because compute\_indexes was 1-D at the time; D-417 made it N-D (it returns
+         positions.shape + (I,)), so the whole conversion is the sum axis: weights.sum(axis=-1) instead of axis=1 — the
+         feature-instances axis is the LAST axis of the gathered p.shape + (I,) weights, and for a 1-D batch axis -1 IS
+         axis 1 (the per-row f32 reduction is unchanged: the 1-D path is byte-identical). The scalar factory is
+         untouched (the other contract); the (N, 2) u64 coercion, the empty-batch behavior and the strict-array
+         rejections (scalar Position, bare lists) are unchanged. VERIFICATION: the 2-D rejection pin converted to the
+         C-order parity happy path (2-D/3-D parity, a strided 2-D view, the (0, N) and (K, 0) empty edges — the N-D
+         result ravels bit-exactly to the 1-D ravel result, assert\_array\_equal); the 6-pinned position EF pins and the
+         rlm\_03 VLONG pins untouched (the 1-D math is byte-identical); test\_client 7 -> 8; the suite via the wrapper
+         1047/0/24; the overview cell + the gate green at the checkin.
