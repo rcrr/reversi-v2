@@ -2336,23 +2336,69 @@ class TestPositionLegalMoves(unittest.TestCase):
             legal_moves(movers, opponents)
         self.assertEqual(str(ctx.exception), "The shapes of mover and opponent arrays must be the same.")
 
-    def test_legal_moves_2d_mover_raises_value_error(self):
-        # The standard 1-D guard — before it, a 2-D array
-        # crashed deep in the numba kernel with a TypingError.
+    def test_legal_moves_2d_valid(self):
+        """A (1, 2) input pair gives a (1, 2) output, element-wise as the scalar calls."""
         movers = np.array([[0x0000000000000001, 0x0000000000000002]], dtype=Bitboard)
         opponents = np.array([[0x0040201008040200, 0x0080402010080402]], dtype=Bitboard)
-        with self.assertRaises(ValueError) as ctx:
-            legal_moves(movers, opponents)
-        self.assertEqual(str(ctx.exception),
-                         "When the argument mover is an array, it must be 1D, got shape (1, 2)")
 
-    def test_legal_moves_2d_opponent_raises_value_error(self):
+        computed = legal_moves(movers, opponents)
+
+        self.assertEqual(computed.shape, (1, 2))
+        expected = np.array([
+            [legal_moves(m, o) for m, o in zip(movers[0], opponents[0])],
+        ], dtype=Bitboard)
+        np.testing.assert_array_equal(computed, expected)
+
+    def test_legal_moves_3d_valid(self):
+        """A (2, 1, 2) input pair gives a (2, 1, 2) output, element-wise as the scalar calls."""
+        movers = np.array(
+            [[[0x0000000000000001, 0x0000000000000002]],
+             [[0x0000000000000004, 0x0000000000000008]]], dtype=Bitboard)
+        opponents = np.array(
+            [[[0x0040201008040200, 0x0080402010080402]],
+             [[0x0000000000000000, 0x0040201008040200]]], dtype=Bitboard)
+
+        computed = legal_moves(movers, opponents)
+
+        self.assertEqual(computed.shape, (2, 1, 2))
+        expected = np.array([
+            legal_moves(m, o) for m, o in zip(movers.ravel(), opponents.ravel())
+        ], dtype=Bitboard)
+        np.testing.assert_array_equal(computed.ravel(), expected)
+
+    def test_legal_moves_noncontiguous_2d_valid(self):
+        """Fortran-order (2, 2) inputs give the same (2, 2) values as the C-order call."""
+        movers = np.asfortranarray(np.array(
+            [[0x0000000000000001, 0x0000000000000002],
+             [0x0000000000000004, 0x0000000000000008]], dtype=Bitboard))
+        opponents = np.asfortranarray(np.array(
+            [[0x0040201008040200, 0x0080402010080402],
+             [0x0000000000000000, 0x0040201008040200]], dtype=Bitboard))
+
+        computed = legal_moves(movers, opponents)
+
+        self.assertEqual(computed.shape, (2, 2))
+        expected = legal_moves(np.array(movers, dtype=Bitboard),
+                               np.array(opponents, dtype=Bitboard))
+        np.testing.assert_array_equal(computed, expected)
+
+    def test_legal_moves_empty_2d_valid(self):
+        """An empty (0, 2) input pair gives an empty (0, 2) output."""
+        movers = np.empty((0, 2), dtype=Bitboard)
+        opponents = np.empty((0, 2), dtype=Bitboard)
+
+        computed = legal_moves(movers, opponents)
+
+        self.assertEqual(computed.shape, (0, 2))
+
+    def test_legal_moves_2d_shape_mismatch_raises_value_error(self):
+        """A 1-D (2,) mover against a 2-D (2, 1) opponent fails the same-shape check."""
         movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=Bitboard)
         opponents = np.array([[0x0040201008040200], [0x0080402010080402]], dtype=Bitboard)
         with self.assertRaises(ValueError) as ctx:
             legal_moves(movers, opponents)
         self.assertEqual(str(ctx.exception),
-                         "When the argument opponent is an array, it must be 1D, got shape (2, 1)")
+                         "The shapes of mover and opponent arrays must be the same.")
 
     def test_legal_moves_wrong_array_dtype_raises_validation_error(self):
 
