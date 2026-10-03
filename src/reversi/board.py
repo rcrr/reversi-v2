@@ -406,23 +406,21 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
      - 0 -> 7 : fa1h8
 
     When input is a scalar Bitboard output is an array of Bitboards having shape (8,).
-    When input is an array of Bitboards of length N, the output has shape (N, 8).
+    When input is an array of Bitboards of any shape, the output is the input
+    shape with a trailing axis of 8 (a (2, 3) input gives a (2, 3, 8) output).
     """
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
-    bb_arr = np.atleast_1d(bb)
 
-    # Check layout constraints (Pydantic validates types, but we handle dimensions)
-    if bb_arr.ndim != 1:
-        raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
-
-    ts = _numba_bitboard_transformations(bb_arr)
+    # The 1-D kernel over the flattened C-order view; the output is
+    # reshaped back to the input shape with the trailing axis of 8.
+    ts = _numba_bitboard_transformations(np.atleast_1d(bb).ravel())
 
     # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
         return ts.flatten().view(Bitboard)
 
-    return ts.view(Bitboard)
+    return ts.reshape(bb.shape + (8,)).view(Bitboard)
 
 @nb.njit(parallel=True, cache=True)
 def _numba_bitboard_transformations(bb_arr: BitboardArray) -> BitboardArray:

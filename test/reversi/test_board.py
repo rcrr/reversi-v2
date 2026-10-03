@@ -1141,20 +1141,55 @@ class TestBitboardTransformations(unittest.TestCase):
             
         self.assertIn("invalid_argument_type", str(context.exception))
         
-    def test_invalid_array_dimension_raises_value_error(self):
-        """Verify that a multidimensional array triggers a ValueError."""
-        # Create a 2D array instead of the expected 1D array
-        invalid_2d_array = np.array([
-            [self.ar, self.elle],
-            [self.ar, self.elle]
-        ], dtype=Bitboard)
-        
-        with self.assertRaises(ValueError) as context:
-            bitboard_transformations(invalid_2d_array)
-            
-        # Verify the error message mentions the shape constraints
-        self.assertIn("must be 1D", str(context.exception))
-        self.assertIn("got shape (2, 2)", str(context.exception))
+    def test_2d_array_conversion_valid(self):
+        """A (2, 2) input gives a (2, 2, 8) output, element-wise as the 1-D call."""
+        bb_array = np.array(
+            [[self.ar, self.elle],
+             [self.ar, self.elle]], dtype=Bitboard)
+        expected = np.empty((2, 2, 8), dtype=Bitboard)
+        expected[0, 0] = self.expected_ar
+        expected[0, 1] = self.expected_elle
+        expected[1, 0] = self.expected_ar
+        expected[1, 1] = self.expected_elle
+
+        computed = bitboard_transformations(bb_array)
+
+        self.assertEqual(computed.shape, (2, 2, 8))
+        np.testing.assert_array_equal(computed, expected)
+
+    def test_3d_array_conversion_valid(self):
+        """A (2, 1, 2) input gives a (2, 1, 2, 8) output."""
+        bb_array = np.array(
+            [[[self.ar, self.elle]],
+             [[self.elle, self.ar]]], dtype=Bitboard)
+
+        computed = bitboard_transformations(bb_array)
+
+        self.assertEqual(computed.shape, (2, 1, 2, 8))
+        np.testing.assert_array_equal(computed[0, 0, 0], self.expected_ar)
+        np.testing.assert_array_equal(computed[0, 0, 1], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 0, 0], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 0, 1], self.expected_ar)
+
+    def test_noncontiguous_2d_array_conversion_valid(self):
+        """A Fortran-order (2, 2) input gives the same (2, 2, 8) values."""
+        bb_array = np.asfortranarray(np.array(
+            [[self.ar, self.elle],
+             [self.elle, self.ar]], dtype=Bitboard))
+
+        computed = bitboard_transformations(bb_array)
+
+        self.assertEqual(computed.shape, (2, 2, 8))
+        np.testing.assert_array_equal(computed[0, 0], self.expected_ar)
+        np.testing.assert_array_equal(computed[0, 1], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 0], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 1], self.expected_ar)
+
+    def test_empty_2d_array_conversion_valid(self):
+        """An empty (0, 2) input gives an empty (0, 2, 8) output."""
+        computed = bitboard_transformations(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2, 8))
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
