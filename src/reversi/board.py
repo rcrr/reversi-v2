@@ -689,6 +689,8 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects the bitboard, or the array of bitboards, vertically (on the vertical axis).
     Column a is mapped to column h and vice versa.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape).
 
     .    ---- input ----    ---- output ---
     .
@@ -705,7 +707,9 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        return _numba_fvert_array_impl(bb)
+        # The 1-D kernel over the flattened C-order view; the output is
+        # reshaped back to the input shape (the N-D contract).
+        return _numba_fvert_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fvert_scalar_impl(bb))
 
