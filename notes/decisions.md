@@ -1331,3 +1331,13 @@ D-409 | 2026-10-01 | the workspace maintenance tools renamed tools/ -> wsutils/ 
          and the register's package-subpackage line. RECON before the move: zero references from src/, test/, probes/ or
          run\_utests.sh. VERIFICATION: the guard green on the default set (now under wsutils/) + a fast runner smoke
          (the suite is structurally untouched, 968).
+
+D-410 | 2026-10-01 | overview.md Environment — the workspace map moved in (the preparation for the AGENTS-slimming
+         endgame: the agent who reads "read notes/overview.md" must reconstruct the workspace map from overview alone),
+         per Roberto: (1) the Dependencies bullet corrected against pyproject.toml — 11 declared, 8 listed; the three
+         missing added with their verified roles: json5 (wrk\_config — the LM configs), scipy (hlp\_gradient /
+         hlp\_anova / hlp\_plot), matplotlib (hlp\_plot / opt\_lbfgs — the PLOT step); the stale "minimal set" qualifier
+         dropped; (2) four new bullets after Probes: Workspace utils (wsutils/ — post-D-409, clean, no disambiguation
+         postilla needed), Mirror docs (docs/ one-to-one, the Doc column of the two tables is the index), Scratch
+         (disposable session area, gitignored, never tracked), Governance (all the governance files live in notes/ — the
+         Index below is their registry). VERIFICATION: the guard green on the default set.

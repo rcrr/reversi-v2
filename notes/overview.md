@@ -20,9 +20,9 @@ define the evaluation function.
 - Venv: `.venv/` (gitignored), Python 3.12.3.
 - Packaging: `pyproject.toml` (setuptools, src layout) with the `reversi` package installed editable in .venv —
   `import reversi` works without PYTHONPATH, resolving to src/.
-- Dependencies (pyproject.toml, minimal set): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2
-  (@validate\_call), numba ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas /
-  python-dotenv (regab).
+- Dependencies (pyproject.toml): numpy ≥ 2.0 (bitboards / structured dtypes), pydantic ≥ 2 (@validate\_call), numba
+  ≥ 0.60 (njit / prange / overload; pulls llvmlite), lz4 (binio), psycopg2 / pandas / python-dotenv (regab), json5 (the
+  LM configs), scipy (gradient / ANOVA / plot), matplotlib (the PLOT step).
 - Test command: `./run_utests.sh` (the canonical runner; tiers: default fast ~5 s, LONG=1, VLONG=1 ~10 min incl. the
   A2050 chain and implies LONG; PERF=1 adds the print-only perf tests). The standard pre-commit run is
   `LONG=1 ./run_utests.sh`; VLONG=1 only when useful. A single module:
@@ -31,6 +31,13 @@ define the evaluation function.
   unittest by design (pytest is not a dependency).
 - Probes: tracked under probes/ (hub: verify\_logistic\_model.py owns the pipeline-wide state; rules:
   notes/probe\_rules.md).
+- Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the mirror-doc auditor, the
+  suite counter; rules: notes/wsutils.md).
+- Mirror docs: docs/ mirrors the tracked sources one-to-one — every source and test file has its doc, and the Doc column
+  of the two tables is the index (format: notes/docs\_rules.md).
+- Scratch: scratch/ is the disposable session area — gitignored, never tracked, nothing permanent goes there.
+- Governance: all the governance files (the active rules, the decisions log, the session journal, the ideas, the format
+  rules, the domain vocabulary, the design principles) live in notes/ — the Index below is their registry.
 
 ## Current state
 

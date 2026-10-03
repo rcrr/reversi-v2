@@ -1393,3 +1393,36 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (board vocabulary, D8, feature types)"); Project: il secondo paragrafo aggiunto dopo quello esistente.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-408).
+- Session 91 (Roberto, trigesima richiesta): "La sezione 'Environment' in overview: Le dependencies sono quelle
+  vere? fai un controllo per favore. Parliamo di tests, parliamo di probes. Io farei anche una entry per i tools, e
+  farei anche una entry che dice che tutti i file di governance sono in notes. E gia' che ci siamo una entry per
+  docs ed una per scratch. Dammi un tuo parere, se ti sembra OK, se ti sembra UTILE per l'Agente che apre
+  AGENTS.md, e trova la riga 'leggi notes/overview.md' ... Fai una analisi completa e dammi la tua view, poi
+  decidiamo come procedere. Grazie!"
+- ANALISI (mia): le dipendenze NON sono quelle vere — pyproject.toml ne dichiara 11, l'entry ne elenca 8: mancano
+  json5 (wrk\_config), scipy (hlp\_gradient/hlp\_anova/hlp\_plot), matplotlib (hlp\_plot/opt\_lbfgs). Le 4 entry
+  proposte: SI, utili — l'agente che apre AGENTS.md e legge "read notes/overview.md" deve ricostruire la mappa del
+  workspace da overview da solo, e il nostro endgame e' un AGENTS slim con solo puntatori: overview deve diventare
+  proprietario della mappa. Attenzione al raddoppio: l'entry governance e' in parte ridondante con l'Index, ma vale
+  come segnavia in alto. La trappola tools/: la postilla "not the package's src/reversi/tools/" deve stare
+  dappertutto — ambiguita' PERICOLOSA.
+- Session 91 (Roberto, trentunesima richiesta): "Se tools crea questa ambiguita' PERICOLOSA, che dobbiamo sempre
+  mettere la postilla di puntualizzazione, CAMBIAMO NOME. Invece di tools ... mettiamo wsutils (workspace
+  utilities) ... capisco che sia un attimo di 'trambusto' ... ma poi abbiamo sistemato PER SEMPRE ... Non credi?
+  fai una analisi, e fammi una proposta, poi ti dico come procedere. Grazie!!!"
+- ANALISI (mia): d'accordo — tassa permanente vs trambusto una tantum: il trambusto vince. Riconoscenza: il
+  trambusto e' piccolo (zero ref da src/test/probes/runner; ~12 docstring nei 5 tool; 6 righe nel register; 2 in
+  probe\_rules; notes/tools.md; il guard; Index; AGENTS Layout; i 3 mirror 'sospetti' sono zona pacchetto).
+  Proposta: 2 D / 2 commit — D-409 il rename (postilla D-248 in pensione), D-410 la batch Environment (l'entry
+  tools esce pulita, senza postilla).
+- Session 91 (Roberto, trentaduesima richiesta): "1: confermo / 2: si, insieme OK. Procedi!"
+- IMPLEMENTATION (D-409): git mv tools → wsutils; i 5 tool (usage/docstring; le righe Origin storiche intatte);
+  notes/tools.md → notes/wsutils.md (H1 + interno); guard (kind\_of, set default, docstring); register (R-200
+  path, R-250 x2, R-340 rititolata "wsutils/ holds the workspace utilities" — clausola pacchetto ridondante
+  rimossa, clausola probes mantenuta); probe\_rules x2; Index; AGENTS Layout (postilla ritirata). Zona pacchetto,
+  volumi storici e analyses: intatti. SMOKE: ./run\_utests.sh — 968 OK (skipped=100, tier fast).
+- IMPLEMENTATION (D-410): overview Environment — dipendenze corrette (json5/scipy/matplotlib aggiunti, "minimal
+  set" rimosso) + 4 entry nuove dopo Probes: Workspace utils (pulita, no postilla), Mirror docs, Scratch,
+  Governance (il segnavia verso l'Index).
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: due commit (D-409, D-410).
