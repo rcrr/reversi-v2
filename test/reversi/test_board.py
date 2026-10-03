@@ -887,6 +887,48 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
             (half_right, half_top), (half_top, half_right), (half_bottom, half_left),
         ]
 
+    def test_nd_array_2d_conversion_valid(self):
+        """Should transform a 2-D array of bitboards, keeping the input shape."""
+        input_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+        expected_2d = np.array(
+            [[sqh8, sqh1], [column_h, row_8]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_array_3d_conversion_valid(self):
+        """Should transform a 3-D array of bitboards, keeping the input shape."""
+        input_3d = np.array(
+            [[[sqa1, sqh8]], [[row_8, sqh1]]], dtype=Bitboard)
+        expected_3d = np.array(
+            [[[sqh8, sqa1]], [[column_a, sqh1]]], dtype=Bitboard)
+
+        computed = self.func(input_3d)
+
+        self.assertEqual(computed.shape, (2, 1, 2))
+        np.testing.assert_array_equal(computed, expected_3d)
+
+    def test_nd_array_noncontiguous_conversion_valid(self):
+        """Should transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
+        input_2d = np.asfortranarray(np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
+        expected_2d = np.array(
+            [[sqh8, sqh1], [column_h, row_8]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_empty_array_valid(self):
+        """Should transform an empty (0, 2) array to an empty array of the same shape."""
+        computed = self.func(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2))
+
 class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformationTest):
     
     def setUp(self):
