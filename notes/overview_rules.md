@@ -10,8 +10,8 @@ this file in the same commit as its decision. The prose is wrapped to ~120 chars
   sections, in exactly this order: Project · Environment · Current state · Next steps · Source files · Test files ·
   Index.
 - Language: English. Dates: YYYY-MM-DD.
-- Reference families: D-NNN (the decisions), I-NNN (the ideas), R-NNN (a rule of the register), session N (the
-  journals), T-NN (a test defect), R# (a code issue, never an R-NNN), M# (a minor note).
+- Reference families: D-NNN (the decisions), I-NNN (the ideas), R-NNN (a rule of the register), DP-NNN (a design
+  principle), session N (the journals), T-NN (a test defect), R# (a code issue, never an R-NNN), M# (a minor note).
 
 ## Source files / Test files (the two tables)
 

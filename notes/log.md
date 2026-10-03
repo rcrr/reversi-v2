@@ -1322,3 +1322,37 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   file dopo naming.md. Guard: file nel set default (ora 14 file) e nella grammatica rulefile (kind\_of).
 - VERIFICATION: guard VERDE sul set default (14 file).
 - COMMIT: un solo commit (D-404).
+- Session 91 (Roberto, ventiseiesima richiesta): [proposta] "Ti propongo questa riformulazione per
+  notes/design\_principles.md — un po' piu strutturata, ma direi in linea con gli altri artefatti, e pronta per un
+  eventuale uso piu articolato. Controlla non vi siano incosistenze, e dammi un tuo parere." — H1
+  "design\_principles.md — active design principles" + intro + Governance (DP-NNN global, never reused, order by
+  value, title in bold + descrizione 1-3 righe, 2 blank tra principi) + DP-010/DP-020/DP-030.
+- ANALISI (mia): 4 refusi (worspace, applyed, doesn't leaks, prefisso Pydantic ridondante) + code span obbligatori
+  (ESC); DP-NNN = nuova famiglia di riferimento (bullet Reference families di overview\_rules.md, unico sito di
+  definizione); il file e' grammatica register, non rulefile → serve un lint DP nel guard (specchio del lint\_rules,
+  sezioni ## opzionali). Fatti verificati: il Context USA @validate\_call (7 decorator, state\_machine.py) — il
+  retroscena e' la gate deliberatamente separata dall'esecuzione (D-076/D-069), la condizione "no convoluted
+  backstory" e' fatto-safe; l'eccezione DP-030 e' reale (board.md:33, random\_game).
+- Roberto: "Sono d'accordo su tutto, tranne che 'accept a scalar or 1-D array'. Prima di fare la change fai questa
+  investigazione. Nei metodi che trattano gli indici in pattern, o wmaps, o design\_matrix ... le funzioni operano
+  by design su array multi dimensionali. La limitazione imposta in board su alcune funzioni non e' dovuta ad una
+  necessita' tecnica, era la mia paura di dover verificare casi complessi nei test, che poi non sarebbero stati
+  usati in pratica nella pipeline, cosi ho messo la guardia. Ma la scelta giusta e' rimuovere la guardia, e fare la
+  verifica che le funzioni siano corrette anche in caso di vettori multidimensionali. Quindi io nella design
+  principle non lo inserirei ... in DP-010 aggiungiamo gli indici in 'like Bitboard or Position' e scriviamo
+  'like Bitboard, Position, or Index'. studia, e poi riformula per favore."
+- INVESTIGAZIONE: 13 siti ndim in board.py, 9 funzioni, 3 famiglie — cast (from/to signed int, from hex str):
+  shape-agnostic sotto la guardia, pura formalita'; D8 (transformations/anti) e kernel (legal\_moves,
+  position\_flips/make\_move/hash): kernel numba 1-D, la guardia converte il TypingError in ValueError pulito
+  (D-111 M5). La pipeline al bordo board passa solo scalare (costruzione pattern) e 1-D batch (feature.py:331); il
+  2-D vive al layer pattern/wmaps/design\_matrix (design matrix NxF). Confermato: policy di bordo, non necessita'
+  tecnica. Percorso N-D standard: flatten → kernel → reshape back. Index verificato: TypeAlias np.uint32
+  (pattern.py:65, in `__all__`).
+- Roberto: "Perfetto Nia! Procedi! Aggiungi nei next steps di overview la rimozione guardia. Nella sezione Pattern
+  di naming inseriamo Index. Yes!!! Ora stai lavorando egregiamente bene!"
+- IMPLEMENTATION (D-405): design\_principles.md riscritto in forma register (Lifecycle + Governance + DP-010/020/
+  030 con le correzioni concordate; DP-010 senza 1-D, con Index). Guard: lint DP aggiunto (DPH1/DPSPACE/
+  DPOINTER/DPSEQ), kind\_of → 'design'; reference family DP-NNN in overview\_rules.md; Next steps dell'overview:
+  rimozione guardia 1-D + verifica N-D; naming.md: riga Index nella sezione Pattern.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-405).

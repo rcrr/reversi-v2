@@ -5,10 +5,11 @@ WHAT IT IS: a CHECK tool — the notes format guard (R-200). It IMPLEMENTS THE G
 formats, each per its rigid grammar:
   notes/decisions.md + notes/hist_decisions/decisions_NNN.md — the entry grammar (notes/decisions_rules.md)
   notes/rules.md — the register grammar (the Governance block inside it)
+  notes/design_principles.md — the DP register grammar (the design principles in force)
   notes/log.md + notes/hist_log/log_NNN.md — the session-block grammar (notes/log_rules.md)
   notes/overview.md — the seven-section + table grammar (notes/overview_rules.md)
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
-  probe_rules.md, tools.md, naming.md, design_principles.md) — the H1 + section + bullet grammar
+  probe_rules.md, tools.md, naming.md) — the H1 + section + bullet grammar
   notes/ideas.md + notes/ideas_closed.md — the D-235 entry grammar (I-NNN | status | ...)
 One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
 notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/hist_log/log_000..003) are linted
@@ -22,7 +23,8 @@ The session's three bug classes are permanent codes:
     TRAP    no continuation line starting with a token that notes_format would
             misread as a new block (digit+dot, dash, hash, pipe, D-NNN |)      [the 13-space class]
 Plus: HEADER / INDENT / SEQ (decisions), RHEAD / RTITLE / RSPACE / DPOINTER /
-RSEQ (rules), JH1 / JPOINTER / JSESSION / JINDENT / JBLANK (journals), WIDTH,
+RSEQ (rules), DPH1 / DPSPACE / DPOINTER / DPSEQ (design), JH1 / JPOINTER / JSESSION / JINDENT / JBLANK
+(journals), WIDTH,
 CANON (idempotence under notes_format --write) and EOF.
 
 USAGE (from the workspace root):
@@ -47,6 +49,7 @@ ROOT = HERE.parent
 DEC_ID = re.compile(r'^D-(\d{3,4})([a-z]?) \| ')
 DEC_HEADER = re.compile(r'^D-\d{3,4}[a-z]? \| \d{4}-\d{2}-\d{2} \| \S')
 R_TITLE = re.compile(r'^\*\*R-(\d{3})(?:\.(\d+))? — .+\*\*$')
+DP_TITLE = re.compile(r'^\*\*DP-(\d{3})(?:\.(\d+))? — .+\*\*$')
 J_H1 = re.compile(r'^# Session journal — volume \d{3} \(sessions .+\)$')
 J_POINTER = 'Format rules: notes/log_rules.md (rigid — follow when editing this file).'
 J_SESSION = re.compile(r'^## \d{4}-\d{2}-\d{2} — session (\d+) \(.+\)$')
@@ -245,6 +248,95 @@ def lint_rules(path, lines, text):
         if b <= a:
             v.append((0, 'RSEQ', f'R-numbers not increasing ({a} then {b})'))
     # the R-NNN.N sub-numbers sort inside their parent: (29, 0) < (29, 1) < (30, 0)
+    common_tail(path, lines, text, v)
+    if not canon_ok(path):
+        v.append((0, 'CANON', 'not idempotent under notes_format --write'))
+    return v
+
+
+def lint_design(path, lines, text):
+    """notes/design_principles.md: the DP register — the rules.md grammar with
+    the '## ' sections optional: an H1, the intro prose (the Lifecycle and
+    Governance blocks), then one or more design principles, each a bold title
+    line, a blank line, the description; two blank lines between principles;
+    the DP-numbers sequential by value."""
+    v = []
+    if not lines or not lines[0].startswith('# design_principles.md'):
+        v.append((1, 'DPH1', 'the first line must be the design_principles.md H1'))
+    in_intro = True
+    seen = False
+    last_kind = None    # 'title' | 'desc' | 'section'
+    blanks = 0
+    dpnums = []
+    for n, line in enumerate(lines, 1):
+        if line == '':
+            blanks += 1
+            continue
+        b = blanks  # the run just closed — consumed by the spacing check below
+        blanks = 0
+        if in_intro:
+            if line.startswith('## ') or DP_TITLE.match(line):
+                in_intro = False
+                kind = 'section' if line.startswith('## ') else 'title'
+            elif line[0] == ' ':
+                v.append((n, 'INDENT', 'indented line in the file intro'))
+                kind = 'desc'
+            else:
+                kind = 'desc'
+        else:
+            if line.startswith('## '):
+                kind = 'section'
+            elif DP_TITLE.match(line):
+                kind = 'title'
+            else:
+                if line[0] == ' ':
+                    v.append((n, 'INDENT', 'indented line in a principle block'))
+                kind = 'desc'
+        if not in_intro:
+            if kind == 'desc':
+                if last_kind is None:
+                    v.append((n, 'DPSPACE', 'a description line before any principle'))
+                elif last_kind == 'section':
+                    v.append((n, 'DPSPACE', 'a description line before the first principle of its section'))
+                elif last_kind == 'desc' and b != 0:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) inside a principle description'))
+                elif last_kind == 'title' and b != 1:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) between a title and its description (must be 1)'))
+            elif kind == 'title':
+                if not seen:
+                    if b != 1:
+                        v.append((n, 'DPSPACE', f'{b} blank line(s) between the intro and the first principle (must be 1)'))
+                elif last_kind == 'desc' and b != 2:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) between two principles (must be 2)'))
+                elif last_kind == 'title' and b != 2:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) between two one-line principles (must be 2)'))
+                elif last_kind == 'section' and b != 1:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) after a section header (must be 1)'))
+                m = DP_TITLE.match(line)
+                dpnums.append((int(m.group(1)), int(m.group(2) or 0)))
+            elif kind == 'section':
+                if last_kind == 'section':
+                    v.append((n, 'DPSPACE', 'a section header directly follows another (empty section)'))
+                elif last_kind == 'title' and b != 2:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) before a section after a one-line principle (must be 2)'))
+                elif last_kind == 'desc' and b != 1:
+                    v.append((n, 'DPSPACE', f'{b} blank line(s) before a section header (must be 1)'))
+        if kind in ('title', 'section'):
+            seen = True
+        last_kind = kind
+        if n != 1:  # the H1 carries the file name (design_principles.md): not prose
+            e = esc_issues(line)
+            if e:
+                v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+    # the DPOINTER pass: a D-number in prose is a provenance leak — allowed only
+    # inside a quoted example or a code span.
+    for n, line in enumerate(lines, 1):
+        s = re.sub(r'"[^"]*"', '', re.sub("'[^']*'", '', plain_of(line)))
+        if D_REF.search(s):
+            v.append((n, 'DPOINTER', 'a D-number outside a quoted example or code span'))
+    for a, b in zip(dpnums, dpnums[1:]):
+        if b <= a:
+            v.append((0, 'DPSEQ', f'DP-numbers not increasing ({a} then {b})'))
     common_tail(path, lines, text, v)
     if not canon_ok(path):
         v.append((0, 'CANON', 'not idempotent under notes_format --write'))
@@ -464,7 +556,7 @@ def lint_overview(path, lines, text):
 
 def lint_rulefile(path, lines, text):
     """The domain rule files (overview_rules.md, decisions_rules.md, log_rules.md,
-    docs_rules.md, probe_rules.md, tools.md, naming.md, design_principles.md): an H1, the intro prose,
+    docs_rules.md, probe_rules.md, tools.md, naming.md): an H1, the intro prose,
     the '## Section' headers, the top-level '- ' bullets with their continuations
     at exactly 2 spaces (sub-bullets at 2, continuations at 4)."""
     v = []
@@ -566,8 +658,10 @@ def kind_of(name):
         return 'journal'
     if b == 'overview.md':
         return 'overview'
+    if b == 'design_principles.md':
+        return 'design'
     if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
-             'probe_rules.md', 'tools.md', 'naming.md', 'design_principles.md'):
+             'probe_rules.md', 'tools.md', 'naming.md'):
         return 'rulefile'
     if b in ('ideas.md', 'ideas_closed.md'):
         return 'ideas'
@@ -583,8 +677,8 @@ def main(argv):
                  ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas_closed.md',
                   'naming.md', 'design_principles.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
                   'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
-    linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal,
-               'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}
+    linters = {'decisions': lint_decisions, 'rules': lint_rules, 'design': lint_design,
+               'journal': lint_journal, 'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}
     total = 0
     for f in files:
         k = kind_of(f)

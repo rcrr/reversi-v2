@@ -1261,3 +1261,33 @@ D-404 | 2026-10-01 | the overview "Conventions in the code" section dissolved �
          file, after naming.md (the description = the file's identity, no D pointers). Guard: the new file added to the
          default set (now 14 files) and to the rulefile grammar (kind\_of). VERIFICATION: the guard green on the default
          set.
+
+D-405 | 2026-10-01 | notes/design\_principles.md restructured from the three-entry note into the DP register (Roberto's
+         draft — "in linea con gli altri artefatti, e pronta per un eventuale uso piu articolato" — with the agreed
+         corrections): the rules.md register shape (the H1, the workspace policy intro, the Lifecycle block RECORD /
+         PROMOTE / RETIRE, the Governance block: explicit user approval, the DP-numbers global and never reused, order
+         by value, the bold title line + 1-3 line description, two blank lines between principles), then the three
+         principles: **DP-010** the dual scalar/array API — "like `Bitboard`, `Position`, or `Index`, accept a scalar or
+         array and return the input kind" (the 1-D qualifier deliberately dropped, per Roberto, after the
+         investigation); **DP-020** the pydantic validation, with the standing case named (the state-machine Context,
+         whose validation gate is deliberately separate from the move execution); **DP-030** the numba njit compilation,
+         with the cross-module kernel-consumption exception. INVESTIGATION (his "fai questa investigazione" before the
+         change — his reading confirmed): the board.py 1-D guard is 13 ndim sites over 9 functions in 3 families — the
+         cast family (bitboard\_from\_signed\_int / bitboard\_to\_signed\_int / bitboard\_from\_hex\_str) is
+         shape-agnostic under the guard (pure formalism); the D8 family (bitboard\_transformations / anti) and the
+         kernel family (legal\_moves, position\_flips / make\_move / hash) guard 1-D numba kernels, converting a
+         TypingError crash into a clean ValueError (D-111 M5); the pipeline feeds the board boundary only scalar
+         (pattern construction) and 1-D batches (feature.py:331), while the 2-D lives at the pattern / wmaps /
+         design-matrix layer (the NxF design matrix). The N-D path is standard: flatten, kernel, reshape back. FACTS
+         verified: the Context DOES use `@validate_call` (7 decorators in state\_machine.py) — the "convoluted
+         backstory" is the separate-gate pattern (D-076 / D-069), so the conditional phrasing is fact-safe; the DP-030
+         exception is real (the random\_game fused engine consumes the board D8 kernels, board.md:33); `Index` is a
+         canonical type alias (pattern.py:65, in the `__all__`). CORRECTIONS to his draft (disclosed): the "worspace"
+         typo, "applyed" -> "applied", "doesn't leaks" -> "doesn't leak", the redundant "Pydantic:" prefix, the code
+         spans (ESC), the backtick form of the title-notation example (house style, as in rules.md). CONSEQUENCES: a DP
+         linter added to the guard (mirror of lint\_rules — DPH1 / DPSPACE / DPOINTER / DPSEQ, the '## ' sections
+         optional, principles allowed at top level) with kind\_of mapping design\_principles.md to it; DP-NNN added to
+         the reference-families bullet in overview\_rules.md (the single definition site); the 1-D guard removal + N-D
+         verification registered in the overview Next steps (the board.py source change awaits the explicit GO);
+         naming.md's Pattern section gains the "Index is an alias of numpy.uint32" line. VERIFICATION: the guard green
+         on the default set.
