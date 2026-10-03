@@ -1351,3 +1351,14 @@ D-411 | 2026-10-01 | overview.md — the Current state preamble removed (the las
          now says "NOT in the Source files / Test files tables (the file-by-file state)". Current state is now purely
          factual (heading + the 4 bullets, like Source/Test since D-398). VERIFICATION: the guard green on the default
          set.
+
+D-412 | 2026-10-01 | overview.md — Current state slimmed from 4 bullets to 2, per Roberto (his two bullets verbatim):
+         the pipeline bullet simplified to "The 19-level pipeline is live and green (all tests are ok): the ML chain
+         from CONFIG up to FINAL\_LOG\_PRINT." and the LM facade bullet kept; the docstring-style bullet and the ec
+         bullet dropped. The analysis (verified before the change): every dropped fragment has a live home — the 968
+         total in the Test files table (the D-398 sum), the 1e6 VVLONG bit-exact benchmark as a campaign result in the
+         journal/decisions, the step list + the SU\_ANALYSIS/ANOVA opt-in in the logistic\_model.md mirror, the
+         log\_file\_name gate in the hlp\_final\_log\_print.md mirror, the docstring bullet half register pointer + half
+         Next-steps campaign, and the ec consolidation in the hlp\_config\_schemas.md mirror (line 41: "empty\_count
+         (int, required, 0..60 — the single ec source…)"). Current state now holds exactly the two pipeline-wide facts:
+         the pipeline's health and how it is driven. VERIFICATION: the guard green on the default set.

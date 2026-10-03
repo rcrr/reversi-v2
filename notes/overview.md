@@ -41,17 +41,11 @@ define the evaluation function.
 
 ## Current state
 
-- The 19-level pipeline is live and green (968 tests, LONG; the 1e6 wave benchmark — VVLONG — replays bit-exact, 28065
-  dead lanes): the ML chain CONFIG → … → SAVE → CLIENT\_CHECK → PLOT → FINAL\_LOG\_PRINT (the optional full run log on
-  file, the `log_file_name` gate), plus the OPTIONAL SU\_ANALYSIS (step 3) + ANOVA (step 6) — default FALSE, opt-in.
-- The descriptive docstring style is the house rule (rules.md); the retroactive conversion stays user-directed, one
-  module at a time.
+- The 19-level pipeline is live and green (all tests are ok): the ML chain from CONFIG up to FINAL\_LOG\_PRINT.
 - The LM facade is the pipeline's script entry:
   `python -m reversi.lm.logistic_model <config.json> [--verbosity {high,moderate,standard,low,very_low,none}]` (default
   `standard`), from the workspace root; the stop is target-driven — `run(target_level=…)` runs CONFIG first, then stops
   at the argument / `cfg.target_level` / the last step.
-- The ec (empty\_count) is consolidated in ONE required root field (int, 0..60, between name and description): the
-  single source for the SU corpus generation, the DB extraction (training + validation), and the saved model.
 
 
 ## Next steps

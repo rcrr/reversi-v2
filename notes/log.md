@@ -1439,3 +1439,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   the Source files / Test files tables (the file-by-file state)").
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-411).
+- Session 91 (Roberto, trentaquattresima richiesta): "La sezione 'Current state' in overview: Abbiamo quattro
+  record. Io ne terrei solo due e li semplificherei come segue: [i 2 bullet: pipeline live and green (all tests are
+  ok) — the ML chain from CONFIG up to FINAL\_LOG\_PRINT; LM facade ...] Fai una analisi completa e dammi la tua view,
+  poi decidiamo come procedere. Grazie!"
+- ANALISI (mia): verificato che ogni frammento scartato ha una casa viva — 968 nella tabella Test files (somma D-398),
+  il benchmark 1e6 VVLONG come risultato di campagna (journal/decisions), la catena di step + l'opt-in SU\_ANALYSIS/
+  ANOVA nel mirror logistic\_model.md, il gate log\_file\_name nel mirror hlp\_final\_log\_print.md, il bullet
+  docstring meta' puntatore al register + meta' campagna gia' in Next steps, la consolidazione ec nel mirror
+  hlp\_config\_schemas.md (riga 41). I 2 bullet tenuti sono i due fatti pipeline-wide puri: salute + come si guida.
+  D-411 portata a compimento.
+- Roberto: "Procedi!"
+- IMPLEMENTATION (D-412): Current state a 2 bullet (il primo semplificato verbatim, il facade invariato); i 2 bullet
+  scartati rimossi.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-412).
