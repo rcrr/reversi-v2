@@ -1636,3 +1636,32 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Session closed by the user.
 - Next: i due candidati follow-up di D-417 (lo shuffle 1-D in tools/prng.py, l'EF N-D in lm/client.py) sono
   entrambi chiusi (D-421, D-422).
+
+## 2026-10-03 — session 95 (D-423 — binio house-style sweep: docstring R-560, contratto compressione, byte goldens)
+
+- Session 95 (Roberto): analisi completa di binio (sorgente + unit test + mirror doc) prima della correzione: il
+  tratto LZ4 (l'ultima aggiunta) era l'unica parte non passata dal formato pass di casa — commenti in italiano
+  (R-100), mkdtemp nel /tmp di sistema (R-750/R-760), trailing whitespace, no Args/Returns (R-560), il
+  `compressed` non documentato con la trappola digest pre-close, e un mirror doc che sovraccettava "byte-level
+  pinned by round-trips" (auto-referenziale).
+- D-423: binio.py — i 3 commenti italiani → English; trailing ws del corpo out; import order stdlib; pass R-560 su
+  ogni docstring pubblica (Args:/Returns:/Raises:, lo stile di casa dopo pattern/feature/mobility): \_open\_arg,
+  i due \_\_init\_\_ (prima senza docstring), write\_header, write\_string, write\_array (che ora dichiara la
+  BinaryFormatError del dtype non supportato), read\_header, read\_string (nessuna prima), read\_array (nessuna
+  prima), compute\_sha3\_256, write/verify\_sha3\_256\_sidecar; la prima riga di sha3\_256\_hexdigest resa
+  imperativa; il servizio `compressed` documentato in entrambe le class docstring — inclusa la trappola digest: in
+  modalità compressa l'hash è aggiornato solo alla close(), sui byte compressi, quindi pre-close la property è il
+  digest dello stream vuoto. 603 → 734 righe.
+- D-423: test\_binio.py — le 3 classi a base file migrate all'idioma di casa (TemporaryDirectory sotto
+  CUSTOM\_TMP\_BASE + setUpClass mkdir + tearDown difensiva); +11 pin: LayoutGoldenTest (3 byte goldens
+  hand-crafted, scalar/string/header — il layout pinned indipendentemente dall'accordo writer/reader), i valori
+  speciali f32/f64, la quantizzazione f32 bit-exact (0.1 → float32), il round-trip latin-1, l'input big-endian →
+  LE, lo short-read stitching (\_read\_exact via uno stream one-byte-at-a-time), il LZ4 decompression failure →
+  BinaryFormatError, la traiettoria digest compresso (vuoto → completo); il commento desync corretto (fallisce il
+  MAGIC post-value, non il primo) con il secondo read inaccessibile rimosso. 45 → 56.
+- D-423: entrambi i mirror doc — l'overclaim out (i byte goldens), i gap "noted-only" ora pinned (Open issues:
+  None. con fondamento), i conteggi per-file fuori dal doc (docs\_rules §4).
+- VERIFICATION: binio + usage 59/0/0 (~0.03 s); suite via wrapper 1047 → 1058, GREEN 1058/0/24; notes\_lint
+  verde; il gate verde a questo checkin.
+- Next: il resto del backlog dell'overview (verifica delle fonti test, il rework MOBILITY, il README di progetto,
+  il formato pass di board/pattern/feature/mobility + tools, la re-review del register).

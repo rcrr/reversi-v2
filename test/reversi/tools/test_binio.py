@@ -47,6 +47,7 @@ Unit tests for the binio module.
 import hashlib
 import io
 import os
+import struct
 import tempfile
 import unittest
 
@@ -54,6 +55,7 @@ import numpy as np
 
 import reversi.tools.binio as binio
 from reversi.tools.binio import BinaryFormatError, BinaryReader, BinaryWriter
+from test.reversi.paths import CUSTOM_TMP_BASE
 
 
 class ScalarRoundTripTest(unittest.TestCase):
@@ -118,6 +120,40 @@ class ScalarRoundTripTest(unittest.TestCase):
         with BinaryReader(buf) as r:
             self.assertEqual(r.read_f64(), value)
 
+    def test_f32_special_values(self):
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_f32(float("nan"))
+            w.write_f32(float("inf"))
+            w.write_f32(float("-inf"))
+        buf.seek(0)
+        with BinaryReader(buf) as r:
+            self.assertTrue(np.isnan(r.read_f32()))
+            self.assertEqual(r.read_f32(), float("inf"))
+            self.assertEqual(r.read_f32(), float("-inf"))
+
+    def test_f64_special_values(self):
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_f64(float("nan"))
+            w.write_f64(float("inf"))
+            w.write_f64(float("-inf"))
+        buf.seek(0)
+        with BinaryReader(buf) as r:
+            self.assertTrue(np.isnan(r.read_f64()))
+            self.assertEqual(r.read_f64(), float("inf"))
+            self.assertEqual(r.read_f64(), float("-inf"))
+
+    def test_f32_quantization(self):
+        # 0.1 is not representable in float32: the read value must be the
+        # quantized float32, bit-exactly.
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_f32(0.1)
+        buf.seek(0)
+        with BinaryReader(buf) as r:
+            self.assertEqual(r.read_f32(), np.float32(0.1))
+
 
 class StringTest(unittest.TestCase):
     def test_roundtrip_ascii(self):
@@ -157,6 +193,16 @@ class StringTest(unittest.TestCase):
         with BinaryReader(buf) as r:
             self.assertEqual(r.read_string(), "é")
             self.assertEqual(r.read_u8(), 99)
+
+    def test_roundtrip_latin1(self):
+        # A non-UTF-8 encoding must round-trip when used on both sides.
+        text = "café à la mode"
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_string(text, encoding="latin-1")
+        buf.seek(0)
+        with BinaryReader(buf) as r:
+            self.assertEqual(r.read_string(encoding="latin-1"), text)
 
 
 class ArrayTest(unittest.TestCase):
@@ -204,6 +250,18 @@ class ArrayTest(unittest.TestCase):
         base = np.arange(6, dtype=np.int32).reshape(2, 3)
         self._round_trip(base.T)
 
+    def test_big_endian_input_is_stored_little_endian(self):
+        # A big-endian input must be converted to the canonical LE dtype.
+        arr = np.arange(4, dtype=">i4")
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_array(arr)
+        buf.seek(0)
+        with BinaryReader(buf) as r:
+            out = r.read_array()
+        self.assertEqual(out.dtype, np.dtype("<i4"))
+        self.assertTrue(np.array_equal(out, arr))
+
     def test_unsupported_dtype_raises(self):
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
@@ -212,9 +270,7 @@ class ArrayTest(unittest.TestCase):
 
     def test_unknown_type_code_raises(self):
         # A record with an unknown on-disk type code must raise.
-        import struct
-        from reversi.tools.binio import DEFAULT_MAGIC
-        magic = struct.pack("<I", DEFAULT_MAGIC)
+        magic = struct.pack("<I", binio.DEFAULT_MAGIC)
         # type_code=99 (unknown), ndim=1, shape=(1,), 4 bytes of int32 payload
         payload = (struct.pack("<B", 99)
                    + struct.pack("<Q", 1)
@@ -250,6 +306,26 @@ class HeaderTest(unittest.TestCase):
                 r.read_header()
 
 
+class _OneByteAtATime:
+    """
+    A minimal file-object surrogate whose read(n) yields at most one byte
+    per call (exercises the short-read stitching in _read_exact).
+    """
+
+    def __init__(self, data):
+        self._buf = io.BytesIO(data)
+
+    def read(self, n):
+        return self._buf.read(min(n, 1))
+
+    def close(self):
+        self._buf.close()
+
+    @property
+    def closed(self):
+        return self._buf.closed
+
+
 class FramingTest(unittest.TestCase):
     def test_magic_mismatch_raises(self):
         # A reader configured with a different MAGIC must reject the stream.
@@ -262,17 +338,16 @@ class FramingTest(unittest.TestCase):
                 r.read_u32()
 
     def test_wrong_read_order_detected(self):
-        # Writing a string then reading it as a scalar lands on a non-magic
-        # byte sequence and must fail (framing protects against desync).
+        # Writing a string then reading it as a scalar: the frame's length
+        # prefix is consumed as the "value", and the post-value MAGIC check
+        # then lands on the string payload and must fail (framing protects
+        # against desync).
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_string("x" * 100)
         buf.seek(0)
         with BinaryReader(buf) as r:
-            # The string's length prefix (100) is not the MAGIC, so the very
-            # first scalar magic check fails.
             with self.assertRaises(BinaryFormatError):
-                r.read_u64()
                 r.read_u64()
 
     def test_truncated_file_raises(self):
@@ -284,15 +359,66 @@ class FramingTest(unittest.TestCase):
             with self.assertRaises(BinaryFormatError):
                 r.read_u64()
 
+    def test_short_reads_are_stitched(self):
+        # A stream whose read(n) returns fewer than n bytes at a time must
+        # be reassembled by the reader's _read_exact.
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_u64(1234)
+        reader = BinaryReader(_OneByteAtATime(buf.getvalue()))
+        try:
+            self.assertEqual(reader.read_u64(), 1234)
+        finally:
+            reader.close()
+
+
+class LayoutGoldenTest(unittest.TestCase):
+    """
+    The on-disk byte layout pinned against hand-built bytes: a writer/reader
+    round-trip alone would be self-referential.
+    """
+
+    MAGIC = struct.pack("<I", binio.DEFAULT_MAGIC)
+
+    def test_scalar_layout(self):
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_u32(0x12345678)
+        expected = self.MAGIC + struct.pack("<I", 0x12345678) + self.MAGIC
+        self.assertEqual(buf.getvalue(), expected)
+
+    def test_string_layout(self):
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_string("ab")
+        expected = self.MAGIC + struct.pack("<Q", 2) + b"ab" + self.MAGIC
+        self.assertEqual(buf.getvalue(), expected)
+
+    def test_header_layout(self):
+        buf = io.BytesIO()
+        with BinaryWriter(buf) as w:
+            w.write_header("x", version=1)
+        expected = (self.MAGIC
+                    + struct.pack("<I", binio.DEFAULT_FILE_SIGNATURE)
+                    + struct.pack("<I", 1)
+                    + struct.pack("<Q", 1)
+                    + b"x"
+                    + self.MAGIC)
+        self.assertEqual(buf.getvalue(), expected)
+
 
 class Sha3_256SidecarTest(unittest.TestCase):
     """
     Tests for the standalone sidecar functions (checksum service off).
     """
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
-        self.dir = tempfile.mkdtemp()
-        self.path = os.path.join(self.dir, "data.bin")
+        self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.path = os.path.join(self.temp_dir.name, "data.bin")
         # checksum=False so no sidecar is auto-created; these tests drive the
         # standalone write_sha3_256_sidecar / verify_sha3_256_sidecar functions.
         with BinaryWriter(self.path, checksum=False) as w:
@@ -300,9 +426,7 @@ class Sha3_256SidecarTest(unittest.TestCase):
             w.write_array(np.arange(100, dtype=np.float64))
 
     def tearDown(self):
-        for name in os.listdir(self.dir):
-            os.remove(os.path.join(self.dir, name))
-        os.rmdir(self.dir)
+        self.temp_dir.cleanup()
 
     def test_write_and_verify(self):
         sidecar = binio.write_sha3_256_sidecar(self.path)
@@ -359,14 +483,16 @@ class AutoChecksumTest(unittest.TestCase):
     The built-in incremental checksum service (checksum=True default).
     """
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
-        self.dir = tempfile.mkdtemp()
-        self.path = os.path.join(self.dir, "data.bin")
+        self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.path = os.path.join(self.temp_dir.name, "data.bin")
 
     def tearDown(self):
-        for name in os.listdir(self.dir):
-            os.remove(os.path.join(self.dir, name))
-        os.rmdir(self.dir)
+        self.temp_dir.cleanup()
 
     def test_sidecar_written_on_close(self):
         # No explicit sidecar call: it must appear automatically at close.
@@ -444,15 +570,17 @@ class Lz4CompressionTest(unittest.TestCase):
     Tests for the LZ4 whole-file compression feature (compressed=True).
     """
 
+    @classmethod
+    def setUpClass(cls):
+        CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
+
     def setUp(self):
-        self.dir = tempfile.mkdtemp()
-        self.path = os.path.join(self.dir, "data_compressed.bin")
-        self.uncompressed_path = os.path.join(self.dir, "data_uncompressed.bin")
+        self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.path = os.path.join(self.temp_dir.name, "data_compressed.bin")
+        self.uncompressed_path = os.path.join(self.temp_dir.name, "data_uncompressed.bin")
 
     def tearDown(self):
-        for name in os.listdir(self.dir):
-            os.remove(os.path.join(self.dir, name))
-        os.rmdir(self.dir)
+        self.temp_dir.cleanup()
 
     def test_roundtrip_with_path(self):
         a32 = np.linspace(0, 1, 100, dtype=np.float32)
@@ -460,7 +588,7 @@ class Lz4CompressionTest(unittest.TestCase):
             w.write_header("compressed", version=1)
             w.write_string("hello lz4")
             w.write_array(a32)
-        
+
         self.assertTrue(os.path.exists(self.path))
 
         with BinaryReader(self.path, compressed=True) as r:
@@ -475,16 +603,16 @@ class Lz4CompressionTest(unittest.TestCase):
         # Highly repetitive array to ensure compression is effective
         arr = np.zeros(10000, dtype=np.float64)
         arr[::100] = 1.0
-        
+
         with BinaryWriter(self.path, compressed=True) as w:
             w.write_array(arr)
-            
+
         with BinaryWriter(self.uncompressed_path, compressed=False) as w:
             w.write_array(arr)
-            
+
         compressed_size = os.path.getsize(self.path)
         uncompressed_size = os.path.getsize(self.uncompressed_path)
-        
+
         self.assertLess(compressed_size, uncompressed_size)
 
     def test_checksum_uses_compressed_bytes(self):
@@ -492,10 +620,10 @@ class Lz4CompressionTest(unittest.TestCase):
         with BinaryWriter(self.path, compressed=True) as w:
             w.write_header("chk", version=1)
             w.write_array(arr)
-            
+
         self.assertTrue(os.path.exists(self.path + ".SHA3-256"))
         self.assertTrue(binio.verify_sha3_256_sidecar(self.path))
-        
+
         # Verify the digest is for the compressed file, not the uncompressed payload
         with open(self.path + ".SHA3-256", encoding="ascii") as f:
             digest = f.readline().split()[0]
@@ -507,7 +635,7 @@ class Lz4CompressionTest(unittest.TestCase):
         with BinaryWriter(buf, compressed=True) as w:
             w.write_header("obj", version=2)
             w.write_array(arr)
-        
+
         # We must reset to the beginning of the BytesIO for reading
         buf.seek(0)
         with BinaryReader(buf, compressed=True) as r:
@@ -516,6 +644,23 @@ class Lz4CompressionTest(unittest.TestCase):
             self.assertEqual(header.version, 2)
             out_arr = r.read_array()
             self.assertTrue(np.array_equal(out_arr, arr))
+
+    def test_decompression_failure_raises(self):
+        # Garbage that is not an LZ4 frame must raise BinaryFormatError.
+        buf = io.BytesIO(b"this is not an LZ4 frame")
+        with self.assertRaises(BinaryFormatError):
+            BinaryReader(buf, compressed=True)
+
+    def test_digest_property_spans_the_compressed_bytes(self):
+        # Before close the compressed-mode digest is the empty-stream digest
+        # (the hash runs only at close, over the compressed bytes); after
+        # close it is the digest of what the file object now holds.
+        buf = io.BytesIO()
+        writer = BinaryWriter(buf, compressed=True)
+        writer.write_array(np.arange(100, dtype=np.int32))
+        self.assertEqual(writer.sha3_256_hexdigest, hashlib.sha3_256(b"").hexdigest())
+        writer.close()
+        self.assertEqual(writer.sha3_256_hexdigest, hashlib.sha3_256(buf.getvalue()).hexdigest())
 
 
 if __name__ == "__main__":

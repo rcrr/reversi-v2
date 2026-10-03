@@ -160,7 +160,7 @@ define the evaluation function.
 | test/reversi/test\_pattern.py | complete | 73/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
 | test/reversi/test\_random\_game.py | complete | 42/0/1/0/0 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |
 | test/reversi/test\_regab.py | complete | 48/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
-| test/reversi/tools/test\_binio.py | complete | 45/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
+| test/reversi/tools/test\_binio.py | complete | 56/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
 | test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
 | test/reversi/tools/test\_opt\_lbfgs.py | complete | 14/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
 | test/reversi/tools/test\_prng.py | complete | 26/0/0/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |

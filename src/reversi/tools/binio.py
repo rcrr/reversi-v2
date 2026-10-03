@@ -88,10 +88,9 @@ Example
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import struct
-import io
-
 from collections import namedtuple
 
 import numpy as np
@@ -185,7 +184,15 @@ class BinaryFormatError(Exception):
 
 def _open_arg(file, mode):
     """
-    Return (file_object, owns_it). Accepts a path or an open binary file.
+    Return (file_object, owns_it) for a path or an open binary file.
+
+    Args:
+        file: A path (str / os.PathLike) or an open binary file.
+        mode (str): The open mode, used when ``file`` is a path.
+
+    Returns:
+        (file_object, owns_it): ``owns_it`` is True only when the file was
+        opened here from a path.
     """
     if isinstance(file, (str, os.PathLike)):
         return open(file, mode), True
@@ -211,6 +218,12 @@ class BinaryWriter:
     ``<path><suffix>`` sidecar would BE the content file, which ``close()``
     truncates and overwrites. Use ``checksum=False`` (not an empty suffix)
     to skip the sidecar. Raises ``ValueError`` if empty.
+
+    Compression service (``compressed=True``): every write goes into an
+    in-memory buffer; ``close()`` LZ4-frame-compresses it and flushes the
+    result to the target. With ``checksum=True`` the digest is over the
+    COMPRESSED bytes and the hash is updated only at ``close()``: before
+    close, ``sha3_256_hexdigest`` is the empty-stream digest.
     """
 
     def __init__(
@@ -221,8 +234,29 @@ class BinaryWriter:
         signature: int = DEFAULT_FILE_SIGNATURE,
         checksum: bool = True,
         checksum_suffix: str = ".SHA3-256",
-        compressed: bool = False
+        compressed: bool = False,
     ):
+        """
+        Open the write target (a path or an open binary file) and configure
+        the framing, the checksum service and the compression service.
+
+        Args:
+            file: A path (str / os.PathLike) or an open binary file.
+            magic (int): The framing marker (``DEFAULT_MAGIC``).
+            signature (int): The file signature stored in the header
+                (``DEFAULT_FILE_SIGNATURE``).
+            checksum (bool): When True (default), the SHA3-256 is computed
+                incrementally and a sidecar is written on close (path-based
+                targets only).
+            checksum_suffix (str): The sidecar suffix appended to the path;
+                must be non-empty.
+            compressed (bool): When True, buffer all writes in memory,
+                LZ4-frame-compress and flush on close.
+
+        Raises:
+            ValueError: If ``checksum_suffix`` is empty (the sidecar would BE
+            the content file, which close truncates and overwrites).
+        """
         if not checksum_suffix:
             raise ValueError(
                 "checksum_suffix must be a non-empty string (an empty "
@@ -239,10 +273,12 @@ class BinaryWriter:
         self._closed = False
 
         if self._compressed:
-            # Scrive sempre in un buffer in memoria prima di comprimere
+            # Always write to an in-memory buffer first; the compression
+            # happens at close.
             self._f = io.BytesIO()
             self._own = True
-            # Se ci ha passato un file object, lo salviamo per scriverci alla chiusura
+            # If a file object was passed, keep it: the compressed bytes are
+            # written to it at close.
             if self._path is None:
                 self._actual_f = file
         else:
@@ -262,9 +298,15 @@ class BinaryWriter:
     @property
     def sha3_256_hexdigest(self) -> str:
         """
-        The SHA3-256 of everything written so far (incremental, no re-read).
+        Return the SHA3-256 hex digest of everything written so far (the
+        incremental hash; no re-read).
 
-        Raises ``ValueError`` if this writer was opened with ``checksum=False``.
+        In ``compressed`` mode the hash is updated only at ``close()`` over
+        the compressed bytes: before close, the digest is the empty-stream
+        digest.
+
+        Raises:
+            ValueError: If this writer was opened with ``checksum=False``.
         """
         if self._hash is None:
             raise ValueError("checksum service is disabled for this writer")
@@ -278,13 +320,13 @@ class BinaryWriter:
             if self._compressed:
                 uncompressed_data = self._f.getvalue()
                 compressed_data = lz4.frame.compress(uncompressed_data)
-                
+
                 if self._path is not None:
                     with open(self._path, "wb") as f_out:
                         f_out.write(compressed_data)
                 elif self._actual_f is not None:
                     self._actual_f.write(compressed_data)
-                    
+
                 if self._hash is not None:
                     self._hash.update(compressed_data)
             else:
@@ -324,11 +366,16 @@ class BinaryWriter:
 
     def write_header(self, description: str, version: int, *, encoding: str = "utf-8"):
         """
-        Write a file header:
+        Write the file header:
         [MAGIC][signature u32][version u32][length u64][description bytes][MAGIC].
 
         Intended as the very first record of a file. ``version`` is an
         application-defined format version used to reject incompatible files.
+
+        Args:
+            description (str): The human-readable file description.
+            version (int): The application-defined format version.
+            encoding (str): The text encoding of ``description`` (default utf-8).
         """
         data = description.encode(encoding)
         self._open_frame()
@@ -358,6 +405,10 @@ class BinaryWriter:
         Write a string as [MAGIC][length u64][bytes][MAGIC].
 
         ``length`` is the encoded byte count, NOT the character count.
+
+        Args:
+            value (str): The string to write.
+            encoding (str): The text encoding (default utf-8).
         """
         data = value.encode(encoding)
         self._open_frame()
@@ -372,7 +423,17 @@ class BinaryWriter:
         Write a numpy array as
         [MAGIC][type_code u8][ndim u64][shape... u64][data][MAGIC].
 
-        Data is written C-contiguous and little-endian.
+        The data is stored C-contiguous and little-endian, exactly
+        ``prod(shape) * itemsize`` bytes; any input dtype is converted to its
+        canonical little-endian dtype, and non-contiguous inputs are
+        serialized in C order.
+
+        Args:
+            array (np.ndarray): The array to write.
+
+        Raises:
+            BinaryFormatError: If the dtype has no TYPE_* code (complex,
+            bool, object, ...).
         """
         array = np.asarray(array)
         name = array.dtype.name
@@ -399,7 +460,9 @@ class BinaryReader:
     """
     Read framed binary records written by :class:`BinaryWriter`.
 
-    Methods must be called in the same order the values were written.
+    Methods must be called in the same order the values were written. With
+    ``compressed=True`` the whole file is LZ4-frame-decompressed into memory
+    first.
     """
 
     def __init__(
@@ -408,13 +471,30 @@ class BinaryReader:
         *,
         magic: int = DEFAULT_MAGIC,
         signature: int = DEFAULT_FILE_SIGNATURE,
-        compressed: bool = False
+        compressed: bool = False,
     ):
+        """
+        Open the read target (a path or an open binary file) and configure
+        the framing.
+
+        Args:
+            file: A path (str / os.PathLike) or an open binary file.
+            magic (int): The framing marker (``DEFAULT_MAGIC``).
+            signature (int): The file signature expected in the header
+                (``DEFAULT_FILE_SIGNATURE``).
+            compressed (bool): When True, LZ4-frame-decompress the whole
+                file into memory before reading.
+
+        Raises:
+            BinaryFormatError: If the LZ4 decompression fails
+            (``compressed=True``).
+        """
         self._compressed = compressed
-        
+
         if self._compressed:
             f, own = _open_arg(file, "rb")
-            # Se è un file object in memoria (es. BytesIO), assicuriamoci di partire da 0
+            # An in-memory file object (e.g. BytesIO) may not start at 0:
+            # reset it.
             if not own and hasattr(f, 'seek'):
                 f.seek(0)
             compressed_data = f.read()
@@ -431,7 +511,7 @@ class BinaryReader:
 
         self.magic = magic
         self.signature = signature
-        
+
     def __enter__(self):
         return self
 
@@ -483,8 +563,16 @@ class BinaryReader:
         """
         Read the file header written by :meth:`BinaryWriter.write_header`.
 
-        Returns a ``FileHeader(description, version)``. Raises
-        ``BinaryFormatError`` if the signature does not match (foreign file).
+        Args:
+            encoding (str): The text encoding of the stored description
+                (default utf-8).
+
+        Returns:
+            FileHeader: (description, version).
+
+        Raises:
+            BinaryFormatError: If the signature does not match (foreign
+            file).
         """
         self._expect_magic("before header")
         (sig,) = _U32.unpack(self._read_exact(_U32.size))
@@ -500,7 +588,7 @@ class BinaryReader:
         return FileHeader(description=data.decode(encoding), version=version)
 
     # -- scalars ---------------------------------------------------------
-    
+
     def read_u8(self) -> np.uint8: return np.uint8(self._scalar(_U8))
     def read_i8(self) -> np.int8: return np.int8(self._scalar(_I8))
     def read_u16(self) -> np.uint16: return np.uint16(self._scalar(_U16))
@@ -515,6 +603,16 @@ class BinaryReader:
     # -- string ----------------------------------------------------------
 
     def read_string(self, *, encoding: str = "utf-8") -> str:
+        """
+        Read a string written by ``BinaryWriter.write_string``.
+
+        Args:
+            encoding (str): The text encoding of the stored bytes
+                (default utf-8).
+
+        Returns:
+            str: The decoded string.
+        """
         self._expect_magic("before string")
         (length,) = _U64.unpack(self._read_exact(_U64.size))
         data = self._read_exact(length)
@@ -524,6 +622,16 @@ class BinaryReader:
     # -- numpy array -----------------------------------------------------
 
     def read_array(self) -> np.ndarray:
+        """
+        Read an array written by ``BinaryWriter.write_array``.
+
+        Returns:
+            np.ndarray: An owned, writable C-contiguous little-endian array
+            of the stored shape and dtype.
+
+        Raises:
+            BinaryFormatError: On an unknown on-disk type code.
+        """
         self._expect_magic("before array")
         (code,) = _U8.unpack(self._read_exact(_U8.size))
         dtype = _DTYPE_BY_CODE.get(code)
@@ -550,6 +658,13 @@ class BinaryReader:
 def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
     """
     Return the hex SHA3-256 digest of the whole file at ``path``.
+
+    Args:
+        path: The file to hash.
+        chunk_size (int): The read chunk size in bytes (default 1 MiB).
+
+    Returns:
+        str: The 64-character lowercase hex digest.
     """
     h = hashlib.sha3_256()
     with open(path, "rb") as f:
@@ -564,10 +679,17 @@ def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
 
     The line is ``"<hexdigest>  <basename>\\n"`` so the file is verifiable
     with the standard ``sha3_256sum -c`` tool from the same directory.
-    Returns the sidecar path.
 
-    Raises ``ValueError`` if ``suffix`` is empty (the sidecar would be the
-    content file itself, which would be overwritten).
+    Args:
+        path: The content file to hash.
+        suffix (str): The sidecar suffix; must be non-empty.
+
+    Returns:
+        str: The sidecar path.
+
+    Raises:
+        ValueError: If ``suffix`` is empty (the sidecar would be the content
+        file itself, which would be overwritten).
     """
     if not suffix:
         raise ValueError(
@@ -585,9 +707,18 @@ def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
     """
     Recompute the file's SHA3-256 and compare it to its sidecar.
 
-    Returns True if they match. Raises ``FileNotFoundError`` if the sidecar
-    is missing, ``BinaryFormatError`` if it is malformed, ``ValueError`` if
-    ``suffix`` is empty (it would read the content file as its sidecar).
+    Args:
+        path: The content file to verify.
+        suffix (str): The sidecar suffix; must be non-empty.
+
+    Returns:
+        bool: True if the digests match.
+
+    Raises:
+        FileNotFoundError: If the sidecar is missing.
+        BinaryFormatError: If the sidecar is malformed.
+        ValueError: If ``suffix`` is empty (it would read the content file
+        as its sidecar).
     """
     if not suffix:
         raise ValueError(

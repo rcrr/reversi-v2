@@ -1523,3 +1523,30 @@ D-422 | 2026-10-03 | lm/client.py — the array Evaluation Function goes N-D (th
          result ravels bit-exactly to the 1-D ravel result, assert\_array\_equal); the 6-pinned position EF pins and the
          rlm\_03 VLONG pins untouched (the 1-D math is byte-identical); test\_client 7 -> 8; the suite via the wrapper
          1047/0/24; the overview cell + the gate green at the checkin.
+
+D-423 | 2026-10-03 | tools/binio.py + test/reversi/tools/test\_binio.py + both mirror docs — the binio house-style sweep
+         and the compression-contract pin (the user's "fix everything", after the full analysis of the source, the tests
+         and the mirror docs): the LZ4 feature (the latest addition) had never passed the house format pass. Source: the
+         3 Italian comments → English (R-100); the 5 trailing-whitespace body lines out (W293); the stdlib import order;
+         the R-560 pass over every public docstring (Args:/Returns:/Raises: — the house style after
+         pattern/feature/mobility): \_open\_arg, the two \_\_init\_\_ (no docstring before), write\_header,
+         write\_string, write\_array (now declaring the unsupported-dtype BinaryFormatError), read\_header, read\_string
+         (none before), read\_array (none before), compute\_sha3\_256, write/verify\_sha3\_256\_sidecar; the
+         sha3\_256\_hexdigest first line made imperative; the compressed service documented in both class docstrings and
+         in the writer's \_\_init\_\_ — including the digest trap: in compressed mode the hash is updated only at
+         close() over the compressed bytes, so before close the property is the empty-stream digest. Tests: the 3
+         file-based classes migrated to the house idiom (TemporaryDirectory under CUSTOM\_TMP\_BASE + the setUpClass
+         mkdir + the defensive tearDown — R-750/R-760: the former tempfile.mkdtemp() wrote to the system /tmp); 11 new
+         pins: LayoutGoldenTest (the 3 hand-built byte goldens of the scalar/string/header frames — the layout pinned
+         independently of the writer/reader agreement, which alone would be self-referential), the f32/f64 special
+         values (NaN/±inf), the bit-exact f32 quantization (0.1 → float32, R-810), the latin-1 round-trip, the
+         big-endian input → the canonical LE dtype, the short-read stitching (the \_read\_exact chunked loop, via a
+         one-byte-at-a-time stream), the LZ4 decompression failure → BinaryFormatError (claimed in the API table,
+         unpinned), the compressed-digest trajectory (empty before close, complete after); the desync test comment fixed
+         (the post-value MAGIC is the one that fails, not the first) with its unreachable second read removed; the 2
+         local imports hoisted. Mirror docs (both): the "byte-level layout pinned by the round-trips" overclaim → the
+         hand-built goldens; the known gaps parked in Conventions as "noted-only" (the f32 special values, the LZ4
+         failure, the \_read\_exact EOF) are now pinned, so the doc's `Open issues: None.` stands on evidence; the
+         per-file suite counts out of the doc (docs\_rules §4); the line count updated (603 → 734). VERIFICATION:
+         test\_binio 45 → 56 (binio + usage 59/0/0 in ~0.03 s); the suite via the wrapper 1058/0/24; the overview cell +
+         notes\_lint + the gate green at this checkin.
