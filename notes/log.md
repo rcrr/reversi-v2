@@ -1378,3 +1378,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   vocabulary" (il file e' cresciuto oltre il dominio board, l'H1 gia' diceva "domain naming convention").
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-407).
+- Session 91 (Roberto, ventinovesima richiesta): "Sistema l'entry dell'Index in overview ... OK. Poi Nia, Vorrei
+  aggiungere questo testo in overview.md: 'The Machine Learning pipeline is developed by defining a set of observable
+  features within the game positions and a training set, from which the observed values are extracted as categorical
+  indices. These data are then utilized in a logistic regression model, minimizing the sum of squared residuals
+  between the actual game values in the training set and those computed by the evaluation function. The resulting
+  weights, combined with the selected feature set, ultimately define the evaluation function.' Subito dopo:
+  'This workspace is dedicated to the research and development of evaluation functions ...' Come ti sembra? Chiaro?
+  dammi un tuo parere, se ti sembra OK, procedi con la change. Grazie!"
+- PARERE (mia): testo chiaro e corretto — descrive la pipeline end-to-end (feature osservabili + training set →
+  indici categorici → regressione logistica a minimo quadrato sui game values → pesi + feature set = evaluation
+  function); nel Project è il posto giusto: descrizione atemporale dello scopo, non stato. Procedo verbatim.
+- IMPLEMENTATION (D-408): overview.md — entry Index di naming.md allineata ("canonical domain naming convention
+  (board vocabulary, D8, feature types)"); Project: il secondo paragrafo aggiunto dopo quello esistente.
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-408).

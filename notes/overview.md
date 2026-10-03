@@ -9,6 +9,12 @@ The rigid format rules for this file live in notes/overview\_rules.md. Consult i
 This workspace is dedicated to the research and development of evaluation functions for Reversi positions. The methods
 employed focus on machine learning techniques that leverage solved positions generated from random gameplay paths.
 
+The Machine Learning pipeline is developed by defining a set of observable features within the game positions and a
+training set, from which the observed values are extracted as categorical indices. These data are then utilized in a
+logistic regression model, minimizing the sum of squared residuals between the actual game values in the training set
+and those computed by the evaluation function. The resulting weights, combined with the selected feature set, ultimately
+define the evaluation function.
+
 ## Environment
 
 - Venv: `.venv/` (gitignored), Python 3.12.3.
@@ -178,7 +184,7 @@ Test data (test/reversi/data/):
 
 ## Index
 
-- notes/naming.md — canonical board naming convention (row/column, D8 symmetries)
+- notes/naming.md — canonical domain naming convention (board vocabulary, D8, feature types)
 - notes/design\_principles.md — the house design policy of the pipeline (dual scalar/array API, pydantic, numba kernels)
 - notes/rules.md — active legislation: the register of the rules in force.
 - notes/decisions.md — open historical decision log (append-only)

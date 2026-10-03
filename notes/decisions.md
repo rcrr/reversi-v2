@@ -1308,3 +1308,12 @@ D-407 | 2026-10-01 | naming.md — two amendments, per Roberto: (1) the Index bu
          vocabulary" to "the domain vocabulary" — naming.md has grown beyond the board domain (Features, Mobility,
          Pattern, Index), aligning the intro with the H1 that already says "Reversi domain naming convention".
          VERIFICATION: the guard green on the default set.
+
+D-408 | 2026-10-01 | overview.md — two changes, per Roberto: (1) the Index entry for naming.md aligned with the D-407
+         "domain vocabulary" broadening — "canonical board naming convention (row/column, D8 symmetries)" -> "canonical
+         domain naming convention (board vocabulary, D8, feature types)"; (2) the Project section gains a second
+         paragraph (verbatim per Roberto) describing the pipeline end-to-end: a set of observable features within the
+         game positions + a training set, the observed values extracted as categorical indices, the logistic regression
+         minimizing the sum of squared residuals between the actual game values in the training set and those computed
+         by the evaluation function, and the resulting weights combined with the selected feature set ultimately
+         defining the evaluation function. VERIFICATION: the guard green on the default set.
