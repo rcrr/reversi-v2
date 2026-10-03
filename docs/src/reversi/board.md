@@ -40,7 +40,8 @@ stated.
 | D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090) |
 | D8 | `bitboard_fa1h8(bb) -> Bitboard \| BitboardArray` | reflection on the a1-h8 diagonal (h1 ↔ a8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
 | D8 | `bitboard_fh1a8(bb) -> Bitboard \| BitboardArray` | reflection on the h1-a8 diagonal (a1 ↔ h8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
-| D8 | `bitboard_fhori` / `bitboard_fvert` | the remaining 2 reflections; dual scalar/array; 1-D only; each has a numba `@overload` for JIT contexts |
+| D8 | `bitboard_fhori(bb) -> Bitboard \| BitboardArray` | reflection on the horizontal axis (row 1 ↔ row 8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
+| D8 | `bitboard_fvert(bb) -> Bitboard \| BitboardArray` | reflection on the vertical axis (column a ↔ column h); dual scalar/array; 1-D only; numba `@overload` for JIT contexts |
 | D8 | `bitboard_ro000(bb)` | the identity — a fresh copy of the input (no aliasing, the same contract as the other 7 D8 functions and `position_ro000`) |
 | D8 | `bitboard_ro090` / `bitboard_ro180` / `bitboard_ro270` | the rotations (clockwise), composed from the reflections |
 | D8 | `bitboard_trans_fs` | the 8 transform functions, as a plain list |

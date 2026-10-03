@@ -625,6 +625,8 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects the bitboard, or the array of bitboards, horizontally (on the horizontal axis).
     Row 1 is mapped to row 8 and vice versa.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape).
 
     .    ---- input ----    ---- output ---
     .
@@ -641,7 +643,9 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        return _numba_fhori_array_impl(bb)
+        # The 1-D kernel over the flattened C-order view; the output is
+        # reshaped back to the input shape (the N-D contract).
+        return _numba_fhori_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fhori_scalar_impl(bb))
 
