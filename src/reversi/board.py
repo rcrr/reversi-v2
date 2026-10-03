@@ -290,21 +290,12 @@ def move_validate_range(mo: Move | MoveArray) -> None:
 def bitboard_from_signed_int(i: np.int64 | npt.NDArray[np.int64]) -> Bitboard | BitboardArray:
     """
     Returns the Bitboard (uint64) representation of a numpy.int64 value,
-    by reinterpreting its bits. Works on scalar and 1D array inputs.
+    by reinterpreting its bits. Works on scalar and array inputs of any
+    shape (the output keeps the input shape).
     For array input the result is a zero-copy view: it shares the input's
     data buffer (mutations on either side are visible on the other).
     """
-
-    # Standardize input by checking if it came in as a scalar or an array
-    is_scalar = not isinstance(i, np.ndarray)
-    i_arr = np.atleast_1d(i)
-
-    # Check layout constraints (Pydantic validates types, but we handle dimensions)
-    if i_arr.ndim != 1:
-        raise ValueError(f"When the argument i is an array, it must be 1D, got shape {i_arr.shape}")
-
-    # Adapt output representation to match original scalar or matrix input context
-    if is_scalar:
+    if not isinstance(i, np.ndarray):
         return i.view(Bitboard)[()]
 
     if i.dtype != np.int64:

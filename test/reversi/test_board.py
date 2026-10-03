@@ -329,11 +329,64 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         with self.assertRaises(ValueError):
             bitboard_from_signed_int(arr_float)
 
-    def test_wrong_array_raises_value_error(self):
-        """Should reject arrays with more than one dimension."""
-        i = np.array([[0, 1], [3, 7]], dtype=np.int64)
-        with self.assertRaises(ValueError):
-            bitboard_from_signed_int(i)
+    def test_array_2d_conversion_valid(self):
+        """Should convert a 2-D int64 array to a same-shape uint64 array by reinterpreting bits."""
+        arr_in = np.array([[-1, 0, 1], [2, 3, -2]], dtype=np.int64)
+        expected = np.array([
+            [18446744073709551615, 0, 1],
+            [2, 3, 18446744073709551614],
+        ], dtype=np.uint64)
+
+        arr_out = bitboard_from_signed_int(arr_in)
+
+        self.assertIsInstance(arr_out, np.ndarray)
+        self.assertEqual(arr_out.dtype, np.uint64)
+        self.assertEqual(arr_out.shape, (2, 3))
+        np.testing.assert_array_equal(arr_out, expected)
+
+    def test_array_3d_conversion_valid(self):
+        """Should convert a 3-D int64 array to a same-shape uint64 array by reinterpreting bits."""
+        arr_in = np.zeros((2, 2, 2), dtype=np.int64)
+        arr_in[0, 1, 0] = -1
+        arr_in[1, 0, 1] = -2
+
+        arr_out = bitboard_from_signed_int(arr_in)
+
+        self.assertEqual(arr_out.dtype, np.uint64)
+        self.assertEqual(arr_out.shape, (2, 2, 2))
+        self.assertEqual(arr_out[0, 1, 0], np.uint64(18446744073709551615))
+        self.assertEqual(arr_out[1, 0, 1], np.uint64(18446744073709551614))
+
+    def test_array_2d_shared_memory(self):
+        """Should share the input buffer in the 2-D case as well (a zero-copy view)."""
+        arr_in = np.array([[-1]], dtype=np.int64)
+        arr_out = bitboard_from_signed_int(arr_in)
+
+        # Modifying the output view must immediately mutate the input array
+        arr_out[0, 0] = 42
+        self.assertEqual(arr_in[0, 0], 42)
+
+    def test_array_noncontiguous_conversion_valid(self):
+        """Should convert a non-contiguous (Fortran-order) 2-D array with the same values."""
+        arr_in = np.asfortranarray(np.array([[-1, 1], [2, -2]], dtype=np.int64))
+        expected = np.array([
+            [18446744073709551615, 1],
+            [2, 18446744073709551614],
+        ], dtype=np.uint64)
+
+        arr_out = bitboard_from_signed_int(arr_in)
+
+        self.assertEqual(arr_out.shape, (2, 2))
+        np.testing.assert_array_equal(arr_out, expected)
+
+    def test_empty_array_conversion_valid(self):
+        """Should convert an empty (0, 2) int64 array to an empty uint64 array of the same shape."""
+        arr_in = np.empty((0, 2), dtype=np.int64)
+
+        arr_out = bitboard_from_signed_int(arr_in)
+
+        self.assertEqual(arr_out.dtype, np.uint64)
+        self.assertEqual(arr_out.shape, (0, 2))
 
 class TestBitboardToSignedInt(unittest.TestCase):
 
