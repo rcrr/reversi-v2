@@ -1426,3 +1426,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Governance (il segnavia verso l'Index).
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: due commit (D-409, D-410).
+- Session 91 (Roberto, trentatreesima richiesta): "La sezione 'Current state' in overview: Abbiamo davvero bisogno
+  del preambolo? Fai una analisi completa e dammi la tua view, poi decidiamo come procedere. Grazie!"
+- ANALISI (mia): il preambolo e' una regola, non un fatto di stato — i suoi 3 claims sono gia' coperti, punto per
+  punto, dalla sezione Current state di overview\_rules.md (che il writer deve consultare comunque, per il puntatore
+  Format rules in cima all'overview); e' l'ultimo leftover della mappa D-395 (gli intro Source/Test furono rimossi in
+  D-398, stessa categoria). Unico dettaglio in scadenza: i path dei file — li assoro in overview\_rules.md. Guard:
+  zero change.
+- Roberto: "Procedi con la rimozione!"
+- IMPLEMENTATION (D-411): preambolo rimosso da Current state (la sezione e' ora titolo + 4 bullet, puramente
+  fattuale, come Source/Test); overview\_rules.md: le 2 bullets assorbite (path del journal + decisions log; "NOT in
+  the Source files / Test files tables (the file-by-file state)").
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-411).

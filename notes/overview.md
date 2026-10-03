@@ -41,9 +41,6 @@ define the evaluation function.
 
 ## Current state
 
-Current state only — the session-by-session history lives in the journal volumes (notes/log.md + notes/hist\_log/) and
-the decision log (notes/decisions.md); the file-by-file state lives in the Source files / Test files tables below.
-
 - The 19-level pipeline is live and green (968 tests, LONG; the 1e6 wave benchmark — VVLONG — replays bit-exact, 28065
   dead lanes): the ML chain CONFIG → … → SAVE → CLIENT\_CHECK → PLOT → FINAL\_LOG\_PRINT (the optional full run log on
   file, the `log_file_name` gate), plus the OPTIONAL SU\_ANALYSIS (step 3) + ANOVA (step 6) — default FALSE, opt-in.

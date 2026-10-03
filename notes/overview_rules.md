@@ -26,10 +26,11 @@ this file in the same commit as its decision. The prose is wrapped to ~120 chars
 
 ## Current state
 
-- CURRENT STATE only, MAX 10 bullets — each a present fact NOT in the tables and NOT in the mirrors (the pipeline-wide
-  state, the in-flight campaigns with their horizon, the cross-file contracts).
-- NO bullet-per-campaign: the campaign lives in the journal + the decisions log, and its state leaves this section when
-  the campaign ends.
+- CURRENT STATE only, MAX 10 bullets — each a present fact NOT in the Source files / Test files tables (the file-by-file
+  state) and NOT in the mirrors (the pipeline-wide state, the in-flight campaigns with their horizon, the cross-file
+  contracts).
+- NO bullet-per-campaign: the campaign lives in the session journal (notes/log.md + the hist\_log/ volumes) + the
+  decisions log (notes/decisions.md), and its state leaves this section when the campaign ends.
 
 ## Next steps
 

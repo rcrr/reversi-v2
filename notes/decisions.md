@@ -1341,3 +1341,13 @@ D-410 | 2026-10-01 | overview.md Environment — the workspace map moved in (the
          postilla needed), Mirror docs (docs/ one-to-one, the Doc column of the two tables is the index), Scratch
          (disposable session area, gitignored, never tracked), Governance (all the governance files live in notes/ — the
          Index below is their registry). VERIFICATION: the guard green on the default set.
+
+D-411 | 2026-10-01 | overview.md — the Current state preamble removed (the last D-395-map leftover; the analysis: it is
+         a rule, not a state fact — its three claims are already covered, point by point, by the Current state section
+         of overview\_rules.md, which the writer must consult anyway per the Format rules pointer; the Source files /
+         Test files intros were removed the same way at D-398). The one detail it added — the journal and decisions file
+         paths — absorbed into the overview\_rules.md Current state bullets: the campaign now "lives in the session
+         journal (notes/log.md + the hist\_log/ volumes) + the decisions log (notes/decisions.md)", and the first bullet
+         now says "NOT in the Source files / Test files tables (the file-by-file state)". Current state is now purely
+         factual (heading + the 4 bullets, like Source/Test since D-398). VERIFICATION: the guard green on the default
+         set.
