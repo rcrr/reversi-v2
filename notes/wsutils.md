@@ -1,7 +1,7 @@
-# tools.md — rules for the workspace tools (tools/)
+# wsutils.md — rules for the workspace utilities (wsutils/)
 
-Prescriptive. Follow when creating, migrating, retiring or using any tool in tools/. Language: English. Rigid, like the
-companion rule files.
+Prescriptive. Follow when creating, migrating, retiring or using any tool in wsutils/. Language: English. Rigid, like
+the companion rule files.
 
 Companions: notes/probe\_rules.md (the verification apparatus — what a tool is NOT), notes/docs\_rules.md (the mirror
 format the doc auditor checks), notes/rules.md (the register that points here).
@@ -9,7 +9,7 @@ format the doc auditor checks), notes/rules.md (the register that points here).
 ## 1. What a tool IS (and is not)
 
 A tool is a WORKSPACE UTILITY: it serves the maintenance of this repository — the notes and the docs format, the suite
-measurement, the audits no test can express. It lives in tools/ at the workspace root, tracked in git.
+measurement, the audits no test can express. It lives in wsutils/ at the workspace root, tracked in git.
 
 A tool is NOT:
 
@@ -19,13 +19,13 @@ A tool is NOT:
   §5). A tool makes no campaign check and is NOT in the sweep. A tool MAY check something (the doc auditor does): the
   difference is the SCOPE and the LIFE — a probe pins a module's facts and dies with its campaign, a tool serves the
   workspace and lives as long as the workspace does;
-- a test: nothing in tools/ is discovered or run by run\_utests.sh;
+- a test: nothing in wsutils/ is discovered or run by run\_utests.sh;
 - a home for a one-off: a finished investigation moves to notes/analyses/ (probe\_rules §6), a throwaway dies in
   scratch/.
 
 ## 2. The four requirements
 
-Every tool in tools/ satisfies all four. A tool that fails one is not a tool yet — it is still a scratch experiment.
+Every tool in wsutils/ satisfies all four. A tool that fails one is not a tool yet — it is still a scratch experiment.
 
 **1. GENERAL UTILITY.** It solves a CLASS of problems, not one instance. The test: would it still be useful next
 session, on a different file / module / fixture? If not, it is a one-off: archive it (notes/analyses/) or drop it.
@@ -58,9 +58,9 @@ idempotent tool is a no-op the second time, and says so.
 The module docstring carries, in this order:
 
 1. **WHAT IT IS** — the category (a check / a measurement / a maintenance tool) + the one-line purpose;
-2. **USAGE** — the command line, from the workspace root, with `.venv/bin/python tools/<name>.py`;
+2. **USAGE** — the command line, from the workspace root, with `.venv/bin/python wsutils/<name>.py`;
 3. **SAFETY** — what it writes, and under which flag (or "writes nothing");
-4. **ORIGIN** — the D-number of the campaign that produced it and of the promotion to tools/.
+4. **ORIGIN** — the D-number of the campaign that produced it and of the promotion to wsutils/.
 
 ## 4. Naming
 

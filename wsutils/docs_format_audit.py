@@ -11,15 +11,15 @@ tenses), the size budget (60-120 lines; the hubs 150-200), the 120-char
 width, the trailing whitespace, the split code spans and the per-table
 ragged rows.
 
-It lives in the ROOT tools/ (the workspace tools) — NOT in the package's
+It lives in the ROOT wsutils/ (the workspace utilities) — NOT in the package's
 src/reversi/tools/ (that one ships with the library, D-133), and NOT in
 probes/ (which holds the per-module verification apparatus). Run it when
 the mirrors change: the D-239 campaign used it to find the stale cells,
 the split spans and the ragged tables.
 
 USAGE (from the workspace root):
-  .venv/bin/python tools/docs_format_audit.py             summary by kind
-  .venv/bin/python tools/docs_format_audit.py --verbose   per file
+  .venv/bin/python wsutils/docs_format_audit.py             summary by kind
+  .venv/bin/python wsutils/docs_format_audit.py --verbose   per file
 
 Origin: D-239 (the mirror-format audit); promoted to tools/ at D-248.
 """

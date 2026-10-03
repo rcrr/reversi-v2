@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """measure_suite.py — the suite-level TIMING measurement tool.
 
-WHAT IT IS: a MEASUREMENT tool (tools.md §1) — it makes NO a/b/c
+WHAT IT IS: a MEASUREMENT tool (wsutils.md §1) — it makes NO a/b/c
 checks and no assertions. It
 runs the whole unit-test suite (test.reversi, a live regab DB is required
 for the full picture) with a custom TestResult and records
@@ -17,7 +17,7 @@ Run it whenever a timing question comes up (a slow-tier
 change, a new heavy test, the <10 s budget check).
 
 USAGE (from the workspace root):
-  .venv/bin/python tools/measure_suite.py
+  .venv/bin/python wsutils/measure_suite.py
 
 SAFETY: writes NOTHING in the tracked tree — the single artifact is
 build/tmp/test_durations.txt (the D-065 base): the per-test ms (sorted

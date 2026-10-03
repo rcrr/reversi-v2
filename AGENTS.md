@@ -39,8 +39,8 @@ read row 1 on top, column a on the left.
   run_utests.sh is the canonical runner
 - docs/ — code documentation, mirrors src/ (D-007) and test/ (D-273); docs/src/reversi/board.md, docs/test/reversi/…
 - probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
-- tools/ — the workspace MAINTENANCE tools (tracked; the notes/docs format re-wrapper, the mirror-doc auditor, the suite
-  counter) — NOT the package's src/reversi/tools/ (D-248)
+- wsutils/ — the workspace utilities (tracked; the notes/docs format re-wrapper, the mirror-doc auditor, the suite
+  counter; rules: notes/wsutils.md)
 - notes/ — collaboration only: rules.md (active legislation) · decisions.md (the open decision log; the closed volumes
   in hist_decisions/) · log.md (the open session journal; the archived volumes in hist_log/) · ideas.md (the open
   backlog) · ideas_closed.md (the closed ideas) · log_rules.md · decisions_rules.md · docs_rules.md ·

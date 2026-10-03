@@ -1317,3 +1317,17 @@ D-408 | 2026-10-01 | overview.md — two changes, per Roberto: (1) the Index ent
          minimizing the sum of squared residuals between the actual game values in the training set and those computed
          by the evaluation function, and the resulting weights combined with the selected feature set ultimately
          defining the evaluation function. VERIFICATION: the guard green on the default set.
+
+D-409 | 2026-10-01 | the workspace maintenance tools renamed tools/ -> wsutils/ (the workspace utilities), per Roberto —
+         the dangerous ambiguity with the package's src/reversi/tools/ subpackage resolved structurally: the two zones
+         can no longer be confused, and the disambiguation postilla retires from the living documents. RENAMED: the
+         directory (git mv), notes/tools.md -> notes/wsutils.md (H1 + content, the package-zone references kept), the
+         guard's file set, kind\_of and docstrings ('tools.md' -> 'wsutils.md'), the register (the R-200 guard path, the
+         two R-250 impact-set lines, R-340 retitled "wsutils/ holds the workspace utilities" with the now-redundant
+         package clause dropped and the probes clause kept), probe\_rules.md (2 lines), the overview Index entry, the
+         AGENTS.md Layout line (the D-248 postilla retired), and the tools' own usage/docstring path lines (the Origin
+         lines kept: "promoted to tools/ at D-248" is history). Untouched, by design: the package zone
+         src/reversi/tools/ + its mirrors, the historical notes (the closed decisions/journal volumes, the analyses),
+         and the register's package-subpackage line. RECON before the move: zero references from src/, test/, probes/ or
+         run\_utests.sh. VERIFICATION: the guard green on the default set (now under wsutils/) + a fast runner smoke
+         (the suite is structurally untouched, 968).

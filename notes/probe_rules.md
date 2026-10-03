@@ -22,10 +22,10 @@ A probe is NOT:
 - probes/ (workspace root) — tracked in git, one file per module: verify\_<module>.py. The hub probe
   verify\_logistic\_model.py additionally owns the pipeline-wide state (see §5).
 - scratch/ — gitignored DISCARD AREA for temporary session code. Nothing permanent ever lives there: a check that proves
-  worth keeping graduates to probes/ (or to a test), a MAINTENANCE tool to tools/, a finished investigation moves to
+  worth keeping graduates to probes/ (or to a test), a MAINTENANCE tool to wsutils/, a finished investigation moves to
   notes/analyses/. A probe or a tool found in scratch/ is a defect.
 - probe artifacts go under build/tmp and are removed afterwards, like test artifacts.
-- The MEASUREMENT tools in tools/ are outside the campaign sweep of §5.2 — the sweep is the verify\_\* probes. Their
+- The MEASUREMENT tools in wsutils/ are outside the campaign sweep of §5.2 — the sweep is the verify\_\* probes. Their
   artifacts go under build/tmp, removed afterwards.
 
 ## 3. Classification of every probe check (a / b / c)

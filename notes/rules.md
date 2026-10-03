@@ -85,7 +85,7 @@ Never record DSH/vLLM/harness infrastructure behavior in decisions.md or the jou
 **R-200 — The notes format guard**
 
 After every edit of a notes file, the notes format guard must pass GREEN before the commit (red = no commit):
-tools/notes\_lint.py, read-only, exit 0/1, default set the open decisions log + the register + the open journal (the
+wsutils/notes\_lint.py, read-only, exit 0/1, default set the open decisions log + the register + the open journal (the
 closed volumes on explicit request). It implements the grammatical checks of the notes formats (the decisions log per
 notes/decisions\_rules.md, the register per its Governance block, the journals per notes/log\_rules.md).
 
@@ -94,10 +94,10 @@ notes/decisions\_rules.md, the register per its Governance block, the journals p
 **R-250 — the impact set (documents per change class)**
 
 Every change touches a class of artifacts, and a closed set of notes documents enumerates or constrains that class: a
-new tool in tools/ -> notes/tools.md (the requirements + the inventory; the overview Source table tracks src/ only, the
+new tool in wsutils/ -> notes/wsutils.md (the requirements + the inventory; the overview Source table tracks src/ only,
 package src/reversi/tools/ subpackage being a different zone); a new probe in probes/ -> probe\_rules.md, if a rule
 changed (the probes carry no inventory); a new file in notes/ or docs/ -> the overview Index (plus the docs mirror, for
-source and test files); a notes-format grammar change -> the matching notes/\*\_rules.md (plus tools/notes\_format.py,
+source and test files); a notes-format grammar change -> the matching notes/\*\_rules.md (plus wsutils/notes\_format.py,
 if the tool implements that grammar); a rule promoted or retired -> the register; any milestone -> the decision log and
 the session journal. A change touching several classes carries the union of their document sets; a modification of an
 existing artifact carries the set of its class.
@@ -139,11 +139,11 @@ src/reversi/X.py → docs/src/reversi/X.md; the test files mirror the same way: 
 docs/test/reversi/X.md.
 
 
-**R-340 — tools/ holds the maintenance tools**
+**R-340 — wsutils/ holds the workspace utilities**
 
-The notes/docs format re-wrapper, the mirror-doc auditor, the suite counter. It is NOT the package's src/reversi/tools/
-(that one ships) and NOT probes/ (the per-module verification apparatus): a tool that makes no a/b/c check belongs here,
-outside the campaign sweep. The rules for creating, documenting and retiring one: notes/tools.md.
+The notes/docs format re-wrapper, the mirror-doc auditor, the suite counter. It is NOT probes/ (the per-module
+verification apparatus): a tool that makes no a/b/c check belongs here, outside the campaign sweep. The rules for
+creating, documenting and retiring one: notes/wsutils.md.
 
 
 **R-350 — Code-generated data that is expensive to replicate goes in build/ (gitignored)**

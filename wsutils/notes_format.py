@@ -4,7 +4,7 @@
 WHAT IT IS: a MAINTENANCE tool (not a check, not a probe). It rewrites a
 Markdown file to the house format: ~120 chars/line, code-span aware, with
 the D-209 mid-token rejoins and the D-237 block grammar. The workspace
-tools live here, in the ROOT tools/ — NOT in the package's
+tools live here, in the ROOT wsutils/ — NOT in the package's
 src/reversi/tools/ (that one ships with the library, D-133).
 
 THE BLOCK GRAMMAR: a block is a run of lines delimited by a blank line, a
@@ -31,8 +31,8 @@ and never ENDS with a token the rejoin rule would glue to the next line:
 the wrapper does not manufacture the breaks it heals.
 
 USAGE (from the workspace root):
-  .venv/bin/python tools/notes_format.py --check notes/overview.md ...
-  .venv/bin/python tools/notes_format.py --write notes/*.md
+  .venv/bin/python wsutils/notes_format.py --check notes/overview.md ...
+  .venv/bin/python wsutils/notes_format.py --write notes/*.md
 
 Origin: the D-237 reform (the notes/ tree) and D-238 (the docs/ mirrors);
 promoted to tools/ at D-248.

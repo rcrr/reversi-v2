@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tools/notes_lint.py — the format guard for the notes files (a CHECK tool, read-only).
+"""wsutils/notes_lint.py — the format guard for the notes files (a CHECK tool, read-only).
 
 WHAT IT IS: a CHECK tool — the notes format guard (R-200). It IMPLEMENTS THE GRAMMATICAL CHECKS of the notes
 formats, each per its rigid grammar:
@@ -9,7 +9,7 @@ formats, each per its rigid grammar:
   notes/log.md + notes/hist_log/log_NNN.md — the session-block grammar (notes/log_rules.md)
   notes/overview.md — the seven-section + table grammar (notes/overview_rules.md)
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
-  probe_rules.md, tools.md, naming.md) — the H1 + section + bullet grammar
+  probe_rules.md, wsutils.md, naming.md) — the H1 + section + bullet grammar
   notes/ideas.md + notes/ideas_closed.md — the D-235 entry grammar (I-NNN | status | ...)
 One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
 notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/hist_log/log_000..003) are linted
@@ -28,8 +28,8 @@ RSEQ (rules), DPH1 / DPSPACE / DPOINTER / DPSEQ (design), JH1 / JPOINTER / JSESS
 CANON (idempotence under notes_format --write) and EOF.
 
 USAGE (from the workspace root):
-  .venv/bin/python tools/notes_lint.py               # the default set: every current notes file
-  .venv/bin/python tools/notes_lint.py FILES...      # any notes files (the closed volumes included)
+  .venv/bin/python wsutils/notes_lint.py               # the default set: every current notes file
+  .venv/bin/python wsutils/notes_lint.py FILES...      # any notes files (the closed volumes included)
 
 SAFETY: writes nothing. A read-only per-file report on stdout; exit 0 (green) / 1 (red).
 
@@ -556,7 +556,7 @@ def lint_overview(path, lines, text):
 
 def lint_rulefile(path, lines, text):
     """The domain rule files (overview_rules.md, decisions_rules.md, log_rules.md,
-    docs_rules.md, probe_rules.md, tools.md, naming.md): an H1, the intro prose,
+    docs_rules.md, probe_rules.md, wsutils.md, naming.md): an H1, the intro prose,
     the '## Section' headers, the top-level '- ' bullets with their continuations
     at exactly 2 spaces (sub-bullets at 2, continuations at 4)."""
     v = []
@@ -661,7 +661,7 @@ def kind_of(name):
     if b == 'design_principles.md':
         return 'design'
     if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
-             'probe_rules.md', 'tools.md', 'naming.md'):
+             'probe_rules.md', 'wsutils.md', 'naming.md'):
         return 'rulefile'
     if b in ('ideas.md', 'ideas_closed.md'):
         return 'ideas'
@@ -675,7 +675,7 @@ def main(argv):
         # every CURRENT notes file (the closed volumes are linted on explicit request)
         files = [ROOT / f'notes/{n}' for n in
                  ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas_closed.md',
-                  'naming.md', 'design_principles.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
+                  'naming.md', 'design_principles.md', 'wsutils.md', 'overview_rules.md', 'decisions_rules.md',
                   'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
     linters = {'decisions': lint_decisions, 'rules': lint_rules, 'design': lint_design,
                'journal': lint_journal, 'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}

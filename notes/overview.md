@@ -201,7 +201,7 @@ Test data (test/reversi/data/):
 - notes/log\_rules.md — session-journal format rules
 - notes/docs\_rules.md — mirror-doc format rules
 - notes/overview\_rules.md — the format rules of notes/overview.md
-- notes/tools.md — the workspace-tool rules
+- notes/wsutils.md — the workspace-utils rules
 - notes/probe\_rules.md — verification-apparatus rules
 - notes/hist\_log/log\_000.md — session journal, volume 000 (sessions 1–24, closed 2026-09-01)
 - notes/hist\_log/log\_001.md — session journal, volume 001 (sessions 25–30, closed 2026-09-08)
