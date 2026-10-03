@@ -12,8 +12,9 @@ is never exposed, and a generator is neither saved nor re-seeded.
 - get_double_in_c0_c1() / _c0_o1() / _o0_o1() -> np.float64 — random floats in [0,1], [0,1), (0,1).
 - random_choice_from_finite_set(k) -> np.uint64 — a uniform integer in [0, k-1]; k == 1 returns 0 WITHOUT consuming a
   value; k == 0 raises.
-- shuffle_uint8 / shuffle / shuffle_double / shuffle_int (array, n) — in-place Fisher-Yates shuffles (n == 0 or 1
-  consumes nothing).
+- shuffle_uint8 / shuffle / shuffle_double / shuffle_int (array, n) — in-place Fisher-Yates shuffles, any shape
+  (the n first ELEMENTS in C-order element order — 1-D addressed directly, N-D through array.flat, no copy;
+  n == 0 or 1 consumes nothing).
 - random_string_az(n) -> str — n random lowercase letters.
 - extract_from_set64(set_arr) -> np.uint8 — pick + REMOVE a random bit from the bitmask in set_arr[0] (in place);
   returns the 0-based position.
@@ -42,12 +43,21 @@ is never exposed, and a generator is neither saved nor re-seeded.
 - The pick-from-set technique (D-221) lives ONCE: the numba kernel pick_one_from_set64 is the single source —
   choose_one_from_set64 and extract_from_set64 draw one value and delegate to it; the batch form
   (pick_one_from_set64_batch) is the same math over an (N,) set array fed by one get_uint64_batch pre-draw.
+- The shuffle engine (D-421) is shared ONCE: the private _shuffle_slots is the single Fisher-Yates source of the
+  four methods — the 1-D branch addresses the elements directly (a strided 1-D view is shuffled in place, no
+  ravel, no copy), the N-D branch walks the C-order element sequence through array.flat (no copy; F-order and
+  strided views safe); the draw contract is identical in both branches (the n - 1 random_choice_from_finite_set
+  draws, in order; n <= 1 consumes nothing).
 
 ## Verified invariants
 - get_uint64_batch is bit-identical to get_uint64 called n times (they share the one kernel) —
   test_prng::TestPrng::test_get_uint64_batch_matches_scalar.
 - random_choice_from_finite_set(1) consumes NOTHING (the next draw equals a fresh instance's first draw); the n <= 1
   shuffles consume nothing too — test_prng::TestPrng::test_random_choice_contracts / test_shuffle_contracts.
+- The N-D C-order parity: an N-D shuffle on the same data with the same seed equals the 1-D shuffle of its C-order
+  ravel (the draw sequence is shape-agnostic) — test_prng::TestPrng::test_shuffle_nd_corder_parity /
+  test_shuffle_nd_all_methods_parity; the strided views (1-D and N-D) are shuffled in place without a ravel copy —
+  test_prng::TestPrng::test_shuffle_strided_views.
 - extract_from_set64 clears the picked bit from the ORIGINAL set (the skipped-lowest bits survive); the empty set raises
   — test_prng::TestPrng::test_extract_from_set64.
 - choose_one_from_set64 NEVER mutates the set (no removal) and consumes exactly one draw per non-empty pick —

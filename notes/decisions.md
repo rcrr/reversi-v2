@@ -1492,3 +1492,20 @@ D-420 | 2026-10-03 | Governance — the pre-commit gate (R-210): every checkin n
          tested on three scenarios (missing-file red, a precise count-mismatch red, green on the final staged state);
          the live end-to-end fire test is this very checkin (the hook output in the commit); notes\_lint green on the
          notes set; the suite via the wrapper 1042/0/24.
+
+D-421 | 2026-10-03 | tools/prng.py — the shuffle family (shuffle\_uint8 / shuffle / shuffle\_double / shuffle\_int) goes
+         N-D: the D-417 follow-up candidate (the "shuffle 1-D contract", left as-is at the campaign close). The generic
+         shuffle's explicit 1-D guard is out; all four methods now shuffle the n first ELEMENTS in C-order element
+         order, in place, for any shape: the 1-D branch addresses the elements directly (a strided 1-D view is shuffled
+         in place — no ravel, no copy, the D-417 regression class), the N-D branch walks the C-order element sequence
+         through array.flat (no copy; F-order and strided views safe). The engine lives ONCE in the private
+         \_shuffle\_slots (the module's single-source pattern, after the pick-from-set technique); the four public
+         methods keep their dtype checks and error messages. The draw contract is identical in both branches (the n - 1
+         random\_choice\_from\_finite\_set draws, in order; n <= 1 consumes nothing), so an N-D call and a 1-D call on
+         its C-order ravel with the same seed agree — the C-order parity, now a pinned identity (no new magic numbers).
+         The typed methods' former silent N-D row-shuffle (integer indexing over the first axis) is replaced by the
+         documented C-order element semantics. The bit-exact golden is untouched by construction (its 20 sections are
+         stream sequences; none passes through the shuffles; the 1-D path is byte-identical to the pre-change code).
+         VERIFICATION: the new tests (2-D/3-D/F-order C-order parity for all four methods, the permutation +
+         n-in-elements + no-consume contracts, the strided-view no-copy pins) green — test\_prng 22 -> 26; the suite via
+         the wrapper 1046/0/24; the overview cell + the gate green at the checkin.

@@ -48,7 +48,8 @@ API (the MT19937 class, the sole STREAM interface):
                                      random floats in [0,1], [0,1), (0,1).
   random_choice_from_finite_set(k)   a uniform integer in [0, k-1].
   shuffle_uint8 / shuffle /
-  shuffle_double / shuffle_int       in-place Fisher-Yates shuffles.
+  shuffle_double / shuffle_int       in-place Fisher-Yates shuffles
+                                      (any shape, C-order element order).
   random_string_az(n)                n random lowercase letters.
   extract_from_set64(set_arr)        pick + remove a random bit (in place).
   choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
@@ -181,63 +182,71 @@ class MT19937:
 
     # -- the shuffles (Fisher-Yates, in place) --------------------------
 
+    def _shuffle_slots(self, array: np.ndarray, n: int) -> None:
+        """
+        The shared Fisher-Yates engine of the four shuffle methods: the
+        n first ELEMENTS of array, in place, in C-order element order
+        for any shape. The 1-D branch addresses the elements directly
+        (a strided 1-D view is shuffled in place — no ravel, no copy);
+        the N-D branch walks the C-order element sequence through
+        array.flat (no copy; F-order and strided views safe). The draw
+        contract is identical in both branches: the n - 1
+        random_choice_from_finite_set draws, in order (n <= 1 consumes
+        nothing).
+        """
+        if n > 1:
+            if array.ndim == 1:
+                for i in range(n - 1, 0, -1):
+                    j = int(self.random_choice_from_finite_set(i + 1))
+                    t = array[j]
+                    array[j] = array[i]
+                    array[i] = t
+            else:
+                flat = array.flat
+                for i in range(n - 1, 0, -1):
+                    j = int(self.random_choice_from_finite_set(i + 1))
+                    t = flat[j]
+                    flat[j] = flat[i]
+                    flat[i] = t
+
     def shuffle_uint8(self, array: np.ndarray, n: int) -> None:
         """
         Arranges in place the n first elements of a uint8 array in
-        random order (Fisher-Yates). n == 0 or n == 1 consumes no
-        random value.
+        random order (Fisher-Yates) — any shape, C-order element
+        order. n == 0 or n == 1 consumes no random value.
         """
         if array.dtype != np.uint8:
             raise ValueError("shuffle_uint8: the array must be uint8")
-        if n > 1:
-            for i in range(n - 1, 0, -1):
-                j = int(self.random_choice_from_finite_set(i + 1))
-                t = array[j]
-                array[j] = array[i]
-                array[i] = t
+        self._shuffle_slots(array, n)
 
     def shuffle(self, array: np.ndarray, n: int) -> None:
         """
-        The generic shuffle: any 1-D numpy array, in place
-        (Fisher-Yates). n == 0 or n == 1 consumes no random value.
+        The generic shuffle: any numpy array (any dtype, any shape), in
+        place (Fisher-Yates), the n first elements in C-order element
+        order. n == 0 or n == 1 consumes no random value.
         """
-        if array.ndim != 1:
-            raise ValueError("shuffle: the array must be 1-D")
-        if n > 1:
-            for i in range(n - 1, 0, -1):
-                j = int(self.random_choice_from_finite_set(i + 1))
-                t = array[j]
-                array[j] = array[i]
-                array[i] = t
+        self._shuffle_slots(array, n)
 
     def shuffle_double(self, array: np.ndarray, n: int) -> None:
         """
-        The float64 array shuffle, in place (Fisher-Yates). n == 0
-        or n == 1 consumes no random value.
+        The float64 array shuffle, in place (Fisher-Yates) — any
+        shape, C-order element order. n == 0 or n == 1 consumes no
+        random value.
         """
         if array.dtype != np.float64:
             raise ValueError("shuffle_double: the array must be float64")
-        if n > 1:
-            for i in range(n - 1, 0, -1):
-                j = int(self.random_choice_from_finite_set(i + 1))
-                t = array[j]
-                array[j] = array[i]
-                array[i] = t
+        self._shuffle_slots(array, n)
 
     def shuffle_int(self, array: np.ndarray, n: int) -> None:
         """
         The integer array shuffle, in place (Fisher-Yates; accepts
         any integer dtype — the shuffle is a dtype-agnostic slot
-        swap). n == 0 or n == 1 consumes no random value.
+        swap), any shape, C-order element order. n == 0 or n == 1
+        consumes no random value.
         """
         if not np.issubdtype(array.dtype, np.integer):
             raise ValueError("shuffle_int: the array must be an integer")
-        if n > 1:
-            for i in range(n - 1, 0, -1):
-                j = int(self.random_choice_from_finite_set(i + 1))
-                t = array[j]
-                array[j] = array[i]
-                array[i] = t
+        self._shuffle_slots(array, n)
 
     # -- the string + the set extraction --------------------------------
 

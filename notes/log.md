@@ -1608,3 +1608,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   pesante) — il gap è chiuso meccanicamente da R-210, e la clausola R-250 che avevo proposto è assorbita dal gate
   (non aggiunta). Restano i candidati follow-up di D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle
   in tools/prng.py).
+
+## 2026-10-03 — session 94 (D-421 — la famiglia shuffle va N-D: C-order element order)
+
+- Session 94 (Roberto): l'ultimo candidato follow-up di D-417 — il contratto 1-D dello shuffle in tools/prng.py.
+  Analisi presentata: il guard esplicito c'è solo sul generico, i tre typed fanno un row-shuffle silenzioso su
+  N-D, nessun consumer in repo, il golden bit-exact non tocca gli shuffle; scelta dell'opzione A (N-D C-order per
+  tutti e 4) in una sola azione.
+- D-421: prng.py — il guard 1-D del generico esce; i 4 shuffle mescolano in-place i primi n ELEMENTI in ordine
+  C-order per ogni forma: il ramo 1-D fa addressing diretto (no ravel, no copy — la classe di regressione di
+  D-417), il ramo N-D passa via array.flat (no copy, F-order/strided sicure). Il motore vive ONCE nel privato
+  \_shuffle\_slots (il pattern single-source del modulo, sulla falsariga della tecnica pick-from-set); i 4 metodi
+  pubblici tengono i loro dtype check e i messaggi d'errore. Il contratto dei draw è identico nei due rami
+  (n - 1 draw, n <= 1 consuma zero): la parity C-order (N-D == 1-D sul ravel, stesso seed) è ora un'identità
+  pinned, senza nuovi numeri magici. Il row-shuffle silenzioso dei tre typed è sostituito dalla semantica C-order
+  documentata; il golden resta intatto per costruzione (le 20 sezioni sono sequenze di stream, il path 1-D è
+  byte-identico al codice pre-cambio).
+- VERIFICATION: i test nuovi (parity C-order 2-D/3-D/F-order per i 4 metodi, permutazione, n-in-elementi, il
+  no-consumo per n <= 1, i pin no-copy delle strided view) verdi — test\_prng 22 → 26; suite via wrapper
+  1046/0/24 GREEN; notes\_lint verde; il gate verde al checkin.
+- Next: l'ultimo candidato follow-up di D-417 — l'EF N-D in lm/client.py (il suo sum axis).

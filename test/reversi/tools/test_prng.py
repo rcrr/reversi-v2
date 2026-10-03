@@ -178,6 +178,94 @@ class TestPrng(unittest.TestCase):
         a.shuffle_int(i, 16)
         self.assertEqual(sorted(i.tolist()), i0.tolist())
 
+    def test_shuffle_nd_corder_parity(self):
+        # The N-D C-order parity (D-421): shuffling an N-D array in
+        # place (the n first elements, C-order) with seed S equals
+        # shuffling the 1-D C-order ravel with the same seed S — the
+        # draw sequence is shape-agnostic.
+        seed = 42
+        for shape in ((4, 6), (2, 3, 4)):
+            base = np.arange(24, dtype=np.uint8).reshape(shape)
+            nd = base.copy()
+            MT19937(seed).shuffle_uint8(nd, 24)
+            flat1 = base.copy().ravel()
+            MT19937(seed).shuffle_uint8(flat1, 24)
+            self.assertEqual(nd.ravel().tolist(), flat1.tolist())
+        # F-order: the C-order element sequence is addressed through
+        # .flat (no copy) — the parity target is still the C-order
+        # ravel.
+        fbase = np.arange(24, dtype=np.uint8).reshape(4, 6, order='F')
+        fnd = fbase.copy()
+        MT19937(seed).shuffle_uint8(fnd, 24)
+        flat1 = fbase.ravel()
+        MT19937(seed).shuffle_uint8(flat1, 24)
+        self.assertEqual(fnd.ravel().tolist(), flat1.tolist())
+
+    def test_shuffle_nd_all_methods_parity(self):
+        # The C-order parity for the four methods (same seed, same
+        # data): the N-D result equals the 1-D C-order ravel result.
+        cases = (('shuffle_uint8', np.uint8),
+                 ('shuffle_double', np.float64),
+                 ('shuffle_int', np.int64),
+                 ('shuffle', np.float64))
+        for meth, dt in cases:
+            base = np.arange(12, dtype=dt).reshape(3, 4)
+            nd = base.copy()
+            g = MT19937(55)
+            getattr(g, meth)(nd, 12)
+            flat1 = base.copy().ravel()
+            h = MT19937(55)
+            getattr(h, meth)(flat1, 12)
+            self.assertEqual(nd.ravel().tolist(), flat1.tolist())
+
+    def test_shuffle_nd_permutation_and_element_n(self):
+        # A shuffled N-D array is a permutation of its elements.
+        base = np.arange(12, dtype=np.float64).reshape(3, 4)
+        shuffled = base.copy()
+        MT19937(7).shuffle_double(shuffled, 12)
+        self.assertEqual(sorted(shuffled.ravel().tolist()),
+                         base.ravel().tolist())
+        # n counts ELEMENTS in C-order: n = 4 touches only the first
+        # row of a (3, 4).
+        a = base.copy()
+        MT19937(7).shuffle_double(a, 4)
+        self.assertEqual(a[1:].tolist(), base[1:].tolist())
+        self.assertEqual(sorted(a[0].tolist()), base[0].tolist())
+        # n <= 1 on N-D consumes nothing.
+        g = MT19937(7)
+        one = base.copy()
+        g.shuffle_double(one, 1)
+        h = MT19937(7)
+        self.assertEqual(g.get_uint64(), h.get_uint64())
+        # The generic shuffle works on any shape (the D-417
+        # follow-up).
+        arr2 = np.array([[3.0, 1.0], [2.0, 4.0]])
+        MT19937(13).shuffle(arr2, 4)
+        self.assertEqual(sorted(arr2.ravel().tolist()),
+                         [1.0, 2.0, 3.0, 4.0])
+
+    def test_shuffle_strided_views(self):
+        # A strided 1-D view is shuffled in place (no ravel copy — the
+        # D-417 regression class): the unviewed base slots survive.
+        base = np.arange(16, dtype=np.uint8)
+        even = base[::2]
+        even0 = even.copy()
+        MT19937(11).shuffle_uint8(even, 8)
+        self.assertEqual(sorted(even.tolist()), even0.tolist())
+        expected = np.arange(16, dtype=np.uint8)
+        expected[::2] = even
+        self.assertEqual(base.tolist(), expected.tolist())
+        # A strided N-D view: the C-order element sequence is
+        # shuffled, the rest of the base survives.
+        big = np.arange(36, dtype=np.int64).reshape(6, 6)
+        sub = big[::2, ::2]
+        sub0 = sub.copy()
+        MT19937(12).shuffle_int(sub, 9)
+        self.assertEqual(sorted(sub.ravel().tolist()), sub0.ravel().tolist())
+        expected = np.arange(36, dtype=np.int64).reshape(6, 6)
+        expected[::2, ::2] = sub
+        self.assertEqual(big.tolist(), expected.tolist())
+
     def test_random_string_az(self):
         g = MT19937(5)
         s = g.random_string_az(100)
