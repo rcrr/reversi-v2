@@ -3507,6 +3507,57 @@ class TestPositionHash(unittest.TestCase):
         self.assertEqual(computed.shape, (0,))
         self.assertEqual(computed.dtype, np.uint64)
 
+    def test_2d_position_array_hash(self):
+        """A (2, 2) PositionArray hashes to a (2, 2) array, element-wise as the scalar calls."""
+        movers = np.array([[0x1F3D5B7902468ACE, 0x00FF00FF00FF00FF],
+                           [0xFFFFFFFFFFFFFFFF, 0x0000000000000000]], dtype=np.uint64)
+        opponents = np.array([[0x2E4C6A8013579BDF, 0xAA0000550000AA55],
+                              [0x0000000000000000, 0xFFFFFFFFFFFFFFFF]], dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        computed = position_hash(positions)
+        self.assertEqual(computed.shape, (2, 2))
+        self.assertEqual(computed.dtype, np.uint64)
+        nptest.assert_array_equal(computed, np.array([
+            [0x28923589BCAB4148, 0xCE27EC93BF035599],
+            [0x64AB6CEBF8DA2CE1, 0xC4B3FF52E56B7344],
+        ], dtype=np.uint64))
+
+    def test_3d_position_array_hash(self):
+        """A (2, 1, 2) PositionArray hashes to a (2, 1, 2) array."""
+        movers = np.array([[[0x1F3D5B7902468ACE, 0x00FF00FF00FF00FF]],
+                           [[0xFFFFFFFFFFFFFFFF, 0x0000000000000000]]], dtype=np.uint64)
+        opponents = np.array([[[0x2E4C6A8013579BDF, 0xAA0000550000AA55]],
+                              [[0x0000000000000000, 0xFFFFFFFFFFFFFFFF]]], dtype=np.uint64)
+        positions = make_position(movers, opponents)
+        computed = position_hash(positions)
+        self.assertEqual(computed.shape, (2, 1, 2))
+        nptest.assert_array_equal(computed.ravel(), np.array([
+            0x28923589BCAB4148, 0xCE27EC93BF035599,
+            0x64AB6CEBF8DA2CE1, 0xC4B3FF52E56B7344,
+        ], dtype=np.uint64))
+
+    def test_noncontiguous_2d_position_array_hash(self):
+        """An F-order (2, 2) PositionArray hashes to the same (2, 2) values."""
+        movers = np.array([[0x1F3D5B7902468ACE, 0x00FF00FF00FF00FF],
+                           [0xFFFFFFFFFFFFFFFF, 0x0000000000000000]], dtype=np.uint64)
+        opponents = np.array([[0x2E4C6A8013579BDF, 0xAA0000550000AA55],
+                              [0x0000000000000000, 0xFFFFFFFFFFFFFFFF]], dtype=np.uint64)
+        positions = np.asfortranarray(make_position(movers, opponents))
+        self.assertFalse(positions.flags['C_CONTIGUOUS'])
+        computed = position_hash(positions)
+        self.assertEqual(computed.shape, (2, 2))
+        nptest.assert_array_equal(computed, np.array([
+            [0x28923589BCAB4148, 0xCE27EC93BF035599],
+            [0x64AB6CEBF8DA2CE1, 0xC4B3FF52E56B7344],
+        ], dtype=np.uint64))
+
+    def test_empty_2d_position_array(self):
+        """An empty (0, 2) PositionArray hashes to an empty (0, 2) array."""
+        positions = np.zeros((0, 2), dtype=Position)
+        computed = position_hash(positions)
+        self.assertEqual(computed.shape, (0, 2))
+        self.assertEqual(computed.dtype, np.uint64)
+
     def test_wrong_input_rejected(self):
         # A (n, 3) uint64 array is not a Position (the validator raises).
         with self.assertRaises(ValueError):

@@ -412,14 +412,17 @@ def bitboard_transformations(bb: Bitboard | BitboardArray) -> BitboardArray:
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
 
-    # The 1-D kernel over the flattened C-order view; the output is
-    # reshaped back to the input shape with the trailing axis of 8.
-    ts = _numba_bitboard_transformations(np.atleast_1d(bb).ravel())
-
-    # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
+        # The 1-D kernel over the one-element wrapper, flattened to (8,).
+        ts = _numba_bitboard_transformations(np.atleast_1d(bb))
         return ts.flatten().view(Bitboard)
-
+    if bb.ndim == 1:
+        # The 1-D fast path: the (possibly strided) array goes straight
+        # to the kernel, no flatten copy.
+        return _numba_bitboard_transformations(bb).view(Bitboard)
+    # The N-D contract: the 1-D kernel over the flattened C-order view,
+    # the output reshaped to the input shape with the trailing axis of 8.
+    ts = _numba_bitboard_transformations(bb.ravel())
     return ts.reshape(bb.shape + (8,)).view(Bitboard)
 
 @nb.njit(parallel=True, cache=True)
@@ -469,14 +472,17 @@ def bitboard_anti_transformations(bb: Bitboard | BitboardArray) -> BitboardArray
     # Standardize input by checking if it came in as a scalar or an array
     is_scalar = not isinstance(bb, np.ndarray)
 
-    # The 1-D kernel over the flattened C-order view; the output is
-    # reshaped back to the input shape with the trailing axis of 8.
-    ts = _numba_bitboard_anti_transformations(np.atleast_1d(bb).ravel())
-
-    # Adapt output representation to match original scalar or matrix input context
     if is_scalar:
+        # The 1-D kernel over the one-element wrapper, flattened to (8,).
+        ts = _numba_bitboard_anti_transformations(np.atleast_1d(bb))
         return ts.flatten().view(Bitboard)
-
+    if bb.ndim == 1:
+        # The 1-D fast path: the (possibly strided) array goes straight
+        # to the kernel, no flatten copy.
+        return _numba_bitboard_anti_transformations(bb).view(Bitboard)
+    # The N-D contract: the 1-D kernel over the flattened C-order view,
+    # the output reshaped to the input shape with the trailing axis of 8.
+    ts = _numba_bitboard_anti_transformations(bb.ravel())
     return ts.reshape(bb.shape + (8,)).view(Bitboard)
 
 @nb.njit(parallel=True, cache=True)
@@ -525,8 +531,12 @@ def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        # The 1-D kernel over the flattened C-order view; the output is
-        # reshaped back to the input shape (the N-D contract).
+        if bb.ndim == 1:
+            # The 1-D fast path: the (possibly strided) array goes
+            # straight to the kernel, no flatten copy.
+            return _numba_fa1h8_array_impl(bb)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # view, the output reshaped back to the input shape.
         return _numba_fa1h8_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fa1h8_scalar_impl(bb))
@@ -582,8 +592,12 @@ def bitboard_fh1a8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        # The 1-D kernel over the flattened C-order view; the output is
-        # reshaped back to the input shape (the N-D contract).
+        if bb.ndim == 1:
+            # The 1-D fast path: the (possibly strided) array goes
+            # straight to the kernel, no flatten copy.
+            return _numba_fh1a8_array_impl(bb)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # view, the output reshaped back to the input shape.
         return _numba_fh1a8_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fh1a8_scalar_impl(bb))
@@ -639,8 +653,12 @@ def bitboard_fhori(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        # The 1-D kernel over the flattened C-order view; the output is
-        # reshaped back to the input shape (the N-D contract).
+        if bb.ndim == 1:
+            # The 1-D fast path: the (possibly strided) array goes
+            # straight to the kernel, no flatten copy.
+            return _numba_fhori_array_impl(bb)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # view, the output reshaped back to the input shape.
         return _numba_fhori_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fhori_scalar_impl(bb))
@@ -703,8 +721,12 @@ def bitboard_fvert(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        # The 1-D kernel over the flattened C-order view; the output is
-        # reshaped back to the input shape (the N-D contract).
+        if bb.ndim == 1:
+            # The 1-D fast path: the (possibly strided) array goes
+            # straight to the kernel, no flatten copy.
+            return _numba_fvert_array_impl(bb)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # view, the output reshaped back to the input shape.
         return _numba_fvert_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fvert_scalar_impl(bb))
@@ -1158,8 +1180,12 @@ def legal_moves(mover: Bitboard | BitboardArray,
         if mover.shape != opponent.shape:
             raise ValueError("The shapes of mover and opponent arrays must be the same.")
 
-        # The 1-D kernel over the flattened C-order views; the output
-        # is reshaped back to the input shape (the N-D contract).
+        if mover.ndim == 1:
+            # The 1-D fast path: the (possibly strided) arrays go
+            # straight to the kernel, no flatten copy.
+            return _vectorized_legal_moves(mover, opponent)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # views, the output reshaped back to the input shape.
         return _vectorized_legal_moves(mover.ravel(), opponent.ravel()).reshape(mover.shape)
     else:
         raise TypeError("Inputs must be either both Bitboard or both npt.NDArray[Bitboard].")
@@ -1655,10 +1681,13 @@ def position_hash(p: PositionField | PositionArray) -> Bitboard | BitboardArray:
     zobrist_flip_bitstrings entry).
     """
     if isinstance(p, np.ndarray):
-        # D-213: the standard 1-D guard (house pattern, as position_flips)
-        if p.ndim != 1:
-            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
-        return _vectorized_position_hash(p['mover'], p['opponent'])
+        if p.ndim == 1:
+            # The 1-D fast path: the (possibly strided) field views go
+            # straight to the kernel, no flatten copy.
+            return _vectorized_position_hash(p['mover'], p['opponent'])
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # field views, the output reshaped back to the input shape.
+        return _vectorized_position_hash(p['mover'].ravel(), p['opponent'].ravel()).reshape(p.shape)
     if isinstance(p, np.void):
         # The njit primitive returns a Python int at the Python boundary
         # (numba scalar-return idiom) — re-wrap to Bitboard.

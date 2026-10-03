@@ -69,7 +69,7 @@ stated.
 | Position | `position_has_to_pass(p) -> bool` | the mover has no legal move |
 | Position | `position_is_game_over(p) -> bool` | no legal move for the mover and, after the pass, none for the opponent either |
 | Position | `position_is_move_legal(p, move: Move) -> bool` | a legal square, or the pass only when the legal set is empty; > 64 → False |
-| Position | `position_hash(p) -> Bitboard \| BitboardArray` | the 64-bit Zobrist hash: mover discs → the first 64 legacy blacks slots, opponent → the legacy whites slots, no complement — exactly the legacy `game_position_x_hash` of (blacks = mover, whites = opponent, player = BLACK); a legacy WHITE position = the one's complement (the C `if (p) hash = ~hash`); pure function of the pair (no legality validation); scalar + 1-D (+ the (N,2) coercion), empty array OK |
+| Position | `position_hash(p) -> Bitboard \| BitboardArray` | the 64-bit Zobrist hash: mover discs → the first 64 legacy blacks slots, opponent → the legacy whites slots, no complement — exactly the legacy `game_position_x_hash` of (blacks = mover, whites = opponent, player = BLACK); a legacy WHITE position = the one's complement (the C `if (p) hash = ~hash`); pure function of the pair (no legality validation); scalar + any-shape array (+ the (N,2) coercion), empty array OK |
 | Position | `position_ro000` / `position_ro090` / `position_ro180` / `position_ro270` / `position_fvert` / `position_fh1a8` / `position_fhori` / `position_fa1h8` | the 8 per-field D8 transforms; `position_ro000` returns a copy |
 | Position | `position_transformations(p) -> PositionArray` | all 8, same slot order as the bitboards |
 | Position | `position_anti_transformations(p) -> PositionArray` | all 8 inverses (slots 1/3 swapped) |
