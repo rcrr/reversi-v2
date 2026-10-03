@@ -1365,3 +1365,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   configuration index (the Pattern section below).".
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-406).
+- Session 91 (Roberto, ventottesima richiesta): "mmmmm una cosetta ancora Nia. Hai scritto 'the base-3 configuration
+  index (the Pattern section below).' Ma la definizione di Index sta in Pattern perche' il modulo pattern e' nato
+  prima di mobility e feature. E' una lunga storia, che al momento non ha valore ... In realta' il concetto di Index
+  e' trasversale a tutte le Feature. Quindi io scriverei: 'used to identify feature configurations (base-3 in
+  particular for patterns).' Poi vista la crescita di naming.md 'fuori dal dominio specifico della board' direi di
+  fare una seconda modifica: 'This file is the single source of truth for the domain vocabulary in this workspace
+  ...' Commenti? Se sei d'accordo procedi!"
+- IMPLEMENTATION (D-407): naming.md — bullet Index riformulato: "used to identify feature configurations (base-3 in
+  particular for patterns)" (il concetto e' trasversale a tutte le feature, non legato alla sezione Pattern —
+  verificato: mobility.py e feature.py importano Index/IndexArray); intro: "board vocabulary" → "the domain
+  vocabulary" (il file e' cresciuto oltre il dominio board, l'H1 gia' diceva "domain naming convention").
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-407).

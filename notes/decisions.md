@@ -1298,3 +1298,13 @@ D-406 | 2026-10-01 | naming.md — the Index promoted from the inline Pattern bu
          style (heading + one bullet, no blank between them) — "Index = a numpy uint32 alias — the base-3 configuration
          index (the Pattern section below).", the forward reference mirroring the Position bullet's "the numpy.uint64
          alias above" backward one. VERIFICATION: the guard green on the default set.
+
+D-407 | 2026-10-01 | naming.md — two amendments, per Roberto: (1) the Index bullet reformulated — the "the base-3
+         configuration index (the Pattern section below)" wording implied the definition lives in the Pattern section,
+         but the concept is cross-cutting across all the feature sources (his "E' una lunga storia, che al momento non
+         ha valore": pattern predates mobility and feature, hence the historical placement; verified: mobility.py and
+         feature.py both import Index / IndexArray and expose compute\_indexes -> IndexArray) — now "used to identify
+         feature configurations (base-3 in particular for patterns)."; (2) the file intro broadened from "board
+         vocabulary" to "the domain vocabulary" — naming.md has grown beyond the board domain (Features, Mobility,
+         Pattern, Index), aligning the intro with the H1 that already says "Reversi domain naming convention".
+         VERIFICATION: the guard green on the default set.

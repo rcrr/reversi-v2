@@ -1,6 +1,6 @@
 # notes/naming.md — Reversi domain naming convention
 
-This file is the single source of truth for board vocabulary in this workspace — code, docs, notes, and replies all
+This file is the single source of truth for the domain vocabulary in this workspace — code, docs, notes, and replies all
 follow it.
 
 ## Board vocabulary — this is Reversi, not chess
@@ -24,7 +24,7 @@ follow it.
   numpy.uint64 alias above).
 
 ## Index
-- `Index` = a numpy uint32 alias — the base-3 configuration index (the Pattern section below).
+- `Index` = a numpy uint32 alias — used to identify feature configurations (base-3 in particular for patterns).
 
 ## D8 — the eight board symmetries
 
