@@ -1448,3 +1448,15 @@ D-417 | 2026-10-03 | Campaign — the 1-D shape guards out: the dual scalar/arra
          make\_move/PatternSet/MobilitySet/FeatureSet sat below the pre-campaign medians under a machine load of ~6, and
          the back-to-back baseline-tree vs HEAD A/B under the same load confirmed no code effect — environmental
          variance, not a regression); the format guard green on the notes set.
+
+D-418 | 2026-10-04 | Governance — the boot protocol after a compaction: the three context files (notes/overview.md,
+         notes/rules.md, notes/naming.md) are re-read, in order, after EVERY compaction of the context, exactly as at
+         the session start — the AGENTS.md "Your context" heading now prescribes both moments. The user's observation
+         after the D-417 close: the compaction had condensed the legislation into a working summary, and the notes wave
+         (executed from the post-compaction context) ran the summary's deliverable list as if it were the specification
+         — the overview update stopped at the retired next-step line, and the stale suite counts were only found on user
+         audit. A compaction does not restart a session, so the old trigger ("the first message of a session") never
+         fired again; the reading is now mandatory at both moments, whatever the session state. Cost profile: the
+         one-off ~3.7k of the mandatory context, then cache — the same price as the session-start reading, paid only
+         when a compaction actually happens. VERIFICATION: the AGENTS.md change is the heading line (the rest of the
+         constitution untouched); the format guard green on the notes set.
