@@ -1520,3 +1520,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   rules)"; i 2 mirror di test → R-100).
 - VERIFICATION: guard VERDE sul set default; il runtime ha hot-reloadato la nuova AGENTS.md come baseline root.
 - COMMIT: un solo commit (D-415). Sessione 91 chiusa — si apre una nuova sessione a provare il nuovo boot.
+- Sessione 91 (Roberto, trentottesima richiesta): "Una sessione nuova ho cominciato. Penso tu sia in grado di
+  leggerne il LOG ... solo un turno. Leggilo attentamente e dimmi che conclusioni ne trai. Grazie!"
+- ANALISI (mia, del log della nuova sessione): il boot B+ funziona — l'agente conosce il protocollo (lo cita nel
+  reasoning: "the rules say to read all three before work"), tiene identita' e lingua, e dalla sola iniezione di
+  380 token ha il modello completo (ha elencato i next steps veri dall'overview: continuita' via entry point
+  confermata, D-410). Unico bordo emerso: "before any work" interpretato come "prima di un task" (il saluto non
+  conta come lavoro) — letta solo overview (1/3); al probe di Roberto ("Non hai letto rules e naming? NON
+  leggerli, rispondi solo") rispose onestamente ("No, non li ho letti"), cito' la regola e si e' impegnato a
+  leggere i 3 a inizio task. Token empirici: baseline ~8.8k (6.4k cache), la lettura dell'overview +3.8k, rules + naming
+  would add ~3k; poi tutto in cache. La mia view: status quo difendibile (costo basso, contesto al primo task,
+  onestà totale); se si vuole zero ambiguita', il single-word change e' "before answering the first message of a
+  session" (variante eager, ~3.7k anche nelle sessioni di solo saluto). In attesa della call di Roberto.
