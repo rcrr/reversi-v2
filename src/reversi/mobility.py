@@ -227,13 +227,12 @@ class MobilitySet:
         Label columns with ms.names to stay consistent.
 
         Args:
-            positions (PositionArray): the input positions, shape (N,).
+            positions (PositionArray): the input positions, of any shape.
 
         Returns:
-            IndexArray: the (N, L) uint32 index matrix.
+            IndexArray: the index matrix of shape positions.shape + (L,).
         """
 
-        N = positions.shape[0]
         L = len(self.mobilities)
 
         m = positions['mover']
@@ -248,7 +247,14 @@ class MobilitySet:
         shifts = np.bitwise_count(amasks)
 
         # Call the JIT-compiled function
-        return _numba_compute_indexes_kernel(lms, alms, masks, amasks, shifts)
+        if lms.ndim == 1:
+            # The 1-D fast path: the legal-move arrays go straight to
+            # the kernel.
+            return _numba_compute_indexes_kernel(lms, alms, masks, amasks, shifts)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # arrays, the output reshaped to the positions shape + (L,).
+        return _numba_compute_indexes_kernel(
+            lms.ravel(), alms.ravel(), masks, amasks, shifts).reshape(positions.shape + (L,))
 
 #: End of MobilitySet class.
 

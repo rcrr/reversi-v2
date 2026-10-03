@@ -304,6 +304,72 @@ class TestMobilitySet(unittest.TestCase):
                                    [63, 0, 63]], dtype=Index)
         nptest.assert_array_equal(indexes, expected_array)
 
+    def test_compute_indexes_2d_positions(self):
+        """A (1, 2) position batch gives a (1, 2, L) index matrix, element-wise as the 1-D call."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent0 = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        mover1 = Bitboard(0x0000000000000010)
+        opponent1 = Bitboard(0x00000000000000E0)
+
+        positions = make_position([mover0, mover1],
+                                  [opponent0, opponent1]).reshape(1, 2)
+        indexes = ms.compute_indexes(positions)
+
+        self.assertEqual(indexes.shape, (1, 2, 3))
+        nptest.assert_array_equal(indexes, np.array([
+            [[53, 13, 66],
+             [63, 0, 63]]], dtype=Index))
+
+    def test_compute_indexes_3d_positions(self):
+        """A (2, 1, 2) position batch gives a (2, 1, 2, L) index matrix, element-wise as the 1-D call."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent0 = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        mover1 = Bitboard(0x0000000000000010)
+        opponent1 = Bitboard(0x00000000000000E0)
+
+        positions = make_position([mover0, mover1, mover0, mover1],
+                                  [opponent0, opponent1, opponent0, opponent1]
+                                  ).reshape(2, 1, 2)
+        indexes = ms.compute_indexes(positions)
+
+        self.assertEqual(indexes.shape, (2, 1, 2, 3))
+        nptest.assert_array_equal(indexes, np.array([
+            [[[53, 13, 66],
+              [63, 0, 63]]],
+            [[[53, 13, 66],
+              [63, 0, 63]]]], dtype=Index))
+
+    def test_compute_indexes_noncontiguous_2d_positions(self):
+        """An F-order (1, 2) position batch gives the same (1, 2, L) values as the C-order call."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
+        opponent0 = bitboard_from_signed_int(np.int64(-7855295674223658936))
+        mover1 = Bitboard(0x0000000000000010)
+        opponent1 = Bitboard(0x00000000000000E0)
+
+        positions = np.asfortranarray(
+            make_position([mover0, mover1],
+                          [opponent0, opponent1]).reshape(1, 2))
+        indexes = ms.compute_indexes(positions)
+
+        self.assertEqual(indexes.shape, (1, 2, 3))
+        c_indexes = ms.compute_indexes(np.ascontiguousarray(positions))
+        nptest.assert_array_equal(indexes, c_indexes)
+
+    def test_compute_indexes_empty_2d_positions(self):
+        """An empty (0, 2) position batch gives an empty (0, 2, L) index matrix."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        positions = np.zeros((0, 2), dtype=Position)
+        indexes = ms.compute_indexes(positions)
+
+        self.assertEqual(indexes.shape, (0, 2, 3))
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_compute_indexes_performance_1m(self):
         
