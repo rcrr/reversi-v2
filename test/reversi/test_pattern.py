@@ -59,6 +59,7 @@ from typing import Callable, TypeAlias, List
 from reversi.board import (
     Square,
     Bitboard,
+    Position,
     bitboard_ro000, bitboard_ro090, bitboard_ro180, bitboard_ro270,
     bitboard_fvert, bitboard_fh1a8, bitboard_fhori, bitboard_fa1h8,
     bitboard_transformations, bitboard_from_signed_int,
@@ -1848,6 +1849,86 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
             [1, 0, 1, 2188],
         ], dtype=Index)
         nptest.assert_array_equal(principal_indexes, expected)
+
+    def test_compute_principal_indexes_2d_positions(self):
+        """T9-N: a (1, 4) position batch gives a (1, 4, 4) index matrix, element-wise as the 1-D call."""
+        pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+            make_position(Bitboard(0x0100000000000001), Bitboard(0x0)),
+        ]).reshape(1, 4)
+        position_check_collisions(positions)
+
+        principal_indexes = pset.compute_principal_indexes(positions)
+
+        self.assertEqual(principal_indexes.shape, (1, 4, 4))
+        nptest.assert_array_equal(principal_indexes, np.array([
+            [[0, 0, 0, 0],
+             [1, 0, 0, 1],
+             [2189, 2, 0, 1],
+             [1, 0, 1, 2188]],
+        ], dtype=Index))
+
+    def test_compute_principal_indexes_3d_positions(self):
+        """T9-N: a (2, 2, 2) position batch gives a (2, 2, 2, 4) index matrix, element-wise as the 1-D call."""
+        pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+            make_position(Bitboard(0x0100000000000001), Bitboard(0x0)),
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+            make_position(Bitboard(0x0100000000000001), Bitboard(0x0)),
+        ]).reshape(2, 2, 2)
+        position_check_collisions(positions)
+
+        principal_indexes = pset.compute_principal_indexes(positions)
+
+        self.assertEqual(principal_indexes.shape, (2, 2, 2, 4))
+        nptest.assert_array_equal(principal_indexes, np.array([
+            [[[0, 0, 0, 0],
+              [1, 0, 0, 1]],
+             [[2189, 2, 0, 1],
+              [1, 0, 1, 2188]]],
+            [[[0, 0, 0, 0],
+              [1, 0, 0, 1]],
+             [[2189, 2, 0, 1],
+              [1, 0, 1, 2188]]],
+        ], dtype=Index))
+
+    def test_compute_principal_indexes_noncontiguous_2d_positions(self):
+        """T9-N: an F-order (2, 2) position batch gives the same (2, 2, 4) values as the C-order call."""
+        pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
+
+        positions = np.asfortranarray(np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+            make_position(Bitboard(0x0100000000000001), Bitboard(0x0)),
+        ]).reshape(2, 2))
+        position_check_collisions(positions)
+
+        principal_indexes = pset.compute_principal_indexes(positions)
+
+        self.assertEqual(principal_indexes.shape, (2, 2, 4))
+        c_indexes = pset.compute_principal_indexes(np.ascontiguousarray(positions))
+        nptest.assert_array_equal(principal_indexes, c_indexes)
+
+    def test_compute_principal_indexes_empty_2d_positions(self):
+        """T9-N: an empty (0, 2) position batch gives an empty (0, 2, 4) index matrix."""
+        pset = PatternSet('EDGE_ONLY', [Pattern('EDGE', Bitboard(0x00000000000000FF))])
+
+        positions = np.zeros((0, 2), dtype=Position)
+
+        principal_indexes = pset.compute_principal_indexes(positions)
+
+        self.assertEqual(principal_indexes.shape, (0, 2, 4))
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):

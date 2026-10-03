@@ -1163,13 +1163,16 @@ class PatternSet:
             caller is responsible for validating this, e.g. via
             board.position_check_collisions; the indexing pipeline does
             not re-check it.
-        """        
-        N = positions.shape[0]
+
+        Output shape: the positions shape plus a trailing axis of
+        total_cols (the sum of the distinct-mask groups over the set's
+        patterns); a 1-D (N,) batch gives (N, total_cols).
+        """
         L = len(self.patterns)
 
         m = positions['mover']
         o = positions['opponent']
-        
+
         # 1. High-speed C-layout anti-transformations
         m_atrxs = bitboard_anti_transformations(m)
         o_atrxs = bitboard_anti_transformations(o)
@@ -1220,9 +1223,30 @@ class PatternSet:
             current_col += n_groups
 
         # 3. Stream data straight into the optimized Numba kernel
+        if m_atrxs.ndim == 2:
+            # The 1-D fast path: the (N, 8) transformation arrays go
+            # straight to the kernel.
+            return _numba_compute_principal_indexes_kernel(
+                m_atrxs,
+                o_atrxs,
+                n_squares_arr,
+                bit_shifts_matrix,
+                powers_3,
+                n_groups_arr,
+                group_size_arr,
+                idx_sort_matrix,
+                current_col,
+                col_offsets,
+                num_planes_arr,
+                pack_masks_3d,
+                pack_shifts_3d
+            )
+        # The N-D contract: the kernel over the (-1, 8) flattened
+        # C-order views, the output reshaped to the positions shape +
+        # (total_cols,).
         return _numba_compute_principal_indexes_kernel(
-            m_atrxs,
-            o_atrxs,
+            m_atrxs.reshape(-1, 8),
+            o_atrxs.reshape(-1, 8),
             n_squares_arr,
             bit_shifts_matrix,
             powers_3,
@@ -1234,7 +1258,7 @@ class PatternSet:
             num_planes_arr,
             pack_masks_3d,
             pack_shifts_3d
-        )
+        ).reshape(positions.shape + (current_col,))
 
 
 #### End of PatternSet class.

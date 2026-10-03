@@ -24,7 +24,7 @@ No search, no PDB storage, no disk I/O except the CSV writer.
 | PatternSet | `names` / `masks` | `@property`: List[str] / uint64 ndarray over the sorted patterns |
 | PatternSet | `__repr__` | one-line summary: name, the set hash, the patterns in mask-sorted order via `Pattern.__repr__` |
 | PatternSet | `print_summary(output)` / `print(output)` | text rendering |
-| PatternSet | `compute_principal_indexes(positions) -> IndexArray` | the fused Numba pipeline; (N,) PositionArray → (N, Σ n_instances); precondition: the positions are collision-free (the caller checks, e.g. `board.position_check_collisions`) |
+| PatternSet | `compute_principal_indexes(positions) -> IndexArray` | the fused Numba pipeline; any-shape PositionArray → positions.shape + (Σ n_instances,) (a 1-D (N,) batch → (N, Σ n_instances), the 1-D path with no flatten copy); precondition: the positions are collision-free (the caller checks, e.g. `board.position_check_collisions`) |
 
 ## Architecture
 
@@ -47,7 +47,7 @@ numba kernels (njit parallel=True, cache=True): pack, unpack,
     computes_indexes, compute_principal_indexes (fused)
     |
 PatternSet (name + mask-sorted patterns + sha3_256 hash)
-    compute_principal_indexes: (N,) PositionArray -> (N, total_cols) IndexArray
+    compute_principal_indexes: any-shape PositionArray -> positions.shape + (total_cols,) IndexArray
 ```
 
 - **Principal mask rule** — a mask is principal iff it is the numerically lowest mask among its 8 D8 transforms: a mask
