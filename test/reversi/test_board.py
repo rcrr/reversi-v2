@@ -3099,21 +3099,68 @@ class TestPositionMakeMove(unittest.TestCase):
             else:
                 self.assertTrue(position_eq(updated[i], s))
 
-    def test_position_make_move_array_2d_raises_value_error(self):
-        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
-                                  np.array([0x2, 0x4], dtype=Bitboard))
-        with self.assertRaises(ValueError) as ctx:
-            position_make_move(positions.view(Position).reshape(1, 2), np.array([2], dtype=np.uint8))
-        self.assertEqual(str(ctx.exception),
-                         "When the argument p is an array, it must be 1D, got shape (1, 2)")
+    def test_position_make_move_2d_valid(self):
+        """A (1, 2) PositionArray with a (1, 2) move array gives a (1, 2) PositionArray, element-wise as the scalar calls
+        (a legal square and a PASS)."""
+        positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
+                                  np.array([0x0040201008040200, 0x2], dtype=Bitboard))
+        moves = np.array([[63, 64]], dtype=np.uint8)
 
-    def test_position_make_move_move_array_2d_raises_value_error(self):
+        updated = position_make_move(positions.view(Position).reshape(1, 2), moves)
+
+        self.assertEqual(updated.shape, (1, 2))
+        for i in range(2):
+            su = position_make_move(positions[i], moves[0, i])
+            self.assertIsNotNone(su)
+            self.assertTrue(position_eq(updated[0, i], su))
+
+    def test_position_make_move_3d_valid(self):
+        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives a (2, 1, 2) PositionArray, element-wise as the scalar calls."""
+        positions = make_position(
+            np.array([[[0x0000000000000001, 0x2]],
+                      [[0x0040201008040200, 0x8]]], dtype=Bitboard),
+            np.array([[[0x0040201008040200, 0x4]],
+                      [[0x1, 0x10]]], dtype=Bitboard))
+        moves = np.array([[[63, 64]], [[64, 64]]], dtype=np.uint8)
+
+        updated = position_make_move(positions, moves)
+
+        self.assertEqual(updated.shape, (2, 1, 2))
+        for i in range(4):
+            su = position_make_move(positions.ravel()[i], moves.ravel()[i])
+            self.assertIsNotNone(su)
+            self.assertTrue(position_eq(updated.ravel()[i], su))
+
+    def test_position_make_move_noncontiguous_2d_valid(self):
+        """An F-order (2, 2) PositionArray gives the same (2, 2) values as the C-order call."""
+        positions = np.asfortranarray(make_position(
+            np.array([[0x1, 0x2], [0x4, 0x8]], dtype=Bitboard),
+            np.array([[0x2, 0x4], [0x1, 0x2]], dtype=Bitboard)))
+        moves = np.array([[64, 64], [64, 64]], dtype=np.uint8)
+
+        updated = position_make_move(positions, moves)
+
+        self.assertEqual(updated.shape, (2, 2))
+        c_updated = position_make_move(np.ascontiguousarray(positions), moves)
+        np.testing.assert_array_equal(updated, c_updated)
+
+    def test_position_make_move_empty_2d_valid(self):
+        """An empty (0, 2) PositionArray with an empty (0, 2) move array gives an empty (0, 2) PositionArray."""
+        positions = np.zeros((0, 2), dtype=Position)
+        moves = np.zeros((0, 2), dtype=np.uint8)
+
+        updated = position_make_move(positions, moves)
+
+        self.assertEqual(updated.shape, (0, 2))
+
+    def test_position_make_move_move_array_2d_shape_mismatch_raises_value_error(self):
+        """A 1-D (2,) position array against a 2-D (2, 1) move array fails the same-shape check."""
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
                                   np.array([0x2, 0x4], dtype=Bitboard))
         with self.assertRaises(ValueError) as ctx:
             position_make_move(positions, np.array([[2], [4]], dtype=np.uint8))
         self.assertEqual(str(ctx.exception),
-                         "When the argument move is an array, it must be 1D, got shape (2, 1)")
+                         "The shapes of p and move arrays must be the same.")
 
     def test_position_make_move_array_shape_mismatch_raises_value_error(self):
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
@@ -3129,7 +3176,7 @@ class TestPositionMakeMove(unittest.TestCase):
         with self.assertRaises(TypeError) as ctx:
             position_make_move(positions, Move(2))
         self.assertEqual(str(ctx.exception),
-                         "Inputs must be either both scalar or both 1-D arrays.")
+                         "Inputs must be either both scalar or both arrays.")
 
     def test_position_make_move_out_of_range_array_raises_value_error(self):
         positions = make_position(np.array([0x1, 0x2, 0x4], dtype=Bitboard),

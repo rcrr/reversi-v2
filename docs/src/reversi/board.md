@@ -62,7 +62,7 @@ stated.
 | Position | `legal_moves(mover, opponent) -> Bitboard \| BitboardArray` | dual; both args the same kind (mixed → TypeError); strict uint64 in, same-shape check (mismatch → ValueError), arrays of any shape |
 | Position | `position_legal_moves_count(p) -> int` | popcount of the legal set; scalar |
 | Position | `position_flips(p: PositionField \| PositionArray, move: Bitboard \| BitboardArray) -> (Bitboard \| BitboardArray, PositionField \| PositionArray \| None)` | dual: scalar — Kogge-Stone flip set + updated position; a zero (PASS) move swaps the players, an illegal or non-single-bit move → `(0, None)`; array — per-element: a zero (PASS) move swaps the players, an illegal move gets flips[i] = 0 and the input position unchanged (no None in the array); both args the same kind (mixed → TypeError), same-shape check (mismatch → ValueError), arrays of any shape |
-| Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual: scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal EMPTY square (no flipping ray) → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), the standard 1-D guard. A move on an OCCUPIED square is unexpected behavior (the caller's responsibility): the flip ray is computed and, when non-zero, APPLIED — own-stone square → well-formed but unreachable position (count short by one); opponent-stone square → corrupt position (the square in BOTH bitboards) |
+| Position | `position_make_move(p: PositionField \| PositionArray, move: Move \| MoveArray) -> PositionField \| PositionArray \| None` | dual: scalar — execute, 64 (PA) swaps the players without verification, > 64 → ValueError, illegal EMPTY square (no flipping ray) → None; array — per-element PA swap + illegal keeps the input position, any array value > 64 → ValueError before the kernel; both args the same kind (mixed → TypeError), same-shape check (mismatch → ValueError), arrays of any shape. A move on an OCCUPIED square is unexpected behavior (the caller's responsibility): the flip ray is computed and, when non-zero, APPLIED — own-stone square → well-formed but unreachable position (count short by one); opponent-stone square → corrupt position (the square in BOTH bitboards) |
 | Position | `position_count_difference(p) -> int` | `count(mover) - count(opponent)` |
 | Position | `position_final_value(p) -> int` | WOFC end score: the difference, empty squares assigned to the leader |
 | Position | `position_empty_count(p) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount of `position_empties`; dual |
@@ -88,10 +88,10 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
  game ops: legal moves, flips, make_move, WOFC scoring, D8
 ```
 
-- **Dual scalar/array API** — every public function: an `isinstance` scalar check, `np.atleast_1d`, a 1-D ndim guard,
-  the numba kernel, the output adapted back to the input kind. `legal_moves`, `position_flips` and `position_make_move`
-  are the strict dual: scalar or 1-D ndarray only, the mixed kind → TypeError, the standard 1-D guard + the same-shape
-  check.
+- **Dual scalar/array API** — every public function: an `isinstance` scalar check, the array path, the numba kernel,
+  the output adapted back to the input kind; arrays of any shape (a 1-D array goes straight to the kernel with no
+  flatten copy, an N-D array flattens C-order and reshapes back). `legal_moves`, `position_flips` and
+  `position_make_move` are the strict dual: scalar or ndarray only, the mixed kind → TypeError, the same-shape check.
 - **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the 4 D8 ARRAY transform fns, the 4 scalar impls
   with `inline='always'`, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`,
   `_vectorized_position_hash`), `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`,
