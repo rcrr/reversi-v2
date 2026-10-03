@@ -326,19 +326,11 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
     The h string must be 16 character long having values in the range [0..F].
     Characters could be uppercase or lowercase.
     Note that the argument string is not prefixed with '0x'.
-    Works on scalar and 1D array inputs.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape).
     """
-
-    # Standardize input by checking if it came in as a scalar or an array
-    is_scalar = not isinstance(h, np.ndarray)
-    h_arr = np.atleast_1d(h)
-
-    # Check layout constraints (Pydantic validates types, but we handle dimensions)
-    if h_arr.ndim != 1:
-        raise ValueError(f"When the argument h is an array, it must be 1D, got shape {h_arr.shape}")
-
     # SCALAR CASE
-    if is_scalar:
+    if not isinstance(h, np.ndarray):
         if len(h) != 16:
             raise ValueError('Argument h must be a string of length 16')
         return Bitboard(int(h, 16))
@@ -346,7 +338,7 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
     # ARRAY CASE
     # 1. Vectorized string length check using NumPy's character operations
     # This ensures every string in the array is exactly 16 characters long
-    if not np.all(np.char.str_len(h_arr) == 16):
+    if not np.all(np.char.str_len(h) == 16):
         raise ValueError("All hex strings in the array must be exactly 16 characters long")
 
     # 2. Vectorize the 'int(x, 16)' base conversion function
@@ -356,7 +348,7 @@ def bitboard_from_hex_str(h: str | npt.NDArray[str]) -> Bitboard | BitboardArray
     vectorized_hex_parser = np.frompyfunc(lambda x: int(x, 16), 1, 1)
 
     # 3. Apply the vectorized parser and cast the resulting object array to pure uint64
-    result_array: BitboardArray = vectorized_hex_parser(h_arr).astype(np.uint64)
+    result_array: BitboardArray = vectorized_hex_parser(h).astype(np.uint64)
 
     return result_array
 

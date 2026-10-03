@@ -553,15 +553,62 @@ class TestBitboardFromHexStr(unittest.TestCase):
         with self.assertRaises(ValueError):
             bitboard_from_hex_str(invalid_array)
 
-    def test_array_invalid_dimensions(self):
-        """Should raise ValueError if the passed NumPy array is 2D instead of 1D."""
-        invalid_2d_array = np.array([
-            ["0000001008000000"], 
-            ["0000000810000000"]
+    def test_array_2d_conversion_valid(self):
+        """Should parse a 2-D array of 16-char hex strings to a same-shape BitboardArray."""
+        hex_strings = np.array([
+            ["0000001008000000", "0000000810000000"],
+            ["FFFFFFFFFFFFFFFF", "abcdef0123456789"],
         ])
-        
-        with self.assertRaises(ValueError):
-            bitboard_from_hex_str(invalid_2d_array)
+        expected = np.array([
+            [0x0000001008000000, 0x0000000810000000],
+            [0xFFFFFFFFFFFFFFFF, 0xABCDEF0123456789],
+        ], dtype=Bitboard)
+
+        result = bitboard_from_hex_str(hex_strings)
+
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, Bitboard)
+        self.assertEqual(result.shape, (2, 2))
+        np.testing.assert_array_equal(result, expected)
+
+    def test_array_3d_conversion_valid(self):
+        """Should parse a 3-D array of 16-char hex strings to a same-shape BitboardArray."""
+        hex_strings = np.array([
+            [["0000001008000000", "0000000810000000"]],
+            [["00000000000000FF", "0000000000000107"]],
+        ])
+
+        result = bitboard_from_hex_str(hex_strings)
+
+        self.assertEqual(result.dtype, Bitboard)
+        self.assertEqual(result.shape, (2, 1, 2))
+        self.assertEqual(result[0, 0, 0], Bitboard(0x0000001008000000))
+        self.assertEqual(result[1, 0, 1], Bitboard(0x0000000000000107))
+
+    def test_array_noncontiguous_conversion_valid(self):
+        """Should parse a non-contiguous (Fortran-order) 2-D array of hex strings."""
+        hex_strings = np.asfortranarray(np.array([
+            ["0000001008000000", "0000000810000000"],
+            ["FFFFFFFFFFFFFFFF", "00000000000000FF"],
+        ]))
+        expected = np.array([
+            [0x0000001008000000, 0x0000000810000000],
+            [0xFFFFFFFFFFFFFFFF, 0x00000000000000FF],
+        ], dtype=Bitboard)
+
+        result = bitboard_from_hex_str(hex_strings)
+
+        self.assertEqual(result.shape, (2, 2))
+        np.testing.assert_array_equal(result, expected)
+
+    def test_empty_array_conversion_valid(self):
+        """Should parse an empty (0, 2) array of hex strings to an empty BitboardArray."""
+        hex_strings = np.empty((0, 2), dtype="U16")
+
+        result = bitboard_from_hex_str(hex_strings)
+
+        self.assertEqual(result.dtype, Bitboard)
+        self.assertEqual(result.shape, (0, 2))
 
     def test_invalid_characters(self):
         """Should raise ValueError if strings contain non-hex characters (handled by Python's int cast)."""
