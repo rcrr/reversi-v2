@@ -1250,6 +1250,42 @@ class TestBitboardAntiTransformations(unittest.TestCase):
         self.assertEqual(computed.shape, (2, 8))
         np.testing.assert_array_equal(computed, expected)
 
+    def test_2d_array_conversion_valid(self):
+        """A (2, 2) input gives a (2, 2, 8) output, element-wise as the 1-D call."""
+        bb_array = np.array(
+            [[self.ar, self.elle],
+             [self.ar, self.elle]], dtype=Bitboard)
+        expected = np.empty((2, 2, 8), dtype=Bitboard)
+        expected[0, 0] = self.expected_ar
+        expected[0, 1] = self.expected_elle
+        expected[1, 0] = self.expected_ar
+        expected[1, 1] = self.expected_elle
+
+        computed = bitboard_anti_transformations(bb_array)
+
+        self.assertEqual(computed.shape, (2, 2, 8))
+        np.testing.assert_array_equal(computed, expected)
+
+    def test_3d_array_conversion_valid(self):
+        """A (2, 1, 2) input gives a (2, 1, 2, 8) output."""
+        bb_array = np.array(
+            [[[self.ar, self.elle]],
+             [[self.elle, self.ar]]], dtype=Bitboard)
+
+        computed = bitboard_anti_transformations(bb_array)
+
+        self.assertEqual(computed.shape, (2, 1, 2, 8))
+        np.testing.assert_array_equal(computed[0, 0, 0], self.expected_ar)
+        np.testing.assert_array_equal(computed[0, 0, 1], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 0, 0], self.expected_elle)
+        np.testing.assert_array_equal(computed[1, 0, 1], self.expected_ar)
+
+    def test_empty_2d_array_conversion_valid(self):
+        """An empty (0, 2) input gives an empty (0, 2, 8) output."""
+        computed = bitboard_anti_transformations(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2, 8))
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         """Measure operations speed on a dense 1,000,000 matrix sequence."""

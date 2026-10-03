@@ -37,7 +37,7 @@ stated.
 | Bitboard | `bitboard_to_square_array(bb) -> SquareArray` | as a uint8 array |
 | Bitboard | `bitboard_to_string_list(bb) -> List[str]` | as "A1"-style names |
 | D8 | `bitboard_transformations(bb) -> BitboardArray` | all 8: scalar → (8,), any-shape array (S,) → S + (8,); the fixed slot order ro000/ro090/ro180/ro270/fvert/fh1a8/fhori/fa1h8 |
-| D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090) |
+| D8 | `bitboard_anti_transformations(bb) -> BitboardArray` | the 8 inverses; same order, slots 1/3 swapped (ro270, ro090); scalar → (8,), any-shape array (S,) → S + (8,) |
 | D8 | `bitboard_fa1h8(bb) -> Bitboard \| BitboardArray` | reflection on the a1-h8 diagonal (h1 ↔ a8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
 | D8 | `bitboard_fh1a8(bb) -> Bitboard \| BitboardArray` | reflection on the h1-a8 diagonal (a1 ↔ h8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
 | D8 | `bitboard_fhori(bb) -> Bitboard \| BitboardArray` | reflection on the horizontal axis (row 1 ↔ row 8); dual scalar/array; arrays of any shape; numba `@overload` for JIT contexts |
