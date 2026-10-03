@@ -511,6 +511,8 @@ def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
     """
     Reflects a bitboard, or an array of bitboards, on the diagonal a1-h8.
     Square h1 is mapped to a8 and vice versa.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape).
 
     .    ---- input ----    ---- output ---
     .
@@ -527,7 +529,9 @@ def bitboard_fa1h8(bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
 
     """
     if isinstance(bb, np.ndarray):
-        return _numba_fa1h8_array_impl(bb)
+        # The 1-D kernel over the flattened C-order view; the output is
+        # reshaped back to the input shape (the N-D contract).
+        return _numba_fa1h8_array_impl(bb.ravel()).reshape(bb.shape)
     else:
         return Bitboard(_numba_fa1h8_scalar_impl(bb))
 
