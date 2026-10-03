@@ -1390,3 +1390,25 @@ D-414 | 2026-10-01 | notes/analyses/ emptied, per Roberto ("una rimozione comple
          accumulator numbers). The empty folder stays the future-investigations home (probe\_rules.md, wsutils.md): a
          .gitkeep keeps it in the tree. The overview Index entry updated ("the one-off analyses, empty for now").
          VERIFICATION: the guard green on the default set.
+
+D-415 | 2026-10-01 | AGENTS.md — the last step of the governance redesign, per Roberto (option B+ after the analysis):
+         the 48-line file (the mission, the 8 standing rules, the Naming summary, the Layout enumeration) replaced by a
+         30-line boot protocol: (1) the identity + mission in two lines; (2) the mandatory context — "read all three, in
+         order, before any work": notes/overview.md (the entry point: project, state, next steps, workspace map, Index),
+         notes/rules.md (the active legislation), notes/naming.md (the domain vocabulary) — "each fact has exactly one
+         home, in them. AGENTS.md carries no copy of them"; (3) the second-level authorities per zone (the six rules
+         files + ideas.md, then the records themselves for history); (4) seven iron rules that hold for every task
+         regardless of the files (the language pair; the src-only-on-explicit-request; no rewrite of closed volumes or
+         past entries, forward repair + disclosure; every decision to decisions.md with its D-number, one commit per D;
+         the guard green before any notes commit; notes autonomy at milestone and session end; no repo-wide
+         reorganization as an agent initiative). Roberto's two draft fixes applied: "user" in place of the personal
+         name, the D-122 reference dropped. Same-commit alignment of the live pointers that assumed the old numbered
+         standing rules: docs\_rules.md §0 ("AGENTS.md standing rule 5" → the register's R-330), R-010 ("the standing
+         instructions" → "the boot protocol (the context pointers + the iron rules)"), the two test mirrors
+         (test\_hlp\_indexes, test\_hlp\_wmaps: "AGENTS.md rule 4" → the register's R-100). The draft retired from
+         scratch/ (its directory-scoped injection side effect gone with it). The DSH mechanism behind the choice
+         (analysis, no change): DSH auto-injects only the reserved names (AGENTS.md / CLAUDE.md + the .local overlays),
+         directory-scoped root-to-cwd, under a byte budget; the candidate list is deployment-configurable
+         (instructionFileCandidates) — the lever if a first-class file must ever be forced into the context instead of
+         instructed. VERIFICATION: the guard green on the default set; the runtime hot-reloaded the new AGENTS.md as the
+         root-scope baseline at the commit boundary.

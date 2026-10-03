@@ -1482,3 +1482,41 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   dell'overview aggiornata ("the one-off analyses, empty for now — the past volumes live in the git history").
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-414).
+- Session 91 (Roberto, trentasettesima richiesta): "Abbiamo fatto tutto quanto necessario per riformare la
+  governance, manca solo l'ultimo step: Ridisegnare AGENTS.md, la cosa piu' importante per rendere efficace il lavoro
+  fatto. Due strade: A- riassunto minimo di quanto abbiamo in notes; B- svuotiamo completamente e lasciamo solo:
+  leggi notes/rules.md, notes/overview.md, notes/naming.md — sono parte del contesto. Second level: i 6 rule files +
+  ideas.md. Ma tu sei l'agente, dammi il tuo parere autorevole. Fai un'analisi approfondita del percorso che una TASK
+  attraversa e della maniera migliore per avere un CONTESTO non bloated, allineato agli obiettivi, consistente con le
+  sue regole. Se andiamo con B, quanto contesto in tokens consumiamo solo per il PROMPT? Mi presenti l'analisi, e
+  poi ti do indicazioni. Grazie!"
+- ANALISI (mia): numeri misurati (AGENTS attuale 48 righe ~650 token; i tre file: rules 1938 + overview 981 +
+  naming 780 = 3699). Percorso di una task: boot (l'UNICO contesto garantito e' l'iniezione di AGENTS) → lettura dei
+  3 → rotta di zona (i 7 di secondo livello, set per-zona/per-rituale corretto) → lavoro → fine sessione. A e'
+  sbagliato: un riassunto e' una COPIA — la malattia spenta in questo arco (si paga ad ogni modifica futura; un
+  puntatore si paga una volta). B puro e' a rischio bootstrap: un agente che salta la lettura avrebbe zero
+  invarianti. Proposta B+: i 3 obbligatori + 7 iron rules a una riga (la costituzione riassume le leggi ferree;
+  l'unica duplicazione deliberata, esiste per garantire la lettura di tutto il resto). Costo: status quo ~1.7k →
+  B+ ~4.1k obbligatorio, tutto single-source. Leva di riduzione futura: la re-review del register (1938).
+- Roberto: "Siamo d'accordo a B+, ma procediamo con super cautela. 1: rimuovi tutto da scratch e da build/tmp;
+  2: scrivi la tua versione B+ in scratch; 3: io la leggo; 4: no altre modifiche, no commit. Vai!"
+- IMPLEMENTATION (bozza v1): scratch e build/tmp svuotati; il draft in scratch/AGENTS.md (30 righe, ~380 token).
+  Riconoscenza per il D-415: 4 puntatori live sulla numerazione vecchia (docs\_rules.md:4 "standing rule 5"; i 2
+  mirror di test "AGENTS.md rule 4"; R-010 "the standing instructions") — da riallineare nel commit.
+- Roberto: "A me pare perfetto. Due piccole modifiche: sostituisci Roberto con user; rimuovi il reference D-122.
+  Sempre versione in scratch."
+- IMPLEMENTATION (bozza v2): le 2 modifiche applicate.
+- Roberto: "Ultima domanda: esiste un comando che invece di 'chiedere' la lettura ... forza la injection? Come dire
+  @nomedelfile?"
+- ANALISI (mia, sul checkout DSH): no, non esiste un comando per messaggio (@ = un riferimento che l'agente legge
+  col tool read, entra nel contesto come risultato di tool). L'iniezione e' per-NOME: DSH auto-inietta i nomi
+  riservati AGENTS.md / CLAUDE.md (+ i .local), scopati per directory (root → cwd), sotto un byte budget; la lista
+  dei candidati e' configurabile in deployment (instructionFileCandidates) — quella e' la leva per "forzare" un
+  file arbitrario. Il design B+ regge: il garantito e' l'AGENTS piccolo, i 3 file entrano per lettura istruita.
+- Roberto: "Per ora proviamo come va cosi'. Magari va bene e non serve altro. Dire di procedere alla modifica.
+  Chiudi la sessione ... Git commit! Apriamo una nuova sessione e vediamo come va !!! Procedi"
+- IMPLEMENTATION (D-415): AGENTS.md sostituito con il B+ approvato (30 righe); il draft ritirato da scratch/;
+  riallineati i 4 puntatori (docs\_rules.md → R-330; R-010 → "boot protocol (the context pointers + the iron
+  rules)"; i 2 mirror di test → R-100).
+- VERIFICATION: guard VERDE sul set default; il runtime ha hot-reloadato la nuova AGENTS.md come baseline root.
+- COMMIT: un solo commit (D-415). Sessione 91 chiusa — si apre una nuova sessione a provare il nuovo boot.

@@ -23,7 +23,7 @@ handcrafted mock ctx, the IO tests use a REAL temp dir under the shared `CUSTOM_
 - The paths idiom on the IO tests: real temp dir under the shared `CUSTOM_TMP_BASE` + defensive tearDown (the CWD
   `mkdtemp` is gone) — unlike test_hlp_indexes, the file I/O is REAL here, not mocked.
 - The precise `ValidationError` pins (no broad `assertRaises(Exception)`).
-- English-only comments (AGENTS.md rule 4).
+- English-only comments (R-100).
 
 ## Integration
 

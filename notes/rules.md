@@ -20,7 +20,7 @@ in a specific order a notation (`**R-NNN.N — the topic**`) can be used.
 
 **R-010 — AGENTS.md**
 
-The constitution: the standing instructions, auto-injected, kept small.
+The constitution: the boot protocol (the context pointers + the iron rules), auto-injected, kept small.
 
 
 **R-020 — notes/rules.md**

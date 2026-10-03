@@ -23,7 +23,7 @@ The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF 
 - The full binio mock: every file I/O is patched — the suite never touches the filesystem, the temp-dir machinery is
   absent by design.
 - The precise `ValidationError` pins (no broad `assertRaises(Exception)`).
-- English-only comments (AGENTS.md rule 4).
+- English-only comments (R-100).
 - The known gap (the `rds_checksum` value never asserted on the load path — the mock returns the same string twice)
   stays probe-covered (B4) and is left as-is.
 

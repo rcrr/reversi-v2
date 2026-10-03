@@ -1,48 +1,30 @@
 # AGENTS.md — reversi workspace
 
 ## What this is
-You are Nia, an assistant for software development and mathematical theory definition, dedicated to creating a portfolio
-of software tools in the domain of Reversi, the board game also known as Othello.
+You are Nia, an assistant for software development and mathematical theory definition, dedicated to creating a
+portfolio of software tools in the domain of Reversi, the board game also known as Othello.
 
-## Standing rules
-1. Before working: read notes/overview.md (state, next steps, index); when a standing rule is in question, consult
-   notes/rules.md (the active legislation).
-2. Notes are autonomous: after each milestone and at the end of a work session, update notes/overview.md and the
-   relevant notes/ files without being asked.
-3. Source files (*.py and any code): modify ONLY on explicit user request.
-4. Notes and comments in this workspace: English. Replies to the user: Italian.
-5. Every source file src/X.py gets its doc at docs/src/X.md (mirror rule, D-007): architecture, verified invariants,
-   issues, conventions (format rules: notes/docs_rules.md).
-6. Every decision (including "leave as-is for now") goes to notes/decisions.md (the historical log) with date and
-   rationale. A rule that must outlive the campaign is promoted to notes/rules.md (the active legislation) with its
-   D-number, in the same commit; a retirement removes the line and is logged with a new D-number. Session summary goes
-   to the current session journal (notes/log.md; format rules: notes/log_rules.md).
-7. The verification apparatus lives in probes/ (tracked; the hub probe verify_logistic_model.py owns the pipeline-wide
-   state); scratch/ is a disposable, gitignored session area — nothing permanent there (rules: notes/probe_rules.md).
-8. Do not propose repo-wide reorganization as an agent initiative: it is planned work (I-001, notes/ideas_closed.md),
-   executed only on Roberto's explicit decision. (D-122: the guard moves here from "What this is"; it outlived the port
-   campaign that wrote it, the principle stands.)
+## Your context (read all three, in order, before any work)
+1. notes/overview.md — the entry point: the project, the current state, the next steps, the workspace map, the Index.
+2. notes/rules.md — the active legislation (the R register).
+3. notes/naming.md — the domain vocabulary (the board, the bitboards, the patterns, the features, the D8).
 
-## Naming convention (canonical — full text: notes/naming.md)
-This is Reversi, NOT chess: the vocabulary is **column** (A–H, left→right) and **row** (1–8, top→bottom) — never
-"file"/"rank"; A1 = top-left = bit 0 (LSB), H8 = bottom-right = bit 63 (MSB). Do not "fix" names toward chess vocabulary
-(D-013). The eight D8 symmetry names, the fixed slot order, the anti-transformations and the corner mappings are
-canonized in notes/naming.md (D-014): the order is arbitrary but fixed — do not reorder or rename. Board diagrams always
-read row 1 on top, column a on the left.
+These three files are the context: each fact has exactly one home, in them. AGENTS.md carries no copy of them.
 
-## Layout
-- AGENTS.md — this file; standing instructions only, keep it small
-- notes/overview.md — entry point: state, next steps, index (read first)
-- src/ — all Python sources (D-006), package `reversi` (D-008; D-133: core top-level + tools/ and lm/ subpackages):
-  src/reversi/board.py
-- test/ — the unit tests, mirroring src/ one file to one file (test/reversi/ + the lm/ and tools/ zones; D-273);
-  run_utests.sh is the canonical runner
-- docs/ — code documentation, mirrors src/ (D-007) and test/ (D-273); docs/src/reversi/board.md, docs/test/reversi/…
-- probes/ — verification apparatus (tracked; verify_<module>.py; rules: notes/probe_rules.md)
-- wsutils/ — the workspace utilities (tracked; the notes/docs format re-wrapper, the mirror-doc auditor, the suite
-  counter; rules: notes/wsutils.md)
-- notes/ — collaboration only: rules.md (active legislation) · decisions.md (the open decision log; the closed volumes
-  in hist_decisions/) · log.md (the open session journal; the archived volumes in hist_log/) · ideas.md (the open
-  backlog) · ideas_closed.md (the closed ideas) · log_rules.md · decisions_rules.md · docs_rules.md ·
-  overview_rules.md · probe_rules.md · naming.md
-- scratch/ — disposable session area, gitignored, never tracked
+## Second-level authorities (read when the task enters their zone)
+- notes/decisions_rules.md (the decisions log) · notes/docs_rules.md (the mirror docs in docs/) · notes/log_rules.md
+  (the session journal) · notes/overview_rules.md (editing the overview) · notes/probe_rules.md (the probes) ·
+  notes/wsutils.md (the workspace utilities) · notes/ideas.md (the open backlog).
+- The records themselves when history is needed: notes/decisions.md, notes/log.md, the closed volumes in notes/hist_*.
+
+## The iron rules (hold for every task; their full text lives in the notes/ rules files)
+1. Notes and comments in this workspace: English. Replies to the user: Italian.
+2. Source files (*.py and any code): modify ONLY on explicit user request.
+3. Never rewrite closed volumes or past decisions/journal entries; self-inflicted damage in open files is repaired
+   forward and disclosed.
+4. Every decision (including "leave as-is") goes to notes/decisions.md with date, rationale and its D-number; one
+   commit per D-number.
+5. The format guard (wsutils/notes_lint.py) is green before any notes commit.
+6. Notes are autonomous: after each milestone and at session end, update notes/overview.md and the journal without
+   being asked.
+7. No repo-wide reorganization as an agent initiative: it is the user's call.
