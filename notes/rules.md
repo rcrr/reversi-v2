@@ -89,6 +89,16 @@ wsutils/notes\_lint.py, read-only, exit 0/1, default set the open decisions log 
 closed volumes on explicit request). It implements the grammatical checks of the notes formats (the decisions log per
 notes/decisions\_rules.md, the register per its Governance block, the journals per notes/log\_rules.md).
 
+
+**R-210 — The pre-commit gate**
+
+Every checkin passes wsutils/hooks/pre-commit (tracked, installed via git config core.hooksPath wsutils/hooks): the
+format guard on the staged notes files (a file becomes clean when it is touched) + the overview bookkeeping auditor (the
+four lists agree with the tree, and the Suite column agrees with the latest suite measurement). The suite is run ONLY
+through the wsutils wrapper, which writes the timestamped measurement to scratch/ — no measurement file, no green. Red =
+no commit; --no-verify only on the user's explicit request. The suite run itself stays the R-840 discipline (it is slow
+and DB-bound); the gate checks its bookkeeping.
+
 ## Change discipline
 
 **R-250 — the impact set (documents per change class)**
@@ -281,8 +291,8 @@ position, never appended at the end.
 
 **R-840 — Before git commit**
 
-Before every commit run the FULL pre-commit: LONG=1 ./run\_utests.sh (the live regab DB is the normal environment) —
-VLONG=1 only when it is useful, and the gated run is not a substitute.
+Before every commit run the FULL pre-commit: the suite through the wsutils wrapper (LONG=1, the live DB — it writes the
+measurement the R-210 gate reads) — VLONG=1 only when it is useful, and the gated run is not a substitute.
 
 
 **R-850 — The documented contract is the specification of the tests**

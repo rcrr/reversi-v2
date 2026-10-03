@@ -1449,7 +1449,7 @@ D-417 | 2026-10-03 | Campaign — the 1-D shape guards out: the dual scalar/arra
          the back-to-back baseline-tree vs HEAD A/B under the same load confirmed no code effect — environmental
          variance, not a regression); the format guard green on the notes set.
 
-D-418 | 2026-10-04 | Governance — the boot protocol after a compaction: the three context files (notes/overview.md,
+D-418 | 2026-10-03 | Governance — the boot protocol after a compaction: the three context files (notes/overview.md,
          notes/rules.md, notes/naming.md) are re-read, in order, after EVERY compaction of the context, exactly as at
          the session start — the AGENTS.md "Your context" heading now prescribes both moments. The user's observation
          after the D-417 close: the compaction had condensed the legislation into a working summary, and the notes wave
@@ -1461,7 +1461,7 @@ D-418 | 2026-10-04 | Governance — the boot protocol after a compaction: the th
          when a compaction actually happens. VERIFICATION: the AGENTS.md change is the heading line (the rest of the
          constitution untouched); the format guard green on the notes set.
 
-D-419 | 2026-10-04 | Repair — the overview's Test files table carried stale suite counts after the D-417 notes wave: the
+D-419 | 2026-10-03 | Repair — the overview's Test files table carried stale suite counts after the D-417 notes wave: the
          per-module counter was not re-run at the campaign close (the note wave retired only the next-step line), so the
          seven modules the campaign grew still showed their pre-campaign totals (test\_board 247→294, test\_random\_game
          33→42, test\_pattern 65→73, test\_mobility 26→30, test\_feature 25→29, test\_hlp\_wmaps 15→16,
@@ -1474,3 +1474,21 @@ D-419 | 2026-10-04 | Repair — the overview's Test files table carried stale su
          steps and the Index were verified complete at the D-417 close (no campaign bullet to retire, no new file,
          DP-010 stays as written — it is shape-neutral). VERIFICATION: the regenerated cells match the per-module LONG=1
          counts (total 1042/0/24); the format guard green on the notes set.
+
+D-420 | 2026-10-03 | Governance — the pre-commit gate (R-210): every checkin now passes wsutils/hooks/pre-commit
+         (tracked; installed per clone via git config core.hooksPath wsutils/hooks — the logic is versioned, a
+         .git/hooks copy would not be). Two blocking checks, red = no commit, --no-verify only on explicit user request:
+         (1) the notes format guard on the STAGED notes files (a file becomes clean when it is touched — a code-only
+         checkin pays nothing, and a red state in one notes file cannot deadlock an unrelated code commit); (2) the
+         overview bookkeeping auditor, ALWAYS: the four lists (Source files, Test files, Test data, Index) agree with
+         the tree both ways, the Doc links resolve, and the Suite column agrees with the latest suite measurement. The
+         suite is run ONLY through the wsutils wrapper (suite\_audit.py, now: the module-regex fix of the D-419 side
+         finding — approved with the wrapper proposal — the timestamp, the scratch/ artifact home): the measurement file
+         is the gate input, and its absence is red (fail-closed), so a green checkin certifies overview == the latest
+         wrapper run. The suite run itself stays the R-840 discipline (slow and DB-bound) — amended to name the wrapper;
+         the gate checks its bookkeeping. The auditor's first real catch, repaired here: test/reversi/closecheck.py had
+         neither an overview row nor a mirror doc (both added in this commit). The previously proposed R-250 clause
+         (test-count change -> regenerate the table) is subsumed by the gate and not added. VERIFICATION: the gate
+         tested on three scenarios (missing-file red, a precise count-mismatch red, green on the final staged state);
+         the live end-to-end fire test is this very checkin (the hook output in the commit); notes\_lint green on the
+         notes set; the suite via the wrapper 1042/0/24.

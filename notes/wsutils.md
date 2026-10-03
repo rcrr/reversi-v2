@@ -48,7 +48,8 @@ idempotent tool is a no-op the second time, and says so.
   the fixpoint — a bug cannot silently lose content);
 - it touches ONLY the paths it was given, inside the workspace: no recursion into unrelated trees, no absolute path
   outside, no symlink followed out;
-- the ARTIFACTS go under build/tmp, never in the tracked tree (probe\_rules §2);
+- the ARTIFACTS go under build/tmp (the suite measurement is the gate input and goes to scratch/ — R-210), never in the
+  tracked tree (probe\_rules §2);
 - it never runs a git WRITE command (no commit, no checkout, no reset, no stash): the repository state is Roberto's;
 - it never DELETES: the only deletions allowed are the tool's own artifacts under build/tmp;
 - the docstring states the exact scope of what it writes.
@@ -88,5 +89,7 @@ One row per tracked tool. Updated in the same commit as the tool it describes.
 | `notes_format.py` | maintenance | the house re-wrapper: the block grammar (~120 chars, code-span aware, the mid-token rejoins, the span healing) + the per-file verification (the content fingerprint, the idempotence, the fixpoint) | the files passed on the command line, ONLY with `--write`; nothing by default |
 | `docs_format_audit.py` | check | audits every docs/\*\*/\*.md against notes/docs\_rules.md: the H1 ↔ the source path, the sections and their order, the §4 forbidden patterns, the size budget, the width, the split code spans, the ragged tables | nothing (a report on stdout) |
 | `measure_suite.py` | measurement | the per-test TIMING instrument: every test's duration in milliseconds + the per-module aggregate + the skip census, the baseline of the tiering | `build/tmp/test_durations.txt` |
-| `suite_audit.py` | measurement | runs every test module of run\_utests.sh on its own (LONG=1, the live DB) and prints `<module> <ran>/<fail>/<skip>` — the numbers the overview's Suite cells must carry | `build/tmp/suite_audit.txt` |
+| `suite_audit.py` | measurement | the suite wrapper of the R-210 gate: runs every test module of run\_utests.sh on its own (LONG=1, the live DB), prints `<module> <ran>/<fail>/<skip>`, and writes the timestamped measurement the overview auditor reads | `scratch/suite_audit.txt` (gitignored, the gate input) |
+| `overview_audit.py` | check | the overview bookkeeping auditor: the four lists (Source files, Test files, Test data, Index) agree with the tracked tree both ways, the Doc links resolve, and the Suite column agrees with the latest measurement (absent file = red) | nothing (a report on stdout, exit 0/1) |
+| `hooks/pre-commit` | check | the R-210 checkin gate: the format guard on the staged notes files + the overview auditor; red = no commit; installed via `git config core.hooksPath wsutils/hooks` (one local line per clone) | nothing (read-only) |
 | `notes_lint.py` | check | the notes format guard (R-200): the grammatical checks of every notes format, one linter per format — the decisions log, the register, the journals, the overview, the domain rule files, the ideas entries, plus WIDTH, EOF, CANON (idempotence under the re-wrapper) | nothing (read-only: a report on stdout, exit 0/1) |

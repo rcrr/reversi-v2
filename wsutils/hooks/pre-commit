@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# pre-commit — the checkin gate (the D-417/D-419 governance wave).
+#
+# Installed via `git config core.hooksPath wsutils/hooks`: the script is
+# TRACKED, so the gate logic is versioned and auditable (a copy in
+# .git/hooks/ would not be). The install is one local-config line per clone.
+#
+# Two BLOCKING checks — red = no commit (`--no-verify` bypasses, by
+# explicit user request only):
+#   1. The notes format guard (wsutils/notes_lint.py) on the NOTES files
+#      of THIS checkin (the staged ones) — a file becomes clean when it
+#      is touched; a code-only checkin pays nothing.
+#   2. The overview bookkeeping auditor (wsutils/overview_audit.py) —
+#      ALWAYS: the four overview lists (Source files, Test files, Test
+#      data, Index) must agree with the tree at every checkin.
+#
+# Writes nothing (both tools are read-only). Exit 0 = the commit proceeds.
+
+set -u
+cd "$(git rev-parse --show-toplevel)"
+
+PY=.venv/bin/python
+if [ ! -x "$PY" ]; then
+    echo "pre-commit: no .venv — the notes checks cannot run (bypass with --no-verify, by explicit user request only)."
+    exit 0
+fi
+
+# 1. The format guard on the staged notes files.
+STAGED_NOTES=$(git diff --cached --name-only --diff-filter=ACMR | grep '^notes/.*\.md$' || true)
+if [ -n "$STAGED_NOTES" ]; then
+    if ! $PY wsutils/notes_lint.py $STAGED_NOTES; then
+        echo "pre-commit: notes format guard RED on the staged notes files — fix, then re-commit."
+        exit 1
+    fi
+fi
+
+# 2. The overview bookkeeping auditor (every checkin).
+if ! $PY wsutils/overview_audit.py; then
+    echo "pre-commit: overview bookkeeping RED — the overview lists must agree with the tree before the checkin."
+    exit 1
+fi
+
+exit 0

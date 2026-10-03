@@ -1571,7 +1571,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Next: candidati follow-up loggati nell'entry D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle in
   tools/prng.py — left as-is, contratti di consumer documentati).
 
-## 2026-10-04 — session 93 (governance: la rilettura tassativa post-compattazione, la colonna Suite dell'overview)
+## 2026-10-03 — session 93 (governance: la rilettura tassativa post-compattazione, la colonna Suite dell'overview)
 
 - Session 93 (Roberto): prima review della nuova governance. Due osservazioni: (1) dopo la compattazione non
   rileggo i files di rules come prescritto in AGENTS; (2) a chiusura di D-417 l'overview non era aggiornato —
@@ -1586,16 +1586,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Riparazione forward, disclosed qui e in decisions; gli altri 39 moduli tornano puntuali sullo stesso run.
 - wsutils/suite\_audit.py: la tool non misura più nulla — la regex dei moduli (i nomi piatti reversi.test.NAME)
   non corrisponde al formato corrente del runner (test.reversi.NAME): exit 0 silenzioso, zero moduli eseguiti.
-  Tabella misurata con un twin in scratch; la fix a una riga della tool resta proposta a Roberto (source: solo su
-  richiesta esplicita).
+  Tabella misurata con un twin in scratch; la fix a una riga è poi entrata nel pacchetto del gate (approvata col
+  proposal del wrapper — D-420).
 - notes\_format.py: il re-wrapper passato su notes/log.md ha ri-wrapato l'intero volume aperto (~1100 righe,
   token conservati — nessuna perdita) e ha spezzato in due righe lo span in grassetto dell'entry D-341
   (violazione ESC): il journal resta hand-wrapped (il re-wrapper serve le zone a fixed-point: decisions,
   register), volume ripristinato da git e la sezione 93 ri-allegata a mano.
-- VERIFICATION: notes\_lint verde sull'intero set; nessuna modifica di codice in questa sessione —
-  LONG=1 ./run\_utests.sh prima di ogni commit: 1042/0/24 GREEN.
-- Next: la domanda aperta di Roberto — una regola standing "prima di ogni commit, rileggere rules e verificare la
-  compliance"? La mia valutazione: il re-read completo a ogni commit è lo strumento pesante (O(register ×
-  commit), un costo reale in una campagna di 18 commit); il gap preciso è che l'impact set di R-250 non nomina la
-  tabella Test files dell'overview per un cambio dei conteggi — un emendamento a una clausola di R-250 sarebbe lo
-  strumento proporzionato. In attesa della sua call.
+- D-418/D-419: date corrette 2026-10-04 → 2026-10-03 (errore mio: la sessione è ancora del 3 — lo ha catturato il
+  timestamp del wrapper: 20:13 +02:00).
+- D-420: il gate di checkin (R-210) — l'hook wsutils/hooks/pre-commit (tracked, installato via core.hooksPath)
+  blocca il commit se il format guard è rosso sui notes file staged (un file diventa pulito quando viene toccato)
+  o se l'overview auditor è rosso (le quattro liste tornano col tree, i Doc link resolve, la colonna Suite torna
+  con la misura del wrapper). Il wrapper è il solo cammino della suite (file assente = rosso, fail-closed).
+  Emendamenti approvati: R-210 nel register, R-840 (la suite corre col wrapper che scrive la misura), inventario
+  wsutils. Testati: fail-closed, mismatch preciso (board 294→293), verde sullo stato finale; l'end-to-end live è
+  questo checkin.
+- VERIFICATION: notes\_lint verde sull'intero set; la suite via wrapper LONG=1 1042/0/24 GREEN prima di ogni
+  commit (l'ultima misura: 45 moduli, 1042 test).
+- Session closed by the user.
+- Next: la domanda sulla regola pre-commit è chiusa col gate: niente re-read completo a ogni commit (lo strumento
+  pesante) — il gap è chiuso meccanicamente da R-210, e la clausola R-250 che avevo proposto è assorbita dal gate
+  (non aggiunta). Restano i candidati follow-up di D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle
+  in tools/prng.py).
