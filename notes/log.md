@@ -1356,3 +1356,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   rimozione guardia 1-D + verifica N-D; naming.md: riga Index nella sezione Pattern.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-405).
+- Session 91 (Roberto, ventisettesima richiesta): "E' molto ben fatto. Fare una piccola change in naming.md: Rimuovi
+  la riga appena introdotta in pattern riguardo ad Index. Aggiungi una sezione Index, subito sotto Position, e
+  scriviamo nella sezione cosa sia un Index ... come fatto per Position. Piu' chiaro, piu' evidente. E poi gli
+  Indexes sono i protagonisti della PIPELINE :) !!! Procedi!"
+- IMPLEMENTATION (D-406): naming.md — la riga Index rimossa dalla sezione Pattern e promossa a sezione propria
+  "## Index", subito sotto Position, nello stile di Position: "Index = a numpy uint32 alias — the base-3
+  configuration index (the Pattern section below).".
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-406).

@@ -1291,3 +1291,10 @@ D-405 | 2026-10-01 | notes/design\_principles.md restructured from the three-ent
          verification registered in the overview Next steps (the board.py source change awaits the explicit GO);
          naming.md's Pattern section gains the "Index is an alias of numpy.uint32" line. VERIFICATION: the guard green
          on the default set.
+
+D-406 | 2026-10-01 | naming.md — the Index promoted from the inline Pattern bullet (D-405) to its own section, placed
+         immediately after Position, per Roberto ("Piu' chiaro, piu' evidente. E poi gli Indexes sono i protagonisti
+         della PIPELINE"): the D-405 bullet removed from the Pattern section, the new "## Index" section in the Position
+         style (heading + one bullet, no blank between them) — "Index = a numpy uint32 alias — the base-3 configuration
+         index (the Pattern section below).", the forward reference mirroring the Position bullet's "the numpy.uint64
+         alias above" backward one. VERIFICATION: the guard green on the default set.

@@ -23,6 +23,9 @@ follow it.
 - `Position` = a numpy structured dtype `[('mover', Bitboard), ('opponent', Bitboard)]` — each field a `Bitboard` (the
   numpy.uint64 alias above).
 
+## Index
+- `Index` = a numpy uint32 alias — the base-3 configuration index (the Pattern section below).
+
 ## D8 — the eight board symmetries
 
 The eight D8 symmetries are a geometric/algebraic property of the board itself. The order below is arbitrary but fixed —
@@ -95,7 +98,6 @@ A Pattern is the D8 orbit of a mask of S squares (S ≤ 18), addressed by its pr
   of the orbit; a non-principal mask is rejected at construction.
 - The orbit members are the instances: n\_instances = |Orb|, with n\_stabilizers = 8 / |Orb|; instance 0 is always the
   ro000 image — the principal mask itself (the instance order is first-seen over the D8 slots, above).
-- `Index` is an alias of `numpy.uint32` — the base-3 configuration index.
 - A configuration is a base-3 assignment of the S squares (0 empty, 1 mover, 2 opponent): 3^S of them, packed into S
   contiguous bits (packed bit k ↔ the k-th square in board order) and indexed base-3 into a uint32 (safe while S ≤ 18).
 - The principal index is the min of a configuration's orbit under the permutations the stabilizer induces on the pattern
