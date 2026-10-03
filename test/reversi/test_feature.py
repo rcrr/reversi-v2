@@ -43,6 +43,7 @@
 import unittest
 
 from reversi.board import (Bitboard,
+                         Position,
                          make_position)
 from reversi.feature import Feature, FeatureSet
 from reversi.mobility import Mobility, MobilitySet
@@ -437,6 +438,48 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         computed_indexes = fset.compute_indexes(positions)
         
         np.testing.assert_array_equal(computed_indexes, expected_indexes)
+
+    def test_compute_indexes_2d_positions(self):
+        """A (1, 3) position batch gives a (1, 3, I) index array, element-wise as the 1-D call."""
+        fset = self.fset
+        positions = self.positions.reshape(1, 3)
+
+        computed_indexes = fset.compute_indexes(positions)
+
+        self.assertEqual(computed_indexes.shape, (1, 3, self.expected_I))
+        np.testing.assert_array_equal(computed_indexes,
+                                      self.expected_indexes.reshape(1, 3, self.expected_I))
+
+    def test_compute_indexes_3d_positions(self):
+        """A (3, 1, 1) position batch gives a (3, 1, 1, I) index array, element-wise as the 1-D call."""
+        fset = self.fset
+        positions = self.positions.reshape(3, 1, 1)
+
+        computed_indexes = fset.compute_indexes(positions)
+
+        self.assertEqual(computed_indexes.shape, (3, 1, 1, self.expected_I))
+        np.testing.assert_array_equal(computed_indexes,
+                                      self.expected_indexes.reshape(3, 1, 1, self.expected_I))
+
+    def test_compute_indexes_noncontiguous_2d_positions(self):
+        """An F-order (1, 3) position batch gives the same (1, 3, I) values as the C-order call."""
+        fset = self.fset
+        positions = np.asfortranarray(self.positions.reshape(1, 3))
+
+        computed_indexes = fset.compute_indexes(positions)
+
+        self.assertEqual(computed_indexes.shape, (1, 3, self.expected_I))
+        c_indexes = fset.compute_indexes(np.ascontiguousarray(positions))
+        np.testing.assert_array_equal(computed_indexes, c_indexes)
+
+    def test_compute_indexes_empty_2d_positions(self):
+        """An empty (0, 2) position batch gives an empty (0, 2, I) index array."""
+        empty_positions = np.zeros((0, 2), dtype=Position)
+
+        computed_indexes = self.fset.compute_indexes(empty_positions)
+
+        self.assertEqual(computed_indexes.shape, (0, 2, self.expected_I))
+        self.assertEqual(computed_indexes.dtype, Index)
 
     def test_compute_indexes_empty_positions(self):
         """Test when N=0 (positions array is empty). Expects shape (0, I)."""

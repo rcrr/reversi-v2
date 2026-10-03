@@ -29,8 +29,9 @@ FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
   `binio.verify_sha3_256_sidecar(filename)` first (mismatch → RuntimeError); then the header gate — wrong description →
   RuntimeError "The file is not a proper ...", wrong version → "File version mismatch: found ..., expected 1" (the
   DIFFERENT wording vs hlp_indexes); then `read_string` + `read_i32` + `read_array` ×6 → a fresh object.
-- `hlp_wmaps_compute`: `cut_off = ctx.cfg.stat_model.frequency_cut_off`; per feature: the pindexes column slice (cols
-  from col_offset), `np.unique(..., return_counts=True)`, `mask = counts < cut_off` — below-cutoff configs share the
+- `hlp_wmaps_compute`: `cut_off = ctx.cfg.stat_model.frequency_cut_off`; per feature: the pindexes column slice
+  (`pindexes[..., cols]` — the feature columns are the LAST axis, any-shape position batch),
+  `np.unique(..., return_counts=True)`, `mask = counts < cut_off` — below-cutoff configs share the
   feature's single fallback weight (config_id −1 in the wmap, the fallback row first with the summed freq), above-cutoff
   configs get contiguous `next_w` indices; the `f_iwmap[stats[:,0]] = stats[:,2]` scatter; wmap rows
   `[fid, config_id_or_−1, freq]` (−1 rows = the fallbacks); `wmap_fallback` = the excluded rows;

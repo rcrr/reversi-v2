@@ -35,10 +35,12 @@ matrix a feature-table evaluation consumes).
   MobilitySet's sorted (mask, amask) order, then the patterns in the PatternSet's sorted mask order); each feature
   occupies its `n_instances` contiguous columns (its D8 instance columns), so the blocks are instance-aware; the
   intercept is not a block (it is `fset.intercept`).
-- `compute_indexes(positions) -> IndexArray` (validated): the `(N, I)` uint32 matrix, `I` = the summed `n_instances` —
+- `compute_indexes(positions) -> IndexArray` (validated): the uint32 index array of shape positions.shape + (I,) —
+  a 1-D batch gives the classic `(N, I)` matrix — with `I` = the summed `n_instances`:
   column 0 = the intercept (constant 0) if present, then the `mset.compute_indexes` block, then the
   `pset.compute_principal_indexes` block (each pattern expanded into its `n_instances` columns in its unique-mask
-  first-seen D8 order), merged with a single `np.hstack`. `N=0` or `I=0` returns `np.empty((N, I), dtype=Index)`
+  first-seen D8 order), merged along the last axis with a single `np.concatenate(..., axis=-1)` (hstack would
+  concatenate axis 1 for ndim > 2). `N=0` or `I=0` returns `np.empty(positions.shape + (I,), dtype=Index)`
   immediately. The `IndexArray` return annotation carries the BeforeValidator dtype check via the imported alias
   (pattern.py).
 

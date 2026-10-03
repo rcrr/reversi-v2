@@ -259,7 +259,9 @@ def _compute_anova_lines(ctx) -> list:
     anova_lines = []
     for (name, c0, c1, n_conf, n_inst) in ctx.feature_set.feature_blocks:
         for i in range(n_inst):
-            groups = ctx.hlp_indexes.indexes[:, c0 + i]
+            # Ellipsis: the feature column is the LAST axis of the
+            # pindexes matrix (any-shape position batch).
+            groups = ctx.hlp_indexes.indexes[..., c0 + i]
             r = hlp_anova_eta_omega(groups, ctx.game_values)
             anova_lines.append((name, i, r['k'], r['n'], r['eta2'], r['omega2']))
             ctx.log_event(Relevance.INFO,
@@ -295,7 +297,9 @@ def _compute_adherence_lines(ctx) -> list | None:
         adherence_lines = []
         for (name, c0, c1, n_conf, n_inst) in ctx.feature_set.feature_blocks:
             for i in range(n_inst):
-                groups = ctx.hlp_indexes.indexes[:, c0 + i]
+                # Ellipsis: the feature column is the LAST axis of the
+                # pindexes matrix (any-shape position batch).
+                groups = ctx.hlp_indexes.indexes[..., c0 + i]
                 uniq, cnt = np.unique(groups, return_counts=True)
                 db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
                 ideal_counts = ideal_lookup.get((name, i), {})

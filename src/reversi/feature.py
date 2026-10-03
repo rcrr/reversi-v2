@@ -293,11 +293,13 @@ class FeatureSet:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, positions: PositionArray) -> IndexArray:
         """
-        Compute the 2D matrix of indices by horizontally stacking features.
-        
-        Returns a (N, I) uint32 array, I = sum of the n_instances of the
-        features, with the column layout:
-        
+        Compute the index array by stacking the feature blocks along the
+        last axis.
+
+        Returns a uint32 array of shape positions.shape + (I,) (a 1-D
+        batch gives (N, I)), I = sum of the n_instances of the features,
+        with the column layout:
+
         - column 0: the intercept feature (constant 0), if present;
         - then one column per mobility, in the MobilitySet's sorted
           (mask, amask) order (its compute_indexes block);
@@ -305,30 +307,31 @@ class FeatureSet:
           n_instances(pattern) columns: the principal index of each orbit
           instance, in the pattern's unique-mask first-seen (D8 instance)
           order (its compute_principal_indexes block).
-        
+
         The columns therefore follow the child sets' sorted storage
         order, not the caller's insertion order. Handles empty edge
         cases (N=0 or I=0) gracefully by returning an empty NumPy array
         with the correct expected shape.
         """
-        N = len(positions)
+        N = positions.shape[0]
         I = sum(f.n_instances for f in self.features)
-        
+
         # Handle empty edge cases immediately to prevent unnecessary processing
         if N == 0 or I == 0:
-            return np.empty((N, I), dtype=Index)
-        
+            return np.empty(positions.shape + (I,), dtype=Index)
+
         # Collect only the active blocks of indices
         active_indexes = []
-        
+
         if self.intercept:
-            active_indexes.append(np.zeros((N, 1), dtype=Index))
-            
+            active_indexes.append(np.zeros(positions.shape + (1,), dtype=Index))
+
         if self.mset:
             active_indexes.append(self.mset.compute_indexes(positions))
-            
+
         if self.pset:
             active_indexes.append(self.pset.compute_principal_indexes(positions))
-            
-        # Efficiently merge all sub-arrays horizontally in a single C-level step
-        return np.hstack(active_indexes)
+
+        # Efficiently merge all sub-arrays along the last axis in a single
+        # C-level step (hstack would concatenate axis 1 for ndim > 2).
+        return np.concatenate(active_indexes, axis=-1)

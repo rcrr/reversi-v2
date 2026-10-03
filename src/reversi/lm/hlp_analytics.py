@@ -88,7 +88,9 @@ def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
         for code, cnt in zip(codes.tolist(), counts.tolist()):
             pooled[int(code)] = pooled.get(int(code), 0) + int(cnt)
     cols = slice(indexes_col_offset, indexes_col_offset + feature.n_instances)
-    flat = ctx.hlp_indexes.indexes[:, cols].ravel()
+    # Ellipsis: the feature columns are the LAST axis of the pindexes
+    # matrix (any-shape position batch).
+    flat = ctx.hlp_indexes.indexes[..., cols].ravel()
     uniq, cnt = np.unique(flat, return_counts=True)
     db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
     return {'mode': 'ok', 'pooled': pooled,
@@ -176,7 +178,9 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         weighted_mean = 0.0
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    train_indexes = ctx.hlp_indexes.indexes[:, cols]
+    # Ellipsis: the feature columns are the LAST axis of the pindexes
+    # matrix (any-shape position batch).
+    train_indexes = ctx.hlp_indexes.indexes[..., cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)
@@ -348,7 +352,9 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     principal_configs = feature.ref.convert_to_principal_index(all_configs)
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    train_indexes = ctx.hlp_indexes.indexes[:, cols]
+    # Ellipsis: the feature columns are the LAST axis of the pindexes
+    # matrix (any-shape position batch).
+    train_indexes = ctx.hlp_indexes.indexes[..., cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)

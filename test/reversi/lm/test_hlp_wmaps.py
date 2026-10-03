@@ -141,6 +141,28 @@ class TestHlpWmapsCompute(unittest.TestCase):
             [0, 2, 1]
         ], dtype=np.int64))
 
+    def test_compute_nd_indexes_matches_1d(self):
+        """N-D sanity: a (2, 2, I) pindexes matrix (an any-shape position
+        batch) gives the same wmaps as its C-order (N, I) ravel — the
+        feature columns are the last axis."""
+        nd_ctx = SimpleNamespace(
+            hlp_indexes_checksum="abc123",
+            feature_set=self.ctx.feature_set,
+            cfg=self.ctx.cfg,
+            hlp_indexes=SimpleNamespace(
+                indexes=self.ctx.hlp_indexes.indexes.reshape(2, 2, 3))
+        )
+
+        wmaps_nd = hlp_wmaps_compute(nd_ctx)
+        wmaps_1d = hlp_wmaps_compute(self.ctx)
+
+        self.assertEqual(len(wmaps_nd.w), len(wmaps_1d.w))
+        nptest.assert_array_equal(wmaps_nd.iwmap, wmaps_1d.iwmap)
+        nptest.assert_array_equal(wmaps_nd.wmap, wmaps_1d.wmap)
+        nptest.assert_array_equal(wmaps_nd.wmap_fallback, wmaps_1d.wmap_fallback)
+        nptest.assert_array_equal(wmaps_nd.feature_w_ranges, wmaps_1d.feature_w_ranges)
+        nptest.assert_array_equal(wmaps_nd.iwmap_feature_offset, wmaps_1d.iwmap_feature_offset)
+
     def test_compute_without_fallback(self):
         """Test WMAPS computation when cut-off is 0 (no fallbacks)."""
         # Modify cut-off to 0

@@ -118,6 +118,25 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
             [0, 3, 2]
         ], dtype=np.uint32))
 
+    def test_compute_nd_indexes(self):
+        """N-D sanity: a (2, 2, I) indexes matrix (an any-shape position
+        batch) gives the same X values as the C-order (N, I) ravel, with
+        shape (2, 2, I)."""
+        nd_ctx = SimpleNamespace(
+            wmaps_obj_checksum="abc123",
+            feature_set=self.ctx.feature_set,
+            iwmap_feature_offset=self.ctx.iwmap_feature_offset,
+            iwmap=self.ctx.iwmap,
+            hlp_indexes=SimpleNamespace(
+                indexes=self.ctx.hlp_indexes.indexes.reshape(2, 2, 3))
+        )
+
+        dm_nd = hlp_design_matrix_compute(nd_ctx)
+        dm_1d = hlp_design_matrix_compute(self.ctx)
+
+        self.assertEqual(dm_nd.X.shape, (2, 2, 3))
+        nptest.assert_array_equal(dm_nd.X.reshape(4, 3), dm_1d.X)
+
     def test_compute_rejects_invalid_pindex(self):
         """A pindex pointing at an iwmap slot without a weight (-1) raises."""
         # Feature 0 config 2 maps to no weight (the -1 sentinel)

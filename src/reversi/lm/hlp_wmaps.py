@@ -243,7 +243,10 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
     col_offset = 0
     for fid, f in enumerate(features):
         cols = list(range(col_offset, col_offset + f.n_instances))
-        f_pindexes = pindexes[:, cols]
+        # Ellipsis: the feature columns are the LAST axis of the pindexes
+        # matrix (a 1-D position batch gives the classic (N, I) layout;
+        # an N-D batch keeps the same last-axis column layout).
+        f_pindexes = pindexes[..., cols]
         flat_f_pindexes = f_pindexes.ravel()
 
         unique_values, counts = np.unique(flat_f_pindexes, return_counts=True)
