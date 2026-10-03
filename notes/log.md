@@ -1633,5 +1633,6 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   intatti.
 - VERIFICATION: test\_prng 22 → 26 e test\_client 7 → 8; suite via wrapper 1047/0/24 GREEN; notes\_lint verde; i due
   gate verdi ai due checkin.
+- Session closed by the user.
 - Next: i due candidati follow-up di D-417 (lo shuffle 1-D in tools/prng.py, l'EF N-D in lm/client.py) sono
   entrambi chiusi (D-421, D-422).
