@@ -1469,3 +1469,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   clausola whitespace/spans).
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-413).
+- Session 91 (Roberto, trentaseiesima richiesta): "Il folder notes/analyses contiene tantissime cose che non hanno
+  piu nessuna attualita' e nessun interesse. Io farei una rimozione completa. Rimane solo il folder vuoto a
+  disposizione per il futuro. Tuoi commenti? Sei d'accordo, se sei d'accordo procedi, altrimenti argomenta. Grazie!"
+- PARERE (mio): d'accordo — git preserva tutto (ogni volume resta recuperabile dai commit passati): e' archiviazione
+  fuori dall'albero, non distruzione; la dottrina "frozen" tutelava l'integrita' (no back-rewrite), non la permanenza
+  nell'albero; il record canonico sta gia' in decisions/journal/git. Riconoscenza: 86 file (1.2 MB), zero riferimenti
+  live a file specifici — UN puntatore vivo nel mirror hlp\_gradient.md (optimize\_performance.md), da rimuovere
+  insieme.
+- IMPLEMENTATION (D-414): git rm -r notes/analyses (86 file); il folder resta vuoto con un .gitkeep (resta
+  nell'albero, dimora delle indagini future); puntatore del mirror rimosso (i fatti restano inline); Index
+  dell'overview aggiornata ("the one-off analyses, empty for now — the past volumes live in the git history").
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-414).

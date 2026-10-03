@@ -23,7 +23,8 @@ the `high_performance` flag; its row-block count T is the `hi_perf_blocks` confi
 
 ### The classic variant (the default)
 
-  - Pre-allocated buffers (the performance shape): `bincount_weights_buffer = np.empty(M*P, float32)` + the `(M, P)` view.
+  - Pre-allocated buffers (the performance shape): `bincount_weights_buffer = np.empty(M*P, float32)` + the `(M, P)`
+    view.
   - The `fg(w)` closure body: `linear_predictor = np.sum(w[X], axis=1)` (the w-INDEX sum — NOT `X @ w`);
     `zh = sigmoid(linear_predictor)`; `dzh = zh·(1 − zh)`; `rn = zh − z`; the normalized loss
     `f = 0.5·(‖rn‖²/M + alpha·‖w‖²)` (MSE + ridge, /M-normalized for dataset-size-independent convergence criteria); the
@@ -34,8 +35,8 @@ the `high_performance` flag; its row-block count T is the `hi_perf_blocks` confi
 
 ### The high-performance variant (K3)
 
-  - `_hp_fg_kernel` (`@njit(parallel=True, cache=True)`): ONE streaming pass over the design matrix rows, `prange`
-    over the `T = hi_perf_blocks` row-blocks (config field, default 8). Per row: the f32 w-INDEX sum `acc` (gather);
+  - `_hp_fg_kernel` (`@njit(parallel=True, cache=True)`): ONE streaming pass over the design matrix rows, `prange` over
+    the `T = hi_perf_blocks` row-blocks (config field, default 8). Per row: the f32 w-INDEX sum `acc` (gather);
     `zhv = 1/(1+exp(−acc))` (f32, the same sigmoid math), `rn = zhv − z[i]`, `vv = zhv·(1−zhv)·rn`; the row's `vv` is
     scattered into the block's PRIVATE f64 gradient buffer `g_blocks[b]`, and `rn²` into the block's f64 partial norm
     `norm_blocks[b]`.
@@ -47,11 +48,11 @@ the `high_performance` flag; its row-block count T is the `hi_perf_blocks` confi
   - RACE-FREE without atomics: numba 0.67 has NO CPU atomics (CUDA-only) — each prange block writes only to its own
     private buffer; the cross-block reduction happens in numpy after the kernel.
   - RUN-DETERMINISTIC by construction: the block split is fixed (T is config-fixed, regardless of the thread count) and
-    the final accumulation order is fixed (block order 0..T−1), so the result is bit-identical across runs and
-    machines — the 2nd-instance byte-identity contract holds (the `test_hp_deterministic` test + the full-chain
-    determinism tests pin it). The float32 rounding ORDER differs from the classic path (a few ulps on f and g), so a
-    run with the HP variant follows a slightly different — but equivalent — L-BFGS trajectory (A2050: 356 iters /
-    f = 1.4453826e-03 vs the classic 397 / f = 1.4444034e-03 — Δrel 0.07%, both converged, both g_norm < 1e-05).
+    the final accumulation order is fixed (block order 0..T−1), so the result is bit-identical across runs and machines
+    — the 2nd-instance byte-identity contract holds (the `test_hp_deterministic` test + the full-chain determinism tests
+    pin it). The float32 rounding ORDER differs from the classic path (a few ulps on f and g), so a run with the HP
+    variant follows a slightly different — but equivalent — L-BFGS trajectory (A2050: 356 iters / f = 1.4453826e-03 vs
+    the classic 397 / f = 1.4444034e-03 — Δrel 0.07%, both converged, both g_norm < 1e-05).
   - M < T edge: empty blocks (i0 = i1) — exercised by design in the unit tests (M = 3 mock).
   - First call compiles the kernel (~1-3 s, `cache=True` → `__pycache__`).
 
@@ -80,8 +81,8 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (15 tes
   tracking), the classic-vs-HP equivalence (rtol 1e-5), the R1 dtype contract, the bit-identical determinism, the
   variant markers, the explicit hi_perf_blocks flow (T = 2 vs the float64 reference).
 - The live goldens (DB-gated, `test_wrk_gradient.py`): the 4 pinned values at w=0 on the 199952-position rlm_02 (the
-  classic path — rlm_02 has no flag); the no-DB TestGradientFlagWiring class (2 tests): the worker reads the flag +
-  the block count (a Context-subclass mock) and builds the matching variant (the marker pin).
+  classic path — rlm_02 has no flag); the no-DB TestGradientFlagWiring class (2 tests): the worker reads the flag + the
+  block count (a Context-subclass mock) and builds the matching variant (the marker pin).
 - The full-chain goldens (`test_lm_worker_full_chain.py`): A2030 (rlm_04, flag true) + A2050 (rlm_03, flag true)
   re-pinned to the HP trajectories (the A2050: 356 iters, CONVERGED_MIN_GRAD, f = 1.4453826e-03, g_norm = 7.973910e-06,
   the w_dense sha3 82b329dd..., the EF pins; the A2030: 71 iters, the w_dense sha3 90ca05a3...). The second-instance
@@ -106,8 +107,7 @@ Pinned by the `probes/verify_gradient.py` probe + `test_hlp_gradient.py` (15 tes
 - The scipy `expit` is the classic path's only special-function dependency (scipy in pyproject.toml); the HP path
   computes the sigmoid inline in f32 (the kernel must be self-contained for numba).
 - The f64 per-block accumulators are the PRODUCTION choice: f tracks the float64 reference to ~1e-12 rel (the f32
-  accumulation showed ~3.2e-06 abs) at a +4.3 ms/call cost — negligible against the classic baseline. The measured
-  numbers and the study: notes/analyses/optimize_performance.md.
+  accumulation showed ~3.2e-06 abs) at a +4.3 ms/call cost — negligible against the classic baseline.
 
 ## Integration
 

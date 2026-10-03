@@ -1377,3 +1377,16 @@ D-413 | 2026-10-01 | notes/docs\_rules.md — the last class-1 file walked throu
          split across lines, no trailing whitespace). Kept, deliberately: the board.md session-1 failure-mode anecdote
          (an illustration, not a provenance) and the §3.2 D-pointer channel (mirrors, not notes). VERIFICATION: the
          guard green on the default set.
+
+D-414 | 2026-10-01 | notes/analyses/ emptied, per Roberto ("una rimozione completa ... rimane solo il folder vuoto a
+         disposizione per il futuro"): the 86 one-off files (1.2 MB — the accumulated session reviews, investigations,
+         the performance studies) removed from the working tree via git rm; nothing is lost (every volume stays
+         recoverable from the git history, and the canonical record was always in the decisions log, the journal and the
+         git log). The frozen-record doctrine (docs\_rules.md §7.2) protected those files from back-rewriting; it did
+         not bind them to the working tree — a retirement, logged with this D-number, per the register lifecycle. RECON
+         before the move: zero live references to any specific analyses file from the live notes, the mirrors or the
+         code; the single live pointer (the hlp\_gradient.md Conventions bullet: "The measured numbers and the study:
+         notes/analyses/optimize\_performance.md") removed in the same commit, the facts kept inline (the f64
+         accumulator numbers). The empty folder stays the future-investigations home (probe\_rules.md, wsutils.md): a
+         .gitkeep keeps it in the tree. The overview Index entry updated ("the one-off analyses, empty for now").
+         VERIFICATION: the guard green on the default set.
