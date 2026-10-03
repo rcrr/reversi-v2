@@ -1422,3 +1422,29 @@ D-416 | 2026-10-01 | AGENTS.md — the boot trigger tightened from lazy to eager
          three files are now read before the first reply of a session, whatever it is. Cost profile: the one-off ~3.7k
          of the mandatory context, then cache. Nothing else in the boot protocol changed. VERIFICATION: the guard green
          on the default set.
+
+D-417 | 2026-10-03 | Campaign — the 1-D shape guards out: the dual scalar/array API goes N-D (the DP-010 alignment), per
+         Roberto ("Io voglio fare TUTTO A+B+C"): the vectorized functions operate on any input array shape. 18 commits
+         (D-417 01..13 board.py — the cast family, the 4 reflections, transformations/anti\_transformations,
+         legal\_moves, position\_hash, position\_flips, position\_make\_move; 14 mobility.py compute\_indexes; 15/16
+         pattern.py PatternSet.compute\_principal\_indexes + Pattern.compute\_indexes\_on\_position; 17 feature.py
+         FeatureSet.compute\_indexes + the lm consumers; 18-20 random\_game.py choose\_move/make\_move/play\_path).
+         House pattern: the 1-D numba kernels are unchanged; a 1-D array goes STRAIGHT to the kernel with no flatten
+         copy (a strided field view is non-contiguous and ravel() would copy it — an A/B perf probe caught that
+         regression on the hash, 141 vs 307 M p/s, and the 1-D fast path was restored in all 8 board wrappers as a
+         disclosed forward fix inside the campaign); the N-D path flattens C-order and reshapes back to the input shape.
+         Trap fixes found on the way: np.hstack concatenates axis 1 for ndim>2 (feature.py → concatenate axis=-1); the
+         advanced-index axis reorder in atrs[:, unique\_mask\_indexes] (pattern.py — flatten to (-1, 8) before the
+         column selection); the pindexes[:, cols] axis in the lm consumers (a real N-D bug in hlp\_wmaps + the same
+         one-token pattern in hlp\_anova/hlp\_analytics → [..., cols]); the PRNG lockstep contract is now documented as
+         the C-order element order. Test discipline: the 1-D rejection tests converted to N-D happy paths
+         (2-D/3-D/F-order/empty per function); the documented error pins kept (shape mismatch, pydantic dtype,
+         mixed-kind TypeError — the message drops the stale 1-D qualifier). The suite grows 968 → 1042 tests. Left as-is
+         (the documented consumer contracts, follow-up candidates): the EF 1-D guard in lm/client.py (the EF
+         N-D-ification, including its sum axis) and the shuffle 1-D contract in tools/prng.py. VERIFICATION: LONG=1 full
+         suite green at every commit boundary (1042 OK at close); 3 PERF runs per numba-path action compared to the
+         pre-campaign baseline table (all at or above the baseline medians: hash 368M vs 307M p/s, legal\_moves 145M
+         vs 74.8M, play\_path 418-464K vs 414K games/s; the close-window medians of
+         make\_move/PatternSet/MobilitySet/FeatureSet sat below the pre-campaign medians under a machine load of ~6, and
+         the back-to-back baseline-tree vs HEAD A/B under the same load confirmed no code effect — environmental
+         variance, not a regression); the format guard green on the notes set.

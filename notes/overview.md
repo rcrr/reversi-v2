@@ -60,7 +60,6 @@ define the evaluation function.
   the docstring conversion).
 - Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
-- Remove the 1-D shape guard in board.py and verify the N-D correctness of the dual functions (the DP-010 alignment).
 
 ## Source files
 

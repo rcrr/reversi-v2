@@ -1538,3 +1538,35 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   first message of a session" (una riga, il resto del boot protocol intatto).
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-416). Da verificare in una nuova sessione: li legge subito tutti e tre?
+
+## 2026-10-03 — session 92 (D-417 — the 1-D shape guards out: la dual API è N-D, 18 commit, suite 968→1042)
+- Session 92 (Roberto): sceglie il next-step #8 (rimozione della 1-D shape guard in board.py, l'allineamento
+  DP-010) e approva lo scope completo "TUTTO A+B+C": ~20 interventi su 6 moduli (board, mobility, pattern,
+  feature, random\_game, lm), ogni intervento come azione singola con suite completa verde + check perf + commit
+  proprio, un solo D-numero per la campagna intera.
+- IMPLEMENTATION (D-417): le guardie 1-D escono dalle famiglie di funzioni vettorizzate — cast, D8 (le 4
+  riflessioni + transformations/anti\_transformations), kernel board (legal\_moves, position\_hash,
+  position\_flips, position\_make\_move), mobility.compute\_indexes, pattern PatternSet.compute\_principal\_indexes
+  + Pattern.compute\_indexes\_on\_position, feature.FeatureSet.compute\_indexes + i consumer lm, random\_game
+  choose\_move/make\_move/play\_path. Pattern di casa: kernel numba 1-D invariati, gli array 1-D vanno DRETTO al
+  kernel (no flatten copy — le field view strided sono non-contigue e ravel() le copiava: l'A/B perf l'ha
+  catturato sul hash, 141 vs 307 M p/s, e la fast path 1-D è stata ripristinata negli 8 wrapper board come
+  forward-fix disclosed nella campagna), gli array N-D fanno flatten C-order e reshape back alla forma di input.
+- TRAPPOLE SISTEMATE: np.hstack concatena l'axis 1 per ndim>2 (feature.py → concatenate axis=-1); il
+  reordering di asse dell'indexing avanzato in atrs[:, unique\_mask\_indexes] (pattern.py — flatten a (-1, 8)
+  prima della selezione delle colonne); l'asse in pindexes[:, cols] dei consumer lm (bug N-D REALE in
+  hlp\_wmaps\_compute + lo stesso pattern a un token in hlp\_anova/hlp\_analytics → [..., cols]); il contratto
+  PRNG lockstep documentato come ordine degli elementi C-order (i tre docstring random\_game).
+- TEST DISCIPLINE: i rejection 1-D convertiti in happy path N-D (2-D/3-D/F-order/empty per funzione); i pin di
+  errore documentati mantenuti (shape mismatch, dtype pydantic, TypeError mixed-kind — il messaggio perde
+  l'aggettivo 1-D). La suite cresce 968 → 1042, GREEN 1042/0/24 alla chiusura.
+- VERIFICATION: suite completa LONG=1 verde a ogni confine di commit; 3 run PERF per azione numba-path, tutti a o
+  sopra le mediane baseline (hash 368M vs 307M p/s, legal\_moves 145M vs 74.8M, play\_path 418-464K vs 414K
+  games/s). Le mediane della finestra di chiusura (make\_move 32M, PatternSet 1.23M, Mobility 16.5M,
+  FeatureSet 1.04M) sedevano sotto le baseline pre-campagna con load ~6: l'A/B back-to-back albero-baseline
+  (b693367) vs HEAD con lo stesso protocollo e lo stesso load ha confermato NESSUN effetto codice — HEAD ≥
+  baseline su ogni label (make\_move 37.8 vs 33.3M, PatternSet 1.45 vs 1.17M, Mobility 17.2 vs 17.5M,
+  FeatureSet 1.39 vs 1.17M, legal\_moves 97.7 vs 86.8M): varianza ambientale, non regressione.
+- COMMIT: 18 commit (D-417 01..13, 14, 15, 16, 17, 18-20) + questa notes wave.
+- Next: candidati follow-up loggati nell'entry D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle in
+  tools/prng.py — left as-is, contratti di consumer documentati).
