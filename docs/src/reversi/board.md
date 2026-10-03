@@ -26,7 +26,7 @@ stated.
 | Bitboard | `Bitboard` | type alias `np.uint64` — a set of squares, bit i = square i |
 | Bitboard | `BitboardArray` | annotated uint64 array, strict dtype |
 | Bitboard | `bitboard_from_signed_int(i) -> Bitboard \| BitboardArray` | int64 → uint64 bit reinterpretation; the array result is a zero-copy view (shared buffer); bare Python int → ValidationError; arrays of any shape |
-| Bitboard | `bitboard_to_signed_int(bb) -> np.int64 \| NDArray` | the inverse (PostgreSQL storage path); 1-D only |
+| Bitboard | `bitboard_to_signed_int(bb) -> np.int64 \| NDArray` | the inverse (PostgreSQL storage path); the array result is a zero-copy view (shared buffer); arrays of any shape |
 | Bitboard | `bitboard_from_hex_str(h) -> Bitboard \| BitboardArray` | 16-char hex, no `0x` prefix, case-insensitive; the array path is `np.frompyfunc` (element-wise Python loop) |
 | Bitboard | `bitboard_bsr(bb) -> int` | index of the most significant set bit (63..0); 0 → -1; scalar only |
 | Bitboard | `bitboard_count(bb) -> np.uint8 \| npt.NDArray[np.uint8]` | popcount via `np.bitwise_count`; dual scalar/array |

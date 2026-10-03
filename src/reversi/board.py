@@ -308,22 +308,13 @@ def bitboard_to_signed_int(bb: Bitboard | BitboardArray) -> np.int64 | npt.NDArr
     """
     Returns the signed int 64 bit long representation of the bitboard.
     It is useful to store and retrieve the value from PostgreSQL databases.
-    Works on scalar and 1D array inputs.
+    Works on scalar and array inputs of any shape (the output keeps the
+    input shape).
     """
-
-    # Standardize input by checking if it came in as a scalar or an array
-    is_scalar = not isinstance(bb, np.ndarray)
-    bb_arr = np.atleast_1d(bb)
-
-    # Check layout constraints (Pydantic validates types, but we handle dimensions)
-    if bb_arr.ndim != 1:
-        raise ValueError(f"When the argument bb is an array, it must be 1D, got shape {bb_arr.shape}")
-
-    # Adapt output representation to match original scalar or matrix input context
-    if is_scalar:
+    if not isinstance(bb, np.ndarray):
         return bb.view(np.int64)[()]
 
-    if bb_arr.dtype != np.uint64:
+    if bb.dtype != np.uint64:
         raise ValueError(f"Array dtype must be uint64, got {bb.dtype}")
 
     return bb.view(np.int64)

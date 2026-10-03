@@ -426,15 +426,70 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertEqual(result.shape, (3,))
         self.assertTrue(np.all(result == expected))
 
-    def test_array_invalid_dimensions(self):
-        """Should raise ValueError if the passed bitboard array is 2D instead of 1D."""
-        invalid_2d_array = np.array([
-            [1, 2],
-            [3, 4]
+    def test_array_2d_conversion_valid(self):
+        """Should cast a 2-D uint64 array into a same-shape signed int64 array zero-copy."""
+        bb_array = np.array([
+            [0, 0xFFFFFFFFFFFFFFFF],
+            [0x8000000000000000, 4611717676283199524],
         ], dtype=np.uint64)
-        
-        with self.assertRaises(ValueError):
-            bitboard_to_signed_int(invalid_2d_array)
+        expected = np.array([
+            [0, -1],
+            [-9223372036854775808, 4611717676283199524],
+        ], dtype=np.int64)
+
+        result = bitboard_to_signed_int(bb_array)
+
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.dtype, np.int64)
+        self.assertEqual(result.shape, (2, 2))
+        self.assertTrue(np.all(result == expected))
+
+    def test_array_3d_conversion_valid(self):
+        """Should cast a 3-D uint64 array into a same-shape signed int64 array zero-copy."""
+        bb_array = np.zeros((2, 2, 1), dtype=np.uint64)
+        bb_array[0, 0, 0] = 0xFFFFFFFFFFFFFFFF
+        bb_array[1, 1, 0] = 0x8000000000000000
+
+        result = bitboard_to_signed_int(bb_array)
+
+        self.assertEqual(result.dtype, np.int64)
+        self.assertEqual(result.shape, (2, 2, 1))
+        self.assertEqual(result[0, 0, 0], np.int64(-1))
+        self.assertEqual(result[1, 1, 0], np.int64(-9223372036854775808))
+
+    def test_array_2d_shared_memory(self):
+        """Should share the input buffer in the 2-D case as well (a zero-copy view)."""
+        bb_array = np.array([[0]], dtype=np.uint64)
+        result = bitboard_to_signed_int(bb_array)
+
+        # Modifying the output view must immediately mutate the input array
+        result[0, 0] = 42
+        self.assertEqual(bb_array[0, 0], np.uint64(42))
+
+    def test_array_noncontiguous_conversion_valid(self):
+        """Should cast a non-contiguous (Fortran-order) 2-D array with the same values."""
+        bb_array = np.asfortranarray(np.array([
+            [0xFFFFFFFFFFFFFFFF, 1],
+            [2, 0x8000000000000000],
+        ], dtype=np.uint64))
+        expected = np.array([
+            [-1, 1],
+            [2, -9223372036854775808],
+        ], dtype=np.int64)
+
+        result = bitboard_to_signed_int(bb_array)
+
+        self.assertEqual(result.shape, (2, 2))
+        np.testing.assert_array_equal(result, expected)
+
+    def test_empty_array_conversion_valid(self):
+        """Should cast an empty (0, 2) uint64 array to an empty int64 array of the same shape."""
+        bb_array = np.empty((0, 2), dtype=np.uint64)
+
+        result = bitboard_to_signed_int(bb_array)
+
+        self.assertEqual(result.dtype, np.int64)
+        self.assertEqual(result.shape, (0, 2))
 
     def test_invalid_dtype_error(self):
         """Should raise ValueError if the input array is not fundamentally a uint64."""
