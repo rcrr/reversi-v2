@@ -135,10 +135,51 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
         self.assertEqual(computed.dtype, np.uint64)
         nptest.assert_array_equal(computed, expected)
 
-    def test_1d_guard(self):
-        arr = self._batch()
-        with self.assertRaises(ValueError):
-            random_game_choose_move(arr.reshape(2, 4), MT19937(self.seed))
+    def test_2d_valid(self):
+        """A (2, 2) PositionArray (4 positions) gives a (2, 2) BitboardArray, element-wise as the 1-D call
+        on the C-order ravel (the C-order stream contract), on a fresh stream."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr = random_game_choose_move(batch.reshape(2, 2), prng_arr)
+
+        self.assertEqual(arr.shape, (2, 2))
+        self.assertEqual(arr.dtype, np.uint64)
+        prng_ref = MT19937(self.seed)
+        ref = random_game_choose_move(batch, prng_ref)
+        nptest.assert_array_equal(arr, ref.reshape(2, 2))
+
+    def test_3d_valid(self):
+        """A (2, 2, 1) PositionArray gives a (2, 2, 1) BitboardArray, element-wise as the 1-D call
+        on the C-order ravel."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr = random_game_choose_move(batch.reshape(2, 2, 1), prng_arr)
+
+        self.assertEqual(arr.shape, (2, 2, 1))
+        prng_ref = MT19937(self.seed)
+        ref = random_game_choose_move(batch, prng_ref)
+        nptest.assert_array_equal(arr, ref.reshape(2, 2, 1))
+
+    def test_noncontiguous_2d_valid(self):
+        """An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
+        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape."""
+        batch = self._batch()[:4]
+        nd = np.asfortranarray(batch.reshape(2, 2))
+        prng_arr = MT19937(self.seed)
+        arr = random_game_choose_move(nd, prng_arr)
+
+        self.assertEqual(arr.shape, (2, 2))
+        prng_ref = MT19937(self.seed)
+        ref = random_game_choose_move(batch, prng_ref)
+        nptest.assert_array_equal(arr, ref.reshape(2, 2))
+
+    def test_empty_2d_valid(self):
+        """An empty (0, 2) PositionArray gives an empty (0, 2) BitboardArray."""
+        out = random_game_choose_move(np.zeros((0, 2), dtype=Position),
+                                      MT19937(self.seed))
+
+        self.assertEqual(out.shape, (0, 2))
+        self.assertEqual(out.dtype, np.uint64)
 
     def test_empty_array(self):
         out = random_game_choose_move(np.zeros(0, dtype=Position),
@@ -246,10 +287,56 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr_p, exp_p)
         nptest.assert_array_equal(arr_m, exp_m)
 
-    def test_1d_guard(self):
-        arr = self._batch()
-        with self.assertRaises(ValueError):
-            random_game_make_move(arr.reshape(2, 4), MT19937(self.seed))
+    def test_2d_valid(self):
+        """A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, codes) pair, element-wise as the 1-D call
+        on the C-order ravel (the C-order stream contract), on a fresh stream."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_m = random_game_make_move(batch.reshape(2, 2), prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2))
+        self.assertEqual(arr_m.shape, (2, 2))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_m = random_game_make_move(batch, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2))
+        nptest.assert_array_equal(arr_m, ref_m.reshape(2, 2))
+
+    def test_3d_valid(self):
+        """A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, codes) pair, element-wise as the 1-D call
+        on the C-order ravel."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_m = random_game_make_move(batch.reshape(2, 2, 1), prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2, 1))
+        self.assertEqual(arr_m.shape, (2, 2, 1))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_m = random_game_make_move(batch, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2, 1))
+        nptest.assert_array_equal(arr_m, ref_m.reshape(2, 2, 1))
+
+    def test_noncontiguous_2d_valid(self):
+        """An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
+        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape."""
+        batch = self._batch()[:4]
+        nd = np.asfortranarray(batch.reshape(2, 2))
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_m = random_game_make_move(nd, prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2))
+        self.assertEqual(arr_m.shape, (2, 2))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_m = random_game_make_move(batch, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2))
+        nptest.assert_array_equal(arr_m, ref_m.reshape(2, 2))
+
+    def test_empty_2d_valid(self):
+        """An empty (0, 2) PositionArray gives the empty (0, 2) (positions, codes) pair."""
+        arr_p, arr_m = random_game_make_move(np.zeros((0, 2), dtype=Position),
+                                             MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (0, 2))
+        self.assertEqual(arr_m.shape, (0, 2))
+        self.assertEqual(arr_m.dtype, np.uint8)
 
     def test_empty_array(self):
         arr_p, arr_m = random_game_make_move(np.zeros(0, dtype=Position),
@@ -375,10 +462,56 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         nptest.assert_array_equal(arr_p, exp_p)
         nptest.assert_array_equal(arr_ec, exp_ec)
 
-    def test_1d_guard(self):
-        arr = self._batch()
-        with self.assertRaises(ValueError):
-            random_game_play_path(arr.reshape(2, 4), 14, MT19937(self.seed))
+    def test_2d_valid(self):
+        """A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, ec) pair, element-wise as the 1-D call
+        on the C-order ravel (the C-order lockstep stream contract), on a fresh stream."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_ec = random_game_play_path(batch.reshape(2, 2), 14, prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2))
+        self.assertEqual(arr_ec.shape, (2, 2))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_ec = random_game_play_path(batch, 14, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2))
+        nptest.assert_array_equal(arr_ec, ref_ec.reshape(2, 2))
+
+    def test_3d_valid(self):
+        """A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, ec) pair, element-wise as the 1-D call
+        on the C-order ravel."""
+        batch = self._batch()[:4]
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_ec = random_game_play_path(batch.reshape(2, 2, 1), 14, prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2, 1))
+        self.assertEqual(arr_ec.shape, (2, 2, 1))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_ec = random_game_play_path(batch, 14, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2, 1))
+        nptest.assert_array_equal(arr_ec, ref_ec.reshape(2, 2, 1))
+
+    def test_noncontiguous_2d_valid(self):
+        """An F-order (2, 2) PositionArray: the C-order ravel defines the lane order (the lockstep
+        stream contract) — the values are the 1-D C-order result, laid out in the (2, 2) shape."""
+        batch = self._batch()[:4]
+        nd = np.asfortranarray(batch.reshape(2, 2))
+        prng_arr = MT19937(self.seed)
+        arr_p, arr_ec = random_game_play_path(nd, 14, prng_arr)
+
+        self.assertEqual(arr_p.shape, (2, 2))
+        self.assertEqual(arr_ec.shape, (2, 2))
+        prng_ref = MT19937(self.seed)
+        ref_p, ref_ec = random_game_play_path(batch, 14, prng_ref)
+        nptest.assert_array_equal(arr_p, ref_p.reshape(2, 2))
+        nptest.assert_array_equal(arr_ec, ref_ec.reshape(2, 2))
+
+    def test_empty_2d_valid(self):
+        """An empty (0, 2) PositionArray gives the empty (0, 2) (positions, ec) pair."""
+        arr_p, arr_ec = random_game_play_path(np.zeros((0, 2), dtype=Position),
+                                              14, MT19937(self.seed))
+        self.assertEqual(arr_p.shape, (0, 2))
+        self.assertEqual(arr_ec.shape, (0, 2))
+        self.assertEqual(arr_ec.dtype, np.uint8)
 
     def test_empty_array(self):
         arr_p, arr_ec = random_game_play_path(np.zeros(0, dtype=Position),

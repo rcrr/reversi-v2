@@ -6,9 +6,10 @@ hlp_su_analysis accumulators; the hlp_wave wave engine is retired — D-285).
 
 ## API
 
-The 3 `__all__` functions. Dual contract throughout: a scalar PositionField in → scalar out, a 1-D PositionArray in →
-array out of the same length (the 2-D (N, 2) uint64 input is coerced by the PositionArray validator). The PRNG is
-INJECTED — the caller owns the MT19937 stream ("one seed for all").
+The 3 `__all__` functions. Dual contract throughout: a scalar PositionField in → scalar out, a PositionArray of any
+shape in → array out of the same shape (a 1-D batch keeps the classic layout; the 2-D (N, 2) uint64 raw input is
+coerced to the 1-D PositionArray by the PositionArray validator). The PRNG is INJECTED — the caller owns the
+MT19937 stream ("one seed for all"); the N-D element order (the draw order) is the C-order ravel of the array.
 
 | family | name | contract |
 |---|---|---|
@@ -75,8 +76,10 @@ None.
 - The engine arrays are mutated in place: the input batch is copied once, the caller's array is never touched.
 - The empty move set is the module constant `_EMPTY_MOVE_SET` — the pass signal of the pick domain; the tests pin the
   expected values as literals (the goldens), not through the constant.
-- @validate_call (pydantic, arbitrary_types_allowed) on the public functions; the dual scalar/array signature with the
-  standard 1-D guard.
+- @validate_call (pydantic, arbitrary_types_allowed) on the public functions; the dual scalar/array signature, arrays
+  of any shape (the pick / make-move run on the C-order ravel of the legal-move sets; the play-path engine runs on
+  the C-order ravel of the positions — the 1-D lane engine is unchanged — and the outputs are reshaped back to the
+  positions shape).
 
 ## Integration
 

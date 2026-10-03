@@ -62,26 +62,25 @@ def random_game_choose_move(p: PositionField | PositionArray,
     from the set of legal moves for the position.
 
     Dual scalar/array: a scalar
-    PositionField gives a scalar Bitboard; a 1-D PositionArray gives
-    a 1-D BitboardArray of the same length (the 2-D (N, 2) uint64
-    input is coerced by the PositionArray validator).
+    PositionField gives a scalar Bitboard; a PositionArray of any
+    shape gives a BitboardArray of the same shape.
 
     The PRNG stream contract: the elements consume their draws from
-    the ONE injected stream in element order, exactly like a scalar
-    loop — one draw per element with a non-empty legal-move set, no
-    draw for a pass (an empty set). The array call is bit-identical
-    to the sequential scalar processing of the same positions with
-    the same stream.
+    the ONE injected stream in element order (the C-order ravel of
+    the array), exactly like a scalar loop — one draw per element
+    with a non-empty legal-move set, no draw for a pass (an empty
+    set). The array call is bit-identical to the sequential scalar
+    processing of the same positions with the same stream.
     """
     if isinstance(p, np.ndarray):
-        # D-219: the standard 1-D guard (house pattern, as position_flips)
-        if p.ndim != 1:
-            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
-        lms = position_legal_moves(p)
+        # The N-D contract: the pick runs on the C-order ravel of the
+        # legal-move sets (the PRNG draws are consumed in that element
+        # order), the output reshaped back to the positions shape.
+        lms = position_legal_moves(p).ravel()
         needs = (lms != _EMPTY_MOVE_SET)
         draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
         slots = np.cumsum(needs, dtype=np.int64) - needs.astype(np.int64)
-        return pick_one_from_set64_batch(lms, draws, slots)
+        return pick_one_from_set64_batch(lms, draws, slots).reshape(p.shape)
     if isinstance(p, np.void):
         moves: Bitboard = position_legal_moves(p)
         move, _ = prng.choose_one_from_set64(moves)
@@ -104,19 +103,15 @@ def random_game_make_move(p: PositionField | PositionArray,
     swapped position (the players inverted).
 
     Dual scalar/array: a scalar
-    PositionField gives the (PositionField, Move) pair; a 1-D
-    PositionArray gives the (PositionArray, MoveArray) pair of the same
-    length (the 2-D (N, 2) uint64 input is coerced by the PositionArray
-    validator) — the per-element semantics is the scalar one (a zero
-    move swaps the players, a legal move flips). The PRNG stream
-    contract of random_game_choose_move is inherited: the array call
-    is bit-identical to the sequential scalar processing of the same
-    positions with the same stream.
+    PositionField gives the (PositionField, Move) pair; a
+    PositionArray of any shape gives the (PositionArray, MoveArray)
+    pair of the same shape — the per-element semantics is the scalar
+    one (a zero move swaps the players, a legal move flips). The
+    PRNG stream contract of random_game_choose_move is inherited:
+    the array call is bit-identical to the sequential scalar
+    processing of the same positions with the same stream.
     """
     if isinstance(p, np.ndarray):
-        # D-220: the standard 1-D guard (house pattern, as position_flips)
-        if p.ndim != 1:
-            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
         moves = random_game_choose_move(p, prng)
         _, new_p = position_flips(p, moves)
         move_codes = np.bitwise_count(moves - np.uint64(1)).astype(np.uint8)
@@ -321,22 +316,24 @@ def random_game_play_path(p: PositionField | PositionArray,
         along with its own number of empty cells.
 
     Dual scalar/array: a scalar
-    PositionField gives the (PositionField, np.uint8) pair; a 1-D
-    PositionArray gives the (PositionArray, uint8-array) pair of the
-    same length (the 2-D (N, 2) uint64 input is coerced by the
-    PositionArray validator). The PRNG stream contract of the array
+    PositionField gives the (PositionField, np.uint8) pair; a
+    PositionArray of any shape gives the (PositionArray, uint8-array)
+    pair of the same shape. The PRNG stream contract of the array
     case: the lanes advance in LOCKSTEP — at every step the ACTIVE
-    lanes draw once, in element order — exactly one draw per
-    non-terminal lane, no draw for the game-over lanes. Two facts
-    pin the contract down: the call is DETERMINISTIC given the seed,
-    and with N == 1 the array call is BIT-IDENTICAL to the scalar
-    call. The target is ONE shared value for the whole batch.
+    lanes draw once, in element order (the C-order ravel of the
+    array) — exactly one draw per non-terminal lane, no draw for the
+    game-over lanes. Two facts pin the contract down: the call is
+    DETERMINISTIC given the seed, and with N == 1 the array call is
+    BIT-IDENTICAL to the scalar call. The target is ONE shared value
+    for the whole batch.
     """
     if isinstance(p, np.ndarray):
-        # D-222: the standard 1-D guard (house pattern, as position_flips)
-        if p.ndim != 1:
-            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
-        return _play_path_engine(p, np.uint8(target_ec), prng)
+        # The N-D contract: the engine runs on the C-order ravel of
+        # the positions (the lockstep draws are consumed in that
+        # element order), the outputs reshaped back to the positions
+        # shape.
+        out_p, out_ec = _play_path_engine(p.ravel(), np.uint8(target_ec), prng)
+        return out_p.reshape(p.shape), out_ec.reshape(p.shape)
     if isinstance(p, np.void):
         ec = position_empty_count(p)
 
