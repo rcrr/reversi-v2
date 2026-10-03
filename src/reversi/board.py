@@ -1338,25 +1338,31 @@ def position_flips(p: PositionField | PositionArray,
     The updated board is returned as the second element of the tuple when
     the move is legal or a PASS, None otherwise.
 
-    Dual scalar/array (D-140, as legal_moves): when input is a scalar
-    the output is scalar; when p is a 1-D PositionArray and move a 1-D
-    Bitboard array of the same shape, the output is a Bitboard array
-    and a PositionArray. In the array case a zero (PASS) element swaps
-    the players, a legal element flips, and an illegal (or non-single-
-    bit) element i gets flips[i] = 0 and updated[i] left as the input
-    position (no per-element None). Bare Python ints and lists are
-    rejected (Pydantic) as for the rest of the dual API.
+    Dual scalar/array (as legal_moves): when input is a scalar
+    the output is scalar; when p is a PositionArray of any shape and
+    move a Bitboard array of the same shape, the output is a Bitboard
+    array and a PositionArray of that shape. In the array case a zero
+    (PASS) element swaps the players, a legal element flips, and an
+    illegal (or non-single-bit) element i gets flips[i] = 0 and
+    updated[i] left as the input position (no per-element None). Bare
+    Python ints and lists are rejected (Pydantic) as for the rest of
+    the dual API.
     """
     if isinstance(p, np.ndarray) and isinstance(move, np.ndarray):
-        # D-140: the standard 1-D guard (house pattern, as legal_moves)
-        if p.ndim != 1:
-            raise ValueError(f"When the argument p is an array, it must be 1D, got shape {p.shape}")
-        if move.ndim != 1:
-            raise ValueError(f"When the argument move is an array, it must be 1D, got shape {move.shape}")
         if p.shape != move.shape:
             raise ValueError("The shapes of p and move arrays must be the same.")
-        flips, out_movers, out_opponents = _vectorized_flips(p['mover'], p['opponent'], move)
-        return flips, make_position(out_movers, out_opponents)
+        if p.ndim == 1:
+            # The 1-D fast path: the (possibly strided) field views and
+            # the move array go straight to the kernel, no flatten copy.
+            flips, out_movers, out_opponents = _vectorized_flips(p['mover'], p['opponent'], move)
+            return flips, make_position(out_movers, out_opponents)
+        # The N-D contract: the 1-D kernel over the flattened C-order
+        # views, the outputs reshaped back to the input shape.
+        flips, out_movers, out_opponents = _vectorized_flips(
+            p['mover'].ravel(), p['opponent'].ravel(), move.ravel())
+        return (flips.reshape(p.shape),
+                make_position(out_movers.reshape(p.shape),
+                              out_opponents.reshape(p.shape)))
     if isinstance(p, np.void) and isinstance(move, Bitboard):
         m = p['mover']
         o = p['opponent']
@@ -1374,7 +1380,7 @@ def position_flips(p: PositionField | PositionArray,
         else:
             updated = None
         return flips, updated
-    raise TypeError("Inputs must be either both scalar or both 1-D arrays.")
+    raise TypeError("Inputs must be either both scalar or both arrays.")
 
 #: Internal use function.
 @nb.njit(parallel=True, cache=True)

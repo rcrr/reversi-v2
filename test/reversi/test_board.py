@@ -2848,21 +2848,77 @@ class TestPositionFlips(unittest.TestCase):
                                         make_position(positions[i]['opponent'],
                                                       positions[i]['mover'])))
 
-    def test_position_flips_array_2d_raises_value_error(self):
-        positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
-                                  np.array([0x2, 0x4], dtype=Bitboard))
-        with self.assertRaises(ValueError) as ctx:
-            position_flips(positions.view(Position).reshape(1, 2), np.array([0x1], dtype=Bitboard))
-        self.assertEqual(str(ctx.exception),
-                         "When the argument p is an array, it must be 1D, got shape (1, 2)")
+    def test_position_flips_2d_valid(self):
+        """A (1, 2) PositionArray with a (1, 2) move array gives (1, 2) outputs, element-wise as the scalar calls
+        (a legal flip move and a PASS)."""
+        positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
+                                  np.array([0x0040201008040200, 0x2], dtype=Bitboard))
+        moves = np.array([[0x8000000000000000, 0]], dtype=Bitboard)
 
-    def test_position_flips_move_array_2d_raises_value_error(self):
+        flips, updated = position_flips(positions.view(Position).reshape(1, 2), moves)
+
+        self.assertEqual(flips.shape, (1, 2))
+        self.assertEqual(updated.shape, (1, 2))
+        for i in range(2):
+            sf, su = position_flips(positions[i], moves[0, i])
+            self.assertIsNotNone(su)
+            self.assertEqual(int(flips[0, i]), int(sf))
+            self.assertTrue(position_eq(updated[0, i], su))
+
+    def test_position_flips_3d_valid(self):
+        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives (2, 1, 2) outputs, element-wise as the scalar calls
+        (one legal flip move and three PASSes)."""
+        positions = make_position(
+            np.array([[[0x0000000000000001, 0x2]],
+                      [[0x0040201008040200, 0x8]]], dtype=Bitboard),
+            np.array([[[0x0040201008040200, 0x4]],
+                      [[0x1, 0x10]]], dtype=Bitboard))
+        moves = np.array([[[0x8000000000000000, 0]],
+                          [[0, 0]]], dtype=Bitboard)
+
+        flips, updated = position_flips(positions, moves)
+
+        self.assertEqual(flips.shape, (2, 1, 2))
+        self.assertEqual(updated.shape, (2, 1, 2))
+        for i in range(4):
+            sf, su = position_flips(positions.ravel()[i], moves.ravel()[i])
+            self.assertIsNotNone(su)
+            self.assertEqual(int(flips.ravel()[i]), int(sf))
+            self.assertTrue(position_eq(updated.ravel()[i], su))
+
+    def test_position_flips_noncontiguous_2d_valid(self):
+        """An F-order (2, 2) PositionArray gives the same (2, 2) values as the C-order call."""
+        positions = np.asfortranarray(make_position(
+            np.array([[0x1, 0x2], [0x4, 0x8]], dtype=Bitboard),
+            np.array([[0x2, 0x4], [0x1, 0x2]], dtype=Bitboard)))
+        moves = np.array([[0x1, 0x2], [0x4, 0x1]], dtype=Bitboard)
+
+        flips, updated = position_flips(positions, moves)
+
+        self.assertEqual(flips.shape, (2, 2))
+        self.assertEqual(updated.shape, (2, 2))
+        c_flips, c_updated = position_flips(np.ascontiguousarray(positions), moves)
+        np.testing.assert_array_equal(flips, c_flips)
+        np.testing.assert_array_equal(updated, c_updated)
+
+    def test_position_flips_empty_2d_valid(self):
+        """An empty (0, 2) PositionArray with an empty (0, 2) move array gives empty (0, 2) outputs."""
+        positions = np.zeros((0, 2), dtype=Position)
+        moves = np.zeros((0, 2), dtype=Bitboard)
+
+        flips, updated = position_flips(positions, moves)
+
+        self.assertEqual(flips.shape, (0, 2))
+        self.assertEqual(updated.shape, (0, 2))
+
+    def test_position_flips_move_array_2d_shape_mismatch_raises_value_error(self):
+        """A 1-D (2,) position array against a 2-D (2, 1) move array fails the same-shape check."""
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
                                   np.array([0x2, 0x4], dtype=Bitboard))
         with self.assertRaises(ValueError) as ctx:
             position_flips(positions, np.array([[0x1], [0x2]], dtype=Bitboard))
         self.assertEqual(str(ctx.exception),
-                         "When the argument move is an array, it must be 1D, got shape (2, 1)")
+                         "The shapes of p and move arrays must be the same.")
 
     def test_position_flips_array_shape_mismatch_raises_value_error(self):
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
@@ -2878,7 +2934,7 @@ class TestPositionFlips(unittest.TestCase):
         with self.assertRaises(TypeError) as ctx:
             position_flips(positions, Bitboard(0x1))
         self.assertEqual(str(ctx.exception),
-                         "Inputs must be either both scalar or both 1-D arrays.")
+                         "Inputs must be either both scalar or both arrays.")
 
     def test_position_flips_wrong_move_array_dtype_raises_validation_error(self):
         positions = make_position(np.array([0x1, 0x2], dtype=Bitboard),
