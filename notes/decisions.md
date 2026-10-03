@@ -1460,3 +1460,17 @@ D-418 | 2026-10-04 | Governance — the boot protocol after a compaction: the th
          one-off ~3.7k of the mandatory context, then cache — the same price as the session-start reading, paid only
          when a compaction actually happens. VERIFICATION: the AGENTS.md change is the heading line (the rest of the
          constitution untouched); the format guard green on the notes set.
+
+D-419 | 2026-10-04 | Repair — the overview's Test files table carried stale suite counts after the D-417 notes wave: the
+         per-module counter was not re-run at the campaign close (the note wave retired only the next-step line), so the
+         seven modules the campaign grew still showed their pre-campaign totals (test\_board 247→294, test\_random\_game
+         33→42, test\_pattern 65→73, test\_mobility 26→30, test\_feature 25→29, test\_hlp\_wmaps 15→16,
+         test\_hlp\_design\_matrix 14→15). Forward-repaired, disclosed here and in the journal; the other 39 modules
+         were re-verified against the same per-module LONG=1 run and matched the table exactly. Side finding:
+         wsutils/suite\_audit.py is itself stale — its module regex expects the old flat module names
+         (reversi.test.NAME) and matches nothing in the runner's current test.reversi.NAME format, so it exits 0 having
+         run zero modules; the measurement ran from a scratch twin of the tool, and the one-line fix awaits the user's
+         call (source files change only on explicit request). Nothing else in the overview changed: Current state, Next
+         steps and the Index were verified complete at the D-417 close (no campaign bullet to retire, no new file,
+         DP-010 stays as written — it is shape-neutral). VERIFICATION: the regenerated cells match the per-module LONG=1
+         counts (total 1042/0/24); the format guard green on the notes set.

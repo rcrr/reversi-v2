@@ -1570,3 +1570,32 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - COMMIT: 18 commit (D-417 01..13, 14, 15, 16, 17, 18-20) + questa notes wave.
 - Next: candidati follow-up loggati nell'entry D-417 (l'EF N-D in lm/client.py, il contratto 1-D dello shuffle in
   tools/prng.py — left as-is, contratti di consumer documentati).
+
+## 2026-10-04 — session 93 (governance: la rilettura tassativa post-compattazione, la colonna Suite dell'overview)
+
+- Session 93 (Roberto): prima review della nuova governance. Due osservazioni: (1) dopo la compattazione non
+  rileggo i files di rules come prescritto in AGENTS; (2) a chiusura di D-417 l'overview non era aggiornato —
+  voluto o dimenticanza? Verificata: dimenticanza (l'update si era fermato alla riga next-step ritirata), e le
+  due cose sono collegate: il notes wave è partito dal riassunto di checkpoint, eseguito come specifica.
+- D-418: AGENTS.md — i tre context files si rileggono, in ordine, anche dopo OGNI compattazione del contesto,
+  esattamente come all'avvio di sessione (il vecchio trigger, "primo messaggio di sessione", non si riattivava:
+  una compattazione non riavvia la sessione).
+- D-419: la colonna Suite/std\_run dell'overview era stantia dopo la notes wave di D-417 (il counter non era
+  ri-eseguito alla chiusura): test\_board 247→294, test\_random\_game 33→42, test\_pattern 65→73,
+  test\_mobility 26→30, test\_feature 25→29, test\_hlp\_wmaps 15→16, test\_hlp\_design\_matrix 14→15.
+  Riparazione forward, disclosed qui e in decisions; gli altri 39 moduli tornano puntuali sullo stesso run.
+- wsutils/suite\_audit.py: la tool non misura più nulla — la regex dei moduli (i nomi piatti reversi.test.NAME)
+  non corrisponde al formato corrente del runner (test.reversi.NAME): exit 0 silenzioso, zero moduli eseguiti.
+  Tabella misurata con un twin in scratch; la fix a una riga della tool resta proposta a Roberto (source: solo su
+  richiesta esplicita).
+- notes\_format.py: il re-wrapper passato su notes/log.md ha ri-wrapato l'intero volume aperto (~1100 righe,
+  token conservati — nessuna perdita) e ha spezzato in due righe lo span in grassetto dell'entry D-341
+  (violazione ESC): il journal resta hand-wrapped (il re-wrapper serve le zone a fixed-point: decisions,
+  register), volume ripristinato da git e la sezione 93 ri-allegata a mano.
+- VERIFICATION: notes\_lint verde sull'intero set; nessuna modifica di codice in questa sessione —
+  LONG=1 ./run\_utests.sh prima di ogni commit: 1042/0/24 GREEN.
+- Next: la domanda aperta di Roberto — una regola standing "prima di ogni commit, rileggere rules e verificare la
+  compliance"? La mia valutazione: il re-read completo a ogni commit è lo strumento pesante (O(register ×
+  commit), un costo reale in una campagna di 18 commit); il gap preciso è che l'impact set di R-250 non nomina la
+  tabella Test files dell'overview per un cambio dei conteggi — un emendamento a una clausola di R-250 sarebbe lo
+  strumento proporzionato. In attesa della sua call.
