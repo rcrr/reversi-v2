@@ -1532,3 +1532,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   would add ~3k; poi tutto in cache. La mia view: status quo difendibile (costo basso, contesto al primo task,
   onestà totale); se si vuole zero ambiguita', il single-word change e' "before answering the first message of a
   session" (variante eager, ~3.7k anche nelle sessioni di solo saluto). In attesa della call di Roberto.
+- Session 91 (Roberto, trentanovesima richiesta): "Fai la modifica: yes 'before answering the first message of a
+  session', vediamo in una nuova sessione se li legge subito tutti e tre ... Vai!"
+- IMPLEMENTATION (D-416): AGENTS.md — trigger del boot da lazy a eager: "before any work" → "before answering the
+  first message of a session" (una riga, il resto del boot protocol intatto).
+- VERIFICATION: guard VERDE sul set default.
+- COMMIT: un solo commit (D-416). Da verificare in una nuova sessione: li legge subito tutti e tre?

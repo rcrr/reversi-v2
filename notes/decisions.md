@@ -1412,3 +1412,13 @@ D-415 | 2026-10-01 | AGENTS.md — the last step of the governance redesign, per
          (instructionFileCandidates) — the lever if a first-class file must ever be forced into the context instead of
          instructed. VERIFICATION: the guard green on the default set; the runtime hot-reloaded the new AGENTS.md as the
          root-scope baseline at the commit boundary.
+
+D-416 | 2026-10-01 | AGENTS.md — the boot trigger tightened from lazy to eager, per Roberto (after the first live test
+         of the B+ boot, the trentottesima analysis): "Your context (read all three, in order, before any work)" →
+         "before answering the first message of a session". The observed behavior that motivated it: the new-session
+         agent read the rule ("the rules say to read all three before work") but scoped "any work" to tasks — a pure
+         greeting drew exactly 1 of the 3 (overview only), and the gap was visible only to a user who knows the
+         protocol. The lazy reading was defensible (no 3.7k-token tax on a "come va?" session), but determinism won: all
+         three files are now read before the first reply of a session, whatever it is. Cost profile: the one-off ~3.7k
+         of the mandatory context, then cache. Nothing else in the boot protocol changed. VERIFICATION: the guard green
+         on the default set.
