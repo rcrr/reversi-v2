@@ -1264,6 +1264,73 @@ class TestPatternComputeIndexes(unittest.TestCase):
         ], dtype=np.uint32)
         nptest.assert_array_equal(indexes, expected)
 
+    def test_compute_indexes_on_position_2d(self):
+        """T9-N: a (1, 3) position batch gives a (1, 3, 4) index array, element-wise as the 1-D call."""
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),   # empty
+            make_position(Bitboard(0x1), Bitboard(0x0)),   # mover A1
+            make_position(Bitboard(0x1), Bitboard(0x80)),  # + opponent H1
+        ]).reshape(1, 3)
+        position_check_collisions(positions)
+
+        indexes = pat.compute_indexes_on_position(positions)
+
+        self.assertEqual(indexes.shape, (1, 3, 4))
+        nptest.assert_array_equal(indexes, np.array([
+            [[0, 0, 0, 0],
+             [1, 0, 0, 3**7],
+             [1 + 2 * 3**7, 2, 0, 3**7]],
+        ], dtype=np.uint32))
+
+    def test_compute_indexes_on_position_3d(self):
+        """T9-N: a (3, 1, 1) position batch gives a (3, 1, 1, 4) index array, element-wise as the 1-D call."""
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        positions = np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),   # empty
+            make_position(Bitboard(0x1), Bitboard(0x0)),   # mover A1
+            make_position(Bitboard(0x1), Bitboard(0x80)),  # + opponent H1
+        ]).reshape(3, 1, 1)
+        position_check_collisions(positions)
+
+        indexes = pat.compute_indexes_on_position(positions)
+
+        self.assertEqual(indexes.shape, (3, 1, 1, 4))
+        nptest.assert_array_equal(indexes, np.array([
+            [[[0, 0, 0, 0]]],
+            [[[1, 0, 0, 3**7]]],
+            [[[1 + 2 * 3**7, 2, 0, 3**7]]],
+        ], dtype=np.uint32))
+
+    def test_compute_indexes_on_position_noncontiguous_2d(self):
+        """T9-N: an F-order (1, 3) position batch gives the same (1, 3, 4) values as the C-order call."""
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        positions = np.asfortranarray(np.array([
+            make_position(Bitboard(0x0), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x0)),
+            make_position(Bitboard(0x1), Bitboard(0x80)),
+        ]).reshape(1, 3))
+        position_check_collisions(positions)
+
+        indexes = pat.compute_indexes_on_position(positions)
+
+        self.assertEqual(indexes.shape, (1, 3, 4))
+        c_indexes = pat.compute_indexes_on_position(np.ascontiguousarray(positions))
+        nptest.assert_array_equal(indexes, c_indexes)
+
+    def test_compute_indexes_on_position_empty_2d(self):
+        """T9-N: an empty (0, 2) position batch gives an empty (0, 2, 4) index array."""
+        pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
+
+        positions = np.zeros((0, 2), dtype=Position)
+
+        indexes = pat.compute_indexes_on_position(positions)
+
+        self.assertEqual(indexes.shape, (0, 2, 4))
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         

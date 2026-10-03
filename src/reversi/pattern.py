@@ -758,7 +758,8 @@ class Pattern:
         and converts them into numeric identifiers (base-3 indexing).
 
         Args:
-            pos: A single game Position or a 1D NumPy array of Positions.
+            pos: A single game Position or a NumPy array of Positions of
+            any shape.
 
         Precondition:
             Positions must be collision-free (mover & opponent == 0). The
@@ -767,8 +768,9 @@ class Pattern:
             not re-check it.
 
         Returns:
-            A 1D array of uint32 indexes if 'pos' is a scalar, or a 2D array of shape 
-            (N, M_unique) if 'pos' is an array of N positions.
+            A 1D array of uint32 indexes if 'pos' is a scalar, or an array
+            of shape pos.shape + (M_unique,) if 'pos' is an array of
+            positions (a 1-D (N,) batch gives (N, M_unique)).
         """
         is_scalar = not isinstance(pos, np.ndarray)
 
@@ -778,6 +780,15 @@ class Pattern:
         # 1. High-speed C-layout anti-transformations
         atrs_m = bitboard_anti_transformations(m)
         atrs_o = bitboard_anti_transformations(o)
+
+        is_nd = atrs_m.ndim > 2
+        if is_nd:
+            # The N-D contract: flatten the transformation matrices to
+            # (-1, 8) so the column selection below picks the instance
+            # axis (an N-D [:, indexes] would index the middle axis
+            # instead).
+            atrs_m = atrs_m.reshape(-1, 8)
+            atrs_o = atrs_o.reshape(-1, 8)
 
         # 2. Extract unique symmetries along the column axis safely
         sym_m = atrs_m[:, self.unique_mask_indexes]
@@ -797,6 +808,10 @@ class Pattern:
     
         if is_scalar:
             return ret[0] # Return as scalar view if input was a single field
+        if is_nd:
+            # Reshape the flat (N, M_unique) result back to the positions
+            # shape + (M_unique,).
+            return ret.reshape(pos.shape + (ret.shape[1],))
         return ret
 
     def compute_principal_index_dict(self) -> None:
