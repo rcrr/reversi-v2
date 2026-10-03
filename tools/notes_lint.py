@@ -6,9 +6,9 @@ formats, each per its rigid grammar:
   notes/decisions.md + notes/hist_decisions/decisions_NNN.md — the entry grammar (notes/decisions_rules.md)
   notes/rules.md — the register grammar (the Governance block inside it)
   notes/log.md + notes/hist_log/log_NNN.md — the session-block grammar (notes/log_rules.md)
-  notes/overview.md — the eight-section + table grammar (notes/overview_rules.md)
+  notes/overview.md — the seven-section + table grammar (notes/overview_rules.md)
   the domain rule files (overview_rules.md, decisions_rules.md, log_rules.md, docs_rules.md,
-  probe_rules.md, tools.md, naming.md) — the H1 + section + bullet grammar
+  probe_rules.md, tools.md, naming.md, design_principles.md) — the H1 + section + bullet grammar
   notes/ideas.md + notes/ideas_closed.md — the D-235 entry grammar (I-NNN | status | ...)
 One guard, one entry point, per-format linters — never one tool per format. The default set covers every CURRENT
 notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/hist_log/log_000..003) are linted
@@ -371,13 +371,13 @@ def prose_state_check(line, state):
     return None
 
 
-SECTIONS = ('Project', 'Conventions in the code', 'Environment', 'Current state',
-            'Next steps', 'Source files', 'Test files', 'Index')
+SECTIONS = ('Project', 'Environment', 'Current state', 'Next steps',
+            'Source files', 'Test files', 'Index')
 
 
 def lint_overview(path, lines, text):
     """notes/overview.md (notes/overview_rules.md): the H1, the Format rules
-    pointer section, then EXACTLY the eight sections in exactly this order
+    pointer section, then EXACTLY the seven sections in exactly this order
     (Project ... Index); the two tables (Source files / Test files) with one
     physical line per row, alphabetical by full path; Current state MAX 10
     bullets; Next steps OPEN items only (no “Done” bullets)."""
@@ -392,7 +392,7 @@ def lint_overview(path, lines, text):
         if i < len(SECTIONS) and not title.startswith(SECTIONS[i]):
             v.append((n, 'OV-SECS', f'section out of order: “{title}” (expected “{SECTIONS[i]} ...”)'))
     if len(body) > len(SECTIONS):
-        v.append((body[len(SECTIONS)][0], 'OV-SECS', 'a section beyond the eight'))
+        v.append((body[len(SECTIONS)][0], 'OV-SECS', 'a section beyond the seven'))
     elif len(body) < len(SECTIONS):
         v.append((0, 'OV-SECS', f'{len(SECTIONS) - len(body)} missing section(s)'))
     spans = {}
@@ -464,7 +464,7 @@ def lint_overview(path, lines, text):
 
 def lint_rulefile(path, lines, text):
     """The domain rule files (overview_rules.md, decisions_rules.md, log_rules.md,
-    docs_rules.md, probe_rules.md, tools.md, naming.md): an H1, the intro prose,
+    docs_rules.md, probe_rules.md, tools.md, naming.md, design_principles.md): an H1, the intro prose,
     the '## Section' headers, the top-level '- ' bullets with their continuations
     at exactly 2 spaces (sub-bullets at 2, continuations at 4)."""
     v = []
@@ -567,7 +567,7 @@ def kind_of(name):
     if b == 'overview.md':
         return 'overview'
     if b in ('overview_rules.md', 'decisions_rules.md', 'log_rules.md', 'docs_rules.md',
-             'probe_rules.md', 'tools.md', 'naming.md'):
+             'probe_rules.md', 'tools.md', 'naming.md', 'design_principles.md'):
         return 'rulefile'
     if b in ('ideas.md', 'ideas_closed.md'):
         return 'ideas'
@@ -581,7 +581,7 @@ def main(argv):
         # every CURRENT notes file (the closed volumes are linted on explicit request)
         files = [ROOT / f'notes/{n}' for n in
                  ('rules.md', 'decisions.md', 'log.md', 'overview.md', 'ideas.md', 'ideas_closed.md',
-                  'naming.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
+                  'naming.md', 'design_principles.md', 'tools.md', 'overview_rules.md', 'decisions_rules.md',
                   'log_rules.md', 'docs_rules.md', 'probe_rules.md')]
     linters = {'decisions': lint_decisions, 'rules': lint_rules, 'journal': lint_journal,
                'overview': lint_overview, 'rulefile': lint_rulefile, 'ideas': lint_ideas}

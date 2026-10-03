@@ -1291,3 +1291,34 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   code span come nelle sezioni Bitboard/Position.
 - VERIFICATION: guard VERDE sul set default.
 - COMMIT: un solo commit (D-403).
+- Session 91 (Roberto, venticinquesima richiesta): "Torniamo ad overview. Le entries che parlano di patterns nella
+  sezione 'Conventions in the code' le possiamo ritirare. Rimangono le entries #1, #2, #3. La #1: Dual scalar/array —
+  e' una scelta di design, generale nella pipeline, conforme al disegno di numpy, che e' una scelta obbligata per le
+  performances della soluzione. Ma dove deve stare questa cosa, e poi interessa a Nia, o ad un altro Agente, come info
+  generale architetturale? La #2: Pydantic — e' una scelta della 'casa' (funzione pubblica, nessun problema
+  prestazionale specifico, nessun retroscena convolto come il Context della state machine), e dove va scritta questa
+  affermazione? La #3: numba — altra scelta della casa, con analisi costi vs benefici, e il kernel viene incapsulato
+  in una API (embedding nel Python). vero, e anche questo dove lo scriviamo ??? Forse ci serve un file dedicato in
+  notes, come e' naming per i tipi e le classi, qui una cosa tipo notes/design\_principles.md. Non so ... ma poi ci
+  mettiamo 3 note in tutto e stiamo facendo over\_engineering della cosa? O credi sia utile? La #6: Test artifacts —
+  questa e' una regola, che se non e' gia' presente in rules, va messa li. Tu cosa credi sia giusto fare? Fai una
+  analisi completa e dammi la tua view, poi decidiamo come procedere. Grazie!"
+- ANALISI (mia): le 2 entries pattern sono gia' nei mirror (pattern.md: instance 0 = ro000 a riga 57; base-3 a
+  3/12/62) — ritiro pulito, zero perdita. La #6 e' gia' R-750 nel register (notes/rules.md:232) — e' un duplicato,
+  si ritira. Le #1/#2/#3 sono policy di casa cross-cutting (vincolano qualsiasi codice nuovo, non un modulo): non i
+  mirror (per-modulo), non il register (soft policy, non "must"), non decisions (storia) — serve un file di sintesi.
+  Su over\_engineering: no, a patto di disciplina (3 entry da 2-3 righe, no D-pointers, stile deprovenance); il
+  rischio e' il gonfiamento futuro. Costi: 1 riga nel lint + 1 Index entry + l'AGENTS pointer nell'ultimo step.
+  Tre opzioni per il destino della sezione: (a) vuota — no; (b) eliminazione + guard a 7 sezioni; (c) puntatore
+  (pattern D-396); consigliata la (c).
+- Roberto: "1: confermo / 2: YES / 3: (b) radicale. Procedi!"
+- IMPLEMENTATION (D-404): le 4 bullets ritirate dalla sezione Conventions e la sezione stessa eliminata (overview a
+  7 sezioni: SECTIONS del guard 8 → 7, la regola "The eight sections" di overview\_rules.md diventa "The seven
+  sections" con l'enumerazione corretta, docstring del guard aggiornate). Nato notes/design\_principles.md con le 3
+  entry: dual scalar/array API (fatto architetturale, imposto dal design di numpy), Pydantic (stile di casa
+  condizionato, eccezione il Context della state machine), Numba (policy di casa con costi/benefici; il kernel e'
+  sempre incapsulato in una funzione Python normale, non esce dall'API). I dettagli di meccanismo (is\_scalar →
+  atleast\_1d → ndim → dispatch → reshape) restano nei mirror: territorio per-modulo. Index: entry per il nuovo
+  file dopo naming.md. Guard: file nel set default (ora 14 file) e nella grammatica rulefile (kind\_of).
+- VERIFICATION: guard VERDE sul set default (14 file).
+- COMMIT: un solo commit (D-404).

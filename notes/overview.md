@@ -9,22 +9,6 @@ The rigid format rules for this file live in notes/overview\_rules.md. Consult i
 This workspace is dedicated to the research and development of evaluation functions for Reversi positions. The methods
 employed focus on machine learning techniques that leverage solved positions generated from random gameplay paths.
 
-## Conventions in the code (respect them in any new work)
-
-- Dual scalar/array API: public functions accept scalar OR 1-D array, return the input kind. Same validation pattern
-  everywhere (is\_scalar → atleast\_1d → ndim check → dispatch → reshape back).
-- `@validate_call` (pydantic, arbitrary\_types\_allowed) on all public functions.
-- Numba `njit(cache=True)` + `prange` for hot loops; numba overloads for the four D8 primitives (fa1h8, fh1a8, fhori,
-  fvert).
-- In pattern.py instance 0 = the ro000 image, and trans\_fs/anti\_trans\_fs are indexed by instance (length =
-  n\_instances), not by slot.
-- Pattern config indexes are base-3 uint32 over ≤ 18 squares (S ≤ 18); packed bit k ↔ the k-th square of
-  `Pattern.squares` (ascending board order); principal index = min over the induced-stabilizer orbit.
-- Test artifacts: unit tests write files ONLY under `workspace_root/build/tmp` and remove them afterwards (a
-  `finally`/cleanup unlink, so a failing test leaves no garbage); no test writes anywhere else (notably: not the CWD).
-  `build/` is gitignored.
-
-
 ## Environment
 
 - Venv: `.venv/` (gitignored), Python 3.12.3.
@@ -194,6 +178,7 @@ Test data (test/reversi/data/):
 ## Index
 
 - notes/naming.md — canonical board naming convention (row/column, D8 symmetries)
+- notes/design\_principles.md — the house design policy of the pipeline (dual scalar/array API, pydantic, numba kernels)
 - notes/rules.md — active legislation: the register of the rules in force.
 - notes/decisions.md — open historical decision log (append-only)
 - notes/hist\_decisions/decisions\_000.md — closed decision volume 000 (D-001…D-116, 2026-08-25 → 2026-09-06)

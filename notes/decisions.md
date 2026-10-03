@@ -1241,3 +1241,23 @@ D-403 | 2026-10-01 | the naming.md Pattern section — the mask definition tight
          Bitboard -> numpy.uint64 instead of restating "64-bit integer". Formatting normalization (disclosed):
          `Bitboard` in a code span, as in the Bitboard and Position sections. VERIFICATION: the guard green on the
          default set.
+
+D-404 | 2026-10-01 | the overview "Conventions in the code" section dissolved — the radical option (b), per Roberto: the
+         four surviving bullets withdrawn (the two pattern bullets are already fully in the pattern.md mirror — instance
+         0 = ro000 at line 57, the base-3 indexing at lines 3/12/62, verified; the Test artifacts bullet duplicates
+         R-750 in the register, notes/rules.md:232), the three design bullets move to a new synthesis file, and the
+         section itself is deleted — the overview now has seven sections. Guard: the SECTIONS tuple 8 → 7 (OV-SECS), the
+         "eight sections" rule and enumeration in overview\_rules.md amended to "the seven sections", the docstrings and
+         the "beyond the eight" message updated. notes/design\_principles.md born — the house design policy,
+         cross-cutting (it binds any new code in the pipeline, not one module), three entries in the deprovenance style
+         (no D-pointers, no examples): (1) the dual scalar/array API — an architectural fact, not a style choice: public
+         functions accept a scalar or a 1-D array and return the input kind, following the numpy design on which the
+         solution's performance is built; (2) Pydantic — `@validate_call` on public functions, when the function is
+         public, has no specific performance problem, and has no convoluted backstory (the state-machine Context is the
+         standing exception); (3) Numba — when performance is the goal and the benefit is proven, hot loops run as
+         `njit(cache=True)` kernels, the best performance the objective; the kernel is always embedded in a normal
+         Python function, scalar or vectorized — it never leaks into the API. The mechanism detail (is\_scalar →
+         atleast\_1d → ndim → dispatch → reshape) stays in the mirrors: module territory. Index: one bullet for the new
+         file, after naming.md (the description = the file's identity, no D pointers). Guard: the new file added to the
+         default set (now 14 files) and to the rulefile grammar (kind\_of). VERIFICATION: the guard green on the default
+         set.

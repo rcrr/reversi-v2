@@ -4,11 +4,11 @@ Applies to notes/overview.md (R-030 in notes/rules.md — the entry-point rule: 
 and at the end of each work session). This file is rigid: follow it when editing the overview; a format change amends
 this file in the same commit as its decision. The prose is wrapped to ~120 chars/line.
 
-## The eight sections
+## The seven sections
 
-- The overview opens with the pointer section (H2 `Format rules`, pointing at this file), then exactly the eight
-  sections, in exactly this order: Project · Conventions in the code · Environment · Current state · Next steps · Source
-  files · Test files · Index.
+- The overview opens with the pointer section (H2 `Format rules`, pointing at this file), then exactly the seven
+  sections, in exactly this order: Project · Environment · Current state · Next steps · Source files · Test files ·
+  Index.
 - Language: English. Dates: YYYY-MM-DD.
 - Reference families: D-NNN (the decisions), I-NNN (the ideas), R-NNN (a rule of the register), session N (the
   journals), T-NN (a test defect), R# (a code issue, never an R-NNN), M# (a minor note).
