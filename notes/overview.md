@@ -192,6 +192,7 @@ Test data (test/reversi/data/):
 - notes/hist\_decisions/decisions\_003.md — closed decision volume 003 (D-207…D-257, 2026-09-15 → 2026-09-19)
 - notes/hist\_decisions/decisions\_004.md — closed decision volume 004 (D-258…D-300, 2026-09-19 → 2026-09-23)
 - notes/hist\_decisions/decisions\_005.md — closed decision volume 005 (D-301…D-332, 2026-09-23 → 2026-09-29)
+- notes/hist\_decisions/decisions\_006.md — closed decision volume 006 (D-333…D-425, 2026-09-29 → 2026-10-03)
 - notes/analyses/ — the one-off analyses (empty for now — the past volumes live in the git history).
 - notes/ideas.md — the OPEN backlog
 - notes/ideas\_closed.md — the CLOSED ideas (done | dropped)

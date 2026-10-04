@@ -1678,7 +1678,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   n = 0, i dtype di ritorno di choose\_one\_from\_set64 (np.uint64/np.uint8 — il re-wrap del boundary numba).
 - VERIFICATION: test\_prng 26 → 30, GREEN 30/0/0 (~3 s); suite via wrapper 1058 → 1062, GREEN 1062/0/24;
   notes\_lint verde; il gate verde a questo checkin.
+- Session closed by the user.
+- Rotazione del decisions log (il log aperto a 1594 righe, oltre il cap di 1.000): il volume 006 chiuso —
+  hist\_decisions/decisions\_006.md (D-333…D-425, 2026-09-29 → 2026-10-03) — il nuovo log aperto, l'Index
+  dell'overview aggiornato.
 - Next: il resto del backlog dell'overview (verifica delle fonti test, il rework MOBILITY, il README di
-  progetto, il formato pass di board/pattern/feature/mobility + tools — prng e binio chiusi, la re-review del
-  register). A chiusura di sessione: la rotazione del decisions log aperto (a ~1.600 righe, oltre il cap di
-  1.000 — il volume 006).
+  progetto, il formato pass di board/pattern/feature/mobility + tools — binio e prng chiusi, la re-review del
+  register).
