@@ -179,7 +179,7 @@ class TestPrng(unittest.TestCase):
         self.assertEqual(sorted(i.tolist()), i0.tolist())
 
     def test_shuffle_nd_corder_parity(self):
-        # The N-D C-order parity (D-421): shuffling an N-D array in
+        # The N-D C-order parity: shuffling an N-D array in
         # place (the n first elements, C-order) with seed S equals
         # shuffling the 1-D C-order ravel with the same seed S — the
         # draw sequence is shape-agnostic.
@@ -237,16 +237,15 @@ class TestPrng(unittest.TestCase):
         g.shuffle_double(one, 1)
         h = MT19937(7)
         self.assertEqual(g.get_uint64(), h.get_uint64())
-        # The generic shuffle works on any shape (the D-417
-        # follow-up).
+        # The generic shuffle works on any shape.
         arr2 = np.array([[3.0, 1.0], [2.0, 4.0]])
         MT19937(13).shuffle(arr2, 4)
         self.assertEqual(sorted(arr2.ravel().tolist()),
                          [1.0, 2.0, 3.0, 4.0])
 
     def test_shuffle_strided_views(self):
-        # A strided 1-D view is shuffled in place (no ravel copy — the
-        # D-417 regression class): the unviewed base slots survive.
+        # A strided 1-D view is shuffled in place (no ravel copy): the
+        # unviewed base slots survive.
         base = np.arange(16, dtype=np.uint8)
         even = base[::2]
         even0 = even.copy()

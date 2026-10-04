@@ -19,12 +19,12 @@ is never exposed, and a generator is neither saved nor re-seeded.
 - extract_from_set64(set_arr) -> np.uint8 — pick + REMOVE a random bit from the bitmask in set_arr[0] (in place);
   returns the 0-based position.
 - choose_one_from_set64(set64) -> (np.uint64, np.uint8) — pick a random bit WITHOUT removing it (the set is read, never
-  mutated); returns (1 << p, p). One get_uint64 draw, the pick delegated to the numba kernel pick_one_from_set64 (the
-  single source of the technique). The empty set returns the (0, 64) sentinel WITHOUT consuming a draw.
+  mutated); returns (1 << p, p). One get_uint64 draw, the pick delegated to the numba kernel pick_one_from_set64
+  (the single source of the technique). The empty set returns the (0, 64) sentinel WITHOUT consuming a draw.
 - pick_one_from_set64(s, d) -> (np.uint64, np.uint8) — the numba kernel (D-221): the uniform pick of one bit from the
-  NON-ZERO set s given the PRE-DRAWN value d (k = popcount, r = (d >> 11) · 2⁻⁵³ — the c0_o1 scalarization — c =
-  floor(r·k), the c-th set bit). The single source shared by choose_one_from_set64 / extract_from_set64 (they draw and
-  delegate) and by the numba batch callers.
+  NON-ZERO set s given the PRE-DRAWN value d (k = popcount, r = (d >> 11) · 2⁻⁵³ — the c0_o1 scalarization —
+  c = floor(r·k), the c-th set bit). The single source shared by choose_one_from_set64 / extract_from_set64 (they
+  draw and delegate) and by the numba batch callers.
 - pick_one_from_set64_batch(sets, draws, slots) -> (N,) u64 array — the vectorized form (D-221): element i with a
   non-empty set picks from sets[i] using draws[slots[i]] (slots[i] = the number of non-empty sets before i, the caller's
   prefix count); an empty set yields 0 and consumes no draw. Bit-identical to calling choose_one_from_set64 on the
@@ -64,8 +64,8 @@ is never exposed, and a generator is neither saved nor re-seeded.
   test_prng::TestChooseOneFromSet64::test_the_set_is_never_mutated /
   test_empty_set_is_the_sentinel_and_consumes_nothing.
 - The pick kernels and the class methods agree draw-for-draw (the identity pin: the same stream, the same (bitboard,
-  index)) — test_prng::TestPickOneFromSet64::test_scalar_kernel_matches_the_method; the batch kernel is bit-identical to
-  the sequential method loop (the stream-alignment probe, the all-empty no-draw case) —
+  index)) — test_prng::TestPickOneFromSet64::test_scalar_kernel_matches_the_method; the batch kernel is
+  bit-identical to the sequential method loop (the stream-alignment probe, the all-empty no-draw case) —
   test_prng::TestPickOneFromSet64::test_batch_kernel_matches_the_method / test_batch_all_empty_sets.
 
 ## Open issues

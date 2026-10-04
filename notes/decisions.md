@@ -1550,3 +1550,26 @@ D-423 | 2026-10-03 | tools/binio.py + test/reversi/tools/test\_binio.py + both m
          per-file suite counts out of the doc (docs\_rules §4); the line count updated (603 → 734). VERIFICATION:
          test\_binio 45 → 56 (binio + usage 59/0/0 in ~0.03 s); the suite via the wrapper 1058/0/24; the overview cell +
          notes\_lint + the gate green at this checkin.
+
+D-424 | 2026-10-03 | tools/prng.py + test/reversi/tools/test\_prng.py + both mirror docs — the prng house-style sweep
+         (NO behavior change; the user's "fix everything, per my proposal", part 1, after the full analysis): the R-560
+         pass over every public docstring (Args:/Returns:/Raises: — the house style): \_\_init\_\_(no docstring before),
+         get\_uint64 (imperative; the "delegates to the numba kernel" HOW sentence out — R-530), get\_uint64\_batch (the
+         "runs the numba kernel on this state" HOW out, the bit-identity contract kept), the three get\_double\_in
+         methods (c0\_c1 / c0\_o1 / o0\_o1; the top-bit derivation kept — it defines the output precision),
+         random\_choice\_from\_finite\_set (imperative + the k == 0 ValueError declared), the four shuffle methods
+         (imperative; the IndexError of n > the element count now declared — existing behavior, no change),
+         \_shuffle\_slots (Args; the C-order parity contract kept), random\_string\_az (imperative; n == 0 → the empty
+         string declared), extract\_from\_set64 (the "How it works:" HOW paragraph out — it lives in the mirror doc's
+         Architecture), choose\_one\_from\_set64: the DUPLICATED phrase ("the single source of the pick technique — the
+         single source of the pick technique") removed, the delegation HOW out, the return annotation fixed from the
+         bare tuple (np.uint64, np.uint8) to tuple\[np.uint64, np.uint8\] (PEP 484 — the bare form only worked because
+         from\_\_future\_\_ annotations defer evaluation); the two public pick kernels (imperative + Args/Returns). The
+         D-XXX provenance out of the plain comments (the D-221 in the source header comment, the D-421/D-417 in three
+         test comments — R-540: comments carry it only as a summary, never as a reference; the docs keep their
+         D-pointers, docs\_rules §2). Mirror docs: the source doc re-wrapped (3 prose lines over 120); the TEST doc
+         repaired — it was STALE since D-421 (the doc of the tests was not updated in the D-421 commit, docs\_rules §5.1
+         violation): "5 classes / 22 tests" → 26, the TestPrng Coverage row 7 → 11 with the four D-421 shuffle tests
+         added (the c-order parity, the all-methods parity, the permutation + element-n, the strided views).
+         VERIFICATION: test\_prng 26/0/0 (~4.6 s) — count unchanged (no test added/removed); the suite via the wrapper
+         1058/0/24; notes\_lint + the gate green at this checkin.

@@ -1663,5 +1663,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   None. con fondamento), i conteggi per-file fuori dal doc (docs\_rules §4).
 - VERIFICATION: binio + usage 59/0/0 (~0.03 s); suite via wrapper 1047 → 1058, GREEN 1058/0/24; notes\_lint
   verde; il gate verde a questo checkin.
-- Next: il resto del backlog dell'overview (verifica delle fonti test, il rework MOBILITY, il README di progetto,
-  il formato pass di board/pattern/feature/mobility + tools, la re-review del register).
+- D-424: prng.py — formato pass, zero behavior change: R-560 completo sulle docstring pubbliche (imperative +
+  Args:/Returns:/Raises:), HOW out (R-530: "delegates to the numba kernel", il paragrafo "How it works:" di
+  extract), la frase duplicata in choose\_one\_from\_set64 via, l'annotazione di ritorno tuple\[np.uint64,
+  np.uint8\] (era una tuple nuda, valida solo grazie a from\_\_future\_\_), i D-XXX fuori dai commenti plain
+  (D-221 nel sorgente, D-421/D-417 nei test — R-540). Riparato test\_prng.md: stantio da D-421 (22 → 26 test, i 4
+  test shuffle entrati in Coverage — la violazione di docs\_rules §5.1 è chiusa).
+- Next: la parte comportamentale di prng (D-425: i guard su s = 0 e k <= 0, i pin dei buchi di contratto).
