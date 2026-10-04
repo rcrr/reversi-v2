@@ -340,3 +340,31 @@ D-444 | 2026-10-04 | test/reversi/tools/test\_binio.py — the post-src\_reflow 
          with block — the \_\_exit\_\_ re-close) is guarded in code but neither documented in a docstring nor pinned by
          a test; a one-line docstring addition + a 4-line micro-test is the candidate if the user approves it (the
          state\_machine micro-test precedent, D-439).
+
+D-445 | 2026-10-04 | the wave-3 census (CORRECTED) + one residual + the prng mirror-doc fidelity check — the user asked
+         to proceed with wave 3 (the purge of the ~35 "wave-3 candidates" reported in D-442) and, before it, to check
+         the prng mirror doc (it carries "(D-421)"-style references). 1. PRNG MIRROR DOC: verified line by line against
+         src/reversi/tools/prng.py — FAITHFUL: the \_\_all\_\_ exact; NN=312 module-level; the twist + temper constants
+         MM/UM/LM/MAG kernel-local; all 15 API entries checked for signature + semantics (the k==1 no-consume, the k<=0
+         raise, the n<=1 shuffle no-consume, the IndexError on the n excess, the extract pick+remove with the
+         skipped-lowest bits, the choose (0,64) empty sentinel, the pick-kernel r=(d>>11) / 2^53 scalarization, the
+         batch prefix-count slots); the integration claims against random\_game.py check out too. Its three D references
+         (the D-219 stream contract, the D-221 single-source technique x3, the D-421 shuffle engine) are all REAL
+         decisions and the LEGITIMATE kind — the docs\_rules.md one-sentence design pointers (why the current design is
+         what it is), not provenance narratives — they stay. 2. THE WAVE-3 CENSUS, CORRECTED: the ~35 "wave-3
+         candidates" of D-442 do NOT exist as dangling: the full census of every D-NNN mentioned outside notes/ (98
+         distinct numbers) against ALL decision volumes (hist\_decisions/decisions\_000..006 = D-001..D-425 + the
+         current D-426..D-444; 443 real entries) shows ZERO dangling — every number mentioned in src/test/docs/probes is
+         a real decision. THERE IS NOTHING TO PURGE in wave 3. 3. DISCLOSURE (the forward repair the iron rules
+         require): the D-441/D-442 purges were executed on the FALSE premise that the 24 purged numbers (the 9 of wave 1
+         + the 15 of wave 2) were "dangling / pre-notes-system". They are all REAL decisions — the existence check
+         searched the current decisions.md + a bad glob (notes/hist\*.md); the closed volumes live in
+         notes/hist\_decisions/decisions\_00N.md and were never searched. The edits themselves remain
+         legislation-compliant — R-540 (no D-XXX provenance in docstrings / code comments) and docs\_rules.md (no
+         provenance narrative, no campaign tags in the mirror docs) — the fact that the numbers are real changes
+         neither; the facts were kept as plain prose throughout. No restoration is proposed (restoring the campaign tags
+         would go AGAINST docs\_rules); the user is informed and decides. 4. ONE RESIDUAL FIXED (the wave-1 miss this
+         check caught): hlp\_final\_log\_print.md:25 still carried "the D-321 addition" — my wave-1 verification grep
+         was piped through "grep -v 'tools/state\_machine'" and that very line (which quotes the state\_machine mirror
+         path) was filtered out, producing a false "0 hits" reading. Now: the campaign tag dropped, the useful
+         mirror-doc pointer kept. 5. VERIFICATION: the docs auditor green; the prng module + suite untouched by this D.

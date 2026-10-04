@@ -21,8 +21,8 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
     — the `[ts UTC] [step:02][worker:15] [REL:VERB] message` live format (the widths 5/8, the enum names — the machine's `_format_event_line` renders it).
 
 ## Architecture
-- **The render source** — `ctx.format_event_log()`: the bound method the StateMachine injects at construction (the
-  D-321 addition, mirror: docs/src/reversi/tools/state_machine.md). It formats every buffered `LogEntry` (all
+- **The render source** — `ctx.format_event_log()`: the bound method the StateMachine injects at construction
+  (mirror: docs/src/reversi/tools/state_machine.md). It formats every buffered `LogEntry` (all
   relevances — the buffer is filled independent of the display verbosity gate) in the live console line format, via
   the machine's shared `_format_event_line` static (the single source of truth — the live print in `log_event` uses
   the same formatter).

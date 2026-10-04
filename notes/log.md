@@ -1949,3 +1949,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (segnalato, NON fixato senza la decisione del user): l'idempotenza di close() (un close() esplicito dentro un
   with block — il re-close di \_\_exit\_\_) è guardata nel codice ma né documentata né pinned; candidata un
   micro-test di 4 righe + una riga di docstring (il precedente state\_machine D-439) se il user lo vuole.
+
+- D-445 (il censimento onda 3 — CORRETTO + 1 residuo + la verifica del mirror prng): 1) il mirror doc di prng è
+  FEDELE, verificato riga per riga (il \_\_all\_\_ esatto, NN=312 module-level, le costanti MM/UM/LM/MAG
+  nel kernel, tutte le 15 API per firma + semantica, l'integrazione con random\_game) — e i suoi 3 ref (D-219,
+  D-221 ×3, D-421) sono DECISIONI REALI del tipo legittimo (i puntatori one-sentence di docs\_rules: perché il
+  design è così, non narrativa di provenienza) → restano. 2) I ~35 "candidati onda 3" di D-442 NON sono
+  dangling: censimento completo di ogni D-NNN menzionato fuori notes/ (98 numeri distinti) contro TUTTI i
+  volumi (hist\_decisions/000..006 = D-001..D-425 + attuale D-426..D-444, 443 entry) → ZERO dangling.
+  ONDA 3: NON C'È NULLA DA PURGARE. 3) DISCLOSURE (riparazione forward): le onde 1-2 (D-441/D-442) sono state
+  eseguite sulla FALSA premessa che i 24 numeri purgati fossero "dangling/pre-notes" — sono decisioni REALI: il
+  check cercava solo in decisions.md attuale + un glob sbagliato (i volumi chiusi stanno in
+  notes/hist\_decisions/decisions\_00N.md, mai cercati). Le modifiche restano comunque conformi alla
+  legislazione (R-540 + docs\_rules: niente provenance narrative né campaign tag nel codice né nei mirror
+  doc) — il fatto che i numeri siano reali non cambia questo; i fatti restano in prosa. Nessuna restaurazione
+  proposta (riportare i campaign tag andrebbe CONTRO docs\_rules); il user è informato e decide. 4) UN RESIDUO
+  sistemato (il mancatore dell'onda 1): hlp\_final\_log\_print.md:25 portava ancora "the D-321 addition" —
+  il mio grep di verifica era filtrato con "grep -v 'tools/state\_machine'" e quella riga (che cita il path del
+  mirror) era stata esclusa, producendo un falso "0 hit". Ora: tag via, puntatore al mirror doc tenuto.
