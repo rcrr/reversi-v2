@@ -2039,3 +2039,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   complete silently …" → "Complete silently …" tengono la dicitura dell'autore. La class docstring
   minuscola pre-esistente (TestPositionHashLegacyParity, descrizione noun-phrase) resta com'è.
   src\_reflow → canonico, 3949 righe. Nessun cambiamento di comportamento: 308/0/15.
+
+- Chiusura del sub-work board (D-447..D-451): il bullet Next-steps segnato — board COMPLETE (format a regime:
+  sorgente 1985 righe + test 3949 righe al punto fisso canonico del src\_reflow, docstring in forma di casa +
+  module docstring, 4 micro-test, 53 "Should" → imperativo, mirror doc in budget e fedeli), il suite a
+  1087/0/24 con misurazione LONG=1 fresca; restano pattern, feature, mobility.
