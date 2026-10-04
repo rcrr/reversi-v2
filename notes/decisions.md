@@ -382,3 +382,27 @@ D-446 | 2026-10-04 | Session close — the user's ruling (the status quo after t
          line by line in D-445), the probes re-pinned with the goldens de-referenced where the legislation requires it.
          SUITE STATE AT CLOSE: 1073/0/24 (test\_state\_machine at 51 — the D-439 micro-test). NEXT SESSION: the reversi
          core zone (board / pattern / feature / mobility and the remaining Next-steps items).
+
+D-447 | 2026-10-06 | board.py format campaign (the tools-campaign sub-work) + the src\_reflow doc-comment fix (the #:
+         block mangle). 1) TOOL FIX (found by this campaign): src\_reflow MANGLED multi-line #:-doc-comment blocks — it
+         stripped the #, kept the colon as text, and re-emitted the paragraph as a plain comment with the colons inline
+         ("# : text : text"); the pre-write identity check still PASSED (word-level identity) and the mangled output was
+         its own fixed point. First triggered by board.py, the first module carrying multi-line #: blocks. Fixed in
+         reflow\_comments: a #:-prefixed paragraph is re-emitted with the "#: " prefix (the per-line marker colon
+         stripped from the text), a bare #: line is a paragraph separator (preserved verbatim); seg\_words excludes the
+         marker colon so the identity check stays sound. Verified: the pristine file reflows with the blocks intact, the
+         6 canonical tools files stay canonical, prng.py unchanged (the D-427 flag stands). 2) BOARD SOURCE: 61
+         docstrings rewritten to the house style (the on-the-quote first line, the typed Args, the Raises) + 4 MISSING
+         docstrings added on public fns (square\_validate\_range, move\_validate\_range, position\_eq,
+         position\_legal\_moves); R-540: the 9 D-XXX refs removed (D-111, D-140 x3, D-171, D-213 x4 — the design content
+         kept, the history dropped: the "former banner note" clause, the "documented as caller's responsibility" tag);
+         the dead "from \_\_future\_\_ import annotations" removed (no string annotations); the R-530 HOW clauses
+         dropped where the mirror doc's Architecture already carries them; bitboard\_count's "1D array inputs" corrected
+         to any shape (factual error — np.bitwise\_count is any-shape); PEP8: the 4 keyword spacings (end='' / file=) +
+         the 5 one-line compounds split. src\_reflow --write → canonical, 1957 lines (was 1802). NO behavior change:
+         294/0/15. 3) board.md (same commit, the mirror rule): the STALE Verified-invariant bullet removed (the "1-D
+         guard (2-D → ValueError)" + the test name — neither exists since the any-shape N-D contract; the pin is the
+         same-shape ValueError), the double-space pin typo fixed, the Numba kernel enumeration completed (the 2 D8 batch
+         transform kernels were missing — "the 4 D8 ARRAY transform fns" were the 4 reflection array impls), the
+         dual-contract intro corrected (1-D → any-shape), 2 duplicated bullets dropped (the D8 slot order and the
+         little-endian notes, both stated elsewhere), size 204 → 200 (the hub budget).

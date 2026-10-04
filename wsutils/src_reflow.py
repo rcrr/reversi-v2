@@ -289,29 +289,40 @@ def reflow_comments(lines, doc_lines):
         new_run = []
         seg_orig = []
         seg_text = []
+        seg_doc = []
 
         def flush():
             if len(seg_orig) >= 2:
                 first_indent = len(seg_orig[0]) - len(seg_orig[0].lstrip())
-                prefix = ' ' * first_indent + '# '
-                text = ' '.join(c.strip() for c in seg_text)
-                wrapped = wrap_prose(text, PREF - first_indent - 2,
-                                     CEIL - first_indent - 2)
+                # a doc-comment (#:-prefixed) paragraph keeps its prefix: re-emitted with #: and
+                # the per-line leading colon stripped from the text (the marker is not content).
+                doc = all(seg_doc)
+                prefix = ' ' * first_indent + ('#: ' if doc else '# ')
+                text = ' '.join((c.strip().lstrip(':').strip() if doc else c.strip())
+                                for c in seg_text)
+                w_off = 3 if doc else 2
+                wrapped = wrap_prose(text, PREF - first_indent - w_off,
+                                     CEIL - first_indent - w_off)
                 new_run.extend(prefix + w for w in wrapped)
             else:
                 new_run.extend(seg_orig)
             seg_orig.clear()
             seg_text.clear()
+            seg_doc.clear()
 
         for orig, c in zip(run, contents):
             # group(2) keeps the space after the #; strip before the divider test. A bare # line
-            # (the empty separator inside a block) keeps its paragraph apart: preserved verbatim.
-            if DIVIDER.match(c.strip()) or c.strip() == '':
+            # (the empty separator inside a block) and a bare #: line (the empty doc-comment
+            # separator) keep their paragraph apart: preserved verbatim.
+            s = c.strip()
+            is_doc = orig.lstrip().startswith('#:')
+            if s == '' or (is_doc and s == ':') or DIVIDER.match(s):
                 flush()
                 new_run.append(orig)
             else:
                 seg_orig.append(orig)
                 seg_text.append(c)
+                seg_doc.append(is_doc)
         flush()
         out[i:j] = new_run
         orignum[i:j] = [orignum[i]] * len(new_run)
@@ -374,7 +385,10 @@ def transform(source):
         for n, l in enumerate(src.split('\n'), 1):
             m = COMMIT_COMMENT.match(l)
             if m and m.group(2).strip() and n not in spans:
-                seg.append(norm(m.group(2)))
+                c = m.group(2).strip()
+                if l.lstrip().startswith('#:'):
+                    c = c.lstrip(':').strip()  # the doc-comment marker is not content
+                seg.append(norm(c))
             else:
                 if seg:
                     out.append(' '.join(seg))

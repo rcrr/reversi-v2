@@ -5,8 +5,8 @@ search, no clock, no UI.
 
 ## API
 
-The 74 `__all__` names. Dual contract throughout: scalar in → scalar out, 1-D array in → array out (same shape), unless
-stated.
+The 74 `__all__` names. Dual contract throughout: scalar in → scalar out, any-shape array in → same-shape array out,
+unless stated.
 
 | family | name | contract |
 |---|---|---|
@@ -88,21 +88,21 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
  game ops: legal moves, flips, make_move, WOFC scoring, D8
 ```
 
-- **Dual scalar/array API** — every public function: an `isinstance` scalar check, the array path, the numba kernel,
-  the output adapted back to the input kind; arrays of any shape (a 1-D array goes straight to the kernel with no
-  flatten copy, an N-D array flattens C-order and reshapes back). `legal_moves`, `position_flips` and
-  `position_make_move` are the strict dual: scalar or ndarray only, the mixed kind → TypeError, the same-shape check.
-- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the 4 D8 ARRAY transform fns, the 4 scalar impls
-  with `inline='always'`, `_vectorized_legal_moves`, `_vectorized_flips`, `_vectorized_make_move`,
-  `_vectorized_position_hash`), `prange` on the batch loops; the PUBLIC per-lane njit primitives (`legal_moves_of`,
-  `flips_of_move`, both `inline='always'`) are the single sources of the two geometries: the vectorized kernels call
-  them per lane and the numba compositions of the other modules (random_game's fused engine) call the same functions —
-  the source is written once, the compiler inlines the machine code at the call sites; `_kogge_stone_mm` is
-  `@njit(inline='always')` (the shared per-element flip primitive — the scalar path calls it); `_zobrist_position_fold`
-  is `@njit(cache=True)` (the shared per-element hash primitive — the scalar path calls it); `@overload` on the 4
-  reflection primitives so JIT code can call them (registered on the pydantic-wrapped names — verified resolvable in a
-  JIT context).
-- **Pydantic** — `@validate_call` with `arbitrary_types_allowed` on the public functions (the njit primitives and
+- **Dual scalar/array API** — every public function: an `isinstance` scalar check, the array path, the numba kernel, the
+  output adapted back to the input kind; arrays of any shape (1-D straight to the kernel, no flatten copy; N-D flattens
+  C-order and reshapes back). `legal_moves`, `position_flips`, `position_make_move` are the strict dual: scalar or
+  ndarray only (mixed → TypeError), the same-shape check.
+- **Numba** — `njit(parallel=True, cache=True)` on the hot kernels (the 2 D8 batch transform kernels + the 4 reflection
+  array impls + the 4 scalar impls with `inline='always'` + `_vectorized_legal_moves` + `_vectorized_flips` +
+  `_vectorized_make_move` + `_vectorized_position_hash`), `prange` on the batch loops; the PUBLIC per-lane njit
+  primitives (`legal_moves_of`, `flips_of_move`, both `inline='always'`) are the single sources of the two geometries:
+  the vectorized kernels call them per lane and the numba compositions of the other modules (random_game's fused
+  engine) call the same functions — the source is written once, the compiler inlines the machine code at the call
+  sites; `_kogge_stone_mm` is `@njit(inline='always')` (the shared per-element flip primitive — the scalar path
+  calls it); `_zobrist_position_fold` is `@njit(cache=True)` (the shared per-element hash primitive — the scalar
+  path calls it); `@overload` on the 4 reflection primitives so JIT code can call them (registered on the
+  pydantic-wrapped names — verified resolvable in a JIT context).
+- **Pydantic** — `@validate_call` + `arbitrary_types_allowed` on the public functions (the njit primitives and
   `initial_game_position` excepted); `Annotated` + `BeforeValidator` enforce the dtypes; `SkipValidation` on
   `PositionField` (the np.void scalar).
 - **Zero-copy discipline** — `make_position` allocates a fresh interleaved (…,2) block, copies the inputs in (never
@@ -116,7 +116,6 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `@njit(inline='always')` and runs per element inside the `_vectorized_flips` / `_vectorized_make_move` `prange`
   kernels (3-array return, re-assembled with `make_position`); the flip kernel does NOT check the move square emptiness
   (the caller's responsibility).
-- **D8 slot order** is fixed (notes/naming.md) — the anti tables swap only slots 1/3.
 - **Zobrist position hash** (`position_hash`) — the 128 legacy URANDOM bitstrings (`_zobrist_bitstrings`: the canon,
   SHA-3-pinned) + the SWAR byte-fold tables `_zobrist_byte_fold` (2×8×256, generated at import, deterministic, 32 KB
   L1-resident): 16 lookups per position, no per-bit loop. XOR-incremental by construction (a disc flip at square i
@@ -130,17 +129,16 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   transform — `test_board::TestBitboardD8GroupLaw` (+ the identity-copy pin `test_ro000_array_is_a_fresh_copy`).
 - All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) outputs —
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
-- The function/label tables produce the correct slot order — `test_board::TestD8FunctionTables`
-  (`test_tables_are_plain_lists_of_8`, `test_slot_order_is_canonized`, `test_function_slots_match_the_labels`).
+- The function/label tables produce the correct slot order — `test_board::TestD8FunctionTables`.
 - Legal-move correctness at all 4 boundaries × both senses, incl. runs broken by empty squares —
-  `test_board::TestPositionLegalMoves` (corner c1/h8 + bulk hand-computed table), `TestPositionLegalMovesCount`; the 1-D
-  guard (2-D → ValueError) at `TestPositionLegalMoves::test_legal_moves_2d_{ mover,opponent}_raises_value_error`.
+  `test_board::TestPositionLegalMoves` (corner c1/h8 + the hand-computed bulk table + the same-shape ValueError pin),
+  `TestPositionLegalMovesCount`.
 - The flip set (runs up to 7, blocker past the run end, move square excluded) — `test_board::TestPositionFlips` (base +
   the PASS swap + bulk + the array bulk/fuzz parity + the array pass batch + guards), `TestPositionMakeMove` (incl. the
   PA swap, None on illegal, the array batch + fuzz parity + guards).
 - The empty-square equivalence: an empty square is legal exactly when it flips something (the flip kernel and the
   legal-moves kernel share the geometry); an occupied square is never legal —
-  `test_board::TestPositionFlips:: test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
+  `test_board::TestPositionFlips::test_position_flips_array_matches_scalar` (the fixed-seed fuzz).
 - The collision invariant (mover & opponent = 0) and `make_position` copy-then-view (inputs never aliased) —
   `test_board::TestPositionCollisions` / `TestPositionCheckCollisions` / `TestPositionCreation`.
 - The standard start (mover {E4, D5}, opponent {D4, E5}; the Position dtype + the Bitboard field types) —
@@ -161,14 +159,13 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   `game_position_x_hash_plain`) and the SHA-3-256 pin of the packed table — `test_board::TestPositionHash`.
 - The legacy WHITE complement bridge (legacy(blacks, whites, WHITE) = ~position_hash(blacks, whites)) —
   `test_board::TestPositionHash::test_legacy_white_complement_bridge`.
-- position_hash array/scalar parity, the (N,2) coercion, the empty array, the rejections, the determinism —
-  `test_board::TestPositionHash`.
+- position_hash parity / (N,2) coercion / empty array / the rejections / determinism — `test_board::TestPositionHash`.
 - The hash quality: the avalanche band (128 single-bit flips of the start, every output bit flips 40..88 of 128) and
   zero collisions on random pairs (10k; 1e6 under LONG, the birthday bound) —
   `test_board::TestPositionHash::test_avalanche_bit_flips` / `test_no_collisions`.
 - The legacy-C parity: the `position_hash` values match the legacy engine row by row over the FFO-12 solve-log sample
   (the committed 1002-row stride) — `test_board::TestPositionHashLegacyParity`.
-- The per-lane primitives (`legal_moves_of` / `flips_of_move`, the single sources of the two geometries) and the counts
+- The per-lane primitives (`legal_moves_of` / `flips_of_move`) and the counts
   (`bitboard_count` / `position_empty_count`) — `test_board::TestNumbaPrimitives` / `TestBitboardCount` /
   `TestPositionEmptyCount`.
 
@@ -195,7 +192,6 @@ None.
   is not a domain concept — the ordinal counts (`bitboard_count`, `position_empty_count` →
   `np.uint8 | npt.NDArray[np.uint8]`, NOT `SquareArray`), the int64 storage forms (`bitboard_from/to_signed_int`), the
   generic `make_position` return (scalar, 1-D or 2-D). Do not "uniform" them toward the aliases.
-- Little-endian only: no endianness portability work.
 
 ## Integration
 

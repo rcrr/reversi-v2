@@ -1974,3 +1974,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   regime (punto fisso canonico del reflow — prng mantiene il hand-nudge di D-427 —, convenzioni docstring,
   doc nel budget e fedeli, suite 1073/0/24). PROSSIMA SESSIONE: la zona core di reversi (board / pattern /
   feature / mobility + i punti restanti dei Next steps).
+
+- D-447 (board: la campagna di formato sul sorgente + il fix del reflow sui blocchi #): 1) TOOL FIX: il
+  src\_reflow MANGIAVA i blocchi di comment multi-riga con prefisso # (doc-comment): strip del #, i due
+  punti restavano come testo, il paragrafo riemesso come comment " : testo : testo" — e il check di
+  identità pre-write passava lo stesso (identità a livello di parole) e l'output mangiato era il suo
+  punto fisso. Scatenato da board.py, primo modulo con blocchi # multi-riga. FISSATO in
+  reflow\_comments: il paragrafo con prefisso # viene riemesso con "# " (il colone-marker tolto dal
+  testo), il # nudo è separatore di paragrafo; seg\_words esclude il colone-marker. Verificato: file
+  pristine con i blocchi intatti, i 6 tools file restano canonici, prng invariato (il flag D-427 resta).
+  2) SORGENTE: 61 docstring a regime di casa (prima riga on-the-quote, Args tipizzati, Raises) + 4
+  docstring MANCANTI su funzioni pubbliche (square\_validate\_range, move\_validate\_range,
+  position\_eq, position\_legal\_moves); R-540: i 9 ref D-XXX via (D-111, D-140 ×3, D-171, D-213 ×4
+  — il contenuto di design resta, la storia via); l'import dead "from \_\_future\_\_ import
+  annotations" via (zero string annotations); gli HOW clause di R-530 tagliati dove li porta già
+  l'Architecture del mirror; bitboard\_count: "1D array inputs" → any shape (errore fattuale:
+  np.bitwise\_count è any-shape); PEP8 (4 keyword-spacing + 5 compound di una riga); src\_reflow →
+  canonico, 1957 righe (era 1802). NESSUN cambiamento di comportamento: 294/0/15. 3) board.md (stesso
+  commit, la mirror rule): l'invariante STALE rimossa (il "1-D guard (2-D → ValueError)" — né il guard
+  né il test esistono più dal contratto any-shape; il pin è il ValueError same-shape), il typo
+  doppio-spazio nel pin sistemato, l'enumerazione dei kernel Numba completata (mancavano i 2 kernel
+  batch D8), l'intro del contratto dual corretto (1-D → any-shape), 2 bullet duplicati tolti
+  (D8 slot order + little-endian, detti altrove), size 204 → 200 (budget hub).
