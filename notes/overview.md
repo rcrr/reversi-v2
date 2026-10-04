@@ -31,8 +31,8 @@ define the evaluation function.
   unittest by design (pytest is not a dependency).
 - Probes: tracked under probes/ (hub: verify\_logistic\_model.py owns the pipeline-wide state; rules:
   notes/probe\_rules.md).
-- Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the mirror-doc auditor, the
-  suite counter; rules: notes/wsutils.md).
+- Workspace utils: wsutils/ — the workspace utilities (the notes/docs format re-wrapper, the source prose re-wrapper,
+  the mirror-doc auditor, the suite counter; rules: notes/wsutils.md).
 - Mirror docs: docs/ mirrors the tracked sources one-to-one — every source and test file has its doc, and the Doc column
   of the two tables is the index (format: notes/docs\_rules.md).
 - Scratch: scratch/ is the disposable session area — gitignored, never tracked, nothing permanent goes there.
@@ -56,8 +56,8 @@ define the evaluation function.
   describes the history.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
-- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow, the
-  docstring conversion).
+- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
+  wsutils/src\_reflow.py, the docstring conversion).
 - Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 

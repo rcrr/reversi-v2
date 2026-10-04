@@ -45,3 +45,34 @@ D-427 | 2026-10-04 | notes/rules.md (R-520) + tools/prng.py — the line-width r
          R-520 at their backlog format passes (no repo-wide reorganization by initiative). NO behavior change: the
          merges are the same expressions; test\_prng 30/0/0 (the bit-exact goldens included). VERIFICATION: the suite
          via the wrapper 1062/0/24 (unchanged); notes\_lint + the gate green at this checkin.
+
+D-428 | 2026-10-04 | wsutils/src\_reflow.py — the promotion of the session-96 one-shot (scratch/reflow\_prng.py, the
+         prng.py reflow of D-426/D-427) to a workspace tool. The user asked whether the one-shot could be promoted to a
+         well-done wsutil for the other files; the calibration (382 docstrings — 138 with the Google sections, 146 with
+         indented lines — and 192 multi-line comment blocks across the 51 source files) made the class of work concrete.
+         WHAT IT IS: the R-520 source-prose re-wrapper for the .py sources, the source sibling of notes\_format.py (that
+         one does the notes/docs Markdown, this one the source prose): the docstring lines and the multi-line # comment
+         blocks re-wrapped to the preferred 100 / the 120 ceiling / the single-word pull-up (the R-520 rewrite
+         of D-427); the Google section structure, the typed entries, the indented fixed lines, the double-space
+         paragraphs (the ASCII board diagrams), the license banner and the dividers are preserved; the CODE IS TOUCHED
+         NOT AT ALL — the expression merges of R-520's code clause stay the manual format-pass sub-work, with the
+         per-file tests (the user approved the prose-only scope and the name). THE API: the default is a CHECK (is the
+         file the greedy fill's fixed point — a report on stdout); --write runs the reflow with the pre-write
+         verification (the per-docstring/per-block logical identity, the parse of the result, the idempotence — the
+         second pass a no-op) and REFUSES the file, the original untouched, when a verification fails. FOUR BUGS the
+         workspace sweep found and killed (the one-shot was proven on prng.py only): the stale span coordinates (the
+         docstring spans addressed the pre-pass file while the live list shifted as the runs were re-wrapped — the runs
+         after the first modified run mis-grouped; fixed with the original line numbers traveling with the lines), the
+         empty # separator lines consumed by the comment reflow (the paragraphs merged into one; now preserved verbatim
+         and used as the segment boundary), the base-indented double-space paragraphs (the ASCII board diagrams of
+         board.py) re-wrapped as prose (now preserved), and the absolute ceiling check refusing 12 files that carried
+         PRE-EXISTING over-ceiling lines (the long constants, the protected fixed lines; now a DELTA check — the reflow
+         must not ADD over-ceiling lines, it need not fix them: the format pass's manual sub-work). VERIFICATION: the
+         workspace sweep — zero refusal/failure on all 51 source files (31 would reflow under the old wraps, 7 already
+         the fixed point, the rest would reflow); the board.py round-trip (1802 -> 1711 lines, the 294 board tests
+         green, the fixed point after the write; the file restored — its reflow is a backlog format-pass campaign); the
+         tool self-canonical (it reflows its own header and is then the fixed point); prng.py's check reports exactly
+         the D-427 hand-nudge (the NN comment — the 4-line approved version vs the 3-line pure greedy) and nothing else:
+         the expected documented deviation (a file carrying hand-polished breaks is not the greedy fill's fixed point;
+         the SAFETY section of the tool's docstring says: do not blindly --write such a file). The inventory row in
+         wsutils.md is this commit (the same-commit rule of wsutils.md §5.2).

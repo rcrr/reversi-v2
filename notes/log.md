@@ -1726,3 +1726,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   dopo il #) — la verifica finale lo attesta; i file restanti adottano la nuova R-520 al loro format pass.
   test\_prng 30/0/0 (i bit-exact goldens inclusi: i merge non cambiano lo stream); suite via wrapper 1062/0/24
   GREEN (invariata); notes\_lint verde; il gate verde a questo checkin.
+- D-428 (wsutils/src\_reflow.py — la promozione dell'one-shot in wsutil): l'utente ha chiesto se lo script one-shot
+  fosse promuovibile a wsutil per gli altri file; la calibrazione (382 docstring — 138 con sezioni Google, 146 con
+  righe indentate — e 192 blocchi di commenti multi-riga sui 51 file sorgente) rende la classe di lavoro concreta.
+  Design approvato: PROSA-ONLY (docstring + blocchi di commenti; i merge di codice restano il sotto-lavoro manuale
+  del format pass, con i test per file), il nome src\_reflow.py, la check mode come default (il file è già punto
+  fisso del fill greedy?) e --write con verifica pre-write (identità logica per docstring/blocco, parse del
+  risultato, idempotenza — un file che fallisce è rifiutato, l'originale intatto). Quattro bug trovati dallo sweep
+  sul workspace e uccisi (l'one-shot era provato solo su prng.py): le coordinate degli span stantie (gli span
+  indicavano il file pre-pass mentre la lista viva si spostava — corretto facendo viaggiare i numeri di riga
+  originali con le righe), le righe separatori # vuote consumate dal reflow (i paragrafi si fondevano — ora
+  preservate), i paragrafi indentati-base con doppio spazio (i diagrammi ASCII di board.py) ri-avvolti come prosa
+  (ora preservati), e la check sul soffitto assoluta che rifiutava 12 file con righe oltre i 120 PRE-ESISTENTI
+  (ora check DELTA: il reflow non deve AGGIUNGERE righe oltre il soffitto, ma non è tenuto a ripararle — quello
+  è il sotto-lavoro manuale del format pass). Verifiche: zero rifiuti/fallimenti su tutti i 51 file sorgente
+  (31 would-reflow sotto i wrap vecchi, 7 già punto fisso); round-trip su board.py (1802 -> 1711 righe, i 294 test
+  di board verdi, punto fisso dopo lo write — il file ripristinato: il suo reflow è una campagna di backlog);
+  il tool self-canonical (si riavvolge da solo l'header ed è poi punto fisso); prng.py in check segna solo la
+  nudge manuale di D-427 (il commento NN) e nient'altro — la deviazione documentata attesa (un file con break
+  rifiniti a mano non è il punto fisso del fill greedy; la sezione SAFETY del tool dice: non dargli --write a
+  cieca). La riga d'inventario in wsutils.md è questo commit.
