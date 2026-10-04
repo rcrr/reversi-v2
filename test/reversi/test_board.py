@@ -281,7 +281,7 @@ class TestMove(unittest.TestCase):
 class TestBitboardFromSignedInt(unittest.TestCase):
 
     def test_numpy_array_conversion(self):
-        """Should convert np.int64 array to np.uint64 array by reinterpreting bits."""
+        """Convert np.int64 array to np.uint64 array by reinterpreting bits."""
         arr_in = np.array([-1, -2, 0, 1], dtype=np.int64)
         expected = np.array([18446744073709551615, 18446744073709551614, 0, 1], dtype=np.uint64)
 
@@ -292,7 +292,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         np.testing.assert_array_equal(arr_out, expected)
 
     def test_numpy_array_shared_memory(self):
-        """Should share the exact same data memory slot without allocating a new buffer."""
+        """Share the exact same data memory slot without allocating a new buffer."""
         arr_in = np.array([-1], dtype=np.int64)
         arr_out = bitboard_from_signed_int(arr_in)
 
@@ -301,7 +301,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         self.assertEqual(arr_in[0], 42)
 
     def test_numpy_scalar_conversion(self):
-        """Should convert a single np.int64 scalar to a Bitboard scalar."""
+        """Convert a single np.int64 scalar to a Bitboard scalar."""
         scalar_in = np.int64(-1)
         expected = np.uint64(18446744073709551615)
 
@@ -311,7 +311,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         self.assertEqual(scalar_out, expected)
 
     def test_wrong_type_raises_error(self):
-        """Should reject standard Python types or invalid NumPy dtypes."""
+        """Reject standard Python types or invalid NumPy dtypes."""
         # Test with built-in Python int
         with self.assertRaises(ValidationError):
             bitboard_from_signed_int(-1)
@@ -322,7 +322,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
             bitboard_from_signed_int(arr_float)
 
     def test_array_2d_conversion_valid(self):
-        """Should convert a 2-D int64 array to a same-shape uint64 array by reinterpreting bits."""
+        """Convert a 2-D int64 array to a same-shape uint64 array by reinterpreting bits."""
         arr_in = np.array([[-1, 0, 1], [2, 3, -2]], dtype=np.int64)
         expected = np.array([
             [18446744073709551615, 0, 1],
@@ -337,7 +337,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         np.testing.assert_array_equal(arr_out, expected)
 
     def test_array_3d_conversion_valid(self):
-        """Should convert a 3-D int64 array to a same-shape uint64 array by reinterpreting bits."""
+        """Convert a 3-D int64 array to a same-shape uint64 array by reinterpreting bits."""
         arr_in = np.zeros((2, 2, 2), dtype=np.int64)
         arr_in[0, 1, 0] = -1
         arr_in[1, 0, 1] = -2
@@ -350,7 +350,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         self.assertEqual(arr_out[1, 0, 1], np.uint64(18446744073709551614))
 
     def test_array_2d_shared_memory(self):
-        """Should share the input buffer in the 2-D case as well (a zero-copy view)."""
+        """Share the input buffer in the 2-D case as well (a zero-copy view)."""
         arr_in = np.array([[-1]], dtype=np.int64)
         arr_out = bitboard_from_signed_int(arr_in)
 
@@ -359,7 +359,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         self.assertEqual(arr_in[0, 0], 42)
 
     def test_array_noncontiguous_conversion_valid(self):
-        """Should convert a non-contiguous (Fortran-order) 2-D array with the same values."""
+        """Convert a non-contiguous (Fortran-order) 2-D array with the same values."""
         arr_in = np.asfortranarray(np.array([[-1, 1], [2, -2]], dtype=np.int64))
         expected = np.array([
             [18446744073709551615, 1],
@@ -372,7 +372,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         np.testing.assert_array_equal(arr_out, expected)
 
     def test_empty_array_conversion_valid(self):
-        """Should convert an empty (0, 2) int64 array to an empty uint64 array of the same shape."""
+        """Convert an empty (0, 2) int64 array to an empty uint64 array of the same shape."""
         arr_in = np.empty((0, 2), dtype=np.int64)
 
         arr_out = bitboard_from_signed_int(arr_in)
@@ -383,7 +383,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
 class TestBitboardToSignedInt(unittest.TestCase):
 
     def test_scalar_conversion_positive(self):
-        """Should return a positive int64 when the most significant bit (MSB) is 0."""
+        """Return a positive int64 when the most significant bit (MSB) is 0."""
         # A standard small bitboard number
         bb = Bitboard(4611717676283199524)
         expected = np.int64(4611717676283199524)
@@ -394,7 +394,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertIsInstance(result, np.int64)
 
     def test_scalar_conversion_negative_twos_complement(self):
-        """Should return a negative int64 when the MSB is 1 (two's complement conversion)."""
+        """Return a negative int64 when the MSB is 1 (two's complement conversion)."""
         # 0xFFFFFFFFFFFFFFFF translates to signed -1
         bb_all_ones = Bitboard(0xFFFFFFFFFFFFFFFF)
         expected_minus_one = np.int64(-1)
@@ -407,7 +407,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertEqual(bitboard_to_signed_int(bb_min_int), expected_min_int)
 
     def test_array_1d_conversion_valid(self):
-        """Should correctly cast an entire 1D BitboardArray into a signed int64 array zero-copy."""
+        """Correctly cast an entire 1D BitboardArray into a signed int64 array zero-copy."""
         bb_array = np.array([0, 4611717676283199524, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
         expected = np.array([0, 4611717676283199524, -1], dtype=np.int64)
 
@@ -419,7 +419,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertTrue(np.all(result == expected))
 
     def test_array_2d_conversion_valid(self):
-        """Should cast a 2-D uint64 array into a same-shape signed int64 array zero-copy."""
+        """Cast a 2-D uint64 array into a same-shape signed int64 array zero-copy."""
         bb_array = np.array([
             [0, 0xFFFFFFFFFFFFFFFF],
             [0x8000000000000000, 4611717676283199524],
@@ -437,7 +437,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertTrue(np.all(result == expected))
 
     def test_array_3d_conversion_valid(self):
-        """Should cast a 3-D uint64 array into a same-shape signed int64 array zero-copy."""
+        """Cast a 3-D uint64 array into a same-shape signed int64 array zero-copy."""
         bb_array = np.zeros((2, 2, 1), dtype=np.uint64)
         bb_array[0, 0, 0] = 0xFFFFFFFFFFFFFFFF
         bb_array[1, 1, 0] = 0x8000000000000000
@@ -450,7 +450,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertEqual(result[1, 1, 0], np.int64(-9223372036854775808))
 
     def test_array_2d_shared_memory(self):
-        """Should share the input buffer in the 2-D case as well (a zero-copy view)."""
+        """Share the input buffer in the 2-D case as well (a zero-copy view)."""
         bb_array = np.array([[0]], dtype=np.uint64)
         result = bitboard_to_signed_int(bb_array)
 
@@ -459,7 +459,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertEqual(bb_array[0, 0], np.uint64(42))
 
     def test_array_noncontiguous_conversion_valid(self):
-        """Should cast a non-contiguous (Fortran-order) 2-D array with the same values."""
+        """Cast a non-contiguous (Fortran-order) 2-D array with the same values."""
         bb_array = np.asfortranarray(np.array([
             [0xFFFFFFFFFFFFFFFF, 1],
             [2, 0x8000000000000000],
@@ -475,7 +475,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
     def test_empty_array_conversion_valid(self):
-        """Should cast an empty (0, 2) uint64 array to an empty int64 array of the same shape."""
+        """Cast an empty (0, 2) uint64 array to an empty int64 array of the same shape."""
         bb_array = np.empty((0, 2), dtype=np.uint64)
 
         result = bitboard_to_signed_int(bb_array)
@@ -484,21 +484,21 @@ class TestBitboardToSignedInt(unittest.TestCase):
         self.assertEqual(result.shape, (0, 2))
 
     def test_invalid_dtype_error(self):
-        """Should raise ValueError if the input array is not fundamentally a uint64."""
+        """Raise ValueError if the input array is not fundamentally a uint64."""
         invalid_type_array = np.array([1, 2, 3], dtype=np.int32)
 
         with self.assertRaises(ValueError):
             bitboard_to_signed_int(invalid_type_array)
 
     def test_wrong_type_raises_error(self):
-        """Should reject a bare Python int (pydantic v2 does not coerce it to uint64)."""
+        """Reject a bare Python int (pydantic v2 does not coerce it to uint64)."""
         with self.assertRaises(ValidationError):
             bitboard_to_signed_int(4611717676283199524)
 
 class TestBitboardFromHexStr(unittest.TestCase):
 
     def test_scalar_conversion_valid(self):
-        """Should correctly parse a valid 16-character hex string into a single Bitboard."""
+        """Correctly parse a valid 16-character hex string into a single Bitboard."""
         hex_str = "0000001008000000"
         expected = Bitboard(0x0000001008000000)
 
@@ -508,7 +508,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         self.assertIsInstance(result, Bitboard)
 
     def test_scalar_conversion_case_insensitivity(self):
-        """Should handle lowercase, uppercase, and mixed-case hex strings identically."""
+        """Handle lowercase, uppercase, and mixed-case hex strings identically."""
         hex_lower = "abcdef0123456789"
         hex_upper = "ABCDEF0123456789"
 
@@ -518,7 +518,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         self.assertEqual(bitboard_from_hex_str(hex_upper), expected)
 
     def test_scalar_conversion_invalid_length(self):
-        """Should raise ValueError if a scalar string is not exactly 16 characters long."""
+        """Raise ValueError if a scalar string is not exactly 16 characters long."""
         with self.assertRaises(ValueError):
             bitboard_from_hex_str("123")  # Too short
 
@@ -526,7 +526,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
             bitboard_from_hex_str("000000100800000011")  # Too long
 
     def test_array_1d_conversion_valid(self):
-        """Should correctly parse a 1D NumPy array of valid hex strings into a BitboardArray."""
+        """Correctly parse a 1D NumPy array of valid hex strings into a BitboardArray."""
         hex_strings = np.array(["0000001008000000", "0000000810000000", "FFFFFFFFFFFFFFFF"])
         expected = np.array([0x0000001008000000, 0x0000000810000000, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
 
@@ -538,7 +538,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         self.assertTrue(np.all(result == expected))
 
     def test_array_1d_conversion_invalid_length(self):
-        """Should raise ValueError if any string inside the 1D array breaks the 16-character limit."""
+        """Raise ValueError if any string inside the 1D array breaks the 16-character limit."""
         # One string is valid, the second one is too short
         invalid_array = np.array(["0000001008000000", "A1B2C3"])
 
@@ -546,7 +546,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
             bitboard_from_hex_str(invalid_array)
 
     def test_array_2d_conversion_valid(self):
-        """Should parse a 2-D array of 16-char hex strings to a same-shape BitboardArray."""
+        """Parse a 2-D array of 16-char hex strings to a same-shape BitboardArray."""
         hex_strings = np.array([
             ["0000001008000000", "0000000810000000"],
             ["FFFFFFFFFFFFFFFF", "abcdef0123456789"],
@@ -564,7 +564,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
     def test_array_3d_conversion_valid(self):
-        """Should parse a 3-D array of 16-char hex strings to a same-shape BitboardArray."""
+        """Parse a 3-D array of 16-char hex strings to a same-shape BitboardArray."""
         hex_strings = np.array([
             [["0000001008000000", "0000000810000000"]],
             [["00000000000000FF", "0000000000000107"]],
@@ -578,7 +578,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         self.assertEqual(result[1, 0, 1], Bitboard(0x0000000000000107))
 
     def test_array_noncontiguous_conversion_valid(self):
-        """Should parse a non-contiguous (Fortran-order) 2-D array of hex strings."""
+        """Parse a non-contiguous (Fortran-order) 2-D array of hex strings."""
         hex_strings = np.asfortranarray(np.array([
             ["0000001008000000", "0000000810000000"],
             ["FFFFFFFFFFFFFFFF", "00000000000000FF"],
@@ -594,7 +594,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         np.testing.assert_array_equal(result, expected)
 
     def test_empty_array_conversion_valid(self):
-        """Should parse an empty (0, 2) array of hex strings to an empty BitboardArray."""
+        """Parse an empty (0, 2) array of hex strings to an empty BitboardArray."""
         hex_strings = np.empty((0, 2), dtype="U16")
 
         result = bitboard_from_hex_str(hex_strings)
@@ -603,7 +603,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         self.assertEqual(result.shape, (0, 2))
 
     def test_invalid_characters(self):
-        """Should raise ValueError if strings contain non-hex characters (handled by Python's int cast)."""
+        """Raise ValueError if strings contain non-hex characters (handled by Python's int cast)."""
         invalid_hex_str = "000000100800000G"  # 'G' is out of bounds for base 16
 
         with self.assertRaises(ValueError):
@@ -612,7 +612,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
 class TestBitboardBsr(unittest.TestCase):
 
     def test_scalar_bsr_high_bits(self):
-        """Should precisely identify highest bits near the 64-bit boundary and return int."""
+        """Precisely identify highest bits near the 64-bit boundary and return int."""
         # Test extreme and standard values
         res_0 = bitboard_bsr(Bitboard(0))
         res_1 = bitboard_bsr(Bitboard(1))
@@ -634,7 +634,7 @@ class TestBitboardBsr(unittest.TestCase):
         self.assertIsInstance(res_max, int)
 
     def test_wrong_type_raises_type_error(self):
-        """Should reject standard Python types or invalid NumPy signed/float types."""
+        """Reject standard Python types or invalid NumPy signed/float types."""
         # Test with built-in Python int
         with self.assertRaises(ValidationError):
             bitboard_bsr(-1)
@@ -826,7 +826,7 @@ class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should transform a 2-D array of bitboards, keeping the input shape."""
+        """Transform a 2-D array of bitboards, keeping the input shape."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -838,7 +838,7 @@ class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_array_3d_conversion_valid(self):
-        """Should transform a 3-D array of bitboards, keeping the input shape."""
+        """Transform a 3-D array of bitboards, keeping the input shape."""
         input_3d = np.array(
             [[[sqa1, sqh1]], [[row_1, sqh8]]], dtype=Bitboard)
         expected_3d = np.array(
@@ -850,7 +850,7 @@ class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Should transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
+        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -862,7 +862,7 @@ class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_empty_array_valid(self):
-        """Should transform an empty (0, 2) array to an empty array of the same shape."""
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
         computed = self.func(np.empty((0, 2), dtype=Bitboard))
 
         self.assertEqual(computed.shape, (0, 2))
@@ -879,7 +879,7 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should transform a 2-D array of bitboards, keeping the input shape."""
+        """Transform a 2-D array of bitboards, keeping the input shape."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -891,7 +891,7 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_array_3d_conversion_valid(self):
-        """Should transform a 3-D array of bitboards, keeping the input shape."""
+        """Transform a 3-D array of bitboards, keeping the input shape."""
         input_3d = np.array(
             [[[sqa1, sqh8]], [[row_8, sqh1]]], dtype=Bitboard)
         expected_3d = np.array(
@@ -903,7 +903,7 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Should transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
+        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -915,7 +915,7 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_empty_array_valid(self):
-        """Should transform an empty (0, 2) array to an empty array of the same shape."""
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
         computed = self.func(np.empty((0, 2), dtype=Bitboard))
 
         self.assertEqual(computed.shape, (0, 2))
@@ -932,7 +932,7 @@ class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should transform a 2-D array of bitboards, keeping the input shape."""
+        """Transform a 2-D array of bitboards, keeping the input shape."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -944,7 +944,7 @@ class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_array_3d_conversion_valid(self):
-        """Should transform a 3-D array of bitboards, keeping the input shape."""
+        """Transform a 3-D array of bitboards, keeping the input shape."""
         input_3d = np.array(
             [[[sqa1, sqh1]], [[row_8, half_top]]], dtype=Bitboard)
         expected_3d = np.array(
@@ -956,7 +956,7 @@ class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Should transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
+        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -968,7 +968,7 @@ class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_empty_array_valid(self):
-        """Should transform an empty (0, 2) array to an empty array of the same shape."""
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
         computed = self.func(np.empty((0, 2), dtype=Bitboard))
 
         self.assertEqual(computed.shape, (0, 2))
@@ -985,7 +985,7 @@ class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should transform a 2-D array of bitboards, keeping the input shape."""
+        """Transform a 2-D array of bitboards, keeping the input shape."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -997,7 +997,7 @@ class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_array_3d_conversion_valid(self):
-        """Should transform a 3-D array of bitboards, keeping the input shape."""
+        """Transform a 3-D array of bitboards, keeping the input shape."""
         input_3d = np.array(
             [[[sqa1, sqh1]], [[row_8, half_left]]], dtype=Bitboard)
         expected_3d = np.array(
@@ -1009,7 +1009,7 @@ class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_3d)
 
     def test_nd_array_noncontiguous_conversion_valid(self):
-        """Should transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
+        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape."""
         input_2d = np.asfortranarray(np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
         expected_2d = np.array(
@@ -1021,7 +1021,7 @@ class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
     def test_nd_empty_array_valid(self):
-        """Should transform an empty (0, 2) array to an empty array of the same shape."""
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
         computed = self.func(np.empty((0, 2), dtype=Bitboard))
 
         self.assertEqual(computed.shape, (0, 2))
@@ -1090,8 +1090,7 @@ class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should rotate a 2-D array of bitboards, keeping the input shape (the composition of two
-        N-D reflections)."""
+        """Rotate a 2-D array of bitboards, keeping the input shape (the composition of two N-D reflections)."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -2577,7 +2576,7 @@ class TestPositionCollisions(unittest.TestCase):
 class TestPositionCheckCollisions(unittest.TestCase):
 
     def test_position_check_collisions_scalar_pass(self):
-        """Should complete silently when there are no collisions in a scalar input."""
+        """Complete silently when there are no collisions in a scalar input."""
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
@@ -2589,7 +2588,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
             self.fail("position_check_collisions() raised ValueError unexpectedly!")
 
     def test_position_check_collisions_scalar_fail(self):
-        """Should raise ValueError with 1 collision out of 1 element for a scalar input."""
+        """Raise ValueError with 1 collision out of 1 element for a scalar input."""
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000001)  # Collision here
         p = make_position(mover, opponent)
@@ -2603,7 +2602,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
         self.assertIn("index: 0", str(context.exception))
 
     def test_position_check_collisions_array_pass(self):
-        """Should complete silently when there are no collisions across an array."""
+        """Complete silently when there are no collisions across an array."""
         N = 3
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
@@ -2615,7 +2614,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
             self.fail("position_check_collisions() raised ValueError unexpectedly on clean array!")
 
     def test_position_check_collisions_array_fail_all(self):
-        """Should accurately count multiple collisions across the whole array."""
+        """Accurately count multiple collisions across the whole array."""
         N = 3
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000001)  # Collisions everywhere
@@ -2629,7 +2628,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
         self.assertIn("index: 0", str(context.exception))  # First one is still at 0
 
     def test_position_check_collisions_array_fail_single(self):
-        """Should properly locate a solitary collision occurring deep inside an array."""
+        """Properly locate a solitary collision occurring deep inside an array."""
         # Index 0: Clean
         mover_list = [Bitboard(0x01)]
         opponent_list = [Bitboard(0x02)]

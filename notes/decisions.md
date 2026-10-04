@@ -443,3 +443,11 @@ D-450 | 2026-10-06 | board.py module docstring (the user-approved preview). The 
          + the six design-choice bullets (uint8 squares/moves, bitboards, the dual scalar/array API, the numba hot path,
          the pydantic gates, the legacy Zobrist canon). src\_reflow --write → canonical, 1985 lines (was 1960). No
          behavior change: 308/0/15. No mirror-doc change (the header what-it-is paragraph already states the same).
+
+D-451 | 2026-10-06 | The 53 "Should …" test docstrings converted to the imperative (the user's call on the D-447
+         analysis item). Every method docstring that opened with "Should <verb> …" now opens with the imperative verb,
+         capitalized: "Should convert np.int64 array to np.uint64 …" → "Convert np.int64 array to np.uint64 …". A
+         mechanical prefix strip + first-letter capitalization only — no other wording touched (R-570: the test
+         docstrings stay light, one line); the four "Should complete silently …" → "Complete silently …" keep the
+         author's phrasing. The one pre-existing lowercase class docstring (TestPositionHashLegacyParity, a noun-phrase
+         description) is left as-is. src\_reflow --write → canonical, 3949 lines. No behavior change: 308/0/15.

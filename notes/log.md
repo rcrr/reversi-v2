@@ -2031,3 +2031,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   legacy). src\_reflow → canonico, 1985 righe (era 1960). Nessun cambiamento di comportamento:
   308/0/15. Nessun cambiamento al mirror doc (il paragrafo what-it-is dell'header dice già la
   stessa cosa).
+
+- D-451 (board: le 53 docstring "Should …" → imperativo — la scelta dell'user): ogni docstring di metodo
+  che apriva con "Should <verbo> …" ora apre col verbo imperativo, maiuscolo: "Should convert
+  np.int64 array to np.uint64 …" → "Convert np.int64 array to np.uint64 …". Solo strip del prefisso +
+  maiuscola — nessuna altra parola toccata (R-570: restano light, una riga); i quattro "Should
+  complete silently …" → "Complete silently …" tengono la dicitura dell'autore. La class docstring
+  minuscola pre-esistente (TestPositionHashLegacyParity, descrizione noun-phrase) resta com'è.
+  src\_reflow → canonico, 3949 righe. Nessun cambiamento di comportamento: 308/0/15.
