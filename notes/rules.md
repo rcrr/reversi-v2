@@ -180,10 +180,13 @@ canonized in notes/naming.md — the order is arbitrary but fixed.
 **R-510 — The desirable size of a function is 20-30 lines.**
 
 
-**R-520 — Code lines have a width of about 120 characters**
+**R-520 — Prose lines prefer 100 characters; 120 is the ceiling**
 
-The limit applies to every physical line of a source file — code, comments, and docstring lines alike; docstrings are
-wrapped, not exempt.
+Prose — docstring lines and comment lines — is wrapped to a PREFERRED width of 100 characters. A line may exceed 100, up
+to the 120-character ceiling, only to avoid leaving a single word alone on the next line (no break for a single word; if
+the pull-up would pass 120, the break stands). Code has no preferred wrap: an expression split across lines that fits on
+one line within the 120 ceiling is written on one line. The ceiling applies to every physical line of a source file —
+code, comments, docstrings alike; docstrings and comments are wrapped, not exempt.
 
 
 **R-530 — Docstrings: WHAT, never HOW**

@@ -56,8 +56,8 @@ define the evaluation function.
   describes the history.
 - Rework MOBILITY: drop the difference concept — a mobility is a MASK + a binary flag (mover vs opponent).
 - Add the project README (English, like everything else).
-- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the 120-char reflow,
-  the docstring conversion).
+- Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow, the
+  docstring conversion).
 - Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 

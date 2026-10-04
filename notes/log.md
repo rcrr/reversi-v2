@@ -1705,3 +1705,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (solo docstring; i kernel numba ricompilano da codice identico). 545 → 485 righe.
 - VERIFICATION: test\_prng 30/0/0 (inclusi i bit-exact goldens); suite via wrapper 1062/0/24 GREEN (invariata);
   notes\_lint verde; il gate verde a questo checkin.
+- Il feedback di Roberto su D-426 (tre punti): il 120 è troppo — "mi piacerebbe una regola che stia nei 100
+  caratteri come valore migliore e che, se necessario, possa andare a 120: non andiamo a capo per una singola
+  parola"; la stessa regola va a formattare anche i commenti; il codice — i return dei get\_double\_in potevano
+  stare su una riga sola.
+- D-427 (regola): R-520 riscritta nel register (testo approvato così com'era): prosa (docstring + commenti) a 100
+  come valore preferito, una riga può superare i 100 solo fino al soffitto di 120 per non lasciare una singola
+  parola sola sulla riga successiva (se il pull-up superasse i 120, il break resta); il codice non ha wrap
+  preferito — un'espressione spezzata che sta in una riga entro i 120 sta in una riga; il soffitto vale per ogni
+  riga fisica.
+- D-427 (applicazione a prng.py): i 20 docstring ri-avvolti a 100 + pull-up (il wrap 120 di D-426 scartato; 7
+  righe finiscono a 101-110, tutte pull-up di parola singola legittimi); i 6 blocchi di commenti # ri-avvolti a
+  100 (banner GPLv3, divider e commenti inline intatti); gli 8 merge di codice — i 3 return dei
+  get\_double\_in (84/84/92), il join di random\_string\_az (100), i 3 twist senza backslash (98/105/99),
+  l'assegnazione di \_\_init\_\_ (105) — i due spot a 105 approvati dall'utente dentro il soffitto. Due nudge
+  manuali: "2^19937 - 1" resta insieme nel doc del modulo, il commento NN non parte con "/".
+- D-427 (verifica): docstring e blocchi di commenti testualmente identici allo stato D-426 (solo i break si sono
+  mossi — verificato per-blocco); lo script one-shot (scratch/reflow\_prng.py, gitignored) ha avuto due bug
+  rilevati e corretti (il risultato del pass commenti perso per una copia, il test divider ingannato dallo spazio
+  dopo il #) — la verifica finale lo attesta; i file restanti adottano la nuova R-520 al loro format pass.
+  test\_prng 30/0/0 (i bit-exact goldens inclusi: i merge non cambiano lo stream); suite via wrapper 1062/0/24
+  GREEN (invariata); notes\_lint verde; il gate verde a questo checkin.
