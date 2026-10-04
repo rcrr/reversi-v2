@@ -493,7 +493,7 @@ def h_main():
             check("H6b R1: ridge-only change -> scratch (same as clipping)",
                   False, f"{exc!r}\n{traceback.format_exc()}")
         # H7: use_cache=False -> no load, but the checkpoint is still saved
-        # (the D-071 R1 pattern: a cache-disabled run still warms the cache)
+        # (the warm-cache pattern: a cache-disabled run still warms the cache)
         try:
             with tempfile.TemporaryDirectory(dir=ROOT / "build" / "tmp") as tmp7:
                 rlm5a = LogisticModel(json_config, verbosity=Verbosity.HIGH,
@@ -520,9 +520,9 @@ def h_main():
                 assert "Resuming" not in logs5
                 assert "L-BFGS - [" in logs5
                 assert (Path(tmp7) / "checkpoint_optimize.dat").exists()
-                check("H7 use_cache=False: no load, checkpoint still saved (D-071 R1 pattern)", True)
+                check("H7 use_cache=False: no load, checkpoint still saved", True)
         except Exception as exc:
-            check("H7 use_cache=False: no load, checkpoint still saved (D-071 R1 pattern)",
+            check("H7 use_cache=False: no load, checkpoint still saved",
                   False, f"{exc!r}\n{traceback.format_exc()}")
         # H8: R2 (D-096) — a corrupted checkpoint must not kill the worker:
         # delete + scratch + a final checkpoint is written

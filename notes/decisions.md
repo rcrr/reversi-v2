@@ -202,3 +202,20 @@ D-436 | 2026-10-04 | tools/cache\_manager.py + test/reversi/tools/test\_cache\_m
          600 lines); both files verified CANONICAL fixed points of the reflow afterwards. The tool's pre-write
          verifications passed (per-docstring/per-block logical identity, the parse, the idempotence); 22/0/0 — NO
          behavior change (docstrings + comment line breaks only).
+
+D-437 | 2026-10-04 | the repo-wide purge of the dangling D-071/D-072 pointers (the fourth and last D of the
+         cache\_manager campaign; the user's call on the campaign's analysis: drop them everywhere, not just in
+         cache\_manager). The two numbers are pre-notes-system decisions — absent from decisions.md and the closed
+         volumes — yet cited in 6 files outside cache\_manager (whose own references went in D-434). The purge,
+         reference by reference: probes/verify\_cache\_manager.py (the header comment, the V1 and V15 tombstone comments
+         — the D-106 tombstone structure kept, the D-072 clause dropped); probes/verify\_optimize.py (the H7 comment +
+         the two H7 check-name goldens — "(D-071 R1 pattern)" out of the names, the warm-cache fact kept in prose);
+         probes/verify\_hlp\_indexes.py (the D5 check-name golden — "the D-072 cache wiring" to "the cache wiring");
+         test/reversi/lm/test\_wrk\_su\_analysis.py (the comment); docs/src/reversi/lm/hlp\_su\_analysis.md (the two
+         Architecture references, the "manager's R2" tag to plain prose, the D-303 pointer kept — a different number);
+         docs/src/reversi/lm/wrk\_su\_analysis.md (the sidecar reference). The H7/D5 golden names were quoted by no doc
+         (verified by grep before the cut), so the probe output change is self-contained. VERIFICATION: the
+         verify\_cache\_manager probe re-run (ALL PROBES PASSED, the 6 checks), the 4 touched .py files parse,
+         test\_wrk\_su\_analysis 10/0/1 (skipped=1, the pre-existing one), the docs auditor green. After this D, the
+         only D-071/D-072 mentions in the workspace are this decisions entry + the D-434 bullet — the history where
+         R-540 says they belong.

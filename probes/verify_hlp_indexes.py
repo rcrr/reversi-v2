@@ -307,7 +307,7 @@ check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @vali
       and "from pydantic import validate_call, ConfigDict" in wsrc)
 check("D4 LMContext import under TYPE_CHECKING (circular-import guard)",
       'if TYPE_CHECKING:\n    from reversi.lm.logistic_model import LMContext' in wsrc)
-check("D5 the D-072 cache wiring: the 7 kwargs (full-path closure, use_cache, the 5 hlp_indexes fns)",
+check("D5 the cache wiring: the 7 kwargs (full-path closure, use_cache, the 5 hlp_indexes fns)",
       "cache_path  = ctx.get_cache_file_full_path_for_current_level()," in wsrc
       and "is_allowed  = ctx.use_cache," in wsrc
       and "load_fn     = lambda path: hlp_indexes_load_from_file(path, checksum=False)," in wsrc

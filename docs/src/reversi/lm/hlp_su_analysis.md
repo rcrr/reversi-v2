@@ -21,11 +21,11 @@ The worker (wrk_su_analysis.py) is the orchestration skeleton (the wrk_design_ma
 - `hlp_su_analysis_store_to_file(data, filename)` — the binio store (D-288): the header (the "SU_ANALYSIS
   corpus cache" description + the format version 1) + the signature block + the marginal + the joint (the
   per-instance in the sorted (ii, jj) order). The LZ4 compression (D-139), the sidecar owned by the
-  cache_manager (D-072); the D-303 @validate_call, the SuTables deep validation.
+  cache_manager; the D-303 @validate_call, the SuTables deep validation.
 - `hlp_su_analysis_load_from_file(filename, checksum=True) -> dict` — the binio load: the sidecar check
   (when checksum — the worker passes False, the manager verifies at its step 2), the header
   description/version guard (the hlp_generate idiom), the ordered block reads. A foreign or truncated
-  file raises RuntimeError (the manager's R2 then deletes + recomputes, D-071); the D-303 @validate_call.
+  file raises RuntimeError (the manager then deletes + recomputes at its step 3); the D-303 @validate_call.
 - `hlp_su_analysis_is_cache_consistent(ctx, cached) -> bool` — the cached signature vs the live one (the
   FeatureSet domain hash + the spec + the pairs), the DEBUG log.
 - `hlp_su_analysis_statistics(ctx, tables) -> Path` — phase 2 (cheap, recomputed on EVERY run): the

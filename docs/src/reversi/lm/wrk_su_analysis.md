@@ -25,7 +25,7 @@ binio layout, the signature, the statistics kernels).
   (the statistics) is RECOMPUTED on every run (the cheap part — the cache hit runs the full statistics over the
   loaded tables), so the report always reflects the current spec.
 - The cache file: the rlmwf_03_SU_ANALYSIS.dat (the hlp binio, D-288: the header + the signature block + the
-  marginal + the joint, the LZ4) + the .SHA3-256 sidecar (the cache_manager, D-072, the 1 MiB-chunk verify).
+  marginal + the joint, the LZ4) + the .SHA3-256 sidecar (the cache_manager, the 1 MiB-chunk verify).
 - The consistency signature (the hlp): the FeatureSet domain hash (the set's unique identifier, D-291) +
   the generation spec (the seed, the total_positions,
   the ec, the generator version su-corpus-5, the PRNG version mt19937-64) + the su_pairs. A pair-list change

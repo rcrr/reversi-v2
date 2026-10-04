@@ -12,7 +12,7 @@ from reversi.tools.cache_manager import (
     cache_manager_load_or_compute,
     SHA3_256_CHECKSUM_SUFFIX,
 )
-# D-072: _compute_checksum / _save_checksum were removed from
+# _compute_checksum / _save_checksum were removed from
 # cache_manager (the checksum service moved to reversi.tools.binio); the sidecar
 # is now written in sha3_256sum format by write_sha3_256_sidecar.
 from reversi.tools.binio import write_sha3_256_sidecar
@@ -79,7 +79,7 @@ def sidecar(p: Path) -> Path:
     return p.with_suffix(p.suffix + SHA3_256_CHECKSUM_SUFFIX)
 
 
-# (V1 deleted at D-106: _compute_checksum was removed in D-072 — the
+# (V1 deleted at D-106: _compute_checksum left cache_manager — the
 # file-checksum fact now lives in reversi.tools.binio, pinned by test_binio /
 # test_cache_manager; re-pin = c.)
 
@@ -97,7 +97,7 @@ for name, expect in [("data.dat", "data.dat.SHA3-256"),
 #  test_verify_checksum_missing / test_verify_checksum_ok /
 #  test_verify_checksum_mismatch / test_verify_checksum_invalid_format)
 
-# (V15 deleted at D-106: the sidecar-format fact FLIPPED in D-072 —
+# (V15 deleted at D-106: the sidecar-format fact FLIPPED when binio took over —
 # binio sha3_256sum is now canonical and bare hex is the legacy
 # compatibility path, so all three claims are obsolete; the current
 # format is pinned by test_binio / test_cache_manager; re-pin = c.)

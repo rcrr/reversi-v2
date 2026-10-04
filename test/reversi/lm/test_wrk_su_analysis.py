@@ -181,7 +181,7 @@ class TestWrkSuAnalysis(unittest.TestCase):
         # fresh computes with the same spec are the IDENTICAL
         # marginal tables (the stream is deterministic on the
         # seed), a different seed changes them (the stream is
-        # consumed). use_cache False still WARMS the cache (D-071)
+        # consumed). use_cache False still WARMS the cache
         # — the per-run dirs must exist.
         for sub in ("a", "b", "c"):
             (self.tmp / sub).mkdir(parents=True)

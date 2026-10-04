@@ -1862,3 +1862,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   ri-avvolti nel sorgente (210 righe), 34 nel test (600 righe); entrambi i file sono ora a punto fisso canonico
   del reflow (verificato con la check). Verifica: identità logica preservata (la verifica pre-write del tool),
   22/0/0, zero behavior change.
+
+- D-437 (purge repo-wide di D-071/D-072): la decisione dell'utente sulla campagna — li eliminiamo dappertutto,
+  non solo in cache\_manager. I due numeri sono decisioni pre-notes (assenti da decisions.md e dai volumi) ma
+  citati in 6 file fuori da cache\_manager: probes/verify\_cache\_manager.py (commento di header + i tombstone
+  V1/V15 — la struttura D-106 resta, via la clausola D-072); probes/verify\_optimize.py (commento H7 + i due
+  golden dei nomi check — via "(D-071 R1 pattern)", il fatto warm-cache resta in prosa);
+  probes/verify\_hlp\_indexes.py (il golden "D5 the D-072 cache wiring" → "D5 the cache wiring");
+  test/reversi/lm/test\_wrk\_su\_analysis.py (il commento); docs hlp\_su\_analysis.md (i 2 riferimenti in
+  Architecture, il tag "manager's R2" in prosa, il puntatore D-303 resta — è un numero diverso);
+  docs wrk\_su\_analysis.md (il riferimento del sidecar). I nomi-golden H7/D5 non erano citati da nessun doc
+  (verificato prima del taglio). Verifica: il probe verify\_cache\_manager re-run (ALL PROBES PASSED, i 6
+  check), i 4 .py parse, test\_wrk\_su\_analysis 10/0/1, docs auditor verde. Dopo questo D le uniche menzioni
+  di D-071/D-072 sono l'entry di decisions e il bullet di D-434 — la storia, dove R-540 dice che sta.
