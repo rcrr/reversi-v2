@@ -219,3 +219,19 @@ D-437 | 2026-10-04 | the repo-wide purge of the dangling D-071/D-072 pointers (t
          test\_wrk\_su\_analysis 10/0/1 (skipped=1, the pre-existing one), the docs auditor green. After this D, the
          only D-071/D-072 mentions in the workspace are this decisions entry + the D-434 bullet — the history where
          R-540 says they belong.
+
+D-438 | 2026-10-04 | tools/state\_machine.py + its mirror doc — the source fixes (the first D of the state\_machine
+         campaign): the R-540 strip — all 17 D references + 7 M tags removed from the source (6 in docstrings, 11 in the
+         `#` comments; the design choices keep their non-obvious summary as plain prose — the state model, the separate
+         gate, the filename-prefix concatenation, the UTC-aware rendering — and the
+         dangling D-060/061/068/069/070/076/078/128/321 pointers are dropped everywhere per the user's call; the
+         repo-wide purge over the 23 external files is the campaign's own D, D-441). The docstring pass (R-560): the 10
+         previously undocumented functions documented (Worker.\_\_init\_\_, StateMachine.\_\_init\_\_ with the
+         duplicate-name Raises, \_history\_timer, \_run\_step, current\_worker\_name, show\_event\_log,
+         show\_history\_of\_moves, export\_history\_of\_moves\_as\_csv, \_validate\_target\_step, \_execute\_move), the
+         M-tag `#` comments converted into the docstrings, the light one-liners (log\_event, up, down) Google-ized with
+         typed Args, the "This function" bodies rewritten. Format: the unused `from \_\_future\_\_ import annotations`
+         dropped (3.12 — the 50 tests confirm all 7 @validate\_call surfaces unaffected); 10 trailing-ws stripped; the
+         triple blank lines normalized. The mirror doc REWRITTEN IN THE SAME COMMIT (docs\_rules.md §5.1): the 4
+         dangling D-321 references to plain prose (the FINAL\_LOG\_PRINT fact kept), the stale "49 tests" → 51
+         (the D-439 micro-test). 50/0/0 (no behavior change); the docs auditor green.

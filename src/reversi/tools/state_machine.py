@@ -3,29 +3,27 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-
-from __future__ import annotations
 
 from enum import IntEnum
 from datetime import datetime, timezone, timedelta
@@ -37,9 +35,7 @@ from pydantic import validate_call, ConfigDict, ValidationError
 import csv
 
 
-
 __all__ = ['Context', 'Worker', 'StateMachine', 'Verbosity', 'Relevance']
-
 
 
 class Verbosity(IntEnum):
@@ -80,21 +76,37 @@ class Worker:
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, up_callable: Callable[[Context], None], down_callable: Callable[[Context], None]):
+        """Creates a worker step.
+
+        Args:
+            name (str): The worker's name (unique within a machine, case-insensitive).
+            up_callable (Callable[[Context], None]): The forward step logic.
+            down_callable (Callable[[Context], None]): The backward (rollback) step logic.
+        """
         self.name = name
         self._up_callable = up_callable
         self._down_callable = down_callable
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def up(self, context: Context) -> None:
-        """Execute the forward step logic."""
+        """Executes the forward step logic.
+
+        Args:
+            context (Context): The shared pipeline context.
+        """
         self._up_callable(context)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def down(self, context: Context) -> None:
-        """Execute the backward (rollback) step logic."""
+        """Executes the backward (rollback) step logic.
+
+        Args:
+            context (Context): The shared pipeline context.
+        """
         self._down_callable(context)
 
     def __repr__(self) -> str:
+        """The repr: Worker('NAME')."""
         return f"Worker({self.name!r})"
 
 
@@ -139,10 +151,22 @@ class StateMachine:
                  workers: List[Worker],
                  context: Context,
                  verbosity: Verbosity = Verbosity.STANDARD):
-        # Fail fast on duplicate worker names: name-based moves
-        # (move_to_step, move_to_last) resolve by name, so names
-        # must be unique. The check is case-insensitive because
-        # name resolution is case-insensitive (D-061).
+        """Creates the state machine and injects the infrastructure helpers.
+
+        Fails fast on duplicate worker names: name-based moves (move_to_step, move_to_last)
+        resolve by name, so names must be unique, and the check is case-insensitive because
+        name resolution is case-insensitive. Binds log_event + format_event_log and the two
+        cache-path closures onto the context (the injection is a side effect — a context shared
+        by two machines re-binds to the last one built on it), then logs the init DEBUG event.
+
+        Args:
+            workers (List[Worker]): The ordered pipeline steps (workers[0] is the sentinel).
+            context (Context): The shared context (domain subclasses pass their own).
+            verbosity (Verbosity): The display gate (STANDARD by default).
+
+        Raises:
+            ValueError: When two workers share a name (case-insensitive).
+        """
         seen = set()
         for worker in workers:
             key = worker.name.upper()
@@ -157,11 +181,11 @@ class StateMachine:
         self.logs: List[StateMachine.LogEntry] = []
         self.history: List[StateMachine.StepMove] = []
         self.verbosity: Verbosity = verbosity
-        
+
         # Inject infrastructure helpers into the Context so workers can use them transparently
         self.context.log_event = self.log_event
         self.context.format_event_log = self.format_event_log
-        
+
         def _get_cache_file_path() -> Path:
             """Returns the cache file path for the currently executing worker."""
             if not self.workers:
@@ -171,37 +195,47 @@ class StateMachine:
             worker_name = self.workers[level].name
             # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
             cache_files_prefix = getattr(self.context, 'cfg').cache_files_prefix
-            # Filename-prefix concatenation (D-078, replaces the
-            # D-069 M8 pathlib join): the domain's
-            # cache_files_prefix is a *filename* prefix ("Filename
-            # prefix for the level specific cache files"), so
+            # Filename-prefix concatenation: the domain's
+            # cache_files_prefix is a *filename* prefix, so
             # "rlmwf_" + "01_CONFIG.dat" yields the flat
             # "rlmwf_01_CONFIG.dat". A directory-like prefix must end
             # with a separator.
             return Path(f"{cache_files_prefix}{level:02}_{worker_name}.dat")
-            
+
         self.context.get_cache_file_path_for_current_level = _get_cache_file_path
-        
+
         def _get_cache_file_full_path() -> Path:
             """Returns the full cache file path using base_dir from context.cfg."""
             # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
             base_dir = getattr(self.context, 'cfg').base_dir
             return base_dir / _get_cache_file_path()
-            
+
         self.context.get_cache_file_full_path_for_current_level = _get_cache_file_full_path
 
         self.log_event(Relevance.DEBUG, "StateMachine initialized.")
 
     def __repr__(self) -> str:
-        # Lightweight on purpose: context, logs and history can hold
-        # large domain data; the essential state is the worker count,
-        # the current step and the verbosity (M7, D-068).
+        """The lightweight repr: worker count, current step and verbosity.
+
+        Context, logs and history are excluded on purpose — they can hold large
+        domain data.
+        """
         return (f"StateMachine(workers={len(self.workers)}, "
                 f"current_step={self.current_step}, "
                 f"verbosity={self.verbosity.name})")
 
     @contextmanager
     def _history_timer(self, step: int, worker_name: str, direction: str):
+        """Times one step execution and appends its StepMove to the history.
+
+        The timer's finally records the move even when the worker raises, so a
+        failed attempt is in the history.
+
+        Args:
+            step (int): The step index.
+            worker_name (str): The worker's name.
+            direction (str): 'up' or 'down'.
+        """
         start = datetime.now(timezone.utc)
         try:
             yield
@@ -217,8 +251,20 @@ class StateMachine:
             ))
 
     def _run_step(self, worker: Worker, direction: str):
+        """Executes one worker step, logging the start, completion and errors.
+
+        The worker's exception is logged (ERROR) and re-raised; the current
+        step stays at the failing worker so the log names it.
+
+        Args:
+            worker (Worker): The worker to execute.
+            direction (str): 'up' or 'down' (anything else raises ValueError).
+
+        Raises:
+            ValueError: When direction is neither 'up' nor 'down'.
+        """
         try:
-            self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")            
+            self.log_event(Relevance.INFO, f"Starting worker {worker.name}, {direction.upper()} step")
             if direction == 'up':
                 worker.up(self.context)
             elif direction == 'down':
@@ -234,23 +280,20 @@ class StateMachine:
 
     @property
     def current_worker_name(self) -> str:
+        """The name of the worker at current_step ('UNDEFINED' when there are no workers)."""
         if not self.workers:
             return "UNDEFINED"
         return self.workers[self.current_step].name
 
     @staticmethod
     def _format_event_line(entry: "StateMachine.LogEntry", verbosity_name: str) -> str:
-        """
-        Format one buffered log event as the live console line.
+        """Formats one buffered log event as the live console line.
 
-        This function renders the single LogEntry in the exact line
-        format the console print uses: the [timestamp UTC] [step]
-        [worker] [relevance:verbosity] message shape, the enum names
-        (not numeric values) + the explicit UTC marker (M6, D-070),
-        the fixed-width 5/8 right-justified fields for the
-        variable-length names (D-128). It is the single source of
-        truth for the live line and the buffered replay (the D-321
-        FINAL_LOG_PRINT file).
+        The [timestamp UTC] [step] [worker] [relevance:verbosity] message shape, the
+        enum names (not numeric values) + the explicit UTC marker, the fixed-width
+        5/8 right-justified fields for the variable-length names. The single source
+        of truth for the live line and the buffered replay (the FINAL_LOG_PRINT
+        file).
 
         Args:
             entry (StateMachine.LogEntry): The buffered event record.
@@ -268,7 +311,15 @@ class StateMachine:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def log_event(self, relevance: Relevance, message: str) -> None:
-        """Logs an event using the current state step and worker."""
+        """Logs an event at the current step, printing it when the gate allows.
+
+        Always appends the typed LogEntry to the buffer; the live print happens
+        only when the event's relevance passes the machine's verbosity gate.
+
+        Args:
+            relevance (Relevance): The event's relevance level.
+            message (str): The event message.
+        """
         evt_time = datetime.now(timezone.utc)
         event = self.LogEntry(
             time=evt_time,
@@ -282,14 +333,12 @@ class StateMachine:
             print(self._format_event_line(event, self.verbosity.name))
 
     def format_event_log(self) -> str:
-        """
-        Render the full buffered event log as live-line formatted text.
+        """Renders the full buffered event log as live-line formatted text.
 
-        This function formats every buffered LogEntry — all relevances,
-        the maximum-relevance replay, independent of the display
-        verbosity gate — in the live console line format (the shared
-        formatter) and joins them with newlines: the content of the
-        D-321 FINAL_LOG_PRINT file.
+        Every buffered LogEntry — all relevances, the maximum-relevance replay,
+        independent of the display verbosity gate — is formatted in the live
+        console line format (the shared formatter) and joined with newlines: the
+        content of the FINAL_LOG_PRINT file.
 
         Returns:
             str: The newline-joined full log (the empty string when no
@@ -299,9 +348,13 @@ class StateMachine:
                          for entry in self.logs)
 
     def show_event_log(self) -> None:
-        # M6 (D-070): UTC header, 2-digit step (same as the live
-        # line), relevance names instead of numeric values, aligned
-        # columns.
+        """Prints the buffered event log as a table.
+
+        The banner, the 66-underscore separator, the TIMESTAMP (UTC) / STEP /
+        WORKER / RELEVANCE / MESSAGE header (UTC timestamps, 2-digit steps,
+        relevance names instead of numeric values, aligned columns), one row
+        per buffered event.
+        """
         print(f"\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---")
         print(f"{'_' * 66}")
         print(f"{'TIMESTAMP (UTC)':<19} | {'STEP':<4} | {'WORKER':<15} | "
@@ -314,8 +367,12 @@ class StateMachine:
                   f"{entry.message}")
 
     def show_history_of_moves(self) -> None:
-        # M6 (D-070): the Dur (s) header is right-aligned over its
-        # right-aligned values (was left-14 vs right-15.6f).
+        """Prints the step history as a table.
+
+        The Step / Worker / Dir / Start (UTC) / Dur (s) header (the Dur (s)
+        column right-aligned over its right-aligned values), the 80-dash rule,
+        one row per recorded step (the start at microsecond precision).
+        """
         print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | "
               f"{'Start (UTC)':<26} | {'Dur (s)':>15}")
         print("-" * 80)
@@ -326,9 +383,16 @@ class StateMachine:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
-        # Create missing parent directories so nested filenames work
-        # out of the box; a bare filename has parent '.', where
-        # mkdir(exist_ok=True) is a no-op (M10, D-068).
+        """Exports the step history to a CSV file.
+
+        The columns: step, worker_name, direction, start_utc, finish_utc (ISO-8601
+        UTC) and duration_sec (float seconds). Missing parent directories are
+        created so nested filenames work out of the box; a bare filename has
+        parent '.', where mkdir(exist_ok=True) is a no-op.
+
+        Args:
+            filename (str | Path): The output path.
+        """
         path = Path(filename)
         path.parent.mkdir(parents=True, exist_ok=True)
         keys = ["step", "worker_name", "direction", "start_utc", "finish_utc", "duration_sec"]
@@ -346,38 +410,34 @@ class StateMachine:
                 })
 
     def move_to_step(self, target_step: int | str) -> None:
-        """
-        Moves the state machine to the target step.
-        Accepts a Python int index or the string name of the target
-        worker (case-insensitive); bool is explicitly NOT a valid
-        step (M3, D-069). Up moves (t > current) execute
-        up() of workers current+1..t, target included; down moves
-        (t < current) execute down() of workers current..t+1,
-        target excluded, leaving the state "steps 1..t done".
-        Worker 0 is the sentinel initial state: it is never
-        executed by the machine (see class docstring).
+        """Moves the state machine to the target step.
 
-        Failure semantics: a failing worker's exception is logged
-        and re-raised; current_step stays at the failed step k, so
-        logs name the failing worker. A retry of a higher target
-        does NOT re-execute k. To re-run it, first move to k-1
-        (which invokes k's down(), the domain rollback) and then
-        move up. The machine is domain-agnostic: it cannot know
-        whether a failed step is safely re-runnable, so handling a
-        failure is the domain worker's responsibility (D-060).
+        Accepts a Python int index or the string name of the target worker
+        (case-insensitive); bool is explicitly NOT a valid step. Up moves
+        (t > current) execute up() of workers current+1..t, target included;
+        down moves (t < current) execute down() of workers current..t+1,
+        target excluded, leaving the state "steps 1..t done". Worker 0 is the
+        sentinel initial state: it is never executed by the machine (see class
+        docstring).
+
+        Failure semantics: a failing worker's exception is logged and
+        re-raised; current_step stays at the failed step k, so logs name the
+        failing worker. A retry of a higher target does NOT re-execute k. To
+        re-run it, first move to k-1 (which invokes k's down(), the domain
+        rollback) and then move up. The machine is domain-agnostic: it cannot
+        know whether a failed step is safely re-runnable, so handling a failure
+        is the domain worker's responsibility.
         """
         try:
             target_index = self._validate_target_step(target_step)
         except ValidationError as exc:
             # Public contract (pinned): a wrong target type is a
             # TypeError with the exact message, not a raw pydantic
-            # ValidationError (M3 + M11, D-069). The gate is a
-            # SEPARATE @validate_call function from the move
-            # execution (D-076), so only gate errors are converted;
-            # a pydantic ValidationError raised by a DOMAIN worker
-            # during the move (e.g. a config schema) propagates
-            # unchanged — D-060 failure semantics, the machine is
-            # domain-agnostic.
+            # ValidationError. The gate is a SEPARATE @validate_call
+            # function from the move execution, so only gate errors
+            # are converted; a pydantic ValidationError raised by a
+            # DOMAIN worker during the move (e.g. a config schema)
+            # propagates unchanged — the machine is domain-agnostic.
             raise TypeError(
                 "target_step must be an integer index or a string "
                 "worker name.") from exc
@@ -386,11 +446,24 @@ class StateMachine:
     @validate_call(config=ConfigDict(
         arbitrary_types_allowed=True, strict=True))
     def _validate_target_step(self, target_step: int | str) -> int:
-        # Strict gate (M11, D-069): exactly a Python int or a str —
-        # bool, float, np.int64 and friends are rejected here.
-        # Deliberately separate from the move execution (D-076):
-        # its ValidationErrors are the ones converted to the pinned
-        # TypeError by move_to_step.
+        """Validates and resolves the move target (the strict gate).
+
+        Strictly a Python int or a str — bool, float, np.int64 and friends are
+        rejected here (a bare isinstance check would have accepted bool). A
+        name resolves case-insensitively. Deliberately separate from the move
+        execution: its ValidationErrors are the ones converted to the pinned
+        public TypeError by move_to_step.
+
+        Args:
+            target_step (int | str): The target step index or worker name.
+
+        Returns:
+            int: The resolved 0-based step index.
+
+        Raises:
+            ValueError: When the name matches no worker.
+            IndexError: When the index is out of bounds.
+        """
         if isinstance(target_step, str):
             target_step = target_step.upper()
             target_index = next((i for i, w in enumerate(self.workers) if w.name.upper() == target_step), None)
@@ -404,6 +477,17 @@ class StateMachine:
         return target_index
 
     def _execute_move(self, target_index: int) -> None:
+        """Executes the step walk from current_step to the target.
+
+        Up moves run the workers' up() from current+1 to the target (included);
+        down moves run the workers' down() from current to target+1 (the target
+        excluded), then set current_step to the target explicitly (the down
+        loop's last iteration leaves it at target+1). The current step is
+        updated BEFORE each execution so the logs reflect the active worker.
+
+        Args:
+            target_index (int): The resolved 0-based target index.
+        """
         if target_index == self.current_step:
             return
 

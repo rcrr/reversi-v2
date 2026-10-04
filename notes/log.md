@@ -1875,3 +1875,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (verificato prima del taglio). Verifica: il probe verify\_cache\_manager re-run (ALL PROBES PASSED, i 6
   check), i 4 .py parse, test\_wrk\_su\_analysis 10/0/1, docs auditor verde. Dopo questo D le uniche menzioni
   di D-071/D-072 sono l'entry di decisions e il bullet di D-434 — la storia, dove R-540 dice che sta.
+
+- D-438 (sorgente + source-doc): lo strip R-540 — via tutti i 17 riferimenti D + 7 tag M dal sorgente (6 nelle
+  docstring, 11 nei commenti #); le scelte di design restano come summary in prosa (state model, gate separato,
+  concatenazione del filename prefix, rendering UTC-aware) e i puntatori dangling
+  D-060/061/068/069/070/076/078/128/321 li eliminiamo dappertutto (decisione utente; il purge repo-wide dei 23
+  file esterni è la D-441). Pass docstring (R-560): documentate le 10 funzioni prive di docstring
+  (Worker.\_\_init\_\_, StateMachine.\_\_init\_\_ con il Raises sui nomi duplicati, \_history\_timer,
+  \_run\_step, current\_worker\_name, show\_event\_log, show\_history\_of\_moves,
+  export\_history\_of\_moves\_as\_csv, \_validate\_target\_step, \_execute\_move), i commenti # con tag M
+  convertiti in docstring, i one-liner leggeri (log\_event, up, down) in Google con Args tipizzati. Formato: via
+  il from \_\_future\_\_ import annotations non servito (3.12 — i 50 test confermano che le 7 superfici
+  @validate\_call non sono toccate), 10 trailing-ws, triplo blank normalizzato. Source-doc nello stesso commit
+  (docs\_rules §5.1): i 4 D-321 dangling in prosa (il fatto FINAL\_LOG\_PRINT resta), il "49 tests" storto → 51
+  (il micro-test di D-439). 50/0/0 (zero behavior change), docs auditor verde.
