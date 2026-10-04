@@ -52,9 +52,8 @@ from datetime import datetime, timezone, timedelta
 
 from reversi.tools.state_machine import StateMachine, Worker, Context, Relevance, Verbosity
 
-# House rule: test artifacts are written ONLY under
-# workspace_root/build/tmp and removed afterwards. The workspace
-# root is 3 levels up from this file (test/reversi/tools/).
+# House rule: test artifacts are written ONLY under workspace_root/build/tmp and removed afterwards.
+# The workspace root is 3 levels up from this file (test/reversi/tools/).
 TMP_DIR = Path(__file__).resolve().parents[3] / "build" / "tmp"
 
 
@@ -153,8 +152,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.history), 0)
 
     def test_move_to_last_happy_path(self):
-        """move_to_last dispatches by the last worker's name and
-        runs the up chain."""
+        """move_to_last dispatches by the last worker's name and runs the up chain."""
         self.sm.move_to_last()
 
         self.assertEqual(self.sm.current_step, 2)
@@ -179,8 +177,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(len(self.sm.history), 2)  # step 1 up + step 2 up
 
     def test_move_to_last_single_worker_noop(self):
-        """A single-worker machine: the only worker is the sentinel
-        at step 0, so move_to_last is a no-op."""
+        """A single-worker machine: the only worker is the sentinel at step 0, so move_to_last is a no-op."""
         up = MagicMock()
         down = MagicMock()
         sm = StateMachine([Worker("ONLY", up, down)], Context())
@@ -209,8 +206,7 @@ class TestStateMachine(unittest.TestCase):
             ], Context())
 
     def test_retry_after_failure_skips_failed_step(self):
-        """A retry of a higher target does NOT re-execute the
-        failed step; recovery is down-then-up."""
+        """A retry of a higher target does NOT re-execute the failed step; recovery is down-then-up."""
         self.up_callables[1].side_effect = RuntimeError("boom")
         with self.assertRaises(RuntimeError):
             self.sm.move_to_step(2)
@@ -236,8 +232,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(self.sm.current_step, 2)
 
     def test_worker_zero_is_sentinel_never_executed(self):
-        """Worker 0 is the sentinel initial state: its up()/down()
-        are never invoked by the machine."""
+        """Worker 0 is the sentinel initial state: its up()/down() are never invoked by the machine."""
         self.sm.move_to_step(2)
         self.up_callables[0].assert_not_called()
         self.down_callables[0].assert_not_called()
@@ -256,8 +251,7 @@ class TestStateMachine(unittest.TestCase):
         self.up_callables[2].assert_called_once_with(self.context)
 
     def test_move_to_step_by_invalid_string(self):
-        """Test that providing an invalid string name raises ValueError,
-        pinning the FULL message."""
+        """Test that providing an invalid string name raises ValueError, pinning the FULL message."""
         with self.assertRaises(ValueError) as context:
             self.sm.move_to_step("NON_EXISTENT_WORKER")
 
@@ -265,8 +259,7 @@ class TestStateMachine(unittest.TestCase):
                          "Worker 'NON_EXISTENT_WORKER' not found in the pipeline.")
 
     def test_move_to_step_out_of_bounds_high(self):
-        """Test that providing an index >= len(workers) raises IndexError,
-        pinning the FULL message."""
+        """Test that providing an index >= len(workers) raises IndexError, pinning the FULL message."""
         with self.assertRaises(IndexError) as context:
             self.sm.move_to_step(3)
 
@@ -305,10 +298,8 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
 
     def test_bool_rejected_as_int_step(self):
-        """bool is NOT a valid step: True/False raise
-        TypeError (the strict gate rejects bool, which a bare
-        isinstance(..., int) would have accepted) and the machine
-        stays untouched."""
+        """bool is NOT a valid step: True/False raise TypeError (the strict gate rejects bool, which
+        a bare isinstance(..., int) would have accepted) and the machine stays untouched."""
         for bad in (True, False):
             with self.assertRaises(TypeError) as ctx:
                 self.sm.move_to_step(bad)
@@ -327,17 +318,15 @@ class TestStateMachine(unittest.TestCase):
                       str(ctx.exception))
 
     def test_constructor_rejects_non_worker_entry(self):
-        """__init__ is @validate_call: a non-Worker
-        list entry raises pydantic ValidationError instead of a raw
-        AttributeError deep in the name check."""
+        """__init__ is @validate_call: a non-Worker list entry raises pydantic ValidationError
+        instead of a raw AttributeError deep in the name check."""
         from pydantic import ValidationError
         with self.assertRaises(ValidationError):
             StateMachine([42], Context())
 
     def test_constructor_rejects_non_context(self):
-        """__init__ is @validate_call: a non-Context
-        object raises ValidationError; Context subclasses still
-        pass."""
+        """__init__ is @validate_call: a non-Context object raises ValidationError; Context
+        subclasses still pass."""
         from pydantic import ValidationError
         with self.assertRaises(ValidationError):
             StateMachine([Worker("A", MagicMock(), MagicMock())], 42)
@@ -349,8 +338,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertIsInstance(sm.context, LMContext)
 
     def test_current_worker_name_tracks_current_step(self):
-        """current_worker_name is a live view of (workers,
-        current_step)."""
+        """current_worker_name is a live view of (workers, current_step)."""
         self.assertEqual(self.sm.current_worker_name, "CREATED")
         self.sm.move_to_step(1)
         self.assertEqual(self.sm.current_worker_name, "CONFIG")
@@ -365,8 +353,7 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(sm.current_worker_name, "UNDEFINED")
 
     def test_step_move_fields_up(self):
-        """StepMove field content for up moves:
-        aware-UTC start/finish and duration == finish - start."""
+        """StepMove field content for up moves: aware-UTC start/finish and duration == finish - start."""
         self.sm.move_to_step(2)
         expected = [(1, "CONFIG", "up"), (2, "POSITIONS", "up")]
         for entry, (step, name, direction) in zip(
@@ -384,8 +371,8 @@ class TestStateMachine(unittest.TestCase):
             self.assertEqual(entry.duration, entry.finish - entry.start)
 
     def test_step_move_fields_down(self):
-        """StepMove field content for down moves: the target is
-        excluded, so the last entry is the step above it."""
+        """StepMove field content for down moves: the target is excluded, so the last entry is the
+        step above it."""
         self.sm.move_to_step(2)
         self.sm.move_to_step(0)
         tail = self.sm.history[2:]
@@ -396,8 +383,8 @@ class TestStateMachine(unittest.TestCase):
             self.assertEqual(e.duration, e.finish - e.start)
 
     def test_step_move_recorded_on_failure(self):
-        """A failed step is still recorded (the timer's finally) —
-        pinning the field content, not just the len."""
+        """A failed step is still recorded (the timer's finally) — pinning the field content, not
+        just the len."""
         self.up_callables[1].side_effect = RuntimeError("boom")
         with self.assertRaises(RuntimeError):
             self.sm.move_to_step(2)
@@ -410,9 +397,8 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(e.duration, e.finish - e.start)
 
     def test_history_export_csv(self):
-        """Test exporting history to a CSV file: header
-        names, ISO-8601 +00:00 timestamps, duration identity, and the
-        artifact under workspace_root/build/tmp, removed afterwards."""
+        """Test exporting history to a CSV file: header names, ISO-8601 +00:00 timestamps, duration
+        identity, and the artifact under workspace_root/build/tmp, removed afterwards."""
         import csv
 
         self.sm.move_to_step(2)
@@ -462,9 +448,8 @@ class TestStateMachine(unittest.TestCase):
                 test_filename.unlink()
 
     def test_run_step_rejects_unknown_direction(self):
-        """The direction dispatch is explicit: only 'up' and 'down'
-        are valid; anything else raises ValueError without executing
-        the worker."""
+        """The direction dispatch is explicit: only 'up' and 'down' are valid; anything else raises
+        ValueError without executing the worker."""
         with self.assertRaises(ValueError) as ctx:
             self.sm._run_step(self.workers[1], "sideways")
         self.assertIn("sideways", str(ctx.exception))
@@ -476,8 +461,8 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(repr(self.workers[1]), "Worker('CONFIG')")
 
     def test_state_machine_repr_tracks_state(self):
-        """StateMachine's repr is lightweight (no context, no logs,
-        no history) and tracks the current step."""
+        """StateMachine's repr is lightweight (no context, no logs, no history) and tracks the
+        current step."""
         self.assertEqual(
             repr(self.sm),
             "StateMachine(workers=3, current_step=0, "
@@ -496,9 +481,8 @@ class TestStateMachine(unittest.TestCase):
             "StateMachine(workers=1, current_step=0, verbosity=NONE)")
 
     def test_csv_export_creates_missing_parent_dirs(self):
-        """Missing parent directories are created; the
-        artifact stays under workspace_root/build/tmp and is removed
-        afterwards (house rule)."""
+        """Missing parent directories are created; the artifact stays under workspace_root/build/tmp
+        and is removed afterwards (house rule)."""
         self.sm.move_to_step(1)
 
         TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -522,9 +506,8 @@ class TestStateMachine(unittest.TestCase):
                 nested_dir.parent.rmdir()
 
     def test_csv_export_accepts_str_filename(self):
-        """The filename is a str | Path union: a plain str path works
-        (the artifact stays under workspace_root/build/tmp and is
-        removed afterwards)."""
+        """The filename is a str | Path union: a plain str path works (the artifact stays under
+        workspace_root/build/tmp and is removed afterwards)."""
         self.sm.move_to_step(1)
 
         TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -634,13 +617,12 @@ class TestVerbosityGating(unittest.TestCase):
 
 
 class TestContextInjection(unittest.TestCase):
-    """The context injection layer: __init__ binds live
-    infrastructure helpers onto the shared Context, which is the
-    module's main integration surface with domain workers."""
+    """The context injection layer: __init__ binds live infrastructure helpers onto the shared
+    Context, which is the module's main integration surface with domain workers."""
 
     def setUp(self):
-        """Fresh machine (3 workers); cfg simulated as a domain worker
-        (e.g., the ConfigWorker) would populate it."""
+        """Fresh machine (3 workers); cfg simulated as a domain worker (e.g., the ConfigWorker)
+        would populate it."""
         self.patcher = patch('sys.stdout', new=StringIO())
         self.patcher.start()
         self.context = Context()
@@ -659,8 +641,8 @@ class TestContextInjection(unittest.TestCase):
         self.patcher.stop()
 
     def test_injected_log_event_is_live_machine_binding(self):
-        """context.log_event is this machine's bound method: a call
-        through it records a LogEntry in this machine's logs."""
+        """context.log_event is this machine's bound method: a call through it records a LogEntry in
+        this machine's logs."""
         self.assertIs(self.context.log_event.__self__, self.sm)
         self.assertEqual(len(self.sm.logs), 1)  # the init log only
         self.context.log_event(Relevance.INFO, "injected")
@@ -672,9 +654,8 @@ class TestContextInjection(unittest.TestCase):
         self.assertEqual(entry.message, "injected")
 
     def test_cache_file_path_tracks_current_step(self):
-        """{prefix}{level:02}_{name}.dat with level = current_step at
-        call time (the pre-execution update makes it the active
-        worker)."""
+        """{prefix}{level:02}_{name}.dat with level = current_step at call time (the pre-execution
+        update makes it the active worker)."""
         self.assertEqual(
             self.context.get_cache_file_path_for_current_level(),
             Path("cache/00_CREATED.dat"))
@@ -695,8 +676,7 @@ class TestContextInjection(unittest.TestCase):
             Path("base/cache/01_CONFIG.dat"))
 
     def test_absolute_cache_prefix_drops_base_dir(self):
-        """An absolute cache_files_prefix silently drops base_dir
-        (pathlib '/' semantics)."""
+        """An absolute cache_files_prefix silently drops base_dir (pathlib '/' semantics)."""
         self.context.cfg = SimpleNamespace(
             cache_files_prefix="/abs/cache/", base_dir=Path("base"))
         self.sm.move_to_step(1)
@@ -705,11 +685,9 @@ class TestContextInjection(unittest.TestCase):
             Path("/abs/cache/01_CONFIG.dat"))
 
     def test_cache_prefix_is_concatenated_verbatim(self):
-        """The prefix is a *filename* prefix, concatenated verbatim
-        onto the level
-        name — a bare prefix 'cache' glues to 'cache01_CONFIG.dat';
-        a directory-like prefix must end with a separator (as in the
-        other tests of this class, 'cache/')."""
+        """The prefix is a *filename* prefix, concatenated verbatim onto the level name — a bare
+        prefix 'cache' glues to 'cache01_CONFIG.dat'; a directory-like prefix must end with a
+        separator (as in the other tests of this class, 'cache/')."""
         self.context.cfg = SimpleNamespace(
             cache_files_prefix=Path("cache"), base_dir=Path("base"))
         self.sm.move_to_step(1)
@@ -721,9 +699,8 @@ class TestContextInjection(unittest.TestCase):
             Path("base/cache01_CONFIG.dat"))
 
     def test_missing_cfg_raises_attribute_error(self):
-        """Without a populated cfg, both helpers raise AttributeError
-        naming 'cfg' (bare getattr, no default — the documented
-        contract)."""
+        """Without a populated cfg, both helpers raise AttributeError naming 'cfg' (bare getattr, no
+        default — the documented contract)."""
         bare = Context()
         StateMachine([Worker("A", MagicMock(), MagicMock())], bare)
         with self.assertRaises(AttributeError) as ctx:
@@ -733,8 +710,7 @@ class TestContextInjection(unittest.TestCase):
             bare.get_cache_file_full_path_for_current_level()
 
     def test_empty_workers_degenerate_paths(self):
-        """Empty pipeline: Path() cache path, 'UNDEFINED' worker name,
-        move_to_last no-op."""
+        """Empty pipeline: Path() cache path, 'UNDEFINED' worker name, move_to_last no-op."""
         bare = Context()
         sm = StateMachine([], bare)
         self.assertEqual(bare.get_cache_file_path_for_current_level(), Path())
@@ -744,8 +720,7 @@ class TestContextInjection(unittest.TestCase):
         self.assertEqual(sm.history, [])
 
     def test_shared_context_rebinds_to_last_machine(self):
-        """A shared context re-binds to the LAST machine built on it:
-        the injection is a side effect."""
+        """A shared context re-binds to the LAST machine built on it: the injection is a side effect."""
         shared = Context()
         shared.cfg = SimpleNamespace(
             cache_files_prefix="cache/", base_dir=Path("base"))
@@ -766,9 +741,8 @@ class TestContextInjection(unittest.TestCase):
 
 
 class TestDisplayGoldens(unittest.TestCase):
-    """Display goldens for the print paths: the live
-    log_event line, show_event_log, show_history_of_moves. The
-    module clock is frozen (advancing 1ms per now() call), so the
+    """Display goldens for the print paths: the live log_event line, show_event_log,
+    show_history_of_moves. The module clock is frozen (advancing 1ms per now() call), so the
     goldens are exact — no wall-clock dependence."""
 
     T0 = datetime(2026, 8, 29, 12, 34, 56, tzinfo=timezone.utc)
@@ -820,12 +794,10 @@ class TestDisplayGoldens(unittest.TestCase):
             "[ INFO:    HIGH] Completed UP step for CONFIG")
 
     def test_format_event_log_full_replay(self):
-        """The full-buffer render (the FINAL_LOG_PRINT file source): all
-        buffered entries — every relevance, independent of the
-        verbosity gate — as live-line text. The machine runs
-        verbosity VERY_LOW (nothing but ERROR prints): the
-        TRACE / DEBUG / INFO / WARN buffer entries still all
-        appear in the render, in the live line format."""
+        """The full-buffer render (the FINAL_LOG_PRINT file source): all buffered entries — every
+        relevance, independent of the verbosity gate — as live-line text. The machine runs
+        verbosity VERY_LOW (nothing but ERROR prints): the TRACE / DEBUG / INFO / WARN buffer
+        entries still all appear in the render, in the live line format."""
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -850,14 +822,12 @@ class TestDisplayGoldens(unittest.TestCase):
         self.assertEqual(lines[-1],
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
             "[ WARN:VERY_LOW] w")
-        # The injection pin: the context carries the bound
-        # renderer (the FINAL_LOG_PRINT worker accessor).
+        # The injection pin: the context carries the bound renderer (the FINAL_LOG_PRINT worker accessor).
         self.assertEqual(context.format_event_log, sm.format_event_log)
 
     def test_show_event_log_golden(self):
-        """End-to-end golden: the move's live lines, then the table —
-        banner, 66-underscore separator, header (UTC timestamp,
-        2-digit step, relevance name), one row per log entry."""
+        """End-to-end golden: the move's live lines, then the table — banner, 66-underscore
+        separator, header (UTC timestamp, 2-digit step, relevance name), one row per log entry."""
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()
@@ -886,11 +856,9 @@ class TestDisplayGoldens(unittest.TestCase):
         self.assertEqual(buf.getvalue(), expected)
 
     def test_show_history_of_moves_golden(self):
-        """End-to-end golden: the move's live lines, then the table —
-        header (Dur (s) right-aligned over its values),
-        80-dash rule, one row per executed step (start at
-        microsecond precision; duration = finish - start, pinned at
-        0.003000 by the frozen clock)."""
+        """End-to-end golden: the move's live lines, then the table — header (Dur (s) right-aligned
+        over its values), 80-dash rule, one row per executed step (start at microsecond
+        precision; duration = finish - start, pinned at 0.003000 by the frozen clock)."""
         with patch('reversi.tools.state_machine.datetime',
                    self._frozen_datetime()):
             buf = StringIO()

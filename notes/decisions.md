@@ -250,3 +250,10 @@ D-439 | 2026-10-04 | test/reversi/tools/test\_state\_machine.py + its mirror doc
          display goldens and the CSV export are all pinned). The test-doc REWRITTEN IN THE SAME COMMIT (docs\_rules.md
          §5.1): the stale "49 tests" → 51 (the TestStateMachine row 33 → 34 + the new pin), the "R2" campaign tag, the
          "V17" probe-provenance tag and the D-321 reference dropped, the runtime estimate tightened to ~0.2 s. 51/0/0.
+
+D-440 | 2026-10-04 | tools/state\_machine.py + test/reversi/tools/test\_state\_machine.py — the R-520 reflow pass (the
+         user's "ultimo step", the third D of the state\_machine campaign): wsutils/src\_reflow.py --write on the source
+         AND the test — 27 docstrings reflowed in the source (18 re-wrapped, 499 lines), 63 in the test (31 re-wrapped,
+         892 lines); both files verified CANONICAL fixed points of the reflow afterwards. The tool's pre-write
+         verifications passed (per-docstring/per-block logical identity, the parse, the idempotence); 51/0/0 — NO
+         behavior change (docstring + comment line breaks only).

@@ -1899,3 +1899,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   iniezione, goldens frozen-clock, CSV). Test-doc nello stesso commit (docs\_rules §5.1): "49 tests" storto →
   51 (riga TestStateMachine 33 → 34 + la pin nuova), via i tag "R2" e "V17" e il D-321, stima runtime a ~0.2 s.
   51/0/0.
+
+- D-440 (il pass src\_reflow — l'ultimo step): wsutils/src\_reflow.py --write su sorgente e test — 27 docstring
+  ri-avvolti nel sorgente (499 righe), 63 nel test (892 righe); entrambi i file sono ora a punto fisso canonico
+  del reflow (verificato con la check). Verifica: identità logica preservata (la verifica pre-write del tool),
+  51/0/0, zero behavior change.

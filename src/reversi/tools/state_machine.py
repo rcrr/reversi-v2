@@ -40,8 +40,8 @@ __all__ = ['Context', 'Worker', 'StateMachine', 'Verbosity', 'Relevance']
 
 class Verbosity(IntEnum):
     """
-    Logging verbosity levels: a log event is printed iff
-    event.relevance >= verbosity (NONE = silent, VERY_LOW = ERROR only).
+    Logging verbosity levels: a log event is printed iff event.relevance >= verbosity (NONE =
+    silent, VERY_LOW = ERROR only).
     """
     HIGH      = 0
     MODERATE  = 1
@@ -62,17 +62,16 @@ class Relevance(IntEnum):
 
 class Context:
     """
-    Base class for pipeline contexts.
-    Holds the shared state and data artifacts passed between workers.
-    Subclass this in the domain module to hold specific data (e.g., LMContext).
+    Base class for pipeline contexts. Holds the shared state and data artifacts passed between
+    workers. Subclass this in the domain module to hold specific data (e.g., LMContext).
     """
     pass
 
 
 class Worker:
     """
-    Represents a single step in the pipeline.
-    Uses composition to hold the callable logic for moving up and down.
+    Represents a single step in the pipeline. Uses composition to hold the callable logic for moving
+    up and down.
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, up_callable: Callable[[Context], None], down_callable: Callable[[Context], None]):
@@ -112,17 +111,14 @@ class Worker:
 
 class StateMachine:
     """
-    Generic state machine orchestrating a sequence of Workers.
-    It manages logging, history tracking, and state transitions.
-    It is completely agnostic of the domain logic.
+    Generic state machine orchestrating a sequence of Workers. It manages logging, history tracking,
+    and state transitions. It is completely agnostic of the domain logic.
 
-    State model: current_step is the index of the last executed
-    step. Step 0 is the initial sentinel state (nothing has been
-    executed): the workers[0] up/down callables are never invoked
-    by the machine — by domain design the first worker is a
-    sentinel (e.g. the LM pipeline's 'CREATED' bootstrap, which
-    runs outside the machine). See move_to_step for the execution
-    semantics of up/down moves.
+    State model: current_step is the index of the last executed step. Step 0 is the initial sentinel
+    state (nothing has been executed): the workers[0] up/down callables are never invoked by the
+    machine — by domain design the first worker is a sentinel (e.g. the LM pipeline's 'CREATED'
+    bootstrap, which runs outside the machine). See move_to_step for the execution semantics of
+    up/down moves.
     """
 
     @dataclass
@@ -137,8 +133,8 @@ class StateMachine:
     @dataclass(frozen=True)
     class LogEntry:
         """
-        Typed record for one logged event (immutable;
-        dataclasses.asdict() gives the dict form for file/DB dumps).
+        Typed record for one logged event (immutable; dataclasses.asdict() gives the dict form for
+        file/DB dumps).
         """
         time: datetime
         step: int
@@ -153,11 +149,11 @@ class StateMachine:
                  verbosity: Verbosity = Verbosity.STANDARD):
         """Creates the state machine and injects the infrastructure helpers.
 
-        Fails fast on duplicate worker names: name-based moves (move_to_step, move_to_last)
-        resolve by name, so names must be unique, and the check is case-insensitive because
-        name resolution is case-insensitive. Binds log_event + format_event_log and the two
-        cache-path closures onto the context (the injection is a side effect — a context shared
-        by two machines re-binds to the last one built on it), then logs the init DEBUG event.
+        Fails fast on duplicate worker names: name-based moves (move_to_step, move_to_last) resolve
+        by name, so names must be unique, and the check is case-insensitive because name resolution
+        is case-insensitive. Binds log_event + format_event_log and the two cache-path closures onto
+        the context (the injection is a side effect — a context shared by two machines re-binds to
+        the last one built on it), then logs the init DEBUG event.
 
         Args:
             workers (List[Worker]): The ordered pipeline steps (workers[0] is the sentinel).
@@ -195,11 +191,9 @@ class StateMachine:
             worker_name = self.workers[level].name
             # Note: context.cfg must be populated by a previous worker (e.g., ConfigWorker)
             cache_files_prefix = getattr(self.context, 'cfg').cache_files_prefix
-            # Filename-prefix concatenation: the domain's
-            # cache_files_prefix is a *filename* prefix, so
-            # "rlmwf_" + "01_CONFIG.dat" yields the flat
-            # "rlmwf_01_CONFIG.dat". A directory-like prefix must end
-            # with a separator.
+            # Filename-prefix concatenation: the domain's cache_files_prefix is a *filename* prefix,
+            # so "rlmwf_" + "01_CONFIG.dat" yields the flat "rlmwf_01_CONFIG.dat". A directory-like
+            # prefix must end with a separator.
             return Path(f"{cache_files_prefix}{level:02}_{worker_name}.dat")
 
         self.context.get_cache_file_path_for_current_level = _get_cache_file_path
@@ -217,8 +211,7 @@ class StateMachine:
     def __repr__(self) -> str:
         """The lightweight repr: worker count, current step and verbosity.
 
-        Context, logs and history are excluded on purpose — they can hold large
-        domain data.
+        Context, logs and history are excluded on purpose — they can hold large domain data.
         """
         return (f"StateMachine(workers={len(self.workers)}, "
                 f"current_step={self.current_step}, "
@@ -228,8 +221,8 @@ class StateMachine:
     def _history_timer(self, step: int, worker_name: str, direction: str):
         """Times one step execution and appends its StepMove to the history.
 
-        The timer's finally records the move even when the worker raises, so a
-        failed attempt is in the history.
+        The timer's finally records the move even when the worker raises, so a failed attempt is in
+        the history.
 
         Args:
             step (int): The step index.
@@ -253,8 +246,8 @@ class StateMachine:
     def _run_step(self, worker: Worker, direction: str):
         """Executes one worker step, logging the start, completion and errors.
 
-        The worker's exception is logged (ERROR) and re-raised; the current
-        step stays at the failing worker so the log names it.
+        The worker's exception is logged (ERROR) and re-raised; the current step stays at the
+        failing worker so the log names it.
 
         Args:
             worker (Worker): The worker to execute.
@@ -289,16 +282,15 @@ class StateMachine:
     def _format_event_line(entry: "StateMachine.LogEntry", verbosity_name: str) -> str:
         """Formats one buffered log event as the live console line.
 
-        The [timestamp UTC] [step] [worker] [relevance:verbosity] message shape, the
-        enum names (not numeric values) + the explicit UTC marker, the fixed-width
-        5/8 right-justified fields for the variable-length names. The single source
-        of truth for the live line and the buffered replay (the FINAL_LOG_PRINT
-        file).
+        The [timestamp UTC] [step] [worker] [relevance:verbosity] message shape, the enum names (not
+        numeric values) + the explicit UTC marker, the fixed-width 5/8 right-justified fields for
+        the variable-length names. The single source of truth for the live line and the buffered
+        replay (the FINAL_LOG_PRINT file).
 
         Args:
             entry (StateMachine.LogEntry): The buffered event record.
-            verbosity_name (str): The verbosity enum name to embed in
-                the line (the machine's verbosity — constant over a run).
+            verbosity_name (str): The verbosity enum name to embed in the line (the machine's
+                verbosity — constant over a run).
 
         Returns:
             str: The formatted line (no trailing newline).
@@ -313,8 +305,8 @@ class StateMachine:
     def log_event(self, relevance: Relevance, message: str) -> None:
         """Logs an event at the current step, printing it when the gate allows.
 
-        Always appends the typed LogEntry to the buffer; the live print happens
-        only when the event's relevance passes the machine's verbosity gate.
+        Always appends the typed LogEntry to the buffer; the live print happens only when the
+        event's relevance passes the machine's verbosity gate.
 
         Args:
             relevance (Relevance): The event's relevance level.
@@ -335,14 +327,12 @@ class StateMachine:
     def format_event_log(self) -> str:
         """Renders the full buffered event log as live-line formatted text.
 
-        Every buffered LogEntry — all relevances, the maximum-relevance replay,
-        independent of the display verbosity gate — is formatted in the live
-        console line format (the shared formatter) and joined with newlines: the
-        content of the FINAL_LOG_PRINT file.
+        Every buffered LogEntry — all relevances, the maximum-relevance replay, independent of the
+        display verbosity gate — is formatted in the live console line format (the shared formatter)
+        and joined with newlines: the content of the FINAL_LOG_PRINT file.
 
         Returns:
-            str: The newline-joined full log (the empty string when no
-                event was logged yet).
+            str: The newline-joined full log (the empty string when no event was logged yet).
         """
         return "\n".join(self._format_event_line(entry, self.verbosity.name)
                          for entry in self.logs)
@@ -350,10 +340,9 @@ class StateMachine:
     def show_event_log(self) -> None:
         """Prints the buffered event log as a table.
 
-        The banner, the 66-underscore separator, the TIMESTAMP (UTC) / STEP /
-        WORKER / RELEVANCE / MESSAGE header (UTC timestamps, 2-digit steps,
-        relevance names instead of numeric values, aligned columns), one row
-        per buffered event.
+        The banner, the 66-underscore separator, the TIMESTAMP (UTC) / STEP / WORKER / RELEVANCE /
+        MESSAGE header (UTC timestamps, 2-digit steps, relevance names instead of numeric values,
+        aligned columns), one row per buffered event.
         """
         print(f"\n--- --- --- --- --- - EVENT LOG - --- --- --- --- ---")
         print(f"{'_' * 66}")
@@ -369,9 +358,9 @@ class StateMachine:
     def show_history_of_moves(self) -> None:
         """Prints the step history as a table.
 
-        The Step / Worker / Dir / Start (UTC) / Dur (s) header (the Dur (s)
-        column right-aligned over its right-aligned values), the 80-dash rule,
-        one row per recorded step (the start at microsecond precision).
+        The Step / Worker / Dir / Start (UTC) / Dur (s) header (the Dur (s) column right-aligned
+        over its right-aligned values), the 80-dash rule, one row per recorded step (the start at
+        microsecond precision).
         """
         print(f"{'Step':<6} | {'Worker':<15} | {'Dir':<5} | "
               f"{'Start (UTC)':<26} | {'Dur (s)':>15}")
@@ -385,10 +374,9 @@ class StateMachine:
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
         """Exports the step history to a CSV file.
 
-        The columns: step, worker_name, direction, start_utc, finish_utc (ISO-8601
-        UTC) and duration_sec (float seconds). Missing parent directories are
-        created so nested filenames work out of the box; a bare filename has
-        parent '.', where mkdir(exist_ok=True) is a no-op.
+        The columns: step, worker_name, direction, start_utc, finish_utc (ISO-8601 UTC) and
+        duration_sec (float seconds). Missing parent directories are created so nested filenames
+        work out of the box; a bare filename has parent '.', where mkdir(exist_ok=True) is a no-op.
 
         Args:
             filename (str | Path): The output path.
@@ -412,32 +400,26 @@ class StateMachine:
     def move_to_step(self, target_step: int | str) -> None:
         """Moves the state machine to the target step.
 
-        Accepts a Python int index or the string name of the target worker
-        (case-insensitive); bool is explicitly NOT a valid step. Up moves
-        (t > current) execute up() of workers current+1..t, target included;
-        down moves (t < current) execute down() of workers current..t+1,
-        target excluded, leaving the state "steps 1..t done". Worker 0 is the
-        sentinel initial state: it is never executed by the machine (see class
-        docstring).
+        Accepts a Python int index or the string name of the target worker (case-insensitive); bool
+        is explicitly NOT a valid step. Up moves (t > current) execute up() of workers current+1..t,
+        target included; down moves (t < current) execute down() of workers current..t+1, target
+        excluded, leaving the state "steps 1..t done". Worker 0 is the sentinel initial state: it is
+        never executed by the machine (see class docstring).
 
-        Failure semantics: a failing worker's exception is logged and
-        re-raised; current_step stays at the failed step k, so logs name the
-        failing worker. A retry of a higher target does NOT re-execute k. To
-        re-run it, first move to k-1 (which invokes k's down(), the domain
-        rollback) and then move up. The machine is domain-agnostic: it cannot
-        know whether a failed step is safely re-runnable, so handling a failure
-        is the domain worker's responsibility.
+        Failure semantics: a failing worker's exception is logged and re-raised; current_step stays
+        at the failed step k, so logs name the failing worker. A retry of a higher target does NOT
+        re-execute k. To re-run it, first move to k-1 (which invokes k's down(), the domain
+        rollback) and then move up. The machine is domain-agnostic: it cannot know whether a failed
+        step is safely re-runnable, so handling a failure is the domain worker's responsibility.
         """
         try:
             target_index = self._validate_target_step(target_step)
         except ValidationError as exc:
-            # Public contract (pinned): a wrong target type is a
-            # TypeError with the exact message, not a raw pydantic
-            # ValidationError. The gate is a SEPARATE @validate_call
-            # function from the move execution, so only gate errors
-            # are converted; a pydantic ValidationError raised by a
-            # DOMAIN worker during the move (e.g. a config schema)
-            # propagates unchanged — the machine is domain-agnostic.
+            # Public contract (pinned): a wrong target type is a TypeError with the exact message,
+            # not a raw pydantic ValidationError. The gate is a SEPARATE @validate_call function
+            # from the move execution, so only gate errors are converted; a pydantic ValidationError
+            # raised by a DOMAIN worker during the move (e.g. a config schema) propagates unchanged
+            # — the machine is domain-agnostic.
             raise TypeError(
                 "target_step must be an integer index or a string "
                 "worker name.") from exc
@@ -448,10 +430,9 @@ class StateMachine:
     def _validate_target_step(self, target_step: int | str) -> int:
         """Validates and resolves the move target (the strict gate).
 
-        Strictly a Python int or a str — bool, float, np.int64 and friends are
-        rejected here (a bare isinstance check would have accepted bool). A
-        name resolves case-insensitively. Deliberately separate from the move
-        execution: its ValidationErrors are the ones converted to the pinned
+        Strictly a Python int or a str — bool, float, np.int64 and friends are rejected here (a bare
+        isinstance check would have accepted bool). A name resolves case-insensitively. Deliberately
+        separate from the move execution: its ValidationErrors are the ones converted to the pinned
         public TypeError by move_to_step.
 
         Args:
@@ -479,11 +460,10 @@ class StateMachine:
     def _execute_move(self, target_index: int) -> None:
         """Executes the step walk from current_step to the target.
 
-        Up moves run the workers' up() from current+1 to the target (included);
-        down moves run the workers' down() from current to target+1 (the target
-        excluded), then set current_step to the target explicitly (the down
-        loop's last iteration leaves it at target+1). The current step is
-        updated BEFORE each execution so the logs reflect the active worker.
+        Up moves run the workers' up() from current+1 to the target (included); down moves run the
+        workers' down() from current to target+1 (the target excluded), then set current_step to the
+        target explicitly (the down loop's last iteration leaves it at target+1). The current step
+        is updated BEFORE each execution so the logs reflect the active worker.
 
         Args:
             target_index (int): The resolved 0-based target index.
