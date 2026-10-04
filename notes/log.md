@@ -1996,3 +1996,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   doppio-spazio nel pin sistemato, l'enumerazione dei kernel Numba completata (mancavano i 2 kernel
   batch D8), l'intro del contratto dual corretto (1-D → any-shape), 2 bullet duplicati tolti
   (D8 slot order + little-endian, detti altrove), size 204 → 200 (budget hub).
+
+- D-448 (board: il test a regime — la metà test del sub-work, specchio di D-447): sweep: non punto fisso del
+  reflow (11 docstring), 2 import dead (patch, npt), 172 righe di trailing-whitespace (4 nel GNU header — i
+  separatori sono # nudi, 168 nel corpo), 2 docstring di classe con provenance ("session-38 scratch
+  script/run" — puntatori dangling su scratch/, gitignored). I 53 docstring "Should …" LASCIAI COME SONO
+  (user informato e decide — la conversione in imperativo è in sospeso). FATTI: tutto tranne gli Should +
+  src\_reflow --write → canonico, 3798 righe (era 3846). NESSUN test aggiunto/tolto: 294/0/15 (nessun
+  cambiamento di comportamento). test\_board.md sincronizzata: il conteggio header corretto (247 → 262
+  concreti + 32 ereditati = 294 — il doc precede l'onda dei test N-D), i per-class ricontati (9 classi
+  stali: FromSignedInt 5→9, ToSignedInt 6→10, FromHexStr 7→10, Transformations 7→10, AntiTransformations
+  4→7, LegalMoves 13→16, Flips 16→19, MakeMove 17→20, Hash 13→17), il bulk 121 → 123 righe (ricontato due
+  volte), il ref stale del messaggio "must be 1D" rimosso (il guard è morto col contratto any-shape; il pin
+  è il ValueError same-shape), le etichette di campagna R1/R2/R4 via (comportamenti descritti in parole
+  semplici), la frase duplicata dei print goldens sistemata.

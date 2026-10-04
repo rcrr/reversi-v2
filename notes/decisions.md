@@ -406,3 +406,19 @@ D-447 | 2026-10-06 | board.py format campaign (the tools-campaign sub-work) + th
          transform kernels were missing — "the 4 D8 ARRAY transform fns" were the 4 reflection array impls), the
          dual-contract intro corrected (1-D → any-shape), 2 duplicated bullets dropped (the D8 slot order and the
          little-endian notes, both stated elsewhere), size 204 → 200 (the hub budget).
+
+D-448 | 2026-10-06 | test\_board.py format campaign (the test half of the board sub-work; the mirror of D-447). Sweep:
+         not the src\_reflow fixed point (11 docstrings); 2 dead imports (unittest.mock.patch, numpy.typing); 172
+         trailing-whitespace lines (4 in the GNU header — the separators are bare #, 168 in the body); 2 provenance
+         class docstrings (the "session-38 scratch script" of the TestPositionHash goldens, the "session-38 scratch run"
+         of the TestPositionHashLegacyParity fixture — with dangling scratch/ pointers, gitignored); the 53 "Should …"
+         docstrings left AS-IS (the user is informed and decides — the imperative conversion is pending his call).
+         FIXED: all of the above except the Should conversion + src\_reflow --write → canonical, 3798 lines (was 3846).
+         NO test added or removed: 294/0/15 (NO behavior change). test\_board.md synced (the mirror rule): the header
+         count corrected (247 → 262 concrete + 32 inherited = 294 — the doc pre-dates the N-D shape-test wave), the
+         per-class counts re-measured (the 9 stale classes: FromSignedInt 5→9, ToSignedInt 6→10, FromHexStr 7→10,
+         Transformations 7→10, AntiTransformations 4→7, LegalMoves 13→16, Flips 16→19, MakeMove 17→20, Hash 13→17), the
+         121-row bulk corrected to 123 (re-counted twice), the stale "2-D must be 1D message verbatim" reference removed
+         (the guard died with the any-shape contract; the pin is the same-shape ValueError), the campaign labels
+         R1/R2/R4 removed (the behavior described in plain words), the duplicated "position print 9-line string"
+         sentence fixed.

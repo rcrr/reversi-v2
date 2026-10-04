@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -41,7 +41,6 @@
 #
 
 import unittest
-from unittest.mock import patch
 
 import time
 import os
@@ -52,14 +51,12 @@ import pydantic
 from pydantic import ValidationError
 
 import numpy as np
-import numpy.typing as npt
 import numpy.testing as nptest
 import numba as nb
 
 from reversi.board import *
 
-# The white-box import for the Zobrist table pin: the star
-# import above skips the underscore names.
+# The white-box import for the Zobrist table pin: the star import above skips the underscore names.
 from reversi.board import _zobrist_bitstrings
 
 from test.reversi.paths import WORKSPACE_ROOT
@@ -114,14 +111,13 @@ class TestSquare(unittest.TestCase):
 
     def test_square_from_string(self):
         self.assertEqual(Square(0), square_from_str('A1'))
-        
+
     def test_invalid_name_raises_value_error(self):
         with self.assertRaises(ValueError):
             square_from_str("UN")
 
     def test_lowercase_names_raise_value_error(self):
-        # The parser is case-sensitive: only canonical uppercase names
-        # are accepted.
+        # The parser is case-sensitive: only canonical uppercase names are accepted.
         for name in ('a1', 'a8', 'h8'):
             with self.assertRaises(ValueError) as ctx:
                 square_from_str(name)
@@ -131,7 +127,7 @@ class TestSquare(unittest.TestCase):
         sq = Square(0)
         sq_as_str = square_to_str(sq)
         self.assertEqual(sq_as_str, 'A1')
-            
+
     def test_square_as_bitboard(self):
         sq = Square(0)
         expected = Bitboard(0x0000000000000001)
@@ -140,20 +136,19 @@ class TestSquare(unittest.TestCase):
         expected = Bitboard(0x8000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
         sq = Square(64)
-        # Code 64 is out of the square range: square_as_bitboard computes
-        # Bitboard(1) << sq, and NumPy wraps a uint64 shift by >= 64 to 0.
-        # This assertion pins that wrap as-is; making it explicit in the
-        # code is an open decision (docs/src/reversi/board.md).
+        # Code 64 is out of the square range: square_as_bitboard computes Bitboard(1) << sq, and
+        # NumPy wraps a uint64 shift by >= 64 to 0. This assertion pins that wrap as-is; making it
+        # explicit in the code is an open decision (docs/src/reversi/board.md).
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
 
     def test_wrong_type_raises_error(self):
         with self.assertRaises(ValidationError):
             square_from_str(None)
-            
+
         with self.assertRaises(ValidationError):
             square_to_str(None)
-            
+
         with self.assertRaises(ValidationError):
             square_as_bitboard(None)
 
@@ -165,8 +160,7 @@ class TestSquare(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             sq = Square(64)
             square_validate_range(sq)
-        # The message is built from the __square_max_value__
-        # constant (mirrors move_validate_range).
+        # The message is built from the __square_max_value__ constant (mirrors move_validate_range).
         self.assertEqual(str(cm.exception), "Value must be in the range [0..63].")
 
         squares = np.array([0, 1, 2], dtype=Square)
@@ -200,9 +194,9 @@ class TestMove(unittest.TestCase):
             moves = np.array([0, 1, 256], dtype=Move)
 
     def test_move_constants(self):
-        # The named constants are the LITERAL pins (the independent anchor:
-        # the rest of the suite uses the names, so a typo in a constant would
-        # otherwise go unnoticed) and the bridge to the string vocabulary.
+        # The named constants are the LITERAL pins (the independent anchor: the rest of the suite
+        # uses the names, so a typo in a constant would otherwise go unnoticed) and the bridge to
+        # the string vocabulary.
         self.assertEqual(MOVE_PA, Move(64))
         self.assertEqual(MOVE_NA, Move(65))
         self.assertEqual(MOVE_UN, Move(66))
@@ -217,14 +211,13 @@ class TestMove(unittest.TestCase):
         self.assertEqual(Move(64), move_from_str('PA'))
         self.assertEqual(Move(65), move_from_str('NA'))
         self.assertEqual(Move(66), move_from_str('UN'))
-        
+
     def test_invalid_name_raises_value_error(self):
         with self.assertRaises(ValueError):
             move_from_str("NO")
 
     def test_lowercase_names_raise_value_error(self):
-        # The parser is case-sensitive: only canonical uppercase names
-        # are accepted.
+        # The parser is case-sensitive: only canonical uppercase names are accepted.
         for name in ('a1', 'pa', 'un'):
             with self.assertRaises(ValueError) as ctx:
                 move_from_str(name)
@@ -242,10 +235,9 @@ class TestMove(unittest.TestCase):
         mo = Move(63)
         expected = Bitboard(0x8000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
-        # The non-square codes (MOVE_PA / MOVE_NA / MOVE_UN) are not squares:
-        # move_as_bitboard computes Bitboard(1) << mo, and NumPy wraps a
-        # uint64 shift by >= 64 to 0. These assertions pin that wrap as-is
-        # (the behaviour is documented in the move_as_bitboard comment).
+        # The non-square codes (MOVE_PA / MOVE_NA / MOVE_UN) are not squares: move_as_bitboard
+        # computes Bitboard(1) << mo, and NumPy wraps a uint64 shift by >= 64 to 0. These assertions
+        # pin that wrap as-is (the behaviour is documented in the move_as_bitboard comment).
         mo = move_from_str('PA')
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(move_as_bitboard(mo), expected)
@@ -259,10 +251,10 @@ class TestMove(unittest.TestCase):
     def test_wrong_type_raises_error(self):
         with self.assertRaises(ValidationError):
             move_from_str(None)
-            
+
         with self.assertRaises(ValidationError):
             move_to_str(None)
-            
+
         with self.assertRaises(ValidationError):
             move_as_bitboard(None)
 
@@ -292,9 +284,9 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         """Should convert np.int64 array to np.uint64 array by reinterpreting bits."""
         arr_in = np.array([-1, -2, 0, 1], dtype=np.int64)
         expected = np.array([18446744073709551615, 18446744073709551614, 0, 1], dtype=np.uint64)
-        
+
         arr_out = bitboard_from_signed_int(arr_in)
-        
+
         self.assertIsInstance(arr_out, np.ndarray)
         self.assertEqual(arr_out.dtype, np.uint64)
         np.testing.assert_array_equal(arr_out, expected)
@@ -303,7 +295,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         """Should share the exact same data memory slot without allocating a new buffer."""
         arr_in = np.array([-1], dtype=np.int64)
         arr_out = bitboard_from_signed_int(arr_in)
-        
+
         # Modifying the output view must immediately mutate the input array
         arr_out[0] = 42
         self.assertEqual(arr_in[0], 42)
@@ -312,9 +304,9 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         """Should convert a single np.int64 scalar to a Bitboard scalar."""
         scalar_in = np.int64(-1)
         expected = np.uint64(18446744073709551615)
-        
+
         scalar_out = bitboard_from_signed_int(scalar_in)
-        
+
         self.assertIsInstance(scalar_out, np.uint64)
         self.assertEqual(scalar_out, expected)
 
@@ -323,7 +315,7 @@ class TestBitboardFromSignedInt(unittest.TestCase):
         # Test with built-in Python int
         with self.assertRaises(ValidationError):
             bitboard_from_signed_int(-1)
-            
+
         # Test with invalid NumPy dtype (float64)
         arr_float = np.array([-1.0], dtype=np.float64)
         with self.assertRaises(ValueError):
@@ -395,9 +387,9 @@ class TestBitboardToSignedInt(unittest.TestCase):
         # A standard small bitboard number
         bb = Bitboard(4611717676283199524)
         expected = np.int64(4611717676283199524)
-        
+
         result = bitboard_to_signed_int(bb)
-        
+
         self.assertEqual(result, expected)
         self.assertIsInstance(result, np.int64)
 
@@ -406,11 +398,11 @@ class TestBitboardToSignedInt(unittest.TestCase):
         # 0xFFFFFFFFFFFFFFFF translates to signed -1
         bb_all_ones = Bitboard(0xFFFFFFFFFFFFFFFF)
         expected_minus_one = np.int64(-1)
-        
+
         # 0x8000000000000000 is the lowest possible signed 64-bit integer
         bb_min_int = Bitboard(0x8000000000000000)
         expected_min_int = np.int64(-9223372036854775808)
-        
+
         self.assertEqual(bitboard_to_signed_int(bb_all_ones), expected_minus_one)
         self.assertEqual(bitboard_to_signed_int(bb_min_int), expected_min_int)
 
@@ -418,9 +410,9 @@ class TestBitboardToSignedInt(unittest.TestCase):
         """Should correctly cast an entire 1D BitboardArray into a signed int64 array zero-copy."""
         bb_array = np.array([0, 4611717676283199524, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
         expected = np.array([0, 4611717676283199524, -1], dtype=np.int64)
-        
+
         result = bitboard_to_signed_int(bb_array)
-        
+
         self.assertIsInstance(result, np.ndarray)
         self.assertEqual(result.dtype, np.int64)
         self.assertEqual(result.shape, (3,))
@@ -494,7 +486,7 @@ class TestBitboardToSignedInt(unittest.TestCase):
     def test_invalid_dtype_error(self):
         """Should raise ValueError if the input array is not fundamentally a uint64."""
         invalid_type_array = np.array([1, 2, 3], dtype=np.int32)
-        
+
         with self.assertRaises(ValueError):
             bitboard_to_signed_int(invalid_type_array)
 
@@ -504,14 +496,14 @@ class TestBitboardToSignedInt(unittest.TestCase):
             bitboard_to_signed_int(4611717676283199524)
 
 class TestBitboardFromHexStr(unittest.TestCase):
-    
+
     def test_scalar_conversion_valid(self):
         """Should correctly parse a valid 16-character hex string into a single Bitboard."""
         hex_str = "0000001008000000"
         expected = Bitboard(0x0000001008000000)
-        
+
         result = bitboard_from_hex_str(hex_str)
-        
+
         self.assertEqual(result, expected)
         self.assertIsInstance(result, Bitboard)
 
@@ -519,9 +511,9 @@ class TestBitboardFromHexStr(unittest.TestCase):
         """Should handle lowercase, uppercase, and mixed-case hex strings identically."""
         hex_lower = "abcdef0123456789"
         hex_upper = "ABCDEF0123456789"
-        
+
         expected = Bitboard(0xABCDEF0123456789)
-        
+
         self.assertEqual(bitboard_from_hex_str(hex_lower), expected)
         self.assertEqual(bitboard_from_hex_str(hex_upper), expected)
 
@@ -529,7 +521,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         """Should raise ValueError if a scalar string is not exactly 16 characters long."""
         with self.assertRaises(ValueError):
             bitboard_from_hex_str("123")  # Too short
-            
+
         with self.assertRaises(ValueError):
             bitboard_from_hex_str("000000100800000011")  # Too long
 
@@ -537,9 +529,9 @@ class TestBitboardFromHexStr(unittest.TestCase):
         """Should correctly parse a 1D NumPy array of valid hex strings into a BitboardArray."""
         hex_strings = np.array(["0000001008000000", "0000000810000000", "FFFFFFFFFFFFFFFF"])
         expected = np.array([0x0000001008000000, 0x0000000810000000, 0xFFFFFFFFFFFFFFFF], dtype=Bitboard)
-        
+
         result = bitboard_from_hex_str(hex_strings)
-        
+
         self.assertIsInstance(result, np.ndarray)
         self.assertEqual(result.dtype, Bitboard)
         self.assertEqual(result.shape, (3,))
@@ -549,7 +541,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
         """Should raise ValueError if any string inside the 1D array breaks the 16-character limit."""
         # One string is valid, the second one is too short
         invalid_array = np.array(["0000001008000000", "A1B2C3"])
-        
+
         with self.assertRaises(ValueError):
             bitboard_from_hex_str(invalid_array)
 
@@ -613,7 +605,7 @@ class TestBitboardFromHexStr(unittest.TestCase):
     def test_invalid_characters(self):
         """Should raise ValueError if strings contain non-hex characters (handled by Python's int cast)."""
         invalid_hex_str = "000000100800000G"  # 'G' is out of bounds for base 16
-        
+
         with self.assertRaises(ValueError):
             bitboard_from_hex_str(invalid_hex_str)
 
@@ -646,7 +638,7 @@ class TestBitboardBsr(unittest.TestCase):
         # Test with built-in Python int
         with self.assertRaises(ValidationError):
             bitboard_bsr(-1)
-            
+
         # Test with incorrect NumPy signed dtype (int64)
         arr_signed = np.array([1, 2], dtype=np.int64)
         with self.assertRaises(ValidationError):
@@ -678,7 +670,7 @@ class TestBitboardPrint(unittest.TestCase):
         self.assertEqual(actual_output, expected_output)
 
 class TestBitboardCount(unittest.TestCase):
-    
+
     def test_bitboard_count(self):
         self.assertEqual(bitboard_count(empty), 0)
         self.assertEqual(bitboard_count(full), 64)
@@ -696,39 +688,39 @@ class TestBitboardCount(unittest.TestCase):
 class TestBitboardTransformationFa1h8Comp(unittest.TestCase):
 
     def test_fa1h8_compositions(self):
-        # Golden constant, independent of the implementation under test:
-        # breaks the self-reference of the previous expected value.
+        # Golden constant, independent of the implementation under test: breaks the self-reference
+        # of the previous expected value.
         expected = ar_reflection_a1h8
         self.assertEqual(bitboard_fa1h8(ar), expected)
-        
+
         computed = bitboard_fa1h8(bitboard_ro000(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_fvert(bitboard_ro090(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_fh1a8(bitboard_ro180(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_fhori(bitboard_ro270(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_ro270(bitboard_fvert(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_ro090(bitboard_fhori(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_ro000(bitboard_fa1h8(ar))
         self.assertEqual(computed, expected)
-        
+
         computed = bitboard_ro180(bitboard_fh1a8(ar))
         self.assertEqual(computed, expected)
-            
+
 class BaseBitboardTransformationTest:
     """
-    Abstract blueprint containing core suite logic for Bitboard operations.
-    Subclasses must define 'self.func' and 'self.test_data'.
+    Abstract blueprint containing core suite logic for Bitboard operations. Subclasses must define
+    'self.func' and 'self.test_data'.
     """
     func = None       # Must be set by subclass (e.g., bitboard_fa1h8)
     test_data = []    # Must be set by subclass
@@ -739,15 +731,15 @@ class BaseBitboardTransformationTest:
             computed = self.func(bb)
 
             self.assertIsInstance(computed, Bitboard)
-            
+
             if computed != expected:
                 bb_hex = f"{int(bb):016X}"
                 computed_hex = f"{int(computed):016X}"
                 expected_hex = f"{int(expected):016X}"
-                
+
                 self.assertEqual(
-                    computed, 
-                    expected, 
+                    computed,
+                    expected,
                     msg=(
                         f"Failed at index {i}!\n"
                         f"Input:    0x{bb_hex}\n"
@@ -760,30 +752,30 @@ class BaseBitboardTransformationTest:
         """Concurrently process all test cases as a single packed NumPy array vector."""
         input_vector = np.array([case[0] for case in self.test_data], dtype=Bitboard)
         expected_vector = np.array([case[1] for case in self.test_data], dtype=Bitboard)
-        
+
         computed_vector = self.func(input_vector)
-        
+
         self.assertIsInstance(computed_vector, np.ndarray)
         self.assertEqual(computed_vector.dtype, Bitboard)
-        
+
         try:
             np.testing.assert_array_equal(computed_vector, expected_vector)
         except AssertionError:
             mismatches = np.where(computed_vector != expected_vector)[0]
             fail_idx = mismatches[0]
-            
+
             bb_hex = f"{int(input_vector[fail_idx]):016X}"
             computed_hex = f"{int(computed_vector[fail_idx]):016X}"
             expected_hex = f"{int(expected_vector[fail_idx]):016X}"
-            
+
             self.fail(
                 f"Vectorized test failed at vector index {fail_idx}!\n"
                 f"Input:    0x{bb_hex}\n"
                 f"Computed: 0x{computed_hex}\n"
                 f"Expected: 0x{expected_hex}"
             )
-            
-    def test_wrong_type_raises_validation_error(self):        
+
+    def test_wrong_type_raises_validation_error(self):
         """Enforce strict Pydantic parameter boundaries against non-compliant argument inputs."""
         with self.assertRaises(ValidationError):
             self.func(42)
@@ -801,30 +793,29 @@ class BaseBitboardTransformationTest:
     def test_performance_1m(self):
         """Measure operations speed on a dense 1,000,000 matrix sequence."""
         size = 1_000_000
-        # Seed the dense input with the third paired case's input
-        # (a single square in every current subclass); the Bitboard(1)
-        # fallback only fires for subclasses with fewer than 3 cases.
+        # Seed the dense input with the third paired case's input (a single square in every current
+        # subclass); the Bitboard(1) fallback only fires for subclasses with fewer than 3 cases.
         fallback_seed = self.test_data[2][0] if len(self.test_data) > 2 else Bitboard(1)
         input_vector = np.full(size, fallback_seed, dtype=Bitboard)
-        
+
         _ = self.func(input_vector[:10])  # Validation Warmup
-        
+
         start_time = time.perf_counter()
         computed_vector = self.func(input_vector)
         end_time = time.perf_counter()
-        
+
         duration = end_time - start_time
         boards_per_sec = size / duration
-        
+
         print(f"\n[PERF {self.func.__name__}] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
-        
+
         # Performance output sanity check
         expected_output_seed = self.func(fallback_seed)
         expected_vector = np.full(size, expected_output_seed, dtype=Bitboard)
         np.testing.assert_array_equal(computed_vector, expected_vector)
 
 class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_fa1h8
         self.test_data = [
@@ -877,7 +868,7 @@ class TestBitboardTransformationFa1h8(unittest.TestCase, BaseBitboardTransformat
         self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_fh1a8
         self.test_data = [
@@ -930,7 +921,7 @@ class TestBitboardTransformationFh1a8(unittest.TestCase, BaseBitboardTransformat
         self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_fhori
         self.test_data = [
@@ -983,7 +974,7 @@ class TestBitboardTransformationFhori(unittest.TestCase, BaseBitboardTransformat
         self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_fvert
         self.test_data = [
@@ -1036,7 +1027,7 @@ class TestBitboardTransformationFvert(unittest.TestCase, BaseBitboardTransformat
         self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationRo000(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_ro000
         self.test_data = [
@@ -1047,7 +1038,7 @@ class TestBitboardTransformationRo000(unittest.TestCase, BaseBitboardTransformat
         ]
 
 class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_ro090
         self.test_data = [
@@ -1058,8 +1049,8 @@ class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformat
         ]
 
     def test_nd_array_2d_conversion_valid(self):
-        """Should rotate a 2-D array of bitboards, keeping the input shape
-        (the composition of two N-D reflections)."""
+        """Should rotate a 2-D array of bitboards, keeping the input shape (the composition of two
+        N-D reflections)."""
         input_2d = np.array(
             [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
         expected_2d = np.array(
@@ -1071,7 +1062,7 @@ class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformat
         np.testing.assert_array_equal(computed, expected_2d)
 
 class TestBitboardTransformationRo180(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_ro180
         self.test_data = [
@@ -1082,7 +1073,7 @@ class TestBitboardTransformationRo180(unittest.TestCase, BaseBitboardTransformat
         ]
 
 class TestBitboardTransformationRo270(unittest.TestCase, BaseBitboardTransformationTest):
-    
+
     def setUp(self):
         self.func = bitboard_ro270
         self.test_data = [
@@ -1095,7 +1086,7 @@ class TestBitboardTransformationRo270(unittest.TestCase, BaseBitboardTransformat
 class TestBitboardTransformations(unittest.TestCase):
 
     def setUp(self):
-        self.ar = ar 
+        self.ar = ar
         self.elle = Bitboard(0x0000000000000107)
 
         self.expected_ar = np.array([
@@ -1121,26 +1112,26 @@ class TestBitboardTransformations(unittest.TestCase):
     def test_elle_ar_array(self):
         bb_array = np.array([self.ar, self.elle], dtype=Bitboard)
         expected = np.vstack([self.expected_ar, self.expected_elle])
-        
+
         computed = bitboard_transformations(bb_array)
         self.assertEqual(computed.shape, (2, 8))
         np.testing.assert_array_equal(computed, expected)
 
     def test_invalid_array_type_raises_pydantic_validation_error(self):
         invalid_type_array = np.array([1, 2, 3], dtype=np.int32)
-        
+
         with self.assertRaises(pydantic.ValidationError) as context:
             bitboard_transformations(invalid_type_array)
-            
+
         self.assertIn("dtype", str(context.exception))
         self.assertIn("int32", str(context.exception))
 
     def test_invalid_scalar_type_raises_pydantic_validation_error(self):
         with self.assertRaises(pydantic.ValidationError) as context:
             bitboard_transformations("invalid_argument_type")
-            
+
         self.assertIn("invalid_argument_type", str(context.exception))
-        
+
     def test_2d_array_conversion_valid(self):
         """A (2, 2) input gives a (2, 2, 8) output, element-wise as the 1-D call."""
         bb_array = np.array(
@@ -1199,18 +1190,18 @@ class TestBitboardTransformations(unittest.TestCase):
         # Use self.ar as the baseline seed for the dense vector simulation
         fallback_seed = self.ar
         input_vector = np.full(size, fallback_seed, dtype=Bitboard)
-        
+
         _ = bitboard_transformations(input_vector[:10])  # Validation Warmup
-        
+
         start_time = time.perf_counter()
         computed_vector = bitboard_transformations(input_vector)
         end_time = time.perf_counter()
-        
+
         duration = end_time - start_time
         boards_per_sec = size / duration
-        
+
         print(f"\n[PERF bitboard_transformations] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
-        
+
         # Performance output sanity check
         expected_output_seed = bitboard_transformations(fallback_seed)
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
@@ -1219,7 +1210,7 @@ class TestBitboardTransformations(unittest.TestCase):
 class TestBitboardAntiTransformations(unittest.TestCase):
 
     def setUp(self):
-        self.ar = ar 
+        self.ar = ar
         self.elle = Bitboard(0x0000000000000107)
 
         self.expected_ar = np.array([
@@ -1245,7 +1236,7 @@ class TestBitboardAntiTransformations(unittest.TestCase):
     def test_elle_ar_array(self):
         bb_array = np.array([self.ar, self.elle], dtype=Bitboard)
         expected = np.vstack([self.expected_ar, self.expected_elle])
-        
+
         computed = bitboard_anti_transformations(bb_array)
         self.assertEqual(computed.shape, (2, 8))
         np.testing.assert_array_equal(computed, expected)
@@ -1294,18 +1285,18 @@ class TestBitboardAntiTransformations(unittest.TestCase):
         # Use self.ar as the baseline seed for the dense vector simulation
         fallback_seed = self.ar
         input_vector = np.full(size, fallback_seed, dtype=Bitboard)
-        
+
         _ = bitboard_anti_transformations(input_vector[:10])  # Validation Warmup
-        
+
         start_time = time.perf_counter()
         computed_vector = bitboard_anti_transformations(input_vector)
         end_time = time.perf_counter()
-        
+
         duration = end_time - start_time
         boards_per_sec = size / duration
-        
+
         print(f"\n[PERF bitboard_anti_transformations] Processed {size:,} boards in {duration:.4f}s ({boards_per_sec:,.0f} b/s)")
-        
+
         # Performance output sanity check
         expected_output_seed = bitboard_anti_transformations(fallback_seed)
         expected_vector = np.repeat(expected_output_seed[np.newaxis, :], size, axis=0)
@@ -1313,9 +1304,8 @@ class TestBitboardAntiTransformations(unittest.TestCase):
 
 class TestD8FunctionTables(unittest.TestCase):
     """
-    The 4 D8 function/label tables are plain Python lists
-    (not np.object arrays), with the canonized D8 slot order
-    (notes/naming.md).
+    The 4 D8 function/label tables are plain Python lists (not np.object arrays), with the canonized
+    D8 slot order (notes/naming.md).
     """
 
     def test_tables_are_plain_lists_of_8(self):
@@ -1343,9 +1333,8 @@ class TestD8FunctionTables(unittest.TestCase):
 
 @nb.njit
 def _jit_reflections_scalar(x):
-    # The JIT-side entry points for the @overload-registered
-    # reflection primitives (the overloads are resolved through the
-    # @validate_call wrapper globals).
+    # The JIT-side entry points for the @overload-registered reflection primitives (the overloads
+    # are resolved through the @validate_call wrapper globals).
     return (bitboard_fa1h8(x), bitboard_fh1a8(x),
             bitboard_fhori(x), bitboard_fvert(x))
 
@@ -1357,17 +1346,15 @@ def _jit_reflections_array(x):
 
 class TestNumbaReflectionOverloads(unittest.TestCase):
     """
-    The @overload of the 4 reflection primitives is
-    exercised in a numba (JIT) context — before this test nothing
-    called them from JIT code.
+    The @overload of the 4 reflection primitives is exercised in a numba (JIT) context — before this
+    test nothing called them from JIT code.
     """
 
     x = Bitboard(0x40001CCAEB400024)
 
     def test_scalar_overloads_in_jit(self):
-        # The JIT results must match the direct (interpreter-side)
-        # calls, and carry the hard goldens for the a1h8/h1a8/hori/
-        # vert reflections of the shared fixture.
+        # The JIT results must match the direct (interpreter-side) calls, and carry the hard goldens
+        # for the a1h8/h1a8/hori/ vert reflections of the shared fixture.
         self.assertEqual(_jit_reflections_scalar(self.x),
                          (bitboard_fa1h8(self.x), bitboard_fh1a8(self.x),
                           bitboard_fhori(self.x), bitboard_fvert(self.x)))
@@ -1387,10 +1374,10 @@ class TestNumbaReflectionOverloads(unittest.TestCase):
             np.testing.assert_array_equal(a, b)
 
 class TestBitboardD8GroupLaw(unittest.TestCase):
-    
+
     def _boards(self):
-        # Arbitrary boards: empty, one corner, opposite corners,
-        # checkerboard, the golden reference board, full board.
+        # Arbitrary boards: empty, one corner, opposite corners, checkerboard, the golden reference
+        # board, full board.
         return (
             Bitboard(0x0000000000000000),
             Bitboard(0x0000000000000001),
@@ -1406,8 +1393,8 @@ class TestBitboardD8GroupLaw(unittest.TestCase):
             self.assertEqual(bitboard_ro000(bb), bb)
 
     def test_ro000_array_is_a_fresh_copy(self):
-        # The identity is a copy, not an alias — the same
-        # contract as the other 7 D8 functions and as position_ro000.
+        # The identity is a copy, not an alias — the same contract as the other 7 D8 functions and
+        # as position_ro000.
         arr = np.array([Bitboard(0x1234567890ABCDEF),
                         Bitboard(0x8000000000000003)], dtype=Bitboard)
         out = bitboard_ro000(arr)
@@ -1432,20 +1419,19 @@ class TestBitboardD8GroupLaw(unittest.TestCase):
                 self.assertEqual(f(f(bb)), bb)
 
     def test_anti_transform_inverts_transform(self):
-        # Slot order is the canonized D8 order (notes/naming.md); the
-        # anti-transformation at slot i is the inverse of the
-        # transformation at slot i.
+        # Slot order is the canonized D8 order (notes/naming.md); the anti-transformation at slot i
+        # is the inverse of the transformation at slot i.
         for bb in self._boards():
             t = bitboard_transformations(bb)
             for i in range(8):
                 self.assertEqual(bitboard_anti_transformations(t[i])[i], bb)
 
 class TestBitboardToSquareList(unittest.TestCase):
-    
+
     def test_bitboard_to_square_list(self):
         bb = Bitboard(0x0000000000000000)
         self.assertTrue(bitboard_to_square_list(bb) == [])
-        
+
         bb = Bitboard(0x0000000000000001)
         self.assertTrue(bitboard_to_square_list(bb) == [Square(0)])
 
@@ -1466,7 +1452,7 @@ class TestBitboardToSquareList(unittest.TestCase):
             bitboard_to_square_list('Not the right type')
 
 class TestBitboardToSquareArray(unittest.TestCase):
-    
+
     def test_bitboard_to_square_array(self):
         bb = Bitboard(0x0000000000000000)
         ar = bitboard_to_square_array(bb)
@@ -1474,7 +1460,7 @@ class TestBitboardToSquareArray(unittest.TestCase):
         self.assertEqual(len(ar), 0)
         self.assertEqual(ar.dtype, Square)
         self.assertEqual(ar.shape, (0,))
-        
+
         bb = Bitboard(0x0000000000000001)
         ar = bitboard_to_square_array(bb)
         self.assertIsInstance(ar, np.ndarray)
@@ -1509,7 +1495,7 @@ class TestBitboardToSquareArray(unittest.TestCase):
             bitboard_to_square_array('Not the right type')
 
 class TestBitboardToStringList(unittest.TestCase):
-    
+
     def test_bitboard_to_string_list(self):
         self.assertEqual(bitboard_to_string_list(Bitboard(0x0000000000000000)), [])
 
@@ -1521,8 +1507,7 @@ class TestBitboardToStringList(unittest.TestCase):
         )
 
     def test_bitboard_to_string_list_full_board(self):
-        # All 64 names, descending from h8 to a1, mirroring
-        # bitboard_to_square_list.
+        # All 64 names, descending from h8 to a1, mirroring bitboard_to_square_list.
         names = bitboard_to_string_list(Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(len(names), 64)
         self.assertEqual(names[0], 'H8')
@@ -1540,7 +1525,7 @@ class TestPositionCreation(unittest.TestCase):
     def test_new_position(self):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         position = np.void((mover, opponent), dtype=Position)
 
         m = position['mover']
@@ -1552,7 +1537,7 @@ class TestPositionCreation(unittest.TestCase):
     def test_create_position(self):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         position = make_position(mover, opponent)
         position_check_collisions(position)
 
@@ -1561,9 +1546,9 @@ class TestPositionCreation(unittest.TestCase):
 
         self.assertEqual(m, mover)
         self.assertEqual(o, opponent)
-        
+
         self.assertEqual(position.item(), (mover, opponent))
-        
+
         self.assertIsInstance(position, np.void)
         self.assertEqual(position.dtype, Position)
         self.assertEqual(position.shape, ())
@@ -1571,9 +1556,9 @@ class TestPositionCreation(unittest.TestCase):
     def test_new_position_array_one_element(self):
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         position_array: PositionArray = np.array([(mover, opponent)], dtype=Position)
-        
+
         m = position_array[0]['mover']
         o = position_array[0]['opponent']
 
@@ -1583,7 +1568,7 @@ class TestPositionCreation(unittest.TestCase):
     def test_new_position_array_n_element(self):
 
         N = 3
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1592,23 +1577,23 @@ class TestPositionCreation(unittest.TestCase):
 
         positions = make_position(m_list, o_list)
         position_check_collisions(positions)
-        
+
         self.assertIsInstance(positions, np.ndarray)
         self.assertEqual(positions.dtype, Position)
         self.assertEqual(positions.shape, (N,))
 
-        for i, pos in enumerate(positions): 
+        for i, pos in enumerate(positions):
             m = pos['mover']
             o = pos['opponent']
             self.assertEqual(m, mover)
             self.assertEqual(o, opponent)
 
-        for i in range(N): 
+        for i in range(N):
             m = positions[i]['mover']
             o = positions[i]['opponent']
             self.assertEqual(m, mover)
             self.assertEqual(o, opponent)
-        
+
     def test_make_position_length_mismatch(self):
         """Test that passing arrays of different lengths raises a ValueError."""
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
@@ -1652,19 +1637,19 @@ class TestPositionCreation(unittest.TestCase):
         """Test creating a 2D PositionArray from 2D NumPy arrays."""
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
-        
+
         # Create 2x3 grids of bitboards
-        m_2d = np.array([[mover, mover, mover], 
+        m_2d = np.array([[mover, mover, mover],
                          [mover, mover, mover]], dtype=Bitboard)
-        o_2d = np.array([[opponent, opponent, opponent], 
+        o_2d = np.array([[opponent, opponent, opponent],
                          [opponent, opponent, opponent]], dtype=Bitboard)
-        
+
         positions = make_position(m_2d, o_2d)
-        
+
         self.assertIsInstance(positions, np.ndarray)
         self.assertEqual(positions.dtype, Position)
         # 2D input must yield a 2D structured array output
-        self.assertEqual(positions.shape, (2, 3)) 
+        self.assertEqual(positions.shape, (2, 3))
         self.assertEqual(positions[1, 2]['mover'], mover)
 
 class TestInitialGame(unittest.TestCase):
@@ -1697,10 +1682,10 @@ class TestInitialGame(unittest.TestCase):
 class TestPositionEq(unittest.TestCase):
 
     def test_position_eq_scalar_true(self):
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         pos_a = make_position(mover, opponent)
         pos_b = make_position(mover, opponent)
 
@@ -1709,10 +1694,10 @@ class TestPositionEq(unittest.TestCase):
         self.assertTrue(are_eq)
 
     def test_position_eq_scalar_false(self):
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         pos_a = make_position(mover, opponent)
         pos_b = make_position(opponent, mover)
 
@@ -1723,7 +1708,7 @@ class TestPositionEq(unittest.TestCase):
     def test_position_eq_array_true(self):
 
         N = 3
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1740,7 +1725,7 @@ class TestPositionEq(unittest.TestCase):
     def test_position_eq_array_false(self):
 
         N = 3
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1757,7 +1742,7 @@ class TestPositionEq(unittest.TestCase):
     def test_position_eq_array_diff_len(self):
 
         N = 3
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1771,7 +1756,7 @@ class TestPositionEq(unittest.TestCase):
     def test_position_eq_array_scalar(self):
 
         N = 3
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1783,7 +1768,7 @@ class TestPositionEq(unittest.TestCase):
         self.assertFalse(are_eq)
 
     def test_position_eq_wrong_type(self):
-        
+
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
 
@@ -1814,18 +1799,17 @@ class TestPositionEq(unittest.TestCase):
         self.assertFalse(position_eq(make_position([], []), make_position([Bitboard(1)], [Bitboard(2)])))
 
     def test_position_eq_different_lengths_no_exception(self):
-        # np.array_equal does not broadcast: arrays of different length
-        # are simply not equal, no exception is raised.
+        # np.array_equal does not broadcast: arrays of different length are simply not equal, no
+        # exception is raised.
         one = make_position([Bitboard(1)], [Bitboard(2)])
         three = make_position([Bitboard(1)] * 3, [Bitboard(2)] * 3)
         self.assertFalse(position_eq(one, three))
 
 class TestPositionFieldValidation(unittest.TestCase):
-    
-    # PositionField = Annotated[np.void, SkipValidation[Any]] (board.py):
-    # the pydantic gate accepts any np.void, so a void with the wrong
-    # dtype is not rejected by validation but later, at the field access,
-    # by NumPy itself.
+
+    # PositionField = Annotated[np.void, SkipValidation[Any]] (board.py): the pydantic gate accepts
+    # any np.void, so a void with the wrong dtype is not rejected by validation but later, at the
+    # field access, by NumPy itself.
 
     def test_wrong_dtype_void_is_rejected_by_field_access(self):
         wrong = np.zeros(1, dtype=[('x', 'u4')])[0]
@@ -1835,8 +1819,7 @@ class TestPositionFieldValidation(unittest.TestCase):
         self.assertIn('no field of name mover', str(ctx.exception))
 
     def test_position_eq_wrong_dtype_void_no_error(self):
-        # position_eq has no field access: identical voids compare equal
-        # even with the wrong dtype.
+        # position_eq has no field access: identical voids compare equal even with the wrong dtype.
         wrong = np.zeros(1, dtype=[('x', 'u4')])[0]
         self.assertTrue(position_eq(wrong, wrong))
 
@@ -1866,14 +1849,13 @@ class TestPositionPrint(unittest.TestCase):
             # Explicit injection into the signature parameter
             position_print(p, output=buffer)
             actual_output = buffer.getvalue()
-            
+
         self.assertEqual(actual_output, expected_output)
 
     def test_position_print_default_output_argument(self):
-        # output defaults to the stdout captured at definition time; the
-        # validate_call wrapper bakes it into its schema, so the default
-        # path is pinned through the raw function with its __defaults__
-        # swapped to a buffer.
+        # output defaults to the stdout captured at definition time; the validate_call wrapper bakes
+        # it into its schema, so the default path is pinned through the raw function with its
+        # __defaults__ swapped to a buffer.
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
         p = make_position(mover, opponent)
@@ -1894,8 +1876,7 @@ class TestPositionPrint(unittest.TestCase):
         self.assertEqual(buffer.getvalue(), explicit_output)
 
     def test_position_print_overlap_precedence(self):
-        # A square held by both mover and opponent is printed as '@':
-        # the mover branch is checked first.
+        # A square held by both mover and opponent is printed as '@': the mover branch is checked first.
         p = make_position(Bitboard(0x0000000000000001), Bitboard(0x0000000000000001))
         with io.StringIO() as buffer:
             position_print(p, output=buffer)
@@ -1966,9 +1947,9 @@ class TestPositionEmpties(unittest.TestCase):
             position_empties(None)
 
     def test_empties_array(self):
-        
+
         N = 3
-        
+
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
 
@@ -1978,26 +1959,26 @@ class TestPositionEmpties(unittest.TestCase):
         computed = position_empties(positions)
 
         np.testing.assert_array_equal(computed, expected)
-        
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
-        
+
         N = 1_000_000
-        
+
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
 
         positions = make_position([mover] * N, [opponent] * N)
 
         expected = np.full(N, Bitboard(0xFFFFFFFFFFFFFFFC))
-        
+
         start_time = time.perf_counter()
         computed = position_empties(positions)
         end_time = time.perf_counter()
-        
+
         duration = end_time - start_time
         positions_per_sec = N / duration
-        
+
         print(f"\n[PERF position_empties] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
         np.testing.assert_array_equal(computed, expected)
@@ -2006,14 +1987,14 @@ class TestPositionEmpties(unittest.TestCase):
         """Test that Pydantic coerces a 2D uint64 array into a 1D PositionArray."""
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
-        
+
         # Raw 2D array of shape (2, 2) representing 2 positions
-        raw_2d_data = np.array([[mover, opponent], 
+        raw_2d_data = np.array([[mover, opponent],
                                 [mover, opponent]], dtype=np.uint64)
-        
+
         # Pass to a function expecting PositionField | PositionArray
         empties = position_empties(raw_2d_data)
-        
+
         # The Pydantic validator should reshape it to a 1D array of length 2
         self.assertEqual(empties.shape, (2,))
         self.assertEqual(empties.dtype, Bitboard)
@@ -2088,7 +2069,7 @@ class TestPositionLegalMoves(unittest.TestCase):
 
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
-        
+
         lms = legal_moves(mover, opponent)
         expected_lms = Bitboard(0x0000000000000004)
         self.assertEqual(lms, expected_lms)
@@ -2097,7 +2078,7 @@ class TestPositionLegalMoves(unittest.TestCase):
 
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0040201008040200)
-        
+
         lms = legal_moves(mover, opponent)
         expected_lms = Bitboard(0x8000000000000000)
         self.assertEqual(lms, expected_lms)
@@ -2108,12 +2089,12 @@ class TestPositionLegalMoves(unittest.TestCase):
                              0x0000000000000001], dtype=Bitboard)
         opponent = np.array([0x0000000000000002,
                              0x0040201008040200], dtype=Bitboard)
-        
+
         lms = legal_moves(mover, opponent)
-        
+
         expected_lms = np.array([0x0000000000000004,
                                  0x8000000000000000], dtype=Bitboard)
-        
+
         nptest.assert_array_equal(lms, expected_lms)
 
     def test_position_legal_moves_scalar(self):
@@ -2121,7 +2102,7 @@ class TestPositionLegalMoves(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
-        
+
         computed = position_legal_moves(p)
         expected = Bitboard(0x0000000000000004)
         self.assertEqual(computed, expected)
@@ -2133,12 +2114,12 @@ class TestPositionLegalMoves(unittest.TestCase):
         opponent = np.array([0x0000000000000002,
                              0x0040201008040200], dtype=Bitboard)
         positions = make_position(mover, opponent)
-        
+
         lms = position_legal_moves(positions)
-        
+
         expected_lms = np.array([0x0000000000000004,
                                  0x8000000000000000], dtype=Bitboard)
-        
+
         nptest.assert_array_equal(lms, expected_lms)
 
     def test_legal_moves_bulk(self):
@@ -2267,7 +2248,7 @@ class TestPositionLegalMoves(unittest.TestCase):
             (0x0014f9c0849a0000, 0x0000063e7b643c3c, 0x000300010001c242), # 119
             (0x000002160e0e123d, 0x000d1d2931712d00, 0x1f306040c080c042), # 120
         ]
-        
+
         for i, (mover, opponent, expected_legal_moves) in enumerate(data):
             p = make_position(Bitboard(mover), Bitboard(opponent))
             position_check_collisions(p)
@@ -2292,15 +2273,15 @@ class TestPositionLegalMoves(unittest.TestCase):
         expected = data_array[:, 2].view(Bitboard)
         nptest.assert_array_equal(computed, expected)
 
-        # This code is doing for the third time the same test over the data population.
-        # Here the position array is created as a reference.
-        # It is an example for the creation of the position array without copying the data.
+        # This code is doing for the third time the same test over the data population. Here the
+        # position array is created as a reference. It is an example for the creation of the
+        # position array without copying the data.
         position_data = data_array[:, 0:2].copy()
         positions = position_data.view(Position).reshape(-1) # <-- No copy !
         computed = position_legal_moves(positions)
         expected = data_array[:, 2].view(Bitboard)
         nptest.assert_array_equal(computed, expected)
-            
+
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
         size = 1_000_000
@@ -2309,17 +2290,17 @@ class TestPositionLegalMoves(unittest.TestCase):
 
         positions = make_position(movers, opponents)
         position_check_collisions(positions)
-        
+
         # Warmup
         position_legal_moves(positions[:10])
-        
+
         start = time.perf_counter()
         lms = position_legal_moves(positions)
         end = time.perf_counter()
-        
+
         duration = end - start
         print(f"\n[PERF position_legal_moves] Processed {size:,} boards in {duration:.4f}s ({(size/duration):,.0f} boards/sec)")
-        
+
         expected_lms = np.full(size, 0x8000000000000000, dtype=Bitboard)
         nptest.assert_array_equal(lms, expected_lms)
 
@@ -2402,8 +2383,8 @@ class TestPositionLegalMoves(unittest.TestCase):
 
     def test_legal_moves_wrong_array_dtype_raises_validation_error(self):
 
-        # A non-uint64 array is rejected by the BitboardArray
-        # BeforeValidator before the dispatch is ever reached.
+        # A non-uint64 array is rejected by the BitboardArray BeforeValidator before the dispatch is
+        # ever reached.
         movers = np.array([0x0000000000000001, 0x0000000000000002], dtype=np.int32)
         opponents = np.array([0x0040201008040200, 0x0080402010080402], dtype=Bitboard)
         with self.assertRaises(ValidationError) as ctx:
@@ -2424,7 +2405,7 @@ class TestPositionCollisions(unittest.TestCase):
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
         self.assertEqual(position_collisions(p), Bitboard(0x0000000000000000))
-        
+
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000001)
         p = make_position(mover, opponent)
@@ -2455,7 +2436,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
-        
+
         # This should execute without raising any exceptions
         try:
             position_check_collisions(p)
@@ -2467,10 +2448,10 @@ class TestPositionCheckCollisions(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000001)  # Collision here
         p = make_position(mover, opponent)
-        
+
         with self.assertRaises(ValueError) as context:
             position_check_collisions(p)
-            
+
         # Verify the descriptive error metrics for the scalar case
         self.assertIn("Detected 1 collision(s)", str(context.exception))
         self.assertIn("out of 1 total elements", str(context.exception))
@@ -2482,7 +2463,7 @@ class TestPositionCheckCollisions(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position([mover] * N, [opponent] * N)
-        
+
         try:
             position_check_collisions(p)
         except ValueError:
@@ -2494,10 +2475,10 @@ class TestPositionCheckCollisions(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000001)  # Collisions everywhere
         p = make_position([mover] * N, [opponent] * N)
-        
+
         with self.assertRaises(ValueError) as context:
             position_check_collisions(p)
-            
+
         self.assertIn(f"Detected {N} collision(s)", str(context.exception))
         self.assertIn(f"out of {N} total elements", str(context.exception))
         self.assertIn("index: 0", str(context.exception))  # First one is still at 0
@@ -2507,20 +2488,20 @@ class TestPositionCheckCollisions(unittest.TestCase):
         # Index 0: Clean
         mover_list = [Bitboard(0x01)]
         opponent_list = [Bitboard(0x02)]
-        
+
         # Index 1: Collision!
         mover_list.append(Bitboard(0x04))
         opponent_list.append(Bitboard(0x04))
-        
+
         # Index 2: Clean
         mover_list.append(Bitboard(0x08))
         opponent_list.append(Bitboard(0x10))
-        
+
         p = make_position(mover_list, opponent_list)
-        
+
         with self.assertRaises(ValueError) as context:
             position_check_collisions(p)
-            
+
         # Target specific metrics for the partial collision
         self.assertIn("Detected 1 collision(s)", str(context.exception))
         self.assertIn("out of 3 total elements", str(context.exception))
@@ -2536,7 +2517,7 @@ class TestPositionLegalMovesCount(unittest.TestCase):
 
         computed = position_legal_moves_count(p)
         expected = 1
-        
+
         self.assertEqual(computed, expected)
 
 class TestPositionFlips(unittest.TestCase):
@@ -2680,11 +2661,9 @@ class TestPositionFlips(unittest.TestCase):
                 ef.print()
             self.assertTrue(flips == ef)
 
-            # The updated position: the PASS (move == 0) swaps the
-            # players; a move with no flip (an illegal square) yields
-            # None; otherwise the mover places the disc and the flipped
-            # squares change side (roles swapped in the returned
-            # position).
+            # The updated position: the PASS (move == 0) swaps the players; a move with no flip (an
+            # illegal square) yields None; otherwise the mover places the disc and the flipped
+            # squares change side (roles swapped in the returned position).
             if expected_flips == 0:
                 if move == 0:
                     expected_updated = make_position(
@@ -2702,8 +2681,8 @@ class TestPositionFlips(unittest.TestCase):
     # The array path of the dual API.
 
     def test_position_flips_array_bulk(self):
-        # The same 42-line dataset as test_position_flips_bulk, played
-        # through the array path in a single call.
+        # The same 42-line dataset as test_position_flips_bulk, played through the array path in a
+        # single call.
         data = [
             (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000000, 0x0000000000000000), # 000
             (0x000428080A2C7C3C, 0x10B8D6F7F5D30100, 0x0000000000000001, 0x0000000000000000), # 001
@@ -2757,9 +2736,8 @@ class TestPositionFlips(unittest.TestCase):
         nptest.assert_array_equal(flips, data_array[:, 3])
 
         for i in range(data_array.shape[0]):
-            # The updated position: the PASS (move == 0) swaps the
-            # players; a move with no flip (an illegal square) keeps the
-            # input position; otherwise the mover places the disc and the
+            # The updated position: the PASS (move == 0) swaps the players; a move with no flip (an
+            # illegal square) keeps the input position; otherwise the mover places the disc and the
             # flipped squares change side (the scalar rule, elementwise).
             if data_array[i, 3] == 0:
                 if data_array[i, 2] == 0:
@@ -2778,10 +2756,9 @@ class TestPositionFlips(unittest.TestCase):
                 self.assertTrue(position_eq(updated[i], expected_updated))
 
     def test_position_flips_array_matches_scalar(self):
-        # Elementwise parity with the scalar path on random data
-        # (fixed seed), including zero and multi-bit moves; for the
-        # single-bit moves the flip set is non-empty exactly when the
-        # move is in the legal-move set.
+        # Elementwise parity with the scalar path on random data (fixed seed), including zero and
+        # multi-bit moves; for the single-bit moves the flip set is non-empty exactly when the move
+        # is in the legal-move set.
         rng = np.random.default_rng(20260908)
         n = 2000
         movers = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
@@ -2813,30 +2790,25 @@ class TestPositionFlips(unittest.TestCase):
                 legal = bool(moves[i] & lms[i] != 0)
                 empty = bool(moves[i] & ~(movers[i] | opponents[i]) != 0)
                 if empty:
-                    # An empty square is legal exactly when it flips
-                    # something (the flip kernel and the legal-moves
-                    # kernel share the same geometry).
+                    # An empty square is legal exactly when it flips something (the flip kernel and
+                    # the legal-moves kernel share the same geometry).
                     self.assertEqual(legal, bool(flips[i] != 0))
                 else:
-                    # An occupied square is never legal; the flip kernel
-                    # does not check the move square emptiness (the
-                    # caller's responsibility), so flips may still be
-                    # non-zero here.
+                    # An occupied square is never legal; the flip kernel does not check the move
+                    # square emptiness (the caller's responsibility), so flips may still be non-zero here.
                     self.assertFalse(legal)
             if int(moves[i]) == 0:
-                # PASS: the array element swaps the players (the next
-                # player's view), matching the scalar.
+                # PASS: the array element swaps the players (the next player's view), matching the scalar.
                 self.assertTrue(position_eq(updated[i], su))
             elif sf == 0:
-                # Illegal (or non-single-bit) move: the array element
-                # keeps the input position.
+                # Illegal (or non-single-bit) move: the array element keeps the input position.
                 self.assertTrue(position_eq(updated[i], positions[i]))
             else:
                 self.assertTrue(position_eq(updated[i], su))
 
     def test_position_flips_array_pass_batch(self):
-        # A batch of pure PASS (zero) moves: every element swaps the
-        # players (the next player's view) with a 0 flip set.
+        # A batch of pure PASS (zero) moves: every element swaps the players (the next player's
+        # view) with a 0 flip set.
         movers = np.array([0x0000000000000001, 0x000428080A2C7C3C], dtype=Bitboard)
         opponents = np.array([0x0000000000000000, 0x10B8D6F7F5D30100], dtype=Bitboard)
         positions = make_position(movers, opponents)
@@ -2849,8 +2821,8 @@ class TestPositionFlips(unittest.TestCase):
                                                       positions[i]['mover'])))
 
     def test_position_flips_2d_valid(self):
-        """A (1, 2) PositionArray with a (1, 2) move array gives (1, 2) outputs, element-wise as the scalar calls
-        (a legal flip move and a PASS)."""
+        """A (1, 2) PositionArray with a (1, 2) move array gives (1, 2) outputs, element-wise as the
+        scalar calls (a legal flip move and a PASS)."""
         positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
                                   np.array([0x0040201008040200, 0x2], dtype=Bitboard))
         moves = np.array([[0x8000000000000000, 0]], dtype=Bitboard)
@@ -2866,8 +2838,8 @@ class TestPositionFlips(unittest.TestCase):
             self.assertTrue(position_eq(updated[0, i], su))
 
     def test_position_flips_3d_valid(self):
-        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives (2, 1, 2) outputs, element-wise as the scalar calls
-        (one legal flip move and three PASSes)."""
+        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives (2, 1, 2) outputs,
+        element-wise as the scalar calls (one legal flip move and three PASSes)."""
         positions = make_position(
             np.array([[[0x0000000000000001, 0x2]],
                       [[0x0040201008040200, 0x8]]], dtype=Bitboard),
@@ -3028,18 +3000,18 @@ class TestPositionMakeMove(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
-        
+
         # E3 (square 20) is not a legal move for this specific board setup
         illegal_move = move_from_str('E3')
         result = position_make_move(p, illegal_move)
-        
+
         self.assertIsNone(result)
 
     # The array path of the dual API.
 
     def test_position_make_move_array_mixed_batch(self):
-        # One batch with a legal move, an illegal move, a PA and a
-        # second legal move: the elementwise semantics.
+        # One batch with a legal move, an illegal move, a PA and a second legal move: the
+        # elementwise semantics.
         movers = np.array([
             0x0000000000000001,
             0x0000000000000001,
@@ -3078,9 +3050,8 @@ class TestPositionMakeMove(unittest.TestCase):
             self.assertTrue(position_eq(updated[i], make_position(positions[i]['opponent'], positions[i]['mover'])))
 
     def test_position_make_move_array_matches_scalar(self):
-        # Elementwise parity with the scalar path on random data
-        # (fixed seed), with PA interleaved; an illegal square (scalar
-        # None) keeps the input position.
+        # Elementwise parity with the scalar path on random data (fixed seed), with PA interleaved;
+        # an illegal square (scalar None) keeps the input position.
         rng = np.random.default_rng(20260909)
         n = 2000
         movers = (rng.integers(0, 1 << 32, n, dtype=Bitboard) << 32) | rng.integers(0, 1 << 32, n, dtype=Bitboard)
@@ -3100,8 +3071,8 @@ class TestPositionMakeMove(unittest.TestCase):
                 self.assertTrue(position_eq(updated[i], s))
 
     def test_position_make_move_2d_valid(self):
-        """A (1, 2) PositionArray with a (1, 2) move array gives a (1, 2) PositionArray, element-wise as the scalar calls
-        (a legal square and a PASS)."""
+        """A (1, 2) PositionArray with a (1, 2) move array gives a (1, 2) PositionArray,
+        element-wise as the scalar calls (a legal square and a PASS)."""
         positions = make_position(np.array([0x0000000000000001, 0x1], dtype=Bitboard),
                                   np.array([0x0040201008040200, 0x2], dtype=Bitboard))
         moves = np.array([[63, 64]], dtype=np.uint8)
@@ -3115,7 +3086,10 @@ class TestPositionMakeMove(unittest.TestCase):
             self.assertTrue(position_eq(updated[0, i], su))
 
     def test_position_make_move_3d_valid(self):
-        """A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives a (2, 1, 2) PositionArray, element-wise as the scalar calls."""
+        """
+        A (2, 1, 2) PositionArray with a (2, 1, 2) move array gives a (2, 1, 2) PositionArray,
+        element-wise as the scalar calls.
+        """
         positions = make_position(
             np.array([[[0x0000000000000001, 0x2]],
                       [[0x0040201008040200, 0x8]]], dtype=Bitboard),
@@ -3234,7 +3208,7 @@ class TestPositionCountDifference(unittest.TestCase):
         self.assertEqual(diff, -1)
 
 class TestPositionFinalValue(unittest.TestCase):
-    
+
     def test_position_final_value(self):
 
         mover = Bitboard(0xFF00000000000000)
@@ -3292,14 +3266,14 @@ class TestPositionFinalValue(unittest.TestCase):
         self.assertEqual(position_final_value(position), expected_value)
 
 class TestPositionHasToPass(unittest.TestCase):
-    
+
     def test_position_has_to_pass_false(self):
 
         mover = Bitboard(0xFF00000000000001)
         opponent = Bitboard(0x0000000000000002)
         position = make_position(mover, opponent)
         self.assertFalse(position_has_to_pass(position))
-    
+
     def test_position_has_to_pass_true(self):
 
         mover = Bitboard(0xFF00000000000000)
@@ -3325,10 +3299,9 @@ class TestPositionIsGameOver(unittest.TestCase):
 
     def test_position_is_game_over_true_not_full(self):
 
-        # Only A1 (bit 0) is empty; both players are stuck on it:
-        # the row 1 line ends off-board, the column a and the diagonal
-        # lines start with an own disc. Exercises the PA-swap path on
-        # a not-full board.
+        # Only A1 (bit 0) is empty; both players are stuck on it: the row 1 line ends off-board, the
+        # column a and the diagonal lines start with an own disc. Exercises the PA-swap path on a
+        # not-full board.
         mover = Bitboard(0xFFFFFFFFFFFFFF00)
         opponent = Bitboard(0x00000000000000FE)
         position = make_position(mover, opponent)
@@ -3371,7 +3344,7 @@ class TestPositionIsMoveLegal(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)
         opponent = Bitboard(0x0000000000000002)
         p = make_position(mover, opponent)
-        
+
         # Player has legal moves (e.g., C1), so PASS must be False
         self.assertFalse(position_is_move_legal(p, move_from_str('PA')))
 
@@ -3381,7 +3354,7 @@ class TestPositionIsMoveLegal(unittest.TestCase):
         mover = Bitboard(0x0000000000000001)  # A1
         opponent = Bitboard(0x8000000000000000)  # H8
         p = make_position(mover, opponent)
-        
+
         # Player has NO legal moves, so PASS must be True
         self.assertTrue(position_is_move_legal(p, move_from_str('PA')))
 
@@ -3460,7 +3433,7 @@ class TestPositionTransformations(unittest.TestCase):
             0x48783C143462FC92,
             0xC06376DE475CA000
         ], dtype=Bitboard)
-        
+
         self.etrs = make_position(etrsm, etrso)
 
     def test_scalar(self):
@@ -3473,7 +3446,7 @@ class TestPositionTransformations(unittest.TestCase):
         N = 3
         ps = np.full(N, self.p, dtype=Position)
         trps = position_transformations(ps)
-        expected = np.tile(self.etrs, (N, 1))        
+        expected = np.tile(self.etrs, (N, 1))
         nptest.assert_array_equal(trps, expected)
 
 class TestPositionAntiTransformations(unittest.TestCase):
@@ -3504,7 +3477,7 @@ class TestPositionAntiTransformations(unittest.TestCase):
             0x48783C143462FC92, #6
             0xC06376DE475CA000, #7
         ], dtype=Bitboard)
-        
+
         self.etrs = make_position(etrsm, etrso)
 
     def test_scalar(self):
@@ -3517,40 +3490,33 @@ class TestPositionAntiTransformations(unittest.TestCase):
         N = 3
         ps = np.full(N, self.p, dtype=Position)
         trps = position_anti_transformations(ps)
-        expected = np.tile(self.etrs, (N, 1))        
+        expected = np.tile(self.etrs, (N, 1))
         nptest.assert_array_equal(trps, expected)
 
 class TestPydanticVersion(unittest.TestCase):
 
     def test_pydantic_major_version(self):
-        # The validation pins in this suite (bare Python int ->
-        # ValidationError, no coercion of arbitrary types) rely on
-        # pydantic v2 semantics; a major version change must fail
-        # loudly, not pass silently.
+        # The validation pins in this suite (bare Python int -> ValidationError, no coercion of
+        # arbitrary types) rely on pydantic v2 semantics; a major version change must fail loudly,
+        # not pass silently.
         self.assertEqual(int(pydantic.VERSION.split('.')[0]), 2)
 
 
 class TestPositionHash(unittest.TestCase):
-    """
-    position_hash: the 64-bit Zobrist hash of the game
-    position — the legacy C engine bitstrings (board.c
-    `zobrist_bitstrings[]`), the SWAR byte-fold kernel, the dual
-    scalar/array API.
+    """The position_hash suite: the 64-bit Zobrist hash of the game position — the legacy C engine
+    bitstrings (board.c zobrist_bitstrings[]), the SWAR byte-fold kernel, the dual scalar/array API.
 
-    The goldens are derived from the legacy C source
-    (game_position_x_hash_plain) by the session-38 scratch script
-    (scratch/zobrist_extract.py), which also verified the transcribed
-    C loop and the SWAR byte-fold bit-identical over 10_000 random
-    pairs.
+    The goldens are derived from the legacy C source (game_position_x_hash_plain); the transcribed C
+    loop and the SWAR byte-fold were verified bit-identical over 10_000 random pairs.
     """
 
-    # The SHA-3-256 pin of the packed table (native LE byte order) —
-    # it protects the 128 constants against any corruption.
+    # The SHA-3-256 pin of the packed table (native LE byte order) — it protects the 128 constants
+    # against any corruption.
     ZOBRIST_TABLE_SHA3_256 = (
         "3e3dfd40afef05e075e393def68bc13c0e592cc3d838652e330070eaaa0a626c")
 
-    # The goldens: (mover, opponent, expected) — the legacy hash with
-    # player = BLACK_PLAYER (the pure fold, no complement).
+    # The goldens: (mover, opponent, expected) — the legacy hash with player = BLACK_PLAYER (the
+    # pure fold, no complement).
     GOLDENS = [
         (0x0000000000000000, 0x0000000000000000, 0x0000000000000000),
         (0xFFFFFFFFFFFFFFFF, 0x0000000000000000, 0x64AB6CEBF8DA2CE1),
@@ -3559,9 +3525,8 @@ class TestPositionHash(unittest.TestCase):
         (0x00FF00FF00FF00FF, 0xAA0000550000AA55, 0xCE27EC93BF035599),
     ]
 
-    # The legacy WHITE bridge: legacy_hash(blacks, whites, WHITE) =
-    # ~position_hash(blacks, whites) — the C `if (p) hash = ~hash`
-    # rule (player = WHITE_PLAYER).
+    # The legacy WHITE bridge: legacy_hash(blacks, whites, WHITE) = ~position_hash(blacks, whites) —
+    # the C `if (p) hash = ~hash` rule (player = WHITE_PLAYER).
     WHITE_BRIDGE_GOLDENS = [
         (0x0000000810000000, 0x0000001008000000, 0x3BD6D03D4D9CC5E9),
         (0x0000000000000000, 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
@@ -3665,24 +3630,24 @@ class TestPositionHash(unittest.TestCase):
         # A (n, 3) uint64 array is not a Position (the validator raises).
         with self.assertRaises(ValueError):
             position_hash(np.zeros((2, 3), dtype=np.uint64))
-        # Bare Python types are rejected (pydantic, as for the whole
-        # dual API — the bare-int ValidationError pin).
+        # Bare Python types are rejected (pydantic, as for the whole dual API — the bare-int
+        # ValidationError pin).
         with self.assertRaises(ValidationError):
             position_hash(0)
         with self.assertRaises(ValidationError):
             position_hash([0, 0])
 
     def test_legacy_white_complement_bridge(self):
-        # The C complement rule: legacy_hash(blacks, whites,
-        # player=WHITE_PLAYER) = ~position_hash(blacks, whites).
+        # The C complement rule: legacy_hash(blacks, whites, player=WHITE_PLAYER) =
+        # ~position_hash(blacks, whites).
         for m, o, expected in self.WHITE_BRIDGE_GOLDENS:
             h = position_hash(make_position(Bitboard(m), Bitboard(o)))
             complement = np.uint64(~h & np.uint64(0xFFFFFFFFFFFFFFFF))
             self.assertEqual(complement, np.uint64(expected))
 
     def test_order_sensitivity(self):
-        # The two views of the same board are different positions
-        # (mover / opponent select different table slots).
+        # The two views of the same board are different positions (mover / opponent select different
+        # table slots).
         m, o = 0x1F3D5B7902468ACE, 0x2E4C6A8013579BDF
         self.assertNotEqual(
             position_hash(make_position(Bitboard(m), Bitboard(o))),
@@ -3697,11 +3662,10 @@ class TestPositionHash(unittest.TestCase):
         self.assertEqual(digest, self.ZOBRIST_TABLE_SHA3_256)
 
     def test_avalanche_bit_flips(self):
-        # Every single-bit flip of the initial position (128 flips:
-        # 64 mover + 64 opponent) XORs one table entry, so each of
-        # the 64 output bits flips ~half the times. The table is
-        # fixed, hence the counts are deterministic; the band is the
-        # binomial 64 +/- 4*sigma with sigma = sqrt(128 * 0.25).
+        # Every single-bit flip of the initial position (128 flips: 64 mover + 64 opponent) XORs one
+        # table entry, so each of the 64 output bits flips ~half the times. The table is fixed,
+        # hence the counts are deterministic; the band is the binomial 64 +/- 4*sigma with sigma =
+        # sqrt(128 * 0.25).
         igp = initial_game_position()
         base = int(position_hash(igp))
         deltas = np.zeros(128, dtype=np.uint64)
@@ -3721,10 +3685,8 @@ class TestPositionHash(unittest.TestCase):
                         f"avalanche out of band: {counts}")
 
     def test_no_collisions(self):
-        # Random (mover, opponent) pairs over the full 2^128 space:
-        # zero collisions up to the birthday bound (expected
-        # collisions ~ n^2 / 2^65; 1e6 -> ~3e-8). N escalates under
-        # LONG=1.
+        # Random (mover, opponent) pairs over the full 2^128 space: zero collisions up to the
+        # birthday bound (expected collisions ~ n^2 / 2^65; 1e6 -> ~3e-8). N escalates under LONG=1.
         n = 1_000_000 if os.environ.get('LONG') == '1' else 10_000
         rng = np.random.default_rng(93)
         movers = rng.integers(0, 2**64, size=n, dtype=np.uint64)
@@ -3749,18 +3711,12 @@ class TestPositionHash(unittest.TestCase):
 
 
 class TestPositionHashLegacyParity(unittest.TestCase):
-    """
-    position_hash vs the LEGACY C engine: the FFO-12 solve-log
-    sample (the game_tree_logger CSV, 21 columns; HASH/BLACKS/WHITES
-    are signed int64 decimals — the bitboard_from_signed_int
-    representation).
+    """position_hash vs the LEGACY C engine: the FFO-12 solve-log sample (the game_tree_logger CSV,
+    21 columns; HASH/BLACKS/WHITES are signed int64 decimals — the bitboard_from_signed_int representation).
 
-    The FULL log (571_141 rows, 89.7 MB) verified 100% by the
-    session-38 scratch run (scratch/ffo12_parity_check.py, 2.6 s);
-    the committed fixture is the deterministic uniform-stride sample
-    (every 571st row + the root row) — 1002 rows, 154 KB, covering
-    the full DFS span (ec 0..15, both players, leaf + internal
-    nodes; the lean-fixture call).
+    The FULL log (571_141 rows, 89.7 MB) was verified 100% against the engine; the committed fixture
+    is the deterministic uniform-stride sample (every 571st row + the root row) — 1002 rows, 154 KB,
+    covering the full DFS span (ec 0..15, both players, leaf + internal nodes; the lean-fixture call).
 
     The parity rules (the C-engine bridge):
       PLAYER = 0 (BLACK_PLAYER): position_hash(blacks, whites) == hash
@@ -3783,9 +3739,8 @@ class TestPositionHashLegacyParity(unittest.TestCase):
         return header, rows
 
     def test_fixture_format(self):
-        # The header pin + the row count + the DFS endpoints (the
-        # first data row is a deep leaf, the last is the root with
-        # the UN parent move).
+        # The header pin + the row count + the DFS endpoints (the first data row is a deep leaf, the
+        # last is the root with the UN parent move).
         header, rows = self._read_rows()
         self.assertEqual(header, self.HEADER)
         self.assertEqual(len(rows), self.ROW_COUNT)
@@ -3795,8 +3750,7 @@ class TestPositionHashLegacyParity(unittest.TestCase):
         self.assertEqual(rows[-1][14].strip(), "UN")
 
     def test_full_sample_parity(self):
-        # Every row of the fixture: the two bridge rules +
-        # the EMPTY_COUNT parse cross-check.
+        # Every row of the fixture: the two bridge rules + the EMPTY_COUNT parse cross-check.
         _, rows = self._read_rows()
         hash_i64 = np.array([int(r[2]) for r in rows], dtype=np.int64)
         blacks_i64 = np.array([int(r[4]) for r in rows], dtype=np.int64)
@@ -3815,16 +3769,14 @@ class TestPositionHashLegacyParity(unittest.TestCase):
 
 class TestNumbaPrimitives(unittest.TestCase):
     """
-    The public njit primitives for the numba compositions:
-    legal_moves_of (the per-lane legal-move set) and flips_of_move
-    (the flip set of a single-bit move) — the single sources shared
-    by the vectorized kernels of board and by random_game's fused
-    play-path engine.
+    The public njit primitives for the numba compositions: legal_moves_of (the per-lane legal-move
+    set) and flips_of_move (the flip set of a single-bit move) — the single sources shared by the
+    vectorized kernels of board and by random_game's fused play-path engine.
     """
 
     def test_legal_moves_of_matches_the_batch(self):
-        # 256 random (mover, opponent) pairs: the per-lane primitive
-        # equals the public batch result for every lane.
+        # 256 random (mover, opponent) pairs: the per-lane primitive equals the public batch result
+        # for every lane.
         rng = np.random.default_rng(93)
         movers = rng.integers(0, 2 ** 64, size=256, dtype=np.uint64)
         opponents = rng.integers(0, 2 ** 64, size=256, dtype=np.uint64)
@@ -3835,8 +3787,8 @@ class TestNumbaPrimitives(unittest.TestCase):
                 expected[i])
 
     def test_flips_of_move_matches_position_flips(self):
-        # For every legal move of the canonical start, the flip
-        # primitive equals the scalar position_flips flip set.
+        # For every legal move of the canonical start, the flip primitive equals the scalar
+        # position_flips flip set.
         igp = initial_game_position()
         lms = position_legal_moves(igp)
         for sq in bitboard_to_square_list(lms):
