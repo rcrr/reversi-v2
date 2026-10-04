@@ -191,7 +191,7 @@ class MT19937:
     def random_choice_from_finite_set(self, k: int) -> np.uint64:
         """
         Choose a random integer uniformly distributed in the
-        [0, k-1] interval (k must not be 0).
+        [0, k-1] interval (k must be a positive integer).
 
         k == 1 returns 0 WITHOUT consuming a value from the sequence
         (a single-element choice is deterministic); otherwise one
@@ -205,11 +205,11 @@ class MT19937:
             np.uint64: The chosen integer, in [0, k-1].
 
         Raises:
-            ValueError: If k is 0.
+            ValueError: If k is not a positive integer (k <= 0).
         """
         k = int(k)
-        if k == 0:
-            raise ValueError("k cannot be 0")
+        if k <= 0:
+            raise ValueError("k must be a positive integer (the choice set is [0, k-1])")
         if k == 1:
             return np.uint64(0)
         r = self.get_double_in_c0_o1()
@@ -481,7 +481,14 @@ def pick_one_from_set64(s, d):
 
     Returns:
         (np.uint64, np.uint8): (1 << p, p) with p the picked set bit.
+
+    Raises:
+        ValueError: If s is the empty set (the caller's guard: the
+        class methods and the batch kernel never delegate it —
+        without it, the pop-position loop would not terminate).
     """
+    if s == np.uint64(0):
+        raise ValueError("pick_one_from_set64: the set must not be empty")
     v = s - ((s >> np.uint64(1)) & np.uint64(0x5555555555555555))
     v = (v & np.uint64(0x3333333333333333)) + ((v >> np.uint64(2)) & np.uint64(0x3333333333333333))
     v = (v + (v >> np.uint64(4))) & np.uint64(0x0F0F0F0F0F0F0F0F)

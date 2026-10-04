@@ -1669,4 +1669,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   np.uint8\] (era una tuple nuda, valida solo grazie a from\_\_future\_\_), i D-XXX fuori dai commenti plain
   (D-221 nel sorgente, D-421/D-417 nei test — R-540). Riparato test\_prng.md: stantio da D-421 (22 → 26 test, i 4
   test shuffle entrati in Coverage — la violazione di docs\_rules §5.1 è chiusa).
-- Next: la parte comportamentale di prng (D-425: i guard su s = 0 e k <= 0, i pin dei buchi di contratto).
+- D-425: prng.py — i guard di contratto (parte comportamentale): pick\_one\_from\_set64 (kernel pubblico in
+  \_\_all\_\_) ora alza ValueError sul set vuoto — prima loop infinito (verificato: timeout 124); i due metodi
+  della classe e il batch kernel lo guardavano già, quindi zero cambiamento nella pipeline.
+  random\_choice\_from\_finite\_set: il guard k == 0 allargato a k <= 0 (prima k < 0 era territorio non
+  dichiarato: OverflowError seed-dipendente, o 0 silenzioso sull'edge r == 0). +6 pin: il guard del kernel,
+  k < 0, l'IndexError di n > elementi (1-D e N-D, comportamento invariato ora pinned), batch(0), il no-consume
+  n = 0, i dtype di ritorno di choose\_one\_from\_set64 (np.uint64/np.uint8 — il re-wrap del boundary numba).
+- VERIFICATION: test\_prng 26 → 30, GREEN 30/0/0 (~3 s); suite via wrapper 1058 → 1062, GREEN 1062/0/24;
+  notes\_lint verde; il gate verde a questo checkin.
+- Next: il resto del backlog dell'overview (verifica delle fonti test, il rework MOBILITY, il README di
+  progetto, il formato pass di board/pattern/feature/mobility + tools — prng e binio chiusi, la re-review del
+  register). A chiusura di sessione: la rotazione del decisions log aperto (a ~1.600 righe, oltre il cap di
+  1.000 — il volume 006).

@@ -111,6 +111,16 @@ class TestPrng(unittest.TestCase):
                              f"batch draw {i} deviates from the "
                              "scalar reference")
 
+    def test_get_uint64_batch_zero(self):
+        # n == 0: an empty (0,) u64 array, and the stream position is
+        # untouched.
+        g = MT19937(7)
+        out = g.get_uint64_batch(0)
+        self.assertEqual(out.shape, (0,))
+        self.assertEqual(out.dtype, np.uint64)
+        h = MT19937(7)
+        self.assertEqual(g.get_uint64(), h.get_uint64())
+
     def test_double_ranges_and_typing(self):
         g = MT19937(7)
         for _ in range(1000):
@@ -126,10 +136,13 @@ class TestPrng(unittest.TestCase):
             self.assertLess(float(o01), 1.0)
 
     def test_random_choice_contracts(self):
-        # k == 0: raises.
+        # k == 0 and k < 0: raise (the choice set [0, k-1] is defined
+        # for positive k only).
         g = MT19937(1)
         with self.assertRaises(ValueError):
             g.random_choice_from_finite_set(0)
+        with self.assertRaises(ValueError):
+            g.random_choice_from_finite_set(-1)
         # k == 1: returns 0 WITHOUT consuming a value.
         h = MT19937(1)
         self.assertEqual(int(h.random_choice_from_finite_set(1)), 0)
@@ -150,12 +163,16 @@ class TestPrng(unittest.TestCase):
         shuffled = base.copy()
         g.shuffle_uint8(shuffled, 16)
         self.assertEqual(sorted(shuffled.tolist()), base.tolist())
-        # n <= 1: no random number is consumed.
+        # n <= 1: no random number is consumed (n == 1 and n == 0).
         a = MT19937(3)
         one = np.array([7], dtype=np.uint8)
         a.shuffle_uint8(one, 1)
         b = MT19937(3)
         self.assertEqual(a.get_uint64(), b.get_uint64())
+        c = MT19937(3)
+        c.shuffle_uint8(one, 0)
+        d = MT19937(3)
+        self.assertEqual(c.get_uint64(), d.get_uint64())
         # The dtype pins.
         with self.assertRaises(ValueError):
             a.shuffle_uint8(np.arange(4, dtype=np.int64), 4)
@@ -177,6 +194,15 @@ class TestPrng(unittest.TestCase):
         i = i0.copy()
         a.shuffle_int(i, 16)
         self.assertEqual(sorted(i.tolist()), i0.tolist())
+
+    def test_shuffle_n_exceeding_the_elements_raises(self):
+        # n beyond the element count is out of contract: the shuffle
+        # addresses the (n-1)-th element and raises IndexError.
+        with self.assertRaises(IndexError):
+            MT19937(1).shuffle_uint8(np.arange(4, dtype=np.uint8), 5)
+        with self.assertRaises(IndexError):
+            MT19937(1).shuffle_double(
+                np.arange(4, dtype=np.float64).reshape(2, 2), 5)
 
     def test_shuffle_nd_corder_parity(self):
         # The N-D C-order parity: shuffling an N-D array in
@@ -471,6 +497,21 @@ class TestChooseOneFromSet64(unittest.TestCase):
                     self.assertEqual(int(val), 1 << int(p))
                     self.assertTrue(s & (1 << int(p)))
 
+    # -- the return types: the numpy dtypes, not Python ints ----------
+
+    def test_the_return_types_are_numpy_uint64_and_uint8(self):
+        # The method's contract: the returned values are the numpy
+        # dtypes (the numba boundary re-wraps the kernel's Python
+        # ints) — checked for a non-empty set and the empty-set
+        # sentinel.
+        g = MT19937(42)
+        val, p = g.choose_one_from_set64(np.uint64(0xFF))
+        self.assertIsInstance(val, np.uint64)
+        self.assertIsInstance(p, np.uint8)
+        val, p = g.choose_one_from_set64(np.uint64(0))
+        self.assertIsInstance(val, np.uint64)
+        self.assertIsInstance(p, np.uint8)
+
     # -- the no-removal contract --------------------------------------
 
     def test_the_set_is_never_mutated(self):
@@ -544,6 +585,14 @@ class TestPickOneFromSet64(unittest.TestCase):
     SETS = [0x1, 0x3, 0xF0, 0xFFFF,
             0x8000000000000001, 0xFFFFFFFFFFFFFFFF,
             0x1248842104812448]
+
+    def test_scalar_kernel_empty_set_raises(self):
+        # The kernel's precondition: the empty set raises ValueError
+        # (the class methods and the batch kernel guard it before
+        # delegating; without the guard the pop-position loop would
+        # not terminate).
+        with self.assertRaises(ValueError):
+            pick_one_from_set64(np.uint64(0), MT19937(1).get_uint64())
 
     def test_scalar_kernel_matches_the_method(self):
         # For every set and 100 draws: two identical streams — the

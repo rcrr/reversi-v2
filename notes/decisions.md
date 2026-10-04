@@ -1573,3 +1573,22 @@ D-424 | 2026-10-03 | tools/prng.py + test/reversi/tools/test\_prng.py + both mir
          added (the c-order parity, the all-methods parity, the permutation + element-n, the strided views).
          VERIFICATION: test\_prng 26/0/0 (~4.6 s) — count unchanged (no test added/removed); the suite via the wrapper
          1058/0/24; notes\_lint + the gate green at this checkin.
+
+D-425 | 2026-10-03 | tools/prng.py + test/reversi/tools/test\_prng.py + both mirror docs — the prng contract guards (the
+         user's "fix everything, per my proposal", part 2): (1) pick\_one\_from\_set64 (the public numba kernel, in
+         \_\_all\_\_) is GUARDED against the empty set: it raises ValueError instead of looping forever in the
+         pop-position walk (verified pre-fix: timeout 124 on pick\_one\_from\_set64(0, d) — the class methods and the
+         batch kernel already guard it, so no pipeline behavior changes; the guard is declared in the docstring's
+         Raises). (2) random\_choice\_from\_finite\_set: the k == 0 guard widened to k <= 0 (the set [0, k-1] is defined
+         for positive k only; before the fix, k < 0 raised a seed-dependent OverflowError — or silently returned 0 on
+         the r == 0 edge — the undefined territory is now a ValueError, the same type as k == 0). (3) The 6 new pins:
+         test\_scalar\_kernel\_empty\_set\_raises (the guard), the k < 0 case in test\_random\_choice\_contracts,
+         test\_shuffle\_n\_exceeding\_the\_elements\_raises (the IndexError of n > the element count — 1-D and N-D,
+         behavior unchanged, now pinned), test\_get\_uint64\_batch\_zero (n == 0 → the empty (0,) u64 array, the stream
+         untouched), the n == 0 no-consume added to test\_shuffle\_contracts (n = 0 was documented, only n = 1 pinned),
+         test\_the\_return\_types\_are\_numpy\_uint64\_and\_uint8 (the choose return dtype, the numba boundary re-wrap —
+         the module doc claimed the typing pins of every output). Mirror docs: the source doc's API (k <= 0, the
+         IndexError, the kernel's empty-set ValueError) + 5 invariants extended/new with their pins; the test doc 26 →
+         30 (the three Coverage rows + the exception-type pins in Goldens). VERIFICATION: test\_prng 26 → 30 (30/0/0 in
+         ~3 s); the guards probed (s = 0 / k = 0 / k = -1 → ValueError, k = 1 and k = 5 unchanged); the suite via the
+         wrapper 1062/0/24; the overview cell + notes\_lint + the gate green at this checkin.
