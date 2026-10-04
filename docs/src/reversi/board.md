@@ -14,7 +14,7 @@ unless stated.
 | Square | `SquareArray` | annotated `NDArray[np.uint8]`; BeforeValidator rejects any other dtype |
 | Square | `square_from_str(name: str) -> Square` | "A1".."H8", uppercase only; ValueError on invalid or lowercase |
 | Square | `square_to_str(sq) -> str` | the inverse mapping |
-| Square | `square_as_bitboard(sq) -> Bitboard` | the single-bit mask `1 << sq` |
+| Square | `square_as_bitboard(sq) -> Bitboard` | the single-bit mask `1 << sq`; a value at or above 64 wraps to the empty bitboard (the same NumPy shift wrap as `move_as_bitboard`) |
 | Square | `square_validate_range(sq) -> None` | ValueError if any value outside [0..63] (scalar or array) |
 | Move | `Move` | type alias `np.uint8`; 0..63 squares, then the non-square codes PA / NA / UN |
 | Move | `MoveArray` | annotated uint8 array (reuses the square validator) |
@@ -126,7 +126,7 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
 ## Verified invariants
 
 - D8 group law: ro000 identity, ro090² = ro180, ro090∘ro270 = id, the 4 reflections involutive, anti-transform inverts
-  transform — `test_board::TestBitboardD8GroupLaw` (+ the identity-copy pin `test_ro000_array_is_a_fresh_copy`).
+  transform — `test_board::TestBitboardD8GroupLaw` (+ the two identity-copy pins, the bitboard and the position layers).
 - All 8 bitboard transforms vs hand-computed scalar goldens and (N,8) outputs —
   `test_board::TestBitboardTransformation{Ro000…Fa1h8}`.
 - The function/label tables produce the correct slot order — `test_board::TestD8FunctionTables`.

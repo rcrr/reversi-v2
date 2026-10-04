@@ -137,8 +137,8 @@ class TestSquare(unittest.TestCase):
         self.assertEqual(square_as_bitboard(sq), expected)
         sq = Square(64)
         # Code 64 is out of the square range: square_as_bitboard computes Bitboard(1) << sq, and
-        # NumPy wraps a uint64 shift by >= 64 to 0. This assertion pins that wrap as-is; making it
-        # explicit in the code is an open decision (docs/src/reversi/board.md).
+        # NumPy wraps a uint64 shift by >= 64 to 0. This assertion pins that wrap as-is (documented
+        # in the square_as_bitboard docstring and the mirror doc API row).
         expected = Bitboard(0x0000000000000000)
         self.assertEqual(square_as_bitboard(sq), expected)
 
@@ -1036,6 +1036,47 @@ class TestBitboardTransformationRo000(unittest.TestCase, BaseBitboardTransformat
             (column_a, column_a), (column_h, column_h), (half_left, half_left),
             (half_right, half_right), (half_top, half_top), (half_bottom, half_bottom),
         ]
+    def test_nd_array_2d_conversion_valid(self):
+        """Transform a 2-D array of bitboards, keeping the input shape (the identity)."""
+        input_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+        expected_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_array_3d_conversion_valid(self):
+        """Transform a 3-D array of bitboards, keeping the input shape (the identity)."""
+        input_3d = np.array(
+            [[[sqa1, sqh1]], [[row_8, half_left]]], dtype=Bitboard)
+        expected_3d = np.array(
+            [[[sqa1, sqh1]], [[row_8, half_left]]], dtype=Bitboard)
+
+        computed = self.func(input_3d)
+
+        self.assertEqual(computed.shape, (2, 1, 2))
+        np.testing.assert_array_equal(computed, expected_3d)
+
+    def test_nd_array_noncontiguous_conversion_valid(self):
+        """Transform a non-contiguous (Fortran-order) 2-D array, keeping the shape (the identity)."""
+        input_2d = np.asfortranarray(np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
+        expected_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_empty_array_valid(self):
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
+        computed = self.func(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationRo090(unittest.TestCase, BaseBitboardTransformationTest):
 
@@ -1071,6 +1112,47 @@ class TestBitboardTransformationRo180(unittest.TestCase, BaseBitboardTransformat
             (column_a, column_h), (column_h, column_a), (half_left, half_right),
             (half_right, half_left), (half_top, half_bottom), (half_bottom, half_top),
         ]
+    def test_nd_array_2d_conversion_valid(self):
+        """Rotate a 2-D array of bitboards by 180 degrees, keeping the input shape."""
+        input_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+        expected_2d = np.array(
+            [[sqh8, sqa8], [row_8, column_h]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_array_3d_conversion_valid(self):
+        """Rotate a 3-D array of bitboards by 180 degrees, keeping the input shape."""
+        input_3d = np.array(
+            [[[sqa1, sqh1]], [[row_8, half_left]]], dtype=Bitboard)
+        expected_3d = np.array(
+            [[[sqh8, sqa8]], [[row_1, half_right]]], dtype=Bitboard)
+
+        computed = self.func(input_3d)
+
+        self.assertEqual(computed.shape, (2, 1, 2))
+        np.testing.assert_array_equal(computed, expected_3d)
+
+    def test_nd_array_noncontiguous_conversion_valid(self):
+        """Rotate a non-contiguous (Fortran-order) 2-D array by 180 degrees, keeping the shape."""
+        input_2d = np.asfortranarray(np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
+        expected_2d = np.array(
+            [[sqh8, sqa8], [row_8, column_h]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_empty_array_valid(self):
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
+        computed = self.func(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformationRo270(unittest.TestCase, BaseBitboardTransformationTest):
 
@@ -1082,6 +1164,47 @@ class TestBitboardTransformationRo270(unittest.TestCase, BaseBitboardTransformat
             (column_a, row_8), (column_h, row_1), (half_left, half_bottom),
             (half_right, half_top), (half_top, half_left), (half_bottom, half_right),
         ]
+    def test_nd_array_2d_conversion_valid(self):
+        """Rotate a 2-D array of bitboards by 270 degrees clockwise, keeping the input shape."""
+        input_2d = np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard)
+        expected_2d = np.array(
+            [[sqh1, sqh8], [column_a, row_8]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_array_3d_conversion_valid(self):
+        """Rotate a 3-D array of bitboards by 270 degrees clockwise, keeping the input shape."""
+        input_3d = np.array(
+            [[[sqa1, sqh1]], [[row_8, half_left]]], dtype=Bitboard)
+        expected_3d = np.array(
+            [[[sqh1, sqh8]], [[column_h, half_bottom]]], dtype=Bitboard)
+
+        computed = self.func(input_3d)
+
+        self.assertEqual(computed.shape, (2, 1, 2))
+        np.testing.assert_array_equal(computed, expected_3d)
+
+    def test_nd_array_noncontiguous_conversion_valid(self):
+        """Rotate a non-contiguous (Fortran-order) 2-D array by 270 degrees clockwise, keeping the shape."""
+        input_2d = np.asfortranarray(np.array(
+            [[sqa1, sqh1], [row_1, column_a]], dtype=Bitboard))
+        expected_2d = np.array(
+            [[sqh1, sqh8], [column_a, row_8]], dtype=Bitboard)
+
+        computed = self.func(input_2d)
+
+        self.assertEqual(computed.shape, (2, 2))
+        np.testing.assert_array_equal(computed, expected_2d)
+
+    def test_nd_empty_array_valid(self):
+        """Transform an empty (0, 2) array to an empty array of the same shape."""
+        computed = self.func(np.empty((0, 2), dtype=Bitboard))
+
+        self.assertEqual(computed.shape, (0, 2))
 
 class TestBitboardTransformations(unittest.TestCase):
 
@@ -1651,6 +1774,28 @@ class TestPositionCreation(unittest.TestCase):
         # 2D input must yield a 2D structured array output
         self.assertEqual(positions.shape, (2, 3))
         self.assertEqual(positions[1, 2]['mover'], mover)
+
+    def test_make_position_does_not_alias_inputs(self):
+        # The inputs are copied into a fresh buffer: mutating them after the call leaves the
+        # position unchanged (arrays and lists alike).
+        m_arr = np.array(
+            [Bitboard(0x0000000000000001), Bitboard(0x0000000000000002)],
+            dtype=Bitboard)
+        o_arr = np.array(
+            [Bitboard(0x0000000000000004), Bitboard(0x0000000000000008)],
+            dtype=Bitboard)
+        positions = make_position(m_arr, o_arr)
+        m_arr[0] = Bitboard(0x00000000000000FF)
+        o_arr[1] = Bitboard(0x00000000000000EE)
+        self.assertEqual(positions[0]['mover'], Bitboard(0x0000000000000001))
+        self.assertEqual(positions[0]['opponent'], Bitboard(0x0000000000000004))
+        self.assertEqual(positions[1]['mover'], Bitboard(0x0000000000000002))
+        self.assertEqual(positions[1]['opponent'], Bitboard(0x0000000000000008))
+        m_list = [Bitboard(0x0000000000000010)]
+        o_list = [Bitboard(0x0000000000000020)]
+        pos = make_position(m_list, o_list)
+        m_list[0] = Bitboard(0x0000000000000030)
+        self.assertEqual(pos[0]['mover'], Bitboard(0x0000000000000010))
 
 class TestInitialGame(unittest.TestCase):
 
@@ -3404,6 +3549,13 @@ class TestPositionTrFunctions(unittest.TestCase):
         trp = position_ro270(self.p)
         self.assertEqual(trp['mover'], Bitboard(0x0818213820099C18))
         self.assertEqual(trp['opponent'], Bitboard(0x00A05C47DE7663C0))
+
+    def test_position_ro000_is_a_fresh_copy(self):
+        # The identity is a copy, not an alias — the same contract as the bitboard layer
+        # (bitboard_ro000, the identity-copy pin there).
+        out = position_ro000(self.p)
+        self.assertEqual(out, self.p)
+        self.assertIsNot(out, self.p)
 
 class TestPositionTransformations(unittest.TestCase):
 

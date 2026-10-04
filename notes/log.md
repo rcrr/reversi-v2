@@ -2010,3 +2010,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   volte), il ref stale del messaggio "must be 1D" rimosso (il guard è morto col contratto any-shape; il pin
   è il ValueError same-shape), le etichette di campagna R1/R2/R4 via (comportamenti descritti in parole
   semplici), la frase duplicata dei print goldens sistemata.
+
+- D-449 (i 4 micro-test del board — approvati dall'user dopo l'analisi di D-447): a) pin di copia per
+  position\_ro000 (il twin position-layer del pin bitboard — la claim "returns a copy" del mirror doc è ora
+  pinnata, R-850). b) pin no-alias per make\_position (array + liste) — l'invariante copy-then-view del
+  mirror doc, ora pinnata in TestPositionCreation. c) 12 test di forma N-D per le rotazioni (2-D / 3-D /
+  non-contiguo / vuoto per ro000, ro180, ro270) — chiusa l'asimmetria di copertura (le 4 riflessioni ce li
+  avevano, ro090 solo 2-D, gli altri tre niente). d) Il wrap di square\_as\_bitboard per sq≥64 documentato
+  (docstring + riga API del mirror doc) e il commento dangling "open decision (docs/src/reversi/board.md)"
+  sistemato — il pin prima era undocumented, ora è legittimo R-850. Suite: 294 → 308 (14 nuovi, tutti verdi
+  al primo giro); misurazione LONG=1 fresca (1087 totale) come input del gate, cella test\_board dell'overview
+  sincronizzata (308/0/15/0/0). Entrambi i .py al punto fisso canonico del src\_reflow; i mirror doc
+  sincronizzati nello stesso commit (test-doc: 274 concreti + 32 ereditati = 308, i 3 incrementi per-class, i
+  2 pin nuovi nominati nella mappa Coverage).

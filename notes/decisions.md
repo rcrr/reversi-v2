@@ -422,3 +422,17 @@ D-448 | 2026-10-06 | test\_board.py format campaign (the test half of the board 
          (the guard died with the any-shape contract; the pin is the same-shape ValueError), the campaign labels
          R1/R2/R4 removed (the behavior described in plain words), the duplicated "position print 9-line string"
          sentence fixed.
+
+D-449 | 2026-10-06 | The four board micro-tests (the user's approval of the D-447 analysis gaps). a) position\_ro000
+         identity-copy pin (test\_position\_ro000\_is\_a\_fresh\_copy — the position-layer twin of the bitboard pin; the
+         mirror doc's "returns a copy" claim is now pinned, R-850). b) make\_position inputs-never-aliased pin
+         (test\_make\_position\_does\_not\_alias\_inputs, arrays + lists) — the copy-then-view invariant from the mirror
+         doc, now pinned in TestPositionCreation. c) The N-D rotation shape tests: 12 new tests (2-D / 3-D /
+         non-contiguous / empty for ro000, ro180, ro270) closing the coverage asymmetry (the 4 reflection classes had
+         them, ro090 2-D, the other three nothing). d) The square\_as\_bitboard sq>=64 wrap, documented (docstring + the
+         mirror doc API row) and the dangling "open decision (docs/src/reversi/board.md)" test comment fixed — the pin
+         was undocumented before; now R-850-legitimate. Suite: 294 → 308 (14 new, all green first run); the fresh LONG=1
+         wrapper measurement (1087 total) is the gate input, the overview test\_board cell synced (308/0/15/0/0). Both
+         .py files at the src\_reflow canonical fixed point; the mirror docs synced in the same commit (the test-doc
+         counts: 274 concrete + 32 inherited = 308, the 3 new per-class increments, the two new pins named in the
+         Coverage map).

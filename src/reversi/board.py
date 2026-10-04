@@ -243,6 +243,9 @@ def square_to_str(sq: Square) -> str:
 def square_as_bitboard(sq: Square) -> Bitboard:
     """Convert the square to the single-bit bitboard that selects it.
 
+    A value at or above 64 is out of the square domain: the shift wraps, and the result is the empty
+    bitboard (the same wrap that move_as_bitboard documents for the non-square codes).
+
         Args:
             sq (Square): the square index.
     """

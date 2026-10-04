@@ -155,7 +155,7 @@ define the evaluation function.
 | test/reversi/lm/test\_wrk\_zed.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_zed.md](docs/test/reversi/lm/test\_wrk\_zed.md) |
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
-| test/reversi/test\_board.py | complete | 294/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
+| test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
 | test/reversi/test\_feature.py | complete | 29/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_mobility.py | complete | 30/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
