@@ -30,8 +30,7 @@ board - the Reversi board domain model.
 
 The bottom layer of the engine: squares, moves, bitboards and game positions, and everything that
 operates on them — the D8 symmetry group, legal-move and flip-set computation, move execution,
-end-of-game (WOFC) scoring, the legacy-compatible Zobrist position hash. No game loop, no search, no
-clock, no UI.
+end-of-game (WOFC) scoring, the legacy-compatible Zobrist position hash.
 
 Design choices --------------
 
@@ -48,7 +47,7 @@ public function takes a scalar or an array of any shape and
 * **Pydantic gates**: @validate_call with Annotated/BeforeValidator dtypes; PositionField skips
   validation.
 * **Legacy-compatible Zobrist hash**: the 128 URANDOM constants of the legacy C engine (the
-  canon, SHA-3-pinned in the tests) + a SWAR byte-fold — little-endian only, no portability work.
+  canon, SHA-3-pinned in the tests) + a SWAR byte-fold — little-endian only.
 """
 
 from typing import TypeAlias, Annotated, List, Any, Tuple

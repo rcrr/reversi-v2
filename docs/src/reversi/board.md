@@ -1,7 +1,6 @@
 # reversi/board.py
 The board domain model of the Reversi engine: squares, moves, bitboards, positions, and everything that operates on them
-— the D8 symmetry group, legal-move and flip-set computation, move execution, end-of-game scoring. No game loop, no
-search, no clock, no UI.
+— the D8 symmetry group, legal-move and flip-set computation, move execution, end-of-game scoring.
 
 ## API
 
@@ -121,7 +120,7 @@ Square (uint8)          Move (uint8, + 64=PA, 65=NA, 66=UN)
   L1-resident): 16 lookups per position, no per-bit loop. XOR-incremental by construction (a disc flip at square i
   contributes `zobrist[i] ^ zobrist[i+64]` — the legacy `zobrist_flip_bitstrings` entry); legacy-comparable under the
   fixed bridge (blacks = mover, whites = opponent, player = BLACK; a legacy WHITE position = the one's complement).
-- **Platform: little-endian only** — no portability work planned.
+- **Platform: little-endian only**.
 
 ## Verified invariants
 

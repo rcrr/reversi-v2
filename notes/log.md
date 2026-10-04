@@ -2044,3 +2044,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sorgente 1985 righe + test 3949 righe al punto fisso canonico del src\_reflow, docstring in forma di casa +
   module docstring, 4 micro-test, 53 "Should" → imperativo, mirror doc in budget e fedeli), il suite a
   1087/0/24 con misurazione LONG=1 fresca; restano pattern, feature, mobility.
+
+- D-452 (board: via le diciture negative, decisione dell'user): tolta la frase "No game loop, no search, no
+  clock, no UI." (module docstring + paragrafo what-it-is di board.md) e il "no portability work" (il bullet
+  Zobrist, in entrambi i file) — il fatto "little-endian only" resta in entrambi. Il principio: scriviamo
+  cosa fa il software, non cosa non fa. Nessun cambiamento di comportamento: 308/0/15, board.md 199 righe in
+  budget.

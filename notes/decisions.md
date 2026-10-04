@@ -451,3 +451,10 @@ D-451 | 2026-10-06 | The 53 "Should …" test docstrings converted to the impera
          docstrings stay light, one line); the four "Should complete silently …" → "Complete silently …" keep the
          author's phrasing. The one pre-existing lowercase class docstring (TestPositionHashLegacyParity, a noun-phrase
          description) is left as-is. src\_reflow --write → canonical, 3949 lines. No behavior change: 308/0/15.
+
+D-452 | 2026-10-06 | The negative phrasings removed from the board module docstring and its mirror doc (the user's
+         direction: we write what the software does, not what it does not do). "No game loop, no search, no clock, no
+         UI." is out (the module docstring paragraph + the board.md what-it-is paragraph), and the "no portability work"
+         clause is out of the Zobrist bullet in both files — the factual "little-endian only" stays in both. No behavior
+         change: 308/0/15; the module docstring stays at the src\_reflow fixed point (a no-op reflow), board.md 198
+         lines, still in budget.
