@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -40,9 +40,7 @@
 # time PERF=0 python3 -m unittest test.reversi.tools.test_binio
 #
 
-"""
-Unit tests for the binio module.
-"""
+"""Unit tests for the binio module."""
 
 import hashlib
 import io
@@ -59,9 +57,7 @@ from test.reversi.paths import CUSTOM_TMP_BASE
 
 
 class ScalarRoundTripTest(unittest.TestCase):
-    """
-    Each scalar type must survive a write/read round trip, at its bounds.
-    """
+    """Each scalar type must survive a write/read round trip, at its bounds."""
 
     def _round_trip(self, write_name, read_name, values):
         buf = io.BytesIO()
@@ -145,8 +141,7 @@ class ScalarRoundTripTest(unittest.TestCase):
             self.assertEqual(r.read_f64(), float("-inf"))
 
     def test_f32_quantization(self):
-        # 0.1 is not representable in float32: the read value must be the
-        # quantized float32, bit-exactly.
+        # 0.1 is not representable in float32: the read value must be the quantized float32, bit-exactly.
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_f32(0.1)
@@ -183,8 +178,8 @@ class StringTest(unittest.TestCase):
             self.assertEqual(r.read_string(), "")
 
     def test_byte_length_not_char_length(self):
-        # "é" is one character but two bytes in UTF-8; the byte after it must
-        # still round-trip, proving the length prefix counts bytes.
+        # "é" is one character but two bytes in UTF-8; the byte after it must still round-trip,
+        # proving the length prefix counts bytes.
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_string("é")
@@ -307,9 +302,8 @@ class HeaderTest(unittest.TestCase):
 
 
 class _OneByteAtATime:
-    """
-    A minimal file-object surrogate whose read(n) yields at most one byte
-    per call (exercises the short-read stitching in _read_exact).
+    """A minimal file-object surrogate whose read(n) yields at most one byte per call (exercises the
+    short-read stitching in _read_exact).
     """
 
     def __init__(self, data):
@@ -338,10 +332,9 @@ class FramingTest(unittest.TestCase):
                 r.read_u32()
 
     def test_wrong_read_order_detected(self):
-        # Writing a string then reading it as a scalar: the frame's length
-        # prefix is consumed as the "value", and the post-value MAGIC check
-        # then lands on the string payload and must fail (framing protects
-        # against desync).
+        # Writing a string then reading it as a scalar: the frame's length prefix is consumed as the
+        # "value", and the post-value MAGIC check then lands on the string payload and must fail
+        # (framing protects against desync).
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_string("x" * 100)
@@ -360,8 +353,8 @@ class FramingTest(unittest.TestCase):
                 r.read_u64()
 
     def test_short_reads_are_stitched(self):
-        # A stream whose read(n) returns fewer than n bytes at a time must
-        # be reassembled by the reader's _read_exact.
+        # A stream whose read(n) returns fewer than n bytes at a time must be reassembled by the
+        # reader's _read_exact.
         buf = io.BytesIO()
         with BinaryWriter(buf) as w:
             w.write_u64(1234)
@@ -373,9 +366,8 @@ class FramingTest(unittest.TestCase):
 
 
 class LayoutGoldenTest(unittest.TestCase):
-    """
-    The on-disk byte layout pinned against hand-built bytes: a writer/reader
-    round-trip alone would be self-referential.
+    """The on-disk byte layout pinned against hand-built bytes: a writer/reader round-trip alone
+    would be self-referential.
     """
 
     MAGIC = struct.pack("<I", binio.DEFAULT_MAGIC)
@@ -408,9 +400,7 @@ class LayoutGoldenTest(unittest.TestCase):
 
 
 class Sha3_256SidecarTest(unittest.TestCase):
-    """
-    Tests for the standalone sidecar functions (checksum service off).
-    """
+    """Tests for the standalone sidecar functions (checksum service off)."""
 
     @classmethod
     def setUpClass(cls):
@@ -419,8 +409,8 @@ class Sha3_256SidecarTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.path = os.path.join(self.temp_dir.name, "data.bin")
-        # checksum=False so no sidecar is auto-created; these tests drive the
-        # standalone write_sha3_256_sidecar / verify_sha3_256_sidecar functions.
+        # checksum=False so no sidecar is auto-created; these tests drive the standalone
+        # write_sha3_256_sidecar / verify_sha3_256_sidecar functions.
         with BinaryWriter(self.path, checksum=False) as w:
             w.write_header("integrity demo", version=1)
             w.write_array(np.arange(100, dtype=np.float64))
@@ -463,8 +453,8 @@ class Sha3_256SidecarTest(unittest.TestCase):
             binio.verify_sha3_256_sidecar(self.path)
 
     def test_write_empty_suffix_raises_and_content_intact(self):
-        # An empty suffix points the sidecar at the content file itself:
-        # the call must be rejected and the content must survive.
+        # An empty suffix points the sidecar at the content file itself: the call must be rejected
+        # and the content must survive.
         with open(self.path, "rb") as f:
             before = f.read()
         with self.assertRaises(ValueError):
@@ -479,9 +469,7 @@ class Sha3_256SidecarTest(unittest.TestCase):
 
 
 class AutoChecksumTest(unittest.TestCase):
-    """
-    The built-in incremental checksum service (checksum=True default).
-    """
+    """The built-in incremental checksum service (checksum=True default)."""
 
     @classmethod
     def setUpClass(cls):
@@ -517,8 +505,8 @@ class AutoChecksumTest(unittest.TestCase):
         self.assertFalse(os.path.exists(self.path + ".SHA3-256"))
 
     def test_empty_checksum_suffix_raises_on_construction(self):
-        # Fail fast, before the file is even opened (an empty suffix
-        # would clobber the content file at close).
+        # Fail fast, before the file is even opened (an empty suffix would clobber the content file
+        # at close).
         with self.assertRaises(ValueError):
             BinaryWriter(self.path, checksum_suffix="")
         self.assertFalse(os.path.exists(self.path))
@@ -539,9 +527,7 @@ class AutoChecksumTest(unittest.TestCase):
 
 
 class FullDocumentTest(unittest.TestCase):
-    """
-    End-to-end: header + mixed scalars + string + arrays, ordered read.
-    """
+    """End-to-end: header + mixed scalars + string + arrays, ordered read."""
 
     def test_mixed_document(self):
         buf = io.BytesIO()
@@ -566,9 +552,7 @@ class FullDocumentTest(unittest.TestCase):
             self.assertTrue(np.array_equal(r.read_array(), a64))
 
 class Lz4CompressionTest(unittest.TestCase):
-    """
-    Tests for the LZ4 whole-file compression feature (compressed=True).
-    """
+    """Tests for the LZ4 whole-file compression feature (compressed=True)."""
 
     @classmethod
     def setUpClass(cls):
@@ -652,9 +636,9 @@ class Lz4CompressionTest(unittest.TestCase):
             BinaryReader(buf, compressed=True)
 
     def test_digest_property_spans_the_compressed_bytes(self):
-        # Before close the compressed-mode digest is the empty-stream digest
-        # (the hash runs only at close, over the compressed bytes); after
-        # close it is the digest of what the file object now holds.
+        # Before close the compressed-mode digest is the empty-stream digest (the hash runs only at
+        # close, over the compressed bytes); after close it is the digest of what the file object
+        # now holds.
         buf = io.BytesIO()
         writer = BinaryWriter(buf, compressed=True)
         writer.write_array(np.arange(100, dtype=np.int32))

@@ -325,3 +325,18 @@ D-443 | 2026-10-04 | tools/binio.py + its mirror doc — the post-src\_reflow co
          (the prng precedent) and was left untouched. 56/0/0 — NO behavior change (docstrings + one dead import only).
          The source doc REWRITTEN IN THE SAME COMMIT: the "734 lines" → "689 lines" cell. VERIFICATION: parse OK,
          56/0/0, canonical fixed point, docs auditor green.
+
+D-444 | 2026-10-04 | test/reversi/tools/test\_binio.py — the post-src\_reflow consistency pass (the test half of the
+         binio consistency check; the mirror of D-443). The sweep: NOT a src\_reflow fixed point; 8 class docstrings +
+         the module docstring in the stale expanded form (the triple-quote + a blank first line) vs the house
+         on-the-quote convention; 4 header trailing-ws. FIXED: all of the above + src\_reflow --write → canonical, 651
+         lines (was 667). NO test added or removed (56/0/0 — NO behavior change); the test-doc needed NO sync (it
+         carries no line-count or style references — only per-class counts, all still correct). COVERAGE VERDICT
+         (R-850): the suite is COMPLETE for the documented contract — the byte-level hand-built goldens, the 10 scalar
+         bounds + f32/f64 specials, all 10 dtypes + 0-d + F-order + big-endian, the framing error paths (MAGIC mismatch,
+         wrong order, truncation, short-read stitching), the 3 empty-suffix guards (fail-fast, no file created), the LZ4
+         trajectory (the empty→complete compressed digest, the decompression failure), the magic-override. The ONE gap
+         found (reported to the user, NOT fixed without the call): close() idempotency (an explicit close() inside a
+         with block — the \_\_exit\_\_ re-close) is guarded in code but neither documented in a docstring nor pinned by
+         a test; a one-line docstring addition + a 4-line micro-test is the candidate if the user approves it (the
+         state\_machine micro-test precedent, D-439).

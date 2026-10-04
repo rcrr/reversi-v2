@@ -1938,3 +1938,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   FIX: tutto + src\_reflow --write → 23 docstring canoniche, 689 righe. Il module docstring (design
   choices + byte layout + esempio) è GIÀ a convenzione (precedente prng) — intatto. 56/0/0, zero behavior
   change. Source-doc: "734 lines" → "689 lines" nello stesso commit.
+
+- D-444 (binio test, la metà test della coerenza — specchio di D-443): non a punto fisso; 8 docstring di classe
+  + il module docstring in forma espansa stantia → convenzione a-quote; 4 trailing-ws nell'header. FIX: tutto +
+  src\_reflow --write → canonico, 651 righe (era 667). Nessun test aggiunto/tolto (56/0/0, zero behavior
+  change); test-doc: niente da syncare (nessun riferimento a righe/stile — solo i conteggi per classe, tutti
+  ancora corretti). VERDETTO DI COPERTURA (R-850): la suite è COMPLETA per il contratto documentato (goldens
+  byte-level, i bound scalari + speciali f32/f64, i 10 dtypes + 0-d + F-order + big-endian, i path di errore
+  del framing, le 3 guardie empty-suffix fail-fast, la trajectory LZ4, la magic-override). UN SOLO gap trovato
+  (segnalato, NON fixato senza la decisione del user): l'idempotenza di close() (un close() esplicito dentro un
+  with block — il re-close di \_\_exit\_\_) è guardata nel codice ma né documentata né pinned; candidata un
+  micro-test di 4 righe + una riga di docstring (il precedente state\_machine D-439) se il user lo vuole.
