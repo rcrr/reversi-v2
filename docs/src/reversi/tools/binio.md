@@ -19,7 +19,7 @@ weights file are written with `BinaryWriter` and verified through the `.SHA3-256
 
 ## Architecture
 
-734 lines.
+689 lines.
 
 - Constants: `DEFAULT_MAGIC = 0x314E4942` → LE `b'BIN1'` (framing/version check),
   `DEFAULT_FILE_SIGNATURE = 0x484F4942` → LE `b'BIOH'` (header file-type check), `TYPE_INT8`… `TYPE_FLOAT64` (1-10,

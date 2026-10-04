@@ -311,3 +311,17 @@ D-442 | 2026-10-04 | the repo-wide purge wave 2 — the 15 dangling neighbor D n
          decisions). VERIFICATION: the 24 touched .py files parse; the verify\_wrk\_config probe re-run (0 mismatches —
          the golden renames are name-only, zero assertion change); the docs auditor green. After this D, the only
          15-number mentions in the workspace are the campaign's decisions entries + journal bullets.
+
+D-443 | 2026-10-04 | tools/binio.py + its mirror doc — the post-src\_reflow consistency pass (the user's "ulteriore
+         controllo sul modulo binio, dopo aver creato src\_reflow": the module was format-passed BEFORE the tool and the
+         current docstring conventions existed, so it carried stale style). The sweep: NOT a src\_reflow fixed point (14
+         docstrings, 734 → 703 projected); 13 method docstrings in the stale expanded form (the triple-quote + a blank
+         first line) vs the house first-line-imperative on-the-quote convention; 6 R-560 Args entries untyped (file ×3,
+         path ×3); 4 private helpers undocumented (\_open\_frame / \_close\_frame / \_scalar ×2 — the cache\_manager
+         convention documents privates); a dead "from \_\_future\_\_ import annotations" (no string annotations in the
+         file; the state\_machine precedent, D-438); 4 header trailing-ws (the separator lines with a trailing space).
+         FIXED: all of the above + src\_reflow --write → 23 docstrings canonical, 689 lines. The module docstring
+         (expanded form with the design choices + the byte layout + the example) ALREADY matches the house convention
+         (the prng precedent) and was left untouched. 56/0/0 — NO behavior change (docstrings + one dead import only).
+         The source doc REWRITTEN IN THE SAME COMMIT: the "734 lines" → "689 lines" cell. VERIFICATION: parse OK,
+         56/0/0, canonical fixed point, docs auditor green.

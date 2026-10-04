@@ -1928,3 +1928,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   essere decisioni reali dell'era notes: censimento da fare a richiesta. Verifica: i 24 .py parse, il probe
   verify\_wrk\_config ri-eseguito (0 mismatches — rinomina solo dei nomi, zero change di assert), docs
   auditor verde.
+
+- D-443 (binio, la coerenza post-src\_reflow): il modulo era formattato PRIMA del tool e delle convenzioni
+  docstring attuali — sweep: non a punto fisso (14 docstring), 13 docstring in forma espansa stantia (via la
+  riga vuota, prima riga imperativa sulla tripla-quotatura), 6 Args R-560 non tipizzati (file ×3, path ×3), 4
+  helper privati senza docstring (convenzione cache\_manager), un "from \_\_future\_\_ import
+  annotations" morto (zero string annotations — lo stesso caso di state\_machine D-438), 4 trailing-ws
+  nell'header.
+  FIX: tutto + src\_reflow --write → 23 docstring canoniche, 689 righe. Il module docstring (design
+  choices + byte layout + esempio) è GIÀ a convenzione (precedente prng) — intatto. 56/0/0, zero behavior
+  change. Source-doc: "734 lines" → "689 lines" nello stesso commit.

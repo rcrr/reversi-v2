@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -28,13 +28,11 @@
 """
 binio - minimal, C/Rust-interoperable binary I/O.
 
-This module reads and writes flat binary files using only the standard
-library (``struct``, ``hashlib``) plus ``numpy``. It is designed to be
-trivially interoperable with C/Rust code using plain ``fwrite``/``fread``.
+This module reads and writes flat binary files using only the standard library (``struct``,
+``hashlib``) plus ``numpy``. It is designed to be trivially interoperable with C/Rust code using
+plain ``fwrite``/``fread``.
 
-Design choices
---------------
-* **Byte order**: fixed little-endian (``<``). A file written on any machine
+Design choices -------------- * **Byte order**: fixed little-endian (``<``). A file written on any machine
   reads identically on any other machine, regardless of native endianness.
 * **Framing**: every value is wrapped between two identical 32-bit MAGIC
   markers (one before, one after). The MAGIC is a *framing / version* check:
@@ -47,9 +45,7 @@ Design choices
   reader must call the read methods in the exact same order the writer used.
   This keeps the layout 100% predictable for the C/Rust side.
 
-On-disk layout of each record
------------------------------
-Scalar (u8/i8/u32/i32/u64/i64/f32/f64)::
+On-disk layout of each record ----------------------------- Scalar (u8/i8/u32/i32/u64/i64/f32/f64)::
 
     [MAGIC u32][value][MAGIC u32]
 
@@ -68,8 +64,7 @@ Numpy array::
     C-contiguous (row-major), little-endian, exactly ``prod(shape) * itemsize``
     bytes.
 
-Example
--------
+Example -------
     >>> import numpy as np
     >>> with BinaryWriter("data.bin") as w:   # checksum=True by default
     ...     w.write_string("description")
@@ -84,8 +79,6 @@ Example
     ...     pi = r.read_f64()
     ...     arr = r.read_array()
 """
-
-from __future__ import annotations
 
 import hashlib
 import io
@@ -114,13 +107,12 @@ FileHeader = namedtuple("FileHeader", ["description", "version"])
 # Default framing marker. Little-endian bytes spell b"BIN1".
 DEFAULT_MAGIC = 0x314E4942
 
-# File-level signature stored inside the header record. Little-endian bytes
-# spell b"BIOH". It identifies the file as a binio file and lets read_header()
-# fail fast on a foreign or corrupted file.
+# File-level signature stored inside the header record. Little-endian bytes spell b"BIOH". It
+# identifies the file as a binio file and lets read_header() fail fast on a foreign or corrupted file.
 DEFAULT_FILE_SIGNATURE = 0x484F4942
 
-# Numpy dtype <-> on-disk type code. These integer codes are the contract
-# shared with the C/Rust side; keep them stable across versions.
+# Numpy dtype <-> on-disk type code. These integer codes are the contract shared with the C/Rust
+# side; keep them stable across versions.
 TYPE_INT8 = 1
 TYPE_UINT8 = 2
 TYPE_INT16 = 3
@@ -175,19 +167,17 @@ _F64 = struct.Struct("<d")
 
 
 class BinaryFormatError(Exception):
-    """
-    Raised when the data on disk does not match the expected format
-    (e.g. a MAGIC marker mismatch, truncated file, or unknown type code).
+    """Raised when the data on disk does not match the expected format (a MAGIC marker mismatch, a
+    truncated file, or an unknown type code).
     """
     pass
 
 
 def _open_arg(file, mode):
-    """
-    Return (file_object, owns_it) for a path or an open binary file.
+    """Return (file_object, owns_it) for a path or an open binary file.
 
     Args:
-        file: A path (str / os.PathLike) or an open binary file.
+        file (str | os.PathLike | open binary file): A path or an open binary file.
         mode (str): The open mode, used when ``file`` is a path.
 
     Returns:
@@ -200,29 +190,25 @@ def _open_arg(file, mode):
 
 
 class BinaryWriter:
-    """
-    Write framed binary records. Accepts a path or an open binary file.
+    """Write framed binary records. Accepts a path or an open binary file.
 
-    When given a path it owns the file and closes it on ``close()`` / context
-    exit; when given a file object it never closes it.
+    When given a path it owns the file and closes it on ``close()`` / context exit; when given a
+    file object it never closes it.
 
-    Checksum service (``checksum=True`` by default): the SHA3-256 of the file is
-    computed incrementally as data is written. On ``close()``, if the file was
-    opened by path, a ``<path><checksum_suffix>`` sidecar is written from the
-    in-memory digest -- no extra API call and no re-read of the file. When the
-    target is a file object (no path), the digest is still available via the
-    ``sha3_256_hexdigest`` property. With ``checksum=False`` no hashing happens;
+    Checksum service (``checksum=True`` by default): the SHA3-256 of the file is computed
+    incrementally as data is written. On ``close()``, if the file was opened by path, a
+    ``<path><checksum_suffix>`` sidecar is written from the in-memory digest -- no extra API call
+    and no re-read of the file. When the target is a file object (no path), the digest is still
+    available via the ``sha3_256_hexdigest`` property. With ``checksum=False`` no hashing happens;
     you may still create a sidecar afterwards with ``write_sha3_256_sidecar``.
 
-    ``checksum_suffix`` must be non-empty: with an empty suffix the
-    ``<path><suffix>`` sidecar would BE the content file, which ``close()``
-    truncates and overwrites. Use ``checksum=False`` (not an empty suffix)
-    to skip the sidecar. Raises ``ValueError`` if empty.
+    ``checksum_suffix`` must be non-empty: with an empty suffix the ``<path><suffix>`` sidecar would
+    BE the content file, which ``close()`` truncates and overwrites. Use ``checksum=False`` (not an
+    empty suffix) to skip the sidecar. Raises ``ValueError`` if empty.
 
-    Compression service (``compressed=True``): every write goes into an
-    in-memory buffer; ``close()`` LZ4-frame-compresses it and flushes the
-    result to the target. With ``checksum=True`` the digest is over the
-    COMPRESSED bytes and the hash is updated only at ``close()``: before
+    Compression service (``compressed=True``): every write goes into an in-memory buffer;
+    ``close()`` LZ4-frame-compresses it and flushes the result to the target. With ``checksum=True``
+    the digest is over the COMPRESSED bytes and the hash is updated only at ``close()``: before
     close, ``sha3_256_hexdigest`` is the empty-stream digest.
     """
 
@@ -236,26 +222,22 @@ class BinaryWriter:
         checksum_suffix: str = ".SHA3-256",
         compressed: bool = False,
     ):
-        """
-        Open the write target (a path or an open binary file) and configure
-        the framing, the checksum service and the compression service.
+        """Open the write target (a path or an open binary file) and configure the framing, the
+        checksum service and the compression service.
 
         Args:
-            file: A path (str / os.PathLike) or an open binary file.
+            file (str | os.PathLike | open binary file): A path or an open binary file.
             magic (int): The framing marker (``DEFAULT_MAGIC``).
-            signature (int): The file signature stored in the header
-                (``DEFAULT_FILE_SIGNATURE``).
-            checksum (bool): When True (default), the SHA3-256 is computed
-                incrementally and a sidecar is written on close (path-based
-                targets only).
-            checksum_suffix (str): The sidecar suffix appended to the path;
-                must be non-empty.
-            compressed (bool): When True, buffer all writes in memory,
-                LZ4-frame-compress and flush on close.
+            signature (int): The file signature stored in the header (``DEFAULT_FILE_SIGNATURE``).
+            checksum (bool): When True (default), the SHA3-256 is computed incrementally and a
+                sidecar is written on close (path-based targets only).
+            checksum_suffix (str): The sidecar suffix appended to the path; must be non-empty.
+            compressed (bool): When True, buffer all writes in memory, LZ4-frame-compress and flush
+                on close.
 
         Raises:
-            ValueError: If ``checksum_suffix`` is empty (the sidecar would BE
-            the content file, which close truncates and overwrites).
+            ValueError: If ``checksum_suffix`` is empty (the sidecar would BE the content file,
+                which close truncates and overwrites).
         """
         if not checksum_suffix:
             raise ValueError(
@@ -273,12 +255,10 @@ class BinaryWriter:
         self._closed = False
 
         if self._compressed:
-            # Always write to an in-memory buffer first; the compression
-            # happens at close.
+            # Always write to an in-memory buffer first; the compression happens at close.
             self._f = io.BytesIO()
             self._own = True
-            # If a file object was passed, keep it: the compressed bytes are
-            # written to it at close.
+            # If a file object was passed, keep it: the compressed bytes are written to it at close.
             if self._path is None:
                 self._actual_f = file
         else:
@@ -297,13 +277,10 @@ class BinaryWriter:
 
     @property
     def sha3_256_hexdigest(self) -> str:
-        """
-        Return the SHA3-256 hex digest of everything written so far (the
-        incremental hash; no re-read).
+        """Return the SHA3-256 hex digest of everything written so far (the incremental hash; no re-read).
 
-        In ``compressed`` mode the hash is updated only at ``close()`` over
-        the compressed bytes: before close, the digest is the empty-stream
-        digest.
+        In ``compressed`` mode the hash is updated only at ``close()`` over the compressed bytes:
+        before close, the digest is the empty-stream digest.
 
         Raises:
             ValueError: If this writer was opened with ``checksum=False``.
@@ -344,20 +321,21 @@ class BinaryWriter:
     # -- framing ---------------------------------------------------------
 
     def _write(self, data: bytes):
-        """
-        Write raw bytes and feed them to the incremental hash (if enabled).
-        """
+        """Write raw bytes and feed them to the incremental hash (if enabled)."""
         self._f.write(data)
         if self._hash is not None and not self._compressed:
             self._hash.update(data)
 
     def _open_frame(self):
+        """Open the frame: write the MAGIC marker."""
         self._write(self._magic_bytes)
 
     def _close_frame(self):
+        """Close the frame: write the MAGIC marker."""
         self._write(self._magic_bytes)
 
     def _scalar(self, st: struct.Struct, value):
+        """Write one scalar value framed between the MAGIC markers."""
         self._open_frame()
         self._write(st.pack(value))
         self._close_frame()
@@ -365,12 +343,12 @@ class BinaryWriter:
     # -- header ----------------------------------------------------------
 
     def write_header(self, description: str, version: int, *, encoding: str = "utf-8"):
-        """
-        Write the file header:
+        """Write the file header:
+
         [MAGIC][signature u32][version u32][length u64][description bytes][MAGIC].
 
-        Intended as the very first record of a file. ``version`` is an
-        application-defined format version used to reject incompatible files.
+        Intended as the very first record of a file. ``version`` is an application-defined format
+        version used to reject incompatible files.
 
         Args:
             description (str): The human-readable file description.
@@ -401,8 +379,7 @@ class BinaryWriter:
     # -- string ----------------------------------------------------------
 
     def write_string(self, value: str, *, encoding: str = "utf-8"):
-        """
-        Write a string as [MAGIC][length u64][bytes][MAGIC].
+        """Write a string as [MAGIC][length u64][bytes][MAGIC].
 
         ``length`` is the encoded byte count, NOT the character count.
 
@@ -419,21 +396,19 @@ class BinaryWriter:
     # -- numpy array -----------------------------------------------------
 
     def write_array(self, array: np.ndarray):
-        """
-        Write a numpy array as
+        """Write a numpy array as
+
         [MAGIC][type_code u8][ndim u64][shape... u64][data][MAGIC].
 
-        The data is stored C-contiguous and little-endian, exactly
-        ``prod(shape) * itemsize`` bytes; any input dtype is converted to its
-        canonical little-endian dtype, and non-contiguous inputs are
-        serialized in C order.
+        The data is stored C-contiguous and little-endian, exactly ``prod(shape) * itemsize`` bytes;
+        any input dtype is converted to its canonical little-endian dtype, and non-contiguous inputs
+        are serialized in C order.
 
         Args:
             array (np.ndarray): The array to write.
 
         Raises:
-            BinaryFormatError: If the dtype has no TYPE_* code (complex,
-            bool, object, ...).
+            BinaryFormatError: If the dtype has no TYPE_* code (complex, bool, object, ...).
         """
         array = np.asarray(array)
         name = array.dtype.name
@@ -441,9 +416,9 @@ class BinaryWriter:
         if code is None:
             raise BinaryFormatError(f"unsupported array dtype: {name!r}")
 
-        # Ensure little-endian dtype while preserving ndim (including 0-d).
-        # tobytes(order="C") below serializes in C order for any memory layout,
-        # so we must NOT use ascontiguousarray here (it promotes 0-d to 1-d).
+        # Ensure little-endian dtype while preserving ndim (including 0-d). tobytes(order="C") below
+        # serializes in C order for any memory layout, so we must NOT use ascontiguousarray here (it
+        # promotes 0-d to 1-d).
         le_dtype = _DTYPE_BY_CODE[code]
         array = array.astype(le_dtype, copy=False)
 
@@ -457,12 +432,10 @@ class BinaryWriter:
 
 
 class BinaryReader:
-    """
-    Read framed binary records written by :class:`BinaryWriter`.
+    """Read framed binary records written by :class:`BinaryWriter`.
 
-    Methods must be called in the same order the values were written. With
-    ``compressed=True`` the whole file is LZ4-frame-decompressed into memory
-    first.
+    Methods must be called in the same order the values were written. With ``compressed=True`` the
+    whole file is LZ4-frame-decompressed into memory first.
     """
 
     def __init__(
@@ -473,28 +446,22 @@ class BinaryReader:
         signature: int = DEFAULT_FILE_SIGNATURE,
         compressed: bool = False,
     ):
-        """
-        Open the read target (a path or an open binary file) and configure
-        the framing.
+        """Open the read target (a path or an open binary file) and configure the framing.
 
         Args:
-            file: A path (str / os.PathLike) or an open binary file.
+            file (str | os.PathLike | open binary file): A path or an open binary file.
             magic (int): The framing marker (``DEFAULT_MAGIC``).
-            signature (int): The file signature expected in the header
-                (``DEFAULT_FILE_SIGNATURE``).
-            compressed (bool): When True, LZ4-frame-decompress the whole
-                file into memory before reading.
+            signature (int): The file signature expected in the header (``DEFAULT_FILE_SIGNATURE``).
+            compressed (bool): When True, LZ4-frame-decompress the whole file into memory before reading.
 
         Raises:
-            BinaryFormatError: If the LZ4 decompression fails
-            (``compressed=True``).
+            BinaryFormatError: If the LZ4 decompression fails (``compressed=True``).
         """
         self._compressed = compressed
 
         if self._compressed:
             f, own = _open_arg(file, "rb")
-            # An in-memory file object (e.g. BytesIO) may not start at 0:
-            # reset it.
+            # An in-memory file object (e.g. BytesIO) may not start at 0: reset it.
             if not own and hasattr(f, 'seek'):
                 f.seek(0)
             compressed_data = f.read()
@@ -525,9 +492,7 @@ class BinaryReader:
     # -- low level -------------------------------------------------------
 
     def _read_exact(self, n: int) -> bytes:
-        """
-        Read exactly ``n`` bytes or raise; handles short reads.
-        """
+        """Read exactly ``n`` bytes or raise; handles short reads."""
         buf = self._f.read(n)
         if len(buf) < n:
             chunks = [buf]
@@ -552,6 +517,7 @@ class BinaryReader:
             )
 
     def _scalar(self, st: struct.Struct):
+        """Read one scalar value framed between the MAGIC markers."""
         self._expect_magic("before value")
         (value,) = st.unpack(self._read_exact(st.size))
         self._expect_magic("after value")
@@ -560,19 +526,16 @@ class BinaryReader:
     # -- header ----------------------------------------------------------
 
     def read_header(self, *, encoding: str = "utf-8") -> FileHeader:
-        """
-        Read the file header written by :meth:`BinaryWriter.write_header`.
+        """Read the file header written by :meth:`BinaryWriter.write_header`.
 
         Args:
-            encoding (str): The text encoding of the stored description
-                (default utf-8).
+            encoding (str): The text encoding of the stored description (default utf-8).
 
         Returns:
             FileHeader: (description, version).
 
         Raises:
-            BinaryFormatError: If the signature does not match (foreign
-            file).
+            BinaryFormatError: If the signature does not match (foreign file).
         """
         self._expect_magic("before header")
         (sig,) = _U32.unpack(self._read_exact(_U32.size))
@@ -603,12 +566,10 @@ class BinaryReader:
     # -- string ----------------------------------------------------------
 
     def read_string(self, *, encoding: str = "utf-8") -> str:
-        """
-        Read a string written by ``BinaryWriter.write_string``.
+        """Read a string written by ``BinaryWriter.write_string``.
 
         Args:
-            encoding (str): The text encoding of the stored bytes
-                (default utf-8).
+            encoding (str): The text encoding of the stored bytes (default utf-8).
 
         Returns:
             str: The decoded string.
@@ -622,12 +583,10 @@ class BinaryReader:
     # -- numpy array -----------------------------------------------------
 
     def read_array(self) -> np.ndarray:
-        """
-        Read an array written by ``BinaryWriter.write_array``.
+        """Read an array written by ``BinaryWriter.write_array``.
 
         Returns:
-            np.ndarray: An owned, writable C-contiguous little-endian array
-            of the stored shape and dtype.
+            np.ndarray: An owned, writable C-contiguous little-endian array of the stored shape and dtype.
 
         Raises:
             BinaryFormatError: On an unknown on-disk type code.
@@ -656,11 +615,10 @@ class BinaryReader:
 
 
 def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
-    """
-    Return the hex SHA3-256 digest of the whole file at ``path``.
+    """Return the hex SHA3-256 digest of the whole file at ``path``.
 
     Args:
-        path: The file to hash.
+        path (str | os.PathLike): The file to hash.
         chunk_size (int): The read chunk size in bytes (default 1 MiB).
 
     Returns:
@@ -674,22 +632,21 @@ def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
 
 
 def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
-    """
-    Write a ``<path><suffix>`` sidecar in ``sha3_256sum`` format.
+    """Write a ``<path><suffix>`` sidecar in ``sha3_256sum`` format.
 
     The line is ``"<hexdigest>  <basename>\\n"`` so the file is verifiable
     with the standard ``sha3_256sum -c`` tool from the same directory.
 
     Args:
-        path: The content file to hash.
+        path (str | os.PathLike): The content file to hash.
         suffix (str): The sidecar suffix; must be non-empty.
 
     Returns:
         str: The sidecar path.
 
     Raises:
-        ValueError: If ``suffix`` is empty (the sidecar would be the content
-        file itself, which would be overwritten).
+        ValueError: If ``suffix`` is empty (the sidecar would be the content file itself, which
+            would be overwritten).
     """
     if not suffix:
         raise ValueError(
@@ -704,11 +661,10 @@ def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
 
 
 def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
-    """
-    Recompute the file's SHA3-256 and compare it to its sidecar.
+    """Recompute the file's SHA3-256 and compare it to its sidecar.
 
     Args:
-        path: The content file to verify.
+        path (str | os.PathLike): The content file to verify.
         suffix (str): The sidecar suffix; must be non-empty.
 
     Returns:
@@ -717,8 +673,7 @@ def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
     Raises:
         FileNotFoundError: If the sidecar is missing.
         BinaryFormatError: If the sidecar is malformed.
-        ValueError: If ``suffix`` is empty (it would read the content file
-        as its sidecar).
+        ValueError: If ``suffix`` is empty (it would read the content file as its sidecar).
     """
     if not suffix:
         raise ValueError(
