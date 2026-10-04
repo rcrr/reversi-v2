@@ -68,7 +68,7 @@ wk_src = read("src/reversi/lm/wrk_vld_positions.py")
 check("A1 Worker named VLD_POSITIONS + __all__",
       'Worker("VLD_POSITIONS", _up, _down)' in wk_src
       and "__all__ = ['wrk_vld_positions']" in wk_src)
-check("A2 the worker uses the D-074 house name _for_current_level (the "
+check("A2 the worker uses the house name _for_current_level (the "
       "_for_next_level call is the R1 AttributeError)",
       "get_cache_file_full_path_for_current_level" in wk_src
       and "for_next_level" not in wk_src)
@@ -76,7 +76,7 @@ check("A3 the factory is @validate_call-decorated + pydantic imported "
       "(all 10 sibling worker factories — D-092 T2 / D-096 T10 / D-098 T3 pattern)",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_vld_positions" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)
-check("A4 load_fn passes checksum=False (the D-080 M4 shape — no double sidecar verify)",
+check("A4 load_fn passes checksum=False (no double sidecar verify)",
       "lambda path: regab_load_data_set_from_file(path, checksum=False)" in wk_src)
 check("A5 no dead imports (the file delegates extraction to wrk_positions.extract_and_prepare, D-143)",
       "from pathlib import Path" not in wk_src

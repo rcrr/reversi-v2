@@ -26,7 +26,7 @@ fixture copy, the write-asymmetry pins). 2 classes / 6 tests (5 no-DB + 1 DB-gat
 
 - The house test header (the "How to run" block).
 - The NO-DB mock-ctx suite: the `_MockCtx` (the cfg — the real one, the facade runs CREATED -> CONFIG on the rlm_00
-  fixture, the D-287 idiom — the event buffer, the format_event_log stand-in): the worker is exercised DIRECTLY
+  fixture, the idiom — the event buffer, the format_event_log stand-in): the worker is exercised DIRECTLY
   (_up/_down), no machine involved.
 - The `db_long_gate` standard gate (SKIP_REGAB_DB + LONG) + the e2e tmp under CUSTOM_TMP_BASE.
 - The a/b/c rule (probe_rules §3): the factory name, the no-op log, the file existence, the subdir path and the down

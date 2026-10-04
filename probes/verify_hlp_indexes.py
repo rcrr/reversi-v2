@@ -6,7 +6,7 @@
 # the domain module (src/reversi/lm/hlp_indexes.py) and the worker
 # (src/reversi/lm/wrk_indexes.py), plus the source structure of
 # their two test files (test_hlp_indexes.py,
-# test_wrk_indexes.py), session 23 (D-083 analysis).
+# test_wrk_indexes.py), session 23.
 #
 # The B tier is pure (no DB): the store/load round-trip, the
 # sidecar flow, the is_cache_consistent logic and the compute
@@ -29,7 +29,7 @@
 # M1-M2 (F3 import gone, F4 header, F5 English comment, F7
 # ValidationError pins + rds_checksum present, F8 both branches,
 # F9 19→0, 13→14 tests); test_wrk_indexes T1-T3 + M1
-# (E2 D-065 idiom, E3 gate, E4 header, E7 13→0 + defensive
+# (E2 the tmp-dir idiom, E3 gate, E4 header, E7 13→0 + defensive
 # tearDown).
 #
 
@@ -72,7 +72,7 @@ def check(label, cond, detail=""):
 
 src = (ROOT / "src" / "reversi" / "lm" / "hlp_indexes.py").read_text()
 
-check("A1 228 lines (D-326: the D-318 docstrings + the header cleanup)",
+check("A1 228 lines (the docstrings + the header cleanup)",
       len(src.splitlines()) == 228
       and "from enum import IntEnum" not in src
       and "Protocol" not in src
@@ -251,7 +251,7 @@ s1 = out1.getvalue()
 #  places — the compute test, the pre-state, and the cache test)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
 check("C2 flat cache files: SU_ANALYSIS (the rlm_00 opt-in, D-175) + "
-      "POSITIONS + INDEXES — no rlmwf_01_CONFIG* (D-142), no rlmwf_02_FEATURES* "
+      "POSITIONS + INDEXES — no rlmwf_01_CONFIG*, no rlmwf_02_FEATURES* "
       "(the pure-compute level writes nothing)",
       files == ["rlmwf_03_SU_ANALYSIS.dat",
                 "rlmwf_03_SU_ANALYSIS.dat.SHA3-256",
@@ -329,12 +329,12 @@ check("E1 155 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a 
       len(tsrc.splitlines()) == 155
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
-check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the D-065 idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
+check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",
       "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "setUpClass" in tsrc
       and "tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))" in tsrc
       and "mkdtemp" not in tsrc and "shutil" not in tsrc)
-check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — a DB hit on a fresh base dir, D-157 order)",
+check("E3 D-084 T2: the SKIP_REGAB_DB gate at the top of setUp (the move to INDEXES runs POSITIONS — a DB hit on a fresh base dir, the FEATURES-before-POSITIONS order)",
       "SKIP_REGAB_DB" in tsrc and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in tsrc
       and "self.rlm.move_to_step('FEATURES')" in tsrc)
 check("E4 D-084 T3: header grammar 'How to run the wrk_indexes unit tests.' + the DB run note",

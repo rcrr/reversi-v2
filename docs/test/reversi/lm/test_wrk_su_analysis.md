@@ -29,7 +29,7 @@ VLONG 1e7 scale test) / no database.
 - The house test header (the "How to run" block).
 - The NO-DB mock-ctx suite: the `_MockCtx` (the cfg, the feature_set, the cache path, the use_cache, the log buffer, the
   tables artifact) over the REAL pipeline's campaign: the facade runs CREATED -> CONFIG -> FEATURES on the rlm_00
-  fixture (the target_level stop + the base_dir override, D-287 — no parallel loader). The tiny corpus (the 2000-4000
+  fixture (the target_level stop + the base_dir override — no parallel loader). The tiny corpus (the 2000-4000
   positions) keeps the suite fast (no LONG tier); the 1e7 scale test is VLONG.
 - The `tempfile.TemporaryDirectory` per test (the cache + the report + the CSV land in a tmp dir, the tearDown cleans
   up).

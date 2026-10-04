@@ -278,3 +278,36 @@ D-441 | 2026-10-04 | the repo-wide purge of the nine dangling state\_machine D n
          re-run (ALL PASSED), test\_wrk\_final\_log\_print 6/0/1, the docs auditor green. After this D, the only
          9-number mentions in the workspace are the campaign's decisions entries + journal bullets — the history where
          R-540 says they belong.
+
+D-442 | 2026-10-04 | the repo-wide purge wave 2 — the 15 dangling neighbor D numbers (the user's "purge onda 2"; the
+         continuation of the D-441 wave 1, which found and reported these 15 in the same
+         comments):
+         D-065, D-074, D-075, D-079, D-080, D-081, D-083, D-097, D-142, D-157, D-186, D-187, D-287, D-289, D-318 — all
+         verified 0 hits in decisions.md + the closed volumes. The purge, file by file (~100 citations across 24 files):
+         4 worker sources (wrk\_config, logistic\_model, model\_weights, wrk\_save — comment-only: the "config
+         fingerprint (D-142)" tags, the "D-142 sidecar record is RETIRED" narratives, the "(D-074/R1)" name tag); 5 test
+         files (the D-287 "base\_dir override idiom" tags, the "D-289 NO-DB suite" docstring); 7 source mirror docs
+         (the D-289 wrk/hlp-split tags, the "D-318 house style" references, the D-287 fixture idiom); 5 test mirror docs
+         (the same idiom/split tags); 10 probes (the check-name goldens re-cut in place — V1e/V1f/V3c/V4a/V9a/V9b/V10,
+         A6/E7/F1/F2/F3, A8, A1, B1, B10, C3/C4/C6/C7, E2/E3 — plus the two big re-pin-history headers of
+         verify\_logistic\_model and verify\_wrk\_features de-referenced: the session numbers + dates + the behaviour
+         facts kept, the D-numbers and their R1/R2/M tags dropped). Out-of-scope neighbors deliberately LEFT (verified
+         present or absent independently; the next wave's candidates if the user calls
+         it):
+         D-082,
+         D-084,
+         D-085,
+         D-092,
+         D-096,
+         D-098,
+         D-099,
+         D-101-D-106,
+         D-105,
+         D-130,
+         D-139,
+         D-143-D-149,
+         D-175, D-258, D-278, D-279, D-295, D-298, D-312, D-313, D-314, D-315, D-317, D-326, D-327, D-328, D-331, D-332
+         (a wave-3 census to be run on call — several of these, D-09x/D-10x/D-14x, may turn out to be real notes-era
+         decisions). VERIFICATION: the 24 touched .py files parse; the verify\_wrk\_config probe re-run (0 mismatches —
+         the golden renames are name-only, zero assertion change); the docs auditor green. After this D, the only
+         15-number mentions in the workspace are the campaign's decisions entries + journal bullets.

@@ -5,7 +5,7 @@ verify_generate.py — scratch probe for the GENERATE bring-in (session 27).
 Re-derives and verifies, independently of the test files:
   A. hlp_generate.py structure (post-campaign: note, version gate, ws)
   B. wrk_generate.py structure (post-campaign: factory gate, the
-     D-074 _for_current_level naming, ws)
+     the _for_current_level naming, ws)
   C. test_hlp_generate.py structure (post-campaign: English comment, ws)
   D. data-object behavior (no DB): init validation, hash, store/load
      round-trip, the sidecar / description / version gates, the
@@ -93,7 +93,7 @@ check("A5 no non-comment trailing whitespace",
 # B. wrk_generate.py structure (post-campaign)
 # ----------------------------------------------------------------------
 wk_src = read("src/reversi/lm/wrk_generate.py")
-check("B1 the worker uses the D-074 house name _for_current_level (the "
+check("B1 the worker uses the house name _for_current_level (the "
       "pre-campaign _for_next_level call is the R1 AttributeError)",
       "get_cache_file_full_path_for_current_level" in wk_src
       and "for_next_level" not in wk_src)

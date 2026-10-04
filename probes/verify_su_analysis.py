@@ -2,7 +2,7 @@
 #
 # verify_su_analysis.py
 #
-# Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-186/D-258):
+# Probe pinning the SU_ANALYSIS level (the I-017 step 3, D-258):
 # the worker (src/reversi/lm/wrk_su_analysis.py) + its frequency data
 # plane (hlp_su_analysis, the accumulators — the D-295 hlp_random_play
 # retirement) + the shared kernels it calls (the local SU
@@ -163,8 +163,8 @@ from reversi.tools.state_machine import Verbosity  # noqa: E402
 
 
 def _campaign():
-    """The real-pipeline campaign (the hlp_gate replacement,
-    D-287): the facade runs CREATED -> CONFIG -> FEATURES on the
+    """The real-pipeline campaign (the hlp_gate replacement):
+    the facade runs CREATED -> CONFIG -> FEATURES on the
     rlm_00 fixture (the target_level stop, the probe tmp
     base_dir) — the cfg + the feature_set come from the real
     context."""

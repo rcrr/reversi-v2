@@ -1,5 +1,5 @@
 # reversi/lm/wrk_su_analysis.py
-The SU_ANALYSIS worker (the SU level, step 3) — the level ORCHESTRATION SKELETON (D-289, the wrk_design_matrix
+The SU_ANALYSIS worker (the SU level, step 3) — the level ORCHESTRATION SKELETON (the wrk_design_matrix
 minimalism): the enable guard (the disabled path logs and publishes None on the ctx — the ANOVA level's graceful
 degradation input), the CACHED corpus (phase 1, the expensive part — the cache_manager load-or-compute flow
 over the hlp callbacks, the ctx.use_cache gate; the hlp owns the binio I/O (D-288) + the consistency signature
@@ -18,7 +18,7 @@ binio layout, the signature, the statistics kernels).
 
 ## Architecture
 
-- The skeleton (D-289): the wrk owns the LEVEL (the enable, the cache flow, the publication, the failure recovery); the hlp
+- The skeleton: the wrk owns the LEVEL (the enable, the cache flow, the publication, the failure recovery); the hlp
   owns the LOGIC (the corpus, the binio I/O, the signature, the statistics) — the wrk_design_matrix split. The
   worker is ~100 lines: no csv, no hashlib, no numpy, no analysis kernel.
 - The two-tier flow: phase 1 (the corpus) is CACHED (the expensive part — the 1e7 corpus is ~18 s cold); phase 2

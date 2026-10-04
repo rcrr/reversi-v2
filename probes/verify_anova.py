@@ -2,7 +2,7 @@
 #
 # verify_anova.py
 #
-# Probe pinning the ANOVA level (the I-017 step 6, D-187): the
+# Probe pinning the ANOVA level (the I-017 step 6): the
 # worker (src/reversi/lm/wrk_anova.py) + the ANOVA family it
 # consumes (the two kernels + the compute / report methods, in the
 # hlp_anova module) + its cross-level input (ctx.su_analysis_tables,
@@ -193,8 +193,8 @@ from reversi.tools.state_machine import Verbosity  # noqa: E402
 
 
 def _campaign(cfg_path):
-    """The real-pipeline campaign (the hlp_gate replacement,
-    D-287): the facade runs CREATED -> CONFIG -> FEATURES on
+    """The real-pipeline campaign (the hlp_gate replacement):
+    the facade runs CREATED -> CONFIG -> FEATURES on
     cfg_path (the target_level stop, the probe tmp base_dir) —
     the cfg + the feature_set come from the real context."""
     rlm = LogisticModel(str(cfg_path), verbosity=Verbosity.NONE,

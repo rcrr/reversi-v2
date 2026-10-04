@@ -56,7 +56,7 @@ def ws_lines(text):
 print("== tier A: hlp_optimize.py structure (post D-096)")
 a = read("hlp_optimize.py")
 al = a.splitlines()
-check("A1 line count 327 (D-327: the D-318 docstrings — the 17-arg save Args block — + the header cleanup + the 2 log reflows)", len(al) == 327, f"{len(al)}")
+check("A1 line count 327 (D-327: the docstrings — the 17-arg save Args block — + the header cleanup + the 2 log reflows)", len(al) == 327, f"{len(al)}")
 check("A2 T13 header fixed (was 'rglm.py')",
       al[1] == "# hlp_optimize.py" and "rglm.py" not in a)
 check("A3 __future__ annotations", "from __future__ import annotations" in a)

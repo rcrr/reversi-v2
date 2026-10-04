@@ -1,5 +1,5 @@
 # test/reversi/lm/test_hlp_su_analysis.py
-The SU analysis LOGIC NO-DB suite (D-289): the consistency signature (the feature_set hash vs the independently
+The SU analysis LOGIC NO-DB suite: the consistency signature (the feature_set hash vs the independently
 recomposed FeatureSet DOMAIN hash, D-291, the spec + the canonical pairs), the binio round-trip (with / without the
 joint), the load guards (the
 sidecar / the description / the version), the compute determinism (the seed pin), the theoretical configuration
@@ -67,7 +67,7 @@ test_store_deep_validation: a structurally malformed tables dict is rejected at 
 ## Conventions
 
 - The house test header (the "How to run" block).
-- The NO-DB suite: the ctx is the REAL pipeline stopped at the FEATURES level (the D-287 idiom: the silent
+- The NO-DB suite: the ctx is the REAL pipeline stopped at the FEATURES level (the idiom: the silent
   Verbosity.NONE, the base_dir override to the tmp dir, the knobs mutated on the loaded cfg) — the same pattern
   the worker-suite _make_ctx uses, minus the mock. The tiny corpus (2000 positions) keeps the suite fast (no
   LONG tier).

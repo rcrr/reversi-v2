@@ -44,7 +44,7 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
 ## Conventions
 - The house hlp pattern: one public function, `__all__` exported, no module docstring (the mirror is the module's
   documentation, the D-312/D-313/D-315 precedent).
-- The docstring is in the D-318 house style (imperative first line, the body paragraph, the typed Args, the key-by-key
+- The docstring is in the house style (imperative first line, the body paragraph, the typed Args, the key-by-key
   Returns).
 - Undecorated (the ctx idiom, D-317): the `validate_call` boundary applies to the non-ctx public functions — this one
   takes only the context.

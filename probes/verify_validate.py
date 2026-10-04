@@ -91,7 +91,7 @@ check("A4 no dead import in hlp_validate (RegabDBConnection + "
 _typing_line = dv_src.split("from typing import")[1].split("\n")[0]
 check("A5 the `Any` in the `Dict[str, Any]` return annotation is imported "
       "(R1: pre-campaign it is not — a PEP 563-masked latent NameError, nothing "
-      "calls get_type_hints on validate_model today; the D-074 R2 class)",
+      "calls get_type_hints on validate_model today; the R2 class)",
       "Any" in _typing_line or "-> Dict[str, Any]:" not in dv_src,
       f"typing line: {repr(_typing_line)}")
 check("A6 the hlp_validate header carries its OWN name (the bring-in says "

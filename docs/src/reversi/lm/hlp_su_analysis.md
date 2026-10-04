@@ -1,5 +1,5 @@
 # reversi/lm/hlp_su_analysis.py
-The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker, D-289): the streaming frequency
+The SU analysis LOGIC (the hlp of the SU_ANALYSIS worker): the streaming frequency
 accumulators (the marginal + the joint, the phase-1 data plane — the D-295 hlp_random_play
 migration, the position language D-296), the corpus generator (phase 1, the expensive part —
 the random_game play-path engine), the binio cache I/O (the D-288 layout), the

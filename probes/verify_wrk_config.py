@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Verification probe for the CONFIG level (D-142 re-pin: the ad-hoc cache
+Verification probe for the CONFIG level (the ad-hoc cache
 flow is removed — the CONFIG level is a pure load+validate step; the
 config record moved to the SAVE sidecar pair).
 
 Independently re-derives the module's invariants against the real test
 config (test/reversi/data/rlm_00.json) with a scratch base dir under
-build/tmp (D-065). Prints ok/FAIL per check and a mismatch count.
+build/tmp. Prints ok/FAIL per check and a mismatch count.
 """
 import hashlib
 import inspect
@@ -60,7 +60,7 @@ try:
     privates = [n for n in ("_up", "_down", "_load", "_validate",
                             "_validate_base_dir")
                 if not callable(getattr(lwc, n, None))]
-    check("A4 five module-level privates exist (D-142: _store_to_file "
+    check("A4 five module-level privates exist (_store_to_file "
           "gone — the ad-hoc cache flow removed)",
           not privates, repr(privates))
 
@@ -81,14 +81,14 @@ try:
           ctx.cfg.name == raw["name"], ctx.cfg.name)
     check("B6 ctx.use_cache set from the config (True)",
           ctx.use_cache is True, repr(ctx.use_cache))
-    # D-142: the fingerprint is the sha3_256 of the normalized dump
+    # The fingerprint is the sha3_256 of the normalized dump
     # (the effective configuration, the base_dir override included).
     check("B6b ctx.config_checksum = sha3_256 of the normalized dump "
-          "(D-142)",
+          ")",
           ctx.config_checksum
           == hashlib.sha3_256(dump_cfg(ctx.cfg).encode()).hexdigest(),
           repr(ctx.config_checksum))
-    check("B7 no rlmwf_* file in the base dir (D-142: the CONFIG level "
+    check("B7 no rlmwf_* file in the base dir (the CONFIG level "
           "writes nothing — the config record is a SAVE artifact)",
           [p.name for p in base1.iterdir()
            if p.name.startswith("rlmwf_")] == [])
@@ -96,14 +96,14 @@ try:
     # ------------------------------------------------------------------ C
     print("--- C. re-runs and resets ---")
     check("C3 down reset: cfg None, use_cache None, config_checksum None "
-          "(D-142)",
+          ")",
           (lambda m: (m.move_to_step("CREATED"),
                       (m.context.cfg is None,
                        m.context.use_cache is None,
                        m.context.config_checksum is None))[1])
           (model) == (True, True, True))
     # The idempotent second up is a pure load (no cache state to
-    # preserve, D-142) — the fingerprint is stable across the cycle.
+    # preserve) — the fingerprint is stable across the cycle.
     model.move_to_step("CONFIG")
     check("C1 second up: the fingerprint is stable (pure load, no cache)",
           model.context.config_checksum
@@ -144,10 +144,10 @@ try:
     #  test_logistic_model.py::TestLogisticModel::
     #  test_injected_cache_closure_requires_cfg)
 
-    # D-142: the module never writes files (the ad-hoc store is gone —
+    # The module never writes files (the ad-hoc store is gone —
     # the config record is written by the SAVE level)
     src_all = inspect.getsource(lwc)
-    check("E5 no file-write idiom in the module source (D-142)",
+    check("E5 no file-write idiom in the module source",
           "write_text" not in src_all and ".write(" not in src_all)
 
     # rlm_00.json is JSON5 (comments), not plain JSON

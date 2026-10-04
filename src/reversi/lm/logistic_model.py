@@ -105,7 +105,7 @@ class LMContext(Context):
 
     # Configuration attribute:
     cfg: Any = None
-    # The config fingerprint (D-142): the sha3_256 hex of the
+    # The config fingerprint: the sha3_256 hex of the
     # normalized dump (cfg.model_dump_json(indent=4)) — computed at
     # CONFIG, consumed by the SAVE config record and the analytics
     # report.
@@ -189,7 +189,7 @@ class LMContext(Context):
 
     # Injected by StateMachine: the lambda defaults are the
     # pre-injection fallback, under the same
-    # *_for_current_level names the machine injects (D-074/R1).
+    # *_for_current_level names the machine injects.
     log_event: Callable = lambda *args: None
     get_cache_file_path_for_current_level: Callable = lambda: None
     get_cache_file_full_path_for_current_level: Callable = lambda: None

@@ -5,7 +5,7 @@ verify_save.py — D-104 SAVE bring-in probe (post-campaign goldens).
 Tiers:
   A: static hygiene (worker, model_weights, client, test file, fixtures)
   B: model_weights read guards (no DB)
-  C: live rlm_04 full 18-level chain (DB; D-186/D-187: + the I-017
+  C: live rlm_04 full 18-level chain (DB; + the I-017
      SU_ANALYSIS step 3 + the ANOVA step 6)
   D: live rlm_03 full 18-level chain (DB; run only with LONG=1)
 
@@ -130,7 +130,7 @@ def _chain(fixture, name_prefix):
 def tier_c():
     rlm, logs = _chain('rlm_04.json', 'C')
     ctx = rlm.context
-    # (C1 step 16 SAVE (D-186/D-187: +2 levels before SAVE),
+    # (C1 step 16 SAVE (+2 levels before SAVE),
     #  C2/C3/C3b/C4 the metric goldens, C6 file size +
     #  sha3 + sidecar, C7-C9 read-back, C10/C11 evaluation-function
     #  goldens, C12 console pins, C13 file-report masked hash, C14
@@ -168,7 +168,7 @@ def tier_d():
     # (D1-D10 deleted at D-106 step 3, class c: the LONG rlm_03 tier
     #  pins the same goldens as tier C — test_lm_worker_full_chain.py::
     #  TestFullChainA2050::test_full_worker_chain pins step 18
-    #  (D-186/D-187: +2 levels before PLOT), the
+    #  (+2 levels before PLOT), the
     #  vld/train/dense/pop metric sets, the opt info, the v2 file in
     #  the 516991-517091 B size band (D-328: re-centered for the 13
     #  plot-style fields in the embedded dump — measured 517041;

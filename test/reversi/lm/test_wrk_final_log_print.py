@@ -85,7 +85,7 @@ class _MockCtx:
 def _make_ctx(tmp, log_file_name=None):
     """A mock ctx over the REAL pipeline's cfg: the facade runs
     CREATED -> CONFIG on the rlm_00 fixture (the base_dir
-    override, D-287) and the cfg (with base_dir = the tmp dir)
+    override) and the cfg (with base_dir = the tmp dir)
     comes from the real context — no parallel loader. The
     log_file_name field is set on the real cfg."""
     rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /

@@ -91,7 +91,7 @@ def _make_ctx(tmp, n_positions, enable=True, su_pairs=None,
               use_cache=True):
     """A mock ctx over the REAL pipeline's campaign: the facade
     runs CREATED -> CONFIG -> FEATURES on the rlm_00 fixture (the
-    target_level stop + the base_dir override, D-287) and the cfg +
+    target_level stop + the base_dir override) and the cfg +
     the feature_set come from the real context — no parallel
     loader. The su_analysis knobs are mutated on the loaded cfg
     (the tiny corpus at the root empty_count 20, seed 42) + the

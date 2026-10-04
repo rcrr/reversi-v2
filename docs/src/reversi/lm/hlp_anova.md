@@ -34,7 +34,7 @@ D-311 the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of bot
   SKIPPED log note).
 
 ## Architecture
-- The D-289 wrk/hlp split (the D-315 extension): the worker owns the LEVEL (the enable guard + the two FLOW calls);
+- The wrk/hlp split (the D-315 extension): the worker owns the LEVEL (the enable guard + the two FLOW calls);
   this module owns the analysis + the outputs. The worker no longer imports the kernels — the boundary is exactly
   the two FLOW functions.
 - The adherence is computed against the IDEAL (synthetic) frequencies: a structural property of the game geometry + the
@@ -63,7 +63,7 @@ None.
 
 ## Conventions
 - The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation); the
-  descriptive docstring style (the D-317, the house rule since D-318: the imperative first line, the body paragraph,
+  descriptive docstring style (the D-317, the house rule: the imperative first line, the body paragraph,
   the typed Google-style Args / Returns).
 - The 2 PURE-MATH kernels are the @validate_call Pydantic boundary (the typed ArrayLike / dict parameters, the
   ConfigDict arbitrary_types_allowed); the 2 FLOW functions stay undecorated (the ctx idiom — the hlp_design_matrix /

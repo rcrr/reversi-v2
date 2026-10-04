@@ -50,7 +50,7 @@ def _up(ctx: "LMContext") -> None:
 
     # D-144 (C2): the model file embeds the configuration provenance
     # (the normalized dump + the fingerprint, the LEADING body section)
-    # — it is the single source of the run's configuration. The D-142
+    # — it is the single source of the run's configuration. The
     # sidecar record (<output>.config.json) is RETIRED (Roberto's
     # ruling: the record is eliminated, the model file stands alone).
     model_weights_write_file(ctx, output_path, compressed=True)

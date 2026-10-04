@@ -273,7 +273,7 @@ else:
         check("C6a the step-13 log span from 'Generating model analytics "
               "report...' to 'Analytics report saved to ...' is exactly 22 "
               "lines (1 'Generating' + 1 'Computing metrics' + 1 'Computing "
-              "dense-pass metrics' (D-105/M2) + 18 header lines (D-142: + "
+              "dense-pass metrics' (D-105/M2) + 18 header lines (+ "
               "the Config SHA3-256 line) + 1 'saved to') — pinned by the "
               "live run",
               _span == 22, f"span lines: {_span}")
@@ -282,7 +282,7 @@ else:
         check("C7 no rlmwf_15_* cache file in the base dir (ANALYTICS is pure compute)",
               c12 == [], f"files: {c12}")
         check("C7b the rlmwf_* file set is unchanged by ANALYTICS "
-              "(04/05/07/08/12/13 + sidecars — the 6 cache levels; D-142: "
+              "(04/05/07/08/12/13 + sidecars — the 6 cache levels; "
               "no rlmwf_01_CONFIG* anymore)",
               sorted(p.name for p in tmp.iterdir() if p.name.startswith("rlmwf_"))
               == sorted(["rlmwf_04_POSITIONS.dat",
@@ -409,7 +409,7 @@ _h = format_console_report(SimpleNamespace(
 check("D3 the console report (no tables, no date): the N/A TRAINING-DENSE "
       "(D-105/M2) + VALIDATION columns (6 N/A cells), the Population "
       "baseline line, the Generalization Gap 0.00 + Substitution Delta "
-      "0.00 lines, the Config SHA3-256 line (D-142), 18 lines total",
+      "0.00 lines, the Config SHA3-256 line, 18 lines total",
       "MODEL ANALYTICS REPORT: HandCase" in _h
       and "Optimization Status         : done (7 iters)" in _h
       and f"Config SHA3-256             : {_D3_HASH}" in _h

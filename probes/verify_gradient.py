@@ -61,7 +61,7 @@ check("A5 no validate_call (hlp_gradient_compute — the L166 class)",
       "validate_call" not in a)
 check("A6 no pydantic import", "pydantic" not in a)
 check("A7 no ws lines", ws_lines(a) == set(), str(sorted(ws_lines(a))))
-check("A8 sigmoid docstring (D-318 descriptive)",
+check("A8 sigmoid docstring (descriptive)",
       "Compute the sigmoid (logistic) function element-wise" in a
       and "The scipy expit form is numerically stable for extreme "
       "values of x" in a)

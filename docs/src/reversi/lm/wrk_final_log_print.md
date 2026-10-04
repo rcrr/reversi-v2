@@ -51,8 +51,8 @@ artifact, the `_down` does not unlink it).
 
 ## Conventions
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`; the gate in the worker, the logic in
-  the hlp (the PLOT idiom, the D-289 split).
-- The docstring style (D-318 house rule) in hlp_final_log_print.
+  the hlp (the PLOT idiom, the wrk/hlp split).
+- The docstring style (the house rule) in hlp_final_log_print.
 - The optional gate by PRESENCE (the `log_file_name` entry), not by a boolean flag — "Se la entry manca, il file NON
   viene generato".
 

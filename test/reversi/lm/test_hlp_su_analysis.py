@@ -34,13 +34,13 @@
 # $ source .venv/bin/activate
 #
 # -1- Run the tests (no database — the real-pipeline ctx stopped at
-#     the FEATURES level, the D-287 idiom).
+#     the FEATURES level, the idiom).
 #
 # time PERF=0 python3 -m unittest test.reversi.lm.test_hlp_su_analysis
 #
 
 """
-The SU analysis LOGIC NO-DB suite (D-289): the consistency
+The SU analysis LOGIC NO-DB suite: the consistency
 signature (the feature_set hash, the independent sha3_256), the
 binio round-trip (with / without the joint), the load guards (the
 description / the version / the sidecar), the compute determinism,
@@ -108,7 +108,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
     """The SU analysis logic suite: the signature, the binio I/O,
     the compute determinism, the statistics kernels, the report +
     the CSV, the cache consistency. The ctx is the REAL pipeline
-    stopped at the FEATURES level (the D-287 idiom), silent."""
+    stopped at the FEATURES level (the idiom), silent."""
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -119,7 +119,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
 
     def _ctx(self, total=2000, seed=42, su_pairs=None):
         """The real pipeline stopped at the FEATURES level, with the
-        su_analysis knobs mutated on the loaded cfg (the D-287
+        su_analysis knobs mutated on the loaded cfg (the
         idiom, the worker-suite _make_ctx pattern minus the mock)."""
         rlm = LogisticModel(str(FIXTURE), verbosity=Verbosity.NONE,
                             base_dir_override=self.tmp)

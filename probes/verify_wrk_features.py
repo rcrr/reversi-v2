@@ -5,13 +5,13 @@
 # Probe pinning the verified behaviour of the FEATURES worker
 # (src/reversi/lm/wrk_features.py) and of its test file
 # (test/reversi/lm/test_wrk_features.py), session 22
-# (D-081 analysis). Re-pinned in session 22 (D-082) to the fixed
+# Re-pinned in session 22 (D-082) to the fixed
 # behaviour: R1 (the amask log prints m.amask), M1-M3 (factory
 # @validate_call, the 2 whitespace lines, the orphan comment
-# removed), test T1-T4 + M2 (D-065 idiom, the SKIP_REGAB_DB gate,
+# removed), test T1-T4 + M2 (the tmp-dir idiom, the SKIP_REGAB_DB gate,
 # the dead import now load-bearing, header grammar, whitespace
 # clean) + the new golden content test (its hash literal pinned).
-# Test M1 resolved at D-157 (I-012 realized, the I-017 T1): the
+# Test M1 resolved (I-012 realized, the I-017 T1): the
 # stale POSITIONS-dependency comment is removed and the setUp
 # moves to FEATURES directly.
 #
@@ -20,7 +20,7 @@
 # FeatureSet / Mobility / MobilitySet / Pattern / PatternSet API
 # (not the worker code path) and compared with the worker output.
 #
-# DB-free since D-157 (the move to FEATURES no longer crosses
+# DB-free (the move to FEATURES no longer crosses
 # POSITIONS — CONFIG + FEATURES only).
 #
 # House convention: writes only under build/tmp, self-cleans via
@@ -146,7 +146,7 @@ check("B7 per-feature counts (LMC 65/1, ALMC 65/1, DLMC 129/1, ELLE 81/8, EDGE 6
       == {"INTERCEPT": (1, 1), "LMC": (65, 1), "ALMC": (65, 1), "DLMC": (129, 1),
           "EDGE": (6561, 4), "ELLE": (81, 8)})
 
-# R1 behaviour pin: the DEBUG lines print m.mask twice (D-081 R1).
+# R1 behaviour pin: the DEBUG lines print m.mask twice.
 # cfg order: [LMC, ALMC, DLMC]; LMC amask is 0, ALMC mask is 0.
 m_lines = [l for l in s1.splitlines() if "Mobility: name =" in l]
 check("B8a 3 mobility debug lines", len(m_lines) == 3)
@@ -179,11 +179,11 @@ check("B9d independent FeatureSet: identical feature list + hash",
       == [(f.name, int(f.n_configurations), int(f.n_instances)) for f in fs.features]
       and my_fs.hash == fs.hash)
 
-# On-disk effect: no cache files at all (D-157: POSITIONS is
+# On-disk effect: no cache files at all (POSITIONS is
 # downstream of FEATURES, so its cache file is not written either).
-# (D-142: the CONFIG level writes no cache file anymore.)
+# (the CONFIG level writes no cache file anymore.)
 files = sorted(p.name for p in (TMP / "base1").iterdir())
-check("B10 flat cache files: none (no rlmwf_01_CONFIG* — D-142 — "
+check("B10 flat cache files: none (no rlmwf_01_CONFIG* — "
       "no rlmwf_02_FEATURES* — the pure-compute level writes nothing)",
       files == [])
 
@@ -198,7 +198,7 @@ check("B12 down to CONFIG: step 1, feature_set cleared",
       m1.current_step == 1 and m1.context.feature_set is None)
 
 # Second instance on the same base dir: FEATURES recomputed (no
-# cache) and identical; no DB access at all (D-157: POSITIONS is
+# cache) and identical; no DB access at all (POSITIONS is
 # not in the path).
 out2 = io.StringIO()
 with contextlib.redirect_stdout(out2):
@@ -206,7 +206,7 @@ with contextlib.redirect_stdout(out2):
     m2.move_to_step("FEATURES")
 s2 = out2.getvalue()
 check("B13a second run: no DB access (no connection, no extraction — "
-      "POSITIONS is not in the path, D-157)",
+      "POSITIONS is not in the path)",
       "established successfully" not in s2 and "Extracted" not in s2)
 check("B13b second run: the FEATURES level ran (the INFO line)",
       "Loading board features as defined by the model..." in s2)
@@ -225,19 +225,19 @@ check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 3)
-check("C3 T1 FIXED (D-082, re-anchored D-085): the D-065 idiom via the shared test.reversi.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
+check("C3 T1 FIXED (D-082, re-anchored D-085): the idiom via the shared test.reversi.paths module (import, setUpClass mkdir, TemporaryDirectory, defensive tearDown)",
       "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT" in tsrc
       and "CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)" in tsrc
       and 'tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))' in tsrc
       and "mkdtemp" not in tsrc)
-check("C4 gate REMOVED (D-157: the setUp is DB-free — no POSITIONS in the path)",
+check("C4 gate REMOVED (the setUp is DB-free — no POSITIONS in the path)",
       "db_long_gate" not in tsrc and "SKIP_REGAB_DB" not in tsrc)
 check("C5 T3 FIXED (D-082): the Path import is now load-bearing (tmp_dir; D-085: CUSTOM_TMP_BASE moved to test.reversi.paths)",
       "from pathlib import Path" in tsrc and len(re.findall(r"\bPath\b", tsrc)) > 1)
-check("C6 T4 FIXED (D-082; re-anchored D-157): header grammar 'How to run the wrk_features unit tests.' + the DB-free run note",
+check("C6 T4 FIXED (D-082; re-anchored): header grammar 'How to run the wrk_features unit tests.' + the DB-free run note",
       "How to run the wrk_features unit tests." in tsrc
       and "Run the tests (DB-free: the setUp moves to" in tsrc)
-check("C7 M1 resolved (D-157, I-012 realized): the stale POSITIONS-dependency comment is gone",
+check("C7 M1 resolved (I-012 realized): the stale POSITIONS-dependency comment is gone",
       "as FEATURES depends on the configuration loaded there" not in tsrc
       and "move_to_step('POSITIONS')" not in tsrc)
 check("C8 M2 FIXED (D-082): no trailing-whitespace lines",

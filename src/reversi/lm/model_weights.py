@@ -63,7 +63,7 @@ class ModelWeights:
     w_dense: np.ndarray
     # D-144 (C2): the configuration provenance — the normalized config
     # dump + its sha3_256 fingerprint, embedded in the model file (the
-    # D-142 sidecar record is RETIRED — the model file is the single
+    # sidecar record is RETIRED — the model file is the single
     # source). Both are None for v1 files. They trail the file-order
     # fields (the dataclass requires defaulted fields last) although
     # the file section LEADS the body (Roberto's ruling).
@@ -91,7 +91,7 @@ def model_weights_write_file(ctx: "LMContext",
         # 1. Configuration provenance (D-144/C2): the model file is the
         #    single source of the run's configuration — the normalized
         #    dump (the effective config, the base_dir override included,
-        #    the same string the D-142 record used to carry) + its
+        #    the same string the sidecar record used to carry) + its
         #    sha3_256 fingerprint (the CONFIG-level checksum), the
         #    sentinel first. The section LEADS the body (Roberto's
         #    ruling: "mettiamola in testa").

@@ -1915,3 +1915,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   parse, il probe verify\_final\_log\_print ri-eseguito (ALL PASSED), test\_wrk\_final\_log\_print 6/0/1,
   docs auditor verde. Dopo questo D le uniche menzioni dei 9 numeri sono gli entry di decisions + i bullet del
   journal — la storia, dove R-540 dice che sta.
+
+- D-442 (purge onda 2 — i 15 numeri segnalati in D-441): D-065/074/075/079/080/081/083/097/142/157/186/187/
+  287/289/318, tutti 0 hit in decisions.md + volumi (verificato). ~100 citazioni su 24 file: 4 sorgenti worker
+  (solo commenti: i tag "config fingerprint (D-142)", le narrative "D-142 sidecar RETIRED", il tag "(D-074/R1)"),
+  5 test (i tag "D-287 idiom" e il docstring "D-289 NO-DB suite"), 7 mirror doc + 5 test-doc (i tag di split
+  wrk/hlp D-289 e le rif a "D-318 house style"), 10 probe (i golden rinominati in place + i due header di
+  storia dei re-pin di verify\_logistic\_model e verify\_wrk\_features de-referenced: numeri di sessione,
+  date e fatti di comportamento restano, via i D-numbers e i tag R1/R2/M). Fuori scope (lasciati, candidati
+  onda 3 se il user la chiama): ~35 numeri limitrofi (D-082/084/085/092/096/098/099/101-106/105/130/139/
+  143-149/175/258/278/279/295/298/312/313/314/315/317/326/327/328/331/332) — alcuni (D-09x/10x/14x) potrebbero
+  essere decisioni reali dell'era notes: censimento da fare a richiesta. Verifica: i 24 .py parse, il probe
+  verify\_wrk\_config ri-eseguito (0 mismatches — rinomina solo dei nomi, zero change di assert), docs
+  auditor verde.

@@ -44,7 +44,7 @@ FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated
 tests).
 
-- Source shape (probe A1-A12 + B1-B9): module 338 lines (the D-331 format pass: the D-314 reflow + the D-318
+- Source shape (probe A1-A12 + B1-B9): module 338 lines (the D-331 format pass: the D-314 reflow + the
   docstrings, the 3 decision tags out + the 2 dead assignments out), the 5-name `__all__`, exactly 4
   `@validate_call` (NOT on compute / is_cache_consistent — the no-validation comment), the store write
   order, the 3 load RuntimeError messages, the 2-field compare, 0 non-comment trailing-whitespace lines;

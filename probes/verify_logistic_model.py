@@ -3,27 +3,27 @@
 #
 # Re-derives the key facts about logistic_model.LogisticModel/LMContext
 # and the state_machine integration without trusting the module's own
-# tests. Artifacts: build/tmp only (D-065), removed afterwards.
+# tests. Artifacts: build/tmp only, removed afterwards.
 #
-# Re-pinned in session 22 (D-081) to the post-D-074/D-075/D-081
-# state: the session-21 original pinned the pre-D-074 state (legacy
+# Re-pinned in session 22 to the post fix-batches state: the
+# session-21 original pinned the pre-fix state (legacy
 # _for_next_level names, the latent-Union get_type_hints NameError, the
 # FileNotFoundError-for-a-directory behaviour, the 1-worker V9
 # boundaries) and was never re-pinned after the fix batches. Now:
-# D-074 R1 (the *_for_current_level lambda fields), R2 (str | None
-# annotations, get_type_hints succeeds), R3 (@validate_call on __init__),
-# M3 (IsADirectoryError for a directory as config), CONFIG active,
-# the gate split lets the CONFIG worker's pydantic ValidationError
-# propagate), D-081 (FEATURES active — 4 workers).
+# the *_for_current_level lambda fields, str | None annotations (get_
+# type_hints succeeds), @validate_call on __init__, IsADirectoryError
+# for a directory as config, CONFIG active (the gate split lets the
+# CONFIG worker's pydantic ValidationError propagate), FEATURES active
+# — 4 workers.
 #
-# Re-pinned in session 23 (D-083) to the post-a323e0f state: INDEXES
+# Re-pinned in session 23 to the post-a323e0f state: INDEXES
 # enabled (the lm_worker_indexes() import + worker-list entry
 # uncommented) — 5 active levels (CREATED sentinel, CONFIG, POSITIONS,
 # FEATURES, INDEXES). V10 unchanged: LMContext already declared the
 # rlm_indexes / rlm_indexes_checksum blackboard fields at first import
-# (9 *_checksum fields, no features_checksum; D-142: + config_checksum).
+# (9 *_checksum fields, no features_checksum; + config_checksum).
 #
-# Re-pinned in session 27 (D-097) to the post-e31c061 state: GENERATE
+# Re-pinned in session 27 to the post-e31c061 state: GENERATE
 # enabled (the lm_worker_generate() import + worker-list entry
 # uncommented) — 11 active levels. V3c re-pinned 10 -> 11; the other
 # checks are unchanged.
@@ -54,7 +54,7 @@
 # wrk_plot() import + worker-list entry) — the matplotlib diagnostic
 # figures are now the 18th level. V3c pins the 18 active levels; the
 # other checks are unchanged.
-# D-157 state (2026-09-11): I-012 realized (the I-017 T1
+# (2026-09-11): I-012 realized (the I-017 T1
 # transposition): FEATURES (step 2) before POSITIONS (step 3). The
 # V3c list pins the 18 active levels; the other checks are
 # unchanged.
@@ -63,7 +63,7 @@
 # log on file (the optional log_file_name config entry) is now the
 # 19th level. V3c re-pinned 18 -> 19; the other checks are
 # unchanged.
-# D-186/D-187 state (2026-09-13): I-017 realized (the I-017 T16/T17
+# (2026-09-13): I-017 realized (the T16/T17
 # workers): the SU_ANALYSIS (step 3, the SU-analysis corpus cache, the
 # rlmwf_03 slot) sits between FEATURES and POSITIONS; the ANOVA
 # (step 6, the eta^2/omega^2 + the adherence, NO cache) sits between
@@ -102,17 +102,17 @@ check("V1c config_file_path field no default",
       fields["config_file_path"].default is dataclasses.MISSING)
 check("V1d use_cache field default None",
       fields["use_cache"].default is None)
-check("V1e legacy _for_next_level names GONE (D-074 R1)",
+check("V1e legacy _for_next_level names GONE",
       "get_cache_file_path_for_next_level" not in fields
       and "get_cache_file_full_path_for_next_level" not in fields)
-check("V1f *_for_current_level are dataclass fields now (lambda defaults = pre-injection fallback, D-074 R1)",
+check("V1f *_for_current_level are dataclass fields now (lambda defaults = pre-injection fallback)",
       "get_cache_file_path_for_current_level" in fields
       and "get_cache_file_full_path_for_current_level" in fields)
 check("V1g log_event default is a lambda",
       callable(fields["log_event"].default)
       and type(fields["log_event"].default) is type(lambda: None))
 
-# --- V8: annotations resolve (D-074 R2) ----------------------------------
+# --- V8: annotations resolve ---------------------------------------------
 try:
     typing.get_type_hints(LMContext)
     check("V8 get_type_hints succeeds (str | None annotations, no latent Union NameError)", True)
@@ -154,7 +154,7 @@ ctx = model.context
 # (V3a/V3b deleted at D-106 step 3, class c: the fresh-model state is
 #  pinned at the top of every full-chain test, e.g. test_lm_worker_
 #  indexes.py — and is the hub's V3c pre-state)
-check("V3c 19 active levels (D-186/D-187: I-017 SU_ANALYSIS step 3 + ANOVA step 6; D-157: FEATURES before POSITIONS; FINAL_LOG_PRINT last)",
+check("V3c 19 active levels (I-017 SU_ANALYSIS step 3 + ANOVA step 6; FEATURES before POSITIONS; FINAL_LOG_PRINT last)",
       [w.name for w in model.sm.workers]
       == ["CREATED", "CONFIG", "FEATURES", "SU_ANALYSIS",
           "POSITIONS", "INDEXES", "ANOVA", "WMAPS",
@@ -172,8 +172,8 @@ check("V3d 0 commented worker imports / entries in logistic_model.py "
                   and "()" in ln)
               for ln in lm_src.splitlines()))
 
-# the D-074 state, live:
-check("V4a legacy _for_next_level gone from the live context (D-074 R1)",
+# the fix state, live:
+check("V4a legacy _for_next_level gone from the live context",
       not hasattr(ctx, "get_cache_file_path_for_next_level")
       and not hasattr(ctx, "get_cache_file_full_path_for_next_level"))
 # (V4b/c deleted at D-106 step 3, class c: the injected closures'
@@ -187,7 +187,7 @@ check("V4d log_event injected (bound method, not the lambda default)",
 #  model.py::test_created_sentinel_workers_raise /
 #  test_pre_injection_fallback_is_no_op_lambda)
 
-# --- V9: 5-worker machine boundaries (re-pinned D-083) -------------------
+# --- V9: 5-worker machine boundaries (re-pinned) -----------------------
 # With CONFIG active and the gate split, the empty {} config makes
 # the CONFIG worker raise its pydantic ValidationError, which propagates
 # (no conversion to the gate's TypeError); a failed move leaves
@@ -216,7 +216,7 @@ for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_la
               f"got {type(e).__name__}: {e}; step {m.current_step}")
 
 # --- V10: LMContext artifact inventory (doc support) --------------------
-check("V10 checksum-typed fields: 9 (D-142: + config_checksum), and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
+check("V10 checksum-typed fields: 9 (+ config_checksum), and NO features_checksum (feature_set is an in-memory derivation, no cache file)",
       sum(1 for n in fields if n.endswith("_checksum")) == 9
       and "features_checksum" not in fields,
       str([n for n in fields if n.endswith("_checksum")]))

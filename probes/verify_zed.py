@@ -216,7 +216,7 @@ finally:
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
 check('F1  LMContext zed fields pre-declared (the block shifts with every '
-      'insertion above it: the D-142 config_checksum, the D-148/D-149 imports, '
+      'insertion above it: the config_checksum, the D-148/D-149 imports, '
       'the I-018 vld_y_pred / vld_rn / vld_outliers fields)',
       lm_lines[146] == '    zed_checksum: str | None = None'
       and lm_lines[147] == '    y2z: Any = None'

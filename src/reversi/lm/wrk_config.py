@@ -59,7 +59,7 @@ def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
     ctx.use_cache = cfg.use_cache
     ctx.cfg = cfg
-    # The config fingerprint (D-142): the sha3_256 of the normalized
+    # The config fingerprint: the sha3_256 of the normalized
     # dump (the effective configuration of the run, the base_dir
     # override included) — the single source of truth for the SAVE
     # config record and the analytics report.

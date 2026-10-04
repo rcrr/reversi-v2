@@ -392,7 +392,7 @@ class _MockCtx:
 
 def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
     """The mock ctx over the real rlm_00 campaign (the facade runs
-    CREATED -> CONFIG -> FEATURES, the D-287 idiom): 100 synthetic
+    CREATED -> CONFIG -> FEATURES, the idiom): 100 synthetic
     training positions (the 2-code concentrated codes — code 0 for
     the first 50 positions, code 1 for the rest — the same rule for
     every sub-variable), the complete synthetic wmap (one row per

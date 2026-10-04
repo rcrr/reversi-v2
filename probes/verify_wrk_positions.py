@@ -2,8 +2,8 @@
 # verify_wrk_positions.py
 #
 # Independent ground-truth probe for wrk_positions.py +
-# hlp_config_schemas.py (session 21, D-079 analysis; re-pinned to
-# the fixed behaviour in session 22, D-080).
+# hlp_config_schemas.py (session 21; re-pinned to
+# the fixed behaviour in session 22).
 #
 # A: structure / source pins (no DB)
 # B: live pipeline first run (DB hit + flat cache files)
@@ -103,16 +103,16 @@ check("A1 __all__ exposes factory + 3 helpers",
 w = wrk_positions()
 check("A2 factory name POSITIONS", w.name == "POSITIONS", w.name)
 src = Path(lp.__file__).read_text()
-check("A4 factory HAS @validate_call (D-080 M1)",
+check("A4 factory HAS @validate_call (M1)",
       "def wrk_positions() -> Worker:" in src
       and "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in src)
-check("A5 pathlib.Path import removed (D-080 M2)",
+check("A5 pathlib.Path import removed (M2)",
       "from pathlib import Path" not in src)
-# M3 scope (as in the M3 on lm_worker_config): only the D-079-
+# M3 scope (as in the M3 on lm_worker_config): only the
 # flagged lines (L73/L89/L92) are cleaned; the remaining trailing
 # whitespace (license header, import block, is_cache_consistent
 # body) stays as in the original file.
-check("A6 D-079-flagged trailing-whitespace lines (L73/L89/L92) now clean (D-080 M3)",
+check("A6 the flagged trailing-whitespace lines (L73/L89/L92) now clean (M3)",
       "\n    ctx.rds_checksum = rds_checksum\n\n" in src
       and "    }\n\n    return\n\n\ndef _down" in src)
 
@@ -229,7 +229,7 @@ print("--- E. rlm_config_schemas validation behaviour ---")
 #  probe_rules.md §4.)
 import reversi.lm.hlp_config_schemas as rs
 rsrc = Path(rs.__file__).read_text()
-check("E7 model_validator import now used by the c2>c1 validator (D-080 R1/M2)",
+check("E7 model_validator import now used by the c2>c1 validator (R1/M2)",
       "model_validator" in rsrc.split("from pydantic import")[1].split(")")[0]
       and "@model_validator" in rsrc)
 
@@ -237,16 +237,16 @@ check("E7 model_validator import now used by the c2>c1 validator (D-080 R1/M2)",
 print("--- F. source-level cross-reference pins ---")
 lpsrc = src
 seg = lpsrc.split("def load_from_db")[1].split("def wrk_positions")[0]
-check("F1 load_from_db passes port + password (5-arg RegabDBConnection call) (D-080 R1)",
+check("F1 load_from_db passes port + password (5-arg RegabDBConnection call)",
       "RegabDBConnection(conn_params.dbname, conn_params.user,\n"
       "                           conn_params.host, str(conn_params.port),\n"
       "                           conn_params.password)" in seg)
-check("F2 load_fn passes checksum=False — no redundant sidecar verify (D-080 M4)",
+check("F2 load_fn passes checksum=False — no redundant sidecar verify (M4)",
       "load_fn     = lambda path: regab_load_data_set_from_file(path, checksum=False)" in lpsrc)
 import reversi.regab as rg
 rgsrc = Path(rg.__file__).read_text()
 store_fn_src = rgsrc.split("def regab_store_data_set_to_file")[1].split("\ndef ")[0]
-check("F3 regab_store docstring corrected — no sidecar promise (D-080 cross-ref)",
+check("F3 regab_store docstring corrected — no sidecar promise (cross-ref)",
       "calculates the SHA3-256 checksum" not in store_fn_src
       and "cache_manager" in store_fn_src)
 check("F4 use_cache IS consumed here (is_allowed=ctx.use_cache) — the CONFIG worker's switch",

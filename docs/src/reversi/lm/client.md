@@ -76,7 +76,7 @@ None.
 ## Conventions
 
 - The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation);
-  the descriptive docstring style (the D-317, the house rule since D-318: the imperative first line, the body
+  the descriptive docstring style (the D-317, the house rule: the imperative first line, the body
   paragraph, the typed Google-style Args / Returns) applied to the 3 functions in D-323 (the D-141 / the D-111 M5
   provenance references removed); the line width is the D-314 reflow (the 120-char, no hard limit).
 - BOTH factories are `@validate_call` (arbitrary_types_allowed); the array ef closure is validated too (the

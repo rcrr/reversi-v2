@@ -87,7 +87,7 @@ class _MockCtx:
 def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
     """A mock ctx over the REAL pipeline's campaign: the facade
     runs CREATED -> CONFIG -> FEATURES on the rlm_00 fixture (the
-    target_level stop + the base_dir override, D-287) and the cfg +
+    target_level stop + the base_dir override) and the cfg +
     the feature_set come from the real context — no parallel
     loader. The raw codes + the game values stay SYNTHETIC (the
     DB data, not generatable no-DB)."""
