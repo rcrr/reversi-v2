@@ -1889,3 +1889,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   @validate\_call non sono toccate), 10 trailing-ws, triplo blank normalizzato. Source-doc nello stesso commit
   (docs\_rules §5.1): i 4 D-321 dangling in prosa (il fatto FINAL\_LOG\_PRINT resta), il "49 tests" storto → 51
   (il micro-test di D-439). 50/0/0 (zero behavior change), docs auditor verde.
+
+- D-439 (test + test-doc): via le 2 narrazioni di provenienza dalle docstring dei guard-contract
+  ("probe\_rules.md §4: …converted from the verify\_wrk\_config.py E2/E3 probe" — R-540: resta la descrizione,
+  via la storia); via i 2 D-321 dangling (docstring del full-replay + commento dell'injection-pin, il fatto
+  FINAL\_LOG\_PRINT resta); 19 trailing-ws. MICRO-TEST approvato: test\_csv\_export\_accepts\_str\_filename — il
+  union filename str | Path era testato solo con Path; ora coperto (50 → 51 test). Il resto della suite è
+  COMPLETO (niente altri gap R-850: stato, sentinella, failure/retry/recovery, gate, costruttore, matrice 6×5,
+  iniezione, goldens frozen-clock, CSV). Test-doc nello stesso commit (docs\_rules §5.1): "49 tests" storto →
+  51 (riga TestStateMachine 33 → 34 + la pin nuova), via i tag "R2" e "V17" e il D-321, stima runtime a ~0.2 s.
+  51/0/0.

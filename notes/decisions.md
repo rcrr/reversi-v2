@@ -235,3 +235,18 @@ D-438 | 2026-10-04 | tools/state\_machine.py + its mirror doc — the source fix
          triple blank lines normalized. The mirror doc REWRITTEN IN THE SAME COMMIT (docs\_rules.md §5.1): the 4
          dangling D-321 references to plain prose (the FINAL\_LOG\_PRINT fact kept), the stale "49 tests" → 51
          (the D-439 micro-test). 50/0/0 (no behavior change); the docs auditor green.
+
+D-439 | 2026-10-04 | test/reversi/tools/test\_state\_machine.py + its mirror doc — the test cleanup + one micro-test
+         (the second D of the state\_machine campaign; the user approved the micro-test on the analysis): the provenance
+         narratives dropped from the two guard-contract docstrings ("probe\_rules.md §4: pins the FULL message,
+         converted from the verify\_wrk\_config.py E2/E3 probe (the re-pinned guard contract)" — R-540 for test
+         comments: the behaviour description stays, the change-history does not); the two dangling D-321 references (the
+         full-replay docstring + the injection-pin comment) to plain prose (the FINAL\_LOG\_PRINT fact kept); 19
+         trailing-ws stripped. NEW micro-test (the approved gap): test\_csv\_export\_accepts\_str\_filename — the
+         export\_history\_of\_moves\_as\_csv(filename: str | Path) union was tested only with a Path; the str branch is
+         now covered (50 → 51 tests). The suite is otherwise COMPLETE (no other R-850 gap — the state model, the
+         sentinel, the failure/retry/recovery semantics, the gate (bool / np.int64 / float / unknown name /
+         out-of-bounds), the constructor guards, the 6×5 verbosity matrix, the context injection, the frozen-clock
+         display goldens and the CSV export are all pinned). The test-doc REWRITTEN IN THE SAME COMMIT (docs\_rules.md
+         §5.1): the stale "49 tests" → 51 (the TestStateMachine row 33 → 34 + the new pin), the "R2" campaign tag, the
+         "V17" probe-provenance tag and the D-321 reference dropped, the runtime estimate tightened to ~0.2 s. 51/0/0.

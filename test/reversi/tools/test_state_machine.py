@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -69,17 +69,17 @@ class TestStateMachine(unittest.TestCase):
         self.mock_stdout = self.patcher.start()
 
         self.context = Context()
-        
+
         # Create mock callables for up and down
         self.up_callables = [MagicMock() for _ in range(3)]
         self.down_callables = [MagicMock() for _ in range(3)]
-        
+
         self.workers = [
             Worker("CREATED", self.up_callables[0], self.down_callables[0]),
             Worker("CONFIG", self.up_callables[1], self.down_callables[1]),
             Worker("POSITIONS", self.up_callables[2], self.down_callables[2])
         ]
-        
+
         self.sm = StateMachine(self.workers, self.context)
 
     def tearDown(self):
@@ -96,7 +96,7 @@ class TestStateMachine(unittest.TestCase):
     def test_move_up_single_step(self):
         """Test moving up a single step."""
         self.sm.move_to_step(1)
-        
+
         self.assertEqual(self.sm.current_step, 1)
         self.up_callables[1].assert_called_once_with(self.context)
         self.down_callables[1].assert_not_called()
@@ -106,7 +106,7 @@ class TestStateMachine(unittest.TestCase):
     def test_move_up_multiple_steps(self):
         """Test moving up multiple steps in one call."""
         self.sm.move_to_step(2)
-        
+
         self.assertEqual(self.sm.current_step, 2)
         self.up_callables[1].assert_called_once_with(self.context)
         self.up_callables[2].assert_called_once_with(self.context)
@@ -121,9 +121,9 @@ class TestStateMachine(unittest.TestCase):
         # Reset mocks to only observe the downward movement
         for mock in self.up_callables + self.down_callables:
             mock.reset_mock()
-            
+
         self.sm.move_to_step(1)
-        
+
         self.assertEqual(self.sm.current_step, 1)
         self.down_callables[2].assert_called_once_with(self.context)
         self.up_callables[2].assert_not_called()
@@ -135,9 +135,9 @@ class TestStateMachine(unittest.TestCase):
         self.sm.move_to_step(2)
         for mock in self.up_callables + self.down_callables:
             mock.reset_mock()
-            
+
         self.sm.move_to_step(0)
-        
+
         self.assertEqual(self.sm.current_step, 0)
         self.down_callables[2].assert_called_once_with(self.context)
         self.down_callables[1].assert_called_once_with(self.context)
@@ -146,7 +146,7 @@ class TestStateMachine(unittest.TestCase):
     def test_move_to_same_step(self):
         """Test that moving to the current step does nothing."""
         self.sm.move_to_step(0)
-        
+
         self.assertEqual(self.sm.current_step, 0)
         for mock in self.up_callables + self.down_callables:
             mock.assert_not_called()
@@ -250,17 +250,14 @@ class TestStateMachine(unittest.TestCase):
     def test_move_to_step_by_string(self):
         """Test moving to a step using the worker's name (case-insensitive)."""
         self.sm.move_to_step("positions")
-        
+
         self.assertEqual(self.sm.current_step, 2)
         self.up_callables[1].assert_called_once_with(self.context)
         self.up_callables[2].assert_called_once_with(self.context)
 
     def test_move_to_step_by_invalid_string(self):
-        """Test that providing an invalid string name raises ValueError.
-
-        probe_rules.md §4: pins the FULL message, converted from
-        the verify_wrk_config.py E2 probe (the re-pinned guard
-        contract)."""
+        """Test that providing an invalid string name raises ValueError,
+        pinning the FULL message."""
         with self.assertRaises(ValueError) as context:
             self.sm.move_to_step("NON_EXISTENT_WORKER")
 
@@ -268,11 +265,8 @@ class TestStateMachine(unittest.TestCase):
                          "Worker 'NON_EXISTENT_WORKER' not found in the pipeline.")
 
     def test_move_to_step_out_of_bounds_high(self):
-        """Test that providing an index >= len(workers) raises IndexError.
-
-        probe_rules.md §4: pins the FULL message, converted from
-        the verify_wrk_config.py E3 probe (the re-pinned guard
-        contract)."""
+        """Test that providing an index >= len(workers) raises IndexError,
+        pinning the FULL message."""
         with self.assertRaises(IndexError) as context:
             self.sm.move_to_step(3)
 
@@ -292,20 +286,20 @@ class TestStateMachine(unittest.TestCase):
         """Test that exceptions in workers are logged and re-raised."""
         # Make the 'up' callable of step 1 raise an exception
         self.up_callables[1].side_effect = RuntimeError("Simulated computation failure")
-        
+
         with self.assertRaises(RuntimeError):
             self.sm.move_to_step(2)
-            
+
         # The state machine should still be at step 1 because step 1 failed during execution
         self.assertEqual(self.sm.current_step, 1)
-        
+
         # Check that an error log was generated (the typed record)
         error_logs = [log for log in self.sm.logs if log.relevance == Relevance.ERROR]
         self.assertEqual(len(error_logs), 1)
         self.assertIn("Simulated computation failure", error_logs[0].message)
         self.assertEqual(error_logs[0].worker_name, "CONFIG")
         self.assertEqual(error_logs[0].step, 1)
-        
+
         # History should still record the attempted move
         self.assertEqual(len(self.sm.history), 1)
         self.assertEqual(self.sm.history[0].worker_name, "CONFIG")
@@ -526,6 +520,20 @@ class TestStateMachine(unittest.TestCase):
             if nested_dir.exists():
                 nested_dir.rmdir()
                 nested_dir.parent.rmdir()
+
+    def test_csv_export_accepts_str_filename(self):
+        """The filename is a str | Path union: a plain str path works
+        (the artifact stays under workspace_root/build/tmp and is
+        removed afterwards)."""
+        self.sm.move_to_step(1)
+
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        str_path = str(TMP_DIR / "history_str.csv")
+        try:
+            self.sm.export_history_of_moves_as_csv(str_path)
+            self.assertTrue(Path(str_path).is_file())
+        finally:
+            Path(str_path).unlink(missing_ok=True)
 
 
 class TestLogEntry(unittest.TestCase):
@@ -812,7 +820,7 @@ class TestDisplayGoldens(unittest.TestCase):
             "[ INFO:    HIGH] Completed UP step for CONFIG")
 
     def test_format_event_log_full_replay(self):
-        """The D-321 render (the FINAL_LOG_PRINT file source): all
+        """The full-buffer render (the FINAL_LOG_PRINT file source): all
         buffered entries — every relevance, independent of the
         verbosity gate — as live-line text. The machine runs
         verbosity VERY_LOW (nothing but ERROR prints): the
@@ -843,7 +851,7 @@ class TestDisplayGoldens(unittest.TestCase):
             "[2026-08-29 12:34:56 UTC] [00][CREATED        ] "
             "[ WARN:VERY_LOW] w")
         # The injection pin: the context carries the bound
-        # renderer (the D-321 worker accessor).
+        # renderer (the FINAL_LOG_PRINT worker accessor).
         self.assertEqual(context.format_event_log, sm.format_event_log)
 
     def test_show_event_log_golden(self):
