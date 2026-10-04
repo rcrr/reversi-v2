@@ -28,17 +28,14 @@
 """
 The MT-19937 64-bit pseudo-random number generator.
 
-MT-19937 (the 64-bit Mersenne Twister) is a DETERMINISTIC generator:
-seeded once with an integer, it yields a reproducible stream of
-64-bit values. The state is a 312-word (64-bit) array; a draw first
-TWISTS the array (a linear recurrence mixing the 312 words) and then
-TEMPERS the output word with a 4-operation bitwise mix. The period
-is 2^19937 - 1, so a single seed defines the whole stream.
+MT-19937 (the 64-bit Mersenne Twister) is a DETERMINISTIC generator: seeded once with an integer, it yields a
+reproducible stream of 64-bit values. The state is a 312-word (64-bit) array; a draw first TWISTS the array (a linear
+recurrence mixing the 312 words) and then TEMPERS the output word with a 4-operation bitwise mix. The period is 2^19937
+- 1, so a single seed defines the whole stream.
 
-Typing: every 64-bit value in the data path is a numpy uint64 — the
-type itself applies the unsigned-wraparound contract (arithmetic
-overflows modulo 2^64; no unbounded Python ints, no manual masking).
-Loop counters are plain ints (control flow, not data).
+Typing: every 64-bit value in the data path is a numpy uint64 — the type itself applies the unsigned-wraparound contract
+(arithmetic overflows modulo 2^64; no unbounded Python ints, no manual masking). Loop counters are plain ints (control
+flow, not data).
 
 API (the MT19937 class, the sole STREAM interface):
   MT19937(seed)                      construct + seed the state.
@@ -54,14 +51,11 @@ API (the MT19937 class, the sole STREAM interface):
   extract_from_set64(set_arr)        pick + remove a random bit (in place).
   choose_one_from_set64(set64)       pick a random bit, WITHOUT removing.
 
-The pick-from-set technique lives ONCE in this module, shared
-by the class methods and the numba contexts: pick_one_from_set64 (the
-scalar kernel — the methods draw one value and delegate to it) and
-pick_one_from_set64_batch (the vectorized form over an (N,) array of
-sets, fed by one get_uint64_batch pre-draw).
+The pick-from-set technique lives ONCE in this module, shared by the class methods and the numba contexts:
+pick_one_from_set64 (the scalar kernel — the methods draw one value and delegate to it) and pick_one_from_set64_batch
+(the vectorized form over an (N,) array of sets, fed by one get_uint64_batch pre-draw).
 
-The state (_mt / _mti) is INTERNAL: it is never exposed, and a
-generator is neither saved nor re-seeded.
+The state (_mt / _mti) is INTERNAL: it is never exposed, and a generator is neither saved nor re-seeded.
 """
 
 from __future__ import annotations
@@ -83,13 +77,10 @@ NN: int = 312
 
 class MT19937:
     """
-    The 64-bit MT-19937 generator: a seeded, deterministic stream of
-    64-bit values.
+    The 64-bit MT-19937 generator: a seeded, deterministic stream of 64-bit values.
 
-    Construction takes the seed (REQUIRED) and initializes the state;
-    the object is always initialized and cannot be re-seeded. The
-    state (_mt / _mti) is INTERNAL — it is never exposed (a
-    generator is not saved or re-seeded).
+    Construction takes the seed (REQUIRED) and initializes the state; the object is always initialized and cannot be
+    re-seeded. The state (_mt / _mti) is INTERNAL — it is never exposed (a generator is not saved or re-seeded).
 
     Attributes (internal):
       _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
@@ -98,13 +89,11 @@ class MT19937:
 
     def __init__(self, seed: int) -> None:
         """
-        Initialize the 312-word working area from the seed (the
-        MT-19937 init recurrence); the first get_uint64 twists the
-        just-initialized array before its first draw.
+        Initialize the 312-word working area from the seed (the MT-19937 init recurrence); the first get_uint64 twists
+        the just-initialized array before its first draw.
 
         Args:
-            seed (int): The REQUIRED seed (the generator is always
-                initialized and cannot be re-seeded).
+            seed (int): The REQUIRED seed (the generator is always initialized and cannot be re-seeded).
         """
         # Seed the 312-word working area (the MT-19937 init). The
         # working index is left at NN, so the FIRST get_uint64
@@ -129,31 +118,26 @@ class MT19937:
         Get the next 64-bit value of the sequence.
 
         Returns:
-            np.uint64: The next value (bit-identical to the first
-            element of get_uint64_batch(1)).
+            np.uint64: The next value (bit-identical to the first element of get_uint64_batch(1)).
         """
         return self.get_uint64_batch(1)[0]
 
     def get_uint64_batch(self, n: int) -> np.ndarray:
         """
-        Get the n successive values of the sequence as a (n,)
-        uint64 array.
+        Get the n successive values of the sequence as a (n,) uint64 array.
 
         Args:
-            n (int): The number of values to draw (n == 0 returns
-                an empty (0,) array).
+            n (int): The number of values to draw (n == 0 returns an empty (0,) array).
 
         Returns:
-            np.ndarray: The (n,) uint64 array of the draws —
-            bit-identical to get_uint64 called n times.
+            np.ndarray: The (n,) uint64 array of the draws — bit-identical to get_uint64 called n times.
         """
         draws, self._mti = _get_uint64_batch(self._mt, self._mti, n)
         return draws
 
     def get_double_in_c0_c1(self) -> np.float64:
         """
-        Get a random float in the [0, 1] interval (both ends
-        included): the top 53 bits of a uint64 (53 = the float64
+        Get a random float in the [0, 1] interval (both ends included): the top 53 bits of a uint64 (53 = the float64
         mantissa bits) scaled to the unit interval.
 
         Returns:
@@ -164,9 +148,8 @@ class MT19937:
 
     def get_double_in_c0_o1(self) -> np.float64:
         """
-        Get a random float in the [0, 1) interval (0 included, 1
-        excluded): the top 53 bits of a uint64 scaled to the unit
-        interval.
+        Get a random float in the [0, 1) interval (0 included, 1 excluded): the top 53 bits of a uint64 scaled to the
+        unit interval.
 
         Returns:
             np.float64: A value in [0, 1).
@@ -176,10 +159,8 @@ class MT19937:
 
     def get_double_in_o0_o1(self) -> np.float64:
         """
-        Get a random float in the (0, 1) interval (open at both
-        ends): the top 52 bits of a uint64, offset by half a step,
-        scaled to the unit interval so neither endpoint is
-        reachable.
+        Get a random float in the (0, 1) interval (open at both ends): the top 52 bits of a uint64, offset by half a
+        step, scaled to the unit interval so neither endpoint is reachable.
 
         Returns:
             np.float64: A value in (0, 1).
@@ -190,16 +171,13 @@ class MT19937:
 
     def random_choice_from_finite_set(self, k: int) -> np.uint64:
         """
-        Choose a random integer uniformly distributed in the
-        [0, k-1] interval (k must be a positive integer).
+        Choose a random integer uniformly distributed in the [0, k-1] interval (k must be a positive integer).
 
-        k == 1 returns 0 WITHOUT consuming a value from the sequence
-        (a single-element choice is deterministic); otherwise one
-        value is consumed.
+        k == 1 returns 0 WITHOUT consuming a value from the sequence (a single-element choice is deterministic);
+        otherwise one value is consumed.
 
         Args:
-            k (int): The number of elements (the choice set is
-                [0, k-1]).
+            k (int): The number of elements (the choice set is [0, k-1]).
 
         Returns:
             np.uint64: The chosen integer, in [0, k-1].
@@ -220,19 +198,14 @@ class MT19937:
 
     def _shuffle_slots(self, array: np.ndarray, n: int) -> None:
         """
-        Shuffle in place the n first ELEMENTS of array (Fisher-Yates),
-        in C-order element order for any shape. The 1-D branch
-        addresses the elements directly (a strided 1-D view is
-        shuffled in place — no ravel, no copy); the N-D branch walks
-        the C-order element sequence through array.flat (no copy;
-        F-order and strided views safe). The draw contract is the n - 1
-        random_choice_from_finite_set draws, in order (n <= 1 consumes
-        nothing).
+        Shuffle in place the n first ELEMENTS of array (Fisher-Yates), in C-order element order for any shape. The 1-D
+        branch addresses the elements directly (a strided 1-D view is shuffled in place — no ravel, no copy); the N-D
+        branch walks the C-order element sequence through array.flat (no copy; F-order and strided views safe). The draw
+        contract is the n - 1 random_choice_from_finite_set draws, in order (n <= 1 consumes nothing).
 
         Args:
             array (np.ndarray): The array to shuffle, in place.
-            n (int): The number of first elements (in C order) to
-                shuffle.
+            n (int): The number of first elements (in C order) to shuffle.
 
         Raises:
             IndexError: If n exceeds the array's element count.
@@ -254,14 +227,12 @@ class MT19937:
 
     def shuffle_uint8(self, array: np.ndarray, n: int) -> None:
         """
-        Arrange in place the n first elements of a uint8 array in
-        random order (Fisher-Yates) — any shape, C-order element
-        order. n == 0 or n == 1 consumes no random value.
+        Arrange in place the n first elements of a uint8 array in random order (Fisher-Yates) — any shape, C-order
+        element order. n == 0 or n == 1 consumes no random value.
 
         Args:
             array (np.ndarray): The uint8 array to shuffle, in place.
-            n (int): The number of first elements (in C order) to
-                shuffle.
+            n (int): The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not uint8.
@@ -273,14 +244,12 @@ class MT19937:
 
     def shuffle(self, array: np.ndarray, n: int) -> None:
         """
-        Shuffle in place the n first elements of any numpy array
-        (any dtype, any shape, Fisher-Yates) in C-order element
+        Shuffle in place the n first elements of any numpy array (any dtype, any shape, Fisher-Yates) in C-order element
         order. n == 0 or n == 1 consumes no random value.
 
         Args:
             array (np.ndarray): The array to shuffle, in place.
-            n (int): The number of first elements (in C order) to
-                shuffle.
+            n (int): The number of first elements (in C order) to shuffle.
 
         Raises:
             IndexError: If n exceeds the array's element count.
@@ -289,15 +258,12 @@ class MT19937:
 
     def shuffle_double(self, array: np.ndarray, n: int) -> None:
         """
-        Shuffle in place the n first elements of a float64 array
-        (Fisher-Yates) — any shape, C-order element order. n == 0 or
-        n == 1 consumes no random value.
+        Shuffle in place the n first elements of a float64 array (Fisher-Yates) — any shape, C-order element order. n ==
+        0 or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The float64 array to shuffle, in
-                place.
-            n (int): The number of first elements (in C order) to
-                shuffle.
+            array (np.ndarray): The float64 array to shuffle, in place.
+            n (int): The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not float64.
@@ -309,16 +275,12 @@ class MT19937:
 
     def shuffle_int(self, array: np.ndarray, n: int) -> None:
         """
-        Shuffle in place the n first elements of an integer array
-        (Fisher-Yates; accepts any integer dtype — the shuffle is a
-        dtype-agnostic slot swap), any shape, C-order element order.
-        n == 0 or n == 1 consumes no random value.
+        Shuffle in place the n first elements of an integer array (Fisher-Yates; accepts any integer dtype — the shuffle
+        is a dtype-agnostic slot swap), any shape, C-order element order. n == 0 or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The integer array to shuffle, in
-                place.
-            n (int): The number of first elements (in C order) to
-                shuffle.
+            array (np.ndarray): The integer array to shuffle, in place.
+            n (int): The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not an integer dtype.
@@ -335,8 +297,7 @@ class MT19937:
         Generate a string of n random characters in the [a..z] range.
 
         Args:
-            n (int): The string length (n == 0 returns the empty
-                string).
+            n (int): The string length (n == 0 returns the empty string).
 
         Returns:
             str: The n-character string.
@@ -351,23 +312,19 @@ class MT19937:
 
     def extract_from_set64(self, set_arr: np.ndarray) -> np.uint8:
         """
-        Pick + REMOVE a random bit from the 64-bit set and return
-        its 0-based position.
+        Pick + REMOVE a random bit from the 64-bit set and return its 0-based position.
 
-        ``set_arr`` is a uint64 ndarray whose element 0 holds the set
-        bitmask, updated IN PLACE (the picked bit is cleared from the
-        ORIGINAL set, so the skipped-lowest bits survive).
+        ``set_arr`` is a uint64 ndarray whose element 0 holds the set bitmask, updated IN PLACE (the picked bit is
+        cleared from the ORIGINAL set, so the skipped-lowest bits survive).
 
         Args:
-            set_arr (np.ndarray): The uint64 set array, mutated in
-                place.
+            set_arr (np.ndarray): The uint64 set array, mutated in place.
 
         Returns:
             np.uint8: The 0-based position of the picked bit.
 
         Raises:
-            ValueError: If the array is not uint64, or if the set is
-                empty.
+            ValueError: If the array is not uint64, or if the set is empty.
         """
         if set_arr.dtype != np.uint64:
             raise ValueError("extract_from_set64: the set must be uint64")
@@ -382,19 +339,15 @@ class MT19937:
 
     def choose_one_from_set64(self, set64: np.uint64) -> tuple[np.uint64, np.uint8]:
         """
-        Pick a random bit from the 64-bit set WITHOUT removing it
-        (unlike extract_from_set64, the set is read, never mutated):
-        k = the popcount, the c-th set bit (skipping the c lowest)
-        is picked.
+        Pick a random bit from the 64-bit set WITHOUT removing it (unlike extract_from_set64, the set is read, never
+        mutated): k = the popcount, the c-th set bit (skipping the c lowest) is picked.
 
         Args:
-            set64 (np.uint64): The set to pick from (read, never
-                mutated).
+            set64 (np.uint64): The set to pick from (read, never mutated).
 
         Returns:
-            tuple[np.uint64, np.uint8]: (1 << p, p) with p a set bit
-            of the set. The empty set returns the (0, 64) sentinel
-            (64 = no bit) WITHOUT consuming a draw.
+            tuple[np.uint64, np.uint8]: (1 << p, p) with p a set bit of the set. The empty set returns the (0, 64)
+                sentinel (64 = no bit) WITHOUT consuming a draw.
         """
         s = np.uint64(set64)
         if s == np.uint64(0):
@@ -417,10 +370,8 @@ class MT19937:
 
 @nb.njit(cache=True)
 def _get_uint64_batch(mt, mti, n):
-    """INTERNAL to the class: the n successive u64 draws (the
-    twist + the 4-op temper). Only MT19937.get_uint64_batch
-    calls it. Returns (draws, mti). The twist + temper
-    constants (MM / UM / LM / MAG) are local to the kernel; NN
+    """INTERNAL to the class: the n successive u64 draws (the twist + the 4-op temper). Only MT19937.get_uint64_batch
+    calls it. Returns (draws, mti). The twist + temper constants (MM / UM / LM / MAG) are local to the kernel; NN
     (the working-area size) is module-level."""
     # The twist + temper constants (kernel-local).
     MM = 156  # the half-state offset (NN // 2)
@@ -469,11 +420,9 @@ def _get_uint64_batch(mt, mti, n):
 @nb.njit(cache=True)
 def pick_one_from_set64(s, d):
     """
-    Pick one bit uniformly from the NON-ZERO 64-bit set s, given the
-    pre-drawn uint64 value d: k = popcount(s),
-    r = (d >> 11) * (1 / 2**53) — the get_double_in_c0_o1
-    scalarization — c = floor(r * k), the c-th set bit of s
-    (skipping the c lowest).
+    Pick one bit uniformly from the NON-ZERO 64-bit set s, given the pre-drawn uint64 value d: k = popcount(s), r = (d
+    >> 11) * (1 / 2**53) — the get_double_in_c0_o1 scalarization — c = floor(r * k), the c-th set bit of s (skipping the
+    c lowest).
 
     Args:
         s (np.uint64): The NON-ZERO set to pick from.
@@ -483,9 +432,8 @@ def pick_one_from_set64(s, d):
         (np.uint64, np.uint8): (1 << p, p) with p the picked set bit.
 
     Raises:
-        ValueError: If s is the empty set (the caller's guard: the
-        class methods and the batch kernel never delegate it —
-        without it, the pop-position loop would not terminate).
+        ValueError: If s is the empty set (the caller's guard: the class methods and the batch kernel never delegate it
+            — without it, the pop-position loop would not terminate).
     """
     if s == np.uint64(0):
         raise ValueError("pick_one_from_set64: the set must not be empty")
@@ -510,28 +458,20 @@ def pick_one_from_set64(s, d):
 @nb.njit(parallel=True, cache=True)
 def pick_one_from_set64_batch(sets, draws, slots):
     """
-    Pick one bit per set, the vectorized pick_one_from_set64 over an
-    (N,) uint64 array of sets: element i with a non-empty set picks
-    from sets[i]
-    using draws[slots[i]] (slots[i] = the number of NON-EMPTY sets
-    before i — the prefix count the caller computes, e.g. the cumsum
-    of sets != 0); draws is the (k,) uint64 array of the pre-drawn
-    values, one per non-empty set in element order. An empty set
-    yields 0 (the caller's pass signal) and consumes no draw. The
-    whole call is the bit-identical counterpart of calling
-    MT19937.choose_one_from_set64 on the elements in order with the
-    same stream.
+    Pick one bit per set, the vectorized pick_one_from_set64 over an (N,) uint64 array of sets: element i with a
+    non-empty set picks from sets[i] using draws[slots[i]] (slots[i] = the number of NON-EMPTY sets before i — the
+    prefix count the caller computes, e.g. the cumsum of sets != 0); draws is the (k,) uint64 array of the pre-drawn
+    values, one per non-empty set in element order. An empty set yields 0 (the caller's pass signal) and consumes no
+    draw. The whole call is the bit-identical counterpart of calling MT19937.choose_one_from_set64 on the elements in
+    order with the same stream.
 
     Args:
         sets (np.ndarray): The (N,) uint64 array of sets.
-        draws (np.ndarray): The (k,) uint64 array of the pre-drawn
-            values, one per non-empty set in element order.
-        slots (np.ndarray): The (N,) int64 prefix counts (the number
-            of non-empty sets before each element).
+        draws (np.ndarray): The (k,) uint64 array of the pre-drawn values, one per non-empty set in element order.
+        slots (np.ndarray): The (N,) int64 prefix counts (the number of non-empty sets before each element).
 
     Returns:
-        np.ndarray: The (N,) uint64 array of the picked bits (0 for
-        the empty sets).
+        np.ndarray: The (N,) uint64 array of the picked bits (0 for the empty sets).
     """
     n = sets.shape[0]
     out = np.empty(n, dtype=np.uint64)

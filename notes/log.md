@@ -1685,3 +1685,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - Next: il resto del backlog dell'overview (verifica delle fonti test, il rework MOBILITY, il README di
   progetto, il formato pass di board/pattern/feature/mobility + tools — binio e prng chiusi, la re-review del
   register).
+
+## 2026-10-04 — session 96 (D-426 — prng reflow: le docstring a ~120)
+
+- Session 96 (Roberto): reflow richiesto "con la larghezza della riga come da regole, sia codice che docstring"
+  per tools/prng.py. Misurato prima di toccare: R-520 è un soffitto (~120, ogni riga fisica — codice, commenti,
+  docstring) e il file era già conforme (545 righe, max fisica 99 caratteri, 0 righe oltre 120, no trailing ws;
+  idem per tutta la storia git — D-201 → D-425 — e per il test mirror, max 86, e binio.py, max 87). L'utente ha
+  scelto comunque il ri-avvolgimento dopo la misurazione: le docstring passano dal wrap ~72 di casa a ~120 —
+  deviazione esplicita per-file (il wrap largo resta solo in prng.py; R-520 e lo stile degli altri file
+  format-passati sono intatti).
+- D-426: prng.py — i 20 docstring (doc del modulo, doc della classe, 15 metodi, 3 kernel di modulo) ri-avvolti
+  greedy-120 da uno script one-shot (scratch/reflow\_prng.py, gitignored): prosa e descrizioni
+  Args/Returns/Raises rifluiscono (le entry corte collassano su una riga, le 2 lunghe si avvolgono a
+  continuation +4), la struttura delle sezioni e la tabella API indentata del doc del modulo restano verbatim;
+  i commenti #, il codice e ogni riga non-docstring sono byte-identici a HEAD (verificato programmaticamente).
+  Una nudge cosmetica oltre il greedy fill: nel doc del modulo il break che avrebbe lasciato "- 1, so a single
+  seed..." a inizio riga è spostato di una parola, così "2^19937 - 1" resta insieme. Zero behavior change
+  (solo docstring; i kernel numba ricompilano da codice identico). 545 → 485 righe.
+- VERIFICATION: test\_prng 30/0/0 (inclusi i bit-exact goldens); suite via wrapper 1062/0/24 GREEN (invariata);
+  notes\_lint verde; il gate verde a questo checkin.
