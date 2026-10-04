@@ -94,3 +94,25 @@ D-429 | 2026-10-04 | tools/opt\_lbfgs.py — the code fixes (the first D of the 
          minors: the `size=` keyword arg, the 3-4 module-level blank lines reduced to 2, the `# FG :` comment tidied. NO
          behavior change beyond the new ValueError; test\_opt\_lbfgs 14/0/0; the guard verified empirically (two invalid
          bounds → ValueError, one valid run OK).
+
+D-430 | 2026-10-04 | test/reversi/tools/test\_opt\_lbfgs.py — the test completion + the test-doc sync (the second D of
+         the opt\_lbfgs campaign). The R-850/R-860 gaps flagged in the analysis — all of them already declared in the
+         test-doc's Integration "Known open gaps" — closed: (1) TestLBFGSInputValidation +2 — the new iteration-bounds
+         guard of D-429 pinned: `max_iters < 1` and `initial_iter >= max_iters` raise `ValueError`; (2) a new
+         TestLBFGSInfoContract (5 tests) — the `info` dict pinned exactly (the 9-key set, `info['w']` IS the returned x,
+         `f` / `g_norm` agree with a fresh `fg(x)` evaluation, `iters` within (0, max\_iters], sl/yl/rho co-length); the
+         history capped at m (a Rosenbrock run with m=2: 1 ≤ len(sl) ≤ 2); x0 never mutated (the x0.copy() contract,
+         probe E7); the float32 end-to-end contract (an f32 x0 stays f32 in x, the sl/yl vectors and g\_norm — the
+         mirror doc's Conventions bullet, unpinned until now); the `logger` hook exercised (it receives the log lines);
+         (3) a new TestLBFGSStopReasons (3 tests) — the three documented `reason` strings pinned at runtime:
+         CONVERGED\_MIN\_GRAD (a quadratic), MAX\_ITERS\_REACHED (Rosenbrock, 2 iters, `iters == 2`),
+         CONVERGED\_LOW\_PROGRESS (a near-flat f = 1 + 1e-12·‖x‖² — the relative decrease stagnates in f64); (4)
+         cleanup: the "O2b" campaign tag out of the two-loop assert message (docs\_rules.md §4 — campaign tags do not
+         belong in test text), the historical comment "Updated save\_fn signature to match opt\_lbfgs.py" out, the
+         random draws unified on `np.random.default_rng` (the legacy `np.random.seed` and `default_rng` were mixed in
+         the same file — the Zakharov start changed, the test still converges within atol 1e-5), 21 trailing-whitespace
+         lines stripped (4 in the license banner). The test-doc is rewritten in the SAME commit (docs\_rules.md §5.1): 7
+         classes / 14 tests → 9 classes / 24 tests, the two new Coverage rows, the stop-reason literals + the 9-key set
+         added to Goldens pinned, and the min\_grad / min\_p\_fun\_decrease gap REMOVED from the Known open gaps (the
+         restart branch, the curvature skip and the Hermite internals stay integration-only, as before). 14/0/0 → 24/0/0
+         (~0.050 s, the fast tier unchanged); the docs auditor green on the rewritten test-doc.

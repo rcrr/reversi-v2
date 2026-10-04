@@ -1768,3 +1768,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   nel mirror doc in D-432); (7) PEP8: size=, righe vuote di modulo → 2, commento FG. Zero behavior change tranne
   il nuovo ValueError; test\_opt\_lbfgs 14/0/0; il guard verificato (2 casi invalidi → ValueError, 1 run valido
   OK).
+
+- D-430 (completamento dei test + test-doc): chiusi i gap R-850/860 della view (già dichiarati come known open gaps
+  nel test-doc): +2 test di validazione per la guard di D-429 (max\_iters < 1 e initial\_iter >= max\_iters →
+  ValueError); nuova classe TestLBFGSInfoContract (5 test): il dict info a 9 chiavi pinato per esteso (le chiavi,
+  info\['w'\] = x restituito, f/g\_norm coerenti con una nuova valutazione fg(x), iters in (0, max\_iters],
+  sl/yl/rho co-lunghi), la storia capped a m, x0 mai mutato (il contratto x0.copy() della probe E7), float32
+  end-to-end (x, sl/yl, g\_norm restano f32 — il contratto delle Conventions del mirror doc, finora senza pin),
+  il logger esercitato; nuova classe TestLBFGSStopReasons (3 test): i 3 reason strings pinati a runtime
+  (CONVERGED\_MIN\_GRAD sul quadratico, MAX\_ITERS\_REACHED su Rosenbrock a 2 iters con iters == 2,
+  CONVERGED\_LOW\_PROGRESS su una funzione quasi piatta f = 1 + 1e-12·‖x‖² — il decremento relativo staziona in
+  f64). Pulizia: via il tag "O2b" dal messaggio di assert (docs\_rules §4), via il commento storico "Updated
+  save\_fn signature…", i random draw uniformati su default\_rng (Zakharov cambia punto di partenza, converge
+  sempre), 21 trailing ws via. Test-doc riscritto nello stesso commit (docs\_rules §5.1): 9 classi / 24 test,
+  le 2 righe Coverage nuove, i reason literals nel Goldens pinned, il gap min\_grad/min\_p\_fun\_decrease
+  rimosso dai known open gaps (restano restart, curvature skip e interni Hermite — integration-only come prima).
+  14/0/0 → 24/0/0 (~0.05 s, tier fast invariato); docs auditor verde.
