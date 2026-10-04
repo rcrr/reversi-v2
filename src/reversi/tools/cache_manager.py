@@ -26,9 +26,9 @@
 #
 
 """
-Utility module to handle computation caching with a 4-step validation pipeline.
-It abstracts file I/O, checksum validation, and cache invalidation.
-Checksum sidecar I/O is delegated to the reversi.tools.binio sidecar API.
+Utility module to handle computation caching with a 4-step validation pipeline. It abstracts file
+I/O, checksum validation, and cache invalidation. Checksum sidecar I/O is delegated to the
+reversi.tools.binio sidecar API.
 """
 
 from pathlib import Path
@@ -65,8 +65,8 @@ def _verify_checksum(file_path: Path) -> bool:
     """Verifies that the checksum sidecar of the data file exists and matches it (the pipeline step 2).
 
     Delegates to the binio sidecar API: a missing sidecar (FileNotFoundError), a malformed sidecar
-    (BinaryFormatError) and an undecodable sidecar (UnicodeDecodeError) all mean "no valid sidecar" for
-    the pipeline, so they are mapped to False instead of raising.
+    (BinaryFormatError) and an undecodable sidecar (UnicodeDecodeError) all mean "no valid sidecar"
+    for the pipeline, so they are mapped to False instead of raising.
 
     Args:
         file_path (Path): The data file (the sidecar path is derived from it).
@@ -120,8 +120,8 @@ def _compute_and_store(cache_path: Path, compute_fn: ComputeFunc[T],
         logger_fn (LoggerFunc): The log sink (a Relevance, message pair).
 
     Returns:
-        tuple: The (False, data, data_checksum) triple — always a fresh computation (cache_hit False),
-        the computed data, and its duck-typed data checksum (None when absent).
+        tuple: The (False, data, data_checksum) triple — always a fresh computation (cache_hit
+            False), the computed data, and its duck-typed data checksum (None when absent).
     """
     logger_fn(Relevance.INFO, "Executing heavy computation...")
     data = compute_fn()
@@ -148,16 +148,16 @@ def cache_manager_load_or_compute(cache_path: Path,
                                   ) -> tuple[bool, T, str | None]:
     """Orchestrates the 4-step cache validation pipeline (load cached data or recompute).
 
-    Every failure path deletes the cache files and converges on the compute tail, so the caller always
-    gets fresh, stored, checksummed data. When the data object has a callable compute_sha3_256_hash
-    method it is used to compute the data checksum — a different value and a different concept from the
-    cache file checksum — returned as the third element of the result tuple.
+    Every failure path deletes the cache files and converges on the compute tail, so the caller
+    always gets fresh, stored, checksummed data. When the data object has a callable
+    compute_sha3_256_hash method it is used to compute the data checksum — a different value and a
+    different concept from the cache file checksum — returned as the third element of the result tuple.
 
     Args:
         cache_path (Path): The cache data file (coerced from str by the validate_call gate).
-        is_allowed (bool): Step 0 — is caching allowed for this step? When False, computation is forced;
-            the result is STILL stored to the cache file (intentional: a cache-disabled run always warms
-            the cache).
+        is_allowed (bool): Step 0 — is caching allowed for this step? When False, computation is
+            forced; the result is STILL stored to the cache file (intentional: a cache-disabled run
+            always warms the cache).
         load_fn (LoadFunc[T]): The business-logic loader (cache_path) -> data.
         store_fn (StoreFunc[T]): The business-logic store (data, cache_path).
         validate_fn (ValidateFunc[T]): Step 3 — the business-logic data validation (data) -> bool.
@@ -166,8 +166,8 @@ def cache_manager_load_or_compute(cache_path: Path,
 
     Returns:
         tuple: The (cache_hit, data, data_checksum) triple — True when the data was loaded from the
-        verified cache, False when it was computed; the computed or loaded data; the duck-typed data
-        object checksum, or None when absent.
+            verified cache, False when it was computed; the computed or loaded data; the duck-typed
+            data object checksum, or None when absent.
     """
 
     #: Step 0: Is cache allowed?
@@ -187,9 +187,8 @@ def cache_manager_load_or_compute(cache_path: Path,
         _delete_cache_files(cache_path)
         return _compute_and_store(cache_path, compute_fn, store_fn, logger_fn)
 
-    #: Step 3: Is application data valid? (Business Logic)
-    # load + data checksum + validation are all in the try: a raising
-    # load_fn, a raising data checksum, or a raising validate_fn all
+    # : Step 3: Is application data valid? (Business Logic) load + data checksum + validation are
+    # all in the try: a raising load_fn, a raising data checksum, or a raising validate_fn all
     # invalidate the cache and force recomputation.
     try:
         cached_data = load_fn(cache_path)

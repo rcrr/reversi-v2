@@ -195,3 +195,10 @@ D-435 | 2026-10-04 | test/reversi/tools/test\_cache\_manager.py — the test cle
          cases, the validate\_call coercion, the delete idempotency, the binio sidecar format — 22 tests pinning every
          documented behaviour. The test-doc is UNCHANGED (the fix is comment-only, its content — 3 classes / 22 tests,
          the coverage, the goldens, the probe inventory — stays true). 22/0/0 (no behavior change).
+
+D-436 | 2026-10-04 | tools/cache\_manager.py + test/reversi/tools/test\_cache\_manager.py — the R-520 reflow pass (the
+         user's "ultimo step", the third D of the cache\_manager campaign): wsutils/src\_reflow.py --write on the source
+         AND the test — 6 docstrings reflowed in the source (4 re-wrapped, 210 lines), 34 in the test (21 re-wrapped,
+         600 lines); both files verified CANONICAL fixed points of the reflow afterwards. The tool's pre-write
+         verifications passed (per-docstring/per-block logical identity, the parse, the idempotence); 22/0/0 — NO
+         behavior change (docstrings + comment line breaks only).

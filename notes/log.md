@@ -1857,3 +1857,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   undecodable), i 5 casi di duck-typing, il coercion validate\_call, l'idempotenza del delete, il formato binio
   del sidecar — 22 test su ogni comportamento documentato. Test-doc invariato (il fix è solo un commento, il
   contenuto resta vero). 22/0/0 (zero behavior change).
+
+- D-436 (il pass src\_reflow — l'ultimo step): wsutils/src\_reflow.py --write su sorgente e test — 6 docstring
+  ri-avvolti nel sorgente (210 righe), 34 nel test (600 righe); entrambi i file sono ora a punto fisso canonico
+  del reflow (verificato con la check). Verifica: identità logica preservata (la verifica pre-write del tool),
+  22/0/0, zero behavior change.

@@ -43,9 +43,8 @@
 """
 Unit tests for the reversi.tools.cache_manager module.
 
-This suite verifies the 4-step validation pipeline, ensuring that caching,
-checksum validation, fallback computation logic, and the cache_hit flag
-behave predictably under various scenarios.
+This suite verifies the 4-step validation pipeline, ensuring that caching, checksum validation,
+fallback computation logic, and the cache_hit flag behave predictably under various scenarios.
 """
 
 import unittest
@@ -118,17 +117,15 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.temp_path.write_text("Hello, Cache World!")
 
     def test_binio_sidecar_verifies(self):
-        """A sidecar written by binio's own API verifies
-        through the _verify_checksum wrapper — both modules share
-        one sidecar format and one verifier."""
+        """A sidecar written by binio's own API verifies through the _verify_checksum wrapper — both
+        modules share one sidecar format and one verifier."""
         write_sha3_256_sidecar(self.temp_path)
         self.assertTrue(_verify_checksum(self.temp_path))
 
     def test_legacy_bare_hex_sidecar_still_verifies(self):
-        """A legacy bare-hexdigest sidecar (the old format: no
-        filename, no newline) still verifies, because binio's parser
-        takes the first whitespace-separated token — no cache
-        invalidation for existing on-disk caches."""
+        """A legacy bare-hexdigest sidecar (the old format: no filename, no newline) still verifies,
+        because binio's parser takes the first whitespace-separated token — no cache invalidation
+        for existing on-disk caches."""
         checksum_path_for(self.temp_path).write_text(
             compute_sha3_256(self.temp_path)
         )
@@ -139,16 +136,14 @@ class TestChecksumHelpers(BaseCacheTestCase):
         self.assertFalse(_verify_checksum(self.temp_path))
 
     def test_verify_checksum_fails_if_sidecar_mismatched(self):
-        """Verify that a well-formed sidecar holding the WRONG digest
-        fails the verification step (binio compares it against the
-        recomputed hash)."""
+        """Verify that a well-formed sidecar holding the WRONG digest fails the verification step
+        (binio compares it against the recomputed hash)."""
         checksum_path_for(self.temp_path).write_text("0" * 64)
         self.assertFalse(_verify_checksum(self.temp_path))
 
     def test_verify_checksum_fails_if_sidecar_malformed(self):
-        """Verify that a malformed sidecar (binio's BinaryFormatError)
-        or an undecodable one (UnicodeDecodeError) maps to False via
-        the wrapper, never to a raised exception."""
+        """Verify that a malformed sidecar (binio's BinaryFormatError) or an undecodable one
+        (UnicodeDecodeError) maps to False via the wrapper, never to a raised exception."""
         checksum_path = checksum_path_for(self.temp_path)
         checksum_path.write_text("not a hex digest at all")
         self.assertFalse(_verify_checksum(self.temp_path))
@@ -188,8 +183,8 @@ class TestChecksumHelpers(BaseCacheTestCase):
 
 class TestCacheManagerPipeline(BaseCacheTestCase):
     """
-    Tests for the main cache_manager_load_or_compute orchestration function.
-    Verifies both the returned data and the cache_hit boolean flag.
+    Tests for the main cache_manager_load_or_compute orchestration function. Verifies both the
+    returned data and the cache_hit boolean flag.
     """
 
     def setUp(self):
@@ -209,8 +204,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step0_not_allowed_forces_computation(self):
         """
-        Step 0: If caching is not allowed, it must compute, store,
-        and return cache_hit=False.
+        Step 0: If caching is not allowed, it must compute, store, and return cache_hit=False.
         """
         self.cache_path.write_text("old data")
 
@@ -235,8 +229,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             Relevance.INFO, "Cache not allowed by configuration. Forcing computation."
         )
 
-        # Even when caching is not allowed the
-        # result is transcribed to the cache file — warm the cache.
+        # Even when caching is not allowed the result is transcribed to the cache file — warm the cache.
         self.assertTrue(self.cache_path.exists())
         self.assertTrue(checksum_path_for(self.cache_path).exists())
         self.assertTrue(_verify_checksum(self.cache_path))
@@ -244,8 +237,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step1_missing_file_forces_computation(self):
         """
-        Step 1: If cache is allowed but file is missing,
-        it must compute, store, and return cache_hit=False.
+        Step 1: If cache is allowed but file is missing, it must compute, store, and return cache_hit=False.
         """
         cache_hit, result, checksum = cache_manager_load_or_compute(
             cache_path=self.cache_path,
@@ -266,8 +258,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step2_checksum_mismatch_forces_recomputation(self):
         """
-        Step 2: If file exists but checksum fails, it must delete files,
-        compute, store, and return cache_hit=False.
+        Step 2: If file exists but checksum fails, it must delete files, compute, store, and return cache_hit=False.
         """
         self.cache_path.write_text("corrupted data")
         checksum_path = self.cache_path.with_suffix(
@@ -298,15 +289,14 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             f"(sidecar missing or mismatched). Deleting cache and recomputing.",
         )
 
-        # The recompute actually replaced the stale bytes and
-        # left a valid sidecar behind.
+        # The recompute actually replaced the stale bytes and left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_step3a_load_exception_forces_recomputation(self):
         """
-        Step 3a: If checksum is ok, but load_fn raises an exception,
-        it must delete files, compute, store, and return cache_hit=False.
+        Step 3a: If checksum is ok, but load_fn raises an exception, it must delete files, compute,
+        store, and return cache_hit=False.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -334,15 +324,14 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
             f"Failed to load or validate cache file '{self.cache_path}': Disk read error. Recomputing."
         )
 
-        # The recompute actually replaced the stale bytes and
-        # left a valid sidecar behind.
+        # The recompute actually replaced the stale bytes and left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_step3b_validation_fails_forces_recomputation(self):
         """
-        Step 3b: If checksum is ok, load succeeds, but validate_fn returns False,
-        it must delete files, compute, store, and return cache_hit=False.
+        Step 3b: If checksum is ok, load succeeds, but validate_fn returns False, it must delete
+        files, compute, store, and return cache_hit=False.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -366,15 +355,14 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
         self.mock_store.assert_called_once()
         self.mock_validate.assert_called_once_with(DUMMY_DATA)
 
-        # The recompute actually replaced the stale bytes and
-        # left a valid sidecar behind.
+        # The recompute actually replaced the stale bytes and left a valid sidecar behind.
         self.assertEqual(self.cache_path.read_text(), str(DUMMY_DATA))
         self.assertTrue(_verify_checksum(self.cache_path))
 
     def test_success_path_returns_cached_data(self):
         """
-        Success Path: If all 4 steps pass, it must return the loaded data
-        WITHOUT calling compute or store, and return cache_hit=True.
+        Success Path: If all 4 steps pass, it must return the loaded data WITHOUT calling compute or
+        store, and return cache_hit=True.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -411,8 +399,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_compute_path_returns_data_checksum(self):
         """
-        Data WITH a compute_sha3_256_hash method -> the method's
-        value is the 3rd return element on the compute path.
+        Data WITH a compute_sha3_256_hash method -> the method's value is the 3rd return element on
+        the compute path.
         """
         digest = "ab" * 32
         data = DataWithChecksum(payload="computed", digest=digest)
@@ -434,8 +422,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_load_path_returns_data_checksum(self):
         """
-        Valid cache, loaded data WITH the method -> its value is
-        the 3rd return element on the load path.
+        Valid cache, loaded data WITH the method -> its value is the 3rd return element on the load path.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -459,8 +446,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_checksum_method_missing_returns_none(self):
         """
-        Data WITHOUT the method (plain dict) -> the 3rd return
-        element is None on the compute path.
+        Data WITHOUT the method (plain dict) -> the 3rd return element is None on the compute path.
         """
         self.cache_path.write_text("old data")
 
@@ -480,8 +466,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_checksum_attribute_not_callable_returns_none(self):
         """
-        A compute_sha3_256_hash attribute that is NOT callable ->
-        None, no exception, success path intact.
+        A compute_sha3_256_hash attribute that is NOT callable -> None, no exception, success path intact.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -505,9 +490,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_load_path_checksum_method_raises_recomputes(self):
         """
-        The data checksum method RAISING on
-        the load path is caught by the step-3 try/except -> delete +
-        recompute; the ERROR log carries the exception text.
+        The data checksum method RAISING on the load path is caught by the step-3 try/except ->
+        delete + recompute; the ERROR log carries the exception text.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -534,9 +518,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_validate_exception_forces_recomputation(self):
         """
-        A validate_fn that RAISES is caught by the
-        step-3 try/except (same treatment as a load failure) ->
-        delete + recompute; the ERROR log carries the exception text.
+        A validate_fn that RAISES is caught by the step-3 try/except (same treatment as a load
+        failure) -> delete + recompute; the ERROR log carries the exception text.
         """
         self.cache_path.write_text("valid data")
         write_sha3_256_sidecar(self.cache_path)
@@ -565,8 +548,8 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step2_missing_sidecar_forces_recomputation(self):
         """
-        The step-2 branch also fires when the sidecar is merely
-        MISSING (not only on mismatch): WARN, delete, recompute.
+        The step-2 branch also fires when the sidecar is merely MISSING (not only on mismatch):
+        WARN, delete, recompute.
         """
         self.cache_path.write_text("valid data")  # data exists, no sidecar
 
@@ -594,14 +577,13 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
 
 class TestValidateCallCoercion(unittest.TestCase):
-    """The @validate_call on cache_manager_load_or_compute
-    type-coerces the arguments in pydantic lax mode."""
+    """The @validate_call on cache_manager_load_or_compute type-coerces the arguments in pydantic
+    lax mode."""
 
     def test_str_cache_path_is_coerced_to_path(self):
-        """A str cache_path is coerced to a Path: the inner store_fn
-        callback observes a pathlib Path, and the flow then dies in
-        the framework's sidecar write (FileNotFoundError — the no-op
-        store_fn never created the file)."""
+        """A str cache_path is coerced to a Path: the inner store_fn callback observes a pathlib
+        Path, and the flow then dies in the framework's sidecar write (FileNotFoundError — the
+        no-op store_fn never created the file)."""
         seen = []
         with self.assertRaises(FileNotFoundError):
             cache_manager_load_or_compute(
