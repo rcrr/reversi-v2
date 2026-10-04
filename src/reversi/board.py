@@ -25,6 +25,31 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
+"""
+board - the Reversi board domain model.
+
+The bottom layer of the engine: squares, moves, bitboards and game positions, and everything that
+operates on them — the D8 symmetry group, legal-move and flip-set computation, move execution,
+end-of-game (WOFC) scoring, the legacy-compatible Zobrist position hash. No game loop, no search, no
+clock, no UI.
+
+Design choices --------------
+
+* **Squares and moves as uint8**: a square is an index 0..63 (A1 = 0, H8 = 63, notes/naming.md);
+  a move is a square 0..63 or one of the named non-square codes (MOVE_PA = 64, MOVE_NA = 65,
+  MOVE_UN = 66).
+* **Bitboards**: a set of squares as np.uint64, bit i = square i. * **Dual scalar/array API**: every
+public function takes a scalar or an array of any shape and
+  returns the same shape; legal_moves / position_flips / position_make_move are the strict dual
+  (mixed kinds rejected).
+* **Numba hot path**: the batch kernels are njit(prange); the per-lane primitives
+  (legal_moves_of, flips_of_move, the 4 reflection impls, the Zobrist fold) are public njit,
+  inlined into the kernels and into the numba compositions of the other modules.
+* **Pydantic gates**: @validate_call with Annotated/BeforeValidator dtypes; PositionField skips
+  validation.
+* **Legacy-compatible Zobrist hash**: the 128 URANDOM constants of the legacy C engine (the
+  canon, SHA-3-pinned in the tests) + a SWAR byte-fold — little-endian only, no portability work.
+"""
 
 from typing import TypeAlias, Annotated, List, Any, Tuple
 

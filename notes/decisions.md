@@ -436,3 +436,10 @@ D-449 | 2026-10-06 | The four board micro-tests (the user's approval of the D-44
          .py files at the src\_reflow canonical fixed point; the mirror docs synced in the same commit (the test-doc
          counts: 274 concrete + 32 inherited = 308, the 3 new per-class increments, the two new pins named in the
          Coverage map).
+
+D-450 | 2026-10-06 | board.py module docstring (the user-approved preview). The 5 tools modules all carry one and board
+         was the first core module without; added after the GNU banner: the what-it-is (the bottom layer of the engine —
+         squares, moves, bitboards, positions, D8, legal moves, flips, WOFC scoring, the legacy-compatible Zobrist hash)
+         + the six design-choice bullets (uint8 squares/moves, bitboards, the dual scalar/array API, the numba hot path,
+         the pydantic gates, the legacy Zobrist canon). src\_reflow --write → canonical, 1985 lines (was 1960). No
+         behavior change: 308/0/15. No mirror-doc change (the header what-it-is paragraph already states the same).

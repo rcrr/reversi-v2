@@ -2023,3 +2023,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sincronizzata (308/0/15/0/0). Entrambi i .py al punto fisso canonico del src\_reflow; i mirror doc
   sincronizzati nello stesso commit (test-doc: 274 concreti + 32 ereditati = 308, i 3 incrementi per-class, i
   2 pin nuovi nominati nella mappa Coverage).
+
+- D-450 (board: la module docstring — la preview approvata dall'user): aggiunta dopo il banner GNU —
+  il what-it-is (lo strato più basso dell'engine: square, move, bitboard, position, D8, legal
+  moves, flips, scoring WOFC, Zobrist legacy-compatible) + i 6 bullet dei design choice (uint8
+  square/move, bitboard, API dual scalar/array, hot path numba, gate pydantic, canone Zobrist
+  legacy). src\_reflow → canonico, 1985 righe (era 1960). Nessun cambiamento di comportamento:
+  308/0/15. Nessun cambiamento al mirror doc (il paragrafo what-it-is dell'header dice già la
+  stessa cosa).
