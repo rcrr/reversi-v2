@@ -1967,3 +1967,10 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sistemato (il mancatore dell'onda 1): hlp\_final\_log\_print.md:25 portava ancora "the D-321 addition" —
   il mio grep di verifica era filtrato con "grep -v 'tools/state\_machine'" e quella riga (che cita il path del
   mirror) era stata esclusa, producendo un falso "0 hit". Ora: tag via, puntatore al mirror doc tenuto.
+
+- CHIUSURA SESSIONE (user): dopo la disclosure di D-445 l'user ha deciso "No, non facciamo nulla. va bene
+  cosi." — lo stato attuale resta, nessuna restaurazione dei ref D nei mirror doc (chiuso il punto aperto di
+  D-445). L'user dichiara i tools COMPLETAMENTE REVISIONATI: 5 moduli + 6 test + mirror doc + probe tutti a
+  regime (punto fisso canonico del reflow — prng mantiene il hand-nudge di D-427 —, convenzioni docstring,
+  doc nel budget e fedeli, suite 1073/0/24). PROSSIMA SESSIONE: la zona core di reversi (board / pattern /
+  feature / mobility + i punti restanti dei Next steps).

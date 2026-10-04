@@ -58,7 +58,9 @@ define the evaluation function.
 - Add the project README (English, like everything else).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
   wsutils/src\_reflow.py, the docstring conversion).
-- Verify the format of the board, pattern, feature, mobility sources + the tools (the same sub-works).
+- Verify the format of the board, pattern, feature, mobility sources (the same sub-works — the tools sub-package is
+  COMPLETE, the D-438..D-446 session: the 5 modules + the 6 test files at the src\_reflow canonical fixed point, the
+  house docstring conventions, the mirror docs in budget and faithful, the probes re-pinned; suite 1073/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

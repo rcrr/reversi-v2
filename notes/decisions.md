@@ -368,3 +368,17 @@ D-445 | 2026-10-04 | the wave-3 census (CORRECTED) + one residual + the prng mir
          was piped through "grep -v 'tools/state\_machine'" and that very line (which quotes the state\_machine mirror
          path) was filtered out, producing a false "0 hits" reading. Now: the campaign tag dropped, the useful
          mirror-doc pointer kept. 5. VERIFICATION: the docs auditor green; the prng module + suite untouched by this D.
+
+D-446 | 2026-10-04 | Session close — the user's ruling (the status quo after the wave 1-2 purges) + the tools
+         sub-package declared fully reviewed. After the D-445 disclosure (the 24 purged numbers are REAL decisions; the
+         purges remain legislation-compliant under R-540 / docs\_rules; the facts were kept as plain prose), the user
+         ruled: "No, non facciamo nulla. va bene cosi." — the current state stays as-is, NO restoration of the D
+         references in the mirror docs; this closes the open item D-445 left ("the user is informed and decides"). The
+         user also declares the tools sub-package FULLY REVIEWED ("i tools sono completamente revisionati"): all 5
+         modules (binio, prng, state\_machine, cache\_manager, opt\_lbfgs) + their 6 test files + the mirror docs + the
+         probes — every module at the src\_reflow canonical fixed point (the lone documented exception: prng.py keeps
+         the D-427 hand-nudge and is never blindly reflowed), the house docstring conventions (the on-the-quote first
+         line, the typed Args, no D-XXX provenance), the mirror docs in budget and faithful (the prng mirror re-verified
+         line by line in D-445), the probes re-pinned with the goldens de-referenced where the legislation requires it.
+         SUITE STATE AT CLOSE: 1073/0/24 (test\_state\_machine at 51 — the D-439 micro-test). NEXT SESSION: the reversi
+         core zone (board / pattern / feature / mobility and the remaining Next-steps items).
