@@ -167,3 +167,19 @@ D-433 | 2026-10-04 | notes/analyses/work\_report.md — the redo of the 18-years
          1072/0/24. Headline: 19.3 vs 0.52 commits/day (37x), 1,169 vs 5.0 Python lines/day (233x) — with the reading
          caveats (the different languages and roles, the governance layer the legacy repo never had, the churn inflated
          by the format-pass rewrites).
+
+D-434 | 2026-10-04 | tools/cache\_manager.py + its mirror doc — the source fixes (the first D of the cache\_manager
+         campaign): the R-540 strip — the (D-072) references removed from the module docstring and the
+         `\_verify\_checksum` docstring, the D-071 from the `is\_allowed` entry, the "(R2, D-071)" tag from the step-3
+         comment; the design choices keep their non-obvious summary (the warm-cache intent, the one-try step 3) without
+         any reference (the user's call: the dangling D-071/D-072 pointers — pre-notes-system decisions absent from
+         decisions.md and the closed volumes, yet cited repo-wide — are dropped everywhere; the repo-wide purge over the
+         remaining files is the campaign's own D). The docstring pass (R-560): the missing `\_compute\_sha3\_256\_hash`
+         docstring added; the 5 docstrings Google-ized (the imperative first lines, the typed Args, the `tuple:` Returns
+         entry instead of the bulleted list). Format: the unused `from \_\_future\_\_ import annotations` dropped
+         (Python 3.12, the PEP 604/604 annotations native — the 22 tests confirm the pydantic gate unaffected); 12
+         trailing-ws stripped; the 2 over-120 lines split (the WARN/ERROR logger f-strings, the message strings
+         unchanged); the triple blank lines normalized. The mirror doc REWRITTEN IN THE SAME COMMIT (docs\_rules.md
+         §5.1): the "194 lines." metadata dropped, the Imports bullet (a table of contents, not architecture) dropped,
+         the R1/R2/R3/M3 campaign tags (no pointers, docs\_rules.md §4) replaced by the plain rationale, the "incl. the
+         R1 note" residue gone. 22/0/0 (no behavior change); the docs auditor green.

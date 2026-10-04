@@ -1835,3 +1835,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - VERIFICATION: numero ricontrollato contro i comandi git (i totali per linguaggio, i due churn, i due span);
   notes\_lint verde; il gate verde a questo checkin.
 - COMMIT: un solo commit (D-433).
+
+- D-434 (sorgente + source-doc): lo strip R-540 — via i riferimenti (D-072) dalla docstring di modulo e da
+  \_verify\_checksum, il D-071 dall'entry is\_allowed, il tag "(R2, D-071)" dal commento step-3; le scelte di
+  design restano come summary senza riferimento (decisione dell'utente: i puntatori D-071/D-072 — decisioni
+  pre-notes, assenti da decisions.md e dai volumi — li eliminiamo dappertutto; il purge repo-wide è una D propria
+  della campagna). Pass docstring (R-560): aggiunto il docstring mancante di \_compute\_sha3\_256\_hash; i 5
+  docstring in Google (prime righe imperative, Args tipizzati, entry `tuple:` nei Returns al posto dell'elenco
+  puntato). Formato: via il from \_\_future\_\_ import annotations non servito (3.12, le annotazioni PEP 604/604
+  native — i 22 test confermano che il gate pydantic non è toccato), 12 trailing-ws, le 2 righe oltre-120 spezzate
+  (i f-string WARN/ERROR dei logger, le stringhe di messaggio invariate), triplo blank normalizzato. Source-doc
+  riscritto nello stesso commit (docs\_rules §5.1): via "194 lines." e il bullet Imports (è un indice, non
+  architettura), i tag di campagna R1/R2/R3/M3 senza puntatori sostituiti dal rationale in prosa, via il residuo
+  "incl. the R1 note". 22/0/0 (zero behavior change), docs auditor verde.
