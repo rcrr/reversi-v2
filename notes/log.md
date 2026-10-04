@@ -1809,3 +1809,29 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   dell'overview aggiornata in questo commit; docs auditor verde su entrambi i mirror doc. Campagna
   opt\_lbfgs chiusa: 4 D (429 codice / 430 test / 431 docstring+reflow / 432 doc), sorgente e test a punto
   fisso canonico di src\_reflow, suite GREEN.
+
+## 2026-10-04 — session 97 (D-433 — work report: il 18-anni vs 6-settimane rimisurato)
+- Session 97 (Roberto): "due settimane fa ti avevo chiesto un report per misurare il lavoro svolto in 18 anni nel
+  repo /home/rcrr/base/prj/reversi e confrontarlo con quanto fatto in poche settimane in questo repo. Credo che tu
+  abbia già il tool in wsutils a questo scopo. Puoi per favore rifare il report."
+- ANALISI: in wsutils/ il tool non c'è — l'inventario di notes/wsutils.md (8 tool: i re-wrapper, gli auditor, le
+  misure della suite) non ne nomina nessuno di misurazione del lavoro, e la storia git di wsutils/ conferma che non è
+  mai esistito nel tracked tree: il report di due settimane fa era generato ad hoc, l'artefatto è in scratch/
+  (gitignored, perso). Il report viene rifatto misurando lo stato git registrato dei due repo (git log per
+  commit/date/autori, git ls-files + wc per l'albero corrente, git log --numstat per il churn cumulativo).
+- MISURAZIONE — legacy /home/rcrr/base/prj/reversi: 3150 commit (3108 non-merge), 2009-11-29 → 2026-08-05 (6093
+  giorni ≈ 16.7 anni di git, il progetto precede l'era git), 1370 file tracked; albero corrente: C 342,842 righe
+  (826 file), Python 30,607 (88), Java 28,466 (140) — esclusi i dump di dati SQL (10.6M di righe in 43 file); churn
+  sorgente +607,247 / −143,463. Ritmi: 0.52 commit/giorno, 5.0 righe Python/giorno.
+- MISURAZIONE — questo workspace: 772 commit, 2026-08-25 → 2026-10-04 (40 giorni ≈ 5.7 settimane); 271 file
+  tracked: src 51 py (15,194 righe), test 52 py (22,610), probes 24 py (6,900), wsutils 8 file (2,070), docs 96 md,
+  notes 26 md — totale Python 46,774 + Markdown 24,068; churn +208,405 / −115,290; suite 1072/0/24 (misura del
+  2026-10-04). Ritmi: 19.3 commit/giorno, 1,169 righe Python/giorno.
+- D-433 (il report): notes/analyses/work\_report.md — i due prospetti (per anno per il legacy; per zona per questo
+  workspace), la tabella side-by-side e le caveat di lettura (linguaggi e ruoli diversi — il C da 343k righe non ha
+  controparte; lo strato di governance — 432 decisioni, 97 sessioni, 8 tool, 24 probe, 24k righe md — non esisteva
+  nel legacy; lo churn gonfiato dai re-write dei format pass). Headline: 19.3 vs 0.52 commit/giorno (37×), 1,169 vs
+  5.0 righe Python/giorno (233×).
+- VERIFICATION: numero ricontrollato contro i comandi git (i totali per linguaggio, i due churn, i due span);
+  notes\_lint verde; il gate verde a questo checkin.
+- COMMIT: un solo commit (D-433).

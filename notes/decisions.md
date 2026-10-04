@@ -154,3 +154,16 @@ D-432 | 2026-10-04 | docs/src/reversi/tools/opt\_lbfgs.md — the mirror-doc rew
          (the suite total 1062/0/24 → 1072/0/24), the overview Suite cell updated in this commit; the docs auditor green
          on both mirror docs. Campaign closed: 4 D (429 code / 430 tests / 431 docstrings + reflow / 432 docs), the
          source and the test are canonical fixed points of wsutils/src\_reflow.py, the suite GREEN.
+
+D-433 | 2026-10-04 | notes/analyses/work\_report.md — the redo of the 18-years vs 6-weeks work report (the user's
+         request: the same report of two weeks ago, measured again). No tool in wsutils/ does this (the inventory of
+         notes/wsutils.md names none — the original report was generated ad hoc, its artifact in the gitignored
+         scratch/); the report is re-measured from the recorded git state of both repos (git log / git ls-files + wc /
+         git log --numstat). Legacy /home/rcrr/base/prj/reversi: 3150 commits, 2009-11-29 → 2026-08-05 (6093 days), 1370
+         tracked files, the current tree C 342,842 / Python 30,607 / Java 28,466 lines (the 10.6M SQL data dumps
+         excluded), the source churn +607,247 / −143,463. This workspace: 772 commits, 2026-08-25 → 2026-10-04 (40
+         days), 271 tracked files, Python 46,774 lines (src 15,194 / test 22,610 / probes 6,900 / wsutils 2,070) +
+         Markdown 24,068 (the 96 mirror docs + the 26 governance notes), the churn +208,405 / −115,290, the suite
+         1072/0/24. Headline: 19.3 vs 0.52 commits/day (37x), 1,169 vs 5.0 Python lines/day (233x) — with the reading
+         caveats (the different languages and roles, the governance layer the legacy repo never had, the churn inflated
+         by the format-pass rewrites).
