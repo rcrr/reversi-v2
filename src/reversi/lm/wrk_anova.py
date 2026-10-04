@@ -51,7 +51,7 @@ def _up(ctx: "LMContext") -> None:
 
 def _down(ctx: "LMContext") -> None:
     # The ANOVA worker publishes nothing on the ctx (a diagnostic);
-    # the down is a no-op (the D-060 recovery is trivially satisfied).
+    # the down is a no-op (the failure recovery is trivially satisfied).
     ctx.log_event(Relevance.INFO, "ANOVA down (no-op).")
 
 

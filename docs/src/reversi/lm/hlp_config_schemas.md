@@ -52,7 +52,7 @@ document that `wrk_config` loads and validates. Every nested config extends `LMB
   the rlm_00 fixture opt in (su_analysis; anova is enabled by no shipped fixture)); `target_level: str` default
   `"last"` (a level name, case-insensitive, resolved fail-fast by the StateMachine, or "last" for the full pipeline;
   consumed by the facade's `run()` when no explicit target is given — a blank value means "last" too);
-  `log_file_name: str | None` default `None` (the D-321 FINAL_LOG_PRINT output file name — relative to base_dir,
+  `log_file_name: str | None` default `None` (the FINAL_LOG_PRINT output file name — relative to base_dir,
   the full run log at the maximum relevance; the absent entry keeps the level a no-op, the file NOT generated); and
   `check_su_pairs_feature_set`, a `model_validator(mode="after")` that fails fast when a `su_analysis.su_pairs` name is
   not in the `feature_set` (the mobility + the pattern names). The `SuAnalysisConfig.check_su_pairs` field validator

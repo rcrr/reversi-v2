@@ -2,7 +2,7 @@
 #
 # verify_final_log_print.py
 #
-# Probe pinning the FINAL_LOG_PRINT level (the 19th level, D-321):
+# Probe pinning the FINAL_LOG_PRINT level (the 19th level):
 # the worker (src/reversi/lm/wrk_final_log_print.py) + the hlp it
 # calls (hlp_final_log_print_write_log, the file writer) + the
 # machine support (the format_event_log render + the context
@@ -75,7 +75,7 @@ cfg = (ROOT / "src" / "reversi" / "lm" / "hlp_config_schemas.py").read_text()
 check("A4  the config field: LMConfig.log_file_name, default None",
       "log_file_name: str | None = Field(" in cfg and "default=None" in cfg)
 sm_src = (ROOT / "src" / "reversi" / "tools" / "state_machine.py").read_text()
-check("A5  the machine render + the context injection (the D-321 accessor)",
+check("A5  the machine render + the context injection (the format_event_log accessor)",
       "def format_event_log(self) -> str:" in sm_src
       and "self.context.format_event_log = self.format_event_log" in sm_src)
 lm_src = (ROOT / "src" / "reversi" / "lm" / "logistic_model.py").read_text()

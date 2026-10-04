@@ -14,11 +14,11 @@ binio layout, the signature, the statistics kernels).
 - `_up(ctx)`: the enable no-op (the "disabled" log, the tables cleared) → the cache_manager_load_or_compute over
   the hlp (the load with checksum=False — the manager verifies the sidecar at its step 2, no double hash) → the
   "loaded from cache / computed" log → the hlp statistics (phase 2) → the ctx.su_analysis_tables publication.
-- `_down(ctx)`: clears the ctx.su_analysis_tables (the D-060 recovery).
+- `_down(ctx)`: clears the ctx.su_analysis_tables (the failure recovery).
 
 ## Architecture
 
-- The skeleton (D-289): the wrk owns the LEVEL (the enable, the cache flow, the publication, the D-060); the hlp
+- The skeleton (D-289): the wrk owns the LEVEL (the enable, the cache flow, the publication, the failure recovery); the hlp
   owns the LOGIC (the corpus, the binio I/O, the signature, the statistics) — the wrk_design_matrix split. The
   worker is ~100 lines: no csv, no hashlib, no numpy, no analysis kernel.
 - The two-tier flow: phase 1 (the corpus) is CACHED (the expensive part — the 1e7 corpus is ~18 s cold); phase 2
@@ -40,7 +40,7 @@ binio layout, the signature, the statistics kernels).
 - The logic invariants (the signature, the binio I/O, the SU kernels, the report / the CSV): pinned by
   test_hlp_su_analysis (11 tests) + the verify_su_analysis probe (44 checks — the A-tier text pins cover the
   worker + the hlp, the C-tier live run).
-- The D-060 semantics: the generation error fails the level, the machine re-raises, the _down clears the ctx
+- The failure semantics: the generation error fails the level, the machine re-raises, the _down clears the ctx
   artifacts.
 
 ## Open issues

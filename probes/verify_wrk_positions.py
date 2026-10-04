@@ -108,7 +108,7 @@ check("A4 factory HAS @validate_call (D-080 M1)",
       and "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" in src)
 check("A5 pathlib.Path import removed (D-080 M2)",
       "from pathlib import Path" not in src)
-# M3 scope (as in D-078 M3 on lm_worker_config): only the D-079-
+# M3 scope (as in the M3 on lm_worker_config): only the D-079-
 # flagged lines (L73/L89/L92) are cleaned; the remaining trailing
 # whitespace (license header, import block, is_cache_consistent
 # body) stays as in the original file.

@@ -1,5 +1,5 @@
 # reversi/lm/hlp_final_log_print.py
-The FINAL_LOG_PRINT hlp (the 19th level, D-321): the single-function writer. `hlp_final_log_print_write_log(ctx)`
+The FINAL_LOG_PRINT hlp (the 19th level): the single-function writer. `hlp_final_log_print_write_log(ctx)`
 renders the machine's full event log buffer (the maximum-relevance replay, the live-line format) and writes it to
 `base_dir / log_file_name` (the parents created), returning the path. The level is optional: the `cfg.log_file_name`
 entry (default None) is the gate — the guard is in the worker (`wrk_final_log_print`), this function only writes.
@@ -18,8 +18,7 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
     printed; a NONE run's file is the full log of a silent run.
   - **The line shape** (one example, the init DEBUG entry):
     `[2026-09-28 12:00:00 UTC] [00][CREATED        ] [DEBUG:STANDARD] StateMachine initialized.`
-    — the `[ts UTC] [step:02][worker:15] [REL:VERB] message` live format (the widths 5/8, the enum names, the D-128
-    convention — the machine's `_format_event_line` renders it).
+    — the `[ts UTC] [step:02][worker:15] [REL:VERB] message` live format (the widths 5/8, the enum names — the machine's `_format_event_line` renders it).
 
 ## Architecture
 - **The render source** — `ctx.format_event_log()`: the bound method the StateMachine injects at construction (the
@@ -57,5 +56,5 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
 - The config field: `LMConfig.log_file_name: str | None` (default None, mirror: hlp_config_schemas.md) — a top-level
   JSON entry; every shipped fixture (rlm_00..rlm_04) + the external A2030/A2050 configs leave it absent (the no-op
   path, zero golden impact).
-- The render depends on the StateMachine's D-321 addition (the `format_event_log` method + the context injection) —
+- The render depends on the StateMachine's `format_event_log` (the method + the context injection) —
   the only generic-zone change of the campaign (mirror: state_machine.md).

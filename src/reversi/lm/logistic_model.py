@@ -188,7 +188,7 @@ class LMContext(Context):
     analytics_report: Any = None
 
     # Injected by StateMachine: the lambda defaults are the
-    # pre-injection fallback, under the same D-069
+    # pre-injection fallback, under the same
     # *_for_current_level names the machine injects (D-074/R1).
     log_event: Callable = lambda *args: None
     get_cache_file_path_for_current_level: Callable = lambda: None

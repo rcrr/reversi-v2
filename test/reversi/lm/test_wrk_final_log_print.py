@@ -41,7 +41,7 @@
 #
 
 """
-The FINAL_LOG_PRINT worker suite (the 19th level, D-321): the
+The FINAL_LOG_PRINT worker suite (the 19th level): the
 factory (the worker name), the config-gate no-op (the absent
 log_file_name, the file NOT generated), the full-log write
 (the max-relevance replay on the machine's event buffer), the
@@ -68,7 +68,7 @@ class _MockCtx:
     """The no-DB mock context (the worker's blackboard): the cfg
     (the real one — see _make_ctx), the event buffer, and a
     stand-in format_event_log (the machine's renderer, the
-    D-321 injection)."""
+    context injection)."""
 
     def __init__(self, cfg, log_text):
         self.cfg = cfg
@@ -87,7 +87,7 @@ def _make_ctx(tmp, log_file_name=None):
     CREATED -> CONFIG on the rlm_00 fixture (the base_dir
     override, D-287) and the cfg (with base_dir = the tmp dir)
     comes from the real context — no parallel loader. The
-    log_file_name (the D-321 field) is set on the real cfg."""
+    log_file_name field is set on the real cfg."""
     rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
                             "data" / "rlm_00.json"),
                         verbosity=Verbosity.NONE,
@@ -162,7 +162,7 @@ class TestFinalLogPrintEndToEnd(unittest.TestCase):
         db_long_gate(self)
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        # The D-321 config: the rlm_00 fixture + the log_file_name
+        # The config: the rlm_00 fixture + the log_file_name
         # entry, written to a tmp copy BEFORE the CONFIG level (the
         # same json5 loader the pipeline uses).
         fixture = WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json"

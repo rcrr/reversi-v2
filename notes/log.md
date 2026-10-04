@@ -1904,3 +1904,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   ri-avvolti nel sorgente (499 righe), 63 nel test (892 righe); entrambi i file sono ora a punto fisso canonico
   del reflow (verificato con la check). Verifica: identità logica preservata (la verifica pre-write del tool),
   51/0/0, zero behavior change.
+
+- D-441 (purge repo-wide dei 9 numeri dangling — chiusura campagna): D-060/061/068/069/070/076/078/128/321 sono
+  decisioni pre-notes (verificato: 0 hit in decisions.md + volumi) citate in 22 file fuori dalla campagna —
+  via da tutti e 22 (45 citazioni): 3 sorgenti worker (solo commenti), il test FINAL\_LOG\_PRINT (4 punti),
+  6 mirror doc (i puntatori in prosa, i fatti restano), 4 test-doc (via le narrative "re-pin 18 -> 19" /
+  "ruling"), 6 probe (i golden C9/D9/F3/A5/V3c rinominati in place — nessun doc li cita, verificato). Fuori
+  scope approvato (lasciati, segnalati per la prossima onda): altri 15 numeri dangling trovati negli stessi
+  commenti (D-065/074/075/079/080/081/083/097/142/157/186/187/287/289/318, tutti 0 hit). Verifica: i 10 .py
+  parse, il probe verify\_final\_log\_print ri-eseguito (ALL PASSED), test\_wrk\_final\_log\_print 6/0/1,
+  docs auditor verde. Dopo questo D le uniche menzioni dei 9 numeri sono gli entry di decisions + i bullet del
+  journal — la storia, dove R-540 dice che sta.

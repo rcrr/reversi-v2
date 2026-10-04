@@ -34,14 +34,14 @@ LogisticModel.__init__ (@validate_call, arbitrary_types_allowed)
     4. super().__init__(workers, context, verbosity)
            |
 BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
-    format_event_log (D-321) + the two cache closures into the context
+    format_event_log + the two cache closures into the context
     (replacing the lambda defaults),
     step 0 / "CREATED"
 ```
 
 - **4-step construction** — (1) validate the domain paths with the plain helpers, (2) build the shared `LMContext`, (3)
   assemble the worker list (sentinel + the 19 factory calls), (4) `super().__init__` hands workers + context + verbosity
-  to `BaseModel` → `StateMachine`, which injects `log_event` + `format_event_log` (D-321) + the two cache-path
+  to `BaseModel` → `StateMachine`, which injects `log_event` + `format_event_log` + the two cache-path
   closures into the context (replacing the lambda defaults under the same names — the same mechanism as `log_event`).
 - **LMContext is the shared blackboard** — a `@dataclass` extending the plain (non-dataclass) `Context` base; workers
   publish to the pre-declared fields (an ad-hoc attribute works but breaks the pattern); `cfg` must be populated by the
@@ -57,7 +57,7 @@ BaseModel -> StateMachine: stores workers/context, INJECTS log_event +
   -> FINAL_LOG_PRINT
   ```
 (SU_ANALYSIS step 3, the rlmwf_03 slot; ANOVA step 6, NO cache; PLOT step 18; FINAL_LOG_PRINT step 19, NO cache, the
-optional `log_file_name` gate — D-321)
+optional `log_file_name` gate)
 
 No commented factory imports or worker-list entries remain. The factories follow `wrk_x()` → `Worker` (19 modules,
 `wrk_config` … `wrk_final_log_print`); the tests patch them by name in THIS module's namespace

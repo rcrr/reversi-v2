@@ -42,7 +42,7 @@ __all__ = ['wrk_final_log_print']
 
 
 def _up(ctx: "LMContext") -> None:
-    # The optional gate (the D-321): the config entry is the switch —
+    # The optional gate: the config entry is the switch —
     # the absent log_file_name (the default None) is a clean no-op
     # (the file is NOT generated).
     if ctx.cfg.log_file_name is None:
@@ -54,7 +54,7 @@ def _up(ctx: "LMContext") -> None:
 def _down(ctx: "LMContext") -> None:
     # The worker publishes nothing on the ctx (the file is a base_dir
     # artifact, the _down does not unlink it); the down is a no-op
-    # (the D-060 recovery is trivially satisfied).
+    # (the failure recovery is trivially satisfied).
     ctx.log_event(Relevance.INFO, "FINAL_LOG_PRINT down (no-op).")
 
 

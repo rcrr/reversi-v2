@@ -175,7 +175,7 @@ check("D7 the D-085 paths import is present (L58)",
       t2[57] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("test/reversi/lm/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
-check("D9 the D-078 cache names are pinned (rlmwf_07_WMAPS.dat + .SHA3-256)",
+check("D9 the cache names are pinned (rlmwf_07_WMAPS.dat + .SHA3-256)",
       "'rlmwf_07_WMAPS.dat'" in read("test/reversi/lm/test_wrk_wmaps.py")
       and "'rlmwf_07_WMAPS.dat.SHA3-256'" in read("test/reversi/lm/test_wrk_wmaps.py"))
 check("D10 step pins (re-pinned: INDEXES=5, WMAPS=7)",
@@ -237,7 +237,7 @@ check("F1 rlm_01 stat_model == {cut_off 2, logit 0.03, ridge 0.0}",
 fix0 = json5.loads((WS / "test" / "reversi" / "data" / "rlm_00.json").read_text())
 check("F2 rlm_00 stat_model == {cut_off 1, logit 0.05, ridge 0.0}",
       fix0["stat_model"] == {"frequency_cut_off": 1, "logit_clipping": 0.05, "ridge_regularization": 0.0})
-check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_' (D-078)",
+check("F3 rlm_01 use_cache is True, cache prefix 'rlmwf_'",
       fix["use_cache"] is True and fix["cache_files_prefix"] == "rlmwf_")
 lm_src = read("src/reversi/lm/logistic_model.py")
 # (F4/F6 pipeline-state pins moved to the hub verify_logistic_model.py

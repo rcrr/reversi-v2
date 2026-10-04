@@ -257,3 +257,24 @@ D-440 | 2026-10-04 | tools/state\_machine.py + test/reversi/tools/test\_state\_m
          892 lines); both files verified CANONICAL fixed points of the reflow afterwards. The tool's pre-write
          verifications passed (per-docstring/per-block logical identity, the parse, the idempotence); 51/0/0 — NO
          behavior change (docstring + comment line breaks only).
+
+D-441 | 2026-10-04 | the repo-wide purge of the nine dangling state\_machine D numbers (the fourth and last D of the
+         state\_machine campaign; the user's call on the campaign's analysis: drop them everywhere, not just in
+         state\_machine). The nine numbers (D-060, D-061, D-068, D-069, D-070, D-076, D-078, D-128, D-321) are
+         pre-notes-system decisions — absent from decisions.md and the closed volumes (verified: 0 hits on all nine) —
+         yet cited in 22 files outside the campaign. The purge, file by file (45 citations): the 3 worker sources
+         (wrk\_anova, wrk\_final\_log\_print, logistic\_model — comment-only), the FINAL\_LOG\_PRINT test
+         (test\_wrk\_final\_log\_print — 4 docstring/comment spots), the 6 source mirror docs (wrk\_final\_log\_print,
+         hlp\_final\_log\_print, logistic\_model, hlp\_config\_schemas, wrk\_su\_analysis, wrk\_client\_check — the
+         pointers to plain prose, the FINAL\_LOG\_PRINT / failure-recovery / generic-machine facts kept), the 4 test
+         mirror docs (test\_wrk\_final\_log\_print, test\_lm\_worker\_full\_chain, test\_wrk\_plot,
+         test\_wrk\_client\_check — the "re-pin 18 -> 19" / "update from 18 / PLOT" / "ruling" narratives dropped), the
+         6 probes (verify\_logistic\_model, verify\_final\_log\_print, verify\_wmaps, verify\_design\_matrix,
+         verify\_wrk\_positions, verify\_vld\_positions — the check-name goldens C9/D9/F3/A5/V3c renamed in place; no
+         doc quotes them, verified by grep before the cut). Out of the approved scope (left untouched, reported to the
+         user as the next purge wave): 15 more dangling neighbors found in the same comments
+         — D-065, D-074, D-075, D-079, D-080, D-081, D-083, D-097, D-142, D-157, D-186, D-187, D-287, D-289, D-318 (all
+         0 hits in decisions.md + volumes). VERIFICATION: the 10 touched .py files parse, the verify\_final\_print probe
+         re-run (ALL PASSED), test\_wrk\_final\_log\_print 6/0/1, the docs auditor green. After this D, the only
+         9-number mentions in the workspace are the campaign's decisions entries + journal bullets — the history where
+         R-540 says they belong.

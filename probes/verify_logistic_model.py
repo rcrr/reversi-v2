@@ -5,14 +5,14 @@
 # and the state_machine integration without trusting the module's own
 # tests. Artifacts: build/tmp only (D-065), removed afterwards.
 #
-# Re-pinned in session 22 (D-081) to the post-D-074/D-075/D-076/D-081
+# Re-pinned in session 22 (D-081) to the post-D-074/D-075/D-081
 # state: the session-21 original pinned the pre-D-074 state (legacy
 # _for_next_level names, the latent-Union get_type_hints NameError, the
 # FileNotFoundError-for-a-directory behaviour, the 1-worker V9
 # boundaries) and was never re-pinned after the fix batches. Now:
 # D-074 R1 (the *_for_current_level lambda fields), R2 (str | None
 # annotations, get_type_hints succeeds), R3 (@validate_call on __init__),
-# M3 (IsADirectoryError for a directory as config), D-076 (CONFIG active,
+# M3 (IsADirectoryError for a directory as config), CONFIG active,
 # the gate split lets the CONFIG worker's pydantic ValidationError
 # propagate), D-081 (FEATURES active — 4 workers).
 #
@@ -58,7 +58,7 @@
 # transposition): FEATURES (step 2) before POSITIONS (step 3). The
 # V3c list pins the 18 active levels; the other checks are
 # unchanged.
-# D-321 state (2026-09-28): FINAL_LOG_PRINT added after PLOT (the
+# FINAL_LOG_PRINT state (2026-09-28): FINAL_LOG_PRINT added after PLOT (the
 # wrk_final_log_print() import + worker-list entry) — the full run
 # log on file (the optional log_file_name config entry) is now the
 # 19th level. V3c re-pinned 18 -> 19; the other checks are
@@ -154,7 +154,7 @@ ctx = model.context
 # (V3a/V3b deleted at D-106 step 3, class c: the fresh-model state is
 #  pinned at the top of every full-chain test, e.g. test_lm_worker_
 #  indexes.py — and is the hub's V3c pre-state)
-check("V3c 19 active levels (D-186/D-187: I-017 SU_ANALYSIS step 3 + ANOVA step 6; D-157: FEATURES before POSITIONS; D-321: FINAL_LOG_PRINT last)",
+check("V3c 19 active levels (D-186/D-187: I-017 SU_ANALYSIS step 3 + ANOVA step 6; D-157: FEATURES before POSITIONS; FINAL_LOG_PRINT last)",
       [w.name for w in model.sm.workers]
       == ["CREATED", "CONFIG", "FEATURES", "SU_ANALYSIS",
           "POSITIONS", "INDEXES", "ANOVA", "WMAPS",
@@ -188,10 +188,10 @@ check("V4d log_event injected (bound method, not the lambda default)",
 #  test_pre_injection_fallback_is_no_op_lambda)
 
 # --- V9: 5-worker machine boundaries (re-pinned D-083) -------------------
-# With CONFIG active (D-076) and the gate split, the empty {} config makes
+# With CONFIG active and the gate split, the empty {} config makes
 # the CONFIG worker raise its pydantic ValidationError, which propagates
 # (no conversion to the gate's TypeError); a failed move leaves
-# current_step at the failed step (D-060). Fresh model per boundary.
+# current_step at the failed step. Fresh model per boundary.
 # (The {} config fails at CONFIG — the later boundaries are
 # unreachable, the 11-worker count is pinned by V3c.)
 for target, label in [(1, "int 1"), ("POSITIONS", "str POSITIONS"), ("move_to_last", "move_to_last"),

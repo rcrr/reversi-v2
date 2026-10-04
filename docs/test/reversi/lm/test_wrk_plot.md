@@ -39,7 +39,7 @@ figures → the save. No DB, no pipeline: the `Worker.up` @validate_call gate (c
 
 - The DB-gated complement: `test_lm_worker_full_chain` (the A2030 chain pins the seven PNGs + the "saved:"/"done" log
   lines at the 20k/199932 scale; the A2050 VLONG chain at the 200k scale) + `probes/verify_logistic_model.py` V3c (the
-  19-level pipeline shape, the FINAL_LOG_PRINT last — the D-321 re-pin).
+  19-level pipeline shape, the FINAL_LOG_PRINT last).
 - The hlp-level complement: `test_hlp_plot` (the pure helpers: the vocabulary, the jitter, the EGV bins, the KDE guard).
 - The schema complement: `test_hlp_config_schemas` (the PlotConfig section — the defaults, the format normalization, the
   fail-fast name guard, the dedupe).

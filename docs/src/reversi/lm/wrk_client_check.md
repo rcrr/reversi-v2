@@ -46,7 +46,7 @@ Pinned by the 6-test `test_wrk_client_check` suite (no DB) + the full-chain suit
 - The tolerance is the cfg field (the JSON config value, not a module constant): the same divergence is ADMITTED by a
   wide tolerance (1.0) and REJECTED by a tight one (1e-4) (`test_tolerance_is_read_from_config`).
 - The factory name (`test_factory_returns_named_worker`) + the no-op `_down` log (`test_down_is_a_noop_log`).
-- The pipeline shape (19 levels, the FINAL_LOG_PRINT last — the D-321 re-pin) — `probes/verify_logistic_model.py` V3c.
+- The pipeline shape (19 levels, the FINAL_LOG_PRINT last) — `probes/verify_logistic_model.py` V3c.
 
 ## Open issues
 

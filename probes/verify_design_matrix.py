@@ -142,7 +142,7 @@ check("C7 T7 FIXED: the (former) shutil import is gone with the rmtree teardowns
       "shutil" not in read("test/reversi/lm/test_wrk_design_matrix.py"))
 check("C8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("test/reversi/lm/test_wrk_design_matrix.py").count("verbosity=Verbosity.HIGH") == 3)
-check("C9 the D-078 cache names are pinned (rlmwf_08_DESIGN_MTR.dat + .SHA3-256)",
+check("C9 the cache names are pinned (rlmwf_08_DESIGN_MTR.dat + .SHA3-256)",
       "'rlmwf_08_DESIGN_MTR.dat'" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "'rlmwf_08_DESIGN_MTR.dat.SHA3-256'" in read("test/reversi/lm/test_wrk_design_matrix.py"))
 check("C10 step pins (re-pinned: WMAPS=7 x2 setUps, DESIGN_MTR=8 x2 self.rlm + x1 rlm2)",

@@ -1,5 +1,5 @@
 # test/reversi/lm/test_wrk_final_log_print.py
-The FINAL_LOG_PRINT worker suite (the 19th level, D-321): the factory (the worker name), the config-gate no-op (the
+The FINAL_LOG_PRINT worker suite (the 19th level): the factory (the worker name), the config-gate no-op (the
 absent log_file_name, the file NOT generated), the full-log write (the max-relevance replay over the machine's event
 buffer), the base_dir subdir path, the down (the no-op) — and the LONG-tier end-to-end (the rlm_00 full chain, the
 log_file_name entry in the config from the start — the D-322 tmp
@@ -9,7 +9,7 @@ fixture copy, the write-asymmetry pins). 2 classes / 6 tests (5 no-DB + 1 DB-gat
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestWrkFinalLogPrint` | 5 | `test_factory` (the worker factory: the FINAL_LOG_PRINT name); `test_skipped_no_file` (the absent log_file_name (the default None) -> the no-op (the "skipped" log) + the file NOT generated — the D-321 "the entry absent, no file" ruling); `test_full_log_written` (the configured name -> the file under base_dir with the full buffered content (the mock render) + the "full log written" log); `test_subdir_path` (the dir-like name -> the parents created); `test_down_no_op` (the no-op: the log note) |
+| `TestWrkFinalLogPrint` | 5 | `test_factory` (the worker factory: the FINAL_LOG_PRINT name); `test_skipped_no_file` (the absent log_file_name (the default None) -> the no-op (the "skipped" log) + the file NOT generated); `test_full_log_written` (the configured name -> the file under base_dir with the full buffered content (the mock render) + the "full log written" log); `test_subdir_path` (the dir-like name -> the parents created); `test_down_no_op` (the no-op: the log note) |
 | `TestFinalLogPrintEndToEnd` | 1 | `test_full_chain_writes_the_full_log` (the LONG tier, the rlm_00 full chain, verbosity NONE — nothing prints, the buffer captures everything; the log_file_name entry in the config from the start — the D-322 tmp fixture copy (a post-CONFIG cfg mutation desyncs the config checksum fingerprinted at CONFIG: the SAVE-embedded live dump vs the fingerprint, the CLIENT_CHECK section check raises); step 19 / FINAL_LOG_PRINT last; the write-asymmetry pins: the file carries its own "Starting worker FINAL_LOG_PRINT, UP step" line but NOT the "Completed UP step" nor the "full log written" line (both post-write); the line count == the final buffer minus the two trailing post-write lines; the "Completed UP step for PLOT" present (the whole chain in the file); no FINAL_LOG_PRINT skipped line (the other levels' no-op notes — e.g. "PLOT skipped" — are expected full-log content) |
 
 ## Goldens pinned
@@ -33,13 +33,13 @@ fixture copy, the write-asymmetry pins). 2 classes / 6 tests (5 no-DB + 1 DB-gat
   no-op live HERE — the probe (verify_final_log_print.py) does not repeat them (it owns the cross-file structure
   facts + the write-asymmetry invariant on a synthetic machine + the format cross-check).
 - The step pin (19 / FINAL_LOG_PRINT) is the pipeline-shape pin of this suite — the full-chain suites carry the same
-  pin (the D-321 update 18 -> 19).
+  pin.
 
 ## Integration
 
 - Consumed by `run_utests.sh` (section 4 — the pipeline, at the 19th-level worker position: after the PLOT worker,
   before the full-chain suite).
-- Exercises `wrk_final_log_print` (the 19th level) + the config field (LMConfig.log_file_name, D-321) + the
-  machine-injected `format_event_log` (the D-321 generic-zone addition, tested natively in
+- Exercises `wrk_final_log_print` (the 19th level) + the config field (LMConfig.log_file_name) + the
+  machine-injected `format_event_log` (the generic-machine method, tested natively in
   test/reversi/tools/test_state_machine.py — the `test_format_event_log_full_replay` frozen-clock golden + the
   injection pin).
