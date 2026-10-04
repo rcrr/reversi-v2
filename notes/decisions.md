@@ -76,3 +76,21 @@ D-428 | 2026-10-04 | wsutils/src\_reflow.py — the promotion of the session-96 
          the expected documented deviation (a file carrying hand-polished breaks is not the greedy fill's fixed point;
          the SAFETY section of the tool's docstring says: do not blindly --write such a file). The inventory row in
          wsutils.md is this commit (the same-commit rule of wsutils.md §5.2).
+
+D-429 | 2026-10-04 | tools/opt\_lbfgs.py — the code fixes (the first D of the four-part opt\_lbfgs campaign, D-429…D-432
+         — source + test + mirror docs audited against rules/docs\_rules.md at the user's request, the analysis view
+         delivered, the plan approved). (1) The DEAD `debug_plot` public parameter REMOVED from the `lbfgs` signature
+         (accepted but never used — never forwarded to the line search; the worker never passes it, the probe E5 does
+         not check it; the private line-search functions keep their own — the user approved the removal over the
+         wiring); the quadratic test's `debug_plot=False` call dropped in the same commit. (2) The empty-loop boundary
+         GUARDED: `max_iters < 1` or `initial_iter >= max_iters` raised an UnboundLocalError at `'iters': k + 1` (proved
+         empirically before the fix) — now a documented `ValueError` (the docstring documents it in D-431, the pin lands
+         in D-430). (3) The unused `from __future__ import annotations` removed (every annotation resolves with the
+         module-level imports). (4) The 133-char `save_fn` annotation line — the only line over the 120 ceiling in
+         either file (R-520) — split over two signature lines. (5) 35 trailing-whitespace lines stripped (4 of them in
+         the license banner). (6) The 13-line `# (D-146)` comment compressed to a 4-line WHY summary (R-540: no D
+         reference in a plain `#` comment, the benchmark history — 23.2→16.9 ms, the unadopted numba variant — lives in
+         decisions.md; the D-146 pointer moves to the mirror doc in D-432, where docs\_rules.md §3.2 wants it). (7) PEP8
+         minors: the `size=` keyword arg, the 3-4 module-level blank lines reduced to 2, the `# FG :` comment tidied. NO
+         behavior change beyond the new ValueError; test\_opt\_lbfgs 14/0/0; the guard verified empirically (two invalid
+         bounds → ValueError, one valid run OK).

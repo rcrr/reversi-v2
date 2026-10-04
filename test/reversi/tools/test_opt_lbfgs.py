@@ -181,7 +181,7 @@ class TestLBFGSBaseFunction(unittest.TestCase):
 
     def test_a_optimization(self):
         x0 = np.array([0.0, 0.0])
-        actual_x_min, _ = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-5, 1), log_every_n=0, debug_plot=False)
+        actual_x_min, _ = lbfgs(self.fg, x0, max_iters=100, m=5, min_grad=(1e-5, 1), log_every_n=0)
         nptest.assert_allclose(actual_x_min, self.x_min, atol=1.e-3)
 
 

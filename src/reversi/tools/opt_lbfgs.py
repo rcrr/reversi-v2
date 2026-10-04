@@ -3,29 +3,27 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-
-from __future__ import annotations
 
 import math
 import numpy as np
@@ -34,14 +32,11 @@ from collections import namedtuple, deque
 from typing import Callable, Tuple, List, Optional
 
 
-# FG : Function , Gradient named tuple
+# FG: the (function, gradient) evaluation named tuple
 FG = namedtuple('FG', ['fun', 'grad'])
 
 
-
 __all__ = ['lbfgs', 'FG']
-
-
 
 
 class FixedSizeMaxList:
@@ -55,7 +50,7 @@ class FixedSizeMaxList:
         if not self._buffer:
             raise RuntimeError('Something went wrong with the deque.')
         return max(self._buffer)
-        
+
     def __len__(self) -> int:
         return len(self._buffer)
 
@@ -112,7 +107,7 @@ def _display_line_search(phi: Callable[[float], Tuple[float, float]],
     for u in range(len(t)):
         if curvature_cond[u]:
             plt.plot(t[u], f[u], marker='o', color='green', markersize=4)
-    
+
     plt.show()
     return
 
@@ -124,7 +119,7 @@ def _hermite_cubic_interp_min(x0: float, y0: float, dy0: float,
     """
     dx = x1 - x0
     dy = y1 - y0
-    
+
     a = - 6 * dy + 3 * dx *     (dy0 + dy1)
     b =   6 * dy - 2 * dx * (2 * dy0 + dy1)
     c =                dx *      dy0
@@ -163,17 +158,17 @@ def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
     t  = (x - x0) / dx
     t2 = t * t
     t3 = t2 * t
-    
+
     h0  =  2 * t3 - 3 * t2         + 1
     h1  = -2 * t3 + 3 * t2
     h2  =      t3 - 2 * t2 +     t
     h3  =      t3 -     t2
-    
+
     h01 =           6 * t2 - 6 * t
     h11 =         - 6 * t2 + 6 * t
     h21 =           3 * t2 - 4 * t + 1
     h31 =           3 * t2 - 2 * t
-    
+
     h02 =                   12 * t - 6
     h12 =                 - 12 * t + 6
     h22 =                    6 * t - 4
@@ -182,14 +177,14 @@ def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
     h   =   y0 * h0  + y1 * h1  + dy0 * dx * h2  + dy1 * dx * h3
     dh  = ( y0 * h01 + y1 * h11 + dy0 * dx * h21 + dy1 * dx * h31 ) /  dx
     d2h = ( y0 * h02 + y1 * h12 + dy0 * dx * h22 + dy1 * dx * h32 ) / (dx * dx)
-    
+
     return x, h, dh, d2h
 
 
 def _two_loop_recursion(g: np.ndarray, s: List[np.ndarray], y: List[np.ndarray], rho: List[float]) -> np.ndarray:
     """
     Perform the L-BFGS two-loop recursion to compute H_k * q efficiently.
-    
+
     Parameters
     ----------
     g : np.ndarray
@@ -209,18 +204,10 @@ def _two_loop_recursion(g: np.ndarray, s: List[np.ndarray], y: List[np.ndarray],
     m = len(s)
     alpha = np.zeros(m)
 
-    # (D-146): the per-op product buffer, pre-allocated
-    # once per call. The classic per-op temporaries (the f64 product
-    # of `alpha[i] * y[i]` / `s[i] * (alpha[i] - beta)`, downcast
-    # in place to float32) are the two-loop's measured cost driver
-    # at production scale: 2m fresh ~N-float allocations per call
-    # (A2050: ~58 MB allocated per call). The out= writes on the
-    # pre-allocated f64 buffer replicate the classic dtype
-    # semantics BIT-FOR-BIT (the f64 product, the f32 in-place
-    # downcast) — the L-BFGS trajectory is unchanged — and are
-    # 1.39x faster (A2050, m=93: 23.2 -> 16.9 ms/call) — and the
-    # numba two-loop variant was measured 1.00-1.02x and NOT
-    # adopted.
+    # The per-op product buffer, pre-allocated once per call: the out= writes
+    # on the f64 buffer replicate the classic per-op temporaries' dtype
+    # semantics BIT-FOR-BIT (the f64 product, the f32 in-place downcast), so
+    # the L-BFGS trajectory is unchanged.
     prod = np.empty(g.shape, dtype=np.float64)
 
     delta = g.copy()
@@ -278,27 +265,27 @@ def _strong_wolfe_line_search(fg: Callable[[np.ndarray], FG],
             disp_title = "Function phi(alpha), iter #{}".format(i)
             _display_line_search(phi, c1, c2, phi0, phi_a1, derphi0, derphi_a1,
                                  window=(alpha1*3), alpha1=alpha1, title=disp_title)
-        
+
         if (phi_a1 > phi0 + c1 * alpha1 * derphi0) or (i > 0 and phi_a1 >= phi_prev):
             return _zoom(phi, alpha0, alpha1, phi0, derphi0, c1, c2, cache)
         if abs(derphi_a1) <= -c2 * derphi0:
             return alpha1, cache[alpha1]
         if derphi_a1 >= 0:
             return _zoom(phi, alpha1, alpha0, phi0, derphi0, c1, c2, cache)
-        
+
         i += 1
         if i >= max_iters:
             return alpha1, cache[alpha1]
-        
+
         alpha_prev = alpha1
         phi_prev = phi_a1
-        
+
         interpolated_min = _hermite_cubic_interp_min(alpha0, phi0, derphi0, alpha1, phi_a1, derphi_a1)
         if interpolated_min is not None:
             i_alpha = interpolated_min[0]
         else:
             i_alpha = alpha1 * 2
-            
+
         alpha1 = min(i_alpha, alpha_max)
         phi_a1, derphi_a1 = phi(alpha1)
 
@@ -312,11 +299,11 @@ def _zoom(phi: Callable[[float], Tuple[float, float]],
     """
     max_iters = 20
     alpha = 0.0
-    
+
     for i in range(max_iters):
         phi_alo, derphi_alo = phi(alo)
         phi_ahi, derphi_ahi = phi(ahi)
-        
+
         if alo < ahi:
             x0, y0, dy0 = alo, phi_alo, derphi_alo
             x1, y1, dy1 = ahi, phi_ahi, derphi_ahi
@@ -329,9 +316,9 @@ def _zoom(phi: Callable[[float], Tuple[float, float]],
             alpha = 0.5 * (x0 + x1)
         else:
             alpha = interpolated_min[0]
-            
+
         phi_a, derphi_a = phi(alpha)
-        
+
         if debug_plot:
             title = "_zoom ({:02d}) - Function phi(alpha): ".format(i)
             _display_line_search(phi, c1, c2, phi0, phi_a, derphi0, derphi_a, alpha1=alpha, title=title)
@@ -359,12 +346,12 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
           log_every_n: int = 0,
           logger: Callable[[str], None] = print,
           save_every_n: int = 0,
-          save_fn: Optional[Callable[[np.ndarray, List[np.ndarray], List[np.ndarray], List[float], int, float, float], None]] = None,
+          save_fn: Optional[Callable[[np.ndarray, List[np.ndarray], List[np.ndarray],
+                                     List[float], int, float, float], None]] = None,
           initial_sl: Optional[List[np.ndarray]] = None,
           initial_yl: Optional[List[np.ndarray]] = None,
           initial_rho: Optional[List[float]] = None,
-          initial_iter: int = 0,
-          debug_plot: bool = False) -> Tuple[np.ndarray, dict]:
+          initial_iter: int = 0) -> Tuple[np.ndarray, dict]:
     """
     Limited-memory BFGS optimizer with strong Wolfe line search and restart logic.
     Supports logging, checkpointing, and warm starting.
@@ -378,10 +365,10 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     c1, c2 : float
         Wolfe condition constants (0 < c1 < c2 < 1).
     min_grad : Tuple[float, int]
-        Stopping tolerance for gradient norm. Stops if ||grad f(x)|| < min_grad[0] 
+        Stopping tolerance for gradient norm. Stops if ||grad f(x)|| < min_grad[0]
         for min_grad[1] consecutive iterations.
     min_p_fun_decrease : Tuple[float, int]
-        Minimum fractional acceptable loss decrease. Stops if relative decrease 
+        Minimum fractional acceptable loss decrease. Stops if relative decrease
         is < min_p_fun_decrease[0] for min_p_fun_decrease[1] consecutive iterations.
     max_iters : int
         Maximum number of iterations.
@@ -404,26 +391,30 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     np.ndarray
         Optimized parameters.
     """
-    
+
     if not isinstance(x0, np.ndarray):
         raise TypeError('L-BFGS - Error: argument x0 is not an instance of numpy.ndarray')
-    
+
     supported_types = [np.float32, np.float64]
     if x0.dtype not in supported_types:
-        raise TypeError(f'L-BFGS - Error: argument x0 has unsupported dtype {x0.dtype}')    
-    
+        raise TypeError(f'L-BFGS - Error: argument x0 has unsupported dtype {x0.dtype}')
+
     if not callable(fg):
         raise TypeError('L-BFGS - Error: argument fg is not callable')
-    
+
+    if max_iters < 1 or initial_iter >= max_iters:
+        raise ValueError('L-BFGS - Error: inconsistent iteration bounds '
+                         f'(initial_iter={initial_iter}, max_iters={max_iters})')
+
     CURVATURE_THRESHOLD = 1.e-15
-    
+
     min_grad_value, min_grad_count = min_grad
-    g_norm_history = FixedSizeMaxList(size = min_grad_count)
+    g_norm_history = FixedSizeMaxList(size=min_grad_count)
     min_p_fun_decrease_value, min_p_fun_decrease_count = min_p_fun_decrease
 
     fg_call_count = 0
     fg_call_count_last = 0
-    
+
     low_progress_count_f = 0
     low_progress_count_g = 0
 
@@ -432,7 +423,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         nonlocal fg_call_count
         fg_call_count += 1
         return FG(*fg(x))
-    
+
     # Initialize state
     x = x0.copy()
     sl = initial_sl if initial_sl is not None else []
@@ -452,14 +443,14 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
             low_progress_count_g += 1
         else:
             low_progress_count_g = 0
-            
+
         if low_progress_count_g >= min_grad_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Converged at iteration {k}, gradient norm {g_norm:.3e}")
             is_converged = True
             stop_reason = "CONVERGED_MIN_GRAD"
             break
-            
+
         if fgv.fun != 0.:
             if fgv.fun < fgv_fun_prev:
                 diff = fgv_fun_prev - fgv.fun
@@ -470,7 +461,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
                     low_progress_count_f = 0
             else:
                 low_progress_count_f += 1
-                
+
         if low_progress_count_f >= min_p_fun_decrease_count:
             if log_every_n > 0:
                 logger(f"L-BFGS - Stopped at iteration {k}, low function progress")
@@ -520,7 +511,7 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
 
     if log_every_n > 0:
         logger(f"L-BFGS - fgc (total calls to fg function) = {fg_call_count:d}")
-    
+
     info = {
         'w': x,
         'converged': is_converged,
@@ -532,5 +523,5 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
         'yl': yl,
         'rho': rho
     }
-    
+
     return x, info

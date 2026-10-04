@@ -1746,3 +1746,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   nudge manuale di D-427 (il commento NN) e nient'altro — la deviazione documentata attesa (un file con break
   rifiniti a mano non è il punto fisso del fill greedy; la sezione SAFETY del tool dice: non dargli --write a
   cieca). La riga d'inventario in wsutils.md è questo commit.
+- Campagna opt\_lbfgs (4 D approvati): l'utente chiede un'analisi completa di sorgente + test + mirror doc contro
+  rules e doc\_rules, con verifica della formattazione, delle docstring, degli import non usati e della completezza
+  dei test, e il pass src\_reflow.py come ultimo step. La view trova: la riga 362 a 133 caratteri (unica oltre il
+  soffitto 120 nei due file); from \_\_future\_\_ import annotations inutilizzato (verificato via AST); 35 righe con
+  trailing whitespace nel sorgente (4 nel banner di licenza); debug\_plot parametro MORTO (accettato dalla firma
+  pubblica, mai usato nel corpo, il worker non lo passa); UnboundLocalError a max\_iters=0 (provato
+  empiricamente); il commento D-146 in violazione di R-540 (referenza D in commento # normale + 13 righe di
+  storia); 4 docstring numpydoc, 3 prime righe non imperative, i Returns di lbfgs senza il dict info a 9 chiavi,
+  FixedSizeMaxList senza docstring; test con gap R-850/860 (il dict info mai assertato — tutti i test fanno
+  x, \_ = lbfgs(...), i 3 stop-reason mai esercitati a runtime, niente run float32 end-to-end, la non-mutazione di
+  x0 non assertata, logger mai esercitato — il test-doc li dichiara già come known open gaps); mirror doc con
+  storia di performance (23.2→16.9 ms, 1.39×) vietata da doc\_rules §4 e senza il puntatore D-146 che §3.2
+  richiede. Decisioni approvate: debug\_plot RIMOSSO (non cablato), guard ValueError sul boundary, 4 D separati
+  (429 codice / 430 test / 431 docstring+reflow / 432 mirror doc).
+- D-429 (fix del codice): (1) debug\_plot fuori dalla firma pubblica (il test quadratico smette di passarlo; le
+  funzioni private mantengono il loro); (2) ValueError documentato per max\_iters < 1 o initial\_iter >=
+  max\_iters (prima: UnboundLocalError); (3) via from \_\_future\_\_ import annotations; (4) l'annotazione
+  save\_fn a 133 caratteri spezzata su due righe di firma; (5) 35 trailing ws puliti; (6) il commento D-146
+  compresso a un summary WHY di 4 righe senza referenza D (i benchmark restano in decisions.md, il puntatore va
+  nel mirror doc in D-432); (7) PEP8: size=, righe vuote di modulo → 2, commento FG. Zero behavior change tranne
+  il nuovo ValueError; test\_opt\_lbfgs 14/0/0; il guard verificato (2 casi invalidi → ValueError, 1 run valido
+  OK).
