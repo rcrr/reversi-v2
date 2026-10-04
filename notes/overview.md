@@ -162,7 +162,7 @@ define the evaluation function.
 | test/reversi/test\_regab.py | complete | 48/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
 | test/reversi/tools/test\_binio.py | complete | 56/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
 | test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
-| test/reversi/tools/test\_opt\_lbfgs.py | complete | 14/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
+| test/reversi/tools/test\_opt\_lbfgs.py | complete | 24/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |
 | test/reversi/tools/test\_prng.py | complete | 30/0/0/0/0 | [docs/test/reversi/tools/test\_prng.md](docs/test/reversi/tools/test\_prng.md) |
 | test/reversi/tools/test\_state\_machine.py | complete | 50/0/0/0/0 | [docs/test/reversi/tools/test\_state\_machine.md](docs/test/reversi/tools/test\_state\_machine.md) |
 | test/reversi/tools/test\_usage\_binio.py | complete | 3/0/0/0/0 | [docs/test/reversi/tools/test\_usage\_binio.md](docs/test/reversi/tools/test\_usage\_binio.md) |

@@ -132,3 +132,25 @@ D-431 | 2026-10-04 | tools/opt\_lbfgs.py + test/reversi/tools/test\_opt\_lbfgs.p
          total with the conversion), 9 in the test; both files verified CANONICAL fixed points of the reflow afterwards.
          The tool's pre-write verifications passed (per-docstring/per-block logical identity, the parse, the
          idempotence); test\_opt\_lbfgs 24/0/0 — NO behavior change (docstrings + comment line breaks only).
+
+D-432 | 2026-10-04 | docs/src/reversi/tools/opt\_lbfgs.md — the mirror-doc rewrite (the fourth and last D of the
+         opt\_lbfgs campaign; the test-doc was rewritten in D-430, the same commit as the test change, per
+         docs\_rules.md §5.1). The source doc is REWRITTEN TO STATE (docs\_rules.md §5.2 — never appended): (1) API —
+         the lbfgs line is now 16 parameters (the dead debug\_plot of D-429 gone) and, per docs\_rules.md §3.1
+         (pre/post-conditions, dtypes, error types), documents the error contract for the first time: the 3 TypeErrors +
+         the D-429 ValueError, plus the info-dict reason literals; (2) Architecture — the performance history REMOVED
+         (docs\_rules.md §4: no before/after contrasts, no campaign narrative — "~58 MB per call, 23.2 → 16.9 ms, 1.39×"
+         and the numba-variant measurement belong to decisions.md); the two-loop buffer choice now states the
+         one-sentence rationale (the bit-identical out= dtype semantics — the trajectory unchanged) + the D-146 pointer,
+         which §3.2 wants HERE (it lived in the source comment, where R-540 restricts it); (3) Verified invariants —
+         re-synced to the D-430 suite (24 tests / 9 classes), disambiguated by class name (the three same-named
+         test\_a\_optimization methods — the pins now cite TestLBFGSBaseFunction / TestLBFGSRosenbrockFunction /
+         TestLBFGSZakharovFunction), the "the run matches" residue gone, the new pins added (the 9-key info dict, the 3
+         runtime stop reasons, the x0 non-mutation, the float32 end-to-end, the logger, the ValueError guard, the
+         history cap); (4) Open issues — "None." stands (the remaining coverage gaps — the restart branch, the curvature
+         skip, the Hermite + line-search internals — are tracked in the test-doc's Integration, where they were
+         declared); Conventions and Integration unchanged (still true — the 16 worker kwargs re-verified line-by-line in
+         the analysis). The suite re-measured through the wsutils wrapper (LONG=1): test\_opt\_lbfgs 14/0/0 → 24/0/0
+         (the suite total 1062/0/24 → 1072/0/24), the overview Suite cell updated in this commit; the docs auditor green
+         on both mirror docs. Campaign closed: 4 D (429 code / 430 tests / 431 docstrings + reflow / 432 docs), the
+         source and the test are canonical fixed points of wsutils/src\_reflow.py, the suite GREEN.

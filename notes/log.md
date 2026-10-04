@@ -1796,3 +1796,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   --write su sorgente e test — 13 docstring ri-avvolti nel sorgente (629 righe totali), 9 nel test; entrambi
   i file sono ora punto fisso canonico del reflow (verificato con la check). Verifica: identità logica
   preservata (la verifica pre-write del tool), 24/0/0, zero behavior change.
+
+- D-432 (rewrite del mirror doc — campagna chiusa): il source-doc riscritto allo stato nuovo (docs\_rules
+  §5.2): l'API line ora a 16 parametri (via debug\_plot) e documenta per la prima volta il contratto di errori
+  (i 3 TypeError, il ValueError di D-429) + i reason literals del dict info; l'Architecture perde la storia di
+  performance (23.2→16.9 ms, 1.39×, 58 MB — vietata da §4: sta in decisions.md) e ha la scelta del buffer out=
+  in una frase di rationale + il puntatore D-146 che §3.2 richiede qui; i Verified invariants ri-sincronizzati
+  alla suite di D-430 (24 test / 9 classi, pin disambiguati per nome di classe — i 3 test\_a\_optimization
+  omologhi), via il residuo "the run matches", più le pin nuove (info dict, stop reasons, x0, f32, logger,
+  guard, cap m); Open issues resta None. (i gap restanti vivono nell'Integration del test-doc). Suite
+  rimisurata via wrapper LONG=1: test\_opt\_lbfgs 14/0/0 → 24/0/0 (totale 1062/0/24 → 1072/0/24), cella Suite
+  dell'overview aggiornata in questo commit; docs auditor verde su entrambi i mirror doc. Campagna
+  opt\_lbfgs chiusa: 4 D (429 codice / 430 test / 431 docstring+reflow / 432 doc), sorgente e test a punto
+  fisso canonico di src\_reflow, suite GREEN.
