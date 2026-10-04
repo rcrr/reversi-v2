@@ -116,3 +116,19 @@ D-430 | 2026-10-04 | test/reversi/tools/test\_opt\_lbfgs.py — the test complet
          added to Goldens pinned, and the min\_grad / min\_p\_fun\_decrease gap REMOVED from the Known open gaps (the
          restart branch, the curvature skip and the Hermite internals stay integration-only, as before). 14/0/0 → 24/0/0
          (~0.050 s, the fast tier unchanged); the docs auditor green on the rewritten test-doc.
+
+D-431 | 2026-10-04 | tools/opt\_lbfgs.py + test/reversi/tools/test\_opt\_lbfgs.py — the docstring conversion + the R-520
+         reflow pass (the third D of the opt\_lbfgs campaign, the user's "ultimo step"). The 4 numpydoc-style docstrings
+         (`lbfgs`, `\_two\_loop\_recursion`, `\_hermite\_cubic\_interp`, `\_hermite\_cubic\_interp\_min`) converted to
+         the Google Args:/Returns:/Raises: of R-560, and FixedSizeMaxList — previously undocumented — now carries the
+         class + method docstrings (incl. the `max()` RuntimeError contract). Every function docstring has the
+         imperative first line (R-560(1) — the old "Strong Wolfe line search implementation with full gradient caching."
+         was HOW, R-530). The biggest gap closed: `lbfgs`'s Returns now documents the 9-key info dict that was absent
+         from the source docstring (the keys, the three reason literals, the iters semantics, the warm-start usage) +
+         the Raises section (the 3 TypeErrors, the D-429 ValueError). Type names follow the house convention (the prng
+         precedent): bare names in the entry heads, the complex subscripts in the description prose (the tool's entry
+         head cannot split a nested-bracket type without threatening the 120 ceiling). THEN THE FINAL STEP:
+         wsutils/src\_reflow.py --write on the source AND the test — 13 docstrings reflowed in the source (629 lines
+         total with the conversion), 9 in the test; both files verified CANONICAL fixed points of the reflow afterwards.
+         The tool's pre-write verifications passed (per-docstring/per-block logical identity, the parse, the
+         idempotence); test\_opt\_lbfgs 24/0/0 — NO behavior change (docstrings + comment line breaks only).

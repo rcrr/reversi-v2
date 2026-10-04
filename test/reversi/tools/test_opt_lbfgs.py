@@ -130,12 +130,10 @@ class TestTwoLoopRecursion(unittest.TestCase):
                            'two-loop result should be non-zero for random input')
 
     def test_out_equals_original_bit_identical(self):
-        # The pre-allocated out= product buffer must
-        # reproduce the original per-op-temporary algorithm
-        # BIT-FOR-BIT (the f64 product + the f32 in-place downcast
-        # are the original's exact dtype semantics) — the L-BFGS
-        # trajectory is therefore unchanged. The reference is the
-        # original algorithm, verbatim.
+        # The pre-allocated out= product buffer must reproduce the original per-op-temporary
+        # algorithm BIT-FOR-BIT (the f64 product + the f32 in-place downcast are the original's
+        # exact dtype semantics) — the L-BFGS trajectory is therefore unchanged. The reference is
+        # the original algorithm, verbatim.
         def reference(g, s_list, y_list, rho_list):
             m = len(s_list)
             alpha = np.zeros(m)

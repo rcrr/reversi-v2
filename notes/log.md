@@ -1784,3 +1784,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   le 2 righe Coverage nuove, i reason literals nel Goldens pinned, il gap min\_grad/min\_p\_fun\_decrease
   rimosso dai known open gaps (restano restart, curvature skip e interni Hermite — integration-only come prima).
   14/0/0 → 24/0/0 (~0.05 s, tier fast invariato); docs auditor verde.
+
+- D-431 (docstring + il pass src\_reflow): convertiti i 4 docstring numpydoc in Google Args/Returns/Raises
+  (R-560): lbfgs, \_two\_loop\_recursion, \_hermite\_cubic\_interp, \_hermite\_cubic\_interp\_min;
+  docstring completi per FixedSizeMaxList (classe + 4 metodi, incluso il contratto RuntimeError di max());
+  prime righe imperative ovunque (la vecchia "…implementation with full gradient caching." era HOW, R-530).
+  Il gap più grosso: i Returns di lbfgs documentano ora il dict info a 9 chiavi che mancava dal docstring
+  sorgente (le chiavi, i reason literals, la semantica di iters, l'uso per il warm-start) + la sezione
+  Raises (i 3 TypeError, il ValueError di D-429). Tipi: la convenzione di casa (precedente prng) — nomi
+  semplici nella head dell'entry, i sottotitoli complessi nella prosa. Poi l'ultimo step: wsutils/src\_reflow.py
+  --write su sorgente e test — 13 docstring ri-avvolti nel sorgente (629 righe totali), 9 nel test; entrambi
+  i file sono ora punto fisso canonico del reflow (verificato con la check). Verifica: identità logica
+  preservata (la verifica pre-write del tool), 24/0/0, zero behavior change.
