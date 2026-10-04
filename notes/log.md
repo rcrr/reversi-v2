@@ -1848,3 +1848,12 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   riscritto nello stesso commit (docs\_rules §5.1): via "194 lines." e il bullet Imports (è un indice, non
   architettura), i tag di campagna R1/R2/R3/M3 senza puntatori sostituiti dal rationale in prosa, via il residuo
   "incl. the R1 note". 22/0/0 (zero behavior change), docs auditor verde.
+
+- D-435 (test): cleanup — via la narrazione di provenienza dal docstring di TestValidateCallCoercion
+  ("probe\_rules.md §4: converted from the V17 probe…" — R-540: resta la descrizione del comportamento, via la
+  storia); via il from \_\_future\_\_ import annotations non servito; 9 trailing-ws. Il modulo di test è COMPLETO
+  (l'analisi non trova gap R-850 — a differenza di opt\_lbfgs): i 4 step + success, tutti i rami di fallimento
+  (load che raise, validator False e che raise, checksum che raise, sidecar mancante/sballato/malformato/
+  undecodable), i 5 casi di duck-typing, il coercion validate\_call, l'idempotenza del delete, il formato binio
+  del sidecar — 22 test su ogni comportamento documentato. Test-doc invariato (il fix è solo un commento, il
+  contenuto resta vero). 22/0/0 (zero behavior change).

@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -44,11 +44,9 @@
 Unit tests for the reversi.tools.cache_manager module.
 
 This suite verifies the 4-step validation pipeline, ensuring that caching,
-checksum validation, fallback computation logic, and the cache_hit flag 
+checksum validation, fallback computation logic, and the cache_hit flag
 behave predictably under various scenarios.
 """
-
-from __future__ import annotations
 
 import unittest
 import tempfile
@@ -105,7 +103,7 @@ class BaseCacheTestCase(unittest.TestCase):
     def setUp(self):
         """Create a temporary directory inside <workspace-root>/build/tmp/."""
         self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
-        
+
     def tearDown(self):
         """Clean up the temporary directory."""
         self.temp_dir.cleanup()
@@ -197,7 +195,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
     def setUp(self):
         super().setUp()
         self.cache_path = Path(self.temp_dir.name) / "cache.dat"
-        
+
         self.mock_compute = MagicMock(return_value=DUMMY_DATA)
         self.mock_store = MagicMock(side_effect=self._fake_store)
         self.mock_load = MagicMock(return_value=DUMMY_DATA)
@@ -211,7 +209,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step0_not_allowed_forces_computation(self):
         """
-        Step 0: If caching is not allowed, it must compute, store, 
+        Step 0: If caching is not allowed, it must compute, store,
         and return cache_hit=False.
         """
         self.cache_path.write_text("old data")
@@ -246,7 +244,7 @@ class TestCacheManagerPipeline(BaseCacheTestCase):
 
     def test_step1_missing_file_forces_computation(self):
         """
-        Step 1: If cache is allowed but file is missing, 
+        Step 1: If cache is allowed but file is missing,
         it must compute, store, and return cache_hit=False.
         """
         cache_hit, result, checksum = cache_manager_load_or_compute(
@@ -603,11 +601,7 @@ class TestValidateCallCoercion(unittest.TestCase):
         """A str cache_path is coerced to a Path: the inner store_fn
         callback observes a pathlib Path, and the flow then dies in
         the framework's sidecar write (FileNotFoundError — the no-op
-        store_fn never created the file).
-
-        probe_rules.md §4: converted from the
-        verify_cache_manager.py V17 probe (the coercion is unique,
-        no other test covered it)."""
+        store_fn never created the file)."""
         seen = []
         with self.assertRaises(FileNotFoundError):
             cache_manager_load_or_compute(

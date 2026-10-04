@@ -183,3 +183,15 @@ D-434 | 2026-10-04 | tools/cache\_manager.py + its mirror doc — the source fix
          §5.1): the "194 lines." metadata dropped, the Imports bullet (a table of contents, not architecture) dropped,
          the R1/R2/R3/M3 campaign tags (no pointers, docs\_rules.md §4) replaced by the plain rationale, the "incl. the
          R1 note" residue gone. 22/0/0 (no behavior change); the docs auditor green.
+
+D-435 | 2026-10-04 | test/reversi/tools/test\_cache\_manager.py — the test cleanup (the second D of the cache\_manager
+         campaign): the provenance narrative dropped from the TestValidateCallCoercion docstring ("probe\_rules.md §4:
+         converted from the verify\_cache\_manager.py V17 probe (the coercion is unique, no other test covered it)" —
+         R-540 for test comments: the behaviour description stays, the change-history does not); the unused
+         `from \_\_future\_\_ import annotations` dropped (the annotations are plain names, nothing deferred); 9
+         trailing-ws stripped. The test suite itself is COMPLETE (the analysis found no R-850 gap — unlike the
+         opt\_lbfgs campaign): all 4 steps + success, every failure branch (the raising load, the False and raising
+         validator, the raising data checksum, the missing/mismatched/malformed/undecodable sidecars), the 5 duck-typing
+         cases, the validate\_call coercion, the delete idempotency, the binio sidecar format — 22 tests pinning every
+         documented behaviour. The test-doc is UNCHANGED (the fix is comment-only, its content — 3 classes / 22 tests,
+         the coverage, the goldens, the probe inventory — stays true). 22/0/0 (no behavior change).
