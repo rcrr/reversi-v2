@@ -2232,3 +2232,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (3) I mirror doc: test\\_feature.md 29 → 32 (31 run + 1 PERF), le righe di Coverage (TestFeature
   9, TestFeatureSet 8) + il bullet Goldens + la riga strict-typing; feature.md i conteggi
   TestFeature (9) / TestFeatureSet (8) e le nuove pin. 29 → 32 test: 32/0/1.
+
+- Chiusa la batch feature (D-466..D-468): (1) il pass sorgente — canone R-560 (11 docstring), i tipi
+  degli Attributes piegati nella prosa (classe piana, nessuna annotation in signature), la sezione
+  Methods: eliminata (duplicava i docstring dei metodi), i 2 code smell (il ramo morto
+  f.category in (0, 'intercept') in feature\\_blocks; l'-> Self su un init che ritorna None),
+  whitespace e blank line; 337 → 313 righe; (2) la fede dei mirror doc — 4 punti stale del D-417
+  ("mirrors aligned" parziale: la prosa aggiornata, i conteggi e le tavole dei test no); (3) i 3 test
+  mancanti (il wrong-type della factory mobility, il nome non-str, il golden di print dei rami
+  "is None.") + il pass R-560 sul file di test. Il tool: fix del rebase per le entry legacy a
+  colonna uguale (trovato sul primo pass feature, disclosed; tutti i file migrati ri-verificati
+  senza regressione). Il giro completo LONG=1 rimesurato a chiusura: suite 1093 → 1096/0/24
+  (feature 29 → 32/0/1, il resto invariato). Next step: mobility, poi a cascata lm e test.

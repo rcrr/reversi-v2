@@ -58,11 +58,12 @@ define the evaluation function.
 - Add the project README (English, like everything else).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
   wsutils/src\_reflow.py, the docstring conversion).
-- Verify the format of the feature, mobility sources (the same sub-works — the tools sub-package, board, and pattern are
+- Verify the format of the mobility source (the same sub-work — the tools sub-package, board, pattern, and feature are
   COMPLETE at the R-560 canonical: tools the D-438..D-446 session + the D-461..D-465 new-layout wave, board
-  the D-447..D-451 session + D-459, pattern the D-453..D-455 session + D-458: the src\_reflow canonical fixed point, the
-  house docstring conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite
-  1093/0/24 at close).
+  the D-447..D-451 session + D-459, pattern the D-453..D-455 session + D-458, feature the D-466..D-468 pass (the R-560
+  canonical + the mirror-doc fidelity repair + the 3 completion tests): the src\_reflow canonical fixed point, the house
+  docstring conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite 1096/0/24
+  at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
@@ -158,7 +159,7 @@ define the evaluation function.
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |
 | test/reversi/test\_board.py | complete | 308/0/15/0/0 | [docs/test/reversi/test\_board.md](docs/test/reversi/test\_board.md) |
-| test/reversi/test\_feature.py | complete | 29/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
+| test/reversi/test\_feature.py | complete | 32/0/1/0/0 | [docs/test/reversi/test\_feature.md](docs/test/reversi/test\_feature.md) |
 | test/reversi/test\_mobility.py | complete | 30/0/1/0/0 | [docs/test/reversi/test\_mobility.md](docs/test/reversi/test\_mobility.md) |
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
 | test/reversi/test\_pattern.py | complete | 79/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
