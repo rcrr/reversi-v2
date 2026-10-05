@@ -653,3 +653,26 @@ D-471 | 2026-10-06 | The one missing mobility test (the feature twin):
          only gap left in the suite after the D-417 N-D wave. The mirror docs at the final counts: test\\_mobility.md 30
          → 31 (30 run + 1 PERF), the Coverage row 23 → 24 + the subTest loop listed; mobility.md's N-D bullet gains the
          strict-typing pin. 30 → 31 tests: 31/0/1.
+
+D-472 | 2026-10-06 | The regab source + test + mirror-doc pass, one commit (the user-approved single-D plan, with the
+         (b) activate\_conn test added): (1) the 10 numpydoc docstrings converted to the house Google style — the last
+         numpydoc module in the tree; the two class Attributes: sections fold the types into the prose (plain classes,
+         the FeatureSet precedent), the RegabDBConnection Methods: section is removed (close already has its own
+         docstring; activate\_conn gained the one the Methods: entry carried); the gp\_as\_df Notes: bullets dropped
+         (they duplicated the Args entries; the vague "may raise an Exception" is not a contract); (2) R-540: the D-143
+         (x2) and D-139 (x4) references and the "Roberto's ruling" phrases removed from the docstrings, the decisions
+         kept as facts; (3) a real doc/code mismatch fixed: regab\_load\_data\_set\_from\_file promised a ValueError on
+         checksum mismatch, the code raises RuntimeError (the tests pin the RuntimeError) — the Raises: now says
+         RuntimeError, extended to the description/version checks; (4) PEP8: the default-value spacing in the connection
+         signature, the double space in the RegabDataSet body, the 152-char SQL string split, the two over-120 separator
+         lines matched to the house separator, trailing whitespace 0; (5) test\_regab.py: the real test bug —
+         test\\_invalid\\_ec \\_type called RegabDataSet without self.rc, so it passed for the wrong reason (the
+         ValidationError came from the missing argument, not the ec gate) — self.rc added; 4 test docstrings now say
+         ValidationError (pydantic), not TypeError, and 1 says TypeError (the dtype check does raise it); the "userbame"
+         header typo fixed; the new test\\_activate\\_conn (the user-approved (b): a connection created with
+         activate\\_conn=False is None, then established and closed). (6) The mirror docs: regab.md dropped the stale
+         "678 lines." (the §4 defect), the V5 unpinned invariant moved out of the Verified invariants (docs \\_rules §3)
+         into Conventions, the "( the" double-space refix; test\\_mobility-style counts refreshed: 48 → 49 tests (36 + 2
+         + 11), the TestRegabDB row 2 → 3 with the activate\\_conn re-open listed. 48 → 49 tests: 49/0/0 at the DB-gated
+         LONG=1 run. Both .py at the src\\_reflow canonical fixed point (678 → 582 source lines, 796 → 720 test lines —
+         the numpydoc collapse).

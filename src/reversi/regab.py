@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -79,52 +79,29 @@ class RegabDBConnection:
     """
     A regab database connection wraps the psycopg2 connection object.
 
-    Attributes
-    ----------
-    dbname : str
-        The name of the database.
-    user : str
-        The username for the database connection.
-    host : str
-        The hostname of the database server.
-    port : str
-        The port number on which the database server is listening.
-    password : str
-        The password for the database connection.
-    _connect_string : str
-        The connection string used to connect to the database.
-    conn : psycopg2.extensions.connection
-        The psycopg2 connection object.
-
-    Methods
-    -------
-    close()
-        Closes the db connection.
-
-    activate_conn()
-        Establish the connection.
+    Attributes:
+        dbname: The name of the database (str).
+        user: The username for the database connection (str).
+        host: The hostname of the database server (str).
+        port: The port number on which the database server is listening (str).
+        password: The password for the database connection (str).
+        _connect_string: The connection string used to connect to the database (str).
+        conn: The psycopg2 connection object (psycopg2.extensions.connection).
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, dbname: str, user: str, host: str,
-                 port: str ='5432', password: str | None =None,
-                 activate_conn: bool =True):
+                 port: str = '5432', password: str | None = None,
+                 activate_conn: bool = True):
         """
         Initializes a RegabDBConnection instance.
 
-        Parameters
-        ----------
-        dbname : str
-            The name of the database.
-        user : str
-            The username for the database connection.
-        host : str
-            The hostname of the database server.
-        port : str, optional
-            The port number on which the database server is listening. Default is '5432'.
-        password : str, optional
-            The password for the database connection. Default is None.
-        activate_conn : bool, optional
-            When False do not create the database connection.
+        Args:
+            dbname: The name of the database.
+            user: The username for the database connection.
+            host: The hostname of the database server.
+            port: The port number on which the database server is listening (default '5432').
+            password: The password for the database connection (default None).
+            activate_conn: When False, do not create the database connection.
         """
         self.dbname = dbname
         self.user = user
@@ -147,21 +124,20 @@ class RegabDBConnection:
                 self.conn = None
 
     def activate_conn(self):
+        """Establish the database connection (when __init__ was told not to)."""
         if self.conn is None:
             self.conn = pg.connect(self._connect_string)
             with self.conn.cursor() as curs:
                 curs.execute("SET search_path TO reversi;")
-        
+
     def close(self):
-        """
-        Closes the db connection.
-        """
+        """Closes the db connection."""
         if self.conn:
             self.conn.close()
 
 #: End of RegabDBConnection class.
 
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 #: Here start the argument validation for the method: regab_gp_as_df
 
@@ -173,7 +149,7 @@ def _validate_db_fields(fields_input: Union[str, List[str], None]) -> List[str]:
     rc = rc_context.get()
     if rc is None:
         raise RuntimeError("Database connection context 'rc' could not be found.")
-        
+
     base_colnames = ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value']
 
     if not fields_input:
@@ -182,7 +158,7 @@ def _validate_db_fields(fields_input: Union[str, List[str], None]) -> List[str]:
     with rc.conn.cursor() as curs:
         curs.execute("SELECT * FROM regab_prng_gp LIMIT 0;")
         colnames = [d[0] for d in curs.description]
-        
+
     if isinstance(fields_input, str):
         if fields_input == '*':
             return colnames
@@ -200,22 +176,22 @@ def _validate_with_db_context(func):
     def wrapper(*args, **kwargs):
         # Dynamically extract 'rc' from positional or keyword parameters
         rc = kwargs.get('rc') if 'rc' in kwargs else (args[0] if args else None)
-        
+
         # Use bind_partial to see what was ACTUALLY passed
         sig = inspect.signature(func)
         bound = sig.bind_partial(*args, **kwargs)
-        
+
         # Inject ONLY the defaults for arguments that were completely omitted
         for param_name, param in sig.parameters.items():
             if param_name not in bound.arguments and param.default is not inspect.Parameter.empty:
                 default_val = param.default
-                
+
                 # HANDLE PYDANTIC V2: Extract the actual default if it's a FieldInfo object
                 if isinstance(default_val, FieldInfo):
                     default_val = default_val.default
-                    
+
                 kwargs[param_name] = default_val
-        
+
         # Set the context, execute the function, and reset it afterwards
         token = rc_context.set(rc)
         try:
@@ -224,30 +200,28 @@ def _validate_with_db_context(func):
             rc_context.reset(token)
     return wrapper
 
-# Helper function: converts a single int into a single-element list 
-# BEFORE Pydantic runs its type validation.
+# Helper function: converts a single int into a single-element list BEFORE Pydantic runs its type validation.
 def _ensure_list(v: Any) -> Any:
     """Converts a single input into a single-element list if it is not already a list."""
     return [v] if isinstance(v, (int, str)) else v
 
-#: BeforeValidator transforms int -> List[int]
-#: Field(ge=0) ensures every integer in that list is >= 0 (zero included)
+#: BeforeValidator transforms int -> List[int] Field(ge=0) ensures every integer in that list is >=
+#: 0 (zero included)
 BidArgument = Annotated[List[Annotated[int, Field(ge=0)]], BeforeValidator(_ensure_list)]
 
 # Custom type for 'status': handles list conversion and checks for strings of length exactly 3
 StatusArgument = Annotated[
-    List[Annotated[str, Field(min_length=3, max_length=3)]], 
+    List[Annotated[str, Field(min_length=3, max_length=3)]],
     BeforeValidator(_ensure_list)
 ]
 
 #: Custom type for 'ec': enforces an integer strictly between 0 and 60 inclusive [0..60]
 EcArgument = Annotated[int, Field(ge=0, le=60)]
 
-#: Validates the where clause to prevent SQL injection.
-#: Blocks SQL comments (``--``, ``/* */``), statement terminators (``;``), and
-#: dangerous keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER,
-#: CREATE, EXEC, EXECUTE, TRUNCATE). The where clause must be a valid SQL
-#: boolean expression referencing only columns of the ``regab_prng_gp`` table.
+#: Validates the where clause to prevent SQL injection. Blocks SQL comments (``--``, ``/* */``),
+#: statement terminators (``;``), and dangerous keywords (SELECT, INSERT, UPDATE, DELETE, DROP,
+#: UNION, ALTER, CREATE, EXEC, EXECUTE, TRUNCATE). The where clause must be a valid SQL boolean
+#: expression referencing only columns of the ``regab_prng_gp`` table.
 _WHERE_FORBIDDEN = re.compile(
     r'(--)|(/\*)|(\*/)|(;\s*$)'
     r'|\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|EXEC|EXECUTE|TRUNCATE)\b',
@@ -281,62 +255,37 @@ def regab_gp_as_df(rc: RegabDBConnection,
     """
     Retrieves game positions from the database and returns them as a pandas DataFrame.
 
-    Parameters
-    ----------
-    rc : RegabDBConnection
-        An instance of the RegabDBConnection class representing the database connection.
+    Args:
+        rc: An instance of the RegabDBConnection class representing the database connection.
+        bid: A list of batch IDs or a single batch ID to filter the game positions. Each batch ID
+            must be a non-negative integer.
+        status: A list of status codes or a single status code to filter the game positions. Each
+            status code must be a string of exactly three characters.
+        ec: The empty count to filter the game positions. Must be an integer in the range [0, 60].
+        limit: The maximum number of rows to return (default None, all rows). If specified, must be
+            a non-negative integer.
+        where: An additional SQL WHERE clause to further filter the game positions. Must be a string
+            containing only SQL boolean expressions referencing columns of the ``regab_prng_gp``
+            table. For safety, the following are forbidden and will raise ``ValueError``: SQL
+            comments (``--``, ``/* */``), statement terminators (``;``), and dangerous keywords
+            (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER, CREATE, EXEC, EXECUTE, TRUNCATE).
+            Valid example: ``"game_value > 0 AND mover IS NOT NULL"``.
+        fields: A list of column names to include in the result. Must be a list of strings
+            representing valid column names in the ``regab_prng_gp`` table; with '*', all columns
+            are included; when not specified, the base set of columns is used: ['seq', 'batch_id',
+            'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value'].
 
-    bid : List[int] or int
-        A list of batch IDs or a single batch ID to filter the game positions.
-        Each batch ID must be a non-negative integer.
-
-    status : List[str] or str
-        A list of status codes or a single status code to filter the game positions.
-        Each status code must be a string of exactly three characters.
-
-    ec : int
-        The empty count to filter the game positions.
-        Must be an integer in the range [0, 60].
-
-    limit : int, optional
-        The maximum number of rows to return.
-        If specified, must be a non-negative integer.
-
-    where : str, optional
-        An additional SQL WHERE clause to further filter the game positions.
-        If specified, must be a string containing only SQL boolean expressions
-        referencing columns of the ``regab_prng_gp`` table. For safety, the
-        following are forbidden and will raise ``ValueError``: SQL comments
-        (``--``, ``/* */``), statement terminators (``;``), and dangerous
-        keywords (SELECT, INSERT, UPDATE, DELETE, DROP, UNION, ALTER, CREATE,
-        EXEC, EXECUTE, TRUNCATE). Valid example: ``"game_value > 0 AND mover IS NOT NULL"``.
-
-    fields : List[str], optional
-        A list of column names to include in the result.
-        If specified, must be a list of strings representing valid column names in the `regab_prng_gp` table.
-        If not specified, defaults to a base set of columns: ['seq', 'batch_id', 'status', 'mover', 'opponent', 'player', 'empty_count', 'game_value'].
-        If '*', all columns are included.
-
-    Returns
-    -------
-    pd.DataFrame
-        A pandas DataFrame containing the filtered game positions.
-
-    Notes
-    -----
-    - If the `fields` parameter is specified, it overrides the default columns.
-    - If the `fields` parameter is not specified, the default columns are used.
-    - If the `where` parameter is specified, it is added to the SQL query as an additional filter.
-    - If the `limit` parameter is specified, it limits the number of rows returned by the query.
-    - The function may raise an Exception if the SQL query execution fails.
+    Returns:
+        pd.DataFrame: A pandas DataFrame containing the filtered game positions.
     """
     bid_str = ', '.join([str(x) for x in bid])
     status_str = ', '.join(["'{}'".format(x) for x in status])
     selection = ', '.join(fields)
-    q = "SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} AND status IN ({:s})".format(selection, bid_str, ec, status_str)
+    q = ("SELECT {:s} FROM regab_prng_gp WHERE batch_id IN ({:s}) AND empty_count = {:d} "
+         "AND status IN ({:s})").format(selection, bid_str, ec, status_str)
     if where:
         q = q + ' AND {:s}'.format(where)
-    q = q + ' ORDER BY seq'    
+    q = q + ' ORDER BY seq'
     if limit != None:
         q = q + ' LIMIT {:d}'.format(limit)
     q = q + ';'
@@ -352,10 +301,10 @@ def regab_gp_as_df(rc: RegabDBConnection,
 
 #: End of regab_gp_as_df method.
 
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-# Helper function: validates that the Pandas data frame has 3 columns of type: 'int64', 'int64', 'int8'. 
-# BEFORE Pydantic runs its type validation.
+# Helper function: validates that the Pandas data frame has 3 columns of type: 'int64', 'int64',
+# 'int8'. BEFORE Pydantic runs its type validation.
 def _ensure_column_count_and_type(df: pd.DataFrame) -> pd.DataFrame:
     if not len(df.columns) == 3:
         raise ValueError('Argument df_mogv has not 3 columns.')
@@ -373,18 +322,13 @@ class RegabDataSet:
     """
     Represents a dataset containing game positions from the Reversi game.
 
-    Attributes
-    ----------
-    rc : RegabDBConnection
-        A database connection object
-    bid : List[int]
-        A list of batch IDs.
-    status : List[str]
-        A list of status codes, each exactly 3 characters long.
-    ec : int
-        The empty count, must be in the range [0, 60].
-    df_mogv : pd.DataFrame
-        A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+    Attributes:
+        rc: A database connection object (RegabDBConnection).
+        bid: A list of batch IDs (list[int]).
+        status: A list of status codes, each exactly 3 characters long (list[str]).
+        ec: The empty count, must be in the range [0, 60] (int).
+        df_mogv: A DataFrame containing the game positions with columns 'mover', 'opponent', and
+            'game_value' (pd.DataFrame).
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self,
@@ -396,25 +340,19 @@ class RegabDataSet:
         """
         Initializes a RegabDataSet instance.
 
-        Parameters
-        ----------
-        rc : RegabDBConnection
-            A database connection object
-        bid : List[int]
-            A list of batch IDs.
-        status : List[str]
-            A list of status codes, each exactly 3 characters long.
-        ec : int
-            The empty count, must be in the range [0, 60].
-        df_mogv : pd.DataFrame
-            A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
+        Args:
+            rc: A database connection object.
+            bid: A list of batch IDs.
+            status: A list of status codes, each exactly 3 characters long.
+            ec: The empty count, must be in the range [0, 60].
+            df_mogv: A DataFrame containing the game positions with columns 'mover', 'opponent', and 'game_value'.
         """
         self.rc: RegabDBConnection = rc
-        self.bid: List[int]  = bid
+        self.bid: List[int] = bid
         self.status: List[str] = status
         self.ec: int = ec
         self.df_mogv: pd.DataFrame = df_mogv
-        
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def generate_positions_and_game_values(self) -> Tuple[PositionArray, GameValueArray]:
         mover = self.df_mogv['mover'].to_numpy().view(Bitboard)
@@ -444,21 +382,14 @@ def regab_extract_data_set_from_db(rc: RegabDBConnection,
     """
     Extracts data from the database and creates a RegabDataSet instance.
 
-    Parameters
-    ----------
-    rc : RegabDBConnection
-        An instance of the RegabDBConnection class representing the database connection.
-    bid : List[int] or int
-        A list of batch IDs or a single batch ID to filter the game positions.
-    status : List[str] or str
-        A list of status codes or a single status code to filter the game positions.
-    ec : int
-        The empty count to filter the game positions.
+    Args:
+        rc: An instance of the RegabDBConnection class representing the database connection.
+        bid: A list of batch IDs or a single batch ID to filter the game positions.
+        status: A list of status codes or a single status code to filter the game positions.
+        ec: The empty count to filter the game positions.
 
-    Returns
-    -------
-    RegabDataSet
-        An instance of RegabDataSet containing the extracted data.
+    Returns:
+        RegabDataSet: An instance of RegabDataSet containing the extracted data.
     """
     selected_fields = ['mover', 'opponent', 'game_value']
     df = regab_gp_as_df(rc, bid, status, ec, limit=None, where=None, fields=selected_fields)
@@ -471,24 +402,18 @@ def regab_dedup_mogv(df_mogv: pd.DataFrame) -> Tuple[pd.DataFrame, int, int]:
     """
     Remove duplicate game positions from a mogv data frame.
 
-    The key is the (mover, opponent) pair: the same position can be
-    recorded more than once in the database (e.g. under different
-    statuses), and the extraction query returns every occurrence.
-    Deduplication keeps the FIRST occurrence in frame order (the
-    extraction is ORDER BY seq, so the kept row is the lowest seq) —
-    the duplicate rows carry identical attributes, so no aggregation
-    is needed and no data is validated (the pipeline does not validate
-    the data, Roberto's ruling — D-143).
+    The key is the (mover, opponent) pair: the same position can be recorded more than once in the
+    database (e.g. under different statuses), and the extraction query returns every occurrence.
+    Deduplication keeps the FIRST occurrence in frame order (the extraction is ORDER BY seq, so the
+    kept row is the lowest seq) — the duplicate rows carry identical attributes, so no aggregation
+    is needed and no data is validated (the pipeline does not validate the data).
 
-    Parameters
-    ----------
-    df_mogv : pd.DataFrame
-        A data frame with the 'mover', 'opponent', 'game_value' columns.
+    Args:
+        df_mogv: A data frame with the 'mover', 'opponent', 'game_value' columns.
 
-    Returns
-    -------
-    Tuple[pd.DataFrame, int, int]
-        (the deduplicated frame, the total row count, the removed row count)
+    Returns:
+        Tuple[pd.DataFrame, int, int]: The deduplicated frame, the total row count, and the removed
+            row count.
     """
     total = len(df_mogv)
     deduped = df_mogv.drop_duplicates(subset=['mover', 'opponent'], keep='first')
@@ -498,26 +423,18 @@ def regab_dedup_mogv(df_mogv: pd.DataFrame) -> Tuple[pd.DataFrame, int, int]:
 def regab_count_position_overlap(positions: PositionArray,
                                  vld_positions: PositionArray) -> int:
     """
-    Count the records present in BOTH position sets (the validation
-    independence metric, D-143).
+    Count the records present in BOTH position sets (the validation independence metric).
 
-    A vld record counts when its (mover, opponent) key is also present
-    in the training set — duplicated vld rows count once per record.
-    The result is a plain count: the pipeline takes NO action on it
-    (log only — a threshold/quality parameter family is explicitly out
-    of scope, Roberto's ruling).
+    A vld record counts when its (mover, opponent) key is also present in the training set —
+    duplicated vld rows count once per record. The result is a plain count: the pipeline takes NO
+    action on it (log only — a threshold/quality parameter family is explicitly out of scope).
 
-    Parameters
-    ----------
-    positions : PositionArray
-        The training positions (structured u64 mover/opponent).
-    vld_positions : PositionArray
-        The validation positions (structured u64 mover/opponent).
+    Args:
+        positions: The training positions (structured u64 mover/opponent).
+        vld_positions: The validation positions (structured u64 mover/opponent).
 
-    Returns
-    -------
-    int
-        The number of vld records whose key is also in the training set.
+    Returns:
+        int: The number of vld records whose key is also in the training set.
     """
     train = pd.DataFrame({'mover': positions['mover'],
                           'opponent': positions['opponent']})
@@ -535,28 +452,20 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
     """
     Loads a RegabDataSet instance from a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights).
+    LZ4 whole-file compression by default (as in model_weights).
 
-    Parameters
-    ----------
-    filename : str | Path
-        The name of the file from which to load the data.
-    checksum : bool, optional
-        Whether to verify the SHA3-256 checksum of the file. Default is True.
-    compressed : bool, optional
-        Whether the file is LZ4 compressed. Default is True (D-139).
+    Args:
+        filename: The name of the file from which to load the data.
+        checksum: Whether to verify the SHA3-256 checksum of the file (default True).
+        compressed: Whether the file is LZ4 compressed (default True).
 
-    Returns
-    -------
-    RegabDataSet
-        An instance of RegabDataSet containing the loaded data.
+    Returns:
+        RegabDataSet: An instance of RegabDataSet containing the loaded data.
 
-    Raises
-    ------
-    FileNotFoundError
-        If the checksum file is not found when checksum verification is enabled.
-    ValueError
-        If the calculated checksum does not match the stored checksum.
+    Raises:
+        FileNotFoundError: If the checksum file is not found when checksum verification is enabled.
+        RuntimeError: If the calculated checksum does not match the stored checksum, or the file
+            description or version is not the expected one.
     """
 
     if checksum:
@@ -566,7 +475,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
 
     expected_description = "RegabDataSet binary data file"
     expected_version = 1
-    
+
     with binio.BinaryReader(filename, compressed=compressed) as r:
 
         # Read the file header info
@@ -575,13 +484,13 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
             raise RuntimeError(f"The file is not a proper {expected_description}.")
         if version != 1:
             raise RuntimeError(f"The file version is not consistent, found {version}, expected {expected_version}")
-        
+
         # Read the connection data.
         dbname = r.read_string()
         user = r.read_string()
         host = r.read_string()
         port = r.read_string()
-        
+
         # Read the number of elements in bid and bid
         num_bid = r.read_u32()
         bid = [r.read_u32() for _ in range(num_bid)]
@@ -589,7 +498,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
         # Read the number of elements in status
         num_status = r.read_u32()
         status = [r.read_string() for _ in range(num_status)]
-        
+
         # Read ec
         ec = r.read_u32()
 
@@ -607,7 +516,7 @@ def regab_load_data_set_from_file(filename: str | Path, checksum: bool = True,
     })
 
     rds = RegabDataSet(rc, bid, status, ec, df_mogv)
-    
+
     return rds
 
 #: ### ### ###
@@ -618,22 +527,17 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path,
     """
     Saves the RegabDataSet instance to a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights).
+    LZ4 whole-file compression by default (as in model_weights). The SHA3-256 sidecar is written by
+    the binio writer (the checksum service is on by default); in the pipeline flow cache_manager
+    re-writes the same sidecar (idempotent).
 
-    Note: the SHA3-256 sidecar is written by the binio writer (the
-    checksum service is on by default); in the pipeline flow
-    cache_manager re-writes the same sidecar (idempotent).
+    Args:
+        rds: The RegabDataSet instance to store.
+        filename: The name of the file in which to save the data.
+        compressed: Whether the file is LZ4 compressed (default True).
 
-    Parameters
-    ----------
-    filename : str | Path
-        The name of the file in which to save the data.
-    compressed : bool, optional
-        Whether the file is LZ4 compressed. Default is True (D-139).
-
-    Returns
-    -------
-    None
+    Returns:
+        None.
     """
 
     filename = Path(filename)
@@ -658,14 +562,14 @@ def regab_store_data_set_to_file(rds: RegabDataSet, filename: str | Path,
         # Write the elements of bid
         for b in rds.bid:
             w.write_u32(b)
-            
+
         # Write the number of elements in status
         num_status = len(rds.status)
         w.write_u32(num_status)
         # Write the elements of status
         for s in rds.status:
             w.write_string(s)
-        
+
         # Write ec
         w.write_u32(rds.ec)
 

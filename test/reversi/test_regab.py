@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -35,9 +35,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (the whole suite here is DB-gated: a live
-#     regab DB + LONG=1 are required; SKIP_REGAB_DB=1 skips them,
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (the whole suite here is DB-gated: a live regab DB + LONG=1 are required;
+# SKIP_REGAB_DB=1 skips them, VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.test_regab
 #
@@ -47,16 +46,12 @@
 #
 # The connection should be established by running the command:
 #
-# $ ssh -N -f -L 5432:localhost:5432 userbame@database_host
+# $ ssh -N -f -L 5432:localhost:5432 username@database_host
 #
 #
-# A file .env must exist in the workspace root directory.
-# The file must have the following definitions:
-# DB_NAME=test_regab_database_name
-# DB_USER=test_regab_database_user
-# DB_PASSWORD=test_regab_database_password
-# DB_HOST=test_regab_database_hostname
-# DB_PORT=test_regab_database_tcpip_port
+# A file .env must exist in the workspace root directory. The file must have the following
+# definitions: DB_NAME=test_regab_database_name DB_USER=test_regab_database_user
+# DB_PASSWORD=test_regab_database_password DB_HOST=test_regab_database_hostname DB_PORT=test_regab_database_tcpip_port
 #
 
 
@@ -93,8 +88,7 @@ from dotenv import load_dotenv
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         """
-        Runs before each individual test. 
-        Loads credentials and initializes the database connection.
+        Runs before each individual test. Loads credentials and initializes the database connection.
         """
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
         load_dotenv(WORKSPACE_ROOT / ".env")
@@ -103,26 +97,23 @@ class BaseTestCase(unittest.TestCase):
         self.password = os.getenv('DB_PASSWORD')
         self.host = os.getenv('DB_HOST')
         self.port = os.getenv('DB_PORT', '5432')
-        
+
         # Initialize the connection object
         self.rc = RegabDBConnection(
             self.dbname, self.user, self.host, self.port, self.password
         )
-                
+
         # Assert the connection object exists
         self.assertIsNotNone(self.rc.conn, "Connection object was not created.")
-        
+
         # Assert the psycopg2 connection is actually open (0 = open)
         self.assertEqual(self.rc.conn.closed, 0, "The database connection is closed.")
 
     def tearDown(self):
-        """
-        Runs after each individual test. 
-        Ensures the database connection is properly closed.
-        """
+        """Runs after each individual test. Ensures the database connection is properly closed."""
         if hasattr(self, 'rc') and self.rc.conn:
             self.rc.close()
-                    
+
             # Assert the connection is closed (> 0 means closed)
             self.assertNotEqual(self.rc.conn.closed, 0, "The connection should be closed.")
 
@@ -131,28 +122,34 @@ class TestRegabDB(BaseTestCase):
 
     def test_connection_status(self):
         """
-        Asserts that the connection to the database is active.
-        In psycopg2, .closed == 0 indicates an open connection.
+        Asserts that the connection to the database is active. In psycopg2, .closed == 0 indicates
+        an open connection.
         """
         self.assertIsNotNone(self.rc.conn, "Connection object was not initialized.")
         self.assertEqual(self.rc.conn.closed, 0, "The database connection is not active.")
 
     def test_schema_search_path(self):
-        """
-        Asserts that the search_path was correctly set to 'reversi' during initialization.
-        """
+        """Asserts that the search_path was correctly set to 'reversi' during initialization."""
         with self.rc.conn.cursor() as curs:
             curs.execute("SHOW search_path;")
             current_path = curs.fetchone()[0]
             self.assertIn("reversi", current_path, f"Search path is set to {current_path} instead of 'reversi'.")
 
+    def test_activate_conn(self):
+        """Tests that activate_conn establishes the connection when __init__ was told not to."""
+        rc2 = RegabDBConnection(self.dbname, self.user, self.host, self.port, self.password,
+                                activate_conn=False)
+        self.assertIsNone(rc2.conn)
+        rc2.activate_conn()
+        self.assertIsNotNone(rc2.conn)
+        self.assertEqual(rc2.conn.closed, 0)
+        rc2.close()
+
 
 class TestRegabGPAsDF(BaseTestCase):
 
     def test_valid_query_construction(self):
-        """
-        Tests that the SQL query is constructed correctly with valid parameters.
-        """
+        """Tests that the SQL query is constructed correctly with valid parameters."""
         bid = [7, 8]
         status = ['CMS', 'CMR']
         ec = 10
@@ -166,9 +163,7 @@ class TestRegabGPAsDF(BaseTestCase):
         self.assertFalse(df.empty, "The resulting DataFrame is empty.")
 
     def test_valid_query_construction_all_defaults(self):
-        """
-        Tests that the SQL query is constructed correctly with valid parameters.
-        """
+        """Tests that the SQL query is constructed correctly with valid parameters."""
         bid = [7]
         status = ['CMS', 'CMR']
         ec = 10
@@ -179,100 +174,72 @@ class TestRegabGPAsDF(BaseTestCase):
         self.assertFalse(df.empty, "The resulting DataFrame is empty.")
 
     def test_invalid_bid(self):
-        """
-        Tests that an exception is raised for an invalid bid value.
-        """
+        """Tests that an exception is raised for an invalid bid value."""
         with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, -1, ['CMP'], 10)
 
     def test_invalid_status(self):
-        """
-        Tests that an exception is raised for an invalid status value.
-        """
+        """Tests that an exception is raised for an invalid status value."""
         with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, [1], 'AAAA', 10)
 
     def test_invalid_ec(self):
-        """
-        Tests that an exception is raised for an invalid ec value.
-        """
+        """Tests that an exception is raised for an invalid ec value."""
         with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, [1], ['CMP'], 61)
 
     def test_invalid_limit(self):
-        """
-        Tests that an exception is raised for an invalid limit value.
-        """
+        """Tests that an exception is raised for an invalid limit value."""
         with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, 1, ['CMP'], 10, limit=-1)
 
     def test_invalid_where(self):
-        """
-        Tests that an exception is raised for an invalid where value.
-        """
+        """Tests that an exception is raised for an invalid where value."""
         with self.assertRaises(ValidationError):
             regab_gp_as_df(self.rc, 1, 'CMP', 10, limit=5, where=123)
 
     def test_invalid_where_sql_comment_dash(self):
-        """
-        Tests that a where clause containing -- (SQL comment) is rejected.
-        """
+        """Tests that a where clause containing -- (SQL comment) is rejected."""
         with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='game_value > 0 -- comment')
 
     def test_invalid_where_sql_select(self):
-        """
-        Tests that a where clause containing SELECT is rejected.
-        """
+        """Tests that a where clause containing SELECT is rejected."""
         with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='seq IN (SELECT seq FROM other)')
 
     def test_invalid_where_semicolon(self):
-        """
-        Tests that a where clause containing ; is rejected.
-        """
+        """Tests that a where clause containing ; is rejected."""
         with self.assertRaises(ValueError):
             regab_gp_as_df(self.rc, 1, ['CMP'], 10, where='game_value > 0; DROP TABLE regab_prng_gp')
 
     def test_valid_where_expression(self):
-        """
-        Tests that a valid where expression is accepted and produces results.
-        """
+        """Tests that a valid where expression is accepted and produces results."""
         df = regab_gp_as_df(self.rc, [7, 8], ['CMS', 'CMR'], 10, where='game_value > 0')
         self.assertFalse(df.empty, "The resulting DataFrame is empty.")
 
     def test_invalid_fields_wrong_string(self):
-        """
-        Tests that an exception is raised for an invalid fields value.
-        """
+        """Tests that an exception is raised for an invalid fields value."""
         with self.assertRaises((ValueError)):
             regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields='invalid_field')
 
     def test_invalid_fields_duplicated_entries(self):
-        """
-        Tests that an exception is raised for an invalid fields value.
-        """
+        """Tests that an exception is raised for an invalid fields value."""
         with self.assertRaises((ValueError)):
             regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'seq'])
 
     def test_invalid_fields_wrong_list(self):
-        """
-        Tests that an exception is raised for an invalid fields value.
-        """
+        """Tests that an exception is raised for an invalid fields value."""
         with self.assertRaises((ValueError)):
             regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'not_valid_col_name'])
 
     def test_invalid_fields_wrong_element_in_the_list(self):
-        """
-        Tests that an exception is raised for an invalid fields value.
-        """
+        """Tests that an exception is raised for an invalid fields value."""
         with self.assertRaises((ValueError)):
             regab_gp_as_df(self.rc, [1], ['CMP'], 10, limit=5, fields=['seq', 'game_value', 3])
 
     def test_all_fields(self):
-        """
-        Tests that the query includes all fields when fields='*'.
-        """
+        """Tests that the query includes all fields when fields='*'."""
         df = regab_gp_as_df(self.rc, [1], ['CMS'], 20, fields='*')
 
         # Checks that the DataFrame contains all fields of the table
@@ -284,9 +251,7 @@ class TestRegabGPAsDF(BaseTestCase):
 class TestRegabDataSet(BaseTestCase):
 
     def test_valid_initialization(self):
-        """
-        Tests the correct initialization of the RegabDataSet class with valid parameters.
-        """
+        """Tests the correct initialization of the RegabDataSet class with valid parameters."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -295,8 +260,8 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
 
@@ -308,9 +273,7 @@ class TestRegabDataSet(BaseTestCase):
         self.assertEqual(dataset.df_mogv.equals(df_mogv), True)
 
     def test_invalid_bid_type(self):
-        """
-        Tests that a TypeError is raised if bid is not a list of integers.
-        """
+        """Tests that a ValidationError is raised if bid is not a list of integers."""
         bid = 'not_a_list'
         status = ['CMS', 'CMR']
         ec = 10
@@ -319,17 +282,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValidationError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
-            
+
     def test_invalid_bid_value(self):
-        """
-        Tests that a ValueError is raised if bid contains negative integers.
-        """
+        """Tests that a ValueError is raised if bid contains negative integers."""
         bid = [-1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -338,17 +299,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_status_type(self):
-        """
-        Tests that a TypeError is raised if status is not a list of strings.
-        """
+        """Tests that a ValidationError is raised if status is not a list of strings."""
         bid = [1, 2]
         status = 'not_a_list'
         ec = 10
@@ -357,17 +316,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [5, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValidationError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_status_length(self):
-        """
-        Tests that a ValueError is raised if status contains strings not of length 3.
-        """
+        """Tests that a ValueError is raised if status contains strings not of length 3."""
         bid = [1, 2]
         status = ['CMS', 'CM']
         ec = 10
@@ -376,17 +333,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [5, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_ec_type(self):
-        """
-        Tests that a TypeError is raised if ec is not an integer.
-        """
+        """Tests that a ValidationError is raised if ec is not an integer."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 'not_an_int'
@@ -395,17 +350,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [5, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValidationError):
-            RegabDataSet(bid, status, ec, df_mogv)
+            RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_ec_value(self):
-        """
-        Tests that a ValueError is raised if ec is not in the range [0, 60].
-        """
+        """Tests that a ValueError is raised if ec is not in the range [0, 60]."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 61
@@ -414,17 +367,15 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         with self.assertRaises(ValueError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_df_mogv_type(self):
-        """
-        Tests that a TypeError is raised if df_mogv is not a pandas DataFrame.
-        """
+        """Tests that a ValidationError is raised if df_mogv is not a pandas DataFrame."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -433,9 +384,7 @@ class TestRegabDataSet(BaseTestCase):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_df_mogv_columns(self):
-        """
-        Tests that a ValueError is raised if df_mogv does not have exactly 3 columns.
-        """
+        """Tests that a ValueError is raised if df_mogv does not have exactly 3 columns."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -443,16 +392,14 @@ class TestRegabDataSet(BaseTestCase):
             'mover': [1, 2],
             'opponent': [3, 4]
         }).astype({
-            'mover': 'int64', 
+            'mover': 'int64',
             'opponent': 'int64'
         })
         with self.assertRaises(ValueError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_invalid_df_mogv_column_types(self):
-        """
-        Tests that a ValueError is raised if df_mogv has incorrect column types.
-        """
+        """Tests that a TypeError is raised if df_mogv has incorrect column types."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -461,23 +408,21 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4.0, 6.0]  # Incorrect type, should be int8
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'float64'
         })
         with self.assertRaises(TypeError):
             RegabDataSet(self.rc, bid, status, ec, df_mogv)
 
     def test_extract_data_from_db(self):
-        """
-        Tests the method base case.
-        """
+        """Tests the method base case."""
         # Load test parameters
         arg_bid = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_BID')
         arg_status = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_STATUS')
         arg_ec = os.getenv('TEST_RDATA_TEST_EXTRACTION_ARG_EC')
         expected_count_prop = os.getenv('TEST_RDATA_TEST_EXTRACTION_EXPECTED_COUNT')
-        
+
         # Check if required parameters are present
         if arg_bid is None:
             raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_BID is not set in the .env file.")
@@ -485,7 +430,7 @@ class TestRegabDataSet(BaseTestCase):
             raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_STATUS is not set in the .env file.")
         if arg_ec is None:
             raise ValueError("TEST_RDATA_TEST_EXTRACTION_ARG_EC is not set in the .env file.")
-        
+
         # Convert parameters to appropriate types
         bid = [int(part) for part in arg_bid.split(',')]
         status = arg_status.split(',')
@@ -501,9 +446,7 @@ class TestRegabDataSet(BaseTestCase):
             self.assertEqual(len(df_mogv), expected_count, "The DataFrame has the wrong len.")
 
     def test_generate_positions_and_game_values(self):
-        """
-        Tests the method generate_positions_and_game_values.
-        """
+        """Tests the method generate_positions_and_game_values."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -512,8 +455,8 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [3, 4],
             'game_value': [4, 6]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
 
@@ -530,9 +473,7 @@ class TestRegabDataSet(BaseTestCase):
         nptest.assert_array_equal(positions, expected_positions)
 
     def test_compute_sha3_256_hash(self):
-        """
-        Tests the method compute_sha3_256_hash.
-        """
+        """Tests the method compute_sha3_256_hash."""
         bid = [1, 2]
         status = ['CMS', 'CMR']
         ec = 10
@@ -541,8 +482,8 @@ class TestRegabDataSet(BaseTestCase):
             'opponent': [2, 4, 8],
             'game_value': [0, 1, -1]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
 
@@ -552,14 +493,13 @@ class TestRegabDataSet(BaseTestCase):
 
         expected = 'b507cd34abfd13ea5c636f97e983bec2c5d8f4308b90e379a553cc9093681670'
         self.assertEqual(checksum, expected)
-        
+
 
 class TestRegabDataSetChecksum(BaseTestCase):
 
     def setUp(self):
         """
-        Runs before each individual test. 
-        Creates a sample RegabDataSet instance and a temporary directory.
+        Runs before each individual test. Creates a sample RegabDataSet instance and a temporary directory.
         """
         super().setUp()
         self.bid = [1, 2]
@@ -570,8 +510,8 @@ class TestRegabDataSetChecksum(BaseTestCase):
             'opponent': [-7855295674223658936, 6952639131500418064],
             'game_value': [10, 36]
         }).astype({
-            'mover': 'int64', 
-            'opponent': 'int64', 
+            'mover': 'int64',
+            'opponent': 'int64',
             'game_value': 'int8'
         })
         self.rds = RegabDataSet(self.rc, self.bid, self.status, self.ec, self.df_mogv)
@@ -579,23 +519,18 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.filename = os.path.join(self.tmp_dir, 'test_dataset.bin')
 
     def tearDown(self):
-        """
-        Runs after each individual test. 
-        Cleans up the temporary directory.
-        """
+        """Runs after each individual test. Cleans up the temporary directory."""
         super().tearDown()
         shutil.rmtree(self.tmp_dir)
 
     def test_store_and_load(self):
-        """
-        Tests the storage and loading of RegabDataSet instances to and from a binary file.
-        """
+        """Tests the storage and loading of RegabDataSet instances to and from a binary file."""
         # Store the dataset to the file
         regab_store_data_set_to_file(self.rds, self.filename)
-        
+
         # Load the dataset from the file
         loaded_rds = regab_load_data_set_from_file(self.filename)
-        
+
         # Verify the loaded dataset matches the original
         self.assertEqual(loaded_rds.bid, self.rds.bid)
         self.assertEqual(loaded_rds.status, self.rds.status)
@@ -603,15 +538,13 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.assertTrue(loaded_rds.df_mogv.equals(self.rds.df_mogv))
 
     def test_load_without_checksum(self):
-        """
-        Tests loading a RegabDataSet instance without checksum verification.
-        """
+        """Tests loading a RegabDataSet instance without checksum verification."""
         # Store the dataset to the file
         regab_store_data_set_to_file(self.rds, self.filename)
-        
+
         # Load the dataset from the file without checksum verification
         loaded_rds = regab_load_data_set_from_file(self.filename, checksum=False)
-        
+
         # Verify the loaded dataset matches the original
         self.assertEqual(loaded_rds.bid, self.rds.bid)
         self.assertEqual(loaded_rds.status, self.rds.status)
@@ -619,31 +552,27 @@ class TestRegabDataSetChecksum(BaseTestCase):
         self.assertTrue(loaded_rds.df_mogv.equals(self.rds.df_mogv))
 
     def test_load_missing_checksum_file(self):
-        """
-        Tests loading a RegabDataSet instance when the checksum file is missing.
-        """
+        """Tests loading a RegabDataSet instance when the checksum file is missing."""
         # Store the dataset to the file
         regab_store_data_set_to_file(self.rds, self.filename)
-        
+
         # Remove the checksum file to simulate a missing file
         checksum_filename = self.filename + ".SHA3-256"
         os.remove(checksum_filename)
-        
+
         # Attempt to load the dataset from the file with checksum verification
         with self.assertRaises(FileNotFoundError):
             regab_load_data_set_from_file(self.filename)
 
     def test_load_mismatched_checksum(self):
-        """
-        Tests loading a RegabDataSet instance when the checksum does not match.
-        """
+        """Tests loading a RegabDataSet instance when the checksum does not match."""
         # Store the dataset to the file
         regab_store_data_set_to_file(self.rds, self.filename)
-        
+
         # Modify the file to change its checksum
         with open(self.filename, 'ab') as f:
             f.write(b'some extra data')
-        
+
         # Attempt to load the dataset from the file with checksum verification
         with self.assertRaises(RuntimeError):
             regab_load_data_set_from_file(self.filename)
@@ -658,41 +587,37 @@ class TestRegabDataSetFileLoadExceptions(unittest.TestCase):
     @patch('reversi.tools.binio.BinaryReader')
     @patch('reversi.tools.binio.verify_sha3_256_sidecar')
     def test_load_invalid_file_description(self, mock_verify, mock_reader_cls):
-        """
-        Tests that loading a file with an incorrect 'description' header raises RuntimeError.
-        """
+        """Tests that loading a file with an incorrect 'description' header raises RuntimeError."""
         # 1. Bypass the checksum verification
         mock_verify.return_value = True
-        
+
         # 2. Mock the BinaryReader to return a wrong description, but correct version
         mock_reader_instance = MagicMock()
         mock_reader_instance.read_header.return_value = ("Wrong File Type", 1)
         mock_reader_cls.return_value.__enter__.return_value = mock_reader_instance
-        
+
         # 3. Assert the specific RuntimeError is raised
         with self.assertRaises(RuntimeError) as context:
             regab_load_data_set_from_file(self.filename)
-            
+
         self.assertIn("not a proper", str(context.exception))
 
     @patch('reversi.tools.binio.BinaryReader')
     @patch('reversi.tools.binio.verify_sha3_256_sidecar')
     def test_load_invalid_file_version(self, mock_verify, mock_reader_cls):
-        """
-        Tests that loading a file with an incorrect 'version' header raises RuntimeError.
-        """
+        """Tests that loading a file with an incorrect 'version' header raises RuntimeError."""
         # 1. Bypass the checksum verification
         mock_verify.return_value = True
-        
+
         # 2. Mock the BinaryReader to return correct description, but wrong version
         mock_reader_instance = MagicMock()
         mock_reader_instance.read_header.return_value = ("RegabDataSet binary data file", 99)
         mock_reader_cls.return_value.__enter__.return_value = mock_reader_instance
-        
+
         # 3. Assert the specific RuntimeError is raised
         with self.assertRaises(RuntimeError) as context:
             regab_load_data_set_from_file(self.filename)
-            
+
         self.assertIn("version is not consistent", str(context.exception))
 
 
@@ -736,9 +661,8 @@ class TestRegabDedupMogv(unittest.TestCase):
         self.assertEqual(deduped.iloc[0].tolist(), [1, 1, 5])
 
     def test_same_key_different_game_value_keeps_first(self):
-        # The pipeline does NOT validate the data — a duplicate key
-        # with a differing game_value does not raise; the first
-        # occurrence is simply kept.
+        # The pipeline does NOT validate the data — a duplicate key with a differing game_value does
+        # not raise; the first occurrence is simply kept.
         df = self._df([(1, 1, 5), (1, 1, -5)])
         deduped, total, removed = regab_dedup_mogv(df)
         self.assertEqual(removed, 1)
@@ -775,15 +699,15 @@ class TestRegabCountPositionOverlap(unittest.TestCase):
         self.assertEqual(regab_count_position_overlap(a, b), 2)
 
     def test_duplicate_vld_rows_counted_per_record(self):
-        # A vld key present twice and also in train counts once PER
-        # record (the count is over vld records, not distinct keys).
+        # A vld key present twice and also in train counts once PER record (the count is over vld
+        # records, not distinct keys).
         a = self._pos([1, 2], [10, 20])
         b = self._pos([1, 1, 3], [10, 10, 30])
         self.assertEqual(regab_count_position_overlap(a, b), 2)  # (1,10) x2
 
     def test_duplicate_train_rows_not_overcounted(self):
-        # A train key present twice must NOT double-count one vld
-        # record (the train side is drop_duplicates'd inside).
+        # A train key present twice must NOT double-count one vld record (the train side is
+        # drop_duplicates'd inside).
         a = self._pos([1, 1, 2], [10, 10, 20])
         b = self._pos([1, 2], [10, 20])
         self.assertEqual(regab_count_position_overlap(a, b), 2)  # not 3

@@ -1,5 +1,5 @@
 # test/reversi/test_regab.py
-The regab unit suite — 8 classes / 48 tests, no PERF gates. 35 tests require a live PostgreSQL database + the workspace
+The regab unit suite — 8 classes / 49 tests, no PERF gates. 36 tests require a live PostgreSQL database + the workspace
 `.env`; 2 (`TestRegabDataSetFileLoadExceptions`) are fully mocked; 11 (`TestRegabDedupMogv` +
 `TestRegabCountPositionOverlap`) are no-DB micro tests. `SKIP_REGAB_DB=1` (or the absent LONG tier) skips the
 DB-dependent tests (the db_long_gate in `BaseTestCase.setUp`). The `.env` load and the checksum test's `mkdtemp` are
@@ -9,8 +9,8 @@ anchored to the shared `test.reversi.paths` constants (`WORKSPACE_ROOT` / `CUSTO
 
 | class | tests | what it pins |
 |---|---|---|
-| `BaseTestCase` (base) | — | `setUp`: the `SKIP_REGAB_DB` gate first, then `load_dotenv(WORKSPACE_ROOT / ".env")`, then the `RegabDBConnection` + open-connection assert; `tearDown` closes and asserts closed. All 35 DB tests in the 4 subclasses exercise the real database |
-| `TestRegabDB` | 2 | the connection is open (`closed == 0`); `SHOW search_path` includes `reversi` |
+| `BaseTestCase` (base) | — | `setUp`: the `SKIP_REGAB_DB` gate first, then `load_dotenv(WORKSPACE_ROOT / ".env")`, then the `RegabDBConnection` + open-connection assert; `tearDown` closes and asserts closed. All 36 DB tests in the 4 subclasses exercise the real database |
+| `TestRegabDB` | 3 | the connection is open (`closed == 0`); `SHOW search_path` includes `reversi`; the `activate_conn` re-open (a connection created with `activate_conn=False` is None, then established and closed) |
 | `TestRegabGPAsDF` | 16 | the valid full query (bid=[7,8], status=['CMS','CMR'], ec=10, limit=5, where, fields) + all-defaults query → non-empty DataFrame; the 5 invalid-argument paths (3 `ValidationError`s: bid, ec=61, where-not-a-string; 2 `ValueError`s: status len, limit); the 4 SQL-injection guards (`--` comment, `SELECT`, `;`, + a valid expression accepted); the 4 invalid-fields paths (wrong string, duplicates, wrong list element, 3 in a str list) + `fields='*'` → all table columns |
 | `TestRegabDataSet` | 13 | the valid round-trip; 7 invalid-argument paths (bid type/value, status type/length, ec type/value, df_mogv type); the 2 df_mogv column checks (2 cols, float64 game_value → TypeError); `regab_extract_data_set_from_db` with the `.env` `TEST_RDATA_TEST_EXTRACTION_*` params (optional — `ValueError` in setUp if unset); `generate_positions_and_game_values` (the `.view(Bitboard)` reinterpret); `compute_sha3_256_hash` vs the golden literal |
 | `TestRegabDataSetChecksum` | 4 | the store→load round-trip (all fields match); load with `checksum=False`; a removed `.SHA3-256` sidecar → `FileNotFoundError`; an appended byte → `RuntimeError`. The temp dir is under `CUSTOM_TMP_BASE` |

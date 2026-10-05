@@ -24,15 +24,13 @@ The on-disk format (binio-framed): header `"RegabDataSet binary data file"` / ve
 
 ## Architecture
 
-678 lines.
-
 - Types: `GameValue` + the `GameValueArray` BeforeValidator.
 - Connection: `RegabDBConnection` — the psycopg2 wrapper with the `reversi` search path.
 - The ContextVar bridge: `rc_context`; `_validate_db_fields` does the DB-backed column check (deferred — the
   `SELECT ... LIMIT 0` colnames query runs only when `fields_input` is actually a string or list);
   `_validate_with_db_context` sets the ContextVar before `@validate_call` and resets it in `finally`; `_ensure_list`.
 - Argument validators: `BidArgument` (int→[int], `ge=0`), `StatusArgument` (str→[str], 3 chars each), `EcArgument`
-  (`ge=0, le=60`), `_WHERE_FORBIDDEN` + `_validate_where_clause` + `WhereArgument` ( the SQL-injection guard: blocks
+  (`ge=0, le=60`), `_WHERE_FORBIDDEN` + `_validate_where_clause` + `WhereArgument` (the SQL-injection guard: blocks
   comments `--`/`/* */`, the `;` terminator, and the dangerous keywords
   SELECT/INSERT/UPDATE/DELETE/DROP/UNION/ALTER/CREATE/EXEC/EXECUTE/TRUNCATE), `FieldsArgument`.
 - `regab_gp_as_df`: double-decorated — `@_validate_with_db_context` FIRST (sets the ContextVar) then `@validate_call`
@@ -62,9 +60,6 @@ the module suite.
 - V4: the interpolated values come from the validated typed arguments (bid/ec are ints, the status is a length-3 string)
   — but the StatusArgument validator enforces length ONLY (min_length=3/max_length=3), quoting is NOT enforced, and the
   single-string execute has no parameter binding, so a quote inside a 3-char status reaches the SQL as-is.
-- V5 (UNPINNED — inspection only): the ContextVar pattern is correct — set before `@validate_call`, reset in `finally`
-  (concurrent-safe by construction; no test can exercise the concurrency, the pattern is verified by inspection + the
-  double-decorator order in `regab_gp_as_df`).
 
 ## Open issues
 
@@ -72,7 +67,10 @@ None.
 
 ## Conventions
 
-- `SKIP_REGAB_DB=1` skips the 35 DB-dependent tests (the gate in `BaseTestCase.setUp`); the 2 fully-mocked
+- The ContextVar pattern is concurrency-safe by construction: set before `@validate_call`, reset in `finally`
+  (no test can exercise the concurrency; the pattern is verified by inspection + the double-decorator order in
+  `regab_gp_as_df`).
+- `SKIP_REGAB_DB=1` skips the 36 DB-dependent tests (the gate in `BaseTestCase.setUp`); the 2 fully-mocked
   `TestRegabDataSetFileLoadExceptions` tests always run.
 - The test data relies on `.env` in the workspace root (`load_dotenv(WORKSPACE_ROOT / ".env")`): the suite is NOT
   self-contained; `test_extract_data_from_db` reads its optional `TEST_RDATA_TEST_EXTRACTION_*` params there.

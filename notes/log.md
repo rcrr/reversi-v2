@@ -2291,3 +2291,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   smell in questa batch: il codice mobility era pulito. Il giro completo LONG=1 rimesurato a
   chiusura: suite 1096 → 1097/0/24 (mobility 30 → 31/0/1, il resto invariato). I 4 moduli base
   (board, pattern, feature, mobility) sono tutti al canone R-560; next step: lm e i file test.
+
+- D-472 (regab in un solo D, come concordato, + il test activate\_conn del punto (b)): (1) i 10 docstring
+  numpydoc convertiti al Google house — l'ultimo modulo numpydoc dell'albero; le due sezioni Attributes:
+  piegano i tipi nella prosa (classi piane, il precedente di FeatureSet), la sezione Methods: di
+  RegabDBConnection via (close ha già il suo docstring; activate\_conn guadagna quello che la voce Methods:
+  portava); i bullet Notes: di gp\_as\_df via (duplicavano le entry Args; il vago "may raise an Exception" non è
+  un contratto); (2) R-540: i riferimenti D-143 (x2) e D-139 (x4) e le frasi "Roberto's ruling" fuori dai
+  docstring, le decisioni tenute come fatti; (3) un mismatch doc/codice vero corretto:
+  regab\_load\_data\_set\_from\_file prometteva un ValueError sul mismatch di checksum, il codice alza RuntimeError
+  (i test pinnano il RuntimeError) — il Raises: ora dice RuntimeError, esteso ai controlli description/version;
+  (4) PEP8: la spaziatura dei default nella signature della connection, il doppio spazio nel corpo di
+  RegabDataSet, la SQL string da 152 char spezzata, i due separatori over-120 allineati a quello house,
+  whitespace finale a 0; (5) test\_regab.py: il bug di test vero — test\_invalid\_ec\_type chiamava RegabDataSet
+  senza self.rc, quindi passava per il motivo sbagliato (il ValidationError veniva dall'argomento mancante, non
+  dalla gate di ec) — self.rc aggiunto; 4 docstring di test ora dicono ValidationError (pydantic) e non
+  TypeError, e 1 dice TypeError (il controllo dtype lo alza davvero); il typo "userbame" nell'header corretto;
+  il nuovo test\_activate\_conn (il (b) approvato dall'utente: una connessione creata con activate\_conn=False è
+  None, poi stabilita e chiusa). (6) I mirror doc: regab.md perde il "678 lines." stale (il difetto §4),
+  l'invariante V5 senza pin esce dai Verified invariants (docs\_rules §3) dentro Conventions, il refuso "( the"
+  corretto; i conteggi aggiornati: 48 → 49 test (36 + 2 + 11), la riga TestRegabDB 2 → 3 con il re-open di
+  activate\_conn. 48 → 49 test: 49/0/0 al giro DB-gated LONG=1. Entrambi i .py al punto fisso canonico di
+  src\_reflow (678 → 582 righe di sorgente, 796 → 720 di test — il collasso numpydoc).
