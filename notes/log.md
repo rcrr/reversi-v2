@@ -2179,3 +2179,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   21 entry private dei tipi (lo strip one-shot; gli attributi di stato interno di MT19937 (\\_mt /
   \\_mti) erano già in forma nome: descrizione e sono rimasti). 471 righe. Nessun cambiamento di
   comportamento: test\\_prng 30/0.
+
+- D-464 (tools/state\_machine migrato al canone R-560): 18 docstring su 27 ri-fluotate alla forma
+  quote-da-solhe; 21 entry private dei tipi. 499 → 510 righe. Nessun cambiamento di comportamento:
+  test\\_state\\_machine 51/0.

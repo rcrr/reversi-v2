@@ -51,9 +51,7 @@ class Verbosity(IntEnum):
     NONE      = 5
 
 class Relevance(IntEnum):
-    """
-    Logging relevance levels.
-    """
+    """Logging relevance levels."""
     TRACE     = 0
     DEBUG     = 1
     INFO      = 2
@@ -75,12 +73,13 @@ class Worker:
     """
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, up_callable: Callable[[Context], None], down_callable: Callable[[Context], None]):
-        """Creates a worker step.
+        """
+        Creates a worker step.
 
         Args:
-            name (str): The worker's name (unique within a machine, case-insensitive).
-            up_callable (Callable[[Context], None]): The forward step logic.
-            down_callable (Callable[[Context], None]): The backward (rollback) step logic.
+            name: The worker's name (unique within a machine, case-insensitive).
+            up_callable: The forward step logic.
+            down_callable: The backward (rollback) step logic.
         """
         self.name = name
         self._up_callable = up_callable
@@ -88,19 +87,21 @@ class Worker:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def up(self, context: Context) -> None:
-        """Executes the forward step logic.
+        """
+        Executes the forward step logic.
 
         Args:
-            context (Context): The shared pipeline context.
+            context: The shared pipeline context.
         """
         self._up_callable(context)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def down(self, context: Context) -> None:
-        """Executes the backward (rollback) step logic.
+        """
+        Executes the backward (rollback) step logic.
 
         Args:
-            context (Context): The shared pipeline context.
+            context: The shared pipeline context.
         """
         self._down_callable(context)
 
@@ -115,10 +116,9 @@ class StateMachine:
     and state transitions. It is completely agnostic of the domain logic.
 
     State model: current_step is the index of the last executed step. Step 0 is the initial sentinel
-    state (nothing has been executed): the workers[0] up/down callables are never invoked by the
-    machine — by domain design the first worker is a sentinel (e.g. the LM pipeline's 'CREATED'
-    bootstrap, which runs outside the machine). See move_to_step for the execution semantics of
-    up/down moves.
+    state: the workers[0] up/down callables are never invoked by the machine — by domain design the
+    first worker is a sentinel (e.g. the LM pipeline's 'CREATED' bootstrap, which runs outside the
+    machine). See move_to_step for the execution semantics of up/down moves.
     """
 
     @dataclass
@@ -147,7 +147,8 @@ class StateMachine:
                  workers: List[Worker],
                  context: Context,
                  verbosity: Verbosity = Verbosity.STANDARD):
-        """Creates the state machine and injects the infrastructure helpers.
+        """
+        Creates the state machine and injects the infrastructure helpers.
 
         Fails fast on duplicate worker names: name-based moves (move_to_step, move_to_last) resolve
         by name, so names must be unique, and the check is case-insensitive because name resolution
@@ -156,9 +157,9 @@ class StateMachine:
         the last one built on it), then logs the init DEBUG event.
 
         Args:
-            workers (List[Worker]): The ordered pipeline steps (workers[0] is the sentinel).
-            context (Context): The shared context (domain subclasses pass their own).
-            verbosity (Verbosity): The display gate (STANDARD by default).
+            workers: The ordered pipeline steps (workers[0] is the sentinel).
+            context: The shared context (domain subclasses pass their own).
+            verbosity: The display gate (STANDARD by default).
 
         Raises:
             ValueError: When two workers share a name (case-insensitive).
@@ -209,7 +210,8 @@ class StateMachine:
         self.log_event(Relevance.DEBUG, "StateMachine initialized.")
 
     def __repr__(self) -> str:
-        """The lightweight repr: worker count, current step and verbosity.
+        """
+        The lightweight repr: worker count, current step and verbosity.
 
         Context, logs and history are excluded on purpose — they can hold large domain data.
         """
@@ -219,15 +221,16 @@ class StateMachine:
 
     @contextmanager
     def _history_timer(self, step: int, worker_name: str, direction: str):
-        """Times one step execution and appends its StepMove to the history.
+        """
+        Times one step execution and appends its StepMove to the history.
 
         The timer's finally records the move even when the worker raises, so a failed attempt is in
         the history.
 
         Args:
-            step (int): The step index.
-            worker_name (str): The worker's name.
-            direction (str): 'up' or 'down'.
+            step: The step index.
+            worker_name: The worker's name.
+            direction: 'up' or 'down'.
         """
         start = datetime.now(timezone.utc)
         try:
@@ -244,14 +247,15 @@ class StateMachine:
             ))
 
     def _run_step(self, worker: Worker, direction: str):
-        """Executes one worker step, logging the start, completion and errors.
+        """
+        Executes one worker step, logging the start, completion and errors.
 
         The worker's exception is logged (ERROR) and re-raised; the current step stays at the
         failing worker so the log names it.
 
         Args:
-            worker (Worker): The worker to execute.
-            direction (str): 'up' or 'down' (anything else raises ValueError).
+            worker: The worker to execute.
+            direction: 'up' or 'down' (anything else raises ValueError).
 
         Raises:
             ValueError: When direction is neither 'up' nor 'down'.
@@ -280,7 +284,8 @@ class StateMachine:
 
     @staticmethod
     def _format_event_line(entry: "StateMachine.LogEntry", verbosity_name: str) -> str:
-        """Formats one buffered log event as the live console line.
+        """
+        Formats one buffered log event as the live console line.
 
         The [timestamp UTC] [step] [worker] [relevance:verbosity] message shape, the enum names (not
         numeric values) + the explicit UTC marker, the fixed-width 5/8 right-justified fields for
@@ -288,9 +293,9 @@ class StateMachine:
         replay (the FINAL_LOG_PRINT file).
 
         Args:
-            entry (StateMachine.LogEntry): The buffered event record.
-            verbosity_name (str): The verbosity enum name to embed in the line (the machine's
-                verbosity — constant over a run).
+            entry: The buffered event record.
+            verbosity_name: The verbosity enum name to embed in the line (the machine's verbosity —
+                constant over a run).
 
         Returns:
             str: The formatted line (no trailing newline).
@@ -303,14 +308,15 @@ class StateMachine:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def log_event(self, relevance: Relevance, message: str) -> None:
-        """Logs an event at the current step, printing it when the gate allows.
+        """
+        Logs an event at the current step, printing it when the gate allows.
 
         Always appends the typed LogEntry to the buffer; the live print happens only when the
         event's relevance passes the machine's verbosity gate.
 
         Args:
-            relevance (Relevance): The event's relevance level.
-            message (str): The event message.
+            relevance: The event's relevance level.
+            message: The event message.
         """
         evt_time = datetime.now(timezone.utc)
         event = self.LogEntry(
@@ -325,7 +331,8 @@ class StateMachine:
             print(self._format_event_line(event, self.verbosity.name))
 
     def format_event_log(self) -> str:
-        """Renders the full buffered event log as live-line formatted text.
+        """
+        Renders the full buffered event log as live-line formatted text.
 
         Every buffered LogEntry — all relevances, the maximum-relevance replay, independent of the
         display verbosity gate — is formatted in the live console line format (the shared formatter)
@@ -338,7 +345,8 @@ class StateMachine:
                          for entry in self.logs)
 
     def show_event_log(self) -> None:
-        """Prints the buffered event log as a table.
+        """
+        Prints the buffered event log as a table.
 
         The banner, the 66-underscore separator, the TIMESTAMP (UTC) / STEP / WORKER / RELEVANCE /
         MESSAGE header (UTC timestamps, 2-digit steps, relevance names instead of numeric values,
@@ -356,7 +364,8 @@ class StateMachine:
                   f"{entry.message}")
 
     def show_history_of_moves(self) -> None:
-        """Prints the step history as a table.
+        """
+        Prints the step history as a table.
 
         The Step / Worker / Dir / Start (UTC) / Dur (s) header (the Dur (s) column right-aligned
         over its right-aligned values), the 80-dash rule, one row per recorded step (the start at
@@ -372,14 +381,15 @@ class StateMachine:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def export_history_of_moves_as_csv(self, filename: str | Path) -> None:
-        """Exports the step history to a CSV file.
+        """
+        Exports the step history to a CSV file.
 
         The columns: step, worker_name, direction, start_utc, finish_utc (ISO-8601 UTC) and
         duration_sec (float seconds). Missing parent directories are created so nested filenames
         work out of the box; a bare filename has parent '.', where mkdir(exist_ok=True) is a no-op.
 
         Args:
-            filename (str | Path): The output path.
+            filename: The output path.
         """
         path = Path(filename)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -398,7 +408,8 @@ class StateMachine:
                 })
 
     def move_to_step(self, target_step: int | str) -> None:
-        """Moves the state machine to the target step.
+        """
+        Moves the state machine to the target step.
 
         Accepts a Python int index or the string name of the target worker (case-insensitive); bool
         is explicitly NOT a valid step. Up moves (t > current) execute up() of workers current+1..t,
@@ -428,7 +439,8 @@ class StateMachine:
     @validate_call(config=ConfigDict(
         arbitrary_types_allowed=True, strict=True))
     def _validate_target_step(self, target_step: int | str) -> int:
-        """Validates and resolves the move target (the strict gate).
+        """
+        Validates and resolves the move target (the strict gate).
 
         Strictly a Python int or a str — bool, float, np.int64 and friends are rejected here (a bare
         isinstance check would have accepted bool). A name resolves case-insensitively. Deliberately
@@ -436,7 +448,7 @@ class StateMachine:
         public TypeError by move_to_step.
 
         Args:
-            target_step (int | str): The target step index or worker name.
+            target_step: The target step index or worker name.
 
         Returns:
             int: The resolved 0-based step index.
@@ -458,7 +470,8 @@ class StateMachine:
         return target_index
 
     def _execute_move(self, target_index: int) -> None:
-        """Executes the step walk from current_step to the target.
+        """
+        Executes the step walk from current_step to the target.
 
         Up moves run the workers' up() from current+1 to the target (included); down moves run the
         workers' down() from current to target+1 (the target excluded), then set current_step to the
@@ -466,7 +479,7 @@ class StateMachine:
         is updated BEFORE each execution so the logs reflect the active worker.
 
         Args:
-            target_index (int): The resolved 0-based target index.
+            target_index: The resolved 0-based target index.
         """
         if target_index == self.current_step:
             return
@@ -491,9 +504,7 @@ class StateMachine:
             self.current_step = target_index
 
     def move_to_last(self) -> None:
-        """
-        Moves the state machine to the last (higher) step.
-        """
+        """Moves the state machine to the last (higher) step."""
         last = self.workers[-1] if self.workers else None
         if last is not None:
             self.move_to_step(last.name)
