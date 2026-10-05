@@ -690,3 +690,11 @@ D-473 | 2026-10-06 | The base\_model pass (source + one completion test + mirror
          src/reversi/base\\_model.py — a docs\\_rules violation invisible to the overview audit (it checks existing
          rows, not index completeness); the row added (the wave). The doc was otherwise fully faithful (21 probe checks
          verified, all 5 V-pins real).
+
+D-474 | 2026-10-06 | Correction to the D-473 record (the repair-forward + disclosure protocol, self-inflicted
+         damage): D-473's "(4) the index repair" claim was WRONG. The Source files table row for
+         src/reversi/base\\_model.py existed all along, escaped as base\\_model like every other row in the table; every
+         investigation grep in this session used the unescaped pattern (base\_model), which cannot match an escaped row,
+         so the row looked missing. The wave insertion on top of that created a DUPLICATE row, now removed. The index
+         was complete: no docs\\_rules violation existed. Everything else in D-473 (the 8 added docstrings, the
+         last/blank completion test 29 -> 30, the "126 lines." drop, the V5 pin) stands.

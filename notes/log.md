@@ -2339,3 +2339,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   dell'overview NON aveva la riga di src/reversi/base\_model.py — una violazione docs\_rules invisibile all'audit
   dell'overview (che verifica le righe esistenti, non la completezza dell'index); la riga aggiunta (l'onda). Il
   doc era per il resto pienamente fedele (i 21 check della probe verificati, tutti e 5 i pin V reali).
+
+- D-474 (correzione del record di D-473, il protocollo repair-forward + disclosure, danno auto-inflitto): la
+  clausola "(4) the index repair" di D-473 era SBAGLIATA. La riga della tabella Source files per
+  src/reversi/base\_model.py esisteva già da sempre, escape come base\_model come ogni altra riga della
+  tabella; ogni grep di indagine in questa sessione usava il pattern NON escape (base\_model), che non può
+  matchare una riga escape, quindi la riga sembrava mancante. L'inserzione dell'onda su quella base ha creato
+  una riga DUPLICATA, ora rimossa. L'index era completo: nessuna violazione docs\_rules. Il resto di D-473
+  (i 8 docstring aggiunti, il test di completamento last/blank 29 -> 30, la rimozione del "126 lines.", il pin
+  V5) resta valido.
+
+- Chiusa la batch base\_model (D-473 + D-474 + onda): (1) gli 8 docstring mancanti aggiunti (la convenzione di
+  casa: ogni metodo pubblico documentato) + il comment orfano dopo l'header di licenza via + i 3 docstring
+  legacy riavvolti (126 → 130 righe); (2) l'unico ramo di run() non pinzato — i target string "last" (qualsiasi
+  caso) / blank — chiuso col test nel test\_logistic\_model (la casa del pin V5 col BaseModel nudo; 4 sub-target)
+  — 29 → 30 test: 30/0/0; (3) il mirror doc: via il "126 lines." stale, il conteggio 29 → 30, il V5 col pin
+  nuovo; (4) D-474: la correzione disclosed della falsa clausola "index repair" di D-473 (la riga dell'index
+  esisteva già, escape — i grep di indagine usavano il pattern non escape e non potevano matcharla; la riga
+  duplicata creata dall'inserzione è rimossa). Il mirror doc era per il resto pienamente fedele (i 21 check
+  della probe verificati, tutti e 5 i pin V reali). Il giro completo LONG=1 rimesurato a chiusura: suite
+  1098 → 1099/0/24 (test\_logistic\_model 29 → 30, il resto invariato). I 6 moduli base (board, pattern,
+  feature, mobility, regab, base\_model) sono tutti al canone R-560; next step: lm e i file test.

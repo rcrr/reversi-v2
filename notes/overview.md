@@ -58,13 +58,13 @@ define the evaluation function.
 - Add the project README (English, like everything else).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
   wsutils/src\_reflow.py, the docstring conversion).
-- Verify the format of the lm and test sources (the same sub-works — the tools sub-package and the five base modules
-  board, pattern, feature, mobility, and regab are COMPLETE at the R-560 canonical: tools the D-438..D-446 session +
-  the D-461..D-465 new-layout wave, board the D-447..D-451 session + D-459, pattern the D-453..D-455 session + D-458,
-  feature the D-466..D-468 pass, mobility the D-469..D-471 pass, regab the D-472 pass (the R-560 canonical + the
-  mirror-doc fidelity repair + the completion tests): the src\_reflow canonical fixed point, the house docstring
-  conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite 1098/0/24 at
-  close).
+- Verify the format of the lm and test sources (the same sub-works — the tools sub-package and the six base modules
+  board, pattern, feature, mobility, regab, and base\_model are COMPLETE at the R-560 canonical: tools the D-438..D-446
+  session + the D-461..D-465 new-layout wave, board the D-447..D-451 session + D-459, pattern the D-453..D-455 session
+  + D-458, feature the D-466..D-468 pass, mobility the D-469..D-471 pass, regab the D-472 pass, base\_model the D-473
+  pass (the R-560 canonical + the mirror-doc fidelity repair + the completion tests): the src\_reflow canonical fixed
+  point, the house docstring conventions, the module docstrings, the micro-tests, the mirror docs in budget and
+  faithful; suite 1099/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
@@ -138,7 +138,7 @@ define the evaluation function.
 | test/reversi/lm/test\_hlp\_wmaps.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
 | test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |
 | test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 9/0/1/1/0 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |
-| test/reversi/lm/test\_logistic\_model.py | complete | 29/0/0/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
+| test/reversi/lm/test\_logistic\_model.py | complete | 30/0/0/0/0 | [docs/test/reversi/lm/test\_logistic\_model.md](docs/test/reversi/lm/test\_logistic\_model.md) |
 | test/reversi/lm/test\_wrk\_analytics.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
 | test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
 | test/reversi/lm/test\_wrk\_client\_check.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |
