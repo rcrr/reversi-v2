@@ -458,3 +458,23 @@ D-452 | 2026-10-06 | The negative phrasings removed from the board module docstr
          clause is out of the Zobrist bullet in both files — the factual "little-endian only" stays in both. No behavior
          change: 308/0/15; the module docstring stays at the src\_reflow fixed point (a no-op reflow), board.md 198
          lines, still in budget.
+
+D-453 | 2026-10-06 | pattern.py format campaign (the pattern sub-work; the mirror of D-447). 1) The module docstring
+         (the user-approved preview): the what-it-is + the six design-choice bullets. 2) All 31 docstrings to house
+         style (imperative first line on the quote line); the Pattern class docstring rewritten (the 111-line 17-section
+         numbered HOW list -> a compact WHAT + Attributes; the Burnside formulas kept as contract); the missing
+         PatternType.from\_fingerprint docstring added; validate\_index\_array made imperative. 3) R-540: the 2
+         provenance refs out ("(R1, D-020)" in \_check\_mask\_is\_principal, "D-112 M1" in PatternSet.\_repr\_); the
+         design kept, the history dropped. 4) PEP8: 108 trailing-ws lines, 2 "range (" spacings, 3 indent anomalies, the
+         165-char prt line split (output-identical), the "square\_from\_str,square\_to\_str" comma spacing, 4
+         triple-blank module gaps. 5) The residue comments out (### End of \_init\_\_, #### End of Pattern/PatternSet
+         class., the # - Symmetries/Fingerprint section markers); the \_compute\_transformed\_cells loop narration
+         removed (with its dead local transformed\_masks); the "your fast pattern architecture" residue reworded. 6)
+         from \_\_future\_\_ import annotations KEPT (unlike the board, where it was dead): load-bearing here (the
+         Callable annotation in compute\_principal\_index\_dict is not imported; the PositionField | PositionArray
+         unions over the structured dtypes are not runtime-evaluable). 7) The #: mdp.csv recipe rebuilt as per-line
+         paragraphs — the first real stress test of the D-447 src\_reflow doc-comment fix (the greedy join mangled it
+         once; the per-line paragraphs are a stable fixed point). src\_reflow --write → canonical, 1192 lines (was
+         1370). NO behavior change: 73/0/3. pattern.md synced in the same commit (the D-452 principle applied: the "No
+         search, no PDB storage, no disk I/O" sentence and the 2 "no portability work" clauses out; hlp\_su\_analysis.py
+         added to the consumers; the "R2-R4" coverage claim becomes true with the R3/R4 pack tests of the micro-test D).

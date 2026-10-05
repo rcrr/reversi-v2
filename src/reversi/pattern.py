@@ -3,27 +3,52 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
+
+"""
+pattern - pattern recognition for the Reversi pattern pipeline.
+
+A pattern is a set of board squares given by its principal mask. The module computes the D8 orbit
+(instances, stabilizer, the permutations the stabilizer induces on the squares), packs the 64-bit
+board into S contiguous bits (the PEXT-style plan), encodes every configuration in base 3 (3^S
+states, uint32), and reduces each configuration to its principal index under the induced symmetries
+(Burnside). PatternSet runs the whole pipeline for N positions through one fused Numba kernel;
+PatternType is the closed table of the 12 supported shapes.
+
+Design choices --------------
+
+* **Principal mask rule**: a mask is principal iff it is the numerically lowest of its 8 D8
+  transforms; the constructor rejects the rest and names the offending slot.
+* **PEXT-style packing**: the S squares compress to S contiguous bits; the plan's "planes" are runs
+  of consecutive set bits (single-run patterns take a fast path).
+* **Base-3 indexing**: digit k is 0 empty / 1 mover / 2 opponent; the principal index is the min
+  over the configuration's orbit under the stabilizer's induced permutations.
+* **Pydantic + Numba layering**: the constructor is a strict @validate_call; the hot paths are
+  njit(parallel=True, cache=True); the construction-time path calls the pydantic-wrapped scalar
+  functions directly.
+* **Closed type table**: a fingerprint not in PatternType (the 12 members) raises at construction. *
+**Platform: little-endian only**.
+"""
 
 from __future__ import annotations
 
@@ -42,7 +67,7 @@ import numba as nb
 
 from reversi.board import (
     Square,
-    square_as_bitboard, square_from_str,square_to_str,
+    square_as_bitboard, square_from_str, square_to_str,
     Bitboard, BitboardArray,
     bitboard_ro000,
     bitboard_count, bitboard_transformations,
@@ -53,19 +78,15 @@ from reversi.board import (
     PositionField, PositionArray
 )
 
-
-
 __all__ = ['Index', 'IndexArray',
            'Pattern', 'PatternType', 'sample_pattern_data',
            'PatternSet']
-
-
 
 #: Represents a reversi pattern index.
 Index: TypeAlias = np.uint32
 
 def validate_index_array(v: any) -> any:
-    """Validator to ensure a numpy array strictly uses uint32 dtype."""
+    """Ensure a numpy array strictly uses the uint32 dtype (scalars pass through)."""
     if isinstance(v, np.ndarray) and v.dtype != np.uint32:
         raise ValueError(f"Array dtype must be uint32, got {v.dtype}")
     return v
@@ -73,20 +94,18 @@ def validate_index_array(v: any) -> any:
 #: A Pydantic-compatible type hint for Index (np.uint32) arrays.
 IndexArray = Annotated[npt.NDArray[np.uint32], BeforeValidator(validate_index_array)]
 
-#: Conservative engine limit on the number of pattern squares.
-#: 18 is well inside the uint32 index space (3^20 < 2^32), so 18 is a
-#: project choice, not a uint32 constraint.
+#: Conservative engine limit on the number of pattern squares. 18 is well inside the uint32 index
+#: space (3^20 < 2^32), so 18 is a project choice, not a uint32 constraint.
 MAX_NUMBER_OF_SQUARES_FOR_PATTERN = 18
-
 
 
 class PatternType(Enum):
     TYPE_0 = (
-        ("I0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"), 
+        ("I0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"),
         {"type": "0", "sample_mask": 0x0000000000000107, "sample_name": "ELLE", "level": 1, "n_instances": 8, "n_stabilizers": 1}
     )
     TYPE_1 = (
-        ("I0", "T1", "S0", "S1", "T4", "T5", "S4", "S5"), 
+        ("I0", "T1", "S0", "S1", "T4", "T5", "S4", "S5"),
         {"type": "1", "sample_mask": 0x0000000c30000000, "sample_name": "SNAKE", "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_2 = (
@@ -96,10 +115,10 @@ class PatternType(Enum):
     TYPE_3 = (
         ("I0", "T1", "T2", "T3", "S1", "S2", "S3", "S0"),
         {"type": "3", "sample_mask": 0x0000000000010204, "sample_name": "DIAG3", "level": 2, "n_instances": 4, "n_stabilizers": 2}
-     )
+    )
     TYPE_3D = (
         ("I0", "T1", "T2", "T3", "I1", "I2", "I3", "I0"),
-        {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1", "level": 2, "n_instances": 4, "n_stabilizers": 2}        
+        {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1", "level": 2, "n_instances": 4, "n_stabilizers": 2}
     )
     TYPE_4 = (
         ("I0", "T1", "T2", "T3", "S2", "S3", "S0", "S1"),
@@ -136,138 +155,69 @@ class PatternType(Enum):
 
     @classmethod
     def from_fingerprint(cls, fingerprint):
+        """Look up the table entry for a fingerprint (a tuple or list of 8 markers); return None if unknown."""
         if not hasattr(cls, "_lookup"):
             cls._lookup = {item.fingerprint: item for item in cls}
         return cls._lookup.get(tuple(fingerprint))
 
 
-
 class Pattern:
-    """
-    The Pattern class represents a specific spatial configuration of squares (a "pattern") on a Reversi bitboard.
-    It encapsulates the logic for bit manipulation, symmetry detection, and canonical form validation,
-    which are essential for building Pattern Databases (PDB) or training evaluation functions.
+    """A Reversi pattern: a set of board squares given by its principal mask.
 
-    Attributes
-    
-    1. Basic Metadata
-    name (str): A human-readable label for the pattern (e.g., "EDGE", "DIAG8", "CORNER").
-    mask (Bitboard): The primary 64-bit mask defining the squares belonging to this pattern.
+The construction computes the D8 orbit structure (instances, stabilizer, the induced permutations on
+the pattern squares), the PEXT-style pack plan, and the base-3 configuration bookkeeping; the
+principal-index structures are computed lazily by compute_principal_index_dict().
 
-    2. Geometric & Complexity Properties
-    n_squares (np.uint8): The number of bits set in the mask (dimensions of the pattern).
-    n_configurations (int): The total state space size, representing all possible combinations of Empty, Black, and White discs within the pattern.
-                            It holds that: n_configurations = pow(3, n_squares)
-    squares (List[Square]): A list of the bit indices (0-63) of the pattern squares, sorted in ascending board order (A1 first).
-    snames (List[str]): Coordinate names (e.g., "A1", "B2") of the squares in the pattern.
-
-    3. Transformation & Instance Logic
-    tmasks (np.ndarray(8,), dtype=Bitboard): An 1D array of 8 bitmasks generated by applying all Reversi symmetries (rotations and reflections) to the original mask.
-    unique_masks (List[Bitboard]): The subset of tmasks containing only unique bitmasks. Used to identify distinct instances of the pattern on the board.
-    mask_indexes (np.ndarray(8,), dtype=uint8): An array of 8 indices mapping each of the 8 possible transformations to its "first seen" index in tmasks.
-                                                This identifies which symmetries produce identical masks.
-    unique_mask_indexes (np.ndarray(n_instances,), dtype=uint8): The indices of the transformations that produce unique masks.
-    mask_to_index (Dict[Bitboard, int]): Maps the instance mask to the transformation index.
-    n_instances (int): The number of unique physical locations/orientations this pattern occupies (cardinality of the orbit |Orb|).
-    n_stabilizers (int): The number of transformations that leave the mask bitwise identical (order of the stabilizer |Stab|).
-                         It holds that: n_instances = 8 / n_stabilizers
-
-    4. Transformation Functions
-    trans_fs (List[Callable]): The list of functions used to transform the pattern squares.
-                               It holds that: len(trans_fs) = n_instances
-    anti_trans_fs (List[Callable]): The inverse functions used to map transformed squares back to the original configuration.
-                                    It holds that: len(anti_trans_fs) = n_instances
-
-    5. Symmetry & Automorphism Logic
-    unique_symmetric_instance_indexes (List[int]): Indices of transformations that leave the mask bitwise identical but might
-                                                   permute the internal order of the squares.
-                                                   These represent the Automorphism Group of the pattern.
-                                                   It holds that: len (unique_symmetric_instance_indexes) is the number of
-                                                   stabilizer elements that induce a non-identity permutation
-                                                   on the pattern's squares (n_stabilizers - 1 only when no
-                                                   non-identity stabilizer element acts trivially on the
-                                                   squares).
-    symmetry_fs (List[Callable]): The specific transformation functions that result in a bitwise identical mask,
-                                  used to reduce parameters in the regression model or neural network.
-                                  It holds that: len(symmetry_fs) = len (unique_symmetric_instance_indexes)
-    anti_symmetry_fs (List[Callable]): The anti transformation functions for the pattern symmetries.
-    n_invariant_configs (int): The number of configurations (empty/mover/opponent assignments on the
-                               S pattern squares) that are invariant under every pattern symmetry.
-                               It holds that: n_invariant_configs = 3^B, where B is the number of orbits of
-                               the induced symmetry group G' on the pattern squares
-                               (G' = {id} ∪ distinct non-identity permutations induced by symmetry_fs,
-                               |G'| = 1 + len(symmetry_fs)).
-    n_unique_configs (int): The number of equivalence classes of configurations under the pattern
-                            symmetries (Burnside's lemma).
-                            It holds that: n_unique_configs = (1/|G'|) * sum_{g in G'} 3^{c(g)},
-                            c(g) = number of cycles of the permutation g.
-                            It equals principal_index_count after compute_principal_index_dict().
-
-    6. Optimization Plans
-    pack_plan (Tuple[BitboardArray, BitboardArray, npt.NDArray[np.uint8]]) :
-         A precomputed sequence of bitwise operations (masks and shifts) used to "pack"
-         the scattered bits of a 64-bit board into a contiguous integer index.
-         This is critical for high-speed evaluation.
-         The tuple contains three arrays:
-          - p_masks:  The block masks used for packing.
-          - u_masks:  The block masks used for unpacking.
-          - p_shifts: The shift amounts used for packing.
-    
-    7. Transformed Cell Names
-    snames_t (List[List[str]]): A list having 8 entries. Each Entry has length equal to n_squares.
-                                It contains the coordinate names of pattern squares
-                                after applying each of the 8 possible transformations.
-                                Each row snames_t[i] contains the names of the squares as they appear in the pattern
-                                after transformation i, preserving the original ordering of squares within the pattern.
-
-    8. Transformed Cell Indices
-    squares_t (List[List[int]]): It has the same structure of snames_t, having the Square name replaced by its int representation.
-
-    9. Transformed Cell Indices Sorted
-    squares_ts (List[List[int]]): It is squares_t having the squares in each pattern instance being sorted in ascending order.
-
-    10. Fingerprint
-    fingerprint (List[str]): A list of 8 strings that represent the configuration of the pattern under each of the 8 transformations.
-                             Each string can be "I0", "T1", "S0", etc., indicating whether the transformation is identical, transposed,
-                             or symmetric relative to the original configuration.
-
-    11. Type Information
-    type_info (PatternType): An object of PatternType that represents the type of pattern, based on its fingerprint.
-
-    12. Powers of 3
-    powers_3 (np.ndarray(n_squares,), dtype=Index): Precomputed powers of 3 up to n_squares, used for index computation.
-
-    13. Bit Shifts
-    bit_shifts (np.ndarray(n_squares,), dtype=Index): Precomputed bit shifts for each square in the pattern, used for index computation.
-
-    14. Labels
-    trans_fs_labels (np.ndarray(n_instances,), dtype=str): Array of names of transformation functions.
-    anti_trans_fs_labels (np.ndarray(n_instances,), dtype=str): Array of names of anti transformation functions.
-    symmetry_fs_labels (np.ndarray(n_stabilizers - 1,), dtype=str): Array of names of symmetry functions.
-    
-    15. Principal Index Dictionary
-    principal_index_dict (Union[npt.NDArray[Index], None]): A dense array mapping each configuration index to its principal index.
-
-    16. Principal Indexes
-    principal_indexes (Union[npt.NDArray[Index], None]): An array of unique principal indexes.
-
-    17. Principal Index Count
-    principal_index_count (Union[int, None]): The count of unique principal indexes.
-    """
+Attributes:
+    name (str): the human-readable pattern label.
+    mask (Bitboard): the principal mask (the numerically lowest of the 8 D8 transforms).
+    n_squares (np.uint8): the number of set bits in the mask.
+    n_configurations (int): 3 ** n_squares. tmasks (np.ndarray(8, Bitboard)): the 8 D8 transforms in
+        canonical slot order.
+    squares (List[Square]): the pattern square indices in ascending board order (A1 first).
+    snames (List[str]): the pattern square names.
+    unique_masks (List[Bitboard]): the distinct tmasks in first-seen order.
+    mask_to_index (Dict[Bitboard, int]): the first-seen slot of each transformed mask. mask_indexes
+        (np.ndarray(8, uint8)): for each slot, the first-seen slot of its mask. unique_mask_indexes
+        (np.ndarray(n_instances, uint8)): the first-seen slots of the unique masks.
+    n_instances (int): the orbit size |Orb(P)|.
+    n_stabilizers (int): 8 // n_instances.
+    trans_fs (List[Callable]): the transform functions of the unique instances (first-seen slots).
+    anti_trans_fs (List[Callable]): the inverse transform functions of the unique instances.
+    pack_plan (Tuple[BitboardArray, BitboardArray, NDArray[uint8]]): (p_masks, u_masks, p_shifts),
+        the run-based pack/unpack plan.
+    unique_symmetric_instance_indexes (List[int]): the stabilizer slots whose induced permutation on
+        the pattern squares is distinct and non-identity (the automorphism group).
+    symmetry_fs (List[Callable]): the transform functions of those stabilizer slots.
+    anti_symmetry_fs (List[Callable]): the inverse transform functions of those slots.
+    n_invariant_configs (int): 3^B, B = the number of G'-orbits on the pattern squares (G' = the
+        group of the permutations the stabilizer induces on the squares).
+    n_unique_configs (int): the Burnside average (1/|G'|) * sum_g 3^cycles(g); equals
+        principal_index_count after compute_principal_index_dict().
+    squares_t (List[List[int]]): per slot, the transformed pattern square indices.
+    snames_t (List[List[str]]): per slot, the transformed pattern square names.
+    squares_ts (List[List[int]]): squares_t, each row sorted.
+    fingerprint (List[str]): the 8-slot I/S/T fingerprint (e.g. "I0", "T1", "S3").
+    type_info (PatternType): the table entry matching the fingerprint. powers_3
+        (np.ndarray(n_squares, Index)): 3**k for k in 0..n_squares-1. bit_shifts
+        (np.ndarray(n_squares, Index)): 0..n_squares-1. trans_fs_labels (np.ndarray(n_instances,
+        str)): the D8 labels of the instance transform functions. anti_trans_fs_labels
+        (np.ndarray(n_instances, str)): the D8 labels of the instance inverse transform functions.
+        symmetry_fs_labels (np.ndarray(len(symmetry_fs), str)): the D8 labels of the symmetry functions.
+    principal_index_dict (NDArray[Index] | None): configuration index -> principal index (lazy).
+    principal_indexes (NDArray[Index] | None): the unique principal indexes (lazy).
+    principal_index_count (int | None): len(principal_indexes) (lazy)."""
 
     @classmethod
     def mdp_csv_file(cls, patterns: list[Pattern], filename: str) -> None:
-        """
-        Writes a CSV file containing the MDP records of the provided patterns.
-        
-        Args:
-            patterns: A list of Pattern objects to be written to the file.
-            filename: The path to the output CSV file.
-            
-        Raises:
-            TypeError: If patterns is not a list or if any element is not a Pattern instance.
-            TypeError: If filename is not a string.
-        """
+        """Write the MDP CSV file for the provided patterns (the header line + one record per pattern).
+
+Args:
+    patterns (list[Pattern]): the patterns to write.
+    filename (str): the output CSV path.
+
+Raises:
+    TypeError: patterns is not a list, any element is not a Pattern, or filename is not a str."""
         if not isinstance(patterns, list):
             raise TypeError("Argument patterns must be a list.")
         if not isinstance(filename, str):
@@ -289,20 +239,17 @@ class Pattern:
 
     @validate_call(config=ConfigDict(strict=True, arbitrary_types_allowed=True))
     def __init__(self, name: str, mask: Bitboard):
-        """
-        Initializes a new Pattern instance with the given name and mask.
-        
-        Args:
-            name (str): The human-readable label for the pattern (e.g., "EDGE", "DIAG8", "CORNER").
-            mask (Bitboard): The primary 64-bit mask defining the squares belonging to this pattern.
-            Only np.uint64 scalars are accepted (strict validation, no coercion).
-        
-        Raises:
-            ValidationError: If the name is not a str, or the mask is not an
-            np.uint64 scalar (Bitboard).
-            ValueError: If the mask is empty (n_squares = 0).
-            ValueError: If the mask is not the principal mask among its transformations.
-        """
+        """Build the pattern from its principal mask.
+
+Args:
+    name (str): the human-readable pattern label.
+    mask (Bitboard): the principal mask (strict np.uint64 scalar, no coercion).
+
+Raises:
+    ValidationError: the name is not a str, or the mask is not an np.uint64 scalar.
+    ValueError: the mask is empty, it selects more than 18 squares, it is not the principal mask of
+        its orbit (the error lists all 8 transforms and names the offending slot), or the
+        fingerprint is not in the PatternType table."""
         self.name = name
         self.mask = mask
         self.n_squares = bitboard_count(mask)
@@ -312,12 +259,11 @@ class Pattern:
             raise ValueError(f"More than 18 squares is not supported! n_squares = {self.n_squares}. Aborting!")
         self.n_configurations = 3 ** int(self.n_squares)
         self.tmasks = bitboard_transformations(mask)
-        self.squares = bitboard_to_square_list(mask)[::-1]        
+        self.squares = bitboard_to_square_list(mask)[::-1]
         self.snames = bitboard_to_string_list(mask)[::-1]
         self.unique_masks = list(dict.fromkeys(self.tmasks))
-        # Reverse iteration: for duplicate mask values the LAST-written entry
-        # wins, i.e. the FIRST (lowest) slot index — consistent with the
-        # first-seen order of unique_masks (dict.fromkeys) above.
+        # Reverse iteration: for duplicate mask values the LAST-written entry wins, i.e. the FIRST
+        # (lowest) slot index — consistent with the first-seen order of unique_masks (dict.fromkeys) above.
         self.mask_to_index = {m: i for i, m in reversed(list(enumerate(self.tmasks)))}
         self.mask_indexes = np.zeros(8, dtype=np.uint8)
         for i, tmask in enumerate(self.tmasks):
@@ -331,15 +277,13 @@ class Pattern:
         self.anti_trans_fs = [bitboard_anti_trans_fs[i] for i in self.unique_mask_indexes]
 
         def _check_mask_is_principal() -> int:
-            """
-            Checks if the mask is the principal mask among its transformations.
-            The principal mask is the numerically lowest mask of its orbit:
-            a mask is a 64-bit integer (a bijection with 0..2^64-1), so the
-            orbit minimum is a unique representative (R1, D-020).
-        
-            Returns:
-                int: The index of the offending transformation if the mask is not principal, otherwise 0.
-            """
+            """Check that the mask is the principal mask of its orbit.
+
+The principal mask is the numerically lowest of the 8 transforms: a mask is a 64-bit integer, so the
+orbit minimum is a unique representative.
+
+Returns:
+    The index of the offending transformation if the mask is not principal, else 0."""
             instance: int = 0
             principal = Bitboard(self.tmasks[0])
             for i in range(1, 8):
@@ -356,20 +300,11 @@ class Pattern:
                 f"  Principal instance is: #{principal_instance}, value: {self.tmasks[principal_instance]:016x}"
             )
             raise ValueError(mesg)
-        
+
         def _precompute_pack_unpack_plans() -> Tuple[BitboardArray,
                                                      BitboardArray,
                                                      npt.NDArray[np.uint8]]:
-            """
-            Precomputes the pack and unpack plans for the pattern.
-            These plans are used to compress and decompress the square set according to the pattern's mask.
-        
-            Returns:
-                    A tuple containing three numpy arrays:
-                    - p_masks:  The block masks used for packing.
-                    - u_masks:  The block masks used for unpacking.
-                    - p_shifts: The shift amounts used for packing.
-            """
+            """Precompute the run-based pack/unpack plan (the p_masks, u_masks, p_shifts arrays)."""
             mask = self.mask
             one = Bitboard(1)
             all_ones = Bitboard(0xFFFFFFFFFFFFFFFF)
@@ -382,7 +317,7 @@ class Pattern:
                 while source_pos < 64 and not (mask & (one << source_pos)):
                     source_pos += 1
                 if source_pos >= 64: break
-        
+
                 start_source = source_pos
                 while source_pos < 64 and (mask & (np.uint64(1) << source_pos)):
                     source_pos += 1
@@ -402,23 +337,18 @@ class Pattern:
                     np.array(u_masks, dtype=Bitboard),
                     np.array(p_shifts, dtype=np.uint8))
 
-            
+
         self.pack_plan = _precompute_pack_unpack_plans()
-        
-        # - Symmetries ...
 
         @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
         def _get_position_mapping(symms: List[List[int]]) -> List[int]:
-            """
-            Generates a mapping of unique symmetry positions.
-        
-            Args:
-                symms: A list of lists, where each inner list represents a permutation of cell positions
-                       resulting from a symmetry transformation.
-        
-            Returns:
-                A list of integers representing the unique position mapping for each symmetry.
-            """
+            """Map each symmetry permutation to the index of its first occurrence.
+
+Args:
+    symms (List[List[int]]): the per-stabilizer-slot square permutations.
+
+Returns:
+    The first-occurrence index of each distinct permutation."""
             seen = {}
             res = []
             for i, arr in enumerate(symms):
@@ -452,23 +382,19 @@ class Pattern:
         self.anti_symmetry_fs = [bitboard_anti_trans_fs[idx] for idx in self.unique_symmetric_instance_indexes]
         self._compute_symmetry_burnside_counts()
 
-        # - Symmetries.
-
-        # Compute transformed cell names for each instance
         self._compute_transformed_cells()
         self.squares_ts = [sorted(l) for l in self.squares_t]
 
-        # - Fingerprint
         self.fingerprint: list[str | None] = [None] * 8
         self.fingerprint[0] = "I0"
-        for i in range (1, 8):
+        for i in range(1, 8):
             transformed_squares = self.squares_t[i]
             sorted_transformed_squares = self.squares_ts[i]
             found_i = False
             found_s = False
             pos_i = -1
             pos_s = -1
-            for j in range (0, i):
+            for j in range(0, i):
                 if not found_i and transformed_squares == self.squares_t[j]:
                     found_i = True
                     pos_i = j
@@ -482,10 +408,9 @@ class Pattern:
             else:
                 marker = f"T{i}"
             self.fingerprint[i] = marker
-        # - Fingerprint.
 
         self.type_info = PatternType.from_fingerprint(self.fingerprint)
-        
+
         if self.type_info is None:
             message = (
                 f"\n"
@@ -494,9 +419,8 @@ class Pattern:
             )
             raise ValueError(f"The pattern fingerprint has not been found: {message}")
 
-        # The static type-table fields must agree with the values computed
-        # for the pattern (the 11 entries are consistent — spot-verified;
-        # raise if a future table edit breaks this).
+        # The static type-table fields must agree with the values computed for the pattern (the 11
+        # entries are consistent — spot-verified; raise if a future table edit breaks this).
         table_ni, table_ns = self.type_info.data["n_instances"], self.type_info.data["n_stabilizers"]
         if (self.n_instances, self.n_stabilizers) != (table_ni, table_ns):
             raise AssertionError(
@@ -518,43 +442,24 @@ class Pattern:
         self.principal_index_dict: Union[npt.NDArray[Index], None] = None
         self.principal_indexes: Union[npt.NDArray[Index], None] = None
         self.principal_index_count: Union[int, None] = None
-        
-         # Invariance check
+
+        # Invariance check
         self._check_invariances()
 
-### End of __init__
 
     def _compute_transformed_cells(self) -> None:
+        """Compute the per-slot transformed square indices (squares_t) and names (snames_t).
         """
-        Computes the ordered cell names for each transformation instance.
-        """
-        # Get the original cell names in order
-        original_cells = self.snames
-        
-        # Initialize list for each transformation
         self.squares_t = [[] for _ in range(8)]
         self.snames_t = [[] for _ in range(8)]
-        
-        # Apply each transformation to the entire pattern mask
-        transformed_masks = bitboard_transformations(self.mask)
-        
-        # For each original cell, determine where it maps to in each transformed pattern
-        for i, cell_name in enumerate(original_cells):
-            # Convert cell name to square index
+        for i, cell_name in enumerate(self.snames):
             sq = square_from_str(cell_name)
-            # Create a square set with just this square
             sq_set = square_as_bitboard(sq)
-            
-            # For each transformation, find where this square maps to
             for j in range(8):
-                # Apply transformation to the square
                 transformed_sq = bitboard_trans_fs[j](sq_set)
-                # Get the square index from the transformed mask
                 if transformed_sq != 0:
-                    # Find the bit position
                     pos = bitboard_bsr(transformed_sq)
                     transformed_cell = Square(pos)
-                    # Convert back to square name
                     transformed_cell_name = square_to_str(Square(pos))
                 else:
                     transformed_cell = None
@@ -564,26 +469,12 @@ class Pattern:
                 self.snames_t[j].append(transformed_cell_name)
 
     def _compute_symmetry_burnside_counts(self) -> None:
-        """
-        Computes the Burnside counts of the pattern configurations.
+        """Compute the Burnside counts of the pattern configurations.
 
-        Let G' be the group of distinct permutations induced on the S pattern
-        squares by the mask stabilizer, i.e. G' = {id} ∪ {the distinct
-        non-identity permutations induced by symmetry_fs}
-        (|G'| = 1 + len(symmetry_fs); unique_symmetric_instance_indexes
-        already de-duplicates identical induced permutations and discards the
-        trivial action). Then:
-
-        n_invariant_configs = 3^B, where B is the number of G'-orbits on the
-                             squares (a configuration is G'-invariant iff it
-                             is constant on each orbit).
-        n_unique_configs    = (1/|G'|) * sum_{g in G'} 3^{c(g)}, where c(g)
-                             is the number of cycles of g (Burnside on the
-                             3^S configurations; a configuration is fixed by g
-                             iff it is constant on the cycles of g). This
-                             equals principal_index_count once
-                             compute_principal_index_dict() has run.
-        """
+n_invariant_configs = 3^B (B = the number of G'-orbits on the pattern squares, where G' is the group
+of the permutations the mask stabilizer induces on the squares). n_unique_configs = the Burnside
+average (1/|G'|) * sum_g 3^cycles(g) over the distinct induced permutations; it equals
+principal_index_count once compute_principal_index_dict() has run."""
         S = int(self.n_squares)
         square_index = {sq: i for i, sq in enumerate(self.squares)}
         perms = [tuple(range(S))]
@@ -626,23 +517,20 @@ class Pattern:
         self.n_unique_configs = sum(3 ** _cycles(p) for p in perms) // len(perms)
 
     def _check_invariances(self) -> None:
-        """
-        Performs internal consistency checks on the symmetry mapping
-        (mask_indexes, unique_mask_indexes, symmetry functions).
-        Raises AssertionError if any invariance is violated.
-        """
-        # 1. Check consistency between mask_indexes and unique_masks
-        # The number of unique values in mask_indexes must match len(unique_masks)
+        """Run the internal consistency checks on the symmetry mapping (mask_indexes, unique_mask_indexes,
+symmetry functions); raise AssertionError on a violation."""
+        # 1. Check consistency between mask_indexes and unique_masks The number of unique values in
+        # mask_indexes must match len(unique_masks)
         if len(set(self.mask_indexes)) != self.n_instances:
             raise AssertionError("Inconsistency between mask_indexes and n_instances.")
-        
+
         # 2. Check that unique_mask_indexes points to the correct unique masks
         for i, m_idx in enumerate(self.unique_mask_indexes):
             if self.tmasks[m_idx] != self.unique_masks[i]:
                 raise AssertionError(f"Unique mask mismatch at index {m_idx}.")
 
-        # 3. Check Symmetry Functions (Automorphisms)
-        # For each symmetry_f, transforming the principal mask must yield the same mask
+        # 3. Check Symmetry Functions (Automorphisms) For each symmetry_f, transforming the
+        # principal mask must yield the same mask
         for i, f_idx in enumerate(self.unique_symmetric_instance_indexes):
             f = self.symmetry_fs[i]
             transformed_mask = f(self.mask)
@@ -651,13 +539,10 @@ class Pattern:
 
         # 4. Check Mapping logic: symmetry_fs must be a subset of the first 8 transformations
         if not set(self.symmetry_fs).issubset(set(bitboard_trans_fs)):
-             raise AssertionError("symmetry_fs contains unknown transformation functions.")
+            raise AssertionError("symmetry_fs contains unknown transformation functions.")
 
     def mdp_record(self) -> str:
-        """
-        Returns a string representation of the pattern in CSV format.
-        Fields are separated by commas.
-        """
+        """Return the pattern's MDP CSV record line (the 24 comma-separated fields)."""
         ptype = self.type_info.data["type"]
         return (
             f"{self.name},{self.mask:016X},{self.n_squares},{self.n_configurations}"
@@ -676,23 +561,18 @@ class Pattern:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __repr__(self) -> str:
-        """
-        A concise one-line summary (same info as the first line of print()).
-        """
+        """Return the one-line summary (same info as the first line of print())."""
         return f"Pattern(name={self.name!r}, mask=0x{self.mask:016x})"
 
     def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
-        """
-        Prints a detailed representation of the pattern to stdout as default, or a specific IO.
-        Includes information about the pattern's name, mask, number of squares, number of configurations,
-        number of instances, number of stabilizers, type, cells, transformed masks, mask indexes,
-        unique masks, unique mask indexes, transformation functions, anti-transformation functions,
-        symmetry functions, transformed cells, transformed sorted cells, and fingerprint.
-        """
+        """Print the detailed pattern report to the output stream (stdout by default)."""
         prt = lambda msg: print(msg, file=output)
         ptype = self.type_info.data["type"]
         prt(f"[Pattern: name = {self.name}, mask = 0x{self.mask:016x}]")
-        prt(f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}, type = {ptype}]")
+        prt(
+            f"  [n_squares = {self.n_squares}, n_configurations = {self.n_configurations}, "
+            f"n_instances = {self.n_instances}, n_stabilizers = {self.n_stabilizers}, type = {ptype}]"
+        )
         prt(f"  Cells:                [{', '.join(f'{cn}' for cn in self.snames)}]")
         prt(f"  Transformed masks:    [{', '.join(f'0x{x:016X}' for x in self.tmasks)}]")
         prt(f"  Mask indexes:         [{', '.join(f'{x}' for x in self.mask_indexes)}]")
@@ -707,168 +587,148 @@ class Pattern:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def _pack_bb(self, bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
-        """
-        Compresses a bitboard into a packed representation using a Numba-accelerated PEXT simulation.
-    
-        Args:
-            bb: The input bitboard tensor or single value to be packed.
-            
-        Returns:
-            The packed bitboard indices.
-        """
+        """Pack a bitboard (or an array of bitboards) into the pattern's contiguous square bits.
+
+Args:
+    bb (Bitboard | BitboardArray): the input bitboard or array.
+
+Returns:
+    The packed value (a Bitboard scalar for a scalar input, an array otherwise)."""
         pack_masks, _, pack_shifts = self.pack_plan
-        
+
         # Ensure data is passed as a NumPy array for Numba compatibility
         bb_arr = np.asarray(bb, dtype=np.uint64)
-        
+
         result = _numba_pack_bb_kernel(bb_arr, pack_masks, pack_shifts)
-        
+
         # If input was a scalar/object, match your original type expectations if needed
         return result if isinstance(bb, np.ndarray) else Bitboard(result.item())
-        
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def _unpack_bb(self, packed_bb: Bitboard | BitboardArray) -> Bitboard | BitboardArray:
-        """
-        Executes the inverse of _pack_bb using a parallelized Numba PDEP simulation.
-            
-        Args:
-            packed_bb: The array or scalar of compressed bits.
-            
-        Returns:
-            The restored bitboard configurations matching the input structure type.
-        """
+        """Unpack a packed square set back to the pattern square positions (the inverse of _pack_bb).
+
+Args:
+    packed_bb (Bitboard | BitboardArray): the packed bitboard or array.
+
+Returns:
+    The restored bitboard (scalar or array, matching the input)."""
         _, unpack_masks, pack_shifts = self.pack_plan
-        
+
         # Ensure correct NumPy type formatting before calling Numba
         packed_arr = np.asarray(packed_bb, dtype=np.uint64)
-        
+
         # Call the parallelized Numba unpacking kernel
         result = _numba_unpack_bb_kernel(packed_arr, unpack_masks, pack_shifts)
-        
+
         # Match the scalar or array output format of the input
         return result if isinstance(packed_bb, np.ndarray) else Bitboard(result.item())
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes_on_position(self, pos: PositionField | PositionArray) -> npt.NDArray[Index]:
-        """
-        Computes the pattern indexes on the given game position or array of positions.
+        """Compute the pattern indexes on the given position (or an array of positions).
 
-        This method applies anti-transformations (symmetries) to the game position,
-        filters them using unique mask indexes, packs the resulting configurations,
-        and converts them into numeric identifiers (base-3 indexing).
+The anti-transform -> pack -> base-3 pipeline over the unique instance masks.
 
-        Args:
-            pos: A single game Position or a NumPy array of Positions of
-            any shape.
+Args:
+    pos (PositionField | PositionArray): a single position or an array of any shape.
 
-        Precondition:
-            Positions must be collision-free (mover & opponent == 0). The
-            caller is responsible for validating this, e.g. via
-            board.position_check_collisions; the indexing pipeline does
-            not re-check it.
+Precondition:
+    The positions are collision-free (mover & opponent == 0); the caller validates (e.g.
+    board.position_check_collisions).
 
-        Returns:
-            A 1D array of uint32 indexes if 'pos' is a scalar, or an array
-            of shape pos.shape + (M_unique,) if 'pos' is an array of
-            positions (a 1-D (N,) batch gives (N, M_unique)).
-        """
+Returns:
+    A 1-D array of uint32 indexes for a scalar input; pos.shape + (n_instances,) for an array
+    input (a 1-D (N,) batch gives (N, n_instances); the N-D path flattens the (..., 8)
+    transformation matrices to (-1, 8) before the column selection)."""
         is_scalar = not isinstance(pos, np.ndarray)
 
         m = np.atleast_1d(pos['mover'])
         o = np.atleast_1d(pos['opponent'])
-        
+
         # 1. High-speed C-layout anti-transformations
         atrs_m = bitboard_anti_transformations(m)
         atrs_o = bitboard_anti_transformations(o)
 
         is_nd = atrs_m.ndim > 2
         if is_nd:
-            # The N-D contract: flatten the transformation matrices to
-            # (-1, 8) so the column selection below picks the instance
-            # axis (an N-D [:, indexes] would index the middle axis
-            # instead).
+            # The N-D contract: flatten the transformation matrices to (-1, 8) so the column
+            # selection below picks the instance axis (an N-D [:, indexes] would index the middle
+            # axis instead).
             atrs_m = atrs_m.reshape(-1, 8)
             atrs_o = atrs_o.reshape(-1, 8)
 
         # 2. Extract unique symmetries along the column axis safely
         sym_m = atrs_m[:, self.unique_mask_indexes]
         sym_o = atrs_o[:, self.unique_mask_indexes]
-    
-        # 3. Pack bitboards using your fast pattern architecture logic
+
+        # 3. Pack the instance bitboards with the pattern pack plan.
         packed_m = self._pack_bb(sym_m)
         packed_o = self._pack_bb(sym_o)
-    
-        # 4. Compute base-3 integer mapping via the 1D flat execution layer
+
+        # 4. Compute the base-3 indexes on the packed tensors.
         ret = _numba_computes_indexes_kernel(
-            packed_m, 
-            packed_o, 
-            self.bit_shifts, 
+            packed_m,
+            packed_o,
+            self.bit_shifts,
             self.powers_3
         )
-    
+
         if is_scalar:
             return ret[0] # Return as scalar view if input was a single field
         if is_nd:
-            # Reshape the flat (N, M_unique) result back to the positions
-            # shape + (M_unique,).
+            # Reshape the flat (N, M_unique) result back to the positions shape + (M_unique,).
             return ret.reshape(pos.shape + (ret.shape[1],))
         return ret
 
     def compute_principal_index_dict(self) -> None:
-        """
-        Computes the dictionary of principal indexes for the pattern.
-        This dictionary maps each configuration index to its principal index,
-        which is the smallest index among all its symmetric configurations.
-        The method also computes the unique principal indexes and their count.
-        """
-        def _symmetry_transformations(ss_array: npt.NDArray[Bitboard], 
+        """Compute the principal-index structures (populates the lazy attributes).
+
+principal_index_dict maps each configuration index to its principal index (the minimum over its
+stabilizer orbit); principal_indexes and principal_index_count are derived from it."""
+        def _symmetry_transformations(ss_array: npt.NDArray[Bitboard],
                                      symmetry_functions: List[Callable[[npt.NDArray[np.uint64]], npt.NDArray[np.uint64]]]) -> npt.NDArray[np.uint64]:
             # Apply each function to the entire array and collect the results in a list
             symmetries = [f(ss_array) for f in symmetry_functions]
             # Stack the columns into a single matrix N x X
             return np.column_stack(symmetries)
-        
+
         def _compute_mover_opponent_by_index_value(n_squares: int) -> Tuple[BitboardArray, BitboardArray]:
             N = 3 ** n_squares
             indices = np.arange(N, dtype=Index)
             powers = 3 ** np.arange(n_squares, dtype=Index)
-            digits = (indices[:, None] // powers) % 3    
+            digits = (indices[:, None] // powers) % 3
             bit_powers = Bitboard(1) << np.arange(n_squares, dtype=Bitboard)
             m = np.sum((digits == 1) * bit_powers, axis=1, dtype=Bitboard)
             o = np.sum((digits == 2) * bit_powers, axis=1, dtype=Bitboard)
             return m, o
 
-        def _compute_indexes_on_ss_packed_tensor(p: Pattern, 
-                                                 m: npt.NDArray[np.uint64], 
+        def _compute_indexes_on_ss_packed_tensor(p: Pattern,
+                                                 m: npt.NDArray[np.uint64],
                                                  o: npt.NDArray[np.uint64]
                                                  ) -> npt.NDArray[np.uint32]:
-            """
-            Computes the indexes of the pattern on a packed tensor of square sets for both mover and opponent.
-            
-            Arguments m and o must have the same shape.
-            The shape of the result matches the shape of m and o. Possible shapes are scalar, 1D array, 2D array.
-            
-            Args:
-                m (npt.NDArray[np.uint64]): The packed square sets for the mover.
-                o (npt.NDArray[np.uint64]): The packed square sets for the opponent.
+            """Compute the base-3 configuration indexes on the packed mover/opponent tensors.
 
-            Returns:
-                npt.NDArray[np.uint32]: An array of indexes representing the pattern configurations on the packed tensor.
-            """
+Args:
+    m (npt.NDArray[np.uint64]): the packed mover square sets.
+    o (npt.NDArray[np.uint64]): the packed opponent square sets (same shape as m).
+
+Returns:
+    The configuration indexes (same shape as m)."""
             combined = np.stack([m, o])
             bits = (combined[..., np.newaxis] >> p.bit_shifts) & 1
             idxs = bits @ p.powers_3
             indexes = (idxs[0] + 2 * idxs[1]).astype(np.uint32)
             return indexes
 
-        # -1- Compute the packed configurations of mover and opponent.
-        #     This code is executed the same for each pattern, so it could be factored and memoized, doing it for the largest one.
-        #     It is not done because this computation is not part of the data pipeline.
+        # -1- Compute the packed configurations of mover and opponent. This code is executed the
+        # same for each pattern, so it could be factored and memoized, doing it for the largest one.
+        # It is not done because this computation is not part of the data pipeline.
         m, o = _compute_mover_opponent_by_index_value(int(self.n_squares))
-        
+
         # -2- Unpack the two square sets to get the instance 0 of the pattern with the given index.
         m_unpacked, o_unpacked = self._unpack_bb(m), self._unpack_bb(o)
-        
+
         # -3- Apply the symmetry operations
         symm_tr_fs = [bitboard_ro000] + self.symmetry_fs
         m_syms = _symmetry_transformations(m_unpacked, symm_tr_fs)
@@ -877,7 +737,7 @@ class Pattern:
         # -4- Pack the results
         m_syms_packed = self._pack_bb(m_syms)
         o_syms_packed = self._pack_bb(o_syms)
-        
+
         # -5- Calculate the indexes of the symmetric instances
         sym_indexes = _compute_indexes_on_ss_packed_tensor(self, m_syms_packed, o_syms_packed)
 
@@ -885,33 +745,33 @@ class Pattern:
         self.principal_index_dict = sym_indexes.min(axis=1)
         self.principal_indexes = np.unique(self.principal_index_dict)
         self.principal_index_count = len(self.principal_indexes)
-        
+
         return
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def convert_to_principal_index(self, index: IndexArray) -> IndexArray:
-        """
-        Converts a given configuration index to its principal index using the pattern's principal index dictionary.
-        If the dictionary is not yet computed, it computes it first.
-        """
+        """Convert configuration indexes to their principal indexes (computes the dictionary on first use).
+
+Args:
+    index (IndexArray): a uint32 configuration index (scalar or array).
+
+Returns:
+    The principal index (scalar or array, matching the input)."""
         if self.principal_index_dict is None:
             self.compute_principal_index_dict()
         principal_index = self.principal_index_dict[index]
         return principal_index
 
-#### End of Pattern class.
 
 @nb.njit(parallel=True, cache=True)
 def _numba_pack_bb_kernel(bb_array, pack_masks, pack_shifts):
-    """
-    Numba-accelerated PEXT simulation using direct loop fusion.
-    Eliminates intermediate array allocations caused by NumPy broadcasting.
-    """
+    """Numba PEXT-simulation kernel: pack a flat bitboard array with the plan's (masks, shifts);
+single-plane and multi-plane cases."""
     # Flattens the input view to easily iterate over any multidimensional shape
     flat_bb = bb_array.ravel()
     num_elements = flat_bb.size
     num_planes = pack_masks.shape[0]
-    
+
     # Pre-allocate output array using np.empty (no initialization overhead)
     out = np.empty(num_elements, dtype=Bitboard)
 
@@ -922,7 +782,7 @@ def _numba_pack_bb_kernel(bb_array, pack_masks, pack_shifts):
         # nb.prange automatically distributes iterations across threads
         for i in nb.prange(num_elements):
             out[i] = (flat_bb[i] & mask) >> shift
-            
+
     # CASE 2: Multi-plane optimization (e.g., CORNER, DIAG8)
     else:
         for i in nb.prange(num_elements):
@@ -931,29 +791,27 @@ def _numba_pack_bb_kernel(bb_array, pack_masks, pack_shifts):
             for p in range(num_planes):
                 acc |= (val & pack_masks[p]) >> pack_shifts[p]
             out[i] = acc
-        
+
     return out.reshape(bb_array.shape)
 
 @nb.njit(parallel=True, cache=True)
 def _numba_unpack_bb_kernel(packed_array, unpack_masks, pack_shifts):
-    """
-    Multi-core accelerated PDEP simulation.
-    Optimized for reverse bitboard distribution across millions of positions.
-    """
+    """Numba PDEP-simulation kernel: unpack a flat packed array with the plan's (masks, shifts);
+single-plane and multi-plane cases."""
     flat_packed = packed_array.ravel()
     num_elements = flat_packed.size
     num_planes = unpack_masks.size  # Total number of bits/planes in the plan
-    
+
     # Pre-allocate output array instantly using np.empty
     out = np.empty(num_elements, dtype=np.uint64)
-    
+
     # CASE 1: Single-plane optimization (e.g., EDGE pattern)
     if num_planes == 1:
         mask = unpack_masks[0]
         shift = pack_shifts[0]
         for i in nb.prange(num_elements):
             out[i] = (flat_packed[i] & mask) << shift
-            
+
     # CASE 2: Multi-plane optimization (e.g., CORNER, DIAG8)
     else:
         for i in nb.prange(num_elements):
@@ -962,16 +820,15 @@ def _numba_unpack_bb_kernel(packed_array, unpack_masks, pack_shifts):
             for p in range(num_planes):
                 acc |= (val & unpack_masks[p]) << pack_shifts[p]
             out[i] = acc
-            
+
     return out.reshape(packed_array.shape)
 
 @nb.njit(parallel=True, cache=True)
 def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
-    """
-    Computes base-3 indices using a flattened 1D architecture to maximize CPU cache.
-    """
+    """Numba base-3 kernel: compute the configuration indexes on packed mover/opponent arrays (the 1-D
+single-position and the 2-D (N, M) batch cases)."""
     B = len(bit_shifts)
-    
+
     if packed_m.ndim == 1:
         # 1D Array Input Case (Scalar Position Field)
         M = packed_m.shape[0]
@@ -993,11 +850,11 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
         # Flatten output array for continuous L1/L2 cache efficiency
         total_elements = N * M
         out_flat = np.zeros(total_elements, dtype=Index)
-        
+
         # Flatten input views completely to eliminate non-contiguous stride overheads
         flat_m = packed_m.ravel()
         flat_o = packed_o.ravel()
-        
+
         for i in nb.prange(total_elements):
             val_m = flat_m[i]
             val_o = flat_o[i]
@@ -1008,7 +865,7 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
                 bit_o = (val_o >> shift) & Bitboard(1)
                 idx_sum += (bit_m * powers_3[b]) + (bit_o * (Index(2) * powers_3[b]))
             out_flat[i] = idx_sum
-            
+
         # Reshape back to (N, M) instantaneously at the C-level with zero data copying
         return out_flat.reshape((N, M))
 
@@ -1020,11 +877,17 @@ def _numba_computes_indexes_kernel(packed_m, packed_o, bit_shifts, powers_3):
 #: Use it to generate the mdp.csv file used by the LaTeX document:
 #:
 #: $ cd <workspace root>
+#:
 #: $ source .venv/bin/activate
+#:
 #: $ python
+#:
 #: >>> from reversi.board import *
+#:
 #: >>> from reversi.pattern import *
+#:
 #: >>> sample_patterns = [Pattern(name, Bitboard(mask)) for name, mask in sample_pattern_data]
+#:
 #: >>> Pattern.mdp_csv_file(sample_patterns, 'build/tmp/mdp_test.csv')
 #:
 sample_pattern_data = [
@@ -1062,97 +925,65 @@ sample_pattern_data = [
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 class PatternSet:
-    """
-    The PatternSet class represents a collection of Pattern objects.
-    It uses the mask attribute of Pattern as a unique key.
-    Patterns are stored in a sorted order based on the uint64 value of their mask.
+    """A named, mask-sorted collection of patterns.
 
-    Attributes:
-    name (str): A human-readable label for the set of patterns.
-    patterns (List[Pattern]): A list of Pattern objects sorted by their mask values.
-    hash (str): A SHA3-256 hash of the sorted mask values, serving as a unique identifier for the set.
-    names (List[str]): A list of the pattern names, derived from patterns.
-    masks (np.ndarray): A numpy array of the pattern mask values, derived from patterns.
-
-    Methods:
-    print_summary: Prints a summary of the set including the name, hash, and basic pattern information.
-    print: Prints a detailed summary of the set including the name, hash, and full pattern information.
-    """
+Attributes:
+    name (str): the human-readable set label.
+    patterns (List[Pattern]): the patterns sorted by mask value.
+    hash (str): the sha3_256 hex digest of the concatenated little-endian mask bytes."""
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, patterns: List[Pattern]):
-        """
-        Initializes a new PatternSet instance with the given name and list of patterns.
-        
-        Args:
-            name (str): The human-readable label for the set of patterns.
-            patterns (List[Pattern]): A list of Pattern objects to be included in the set.
-        
-        Raises:
-            ValidationError: If the name is not a string (@validate_call).
-            ValidationError: If the patterns list contains non-Pattern objects (@validate_call).
-            ValueError: If the patterns list is empty.
-            ValueError: If there are duplicate names in the patterns list.
-            ValueError: If there are duplicate masks in the patterns list.
-        """
-        # Reject an empty pattern set: it is meaningless for the indexing
-        # pipeline (no patterns -> no indexes) and would crash deeper in
-        # compute_principal_indexes with an unhelpful max() error.
+        """Build the set from a name and a non-empty list of patterns.
+
+Args:
+    name (str): the human-readable set label.
+    patterns (List[Pattern]): the patterns to include.
+
+Raises:
+    ValidationError: the name is not a str, or a list element is not a Pattern.
+    ValueError: the list is empty, or the pattern names or masks are not unique."""
+        # Reject an empty pattern set: it is meaningless for the indexing pipeline (no patterns ->
+        # no indexes) and would crash deeper in compute_principal_indexes with an unhelpful max() error.
         if not patterns:
             raise ValueError('Patterns list cannot be empty')
-        
+
         # Extract and check for duplicate names
         names = [p.name for p in patterns]
         if len(names) != len(set(names)):
             raise ValueError('Patterns list contains duplicate names')
-        
+
         # Extract masks and check for duplicates
         masks = [pattern.mask for pattern in patterns]
         if len(masks) != len(set(masks)):
             raise ValueError('Patterns list contains duplicate masks')
-        
+
         # Sort patterns by mask value
         self.patterns = sorted(patterns, key=lambda p: p.mask)
-        
+
         # Create hash of sorted masks
         hash_input = b''.join(pattern.mask.tobytes() for pattern in self.patterns)
         self.hash = hashlib.sha3_256(hash_input).hexdigest()
-        
+
         self.name = name
 
     def __repr__(self) -> str:
-        """
-        A concise one-line summary (name, the set hash, and the
-        patterns via their own __repr__) — D-112 M1.
-        """
+        """Return the one-line summary (name, set hash, the patterns via their own __repr__)."""
         return f"PatternSet(name={self.name!r}, hash={self.hash}, patterns={self.patterns})"
 
     @property
     def names(self) -> List[str]:
-        """
-        A list of the names of the patterns in the set.
-        
-        Returns:
-            List[str]: A list of pattern names.
-        """
+        """Return the list of the pattern names (the set's sorted order)."""
         return [pattern.name for pattern in self.patterns]
 
     @property
     def masks(self) -> np.ndarray:
-        """
-        A numpy array of the mask values of the patterns in the set.
-        
-        Returns:
-            np.ndarray: A numpy array of mask values.
-        """
+        """Return the pattern masks as a uint64 array (the set's sorted order)."""
         return np.array([pattern.mask for pattern in self.patterns], dtype=np.uint64)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print_summary(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
-        """
-        Prints a summary representation of the pattern set to stdout as default, or a specific IO.
-        The summary includes the name, hash, and basic pattern information.
-        """
+        """Print the set summary (name, length, hash, one line per pattern) to the output stream (stdout by default)."""
         prt = lambda msg: print(msg, file=output)
         prt(f"PatternSet: name = {self.name}, length = {len(self.patterns)}, hash = {self.hash}")
         for p in self.patterns:
@@ -1160,29 +991,26 @@ class PatternSet:
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
-        """
-        Prints a detailed summary of the set including the name, hash, and full pattern information.
-        """
+        """Print the set summary followed by every pattern's detailed report, to the output stream
+        (stdout by default)."""
         print(f"PatternSet: name = {self.name}, length = {len(self.patterns)}, hash = {self.hash}", file=output)
         for pattern in self.patterns:
             pattern.print(output=output)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_principal_indexes(self, positions: PositionArray) -> IndexArray:
-        """
-        Computes principal indexes for all patterns in the set.
-        Packs and transforms structural configurations via an end-to-end Numba pipeline.
+        """Compute the principal indexes of every pattern in the set, on the given positions.
 
-        Precondition:
-            Positions must be collision-free (mover & opponent == 0). The
-            caller is responsible for validating this, e.g. via
-            board.position_check_collisions; the indexing pipeline does
-            not re-check it.
+The fused Numba pipeline (anti-transform, inlined pack, base-3, per-pattern coset minimum).
 
-        Output shape: the positions shape plus a trailing axis of
-        total_cols (the sum of the distinct-mask groups over the set's
-        patterns); a 1-D (N,) batch gives (N, total_cols).
-        """
+Precondition:
+    The positions are collision-free (mover & opponent == 0); the caller validates (e.g.
+    board.position_check_collisions).
+
+Returns:
+    A positions.shape + (total_cols,) uint32 array, total_cols = the sum of the distinct-mask
+    groups (n_instances) over the set's patterns, concatenated in mask-sorted order (a 1-D (N,)
+    batch gives (N, total_cols); the 1-D path passes the (N, 8) arrays straight to the kernel)."""
         L = len(self.patterns)
 
         m = positions['mover']
@@ -1191,56 +1019,55 @@ class PatternSet:
         # 1. High-speed C-layout anti-transformations
         m_atrxs = bitboard_anti_transformations(m)
         o_atrxs = bitboard_anti_transformations(o)
-        
+
         # 2. Extract layout dimensions and structural invariants
         S_max = max(p.n_squares for p in self.patterns)
         P_max = max(p.pack_plan[0].shape[0] for p in self.patterns) # Max configuration planes
-        
+
         powers_3 = np.array([3**j for j in range(S_max)], dtype=Index)
-        
+
         # Pre-allocate structures for unified vectorized stack execution
         n_squares_arr = np.array([p.n_squares for p in self.patterns], dtype=Index)
         num_planes_arr = np.empty(L, dtype=Index)
-        
+
         bit_shifts_matrix = np.zeros((L, S_max), dtype=Index)
         idx_sort_matrix = np.zeros((L, 8), dtype=Index)
-        
+
         n_groups_arr = np.empty(L, dtype=Index)
         group_size_arr = np.empty(L, dtype=Index)
         col_offsets = np.empty(L, dtype=Index)
-        
+
         pack_masks_3d = np.zeros((L, P_max), dtype=Bitboard)
         pack_shifts_3d = np.zeros((L, P_max), dtype=Bitboard)
-        
+
         current_col = 0
         for i, p in enumerate(self.patterns):
             S = p.n_squares
             bit_shifts_matrix[i, :S] = p.bit_shifts
-            
+
             # Extract grouping properties for the reduction step
             mi = p.mask_indexes
             unique_vals = np.unique(mi)
             n_groups = len(unique_vals)
-            
+
             n_groups_arr[i] = n_groups
             group_size_arr[i] = 8 // n_groups
             idx_sort_matrix[i, :] = np.argsort(mi)
             col_offsets[i] = current_col
-            
+
             # Unpack PEXT simulation attributes from each pattern's pack_plan
             p_masks, _, p_shifts = p.pack_plan
             num_planes = p_masks.shape[0]
             num_planes_arr[i] = num_planes
-            
+
             pack_masks_3d[i, :num_planes] = p_masks
             pack_shifts_3d[i, :num_planes] = p_shifts
-            
+
             current_col += n_groups
 
         # 3. Stream data straight into the optimized Numba kernel
         if m_atrxs.ndim == 2:
-            # The 1-D fast path: the (N, 8) transformation arrays go
-            # straight to the kernel.
+            # The 1-D fast path: the (N, 8) transformation arrays go straight to the kernel.
             return _numba_compute_principal_indexes_kernel(
                 m_atrxs,
                 o_atrxs,
@@ -1256,9 +1083,8 @@ class PatternSet:
                 pack_masks_3d,
                 pack_shifts_3d
             )
-        # The N-D contract: the kernel over the (-1, 8) flattened
-        # C-order views, the output reshaped to the positions shape +
-        # (total_cols,).
+        # The N-D contract: the kernel over the (-1, 8) flattened C-order views, the output reshaped
+        # to the positions shape + (total_cols,).
         return _numba_compute_principal_indexes_kernel(
             m_atrxs.reshape(-1, 8),
             o_atrxs.reshape(-1, 8),
@@ -1276,8 +1102,7 @@ class PatternSet:
         ).reshape(positions.shape + (current_col,))
 
 
-#### End of PatternSet class.
-        
+
 @nb.njit(parallel=True, cache=True)
 def _numba_compute_principal_indexes_kernel(
     m_atrxs: np.ndarray,          # Shape: (N, 8), dtype: Bitboard
@@ -1294,77 +1119,74 @@ def _numba_compute_principal_indexes_kernel(
     pack_masks_3d: np.ndarray,    # Shape: (L, P_max), dtype: Bitboard
     pack_shifts_3d: np.ndarray    # Shape: (L, P_max), dtype: Bitboard
 ) -> np.ndarray:
-    """
-    Fused Othello Pattern pipeline engine. 
-    Processes positions (N) and patterns (L) concurrently. Instantly executes
-    PEXT compression, base-3 translation, and reduction min loops in CPU registers.
-    """
+    """The fused Numba pipeline kernel: for every position (row) and pattern (L), the inlined PEXT pack,
+the base-3 index, and the per-pattern coset minimum, streamed into the (N, total_cols) output grid."""
     BITBOARD_ZERO = Bitboard(0)
     BITBOARD_ONE = Bitboard(1)
     INDEX_TWO = Index(2)
     INDEX_ZERO = Index(0)
-    
+
     N = m_atrxs.shape[0]
     L = n_squares_arr.shape[0]
-    
+
     # Pre-allocate the massive contiguous block to avoid memory fragmentation
     out = np.empty((N, total_cols), dtype=Index)
-    
+
     # Parallelize at the position level to ensure maximum CPU core saturation
     for n in nb.prange(N):
         # Local thread-safe array for the 8 calculated symmetry indices
         local_symmetry_indexes = np.empty(8, dtype=Index)
-        
+
         for i in range(L):
             S = n_squares_arr[i]
             n_groups = n_groups_arr[i]
             group_size = group_size_arr[i]
             col_offset = col_offsets[i]
             num_planes = num_planes_arr[i]
-            
+
             # --- LOOP FUSION 1: Integrated PEXT Simulation Layer ---
             for s in range(8):
                 val_m = m_atrxs[n, s]
                 val_o = o_atrxs[n, s]
-                
+
                 packed_m = BITBOARD_ZERO
                 packed_o = BITBOARD_ZERO
-                
+
                 # Inline simulation of the _numba_pack_bb_kernel multi-plane logic
                 for p in range(num_planes):
                     mask = pack_masks_3d[i, p]
                     shift = pack_shifts_3d[i, p]
                     packed_m |= (val_m & mask) >> shift
                     packed_o |= (val_o & mask) >> shift
-                
+
                 # --- LOOP FUSION 2: Ternary Base-3 Indexing Layer ---
                 idx_m = INDEX_ZERO
                 idx_o = INDEX_ZERO
-                
+
                 for b in range(S):
                     shift_val = bit_shifts_matrix[i, b]
                     p3 = powers_3[b]
-                    
+
                     bit_m = (packed_m >> shift_val) & BITBOARD_ONE
                     bit_o = (packed_o >> shift_val) & BITBOARD_ONE
-                    
+
                     idx_m += np.uint32(bit_m) * p3
                     idx_o += np.uint32(bit_o) * p3
-                    
+
                 local_symmetry_indexes[s] = (INDEX_TWO * idx_o) + idx_m
 
             # --- LOOP FUSION 3: Structural Group Minimum Reduction Layer ---
             for g in range(n_groups):
                 min_val = np.uint32(4294967295) # Initialize with UINT32_MAX
                 start_idx = g * group_size
-                
+
                 for k in range(group_size):
                     sorted_s = idx_sort_matrix[i, start_idx + k]
                     val = local_symmetry_indexes[sorted_s]
                     if val < min_val:
                         min_val = val
-                        
+
                 # Direct streaming write into the contiguous final output grid
                 out[n, col_offset + g] = min_val
-                
+
     return out

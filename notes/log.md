@@ -2050,3 +2050,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Zobrist, in entrambi i file) — il fatto "little-endian only" resta in entrambi. Il principio: scriviamo
   cosa fa il software, non cosa non fa. Nessun cambiamento di comportamento: 308/0/15, board.md 199 righe in
   budget.
+
+- D-453 (pattern: il sorgente a regime — specchio di D-447): module docstring approvata (what-it-is + 6
+  design choice); le 31 docstring in forma di casa (prima riga imperativa sul quote); la class docstring di
+  Pattern riscritta (la lista numerata da 111 righe piena di HOW → WHAT + Attributes compatta, le formule
+  Burnside restano come contratto); la docstring mancante di PatternType.from\_fingerprint aggiunta. R-540: i
+  2 ref via ("(R1, D-020)", "D-112 M1"). PEP8: 108 trailing-ws, 2 "range (", 3 anomalie di indent, la riga
+  prt da 165 chars split (output-identical), la virgola nell'import, 4 tripli vuoti. Risidi via (###/####
+  End of, i segnavoci # - Symmetries/Fingerprint, la loop narration di \_compute\_transformed\_cells —
+  col suo locale morto transformed\_masks). KEEP as-is: l'import `from \_\_future\_\_ import annotations` (qui
+  è PORTANTE, a differenza del board: la Callable non importata + le union PositionField | PositionArray
+  sui dtype strutturati). La ricetta #: mdp.csv ricostruita a paragrafi per-riga — primo stress test reale
+  del fix doc-comment di D-447 (il join greedy l'aveva appiattita una volta; i paragrafi per-riga sono
+  punto fisso stabile). src\_reflow → canonico, 1192 righe (era 1370). Nessun cambiamento di
+  comportamento: 73/0/3. pattern.md sincronizzata (il principio D-452 applicato: via la frase "No search,
+  no PDB storage, no disk I/O" e i 2 "no portability work"; hlp\_su\_analysis.py aggiunta ai consumer).

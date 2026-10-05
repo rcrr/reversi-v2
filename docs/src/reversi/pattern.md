@@ -3,7 +3,7 @@ Pattern recognition for Reversi PDB: the D8 orbit of a pattern mask (instances, 
 its squares), a PEXT-style packing of the 64-bit board into S contiguous bits, the base-3 encoding of every legal
 configuration (3^S states, uint32), and the principal configuration index under the induced symmetries. PatternSet
 computes all principal indexes for N positions in one fused Numba pipeline; PatternType is the closed table of shapes.
-No search, no PDB storage, no disk I/O except the CSV writer.
+The mdp_record / mdp_csv_file methods render the MDP records (the CSV file for the LaTeX document).
 
 ## API
 
@@ -84,7 +84,7 @@ PatternSet (name + mask-sorted patterns + sha3_256 hash)
   `n_instances(i)` columns in first-seen order. No method exposes the offsets — a caller reassociating columns
   recomputes them from the patterns.
 - **Platform: little-endian only** — the D8 bit tricks, the pack/unpack, and the set hash (native-order
-  `mask.tobytes()`) are verified on little-endian only; no portability work is planned.
+  `mask.tobytes()`) are verified on little-endian only.
 
 ## Verified invariants
 
@@ -137,7 +137,7 @@ None.
   = 19 still fits: (3^20−3)/2 < 2^32).
 - `n_squares` is `np.uint8` — cast to `int` before exponentiating (the numpy scalar wraps: 3**8 → 161); the production
   code already casts where needed (e.g. `compute_principal_index_dict`).
-- Little-endian only: the set hash uses native-order `tobytes()`; no endianness portability work.
+- Little-endian only: the set hash uses native-order `tobytes()`.
 - The sample-data masks are python ints — callers wrap with `Bitboard(...)`.
 - New public methods: `@validate_call` (strict for the constructors); hot loops `njit(parallel=True, cache=True)` — no
   `fastmath`.
@@ -146,5 +146,5 @@ None.
 
 - Consumes `board.py` (the D8 transforms + anti tables, the bitboard utils, `Position`).
 - Consumed by: `feature.py`, `wrk_features.py` (the FEATURES pipeline level), `mobility.py`, `model_weights.py`,
-  `hlp_indexes.py`.
+  `hlp_indexes.py`, `hlp_su_analysis.py`.
 - Not a pipeline level itself: a domain module used BY the workers.
