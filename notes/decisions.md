@@ -591,3 +591,17 @@ D-464 | 2026-10-06 | The tools/state\_machine.py migration to the R-560 canonica
 D-465 | 2026-10-06 | The tools/opt\_lbfgs.py migration to the R-560 canonical (the D-457 tool). 11 of 13 docstrings
          reflowed to the stand-alone quote form; 65 entries un-typed (the heaviest strip of the batch — the optimizer's
          signature is long). 629 -> 637 lines. NO behavior change: test\\_opt\\_lbfgs 24/0.
+
+D-466 | 2026-10-06 | The feature.py source pass (the feature sub-work opens). (1) The R-560 canonical via the D-457
+         tool: 11 docstrings reflowed; the 7 Attributes: entries of the FeatureSet class docstring keep their types
+         FOLDED INTO THE PROSE (the plain class has no signature annotations — the docstring is the only type home; e.g.
+         "name: A human-readable label (str) …"); the legacy Methods: section deleted (it duplicated the methods' own
+         docstrings, R-530 one home per fact); 2 code smells fixed: the dead branch in feature\\_blocks (f.category in
+         (0, 'intercept') — an IntEnum is never the string; the guard is f.name == 'INTERCEPT') and the
+         \_\_init\_\_ return annotation (-> Self on a None-returning init -> -> None); trailing whitespace stripped and
+         the blank-line counts normalized to the house 2 (the migrated files are at 0 / 2). 337 -> 313 lines. NO
+         behavior change: test\\_feature 29/0/1. (2) TOOL FIX found in passing, disclosed: the rebase classified a
+         legacy same-column entry (heading and entries sharing the base column, the pre-D-453 feature layout) as prose
+         and mashed the Attributes: entries into a run-on paragraph — the first feature pass was restored from git and
+         redone; the tool now recognizes a same-column entry under an active heading; all migrated files re-verified
+         canonical (no regression).

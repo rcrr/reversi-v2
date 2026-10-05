@@ -2194,3 +2194,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   unico fix di contenuto: il refuso del marker #: del doc-comment "Step 3" in cache\_manager (D-463, i fratelli
   Step 0/1/2 erano già corretti). Il giro completo LONG=1 rimesurato a chiusura: suite invariata 1093/0/24
   (cambiamenti solo di formato). Next step: feature e mobility, stesso canone — il tool è pronto.
+
+- D-466 (il pass sorgente di feature — si apre il sub-work feature): (1) canone R-560 col tool di
+  D-457: 11 docstring ri-fluotate; le 7 entry Attributes: della class docstring di FeatureSet
+  tengono i tipi Piegati nella prosa (la classe piana non ha annotazioni in signature — il
+  docstring è l'unica casa dei tipi; es. "name: A human-readable label (str) …"); la sezione
+  Methods: legacy eliminata (duplicava i docstring dei metodi, R-530 una casa per fatto); 2 code
+  smell corretti: il ramo morto in feature\\_blocks (f.category in (0, 'intercept') — un IntEnum
+  non è mai la stringa; il guard è f.name == 'INTERCEPT') e l'annotation di ritorno di \_\_init\_\_
+  (-> Self su un init che ritorna None -> -> None); whitespace di coda spazzato e blank line
+  normalizzate al 2 di casa (i file migrati sono a 0/2). 337 → 313 righe. Nessun cambiamento di
+  comportamento: test\\_feature 29/0/1. (2) FIX DEL TOOL trovato di passo, disclosed: il rebase
+  classificava come prosa una entry legacy a colonna uguale (intestazione ed entry sulla stessa
+  colonna, il layout pre-D-453 di feature) e aveva schiacciato le entry Attributes: in un
+  paragrafo continuo — il primo pass feature è stato ripristinato dal git e rifatto; il tool ora
+  riconosce l'entry a colonna uguale sotto un'intestazione attiva; tutti i file migrati
+  ri-verificati canonical (nessuna regressione).

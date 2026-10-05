@@ -282,6 +282,10 @@ def reformat_docstring(raw):
         if HEADING.match(s):
             under_heading = True
             rebased.append(' ' * quote_indent + s)
+        elif under_heading and ind <= base0 and ENTRY.match(s):
+            # a legacy same-column entry (the heading and the entries share the base column).
+            entry_indent = ind
+            rebased.append(' ' * (quote_indent + 4) + s)
         elif ind > base0 and ENTRY.match(s):
             entry_indent = ind
             rebased.append(' ' * (quote_indent + 4) + s)

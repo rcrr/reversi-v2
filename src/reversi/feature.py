@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -49,31 +49,26 @@ import numpy as np
 from pydantic import validate_call, ConfigDict
 
 
-
 __all__ = ['Feature',
            'FeatureSet']
-
 
 
 @dataclass(init=False)
 class Feature:
     """
     Represents a specific structural evaluation feature for the game engine.
-    
-    This class enforces encapsulation by completely blocking direct instantiation
-    via the default constructor or __init__, forcing clients to use explicitly
-    defined factory methods.
+
+    This class enforces encapsulation by completely blocking direct instantiation via the default
+    constructor or __init__, forcing clients to use explicitly defined factory methods.
     """
     category: Category
     name: str
     n_configurations: int
     n_instances: int
     ref: Mobility | Pattern | None = field(default=None, repr=False)
-    
+
     class Category(IntEnum):
-        """
-        Enumeration representing the logical classification of the feature.
-        """
+        """Enumeration representing the logical classification of the feature."""
         INTERCEPT = 0
         MOBILITY  = 1
         PATTERN   = 2
@@ -81,9 +76,8 @@ class Feature:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         """
-        Blocks direct instantiation of Feature: calling Feature()
-        always raises RuntimeError. Use the factory methods instead
-        (e.g. Feature.new_from_pattern()).
+        Blocks direct instantiation of Feature: calling Feature() always raises RuntimeError. Use
+        the factory methods instead (e.g. Feature.new_from_pattern()).
         """
         raise RuntimeError(
             "Direct use of __init__ or Feature() is not allowed. "
@@ -93,9 +87,7 @@ class Feature:
     @classmethod
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def _create_empty(cls) -> Self:
-        """
-        Internal utility method used to bypass the block in calling __init__.
-        """
+        """Internal utility method used to bypass the block in calling __init__."""
         return object.__new__(cls)
 
     @classmethod
@@ -103,7 +95,7 @@ class Feature:
     def new_intercept(cls) -> Self:
         """
         Factory method to create a default INTERCEPT feature.
-        
+
         Returns:
             Feature: A pre-configured feature instance representing an intercept.
         """
@@ -120,10 +112,10 @@ class Feature:
     def new_from_pattern(cls, pattern: Pattern) -> Self:
         """
         Factory method to construct a PATTERN feature from a Pattern instance.
-        
+
         Args:
             pattern: The game Pattern configuration object.
-            
+
         Returns:
             Feature: A validated feature instance linked to the pattern.
         """
@@ -140,10 +132,10 @@ class Feature:
     def new_from_mobility(cls, mobility: Mobility) -> Self:
         """
         Factory method to construct a MOBILITY feature from a Mobility instance.
-        
+
         Args:
             mobility: The game Mobility configuration object.
-            
+
         Returns:
             Feature: A validated feature instance linked to the mobility.
         """
@@ -155,33 +147,25 @@ class Feature:
         self.ref = mobility
         return self
 
+
 class FeatureSet:
     """
-    The FeatureSet class represents a collection of Feature objects.
-    Intercept is kept directly, mobilities and patterns are grouped into
-    a MobilitySet and a PatternSet respectively.
+    The FeatureSet class represents a collection of Feature objects. Intercept is kept directly,
+    mobilities and patterns are grouped into a MobilitySet and a PatternSet respectively.
 
     Attributes:
-    name (str): A human-readable label for the set of features.
-    hash (str): A SHA3-256 hash serving as a unique identifier for the set:
-        sha3_256 over b'INTERCEPT' (if an intercept is present), followed by
-        the mset hash hex string (if mset is present), followed by the pset
-        hash hex string (if pset is present). The input is the child sets'
-        hash values (transitively their sorted mask contents), not raw
-        masks; the set name is not part of the hash.
-    intercept (Feature | None): The intercept feature or none.
-    mset (MobilitySet | None): The set of mobility objects.
-    pset (PatternSet | None): The set of Pattern objects.
-    features (List[Feature]): A list of Feature objects, orderly collecting the intercept, the mobilities and the patterns.
-    n_instances (int): Sum of all n_instances collected from each feature.
-
-    Methods:
-    print_summary: Prints a summary of the set including the name, hash, and basic feature information.
-    feature_blocks (property): The per-feature column blocks over the
-        non-intercept features (the (name, col_start, col_end,
-        n_configurations, n_instances) tuples in the compute_indexes
-        column layout; instance-aware: each feature occupies its
-        n_instances D8-instance columns).
+        name: A human-readable label (str) for the set of features.
+        hash: A SHA3-256 hash (str) serving as a unique identifier for the set: sha3_256 over
+            b'INTERCEPT' (if an intercept is present), followed by the mset hash hex string (if mset
+            is present), followed by the pset hash hex string (if pset is present). The input is the
+            child sets' hash values (transitively their sorted mask contents), not raw masks; the
+            set name is not part of the hash.
+        intercept: The intercept feature or none (Feature | None).
+        mset: The set of mobility objects (MobilitySet | None).
+        pset: The set of Pattern objects (PatternSet | None).
+        features: A list (list[Feature]) of Feature objects, orderly collecting the intercept, the
+            mobilities and the patterns.
+        n_instances: Sum (int) of all n_instances collected from each feature.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -189,21 +173,18 @@ class FeatureSet:
                  name: str,
                  intercept: Feature | None,
                  mset: MobilitySet | None,
-                 pset: PatternSet | None) -> Self:
+                 pset: PatternSet | None) -> None:
         """
-        Initializes a new FeatureSet instance from the given name and the
-        three feature sources: an optional intercept Feature, an optional
-        MobilitySet, and an optional PatternSet. The features list is
-        built in the order intercept, mobilities (the MobilitySet's sorted
-        (mask, amask) order), patterns (the PatternSet's sorted mask
-        order); n_instances is their sum and the hash is derived as
-        described in the class docstring.
+        Initializes a new FeatureSet instance from the given name and the three feature sources: an
+        optional intercept Feature, an optional MobilitySet, and an optional PatternSet. The
+        features list is built in the order intercept, mobilities (the MobilitySet's sorted (mask,
+        amask) order), patterns (the PatternSet's sorted mask order); n_instances is their sum and
+        the hash is derived as described in the class docstring.
 
         Raises:
-            ValueError: If intercept is not None and its category is not
-                Feature.Category.INTERCEPT.
+            ValueError: If intercept is not None and its category is not Feature.Category.INTERCEPT.
         """
-        
+
         if intercept and intercept.category is not Feature.Category.INTERCEPT:
             error_msg = f"Argument intercept is a feature having the wrong category {intercept.category}."
             raise ValueError(error_msg)
@@ -230,12 +211,12 @@ class FeatureSet:
         if intercept:
             chunks.append(b'INTERCEPT')
         if mset:
-            chunks.append(mset.hash.encode('utf-8')) 
+            chunks.append(mset.hash.encode('utf-8'))
         if pset:
-            chunks.append(pset.hash.encode('utf-8')) 
+            chunks.append(pset.hash.encode('utf-8'))
         hash_input = b''.join(chunks)
         self.hash = hashlib.sha3_256(hash_input).hexdigest()
-        
+
         return
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -269,21 +250,18 @@ class FeatureSet:
     @property
     def feature_blocks(self) -> list[tuple[str, int, int, int, int]]:
         """
-        The per-feature column blocks (the column-labelling view over
-        the compute_indexes layout): the (name, col_start, col_end,
-        n_configurations, n_instances) tuples over the non-intercept
-        features, in the fset.features order — the documented column
-        layout: the intercept (column 0, if present), then the
-        mobilities in the MobilitySet's sorted (mask, amask) order,
-        then the patterns in the PatternSet's sorted mask order. Each
-        feature occupies n_instances columns (its D8 instance
-        columns), so the blocks are instance-aware. The intercept is
-        not a block: it is fset.intercept, at column 0 when present.
+        The per-feature column blocks (the column-labelling view over the compute_indexes layout):
+        the (name, col_start, col_end, n_configurations, n_instances) tuples over the non-intercept
+        features, in the fset.features order — the documented column layout: the intercept (column
+        0, if present), then the mobilities in the MobilitySet's sorted (mask, amask) order, then
+        the patterns in the PatternSet's sorted mask order. Each feature occupies n_instances
+        columns (its D8 instance columns), so the blocks are instance-aware. The intercept is not a
+        block: it is fset.intercept, at column 0 when present.
         """
         blocks = []
         col = 1 if (self.intercept is not None) else 0
         for f in self.features:
-            if f.category in (0, 'intercept') or f.name == 'INTERCEPT':
+            if f.name == 'INTERCEPT':
                 continue
             blocks.append((f.name, col, col + int(f.n_instances),
                            int(f.n_configurations), int(f.n_instances)))
@@ -293,25 +271,22 @@ class FeatureSet:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, positions: PositionArray) -> IndexArray:
         """
-        Compute the index array by stacking the feature blocks along the
-        last axis.
+        Compute the index array by stacking the feature blocks along the last axis.
 
-        Returns a uint32 array of shape positions.shape + (I,) (a 1-D
-        batch gives (N, I)), I = sum of the n_instances of the features,
-        with the column layout:
+        Returns a uint32 array of shape positions.shape + (I,) (a 1-D batch gives (N, I)), I = sum
+        of the n_instances of the features, with the column layout:
 
-        - column 0: the intercept feature (constant 0), if present;
-        - then one column per mobility, in the MobilitySet's sorted
+        - column 0: the intercept feature (constant 0), if present; - then one column per mobility,
+        in the MobilitySet's sorted
           (mask, amask) order (its compute_indexes block);
         - then, for each pattern in the PatternSet's sorted mask order,
           n_instances(pattern) columns: the principal index of each orbit
           instance, in the pattern's unique-mask first-seen (D8 instance)
           order (its compute_principal_indexes block).
 
-        The columns therefore follow the child sets' sorted storage
-        order, not the caller's insertion order. Handles empty edge
-        cases (N=0 or I=0) gracefully by returning an empty NumPy array
-        with the correct expected shape.
+        The columns therefore follow the child sets' sorted storage order, not the caller's
+        insertion order. Handles empty edge cases (N=0 or I=0) gracefully by returning an empty
+        NumPy array with the correct expected shape.
         """
         N = positions.shape[0]
         I = sum(f.n_instances for f in self.features)
@@ -332,6 +307,6 @@ class FeatureSet:
         if self.pset:
             active_indexes.append(self.pset.compute_principal_indexes(positions))
 
-        # Efficiently merge all sub-arrays along the last axis in a single
-        # C-level step (hstack would concatenate axis 1 for ndim > 2).
+        # Efficiently merge all sub-arrays along the last axis in a single C-level step (hstack
+        # would concatenate axis 1 for ndim > 2).
         return np.concatenate(active_indexes, axis=-1)
