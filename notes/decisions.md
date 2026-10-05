@@ -545,3 +545,16 @@ D-458 | 2026-10-06 | The pattern.py migration to the new docstring canonical (th
          "n\\_configurations: … tmasks (…): …" inline condition, found in three attributes; the user split them, the
          campaign un-typed them). This D supersedes the D-456 layout (the +4/+8/+12 model) for this file: the new
          canonical is the enforcer's fixed point. 1197 -> 1236 lines. NO behavior change: 79/0/3.
+
+D-459 | 2026-10-06 | The board.py migration to the new docstring canonical (by the D-457 tool), plus the fix of 4
+         PRE-EXISTING misplaced docstrings found by the user's review. All 68 docstrings (64 + the 4 newly recognized
+         ones): 61 reflowed to the stand-alone quote form, the rest already the form; 84 entries un-typed (79 + the 5 of
+         the four recovered docstrings). The 4 misplaced ones were DEAD string literals in the original source (already
+         so in the D-452 git): a string placed AFTER the first statement (after the return) in
+         square\\_validate\\_range, move\\_validate\\_range, position\\_eq and position\\_legal\\_moves — unreachable
+         expression statements, not docstrings (a docstring is the body[0] string), invisible to every reflow pass (old
+         and new) and to the AST docstring audits, which is why they survived in the old typed format. Moved to the top
+         of the body (real docstrings now); zero behavior change (the dead literal was never executed, a docstring has
+         no side effects). Migration note, disclosed: the first board pass ran before the D-457 base-measure fix (the
+         old board body paragraphs, one level below the quote, would have stayed deep) — the file was restored from git
+         and the migration redone with the fixed tool. 1984 -> 2042 lines. NO behavior change: 308/0/15.

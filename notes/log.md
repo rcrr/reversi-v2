@@ -2140,3 +2140,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   "n\\_configurations: … tmasks (…): …" trovata in 3 attributi; l'user li ha splitati, la campagna li
   ha privati dei tipi). Questo D soppianta il layout di D-456 per il file: il canone nuovo è il punto
   fisso dell'enforcer. 1197 → 1236 righe. Nessun cambiamento di comportamento: 79/0/3.
+
+- D-459 (la board migrata al nuovo canone docstring + 4 docstring fuori posto ripristinate): tutte e 68
+  le docstring (64 + le 4 appena riconosciute): 61 ri-fluotate alla forma quote-da-solhe, il resto già
+  in forma; 84 entry private dei tipi (79 + le 5 dei 4 docstring recuperati). I 4 fuori posto erano
+  litterali stringa MORTI nel sorgente originale (già così nel git di D-452): una stringa posta DOPO il
+  primo statement (dopo il return) in square\\_validate\\_range, move\\_validate\\_range,
+  position\\_eq e position\\_legal\\_moves — expression statement irraggiungibili, non docstring (un
+  docstring è la stringa in body[0]), invisibili a ogni pass di reflow (vecchio e nuovo) e agli audit
+  AST sui docstring — ecco perché erano sopravvissute in formato vecchio tipizzato. Spostate in testa al
+  corpo (ora sono docstring vere); zero cambiamento di comportamento (il litterale morto non era mai
+  eseguito, un docstring non ha side effect). Nota di migrazione, disclosed: il primo pass board è
+  girato prima della fix della misura della base di D-457 (i paragrafi di corpo del vecchio board, un
+  livello sotto la quote, sarebbero restati profondi) — il file è stato ripristinato dal git e la
+  migrazione rifatta col tool corretto. 1984 → 2042 righe. Nessun cambiamento di comportamento:
+  308/0/15.
