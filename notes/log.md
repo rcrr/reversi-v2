@@ -2089,3 +2089,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   nello stesso commit. Suite: 73 → 79 (6 nuovi, tutti verdi al primo giro). test\_pattern.md
   sincronizzata (14 classi / 79; riga TestIndexArray aggiunta; TestPatternPack 7 → 9 con R3/R4;
   TestPatternPrincipalIndex 1 → 2; l'import esplicito nominato nelle Conventions).
+
+- Chiusura del sub-work pattern (D-453..D-455): il bullet Next-steps segnato — pattern COMPLETE (format a regime:
+  sorgente 1192 righe + test al punto fisso canonico del src\_reflow, 32 docstring in forma di casa + module
+  docstring, 6 micro-test, mirror doc in budget e fedele, il principio D-452 applicato), il suite a 1093/0/24
+  con misurazione LONG=1 fresca; restano feature e mobility.
