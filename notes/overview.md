@@ -64,7 +64,9 @@ define the evaluation function.
   the D-453..D-455 session + D-458, feature the D-466..D-468 pass, mobility the D-469..D-471 pass, regab the D-472 pass,
   base\_model the D-473 pass, random\_game the D-475 pass (the R-560 canonical + the mirror-doc fidelity repair + the
   completion tests): the src\_reflow canonical fixed point, the house docstring conventions, the module docstrings, the
-  micro-tests, the mirror docs in budget and faithful; suite 1100/0/24 at close).
+  micro-tests, the mirror docs in budget and faithful; the lm cascade opens: client the D-476 pass (the R-560 canonical
+  + the mirror-doc fidelity repair: the 3 D-XXX source removals, the 5 typed entries untyped, the '157 lines.' drop, the
+  2 stale counts + the phantom test row repaired); suite 1100/0/24 at close, the test\_client cell 8/0/1 unchanged).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

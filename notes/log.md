@@ -2390,3 +2390,34 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   1099 → 1100/0/24 (random\_game 42 → 43/0/1, il resto invariato). I 7 moduli base (board, pattern,
   feature, mobility, regab, base\_model, random\_game) sono tutti al canone R-560; next step: lm e i file
   test.
+
+## 2026-10-05 — session 99 (D-476 — client: il pass R-560 + la repair della mirror doc, la cascata lm apre)
+- Session 99 (Roberto): la cascata lm apre con il modulo client (src/reversi/lm/client.py + il test + i 2 mirror
+  doc), lo stesso protocollo dei moduli base.
+- D-476 (client, un solo D, il piano concordato): (1) sorgente: il riferimento D-417 rimosso dal docstring di
+  make\_evaluation\_function\_array (R-540), le 5 entry typed rese untyped (R-560(5): i 3 Args "mw (ModelWeights):"
+  — l'annotazione della signature è il tipo — + le 2 sub-entry Returns di \_prepare\_weights), 3 docstring
+  riavvolti (157 → 153 righe); (2) test: i 2 prefissi "D-422: " rimossi (R-540), le 4 righe header "# " con
+  trailing whitespace pulite (il reflow non le tocca), 8 docstring riavvolti (207 → 211 righe); nessun gap di
+  copertura — tutti e 8 i test pinano il contratto documentato, gli assoluti dell'EF scalare pinati end-to-end
+  dalla full-chain (A2030/A2050); 8/0/1 invariato; (3) il source mirror doc: il "157 lines." via (docs\_rules §4),
+  la riga header a 158 char riavvolta, la provenance narrative del bullet 1 delle Conventions rimossa (la storia
+  di campagna + la dicitura stale "typed Google-style" che contraddice R-560), il bullet strict-array a un solo
+  puntatore (D-422); (4) il test mirror doc: i 2 conteggi stale riparati (1 class / 7 → 8 test, la cella tabella
+  7 → 8) + la riga fantasma test\_2d\_structured\_raises\_value\_error (il test della 1-D guard pre-N-D, non più
+  esistente) rimpiazzata con test\_2d\_structured\_corder\_parity + test\_3d\_structured\_corder\_parity con il
+  what-it-pins riscritto. Il punto fisso canonico di src\_reflow su sorgente + test, l'auditore dei doc verde su
+  entrambi i mirror.
+- Chiusa la batch client (D-476 + onda): (1) sorgente: il D-417 fuori dal docstring + le 5 entry typed rese
+  untyped + 3 docstring riavvolti (157 → 153); (2) test: i 2 prefissi D-422 via + le 4 righe header pulite +
+  8 docstring riavvolti (207 → 211), 8/0/1 invariato, nessun gap di copertura; (3) il source mirror doc: il
+  "157 lines." via, la riga header riavvolta, la provenance narrative via, il bullet strict-array a un puntatore;
+  (4) il test mirror doc: i 2 conteggi stale riparati + la riga fantasma sostituita dai due test C-order reali.
+  Nessun code smell in questa batch: le macchie erano la provenance nei docstring, le 5 entry typed e i conteggi
+  stale + la riga fantasma del test mirror. Il giro completo LONG=1 rimesurato a chiusura: suite 1100/0/24
+  invariato (test\_client 8/0/1, le altre celle invariate). La cascata lm è aperta: prossimo modulo secondo la
+  scelta di Roberto.
+- PUNTINA PENDENTE (in attesa della call di Roberto): la sessione 98 (la lineage tools-wave D-461..465 + i 5 moduli
+  D-466..D-475) è registrata nel journal solo come bullet, senza il heading "## " né il "Session closed by the
+  user." (il precedente delle sessioni senza heading esiste già, documentato nel volume 003); la numerazione di
+  questa sessione (99) presuppone che la lineage fosse una singola sessione lunga.
