@@ -9,26 +9,26 @@ section when the feature set has an intercept).
 ## API
 | name | contract |
 |---|---|
+| `TrainingDenseResult` | the dense-pass dataclass: the 4-key `metrics` dict (the `train_dense_*` analytics report contract) + the f64 `rn_y` residual series (the PLOT input, published by the worker as `ctx.train_dense_rn`) |
 | `compute_training_metrics(ctx)` | the COMPRESSED forward pass → the 7-key train/pop dict (`Dict[str, float \| int]`); ONE INFO log line |
 | `compute_training_dense_metrics(ctx)` | the DENSE forward pass → a `TrainingDenseResult` (the 4-key metrics dict + the f64 `rn_y` series) — the 4 keys are `train_dense_{mae_y, rmse_y, loss, samples}` dict; the loss is the PURE 0.5·mean(rn_z²) (the ridge lives on the compressed side); ONE INFO log line |
 | `format_console_report(ctx)` | the 18-line header report, no date, no tables (the `Config SHA3-256` line, the `ctx.config_checksum` fingerprint) |
 | `format_file_report(ctx)` | the complete report: detailed header (same 18-line common block) + FEATURE SET SUMMARY + the INTERCEPT section (when present) + the MOBILITY / PATTERN FEATURES DETAILS sections |
 
 ## Architecture
-724 lines:
-- `_format_intercept_section` (the D-308 addition): the INTERCEPT section, emitted only when the feature set has an
+- `_format_intercept_section`: the INTERCEPT section, emitted only when the feature set has an
   intercept (`fset.intercept is not None`) and placed between the FEATURE SET SUMMARY and the MOBILITY details. One
   Weight line (4 decimals, the report's weight convention) — the single trained bias weight. The intercept is category
   0, skipped by the mobility / pattern table loops, so without this section its value would appear nowhere in the
   report (it is still counted in the header's Total / Dense Parameters). No SU columns (degenerate for the intercept:
   one configuration, always 100%).
-- The SU sample columns (the D-307 addition): when the SU_ANALYSIS level ran with a corpus of at least 2x the
+- The SU sample columns: when the SU_ANALYSIS level ran with a corpus of at least 2x the
   training size (`_SU_CORPUS_TRAIN_RATIO`), each per-feature table gains the `PROBABILITY` / `SU_PROBABILITY` columns
   (after FREQUENCY) + the `SU Sample Consistency` header line (under the Eta-Squared line). `_su_sample_stats` builds
   per feature: the pooled corpus counts (the `ctx.su_analysis_tables['marginal']` summed over the feature's instance
   columns), the corpus observation total, and the `hlp_anova_adherence` of the pooled training distribution (the
   `ctx.hlp_indexes.indexes` over the feature's columns) vs the pooled corpus distribution — the chi-square
-  goodness-of-fit + the TV / KL, the hlp_anova kernel (the single source, the D-298 split). `_su_verdict`
+  goodness-of-fit + the TV / KL, the hlp_anova kernel (the single source, D-298). `_su_verdict`
   maps the TV to the verdict over the bands `_SU_TV_CONSISTENT = 0.01` / `_SU_TV_MARGINAL = 0.05`: CONSISTENT /
   MARGINAL / DEVIATING. `_su_header_line` renders the line: the TV (4 decimals) + the chi2 (1 decimal) + the p
   (2-exponent) + the merged-tail count + the verdict (the `inf` chi2 when the DB observes a code the corpus never
@@ -43,8 +43,7 @@ section when the feature set has an intercept).
 - `_format_mobility_feature_table`: the per-configuration ASCII table for one mobility feature — header: the fallback
   line (`feature_w_ranges[fid,0]` + `wmap_fallback` frequency), the frequency-weighted mean, the Instances/Cols + Config
   Counts (C/IA/IC) lines, the Eta-Squared + Omega-Squared statistics (the shared `hlp_anova_eta_omega` kernel over the
-  pooled codes + the repeated values — the D-311 unification, replacing the inline SS_between/SS_total; the D-316
-  omega line follows the eta line), the optional SU Sample
+  pooled codes + the repeated values; the omega line follows the eta line), the optional SU Sample
   Consistency line; rows (`print_rows`-gated) with the per-configuration weights — STATUS: IC (below the cut-off —
   fallback bucket), C (confirmed — its own trained `ctx.w` weight), IA (absent — the dense
   interpolated `ctx.w_dense` weight); the optional PROBABILITY / SU_PROBABILITY columns after FREQUENCY.
@@ -69,24 +68,25 @@ section when the feature set has an intercept).
   (`col_offsets = np.repeat(...)`, `dense_indices = ctx.hlp_indexes.indexes + col_offsets`) → `sigmoid` → `ctx.z2y`.
 
 ## Verified invariants
-Pinned by `probes/verify_analytics.py` (36 checks) + the 13-test worker suite (5 DB-gated + 8 NO-DB).
-- Structure (probe A1-A13, 14): 724 lines; `__all__` = the 5 public names (the 4 functions + `TrainingDenseResult`); 0
+Pinned by `probes/verify_analytics.py` (36 checks) + the 14-test worker suite (6 DB-gated + 8 NO-DB).
+- Structure (probe A1-A13, 14): `__all__` = the 5 public names (the 4 functions + `TrainingDenseResult`); 0
   non-comment trailing-ws lines; typing line `TYPE_CHECKING, Dict`; NO `@validate_call`; `train_dense_metrics`
   pre-declared (A13).
-- The live rlm_02 goldens (probe C-tier + the worker suite; the dense 4 values: test doc): the 7-metric training goldens
-  (bid [6,7]): `train_mae_y 12.346794566613694`, `train_rmse_y 15.58872172931622`, `train_loss 0.00712497066706419` (=
-  `opt_info['f']`), `train_samples 199952`, `pop_mae_y 21.729816221648974`, `pop_rmse_y 26.40637507956623`,
-  `pop_loss 0.020437248051166534` (C10 float64 re-derivation: 0 mismatch); the rlm_02 file report byte-deterministic
-  (date-masked sha3_256 `3b4a5bebdf8b39add5a942132efdecd65dbeadcd84b4bc78ada464050a662e7b` — C5a/C5b,
-  recompute-identical; + the Config SHA3-256 line, the hex value masked in the golden).
-- The rlm_01 goldens (probe C-tier + the Mobility test class, exact values in the test doc): the 10-sample model (bid
-  [7]) converges to interpolation (CONVERGED_MIN_GRAD, 16 iters); the dense dict (cut 2 — 5/10 positions touch IC
-  configs) differs from compressed; the file report mask
+- The live rlm_02 goldens (probe C-tier + the worker suite; the dense 4 values: the `test_wrk_analytics` doc): the
+  7-metric training goldens (bid [6,7]): `train_mae_y 12.346794566613694`, `train_rmse_y 15.58872172931622`,
+  `train_loss 0.00712497066706419` (= `opt_info['f']`), `train_samples 199952`, `pop_mae_y 21.729816221648974`,
+  `pop_rmse_y 26.40637507956623`, `pop_loss 0.020437248051166534` (C10 float64 re-derivation: 0 mismatch); the
+  rlm_02 file report byte-deterministic (date-masked sha3_256
+  `3b4a5bebdf8b39add5a942132efdecd65dbeadcd84b4bc78ada464050a662e7b` — C5a/C5b, recompute-identical; + the
+  Config SHA3-256 line, the hex value masked in the golden).
+- The rlm_01 goldens (probe C-tier + the Mobility test class, exact values in the `test_wrk_analytics` doc): the
+  10-sample model (bid [7]) converges to interpolation (CONVERGED_MIN_GRAD, 16 iters); the dense dict (cut 2 —
+  5/10 positions touch IC configs) differs from compressed; the file report mask
   `384d83273abcf31091717bd5fd1cde80bb282a182c337d91442c1886bb24a7d3`; gap dense-vs-dense: 23.87 + Substitution
   Delta 3.36 (the true compressed-vs-dense cost).
 - The unit math (probe D1-D4, no DB): the hand-computed 2-position case (predictor 0 → z_pred 0.5 → y_pred 0:
   mae_y/rmse_y 10.0, train_loss 0.123 = `opt_info['f']`, samples 2, pop 10.0/10.0, pop_loss 0.0030517578125); `opt_info`
-  None → train_loss 0.0; console N/A branch (6 "N/A" cells, gaps 0.00, 18 lines — + the Config SHA3-256 line);
+  None → train_loss 0.0; console N/A branch (6 "N/A" cells, gaps 0.00, 18 lines total, incl. the Config SHA3-256 line);
   dense-pass case (mae_y/rmse_y 10.0, loss 0.0030517578125, samples 2).
 
 ## Open issues

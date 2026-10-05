@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -49,30 +49,25 @@ __all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_
            'format_console_report', 'format_file_report']
 
 
-#: The SU sample consistency verdict bands (the TV thresholds):
-#: TV <= _SU_TV_CONSISTENT is CONSISTENT, TV <= _SU_TV_MARGINAL is
-#: MARGINAL, above is DEVIATING.
+#: The SU sample consistency verdict bands (the TV thresholds): TV <= _SU_TV_CONSISTENT is
+#: CONSISTENT, TV <= _SU_TV_MARGINAL is MARGINAL, above is DEVIATING.
 _SU_TV_CONSISTENT = 0.01
 _SU_TV_MARGINAL = 0.05
 
-#: The "too small" rule: the SU corpus (total_positions) must hold
-#: at least this multiple of the training size, else the
-#: PROBABILITY / SU_PROBABILITY columns are skipped and the
-#: header carries the note.
+#: The "too small" rule: the SU corpus (total_positions) must hold at least this multiple of the
+#: training size, else the PROBABILITY / SU_PROBABILITY columns are skipped and the header carries
+#: the note.
 _SU_CORPUS_TRAIN_RATIO = 2
 
 
 def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
     """
-    The SU sample statistics for one feature's table: None when the
-    SU_ANALYSIS level was disabled (the ctx.su_analysis_tables None);
-    a mode-'too_small' record when the corpus holds fewer than
-    2x the training positions; otherwise the pooled corpus counts
-    (the marginal summed over the feature's instance columns), the
-    corpus observation total, and the adherence of the pooled
-    training distribution vs the pooled corpus distribution (the
-    chi-square goodness-of-fit + the TV / KL, the
-    hlp_anova kernel).
+    The SU sample statistics for one feature's table: None when the SU_ANALYSIS level was disabled
+    (the ctx.su_analysis_tables None); a mode-'too_small' record when the corpus holds fewer than 2x
+    the training positions; otherwise the pooled corpus counts (the marginal summed over the
+    feature's instance columns), the corpus observation total, and the adherence of the pooled
+    training distribution vs the pooled corpus distribution (the chi-square goodness-of-fit + the TV
+    / KL, the hlp_anova kernel).
     """
     tables = ctx.su_analysis_tables
     if tables is None:
@@ -88,8 +83,7 @@ def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
         for code, cnt in zip(codes.tolist(), counts.tolist()):
             pooled[int(code)] = pooled.get(int(code), 0) + int(cnt)
     cols = slice(indexes_col_offset, indexes_col_offset + feature.n_instances)
-    # Ellipsis: the feature columns are the LAST axis of the pindexes
-    # matrix (any-shape position batch).
+    # Ellipsis: the feature columns are the LAST axis of the pindexes matrix (any-shape position batch).
     flat = ctx.hlp_indexes.indexes[..., cols].ravel()
     uniq, cnt = np.unique(flat, return_counts=True)
     db_counts = dict(zip(uniq.tolist(), cnt.tolist()))
@@ -100,9 +94,8 @@ def _su_sample_stats(ctx: "LMContext", feature, indexes_col_offset: int):
 
 def _su_verdict(tv: float) -> str:
     """
-    The SU sample consistency verdict over the TV bands:
-    CONSISTENT (TV <= 0.01), MARGINAL (TV <= 0.05), DEVIATING
-    (above).
+    The SU sample consistency verdict over the TV bands: CONSISTENT (TV <= 0.01), MARGINAL (TV <=
+    0.05), DEVIATING (above).
     """
     if tv <= _SU_TV_CONSISTENT:
         return 'CONSISTENT'
@@ -113,11 +106,9 @@ def _su_verdict(tv: float) -> str:
 
 def _su_header_line(stats) -> str | None:
     """
-    The 'SU Sample Consistency' header line for one feature table:
-    None when the SU_ANALYSIS level was disabled; the N/A (too
-    small) note when the corpus is under 2x the training size;
-    otherwise the TV + the chi-square (the p-value + the
-    merged-tail count) + the verdict.
+    The 'SU Sample Consistency' header line for one feature table: None when the SU_ANALYSIS level
+    was disabled; the N/A (too small) note when the corpus is under 2x the training size; otherwise
+    the TV + the chi-square (the p-value + the merged-tail count) + the verdict.
     """
     if stats is None:
         return None
@@ -138,12 +129,10 @@ def _su_header_line(stats) -> str | None:
 
 def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
-    Generates a detailed ASCII table for a specific mobility feature.
-    When the SU_ANALYSIS level ran with a corpus of at least 2x the
-    training size, the table gains the PROBABILITY / SU_PROBABILITY
-    columns (after FREQUENCY) and the header gains the 'SU Sample
-    Consistency' line (under the Eta-Squared line); when the level
-    was disabled the table is unchanged, and an under-sized corpus
+    Generates a detailed ASCII table for a specific mobility feature. When the SU_ANALYSIS level ran
+    with a corpus of at least 2x the training size, the table gains the PROBABILITY / SU_PROBABILITY
+    columns (after FREQUENCY) and the header gains the 'SU Sample Consistency' line (under the
+    Eta-Squared line); when the level was disabled the table is unchanged, and an under-sized corpus
     swaps the columns for the N/A header note.
     """
     feature = ctx.feature_set.features[fid]
@@ -178,23 +167,20 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         weighted_mean = 0.0
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    # Ellipsis: the feature columns are the LAST axis of the pindexes
-    # matrix (any-shape position batch).
+    # Ellipsis: the feature columns are the LAST axis of the pindexes matrix (any-shape position batch).
     train_indexes = ctx.hlp_indexes.indexes[..., cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
 
-    # The per-configuration table columns (the rows' FREQUENCY /
-    # AVERAGE_GV / RMSE_GV).
+    # The per-configuration table columns (the rows' FREQUENCY / AVERAGE_GV / RMSE_GV).
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    # The pooled eta-squared / omega-squared (the D-311 unification):
-    # the shared ANOVA kernel over the pooled codes + the repeated
-    # values — the inline SS computation it replaces.
+    # The pooled eta-squared / omega-squared: the shared ANOVA kernel over the pooled codes + the
+    # repeated values.
     anova_res = hlp_anova_eta_omega(train_flat, y_repeated)
     eta_squared = anova_res['eta2']
     omega_squared = anova_res['omega2']
@@ -210,9 +196,8 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
         else:
             count_ia += 1
 
-    # The SU sample statistics (None when the SU_ANALYSIS level was
-    # disabled): the per-configuration corpus shares + the pooled
-    # adherence of the training vs the corpus distribution.
+    # The SU sample statistics (None when the SU_ANALYSIS level was disabled): the per-configuration
+    # corpus shares + the pooled adherence of the training vs the corpus distribution.
     su_stats = _su_sample_stats(ctx, feature, indexes_col_offset)
     su_line = _su_header_line(su_stats)
     su_on = bool(su_stats is not None and su_stats['mode'] == 'ok')
@@ -288,7 +273,8 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
             su_cols = ""
 
         rows.append(
-            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
+            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | "
+            f"{freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
 
     return header + "".join(rows) + f"{'-' * sep_w}\n"
@@ -296,12 +282,10 @@ def _format_mobility_feature_table(ctx: "LMContext", fid: int, indexes_col_offse
 
 def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset: int, print_rows: bool = True) -> str:
     """
-    Generates a detailed ASCII table for a specific pattern feature.
-    When the SU_ANALYSIS level ran with a corpus of at least 2x the
-    training size, the table gains the PROBABILITY / SU_PROBABILITY
-    columns (after FREQUENCY) and the header gains the 'SU Sample
-    Consistency' line (under the Eta-Squared line); when the level
-    was disabled the table is unchanged, and an under-sized corpus
+    Generates a detailed ASCII table for a specific pattern feature. When the SU_ANALYSIS level ran
+    with a corpus of at least 2x the training size, the table gains the PROBABILITY / SU_PROBABILITY
+    columns (after FREQUENCY) and the header gains the 'SU Sample Consistency' line (under the
+    Eta-Squared line); when the level was disabled the table is unchanged, and an under-sized corpus
     swaps the columns for the N/A header note.
     """
     feature = ctx.feature_set.features[fid]
@@ -352,23 +336,20 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
     principal_configs = feature.ref.convert_to_principal_index(all_configs)
 
     cols = list(range(indexes_col_offset, indexes_col_offset + n_instances))
-    # Ellipsis: the feature columns are the LAST axis of the pindexes
-    # matrix (any-shape position batch).
+    # Ellipsis: the feature columns are the LAST axis of the pindexes matrix (any-shape position batch).
     train_indexes = ctx.hlp_indexes.indexes[..., cols]
     train_flat = train_indexes.ravel()
 
     y_true = ctx.game_values.astype(np.float64)
     y_repeated = np.repeat(y_true, n_instances)
 
-    # The per-configuration table columns (the rows' FREQUENCY /
-    # AVERAGE_GV / RMSE_GV).
+    # The per-configuration table columns (the rows' FREQUENCY / AVERAGE_GV / RMSE_GV).
     counts = np.bincount(train_flat, minlength=n_configurations)
     sum_y = np.bincount(train_flat, weights=y_repeated, minlength=n_configurations)
     sum_y2 = np.bincount(train_flat, weights=y_repeated**2, minlength=n_configurations)
 
-    # The pooled eta-squared / omega-squared (the D-311 unification):
-    # the shared ANOVA kernel over the pooled codes + the repeated
-    # values — the inline SS computation it replaces.
+    # The pooled eta-squared / omega-squared: the shared ANOVA kernel over the pooled codes + the
+    # repeated values.
     anova_res = hlp_anova_eta_omega(train_flat, y_repeated)
     eta_squared = anova_res['eta2']
     omega_squared = anova_res['omega2']
@@ -384,9 +365,8 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
         else:
             count_ab += 1
 
-    # The SU sample statistics (None when the SU_ANALYSIS level was
-    # disabled): the per-configuration corpus shares + the pooled
-    # adherence of the training vs the corpus distribution.
+    # The SU sample statistics (None when the SU_ANALYSIS level was disabled): the per-configuration
+    # corpus shares + the pooled adherence of the training vs the corpus distribution.
     su_stats = _su_sample_stats(ctx, feature, indexes_col_offset)
     su_line = _su_header_line(su_stats)
     su_on = bool(su_stats is not None and su_stats['mode'] == 'ok')
@@ -465,7 +445,8 @@ def _format_pattern_feature_table(ctx: "LMContext", fid: int, indexes_col_offset
             su_cols = ""
 
         rows.append(
-            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | {principal_idx_str:<14} | {freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
+            f"  {w_dense_idx:<12} | {status:<8} | {w_idx_str:<8} | {conf_idx_str:<8} | "
+            f"{principal_idx_str:<14} | {freq_str}{su_cols} | {avg_gv_str} | {rmse_gv_str} | {weight_str:>10}\n"
         )
 
     return header + "".join(rows) + f"{'-' * sep_w}\n"
@@ -475,15 +456,12 @@ def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
     """
     Formats the common header metrics table for both console and file reports.
 
-    The table is three-metric wide (D-105/M2): TRAINING is the COMPRESSED
-    forward pass (the trained w over the design matrix — what lbfgs fit);
-    TRAINING-DENSE is the DENSE forward pass (w_dense — the exact forward
-    rules of the saved model, as client computes them) on the same
-    training data; VALIDATION is the dense pass on the validation data.
-    The two training columns differ exactly for the positions that touch
-    below-cutoff (IC) configurations — the Substitution Delta row
-    quantifies that; the Generalization Gap row is dense-vs-dense (a
-    pure generalization measure).
+    The table is three-metric wide: TRAINING is the COMPRESSED forward pass (the trained w over the
+    design matrix — what lbfgs fit); TRAINING-DENSE is the DENSE forward pass (w_dense — the exact
+    forward rules of the saved model, as client computes them) on the same training data; VALIDATION
+    is the dense pass on the validation data. The two training columns differ exactly for the
+    positions that touch below-cutoff (IC) configurations — the Substitution Delta row quantifies
+    that; the Generalization Gap row is dense-vs-dense (a pure generalization measure).
     """
     model_name = ctx.cfg.name
     total_params = len(ctx.w)
@@ -518,9 +496,9 @@ def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
         vld_mae_str = f"{vld_metrics.get('vld_mae_y', 0.0):.2f}"
         vld_loss_str = f"{vld_metrics.get('vld_loss', 0.0):.4e}"
         vld_samples = vld_metrics.get('vld_samples', 0)
-        # The gap is DENSE vs DENSE (the shipped inference rules on both
-        # sets): a pure generalization measure. The compressed-vs-dense
-        # substitution effect is the separate Substitution Delta below.
+        # The gap is DENSE vs DENSE (the shipped inference rules on both sets): a pure
+        # generalization measure. The compressed-vs-dense substitution effect is the separate
+        # Substitution Delta below.
         gen_gap = vld_metrics.get('vld_rmse_y', 0.0) - train_dense_rmse
         substitution_delta = train_dense_rmse - train_rmse
     else:
@@ -566,21 +544,16 @@ def _format_header(ctx: "LMContext", detailed: bool = False) -> str:
 
 
 def format_console_report(ctx: "LMContext") -> str:
-    """
-    Formats the short summary report for console output.
-    """
+    """Formats the short summary report for console output."""
     return _format_header(ctx, detailed=False)
 
 
 def _format_intercept_section(ctx: "LMContext") -> str:
     """
-    Formats the INTERCEPT section: the single trained bias weight,
-    emitted only when the feature set has an intercept
-    (fset.intercept is not None) and placed before the MOBILITY
-    details. One Weight line (4 decimals, the report's weight
-    convention); the intercept is category 0, skipped by the
-    mobility / pattern table loops, so without this section its
-    value would appear nowhere in the report.
+    Formats the INTERCEPT section: the single trained bias weight, emitted only when the feature set
+    has an intercept (fset.intercept is not None) and placed before the MOBILITY details. One Weight
+    line (4 decimals, the report's weight convention); the intercept is category 0, skipped by the
+    mobility / pattern table loops, so without this section its value would appear nowhere in the report.
     """
     intercept = ctx.feature_set.intercept
     if intercept is None:
@@ -597,9 +570,7 @@ def _format_intercept_section(ctx: "LMContext") -> str:
 
 
 def format_file_report(ctx: "LMContext") -> str:
-    """
-    Formats the complete detailed report for TXT file output.
-    """
+    """Formats the complete detailed report for TXT file output."""
     report = _format_header(ctx, detailed=True)
 
     buffer = io.StringIO()
@@ -607,8 +578,8 @@ def format_file_report(ctx: "LMContext") -> str:
     feature_summary = buffer.getvalue()
     report += f"\nFEATURE SET SUMMARY:\n{'-' * 135}\n{feature_summary}\n"
 
-    # The INTERCEPT section (the trained bias weight) — only when the
-    # feature set has an intercept; it precedes the MOBILITY details.
+    # The INTERCEPT section (the trained bias weight) — only when the feature set has an intercept;
+    # it precedes the MOBILITY details.
     report += _format_intercept_section(ctx)
 
     # ctx.cfg.analytics always exists (the schema's default factory)
@@ -635,8 +606,8 @@ def format_file_report(ctx: "LMContext") -> str:
 
 def compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
     """
-    Computes MAE(y) and RMSE(y) on the training set using the optimized weights (w).
-    Also computes baseline (population mean) metrics for comparison.
+    Computes MAE(y) and RMSE(y) on the training set using the optimized weights (w). Also computes
+    baseline (population mean) metrics for comparison.
     """
     ctx.log_event(Relevance.INFO, "Computing metrics on the training set...")
 
@@ -676,11 +647,10 @@ def compute_training_metrics(ctx: "LMContext") -> Dict[str, float | int]:
 @dataclass
 class TrainingDenseResult:
     """
-    The dense training forward pass: the metrics plus the per-position
-    residuals it is computed from.
+    The dense training forward pass: the metrics plus the per-position residuals it is computed from.
 
-    metrics: the 4-key dict (the analytics report contract, unchanged).
-    rn_y: the residuals in Y (the f64 view) — the series PLOT renders
+    metrics: the 4-key dict (the analytics report contract, unchanged). rn_y: the residuals in Y
+    (the f64 view) — the series PLOT renders
         (one derivation, published by ANALYTICS).
     """
     metrics: Dict[str, float | int]
@@ -689,19 +659,17 @@ class TrainingDenseResult:
 
 def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
     """
-    Computes MAE(y), RMSE(y) and the Z-space loss on the training set using
-    the DENSE weights (w_dense) — the exact forward pass of the saved model
-    (the client inference rules). The TRAINING table column shows the
-    compressed pass (what lbfgs fit); this column shows what the shipped
-    model actually computes on the training data. The two differ exactly
-    for the positions that touch below-cutoff (IC) configurations, where
-    the dense slots hold the substitution values instead of the trained
-    fallback weights (D-105/M2).
+    Computes MAE(y), RMSE(y) and the Z-space loss on the training set using the DENSE weights
+    (w_dense) — the exact forward pass of the saved model (the client inference rules). The TRAINING
+    table column shows the compressed pass (what lbfgs fit); this column shows what the shipped
+    model actually computes on the training data. The two differ exactly for the positions that
+    touch below-cutoff (IC) configurations, where the dense slots hold the substitution values
+    instead of the trained fallback weights.
     """
     ctx.log_event(Relevance.INFO, "Computing dense-pass metrics on the training set...")
 
-    # The per-instance w_dense start offsets (the hlp_wmaps boundary
-    # array, the same expanded-offsets construction as hlp_validate)
+    # The per-instance w_dense start offsets (the hlp_wmaps boundary array, the same
+    # expanded-offsets construction as hlp_validate)
     n_instances_per_feature = [f.n_instances for f in ctx.feature_set.features]
     col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)
 
@@ -711,9 +679,8 @@ def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
 
     y_pred = ctx.z2y(z_pred)
     y_true = ctx.game_values.astype(np.float64)
-    # the f32 prediction minus the f64 game value promotes to f64: this
-    # IS the rounded-lossless series (bit-identical to what PLOT used
-    # to compute), and the metrics below run on it.
+    # the f32 prediction minus the f64 game value promotes to f64: this IS the rounded-lossless
+    # series (bit-identical to what PLOT used to compute), and the metrics below run on it.
     rn_y = y_pred - y_true
     mae_y = np.mean(np.abs(rn_y))
     rmse_y = np.sqrt(np.dot(rn_y, rn_y) / len(rn_y))
@@ -730,5 +697,3 @@ def compute_training_dense_metrics(ctx: "LMContext") -> TrainingDenseResult:
             'train_dense_samples': int(len(y_true))
         },
         rn_y=rn_y)
-
-
