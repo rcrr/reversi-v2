@@ -50,18 +50,17 @@ def _prepare_weights(mw: ModelWeights) -> tuple:
 
     Both factories close over the same two pre-computed artifacts: the per-instance w_dense start
     offsets and the z→y affine map. The offsets expand the feature boundary array to instance
-    granularity (each feature's start repeated n_instances times, e.g. EDGE's start 4 times for its 4
-    instances), so the per-instance index gathers w_dense directly; the z2y map is only the z→y half
-    of the zed transform, since the client never transforms observations.
+    granularity (each feature's start repeated n_instances times, e.g. EDGE's start 4 times for its
+    4 instances), so the per-instance index gathers w_dense directly; the z2y map is only the z→y
+    half of the zed transform, since the client never transforms observations.
 
     Args:
-        mw (ModelWeights): the trained model whose weights are closed over.
+        mw: the trained model whose weights are closed over.
 
     Returns:
-        tuple: (expanded_offsets, z2y) —
-            expanded_offsets (np.ndarray, u32): the per-instance w_dense start offsets (the boundary
-                array without its last entry, each start repeated n_instances times);
-            z2y (Callable): the z→y affine transform (the zed_fun_factory z→y half).
+        tuple: (expanded_offsets, z2y) — expanded_offsets: the per-instance w_dense start offsets
+            (the boundary array without its last entry, each start repeated n_instances times); z2y:
+            the z→y affine transform (the zed_fun_factory z→y half).
     """
     offsets = mw.iwmap_feature_offset
     _, z2y = zed_fun_factory(mw.logit_clipping)
@@ -82,7 +81,7 @@ def make_evaluation_function(mw: ModelWeights) -> Callable[[Position], float]:
     the sigmoid (Z space) and the z→y affine map, and returns the resulting game value.
 
     Args:
-        mw (ModelWeights): the trained model the EF evaluates against.
+        mw: the trained model the EF evaluates against.
 
     Returns:
         Callable[[Position], float]: the EF — one Position in, the Y-space game value out as a
@@ -118,8 +117,8 @@ def make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray]
     The returned EF evaluates a whole batch in one call with the same inference as the scalar EF,
     bit-exact per position, for any input shape: it accepts a structured PositionArray of any shape
     and returns a same-shape float32 array (the positions evaluated in C-order element order),
-    without the length-1 wrap (the compute_indexes call is already a batch API, N-D since D-417;
-    the tail is element-wise NumPy).
+    without the length-1 wrap (the compute_indexes call is already a batch API; the tail is
+    element-wise NumPy).
 
     Strict array: the EF accepts a structured PositionArray of any shape (a (N, 2) uint64 array is
     coerced to 1-D by the PositionArray validator); a scalar Position or bare lists raise the
@@ -127,7 +126,7 @@ def make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray]
     positions are collision-free (mover & opponent == 0); the client does not re-check.
 
     Args:
-        mw (ModelWeights): the trained model the EF evaluates against.
+        mw: the trained model the EF evaluates against.
 
     Returns:
         Callable[[PositionArray], npt.NDArray[np.float32]]: the vectorized EF — one batch in, the
@@ -141,16 +140,13 @@ def make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray]
         # 1. Compute the Principal Indexes for the whole batch (p.shape + (I,))
         indexes = mw.feature_set.compute_indexes(p)
 
-        # 2. Map to w_dense (the per-instance start offsets broadcast
-        #    over the batch) and gather the per-position sums over the
-        #    LAST axis — the feature instances (the sum axis is
-        #    shape-agnostic: for a 1-D batch, axis -1 IS axis 1) — the
-        #    linear predictor, f32
+        # 2. Map to w_dense (the per-instance start offsets broadcast over the batch) and gather the
+        # per-position sums over the LAST axis — the feature instances (the sum axis is
+        # shape-agnostic: for a 1-D batch, axis -1 IS axis 1) — the linear predictor, f32
         weights = mw.w_dense[expanded_offsets + indexes]
         linear_predictor = weights.sum(axis=-1)
 
-        # 3. Sigmoid (Z space) and 4. back to Y space (element-wise, f32;
-        #    the output has the input shape)
+        # 3. Sigmoid (Z space) and 4. back to Y space (element-wise, f32; the output has the input shape)
         z_pred = sigmoid(linear_predictor)
         return z2y(z_pred)
 

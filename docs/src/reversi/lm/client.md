@@ -1,9 +1,9 @@
 # reversi/lm/client.py
 The INFERENCE API of the reversi package — a pure CONSUMER of the pipeline output: given a `ModelWeights` (loaded from
 the saved file), the two factories close over it and return Evaluation Functions in Y space (the game-value space the
-engine uses) — a scalar `ef: Position -> float` and a vectorized `ef: PositionArray -> same-shape float32`
-(bit-exact per position, C-order element order). No database, no cache, no pipeline: a saved model file is all the client needs — the shape the endgame-solver
-production models (the `A2xxx` family) plug into.
+engine uses) — a scalar `ef: Position -> float` and a vectorized `ef: PositionArray -> same-shape float32` (bit-exact
+per position, C-order element order). No database, no cache, no pipeline: a saved model file is all the client needs —
+the shape the endgame-solver production models (the `A2xxx` family) plug into.
 
 ## API
 
@@ -13,8 +13,6 @@ production models (the `A2xxx` family) plug into.
 | `make_evaluation_function_array(mw: ModelWeights) -> Callable[[PositionArray], npt.NDArray[np.float32]]` | The vectorized EF factory (`@validate_call`). The returned `ef` is STRICT ARRAY: it accepts a structured PositionArray of any shape (a (N, 2) uint64 array is coerced to 1-D by the PositionArray validator) and returns a same-shape float32 array (C-order element order), bit-exact vs the scalar EF per position. A scalar Position or bare lists raise the Pydantic `ValidationError`. |
 
 ## Architecture
-
-157 lines.
 
 - Imports: numpy + numpy.typing, `typing.Callable`, `pydantic.validate_call/ConfigDict`, `ModelWeights`,
   `zed_fun_factory`, `sigmoid`, `Position`/`PositionArray` (annotation-only use).
@@ -75,15 +73,14 @@ None.
 
 ## Conventions
 
-- The house GNU header; no module docstring (the D-312/D-313 precedent — the mirror is the module's documentation);
-  the descriptive docstring style (the D-317, the house rule: the imperative first line, the body
-  paragraph, the typed Google-style Args / Returns) applied to the 3 functions in D-323 (the D-141 / the D-111 M5
-  provenance references removed); the line width is the D-314 reflow (the 120-char, no hard limit).
+- The house GNU header; no module docstring (the mirror is the module's documentation); the house docstring style
+  (the imperative first line, the body paragraph, the untyped Args, the type-labeled Returns) on the 3 functions;
+  the reflow width (the 100-char preference, the 120-char ceiling).
 - BOTH factories are `@validate_call` (arbitrary_types_allowed); the array ef closure is validated too (the
   PositionArray annotation does the (N, 2) u64 coercion).
 - Strict array: the array ef takes a structured PositionArray of ANY shape (the scalar contract is the other
-  factory); C-order element order + the same-shape output is the D-422 N-D contract — no guard needed, since D-417
-  compute_indexes is N-D itself (it returns positions.shape + (I,)).
+  factory); C-order element order + the same-shape output, no ndim guard (compute_indexes is N-D itself: it returns
+  positions.shape + (I,)) — D-422.
 - Precondition (the compute_principal_indexes caller contract): the positions are collision-free (mover & opponent ==
   0); the client does not re-check.
 - The sigmoid/z2y calls reuse the pipeline's own functions (hlp_gradient / hlp_zed) — the client cannot drift from the

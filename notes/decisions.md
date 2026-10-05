@@ -714,3 +714,20 @@ D-475 | 2026-10-06 | The random\_game source + test + mirror-doc pass, one commi
          PlayPath row 4 → 5 with the new validation test. The SOURCE mirror doc is untouched: it was verified fully
          faithful (all 6 invariants pinned to real tests; the D-285 pointer is legitimate under docs\\_rules §3.2; no §4
          defects) and the source changes are docstring-only, invisible to the mirror's claims.
+
+D-476 | 2026-10-05 | The client source + test + mirror-doc pass, one commit (the user-approved plan): (1) source:
+         the D-417 reference removed from the make\_evaluation\_function\_array docstring (R-540), the 5 typed docstring
+         entries untyped (R-560(5): the 3 "mw (ModelWeights):" Args entries — the signature annotation is the type — and
+         the 2 \_prepare\_weights Returns sub-entries "expanded\_offsets (np.ndarray, u32):" / "z2y (Callable):"), 3
+         docstrings reflowed (157 → 153 lines); (2) test: the 2 "D-422: " prefixes removed from the
+         test\_2d\_structured\_corder\_parity / test\_3d\_structured\_corder\_parity docstrings (R-540), the 4
+         trailing-whitespace header "# " lines cleaned (the reflow does not touch them), 8 docstrings reflowed (207 →
+         211 lines); no coverage gap — all 8 tests pin the documented contract, and the scalar EF absolutes are pinned
+         end-to-end by the full-chain A2030 / A2050 EF pins; 8/0/1 unchanged; (3) the source mirror doc: the "157
+         lines." drop (docs\_rules §4), the 158-char header line re-wrapped, the Conventions bullet-1 provenance
+         narrative removed (the "applied in D-323, the D-141 / D-111 references removed" campaign story + the stale
+         "typed Google-style" wording contradicting R-560), the strict-array bullet to a single D-422 pointer; (4) the
+         test mirror doc: the 2 stale counts repaired (1 class / 7 → 8 tests, the table cell 7 → 8 — the suite cell
+         8/0/1 counts the total incl. the PERF skip), the phantom test\_2d\_structured\_raises\_value\_error row (the
+         pre-N-D 1-D-guard test, no longer existing) replaced by test\_2d\_structured\_corder\_parity +
+         test\_3d\_structured\_corder\_parity with their what-it-pins rewritten.
