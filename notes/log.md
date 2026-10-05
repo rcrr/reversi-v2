@@ -2326,3 +2326,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   regab era pulito (la "macchia" era il numpydoc ereditato e i riferimenti di provenienza). Il giro completo
   LONG=1 rimesurato a chiusura: suite 1097 → 1098/0/24 (regab 48 → 49/0/0, il resto invariato). I 5 moduli
   base (board, pattern, feature, mobility, regab) sono tutti al canone R-560; next step: lm e i file test.
+
+- D-473 (base\_model, un solo D, il (a) + (b) concordati): (1) gli 8 docstring mancanti dei metodi aggiunti
+  (\_\_init\_\_, le 2 property di lettura, il getter + setter di verbosity, i 3 pass-through show/export) — la
+  convenzione di casa (ogni metodo pubblico documentato; base\_model era l'unico modulo R-560 con metodi nudi);
+  il comment orfano "# reversi/base\_model.py" dopo l'header di licenza rimosso; i 3 docstring legacy
+  riavvolti (126 → 130 righe, gli +8 docstring meno il guadagno del rewrap); (2) l'unico ramo di run() non
+  pinzato: i target string "last" (qualsiasi caso) / blank — il test\_run\_last\_and\_blank\_strings\_drive\_the
+  \_last\_step in test\_logistic\_model (la casa del pin V5 col BaseModel nudo; 4 sub-target: "last", "LAST",
+  "  ", "") — 29 → 30 test: 30/0/0; (3) il mirror doc: via il "126 lines." stale (il difetto §4), il conteggio
+  della suite 29 → 30, il V5 ora elenca il pin nuovo; (4) la riparazione dell'index: la tabella Source files
+  dell'overview NON aveva la riga di src/reversi/base\_model.py — una violazione docs\_rules invisibile all'audit
+  dell'overview (che verifica le righe esistenti, non la completezza dell'index); la riga aggiunta (l'onda). Il
+  doc era per il resto pienamente fedele (i 21 check della probe verificati, tutti e 5 i pin V reali).

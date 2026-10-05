@@ -24,8 +24,6 @@ at the shared LMContext).
 
 ## Architecture
 
-126 lines.
-
 - the module header comment; imports (pathlib, typing.List, pydantic, state_machine).
 - `class BaseModel` (docstring the DeepNetworkModel forward-reference, kept by design).
 - The pass-through surface: every delegation method is a one-line pass-through (source-verified); type errors on
@@ -41,7 +39,7 @@ at the shared LMContext).
 ## Verified invariants
 
 Pinned by the `probes/verify_logistic_model.py` (21 checks — the base_model + logistic_model family probe) + the
-`test_logistic_model` suite (29 tests) through the LogisticModel subclass.
+`test_logistic_model` suite (30 tests) through the LogisticModel subclass.
 
 - V1: `model.context is model.sm.context` — one shared context object, no copy: the facade hands the SAME object to the
   StateMachine in `__init__` (source-verified); the suite pins the context's own shape
@@ -55,8 +53,9 @@ Pinned by the `probes/verify_logistic_model.py` (21 checks — the base_model + 
   `test_logistic_model::test_facade_delegates_to_state_machine` (per-method `patch.object(self.model.sm, ...)` +
   `assert_called_once_with`); the properties are covered by `test_facade_views_and_verbosity_round_trip`.
 - V5: `run()` is generic and inherited — the base hook returns None (the last step), a bare `BaseModel` over a 2-worker
-  pipeline drives it, and the LogisticModel override reads the config —
-  `test_logistic_model::test_run_base_default_is_the_last_step`.
+  pipeline drives it, the "last"/blank string targets resolve to the last step as well, and the LogisticModel
+  override reads the config — `test_logistic_model::test_run_base_default_is_the_last_step` +
+  `test_run_last_and_blank_strings_drive_the_last_step`.
 
 ## Open issues
 

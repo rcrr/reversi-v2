@@ -73,10 +73,9 @@ class TestLogisticModel(unittest.TestCase):
 
     def setUp(self):
         """Set up a dummy config file and patch stdout and worker factories."""
-        # The dummy config lives under
-        # <workspace-root>/build/tmp (house rule), not the
-        # system temp dir. Created first, so a mid-setup failure
-        # still leaves a temp_dir that tearDown (or the GC) cleans.
+        # The dummy config lives under <workspace-root>/build/tmp (house rule), not the system temp
+        # dir. Created first, so a mid-setup failure still leaves a temp_dir that tearDown (or the
+        # GC) cleans.
         self.temp_dir = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
 
         # Patch stdout to keep test output clean
@@ -99,17 +98,14 @@ class TestLogisticModel(unittest.TestCase):
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
         self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
-        # The FEATURES dummy — the string move to POSITIONS
-        # crosses it, and the real FEATURES worker would hit the
-        # None cfg.
+        # The FEATURES dummy — the string move to POSITIONS crosses it, and the real FEATURES worker
+        # would hit the None cfg.
         self.features_up_mock = MagicMock()
         self.features_down_mock = MagicMock()
         self.patcher_features = patch('reversi.lm.logistic_model.wrk_features',
                                       return_value=Worker("FEATURES", self.features_up_mock, self.features_down_mock))
-        # The SU_ANALYSIS + the ANOVA worker dummies.
-        # Without them the real workers would cross the
-        # "POSITIONS" string move and hit the None cfg (the mock
-        # CONFIG never sets it).
+        # The SU_ANALYSIS + the ANOVA worker dummies. Without them the real workers would cross the
+        # "POSITIONS" string move and hit the None cfg (the mock CONFIG never sets it).
         self.fa_up_mock = MagicMock()
         self.fa_down_mock = MagicMock()
         self.patcher_fa = patch('reversi.lm.logistic_model.wrk_su_analysis',
@@ -132,9 +128,10 @@ class TestLogisticModel(unittest.TestCase):
         )
 
     def tearDown(self):
-        """Clean up patches and temporary files: defensive
-        against mid-setup failures — stop only the patchers that
-        exist, then remove the temp dir."""
+        """
+        Clean up patches and temporary files: defensive against mid-setup failures — stop only the
+        patchers that exist, then remove the temp dir.
+        """
         for name in ('patcher_stdout', 'patcher_config', 'patcher_positions',
                      'patcher_features', 'patcher_fa', 'patcher_es'):
             patcher = getattr(self, name, None)
@@ -157,24 +154,24 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(self.model.current_worker_name, "CREATED")
 
     def test_init_non_str_config_path_raises_validation_error(self):
-        """The @validate_call on __init__ rejects a non-str/Path
-        config_file_path with a pydantic ValidationError before any worker
-        factory runs (fail-fast guard).
+        """
+        The @validate_call on __init__ rejects a non-str/Path config_file_path with a pydantic
+        ValidationError before any worker factory runs (fail-fast guard).
 
-        Converted from the verify_logistic_model.py V6f probe
-        (probe_rules.md §4: cheap deterministic unit behavior of
-        one module belongs in the tests, not the probes)."""
+        Converted from the verify_logistic_model.py V6f probe (probe_rules.md §4: cheap
+        deterministic unit behavior of one module belongs in the tests, not the probes).
+        """
         with self.assertRaises(ValidationError):
             LogisticModel(123)
 
     def test_injected_cache_closure_requires_cfg(self):
-        """The injected _for_current_level closure dereferences ctx.cfg;
-        before the CONFIG worker runs, cfg is None and the call must
-        fail with AttributeError (the injection-order fact; a bare
+        """
+        The injected _for_current_level closure dereferences ctx.cfg; before the CONFIG worker runs,
+        cfg is None and the call must fail with AttributeError (the injection-order fact; a bare
         LMContext instead keeps the no-op lambda default).
 
-        Converted from the verify_wrk_config.py E4b probe
-        (probe_rules.md §4)."""
+        Converted from the verify_wrk_config.py E4b probe (probe_rules.md §4).
+        """
         with self.assertRaises(AttributeError):
             self.model.context.get_cache_file_path_for_current_level()
 
@@ -187,10 +184,10 @@ class TestLogisticModel(unittest.TestCase):
         self.config_down_mock.assert_not_called()
 
     def test_move_to_step_by_string(self):
-        """Test moving using the worker name string: the POSITIONS
-        sits after the SU_ANALYSIS, which sits between FEATURES
-        and POSITIONS — the string move crosses the SU_ANALYSIS
-        step."""
+        """
+        Test moving using the worker name string: the POSITIONS sits after the SU_ANALYSIS, which
+        sits between FEATURES and POSITIONS — the string move crosses the SU_ANALYSIS step.
+        """
         self.model.move_to_step("POSITIONS")
 
         self.assertEqual(self.model.current_step, 4)
@@ -213,9 +210,10 @@ class TestLogisticModel(unittest.TestCase):
             )
 
     def test_facade_delegates_to_state_machine(self):
-        """Every facade method is a pure pass-through: the
-        delegation is pinned per method on the shared model's
-        StateMachine."""
+        """
+        Every facade method is a pure pass-through: the delegation is pinned per method on the
+        shared model's StateMachine.
+        """
         with patch.object(self.model.sm, "show_event_log") as m:
             self.model.show_event_log()
             m.assert_called_once_with()
@@ -237,16 +235,17 @@ class TestLogisticModel(unittest.TestCase):
             m.assert_called_once_with("history.csv")
 
     def _new_model(self):
-        """A fresh model on the shared dummy config (the patched
-        factories are active for the whole test)."""
+        """
+        A fresh model on the shared dummy config (the patched factories are active for the whole test).
+        """
         return LogisticModel(config_file_path=self.dummy_config_path,
                              verbosity=Verbosity.STANDARD)
 
     def test_run_moves_to_the_explicit_target(self):
-        """run(target) drives the pipeline from the sentinel: the
-        first real level (CONFIG) runs first, then the levels
-        up to the target, target included — the machine's own
-        contract, no extra machinery."""
+        """
+        run(target) drives the pipeline from the sentinel: the first real level (CONFIG) runs first,
+        then the levels up to the target, target included — the machine's own contract, no extra machinery.
+        """
         self.model.run("POSITIONS")
         self.assertEqual(self.model.current_step, 4)
         self.assertEqual(self.model.current_worker_name, "POSITIONS")
@@ -261,8 +260,10 @@ class TestLogisticModel(unittest.TestCase):
         self.positions_down_mock.assert_not_called()
 
     def test_run_honors_the_config_target_level(self):
-        """With no argument the stop comes from the loaded config —
-        LMConfig.target_level, read AFTER the CONFIG level ran."""
+        """
+        With no argument the stop comes from the loaded config — LMConfig.target_level, read AFTER
+        the CONFIG level ran.
+        """
         self.model.context.cfg = SimpleNamespace(target_level="SU_ANALYSIS")
         self.addCleanup(setattr, self.model.context, "cfg", None)
         self.model.run()
@@ -272,10 +273,11 @@ class TestLogisticModel(unittest.TestCase):
         self.positions_up_mock.assert_not_called()
 
     def test_run_last_resolution(self):
-        """'last' means the whole pipeline: the field default, the
-        upper/lower case, a blank value and an absent config all
-        delegate to move_to_last (patched — the tail levels need the
-        DB). The CONFIG level still runs first."""
+        """
+        'last' means the whole pipeline: the field default, the upper/lower case, a blank value and
+        an absent config all delegate to move_to_last (patched — the tail levels need the DB). The
+        CONFIG level still runs first.
+        """
         for cfg, label in [(SimpleNamespace(target_level="last"), "last"),
                            (SimpleNamespace(target_level="LAST"), "LAST"),
                            (SimpleNamespace(target_level="  "), "blank"),
@@ -296,9 +298,10 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(self.model.current_step, 3)
 
     def test_run_resumes_without_resetting(self):
-        """The motivating flow: stop after the long SU_ANALYSIS,
-        inspect, then continue — the levels already done are NOT
-        re-run, so their ctx artifacts stay published (no down call)."""
+        """
+        The motivating flow: stop after the long SU_ANALYSIS, inspect, then continue — the levels
+        already done are NOT re-run, so their ctx artifacts stay published (no down call).
+        """
         self.model.run("SU_ANALYSIS")
         self.assertEqual(self.model.current_step, 3)
         self.model.run("POSITIONS")
@@ -312,8 +315,10 @@ class TestLogisticModel(unittest.TestCase):
         self.fa_down_mock.assert_not_called()
 
     def test_run_backward_target_runs_the_down_steps(self):
-        """A target BELOW the current step moves back, running the
-        down() of the levels left behind (the rollback)."""
+        """
+        A target BELOW the current step moves back, running the down() of the levels left behind
+        (the rollback).
+        """
         self.model.run("POSITIONS")
         self.model.run("FEATURES")
         self.assertEqual(self.model.current_step, 2)
@@ -321,9 +326,10 @@ class TestLogisticModel(unittest.TestCase):
         self.fa_down_mock.assert_called_once_with(self.model.context)
 
     def test_run_unknown_target_is_the_machine_value_error(self):
-        """An unknown level name raises the machine's fail-fast
-        ValueError (no new validation machinery): the CONFIG level has
-        already run, so current_step stays at 1."""
+        """
+        An unknown level name raises the machine's fail-fast ValueError (no new validation
+        machinery): the CONFIG level has already run, so current_step stays at 1.
+        """
         with self.assertRaisesRegex(ValueError,
                                     "Worker 'NOPE' not found in the pipeline."):
             self.model.run("NOPE")
@@ -339,10 +345,11 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(self.model.current_step, 1)
 
     def test_run_base_default_is_the_last_step(self):
-        """BaseModel.run is the GENERIC entry (every domain facade
-        gets it): the base hook returns None -> the last step, and an
-        explicit target still resolves. The domain hook is the only
-        override (LogisticModel reads its config)."""
+        """
+        BaseModel.run is the GENERIC entry (every domain facade gets it): the base hook returns None
+        -> the last step, and an explicit target still resolves. The domain hook is the only
+        override (LogisticModel reads its config).
+        """
         workers = [Worker("CREATED", MagicMock(), MagicMock()),
                    Worker("ONLY", MagicMock(), MagicMock())]
         bare = BaseModel(workers=workers,
@@ -359,9 +366,25 @@ class TestLogisticModel(unittest.TestCase):
         bare2.run("ONLY")
         self.assertEqual(bare2.current_step, 1)
 
+    def test_run_last_and_blank_strings_drive_the_last_step(self):
+        """
+        The string "last" (any case) and a blank value resolve to the last step, like the None default.
+        """
+        workers = [Worker("CREATED", MagicMock(), MagicMock()),
+                   Worker("ONLY", MagicMock(), MagicMock())]
+        for target in ("last", "LAST", "  ", ""):
+            bare = BaseModel(workers=workers,
+                             context=LMContext(
+                                 config_file_path=Path(self.dummy_config_path)))
+            with patch.object(bare.sm, "move_to_last") as m:
+                bare.run(target)
+                m.assert_called_once_with()
+            self.assertEqual(bare.current_step, 1)
+
     def test_facade_views_and_verbosity_round_trip(self):
-        """The read-only views mirror the StateMachine and the
-        verbosity property round-trips through it."""
+        """
+        The read-only views mirror the StateMachine and the verbosity property round-trips through it.
+        """
         self.assertEqual(self.model.current_step, self.model.sm.current_step)
         self.assertEqual(self.model.current_worker_name,
                          self.model.sm.current_worker_name)
@@ -374,11 +397,11 @@ class TestLogisticModel(unittest.TestCase):
 
 
     def test_injected_cache_helpers_are_the_machine_closures(self):
-        """Post-construction, the context's
-        *_for_current_level attributes ARE the closures StateMachine
-        injected under those names (a regression to the old names
-        would have left the no-op lambda defaults and returned None —
-        this pin would have caught it)."""
+        """
+        Post-construction, the context's *_for_current_level attributes ARE the closures
+        StateMachine injected under those names (a regression to the old names would have left the
+        no-op lambda defaults and returned None — this pin would have caught it).
+        """
         ctx = self.model.context
         self.assertEqual(ctx.get_cache_file_path_for_current_level.__name__,
                          "_get_cache_file_path")
@@ -388,19 +411,21 @@ class TestLogisticModel(unittest.TestCase):
         self.assertEqual(ctx.log_event.__name__, "log_event")
 
     def test_pre_injection_fallback_is_no_op_lambda(self):
-        """A bare (un-injected) LMContext keeps the lambda no-op
-        defaults — the cache helpers return None and
-        log_event does nothing, without crashing."""
+        """
+        A bare (un-injected) LMContext keeps the lambda no-op defaults — the cache helpers return
+        None and log_event does nothing, without crashing.
+        """
         bare = LMContext(config_file_path=Path(self.dummy_config_path))
         self.assertIsNone(bare.get_cache_file_path_for_current_level())
         self.assertIsNone(bare.get_cache_file_full_path_for_current_level())
         bare.log_event()
 
     def test_injected_cache_helper_computes_the_worker_path(self):
-        """With a dummy cfg, the injected path closures compute the
-        per-level cache path by filename-prefix concatenation:
-        <prefix><level:02>_<worker>.dat, and the full variant
-        prepends cfg.base_dir."""
+        """
+        With a dummy cfg, the injected path closures compute the per-level cache path by
+        filename-prefix concatenation: <prefix><level:02>_<worker>.dat, and the full variant
+        prepends cfg.base_dir.
+        """
         ctx = self.model.context
         ctx.cfg = SimpleNamespace(cache_files_prefix="cache",
                                   base_dir=Path("base"))
@@ -411,8 +436,9 @@ class TestLogisticModel(unittest.TestCase):
                          Path("base/cache00_CREATED.dat"))
 
     def test_created_sentinel_workers_raise(self):
-        """The level-0 CREATED sentinels are explicit — a
-        direct call logs ERROR then raises RuntimeError."""
+        """
+        The level-0 CREATED sentinels are explicit — a direct call logs ERROR then raises RuntimeError.
+        """
         with self.assertRaisesRegex(
                 RuntimeError, "Executing created step should never happen."):
             _created_up(self.model.context)
@@ -421,9 +447,10 @@ class TestLogisticModel(unittest.TestCase):
             _created_down(self.model.context)
 
     def test_config_path_helper_edge_branches(self):
-        """_check_config_file_path edge branches — non-str/Path ->
-        TypeError, missing -> FileNotFoundError,
-        a directory -> IsADirectoryError."""
+        """
+        _check_config_file_path edge branches — non-str/Path -> TypeError, missing ->
+        FileNotFoundError, a directory -> IsADirectoryError.
+        """
         with self.assertRaisesRegex(
                 TypeError,
                 "Argument config_file_path is not an instance of str or Path"):
@@ -436,8 +463,9 @@ class TestLogisticModel(unittest.TestCase):
             _check_config_file_path(self.temp_dir.name)
 
     def test_base_dir_helper_edge_branches(self):
-        """_check_base_dir_override edge branches — non-str/Path ->
-        TypeError, a file -> NotADirectoryError."""
+        """
+        _check_base_dir_override edge branches — non-str/Path -> TypeError, a file -> NotADirectoryError.
+        """
         with self.assertRaisesRegex(
                 TypeError,
                 "Argument base_dir_override is not an instance of str or Path"):
@@ -447,11 +475,11 @@ class TestLogisticModel(unittest.TestCase):
             _check_base_dir_override(self.dummy_config_path)
 
     def test_export_history_of_moves_as_csv_pass_through(self):
-        """The CSV export pass-through writes a real file (the SM's
-        exporter, parent-dir creation); with an
-        empty history the file is header-only. The artifact stays
-        under build/tmp and the temp dir is removed in
-        tearDown."""
+        """
+        The CSV export pass-through writes a real file (the SM's exporter, parent-dir creation);
+        with an empty history the file is header-only. The artifact stays under build/tmp and the
+        temp dir is removed in tearDown.
+        """
         csv_path = Path(self.temp_dir.name) / "history.csv"
         self.model.export_history_of_moves_as_csv(csv_path)
         self.assertTrue(csv_path.is_file())
@@ -462,11 +490,11 @@ class TestLogisticModel(unittest.TestCase):
 
 
 class TestRunFacadeOnARealConfig(unittest.TestCase):
-    """The run() facade on the REAL pipeline (no factory mocks): the
-    LMConfig.target_level resolution + the explicit-argument precedence
-    + the resume, exercised to FEATURES / SU_ANALYSIS — the levels that
-    need no database. The config copies and the artifacts stay under
-    build/tmp."""
+    """
+    The run() facade on the REAL pipeline (no factory mocks): the LMConfig.target_level resolution +
+    the explicit-argument precedence + the resume, exercised to FEATURES / SU_ANALYSIS — the levels
+    that need no database. The config copies and the artifacts stay under build/tmp.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -483,9 +511,10 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def _model(self, target_level):
-        """A real model on the rlm_00 fixture with target_level set
-        (the config-copy idiom: the override is a CONFIG FILE,
-        so the config provenance stays coherent)."""
+        """
+        A real model on the rlm_00 fixture with target_level set (the config-copy idiom: the
+        override is a CONFIG FILE, so the config provenance stays coherent).
+        """
         raw = json5.loads((WORKSPACE_ROOT / "test" / "reversi" / "data" /
                            "rlm_00.json").read_text())
         raw["target_level"] = target_level
@@ -504,9 +533,10 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
         self.assertIsNone(model.context.su_analysis_tables)
 
     def test_run_explicit_argument_wins_over_the_config(self):
-        """The same config asks FEATURES; run('SU_ANALYSIS') goes
-        to the SU_ANALYSIS level (the long level the config-target
-        case stops at) and publishes the corpus tables."""
+        """
+        The same config asks FEATURES; run('SU_ANALYSIS') goes to the SU_ANALYSIS level (the long
+        level the config-target case stops at) and publishes the corpus tables.
+        """
         model = self._model("FEATURES")
         model.run("SU_ANALYSIS")
         self.assertEqual(model.current_step, 3)
@@ -514,9 +544,10 @@ class TestRunFacadeOnARealConfig(unittest.TestCase):
         self.assertIsNotNone(model.context.su_analysis_tables)
 
     def test_run_resumes_on_the_real_pipeline(self):
-        """Stop at the long SU_ANALYSIS, inspect, continue: a second
-        run() with the same target is a no-op and the published tables
-        are the SAME object (no reset, no re-run)."""
+        """
+        Stop at the long SU_ANALYSIS, inspect, continue: a second run() with the same target is a
+        no-op and the published tables are the SAME object (no reset, no re-run).
+        """
         model = self._model("SU_ANALYSIS")
         model.run()
         tables = model.context.su_analysis_tables

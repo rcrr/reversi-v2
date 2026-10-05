@@ -676,3 +676,17 @@ D-472 | 2026-10-06 | The regab source + test + mirror-doc pass, one commit (the 
          + 11), the TestRegabDB row 2 → 3 with the activate\\_conn re-open listed. 48 → 49 tests: 49/0/0 at the DB-gated
          LONG=1 run. Both .py at the src\\_reflow canonical fixed point (678 → 582 source lines, 796 → 720 test lines —
          the numpydoc collapse).
+
+D-473 | 2026-10-06 | The base\_model pass (source + one completion test + mirror-doc + the index repair), one commit
+         (the user-approved (a) + (b)): (1) the 8 missing method docstrings added — \_\_init\_\_, the 2 read properties,
+         the verbosity getter + setter, and the 3 show/export pass-throughs (the house convention: every public method
+         documented; base\_model was the only R-560 module with bare methods); the orphan comment line "#
+         reversi/base\_model.py" after the license header removed; the 3 legacy docstrings reflowed (126 → 130 lines,
+         the +8 docstrings minus the rewrap gain); (2) the one un-pinned branch of run(): the "last" (any case) /
+         blank-string targets — test\\_run\\_last\\_and\\_blank\\_strings\\_drive\\_the\\_last\\_step in
+         test\\_logistic\\_model (the bare-BaseModel home of the V5 pin; 4 sub-targets: "last", "LAST", " ", "") — 29 →
+         30 tests: 30/0/0; (3) the mirror doc: the stale "126 lines." dropped (the §4 defect), the suite count 29 → 30,
+         V5 now lists the new pin; (4) the index repair: the overview Source files table had NO row for
+         src/reversi/base\\_model.py — a docs\\_rules violation invisible to the overview audit (it checks existing
+         rows, not index completeness); the row added (the wave). The doc was otherwise fully faithful (21 probe checks
+         verified, all 5 V-pins real).
