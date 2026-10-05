@@ -2463,3 +2463,4 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (il formato file v1/v2 + il sentinel sono pinati no-DB dalla full-chain suite). Nessuna cella suite si muove
   (nessun test toccato): la suite resta 1101/0/24. La cascata lm: client (D-476), logistic\_model (D-477),
   model\_weights (D-478) al canone R-560; prossimo modulo secondo la scelta di Roberto.
+- Session closed by the user.
