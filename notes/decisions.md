@@ -646,3 +646,10 @@ D-470 | 2026-10-06 | The mobility mirror-doc fidelity fix (docs\_rules §5 — t
          helper, OUT of \_\_all\_\_). Everything else verified faithful: the LMC/ALMC/DLMC glossary + formula, the
          n\_configurations distinct-value semantics, the underflow-safe arithmetic, the hash construction + the
          empty-set divergence, the sorted-column contract. Docs clean at the audit.
+
+D-471 | 2026-10-06 | The one missing mobility test (the feature twin):
+         test\\_compute\\_indexes\\_wrong\\_argument\\_type (None / list / str / plain int64 ndarray → pydantic
+         ValidationError, the subTest idiom of test\\_feature::test\\_compute\\_indexes\\_wrong\\_argument\\_type) — the
+         only gap left in the suite after the D-417 N-D wave. The mirror docs at the final counts: test\\_mobility.md 30
+         → 31 (30 run + 1 PERF), the Coverage row 23 → 24 + the subTest loop listed; mobility.md's N-D bullet gains the
+         strict-typing pin. 30 → 31 tests: 31/0/1.

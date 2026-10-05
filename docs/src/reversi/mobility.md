@@ -49,7 +49,8 @@ Pinned by `probes/verify_mobility.py` (the 5 active sections: 1, 2, 3, 4, 6) and
   `0x40001ccaeb400024`, 17 stones; opponent `0x92fc6234143c7848`, 27 stones) has lms = `0x2c03810000820690` (13), alms =
   `0x2002810100838012` (11); sorted columns ALMC = 64−11 = 53, LMC = 13, DLMC = 13+53 = 66.
 - The N-D shape edges (suite): the (1,2) → (1,2,L), (2,1,2) → (2,1,2,L), F-order (1,2) parity and the empty
-  (0,2) → (0,2,L) batches, element-wise as the 1-D call.
+  (0,2) → (0,2,L) batches, element-wise as the 1-D call; the strict argument typing (None / list / str / plain
+  ndarray → ValidationError, the subTest loop).
 - The underflow boundary (section 6): mask = amask = 0xF, lms = 0, alms = 0x8 → index 3, kernel == ground truth.
 - The standard-set hash (suite pin): `2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94` for the
   LMC/ALMC/DLMC triple — literal-pinned in test_hash_calculation_verification + test_print_summary.

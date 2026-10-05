@@ -2271,3 +2271,11 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   la formula, la semantica dei valori distinti di n\_configurations, l'aritmetica
   underflow-safe, la costruzione hash + la divergenza del set vuoto, il contratto delle
   colonne sorted. Doc puliti all'audit.
+
+- D-471 (l'unico test mancante di mobility — il gemello di feature):
+  test\\_compute\\_indexes\\_wrong\\_argument\\_type (None / lista / str / ndarray int64 →
+  pydantic ValidationError, l'idiom subTest di
+  test\\_feature::test\\_compute\\_indexes\\_wrong\\_argument\\_type) — l'unico gap rimasto
+  nella suite dopo la wave N-D di D-417. I mirror doc ai conteggi finali: test\\_mobility.md
+  30 → 31 (30 run + 1 PERF), la riga di Coverage 23 → 24 + il loop subTest elencato; il bullet
+  N-D di mobility.md prende la pin dello strict typing. 30 → 31 test: 31/0/1.

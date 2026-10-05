@@ -519,3 +519,18 @@ class TestMobilitySet(unittest.TestCase):
         L = len(ms.mobilities) # Should be 3
         self.assertEqual(indexes.shape, (0, L))
         self.assertEqual(indexes.dtype, Index)
+
+    def test_compute_indexes_wrong_argument_type(self):
+        """Test that Pydantic's @validate_call blocks invalid argument types."""
+        ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
+
+        invalid_arguments = [
+            None,
+            [1, 2],           # Standard Python list
+            "invalid_string", # Text string
+            np.array([1, 2])  # Standard numpy array instead of PositionArray
+        ]
+        for wrong_arg in invalid_arguments:
+            with self.subTest(wrong_arg=type(wrong_arg)):
+                with self.assertRaises(ValidationError):
+                    ms.compute_indexes(wrong_arg)
