@@ -62,14 +62,15 @@ SHA3_256_CHECKSUM_SUFFIX = ".SHA3-256"
 
 
 def _verify_checksum(file_path: Path) -> bool:
-    """Verifies that the checksum sidecar of the data file exists and matches it (the pipeline step 2).
+    """
+    Verifies that the checksum sidecar of the data file exists and matches it (the pipeline step 2).
 
     Delegates to the binio sidecar API: a missing sidecar (FileNotFoundError), a malformed sidecar
     (BinaryFormatError) and an undecodable sidecar (UnicodeDecodeError) all mean "no valid sidecar"
     for the pipeline, so they are mapped to False instead of raising.
 
     Args:
-        file_path (Path): The data file (the sidecar path is derived from it).
+        file_path: The data file (the sidecar path is derived from it).
     """
     try:
         return verify_sha3_256_sidecar(file_path, suffix=SHA3_256_CHECKSUM_SUFFIX)
@@ -78,10 +79,11 @@ def _verify_checksum(file_path: Path) -> bool:
 
 
 def _delete_cache_files(cache_path: Path) -> None:
-    """Safely deletes both the data file and its checksum sidecar.
+    """
+    Safely deletes both the data file and its checksum sidecar.
 
     Args:
-        cache_path (Path): The data file (the sidecar path is derived from it).
+        cache_path: The data file (the sidecar path is derived from it).
     """
     checksum_path = cache_path.with_suffix(cache_path.suffix + SHA3_256_CHECKSUM_SUFFIX)
     cache_path.unlink(missing_ok=True)
@@ -89,13 +91,14 @@ def _delete_cache_files(cache_path: Path) -> None:
 
 
 def _compute_sha3_256_hash(data: T) -> str | None:
-    """Computes the data checksum of the cached object via duck typing.
+    """
+    Computes the data checksum of the cached object via duck typing.
 
     Looks for a callable compute_sha3_256_hash attribute on the data object; the data checksum is a
     different value and a different concept from the cache file checksum (the sidecar).
 
     Args:
-        data (T): The cached data object.
+        data: The cached data object.
 
     Returns:
         str: The object's content hash, or None when the attribute is missing or not callable.
@@ -111,13 +114,14 @@ def _compute_sha3_256_hash(data: T) -> str | None:
 
 def _compute_and_store(cache_path: Path, compute_fn: ComputeFunc[T],
                        store_fn: StoreFunc[T], logger_fn: LoggerFunc) -> tuple[bool, T, str | None]:
-    """Executes the shared compute tail: compute, store, and write the sidecar.
+    """
+    Executes the shared compute tail: compute, store, and write the sidecar.
 
     Args:
-        cache_path (Path): The cache data file (the sidecar path is derived from it).
-        compute_fn (ComputeFunc[T]): The business-logic computation (no arguments, returns the data).
-        store_fn (StoreFunc[T]): The business-logic store (data, cache_path).
-        logger_fn (LoggerFunc): The log sink (a Relevance, message pair).
+        cache_path: The cache data file (the sidecar path is derived from it).
+        compute_fn: The business-logic computation (no arguments, returns the data).
+        store_fn: The business-logic store (data, cache_path).
+        logger_fn: The log sink (a Relevance, message pair).
 
     Returns:
         tuple: The (False, data, data_checksum) triple — always a fresh computation (cache_hit
@@ -146,7 +150,8 @@ def cache_manager_load_or_compute(cache_path: Path,
                                   compute_fn: ComputeFunc[T],
                                   logger_fn: LoggerFunc
                                   ) -> tuple[bool, T, str | None]:
-    """Orchestrates the 4-step cache validation pipeline (load cached data or recompute).
+    """
+    Orchestrates the 4-step cache validation pipeline (load cached data or recompute).
 
     Every failure path deletes the cache files and converges on the compute tail, so the caller
     always gets fresh, stored, checksummed data. When the data object has a callable
@@ -154,15 +159,15 @@ def cache_manager_load_or_compute(cache_path: Path,
     different concept from the cache file checksum — returned as the third element of the result tuple.
 
     Args:
-        cache_path (Path): The cache data file (coerced from str by the validate_call gate).
-        is_allowed (bool): Step 0 — is caching allowed for this step? When False, computation is
-            forced; the result is STILL stored to the cache file (intentional: a cache-disabled run
-            always warms the cache).
-        load_fn (LoadFunc[T]): The business-logic loader (cache_path) -> data.
-        store_fn (StoreFunc[T]): The business-logic store (data, cache_path).
-        validate_fn (ValidateFunc[T]): Step 3 — the business-logic data validation (data) -> bool.
-        compute_fn (ComputeFunc[T]): The business-logic computation (no arguments) -> data.
-        logger_fn (LoggerFunc): The log sink (a Relevance, message pair).
+        cache_path: The cache data file (coerced from str by the validate_call gate).
+        is_allowed: Step 0 — is caching allowed for this step? When False, computation is forced;
+            the result is STILL stored to the cache file (intentional: a cache-disabled run always
+            warms the cache).
+        load_fn: The business-logic loader (cache_path) -> data.
+        store_fn: The business-logic store (data, cache_path).
+        validate_fn: Step 3 — the business-logic data validation (data) -> bool.
+        compute_fn: The business-logic computation (no arguments) -> data.
+        logger_fn: The log sink (a Relevance, message pair).
 
     Returns:
         tuple: The (cache_hit, data, data_checksum) triple — True when the data was loaded from the
@@ -187,9 +192,9 @@ def cache_manager_load_or_compute(cache_path: Path,
         _delete_cache_files(cache_path)
         return _compute_and_store(cache_path, compute_fn, store_fn, logger_fn)
 
-    # : Step 3: Is application data valid? (Business Logic) load + data checksum + validation are
-    # all in the try: a raising load_fn, a raising data checksum, or a raising validate_fn all
-    # invalidate the cache and force recomputation.
+    #: Step 3: Is application data valid? (Business Logic) load + data checksum + validation are all
+    #: in the try: a raising load_fn, a raising data checksum, or a raising validate_fn all
+    #: invalidate the cache and force recomputation.
     try:
         cached_data = load_fn(cache_path)
         cached_checksum = _compute_sha3_256_hash(cached_data)
