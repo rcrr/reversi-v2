@@ -50,11 +50,11 @@ import numpy.testing as nptest
 from pydantic import ValidationError
 
 from reversi.tools.prng import MT19937
-from reversi.board import (MOVE_PA, Move, square_to_str, move_to_str,
-                           Bitboard, Position, PositionField,
+from reversi.board import (MOVE_PA, Move, move_to_str,
+                           Bitboard, Position,
                            bitboard_to_square_list, bitboard_from_signed_int,
                            bitboard_to_signed_int,
-                           bitboard_to_string_list, bitboard_print,
+                           bitboard_to_string_list,
                            bitboard_count, bitboard_bsr,
                            make_position, position_flips, position_print,
                            position_legal_moves_count, position_empty_count,
@@ -68,13 +68,10 @@ from reversi.random_game import (random_game_choose_move,
 
 class TestRandomGameChooseMoveArray(unittest.TestCase):
     """
-    random_game_choose_move, the array case: the batch pick
-    over a 1-D PositionArray with the ONE injected prng stream —
-    bit-identical to the sequential scalar processing (one draw per
-    non-empty legal set, no draw for a pass). The fixtures are the
-    six EC20 positions (three standard, two pass, one game over) +
-    the initial position: a mixed batch with 13/0/0/9/0/13/4 legal
-    options.
+    random_game_choose_move, the array case: the batch pick over a 1-D PositionArray with the ONE
+    injected prng stream — bit-identical to the sequential scalar processing (one draw per non-empty
+    legal set, no draw for a pass). The fixtures are the six EC20 positions (three standard, two
+    pass, one game over) + the initial position: a mixed batch with 13/0/0/9/0/13/4 legal options.
     """
 
     def setUp(self):
@@ -102,11 +99,10 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
                              bitboard_from_signed_int(self.opponents))
 
     def test_array_matches_sequential_scalar(self):
-        # The regina: the array call on a fresh stream (seed 93) is
-        # bit-identical to the sequential scalar processing of the
-        # same positions on a fresh stream with the same seed — and
-        # the two streams stay aligned afterwards (the pass elements
-        # consumed no draw; one get_uint64_batch fed the kernel).
+        # The regina: the array call on a fresh stream (seed 93) is bit-identical to the sequential
+        # scalar processing of the same positions on a fresh stream with the same seed — and the two
+        # streams stay aligned afterwards (the pass elements consumed no draw; one get_uint64_batch
+        # fed the kernel).
         prng_seq = MT19937(self.seed)
         seq = [random_game_choose_move(q, prng_seq) for q in self.positions]
         prng_arr = MT19937(self.seed)
@@ -136,8 +132,10 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
         nptest.assert_array_equal(computed, expected)
 
     def test_2d_valid(self):
-        """A (2, 2) PositionArray (4 positions) gives a (2, 2) BitboardArray, element-wise as the 1-D call
-        on the C-order ravel (the C-order stream contract), on a fresh stream."""
+        """
+        A (2, 2) PositionArray (4 positions) gives a (2, 2) BitboardArray, element-wise as the 1-D
+        call on the C-order ravel (the C-order stream contract), on a fresh stream.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr = random_game_choose_move(batch.reshape(2, 2), prng_arr)
@@ -149,8 +147,10 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr, ref.reshape(2, 2))
 
     def test_3d_valid(self):
-        """A (2, 2, 1) PositionArray gives a (2, 2, 1) BitboardArray, element-wise as the 1-D call
-        on the C-order ravel."""
+        """
+        A (2, 2, 1) PositionArray gives a (2, 2, 1) BitboardArray, element-wise as the 1-D call on
+        the C-order ravel.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr = random_game_choose_move(batch.reshape(2, 2, 1), prng_arr)
@@ -161,8 +161,10 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr, ref.reshape(2, 2, 1))
 
     def test_noncontiguous_2d_valid(self):
-        """An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
-        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape."""
+        """
+        An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
+        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape.
+        """
         batch = self._batch()[:4]
         nd = np.asfortranarray(batch.reshape(2, 2))
         prng_arr = MT19937(self.seed)
@@ -188,8 +190,7 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
         self.assertEqual(out.dtype, np.uint64)
 
     def test_wrong_input_rejected(self):
-        # Bare Python types are rejected (pydantic, as for the whole
-        # dual API).
+        # Bare Python types are rejected (pydantic, as for the whole dual API).
         with self.assertRaises(ValidationError):
             random_game_choose_move(0, MT19937(self.seed))
         with self.assertRaises(ValidationError):
@@ -198,13 +199,10 @@ class TestRandomGameChooseMoveArray(unittest.TestCase):
 
 class TestRandomGameMakeMoveArray(unittest.TestCase):
     """
-    random_game_make_move, the array case: the batch
-    pick-and-execute over a 1-D PositionArray — the batch pick
-    (the stream contract) composed with the position_flips
-    (a zero element swaps the players, a legal element flips), the
-    move codes from popcount(move - 1) (the bit index, and the
-    wrap-around of an empty move gives 64 = PA). The fixtures are
-    the same mixed batch of TestRandomGameChooseMoveArray.
+    random_game_make_move, the array case: the batch pick-and-execute over a 1-D PositionArray — the
+    batch pick (the stream contract) composed with the position_flips (a zero element swaps the
+    players, a legal element flips), the move codes from popcount(move - 1) (the bit index, and the
+    wrap-around of an empty move gives 64 = PA). The fixtures are the same mixed batch of TestRandomGameChooseMoveArray.
     """
 
     def setUp(self):
@@ -232,9 +230,8 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
                              bitboard_from_signed_int(self.opponents))
 
     def test_array_matches_sequential_scalar(self):
-        # The regina: the array (positions, codes) on a fresh stream
-        # is bit-identical to the sequential scalar processing with
-        # the same seed — and the streams stay aligned afterwards.
+        # The regina: the array (positions, codes) on a fresh stream is bit-identical to the
+        # sequential scalar processing with the same seed — and the streams stay aligned afterwards.
         prng_seq = MT19937(self.seed)
         seq = [random_game_make_move(q, prng_seq) for q in self.positions]
         prng_arr = MT19937(self.seed)
@@ -254,10 +251,8 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
                          int(prng_arr.get_uint64()))
 
     def test_returned_positions_consistent_with_the_codes(self):
-        # For every element, the returned position is exactly the
-        # scalar position_flips output for the drawn code (the cross
-        # -check through the scalar path; the pass code 64 swaps the
-        # players).
+        # For every element, the returned position is exactly the scalar position_flips output for
+        # the drawn code (the cross -check through the scalar path; the pass code 64 swaps the players).
         arr_p, arr_m = random_game_make_move(self._batch(),
                                              MT19937(self.seed))
         for i, q in enumerate(self.positions):
@@ -270,8 +265,8 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
                              int(expected['opponent']))
 
     def test_initial_position_code_in_the_legal_set(self):
-        # The initial-position element: the drawn code is one of the
-        # four legal squares {D3, C4, F5, E6} (19, 26, 37, 44).
+        # The initial-position element: the drawn code is one of the four legal squares {D3, C4, F5,
+        # E6} (19, 26, 37, 44).
         arr_p, arr_m = random_game_make_move(self._batch(),
                                              MT19937(self.seed))
         self.assertIn(int(arr_m[-1]), (19, 26, 37, 44))
@@ -288,8 +283,10 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr_m, exp_m)
 
     def test_2d_valid(self):
-        """A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, codes) pair, element-wise as the 1-D call
-        on the C-order ravel (the C-order stream contract), on a fresh stream."""
+        """
+        A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, codes) pair, element-wise
+        as the 1-D call on the C-order ravel (the C-order stream contract), on a fresh stream.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr_p, arr_m = random_game_make_move(batch.reshape(2, 2), prng_arr)
@@ -302,8 +299,10 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr_m, ref_m.reshape(2, 2))
 
     def test_3d_valid(self):
-        """A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, codes) pair, element-wise as the 1-D call
-        on the C-order ravel."""
+        """
+        A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, codes) pair, element-wise as the
+        1-D call on the C-order ravel.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr_p, arr_m = random_game_make_move(batch.reshape(2, 2, 1), prng_arr)
@@ -316,8 +315,10 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
         nptest.assert_array_equal(arr_m, ref_m.reshape(2, 2, 1))
 
     def test_noncontiguous_2d_valid(self):
-        """An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
-        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape."""
+        """
+        An F-order (2, 2) PositionArray: the C-order ravel defines the element order (the stream
+        contract) — the values are the 1-D C-order pick, laid out in the (2, 2) shape.
+        """
         batch = self._batch()[:4]
         nd = np.asfortranarray(batch.reshape(2, 2))
         prng_arr = MT19937(self.seed)
@@ -354,16 +355,13 @@ class TestRandomGameMakeMoveArray(unittest.TestCase):
 
 class TestRandomGamePlayPathArray(unittest.TestCase):
     """
-    random_game_play_path, the array case: the step engine
-    over a 1-D PositionArray — the lanes advance in LOCKSTEP (at
-    every step the active lanes draw once, in element order; one
-    draw per non-terminal lane: the mover plays, or the mover passes
-    and the opponent plays; the game-over lanes consume no draw). The N == 1 array call is BIT-IDENTICAL to the
-    scalar call (the scalar bridge, pinned — with one lane the
-    step-interleaved stream IS the lane's sequential stream). The
-    fixtures are the mixed EC20 batch (three standard, two
-    single-pass, one game over) + the initial position (a 46-move
-    deep path at target 14).
+    random_game_play_path, the array case: the step engine over a 1-D PositionArray — the lanes
+    advance in LOCKSTEP (at every step the active lanes draw once, in element order; one draw per
+    non-terminal lane: the mover plays, or the mover passes and the opponent plays; the game-over
+    lanes consume no draw). The N == 1 array call is BIT-IDENTICAL to the scalar call (the scalar
+    bridge, pinned — with one lane the step-interleaved stream IS the lane's sequential stream). The
+    fixtures are the mixed EC20 batch (three standard, two single-pass, one game over) + the initial
+    position (a 46-move deep path at target 14).
     """
 
     def setUp(self):
@@ -393,10 +391,9 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
                              bitboard_from_signed_int(self.opponents))
 
     def test_single_lane_array_matches_scalar(self):
-        # The scalar bridge: with ONE lane the step-interleaved
-        # stream IS the lane's sequential stream — the array call is
-        # bit-identical to the scalar call (the position, the ec, and
-        # the stream alignment afterwards).
+        # The scalar bridge: with ONE lane the step-interleaved stream IS the lane's sequential
+        # stream — the array call is bit-identical to the scalar call (the position, the ec, and the
+        # stream alignment afterwards).
         for q in (self.positions[0], self.positions[1],
                   self.positions[4], self.positions[6]):
             prng_seq = MT19937(self.seed)
@@ -414,8 +411,7 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
                              int(prng_arr.get_uint64()))
 
     def test_determinism(self):
-        # Two identical array calls on identical fresh streams give
-        # bit-identical results (the whole batch).
+        # Two identical array calls on identical fresh streams give bit-identical results (the whole batch).
         a_p, a_ec = random_game_play_path(self._batch(), 14,
                                           MT19937(self.seed))
         b_p, b_ec = random_game_play_path(self._batch(), 14,
@@ -424,10 +420,9 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         nptest.assert_array_equal(a_ec, b_ec)
 
     def test_ec_contract(self):
-        # The game-over element (both players moveless): the double
-        # pass ends the lane with the input view and its own ec
-        # (20 > the target); every other lane lands exactly on the
-        # target; all the final ecs are <= the starts.
+        # The game-over element (both players moveless): the double pass ends the lane with the
+        # input view and its own ec (20 > the target); every other lane lands exactly on the target;
+        # all the final ecs are <= the starts.
         arr_p, arr_ec = random_game_play_path(self._batch(), 14,
                                               MT19937(self.seed))
         self.assertEqual(int(arr_ec[4]), 20)
@@ -440,8 +435,8 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         self.assertTrue(np.all(arr_ec <= self.start_ec))
 
     def test_already_at_target_as_is(self):
-        # A position with ec = 0 <= the target: returned as-is (the
-        # structurally-valid full board; no draw consumed).
+        # A position with ec = 0 <= the target: returned as-is (the structurally-valid full board;
+        # no draw consumed).
         batch = make_position(
             np.array([0xFFFFFFFFFFFFFFFF], dtype=np.uint64),
             np.zeros(1, dtype=np.uint64))
@@ -463,8 +458,10 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         nptest.assert_array_equal(arr_ec, exp_ec)
 
     def test_2d_valid(self):
-        """A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, ec) pair, element-wise as the 1-D call
-        on the C-order ravel (the C-order lockstep stream contract), on a fresh stream."""
+        """
+        A (2, 2) PositionArray (4 positions) gives the (2, 2) (positions, ec) pair, element-wise as
+        the 1-D call on the C-order ravel (the C-order lockstep stream contract), on a fresh stream.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr_p, arr_ec = random_game_play_path(batch.reshape(2, 2), 14, prng_arr)
@@ -477,8 +474,10 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         nptest.assert_array_equal(arr_ec, ref_ec.reshape(2, 2))
 
     def test_3d_valid(self):
-        """A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, ec) pair, element-wise as the 1-D call
-        on the C-order ravel."""
+        """
+        A (2, 2, 1) PositionArray gives the (2, 2, 1) (positions, ec) pair, element-wise as the 1-D
+        call on the C-order ravel.
+        """
         batch = self._batch()[:4]
         prng_arr = MT19937(self.seed)
         arr_p, arr_ec = random_game_play_path(batch.reshape(2, 2, 1), 14, prng_arr)
@@ -491,8 +490,10 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
         nptest.assert_array_equal(arr_ec, ref_ec.reshape(2, 2, 1))
 
     def test_noncontiguous_2d_valid(self):
-        """An F-order (2, 2) PositionArray: the C-order ravel defines the lane order (the lockstep
-        stream contract) — the values are the 1-D C-order result, laid out in the (2, 2) shape."""
+        """
+        An F-order (2, 2) PositionArray: the C-order ravel defines the lane order (the lockstep
+        stream contract) — the values are the 1-D C-order result, laid out in the (2, 2) shape.
+        """
         batch = self._batch()[:4]
         nd = np.asfortranarray(batch.reshape(2, 2))
         prng_arr = MT19937(self.seed)
@@ -529,11 +530,10 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('PERF') == '1',
                          "Skipping performance test (set PERF=1 to run)")
     def test_perf_play_path_million_games_to_ec0(self):
-        # The PERF benchmark: one million games from the canonical
-        # start played to ec = 0 (the full random game) by the array
-        # engine. Print-only, no gate: the wall time, the throughput,
-        # the draws, and the harvest breakdown (the lanes that reach
-        # ec == 0 vs the game-over lanes — the double pass at ec > 0).
+        # The PERF benchmark: one million games from the canonical start played to ec = 0 (the full
+        # random game) by the array engine. Print-only, no gate: the wall time, the throughput, the
+        # draws, and the harvest breakdown (the lanes that reach ec == 0 vs the game-over lanes —
+        # the double pass at ec > 0).
         n = 1_000_000
         igp = initial_game_position()
         movers = np.full(n, int(igp['mover']), dtype=np.uint64)
@@ -558,6 +558,10 @@ class TestRandomGamePlayPathArray(unittest.TestCase):
 
 
 class TestRandomGameChooseMove(unittest.TestCase):
+    """
+    random_game_choose_move, the scalar case over the initial position: every draw is a member of
+    the four legal squares, and the 1000-draw frequencies are the golden pin of the MT19937 stream.
+    """
 
     def setUp(self):
         PRNG_SEED = 93
@@ -748,32 +752,26 @@ class TestRandomGameChooseMoveEC20(unittest.TestCase):
                 raise
 
     def test_random_game_choose_move_ec20_equidistributed(self):
-        # Two facts, over N random moves drawn for EACH of the six
-        # positions:
+        # Two facts, over N random moves drawn for EACH of the six positions:
         #
-        # (1) every drawn move is VALIDATED: a single legal move when
-        #     the position has options, or the pass (an empty move)
-        #     when it has none;
+        # (1) every drawn move is VALIDATED: a single legal move when the position has options, or
+        # the pass (an empty move) when it has none;
         #
-        # (2) the frequencies accumulated over the AVAILABLE options
-        #     are REASONABLY FLAT — the choices are well spread and
-        #     equidistributed. For each option-bearing position the
-        #     per-option counts are checked with a chi-square over the
-        #     k options (df = k - 1), kept far below the 4-sigma
-        #     threshold (the expected chi-square is df, its spread
-        #     sqrt(2*df)).
+        # (2) the frequencies accumulated over the AVAILABLE options are REASONABLY FLAT — the
+        # choices are well spread and equidistributed. For each option-bearing position the
+        # per-option counts are checked with a chi-square over the k options (df = k - 1), kept far
+        # below the 4-sigma threshold (the expected chi-square is df, its spread sqrt(2*df)).
         N = 1000
         for i, p in enumerate(self.positions):
             lms = self.legal_moves_sets[i]
             if lms == 0:
-                # No option: every draw must be the pass (an empty
-                # move). The condition is validated N times.
+                # No option: every draw must be the pass (an empty move). The condition is validated
+                # N times.
                 for _ in range(N):
                     self.assertEqual(random_game_choose_move(p, self.prng),
                                      Bitboard(0))
                 continue
-            # The available options: the positions of the legal move
-            # set's bits.
+            # The available options: the positions of the legal move set's bits.
             avail = [int(sq) for sq in bitboard_to_square_list(lms)]
             freq = {o: 0 for o in avail}
             for _ in range(N):
@@ -794,17 +792,14 @@ class TestRandomGameChooseMoveEC20(unittest.TestCase):
 
 class TestRandomGameMakeMove(unittest.TestCase):
     """
-    random_game_make_move: it asks random_game_choose_move for the move
-    to play, executes it on the position via position_flips, and returns the
-    resulting position together with the move that was played. The random
-    generation is covered by the random_game_choose_move tests; here the returned
-    position is checked for correctness and for consistency with the chosen
-    move.
+    random_game_make_move: it asks random_game_choose_move for the move to play, executes it on the
+    position via position_flips, and returns the resulting position together with the move that was
+    played. The random generation is covered by the random_game_choose_move tests; here the returned
+    position is checked for correctness and for consistency with the chosen move.
 
-    The fixture is a 20-empty-square position (ec = 20) with exactly two
-    legal moves, G1 (bit 6) and G2 (bit 14) — the legal-move set is the
-    bitboard 16448; the two resulting boards (the position_flips outputs,
-    the next player's view) are the only possible outcomes.
+    The fixture is a 20-empty-square position (ec = 20) with exactly two legal moves, G1 (bit 6) and
+    G2 (bit 14) — the legal-move set is the bitboard 16448; the two resulting boards (the
+    position_flips outputs, the next player's view) are the only possible outcomes.
     """
 
     def setUp(self):
@@ -815,8 +810,8 @@ class TestRandomGameMakeMove(unittest.TestCase):
         self.position = make_position(
             bitboard_from_signed_int(np.int64(4338364875232513536)),
             bitboard_from_signed_int(np.int64(2260734154649662)))
-        # The two legal moves (single-bit bitboards) and, for each, the
-        # resulting board (the position_flips output).
+        # The two legal moves (single-bit bitboards) and, for each, the resulting board (the
+        # position_flips output).
         self.legal_moves = {
             "G1": bitboard_from_signed_int(np.int64(1) << np.int64(6)),
             "G2": bitboard_from_signed_int(np.int64(1) << np.int64(14)),
@@ -836,9 +831,8 @@ class TestRandomGameMakeMove(unittest.TestCase):
                 int(bitboard_to_signed_int(p['opponent'])))
 
     def test_n_simulations_give_only_the_two_boards(self):
-        # N = 12 random moves from the fixture (seed 93): both legal moves
-        # — hence both resulting boards — come out, and ONLY these two
-        # boards.
+        # N = 12 random moves from the fixture (seed 93): both legal moves — hence both resulting
+        # boards — come out, and ONLY these two boards.
         N = 12
         boards = []
         moves = set()
@@ -855,9 +849,8 @@ class TestRandomGameMakeMove(unittest.TestCase):
         self.assertEqual({self._board_key(b) for b in boards}, expected)
 
     def test_the_returned_position_is_consistent_with_the_move(self):
-        # For every drawn move, the returned position is exactly the board
-        # position_flips produces for that move on the fixture — the
-        # position and the move are consistent.
+        # For every drawn move, the returned position is exactly the board position_flips produces
+        # for that move on the fixture — the position and the move are consistent.
         name_of = {6: "G1", 14: "G2"}
         N = 12
         for _ in range(N):
@@ -866,9 +859,8 @@ class TestRandomGameMakeMove(unittest.TestCase):
             self.assertEqual(self._board_key(new_p), self._board_key(exp))
 
     def test_the_returned_position_is_one_move_ahead(self):
-        # Each returned position is the fixture with exactly one more stone
-        # placed (the move square): the total stone count grows by one and
-        # the empty count drops from 20 to 19.
+        # Each returned position is the fixture with exactly one more stone placed (the move
+        # square): the total stone count grows by one and the empty count drops from 20 to 19.
         fixture_stones = int(bitboard_count(
             self.position['mover'] | self.position['opponent']))
         N = 12
@@ -879,8 +871,8 @@ class TestRandomGameMakeMove(unittest.TestCase):
             self.assertEqual(int(bitboard_count(~stones)), 19)
 
     def test_no_legal_move_is_a_pass_with_the_swapped_position(self):
-        # A position with no legal move: the move is the pass (PA) and the
-        # returned position is the swapped position (the players inverted).
+        # A position with no legal move: the move is the pass (PA) and the returned position is the
+        # swapped position (the players inverted).
         p = make_position(Bitboard(0x0000000000000001),
                           Bitboard(0x0000000000010000))
         self.assertEqual(int(position_legal_moves_count(p)), 0)
@@ -893,6 +885,10 @@ class TestRandomGameMakeMove(unittest.TestCase):
 
 
 class TestRandomGamePlayPath(unittest.TestCase):
+    """
+    random_game_play_path, the scalar case: the target-ec contract over the EC20 fixture, the N = 10
+    distinct multi-generation paths, the double-pass game-over break, and the single-pass continuation.
+    """
 
     def setUp(self):
         PRNG_SEED = 141
@@ -908,21 +904,25 @@ class TestRandomGamePlayPath(unittest.TestCase):
         self.assertLessEqual(ec, ec0)
         self.assertGreaterEqual(ec, target_ec)
 
+    def test_target_ec_out_of_range_is_a_validation_error(self):
+        # TargetEcInt (ge=0, le=60): an out-of-range target is the gate's ValidationError, before
+        # any draw.
+        with self.assertRaises(ValidationError):
+            random_game_play_path(self.position, 61, self.prng)
+        with self.assertRaises(ValidationError):
+            random_game_play_path(self.position, -1, self.prng)
+
     def test_random_game_play_path_multi_generation(self):
-        # N = 10 independent paths played from the same start position
-        # (the prng stream advances across the calls — one MT-19937
-        # stream, no reseed). Two facts:
+        # N = 10 independent paths played from the same start position (the prng stream advances
+        # across the calls — one MT-19937 stream, no reseed). Two facts:
         #
-        # (1) every path lands EXACTLY on the target (6 real moves
-        #     from ec = 20; the game-over cut-off is out of reach this
-        #     early — the ec decreases by one per placed disc, the
-        #     pass swaps the players without touching it);
+        # (1) every path lands EXACTLY on the target (6 real moves from ec = 20; the game-over
+        # cut-off is out of reach this early — the ec decreases by one per placed disc, the pass
+        # swaps the players without touching it);
         #
-        # (2) the N final positions are pairwise DISTINCT — the
-        #     position_hash duplicate check: the hash is a
-        #     pure function of the (mover, opponent) pair and it is
-        #     view-dependent, so an equal hash means an equal
-        #     position with the same player to move.
+        # (2) the N final positions are pairwise DISTINCT — the position_hash duplicate check: the
+        # hash is a pure function of the (mover, opponent) pair and it is view-dependent, so an
+        # equal hash means an equal position with the same player to move.
         NG = 10
         target_ec = 14
         gen = lambda : random_game_play_path(self.position, target_ec, self.prng)
@@ -933,13 +933,10 @@ class TestRandomGamePlayPath(unittest.TestCase):
         self.assertEqual(NG, len(set_of_hash), "Duplicate positions found!")
 
     def test_random_game_play_path_double_pass_game_over(self):
-        # A game-over position (both players moveless, ec = 20 > the
-        # target): the double-pass break must stop the loop. The pass
-        # is PA = 64 — the stale pre-fix sentinel (Move(66) = UN)
-        # never matched and the loop span forever (the fix this
-        # test guards). The two consecutive passes swap the view
-        # twice: the returned position is the input one, with its own
-        # empty count.
+        # A game-over position (both players moveless, ec = 20 > the target): the double-pass break
+        # must stop the loop. The pass is PA = 64 — the stale pre-fix sentinel (Move(66) = UN) never
+        # matched and the loop span forever (the fix this test guards). The two consecutive passes
+        # swap the view twice: the returned position is the input one, with its own empty count.
         p = make_position(bitboard_from_signed_int(np.int64(0x00000FFFFFFFFFFF)),
                           Bitboard(0))
         self.assertEqual(int(position_empty_count(p)), 20)
@@ -951,11 +948,9 @@ class TestRandomGamePlayPath(unittest.TestCase):
         self.assertEqual(int(bitboard_to_signed_int(rp['opponent'])), 0)
 
     def test_random_game_play_path_single_pass_continues(self):
-        # The mover has no legal move, the opponent has nine: the
-        # pass swaps the view and the game continues with the
-        # opponent's random moves (the single-pass continuation) —
-        # the path terminates at the target ec (deterministic,
-        # seed 141).
+        # The mover has no legal move, the opponent has nine: the pass swaps the view and the game
+        # continues with the opponent's random moves (the single-pass continuation) — the path
+        # terminates at the target ec (deterministic, seed 141).
         p = make_position(bitboard_from_signed_int(np.int64(787631300868060734)),
                           bitboard_from_signed_int(np.int64(-9223372036837537535)))
         self.assertEqual(int(position_legal_moves_count(p)), 0)

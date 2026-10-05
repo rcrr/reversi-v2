@@ -48,8 +48,7 @@ __all__ = ['random_game_choose_move',
 
 
 
-#: The empty move set: the pass signal of the pick domain (the
-#: (0, 64) sentinel bitboard).
+#: The empty move set: the pass signal of the pick domain (the (0, 64) sentinel bitboard).
 _EMPTY_MOVE_SET: Bitboard = Bitboard(0)
 
 
@@ -58,24 +57,20 @@ _EMPTY_MOVE_SET: Bitboard = Bitboard(0)
 def random_game_choose_move(p: PositionField | PositionArray,
                             prng: MT19937) -> Bitboard | BitboardArray:
     """
-    Returns a bitboard having one or zero bits set, chosen at random
-    from the set of legal moves for the position.
+    Returns a bitboard having one or zero bits set, chosen at random from the set of legal moves for
+    the position.
 
-    Dual scalar/array: a scalar
-    PositionField gives a scalar Bitboard; a PositionArray of any
-    shape gives a BitboardArray of the same shape.
+    Dual scalar/array: a scalar PositionField gives a scalar Bitboard; a PositionArray of any shape
+    gives a BitboardArray of the same shape.
 
-    The PRNG stream contract: the elements consume their draws from
-    the ONE injected stream in element order (the C-order ravel of
-    the array), exactly like a scalar loop — one draw per element
-    with a non-empty legal-move set, no draw for a pass (an empty
-    set). The array call is bit-identical to the sequential scalar
-    processing of the same positions with the same stream.
+    The PRNG stream contract: the elements consume their draws from the ONE injected stream in
+    element order (the C-order ravel of the array), exactly like a scalar loop — one draw per
+    element with a non-empty legal-move set, no draw for a pass (an empty set). The array call is
+    bit-identical to the sequential scalar processing of the same positions with the same stream.
     """
     if isinstance(p, np.ndarray):
-        # The N-D contract: the pick runs on the C-order ravel of the
-        # legal-move sets (the PRNG draws are consumed in that element
-        # order), the output reshaped back to the positions shape.
+        # The N-D contract: the pick runs on the C-order ravel of the legal-move sets (the PRNG
+        # draws are consumed in that element order), the output reshaped back to the positions shape.
         lms = position_legal_moves(p).ravel()
         needs = (lms != _EMPTY_MOVE_SET)
         draws = prng.get_uint64_batch(int(np.count_nonzero(needs)))
@@ -94,22 +89,17 @@ def random_game_make_move(p: PositionField | PositionArray,
     """
     Executes a random legal move on the position.
 
-    Asks random_game_choose_move for the move to play, executes it on p via
-    position_flips, and returns the resulting position together with the
-    move that was played. The returned position is the one position_flips
-    produces (the next player's view: the mover / opponent fields are
-    swapped with respect to the input). When the position has no legal
-    move the move is the pass (PA) and the returned position is the
-    swapped position (the players inverted).
+    Asks random_game_choose_move for the move to play, executes it on p via position_flips, and
+    returns the resulting position together with the move that was played. The returned position is
+    the one position_flips produces (the next player's view: the mover / opponent fields are swapped
+    with respect to the input). When the position has no legal move the move is the pass (PA) and
+    the returned position is the swapped position (the players inverted).
 
-    Dual scalar/array: a scalar
-    PositionField gives the (PositionField, Move) pair; a
-    PositionArray of any shape gives the (PositionArray, MoveArray)
-    pair of the same shape — the per-element semantics is the scalar
-    one (a zero move swaps the players, a legal move flips). The
-    PRNG stream contract of random_game_choose_move is inherited:
-    the array call is bit-identical to the sequential scalar
-    processing of the same positions with the same stream.
+    Dual scalar/array: a scalar PositionField gives the (PositionField, Move) pair; a PositionArray
+    of any shape gives the (PositionArray, MoveArray) pair of the same shape — the per-element
+    semantics is the scalar one (a zero move swaps the players, a legal move flips). The PRNG stream
+    contract of random_game_choose_move is inherited: the array call is bit-identical to the
+    sequential scalar processing of the same positions with the same stream.
     """
     if isinstance(p, np.ndarray):
         moves = random_game_choose_move(p, prng)
@@ -133,14 +123,11 @@ def _classify_step(movers: np.ndarray, opponents: np.ndarray,
                    lms_opponent: np.ndarray, plays: np.ndarray,
                    pass_reply: np.ndarray, game_over: np.ndarray):
     """
-    The classify pass of the engine (per lane, one prange pass): the
-    mover's legal set via board's per-lane primitive
-    `legal_moves_of`, the classification masks, and — for the pass
-    lanes only (rare mid-game) — the opponent's legal set (in
-    kernel). The inactive lanes' mask entries are written False; the
-    scratch buffers are the engine's (reused across the steps — the
-    classify pass overwrites every lane's entry it classifies, so
-    the stale entries are never read).
+    The classify pass of the engine (per lane, one prange pass): the mover's legal set via board's
+    per-lane primitive `legal_moves_of`, the classification masks, and — for the pass lanes only
+    (rare mid-game) — the opponent's legal set (in kernel). The inactive lanes' mask entries are
+    written False; the scratch buffers are the engine's (reused across the steps — the classify pass
+    overwrites every lane's entry it classifies, so the stale entries are never read).
     """
     n = movers.shape[0]
     for i in nb.prange(n):
@@ -173,15 +160,12 @@ def _advance_step(movers: np.ndarray, opponents: np.ndarray,
                   lms_mover: np.ndarray, lms_opponent: np.ndarray,
                   slots: np.ndarray, draws: np.ndarray):
     """
-    The advance pass of the engine (per lane, one prange pass): the
-    pick via prng's per-lane primitive `pick_one_from_set64` on the
-    pre-drawn value at the lane's slot (the single source of the
-    pick technique, D-221), the flip set via board's per-lane
-    primitive `flips_of_move`, and the in-place state update. The
-    plays lanes play from the mover's legal set; the pass_reply
-    lanes play the opponent's legal set on the swapped view (the
-    write-back maps the fields directly — position_flips' NEXT-view
-    semantics). The non-needing lanes are untouched.
+    The advance pass of the engine (per lane, one prange pass): the pick via prng's per-lane
+    primitive `pick_one_from_set64` on the pre-drawn value at the lane's slot (the single source of
+    the pick technique), the flip set via board's per-lane primitive `flips_of_move`, and the
+    in-place state update. The plays lanes play from the mover's legal set; the pass_reply lanes
+    play the opponent's legal set on the swapped view (the write-back maps the fields directly —
+    position_flips' NEXT-view semantics). The non-needing lanes are untouched.
     """
     n = movers.shape[0]
     for i in nb.prange(n):
@@ -207,14 +191,12 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
                     game_over: np.ndarray, active: np.ndarray,
                     target: np.uint8, prng: MT19937):
     """
-    Advances ONE step of the engine in place: the two fused passes
-    (classify + advance) over the batch, then the ec and the
-    activity update; returns the updated (ec, active). The state and
-    the scratch buffers are the engine's (reused across the steps —
-    every lane the masks read has been written this very step).
+    Advances ONE step of the engine in place: the two fused passes (classify + advance) over the
+    batch, then the ec and the activity update; returns the updated (ec, active). The state and the
+    scratch buffers are the engine's (reused across the steps — every lane the masks read has been
+    written this very step).
 
-    The lane classification (all draw-independent — the legal sets
-    are pure computations):
+    The lane classification (all draw-independent — the legal sets are pure computations):
       - mover_plays: the mover has a legal move — one draw, the disc
         is placed by the mover;
       - mover_passes_opponent_plays: the mover is moveless and the
@@ -224,9 +206,8 @@ def _play_path_step(movers: np.ndarray, opponents: np.ndarray,
         ends, no draw, the position is left unchanged (the two
         scalar swaps restore the input view).
 
-    Every non-terminal lane consumes EXACTLY ONE draw, in element
-    order (the lockstep stream discipline): the draws are ONE
-    get_uint64_batch call between the two passes, mapped to the
+    Every non-terminal lane consumes EXACTLY ONE draw, in element order (the lockstep stream
+    discipline): the draws are ONE get_uint64_batch call between the two passes, mapped to the
     needing lanes by the prefix slot map.
     """
     _classify_step(movers, opponents, active, lms_mover, lms_opponent,
@@ -245,28 +226,23 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     """
     The array play-path engine: the step loop over the batch.
 
-    The state is the RAW (movers, opponents) uint64 pair — copied
-    once from the input (the caller's array is never mutated),
-    advanced in place by the steps, and assembled into the Position
-    array once at the end.
+    The state is the RAW (movers, opponents) uint64 pair — copied once from the input (the caller's
+    array is never mutated), advanced in place by the steps, and assembled into the Position array
+    once at the end.
 
-    The lanes advance in LOCKSTEP: at every step the active lanes
-    draw once, in element order. Two facts pin the stream contract
-    down: the call is DETERMINISTIC given the seed, and with N == 1
-    the lockstep stream IS the lane's sequential stream, so the
-    single-lane array call is bit-identical to the scalar call.
+    The lanes advance in LOCKSTEP: at every step the active lanes draw once, in element order. Two
+    facts pin the stream contract down: the call is DETERMINISTIC given the seed, and with N == 1
+    the lockstep stream IS the lane's sequential stream, so the single-lane array call is
+    bit-identical to the scalar call.
 
-    The termination is mathematical: every non-terminal step
-    decreases a lane's ec by exactly one and the game-over step ends
-    the lane — the step bound is derived from the input (a lane
-    needs at most its ec surplus over the target, plus one); a stall
-    would raise, never hang.
+    The termination is mathematical: every non-terminal step decreases a lane's ec by exactly one
+    and the game-over step ends the lane — the step bound is derived from the input (a lane needs at
+    most its ec surplus over the target, plus one); a stall would raise, never hang.
     """
     movers = cur['mover'].copy()
     opponents = cur['opponent'].copy()
-    # The scratch buffers: allocated once, reused across the steps
-    # (the legal sets + the classification masks — see
-    # _play_path_step / _classify_step).
+    # The scratch buffers: allocated once, reused across the steps (the legal sets + the
+    # classification masks — see _play_path_step / _classify_step).
     lms_mover_buf = np.zeros(movers.shape[0], dtype=Bitboard)
     lms_opponent_buf = np.zeros(movers.shape[0], dtype=Bitboard)
     plays_buf = np.zeros(movers.shape[0], dtype=np.bool_)
@@ -274,12 +250,10 @@ def _play_path_engine(cur: np.ndarray, target: np.uint8, prng: MT19937):
     game_over_buf = np.zeros(movers.shape[0], dtype=np.bool_)
     ec = bitboard_count(~(movers | opponents))
     active = ec > target
-    # The mathematical step bound: every non-terminal step decreases
-    # a lane's ec by exactly one and the game-over step ends the
-    # lane — a lane needs at most (its start ec - the target) steps
-    # plus one; the bound below is that maximum over the lanes,
-    # computed from the input (a stall is impossible by the math: it
-    # would raise, never hang).
+    # The mathematical step bound: every non-terminal step decreases a lane's ec by exactly one and
+    # the game-over step ends the lane — a lane needs at most (its start ec - the target) steps plus
+    # one; the bound below is that maximum over the lanes, computed from the input (a stall is
+    # impossible by the math: it would raise, never hang).
     max_steps = int(ec.max(initial=0)) - int(target) + 1
     for _step in range(max_steps):
         if not np.any(active):
@@ -299,39 +273,30 @@ def random_game_play_path(p: PositionField | PositionArray,
                           prng: MT19937) -> Tuple[PositionField | PositionArray,
                                                   np.uint8 | npt.NDArray[np.uint8]]:
     """
-    Apply a sequence of random legal moves to the game position to transition
-    the game state from the given position to one with a number of empty cells
-    equal to target_ec.
+    Apply a sequence of random legal moves to the game position to transition the game state from
+    the given position to one with a number of empty cells equal to target_ec.
+
+    If a game-over position is encountered during the random path, it is returned along with its
+    number of empty cells, which in this case will be greater than target_ec.
+
+    If the initial game position already has a number of empty cells less than or equal to
+    target_ec, the position is returned as the result along with its own number of empty cells.
+
+    Dual scalar/array: a scalar PositionField gives the (PositionField, np.uint8) pair; a
+    PositionArray of any shape gives the (PositionArray, uint8-array) pair of the same shape. The
+    PRNG stream contract of the array case: the lanes advance in LOCKSTEP — at every step the ACTIVE
+    lanes draw once, in element order (the C-order ravel of the array) — exactly one draw per
+    non-terminal lane, no draw for the game-over lanes. Two facts pin the contract down: the call is
+    DETERMINISTIC given the seed, and with N == 1 the array call is BIT-IDENTICAL to the scalar
+    call. The target is ONE shared value for the whole batch.
 
     Returns:
-        tuple: A tuple containing the target position and the number of empty
-        cells of this position (an ordinal np.uint8).
-
-        If a game-over position is encountered during the random path, it is
-        returned along with its number of empty cells, which in this case will
-        be greater than target_ec.
-
-        If the initial game position already has a number of empty cells less
-        than or equal to target_ec, the position is returned as the result
-        along with its own number of empty cells.
-
-    Dual scalar/array: a scalar
-    PositionField gives the (PositionField, np.uint8) pair; a
-    PositionArray of any shape gives the (PositionArray, uint8-array)
-    pair of the same shape. The PRNG stream contract of the array
-    case: the lanes advance in LOCKSTEP — at every step the ACTIVE
-    lanes draw once, in element order (the C-order ravel of the
-    array) — exactly one draw per non-terminal lane, no draw for the
-    game-over lanes. Two facts pin the contract down: the call is
-    DETERMINISTIC given the seed, and with N == 1 the array call is
-    BIT-IDENTICAL to the scalar call. The target is ONE shared value
-    for the whole batch.
+        tuple: A tuple containing the target position and the number of empty cells of this position
+            (an ordinal np.uint8).
     """
     if isinstance(p, np.ndarray):
-        # The N-D contract: the engine runs on the C-order ravel of
-        # the positions (the lockstep draws are consumed in that
-        # element order), the outputs reshaped back to the positions
-        # shape.
+        # The N-D contract: the engine runs on the C-order ravel of the positions (the lockstep
+        # draws are consumed in that element order), the outputs reshaped back to the positions shape.
         out_p, out_ec = _play_path_engine(p.ravel(), np.uint8(target_ec), prng)
         return out_p.reshape(p.shape), out_ec.reshape(p.shape)
     if isinstance(p, np.void):

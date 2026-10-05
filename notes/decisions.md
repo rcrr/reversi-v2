@@ -698,3 +698,19 @@ D-474 | 2026-10-06 | Correction to the D-473 record (the repair-forward + disclo
          so the row looked missing. The wave insertion on top of that created a DUPLICATE row, now removed. The index
          was complete: no docs\\_rules violation existed. Everything else in D-473 (the 8 added docstrings, the
          last/blank completion test 29 -> 30, the "126 lines." drop, the V5 pin) stands.
+
+D-475 | 2026-10-06 | The random\_game source + test + mirror-doc pass, one commit (the user-approved (a) + (b)): (1)
+         source: the D-221 reference removed from the \_advance\_step docstring (R-540), the random\_game\_play\_path
+         docstring restructured (the two "If…" paragraphs + the "Dual scalar/array:" paragraph were nested inside the
+         Returns: section — they are body paragraphs, now before the section), 7 docstrings reflowed (349 → 314 lines);
+         (2) test: the 3 unused imports removed (square\_to\_str, PositionField, bitboard\_print), the 2 missing class
+         docstrings added (the user-approved (b): TestRandomGameChooseMove, TestRandomGamePlayPath), the ONE real
+         coverage gap closed (the user-approved (a)):
+         test\\_target\\_ec\\_out\\_of\\_range\\_is\\_a\\_validation\\_error — the TargetEcInt gate (ge=0, le=60) was
+         never pinned: 61 and -1 are the gate's ValidationError before any draw; 13 + 3 docstrings reflowed (963 → 958
+         lines); 42 → 43 tests: 43/0/1; (3) the test mirror doc: the 3 stale counts of the N-D wave (D-417) repaired —
+         ChooseMoveArray 6 → 9, MakeMoveArray 7 → 10, PlayPathArray 9 → 12 — the N-D shape cases (2, 2) / (2, 2, 1) /
+         F-order / empty (0, 2) now listed, the stale "the 1-D guard" item (no such test exists) out, the scalar
+         PlayPath row 4 → 5 with the new validation test. The SOURCE mirror doc is untouched: it was verified fully
+         faithful (all 6 invariants pinned to real tests; the D-285 pointer is legitimate under docs\\_rules §3.2; no §4
+         defects) and the source changes are docstring-only, invisible to the mirror's claims.

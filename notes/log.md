@@ -2360,3 +2360,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   della probe verificati, tutti e 5 i pin V reali). Il giro completo LONG=1 rimesurato a chiusura: suite
   1098 → 1099/0/24 (test\_logistic\_model 29 → 30, il resto invariato). I 6 moduli base (board, pattern,
   feature, mobility, regab, base\_model) sono tutti al canone R-560; next step: lm e i file test.
+
+- D-475 (random\_game, un solo D, il (a) + (b) concordati): (1) sorgente: il riferimento D-221 rimosso dal
+  docstring di \_advance\_step (R-540), il docstring di random\_game\_play\_path ristrutturato (i due paragrafi
+  "If…" + il "Dual scalar/array:" erano nidiati dentro la sezione Returns: — sono paragrai di corpo, ora
+  prima della sezione), 7 docstring riavvolti (349 → 314 righe); (2) test: i 3 import inutilizzati rimossi
+  (square\_to\_str, PositionField, bitboard\_print), i 2 docstring di classe mancanti aggiunti (il (b):
+  TestRandomGameChooseMove, TestRandomGamePlayPath), l'unico gap di copertura chiuso (il (a)): il
+  test\_target\_ec\_out\_of\_range\_is\_a\_validation\_error — la gate TargetEcInt (ge=0, le=60) non era mai stata
+  pinzata: 61 e -1 sono il ValidationError della gate prima di qualsiasi draw; 13 + 3 docstring riavvolti
+  (963 → 958 righe); 42 → 43 test: 43/0/1; (3) il test mirror doc: i 3 conteggi stale della wave N-D
+  (D-417) riparati — ChooseMoveArray 6 → 9, MakeMoveArray 7 → 10, PlayPathArray 9 → 12 — i casi di shape
+  N-D (2, 2) / (2, 2, 1) / F-order / empty (0, 2) ora elencati, l'item stale "the 1-D guard" (nessun test
+  di quel nome esiste) via, la riga scalar PlayPath 4 → 5 con il nuovo test di validazione. Il SOURCE
+  mirror doc è intatto: verificato pienamente fedele (tutti e 6 gli invariants pinzati a test reali; il
+  puntatore D-285 è legittimo per docs\_rules §3.2; nessun difetto §4) e i fix al sorgente sono solo
+  docstring, invisibili alle affermazioni del mirror.
