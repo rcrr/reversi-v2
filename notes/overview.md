@@ -77,7 +77,10 @@ define the evaluation function.
   (the R-560 canonical + the 4 R-540 removals + the 2 over-120 f-string splits + the mirror-doc fidelity repair: the 2
   line-counts, the 4 campaign tags, the 13 -> 14 worker-suite count, the 2 test-doc pointers made explicit, the
   18-lines-total wording, the TrainingDenseResult API row — no test module by design: the probe verify\_analytics 36
-  checks + the 14-test worker suite pin it); suite 1103/0/24 at close).
+  checks + the 14-test worker suite pin it); hlp\_anova the D-481 pass (the R-560 canonical + the 17 de-typed Args
+  entries + the header name repair + the R-540 x2 + the 10 expression joins + the 2 completeness tests 16 -> 18/0/0 +
+  the mirror-doc provenance cleanup: the 20 D-XXX -> 0, the void pointer, the stale line-width bullet — the first module
+  of the campaign with the Google-style Args docstrings); suite 1105/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

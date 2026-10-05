@@ -811,3 +811,23 @@ D-480 | 2026-10-05 | The hlp\_analytics source + mirror-doc pass, one commit (th
          there is no hlp\_analytics test module), "18 lines — + the Config SHA3-256 line" -> "18 lines total, incl. the
          Config SHA3-256 line" (the probe D3 pins 18 total, SHA line included), the TrainingDenseResult API row added
          (the §3.1 all-\_\_all\_\_-names rule; the ModelWeights precedent). No suite cell moves (no test touched).
+
+D-481 | 2026-10-05 | The hlp\_anova source + test + mirror-doc pass, one commit (the user-approved plan): (1) source:
+         the 17 typed Args entries de-typed to the R-560(5) untyped canonical (the corpus: the client "mw: the trained
+         model"; the reflow enforces the layout only, it does not strip the type names — the D-477 "typed entries
+         untyped" precedent), the 9 docstrings to the reflow fixed point (387 lines, the formulas + the key-by-key
+         Returns detail kept); no D-XXX / I-XXX / over-120 / ws lines in the source. (2) test: the header module name
+         repaired (test\_hlp\_feature\_analysis -> test\_hlp\_anova — the pre-D-315 rename residue), the 2 R-540 in the
+         module docstring (the D-298 split provenance + the D-290 policy tag), the unexplained "(c)" tag of the
+         TestAdherence docstring, the 10 split expressions joined (each fits one line within the 120 ceiling, R-520),
+         the 2 R-850 completeness tests: test\_zero\_variance (the documented zero-variance degeneracy had no pin) +
+         test\_degenerate\_tail (the documented "p nan when the merged result has fewer than 2 cells" had no pin); 16 ->
+         18 tests, 18/0/0. (3) the source mirror doc: the provenance cleanup (the 15 D-XXX references -> 0: the header
+         rename / split history rewritten to the present, the campaign-tag labels of the Verified-invariants bullet, the
+         "design section 3.5" void pointer, the "typed Google-style Args / Returns" clause corrected to the post-pass
+         state, the "the 120-char, no hard limit" bullet dropped — it contradicted the R-520 120 ceiling), the
+         hand-computed bullet re-counted 16 -> 18 with the 2 new pins. (4) the test mirror doc: the 5 D-XXX references
+         dropped, the 16 -> 18 re-count (the header + the coverage rows + the goldens), the run\_utests.sh positioning
+         bullet rewritten to the actual machine order (between test\_wrk\_features and test\_hlp\_su\_analysis; the
+         worker suite between test\_wrk\_indexes and test\_hlp\_wmaps). The src\_reflow canonical fixed point on both
+         files. Cell: test\_hlp\_anova 16/0/0 -> 18/0/0.
