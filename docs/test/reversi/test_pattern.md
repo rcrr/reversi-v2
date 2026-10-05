@@ -1,5 +1,5 @@
 # test/reversi/test_pattern.py
-The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `compute_indexes_on_position`, set
+The pattern unit suite — 13 classes / 73 tests, 3 PERF-gated (1M-size pack, `compute_indexes_on_position`, set
 `compute_principal_indexes`), ~1.1 s, no DB.
 
 ## Coverage
@@ -14,11 +14,13 @@ The pattern unit suite — 13 classes / 65 tests, 3 PERF-gated (1M-size pack, `c
 | `TestTransformationsCayleyTable` | 4 | the 8 D8 functions in paper order (e, r, r2, r3, sv, sh, d1, d2) + the `trm = [0,1,2,3,4,6,7,5]` relabel to canonical D8 slot order (notes/naming.md); the 8×8 Cayley table checked as `cayley[i,j](data) == trs[j](trs[i](data))` on `ar`, 14 structural bitboards, and all 29 `sample_pattern_data` masks |
 | `TestPatternPrint` | 1 | the EDGE `print()` full 13-line string golden |
 | `TestPatternMdpCsvFile` | 5 | the `mdp_csv_file` classmethod via `mock_open` + `MagicMock(spec=Pattern)`; the 3 `TypeError` messages asserted with EXACT `assertEqual` |
-| `TestPatternComputeIndexes` | 4 | scalar + 1-D array + multi-position row independence + PERF 1M |
+| `TestPatternComputeIndexes` | 8 | scalar + 1-D array + multi-position row independence + the N-D shape tests
+(2-D, 3-D, non-contiguous 2-D, empty 2-D) + PERF 1M |
 | `TestPatternSet` | 12 | construction (duplicate names/masks `ValueError`s + the empty pattern list), the `names`/`masks` properties, the `hash` formula with the golden pinned, the `__repr__` / `print_summary` / `print` goldens |
 | `TestPatternPrincipalIndex` | 1 | the single-pattern principal-index dict |
 | `TestPatternComputePrincipalIndexDict` | 7 | the full principal-index dicts (9, 27, 81 entries) as `np.array` goldens |
-| `TestPatternSetComputePrincipalIndexes` | 4 | scalar + 1-D + multi-position + PERF 1M |
+| `TestPatternSetComputePrincipalIndexes` | 8 | scalar + 1-D + multi-position + the N-D shape tests (2-D, 3-D,
+non-contiguous 2-D, empty 2-D) + PERF 1M |
 
 ## Goldens pinned
 

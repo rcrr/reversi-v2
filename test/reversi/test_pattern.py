@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -44,7 +44,7 @@ import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
 import io
-import time        
+import time
 import os
 
 from pydantic import ValidationError
@@ -118,8 +118,7 @@ class TestPattern(unittest.TestCase):
             p = Pattern('TOO_BIG', Bitboard(0x000000000007FFFF))
 
     def test_init_raises_value_error_for_empty_mask(self):
-        """Fail-fast check from the 2026-08-27 minor sweep, item #18:
-        a zero mask selects no squares and is rejected at construction."""
+        """Raise ValueError for an empty mask (a zero mask selects no squares)."""
         with self.assertRaises(ValueError) as context:
             Pattern('EMPTY', Bitboard(0x0000000000000000))
         self.assertIn("empty mask", str(context.exception))
@@ -146,10 +145,10 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p.n_squares, 4)
         self.assertEqual(p.n_configurations, 81)
         self.assertEqual(p.n_stabilizers, 1)
-        
+
         computed_tmasks = [f(Bitboard(s)) for f, s in zip(p.trans_fs, all_masks)]
         nptest.assert_array_equal(computed_tmasks, expected_tmasks)
-        
+
         computed_all_masks = [f(Bitboard(s)) for f, s in zip(p.anti_trans_fs, expected_tmasks)]
         nptest.assert_array_equal(computed_all_masks, all_masks)
 
@@ -167,10 +166,9 @@ class TestPattern(unittest.TestCase):
         self.assertEqual(p.snames_t, expected_snames_t)
 
     def test_repr(self):
-        """#16 (2026-08-27 minor sweep): golden for the one-line __repr__
-        summary, same info as the first line of print() — name in repr
-        form, mask as 16-digit lowercase hex. Pattern defines no __str__,
-        so str() falls back to __repr__ (pinned here too)."""
+        """Golden for the one-line __repr__ summary (same info as the first line of print() — name
+        in repr form, mask as 16-digit lowercase hex). Pattern defines no __str__, so str() falls
+        back to __repr__ (pinned here too)."""
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
         self.assertEqual(repr(p), "Pattern(name='ELLE', mask=0x0000000000000107)")
         self.assertEqual(str(p),  "Pattern(name='ELLE', mask=0x0000000000000107)")
@@ -183,33 +181,31 @@ class TestPattern(unittest.TestCase):
 
     def test_init_raises_value_error_for_non_principal_mask(self):
         """Test that passing a transformed (non-principal) mask raises ValueError."""
-        # 0x00000000008080C0 is the 90-degree rotation of ELLE (0x0000000000000107)
-        # It is a valid pattern mask, but it is NOT the principal instance.
+        # 0x00000000008080C0 is the 90-degree rotation of ELLE (0x0000000000000107) It is a valid
+        # pattern mask, but it is NOT the principal instance.
         with self.assertRaises(ValueError) as context:
             Pattern('BAD_ELLE', Bitboard(0x00000000008080C0))
         self.assertIn("not principal", str(context.exception))
 
     def test_init_rejects_non_minimum_orbit_masks(self):
-        """Masks containing all 4 corners tie for minimal BSR in
-        the whole orbit (all 8 transforms have BSR 63). Only the numerically
-        lowest orbit member is the unique principal: a mask is a 64-bit
-        integer, a bijection with 0..2^64-1, so the orbit minimum is
-        well-defined and unique."""
+        """Masks containing all 4 corners tie for minimal BSR in the whole orbit (all 8 transforms
+        have BSR 63). Only the numerically lowest orbit member is the unique principal: a mask is
+        a 64-bit integer, a bijection with 0..2^64-1, so the orbit minimum is well-defined and unique."""
         corners = Bitboard(0x8100000000000081)  # A1 H1 A8 H8
         # + b1 (bit 1) is the numerically lowest of the 8 orbit members.
         p = Pattern('FOURC_B1', corners | Bitboard(0x2))
         self.assertEqual(p.n_instances, 8)
         self.assertEqual(p.n_stabilizers, 1)
-        # + a2 (bit 8) and + h2 (bit 15) are the same orbit but
-        # larger: a BSR-only principal test would accept them.
+        # + a2 (bit 8) and + h2 (bit 15) are the same orbit but larger: a BSR-only principal test
+        # would accept them.
         for extra in (0x100, 0x8000):
             with self.assertRaises(ValueError) as context:
                 Pattern('BAD_FOURC', corners | Bitboard(extra))
             self.assertIn("not principal", str(context.exception))
 
 class TestPatternType(unittest.TestCase):
-    """Direct tests of PatternType: from_fingerprint, .data,
-    and the orbit-stabilizer relation n_instances * n_stabilizers = 8."""
+    """Direct tests of PatternType: from_fingerprint, .data, and the orbit-stabilizer relation
+    n_instances * n_stabilizers = 8."""
 
     def test_from_fingerprint_roundtrip_all_members(self):
         self.assertEqual(len(PatternType), 12)
@@ -234,9 +230,8 @@ class TestPatternType(unittest.TestCase):
                      "n_instances", "n_stabilizers"})
                 self.assertTrue(1 <= d["n_instances"] <= 8)
                 self.assertEqual(d["n_stabilizers"], 8 // d["n_instances"])
-        # Full-data pins for three representative types (verified live
-        # 2026-08-28): a row pattern, the fully-symmetric one, and the
-        # degenerate 3D (point-fixing) case.
+        # Full-data pins for three representative types: a row pattern, the fully-symmetric one, and
+        # the degenerate 3D (point-fixing) case.
         self.assertEqual(PatternType.TYPE_2.data,
             {"type": "2", "sample_mask": 0x00000000000000FF, "sample_name": "EDGE",
              "level": 2, "n_instances": 4, "n_stabilizers": 2})
@@ -273,7 +268,7 @@ class TestPatternPack(unittest.TestCase):
                                r1, r2, r3, r4, r5, r6, r7, r8,
                                c1, c2, c3, c4, c5, c6, c7, c8,
                               ]
-        
+
     def run_test_vectorized(self, p: Pattern, expected: List[Bitboard]) -> None:
         bitboard_array = np.array(self.bitboard_list, dtype=Bitboard)
         expected_array = np.array(expected, dtype=Bitboard)
@@ -677,7 +672,7 @@ class TestPatternPack(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
-        
+
         N = 1_000_000
         n = len(self.bitboard_list)
         x = N // n
@@ -753,7 +748,7 @@ class TestPatternSymmetries(unittest.TestCase):
         SymmetryCase(0x0000000000000002, 'DOTB1',  []),
         SymmetryCase(0x0000000000000201, 'TWOND',  []),
     ]
-    
+
     def test_pattern_invariance(self):
 
         for mask_val, name, expected in self.test_data:
@@ -802,9 +797,8 @@ class TestPatternSymmetries(unittest.TestCase):
 
     def test_burnside_counts_golden(self):
         """
-        Pins n_invariant_configs / n_unique_configs (Burnside) for all
-        29 sample patterns. Ground truth: n_invariant by full enumeration of
-        the 3^S configurations; n_unique via principal_index_count.
+        Pins n_invariant_configs / n_unique_configs (Burnside) for all 29 sample patterns. Ground
+        truth: n_invariant by full enumeration of the 3^S configurations; n_unique via principal_index_count.
         """
         for mask_val, name, n_inv, n_uni in self.burnside_data:
             with self.subTest(name=name):
@@ -820,10 +814,9 @@ class TestPatternSymmetries(unittest.TestCase):
 
     def test_burnside_counts_invariants(self):
         """
-        General invariants of the Burnside counts:
-        1 <= n_invariant_configs <= n_unique_configs <= n_configurations,
-        with equality to n_configurations (3^S) when symmetry_fs is empty
-        (trivial action on the squares).
+        General invariants of the Burnside counts: 1 <= n_invariant_configs <= n_unique_configs <=
+        n_configurations, with equality to n_configurations (3^S) when symmetry_fs is empty (trivial
+        action on the squares).
         """
         for mask_val, name, _ in self.test_data:
             with self.subTest(name=name):
@@ -979,23 +972,21 @@ class TestTransformationsCayleyTable(unittest.TestCase):
 
     def verify_cayley_table(self, data: np.uint64):
         """
-        Validates the entire Cayley table against functional composition 
-        for a specific input state.
-        
-        Order of operation: G (row i) is applied first, then H (column j).
-        Equivalent to: y = H(G(data))
+        Validates the entire Cayley table against functional composition for a specific input state.
+
+        Order of operation: G (row i) is applied first, then H (column j). Equivalent to: y = H(G(data))
         """
         for i in range(8):
             for j in range(8):
                 # Expected result from the pre-computed Cayley table
                 expected = self.cayley[i, j](data)
-                
-                # Computed result applying transformations in sequence: G then H
-                # trs[i] is G (row), trs[j] is H (column)
+
+                # Computed result applying transformations in sequence: G then H trs[i] is G (row),
+                # trs[j] is H (column)
                 computed = self.trs[j](self.trs[i](data))
-                
+
                 self.assertEqual(
-                    computed, 
+                    computed,
                     expected,
                     (
                         f"Cayley consistency error at indices [{i},{j}]:\n"
@@ -1054,11 +1045,11 @@ class TestTransformationsCayleyTable(unittest.TestCase):
             self.verify_cayley_table(p.mask)
 
 class TestPatternPrint(unittest.TestCase):
-        
+
     def test_pattern_print(self):
 
         p = Pattern('EDGE', Bitboard(0x00000000000000FF))
-        
+
         expected_output_multiline = [
             '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
             '  [n_squares = 8, n_configurations = 6561, n_instances = 4, n_stabilizers = 2, type = 2]',
@@ -1075,11 +1066,11 @@ class TestPatternPrint(unittest.TestCase):
             '  Fingerprint:          [I0, T1, T2, T3, S0, S1, S2, S3]',
         ]
         expected_output = '\n'.join(expected_output_multiline) + '\n'
-        
+
         with io.StringIO() as buffer:
             p.print(output=buffer)
             actual_output = buffer.getvalue()
-            
+
         self.assertEqual(actual_output, expected_output)
 
 class TestPatternMdpCsvFile(unittest.TestCase):
@@ -1088,7 +1079,7 @@ class TestPatternMdpCsvFile(unittest.TestCase):
         """Set up mock Pattern instances and common test data."""
         # Create mocks to isolate the method from the actual Pattern/Bitboard logic
         self.mock_pattern1 = MagicMock(spec=Pattern)
-        # Real mdp_record() output of the EDGE pattern (2026-08-28 verified).
+        # Real mdp_record() output of the EDGE pattern.
         self.mock_pattern1.mdp_record.return_value = (
             "EDGE,00000000000000FF,8,6561,4,2,A1:B1:C1:D1:E1:F1:G1:H1,"
             "00000000000000FF:8080808080808080:FF00000000000000:0101010101010101:00000000000000FF:8080808080808080:FF00000000000000:0101010101010101,"
@@ -1098,9 +1089,9 @@ class TestPatternMdpCsvFile(unittest.TestCase):
             "H1:G1:F1:E1:D1:C1:B1:A1,H8:H7:H6:H5:H4:H3:H2:H1,A8:B8:C8:D8:E8:F8:G8:H8,A1:A2:A3:A4:A5:A6:A7:A8,"
             "I0:T1:T2:T3:S0:S1:S2:S3,2"
         )
-        
+
         self.mock_pattern2 = MagicMock(spec=Pattern)
-        # Real mdp_record() output of the CORNER pattern (2026-08-28 verified).
+        # Real mdp_record() output of the CORNER pattern.
         self.mock_pattern2.mdp_record.return_value = (
             "CORNER,0000000000070707,9,19683,4,2,A1:B1:C1:A2:B2:C2:A3:B3:C3,"
             "0000000000070707:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000E0E0E0:E0E0E00000000000:0707070000000000:0000000000070707,"
@@ -1110,7 +1101,7 @@ class TestPatternMdpCsvFile(unittest.TestCase):
             "H1:G1:F1:H2:G2:F2:H3:G3:F3,H8:H7:H6:G8:G7:G6:F8:F7:F6,A8:B8:C8:A7:B7:C7:A6:B6:C6,A1:A2:A3:B1:B2:B3:C1:C2:C3,"
             "I0:T1:T2:T3:S1:S2:S3:S0,3"
         )
-        
+
         self.patterns_list = [self.mock_pattern1, self.mock_pattern2]
         self.filename = "test_output.csv"
 
@@ -1148,7 +1139,7 @@ class TestPatternMdpCsvFile(unittest.TestCase):
 
         # 2. Extract the file handle to analyze what was written
         handle = mock_file()
-        
+
         # Collect all positional arguments sent to the handle.write() calls
         written_strings = [call.args[0] for call in handle.write.call_args_list]
 
@@ -1174,7 +1165,7 @@ class TestPatternMdpCsvFile(unittest.TestCase):
     def test_mdp_csv_file_with_empty_list(self, mock_file):
         """Verify that an empty patterns list results in only the header line being written."""
         Pattern.mdp_csv_file([], self.filename)
-        
+
         handle = mock_file()
         # Only 1 write call should occur (the header)
         self.assertEqual(handle.write.call_count, 1)
@@ -1196,12 +1187,12 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         pos = make_position(mover, opponent)
         position_check_collisions(pos)
 
         indexes = pat.compute_indexes_on_position(pos)
-        
+
         expected = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
 
         nptest.assert_array_equal(indexes, expected)
@@ -1214,30 +1205,27 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         pos = make_position(mover, opponent)
         position_check_collisions(pos)
 
         pos_array = np.full(N, pos)
 
         indexes = pat.compute_indexes_on_position(pos_array)
-        
+
         expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
         expected_array = np.tile(expected_scalar, (N, 1))
         nptest.assert_array_equal(indexes, expected_array)
 
     def test_compute_indexes_on_position_multiple_positions(self):
-        """T9: array input with DISTINCT positions — every output row
-        must be computed independently. The existing array tests only
-        feed uniform np.full tiles, which cannot catch a row-mixing bug
-        in the 2D kernel path.
+        """T9: array input with DISTINCT positions — every output row must be computed
+        independently. The existing array tests only feed uniform np.full tiles, which cannot
+        catch a row-mixing bug in the 2D kernel path.
 
-        EDGE has 4 unique instances (unique_mask_indexes [0,1,2,3]), so
-        output column j is the base-3 configuration of row 1 read
-        through the j-th anti-transformation: identity, ro270, ro180,
-        ro090. Digits: 0 = empty, 1 = mover, 2 = opponent; square k
-        (squares in ascending board order A1..H1) contributes
-        digit * 3**k.
+        EDGE has 4 unique instances (unique_mask_indexes [0,1,2,3]), so output column j is the
+        base-3 configuration of row 1 read through the j-th anti-transformation: identity, ro270,
+        ro180, ro090. Digits: 0 = empty, 1 = mover, 2 = opponent; square k (squares in ascending
+        board order A1..H1) contributes digit * 3**k.
 
         Hand-derived goldens from the D8 geometry (ro090: A1->H1,
         ro180: A1->H8, ro270: A1->A8, ro270: H1->A1) and verified
@@ -1333,28 +1321,28 @@ class TestPatternComputeIndexes(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
-        
+
         N = 1_000_000
 
         pat = Pattern('EDGE', Bitboard(0x00000000000000FF))
 
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        
+
         pos = make_position(mover, opponent)
         position_check_collisions(pos)
 
         pos_array = np.full(N, pos)
 
         _ = pat.compute_indexes_on_position(pos_array[:10])
-        
+
         start_time = time.perf_counter()
         indexes = pat.compute_indexes_on_position(pos_array)
         end_time = time.perf_counter()
-        
+
         duration = end_time - start_time
         positions_per_sec = N / duration
-        
+
         print(f"\n[PERF Pattern.compute_indexes_on_position] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
         expected_scalar = np.array([1764, 5940, 1517, 81], dtype=np.uint32)
@@ -1390,8 +1378,7 @@ class TestPatternSet(unittest.TestCase):
 
     def test_repr(self):
         """
-        PatternSet has a __repr__ (name, the set hash, the
-        patterns in the mask-sorted order via Pattern.__repr__).
+        PatternSet has a __repr__ (name, the set hash, the patterns in the mask-sorted order via Pattern.__repr__).
         """
         self.assertEqual(repr(self.pattern_set),
              "PatternSet(name='SamplePatternSet', hash="
@@ -1436,15 +1423,14 @@ class TestPatternSet(unittest.TestCase):
         nptest.assert_array_equal(self.pattern_set.masks, expected_masks)
 
     def test_print_summary(self):
+        """The print_summary golden: the pinned hash literal + the one-line-per-pattern format.
+
+        The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
+        0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
+        the line a real golden.
         """
-        Test the print_summary method prints the correct summary.
-        """
-        # Pinned (2026-08-28, computed live): sha3_256 over the raw bytes
-        # of the mask-sorted masks (EDGE 0x...FF, ELLE 0x...107,
-        # SNAKE 0x...C30000000). Pinning the literal (instead of
-        # self.pattern_set.hash) makes the line a real golden.
         expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
-        
+
         expected_output = [
             'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
             '  Pattern: name = EDGE, mask = 0x00000000000000ff',
@@ -1453,7 +1439,7 @@ class TestPatternSet(unittest.TestCase):
         ]
         expected_output[0] = expected_output[0].format(expected_hash)
         expected_output = '\n'.join(expected_output) + '\n'
-        
+
         with io.StringIO() as buffer:
             self.pattern_set.print_summary(output=buffer)
             actual_output = buffer.getvalue()
@@ -1461,15 +1447,14 @@ class TestPatternSet(unittest.TestCase):
         self.assertEqual(actual_output, expected_output)
 
     def test_print(self):
+        """The print golden: the pinned hash literal + the set summary + every pattern's detailed report.
+
+        The hash is sha3_256 over the raw bytes of the mask-sorted masks (ELLE 0x...107, EDGE
+        0x...FF, SNAKE 0x...C30000000); pinning the literal (instead of self.pattern_set.hash) makes
+        the line a real golden.
         """
-        Test the print method prints the correct detailed summary.
-        """
-        # Pinned (2026-08-28, computed live): sha3_256 over the raw bytes
-        # of the mask-sorted masks (EDGE 0x...FF, ELLE 0x...107,
-        # SNAKE 0x...C30000000). Pinning the literal (instead of
-        # self.pattern_set.hash) makes the line a real golden.
         expected_hash = '5e5abf79c30a75f13b296efff45c78554924f772f94f74a311025c425ac9d10b'
-        
+
         expected_output = [
             'PatternSet: name = SamplePatternSet, length = 3, hash = {}',
             '[Pattern: name = EDGE, mask = 0x00000000000000ff]',
@@ -1514,7 +1499,7 @@ class TestPatternSet(unittest.TestCase):
         ]
         expected_output[0] = expected_output[0].format(expected_hash)
         expected_output = '\n'.join(expected_output) + '\n'
-        
+
         with io.StringIO() as buffer:
             self.pattern_set.print(output=buffer)
             actual_output = buffer.getvalue()
@@ -1538,8 +1523,7 @@ class TestPatternSet(unittest.TestCase):
         self.assertIn("duplicate masks", str(context.exception))
 
     def test_init_raises_value_error_for_empty_pattern_list(self):
-        """Test that an empty pattern list raises ValueError (fail-fast
-        check from the 2026-08-27 minor sweep, item #17)."""
+        """Raise ValueError when the pattern list is empty."""
         with self.assertRaises(ValueError) as context:
             PatternSet('EmptySet', [])
         self.assertIn("cannot be empty", str(context.exception))
@@ -1548,31 +1532,31 @@ class TestPatternPrincipalIndex(unittest.TestCase):
 
     def test_compute_and_convert_principal_index(self):
         """
-        Tests the generation of the principal index dictionary and conversion.
-        Using ELLE (4 squares = 81 configurations) to keep it instant.
+        Tests the generation of the principal index dictionary and conversion. Using ELLE (4 squares
+        = 81 configurations) to keep it instant.
         """
         p = Pattern('ELLE', Bitboard(0x0000000000000107))
-        
+
         # 1. Ensure it's initially None
         self.assertIsNone(p.principal_index_dict)
-        
+
         # 2. Compute the dictionary
         p.compute_principal_index_dict()
-        
+
         # 3. Check basic properties of the computed dict
         self.assertIsNotNone(p.principal_index_dict)
         self.assertEqual(p.principal_index_dict.shape, (81,))
-        
-        # The principal index must always be <= the original index
-        # (because 0 is the absolute principal for any set)
+
+        # The principal index must always be <= the original index (because 0 is the absolute
+        # principal for any set)
         for i in range(81):
-            self.assertTrue(p.principal_index_dict[i] <= i, 
+            self.assertTrue(p.principal_index_dict[i] <= i,
                             f"Index {i} mapped to {p.principal_index_dict[i]}, which is greater!")
-        
+
         # 4. Test the conversion method
         test_indexes = np.array([0, 1, 80], dtype=np.uint32)
         principal = p.convert_to_principal_index(test_indexes)
-        
+
         self.assertIsInstance(principal, np.ndarray)
         self.assertEqual(principal.shape, (3,))
         self.assertEqual(principal[0], 0)  # Index 0 is always its own principal
@@ -1583,13 +1567,13 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         p = Pattern('SMALL', Bitboard(0x0000000000000018))
 
         self.assertIsNone(p.principal_index_dict)
-        
+
         p.compute_principal_index_dict()
 
         expected_principal_index_dict = np.array([0, 1, 2, 1, 4, 5, 2, 5, 8], dtype=Index)
         expected_principal_indexes = np.array([0, 1, 2, 4, 5, 8], dtype=Index)
         expected_principal_index_count = 6
-        
+
         nptest.assert_array_equal(p.principal_index_dict, expected_principal_index_dict)
         nptest.assert_array_equal(p.principal_indexes, expected_principal_indexes)
         nptest.assert_array_equal(p.principal_index_count, expected_principal_index_count)
@@ -1598,7 +1582,7 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         p = Pattern('CORNER', Bitboard(0x0000000000070707))
 
         self.assertIsNone(p.principal_index_dict)
-        
+
         p.compute_principal_index_dict()
 
         self.assertEqual(p.principal_index_dict[16], 16)
@@ -1610,9 +1594,9 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         self.assertIsNone(p.principal_index_dict)
         self.assertIsNone(p.principal_indexes)
         self.assertIsNone(p.principal_index_count)
-        
+
         p.compute_principal_index_dict()
-        
+
         expected_principal_indexes_list = [
              0,  1,  2,  1,  4,  5,  2,  5,  8,  1,
              4,  5, 12, 13, 14, 15, 16, 17,  2,  5,
@@ -1626,7 +1610,7 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         ]
         expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
         nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
-        
+
         unique_principal_indexes_list = [0, 1, 2, 4, 5, 8, 12, 13, 14, 15, 16, 17, 24, 25, 26, 40, 41, 44, 52, 53, 80]
         nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
         self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
@@ -1637,7 +1621,7 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         self.assertIsNone(p.principal_index_dict)
         self.assertIsNone(p.principal_indexes)
         self.assertIsNone(p.principal_index_count)
-        
+
         p.compute_principal_index_dict()
 
         expected_principal_indexes_list = [
@@ -1645,7 +1629,7 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         ]
         expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
         nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
-        
+
         unique_principal_indexes_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 13, 14, 16, 17, 20, 23, 26]
         nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
         self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
@@ -1656,33 +1640,29 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         self.assertIsNone(p.principal_index_dict)
         self.assertIsNone(p.principal_indexes)
         self.assertIsNone(p.principal_index_count)
-        
+
         p.compute_principal_index_dict()
 
         expected_principal_indexes_list = range(3 ** p.n_squares)
         expected_principal_indexes = np.array(expected_principal_indexes_list, dtype=Index)
         nptest.assert_array_equal(p.principal_index_dict, expected_principal_indexes)
-        
+
         unique_principal_indexes_list = range(3 ** p.n_squares)
         nptest.assert_array_equal(p.principal_indexes, unique_principal_indexes_list)
         self.assertEqual(p.principal_index_count, len(unique_principal_indexes_list))
 
     def test_edge_pattern_compute_principal_index_dict(self):
-        """T10: EDGE's 6561-entry principal dict is never pinned
-        directly (CORE pins its 81 entries, the others are spot-
-        checked). Pinned here with the full non-circular
-        specification plus length, unique count and spot values.
+        """T10: EDGE's 6561-entry principal dict is never pinned directly (CORE pins its 81 entries,
+        the others are spot- checked). Pinned here with the full non-circular specification plus
+        length, unique count and spot values.
 
-        EDGE has one non-identity stabilizer element (fvert), so
-        dict[c] = min(c, flip(c)): fvert reads row 1 in the reversed
-        square order, i.e. flip reverses the base-3 digits.
-        Unique principal count = orbits under {id, fvert} =
-        (6561 + 81) / 2 = 3321 (Burnside: 81 configurations are
-        fixed by the digit reversal — 4 free digit pairs).
+        EDGE has one non-identity stabilizer element (fvert), so dict[c] = min(c, flip(c)): fvert
+        reads row 1 in the reversed square order, i.e. flip reverses the base-3 digits. Unique
+        principal count = orbits under {id, fvert} = (6561 + 81) / 2 = 3321 (Burnside: 81
+        configurations are fixed by the digit reversal — 4 free digit pairs).
 
-        NOTE: int(p.n_squares) on purpose — n_squares is np.uint8 and
-        3 ** p.n_squares overflows (6561 wraps to 161) for patterns
-        with >= 7 squares; the production code already casts to int
+        NOTE: int(p.n_squares) on purpose — n_squares is np.uint8 and 3 ** p.n_squares overflows
+        (6561 wraps to 161) for patterns with >= 7 squares; the production code already casts to int
         where needed (compute_principal_index_dict).
         """
         p = Pattern('EDGE', Bitboard(0x00000000000000FF))
@@ -1695,12 +1675,9 @@ class TestPatternComputePrincipalIndexDict(unittest.TestCase):
         self.assertEqual(len(p.principal_index_dict), n)
         self.assertEqual(p.principal_index_count, 3321)
 
-        # Spot values (hand-derived):
-        #   0          -> 0    (empty)
-        #   1 (A1)     -> 1    (min(1, 3**7))
-        #   3**7 (H1)  -> 1    (min(3**7, 1))
-        #   3**3 (D1)  -> 27   (min(3**3, 3**4))
-        #   1 + 2*3**7 -> 2189 (min(4375, 2189); A1 mover + H1 opp)
+        # Spot values (hand-derived): 0          -> 0    (empty) 1 (A1)     -> 1    (min(1, 3**7))
+        # 3**7 (H1)  -> 1    (min(3**7, 1)) 3**3 (D1)  -> 27   (min(3**3, 3**4)) 1 + 2*3**7 -> 2189
+        # (min(4375, 2189); A1 mover + H1 opp)
         for c, expected in ((0, 0), (1, 1), (3 ** 7, 1),
                             (3 ** 3, 27), (1 + 2 * 3 ** 7, 2189)):
             self.assertEqual(p.principal_index_dict[c], expected)
@@ -1773,7 +1750,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
             'DIAG7',
             'DIAG8',
         ]
-        
+
         self.expected_large_set_pindexes_attribution = {
             '2X5COR': ( 0, 8,  0,  7),
             'XEDGE':  ( 1, 4,  8, 11),
@@ -1845,7 +1822,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
         patterns = [Pattern(name, Bitboard(mask)) for name, mask in self.large_set_pattern_data]
         pset = PatternSet('50_PLUS', patterns)
-        
+
         computed_pattern_order = [p.name for p in pset.patterns]
         self.assertEqual(computed_pattern_order, self.expected_large_set_pattern_order)
 
@@ -1873,10 +1850,9 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
         nptest.assert_array_equal(computed, expected)
 
     def test_compute_principal_indexes_multiple_positions(self):
-        """T9: array input with DISTINCT positions — every output row
-        must be computed independently. test_large_set feeds uniform
-        np.full tiles and only checks row 0, so a row-mixing bug in
-        the set-level kernel path would be invisible.
+        """T9: array input with DISTINCT positions — every output row must be computed
+        independently. test_large_set feeds uniform np.full tiles and only checks row 0, so a
+        row-mixing bug in the set-level kernel path would be invisible.
 
         Single-pattern set (EDGE): one output column per unique mask
         (4 groups); column g is the principal index of that instance's
@@ -1999,7 +1975,7 @@ class TestPatternSetComputePrincipalIndexes(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
-        
+
         N = 1_000_000
 
         patterns = [Pattern(name, Bitboard(mask)) for name, mask in self.large_set_pattern_data]

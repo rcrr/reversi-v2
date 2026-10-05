@@ -2065,3 +2065,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   punto fisso stabile). src\_reflow → canonico, 1192 righe (era 1370). Nessun cambiamento di
   comportamento: 73/0/3. pattern.md sincronizzata (il principio D-452 applicato: via la frase "No search,
   no PDB storage, no disk I/O" e i 2 "no portability work"; hlp\_su\_analysis.py aggiunta ai consumer).
+
+- D-454 (pattern: il test a regime — specchio di D-448): sweep: 3 docstring di metodo con provenance (i ref
+  di campagna "2026-08-27 minor sweep, item #16/#17/#18" — il WHAT resta, i ref via; una riscritta in
+  imperativo), 5 commenti datati ("2026-08-28 verified / computed live"), 2 docstring non imperative
+  ("Test the ... method prints" di print\_summary / print — ora in forma golden-noun, e l'ordine delle mask
+  nel commento hash corretto: diceva EDGE/ELLE/SNAKE, l'ordine mask-sorted è ELLE/EDGE/SNAKE), 56 righe di
+  trailing-ws. FATTI: tutto + src\_reflow --write → canonico, 1995 righe (era 2019). NESSUN test
+  aggiunto/tolto: 73/0/3 (nessun cambiamento di comportamento). test\_pattern.md sincronizzata: il conteggio
+  header corretto (65 → 73 — il doc precede l'onda dei test N-D), le 2 righe per-class stali
+  (TestPatternComputeIndexes 4 → 8, TestPatternSetComputePrincipalIndexes 4 → 8, i 4 test N-D nominati in
+  entrambe).

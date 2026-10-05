@@ -478,3 +478,14 @@ D-453 | 2026-10-06 | pattern.py format campaign (the pattern sub-work; the mirro
          1370). NO behavior change: 73/0/3. pattern.md synced in the same commit (the D-452 principle applied: the "No
          search, no PDB storage, no disk I/O" sentence and the 2 "no portability work" clauses out; hlp\_su\_analysis.py
          added to the consumers; the "R2-R4" coverage claim becomes true with the R3/R4 pack tests of the micro-test D).
+
+D-454 | 2026-10-06 | test\_pattern.py format campaign (the test half of the pattern sub-work; the mirror of D-448).
+         Sweep: 3 provenance method docstrings (the "2026-08-27 minor sweep, item #16/#17/#18" campaign refs — the WHAT
+         kept, the refs dropped; one of them reworded imperative), 5 dated code comments ("2026-08-28 verified /
+         computed live"), 2 non-imperative "Test the ... method prints" docstrings (print\_summary / print — now the
+         golden-noun form, and the hash comment's mask-order slip fixed: the comment said EDGE/ELLE/SNAKE, the
+         mask-sorted order is ELLE/EDGE/SNAKE), 56 trailing-ws lines. FIXED: all of the above + src\_reflow --write →
+         canonical, 1995 lines (was 2019). NO test added or removed: 73/0/3 (no behavior change). test\_pattern.md
+         synced: the header count corrected (65 → 73 — the doc pre-dates the N-D shape-test wave), the 2 stale per-class
+         rows (TestPatternComputeIndexes 4 → 8, TestPatternSetComputePrincipalIndexes 4 → 8, the 4 N-D shape tests named
+         in both).
