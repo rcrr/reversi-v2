@@ -66,7 +66,10 @@ define the evaluation function.
   completion tests): the src\_reflow canonical fixed point, the house docstring conventions, the module docstrings, the
   micro-tests, the mirror docs in budget and faithful; the lm cascade opens: client the D-476 pass (the R-560 canonical
   + the mirror-doc fidelity repair: the 3 D-XXX source removals, the 5 typed entries untyped, the '157 lines.' drop, the
-  2 stale counts + the phantom test row repaired); suite 1100/0/24 at close, the test\_client cell 8/0/1 unchanged).
+  2 stale counts + the phantom test row repaired, the test\_client cell 8/0/1 unchanged); logistic\_model the D-477 pass
+  (the R-560 canonical + the mirror-doc fidelity repair: the D-099 source removal, the 5 missing docstrings, the 18 ->
+  19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); suite 1101/0/24 at
+  close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

@@ -2421,3 +2421,28 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   D-466..D-475) è registrata nel journal solo come bullet, senza il heading "## " né il "Session closed by the
   user." (il precedente delle sessioni senza heading esiste già, documentato nel volume 003); la numerazione di
   questa sessione (99) presuppone che la lineage fosse una singola sessione lunga.
+- D-477 (logistic\_model, un solo D, il piano concordato + l'(a)): (1) sorgente: il riferimento D-099 rimosso dal
+  commento del campo su\_analysis\_tables (R-540), i 5 docstring top-level mancanti aggiunti (canone casa:
+  \_check\_config\_file\_path, \_check\_base\_dir\_override, \_created\_up, \_created\_down, build\_model),
+  i 2 E302 (singolo blank tra defs top-level) corretti, il marker orfano "# ---" via, 9 docstring riavvolti
+  (331 → 330 righe); (2) test: le 4 righe header "# " con trailing whitespace pulite (il reflow non le tocca), i
+  2 trailing spazi di codice + la 1 riga all-whitespace rimossi (convenzione no-ws-lines, verify\_save A14), il
+  doppio blank in-classe (E502) a uno, e l'(a): il test\_build\_model\_builds\_and\_runs\_to\_the\_last\_level —
+  lo script entry build\_model non era pinato da niente (la full-chain importa LogisticModel direttamente, nessun
+  subprocess): con LogisticModel patchato nello namespace del modulo, il costrutto + il move\_to\_last sono pinati;
+  30 → 31 test: 31/0/0; (3) il source mirror doc: i 3 conteggi stale 18 → 19 riparati (il "18 active levels"
+  contraddiceva il suo stesso pin — il probe V3c dice 19; il conteggio dei factory e i "18 workers" della sezione
+  Integration), il "29 tests" → 31 (il test di D-473 non c'era), la derivazione "(A2 + ec·10)" delle Conventions
+  via (contraddiceva la sezione Architecture: entrambi gli fixtures A2xxx girano ec 20), lo script entry
+  build\_model ora pinato nei Verified invariants; (4) il test mirror doc: il conteggio header 29 → 31 + il
+  "537 lines." via, la riga classe 26 → 27 con il test D-473 last/blank-string + il nuovo pin build\_model, il
+  bullet convenzione factory-patch esteso con il patch di LogisticModel. La cella suite dell'overview 30/0/0 →
+  31/0/0. Il punto fisso canonico di src\_reflow su entrambi i file (il test era già canonico).
+- Chiusa la batch logistic\_model (D-477 + onda): (1) sorgente: il D-099 via + i 5 docstring mancanti + i 2 E302 +
+  il marker orfano + 9 docstring riavvolti (331 → 330); (2) test: le 4 righe header pulite + i 3 trailing ws via +
+  l'E502 + l'(a) lo script entry build\_model ora pinato (costrutto + move\_to\_last) — 30 → 31 test: 31/0/0;
+  (3) il source mirror doc: i 3 conteggi 18 → 19 (uno contraddiceva il suo stesso pin), il 29 → 31, la
+  contraddizione A2xxx risolta, il pin dello script entry nei Verified invariants; (4) il test mirror doc: il
+  conteggio header riparato + il "537 lines." via + la riga classe aggiornata. Il giro completo LONG=1 rimesurato
+  a chiusura: suite 1100 → 1101/0/24 (logistic\_model 30 → 31/0/0, il resto invariato). La cascata lm: client
+  (D-476) + logistic\_model (D-477) al canone R-560; prossimo modulo secondo la scelta di Roberto.
