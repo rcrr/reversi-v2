@@ -16,12 +16,14 @@ notes file; the closed volumes (notes/hist_decisions/decisions_000..005, notes/h
 on explicit request (the append-frozen closed history, cleaned and green at D-368). Run it after every notes edit —
 red means no commit (R-200).
 
-The session's three bug classes are permanent codes:
+The session's bug classes are permanent codes:
     BLANK   one blank line before every D-NNN header, no double blank lines     [the D-364 class]
     ESC     no bare _ and no unpaired * outside code spans — the D-209 escape
             rule, extended to the snake_case identifiers (D-365)                [the D-363 class]
     TRAP    no continuation line starting with a token that notes_format would
             misread as a new block (digit+dot, dash, hash, pipe, D-NNN |)      [the 13-space class]
+    LISTMARK no line-leading + / * after up to 3 spaces of indent — Obsidian
+            renders it as a nested list bullet (escape it: \\+ / \\*)          [the D-483 class]
 Plus: HEADER / INDENT / SEQ (decisions), RHEAD / RTITLE / RSPACE / DPOINTER /
 RSEQ (rules), DPH1 / DPSPACE / DPOINTER / DPSEQ (design), JH1 / JPOINTER / JSESSION / JINDENT / JBLANK
 (journals), WIDTH,
@@ -35,7 +37,7 @@ SAFETY: writes nothing. A read-only per-file report on stdout; exit 0 (green) / 
 
 Origin: D-365 (born directly in tools/ — the decisions, register and journal linters); D-367 (the full-format
 extension: the overview, the domain rule files, the ideas); D-368 (the closed volumes green, the historical
-linter extensions).
+linter extensions); D-484 (the LISTMARK line-start code).
 """
 import re
 import subprocess
@@ -71,6 +73,18 @@ def esc_issues(line):
     leftover = re.sub(r'\*\*[^*]*\*\*', '', plain)
     n += len(re.findall(r'(?<!\\)\*', leftover))
     return n
+
+
+LISTMARK = re.compile(r'^\s{0,3}[+*](?=\s|$)')
+
+
+def listmark_issues(line):
+    """Count the LISTMARK violations in one line: a line-leading + or * after
+    up to 3 spaces of indent, OUTSIDE code spans — Obsidian renders it as a
+    nested list bullet (the D-483 class; escape it to \\+ / \\*). A + or *
+    not followed by a space (an inline plus, a ** bold opener) is not a list
+    marker; the line-leading - is the journal's own bullet (intended)."""
+    return len(LISTMARK.findall(plain_of(line)))
 
 
 def canon_ok(path):
@@ -161,6 +175,9 @@ def lint_decisions(path, lines, text):
         e = esc_issues(line)
         if e:
             v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+        lm = listmark_issues(line)
+        if lm:
+            v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
     if not canon_ok(path):
         v.append((0, 'CANON', 'not idempotent under notes_format --write'))
@@ -328,6 +345,9 @@ def lint_design(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+            lm = listmark_issues(line)
+            if lm:
+                v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     # the DPOINTER pass: a D-number in prose is a provenance leak — allowed only
     # inside a quoted example or a code span.
     for n, line in enumerate(lines, 1):
@@ -404,6 +424,9 @@ def lint_journal(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+            lm = listmark_issues(line)
+            if lm:
+                v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     for n in range(1, len(lines) - 1):
         if lines[n] == '' and lines[n - 1] == '' and lines[n + 1] == '':
             v.append((n + 1, 'JBLANK', 'double blank line'))
@@ -548,6 +571,9 @@ def lint_overview(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+            lm = listmark_issues(line)
+            if lm:
+                v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
     if not canon_ok(path):
         v.append((0, 'CANON', 'not idempotent under notes_format --write'))
@@ -587,6 +613,9 @@ def lint_rulefile(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+            lm = listmark_issues(line)
+            if lm:
+                v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
     if not canon_ok(path):
         v.append((0, 'CANON', 'not idempotent under notes_format --write'))
@@ -642,6 +671,9 @@ def lint_ideas(path, lines, text):
             e = esc_issues(line)
             if e:
                 v.append((n, 'ESC', f'{e} bare _ / unpaired * outside code spans'))
+            lm = listmark_issues(line)
+            if lm:
+                v.append((n, 'LISTMARK', f'{lm} line-leading + / * (the Obsidian nested-bullet trap)'))
     common_tail(path, lines, text, v)
     if not canon_ok(path):
         v.append((0, 'CANON', 'not idempotent under notes_format --write'))

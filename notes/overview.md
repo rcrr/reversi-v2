@@ -65,13 +65,13 @@ define the evaluation function.
   base\_model the D-473 pass, random\_game the D-475 pass (the R-560 canonical + the mirror-doc fidelity repair + the
   completion tests): the src\_reflow canonical fixed point, the house docstring conventions, the module docstrings, the
   micro-tests, the mirror docs in budget and faithful; the lm cascade opens: client the D-476 pass (the R-560 canonical
-  + the mirror-doc fidelity repair: the 3 D-XXX source removals, the 5 typed entries untyped, the '157 lines.' drop, the
-  2 stale counts + the phantom test row repaired, the test\_client cell 8/0/1 unchanged); logistic\_model the D-477 pass
-  (the R-560 canonical + the mirror-doc fidelity repair: the D-099 source removal, the 5 missing docstrings, the 18 ->
-  19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); model\_weights the D-478
-  pass (the R-560 canonical + the mirror-doc fidelity repair: the 3 D-144 + the 2 'Roberto's ruling' source removals,
-  the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage gap);
-  hlp\_config\_schemas the D-479 pass (the R-560 canonical + the R-550 identifier repair + the mirror-doc fidelity
+  \+ the mirror-doc fidelity repair: the 3 D-XXX source removals, the 5 typed entries untyped, the '157 lines.' drop,
+  the 2 stale counts + the phantom test row repaired, the test\_client cell 8/0/1 unchanged); logistic\_model the D-477
+  pass (the R-560 canonical + the mirror-doc fidelity repair: the D-099 source removal, the 5 missing docstrings, the
+  18 -> 19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); model\_weights
+  the D-478 pass (the R-560 canonical + the mirror-doc fidelity repair: the 3 D-144 + the 2 'Roberto's ruling' source
+  removals, the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage
+  gap); hlp\_config\_schemas the D-479 pass (the R-560 canonical + the R-550 identifier repair + the mirror-doc fidelity
   repair: the 12 E302 single blanks, the I-017-in-identifier renamed, the phantom pin + the fixture path + the 27 -> 32
   count repaired, the 2 completeness tests 30 -> 32/0/0, the 100-wrap to the corpus 120); hlp\_analytics the D-480 pass
   (the R-560 canonical + the 4 R-540 removals + the 2 over-120 f-string splits + the mirror-doc fidelity repair: the 2

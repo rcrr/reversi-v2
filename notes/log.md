@@ -2555,3 +2555,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   riga (i 386 "+" in linea restano com'è). Altra classe di marker controllata e libera: nessuna
   riga parte a colonna 0 con "\*" o "N. ", il "-" in testa è il bullet del journal (intenzionale).
   La ruling è registrata in D-483.
+- Il controllo del log (notes\_lint) ha un quarto codice permanente: LISTMARK — un + o un \* in testa
+  alla riga (al più 3 spazi di indent, fuori dai code span) non è ammesso, perché Obsidian lo disegna
+  come bullet annidato (la classe D-483). Il check gira sui 7 linter e ha subito beccato una riga
+  esistente nell'overview (la continuazione "\+ the mirror-doc fidelity repair" di Next-steps) —
+  protetta. Le 3 righe a 9 spazi di decisions che partono con "+ " sono sicure (in Obsidian non sono
+  marker di lista) e restano com'è; i 24 marker nei volumi chiusi sono frozen. La ruling: D-484.

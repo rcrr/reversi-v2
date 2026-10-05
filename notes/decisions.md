@@ -846,3 +846,12 @@ D-483 | 2026-10-05 | Journal line-start protection (Obsidian): 5 journal continu
          mid-line "+" untouched, the user's ruling). The same marker class checked and clear: no line begins at column 0
          with "\*" or a "N. " ordered-list marker; the line-leading "-" is the journal's own bullet marker (intended
          rendering).
+
+D-484 | 2026-10-05 | notes\_lint: the new permanent code LISTMARK (the user's request after D-483): no line-leading + or
+         \* after up to 3 spaces of indent, outside code spans — Obsidian renders it as a nested list bullet.
+         Implemented as listmark\_issues(), wired into all seven linters; a + / \* not followed by a space (an inline
+         plus, a \*\* bold opener) is not a list marker, and the line-leading - stays the journal's own bullet
+         (intended). The check caught one existing line — the overview Next-steps cascade continuation " + the
+         mirror-doc fidelity repair", escaped. The three decisions.md 9-space continuations beginning "+ " are not
+         Obsidian list markers (9 > 3 spaces: paragraph lazy continuation) and stay as-is. The closed journal volumes
+         carry 24 such lines — frozen, not re-escaped; they would flag under the new code if linted on explicit request.
