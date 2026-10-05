@@ -59,10 +59,10 @@ define the evaluation function.
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
   wsutils/src\_reflow.py, the docstring conversion).
 - Verify the format of the feature, mobility sources (the same sub-works — the tools sub-package, board, and pattern are
-  COMPLETE: tools the D-438..D-446 session, board the D-447..D-451 session, pattern the D-453..D-455 session: the
-  src\_reflow canonical fixed point (the tool itself gained the doc-comment fix in D-447), the house docstring
-  conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite 1093/0/24 at
-  close).
+  COMPLETE at the R-560 canonical: tools the D-438..D-446 session + the D-461..D-465 new-layout wave, board
+  the D-447..D-451 session + D-459, pattern the D-453..D-455 session + D-458: the src\_reflow canonical fixed point, the
+  house docstring conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite
+  1093/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

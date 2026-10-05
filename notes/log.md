@@ -2188,3 +2188,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   quote-da-solhe; 65 entry private dei tipi (lo strip più pesante della batch — la signature
   dell'optimizer è lunga). 629 → 637 righe. Nessun cambiamento di comportamento: test\\_opt\\_lbfgs
   24/0.
+
+- Chiusa la batch tools sul canone R-560 (D-461..D-465): 5 moduli, 52 docstring ri-fluotate (16+2+5+18+11),
+  147 entry private dei tipi (26+21+14+21+65 — lo strip più pesante in opt\_lbfgs), 2498 → 2537 righe totali;
+  unico fix di contenuto: il refuso del marker #: del doc-comment "Step 3" in cache\_manager (D-463, i fratelli
+  Step 0/1/2 erano già corretti). Il giro completo LONG=1 rimesurato a chiusura: suite invariata 1093/0/24
+  (cambiamenti solo di formato). Next step: feature e mobility, stesso canone — il tool è pronto.
