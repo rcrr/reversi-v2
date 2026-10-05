@@ -2376,3 +2376,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   mirror doc è intatto: verificato pienamente fedele (tutti e 6 gli invariants pinzati a test reali; il
   puntatore D-285 è legittimo per docs\_rules §3.2; nessun difetto §4) e i fix al sorgente sono solo
   docstring, invisibili alle affermazioni del mirror.
+
+- Chiusa la batch random\_game (D-475 + onda): (1) sorgente: il D-221 fuori dal docstring di \_advance\_step
+  (R-540) + il docstring di random\_game\_play\_path ristrutturato (i paragrai nidiati dentro la sezione
+  Returns: tornati nel corpo) + 7 docstring riavvolti (349 → 314); (2) test: i 3 import inutilizzati via, i
+  2 docstring di classe mancanti aggiunti (il (b)), l'unico gap chiuso (il (a)): la gate TargetEcInt ora
+  pinzata (61 e -1 → ValidationError prima di qualsiasi draw) — 42 → 43 test: 43/0/1; (3) il test mirror
+  doc: i 3 conteggi stale della wave N-D riparati (6 → 9, 7 → 10, 9 → 12) + i casi di shape N-D descritti +
+  l'item fantasma "the 1-D guard" via; il source mirror doc intatto (verificato fedele — tutti i 6
+  invariants pinzati a test reali, il puntatore D-285 legittimo per docs\_rules §3.2). Nessun code smell in
+  questa batch: il codice random\_game era pulito (le macchie erano il D-221 nel docstring, il docstring
+  strutturalmente malformato e i 3 import morti). Il giro completo LONG=1 rimesurato a chiusura: suite
+  1099 → 1100/0/24 (random\_game 42 → 43/0/1, il resto invariato). I 7 moduli base (board, pattern,
+  feature, mobility, regab, base\_model, random\_game) sono tutti al canone R-560; next step: lm e i file
+  test.
