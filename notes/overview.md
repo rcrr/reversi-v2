@@ -58,12 +58,13 @@ define the evaluation function.
 - Add the project README (English, like everything else).
 - Verify the format of the WORKER sources — all the sub-works (the history out of the docstrings, the R-520 reflow via
   wsutils/src\_reflow.py, the docstring conversion).
-- Verify the format of the lm and test sources (the same sub-works — the tools sub-package and the four base modules
-  board, pattern, feature, and mobility are COMPLETE at the R-560 canonical: tools the D-438..D-446 session +
+- Verify the format of the lm and test sources (the same sub-works — the tools sub-package and the five base modules
+  board, pattern, feature, mobility, and regab are COMPLETE at the R-560 canonical: tools the D-438..D-446 session +
   the D-461..D-465 new-layout wave, board the D-447..D-451 session + D-459, pattern the D-453..D-455 session + D-458,
-  feature the D-466..D-468 pass, mobility the D-469..D-471 pass (the R-560 canonical + the mirror-doc fidelity repair +
-  the completion tests): the src\_reflow canonical fixed point, the house docstring conventions, the module docstrings,
-  the micro-tests, the mirror docs in budget and faithful; suite 1097/0/24 at close).
+  feature the D-466..D-468 pass, mobility the D-469..D-471 pass, regab the D-472 pass (the R-560 canonical + the
+  mirror-doc fidelity repair + the completion tests): the src\_reflow canonical fixed point, the house docstring
+  conventions, the module docstrings, the micro-tests, the mirror docs in budget and faithful; suite 1098/0/24 at
+  close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
@@ -164,7 +165,7 @@ define the evaluation function.
 | test/reversi/test\_paths.py | complete | 3/0/0/0/0 | [docs/test/reversi/test\_paths.md](docs/test/reversi/test\_paths.md) |
 | test/reversi/test\_pattern.py | complete | 79/0/3/0/0 | [docs/test/reversi/test\_pattern.md](docs/test/reversi/test\_pattern.md) |
 | test/reversi/test\_random\_game.py | complete | 42/0/1/0/0 | [docs/test/reversi/test\_random\_game.md](docs/test/reversi/test\_random\_game.md) |
-| test/reversi/test\_regab.py | complete | 48/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
+| test/reversi/test\_regab.py | complete | 49/0/0/0/0 | [docs/test/reversi/test\_regab.md](docs/test/reversi/test\_regab.md) |
 | test/reversi/tools/test\_binio.py | complete | 56/0/0/0/0 | [docs/test/reversi/tools/test\_binio.md](docs/test/reversi/tools/test\_binio.md) |
 | test/reversi/tools/test\_cache\_manager.py | complete | 22/0/0/0/0 | [docs/test/reversi/tools/test\_cache\_manager.md](docs/test/reversi/tools/test\_cache\_manager.md) |
 | test/reversi/tools/test\_opt\_lbfgs.py | complete | 24/0/0/0/0 | [docs/test/reversi/tools/test\_opt\_lbfgs.md](docs/test/reversi/tools/test\_opt\_lbfgs.md) |

@@ -2313,3 +2313,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   corretto; i conteggi aggiornati: 48 → 49 test (36 + 2 + 11), la riga TestRegabDB 2 → 3 con il re-open di
   activate\_conn. 48 → 49 test: 49/0/0 al giro DB-gated LONG=1. Entrambi i .py al punto fisso canonico di
   src\_reflow (678 → 582 righe di sorgente, 796 → 720 di test — il collasso numpydoc).
+
+- Chiusa la batch regab (D-472 + onda): (1) i 10 docstring numpydoc convertiti al canone Google — l'ultimo
+  modulo numpydoc dell'albero (le due Attributes: piegano i tipi nella prosa, la Methods: via con
+  activate\_conn che guadagna il suo docstring, i Notes: di gp\_as\_df duplicanti eliminati); (2) R-540: i 6
+  riferimenti D-143/D-139 e le "Roberto's ruling" fuori dai docstring; (3) il mismatch doc/codice: il
+  Raises: del loader prometteva un ValueError, il codice (e i test) alzano RuntimeError; (4) il bug di test
+  vero: test\_invalid\_ec\_type senza self.rc (passava per il motivo sbagliato) — corretto; (5) i 5 docstring di
+  test allineati all'eccezione reale (4 ValidationError, 1 TypeError); (6) il nuovo test\_activate\_conn (il
+  punto (b) concordato); (7) i mirror doc: via il "678 lines." stale, l'invariante V5 senza pin fuori dai
+  Verified invariants dentro Conventions, i conteggi 48 → 49. Nessun code smell in questa batch: il codice
+  regab era pulito (la "macchia" era il numpydoc ereditato e i riferimenti di provenienza). Il giro completo
+  LONG=1 rimesurato a chiusura: suite 1097 → 1098/0/24 (regab 48 → 49/0/0, il resto invariato). I 5 moduli
+  base (board, pattern, feature, mobility, regab) sono tutti al canone R-560; next step: lm e i file test.
