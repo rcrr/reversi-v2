@@ -750,3 +750,19 @@ D-477 | 2026-10-05 | The logistic\_model source + test + mirror-doc pass, one co
          count repaired + the "537 lines." drop, the class row 26 -> 27 with the D-473 last/blank-string test + the new
          build\_model pin listed, the factory-patch convention bullet extended with the LogisticModel patch. The
          src\_reflow canonical fixed point on both files (the test was already canonical).
+
+D-478 | 2026-10-05 | The model\_weights source + mirror-doc pass, one commit (the user-approved plan; this file has no
+         test module — by design): (1) source: the 3 D-144 references removed from the comments (R-540: the "D-144
+         (C2):" of the config-provenance field comment, the "(D-144/C2):" of the write section-1 comment, the "(v2
+         only, D-144/C2):" of the read section-1 comment), the 2 "Roberto's ruling" mentions removed (the D-472 regab
+         precedent, incl. the "mettiamola in testa" quote), the 4 trailing-whitespace header "# " lines cleaned (the
+         reflow does not touch them), 2 docstrings reflowed (276 -> 266 lines); (2) the mirror doc: the "276 lines."
+         drop (docs\_rules §4), the 2 "the test module" pointers repaired — no test module exists for this file: the
+         guard messages are pinned by test\_lm\_worker\_full\_chain (the TestModelWeightsReadGuards suite) and the
+         SHA3-256 sidecar is the verify\_sha3\_256\_sidecar call in the full-chain suite (a binio function) —, the 2 O#
+         references removed (the O# family is not a recognized reference family; the processed base docs carry none),
+         the "Pattern/ PatternSet" spacing typo fixed. The coverage analysis found NO gap: the no-DB micro tier
+         (TestModelWeightsReadGuards 2 + TestModelWeightsV2 3: the read guards, the v1 backward-compat read, the v2
+         synthetic-ctx round-trip, the corruption sentinel) lives in test\_lm\_worker\_full\_chain by design (the
+         base\_model precedent); the trained round-trips are pinned by the A2030/A2050 suites and the verify\_save
+         A4-A6b statics (the 18-check census) carry the rest. The src\_reflow canonical fixed point on the source.

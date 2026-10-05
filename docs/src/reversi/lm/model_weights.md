@@ -11,14 +11,12 @@ positions without the database, the cache, or most of the pipeline state.
 |---|---|
 | `ModelWeights` | Plain mutable `@dataclass`, 12 fields: the 10 in file order (`version` — the FILE header version, not a schema version —, `name`, `ec`, `logit_clipping`, `opt_info` (Dict), `training_pop_stats` (Dict), `vld_metrics` (Dict), `feature_set: FeatureSet`, `iwmap_feature_offset` (np.ndarray), `w_dense` (np.ndarray)) + the `config_dump: str \| None = None` / `config_checksum: str \| None = None` pair (defaulted, trailing — the dataclass requires defaulted fields last — although the FILE section LEADS the body); both are None for v1 files; in the pipeline the instance is produced by `model_weights_read_file` (the test client suite constructs one directly) |
 | `model_weights_write_file(ctx, path, compressed=True)` | Serialize the inference subset, section order 0-9 (below); the file header constants: `"RGLM_BINARY_WEIGHTS"` / version 2 |
-| `model_weights_read_file(path, compressed=True) -> ModelWeights` | Mirror of the write order; the two GUARDS first — `ValueError` with the exact messages pinned by the test module: `File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found '<desc>'.` and `File header version, expected '1' or '2', found '<v>'.` — then, v2 only: the config provenance read + the corruption sentinel `Config section checksum mismatch, expected '<stored>', recomputed '<sha3_256 of the dump>'.` (the stored checksum must cover the embedded dump) |
+| `model_weights_read_file(path, compressed=True) -> ModelWeights` | Mirror of the write order; the two GUARDS first — `ValueError` with the exact messages pinned by `test_lm_worker_full_chain` (the TestModelWeightsReadGuards suite): `File header mismatch, expected 'RGLM_BINARY_WEIGHTS', found '<desc>'.` and `File header version, expected '1' or '2', found '<v>'.` — then, v2 only: the config provenance read + the corruption sentinel `Config section checksum mismatch, expected '<stored>', recomputed '<sha3_256 of the dump>'.` (the stored checksum must cover the embedded dump) |
 
 ## Architecture
 
-276 lines.
-
 - Imports: `hashlib` (the sentinel recompute), dataclass, typing (TYPE_CHECKING, Any, Dict), pathlib.Path, numpy, binio
-  `BinaryWriter`/`BinaryReader`, `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/ `PatternSet`; `LMContext`
+  `BinaryWriter`/`BinaryReader`, `Feature`/`FeatureSet`, `Mobility`/`MobilitySet`, `Pattern`/`PatternSet`; `LMContext`
   under TYPE_CHECKING. `__all__` = [ModelWeights, model_weights_read_file, model_weights_write_file].
 - `model_weights_write_file` — section order (the numbered comments are the spec): 0. header (`"RGLM_BINARY_WEIGHTS"`,
   version 2); 1. **configuration provenance (LEADS the body)**: `ctx.config_checksum` (the CONFIG-level fingerprint, the
@@ -74,8 +72,8 @@ None.
 ## Conventions
 
 - The persisted subsets are by design (inference needs): 4/5 opt_info, 4/7 vld metrics, tps 4/4 — nothing in the client
-  or the tests requires the dropped keys (O2, report-only).
-- No `@validate_call` on the two data functions (consistent with hlp_validate / hlp_analytics — O5).
+  or the tests requires the dropped keys (report-only).
+- No `@validate_call` on the two data functions (consistent with hlp_validate / hlp_analytics).
 - The f32 truncation of the float64 tps stats is a FORMAT property, not a bug: the file is the inference artifact, f32
   throughout the weight-bearing parts.
 
@@ -84,5 +82,5 @@ None.
 - Consumed by `wrk_save` (write), `wrk_client_check` + `client` (read) and the test modules (test_client,
   test_lm_worker_full_chain, test_wrk_client_check).
 - The `ModelWeights` instance is the ONLY argument of `make_evaluation_function` — the client API's contract type.
-- File naming: `<cfg.output>` + binio's automatic `<name>.SHA3-256` sidecar (verified by `verify_sha3_256_sidecar` in
-  the test module).
+- File naming: `<cfg.output>` + binio's automatic `<name>.SHA3-256` sidecar (the `verify_sha3_256_sidecar` check in
+  the full-chain suite).

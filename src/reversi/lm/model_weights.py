@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -61,12 +61,10 @@ class ModelWeights:
     feature_set: FeatureSet
     iwmap_feature_offset: np.ndarray
     w_dense: np.ndarray
-    # D-144 (C2): the configuration provenance — the normalized config
-    # dump + its sha3_256 fingerprint, embedded in the model file (the
-    # sidecar record is RETIRED — the model file is the single
-    # source). Both are None for v1 files. They trail the file-order
-    # fields (the dataclass requires defaulted fields last) although
-    # the file section LEADS the body (Roberto's ruling).
+    # The configuration provenance — the normalized config dump + its sha3_256 fingerprint, embedded
+    # in the model file (the sidecar record is RETIRED — the model file is the single source). Both
+    # are None for v1 files. They trail the file-order fields (the dataclass requires defaulted
+    # fields last) although the file section LEADS the body.
     config_dump: str | None = None
     config_checksum: str | None = None
 
@@ -81,20 +79,15 @@ MODEL_WEIGHTS_FILE_HEADER_VER = 2
 def model_weights_write_file(ctx: "LMContext",
                              path: Path,
                              compressed: bool = True) -> None:
-    """
-    Writes the model weights and metadata to a binary file using binio.
-    """
+    """Writes the model weights and metadata to a binary file using binio."""
     with BinaryWriter(path, compressed=compressed) as w:
         # 0. Header
         w.write_header(MODEL_WEIGHTS_FILE_HEADER_STR, version=MODEL_WEIGHTS_FILE_HEADER_VER)
 
-        # 1. Configuration provenance (D-144/C2): the model file is the
-        #    single source of the run's configuration — the normalized
-        #    dump (the effective config, the base_dir override included,
-        #    the same string the sidecar record used to carry) + its
-        #    sha3_256 fingerprint (the CONFIG-level checksum), the
-        #    sentinel first. The section LEADS the body (Roberto's
-        #    ruling: "mettiamola in testa").
+        # 1. Configuration provenance: the model file is the single source of the run's
+        # configuration — the normalized dump (the effective config, the base_dir override included,
+        # the same string the sidecar record used to carry) + its sha3_256 fingerprint (the
+        # CONFIG-level checksum), the sentinel first. The section LEADS the body.
         w.write_string(ctx.config_checksum)
         w.write_string(ctx.cfg.model_dump_json(indent=4))
 
@@ -158,9 +151,7 @@ def model_weights_write_file(ctx: "LMContext",
 
 
 def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights:
-    """
-    Reads a binary model weights file and returns a ModelWeights dataclass.
-    """
+    """Reads a binary model weights file and returns a ModelWeights dataclass."""
     with BinaryReader(path, compressed=compressed) as r:
         header = r.read_header()
         description = header.description
@@ -171,9 +162,8 @@ def model_weights_read_file(path: Path, compressed: bool = True) -> ModelWeights
         if version not in (1, 2):
             raise ValueError(f"File header version, expected '1' or '2', found '{version}'.")
 
-        # Section 1 (v2 only, D-144/C2): the configuration provenance —
-        # the sentinel first, then the dump it covers. v1 files have no
-        # such section (both fields stay None).
+        # Section 1 (v2 only): the configuration provenance — the sentinel first, then the dump it
+        # covers. v1 files have no such section (both fields stay None).
         if version == 2:
             config_checksum = r.read_string()
             config_dump = r.read_string()
