@@ -2094,3 +2094,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sorgente 1192 righe + test al punto fisso canonico del src\_reflow, 32 docstring in forma di casa + module
   docstring, 6 micro-test, mirror doc in budget e fedele, il principio D-452 applicato), il suite a 1093/0/24
   con misurazione LONG=1 fresca; restano feature e mobility.
+
+- D-456 (allineamento delle sezioni delle docstring — osservazione dell'user: le righe dopo la prima
+  erano a colonna zero): la riscrittura di D-453 aveva tenuto il layout legacy del file (prima riga
+  dentro il metodo, le sezioni Args/Returns/Attributes a colonna 0); il canone di casa (il modello
+  board, approvato in D-447/D-450) è: paragrafi all'indent della quote, intestazioni a +4, entry a +8,
+  annidate a +12. Tutte le 33 docstring riallineate; il punto fisso del src\\_reflow regge. Due
+  riparazioni collaterali, disclosed: (1) la module docstring — il primo pass di reindent aveva
+  rovinato i bullet delle design choice (righe fuse, asterischi nudi a fine riga); ripristinata
+  verbatim dal testo approvato di D-453 (il modulo board porta la stessa struttura bullet, è il canone
+  del reflow per le liste dei moduli); (2) la docstring di PatternSet.print — il reflow l'aveva
+  spezzata male dopo il pass rovinato; riportata alla forma una-riga di D-453. Nessun cambiamento di
+  comportamento: 79/0/3. 1197 righe.

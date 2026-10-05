@@ -502,3 +502,14 @@ D-455 | 2026-10-06 | The pattern micro-tests (the user's approval of the D-453 a
          same commit. Suite: 73 → 79 (6 new, all green first run). test\_pattern.md synced (14 classes / 79;
          TestIndexArray row added; TestPatternPack 7 → 9 with R3/R4; TestPatternPrincipalIndex 1 → 2; the explicit
          import named in the Conventions).
+
+D-456 | 2026-10-06 | Docstring section alignment (the user's observation: the lines after the first sat at column 0,
+         fully left-aligned). The D-453 rewrite kept the file's legacy layout (the first line inside the method, the
+         Args/Returns/Attributes sections at column 0); the house canonical (the board model, user-approved
+         in D-447/D-450) is: the body paragraphs at the quote indent, the section headers at +4, the entries at +8, the
+         nested continuations at +12. All 33 docstrings re-laid out to that model; the reflow fixed point holds. Two
+         collateral repairs, disclosed: (1) the module docstring — the first re-indent pass mangled the design-choice
+         bullets (the merged lines, the stray marker at the line ends); restored verbatim from the D-453 approved text
+         (the board module carries the identical bullet structure, it is the reflow canonical for module bullet lists);
+         (2) the PatternSet.print docstring — the reflow had wrapped its long single line in the wrong place after the
+         mangled pass; restored to the D-453 one-line form. No behavior change: 79/0/3. 1197 lines.
