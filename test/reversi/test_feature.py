@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -52,7 +52,7 @@ from reversi.pattern import Pattern, PatternSet, Index
 import numpy as np
 
 import io
-import time        
+import time
 import os
 
 from pydantic import ValidationError
@@ -101,6 +101,13 @@ class TestFeature(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Feature.new_from_pattern("NotAPatternObject")
 
+    def test_new_from_mobility_invalid_type(self):
+        """
+        Ensure input validation fires if a wrong type object is injected (the mobility factory).
+        """
+        with self.assertRaises(ValidationError):
+            Feature.new_from_mobility("NotAMobilityObject")
+
     def test_repr_golden(self):
         """Pin the auto-dataclass __repr__ (ref excluded, repr=False)."""
         self.assertEqual(
@@ -120,9 +127,10 @@ class TestFeature(unittest.TestCase):
             "n_configurations=6561, n_instances=4)")
 
     def test_eq(self):
-        """Pin field-wise __eq__ with ref compared by object identity:
-        Mobility and Pattern define no value __eq__, so distinct but
-        field-identical refs make their Features unequal."""
+        """
+        Pin field-wise __eq__ with ref compared by object identity: Mobility and Pattern define no
+        value __eq__, so distinct but field-identical refs make their Features unequal.
+        """
         m1 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
                       Bitboard(0x0000000000000000))
         m2 = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
@@ -291,20 +299,42 @@ class TestFeatureSet(unittest.TestCase):
 """
         self.assertEqual(actual_output, expected_output)
 
+    def test_print_summary_none_branches(self):
+        """The intercept-only set: the print golden pins the 'is None.' branches."""
+        feature_set = FeatureSet('InterceptOnly', self.intercept, None, None)
+        with io.StringIO() as buffer:
+            feature_set.print_summary(output=buffer)
+            actual_output = buffer.getvalue()
+        expected_output = """FeatureSet: name = InterceptOnly, length = 1, hash = ab7c1b64b96fe0fb85350613ac69b258a4442f56c390d7f69e5a070611e14b12
+  Intercept is present.
+  MobilitySet is None.
+  PatternSet is None.
+  Features: [<i>, <category>, <name>, <n_instances>, <n_configurations>]
+    00 0 INTERCEPT  1          1
+"""
+        self.assertEqual(actual_output, expected_output)
+
     def test_init_invalid_intercept_category_raises_value_error(self):
         """Test that passing a non-INTERCEPT feature as the intercept argument raises ValueError."""
         # Create a valid Mobility feature
         m = Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
         wrong_intercept = Feature.new_from_mobility(m)
-        
+
         with self.assertRaises(ValueError) as context:
             FeatureSet('WrongInterceptSet', wrong_intercept, self.mset, self.pset)
-            
+
         self.assertIn("wrong category", str(context.exception))
 
+    def test_init_invalid_name_type(self):
+        """A non-str name is blocked by the @validate_call gate."""
+        with self.assertRaises(ValidationError):
+            FeatureSet(123, self.intercept, None, None)
+
 class TestFeatureSetFeatureBlocks(unittest.TestCase):
-    """The feature_blocks property: the per-feature column blocks over
-    the non-intercept features (the compute_indexes column layout)."""
+    """
+    The feature_blocks property: the per-feature column blocks over the non-intercept features (the
+    compute_indexes column layout).
+    """
 
     def setUp(self):
         pattern_set_data = [
@@ -334,8 +364,9 @@ class TestFeatureSetFeatureBlocks(unittest.TestCase):
         self.pset = PatternSet('TestPatternSet', plf(pattern_set_data))
 
     def test_feature_blocks_full_set(self):
-        """With the intercept: the blocks start at column 1 (the
-        intercept owns column 0) and end at n_instances."""
+        """
+        With the intercept: the blocks start at column 1 (the intercept owns column 0) and end at n_instances.
+        """
         feature_set = FeatureSet('TestFeatureSet', self.intercept,
                                  self.mset, self.pset)
         self.assertEqual(feature_set.feature_blocks, [
@@ -368,8 +399,10 @@ class TestFeatureSetFeatureBlocks(unittest.TestCase):
                          feature_set.n_instances)
 
     def test_feature_blocks_intercept_only(self):
-        """The intercept is not a block: an intercept-only set has
-        no non-intercept features, so the blocks are empty."""
+        """
+        The intercept is not a block: an intercept-only set has no non-intercept features, so the
+        blocks are empty.
+        """
         feature_set = FeatureSet('InterceptOnly', self.intercept, None, None)
         self.assertEqual(feature_set.feature_blocks, [])
 
@@ -378,9 +411,10 @@ class TestFeatureSetFeatureBlocks(unittest.TestCase):
         self.assertEqual(feature_set.feature_blocks, [])
 
     def test_feature_blocks_instance_aware_contiguous_coverage(self):
-        """Each feature occupies exactly n_instances contiguous
-        columns (the D8 instance columns): the blocks tile the
-        non-intercept columns without gaps, up to n_instances."""
+        """
+        Each feature occupies exactly n_instances contiguous columns (the D8 instance columns): the
+        blocks tile the non-intercept columns without gaps, up to n_instances.
+        """
         feature_set = FeatureSet('TestFeatureSet', self.intercept,
                                  self.mset, self.pset)
         col = 1  # the intercept owns column 0
@@ -415,14 +449,14 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         ]
         ml, ol = zip(*position_data)
         self.positions = make_position(ml, ol)
-        
+
         expected_index_data = [
             [ 0,  4, 515, 5993, 2375,   13, 12, 32,  4, 14 ],
             [ 0,  8, 483,  110, 1517,   27, 29, 44, 41, 24 ],
             [ 0, 15,   0,  612, 1945, 1093, 22, 22, 19, 22 ],
         ]
         self.expected_indexes = np.array(expected_index_data, dtype=Index)
-        
+
         # Derived values for edge-case shape assertions
         self.expected_I = sum(f.n_instances for f in self.fset.features)
 
@@ -436,7 +470,7 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         expected_indexes = self.expected_indexes
 
         computed_indexes = fset.compute_indexes(positions)
-        
+
         np.testing.assert_array_equal(computed_indexes, expected_indexes)
 
     def test_compute_indexes_2d_positions(self):
@@ -451,7 +485,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
                                       self.expected_indexes.reshape(1, 3, self.expected_I))
 
     def test_compute_indexes_3d_positions(self):
-        """A (3, 1, 1) position batch gives a (3, 1, 1, I) index array, element-wise as the 1-D call."""
+        """
+        A (3, 1, 1) position batch gives a (3, 1, 1, I) index array, element-wise as the 1-D call.
+        """
         fset = self.fset
         positions = self.positions.reshape(3, 1, 1)
 
@@ -484,9 +520,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
     def test_compute_indexes_empty_positions(self):
         """Test when N=0 (positions array is empty). Expects shape (0, I)."""
         empty_positions = make_position([], [])
-        
+
         computed_indexes = self.fset.compute_indexes(empty_positions)
-        
+
         # Assert structural 2D shape integrity (0, I)
         self.assertEqual(computed_indexes.shape, (0, self.expected_I))
         self.assertEqual(computed_indexes.dtype, Index)
@@ -496,9 +532,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         """Test when I=0 (no features active). Expects shape (N, 0)."""
         # Create a feature set where intercept, mset, and pset are disabled/None
         empty_fset = FeatureSet('EmptyFeatureSet', intercept=None, mset=None, pset=None)
-        
+
         computed_indexes = empty_fset.compute_indexes(self.positions)
-        
+
         # Assert structural 2D shape integrity (N, 0)
         self.assertEqual(computed_indexes.shape, (len(self.positions), 0))
         self.assertEqual(computed_indexes.dtype, Index)
@@ -508,9 +544,9 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
         """Test when both N=0 and I=0. Expects shape (0, 0)."""
         empty_positions = make_position([], [])
         empty_fset = FeatureSet('EmptyFeatureSet', intercept=None, mset=None, pset=None)
-        
+
         computed_indexes = empty_fset.compute_indexes(empty_positions)
-        
+
         self.assertEqual(computed_indexes.shape, (0, 0))
         self.assertEqual(computed_indexes.dtype, Index)
 
@@ -522,7 +558,7 @@ class TestFeatureSetComputeIndexes(unittest.TestCase):
             "invalid_string", # Text string
             np.array([1, 2])  # Standard numpy array instead of PositionArray
         ]
-        
+
         for wrong_arg in invalid_arguments:
             with self.subTest(wrong_arg=type(wrong_arg)):
                 with self.assertRaises(ValidationError):
@@ -532,9 +568,9 @@ class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_performance_1m(self):
-        
+
         size = 1_000_000
-        
+
         pattern_set_data = [
             ('R2',     0x000000000000FF00),
             ('R3',     0x0000000000FF0000),
@@ -571,8 +607,8 @@ class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
         scale = size // len(position_data)
         self.assertEqual(size, scale * len(position_data))
 
-        # 2. Performance scale-up (Repeat the 2 items 500,000 times)
-        # np.tile repeats the entire array pattern seamlessly and efficiently in C
+        # 2. Performance scale-up (Repeat the 2 items 500,000 times) np.tile repeats the entire
+        # array pattern seamlessly and efficiently in C
         ml_perf = np.tile(ml_base, scale)
         ol_perf = np.tile(ol_base, scale)
 
@@ -588,7 +624,7 @@ class TestFeatureSetComputeIndexesPerf(unittest.TestCase):
 
         N = computed_indexes.shape[0]
         I = computed_indexes.shape[1]
-        
+
         duration = end - start
         print(f"\n[PERF FeatureSet.compute_indexes()] Processed {size:,} positions ({I} index instances) in {duration:.4f}s ({(size/duration):,.0f} pos/sec)")
 

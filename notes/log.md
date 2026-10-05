@@ -2220,3 +2220,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   conteggio 5 → 9; (3) l'header di test\_feature.md 25 (24+1) → 29 (28+1); (4) la sua riga di
   Coverage di TestFeatureSetComputeIndexes 5 → 9 con i test N-D elencati. Doc puliti all'audit;
   nessun cambiamento di sorgente.
+
+- D-468 (i 3 test mancanti di feature — completamento approvato dall'user) + pass R-560 sul file di
+  test + mirror doc ai conteggi finali: (1) test\\_new\\_from\\_mobility\\_invalid\\_type (una str
+  alla factory di mobility → pydantic ValidationError — quella di pattern aveva già il suo
+  gemello); test\\_init\\_invalid\\_name\\_type (nome non-str bloccato dal gate @validate\_call);
+  test\\_print\\_summary\\_none\\_branches (il golden di print del solo-intercept che pinna i rami
+  "MobilitySet is None." / "PatternSet is None.", che il golden del set pieno non eseguiva mai;
+  l'hash ab7c1b64…, lo stesso litterale che pinna il test init solo-intercept). (2) Il file di
+  test: 7 docstring ri-fluotate al canone, whitespace di coda spazzato (i file migrati sono a 0).
+  (3) I mirror doc: test\\_feature.md 29 → 32 (31 run + 1 PERF), le righe di Coverage (TestFeature
+  9, TestFeatureSet 8) + il bullet Goldens + la riga strict-typing; feature.md i conteggi
+  TestFeature (9) / TestFeatureSet (8) e le nuove pin. 29 → 32 test: 32/0/1.

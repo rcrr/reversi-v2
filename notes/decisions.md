@@ -613,3 +613,14 @@ D-467 | 2026-10-06 | The feature mirror-doc fidelity fix (docs\_rules §5: the d
          gained the four N-D invariants ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), F-order parity, empty (0,2) → (0,2,I))
          and the count 5 → 9; (3) test\_feature.md's header 25 (24+1) → 29 (28+1); (4) its Coverage row for
          TestFeatureSetComputeIndexes 5 → 9 with the N-D tests listed. Docs clean at the audit; no source change.
+
+D-468 | 2026-10-06 | The three missing feature tests (the user-approved completion) + the test file's R-560 pass + the
+         mirror docs at the final counts. (1) test\\_new\\_from\\_mobility\\_invalid\\_type (a str argument to the
+         mobility factory → pydantic ValidationError — the pattern factory already had its twin);
+         test\\_init\\_invalid\\_name\\_type (a non-str name blocked by the @validate\_call gate);
+         test\\_print\\_summary\\_none\\_branches (the intercept-only print golden pinning the "MobilitySet is None." /
+         "PatternSet is None." branches, which the full-set golden never executed; the ab7c1b64… feature hash, the same
+         literal the intercept-only init test pins). (2) The test file: 7 docstrings reflowed to the canonical, trailing
+         whitespace stripped (the migrated files are at 0). (3) The mirror docs: test\\_feature.md 29 → 32 (31 run + 1
+         PERF), the Coverage rows (TestFeature 9, TestFeatureSet 8) + the Goldens bullet + the strict-typing line;
+         feature.md's TestFeature (9) / TestFeatureSet (8) counts and the new pins. 29 → 32 tests: 32/0/1.

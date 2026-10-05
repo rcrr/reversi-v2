@@ -2,15 +2,15 @@
 The unit suite of the first pipeline-integration module (the `feature.py` mirror): the `Feature` factory methods + the
 blocked direct construction, `FeatureSet` construction (ordering, n_instances, hash, the intercept category check,
 print_summary), the `feature_blocks` property (the per-feature column blocks) and `FeatureSet.compute_indexes` (the
-3×10 golden, the N-D shape edges, the N=0/I=0 edges, strict typing, the 1M-position PERF). 5 classes / 29 tests (28
-run + 1 PERF skip) / no DB.
+3×10 golden, the N-D shape edges, the N=0/I=0 edges, strict typing, the 1M-position PERF). 5 classes / 32 tests
+(31 run + 1 PERF skip) / no DB.
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestFeature` | 8 | `test_init_raises_runtime_error` (direct `Feature(...)` → RuntimeError); the 3 factories (all 5 fields asserted each, ref equality via dataclass `__eq__`); `test_new_from_pattern_invalid_type` (str arg → pydantic ValidationError); the `__repr__` golden (no `ref`); the field-wise `__eq__`; the unhashable instance |
-| `TestFeatureSet` | 6 | `test_init` (name, the 3 object refs, `n_instances` 53, the 17-value per-feature list, the name-order golden, the pinned hash); the partial-None trio (`test_init_intercept_only` / `_mobility_only` / `_pattern_only`); `test_print_summary` (the full output golden, 3 pinned hashes); `test_init_invalid_intercept_category_raises_value_error` (a MOBILITY-category feature as intercept → ValueError) |
+| `TestFeature` | 9 | `test_init_raises_runtime_error` (direct `Feature(...)` → RuntimeError); the 3 factories (all 5 fields asserted each, ref equality via dataclass `__eq__`); `test_new_from_pattern_invalid_type` + `test_new_from_mobility_invalid_type` (a str arg to either factory → pydantic ValidationError); the `__repr__` golden (no `ref`); the field-wise `__eq__`; the unhashable instance |
+| `TestFeatureSet` | 8 | `test_init` (name, the 3 object refs, `n_instances` 53, the 17-value per-feature list, the name-order golden, the pinned hash); the partial-None trio (`test_init_intercept_only` / `_mobility_only` / `_pattern_only`); `test_print_summary` (the full output golden, 3 pinned hashes); `test_print_summary_none_branches` (the intercept-only print golden: the 'MobilitySet is None.' / 'PatternSet is None.' branches); `test_init_invalid_intercept_category_raises_value_error` (a MOBILITY-category feature as intercept → ValueError); `test_init_invalid_name_type` (a non-str name → ValidationError) |
 | `TestFeatureSetFeatureBlocks` | 5 | `test_feature_blocks_full_set` (the 16-block list golden on the 13-pattern + 3-mobility fixture: the names, the column ranges, the per-feature `n_configurations` / `n_instances`, the intercept owning column 0); `test_feature_blocks_without_intercept` (the blocks start at column 0); `test_feature_blocks_intercept_only` + `test_feature_blocks_empty` (no non-intercept features → `[]`); `test_feature_blocks_instance_aware_contiguous_coverage` (every block width = its `n_instances`, the contiguous tiling up to `n_instances`) |
 | `TestFeatureSetComputeIndexes` | 9 | `test_compute_indexes` (the 3×10 literal golden via assertArrayEqual); the N-D shape tests ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), the F-order parity, the empty (0,2) → (0,2,I)); the empty edges (empty positions (0,10), empty features (3,0), both (0,0) + dtype); `test_compute_indexes_wrong_argument_type` (None / list / str / int64 ndarray → ValidationError, subTest loop) |
 | `TestFeatureSetComputeIndexesPerf` | 1 | `test_performance_1m` (PERF=1: 1M positions, 51 instances, warmup, throughput print, N/I asserts only) |
@@ -27,13 +27,16 @@ run + 1 PERF skip) / no DB.
   order — the ordering contract exercised for free).
 - The `feature_blocks` 16-block list (the full-set fixture with the intercept: every name, column range and
   `n_configurations` / `n_instances` a literal — the column layout pinned at the source).
+- The intercept-only print_summary golden (the 7-line output with the 'MobilitySet is None.' /
+  'PatternSet is None.' branches and the ab7c1b64… feature hash).
 - The 51-instance figure of the PERF build.
 
 ## Conventions
 
 - How to run (header): from the workspace root, `time PERF=0 python3 -m unittest test.reversi.test_feature` — `PERF=1`
   enables the 1M-position test (print-only, no gate — consistent with the whole repo).
-- Strict-typing tests assert `pydantic.ValidationError` (1 in TestFeature, 4 wrong argument types in the subTest loop).
+- Strict-typing tests assert `pydantic.ValidationError` (the two wrong-type factory arguments and the non-str set
+  name, plus the 4 wrong argument types in the subTest loop).
 - No hash self-comparisons: the literals are goldens re-derived from the public API (never from the code under test).
 
 ## Integration

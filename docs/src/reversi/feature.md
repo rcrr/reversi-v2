@@ -47,8 +47,8 @@ matrix a feature-table evaluation consumes).
 ## Verified invariants
 
 - Direct construction raises RuntimeError; the three factories assert all 5 fields each (ref equality via dataclass
-  `__eq__`); a str argument to a factory → pydantic ValidationError; the `__repr__` golden; the field-wise `__eq__`; the
-  instance is unhashable — `TestFeature` (8).
+  `__eq__`); a str argument to either factory → pydantic ValidationError; the `__repr__` golden; the field-wise
+  `__eq__`; the instance is unhashable — `TestFeature` (9).
 - `FeatureSet` construction on the 13-pattern + 3-mobility fixture (built in INSERTION order, deliberately different
   from the child sets' sorted storage order): name, the 3 object refs, `n_instances` 53, the 17-value per-feature list +
   the name-order golden (the ordering contract exercised for free), the pinned hash; the partial-None trio
