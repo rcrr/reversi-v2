@@ -68,8 +68,10 @@ define the evaluation function.
   + the mirror-doc fidelity repair: the 3 D-XXX source removals, the 5 typed entries untyped, the '157 lines.' drop, the
   2 stale counts + the phantom test row repaired, the test\_client cell 8/0/1 unchanged); logistic\_model the D-477 pass
   (the R-560 canonical + the mirror-doc fidelity repair: the D-099 source removal, the 5 missing docstrings, the 18 ->
-  19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); suite 1101/0/24 at
-  close).
+  19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); model\_weights the D-478
+  pass (the R-560 canonical + the mirror-doc fidelity repair: the 3 D-144 + the 2 'Roberto's ruling' source removals,
+  the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage gap); suite
+  1101/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

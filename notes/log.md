@@ -2446,3 +2446,20 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   conteggio header riparato + il "537 lines." via + la riga classe aggiornata. Il giro completo LONG=1 rimesurato
   a chiusura: suite 1100 → 1101/0/24 (logistic\_model 30 → 31/0/0, il resto invariato). La cascata lm: client
   (D-476) + logistic\_model (D-477) al canone R-560; prossimo modulo secondo la scelta di Roberto.
+- D-478 (model\_weights, un solo D, il piano concordato; il file non ha test module — by design): (1) sorgente: i
+  3 riferimenti D-144 rimossi dai commenti (R-540), i 2 "Roberto's ruling" rimossi (il precedente regab D-472,
+  inclusa la citazione "mettiamola in testa"), le 4 righe header "# " con trailing whitespace pulite (il reflow non
+  le tocca), 2 docstring riavvolti (276 → 266 righe); (2) il mirror doc: il "276 lines." via (docs\_rules §4), i 2
+  pointer "the test module" riparati — non esiste un test module per questo file: i guard messages sono pinati da
+  test\_lm\_worker\_full\_chain (suite TestModelWeightsReadGuards) e il sidecar SHA3-256 è la chiamata
+  verify\_sha3\_256\_sidecar nella full-chain suite (funzione di binio) —, i 2 riferimenti O# rimossi (la famiglia
+  O# non è un reference family riconosciuto), il typo "Pattern/ PatternSet" corretto. L'analisi di copertura non ha
+  trovato gap: il micro-tier no-DB (TestModelWeightsReadGuards 2 + TestModelWeightsV2 3: i read guards, la lettura
+  backward-compat v1, il round-trip v2 synthetic-ctx, il corruption sentinel) vive in test\_lm\_worker\_full\_chain
+  by design (il precedente base\_model); i round-trip addestrati sono pinati dalle suite A2030/A2050 e le statics
+  verify\_save A4-A6b (censu 18-check) coprono il resto. Il punto fisso canonico di src\_reflow sul sorgente.
+- Chiusa la batch model\_weights (D-478 + onda): le macchie erano la provenance (3× D-144 + 2× "Roberto's ruling"),
+  il line-count nel mirror e i 2 pointer al "test module" inesistente; nessun code smell e nessun gap di copertura
+  (il formato file v1/v2 + il sentinel sono pinati no-DB dalla full-chain suite). Nessuna cella suite si muove
+  (nessun test toccato): la suite resta 1101/0/24. La cascata lm: client (D-476), logistic\_model (D-477),
+  model\_weights (D-478) al canone R-560; prossimo modulo secondo la scelta di Roberto.
