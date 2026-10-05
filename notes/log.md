@@ -2279,3 +2279,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   nella suite dopo la wave N-D di D-417. I mirror doc ai conteggi finali: test\\_mobility.md
   30 → 31 (30 run + 1 PERF), la riga di Coverage 23 → 24 + il loop subTest elencato; il bullet
   N-D di mobility.md prende la pin dello strict typing. 30 → 31 test: 31/0/1.
+
+- Chiusa la batch mobility (D-469..D-471): (1) il pass formato su sorgente e test — canone R-560
+  (10 docstring su 14 nel sorgente, i due blocco-formula preservati verbatim; 5 nel test), 6 entry
+  Args: private dei tipi, la firma del kernel da 142 char spezzata (tetto R-520), il print PERF da
+  130 riavvolto, whitespace e blank line; un fix di wording (la property masks contiene le coppie
+  (mask, amask)); (2) la fede dei mirror doc — la stessa classe di drift di feature (la wave N-D di
+  D-417 non aveva aggiornato i conteggi e le tavole: 26 → 30, Coverage 19 → 23 con i 4 test N-D),
+  via il "306 lines." stale, il "Public" di popcount64 riallineato al docstring; (3) l'unico test
+  mancante: il wrong-argument-type di compute\_indexes (l'idiom subTest di feature). Nessun code
+  smell in questa batch: il codice mobility era pulito. Il giro completo LONG=1 rimesurato a
+  chiusura: suite 1096 → 1097/0/24 (mobility 30 → 31/0/1, il resto invariato). I 4 moduli base
+  (board, pattern, feature, mobility) sono tutti al canone R-560; next step: lm e i file test.
