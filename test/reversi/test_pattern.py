@@ -66,6 +66,7 @@ from reversi.board import (
     make_position, position_check_collisions, position_print
 )
 from reversi.pattern import *
+from reversi.pattern import validate_index_array
 
 
 
@@ -241,6 +242,22 @@ class TestPatternType(unittest.TestCase):
         self.assertEqual(PatternType.TYPE_3D.data,
             {"type": "3D", "sample_mask": 0x0000000000000001, "sample_name": "DOTA1",
              "level": 2, "n_instances": 4, "n_stabilizers": 2})
+
+class TestIndexArray(unittest.TestCase):
+    """The IndexArray validator: the ndarray dtype is enforced, non-arrays pass through."""
+
+    def test_rejects_non_uint32_ndarray(self):
+        with self.assertRaises(ValueError) as context:
+            validate_index_array(np.array([1, 2, 3], dtype=np.uint64))
+        self.assertIn("uint32", str(context.exception))
+
+    def test_passes_uint32_ndarray(self):
+        a = np.array([1, 2, 3], dtype=np.uint32)
+        self.assertIs(validate_index_array(a), a)
+
+    def test_passes_non_array(self):
+        v = np.uint32(7)
+        self.assertIs(validate_index_array(v), v)
 
 class TestPatternPack(unittest.TestCase):
 
@@ -460,6 +477,129 @@ class TestPatternPack(unittest.TestCase):
             Bitboard(0x0000000000002000), # c6
             Bitboard(0x0000000000004000), # c7
             Bitboard(0x0000000000008000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+
+    def test_r3(self):
+        p = Pattern('R3', Bitboard(0x0000000000FF0000))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x0000000000FF0000
+        ])
+        expected_unpack_masks = np.array([
+            0x0000000000FF,
+        ])
+        expected_pack_shifts = np.array([16])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x00000000000000FF), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000001), # c1
+            Bitboard(0x0000000000000002), # c2
+            Bitboard(0x0000000000000004), # c3
+            Bitboard(0x0000000000000008), # c4
+            Bitboard(0x0000000000000010), # c5
+            Bitboard(0x0000000000000020), # c6
+            Bitboard(0x0000000000000040), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
+
+        unpacked = [p._unpack_bb(s) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x0000000000FF0000), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000FF0000), # r3
+            Bitboard(0x0000000000000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x00000000010000), # c1
+            Bitboard(0x00000000020000), # c2
+            Bitboard(0x00000000040000), # c3
+            Bitboard(0x00000000080000), # c4
+            Bitboard(0x00000000100000), # c5
+            Bitboard(0x00000000200000), # c6
+            Bitboard(0x00000000400000), # c7
+            Bitboard(0x00000000800000), # c8
+        ]
+        self.assertEqual(unpacked, expected_unpacked)
+
+    def test_r4(self):
+        p = Pattern('R4', Bitboard(0x00000000FF000000))
+        pack_masks, unpack_masks, pack_shifts = p.pack_plan
+        expected_pack_masks = np.array([
+            0x00000000FF000000
+        ])
+        expected_unpack_masks = np.array([
+            0x0000000000FF,
+        ])
+        expected_pack_shifts = np.array([24])
+        nptest.assert_array_equal(expected_pack_masks, pack_masks)
+        nptest.assert_array_equal(expected_unpack_masks, unpack_masks)
+        nptest.assert_array_equal(expected_pack_shifts, pack_shifts)
+
+        packed = [p._pack_bb(s) for s in self.bitboard_list]
+        expected = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000000000FF), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x00000000000000FF), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000000000001), # c1
+            Bitboard(0x0000000000000002), # c2
+            Bitboard(0x0000000000000004), # c3
+            Bitboard(0x0000000000000008), # c4
+            Bitboard(0x0000000000000010), # c5
+            Bitboard(0x0000000000000020), # c6
+            Bitboard(0x0000000000000040), # c7
+            Bitboard(0x0000000000000080), # c8
+        ]
+        self.assertEqual(packed, expected)
+        self.run_test_vectorized(p, expected)
+
+        unpacked = [p._unpack_bb(s) for s in packed]
+        expected_unpacked = [
+            Bitboard(0x0000000000000000), # empty
+            Bitboard(0x00000000FF000000), # full
+            Bitboard(0x0000000000000000), # r1
+            Bitboard(0x0000000000000000), # r2
+            Bitboard(0x0000000000000000), # r3
+            Bitboard(0x00000000FF000000), # r4
+            Bitboard(0x0000000000000000), # r5
+            Bitboard(0x0000000000000000), # r6
+            Bitboard(0x0000000000000000), # r7
+            Bitboard(0x0000000000000000), # r8
+            Bitboard(0x0000000001000000), # c1
+            Bitboard(0x0000000002000000), # c2
+            Bitboard(0x0000000004000000), # c3
+            Bitboard(0x0000000008000000), # c4
+            Bitboard(0x0000000010000000), # c5
+            Bitboard(0x0000000020000000), # c6
+            Bitboard(0x0000000040000000), # c7
+            Bitboard(0x0000000080000000), # c8
         ]
         self.assertEqual(unpacked, expected_unpacked)
 
@@ -1560,6 +1700,14 @@ class TestPatternPrincipalIndex(unittest.TestCase):
         self.assertIsInstance(principal, np.ndarray)
         self.assertEqual(principal.shape, (3,))
         self.assertEqual(principal[0], 0)  # Index 0 is always its own principal
+
+    def test_convert_to_principal_index_array(self):
+        p = Pattern('ELLE', Bitboard(0x0000000000000107))
+        p.compute_principal_index_dict()
+        computed = p.convert_to_principal_index(np.array([0, 1, 2], dtype=Index))
+        nptest.assert_array_equal(computed, p.principal_index_dict[[0, 1, 2]])
+        with self.assertRaises(ValidationError):
+            p.convert_to_principal_index(np.array([0, 1, 2], dtype=np.uint64))
 
 class TestPatternComputePrincipalIndexDict(unittest.TestCase):
 

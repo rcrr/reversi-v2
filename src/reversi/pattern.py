@@ -753,10 +753,11 @@ Returns:
         """Convert configuration indexes to their principal indexes (computes the dictionary on first use).
 
 Args:
-    index (IndexArray): a uint32 configuration index (scalar or array).
+    index (IndexArray): an array of uint32 configuration indexes (the ndarray dtype is enforced; a
+        scalar is rejected by the NDArray check).
 
 Returns:
-    The principal index (scalar or array, matching the input)."""
+    The principal indexes (an IndexArray, the same shape as the input)."""
         if self.principal_index_dict is None:
             self.compute_principal_index_dict()
         principal_index = self.principal_index_dict[index]

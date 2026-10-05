@@ -2076,3 +2076,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   header corretto (65 → 73 — il doc precede l'onda dei test N-D), le 2 righe per-class stali
   (TestPatternComputeIndexes 4 → 8, TestPatternSetComputePrincipalIndexes 4 → 8, i 4 test N-D nominati in
   entrambe).
+
+- D-455 (i micro-test del pattern — approvati dall'user): a) TestIndexArray (classe nuova, 3 test): il
+  contratto documentato del BeforeValidator di IndexArray pinnato direttamente (ndarray non-uint32 →
+  ValueError, ndarray uint32 e non-array passano — la clausola "scalars pass through" della riga del
+  doc). b) Il pin pubblico array: convert\_to\_principal\_index con array uint32 (valori verificati col
+  dict) e uint64 (ValidationError). c) I test pack di R3/R4 (la claim "R2-R4" del doc resa vera — stessa
+  struttura di test\_r2: pack-plan + i 18 goldens packed/unpacked). Scrittura di (b): la probe empirica
+  ha catturato un errore nella docstring di D-453 — il metodo pubblico RIFIUTA gli scalari (il check NDArray
+  dopo il BeforeValidator), quindi la claim "scalar or array" è corretta in "an array ... (a scalar is
+  rejected)" nella docstring sorgente e nella riga contratto del mirror doc — disclosed qui, corretto
+  nello stesso commit. Suite: 73 → 79 (6 nuovi, tutti verdi al primo giro). test\_pattern.md
+  sincronizzata (14 classi / 79; riga TestIndexArray aggiunta; TestPatternPack 7 → 9 con R3/R4;
+  TestPatternPrincipalIndex 1 → 2; l'import esplicito nominato nelle Conventions).

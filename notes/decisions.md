@@ -489,3 +489,16 @@ D-454 | 2026-10-06 | test\_pattern.py format campaign (the test half of the patt
          synced: the header count corrected (65 → 73 — the doc pre-dates the N-D shape-test wave), the 2 stale per-class
          rows (TestPatternComputeIndexes 4 → 8, TestPatternSetComputePrincipalIndexes 4 → 8, the 4 N-D shape tests named
          in both).
+
+D-455 | 2026-10-06 | The pattern micro-tests (the user's approval of the D-453 analysis gaps). a) TestIndexArray (new
+         class, 3 tests): the documented IndexArray BeforeValidator contract pinned directly (a non-uint32 ndarray
+         raises ValueError, the uint32 ndarray and the non-array pass through — the "scalars pass through" clause of the
+         doc line). b) The public convert array pin: convert\_to\_principal\_index with a uint32 array (value-checked
+         against the dict) and a uint64 array (ValidationError). c) The R3/R4 pack tests (the doc's "R2-R4" coverage
+         claim made true — same structure as test\_r2: pack-plan + the 18 bitboard packed/unpacked goldens). While
+         writing (b) the empirical probe caught an error in the D-453 docstring: the public method REJECTS scalars (the
+         NDArray check after the BeforeValidator), so the "scalar or array" claim is corrected to "an array ... (a
+         scalar is rejected)" in the source docstring and the mirror doc contract line — disclosed here, fixed in this
+         same commit. Suite: 73 → 79 (6 new, all green first run). test\_pattern.md synced (14 classes / 79;
+         TestIndexArray row added; TestPatternPack 7 → 9 with R3/R4; TestPatternPrincipalIndex 1 → 2; the explicit
+         import named in the Conventions).
