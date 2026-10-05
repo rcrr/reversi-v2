@@ -513,3 +513,24 @@ D-456 | 2026-10-06 | Docstring section alignment (the user's observation: the li
          (the board module carries the identical bullet structure, it is the reflow canonical for module bullet lists);
          (2) the PatternSet.print docstring — the reflow had wrapped its long single line in the wrong place after the
          mangled pass; restored to the D-453 one-line form. No behavior change: 79/0/3. 1197 lines.
+
+D-457 | 2026-10-06 | The house docstring canonical encoded in src\\_reflow (the user-approved layout; the register
+         amendment follows as the last step of the campaign). The tool now lays out EVERY docstring to the canonical:
+         (1) the one-line form — a single-paragraph docstring that fits the R-520 preferred 100 (the physical line,
+         indents included) is one line, three double quotes, the text, three double quotes, no spaces; the tool
+         collapses the multi-line docstrings that fit and expands the one-line docstrings that do not (the single-line
+         threshold moved from the 120 ceiling to the 100 preferred); (2) every other docstring opens and closes with a
+         stand-alone quote line, the text starts immediately at the quote indent (no leading blank), the body paragraphs
+         and the section headings (Args:/Returns:/Raises:/Yields:/Examples:/References:/Attributes: — Attributes added
+         to the heading set) sit at that same indent behind a blank line, the entries at +4, a wrapped entry description
+         at +8. The entries are untyped in the canonical (name: description — the Pydantic annotation in the signature
+         is the type); the tool does NOT strip or add types (a parenthetical can be a gloss, not a type): the un-typing
+         is the one-shot per-module migration. The rebase is by ROLE (paragraph / heading / entry / continuation /
+         hand-placed deep line), so the old variants (the inline first line with the body at the quote, the D-447 board
+         model at +4/+8/+12, the legacy column-0 bodies) all converge. Two bugs found and fixed during the pattern and
+         board migrations, disclosed: (a) the ENTRY regex did not match a type with nested parens (np.ndarray(8,
+         Bitboard)) — a user-split entry was swallowed into the previous entry as a continuation; replaced with a
+         bounded single-level regex (no catastrophic backtracking); (b) the base measure included the lifted inline
+         first line, which masked the old board body paragraphs (one level BELOW the quote) as deep hand-placed lines —
+         the board migration was restored from git and redone with the fix (the base is now measured on the real body
+         lines only). The tool's own WHAT IT IS describes the new canonical; the tool is self-canonical.

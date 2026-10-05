@@ -2106,3 +2106,26 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   del reflow per le liste dei moduli); (2) la docstring di PatternSet.print — il reflow l'aveva
   spezzata male dopo il pass rovinato; riportata alla forma una-riga di D-453. Nessun cambiamento di
   comportamento: 79/0/3. 1197 righe.
+
+- D-457 (il canone docstring codificato nel src\\_reflow — il layout approvato dall'user; l'emendamento
+  del registro è l'ultimo passo della campagna): il tool ora porta OGNI docstring al canone. (1) Forma
+  una-riga: un docstring monosezione che sta nel preferred 100 di R-520 (riga fisica, indent inclusi) è
+  una riga — tre doppie virgolette, testo, tre doppie virgolette, senza spazi; il tool CONTRAE i
+  multi-linea che ci stanno e ESPANDE le una-riga che non ci stanno (la soglia passa dal tetto 120 al
+  preferred 100). (2) Ogni altro docstring apre e chiude con la quote da sola, il testo parte subito
+  all'indent della quote (niente blank di apertura), paragrafi e intestazioni di sezione (Args:/
+  Returns:/Raises:/Yields:/Examples:/References:/Attributes: — Attributes aggiunta all'insieme) stanno a
+  quello stesso indent dietro una blank, le entry a +4, le descrizioni a capo a +8. Le entry sono
+  non-tipizzate nel canone (nome: descrizione — l'annotazione Pydantic nella signature è il tipo); il
+  tool NON toglie né aggiunge tipi (un parentético può essere una glossa, non un tipo): lo smantellamento
+  è la migrazione one-shot per modulo. Il rebase è per RUOLO (paragrafo/intestazione/entry/
+  continuazione/riga profonda a mano), quindi le vecchie varianti (prima riga inline col corpo alla
+  quote, il modello board D-447 a +4/+8/+12, i corpo legacy a colonna zero) convergono tutte. Due bug
+  trovati e corretti durante le migrazioni pattern e board, disclosed: (a) la regex ENTRY non
+  riconosceva un tipo con parentesi annidate (np.ndarray(8, Bitboard)) — una entry splitata dall'user
+  era stata inghiottita come continuazione dell'entry precedente; sostituita con una regex monolivello
+  delimitata (no backtracking catastrofico); (b) la misura della base includeva la prima riga inline
+  rialzata, che mascherava i paragrafi di corpo del vecchio board (un livello SOTTO la quote) come righe
+  profonde a mano — la migrazione board è stata ripristinata dal git e rifatta col fix (la base ora si
+  misura solo sulle righe di corpo reali). Il WHAT IT IS del tool descrive il nuovo canone; il tool è
+  self-canonical.

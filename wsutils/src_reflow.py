@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
-"""src_reflow.py — the R-520 source-prose re-wrapper for the .py sources.
+"""
+src_reflow.py — the R-520 source-prose re-wrapper for the .py sources.
 
 WHAT IT IS: a MAINTENANCE tool, the source sibling of wsutils/notes_format.py (that one re-wraps the
 notes/ + docs/ Markdown; this one re-wraps the SOURCE PROSE of the .py files): it re-wraps the
 docstring lines and the multi-line `#` comment blocks to the R-520 widths — a PREFERRED 100
 characters per line, and a line may exceed 100, up to the 120-character ceiling, only to avoid
 leaving a single word alone on the next line (the pull-up; if the pull-up would pass 120, the break
-stands). Structure is preserved: the Google section layout (the Args:/Returns:/Raises:/… headings,
-the typed entries), the indented "fixed" lines (the API tables, the code samples), the base-indented
-paragraphs that carry a double space (ASCII art, the aligned board diagrams), the license banner
-(the `#` run containing 'Copyright'), the divider lines, and the single-line docstrings that already
-fit. CODE IS TOUCHED NOT AT ALL: the expression merges of R-520's code clause are a manual
-format-pass sub-work, with the per-file tests.
+stands). The docstring layout is the house canonical: a single-paragraph docstring that fits the
+preferred width is one line (\"\"\"text\"\"\"); every other docstring stands alone on its opening
+and closing quotes, the text starts immediately at the quote's indent, the section headings
+(Args:/Returns:/Raises:/Attributes:/…) sit at that same indent behind a blank line, the entries at
++4, and a wrapped entry description at +8 — the entries are untyped (the Pydantic annotation in the
+signature is the type). The tool re-lays out any old variant to that canonical (the inline first
+line, the section indents, the legacy column-0 bodies) and collapses the multi-line docstrings that
+fit the one-line form. Structure is preserved otherwise: the indented "fixed" lines (the API tables,
+the code samples), the base-indented paragraphs that carry a double space (ASCII art, the aligned
+board diagrams), the license banner (the `#` run containing 'Copyright'), the divider lines, and the
+single-line docstrings that already fit. CODE IS TOUCHED NOT AT ALL: the expression merges of
+R-520's code clause are a manual format-pass sub-work, with the per-file tests.
 
 USAGE (from the workspace root):
   .venv/bin/python wsutils/src_reflow.py FILE [FILE …]         # the default: a check (a report)
@@ -43,10 +50,10 @@ PREF = 100  # R-520: the preferred prose width
 CEIL = 120  # R-520: the ceiling of every physical line
 
 HEADING = re.compile(
-    r'^(Args|Returns|Raises|Yields|Examples|References)( \(internal\))?:$')
+    r'^(Args|Returns|Raises|Yields|Examples|References|Attributes)( \(internal\))?:$')
 # entry start: identifier (optionally a [bracketed] generic), optional (type), the colon right after
 # the word or the closing paren/bracket.
-ENTRY = re.compile(r'^[A-Za-z_][A-Za-z0-9_\.]*(\[[^\]]*\])?\s*(\([^)]*\))?:\s+\S')
+ENTRY = re.compile(r'^[A-Za-z_][A-Za-z0-9_\.]*(\[[^\]]*\])?\s*(\((?:[^()]*|\([^()]*\)[^()]*)\))?:\s+\S')
 COMMIT_COMMENT = re.compile(r'^(\s*)#(.*?)\s*$')
 DIVIDER = re.compile(r'^-+$')
 
@@ -61,8 +68,10 @@ def greedy(text, width):
 
 
 def wrap_prose(text, width, ceil):
-    """Greedy fill at `width`; the single-word pull-up: if the final line is one word and merging
-    stays within `ceil`, merge it."""
+    """
+    Greedy fill at `width`; the single-word pull-up: if the final line is one word and merging stays
+    within `ceil`, merge it.
+    """
     lines = greedy(text, width)
     if len(lines) >= 2 and ' ' not in lines[-1]:
         merged = lines[-2] + ' ' + lines[-1]
@@ -95,9 +104,11 @@ def docstring_nodes(tree):
 
 
 def build_groups(content, base):
-    """Split the docstring content lines into groups: ('blank', None), ('prose', [stripped lines]),
+    """
+    Split the docstring content lines into groups: ('blank', None), ('prose', [stripped lines]),
     ('heading', line), ('entry', [raw lines]), ('fixed', raw line) — the indented non-entry lines
-    (the API tables, the code samples) are preserved verbatim."""
+    (the API tables, the code samples) are preserved verbatim.
+    """
     groups = []
     i = 0
     n = len(content)
@@ -218,47 +229,78 @@ def emit(groups, base, first_inline=False):
 
 
 def reformat_docstring(raw):
-    """Reflow one docstring literal (the full line span, quotes included). Returns the new literal text."""
+    """
+    Reformat one docstring literal (the full line span, quotes included) to the house canonical. A
+    single-paragraph body that fits the preferred width becomes the one-line form: \"\"\"text\"\"\".
+    Otherwise the quotes stand alone on the first and last line, the text starts immediately at the
+    quote's indent, the section headings sit at that same indent behind a blank line, the entries at
+    +4, and a wrapped entry description at +8.
+    """
     i = raw.find('"""')
     j = raw.rfind('"""')
     if i == -1 or j <= i:
         raise ReflowError('no double-triple-quote span in the literal')
     quote_indent = indent_of(raw.split('\n', 1)[0])
     body = raw[i + 3:j]
-    first_line = raw.split('\n', 1)[0]
-    first_inline = bool(first_line[i + 3:].strip())
-    close_line = raw.split('\n')[-1]
-    close_inline = (close_line.rfind('"""')
-                    > len(close_line) - len(close_line.lstrip()))
     frags = body.split('\n')
+    first_inline = bool(frags[0].strip())
+    # a leading blank (the old stand-alone form) drops with the quote line.
+    real_body = frags[1:]
+    if real_body and real_body[-1].strip() == '':
+        real_body = real_body[:-1]
     if first_inline:
-        rest_nob = [l for l in frags[1:] if l.strip()]
-        if not rest_nob:
-            # a single-line docstring: leave it (it fits — a longer one would have been expanded by
-            # the caller)
-            return raw
-        base = min(indent_of(l) for l in rest_nob)
-        content = [' ' * base + frags[0]] + frags[1:]
+        # the old canonical: the first line shares the quote's line; lift it to a body line. The
+        # base is measured on the REAL body lines only: in that old canonical the body paragraphs
+        # sit one level BELOW the quote (the lifted first line would mask them).
+        content = [' ' * quote_indent + frags[0].strip()] + real_body
     else:
-        if frags[0].strip() != '':
-            raise ReflowError(f'unexpected opening line: {frags[0]!r}')
-        content = frags[1:]
-        if content and content[-1].strip() == '' and not close_inline:
-            content = content[:-1]
-        nob = [l for l in content if l.strip()]
-        base = min(indent_of(l) for l in nob)
-    body_lines = emit(build_groups(content, base), base, first_inline)
-    if not body_lines:
+        content = real_body
+    if not any(l.strip() for l in content):
         raise ReflowError('empty docstring body')
-    if first_inline:
-        lines = [' ' * quote_indent + '"""' + body_lines[0].strip()]
-        lines += body_lines[1:]
-    else:
-        lines = [' ' * quote_indent + '"""'] + body_lines
-    if close_inline:
-        lines[-1] = lines[-1] + '"""'
-    else:
-        lines.append(' ' * quote_indent + '"""')
+    real_nob = [l for l in real_body if l.strip()]
+    base0 = min(indent_of(l) for l in real_nob) if real_nob else quote_indent
+    # Rebase to the house relative structure by ROLE, not by arithmetic: every old variant (the
+    # inline first line with the body at the quote / +4 / +8 / +12, the legacy body at column 0 with
+    # the headings at the base and the entries at +4, the new stand-alone form) classifies cleanly.
+    # Paragraphs and headings land at the quote, entries at +4, wrapped entry descriptions at +8; a
+    # deeper hand-placed line (a code sample, a table) stays.
+    rebased = []
+    entry_indent = None
+    under_heading = False
+    for l in content:
+        s = l.strip()
+        if not s:
+            rebased.append('')
+            entry_indent = None
+            continue
+        ind = indent_of(l)
+        if entry_indent is not None and (ind > entry_indent or (ind == entry_indent
+                and not ENTRY.match(s))):
+            rebased.append(' ' * (quote_indent + 8) + s)
+            continue
+        entry_indent = None
+        if HEADING.match(s):
+            under_heading = True
+            rebased.append(' ' * quote_indent + s)
+        elif ind > base0 and ENTRY.match(s):
+            entry_indent = ind
+            rebased.append(' ' * (quote_indent + 4) + s)
+        elif ind > base0 and under_heading:
+            # a section description (a plain sentence under Returns:/Raises:/…) sits at +4.
+            rebased.append(' ' * (quote_indent + 4) + s)
+        elif ind > base0:
+            rebased.append(l)
+        else:
+            under_heading = False
+            rebased.append(' ' * quote_indent + s)
+    groups = build_groups(rebased, quote_indent)
+    # The collapse: one prose group that fits the preferred width is the one-line form.
+    if len(groups) == 1 and groups[0][0] == 'prose':
+        line = ' ' * quote_indent + '"""' + ' '.join(groups[0][1]) + '"""'
+        if len(line) <= PREF:
+            return line
+    body_lines = emit(groups, quote_indent)
+    lines = [' ' * quote_indent + '"""'] + body_lines + [' ' * quote_indent + '"""']
     return '\n'.join(lines)
 
 
@@ -294,8 +336,8 @@ def reflow_comments(lines, doc_lines):
         def flush():
             if len(seg_orig) >= 2:
                 first_indent = len(seg_orig[0]) - len(seg_orig[0].lstrip())
-                # a doc-comment (#:-prefixed) paragraph keeps its prefix: re-emitted with #: and
-                # the per-line leading colon stripped from the text (the marker is not content).
+                # a doc-comment (#:-prefixed) paragraph keeps its prefix: re-emitted with #: and the
+                # per-line leading colon stripped from the text (the marker is not content).
                 doc = all(seg_doc)
                 prefix = ' ' * first_indent + ('#: ' if doc else '# ')
                 text = ' '.join((c.strip().lstrip(':').strip() if doc else c.strip())
@@ -335,8 +377,10 @@ def reflow_comments(lines, doc_lines):
 # ---------------------------------------------------------------------
 
 def transform(source):
-    """Reflow the source text. Returns (new_text, stats). Raises ReflowError when the content could
-    not be verified safe."""
+    """
+    Reflow the source text. Returns (new_text, stats). Raises ReflowError when the content could not
+    be verified safe.
+    """
     lines = source.split('\n')
     tree = ast.parse(source)
     docs = docstring_nodes(tree)
@@ -344,8 +388,8 @@ def transform(source):
     for c in reversed(docs):
         raw = '\n'.join(lines[c.lineno - 1:c.end_lineno])
         old = norm(raw[raw.find('"""') + 3:raw.rfind('"""')])
-        if c.lineno == c.end_lineno and len(lines[c.lineno - 1]) <= CEIL:
-            continue  # a single-line docstring that fits: a fixed point
+        if c.lineno == c.end_lineno and len(lines[c.lineno - 1]) <= PREF:
+            continue  # a single-line docstring that fits the preferred width: a fixed point
         if c.lineno == c.end_lineno:
             # a single-line docstring over the ceiling: expand it to the standard multi-line form
             m = re.match(r'^(\s*)"""(.*?)"""\s*$', lines[c.lineno - 1])
