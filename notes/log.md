@@ -2174,3 +2174,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   layout): 16 docstring su 23 ri-fluotate alla forma quote-da-solhe (il resto erano già una-riga o in
   forma); 26 entry private dei tipi (lo strip meccanico one-shot: le annotazioni della signature sono i
   tipi). 689 → 704 righe. Nessun cambiamento di comportamento: test\\_binio + test\\_usage\\_binio 59/0.
+
+- D-462 (tools/prng migrato al canone R-560): 2 docstring su 20 ri-fluotate alla forma quote-da-solhe;
+  21 entry private dei tipi (lo strip one-shot; gli attributi di stato interno di MT19937 (\\_mt /
+  \\_mti) erano già in forma nome: descrizione e sono rimasti). 471 righe. Nessun cambiamento di
+  comportamento: test\\_prng 30/0.

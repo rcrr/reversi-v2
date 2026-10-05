@@ -578,3 +578,8 @@ D-461 | 2026-10-06 | The tools/binio.py migration to the R-560 canonical (the D-
          under the new layout). 16 of 23 docstrings reflowed to the stand-alone quote form (the rest were already
          one-liners or the form); 26 entries un-typed (the one-shot mechanical strip: the Pydantic / signature
          annotations are the types). 689 -> 704 lines. NO behavior change: test\\_binio + test\\_usage\\_binio 59/0.
+
+D-462 | 2026-10-06 | The tools/prng.py migration to the R-560 canonical (the D-457 tool). 2 of 20 docstrings reflowed to
+         the stand-alone quote form; 21 entries un-typed (the one-shot strip; the internal-state attributes of MT19937
+         (\\_mt / \\_mti) were already name: description form and stayed). 471 lines. NO behavior change: test\\_prng
+         30/0.

@@ -69,9 +69,8 @@ import numba as nb
 __all__ = ['MT19937', 'pick_one_from_set64', 'pick_one_from_set64_batch']
 
 # The working-area size: 312 words (64-bit each) — the MT-19937 state. NN is the only constant at
-# module level (the ctor's np.zeros(NN, …) + the init loop use it); the twist + temper
-# constants (MM / UM / LM / MAG) live inside the _get_uint64_batch kernel (they are its
-# implementation details).
+# module level (the ctor's np.zeros(NN, …) + the init loop use it); the twist + temper constants (MM
+# / UM / LM / MAG) live inside the _get_uint64_batch kernel (they are its implementation details).
 NN: int = 312
 
 
@@ -84,8 +83,8 @@ class MT19937:
     generator is not saved or re-seeded).
 
     Attributes (internal):
-      _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
-      _mti: int — the position within the working area.
+        _mt:  np.ndarray, shape (NN,), dtype uint64 — the working area.
+        _mti: int — the position within the working area.
     """
 
     def __init__(self, seed: int) -> None:
@@ -94,7 +93,7 @@ class MT19937:
         get_uint64 twists the just-initialized array before its first draw.
 
         Args:
-            seed (int): The REQUIRED seed (the generator is always initialized and cannot be re-seeded).
+            seed: The REQUIRED seed (the generator is always initialized and cannot be re-seeded).
         """
         # Seed the 312-word working area (the MT-19937 init). The working index is left at NN, so
         # the FIRST get_uint64 twists the just-initialized array before its first draw. The
@@ -125,7 +124,7 @@ class MT19937:
         Get the n successive values of the sequence as a (n,) uint64 array.
 
         Args:
-            n (int): The number of values to draw (n == 0 returns an empty (0,) array).
+            n: The number of values to draw (n == 0 returns an empty (0,) array).
 
         Returns:
             np.ndarray: The (n,) uint64 array of the draws — bit-identical to get_uint64 called n times.
@@ -171,7 +170,7 @@ class MT19937:
         deterministic); otherwise one value is consumed.
 
         Args:
-            k (int): The number of elements (the choice set is [0, k-1]).
+            k: The number of elements (the choice set is [0, k-1]).
 
         Returns:
             np.uint64: The chosen integer, in [0, k-1].
@@ -199,8 +198,8 @@ class MT19937:
         random_choice_from_finite_set draws, in order (n <= 1 consumes nothing).
 
         Args:
-            array (np.ndarray): The array to shuffle, in place.
-            n (int): The number of first elements (in C order) to shuffle.
+            array: The array to shuffle, in place.
+            n: The number of first elements (in C order) to shuffle.
 
         Raises:
             IndexError: If n exceeds the array's element count.
@@ -226,8 +225,8 @@ class MT19937:
         shape, C-order element order. n == 0 or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The uint8 array to shuffle, in place.
-            n (int): The number of first elements (in C order) to shuffle.
+            array: The uint8 array to shuffle, in place.
+            n: The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not uint8.
@@ -243,8 +242,8 @@ class MT19937:
         Fisher-Yates) in C-order element order. n == 0 or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The array to shuffle, in place.
-            n (int): The number of first elements (in C order) to shuffle.
+            array: The array to shuffle, in place.
+            n: The number of first elements (in C order) to shuffle.
 
         Raises:
             IndexError: If n exceeds the array's element count.
@@ -257,8 +256,8 @@ class MT19937:
         element order. n == 0 or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The float64 array to shuffle, in place.
-            n (int): The number of first elements (in C order) to shuffle.
+            array: The float64 array to shuffle, in place.
+            n: The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not float64.
@@ -275,8 +274,8 @@ class MT19937:
         or n == 1 consumes no random value.
 
         Args:
-            array (np.ndarray): The integer array to shuffle, in place.
-            n (int): The number of first elements (in C order) to shuffle.
+            array: The integer array to shuffle, in place.
+            n: The number of first elements (in C order) to shuffle.
 
         Raises:
             ValueError: If the array is not an integer dtype.
@@ -293,7 +292,7 @@ class MT19937:
         Generate a string of n random characters in the [a..z] range.
 
         Args:
-            n (int): The string length (n == 0 returns the empty string).
+            n: The string length (n == 0 returns the empty string).
 
         Returns:
             str: The n-character string.
@@ -312,7 +311,7 @@ class MT19937:
         picked bit is cleared from the ORIGINAL set, so the skipped-lowest bits survive).
 
         Args:
-            set_arr (np.ndarray): The uint64 set array, mutated in place.
+            set_arr: The uint64 set array, mutated in place.
 
         Returns:
             np.uint8: The 0-based position of the picked bit.
@@ -336,7 +335,7 @@ class MT19937:
         set is read, never mutated): k = the popcount, the c-th set bit (skipping the c lowest) is picked.
 
         Args:
-            set64 (np.uint64): The set to pick from (read, never mutated).
+            set64: The set to pick from (read, never mutated).
 
         Returns:
             tuple[np.uint64, np.uint8]: (1 << p, p) with p a set bit of the set. The empty set
@@ -360,9 +359,11 @@ class MT19937:
 
 @nb.njit(cache=True)
 def _get_uint64_batch(mt, mti, n):
-    """INTERNAL to the class: the n successive u64 draws (the twist + the 4-op temper). Only
-    MT19937.get_uint64_batch calls it. Returns (draws, mti). The twist + temper constants (MM /
-    UM / LM / MAG) are local to the kernel; NN (the working-area size) is module-level."""
+    """
+    INTERNAL to the class: the n successive u64 draws (the twist + the 4-op temper). Only
+    MT19937.get_uint64_batch calls it. Returns (draws, mti). The twist + temper constants (MM / UM /
+    LM / MAG) are local to the kernel; NN (the working-area size) is module-level.
+    """
     # The twist + temper constants (kernel-local).
     MM = 156  # the half-state offset (NN // 2)
     UM = np.uint64(0xFFFFFFFF80000000)  # keep the upper 33 bits
@@ -409,8 +410,8 @@ def pick_one_from_set64(s, d):
     k), the c-th set bit of s (skipping the c lowest).
 
     Args:
-        s (np.uint64): The NON-ZERO set to pick from.
-        d (np.uint64): The pre-drawn stream value.
+        s: The NON-ZERO set to pick from.
+        d: The pre-drawn stream value.
 
     Returns:
         (np.uint64, np.uint8): (1 << p, p) with p the picked set bit.
@@ -451,10 +452,9 @@ def pick_one_from_set64_batch(sets, draws, slots):
     with the same stream.
 
     Args:
-        sets (np.ndarray): The (N,) uint64 array of sets.
-        draws (np.ndarray): The (k,) uint64 array of the pre-drawn values, one per non-empty set in
-            element order.
-        slots (np.ndarray): The (N,) int64 prefix counts (the number of non-empty sets before each element).
+        sets: The (N,) uint64 array of sets.
+        draws: The (k,) uint64 array of the pre-drawn values, one per non-empty set in element order.
+        slots: The (N,) int64 prefix counts (the number of non-empty sets before each element).
 
     Returns:
         np.ndarray: The (N,) uint64 array of the picked bits (0 for the empty sets).
