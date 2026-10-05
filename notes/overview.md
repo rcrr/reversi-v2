@@ -139,7 +139,7 @@ define the evaluation function.
 | --- | --- | --- | --- |
 | test/reversi/closecheck.py | complete | 0/0/0/0/0 | [docs/test/reversi/closecheck.md](docs/test/reversi/closecheck.md) |
 | test/reversi/lm/test\_client.py | complete | 8/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
-| test/reversi/lm/test\_hlp\_anova.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
+| test/reversi/lm/test\_hlp\_anova.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
 | test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 32/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
 | test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
 | test/reversi/lm/test\_hlp\_generate.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
