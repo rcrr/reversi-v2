@@ -587,3 +587,7 @@ D-462 | 2026-10-06 | The tools/prng.py migration to the R-560 canonical (the D-4
 D-464 | 2026-10-06 | The tools/state\_machine.py migration to the R-560 canonical (the D-457 tool). 18 of 27 docstrings
          reflowed to the stand-alone quote form; 21 entries un-typed (the one-shot strip). 499 -> 510 lines. NO behavior
          change: test\\_state\\_machine 51/0.
+
+D-465 | 2026-10-06 | The tools/opt\_lbfgs.py migration to the R-560 canonical (the D-457 tool). 11 of 13 docstrings
+         reflowed to the stand-alone quote form; 65 entries un-typed (the heaviest strip of the batch — the optimizer's
+         signature is long). 629 -> 637 lines. NO behavior change: test\\_opt\\_lbfgs 24/0.

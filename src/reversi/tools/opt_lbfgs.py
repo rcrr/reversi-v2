@@ -40,30 +40,34 @@ __all__ = ['lbfgs', 'FG']
 
 
 class FixedSizeMaxList:
-    """A fixed-size sliding window that tracks the maximum pushed value.
+    """
+    A fixed-size sliding window that tracks the maximum pushed value.
 
     The values are kept in a bounded deque (the oldest evicted at the capacity) — the
     convergence-history usage: the recent g-norm maximum that the checkpoint callback reports.
     """
 
     def __init__(self, size: int):
-        """Initialize the window capacity.
+        """
+        Initialize the window capacity.
 
         Args:
-            size (int): The window capacity (the retained value count).
+            size: The window capacity (the retained value count).
         """
         self._buffer = deque(maxlen=size)
 
     def push(self, value: float) -> None:
-        """Append a value, evicting the oldest when the window is full.
+        """
+        Append a value, evicting the oldest when the window is full.
 
         Args:
-            value (float): The value to push.
+            value: The value to push.
         """
         self._buffer.append(value)
 
     def max(self) -> float:
-        """Returns the maximum of the retained values.
+        """
+        Returns the maximum of the retained values.
 
         Returns:
             float: The window maximum.
@@ -87,26 +91,26 @@ def _display_line_search(phi: Callable[[float], Tuple[float, float]],
                          window: float = 3., dots: int = 30,
                          alpha0: float = 0., alpha1: float = 1.,
                          title: str = 'Function phi(alpha)') -> None:
-    """Displays a plot of the line search function phi(alpha).
+    """
+    Displays a plot of the line search function phi(alpha).
 
     Plots the phi samples over the window around the current step, the Armijo threshold line, the
     Wolfe curvature markers, the origin / step / minimum markers and the cubic-interpolant minimum.
     A no-op with a printed notice when matplotlib is not importable.
 
     Args:
-        phi (Callable[[float], Tuple[float, float]]): The line search function (the phi value + its
-            directional derivative at the alpha).
-        c1 (float): The Armijo condition constant.
-        c2 (float): The curvature condition constant.
-        phi0 (float): The phi value at the origin (the current point).
-        phi_a1 (float): The phi value at the current step.
-        derphi0 (float): The directional derivative at the origin.
-        derphi_a1 (float): The directional derivative at the current step.
-        window (float): The plot window width around the current step.
-        dots (int): The sample count over the window.
-        alpha0 (float): The window lower bound.
-        alpha1 (float): The window upper bound (the current step).
-        title (str): The plot title.
+        phi: The line search function (the phi value + its directional derivative at the alpha).
+        c1: The Armijo condition constant.
+        c2: The curvature condition constant.
+        phi0: The phi value at the origin (the current point).
+        phi_a1: The phi value at the current step.
+        derphi0: The directional derivative at the origin.
+        derphi_a1: The directional derivative at the current step.
+        window: The plot window width around the current step.
+        dots: The sample count over the window.
+        alpha0: The window lower bound.
+        alpha1: The window upper bound (the current step).
+        title: The plot title.
     """
     try:
         import matplotlib.pyplot as plt
@@ -158,18 +162,19 @@ def _display_line_search(phi: Callable[[float], Tuple[float, float]],
 
 def _hermite_cubic_interp_min(x0: float, y0: float, dy0: float,
                                x1: float, y1: float, dy1: float) -> Optional[Tuple[float, float, float, float]]:
-    """Finds the minimum of the cubic Hermite interpolant within the interval [x0, x1].
+    """
+    Finds the minimum of the cubic Hermite interpolant within the interval [x0, x1].
 
     The interpolant is built from the two endpoint values and directional derivatives; both
     stationary candidates are tested — only a positive-curvature stationary point is a minimum.
 
     Args:
-        x0 (float): The interval left bound.
-        y0 (float): The value at x0.
-        dy0 (float): The directional derivative at x0.
-        x1 (float): The interval right bound.
-        y1 (float): The value at x1.
-        dy1 (float): The directional derivative at x1.
+        x0: The interval left bound.
+        y0: The value at x0.
+        dy0: The directional derivative at x0.
+        x1: The interval right bound.
+        y1: The value at x1.
+        dy1: The directional derivative at x1.
 
     Returns:
         Optional[tuple]: The (x_min, y_min, dy_min, d2y_min) of the interval minimum, or None when
@@ -210,16 +215,17 @@ def _hermite_cubic_interp_min(x0: float, y0: float, dy0: float,
 def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
                           x1: float, y1: float, dy1: float,
                           x: float) -> Tuple[float, float, float, float]:
-    """Evaluates the cubic Hermite interpolant and its first two derivatives at x.
+    """
+    Evaluates the cubic Hermite interpolant and its first two derivatives at x.
 
     Args:
-        x0 (float): The interval left bound.
-        y0 (float): The value at x0.
-        dy0 (float): The directional derivative at x0.
-        x1 (float): The interval right bound.
-        y1 (float): The value at x1.
-        dy1 (float): The directional derivative at x1.
-        x (float): The evaluation point (inside [x0, x1]).
+        x0: The interval left bound.
+        y0: The value at x0.
+        dy0: The directional derivative at x0.
+        x1: The interval right bound.
+        y1: The value at x1.
+        dy1: The directional derivative at x1.
+        x: The evaluation point (inside [x0, x1]).
 
     Returns:
         tuple: The (x, y, dy, d2y) — the argument x echoed, the interpolant value, and its first and
@@ -253,16 +259,17 @@ def _hermite_cubic_interp(x0: float, y0: float, dy0: float,
 
 
 def _two_loop_recursion(g: np.ndarray, s: List[np.ndarray], y: List[np.ndarray], rho: List[float]) -> np.ndarray:
-    """Computes H_k · g with the L-BFGS two-loop recursion.
+    """
+    Computes H_k · g with the L-BFGS two-loop recursion.
 
     The product of the limited-memory inverse-Hessian approximation with the gradient — the search
     direction is its negation. For the empty history the gamma = 1 identity: the result is g itself.
 
     Args:
-        g (np.ndarray): The gradient at the current x.
-        s (list): The stored step vectors (the x_{k+1} − x_k), oldest first.
-        y (list): The stored gradient-difference vectors (the grad_{k+1} − grad_k), aligned with s.
-        rho (list): The precomputed scalars 1 / (y_i · s_i), aligned with s.
+        g: The gradient at the current x.
+        s: The stored step vectors (the x_{k+1} − x_k), oldest first.
+        y: The stored gradient-difference vectors (the grad_{k+1} − grad_k), aligned with s.
+        rho: The precomputed scalars 1 / (y_i · s_i), aligned with s.
 
     Returns:
         np.ndarray: The product H_k · g (the same shape and dtype as g).
@@ -303,22 +310,23 @@ def _strong_wolfe_line_search(fg: Callable[[np.ndarray], FG],
                               c1: float, c2: float, alpha_max: float = 10.0,
                               max_iters: int = 3,
                               debug_plot: bool = False) -> Tuple[float, FG]:
-    """Finds the line search step alpha satisfying the strong Wolfe conditions.
+    """
+    Finds the line search step alpha satisfying the strong Wolfe conditions.
 
     The phi evaluations are cached per alpha (the full gradient caching — a repeated alpha is
     evaluated once); the expansion follows the cubic Hermite interpolant minimum when it exists,
     else the doubling.
 
     Args:
-        fg (Callable[[np.ndarray], FG]): The function + gradient evaluator.
-        x (np.ndarray): The current point.
-        p (np.ndarray): The (descent) search direction.
-        fgv0 (FG): The (function, gradient) at x — the phi origin, pre-cached.
-        c1 (float): The Armijo condition constant.
-        c2 (float): The curvature condition constant.
-        alpha_max (float): The step upper bound for the expansion.
-        max_iters (int): The expansion iteration budget.
-        debug_plot (bool): Plot the phi curve via matplotlib (the lazy optional dependency).
+        fg: The function + gradient evaluator.
+        x: The current point.
+        p: The (descent) search direction.
+        fgv0: The (function, gradient) at x — the phi origin, pre-cached.
+        c1: The Armijo condition constant.
+        c2: The curvature condition constant.
+        alpha_max: The step upper bound for the expansion.
+        max_iters: The expansion iteration budget.
+        debug_plot: Plot the phi curve via matplotlib (the lazy optional dependency).
 
     Returns:
         tuple: The accepted step alpha and the cached (function, gradient) at x + alpha * p.
@@ -376,18 +384,19 @@ def _zoom(phi: Callable[[float], Tuple[float, float]],
           alo: float, ahi: float, phi0: float, derphi0: float,
           c1: float, c2: float, cache: dict,
           debug_plot: bool = False) -> Tuple[float, FG]:
-    """Zooms toward the strong Wolfe candidate by shrinking the bracket.
+    """
+    Zooms toward the strong Wolfe candidate by shrinking the bracket.
 
     Args:
-        phi (Callable[[float], Tuple[float, float]]): The line search function (the cached one).
-        alo (float): The bracket low bound.
-        ahi (float): The bracket high bound.
-        phi0 (float): The phi value at the origin.
-        derphi0 (float): The directional derivative at the origin.
-        c1 (float): The Armijo condition constant.
-        c2 (float): The curvature condition constant.
-        cache (dict): The phi cache (the accepted alpha's FG is looked up here).
-        debug_plot (bool): Plot the phi curve via matplotlib.
+        phi: The line search function (the cached one).
+        alo: The bracket low bound.
+        ahi: The bracket high bound.
+        phi0: The phi value at the origin.
+        derphi0: The directional derivative at the origin.
+        c1: The Armijo condition constant.
+        c2: The curvature condition constant.
+        cache: The phi cache (the accepted alpha's FG is looked up here).
+        debug_plot: Plot the phi curve via matplotlib.
 
     Returns:
         tuple: The accepted step alpha and the cached (function, gradient) at that alpha.
@@ -447,7 +456,8 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
           initial_yl: Optional[List[np.ndarray]] = None,
           initial_rho: Optional[List[float]] = None,
           initial_iter: int = 0) -> Tuple[np.ndarray, dict]:
-    """Optimize a differentiable function with the limited-memory BFGS method.
+    """
+    Optimize a differentiable function with the limited-memory BFGS method.
 
     The search direction is the negated two-loop product (the gamma-scaled inverse-Hessian
     approximation); a non-descent direction restarts the run (the memory cleared, the steepest
@@ -457,30 +467,28 @@ def lbfgs(fg: Callable[[np.ndarray], Tuple[float, np.ndarray]],
     logging, checkpointing (the save_fn callback) and warm starting (the resume state).
 
     Args:
-        fg (Callable[[np.ndarray], Tuple[float, np.ndarray]]): The function + gradient: takes the
-            np.ndarray x, returns the (function value, gradient) tuple.
-        x0 (np.ndarray): The initial point (a float32/float64 ndarray — it is copied, never mutated).
-        c1 (float): The Wolfe condition constant (0 < c1 < c2 < 1).
-        c2 (float): The Wolfe condition constant (0 < c1 < c2 < 1).
-        min_grad (Tuple[float, int]): The gradient-norm stopping pair — stop when ||grad f(x)|| <
-            min_grad[0] for min_grad[1] consecutive iterations.
-        min_p_fun_decrease (Tuple[float, int]): The low-progress stopping pair — stop when the
-            fractional decrease (f_prev − f) / |f| is < min_p_fun_decrease[0] for
-            min_p_fun_decrease[1] consecutive iterations; at f = 0 the fractional decrease is
-            undefined and the counter is frozen.
-        max_iters (int): The maximum iteration count (the absolute k bound).
-        m (int): The memory size (the stored s/y pair count, FIFO).
-        log_every_n (int): The log cadence — 0 = silent, 1 = every iteration.
-        logger (Callable[[str], None]): The log sink (print by default).
-        save_every_n (int): The checkpoint cadence — 0 = no checkpoint.
-        save_fn (Callable | None): The checkpoint callback save_fn(x, sl, yl, rho, k, f, g_norm_max)
-            — x: the np.ndarray, sl/yl: the List[np.ndarray] history, rho: the List[float], k: the
-            int iteration, f: the float value, g_norm_max: the float (the recent-window g-norm
-            maximum); None = no checkpoint.
-        initial_sl (list | None): The warm-start step vectors (the resume's saved state).
-        initial_yl (list | None): The warm-start gradient-difference vectors, aligned with initial_sl.
-        initial_rho (list | None): The warm-start rho scalars, aligned with initial_sl.
-        initial_iter (int): The resume iteration offset (the k numbering continues from it).
+        fg: The function + gradient: takes the np.ndarray x, returns the (function value, gradient) tuple.
+        x0: The initial point (a float32/float64 ndarray — it is copied, never mutated).
+        c1: The Wolfe condition constant (0 < c1 < c2 < 1).
+        c2: The Wolfe condition constant (0 < c1 < c2 < 1).
+        min_grad: The gradient-norm stopping pair — stop when ||grad f(x)|| < min_grad[0] for
+            min_grad[1] consecutive iterations.
+        min_p_fun_decrease: The low-progress stopping pair — stop when the fractional decrease
+            (f_prev − f) / |f| is < min_p_fun_decrease[0] for min_p_fun_decrease[1] consecutive
+            iterations; at f = 0 the fractional decrease is undefined and the counter is frozen.
+        max_iters: The maximum iteration count (the absolute k bound).
+        m: The memory size (the stored s/y pair count, FIFO).
+        log_every_n: The log cadence — 0 = silent, 1 = every iteration.
+        logger: The log sink (print by default).
+        save_every_n: The checkpoint cadence — 0 = no checkpoint.
+        save_fn: The checkpoint callback save_fn(x, sl, yl, rho, k, f, g_norm_max) — x: the
+            np.ndarray, sl/yl: the List[np.ndarray] history, rho: the List[float], k: the int
+            iteration, f: the float value, g_norm_max: the float (the recent-window g-norm maximum);
+            None = no checkpoint.
+        initial_sl: The warm-start step vectors (the resume's saved state).
+        initial_yl: The warm-start gradient-difference vectors, aligned with initial_sl.
+        initial_rho: The warm-start rho scalars, aligned with initial_sl.
+        initial_iter: The resume iteration offset (the k numbering continues from it).
 
     Returns:
         tuple: The optimized point x and the info dict with the 9 keys: 'w' (the result — IS x),

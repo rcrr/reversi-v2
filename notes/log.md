@@ -2183,3 +2183,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - D-464 (tools/state\_machine migrato al canone R-560): 18 docstring su 27 ri-fluotate alla forma
   quote-da-solhe; 21 entry private dei tipi. 499 → 510 righe. Nessun cambiamento di comportamento:
   test\\_state\\_machine 51/0.
+
+- D-465 (tools/opt\_lbfgs migrato al canone R-560): 11 docstring su 13 ri-fluotate alla forma
+  quote-da-solhe; 65 entry private dei tipi (lo strip più pesante della batch — la signature
+  dell'optimizer è lunga). 629 → 637 righe. Nessun cambiamento di comportamento: test\\_opt\\_lbfgs
+  24/0.
