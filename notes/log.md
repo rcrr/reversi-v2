@@ -2464,3 +2464,34 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (nessun test toccato): la suite resta 1101/0/24. La cascata lm: client (D-476), logistic\_model (D-477),
   model\_weights (D-478) al canone R-560; prossimo modulo secondo la scelta di Roberto.
 - Session closed by the user.
+
+## 2026-10-05 — session 100 (D-479 — hlp\_config\_schemas: il pass R-560 + la fidelity repair della mirror doc)
+
+- D-479 (hlp\_config\_schemas, un solo D, il piano concordato + i 2 test di completezza R-850): (1)
+  sorgente: i 12 E302 (una sola blank tra classi top-level) portati a 2 — il canone house; i casi a
+  1 blank che sopravvivono nei moduli canonici vivono solo in contesto marker "#:" —, 16 docstring
+  al canone R-560 dal reflow (438 → 436 righe); (2) test: la violazione R-550 riparata — il helper
+  \_strip\_i017 portava l'idea chiusa I-017 dentro un identifiant, rinominato \_strip\_sections —,
+  la parentesi stantia di test\_pattern\_mask\_0x\_prefix\_rejected via (il mismatch descritto non
+  esiste: field description, docstring del validator e parser concordano), i 2 test di completezza:
+  test\_optimization\_checkpoint\_file\_required (il campo required documentato non aveva pin) +
+  test\_log\_file\_name\_default\_none (la convenzione no-op documentata non aveva pin); 30 → 32
+  test: 32/0/0, 28 docstring riavvolti al formato quote standalone (441 righe); (3) il source mirror
+  doc: il "27 tests" → 32, il pin fantasma test\_ec\_out\_of\_range\_rejected sostituito con
+  test\_empty\_count\_required\_bounded (che copre anche il caso missing ec), i 3 pin mai nominati
+  aggiunti (hi\_perf\_blocks, style knobs, rarity\_thresholds) + i 2 nuovi, il path del fixture
+  riparato (src/reversi/test/data/ → test/reversi/data/rlm\_00.json), il prose riavvolto alla
+  larghezza 120 del corpus (il wrap a 100 lo spingeva a 122, sopra il budget 60-120; ora 120); (4)
+  il test mirror doc: il "30 tests" → 32, la riga phantom riparata (test reale + ec 61 invece di 99
+  + il caso missing), i goldens "ec 99" → "ec 61", la clausola di rationale "hence the model-file
+  size-band growth" via (docs\_rules §4), il "ec 20" del corpus defaults tolto (l'ec è la root
+  empty\_count, non un corpus default, e il test non lo asserta), i 2 nuovi test in tabella. Il
+  punto fisso canonico di src\_reflow su entrambi i file; il finding docs\_format\_audit del mirror
+  sorgente sparisce.
+- Batch hlp\_config\_schemas chiusa (D-479 + onda): le macchie erano i 12 E302, un I-017 dentro un
+  identifiant, il pin fantasma test\_ec\_out\_of\_range\_rejected presente in entrambi i mirror, un
+  path fixture sbagliato, un conteggio stantio (27) e i 2 gap R-850; il wrap del mirror sorgente
+  portato a 120 per rientrare nel budget 60-120. Cella suite: test\_hlp\_config\_schemas 30 →
+  32/0/0. Il giro completo LONG=1 rimesurato: suite 1101 → 1103/0/24 (il resto invariato). La
+  cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.

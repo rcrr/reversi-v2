@@ -70,8 +70,10 @@ define the evaluation function.
   (the R-560 canonical + the mirror-doc fidelity repair: the D-099 source removal, the 5 missing docstrings, the 18 ->
   19 level counts, the A2xxx contradiction resolved, the build\_model gap closed 30 -> 31/0/0); model\_weights the D-478
   pass (the R-560 canonical + the mirror-doc fidelity repair: the 3 D-144 + the 2 'Roberto's ruling' source removals,
-  the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage gap); suite
-  1101/0/24 at close).
+  the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage gap);
+  hlp\_config\_schemas the D-479 pass (the R-560 canonical + the R-550 identifier repair + the mirror-doc fidelity
+  repair: the 12 E302 single blanks, the I-017-in-identifier renamed, the phantom pin + the fixture path + the 27 -> 32
+  count repaired, the 2 completeness tests 30 -> 32/0/0, the 100-wrap to the corpus 120); suite 1103/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

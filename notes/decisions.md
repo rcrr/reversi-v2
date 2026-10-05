@@ -766,3 +766,29 @@ D-478 | 2026-10-05 | The model\_weights source + mirror-doc pass, one commit (th
          synthetic-ctx round-trip, the corruption sentinel) lives in test\_lm\_worker\_full\_chain by design (the
          base\_model precedent); the trained round-trips are pinned by the A2030/A2050 suites and the verify\_save
          A4-A6b statics (the 18-check census) carry the rest. The src\_reflow canonical fixed point on the source.
+
+D-479 | 2026-10-05 | The hlp\_config\_schemas source + test + mirror-doc pass, one commit (the user-approved plan incl.
+         the 2 R-850 completeness tests): (1) source: the 12 E302 single blanks between top-level classes fixed (the
+         house canonical is 2; the 1-blank cases that survive in the canonical modules live only in the "#:" marker
+         context), 16 docstrings reflowed to the R-560 canonical (the 7 one-sentence class docstrings collapsed to the
+         one-line form, the 5 inline validator docstrings to standalone quote lines, the 4 multi-sentence class
+         docstrings re-wrapped to 100; 438 -> 436 lines); (2) test: the R-550 violation repaired — the helper name
+         \_strip\_i017 carried the closed idea I-017 inside a code identifier, renamed \_strip\_sections —, the stale
+         parenthetical of test\_pattern\_mask\_0x\_prefix\_rejected dropped (it claimed a field-description / parser
+         mismatch that does not exist: the description, the validator docstring and the parser agree), the 2 R-850
+         completeness tests added — test\_optimization\_checkpoint\_file\_required (the documented required field was
+         unpinned) + test\_log\_file\_name\_default\_none (the documented FINAL\_LOG\_PRINT no-op convention was
+         unpinned); 30 -> 32 tests: 32/0/0; 28 test docstrings reflowed to the standalone quote form (441 lines); (3)
+         the source mirror doc: the "27 tests" -> 32, the phantom pin test\_ec\_out\_of\_range\_rejected replaced by
+         test\_empty\_count\_required\_bounded (which also covers the missing-ec case the test pins), the 3 never-named
+         pins added (test\_optimization\_hi\_perf\_blocks, test\_plot\_style\_defaults\_and\_constraints,
+         test\_rarity\_thresholds) + the 2 new tests pinned, the Integration fixture path repaired (the phantom
+         src/reversi/test/data/ -> test/reversi/data/rlm\_00.json), the prose re-wrapped to the corpus 120 width (the
+         100-wrap pushed the doc to 122, over the 60-120 budget; now 120); (4) the test mirror doc: the "30 tests" ->
+         32, the phantom coverage row repaired (test\_ec\_out\_of\_range\_rejected "ec 99 and -1" ->
+         test\_empty\_count\_required\_bounded "missing rejected, ec 61 and -1 rejected, the fixture's 20 accepted"),
+         the goldens "ec 99" -> "ec 61", the docs\_rules §4 narrative clause of test\_client\_check\_tol\_override
+         dropped ("hence the model-file size-band growth": a rationale not in the code, no pointer), "the corpus
+         defaults seed 42 / 1e7 / ec 20" -> "(seed 42, 1e7)" (the ec is the root empty\_count, not a corpus default, and
+         the test does not assert it), the 2 new tests listed in the Coverage table. The src\_reflow canonical fixed
+         point on both files; the docs\_format\_audit finding on this module's source doc cleared.
