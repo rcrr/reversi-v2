@@ -73,7 +73,11 @@ define the evaluation function.
   the '276 lines.' drop, the 2 'the test module' pointers repaired — no test module by design, no coverage gap);
   hlp\_config\_schemas the D-479 pass (the R-560 canonical + the R-550 identifier repair + the mirror-doc fidelity
   repair: the 12 E302 single blanks, the I-017-in-identifier renamed, the phantom pin + the fixture path + the 27 -> 32
-  count repaired, the 2 completeness tests 30 -> 32/0/0, the 100-wrap to the corpus 120); suite 1103/0/24 at close).
+  count repaired, the 2 completeness tests 30 -> 32/0/0, the 100-wrap to the corpus 120); hlp\_analytics the D-480 pass
+  (the R-560 canonical + the 4 R-540 removals + the 2 over-120 f-string splits + the mirror-doc fidelity repair: the 2
+  line-counts, the 4 campaign tags, the 13 -> 14 worker-suite count, the 2 test-doc pointers made explicit, the
+  18-lines-total wording, the TrainingDenseResult API row — no test module by design: the probe verify\_analytics 36
+  checks + the 14-test worker suite pin it); suite 1103/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

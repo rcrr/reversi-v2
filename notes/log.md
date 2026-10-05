@@ -2495,3 +2495,28 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   32/0/0. Il giro completo LONG=1 rimesurato: suite 1101 → 1103/0/24 (il resto invariato). La
   cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
   (D-479) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
+- D-480 (hlp\_analytics, un solo D, il piano concordato): (1) sorgente: i 4 R-540 rimossi (D-105/M2 in 2
+  docstring — la riga three-metric-wide di \_format\_header + la fallback-weights di
+  compute\_training\_dense\_metrics —, il D-311 nei 2 commenti pooled eta/omega con la clausola di storia
+  "replaces the inline SS"), le 2 f-string delle tabelle sopra il ceiling 120 split in frammenti (il ceiling
+  R-520 vale anche per il codice; lo split è byte-identico: i goldens rlm\_02 / rlm\_01 lo confermano), le
+  4 righe header "# " a fine pulite, le 2 righe vuote a EOF tolte (734 → 732 manuali, 699 al punto fisso di
+  src\_reflow: 12 docstring + 2 blocchi "#:" riavvolti a 100); (2) il mirror doc: la riga orfana "724
+  lines:" + il "724 lines;" del bullet Structure via (i line-count sono vietati da docs\_rules §4 e stanti —
+  il file era a 734), i 4 campaign tag via (D-308 / D-307 "addition", D-311 "unification" + D-316 "omega
+  line" nel bullet mobility), il "the D-298 split" normalizzato alla forma §3.2, il conteggio stantio
+  "13-test worker suite (5 DB + 8 NO-DB)" → 14 (6 + 8) — verificato nel file: il mirror test di
+  wrk\_analytics diceva già 14, era il source doc a essere indietro —, i 2 puntatori ambigui "test doc" resi
+  espliciti (i dense 4 values + i valori rlm\_01 vivono nel doc di test\_wrk\_analytics: non esiste un test
+  module per hlp\_analytics), "18 lines — + the Config SHA3-256 line" → "18 lines total, incl. ..." (il
+  probe D3 pinna 18 totali, SHA line inclusa), la riga API di TrainingDenseResult aggiunta (il §3.1: tutti i
+  nomi di \_\_all\_\_; il precedente ModelWeights). Nessuna cella suite si muove: nessun test toccato.
+- Batch hlp\_analytics chiusa (D-480 + onda): le macchie erano i 4 R-540, le 2 righe codice oltre il ceiling,
+  i 2 line-count stanti, i 4 campaign tag e il conteggio stantio 13; il resto del doc era fedele (verificato:
+  il livello 15 + lo slot rlmwf\_15, il 18-line header del probe D3, i dict 7/4-key, i 36 check del probe +
+  la worker suite 14/0/0 con LONG, il consumo di compute\_training\_dense\_metrics da test\_wrk\_plot).
+  Nessuna cella suite si muove: la suite resta 1103/0/24. La cascata lm: client (D-476), logistic\_model
+  (D-477), model\_weights (D-478), hlp\_config\_schemas (D-479), hlp\_analytics (D-480) al canone R-560; il
+  prossimo modulo della cascata worker/hlp secondo la scelta di Roberto. Puntina: la view preliminare citava
+  una funzione \_compute\_table\_eta\_omega assente dal doc — le righe del bullet eta/omega sono state
+  verificate byte per byte prima dei fix; nessun fix si basa sul falso.

@@ -792,3 +792,22 @@ D-479 | 2026-10-05 | The hlp\_config\_schemas source + test + mirror-doc pass, o
          defaults seed 42 / 1e7 / ec 20" -> "(seed 42, 1e7)" (the ec is the root empty\_count, not a corpus default, and
          the test does not assert it), the 2 new tests listed in the Coverage table. The src\_reflow canonical fixed
          point on both files; the docs\_format\_audit finding on this module's source doc cleared.
+
+D-480 | 2026-10-05 | The hlp\_analytics source + mirror-doc pass, one commit (the user-approved plan; no test module by
+         design — the module is pinned by the probe verify\_analytics (36 checks, green) + the 14-test
+         test\_wrk\_analytics worker suite (14/0/0 with LONG)): (1) source: the 4 R-540 provenance removals (D-105/M2 in
+         2 docstrings — the \_format\_header three-metric-wide line + the compute\_training\_dense\_metrics
+         fallback-weights line —, D-311 in the 2 pooled eta/omega comments, with their "replaces the inline SS" history
+         clause), the 2 over-120 table f-strings split into fragments (the R-520 120 ceiling applies to code lines too;
+         the split is byte-identical — the rlm\_02 / rlm\_01 goldens confirm), the 4 header "# " trailing-ws lines, the
+         2 trailing EOF blank lines trimmed to the single \n (734 -> 732 manual, 699 at the reflow fixed point: 12
+         docstrings + 2 "#:" blocks re-wrapped to 100); (2) the mirror doc: the standalone "724 lines:" line + the "724
+         lines;" in the Structure bullet dropped (line counts forbidden, docs\_rules §4; stale — the file was 734), the
+         4 campaign tags dropped (the D-308 / D-307 "addition" bullets, the D-311 "unification" + the D-316 "omega line"
+         in the mobility bullet), "(the single source, the D-298 split)" normalized to the §3.2 "the single
+         source, D-298", the stale "13-test worker suite (5 DB-gated + 8 NO-DB)" -> 14 (6 + 8) (verified against the
+         file; the wrk\_analytics test doc already said 14 — the source doc was behind), the 2 ambiguous "test doc"
+         pointers made explicit (the dense 4 values + the rlm\_01 exact values live in the test\_wrk\_analytics doc —
+         there is no hlp\_analytics test module), "18 lines — + the Config SHA3-256 line" -> "18 lines total, incl. the
+         Config SHA3-256 line" (the probe D3 pins 18 total, SHA line included), the TrainingDenseResult API row added
+         (the §3.1 all-\_\_all\_\_-names rule; the ModelWeights precedent). No suite cell moves (no test touched).
