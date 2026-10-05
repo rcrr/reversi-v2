@@ -831,3 +831,11 @@ D-481 | 2026-10-05 | The hlp\_anova source + test + mirror-doc pass, one commit 
          bullet rewritten to the actual machine order (between test\_wrk\_features and test\_hlp\_su\_analysis; the
          worker suite between test\_wrk\_indexes and test\_hlp\_wmaps). The src\_reflow canonical fixed point on both
          files. Cell: test\_hlp\_anova 16/0/0 -> 18/0/0.
+
+D-482 | 2026-10-05 | The D-481 journal-bullet repair + the angle-bracket matter closed: (1) the D-481 wave's escape
+         helper mangled 10 identifiers in the two journal bullets (a backslash before EVERY character of the identifiers
+         — the 'backslash-join-over-the-letters' bug); rebuilt with the underscore-only escape, no other content change.
+         (2) The user's Obsidian "red from session 94" report (the raw < in the journal — 16 lines, incl. the tag-like
+         <module> / <total>… / <verbo> sequences): the user's own ruling — it was Obsidian's EDITING mode, not a
+         rendering defect; the raw < in the journal stay UN-ESCAPED, no lint / log\_rules change. Leave-as-is ruling
+         recorded so a future pass does not re-escape them.

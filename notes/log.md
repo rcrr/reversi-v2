@@ -2483,7 +2483,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   riparato (src/reversi/test/data/ → test/reversi/data/rlm\_00.json), il prose riavvolto alla
   larghezza 120 del corpus (il wrap a 100 lo spingeva a 122, sopra il budget 60-120; ora 120); (4)
   il test mirror doc: il "30 tests" → 32, la riga phantom riparata (test reale + ec 61 invece di 99
-  + il caso missing), i goldens "ec 99" → "ec 61", la clausola di rationale "hence the model-file
+  \+ il caso missing), i goldens "ec 99" → "ec 61", la clausola di rationale "hence the model-file
   size-band growth" via (docs\_rules §4), il "ec 20" del corpus defaults tolto (l'ec è la root
   empty\_count, non un corpus default, e il test non lo asserta), i 2 nuovi test in tabella. Il
   punto fisso canonico di src\_reflow su entrambi i file; il finding docs\_format\_audit del mirror
@@ -2520,27 +2520,32 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   prossimo modulo della cascata worker/hlp secondo la scelta di Roberto. Puntina: la view preliminare citava
   una funzione \_compute\_table\_eta\_omega assente dal doc — le righe del bullet eta/omega sono state
   verificate byte per byte prima dei fix; nessun fix si basa sul falso.
-- D-481 (h\l\p\_\a\n\o\v\a, un solo D, il piano concordato): (1) sorgente: le 17 Args entries tipizzate de-
+- D-481 (hlp\_anova, un solo D, il piano concordato): (1) sorgente: le 17 Args entries tipizzate de-
   tipizzate al canone R-560(5) untyped (il reflow fa solo il layout — i nomi di tipo vanno tolti a
   mano, il precedente D-477 "typed entries untyped"), i 9 docstring al punto fisso di reflow (387
   righe, le formule + il Returns key-by-key intatti); nessuna altra macchia nel sorgente (0 D-XXX, 0
-  righe >120, 0 ws-lines). (2) test: l'header sbagliato riparato (t\e\s\t\_\h\l\p\_\f\e\a\t\u\r\e\_\a\n\a\l\y\s\i\s ->
-  t\e\s\t\_\h\l\p\_\a\n\o\v\a — il residuo del rename pre-D-315), le 2 R-540 del module docstring (la provenance
+  righe >120, 0 ws-lines). (2) test: l'header sbagliato riparato (test\_hlp\_feature\_analysis ->
+  test\_hlp\_anova — il residuo del rename pre-D-315), le 2 R-540 del module docstring (la provenance
   D-298 + la policy D-290), il tag "(c)" incompreso del docstring TestAdherence, i 10 espressioni
   spezzate riuniti (R-520: tutte stavano su una riga nel ceiling), i 2 micro-test R-850:
-  t\e\s\t\_\z\e\r\o\_\v\a\r\i\a\n\c\e (la zero-variance documentata non aveva pin) + t\e\s\t\_\d\e\g\e\n\e\r\a\t\e\_\t\a\i\l (il p nan
+  test\_zero\_variance (la zero-variance documentata non aveva pin) + test\_degenerate\_tail (il p nan
   documentato per df < 1 non aveva pin); 16 -> 18 test, 18/0/0. (3) il mirror doc sorgente: la
   provenance cleanup (15 D-XXX -> 0: l'header rename/split riscritto al presente, i bullet di
   invariante con etichetta di campagna, il pointer nel vuoto "design section 3.5", la clausola
   "typed Args / Returns" corretta allo stato post-pass, la riga "no hard limit" tolta —
   contraddiceva il ceiling R-520), il bullet hand-computed ricontato 16 -> 18 con i 2 nuovi pin. (4)
   il mirror doc test: i 5 D-XXX via, il 16 -> 18 (header + coverage + goldens), il bullet di
-  posizionamento r\u\n\_\u\t\e\s\t\s riscritto alla macchina order reale.
-- Batch h\l\p\_\a\n\o\v\a chiusa (D-481 + onda): le macchie erano le docstring tipizzate (il primo modulo
+  posizionamento run\_utests riscritto alla macchina order reale.
+- Batch hlp\_anova chiusa (D-481 + onda): le macchie erano le docstring tipizzate (il primo modulo
   della campagna con gli Args Google-style), il nome header sbagliato, le 2 R-540 + il "(c)", i 10
   split, i 2 gap R-850 e i 20 D-XXX nei 2 mirror doc (15 + 5); il resto del doc era fedele (i 16
   goldens originali ricalcolati a mano, i pin F5/A5 reali — il probe a 41 check). Cella suite:
-  t\e\s\t\_\h\l\p\_\a\n\o\v\a 16 -> 18/0/0. Il giro completo LONG=1 rimesurato: suite 1103 -> 1105/0/24. La
-  cascata lm: client (D-476), l\o\g\i\s\t\i\c\_\m\o\d\e\l (D-477), m\o\d\e\l\_\w\e\i\g\h\t\s (D-478), h\l\p\_\c\o\n\f\i\g\_\s\c\h\e\m\a\s
-  (D-479), h\l\p\_\a\n\a\l\y\t\i\c\s (D-480), h\l\p\_\a\n\o\v\a (D-481) al canone R-560; il prossimo modulo della
+  test\_hlp\_anova 16 -> 18/0/0. Il giro completo LONG=1 rimesurato: suite 1103 -> 1105/0/24. La
+  cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479), hlp\_analytics (D-480), hlp\_anova (D-481) al canone R-560; il prossimo modulo della
   cascata worker/hlp secondo la scelta di Roberto.
+- Riparazione journal (il mio danno, dichiarato): il fix ESC della wave D-481 aveva un bug (il backslash
+  davanti a ogni carattere degli identificativi) e i due bullet D-481 erano usciti con 10
+  identificatori rotti; ricostruiti con l'escape giusto (solo underscore). Chiuso col rettifico di
+  Roberto il capitolo "i < nudi rovinano Obsidian": ero in modalità EDITING, non VIEW — i < restano
+  com'è, nessun escape, nessuna modifica a lint / rules (D-482 ha registrato il leave-as-is).
