@@ -46,8 +46,6 @@ matrix a feature-table evaluation consumes).
 
 ## Verified invariants
 
-Pinned by `test_feature.py` (24 tests + 1 PERF, no DB):
-
 - Direct construction raises RuntimeError; the three factories assert all 5 fields each (ref equality via dataclass
   `__eq__`); a str argument to a factory → pydantic ValidationError; the `__repr__` golden; the field-wise `__eq__`; the
   instance is unhashable — `TestFeature` (8).
@@ -60,9 +58,10 @@ Pinned by `test_feature.py` (24 tests + 1 PERF, no DB):
   blocks start at column 1 and end at `n_instances` 53; without it they start at 0 and end at 52); the intercept-only
   and the empty sets → `[]`; the contiguous instance-aware tiling (every block width = its `n_instances`, no gaps,
   up to `n_instances`) — `TestFeatureSetFeatureBlocks` (5).
-- `compute_indexes`: the 3×10 literal golden (EDGE + DIAG4 + LMC + intercept, 3 real positions); the empty edges (0,10)
-  / (3,0) / (0,0) + dtype; None / list / str / int64 ndarray → ValidationError (subTest) —
-  `TestFeatureSetComputeIndexes` (5).
+- `compute_indexes`: the 3×10 literal golden (EDGE + DIAG4 + LMC + intercept, 3 real positions); the N-D shape edges
+  ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), the F-order (1,3) parity, the empty (0,2) → (0,2,I)) element-wise as the
+  1-D call; the empty edges (0,10) / (3,0) / (0,0) + dtype; None / list / str / int64 ndarray → ValidationError
+  (subTest) — `TestFeatureSetComputeIndexes` (9).
 - `test_performance_1m`: 1M positions, 51 instances, warmup, throughput print, N/I asserts only (PERF=1, print-only, no
   gate) — `TestFeatureSetComputeIndexesPerf` (1).
 

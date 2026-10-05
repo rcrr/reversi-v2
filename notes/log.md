@@ -2210,3 +2210,13 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   paragrafo continuo — il primo pass feature è stato ripristinato dal git e rifatto; il tool ora
   riconosce l'entry a colonna uguale sotto un'intestazione attiva; tutti i file migrati
   ri-verificati canonical (nessuna regressione).
+
+- D-467 (la fede dei mirror doc di feature — docs\_rules §5, il doc è parte del modulo): il commit
+  N-D di D-417 ("mirrors aligned") aggiornò la prosa dell'Architecture ma non i conteggi e le
+  tavole dei test: 4 punti stale riparati — (1) l'header dei Verified invariants di feature.md
+  perde la riga di conteggio (lo standard pattern.md: i bullet puntano ai nomi dei test, nessun
+  conteggio nel mirror sorgente); (2) il bullet compute\_indexes di feature.md prende i 4
+  invariant N-D ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), parità F-order, vuoto (0,2) → (0,2,I)) e il
+  conteggio 5 → 9; (3) l'header di test\_feature.md 25 (24+1) → 29 (28+1); (4) la sua riga di
+  Coverage di TestFeatureSetComputeIndexes 5 → 9 con i test N-D elencati. Doc puliti all'audit;
+  nessun cambiamento di sorgente.

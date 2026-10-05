@@ -605,3 +605,11 @@ D-466 | 2026-10-06 | The feature.py source pass (the feature sub-work opens). (1
          and mashed the Attributes: entries into a run-on paragraph — the first feature pass was restored from git and
          redone; the tool now recognizes a same-column entry under an active heading; all migrated files re-verified
          canonical (no regression).
+
+D-467 | 2026-10-06 | The feature mirror-doc fidelity fix (docs\_rules §5: the doc is part of the module). The D-417 N-D
+         commit ("mirrors aligned") updated the Architecture prose but not the counts and the test tables: 4 stale
+         points repaired — (1) feature.md's Verified invariants header dropped the count line entirely (the pattern.md
+         standard: bullets pin to test names, no counts in the source mirror); (2) feature.md's compute\_indexes bullet
+         gained the four N-D invariants ((1,3) → (1,3,I), (3,1,1) → (3,1,1,I), F-order parity, empty (0,2) → (0,2,I))
+         and the count 5 → 9; (3) test\_feature.md's header 25 (24+1) → 29 (28+1); (4) its Coverage row for
+         TestFeatureSetComputeIndexes 5 → 9 with the N-D tests listed. Docs clean at the audit; no source change.
