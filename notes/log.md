@@ -147,7 +147,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sezione Open issues del mirror finisce con "None." — nessun item aperto.
 - IMPLEMENTATION (D-338): le due celle State -> "complete" (ora tutte le 95 celle complete, salve le 2 helper); il
   mirror wrk\_anova.md pulito — Open issues = "None." (docs\_rules §4: i closed items non appaiono in quella sezione)
-  + il fatto del console/report split spostato nel bullet Architecture come contratto attuale (le righe console
+  \+ il fatto del console/report split spostato nel bullet Architecture come contratto attuale (le righe console
   sono top-N, il report la lista completa, l'header wording il quirk pinned e deliberato); l'appunto storico vive
   nel D-259.
 - COMMIT: un solo commit (D-338).
@@ -283,7 +283,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   sono il SUPERSET delle clausole di R-007 — la grammatica di formato (header I-NNN | status | idea, 9 spazi, blank
   line, code span), la legenda degli status CON definizioni (idea/follow-up/in-progress — il registro non le aveva
   nemmeno), il lifecycle di chiusura (l'idea chiusa si sposta in ideas-closed.md, compattata a statement + D-pointer
-  + outcome, nello stesso commit della decisione di chiusura, "it never stays here"; la storia vive in
+  \+ outcome, nello stesso commit della decisione di chiusura, "it never stays here"; la storia vive in
   decisions.md/journal, il file chiuso e' "the I-NNN index into it, never a narrative"), i I-numbers globali/mai
   riusati — tutto nei preamboli; il registro portava la copia PIU' DEBOLE. I preamboli SONO i file di dominio
   (auto-contenuti, D-235, in entrambi i file) — nessun nuovo file serve.
@@ -648,7 +648,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   i "### Step N" + prosa column-0 e i sub-bullet a 1 spazio (i journal), le liste numerate nidificate, il gap
   storico D-152, e i tre entry D-156b/c/d non riconosciuti dal tool (la regex ENTRY esatta D-\d{3}).
 - IMPLEMENTATION (D-368): prima le estensioni del guard (documentate nel codice) — decisions: FIELD block 9/11
-  + inline bullet 9/11 (la forma canonica del tool stesso), TRAP ristretto ai veri token di mis-parse, SEQ in
+  \+ inline bullet 9/11 (la forma canonica del tool stesso), TRAP ristretto ai veri token di mis-parse, SEQ in
   crescita stretta (gap legali, riuso no); journal: "### " section con prosa column-0, sub-bullet " - " a 1
   spazio (continuation 3), numeri nidicati a 2 spazi (continuation 5); tool: la regex ENTRY di
   notes\_format.py guadagna il suffisso letterale — i tre sub-entry D-156b/c/d, altrimenti appiattiti (un solo
@@ -1547,7 +1547,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
 - IMPLEMENTATION (D-417): le guardie 1-D escono dalle famiglie di funzioni vettorizzate — cast, D8 (le 4
   riflessioni + transformations/anti\_transformations), kernel board (legal\_moves, position\_hash,
   position\_flips, position\_make\_move), mobility.compute\_indexes, pattern PatternSet.compute\_principal\_indexes
-  + Pattern.compute\_indexes\_on\_position, feature.FeatureSet.compute\_indexes + i consumer lm, random\_game
+  \+ Pattern.compute\_indexes\_on\_position, feature.FeatureSet.compute\_indexes + i consumer lm, random\_game
   choose\_move/make\_move/play\_path. Pattern di casa: kernel numba 1-D invariati, gli array 1-D vanno DRETTO al
   kernel (no flatten copy — le field view strided sono non-contigue e ravel() le copiava: l'A/B perf l'ha
   catturato sul hash, 141 vs 307 M p/s, e la fast path 1-D è stata ripristinata negli 8 wrapper board come
@@ -1940,7 +1940,7 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   change. Source-doc: "734 lines" → "689 lines" nello stesso commit.
 
 - D-444 (binio test, la metà test della coerenza — specchio di D-443): non a punto fisso; 8 docstring di classe
-  + il module docstring in forma espansa stantia → convenzione a-quote; 4 trailing-ws nell'header. FIX: tutto +
+  \+ il module docstring in forma espansa stantia → convenzione a-quote; 4 trailing-ws nell'header. FIX: tutto +
   src\_reflow --write → canonico, 651 righe (era 667). Nessun test aggiunto/tolto (56/0/0, zero behavior
   change); test-doc: niente da syncare (nessun riferimento a righe/stile — solo i conteggi per classe, tutti
   ancora corretti). VERDETTO DI COPERTURA (R-850): la suite è COMPLETA per il contratto documentato (goldens
@@ -2549,3 +2549,9 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   identificatori rotti; ricostruiti con l'escape giusto (solo underscore). Chiuso col rettifico di
   Roberto il capitolo "i < nudi rovinano Obsidian": ero in modalità EDITING, non VIEW — i < restano
   com'è, nessun escape, nessuna modifica a lint / rules (D-482 ha registrato il leave-as-is).
+- Protezione line-start nel journal (Obsidian): 5 righe di continuazione partivano con "+ " subito
+  dopo l'indent di 2 spazi — Obsidian legge un "+" dopo al più 3 spazi di indent come bullet
+  annidato (il bullet indentato a destra visto da Roberto). Protetto con "\+" solo in testa alla
+  riga (i 386 "+" in linea restano com'è). Altra classe di marker controllata e libera: nessuna
+  riga parte a colonna 0 con "\*" o "N. ", il "-" in testa è il bullet del journal (intenzionale).
+  La ruling è registrata in D-483.

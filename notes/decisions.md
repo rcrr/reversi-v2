@@ -839,3 +839,10 @@ D-482 | 2026-10-05 | The D-481 journal-bullet repair + the angle-bracket matter 
          <module> / <total>… / <verbo> sequences): the user's own ruling — it was Obsidian's EDITING mode, not a
          rendering defect; the raw < in the journal stay UN-ESCAPED, no lint / log\_rules change. Leave-as-is ruling
          recorded so a future pass does not re-escape them.
+
+D-483 | 2026-10-05 | Journal line-start protection (Obsidian): 5 journal continuation lines began with "+ " right after
+         the 2-space indent — Obsidian parses a "+" after up to 3 spaces of indent as a nested list bullet (the
+         right-indented bullet the user saw); the line-leading "+" escaped to "\+" (leading position only — the 386
+         mid-line "+" untouched, the user's ruling). The same marker class checked and clear: no line begins at column 0
+         with "\*" or a "N. " ordered-list marker; the line-leading "-" is the journal's own bullet marker (intended
+         rendering).
