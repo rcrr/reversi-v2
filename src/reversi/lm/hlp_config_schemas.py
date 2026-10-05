@@ -47,14 +47,14 @@ class LMBaseConfig(BaseModel):
 
 StatusString = Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
 
+
 class ValidationDataSetConfig(LMBaseConfig):
     bid: List[NonNegativeInt]
     status: List[StatusString]
 
+
 class OptimizationConfig(LMBaseConfig):
-    """
-    Configuration for the L-BFGS optimizer.
-    """
+    """Configuration for the L-BFGS optimizer."""
     max_iters: int = Field(default=500, ge=1, description="Maximum number of iterations.")
     m: int = Field(default=50, ge=1, description="Memory size (number of stored vector pairs).")
     c1: float = Field(default=1e-4, gt=0, lt=1, description="Armijo condition constant.")
@@ -88,10 +88,9 @@ class OptimizationConfig(LMBaseConfig):
             )
         return self
 
+
 class AnalyticsConfig(LMBaseConfig):
-    """
-    Configuration for model analytics report generation.
-    """
+    """Configuration for model analytics report generation."""
     detailed_report: List[str] = Field(
         default_factory=list,
         description="List of feature names to include detailed row-by-row tables for in the analytics TXT report.")
@@ -99,11 +98,13 @@ class AnalyticsConfig(LMBaseConfig):
         default="model_analytics_report.txt",
         description="Filename for the detailed analytics report.")
 
+
 class PlotConfig(LMBaseConfig):
     """
-    Configuration for the PLOT level: the matplotlib diagnostic figures written after CLIENT_CHECK. The plots
-    WHITELIST decides what is generated (a listed name is written, an unlisted name is skipped, an empty list
-    makes the level a no-op); the enable master switch dominates (false = do nothing, even with names listed).
+    Configuration for the PLOT level: the matplotlib diagnostic figures written after CLIENT_CHECK.
+    The plots WHITELIST decides what is generated (a listed name is written, an unlisted name is
+    skipped, an empty list makes the level a no-op); the enable master switch dominates (false = do
+    nothing, even with names listed).
     """
     enable: bool = Field(
         default=True,
@@ -146,8 +147,10 @@ class PlotConfig(LMBaseConfig):
     @field_validator("format")
     @classmethod
     def check_format(cls, v: str) -> str:
-        """Normalize the format pair: whitespace stripped, every token must be 'png' or 'pdf', no duplicates, at
-        least one."""
+        """
+        Normalize the format pair: whitespace stripped, every token must be 'png' or 'pdf', no
+        duplicates, at least one.
+        """
         parts = [p.strip() for p in v.split(",")]
         bad = [p for p in parts if p not in ("png", "pdf")]
         if bad:
@@ -161,8 +164,10 @@ class PlotConfig(LMBaseConfig):
     @field_validator("plots")
     @classmethod
     def check_plots(cls, v: List[str]) -> List[str]:
-        """Fail fast (at the CONFIG level) on unknown names and deduplicate preserving order (a repeated name
-        would regenerate the same file twice)."""
+        """
+        Fail fast (at the CONFIG level) on unknown names and deduplicate preserving order (a
+        repeated name would regenerate the same file twice).
+        """
         unknown = [n for n in v if n not in PLOT_NAMES]
         if unknown:
             raise ValueError(
@@ -173,9 +178,9 @@ class PlotConfig(LMBaseConfig):
 
 class CorpusConfig(LMBaseConfig):
     """
-    Configuration for the SU_ANALYSIS corpus (the SU-analysis corpus generator): the MT19937 seed, the total
-    positions. The ec arrest rule is the ROOT empty_count — the corpus is arrested at the same ec the DB
-    extraction uses.
+    Configuration for the SU_ANALYSIS corpus (the SU-analysis corpus generator): the MT19937 seed,
+    the total positions. The ec arrest rule is the ROOT empty_count — the corpus is arrested at the
+    same ec the DB extraction uses.
     """
     seed: int = Field(default=42, description="The MT19937 corpus seed.")
     total_positions: PositiveInt = Field(default=10_000_000, description="The total positions to generate.")
@@ -183,10 +188,11 @@ class CorpusConfig(LMBaseConfig):
 
 class SuAnalysisConfig(LMBaseConfig):
     """
-    Configuration for the SU_ANALYSIS level: the corpus generator + the SU / the dispersion / the never-observed
-    audit kernels. The enable master switch is FALSE by default (the SU analysis is OPTIONAL, opt-in). The
-    su_pairs are the explicit (feature, feature) pairs for the joint analysis; the fail-fast against the feature
-    set is at the LMConfig level (it needs the feature_set field).
+    Configuration for the SU_ANALYSIS level: the corpus generator + the SU / the dispersion / the
+    never-observed audit kernels. The enable master switch is FALSE by default (the SU analysis is
+    OPTIONAL, opt-in). The su_pairs are the explicit (feature, feature) pairs for the joint
+    analysis; the fail-fast against the feature set is at the LMConfig level (it needs the
+    feature_set field).
     """
     enable: bool = Field(
         default=False,
@@ -218,16 +224,20 @@ class SuAnalysisConfig(LMBaseConfig):
     @field_validator("su_pairs")
     @classmethod
     def check_su_pairs(cls, v: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-        """Canonical order (each pair sorted) + dedupe. The fail-fast against the feature set is at the
-        LMConfig level (it needs the feature_set field)."""
+        """
+        Canonical order (each pair sorted) + dedupe. The fail-fast against the feature set is at the
+        LMConfig level (it needs the feature_set field).
+        """
         canonical = [tuple(sorted(pair)) for pair in v]
         return list(dict.fromkeys(canonical))
 
     @field_validator("rarity_thresholds")
     @classmethod
     def check_rarity_thresholds(cls, v: Optional[List[int]]) -> Optional[List[int]]:
-        """None or empty = the rarity section off (the default). Otherwise: positive strictly-increasing
-        integers."""
+        """
+        None or empty = the rarity section off (the default). Otherwise: positive
+        strictly-increasing integers.
+        """
         if not v:
             return v
         if any(t <= 0 for t in v):
@@ -241,9 +251,9 @@ class SuAnalysisConfig(LMBaseConfig):
 
 class AnovaConfig(LMBaseConfig):
     """
-    Configuration for the ANOVA level (the eta²/omega² + the adherence). The enable master switch is FALSE by
-    default (opt-in). The top_k_adherence is the number of the most deviant features reported in the console
-    (the TV descending).
+    Configuration for the ANOVA level (the eta²/omega² + the adherence). The enable master switch is
+    FALSE by default (opt-in). The top_k_adherence is the number of the most deviant features
+    reported in the console (the TV descending).
     """
     enable: bool = Field(
         default=False,
@@ -262,14 +272,13 @@ class AnovaConfig(LMBaseConfig):
 
 
 class RegabDBConnectionConfig(LMBaseConfig):
-    """
-    Configuration for connecting to the Regab database.
-    """
+    """Configuration for connecting to the Regab database."""
     dbname: str
     user: str
     host: str
     port: int = 5432
     password: Optional[str] = None
+
 
 class RegabDataSetConfig(LMBaseConfig):
     """
@@ -279,10 +288,9 @@ class RegabDataSetConfig(LMBaseConfig):
     bid: List[NonNegativeInt]
     status: List[StatusString]
 
+
 class PatternConfig(LMBaseConfig):
-    """
-    Configuration for a pattern, including its name and mask.
-    """
+    """Configuration for a pattern, including its name and mask."""
     name: str
     mask: Bitboard = Field(..., description="A 64-bit hex string: 16 hex digits, no 0x prefix, case-insensitive.")
 
@@ -300,6 +308,7 @@ class PatternConfig(LMBaseConfig):
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 
+
 class PatternSetConfig(LMBaseConfig):
     """
     Configuration for a set of patterns, including the name and a list of individual pattern configurations.
@@ -307,10 +316,9 @@ class PatternSetConfig(LMBaseConfig):
     name: str
     patterns: List[PatternConfig] = Field(default_factory=list)
 
+
 class MobilityFeatureConfig(LMBaseConfig):
-    """
-    Configuration for a mobility feature.
-    """
+    """Configuration for a mobility feature."""
     name: str
     mask: Bitboard = Field(..., description="Legal moves mask in HEX format, no 0x prefix, just 16 digits.")
     amask: Bitboard = Field(..., description="Anti legal moves mask in HEX format, no 0x prefix, just 16 digits.")
@@ -329,6 +337,7 @@ class MobilityFeatureConfig(LMBaseConfig):
     def serialize_mask_to_hex(self, mask: Bitboard) -> str:
         return f"{mask:016X}"
 
+
 class MobilitySetConfig(LMBaseConfig):
     """
     Configuration for a set of mobility features, including the name and a list of individual configurations.
@@ -336,22 +345,21 @@ class MobilitySetConfig(LMBaseConfig):
     name: str
     mobility_features: List[MobilityFeatureConfig] = Field(default_factory=list)
 
+
 class FeatureSetConfig(LMBaseConfig):
-    """
-    Configuration for the set of features.
-    """
+    """Configuration for the set of features."""
     name: Optional[str] = 'NoNameFeatureSet'
     intercept: Optional[bool] = False
     mobility_set: Optional[MobilitySetConfig] = None
     pattern_set: Optional[PatternSetConfig] = None
 
+
 class StatModelConfig(LMBaseConfig):
-    """
-    Configuration for a statistical model, including the frequency cut-off threshold.
-    """
+    """Configuration for a statistical model, including the frequency cut-off threshold."""
     frequency_cut_off: PositiveInt = 1
     logit_clipping: float = Field(default=0.05, gt=0, lt=0.5)
     ridge_regularization: float = Field(default=0.00, ge=0.00)
+
 
 class LMConfig(LMBaseConfig):
     """
@@ -405,8 +413,10 @@ class LMConfig(LMBaseConfig):
 
     @model_validator(mode="after")
     def check_su_pairs_feature_set(self) -> "LMConfig":
-        """Enforce that every su_analysis.su_pairs name is a feature of the feature set (the mobility + the
-        pattern names)."""
+        """
+        Enforce that every su_analysis.su_pairs name is a feature of the feature set (the mobility +
+        the pattern names).
+        """
         if self.feature_set is not None:
             names = set()
             if self.feature_set.mobility_set is not None:

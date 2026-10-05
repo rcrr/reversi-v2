@@ -35,8 +35,7 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no database required — the schemas validate
-#     in memory only).
+# -1- Run the tests (no database required — the schemas validate in memory only).
 #
 # time python3 -m unittest test.reversi.lm.test_hlp_config_schemas
 #
@@ -60,10 +59,12 @@ from test.reversi.paths import WORKSPACE_ROOT
 
 
 class TestRlmConfigSchemas(unittest.TestCase):
-    """Deterministic pydantic unit behaviour of hlp_config_schemas.
+    """
+    Deterministic pydantic unit behaviour of hlp_config_schemas.
 
-    The base payload is the rlm_00.json fixture (deep-copied per
-    test); the schemas validate in memory only (no database)."""
+    The base payload is the rlm_00.json fixture (deep-copied per test); the schemas validate in
+    memory only (no database).
+    """
 
     def setUp(self):
         self.base = json5.loads(
@@ -80,8 +81,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- dump round-trip -------------------------------------------------
 
     def test_model_dump_json_round_trip(self):
-        """The full config round-trips via model_dump_json: the name
-        survives and cache_files_prefix keeps its 'rlmwf_' value."""
+        """
+        The full config round-trips via model_dump_json: the name survives and cache_files_prefix
+        keeps its 'rlmwf_' value.
+        """
         cfg = LMConfig(**self._cfg_dict())
         dumped = json5.loads(cfg.model_dump_json())
         self.assertEqual(dumped["name"], self.base["name"])
@@ -90,9 +93,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- root fields -------------------------------------------------
 
     def test_empty_count_required_and_bounded(self):
-        """The root empty_count: required, integer, 0..60.
-        Missing is rejected; 61 and -1 (out of range) are rejected;
-        the fixture value (20) is accepted."""
+        """
+        The root empty_count: required, integer, 0..60. Missing is rejected; 61 and -1 (out of
+        range) are rejected; the fixture value (20) is accepted.
+        """
         def _drop(d):
             del d["empty_count"]
         with self.assertRaises(ValidationError):
@@ -108,8 +112,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- pattern mask parsing -------------------------------------
 
     def test_pattern_mask_16_hex_parsed_and_serialized(self):
-        """A 16-hex string (no 0x) parses to the Bitboard int and
-        serializes back to the uppercase 16-hex form."""
+        """
+        A 16-hex string (no 0x) parses to the Bitboard int and serializes back to the uppercase
+        16-hex form.
+        """
         pc = PatternConfig(name="p", mask="0000000000000107")
         self.assertEqual(pc.mask, 0x107)
         dumped = json5.loads(
@@ -117,15 +123,15 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(dumped["mask"], "0000000000000107")
 
     def test_pattern_mask_0x_prefix_rejected(self):
-        """A '0x'-prefixed mask is rejected (the field's docstring
-        example mismatches the parser)."""
+        """A '0x'-prefixed mask is rejected."""
         with self.assertRaises(ValidationError):
             PatternConfig(name="p", mask="0x0000000000000107")
 
     def test_invalid_hex_mask_rejected(self):
-        """A non-hex mask in the full config is rejected by the
-        schema (the worker-level pin of the ec/status siblings
-        lives in test_wrk_config.py)."""
+        """
+        A non-hex mask in the full config is rejected by the schema (the worker-level pin of the
+        ec/status siblings lives in test_wrk_config.py).
+        """
         def _badmask(d):
             d["feature_set"]["pattern_set"]["patterns"][0]["mask"] = "ZZZZ"
         with self.assertRaises(ValidationError):
@@ -134,8 +140,9 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- regab_data_set constraints ------------------------------------
 
     def test_invalid_status_rejected(self):
-        """status must be exactly 3 uppercase letters: lowercase
-        'cms' and the 4-letter 'CMSX' are both rejected."""
+        """
+        status must be exactly 3 uppercase letters: lowercase 'cms' and the 4-letter 'CMSX' are both rejected.
+        """
         for bad in ("cms", "CMSX"):
             with self.subTest(status=bad):
                 def _badst(d, s=bad):
@@ -146,8 +153,7 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- optimization cross-field validator --------------------------------
 
     def test_optimization_c2_lte_c1_rejected(self):
-        """The cross-field c2>c1 validator rejects c1=0.9 +
-        c2=0.1."""
+        """The cross-field c2>c1 validator rejects c1=0.9 + c2=0.1."""
         with self.assertRaises(ValidationError):
             OptimizationConfig(checkpoint_file="c.json", c1=0.9, c2=0.1)
 
@@ -158,8 +164,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(o.c2, 0.9)
 
     def test_optimization_high_performance_fg(self):
-        """high_performance_fg defaults to False (the classic fg)
-        and accepts True (the numba high-performance fg)."""
+        """
+        high_performance_fg defaults to False (the classic fg) and accepts True (the numba
+        high-performance fg).
+        """
         o = OptimizationConfig(checkpoint_file="c.json")
         self.assertFalse(o.high_performance_fg)
         o2 = OptimizationConfig(checkpoint_file="c.json",
@@ -167,8 +175,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertTrue(o2.high_performance_fg)
 
     def test_optimization_hi_perf_blocks(self):
-        """hi_perf_blocks defaults to 8 (the production block
-        count), accepts other positive integers, rejects 0."""
+        """
+        hi_perf_blocks defaults to 8 (the production block count), accepts other positive integers,
+        rejects 0.
+        """
         o = OptimizationConfig(checkpoint_file="c.json")
         self.assertEqual(o.hi_perf_blocks, 8)
         o2 = OptimizationConfig(checkpoint_file="c.json",
@@ -178,17 +188,23 @@ class TestRlmConfigSchemas(unittest.TestCase):
             OptimizationConfig(checkpoint_file="c.json",
                                hi_perf_blocks=0)
 
+    def test_optimization_checkpoint_file_required(self):
+        """The checkpoint_file field is required: a missing value is a ValidationError."""
+        with self.assertRaises(ValidationError):
+            OptimizationConfig()
+
     # -- The client_check_tol field ---------------------------------
 
     def test_client_check_tol_default(self):
-        """client_check_tol defaults to 1e-8 — the fixture does
-        not set it."""
+        """client_check_tol defaults to 1e-8 — the fixture does not set it."""
         cfg = LMConfig(**self._cfg_dict())
         self.assertEqual(cfg.client_check_tol, 1e-8)
 
     def test_client_check_tol_override(self):
-        """An explicit value survives the validation (and the dump
-        round-trip: the field travels with the normalized dump)."""
+        """
+        An explicit value survives the validation (and the dump round-trip: the field travels with
+        the normalized dump).
+        """
         d = self._cfg_dict()
         d["client_check_tol"] = 1e-9
         cfg = LMConfig(**d)
@@ -197,8 +213,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(dumped["client_check_tol"], 1e-9)
 
     def test_client_check_tol_nonpositive_rejected(self):
-        """The gt=0 constraint: a zero or negative tolerance is a
-        ValidationError (a check that never fails is not a check)."""
+        """
+        The gt=0 constraint: a zero or negative tolerance is a ValidationError (a check that never
+        fails is not a check).
+        """
         for bad in (0.0, -1e-8):
             with self.assertRaises(ValidationError):
                 LMConfig(**self._cfg_dict(
@@ -207,9 +225,10 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- The PlotConfig section -------------------------------------
 
     def test_plot_defaults(self):
-        """The plot section defaults — enable True, format 'png',
-        dpi 150, the relative 'plots' dir, and an EMPTY whitelist
-        (the PLOT level is a no-op until names are listed)."""
+        """
+        The plot section defaults — enable True, format 'png', dpi 150, the relative 'plots' dir,
+        and an EMPTY whitelist (the PLOT level is a no-op until names are listed).
+        """
         cfg = LMConfig(**self._cfg_dict())
         self.assertTrue(cfg.plot.enable)
         self.assertEqual(cfg.plot.format, "png")
@@ -218,52 +237,57 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(cfg.plot.plots, [])
 
     def test_plot_format_pair_and_normalization(self):
-        """The format field: a lone token and the comma-separated
-        pair are both accepted; whitespace is normalized away
-        ('png, pdf' -> 'png,pdf'), the order is preserved."""
+        """
+        The format field: a lone token and the comma-separated pair are both accepted; whitespace is
+        normalized away ('png, pdf' -> 'png,pdf'), the order is preserved.
+        """
         self.assertEqual(PlotConfig(format="pdf").format, "pdf")
         self.assertEqual(PlotConfig(format="pdf,png").format, "pdf,png")
         self.assertEqual(PlotConfig(format="png, pdf").format,
                          "png,pdf")
 
     def test_plot_format_bad_rejected(self):
-        """Unknown tokens, empty tokens (the trailing comma) and
-        duplicates are all a ValidationError."""
+        """
+        Unknown tokens, empty tokens (the trailing comma) and duplicates are all a ValidationError.
+        """
         for bad in ("jpg", "pdf,", "", "png,png"):
             with self.subTest(bad=bad):
                 with self.assertRaises(ValidationError):
                     PlotConfig(format=bad)
 
     def test_plot_unknown_name_rejected(self):
-        """An unknown plot name is rejected at the CONFIG level
-        (the fail-fast typo guard, the PLOT_NAMES vocabulary)."""
+        """
+        An unknown plot name is rejected at the CONFIG level (the fail-fast typo guard, the
+        PLOT_NAMES vocabulary).
+        """
         with self.assertRaises(ValidationError):
             PlotConfig(plots=["residual_density", "nope"])
 
     def test_plot_dedup_preserving_order(self):
-        """A repeated name is deduplicated, order preserved (a
-        duplicate would regenerate the same file twice)."""
+        """
+        A repeated name is deduplicated, order preserved (a duplicate would regenerate the same file twice).
+        """
         p = PlotConfig(plots=["parity", "resid_qq", "parity"])
         self.assertEqual(p.plots, ["parity", "resid_qq"])
 
     def test_plot_dir_absolute_and_relative(self):
-        """The dir_name is a Path: an absolute one stays absolute
-        (the worker will use it as-is, outside base_dir), a
-        relative one stays relative (the worker resolves it under
-        base_dir)."""
+        """
+        The dir_name is a Path: an absolute one stays absolute (the worker will use it as-is,
+        outside base_dir), a relative one stays relative (the worker resolves it under base_dir).
+        """
         self.assertTrue(PlotConfig(dir_name="/tmp/elsewhere").dir_name
                         .is_absolute())
         self.assertFalse(PlotConfig(dir_name="my-plots").dir_name
                          .is_absolute())
 
     def test_plot_style_defaults_and_constraints(self):
-        """The 13 appearance/determinism knobs: the defaults are the
-        historical rendering values (the seeds 42/43, the 0.005 /
-        0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64 /
-        72 axis domains, the 8 tick step, the binned note, and the
-        series-label placement), and the numeric constraints reject
-        the degenerate values (a negative seed, a non-positive
-        axis / grid / cap / step)."""
+        """
+        The 13 appearance/determinism knobs: the defaults are the historical rendering values (the
+        seeds 42/43, the 0.005 / 0.7 jitter amounts, the 512 KDE grid + 100k cap, the 64 / 72 axis
+        domains, the 8 tick step, the binned note, and the series-label placement), and the numeric
+        constraints reject the degenerate values (a negative seed, a non-positive axis / grid / cap
+        / step).
+        """
         p = PlotConfig()
         self.assertEqual(p.binned_note, r" $(binned\ every\ 2)$")
         self.assertEqual((p.jitter_seed, p.kde_seed), (42, 43))
@@ -289,16 +313,16 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- validation_data_set + stat_model --------------------------------
 
     def test_validation_dataset_status_strict(self):
-        """validation_data_set.status is a STRICT StatusString:
-        'xyz' is rejected, valid 3-letter codes pass."""
+        """
+        validation_data_set.status is a STRICT StatusString: 'xyz' is rejected, valid 3-letter codes pass.
+        """
         with self.assertRaises(ValidationError):
             ValidationDataSetConfig(bid=[1], status=["xyz"])
         ok = ValidationDataSetConfig(bid=[1], status=["CMS", "CMR"])
         self.assertEqual(ok.status, ["CMS", "CMR"])
 
     def test_properties_field_in_model_fields(self):
-        """Both LMBaseConfig descendants carry the 'properties'
-        field."""
+        """Both LMBaseConfig descendants carry the 'properties' field."""
         self.assertIn("properties", StatModelConfig.model_fields)
         self.assertIn("properties", ValidationDataSetConfig.model_fields)
 
@@ -332,17 +356,16 @@ class TestRlmConfigSchemas(unittest.TestCase):
     # -- The SU_ANALYSIS / ANOVA config -------------------------------
 
     def test_su_analysis_defaults(self):
-        """The opt-in sections: the su_analysis / the
-        anova enable default FALSE, the target_level
-        default 'last', the corpus defaults (seed 42, 1e7), the
-        su_pairs empty. The rlm_00 fixture carries the
-        sections — strip them to check the pure defaults (the
-        absent-section no-op)."""
-        def _strip_i017(d):
+        """
+        The opt-in sections: the su_analysis / the anova enable default FALSE, the target_level
+        default 'last', the corpus defaults (seed 42, 1e7), the su_pairs empty. The rlm_00 fixture
+        carries the sections — strip them to check the pure defaults (the absent-section no-op).
+        """
+        def _strip_sections(d):
             d.pop("su_analysis", None)
             d.pop("anova", None)
             d.pop("target_level", None)
-        cfg = LMConfig(**self._cfg_dict(_strip_i017))
+        cfg = LMConfig(**self._cfg_dict(_strip_sections))
         self.assertFalse(cfg.su_analysis.enable)
         self.assertFalse(cfg.anova.enable)
         self.assertEqual(cfg.target_level, "last")
@@ -355,8 +378,9 @@ class TestRlmConfigSchemas(unittest.TestCase):
         self.assertEqual(cfg.anova.top_k_adherence, 20)
 
     def test_su_pairs_canonical_dedupe(self):
-        """The canonical order + the dedupe: the repeated pair
-        (any order) collapses to one sorted tuple."""
+        """
+        The canonical order + the dedupe: the repeated pair (any order) collapses to one sorted tuple.
+        """
         def _pairs(d):
             d["su_analysis"] = {"su_pairs": [["EDGE", "LMC"],
                                                   ["LMC", "EDGE"]]}
@@ -365,11 +389,11 @@ class TestRlmConfigSchemas(unittest.TestCase):
                          [("EDGE", "LMC")])
 
     def test_rarity_thresholds(self):
-        """The optional rarity thresholds (the report's
-        'Section B: Rarity report'): absent = None
-        (the section off), the fixture's [1, 2, 5, 10, 100]
-        validates, the empty list is legal (off), and the
-        list must be positive strictly-increasing integers."""
+        """
+        The optional rarity thresholds (the report's 'Section B: Rarity report'): absent = None (the
+        section off), the fixture's [1, 2, 5, 10, 100] validates, the empty list is legal (off), and
+        the list must be positive strictly-increasing integers.
+        """
         def _strip(d):
             d.pop("su_analysis", None)
         self.assertIsNone(
@@ -389,21 +413,28 @@ class TestRlmConfigSchemas(unittest.TestCase):
                         {"rarity_thresholds": bad})))
 
     def test_su_pairs_fail_fast(self):
-        """The fail-fast against the feature set: a name not in
-        the feature set (the mobility + the pattern names) is
-        rejected at the CONFIG level."""
+        """
+        The fail-fast against the feature set: a name not in the feature set (the mobility + the
+        pattern names) is rejected at the CONFIG level.
+        """
         def _badpair(d):
             d["su_analysis"] = {"su_pairs": [["LMC", "UNKNOWN"]]}
         with self.assertRaises(ValidationError):
             LMConfig(**self._cfg_dict(_badpair))
 
     def test_target_level_field(self):
-        """The target_level field: a level name (the
-        'SU_ANALYSIS' stop) or 'last' (the default)."""
+        """The target_level field: a level name (the 'SU_ANALYSIS' stop) or 'last' (the default)."""
         def _tlevel(d):
             d["target_level"] = "SU_ANALYSIS"
         cfg = LMConfig(**self._cfg_dict(_tlevel))
         self.assertEqual(cfg.target_level, "SU_ANALYSIS")
+
+    def test_log_file_name_default_none(self):
+        """
+        log_file_name defaults to None (the FINAL_LOG_PRINT level is a no-op: no file is written).
+        """
+        cfg = LMConfig(**self._cfg_dict())
+        self.assertIsNone(cfg.log_file_name)
 
 
 if __name__ == '__main__':
