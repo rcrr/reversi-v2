@@ -634,3 +634,15 @@ D-469 | 2026-10-06 | The mobility.py + test\\_mobility.py format pass (the last 
          counts normalized to the house 2 (3 after \_\_all\_\_, 1 between popcount64 and the vectorized kernel); one
          wording fix in the masks property docstring (the array holds the (mask, amask) pairs, not "the mask values").
          312 -> 296 source lines, 519 -> 521 test lines. NO behavior change: test\\_mobility 30/0/1.
+
+D-470 | 2026-10-06 | The mobility mirror-doc fidelity fix (docs\_rules §5 — the same drift class as the feature one:
+         the D-417 N-D wave added the 4 shape tests to the suite without touching the docs). 4 points: (1)
+         test\\_mobility.md's header 26 (25+1) → 30 (29+1) and its Coverage row TestMobilitySet 19 → 23 with the 4 N-D
+         tests listed; (2) mobility.md dropped the stale "306 lines." (the file is 312; a line count in a mirror is a §4
+         defect and would go stale again at the reflow); (3) the Verified invariants header rewritten without the suite
+         count (the pattern.md standard) and the probe named explicitly (the 5 active sections 1,2,3,4,6 — section 5 is
+         a D-106 tombstone in the probe, not in the doc); a new bullet pins the N-D shape edges from the suite side; (4)
+         the API table's popcount64 row un-"Public": the docstring says "not part of the public API" (a test/inspection
+         helper, OUT of \_\_all\_\_). Everything else verified faithful: the LMC/ALMC/DLMC glossary + formula, the
+         n\_configurations distinct-value semantics, the underflow-safe arithmetic, the hash construction + the
+         empty-set divergence, the sorted-column contract. Docs clean at the audit.

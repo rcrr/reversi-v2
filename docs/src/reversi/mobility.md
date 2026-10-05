@@ -12,11 +12,9 @@ indexes.
 | `Mobility(name: str, mask: Bitboard, amask: Bitboard)` | Strict `@validate_call` (any other type → `ValidationError`); sets `n_configurations = k + a + 1` and `n_instances = 1`; `__repr__`; `print()` the `[Mobility: name = {name:8s}, mask = 0x…, amask = 0x…]` line |
 | `MobilitySet(name: str, mobilities: List[Mobility])` | Strict `@validate_call`; duplicate names or duplicate (mask, amask) pairs → `ValueError`; sorted storage; `sha3_256` hash over the 16 LE bytes per element in sorted order; `__repr__`; `names` / `masks` are `@property` |
 | `MobilitySet.compute_indexes(positions: PositionArray) -> IndexArray` | The uint32 index matrix of shape positions.shape + (L,) via the Numba kernel (a 1-D batch gives (N, L); any-shape batches supported, the 1-D path with no flatten copy); the column contract (docstring): column j is the j-th mobility in the set's SORTED (mask, amask) order, NOT the caller's insertion order — label columns with `ms.names` (a `@property`, not a method) |
-| `popcount64(b)` | Public scalar/vectorized SWAR popcount, `@nb.vectorize(uint32(uint64), cache=True)`; OUT of `__all__` (test/inspection helper; the test file imports it by name) |
+| `popcount64(b)` | Scalar/vectorized SWAR popcount (a test/inspection helper), `@nb.vectorize(uint32(uint64), cache=True)`; OUT of `__all__` (the test file imports it by name) |
 
 ## Architecture
-
-306 lines.
 
 - Imports: `reversi.board` (Bitboard, BitboardArray, PositionArray, legal_moves, bitboard_count), `reversi.pattern`
   (only the `Index` / `IndexArray` type aliases, deliberate reuse), numpy, numba; `__all__` = [Mobility, MobilitySet].
@@ -39,7 +37,7 @@ divergence from PatternSet fail-fast).
 
 ## Verified invariants
 
-Pinned by the 5-section `probes/verify_mobility.py` + the 26-test suite (25 run + the PERF skip).
+Pinned by `probes/verify_mobility.py` (the 5 active sections: 1, 2, 3, 4, 6) and the suite.
 
 - popcount64 (section 1): scalar + vectorized vs `int.bit_count()` on 200,010 values (edge constants + 200,000 random
   64-bit) — zero mismatches; vectorized shape/dtype (uint32) exact.
@@ -50,6 +48,8 @@ Pinned by the 5-section `probes/verify_mobility.py` + the 26-test suite (25 run 
 - The golden (section 4): the suite's `[53, 13, 66]` re-derived independently — golden position (mover
   `0x40001ccaeb400024`, 17 stones; opponent `0x92fc6234143c7848`, 27 stones) has lms = `0x2c03810000820690` (13), alms =
   `0x2002810100838012` (11); sorted columns ALMC = 64−11 = 53, LMC = 13, DLMC = 13+53 = 66.
+- The N-D shape edges (suite): the (1,2) → (1,2,L), (2,1,2) → (2,1,2,L), F-order (1,2) parity and the empty
+  (0,2) → (0,2,L) batches, element-wise as the 1-D call.
 - The underflow boundary (section 6): mask = amask = 0xF, lms = 0, alms = 0x8 → index 3, kernel == ground truth.
 - The standard-set hash (suite pin): `2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94` for the
   LMC/ALMC/DLMC triple — literal-pinned in test_hash_calculation_verification + test_print_summary.

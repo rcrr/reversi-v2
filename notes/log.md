@@ -2256,3 +2256,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   vettorizzato); un fix di wording nella docstring della property masks (l'array contiene le
   coppie (mask, amask), non "the mask values"). 312 → 296 righe sorgente, 519 → 521 test. Nessun
   cambiamento di comportamento: test\\_mobility 30/0/1.
+
+- D-470 (la fede dei mirror doc di mobility — docs\_rules §5, la stessa classe di drift di
+  feature: la wave N-D di D-417 ha aggiunto i 4 test di shape alla suite senza toccare i
+  doc). 4 punti: (1) l'header di test\\_mobility.md 26 (25+1) → 30 (29+1) e la sua riga di
+  Coverage TestMobilitySet 19 → 23 con i 4 test N-D elencati; (2) mobility.md perde il "306
+  lines." stale (il file è a 312; un conteggio di riga in un mirror è un difetto §4 e
+  resterebbe stale dopo il reflow); (3) l'header dei Verified invariants riscritto senza il
+  conteggio della suite (lo standard pattern.md) con la probe nominata esplicitamente (i 5
+  attivi: 1,2,3,4,6 — la sezione 5 è un tombstone D-106 nella probe, non nel doc) + un
+  nuovo bullet che pinna i N-D shape edges dal lato suite; (4) la riga popcount64 della API
+  table non è più "Public": il docstring dice "not part of the public API" (helper da
+  test/inspection, OUT di \_\_all\_\_). Il resto verificato fedele: il glossario LMC/ALMC/DLMC +
+  la formula, la semantica dei valori distinti di n\_configurations, l'aritmetica
+  underflow-safe, la costruzione hash + la divergenza del set vuoto, il contratto delle
+  colonne sorted. Doc puliti all'audit.
