@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -41,7 +41,7 @@
 
 import unittest
 import io
-import time        
+import time
 import os
 import hashlib
 
@@ -69,13 +69,13 @@ class TestMobility(unittest.TestCase):
         self.assertEqual(m.mask, Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(m.amask, Bitboard(0x0000000000000000))
         self.assertEqual(m.n_configurations, 65) # 64 + 0 + 1
-        
+
         m = Mobility('ALMC', Bitboard(0x0000000000000000), Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(m.name, 'ALMC')
         self.assertEqual(m.mask, Bitboard(0x0000000000000000))
         self.assertEqual(m.amask, Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(m.n_configurations, 65) # 64 + 0 + 1
-        
+
         m = Mobility('DLMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0xFFFFFFFFFFFFFFFF))
         self.assertEqual(m.name, 'DLMC')
         self.assertEqual(m.mask, Bitboard(0xFFFFFFFFFFFFFFFF))
@@ -115,11 +115,11 @@ class TestMobility(unittest.TestCase):
 
     def test_n_configurations_calculation(self):
         """Tests that n_configurations correctly includes the zero-state (+1)."""
-        # mask has 2 bits set, amask has 3 bits set.
-        # 0 moves, 1 move, 2 moves + 0 anti, 1 anti, 2 anti, 3 anti = 6 total states
+        # mask has 2 bits set, amask has 3 bits set. 0 moves, 1 move, 2 moves + 0 anti, 1 anti, 2
+        # anti, 3 anti = 6 total states
         m = Mobility('TEST_CFG', Bitboard(0x0000000000000003), Bitboard(0x0000000000000007))
         self.assertEqual(m.n_configurations, 6) # 2 + 3 + 1
-        
+
 class TestMobilitySet(unittest.TestCase):
 
     def setUp(self):
@@ -128,7 +128,7 @@ class TestMobilitySet(unittest.TestCase):
             ('ALMC', 0x0000000000000000, 0xFFFFFFFFFFFFFFFF),
             ('DLMC', 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF),
         ]
-        
+
         self.mlf = lambda x: [Mobility(n, Bitboard(m), Bitboard(a)) for n, m, a in x]
 
     def test_init(self):
@@ -158,7 +158,9 @@ class TestMobilitySet(unittest.TestCase):
         self.assertIn('duplicate (mask, amask) pairs', str(context.exception))
 
     def test_hash_equivalence_same_keys(self):
-        """Test that two sets with identical keys but different element orders produce the exact same hash."""
+        """
+        Test that two sets with identical keys but different element orders produce the exact same hash.
+        """
         # Order A
         ml_a = [
             Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000)),
@@ -169,24 +171,23 @@ class TestMobilitySet(unittest.TestCase):
             Mobility('ALMC', Bitboard(0x0000000000000000), Bitboard(0xFFFFFFFFFFFFFFFF)),
             Mobility('LMC', Bitboard(0xFFFFFFFFFFFFFFFF), Bitboard(0x0000000000000000))
         ]
-        
+
         set_a = MobilitySet('SetA', ml_a)
         set_b = MobilitySet('SetB', ml_b)
-        
+
         self.assertEqual(set_a.hash, set_b.hash)
 
     def test_hash_calculation_verification(self):
         """Verify the structural hash against the pinned golden literal."""
         ml = [Mobility(n, Bitboard(m), Bitboard(a)) for n, m , a in self.mobility_set_data]
         mobility_set = MobilitySet('TestHash', ml)
-        
+
         # Sort manually to predict hash sequence matching the class implementation
         sorted_ml = sorted(ml, key=lambda x: (x.mask, x.amask))
-        
+
         # Recreate bytes manually
         expected_bytes = b''.join(m.mask.tobytes() + m.amask.tobytes() for m in sorted_ml)
-        # Pinned golden: independently re-derived, not computed
-        # from the object under test.
+        # Pinned golden: independently re-derived, not computed from the object under test.
         expected_hash = ('2e5535935d46d82a941ef87d43d22562735db9b6bf41db51d6eb6a8f21208a94')
         self.assertEqual(hashlib.sha3_256(expected_bytes).hexdigest(), expected_hash)
         self.assertEqual(mobility_set.hash, expected_hash)
@@ -199,19 +200,19 @@ class TestMobilitySet(unittest.TestCase):
             Mobility('LowMaskHighAmask', Bitboard(0x11111111), Bitboard(0xFFFFFFFF)),
             Mobility('LowMaskLowAmask', Bitboard(0x11111111), Bitboard(0x00000000))
         ]
-        
+
         mobility_set = MobilitySet('SortingTest', ml)
-        
-        # Expected sorting sequence: 
-        # 1. 0x11111111, 0x00000000
-        # 2. 0x11111111, 0xFFFFFFFF
-        # 3. 0xFFFFFFFF, 0x00000000
+
+        # Expected sorting sequence: 1. 0x11111111, 0x00000000 2. 0x11111111, 0xFFFFFFFF 3.
+        # 0xFFFFFFFF, 0x00000000
         self.assertEqual(mobility_set.mobilities[0].name, 'LowMaskLowAmask')
         self.assertEqual(mobility_set.mobilities[1].name, 'LowMaskHighAmask')
         self.assertEqual(mobility_set.mobilities[2].name, 'HighMask')
 
     def test_invalid_mobility_type_in_list(self):
-        """Test that non-Mobility objects inside the list trigger a validation failure via @validate_call."""
+        """
+        Test that non-Mobility objects inside the list trigger a validation failure via @validate_call.
+        """
         ml = [
             Mobility('Valid', Bitboard(0x1), Bitboard(0x2)),
             "NotAMobilityObject"  # Invalid type item
@@ -221,9 +222,11 @@ class TestMobilitySet(unittest.TestCase):
             MobilitySet('InvalidElementsSet', ml)
 
     def test_invalid_name_argument_type(self):
-        """Test that a non-string 'name' argument triggers a validation failure via @validate_call."""
+        """
+        Test that a non-string 'name' argument triggers a validation failure via @validate_call.
+        """
         ml = [Mobility('Valid', Bitboard(0x1), Bitboard(0x2))]
-        
+
         # Passing an integer instead of a string for the name
         with self.assertRaises(ValidationError):
             MobilitySet(12345, ml)
@@ -257,7 +260,7 @@ class TestMobilitySet(unittest.TestCase):
         ]
         expected_output[0] = expected_output[0].format(expected_hash)
         expected_output = '\n'.join(expected_output) + '\n'
-        
+
         with io.StringIO() as buffer:
             ms.print_summary(output=buffer)
             actual_output = buffer.getvalue()
@@ -288,12 +291,11 @@ class TestMobilitySet(unittest.TestCase):
         """Row independence: each output row depends only on its own position."""
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
-        # Row 0: the standard golden position (13 mover moves, 11 opponent
-        # pseudo-moves) -> ALMC 53, LMC 13, DLMC 66 (sorted column order).
+        # Row 0: the standard golden position (13 mover moves, 11 opponent pseudo-moves) -> ALMC 53,
+        # LMC 13, DLMC 66 (sorted column order).
         mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
         opponent0 = bitboard_from_signed_int(np.int64(-7855295674223658936))
-        # Row 1: mover E1, opponent F1,G1,H1 -> lms = 0, alms = D1 (0x8)
-        # -> ALMC 63, LMC 0, DLMC 63.
+        # Row 1: mover E1, opponent F1,G1,H1 -> lms = 0, alms = D1 (0x8) -> ALMC 63, LMC 0, DLMC 63.
         mover1 = Bitboard(0x0000000000000010)
         opponent1 = Bitboard(0x00000000000000E0)
 
@@ -323,7 +325,9 @@ class TestMobilitySet(unittest.TestCase):
              [63, 0, 63]]], dtype=Index))
 
     def test_compute_indexes_3d_positions(self):
-        """A (2, 1, 2) position batch gives a (2, 1, 2, L) index matrix, element-wise as the 1-D call."""
+        """
+        A (2, 1, 2) position batch gives a (2, 1, 2, L) index matrix, element-wise as the 1-D call.
+        """
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         mover0 = bitboard_from_signed_int(np.int64(4611717676283199524))
@@ -372,9 +376,9 @@ class TestMobilitySet(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PERF') == '1', "Skipping performance test (set PERF=1 to run)")
     def test_compute_indexes_performance_1m(self):
-        
+
         N = 1_000_000
-        
+
         ms = MobilitySet("Test", self.mlf(self.mobility_set_data))
 
         mover = bitboard_from_signed_int(np.int64(4611717676283199524))
@@ -388,7 +392,8 @@ class TestMobilitySet(unittest.TestCase):
         end_time = time.perf_counter()
         duration = end_time - start_time
         positions_per_sec = N / duration
-        print(f"\n[PERF MobilitySet.compute_indexes] Processed {N:,} positions in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
+        print(f"\n[PERF MobilitySet.compute_indexes] Processed {N:,} positions "
+              f"in {duration:.4f}s ({positions_per_sec:,.0f} b/s)")
 
     def test_popcount64(self):
         data = [
@@ -450,56 +455,53 @@ class TestMobilitySet(unittest.TestCase):
 
         # Perform an element-wise array comparison assertion
         np.testing.assert_array_equal(
-            computed_vector, 
-            expected_array, 
+            computed_vector,
+            expected_array,
             err_msg="Vectorized popcount computation mismatch on element-by-element verification"
         )
 
     def test_compute_indexes_prevents_underflow(self):
         """
-        Blinds the Numba kernel against 32-bit integer underflows.
-        If alms_count > lms_count, the register must not wrap around to ~4 billion.
+        Blinds the Numba kernel against 32-bit integer underflows. If alms_count > lms_count, the
+        register must not wrap around to ~4 billion.
         """
-        # Create a situation where opponent has moves, but mover has ZERO moves in the mask.
-        # mask = 0x000000000000000F (A1, B1, C1, D1)
-        # amask = 0x000000000000000F (same squares)
-        
+        # Create a situation where opponent has moves, but mover has ZERO moves in the mask. mask =
+        # 0x000000000000000F (A1, B1, C1, D1) amask = 0x000000000000000F (same squares)
+
         ml = [
             Mobility('UNDERFLOW_TEST', Bitboard(0x000000000000000F), Bitboard(0x000000000000000F))
         ]
         ms = MobilitySet('UnderflowSet', ml)
-        
-        # Craft a board where mover has NO legal moves on A1-D1, but opponent has ONE.
-        # Let's put mover on E1 (4), opponent on F1 (5), G1 (6), H1 (7).
-        # Mover legal moves will be 0x0000000000000000 (no valid flips possible).
-        # Opponent legal moves will be 0x0000000000000008 (D1).
+
+        # Craft a board where mover has NO legal moves on A1-D1, but opponent has ONE. Let's put
+        # mover on E1 (4), opponent on F1 (5), G1 (6), H1 (7). Mover legal moves will be
+        # 0x0000000000000000 (no valid flips possible). Opponent legal moves will be
+        # 0x0000000000000008 (D1).
         mover = Bitboard(0x0000000000000010) # E1
         opponent = Bitboard(0x00000000000000E0) # F1, G1, H1
         pos = make_position(mover, opponent)
         positions = np.full(1, pos)
-        
+
         indexes = ms.compute_indexes(positions)
-        
-        # lms_count = 0
-        # alms_count = 1 (bits D1 intersecting the mask)
-        # shifts = 4 (popcount of amask)
-        # Expected formula: 0 + (4 - 1) = 3
+
+        # lms_count = 0 alms_count = 1 (bits D1 intersecting the mask) shifts = 4 (popcount of
+        # amask) Expected formula: 0 + (4 - 1) = 3
         expected_index = 3
         self.assertEqual(indexes[0, 0], expected_index)
 
     def test_init_empty_list(self):
         """Test that initializing MobilitySet with an empty list works correctly."""
         ms = MobilitySet('EmptySet', [])
-        
+
         self.assertEqual(ms.name, 'EmptySet')
         self.assertEqual(len(ms.mobilities), 0)
         self.assertEqual(ms.names, [])
-        
+
         # Verify masks is an empty 2D array with shape (0, 2) and correct dtype
         masks = ms.masks
         self.assertEqual(masks.shape, (0, 2))
         self.assertEqual(masks.dtype, Bitboard)
-        
+
         # Verify the hash matches an empty byte string (SHA256 of b'')
         expected_hash = hashlib.sha3_256(b'').hexdigest()
         self.assertEqual(ms.hash, expected_hash)
@@ -508,12 +510,12 @@ class TestMobilitySet(unittest.TestCase):
         """Test that computing indexes on an empty position array returns an empty (0, L) array."""
         # Use the standard setup data (3 mobilities)
         ms = MobilitySet('EmptyPosTest', self.mlf(self.mobility_set_data))
-        
+
         # Create an empty structured array matching PositionArray dtype
         positions = np.array([], dtype=Position)
-        
+
         indexes = ms.compute_indexes(positions)
-        
+
         L = len(ms.mobilities) # Should be 3
         self.assertEqual(indexes.shape, (0, L))
         self.assertEqual(indexes.dtype, Index)

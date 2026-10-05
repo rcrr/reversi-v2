@@ -2244,3 +2244,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   colonna uguale (trovato sul primo pass feature, disclosed; tutti i file migrati ri-verificati
   senza regressione). Il giro completo LONG=1 rimesurato a chiusura: suite 1093 → 1096/0/24
   (feature 29 → 32/0/1, il resto invariato). Next step: mobility, poi a cascata lm e test.
+
+- D-469 (il pass formato di mobility + test\\_mobility — l'ultimo sub-work dei moduli base): il
+  canone R-560 col tool di D-457: 10 docstring su 14 ri-fluotate nel sorgente (i due
+  blocco-formula dei docstring di classe e di compute\_indexes preservati verbatim come righe
+  profonde a mano), 5 nel test; 6 entry Args: private dei tipi (le annotation in signature sono
+  i tipi; le entry Returns: nominano i tipi di ritorno — contenuto, intatte). Fix di formato a
+  mano: la firma del kernel da 142 char spezzata (oltre il tetto 120 di R-520), il print PERF da
+  130 riavvolto, whitespace di coda spazzato (entrambi i file a 0, lo stato dei file migrati),
+  blank line normalizzate al 2 di casa (3 dopo \_\_all\_\_, 1 tra popcount64 e il kernel
+  vettorizzato); un fix di wording nella docstring della property masks (l'array contiene le
+  coppie (mask, amask), non "the mask values"). 312 → 296 righe sorgente, 519 → 521 test. Nessun
+  cambiamento di comportamento: test\\_mobility 30/0/1.

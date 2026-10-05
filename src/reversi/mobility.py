@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -51,44 +51,38 @@ __all__ = ['Mobility',
            'MobilitySet']
 
 
-
 class Mobility:
     """
-    The Mobility class is a measure of the available moves for the
-    mover, masked by a defined set of squares (the standard "LMC",
-    Legal Move Count, uses the full-board mask). With only amask
-    defined, it is the measure of the pseudo-moves available to the
-    opponent as if she would have to move (the standard "ALMC",
-    Anti Legal Move Count, uses the full-board amask). When both
-    mask and amask are defined, it is the difference between moves
-    and anti-moves (the standard "DLMC", Difference Legal Move
-    Count).
+    The Mobility class is a measure of the available moves for the mover, masked by a defined set of
+    squares (the standard "LMC", Legal Move Count, uses the full-board mask). With only amask
+    defined, it is the measure of the pseudo-moves available to the opponent as if she would have to
+    move (the standard "ALMC", Anti Legal Move Count, uses the full-board amask). When both mask and
+    amask are defined, it is the difference between moves and anti-moves (the standard "DLMC",
+    Difference Legal Move Count).
 
-    On a position with the mover's legal moves lms and the
-    opponent's legal moves alms, the feature index is:
+    On a position with the mover's legal moves lms and the opponent's legal moves alms, the feature
+    index is:
 
         index = popcount(lms & mask) + (popcount(amask)
                 - popcount(alms & amask))
 
-    For popcount(mask) = k and popcount(amask) = a, the index ranges
-    over 0..k+a, so n_configurations = k + a + 1 is the count of the
-    DISTINCT index values (the feature-table size), not the number
-    of (lms, alms) pairs. Mobility features have no symmetry
-    instances: n_instances = 1, the mask/amask pair defines the
-    feature directly.
+    For popcount(mask) = k and popcount(amask) = a, the index ranges over 0..k+a, so
+    n_configurations = k + a + 1 is the count of the DISTINCT index values (the feature-table size),
+    not the number of (lms, alms) pairs. Mobility features have no symmetry instances: n_instances =
+    1, the mask/amask pair defines the feature directly.
     """
-    
+
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, mask: Bitboard, amask: Bitboard):
         """
-        Initializes a new Mobility feature with the given name, mask, and anti-mask.
-        The mask is the set of squares counted as being legal moves.
-        The amask is the set of squares counted as the actual mover would be the opponent. 
-        
+        Initializes a new Mobility feature with the given name, mask, and anti-mask. The mask is the
+        set of squares counted as being legal moves. The amask is the set of squares counted as the
+        actual mover would be the opponent.
+
         Args:
-            name (str): The human-readable label for the mobility (e.g., "LMC", "ALMC").
-            mask (Bitboard): The 64-bit mask defining the squares belonging to this mobility feature.
-            amask (Bitboard): The 64-bit mask defining the squares belonging to this anti-mobility feature.
+            name: The human-readable label for the mobility (e.g., "LMC", "ALMC").
+            mask: The 64-bit mask defining the squares belonging to this mobility feature.
+            amask: The 64-bit mask defining the squares belonging to this anti-mobility feature.
         """
 
         self.name = name
@@ -99,42 +93,36 @@ class Mobility:
         self.n_instances = 1
 
     def __repr__(self) -> str:
-        """
-        A concise one-line summary (same info as the first line of print()).
-        """
+        """A concise one-line summary (same info as the first line of print())."""
         return (f"Mobility(name={self.name!r}, mask=0x{self.mask:016x}, "
                 f"amask=0x{self.amask:016x})")
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def print(self, output: Union[IO, io.StringIO] = sys.stdout) -> None:
-        """
-        Prints the mobility to stdout as default, or a specific IO.
-        """
+        """Prints the mobility to stdout as default, or a specific IO."""
         prt = lambda msg: print(msg, file=output)
         prt(f"[Mobility: name = {self.name:8s}, mask = 0x{self.mask:016x}, amask = 0x{self.amask:016x}]")
 
-        
+
 #: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 class MobilitySet:
     """
-    The MobilitySet class represents a collection of Mobility objects.
-    It uses the tuple (mask, amask) as a unique key.
-    Mobilities are stored in ascending sorted order based on their
-    unique key (lexicographically: first by mask, then by amask);
-    names, masks and the compute_indexes() output columns all
-    follow this sorted order.
+    The MobilitySet class represents a collection of Mobility objects. It uses the tuple (mask,
+    amask) as a unique key. Mobilities are stored in ascending sorted order based on their unique
+    key (lexicographically: first by mask, then by amask); names, masks and the compute_indexes()
+    output columns all follow this sorted order.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def __init__(self, name: str, mobilities: List[Mobility]):
         """
         Initializes a new MobilitySet instance with the given name and list of mobilities.
-        
+
         Args:
-            name (str): The human-readable label for the set of mobilities.
-            mobilities (List[Mobility]): A list of Mobility objects to be included in the set.
-        
+            name: The human-readable label for the set of mobilities.
+            mobilities: A list of Mobility objects to be included in the set.
+
         Raises:
             ValueError: If there are duplicate names in the mobilities list.
             ValueError: If there are duplicate (mask, amask) pairs in the mobilities list.
@@ -143,32 +131,29 @@ class MobilitySet:
         names = [m.name for m in mobilities]
         if len(names) != len(set(names)):
             raise ValueError('Mobilities list contains duplicate names')
-        
-        # Extract composite keys as tuples and check for duplicates
-        # Tuples are naturally hashable and comparable in Python
+
+        # Extract composite keys as tuples and check for duplicates Tuples are naturally hashable
+        # and comparable in Python
         keys = [(m.mask, m.amask) for m in mobilities]
         if len(keys) != len(set(keys)):
             raise ValueError('Mobilities list contains duplicate (mask, amask) pairs')
-        
-        # Sort mobilities by composite key value
-        # Python sorts tuples lexicographically: first by mask, then by amask
+
+        # Sort mobilities by composite key value Python sorts tuples lexicographically: first by
+        # mask, then by amask
         self.mobilities = sorted(mobilities, key=lambda m: (m.mask, m.amask))
-        
-        # Create hash of sorted composite keys
-        # Concatenate bytes of both Bitboards sequentially for each element
+
+        # Create hash of sorted composite keys Concatenate bytes of both Bitboards sequentially for
+        # each element
         hash_input = b''.join(
-            m.mask.tobytes() + m.amask.tobytes() 
+            m.mask.tobytes() + m.amask.tobytes()
             for m in self.mobilities
         )
         self.hash = hashlib.sha3_256(hash_input).hexdigest()
-        
+
         self.name = name
 
     def __repr__(self) -> str:
-        """
-        A concise one-line summary (same info as the first line of
-        print_summary()).
-        """
+        """A concise one-line summary (same info as the first line of print_summary())."""
         return (f"MobilitySet(name={self.name!r}, length={len(self.mobilities)}, "
                 f"hash={self.hash})")
 
@@ -176,7 +161,7 @@ class MobilitySet:
     def names(self) -> List[str]:
         """
         Returns a list of names of the mobilities in the set.
-        
+
         Returns:
             List[str]: A list of mobility names.
         """
@@ -185,14 +170,15 @@ class MobilitySet:
     @property
     def masks(self) -> np.ndarray:
         """
-        Returns a 2D numpy array (shape = (N, 2)) of the mask values of the mobilities in the set.
-        
+        Returns a 2D numpy array (shape = (N, 2)) of the (mask, amask) pairs of the mobilities in
+        the set.
+
         Returns:
-            np.ndarray: A numpy array of mask values.
+            np.ndarray: A numpy array of (mask, amask) pairs.
         """
         arr = np.array([[m.mask, m.amask] for m in self.mobilities], dtype=Bitboard)
-        # Force the array to be strictly 2-dimensional (N, 2).
-        # If N=0, this correctly transforms shape (0,) into (0, 2)
+        # Force the array to be strictly 2-dimensional (N, 2). If N=0, this correctly transforms
+        # shape (0,) into (0, 2)
         return arr.reshape(-1, 2)
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -209,25 +195,21 @@ class MobilitySet:
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
     def compute_indexes(self, positions: PositionArray) -> IndexArray:
         """
-        Computes the mobility indexes for an array of positions via
-        the high-performance Numba kernel.
+        Computes the mobility indexes for an array of positions via the high-performance Numba kernel.
 
-        For each position i and each mobility j, the returned index
-        is:
+        For each position i and each mobility j, the returned index is:
 
             popcount(lms[i] & mask_j) + (popcount(amask_j)
                     - popcount(alms[i] & amask_j))
 
-        where lms[i] / alms[i] are the legal moves of the mover /
-        opponent.
+        where lms[i] / alms[i] are the legal moves of the mover / opponent.
 
-        Column contract: the L output columns follow the set's
-        sorted (mask, amask) order (the same order returned by
-        names and masks), NOT the caller's insertion order.
-        Label columns with ms.names to stay consistent.
+        Column contract: the L output columns follow the set's sorted (mask, amask) order (the same
+        order returned by names and masks), NOT the caller's insertion order. Label columns with
+        ms.names to stay consistent.
 
         Args:
-            positions (PositionArray): the input positions, of any shape.
+            positions: the input positions, of any shape.
 
         Returns:
             IndexArray: the index matrix of shape positions.shape + (L,).
@@ -237,7 +219,7 @@ class MobilitySet:
 
         m = positions['mover']
         o = positions['opponent']
-        
+
         lms = legal_moves(m, o)
         alms = legal_moves(o, m)
 
@@ -248,32 +230,32 @@ class MobilitySet:
 
         # Call the JIT-compiled function
         if lms.ndim == 1:
-            # The 1-D fast path: the legal-move arrays go straight to
-            # the kernel.
+            # The 1-D fast path: the legal-move arrays go straight to the kernel.
             return _numba_compute_indexes_kernel(lms, alms, masks, amasks, shifts)
-        # The N-D contract: the 1-D kernel over the flattened C-order
-        # arrays, the output reshaped to the positions shape + (L,).
+        # The N-D contract: the 1-D kernel over the flattened C-order arrays, the output reshaped to
+        # the positions shape + (L,).
         return _numba_compute_indexes_kernel(
             lms.ravel(), alms.ravel(), masks, amasks, shifts).reshape(positions.shape + (L,))
 
 #: End of MobilitySet class.
 
-#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###    
+#: ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def popcount64(b: Bitboard | BitboardArray) -> Index | IndexArray:
     """
-    Scalar/vectorized 64-bit population count, used to test the
-    Numba popcount kernel. Not part of the public API.
+    Scalar/vectorized 64-bit population count, used to test the Numba popcount kernel. Not part of
+    the public API.
     """
     return _numba_popcount64_kernel(b)
+
 
 @nb.vectorize([nb.uint32(nb.uint64)], cache=True)
 def _numba_popcount64_kernel(x):
     """
-    High-performance 64-bit bitwise population count optimized for Numba.
-    LLVM often replaces this implementation with native CPU popcnt instructions.
-    Processes a single uint64 but expands automatically to arrays via NumPy UFuncs.
+    High-performance 64-bit bitwise population count optimized for Numba. LLVM often replaces this
+    implementation with native CPU popcnt instructions. Processes a single uint64 but expands
+    automatically to arrays via NumPy UFuncs.
     """
     x -= (x >> np.uint64(1)) & np.uint64(0x5555555555555555)
     x = (x & np.uint64(0x3333333333333333)) + ((x >> np.uint64(2)) & np.uint64(0x3333333333333333))
@@ -284,16 +266,18 @@ def _numba_popcount64_kernel(x):
     return np.uint32(x & np.uint64(0x7F))
 
 @nb.njit(cache=True)
-def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray, masks: np.ndarray, amasks: np.ndarray, shifts: np.ndarray) -> np.ndarray:
+def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray,
+                                  masks: np.ndarray, amasks: np.ndarray,
+                                  shifts: np.ndarray) -> np.ndarray:
     """
     Optimized Numba kernel to process indexes loop-by-loop without temporary memory allocations.
     """
     N = lms.shape[0]
     L = masks.shape[0]
-    
+
     # Pre-allocate only the final output matrix to optimize memory
     indexes = np.empty((N, L), dtype=np.uint32)
-    
+
     for i in range(N):
         lms_val = lms[i]
         alms_val = alms[i]
@@ -301,12 +285,12 @@ def _numba_compute_indexes_kernel(lms: np.ndarray, alms: np.ndarray, masks: np.n
             # Perform raw scalar bitwise operations
             lms_masked = lms_val & masks[j]
             alms_masked = alms_val & amasks[j]
-            
+
             # Count bits using the JIT-compiled scalar function
             lms_count = _numba_popcount64_kernel(lms_masked)
             alms_count = _numba_popcount64_kernel(alms_masked)
-            
+
             # Accumulate the final index value. Order matters, we must avoid incurring in an underflow.
             indexes[i, j] = lms_count + (np.uint32(shifts[j]) - alms_count)
-            
+
     return indexes

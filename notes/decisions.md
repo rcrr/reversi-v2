@@ -624,3 +624,13 @@ D-468 | 2026-10-06 | The three missing feature tests (the user-approved completi
          whitespace stripped (the migrated files are at 0). (3) The mirror docs: test\\_feature.md 29 → 32 (31 run + 1
          PERF), the Coverage rows (TestFeature 9, TestFeatureSet 8) + the Goldens bullet + the strict-typing line;
          feature.md's TestFeature (9) / TestFeatureSet (8) counts and the new pins. 29 → 32 tests: 32/0/1.
+
+D-469 | 2026-10-06 | The mobility.py + test\\_mobility.py format pass (the last base-module sub-work). The R-560
+         canonical via the D-457 tool: 10 of 14 docstrings reflowed in the source (the two formula blocks in the class
+         and compute\_indexes docstrings preserved verbatim as hand-placed deep lines), 5 in the test; 6 Args: entries
+         un-typed (the signature annotations are the types; the Returns: entries name the return types — content,
+         untouched). Manual format fixes: the 142-char kernel signature split (over the R-520 120 ceiling), the 130-char
+         PERF print re-wrapped, trailing whitespace stripped (both files at 0, the migrated-file state), the blank-line
+         counts normalized to the house 2 (3 after \_\_all\_\_, 1 between popcount64 and the vectorized kernel); one
+         wording fix in the masks property docstring (the array holds the (mask, amask) pairs, not "the mask values").
+         312 -> 296 source lines, 519 -> 521 test lines. NO behavior change: test\\_mobility 30/0/1.
