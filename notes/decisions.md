@@ -573,3 +573,8 @@ D-460 | 2026-10-06 | The register: R-560 amended in place (the user-approved tex
          cited, not duplicated), R-530/540/550 (content rules), R-570 (the test light form stays coherent: a two-line
          test docstring that fits 100 is collapsed to one), R-580 (the probe). Closes the docstring campaign
          (D-457..D-460: the tool, pattern, board, the register).
+
+D-461 | 2026-10-06 | The tools/binio.py migration to the R-560 canonical (the D-457 tool; the tools sub-work resumes
+         under the new layout). 16 of 23 docstrings reflowed to the stand-alone quote form (the rest were already
+         one-liners or the form); 26 entries un-typed (the one-shot mechanical strip: the Pydantic / signature
+         annotations are the types). 689 -> 704 lines. NO behavior change: test\\_binio + test\\_usage\\_binio 59/0.

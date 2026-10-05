@@ -2169,3 +2169,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   non duplicate), R-530/540/550 (contenuto), R-570 (il test light resta coerente: un test-docstring su 2
   righe che sta in 100 viene contratto a 1), R-580 (la probe). Chiude la campagna docstring
   (D-457..D-460: tool, pattern, board, registro).
+
+- D-461 (tools/binio migrato al canone R-560 — col tool di D-457, il sub-work tools riparte sul nuovo
+  layout): 16 docstring su 23 ri-fluotate alla forma quote-da-solhe (il resto erano già una-riga o in
+  forma); 26 entry private dei tipi (lo strip meccanico one-shot: le annotazioni della signature sono i
+  tipi). 689 → 704 righe. Nessun cambiamento di comportamento: test\\_binio + test\\_usage\\_binio 59/0.

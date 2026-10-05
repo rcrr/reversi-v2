@@ -167,18 +167,20 @@ _F64 = struct.Struct("<d")
 
 
 class BinaryFormatError(Exception):
-    """Raised when the data on disk does not match the expected format (a MAGIC marker mismatch, a
+    """
+    Raised when the data on disk does not match the expected format (a MAGIC marker mismatch, a
     truncated file, or an unknown type code).
     """
     pass
 
 
 def _open_arg(file, mode):
-    """Return (file_object, owns_it) for a path or an open binary file.
+    """
+    Return (file_object, owns_it) for a path or an open binary file.
 
     Args:
-        file (str | os.PathLike | open binary file): A path or an open binary file.
-        mode (str): The open mode, used when ``file`` is a path.
+        file: A path or an open binary file.
+        mode: The open mode, used when ``file`` is a path.
 
     Returns:
         (file_object, owns_it): ``owns_it`` is True only when the file was
@@ -190,7 +192,8 @@ def _open_arg(file, mode):
 
 
 class BinaryWriter:
-    """Write framed binary records. Accepts a path or an open binary file.
+    """
+    Write framed binary records. Accepts a path or an open binary file.
 
     When given a path it owns the file and closes it on ``close()`` / context exit; when given a
     file object it never closes it.
@@ -222,18 +225,18 @@ class BinaryWriter:
         checksum_suffix: str = ".SHA3-256",
         compressed: bool = False,
     ):
-        """Open the write target (a path or an open binary file) and configure the framing, the
+        """
+        Open the write target (a path or an open binary file) and configure the framing, the
         checksum service and the compression service.
 
         Args:
-            file (str | os.PathLike | open binary file): A path or an open binary file.
-            magic (int): The framing marker (``DEFAULT_MAGIC``).
-            signature (int): The file signature stored in the header (``DEFAULT_FILE_SIGNATURE``).
-            checksum (bool): When True (default), the SHA3-256 is computed incrementally and a
-                sidecar is written on close (path-based targets only).
-            checksum_suffix (str): The sidecar suffix appended to the path; must be non-empty.
-            compressed (bool): When True, buffer all writes in memory, LZ4-frame-compress and flush
-                on close.
+            file: A path or an open binary file.
+            magic: The framing marker (``DEFAULT_MAGIC``).
+            signature: The file signature stored in the header (``DEFAULT_FILE_SIGNATURE``).
+            checksum: When True (default), the SHA3-256 is computed incrementally and a sidecar is
+                written on close (path-based targets only).
+            checksum_suffix: The sidecar suffix appended to the path; must be non-empty.
+            compressed: When True, buffer all writes in memory, LZ4-frame-compress and flush on close.
 
         Raises:
             ValueError: If ``checksum_suffix`` is empty (the sidecar would BE the content file,
@@ -277,7 +280,8 @@ class BinaryWriter:
 
     @property
     def sha3_256_hexdigest(self) -> str:
-        """Return the SHA3-256 hex digest of everything written so far (the incremental hash; no re-read).
+        """
+        Return the SHA3-256 hex digest of everything written so far (the incremental hash; no re-read).
 
         In ``compressed`` mode the hash is updated only at ``close()`` over the compressed bytes:
         before close, the digest is the empty-stream digest.
@@ -343,7 +347,8 @@ class BinaryWriter:
     # -- header ----------------------------------------------------------
 
     def write_header(self, description: str, version: int, *, encoding: str = "utf-8"):
-        """Write the file header:
+        """
+        Write the file header:
 
         [MAGIC][signature u32][version u32][length u64][description bytes][MAGIC].
 
@@ -351,9 +356,9 @@ class BinaryWriter:
         version used to reject incompatible files.
 
         Args:
-            description (str): The human-readable file description.
-            version (int): The application-defined format version.
-            encoding (str): The text encoding of ``description`` (default utf-8).
+            description: The human-readable file description.
+            version: The application-defined format version.
+            encoding: The text encoding of ``description`` (default utf-8).
         """
         data = description.encode(encoding)
         self._open_frame()
@@ -379,13 +384,14 @@ class BinaryWriter:
     # -- string ----------------------------------------------------------
 
     def write_string(self, value: str, *, encoding: str = "utf-8"):
-        """Write a string as [MAGIC][length u64][bytes][MAGIC].
+        """
+        Write a string as [MAGIC][length u64][bytes][MAGIC].
 
         ``length`` is the encoded byte count, NOT the character count.
 
         Args:
-            value (str): The string to write.
-            encoding (str): The text encoding (default utf-8).
+            value: The string to write.
+            encoding: The text encoding (default utf-8).
         """
         data = value.encode(encoding)
         self._open_frame()
@@ -396,7 +402,8 @@ class BinaryWriter:
     # -- numpy array -----------------------------------------------------
 
     def write_array(self, array: np.ndarray):
-        """Write a numpy array as
+        """
+        Write a numpy array as
 
         [MAGIC][type_code u8][ndim u64][shape... u64][data][MAGIC].
 
@@ -405,7 +412,7 @@ class BinaryWriter:
         are serialized in C order.
 
         Args:
-            array (np.ndarray): The array to write.
+            array: The array to write.
 
         Raises:
             BinaryFormatError: If the dtype has no TYPE_* code (complex, bool, object, ...).
@@ -432,7 +439,8 @@ class BinaryWriter:
 
 
 class BinaryReader:
-    """Read framed binary records written by :class:`BinaryWriter`.
+    """
+    Read framed binary records written by :class:`BinaryWriter`.
 
     Methods must be called in the same order the values were written. With ``compressed=True`` the
     whole file is LZ4-frame-decompressed into memory first.
@@ -446,13 +454,14 @@ class BinaryReader:
         signature: int = DEFAULT_FILE_SIGNATURE,
         compressed: bool = False,
     ):
-        """Open the read target (a path or an open binary file) and configure the framing.
+        """
+        Open the read target (a path or an open binary file) and configure the framing.
 
         Args:
-            file (str | os.PathLike | open binary file): A path or an open binary file.
-            magic (int): The framing marker (``DEFAULT_MAGIC``).
-            signature (int): The file signature expected in the header (``DEFAULT_FILE_SIGNATURE``).
-            compressed (bool): When True, LZ4-frame-decompress the whole file into memory before reading.
+            file: A path or an open binary file.
+            magic: The framing marker (``DEFAULT_MAGIC``).
+            signature: The file signature expected in the header (``DEFAULT_FILE_SIGNATURE``).
+            compressed: When True, LZ4-frame-decompress the whole file into memory before reading.
 
         Raises:
             BinaryFormatError: If the LZ4 decompression fails (``compressed=True``).
@@ -526,10 +535,11 @@ class BinaryReader:
     # -- header ----------------------------------------------------------
 
     def read_header(self, *, encoding: str = "utf-8") -> FileHeader:
-        """Read the file header written by :meth:`BinaryWriter.write_header`.
+        """
+        Read the file header written by :meth:`BinaryWriter.write_header`.
 
         Args:
-            encoding (str): The text encoding of the stored description (default utf-8).
+            encoding: The text encoding of the stored description (default utf-8).
 
         Returns:
             FileHeader: (description, version).
@@ -566,10 +576,11 @@ class BinaryReader:
     # -- string ----------------------------------------------------------
 
     def read_string(self, *, encoding: str = "utf-8") -> str:
-        """Read a string written by ``BinaryWriter.write_string``.
+        """
+        Read a string written by ``BinaryWriter.write_string``.
 
         Args:
-            encoding (str): The text encoding of the stored bytes (default utf-8).
+            encoding: The text encoding of the stored bytes (default utf-8).
 
         Returns:
             str: The decoded string.
@@ -583,7 +594,8 @@ class BinaryReader:
     # -- numpy array -----------------------------------------------------
 
     def read_array(self) -> np.ndarray:
-        """Read an array written by ``BinaryWriter.write_array``.
+        """
+        Read an array written by ``BinaryWriter.write_array``.
 
         Returns:
             np.ndarray: An owned, writable C-contiguous little-endian array of the stored shape and dtype.
@@ -615,11 +627,12 @@ class BinaryReader:
 
 
 def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
-    """Return the hex SHA3-256 digest of the whole file at ``path``.
+    """
+    Return the hex SHA3-256 digest of the whole file at ``path``.
 
     Args:
-        path (str | os.PathLike): The file to hash.
-        chunk_size (int): The read chunk size in bytes (default 1 MiB).
+        path: The file to hash.
+        chunk_size: The read chunk size in bytes (default 1 MiB).
 
     Returns:
         str: The 64-character lowercase hex digest.
@@ -632,14 +645,15 @@ def compute_sha3_256(path, *, chunk_size: int = 1 << 20) -> str:
 
 
 def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
-    """Write a ``<path><suffix>`` sidecar in ``sha3_256sum`` format.
+    """
+    Write a ``<path><suffix>`` sidecar in ``sha3_256sum`` format.
 
     The line is ``"<hexdigest>  <basename>\\n"`` so the file is verifiable
     with the standard ``sha3_256sum -c`` tool from the same directory.
 
     Args:
-        path (str | os.PathLike): The content file to hash.
-        suffix (str): The sidecar suffix; must be non-empty.
+        path: The content file to hash.
+        suffix: The sidecar suffix; must be non-empty.
 
     Returns:
         str: The sidecar path.
@@ -661,11 +675,12 @@ def write_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> str:
 
 
 def verify_sha3_256_sidecar(path, *, suffix: str = ".SHA3-256") -> bool:
-    """Recompute the file's SHA3-256 and compare it to its sidecar.
+    """
+    Recompute the file's SHA3-256 and compare it to its sidecar.
 
     Args:
-        path (str | os.PathLike): The content file to verify.
-        suffix (str): The sidecar suffix; must be non-empty.
+        path: The content file to verify.
+        suffix: The sidecar suffix; must be non-empty.
 
     Returns:
         bool: True if the digests match.
