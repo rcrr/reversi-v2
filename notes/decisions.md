@@ -534,3 +534,14 @@ D-457 | 2026-10-06 | The house docstring canonical encoded in src\\_reflow (the 
          first line, which masked the old board body paragraphs (one level BELOW the quote) as deep hand-placed lines —
          the board migration was restored from git and redone with the fix (the base is now measured on the real body
          lines only). The tool's own WHAT IT IS describes the new canonical; the tool is self-canonical.
+
+D-458 | 2026-10-06 | The pattern.py migration to the new docstring canonical (the D-453..D-456 docstrings re-laid out by
+         the D-457 tool). All 33 docstrings: 23 reflowed to the stand-alone quote form (the inline first line, the D-456
+         +4/+8/+12 sections, the typed entries), one collapsed to the one-line form (\\_compute\\_transformed\\_cells),
+         the module docstring and the one-liners untouched (already the form). 45 entries un-typed (the one-shot
+         mechanical strip of the entry-head type: the Pydantic signature is the type). Included are the user's own
+         manual content edits, kept verbatim: the module docstring text rewrite, and the three inline sub-attributes of
+         the Pattern class docstring split into their own entries (tmasks, mask\\_indexes, unique\\_mask\\_indexes — the
+         "n\\_configurations: … tmasks (…): …" inline condition, found in three attributes; the user split them, the
+         campaign un-typed them). This D supersedes the D-456 layout (the +4/+8/+12 model) for this file: the new
+         canonical is the enforcer's fixed point. 1197 -> 1236 lines. NO behavior change: 79/0/3.

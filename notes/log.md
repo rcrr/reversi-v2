@@ -2129,3 +2129,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   profonde a mano — la migrazione board è stata ripristinata dal git e rifatta col fix (la base ora si
   misura solo sulle righe di corpo reali). Il WHAT IT IS del tool descrive il nuovo canone; il tool è
   self-canonical.
+
+- D-458 (la pattern migrata al nuovo canone docstring — col tool di D-457): tutte e 33 le docstring:
+  23 ri-fluotate alla forma quote-da-solhe (la prima riga inline, le sezioni D-456 a +4/+8/+12, le
+  entry tipizzate), una contratta a una riga (\\_compute\\_transformed\\_cells), la module docstring e
+  le one-liner intatte (già in forma). 45 entry private dei tipi (lo strip meccanico one-shot: la
+  signature Pydantic è il tipo). Inclusi i fix di contenuto fatti a mano dall'user, tenuti verbatim: la
+  riscrittura del testo della module docstring, e gli 3 sotto-attributi inline della class docstring di
+  Pattern splitati in entry proprie (tmasks, mask\\_indexes, unique\\_mask\\_indexes — la condizione
+  "n\\_configurations: … tmasks (…): …" trovata in 3 attributi; l'user li ha splitati, la campagna li
+  ha privati dei tipi). Questo D soppianta il layout di D-456 per il file: il canone nuovo è il punto
+  fisso dell'enforcer. 1197 → 1236 righe. Nessun cambiamento di comportamento: 79/0/3.
