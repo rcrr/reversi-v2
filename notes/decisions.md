@@ -731,3 +731,22 @@ D-476 | 2026-10-05 | The client source + test + mirror-doc pass, one commit (the
          8/0/1 counts the total incl. the PERF skip), the phantom test\_2d\_structured\_raises\_value\_error row (the
          pre-N-D 1-D-guard test, no longer existing) replaced by test\_2d\_structured\_corder\_parity +
          test\_3d\_structured\_corder\_parity with their what-it-pins rewritten.
+
+D-477 | 2026-10-05 | The logistic\_model source + test + mirror-doc pass, one commit (the user-approved plan incl. the
+         (a) gap closure): (1) source: the D-099 reference removed from the su\_analysis\_tables field comment (R-540),
+         the 5 missing top-level docstrings added (the house canonical: \_check\_config\_file\_path,
+         \_check\_base\_dir\_override, \_created\_up, \_created\_down, build\_model), the 2 PEP8 E302 single blanks
+         between top-level defs fixed, the orphan "# ---" marker out, 9 docstrings reflowed (331 -> 330 lines); (2)
+         test: the 4 trailing-whitespace header "# " lines cleaned (the reflow does not touch them), the 2 code trailing
+         spaces + the 1 all-whitespace line removed (the no-ws-lines convention, verify\_save A14), the in-class double
+         blank (E502) to one, and the (a): test\_build\_model\_builds\_and\_runs\_to\_the\_last\_level — the
+         build\_model script entry was not pinned anywhere (the full chain imports LogisticModel directly, no
+         subprocess): with LogisticModel patched in the module namespace, the construct + the move\_to\_last are pinned;
+         30 -> 31 tests: 31/0/0; (3) the source mirror doc: the 3 stale 18 -> 19 level counts repaired (the "18 active
+         levels" contradicted its own pin — probe V3c says 19; the 18 `wrk_*` factory modules count and the "18 workers"
+         of the Integration section), the "29 tests" -> 31 (the D-473 test was not reflected), the Conventions "(A2 +
+         ec\*10)" derivation removed (it contradicted the Architecture section: both A2xxx fixtures run ec 20), the
+         build\_model script entry now pinned in the Verified invariants; (4) the test mirror doc: the "29 tests" header
+         count repaired + the "537 lines." drop, the class row 26 -> 27 with the D-473 last/blank-string test + the new
+         build\_model pin listed, the factory-patch convention bullet extended with the LogisticModel patch. The
+         src\_reflow canonical fixed point on both files (the test was already canonical).

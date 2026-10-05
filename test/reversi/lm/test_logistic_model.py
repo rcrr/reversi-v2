@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -55,7 +55,7 @@ import json5
 from pydantic import ValidationError
 
 from reversi.base_model import BaseModel
-from reversi.lm.logistic_model import (LogisticModel, LMContext,
+from reversi.lm.logistic_model import (LogisticModel, LMContext, build_model,
                                   _check_base_dir_override,
                                   _check_config_file_path,
                                   _created_down, _created_up)
@@ -94,9 +94,9 @@ class TestLogisticModel(unittest.TestCase):
         self.positions_down_mock = MagicMock()
 
         # Patch the factory functions to return our dummy workers
-        self.patcher_config = patch('reversi.lm.logistic_model.wrk_config', 
+        self.patcher_config = patch('reversi.lm.logistic_model.wrk_config',
                                     return_value=Worker("CONFIG", self.config_up_mock, self.config_down_mock))
-        self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions', 
+        self.patcher_positions = patch('reversi.lm.logistic_model.wrk_positions',
                                        return_value=Worker("POSITIONS", self.positions_up_mock, self.positions_down_mock))
         # The FEATURES dummy — the string move to POSITIONS crosses it, and the real FEATURES worker
         # would hit the None cfg.
@@ -178,7 +178,7 @@ class TestLogisticModel(unittest.TestCase):
     def test_move_to_step_delegates_to_state_machine(self):
         """Test that moving to a step triggers the correct mock worker."""
         self.model.move_to_step(1) # Move to CONFIG
-        
+
         self.assertEqual(self.model.current_step, 1)
         self.config_up_mock.assert_called_once_with(self.model.context)
         self.config_down_mock.assert_not_called()
@@ -395,6 +395,16 @@ class TestLogisticModel(unittest.TestCase):
         # Leave the shared model at its default.
         self.model.verbosity = Verbosity.STANDARD
 
+    def test_build_model_builds_and_runs_to_the_last_level(self):
+        """
+        The script entry: build_model constructs the facade on the config and runs it to the last
+        level (move_to_last) — the __main__ block's only job is the argparse.
+        """
+        with patch('reversi.lm.logistic_model.LogisticModel') as m_model:
+            build_model(Path(self.dummy_config_path), Verbosity.LOW)
+        m_model.assert_called_once_with(Path(self.dummy_config_path),
+                                        verbosity=Verbosity.LOW)
+        m_model.return_value.move_to_last.assert_called_once_with()
 
     def test_injected_cache_helpers_are_the_machine_closures(self):
         """

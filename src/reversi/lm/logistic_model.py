@@ -70,6 +70,7 @@ __all__ = ['LMContext', 'LogisticModel']
 #
 
 def _check_config_file_path(config_file_path: Path | str) -> Path:
+    """The config-file guard: a str/Path that exists and is a file, returned as a Path."""
     if not isinstance(config_file_path, (str, Path)):
         raise TypeError('Argument config_file_path is not an instance of str or Path')
     cfp = Path(config_file_path)
@@ -79,7 +80,9 @@ def _check_config_file_path(config_file_path: Path | str) -> Path:
         raise IsADirectoryError(f"File path is not a file: '{config_file_path}'")
     return cfp
 
+
 def _check_base_dir_override(base_dir_override: Path | str) -> Path:
+    """The base-dir guard: a str/Path that exists and is a directory, returned as a Path."""
     if not isinstance(base_dir_override, (str, Path)):
         raise TypeError('Argument base_dir_override is not an instance of str or Path')
     bdo = Path(base_dir_override)
@@ -94,8 +97,8 @@ def _check_base_dir_override(base_dir_override: Path | str) -> Path:
 @dataclass
 class LMContext(Context):
     """
-    Context for the Reversi Logistic Model pipeline.
-    Holds all data artifacts and configuration state shared across workers.
+    Context for the Reversi Logistic Model pipeline. Holds all data artifacts and configuration
+    state shared across workers.
     """
     config_file_path: Path
     base_dir_override: Path | None = None
@@ -105,10 +108,9 @@ class LMContext(Context):
 
     # Configuration attribute:
     cfg: Any = None
-    # The config fingerprint: the sha3_256 hex of the
-    # normalized dump (cfg.model_dump_json(indent=4)) — computed at
-    # CONFIG, consumed by the SAVE config record and the analytics
-    # report.
+    # The config fingerprint: the sha3_256 hex of the normalized dump
+    # (cfg.model_dump_json(indent=4)) — computed at CONFIG, consumed by the SAVE config record and
+    # the analytics report.
     config_checksum: str | None = None
 
     # Game positions and game values attributes:
@@ -120,11 +122,9 @@ class LMContext(Context):
     # Features attribute:
     feature_set: Any = None
 
-    # Feature analysis attribute (the SU level, step 3): the
-    # corpus frequency tables (the marginal + the joint)
-    # published by the SU_ANALYSIS worker for the ANOVA
-    # level (the cross-level blackboard, the D-099
-    # pre-declared fields).
+    # Feature analysis attribute (the SU level, step 3): the corpus frequency tables (the marginal +
+    # the joint) published by the SU_ANALYSIS worker for the ANOVA level (the cross-level
+    # blackboard, the pre-declared fields).
     su_analysis_tables: Any = None
 
     # Indexes attribute:
@@ -169,26 +169,23 @@ class LMContext(Context):
 
     # Validation attributes:
     vld_metrics: Any = None
-    # The validation forward-pass series: published by VALIDATE
-    # so PLOT renders them instead of re-running the pass, and so
-    # CLIENT_CHECK compares against the validation's own residuals.
+    # The validation forward-pass series: published by VALIDATE so PLOT renders them instead of
+    # re-running the pass, and so CLIENT_CHECK compares against the validation's own residuals.
     vld_y_pred: Any = None
     vld_rn: Any = None
-    # The top-20 extreme-residual records: a list of dicts with
-    # the raw values (index, mover, opponent, game_value, fitted,
-    # residual), descending by |residual|.
+    # The top-20 extreme-residual records: a list of dicts with the raw values (index, mover,
+    # opponent, game_value, fitted, residual), descending by |residual|.
     vld_outliers: Any = None
 
     # Analytic attributes:
     train_metrics: Any = None
     train_dense_metrics: Any = None
-    # The dense training residuals in Y: published by ANALYTICS
-    # so PLOT renders them instead of re-running the pass.
+    # The dense training residuals in Y: published by ANALYTICS so PLOT renders them instead of
+    # re-running the pass.
     train_dense_rn: Any = None
     analytics_report: Any = None
 
-    # Injected by StateMachine: the lambda defaults are the
-    # pre-injection fallback, under the same
+    # Injected by StateMachine: the lambda defaults are the pre-injection fallback, under the same
     # *_for_current_level names the machine injects.
     log_event: Callable = lambda *args: None
     get_cache_file_path_for_current_level: Callable = lambda: None
@@ -198,18 +195,20 @@ class LMContext(Context):
 # --- Level 0: CREATED (Kept here as it's just a dummy blocker) ---
 
 def _created_up(ctx: LMContext) -> None:
+    """The CREATED sentinel up: log ERROR and raise — the level-0 blocker is never executed."""
     ctx.log_event(Relevance.ERROR, "Executing CREATED up worker should never happen.")
     raise RuntimeError("Executing created step should never happen.")
 
+
 def _created_down(ctx: LMContext) -> None:
+    """The CREATED sentinel down: log ERROR and raise — the level-0 blocker is never cleaned."""
     ctx.log_event(Relevance.ERROR, "Executing CREATED down worker should never happen.")
     raise RuntimeError("Cleaning created step should never happen.")
 
 
 class LogisticModel(BaseModel):
     """
-    Facade for the Reversi Logistic Model pipeline.
-    Orchestrates the state machine and the shared context.
+    Facade for the Reversi Logistic Model pipeline. Orchestrates the state machine and the shared context.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -218,9 +217,8 @@ class LogisticModel(BaseModel):
                  verbosity: Verbosity = Verbosity.STANDARD,
                  base_dir_override: str | Path | None = None):
         """
-        Build the LM facade: validate the domain paths, create the
-        shared LMContext, assemble the worker pipeline and hand the
-        parts to the StateMachine (via BaseModel).
+        Build the LM facade: validate the domain paths, create the shared LMContext, assemble the
+        worker pipeline and hand the parts to the StateMachine (via BaseModel).
         """
 
         # 1. Validate domain specific paths
@@ -262,23 +260,24 @@ class LogisticModel(BaseModel):
         super().__init__(workers=workers, context=context, verbosity=verbosity)
 
     def _configured_target_level(self) -> int | str | None:
-        """The LMConfig.target_level of the loaded configuration: the
-        pipeline stop the config asks for, honored by run() when no
-        explicit target is given. It is read AFTER the CONFIG level ran
-        (run() moves there first); "last" (the field default) and a
-        blank value mean the whole pipeline. A context without a
-        loaded config (or one that does not carry the field) resolves
-        to None — the same "last" outcome."""
+        """
+        The LMConfig.target_level of the loaded configuration: the pipeline stop the config asks
+        for, honored by run() when no explicit target is given. It is read AFTER the CONFIG level
+        ran (run() moves there first); "last" (the field default) and a blank value mean the whole
+        pipeline. A context without a loaded config (or one that does not carry the field) resolves
+        to None — the same "last" outcome.
+        """
         cfg = self.context.cfg
         if cfg is None:
             return None
         return getattr(cfg, "target_level", None)
 
 
-# ---
-
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def build_model(json_config: Path, verbosity: Verbosity) -> None:
+    """
+    The script entry: build the LogisticModel facade on the config and run it to the last level.
+    """
     rlm = LogisticModel(json_config, verbosity=verbosity)
     rlm.move_to_last()
 

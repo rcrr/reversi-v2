@@ -74,7 +74,7 @@ No commented factory imports or worker-list entries remain. The factories follow
 
 ## Verified invariants
 
-Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (29 tests).
+Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.py` (31 tests).
 
 - The LMContext dataclass shape: plain `Context` base, `config_file_path` the only no-default field, `use_cache` default
   None, the legacy `_for_next_level` names gone, the `*_for_current_level` fields with lambda defaults, the `log_event`
@@ -84,9 +84,9 @@ Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.p
   `test_logistic_model::test_config_path_helper_edge_branches`.
 - The base-dir helper: str/Path → Path, TypeError, NotADirectoryError — probe V7a-V7b +
   `test_logistic_model::test_base_dir_helper_edge_branches`.
-- The complete pipeline: 18 active levels (the 18th, PLOT, is the matplotlib diagnostics — wrk_plot.md; the 17th,
-  CLIENT_CHECK, the saved-model file acceptance test — wrk_client_check.md), 0 commented worker imports/entries — probe
-  V3c-V3d.
+- The complete pipeline: 19 active levels (the 19th, FINAL_LOG_PRINT, the optional log_file_name gate; the 18th, PLOT,
+  the matplotlib diagnostics — wrk_plot.md; the 17th, CLIENT_CHECK, the saved-model file acceptance test —
+  wrk_client_check.md), 0 commented worker imports/entries — probe V3c-V3d.
 - The injection: the live context's `*_for_current_level` attributes ARE the machine's closures (`_get_cache_file_path`
   / `_get_cache_file_full_path`), `log_event` a bound method, no legacy name in the live context — probe V4a/V4d +
   `test_logistic_model::test_injected_cache_helpers_are_the_machine_closures`.
@@ -112,6 +112,9 @@ Pinned by `probes/verify_logistic_model.py` (21 checks) + `test_logistic_model.p
   invalid-config-path and base-dir-override tests).
 - The facade is a pure pass-through: every method delegates per method, the read-only views mirror the SM, verbosity
   round-trips — `test_logistic_model` (the facade-delegation, views/verbosity and CSV-export tests).
+- The `build_model` script entry: it builds the facade on the config and runs it to the last level —
+  `test_logistic_model::test_build_model_builds_and_runs_to_the_last_level` (the `LogisticModel` patched in the
+  module namespace).
 
 ## Open issues
 
@@ -123,14 +126,14 @@ None.
   `_for_next_level` silently returns None to the workers (the R1 trap); keep the names in lockstep with the StateMachine
   injection.
 - Blackboard fields are pre-declared on LMContext before a worker consumes or publishes them.
-- A2xxx = legacy production model family (A2 + ec·10) — do not "fix" these names.
+- A2xxx = legacy production model family (not derived from the ec) — do not "fix" these names.
 - Worker factories: uniform `@validate_call` gate, patched by name in this module's namespace in the tests.
 - Test artifacts live under `build/tmp`, never the system temp dir.
 
 ## Integration
 
 - Consumes `state_machine.py` (StateMachine, Worker, Context, Verbosity, Relevance) + `base_model.py` (BaseModel) + the
-  18 `wrk_*` factory modules.
-- Consumed by: the 18 workers and their `hlp_*` data modules (LMContext as the shared blackboard / type reference),
+  19 `wrk_*` factory modules.
+- Consumed by: the 19 workers and their `hlp_*` data modules (LMContext as the shared blackboard / type reference),
   `model_weights.py`.
 - Not a pipeline level itself: the facade that RUNS the pipeline.
