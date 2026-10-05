@@ -207,13 +207,19 @@ when the choice is non-obvious, as a summary, not a reference.
 No I-XXX reference in any docstring or comment of the Python code — src, test, or probe; ideas.md is their home.
 
 
-**R-560 — Docstrings: FORMAT**
+**R-560 — Docstrings: the layout**
 
-(1) the imperative first line (one sentence, a verb: Calculate / Compute / Run / Generate); (2) the body paragraph —
-what is measured or computed and why (the observable contract; the formulas defining the output values stay in the
-docstring, they ARE the WHAT); (3) the Args: section, the Google 8-space indent, each argument typed in parentheses +
-described (the types mirror the real annotations); (4) the Returns: section, the key-by-key detail (the dict keys, the
-degenerate behaviors — the nan / None / 0 conventions, the exceptions).
+(1) The one-line form: a single-paragraph docstring that fits the R-520 preferred 100 (the physical line, indents
+included) is one line: three double quotes, the text, three double quotes, no space between quotes and text. (2) Every
+other docstring opens and closes with a stand-alone triple-quote line; the text starts immediately at the quote's indent
+(no leading blank). (3) The first text line is the imperative one-sentence summary (a verb: Calculate / Compute / Run /
+Generate); the body paragraphs — what is measured or computed and why (the formulas defining the output values stay:
+they ARE the WHAT) — sit at the same indent. (4) The section headings (Args: / Returns: / Raises: / Attributes: / …) sit
+at the same indent behind a blank line; the entries at +4; a wrapped entry description at +8; the Returns: detail stays
+key-by-key (the dict keys, the degenerate behaviors — the nan / None / 0 conventions, the exceptions). (5) The entries
+are untyped: name: description — the Pydantic annotation in the signature is the type; the docstring does not repeat it.
+src\_reflow.py is the enforcer: it lays out every old variant to this canonical, and collapses / expands the one-line
+form.
 
 
 **R-570 — Test docstrings: DEVIATIONS**

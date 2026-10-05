@@ -2155,3 +2155,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   livello sotto la quote, sarebbero restati profondi) — il file è stato ripristinato dal git e la
   migrazione rifatta col tool corretto. 1984 → 2042 righe. Nessun cambiamento di comportamento:
   308/0/15.
+
+- D-460 (il registro: R-560 emendata — l'ultimo passo della campagna docstring): il titolo passa da
+  "FORMAT" a "the layout"; il nuovo corpo codifica il canone esattamente come l'applica
+  src\\_reflow.py: (1) la forma una-riga (docstring monosezione che sta nel preferred 100 di R-520, riga
+  fisica indent inclusi = una riga, tre doppie virgolette, testo, tre doppie virgolette, senza spazi);
+  (2) gli altri docstring aprono e chiudono con la triple-quote da sola, il testo parte subito all'indent
+  della quote (niente blank di apertura); (3) la prima riga di testo è il summary imperativo, i paragrafi
+  di corpo allo stesso indent; (4) le intestazioni di sezione (Args:/Returns:/Raises:/Attributes:/…) allo
+  stesso indent dietro una blank, le entry a +4, le descrizioni a capo a +8, il dettaglio Returns:
+  key-by-key ereditato dalla clausola vecchia; (5) le entry non tipizzate (l'annotazione Pydantic nella
+  signature è il tipo) e src\\_reflow.py nominato enforcer. Invariate: R-520 (le larghezze sono citate,
+  non duplicate), R-530/540/550 (contenuto), R-570 (il test light resta coerente: un test-docstring su 2
+  righe che sta in 100 viene contratto a 1), R-580 (la probe). Chiude la campagna docstring
+  (D-457..D-460: tool, pattern, board, registro).

@@ -558,3 +558,18 @@ D-459 | 2026-10-06 | The board.py migration to the new docstring canonical (by t
          no side effects). Migration note, disclosed: the first board pass ran before the D-457 base-measure fix (the
          old board body paragraphs, one level below the quote, would have stayed deep) — the file was restored from git
          and the migration redone with the fixed tool. 1984 -> 2042 lines. NO behavior change: 308/0/15.
+
+D-460 | 2026-10-06 | The register: R-560 amended in place (the user-approved text, the last step of the docstring
+         campaign). Title: "Docstrings: FORMAT" -> "Docstrings: the layout". The new body encodes the canonical exactly
+         as src\\_reflow.py enforces it: (1) the one-line form (a single-paragraph docstring that fits the R-520
+         preferred 100, the physical line indents included, is one line: three double quotes, the text, three double
+         quotes, no spaces); (2) every other docstring opens and closes with a stand-alone triple-quote line, the text
+         starts immediately at the quote indent (no leading blank); (3) the first text line is the imperative
+         one-sentence summary, the body paragraphs at the same indent; (4) the section headings
+         (Args:/Returns:/Raises:/Attributes:/…) at the same indent behind a blank line, the entries at +4, a wrapped
+         entry description at +8, the Returns: key-by-key detail kept from the old clause; (5) the entries untyped (the
+         Pydantic annotation in the signature is the type), and src\\_reflow.py named as the enforcer (it lays out every
+         old variant to the canonical and collapses / expands the one-line form). Unchanged: R-520 (the widths are
+         cited, not duplicated), R-530/540/550 (content rules), R-570 (the test light form stays coherent: a two-line
+         test docstring that fits 100 is collapsed to one), R-580 (the probe). Closes the docstring campaign
+         (D-457..D-460: the tool, pattern, board, the register).
