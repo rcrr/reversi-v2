@@ -872,3 +872,17 @@ D-485 | 2026-10-05 | The hlp\_design\_matrix source + test + mirror-doc + probe 
          reader open — the Architecture bullet was already right), the 2 typos (np.repeat(, dm.wmaps); the doc carried
          no D-tags (already clean-style). (5) the test mirror doc: 14 -> 16 (the header + the coverage rows 2 -> 3 /
          8 -> 9 with the 2 new test descriptions). Cell: test\_hlp\_design\_matrix 15/0/0 -> 16/0/0.
+
+D-486 | 2026-10-05 | The hlp\_final\_log\_print source + mirror-doc pass, one commit (the user-approved plan incl. the
+         no-test-module clause): (1) source: the 1 typed Args entry de-typed to the R-560(5) untyped canonical ("ctx
+         (LMContext):" -> "ctx:"), the docstring to the reflow fixed point (67 -> 65); no other stains (the header was
+         already canonical, the imports 5/5 used, the single-name \_\_all\_). No test module by design — the pin set is
+         the probe + the 6-test worker suite (incl. the LONG-tier rlm\_00 e2e) + the full chain; the probe pins code
+         strings only (no line-count / docstring pins), so the pass is probe-safe. (2) the source mirror doc: the 3
+         D-tags dropped (the D-312/D-313/D-315 precedent enumeration, the 2x "the ctx idiom, D-317" pointers — the
+         section 3.2 pointer is permitted but dropped for corpus uniformity with the passed hlp modules), the "the typed
+         Args" clause corrected to "the untyped Args" (the post-pass state), the 154-char line split, the Verified
+         invariants opened with the "No test module by design:" clause (the hlp\_analytics sibling pattern). The doc was
+         otherwise faithful (the write-asymmetry, the NO-trailing-newline content + the 5/8 live-line shape verified
+         against the state machine's format\_event\_log / \_format\_event\_line, the pin set A3 / B2 / B3 / B4 all real
+         and green). No suite cell moves (no test touched).

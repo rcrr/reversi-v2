@@ -2581,3 +2581,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   1106/0/24. La cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478),
   hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485) al
   canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
+- D-486 (hlp\_final\_log\_print, un solo D, il piano concordato + il D5 chiesto da Roberto): (1)
+  sorgente: l'unica Args entry tipizzata de-typizzata (ctx (LMContext): -> ctx:), la docstring al
+  punto fisso di reflow (67 -> 65); nessuna altra macchia (header gia' a canone, import 5/5,
+  \_\_all\_\_ 1 nome). Nessun test module by design — il pin set e' il probe + la worker suite a 6
+  test (con l'e2e LONG rlm\_00) + la full chain; il probe pinna solo stringhe di codice (ne righe ne
+  docstring): il pass e' probe-safe. (2) source doc: i 3 D-tags via (l'enumerazione
+  D-312/D-313/D-315 + i 2 pointer "ctx idiom, D-317" — il pointer e' permesso dal 3.2 ma tolto per
+  uniformita' di corpus), la clausola "the typed Args" corretta a "untyped", la riga a 154 char
+  spezzata, il Verified invariants aperto col "No test module by design:" (il pattern del fratello
+  hlp\_analytics). La doc era fedele (la write-asymmetry, il NO trailing newline e la live-line 5/8
+  verificate sul state machine, i pin A3/B2/B3/B4 reali e green). Nessuna cella suite (nessun test
+  toccato).
+- Batch hlp\_final\_log\_print chiusa (D-486 + onda): il modulo piu' piccolo della campagna (67
+  righe, 1 funzione) — le macchie erano l'entry tipizzata, i 3 D-tags, la clausola typed-Args e la
+  wide line; la doc era altrimenti in stile pulito e fedele. Il secondo hlp della cascata senza test
+  module (come hlp\_analytics): pinned da probe + worker suite + e2e. LONG=1 rimesurato di chiusura:
+  suite 1106/0/24 invariata. La cascata lm: client (D-476), logistic\_model (D-477), model\_weights
+  (D-478), hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481),
+  hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486) al canone R-560; il prossimo modulo
+  della cascata worker/hlp secondo la scelta di Roberto.

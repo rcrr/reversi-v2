@@ -82,7 +82,9 @@ define the evaluation function.
   the mirror-doc provenance cleanup: the 20 D-XXX -> 0, the void pointer, the stale line-width bullet — the first module
   of the campaign with the Google-style Args docstrings); hlp\_design\_matrix the D-485 pass (the R-560 canonical + the
   2 R-540 + the new str-filename test 15 -> 16/0/0 + the probe pin set re-synced 53/53 + the doc re-count 14 -> 16 + the
-  API-row order repair); suite 1106/0/24 at close).
+  API-row order repair); hlp\_final\_log\_print the D-486 pass (the de-typed ctx entry + the 3 D-tags + the typed-Args
+  clause + the 154-char line + the no-test-module-by-design clause — the 2nd hlp without a test module, pinned by the
+  probe + the worker suite + the e2e); suite 1106/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
