@@ -2746,3 +2746,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
   hlp\_su\_analysis (D-490), hlp\_validate (D-491), hlp\_wmaps (D-492) al canone R-560; il prossimo
   modulo della cascata worker/hlp secondo la scelta di Roberto.
+- D-493 (hlp\_zed, un solo D, il piano concordato con S3 incluso): sorgente 103 -> 129: le 4 bare #
+  del license header stripate (line-exact), le 2 E303 (3 blank lines) corrette a 2, e i 4 docstring
+  mancanti aggiunti in stile LMWMaps — \_\_init\_\_ (Initialize + 3 Args) e compute\_sha3\_256\_hash
+  (Compute + Returns, con la nota che le closures NON sono hashed e senza riferimento al
+  cache\_manager — ZED è non-cache), il factory (+ Args logit\_clipping + Returns con i due elementi
+  y2z / z2y) e compute (first line normalizzata a Compute + Args ctx + Returns LMZed:) — l'unico
+  modulo della campagna con gap di docstring. Test 157 -> 156: le 4 bare # stripate, l'allineamento
+  import (colonna 29 -> 31), 1 E303, la continuation over-indented di LMZed(...) (36 -> 18 spazi).
+  Source doc 77 -> 77: il typo 'clippling', lo spazio extraneo in stat\_model.logit\_clipping, 103 ->
+  129 lines. Probe verify\_zed: 15 re-pin (A1 103 -> 129, A2-A9 i numeri di riga, A5 il decorator
+  dell'hash, A12/G9 i pin trailing-ws 'header only' -> 0 linee perche' il pass le ha stripate, G1 157
+  -> 156, G3 le classi spostate di -1, F1 il blocco zed di LMContext a L148-151 stale pre-pass + label
+  trimmata) — 1 mismatch pre-pass (l'F1 shift), 0 dopo. Cella: invariata (10/0/0, wrk 3/0/0).
+- Batch hlp\_zed chiusa (D-493, onda): il debito vero era nei docstring — l'unico modulo della
+  campagna con \_\_init\_\_ / hash non documentati (ora in canone LMWMaps) — e nei 15 pin del probe
+  stale o spostati. LONG=1 rimesurato: suite 1111/0/24 piatta (come atteso: zero cambi di cella). La
+  cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485),
+  hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
+  hlp\_su\_analysis (D-490), hlp\_validate (D-491), hlp\_wmaps (D-492), hlp\_zed (D-493) al canone
+  R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.

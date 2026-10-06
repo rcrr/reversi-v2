@@ -988,3 +988,17 @@ D-492 | 2026-10-05 | The hlp\_wmaps source + test + mirror-doc + probe pass, one
          split, C6 L207/L213 -> L223/L228) — 7 stale pre-pass (the files grew after the D-139/D-331 passes without a
          re-pin) + 1 moved by the pass: re-cut in place, same commit — the probe goes from 7 mismatches to 0. No cell
          changes (16/0/0).
+
+D-493 | 2026-10-05 | The hlp\_zed source + test + mirror-doc + probe pass, one commit (the user-approved plan, S3
+         included): (1) source 103 -> 129: the 4 bare '# ' license-header lines stripped (line-exact), the 2 E303 runs
+         (3 blank lines) corrected to 2, and — the campaign's only docstring gap — the 4 missing docstrings added in the
+         LMWMaps style: `__init__` (Initialize + the 3 Args), compute\_sha3\_256\_hash (Compute + Returns, the
+         closures-explicit NOT-hashed note, no cache\_manager reference — ZED is a non-cache level), zed\_fun\_factory
+         (+ Args logit\_clipping + the key-by-key Returns y2z / z2y), hlp\_zed\_compute (the first line normalized to
+         Compute + Args ctx + Returns LMZed:). (2) test 157 -> 156: the 4 bare '# ' stripped, the import continuation
+         alignment repaired (col 29 to 31), one E303 run, the over-indented LMZed(...) continuation (36 spaces to 18).
+         (3) the source mirror doc 77 -> 77: the "clippling" typo, the stray space in stat\_model.logit\_clipping, the
+         103 -> 129 line pin. (4) probe: the 15 re-pins (A1 103 -> 129, the A2-A9 line numbers, the A12/G9 trailing-ws
+         pins from "header only (6,11,16,21)" to 0 lines — the pass stripped them, G1 157 -> 156, the G3 class shift,
+         the F1 LMContext zed block L148-151 pre-pass-stale + the label trimmed): 1 mismatch pre-pass (the F1 shift), 0
+         after. No cell changes (10/0/0, wrk 3/0/0).
