@@ -159,7 +159,7 @@ define the evaluation function.
 | test/reversi/lm/test\_hlp\_indexes.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |
 | test/reversi/lm/test\_hlp\_optimize.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_optimize.md](docs/test/reversi/lm/test\_hlp\_optimize.md) |
 | test/reversi/lm/test\_hlp\_plot.py | complete | 12/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_plot.md](docs/test/reversi/lm/test\_hlp\_plot.md) |
-| test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 38/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
+| test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 39/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
 | test/reversi/lm/test\_hlp\_wmaps.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
 | test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |
 | test/reversi/lm/test\_lm\_worker\_full\_chain.py | complete | 9/0/1/1/0 | [docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md](docs/test/reversi/lm/test\_lm\_worker\_full\_chain.md) |

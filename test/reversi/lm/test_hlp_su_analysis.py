@@ -40,19 +40,13 @@
 #
 
 """
-The SU analysis LOGIC NO-DB suite: the consistency
-signature (the feature_set hash, the independent sha3_256), the
-binio round-trip (with / without the joint), the load guards (the
-description / the version / the sidecar), the compute determinism,
-the theoretical configuration space (D-278/D-279), the SU groups
-(dedup + the canonical sort), the diagonal omission, the report +
-the optional CSV, and the cache consistency. D-295: the streaming
-frequency accumulators (the marginal / the joint micro-suite + the
-PRNG integration) moved here from the retired test_hlp_random_play.
-D-298: the SU kernel micro-suite (the entropy / the MI / the SU /
-the dispersion / the never-observed audit — the 5 hand-computed
-toy-table classes) moved here from test_hlp_feature_analysis (the
-split of the shared data plane).
+The SU analysis LOGIC NO-DB suite: the consistency signature (the feature_set hash, the independent
+sha3_256), the binio round-trip (with / without the joint), the load guards (the description / the
+version / the sidecar), the compute determinism, the theoretical configuration space, the SU groups
+(dedup + the canonical sort), the diagonal omission, the report + the optional CSV, and the cache
+consistency; the streaming frequency accumulators (the marginal / the joint micro-suite + the PRNG
+integration) and the SU kernel micro-suite (the entropy / the MI / the SU / the dispersion / the
+never-observed audit — the 5 hand-computed toy-table classes).
 """
 
 import hashlib
@@ -85,11 +79,11 @@ FIXTURE = (WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
 
 
 def _corpus(n, ec, seed):
-    """The random_game play-path corpus (the hlp_wave
-    replacement, D-285): n positions at exactly ec (the
-    double-pass game-over lanes are dropped, the quota filled
-    by the next batch), seed-deterministic — the PositionArray
-    (the position language, D-296)."""
+    """
+    The random_game play-path corpus: n positions at exactly ec (the double-pass game-over lanes are
+    dropped, the quota filled by the next batch), seed-deterministic — the PositionArray (the
+    position language).
+    """
     prng = MT19937(seed)
     igp = initial_game_position()
     harvested = 0
@@ -105,10 +99,11 @@ def _corpus(n, ec, seed):
 
 
 class TestHlpSuAnalysis(unittest.TestCase):
-    """The SU analysis logic suite: the signature, the binio I/O,
-    the compute determinism, the statistics kernels, the report +
-    the CSV, the cache consistency. The ctx is the REAL pipeline
-    stopped at the FEATURES level (the idiom), silent."""
+    """
+    The SU analysis logic suite: the signature, the binio I/O, the compute determinism, the
+    statistics kernels, the report + the CSV, the cache consistency. The ctx is the REAL pipeline
+    stopped at the FEATURES level (the idiom), silent.
+    """
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -118,9 +113,10 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self._tmp.cleanup()
 
     def _ctx(self, total=2000, seed=42, su_pairs=None):
-        """The real pipeline stopped at the FEATURES level, with the
-        su_analysis knobs mutated on the loaded cfg (the
-        idiom, the worker-suite _make_ctx pattern minus the mock)."""
+        """
+        The real pipeline stopped at the FEATURES level, with the su_analysis knobs mutated on the
+        loaded cfg (the idiom, the worker-suite _make_ctx pattern minus the mock).
+        """
         rlm = LogisticModel(str(FIXTURE), verbosity=Verbosity.NONE,
                             base_dir_override=self.tmp)
         rlm.run("FEATURES")
@@ -139,13 +135,11 @@ class TestHlpSuAnalysis(unittest.TestCase):
             self.assertTrue(np.array_equal(t1, t2))
 
     def test_signature(self):
-        # The signature: the feature_set hash = the FeatureSet DOMAIN
-        # hash (D-291) — recomposed INDEPENDENTLY from the child sets
-        # (the INTERCEPT marker + the mset / pset hash hex strings) +
-        # the spec + the fixture's pairs.
+        # The signature: the feature_set hash = the FeatureSet DOMAIN hash — recomposed
+        # INDEPENDENTLY from the child sets (the INTERCEPT marker + the mset / pset hash hex
+        # strings) + the spec + the fixture's pairs.
         ctx = self._ctx()
-        # The signature is INTERNAL (the D-290 policy): the test
-        # reaches the name directly, as the probe does.
+        # The signature is INTERNAL: the test reaches the name directly, as the probe does.
         sig = hlp._signature(ctx)
         fs = ctx.feature_set
         chunks = []
@@ -167,9 +161,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self.assertEqual(sig["su_pairs"], [["EDGE", "LMC"]])
 
     def test_binio_round_trip_joint(self):
-        # The store -> load round-trip with the joint: the signature,
-        # the marginal (the arrays) + the joint (the per-instance
-        # dict) come back identical.
+        # The store -> load round-trip with the joint: the signature, the marginal (the arrays) +
+        # the joint (the per-instance dict) come back identical.
         ctx = self._ctx()
         tables = hlp_su_analysis_compute(ctx)
         path = self.tmp / "rt_joint.dat"
@@ -187,8 +180,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
                     self.assertTrue(np.array_equal(a, b))
 
     def test_binio_round_trip_no_joint(self):
-        # The no-pairs case: the joint is None and comes back None
-        # (the presence flag).
+        # The no-pairs case: the joint is None and comes back None (the presence flag).
         ctx = self._ctx(su_pairs=[])
         tables = hlp_su_analysis_compute(ctx)
         self.assertIsNone(tables["joint"])
@@ -199,11 +191,10 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self._same_marginal(back["marginal"], tables["marginal"])
 
     def test_store_deep_validation(self):
-        # D-303: store_to_file is @validate_call-ed with the SuTables
-        # DEEP validation — a structurally malformed tables dict (a
-        # 4-tuple marginal entry instead of the 5-tuple, a missing
-        # key) is REJECTED at the boundary (the ValidationError,
-        # before any binio write); the real compute output passes.
+        # store_to_file is @validate_call-ed with the SuTables DEEP validation — a structurally
+        # malformed tables dict (a 4-tuple marginal entry instead of the 5-tuple, a missing key) is
+        # REJECTED at the boundary (the ValidationError, before any binio write); the real compute
+        # output passes.
         ctx = self._ctx()
         tables = hlp_su_analysis_compute(ctx)
         hlp_su_analysis_store_to_file(tables, self.tmp / "v.dat")
@@ -217,9 +208,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
             hlp_su_analysis_store_to_file(missing, self.tmp / "m.dat")
 
     def test_load_guards(self):
-        # The load guards: the sidecar mismatch (the corrupted
-        # content), the wrong description, the wrong version — all
-        # fail loudly (the manager's R2 then deletes + recomputes).
+        # The load guards: the sidecar mismatch (the corrupted content), the wrong description, the
+        # wrong version — all fail loudly (the manager then deletes + recomputes).
         ctx = self._ctx()
         tables = hlp_su_analysis_compute(ctx)
         path = self.tmp / "g.dat"
@@ -243,9 +233,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
                                            checksum=False)
 
     def test_compute_determinism(self):
-        # The compute: the same seed -> the identical marginal; a
-        # different seed -> a different one (the PRNG stream is
-        # pinned).
+        # The compute: the same seed -> the identical marginal; a different seed -> a different one
+        # (the PRNG stream is pinned).
         a = hlp_su_analysis_compute(self._ctx())
         b = hlp_su_analysis_compute(self._ctx())
         self._same_marginal(a["marginal"], b["marginal"])
@@ -256,10 +245,9 @@ class TestHlpSuAnalysis(unittest.TestCase):
                              in zip(a["marginal"], c["marginal"])))
 
     def test_theoretical_configs(self):
-        # The theoretical configuration space (D-278/D-279): the
-        # independent re-derivation over the fset's own attributes +
-        # the PATTERN -> n_unique_configs / the MOBILITY ->
-        # n_configurations semantics + the INTERCEPT excluded.
+        # The theoretical configuration space: the independent re-derivation over the fset's own
+        # attributes + the PATTERN -> n_unique_configs / the MOBILITY -> n_configurations semantics
+        # + the INTERCEPT excluded.
         ctx = self._ctx()
         space = hlp._theoretical_configs(ctx.feature_set)
         exp = {}
@@ -282,9 +270,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
             self.assertNotIn(("INTERCEPT", i), space)
 
     def test_su_groups_dedup_sort(self):
-        # The SU groups: the (i, j) / the (j, i) are ONE measurement
-        # (deduped, the canonical endpoint order), the groups in the
-        # configured order, the entries canonically sorted.
+        # The SU groups: the (i, j) / the (j, i) are ONE measurement (deduped, the canonical
+        # endpoint order), the groups in the configured order, the entries canonically sorted.
         su = [("LMC", 0, "EDGE", 1, 0.3),
               ("EDGE", 1, "LMC", 0, 0.3),  # The reverse direction.
               ("EDGE", 0, "LMC", 0, 0.7),
@@ -302,8 +289,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
                          ("EDGE", 2, "LMC", 0))
 
     def test_su_values_diagonal_omitted(self):
-        # The SU values: the same-feature DIAGONAL (ii == jj) is
-        # omitted (the SU = 1 lock), the off-diagonal is kept.
+        # The SU values: the same-feature DIAGONAL (ii == jj) is omitted (the SU = 1 lock), the
+        # off-diagonal is kept.
         joint = [("EDGE", "EDGE",
                   {(0, 0): (np.array([0, 1]), np.array([0, 1]),
                              np.array([2, 2])),
@@ -317,10 +304,9 @@ class TestHlpSuAnalysis(unittest.TestCase):
                          ("EDGE", 0, "EDGE", 1))
 
     def test_statistics_report(self):
-        # The statistics (phase 2): the report file under base_dir
-        # (the Section A + the optional Section B rarity — the
-        # fixture carries the thresholds — + the Section C, the
-        # header lines) + the CSV OFF (the fixture default).
+        # The statistics (phase 2): the report file under base_dir (the Section A + the optional
+        # Section B rarity — the fixture carries the thresholds — + the Section C, the header lines)
+        # + the CSV OFF (the fixture default).
         ctx = self._ctx()
         tables = hlp_su_analysis_compute(ctx)
         report = hlp_su_analysis_statistics(ctx, tables)
@@ -336,10 +322,9 @@ class TestHlpSuAnalysis(unittest.TestCase):
                           "su_analysis.csv").exists())
 
     def test_rarity_bins(self):
-        # The Section B bins: the half-open [0, t1),
-        # ..., [tk, inf) — the first bin the zero-frequency
-        # codes. The bins are recomputed INDEPENDENTLY (the pure
-        # python count) and the report lines asserted verbatim.
+        # The Section B bins: the half-open [0, t1), ..., [tk, inf) — the first bin the
+        # zero-frequency codes. The bins are recomputed INDEPENDENTLY (the pure python count) and
+        # the report lines asserted verbatim.
         ctx = self._ctx()
         tables = hlp_su_analysis_compute(ctx)
         report = hlp_su_analysis_statistics(ctx, tables)
@@ -362,8 +347,8 @@ class TestHlpSuAnalysis(unittest.TestCase):
             labels.append(f"[{lo},{t})")
             lo = t
         labels.append(f"[{lo},inf)")
-        # The D-293 alignment: the name LEFT-justified to the max,
-        # each bin value RIGHT-justified to its own max width + 1.
+        # The column alignment: the name LEFT-justified to the max, each bin value RIGHT-justified
+        # to its own max width + 1.
         name_w = max(len(r[0]) for r in b_rows)
         inst_w = max(len(str(r[1])) for r in b_rows)
         bwidths = [max(len(str(r[2][j])) for r in b_rows) + 1
@@ -376,8 +361,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
                 + " | ".join(parts), txt)
 
     def test_rarity_empty_off(self):
-        # The empty list = the section off: no
-        # Section B, and the SU pairs are ALWAYS Section C.
+        # The empty list = the section off: no Section B, and the SU pairs are ALWAYS Section C.
         ctx = self._ctx()
         ctx.cfg.su_analysis.rarity_thresholds = []
         tables = hlp_su_analysis_compute(ctx)
@@ -387,8 +371,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self.assertIn("Section C: Symmetrical uncertainty", txt)
 
     def test_export_csv(self):
-        # The optional CSV: the marginal rows + the su rows (the
-        # export_csv flag).
+        # The optional CSV: the marginal rows + the su rows (the export_csv flag).
         ctx = self._ctx()
         ctx.cfg.su_analysis.export_csv = True
         tables = hlp_su_analysis_compute(ctx)
@@ -401,8 +384,7 @@ class TestHlpSuAnalysis(unittest.TestCase):
         self.assertTrue(any(l.startswith("su,") for l in lines[1:]))
 
     def test_is_cache_consistent(self):
-        # The cache consistency: the same spec -> True; the seed
-        # change -> False.
+        # The cache consistency: the same spec -> True; the seed change -> False.
         ctx = self._ctx()
         live = hlp._signature(ctx)
         cached = {'signature': dict(live)}
@@ -412,10 +394,11 @@ class TestHlpSuAnalysis(unittest.TestCase):
 
 
 class TestMarginalAccumulator(unittest.TestCase):
-    """The streaming marginal accumulator (the test_hlp_random_play
-    migration, D-295): the per-sub-variable (the (feature, instance)
-    column) code -> count over the corpus, the dense-bincount /
-    unique-merge split, the hand-counted LMC, the chunk-merge."""
+    """
+    The streaming marginal accumulator: the per-sub-variable (the (feature, instance) column) code
+    -> count over the corpus, the dense-bincount / unique-merge split, the hand-counted LMC, the
+    chunk-merge, the sparse unique-merge branch.
+    """
 
     @staticmethod
     def _toy_fset():
@@ -430,13 +413,26 @@ class TestMarginalAccumulator(unittest.TestCase):
             PatternSet('pat', [Pattern('R2', u('000000000000FF00'))]))
 
     @staticmethod
+    def _sparse_fset():
+        # The wide pattern (the 14-cell mask, n_conf = 3**14, above the dense threshold): the
+        # UNIQUE-MERGE dict branch.
+        def u(h):
+            return np.uint64(int(h, 16))
+        return FeatureSet(
+            'sparse',
+            Feature.new_intercept(),
+            MobilitySet('mob', [Mobility('LMC',
+                                         u('FFFFFFFFFFFFFFFF'),
+                                         u('0000000000000000'))]),
+            PatternSet('pat', [Pattern('W14', u('00000000003FFF00'))]))
+
+    @staticmethod
     def _toy_corpus(n=300, ec=20, seed=7):
         return _corpus(n, ec, seed)
 
     def test_lmc_hand_counted(self):
-        # The LMC (single-instance, the dense bincount): the code is
-        # the mover's legal-move count — the oracle is
-        # position_legal_moves (INDEPENDENT of compute_indexes).
+        # The LMC (single-instance, the dense bincount): the code is the mover's legal-move count —
+        # the oracle is position_legal_moves (INDEPENDENT of compute_indexes).
         fset = self._toy_fset()
         P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset)
@@ -457,10 +453,9 @@ class TestMarginalAccumulator(unittest.TestCase):
         self.assertEqual(int(counts.sum()), len(P))
 
     def test_pattern_cross_check(self):
-        # The R2 inst0 (multi-instance feature, one column): the
-        # cross-check against an independent per-position dict count
-        # via compute_indexes (the oracle for the code, the manual
-        # dict for the count).
+        # The R2 inst0 (multi-instance feature, one column): the cross-check against an independent
+        # per-position dict count via compute_indexes (the oracle for the code, the manual dict for
+        # the count).
         fset = self._toy_fset()
         P = self._toy_corpus()
         acc = hlp._MarginalAccumulator(fset)
@@ -483,9 +478,8 @@ class TestMarginalAccumulator(unittest.TestCase):
         self.assertLessEqual(len(codes), nc)
 
     def test_chunk_merge(self):
-        # Feeding the corpus in ONE chunk vs TWO chunks: the same
-        # marginal (the unique-merge / the dense accumulation are
-        # chunk-invariant).
+        # Feeding the corpus in ONE chunk vs TWO chunks: the same marginal (the unique-merge / the
+        # dense accumulation are chunk-invariant).
         fset = self._toy_fset()
         P = self._toy_corpus(n=400)
         acc1 = hlp._MarginalAccumulator(fset)
@@ -501,17 +495,44 @@ class TestMarginalAccumulator(unittest.TestCase):
             np.testing.assert_array_equal(a[3], b[3])
             np.testing.assert_array_equal(a[4], b[4])
 
+    def test_sparse_unique_merge(self):
+        # The wide pattern (n_conf = 3**14, above the dense threshold): the UNIQUE-MERGE dict branch
+        # — the corpus accumulated in ONE chunk vs TWO chunks: the same sparse marginal,
+        # hand-checked against the independent per-position dict over compute_indexes.
+        fset = self._sparse_fset()
+        P = self._toy_corpus(n=200)
+        idx = fset.compute_indexes(P)
+        bi = [b for b in fset.feature_blocks if b[0] == 'W14'][0]
+        col = bi[1]  # the W14 inst0 column
+        self.assertGreater(bi[3], 1_000_000)  # the sparse branch
+        expected = {}
+        for k in range(len(P)):
+            c = int(idx[k, col])
+            expected[c] = expected.get(c, 0) + 1
+        acc1 = hlp._MarginalAccumulator(fset)
+        acc1.add(idx)
+        acc2 = hlp._MarginalAccumulator(fset)
+        acc2.add(fset.compute_indexes(P[:100]))
+        acc2.add(fset.compute_indexes(P[100:]))
+        for res in (acc1.result(), acc2.result()):
+            row = [r for r in res if r[0] == 'W14' and r[1] == 0][0]
+            name, i, nc, codes, counts = row
+            exp_codes = np.array(sorted(expected), dtype=np.uint32)
+            exp_counts = np.array([expected[c] for c in sorted(expected)],
+                                  dtype=np.int64)
+            np.testing.assert_array_equal(codes, exp_codes)
+            np.testing.assert_array_equal(counts, exp_counts)
+            self.assertEqual(int(counts.sum()), len(P))
+
 
 class TestJointAccumulator(unittest.TestCase):
-    """The streaming joint accumulator (the test_hlp_random_play
-    migration, D-295): the per-requested-pair instance×instance
-    (code_i, code_j) -> count, the cross-feature + the
-    same-feature (the D-304: the diagonal cells are NOT BUILT —
-    they are the marginal itself, the SU = 1 lock; the
-    off-diagonal is the anisotropy), the chunk-merge. The D-304
-    threading: the per-cell merges run on a thread pool — the
-    chunk-merge + the oracle pins cover it (the per-cell result
-    is a pure function of its own history)."""
+    """
+    The streaming joint accumulator: the per-requested-pair instance×instance (code_i, code_j) ->
+    count, the cross-feature + the same-feature (the diagonal cells are NOT BUILT — they are the
+    marginal itself, the SU = 1 lock; the off-diagonal is the anisotropy), the chunk-merge. The
+    threading: the per-cell merges run on a thread pool — the chunk-merge + the oracle pins cover it
+    (the per-cell result is a pure function of its own history).
+    """
 
     def _fset(self):
         return TestMarginalAccumulator._toy_fset()
@@ -521,8 +542,9 @@ class TestJointAccumulator(unittest.TestCase):
 
     @staticmethod
     def _oracle_joint(fset, P, ci_col, cj_col):
-        """The independent per-position joint oracle (the manual
-        dict, the compute_indexes for the codes)."""
+        """
+        The independent per-position joint oracle (the manual dict, the compute_indexes for the codes).
+        """
         idx = fset.compute_indexes(P)
         od = {}
         for k in range(len(P)):
@@ -531,8 +553,8 @@ class TestJointAccumulator(unittest.TestCase):
         return od
 
     def test_cross_feature_joint(self):
-        # (LMC, R2): the 4 instance-pairs (0, j), the joint
-        # (code_lmc, code_r2_j) -> count vs the independent oracle.
+        # (LMC, R2): the 4 instance-pairs (0, j), the joint (code_lmc, code_r2_j) -> count vs the
+        # independent oracle.
         fset = self._fset()
         P = self._corpus()
         ja = hlp._JointAccumulator(fset, [('LMC', 'R2')])
@@ -553,11 +575,9 @@ class TestJointAccumulator(unittest.TestCase):
             self.assertEqual(got, od)
 
     def test_same_feature_diagonal(self):
-        # (R2, R2): the 16 instance-pairs (4 x 4). The D-304: the
-        # 4 DIAGONAL cells (ii, ii) are NOT BUILT — the (u, u)
-        # joint is the marginal of u (pure redundancy), so the
-        # registry holds the 12 off-diagonal only; each off-
-        # diagonal cell vs the independent per-position oracle.
+        # (R2, R2): the 16 instance-pairs (4 x 4). The 4 DIAGONAL cells (ii, ii) are NOT BUILT — the
+        # (u, u) joint is the marginal of u (pure redundancy), so the registry holds the 12
+        # off-diagonal only; each off- diagonal cell vs the independent per-position oracle.
         fset = self._fset()
         P = self._corpus()
         ja = hlp._JointAccumulator(fset, [('R2', 'R2')])
@@ -578,8 +598,8 @@ class TestJointAccumulator(unittest.TestCase):
             self.assertEqual(got, od)
 
     def test_chunk_merge(self):
-        # One chunk == two half-chunks (the unique-merge is chunk-
-        # invariant, the marginals and the joints alike).
+        # One chunk == two half-chunks (the unique-merge is chunk- invariant, the marginals and the
+        # joints alike).
         fset = self._fset()
         P = self._corpus(n=300)
         pairs = [('LMC', 'R2'), ('R2', 'R2')]
@@ -602,12 +622,11 @@ class TestJointAccumulator(unittest.TestCase):
 
 
 class TestPrngIntegration(unittest.TestCase):
-    """The PRNG integration test (the test_hlp_random_play
-    migration, D-295): the full generator with the MT19937 seed —
-    the corpus reproducibility (same seed -> the same frequency
-    tables, the different seed -> different) + the small end-to-end
-    corpus on a 2-feature set (the LMC + the R2), the marginals
-    hand-checked against the independent oracle."""
+    """
+    The PRNG integration test: the full generator with the MT19937 seed — the corpus reproducibility
+    (same seed -> the same frequency tables, the different seed -> different) + the small end-to-end
+    corpus on a 2-feature set (the LMC + the R2), the marginals hand-checked against the independent oracle.
+    """
 
     def _fset(self):
         return TestMarginalAccumulator._toy_fset()
@@ -620,10 +639,9 @@ class TestPrngIntegration(unittest.TestCase):
         return acc.result()
 
     def test_corpus_reproducibility(self):
-        # Same seed -> the SAME frequency tables (bit-exact); the
-        # different seed -> different. The play-path generator
-        # re-initializes the golden-pinned MT19937 per call (the
-        # seed is the corpus seed).
+        # Same seed -> the SAME frequency tables (bit-exact); the different seed -> different. The
+        # play-path generator re-initializes the golden-pinned MT19937 per call (the seed is the
+        # corpus seed).
         r1 = self._gen_and_accum(5000, 20, 42)
         r2 = self._gen_and_accum(5000, 20, 42)
         r3 = self._gen_and_accum(5000, 20, 43)
@@ -636,11 +654,9 @@ class TestPrngIntegration(unittest.TestCase):
         self.assertFalse(same_as_43)
 
     def test_small_end_to_end_marginals(self):
-        # The small end-to-end corpus (the play-path corpus ->
-        # the accumulator): every sub-variable's sum == N, K_obs <=
-        # n_conf, and the LMC marginal hand-checked against the
-        # INDEPENDENT oracle (position_legal_moves, NOT
-        # compute_indexes).
+        # The small end-to-end corpus (the play-path corpus -> the accumulator): every
+        # sub-variable's sum == N, K_obs <= n_conf, and the LMC marginal hand-checked against the
+        # INDEPENDENT oracle (position_legal_moves, NOT compute_indexes).
         n, ec, seed = 2000, 20, 42
         fset = self._fset()
         P = _corpus(n, ec, seed)
@@ -664,10 +680,8 @@ class TestPrngIntegration(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------
-# The SU kernel micro-suite (the D-298 hlp_feature_analysis
-# migration): the hand-computed toy tables for the entropy / the
-# MI / the SU / the dispersion / the never-observed audit, now
-# the hlp's OWN private kernels (the hlp._* calls).
+# The SU kernel micro-suite: the hand-computed toy tables for the entropy / the MI / the SU / the
+# dispersion / the never-observed audit, over the hlp's OWN private kernels (the hlp._* calls).
 # ---------------------------------------------------------------------
 
 class TestEntropy(unittest.TestCase):
@@ -682,8 +696,7 @@ class TestEntropy(unittest.TestCase):
         self.assertAlmostEqual(hlp._entropy([4, 0, 0, 0]), 0.0, places=12)
 
     def test_binary(self):
-        # p = [0.25, 0.75]: H = -(0.25 log2 0.25 + 0.75 log2
-        # 0.75) = 0.8112781244591328.
+        # p = [0.25, 0.75]: H = -(0.25 log2 0.25 + 0.75 log2 0.75) = 0.8112781244591328.
         self.assertAlmostEqual(hlp._entropy([1, 3]),
                                0.8112781244591328, places=12)
 
@@ -694,32 +707,31 @@ class TestEntropy(unittest.TestCase):
 
 
 class TestMutualInformation(unittest.TestCase):
-    """I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v),
-    from the joint counts + the PRE-COMPUTED marginal entropies
-    (the D-299 signature: the H are passed in, the caller
-    computes each marginal's entropy once)."""
+    """
+    I(u; v) in bits, the identity I = H(u) + H(v) - H(u, v), from the joint counts + the
+    PRE-COMPUTED marginal entropies (the H are passed in: the caller computes each marginal's
+    entropy once).
+    """
 
     def test_perfect_correlation(self):
-        # u == v, 4 positions (u = [0, 0, 1, 1]): the marginals
-        # [2, 2] (H = 1 each), the joint (the 2 x 2 grid)
-        # [2, 0, 0, 2] (H(u, v) = 1). I = 1 + 1 - 1 = 1.
+        # u == v, 4 positions (u = [0, 0, 1, 1]): the marginals [2, 2] (H = 1 each), the joint (the
+        # 2 x 2 grid) [2, 0, 0, 2] (H(u, v) = 1). I = 1 + 1 - 1 = 1.
         I = hlp._mutual_information([2, 0, 0, 2],
                                     hlp._entropy([2, 2]),
                                     hlp._entropy([2, 2]))
         self.assertAlmostEqual(I, 1.0, places=12)
 
     def test_independent(self):
-        # u = [0, 0, 1, 1], v = [0, 1, 0, 1] (independent): the
-        # marginals [2, 2] (H = 1 each), the joint [1, 1, 1, 1]
-        # (H(u, v) = 2). I = 1 + 1 - 2 = 0.
+        # u = [0, 0, 1, 1], v = [0, 1, 0, 1] (independent): the marginals [2, 2] (H = 1 each), the
+        # joint [1, 1, 1, 1] (H(u, v) = 2). I = 1 + 1 - 2 = 0.
         I = hlp._mutual_information([1, 1, 1, 1],
                                     hlp._entropy([2, 2]),
                                     hlp._entropy([2, 2]))
         self.assertAlmostEqual(I, 0.0, places=12)
 
     def test_non_negative(self):
-        # The floating-point rounding of the identity can give a
-        # tiny negative — the clamp keeps I >= 0.
+        # The floating-point rounding of the identity can give a tiny negative — the clamp keeps I
+        # >= 0.
         I = hlp._mutual_information([2, 0, 0, 2],
                                     hlp._entropy([2, 2]),
                                     hlp._entropy([2, 2]))
@@ -740,20 +752,19 @@ class TestSymmetricUncertainty(unittest.TestCase):
             hlp._symmetric_uncertainty(0.0, 1.0, 1.0), 0.0, places=12)
 
     def test_zero_denominator(self):
-        # The degenerate variables (H_u = H_v = 0): the 0/0
-        # guard -> SU = 0.
+        # The degenerate variables (H_u = H_v = 0): the 0/0 guard -> SU = 0.
         self.assertEqual(hlp._symmetric_uncertainty(0.0, 0.0, 0.0), 0.0)
 
 
 class TestDispersion(unittest.TestCase):
-    """The per-sub-variable dispersion: K_obs, H,
-    H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
-    coverage = K_obs / n_configurations."""
+    """
+    The per-sub-variable dispersion: K_obs, H, H_norm = H / log2(K_obs) (the K_obs <= 1 guard), the
+    coverage = K_obs / n_configurations.
+    """
 
     def test_hand_computed(self):
-        # counts = [1, 1, 2, 4] (4 observed, total 8),
-        # n_configurations = 8: K_obs = 4, H = 1.75, H_norm =
-        # 1.75 / log2 4 = 0.875, coverage = 4 / 8 = 0.5.
+        # counts = [1, 1, 2, 4] (4 observed, total 8), n_configurations = 8: K_obs = 4, H = 1.75,
+        # H_norm = 1.75 / log2 4 = 0.875, coverage = 4 / 8 = 0.5.
         d = hlp._dispersion([1, 1, 2, 4], 8)
         self.assertEqual(d['k_obs'], 4)
         self.assertAlmostEqual(d['h'], 1.75, places=12)
@@ -761,9 +772,8 @@ class TestDispersion(unittest.TestCase):
         self.assertAlmostEqual(d['coverage'], 0.5, places=12)
 
     def test_degenerate(self):
-        # counts = [8] (1 observed), n_configurations = 5: K_obs
-        # = 1, H = 0, H_norm = 0 (the K_obs <= 1 guard), coverage
-        # = 1 / 5 = 0.2.
+        # counts = [8] (1 observed), n_configurations = 5: K_obs = 1, H = 0, H_norm = 0 (the K_obs
+        # <= 1 guard), coverage = 1 / 5 = 0.2.
         d = hlp._dispersion([8], 5)
         self.assertEqual(d['k_obs'], 1)
         self.assertAlmostEqual(d['h'], 0.0, places=12)
@@ -771,25 +781,20 @@ class TestDispersion(unittest.TestCase):
         self.assertAlmostEqual(d['coverage'], 0.2, places=12)
 
     def test_dense_zeros_filtered(self):
-        # The dense form (the zero entries are the never-
-        # observed within the array): the zeros are filtered.
+        # The dense form (the zero entries are the never- observed within the array): the zeros are filtered.
         d = hlp._dispersion([0, 1, 0, 3, 0], 5)
         self.assertEqual(d['k_obs'], 2)
         self.assertAlmostEqual(d['coverage'], 0.4, places=12)
 
 
 class TestNeverObservedAudit(unittest.TestCase):
-    """The never-observed audit: the n_configurations - K_obs.
-    The D-301: the rarity profile (the observed codes below each
-    small threshold) is REMOVED — it was dead in production (the
-    report's config-driven 'Section B: Rarity report' is the
-    _rarity_bins kernel); its hardcoded default thresholds
-    were a phantom second source of truth next to the config's
-    rarity_thresholds (None = off)."""
+    """
+    The never-observed audit: the n_configurations - K_obs (the report's config-driven 'Section B:
+    Rarity report' is the separate _rarity_bins kernel).
+    """
 
     def test_hand_computed(self):
-        # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations =
-        # 8: never = 4.
+        # counts = [1, 1, 2, 4] (K_obs = 4), n_configurations = 8: never = 4.
         a = hlp._never_observed_audit([1, 1, 2, 4], 8)
         self.assertEqual(a['k_obs'], 4)
         self.assertEqual(a['never_observed'], 4)
