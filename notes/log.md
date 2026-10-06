@@ -2767,3 +2767,8 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
   hlp\_su\_analysis (D-490), hlp\_validate (D-491), hlp\_wmaps (D-492), hlp\_zed (D-493) al canone
   R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
+- Sessione 100 chiusa (su richiesta di Roberto): tutti i 15 moduli hlp/base della campagna al canone
+  R-560 (D-476 client -> D-493 hlp\_zed); la prossima sessione apre la cascata worker con le 13 coppie
+  moduli worker (wrk\_config, wrk\_features, wrk\_anova, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize,
+  wrk\_generate, wrk\_vld\_positions, wrk\_analytics, wrk\_client\_check, wrk\_final\_log\_print,
+  wrk\_save). Suite 1111/0/24 a fine sessione; albero pulito, gate green.

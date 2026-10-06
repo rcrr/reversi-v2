@@ -96,7 +96,10 @@ define the evaluation function.
   the worker suite + the 17-check probe); hlp\_wmaps the D-492 pass (the 17 de-typed Args entries + the 8 probe re-pins
   7-stale-to-0 + the 15-vs-16 test re-counts in both mirror docs + the 3rd sidecar/LZ4 order repair); hlp\_zed the D-493
   pass (the 4 missing docstrings in the LMWMaps style — the campaign's only docstring gap + the 15 probe re-pins
-  1-stale-to-0 + the E303 and bare-# strips); suite 1111/0/24 at close).
+  1-stale-to-0 + the E303 and bare-# strips); suite 1111/0/24 at close). The hlp/base campaign is COMPLETE (15
+  modules, D-476 -> D-493); the next session opens the worker cascade — the 13 worker pairs: wrk\_config, wrk\_features,
+  wrk\_anova, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate, wrk\_vld\_positions, wrk\_analytics,
+  wrk\_client\_check, wrk\_final\_log\_print, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
