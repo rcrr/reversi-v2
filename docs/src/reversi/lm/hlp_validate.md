@@ -16,7 +16,7 @@ PLOT renders and CLIENT_CHECK compares against the saved file.
 
 ## Architecture
 
-- The metric semantics (the docstring, the D-330 condensed form): the Z-space MAE / MSE / RMSE over the
+- The metric semantics (the docstring, condensed): the Z-space MAE / MSE / RMSE over the
   affine-mapped targets + the three formulas + the RMSE/MAE = sqrt(π/2) = 1.253 normal-distribution
   indicator. MAE is the mean absolute deviation — on the bounded [0, 1] scale an MAE of 0.04 reads as
   a 4% average deviation — and it weighs every error linearly (the "typical" accuracy baseline). MSE
