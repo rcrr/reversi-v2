@@ -2723,3 +2723,26 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
   hlp\_su\_analysis (D-490), hlp\_validate (D-491) al canone R-560; il prossimo modulo della cascata
   worker/hlp secondo la scelta di Roberto.
+- D-492 (hlp\_wmaps, un solo D, il piano concordato): sorgente 341 -> 337: le 17 Args entries
+  tipizzate de-typizzate (le 8 di \_\_init\_\_ a indent 12 + le 9 delle funzioni a indent 8), la field
+  list della class docstring (le 8 entry name (type) — description) lasciata intatta dal reflow
+  (verificata col dry-run, il genere SuTables), le docstring al punto fisso. Test 368 -> 362: le 4
+  bare # del license header stripate (trailing space, line-exact), l'allineamento import corretto (le
+  continuation a colonna 29, il paren-alignment canonico a colonna 34). Source doc 84 -> 83: i 3
+  conteggi stale '15 tests' -> 16 (il test N-D era entrato nella suite senza aggiornamento dei doc),
+  'module 338 lines (the D-331 format pass ...)' -> 337 + riscrittura al tempo presente, il
+  sidecar/LZ4 order repair (la 3a occorrenza della campagna: il codice fa sidecar prima, il doc
+  descriveva LZ4 prima). Test doc 34 -> 34: '4 classes / 15 tests' -> 16 + la riga Coverage del
+  test\_compute\_nd\_indexes\_matches\_1d mancante (2 -> 3). Probe: 8 re-pin (A1 338 -> 337, A5 L208
+  -> L205 mosso dal pass, A10 L296 -> L295, A11 L309 -> L308, A12 L273 -> L272, C1 346 -> 362, C2 15
+  -> 16 test con 2 compute -> 3 compute, C6 L207/L213 -> L223/L228) — 7 stale pre-pass (i file erano
+  cresciuti dopo i pass D-139/D-331 senza re-pin) + 1 mosso dal pass: re-cut in place nel same-commit,
+  il probe passa da 7 mismatch a 0. Cella: invariata (16/0/0).
+- Batch hlp\_wmaps chiusa (D-492, onda): il debito era nei pin (i 7 probe stale + i conteggi '15' dei
+  doc, tutti causati dal test N-D entrato senza re-pin), le 17 de-typing, la 3a occorrenza del
+  sidecar/LZ4 order. LONG=1 rimesurato: suite 1111/0/24 piatta (come atteso: zero cambi di cella). La
+  cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485),
+  hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
+  hlp\_su\_analysis (D-490), hlp\_validate (D-491), hlp\_wmaps (D-492) al canone R-560; il prossimo
+  modulo della cascata worker/hlp secondo la scelta di Roberto.

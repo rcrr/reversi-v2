@@ -93,7 +93,9 @@ define the evaluation function.
   D-tag / R2 / provenance purge in both mirror docs + the sparse unique-merge micro-test 38 -> 39/0/0 + the 46/4
   annotation pin corrected to 52/32 + the stale F4 probe golden re-cut); hlp\_validate the D-491 pass (the 3 de-typed
   Args entries + the formula-block reflow conversion + the single D-330 tag — the third no-test-module hlp, pinned by
-  the worker suite + the 17-check probe); suite 1111/0/24 at close).
+  the worker suite + the 17-check probe); hlp\_wmaps the D-492 pass (the 17 de-typed Args entries + the 8 probe re-pins
+  7-stale-to-0 + the 15-vs-16 test re-counts in both mirror docs + the 3rd sidecar/LZ4 order repair); suite 1111/0/24 at
+  close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

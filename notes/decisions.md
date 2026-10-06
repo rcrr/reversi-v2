@@ -972,3 +972,19 @@ D-491 | 2026-10-05 | The hlp\_validate source + mirror-doc pass, one commit (the
          casts, the two f32 / f64 arithmetic paths, the dense-mapping formulas, the probe labels A1-A13 / C4 / C5 / D2,
          the unused rlmwf\_14 slot). (3) R-850 completeness: no gap — all 3 `__all__` names pinned. No test / probe /
          cell changes.
+
+D-492 | 2026-10-05 | The hlp\_wmaps source + test + mirror-doc + probe pass, one commit (the user-approved plan): (1)
+         source 341 -> 337: the 17 typed Args entries de-typed (the 8 of `__init__` at the 12-space indent + the 9 of
+         the functions at 8), the class field list (the 8 "name (type) — description" entries) left intact by the reflow
+         (the dry-run verified the SuTables precedent), the docstrings to the reflow fixed point. (2) test 368 -> 362:
+         the 4 bare '# ' license-header lines stripped (line-exact), the import continuation alignment repaired (col 29
+         to the canonical col 34). (3) the source mirror doc 84 -> 83: the 3 stale "15 tests" counts corrected to 16
+         (the N-D test entered the suite without a doc update), the "module 338 lines (the D-331 format pass ...)" pin
+         corrected to 337 + the campaign narrative rewritten current-tense, the sidecar/LZ4 order repaired (the 3rd
+         occurrence: the code checks the sidecar before opening the LZ4 reader, the doc described the reverse). (4) the
+         test mirror doc 34 -> 34: "4 classes / 15 tests" -> 16 + the missing test\_compute\_nd\_indexes\_matches\_1d
+         coverage row (2 -> 3). (5) probe: the 8 re-pins (A1 338 -> 337, A5 L208 -> L205 moved by the pass, A10 L296 ->
+         L295, A11 L309 -> L308, A12 L273 -> L272, C1 346 -> 362, C2 15 -> 16 tests with the 2-compute -> 3-compute
+         split, C6 L207/L213 -> L223/L228) — 7 stale pre-pass (the files grew after the D-139/D-331 passes without a
+         re-pin) + 1 moved by the pass: re-cut in place, same commit — the probe goes from 7 mismatches to 0. No cell
+         changes (16/0/0).
