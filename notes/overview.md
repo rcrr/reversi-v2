@@ -84,7 +84,9 @@ define the evaluation function.
   2 R-540 + the new str-filename test 15 -> 16/0/0 + the probe pin set re-synced 53/53 + the doc re-count 14 -> 16 + the
   API-row order repair); hlp\_final\_log\_print the D-486 pass (the de-typed ctx entry + the 3 D-tags + the typed-Args
   clause + the 154-char line + the no-test-module-by-design clause — the 2nd hlp without a test module, pinned by the
-  probe + the worker suite + the e2e); suite 1106/0/24 at close).
+  probe + the worker suite + the e2e); hlp\_generate the D-487 pass (the 3 R-540 + the 124-char line + the bullet
+  docstring to the R-560 paragraph + the 2 R-850 micro-tests 16 -> 18/0/0 + the 2 doc tags + the "R2 semantics"); suite
+  1108/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
@@ -149,7 +151,7 @@ define the evaluation function.
 | test/reversi/lm/test\_hlp\_anova.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
 | test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 32/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
 | test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
-| test/reversi/lm/test\_hlp\_generate.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
+| test/reversi/lm/test\_hlp\_generate.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
 | test/reversi/lm/test\_hlp\_gradient.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_gradient.md](docs/test/reversi/lm/test\_hlp\_gradient.md) |
 | test/reversi/lm/test\_hlp\_indexes.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |
 | test/reversi/lm/test\_hlp\_optimize.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_optimize.md](docs/test/reversi/lm/test\_hlp\_optimize.md) |

@@ -36,12 +36,12 @@ compressed-w checksum — the consistency anchor). The flat file is `rlmwf_12_GE
   - Pattern: every config maps to its Principal Index (`ref.convert_to_principal_index`, the uint32 cast is mandatory
     for the pydantic reference model); a computed principal (w-index ≥ 0 AND ≠ fallback) propagates its trained weight
     to all symmetric configs; everything else — unseen AND fallback configs — inherits the frequency-weighted mean of
-    the seen configs. The fallback weight is logged for transparency only, never used (the ruling comment).
+    the seen configs. The fallback weight is logged for transparency only, never used.
   - Unknown category → `RuntimeError("The feature category is unknown: {category}")`.
 
 ## Verified invariants
 
-Pinned by the 18-check `probes/verify_generate.py` + the 19-test pair (16 no-DB + 3 DB-gated — see the test docs).
+Pinned by the 18-check `probes/verify_generate.py` + the 21-test pair (18 no-DB + 3 DB-gated — see the test docs).
 
 - Module source shape (probe A1-A5): the 5-name `__all__`, the 2 no-validation notes, the version gate, no trailing ws.
 - The data-object behavior (probe D3 + D11): the duck-typed hash == independent `sha3_256(w_dense.tobytes())`; the
@@ -49,8 +49,8 @@ Pinned by the 18-check `probes/verify_generate.py` + the 19-test pair (16 no-DB 
 - The live rlm_02 re-derivation (probe E2/E4/E5/E7): K = 6588 (= 6561 EDGE + 27 DIAG3 — rlm_02 has NO intercept), orbit
   invariance + seen-config exactness on both patterns, the full independent re-derivation == `ctx.w_dense`, the hash
   golden `ec9d65453bb112bf277c79f96a86edfa9468bb01f42a2763cd82d69c5b2b15b4`.
-- The inference semantics (the D-098 ruling): unseen + fallback configs take the weighted mean, NOT the trained fallback
-  weight — pinned by the mock golden (unseen → −0.2, probe D11) and by the live E5 re-derivation.
+- The inference semantics: unseen + fallback configs take the weighted mean, NOT the trained fallback weight — pinned by
+  the mock golden (unseen → −0.2, probe D11), by the live E5 re-derivation + the pattern INFO-log test.
 - The uint32 pattern-config cast: `np.arange(..., dtype=np.uint32)` is mandatory — `convert_to_principal_index` takes a
   pydantic-validated uint32 array (the live re-derivation exercises it).
 - The blackboard fields `w_dense: Any = None` + `dense_w_checksum: str | None = None` are pre-declared on LMContext

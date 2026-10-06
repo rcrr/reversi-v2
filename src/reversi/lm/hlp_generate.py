@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -68,7 +68,7 @@ class LMDenseWeights:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path,
                                compressed: bool = True) -> None:
-    # LZ4 whole-file compression by default (D-139, as in model_weights).
+    # LZ4 whole-file compression by default.
     filename = Path(filename)
     with binio.BinaryWriter(filename, compressed=compressed) as w:
         w.write_header("RGLM Dense Weights binary data file", 1)
@@ -80,7 +80,7 @@ def hlp_generate_store_to_file(dw: LMDenseWeights, filename: str | Path,
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_generate_load_from_file(filename: str | Path, checksum: bool = True,
                                 compressed: bool = True) -> LMDenseWeights:
-    # LZ4 whole-file compression by default (D-139, as in model_weights).
+    # LZ4 whole-file compression by default.
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("Checksum mismatch.")
@@ -108,12 +108,12 @@ def hlp_generate_is_cache_consistent(ctx: "LMContext", dw: LMDenseWeights) -> bo
 #: Here validation is not possible, it brings in a convoluted issue with circular imports.
 def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
     """
-    Computes the dense weight vector (w_dense) of size K (all theoretical configurations).
-    Unseen configurations and fallbacks are handled according to feature type:
-    - Intercept: Direct mapping.
-    - Pattern (Categorical): Symmetric configurations inherit the weight of their Principal Index.
-      If the Principal is unseen/fallback, they inherit the weighted mean of the pattern's weights.
-    - Mobility (Ordinal): Internal missing values are linearly interpolated, external ones clamped.
+    Compute the dense weight vector (w_dense) of size K (all theoretical configurations). Unseen
+    configurations and fallbacks are handled according to feature type: the Intercept is a direct
+    mapping; for a Pattern (Categorical), the symmetric configurations inherit the weight of their
+    Principal Index, or the weighted mean of the pattern's weights when the Principal is unseen or a
+    fallback; for a Mobility (Ordinal), the internal missing values are linearly interpolated and
+    the external ones clamped.
     """
     features = ctx.feature_set.features
     feature_w_ranges = ctx.feature_w_ranges
@@ -133,8 +133,7 @@ def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
 
         fallback, w_min, w_max = feature_w_ranges[fid]
 
-        # Extract frequencies for this feature from wmap
-        # wmap columns: [fid, config_id, frequency]
+        # Extract frequencies for this feature from wmap wmap columns: [fid, config_id, frequency]
         f_wmap_mask = wmap[:, 0] == fid
         f_wmap = wmap[f_wmap_mask]
 
@@ -143,8 +142,8 @@ def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
             w_dense[start_idx:end_idx] = f_w[0]
 
         elif f.category == 1:  # Mobility
-            # To find the true "above cutoff" configurations, we must look at wmap,
-            # because iwmap points rare configs to the fallback index.
+            # To find the true "above cutoff" configurations, we must look at wmap, because iwmap
+            # points rare configs to the fallback index.
 
             # True configs are those with config_id >= 0 in wmap
             true_configs_mask = f_wmap[:, 1] >= 0
@@ -155,21 +154,22 @@ def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
                 w_indices = f_iwmap[known_configs]
                 known_weights = w[w_indices]
 
-                # Interpolate over the full range of possible configurations (0 to n_configurations-1)
-                # np.interp automatically clamps external values to the nearest known boundary.
-                # It also requires the known configurations to be ascending: hlp_wmaps
-                # allocates the true slots via np.unique, which emits the configurations
+                # Interpolate over the full range of possible configurations (0 to
+                # n_configurations-1) np.interp automatically clamps external values to the nearest
+                # known boundary. It also requires the known configurations to be ascending:
+                # hlp_wmaps allocates the true slots via np.unique, which emits the configurations
                 # in ascending order, so the precondition is structural, not an assumption.
                 all_configs = np.arange(f.n_configurations)
                 w_dense[start_idx : start_idx + f.n_configurations] = np.interp(
                     all_configs, known_configs, known_weights
                 ).astype(np.float32)
             else:
-                ctx.log_event(Relevance.WARN, f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero.")
+                msg = f"Mobility {f.name} (id:{fid}) has no seen configurations. Weights are zero."
+                ctx.log_event(Relevance.WARN, msg)
 
         elif f.category == 2:  # Pattern
-            # We only want configurations that are NOT fallback (config_id >= 0)
-            # and that were actually assigned a weight (seen in dataset, above cutoff)
+            # We only want configurations that are NOT fallback (config_id >= 0) and that were
+            # actually assigned a weight (seen in dataset, above cutoff)
             true_configs_mask = f_wmap[:, 1] >= 0
             true_freqs = f_wmap[true_configs_mask, 2]
 
@@ -189,16 +189,13 @@ def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
                 fallback_w_val = w[fallback]
                 ctx.log_event(Relevance.INFO, f"Pattern {f.name} (id:{fid}) fallback weight is {fallback_w_val:.4f}.")
 
-            # Inference semantics (D-098, Roberto's ruling): the unseen and
-            # fallback configurations inherit the frequency-weighted mean of
-            # the seen configurations, not the trained fallback weight. The
-            # fallback slot is a single learnable representative: during
-            # training it keeps the loss well-defined and shrinks the rare
-            # configurations (overfitting control); at inference the
-            # regularized mean is the plug-in estimate of the expected
-            # pattern contribution under the training distribution, while the
-            # fallback weight is a loss proxy, noisy for the rare
-            # configurations. The weight is logged above for transparency only.
+            # Inference semantics: the unseen and fallback configurations inherit the
+            # frequency-weighted mean of the seen configurations, not the trained fallback weight.
+            # The fallback slot is a single learnable representative: during training it keeps the
+            # loss well-defined and shrinks the rare configurations (overfitting control); at
+            # inference the regularized mean is the plug-in estimate of the expected pattern
+            # contribution under the training distribution, while the fallback weight is a loss
+            # proxy, noisy for the rare configurations. The weight is logged above for transparency only.
 
             # --- Populate w_dense propagating Principal Index weights ---
 
@@ -208,8 +205,8 @@ def compute_w_dense(ctx: "LMContext") -> LMDenseWeights:
             # 2. Map every config to its Principal Index
             principal_configs = f.ref.convert_to_principal_index(all_configs)
 
-            # 3. Find the w_idx for each of these principal configurations
-            # Cast back to int64 for safe indexing into f_iwmap
+            # 3. Find the w_idx for each of these principal configurations Cast back to int64 for
+            # safe indexing into f_iwmap
             principal_w_indices = f_iwmap[principal_configs.astype(np.int64)]
 
             # 4. Initialize the dense weights for this feature with the weighted_mean
