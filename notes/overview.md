@@ -91,7 +91,9 @@ define the evaluation function.
   GPL header restored in src + test + the 42 de-typed Args entries + the unknown-format micro-test 11 -> 12/0/0 + the
   18-vs-19 check re-count + the "pilot" typo); hlp\_su\_analysis the D-490 pass (the 54 de-typed Args entries + the
   D-tag / R2 / provenance purge in both mirror docs + the sparse unique-merge micro-test 38 -> 39/0/0 + the 46/4
-  annotation pin corrected to 52/32 + the stale F4 probe golden re-cut); suite 1111/0/24 at close).
+  annotation pin corrected to 52/32 + the stale F4 probe golden re-cut); hlp\_validate the D-491 pass (the 3 de-typed
+  Args entries + the formula-block reflow conversion + the single D-330 tag — the third no-test-module hlp, pinned by
+  the worker suite + the 17-check probe); suite 1111/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

@@ -958,3 +958,17 @@ D-490 | 2026-10-05 | The hlp\_su\_analysis source + test + mirror-doc + probe pa
          since D-442 (the pre-existing debt, verified in git: the overview rows were underscore-escaped BEFORE D-442,
          which re-cut the golden in the unescaped form): the golden re-cut in place to the escaped form (name only, zero
          assertion change) — the probe goes from 1 mismatch to 0. Cell: test\_hlp\_su\_analysis 38/0/0 -> 39/0/0.
+
+D-491 | 2026-10-05 | The hlp\_validate source + mirror-doc pass, one commit (the user-approved plan): the smallest
+         module of the campaign (157 lines, 3 names) and the third hlp WITHOUT a test module by design (after
+         hlp\_final\_log\_print): no test\_hlp\_validate, no test mirror doc, no overview row — all behaviour pinned by
+         test\_wrk\_validate (9/0/0: the 3 worker tests + the 6 of the TestValidateModelUnit class) + the
+         verify\_validate probe (17 checks, green) + the e2e; all four test names the doc cites exist in the worker
+         suite. (1) source 157 -> 145: the 3 typed Args entries de-typed (the campaign minimum: rn, k, ctx), the formula
+         block of the validate\_model docstring (the 4 standalone MAE / MSE / RMSE / ratio lines) converted to the
+         single comma-joined sentence BEFORE the reflow (the reflow would have flattened it to mangled prose — the D-487
+         bullet-to-paragraph genre), the docstrings to the reflow fixed point. (2) the source mirror doc 83 -> 83: the
+         single D-tag ("the D-330 condensed form" -> "condensed"); the fidelity fully verified (the 7-key dict with the
+         casts, the two f32 / f64 arithmetic paths, the dense-mapping formulas, the probe labels A1-A13 / C4 / C5 / D2,
+         the unused rlmwf\_14 slot). (3) R-850 completeness: no gap — all 3 `__all__` names pinned. No test / probe /
+         cell changes.

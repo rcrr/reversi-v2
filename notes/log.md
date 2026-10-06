@@ -2702,3 +2702,24 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (D-485), hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot
   (D-489), hlp\_su\_analysis (D-490) al canone R-560; il prossimo modulo della cascata worker/hlp
   secondo la scelta di Roberto.
+- D-491 (hlp\_validate, un solo D, il piano concordato): il modulo piu' piccolo della campagna (157
+  righe, 3 nomi) e il TERZO hlp without a test module by design (dopo hlp\_final\_log\_print): no
+  test\_hlp\_validate, no mirror doc di test, no riga nell'overview — tutto il comportamento pinned da
+  test\_wrk\_validate (9/0/0: i 3 worker + i 6 della classe TestValidateModelUnit), il probe
+  verify\_validate (17 check, verde) e l'e2e; i 4 nomi di test citati dalla doc esistono nel worker
+  suite. Sorgente 157 -> 145: le 3 Args entries tipizzate de-typizzate (il minimo della campagna: rn,
+  k, ctx), il blocco formule della docstring di validate\_model (le 4 righe staccate MAE / MSE / RMSE
+  / ratio) convertito in una frase a virgole PRIMA del reflow (il reflow l'avrebbe schiacciato in
+  prosa mangled — il genere bullets-to-paragraph di D-487), le docstring al punto fisso. Source doc 83
+  -> 83: l'unico D-tag (L19 'the D-330 condensed form' -> 'condensed'); fedeltà verificata su tutta la
+  linea (il 7-key dict con i cast, le due arithmetic paths f32/f64, le formule del dense mapping, i
+  label del probe A1-A13 / C4 / C5 / D2, lo slot rlmwf\_14 unused). Completezza R-850: zero gap — i 3
+  nomi \_\_all\_\_ sono tutti pinned. Niente cambi a test / probe / celle (il modulo non ha cella
+  hlp).
+- Batch hlp\_validate chiusa (D-491, onda): il modulo piccolo e sano — 3 de-typing, 1 conversione di
+  formule, 1 tag. LONG=1 rimesurato: suite 1111/0/24 invariata (come atteso: zero cambi di cella). La
+  cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485),
+  hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489),
+  hlp\_su\_analysis (D-490), hlp\_validate (D-491) al canone R-560; il prossimo modulo della cascata
+  worker/hlp secondo la scelta di Roberto.
