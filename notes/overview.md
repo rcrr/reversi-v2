@@ -144,7 +144,7 @@ define the evaluation function.
 | test/reversi/lm/test\_client.py | complete | 8/0/1/0/0 | [docs/test/reversi/lm/test\_client.md](docs/test/reversi/lm/test\_client.md) |
 | test/reversi/lm/test\_hlp\_anova.py | complete | 18/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_anova.md](docs/test/reversi/lm/test\_hlp\_anova.md) |
 | test/reversi/lm/test\_hlp\_config\_schemas.py | complete | 32/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_config\_schemas.md](docs/test/reversi/lm/test\_hlp\_config\_schemas.md) |
-| test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
+| test/reversi/lm/test\_hlp\_design\_matrix.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_design\_matrix.md](docs/test/reversi/lm/test\_hlp\_design\_matrix.md) |
 | test/reversi/lm/test\_hlp\_generate.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_generate.md](docs/test/reversi/lm/test\_hlp\_generate.md) |
 | test/reversi/lm/test\_hlp\_gradient.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_gradient.md](docs/test/reversi/lm/test\_hlp\_gradient.md) |
 | test/reversi/lm/test\_hlp\_indexes.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |

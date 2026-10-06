@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -69,9 +69,8 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
             wmaps_obj_checksum="abc123"
         )
 
-        # 1. Define a mock feature set with 2 features
-        # Feature 0: 1 instance, 3 possible configurations (0, 1, 2)
-        # Feature 1: 2 instances, 2 possible configurations (0, 1)
+        # 1. Define a mock feature set with 2 features: Feature 0: 1 instance, 3 possible
+        # configurations (0, 1, 2) Feature 1: 2 instances, 2 possible configurations (0, 1)
         self.ctx.feature_set = SimpleNamespace(
             features=[
                 SimpleNamespace(name="F0", n_instances=1, n_configurations=3),
@@ -82,8 +81,7 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
         # 2. Define the accumulated iwmap feature offsets [0, 3, 5]
         self.ctx.iwmap_feature_offset = np.array([0, 3, 5], dtype=np.uint32)
 
-        # 3. Define the iwmap (length 5): F0 configs (0,1,2) -> w (1,0,0),
-        #    F1 configs (0,1) -> w (2,3)
+        # 3. Define the iwmap (length 5): F0 configs (0,1,2) -> w (1,0,0), F1 configs (0,1) -> w (2,3)
         self.ctx.iwmap = np.array([1, 0, 0, 2, 3], dtype=np.int64)
 
         # 4. Define a mock indexes matrix (Shape: N=4, I=3)
@@ -103,12 +101,11 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
         # The wmaps checksum is carried over for the cache consistency check
         self.assertEqual(dm.wmaps_obj_checksum, "abc123")
 
-        # Check X (4, 3) uint32:
-        # col_offsets = [0, 3, 3] (repeat the feature start offsets per instance)
-        # row 0: pindexes [0,0,0] + [0,3,3] = [0,3,3] -> iwmap -> (1, 2, 2)
-        # row 1: pindexes [0,1,1] + [0,3,3] = [0,4,4] -> iwmap -> (1, 3, 3)
-        # row 2: pindexes [2,0,1] + [0,3,3] = [2,3,4] -> iwmap -> (0, 2, 3)
-        # row 3: pindexes [1,1,0] + [0,3,3] = [1,4,3] -> iwmap -> (0, 3, 2)
+        # Check X (4, 3) uint32: col_offsets = [0, 3, 3] (repeat the feature start offsets per
+        # instance) row 0: pindexes [0,0,0] + [0,3,3] = [0,3,3] -> iwmap -> (1, 2, 2) row 1:
+        # pindexes [0,1,1] + [0,3,3] = [0,4,4] -> iwmap -> (1, 3, 3) row 2: pindexes [2,0,1] +
+        # [0,3,3] = [2,3,4] -> iwmap -> (0, 2, 3) row 3: pindexes [1,1,0] + [0,3,3] = [1,4,3] ->
+        # iwmap -> (0, 3, 2)
         self.assertEqual(dm.X.shape, (4, 3))
         self.assertEqual(dm.X.dtype, np.uint32)
         nptest.assert_array_equal(dm.X, np.array([
@@ -119,9 +116,10 @@ class TestHlpDesignMatrixCompute(unittest.TestCase):
         ], dtype=np.uint32))
 
     def test_compute_nd_indexes(self):
-        """N-D sanity: a (2, 2, I) indexes matrix (an any-shape position
-        batch) gives the same X values as the C-order (N, I) ravel, with
-        shape (2, 2, I)."""
+        """
+        N-D sanity: a (2, 2, I) indexes matrix (an any-shape position batch) gives the same X values
+        as the C-order (N, I) ravel, with shape (2, 2, I).
+        """
         nd_ctx = SimpleNamespace(
             wmaps_obj_checksum="abc123",
             feature_set=self.ctx.feature_set,
@@ -179,8 +177,7 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.filepath = self.tmp_dir / "design_matrix_test.dat"
@@ -209,6 +206,14 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
 
         # Validate the numpy array (the dtype contract must survive the round-trip)
         self.assertEqual(dm_loaded.X.dtype, np.uint32)
+        nptest.assert_array_equal(dm_loaded.X, self.dm_original.X)
+
+    def test_store_and_load_with_str_filename(self):
+        """The str | Path contract: a bare str filename round-trips like the Path form."""
+        hlp_design_matrix_store_to_file(self.dm_original, str(self.filepath))
+        self.assertTrue(self.filepath.exists())
+        dm_loaded = hlp_design_matrix_load_from_file(str(self.filepath), checksum=False)
+        self.assertEqual(dm_loaded.wmaps_obj_checksum, "io_test_hash")
         nptest.assert_array_equal(dm_loaded.X, self.dm_original.X)
 
     def test_compute_sha3_256_hash_golden(self):
@@ -256,8 +261,7 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
         self.assertIn("version mismatch", str(context.exception))
 
     def test_store_compressed_by_default(self):
-        """Store writes an LZ4 frame by default and load (the
-        compressed default) round-trips it."""
+        """Store writes an LZ4 frame by default and load (the compressed default) round-trips it."""
         hlp_design_matrix_store_to_file(self.dm_original, self.filepath)
         with open(self.filepath, "rb") as f:
             self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
@@ -266,8 +270,10 @@ class TestHlpDesignMatrixIO(unittest.TestCase):
         nptest.assert_array_equal(dm_loaded.X, self.dm_original.X)
 
     def test_load_defaults_reject_uncompressed_file(self):
-        """The compressed default fails loud on a legacy
-        uncompressed file (cache invalidation, not a silent misread)."""
+        """
+        The compressed default fails loud on a legacy uncompressed file (cache invalidation, not a
+        silent misread).
+        """
         with binio.BinaryWriter(str(self.filepath), checksum=False,
                                 compressed=False) as w:
             w.write_header("LMDesignMatrix binary data file", 1)

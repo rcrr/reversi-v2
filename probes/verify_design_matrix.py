@@ -47,13 +47,13 @@ def lines(p):
 # A. hlp_design_matrix.py structure (post the approved warning fix)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_design_matrix.py")
-check("A1 hlp_design_matrix.py is 139 lines (post D-139: 133 + the 2x compressed kwarg + docstring lines)", len(rlm) == 139, f"{len(rlm)}")
-check("A2 the explicit-cast fix is in place (L125-128: astype on the source + the note)",
-      rlm[124] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
-      and rlm[125] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel),"
-      and rlm[126] == "    #: X is uint32 — the implicit output cast is deprecated (NumPy 2.5)."
-      and rlm[127] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
-      repr(rlm[124:128]))
+check("A1 hlp_design_matrix.py is 143 lines (post D-139: 133 + the 2x compressed kwarg + the 8 standalone-quote docstring lines)", len(rlm) == 143, f"{len(rlm)}")
+check("A2 the explicit-cast fix is in place (L129-132: astype on the source + the note)",
+      rlm[128] == "    X = np.empty(pindexes.shape, dtype=np.uint32)"
+      and rlm[129] == "    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), X is uint32 — the implicit"
+      and rlm[130] == "    #: output cast is deprecated (NumPy 2.5)."
+      and rlm[131] == "    np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)",
+      repr(rlm[128:132]))
 check("A3 no raw int64->uint32 np.take remains",
       "np.take(ctx.iwmap, pindexes_with_offsets, out=X)" not in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A4 __all__ lists the 5 public names",
@@ -63,17 +63,17 @@ check("A5 exactly 4 @validate_call decorators (init, hash, store, load — NOT c
       read("src/reversi/lm/hlp_design_matrix.py").count("@validate_call(config=ConfigDict(arbitrary_types_allowed=True))") == 4
       and "\ndef hlp_design_matrix_compute" in read("src/reversi/lm/hlp_design_matrix.py"))
 check("A6 T4 FIXED: the no-validation note sits above hlp_design_matrix_compute (the rlm_indexes L166 class)",
-      rlm[112] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
-      and rlm[113] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> LMDesignMatrix:")
-check("A7 R1 FIXED: the single -1 guard remains (L122-123) with the precise ValueError",
-      rlm[121] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
-      and rlm[122] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
+      rlm[116] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports."
+      and rlm[117] == "def hlp_design_matrix_compute(ctx: \"LMContext\") -> LMDesignMatrix:")
+check("A7 R1 FIXED: the single -1 guard remains (L126-127) with the precise ValueError",
+      rlm[125] == "    if np.any(ctx.iwmap[pindexes_with_offsets] == -1):"
+      and rlm[126] == "        raise ValueError(\"It should never happen, pindexes is referring an invalid value.\")")
 check("A8 R1 FIXED: the redundant count_nonzero guard is GONE",
       "count_nonzero" not in read("src/reversi/lm/hlp_design_matrix.py")
       and "mismatch between indexes and valid values" not in read("src/reversi/lm/hlp_design_matrix.py"))
-check("A9 store docstring: the D-139 compression line, no sidecar promise",
-      '"""Saves the Design Matrix instance to a binary file.' in read("src/reversi/lm/hlp_design_matrix.py")
-      and "LZ4 whole-file compression by default (D-139, as in model_weights)." in read("src/reversi/lm/hlp_design_matrix.py"))
+check("A9 store docstring: the compression line (the standalone-quote form), no sidecar promise",
+      '    Saves the Design Matrix instance to a binary file.' in read("src/reversi/lm/hlp_design_matrix.py")
+      and "LZ4 whole-file compression by default." in read("src/reversi/lm/hlp_design_matrix.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A10 T5 FIXED: zero non-comment trailing-whitespace lines", ws_rl == [], f"{ws_rl}")
 check("A11 X is allocated uint32 (the test pins the dtype contract)",
@@ -243,10 +243,10 @@ check("F5 rlm_01 feature layout: n_instances [1,1,4,1] (sum 7), n_configurations
 #    tests for the data object, mirroring test_hlp_wmaps)
 # ----------------------------------------------------------------------
 g = lines("test/reversi/lm/test_hlp_design_matrix.py")
-check("G1 test_hlp_design_matrix.py is 279 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines)", len(g) == 279, f"{len(g)}")
-check("G2 4 classes / 14 tests (2 compute + 2 consistency + 8 IO + 2 init since D-139)",
+check("G1 test_hlp_design_matrix.py is 304 lines (post D-139: 258 + the 2 D-139 pins + the compressed kwarg lines + the N-D parity + the str-filename test)", len(g) == 304, f"{len(g)}")
+check("G2 4 classes / 16 tests (3 compute + 2 consistency + 9 IO + 2 init since D-139)",
       sum(1 for l in g if l.startswith("class ")) == 4 and
-      sum(1 for l in g if l.strip().startswith("def test_")) == 14)
+      sum(1 for l in g if l.strip().startswith("def test_")) == 16)
 check("G3 the header makes NO DB claim (the file is DB-free, dummy ctx)",
       "# -1- Run the tests." in read("test/reversi/lm/test_hlp_design_matrix.py")
       and "SKIP_REGAB_DB" not in read("test/reversi/lm/test_hlp_design_matrix.py"))

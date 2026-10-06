@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -68,9 +68,11 @@ class LMDesignMatrix:
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_design_matrix_store_to_file(dm: LMDesignMatrix, filename: str | Path,
                                     compressed: bool = True) -> None:
-    """Saves the Design Matrix instance to a binary file.
+    """
+    Saves the Design Matrix instance to a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights)."""
+    LZ4 whole-file compression by default.
+    """
     filename = Path(filename)
     description = "LMDesignMatrix binary data file"
     version = 1
@@ -84,9 +86,11 @@ def hlp_design_matrix_store_to_file(dm: LMDesignMatrix, filename: str | Path,
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def hlp_design_matrix_load_from_file(filename: str | Path, checksum: bool = True,
                                      compressed: bool = True) -> LMDesignMatrix:
-    """Loads a Design Matrix instance from a binary file.
+    """
+    Loads a Design Matrix instance from a binary file.
 
-    LZ4 whole-file compression by default (D-139, as in model_weights)."""
+    LZ4 whole-file compression by default.
+    """
     if checksum:
         if not binio.verify_sha3_256_sidecar(filename):
             raise RuntimeError("The checksum file signature doesn't match with current file.")
@@ -123,8 +127,8 @@ def hlp_design_matrix_compute(ctx: "LMContext") -> LMDesignMatrix:
         raise ValueError("It should never happen, pindexes is referring an invalid value.")
 
     X = np.empty(pindexes.shape, dtype=np.uint32)
-    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel),
-    #: X is uint32 — the implicit output cast is deprecated (NumPy 2.5).
+    #: Explicit cast: ctx.iwmap is int64 (the -1 unseen-config sentinel), X is uint32 — the implicit
+    #: output cast is deprecated (NumPy 2.5).
     np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)
 
     return LMDesignMatrix(

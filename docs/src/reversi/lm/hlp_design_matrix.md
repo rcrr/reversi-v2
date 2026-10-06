@@ -11,7 +11,7 @@ POSITIONS, INDEXES and WMAPS).
 |---|---|
 | `LMDesignMatrix` | plain class — 2 fields, assigned BY REFERENCE: `wmaps_obj_checksum: str`, `X: np.ndarray` (N,I) uint32 (N = training positions, I = total feature instances) |
 | `hlp_design_matrix_store_to_file(dm, filename, compressed=True)` | binio write: header + the checksum string + X; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
-| `hlp_design_matrix_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
+| `hlp_design_matrix_load_from_file(filename, checksum=True, compressed=True)` | the sidecar verify (when enabled) first, then the LZ4 guard + decompress + the header gate (description + version) + read back a fresh object |
 | `hlp_design_matrix_compute(ctx)` | builds X from the pindexes + the WMAPS arrays (NO `@validate_call` — see Conventions) |
 | `hlp_design_matrix_is_cache_consistent(ctx, dm)` | the pure 1-field metadata compare (NO `@validate_call`) |
 
@@ -29,21 +29,21 @@ POSITIONS, INDEXES and WMAPS).
   header gate (wrong description / wrong version → the 2 RuntimeError messages); `read_string` + `read_array` → a fresh
   object.
 - `hlp_design_matrix_compute`: `pindexes = ctx.hlp_indexes.indexes`;
-  `col_offsets = np.repeat (ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
+  `col_offsets = np.repeat(ctx.iwmap_feature_offset[:-1], n_instances_per_feature)`;
   `pindexes_with_offsets = pindexes + col_offsets`; the SINGLE guard — `np.any(ctx.iwmap[pindexes_with_offsets] == -1)`
   → ValueError "It should never happen, pindexes is referring an invalid value."; `X = np.empty(pindexes.shape, uint32)`
   filled by `np.take(ctx.iwmap.astype(np.uint32), pindexes_with_offsets, out=X)` — the explicit source cast (the note,
   see Conventions). Returns the object with `ctx.wmaps_obj_checksum`.
-- `hlp_design_matrix_is_cache_consistent`: `dm. wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
+- `hlp_design_matrix_is_cache_consistent`: `dm.wmaps_obj_checksum == ctx.wmaps_obj_checksum` — a PURE 1-field compare
   (no DB params, no independent model params: X is a pure function of the WMAPS outputs + pindexes, unlike WMAPS's 2
   fields and INDEXES's 2).
 
 ## Verified invariants
 
-Pinned by the 53-check `probes/verify_design_matrix.py` + `test_hlp_design_matrix.py` (14 tests, no DB) +
+Pinned by the 53-check `probes/verify_design_matrix.py` + `test_hlp_design_matrix.py` (16 tests, no DB) +
 `test_wrk_design_matrix.py` (3 DB-gated tests).
 
-- Source shape (probe A1-A15): 139 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
+- Source shape (probe A1-A15): 143 lines, the 5-name `__all__`, exactly 4 `@validate_call` (NOT on compute /
   is_cache_consistent — the note), the store write order, the 3 load RuntimeError messages, the 1-field compare, the
   explicit cast + single guard pinned.
 - Worker file shape (probe B1-B9): 80 lines, the factory WITH `@validate_call`, the 7-kwargs cache wiring (the
@@ -52,10 +52,11 @@ Pinned by the 53-check `probes/verify_design_matrix.py` + `test_hlp_design_matri
   `iwmap[pindexes + col_offsets]`, every value a valid w index (< W=21), per-feature columns within their iwmap regions,
   intercept column all 0, the DATA checksum identity.
 - Cross-fixture facts (probe F1/F4/F5): LMContext has both fields; rlm_01 stat_model {cut_off 2, logit 0.03, ridge 0.0},
-  layout n_instances [1,1,4,1] (sum 7) / n_configurations [1,65,27,81] (K=174). The unit suite (14 tests, no DB): the
-  compute math (both branches — a handcrafted mock mirroring the WMAPS one), the consistency compare, the store/load
-  contract (cycle + golden hash + the 3 error paths), the init validation. The end-to-end round-trip + the (10,7) golden
-  (DB-gated, `test_wrk_design_matrix.py`) is the single source of truth.
+  layout n_instances [1,1,4,1] (sum 7) / n_configurations [1,65,27,81] (K=174). The unit suite (16 tests, no DB): the
+  compute math (both branches — a handcrafted mock mirroring the WMAPS one — + the N-D shape parity), the consistency
+  compare, the store/load contract (cycle + the str-filename form + golden hash + the 3 error paths), the init
+  validation. The end-to-end round-trip + the (10,7) golden (DB-gated, `test_wrk_design_matrix.py`) is the single
+  source of truth.
 
 ## Open issues
 
