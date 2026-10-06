@@ -1030,3 +1030,20 @@ D-494 | 2026-10-06 | The wrk\_analytics source + test + mirror-doc + probe pass 
          are none — the bring-in has no test file" replaced — A11 pins the existence now) + the A2 label 12 -> 18
          siblings. Reflow last (the canonical fixed point on both files). Suite 1111 -> 1112/0/24 (the single cell move
          14 -> 15/0/0).
+
+D-495 | 2026-10-06 | The wrk\_anova source + test + mirror-doc + probe pass (the second worker of the cascade; the
+         user-approved full plan + the micro-assert): (1) source 61 -> 65: the 2 missing docstrings added (the cascade's
+         second docstring gap — `_up` imperative + the WHAT with the enable guard and the 2 hlp\_anova calls, `_down`
+         the pre-existing comment converted to the one-line docstring), the factory first line normalized to the
+         imperative "Return the ANOVA worker instance.". (2) test 189 -> 179: the module docstring dropped (it nearly
+         duplicated the class docstring verbatim; the canon majority of test files carries none — test\_hlp\_anova does,
+         but it describes 5 classes), the header block aligned to the corpus canon (blank + 2 bare '#'), one
+         micro-assert in test\_enable\_no\_op (the documented no-op consequence: the anova report dir is not created —
+         before, only the log was pinned). (3) the source mirror doc 67 -> 67: the 6-tag provenance purge
+         (D-310, D-311, D-315 x4 — all rewritten in present tense), the stale probe count 41 -> 42 (recounted with the
+         build area present: 41 ok + F3). (4) the test mirror doc 37 -> 37: the orphan "The" re-wrap (otherwise clean —
+         zero D-tags). (5) probe: one re-pin — F3 to the underscore-escaped overview forms (1 mismatch pre-pass, 0
+         after) + the I-017 trimmed from the module header (R-550: no I-XXX in probe comments; R-580 allows I-ids in
+         check labels only). (6) the runner: the "the I-017 T17;" reference trimmed from the wrk\_anova entry comment in
+         `run_utests.sh`. Reflow last (the canonical fixed point on both files). No cell changes (7/0/0/0/0), suite flat
+         1112/0/24.

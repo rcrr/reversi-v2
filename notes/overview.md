@@ -99,8 +99,10 @@ define the evaluation function.
   1-stale-to-0 + the E303 and bare-# strips); suite 1111/0/24 at close). The hlp/base campaign is COMPLETE (15
   modules, D-476 -> D-493); the worker cascade opens with wrk\_analytics the D-494 pass (the 2 missing \_up/ \_down
   docstrings — the cascade's first docstring gap — + the R-570 light pass + the 2 train\_dense\_rn micro-tests 14 ->
-  15/0/0 + the stale doc golden + the 13-tag provenance purge + the probe docstring re-sync); the 12 remaining worker
-  pairs: wrk\_config, wrk\_features, wrk\_anova, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate,
+  15/0/0 + the stale doc golden + the 13-tag provenance purge + the probe docstring re-sync); wrk\_anova the D-495 pass
+  (the 2 missing \_up/\_down docstrings + the duplicate module-docstring drop + the 6-tag provenance purge + the 41 ->
+  42 probe-count fix + the F3 escaped re-pin + the I-017 trims in the probe header + the runner entry); the 11 remaining
+  worker pairs: wrk\_config, wrk\_features, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate,
   wrk\_vld\_positions, wrk\_client\_check, wrk\_final\_log\_print, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 

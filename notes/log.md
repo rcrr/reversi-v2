@@ -2803,3 +2803,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   A2 12 -> 18 sibling. Reflow ultimo (il fixed point canonico su entrambi i file). LONG=1
   rimesurato: suite 1111 -> 1112/0/24 (solo la cella wrk\_analytics 14 -> 15). Il prossimo modulo
   della cascata worker secondo la scelta di Roberto.
+- D-495 (wrk\_anova, un solo D, piano concordato + il micro-assert): sorgente 61 -> 65: i 2
+  docstring mancanti aggiunti (il 2° gap della cascata — \_up imperativo + WHAT con la enable guard
+  e le 2 chiamate hlp\_anova, \_down il comment esistente convertito in docstring one-line), il
+  factory normalizzato a "Return the ANOVA worker instance.". Test 189 -> 179: il module docstring
+  rimosso (duplicava quasi verbatim la class docstring; la maggioranza canonica non ne ha uno —
+  test\_hlp\_anova sì, ma descrive 5 classi), il blocco header allineato al canone (blank + 2 bare
+  #), il micro-assert in test\_enable\_no\_op (la conseguenza del no-op: la directory anova non
+  viene creata — prima era pinned solo il log) — nessun test nuovo. Source doc 67 -> 67: il purge
+  provenance di 6 tag (D-310 + D-311 + 4x D-315 — "the D-310 split, extended at D-315", "the D-315
+  move", "is SHARED (the D-311)" — tutto in present tense), il count della probe stantio 41 -> 42
+  (ricontato empirico: 41 ok + F3). Test doc 37 -> 37: il re-wrap del "The" orfano; il resto pulito
+  (zero D-tag). Probe: F3 re-pinned alla forma escaped (1 mismatch pre-pass — l'overview usa
+  wrk\_anova — 0 dopo), l'I-017 tolto dall'header (R-550: gli I-XXX non sono ammessi nei comment di
+  probe). Runner: il riferimento "I-017 T17" tolto dal comment dell'entry wrk\_anova. Reflow ultimo
+  (fixed point canonico). Cella invariata (7/0/0/0/0), suite flat 1112/0/24. Il prossimo modulo
+  della cascata worker secondo la scelta di Roberto.
