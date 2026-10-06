@@ -2561,3 +2561,23 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   esistente nell'overview (la continuazione "\+ the mirror-doc fidelity repair" di Next-steps) —
   protetta. Le 3 righe a 9 spazi di decisions che partono con "+ " sono sicure (in Obsidian non sono
   marker di lista) e restano com'è; i 24 marker nei volumi chiusi sono frozen. La ruling: D-484.
+- D-485 (hlp\_design\_matrix, un solo D, il piano concordato + il nuovo test chiesto da Roberto): (1)
+  sorgente: i 2 R-540 D-139 via dalle docstring store/load, le 4 righe header bare strip, i 9
+  docstring al punto fisso di reflow (139 -> 143: le 2 store/load in forma stand-alone-quote, la
+  canonica R-560(2)); i 4 public one-line imperativi sono la convenzione binio-I/O del corpus
+  (precedente model\_weights). (2) test: header x4, il colon nel commento mock, il NUOVO
+  test\_store\_and\_load\_with\_str\_filename (la forma str | Path documentata era pinned solo come Path —
+  il gap R-850); 15 -> 16/0/0, reflow 298 -> 304. (3) probe (il pin set dello stesso commit): A1 139
+  -> 143, A2/A6/A7 gli indici di riga +4, A9 la stringa de-taggiata, G1 279 -> 304 + G2 14 -> 16 —
+  il probe era gia' stale su G1/G2 prima del pass (il test N-D era entrato senza update del probe):
+  ora passa 53/53. (4) source doc: 14 -> 16 x2 + i pin N-D / str-filename, 139 -> 143, l'ordine
+  della API row riparato (il sidecar verify precede l'apertura del reader), i 2 refusi (np.repeat(,
+  dm.wmaps); zero D-tags gia'. (5) test doc: 14 -> 16 + coverage rows 2 -> 3 / 8 -> 9. Cella:
+  test\_hlp\_design\_matrix 15 -> 16/0/0.
+- Batch hlp\_design\_matrix chiusa (D-485 + onda): le macchie erano i 2 R-540, i 8 header bare, i 2
+  conteggi stale nei mirror doc (il test N-D aggiunto dopo la doc), l'ordine sbagliato nella API
+  row, i 2 refusi, e il probe stale su G1/G2 (7 mismatch totali prima del pass, ora 53/53); la doc
+  era gia' in stile pulito (zero D-XXX in entrambi i mirror). LONG=1 rimesurato: suite 1105 ->
+  1106/0/24. La cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478),
+  hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485) al
+  canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.

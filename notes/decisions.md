@@ -855,3 +855,20 @@ D-484 | 2026-10-05 | notes\_lint: the new permanent code LISTMARK (the user's re
          mirror-doc fidelity repair", escaped. The three decisions.md 9-space continuations beginning "+ " are not
          Obsidian list markers (9 > 3 spaces: paragraph lazy continuation) and stay as-is. The closed journal volumes
          carry 24 such lines — frozen, not re-escaped; they would flag under the new code if linted on explicit request.
+
+D-485 | 2026-10-05 | The hlp\_design\_matrix source + test + mirror-doc + probe pass, one commit (the user-approved
+         plan, incl. the new str-filename test): (1) source: the 2 R-540 D-139 tags dropped from the store/load
+         docstrings (the line now reads "LZ4 whole-file compression by default."), the 4 bare header lines stripped, the
+         docstrings to the reflow fixed point (139 -> 143: the 2 two-paragraph store/load docstrings expand to the
+         standalone-quote form, the R-560(2) canonical); no other stains (the 4 public one-line imperatives are the
+         corpus binio-I/O convention, the model\_weights precedent). (2) test: the 4 bare header lines, the mock-comment
+         colon, the new test\_store\_and\_load\_with\_str\_filename (the documented str | Path form was pinned only as
+         Path — the R-850 gap); 15 -> 16 tests, 16/0/0, reflow fixed point (298 -> 304). (3) probe (the same-commit pin
+         set, probe\_rules section 5): A1 139 -> 143, A2 / A6 / A7 the line-number pins shifted +4 (the docstring
+         expansion), A9 the pinned string updated to the de-tagged standalone-quote form, G1 279 -> 304 + G2 14 -> 16 —
+         the probe was ALREADY stale on G1 / G2 before this pass (the N-D parity test landed without the probe update);
+         it now passes 53/53. (4) the source mirror doc: the 14 -> 16 re-count (2 spots) + the N-D / str-filename pins
+         described, the "139 lines" -> 143 (the A1 pin), the API-row order repaired (the sidecar verify precedes the
+         reader open — the Architecture bullet was already right), the 2 typos (np.repeat(, dm.wmaps); the doc carried
+         no D-tags (already clean-style). (5) the test mirror doc: 14 -> 16 (the header + the coverage rows 2 -> 3 /
+         8 -> 9 with the 2 new test descriptions). Cell: test\_hlp\_design\_matrix 15/0/0 -> 16/0/0.

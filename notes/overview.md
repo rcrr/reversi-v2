@@ -80,7 +80,9 @@ define the evaluation function.
   checks + the 14-test worker suite pin it); hlp\_anova the D-481 pass (the R-560 canonical + the 17 de-typed Args
   entries + the header name repair + the R-540 x2 + the 10 expression joins + the 2 completeness tests 16 -> 18/0/0 +
   the mirror-doc provenance cleanup: the 20 D-XXX -> 0, the void pointer, the stale line-width bullet — the first module
-  of the campaign with the Google-style Args docstrings); suite 1105/0/24 at close).
+  of the campaign with the Google-style Args docstrings); hlp\_design\_matrix the D-485 pass (the R-560 canonical + the
+  2 R-540 + the new str-filename test 15 -> 16/0/0 + the probe pin set re-synced 53/53 + the doc re-count 14 -> 16 + the
+  API-row order repair); suite 1106/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
