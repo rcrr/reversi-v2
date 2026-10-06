@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -33,8 +33,8 @@ from typing import TYPE_CHECKING
 
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.lm.hlp_analytics import (compute_training_metrics,
-                                 compute_training_dense_metrics,
-                                 format_console_report, format_file_report)
+                                       compute_training_dense_metrics,
+                                       format_console_report, format_file_report)
 
 if TYPE_CHECKING:
     from reversi.lm.logistic_model import LMContext
@@ -46,11 +46,14 @@ __all__ = ['wrk_analytics']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the ANALYTICS level: recompute the training metrics (the compressed pass + the dense pass),
+    log the console report line by line, and write the complete file report to base_dir.
+    """
     ctx.log_event(Relevance.INFO, "Generating model analytics report...")
 
-    # 1. Compute and store training metrics in context (the compressed
-    #    pass — what lbfgs fit — and the dense pass, the shipped
-    #    inference rules; D-105/M2)
+    # 1. Compute and store training metrics in context (the compressed pass — what lbfgs fit — and
+    # the dense pass, the shipped inference rules)
     ctx.train_metrics = compute_training_metrics(ctx)
     dense = compute_training_dense_metrics(ctx)
     ctx.train_dense_metrics = dense.metrics
@@ -75,6 +78,7 @@ def _up(ctx: "LMContext") -> None:
     ctx.analytics_report = console_report
 
 def _down(ctx: "LMContext") -> None:
+    """Clear the four context attributes the ANALYTICS level publishes."""
     ctx.log_event(Relevance.INFO, "Clearing analytics attributes...")
     ctx.analytics_report = None
     ctx.train_metrics = None
@@ -84,6 +88,6 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_analytics() -> Worker:
-    """Factory function that returns the ANALYTICS worker instance."""
+    """Return the ANALYTICS worker instance."""
     return Worker("ANALYTICS", _up, _down)
 

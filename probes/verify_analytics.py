@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
 verify_analytics.py — scratch probe for the ANALYTICS bring-in
-(session 28, Roberto's commit 96dacb5 — the 14th pipeline level,
+(session 28, Roberto's commit 96dacb5 — the 15th active level, step 15,
 the 2nd bring-in with a dedicated data module, hlp_analytics,
 function-only like hlp_gradient / hlp_validate).
 
-Re-derives and verifies, independently of the test files (there
-are none — the bring-in has no test file, T5):
+Re-derives and verifies, independently of the test files (the A-tier pins
+their existence; the C/D tiers re-derive what the suite pins):
   A. wrk_analytics.py + hlp_analytics.py structure (pinned to
      the post-campaign expectations: T1 the factory gate, T2 the
      dead imports, T4 the ws lines, T5 the missing test file,
      R1-class the undeclared train_metrics blackboard field)
   B. context facts (the LMContext pre-declared fields)
   C. GOLDEN re-derivation (live DB, gated on SKIP_REGAB_DB): the
-     rlm_02.json pipeline to ANALYTICS (step 13) — the 7-metric
+     rlm_02.json pipeline to ANALYTICS (step 15) — the 7-metric
      training goldens, the 4-key dense-pass goldens (D-105/M2), the
      console report, the file report (date-masked golden hash), the
      no-cache-file fact, the second-instance determinism, the _down
@@ -87,7 +87,7 @@ check("A1 Worker named ANALYTICS + __all__ + the public data names "
       and "__all__ = ['TrainingDenseResult', 'compute_training_metrics', 'compute_training_dense_metrics',\n"
       "           'format_console_report', 'format_file_report']" in dv_src)
 check("A2 the factory is @validate_call-decorated + pydantic imported "
-      "(all 12 sibling worker factories — the D-102 T1 pattern; "
+      "(all 18 sibling worker factories — the D-102 T1 pattern; "
       "pre-campaign: missing)",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_analytics" in wk_src
       and "from pydantic import validate_call, ConfigDict" in wk_src)

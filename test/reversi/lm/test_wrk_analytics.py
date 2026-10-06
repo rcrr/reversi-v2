@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
+
 #
 # How to run the wrk_analytics unit tests.
 #
@@ -34,16 +34,14 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_analytics
 #
 
 import hashlib
 import math
-import os
 import re
 import tempfile
 import unittest
@@ -64,12 +62,9 @@ from test.reversi.tags import db_long_gate
 
 
 def _masked_report_hash(text):
-    """sha3_256 of the report text with the Creation Date masked out.
-
-    The file report embeds datetime.now() — every other byte is
-    deterministic, so the date-masked hash is a stable golden. The
-    config fingerprint embeds the run's base_dir (a tmp dir); mask
-    the hex the same way.
+    """
+    sha3_256 of the report text with the Creation Date and the config fingerprint hex masked out —
+    the report embeds datetime.now() and the run's base_dir, so the masked hash is the stable golden.
     """
     masked = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", "DATE", text)
     masked = re.sub(r"(Config SHA3-256\s*:\s*)[0-9a-f]{64}", r"\1HASH", masked)
@@ -77,26 +72,22 @@ def _masked_report_hash(text):
 
 
 class TestLMWorkerAnalytics(unittest.TestCase):
-    """Tests the ANALYTICS worker integration and exact values using rlm_02.json.
-
-    The ANALYTICS level is pure compute (no cache file — the rlmwf_15 slot
-    stays unused), so the training metrics and the reports are recomputed on
-    every run; the second-instance test pins that recomputation as
-    deterministic.
+    """
+    The ANALYTICS worker integration + the exact rlm_02 goldens. The level is pure compute (no cache
+    file — the rlmwf_15 slot stays unused), so the second-instance test pins the recomputation as
+    deterministic. DB-gated (the setUp runs the 14-level chain to VALIDATE).
     """
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
-        # the live regab DB (the setUp moves to VALIDATE, which runs the
-        # whole 15-level chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
+        # setUp moves to VALIDATE, which runs the whole 14-level chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -116,12 +107,10 @@ class TestLMWorkerAnalytics(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_analytics_report_goldens(self):
-        """First run to ANALYTICS: the 7-metric dict, the 4-key dense dict,
-        the console report, the report file and the INFO log lines.
-
-        Goldens: rlm_02 live (the bid [6,7] training model, 199952
-        samples), derived independently, not read back from the
-        worker output.
+        """
+        First run to ANALYTICS: the 7-metric + 4-key dense dicts, the console report, the report
+        file and the INFO log lines (the rlm_02 live goldens — the bid [6,7] training model, 199952
+        samples — derived independently, not read back from the worker output).
         """
         # Pre-state: the ANALYTICS blackboard fields are not set yet.
         self.assertIsNone(self.rlm.context.analytics_report)
@@ -146,9 +135,9 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         assert_close(self, met['pop_rmse_y'], 26.40637507956623, 'pop_rmse_y')
         assert_close(self, met['pop_loss'], 0.020437248051166534, 'pop_loss')
 
-        # The dense-pass dict: the shipped inference rules (w_dense)
-        # on the training data. rlm_02 has frequency_cut_off=1, so the dense
-        # values match the compressed ones up to the f32 rounding of w_dense.
+        # The dense-pass dict: the shipped inference rules (w_dense) on the training data. rlm_02
+        # has frequency_cut_off=1, so the dense values match the compressed ones up to the f32
+        # rounding of w_dense.
         dmet = self.rlm.context.train_dense_metrics
         self.assertIsNotNone(dmet)
         self.assertEqual(set(dmet), {'train_dense_mae_y', 'train_dense_rmse_y',
@@ -158,8 +147,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         assert_close(self, dmet['train_dense_loss'], 0.00712234852835536, 'train_dense_loss')
         self.assertEqual(dmet['train_dense_samples'], 199952)
 
-        # The console report (header only — no tables, no date) is stored
-        # on the context and logged line by line.
+        # The console report (header only — no tables, no date) is stored on the context and logged
+        # line by line.
         rep = self.rlm.context.analytics_report
         self.assertIsInstance(rep, str)
         self.assertIn("MODEL ANALYTICS REPORT: RGLM (Logistic) - Unit Test 02 (rlm_02.json)", rep)
@@ -172,9 +161,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertNotIn("Creation Date", rep)
         self.assertNotIn("PATTERN FEATURE", rep)
 
-        # The complete file report is written to base_dir under the
-        # configured name; rlm_02 has no mobility features, so the
-        # MOBILITY section is empty, EDGE prints its rows (it is in the
+        # The complete file report is written to base_dir under the configured name; rlm_02 has no
+        # mobility features, so the MOBILITY section is empty, EDGE prints its rows (it is in the
         # detailed_report list) and DIAG3 omits them.
         report_path = self.tmp_dir / "model_analytics_report.txt"
         self.assertTrue(report_path.exists())
@@ -185,8 +173,8 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIn("PATTERN FEATURE: EDGE (fid=0)", content)
         self.assertIn("PATTERN FEATURE: DIAG3 (fid=1)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
-        # rlm_02 has no su_analysis section (the default FALSE): the
-        # report is unchanged — no SU columns, no consistency line.
+        # rlm_02 has no su_analysis section (the default FALSE): the report is unchanged — no SU
+        # columns, no consistency line.
         self.assertNotIn("PROBABILITY", content)
         self.assertNotIn("SU Sample Consistency", content)
         # rlm_02 has NO intercept (EDGE is fid 0): no INTERCEPT section.
@@ -200,10 +188,23 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIn("Analytics report saved to ", logs)
         self.assertNotIn("PATTERN FEATURE", logs)
 
+    def test_train_dense_rn_series(self):
+        """
+        The published dense residual series: mean(|rn|) re-derives the dense MAE golden from the
+        series itself (the independent cross-check).
+        """
+        self.rlm.move_to_step('ANALYTICS')
+        dmet = self.rlm.context.train_dense_metrics
+        rn = self.rlm.context.train_dense_rn
+        self.assertIsInstance(rn, np.ndarray)
+        self.assertEqual(rn.shape, (dmet['train_dense_samples'],))
+        self.assertEqual(float(np.mean(np.abs(rn))), dmet['train_dense_mae_y'])
+
     def test_second_instance_deterministic(self):
-        """A second instance on the same base dir recomputes identical metrics
-        and reports (ANALYTICS has no cache file) while the 6 cache_manager
-        levels hit and the DB is not re-extracted."""
+        """
+        A second instance on the same base dir recomputes identical metrics and reports (no cache
+        file) while the 6 cache levels hit and the DB is not re-extracted.
+        """
         self.rlm.move_to_step('ANALYTICS')
         met = self.rlm.context.train_metrics
         dmet = self.rlm.context.train_dense_metrics
@@ -223,10 +224,9 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertEqual(rlm2.current_step, 15)
 
         logs = self.mock_stdout.getvalue()
-        # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR,
-        # GENERATE, VLD_POSITIONS) hit; CONFIG and the OPTIMIZE checkpoint
-        # have their own load flows; FEATURES / ZED / GRADIENT / VALIDATE /
-        # ANALYTICS have no cache file and recompute.
+        # The 6 cache_manager levels (POSITIONS, INDEXES, WMAPS, DESIGN_MTR, GENERATE,
+        # VLD_POSITIONS) hit; CONFIG and the OPTIMIZE checkpoint have their own load flows; FEATURES
+        # / ZED / GRADIENT / VALIDATE / ANALYTICS have no cache file and recompute.
         self.assertEqual(logs.count("Cache successfully loaded and validated"), 6)
         self.assertNotIn("Extracted", logs,
                          "DB was queried even though a valid cache existed.")
@@ -240,13 +240,15 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertTrue((self.tmp_dir / "model_analytics_report.txt").exists())
 
     def test_down_clears_analytics_attributes(self):
-        """Pin the _down scope: back to VALIDATE clears train_metrics,
-        train_dense_metrics and analytics_report (the report file itself is
-        not removed)."""
+        """
+        Pin the _down scope: back to VALIDATE clears all four context attributes (the report file
+        itself is not removed).
+        """
         self.rlm.move_to_step('ANALYTICS')
         self.assertIsNotNone(self.rlm.context.train_metrics)
         self.assertIsNotNone(self.rlm.context.train_dense_metrics)
         self.assertIsNotNone(self.rlm.context.analytics_report)
+        self.assertIsNotNone(self.rlm.context.train_dense_rn)
 
         self.rlm.move_to_step(14)
         self.assertEqual(self.rlm.current_step, 14)
@@ -254,32 +256,28 @@ class TestLMWorkerAnalytics(unittest.TestCase):
         self.assertIsNone(self.rlm.context.train_metrics)
         self.assertIsNone(self.rlm.context.train_dense_metrics)
         self.assertIsNone(self.rlm.context.analytics_report)
+        self.assertIsNone(self.rlm.context.train_dense_rn)
         # The report file is a base_dir artifact — _down does not unlink it.
         self.assertTrue((self.tmp_dir / "model_analytics_report.txt").exists())
 
 
 class TestLMWorkerAnalyticsMobility(unittest.TestCase):
-    """The mobility-table branch of the file report, using rlm_01.json.
-
-    rlm_01 has the intercept + the LMC mobility feature + the DIAG3 and
-    CORE patterns, and its analytics.detailed_report list is ["DIAG3",
-    "LMC"] — so the LMC table (65 configuration rows) and the DIAG3 table
-    print their rows while CORE omits them. This is the only fixture that
-    exercises the mobility table helper end-to-end.
+    """
+    The mobility-table branch of the file report, using rlm_01.json — the only fixture that
+    exercises the mobility table helper end-to-end: the LMC table (65 rows) + DIAG3 print their
+    rows, CORE omits them (detailed_report ["DIAG3", "LMC"]).
     """
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need
-        # the live regab DB (the setUp moves to VALIDATE, which runs the
-        # whole 15-level chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker tests need the live regab DB (the
+        # setUp moves to VALIDATE, which runs the whole 14-level chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")
@@ -299,14 +297,10 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_mobility_and_pattern_tables(self):
-        """First run to ANALYTICS on rlm_01: the training metrics golden,
-        the dense-pass golden (rlm_01 has frequency_cut_off=2, so 5 of its
-        10 training positions touch IC slots — the substitution delta is
-        3.36, the clearest demonstration of the substitution table), the
-        mobility + pattern table structure and the file-report hash.
-
-        Goldens: rlm_01 live (bid [7] training, 10 samples),
-        derived independently, not read back from the worker output.
+        """
+        First run to ANALYTICS on rlm_01: the 7-metric + 4-key dense goldens (frequency_cut_off=2 —
+        5/10 training positions touch IC slots, the substitution delta 3.36) + the mobility/pattern
+        table structure + the file-report hash (rlm_01 live, derived independently).
         """
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 15)
@@ -322,9 +316,8 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         assert_close(self, met['pop_rmse_y'], 18.39565166010707, 'pop_rmse_y')
         assert_close(self, met['pop_loss'], 0.009125067852437496, 'pop_loss')
 
-        # The dense pass on the same 10 positions: the compressed fit is
-        # exact (rmse 0.00) but the shipped model substitutes 5 below-cutoff
-        # configurations — the Substitution Delta row reads 3.36.
+        # The dense pass on the same 10 positions: the compressed fit is exact (rmse 0.00) but the
+        # shipped model substitutes 5 below-cutoff configurations — the Substitution Delta row reads 3.36.
         dmet = self.rlm.context.train_dense_metrics
         assert_close(self, dmet['train_dense_mae_y'], 1.854193878173828, 'train_dense_mae_y')
         assert_close(self, dmet['train_dense_rmse_y'], 3.3556084739848866, 'train_dense_rmse_y')
@@ -334,16 +327,15 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
         report_path = self.tmp_dir / "model_analytics_report.txt"
         self.assertTrue(report_path.exists())
         content = report_path.read_text(encoding="utf-8")
-        # The LMC table prints its rows (LMC is in the detailed_report
-        # list), DIAG3 its rows too, CORE omits them — exactly one
-        # omitted-rows line in the whole report.
+        # The LMC table prints its rows (LMC is in the detailed_report list), DIAG3 its rows too,
+        # CORE omits them — exactly one omitted-rows line in the whole report.
         self.assertIn("MOBILITY FEATURES DETAILS:", content)
         self.assertIn("MOBILITY FEATURE: LMC (fid=1)", content)
         self.assertIn("PATTERN FEATURE: DIAG3 (fid=2)", content)
         self.assertIn("PATTERN FEATURE: CORE (fid=3)", content)
         self.assertEqual(content.count("(Table rows omitted"), 1)
-        # rlm_01 has no su_analysis section (the default FALSE): the
-        # report is unchanged — no SU columns, no consistency line.
+        # rlm_01 has no su_analysis section (the default FALSE): the report is unchanged — no SU
+        # columns, no consistency line.
         self.assertNotIn("PROBABILITY", content)
         self.assertNotIn("SU Sample Consistency", content)
         self.assertEqual(_masked_report_hash(content),
@@ -356,9 +348,10 @@ class TestLMWorkerAnalyticsMobility(unittest.TestCase):
 
 
 class _MockCtx:
-    """The NO-DB mock context for the SU sample columns: the real
-    rlm_00 cfg + feature_set (the facade run to FEATURES) + the
-    SYNTHETIC wmap / indexes / game values / corpus marginal."""
+    """
+    The NO-DB mock context for the SU sample columns: the real rlm_00 cfg + feature_set (the facade
+    run to FEATURES) + the SYNTHETIC wmap / indexes / game values / corpus marginal.
+    """
 
     def __init__(self, cfg, feature_set, indexes, game_values, tables,
                  n_features, n_dense, iwmap_feature_offset):
@@ -391,18 +384,14 @@ class _MockCtx:
 
 
 def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
-    """The mock ctx over the real rlm_00 campaign (the facade runs
-    CREATED -> CONFIG -> FEATURES, the idiom): 100 synthetic
-    training positions (the 2-code concentrated codes — code 0 for
-    the first 50 positions, code 1 for the rest — the same rule for
-    every sub-variable), the complete synthetic wmap (one row per
-    configuration, freq 1 — every table row is STATUS C), and the
-    synthetic corpus marginal (one entry per sub-variable, the
-    observed support, summing to total_positions): 'match' = 3x the
-    training counts (the TV 0.0 match); 'marginal' = the 9-count
-    0 -> 1 LMC shift (the hand-computed TV 0.03, the chi2 0.3613);
-    'deviating' = the one-point LMC mass (the chi-square inf, the
-    hand-computed TV 0.5)."""
+    """
+    The mock ctx over the real rlm_00 campaign (the facade runs to FEATURES, the idiom): 100
+    synthetic training positions (the 2-code concentration — code 0 the first 50, code 1 the rest,
+    every sub-variable), the complete synthetic wmap (freq 1 — every row STATUS C), and the
+    synthetic corpus marginal: 'match' (3x the training counts, the TV 0.0 match), 'marginal' (the
+    9-count 0 -> 1 LMC shift, the TV 0.03), 'deviating' (the one-point LMC mass, the chi-square inf,
+    the TV 0.5).
+    """
     rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
                             "data" / "rlm_00.json"),
                         verbosity=Verbosity.NONE,
@@ -438,8 +427,8 @@ def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
                               dtype=np.int64)
             marginal.append((name, i, n_conf, codes, counts))
     game_values = (np.arange(n_positions) % 7) / 7.0 - 0.5
-    # The dense layout: the intercept slot + the non-intercept
-    # configurations (the real iwmap_feature_offset construction).
+    # The dense layout: the intercept slot + the non-intercept configurations (the real
+    # iwmap_feature_offset construction).
     n_dense = 1 + sum(nc for (_n, _c0, _c1, nc, _ni) in blocks)
     iwmap_feature_offset = np.zeros(
         len(fset.features) + 1, dtype=np.int64)
@@ -455,8 +444,10 @@ def _make_su_ctx(tmp, total_positions, corpus_kind='match'):
 
 
 def _pooled_adherence(ctx, name, blocks):
-    """The independent oracle: the pooled adherence of one feature
-    (the synthetic indexes vs the synthetic corpus marginal)."""
+    """
+    The independent oracle: the pooled adherence of one feature (the synthetic indexes vs the
+    synthetic corpus marginal).
+    """
     m = next(bl for bl in blocks if bl[0] == name)
     c0, c1, _nc, n_inst = m[1], m[2], m[3], m[4]
     flat = ctx.hlp_indexes.indexes[:, c0:c0 + n_inst].ravel()
@@ -472,9 +463,10 @@ def _pooled_adherence(ctx, name, blocks):
 
 
 def _expected_su_line(ctx, name, blocks):
-    """The independent oracle of the 'SU Sample Consistency' line:
-    re-derives the pooled adherence from the ctx and renders the
-    contract string."""
+    """
+    The independent oracle of the 'SU Sample Consistency' line: re-derives the pooled adherence from
+    the ctx and renders the contract string.
+    """
     a = _pooled_adherence(ctx, name, blocks)
     tv = a['tv']
     chi2 = "inf" if math.isinf(a['chi2']) else f"{a['chi2']:.1f}"
@@ -486,12 +478,11 @@ def _expected_su_line(ctx, name, blocks):
 
 
 class TestSuSampleColumns(unittest.TestCase):
-    """The SU sample columns (the PROBABILITY / SU_PROBABILITY) + the
-    'SU Sample Consistency' header line: the NO-DB suite over the mock
-    ctx (the real rlm_00 campaign to FEATURES, the synthetic wmap /
-    indexes / corpus marginal). Four modes: the SU off (the unchanged
-    table), the ok consistent / marginal / deviating (the columns +
-    the verdict line), the too small (the N/A note, no columns)."""
+    """
+    The SU sample columns (PROBABILITY / SU_PROBABILITY) + the 'SU Sample Consistency' header line:
+    the NO-DB suite over the mock ctx. Four modes: SU off (the unchanged table), consistent /
+    marginal / deviating (the columns + the verdict line), too small (the N/A note, no columns).
+    """
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -501,8 +492,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_su_off_unchanged(self):
-        # The SU_ANALYSIS level disabled (the tables None): the report
-        # is unchanged — no columns, no header line.
+        # The SU_ANALYSIS level disabled (the tables None): the report is unchanged — no columns, no
+        # header line.
         ctx, _ = _make_su_ctx(self.tmp, 300)
         ctx.su_analysis_tables = None
         rep = format_file_report(ctx)
@@ -510,9 +501,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertNotIn("SU Sample Consistency", rep)
 
     def test_ok_consistent(self):
-        # The corpus = 3x the training counts (the TV 0.0 match, the
-        # hand-computed chi2 0.0 / p 1.0): the columns + the 5
-        # CONSISTENT lines (the 2-code mock makes all 5 identical).
+        # The corpus = 3x the training counts (the TV 0.0 match, the hand-computed chi2 0.0 / p
+        # 1.0): the columns + the 5 CONSISTENT lines (the 2-code mock makes all 5 identical).
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'match')
         rep = format_file_report(ctx)
         self.assertIn("| PROBABILITY | SU_PROBABILITY |", rep)
@@ -522,9 +512,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertEqual(rep.count("->  CONSISTENT"), 5)
 
     def test_ok_marginal(self):
-        # The 9-count 0 -> 1 LMC shift (the hand-computed TV 0.03,
-        # the chi2 9/47 + 9/53 = 0.3613): the LMC line is MARGINAL,
-        # the other 4 features stay CONSISTENT.
+        # The 9-count 0 -> 1 LMC shift (the hand-computed TV 0.03, the chi2 9/47 + 9/53 = 0.3613):
+        # the LMC line is MARGINAL, the other 4 features stay CONSISTENT.
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'marginal')
         rep = format_file_report(ctx)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
@@ -535,9 +524,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertEqual(rep.count("->  CONSISTENT"), 4)
 
     def test_ok_deviating_inf_chi2(self):
-        # The one-point LMC corpus mass: the DB observes codes the
-        # corpus never shows (the chi-square inf, the p 0) + the
-        # hand-computed TV 0.5 -> DEVIATING.
+        # The one-point LMC corpus mass: the DB observes codes the corpus never shows (the
+        # chi-square inf, the p 0) + the hand-computed TV 0.5 -> DEVIATING.
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'deviating')
         rep = format_file_report(ctx)
         self.assertIn(_expected_su_line(ctx, 'LMC', blocks), rep)
@@ -548,8 +536,7 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertEqual(rep.count("->  CONSISTENT"), 4)
 
     def test_too_small(self):
-        # The corpus under 2x the training size (3 < 200): the N/A
-        # header note, no columns, the 135 separator.
+        # The corpus under 2x the training size (3 < 200): the N/A header note, no columns, the 135 separator.
         ctx, _ = _make_su_ctx(self.tmp, 3, 'match')
         rep = format_file_report(ctx)
         self.assertIn(
@@ -559,9 +546,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertNotIn("->  ", rep)
 
     def test_probability_values(self):
-        # The column values, re-derived from the synthetic data: the
-        # PROBABILITY column sums to 100% (the total_freq invariant)
-        # and the SU_PROBABILITY is the pooled corpus share (the 3x
+        # The column values, re-derived from the synthetic data: the PROBABILITY column sums to 100%
+        # (the total_freq invariant) and the SU_PROBABILITY is the pooled corpus share (the 3x
         # corpus -> 3x the uniform training share).
         ctx, blocks = _make_su_ctx(self.tmp, 300, 'match')
         lmc = next(b for b in blocks if b[0] == 'LMC')
@@ -573,9 +559,8 @@ class TestSuSampleColumns(unittest.TestCase):
                 for code, cc in zip(codes.tolist(), counts.tolist()):
                     pool[code] = pool.get(code, 0) + cc
         corpus_total = sum(pool.values())
-        # The synthetic wmap freq is 1 per configuration (every row
-        # is STATUS C): the row PROBABILITY is 100/n_conf, the
-        # SU_PROBABILITY 300/n_conf (the 3x corpus).
+        # The synthetic wmap freq is 1 per configuration (every row is STATUS C): the row
+        # PROBABILITY is 100/n_conf, the SU_PROBABILITY 300/n_conf (the 3x corpus).
         prob = 100.0 * 1 / n_conf
         su_p = 100.0 * pool[0] / corpus_total
         rep = format_file_report(ctx)
@@ -584,9 +569,8 @@ class TestSuSampleColumns(unittest.TestCase):
         # The exact probability cells (49 rows share them).
         self.assertIn(f"{prob:.3f}%", rep)
         self.assertIn(f"{su_p:.3f}%", rep)
-        # The PROBABILITY column sums to 100% over the LMC rows
-        # (the 3-decimal rounding leaves the n_conf x 0.0005 band:
-        # 0.0325 at 65 rows).
+        # The PROBABILITY column sums to 100% over the LMC rows (the 3-decimal rounding leaves the
+        # n_conf x 0.0005 band: 0.0325 at 65 rows).
         lmc0 = rep.index("MOBILITY FEATURE: LMC")
         lmc1 = rep.index("\n\n", lmc0)
         rows = [l for l in rep[lmc0:lmc1].splitlines()
@@ -597,9 +581,8 @@ class TestSuSampleColumns(unittest.TestCase):
         self.assertAlmostEqual(sum(probs), 100.0, delta=0.05)
 
     def test_intercept_section_present(self):
-        # The rlm_00 feature set has an intercept: the report carries
-        # the INTERCEPT section (before the MOBILITY details) with the
-        # single Weight line (4 decimals, re-derived from the ctx).
+        # The rlm_00 feature set has an intercept: the report carries the INTERCEPT section (before
+        # the MOBILITY details) with the single Weight line (4 decimals, re-derived from the ctx).
         ctx, _ = _make_su_ctx(self.tmp, 300, 'match')
         self.assertIsNotNone(ctx.feature_set.intercept)
         fid = ctx.feature_set.features.index(ctx.feature_set.intercept)
@@ -613,8 +596,8 @@ class TestSuSampleColumns(unittest.TestCase):
                         rep.index("MOBILITY FEATURES DETAILS:"))
 
     def test_intercept_section_absent(self):
-        # The no-intercept branch (fset.intercept None — the rlm_02
-        # shape, exercised NO-DB): no INTERCEPT section.
+        # The no-intercept branch (fset.intercept None — the rlm_02 shape, exercised NO-DB): no
+        # INTERCEPT section.
         ctx, _ = _make_su_ctx(self.tmp, 300, 'match')
         ctx.feature_set.intercept = None
         rep = format_file_report(ctx)
@@ -622,10 +605,11 @@ class TestSuSampleColumns(unittest.TestCase):
 
 
 class TestSuSampleEndToEnd(unittest.TestCase):
-    """The SU sample columns end-to-end on the REAL rlm_00 pipeline
-    (the 10,000-position corpus, the 200 training positions): the
-    structure + the independently re-derived 'SU Sample Consistency'
-    lines. DB-gated (the rlm_00 DB extraction)."""
+    """
+    The SU sample columns end-to-end on the REAL rlm_00 pipeline (the 10,000-position corpus, the
+    200 training positions): the structure + the independently re-derived 'SU Sample Consistency'
+    lines. DB-gated (the rlm_00 DB extraction).
+    """
 
     def setUp(self):
         db_long_gate(self)
@@ -648,11 +632,11 @@ class TestSuSampleEndToEnd(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_su_columns_real_corpus(self):
-        """The 10,000-position corpus vs the 200 training positions:
-        the corpus is NOT under 2x the training size, so the two
-        columns + the 5 consistency lines (one per feature) are in
-        the file report — each line re-derived from the ctx (the
-        real corpus marginal vs the real indexes)."""
+        """
+        The 10,000-position corpus vs the 200 training positions: the two SU columns + the 5
+        consistency lines (one per feature) in the file report — each line re-derived from the ctx
+        (the real corpus marginal vs the real indexes).
+        """
         self.rlm.move_to_step('ANALYTICS')
         self.assertEqual(self.rlm.current_step, 15)
         content = (self.tmp_dir / "model_analytics_report.txt").read_text(
@@ -683,9 +667,8 @@ class TestSuSampleEndToEnd(unittest.TestCase):
                          f"chi2 {chi2} (p {p}, merged {a['merged']})  ->  "
                          f"{verdict}")
             self.assertIn(expected, content, name)
-        # The rlm_00 feature set has an intercept: the INTERCEPT
-        # section (before the MOBILITY details) with the single Weight
-        # line (4 decimals), re-derived from the ctx.
+        # The rlm_00 feature set has an intercept: the INTERCEPT section (before the MOBILITY
+        # details) with the single Weight line (4 decimals), re-derived from the ctx.
         self.assertIn("INTERCEPT:", content)
         self.assertLess(content.index("INTERCEPT:"),
                         content.index("MOBILITY FEATURES DETAILS:"))
@@ -698,14 +681,13 @@ class TestSuSampleEndToEnd(unittest.TestCase):
 
 
 class TestEtaSquaredCrossLevel(unittest.TestCase):
-    """The D-311 cross-level invariant, end-to-end on the REAL rlm_00
-    pipeline (the 200 training positions): for the single-instance
-    features (n_inst == 1 — ALMC, LMC, DLMC) the ANALYTICS pooled
-    grouping (ALL the instances of the feature) coincides with the
-    ANOVA level's per-sub-variable grouping — the same computation —
-    so the 'Eta-Squared (Discrimination)' line and the 'ANOVA <name>
-    inst 0: eta2 ...' line must agree. DB-gated (the rlm_00 DB
-    extraction)."""
+    """
+    The cross-level eta2 invariant, end-to-end on the REAL rlm_00 pipeline (the 200 training
+    positions, the ANOVA level force-enabled after CONFIG): for the single-instance features (n_inst
+    == 1) the ANALYTICS pooled grouping (all the instances of the feature) coincides with the ANOVA
+    per-sub-variable grouping, so the 'Eta-Squared (Discrimination)' line and the 'ANOVA <name> inst
+    0: eta2 ...' line must agree. DB-gated.
+    """
 
     def setUp(self):
         db_long_gate(self)
@@ -718,9 +700,8 @@ class TestEtaSquaredCrossLevel(unittest.TestCase):
         self.rlm = LogisticModel(self.json_config,
                                  verbosity=Verbosity.HIGH,
                                  base_dir_override=self.tmp_dir)
-        # Force-enable the ANOVA level after CONFIG (the rlm_00
-        # fixture keeps it opt-in FALSE) so the chain to ANALYTICS
-        # produces BOTH reports.
+        # Force-enable the ANOVA level after CONFIG (the rlm_00 fixture keeps it opt-in FALSE) so
+        # the chain to ANALYTICS produces BOTH reports.
         self.rlm.move_to_step("CONFIG")
         self.rlm.context.cfg.anova.enable = True
         self.rlm.move_to_step("ANALYTICS")
@@ -733,10 +714,10 @@ class TestEtaSquaredCrossLevel(unittest.TestCase):
             self._tmp.cleanup()
 
     def test_single_instance_eta2_agreement(self):
-        """The two reports, both re-parsed line by line: the 3
-        single-instance features carry the same eta² in the ANALYTICS
-        details table and in the ANOVA report (the printed 4
-        decimals)."""
+        """
+        The two reports, both re-parsed line by line: the 3 single-instance features carry the same
+        eta² in the ANALYTICS details table and in the ANOVA report (the printed 4 decimals).
+        """
         ctx = self.rlm.context
         single = [name for (name, _c0, _c1, _nc, n_inst)
                   in ctx.feature_set.feature_blocks
