@@ -905,3 +905,19 @@ D-487 | 2026-10-05 | The hlp\_generate source + test + mirror-doc pass, one comm
          descriptions + the INFO-log goldens. (5) probe: the 18-check pin set untouched and green — it pins string
          presence only (no line counts, no docstring text), so the pass is probe-safe. Cell: test\_hlp\_generate
          16/0/0 -> 18/0/0.
+
+D-488 | 2026-10-05 | The hlp\_indexes source + test + mirror-doc + probe pass, one commit (the user-approved plan incl.
+         the repr micro-test): (1) source 228 -> 228 (the line count survives the pass): the 12 typed Args entries
+         de-typed (the R-560(5) canonical: \_\_init\_\_ 3, store 3, load 3, compute 1, is\_cache\_consistent 2), the 2x
+         "(as in model\_weights)" cross-refs dropped from the store/load docstrings (the exact sibling canon), the
+         lowercase read comment capitalized, the docstrings to the reflow fixed point — the A1 "228 lines" probe pin and
+         the doc's "Source shape" bullet stay valid untouched. (2) test 307 -> 312: the approved
+         test\_repr\_one\_line\_summary micro-test (the one-line repr was documented — API row + Architecture bullet —
+         but pinned by no test and no probe, the R-850 gap); 14 -> 15 tests, 15/0/0, reflow fixed point. (3) the source
+         mirror doc: the load order repaired in the API row AND the Architecture bullet (the sidecar verify runs BEFORE
+         the LZ4 guard + reader open — the 2nd module with this drafting order bug, after D-485), the "found. .."
+         ellipsis typo, the orphan "M5" marker dropped, the 14 -> 15 re-count. (4) the test mirror doc: the PHANTOM
+         probe labels dropped ("B1, B9-B11, B14, C1, C6a/C6b" — none exist in the probe; the sentence was stale), the
+         14 -> 15 re-count + the repr coverage description; the documented rds\_checksum known-gap clause
+         (probe-covered, left as-is) stays. (5) probe re-sync (the same-commit pin set): A8 the de-cross-ref docstring
+         string, F1 307/14 -> 312/15 + the repr test pin — 52/52 green. Cell: test\_hlp\_indexes 14/0/0 -> 15/0/0.

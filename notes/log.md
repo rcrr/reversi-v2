@@ -2625,3 +2625,25 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486),
   hlp\_generate (D-487) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la
   scelta di Roberto.
+- D-488 (hlp\_indexes, un solo D, il piano concordato + il micro-test approvato): (1) sorgente 228 ->
+  228: le 12 Args entries tipizzate de-typizzate (\_\_init\_\_ 3, store 3, load 3, compute 1,
+  is\_cache\_consistent 2), le 2 cross-ref "as in model\_weights" via dalle docstring store/load (il
+  canone esatto dei sibling), il commento "read" capitalizzato, le docstring al punto fisso di reflow;
+  per fortuna il reflow tiene le 228 righe: il pin A1 del probe resta valido. (2) test 307 -> 312: il
+  micro-test test\_repr\_one\_line\_summary (il \_\_repr\_\_ era documentato ma non pinned da nessun
+  test ne' dal probe — il gap R-850); 14 -> 15/0/0. (3) source doc: l'ordine riparato nella API row e
+  nel bullet Architecture (il sidecar verify va PRIMA del LZ4 guard + decompress — stesso bug di
+  D-485, il che fa due moduli con lo stesso errore di stesura), il refuso "found. .." -> "found ...",
+  il marker M5 orfano via, i conteggi 14 -> 15. (4) test doc: i label del probe FANTASMA via (B1,
+  B9-B11, B14, C1, C6a/C6b non esistono nel probe — la frase era stale), il conteggio 14 -> 15 + la
+  riga di coverage del repr. (5) probe ri-sync (il pin set dello stesso commit): A8 la
+  stringa de-cross-ref, F1 307/14 -> 312/15 + il pin del test repr; ora 52/52. Cella: test\_hlp\_indexes
+  14 -> 15/0/0.
+- Batch hlp\_indexes chiusa (D-488 + onda): il modulo piu' pulito dopo hlp\_final\_log\_print (zero
+  D-XXX, zero wide, header gia' a canone, test doc disciplinatissimo con il gap rds\_checksum gia'
+  documentato + probe-covered) — le macchie vere erano le 12 entries tipizzate, la cross-ref nel
+  docstring, l'ordine sidecar/LZ4 (2a ricorrenza), i label fantasma e il repr non pinned. LONG=1
+  rimesurato: suite 1108 -> 1109/0/24. La cascata lm: client (D-476), logistic\_model (D-477),
+  model\_weights (D-478), hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481),
+  hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes
+  (D-488) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.

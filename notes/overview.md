@@ -85,8 +85,9 @@ define the evaluation function.
   API-row order repair); hlp\_final\_log\_print the D-486 pass (the de-typed ctx entry + the 3 D-tags + the typed-Args
   clause + the 154-char line + the no-test-module-by-design clause — the 2nd hlp without a test module, pinned by the
   probe + the worker suite + the e2e); hlp\_generate the D-487 pass (the 3 R-540 + the 124-char line + the bullet
-  docstring to the R-560 paragraph + the 2 R-850 micro-tests 16 -> 18/0/0 + the 2 doc tags + the "R2 semantics"); suite
-  1108/0/24 at close).
+  docstring to the R-560 paragraph + the 2 R-850 micro-tests 16 -> 18/0/0 + the 2 doc tags + the "R2 semantics");
+  hlp\_indexes the D-488 pass (the 12 de-typed Args entries + the cross-ref drop + the sidecar/LZ4 order repair (the 2nd
+  occurrence) + the phantom probe labels + the repr micro-test 14 -> 15/0/0); suite 1109/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
