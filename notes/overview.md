@@ -87,7 +87,9 @@ define the evaluation function.
   probe + the worker suite + the e2e); hlp\_generate the D-487 pass (the 3 R-540 + the 124-char line + the bullet
   docstring to the R-560 paragraph + the 2 R-850 micro-tests 16 -> 18/0/0 + the 2 doc tags + the "R2 semantics");
   hlp\_indexes the D-488 pass (the 12 de-typed Args entries + the cross-ref drop + the sidecar/LZ4 order repair (the 2nd
-  occurrence) + the phantom probe labels + the repr micro-test 14 -> 15/0/0); suite 1109/0/24 at close).
+  occurrence) + the phantom probe labels + the repr micro-test 14 -> 15/0/0); hlp\_plot the D-489 pass (the corrupted
+  GPL header restored in src + test + the 42 de-typed Args entries + the unknown-format micro-test 11 -> 12/0/0 + the
+  18-vs-19 check re-count + the "pilot" typo); suite 1110/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
@@ -156,7 +158,7 @@ define the evaluation function.
 | test/reversi/lm/test\_hlp\_gradient.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_gradient.md](docs/test/reversi/lm/test\_hlp\_gradient.md) |
 | test/reversi/lm/test\_hlp\_indexes.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_indexes.md](docs/test/reversi/lm/test\_hlp\_indexes.md) |
 | test/reversi/lm/test\_hlp\_optimize.py | complete | 20/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_optimize.md](docs/test/reversi/lm/test\_hlp\_optimize.md) |
-| test/reversi/lm/test\_hlp\_plot.py | complete | 11/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_plot.md](docs/test/reversi/lm/test\_hlp\_plot.md) |
+| test/reversi/lm/test\_hlp\_plot.py | complete | 12/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_plot.md](docs/test/reversi/lm/test\_hlp\_plot.md) |
 | test/reversi/lm/test\_hlp\_su\_analysis.py | complete | 38/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_su\_analysis.md](docs/test/reversi/lm/test\_hlp\_su\_analysis.md) |
 | test/reversi/lm/test\_hlp\_wmaps.py | complete | 16/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_wmaps.md](docs/test/reversi/lm/test\_hlp\_wmaps.md) |
 | test/reversi/lm/test\_hlp\_zed.py | complete | 10/0/0/0/0 | [docs/test/reversi/lm/test\_hlp\_zed.md](docs/test/reversi/lm/test\_hlp\_zed.md) |

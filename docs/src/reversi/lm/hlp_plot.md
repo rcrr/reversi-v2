@@ -75,7 +75,7 @@ the config is parsed by every run (and by the client).
 
 ## Verified invariants
 
-Pinned by the 11-test `test_hlp_plot` suite (no DB) + the 19-check `probes/verify_plot.py` probe (no DB) + the
+Pinned by the 12-test `test_hlp_plot` suite (no DB) + the 19-check `probes/verify_plot.py` probe (no DB) + the
 worker/chain suites.
 
 - The vocabulary: seven distinct names; the builder registry and the titles cover the names EXACTLY (no stray, no
@@ -91,8 +91,8 @@ worker/chain suites.
 - The lazy import: no top-level matplotlib (probe A5) — importing this module (via the schema) stays cheap for every run
   and the client.
 - The rendering: every builder renders a non-trivial PNG on a synthetic PlotData (probe B1); the 'pdf,png' pair writes
-  both magics (probe B2); a second render hashes EQUAL — the byte determinism of the seeded pipeline (probe B3; the
-  worker-level twin in `test_wrk_plot`, the chain-level twin in the A2030/A2050 file pins).
+  both magics (probe B2); the unknown format raises the precise ValueError (`test_unknown_format_raises`); a second
+  render hashes EQUAL (byte determinism; probe B3 + the `test_wrk_plot` worker twin + the A2030/A2050 chain pins).
 
 ## Open issues
 
@@ -115,7 +115,6 @@ None.
 - `PLOT_NAMES` is imported by `hlp_config_schemas` (the `PlotConfig` validator) — the single source of truth for the
   plot vocabulary: a new plot name lands here first, then in the builders + the titles (the probe pins keep the three in
   lock-step).
-- The series arrive from the levels that own the passes (ANALYTICS and VALIDATE): do NOT reintroduce a local
-  forward pass — the single derivation is the point, and the figures are byte-pinned by the rendering golden.
-- The figures read the PUBLISHED series (the f64 residuals), so no model math is re-derived here — the plotted fitted
-  values are what the saved model computes.
+- The series arrive from the levels that own the passes (ANALYTICS and VALIDATE) as the PUBLISHED f64 series: do NOT
+  reintroduce a local forward pass — the single derivation is the point, no model math is re-derived here (the
+  plotted fitted values are what the saved model computes), and the figures are byte-pinned by the rendering golden.

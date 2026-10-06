@@ -14,8 +14,8 @@
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; or the implied warranty of
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
@@ -50,17 +50,17 @@ from reversi.lm.hlp_plot import (PLOT_NAMES, PLOT_BUILDERS, PLOT_TITLES,
 
 
 class TestHlpPlotVocabulary(unittest.TestCase):
-    """The plot vocabulary: the seven canonical names, the
-    titles, and the name -> builder registry (the single source of
-    truth the PlotConfig schema validates against)."""
+    """
+    The plot vocabulary: the seven canonical names, the titles, and the name -> builder registry
+    (the single source of truth the PlotConfig schema validates against).
+    """
 
     def test_names_seven_distinct(self):
         self.assertEqual(len(PLOT_NAMES), 7)
         self.assertEqual(len(set(PLOT_NAMES)), 7)
 
     def test_builders_cover_names_exactly(self):
-        """Every canonical name has exactly one builder, and the
-        registry holds no stray name."""
+        """Every canonical name has exactly one builder, and the registry holds no stray name."""
         self.assertEqual(set(PLOT_BUILDERS), set(PLOT_NAMES))
 
     def test_titles_cover_names_exactly(self):
@@ -68,9 +68,10 @@ class TestHlpPlotVocabulary(unittest.TestCase):
 
 
 class TestHlpPlotJitter(unittest.TestCase):
-    """The R jitter semantics: uniform noise in
-    [-amount*range/2, +amount*range/2], amount a fraction of the
-    data range."""
+    """
+    The R jitter semantics: uniform noise in [-amount*range/2, +amount*range/2], amount a fraction
+    of the data range.
+    """
 
     def test_bounds_and_spread(self):
         rng = np.random.default_rng(42)
@@ -89,8 +90,9 @@ class TestHlpPlotJitter(unittest.TestCase):
 
 
 class TestHlpPlotEgvBins(unittest.TestCase):
-    """The evaluated-game-value bins (the R round_gv): the fitted
-    values rounded to the even step-2 grid."""
+    """
+    The evaluated-game-value bins (the R round_gv): the fitted values rounded to the even step-2 grid.
+    """
 
     def test_even_grid_and_coverage(self):
         rng = np.random.default_rng(42)
@@ -109,9 +111,10 @@ class TestHlpPlotEgvBins(unittest.TestCase):
 
 
 class TestHlpPlotAxes(unittest.TestCase):
-    """The symmetric residual-axis limit: the max absolute
-    value rounded UP to the tick step (the "reasonable value"),
-    at least one step."""
+    """
+    The symmetric residual-axis limit: the max absolute value rounded UP to the tick step (the
+    "reasonable value"), at least one step.
+    """
 
     def test_rounds_up_to_the_step(self):
         from reversi.lm.hlp_plot import _sym_limit
@@ -144,6 +147,19 @@ class TestHlpPlotKde(unittest.TestCase):
         # The peak sits near the mean of a symmetric cloud.
         peak_x = float(grid[int(curve.argmax())])
         self.assertLess(abs(peak_x - float(x.mean())), 0.5)
+
+
+class TestHlpPlotSaveFigure(unittest.TestCase):
+    """
+    The save boundary: the explicit format + the unknown-format guard (the ValueError with the
+    precise message).
+    """
+
+    def test_unknown_format_raises(self):
+        from reversi.lm.hlp_plot import save_figure
+        with self.assertRaises(ValueError) as context:
+            save_figure(None, "x", "svg")
+        self.assertEqual(str(context.exception), "Unknown plot format: 'svg'")
 
 
 if __name__ == '__main__':

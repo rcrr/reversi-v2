@@ -1,8 +1,8 @@
 # test/reversi/lm/test_hlp_plot.py
 The no-DB unit suite of the PLOT level's pure helpers (`reversi/lm/hlp_plot.py`): the seven-name vocabulary (the single
 source of truth the `PlotConfig` schema validates against), the R-semantic jitter, the EGV bins (the R `round_gv` port),
-and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the builder/rendering behaviour lives in
-`test_wrk_plot` (the worker tier) and `probes/verify_plot.py` (the 18-check probe).
+the guarded Gaussian-kernel density, and the save-boundary guard. No figures, no ctx, no DB — the builder/rendering
+behaviour lives in `test_wrk_plot` (the worker tier) and `probes/verify_plot.py` (the 19-check probe).
 
 ## Coverage
 
@@ -13,6 +13,7 @@ and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the build
 | `TestHlpPlotJitter` | 2 | `test_bounds_and_spread`: the R jitter semantics — the output stays inside the ±amount·range/2 band AND actually spreads (>100 distinct deltas on a 1000-point axis). `test_zero_range_is_identity`: a constant input comes back untouched (the R degeneration). |
 | `TestHlpPlotEgvBins` | 2 | `test_even_grid_and_coverage`: the bin values are EVEN (the step-2 grid), every point lands in exactly one bin within 1.0 of its fitted value. `test_known_values`: `[-0.4, 0.6, 3.2, -2.9, 64.0] → [0, 0, 4, -2, 64]` (the `2·rint(x/2)` banker's port of the R `round_gv`). |
 | `TestHlpPlotKde` | 2 | `test_zero_variance_is_flat_zero`: the singular-kernel guard — a constant input yields a flat zero curve, no exception. `test_curve_shape_and_peak`: a symmetric cloud yields a finite, non-negative curve peaking within 0.5 of the mean. |
+| `TestHlpPlotSaveFigure` | 1 | `test_unknown_format_raises`: a format outside the schema-validated pair ("svg") → the precise `ValueError` "Unknown plot format: 'svg'" (the guard that keeps the explicit-format rule honest) |
 
 ## Goldens pinned
 
@@ -20,6 +21,7 @@ and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the build
 - The jitter band bound (the R ±amount·range/2 contract).
 - The vocabulary lock-step (names ⇄ builders ⇄ titles) — the three collections must move together (the probe A2/A3
   twin).
+- The save-boundary message: `Unknown plot format: 'svg'` (the ValueError's exact text, the explicit-format guard).
 
 ## Conventions
 
@@ -32,6 +34,6 @@ and the guarded Gaussian-kernel density. No figures, no ctx, no DB — the build
 
 - The module under test: `reversi/lm/hlp_plot.py` (hlp_plot.md).
 - The worker tier: `test_wrk_plot` (the level end-to-end on the synthetic ctx); the probe tier: `probes/verify_plot.py`
-  (the vocabulary, the lazy import, the rendering, the determinism, the pilot semantics).
+  (the vocabulary, the lazy import, the rendering, the determinism, the PlotConfig semantics).
 - The schema consumer of `PLOT_NAMES`: `test_hlp_config_schemas` (the PlotConfig section — the fail-fast unknown-name
   guard).

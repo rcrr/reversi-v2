@@ -14,8 +14,8 @@
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; or the implied warranty of
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
@@ -25,12 +25,12 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-# matplotlib and scipy are imported LAZILY (inside the functions): importing this module must
-# stay cheap, because hlp_config_schemas imports PLOT_NAMES from here and the config is parsed
-# by every pipeline — and by the client — run.
+# matplotlib and scipy are imported LAZILY (inside the functions): importing this module must stay
+# cheap, because hlp_config_schemas imports PLOT_NAMES from here and the config is parsed by every
+# pipeline — and by the client — run.
 #
-# Space: Y (the [-64, +64] game-value scale) — Y values are comparable across models with
-# different logit_clipping, Z values are distorted per model.
+# Space: Y (the [-64, +64] game-value scale) — Y values are comparable across models with different
+# logit_clipping, Z values are distorted per model.
 #
 # Determinism: every randomness (the jitter, the KDE subsample) is driven by SEEDed numpy
 # generators, so these figures are reproducible run over run, and the PNG output is
@@ -72,25 +72,25 @@ PLOT_TITLES = {
 @dataclass
 class PlotStyle:
     """
-    The appearance and determinism knobs of the figure builders (the config's plot section carries the
-    same values, so the plot config is the single tuning point).
+    The appearance and determinism knobs of the figure builders (the config's plot section carries
+    the same values, so the plot config is the single tuning point).
 
-    The binned note: the binned axes carry an ITALIC mathtext parenthetical (this matplotlib build has
-    no mathtext size commands, so it stays at the axis font size — the accepted fallback); an empty
-    string disables the note.
+    The binned note: the binned axes carry an ITALIC mathtext parenthetical (this matplotlib build
+    has no mathtext size commands, so it stays at the axis font size — the accepted fallback); an
+    empty string disables the note.
 
     The seeds: the jitter and the KDE subsample are driven by SEEDed generators. The jitter amounts
     are a FRACTION of the data range (uniform noise in [-amount*range/2, +amount*range/2]): the
-    fitted-values and residual axes get a fine scatter spread, the game-value axis the full horizontal
-    "cloud" smearing over the integer grid. The KDE is evaluated on a capped subsample: scipy's
-    gaussian_kde density evaluation is O(n*m), so at the full training-set scale the cap keeps the
-    figure time flat without changing the curve (100k of ~2M points is statistically indistinguishable),
-    on the fixed evaluation grid.
+    fitted-values and residual axes get a fine scatter spread, the game-value axis the full
+    horizontal "cloud" smearing over the integer grid. The KDE is evaluated on a capped subsample:
+    scipy's gaussian_kde density evaluation is O(n*m), so at the full training-set scale the cap
+    keeps the figure time flat without changing the curve (100k of ~2M points is statistically
+    indistinguishable), on the fixed evaluation grid.
 
-    The axis domains: the FIXED axis ranges (the axes do not follow the data — the game-value axes are
-    always the full [-64, +64] domain, the residual-density axis the reasonable centered [-72, +72]
-    window (a residual beyond that is a broken model — the outlier report is where they show up), the
-    tick step 8 (the 0, 8, 16, ... labels)).
+    The axis domains: the FIXED axis ranges (the axes do not follow the data — the game-value axes
+    are always the full [-64, +64] domain, the residual-density axis the reasonable centered [-72,
+    +72] window (a residual beyond that is a broken model — the outlier report is where they show
+    up), the tick step 8 (the 0, 8, 16, ... labels)).
 
     The series-label placement of plot 1 (data-coordinate fractions: x a fraction of the axis span
     from the left, y a fraction of the curve maximum). The Reference label sits high (it overlapped
@@ -131,9 +131,7 @@ class PlotData:
 
 
 def _mpl():
-    """
-    Import matplotlib lazily (the Agg backend, headless).
-    """
+    """Import matplotlib lazily (the Agg backend, headless)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -148,7 +146,7 @@ def collect_plot_data(ctx: "LMContext") -> PlotData:
     No forward pass runs here: the figures render what the pipeline measured, they do not re-measure it.
 
     Args:
-        ctx ("LMContext"): the pipeline context (the published series).
+        ctx: the pipeline context (the published series).
 
     Returns:
         PlotData: the five f64 series the builders draw.
@@ -168,10 +166,9 @@ def jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray
     the same way).
 
     Args:
-        rng (np.random.Generator): the seeded generator (the callers pass one built from the style
-            jitter seed).
-        x (np.ndarray): the values to jitter.
-        amount (float): the jitter amount as a fraction of the data range.
+        rng: the seeded generator (the callers pass one built from the style jitter seed).
+        x: the values to jitter.
+        amount: the jitter amount as a fraction of the data range.
 
     Returns:
         np.ndarray: the jittered values.
@@ -184,12 +181,12 @@ def jitter(rng: np.random.Generator, x: np.ndarray, amount: float) -> np.ndarray
 
 def egv_bins(y_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
-    Bin the fitted values to the even step-2 grid (the R round_gv: 2 * round(y_pred/2)).
-    np.rint is banker's rounding against R's round-half-away-from-zero, but y_pred is a continuous
-    f64 so the half-tie is a measure-zero event.
+    Bin the fitted values to the even step-2 grid (the R round_gv: 2 * round(y_pred/2)). np.rint is
+    banker's rounding against R's round-half-away-from-zero, but y_pred is a continuous f64 so the
+    half-tie is a measure-zero event.
 
     Args:
-        y_pred (np.ndarray): the fitted values to bin.
+        y_pred: the fitted values to bin.
 
     Returns:
         tuple: (unique_egv_values, group_index_per_point).
@@ -206,9 +203,9 @@ def _kde_curve(values: np.ndarray, grid: np.ndarray, style: PlotStyle) -> np.nda
     curve (the degenerate kernel is singular).
 
     Args:
-        values (np.ndarray): the series to smooth.
-        grid (np.ndarray): the evaluation grid.
-        style (PlotStyle): the knobs (the subsample seed + cap).
+        values: the series to smooth.
+        grid: the evaluation grid.
+        style: the knobs (the subsample seed + cap).
 
     Returns:
         np.ndarray: the density on the grid.
@@ -229,8 +226,8 @@ def _sym_limit(values: np.ndarray, step: float = 8.0) -> float:
     (the "reasonable value"), at least one step.
 
     Args:
-        values (np.ndarray): the series whose spread sets the limit.
-        step (float): the tick step to round up to (the style tick step).
+        values: the series whose spread sets the limit.
+        step: the tick step to round up to (the style tick step).
 
     Returns:
         float: the symmetric limit (the axis is [-limit, +limit]).
@@ -248,10 +245,10 @@ def _fig(title: str, run_name: str, xlabel: str, ylabel: str):
     spaced apart (the name sits high via the pad, the description just above the axis).
 
     Args:
-        title (str): the figure title (the plot name).
-        run_name (str): the run name (the config name, the italic subtitle).
-        xlabel (str): the x axis label.
-        ylabel (str): the y axis label.
+        title: the figure title (the plot name).
+        run_name: the run name (the config name, the italic subtitle).
+        xlabel: the x axis label.
+        ylabel: the y axis label.
 
     Returns:
         tuple: (fig, ax) — the fresh figure + its axis.
@@ -271,14 +268,14 @@ def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figu
     """
     Build the plot-1 figure: probability density vs game value residual, three curves — Reference
     (the training game values centered on their mean: the "population" series of the analytics
-    report), Training (the training residuals) and Validation (the validation residuals). The
-    dashed vline marks the training residual mean; the margin labels carry the sd (the validation
-    one also the mean/min/max).
+    report), Training (the training residuals) and Validation (the validation residuals). The dashed
+    vline marks the training residual mean; the margin labels carry the sd (the validation one also
+    the mean/min/max).
 
     Args:
-        d (PlotData): the PLOT inputs (the training + validation series).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the window, the KDE grid/seed/cap, the label placement).
+        d: the PLOT inputs (the training + validation series).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the window, the KDE grid/seed/cap, the label placement).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -306,12 +303,11 @@ def plot_residual_density(d: PlotData, run_name: str, style: PlotStyle) -> "Figu
 
 def _series_label(label: str, vals: np.ndarray) -> str:
     """
-    Format the plot-1 series margin label (the name + the sd, the Validation one also the
-    mean/min/max).
+    Format the plot-1 series margin label (the name + the sd, the Validation one also the mean/min/max).
 
     Args:
-        label (str): the series name ("Reference" / "Training" / "Validation").
-        vals (np.ndarray): the series values (the sd/mean/min/max source).
+        label: the series name ("Reference" / "Training" / "Validation").
+        vals: the series values (the sd/mean/min/max source).
 
     Returns:
         str: the formatted label.
@@ -325,13 +321,13 @@ def _series_label(label: str, vals: np.ndarray) -> str:
 
 def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
-    Build the plot-2 figure: the validation residual cloud vs the fitted values (the EF output),
-    the gray-dot scatter with the seeded R-semantic jitter on both axes.
+    Build the plot-2 figure: the validation residual cloud vs the fitted values (the EF output), the
+    gray-dot scatter with the seeded R-semantic jitter on both axes.
 
     Args:
-        d (PlotData): the PLOT inputs (the validation series).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the jitter seed + amounts, the x domain, the tick step).
+        d: the PLOT inputs (the validation series).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the jitter seed + amounts, the x domain, the tick step).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -349,14 +345,14 @@ def plot_resid_vs_fitted(d: PlotData, run_name: str, style: PlotStyle) -> "Figur
 
 def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
-    Build the plot-3 figure: the validation residual cloud vs the actual game values, the
-    gray-dot scatter; the x jitter is the large 0.7-range fraction (the "cloud" smearing over the
-    integer grid), the y jitter the fine one.
+    Build the plot-3 figure: the validation residual cloud vs the actual game values, the gray-dot
+    scatter; the x jitter is the large 0.7-range fraction (the "cloud" smearing over the integer
+    grid), the y jitter the fine one.
 
     Args:
-        d (PlotData): the PLOT inputs (the validation series).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the jitter seed + amounts, the x domain, the tick step).
+        d: the PLOT inputs (the validation series).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the jitter seed + amounts, the x domain, the tick step).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -374,13 +370,13 @@ def plot_resid_vs_gv(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
 
 def plot_gv_by_egv_box(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
-    Build the plot-4 figure: the validation game values as a box plot per evaluated game value
-    (the fitted Y rounded to the step-2 grid), both axes fixed to the full scale.
+    Build the plot-4 figure: the validation game values as a box plot per evaluated game value (the
+    fitted Y rounded to the step-2 grid), both axes fixed to the full scale.
 
     Args:
-        d (PlotData): the PLOT inputs (the validation fitted + true game values).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the binned note, the axis domain, the tick step).
+        d: the PLOT inputs (the validation fitted + true game values).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the binned note, the axis domain, the tick step).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -407,9 +403,9 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Fig
     of the evaluation scale shows up as a drift away from zero). Single-point bins have a zero bar.
 
     Args:
-        d (PlotData): the PLOT inputs (the validation series).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the binned note, the axis domain, the tick step).
+        d: the PLOT inputs (the validation series).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the binned note, the axis domain, the tick step).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -426,9 +422,9 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Fig
     ax.errorbar(unique, means, yerr=sds, fmt="o", ms=4, color="firebrick",
                 ecolor="firebrick", elinewidth=0.8, capsize=3)
     ax.axhline(0.0, color="black", ls="--", lw=0.8)
-    # The FIXED axes: x always the full domain; y hugs the ACTUAL data — the full |mean| + sd
-    # extent rounded UP to the tick-step grid, kept SYMMETRIC (a value in range stays in range);
-    # the tick labels in the smaller font.
+    # The FIXED axes: x always the full domain; y hugs the ACTUAL data — the full |mean| + sd extent
+    # rounded UP to the tick-step grid, kept SYMMETRIC (a value in range stays in range); the tick
+    # labels in the smaller font.
     extent = np.abs(np.array(means)) + np.array(sds)
     lim = _sym_limit(extent, style.tick_step)
     ax.set_xlim(-style.axis_gv, style.axis_gv)
@@ -441,13 +437,13 @@ def plot_resid_mean_by_egv(d: PlotData, run_name: str, style: PlotStyle) -> "Fig
 
 def plot_parity(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
-    Build the plot-6 figure: the parity view — the validation game values against the fitted
-    values, the 45-degree line, both axes on the full scale (the global fit quality at a glance).
+    Build the plot-6 figure: the parity view — the validation game values against the fitted values,
+    the 45-degree line, both axes on the full scale (the global fit quality at a glance).
 
     Args:
-        d (PlotData): the PLOT inputs (the validation series).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the frame domain).
+        d: the PLOT inputs (the validation series).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the frame domain).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -465,14 +461,14 @@ def plot_parity(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
 def plot_resid_qq(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     """
     Build the plot-7 figure: the normal QQ plot of the validation residuals — the sorted sample
-    quantiles against the standard normal theoretical quantiles (scipy.ndtri), the dashed line the
-    y = sd * x scale line (residuals that are normal with mean zero sit ON the line; tails that
+    quantiles against the standard normal theoretical quantiles (scipy.ndtri), the dashed line the y
+    = sd * x scale line (residuals that are normal with mean zero sit ON the line; tails that
     deviate from it are non-normality). The skewness/kurtosis show up as the tail deviations.
 
     Args:
-        d (PlotData): the PLOT inputs (the validation residuals).
-        run_name (str): the run name (the config name, the subtitle line).
-        style (PlotStyle): the knobs (the y-frame domain).
+        d: the PLOT inputs (the validation residuals).
+        run_name: the run name (the config name, the subtitle line).
+        style: the knobs (the y-frame domain).
 
     Returns:
         Figure: the built figure (the worker saves it, then closes it).
@@ -493,8 +489,8 @@ def plot_resid_qq(d: PlotData, run_name: str, style: PlotStyle) -> "Figure":
     return fig
 
 
-#: The name -> builder registry (the worker dispatches on it; each builder takes the PlotData,
-#: the run name, and the PlotStyle).
+#: The name -> builder registry (the worker dispatches on it; each builder takes the PlotData, the
+#: run name, and the PlotStyle).
 PLOT_BUILDERS: dict[str, Callable[[PlotData, str, PlotStyle], "Figure"]] = {
     "residual_density": plot_residual_density,
     "resid_vs_fitted": plot_resid_vs_fitted,
@@ -508,15 +504,15 @@ PLOT_BUILDERS: dict[str, Callable[[PlotData, str, PlotStyle], "Figure"]] = {
 
 def save_figure(fig: "Figure", path, fmt: str, dpi: int = 150) -> None:
     """
-    Save the figure to path in the given format (png at dpi, pdf vector). Only the
-    schema-validated formats reach here. The format is passed EXPLICITLY: the file name may carry
-    a non-standard suffix, and matplotlib otherwise sniffs the extension (the 'png2' trap).
+    Save the figure to path in the given format (png at dpi, pdf vector). Only the schema-validated
+    formats reach here. The format is passed EXPLICITLY: the file name may carry a non-standard
+    suffix, and matplotlib otherwise sniffs the extension (the 'png2' trap).
 
     Args:
-        fig ("Figure"): the figure to save.
-        path (Path): the destination path.
-        fmt (str): the format ("png" or "pdf").
-        dpi (int): the raster resolution (the png output).
+        fig: the figure to save.
+        path: the destination path.
+        fmt: the format ("png" or "pdf").
+        dpi: the raster resolution (the png output).
     """
     if fmt == "png":
         fig.savefig(path, format="png", dpi=dpi)
@@ -531,7 +527,7 @@ def close_figure(fig: "Figure") -> None:
     Release the figure's resources (the worker calls it after every save round).
 
     Args:
-        fig ("Figure"): the figure to release.
+        fig: the figure to release.
     """
     plt = _mpl()
     plt.close(fig)
