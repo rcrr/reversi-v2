@@ -5,7 +5,7 @@ renders the machine's full event log buffer (the maximum-relevance replay, the l
 entry (default None) is the gate — the guard is in the worker (`wrk_final_log_print`), this function only writes.
 
 ## API
-- `hlp_final_log_print_write_log(ctx) -> Path` — undecorated (the ctx idiom, D-317): reads `ctx.cfg.base_dir` +
+- `hlp_final_log_print_write_log(ctx) -> Path` — undecorated (the ctx idiom): reads `ctx.cfg.base_dir` +
   `ctx.cfg.log_file_name`, `mkdir(parents=True, exist_ok=True)`, `write_text(ctx.format_event_log(), encoding="utf-8")`,
   logs "FINAL_LOG_PRINT: full log written: {path}." (the post-write line — it is NOT in the file, see the write
   asymmetry below), returns the `Path`.
@@ -18,7 +18,8 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
     printed; a NONE run's file is the full log of a silent run.
   - **The line shape** (one example, the init DEBUG entry):
     `[2026-09-28 12:00:00 UTC] [00][CREATED        ] [DEBUG:STANDARD] StateMachine initialized.`
-    — the `[ts UTC] [step:02][worker:15] [REL:VERB] message` live format (the widths 5/8, the enum names — the machine's `_format_event_line` renders it).
+    — the `[ts UTC] [step:02][worker:15] [REL:VERB] message` live format (the widths 5/8, the enum names —
+    the machine's `_format_event_line` renders it).
 
 ## Architecture
 - **The render source** — `ctx.format_event_log()`: the bound method the StateMachine injects at construction
@@ -31,9 +32,9 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
   are created.
 
 ## Verified invariants
-- Pinned by `test_wrk_final_log_print.py` (the NO-DB mock-ctx suite: the full-log write on a 2-line mock render, the
-  base_dir subdir path) + the LONG-tier e2e (the rlm_00 full chain, verbosity NONE — the file contains every event
-  although nothing was printed; the write-asymmetry pins).
+- No test module by design: pinned by `test_wrk_final_log_print.py` (the NO-DB mock-ctx suite: the full-log write
+  on a 2-line mock render, the base_dir subdir path) + the LONG-tier e2e (the rlm_00 full chain, verbosity NONE —
+  the file contains every event although nothing was printed; the write-asymmetry pins).
 - Pinned by `probes/verify_final_log_print.py` (A3 the writer source pin; B2/B3 the write-asymmetry invariant + the
   live-line format vs an independent re-derivation; B4 the maximum-relevance replay — all 4 pre-logged relevances in
   the file of a VERY_LOW-verbosity machine).
@@ -43,10 +44,10 @@ entry (default None) is the gate — the guard is in the worker (`wrk_final_log_
 
 ## Conventions
 - The house hlp pattern: one public function, `__all__` exported, no module docstring (the mirror is the module's
-  documentation, the D-312/D-313/D-315 precedent).
-- The docstring is in the house style (imperative first line, the body paragraph, the typed Args, the key-by-key
+  documentation).
+- The docstring is in the house style (imperative first line, the body paragraph, the untyped Args, the key-by-key
   Returns).
-- Undecorated (the ctx idiom, D-317): the `validate_call` boundary applies to the non-ctx public functions — this one
+- Undecorated (the ctx idiom): the `validate_call` boundary applies to the non-ctx public functions — this one
   takes only the context.
 
 ## Integration

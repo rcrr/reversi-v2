@@ -41,20 +41,18 @@ __all__ = ['hlp_final_log_print_write_log']
 
 def hlp_final_log_print_write_log(ctx: "LMContext") -> Path:
     """
-    Write the full run log (all buffered events, all levels, the maximum
-    relevance) to the FINAL_LOG_PRINT file.
+    Write the full run log (all buffered events, all levels, the maximum relevance) to the
+    FINAL_LOG_PRINT file.
 
-    This function renders the machine's event log buffer (the LogEntry
-    list the StateMachine fills on every log_event, independent of the
-    display verbosity gate) and writes it to the configured file name
-    under the context base_dir. The buffer already carries the "Starting
-    worker FINAL_LOG_PRINT, UP step" line (the machine logs it before the
-    worker call), while the "Completed UP step" line is logged after the
-    return — the file is the full log up to the moment of the write.
+    This function renders the machine's event log buffer (the LogEntry list the StateMachine fills
+    on every log_event, independent of the display verbosity gate) and writes it to the configured
+    file name under the context base_dir. The buffer already carries the "Starting worker
+    FINAL_LOG_PRINT, UP step" line (the machine logs it before the worker call), while the
+    "Completed UP step" line is logged after the return — the file is the full log up to the moment
+    of the write.
 
     Args:
-        ctx (LMContext): The pipeline context (the cfg with the
-            log_file_name + the base_dir, the injected
+        ctx: The pipeline context (the cfg with the log_file_name + the base_dir, the injected
             format_event_log renderer, the event log).
 
     Returns:
