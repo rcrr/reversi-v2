@@ -1002,3 +1002,31 @@ D-493 | 2026-10-05 | The hlp\_zed source + test + mirror-doc + probe pass, one c
          pins from "header only (6,11,16,21)" to 0 lines — the pass stripped them, G1 157 -> 156, the G3 class shift,
          the F1 LMContext zed block L148-151 pre-pass-stale + the label trimmed): 1 mismatch pre-pass (the F1 shift), 0
          after. No cell changes (10/0/0, wrk 3/0/0).
+
+D-494 | 2026-10-06 | The wrk\_analytics source + test + mirror-doc + probe pass (the worker cascade opens; the
+         user-approved full plan + the 2 R-850 micro-tests): (1) source 89 -> 93: the 2 missing docstrings added (the
+         worker cascade's first docstring gap — `_up` imperative + the WHAT, `_down` one-line; the hlp\_analytics house
+         style: no Args section for the single ctx), the D-105/M2 tag stripped from the numbered comment (R-540), the 4
+         bare '# ' license-header lines stripped, the import continuation alignment repaired (col 33 to 38), the factory
+         first line normalized to the imperative "Return the ANALYTICS worker instance.", the two setUp comments'
+         "15-level chain" -> "14-level chain" (the D-477 canon: CREATED is a sentinel, not an active level). (2) test
+         785 -> 766: the unused `import os` dropped, the D-311 tag out of the TestEtaSquaredCrossLevel docstring
+         (R-540), the header block aligned to the corpus canon (blank + 2 bare '#'), the R-570 light pass on the 16
+         heavy docstrings (the class / method / helper docstrings compressed — the detail already lives in the mirror
+         doc), and the 2 R-850 micro-tests pinning train\_dense\_rn (documented in the machine contract but
+         runtime-unpinned: the new test\_train\_dense\_rn\_series — the ndarray of shape (199952,) with mean(|rn|) ==
+         the train\_dense\_mae\_y golden, the independent cross-check — + the 4th clear assert in
+         test\_down\_clears\_analytics\_attributes): 14 -> 15/0/0. (3) the source mirror doc 76 -> 74: the stale suite
+         count (4-test / 2 classes / all DB-gated -> 15-test / 5 classes / 7 DB-gated + 8 NO-DB), the 17 -> 18 sibling
+         factories, "step 15 of 18" -> of 19 (the 19-active-level canon), "the full 15-level chain" -> 14-level, the
+         stale date-masked golden re-cut (94a4af7e... -> bda82098..., verified live — the probe C5 print), the "89
+         lines." line-count drop. (4) the test mirror doc 67 -> 65: the full provenance purge (13 tag occurrences
+         across D-298 / D-307 / D-308 / D-311 / D-316 + the "CHANGED with D-316" report tense — all rewritten in present
+         tense), the garbled `(scipy 0.3.34, DYNAMIC_ARCH NO_AFFINITY)` corrected (it is the scipy-bundled
+         OpenBLAS 0.3.34.0.0, verified via `numpy.show_config`) with the VM-move history dropped, "the 3 data rows" ->
+         "the Loss data row (3 data cells)", the muddled "TWO non-cache levels' downstream data" header clarified. (5)
+         probe: no re-pins (no behavior change, 36/36 green pre- and post-pass) — the hygiene edits only: the module
+         docstring re-synced (the stale "step 13" -> step 15, "the 14th pipeline level" -> the 15th active level, "there
+         are none — the bring-in has no test file" replaced — A11 pins the existence now) + the A2 label 12 -> 18
+         siblings. Reflow last (the canonical fixed point on both files). Suite 1111 -> 1112/0/24 (the single cell move
+         14 -> 15/0/0).

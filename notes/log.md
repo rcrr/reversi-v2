@@ -2772,3 +2772,34 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   moduli worker (wrk\_config, wrk\_features, wrk\_anova, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize,
   wrk\_generate, wrk\_vld\_positions, wrk\_analytics, wrk\_client\_check, wrk\_final\_log\_print,
   wrk\_save). Suite 1111/0/24 a fine sessione; albero pulito, gate green.
+
+## 2026-10-06 — session 101 (D-494 — wrk\_analytics: il pass apre la cascata worker, i micro-test train\_dense\_rn)
+
+- D-494 (wrk\_analytics, un solo D, piano completo + i 2 micro-test R-850): il primo pass della
+  cascata worker. Sorgente 89 -> 93: i 2 docstring mancanti aggiunti (\_up imperativo + WHAT, \_down
+  one-line — il primo gap di docstring della cascata; lo stile hlp\_analytics: niente section Args
+  per il ctx singolo), il tag D-105/M2 tolto dal comment numerato (R-540), le 4 bare # del license
+  header stripate, l'allineamento import (col 33 -> 38), il factory imperativo ("Return the
+  ANALYTICS worker instance."), i commenti setUp "15-level" -> "14-level" (il canone D-477: CREATED
+  è un sentinel, non attivo). Test 785 -> 766: l'import os non usato rimosso, il tag D-311 tolto dal
+  docstring di TestEtaSquaredCrossLevel (R-540), il blocco header allineato al canone del corpus
+  (blank + 2 bare #), il pass R-570 sui 16 docstring pesanti (classi 5-8 righe, metodi 4-8,
+  \_make\_su\_ctx 12 -> forma light; i dettagli stanno già nel mirror doc), e i 2 micro-test R-850
+  su train\_dense\_rn (nel machine contract del doc ma mai pinned a runtime: il nuovo
+  test\_train\_dense\_rn\_series, ndarray shape (199952,) con mean(|rn|) == train\_dense\_mae\_y
+  come cross-check indipendente, e il 4° assert di clear nel
+  test\_down\_clears\_analytics\_attributes): 14 -> 15/0/0. Source doc 76 -> 74: il count della
+  suite stale (4-test / 2 classes / all DB-gated -> 15-test / 5 classes / 7 DB-gated + 8 NO-DB), 17
+  -> 18 sibling factory, "step 15 of 18" -> of 19 (il canone dei 19 livelli attivi), "15-level
+  chain" -> 14-level, il golden date-masked stantio ri-misurato (94a4af7e... -> bda82098...,
+  verificato live — la probe C5 lo stampa), la riga "89 lines." tolta. Test doc 67 -> 65: il purge
+  provenance completo (i 13 tag D-298 / D-307 / D-308 / D-311 / D-316 + i report tenses "CHANGED
+  with D-316" / "unchanged by" / "carries the D-307 layout" — tutto in present tense), il claim
+  OpenBLAS corretto (è l'OpenBLAS 0.3.34.0.0 bundled da scipy 1.18.1, verificato con numpy
+  show\_config) con la storia VM-move tolta, "the 3 data rows" -> "the Loss data row", l'header "TWO
+  non-cache levels' downstream data" chiarito. Probe: zero re-pin (nessun cambio di comportamento,
+  36/36 green pre- e post-pass) — solo igiene: il docstring re-sinc (step 13 -> 15, "14th pipeline
+  level" -> 15th active level, "there are none — no test file" -> A11 fissa l'esistenza) e il label
+  A2 12 -> 18 sibling. Reflow ultimo (il fixed point canonico su entrambi i file). LONG=1
+  rimesurato: suite 1111 -> 1112/0/24 (solo la cella wrk\_analytics 14 -> 15). Il prossimo modulo
+  della cascata worker secondo la scelta di Roberto.
