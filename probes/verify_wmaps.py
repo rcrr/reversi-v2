@@ -47,7 +47,7 @@ def lines(p):
 # A. hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 rlm = lines("src/reversi/lm/hlp_wmaps.py")
-check("A1 hlp_wmaps.py is 338 lines (post D-331 format pass + the 2 dead assignments out)", len(rlm) == 338, f"{len(rlm)}")
+check("A1 hlp_wmaps.py is 337 lines", len(rlm) == 337, f"{len(rlm)}")
 check("A2 the dead accumulate import is gone (D-087 T4)",
       "from itertools import accumulate" not in read("src/reversi/lm/hlp_wmaps.py")
       and "accumulate" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -56,9 +56,9 @@ check("A3 __all__ lists the 5 public names",
       and "'hlp_wmaps_is_cache_consistent']" in read("src/reversi/lm/hlp_wmaps.py"))
 check("A4 compute_sha3_256_hash is @validate_call-decorated",
       "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\n    def compute_sha3_256_hash" in read("src/reversi/lm/hlp_wmaps.py"))
-check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L208, the rlm_indexes style — D-087 T5)",
+check("A5 hlp_wmaps_compute has NO @validate_call but the no-validation note (L205, the rlm_indexes style)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_compute" not in read("src/reversi/lm/hlp_wmaps.py")
-      and rlm[207] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
+      and rlm[204] == "#: Here validation is not possible, it brings in a convoluted issue with circular imports.",
       repr(rlm[207]))
 check("A6 hlp_wmaps_is_cache_consistent has NO @validate_call (same constraint, as in rlm_indexes)",
       "\n@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef hlp_wmaps_is_cache_consistent" not in read("src/reversi/lm/hlp_wmaps.py"))
@@ -70,12 +70,12 @@ check("A8 store docstring: the LZ4 compression line, no sidecar promise",
       and "LZ4 whole-file compression by default" in read("src/reversi/lm/hlp_wmaps.py"))
 ws_rl = [i + 1 for i, l in enumerate(rlm) if l != l.rstrip() and not l.strip().startswith("#")]
 check("A9 0 non-comment trailing-whitespace lines (D-087 T9: 23 stripped)", len(ws_rl) == 0, f"{ws_rl}")
-check("A10 the above_mask code line is clean (L296, no trailing space)",
-      rlm[295] == "        above_mask = ~mask", repr(rlm[295]))
-check("A11 the fallback_details_table code line is clean (L309, no trailing spaces)",
-      rlm[308] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[308]))
-check("A12 the -1 input sentinel is unguarded at L273 — correct by the R1 dense contract (no guard added)",
-      rlm[272] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[272]))
+check("A10 the above_mask code line is clean (L295, no trailing space)",
+      rlm[294] == "        above_mask = ~mask", repr(rlm[294]))
+check("A11 the fallback_details_table code line is clean (L308, no trailing spaces)",
+      rlm[307] == "    fallback_details_table = np.array(fallback_data, dtype=np.int64)", repr(rlm[307]))
+check("A12 the -1 input sentinel is unguarded at L272 — correct by the R1 dense contract (no guard added)",
+      rlm[271] == "        f_iwmap[stats[:, 0].astype(np.int64)] = stats[:, 2]", repr(rlm[271]))
 
 # ----------------------------------------------------------------------
 # B. wrk_wmaps.py structure (post D-087)
@@ -108,20 +108,20 @@ check("B9 the triple blank line before _up is intact (L47-49, pre-existing)", w[
 # C. test_hlp_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t1 = lines("test/reversi/lm/test_hlp_wmaps.py")
-check("C1 test_hlp_wmaps.py is 346 lines (post D-139: 325 + the 2 D-139 pins + the compressed kwarg lines)", len(t1) == 346, f"{len(t1)}")
-check("C2 4 classes / 15 tests (the 2 compute + 3 consistency + 8 IO + 2 init since D-139)",
+check("C1 test_hlp_wmaps.py is 362 lines", len(t1) == 362, f"{len(t1)}")
+check("C2 4 classes / 16 tests (the 3 compute + 3 consistency + 8 IO + 2 init)",
       sum(1 for l in t1 if l.startswith("class ")) == 4 and
-      sum(1 for l in t1 if l.strip().startswith("def test_")) == 15)
+      sum(1 for l in t1 if l.strip().startswith("def test_")) == 16)
 check("C3 the header is corrected (L38: '-1- Run the tests.' — the file is DB-free, D-087 T2)",
       t1[37] == "# -1- Run the tests.", repr(t1[37]))
 check("C4 no SKIP_REGAB_DB mention anywhere in the file (no gate needed — no DB)",
       read("test/reversi/lm/test_hlp_wmaps.py").count("SKIP_REGAB_DB") == 0)
 check("C5 no DB import in the file", "from reversi.regab" not in read("test/reversi/lm/test_hlp_wmaps.py")
       and "import regab" not in read("test/reversi/lm/test_hlp_wmaps.py"))
-check("C6 D-085 idiom applied: setUpClass (L207) + TemporaryDirectory under CUSTOM_TMP_BASE (L213)",
-      t1[206] == "    def setUpClass(cls):"
-      and t1[212] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
-      repr(t1[212]))
+check("C6 the shared tmp-dir idiom applied: setUpClass (L223) + TemporaryDirectory under CUSTOM_TMP_BASE (L228)",
+      t1[222] == "    def setUpClass(cls):"
+      and t1[227] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
+      repr(t1[227]))
 check("C7 defensive tearDown (getattr _tmp guard, no shutil)",
       "        if getattr(self, '_tmp', None) is not None:" in read("test/reversi/lm/test_hlp_wmaps.py")
       and "shutil" not in read("test/reversi/lm/test_hlp_wmaps.py"))

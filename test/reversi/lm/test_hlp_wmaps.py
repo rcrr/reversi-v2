@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -53,10 +53,10 @@ from pydantic import ValidationError
 
 from reversi.tools import binio
 from reversi.lm.hlp_wmaps import (LMWMaps,
-                             hlp_wmaps_compute,
-                             hlp_wmaps_store_to_file,
-                             hlp_wmaps_load_from_file,
-                             hlp_wmaps_is_cache_consistent)
+                                 hlp_wmaps_compute,
+                                 hlp_wmaps_store_to_file,
+                                 hlp_wmaps_load_from_file,
+                                 hlp_wmaps_is_cache_consistent)
 from test.reversi.paths import CUSTOM_TMP_BASE
 
 
@@ -69,9 +69,8 @@ class TestHlpWmapsCompute(unittest.TestCase):
             hlp_indexes_checksum="abc123"
         )
 
-        # 1. Define a mock feature set with 2 features
-        # Feature 0: 1 instance, 3 possible configurations (0, 1, 2)
-        # Feature 1: 2 instances, 2 possible configurations (0, 1)
+        # 1. Define a mock feature set with 2 features Feature 0: 1 instance, 3 possible
+        # configurations (0, 1, 2) Feature 1: 2 instances, 2 possible configurations (0, 1)
         self.ctx.feature_set = SimpleNamespace(
             hash="zyz789",
             features=[
@@ -85,9 +84,8 @@ class TestHlpWmapsCompute(unittest.TestCase):
             stat_model=SimpleNamespace(frequency_cut_off=2)
         )
 
-        # 3. Define a mock indexes matrix (Shape: N=4, I=3)
-        # F0 (col 0): 0 appears 2x, 1 appears 1x, 2 appears 1x
-        # F1 (col 1,2): raveled 0 appears 4x, 1 appears 4x
+        # 3. Define a mock indexes matrix (Shape: N=4, I=3) F0 (col 0): 0 appears 2x, 1 appears 1x,
+        # 2 appears 1x F1 (col 1,2): raveled 0 appears 4x, 1 appears 4x
         self.ctx.hlp_indexes = SimpleNamespace(
             indexes=np.array([
                 [0, 0, 0],  # F0=0, F1=0,0
@@ -109,24 +107,20 @@ class TestHlpWmapsCompute(unittest.TestCase):
         # Check iwmap_feature_offset (accumulated n_configurations: [0, 3, 5])
         nptest.assert_array_equal(wmaps.iwmap_feature_offset, np.array([0, 3, 5], dtype=np.uint32))
 
-        # Check feature_w_ranges [fallback, w_min, w_max]
-        # F0: fallback=0, w_min=0, w_max=1
-        # F1: fallback=-1, w_min=2, w_max=3
+        # Check feature_w_ranges [fallback, w_min, w_max] F0: fallback=0, w_min=0, w_max=1 F1:
+        # fallback=-1, w_min=2, w_max=3
         nptest.assert_array_equal(wmaps.feature_w_ranges, np.array([
             [0, 0, 1],
             [-1, 2, 3]
         ], dtype=np.int64))
 
-        # Check iwmap (length 5)
-        # F0 configs (0, 1, 2) -> 0 gets w=1, 1 gets w=0 (fallback), 2 gets w=0 (fallback)
-        # F1 configs (0, 1)    -> 0 gets w=2, 1 gets w=3
+        # Check iwmap (length 5) F0 configs (0, 1, 2) -> 0 gets w=1, 1 gets w=0 (fallback), 2 gets
+        # w=0 (fallback) F1 configs (0, 1)    -> 0 gets w=2, 1 gets w=3
         nptest.assert_array_equal(wmaps.iwmap, np.array([1, 0, 0, 2, 3], dtype=np.int64))
 
-        # Check wmap [fid, config_id, freq]
-        # w=0 (F0 fallback): config_id=-1, freq=2 (from configs 1 and 2)
-        # w=1 (F0 config 0): config_id=0, freq=2
-        # w=2 (F1 config 0): config_id=0, freq=4
-        # w=3 (F1 config 1): config_id=1, freq=4
+        # Check wmap [fid, config_id, freq] w=0 (F0 fallback): config_id=-1, freq=2 (from configs 1
+        # and 2) w=1 (F0 config 0): config_id=0, freq=2 w=2 (F1 config 0): config_id=0, freq=4 w=3
+        # (F1 config 1): config_id=1, freq=4
         nptest.assert_array_equal(wmaps.wmap, np.array([
             [0, -1, 2],
             [0,  0, 2],
@@ -134,17 +128,17 @@ class TestHlpWmapsCompute(unittest.TestCase):
             [1,  1, 4]
         ], dtype=np.int64))
 
-        # Check wmap_fallback [fid, config_id, freq]
-        # F0 config 1 (freq 1) and F0 config 2 (freq 1)
+        # Check wmap_fallback [fid, config_id, freq] F0 config 1 (freq 1) and F0 config 2 (freq 1)
         nptest.assert_array_equal(wmaps.wmap_fallback, np.array([
             [0, 1, 1],
             [0, 2, 1]
         ], dtype=np.int64))
 
     def test_compute_nd_indexes_matches_1d(self):
-        """N-D sanity: a (2, 2, I) pindexes matrix (an any-shape position
-        batch) gives the same wmaps as its C-order (N, I) ravel — the
-        feature columns are the last axis."""
+        """
+        N-D sanity: a (2, 2, I) pindexes matrix (an any-shape position batch) gives the same wmaps
+        as its C-order (N, I) ravel — the feature columns are the last axis.
+        """
         nd_ctx = SimpleNamespace(
             hlp_indexes_checksum="abc123",
             feature_set=self.ctx.feature_set,
@@ -170,8 +164,8 @@ class TestHlpWmapsCompute(unittest.TestCase):
 
         wmaps = hlp_wmaps_compute(self.ctx)
 
-        # With no fallback, every unique config gets its own weight
-        # F0 has 3 configs (w=0, 1, 2), F1 has 2 configs (w=3, 4)
+        # With no fallback, every unique config gets its own weight F0 has 3 configs (w=0, 1, 2), F1
+        # has 2 configs (w=3, 4)
         self.assertEqual(len(wmaps.w), 5)
 
         # wmap_fallback should be empty but maintain shape (0, 3)
@@ -230,8 +224,7 @@ class TestHlpWmapsIO(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.filepath = self.tmp_dir / "wmaps_test.dat"
@@ -320,8 +313,7 @@ class TestHlpWmapsIO(unittest.TestCase):
         self.assertIn("version mismatch", str(context.exception))
 
     def test_store_compressed_by_default(self):
-        """Store writes an LZ4 frame by default and load (the
-        compressed default) round-trips it."""
+        """Store writes an LZ4 frame by default and load (the compressed default) round-trips it."""
         hlp_wmaps_store_to_file(self.wmaps_original, self.filepath)
         with open(self.filepath, "rb") as f:
             self.assertEqual(f.read(4), b"\x04\x22\x4d\x18")  # LZ4 frame magic
@@ -330,8 +322,10 @@ class TestHlpWmapsIO(unittest.TestCase):
         self.assertEqual(wmaps_loaded.cut_off, 42)
 
     def test_load_defaults_reject_uncompressed_file(self):
-        """The compressed default fails loud on a legacy
-        uncompressed file (cache invalidation, not a silent misread)."""
+        """
+        The compressed default fails loud on a legacy uncompressed file (cache invalidation, not a
+        silent misread).
+        """
         with binio.BinaryWriter(str(self.filepath), checksum=False,
                                 compressed=False) as w:
             w.write_header("LMWMaps binary data file", 1)

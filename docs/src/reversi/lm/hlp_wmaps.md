@@ -10,7 +10,7 @@ FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 |---|---|
 | `LMWMaps` | plain class — 8 fields, assigned BY REFERENCE: `hlp_indexes_checksum: str`, `cut_off: int`, `feature_w_ranges` (F,3) int64 [fallback, w_min, w_max], `iwmap_feature_offset` (F+1,) uint32, `iwmap` (K,) int64 (−1 = unseen configuration), `wmap` (W,3) int64 [fid, config_id_or_−1, freq], `wmap_fallback` (F_cut,3) int64, `w` (W,) float32 zeros |
 | `hlp_wmaps_store_to_file(wmaps, filename, compressed=True)` | binio write: header + the checksum string + the i32 cut_off + the 6 arrays in declaration order; LZ4 whole-file frame by default; the sidecar is written by the binio writer |
-| `hlp_wmaps_load_from_file(filename, checksum=True, compressed=True)` | LZ4 guard + decompress, then the sidecar verify (when enabled) + the header gate (description + version) + read back a fresh object |
+| `hlp_wmaps_load_from_file(filename, checksum=True, compressed=True)` | the sidecar verify (when enabled) first, then the LZ4 guard + decompress, the header gate (description + version) + read back a fresh object |
 | `hlp_wmaps_compute(ctx)` | builds a fresh object from the ctx pindexes (NO `@validate_call` — see Conventions) |
 | `hlp_wmaps_is_cache_consistent(ctx, wmaps)` | the pure 2-field metadata compare (NO `@validate_call`) |
 
@@ -41,20 +41,19 @@ FOURTH cache_manager consumer after SU_ANALYSIS, POSITIONS and INDEXES.
 
 ## Verified invariants
 
-Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (15 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated
+Pinned by the 53-call `probes/verify_wmaps.py` + `test_hlp_wmaps.py` (16 tests, no DB) + `test_wrk_wmaps.py` (3 DB-gated
 tests).
 
-- Source shape (probe A1-A12 + B1-B9): module 338 lines (the D-331 format pass: the D-314 reflow + the
-  docstrings, the 3 decision tags out + the 2 dead assignments out), the 5-name `__all__`, exactly 4
+- Source shape (probe A1-A12 + B1-B9): module 337 lines, the 5-name `__all__`, exactly 4
   `@validate_call` (NOT on compute / is_cache_consistent — the no-validation comment), the store write
   order, the 3 load RuntimeError messages, the 2-field compare, 0 non-comment trailing-whitespace lines;
   worker 91 lines, the factory WITH `@validate_call`, the 7-kwargs cache wiring with the `checksum=False`
   load_fn, `_down` clears all 7 INCLUDING `ctx.wmaps_obj_checksum`.
-- The test-source shape (probe C1-C15): `test_hlp_wmaps.py` — the 4 classes / 15 tests, the DB-free header + the
+- The test-source shape (probe C1-C15): `test_hlp_wmaps.py` — the 4 classes / 16 tests, the DB-free header + the
   no-gate / no-DB-import pins, the shared tmp-dir idiom + defensive tearDown, the golden-hash test with the pinned
   literal, the 4 load-path tests, the init class. E9 (live DB, rlm_01): after `move_to_step("WMAPS")` (step 7) the
   per-feature wmap row count == `w_max − w_min + 1` (contiguous ranges).
-- The unit suite (`test_hlp_wmaps.py`, 15 tests, no DB): the compute semantics (both branches — a handcrafted 4×3 mock
+- The unit suite (`test_hlp_wmaps.py`, 16 tests, no DB): the compute semantics (both branches — a handcrafted 4×3 mock
   pindexes: cut_off=2 → the single fallback weight per feature; cut_off=0 → no fallback, the mock-only branch), the 3
   consistency branches (both single-field diffs), the full store/load contract (the 8-field cycle, the golden hash, the
   3 load error paths, both checksum flags), the init validation.

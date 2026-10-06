@@ -68,9 +68,9 @@ class LMWMaps:
         [fid, feature_conf_id, feature_conf_frequency] (the configuration frequency within the dataset).
       w (np.ndarray, shape(W,)) — the model weights vector, initialized to zeros.
 
-    Where: F = the count of features defined by the model (Intercept, Mobilities, Patterns);
-    K = the count of all feature configurations (K = sum(f.n_configurations for f in features));
-    W = the count of all model weights; F_cut = the count of all cut-off configurations.
+    Where: F = the count of features defined by the model (Intercept, Mobilities, Patterns); K = the
+    count of all feature configurations (K = sum(f.n_configurations for f in features)); W = the
+    count of all model weights; F_cut = the count of all cut-off configurations.
     """
 
     @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
@@ -82,16 +82,14 @@ class LMWMaps:
         Initialize the WMaps data object from the computed arrays (all stored by reference).
 
         Args:
-            hlp_indexes_checksum (str): the hash of the Reversi Logistic Model indexes.
-            cut_off (int): the frequency cut-off threshold used to filter rare configurations.
-            feature_w_ranges (np.ndarray): the (F, 3) per-feature [fallback, w_min, w_max] indices.
-            iwmap_feature_offset (np.ndarray): the (F + 1,) per-feature position in the iwmap array.
-            iwmap (np.ndarray): the (K,) configuration -> w-index map (-1 when the configuration is
-                unseen).
-            wmap (np.ndarray): the (W, 3) [fid, config_id_or_-1, frequency] rows.
-            wmap_fallback (np.ndarray): the (F_cut, 3) cut-off-excluded [fid, config_id, frequency]
-                rows.
-            w (np.ndarray): the (W,) model weights vector.
+            hlp_indexes_checksum: the hash of the Reversi Logistic Model indexes.
+            cut_off: the frequency cut-off threshold used to filter rare configurations.
+            feature_w_ranges: the (F, 3) per-feature [fallback, w_min, w_max] indices.
+            iwmap_feature_offset: the (F + 1,) per-feature position in the iwmap array.
+            iwmap: the (K,) configuration -> w-index map (-1 when the configuration is unseen).
+            wmap: the (W, 3) [fid, config_id_or_-1, frequency] rows.
+            wmap_fallback: the (F_cut, 3) cut-off-excluded [fid, config_id, frequency] rows.
+            w: the (W,) model weights vector.
         """
         self.hlp_indexes_checksum = hlp_indexes_checksum
         self.cut_off = cut_off
@@ -128,15 +126,14 @@ class LMWMaps:
 def hlp_wmaps_store_to_file(wmaps: LMWMaps, filename: str | Path, compressed: bool = True) -> None:
     """
     Save the WMaps instance to a binary file: the header (the "LMWMaps binary data file" description
-    + the format version 1) + the checksum string + the i32 cut_off + the 6 arrays in declaration
-    order.
+    + the format version 1) + the checksum string + the i32 cut_off + the 6 arrays in declaration order.
 
     LZ4 whole-file compression by default.
 
     Args:
-        wmaps (LMWMaps): the WMaps instance to store.
-        filename (str | Path): the target file.
-        compressed (bool): the LZ4 whole-file compression (default True).
+        wmaps: the WMaps instance to store.
+        filename: the target file.
+        compressed: the LZ4 whole-file compression (default True).
     """
     filename = Path(filename)
     description = "LMWMaps binary data file"
@@ -164,9 +161,9 @@ def hlp_wmaps_load_from_file(filename: str | Path, checksum: bool = True,
     LZ4 whole-file compression by default.
 
     Args:
-        filename (str | Path): the cache file.
-        checksum (bool): verify the .SHA3-256 sidecar first (default True).
-        compressed (bool): the LZ4 whole-file compression (default True).
+        filename: the cache file.
+        checksum: verify the .SHA3-256 sidecar first (default True).
+        compressed: the LZ4 whole-file compression (default True).
 
     Returns:
         LMWMaps: the reconstructed WMaps instance.
@@ -218,7 +215,7 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
     indices, and the weights vector starts at zero (length = the total count of assigned weights).
 
     Args:
-        ctx (LMContext): the LMContext (the pindexes from the INDEXES level, the feature_set, the
+        ctx: the LMContext (the pindexes from the INDEXES level, the feature_set, the
             frequency_cut_off config).
 
     Returns:
@@ -243,9 +240,8 @@ def hlp_wmaps_compute(ctx: "LMContext") -> LMWMaps:
     col_offset = 0
     for fid, f in enumerate(features):
         cols = list(range(col_offset, col_offset + f.n_instances))
-        # Ellipsis: the feature columns are the LAST axis of the pindexes
-        # matrix (a 1-D position batch gives the classic (N, I) layout;
-        # an N-D batch keeps the same last-axis column layout).
+        # Ellipsis: the feature columns are the LAST axis of the pindexes matrix (a 1-D position
+        # batch gives the classic (N, I) layout; an N-D batch keeps the same last-axis column layout).
         f_pindexes = pindexes[..., cols]
         flat_f_pindexes = f_pindexes.ravel()
 
@@ -330,8 +326,8 @@ def hlp_wmaps_is_cache_consistent(ctx: "LMContext", wmaps: LMWMaps) -> bool:
     The PURE 2-field compare (no DB, no recompute) — the cache_manager validate_fn.
 
     Args:
-        ctx (LMContext): the LMContext (the live hlp_indexes_checksum + the frequency_cut_off).
-        wmaps (LMWMaps): the cached WMaps instance.
+        ctx: the LMContext (the live hlp_indexes_checksum + the frequency_cut_off).
+        wmaps: the cached WMaps instance.
 
     Returns:
         bool: True when both the hlp_indexes_checksum and the cut_off match.
