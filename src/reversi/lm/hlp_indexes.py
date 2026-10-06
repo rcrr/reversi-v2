@@ -62,9 +62,9 @@ class LMIndexes:
         Initialize the LMIndexes instance.
 
         Args:
-            rds_checksum (str): the hash taken from the rds data set.
-            feature_set_hash (str): the hash code of the feature set used to compute the indexes.
-            indexes (IndexArray): the 2D (M, P) uint32 design-matrix index array (each cell is a weight index).
+            rds_checksum: the hash taken from the rds data set.
+            feature_set_hash: the hash code of the feature set used to compute the indexes.
+            indexes: the 2D (M, P) uint32 design-matrix index array (each cell is a weight index).
         """
         self.rds_checksum = rds_checksum
         self.feature_set_hash = feature_set_hash
@@ -102,14 +102,14 @@ def hlp_indexes_store_to_file(
     """
     Save the LMIndexes instance to a binary file.
 
-    LZ4 whole-file compression by default (as in model_weights).
-    Note: the SHA3-256 sidecar is written by the binio writer (the checksum service is on by default); in the
-    pipeline flow cache_manager re-writes the same sidecar (idempotent).
+    LZ4 whole-file compression by default. Note: the SHA3-256 sidecar is written by the binio writer
+    (the checksum service is on by default); in the pipeline flow cache_manager re-writes the same
+    sidecar (idempotent).
 
     Args:
-        hlp_indexes (LMIndexes): the instance to persist.
-        filename (str | Path): the destination path.
-        compressed (bool): True (the default) — the LZ4 whole-file compression.
+        hlp_indexes: the instance to persist.
+        filename: the destination path.
+        compressed: True (the default) — the LZ4 whole-file compression.
     """
     filename = Path(filename)
 
@@ -142,12 +142,12 @@ def hlp_indexes_load_from_file(
     """
     Load the LMIndexes instance from a binary file.
 
-    LZ4 whole-file compression by default (as in model_weights).
+    LZ4 whole-file compression by default.
 
     Args:
-        filename (str | Path): the source path.
-        checksum (bool): True (the default) — verify the SHA3-256 sidecar before reading the file.
-        compressed (bool): True (the default) — the file is LZ4-compressed.
+        filename: the source path.
+        checksum: True (the default) — verify the SHA3-256 sidecar before reading the file.
+        compressed: True (the default) — the file is LZ4-compressed.
 
     Returns:
         LMIndexes: the loaded instance.
@@ -176,7 +176,7 @@ def hlp_indexes_load_from_file(
         #: Read the feature_set_hash
         feature_set_hash = r.read_string()
 
-        # read the data of the 2D indexes matrix
+        # Read the data of the 2D indexes matrix
         indexes = r.read_array()
 
     hlp_indexes = LMIndexes(rds_checksum, feature_set_hash, indexes)
@@ -191,7 +191,7 @@ def hlp_indexes_compute(
     Compute the model indexes from the live context.
 
     Args:
-        ctx ("LMContext"): the live context: the rds_checksum + the feature set (its hash, its indexes).
+        ctx: the live context: the rds_checksum + the feature set (its hash, its indexes).
 
     Returns:
         LMIndexes: the freshly computed instance (the cache layer stores it).
@@ -211,8 +211,8 @@ def hlp_indexes_is_cache_consistent(
     Compare the live configuration with the cached dataset metadata.
 
     Args:
-        ctx ("LMContext"): the live context (the rds_checksum + the feature-set hash).
-        hlp_indexes (LMIndexes): the cached instance.
+        ctx: the live context (the rds_checksum + the feature-set hash).
+        hlp_indexes: the cached instance.
 
     Returns:
         bool: True when both the rds checksum and the feature-set hash match.

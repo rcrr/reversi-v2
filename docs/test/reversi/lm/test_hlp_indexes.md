@@ -1,12 +1,12 @@
 # test/reversi/lm/test_hlp_indexes.py
-The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF — all file I/O MOCKED
+The unit suite of the hlp_indexes domain module. 5 classes / 15 tests / no PERF — all file I/O MOCKED
 (`reversi.lm.hlp_indexes.binio` patched): no temp dirs, no DB, no gates.
 
 ## Coverage
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestLMIndexes` | 3 | `test_init_success` (the 3 attributes, `isinstance np.ndarray` + the uint32 dtype, `assertIs(obj.indexes, DUMMY_INDEXES)` — the by-reference storage contract (pinned in 3 tests: the init, the load and the compute)); `test_init_fails_with_invalid_hash_type` (a non-str `feature_set_hash` = 12345 → the precise pydantic `ValidationError`); `test_init_fails_with_invalid_indexes_type` (a list of lists → the `IndexArray` rejection, with `rds_checksum=` present so the invalid indexes is what's under test) |
+| `TestLMIndexes` | 4 | `test_init_success` (the 3 attributes, `isinstance np.ndarray` + the uint32 dtype, `assertIs(obj.indexes, DUMMY_INDEXES)` — the by-reference storage contract (pinned in 3 tests: the init, the load and the compute)); `test_init_fails_with_invalid_hash_type` (a non-str `feature_set_hash` = 12345 → the precise pydantic `ValidationError`); `test_init_fails_with_invalid_indexes_type` (a list of lists → the `IndexArray` rejection, with `rds_checksum=` present so the invalid indexes is what's under test); `test_repr_one_line_summary` (the exact one-line repr — the two `!r` hashes + the indexes shape `(2, 2)`) |
 | `TestHlpIndexesStoreToFile` (binio mocked) | 2 | `test_store_to_file_success` (`BinaryWriter` instantiated with `Path(filename), compressed=True` + the exact 4-call sequence — `write_header(desc, 1)`, `write_string` ×2, `write_array` — both `assert_has_calls(any_order=False)` and the full `method_calls ==`); `test_store_to_file_accepts_path_object` (a `pathlib.Path` filename passes through unchanged, the `compressed=True` pin as well) |
 | `TestHlpIndexesLoadFromFile` (binio mocked) | 5 | `test_load_from_file_success_with_checksum` (the default `checksum=True` calls `verify_sha3_256_sidecar` exactly once + the `BinaryReader` is opened with `compressed=True` + the round-trip fields — NOTE: both `read_string` mocks return the same "stored_hash", so `rds_checksum` is never asserted here; probe B4 covers the rds field); `test_load_from_file_success_without_checksum` (`checksum=False` → `assert_not_called` on the sidecar verify); `test_load_from_file_checksum_mismatch` (RuntimeError + "checksum file signature doesn't match"); `test_load_from_file_invalid_description` (RuntimeError + "not a proper"); `test_load_from_file_invalid_version` (RuntimeError + "version is not consistent") |
 | `TestHlpIndexesCompute` (NO mock — a fake 'model' object) | 1 | `test_compute_success`: a MagicMock ctx; pins `compute_indexes` called once with the ctx positions ("dummy_positions" — a string, the mock absorbs it), the resulting `feature_set_hash`, and `assertIs` on the returned array |
@@ -32,5 +32,4 @@ The unit suite of the hlp_indexes domain module. 5 classes / 14 tests / no PERF 
 - Independent of the pipeline: no model, no DB, no cache file — the per-function pin of the store/load contract + the
   compute / is_cache_consistent logic.
 - The 52-call probe re-derives the store/load round-trip with REAL files (B3-B8) and the pipeline integration (C2-C7);
-  the check points the probe leaves to the unit tests (B1, B9-B11, B14, C1, C6a/C6b) are pinned by tests in this file
-  or in test_wrk_indexes.py.
+  the check points the probe leaves to the unit tests are pinned by tests in this file or in test_wrk_indexes.py.

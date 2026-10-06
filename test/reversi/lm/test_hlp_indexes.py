@@ -40,9 +40,7 @@
 # time python3 -m unittest test.reversi.lm.test_hlp_indexes
 #
 
-"""
-Unit tests for the reversi.lm.hlp_indexes module.
-"""
+"""Unit tests for the reversi.lm.hlp_indexes module."""
 
 import unittest
 from unittest.mock import patch, call, MagicMock
@@ -98,6 +96,14 @@ class TestLMIndexes(unittest.TestCase):
             )
 
 
+    def test_repr_one_line_summary(self):
+        """The one-line repr: the two hashes + the indexes shape."""
+        obj = hlp_indexes.LMIndexes("abc", "def", DUMMY_INDEXES)
+        self.assertEqual(
+            repr(obj),
+            "LMIndexes(rds_checksum='abc', feature_set_hash='def', indexes=(2, 2))")
+
+
 class TestHlpIndexesStoreToFile(unittest.TestCase):
     """Tests for the hlp_indexes_store_to_file function."""
 
@@ -115,8 +121,7 @@ class TestHlpIndexesStoreToFile(unittest.TestCase):
 
         hlp_indexes.hlp_indexes_store_to_file(rlm_idx, filename)
 
-        # 1. Verify the writer was instantiated correctly (the
-        #    compressed default is passed through)
+        # 1. Verify the writer was instantiated correctly (the compressed default is passed through)
         mock_binio.BinaryWriter.assert_called_once_with(Path(filename), compressed=True)
 
         # 2. Define the exact expected sequence of calls

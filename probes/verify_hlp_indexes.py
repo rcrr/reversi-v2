@@ -108,7 +108,7 @@ check("A7 is_cache_consistent: the 2-field metadata compare (feature_set_hash + 
       and "cached_rds_checksum == expected_rds_checksum" in src
       and "dbname" not in src and "bid" not in src)
 check("A8 the store docstring — the compression default + the true sidecar story (the stale D-084 R1 note corrected: the binio writer writes it, cache_manager re-writes it idempotently; D-326: the D-139 ref out)",
-      "LZ4 whole-file compression by default (as in model_weights)." in src
+      "LZ4 whole-file compression by default." in src
       and "the SHA3-256 sidecar is written by the binio writer" in src
       and "no SHA3-256 sidecar is written by this function" not in src
       and "write_sha3_256_sidecar" not in src)
@@ -355,11 +355,12 @@ check("E7 0 non-comment trailing-whitespace lines (D-084 M1); the tearDown is de
 
 fsrc = (ROOT / "test" / "reversi" / "lm" / "test_hlp_indexes.py").read_text()
 
-check("F1 307 lines, 5 classes / 14 tests (post D-139: the compressed=True mock pins)",
-      len(fsrc.splitlines()) == 307
+check("F1 312 lines, 5 classes / 15 tests (post D-139: the compressed=True mock pins + the one-line repr pin)",
+      len(fsrc.splitlines()) == 312
       and len(re.findall(r"^class Test", fsrc, flags=re.M)) == 5
-      and len(re.findall(r"    def test_", fsrc)) == 14
-      and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc)
+      and len(re.findall(r"    def test_", fsrc)) == 15
+      and "def test_is_cache_consistent_returns_false_rds_differs" in fsrc
+      and "def test_repr_one_line_summary" in fsrc)
 check("F2 no temp-dir machinery at all (every file I/O is mocked — binio patched): no mkdtemp / TemporaryDirectory / CUSTOM_TMP_BASE",
       "mkdtemp" not in fsrc and "TemporaryDirectory" not in fsrc
       and "CUSTOM_TMP_BASE" not in fsrc and "@patch('reversi.lm.hlp_indexes.binio')" in fsrc)
