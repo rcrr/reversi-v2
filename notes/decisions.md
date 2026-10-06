@@ -921,3 +921,20 @@ D-488 | 2026-10-05 | The hlp\_indexes source + test + mirror-doc + probe pass, o
          14 -> 15 re-count + the repr coverage description; the documented rds\_checksum known-gap clause
          (probe-covered, left as-is) stays. (5) probe re-sync (the same-commit pin set): A8 the de-cross-ref docstring
          string, F1 307/14 -> 312/15 + the repr test pin — 52/52 green. Cell: test\_hlp\_indexes 14/0/0 -> 15/0/0.
+
+D-489 | 2026-10-05 | The hlp\_plot source + test + mirror-doc pass, one commit (the user-approved plan incl. the
+         unknown-format micro-test): (1) source 537 -> 533: the batch's main find — the corrupted GPL header ("...will
+         be useful, but / WITHOUT ANY WARRANTY; or the implied warranty" vs the canonical "but WITHOUT ANY WARRANTY;
+         without even the implied warranty": "without even" + "the" missing) restored; the 42 typed Args entries
+         de-typed (the campaign record — the view counted 38, the regex found 42: the builder undercount); the
+         docstrings to the reflow fixed point. (2) test 150 -> 166: the same corrupted GPL header restored + the
+         approved test\_unknown\_format\_raises micro-test (the new TestHlpPlotSaveFigure class): save\_figure's
+         unknown-format ValueError was documented in the API row but pinned by no test and no probe, the R-850 gap;
+         11 -> 12 tests, 12/0/0, reflow fixed point. (3) the source mirror doc 121 -> 120 (back in budget): the 2 tail
+         Integration bullets merged (the 4th repeated the 3rd), the rendering bullet compacted to 3 lines, the
+         "11-test" -> "12-test" re-count + the ValueError pin in the Verified invariants. (4) the test mirror doc: "the
+         18-check probe" -> 19-check (stale — the probe carries 19: A x5 + B x6 + C x7 with C4 doubled; the source doc
+         already said 19), the "the pilot semantics" typo -> "the PlotConfig semantics" (the probe C section is the
+         PlotConfig behaviour), the 11 -> 12 re-count + the new coverage row + the message golden. (5) probe: untouched
+         (A1 pins the 7 names, not the line count; no docstring dependencies — verified before the pass). Cell:
+         test\_hlp\_plot 11/0/0 -> 12/0/0.

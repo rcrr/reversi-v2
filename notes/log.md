@@ -2647,3 +2647,28 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   model\_weights (D-478), hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481),
   hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes
   (D-488) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
+- D-489 (hlp\_plot, un solo D, il piano concordato + il micro-test approvato): (1) sorgente 537 ->
+  533: la scoperta principale della batch — l'header GPL corrotto in ENTRAMBI i file ("will be useful,
+  but / WITHOUT ANY WARRANTY; or the implied warranty" vs il canone "but WITHOUT ANY WARRANTY; without
+  even the implied warranty" — mancavano "without even" e "the"): testo di licenza, ripristinato.
+  Inoltre le 42 Args entries tipizzate de-typizzate (il record della campagna — nella view avevo
+  contato 38, la regex ne trova 42: sottostima sui builders), le docstring al punto fisso di reflow.
+  (2) test 150 -> 166: lo stesso header GPL + il micro-test test\_unknown\_format\_raises (classe
+  nuova TestHlpPlotSaveFigure): il ValueError della save\_figure per formato sconosciuto era
+  documentato ma pinned da nessun test ne' dal probe — gap R-850; 11 -> 12/0/0. (3) source doc 121 ->
+  120 (budget): fusi i 2 bullet finali dell'Integration (il 4° ripeteva il 3°) + il bullet rendering
+  compattato a 3 righe, "11-test" -> "12-test" + il pin del ValueError nei Verified invariants. (4)
+  test doc: "the 18-check probe" -> 19-check (stale — il probe ha 19: A x5 + B x6 + C x7 con C4
+  doppio; il source doc diceva gia' 19), il typo "the pilot semantics" -> "the PlotConfig semantics",
+  i conteggi 11 -> 12 + la riga di coverage nuova + il golden. (5) probe: zero cambi (A1 pinna i 7
+  nomi, non il line count; zero dipendenze da docstring — verificato prima del pass). Cella:
+  test\_hlp\_plot 11 -> 12/0/0.
+- Batch hlp\_plot chiusa (D-489 + onda): il modulo piu' grande della campagna (537 righe, 10 nomi
+  pubblici) ma semanticamente in forma eccellente (la doc piu' fedele di tutte, pin set solido,
+  completezza by design: i builders coperti da probe B1-B3 + worker tier + chain); le macchie erano
+  l'header GPL corrotto (in entrambi i file — la scoperta vera), le 42 entries tipizzate, il conteggio
+  18-vs-19, il typo "pilot" e l'over di 1 riga sul budget. LONG=1 rimesurato: suite 1109 -> 1110/0/24.
+  La cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas
+  (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485),
+  hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489) al
+  canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
