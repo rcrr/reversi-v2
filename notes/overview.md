@@ -89,7 +89,9 @@ define the evaluation function.
   hlp\_indexes the D-488 pass (the 12 de-typed Args entries + the cross-ref drop + the sidecar/LZ4 order repair (the 2nd
   occurrence) + the phantom probe labels + the repr micro-test 14 -> 15/0/0); hlp\_plot the D-489 pass (the corrupted
   GPL header restored in src + test + the 42 de-typed Args entries + the unknown-format micro-test 11 -> 12/0/0 + the
-  18-vs-19 check re-count + the "pilot" typo); suite 1110/0/24 at close).
+  18-vs-19 check re-count + the "pilot" typo); hlp\_su\_analysis the D-490 pass (the 54 de-typed Args entries + the
+  D-tag / R2 / provenance purge in both mirror docs + the sparse unique-merge micro-test 38 -> 39/0/0 + the 46/4
+  annotation pin corrected to 52/32 + the stale F4 probe golden re-cut); suite 1111/0/24 at close).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

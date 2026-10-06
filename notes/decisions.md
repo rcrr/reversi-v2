@@ -938,3 +938,23 @@ D-489 | 2026-10-05 | The hlp\_plot source + test + mirror-doc pass, one commit (
          PlotConfig behaviour), the 11 -> 12 re-count + the new coverage row + the message golden. (5) probe: untouched
          (A1 pins the 7 names, not the line count; no docstring dependencies — verified before the pass). Cell:
          test\_hlp\_plot 11/0/0 -> 12/0/0.
+
+D-490 | 2026-10-05 | The hlp\_su\_analysis source + test + mirror-doc + probe pass, one commit (the user-approved plan
+         incl. the sparse micro-test): the biggest module of the campaign (1160 lines, 32 functions, 38 -> 39 tests).
+         (1) source 1160 -> 1135: the 3 D-tags in the code comments de-tagged, the orphan R2 ruling tag in the load
+         docstring reworded (the failure path), the 54 typed Args entries de-typed (the regex count; the view estimated
+         59), the missing blank line before the TYPE\_CHECKING block, the docstrings to the reflow fixed point. (2) test
+         806 -> 811: the ~20 D-tags + the 2 orphan R2 + the provenance narrative (the "moved here from the retired ..."
+         sentences, the "rarity profile removed, dead in production" block) dropped from the module / class docstrings +
+         the comments; the approved test\_sparse\_unique\_merge micro-test (the TestMarginalAccumulator): the
+         UNIQUE-MERGE branch (n\_conf > 1e6) was documented but pinned by no test — a 14-cell pattern toy fset (n\_conf
+         = 3^14), one chunk == two chunks + the independent hand count; 38 -> 39/0/0. The (R2, R2) of the tests is the
+         toy fixture's pattern NAME, not a tag. (3) the source mirror doc 120 -> 111: the full de-tag (~30 D-xxx + the
+         2 I-020 — the most saturated doc of the campaign), the Verified-invariants "OUTPUT-IDENTICAL against the
+         superseded dict-merge" bullet (the pre/post campaign contrast) rewritten as the current-tense invariant, the
+         stale "46 parameter + 4 return annotations" pin corrected to 52 + 32 (counted via ast over the 32 functions),
+         "the 4 blocks" clarified to "the header + the 3 data blocks". (4) the test mirror doc 88 -> 80: the full de-tag
+         + the narrative drop + the 38 -> 39 re-counts + the sparse coverage row. (5) probe: 40 checks — F4 RED
+         since D-442 (the pre-existing debt, verified in git: the overview rows were underscore-escaped BEFORE D-442,
+         which re-cut the golden in the unescaped form): the golden re-cut in place to the escaped form (name only, zero
+         assertion change) — the probe goes from 1 mismatch to 0. Cell: test\_hlp\_su\_analysis 38/0/0 -> 39/0/0.

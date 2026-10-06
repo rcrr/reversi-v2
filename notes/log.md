@@ -2672,3 +2672,33 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485),
   hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot (D-489) al
   canone R-560; il prossimo modulo della cascata worker/hlp secondo la scelta di Roberto.
+- D-490 (hlp\_su\_analysis, un solo D, il piano concordato, micro-test incluso): il modulo piu' grande
+  della campagna (1160 righe, 32 funzioni, 38 -> 39 test). (1) sorgente 1160 -> 1135: i 3 tag D-XXX
+  nei commenti de-tagati (l'import language comment + i 2 commenti di allineamento colonne), il ruling
+  tag orfano R2 nella docstring del load (failure path), 54 Args entries tipizzate de-typizzate
+  (contaggio regex: nella view avevo stimato 59), la blank line mancante tra l'import Relevance e il
+  TYPE\_CHECKING, le docstring al punto fisso di reflow. (2) test 806 -> 811: ~20 tag D-XXX + 2 R2
+  orfani + le narrative di provenance (moved here from the retired test\_hlp\_random\_play /
+  test\_hlp\_feature\_analysis, il blocco D-301 rarity profile removed dead in production) drop dal
+  module docstring, dalle class docstrings e dai commenti; micro-test test\_sparse\_unique\_merge
+  (classe TestMarginalAccumulator): il branch UNIQUE-MERGE (n\_conf > 1e6) era documentato ma pinned
+  da nessun test — toy fset con pattern da 14 celle (n\_conf = 3^14), 1 chunk == 2 chunk, hand count
+  indipendente; 38 -> 39/0/0. NB: il (R2, R2) dei test e' il nome del pattern del toy fixture (mask
+  8-quadrati), non un tag. (3) source doc 120 -> 111: de-tag completo (~30 D-xxx + 2 I-020, il doc
+  piu' saturo della campagna), il bullet Verified invariants OUTPUT-IDENTICAL against the superseded
+  dict-merge (pre/post contrast di campagna) riscritto a invariante al tempo presente, il pin stale 46
+  parameter + 4 return annotations corretto a 52 e 32 (contato via ast, 32 funzioni), the 4 blocks
+  chiarito in the header + the 3 data blocks. (4) test doc 88 -> 80: de-tag completo, narrative drop,
+  i conteggi 38 -> 39, la riga Coverage del test sparse. (5) probe: 40 check, F4 RED da D-442 (debito
+  preesistente, verificato in git: le righe su\_analysis dell'overview sono escaped da prima di D-442,
+  il golden e' stato re-cutto in forma unescaped) — golden re-cut in place alla forma escaped (solo
+  nome, zero cambio di asserzione): il probe passa da 1 mismatch a 0. Cella: test\_hlp\_su\_analysis
+  38 -> 39/0/0.
+- Batch hlp\_su\_analysis chiusa (D-490, onda): il debito era tutto nel layer doc/tag (i due mirror
+  doc erano changelog di campagna) + il pin F4 rotto, il gap sparse; il codice e' in forma eccellente
+  (kernel hand-pinned, oracoli indipendenti, disciplina position-language). LONG=1 rimesurato: suite
+  1110 -> 1111/0/24. La cascata lm: client (D-476), logistic\_model (D-477), model\_weights (D-478),
+  hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481), hlp\_design\_matrix
+  (D-485), hlp\_final\_log\_print (D-486), hlp\_generate (D-487), hlp\_indexes (D-488), hlp\_plot
+  (D-489), hlp\_su\_analysis (D-490) al canone R-560; il prossimo modulo della cascata worker/hlp
+  secondo la scelta di Roberto.
