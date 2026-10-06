@@ -42,6 +42,11 @@ __all__ = ['wrk_anova']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the ANOVA level: the per-sub-variable effect sizes (eta²/omega²) + the adherence (the
+    graceful-degradation skip when the SU_ANALYSIS corpus is absent) and the report — a no-op with
+    the opt-in log when anova.enable is false.
+    """
     if not ctx.cfg.anova.enable:
         ctx.log_event(Relevance.INFO, "ANOVA disabled (enable: false) — no-op.")
         return
@@ -50,12 +55,11 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
-    # The ANOVA worker publishes nothing on the ctx (a diagnostic);
-    # the down is a no-op (the failure recovery is trivially satisfied).
+    """No-op (the ANOVA worker publishes nothing on the ctx)."""
     ctx.log_event(Relevance.INFO, "ANOVA down (no-op).")
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_anova() -> Worker:
-    """Factory function that returns the ANOVA worker instance."""
+    """Return the ANOVA worker instance."""
     return Worker("ANOVA", _up, _down)

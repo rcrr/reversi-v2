@@ -7,16 +7,16 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
 
 ## API
 - `wrk_anova() -> Worker` — the factory: the `Worker("ANOVA", _up, _down)` (the house worker pattern).
-- `_up(ctx)`: the thin orchestrator (the D-310 split, extended at D-315) — (1) the enable check — `anova.enable`
+- `_up(ctx)`: the thin orchestrator — (1) the enable check — `anova.enable`
   false makes the level a no-op (opt-in); (2) `anova_lines, adherence_lines = hlp_anova_compute_analysis(ctx)`;
   (3) `hlp_anova_generate_report(ctx, anova_lines, adherence_lines)`.
 - `_down(ctx)`: a no-op (recovery is trivially satisfied — the worker publishes nothing on the ctx).
 - The analysis + the outputs live in hlp_anova (mirror: docs/src/reversi/lm/hlp_anova.md): `hlp_anova_compute_analysis`
   (the eta²/omega² per sub-variable + the adherence per sub-variable, the graceful-degradation None branch) +
-  `hlp_anova_generate_report` (the TXT report + the optional CSV) — the D-315 move from this worker.
+  `hlp_anova_generate_report` (the TXT report + the optional CSV).
 
 ## Architecture
-- **The inputs** (read by hlp_anova, the D-315 move) — the `ctx.hlp_indexes.indexes` (the per-position raw codes, the
+- **The inputs** (read by hlp_anova) — the `ctx.hlp_indexes.indexes` (the per-position raw codes, the
   group assignment — the `feature_set.compute_indexes` of the INDEXES level) + the `ctx.game_values` (the continuous
   training game values, the target) + the `ctx.su_analysis_tables` (the corpus frequency tables, the cross-level
   blackboard from the SU_ANALYSIS level).
@@ -41,7 +41,7 @@ SU_ANALYSIS level was disabled (no corpus in the ctx), the adherence is skipped 
   log has one line per sub-variable); the graceful degradation (the tables None -> the adherence SKIPPED, the ANOVA
   runs); the adherence computed (the tables set -> the log has the Adherence lines, the top-N); the report (the TXT is
   written); the down (a no-op).
-- Pinned by the 41-check `probes/verify_anova.py`: the no-cache discipline; the independent math (the ANOVA vs the
+- Pinned by the 42-check `probes/verify_anova.py`: the no-cache discipline; the independent math (the ANOVA vs the
   F identity + scipy's f_oneway + the eta² >= omega² invariant; the adherence trio vs pure-python formulas + the Pinsker
   bound); the CSV path (no test covers it); a live A2050 tier with NO DB — the cached 1e7 area symlinked under
   build/tmp, every ANOVA line and every adherence row recomputed from the caches.
@@ -55,7 +55,7 @@ None.
 - The raw codes (the group assignment) come from the `ctx.hlp_indexes.indexes` (the per-position, per-column code index,
   the `feature_set.compute_indexes`).
 - The ANOVA / the adherence are the hlp_anova kernels — the from-frequency-tables math. `hlp_anova_eta_omega`
-  is SHARED (the D-311): the ANALYTICS pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables)
+  is SHARED with the ANALYTICS level: the pooled eta² (the "Eta-Squared (Discrimination)" line of both feature tables)
   calls the same kernel — the single-instance features' ANALYTICS value == this level's value (pinned by
   `TestEtaSquaredCrossLevel` in test_wrk_analytics).
 
@@ -63,5 +63,5 @@ None.
 - The worker consumes the `ctx.cfg` (the anova config, the enable guard); the analysis inputs — the
   `ctx.feature_set` (the FEATURES level, step 2) + the `ctx.hlp_indexes` (the INDEXES level, step 5) + the
   `ctx.game_values` (the POSITIONS level, step 4) + the `ctx.su_analysis_tables` (the SU_ANALYSIS level, step 3, the
-  cross-level blackboard) — are read by hlp_anova (the D-315 move).
+  cross-level blackboard) — are read by hlp_anova.
 - The full wiring registers the worker at step 6 (after INDEXES, before WMAPS).

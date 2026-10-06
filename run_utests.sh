@@ -68,9 +68,8 @@ MODULES=(
     test.reversi.lm.test_wrk_positions
     test.reversi.lm.test_hlp_indexes
     test.reversi.lm.test_wrk_indexes
-    # test_wrk_anova: the ANOVA worker (the I-017
-    # T17; the eta²/omega² + the adherence, the graceful
-    # degradation; the step 6 position, after INDEXES)
+    # test_wrk_anova: the ANOVA worker (the eta²/omega² + the adherence, the
+    # graceful degradation; the step 6 position, after INDEXES)
     test.reversi.lm.test_wrk_anova
     test.reversi.lm.test_hlp_wmaps
     test.reversi.lm.test_wrk_wmaps

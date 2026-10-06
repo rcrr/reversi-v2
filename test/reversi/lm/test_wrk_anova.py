@@ -24,7 +24,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
+
 #
 # How to run the wrk_anova module unit tests.
 #
@@ -34,20 +34,10 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no database — the mock ctx, the synthetic
-#     indexes + the game values).
+# -1- Run the tests (no database — the mock ctx, the synthetic indexes + the game values).
 #
 # time PERF=0 python3 -m unittest test.reversi.lm.test_wrk_anova
 #
-
-"""
-The ANOVA worker NO-DB suite: the factory (the worker
-name), the enable no-op, the ANOVA (the eta²/omega² per
-sub-variable), the graceful degradation (the adherence
-skipped when the corpus is absent), the adherence (the fixed
-trio, the computed path), the report, and the down (the
-no-op).
-"""
 
 import tempfile
 import unittest
@@ -67,10 +57,10 @@ class _MockIndexes:
 
 
 class _MockCtx:
-    """The no-DB mock context (the worker's blackboard): the
-    cfg, the feature_set, the hlp_indexes (the synthetic raw
-    codes), the game_values, the su_analysis_tables, the
-    log buffer."""
+    """
+    The no-DB mock context (the worker's blackboard): the cfg, the feature_set, the hlp_indexes (the
+    synthetic raw codes), the game_values, the su_analysis_tables, the log buffer.
+    """
 
     def __init__(self, cfg, feature_set, indexes, game_values, tables):
         self.cfg = cfg
@@ -85,12 +75,12 @@ class _MockCtx:
 
 
 def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
-    """A mock ctx over the REAL pipeline's campaign: the facade
-    runs CREATED -> CONFIG -> FEATURES on the rlm_00 fixture (the
-    target_level stop + the base_dir override) and the cfg +
-    the feature_set come from the real context — no parallel
-    loader. The raw codes + the game values stay SYNTHETIC (the
-    DB data, not generatable no-DB)."""
+    """
+    A mock ctx over the REAL pipeline's campaign: the facade runs CREATED -> CONFIG -> FEATURES on
+    the rlm_00 fixture (the target_level stop + the base_dir override) and the cfg + the feature_set
+    come from the real context — no parallel loader. The raw codes + the game values stay SYNTHETIC
+    (the DB data, not generatable no-DB).
+    """
     rlm = LogisticModel(str(WORKSPACE_ROOT / "test" / "reversi" /
                             "data" / "rlm_00.json"),
                         verbosity=Verbosity.NONE,
@@ -112,9 +102,10 @@ def _make_ctx(tmp, enable=True, tables=None, n_positions=100, seed=7):
 
 
 class TestWrkAnova(unittest.TestCase):
-    """The ANOVA worker NO-DB suite: the factory, the
-    enable no-op, the ANOVA, the graceful degradation, the
-    adherence, the report, the down (the no-op)."""
+    """
+    The ANOVA worker NO-DB suite: the factory, the enable no-op, the ANOVA, the graceful
+    degradation, the adherence, the report, the down (the no-op).
+    """
 
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -128,17 +119,17 @@ class TestWrkAnova(unittest.TestCase):
         self.assertEqual(w.name, "ANOVA")
 
     def test_enable_no_op(self):
-        # The opt-in: the enable false makes the level a
-        # no-op (the "disabled" log).
+        # The opt-in: the enable false makes the level a no-op (the "disabled" log).
         ctx, _ = _make_ctx(self.tmp, enable=False)
         _up(ctx)
         self.assertTrue(any("disabled" in m for (_r, m) in ctx.events))
+        # The no-op consequence: no report dir is created.
+        self.assertFalse((self.tmp / "anova").exists())
 
     def test_anova(self):
-        # The eta²/omega² per sub-variable: the log has one
-        # ANOVA line per sub-variable (the instance count). Counted
-        # by the "eta2" marker (the "ANOVA report written" line
-        # also says ANOVA now — the level name).
+        # The eta²/omega² per sub-variable: the log has one ANOVA line per sub-variable (the
+        # instance count). Counted by the "eta2" marker (the "ANOVA report written" line also says
+        # ANOVA now — the level name).
         ctx, blocks = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
         n_sub = sum(ni for (_n, c0, c1, _nc, ni) in blocks)
@@ -146,17 +137,16 @@ class TestWrkAnova(unittest.TestCase):
         self.assertEqual(n_lines, n_sub)
 
     def test_adherence_graceful_degradation(self):
-        # The tables None (the SU_ANALYSIS disabled): the
-        # adherence is SKIPPED (the log note), the ANOVA runs.
+        # The tables None (the SU_ANALYSIS disabled): the adherence is SKIPPED (the log note), the
+        # ANOVA runs.
         ctx, _ = _make_ctx(self.tmp, enable=True, tables=None)
         _up(ctx)
         self.assertTrue(any("SKIPPED" in m for (_r, m) in ctx.events))
         self.assertTrue(any("ANOVA" in m for (_r, m) in ctx.events))
 
     def test_adherence_computed(self):
-        # The tables set (the ideal = the synthetic distribution):
-        # the adherence is computed (the log has the Adherence
-        # lines, the top-N).
+        # The tables set (the ideal = the synthetic distribution): the adherence is computed (the
+        # log has the Adherence lines, the top-N).
         ctx, blocks = _make_ctx(self.tmp, enable=True, tables=None)
         marginal = []
         for (name, c0, c1, n_conf, n_inst) in blocks:

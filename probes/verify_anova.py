@@ -2,7 +2,7 @@
 #
 # verify_anova.py
 #
-# Probe pinning the ANOVA level (the I-017 step 6): the
+# Probe pinning the ANOVA level (step 6): the
 # worker (src/reversi/lm/wrk_anova.py) + the ANOVA family it
 # consumes (the two kernels + the compute / report methods, in the
 # hlp_anova module) + its cross-level input (ctx.su_analysis_tables,
@@ -537,9 +537,9 @@ for rel in ("docs/src/reversi/lm/wrk_anova.md",
             "docs/test/reversi/lm/test_wrk_anova.md"):
     check(f"F2  the D-007 mirror exists: {rel}", (ROOT / rel).exists())
 overview = (ROOT / "notes" / "overview.md").read_text()
-check("F3  the overview rows name the worker + its suite",
-      "src/reversi/lm/wrk_anova.py" in overview
-      and "test_wrk_anova" in overview)
+check("F3  the overview rows name the worker + its suite (the underscore-escaped forms)",
+      "src/reversi/lm/wrk\_anova.py" in overview
+      and "test\_wrk\_anova.py" in overview)
 check("F4  the level is OPT-IN in the shipped configs: no production fixture "
       "(rlm_01..rlm_04) enables it",
       all('"anova"' not in (ROOT / "test" / "reversi" / "data"
