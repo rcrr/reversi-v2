@@ -33,7 +33,7 @@ file — see the worker doc).
 Pinned by the 51-call `probes/verify_zed.py` + `test_hlp_zed.py` (10 tests, no DB) + `test_wrk_zed.py` (3 tests, 2
 DB-gated).
 
-- Source shape (probe A1-A12): 103 lines, the 3-name `__all__`, exactly 3 `@validate_call` (init, hash, factory — NOT
+- Source shape (probe A1-A12): 129 lines, the 3-name `__all__`, exactly 3 `@validate_call` (init, hash, factory — NOT
   compute, with the no-validation note), the affine constants pinned, the compute body, no cache API, 0 non-header
   trailing-whitespace lines.
 - The worker file shape (probe B1-B8): 73 lines, the factory WITH `@validate_call` + the pydantic import, NO
@@ -46,7 +46,7 @@ DB-gated).
   reached (no rlmwf_09*).
 - The cross-module facts (probe F1/F4/F5): LMContext's 4 zed fields pre-declared; the dedicated test exists (10 tests,
   no DB wiring); the mirror docs exist.
-- The unit suite (10 tests, no DB): the factory math (both branches + 2-clippling endpoints), the mock compute (the
+- The unit suite (10 tests, no DB): the factory math (both branches + 2-clipplings endpoints), the mock compute (the
   exact (4,) golden + the hash identity), the init validation (2 ValidationError pins + by-reference).
 - The live golden (DB-gated, `test_wrk_zed.py`): the (10,) y/z literals — the single source of truth.
 
@@ -68,7 +68,7 @@ None.
 ## Integration
 
 - Pipeline ordering: `ctx.game_values` (POSITIONS — the (N,) int8 vector, values in [−64, +64]) +
-  `ctx.cfg.stat_model. logit_clipping` (CONFIG) must be set before `hlp_zed_compute` runs — the SM half-open interval
+  `ctx.cfg.stat_model.logit_clipping` (CONFIG) must be set before `hlp_zed_compute` runs — the SM half-open interval
   semantics guarantee every up-move to step 9 passes through both. No other upstream dependency (the
   FEATURES/INDEXES/WMAPS/DESIGN_MTR outputs are NOT consumed by ZED).
 - The worker recomputes on EVERY up-move (no cache file, no `is_allowed` switch — the uniform 7-kwargs cache_manager

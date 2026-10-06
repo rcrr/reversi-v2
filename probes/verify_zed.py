@@ -40,41 +40,41 @@ def lines_of(relpath):
 
 # ---------------------------------------------------------------- A tier
 rlm = lines_of('hlp_zed.py')
-check('A1  hlp_zed.py is 103 lines (post T6 note + T7 decorator)', len(rlm) == 103, f'{len(rlm)}')
-check('A2  __all__ = class + compute + factory (L42-44)',
-      rlm[41] == "__all__ = ['LMZed',"
-      and rlm[42] == "           'hlp_zed_compute',"
-      and rlm[43] == "           'zed_fun_factory']")
-check('A3  class LMZed at L48', rlm[47].startswith('class LMZed'))
-check('A4  __init__ @validate_call (L53-54) w/ arbitrary_types_allowed',
-      rlm[52] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and rlm[53] == '    def __init__(self,')
-check('A5  compute_sha3_256_hash decorated (L62-63), hashes z.tobytes() only (L65)',
-      rlm[61] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and rlm[62] == '    def compute_sha3_256_hash(self) -> str:'
-      and rlm[64] == '        hasher.update(self.z.tobytes())')
-check('A6  T7 DONE: zed_fun_factory decorated (L70) + def (L71)',
-      rlm[69] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
-      and rlm[70] == 'def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],')
-check('A7  factory math pins: a=0.5 (L78), b=(1-2c)/128 (L79), a1 (L85), b1 (L86)',
-      rlm[77] == '    a = np.float32(0.5)'
-      and rlm[78] == '    b = np.float32((1. - 2. * logit_clipping) / 128.)'
-      and rlm[84] == '    a1 = np.float32(-64. / (1. - 2. * logit_clipping))'
-      and rlm[85] == '    b1 = np.float32(128. / (1. - 2. * logit_clipping))')
-check('A8  T6 DONE: the no-validation note at L94 above hlp_zed_compute (L95)',
-      rlm[93] == '#: Here validation is not possible, it brings in a convoluted issue with circular imports.'
-      and rlm[94] == 'def hlp_zed_compute(ctx: "LMContext") -> LMZed:'
+check('A1  hlp_zed.py is 129 lines (post T6 note + T7 decorator)', len(rlm) == 129, f'{len(rlm)}')
+check('A2  __all__ = class + compute + factory (L41-43)',
+      rlm[40] == "__all__ = ['LMZed',"
+      and rlm[41] == "           'hlp_zed_compute',"
+      and rlm[42] == "           'zed_fun_factory']")
+check('A3  class LMZed at L46', rlm[45].startswith('class LMZed'))
+check('A4  __init__ @validate_call (L49-50) w/ arbitrary_types_allowed',
+      rlm[48] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
+      and rlm[49] == '    def __init__(self,')
+check('A5  compute_sha3_256_hash decorated (L67), hashes z.tobytes() only (L79)',
+      rlm[66] == '    @validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
+      and rlm[67] == '    def compute_sha3_256_hash(self) -> str:'
+      and rlm[78] == '        hasher.update(self.z.tobytes())')
+check('A6  T7 DONE: zed_fun_factory decorated (L84) + def (L85)',
+      rlm[83] == '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))'
+      and rlm[84] == 'def zed_fun_factory(logit_clipping: float) -> Tuple[Callable[[npt.NDArray[np.int8]], npt.NDArray[np.float32]],')
+check('A7  factory math pins: a=0.5 (L98), b=(1-2c)/128 (L99), a1 (L105), b1 (L106)',
+      rlm[97] == '    a = np.float32(0.5)'
+      and rlm[98] == '    b = np.float32((1. - 2. * logit_clipping) / 128.)'
+      and rlm[104] == '    a1 = np.float32(-64. / (1. - 2. * logit_clipping))'
+      and rlm[105] == '    b1 = np.float32(128. / (1. - 2. * logit_clipping))')
+check('A8  T6 DONE: the no-validation note at L114 above hlp_zed_compute (L115)',
+      rlm[113] == '#: Here validation is not possible, it brings in a convoluted issue with circular imports.'
+      and rlm[114] == 'def hlp_zed_compute(ctx: "LMContext") -> LMZed:'
       and sum(1 for l in rlm if 'Here validation is not possible' in l) == 1)
-check('A9  compute body: alpha (L99), y = ctx.game_values (L101), z = y2z(y) (L102)',
-      rlm[98] == '    alpha = ctx.cfg.stat_model.logit_clipping'
-      and rlm[100] == '    y = ctx.game_values'
-      and rlm[101] == '    z = y2z(y)')
+check('A9  compute body: alpha (L125), y = ctx.game_values (L127), z = y2z(y) (L128)',
+      rlm[124] == '    alpha = ctx.cfg.stat_model.logit_clipping'
+      and rlm[126] == '    y = ctx.game_values'
+      and rlm[127] == '    z = y2z(y)')
 check('A10 no cache API in hlp_zed (no store / load / is_cache_consistent)',
       not any(k in l for l in rlm for k in ('def hlp_zed_store', 'def hlp_zed_load', 'def hlp_zed_is_cache')))
 check('A11 TYPE_CHECKING guard for LMContext (L37-38)',
       rlm[36] == 'if TYPE_CHECKING:' and rlm[37] == '    from reversi.lm.logistic_model import LMContext')
-check('A12 T8 DONE: trailing-ws lines = header only (6,11,16,21)',
-      {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == {6, 11, 16, 21})
+check('A12 T8 DONE: 0 trailing-ws lines',
+      {i + 1 for i, l in enumerate(rlm) if l != l.rstrip()} == set())
 # (A13/A14/A15 factory(0.02) golden + round-trip + endpoints deleted
 #  at D-106 step 3, class c: test_hlp_zed.py::TestZedFunFactory pins
 #  the same — test_factory_alpha_0.02_golden (the same literal),
@@ -216,12 +216,11 @@ finally:
 # ---------------------------------------------------------------- F tier (cross)
 lm_lines = lines_of('logistic_model.py')
 check('F1  LMContext zed fields pre-declared (the block shifts with every '
-      'insertion above it: the config_checksum, the D-148/D-149 imports, '
-      'the I-018 vld_y_pred / vld_rn / vld_outliers fields)',
-      lm_lines[146] == '    zed_checksum: str | None = None'
-      and lm_lines[147] == '    y2z: Any = None'
-      and lm_lines[148] == '    z2y: Any = None'
-      and lm_lines[149] == '    z: Any = None')
+      'insertion above it)',
+      lm_lines[147] == '    zed_checksum: str | None = None'
+      and lm_lines[148] == '    y2z: Any = None'
+      and lm_lines[149] == '    z2y: Any = None'
+      and lm_lines[150] == '    z: Any = None')
 # (F2/F3 pipeline-state pins moved to the hub verify_logistic_model.py
 # V3c/V3d at D-106)
 check('F4  T3 DONE: dedicated test_hlp_zed.py exists, 10 tests, no DB wiring',
@@ -236,15 +235,15 @@ check('F5  D-007 mirror docs written for all 4 zed files (post-campaign state)',
 
 # ---------------------------------------------------------------- G tier (dedicated suite)
 gd = lines_of('test/test_hlp_zed.py')
-check('G1  test_hlp_zed.py is 157 lines', len(gd) == 157, f'{len(gd)}')
+check('G1  test_hlp_zed.py is 156 lines', len(gd) == 156, f'{len(gd)}')
 check('G2  no DB / no gate / no tmp wiring: no logistic_model import, no SKIP_REGAB_DB, no paths import, no import os',
       all(k not in '\n'.join(gd) for k in ('from reversi.lm.logistic_model', 'SKIP_REGAB_DB',
                                            'test.reversi.paths', 'import os')))
-check('G3  3 classes (L59/90/119): TestZedFunFactory + TestHlpZedCompute + TestLMZed',
-      gd[58] == 'class TestZedFunFactory(unittest.TestCase):'
-      and gd[89] == 'class TestHlpZedCompute(unittest.TestCase):'
-      and gd[118] == 'class TestLMZed(unittest.TestCase):')
-check('G4  factory goldens: alpha 0.02 literal [0.02, 0.5, 0.545, 0.98] + round-trip + 2-clippling endpoints',
+check('G3  3 classes (L58/89/118): TestZedFunFactory + TestHlpZedCompute + TestLMZed',
+      gd[57] == 'class TestZedFunFactory(unittest.TestCase):'
+      and gd[88] == 'class TestHlpZedCompute(unittest.TestCase):'
+      and gd[117] == 'class TestLMZed(unittest.TestCase):')
+check('G4  factory goldens: alpha 0.02 literal [0.02, 0.5, 0.545, 0.98] + round-trip + 2-clipplings endpoints',
       'expected = np.array([0.02, 0.5, 0.545, 0.98], dtype=np.float32)' in '\n'.join(gd)
       and 'def test_round_trip' in '\n'.join(gd)
       and 'def test_endpoints_for_two_clipplings' in '\n'.join(gd)
@@ -262,8 +261,8 @@ check('G7  hash golden: the rlm_01 (10,) literal pinned to 3d49fd5d...f365d9b2',
       "'3d49fd5d56ced2f7bb70e5c24c8100b3318a7e66e7c990de53ed2f16f365d9b2'" in '\n'.join(gd))
 check('G8  header: no-DB claim ("no live regab DB required — the compute test")',
       'no live regab DB required' in '\n'.join(gd))
-check('G9  T8 clean: trailing-ws lines = header only (6,11,16,21)',
-      {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == {6, 11, 16, 21})
+check('G9  T8 clean: 0 trailing-ws lines',
+      {i + 1 for i, l in enumerate(gd) if l != l.rstrip()} == set())
 check('G10 the 3 domain names imported (LMZed / hlp_zed_compute / zed_fun_factory)',
       'from reversi.lm.hlp_zed import (LMZed,' in '\n'.join(gd)
       and 'hlp_zed_compute,' in '\n'.join(gd)

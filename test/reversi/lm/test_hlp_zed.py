@@ -3,22 +3,22 @@
 #
 # This file is part of the reversi program
 # http://github.com/rcrr/reversi
-# 
+#
 # Author Roberto Corradini mailto:rob_corradini@yahoo.it
 # Copyright 2026 Roberto Corradini. All rights reserved.
 #
 # License
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
@@ -35,8 +35,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no live regab DB required — the compute test
-#     uses a handcrafted mock context, as in test_hlp_design_matrix).
+# -1- Run the tests (no live regab DB required — the compute test uses a handcrafted mock context,
+# as in test_hlp_design_matrix).
 #
 # time python3 -m unittest test.reversi.lm.test_hlp_zed
 #
@@ -51,9 +51,8 @@ import numpy.testing as nptest
 from pydantic import ValidationError
 
 from reversi.lm.hlp_zed import (LMZed,
-                           hlp_zed_compute,
-                           zed_fun_factory)
-
+                               hlp_zed_compute,
+                               zed_fun_factory)
 
 
 class TestZedFunFactory(unittest.TestCase):
@@ -101,8 +100,8 @@ class TestHlpZedCompute(unittest.TestCase):
         self.assertIsInstance(zed, LMZed)
         self.assertTrue(callable(zed.y2z))
         self.assertTrue(callable(zed.z2y))
-        # Hand-derived: z = 0.5 + y * (1 - 2*0.03) / 128 — the same
-        # float32 literals the rlm_01 pipeline golden pins exactly.
+        # Hand-derived: z = 0.5 + y * (1 - 2*0.03) / 128 — the same float32 literals the rlm_01
+        # pipeline golden pins exactly.
         expected = np.array([0.5734375, 0.764375, 0.3384375, 0.646875],
                             dtype=np.float32)
         self.assertEqual(zed.z.dtype, np.float32)
@@ -139,11 +138,11 @@ class TestLMZed(unittest.TestCase):
         y2z, z2y = self._closures()
         with self.assertRaises(ValidationError):
             LMZed(y2z="not_callable", z2y=z2y,
-                                    z=np.array([0.5], dtype=np.float32))
+                 z=np.array([0.5], dtype=np.float32))
 
     def test_hash_golden(self):
-        # The rlm_01 live golden z (10,) float32 — the pipeline
-        # checksum is the sha3_256 of z.tobytes() only.
+        # The rlm_01 live golden z (10,) float32 — the pipeline checksum is the sha3_256 of
+        # z.tobytes() only.
         z = np.array([0.5734375, 0.764375, 0.3384375, 0.6321875, 0.3825,
                       0.6028125, 0.3384375, 0.646875, 0.5, 0.5146875],
                      dtype=np.float32)
