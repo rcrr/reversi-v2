@@ -2601,3 +2601,27 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   (D-478), hlp\_config\_schemas (D-479), hlp\_analytics (D-480), hlp\_anova (D-481),
   hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486) al canone R-560; il prossimo modulo
   della cascata worker/hlp secondo la scelta di Roberto.
+- D-487 (hlp\_generate, un solo D, il piano concordato + i 2 gap approvati da Roberto): (1) sorgente
+  229 -> 226: i 2 R-540 nei commenti store/load (LZ4 D-139) e quello nel blocco inference semantics
+  (D-098, Roberto's ruling) via, la riga codice wide L168 (124 char) sanata con l'estrazione del
+  messaggio in msg + il log\_event (byte-identico, il test pinna il substrato), la docstring
+  compute\_w\_dense: first line imperative (Computes -> Compute) e i bullet convertiti in paragrafo
+  (il dry-run ha mostrato che il reflow appiattisce i bullet in prose storta), i 4 header bare. (2) test 333 -> 340:
+  header x4 + i 2 micro-test approvati: test\_store\_and\_load\_with\_str\_filename (il contratto str
+  | Path era pinned solo come Path — il gap R-850 di D-485) e
+  test\_pattern\_logs\_weighted\_mean\_and\_fallback (i 2 INFO log della branch pattern erano
+  documentati ma non pinned); 16 -> 18/0/0. (3) source doc: i 2 tag via ((the D-098 ruling) + (the
+  ruling comment)) e il conteggio 19 -> 21-test pair (18 no-DB + 3 DB-gated); la doc era fedele (le 6
+  wide lines sono righe di tabella esenti, il 6th cache\_manager consumer verificato in ordine di
+  pipeline, i 3 rami riga per riga). (4) test doc: the R2 semantics via, "The 2 additions" -> "The
+  compression-default pair" (campaign tag), i conteggi 16 -> 18 + le 2 righe di coverage + il golden
+  dei 2 INFO log. (5) probe: 18-check invariato e verde — pinna solo presenza di stringhe, ne' righe
+  ne' docstring: il pass e' probe-safe. Cella: test\_hlp\_generate 16 -> 18/0/0.
+- Batch hlp\_generate chiusa (D-487 + onda): il modulo con le macchie piu' variegate della campagna
+  (3 D-tag tra commenti e doc, la prima riga codice wide, il docstring con i bullet) ma
+  semanticamente sano (doc fedele, pin set completo: 18-check probe + 16+3 test); dopo i 2 micro-test
+  e' a 18/0/0. LONG=1 rimesurato: suite 1106 -> 1108/0/24. La cascata lm: client (D-476),
+  logistic\_model (D-477), model\_weights (D-478), hlp\_config\_schemas (D-479), hlp\_analytics
+  (D-480), hlp\_anova (D-481), hlp\_design\_matrix (D-485), hlp\_final\_log\_print (D-486),
+  hlp\_generate (D-487) al canone R-560; il prossimo modulo della cascata worker/hlp secondo la
+  scelta di Roberto.

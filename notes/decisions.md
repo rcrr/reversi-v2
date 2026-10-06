@@ -886,3 +886,22 @@ D-486 | 2026-10-05 | The hlp\_final\_log\_print source + mirror-doc pass, one co
          otherwise faithful (the write-asymmetry, the NO-trailing-newline content + the 5/8 live-line shape verified
          against the state machine's format\_event\_log / \_format\_event\_line, the pin set A3 / B2 / B3 / B4 all real
          and green). No suite cell moves (no test touched).
+
+D-487 | 2026-10-05 | The hlp\_generate source + test + mirror-doc pass, one commit (the user-approved plan incl. the 2
+         completeness micro-tests): (1) source 229 -> 226: the 3 R-540 tags dropped (the 2x store/load "(D-139, as in
+         model\_weights)" comments + the "(D-098, Roberto's ruling)" inference-semantics comment), the 124-char WARN
+         line repaired (the message extracted to a msg variable + ctx.log\_event — byte-identical, the test pins the
+         substring), the compute\_w\_dense docstring made imperative ("Computes" -> "Compute") with its bullets
+         converted to a paragraph (the dry-run showed the reflow flattens docstring bullets into mangled prose), the 4
+         bare header lines stripped, reflow fixed point. (2) test 333 -> 340: the 4 bare header lines + the 2 approved
+         micro-tests — test\_store\_and\_load\_with\_str\_filename (the documented str | Path contract was pinned only
+         as Path, the R-850 gap class of D-485) and test\_pattern\_logs\_weighted\_mean\_and\_fallback (the 2
+         pattern-branch INFO logs were documented but pinned by no test); 16 -> 18 tests, 18/0/0, reflow fixed point.
+         (3) the source mirror doc: the 2 tags dropped ("(the D-098 ruling)", "(the ruling comment)"), the pin-set count
+         re-measured (the 19-test pair -> the 21-test pair: 18 no-DB + 3 DB-gated); the doc was otherwise faithful (the
+         6 wide lines are exempt table rows, the "6th cache\_manager consumer" verified in pipeline order, the 3
+         category branches line by line). (4) the test mirror doc: "the R2 semantics" dropped, "The 2 additions" -> "The
+         compression-default pair" (the campaign-addition narrative), the re-count 16 -> 18 + the 2 coverage
+         descriptions + the INFO-log goldens. (5) probe: the 18-check pin set untouched and green — it pins string
+         presence only (no line counts, no docstring text), so the pass is probe-safe. Cell: test\_hlp\_generate
+         16/0/0 -> 18/0/0.
