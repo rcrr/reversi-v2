@@ -2,7 +2,7 @@
 """
 Verification probe for the CONFIG level (the ad-hoc cache
 flow is removed — the CONFIG level is a pure load+validate step; the
-config record moved to the SAVE sidecar pair).
+config record is EMBEDDED in the v2 model file at SAVE).
 
 Independently re-derives the module's invariants against the real test
 config (test/reversi/data/rlm_00.json) with a scratch base dir under

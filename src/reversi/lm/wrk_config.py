@@ -31,7 +31,7 @@ import os
 import json5
 import hashlib
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 from pathlib import Path
 
 from pydantic import ConfigDict, validate_call
@@ -49,6 +49,10 @@ __all__ = ['wrk_config']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the CONFIG level: load + validate the LM JSON5 config, publish the model (ctx.cfg), the
+    use_cache flag and the config fingerprint (the sha3_256 of the normalized dump) on the context.
+    """
     ctx.log_event(Relevance.INFO, f"Loading configuration file '{ctx.config_file_path}' ...")
     cfg = _load(ctx)
     ctx.log_event(Relevance.INFO, f"Configuration file {ctx.config_file_path} loaded.")
@@ -59,22 +63,28 @@ def _up(ctx: "LMContext") -> None:
     ctx.log_event(Relevance.INFO, f"Model base_dir: {cfg.base_dir}")
     ctx.use_cache = cfg.use_cache
     ctx.cfg = cfg
-    # The config fingerprint: the sha3_256 of the normalized
-    # dump (the effective configuration of the run, the base_dir
-    # override included) — the single source of truth for the SAVE
-    # config record and the analytics report.
+    # The config fingerprint: the sha3_256 of the normalized dump (the effective configuration of
+    # the run, the base_dir override included) — the single source of truth for the SAVE config
+    # record and the analytics report.
     ctx.config_checksum = hashlib.sha3_256(
         cfg.model_dump_json(indent=4).encode()).hexdigest()
     ctx.log_event(Relevance.INFO,
                   f"Configuration fingerprint (sha3_256): {ctx.config_checksum}")
 
+
 def _down(ctx: "LMContext") -> None:
+    """Clear the three context attributes the CONFIG level publishes."""
     ctx.log_event(Relevance.INFO, "Clearing configuration...")
     ctx.cfg = None
     ctx.use_cache = None
     ctx.config_checksum = None
 
+
 def _load(ctx: "LMContext") -> LMConfig:
+    """
+    Load the config file (json5, UTF-8), apply the optional base_dir override to the raw dict, and
+    return the domain model.
+    """
     with ctx.config_file_path.open("r", encoding="utf-8") as f:
         config_raw_data = json5.load(f)
         ctx.log_event(Relevance.DEBUG, f"JSON file '{ctx.config_file_path}' read.")
@@ -86,10 +96,17 @@ def _load(ctx: "LMContext") -> LMConfig:
     cfg = LMConfig(**config_raw_data)
     return cfg
 
+
 def _validate(ctx: "LMContext", cfg: LMConfig) -> None:
+    """Run the config gates (the base_dir checks, the precise OS exception types)."""
     _validate_base_dir(ctx, cfg)
 
+
 def _validate_base_dir(ctx: "LMContext", cfg: LMConfig) -> None:
+    """
+    The three base_dir gates, each logged at ERROR before the raise: FileNotFoundError (doesn't
+    exist), NotADirectoryError (is not a directory), PermissionError (is not writable).
+    """
     if not cfg.base_dir.exists():
         error_message = f"The base dir: '{cfg.base_dir}' doesn't exist."
         ctx.log_event(Relevance.ERROR, error_message)
@@ -104,7 +121,8 @@ def _validate_base_dir(ctx: "LMContext", cfg: LMConfig) -> None:
         ctx.log_event(Relevance.ERROR, error_message)
         raise PermissionError(error_message)
 
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_config() -> Worker:
-    """Factory function that returns the CONFIG worker instance."""
+    """Return the CONFIG worker instance."""
     return Worker("CONFIG", _up, _down)

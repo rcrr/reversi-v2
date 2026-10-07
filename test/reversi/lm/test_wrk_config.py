@@ -26,8 +26,7 @@
 #
 
 #
-#
-# How to use the unit tests wrk_config module.
+# How to run the wrk_config unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -68,8 +67,7 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
@@ -98,8 +96,7 @@ class TestLMWorkerConfig(unittest.TestCase):
         rlm.move_to_step('CREATED')
         self.assertEqual(rlm.current_step, 0)
         self.assertEqual(rlm.current_worker_name, 'CREATED')
-        # The _down reset is pinned — both context
-        # artifacts are cleared (the fingerprint too).
+        # The _down reset is pinned — both context artifacts are cleared (the fingerprint too).
         self.assertIsNone(rlm.context.cfg)
         self.assertIsNone(rlm.context.use_cache)
         self.assertIsNone(rlm.context.config_checksum)
@@ -139,10 +136,11 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.assertEqual(value, expected_value)
 
     def test_config_fingerprint(self):
-        """The config fingerprint is the sha3_256 of the
-        normalized dump (the effective configuration, the base_dir
-        override included) — the single source of truth for the SAVE
-        config record and the analytics report."""
+        """
+        The config fingerprint is the sha3_256 of the normalized dump (the effective configuration,
+        the base_dir override included) — the single source of truth for the SAVE config record and
+        the analytics report.
+        """
         self.rlm.move_to_step('CONFIG')
         ctx = self.rlm.context
         expected = hashlib.sha3_256(
@@ -150,9 +148,10 @@ class TestLMWorkerConfig(unittest.TestCase):
         self.assertEqual(ctx.config_checksum, expected)
 
     def test_no_cache_file_written(self):
-        """The CONFIG level writes NOTHING to the base dir —
-        the ad-hoc cache flow is gone (the config record is a SAVE
-        artifact, next to the model file)."""
+        """
+        The CONFIG level writes NOTHING to the base dir — the ad-hoc cache flow is gone (the config
+        record is a SAVE artifact, next to the model file).
+        """
         self.rlm.move_to_step('CONFIG')
         rlmwf = [p.name for p in self.tmp_dir.iterdir()
                  if p.name.startswith('rlmwf_')]
@@ -172,8 +171,8 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
 
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
-        # Schema-complete payload: valid EXCEPT the one field each test
-        # breaks, so the assertions pin the constraint under test.
+        # Schema-complete payload: valid EXCEPT the one field each test breaks, so the assertions
+        # pin the constraint under test.
         self.valid_json_content = {
             "name": "Test Model",
             "empty_count": 20,
@@ -219,9 +218,8 @@ class TestLMWorkerConfigValidation(unittest.TestCase):
         file_path.write_text("{ this is not valid json }")
         
         rlm = LogisticModel(file_path, verbosity=Verbosity.LOW, base_dir_override=self.tmp_dir)
-        # Pin the actual exception — json5 0.15.0 raises
-        # a plain ValueError on a syntax error (no JSON5Exception in
-        # this version), before pydantic ever sees the payload.
+        # Pin the actual exception — json5 0.15.0 raises a plain ValueError on a syntax error (no
+        # JSON5Exception in this version), before pydantic ever sees the payload.
         with self.assertRaises(ValueError):
             rlm.move_to_step('CONFIG')
 
@@ -271,8 +269,7 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         if getattr(self, 'patcher_stdout', None) is not None:
             self.patcher_stdout.stop()
         if getattr(self, '_tmp', None) is not None:
-            # Restore write permissions before deleting (the
-            # not-writable test leaves the dir at 0o444).
+            # Restore write permissions before deleting (the not-writable test leaves the dir at 0o444).
             try:
                 os.chmod(self.tmp_dir, 0o755)
             except OSError:
@@ -305,13 +302,10 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         self.assertIn("not writable", str(context.exception))
 
     def test_base_dir_missing_raises_file_not_found_error(self):
-        """Test that a base_dir that doesn't exist (from the json, no
-        override) raises FileNotFoundError from the CONFIG worker.
-
-        probe_rules.md §4: the third base_dir guard
-        branch, converted from the verify_wrk_config.py D1 probe.
-        The file (NotADirectoryError) and not-writable (PermissionError)
-        branches are pinned above."""
+        """
+        A base_dir from the JSON (no override) that doesn't exist raises FileNotFoundError from the
+        CONFIG worker (the third base_dir guard branch).
+        """
         payload = json5.loads(
             (WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json").read_text())
         payload["base_dir"] = str(Path(self.tmp_dir) / "no_such_dir_xyz")
@@ -323,6 +317,25 @@ class TestLMWorkerConfigBaseDir(unittest.TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             rlm.move_to_step('CONFIG')
         self.assertIn("doesn't exist", str(context.exception))
+
+    def test_base_dir_from_json_is_a_file_raises_error(self):
+        """
+        The worker's NotADirectoryError gate: a base_dir from the JSON (no override) pointing at an
+        existing FILE raises NotADirectoryError from the CONFIG worker.
+        """
+        fake_file = Path(self.tmp_dir) / "base_dir_is_a_file.txt"
+        fake_file.touch()
+        payload = json5.loads(
+            (WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json").read_text())
+        payload["base_dir"] = str(fake_file)
+        json_path = Path(self.tmp_dir) / "rlm_00_isfile.json"
+        with open(json_path, "w") as f:
+            json5.dump(payload, f)
+
+        rlm = LogisticModel(json_path, verbosity=Verbosity.LOW)
+        with self.assertRaises(NotADirectoryError) as context:
+            rlm.move_to_step('CONFIG')
+        self.assertIn("not a directory", str(context.exception))
 
 
 if __name__ == '__main__':

@@ -1,8 +1,8 @@
 # reversi/lm/wrk_config.py
-The CONFIG worker of the LM pipeline — the second level, the first non-sentinel. It loads the LM JSON5 config file,
-validates it into the hlp_config_schemas domain model, computes the config fingerprint (`ctx.config_checksum`, the
-sha3_256 of the normalized dump), and publishes the model (and the `use_cache` flag) on the context for the workers that
-follow. It writes NO cache file; the configuration provenance is EMBEDDED in the v2 model file at SAVE.
+The CONFIG worker of the LM pipeline — the 1st active level (step 1), the first non-sentinel. It loads the LM JSON5
+config file, validates it into the hlp_config_schemas domain model, computes the config fingerprint (`ctx.config_checksum`,
+the sha3_256 of the normalized dump), and publishes the model (and the `use_cache` flag) on the context for the workers
+that follow. It writes NO cache file; the configuration provenance is EMBEDDED in the v2 model file at SAVE.
 
 ## API
 
@@ -29,7 +29,7 @@ follow. It writes NO cache file; the configuration provenance is EMBEDDED in the
 
 ## Verified invariants
 
-Pinned by `probes/verify_wrk_config.py` (15 checks) + `test_wrk_config.py` (13 tests, 3 classes).
+Pinned by `probes/verify_wrk_config.py` (15 checks) + `test_wrk_config.py` (14 tests, 3 classes).
 
 - Source shape: the `__all__` name, the factory name "CONFIG", the module callables, the 5 privates — probe section A.
 - The loaded state: `ctx.cfg` a LMConfig, name round-trip, `use_cache` True from the config, `ctx.config_checksum` ==
@@ -40,8 +40,9 @@ Pinned by `probes/verify_wrk_config.py` (15 checks) + `test_wrk_config.py` (13 t
 - The repeat-run behaviour: the second up is a pure load with a STABLE fingerprint (probe C1), the `_down` reset (cfg,
   use_cache, config_checksum — probe C3).
 - The failure behaviour: the invalid json5 → `ValueError` (json5 0.15.0 raises a plain ValueError), the base_dir gates
-  with the precise OS types (the a-file → `NotADirectoryError` raised in the FACADE `__init__`, the not-writable →
-  `PermissionError`, the missing → `FileNotFoundError`) — `TestLMWorkerConfigBaseDir`.
+  with the precise OS types (the a-file override → `NotADirectoryError` in the FACADE `__init__`, the a-file from
+  the JSON → the worker's own gate, the not-writable → `PermissionError`, the missing → `FileNotFoundError`) —
+  `TestLMWorkerConfigBaseDir`.
 - The integration: the bare (un-injected) context keeps the no-op closure lambda (probe E4a), `rlm_00.json` is NOT plain
   JSON (json5 load-bearing, probe E6), the down log line (probe E7).
 
@@ -66,4 +67,4 @@ None.
   file) and by `hlp_analytics` — the report line).
 - The configuration PROVENANCE (the normalized dump + the checksum) is EMBEDDED by the SAVE level in the v2 model file
   (wrk_save.md).
-- Test fixture: `src/reversi/test/data/rlm_00.json` (JSON5).
+- Test fixture: `test/reversi/data/rlm_00.json` (JSON5).

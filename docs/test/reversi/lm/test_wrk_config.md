@@ -1,5 +1,5 @@
 # test/reversi/lm/test_wrk_config.py
-The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
+The test module of the CONFIG worker. 3 classes / 14 tests / no PERF gates.
 
 ## Coverage
 
@@ -7,7 +7,7 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
 |---|---|
 | `TestLMWorkerConfig` (6) | the moves: up (step 1, name `CONFIG`, `ctx.cfg` set), down (back to step 0 `CREATED` + the `cfg`/`use_cache`/`config_checksum` reset), the with-cache round-trip CONFIG → CREATED → CONFIG, the `properties` bag round-trip from the fixture, the fingerprint (`ctx.config_checksum` == sha3_256 of `model_dump_json(indent=4)`), and the no-cache state (NO `rlmwf_*` file in the base dir after an up) |
 | `TestLMWorkerConfigValidation` (4) | one constraint per test over a schema-complete payload: invalid json5 → `ValueError` (json5 0.15.0 raises a plain ValueError — this version exposes no JSON5Exception), ec 99 → ValidationError, invalid status list → ValidationError, invalid hex mask → ValidationError |
-| `TestLMWorkerConfigBaseDir` (3) | the three `_validate_base_dir` gates with the precise OS types: the a-file → `NotADirectoryError` (raised in the FACADE `__init__`, not the worker), the not-writable (chmod 0o444, chmod-back in tearDown) → `PermissionError`, the missing → `FileNotFoundError` (the D1 test: the fixture loaded with json5, `base_dir` pointed at a non-existent dir, re-dumped to a temp json, passed WITHOUT an override) |
+| `TestLMWorkerConfigBaseDir` (4) | the three `_validate_base_dir` gates with the precise OS types: the a-file via `base_dir_override` → `NotADirectoryError` (raised in the FACADE `__init__`, not the worker), the a-file from the JSON (no override: the fixture loaded with json5, `base_dir` pointed at an existing file, re-dumped to a temp json) → the worker's `NotADirectoryError`, the not-writable (chmod 0o444, chmod-back in tearDown) → `PermissionError`, the missing from the JSON (no override: re-dumped to a temp json) → `FileNotFoundError` |
 
 ## Goldens pinned
 
@@ -16,7 +16,7 @@ The test module of the CONFIG worker. 3 classes / 13 tests / no PERF gates.
   EMBEDDED model-file config provenance and the analytics report line.
 - The no-cache state: the base dir holds NO `rlmwf_*` file after `move_to_step('CONFIG')` (the configuration provenance
   is EMBEDDED in the model file at SAVE).
-- The invalid-case payloads (one constraint each over the schema-complete payload — `ec=10`, `status ["CMS"]`, the
+- The invalid-case payloads (one constraint each over the schema-complete payload — `ec=20`, `status ["CMS"]`, the
   `FFFFFFFFFFFFFFFF` mobility, the `00000000000000FF` pattern): `ec=99`, `status=["INVALID"]`,
   `mask="ZZZZZZZZZZZZZZZZ"`.
 - The gate messages: "not a directory", "not writable", "doesn't exist" (assertIn on the exception text, lower-case

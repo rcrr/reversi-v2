@@ -183,7 +183,7 @@ define the evaluation function.
 | test/reversi/lm/test\_wrk\_analytics.py | complete | 15/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_analytics.md](docs/test/reversi/lm/test\_wrk\_analytics.md) |
 | test/reversi/lm/test\_wrk\_anova.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_anova.md](docs/test/reversi/lm/test\_wrk\_anova.md) |
 | test/reversi/lm/test\_wrk\_client\_check.py | complete | 7/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_client\_check.md](docs/test/reversi/lm/test\_wrk\_client\_check.md) |
-| test/reversi/lm/test\_wrk\_config.py | complete | 13/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_config.md](docs/test/reversi/lm/test\_wrk\_config.md) |
+| test/reversi/lm/test\_wrk\_config.py | complete | 14/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_config.md](docs/test/reversi/lm/test\_wrk\_config.md) |
 | test/reversi/lm/test\_wrk\_design\_matrix.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_design\_matrix.md](docs/test/reversi/lm/test\_wrk\_design\_matrix.md) |
 | test/reversi/lm/test\_wrk\_features.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_features.md](docs/test/reversi/lm/test\_wrk\_features.md) |
 | test/reversi/lm/test\_wrk\_final\_log\_print.py | complete | 6/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_final\_log\_print.md](docs/test/reversi/lm/test\_wrk\_final\_log\_print.md) |
