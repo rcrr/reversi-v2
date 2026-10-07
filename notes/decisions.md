@@ -1192,3 +1192,19 @@ D-502 | 2026-10-07 | The wrk\_gradient source + test + mirror-doc + probe pass: 
          returns...' form, now the normalized imperative), C2 (clause 2 to the reflow's re-wrapped header text), C3 (the
          import-os clause dropped) — 0 mismatch on the post-pass run. Reflow last (canonical on both files). No cell
          change (4/0/0/0/0 — the micro-pin is an assert in an existing test), suite flat 1114/0/24.
+
+D-503 | 2026-10-07 | The wrk\_indexes source + test + mirror-doc + probe pass: (1) source 80 -> 86: the 2 missing
+         docstrings added (`_up` / `_down`), the factory first line normalized to the imperative, the 2 long lines split
+         (the 106-char `validate_fn` line split BEFORE the call so the probe D5-pinned substring
+         `hlp_indexes_is_cache_consistent(ctx, cached_hlp_indexes)` stays contiguous on one physical line; the 102-char
+         checksum log line split with the message unchanged), and the unused `LMIndexes` import dropped (the first dead
+         NAME import of the cascade — the worker only uses the 4 hlp functions, never the class; the probe does not pin
+         the import). (2) test 155 -> 150: the header's extra bare '#' dropped, the unused `import os` dropped, reflow.
+         No micro-test: the `_down` clearing is documented as probe-only in the test mirror doc (the C7 division). (3)
+         the source mirror doc 60 -> 60: the header canon (the 5th active level, step 5 — the redundant worker chain
+         dropped), the '80-line file' claim dropped, and the fidelity fix of the spurious space in the quoted code
+         (`hlp_indexes_compute (ctx)` -> `hlp_indexes_compute(ctx)`). The 'THIRD `cache_manager` consumer (after
+         `SU_ANALYSIS` and POSITIONS)' claim verified coherent with the empirical D-501 count. (4) the test mirror doc:
+         clean — zero fixes. (5) the probe (verify\_hlp\_indexes.py, the worker's D/E tiers): 2 line-count-only re-pins
+         — D1 (80 -> 86) and E1 (155 -> 150) — 0 mismatch on the post-pass run. Reflow last (canonical on both files).
+         No cell change (2/0/0/0/0), suite flat 1114/0/24.

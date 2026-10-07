@@ -2913,3 +2913,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Probe: 5 re-pin (B1 65 -> 72, B5 la chiamata split, B9 il factory docstring — il probe pinnaVA la
   forma deviante —, C2 il header re-wrap, C3) — 0 mismatch al post-pass. Reflow ultimo. Suite flat
   1114/0/24 (cella 4/0/0/0/0 invariata). Restano 5 coppie: da wrk\_wmaps a wrk\_save.
+- D-503 (wrk\_indexes, un solo D): sorgente 80 -> 86: i 2 docstring mancanti (\_up/\_down), il
+  factory normalizzato, le 2 long lines split (quella di validate\_fn con lo split PRIMA della
+  chiamata per tenere il substring pin D5 contiguo, quella del log checksum), e l'import LMIndexes
+  non usato tolto (il primo import morto di 'nome' della cascata — il worker usa solo i 4 fns). Test
+  155 -> 150: il bare # nel header, l'import non usato os tolto, reflow. Source doc 60 -> 60:
+  l'header in canone (step 5), il line-count claim 80 tolti, e la fidelity fix dello spazio spurio
+  'hlp\_indexes\_compute (ctx)' nella quote del codice. Test doc: pulito (con la division of labor
+  dichiarata: il \_down è probe-only, tier C7). Il claim 'THIRD cache\_manager consumer' verificato
+  coerente col conteggio empirico (SU=1°, POS=2°, IND=3°). Probe: 2 re-pin di sola shape (D1 80 ->
+  86, E1 155 -> 150) — 0 mismatch al post-pass. Reflow ultimo. Suite flat 1114/0/24 (cella 2/0/0/0/0
+  invariata). Restano 5 coppie: da wrk\_wmaps a wrk\_save.
