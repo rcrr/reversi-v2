@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_gradient unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,15 +34,13 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_gradient
 #
 
 import unittest
-import os
 import tempfile
 from types import SimpleNamespace
 
@@ -66,17 +63,15 @@ class TestLMWorkerGradient(unittest.TestCase):
     """Tests the GRADIENT worker integration and exact values using rlm_02.json."""
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # the worker test needs the live regab DB (the setUp moves to
-        # ZED, which runs the positions chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker test needs the live regab DB (the
+        # setUp moves to ZED, which runs the positions chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean, especially for large datasets
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -115,6 +110,12 @@ class TestLMWorkerGradient(unittest.TestCase):
         # Evaluate the function at the initial weights (all zeros)
         f, g = ctx.fg(ctx.w)
 
+        # The variant log line names the built variant (rlm_02 -> the classic path) — the event
+        # buffer (independent of the LOW verbosity console gate).
+        self.assertTrue(
+            any("Gradient function generated (high_performance: False)." in e.message
+                for e in self.rlm.sm.logs))
+
         # Assertions on outputs
         expected_f = np.float32(0.02049378)
         nptest.assert_allclose(f, expected_f, rtol=1e-6, atol=1e-7)
@@ -129,8 +130,7 @@ class TestLMWorkerGradient(unittest.TestCase):
         nptest.assert_allclose(g[2980], expected_g_2980, rtol=1e-4, atol=1e-7)
 
     def test_down_clears_gradient(self):
-        # The _down clearing: from GRADIENT back to ZED, the worker
-        # must clear ctx.fg.
+        # The _down clearing: from GRADIENT back to ZED, the worker must clear ctx.fg.
         self.rlm.move_to_step('GRADIENT')
         self.assertEqual(self.rlm.current_step, 10)
         self.assertIsNotNone(self.rlm.context.fg)
@@ -142,10 +142,10 @@ class TestLMWorkerGradient(unittest.TestCase):
 
 
 class TestGradientFlagWiring(unittest.TestCase):
-    """The high_performance_fg config flag wiring: the
-    GRADIENT worker reads optimization.high_performance_fg +
-    hi_perf_blocks and builds the matching fg variant.
-    Mock context (no DB)."""
+    """
+    The high_performance_fg flag wiring on a mock context (no DB): the worker builds the matching fg
+    variant (the high_performance marker pin).
+    """
 
     def _mock_ctx(self, high_performance):
         from reversi.tools.state_machine import Context

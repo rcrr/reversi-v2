@@ -95,7 +95,7 @@ check("A15 I-013 flag + variant marker",
 print("== tier B: wrk_gradient.py structure (post D-094)")
 b = read("wrk_gradient.py")
 bl = b.splitlines()
-check("B1 line count 65", len(bl) == 65, f"{len(bl)}")
+check("B1 line count 72", len(bl) == 72, f"{len(bl)}")
 check("B2 worker name", 'Worker("GRADIENT", _up, _down)' in b)
 check("B3 T2 factory @validate_call + pydantic import",
       "from pydantic import validate_call, ConfigDict" in b and
@@ -106,28 +106,27 @@ check("B4 non-cache comment",
 check("B5 _up sets fg (I-013: the config flag is passed; D-325: + the block count)",
       "high_performance = ctx.cfg.optimization.high_performance_fg" in b
       and "hi_perf_blocks = ctx.cfg.optimization.hi_perf_blocks" in b
-      and "ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance, "
-      "hi_perf_blocks=hi_perf_blocks)" in b
+      and "ctx.fg = hlp_gradient_compute(" in b
+      and "        ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)" in b
       and 'f"Gradient function generated (high_performance: {high_performance})."' in b)
 check("B6 _down clears fg", "ctx.fg = None" in b)
 check("B7 no ws lines", ws_lines(b) == set(), str(sorted(ws_lines(b))))
 check("B8 M4 triple blanks kept (house worker style, L39-41 + L43-45)",
       all(bl[i] == "" for i in (38, 39, 40, 42, 43, 44)))
 check("B9 factory docstring",
-      '"""Factory function that returns the GRADIENT worker instance."""' in b)
+      '"""Return the GRADIENT worker instance."""' in b)
 
 # ---------------------------------------------------------------- C tier
 print("== tier C: test_wrk_gradient.py structure (post D-094)")
 c = read("test/test_wrk_gradient.py")
 cl = c.splitlines()
-check("C1 line count 184 (D-130: the tier note adds a header line)", len(cl) == 184, f"{len(cl)}")
+check("C1 line count 184", len(cl) == 184, f"{len(cl)}")
 check("C2 header gate claim (D-130 tier wording)",
       "a live regab DB + LONG=1 is required;" in c and
-      "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in c and
+      "SKIP_REGAB_DB=1 skips the DB-gated tests" in c and
       "VLONG=1 implies LONG, see test.reversi.tags" in c)
 code_no_header = "\n".join(ln for ln in cl if not ln.strip().startswith("#"))
 check("C3 T5 gate in code (D-130: the db_long_gate idiom)",
-      "import os" in code_no_header and
       "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in code_no_header and
       "# The SKIP_REGAB_DB gate, as in test_regab" in c)
 check("C4 T6 D-085 idiom",

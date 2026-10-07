@@ -1,9 +1,9 @@
 # reversi/lm/wrk_gradient.py
-The GRADIENT worker of the LM pipeline: builds the loss/gradient closure in `_up` (reading the `high_performance_fg`
-flag + the `hi_perf_blocks` block count from `ctx.cfg.optimization` and passing both to `hlp_gradient_compute`) and
-clears it in `_down`. The SECOND non-cache level (after ZED):
-the comment documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache needed."
-No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
+The GRADIENT worker of the LM pipeline — the 10th active level (step 10): builds the loss/gradient closure in `_up`
+(reading the `high_performance_fg` flag + the `hi_perf_blocks` block count from `ctx.cfg.optimization` and passing
+both to `hlp_gradient_compute`) and clears it in `_down`. The SECOND non-cache level (after ZED): the comment
+documents the on-the-fly choice — "GRADIENT building is a closure generation, very fast. No cache needed." No
+cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
 
 ## API
 
@@ -22,17 +22,17 @@ No cache_manager wiring, no rlmwf_09* / rlmwf_10* file ever.
   `ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)` → INFO
   "Gradient function generated (high_performance: {True|False})." (the log line names the built variant).
 - `_down`: INFO "Clearing gradient function..." → `ctx.fg = None`.
-- The house-style triple blank lines (before `__all__` and before `_up`) — the canonical pattern of all 8 worker files.
+- The house-style triple blank lines (before `__all__` and before `_up`) — the canonical pattern of the worker files.
 
 ## Verified invariants
 
 Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 4-test suite (2 classes: the DB-gated pair +
 `TestGradientFlagWiring`).
 
-- Source shape (probe B1-B9): the 65-line file, `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
+- Source shape (probe B1-B9): `__all__ = ['wrk_gradient']`, the factory WITH `@validate_call` + the
   pydantic import, NO cache_manager import (the by-design comment pinned), `_up` reads the `high_performance_fg` flag
   + `hi_perf_blocks`, sets `ctx.fg` (passing both) and logs the variant, `_down` clears it, `Worker("GRADIENT", ...)`.
-- The worker-test source shape (probe C1-C11): the 182-line file, the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
+- The worker-test source shape (probe C1-C11): the 2 classes / 4 tests (the 2 DB-gated rlm_02 tests +
   the no-DB TestGradientFlagWiring pair), the gate, the idiom, the step pins, the 4 goldens, the _down test, the wiring
   test (C11: the worker + the Context-subclass mock + the marker pin), 0 non-comment ws lines.
 - The full pipeline through GRADIENT (live DB, probe D0 + D5-D10 + D12, rlm_02 — 199952 positions): the pipeline
@@ -42,7 +42,7 @@ Pinned by the `probes/verify_gradient.py` B + C + D + E + G tiers + the 4-test s
   intercept, no mobilities).
 - The cross-file facts (probe E1/E4-E8): LMContext's `fg` field pre-declared; scipy in pyproject.toml + in the venv; the
   `ridge_regularization` field; the rlm_02 config.
-- The dedicated suite (probe G1-G9): the 272-line file, 3 classes / 14 tests, no DB wiring, the goldens pinned (the
+- The dedicated suite (probe G1-G9): 3 classes / 15 tests, no DB wiring, the goldens pinned (the
   TestHighPerformanceFg class: the equivalence, the f32 contract, the determinism, the markers).
 - The live goldens (DB-gated): `test_generate_gradient` (the 4 pinned values at w=0, rlm_02 → the classic path) +
   `test_down_clears_gradient` (the step-9 / "ZED" / fg-None pin) — `test_wrk_gradient.py`.

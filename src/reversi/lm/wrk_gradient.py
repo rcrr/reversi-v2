@@ -44,22 +44,29 @@ __all__ = ['wrk_gradient']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the GRADIENT level: build the loss/gradient closure via hlp_gradient_compute, and publish it
+    on the context (ctx.fg), with the high_performance flag + the hi_perf_blocks count.
+    """
     ctx.log_event(Relevance.INFO, "Building gradient and loss function (fg)...")
 
     # GRADIENT building is a closure generation, very fast. No cache needed.
     high_performance = ctx.cfg.optimization.high_performance_fg
     hi_perf_blocks = ctx.cfg.optimization.hi_perf_blocks
-    ctx.fg = hlp_gradient_compute(ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)
+    ctx.fg = hlp_gradient_compute(
+        ctx, high_performance=high_performance, hi_perf_blocks=hi_perf_blocks)
 
     ctx.log_event(Relevance.INFO,
                   f"Gradient function generated (high_performance: {high_performance}).")
 
+
 def _down(ctx: "LMContext") -> None:
+    """Clear the gradient/loss closure published on the context (ctx.fg)."""
     ctx.log_event(Relevance.INFO, "Clearing gradient function...")
     ctx.fg = None
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_gradient() -> Worker:
-    """Factory function that returns the GRADIENT worker instance."""
+    """Return the GRADIENT worker instance."""
     return Worker("GRADIENT", _up, _down)
