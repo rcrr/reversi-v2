@@ -1155,3 +1155,21 @@ D-500 | 2026-10-07 | The wrk\_final\_log\_print source + test + mirror-doc pass 
          post-pass, zero re-pins. Reflow last (canonical on both files; the 4 lines over 100 it re-joins in the test are
          its own fixed point, all under the 120 ceiling). No cell change (6/0/0/0/0 — the micro-pin is an assert in an
          existing test), suite flat 1114/0/24.
+
+D-501 | 2026-10-07 | The wrk\_generate source + test + mirror-doc pass (3 files — the probe and the test doc untouched):
+         (1) source 78 -> 85: the 3 missing docstrings added (`_up` / `_down` / and the factory — the first
+         docstring-LESS factory of the cascade, all the others had at least the 'Factory function that returns...'
+         line), the 102-char log line split over 2 physical lines (the message unchanged). (2) test 186 -> 181: the
+         header's extra bare '#' dropped, the unused `import os` dropped (the probe does not pin it), the E261
+         inline-comment spacing fixed (1 -> 2 spaces before the comment on the rlm2 OPTIMIZE move), the reflow re-joins
+         the comment blocks. (3) the source mirror doc 56 -> 56: the header canon (the 12th active level, step 12 — the
+         level phrase was missing entirely). The suspicious 'The 6th cache\_manager consumer' claim was VERIFIED TRUE by
+         an empirical grep over all 19 workers: exactly 7 cache\_manager\_load\_or\_compute consumers in pipeline order
+         (SU\_ANALYSIS, POSITIONS, INDEXES, WMAPS, DESIGN\_MTR, GENERATE, VLD\_POSITIONS) — ZED/GRADIENT/OPTIMIZE do not
+         use it (custom checkpoints), consistent with the design\_matrix doc's 'FIFTH consumer' claim. (4) the test
+         mirror doc: clean — zero fixes. No R-850 micro-test: this is the first cascade worker with the `_down` scope
+         pinned IN THE SUITE (test\_down\_clears\_generate\_attributes — move\_to\_step(11), both fields None);
+         use\_cache=False is the cache\_manager's territory (pinned there), the duck-typed checksum identity is pinned
+         in test 1. (5) the probe: 0 mismatch pre- and post-pass, zero re-pins (no line-count/title/import pins — as
+         in D-500). Reflow last (canonical on both files; the first-drafted 101/103-char docstring line was re-wrapped
+         to the fitting form). No cell change (3/0/0/0/0), suite flat 1114/0/24.

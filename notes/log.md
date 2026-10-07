@@ -2890,3 +2890,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   0 mismatch pre- e post-pass, zero re-pin (verificato: nessun pin di title/line-count/comment).
   Reflow ultimo. Suite flat 1114/0/24 (cella 6/0/0/0/0 invariata — il micro-pin è un assert in un
   test esistente). Restano 7 coppie: da wrk\_wmaps a wrk\_save.
+- D-501 (wrk\_generate, un solo D, 3 file — probe e test doc non toccati): sorgente 78 -> 85: i 3
+  docstring mancanti (incluso il factory — il primo factory senza docstring della cascata), il long
+  line a 102 split (messaggio log intatto). Test 186 -> 181: il bare # in più nel header, l'import
+  non usato os tolto, lo spazio mancante prima del comment inline (E261), i commenti ri-accoppiati.
+  Source doc 56 -> 56: l'header in canone ("the 12th active level (step 12)" — mancava la frase del
+  livello). Il claim sospetto '6th cache\_manager consumer' VERIFICATO VERO: grep su tutti i 19
+  worker -> 7 consumer in ordine (SU, POSITIONS, INDEXES, WMAPS, DESIGN\_MTR, GENERATE,
+  VLD\_POSITIONS); ZED/GRADIENT/OPTIMIZE non lo usano (checkpoint custom). Test doc: pulito. Good
+  news: è il primo worker con il down pinned nella SUITE (test\_down\_clears\_generate\_attributes) —
+  zero micro-test R-850. Probe: 0 mismatch, zero re-pin (come a D-500). Reflow ultimo. Suite flat
+  1114/0/24 (cella 3/0/0 invariata). Restano 6 coppie: da wrk\_wmaps a wrk\_save.

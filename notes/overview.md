@@ -110,7 +110,8 @@ define the evaluation function.
   shape re-pins — outside the 9-pair list); wrk\_features the D-499 pass (the 6 missing docstrings + the 9 100+ log
   lines + the guard class docstring + the A1/C1 probe re-pins); wrk\_final\_log\_print the D-500 pass (the 2 missing
   \_up/\_down docstrings + the title canon + the D-322 purge + the R-850 micro-pin + the stale 'set after CONFIG' fix);
-  the 7 remaining worker pairs: wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate, wrk\_vld\_positions,
+  wrk\_generate the D-501 pass (the 3 missing docstrings — the first docstring-less factory — + the 6th-consumer claim
+  verified true); the 6 remaining worker pairs: wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_vld\_positions,
   wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
