@@ -42,9 +42,10 @@ __all__ = ['wrk_final_log_print']
 
 
 def _up(ctx: "LMContext") -> None:
-    # The optional gate: the config entry is the switch —
-    # the absent log_file_name (the default None) is a clean no-op
-    # (the file is NOT generated).
+    """
+    Run the FINAL_LOG_PRINT level: write the full run log (via the hlp writer) — the absent
+    log_file_name is a clean no-op (the file is NOT generated).
+    """
     if ctx.cfg.log_file_name is None:
         ctx.log_event(Relevance.INFO, "FINAL_LOG_PRINT skipped: no log_file_name.")
         return
@@ -52,13 +53,11 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
-    # The worker publishes nothing on the ctx (the file is a base_dir
-    # artifact, the _down does not unlink it); the down is a no-op
-    # (the failure recovery is trivially satisfied).
+    """No-op down: the worker publishes nothing on the context (the file is NOT unlinked)."""
     ctx.log_event(Relevance.INFO, "FINAL_LOG_PRINT down (no-op).")
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_final_log_print() -> Worker:
-    """Factory function that returns the FINAL_LOG_PRINT worker instance."""
+    """Return the FINAL_LOG_PRINT worker instance."""
     return Worker("FINAL_LOG_PRINT", _up, _down)

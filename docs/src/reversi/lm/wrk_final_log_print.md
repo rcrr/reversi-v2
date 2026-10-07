@@ -1,10 +1,10 @@
 # reversi/lm/wrk_final_log_print.py
-The FINAL_LOG_PRINT worker (the 19th level, the pipeline's LAST level): it writes the FULL RUN LOG to a file —
-every buffered event of every level at the maximum relevance (the machine's event log buffer, captured independently of
-the display verbosity gate) in the live console line format. The level is OPTIONAL: the config entry `log_file_name`
-(default None, the entry absent in every existing fixture/config) is the gate — absent entry, the level is a no-op and
-the file is NOT generated. The down is a no-op — the worker publishes nothing on the ctx (the file is a base_dir
-artifact, the `_down` does not unlink it).
+The FINAL_LOG_PRINT worker (the 19th active level (step 19), the pipeline's LAST level): it writes the FULL RUN LOG
+to a file — every buffered event of every level at the maximum relevance (the machine's event log buffer, captured
+independently of the display verbosity gate) in the live console line format. The level is OPTIONAL: the config
+entry `log_file_name` (default None, the entry absent in every existing fixture/config) is the gate — absent entry,
+the level is a no-op and the file is NOT generated. The down is a no-op — the worker publishes nothing on the ctx
+(the file is a base_dir artifact, the `_down` does not unlink it).
 
 ## API
 - `wrk_final_log_print() -> Worker` — the factory: the `Worker("FINAL_LOG_PRINT", _up, _down)` (the house worker
@@ -37,9 +37,10 @@ artifact, the `_down` does not unlink it).
 - Pinned by `test_wrk_final_log_print.py` (5 NO-DB tests + 1 LONG-tier e2e): the factory (the FINAL_LOG_PRINT name);
   the config-gate no-op (no file, the "skipped" log); the full-log write (the file under base_dir with the full
   buffered content); the base_dir subdir path (the parents created); the down (a no-op). The e2e (the rlm_00 full
-  chain, `log_file_name` set after CONFIG, verbosity NONE — nothing prints, the buffer captures everything): step 19 /
-  FINAL_LOG_PRINT last, the write-asymmetry pins (the "Starting" line IN, the "Completed" + "full log written" lines
-  OUT, the line count == the buffer at the write).
+  chain, `log_file_name` in the config from the start — the tmp fixture copy, verbosity NONE — nothing
+  prints, the buffer captures everything): step 19 / FINAL_LOG_PRINT last, the write-asymmetry pins (the
+  "Starting" line IN, the "Completed" + "full log written" lines OUT, the line count == the buffer at the
+  write).
 - Pinned by `probes/verify_final_log_print.py` (12 checks, no DB): the module structure (the factory, the skip
   branch, the hlp writer, the config field, the machine method + injection, the registration last in
   logistic_model); the behavior on a synthetic 2-worker machine (the disabled no-op, the enabled write-asymmetry
@@ -53,8 +54,8 @@ artifact, the `_down` does not unlink it).
 - The house worker pattern: the `wrk_X() -> Worker` factory + the `_up`/`_down`; the gate in the worker, the logic in
   the hlp (the PLOT idiom, the wrk/hlp split).
 - The docstring style (the house rule) in hlp_final_log_print.
-- The optional gate by PRESENCE (the `log_file_name` entry), not by a boolean flag — "Se la entry manca, il file NON
-  viene generato".
+- The optional gate by PRESENCE (the `log_file_name` entry), not by a boolean flag (if the entry is absent, the file
+  is NOT generated).
 
 ## Integration
 - The worker consumes the `ctx.cfg` (the `log_file_name` field, default None) + the

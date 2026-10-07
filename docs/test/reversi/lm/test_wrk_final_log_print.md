@@ -2,7 +2,7 @@
 The FINAL_LOG_PRINT worker suite (the 19th level): the factory (the worker name), the config-gate no-op (the
 absent log_file_name, the file NOT generated), the full-log write (the max-relevance replay over the machine's event
 buffer), the base_dir subdir path, the down (the no-op) — and the LONG-tier end-to-end (the rlm_00 full chain, the
-log_file_name entry in the config from the start — the D-322 tmp
+log_file_name entry in the config from the start — the tmp
 fixture copy, the write-asymmetry pins). 2 classes / 6 tests (5 no-DB + 1 DB-gated e2e).
 
 ## Coverage
@@ -10,15 +10,15 @@ fixture copy, the write-asymmetry pins). 2 classes / 6 tests (5 no-DB + 1 DB-gat
 | class | tests | what it pins |
 |---|---|---|
 | `TestWrkFinalLogPrint` | 5 | `test_factory` (the worker factory: the FINAL_LOG_PRINT name); `test_skipped_no_file` (the absent log_file_name (the default None) -> the no-op (the "skipped" log) + the file NOT generated); `test_full_log_written` (the configured name -> the file under base_dir with the full buffered content (the mock render) + the "full log written" log); `test_subdir_path` (the dir-like name -> the parents created); `test_down_no_op` (the no-op: the log note) |
-| `TestFinalLogPrintEndToEnd` | 1 | `test_full_chain_writes_the_full_log` (the LONG tier, the rlm_00 full chain, verbosity NONE — nothing prints, the buffer captures everything; the log_file_name entry in the config from the start — the D-322 tmp fixture copy (a post-CONFIG cfg mutation desyncs the config checksum fingerprinted at CONFIG: the SAVE-embedded live dump vs the fingerprint, the CLIENT_CHECK section check raises); step 19 / FINAL_LOG_PRINT last; the write-asymmetry pins: the file carries its own "Starting worker FINAL_LOG_PRINT, UP step" line but NOT the "Completed UP step" nor the "full log written" line (both post-write); the line count == the final buffer minus the two trailing post-write lines; the "Completed UP step for PLOT" present (the whole chain in the file); no FINAL_LOG_PRINT skipped line (the other levels' no-op notes — e.g. "PLOT skipped" — are expected full-log content) |
+| `TestFinalLogPrintEndToEnd` | 1 | `test_full_chain_writes_the_full_log` (the LONG tier, the rlm_00 full chain, verbosity NONE — nothing prints, the buffer captures everything; the log_file_name entry in the config from the start — the tmp fixture copy (a post-CONFIG cfg mutation desyncs the config checksum fingerprinted at CONFIG: the SAVE-embedded live dump vs the fingerprint, the CLIENT_CHECK section check raises); step 19 / FINAL_LOG_PRINT last; the write-asymmetry pins: the file carries its own "Starting worker FINAL_LOG_PRINT, UP step" line but NOT the "Completed UP step" nor the "full log written" line (both post-write); the line count == the final buffer minus the two trailing post-write lines; the "Completed UP step for PLOT" present (the whole chain in the file); no FINAL_LOG_PRINT skipped line (the other levels' no-op notes — e.g. "PLOT skipped" — are expected full-log content) |
 
 ## Goldens pinned
 
 - The mock render: the two fixed lines (the machine's renderer is a stand-in in the NO-DB suite — the render itself is
   tested in test_state_machine + the probe).
-- The e2e: the rlm_00 fixture as a tmp copy WITH the log_file_name entry (the D-322 fix — the entry must be present
-  BEFORE the CONFIG level; the shipped fixture stays untouched), the "full_run.log" file under the CUSTOM_TMP_BASE
-  base_dir.
+- The e2e: the rlm_00 fixture as a tmp copy WITH the log_file_name entry (the entry must be present
+  BEFORE the CONFIG level — a post-CONFIG mutation desyncs the config checksum; the shipped fixture stays
+  untouched), the "full_run.log" file under the CUSTOM_TMP_BASE base_dir.
 - The write asymmetry: the file is the buffer at the moment of the write (the "Starting" line IN — the machine logs it
   before the worker call; the two trailing lines OUT).
 
