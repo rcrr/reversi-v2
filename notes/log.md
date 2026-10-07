@@ -2851,3 +2851,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   docstring stantio del sidecar corretto (la record è ora EMBEDDED nel v2 file), zero re-pins (15/15
   pre- e post-pass). Reflow ultimo. Suite 1113 -> 1114/0/24 (solo la cella 13 -> 14). Il prossimo
   modulo della cascata worker secondo la scelta di Roberto.
+- D-498 (wrk\_design\_matrix, un solo D, pass laterale — DESIGN\_MTR non è nella lista delle 13
+  coppie): sorgente 80 -> 87: i 2 docstring mancanti (\_up imperativo + WHAT: il 4-step
+  load-or-compute, publish della X bare + il checksum dati; \_down one-line), il factory
+  normalizzato, le 2 long lines a 101 split su 2 righe (i messaggi log restano identici). Test 226
+  -> 218: il bare # in più nel header, l'import non usato os tolto (il probe C3 re-pinned), i
+  commenti ri-accoppiati dal reflow. Source doc 70 -> 69: l'header in canone ("the 8th active level
+  (step 8)" — la catena ridondante via), la quote rotta "Shape:. .." + il typo ctx.
+  design\_matrix\_checksum corretti con i messaggi reali, il claim "the 80-line file" tolto, il +
+  import os tolto dal bullet C-tier. Test doc: pulito, zero modifiche. Probe: 5 re-pin di sola shape
+  (B1 80 -> 87, C1 226 -> 218, C3 la clausola import os via + la header re-wrap del reflow, B3 gli
+  indici del factory 76/77 -> 83/84, C13/C14 le label ri-sincronizzate) — 0 mismatch pre- e
+  post-pass. Nessun micro-test: il comportamento use\_cache=False (recompute + warm) è del
+  cache\_manager e pinned lì (test\_cache\_manager: mock\_store.assert\_called\_once). Reflow
+  ultimo. Suite flat 1114/0/24 (cella 3/0/0/0/0 invariata). Il prossimo modulo della cascata worker
+  secondo la scelta di Roberto.

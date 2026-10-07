@@ -1093,3 +1093,24 @@ D-497 | 2026-10-06 | The wrk\_config source + test + mirror-doc + probe pass (th
          to the SAVE sidecar pair" -> "EMBEDDED in the v2 model file at SAVE" — the sidecar is RETIRED); zero re-pins
          (15/15 pre- and post-pass). Reflow last (the canonical fixed point on both files). Suite 1113 -> 1114/0/24 (the
          single cell move 13 -> 14/0/0).
+
+D-498 | 2026-10-06 | The wrk\_design\_matrix source + test + mirror-doc + probe pass (a side pass — DESIGN\_MTR is not
+         in the 13-pair cascade list; the 9 remaining pairs stay queued): (1) source 80 -> 87: the 2 missing docstrings
+         added (`_up` imperative + the WHAT: the 4-step load-or-compute of the design matrix, the bare-X + data-checksum
+         publish; `_down` one-line), the factory first line normalized to the imperative "Return the DESIGN\_MTR worker
+         instance.", the 2 101-char log lines split over 2 physical lines (the R-520 ceiling 100; the message text
+         unchanged — nothing pins those lines). (2) test 226 -> 218: the header's extra bare '#' dropped, the unused
+         `import os` dropped (zero uses — verified), the reflow re-joins the comment blocks. (3) the source mirror doc
+         70 -> 69: the header canon ("the 8th active level (step 8)" — the redundant CREATED -> ... chain dropped, it
+         lives in the Integration bullet), the garbled quote fix ("Design Matrix computed/loaded. Shape:. .." -> the two
+         real log messages re-quoted) + the "ctx. design\_matrix\_checksum" typo, the "the 80-line file" line-count
+         claim dropped, the "+ import os" dropped from the C-tier bullet. (4) the test mirror doc: clean — zero fixes
+         (no D-tags; the counts + coverage + goldens all verified against the file). (5) the probe: 5 shape-only re-pins
+         — B1 80 -> 87, C1 226 -> 218, C3 (the import-os clause dropped + clause 2 re-pinned to the reflow's re-wrapped
+         header text — the reflow re-joined the -1- comment block and split the pinned string), B3 (the factory line
+         indices w[76]/w[77] -> w[83]/w[84] in the 87-line file), C13/C14 (the label line-number re-sync; the conditions
+         were already substring/count-based and live). 0 mismatch pre- and post-pass; zero behavior re-pins (the D/F
+         tiers untouched). No R-850 micro-test: the one documented-but-unpinned-at-worker behavior ("use\_cache=False:
+         always recompute but still warm the cache file") is the cache\_manager's — pinned at the owning level
+         (test\_cache\_manager.test\_step0\_not\_allowed\_forces\_computation: mock\_compute + mock\_store each asserted
+         once). Reflow last (the canonical fixed point on both files). No cell change (3/0/0/0/0), suite flat 1114/0/24.

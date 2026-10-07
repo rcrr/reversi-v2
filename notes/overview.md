@@ -106,8 +106,9 @@ define the evaluation function.
   sidecar claims fixed in the test + the test doc + the R-570 light pass + the no-publishing micro-test 6 -> 7/0/0);
   wrk\_config the D-497 pass (the 5 missing docstrings — the cascade's biggest gap — + the unused Callable + the E301
   fixes + the worker-level a-file micro-test 13 -> 14/0/0 + the stale fixture path + the probe sidecar docstring fix);
-  the 9 remaining worker pairs: wrk\_features, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate,
-  wrk\_vld\_positions, wrk\_final\_log\_print, wrk\_save.
+  wrk\_design\_matrix the D-498 side pass (the 2 missing \_up/\_down docstrings + the unused import os + the 5 probe
+  shape re-pins — outside the 9-pair list); the 9 remaining worker pairs: wrk\_features, wrk\_wmaps, wrk\_zed,
+  wrk\_gradient, wrk\_optimize, wrk\_generate, wrk\_vld\_positions, wrk\_final\_log\_print, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
