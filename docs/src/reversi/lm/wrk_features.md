@@ -1,6 +1,6 @@
 # reversi/lm/wrk_features.py
-The FEATURES worker of the LM pipeline — the 2nd active level (CREATED → CONFIG → FEATURES), step 2. A PURE-COMPUTE
-level: it builds a FeatureSet from the CONFIG-loaded cfg (no DB, no cache_manager, no cache file — the flat
+The FEATURES worker of the LM pipeline — the 2nd active level (step 2). A PURE-COMPUTE level: it builds a
+FeatureSet from the CONFIG-loaded cfg (no DB, no cache_manager, no cache file — the flat
 rlmwf_02_FEATURES* files never materialize) and exposes it as `ctx.feature_set`.
 
 ## API
@@ -35,7 +35,7 @@ zero-feature guard test drives `_load_features` directly.)
 
 Pinned by the 41-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_features.py`.
 
-- Source shape: the 125-line file, `__all__ = ['wrk_features']`, the factory name "FEATURES", the LMContext import under
+- Source shape: `__all__ = ['wrk_features']`, the factory name "FEATURES", the LMContext import under
   TYPE_CHECKING (circular guard), the worker does NOT import cache_manager, the `@validate_call` factory, the amask log,
   no non-comment trailing whitespace — probe A1-A9.
 - The loaded state: step 2 / "FEATURES"; the feature_set populated; the 'NoNameFeatureSet' default name; the intercept;
@@ -50,7 +50,7 @@ Pinned by the 41-check `probes/verify_wrk_features.py` + the 3-test `test_wrk_fe
   nothing; the POSITIONS cache is downstream, rlmwf_04 — probe B10); down to CONFIG clears feature_set — probe B12; a
   second run on the same base dir: no DB access (POSITIONS is not in the path), the identical feature set — probe
   B13a-c.
-- The test-file pins: the 202-line file, 2 classes / 3 tests, the shared CUSTOM_TMP_BASE idiom, the DB-free setUp, the
+- The test-file pins: 2 classes / 3 tests, the shared CUSTOM_TMP_BASE idiom, the DB-free setUp, the
   load-bearing Path import, the header grammar, the whitespace, the golden test's 3 hash literals + the
   feature-order/counts pin — probe C1-C10.
 - The suite: `TestLMWorkerFeatures` (2, DB-free — the setUp moves to FEATURES directly, no POSITIONS, no DB):

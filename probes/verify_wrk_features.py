@@ -67,8 +67,8 @@ def check(label, cond, detail=""):
 
 src = (ROOT / "src" / "reversi" / "lm" / "wrk_features.py").read_text()
 
-check("A1 125 lines (post D-082: +pydantic import +decorator, -orphan comment)",
-      len(src.splitlines()) == 125)
+check("A1 155 lines",
+      len(src.splitlines()) == 155)
 check("A2 __all__ = ['wrk_features']", "__all__ = ['wrk_features']" in src)
 check("A3 factory returns Worker('FEATURES', _up, _down)",
       'def wrk_features() -> Worker:' in src and 'return Worker("FEATURES", _up, _down)' in src)
@@ -219,8 +219,8 @@ check("B13c second run: identical feature set (name + hash)",
 
 tsrc = (ROOT / "test" / "reversi" / "lm" / "test_wrk_features.py").read_text()
 
-check("C1 202 lines (the current count; the earlier pin was 197)",
-      len(tsrc.splitlines()) == 202)
+check("C1 188 lines",
+      len(tsrc.splitlines()) == 188)
 check("C2 2 classes / 3 test methods (the D-106 step-3 guard class added; the D-082 golden content test kept)",
       "class TestLMWorkerFeatures" in tsrc
       and "class TestLMWorkerFeaturesGuards" in tsrc

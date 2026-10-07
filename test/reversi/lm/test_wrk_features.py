@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_features unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,15 +34,12 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (DB-free: the setUp moves to
-#     FEATURES — CONFIG + FEATURES only, no POSITIONS, no
-#     DB).
+# -1- Run the tests (DB-free: the setUp moves to FEATURES — CONFIG + FEATURES only, no POSITIONS, no DB).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_features
 #
 
 import unittest
-import os
 import tempfile
 from types import SimpleNamespace
 
@@ -68,15 +64,12 @@ class TestLMWorkerFeatures(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The setUp moves to FEATURES directly —
-        # the level depends only on the CONFIG-loaded cfg (no
-        # POSITIONS, no DB, no gate).
-        # Patch stdout to keep test output clean
+        # The setUp moves to FEATURES directly — the level depends only on the CONFIG-loaded cfg (no
+        # POSITIONS, no DB, no gate). Patch stdout to keep test output clean
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
@@ -115,9 +108,8 @@ class TestLMWorkerFeatures(unittest.TestCase):
         # The fixture has no name key: the schema default applies.
         self.assertEqual(fs.name, 'NoNameFeatureSet')
 
-        # Golden hashes (independently re-derived):
-        # the FeatureSet hash is sha3_256 over b'INTERCEPT' + the
-        # mset hash hex string + the pset hash hex string.
+        # Golden hashes (independently re-derived): the FeatureSet hash is sha3_256 over
+        # b'INTERCEPT' + the mset hash hex string + the pset hash hex string.
         self.assertEqual(fs.hash,
                          '453e918aeabfa3f7ff43f110ab72719b3f1d1906158933436234b7bab075a159')
         self.assertEqual(fs.mset.hash,
@@ -131,8 +123,7 @@ class TestLMWorkerFeatures(unittest.TestCase):
         self.assertEqual(fs.intercept.n_configurations, 1)
         self.assertEqual(fs.intercept.n_instances, 1)
 
-        # MobilitySet: the 3 fixture members, in the sorted
-        # (mask, amask) order.
+        # MobilitySet: the 3 fixture members, in the sorted (mask, amask) order.
         self.assertEqual(fs.mset.name, 'BasicMobilitySet')
         self.assertEqual([(m.name, f'{m.mask:016X}', f'{m.amask:016X}')
                           for m in fs.mset.mobilities],
@@ -146,9 +137,8 @@ class TestLMWorkerFeatures(unittest.TestCase):
                          [('EDGE', '00000000000000FF'),
                           ('ELLE', '0000000000000107')])
 
-        # Feature list: intercept, then the mobilities, then the
-        # patterns — with the per-feature n_configurations /
-        # n_instances.
+        # Feature list: intercept, then the mobilities, then the patterns — with the per-feature
+        # n_configurations / n_instances.
         self.assertEqual([(f.name, f.n_configurations, f.n_instances)
                           for f in fs.features],
                          [('INTERCEPT', 1, 1), ('ALMC', 65, 1), ('LMC', 65, 1),
@@ -157,14 +147,10 @@ class TestLMWorkerFeatures(unittest.TestCase):
 
 
 class TestLMWorkerFeaturesGuards(unittest.TestCase):
-    """DB-free guards for wrk_features.
-
-    The guard fires before any data access, so the check drives
-    _load_features directly with a minimal context — no regab DB,
-    no model, no cache.
-
-    probe_rules.md §4: converted from the
-    verify_wrk_features.py B11 probe."""
+    """
+    The zero-features guard: a no-intercept, no-sets payload drives _load_features directly. The
+    guard fires before any data access — no regab DB, no model, no cache.
+    """
 
     def setUp(self):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
@@ -175,16 +161,16 @@ class TestLMWorkerFeaturesGuards(unittest.TestCase):
             self.patcher_stdout.stop()
 
     def test_zero_features_raises_value_error(self):
-        """A feature set with zero features (intercept off, no
-        mobility/pattern sets) is rejected with a ValueError and an
-        ERROR log event (the fail-fast guard)."""
+        """
+        A feature set with zero features (intercept off, no mobility/pattern sets) is rejected with
+        a ValueError and an ERROR log event (the fail-fast guard).
+        """
         payload = json5.loads(
             (WORKSPACE_ROOT / "test" / "reversi" / "data" /
              "rlm_00.json").read_text())
         payload["feature_set"] = {"intercept": False}
-        # The rlm_00 fixture carries the su_pairs (["LMC", "EDGE"])
-        # — clear them so the zero-features guard (not the su_pairs
-        # fail-fast) is the one that fires.
+        # The rlm_00 fixture carries the su_pairs (["LMC", "EDGE"]) — clear them so the
+        # zero-features guard (not the su_pairs fail-fast) is the one that fires.
         if "su_analysis" in payload:
             payload["su_analysis"]["su_pairs"] = []
         cfg0 = LMConfig(**payload)
