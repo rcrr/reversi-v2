@@ -1047,3 +1047,24 @@ D-495 | 2026-10-06 | The wrk\_anova source + test + mirror-doc + probe pass (the
          check labels only). (6) the runner: the "the I-017 T17;" reference trimmed from the wrk\_anova entry comment in
          `run_utests.sh`. Reflow last (the canonical fixed point on both files). No cell changes (7/0/0/0/0), suite flat
          1112/0/24.
+
+D-496 | 2026-10-06 | The wrk\_client\_check source + test + mirror-doc pass (the third worker of the cascade; the
+         user-approved full plan + the micro-test): (1) source 106 -> 109: the 2 missing docstrings added (the cascade's
+         docstring gap — `_up` imperative + the WHAT: the file re-read, the Y-space residual recompute with the client's
+         vectorized Evaluation Function, the comparison against the VALIDATE-published series within `client_check_tol`,
+         the RuntimeError on a breach; `_down` the pre-existing comment converted to the docstring), the factory first
+         line normalized to the imperative "Return the CLIENT\_CHECK worker instance.", the D-141/D-144 tags stripped
+         from the numbered comments (the rationale kept), the import order swapped to the numpy-worker family (`typing`
+         before `pydantic`, as wrk\_positions / wrk\_vld\_positions). (2) test 236 -> 237: the header's extra bare '#'
+         dropped + the title normalized to the module-name form (the wrk\_client\_check unit tests), the R-570 light
+         pass (the 7-line class docstring + the 4 heavy method docstrings compressed to 1-3 lines — the details live in
+         the mirror test doc), the stale sidecar claim fixed in the `_write_model_file` comment (the sidecar record is
+         RETIRED in the v2 format — the config dump + checksum are embedded in the model file; the writer opens a single
+         file), one micro-test (R-850: "No context attribute is published" was documented in the source doc but unpinned
+         — test\_publishes\_no\_context\_attribute: the ctx attribute set is unchanged by the up + down pair), cell 6 ->
+         7/0/0/0/0. (3) the source mirror doc 76 -> 77: the header canon ("the 17th active level (step 17)" + the
+         capital after the period), the 6-test -> 7-test count, the "no longer re-derives" report-tense fixed to "does
+         not re-derive", the no-publishing pin added to the Verified-invariants bullet. (4) the test mirror doc 42 ->
+         44: the same sidecar-claim fix in the header, "(the 17th active level)", the Coverage table 6 -> 7 with the new
+         test description, the no-publishing contract added to Goldens pinned. Reflow last (the canonical fixed point on
+         both files). Suite 1112 -> 1113/0/24 (the single cell move 6 -> 7/0/0).

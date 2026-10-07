@@ -2819,3 +2819,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   probe). Runner: il riferimento "I-017 T17" tolto dal comment dell'entry wrk\_anova. Reflow ultimo
   (fixed point canonico). Cella invariata (7/0/0/0/0), suite flat 1112/0/24. Il prossimo modulo
   della cascata worker secondo la scelta di Roberto.
+- D-496 (wrk\_client\_check, un solo D, piano concordato + il micro-test): sorgente 106 -> 109: i 2
+  docstring mancanti aggiunti (\_up imperativo + WHAT: re-read del file, residual in Y space col
+  client EF, confronto con la serie VALIDATE, RuntimeError a breach; \_down il comment convertito in
+  docstring), il factory normalizzato a "Return the CLIENT\_CHECK worker instance.", i tag
+  D-141/D-144 tolti dai comment, l'order degli import allineato alla famiglia numpy-worker (typing
+  prima di pydantic). Test 236 -> 237: il bare # in più nel header + il titolo in canone
+  (wrk\_client\_check), il pass R-570 (class docstring da 7 righe + i 4 method pesanti -> light), la
+  claim stantia sul sidecar corretta nel comment del writer (il sidecar è RETIRED — il config dump è
+  embedded nel file), il micro-test R-850 test\_publishes\_no\_context\_attribute ("no context
+  attribute is published" era documentato ma non pinned: il set di attributi del ctx è invariato
+  dopo up+down) — cella 6 -> 7/0/0/0/0. Source doc 76 -> 77: l'header in canone ("the 17th active
+  level (step 17)" + la maiuscola), 6 -> 7-test, il "no longer" corretto in "does not", il pin del
+  no-publishing aggiunto. Test doc 42 -> 44: la sidecar fix + il 17th active level + la coverage
+  table 7 + il golden del no-publishing. Reflow ultimo (fixed point canonico). Suite 1112 ->
+  1113/0/24 (solo la cella 6 -> 7). Il prossimo modulo della cascata worker secondo la scelta di
+  Roberto.

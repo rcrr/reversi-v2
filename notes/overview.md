@@ -101,9 +101,11 @@ define the evaluation function.
   docstrings — the cascade's first docstring gap — + the R-570 light pass + the 2 train\_dense\_rn micro-tests 14 ->
   15/0/0 + the stale doc golden + the 13-tag provenance purge + the probe docstring re-sync); wrk\_anova the D-495 pass
   (the 2 missing \_up/\_down docstrings + the duplicate module-docstring drop + the 6-tag provenance purge + the 41 ->
-  42 probe-count fix + the F3 escaped re-pin + the I-017 trims in the probe header + the runner entry); the 11 remaining
-  worker pairs: wrk\_config, wrk\_features, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_generate,
-  wrk\_vld\_positions, wrk\_client\_check, wrk\_final\_log\_print, wrk\_save.
+  42 probe-count fix + the F3 escaped re-pin + the I-017 trims in the probe header + the runner entry);
+  wrk\_client\_check the D-496 pass (the 2 missing \_up/\_down docstrings + the D-141/D-144 comment strips + the stale
+  sidecar claims fixed in the test + the test doc + the R-570 light pass + the no-publishing micro-test 6 -> 7/0/0); the
+  10 remaining worker pairs: wrk\_config, wrk\_features, wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize,
+  wrk\_generate, wrk\_vld\_positions, wrk\_final\_log\_print, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files
