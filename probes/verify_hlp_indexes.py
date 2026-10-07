@@ -298,8 +298,7 @@ check("C7 down to FEATURES: hlp_indexes + hlp_indexes_checksum cleared",
 
 wsrc = (ROOT / "src" / "reversi" / "lm" / "wrk_indexes.py").read_text()
 
-check("D1 80 lines (D-084: +1 pydantic import, +1 @validate_call)",
-      len(wsrc.splitlines()) == 80)
+check("D1 line count", len(wsrc.splitlines()) == 86)
 check("D2 __all__ = ['wrk_indexes']", "__all__ = ['wrk_indexes']" in wsrc)
 check("D3 D-084 M1: the factory returns Worker('INDEXES', _up, _down) WITH @validate_call (house convention, as in the other workers post-campaign)",
       '@validate_call(config=ConfigDict(arbitrary_types_allowed=True))\ndef wrk_indexes() -> Worker:' in wsrc
@@ -325,8 +324,8 @@ check("D6 _down clears BOTH context attributes; 0 non-comment trailing-whitespac
 
 tsrc = (ROOT / "test" / "reversi" / "lm" / "test_wrk_indexes.py").read_text()
 
-check("E1 155 lines, 1 class / 2 tests (post D-085; D-130: the tier note adds a header line; D-326: the 123-char assertNotIn reflow)",
-      len(tsrc.splitlines()) == 155
+check("E1 line count, 1 class / 2 tests",
+      len(tsrc.splitlines()) == 150
       and "class TestLMWorkerIndexes" in tsrc
       and len(re.findall(r"    def test_", tsrc)) == 2)
 check("E2 D-084 T1 (D-085: re-anchored via test.reversi.paths): the idiom — import of CUSTOM_TMP_BASE, setUpClass mkdir, TemporaryDirectory FIRST, no mkdtemp / no shutil.rmtree",

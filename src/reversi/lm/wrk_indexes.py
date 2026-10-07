@@ -32,8 +32,7 @@ from typing import TYPE_CHECKING
 from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
-from reversi.lm.hlp_indexes import (LMIndexes,
-                               hlp_indexes_load_from_file,
+from reversi.lm.hlp_indexes import (hlp_indexes_load_from_file,
                                hlp_indexes_store_to_file,
                                hlp_indexes_compute,
                                hlp_indexes_is_cache_consistent)
@@ -49,6 +48,10 @@ __all__ = ['wrk_indexes']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the INDEXES level: the 4-step load-or-compute of the hlp_indexes object, published on the
+    context with the data checksum.
+    """
     ctx.log_event(Relevance.INFO, "Computing indexes for the feature set...")
 
     # Execute the abstracted pipeline.
@@ -57,18 +60,21 @@ def _up(ctx: "LMContext") -> None:
         is_allowed  = ctx.use_cache,
         load_fn     = lambda path: hlp_indexes_load_from_file(path, checksum=False),
         store_fn    = hlp_indexes_store_to_file,
-        validate_fn = lambda cached_hlp_indexes: hlp_indexes_is_cache_consistent(ctx, cached_hlp_indexes),
+        validate_fn = lambda cached_hlp_indexes:
+            hlp_indexes_is_cache_consistent(ctx, cached_hlp_indexes),
         compute_fn  = lambda: hlp_indexes_compute(ctx),
         logger_fn   = ctx.log_event
     )
 
     ctx.log_event(Relevance.INFO, "Model attribute hlp_indexes has been set.")
     ctx.hlp_indexes = hlp_indexes
-    ctx.log_event(Relevance.INFO, f"Indexes checksum (hlp_indexes_checksum): {hlp_indexes_checksum}.")
+    ctx.log_event(Relevance.INFO,
+                  f"Indexes checksum (hlp_indexes_checksum): {hlp_indexes_checksum}.")
     ctx.hlp_indexes_checksum = hlp_indexes_checksum
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear both context attributes (hlp_indexes + the data checksum)."""
     ctx.log_event(Relevance.INFO, "Clearing hlp_indexes...")
     ctx.hlp_indexes = None
     ctx.hlp_indexes_checksum = None
@@ -76,5 +82,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_indexes() -> Worker:
-    """Factory function that returns the INDEXES worker instance."""
+    """Return the INDEXES worker instance."""
     return Worker("INDEXES", _up, _down)

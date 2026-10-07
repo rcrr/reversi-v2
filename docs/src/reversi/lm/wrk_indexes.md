@@ -1,8 +1,8 @@
 # reversi/lm/wrk_indexes.py
-The INDEXES worker of the LM pipeline — the 5th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES). Like POSITIONS it is a CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_indexes object — the
-THIRD cache_manager consumer in the pipeline (after SU_ANALYSIS and POSITIONS), and unlike FEATURES the flat
-`rlmwf_05_INDEXES.dat` + binio sidecar DO materialize.
+The INDEXES worker of the LM pipeline — the 5th active level (step 5). Like POSITIONS it is a CACHE-CONSUMING
+level: the 4-step load-or-compute over the hlp_indexes object — the THIRD cache_manager consumer in the pipeline
+(after SU_ANALYSIS and POSITIONS), and unlike FEATURES the flat `rlmwf_05_INDEXES.dat` + binio sidecar DO
+materialize.
 
 ## API
 
@@ -18,7 +18,7 @@ THIRD cache_manager consumer in the pipeline (after SU_ANALYSIS and POSITIONS), 
   `load_fn = lambda path: hlp_indexes_load_from_file(path, checksum=False)` (the sidecar was already verified by
   cache_manager, no redundant re-check), `store_fn = hlp_indexes_store_to_file`,
   `validate_fn = lambda cached: hlp_indexes_is_cache_consistent(ctx, cached)` (the 2-field metadata compare),
-  `compute_fn = lambda: hlp_indexes_compute (ctx)`, `logger_fn = ctx.log_event`. Then the INFO "Model attribute
+  `compute_fn = lambda: hlp_indexes_compute(ctx)`, `logger_fn = ctx.log_event`. Then the INFO "Model attribute
   hlp_indexes has been set." + `ctx.hlp_indexes = hlp_indexes` + the INFO checksum line +
   `ctx.hlp_indexes_checksum = hlp_indexes_checksum` (the cache_manager 3rd return element — the DATA checksum).
 - `_down`: INFO "Clearing hlp_indexes..." → BOTH `ctx.hlp_indexes` and `ctx.hlp_indexes_checksum` set to None.
@@ -27,7 +27,7 @@ THIRD cache_manager consumer in the pipeline (after SU_ANALYSIS and POSITIONS), 
 
 Pinned by the `probes/verify_hlp_indexes.py` D tier + the 2-test suite.
 
-- Source shape: the 80-line file, `__all__ = ['wrk_indexes']`, the factory name "INDEXES" WITH `@validate_call`, the
+- Source shape: `__all__ = ['wrk_indexes']`, the factory name "INDEXES" WITH `@validate_call`, the
   LMContext import under TYPE_CHECKING (the circular-import guard), the full 7-kwargs cache wiring with the
   `checksum=False` load_fn, the double-clear `_down`, 0 non-comment trailing-whitespace lines — probe D1-D6.
 - The level boundary (live DB, probe C tier): the flat file set is exactly SU_ANALYSIS + POSITIONS + INDEXES (no
