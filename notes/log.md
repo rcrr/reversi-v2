@@ -2866,3 +2866,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   cache\_manager e pinned lì (test\_cache\_manager: mock\_store.assert\_called\_once). Reflow
   ultimo. Suite flat 1114/0/24 (cella 3/0/0/0/0 invariata). Il prossimo modulo della cascata worker
   secondo la scelta di Roberto.
+- D-499 (wrk\_features, un solo D — il pass più 'sporco' per igiene, ma semanticamente sano):
+  sorgente 125 -> 155: i 6 docstring mancanti (il gap più grande della cascata, più dei 5 del
+  wrk\_config — \_up/\_down + i 4 loader), il factory normalizzato, le 9 long lines (tutte
+  log\_event, max 132) split in f-string concatenati (i messaggi restano byte-identici: A7 cerca i
+  substrati nell'f-string che resta intatto, B8a-c pinna l'output runtime), i 5 E301. Test 202 ->
+  188: il bare # in più nel header, l'import non usato os tolto (il probe non lo pinna, a differenza
+  di design\_matrix), la class docstring della guard class compressa da 8 a 2 righe con la
+  provenance B11 tolta. Source doc 77 -> 77: l'header in canone (step 2), i due line-count claim
+  (125/202) tolti; i claim verificati (41-check, il hash test\_mobility, SU\_ANALYSIS primo
+  consumatore). Test doc: pulito. Probe: solo 2 re-pin (A1 125 -> 155, C1 202 -> 188) — 0 mismatch
+  al primo colpo. Nessun micro-test: down-cleared (B12), no-cache (B10) e second-run (B13a-c) sono
+  tutti pinned dal probe a runtime. Reflow ultimo. Suite flat 1114/0/24 (cella 3/0/0 invariata).
+  Restano 8 coppie: da wrk\_wmaps a wrk\_save.

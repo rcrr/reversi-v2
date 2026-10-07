@@ -1114,3 +1114,24 @@ D-498 | 2026-10-06 | The wrk\_design\_matrix source + test + mirror-doc + probe 
          always recompute but still warm the cache file") is the cache\_manager's — pinned at the owning level
          (test\_cache\_manager.test\_step0\_not\_allowed\_forces\_computation: mock\_compute + mock\_store each asserted
          once). Reflow last (the canonical fixed point on both files). No cell change (3/0/0/0/0), suite flat 1114/0/24.
+
+D-499 | 2026-10-07 | The wrk\_features source + test + mirror-doc + probe pass (the cascade's heaviest hygiene pass so
+         far, but semantically healthy — probe 0 mismatch at baseline, the doc faithful, the suite consistent): (1)
+         source 125 -> 155: the 6 missing docstrings added (`_up` / `_down` / `_load_features` / `_load_intercept` /
+         `_load_patterns` / `_load_mobility` — the cascade's biggest docstring gap, more than wrk\_config's 5), the
+         factory first line normalized to the imperative "Return the FEATURES worker instance.", the 9 100+ log lines
+         split (all log\_event, max 132; the 4 longest via f-string concatenation so the messages stay byte-identical —
+         A7 searches substrings in the surviving f-string, B8a-c pin the runtime output), the 5 E301 single-blank fixes.
+         (2) test 202 -> 188: the header's extra bare '#' dropped, the unused `import os` dropped (the probe does NOT
+         pin it, unlike design\_matrix's C3 — no re-pin needed), the 8-line guard class docstring compressed to 2 lines
+         with the "probe\_rules.md §4: converted from the B11 probe" provenance dropped (R-550), the reflow re-joins the
+         comment blocks. (3) the source mirror doc 77 -> 77: the header canon ("the 2nd active level (step 2)"), the
+         125-line and 202-line line-count claims dropped; the verified claims left intact (the 41-check probe, the
+         test\_mobility mset-hash cross-ref, SU\_ANALYSIS as first consumer via hlp\_su\_analysis's
+         ctx.feature\_set.hash). (4) the test mirror doc: clean — zero fixes. (5) the probe: only 2 shape re-pins (A1
+         125 -> 155, C1 202 -> 188) — 0 mismatch on the first post-pass run; all other pins survived (A6/A7/C6/C9/C10
+         substrings, the B-tier runtime unchanged). No R-850 micro-test: the documented behaviors without suite pins
+         (the down-cleared feature set, the no-cache-file level boundary, the second-run identity) are all
+         runtime-pinned by the probe (B12, B10, B13a-c) — division of labor documented, as in D-498. Reflow last (the
+         canonical fixed point on both files; the 4 code lines still over 100 were fixed by hand via the f-string
+         concatenation — the reflow does not touch code). No cell change (3/0/0/0/0), suite flat 1114/0/24.
