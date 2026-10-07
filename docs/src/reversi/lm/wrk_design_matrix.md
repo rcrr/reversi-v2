@@ -1,9 +1,8 @@
 # reversi/lm/wrk_design_matrix.py
-The DESIGN_MTR worker of the LM pipeline — the 8th active level (CREATED → CONFIG → FEATURES → SU_ANALYSIS → POSITIONS →
-INDEXES → ANOVA → WMAPS → DESIGN_MTR). Like POSITIONS, INDEXES and WMAPS it is a CACHE-CONSUMING level: the
-4-step load-or-compute over the hlp_design_matrix object (the flat `rlmwf_08_DESIGN_MTR.dat` + binio sidecar +
-the duck-typed data checksum) — the FIFTH cache_manager consumer in the pipeline; the flat files DO materialize (the
-DB test pins their existence).
+The DESIGN_MTR worker of the LM pipeline — the 8th active level (step 8). Like POSITIONS, INDEXES and WMAPS it is a
+CACHE-CONSUMING level: the 4-step load-or-compute over the hlp_design_matrix object (the flat
+`rlmwf_08_DESIGN_MTR.dat` + binio sidecar + the duck-typed data checksum) — the FIFTH cache_manager consumer in the
+pipeline; the flat files DO materialize (the DB test pins their existence).
 
 ## API
 
@@ -20,9 +19,9 @@ DB test pins their existence).
   already verified by cache_manager), `store_fn = hlp_design_matrix_store_to_file`,
   `validate_fn = lambda cached_dm: hlp_design_matrix_is_cache_consistent(ctx, cached_dm)` (the 1-field metadata
   compare), `compute_fn = lambda: hlp_design_matrix_compute(ctx)`, `logger_fn = ctx.log_event`. Then
-  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the INFO "Design Matrix computed/loaded. Shape:.
-  .." lines + `ctx. design_matrix_checksum = dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd
-  return element).
+  `ctx.design_matrix = dm_obj.X` (the BARE ndarray, NOT the object) + the INFO "Design Matrix computed/loaded. Shape:
+  {shape}." + "Design matrix checksum (design_matrix_checksum): {checksum}." lines + `ctx.design_matrix_checksum =
+  dm_checksum` (the 2nd attribute, the DATA checksum — the cache_manager 3rd return element).
 - `_down`: INFO "Clearing Design Matrix attribute..." → BOTH attributes to None — `ctx.design_matrix` AND
   `ctx.design_matrix_checksum` (the house shape: object + checksum).
 
@@ -30,11 +29,11 @@ DB test pins their existence).
 
 Pinned by the `probes/verify_design_matrix.py` B + C + D + F tiers + the 3-test suite.
 
-- Source shape (probe B1-B9): the 80-line file, `__all__ = ['wrk_design_matrix']`, the factory name "DESIGN_MTR" WITH
+- Source shape (probe B1-B9): `__all__ = ['wrk_design_matrix']`, the factory name "DESIGN_MTR" WITH
   `@validate_call` + the pydantic import, the full 7-kwargs cache wiring with the `checksum=False` load_fn, `_up` sets
   `ctx.design_matrix` (the bare `dm_obj.X`) + `ctx.design_matrix_checksum`, `_down` clears both, 0 whitespace-only
   lines.
-- The worker-test source shape (probe C1-C14): the gate in BOTH setUps + `import os`, the idiom (TemporaryDirectory ×2
+- The worker-test source shape (probe C1-C14): the gate in BOTH setUps, the idiom (TemporaryDirectory ×2
   under CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored json ×2, the paths import, no `shutil`), all 3 `LogisticModel`
   constructions `Verbosity.HIGH`, the cache names pinned, the step pins 7 (×2) + 8 (×3).
 - The level boundary + golden re-derivation (live DB, probe D5-D10 + F tier): after `move_to_step("DESIGN_MTR")` — step

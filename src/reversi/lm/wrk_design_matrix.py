@@ -48,6 +48,10 @@ __all__ = ['wrk_design_matrix']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the DESIGN_MTR level: the 4-step load-or-compute of the design matrix, publish the bare X +
+    the data checksum on the context.
+    """
     ctx.log_event(Relevance.INFO, "Computing Design Matrix (X)...")
 
     cache_hit, dm_obj, dm_checksum = cache_manager_load_or_compute(
@@ -62,13 +66,16 @@ def _up(ctx: "LMContext") -> None:
 
     ctx.design_matrix = dm_obj.X
     ctx.log_event(Relevance.INFO, "Model attribute design_matrix has been set.")
-    ctx.log_event(Relevance.INFO, f"Design Matrix computed/loaded. Shape: {ctx.design_matrix.shape}")
+    ctx.log_event(Relevance.INFO,
+                  f"Design Matrix computed/loaded. Shape: {ctx.design_matrix.shape}")
 
-    ctx.log_event(Relevance.INFO, f"Design matrix checksum (design_matrix_checksum): {dm_checksum}.")
+    ctx.log_event(Relevance.INFO,
+                  f"Design matrix checksum (design_matrix_checksum): {dm_checksum}.")
     ctx.design_matrix_checksum = dm_checksum
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear both context attributes (the design matrix + the data checksum)."""
     ctx.log_event(Relevance.INFO, "Clearing Design Matrix attribute...")
     ctx.design_matrix = None
     ctx.design_matrix_checksum = None
@@ -76,5 +83,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_design_matrix() -> Worker:
-    """Factory function that returns the DESIGN_MTR worker instance."""
+    """Return the DESIGN_MTR worker instance."""
     return Worker("DESIGN_MTR", _up, _down)

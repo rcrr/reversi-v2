@@ -92,12 +92,12 @@ check("A15 triple blank lines at L42/L50 (house precedent — rlm_indexes carrie
 # B. wrk_design_matrix.py structure
 # ----------------------------------------------------------------------
 w = lines("src/reversi/lm/wrk_design_matrix.py")
-check("B1 wrk_design_matrix.py is 80 lines (post D-090: 77 + pydantic import + decorator)", len(w) == 80, f"{len(w)}")
+check("B1 wrk_design_matrix.py is 87 lines", len(w) == 87, f"{len(w)}")
 check("B2 T2 FIXED: the pydantic import is present (as in the other 6 workers)",
       "from pydantic import validate_call, ConfigDict" in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B3 T2 FIXED: the factory wrk_design_matrix is @validate_call-decorated",
-      w[76] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
-      and w[77] == "def wrk_design_matrix() -> Worker:")
+      w[83] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))"
+      and w[84] == "def wrk_design_matrix() -> Worker:")
 check("B4 T3 FIXED: load_fn is the lambda with checksum=False (single sidecar check)",
       "        load_fn     = lambda path: hlp_design_matrix_load_from_file(path, checksum=False)," in read("src/reversi/lm/wrk_design_matrix.py"))
 check("B5 the 7-arg cache wiring matches the house key set",
@@ -121,15 +121,14 @@ check("B9 the worker name is DESIGN_MTR (Worker('DESIGN_MTR', _up, _down))",
 # C. test_wrk_design_matrix.py structure
 # ----------------------------------------------------------------------
 t = lines("test/reversi/lm/test_wrk_design_matrix.py")
-check("C1 test_wrk_design_matrix.py is 226 lines (post D-090: 202 + gates + idiom - ws strip)", len(t) == 226, f"{len(t)}")
+check("C1 test_wrk_design_matrix.py is 218 lines", len(t) == 218, f"{len(t)}")
 check("C2 2 classes / 3 tests",
       sum(1 for l in t if l.startswith("class ")) == 2 and
       sum(1 for l in t if l.strip().startswith("def test_")) == 3)
 check("C3 T1 FIXED: the gate is in BOTH setUps (D-130: the db_long_gate idiom) and the header claim is now true",
       "# -1- Run the tests (a live regab DB + LONG=1 is required;" in read("test/reversi/lm/test_wrk_design_matrix.py")
-      and "SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab" in read("test/reversi/lm/test_wrk_design_matrix.py")
-      and read("test/reversi/lm/test_wrk_design_matrix.py").count("db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates") == 2
-      and "import os" in read("test/reversi/lm/test_wrk_design_matrix.py"))
+      and "SKIP_REGAB_DB=1 skips the DB-gated tests" in read("test/reversi/lm/test_wrk_design_matrix.py")
+      and read("test/reversi/lm/test_wrk_design_matrix.py").count("db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates") == 2)
 check("C4 T7 FIXED: the D-085 idiom is applied (TemporaryDirectory under CUSTOM_TMP_BASE x2)",
       read("test/reversi/lm/test_wrk_design_matrix.py").count("self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))") == 2
       and "mkdtemp" not in read("test/reversi/lm/test_wrk_design_matrix.py"))
@@ -155,9 +154,9 @@ check("C12 the golden literal is (10,7) uint32 with the 10 pinned rows",
       "self.assertEqual(X.shape, (10, 7))" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "], dtype=np.uint32)" in read("test/reversi/lm/test_wrk_design_matrix.py")
       and "nptest.assert_array_equal(expected_X, X)" in read("test/reversi/lm/test_wrk_design_matrix.py"))
-check("C13 the uint32 dtype contract is pinned 3x (L112, L146, L183)",
+check("C13 the uint32 dtype contract is pinned 4x (the 3 dtype asserts + the golden literal)",
       read("test/reversi/lm/test_wrk_design_matrix.py").count("np.uint32") == 4)
-check("C14 the before-DESIGN_MTR None-ness is pinned (L173)",
+check("C14 the before-DESIGN_MTR None-ness is pinned (L189)",
       "self.assertIsNone(self.rlm.context.design_matrix)" in read("test/reversi/lm/test_wrk_design_matrix.py"))
 
 # ----------------------------------------------------------------------
