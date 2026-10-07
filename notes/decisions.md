@@ -1135,3 +1135,23 @@ D-499 | 2026-10-07 | The wrk\_features source + test + mirror-doc + probe pass (
          runtime-pinned by the probe (B12, B10, B13a-c) — division of labor documented, as in D-498. Reflow last (the
          canonical fixed point on both files; the 4 code lines still over 100 were fixed by hand via the f-string
          concatenation — the reflow does not touch code). No cell change (3/0/0/0/0), suite flat 1114/0/24.
+
+D-500 | 2026-10-07 | The wrk\_final\_log\_print source + test + mirror-doc pass (4 files — the probe untouched, zero
+         re-pins: it has no title/line-count/comment pins, verified check by check): (1) source 64 -> 63: the 2 missing
+         docstrings added (`_up` / `_down` — the comment blocks that stood in for docstrings were replaced, the gate +
+         no-unlink semantics now in the docstrings), the factory first line normalized to the imperative. (2) test
+         210 -> 184: the header canon (3 bare '#' with no blank after the license -> 1 bare '#' + blank) + the title
+         canon (the stray 'module' word dropped — the first of that genre; the probe does not pin the title), the
+         10-line module docstring DROPPED (it duplicated the class docstrings and carried the 'D-322' provenance —
+         R-540), the 4 docstring compressions (the e2e class 11 -> 2 with the 'D-322 fix' tag out and the checksum WHY
+         kept, class 1 4 -> 2, `_MockCtx` 5 -> 2, `_make_ctx` 6 -> 2), the R-850 micro-pin in `test_down_no_op` (the
+         file exists AFTER the `_down` — the 'the \_down does not unlink it' documented behavior was pinned nowhere: the
+         test only asserted the log, the probe has no down on its synthetic machine; consistent with the a/b/c rule —
+         file existence lives in the suite). (3) the source mirror doc 64 -> 65: the header canon (the 19th active
+         level, step 19), the STALE fix — 'log\_file\_name set after CONFIG' described the pre-fix behavior (the e2e
+         sets it in the config from the start via the tmp fixture copy; a post-CONFIG mutation desyncs the config
+         checksum fingerprinted at CONFIG), the Italian spec quote dropped (redundant with the English clause). (4) the
+         test mirror doc 45 -> 45: the D-322 x3 purge (the tag out, the WHY kept). (5) the probe: 0 mismatch pre- and
+         post-pass, zero re-pins. Reflow last (canonical on both files; the 4 lines over 100 it re-joins in the test are
+         its own fixed point, all under the 120 ceiling). No cell change (6/0/0/0/0 — the micro-pin is an assert in an
+         existing test), suite flat 1114/0/24.

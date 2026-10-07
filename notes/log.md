@@ -2879,3 +2879,14 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   al primo colpo. Nessun micro-test: down-cleared (B12), no-cache (B10) e second-run (B13a-c) sono
   tutti pinned dal probe a runtime. Reflow ultimo. Suite flat 1114/0/24 (cella 3/0/0 invariata).
   Restano 8 coppie: da wrk\_wmaps a wrk\_save.
+- D-500 (wrk\_final\_log\_print, un solo D, 4 file — il probe non è toccato, zero re-pin): sorgente
+  64 -> 63: i 2 docstring mancanti (\_up/\_down — al posto dei docstring c'erano blocchi comment,
+  rimpiazzati), il factory normalizzato. Test 210 -> 184: header (3 bare # senza blank dopo la
+  license) + titolo in canone (via 'module'), il module docstring a 10 righe tolto (duplicava i
+  class docstring + portava la provenance D-322), 4 docstring compressi, il micro-pin R-850 (il file
+  sopravvive al down — prima pinned da nessuna parte). Source doc 64 -> 65: l'header in canone (step
+  19), il STALE 'log\_file\_name set after CONFIG' corretto (il test la mette nel config from the
+  start — il tmp fixture copy), la frase italiana in quotes tolta. Test doc: D-322 x3 purged. Probe:
+  0 mismatch pre- e post-pass, zero re-pin (verificato: nessun pin di title/line-count/comment).
+  Reflow ultimo. Suite flat 1114/0/24 (cella 6/0/0/0/0 invariata — il micro-pin è un assert in un
+  test esistente). Restano 7 coppie: da wrk\_wmaps a wrk\_save.
