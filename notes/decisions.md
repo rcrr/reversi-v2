@@ -1068,3 +1068,28 @@ D-496 | 2026-10-06 | The wrk\_client\_check source + test + mirror-doc pass (the
          44: the same sidecar-claim fix in the header, "(the 17th active level)", the Coverage table 6 -> 7 with the new
          test description, the no-publishing contract added to Goldens pinned. Reflow last (the canonical fixed point on
          both files). Suite 1112 -> 1113/0/24 (the single cell move 6 -> 7/0/0).
+
+D-497 | 2026-10-06 | The wrk\_config source + test + mirror-doc + probe pass (the fourth worker of the cascade; the
+         user-approved full plan + the micro-test): (1) source 110 -> 128: the 5 missing docstrings — the cascade's
+         biggest docstring gap so far (`_up`, `_down` + the 3 private helpers `_load`, `_validate`,
+         `_validate_base_dir`, all imperative + the WHAT), the factory first line normalized to the imperative "Return
+         the CONFIG worker instance.", the unused `Callable` import dropped (from
+         `from typing import TYPE_CHECKING, Callable` — verified unused), the 5 E301 fixes (single blank -> 2 between
+         the top-level defs; the 3-blank runs around `__all__` kept — the house style, as wrk\_validate /
+         wrk\_positions). (2) test 329 -> 342: the header block + the title normalized ("How to use the unit tests
+         wrk\_config module." -> "How to run the wrk\_config unit tests.", the corpus wrk\_X form), the 6
+         trailing-whitespace blank lines dropped by the reflow, the test\_base\_dir\_missing docstring compressed (6
+         lines -> 3, the verify\_wrk\_config.py D1-probe provenance dropped), one R-850 micro-test —
+         test\_base\_dir\_from\_json\_is\_a\_file\_raises\_error: the worker's NotADirectoryError gate was documented
+         ("the three gates") but pinned only via the facade's `__init__` (the base\_dir\_override path,
+         `_check_base_dir_override` in logistic\_model.py L84-92); the JSON-base\_dir-file case (no override) is
+         reachable but was uncovered — the new test on the payload idiom; cell 13 -> 14/0/0/0/0. (3) the source mirror
+         doc 69 -> 70: the header canon ("the 1st active level (step 1), the first non-sentinel"), the stale fixture
+         path fixed (`src/reversi/test/data/rlm\_00.json` — absent — -> `test/reversi/data/rlm\_00.json`), 13 -> 14
+         tests, the failure-behaviour bullet distinguishing the a-file override (the facade) from the a-file from the
+         JSON (the worker's own gate). (4) the test mirror doc 39 -> 39: the stale "ec=10" -> "ec=20" (the payload
+         carries 20; the schema is ge=0 le=60, required), the Coverage row (3 -> 4, the D1 provenance dropped, both
+         a-file cases), 13 -> 14 in the header. (5) the probe: the header docstring's stale sidecar claim fixed ("moved
+         to the SAVE sidecar pair" -> "EMBEDDED in the v2 model file at SAVE" — the sidecar is RETIRED); zero re-pins
+         (15/15 pre- and post-pass). Reflow last (the canonical fixed point on both files). Suite 1113 -> 1114/0/24 (the
+         single cell move 13 -> 14/0/0).

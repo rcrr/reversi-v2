@@ -2835,3 +2835,19 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   table 7 + il golden del no-publishing. Reflow ultimo (fixed point canonico). Suite 1112 ->
   1113/0/24 (solo la cella 6 -> 7). Il prossimo modulo della cascata worker secondo la scelta di
   Roberto.
+- D-497 (wrk\_config, un solo D, piano concordato + il micro-test): sorgente 110 -> 128: i 5
+  docstring mancanti (il gap più grosso della cascata — \_up, \_down + i 3 helper privati \_load,
+  \_validate, \_validate\_base\_dir, tutti imperativo + WHAT), il factory normalizzato, l'import non
+  usato Callable tolto, le 5 E301 (single blank -> 2 tra i def top-level; le 3-blank attorno a
+  \_\_all\_\_ restano — house style). Test 329 -> 342: il header + il titolo in canone ("How to run
+  the wrk\_config unit tests." — l'originale era "How to use the unit tests wrk\_config module."),
+  il docstring di test\_base\_dir\_missing compressa (la provenance probe D1 via), il micro-test
+  R-850 test\_base\_dir\_from\_json\_is\_a\_file\_raises\_error (il gate NotADirectoryError del
+  worker era documentato ma pinned solo per la via \_\_init\_\_ della facade — base\_dir file nel
+  JSON, no override) — cella 13 -> 14/0/0/0/0. Source doc 69 -> 70: l'header in canone ("the 1st
+  active level (step 1)"), il path stantio del fixture corretto (src/reversi/test/data ->
+  test/reversi/data — il file stantio non esiste), 13 -> 14 test + il bullet dei gates aggiornato.
+  Test doc 39 -> 39: lo stantio ec=10 -> ec=20 + la provenance dalla coverage row + il 4. Probe: il
+  docstring stantio del sidecar corretto (la record è ora EMBEDDED nel v2 file), zero re-pins (15/15
+  pre- e post-pass). Reflow ultimo. Suite 1113 -> 1114/0/24 (solo la cella 13 -> 14). Il prossimo
+  modulo della cascata worker secondo la scelta di Roberto.
