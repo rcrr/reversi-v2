@@ -1,9 +1,9 @@
 # reversi/lm/wrk_generate.py
-The GENERATE worker — the pipeline's dense-expansion level. `_up` runs the uniform 7-kwargs
-`cache_manager_load_or_compute` flow to materialize the dense weight vector (`ctx.w_dense` + `ctx.dense_w_checksum`) and
-`_down` clears both. The 6th cache_manager consumer: the flat file `rlmwf_12_GENERATE.dat` + `.SHA3-256` (machine
-closure `{prefix}{level:02}_{worker_name}.dat`); after OPTIMIZE's config-driven checkpoint name, GENERATE is the last
-cache level before VLD_POSITIONS (rlmwf_13).
+The GENERATE worker of the LM pipeline — the 12th active level (step 12), the dense-expansion level: `_up` runs the
+uniform 7-kwargs `cache_manager_load_or_compute` flow to materialize the dense weight vector (`ctx.w_dense` +
+`ctx.dense_w_checksum`) and `_down` clears both. The 6th cache_manager consumer: the flat file `rlmwf_12_GENERATE.dat`
++ `.SHA3-256` (machine closure `{prefix}{level:02}_{worker_name}.dat`); after OPTIMIZE's config-driven checkpoint name,
+GENERATE is the last cache level before VLD_POSITIONS (rlmwf_13).
 
 ## API
 

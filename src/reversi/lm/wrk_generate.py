@@ -48,6 +48,10 @@ __all__ = ['wrk_generate']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the GENERATE level: the 7-kwargs cache load-or-compute for the dense weight vector, and
+    publish it on the context (w_dense + its data checksum).
+    """
     ctx.log_event(Relevance.INFO, "Generating dense weight vector (w_dense) for inference...")
 
     cache_hit, dense_obj, dense_w_checksum = cache_manager_load_or_compute(
@@ -61,13 +65,15 @@ def _up(ctx: "LMContext") -> None:
     )
 
     ctx.w_dense = dense_obj.w_dense
-    ctx.log_event(Relevance.INFO, f"Dense weight vector generated/loaded. Shape: {ctx.w_dense.shape}")
+    ctx.log_event(Relevance.INFO,
+                  f"Dense weight vector generated/loaded. Shape: {ctx.w_dense.shape}")
 
     ctx.log_event(Relevance.INFO, f"Dense weight vector (dense_w_checksum): {dense_w_checksum}.")
     ctx.dense_w_checksum = dense_w_checksum
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear both context attributes (the dense weight vector + the data checksum)."""
     ctx.log_event(Relevance.INFO, "Clearing dense weight vector...")
     ctx.w_dense = None
     ctx.dense_w_checksum = None
@@ -75,4 +81,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_generate() -> Worker:
+    """Return the GENERATE worker instance."""
     return Worker("GENERATE", _up, _down)

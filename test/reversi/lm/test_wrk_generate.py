@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_generate unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,15 +34,13 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_generate
 #
 
 import unittest
-import os
 import tempfile
 import hashlib
 
@@ -69,17 +66,15 @@ class TestLMWorkerGenerate(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab — all the tests need the
-        # live regab DB (the setUp moves to OPTIMIZE, which runs the whole
-        # positions chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — all the tests need the live regab DB (the setUp
+        # moves to OPTIMIZE, which runs the whole positions chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -92,8 +87,8 @@ class TestLMWorkerGenerate(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 0)
         self.assertEqual(self.rlm.current_worker_name, 'CREATED')
 
-        # Move to OPTIMIZE first, as GENERATE depends on the optimized
-        # weights (w + w_checksum) produced there
+        # Move to OPTIMIZE first, as GENERATE depends on the optimized weights (w + w_checksum)
+        # produced there
         self.rlm.move_to_step('OPTIMIZE')
         self.assertEqual(self.rlm.current_step, 11)
         self.assertEqual(self.rlm.current_worker_name, 'OPTIMIZE')
@@ -124,8 +119,8 @@ class TestLMWorkerGenerate(unittest.TestCase):
         logs = self.mock_stdout.getvalue()
         self.assertIn("Executing heavy computation", logs)
 
-        # Verify the context was updated (the rlm_02 golden:
-        # K = 6588 = 1 (intercept) + 6561 (EDGE) + 27 (DIAG3))
+        # Verify the context was updated (the rlm_02 golden: K = 6588 = 1 (intercept) + 6561 (EDGE)
+        # + 27 (DIAG3))
         self.assertEqual(self.rlm.context.w_dense.shape, (6588,))
         self.assertEqual(self.rlm.context.w_dense.dtype, np.float32)
         self.assertEqual(
@@ -147,7 +142,7 @@ class TestLMWorkerGenerate(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('OPTIMIZE') # Reach the step before GENERATE
+        rlm2.move_to_step('OPTIMIZE')  # Reach the step before GENERATE
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
