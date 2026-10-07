@@ -1173,3 +1173,22 @@ D-501 | 2026-10-07 | The wrk\_generate source + test + mirror-doc pass (3 files 
          in test 1. (5) the probe: 0 mismatch pre- and post-pass, zero re-pins (no line-count/title/import pins — as
          in D-500). Reflow last (canonical on both files; the first-drafted 101/103-char docstring line was re-wrapped
          to the fitting form). No cell change (3/0/0/0/0), suite flat 1114/0/24.
+
+D-502 | 2026-10-07 | The wrk\_gradient source + test + mirror-doc + probe pass: (1) source 65 -> 72: the 2 missing
+         docstrings added (`_up` / `_down` — the by-design comment 'GRADIENT building is a closure generation, very
+         fast. No cache needed.' KEPT, the probe B tier pins it), the factory first line normalized to the imperative,
+         the 104-char `hlp_gradient_compute(...)` call split over 2 lines, the E301 single-blank fix. (2) test 184 ->
+         184: the header's extra bare '#' dropped, the unused `import os` dropped, the TestGradientFlagWiring class
+         docstring compressed (4 -> 2), and the R-850 micro-pin in `test_generate_gradient` (the variant log line
+         `Gradient function generated (high_performance: False).` — documented in the source doc as 'the log line names
+         the built variant' but runtime-pinned nowhere). The micro-pin's first attempt on mock\_stdout FAILED: this
+         suite runs at Verbosity.LOW, and the console verbosity gate filters the INFO lines — the corrected pin reads
+         the machine's event buffer (`sm.logs`), which the StateMachine fills on every `log_event` independently of the
+         gate. (3) the source mirror doc 68 -> 68: the header canon (the 10th active level, step 10), the 4 stale
+         line-count claims dropped ('the 65-line file', 'the 182-line file', 'the 272-line file', 'all 8 worker files'),
+         and the hlp-suite test count corrected 14 -> 15 (verified live — test\_hlp\_gradient.py has 3 classes / 15
+         tests). (4) the test mirror doc: clean — zero fixes. (5) the probe: 5 re-pins — B1 (line count 65 -> 72), B5
+         (the 2-line split call), B9 (the factory docstring — the probe pinned the DEVIANT 'Factory function that
+         returns...' form, now the normalized imperative), C2 (clause 2 to the reflow's re-wrapped header text), C3 (the
+         import-os clause dropped) — 0 mismatch on the post-pass run. Reflow last (canonical on both files). No cell
+         change (4/0/0/0/0 — the micro-pin is an assert in an existing test), suite flat 1114/0/24.

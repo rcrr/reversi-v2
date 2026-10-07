@@ -111,8 +111,9 @@ define the evaluation function.
   lines + the guard class docstring + the A1/C1 probe re-pins); wrk\_final\_log\_print the D-500 pass (the 2 missing
   \_up/\_down docstrings + the title canon + the D-322 purge + the R-850 micro-pin + the stale 'set after CONFIG' fix);
   wrk\_generate the D-501 pass (the 3 missing docstrings — the first docstring-less factory — + the 6th-consumer claim
-  verified true); the 6 remaining worker pairs: wrk\_wmaps, wrk\_zed, wrk\_gradient, wrk\_optimize, wrk\_vld\_positions,
-  wrk\_save.
+  verified true); wrk\_gradient the D-502 pass (the 2 missing docstrings + the R-850 variant-log micro-pin via the event
+  buffer + the 4 stale line-count claims + the 14->15 hlp-suite count fix); the 5 remaining worker pairs: wrk\_wmaps,
+  wrk\_zed, wrk\_optimize, wrk\_vld\_positions, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

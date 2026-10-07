@@ -2901,3 +2901,15 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   news: è il primo worker con il down pinned nella SUITE (test\_down\_clears\_generate\_attributes) —
   zero micro-test R-850. Probe: 0 mismatch, zero re-pin (come a D-500). Reflow ultimo. Suite flat
   1114/0/24 (cella 3/0/0 invariata). Restano 6 coppie: da wrk\_wmaps a wrk\_save.
+- D-502 (wrk\_gradient, un solo D): sorgente 65 -> 72: i 2 docstring mancanti (\_up/\_down — il
+  comment by-design 'closure generation, very fast. No cache needed.' resta, è pinned dal probe B),
+  il factory normalizzato, la chiamata hlp\_gradient\_compute a 104 split, l'E301. Test 184 -> 184:
+  il bare # nel header, l'import non usato os tolto (re-pin C3), il class docstring della wiring
+  compresso, e il micro-pin R-850 del variant log — prima pinned a runtime da nessuna parte; primo
+  tentativo su mock\_stdout FALLITO: la suite corre a Verbosity.LOW e il gate di console filtra le
+  INFO — corretto sull'event buffer (sm.logs), indipendente dalla verbosity. Source doc 68 -> 68:
+  l'header in canone (step 10), i 4 line-count claim stanti tolti (65/182/272 + 'all 8 worker
+  files') e il count del dedicato hlp test corretto 14 -> 15 (verificato live). Test doc: pulito.
+  Probe: 5 re-pin (B1 65 -> 72, B5 la chiamata split, B9 il factory docstring — il probe pinnaVA la
+  forma deviante —, C2 il header re-wrap, C3) — 0 mismatch al post-pass. Reflow ultimo. Suite flat
+  1114/0/24 (cella 4/0/0/0/0 invariata). Restano 5 coppie: da wrk\_wmaps a wrk\_save.
