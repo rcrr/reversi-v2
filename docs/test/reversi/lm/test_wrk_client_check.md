@@ -1,8 +1,9 @@
 # test/reversi/lm/test_wrk_client_check.py
-The no-DB suite of the CLIENT_CHECK worker (the 17th level): it exercises the worker DIRECTLY on a synthetic
+The no-DB suite of the CLIENT_CHECK worker (the 17th active level): it exercises the worker DIRECTLY on a synthetic
 rlm_04-mirror context (the same layout and the same production iwmap pin as test_client.py) — the model file is written
-with the REAL `model_weights_write_file` (the v2 LZ4 artifact + sidecar), then `wrk_client_check().up(ctx)` runs the
-full level: file re-read → client's array EF → residual comparison. No DB, no pipeline: the `Worker.up` @validate_call
+with the REAL `model_weights_write_file` (the v2 LZ4 artifact, the config dump + checksum embedded), then
+`wrk_client_check().up(ctx)` runs the full level: file re-read → client's array EF → residual comparison. No DB, no
+pipeline: the `Worker.up` @validate_call
 gate (context: Context) requires a REAL `LMContext`; the `cfg` attribute is the SimpleNamespace stand-in and `log_event`
 a capturing lambda.
 
@@ -10,7 +11,7 @@ a capturing lambda.
 
 | class | tests | what it pins |
 |---|---|---|
-| `TestWrkClientCheck` (ungated — no DB, no pipeline; setUp: `mkdtemp` under `CUSTOM_TMP_BASE`, the seeded synthetic ctx — SEED 42, 2000 collision-free positions, int8 game values in steps of 2, logit clipping 0.01, the rlm_04 feature layout + iwmap [0,1,66,6627]) | 6 | `test_factory_returns_named_worker`: the `@validate_call` factory returns `Worker("CLIENT_CHECK", …)` (the uniform worker-factory idiom). `test_up_passes_on_unmodified_file`: THE BIT-IDENTITY GOLDEN — after the real SAVE write, the level passes and the captured log contains "Client check passed: 2000 validation residuals, max difference 0.000e+00 (tolerance 1.0e-08)." (the f64-view residuals from the file round-trip + the array EF equal the in-memory VALIDATE forward pass's exactly). `test_up_missing_file_raises`: no SAVE artifact → the read's `FileNotFoundError` propagates. `test_up_diverged_weights_raise`: the file's residuals diverge from the published series (the perturbation precedes the write; max difference ~0.2) → `RuntimeError` with the full diagnosis message ("…by 1.959e-01 (first at position 1355), above the tolerance 1.0e-08. The model file, the client, or the validation forward pass has diverged.") + exactly one ERROR log line. `test_tolerance_is_read_from_config`: the tolerance is the `cfg.client_check_tol` field (the JSON config value, not a module constant): the same divergence is ADMITTED by a wide tolerance (1.0) and REJECTED by a tight one (1e-4). `test_down_is_a_noop_log`: the stateless `_down` (as SAVE) logs only. |
+| `TestWrkClientCheck` (ungated — no DB, no pipeline; setUp: `mkdtemp` under `CUSTOM_TMP_BASE`, the seeded synthetic ctx — SEED 42, 2000 collision-free positions, int8 game values in steps of 2, logit clipping 0.01, the rlm_04 feature layout + iwmap [0,1,66,6627]) | 7 | `test_factory_returns_named_worker`: the `@validate_call` factory returns `Worker("CLIENT_CHECK", …)` (the uniform worker-factory idiom). `test_up_passes_on_unmodified_file`: THE BIT-IDENTITY GOLDEN — after the real SAVE write, the level passes and the captured log contains "Client check passed: 2000 validation residuals, max difference 0.000e+00 (tolerance 1.0e-08)." (the f64-view residuals from the file round-trip + the array EF equal the in-memory VALIDATE forward pass's exactly). `test_up_missing_file_raises`: no SAVE artifact → the read's `FileNotFoundError` propagates. `test_up_diverged_weights_raise`: the file's residuals diverge from the published series (the perturbation precedes the write; max difference ~0.2) → `RuntimeError` with the full diagnosis message ("…by 1.959e-01 (first at position 1355), above the tolerance 1.0e-08. The model file, the client, or the validation forward pass has diverged.") + exactly one ERROR log line. `test_tolerance_is_read_from_config`: the tolerance is the `cfg.client_check_tol` field (the JSON config value, not a module constant): the same divergence is ADMITTED by a wide tolerance (1.0) and REJECTED by a tight one (1e-4). `test_publishes_no_context_attribute`: the stateless worker (as SAVE) publishes no context attribute (the attribute set is unchanged by the up + down pair). `test_down_is_a_noop_log`: the stateless `_down` (as SAVE) logs only. |
 
 ## Goldens pinned
 
@@ -23,6 +24,7 @@ a capturing lambda.
   so the test survives a re-seed of the synthetic weights.
 - The `iwmap` pin [0, 1, 66, 6627] (the production rlm_04 layout, as in test_client.py) — the synthetic context IS the
   rlm_04 shape.
+- The no-publishing contract: the ctx attribute set is unchanged by the up + down pair (the stateless worker, as SAVE).
 
 ## Conventions
 

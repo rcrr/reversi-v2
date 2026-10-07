@@ -1,5 +1,5 @@
 # reversi/lm/wrk_client_check.py
-The CLIENT_CHECK worker — the 17th step of the LM pipeline (after SAVE; PLOT follows at 18). a non-cache worker: no
+The CLIENT_CHECK worker — the 17th active level (step 17, after SAVE; PLOT follows at 18). A non-cache worker: no
 `cache_manager` wiring, no cache file (the level is recomputed on every up-move). The acceptance test of the saved model
 file: it re-reads the SAVE artifact from disk, builds the client's vectorized Evaluation Function on the FILE weights,
 and recomputes the validation residuals in Y space — they must coincide with the validation series VALIDATE published on
@@ -27,12 +27,12 @@ context attribute is published; `_down` is a no-op (log only).
   up-move, as SAVE).
 - Imports: numpy, pydantic, `Worker` / `Relevance`, `make_evaluation_function_array` (the client factory: the check IS
   the client running on the saved file), `model_weights_read_file` (the v2 reader), `LMContext` under TYPE_CHECKING. NO
-  `reversi.tools.cache_manager` import and NO `sigmoid` import (the worker no longer re-derives the forward
+  `reversi.tools.cache_manager` import and NO `sigmoid` import (the worker does not re-derive the forward
   pass).
 
 ## Verified invariants
 
-Pinned by the 6-test `test_wrk_client_check` suite (no DB) + the full-chain suite (DB-gated).
+Pinned by the 7-test `test_wrk_client_check` suite (no DB) + the full-chain suite (DB-gated).
 
 - The bit-identity golden: on a synthetic rlm_04-mirror context (the test_client layout, 2000 seeded collision-free
   positions), the file round-trip + the client's array EF reproduce the published validation series BIT-EXACTLY — the
@@ -45,7 +45,8 @@ Pinned by the 6-test `test_wrk_client_check` suite (no DB) + the full-chain suit
   (`test_up_missing_file_raises`).
 - The tolerance is the cfg field (the JSON config value, not a module constant): the same divergence is ADMITTED by a
   wide tolerance (1.0) and REJECTED by a tight one (1e-4) (`test_tolerance_is_read_from_config`).
-- The factory name (`test_factory_returns_named_worker`) + the no-op `_down` log (`test_down_is_a_noop_log`).
+- The factory name (`test_factory_returns_named_worker`) + the no-op `_down` log (`test_down_is_a_noop_log`) + the
+  no-context-attribute publishing (`test_publishes_no_context_attribute`).
 - The pipeline shape (19 levels, the FINAL_LOG_PRINT last) — `probes/verify_logistic_model.py` V3c.
 
 ## Open issues

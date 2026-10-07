@@ -26,8 +26,7 @@
 #
 
 #
-#
-# How to run the CLIENT_CHECK worker unit tests.
+# How to run the wrk_client_check unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
 #
@@ -35,9 +34,8 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no DB needed — the worker is exercised directly
-#     on a synthetic rlm_04-mirror context, the same layout as
-#     test_client.py).
+# -1- Run the tests (no DB needed — the worker is exercised directly on a synthetic rlm_04-mirror
+# context, the same layout as test_client.py).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_client_check
 #
@@ -68,13 +66,10 @@ ALPHA = 0.01
 
 
 class TestWrkClientCheck(unittest.TestCase):
-    """The CLIENT_CHECK worker on a synthetic
-    rlm_04-mirror context: the model file round-trip + the client's
-    array EF vs the in-memory VALIDATE forward pass. No DB, no
-    pipeline: the worker is exercised directly. The Worker.up
-    @validate_call gate (context: Context) requires a REAL LMContext;
-    the cfg attribute is the SimpleNamespace stand-in (the v2
-    micro-test idiom), the log_event a capturing lambda."""
+    """
+    The CLIENT_CHECK worker exercised directly on a synthetic rlm_04-mirror context (no DB, no
+    pipeline): the file round-trip + the client's array EF vs the in-memory VALIDATE forward pass.
+    """
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
@@ -87,9 +82,8 @@ class TestWrkClientCheck(unittest.TestCase):
     def _build_ctx(self):
         rng = np.random.default_rng(SEED)
 
-        # The rlm_04 feature layout (the fixture rlm_04.json, as in
-        # test_client.py): intercept + LMC (the full board, amask 0)
-        # + EDGE (row 1) — the production iwmap pin [0, 1, 66, 6627].
+        # The rlm_04 feature layout (the fixture rlm_04.json, as in test_client.py): intercept + LMC
+        # (the full board, amask 0) + EDGE (row 1) — the production iwmap pin [0, 1, 66, 6627].
         intercept = Feature.new_intercept()
         mset = MobilitySet("MOBILITY",
                            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
@@ -102,9 +96,8 @@ class TestWrkClientCheck(unittest.TestCase):
         self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
         w_dense = rng.standard_normal(int(offsets[-1]), dtype=np.float32)
 
-        # Seeded collision-free validation positions (the EF caller
-        # contract: mover & opponent == 0) + int8 game values (the
-        # regab contract: [-64, 64] in steps of 2).
+        # Seeded collision-free validation positions (the EF caller contract: mover & opponent == 0)
+        # + int8 game values (the regab contract: [-64, 64] in steps of 2).
         m = rng.integers(0, 2**64, size=N_VLD, dtype=np.uint64)
         o = rng.integers(0, 2**64, size=N_VLD, dtype=np.uint64)
         o &= ~m
@@ -112,8 +105,8 @@ class TestWrkClientCheck(unittest.TestCase):
         game_values = (rng.integers(-32, 33, size=N_VLD) * 2
                        ).astype(np.int8)
 
-        # The real ZED transforms (the f32 affine pair of logit
-        # clipping 0.01, the rlm_03/rlm_04 fixture value).
+        # The real ZED transforms (the f32 affine pair of logit clipping 0.01, the rlm_03/rlm_04
+        # fixture value).
         y2z, z2y = zed_fun_factory(ALPHA)
 
         ctx = LMContext(
@@ -141,9 +134,8 @@ class TestWrkClientCheck(unittest.TestCase):
                         "f": 0.01, "g_norm": 1e-6}
         ctx.vld_metrics = {"vld_samples": N_VLD, "vld_rmse_y": 1.0,
                            "vld_mae_y": 0.5, "vld_loss": 0.0025}
-        # The validation series the check consumes — published
-        # by VALIDATE, here derived with the SAME hlp_validate pass
-        # (the level that owns it) on the synthetic state.
+        # The validation series the check consumes — published by VALIDATE, here derived with the
+        # SAME hlp_validate pass (the level that owns it) on the synthetic state.
         ctx.vld_rn = validate_model(ctx).rn_y
         # The log capture (the LMContext default is the no-op lambda).
         ctx.log_event = lambda relevance, message: \
@@ -151,8 +143,7 @@ class TestWrkClientCheck(unittest.TestCase):
         return ctx
 
     def _write_model_file(self):
-        # The real SAVE write (the v2 model file, LZ4, the binio
-        # sidecar included).
+        # The real SAVE write (the v2 model file, LZ4, the config dump + checksum embedded in the file).
         ctx = self._ctx
         model_weights_write_file(ctx, ctx.cfg.base_dir / ctx.cfg.output,
                                  compressed=True)
@@ -160,16 +151,14 @@ class TestWrkClientCheck(unittest.TestCase):
     # -- the factory + the happy path ------------------------------------
 
     def test_factory_returns_named_worker(self):
-        """The factory (the uniform @validate_call idiom) returns the
-        CLIENT_CHECK worker."""
+        """The factory (the uniform @validate_call idiom) returns the CLIENT_CHECK worker."""
         self.assertEqual(wrk_client_check().name, "CLIENT_CHECK")
 
     def test_up_passes_on_unmodified_file(self):
-        """The file round-trip + the client's array EF reproduce the
-        validation residuals BIT-EXACTLY (max difference 0.0 < the
-        1e-8 tolerance — the same f32 pipeline over the bit-exact
-        round-trip): the check passes and logs the completion line
-        (the bit-identity golden)."""
+        """
+        The bit-identity golden: the file round-trip + the client's array EF reproduce the
+        validation residuals BIT-EXACTLY.
+        """
         self._write_model_file()
         wrk_client_check().up(self._ctx)
         messages = [m for _, m in self._events]
@@ -180,22 +169,20 @@ class TestWrkClientCheck(unittest.TestCase):
             messages)
 
     def test_up_missing_file_raises(self):
-        """No SAVE artifact (the file was never written): the read
-        raises, the exception propagates (the failure
-        semantics: the machine logs and re-raises, the step stays at
-        CLIENT_CHECK)."""
+        """
+        No SAVE artifact: the read's FileNotFoundError propagates (the machine logs and re-raises,
+        the step stays at CLIENT_CHECK).
+        """
         with self.assertRaises(FileNotFoundError):
             wrk_client_check().up(self._ctx)
 
     # -- the failure path ---------------------------------------------------
 
     def test_up_diverged_weights_raise(self):
-        """The FILE diverges from the validation series (the drift
-        case): the file is written from a
-        DIVERGED in-memory state, so its residuals differ from the
-        series VALIDATE published — the max difference is far above
-        the 1e-8 tolerance, the worker logs the ERROR line and raises
-        RuntimeError."""
+        """
+        The FILE written from a DIVERGED in-memory state: the RuntimeError (the full diagnosis) +
+        exactly one ERROR log line.
+        """
         self._ctx.w_dense = self._ctx.w_dense + np.float32(1e-3)
         self._write_model_file()
         with self.assertRaisesRegex(
@@ -210,10 +197,10 @@ class TestWrkClientCheck(unittest.TestCase):
         self.assertEqual(len(failed), 1)
 
     def test_tolerance_is_read_from_config(self):
-        """The tolerance is the cfg field (the JSON config value, not
-        a module constant): the same diverged FILE (max difference
-        ~0.2, written from a diverged state) is ADMITTED by a wide
-        tolerance (1.0) and REJECTED by a tight one (1e-4)."""
+        """
+        The tolerance is the cfg field (the JSON value, not a module constant): ADMITTED by a wide
+        one (1.0), REJECTED by a tight one (1e-4).
+        """
         self._ctx.w_dense = self._ctx.w_dense + np.float32(1e-3)
         self._write_model_file()
         self._ctx.cfg.client_check_tol = 1.0
@@ -222,11 +209,25 @@ class TestWrkClientCheck(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             wrk_client_check().up(self._ctx)
 
+    def test_publishes_no_context_attribute(self):
+        """
+        The stateless worker (as SAVE) publishes no context attribute: the attribute set is
+        unchanged by the up + down pair.
+        """
+        self._write_model_file()
+        before = set(vars(self._ctx))
+        wrk_client_check().up(self._ctx)
+        self.assertEqual(set(vars(self._ctx)), before)
+        wrk_client_check().down(self._ctx)
+        self.assertEqual(set(vars(self._ctx)), before)
+
     # -- the down step ----------------------------------------------------
 
     def test_down_is_a_noop_log(self):
-        """The stateless _down (as SAVE): log only, nothing is
-        cleared (the worker re-reads the file on every up-move)."""
+        """
+        The stateless _down (as SAVE): log only, nothing is cleared (the worker re-reads the file on
+        every up-move).
+        """
         wrk_client_check().down(self._ctx)
         messages = [m for _, m in self._events]
         self.assertIn("Clearing client check attributes...", messages)
