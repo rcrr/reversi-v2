@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_optimize unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,14 +34,12 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_optimize
 #
 
-import os
 import tempfile
 import unittest
 from io import StringIO
@@ -62,17 +59,16 @@ class TestLMWorkerOptimize(unittest.TestCase):
     """Tests the OPTIMIZE worker integration."""
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # the worker test needs the live regab DB (the setUp moves to
-        # GRADIENT, which runs the positions chain on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the worker test needs the live regab DB (the
+        # setUp moves to GRADIENT, which runs the positions chain on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean, especially for large datasets
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # The shared temp-dir idiom: TemporaryDirectory created FIRST
-        # under the shared CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored config.
+        # The shared temp-dir idiom: TemporaryDirectory created FIRST under the shared
+        # CUSTOM_TMP_BASE, WORKSPACE_ROOT-anchored config.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json")
@@ -144,9 +140,8 @@ class TestLMWorkerOptimize(unittest.TestCase):
         self.assertIn("Checkpoint: optimization already completed.", logs)
         self.assertIn("Iterations", logs)
 
-        # And confirm L-BFGS did NOT run (no per-iteration optimizer logs).
-        # "L-BFGS - [" is the actual lbfgs marker — the old
-        # "Starting L-BFGS optimization" string was never logged (vacuous).
+        # And confirm L-BFGS did NOT run (no per-iteration optimizer logs). "L-BFGS - [" is the
+        # actual lbfgs marker — the old "Starting L-BFGS optimization" string was never logged (vacuous).
         self.assertNotIn("L-BFGS - [", logs)
 
         # Weights must be identical to the first run (loaded from checkpoint)

@@ -50,6 +50,11 @@ __all__ = ['wrk_optimize']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the OPTIMIZE level: the 4-step recipe — the checkpoint decision (completed-load,
+    warm-resume, scratch), the lbfgs wrappers, the L-BFGS run over the GRADIENT closure, and the
+    final checkpoint save.
+    """
     ctx.log_event(Relevance.INFO, "Starting OPTIMIZE worker...")
 
     opt_cfg = ctx.cfg.optimization
@@ -67,9 +72,8 @@ def _up(ctx: "LMContext") -> None:
         try:
             cp = load_optimization_checkpoint(checkpoint_path)
         except (RuntimeError, binio.BinaryFormatError, OSError) as exc:
-            # A checkpoint that cannot be parsed or verified
-            # (e.g. truncated by a crash mid-save) must not kill the
-            # worker: delete it and its sidecar, then start from scratch.
+            # A checkpoint that cannot be parsed or verified (e.g. truncated by a crash mid-save)
+            # must not kill the worker: delete it and its sidecar, then start from scratch.
             ctx.log_event(Relevance.WARN,
                           f"Checkpoint could not be loaded ({exc}). Deleting it and starting from scratch.")
             checkpoint_path.unlink(missing_ok=True)
@@ -90,7 +94,7 @@ def _up(ctx: "LMContext") -> None:
             ctx.w_checksum = w_checksum
             ctx.log_event(Relevance.INFO, f"Weight vector checksum (w_checksum): {w_checksum}.")
             ctx.opt_info = optimization_info_dict(cp)
-            return # Skip optimization entirely!
+            return  # Skip optimization entirely!
 
         elif cp['iters'] < ctx.cfg.optimization.max_iters:
             ctx.log_event(Relevance.INFO, f"Checkpoint found. Resuming optimization from iteration {cp['iters']}.")
@@ -99,9 +103,8 @@ def _up(ctx: "LMContext") -> None:
             initial_yl = cp['yl']
             initial_rho = cp['rho']
             initial_iter = cp['iters']
-        # The old trailing else ("state is unrecognized") was
-        # unreachable: iters is an int, so iters >= max_iters or
-        # iters < max_iters always holds.
+        # The old trailing else ("state is unrecognized") was unreachable: iters is an int, so iters
+        # >= max_iters or iters < max_iters always holds.
 
     # 2. Setup wrappers
     def logger_fn(msg: str):
@@ -118,8 +121,8 @@ def _up(ctx: "LMContext") -> None:
             m=opt_cfg.m,
             converged=False,
             reason="INCOMPLETE",
-            # Completed-count semantics, as in the final save
-            # (k is the 0-based index of the just-completed iteration).
+            # Completed-count semantics, as in the final save (k is the 0-based index of the
+            # just-completed iteration).
             iters=k + 1,
             f=f,
             g_norm=g_norm,
@@ -177,16 +180,18 @@ def _up(ctx: "LMContext") -> None:
         rho=info['rho']
     )
 
+
 def _down(ctx: "LMContext") -> None:
+    """Clear the optimization attributes (fg, w_checksum, opt_info) — ctx.w is kept."""
     ctx.log_event(Relevance.INFO, "Clearing optimization attributes...")
     ctx.fg = None
-    # Also clear the OPTIMIZE-owned artifacts. ctx.w is kept:
-    # it is the (re-optimized) WMAPS weight vector, and the WMAPS cache
-    # restores the zero-initialized value when that level recomputes.
+    # Also clear the OPTIMIZE-owned artifacts. ctx.w is kept: it is the (re-optimized) WMAPS weight
+    # vector, and the WMAPS cache restores the zero-initialized value when that level recomputes.
     ctx.w_checksum = None
     ctx.opt_info = None
 
+
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_optimize() -> Worker:
-    """Factory function that returns the OPTIMIZE worker instance."""
+    """Return the OPTIMIZE worker instance."""
     return Worker("OPTIMIZE", _up, _down)

@@ -1,22 +1,22 @@
 # reversi/lm/wrk_optimize.py
-The OPTIMIZE worker — the pipeline's optimizer level. `_up` implements a 4-step recipe: (1) consult the existing
-checkpoint (if any) through the two hlp_optimize gates, deciding between completed-load, warm-resume and scratch; (2)
-build the two lbfgs wrappers (`logger_fn` → `ctx.log_event`, `save_fn` → intermediate INCOMPLETE checkpoints); (3) run
-`lbfgs` (opt_lbfgs) with the GRADIENT-level `ctx.fg` closure (float32 contract); (4) update the context (`w`,
-`opt_info`, `w_checksum`) and save the final checkpoint. The checkpoint is written on EVERY run (final save
-unconditional; intermediate only when `save_every_n > 0`) and read only when
-`checkpoint_path.exists() and ctx.use_cache` (a cache-disabled run still warms the checkpoint).
+The OPTIMIZE worker of the LM pipeline — the 11th active level (step 11). `_up` implements a 4-step recipe:
+(1) consult the existing checkpoint (if any) through the two hlp_optimize gates, deciding between completed-load,
+warm-resume and scratch; (2) build the two lbfgs wrappers (`logger_fn` → `ctx.log_event`, `save_fn` →
+intermediate INCOMPLETE checkpoints); (3) run `lbfgs` (opt_lbfgs) with the GRADIENT-level `ctx.fg` closure
+(float32 contract); (4) update the context (`w`, `opt_info`, `w_checksum`) and save the final checkpoint.
+The checkpoint is written on EVERY run (final save unconditional; intermediate only when `save_every_n > 0`)
+and read only when `checkpoint_path.exists() and ctx.use_cache` (a cache-disabled run still warms the checkpoint).
 
 ## API
 
 | name | contract |
 |---|---|
-| `wrk_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all 18 worker factories share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
+| `wrk_optimize()` | the factory — `@validate_call(config=ConfigDict(arbitrary_types_allowed=True))` (all 19 worker factories share the pattern) returning `Worker("OPTIMIZE", _up, _down)` |
 
 ## Architecture
 
 - `_up`:
-  - config + `checkpoint_path = base_dir / optimization. checkpoint_file` (config-named, not rlmwf_-prefixed);
+  - config + `checkpoint_path = ctx.cfg.base_dir / opt_cfg.checkpoint_file` (config-named, not rlmwf_-prefixed);
     `w_init = ctx.w`; `min_grad_value, _ = opt_cfg.min_grad` (the count is unused).
   - step 1: the checkpoint gate `checkpoint_path.exists() and ctx.use_cache` (the context field the CONFIG worker
     populated — NOT `cfg.use_cache`), with the try/except: a load raising `RuntimeError` (the 2 header gates, the
@@ -38,17 +38,17 @@ unconditional; intermediate only when `save_every_n > 0`) and read only when
 
 Pinned by the `probes/verify_optimize.py` B + D + H tiers + the 3-test suite.
 
-- Source shape (probe B1-B17): the 192-line file, the factory decorator + the pydantic/binio imports, the 16 lbfgs
+- Source shape (probe B1-B17): the factory decorator + the pydantic/binio imports, the 16 lbfgs
   kwargs + the warm-start consumption (B13), the try/except, the `_down` scope, the header typo fix, the dead `Path`
   import gone.
-- The worker-test source shape (probe D1-D11): the 175-line file, the gate, the idiom, the 3 step pins (GRADIENT=10,
+- The worker-test source shape (probe D1-D11): the gate, the idiom, the 3 step pins (GRADIENT=10,
   OPTIMIZE=11), the marker, the pins.
 - The 6 live decision paths (probe H4-H8 + H6b): completed (no lbfgs in run 2, byte-identical weights), resume (warm
   start consumed), zed-inconsistent → scratch, ridge-only-inconsistent → scratch, use_cache=False → no load + checkpoint
   still saved (H7), corrupted checkpoint → delete + scratch + valid re-save (H8).
 - The float32 contract flows through: `ctx.w` is float32 after 50 lbfgs iterations; `weights_compute_sha3_256_hash`
   (gated `NDArray[np.float32]`) never rejects.
-- The base dir after a full run holds the 4 rlmwf_ cache pairs (04/05/07/08) + the checkpoint pair; no
+- The base dir after a full run holds the 5 rlmwf_ cache pairs (03/04/05/07/08) + the checkpoint pair; no
   rlmwf_01*/02*/09*/10*/11* file (H1).
 
 ## Open issues

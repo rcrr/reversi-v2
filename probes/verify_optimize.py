@@ -115,7 +115,7 @@ check("A20 'checpoint' typo fixed in the docstring", "checpoint" not in a)
 print("== tier B: wrk_optimize.py structure (post D-096)")
 b = read("wrk_optimize.py")
 bl = b.splitlines()
-check("B1 line count 192 (D-327: the 2 log_event reflows)", len(bl) == 192, f"{len(bl)}")
+check("B1 line count 197", len(bl) == 197, f"{len(bl)}")
 check("B2 T8: 'Aauthor' typo fixed",
       bl[6] == "# Author Roberto Corradini mailto:rob_corradini@yahoo.it"
       and "Aauthor" not in b)
@@ -217,7 +217,7 @@ check("C12 no code ws lines (house sweep)", ws_lines(c) == set(),
 print("== tier D: test_wrk_optimize.py structure (post D-096)")
 d = read("test/test_wrk_optimize.py")
 dl = d.splitlines()
-check("D1 line count 175 (D-130: the tier note adds a header line)", len(dl) == 175, f"{len(dl)}")
+check("D1 line count 170", len(dl) == 170, f"{len(dl)}")
 check("D2 T1: SKIP_REGAB_DB gate in setUp (D-130: the db_long_gate idiom)",
       "# The SKIP_REGAB_DB gate, as in test_regab" in d
       and "db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates" in d)
@@ -226,9 +226,9 @@ check("D3 T2: D-085 idiom applied",
       and "Path(self._tmp.name)" in d
       and 'WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_02.json"' in d
       and "mkdtemp" not in d and "shutil" not in d)
-check("D4 T4: dead imports removed (skipUnless gone; os/Path now used)",
+check("D4 T4: dead imports removed (skipUnless gone; Path now used)",
       "skipUnless" not in d
-      and "import os" in d and "db_long_gate(self)" in d
+      and "db_long_gate(self)" in d
       and "from pathlib import Path" in d and "Path(" in d)
 check("D5 T3: dead if-False block removed", "if False:" not in d)
 check("D6 T5: stray ':# ###' comment removed", "#: ###" not in d)
