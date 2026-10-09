@@ -1233,3 +1233,27 @@ D-504 | 2026-10-07 | The wrk\_optimize source + test + mirror-docs + probe pass 
          to 'Path now used' — the probe pinned the dead import as if it were used; first probe-fidelity fix of the
          cascade) — 0 mismatch on the post-pass run. Reflow last (canonical on both files; it re-joined 4 comment
          blocks, the B10-pinned substring intact). No cell change (3/0/0/0/0), suite flat 1114/0/24.
+
+D-505 | 2026-10-07 | The wrk\_wmaps source + test + mirror-docs + probe pass: (1) source 91 -> 99: the 2 missing
+         docstrings added (`_up` / `_down`), the factory first line normalized to the imperative, and the 138-char log
+         line (the only cascade line OVER the 120 ceiling — R-520) split over 3 lines with the message in 2 adjacent
+         string literals (byte-identical; the probe does not pin that string). (2) test 315 -> 319: the header's extra
+         bare '#' dropped, the unused `import os` dropped, the E261 fix (the 1-space inline comment in test 2), and the
+         R-850 micro-test `test_down_clears_wmaps` — the first cascade worker whose `_down` was runtime-pinned NOWHERE
+         (the probe B6 pins it at source-shape only, and verify\_wmaps has no live-DB tier) while the source doc
+         documents the 7-attribute clearing. First run FAILED: `move_to_step(6)` lands on ANOVA (level 6), not INDEXES
+         (level 5) — the same pipeline-order lesson as the D-504 test-doc chain fix; the worker-name pin corrected to
+         ANOVA. (3) the source mirror doc 66 -> 66: the header canon (the 7th active level, step 7), the spurious-space
+         fidelity fix (`hlp_wmaps_is_cache_consistent (ctx, cached)`), the '91-line file' claim dropped, the DUPLICATE
+         `__all__ = ['wrk_wmaps']` mention in one bullet dropped, the 3 -> 4 test counts (the round-trip bullet gains
+         the micro-test), and 'Consumes the hlp\_wmaps module (all 5 public names)' corrected to '(the 4 hlp functions —
+         the LMWMaps class itself is not imported)' (the public names list has 5 — verified — but the worker imports 4).
+         (4) the test mirror doc 35 -> 35: the 3 -> 4 test counts, the coverage row gains `test_down_clears_wmaps`
+         (named as the R-850 runtime pin), and '3/0/3 under the gate' -> '4/0/4'. (5) the probe: 11 re-pins — the
+         cascade record — B1 (91 -> 99), B3 (factory 87/88 -> 95/96), B4 (`load_fn` 55 -> 60), B6 (checksum 84 -> 92),
+         D1 (315 -> 319), D2 (3 -> 4 tests), D3 (gate indices 73/175 -> 69/181), D4 (the pinned dead `import os`
+         converted to a negative check, the false 'for the gate' claim dropped), D5 (81/182 -> 76/187), D6 (83/184 ->
+         78/189), D7 (57 -> 54) — the probe's absolute-index style made this the heaviest re-pin of the cascade; all
+         indices measured after the reflow. Cell 3/0/0 -> 4/0/0 (the first cell change of the cascade — the pre-commit
+         overview auditor caught the stale 3/0/0 cell before the commit), suite 1115/0/24. Reflow last (canonical on
+         both files).

@@ -2937,3 +2937,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   Nessun micro-test (i 6 decision paths: division of labor dichiarata, il probe H4-H8+H6b copre il
   resto). Probe: 3 re-pin (B1 192 -> 197, D1 175 -> 170, D4). Reflow ultimo. Suite flat 1114/0/24
   (cella 3/0/0/0/0 invariata). Restano 4 coppie: da wrk\_wmaps a wrk\_save.
+- D-505 (wrk\_wmaps, un solo D): sorgente 91 -> 99: i 2 docstring mancanti (\_up/\_down), il factory
+  normalizzato, e la long line L70 a 138 — l'unica della cascata a SUPERARE il soffitto a 120
+  (R-520): split su 3 righe con il messaggio in 2 literali adiacenti (byte-identico). Test 315 ->
+  319: il bare #, l'import non usato os (il probe D4 lo pinnavano a indice assoluto con la claim
+  falsa 'for the gate' — convertito in check negativo), l'E261, e il MICRO-TEST R-850
+  test\_down\_clears\_wmaps — il primo worker della cascata il cui \_down non era pinned a runtime
+  da nessuna parte (il probe B6 lo pinna solo a source-shape, e verify\_wmaps non ha tier live-DB).
+  Il test era rosso al primo run: move\_to\_step(6) → ANOVA, non INDEXES (5) — corretto. Source doc
+  66 -> 66: header in canone (step 7), spazio spurio, claim 91-line, il \_\_all\_\_ duplicato nella
+  stessa bullet, 3 -> 4 test, 'all 5 public names' -> 'the 4 hlp functions' (l'\_\_all\_\_ di
+  hlp\_wmaps ha 5 nomi — la classe LMWMaps — ma il worker ne importa 4). Test doc: 3 -> 4 test + la
+  coverage row del micro-test. Probe: 11 re-pin (il record della cascata — B1/B3/B4/B6 e D1-D7, la
+  probe più brittle per gli indici assoluti). Cella 3/0/0 -> 4/0/0, suite 1115/0/24 — il PRIMO
+  incremento della cascata (il gate pre-commit aveva giusto marcato RED l'overview stantia). Reflow
+  ultimo. Restano 3 coppie: da wrk\_zed a wrk\_save.
