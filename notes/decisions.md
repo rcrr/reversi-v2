@@ -1208,3 +1208,28 @@ D-503 | 2026-10-07 | The wrk\_indexes source + test + mirror-doc + probe pass: (
          clean — zero fixes. (5) the probe (verify\_hlp\_indexes.py, the worker's D/E tiers): 2 line-count-only re-pins
          — D1 (80 -> 86) and E1 (155 -> 150) — 0 mismatch on the post-pass run. Reflow last (canonical on both files).
          No cell change (2/0/0/0/0), suite flat 1114/0/24.
+
+D-504 | 2026-10-07 | The wrk\_optimize source + test + mirror-docs + probe pass (the largest worker of the cascade, 192
+         lines): (1) source 192 -> 197: the 2 missing docstrings added (`_up` / `_down`), the factory first line
+         normalized to the imperative, the E261 fix (the 1-space `return # Skip optimization entirely!` -> 2 spaces),
+         and the 2 E301 single-blank fixes (before `_down` and before the `@validate_call` decorator). RULE RE-READING
+         (R-520): the file's 5 code lines at 104-115 chars were left UNsplit — 'Code has no preferred wrap: an
+         expression split across lines that fits on one line within the 120 ceiling is written on one line'; the
+         100-char preference applies to PROSE (docstrings + comments) only. The earlier cascade passes that split
+         100-108-char code lines were over-strict; this pass applies the rule as written (those commits stay valid:
+         legal Python, byte-identical messages, re-pinned probes). (2) test 175 -> 170: the header's extra bare '#'
+         dropped, the unused `import os` dropped, reflow. No micro-test: the 6 decision paths carry a documented
+         division of labor (the suite: the completed path + the `_down` scope; the probe H4-H8 + H6b: the rest),
+         verified check-by-check against the H tier. (3) the source mirror doc 75 -> 75: the header canon (the 11th
+         active level, step 11), the 2 line-count claims dropped, the stale 'all 18 worker factories' corrected to 19
+         (19 wrk\_\*.py files counted — CREATED is built-in, no factory), the base-dir enumeration corrected 'the 4
+         rlmwf\_ cache pairs (04/05/07/08)' -> 'the 5 rlmwf\_ cache pairs (03/04/05/07/08)' (rlmwf\_03\_SU\_ANALYSIS.dat
+         exists — verified in its mirror doc), and the fidelity fix of the spurious space in the quoted code
+         (`optimization. checkpoint_file` -> `ctx.cfg.base_dir / opt_cfg.checkpoint_file`, quoting the actual code). (4)
+         the test mirror doc 36 -> 37: the Conventions chain corrected — 'the setUp's GRADIENT move runs FEATURES →
+         POSITIONS → ...' was verified against the live pipeline order (logistic\_model.py) and was missing SU\_ANALYSIS
+         (step 3) and ANOVA (step 6); now the full chain CONFIG → ... → GRADIENT. (5) the probe: 3 re-pins — B1 (192 ->
+         197), D1 (175 -> 170), and D4 (the `import os` clause dropped AND the false 'os/Path now used' claim corrected
+         to 'Path now used' — the probe pinned the dead import as if it were used; first probe-fidelity fix of the
+         cascade) — 0 mismatch on the post-pass run. Reflow last (canonical on both files; it re-joined 4 comment
+         blocks, the B10-pinned substring intact). No cell change (3/0/0/0/0), suite flat 1114/0/24.

@@ -2924,3 +2924,16 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   coerente col conteggio empirico (SU=1°, POS=2°, IND=3°). Probe: 2 re-pin di sola shape (D1 80 ->
   86, E1 155 -> 150) — 0 mismatch al post-pass. Reflow ultimo. Suite flat 1114/0/24 (cella 2/0/0/0/0
   invariata). Restano 5 coppie: da wrk\_wmaps a wrk\_save.
+- D-504 (wrk\_optimize, un solo D — il worker più grande della cascata, 192 -> 197 righe): i 2
+  docstring mancanti (\_up/\_down), il factory normalizzato, l'E261 (return # -> 2 spazi) e i 2
+  E301. Correzione di prassi R-520: le 5 righe di codice a 104-115 RESTANO intere (il codice non ha
+  preferred wrap, solo il soffitto a 120 — la preferenza a 100 è per la prosa: docstring/commenti).
+  Test 175 -> 170: il bare #, l'import non usato os (il probe D4 lo pinnavano dichiarandolo 'now
+  used' — claim falsa corretta col re-pin), reflow. Source doc 75 -> 75: l'header in canone (step
+  11), i 2 line-count tolti, il count '18 worker factories' corretto a 19 (contati i wrk\_\*.py),
+  l'enumerazione rlmwf\_ 4 -> 5 coppie (mancaVano le 03 di SU\_ANALYSIS — verificato nel suo mirror
+  doc), lo spazio spurio 'optimization. checkpoint\_file' corretto. Test doc 36 -> 37: la catena del
+  setUp corretta — verificata contro il pipeline reale, mancavano SU\_ANALYSIS (3) e ANOVA (6).
+  Nessun micro-test (i 6 decision paths: division of labor dichiarata, il probe H4-H8+H6b copre il
+  resto). Probe: 3 re-pin (B1 192 -> 197, D1 175 -> 170, D4). Reflow ultimo. Suite flat 1114/0/24
+  (cella 3/0/0/0/0 invariata). Restano 4 coppie: da wrk\_wmaps a wrk\_save.
