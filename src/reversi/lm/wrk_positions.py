@@ -35,11 +35,11 @@ from pydantic import validate_call, ConfigDict
 
 from reversi.tools.state_machine import Worker, Relevance
 from reversi.regab import (
-    RegabDataSet, 
-    RegabDBConnection, 
+    RegabDataSet,
+    RegabDBConnection,
     regab_extract_data_set_from_db,
     regab_dedup_mogv,
-    regab_load_data_set_from_file, 
+    regab_load_data_set_from_file,
     regab_store_data_set_to_file
 )
 from reversi.tools.cache_manager import cache_manager_load_or_compute
@@ -54,6 +54,10 @@ __all__ = ['wrk_positions', 'load_from_db', 'extract_and_prepare', 'is_cache_con
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the POSITIONS level: the load-or-compute cache flow (the post-policy data set), then the
+    positions/game_values arrays + the training population stats are published on the context.
+    """
     ctx.log_event(Relevance.INFO, "Loading training game positions...")
 
     # Execute the abstracted pipeline.
@@ -68,11 +72,11 @@ def _up(ctx: "LMContext") -> None:
     )
 
     if cache_hit:
-        # The cached file holds the post-policy data set (the dedup is
-        # applied in the compute flow, D-143), so the duplicate count
-        # is reported from the stored content.
+        # The cached file holds the post-policy data set (the dedup is applied in the compute flow),
+        # so the duplicate count is reported from the stored content.
         ctx.log_event(Relevance.INFO,
-                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {len(rds.df_mogv):,}] — data set loaded from cache (regab_allow_duplicate: {ctx.cfg.regab_allow_duplicate}).")
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {len(rds.df_mogv):,}] — "
+                      f"data set loaded from cache (regab_allow_duplicate: {ctx.cfg.regab_allow_duplicate}).")
 
     # Post-processing (unrelated to caching logic).
     positions, game_values = rds.generate_positions_and_game_values()
@@ -87,7 +91,9 @@ def _up(ctx: "LMContext") -> None:
     mean = np.mean(game_values)
     std_dev = np.std(game_values)
     variance = np.var(game_values)
-    ctx.log_event(Relevance.INFO, f"Statistical properties of population for training: [COUNT: {count:,}], [MEAN: {mean:.2f}], [STD: {std_dev:.2f}], [VARIANCE: {variance:.2f}].")
+    ctx.log_event(Relevance.INFO,
+                  f"Statistical properties of population for training: [COUNT: {count:,}], [MEAN: {mean:.2f}], "
+                  f"[STD: {std_dev:.2f}], [VARIANCE: {variance:.2f}].")
 
     ctx.training_pop_stats = {
         'count': count,
@@ -100,6 +106,7 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear the 4 context attributes (positions, game_values, rds_checksum, training_pop_stats)."""
     ctx.log_event(Relevance.INFO, "Clearing training game positions, game_values and rds_checksum attributes.")
     ctx.positions = None
     ctx.game_values = None
@@ -111,14 +118,14 @@ def _down(ctx: "LMContext") -> None:
 
 def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status=None) -> bool:
     """Compare live configuration with cached dataset metadata."""
-    
+
     # 1. Check DB Connection parameters
     cfg_conn = ctx.cfg.regab_data_set.regab_db_connection
     cache_conn = rds.rc
-    
+
     cfg_conn_data = (cfg_conn.dbname, cfg_conn.user, cfg_conn.host, cfg_conn.port)
     cache_conn_data = (cache_conn.dbname, cache_conn.user, cache_conn.host, int(cache_conn.port))
-    
+
     is_conn_consistent = cfg_conn_data == cache_conn_data
 
     # 2. Check DB Query parameters
@@ -129,10 +136,10 @@ def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status
         status = cfg_query.status
     ec = ctx.cfg.empty_count
     cache_query = rds
-    
+
     cfg_query_data = (bid, status, ec)
     cache_query_data = (cache_query.bid, cache_query.status, cache_query.ec)
-    
+
     is_query_consistent = cfg_query_data == cache_query_data
 
     is_cache_consistent = is_conn_consistent and is_query_consistent
@@ -148,7 +155,7 @@ def is_cache_consistent(ctx: "LMContext", rds: RegabDataSet, *, bid=None, status
             f"  cfg.port     = {repr(cfg_conn.port)}, cache.port = {repr(cache_conn.port)}"
         )
         ctx.log_event(Relevance.DEBUG, msg_conn)
-        
+
     if not is_query_consistent:
         msg_query = (
             f"DB Query mismatch:\n"
@@ -167,7 +174,10 @@ def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
                            conn_params.host, str(conn_params.port),
                            conn_params.password)
 
-    ctx.log_event(Relevance.DEBUG, f"Regab Database connection {(conn_params.dbname, conn_params.user, conn_params.host, conn_params.port)} established successfully.")
+    ctx.log_event(Relevance.DEBUG,
+                  "Regab Database connection "
+                  f"{(conn_params.dbname, conn_params.user, conn_params.host, conn_params.port)} "
+                  "established successfully.")
 
     query_params = ctx.cfg.regab_data_set
     if bid is None:
@@ -186,31 +196,30 @@ def load_from_db(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
 
 
 def extract_and_prepare(ctx: "LMContext", *, bid=None, status=None) -> RegabDataSet:
-    """The compute path: extract from the DB, then apply the
-    regab_allow_duplicate policy (D-143).
+    """
+    The compute path: extract from the DB, then apply the regab_allow_duplicate policy.
 
-    The dedup runs HERE (inside the compute flow) so the cache file
-    stores the post-policy data set: a flag flip changes the stored
-    content and the rds_checksum, which invalidates the downstream
-    cache levels through the existing checksum lineage (no format
-    change). The duplicate count is logged on the compute path; the
-    cache-hit path logs the stored total (see _up).
+    The dedup runs HERE (inside the compute flow) so the cache file stores the post-policy data set:
+    a flag flip changes the stored content and the rds_checksum, which invalidates the downstream
+    cache levels through the existing checksum lineage (no format change). The duplicate count is
+    logged on the compute path; the cache-hit path logs the stored total (see _up).
     """
     rds = load_from_db(ctx, bid=bid, status=status)
     deduped, n_total, n_duplicates = regab_dedup_mogv(rds.df_mogv)
     pct = 100.0 * n_duplicates / n_total if n_total else 0.0
     if ctx.cfg.regab_allow_duplicate:
         ctx.log_event(Relevance.INFO,
-                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], [FOUND: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — kept (regab_allow_duplicate: True).")
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], "
+                      f"[FOUND: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — kept (regab_allow_duplicate: True).")
     else:
         rds.df_mogv = deduped
         ctx.log_event(Relevance.INFO,
-                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], [REMOVED: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — removed (regab_allow_duplicate: False).")
+                      f"Duplicate game positions (key: mover, opponent): [TOTAL: {n_total:,}], "
+                      f"[REMOVED: {n_duplicates:,}], [PERCENT: {pct:.2f}%] — removed (regab_allow_duplicate: False).")
     return rds
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_positions() -> Worker:
-    """Factory function that returns the POSITIONS worker instance."""
+    """Return the POSITIONS worker instance."""
     return Worker("POSITIONS", _up, _down)
-

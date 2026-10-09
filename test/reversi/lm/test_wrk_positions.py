@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_positions unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,19 +34,16 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_positions
 #
 
 import unittest
-import os
 import tempfile
 
 import json5
-import numpy as np
 import pandas as pd
 
 from unittest.mock import patch
@@ -71,16 +67,14 @@ class TestLMWorkerPositions(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # both tests need the live regab DB.
+        # The SKIP_REGAB_DB gate, as in test_regab — both tests need the live regab DB.
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
@@ -107,8 +101,8 @@ class TestLMWorkerPositions(unittest.TestCase):
         self.assertEqual(self.rlm.current_step, 4)
         self.assertEqual(self.rlm.current_worker_name, 'POSITIONS')
 
-        # Verify cache files were actually created on disk
-        # (the slot is 03 — the file-less FEATURES takes 02)
+        # Verify cache files were actually created on disk (the slot is 04 — the file-less FEATURES
+        # takes 02)
         cache_file = self.tmp_dir / 'rlmwf_04_POSITIONS.dat'
         checksum_file = self.tmp_dir / 'rlmwf_04_POSITIONS.dat.SHA3-256'
         self.assertTrue(cache_file.exists(), "Cache .dat file was not created.")
@@ -150,14 +144,11 @@ class TestLMWorkerPositions(unittest.TestCase):
 
 
 class TestIsCacheConsistent(unittest.TestCase):
-    """Unit semantics of wrk_positions.is_cache_consistent.
-
-    probe_rules.md §4: converted from the
-    verify_wrk_positions.py D4a-g probe. The probe warmed a
-    real cache file through the live pipeline and compared against
-    it; the test builds the same rds metadata in memory (fixture
-    rlm_00 values: bid [8], status ["CMS", "CMR"], ec 20,
-    tst_regab @ localhost:5432) — no DB, no cache file."""
+    """
+    Unit semantics of wrk_positions.is_cache_consistent, in memory (no DB, no cache file): the
+    cached-side rds metadata is built from the fixture rlm_00 values (bid [8], status ["CMS",
+    "CMR"], ec 20, tst_regab @ localhost:5432).
+    """
 
     def setUp(self):
         self.json_path = (WORKSPACE_ROOT / "test" / "reversi" / "data" /
@@ -211,18 +202,21 @@ class TestIsCacheConsistent(unittest.TestCase):
                                           status=["CMS", "CMR"]), True)
 
     def test_str_port_vs_int_port_compares_equal(self):
-        """rds.rc.port is a str ('5432'), the schema port an int:
-        the comparison still passes (int coercion on the cache side)."""
+        """
+        rds.rc.port is a str ('5432'), the schema port an int: the comparison still passes (int
+        coercion on the cache side).
+        """
         self.assertEqual(self.rds.rc.port, "5432")
         self.assertIs(is_cache_consistent(self._ctx(), self.rds), True)
 
 
 class TestLMWorkerPositionsDuplicates(unittest.TestCase):
-    """The regab_allow_duplicate policy on the live DB.
+    """
+    The regab_allow_duplicate policy on the live DB.
 
-    Fixture bid 8 (rlm_00): 200 records, 11 duplicate (mover,
-    opponent) keys (the structural CMS/CMR pairs — the same position
-    recorded under two statuses, identical attributes), 189 distinct."""
+    Fixture bid 8 (rlm_00): 200 records, 11 duplicate (mover, opponent) keys (the structural CMS/CMR
+    pairs — the same position recorded under two statuses, identical attributes), 189 distinct.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -235,8 +229,7 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
 
@@ -258,8 +251,9 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
                              base_dir_override=self.tmp_dir)
 
     def test_dedup_when_flag_false(self):
-        """regab_allow_duplicate: false — the duplicate rows are
-        removed (keep-first) and the count is logged."""
+        """
+        regab_allow_duplicate: false — the duplicate rows are removed (keep-first) and the count is logged.
+        """
         rlm = self._model(False)
         rlm.move_to_step('POSITIONS')
         ctx = rlm.context
@@ -272,8 +266,10 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
                       "— removed (regab_allow_duplicate: False).", logs)
 
     def test_kept_when_flag_true(self):
-        """regab_allow_duplicate: true (the default behaviour) — every
-        row is kept and the found count is logged."""
+        """
+        regab_allow_duplicate: true (the default behaviour) — every row is kept and the found count
+        is logged.
+        """
         rlm = self._model(True)
         rlm.move_to_step('POSITIONS')
         ctx = rlm.context
@@ -286,10 +282,10 @@ class TestLMWorkerPositionsDuplicates(unittest.TestCase):
                       "— kept (regab_allow_duplicate: True).", logs)
 
     def test_cache_holds_post_policy_content(self):
-        """The cache file stores the post-policy data set (the dedup
-        runs in the compute flow): a flag-false file holds the 189
-        deduplicated records, and the cache-hit path logs the stored
-        total."""
+        """
+        The cache file stores the post-policy data set (the dedup runs in the compute flow): a
+        flag-false file holds the 189 deduplicated records, and the cache-hit path logs the stored total.
+        """
         rlm = self._model(False)
         rlm.move_to_step('POSITIONS')
 

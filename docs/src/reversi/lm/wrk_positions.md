@@ -1,5 +1,6 @@
 # reversi/lm/wrk_positions.py
-The POSITIONS worker of the LM pipeline — the 2nd cache_manager consumer in the pipeline (after SU_ANALYSIS): the
+The POSITIONS worker of the LM pipeline — the 4th active level (step 4), the 2nd cache_manager consumer (after
+SU_ANALYSIS): the
 training data set comes from the regab DB through the standard 4-step load-or-compute flow, then positions / game_values
 arrays + the training population stats are derived for the workers that follow.
 
@@ -31,7 +32,7 @@ arrays + the training population stats are derived for the workers that follow.
 - `is_cache_consistent`: compares (1) the connection tuple `(dbname, user, host, port)` — the cached side is
   `int(cache_conn.port)` (regab stores the port as str, the schema as int; the normalization is load-bearing) and (2)
   the query tuple `(bid, status, ec)` — the `bid=`/`status=` keyword overrides win over the cfg. The DEBUG log always
-  prints the bool; the per-field detail only on inconsistency (the `ec` is the root `empty_count`, D-282).
+  prints the bool; the per-field detail only on inconsistency (the `ec` is the root `empty_count`).
 - `load_from_db`: `RegabDBConnection(dbname, user, host, str(port), password)` — ALL five schema connection params (a
   configured port and password reach the connection string) → `regab_extract_data_set_from_db(rc, bid, status, ec)` →
   DEBUG "Extracted {n:,} positions from the database." (the connection log includes the port, never the password) →
@@ -83,7 +84,7 @@ None.
   `is_cache_consistent` reads `ctx.cfg.regab_data_set` — the machine's half-open interval semantics guarantee CONFIG
   (and FEATURES) run before POSITIONS on every up-move.
 - The `is_cache_consistent` keyword overrides: unused by the POSITIONS `validate_fn` (it calls bare), but load-bearing
-  for the VLD level, which passes its own `bid=`/`status=` (the A8 pin).
+  for the VLD level, which passes its own `bid=`/`status=` (the verify_vld_positions A8 pin).
 - Test artifacts: the WORKSPACE_ROOT anchoring; the DB tests sit behind the `SKIP_REGAB_DB` gate.
 
 ## Integration
@@ -94,4 +95,5 @@ None.
   (`RegabDBConnection`, `RegabDataSet`); publishes `ctx.positions` / `ctx.game_values` / `ctx.rds_checksum` /
   `ctx.training_pop_stats` for the INDEXES level onward.
 - `extract_and_prepare` + `is_cache_consistent` are REUSED by the VLD level (`wrk_vld_positions`) — the vld compute path
-  is this same function called with the vld `bid=`/`status=` overrides (the A7/D8 reuse-identity pins).
+  is this same function called with the vld `bid=`/`status=` overrides (the verify_vld_positions A7/D8
+  reuse-identity pins).
