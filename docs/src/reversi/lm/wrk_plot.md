@@ -1,9 +1,9 @@
 # reversi/lm/wrk_plot.py
-The PLOT worker — the LAST active level of the LM pipeline (the level after CLIENT_CHECK). The run also logs the
-TOP-20 EXTREME-OUTLIER report (the 20 validation positions with the largest |residual|, the position's bitboards
-included). A non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step, regenerated on
-every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures (the hlp_plot builders) to
-the configured plots directory. All figures are in Y space (the [-64, +64] game-value scale). The pilot is the config's
+The PLOT worker of the LM pipeline — the 18th active level (step 18): the level after CLIENT_CHECK, before
+FINAL_LOG_PRINT. A non-cache worker — no `cache_manager` wiring, no rlmwf_18* file (a derived-artifact step,
+regenerated on every up-move, an idempotent overwrite). It writes the run's matplotlib diagnostic figures
+(the hlp_plot builders) to the configured plots directory.
+All figures are in Y space (the [-64, +64] game-value scale). The pilot is the config's
 plot section: the WHITELIST of plot names decides what is generated (a listed name is written, an unlisted one is
 skipped, an empty list makes the level a no-op) and the `plot.enable` master switch dominates (false = do nothing, even
 with names listed). On an error the worker raises (the failure semantics: the machine logs and re-raises, the step stays
@@ -19,7 +19,7 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 
 ## Architecture
 
-- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface ( `PLOT_BUILDERS`, `PlotStyle`,
+- Imports: `Path`, pydantic, `Worker, Relevance`, the hlp_plot surface (`PLOT_BUILDERS`, `PlotStyle`,
   `collect_plot_data`, `save_figure`, `close_figure`), `LMContext` under TYPE_CHECKING.
   NO `reversi.tools.cache_manager` import (by design) and NO top-level matplotlib import (it is lazy in
   hlp_plot — see hlp_plot.md).
@@ -37,7 +37,7 @@ at PLOT). No context attribute is published; `_down` is a no-op (log only).
 
 ## Verified invariants
 
-Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 19-check
+Pinned by the 9-test `test_wrk_plot` suite (no DB, the synthetic rlm_04-mirror context) + the 18-check
 `probes/verify_plot.py` (no DB) + the full-chain suite (DB-gated).
 
 - The full whitelist in png: the seven figures in `base_dir/plots` (the relative dir_name default), the PNG magic + a >5
@@ -63,7 +63,7 @@ None.
   clean no-op level; the rlm_03 / rlm_04 test fixtures list all seven names so the chains exercise the generation
   end-to-end.
 - A deviation from the uniform 7-kwargs `cache_manager` wiring — the rlmwf_18 slot stays unused, like
-  01/02/06/09/10/11/14/15/16/17.
+  01/02/06/09/10/11/14/15/16/17/19.
 - The worker is stateless by design: it publishes no context attribute (the figures are local; the only durable outputs
   are the files + the event log lines).
 - Y space throughout: the x-axes are on the [-64, +64] scale, the plots comparable across models with different
@@ -80,5 +80,6 @@ None.
   / `close_figure`.
 - Consumes the config: `PlotConfig` (hlp_config_schemas) — the fail-fast name/format validation happens at the CONFIG
   level, before the pipeline reaches PLOT.
-- Downstream: nothing — the terminal level. `move_to_last()` reaches it; a failure leaves `current_step` at 18 (the
+- Downstream: nothing consumes the figures — the last artifact-producing level (FINAL_LOG_PRINT, the 19th,
+  follows — it consumes only the event log). `move_to_last()` reaches it; a failure leaves `current_step` at 18 (the
   failure semantics).

@@ -14,8 +14,8 @@
 # Free Software Foundation; either version 3, or (at your option) any
 # later version.
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; or the implied warranty of
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
@@ -25,16 +25,15 @@
 # or visit the site <http://www.gnu.org/licenses/>.
 #
 
-# The PLOT level: the level after CLIENT_CHECK (the last active one). It writes the run's
-# matplotlib diagnostic figures (hlp_plot) to the configured plots directory.
+# The PLOT level: the 18th active level — the level after CLIENT_CHECK, before FINAL_LOG_PRINT. It
+# writes the run's matplotlib diagnostic figures (hlp_plot) to the configured plots directory.
 #
-# Pilot: the WHITELIST of plot names in the config's plot section decides what is generated
-# — a listed name is written, an unlisted name is skipped, an empty list makes the level a
-# no-op. The plot.enable master switch dominates: false means "do nothing" even when names
-# are listed.
+# Pilot: the WHITELIST of plot names in the config's plot section decides what is generated — a
+# listed name is written, an unlisted name is skipped, an empty list makes the level a no-op. The
+# plot.enable master switch dominates: false means "do nothing" even when names are listed.
 #
-# No cache file (a non-cache level, as CLIENT_CHECK — the rlmwf_18 slot stays unused): the
-# figures are derived artifacts, regenerated on every up-move (an idempotent overwrite).
+# No cache file (a non-cache level, as CLIENT_CHECK — the rlmwf_18 slot stays unused): the figures
+# are derived artifacts, regenerated on every up-move (an idempotent overwrite).
 
 from __future__ import annotations
 
@@ -58,6 +57,10 @@ __all__ = ['wrk_plot']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the PLOT level: the plot-section pilot (the enable switch, then the name whitelist), the
+    figure data, and one figure per whitelisted name saved in every configured format.
+    """
     plot_cfg = ctx.cfg.plot
 
     # 1. The pilot: the master switch first, then the whitelist. Either empty path is a clean no-op (log only).
@@ -76,16 +79,16 @@ def _up(ctx: "LMContext") -> None:
     # 2. The figures' data (the training w_dense pass + the validation forward pass, hlp_plot.collect_plot_data).
     data = collect_plot_data(ctx)
 
-    # 3. The plots directory: an ABSOLUTE dir_name is used as-is (it may live outside base_dir), a relative
-    #    one resolves under base_dir (the "plots" default).
+    # 3. The plots directory: an ABSOLUTE dir_name is used as-is (it may live outside base_dir), a
+    # relative one resolves under base_dir (the "plots" default).
     dir_name = Path(plot_cfg.dir_name)
     plot_dir = dir_name if dir_name.is_absolute() else (ctx.cfg.base_dir / dir_name)
     plot_dir.mkdir(parents=True, exist_ok=True)
 
     formats = tuple(f.strip() for f in plot_cfg.format.split(","))
 
-    # 4. The style: the 13 appearance/determinism knobs of the config's plot section (the PlotStyle the
-    #    builders draw with; the dicts are COPIED, so the config's instances stay owned by the schema).
+    # 4. The style: the 13 appearance/determinism knobs of the config's plot section (the PlotStyle
+    # the builders draw with; the dicts are COPIED, so the config's instances stay owned by the schema).
     style = PlotStyle(
         binned_note=plot_cfg.binned_note,
         jitter_seed=plot_cfg.jitter_seed,
@@ -119,12 +122,13 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Log the clearing no-op (the worker is stateless — nothing on the context)."""
     ctx.log_event(Relevance.INFO, "Clearing plot attributes...")
-    # Nothing to clear from context: the worker is stateless (the figures are built and closed locally on
-    # every up-move, as the SAVE and CLIENT_CHECK workers).
+    # Nothing to clear from context: the worker is stateless (the figures are built and closed
+    # locally on every up-move, as the SAVE and CLIENT_CHECK workers).
 
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_plot() -> Worker:
-    """Factory function that returns the PLOT worker instance."""
+    """Return the PLOT worker instance."""
     return Worker("PLOT", _up, _down)

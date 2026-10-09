@@ -24,25 +24,21 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 # or visit the site <http://www.gnu.org/licenses/>.
 #
-#
-#
-# How to run the PLOT worker unit tests.
-#
-# Run from the workspace root (the directory containing .venv and src).
+
+# How to run the wrk_plot unit tests. Run from the workspace root (the directory containing .venv
+# and src).
 #
 # -0- Activate the environment.
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (no DB needed — the worker is exercised directly
-#     on a synthetic rlm_04-mirror context, the same layout as
-#     test_wrk_client_check.py).
+# -1- Run the tests (no DB needed — the worker is exercised directly on a synthetic rlm_04-mirror
+# context, the same layout as test_wrk_client_check.py).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_plot
 #
 
 import unittest
-import shutil
 import hashlib
 import tempfile
 from pathlib import Path
@@ -72,22 +68,21 @@ PDF_MAGIC = b"%PDF"
 
 
 class TestWrkPlot(unittest.TestCase):
-    """The PLOT worker on a synthetic
-    rlm_04-mirror context: the whitelist pilot, the directory
-    resolution, the seven figures, the formats, the determinism.
-    No DB, no pipeline: the worker is exercised directly. The
-    Worker.up @validate_call gate (context: Context) requires a REAL
-    LMContext; the cfg attribute is the SimpleNamespace stand-in
-    (the v2 micro-test idiom), the log_event a capturing
-    lambda."""
+    """
+    The PLOT worker on a synthetic rlm_04-mirror context (no DB, no pipeline): the whitelist pilot,
+    the directory resolution, the seven figures, the formats, the determinism. The Worker.up
+    @validate_call gate requires a REAL LMContext (the cfg attribute is the stand-in).
+    """
 
     def setUp(self):
-        self.tmp_dir = tempfile.mkdtemp(dir=str(CUSTOM_TMP_BASE))
+        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
+        self.tmp_dir = self._tmp.name
         self._events = []
         self._ctx = self._build_ctx()
 
     def tearDown(self):
-        shutil.rmtree(self.tmp_dir)
+        if getattr(self, '_tmp', None) is not None:
+            self._tmp.cleanup()
 
     def _plot_cfg(self, **kw):
         base = dict(enable=True, format="png", dpi=150,
@@ -107,9 +102,8 @@ class TestWrkPlot(unittest.TestCase):
     def _build_ctx(self):
         rng = np.random.default_rng(SEED)
 
-        # The rlm_04 feature layout (the fixture rlm_04.json, as in
-        # test_wrk_client_check.py): intercept + LMC + EDGE — the
-        # production iwmap pin [0, 1, 66, 6627].
+        # The rlm_04 feature layout (the fixture rlm_04.json, as in test_wrk_client_check.py):
+        # intercept + LMC + EDGE — the production iwmap pin [0, 1, 66, 6627].
         intercept = Feature.new_intercept()
         mset = MobilitySet("MOBILITY",
                            [Mobility("LMC", Bitboard(0xFFFFFFFFFFFFFFFF),
@@ -122,17 +116,16 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(offsets.tolist(), [0, 1, 66, 6627])
         w_dense = rng.standard_normal(int(offsets[-1]), dtype=np.float32)
 
-        # The training design indexes: ONE COLUMN PER FEATURE
-        # INSTANCE (the compute_indexes layout), each column holding
-        # the configuration index within its feature (the
-        # hlp_indexes.indexes contract, as in the real INDEXES level).
+        # The training design indexes: ONE COLUMN PER FEATURE INSTANCE (the compute_indexes layout),
+        # each column holding the configuration index within its feature (the hlp_indexes.indexes
+        # contract, as in the real INDEXES level).
         indexes = np.concatenate([
             rng.integers(0, f.n_configurations,
                          size=(N_TRN, f.n_instances), dtype=np.uint32)
             for f in fs.features], axis=1)
 
-        # Training game values + seeded collision-free validation
-        # positions (the EF caller contract) + int8 game values.
+        # Training game values + seeded collision-free validation positions (the EF caller contract)
+        # + int8 game values.
         game_values = (rng.integers(-32, 33, size=N_TRN) * 2
                        ).astype(np.int8)
         m = rng.integers(0, 2**64, size=N_VLD, dtype=np.uint64)
@@ -142,8 +135,8 @@ class TestWrkPlot(unittest.TestCase):
         vld_game_values = (rng.integers(-32, 33, size=N_VLD) * 2
                            ).astype(np.int8)
 
-        # The real ZED transforms (the f32 affine pair of logit
-        # clipping 0.01, the rlm_03/rlm_04 fixture value).
+        # The real ZED transforms (the f32 affine pair of logit clipping 0.01, the rlm_03/rlm_04
+        # fixture value).
         y2z, z2y = zed_fun_factory(ALPHA)
 
         ctx = LMContext(
@@ -161,9 +154,8 @@ class TestWrkPlot(unittest.TestCase):
         ctx.y2z, ctx.z2y = y2z, z2y
         ctx.vld_positions = positions
         ctx.vld_game_values = vld_game_values
-        # The series the pipeline publishes (ANALYTICS + VALIDATE)
-        # and PLOT only assembles, never re-derives — here computed
-        # with the same functions, on the synthetic state.
+        # The series the pipeline publishes (ANALYTICS + VALIDATE) and PLOT only assembles, never
+        # re-derives — here computed with the same functions, on the synthetic state.
         ctx.train_dense_rn = compute_training_dense_metrics(ctx).rn_y
         _vr = validate_model(ctx)
         ctx.vld_y_pred, ctx.vld_rn = _vr.y_pred, _vr.rn_y
@@ -174,14 +166,14 @@ class TestWrkPlot(unittest.TestCase):
     # -- the factory + the no-op pilots ----------------------------------
 
     def test_factory_returns_named_worker(self):
-        """The factory (the uniform @validate_call idiom) returns the
-        PLOT worker."""
+        """The factory (the uniform @validate_call idiom) returns the PLOT worker."""
         self.assertEqual(wrk_plot().name, "PLOT")
 
     def test_up_disabled_is_a_noop(self):
-        """The master switch: enable=false does
-        NOTHING, even with the full whitelist — log only, no
-        directory, no files."""
+        """
+        The master switch: enable=false does NOTHING, even with the full whitelist — log only, no
+        directory, no files.
+        """
         self._ctx.cfg.plot = self._plot_cfg(enable=False)
         wrk_plot().up(self._ctx)
         self.assertFalse((self._ctx.cfg.base_dir / "plots").exists())
@@ -189,8 +181,7 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(messages, ["PLOT skipped: plot.enable is false."])
 
     def test_up_empty_whitelist_is_a_noop(self):
-        """An empty whitelist (names are OPTIONAL): the level
-        does nothing — log only."""
+        """An empty whitelist (names are OPTIONAL): the level does nothing — log only."""
         self._ctx.cfg.plot = self._plot_cfg(plots=[])
         wrk_plot().up(self._ctx)
         self.assertFalse((self._ctx.cfg.base_dir / "plots").exists())
@@ -201,12 +192,12 @@ class TestWrkPlot(unittest.TestCase):
     # -- the happy path ----------------------------------------------------
 
     def test_up_all_seven_png(self):
-        """The full whitelist in png: the seven figures in
-        base_dir/plots (the relative dir_name default), the PNG
-        magic + a non-trivial size, the per-plot save lines and the
-        completion line. The second up-move REGENERATES byte-
-        identical files (the seeded jitter + the deterministic Agg
-        rendering)."""
+        """
+        The full whitelist in png: the seven figures in base_dir/plots (the relative dir_name
+        default), the PNG magic + a non-trivial size, the per-plot save lines and the completion
+        line. The second up-move REGENERATES byte- identical files (the seeded jitter + the
+        deterministic Agg rendering).
+        """
         ctx = self._ctx
         wrk_plot().up(ctx)
         plot_dir = ctx.cfg.base_dir / "plots"
@@ -231,9 +222,10 @@ class TestWrkPlot(unittest.TestCase):
                       messages)
 
     def test_up_format_pair_writes_both(self):
-        """The 'pdf,png' pair: each whitelisted name is
-        written in BOTH formats (the pdf is the vector one, no
-        dpi)."""
+        """
+        The 'pdf,png' pair: each whitelisted name is written in BOTH formats (the pdf is the vector
+        one, no dpi).
+        """
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(format="pdf,png",
                                       plots=["parity", "resid_qq"])
@@ -248,9 +240,10 @@ class TestWrkPlot(unittest.TestCase):
         self.assertEqual(len(list(plot_dir.iterdir())), 4)
 
     def test_up_absolute_dir_name(self):
-        """An ABSOLUTE dir_name is used as-is —
-        the plots may live outside base_dir; the relative default
-        does not leak there."""
+        """
+        An ABSOLUTE dir_name is used as-is — the plots may live outside base_dir; the relative
+        default does not leak there.
+        """
         ctx = self._ctx
         abs_dir = Path(self.tmp_dir) / "elsewhere" / "figures"
         ctx.cfg.plot = self._plot_cfg(dir_name=str(abs_dir),
@@ -262,8 +255,9 @@ class TestWrkPlot(unittest.TestCase):
         self.assertFalse((ctx.cfg.base_dir / "plots").exists())
 
     def test_up_partial_whitelist(self):
-        """Only the LISTED names are generated: a
-        listed name is written, an unlisted one is skipped)."""
+        """
+        Only the LISTED names are generated: a listed name is written, an unlisted one is skipped).
+        """
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["resid_vs_fitted"])
         wrk_plot().up(ctx)
@@ -277,14 +271,13 @@ class TestWrkPlot(unittest.TestCase):
     # -- the golden --------------------------------------------------------
 
     def test_parity_png_golden(self):
-        """The rendering golden: the parity figure of the
-        synthetic context (SEED 42, N_TRN 1200 / N_VLD 1000, the
-        rlm_04 mirror, png at 150 dpi, the fixed axes + the
-        two-line title) hashes to the pinned value. Version-
-        sensitive like the other f32 goldens: it moves when
-        matplotlib or numpy changes, and the font rasterization
-        bytes follow the environment's fonts (the rendering
-        stays visually identical)."""
+        """
+        The rendering golden: the parity figure of the synthetic context (SEED 42, N_TRN 1200 /
+        N_VLD 1000, the rlm_04 mirror, png at 150 dpi, the fixed axes + the two-line title) hashes
+        to the pinned value. Version- sensitive like the other f32 goldens: it moves when matplotlib
+        or numpy changes, and the font rasterization bytes follow the environment's fonts (the
+        rendering stays visually identical).
+        """
         ctx = self._ctx
         ctx.cfg.plot = self._plot_cfg(plots=["parity"])
         wrk_plot().up(ctx)
