@@ -48,6 +48,11 @@ __all__ = ['wrk_wmaps']
 
 
 def _up(ctx: "LMContext") -> None:
+    """
+    Run the WMAPS level: the 4-step load-or-compute of the hlp_wmaps object, spread across the 6
+    context arrays (feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w) + the
+    data checksum.
+    """
     ctx.log_event(Relevance.INFO, "Computing weight maps (WMAPS) for the feature set...")
 
     cache_hit, wmaps_obj, wmaps_obj_checksum = cache_manager_load_or_compute(
@@ -67,7 +72,9 @@ def _up(ctx: "LMContext") -> None:
     ctx.wmap = wmaps_obj.wmap
     ctx.wmap_fallback = wmaps_obj.wmap_fallback
     ctx.w = wmaps_obj.w
-    ctx.log_event(Relevance.INFO, "Model attributes feature_w_ranges, iwmap_feature_offset, iwmap, wmap, wmap_fallback, w have been set.")
+    ctx.log_event(Relevance.INFO,
+                  "Model attributes feature_w_ranges, iwmap_feature_offset, iwmap, wmap, "
+                  "wmap_fallback, w have been set.")
     ctx.log_event(Relevance.INFO, f"WMAPS computed/loaded. Total weights (W): {len(ctx.w)}")
 
     ctx.log_event(Relevance.INFO, f"Wmaps object checksum (wmaps_obj_checksum): {wmaps_obj_checksum}.")
@@ -75,6 +82,7 @@ def _up(ctx: "LMContext") -> None:
 
 
 def _down(ctx: "LMContext") -> None:
+    """Clear all 7 WMAPS context attributes to None (the 6 arrays + the data checksum)."""
     ctx.log_event(Relevance.INFO, "Clearing WMAPS and W attributes...")
     ctx.feature_w_ranges = None
     ctx.iwmap_feature_offset = None
@@ -87,5 +95,5 @@ def _down(ctx: "LMContext") -> None:
 
 @validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 def wrk_wmaps() -> Worker:
-    """Factory function that returns the WMAPS worker instance."""
+    """Return the WMAPS worker instance."""
     return Worker("WMAPS", _up, _down)

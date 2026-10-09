@@ -26,7 +26,6 @@
 #
 
 #
-#
 # How to run the wrk_wmaps unit tests.
 #
 # Run from the workspace root (the directory containing .venv and src).
@@ -35,15 +34,13 @@
 #
 # $ source .venv/bin/activate
 #
-# -1- Run the tests (a live regab DB + LONG=1 is required;
-#     SKIP_REGAB_DB=1 skips the DB-gated tests as in test_regab;
-#     VLONG=1 implies LONG, see test.reversi.tags).
+# -1- Run the tests (a live regab DB + LONG=1 is required; SKIP_REGAB_DB=1 skips the DB-gated tests
+# as in test_regab; VLONG=1 implies LONG, see test.reversi.tags).
 #
 # time python3 -m unittest test.reversi.lm.test_wrk_wmaps
 #
 
 import unittest
-import os
 import tempfile
 
 import numpy as np
@@ -68,17 +65,15 @@ class TestLMWorkerWmaps(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # all three tests need the live regab DB (the setUp moves
-        # to INDEXES, which runs POSITIONS on a fresh base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — all three tests need the live regab DB (the
+        # setUp moves to INDEXES, which runs POSITIONS on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         # Patch stdout to keep test output clean and capture logs
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_00.json")
@@ -138,7 +133,7 @@ class TestLMWorkerWmaps(unittest.TestCase):
         rlm2 = LogisticModel(self.json_config,
                              verbosity=Verbosity.HIGH,
                              base_dir_override=self.tmp_dir)
-        rlm2.move_to_step('INDEXES') # Reach the step before WMAPS
+        rlm2.move_to_step('INDEXES')  # Reach the step before WMAPS
 
         # Clear the StringIO buffer to only capture logs from the second run
         self.mock_stdout.seek(0)
@@ -160,6 +155,19 @@ class TestLMWorkerWmaps(unittest.TestCase):
         self.assertIsNotNone(rlm2.context.w)
         self.assertGreater(len(rlm2.context.w), 0, "Weight vector W is empty in cached run.")
 
+    def test_down_clears_wmaps(self):
+        """The _down clearing: from WMAPS back to ANOVA, all 7 attributes are None."""
+        self.rlm.move_to_step('WMAPS')
+        self.assertEqual(self.rlm.current_step, 7)
+        self.assertIsNotNone(self.rlm.context.w)
+
+        self.rlm.move_to_step(6)
+        self.assertEqual(self.rlm.current_worker_name, 'ANOVA')
+        for a in ("feature_w_ranges", "iwmap_feature_offset", "iwmap", "wmap",
+                  "wmap_fallback", "w"):
+            self.assertIsNone(getattr(self.rlm.context, a))
+        self.assertIsNone(self.rlm.context.wmaps_obj_checksum)
+
 
 class TestLMWorkerWmapsExactValues(unittest.TestCase):
     """Tests the exact values of the WMAPS computation using rlm_01.json."""
@@ -169,17 +177,14 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         CUSTOM_TMP_BASE.mkdir(parents=True, exist_ok=True)
 
     def setUp(self):
-        # The SKIP_REGAB_DB gate, as in test_regab —
-        # the golden-content test needs the live regab DB (the
-        # setUp moves to INDEXES, which runs POSITIONS on a fresh
-        # base dir).
+        # The SKIP_REGAB_DB gate, as in test_regab — the golden-content test needs the live regab DB
+        # (the setUp moves to INDEXES, which runs POSITIONS on a fresh base dir).
         db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates
 
         self.patcher_stdout = patch('sys.stdout', new=StringIO())
         self.mock_stdout = self.patcher_stdout.start()
 
-        # TemporaryDirectory created FIRST so a mid-setup failure
-        # still leaves a cleanable temp dir.
+        # TemporaryDirectory created FIRST so a mid-setup failure still leaves a cleanable temp dir.
         self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))
         self.tmp_dir = Path(self._tmp.name)
         self.json_config = str(WORKSPACE_ROOT / "test" / "reversi" / "data" / "rlm_01.json")
@@ -226,8 +231,7 @@ class TestLMWorkerWmapsExactValues(unittest.TestCase):
         expected_ridge_regularization = 0.00
         self.assertEqual(expected_ridge_regularization, ctx.cfg.stat_model.ridge_regularization)
 
-        # Checking feature_w_ranges
-        # NOTE: F is the count of all features (Intercept + Mobility + Patterns)
+        # Checking feature_w_ranges NOTE: F is the count of all features (Intercept + Mobility + Patterns)
         F = len(ctx.feature_set.features)
         expected_fwr_shape = (F, 3)
         self.assertEqual(expected_fwr_shape, ctx.feature_w_ranges.shape)

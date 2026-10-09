@@ -207,7 +207,7 @@ define the evaluation function.
 | test/reversi/lm/test\_wrk\_su\_analysis.py | complete | 10/0/1/1/0 | [docs/test/reversi/lm/test\_wrk\_su\_analysis.md](docs/test/reversi/lm/test\_wrk\_su\_analysis.md) |
 | test/reversi/lm/test\_wrk\_validate.py | complete | 9/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_validate.md](docs/test/reversi/lm/test\_wrk\_validate.md) |
 | test/reversi/lm/test\_wrk\_vld\_positions.py | complete | 11/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_vld\_positions.md](docs/test/reversi/lm/test\_wrk\_vld\_positions.md) |
-| test/reversi/lm/test\_wrk\_wmaps.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_wmaps.md](docs/test/reversi/lm/test\_wrk\_wmaps.md) |
+| test/reversi/lm/test\_wrk\_wmaps.py | complete | 4/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_wmaps.md](docs/test/reversi/lm/test\_wrk\_wmaps.md) |
 | test/reversi/lm/test\_wrk\_zed.py | complete | 3/0/0/0/0 | [docs/test/reversi/lm/test\_wrk\_zed.md](docs/test/reversi/lm/test\_wrk\_zed.md) |
 | test/reversi/paths.py | complete | 0/0/0/0/0 | [docs/test/reversi/paths.md](docs/test/reversi/paths.md) |
 | test/reversi/tags.py | complete | 0/0/0/0/0 | [docs/test/reversi/tags.md](docs/test/reversi/tags.md) |

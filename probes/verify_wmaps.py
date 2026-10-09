@@ -81,21 +81,21 @@ check("A12 the -1 input sentinel is unguarded at L272 — correct by the R1 dens
 # B. wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 w = lines("src/reversi/lm/wrk_wmaps.py")
-check("B1 wrk_wmaps.py is 91 lines (post D-087: 87 + pydantic + decorator + checksum clear)", len(w) == 91, f"{len(w)}")
+check("B1 wrk_wmaps.py is 99 lines", len(w) == 99, f"{len(w)}")
 check("B2 the pydantic import is present (L32 — D-087 T6)", w[31] == "from pydantic import validate_call, ConfigDict", repr(w[31]))
-check("B3 the factory wrk_wmaps is @validate_call-decorated (L88 — D-087 T6)",
-      w[87] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" and w[88] == "def wrk_wmaps() -> Worker:",
-      repr(w[87:89]))
-check("B4 load_fn is the house lambda with checksum=False (L56 — D-087 T7)",
-      w[55] == "        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),", repr(w[55]))
+check("B3 the factory wrk_wmaps is @validate_call-decorated",
+      w[95] == "@validate_call(config=ConfigDict(arbitrary_types_allowed=True))" and w[96] == "def wrk_wmaps() -> Worker:",
+      repr(w[95:97]))
+check("B4 load_fn is the house lambda with checksum=False",
+      w[60] == "        load_fn     = lambda path: hlp_wmaps_load_from_file(path, checksum=False),", repr(w[60]))
 check("B5 the 7-arg cache wiring matches the house key set",
       all(k in read("src/reversi/lm/wrk_wmaps.py") for k in
           ("cache_path  = ctx.get_cache_file_full_path_for_current_level(),",
            "is_allowed  = ctx.use_cache,", "store_fn    = hlp_wmaps_store_to_file,",
            "validate_fn = lambda cached_wmaps: hlp_wmaps_is_cache_consistent(ctx, cached_wmaps),",
            "compute_fn  = lambda: hlp_wmaps_compute(ctx),", "logger_fn   = ctx.log_event")))
-check("B6 _down clears ctx.wmaps_obj_checksum (L85 — D-087 T8, the house shape)",
-      w[84] == "    ctx.wmaps_obj_checksum = None", repr(w[84]))
+check("B6 _down clears ctx.wmaps_obj_checksum (the house shape)",
+      w[92] == "    ctx.wmaps_obj_checksum = None", repr(w[92]))
 check("B7 _up sets the 6 ctx arrays + wmaps_obj_checksum (the 7 attributes)",
       all(f"ctx.{a} = wmaps_obj.{a}" in read("src/reversi/lm/wrk_wmaps.py")
           for a in ("feature_w_ranges", "iwmap_feature_offset", "iwmap", "wmap", "wmap_fallback", "w"))
@@ -154,25 +154,25 @@ check("C15 the TestHlpWmapsInit class is present with the precise ValidationErro
 # D. test_wrk_wmaps.py structure (post D-087)
 # ----------------------------------------------------------------------
 t2 = lines("test/reversi/lm/test_wrk_wmaps.py")
-check("D1 test_wrk_wmaps.py is 315 lines (post D-087: 301 + 2 gates - ws net)", len(t2) == 315, f"{len(t2)}")
-check("D2 2 classes / 3 tests",
+check("D1 test_wrk_wmaps.py is 319 lines", len(t2) == 319, f"{len(t2)}")
+check("D2 2 classes / 4 tests",
       sum(1 for l in t2 if l.startswith("class ")) == 2 and
-      sum(1 for l in t2 if l.strip().startswith("def test_")) == 3)
-check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (D-087 T1; D-130: the db_long_gate idiom)",
-      t2[73] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
-      and t2[175] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
-      repr(t2[73:75]))
-check("D4 import os is present (L46 — for the gate)", t2[45] == "import os", repr(t2[45]))
-check("D5 both setUps use the D-085 TemporaryDirectory idiom (L82, L183)",
-      t2[81] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
-      and t2[182] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
-      repr(t2[81]))
-check("D6 both setUps anchor json_config to WORKSPACE_ROOT (L84 rlm_00, L185 rlm_01)",
-      t2[83] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
-      and t2[184] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
-      repr(t2[83]))
-check("D7 the D-085 paths import is present (L58)",
-      t2[57] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[57]))
+      sum(1 for l in t2 if l.strip().startswith("def test_")) == 4)
+check("D3 the SKIP_REGAB_DB gate exists in BOTH setUps (the db_long_gate idiom)",
+      t2[69] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates"
+      and t2[181] == "        db_long_gate(self)  # the SKIP_REGAB_DB + LONG gates",
+      repr(t2[69:71]))
+check("D4 import os removed (dead import — the gate lives in test.reversi.tags)", "import os" not in t2)
+check("D5 both setUps use the TemporaryDirectory idiom",
+      t2[76] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))"
+      and t2[187] == "        self._tmp = tempfile.TemporaryDirectory(dir=str(CUSTOM_TMP_BASE))",
+      repr(t2[76]))
+check("D6 both setUps anchor json_config to WORKSPACE_ROOT",
+      t2[78] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_00.json\")"
+      and t2[189] == "        self.json_config = str(WORKSPACE_ROOT / \"test\" / \"reversi\" / \"data\" / \"rlm_01.json\")",
+      repr(t2[78]))
+check("D7 the paths import is present",
+      t2[54] == "from test.reversi.paths import CUSTOM_TMP_BASE, WORKSPACE_ROOT", repr(t2[54]))
 check("D8 all 3 LogisticModel constructions use Verbosity.HIGH (house: HIGH in pipeline tests)",
       read("test/reversi/lm/test_wrk_wmaps.py").count("verbosity=Verbosity.HIGH") == 3)
 check("D9 the cache names are pinned (rlmwf_07_WMAPS.dat + .SHA3-256)",
