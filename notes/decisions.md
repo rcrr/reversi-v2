@@ -1278,3 +1278,27 @@ D-506 | 2026-10-07 | The wrk\_plot source + test + mirror-docs pass (side pass):
          shape. (5) the probe: ZERO re-pins — all 18 checks live at the hlp\_plot level (the builders, the pdf/png pair,
          the determinism, the jitter/KDE/EGV guards, the PlotConfig defaults); none touches the worker or the test file.
          Reflow last (canonical on both files). No cell change (9/0/0/0/0), suite flat 1115/0/24.
+
+D-507 | 2026-10-07 | The wrk\_positions source + test + mirror-doc + probe pass (side pass): (1) source 216 -> 225: the
+         2 missing docstrings added (`_up` / `_down`), the factory first line normalized to the imperative, the 9
+         M3-leftover trailing-ws lines swept (the 3 import-block trailing spaces + the 6 ws-only lines of the
+         `is_cache_consistent` body; the probe A6 documented them as “stays as in the original file” — the M3 scope —
+         and its comment was updated to the swept state; the A6 structural pins, the pinned `return` of `_up` + the 2
+         blank lines before `_down`, are untouched and still green), the 5 over-120 code lines split byte-identically
+         (the L75 cache-hit line, the L90 stats line, the L170 DEBUG connection line, the L204/L208 kept/removed
+         duplicate lines). The L170 was the teaching moment: a f-string EXPRESSION cannot span adjacent string literals
+         (each f-string token parses on its own) — the first attempt was a SyntaxError caught by the AST check; the fix
+         is a plain + f + plain three-literal split around the complete tuple expression. The 2 D-143 tags dropped (the
+         `_up` comment + the `extract_and_prepare` docstring; the WHY kept, the tag gone). The EOF trailing blank
+         removed. (2) test 311 -> 307: the header's 2 bare '#' collapsed to 1 (the title was already canon), the 2 dead
+         imports dropped (`import os`, `import numpy as np` — never referenced), the stale comment ("the slot is 03")
+         corrected to 04 (the file is `rlmwf_04_POSITIONS.dat`; the test doc said 04), the 8-line
+         `TestIsCacheConsistent` class docstring compressed to 4 — the `verify_wrk_positions.py` D4a-g label does
+         nonexistent in that probe (D tier: D2/D3/D3b), so the provenance was reworded as a plain division-of-labor. (3)
+         the source mirror doc 97 -> 99: the header canon (the 4th active level, step 4), the D-282 tag dropped (the
+         `ec` / `empty_count` fact kept), and the A7/A8/D8 cross-probe references disambiguated to
+         verify\_vld\_positions (they are checks of the VLD probe, not of the 21-check probe here). (4) R-850: no
+         micro-test — the `_down` runtime IS pinned by the probe A3 (the 4-attribute reset) and the 12-test suite is
+         comprehensive (the round-trip, the 7 in-memory semantics, the 3 policy tests). (5) the probe: zero re-pins (no
+         line-count, factory, or import pins; all 21 checks still pass). Reflow last (canonical on both files). No cell
+         change (12/0/0/0/0), suite flat 1115/0/24.

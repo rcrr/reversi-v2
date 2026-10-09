@@ -2967,3 +2967,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   doc: l'idiom tmp aggiornato. Probe: zero re-pin (i 18 check sono tutti a livello hlp\_plot,
   nessuno tocca il worker/test). Reflow ultimo. Suite flat 1115/0/24 (cella 9/0/0/0/0 invariata).
   Restano 3 coppie: da wrk\_zed a wrk\_save.
+- D-507 (wrk\_positions, un solo D — side pass): sorgente 216 -> 225: i 2 docstring mancanti
+  (\_up/\_down), il factory normalizzato, le 9 ws-lines M3-leftover spazzate (il blocco import + il
+  body di is\_cache\_consistent; il probe A6 le documentava come “lasciate” — il comment
+  aggiornato), le 5 code lines >120 split byte-identiche (la più insidiosa: L170, il
+  tuple-expression dentro l'f-string NON può spannare due literals adiacenti — SyntaxError al primo
+  parse — risolta con plain + f + plain), i 2 tag D-143 rimossi comment + docstring, la EOF blank.
+  Test 311 -> 307: il header 2 bare #, i 2 import morti (os + numpy — mai usati), il comment stantio
+  “the slot is 03” -> 04 (il file è rlmwf\_04), la class docstring 8 -> 4 (il label D4a-g non esiste
+  nel probe — ri-worded come division of labor). Source doc 97 -> 99: header in canone (step 4), il
+  tag D-282 tolto, i riferimenti A7/A8/D8 disambiguati a verify\_vld\_positions (sono del probe VLD,
+  non dei 21 check qui). Probe: zero re-pin (i pin strutturali A6 — il return di \_up + i 2 blank —
+  intatti; solo il comment di A6 aggiornato). R-850: esente, il \_down è pinned a runtime dall'A3.
+  Reflow ultimo. Suite flat 1115/0/24 (cella 12/0/0/0/0 invariata). Restano 3 coppie: da wrk\_zed a
+  wrk\_save.
