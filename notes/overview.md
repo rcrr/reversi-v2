@@ -116,8 +116,9 @@ define the evaluation function.
   missing docstrings + the factory + the first dead name import of the cascade, the unused LMIndexes + the
   spurious-space fidelity fix); wrk\_optimize the D-504 pass (the 2 missing docstrings + the R-520 code-line praxis
   correction + the test-doc chain fix + the first probe-fidelity fix); wrk\_wmaps the D-505 pass (the 2 missing
-  docstrings + the R-850 down micro-test — first cell change, 4/0/0, suite 1115 — + the 11 probe re-pins); the 3
-  remaining worker pairs: wrk\_zed, wrk\_vld\_positions, wrk\_save.
+  docstrings + the R-850 down micro-test — first cell change, 4/0/0, suite 1115 — + the 11 probe re-pins); wrk\_plot
+  the D-506 side pass (the broken license header restored + the R-760 mkdtemp to TemporaryDirectory conversion + the
+  false TOP-20 report claim dropped); the 3 remaining worker pairs: wrk\_zed, wrk\_vld\_positions, wrk\_save.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

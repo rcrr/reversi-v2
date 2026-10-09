@@ -2952,3 +2952,18 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   probe più brittle per gli indici assoluti). Cella 3/0/0 -> 4/0/0, suite 1115/0/24 — il PRIMO
   incremento della cascata (il gate pre-commit aveva giusto marcato RED l'overview stantia). Reflow
   ultimo. Restano 3 coppie: da wrk\_zed a wrk\_save.
+- D-506 (wrk\_plot, un solo D — side pass): sorgente 130 -> 134: i 2 docstring mancanti
+  (\_up/\_down), il factory normalizzato, e il LICENSE HEADER GUASTO ripristinato (“WITHOUT ANY
+  WARRANTY; or the implied warranty” — mancava il “without even” del testo GPL standard; la prima
+  riparazione di header della cascata) + il comment header stantio (“the last active one” — PLOT è
+  il 18°, dopo c'è FINAL\_LOG\_PRINT). Test 306 -> 299: il header 3 bare # + il titolo deviato “PLOT
+  worker” -> canone wrk\_plot, e la conversione R-760 (mkdtemp + shutil.rmtree ->
+  TemporaryDirectory, cleanup difensivo) — il sentinella era il golden parity: il nome mkdtemp
+  cambia ad ogni run e il golden è stabile, quindi il path non è nei byte PNG; suite OK,
+  byte-neutra. Class docstring compressa 9 -> 4. Source doc 84 -> 85: header in canone (step 18, la
+  claim “the LAST active level” stantia), la claim FALSA del TOP-20 outlier report tolta (sono i log
+  di CLIENT\_CHECK, non del PLOT — verificato sul sorgente), 19 -> 18 check del probe (contati), lo
+  spazio spurio, “the terminal level” corretto, lo slot rlmwf\_ /19 aggiunto all'enumerazione. Test
+  doc: l'idiom tmp aggiornato. Probe: zero re-pin (i 18 check sono tutti a livello hlp\_plot,
+  nessuno tocca il worker/test). Reflow ultimo. Suite flat 1115/0/24 (cella 9/0/0/0/0 invariata).
+  Restano 3 coppie: da wrk\_zed a wrk\_save.

@@ -1257,3 +1257,24 @@ D-505 | 2026-10-07 | The wrk\_wmaps source + test + mirror-docs + probe pass: (1
          indices measured after the reflow. Cell 3/0/0 -> 4/0/0 (the first cell change of the cascade — the pre-commit
          overview auditor caught the stale 3/0/0 cell before the commit), suite 1115/0/24. Reflow last (canonical on
          both files).
+
+D-506 | 2026-10-07 | The wrk\_plot source + test + mirror-docs pass (side pass): (1) source 130 -> 134: the 2 missing
+         docstrings added (`_up` / `_down`), the factory first line normalized to the imperative, the BROKEN LICENSE
+         HEADER restored ("WITHOUT ANY WARRANTY; or the implied warranty of" — the "without even" of the house GPL text
+         was missing; the first header repair of the cascade), and the stale header comment ("the last active one" —
+         PLOT is the 18th level, FINAL\_LOG\_PRINT is 19th). (2) test 306 -> 299: the header's 3 bare '#' collapsed to
+         the house shape and the deviant title ("How to run the PLOT worker unit tests.") normalized to the wrk\_plot
+         canon; the R-760 idiom conversion — `tempfile.mkdtemp` + `shutil.rmtree` to `TemporaryDirectory` with the
+         defensive `getattr` cleanup (the `shutil` import became dead and was dropped). The parity rendering golden is
+         the sentry: the mkdtemp name varies per run while the pinned sha3 is stable, so the path is provably NOT in the
+         PNG bytes — the conversion is byte-neutral, confirmed by the suite passing. The 9-line class docstring
+         compressed to 4. (3) the source mirror doc 84 -> 85: the header canon (the 18th active level, step 18 — the
+         stale "the LAST active level" claim dropped), the FALSE TOP-20 extreme-outlier report claim dropped (PLOT logs
+         only its five own lines — verified on the source; the TOP-20 report is CLIENT\_CHECK's behavior), the probe
+         count corrected 19 -> 18 checks (counted: A1-5 + B1-6 + C1-7; the test doc already said 18), the spurious-space
+         fix after the opening paren in the `hlp_plot` quote, the "the terminal level" stale claim corrected (the last
+         artifact-producing level; FINAL\_LOG\_PRINT follows), and the rlmwf no-cache slot enumeration completed (/19
+         added). (4) the test mirror doc 49 -> 49: the tmp-file idiom description updated to the TemporaryDirectory
+         shape. (5) the probe: ZERO re-pins — all 18 checks live at the hlp\_plot level (the builders, the pdf/png pair,
+         the determinism, the jitter/KDE/EGV guards, the PlotConfig defaults); none touches the worker or the test file.
+         Reflow last (canonical on both files). No cell change (9/0/0/0/0), suite flat 1115/0/24.
