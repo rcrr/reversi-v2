@@ -21,7 +21,9 @@ USAGE (from the workspace root):
   .venv/bin/python wsutils/docs_format_audit.py             summary by kind
   .venv/bin/python wsutils/docs_format_audit.py --verbose   per file
 
-Origin: D-239 (the mirror-format audit); promoted to tools/ at D-248.
+SAFETY: writes nothing (a read-only report on stdout).
+
+ORIGIN: D-239 (the mirror-format audit); promoted to tools/ at D-248.
 """
 
 import os

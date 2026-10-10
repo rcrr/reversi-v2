@@ -35,7 +35,7 @@ USAGE (from the workspace root):
 
 SAFETY: writes nothing. A read-only per-file report on stdout; exit 0 (green) / 1 (red).
 
-Origin: D-365 (born directly in tools/ — the decisions, register and journal linters); D-367 (the full-format
+ORIGIN: D-365 (born directly in tools/ — the decisions, register and journal linters); D-367 (the full-format
 extension: the overview, the domain rule files, the ideas); D-368 (the closed volumes green, the historical
 linter extensions); D-484 (the LISTMARK line-start code).
 """
@@ -322,7 +322,8 @@ def lint_design(path, lines, text):
             elif kind == 'title':
                 if not seen:
                     if b != 1:
-                        v.append((n, 'DPSPACE', f'{b} blank line(s) between the intro and the first principle (must be 1)'))
+                        v.append((n, 'DPSPACE',
+                                  f'{b} blank line(s) between the intro and the first principle (must be 1)'))
                 elif last_kind == 'desc' and b != 2:
                     v.append((n, 'DPSPACE', f'{b} blank line(s) between two principles (must be 2)'))
                 elif last_kind == 'title' and b != 2:
@@ -335,7 +336,8 @@ def lint_design(path, lines, text):
                 if last_kind == 'section':
                     v.append((n, 'DPSPACE', 'a section header directly follows another (empty section)'))
                 elif last_kind == 'title' and b != 2:
-                    v.append((n, 'DPSPACE', f'{b} blank line(s) before a section after a one-line principle (must be 2)'))
+                    v.append((n, 'DPSPACE',
+                              f'{b} blank line(s) before a section after a one-line principle (must be 2)'))
                 elif last_kind == 'desc' and b != 1:
                     v.append((n, 'DPSPACE', f'{b} blank line(s) before a section header (must be 1)'))
         if kind in ('title', 'section'):

@@ -92,6 +92,7 @@ def norm(s):
 # The docstring pass
 # ---------------------------------------------------------------------
 
+
 def docstring_nodes(tree):
     out = []
     for n in ast.walk(tree):
@@ -313,6 +314,7 @@ def reformat_docstring(raw):
 # never touched)
 # ---------------------------------------------------------------------
 
+
 def reflow_comments(lines, doc_lines):
     # The spans address the ORIGINAL line numbers; the live list shifts as the runs are re-wrapped,
     # so the numbers travel with the lines.
@@ -379,6 +381,7 @@ def reflow_comments(lines, doc_lines):
 # ---------------------------------------------------------------------
 # The per-file transform + verification
 # ---------------------------------------------------------------------
+
 
 def transform(source):
     """

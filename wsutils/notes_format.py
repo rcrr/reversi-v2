@@ -34,7 +34,11 @@ USAGE (from the workspace root):
   .venv/bin/python wsutils/notes_format.py --check notes/overview.md ...
   .venv/bin/python wsutils/notes_format.py --write notes/*.md
 
-Origin: the D-237 reform (the notes/ tree) and D-238 (the docs/ mirrors);
+SAFETY: the DEFAULT is a report (nothing is written): the per-file verification (the
+content fingerprint, the idempotence, the fixpoint) on stdout; the passed files are
+rewritten ONLY with --write (after that verification).
+
+ORIGIN: the D-237 reform (the notes/ tree) and D-238 (the docs/ mirrors);
 promoted to tools/ at D-248.
 """
 
