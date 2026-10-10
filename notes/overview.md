@@ -122,7 +122,8 @@ define the evaluation function.
   over-120 code lines split — the f-string tuple lesson — + the 2 D-tags dropped); wrk\_save the D-508 pass (the only
   module with no dedicated test file by design — coverage: the 18-check probe + the 9-test full-chain — + the stale
   step-18 claim corrected to 19); wrk\_su\_analysis the D-509 side pass (the cleanest module — the module docstring
-  dropped + the 4 D-tag refs dropped); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
+  dropped + the 4 D-tag refs dropped); wrk\_validate the D-510 side pass (the class docstring's wrong cache slot
+  corrected, rlmwf\_12 -> 14 + the 3 D-150 tags dropped); the 2 remaining worker pairs: wrk\_zed, wrk\_vld\_positions.
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

@@ -1340,3 +1340,23 @@ D-509 | 2026-10-07 | The wrk\_su\_analysis source + test + mirror-docs pass (sid
          exempt — no micro-test). (6) the probe: zero re-pins (44 checks, 0 mismatches post-pass; the worker pins
          A1/A4/A5 are untouched by these edits). Reflow last (canonical on both files). No cell change (10/0/1/1/0),
          suite flat 1115/0/24.
+
+D-510 | 2026-10-07 | The wrk\_validate source + test + mirror-docs pass (side pass): (1) source 118 -> 121: the 2
+         missing docstrings added (`_up` / `_down`), the factory first line normalized to the imperative, and the
+         2 D-150 tags dropped from the source (the `_outlier_records` docstring — 'the D-150 report's data' — and the
+         report comment — a third D-150 sat in the test doc's coverage row and was dropped there; the outlier-report
+         fact kept everywhere, the tags gone). (2) test 345 -> 332: the header's 2 bare '#' collapsed to 1, the dead
+         `import os` dropped, and the module's headline finding — the `TestLMWorkerValidate` class docstring said 'the
+         `rlmwf_12` slot stays unused' when VALIDATE's slot is 14 (12 is GENERATE's); corrected and the 6-line docstring
+         compressed to 3. The 2 heavy provenance docstrings compressed (the 11-line outlier report: the 'MOVED to
+         VALIDATE' annotation gone, 11 -> 5; the 9-line zero-guard: the state-machine line-ref gone, 9 -> 5); the
+         hand-computed case's derivation docstring left as-is (it records the exact-value golden). (3) the source mirror
+         doc 71 -> 72: the header canon (the 14th active level, step 14) and the orphan claim dropped — 'the docstring
+         indicator is 1.253' (no 1.253 exists in any artifact; the live pin is 1.27 and the real ratio 15.463/12.162
+         = 1.2715). The division-of-labor claim in the test doc was VERIFIED faithful to the current probe (the C tier
+         retains exactly C4 + C5 for the live-DB tier; D2 is a no-DB D-tier check; B1-B3 / C1-C3 / D1 / D3 all migrated
+         to the test file — mapped the probe's 4 tiers) — no change needed. The 6 cache-hits count is consistent with
+         the D-508 SU opt-in finding. (4) the test mirror doc 37 -> 37: the D-150 tag dropped from the coverage row. (5)
+         the probe: zero re-pins (18 checks, all green post-pass; A2 pins the decorator+def adjacency and A9 the 4
+         assignment counts — both untouched). R-850 exempt: `test_down_clears_vld_metrics` pins the down (9-test suite.
+         Reflow last (canonical on both files). No cell change (9/0/0/0/0), suite flat 1115/0/24.

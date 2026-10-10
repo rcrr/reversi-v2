@@ -3009,3 +3009,17 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   completa (10 test: 9 no-DB + 1 VLONG, il down pinned). Probe: zero re-pin (44 check, 0 mismatch —
   A1/A4/A5 non toccati). Reflow ultimo. Suite flat 1115/0/24. Restano 2 coppie: wrk\_zed,
   wrk\_vld\_positions.
+- D-510 (wrk\_validate, un solo D — side pass): sorgente 118 -> 121: i 2 docstring mancanti
+  (\_up/\_down), il factory normalizzato, i 2 tag D-150 tolti dal sorgente (docstring di
+  \_outlier\_records + comment del report; un terzo era nel test doc — tolto lì). Test 345 -> 332:
+  il header 2 bare #, l'import os morto, e il FOUND DEL MODULO: la class docstring diceva “rlmwf\_12
+  slot stays unused” — lo slot di VALIDATE è il 14 (il 12 è di GENERATE) — corretto + compressa 6 ->
+  3; le 2 docstring di provenance compresse (11 -> 5 con “MOVED to VALIDATE” fuori, 9 -> 5 con il
+  line-ref state\_machine L87-90 fuori); la docstring-derivazione del case hand-computed l'ho
+  lasciata (registra il golden). Source doc 71 -> 72: header in canone (step 14), la claim ORFANARIA
+  “the docstring indicator is 1.253” tolta (il pin live è 1.27, il ratio reale 1.2715 — nessun 1.253
+  in nessun artefatto). La division-of-labor del test doc (“the probe retains only C4 + C5 for the
+  live-DB tier”) è VERIFICATA fedele al probe attuale (C-tier = C4/C5, D2 è no-DB). Il count dei 6
+  cache-hits è coerente col finding D-508 (SU opt-in). Probe: zero re-pin (18 check verdi; A2 pinna
+  decorator+def adjacency, A9 i 4 assignment — intatti). Reflow ultimo. Suite flat 1115/0/24 (cella
+  9/0/0/0/0). Restano 2 coppie: wrk\_zed, wrk\_vld\_positions.
