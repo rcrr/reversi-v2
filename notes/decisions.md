@@ -1406,3 +1406,26 @@ D-512 | 2026-10-07 | The wrk\_zed source + test + mirror-doc + probe pass (the L
          test\_down\_clears\_zed\_attributes pins the down (4 attrs None + step 8 + DESIGN\_MTR name) in the 3-test
          suite. Reflow last (the source was already canonical; the test 165 -> 160). No cell change (3/0/0/0/0), suite
          flat 1115/0/24.
+
+D-513 | 2026-10-07 | The full probes sweep (one D for the whole sweep, per the user's call): all 24 probes in probes/
+         (6.895 lines, ~787 checks) audited and house hygiene applied across 22 files (`verify_plot` +
+         `verify_wrk_config` needed nothing — the 2 already-clean files). (1) Functionality: every probe runs green
+         (exit 0, no FAIL, 0 mismatch) BEFORE and AFTER the fixes. (2) the ~51 over-120 code lines split (the R-520
+         ceiling): label strings into adjacent string literals, read()/count() calls wrapped — no value change anywhere;
+         this includes the 4 verify\_zed labels that the D-512 re-pin had left over-length (136/146/122/125 — my own
+         over-length from that pass, repaired here). (3) the 19 E301 spots fixed (top-level defs with exactly 1 blank
+         line: wrk\_positions 7, pidx 3, feature 2, pattern\_tests2 2, zed 2, hlp\_indexes / logistic\_model /
+         wrk\_features 1 each). (4) the 10 dead imports dropped (wrk\_features 5: json5, types, Relevance, LMConfig, lwf
+         — the worst file; pattern\_tests2 2: Square, `square_as_bitboard`; hlp\_indexes json5; logistic\_model
+         BaseModel; save os; wrk\_positions os; mobility `bitboard_count`). (5) the 2 SyntaxWarning files fixed
+         (verify\_anova + verify\_su\_analysis): the strings that pin the overview.md text (which carries the markdown
+         \_ escapes) made RAW strings — the \_ is intentional content, the value is unchanged, the warning is gone. (6)
+         the 11 stale 'Run: .venv/bin/python scratch/`verify_X.py`' header paths corrected to probes/ (session-20-era
+         leftovers from when the files lived in scratch/; `probe_rules` §2: probes live in probes/). Non-findings
+         verified and deliberately left: the verify\_mobility sections style (documented in its mirror doc: 'the 5
+         active sections: 1, 2, 3, 4, 6' — no check() framework by design), the shebang/docstring header variety (no
+         probe canon in `probe_rules.md` or rules.md prescribes one — a cross-cutting restyle would be an unprescribed
+         change), the D-tag campaign markers in labels (probes are outside R-540 by design), the 2 E261 hits (string
+         contents, not comments), the PEP 563 future imports. Post-sweep: all 24 probes re-run green; the static scan is
+         clean (0 over-120, 0 E301, 0 SyntaxWarning). The suite is untouched (the probes are outside it): flat
+         1115/0/24.

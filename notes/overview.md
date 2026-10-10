@@ -125,7 +125,8 @@ define the evaluation function.
   dropped + the 4 D-tag refs dropped); wrk\_validate the D-510 side pass (the class docstring's wrong cache slot
   corrected, rlmwf\_12 -> 14 + the 3 D-150 tags dropped); wrk\_vld\_positions the D-511 side pass (the 5 over-120 code
   lines + the 13th wrong cache slot corrected + the probe A6 re-pin); wrk\_zed the D-512 pass — the LAST worker pair:
-  the worker cascade is COMPLETE (every worker module passed; the probe B/C re-pin was the heaviest of the cascade).
+  the worker cascade is COMPLETE (every worker module passed; the probe B/C re-pin was the heaviest of the cascade). The
+  probes sweep (D-513) then left all 24 probes green and house-clean (22 files).
 - The register re-review (the user); the guard rule text (R-200) awaits the user's call.
 
 ## Source files

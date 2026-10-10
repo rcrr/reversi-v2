@@ -3046,3 +3046,21 @@ Format rules: notes/log_rules.md (rigid — follow when editing this file).
   L153-156. Tier A/F/G intatti (hlp\_zed + test\_hlp\_zed non toccati). Reflow ultimo (src era già
   canonical; test 165 -> 160). Suite flat 1115/0/24 (cella 3/0/0/0/0). Restano 0 coppie: la cascata
   worker è completa (tutti i moduli worker passati).
+- D-513 (sweep delle PROBE, un solo D per tutto su richiesta): audit completo di tutti i 24 probe
+  (6.895 righe, ~787 check) — **tutti e 24 funzionanti** (exit 0, nessun FAIL, 0 mismatch, prima e
+  dopo le fix). Fix applicate (22 file toccati; plot + wrk\_config erano già puliti): ~51 code lines
+  >120 spaccate (label in concatenazione di stringhe adiacenti + chiamate read()/count() wrap —
+  nessun cambio di valore; incluse le 4 label di verify\_zed che io stesso avevo allungato oltre il
+  ceiling nel re-pin di D-512), le 19 E301 (def top-level con 1 sola blank line — wrk\_positions 7,
+  pidx 3, feature 2, pattern\_tests2 2, zed 2, hlp\_indexes 1, logistic\_model 1, wrk\_features 1),
+  i 10 import morti tolti (wrk\_features 5: json5/types/Relevance/LMConfig/lwf — il peggior file;
+  pattern\_tests2 2; hlp\_indexes, logistic\_model, save, wrk\_positions, mobility 1 a testa), i 2
+  SyntaxWarning fixati (verify\_anova + verify\_su\_analysis: le stringhe che pinnano il testo
+  markdown dell'overview — con gli escape \_ — resse raw, valore invariato), e gli 11 header stantii
+  “Run: .venv/bin/python scratch/verify\_X.py” corretti a probes/ (residui dell'era session-20 —
+  quando vivevano in scratch/; §2: i probe stanno in probes/). Non-found verificati e lasciati: lo
+  stile a sezioni di verify\_mobility (documentato nel suo mirror doc), la varietà degli header
+  shebang/docstring (nessun canone per i probe prescrive uno stile), i marker di campagna D-tag nei
+  label (i probe sono fuori R-540), gli E261 (contenuto di stringhe, non commenti), gli import PEP
+  563. Post-sweep: tutti i 24 probe ri-esecuiti GREEN, scan statico pulito (0 over-120, 0 E301, 0
+  SyntaxWarning). Suite intatta: 1115/0/24.
